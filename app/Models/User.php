@@ -61,6 +61,16 @@ class User extends Authenticatable {
             ->setDescriptionForEvent(fn(string $eventName) => "Usuario {$eventName}");
     }
 
+    public function requestDeletion(): void {
+        $this->deletion_requested_at = now();
+        $this->deletion_approved = false;
+        $this->save();
+
+        activity()
+            ->performedOn($this)
+            ->log('Solicitó baja de cuenta');
+    }
+
     public function approveDeletion(): void {
         $this->deletion_approved = true;
         $this->deleted_at = now();
@@ -83,5 +93,10 @@ class User extends Authenticatable {
 
     public function hasRequestedDeletion(): bool {
         return !is_null($this->deletion_requested_at) && !$this->deletion_approved;
+    }
+
+    public function scopeWithPendingDeletion($query) {
+        return $query->whereNotNull('deletion_requested_at')
+            ->where('deletion_approved', false);
     }
 }

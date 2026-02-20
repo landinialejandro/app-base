@@ -16,9 +16,8 @@
                 class="block mt-1 w-full"
                 type="email"
                 name="email"
-                :value="old('email', $email ?? '')" {{-- ESTA ES LA LÍNEA IMPORTANTE --}}
-                required
-                readonly={{ !empty($email) }} /> {{-- Solo lectura si viene de invitación --}}
+                :value="old('email', $email ?? '')"
+                required />
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 

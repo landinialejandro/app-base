@@ -3,6 +3,7 @@
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\InvitationController;
 use App\Http\Controllers\DeletionController;
+use App\Http\Controllers\UserDeletionController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -42,6 +43,16 @@ Route::middleware(['auth'])->group(function () {
     // Cierre de empresa (solo creador)
     Route::post('/organization/{organization}/close', [DeletionController::class, 'closeOrganization'])
         ->name('organization.close');
+});
+
+Route::middleware(['auth'])->group(function () {
+    // Rutas para solicitud de baja
+    Route::get('/deletion/request', [UserDeletionController::class, 'showForm'])
+        ->name('deletion.form');
+    Route::post('/deletion/request', [UserDeletionController::class, 'submitRequest'])
+        ->name('deletion.request');
+    Route::post('/deletion/cancel', [UserDeletionController::class, 'cancelRequest'])
+        ->name('deletion.cancel');
 });
 
 require __DIR__ . '/auth.php';

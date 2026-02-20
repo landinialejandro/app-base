@@ -38,12 +38,29 @@
                             {{ __('Profile') }}
                         </x-dropdown-link>
 
+                        @if(!auth()->user()->is_platform_admin)
+                        <x-dropdown-link :href="route('deletion.form')">
+                            {{ __('Solicitar Baja') }}
+                        </x-dropdown-link>
+                        @endif
+                        <!-- Si el usuario tiene solicitud pendiente, mostrar opción de cancelar -->
+                        @if(auth()->user()->hasRequestedDeletion())
+                        <x-dropdown-link :href="route('deletion.cancel')"
+                            onclick="event.preventDefault(); document.getElementById('cancel-deletion-form').submit();">
+                            {{ __('Cancelar Solicitud de Baja') }}
+                        </x-dropdown-link>
+
+                        <form id="cancel-deletion-form" method="POST" action="{{ route('deletion.cancel') }}" class="hidden">
+                            @csrf
+                        </form>
+                        @endif
+
                         <!-- Authentication -->
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
 
                             <x-dropdown-link :href="route('logout')"
-                                    onclick="event.preventDefault();
+                                onclick="event.preventDefault();
                                                 this.closest('form').submit();">
                                 {{ __('Log Out') }}
                             </x-dropdown-link>
@@ -89,7 +106,7 @@
                     @csrf
 
                     <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault();
+                        onclick="event.preventDefault();
                                         this.closest('form').submit();">
                         {{ __('Log Out') }}
                     </x-responsive-nav-link>

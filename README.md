@@ -1,59 +1,194 @@
 <p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+# Aplicación Base Multi-Organización
 
-## About Laravel
+Sistema base reutilizable con autenticación, multi-organización, roles y permisos, desarrollado con Laravel 12 y Filament.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+## ✨ Características Principales
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+### 🔐 Autenticación y Seguridad
+- Login/registro con email y contraseña (gestionado por Filament)
+- Verificación de email obligatoria
+- Email único en toda la base de datos
+- Rate limiting en login
+- Preparado para 2FA a futuro
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+### 🏢 Multi-organización
+- Registro crea automáticamente una organización
+- Usuario pertenece a una sola organización
+- Cada organización es independiente
+- Superadmin de plataforma con acceso global
 
-## Learning Laravel
+### 👥 Roles y Permisos
+- **Admin**: Fundador de la organización, gestión completa
+- **Supervisor**: Permisos intermedios
+- **User**: Usuario básico
+- **Superadmin**: Acceso global a todas las organizaciones
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+### 📧 Invitaciones y Aprobaciones
+- Admin invita usuarios por email
+- Link único con token de 7 días
+- Usuario invitado queda pendiente de aprobación
+- Admin aprueba/rechaza nuevos usuarios
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+### 🔄 Gestión de Bajas
+- Usuarios pueden solicitar su baja
+- Admin aprueba/rechaza solicitudes
+- Soft delete implementado (los datos se conservan)
+- Cierre de empresa solo por el creador (baja masiva de usuarios)
 
-## Laravel Sponsors
+### 📊 Paneles Administrativos
+- **Panel Usuarios** (`/app`): Dashboard personalizado por rol
+- **Panel Superadmin** (`/super`): Gestión global de organizaciones
+- Estadísticas en tiempo real
+- Filtros avanzados
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+### 📈 Auditoría
+- Registro de logins exitosos/fallidos
+- IP y user-agent guardados
+- Acciones sensibles de admin registradas
+- Logs inmutables con ActivityLog
 
-### Premium Partners
+## 🛠️ Tecnologías Utilizadas
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+- **Laravel 12** - Framework PHP
+- **Filament 3** - Panel administrativo profesional
+- **MySQL** - Base de datos
+- **Tailwind CSS** - Estilos
+- **Spatie Activity Log** - Auditoría
 
-## Contributing
+## 📋 Estructura del Proyecto
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```
+app-base/
+├── app/
+│   ├── Filament/
+│   │   ├── User/          # Panel de usuarios (/app)
+│   │   └── Super/         # Panel superadmin (/super)
+│   ├── Http/
+│   │   ├── Controllers/   # Controladores personalizados
+│   │   └── Middleware/    # Middleware de organización
+│   ├── Models/
+│   │   ├── User.php       # Con roles y organización
+│   │   ├── Organization.php
+│   │   └── Invitation.php
+│   └── Providers/
+│       └── Filament/       # Configuración de paneles
+├── database/
+│   ├── migrations/         # Estructura completa
+│   └── seeders/
+│       └── DatabaseSeeder.php # Datos de prueba
+└── resources/
+    └── views/              # Vistas (welcome personalizada)
+```
 
-## Code of Conduct
+## 🚀 Instalación
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+```bash
+# Clonar repositorio
+git clone [tu-repositorio]
+cd app-base
 
-## Security Vulnerabilities
+# Instalar dependencias PHP
+composer install
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+# Instalar dependencias frontend
+npm install && npm run build
 
-## License
+# Configurar entorno
+cp .env.example .env
+# Editar .env con tus datos de base de datos
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+# Generar clave
+php artisan key:generate
+
+# Ejecutar migraciones y seeders
+php artisan migrate --seed
+
+# Iniciar servidor
+php artisan serve
+```
+
+## 🔑 Credenciales de Prueba
+
+### Superadmin
+- **URL:** `/super/login`
+- **Email:** `super@admin.com`
+- **Password:** `admin123`
+
+### Admin Organización
+- **URL:** `/app/login`
+- **Email:** `admin@demo.com`
+- **Password:** `password`
+
+### Usuario Normal
+- **URL:** `/app/login`
+- **Email:** `user@demo.com`
+- **Password:** `password`
+
+## 📱 Accesos Rápidos
+
+| Sección | URL |
+|---------|-----|
+| Página principal | `/` |
+| Login usuarios | `/app/login` |
+| Registro usuarios | `/app/register` |
+| Dashboard usuarios | `/app` |
+| Login superadmin | `/super/login` |
+| Panel superadmin | `/super` |
+| Gestión organizaciones | `/super/organizations` |
+
+## 🔒 Seguridad
+
+- Middleware de organización que verifica:
+  - Usuario pertenece a organización activa
+  - Usuario está aprobado
+  - Organización no está bloqueada
+- Soft deletes en usuarios
+- Email único global
+- Bloqueo de organizaciones por superadmin
+
+## 📊 Funcionalidades por Rol
+
+### Admin
+- ✅ Invitar usuarios
+- ✅ Aprobar/rechazar nuevos usuarios
+- ✅ Gestionar solicitudes de baja
+- ✅ Ver estadísticas de organización
+
+### Supervisor
+- ✅ Acceso a reportes
+- ✅ Gestión limitada de usuarios
+
+### Usuario
+- ✅ Dashboard personal
+- ✅ Solicitar baja de cuenta
+- ✅ Editar perfil
+
+### Superadmin
+- ✅ Ver todas las organizaciones
+- ✅ Bloquear/activar organizaciones
+- ✅ Estadísticas globales
+- ✅ Auditoría completa
+
+## 🗺️ Roadmap
+
+- [x] Autenticación básica
+- [x] Multi-organización
+- [x] Roles y permisos
+- [x] Invitaciones por email
+- [x] Aprobación de usuarios
+- [x] Solicitud y gestión de bajas
+- [x] Paneles Filament unificados
+- [x] Superadmin con estadísticas globales
+- [ ] Login social (Google, Microsoft)
+- [ ] 2FA
+- [ ] API REST
+
+## 📄 Licencia
+
+Este es un proyecto base desarrollado para fines educativos y como punto de partida para aplicaciones empresariales. Puedes adaptarlo según tus necesidades.
+
+---
+
+**Desarrollado con** ❤️ **usando Laravel y Filament**

@@ -56,7 +56,7 @@ class DeletionController extends Controller {
         // Cerrar sesión del usuario actual si pertenece a esta empresa
         if (auth()->user()->organization_id === $organization->id) {
             auth()->logout();
-            return redirect()->route('login')
+            return redirect()->route('/app/login')
                 ->with('success', 'La empresa ha sido cerrada. Contacta al creador para más información.');
         }
 

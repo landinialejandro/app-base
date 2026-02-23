@@ -25,21 +25,21 @@ class OrganizationScope
         // Verificar que el usuario tenga organización
         if (!$user->organization) {
             auth()->logout();
-            return redirect()->route('login')
+            return redirect()->route('/app/login')
                 ->withErrors(['email' => 'No tienes organización asignada.']);
         }
         
         // Verificar que la organización esté activa
         if (!$user->organization->is_active || $user->organization->isBlocked()) {
             auth()->logout();
-            return redirect()->route('login')
+            return redirect()->route('/app/login')
                 ->withErrors(['email' => 'Organización no disponible. Contacta al administrador.']);
         }
         
         // Verificar que el usuario esté aprobado
         if (!$user->isApproved()) {
             auth()->logout();
-            return redirect()->route('login')
+            return redirect()->route('/app/login')
                 ->withErrors(['email' => 'Tu cuenta está pendiente de aprobación.']);
         }
         

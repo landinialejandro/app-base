@@ -22,7 +22,6 @@ class SuperPanelProvider extends PanelProvider {
         return $panel
             ->id('super')
             ->path('super')
-            ->login()
             ->colors([
                 'primary' => '#7C3AED', // Púrpura para diferenciar
             ])

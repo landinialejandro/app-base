@@ -26,21 +26,21 @@ class CheckOrganizationAccess
         // Verificar 1: ¿Tiene organización?
         if (!$user->organization) {
             auth()->logout();
-            return redirect()->route('login')
+            return redirect()->to('/app/login')
                 ->withErrors(['email' => 'Error: Usuario sin organización.']);
         }
 
         // Verificar 2: ¿Organización activa?
         if (!$user->organization->is_active) {
             auth()->logout();
-            return redirect()->route('login')
+            return redirect()->to('/app/login')
                 ->withErrors(['email' => 'Organización inactiva. Contacta al administrador.']);
         }
 
         // Verificar 3: ¿Usuario aprobado?
         if (!$user->approved_at) {
             auth()->logout();
-            return redirect()->route('login')
+            return redirect()->to('/app/login')
                 ->withErrors(['email' => 'Cuenta pendiente de aprobación.']);
         }
 

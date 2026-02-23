@@ -19,13 +19,14 @@ use Illuminate\Session\Middleware\StartSession;
 use Illuminate\View\Middleware\ShareErrorsFromSession;
 use App\Filament\Widgets\PendingDeletions;
 
-class AdminPanelProvider extends PanelProvider {
-    public function panel(Panel $panel): Panel {
+class AdminPanelProvider extends PanelProvider
+{
+    public function panel(Panel $panel): Panel
+    {
         return $panel
             ->default()
             ->id('admin')
             ->path('admin')
-            ->login()
             ->colors([
                 'primary' => Color::Amber,
             ])
@@ -38,6 +39,7 @@ class AdminPanelProvider extends PanelProvider {
             ->widgets([
                 Widgets\AccountWidget::class,
                 Widgets\FilamentInfoWidget::class,
+                PendingDeletions::class, // Añadido aquí, no en un array nuevo
             ])
             ->middleware([
                 EncryptCookies::class,
@@ -52,10 +54,6 @@ class AdminPanelProvider extends PanelProvider {
             ])
             ->authMiddleware([
                 Authenticate::class,
-            ])
-            ->widgets([
-                PendingDeletions::class,
-                // otros widgets...
             ]);
     }
 }

@@ -22,13 +22,12 @@ class UserPanelProvider extends PanelProvider
     {
         return $panel
             ->id('user')
-            ->path('app') // URL: /dashboard
-            ->login()
-            ->registration() // Habilita /dashboard/register_shutdown_function
+            ->path('app')
+            ->registration()
             ->passwordReset()
             ->emailVerification()
             ->colors([
-                'primary' => '#2563eb', // Azul para usuarios
+                'primary' => '#2563eb',
             ])
             ->brandName('Mi App-base')
             ->navigationGroups([
@@ -38,6 +37,10 @@ class UserPanelProvider extends PanelProvider
             ->discoverResources(in: app_path('Filament/User/Resources'), for: 'App\\Filament\\User\\Resources')
             ->discoverPages(in: app_path('Filament/User/Pages'), for: 'App\\Filament\\User\\Pages')
             ->discoverWidgets(in: app_path('Filament/User/Widgets'), for: 'App\\Filament\\User\\Widgets')
+            ->pages([
+                \App\Filament\User\Pages\Profile::class,
+            ])
+            ->widgets([])
             ->middleware([
                 EncryptCookies::class,
                 AddQueuedCookiesToResponse::class,
@@ -51,7 +54,7 @@ class UserPanelProvider extends PanelProvider
             ])
             ->authMiddleware([
                 Authenticate::class,
-                'organization', // Middleware que ya tenemos
+                'organization',
             ]);
     }
 }

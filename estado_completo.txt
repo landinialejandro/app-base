@@ -1,0 +1,575 @@
+========== RUTAS ==========
+
+Warning: Module "intl" is already loaded in Unknown on line 0
+
+  GET|HEAD  / ....................................................................................................................................... 
+  GET|HEAD  admin ....................................................................... filament.admin.pages.dashboard › Filament\Pages › Dashboard
+  GET|HEAD  admin/login .......................................................................... filament.admin.auth.login › Filament\Pages › Login
+  POST      admin/logout .............................................................. filament.admin.auth.logout › Filament\Http › LogoutController
+  GET|HEAD  admin/users .................................. filament.admin.resources.users.index › App\Filament\Resources\UserResource\Pages\ListUsers
+  GET|HEAD  admin/users/create ......................... filament.admin.resources.users.create › App\Filament\Resources\UserResource\Pages\CreateUser
+  GET|HEAD  admin/users/{record}/edit ...................... filament.admin.resources.users.edit › App\Filament\Resources\UserResource\Pages\EditUser
+  GET|HEAD  app ....................................................................... filament.user.home › Filament\Http › RedirectToHomeController
+  GET|HEAD  app/dashboard ......................................................... filament.user.pages.dashboard › App\Filament\User\Pages\Dashboard
+  GET|HEAD  app/email-verification/prompt ................... filament.user.auth.email-verification.prompt › Filament\Pages › EmailVerificationPrompt
+  GET|HEAD  app/email-verification/verify/{id}/{hash} .... filament.user.auth.email-verification.verify › Filament\Http › EmailVerificationController
+  GET|HEAD  app/login ............................................................................. filament.user.auth.login › Filament\Pages › Login
+  POST      app/logout ................................................................. filament.user.auth.logout › Filament\Http › LogoutController
+  GET|HEAD  app/password-reset/request ............................ filament.user.auth.password-reset.request › Filament\Pages › RequestPasswordReset
+  GET|HEAD  app/password-reset/reset ....................................... filament.user.auth.password-reset.reset › Filament\Pages › ResetPassword
+  GET|HEAD  app/register .................................................................... filament.user.auth.register › Filament\Pages › Register
+  POST      deletion/approve/{user} ................................................................... deletion.approve › DeletionController@approve
+  POST      deletion/cancel .................................................................. deletion.cancel › UserDeletionController@cancelRequest
+  POST      deletion/reject/{user} ...................................................................... deletion.reject › DeletionController@reject
+  POST      deletion/request ................................................................ deletion.request › UserDeletionController@submitRequest
+  GET|HEAD  deletion/request ........................................................................ deletion.form › UserDeletionController@showForm
+  GET|HEAD  filament/exports/{export}/download ........................................ filament.exports.download › Filament\Actions › DownloadExport
+  GET|HEAD  filament/imports/{import}/failed-rows/download ...... filament.imports.failed-rows.download › Filament\Actions › DownloadImportFailureCsv
+  POST      invitations .............................................................................. invitations.store › InvitationController@store
+  GET|HEAD  invitations/create ..................................................................... invitations.create › InvitationController@create
+  GET|HEAD  invitations/{token} .................................................................... invitations.accept › InvitationController@accept
+  GET|HEAD  livewire/livewire.js ........................................................ Livewire\Mechanisms › FrontendAssets@returnJavaScriptAsFile
+  GET|HEAD  livewire/livewire.min.js.map .................................................................. Livewire\Mechanisms › FrontendAssets@maps
+  GET|HEAD  livewire/preview-file/{filename} ............................... livewire.preview-file › Livewire\Features › FilePreviewController@handle
+  POST      livewire/update ............................................. default.livewire.update › Livewire\Mechanisms › HandleRequests@handleUpdate
+  POST      livewire/upload-file ............................................. livewire.upload-file › Livewire\Features › FileUploadController@handle
+  POST      organization/{organization}/close ............................................. organization.close › DeletionController@closeOrganization
+  GET|HEAD  profile ........................................................................................... profile.edit › ProfileController@edit
+  PATCH     profile ....................................................................................... profile.update › ProfileController@update
+  DELETE    profile ..................................................................................... profile.destroy › ProfileController@destroy
+  GET|HEAD  storage/{path} ............................................................................................................ storage.local
+  PUT       storage/{path} ..................................................................................................... storage.local.upload
+  GET|HEAD  super .................................................................... filament.super.home › Filament\Http › RedirectToHomeController
+  GET|HEAD  super/dashboard ..................................................... filament.super.pages.dashboard › App\Filament\Super\Pages\Dashboard
+  GET|HEAD  super/login .......................................................................... filament.super.auth.login › Filament\Pages › Login
+  POST      super/logout .............................................................. filament.super.auth.logout › Filament\Http › LogoutController
+  GET|HEAD  super/organizations filament.super.resources.organizations.index › App\Filament\Super\Resources\OrganizationResource\Pages\ListOrganizat…
+  GET|HEAD  super/organizations/create filament.super.resources.organizations.create › App\Filament\Super\Resources\OrganizationResource\Pages\Creat…
+  GET|HEAD  super/organizations/{record} filament.super.resources.organizations.view › App\Filament\Super\Resources\OrganizationResource\Pages\ViewO…
+  GET|HEAD  super/organizations/{record}/edit filament.super.resources.organizations.edit › App\Filament\Super\Resources\OrganizationResource\Pages\…
+  GET|HEAD  up ...................................................................................................................................... 
+
+                                                                                                                                  Showing [46] routes
+
+\n\n========== WEB.PHP ==========
+<?php
+
+use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\InvitationController;
+use App\Http\Controllers\DeletionController;
+use App\Http\Controllers\UserDeletionController;
+use Illuminate\Support\Facades\Route;
+
+Route::get('/', function () {
+    return view('welcome');
+});
+
+Route::middleware('auth')->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');
+    Route::delete('/profile', [ProfileController::class, 'destroy'])->name('profile.destroy');
+});
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/invitations/create', [InvitationController::class, 'create'])->name('invitations.create');
+    Route::post('/invitations', [InvitationController::class, 'store'])->name('invitations.store');
+});
+
+Route::get('/invitations/{token}', [InvitationController::class, 'accept'])->name('invitations.accept');
+
+Route::middleware(['auth'])->group(function () {
+    // Usuario solicita su baja
+    Route::post('/deletion/request', [DeletionController::class, 'request'])
+        ->name('deletion.request');
+
+    // Admin aprueba/rechaza bajas
+    Route::middleware(['role:admin'])->group(function () {
+        Route::post('/deletion/approve/{user}', [DeletionController::class, 'approve'])
+            ->name('deletion.approve');
+        Route::post('/deletion/reject/{user}', [DeletionController::class, 'reject'])
+            ->name('deletion.reject');
+    });
+
+    // Cierre de empresa (solo creador)
+    Route::post('/organization/{organization}/close', [DeletionController::class, 'closeOrganization'])
+        ->name('organization.close');
+});
+
+Route::middleware(['auth'])->group(function () {
+    // Rutas para solicitud de baja
+    Route::get('/deletion/request', [UserDeletionController::class, 'showForm'])
+        ->name('deletion.form');
+    Route::post('/deletion/request', [UserDeletionController::class, 'submitRequest'])
+        ->name('deletion.request');
+    Route::post('/deletion/cancel', [UserDeletionController::class, 'cancelRequest'])
+        ->name('deletion.cancel');
+});
+
+\n\n========== PROFILE CONTROLLER ==========
+<?php
+
+namespace App\Http\Controllers;
+
+use App\Http\Requests\ProfileUpdateRequest;
+use App\Models\Organization;
+use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Redirect;
+use Illuminate\View\View;
+
+class ProfileController extends Controller {
+    /**
+     * Display the user's profile form.
+     */
+    public function edit(Request $request): View {
+        return view('profile.edit', [
+            'user' => $request->user(),
+        ]);
+    }
+
+    /**
+     * Update the user's profile information.
+     */
+    public function update(ProfileUpdateRequest $request): RedirectResponse {
+        $user = $request->user();
+        // Actualizar usuario
+        $user->fill($request->validated());
+
+        if ($user->isDirty('email')) {
+            $user->email_verified_at = null;
+        }
+
+        $user->save();
+
+        // Si es admin y quiere cambiar nombre de empresa
+        if ($user->role === 'admin' && $request->has('organization_name')) {
+            $organization = $user->organization;
+            if ($organization) {
+                $organization->name = $request->organization_name;
+                $organization->save();
+            }
+        }
+
+        return Redirect::route('profile.edit')->with('status', 'profile-updated');
+    }
+
+    /**
+     * Delete the user's account.
+     */
+    public function destroy(Request $request): RedirectResponse {
+        $request->validateWithBag('userDeletion', [
+            'password' => ['required', 'current_password'],
+        ]);
+
+        $user = $request->user();
+
+        Auth::logout();
+
+        $user->delete();
+
+        $request->session()->invalidate();
+        $request->session()->regenerateToken();
+
+        return Redirect::to('/');
+    }
+}
+\n\n========== PROFILE VIEW ==========
+\n\n========== USER PANEL ==========
+<?php
+// app/Providers/Filament/UserPanelProvider.php
+
+namespace App\Providers\Filament;
+
+use Filament\Panel;
+use Filament\PanelProvider;
+use Filament\Http\Middleware\Authenticate;
+use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Session\Middleware\AuthenticateSession;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\Http\Middleware\DisableBladeIconComponents;
+use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+
+class UserPanelProvider extends PanelProvider
+{
+    public function panel(Panel $panel): Panel
+    {
+        return $panel
+            ->id('user')
+            ->path('app') // URL: /dashboard
+            ->login()
+            ->registration() // Habilita /dashboard/register_shutdown_function
+            ->passwordReset()
+            ->emailVerification()
+            ->colors([
+                'primary' => '#2563eb', // Azul para usuarios
+            ])
+            ->brandName('Mi App-base')
+            ->navigationGroups([
+                'Mi Cuenta',
+                'Mi Organización',
+            ])
+            ->discoverResources(in: app_path('Filament/User/Resources'), for: 'App\\Filament\\User\\Resources')
+            ->discoverPages(in: app_path('Filament/User/Pages'), for: 'App\\Filament\\User\\Pages')
+            ->discoverWidgets(in: app_path('Filament/User/Widgets'), for: 'App\\Filament\\User\\Widgets')
+            ->middleware([
+                EncryptCookies::class,
+                AddQueuedCookiesToResponse::class,
+                StartSession::class,
+                AuthenticateSession::class,
+                ShareErrorsFromSession::class,
+                VerifyCsrfToken::class,
+                SubstituteBindings::class,
+                DisableBladeIconComponents::class,
+                DispatchServingFilamentEvent::class,
+            ])
+            ->authMiddleware([
+                Authenticate::class,
+                'organization', // Middleware que ya tenemos
+            ]);
+    }
+}\n\n========== SUPER PANEL ==========
+<?php
+// app/Providers/Filament/SuperPanelProvider.php
+
+namespace App\Providers\Filament;
+
+use Filament\Panel;
+use Filament\PanelProvider;
+use Filament\Navigation\MenuItem;
+use Filament\Http\Middleware\Authenticate;
+use Illuminate\Session\Middleware\StartSession;
+use Illuminate\Cookie\Middleware\EncryptCookies;
+use Illuminate\Routing\Middleware\SubstituteBindings;
+use Illuminate\Session\Middleware\AuthenticateSession;
+use Illuminate\View\Middleware\ShareErrorsFromSession;
+use Filament\Http\Middleware\DisableBladeIconComponents;
+use Filament\Http\Middleware\DispatchServingFilamentEvent;
+use Illuminate\Foundation\Http\Middleware\VerifyCsrfToken;
+use Illuminate\Cookie\Middleware\AddQueuedCookiesToResponse;
+
+class SuperPanelProvider extends PanelProvider {
+    public function panel(Panel $panel): Panel {
+        return $panel
+            ->id('super')
+            ->path('super')
+            ->login()
+            ->colors([
+                'primary' => '#7C3AED', // Púrpura para diferenciar
+            ])
+            ->brandName('Super Admin')
+            ->pages([
+                \App\Filament\Super\Pages\Dashboard::class,
+            ])
+            ->widgets([
+                \App\Filament\Super\Widgets\StatsOverview::class,
+                \App\Filament\Super\Widgets\TopOrganizations::class,
+            ])
+            ->navigationGroups([
+                'Organizaciones',
+                'Usuarios',
+                'Estadísticas',
+                'Auditoría',
+            ])
+            ->discoverResources(in: app_path('Filament/Super/Resources'), for: 'App\\Filament\\Super\\Resources')
+            ->discoverPages(in: app_path('Filament/Super/Pages'), for: 'App\\Filament\\Super\\Pages')
+            ->discoverWidgets(in: app_path('Filament/Super/Widgets'), for: 'App\\Filament\\Super\\Widgets')
+            ->middleware([
+                EncryptCookies::class,
+                AddQueuedCookiesToResponse::class,
+                StartSession::class,
+                AuthenticateSession::class,
+                ShareErrorsFromSession::class,
+                VerifyCsrfToken::class,
+                SubstituteBindings::class,
+                DisableBladeIconComponents::class,
+                DispatchServingFilamentEvent::class,
+            ])
+            ->authMiddleware([
+                Authenticate::class,
+                'superadmin', // Middleware personalizado que crearemos
+            ]);
+    }
+}
+\n\n========== MIDDLEWARE ==========
+<?php
+// app/Http/Middleware/CheckOrganizationAccess.php
+
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+use Symfony\Component\HttpFoundation\Response;
+
+class CheckOrganizationAccess
+{
+    public function handle(Request $request, Closure $next): Response
+    {
+        $user = $request->user();
+        
+        // Si no hay usuario autenticado, continuar (para rutas públicas)
+        if (!$user) {
+            return $next($request);
+        }
+
+        // SUPERADMIN: pasa siempre
+        if ($user->is_platform_admin) {
+            return $next($request);
+        }
+
+        // Verificar 1: ¿Tiene organización?
+        if (!$user->organization) {
+            auth()->logout();
+            return redirect()->to('/app/login')
+                ->withErrors(['email' => 'Error: Usuario sin organización.']);
+        }
+
+        // Verificar 2: ¿Organización activa?
+        if (!$user->organization->is_active) {
+            auth()->logout();
+            return redirect()->to('/app/login')
+                ->withErrors(['email' => 'Organización inactiva. Contacta al administrador.']);
+        }
+
+        // Verificar 3: ¿Usuario aprobado?
+        if (!$user->approved_at) {
+            auth()->logout();
+            return redirect()->to('/app/login')
+                ->withErrors(['email' => 'Cuenta pendiente de aprobación.']);
+        }
+
+        // TODO OK: continuar
+        return $next($request);
+    }
+}\n\n========== USER MODEL ==========
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Spatie\Activitylog\Traits\LogsActivity;
+use Spatie\Activitylog\LogOptions;
+
+class User extends Authenticatable {
+    use LogsActivity; // Para auditoría
+    use SoftDeletes;
+
+    protected $fillable = [
+        'name',
+        'email',
+        'password',
+        'organization_id',
+        'role',
+        'approved_at',
+        'is_platform_admin',
+        'last_login_at',
+        'last_login_ip',
+    ];
+
+
+    protected $hidden = ['password', 'remember_token'];
+
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'approved_at' => 'datetime',
+        'last_login_at' => 'datetime',
+        'is_platform_admin' => 'boolean',
+        'deletion_requested_at' => 'datetime',
+        'deleted_at' => 'datetime',
+    ];
+
+
+    public function organization(): BelongsTo {
+        return $this->belongsTo(Organization::class);
+    }
+
+    public function isApproved(): bool {
+        return !is_null($this->approved_at);
+    }
+
+    public function isAdmin(): bool {
+        return $this->role === 'admin' || $this->is_platform_admin;
+    }
+
+    // Configuración de Activity Log
+    public function getActivitylogOptions(): LogOptions {
+        return LogOptions::defaults()
+            ->logOnly(['name', 'email', 'role', 'approved_at'])
+            ->logOnlyDirty()
+            ->setDescriptionForEvent(fn(string $eventName) => "Usuario {$eventName}");
+    }
+
+    public function requestDeletion(): void {
+        $this->deletion_requested_at = now();
+        $this->deletion_approved = false;
+        $this->save();
+
+        activity()
+            ->performedOn($this)
+            ->log('Solicitó baja de cuenta');
+    }
+
+    public function approveDeletion(): void {
+        $this->deletion_approved = true;
+\n\n========== ORGANIZATION MODEL ==========
+
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+
+class Organization extends Model {
+    protected $fillable = ['name', 'slug', 'is_active', 'blocked_at', 'block_reason'];
+
+    public function users(): HasMany {
+        return $this->hasMany(User::class);
+    }
+
+    public function isBlocked(): bool {
+        return !is_null($this->blocked_at);
+    }
+    public function deactivate(string $reason = null): void {
+        $this->is_active = false;
+        $this->blocked_at = now();
+        $this->block_reason = $reason;
+        $this->save();
+
+        // Opcional: Registrar en actividad
+        activity()
+            ->performedOn($this)
+            ->log('Organización desactivada: ' . ($reason ?? 'Sin razón'));
+    }
+
+    public function activate(): void {
+        $this->is_active = true;
+        $this->blocked_at = null;
+--
+            ->performedOn($this)
+            ->log('Organización activada');
+    }
+
+    public function creator(): BelongsTo {
+        return $this->belongsTo(User::class, 'created_by');
+    }
+
+    // Método para cerrar empresa (solo creador)
+    public function close(string $reason = null): void {
+        // Verificar que quien ejecuta es el creador
+        if (auth()->id() !== $this->created_by) {
+            abort(403, 'Solo el creador de la empresa puede cerrarla.');
+        }
+
+        // Dar de baja a TODOS los usuarios (soft delete)
+        foreach ($this->users as $user) {
+            $user->deleted_at = now();
+            $user->save();
+        }
+
+        // Cerrar la organización
+        $this->is_active = false;
+        $this->blocked_at = now();
+        $this->block_reason = $reason ?? 'Cierre solicitado por creador';
+        $this->save();
+\n\n========== SEEDER ==========
+<?php
+// database/seeders/DatabaseSeeder.php
+
+namespace Database\Seeders;
+
+use App\Models\User;
+use App\Models\Organization;
+use Illuminate\Database\Seeder;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
+
+class DatabaseSeeder extends Seeder {
+    public function run(): void {
+        // 1. Crear SUPERADMIN
+        $superadmin = User::create([
+            'name' => 'Super Admin',
+            'email' => 'super@admin.com',
+            'password' => Hash::make('admin123'),
+            'is_platform_admin' => true,
+            'approved_at' => now(),
+            'email_verified_at' => now(),
+        ]);
+
+        // 2. Crear ADMIN de la organización
+        $admin = User::create([
+            'name' => 'Admin Demo',
+            'email' => 'admin@demo.com',
+            'password' => Hash::make('password'),
+            'role' => 'admin',
+            'approved_at' => now(),
+            'email_verified_at' => now(),
+        ]);
+
+        // 3. Crear ORGANIZACIÓN DE EJEMPLO
+        $org = Organization::create([
+            'name' => 'Empresa Demo',
+            'slug' => Str::slug('Empresa Demo'),
+            'is_active' => true,
+            'created_by' => $admin->id,
+        ]);
+
+        $admin->organization_id = $org->id;
+        $admin->save();
+
+        // 4. Crear SUPERVISOR
+        $supervisor = User::create([
+            'name' => 'Supervisor Demo',
+            'email' => 'supervisor@demo.com',
+            'password' => Hash::make('password'),
+            'organization_id' => $org->id,
+            'role' => 'supervisor',
+            'approved_at' => now(),
+            'email_verified_at' => now(),
+        ]);
+
+        // 5. Crear USUARIO NORMAL
+        $user = User::create([
+            'name' => 'Usuario Demo',
+            'email' => 'user@demo.com',
+            'password' => Hash::make('password'),
+            'organization_id' => $org->id,
+            'role' => 'user',
+            'approved_at' => now(),
+            'email_verified_at' => now(),
+        ]);
+
+        // 6. Crear USUARIO PENDIENTE DE APROBACIÓN
+        $pending = User::create([
+            'name' => 'Pendiente Demo',
+            'email' => 'pendiente@demo.com',
+            'password' => Hash::make('password'),
+            'organization_id' => $org->id,
+            'role' => 'user',
+            'approved_at' => null,
+            'email_verified_at' => now(),
+        ]);
+
+        $this->command->info('✅ Datos de prueba creados:');
+        $this->command->info('   Superadmin: super@admin.com / admin123');
+        $this->command->info('   Admin: admin@demo.com / password');
+        $this->command->info('   Supervisor: supervisor@demo.com / password');
+        $this->command->info('   Usuario: user@demo.com / password');
+        $this->command->info('   Pendiente: pendiente@demo.com / password');
+    }
+}
+\n\n========== FILAMENT PANELS ==========
+
+Warning: Module "intl" is already loaded in Unknown on line 0
+
+   ERROR  Command "filament:panels" is not defined. Did you mean one of these?  
+
+  ⇂ filament:about  
+  ⇂ filament:assets  
+  ⇂ filament:cache-components  
+  ⇂ filament:check-translations  
+  ⇂ filament:clear-cached-components  
+  ⇂ filament:install  
+  ⇂ filament:optimize  
+  ⇂ filament:optimize-clear  
+  ⇂ filament:upgrade  
+

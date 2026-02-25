@@ -30,10 +30,10 @@ Route::middleware('guest')->group(function () {
     // Login
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
-    
+
     // Registro
-    Route::get('/app/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
-    Route::post('/app/register', [RegisterController::class, 'register']);
+    Route::get('/register', [RegisterController::class, 'showRegistrationForm'])->name('register');
+    Route::post('/register', [RegisterController::class, 'register']);
 });
 
 // Logout
@@ -54,33 +54,33 @@ Route::get('/invitations/{token}', [InvitationController::class, 'accept'])->nam
 */
 
 Route::middleware(['auth'])->group(function () {
-    
+
     // Invitaciones
     Route::get('/invitations/create', [InvitationController::class, 'create'])->name('invitations.create');
     Route::post('/invitations', [InvitationController::class, 'store'])->name('invitations.store');
-    
+
     /*
     |--------------------------------------------------------------------------
     | Solicitudes de Baja (Usuarios)
     |--------------------------------------------------------------------------
     */
-    
+
     // Formulario y gestión de solicitudes de baja
     Route::get('/deletion/request', [UserDeletionController::class, 'showForm'])->name('deletion.form');
     Route::post('/deletion/request', [UserDeletionController::class, 'submitRequest'])->name('deletion.request');
     Route::post('/deletion/cancel', [UserDeletionController::class, 'cancelRequest'])->name('deletion.cancel');
-    
+
     /*
     |--------------------------------------------------------------------------
     | Rutas para Administradores de Organización
     |--------------------------------------------------------------------------
     */
-    
+
     Route::middleware(['role:admin'])->group(function () {
         // Aprobación/rechazo de bajas de usuarios
         Route::post('/deletion/approve/{user}', [DeletionController::class, 'approve'])->name('deletion.approve');
         Route::post('/deletion/reject/{user}', [DeletionController::class, 'reject'])->name('deletion.reject');
-        
+
         // Cierre de organización (solo el creador/admin principal)
         Route::post('/organization/{organization}/close', [DeletionController::class, 'closeOrganization'])
             ->name('organization.close');

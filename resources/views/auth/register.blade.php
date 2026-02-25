@@ -6,7 +6,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Login - {{ config('app.name') }}</title>
+    <title>Registro - {{ config('app.name') }}</title>
     @vite(['resources/css/app.css', 'resources/js/app.js'])
     <style>
         * {
@@ -27,7 +27,7 @@
         <div class="w-full max-w-md">
             <div class="text-center mb-6">
                 <h2 class="text-4xl font-bold text-gray-900 dark:text-white">Mi Aplicación</h2>
-                <p class="text-gray-600 dark:text-gray-400">Ingresa a tu cuenta</p>
+                <p class="text-gray-600 dark:text-gray-400">Crea una nueva cuenta</p>
             </div>
 
             <div class="bg-white dark:bg-gray-800 rounded-lg shadow-lg p-8">
@@ -37,19 +37,32 @@
                     </div>
                 @endif
 
-                <form method="POST" action="{{ route('login') }}">
+                <form method="POST" action="{{ route('register') }}">
                     @csrf
 
                     <div class="mb-4">
+                        <label for="name" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Nombre
+                        </label>
+                        <input type="text" 
+                               name="name" 
+                               id="name" 
+                               value="{{ old('name') }}" 
+                               required 
+                               autofocus
+                               autocomplete="name"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white @error('name') border-red-500 @enderror">
+                    </div>
+
+                    <div class="mb-4">
                         <label for="email" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
-                            Email
+                            Correo Electrónico
                         </label>
                         <input type="email" 
                                name="email" 
                                id="email" 
                                value="{{ old('email') }}" 
                                required 
-                               autofocus
                                autocomplete="email"
                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white @error('email') border-red-500 @enderror">
                     </div>
@@ -62,40 +75,33 @@
                                name="password" 
                                id="password" 
                                required
-                               autocomplete="current-password"
+                               autocomplete="new-password"
                                class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white @error('password') border-red-500 @enderror">
                     </div>
 
-                    <div class="flex items-center justify-between mb-6">
-                        <div class="flex items-center">
-                            <input type="checkbox" 
-                                   name="remember" 
-                                   id="remember" 
-                                   class="h-4 w-4 text-blue-600 focus:ring-blue-500 border-gray-300 rounded">
-                            <label for="remember" class="ml-2 block text-sm text-gray-700 dark:text-gray-300">
-                                Recordarme
-                            </label>
-                        </div>
-
-                        @if (Route::has('password.request'))
-                            <a href="{{ route('password.request') }}" 
-                               class="text-sm text-blue-600 dark:text-blue-400 hover:underline">
-                                ¿Olvidaste tu contraseña?
-                            </a>
-                        @endif
+                    <div class="mb-4">
+                        <label for="password_confirmation" class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+                            Confirmar Contraseña
+                        </label>
+                        <input type="password" 
+                               name="password_confirmation" 
+                               id="password_confirmation" 
+                               required 
+                               autocomplete="new-password"
+                               class="w-full px-3 py-2 border border-gray-300 dark:border-gray-600 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 dark:bg-gray-700 dark:text-white">
                     </div>
 
                     <button type="submit" 
                             class="w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-2 px-4 rounded-lg transition duration-150 ease-in-out transform hover:scale-[1.02]">
-                        Ingresar
+                        Registrarse
                     </button>
                 </form>
 
                 <div class="mt-6 text-center">
                     <p class="text-sm text-gray-600 dark:text-gray-400">
-                        ¿No tienes una cuenta?
-                        <a href="{{ route('register') }}" class="text-blue-600 dark:text-blue-400 hover:underline font-medium">
-                            Regístrate aquí
+                        ¿Ya tienes una cuenta?
+                        <a href="{{ route('login') }}" class="text-blue-600 dark:text-blue-400 hover:underline font-medium">
+                            Inicia sesión aquí
                         </a>
                     </p>
                 </div>

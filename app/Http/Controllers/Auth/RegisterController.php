@@ -29,6 +29,7 @@ class RegisterController extends Controller
         // Crear organización
         $organization = Organization::create([
             'name' => $request->organization_name,
+            'status' => 'locked', // Bloqueada por defecto
         ]);
 
         // Crear usuario

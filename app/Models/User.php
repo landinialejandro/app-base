@@ -53,6 +53,10 @@ class User extends Authenticatable {
         return $this->role === 'admin' || $this->is_platform_admin;
     }
 
+    public function hasRole(string $role): bool {
+        return $this->role === $role;
+    }
+
     // Configuración de Activity Log
     public function getActivitylogOptions(): LogOptions {
         return LogOptions::defaults()

@@ -87,6 +87,13 @@ Route::middleware(['auth'])->group(function () {
     });
 });
 
+Route::get('/admin/register', [RegisterController::class, 'showAdminRegistrationForm'])->name('admin.register');
+Route::post('/admin/register', [RegisterController::class, 'registerAdmin']);
+
+// Ruta de registro para usuarios de la aplicación
+Route::get('/app/register', [RegisterController::class, 'showAppRegistrationForm'])->name('app.register');
+Route::post('/app/register', [RegisterController::class, 'registerApp']);
+
 /*
 |--------------------------------------------------------------------------
 | Redirección por rol (Mantener por compatibilidad)
@@ -100,59 +107,6 @@ Route::middleware(['auth'])->group(function () {
 Route::get('/redirect', [RedirectAuthenticatedUserController::class, 'redirect'])
     ->name('redirect')
     ->middleware('auth');
-
-/*
-|--------------------------------------------------------------------------
-| REDIRECCIONES DE FILAMENT A LOGIN PERSONALIZADO
-|--------------------------------------------------------------------------
-|
-| Estas rutas capturan cualquier intento de acceder a los logins nativos
-| de Filament y los redirigen a nuestro login unificado en /login
-|
-*/
-
-// Panel Superadmin
-Route::get('/super/login', function () {
-    return redirect()->route('login');
-})->name('filament.super.login');
-
-// Panel Admin
-Route::get('/admin/login', function () {
-    return redirect()->route('login');
-})->name('filament.admin.login');
-
-// Panel App (usuarios normales)
-Route::get('/app/login', function () {
-    return redirect()->route('login');
-})->name('filament.app.login');
-
-// Redirecciones de registro de Filament (si existen)
-Route::get('/super/register', function () {
-    return redirect()->route('register');
-});
-
-Route::get('/admin/register', function () {
-    return redirect()->route('register');
-});
-
-Route::get('/app/register', function () {
-    // Ya tienes esta ruta definida arriba, pero por si acaso
-    return redirect()->route('register');
-});
-
-/*
-|--------------------------------------------------------------------------
-| CATCH-ALL PARA OTROS PANELES (opcional)
-|--------------------------------------------------------------------------
-|
-| Esta ruta capturará cualquier /{panel}/login que no haya sido
-| capturado por las rutas específicas arriba.
-|
-*/
-
-Route::get('/{panel}/login', function ($panel) {
-    return redirect()->route('login');
-})->where('panel', 'admin|super|app|user|dashboard'); // Ajusta según tus paneles
 
 /*
 |--------------------------------------------------------------------------

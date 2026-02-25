@@ -41,8 +41,8 @@
                 <p class="mb-4">Bienvenido, <span class="font-semibold">{{ auth()->user()->name }}</span></p>
                 <div class="space-y-3">
                     @if(auth()->user()->is_platform_admin)
-                        <a href="/super" class="inline-block w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition">
-                            Panel Super Admin
+                        <a href="/login" class="inline-block w-full bg-purple-600 hover:bg-purple-700 text-white font-semibold py-3 px-6 rounded-lg transition">
+                            Acceso Super Admin
                         </a>
                     @else
                         <a href="/app" class="inline-block w-full bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3 px-6 rounded-lg transition">
@@ -61,9 +61,6 @@
                         </a>
                     </div>
                     <div class="mt-6">
-                        <a href="/super/login" class="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 underline transition">
-                            Acceso Super Admin
-                        </a>
                     </div>
                 </div>
             @endauth

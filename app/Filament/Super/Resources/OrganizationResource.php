@@ -24,18 +24,30 @@ class OrganizationResource extends Resource
         return $form
             ->schema([
                 Forms\Components\TextInput::make('created_by')
-                    ->numeric(),
+                    ->numeric()
+                    ->label('Creado por')
+                    ->extraInputAttributes(['class' => 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 rounded-lg']),
                 Forms\Components\TextInput::make('name')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->label('Nombre')
+                    ->extraInputAttributes(['class' => 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 rounded-lg']),
                 Forms\Components\TextInput::make('slug')
                     ->required()
-                    ->maxLength(255),
+                    ->maxLength(255)
+                    ->label('Slug')
+                    ->extraInputAttributes(['class' => 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 rounded-lg']),
                 Forms\Components\Toggle::make('is_active')
-                    ->required(),
-                Forms\Components\DateTimePicker::make('blocked_at'),
+                    ->required()
+                    ->label('Activo')
+                    ->extraInputAttributes(['class' => 'bg-gray-100 dark:bg-gray-800']),
+                Forms\Components\DateTimePicker::make('blocked_at')
+                    ->label('Bloqueado en')
+                    ->extraInputAttributes(['class' => 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100']),
                 Forms\Components\Textarea::make('block_reason')
-                    ->columnSpanFull(),
+                    ->columnSpanFull()
+                    ->label('Razón del bloqueo')
+                    ->extraInputAttributes(['class' => 'bg-gray-100 dark:bg-gray-800 text-gray-900 dark:text-gray-100 border-gray-300 dark:border-gray-700 rounded-lg']),
             ]);
     }
 

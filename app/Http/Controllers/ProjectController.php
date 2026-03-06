@@ -1,0 +1,91 @@
+<?php
+
+// file: app/Http/Controllers/ProjectController.php
+
+namespace App\Http\Controllers;
+
+use App\Models\Project;
+use Illuminate\Http\Request;
+
+class ProjectController extends Controller
+{
+    public function index()
+    {
+        $tenant = app('tenant');
+
+        $projects = Project::query()
+            ->latest()
+            ->get();
+
+        return view('projects.index', [
+            'tenant' => $tenant,
+            'projects' => $projects,
+        ]);
+    }
+
+    public function create()
+    {
+        $tenant = app('tenant');
+
+        return view('projects.create', [
+            'tenant' => $tenant,
+        ]);
+    }
+
+    public function store(Request $request)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+        ]);
+
+        $project = Project::create($data);
+
+        return redirect()
+            ->route('projects.index')
+            ->with('success', "Proyecto #{$project->id} creado correctamente.");
+    }
+
+    public function show(Project $project)
+    {
+        $tenant = app('tenant');
+
+        return view('projects.show', [
+            'tenant' => $tenant,
+            'project' => $project,
+        ]);
+    }
+
+    public function edit(Project $project)
+    {
+        $tenant = app('tenant');
+
+        return view('projects.edit', [
+            'tenant' => $tenant,
+            'project' => $project,
+        ]);
+    }
+
+    public function update(Request $request, Project $project)
+    {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+        ]);
+
+        $project->update($data);
+
+        return redirect()
+            ->route('projects.show', $project)
+            ->with('success', 'Proyecto actualizado');
+    }
+
+    public function destroy(Project $project)
+    {
+        $project->delete();
+
+        return redirect()
+            ->route('projects.index')
+            ->with('success', 'Proyecto eliminado correctamente.');
+    }
+}

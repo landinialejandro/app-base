@@ -1,14 +1,19 @@
 <?php
 
+//file: routes/web.php
+
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
+use App\Http\Controllers\ProjectController;
+
 use App\Models\Invitation;
 use App\Models\User;
 use App\Models\Membership;
 use App\Models\Tenant;
+use App\Models\Project;
 
 Route::get('/', function () {
     return view('welcome');
@@ -34,7 +39,11 @@ Route::middleware(['auth'])->get('/tenants/select', function () {
 
 Route::middleware(['auth','tenant'])->get('/dashboard', function () {
     $tenant = app('tenant');
-    return "Dashboard tenant: {$tenant->slug}";
+
+    return view('dashboard', [
+        'tenant' => $tenant,
+        'projectsCount' => Project::count(),
+    ]);
 })->name('dashboard');
 
 Route::middleware(['auth'])->post('/tenants/select/{tenant}', function (Tenant $tenant) {
@@ -90,3 +99,22 @@ Route::get('/accept-invitation/{token}', function ($token) {
         'tenant_id' => $inv->tenant_id,
     ];
 });
+
+Route::middleware(['auth','tenant'])->group(function () {
+
+    Route::get('/projects', [ProjectController::class,'index'])->name('projects.index');
+
+    Route::get('/projects/create', [ProjectController::class,'create'])->name('projects.create');
+
+    Route::post('/projects', [ProjectController::class,'store'])->name('projects.store');
+
+    Route::get('/projects/{project}', [ProjectController::class,'show'])->name('projects.show');
+
+    Route::get('/projects/{project}/edit', [ProjectController::class,'edit'])->name('projects.edit');
+
+    Route::put('/projects/{project}', [ProjectController::class,'update'])->name('projects.update');
+
+    Route::delete('/projects/{project}', [ProjectController::class,'destroy'])->name('projects.destroy');
+
+});
+

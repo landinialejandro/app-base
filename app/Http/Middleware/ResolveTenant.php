@@ -1,5 +1,7 @@
 <?php
 
+// file: app/Http/Middleware/ResolveTenant.php
+
 namespace App\Http\Middleware;
 
 use App\Models\Tenant;

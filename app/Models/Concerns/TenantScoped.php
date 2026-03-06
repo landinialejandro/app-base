@@ -1,5 +1,7 @@
 <?php
 
+// file: app/Models/Concerns/TenantScoped.php
+
 namespace App\Models\Concerns;
 
 use Illuminate\Database\Eloquent\Builder;

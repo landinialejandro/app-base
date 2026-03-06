@@ -1,7 +1,92 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Str;
+
+use App\Models\Invitation;
+use App\Models\User;
+use App\Models\Membership;
+use App\Models\Tenant;
 
 Route::get('/', function () {
     return view('welcome');
+});
+
+// Debug API: tenant por header X-Tenant
+Route::middleware('tenant')->get('/whoami', function () {
+    $tenant = app('tenant');
+    return [
+        'tenant_id' => $tenant->id,
+        'tenant_slug' => $tenant->slug,
+    ];
+});
+
+// Selector de tenant (web)
+Route::middleware(['auth'])->get('/tenants/select', function () {
+    $tenants = Auth::user()->tenants()
+        ->select('tenants.id', 'tenants.name', 'tenants.slug')
+        ->get();
+
+    return view('tenants.select', compact('tenants'));
+})->name('tenants.select');
+
+Route::middleware(['auth','tenant'])->get('/dashboard', function () {
+    $tenant = app('tenant');
+    return "Dashboard tenant: {$tenant->slug}";
+})->name('dashboard');
+
+Route::middleware(['auth'])->post('/tenants/select/{tenant}', function (Tenant $tenant) {
+    $user = Auth::user();
+
+    $allowed = $user->tenants()->where('tenants.id', $tenant->id)->exists();
+    if (!$allowed) {
+        abort(403, 'You are not a member of this tenant.');
+    }
+
+    session(['tenant_id' => $tenant->id]);
+
+    return redirect()->route('dashboard');
+
+})->name('tenants.select.store');
+
+// Aceptación real de invitación (dejamos UNA sola)
+Route::get('/accept-invitation/{token}', function ($token) {
+    $inv = Invitation::where('token', $token)->firstOrFail();
+
+    if ($inv->accepted_at) {
+        abort(409, 'Invitation already accepted');
+    }
+
+    if ($inv->expires_at && $inv->expires_at->isPast()) {
+        abort(410, 'Invitation expired');
+    }
+
+    $user = User::where('email', $inv->email)->first();
+
+    if (!$user) {
+        $user = User::create([
+            'name' => 'Invited User',
+            'email' => $inv->email,
+            'password' => Hash::make(Str::random(16)),
+        ]);
+    }
+
+    $membership = Membership::firstOrCreate(
+        ['tenant_id' => $inv->tenant_id, 'user_id' => $user->id],
+        ['status' => 'active', 'joined_at' => now()]
+    );
+
+    $inv->update([
+        'accepted_at' => now(),
+        'accepted_ip' => request()->ip(),
+        'user_agent' => request()->userAgent(),
+    ]);
+
+    return [
+        'user_id' => $user->id,
+        'membership_id' => $membership->id,
+        'tenant_id' => $inv->tenant_id,
+    ];
 });

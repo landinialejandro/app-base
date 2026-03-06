@@ -12,5 +12,5 @@
 
 <hr>
 
-<p><a href="/test-project">Crear proyecto de prueba</a></p>
 <p><a href="/projects">Ver proyectos</a></p>
+<p><a href="/clients">Ver clientes</a></p>

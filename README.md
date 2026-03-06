@@ -1,59 +1,252 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# App Base SaaS (Laravel Multi-Tenant)
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+Base architecture for building SaaS applications using **Laravel 12**, implementing **multi-tenant support**, authentication with **Laravel Fortify**, and a tenant selection flow.
 
-## About Laravel
+This project provides a clean foundation for building business systems such as ERP, CRM, or internal SaaS platforms where multiple organizations (tenants) operate within the same application.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+# Features
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+- Laravel 12
+- Multi-tenant architecture
+- Tenant resolution middleware
+- User ↔ Tenant memberships
+- Authentication with Laravel Fortify
+- Tenant selection workflow
+- Invitation system
+- Role and permission structure
+- Branch (location) support
+- UUID tenants
+- Session-based tenant context
 
-## Learning Laravel
+---
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+# Architecture Overview
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+The system supports multiple organizations sharing the same application.
 
-## Laravel Sponsors
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+User
+↓
+Membership
+↓
+Tenant
+↓
+Application context
 
-### Premium Partners
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+Each user can belong to **multiple tenants**, and each tenant can contain:
 
-## Contributing
+- branches
+- roles
+- permissions
+- users
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+---
 
-## Code of Conduct
+# Tenant Resolution
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+The tenant context is resolved using:
 
-## Security Vulnerabilities
+1. **Session tenant_id** (primary method for web usage)
+2. **X-Tenant header** (fallback for API or testing)
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+Middleware:
 
-## License
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+app/Http/Middleware/ResolveTenant.php
+
+
+Once resolved, the tenant instance is registered in the container:
+
+```php
+app()->instance('tenant', $tenant);
+
+```
+---
+
+# Authentication
+
+Authentication is implemented using Laravel Fortify.
+
+Routes include:
+
+```
+/login
+/register
+/logout
+```
+
+After login, users are redirected to:
+
+```
+/tenants/select
+```
+
+---
+
+# Tenant Selection Flow
+
+The SaaS flow is:
+
+```
+login
+↓
+tenants/select
+↓
+choose tenant
+↓
+store tenant_id in session
+↓
+tenant middleware resolves tenant
+↓
+dashboard
+```
+
+Tenant selection route:
+
+```
+GET  /tenants/select
+POST /tenants/select/{tenant}
+```
+
+---
+
+# Database Structure
+
+Key tables:
+
+tenants
+
+Organizations using the system.
+
+users
+
+Application users.
+
+memberships
+
+Relationship between users and tenants.
+
+```
+users ↔ memberships ↔ tenants
+```
+
+### branches
+
+Physical or logical locations belonging to a tenant.
+
+roles
+
+Tenant-specific roles.
+
+permissions
+
+Permission definitions.
+
+invitations
+
+Invitation system for adding users to tenants.
+
+Example Membership
+
+```
+tenant_id: UUID
+user_id: integer
+status: active
+is_owner: true
+joined_at: timestamp
+```
+---
+## Development Setup
+
+Requirements
+
+- PHP 8.4+
+- Composer
+- MariaDB / MySQL
+- Node (optional for frontend tooling)
+
+### Installation
+
+Clone the repository:
+```
+git clone https://github.com/your-user/app-base.git
+cd app-base
+```
+Install dependencies:
+```
+composer install
+```
+Copy environment:
+```
+cp .env.example .env
+```
+Generate application key:
+```
+php artisan key:generate
+```
+Configure database in .env.
+
+Run migrations:
+```
+php artisan migrate
+```
+Start server:
+```
+php artisan serve
+```
+---
+## Testing Tenant Header
+
+You can resolve tenants via header:
+```
+curl -H "X-Tenant: demo" http://app-base.local/whoami
+```
+
+Example response:
+
+```
+{
+"tenant_id": "...",
+"tenant_slug": "demo"
+}
+```
+
+Current Status
+
+Implemented:
+
+- authentication
+- memberships
+- tenant resolver
+- invitation acceptance
+- tenant selector
+- multi-tenant database structure
+
+Pending (future improvements):
+
+- dashboard UI
+- tenant scoped models
+- global tenant query scopes
+- API authentication
+- permission middleware
+- admin panel
+
+---
+
+## Project Goal
+
+Provide a clean Laravel SaaS starting point with a clear and extensible multi-tenant architecture.
+
+This repository is designed to serve as a base for building:
+
+- ERP systems
+- CRM platforms
+- internal company tools
+- subscription SaaS applications
+
+License
+
+MIT License

@@ -1,0 +1,184 @@
+Tipo de sistema
+
+Plataforma SaaS multi-tenant desarrollada en Laravel.
+
+El sistema permite que múltiples empresas utilicen la misma aplicación manteniendo aislamiento lógico de datos por empresa (tenant).
+
+Entorno técnico
+
+OS: Linux
+Web: Apache
+PHP: 8.4
+Laravel: 12.53
+DB: MariaDB 11.8
+
+URL local de desarrollo:
+
+http://app-base.local
+
+Sesiones:
+
+SESSION_DRIVER=database
+
+Las sesiones se almacenan en la tabla sessions.
+
+Arquitectura SaaS
+
+El sistema utiliza multi-tenancy por columna tenant_id.
+
+Todos los registros empresariales contienen:
+
+tenant_id
+
+Esto permite aislar los datos entre empresas dentro de la misma base de datos.
+
+Relación principal de identidad
+
+La relación de pertenencia es:
+
+users
+  ↓
+memberships
+  ↓
+tenants
+
+Características:
+
+Un usuario puede pertenecer a múltiples empresas
+
+Cada empresa (tenant) puede tener múltiples usuarios
+
+Resolución del tenant activo
+
+Middleware:
+
+app/Http/Middleware/ResolveTenant.php
+
+Orden de resolución:
+
+1️⃣ session('tenant_id')
+2️⃣ Header X-Tenant (fallback para API/debug)
+
+Cuando el tenant se resuelve se registra en el container:
+
+app()->instance('tenant', $tenant);
+
+Esto permite obtener el tenant actual desde cualquier parte del sistema.
+
+Aislamiento automático de datos
+
+Trait utilizado en modelos empresariales:
+
+TenantScoped
+
+Este trait aplica automáticamente:
+
+WHERE tenant_id = tenant_actual
+
+y además:
+
+asigna automáticamente tenant_id al crear registros.
+
+Protección de acceso por URL
+
+Trait utilizado:
+
+ResolvesTenantRouteBinding
+
+Protege el route model binding.
+
+Consulta efectiva:
+
+id = ?
+AND tenant_id = tenant_actual
+AND deleted_at IS NULL
+
+Esto evita que un usuario acceda por URL a registros de otra empresa.
+
+Ejemplo protegido:
+
+/projects/{project}
+Soft delete obligatorio
+
+Los módulos empresariales utilizan:
+
+SoftDeletes
+
+Reglas:
+
+los registros eliminados no aparecen en listados
+
+no son accesibles por URL
+
+siguen existiendo en base de datos
+
+Flujo SaaS
+
+Flujo de uso:
+
+login
+   ↓
+/tenants/select
+   ↓
+session('tenant_id')
+   ↓
+ResolveTenant
+   ↓
+dashboard
+Módulos ya implementados
+
+Los módulos actuales siguen el mismo patrón SaaS.
+
+Projects
+
+CRUD completo
+
+/projects
+/projects/create
+/projects/{project}
+/projects/{project}/edit
+Clients
+
+CRUD completo
+
+/clients
+/clients/create
+/clients/{client}
+/clients/{client}/edit
+Seguridad ya validada
+
+Se comprobó correctamente:
+
+✔ aislamiento entre tenants
+✔ bloqueo de acceso por URL
+✔ protección con soft delete
+
+Regla de desarrollo del proyecto
+
+La arquitectura multi-tenant actual no debe modificarse.
+
+Los nuevos módulos deben desarrollarse reutilizando el mismo patrón usado en:
+
+models
+
+traits
+
+route binding
+
+middleware
+
+estructura CRUD
+
+Objetivo del desarrollo
+
+Continuar agregando módulos empresariales reutilizando la arquitectura existente.
+
+Ejemplos de próximos módulos:
+
+tasks
+
+products
+
+orders
+
+invoices

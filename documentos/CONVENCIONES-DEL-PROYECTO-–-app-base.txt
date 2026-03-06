@@ -1,0 +1,285 @@
+Objetivo
+
+Este documento define las convenciones de desarrollo del proyecto app-base con el objetivo de:
+
+mantener consistencia en el código
+
+evitar decisiones ad-hoc entre módulos
+
+facilitar el mantenimiento del sistema
+
+permitir que el proyecto escale a múltiples módulos
+
+Estas convenciones no modifican la arquitectura SaaS existente, solo definen reglas de implementación.
+
+1. Convenciones de base de datos
+1.1 Nombres de tablas
+
+Las tablas se nombran:
+
+snake_case
+plural
+
+Ejemplos:
+
+users
+tenants
+memberships
+projects
+clients
+tasks
+products
+orders
+invoices
+1.2 Claves primarias
+
+Todas las tablas utilizan:
+
+id
+
+tipo:
+
+bigint unsigned auto_increment
+1.3 Claves foráneas
+
+Las claves foráneas se nombran:
+
+entidad_id
+
+Ejemplos:
+
+tenant_id
+user_id
+project_id
+client_id
+order_id
+1.4 Columna obligatoria de multi-tenancy
+
+Todas las entidades empresariales deben incluir:
+
+tenant_id
+
+Ejemplo:
+
+$table->foreignId('tenant_id')->index();
+1.5 Timestamps
+
+Todas las tablas empresariales deben incluir:
+
+$table->timestamps();
+1.6 Soft delete
+
+Todas las entidades empresariales utilizan:
+
+$table->softDeletes();
+
+Esto permite:
+
+auditoría
+
+recuperación de datos
+
+protección contra accesos indebidos
+
+2. Convenciones de modelos
+
+Los modelos siguen:
+
+PascalCase
+singular
+
+Ejemplos:
+
+User
+Tenant
+Membership
+Project
+Client
+Task
+Product
+Order
+Invoice
+2.1 Traits obligatorios en entidades empresariales
+
+Todos los modelos empresariales deben usar:
+
+use TenantScoped;
+use SoftDeletes;
+use ResolvesTenantRouteBinding;
+
+Esto garantiza:
+
+aislamiento automático por tenant
+
+protección en rutas
+
+soporte de soft delete
+
+3. Convenciones de controladores
+
+Los controladores se nombran:
+
+EntidadController
+
+Ejemplos:
+
+ProjectController
+ClientController
+TaskController
+ProductController
+
+Ubicación:
+
+app/Http/Controllers
+3.1 Tipo de controlador
+
+Todos los módulos utilizan:
+
+Resource Controller
+
+Métodos estándar:
+
+index
+create
+store
+show
+edit
+update
+destroy
+4. Convenciones de rutas
+
+Las rutas se definen usando:
+
+Route::resource()
+
+Ejemplo:
+
+Route::resource('projects', ProjectController::class);
+4.1 Convención de URLs
+
+Las URLs usan:
+
+plural
+kebab-case
+
+Ejemplos:
+
+/projects
+/clients
+/tasks
+/products
+/orders
+/invoices
+5. Convenciones de Requests (validación)
+
+Nunca se valida directamente en el controlador.
+
+Se utilizan Form Requests.
+
+Convención:
+
+StoreEntidadRequest
+UpdateEntidadRequest
+
+Ejemplo:
+
+StoreProjectRequest
+UpdateProjectRequest
+StoreTaskRequest
+UpdateTaskRequest
+
+Ubicación:
+
+app/Http/Requests
+6. Convenciones de vistas
+
+Las vistas se organizan por módulo.
+
+Ubicación:
+
+resources/views/{modulePlural}
+
+Ejemplo:
+
+resources/views/projects
+resources/views/clients
+resources/views/tasks
+6.1 Archivos de vistas
+
+Cada módulo debe incluir:
+
+index.blade.php
+create.blade.php
+edit.blade.php
+show.blade.php
+_form.blade.php
+
+El archivo _form.blade.php se reutiliza en:
+
+create
+edit
+7. Convenciones de nombres de variables
+
+Las variables usan:
+
+camelCase
+
+Ejemplos:
+
+tenantId
+projectId
+clientName
+dueDate
+assignedUser
+8. Convenciones de relaciones Eloquent
+
+Relaciones en singular:
+
+project()
+client()
+tenant()
+user()
+
+Relaciones múltiples en plural:
+
+tasks()
+projects()
+orders()
+invoices()
+9. Convención de migraciones
+
+Las migraciones siguen el formato:
+
+create_{table}_table
+
+Ejemplos:
+
+create_projects_table
+create_clients_table
+create_tasks_table
+create_products_table
+10. Organización del crecimiento del sistema
+
+El sistema se expandirá mediante módulos empresariales independientes.
+
+Módulos previstos:
+
+tasks
+products
+orders
+invoices
+payments
+inventory
+documents
+notes
+attachments
+
+Todos los módulos deben seguir las mismas convenciones definidas en este documento.
+
+11. Regla fundamental del proyecto
+
+La arquitectura multi-tenant definida en el proyecto:
+
+NO debe modificarse
+
+Todos los desarrollos deben adaptarse a la arquitectura existente, no alterarla.

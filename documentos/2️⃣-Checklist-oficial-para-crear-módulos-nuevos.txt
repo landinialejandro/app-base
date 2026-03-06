@@ -1,0 +1,678 @@
+Objetivo
+
+Este documento define el paso a paso oficial para crear nuevos módulos empresariales dentro del proyecto app-base, respetando la arquitectura SaaS multi-tenant ya implementada.
+
+Su finalidad es:
+
+mantener consistencia entre módulos
+
+evitar omisiones técnicas
+
+acelerar el desarrollo
+
+permitir reutilización del patrón ya validado
+
+reducir retrabajo en futuros chats
+
+Este checklist no redefine la arquitectura.
+Todos los módulos deben adaptarse a la estructura existente del proyecto.
+
+1. Regla general obligatoria
+
+Todo módulo nuevo debe construirse sin modificar la arquitectura multi-tenant vigente.
+
+Esto implica respetar obligatoriamente:
+
+multi-tenancy por tenant_id
+
+resolución del tenant actual mediante ResolveTenant
+
+aislamiento automático con TenantScoped
+
+protección de acceso por URL con ResolvesTenantRouteBinding
+
+uso de SoftDeletes en entidades empresariales
+
+estructura CRUD estándar
+
+validación mediante Form Requests
+
+organización del código según las convenciones del proyecto
+
+2. Confirmación previa antes de crear un módulo
+
+Antes de comenzar un módulo, debe verificarse:
+
+que la entidad realmente pertenece al dominio empresarial
+
+que debe quedar aislada por tenant
+
+que necesita CRUD completo o parcial
+
+que su nombre ya está definido según las convenciones del proyecto
+
+que su carpeta de vistas, rutas, modelo y controlador seguirán el patrón existente
+
+Si la entidad pertenece a una empresa, por defecto debe asumir:
+
+tenant_id
+
+SoftDeletes
+
+aislamiento por tenant
+
+route model binding seguro
+
+3. Definición inicial del módulo
+
+Antes de escribir código, debe quedar claro:
+
+nombre del módulo en singular: Task
+
+nombre del módulo en plural: tasks
+
+nombre de tabla: tasks
+
+nombre del controlador: TaskController
+
+nombre de las requests: StoreTaskRequest y UpdateTaskRequest
+
+nombre de carpeta de vistas: resources/views/tasks
+
+nombre de rutas: /tasks
+
+También debe definirse:
+
+campos obligatorios
+
+campos opcionales
+
+relaciones con otras entidades
+
+reglas básicas de validación
+
+comportamiento de borrado lógico
+
+si tendrá relaciones opcionales con projects, clients, users, etc.
+
+4. Migración
+4.1 Requisitos obligatorios
+
+Toda tabla empresarial debe incluir como mínimo:
+
+$table->id();
+$table->foreignId('tenant_id')->index();
+$table->timestamps();
+$table->softDeletes();
+4.2 Convenciones obligatorias
+
+La tabla debe:
+
+nombrarse en snake_case plural
+
+usar id como clave primaria
+
+usar claves foráneas con formato entidad_id
+
+incluir tenant_id
+
+incluir timestamps
+
+incluir soft delete
+
+4.3 Verificaciones al crear la migración
+
+Antes de dar la migración por correcta, verificar:
+
+nombre correcto de la tabla
+
+presencia de tenant_id
+
+índices necesarios
+
+claves foráneas definidas si corresponde
+
+campos nullable() solo donde realmente aplique
+
+tipos de datos adecuados
+
+presencia de softDeletes()
+
+presencia de timestamps()
+
+4.4 Convención de nombre de archivo
+
+La migración debe seguir este formato:
+
+create_{table}_table
+
+Ejemplos:
+
+create_tasks_table
+
+create_products_table
+
+create_orders_table
+
+5. Modelo
+5.1 Convención de nombre
+
+El modelo debe nombrarse en singular y PascalCase:
+
+Task
+
+Product
+
+Order
+
+Invoice
+
+5.2 Ubicación
+app/Models
+5.3 Elementos obligatorios en entidades empresariales
+
+Todo modelo empresarial debe incluir:
+
+use TenantScoped;
+use SoftDeletes;
+use ResolvesTenantRouteBinding;
+5.4 Responsabilidades mínimas del modelo
+
+El modelo debe contemplar:
+
+protección multi-tenant
+
+soft delete
+
+route model binding seguro
+
+$fillable o estrategia equivalente consistente con el proyecto
+
+relaciones Eloquent necesarias
+
+casteos si corresponden (date, datetime, boolean, decimal, etc.)
+
+5.5 Relaciones mínimas a considerar
+
+Siempre evaluar si el modelo necesita:
+
+tenant()
+
+project()
+
+client()
+
+user()
+
+otras relaciones del dominio
+
+5.6 Verificaciones del modelo
+
+Antes de darlo por cerrado, verificar:
+
+nombre correcto
+
+traits correctos
+
+namespace correcto
+
+relaciones correctas
+
+nombres de relaciones en singular/plural según convención
+
+compatibilidad con el tenant actual
+
+que no permita acceso indirecto entre tenants
+
+6. Route Model Binding seguro
+6.1 Regla obligatoria
+
+Toda entidad accesible por URL debe usar:
+
+ResolvesTenantRouteBinding
+6.2 Resultado esperado
+
+El binding debe resolver efectivamente registros cumpliendo:
+
+id = ?
+AND tenant_id = tenant_actual
+AND deleted_at IS NULL
+6.3 Objetivo
+
+Esto evita:
+
+acceso a registros de otra empresa
+
+acceso a registros eliminados lógicamente
+
+acceso manual forzado por URL
+
+6.4 Verificación obligatoria
+
+Antes de cerrar el módulo, debe comprobarse:
+
+que /modulo/{registro} no permita acceso entre tenants
+
+que un registro soft deleted no responda por URL
+
+que el binding use el tenant resuelto por middleware
+
+7. Controlador
+7.1 Convención de nombre
+
+Debe seguir el formato:
+
+EntidadController
+
+Ejemplos:
+
+TaskController
+
+ProductController
+
+OrderController
+
+7.2 Ubicación
+app/Http/Controllers
+7.3 Tipo de controlador
+
+Todos los módulos deben usar Resource Controller.
+
+Métodos estándar:
+
+index
+
+create
+
+store
+
+show
+
+edit
+
+update
+
+destroy
+
+7.4 Responsabilidades del controlador
+
+El controlador debe:
+
+delegar validación en Form Requests
+
+usar el modelo del módulo
+
+devolver vistas del módulo
+
+respetar el aislamiento multi-tenant ya resuelto
+
+mantener código claro y coherente con otros módulos
+
+7.5 Qué no debe hacerse
+
+No debe:
+
+validar directamente en el controlador
+
+resolver manualmente el tenant si ya está resuelto por middleware
+
+duplicar lógica de aislamiento ya cubierta por traits
+
+mezclar reglas de negocio complejas que deban vivir en otra capa
+
+8. Form Requests
+8.1 Regla obligatoria
+
+Nunca se debe validar directamente en el controlador.
+
+8.2 Requests mínimas por módulo
+
+Crear siempre:
+
+StoreEntidadRequest
+
+UpdateEntidadRequest
+
+Ejemplos:
+
+StoreTaskRequest
+
+UpdateTaskRequest
+
+8.3 Ubicación
+app/Http/Requests
+8.4 Verificaciones
+
+Antes de cerrar el módulo, verificar:
+
+reglas de store correctas
+
+reglas de update correctas
+
+uso correcto de nullable, required, max, exists, unique, etc.
+
+mensajes personalizados si el proyecto lo requiere
+
+que no se validen ids de otros tenants sin control adecuado
+
+9. Rutas
+9.1 Regla obligatoria
+
+Las rutas del módulo deben declararse con:
+
+Route::resource('tasks', TaskController::class);
+9.2 Convención de nombre de rutas
+
+Las rutas deben usar el nombre plural del módulo.
+
+Ejemplos:
+
+projects
+
+clients
+
+tasks
+
+products
+
+orders
+
+invoices
+
+9.3 Convención de URLs
+
+Las URLs deben usar:
+
+plural
+
+kebab-case si el nombre tiene más de una palabra
+
+Ejemplos:
+
+/projects
+
+/clients
+
+/tasks
+
+/purchase-orders
+
+9.4 Verificaciones
+
+Antes de cerrar el módulo, verificar:
+
+alta correcta
+
+edición correcta
+
+detalle correcto
+
+borrado lógico correcto
+
+route model binding funcionando
+
+middleware del área aplicado correctamente
+
+10. Vistas
+10.1 Ubicación correcta
+
+Las vistas deben ubicarse en carpeta plural:
+
+resources/views/{modulePlural}
+
+Ejemplos:
+
+resources/views/projects
+
+resources/views/clients
+
+resources/views/tasks
+
+10.2 Archivos mínimos obligatorios
+
+Cada módulo debe incluir:
+
+index.blade.php
+
+create.blade.php
+
+edit.blade.php
+
+show.blade.php
+
+_form.blade.php
+
+10.3 Reutilización del formulario
+
+El archivo _form.blade.php debe reutilizarse en:
+
+create
+
+edit
+
+10.4 Objetivos de las vistas
+
+Las vistas deben:
+
+respetar la estructura visual actual del proyecto
+
+mantener consistencia con otros módulos
+
+reutilizar parciales cuando corresponda
+
+mostrar validaciones y errores correctamente
+
+no incorporar lógica de negocio compleja
+
+10.5 Verificaciones de vistas
+
+Antes de cerrar el módulo, verificar:
+
+listado funcional
+
+alta funcional
+
+edición funcional
+
+detalle funcional
+
+mensajes de error visibles
+
+datos persistidos correctamente en formularios
+
+navegación coherente entre pantallas
+
+11. Seguridad SaaS del módulo
+
+La arquitectura actual ya cubre gran parte de la seguridad, pero cada módulo debe verificarse explícitamente.
+
+11.1 Debe quedar validado
+
+filtrado automático por tenant
+
+imposibilidad de acceso entre empresas
+
+protección de registros eliminados por soft delete
+
+route model binding seguro
+
+uso correcto del tenant activo
+
+11.2 Casos mínimos de prueba
+
+Probar al menos:
+
+usuario de tenant A viendo sus registros
+
+usuario de tenant A intentando abrir por URL un registro de tenant B
+
+acceso a registro eliminado lógicamente
+
+creación automática con tenant_id correcto
+
+edición solo dentro del tenant activo
+
+12. Estructura final esperada de un módulo
+
+La estructura mínima típica debe ser:
+
+app
+ └ Http
+    ├ Controllers
+    │   └ TaskController.php
+    └ Requests
+        ├ StoreTaskRequest.php
+        └ UpdateTaskRequest.php
+
+app
+ └ Models
+     └ Task.php
+
+database
+ └ migrations
+     └ create_tasks_table.php
+
+resources
+ └ views
+     └ tasks
+         ├ index.blade.php
+         ├ create.blade.php
+         ├ edit.blade.php
+         ├ show.blade.php
+         └ _form.blade.php
+13. Checklist operativo resumido antes de dar un módulo por terminado
+
+Un módulo solo debe considerarse terminado si cumple todo esto:
+
+tabla creada correctamente
+
+tenant_id presente
+
+timestamps presentes
+
+soft delete presente
+
+modelo creado correctamente
+
+TenantScoped aplicado
+
+SoftDeletes aplicado
+
+ResolvesTenantRouteBinding aplicado
+
+relaciones Eloquent definidas
+
+controlador resource creado
+
+Form Requests creadas
+
+rutas resource declaradas
+
+carpeta de vistas en plural creada
+
+vistas mínimas implementadas
+
+_form.blade.php reutilizado
+
+alta funciona
+
+edición funciona
+
+listado funciona
+
+detalle funciona
+
+borrado lógico funciona
+
+aislamiento entre tenants probado
+
+acceso cruzado por URL bloqueado
+
+acceso a soft deleted bloqueado
+
+14. Convenciones de nombres que siempre deben respetarse
+Tablas
+
+snake_case
+
+plural
+
+Modelos
+
+singular
+
+PascalCase
+
+Variables
+
+camelCase
+
+Claves foráneas
+
+entidad_id
+
+Relaciones Eloquent
+
+singular para belongsTo
+
+plural para hasMany
+
+Rutas
+
+plural
+
+kebab-case si corresponde
+
+Vistas
+
+carpeta por módulo en plural
+
+15. Recomendación de escalabilidad futura
+
+Cuando el proyecto tenga varios módulos empresariales más, conviene crear un:
+
+BaseTenantModel
+
+para centralizar:
+
+TenantScoped
+
+SoftDeletes
+
+ResolvesTenantRouteBinding
+
+y reducir repetición en todos los modelos empresariales.
+
+Hasta que eso exista, cada módulo debe incorporar explícitamente esos elementos.
+
+16. Orden recomendado para próximos módulos
+
+Para avanzar de forma estable, el orden recomendado es:
+
+tasks
+
+products
+
+orders
+
+invoices
+
+payments
+
+inventory
+
+17. Regla final del proyecto
+
+La arquitectura multi-tenant vigente en app-base es una decisión cerrada.
+
+Por lo tanto:
+
+no se rediseña
+
+no se reemplaza
+
+no se simplifica
+
+no se mueve a otra estrategia
+
+Todo nuevo desarrollo debe construirse encima de esa base.

@@ -3,19 +3,42 @@ Objetivo
 Este documento define las convenciones de desarrollo del proyecto app-base con el objetivo de:
 
 mantener consistencia en el código
-
 evitar decisiones ad-hoc entre módulos
-
 facilitar el mantenimiento del sistema
-
 permitir que el proyecto escale a múltiples módulos
 
-Estas convenciones no modifican la arquitectura SaaS existente, solo definen reglas de implementación.
+Estas convenciones no modifican la arquitectura SaaS existente.
 
-1. Convenciones de base de datos
-1.1 Nombres de tablas
+Convención de modelado del dominio
 
-Las tablas se nombran:
+El sistema distingue entre:
+
+entidades del sistema
+entidades del negocio
+
+users pertenece al sistema.
+
+Las entidades del negocio deben modelarse preferentemente mediante estructuras reutilizables.
+
+La entidad base para personas u organizaciones del negocio es:
+
+parties
+
+Antes de crear nuevas tablas como clients, suppliers o employees se debe evaluar si el caso corresponde a una variante de parties.
+
+En esta etapa del proyecto la diferenciación funcional podrá resolverse mediante un campo simple de tipo o rol.
+
+En el futuro podrán agregarse:
+
+roles múltiples
+perfiles especializados
+atributos dinámicos
+
+sin modificar la entidad base.
+
+Convenciones de base de datos
+
+Nombres de tablas:
 
 snake_case
 plural
@@ -26,23 +49,17 @@ users
 tenants
 memberships
 projects
-clients
+parties
 tasks
 products
 orders
-invoices
-1.2 Claves primarias
 
-Todas las tablas utilizan:
+Claves primarias:
 
 id
-
-tipo:
-
 bigint unsigned auto_increment
-1.3 Claves foráneas
 
-Las claves foráneas se nombran:
+Claves foráneas:
 
 entidad_id
 
@@ -51,9 +68,9 @@ Ejemplos:
 tenant_id
 user_id
 project_id
-client_id
-order_id
-1.4 Columna obligatoria de multi-tenancy
+party_id
+
+Columna obligatoria de multi-tenancy
 
 Todas las entidades empresariales deben incluir:
 
@@ -62,28 +79,20 @@ tenant_id
 Ejemplo:
 
 $table->foreignId('tenant_id')->index();
-1.5 Timestamps
+
+Timestamps
 
 Todas las tablas empresariales deben incluir:
 
 $table->timestamps();
-1.6 Soft delete
+
+Soft delete
 
 Todas las entidades empresariales utilizan:
 
 $table->softDeletes();
 
-Esto permite:
-
-auditoría
-
-recuperación de datos
-
-protección contra accesos indebidos
-
-2. Convenciones de modelos
-
-Los modelos siguen:
+Convenciones de modelos
 
 PascalCase
 singular
@@ -92,48 +101,35 @@ Ejemplos:
 
 User
 Tenant
-Membership
 Project
-Client
+Party
 Task
 Product
 Order
-Invoice
-2.1 Traits obligatorios en entidades empresariales
 
-Todos los modelos empresariales deben usar:
+Traits obligatorios en entidades empresariales:
 
 use TenantScoped;
 use SoftDeletes;
 use ResolvesTenantRouteBinding;
 
-Esto garantiza:
+Convenciones de controladores
 
-aislamiento automático por tenant
-
-protección en rutas
-
-soporte de soft delete
-
-3. Convenciones de controladores
-
-Los controladores se nombran:
+Formato:
 
 EntidadController
 
 Ejemplos:
 
 ProjectController
-ClientController
+PartyController
 TaskController
-ProductController
 
 Ubicación:
 
 app/Http/Controllers
-3.1 Tipo de controlador
 
-Todos los módulos utilizan:
+Tipo de controlador:
 
 Resource Controller
 
@@ -146,18 +142,16 @@ show
 edit
 update
 destroy
-4. Convenciones de rutas
 
-Las rutas se definen usando:
+Convenciones de rutas
 
 Route::resource()
 
 Ejemplo:
 
 Route::resource('projects', ProjectController::class);
-4.1 Convención de URLs
 
-Las URLs usan:
+URLs:
 
 plural
 kebab-case
@@ -165,12 +159,11 @@ kebab-case
 Ejemplos:
 
 /projects
-/clients
+/parties
 /tasks
 /products
-/orders
-/invoices
-5. Convenciones de Requests (validación)
+
+Convenciones de Requests
 
 Nunca se valida directamente en el controlador.
 
@@ -183,30 +176,26 @@ UpdateEntidadRequest
 
 Ejemplo:
 
-StoreProjectRequest
-UpdateProjectRequest
-StoreTaskRequest
-UpdateTaskRequest
+StorePartyRequest
+UpdatePartyRequest
 
 Ubicación:
 
 app/Http/Requests
-6. Convenciones de vistas
 
-Las vistas se organizan por módulo.
+Convenciones de vistas
 
 Ubicación:
 
 resources/views/{modulePlural}
 
-Ejemplo:
+Ejemplos:
 
 resources/views/projects
-resources/views/clients
+resources/views/parties
 resources/views/tasks
-6.1 Archivos de vistas
 
-Cada módulo debe incluir:
+Archivos mínimos:
 
 index.blade.php
 create.blade.php
@@ -214,72 +203,35 @@ edit.blade.php
 show.blade.php
 _form.blade.php
 
-El archivo _form.blade.php se reutiliza en:
+Convenciones de relaciones Eloquent
 
-create
-edit
-7. Convenciones de nombres de variables
+Singular para belongsTo
 
-Las variables usan:
-
-camelCase
-
-Ejemplos:
-
-tenantId
-projectId
-clientName
-dueDate
-assignedUser
-8. Convenciones de relaciones Eloquent
-
-Relaciones en singular:
-
+party()
 project()
-client()
 tenant()
 user()
 
-Relaciones múltiples en plural:
+Plural para hasMany
 
 tasks()
 projects()
 orders()
-invoices()
-9. Convención de migraciones
 
-Las migraciones siguen el formato:
-
-create_{table}_table
-
-Ejemplos:
-
-create_projects_table
-create_clients_table
-create_tasks_table
-create_products_table
-10. Organización del crecimiento del sistema
+Organización del crecimiento del sistema
 
 El sistema se expandirá mediante módulos empresariales independientes.
 
 Módulos previstos:
 
+parties
 tasks
 products
 orders
-invoices
-payments
-inventory
 documents
-notes
-attachments
+inventory
+payments
 
-Todos los módulos deben seguir las mismas convenciones definidas en este documento.
+Regla fundamental del proyecto
 
-11. Regla fundamental del proyecto
-
-La arquitectura multi-tenant definida en el proyecto:
-
-NO debe modificarse
-
-Todos los desarrollos deben adaptarse a la arquitectura existente, no alterarla.
+La arquitectura multi-tenant definida en el proyecto NO debe modificarse.

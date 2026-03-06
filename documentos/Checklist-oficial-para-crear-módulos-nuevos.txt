@@ -1,0 +1,130 @@
+CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS
+
+Objetivo
+
+Definir el proceso estándar para crear módulos nuevos en app-base.
+
+Regla general
+
+Todo módulo debe respetar:
+
+multi-tenancy por tenant_id
+ResolveTenant
+TenantScoped
+ResolvesTenantRouteBinding
+SoftDeletes
+
+Confirmación previa antes de crear un módulo
+
+Antes de crear una nueva entidad verificar:
+
+si realmente es una entidad nueva
+si puede resolverse como extensión de otra entidad
+si pertenece al dominio de parties
+si corresponde a una familia de documentos
+
+Priorizar entidades reutilizables.
+
+Definición inicial del módulo
+
+Definir:
+
+nombre singular
+nombre plural
+tabla
+controlador
+requests
+carpeta de vistas
+rutas
+
+Ejemplo:
+
+Party
+parties
+PartyController
+StorePartyRequest
+UpdatePartyRequest
+
+Migración
+
+Campos mínimos:
+
+$table->id();
+$table->foreignId('tenant_id')->index();
+$table->timestamps();
+$table->softDeletes();
+
+Modelo
+
+Debe incluir:
+
+TenantScoped
+SoftDeletes
+ResolvesTenantRouteBinding
+
+Definir:
+
+fillable
+relaciones
+casteos
+
+Controlador
+
+Resource Controller
+
+Métodos:
+
+index
+create
+store
+show
+edit
+update
+destroy
+
+Form Requests
+
+Siempre crear:
+
+StoreEntidadRequest
+UpdateEntidadRequest
+
+Rutas
+
+Route::resource()
+
+Vistas
+
+Carpeta:
+
+resources/views/{modulePlural}
+
+Archivos mínimos:
+
+index.blade.php
+create.blade.php
+edit.blade.php
+show.blade.php
+_form.blade.php
+
+Seguridad SaaS
+
+Probar:
+
+aislamiento entre tenants
+acceso cruzado bloqueado
+soft delete protegido
+
+Checklist final
+
+Tabla creada
+tenant_id presente
+timestamps presentes
+soft delete presente
+modelo correcto
+controlador resource
+requests creadas
+rutas creadas
+vistas implementadas
+CRUD funcionando
+aislamiento probado

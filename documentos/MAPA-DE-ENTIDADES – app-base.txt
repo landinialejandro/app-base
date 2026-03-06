@@ -1,0 +1,449 @@
+Objetivo
+
+Este documento define el mapa general de entidades del proyecto app-base en su estado actual y su dirección de crecimiento.
+
+Su finalidad es:
+
+visualizar la estructura general del sistema
+
+distinguir entidades del sistema y entidades del negocio
+
+evitar duplicación de modelos
+
+orientar la creación de nuevos módulos
+
+mantener una visión coherente del crecimiento del ERP SaaS
+
+Este documento no redefine la arquitectura multi-tenant, sino que organiza conceptualmente el dominio.
+
+1. Criterio general de modelado
+
+El sistema distingue entre:
+
+entidades del sistema
+
+entidades del negocio
+
+entidades operativas
+
+entidades documentales
+
+entidades futuras de soporte
+
+La regla general es:
+
+users pertenece al sistema
+
+parties es la entidad base del negocio para personas y organizaciones
+
+los módulos operativos deben relacionarse preferentemente con parties cuando intervengan actores externos o internos del negocio
+
+antes de crear nuevas tablas base debe evaluarse si el caso corresponde a una variante de una entidad ya existente
+
+2. Entidades del sistema
+
+Estas entidades forman el núcleo técnico y de acceso del SaaS.
+
+users
+
+Representa usuarios con acceso al sistema.
+
+Responsabilidades:
+
+autenticación
+
+acceso
+
+permisos
+
+sesiones
+
+operación interna del sistema
+
+tenants
+
+Representa empresas o cuentas independientes dentro del SaaS.
+
+Responsabilidades:
+
+aislamiento lógico de datos
+
+contexto de operación
+
+pertenencia empresarial
+
+memberships
+
+Vincula usuarios con tenants.
+
+Responsabilidades:
+
+pertenencia de un usuario a una o varias empresas
+
+eventual relación con roles/permisos dentro del tenant
+
+3. Entidad base del negocio
+parties
+
+Entidad general para personas u organizaciones vinculadas a la operación de un tenant.
+
+Ejemplos de uso:
+
+cliente
+
+proveedor
+
+empleado
+
+contacto
+
+contratista
+
+tercero
+
+Criterio actual:
+
+implementación simple y funcional
+
+diferenciación inicial mediante campo de tipo o rol
+
+evolución futura posible hacia perfiles especializados o múltiples roles
+
+Campos conceptuales esperables:
+
+tenant_id
+
+type o kind
+
+name
+
+display_name opcional
+
+document_type nullable
+
+document_number nullable
+
+tax_id nullable
+
+email nullable
+
+phone nullable
+
+address nullable
+
+notes nullable
+
+is_active
+
+timestamps
+
+soft deletes
+
+4. Entidades operativas principales
+
+Estas entidades representan la operación diaria del negocio.
+
+projects
+
+Agrupa trabajos, servicios, iniciativas o procesos internos/comerciales.
+
+Relaciones probables:
+
+pertenece a tenant
+
+puede vincularse a una party
+
+puede tener muchas tasks
+
+puede vincular documentos
+
+tasks
+
+Unidad operativa de trabajo.
+
+Relaciones probables:
+
+pertenece a tenant
+
+puede pertenecer a project
+
+puede vincularse a una party
+
+puede vincularse a user asignado
+
+puede vincularse a documentos futuros
+
+products
+
+Representa productos, artículos, repuestos, insumos o ítems comercializables/utilizables.
+
+Relaciones probables:
+
+pertenece a tenant
+
+puede participar en orders
+
+puede participar en documents
+
+puede vincularse a inventory
+
+orders
+
+Representa pedidos u órdenes comerciales/operativas.
+
+Relaciones probables:
+
+pertenece a tenant
+
+se vincula con una party
+
+puede tener múltiples productos
+
+puede derivar en documents
+
+puede relacionarse con payments
+
+5. Entidades documentales
+
+El sistema tenderá a una familia documental unificada.
+
+documents
+
+Entidad genérica para documentos comerciales u operativos.
+
+Ejemplos de tipos:
+
+factura
+
+remito
+
+proforma
+
+orden de trabajo
+
+presupuesto
+
+nota de crédito
+
+recibo
+
+comprobante interno
+
+Criterio actual:
+
+no profundizar todavía en exceso
+
+pensar la familia documental como una misma línea conceptual
+
+diferenciar inicialmente por document_type
+
+dejar para una segunda etapa la profundización de numeración, series, estados complejos y relaciones avanzadas
+
+Relaciones probables:
+
+pertenece a tenant
+
+puede vincularse a una party
+
+puede vincularse a orders
+
+puede vincularse a projects
+
+puede vincularse a products mediante detalle
+
+puede vincularse a payments
+
+6. Entidades financieras futuras
+payments
+
+Representa cobros, pagos o movimientos relacionados con documentos u órdenes.
+
+Relaciones probables:
+
+pertenece a tenant
+
+puede vincularse a documents
+
+puede vincularse a parties
+
+puede vincularse a orders
+
+7. Entidades de inventario futuras
+inventory
+
+Representa stock o existencia de productos.
+
+Relaciones probables:
+
+pertenece a tenant
+
+se vincula con products
+
+puede vincular movimientos futuros
+
+inventory_movements
+
+Entidad futura para entradas, salidas, ajustes o transferencias.
+
+Relaciones probables:
+
+pertenece a tenant
+
+se vincula con inventory o products
+
+puede relacionarse con documents o orders
+
+8. Entidades futuras de soporte
+
+Estas no son prioridad en la etapa actual, pero forman parte del crecimiento natural del sistema.
+
+addresses
+
+Para múltiples direcciones por entidad.
+
+contacts
+
+Para múltiples medios o contactos secundarios.
+
+party_profiles
+
+Para especializaciones futuras por tipo de party.
+
+document_sequences
+
+Para numeración por tipo documental, sucursal o tenant.
+
+branches
+
+Sucursales o sedes del tenant.
+
+roles
+
+Roles internos de acceso o de negocio, según evolución futura.
+
+permissions
+
+Permisos del sistema.
+
+attachments
+
+Archivos adjuntos relacionados con parties, projects, tasks o documents.
+
+notes
+
+Notas internas vinculables a distintas entidades.
+
+9. Relación conceptual general del sistema
+
+Núcleo SaaS:
+
+users
+↓
+memberships
+↓
+tenants
+
+Dominio de negocio:
+
+tenants
+↓
+parties
+↓
+projects / tasks / orders / documents / payments
+
+Dominio de productos:
+
+tenants
+↓
+products
+↓
+inventory / orders / documents
+
+10. Orden conceptual recomendado de implementación
+
+Orden sugerido de crecimiento:
+
+parties
+
+tasks
+
+products
+
+orders
+
+documents
+
+payments
+
+inventory
+
+11. Regla de racionalización
+
+Antes de crear una nueva entidad base debe evaluarse:
+
+si pertenece al sistema o al negocio
+
+si puede resolverse dentro de parties
+
+si puede resolverse dentro de documents
+
+si es una verdadera entidad nueva o una especialización futura
+
+si conviene implementarla ahora o dejarla como TODO
+
+12. Estado actual del mapa
+Ya existentes
+
+users
+
+tenants
+
+memberships
+
+projects
+
+clients (transitorio)
+
+Definidas como línea actual
+
+parties
+
+Próximas recomendadas
+
+tasks
+
+products
+
+orders
+
+documents
+
+Futuras
+
+payments
+
+inventory
+
+attachments
+
+notes
+
+addresses
+
+perfiles especializados
+
+13. Regla final
+
+El crecimiento del sistema debe seguir una lógica de:
+
+núcleo estable
+
+entidades reutilizables
+
+especialización progresiva
+
+mínima duplicación
+
+evolución por capas
+
+La prioridad actual es construir una base operativa y adaptable, evitando profundizaciones innecesarias en esta etapa.

@@ -37,16 +37,16 @@ Relación principal de identidad
 La relación de pertenencia es:
 
 users
-  ↓
+↓
 memberships
-  ↓
+↓
 tenants
 
 Características:
 
-Un usuario puede pertenecer a múltiples empresas
+Un usuario puede pertenecer a múltiples empresas.
 
-Cada empresa (tenant) puede tener múltiples usuarios
+Cada empresa (tenant) puede tener múltiples usuarios.
 
 Resolución del tenant activo
 
@@ -98,6 +98,7 @@ Esto evita que un usuario acceda por URL a registros de otra empresa.
 Ejemplo protegido:
 
 /projects/{project}
+
 Soft delete obligatorio
 
 Los módulos empresariales utilizan:
@@ -107,27 +108,62 @@ SoftDeletes
 Reglas:
 
 los registros eliminados no aparecen en listados
-
 no son accesibles por URL
-
 siguen existiendo en base de datos
 
 Flujo SaaS
 
-Flujo de uso:
-
 login
-   ↓
+↓
 /tenants/select
-   ↓
+↓
 session('tenant_id')
-   ↓
+↓
 ResolveTenant
-   ↓
+↓
 dashboard
-Módulos ya implementados
 
-Los módulos actuales siguen el mismo patrón SaaS.
+Modelo base de entidades del negocio
+
+El sistema distingue entre:
+
+Entidades del sistema
+Entidades del negocio
+
+users es una entidad propia del sistema y se utiliza para:
+
+autenticación
+permisos
+membresías
+acceso al sistema
+
+Las entidades del negocio se modelarán mediante una entidad general llamada:
+
+parties
+
+Una party representa una persona u organización relacionada con la operación de un tenant.
+
+Ejemplos:
+
+cliente
+proveedor
+empleado
+contacto
+contratista
+
+En esta etapa del proyecto se prioriza una implementación funcional simple.
+
+La diferenciación entre tipos de party podrá resolverse inicialmente mediante un campo de tipo o rol.
+
+En etapas futuras podrán incorporarse:
+
+roles múltiples
+perfiles especializados
+atributos dinámicos
+
+sin modificar la entidad base.
+
+Módulos ya implementados
 
 Projects
 
@@ -137,14 +173,13 @@ CRUD completo
 /projects/create
 /projects/{project}
 /projects/{project}/edit
+
 Clients
 
-CRUD completo
+El módulo clients fue implementado como primera aproximación a la gestión de terceros.
 
-/clients
-/clients/create
-/clients/{client}
-/clients/{client}/edit
+Con la nueva línea de diseño se considera una implementación transitoria que será absorbida por la entidad general parties.
+
 Seguridad ya validada
 
 Se comprobó correctamente:
@@ -160,13 +195,9 @@ La arquitectura multi-tenant actual no debe modificarse.
 Los nuevos módulos deben desarrollarse reutilizando el mismo patrón usado en:
 
 models
-
 traits
-
 route binding
-
 middleware
-
 estructura CRUD
 
 Objetivo del desarrollo
@@ -175,10 +206,16 @@ Continuar agregando módulos empresariales reutilizando la arquitectura existent
 
 Ejemplos de próximos módulos:
 
+parties
 tasks
-
 products
-
 orders
+documents
 
-invoices
+TODO de evolución futura
+
+Relación opcional entre users y parties.
+Sistema de roles múltiples para parties.
+Perfiles especializados para ciertos tipos de parties.
+Sistema adaptable para documentos comerciales.
+Sistema de atributos dinámicos si el negocio lo requiere.

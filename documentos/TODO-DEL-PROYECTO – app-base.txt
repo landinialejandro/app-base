@@ -1,0 +1,257 @@
+Objetivo
+
+Este documento registra decisiones pendientes, mejoras futuras, profundizaciones postergadas y líneas de evolución del proyecto app-base.
+
+Su finalidad es:
+
+no perder ideas importantes
+
+evitar profundizar demasiado pronto
+
+separar lo urgente de lo evolutivo
+
+mantener un backlog técnico/funcional vivo
+
+permitir actualización continua a medida que surjan nuevas necesidades
+
+Este documento debe crecer con el proyecto.
+
+1. Regla de uso del archivo TODO
+
+Este archivo debe registrar:
+
+decisiones postergadas
+
+mejoras de arquitectura no urgentes
+
+refactorizaciones futuras
+
+módulos futuros no prioritarios
+
+validaciones avanzadas
+
+ideas de escalabilidad
+
+racionalizaciones del dominio
+
+mejoras de UX o estructura
+
+No deben agregarse aquí tareas ya cerradas o decisiones ya consolidadas en los documentos fijos.
+
+2. TODO actuales del dominio
+Parties
+
+definir si parties tendrá un campo simple type, kind o role
+
+evaluar si en una segunda etapa conviene soportar múltiples roles por party
+
+evaluar perfiles especializados para ciertos tipos de parties
+
+definir si habrá relación opcional entre users y parties
+
+evaluar separación futura de direcciones, contactos y documentos identificatorios
+
+Clients transitorio
+
+reemplazar módulo clients por parties
+
+decidir si se elimina directamente o si se hace transición corta
+
+revisar rutas, vistas, modelos y nombres asociados a clients
+
+3. TODO actuales de documentos
+Documents
+
+definir estructura mínima del módulo documents
+
+decidir tipos iniciales de documento
+
+definir si el tipo documental se resolverá por un campo simple
+
+evaluar futuros detalles por tipo documental
+
+evaluar numeración o secuencias por tenant
+
+evaluar relación con orders, products y parties
+
+definir cuándo conviene separar encabezado y detalle
+
+Familia documental
+
+pensar factura, remito, proforma, orden de trabajo, presupuesto y recibo como variantes de una misma familia
+
+evitar crear módulos completamente aislados para cada documento en esta etapa
+
+revisar más adelante si conviene separar documentos comerciales y documentos operativos
+
+4. TODO actuales de usuarios y acceso
+
+definir relación futura entre users y parties
+
+revisar si un user puede representar a una party
+
+revisar futuro portal externo para clientes o terceros
+
+evaluar necesidad futura de roles más avanzados por tenant
+
+evaluar permisos granulares por módulo
+
+5. TODO actuales de módulos operativos
+Tasks
+
+definir campos mínimos y campos opcionales
+
+decidir relación con projects
+
+evaluar relación con parties y/o users
+
+definir estados y prioridades
+
+evaluar fechas de vencimiento y asignación
+
+Products
+
+definir si el módulo incluirá solo datos maestros o también lógica básica de stock
+
+evaluar categorías, unidad de medida y códigos internos
+
+definir relación futura con documents y orders
+
+Orders
+
+definir si se usarán para ventas, compras o ambas
+
+definir relación con parties
+
+definir detalle de productos
+
+evaluar estado del pedido
+
+evaluar derivación a documents
+
+6. TODO actuales de inventario y finanzas
+Inventory
+
+definir si habrá stock simple o stock por movimiento
+
+evaluar almacenes o sucursales futuras
+
+definir momento adecuado para incorporar movimientos
+
+Payments
+
+definir modelo mínimo de pagos/cobros
+
+evaluar relación con documents y orders
+
+definir si habrá estados o conciliación futura
+
+7. TODO técnicos de arquitectura
+
+evaluar creación futura de BaseTenantModel
+
+centralizar traits comunes en modelos empresariales
+
+revisar si conviene una capa de servicios en módulos más complejos
+
+evaluar modularización por dominios cuando haya más entidades
+
+revisar convenciones si el proyecto supera cierta cantidad de módulos
+
+8. TODO de UX y estructura
+
+definir estructura visual común para todos los módulos
+
+revisar componentes reutilizables de formularios y tablas
+
+evaluar mensajes de validación homogéneos
+
+evaluar navegación cruzada entre parties, projects, tasks y documents
+
+revisar consistencia de acciones CRUD entre módulos
+
+9. TODO de datos y normalización
+
+revisar si direcciones deben separarse en tabla propia
+
+revisar si múltiples emails/teléfonos deben separarse
+
+revisar si documentos identificatorios deben tener estructura más flexible
+
+revisar catálogos futuros: estados, tipos, categorías, prioridades, unidades, condiciones fiscales
+
+10. TODO de seguridad y pruebas
+
+formalizar checklist de pruebas por módulo
+
+agregar pruebas más explícitas de aislamiento entre tenants
+
+agregar pruebas de acceso cruzado por URL
+
+agregar pruebas de soft delete
+
+evaluar tests automatizados por módulo a futuro
+
+11. TODO de documentación del proyecto
+
+mantener actualizado el mapa de entidades
+
+mantener actualizado este archivo TODO
+
+registrar nuevas decisiones estructurales en los documentos fijos
+
+evitar que decisiones importantes queden solo en chats
+
+crear más adelante un documento de historial de decisiones si el proyecto crece mucho
+
+12. Cómo actualizar este archivo
+
+Cada vez que aparezca una idea, mejora o tema no prioritario, agregarlo bajo una sección existente o crear una nueva.
+
+Formato sugerido para agregar nuevos TODO:
+
+tema
+
+motivo
+
+urgencia: baja / media / alta
+
+impacto estimado
+
+dependencia con otros módulos
+
+estado: pendiente / en análisis / resuelto
+
+Ejemplo:
+
+definir secuencia documental por tenant
+
+motivo: necesaria para documents
+
+urgencia: media
+
+impacto: medio
+
+dependencia: módulo documents
+
+estado: pendiente
+
+13. Regla final del TODO
+
+Este archivo no debe bloquear el avance.
+
+Su función es permitir que el proyecto avance con una base operativa, dejando registradas las profundizaciones futuras para tratarlas en el momento adecuado.
+
+14. Estado actual
+
+Prioridades inmediatas:
+
+reemplazar clients por parties
+
+definir y crear tasks
+
+definir products
+
+avanzar hacia orders
+
+preparar base conceptual para documents

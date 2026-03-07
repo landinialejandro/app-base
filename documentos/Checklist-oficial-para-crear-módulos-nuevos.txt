@@ -1,78 +1,99 @@
-CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS
-
 Objetivo
 
-Definir el proceso estándar para crear módulos nuevos en app-base.
+Este checklist define el procedimiento estándar para crear un nuevo módulo dentro del proyecto app-base.
 
-Regla general
+Su finalidad es:
 
-Todo módulo debe respetar:
+mantener consistencia entre módulos
+evitar errores estructurales
+garantizar compatibilidad multi-tenant
+acelerar desarrollo
 
-multi-tenancy por tenant_id
-ResolveTenant
-TenantScoped
-ResolvesTenantRouteBinding
-SoftDeletes
+Este checklist aplica a todos los módulos CRUD del sistema.
 
-Confirmación previa antes de crear un módulo
+1. Evaluación inicial (ANTES de crear el módulo)
 
-Antes de crear una nueva entidad verificar:
+Antes de crear una entidad nueva verificar:
 
-si realmente es una entidad nueva
-si puede resolverse como extensión de otra entidad
-si pertenece al dominio de parties
-si corresponde a una familia de documentos
+si puede resolverse con Party (Contactos)
 
-Priorizar entidades reutilizables.
+si puede resolverse con Documents
 
-Definición inicial del módulo
+si es una verdadera entidad nueva
 
-Definir:
+Si no es imprescindible ahora:
 
-nombre singular
-nombre plural
-tabla
-controlador
-requests
-carpeta de vistas
-rutas
+registrarlo en TODO-DEL-PROYECTO.
+
+2. Crear migración
+
+Crear la migración.
 
 Ejemplo:
 
-Party
-parties
-PartyController
-StorePartyRequest
-UpdatePartyRequest
+php artisan make:migration create_products_table
+Reglas de migración
 
-Migración
+Toda entidad del negocio debe tener:
 
-Campos mínimos:
+tenant_id
+timestamps
+softDeletes
 
-$table->id();
-$table->foreignId('tenant_id')->index();
+Ejemplo mínimo:
+
+$table->uuid('tenant_id')->index();
+
+$table->string('name');
+
 $table->timestamps();
+
 $table->softDeletes();
+Índices recomendados
 
-Modelo
+Siempre indexar:
 
-Debe incluir:
+tenant_id
 
-TenantScoped
-SoftDeletes
-ResolvesTenantRouteBinding
+y campos de búsqueda relevantes.
 
-Definir:
+Ejemplo:
 
+$table->index(['tenant_id','name']);
+3. Crear modelo
+
+Crear modelo:
+
+php artisan make:model Product
+El modelo debe incluir
+use TenantScoped;
+use SoftDeletes;
+use ResolvesTenantRouteBinding;
+
+Ejemplo:
+
+use App\Models\Concerns\TenantScoped;
+use App\Models\Concerns\ResolvesTenantRouteBinding;
+use Illuminate\Database\Eloquent\SoftDeletes;
 fillable
-relaciones
-casteos
 
-Controlador
+Definir los campos editables.
 
-Resource Controller
+Ejemplo:
 
-Métodos:
+protected $fillable = [
+    'tenant_id',
+    'name',
+    'description',
+];
+4. Crear controller
+
+Crear controller tipo resource:
+
+php artisan make:controller ProductController
+Métodos mínimos
+
+El controller debe incluir:
 
 index
 create
@@ -81,50 +102,183 @@ show
 edit
 update
 destroy
+Regla de tenant
 
-Form Requests
+Siempre obtener el tenant:
 
-Siempre crear:
+$tenant = app('tenant');
 
-StoreEntidadRequest
-UpdateEntidadRequest
+y pasarlo a la vista cuando sea necesario.
 
-Rutas
+5. Definir rutas
 
-Route::resource()
+Agregar en:
 
-Vistas
+routes/web.php
 
-Carpeta:
+Ejemplo:
 
-resources/views/{modulePlural}
+Route::resource('products', ProductController::class);
 
-Archivos mínimos:
+Las rutas deben quedar dentro del grupo:
+
+auth
+tenant
+6. Crear vistas
+
+Crear carpeta:
+
+resources/views/products
+Vistas mínimas
+
+Crear:
 
 index.blade.php
 create.blade.php
 edit.blade.php
 show.blade.php
 _form.blade.php
+7. Convención de listados (index)
 
-Seguridad SaaS
+Los listados deben seguir el patrón usado en projects.
 
-Probar:
+Reglas:
 
-aislamiento entre tenants
-acceso cruzado bloqueado
-soft delete protegido
+no usar columna de acciones
+el nombre enlaza al detalle
+crear botón "Nuevo"
 
-Checklist final
+Ejemplo:
 
-Tabla creada
-tenant_id presente
-timestamps presentes
-soft delete presente
-modelo correcto
-controlador resource
-requests creadas
-rutas creadas
-vistas implementadas
-CRUD funcionando
-aislamiento probado
+Nombre → link a show
+8. Convención de show
+
+La vista de detalle debe incluir:
+
+Editar
+Eliminar
+Volver al listado
+Detalle de campos
+
+El botón eliminar debe usar:
+
+POST + method DELETE
+
+con confirmación.
+
+9. Convención de formularios
+
+Usar archivo compartido:
+
+_form.blade.php
+
+utilizado por:
+
+create
+edit
+10. Validación
+
+Validar en el controller inicialmente.
+
+Ejemplo:
+
+$request->validate([
+'name' => ['required','string','max:255'],
+]);
+
+Si el módulo crece, migrar a FormRequest.
+
+11. Mensajes de éxito
+
+Usar mensajes simples.
+
+Ejemplo:
+
+Entidad creada correctamente
+Entidad actualizada correctamente
+Entidad eliminada correctamente
+
+Ejemplo:
+
+->with('success', 'Producto creado correctamente');
+12. Prueba mínima del módulo
+
+Verificar:
+
+✔ listado
+✔ creación
+✔ edición
+✔ eliminación
+✔ aislamiento por tenant
+
+13. Verificar aislamiento multi-tenant
+
+Confirmar que:
+
+un tenant no puede ver datos de otro tenant.
+
+Esto debe resolverse automáticamente por:
+
+TenantScoped
+
+pero siempre debe verificarse.
+
+14. Actualizar documentos del proyecto
+
+Si el módulo es nuevo, actualizar:
+
+MAPA-DE-ENTIDADES
+TODO-DEL-PROYECTO
+15. Regla de simplicidad
+
+Antes de agregar:
+
+roles
+estados complejos
+subtablas
+polimorfismos
+arquitecturas complejas
+
+preguntarse:
+
+¿esto es necesario ahora?
+
+Si no lo es:
+
+registrarlo en TODO y seguir con el sistema funcional.
+
+16. Regla de coherencia
+
+Cada módulo nuevo debe parecer parte del mismo sistema.
+
+Debe respetar:
+
+estructura
+rutas
+vistas
+convenciones
+flujo de trabajo
+
+17. Flujo resumido para crear módulo
+
+Flujo recomendado:
+
+evaluar entidad
+crear migración
+crear modelo
+crear controller
+crear rutas
+crear vistas
+validar funcionamiento
+actualizar documentos
+Regla final
+
+Si al implementar un módulo aparece una decisión que afectará a todo el sistema:
+
+no improvisar.
+
+Registrar la decisión en:
+
+CONVENCIONES-DEL-PROYECTO
+
+y luego continuar el desarrollo.

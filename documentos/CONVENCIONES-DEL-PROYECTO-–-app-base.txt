@@ -1,237 +1,623 @@
-Objetivo
+Objetivo del documento
 
-Este documento define las convenciones de desarrollo del proyecto app-base con el objetivo de:
+Este documento fija reglas de trabajo para mantener consistencia técnica y funcional en el proyecto app-base.
 
-mantener consistencia en el código
-evitar decisiones ad-hoc entre módulos
-facilitar el mantenimiento del sistema
-permitir que el proyecto escale a múltiples módulos
+Su finalidad es:
 
-Estas convenciones no modifican la arquitectura SaaS existente.
+unificar criterios de desarrollo
 
-Convención de modelado del dominio
+evitar duplicaciones conceptuales
 
-El sistema distingue entre:
+mantener coherencia entre módulos
 
-entidades del sistema
-entidades del negocio
+facilitar escalabilidad
 
-users pertenece al sistema.
+reducir deuda técnica innecesaria
 
-Las entidades del negocio deben modelarse preferentemente mediante estructuras reutilizables.
+Estas convenciones aplican a todos los módulos nuevos salvo decisión explícita en contrario.
 
-La entidad base para personas u organizaciones del negocio es:
+1. Principio general del proyecto
 
-parties
+app-base es una plataforma SaaS multi-tenant orientada a gestión empresarial.
 
-Antes de crear nuevas tablas como clients, suppliers o employees se debe evaluar si el caso corresponde a una variante de parties.
+La prioridad actual del proyecto es:
 
-En esta etapa del proyecto la diferenciación funcional podrá resolverse mediante un campo simple de tipo o rol.
+construir una base funcional, consistente y extensible
 
-En el futuro podrán agregarse:
+La regla general de esta etapa es:
 
-roles múltiples
-perfiles especializados
-atributos dinámicos
+primero resolver lo operativo de forma clara y usable
 
-sin modificar la entidad base.
+luego profundizar estructura, normalización y sofisticación
 
-Convenciones de base de datos
+No se debe complejizar un módulo antes de que exista una necesidad real de negocio o técnica.
 
-Nombres de tablas:
+2. Convención de arquitectura multi-tenant
 
-snake_case
-plural
+La arquitectura multi-tenant definida para el proyecto no debe modificarse salvo decisión explícita.
+
+Reglas obligatorias
+
+cada entidad de negocio debe pertenecer a un tenant
+
+el aislamiento debe resolverse automáticamente por tenant_id
+
+las consultas deben quedar protegidas por scope global
+
+el route model binding debe respetar el tenant activo
+
+las entidades empresariales deben implementar soft delete
+
+Patrón obligatorio para entidades del negocio
+
+Toda entidad del negocio que pertenezca a un tenant debe seguir este patrón:
+
+use TenantScoped
+
+use ResolvesTenantRouteBinding
+
+use SoftDeletes
+
+y su tabla debe incluir:
+
+tenant_id
+
+timestamps
+
+deleted_at
+
+3. Convención sobre tipos de entidades
+
+El sistema distingue cuatro grandes grupos:
+
+Entidades del sistema
+
+Son técnicas o estructurales del SaaS.
 
 Ejemplos:
 
 users
+
 tenants
+
 memberships
-projects
-parties
-tasks
-products
-orders
 
-Claves primarias:
+roles
 
-id
-bigint unsigned auto_increment
+permissions
 
-Claves foráneas:
+Entidades del negocio
 
-entidad_id
+Representan actores o elementos centrales del dominio empresarial.
 
 Ejemplos:
-
-tenant_id
-user_id
-project_id
-party_id
-
-Columna obligatoria de multi-tenancy
-
-Todas las entidades empresariales deben incluir:
-
-tenant_id
-
-Ejemplo:
-
-$table->foreignId('tenant_id')->index();
-
-Timestamps
-
-Todas las tablas empresariales deben incluir:
-
-$table->timestamps();
-
-Soft delete
-
-Todas las entidades empresariales utilizan:
-
-$table->softDeletes();
-
-Convenciones de modelos
-
-PascalCase
-singular
-
-Ejemplos:
-
-User
-Tenant
-Project
-Party
-Task
-Product
-Order
-
-Traits obligatorios en entidades empresariales:
-
-use TenantScoped;
-use SoftDeletes;
-use ResolvesTenantRouteBinding;
-
-Convenciones de controladores
-
-Formato:
-
-EntidadController
-
-Ejemplos:
-
-ProjectController
-PartyController
-TaskController
-
-Ubicación:
-
-app/Http/Controllers
-
-Tipo de controlador:
-
-Resource Controller
-
-Métodos estándar:
-
-index
-create
-store
-show
-edit
-update
-destroy
-
-Convenciones de rutas
-
-Route::resource()
-
-Ejemplo:
-
-Route::resource('projects', ProjectController::class);
-
-URLs:
-
-plural
-kebab-case
-
-Ejemplos:
-
-/projects
-/parties
-/tasks
-/products
-
-Convenciones de Requests
-
-Nunca se valida directamente en el controlador.
-
-Se utilizan Form Requests.
-
-Convención:
-
-StoreEntidadRequest
-UpdateEntidadRequest
-
-Ejemplo:
-
-StorePartyRequest
-UpdatePartyRequest
-
-Ubicación:
-
-app/Http/Requests
-
-Convenciones de vistas
-
-Ubicación:
-
-resources/views/{modulePlural}
-
-Ejemplos:
-
-resources/views/projects
-resources/views/parties
-resources/views/tasks
-
-Archivos mínimos:
-
-index.blade.php
-create.blade.php
-edit.blade.php
-show.blade.php
-_form.blade.php
-
-Convenciones de relaciones Eloquent
-
-Singular para belongsTo
-
-party()
-project()
-tenant()
-user()
-
-Plural para hasMany
-
-tasks()
-projects()
-orders()
-
-Organización del crecimiento del sistema
-
-El sistema se expandirá mediante módulos empresariales independientes.
-
-Módulos previstos:
 
 parties
-tasks
+
 products
+
 orders
+
 documents
-inventory
+
 payments
 
-Regla fundamental del proyecto
+Entidades operativas
 
-La arquitectura multi-tenant definida en el proyecto NO debe modificarse.
+Representan trabajo, ejecución o seguimiento.
+
+Ejemplos:
+
+projects
+
+tasks
+
+work_orders
+
+Entidades de soporte
+
+Complementan a otras entidades.
+
+Ejemplos:
+
+attachments
+
+notes
+
+addresses
+
+sequences
+
+4. Convención de nombres de tablas
+Regla general
+
+Las tablas deben nombrarse:
+
+en inglés
+
+en plural
+
+en minúsculas
+
+con snake_case
+
+Ejemplos válidos
+
+users
+
+tenants
+
+memberships
+
+parties
+
+projects
+
+document_sequences
+
+inventory_movements
+
+Ejemplos no válidos
+
+Usuarios
+
+Party
+
+projectItems
+
+DocumentSequence
+
+5. Convención de nombres de modelos
+Regla general
+
+Los modelos deben nombrarse:
+
+en inglés
+
+en singular
+
+en PascalCase
+
+Ejemplos válidos
+
+User
+
+Tenant
+
+Membership
+
+Party
+
+Project
+
+DocumentSequence
+
+InventoryMovement
+
+6. Convención de nombres visibles al usuario
+
+La interfaz no está obligada a reflejar literalmente el nombre técnico del modelo o tabla.
+
+Se permite y se recomienda utilizar nombres funcionales más naturales para el usuario.
+
+Ejemplo principal del proyecto
+
+Nombre técnico:
+
+Party
+
+Tabla:
+
+parties
+
+Nombre visible en interfaz:
+
+Contacto / Contactos
+
+Regla
+
+el nombre técnico se conserva en código
+
+el nombre funcional puede adaptarse para mejorar usabilidad
+
+7. Convención sobre Party
+Regla central
+
+Party es la entidad base para representar personas u organizaciones vinculadas al negocio.
+
+Antes de crear nuevas tablas como clients, suppliers o employees se debe evaluar si el caso corresponde a una variante de Party.
+
+Party representa conceptualmente
+
+cliente
+
+proveedor
+
+empleado
+
+contratista
+
+empresa
+
+persona
+
+contacto comercial
+
+Regla de interfaz
+
+En pantallas y textos visibles al usuario se utilizará:
+
+Contacto
+
+Contactos
+
+No debe usarse “Party” como término visible en UI salvo motivo técnico excepcional.
+
+8. Convención sobre especialización prematura
+
+No crear tablas separadas cuando el caso todavía pueda resolverse con una entidad base simple.
+
+Ejemplos
+
+No crear todavía:
+
+clients
+
+suppliers
+
+employees
+
+contacts
+
+company_contacts
+
+addresses
+
+salvo que exista una necesidad concreta e irreversible de separación.
+
+Regla
+
+primero resolver con Party
+
+si más adelante se requiere especialización, se agrega por capas
+
+9. Convención de CRUD
+
+Todos los módulos CRUD deben seguir una estructura simple, consistente y predecible.
+
+Archivos mínimos esperados
+
+modelo
+
+migración
+
+controller
+
+requests si corresponde
+
+rutas
+
+vistas
+
+Vistas mínimas esperadas
+
+index
+
+create
+
+edit
+
+show
+
+_form
+
+Rutas
+
+Se prioriza resource controller cuando el módulo realmente sea CRUD estándar.
+
+10. Convención de controllers
+Regla general
+
+Los controllers de módulos simples deben seguir el mismo patrón que ProjectController.
+
+Criterios
+
+métodos claros y directos
+
+sin lógica excesiva en controller
+
+validación simple en request o validate()
+
+uso de redirect con mensajes simples
+
+Patrón visual esperado
+
+index()
+
+create()
+
+store()
+
+show()
+
+edit()
+
+update()
+
+destroy()
+
+Regla adicional
+
+Si el módulo pertenece al tenant, el controller debe trabajar dentro del contexto:
+
+auth + tenant
+
+y pasar el tenant a las vistas cuando corresponda.
+
+11. Convención de vistas
+Regla actual del proyecto
+
+En esta etapa se utilizarán vistas simples, sin sobrearquitectura visual.
+
+Criterios
+
+HTML Blade simple
+
+sin layouts complejos si aún no existen
+
+sin componentes prematuros
+
+máxima legibilidad
+
+Convención de listados
+
+Los listados deben seguir el patrón de projects:
+
+sin columna de acciones
+
+el nombre enlaza al detalle
+
+editar y eliminar viven en la vista show
+
+Convención de detalle
+
+La vista show debe incluir:
+
+link de edición
+
+botón de eliminación
+
+tenant visible cuando corresponda
+
+link para volver al listado
+
+detalle simple de campos
+
+12. Convención de rutas
+Regla general
+
+Las rutas deben nombrarse con el nombre técnico del módulo.
+
+Ejemplos:
+
+projects.index
+
+projects.show
+
+parties.index
+
+parties.show
+
+Regla multi-tenant
+
+Las rutas de entidades del negocio deben quedar dentro del grupo middleware correcto.
+
+Ejemplo:
+
+auth
+
+tenant
+
+Nunca debe exponerse un módulo multi-tenant fuera del contexto tenant.
+
+13. Convención de validación
+Regla general
+
+Si el módulo es muy simple, puede usarse validate() directo en controller.
+
+Si el módulo tiene más campos o crecerá, conviene usar FormRequest.
+
+Regla actual
+
+No agregar validaciones complejas si todavía no hay necesidad concreta.
+
+Primero resolver:
+
+required
+
+string
+
+max
+
+nullable
+
+boolean
+
+email
+
+Luego evolucionar a reglas más profundas si el negocio lo exige.
+
+14. Convención sobre tenant_id
+Regla obligatoria
+
+Si una entidad depende de tenant, su columna tenant_id debe ser compatible con el tipo real de tenants.id.
+
+En este proyecto:
+
+tenants.id es UUID
+
+Por lo tanto:
+
+cualquier tenant_id vinculado a tenants debe ser UUID compatible
+
+No debe usarse foreignId() para tenant_id mientras tenants.id sea UUID.
+
+15. Convención de soft deletes
+
+Toda entidad empresarial debe incorporar SoftDeletes salvo razón muy justificada.
+
+Motivos
+
+evitar pérdida de información
+
+facilitar recuperación
+
+permitir trazabilidad mínima
+
+Regla
+
+si una entidad es del negocio y opera dentro del tenant, por defecto lleva deleted_at
+
+16. Convención de fields “kind”, “type” o similares
+
+Cuando una entidad base agrupe distintos usos, se puede utilizar un campo simple de clasificación en la primera etapa.
+
+Ejemplo:
+
+Party.kind
+
+Regla
+
+usar clasificación simple primero
+
+evitar submodelado prematuro
+
+Recomendación
+
+preferir kind antes que type cuando ayude a evitar ambigüedad técnica o conceptual
+
+17. Convención de interfaz y lenguaje funcional
+
+La interfaz debe utilizar lenguaje claro, cercano y orientado al usuario final.
+
+Regla
+
+preferir términos funcionales en lugar de nombres técnicos internos
+
+Ejemplos
+
+Party → Contacto
+
+Create Party → Nuevo contacto
+
+Show Party → Detalle del contacto
+
+Regla adicional
+
+El lenguaje visible debe ser consistente entre módulos.
+
+18. Convención para módulos futuros
+
+Antes de crear un módulo nuevo se debe verificar:
+
+si realmente es una entidad nueva
+
+si puede resolverse como especialización de Party
+
+si puede resolverse como una variante documental
+
+si conviene implementarlo ahora o dejarlo en TODO
+
+Regla de decisión
+
+si no es imprescindible ahora, dejarlo registrado y seguir con lo operativo
+
+19. Convención para documentación del proyecto
+
+El proyecto debe mantener documentos base actualizados.
+
+Documentos principales
+
+CONTEXTO-FIJO-DEL-PROYECTO
+
+CONVENCIONES-DEL-PROYECTO
+
+CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS
+
+MAPA-DE-ENTIDADES
+
+TODO-DEL-PROYECTO
+
+Regla
+
+cuando una decisión cambie el criterio general del proyecto, debe reflejarse en esos documentos
+
+20. Convención de crecimiento por etapas
+
+El proyecto crecerá por capas.
+
+Etapa 1
+
+CRUDs funcionales
+
+flujo operativo
+
+base consistente
+
+Etapa 2
+
+mejoras estructurales
+
+relaciones más profundas
+
+UI más cuidada
+
+Etapa 3
+
+optimización
+
+auditoría
+
+automatizaciones
+
+API
+
+tests más completos
+
+21. Regla sobre decisiones postergadas
+
+Toda decisión no implementada pero detectada como importante debe registrarse en TODO-DEL-PROYECTO.
+
+Regla
+
+no frenar el avance actual por resolver todo hoy
+
+registrar
+
+continuar
+
+retomar en el momento adecuado
+
+22. Regla final del proyecto
+
+Toda nueva implementación debe priorizar:
+
+coherencia con la arquitectura actual
+
+mínima duplicación
+
+máxima claridad
+
+crecimiento ordenado
+
+consistencia con módulos previos
+
+Si existe duda entre dos caminos, se prioriza el que:
+
+sea más simple
+
+sea más consistente con lo ya implementado
+
+genere menos deuda técnica inmediata
+
+no rompa la arquitectura multi-tenant

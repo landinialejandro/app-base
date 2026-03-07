@@ -13,4 +13,4 @@
 <hr>
 
 <p><a href="/projects">Ver proyectos</a></p>
-<p><a href="/clients">Ver clientes</a></p>
+<p><a href="{{ route('parties.index') }}">Ver terceros</a></p>

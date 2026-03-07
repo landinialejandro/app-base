@@ -36,6 +36,8 @@ users pertenece al sistema
 
 parties es la entidad base del negocio para personas y organizaciones
 
+en la interfaz y en el lenguaje funcional del sistema, parties se presentará como contactos
+
 los módulos operativos deben relacionarse preferentemente con parties cuando intervengan actores externos o internos del negocio
 
 antes de crear nuevas tablas base debe evaluarse si el caso corresponde a una variante de una entidad ya existente
@@ -87,6 +89,14 @@ parties
 
 Entidad general para personas u organizaciones vinculadas a la operación de un tenant.
 
+Nombre técnico interno:
+
+parties
+
+Nombre funcional e interfaz:
+
+contactos
+
 Ejemplos de uso:
 
 cliente
@@ -105,7 +115,7 @@ Criterio actual:
 
 implementación simple y funcional
 
-diferenciación inicial mediante campo de tipo o rol
+diferenciación inicial mediante campo de tipo o clase
 
 evolución futura posible hacia perfiles especializados o múltiples roles
 
@@ -113,7 +123,7 @@ Campos conceptuales esperables:
 
 tenant_id
 
-type o kind
+kind
 
 name
 
@@ -139,6 +149,12 @@ timestamps
 
 soft deletes
 
+Criterio de interfaz:
+
+en pantallas, menús y textos visibles al usuario se utilizará contacto o contactos
+
+el término party queda reservado al modelo técnico, tabla, rutas y convenciones internas
+
 4. Entidades operativas principales
 
 Estas entidades representan la operación diaria del negocio.
@@ -151,7 +167,7 @@ Relaciones probables:
 
 pertenece a tenant
 
-puede vincularse a una party
+puede vincularse a un contacto
 
 puede tener muchas tasks
 
@@ -167,7 +183,7 @@ pertenece a tenant
 
 puede pertenecer a project
 
-puede vincularse a una party
+puede vincularse a un contacto
 
 puede vincularse a user asignado
 
@@ -175,7 +191,7 @@ puede vincularse a documentos futuros
 
 products
 
-Representa productos, artículos, repuestos, insumos o ítems comercializables/utilizables.
+Representa productos, artículos, repuestos, insumos o ítems comercializables o utilizables.
 
 Relaciones probables:
 
@@ -189,13 +205,13 @@ puede vincularse a inventory
 
 orders
 
-Representa pedidos u órdenes comerciales/operativas.
+Representa pedidos u órdenes comerciales u operativas.
 
 Relaciones probables:
 
 pertenece a tenant
 
-se vincula con una party
+se vincula con un contacto
 
 puede tener múltiples productos
 
@@ -243,7 +259,7 @@ Relaciones probables:
 
 pertenece a tenant
 
-puede vincularse a una party
+puede vincularse a un contacto
 
 puede vincularse a orders
 
@@ -264,7 +280,7 @@ pertenece a tenant
 
 puede vincularse a documents
 
-puede vincularse a parties
+puede vincularse a contactos
 
 puede vincularse a orders
 
@@ -303,7 +319,13 @@ Para múltiples direcciones por entidad.
 
 contacts
 
-Para múltiples medios o contactos secundarios.
+Reservado conceptualmente para múltiples medios de contacto o contactos secundarios, en caso de necesitarse en una etapa futura.
+
+Nota importante:
+
+aunque la interfaz del sistema utilizará la palabra contactos para referirse a parties, no se creará una tabla contacts en esta etapa
+
+si en el futuro se necesitara una entidad separada contacts, deberá redefinirse su nombre para evitar confusión con la entidad base parties
 
 party_profiles
 
@@ -327,15 +349,14 @@ Permisos del sistema.
 
 attachments
 
-Archivos adjuntos relacionados con parties, projects, tasks o documents.
+Archivos adjuntos relacionados con contacts, projects, tasks o documents.
 
 notes
 
 Notas internas vinculables a distintas entidades.
 
 9. Relación conceptual general del sistema
-
-Núcleo SaaS:
+Núcleo SaaS
 
 users
 ↓
@@ -343,15 +364,17 @@ memberships
 ↓
 tenants
 
-Dominio de negocio:
+Dominio de negocio
 
 tenants
 ↓
 parties
 ↓
+contactos
+↓
 projects / tasks / orders / documents / payments
 
-Dominio de productos:
+Dominio de productos
 
 tenants
 ↓
@@ -402,11 +425,17 @@ memberships
 
 projects
 
-clients (transitorio)
-
-Definidas como línea actual
+Implementado como línea actual
 
 parties
+
+Nombre funcional visible al usuario
+
+contactos
+
+Transitorio retirado o en proceso de retiro conceptual
+
+clients
 
 Próximas recomendadas
 

@@ -1,257 +1,451 @@
-Objetivo
+Objetivo del documento
 
-Este documento registra decisiones pendientes, mejoras futuras, profundizaciones postergadas y líneas de evolución del proyecto app-base.
+Este archivo registra:
 
-Su finalidad es:
-
-no perder ideas importantes
-
-evitar profundizar demasiado pronto
-
-separar lo urgente de lo evolutivo
-
-mantener un backlog técnico/funcional vivo
-
-permitir actualización continua a medida que surjan nuevas necesidades
-
-Este documento debe crecer con el proyecto.
-
-1. Regla de uso del archivo TODO
-
-Este archivo debe registrar:
+funcionalidades pendientes
 
 decisiones postergadas
 
-mejoras de arquitectura no urgentes
+mejoras futuras
 
-refactorizaciones futuras
+profundizaciones arquitectónicas
 
-módulos futuros no prioritarios
+El objetivo es no bloquear el avance actual del sistema, dejando registradas las mejoras que se evaluarán en etapas posteriores.
 
-validaciones avanzadas
+Este documento debe crecer con el proyecto.
 
-ideas de escalabilidad
+1. Principio de desarrollo del proyecto
 
-racionalizaciones del dominio
+El proyecto seguirá esta estrategia:
 
-mejoras de UX o estructura
+Fase 1
+Sistema funcional mínimo.
 
-No deben agregarse aquí tareas ya cerradas o decisiones ya consolidadas en los documentos fijos.
+Fase 2
+Mejoras estructurales y ampliación de funcionalidades.
 
-2. TODO actuales del dominio
-Parties
+Fase 3
+Optimización, seguridad avanzada y escalabilidad.
 
-definir si parties tendrá un campo simple type, kind o role
+Regla importante:
 
-evaluar si en una segunda etapa conviene soportar múltiples roles por party
+No profundizar prematuramente en arquitectura si bloquea la construcción del sistema funcional.
 
-evaluar perfiles especializados para ciertos tipos de parties
+2. Multi-tenant (pendientes)
 
-definir si habrá relación opcional entre users y parties
+El núcleo multi-tenant ya está operativo, pero quedan mejoras futuras.
 
-evaluar separación futura de direcciones, contactos y documentos identificatorios
+Pendientes
+Validaciones adicionales de tenant
 
-Clients transitorio
+Evitar posibles inconsistencias si:
 
-reemplazar módulo clients por parties
+se accede a recursos sin tenant activo
 
-decidir si se elimina directamente o si se hace transición corta
+se manipulan rutas manualmente
 
-revisar rutas, vistas, modelos y nombres asociados a clients
+Protección extra en queries críticas
 
-3. TODO actuales de documentos
-Documents
+Hoy el TenantScoped global scope protege los modelos.
 
-definir estructura mínima del módulo documents
+En el futuro evaluar:
 
-decidir tipos iniciales de documento
+auditoría automática de tenant_id
 
-definir si el tipo documental se resolverá por un campo simple
+logs de acceso entre tenants
 
-evaluar futuros detalles por tipo documental
+Middleware de verificación de membresía
 
-evaluar numeración o secuencias por tenant
+Verificar que el usuario pertenece realmente al tenant activo.
 
-evaluar relación con orders, products y parties
+Hoy:
 
-definir cuándo conviene separar encabezado y detalle
+ResolveTenant
 
-Familia documental
+Futuro posible:
 
-pensar factura, remito, proforma, orden de trabajo, presupuesto y recibo como variantes de una misma familia
+EnsureTenantMembership
+3. Contactos (Party)
 
-evitar crear módulos completamente aislados para cada documento en esta etapa
+Entidad técnica:
 
-revisar más adelante si conviene separar documentos comerciales y documentos operativos
+Party
 
-4. TODO actuales de usuarios y acceso
+Entidad visible en UI:
 
-definir relación futura entre users y parties
+Contacto
+Mejoras futuras
+Tipo de contacto más estructurado
 
-revisar si un user puede representar a una party
+Hoy:
 
-revisar futuro portal externo para clientes o terceros
+kind
 
-evaluar necesidad futura de roles más avanzados por tenant
+Valores posibles:
 
-evaluar permisos granulares por módulo
+client
+supplier
+person
+company
+employee
+contractor
 
-5. TODO actuales de módulos operativos
-Tasks
+Futuro:
 
-definir campos mínimos y campos opcionales
+enum
 
-decidir relación con projects
+tabla de tipos
 
-evaluar relación con parties y/o users
+Separación persona / empresa
 
-definir estados y prioridades
+Hoy:
 
-evaluar fechas de vencimiento y asignación
+name
+display_name
 
-Products
+Futuro posible:
 
-definir si el módulo incluirá solo datos maestros o también lógica básica de stock
+first_name
+last_name
+company_name
+Múltiples medios de contacto
 
-evaluar categorías, unidad de medida y códigos internos
+Actualmente:
 
-definir relación futura con documents y orders
+email
+phone
+address
 
-Orders
+Futuro:
 
-definir si se usarán para ventas, compras o ambas
+tabla:
 
-definir relación con parties
-
-definir detalle de productos
-
-evaluar estado del pedido
-
-evaluar derivación a documents
-
-6. TODO actuales de inventario y finanzas
-Inventory
-
-definir si habrá stock simple o stock por movimiento
-
-evaluar almacenes o sucursales futuras
-
-definir momento adecuado para incorporar movimientos
-
-Payments
-
-definir modelo mínimo de pagos/cobros
-
-evaluar relación con documents y orders
-
-definir si habrá estados o conciliación futura
-
-7. TODO técnicos de arquitectura
-
-evaluar creación futura de BaseTenantModel
-
-centralizar traits comunes en modelos empresariales
-
-revisar si conviene una capa de servicios en módulos más complejos
-
-evaluar modularización por dominios cuando haya más entidades
-
-revisar convenciones si el proyecto supera cierta cantidad de módulos
-
-8. TODO de UX y estructura
-
-definir estructura visual común para todos los módulos
-
-revisar componentes reutilizables de formularios y tablas
-
-evaluar mensajes de validación homogéneos
-
-evaluar navegación cruzada entre parties, projects, tasks y documents
-
-revisar consistencia de acciones CRUD entre módulos
-
-9. TODO de datos y normalización
-
-revisar si direcciones deben separarse en tabla propia
-
-revisar si múltiples emails/teléfonos deben separarse
-
-revisar si documentos identificatorios deben tener estructura más flexible
-
-revisar catálogos futuros: estados, tipos, categorías, prioridades, unidades, condiciones fiscales
-
-10. TODO de seguridad y pruebas
-
-formalizar checklist de pruebas por módulo
-
-agregar pruebas más explícitas de aislamiento entre tenants
-
-agregar pruebas de acceso cruzado por URL
-
-agregar pruebas de soft delete
-
-evaluar tests automatizados por módulo a futuro
-
-11. TODO de documentación del proyecto
-
-mantener actualizado el mapa de entidades
-
-mantener actualizado este archivo TODO
-
-registrar nuevas decisiones estructurales en los documentos fijos
-
-evitar que decisiones importantes queden solo en chats
-
-crear más adelante un documento de historial de decisiones si el proyecto crece mucho
-
-12. Cómo actualizar este archivo
-
-Cada vez que aparezca una idea, mejora o tema no prioritario, agregarlo bajo una sección existente o crear una nueva.
-
-Formato sugerido para agregar nuevos TODO:
-
-tema
-
-motivo
-
-urgencia: baja / media / alta
-
-impacto estimado
-
-dependencia con otros módulos
-
-estado: pendiente / en análisis / resuelto
+contact_methods
 
 Ejemplo:
 
-definir secuencia documental por tenant
+phone
+email
+whatsapp
+telegram
+linkedin
+website
+Múltiples direcciones
 
-motivo: necesaria para documents
+Hoy:
 
-urgencia: media
+address
 
-impacto: medio
+Futuro:
 
-dependencia: módulo documents
+tabla:
 
-estado: pendiente
+addresses
+Contactos secundarios
 
-13. Regla final del TODO
+Ejemplo:
 
-Este archivo no debe bloquear el avance.
+contacto dentro de una empresa.
 
-Su función es permitir que el proyecto avance con una base operativa, dejando registradas las profundizaciones futuras para tratarlas en el momento adecuado.
+Posible entidad futura:
 
-14. Estado actual
+party_contacts
+4. Proyectos
 
-Prioridades inmediatas:
+Entidad:
 
-reemplazar clients por parties
+projects
+Mejoras futuras
+Estados del proyecto
 
-definir y crear tasks
+Hoy no existen.
 
-definir products
+Futuro:
 
-avanzar hacia orders
+draft
+active
+paused
+completed
+cancelled
+Contacto asociado
 
-preparar base conceptual para documents
+Un proyecto puede vincularse a un contacto.
+
+Ejemplo:
+
+cliente del proyecto.
+
+Campo futuro:
+
+party_id
+Responsable del proyecto
+
+Campo futuro:
+
+owner_user_id
+5. Tasks (pendiente de crear)
+
+Entidad futura:
+
+tasks
+
+Representa:
+
+actividades
+
+trabajos
+
+acciones
+
+Relaciones posibles:
+
+tenant
+project
+party
+user
+
+Campos posibles:
+
+title
+description
+status
+priority
+due_date
+assigned_user_id
+
+Estados posibles:
+
+todo
+in_progress
+done
+cancelled
+6. Productos
+
+Entidad futura:
+
+products
+
+Representa:
+
+artículos
+
+insumos
+
+repuestos
+
+servicios
+
+Campos iniciales posibles:
+
+name
+sku
+description
+price
+cost
+is_active
+7. Inventario
+
+No se implementará en esta etapa.
+
+Futuro:
+
+inventory
+inventory_movements
+8. Pedidos / órdenes
+
+Entidad futura:
+
+orders
+
+Ejemplos:
+
+pedido de cliente
+
+orden de compra
+
+orden de trabajo
+
+Relaciones:
+
+tenant
+party
+products
+9. Documentos
+
+Familia documental unificada.
+
+Entidad futura:
+
+documents
+
+Tipos posibles:
+
+invoice
+quote
+proforma
+delivery_note
+work_order
+receipt
+credit_note
+Profundización futura
+
+numeración
+
+series
+
+estados
+
+impuestos
+
+moneda
+
+10. Pagos
+
+Entidad futura:
+
+payments
+
+Relaciones posibles:
+
+documents
+orders
+parties
+11. Archivos adjuntos
+
+Entidad futura:
+
+attachments
+
+Permitirá archivos vinculados a:
+
+contacts
+projects
+tasks
+documents
+12. Notas internas
+
+Entidad futura:
+
+notes
+
+Permite comentarios vinculados a entidades.
+
+13. Auditoría del sistema
+
+Futuro:
+
+audit_logs
+
+Registrar:
+
+cambios
+
+eliminaciones
+
+accesos
+
+14. Permisos y roles
+
+Actualmente no implementado.
+
+Futuro:
+
+roles
+permissions
+role_user
+15. Interfaz de usuario
+
+Pendientes futuros:
+
+Layout base
+
+Actualmente:
+
+vistas simples.
+
+Futuro:
+
+layout principal
+sidebar
+header
+breadcrumb
+Componentes reutilizables
+
+Futuro:
+
+table component
+form component
+alerts
+pagination
+cards
+16. Búsqueda global
+
+Futuro:
+
+buscar en:
+
+contactos
+proyectos
+productos
+documentos
+17. API futura
+
+Evaluar API REST.
+
+Posible estructura:
+
+/api/v1
+18. Soft delete global
+
+Hoy:
+
+algunas entidades.
+
+Futuro:
+
+estandarizar.
+
+19. Seeds y datos demo
+
+Futuro:
+
+tenant demo
+contactos demo
+proyectos demo
+20. Tests automáticos
+
+Futuro:
+
+Feature tests
+Unit tests
+21. Seguridad futura
+
+Evaluar:
+
+rate limiting
+
+auditoría
+
+logs de acceso
+
+22. Regla del proyecto
+
+Antes de crear una nueva entidad se debe evaluar:
+
+si puede resolverse con Party (Contactos)
+
+si puede resolverse con Documents
+
+si es realmente una nueva entidad
+
+23. Crecimiento del TODO
+
+Este archivo debe actualizarse cuando aparezcan:
+
+nuevas decisiones
+
+nuevas necesidades
+
+nuevas entidades
+
+El objetivo es mantener una memoria técnica del proyecto.

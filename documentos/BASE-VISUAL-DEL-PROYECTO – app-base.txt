@@ -1,0 +1,382 @@
+Objetivo
+
+Este documento define la estrategia de base visual del proyecto app-base para la etapa actual de desarrollo.
+
+Su finalidad es:
+
+evitar que los módulos crezcan con estructuras visuales diferentes
+
+establecer una base mínima y reutilizable de interfaz
+
+permitir avanzar rápido en lo funcional sin bloquear el proyecto por diseño
+
+facilitar una evolución futura hacia una UI más completa
+
+reducir retrabajo cuando se incorporen más módulos
+
+Este documento no redefine la arquitectura SaaS ni el modelado del dominio.
+Su alcance es exclusivamente visual y estructural en la capa de vistas.
+
+1. Criterio general de avance visual
+
+En esta etapa del proyecto no se desarrollará una interfaz visual compleja o definitiva.
+
+La estrategia será:
+
+construir una base visual mínima
+
+unificar la estructura de las vistas existentes y futuras
+
+aplicar estilos globales simples y consistentes
+
+dejar como evolución futura los componentes más avanzados
+
+La prioridad sigue siendo:
+
+operatividad
+
+consistencia
+
+velocidad de desarrollo
+
+escalabilidad visual razonable
+
+No se buscará todavía:
+
+un dashboard sofisticado
+
+una identidad visual final
+
+animaciones
+
+un sistema de componentes avanzado
+
+responsive exhaustivo
+
+una UI premium
+
+2. Principio de trabajo visual
+
+Se distingue entre:
+
+estructura visual base
+
+Define cómo se organizan las páginas.
+
+estilo visual base
+
+Define apariencia mínima compartida.
+
+En esta etapa deben resolverse ambas capas de forma simple.
+
+La regla principal es:
+
+todas las vistas nuevas deben nacer ya dentro de una estructura visual común.
+
+3. Alcance de esta etapa
+
+La base visual mínima deberá contemplar:
+
+layout principal
+
+área de contenido consistente
+
+títulos de página
+
+acciones principales
+
+tablas
+
+formularios
+
+botones
+
+mensajes de éxito o error
+
+espaciado base
+
+clases reutilizables simples
+
+4. Layout principal
+
+Debe existir un layout principal común para módulos del sistema.
+
+Ubicación sugerida:
+
+resources/views/layouts/app.blade.php
+
+Este layout debe contener como mínimo:
+
+estructura HTML base
+
+inclusión del archivo CSS global
+
+encabezado simple
+
+contenedor principal del contenido
+
+área para mensajes flash
+
+@yield o secciones equivalentes para contenido y título
+
+En esta etapa no es obligatorio implementar todavía:
+
+sidebar completo
+
+topbar avanzada
+
+breadcrumbs
+
+switch de temas
+
+componentes de navegación complejos
+
+5. Hoja de estilos global
+
+Debe existir una hoja CSS global del proyecto.
+
+Ubicación sugerida:
+
+public/css/app-base.css
+
+o la que resulte coherente con la estructura actual del proyecto.
+
+Esta hoja debe definir la base mínima visual del sistema.
+
+6. Estructura común de páginas
+
+Todos los módulos deberán seguir una estructura de página consistente.
+
+Cada vista de módulo debe construirse, en lo posible, con estos bloques:
+
+index
+
+título del módulo
+
+acción principal de alta
+
+tabla o listado
+
+acciones por registro
+
+create / edit
+
+título de página
+
+bloque de formulario
+
+acciones guardar / cancelar
+
+show
+
+título de página
+
+bloque de datos
+
+acciones editar / volver
+
+Esto evita que cada módulo invente una disposición diferente.
+
+7. Componentes visuales mínimos
+
+En esta etapa deben definirse visualmente, aunque sea de forma simple, los siguientes elementos:
+
+contenedor principal
+
+Para limitar ancho y dar consistencia al contenido.
+
+encabezado de página
+
+Para título y acciones principales.
+
+tarjeta o bloque de contenido
+
+Para agrupar formularios, tablas o detalle.
+
+tabla base
+
+Para listados.
+
+formulario base
+
+Para create y edit.
+
+botones base
+
+Tipos sugeridos:
+
+primario
+
+secundario
+
+peligro
+
+enlace
+
+mensajes flash
+
+Para éxito, error, advertencia e información.
+
+errores de validación
+
+Para mostrar errores de formularios de forma consistente.
+
+8. Convención mínima de clases visuales
+
+La implementación concreta puede variar, pero conviene mantener una convención clara y simple.
+
+Ejemplos de clases reutilizables posibles:
+
+.page
+
+.page-header
+
+.page-title
+
+.page-actions
+
+.card
+
+.card-body
+
+.table
+
+.form-group
+
+.form-label
+
+.form-control
+
+.form-actions
+
+.btn
+
+.btn-primary
+
+.btn-secondary
+
+.btn-danger
+
+.alert
+
+.alert-success
+
+.alert-error
+
+No es obligatorio usar exactamente estos nombres, pero sí mantener consistencia global.
+
+9. Objetivo de las vistas existentes
+
+Los módulos ya creados deberán adaptarse gradualmente a esta base visual.
+
+La prioridad inicial será:
+
+layout común
+
+CSS global
+
+adaptación de módulos ya existentes
+
+desarrollo de nuevos módulos sobre la nueva base
+
+10. Regla para módulos nuevos
+
+Ningún módulo nuevo debe desarrollarse ya “sin estructura visual”.
+
+A partir de esta definición, todo nuevo módulo debe:
+
+usar el layout principal
+
+respetar la estructura común de páginas
+
+usar clases visuales base
+
+reutilizar el estilo global del proyecto
+
+Esto reduce retrabajo futuro.
+
+11. Nivel de profundidad permitido en esta etapa
+
+Sí se hará:
+
+estructura común Blade
+
+CSS base simple
+
+consistencia en formularios y tablas
+
+acciones visuales homogéneas
+
+adaptación de módulos existentes
+
+No se hará todavía:
+
+sistema completo de componentes Blade
+
+diseño avanzado por tema
+
+personalización por tenant
+
+responsive fino para todos los casos
+
+dark mode
+
+accesibilidad avanzada específica
+
+librería visual compleja
+
+12. Evolución futura prevista
+
+La base visual actual podrá evolucionar luego hacia:
+
+sidebar
+
+header más completo
+
+navegación de módulos
+
+dashboard inicial
+
+componentes Blade reutilizables
+
+sistema de tablas más avanzado
+
+modales
+
+filtros visuales
+
+badges de estado
+
+responsive mejorado
+
+identidad visual más elaborada
+
+Estas mejoras no deben bloquear la etapa actual.
+
+13. Orden recomendado de implementación visual
+
+definir layout principal
+
+crear CSS global base
+
+adaptar projects
+
+adaptar transición clients -> parties
+
+adaptar siguientes módulos con la nueva base
+
+dejar mejoras avanzadas en TODO
+
+14. Regla final
+
+La base visual del proyecto debe crecer por capas:
+
+primero consistencia
+
+luego claridad
+
+luego mejora estética
+
+después sofisticación
+
+La prioridad actual no es una interfaz definitiva, sino una interfaz coherente, mantenible y reutilizable.

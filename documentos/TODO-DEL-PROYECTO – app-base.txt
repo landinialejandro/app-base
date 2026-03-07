@@ -449,3 +449,25 @@ nuevas necesidades
 nuevas entidades
 
 El objetivo es mantener una memoria técnica del proyecto.
+
+TODO actuales de base visual
+
+definir layout principal del sistema
+
+crear hoja CSS global base
+
+unificar estructura visual de listados
+
+unificar estructura visual de formularios
+
+adaptar módulos existentes a la base visual
+
+evaluar sidebar en etapa posterior
+
+evaluar componentes Blade reutilizables
+
+evaluar navegación general del sistema
+
+revisar responsive en una segunda etapa
+
+definir identidad visual más completa cuando existan más módulos

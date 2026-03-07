@@ -621,3 +621,24 @@ sea más consistente con lo ya implementado
 genere menos deuda técnica inmediata
 
 no rompa la arquitectura multi-tenant
+
+onvenciones de base visual
+
+Las vistas del proyecto deben construirse sobre una base visual común.
+
+Toda vista de módulo debe:
+
+extender el layout principal del sistema
+
+respetar la estructura común de páginas
+
+utilizar la hoja de estilos global del proyecto
+
+mantener consistencia visual con el resto de los módulos
+
+La base visual mínima del proyecto se definirá en el documento:
+
+BASE-VISUAL-DEL-PROYECTO – app-base
+
+No deben crearse vistas aisladas con estructuras completamente distintas salvo necesidad justificada.
+

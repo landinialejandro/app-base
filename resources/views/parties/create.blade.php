@@ -1,19 +1,30 @@
-<h1>Nuevo contacto</h1>
+@extends('layouts.app')
 
-<p><a href="{{ route('parties.index') }}">Volver a parties</a></p>
+@section('title', 'Nuevo contacto')
 
-@if ($errors->any())
-    <div style="color: red;">
-        <p><strong>Hay errores en el formulario:</strong></p>
-        <ul>
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
+@section('content')
+    <x-page>
 
-<form method="POST" action="{{ route('parties.store') }}">
-    @csrf
-    @include('parties._form', ['party' => null])
-</form>
+        <x-breadcrumb :items="[
+            ['label' => 'Inicio', 'url' => route('dashboard')],
+            ['label' => 'Contactos', 'url' => route('parties.index')],
+            ['label' => 'Nuevo contacto'],
+        ]" />
+
+        <x-page-header title="Nuevo contacto" />
+
+        <x-card>
+            <form method="POST" action="{{ route('parties.store') }}" class="form">
+                @csrf
+
+                @include('parties._form', ['party' => null])
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <a href="{{ route('parties.index') }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </x-card>
+
+    </x-page>
+@endsection

@@ -1,4 +1,4 @@
-<div class="form-group">
+<div class="mb-3">
     <label for="name" class="form-label">Nombre</label>
     <input
         type="text"
@@ -10,7 +10,7 @@
     >
 </div>
 
-<div class="form-group">
+<div class="mb-3">
     <label for="description" class="form-label">Descripción</label>
     <textarea
         id="description"

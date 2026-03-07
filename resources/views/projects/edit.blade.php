@@ -3,7 +3,14 @@
 @section('title', 'Editar proyecto')
 
 @section('content')
-    <div class="page">
+    <x-page>
+
+        <x-breadcrumb :items="[
+            ['label' => 'Inicio', 'url' => route('dashboard')],
+            ['label' => 'Proyectos', 'url' => route('projects.index')],
+            ['label' => $project->name, 'url' => route('projects.show', $project)],
+            ['label' => 'Editar'],
+        ]" />
 
         <x-page-header title="Editar proyecto" />
 
@@ -19,7 +26,7 @@
                     <a href="{{ route('projects.show', $project) }}" class="btn btn-secondary">Cancelar</a>
                 </div>
             </form>
-
         </x-card>
-    </div>
+
+    </x-page>
 @endsection

@@ -413,6 +413,11 @@ textarea.form-control {
     padding-top: var(--space-2);
 }
 
+.form-checkbox {
+    width: auto;
+    min-height: auto;
+}
+
 .inline-form {
     display: inline;
 }

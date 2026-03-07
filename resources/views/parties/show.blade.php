@@ -1,38 +1,81 @@
-<h1>Detalle del Contacto</h1>
+@extends('layouts.app')
 
-<p>
-    <a href="{{ route('parties.edit', $party) }}">
-        Editar contacto
-    </a>
-</p>
+@section('title', 'Detalle del contacto')
 
-<form method="POST" action="{{ route('parties.destroy', $party) }}" onsubmit="return confirm('¿Eliminar party?');">
-    @csrf
-    @method('DELETE')
-    <button type="submit">Eliminar contacto</button>
-</form>
+@section('content')
+    <x-page>
 
-<p><strong>Tenant:</strong> {{ $tenant->name }}</p>
+        <x-breadcrumb :items="[
+            ['label' => 'Inicio', 'url' => route('dashboard')],
+            ['label' => 'Contactos', 'url' => route('parties.index')],
+            ['label' => $party->name],
+        ]" />
 
-<p><a href="{{ route('parties.index') }}">Volver a contactos</a></p>
+        <x-page-header title="Detalle del contacto">
+            <a href="{{ route('parties.edit', $party) }}" class="btn btn-primary">
+                Editar
+            </a>
 
-<hr>
+            <form method="POST" action="{{ route('parties.destroy', $party) }}"
+                onsubmit="return confirm('¿Eliminar contacto?');" class="inline-form">
+                @csrf
+                @method('DELETE')
 
-<p><strong>ID:</strong> {{ $party->id }}</p>
-<p><strong>Tipo:</strong> {{ $party->kind }}</p>
-<p><strong>Nombre:</strong> {{ $party->name }}</p>
-<p><strong>Nombre visible:</strong> {{ $party->display_name }}</p>
+                <button type="submit" class="btn btn-danger">
+                    Eliminar
+                </button>
+            </form>
 
-<p><strong>Tipo documento:</strong> {{ $party->document_type }}</p>
-<p><strong>Número documento:</strong> {{ $party->document_number }}</p>
-<p><strong>CUIT / Tax ID:</strong> {{ $party->tax_id }}</p>
+            <a href="{{ route('parties.index') }}" class="btn btn-secondary">
+                Volver
+            </a>
+        </x-page-header>
 
-<p><strong>Email:</strong> {{ $party->email }}</p>
-<p><strong>Teléfono:</strong> {{ $party->phone }}</p>
-<p><strong>Dirección:</strong> {{ $party->address }}</p>
+        <x-card>
+            <div class="detail-list">
+                <div class="detail-label">ID</div>
+                <div class="detail-value">{{ $party->id }}</div>
 
-<p><strong>Notas:</strong> {{ $party->notes }}</p>
-<p><strong>Activo:</strong> {{ $party->is_active ? 'Sí' : 'No' }}</p>
+                <div class="detail-label">Tipo</div>
+                <div class="detail-value">{{ $party->kind }}</div>
 
-<p><strong>Creado:</strong> {{ $party->created_at }}</p>
-<p><strong>Actualizado:</strong> {{ $party->updated_at }}</p>
+                <div class="detail-label">Nombre</div>
+                <div class="detail-value">{{ $party->name }}</div>
+
+                <div class="detail-label">Nombre visible</div>
+                <div class="detail-value">{{ $party->display_name }}</div>
+
+                <div class="detail-label">Tipo documento</div>
+                <div class="detail-value">{{ $party->document_type }}</div>
+
+                <div class="detail-label">Número documento</div>
+                <div class="detail-value">{{ $party->document_number }}</div>
+
+                <div class="detail-label">CUIT / Tax ID</div>
+                <div class="detail-value">{{ $party->tax_id }}</div>
+
+                <div class="detail-label">Email</div>
+                <div class="detail-value">{{ $party->email }}</div>
+
+                <div class="detail-label">Teléfono</div>
+                <div class="detail-value">{{ $party->phone }}</div>
+
+                <div class="detail-label">Dirección</div>
+                <div class="detail-value">{{ $party->address }}</div>
+
+                <div class="detail-label">Notas</div>
+                <div class="detail-value">{{ $party->notes }}</div>
+
+                <div class="detail-label">Activo</div>
+                <div class="detail-value">{{ $party->is_active ? 'Sí' : 'No' }}</div>
+
+                <div class="detail-label">Creado</div>
+                <div class="detail-value">{{ $party->created_at }}</div>
+
+                <div class="detail-label">Actualizado</div>
+                <div class="detail-value">{{ $party->updated_at }}</div>
+            </div>
+        </x-card>
+
+    </x-page>
+@endsection

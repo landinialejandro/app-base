@@ -3,7 +3,13 @@
 @section('title', 'Nuevo proyecto')
 
 @section('content')
-    <div class="page">
+    <x-page>
+
+        <x-breadcrumb :items="[
+            ['label' => 'Inicio', 'url' => route('dashboard')],
+            ['label' => 'Proyectos', 'url' => route('projects.index')],
+            ['label' => 'Nuevo proyecto'],
+        ]" />
 
         <x-page-header title="Nuevo proyecto" />
 
@@ -20,5 +26,5 @@
             </form>
         </x-card>
 
-    </div>
+    </x-page>
 @endsection

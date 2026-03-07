@@ -1,20 +1,32 @@
-<h1>Editar contacto</h1>
+@extends('layouts.app')
 
-<p><a href="{{ route('parties.show', $party) }}">Volver a la party</a></p>
+@section('title', 'Editar contacto')
 
-@if ($errors->any())
-    <div style="color: red;">
-        <p><strong>Hay errores en el formulario:</strong></p>
-        <ul>
-            @foreach ($errors->all() as $error)
-                <li>{{ $error }}</li>
-            @endforeach
-        </ul>
-    </div>
-@endif
+@section('content')
+    <x-page>
 
-<form method="POST" action="{{ route('parties.update', $party) }}">
-    @csrf
-    @method('PUT')
-    @include('parties._form', ['party' => $party])
-</form>
+        <x-breadcrumb :items="[
+            ['label' => 'Inicio', 'url' => route('dashboard')],
+            ['label' => 'Contactos', 'url' => route('parties.index')],
+            ['label' => $party->name, 'url' => route('parties.show', $party)],
+            ['label' => 'Editar'],
+        ]" />
+
+        <x-page-header title="Editar contacto" />
+
+        <x-card>
+            <form method="POST" action="{{ route('parties.update', $party) }}" class="form">
+                @csrf
+                @method('PUT')
+
+                @include('parties._form', ['party' => $party])
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    <a href="{{ route('parties.show', $party) }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
+        </x-card>
+
+    </x-page>
+@endsection

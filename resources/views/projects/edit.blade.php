@@ -1,40 +1,25 @@
-<h1>Editar proyecto</h1>
+@extends('layouts.app')
 
-<p><strong>Tenant:</strong> {{ $tenant->name }}</p>
+@section('title', 'Editar proyecto')
 
-<p><a href="{{ route('projects.show',$project) }}">Volver al proyecto</a></p>
+@section('content')
+    <div class="page">
 
-<hr>
+        <x-page-header title="Editar proyecto" />
 
-@if ($errors->any())
-<div style="border:1px solid red;padding:10px;margin-bottom:15px;">
-    <ul>
-        @foreach ($errors->all() as $error)
-        <li>{{ $error }}</li>
-        @endforeach
-    </ul>
-</div>
-@endif
+        <x-card>
+            <form method="POST" action="{{ route('projects.update', $project) }}" class="form">
+                @csrf
+                @method('PUT')
 
-<form method="POST" action="{{ route('projects.update',$project) }}">
-@csrf
-@method('PUT')
+                @include('projects._form')
 
-<div style="margin-bottom:10px">
-<label>Nombre</label><br>
-<input type="text"
-       name="name"
-       value="{{ old('name',$project->name) }}"
-       style="width:400px">
-</div>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    <a href="{{ route('projects.show', $project) }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
 
-<div style="margin-bottom:10px">
-<label>Descripción</label><br>
-<textarea name="description"
-          rows="5"
-          style="width:400px">{{ old('description',$project->description) }}</textarea>
-</div>
-
-<button type="submit">Actualizar proyecto</button>
-
-</form>
+        </x-card>
+    </div>
+@endsection

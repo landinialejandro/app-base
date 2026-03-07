@@ -1,7 +1,8 @@
 <?php
 
-//file: routes/web.php
+// file: routes/web.php
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
@@ -21,16 +22,88 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+Route::middleware('guest')->group(function () {
+    Route::get('/login', function () {
+        return view('auth.login');
+    })->name('login');
+
+    Route::post('/login', function (Request $request) {
+        $credentials = $request->validate([
+            'email' => ['required', 'email'],
+            'password' => ['required'],
+        ]);
+
+        $remember = (bool) $request->boolean('remember');
+
+        if (!Auth::attempt($credentials, $remember)) {
+            return back()->withErrors([
+                'email' => 'Las credenciales no son correctas.',
+            ])->onlyInput('email');
+        }
+
+        $request->session()->regenerate();
+
+        $tenantsCount = Auth::user()->tenants()->count();
+
+        if ($tenantsCount > 1) {
+            return redirect()->route('tenants.select');
+        }
+
+        if ($tenantsCount === 1) {
+            $tenantId = Auth::user()->tenants()->value('tenants.id');
+            session(['tenant_id' => $tenantId]);
+
+            return redirect()->route('dashboard');
+        }
+
+        return redirect()->route('tenants.select');
+    })->name('login.store');
+
+    Route::get('/register', function () {
+        return view('auth.register');
+    })->name('register');
+
+    Route::post('/register', function (Request $request) {
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+            'email' => ['required', 'email', 'max:255', 'unique:users,email'],
+            'password' => ['required', 'confirmed', 'min:8'],
+        ]);
+
+        $user = User::create([
+            'name' => $data['name'],
+            'email' => $data['email'],
+            'password' => Hash::make($data['password']),
+        ]);
+
+        Auth::login($user);
+        $request->session()->regenerate();
+
+        return redirect()->route('tenants.select');
+    })->name('register.store');
+});
+
+Route::middleware('auth')->post('/logout', function (Request $request) {
+    Auth::logout();
+
+    $request->session()->forget('tenant_id');
+    $request->session()->invalidate();
+    $request->session()->regenerateToken();
+
+    return redirect('/');
+})->name('logout');
+
 // Debug API: tenant por header X-Tenant
 Route::middleware('tenant')->get('/whoami', function () {
     $tenant = app('tenant');
+
     return [
         'tenant_id' => $tenant->id,
         'tenant_slug' => $tenant->slug,
     ];
 });
 
-// Selector de tenant (web)
+// Selector de empresa
 Route::middleware(['auth'])->get('/tenants/select', function () {
     $tenants = Auth::user()->tenants()
         ->select('tenants.id', 'tenants.name', 'tenants.slug')
@@ -38,6 +111,20 @@ Route::middleware(['auth'])->get('/tenants/select', function () {
 
     return view('tenants.select', compact('tenants'));
 })->name('tenants.select');
+
+Route::middleware(['auth'])->post('/tenants/select/{tenant}', function (Tenant $tenant) {
+    $user = Auth::user();
+
+    $allowed = $user->tenants()->where('tenants.id', $tenant->id)->exists();
+
+    if (!$allowed) {
+        abort(403, 'You are not a member of this tenant.');
+    }
+
+    session(['tenant_id' => $tenant->id]);
+
+    return redirect()->route('dashboard');
+})->name('tenants.select.store');
 
 Route::middleware(['auth', 'tenant'])->get('/dashboard', function () {
     $tenant = app('tenant');
@@ -47,20 +134,6 @@ Route::middleware(['auth', 'tenant'])->get('/dashboard', function () {
         'projectsCount' => Project::count(),
     ]);
 })->name('dashboard');
-
-Route::middleware(['auth'])->post('/tenants/select/{tenant}', function (Tenant $tenant) {
-    $user = Auth::user();
-
-    $allowed = $user->tenants()->where('tenants.id', $tenant->id)->exists();
-    if (!$allowed) {
-        abort(403, 'You are not a member of this tenant.');
-    }
-
-    session(['tenant_id' => $tenant->id]);
-
-    return redirect()->route('dashboard');
-
-})->name('tenants.select.store');
 
 // Aceptación real de invitación (dejamos UNA sola)
 Route::get('/accept-invitation/{token}', function ($token) {
@@ -103,7 +176,6 @@ Route::get('/accept-invitation/{token}', function ($token) {
 });
 
 Route::middleware(['auth', 'tenant'])->group(function () {
-
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
     Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
     Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
@@ -114,4 +186,3 @@ Route::middleware(['auth', 'tenant'])->group(function () {
 
     Route::resource('parties', PartyController::class);
 });
-

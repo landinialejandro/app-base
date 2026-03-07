@@ -1,41 +1,64 @@
-<!doctype html>
-<html lang="es">
+@php($publicPage = true)
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Login</title>
-</head>
+@extends('layouts.app')
 
-<body>
-    <h1>Login</h1>
+@section('title', 'Login')
 
-    @if ($errors->any())
-        <div>
-            @foreach ($errors->all() as $error)
-                <p>{{ $error }}</p>
-            @endforeach
+@section('content')
+    <x-page>
+
+        <div class="welcome-page">
+
+            <div style="width:400px;max-width:100%;">
+
+                <x-page-header title="Ingresar" vertical="vertical" />
+
+                <x-card>
+
+                    @if ($errors->any())
+                        <div class="alert alert-error">
+                            @foreach ($errors->all() as $error)
+                                <p>{{ $error }}</p>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <form method="POST" action="/login">
+                        @csrf
+
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input class="form-control" name="email" type="email" value="{{ old('email') }}" required
+                                autofocus>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <input class="form-control" name="password" type="password" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label>
+                                <input type="checkbox" name="remember" value="1">
+                                Recordarme
+                            </label>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            Entrar
+                        </button>
+
+                    </form>
+
+                    <p style="margin-top:var(--space-3);">
+                        <a href="/register">Crear cuenta</a>
+                    </p>
+
+                </x-card>
+
+            </div>
+
         </div>
-    @endif
 
-    <form method="POST" action="/login">
-        @csrf
-
-        <label>Email</label>
-        <input name="email" type="email" value="{{ old('email') }}" required autofocus>
-
-        <label>Password</label>
-        <input name="password" type="password" required>
-
-        <label>
-            <input type="checkbox" name="remember" value="1">
-            Recordarme
-        </label>
-
-        <button type="submit">Entrar</button>
-    </form>
-
-    <p><a href="/register">Crear cuenta</a></p>
-</body>
-
-</html>
+    </x-page>
+@endsection

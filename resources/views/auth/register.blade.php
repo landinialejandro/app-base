@@ -1,42 +1,66 @@
-<!doctype html>
-<html lang="es">
+@php($publicPage = true)
 
-<head>
-    <meta charset="utf-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Registro</title>
-</head>
+@extends('layouts.app')
 
-<body>
-    <h1>Registro</h1>
+@section('title', 'Registro')
 
-    @if ($errors->any())
-        <div>
-            @foreach ($errors->all() as $error)
-                <p>{{ $error }}</p>
-            @endforeach
+@section('content')
+    <x-page>
+
+        <div class="welcome-page">
+
+            <div style="width:400px;max-width:100%;">
+
+                <x-page-header title="Crear cuenta" vertical="vertical" />
+
+                <x-card>
+
+                    @if ($errors->any())
+                        <div class="alert alert-error">
+                            @foreach ($errors->all() as $error)
+                                <p>{{ $error }}</p>
+                            @endforeach
+                        </div>
+                    @endif
+
+                    <form method="POST" action="/register">
+                        @csrf
+
+                        <div class="form-group">
+                            <label class="form-label">Nombre</label>
+                            <input class="form-control" name="name" type="text" value="{{ old('name') }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Email</label>
+                            <input class="form-control" name="email" type="email" value="{{ old('email') }}" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Password</label>
+                            <input class="form-control" name="password" type="password" required>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Confirmar password</label>
+                            <input class="form-control" name="password_confirmation" type="password" required>
+                        </div>
+
+                        <button type="submit" class="btn btn-primary">
+                            Crear cuenta
+                        </button>
+
+                    </form>
+
+                    <p style="margin-top:var(--space-3);">
+                        <a href="/login">Volver al login</a>
+                    </p>
+
+                </x-card>
+
+            </div>
+
         </div>
-    @endif
 
-    <form method="POST" action="/register">
-        @csrf
-
-        <label>Nombre</label>
-        <input name="name" type="text" value="{{ old('name') }}" required>
-
-        <label>Email</label>
-        <input name="email" type="email" value="{{ old('email') }}" required>
-
-        <label>Password</label>
-        <input name="password" type="password" required>
-
-        <label>Confirmar password</label>
-        <input name="password_confirmation" type="password" required>
-
-        <button type="submit">Crear cuenta</button>
-    </form>
-
-    <p><a href="/login">Volver al login</a></p>
-</body>
-
-</html>
+    </x-page>
+@endsection

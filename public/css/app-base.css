@@ -1,0 +1,629 @@
+/* =========================================================
+   app-base - CSS global mínimo
+   Base visual común para todo el sistema
+   ========================================================= */
+
+/* =========================================================
+   1. Tokens base
+   Colores, espaciados y radios reutilizables
+   ========================================================= */
+
+:root {
+    --color-bg: #f5f7fb;
+    --color-surface: #ffffff;
+    --color-border: #d9e1ec;
+    --color-text: #1f2937;
+    --color-muted: #6b7280;
+
+    --color-primary: #2563eb;
+    --color-primary-hover: #1d4ed8;
+
+    --color-secondary: #e5e7eb;
+    --color-secondary-hover: #d1d5db;
+
+    --color-danger: #dc2626;
+    --color-danger-hover: #b91c1c;
+
+    --color-success-bg: #ecfdf3;
+    --color-success-border: #a7f3d0;
+    --color-success-text: #065f46;
+
+    --color-error-bg: #fef2f2;
+    --color-error-border: #fecaca;
+    --color-error-text: #991b1b;
+
+    --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+
+    --radius: 8px;
+
+    --space-1: 0.25rem;
+    --space-2: 0.5rem;
+    --space-3: 0.75rem;
+    --space-4: 1rem;
+    --space-5: 1.5rem;
+    --space-6: 2rem;
+}
+
+/* =========================================================
+   2. Reset y base
+   ========================================================= */
+
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, Helvetica, sans-serif;
+    background: var(--color-bg);
+    color: var(--color-text);
+    line-height: 1.5;
+}
+
+a {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: underline;
+}
+
+/* =========================================================
+   3. Layout general
+   ========================================================= */
+
+.container {
+    width: 100%;
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 var(--space-4);
+}
+
+.app-main {
+    padding: var(--space-6) 0;
+}
+
+/* =========================================================
+   4. Header global
+   Barra superior principal del sistema
+   ========================================================= */
+
+.app-header {
+    background: var(--color-surface);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.app-header-inner {
+    min-height: 68px;
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--space-4);
+}
+
+.app-brand a {
+    display: inline-block;
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.app-nav {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.app-nav-link {
+    display: inline-block;
+    padding: 0.55rem 0.8rem;
+    border-radius: 6px;
+    color: var(--color-text);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.app-nav-link:hover {
+    background: #f3f4f6;
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.app-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+
+.app-company {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.2;
+}
+
+.app-company-label {
+    font-size: 0.8rem;
+    color: var(--color-muted);
+}
+
+.app-company-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+/* Badge viejo; se puede conservar por compatibilidad */
+.tenant-badge {
+    display: inline-block;
+    padding: 0.35rem 0.65rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: #f9fafb;
+    color: var(--color-muted);
+    font-size: 0.875rem;
+}
+
+/* =========================================================
+   5. Estructura de página
+   Para index, show, create, edit y pantallas similares
+   ========================================================= */
+
+.page {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-3);
+}
+
+.page-header.vertical {
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+}
+
+.page-title {
+    margin: 0;
+    font-size: 1.75rem;
+    line-height: 1.2;
+}
+
+.page-subtitle {
+    margin: var(--space-2) 0 0;
+    color: var(--color-muted);
+    font-size: 0.95rem;
+}
+
+.page-actions {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    align-items: center;
+}
+
+.page-header.vertical .page-actions {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+}
+
+/* =========================================================
+   6. Cards
+   Bloques principales de contenido
+   ========================================================= */
+
+.card {
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-sm);
+}
+
+.card-body {
+    padding: var(--space-5);
+}
+
+/* =========================================================
+   7. Alertas
+   Mensajes de éxito, error y validación
+   ========================================================= */
+
+.alert {
+    border: 1px solid transparent;
+    border-radius: var(--radius);
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+}
+
+.alert-title {
+    font-weight: 700;
+    margin-bottom: var(--space-2);
+}
+
+.alert-list {
+    margin: 0;
+    padding-left: 1.25rem;
+}
+
+.alert-success {
+    background: var(--color-success-bg);
+    border-color: var(--color-success-border);
+    color: var(--color-success-text);
+}
+
+.alert-error {
+    background: var(--color-error-bg);
+    border-color: var(--color-error-border);
+    color: var(--color-error-text);
+}
+
+/* =========================================================
+   8. Botones
+   ========================================================= */
+
+.btn {
+    display: inline-block;
+    border: 1px solid transparent;
+    border-radius: 6px;
+    padding: 0.625rem 1rem;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    text-decoration: none;
+    line-height: 1.2;
+}
+
+.btn:hover {
+    text-decoration: none;
+}
+
+.btn-primary {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: #fff;
+}
+
+.btn-primary:hover {
+    background: var(--color-primary-hover);
+    border-color: var(--color-primary-hover);
+}
+
+.btn-secondary {
+    background: var(--color-secondary);
+    border-color: var(--color-secondary);
+    color: var(--color-text);
+}
+
+.btn-secondary:hover {
+    background: var(--color-secondary-hover);
+    border-color: var(--color-secondary-hover);
+}
+
+.btn-danger {
+    background: var(--color-danger);
+    border-color: var(--color-danger);
+    color: #fff;
+}
+
+.btn-danger:hover {
+    background: var(--color-danger-hover);
+    border-color: var(--color-danger-hover);
+}
+
+.btn-link {
+    padding: 0;
+    border: 0;
+    background: transparent;
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+/* =========================================================
+   9. Tablas
+   ========================================================= */
+
+.table-wrap {
+    overflow-x: auto;
+}
+
+.table {
+    width: 100%;
+    border-collapse: collapse;
+    background: var(--color-surface);
+}
+
+.table th,
+.table td {
+    padding: 0.85rem 1rem;
+    border-bottom: 1px solid var(--color-border);
+    text-align: left;
+    vertical-align: top;
+}
+
+.table th {
+    font-size: 0.9rem;
+    color: var(--color-muted);
+    font-weight: 700;
+    background: #f9fafb;
+}
+
+.table tr:last-child td {
+    border-bottom: 0;
+}
+
+/* =========================================================
+   10. Formularios
+   ========================================================= */
+
+.form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+}
+
+.form-label {
+    font-weight: 600;
+}
+
+.form-control {
+    width: 100%;
+    min-height: 42px;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: #fff;
+    color: var(--color-text);
+    font: inherit;
+}
+
+textarea.form-control {
+    min-height: 120px;
+    resize: vertical;
+}
+
+.form-help {
+    color: var(--color-muted);
+    font-size: 0.875rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    padding-top: var(--space-2);
+}
+
+.inline-form {
+    display: inline;
+}
+
+/* =========================================================
+   11. Vistas de detalle
+   Para show y bloques de información clave
+   ========================================================= */
+
+.detail-list {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: var(--space-3) var(--space-4);
+}
+
+.detail-label {
+    font-weight: 700;
+    color: var(--color-muted);
+}
+
+.detail-value {
+    color: var(--color-text);
+}
+
+/* =========================================================
+   12. Welcome / acceso
+   Para welcome, login, register y selección de empresa
+   ========================================================= */
+
+.welcome-page {
+    min-height: 60vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+/* =========================================================
+   13. Selector de empresa
+   ========================================================= */
+
+.tenant-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
+}
+
+.tenant-option {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: 0.9rem 1rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    font: inherit;
+    cursor: pointer;
+    text-align: left;
+}
+
+.tenant-option:hover {
+    border-color: var(--color-primary);
+    background: #f9fafb;
+}
+
+.tenant-option-name {
+    font-weight: 600;
+}
+
+.tenant-option-meta {
+    color: var(--color-muted);
+    font-size: 0.9rem;
+}
+
+/* =========================================================
+   14. Dashboard
+   Accesos rápidos y bloques principales
+   ========================================================= */
+
+.module-links {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+
+.dashboard-section-title {
+    margin: 0 0 var(--space-4);
+    font-size: 1.1rem;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-4);
+}
+
+.dashboard-link-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.dashboard-link-card:hover {
+    border-color: var(--color-primary);
+    background: #f9fafb;
+    text-decoration: none;
+}
+
+.dashboard-link-title {
+    font-weight: 700;
+}
+
+.dashboard-link-text {
+    color: var(--color-muted);
+    font-size: 0.95rem;
+}
+
+/* =========================================================
+   15. Utilidades mínimas
+   ========================================================= */
+
+.mt-0 {
+    margin-top: 0;
+}
+
+.mb-0 {
+    margin-bottom: 0;
+}
+
+/* =========================================================
+   16. Responsive
+   Ajustes básicos para header y detalle
+   ========================================================= */
+
+@media (max-width: 900px) {
+    .app-header-inner {
+        grid-template-columns: 1fr;
+        justify-items: start;
+        padding: var(--space-3) 0;
+    }
+
+    .app-nav {
+        justify-content: flex-start;
+    }
+
+    .app-header-actions {
+        justify-content: flex-start;
+    }
+
+    .app-company {
+        align-items: flex-start;
+    }
+}
+
+@media (max-width: 640px) {
+    .detail-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+/* =========================================================
+   17. Breadcrumb
+   Navegación contextual simple
+   ========================================================= */
+
+.breadcrumb {
+    margin-bottom: var(--space-2);
+}
+
+.breadcrumb-list {
+    display: flex;
+    align-items: center;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin: 0;
+    padding: 0;
+    list-style: none;
+}
+
+.breadcrumb-item {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    color: var(--color-muted);
+    font-size: 0.9rem;
+}
+
+.breadcrumb-item:not(:last-child)::after {
+    content: "/";
+    color: var(--color-muted);
+}
+
+.breadcrumb-link {
+    color: var(--color-muted);
+    text-decoration: none;
+}
+
+.breadcrumb-link:hover {
+    color: var(--color-primary);
+    text-decoration: none;
+}
+
+.breadcrumb-current {
+    color: var(--color-text);
+    font-weight: 600;
+}

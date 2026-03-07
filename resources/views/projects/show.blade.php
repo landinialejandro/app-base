@@ -1,25 +1,54 @@
-<h1>Detalle del proyecto</h1>
+@extends('layouts.app')
 
-<p>
-    <a href="{{ route('projects.edit', $project) }}">
-        Editar proyecto
-    </a>
-</p>
+@section('title', 'Detalle del proyecto')
 
-<form method="POST" action="{{ route('projects.destroy', $project) }}" onsubmit="return confirm('¿Eliminar proyecto?');">
-    @csrf
-    @method('DELETE')
-    <button type="submit">Eliminar proyecto</button>
-</form>
+@section('content')
 
-<p><strong>Tenant:</strong> {{ $tenant->name }}</p>
+    <x-page>
 
-<p><a href="/projects">Volver a proyectos</a></p>
+        <x-breadcrumb :items="[
+            ['label' => 'Inicio', 'url' => route('dashboard')],
+            ['label' => 'Proyectos', 'url' => route('projects.index')],
+            ['label' => $project->name],
+        ]" />
+        <x-page-header title="Detalle del proyecto">
+            <a href="{{ route('projects.edit', $project) }}" class="btn btn-primary">
+                Editar
+            </a>
 
-<hr>
+            <form method="POST" action="{{ route('projects.destroy', $project) }}"
+                onsubmit="return confirm('¿Eliminar proyecto?');" class="inline-form">
+                @csrf
+                @method('DELETE')
 
-<p><strong>ID:</strong> {{ $project->id }}</p>
-<p><strong>Nombre:</strong> {{ $project->name }}</p>
-<p><strong>Descripción:</strong> {{ $project->description }}</p>
-<p><strong>Creado:</strong> {{ $project->created_at }}</p>
-<p><strong>Actualizado:</strong> {{ $project->updated_at }}</p>
+                <button type="submit" class="btn btn-danger">
+                    Eliminar
+                </button>
+            </form>
+
+            <a href="{{ route('projects.index') }}" class="btn btn-secondary">
+                Volver
+            </a>
+        </x-page-header>
+
+        <x-card>
+
+            <div class="detail-list">
+                <div class="detail-label">ID</div>
+                <div class="detail-value">{{ $project->id }}</div>
+
+                <div class="detail-label">Nombre</div>
+                <div class="detail-value">{{ $project->name }}</div>
+
+                <div class="detail-label">Descripción</div>
+                <div class="detail-value">{{ $project->description }}</div>
+
+                <div class="detail-label">Tenant</div>
+                <div class="detail-value">{{ $tenant->name }}</div>
+            </div>
+
+        </x-card>
+
+    </x-page>
+
+@endsection

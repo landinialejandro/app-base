@@ -1,473 +1,196 @@
-Objetivo del documento
+BASE VISUAL DEL PROYECTO – app-base
+-----------------------------------
 
-Este archivo registra:
+OBJETIVO
 
-funcionalidades pendientes
+Definir una base visual simple, consistente y escalable para la aplicación SaaS app-base.
+El objetivo es contar con una interfaz limpia, profesional y mantenible, sin introducir
+complejidad innecesaria en las primeras etapas del desarrollo.
 
-decisiones postergadas
+La base visual debe permitir:
+- consistencia entre módulos
+- facilidad para agregar nuevas pantallas
+- separación clara entre lógica y presentación
+- evolución futura sin reescrituras grandes.
 
-mejoras futuras
 
-profundizaciones arquitectónicas
+PRINCIPIOS DE DISEÑO
 
-El objetivo es no bloquear el avance actual del sistema, dejando registradas las mejoras que se evaluarán en etapas posteriores.
+1. Simplicidad primero
+La interfaz debe ser simple y funcional. Se prioriza claridad sobre estética avanzada.
 
-Este documento debe crecer con el proyecto.
+2. Consistencia
+Todos los módulos deben usar la misma estructura visual.
 
-1. Principio de desarrollo del proyecto
+3. Componentización mínima
+Se utilizan componentes Blade reutilizables cuando aportan claridad o evitan repetición.
 
-El proyecto seguirá esta estrategia:
+4. Evolución gradual
+La base visual debe poder evolucionar hacia un diseño más completo sin romper lo existente.
 
-Fase 1
-Sistema funcional mínimo.
 
-Fase 2
-Mejoras estructurales y ampliación de funcionalidades.
+ARQUITECTURA VISUAL ACTUAL
 
-Fase 3
-Optimización, seguridad avanzada y escalabilidad.
+La aplicación utiliza un layout principal basado en Blade.
 
-Regla importante:
+layouts/app.blade.php
 
-No profundizar prematuramente en arquitectura si bloquea la construcción del sistema funcional.
+Este layout define:
 
-2. Multi-tenant (pendientes)
+- barra superior de la aplicación
+- contenedor principal
+- área de contenido
+- carga del CSS global
+- navegación básica del sistema
 
-El núcleo multi-tenant ya está operativo, pero quedan mejoras futuras.
 
-Pendientes
-Validaciones adicionales de tenant
+ESTRUCTURA GENERAL DE PÁGINA
 
-Evitar posibles inconsistencias si:
+Las páginas internas siguen esta estructura:
 
-se accede a recursos sin tenant activo
+<x-page>
+    <x-breadcrumb />
+    <x-page-header />
+    <x-card />
+</x-page>
 
-se manipulan rutas manualmente
+Componentes utilizados:
 
-Protección extra en queries críticas
+x-page
+Contenedor principal de una pantalla.
 
-Hoy el TenantScoped global scope protege los modelos.
+x-breadcrumb
+Navegación jerárquica dentro del sistema.
 
-En el futuro evaluar:
+x-page-header
+Encabezado de la página con título y acciones.
 
-auditoría automática de tenant_id
+x-card
+Contenedor visual para contenido o secciones.
 
-logs de acceso entre tenants
 
-Middleware de verificación de membresía
+COMPONENTES BLADE DISPONIBLES
 
-Verificar que el usuario pertenece realmente al tenant activo.
+Actualmente existen los siguientes componentes visuales reutilizables:
 
-Hoy:
+x-page
+Define el layout base de una pantalla.
 
-ResolveTenant
+x-page-header
+Contiene el título de la pantalla y acciones (botones).
 
-Futuro posible:
+x-card
+Caja visual que contiene contenido.
 
-EnsureTenantMembership
-3. Contactos (Party)
+x-breadcrumb
+Ruta de navegación de la página.
 
-Entidad técnica:
 
-Party
+BARRA SUPERIOR DE LA APLICACIÓN
 
-Entidad visible en UI:
+El layout principal incluye una barra superior con:
 
-Contacto
-Mejoras futuras
-Tipo de contacto más estructurado
+- marca de la aplicación (app-base)
+- empresa actual
+- selector de empresa (cuando el usuario tiene más de una)
+- usuario autenticado
+- acceso para cerrar sesión
 
-Hoy:
+La empresa actual se muestra en el header global, evitando repetirla en cada vista.
 
-kind
 
-Valores posibles:
+PÁGINAS PÚBLICAS
 
-client
-supplier
-person
-company
-employee
-contractor
-
-Futuro:
-
-enum
-
-tabla de tipos
-
-Separación persona / empresa
-
-Hoy:
-
-name
-display_name
-
-Futuro posible:
-
-first_name
-last_name
-company_name
-Múltiples medios de contacto
-
-Actualmente:
-
-email
-phone
-address
-
-Futuro:
-
-tabla:
-
-contact_methods
-
-Ejemplo:
-
-phone
-email
-whatsapp
-telegram
-linkedin
-website
-Múltiples direcciones
-
-Hoy:
-
-address
-
-Futuro:
-
-tabla:
-
-addresses
-Contactos secundarios
-
-Ejemplo:
-
-contacto dentro de una empresa.
-
-Posible entidad futura:
-
-party_contacts
-4. Proyectos
-
-Entidad:
-
-projects
-Mejoras futuras
-Estados del proyecto
-
-Hoy no existen.
-
-Futuro:
-
-draft
-active
-paused
-completed
-cancelled
-Contacto asociado
-
-Un proyecto puede vincularse a un contacto.
-
-Ejemplo:
-
-cliente del proyecto.
-
-Campo futuro:
-
-party_id
-Responsable del proyecto
-
-Campo futuro:
-
-owner_user_id
-5. Tasks (pendiente de crear)
-
-Entidad futura:
-
-tasks
-
-Representa:
-
-actividades
-
-trabajos
-
-acciones
-
-Relaciones posibles:
-
-tenant
-project
-party
-user
-
-Campos posibles:
-
-title
-description
-status
-priority
-due_date
-assigned_user_id
-
-Estados posibles:
-
-todo
-in_progress
-done
-cancelled
-6. Productos
-
-Entidad futura:
-
-products
-
-Representa:
-
-artículos
-
-insumos
-
-repuestos
-
-servicios
-
-Campos iniciales posibles:
-
-name
-sku
-description
-price
-cost
-is_active
-7. Inventario
-
-No se implementará en esta etapa.
-
-Futuro:
-
-inventory
-inventory_movements
-8. Pedidos / órdenes
-
-Entidad futura:
-
-orders
+Algunas páginas son consideradas públicas y no muestran el layout completo.
 
 Ejemplos:
 
-pedido de cliente
+- welcome
+- login
+- register
+- selección de empresa
 
-orden de compra
+Estas páginas utilizan la variable:
 
-orden de trabajo
+$publicPage = true
 
-Relaciones:
+Esto permite ocultar elementos de navegación interna.
 
-tenant
-party
-products
-9. Documentos
 
-Familia documental unificada.
+DASHBOARD
 
-Entidad futura:
+Se implementó un dashboard inicial con:
 
-documents
+- empresa actual
+- cantidad de proyectos
+- accesos rápidos a módulos principales
 
-Tipos posibles:
+El dashboard actúa como punto de entrada al sistema.
 
-invoice
-quote
-proforma
-delivery_note
-work_order
-receipt
-credit_note
-Profundización futura
 
-numeración
+LISTADOS
 
-series
+Los listados utilizan el siguiente patrón visual:
 
-estados
+- x-card
+- table-wrap
+- table
 
-impuestos
+Las tablas deben incluir encabezado y filas de datos.
 
-moneda
+Los estados vacíos deben mostrarse dentro de la card.
 
-10. Pagos
 
-Entidad futura:
+FORMULARIOS
 
-payments
+Los formularios siguen estas reglas:
 
-Relaciones posibles:
+- campos agrupados con clases consistentes
+- botones en un bloque form-actions
+- formularios reutilizan archivos parciales (_form)
 
-documents
-orders
-parties
-11. Archivos adjuntos
+Ejemplo:
 
-Entidad futura:
+projects/_form
+parties/_form
 
-attachments
 
-Permitirá archivos vinculados a:
+MÓDULOS ADAPTADOS A LA BASE VISUAL
 
-contacts
-projects
-tasks
-documents
-12. Notas internas
+Actualmente los siguientes módulos ya utilizan la base visual:
 
-Entidad futura:
+- projects
+- parties (contactos)
 
-notes
+Esto define el patrón que deben seguir los nuevos módulos.
 
-Permite comentarios vinculados a entidades.
 
-13. Auditoría del sistema
+NOMENCLATURA DE INTERFAZ
 
-Futuro:
+En la interfaz se utilizan los siguientes términos:
 
-audit_logs
+Tenant → Empresa
+Party → Contacto
 
-Registrar:
+La terminología técnica puede mantenerse en el código, pero la interfaz debe usar
+los términos orientados al usuario.
 
-cambios
 
-eliminaciones
+EVOLUCIÓN FUTURA
 
-accesos
+La base visual permite incorporar en el futuro:
 
-14. Permisos y roles
+- sidebar de navegación
+- mejoras en el dashboard
+- sistema de iconos
+- temas visuales
+- dark mode
+- mejoras de UX
 
-Actualmente no implementado.
 
-Futuro:
+CONCLUSIÓN
 
-roles
-permissions
-role_user
-15. Interfaz de usuario
+La base visual actual define una estructura clara y consistente para el sistema.
 
-Pendientes futuros:
-
-Layout base
-
-Actualmente:
-
-vistas simples.
-
-Futuro:
-
-layout principal
-sidebar
-header
-breadcrumb
-Componentes reutilizables
-
-Futuro:
-
-table component
-form component
-alerts
-pagination
-cards
-16. Búsqueda global
-
-Futuro:
-
-buscar en:
-
-contactos
-proyectos
-productos
-documentos
-17. API futura
-
-Evaluar API REST.
-
-Posible estructura:
-
-/api/v1
-18. Soft delete global
-
-Hoy:
-
-algunas entidades.
-
-Futuro:
-
-estandarizar.
-
-19. Seeds y datos demo
-
-Futuro:
-
-tenant demo
-contactos demo
-proyectos demo
-20. Tests automáticos
-
-Futuro:
-
-Feature tests
-Unit tests
-21. Seguridad futura
-
-Evaluar:
-
-rate limiting
-
-auditoría
-
-logs de acceso
-
-22. Regla del proyecto
-
-Antes de crear una nueva entidad se debe evaluar:
-
-si puede resolverse con Party (Contactos)
-
-si puede resolverse con Documents
-
-si es realmente una nueva entidad
-
-23. Crecimiento del TODO
-
-Este archivo debe actualizarse cuando aparezcan:
-
-nuevas decisiones
-
-nuevas necesidades
-
-nuevas entidades
-
-El objetivo es mantener una memoria técnica del proyecto.
-
-TODO actuales de base visual
-
-definir layout principal del sistema
-
-crear hoja CSS global base
-
-unificar estructura visual de listados
-
-unificar estructura visual de formularios
-
-adaptar módulos existentes a la base visual
-
-evaluar sidebar en etapa posterior
-
-evaluar componentes Blade reutilizables
-
-evaluar navegación general del sistema
-
-revisar responsive en una segunda etapa
-
-definir identidad visual más completa cuando existan más módulos
+Los nuevos módulos deben seguir el mismo patrón implementado en projects y parties
+para mantener coherencia visual y facilitar el mantenimiento del sistema.

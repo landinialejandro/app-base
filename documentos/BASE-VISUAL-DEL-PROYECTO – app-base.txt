@@ -1,382 +1,196 @@
-Objetivo
+BASE VISUAL DEL PROYECTO – app-base
+-----------------------------------
 
-Este documento define la estrategia de base visual del proyecto app-base para la etapa actual de desarrollo.
+OBJETIVO
 
-Su finalidad es:
+Definir una base visual simple, consistente y escalable para la aplicación SaaS app-base.
+El objetivo es contar con una interfaz limpia, profesional y mantenible, sin introducir
+complejidad innecesaria en las primeras etapas del desarrollo.
 
-evitar que los módulos crezcan con estructuras visuales diferentes
+La base visual debe permitir:
+- consistencia entre módulos
+- facilidad para agregar nuevas pantallas
+- separación clara entre lógica y presentación
+- evolución futura sin reescrituras grandes.
 
-establecer una base mínima y reutilizable de interfaz
 
-permitir avanzar rápido en lo funcional sin bloquear el proyecto por diseño
+PRINCIPIOS DE DISEÑO
 
-facilitar una evolución futura hacia una UI más completa
+1. Simplicidad primero
+La interfaz debe ser simple y funcional. Se prioriza claridad sobre estética avanzada.
 
-reducir retrabajo cuando se incorporen más módulos
+2. Consistencia
+Todos los módulos deben usar la misma estructura visual.
 
-Este documento no redefine la arquitectura SaaS ni el modelado del dominio.
-Su alcance es exclusivamente visual y estructural en la capa de vistas.
+3. Componentización mínima
+Se utilizan componentes Blade reutilizables cuando aportan claridad o evitan repetición.
 
-1. Criterio general de avance visual
+4. Evolución gradual
+La base visual debe poder evolucionar hacia un diseño más completo sin romper lo existente.
 
-En esta etapa del proyecto no se desarrollará una interfaz visual compleja o definitiva.
 
-La estrategia será:
+ARQUITECTURA VISUAL ACTUAL
 
-construir una base visual mínima
+La aplicación utiliza un layout principal basado en Blade.
 
-unificar la estructura de las vistas existentes y futuras
+layouts/app.blade.php
 
-aplicar estilos globales simples y consistentes
+Este layout define:
 
-dejar como evolución futura los componentes más avanzados
+- barra superior de la aplicación
+- contenedor principal
+- área de contenido
+- carga del CSS global
+- navegación básica del sistema
 
-La prioridad sigue siendo:
 
-operatividad
+ESTRUCTURA GENERAL DE PÁGINA
 
-consistencia
+Las páginas internas siguen esta estructura:
 
-velocidad de desarrollo
+<x-page>
+    <x-breadcrumb />
+    <x-page-header />
+    <x-card />
+</x-page>
 
-escalabilidad visual razonable
+Componentes utilizados:
 
-No se buscará todavía:
+x-page
+Contenedor principal de una pantalla.
 
-un dashboard sofisticado
+x-breadcrumb
+Navegación jerárquica dentro del sistema.
 
-una identidad visual final
+x-page-header
+Encabezado de la página con título y acciones.
 
-animaciones
+x-card
+Contenedor visual para contenido o secciones.
 
-un sistema de componentes avanzado
 
-responsive exhaustivo
+COMPONENTES BLADE DISPONIBLES
 
-una UI premium
+Actualmente existen los siguientes componentes visuales reutilizables:
 
-2. Principio de trabajo visual
+x-page
+Define el layout base de una pantalla.
 
-Se distingue entre:
+x-page-header
+Contiene el título de la pantalla y acciones (botones).
 
-estructura visual base
+x-card
+Caja visual que contiene contenido.
 
-Define cómo se organizan las páginas.
+x-breadcrumb
+Ruta de navegación de la página.
 
-estilo visual base
 
-Define apariencia mínima compartida.
+BARRA SUPERIOR DE LA APLICACIÓN
 
-En esta etapa deben resolverse ambas capas de forma simple.
+El layout principal incluye una barra superior con:
 
-La regla principal es:
+- marca de la aplicación (app-base)
+- empresa actual
+- selector de empresa (cuando el usuario tiene más de una)
+- usuario autenticado
+- acceso para cerrar sesión
 
-todas las vistas nuevas deben nacer ya dentro de una estructura visual común.
+La empresa actual se muestra en el header global, evitando repetirla en cada vista.
 
-3. Alcance de esta etapa
 
-La base visual mínima deberá contemplar:
+PÁGINAS PÚBLICAS
 
-layout principal
+Algunas páginas son consideradas públicas y no muestran el layout completo.
 
-área de contenido consistente
+Ejemplos:
 
-títulos de página
+- welcome
+- login
+- register
+- selección de empresa
 
-acciones principales
+Estas páginas utilizan la variable:
 
-tablas
+$publicPage = true
 
-formularios
+Esto permite ocultar elementos de navegación interna.
 
-botones
 
-mensajes de éxito o error
+DASHBOARD
 
-espaciado base
+Se implementó un dashboard inicial con:
 
-clases reutilizables simples
+- empresa actual
+- cantidad de proyectos
+- accesos rápidos a módulos principales
 
-4. Layout principal
+El dashboard actúa como punto de entrada al sistema.
 
-Debe existir un layout principal común para módulos del sistema.
 
-Ubicación sugerida:
+LISTADOS
 
-resources/views/layouts/app.blade.php
+Los listados utilizan el siguiente patrón visual:
 
-Este layout debe contener como mínimo:
+- x-card
+- table-wrap
+- table
 
-estructura HTML base
+Las tablas deben incluir encabezado y filas de datos.
 
-inclusión del archivo CSS global
+Los estados vacíos deben mostrarse dentro de la card.
 
-encabezado simple
 
-contenedor principal del contenido
+FORMULARIOS
 
-área para mensajes flash
+Los formularios siguen estas reglas:
 
-@yield o secciones equivalentes para contenido y título
+- campos agrupados con clases consistentes
+- botones en un bloque form-actions
+- formularios reutilizan archivos parciales (_form)
 
-En esta etapa no es obligatorio implementar todavía:
+Ejemplo:
 
-sidebar completo
+projects/_form
+parties/_form
 
-topbar avanzada
 
-breadcrumbs
+MÓDULOS ADAPTADOS A LA BASE VISUAL
 
-switch de temas
+Actualmente los siguientes módulos ya utilizan la base visual:
 
-componentes de navegación complejos
+- projects
+- parties (contactos)
 
-5. Hoja de estilos global
+Esto define el patrón que deben seguir los nuevos módulos.
 
-Debe existir una hoja CSS global del proyecto.
 
-Ubicación sugerida:
+NOMENCLATURA DE INTERFAZ
 
-public/css/app-base.css
+En la interfaz se utilizan los siguientes términos:
 
-o la que resulte coherente con la estructura actual del proyecto.
+Tenant → Empresa
+Party → Contacto
 
-Esta hoja debe definir la base mínima visual del sistema.
+La terminología técnica puede mantenerse en el código, pero la interfaz debe usar
+los términos orientados al usuario.
 
-6. Estructura común de páginas
 
-Todos los módulos deberán seguir una estructura de página consistente.
+EVOLUCIÓN FUTURA
 
-Cada vista de módulo debe construirse, en lo posible, con estos bloques:
+La base visual permite incorporar en el futuro:
 
-index
+- sidebar de navegación
+- mejoras en el dashboard
+- sistema de iconos
+- temas visuales
+- dark mode
+- mejoras de UX
 
-título del módulo
 
-acción principal de alta
+CONCLUSIÓN
 
-tabla o listado
+La base visual actual define una estructura clara y consistente para el sistema.
 
-acciones por registro
-
-create / edit
-
-título de página
-
-bloque de formulario
-
-acciones guardar / cancelar
-
-show
-
-título de página
-
-bloque de datos
-
-acciones editar / volver
-
-Esto evita que cada módulo invente una disposición diferente.
-
-7. Componentes visuales mínimos
-
-En esta etapa deben definirse visualmente, aunque sea de forma simple, los siguientes elementos:
-
-contenedor principal
-
-Para limitar ancho y dar consistencia al contenido.
-
-encabezado de página
-
-Para título y acciones principales.
-
-tarjeta o bloque de contenido
-
-Para agrupar formularios, tablas o detalle.
-
-tabla base
-
-Para listados.
-
-formulario base
-
-Para create y edit.
-
-botones base
-
-Tipos sugeridos:
-
-primario
-
-secundario
-
-peligro
-
-enlace
-
-mensajes flash
-
-Para éxito, error, advertencia e información.
-
-errores de validación
-
-Para mostrar errores de formularios de forma consistente.
-
-8. Convención mínima de clases visuales
-
-La implementación concreta puede variar, pero conviene mantener una convención clara y simple.
-
-Ejemplos de clases reutilizables posibles:
-
-.page
-
-.page-header
-
-.page-title
-
-.page-actions
-
-.card
-
-.card-body
-
-.table
-
-.form-group
-
-.form-label
-
-.form-control
-
-.form-actions
-
-.btn
-
-.btn-primary
-
-.btn-secondary
-
-.btn-danger
-
-.alert
-
-.alert-success
-
-.alert-error
-
-No es obligatorio usar exactamente estos nombres, pero sí mantener consistencia global.
-
-9. Objetivo de las vistas existentes
-
-Los módulos ya creados deberán adaptarse gradualmente a esta base visual.
-
-La prioridad inicial será:
-
-layout común
-
-CSS global
-
-adaptación de módulos ya existentes
-
-desarrollo de nuevos módulos sobre la nueva base
-
-10. Regla para módulos nuevos
-
-Ningún módulo nuevo debe desarrollarse ya “sin estructura visual”.
-
-A partir de esta definición, todo nuevo módulo debe:
-
-usar el layout principal
-
-respetar la estructura común de páginas
-
-usar clases visuales base
-
-reutilizar el estilo global del proyecto
-
-Esto reduce retrabajo futuro.
-
-11. Nivel de profundidad permitido en esta etapa
-
-Sí se hará:
-
-estructura común Blade
-
-CSS base simple
-
-consistencia en formularios y tablas
-
-acciones visuales homogéneas
-
-adaptación de módulos existentes
-
-No se hará todavía:
-
-sistema completo de componentes Blade
-
-diseño avanzado por tema
-
-personalización por tenant
-
-responsive fino para todos los casos
-
-dark mode
-
-accesibilidad avanzada específica
-
-librería visual compleja
-
-12. Evolución futura prevista
-
-La base visual actual podrá evolucionar luego hacia:
-
-sidebar
-
-header más completo
-
-navegación de módulos
-
-dashboard inicial
-
-componentes Blade reutilizables
-
-sistema de tablas más avanzado
-
-modales
-
-filtros visuales
-
-badges de estado
-
-responsive mejorado
-
-identidad visual más elaborada
-
-Estas mejoras no deben bloquear la etapa actual.
-
-13. Orden recomendado de implementación visual
-
-definir layout principal
-
-crear CSS global base
-
-adaptar projects
-
-adaptar transición clients -> parties
-
-adaptar siguientes módulos con la nueva base
-
-dejar mejoras avanzadas en TODO
-
-14. Regla final
-
-La base visual del proyecto debe crecer por capas:
-
-primero consistencia
-
-luego claridad
-
-luego mejora estética
-
-después sofisticación
-
-La prioridad actual no es una interfaz definitiva, sino una interfaz coherente, mantenible y reutilizable.
+Los nuevos módulos deben seguir el mismo patrón implementado en projects y parties
+para mantener coherencia visual y facilitar el mantenimiento del sistema.

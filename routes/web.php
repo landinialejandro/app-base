@@ -9,8 +9,8 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
 use App\Http\Controllers\ProjectController;
-use App\Http\Controllers\ClientController;
 use App\Http\Controllers\PartyController;
+use App\Http\Controllers\TaskController;
 
 use App\Models\Invitation;
 use App\Models\User;
@@ -185,4 +185,6 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
 
     Route::resource('parties', PartyController::class);
+
+    Route::resource('tasks', TaskController::class);
 });

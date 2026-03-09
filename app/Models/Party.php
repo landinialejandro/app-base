@@ -1,9 +1,12 @@
 <?php
 
+// FILE: app/Models/Party.php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 // IMPORTANTE:
 // usar exactamente los mismos namespaces de traits
@@ -13,6 +16,7 @@ use App\Models\Concerns\ResolvesTenantRouteBinding;
 
 class Party extends Model
 {
+    use HasFactory;
     use TenantScoped;
     use SoftDeletes;
     use ResolvesTenantRouteBinding;

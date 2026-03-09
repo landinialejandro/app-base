@@ -5,13 +5,9 @@ Este documento define el mapa general de entidades del proyecto app-base en su e
 Su finalidad es:
 
 visualizar la estructura general del sistema
-
 distinguir entidades del sistema y entidades del negocio
-
 evitar duplicación de modelos
-
 orientar la creación de nuevos módulos
-
 mantener una visión coherente del crecimiento del ERP SaaS
 
 Este documento no redefine la arquitectura multi-tenant, sino que organiza conceptualmente el dominio.
@@ -21,25 +17,17 @@ Este documento no redefine la arquitectura multi-tenant, sino que organiza conce
 El sistema distingue entre:
 
 entidades del sistema
-
 entidades del negocio
-
 entidades operativas
-
 entidades documentales
-
 entidades futuras de soporte
 
 La regla general es:
 
 users pertenece al sistema
-
 parties es la entidad base del negocio para personas y organizaciones
-
 en la interfaz y en el lenguaje funcional del sistema, parties se presentará como contactos
-
 los módulos operativos deben relacionarse preferentemente con parties cuando intervengan actores externos o internos del negocio
-
 antes de crear nuevas tablas base debe evaluarse si el caso corresponde a una variante de una entidad ya existente
 
 2. Entidades del sistema
@@ -53,13 +41,9 @@ Representa usuarios con acceso al sistema.
 Responsabilidades:
 
 autenticación
-
 acceso
-
 permisos
-
 sesiones
-
 operación interna del sistema
 
 tenants
@@ -69,9 +53,7 @@ Representa empresas o cuentas independientes dentro del SaaS.
 Responsabilidades:
 
 aislamiento lógico de datos
-
 contexto de operación
-
 pertenencia empresarial
 
 memberships
@@ -81,10 +63,10 @@ Vincula usuarios con tenants.
 Responsabilidades:
 
 pertenencia de un usuario a una o varias empresas
-
 eventual relación con roles/permisos dentro del tenant
 
 3. Entidad base del negocio
+
 parties
 
 Entidad general para personas u organizaciones vinculadas a la operación de un tenant.
@@ -100,59 +82,38 @@ contactos
 Ejemplos de uso:
 
 cliente
-
 proveedor
-
 empleado
-
 contacto
-
 contratista
-
 tercero
 
 Criterio actual:
 
 implementación simple y funcional
-
 diferenciación inicial mediante campo de tipo o clase
-
 evolución futura posible hacia perfiles especializados o múltiples roles
 
 Campos conceptuales esperables:
 
 tenant_id
-
 kind
-
 name
-
 display_name opcional
-
 document_type nullable
-
 document_number nullable
-
 tax_id nullable
-
 email nullable
-
 phone nullable
-
 address nullable
-
 notes nullable
-
 is_active
-
 timestamps
-
 soft deletes
 
 Criterio de interfaz:
 
 en pantallas, menús y textos visibles al usuario se utilizará contacto o contactos
-
 el término party queda reservado al modelo técnico, tabla, rutas y convenciones internas
 
 4. Entidades operativas principales
@@ -163,31 +124,47 @@ projects
 
 Agrupa trabajos, servicios, iniciativas o procesos internos/comerciales.
 
-Relaciones probables:
+Relaciones principales:
 
 pertenece a tenant
-
-puede vincularse a un contacto
-
-puede tener muchas tasks
-
-puede vincular documentos
+puede vincularse a contacts
+puede contener múltiples tasks
+puede vincular documentos en el futuro
 
 tasks
 
 Unidad operativa de trabajo.
 
-Relaciones probables:
+Representa actividades concretas que deben realizarse dentro del sistema.
 
-pertenece a tenant
+Las tareas pueden existir:
 
-puede pertenecer a project
+dentro de un proyecto
+asociadas a un contacto
+asignadas a un usuario
+o de manera independiente
 
-puede vincularse a un contacto
+Campos relevantes:
 
-puede vincularse a user asignado
+tenant_id
+project_id nullable
+party_id nullable
+assigned_user_id nullable
+name
+description
+status
+due_date
+timestamps
+soft deletes
 
-puede vincularse a documentos futuros
+Relaciones principales:
+
+tenant → tasks
+project → tasks
+party → tasks
+user → tasks
+
+tasks constituye el núcleo operativo del sistema para la gestión del trabajo diario.
 
 products
 
@@ -196,11 +173,8 @@ Representa productos, artículos, repuestos, insumos o ítems comercializables o
 Relaciones probables:
 
 pertenece a tenant
-
 puede participar en orders
-
 puede participar en documents
-
 puede vincularse a inventory
 
 orders
@@ -210,13 +184,9 @@ Representa pedidos u órdenes comerciales u operativas.
 Relaciones probables:
 
 pertenece a tenant
-
 se vincula con un contacto
-
 puede tener múltiples productos
-
 puede derivar en documents
-
 puede relacionarse con payments
 
 5. Entidades documentales
@@ -230,46 +200,32 @@ Entidad genérica para documentos comerciales u operativos.
 Ejemplos de tipos:
 
 factura
-
 remito
-
 proforma
-
 orden de trabajo
-
 presupuesto
-
 nota de crédito
-
 recibo
-
 comprobante interno
 
 Criterio actual:
 
 no profundizar todavía en exceso
-
 pensar la familia documental como una misma línea conceptual
-
 diferenciar inicialmente por document_type
-
 dejar para una segunda etapa la profundización de numeración, series, estados complejos y relaciones avanzadas
 
 Relaciones probables:
 
 pertenece a tenant
-
-puede vincularse a un contacto
-
+puede vincularse a contacts
 puede vincularse a orders
-
 puede vincularse a projects
-
 puede vincularse a products mediante detalle
-
 puede vincularse a payments
 
 6. Entidades financieras futuras
+
 payments
 
 Representa cobros, pagos o movimientos relacionados con documentos u órdenes.
@@ -277,14 +233,12 @@ Representa cobros, pagos o movimientos relacionados con documentos u órdenes.
 Relaciones probables:
 
 pertenece a tenant
-
 puede vincularse a documents
-
-puede vincularse a contactos
-
+puede vincularse a contacts
 puede vincularse a orders
 
 7. Entidades de inventario futuras
+
 inventory
 
 Representa stock o existencia de productos.
@@ -292,9 +246,7 @@ Representa stock o existencia de productos.
 Relaciones probables:
 
 pertenece a tenant
-
 se vincula con products
-
 puede vincular movimientos futuros
 
 inventory_movements
@@ -304,9 +256,7 @@ Entidad futura para entradas, salidas, ajustes o transferencias.
 Relaciones probables:
 
 pertenece a tenant
-
 se vincula con inventory o products
-
 puede relacionarse con documents o orders
 
 8. Entidades futuras de soporte
@@ -319,13 +269,12 @@ Para múltiples direcciones por entidad.
 
 contacts
 
-Reservado conceptualmente para múltiples medios de contacto o contactos secundarios, en caso de necesitarse en una etapa futura.
+Reservado conceptualmente para múltiples medios de contacto o contactos secundarios.
 
 Nota importante:
 
-aunque la interfaz del sistema utilizará la palabra contactos para referirse a parties, no se creará una tabla contacts en esta etapa
-
-si en el futuro se necesitara una entidad separada contacts, deberá redefinirse su nombre para evitar confusión con la entidad base parties
+aunque la interfaz del sistema utilizará la palabra contactos para referirse a parties,
+no se creará una tabla contacts en esta etapa.
 
 party_profiles
 
@@ -341,7 +290,7 @@ Sucursales o sedes del tenant.
 
 roles
 
-Roles internos de acceso o de negocio, según evolución futura.
+Roles internos de acceso o de negocio.
 
 permissions
 
@@ -356,6 +305,7 @@ notes
 Notas internas vinculables a distintas entidades.
 
 9. Relación conceptual general del sistema
+
 Núcleo SaaS
 
 users
@@ -372,7 +322,9 @@ parties
 ↓
 contactos
 ↓
-projects / tasks / orders / documents / payments
+projects
+↓
+tasks
 
 Dominio de productos
 
@@ -387,17 +339,11 @@ inventory / orders / documents
 Orden sugerido de crecimiento:
 
 parties
-
 tasks
-
 products
-
 orders
-
 documents
-
 payments
-
 inventory
 
 11. Regla de racionalización
@@ -405,60 +351,43 @@ inventory
 Antes de crear una nueva entidad base debe evaluarse:
 
 si pertenece al sistema o al negocio
-
 si puede resolverse dentro de parties
-
 si puede resolverse dentro de documents
-
 si es una verdadera entidad nueva o una especialización futura
-
 si conviene implementarla ahora o dejarla como TODO
 
 12. Estado actual del mapa
+
 Ya existentes
 
 users
-
 tenants
-
 memberships
-
-projects
-
-Implementado como línea actual
-
 parties
+projects
+tasks
 
 Nombre funcional visible al usuario
 
 contactos
 
-Transitorio retirado o en proceso de retiro conceptual
+Transitorio retirado
 
 clients
 
 Próximas recomendadas
 
-tasks
-
 products
-
 orders
-
 documents
 
 Futuras
 
 payments
-
 inventory
-
 attachments
-
 notes
-
 addresses
-
 perfiles especializados
 
 13. Regla final
@@ -466,13 +395,9 @@ perfiles especializados
 El crecimiento del sistema debe seguir una lógica de:
 
 núcleo estable
-
 entidades reutilizables
-
 especialización progresiva
-
 mínima duplicación
-
 evolución por capas
 
 La prioridad actual es construir una base operativa y adaptable, evitando profundizaciones innecesarias en esta etapa.

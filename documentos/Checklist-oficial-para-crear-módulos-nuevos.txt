@@ -16,9 +16,7 @@ Este checklist aplica a todos los módulos CRUD del sistema.
 Antes de crear una entidad nueva verificar:
 
 si puede resolverse con Party (Contactos)
-
 si puede resolverse con Documents
-
 si es una verdadera entidad nueva
 
 Si no es imprescindible ahora:
@@ -32,6 +30,7 @@ Crear la migración.
 Ejemplo:
 
 php artisan make:migration create_products_table
+
 Reglas de migración
 
 Toda entidad del negocio debe tener:
@@ -43,12 +42,10 @@ softDeletes
 Ejemplo mínimo:
 
 $table->uuid('tenant_id')->index();
-
 $table->string('name');
-
 $table->timestamps();
-
 $table->softDeletes();
+
 Índices recomendados
 
 Siempre indexar:
@@ -60,21 +57,34 @@ y campos de búsqueda relevantes.
 Ejemplo:
 
 $table->index(['tenant_id','name']);
+
 3. Crear modelo
 
 Crear modelo:
 
 php artisan make:model Product
-El modelo debe incluir
+
+El modelo debe incluir:
+
+use HasFactory;
 use TenantScoped;
 use SoftDeletes;
 use ResolvesTenantRouteBinding;
 
 Ejemplo:
 
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Concerns\TenantScoped;
 use App\Models\Concerns\ResolvesTenantRouteBinding;
 use Illuminate\Database\Eloquent\SoftDeletes;
+
+Motivación:
+
+HasFactory permite generar datos de prueba mediante factories
+TenantScoped garantiza aislamiento automático multi-tenant
+SoftDeletes permite eliminación lógica
+ResolvesTenantRouteBinding asegura resolución segura de rutas
+
 fillable
 
 Definir los campos editables.
@@ -82,15 +92,17 @@ Definir los campos editables.
 Ejemplo:
 
 protected $fillable = [
-    'tenant_id',
-    'name',
-    'description',
+'tenant_id',
+'name',
+'description',
 ];
+
 4. Crear controller
 
 Crear controller tipo resource:
 
 php artisan make:controller ProductController
+
 Métodos mínimos
 
 El controller debe incluir:
@@ -102,6 +114,7 @@ show
 edit
 update
 destroy
+
 Regla de tenant
 
 Siempre obtener el tenant:
@@ -124,11 +137,13 @@ Las rutas deben quedar dentro del grupo:
 
 auth
 tenant
+
 6. Crear vistas
 
 Crear carpeta:
 
 resources/views/products
+
 Vistas mínimas
 
 Crear:
@@ -138,6 +153,7 @@ create.blade.php
 edit.blade.php
 show.blade.php
 _form.blade.php
+
 7. Convención de listados (index)
 
 Los listados deben seguir el patrón usado en projects.
@@ -151,6 +167,7 @@ crear botón "Nuevo"
 Ejemplo:
 
 Nombre → link a show
+
 8. Convención de show
 
 La vista de detalle debe incluir:
@@ -176,6 +193,7 @@ utilizado por:
 
 create
 edit
+
 10. Validación
 
 Validar en el controller inicialmente.
@@ -201,6 +219,7 @@ Entidad eliminada correctamente
 Ejemplo:
 
 ->with('success', 'Producto creado correctamente');
+
 12. Prueba mínima del módulo
 
 Verificar:
@@ -223,13 +242,28 @@ TenantScoped
 
 pero siempre debe verificarse.
 
-14. Actualizar documentos del proyecto
+14. Datos de prueba
+
+Cuando un módulo nuevo es relevante para el funcionamiento del sistema:
+
+crear factory correspondiente
+
+php artisan make:factory ProductFactory
+
+y agregar datos al DemoSeeder para facilitar pruebas.
+
+Esto permite reconstruir el entorno de desarrollo mediante:
+
+php artisan migrate:fresh --seed
+
+15. Actualizar documentos del proyecto
 
 Si el módulo es nuevo, actualizar:
 
 MAPA-DE-ENTIDADES
 TODO-DEL-PROYECTO
-15. Regla de simplicidad
+
+16. Regla de simplicidad
 
 Antes de agregar:
 
@@ -247,7 +281,7 @@ Si no lo es:
 
 registrarlo en TODO y seguir con el sistema funcional.
 
-16. Regla de coherencia
+17. Regla de coherencia
 
 Cada módulo nuevo debe parecer parte del mismo sistema.
 
@@ -259,7 +293,7 @@ vistas
 convenciones
 flujo de trabajo
 
-17. Flujo resumido para crear módulo
+18. Flujo resumido para crear módulo
 
 Flujo recomendado:
 
@@ -271,6 +305,7 @@ crear rutas
 crear vistas
 validar funcionamiento
 actualizar documentos
+
 Regla final
 
 Si al implementar un módulo aparece una decisión que afectará a todo el sistema:

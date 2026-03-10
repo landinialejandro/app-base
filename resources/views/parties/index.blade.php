@@ -1,9 +1,11 @@
+{{-- FILE: resources/views/parties/index.blade.php | V2 --}}
+
 @extends('layouts.app')
 
 @section('title', 'Contactos')
 
 @section('content')
-    <x-page>
+    <x-page class="list-page">
 
         <x-breadcrumb :items="[
             ['label' => 'Inicio', 'url' => route('dashboard')],
@@ -16,11 +18,9 @@
             </a>
         </x-page-header>
 
-        <x-card>
-            @if ($parties->isEmpty())
-                <p class="mb-0">No hay contactos para esta empresa.</p>
-            @else
-                <div class="table-wrap">
+        <x-card class="list-card">
+            @if ($parties->count())
+                <div class="table-wrap list-scroll">
                     <table class="table">
                         <thead>
                             <tr>
@@ -37,21 +37,23 @@
                             @foreach ($parties as $party)
                                 <tr>
                                     <td>{{ $party->id }}</td>
-                                    <td>{{ $party->kind }}</td>
+                                    <td>{{ $party->kind ?? '—' }}</td>
                                     <td>
                                         <a href="{{ route('parties.show', $party) }}">
                                             {{ $party->name }}
                                         </a>
                                     </td>
-                                    <td>{{ $party->email }}</td>
-                                    <td>{{ $party->phone }}</td>
+                                    <td>{{ $party->email ?? '—' }}</td>
+                                    <td>{{ $party->phone ?? '—' }}</td>
                                     <td>{{ $party->is_active ? 'Sí' : 'No' }}</td>
-                                    <td>{{ $party->created_at }}</td>
+                                    <td>{{ $party->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
+            @else
+                <p class="mb-0">No hay contactos para esta empresa.</p>
             @endif
         </x-card>
 

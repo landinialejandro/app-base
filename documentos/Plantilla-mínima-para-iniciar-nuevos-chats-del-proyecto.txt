@@ -1,4 +1,13 @@
-Usa como referencia los documentos del proyecto:
+PROYECTO
+
+app-base
+
+Sistema SaaS multi-tenant desarrollado en Laravel.
+
+
+DOCUMENTOS DE REFERENCIA DEL PROYECTO
+
+Usar como contexto los siguientes documentos del proyecto:
 
 CONTEXTO-FIJO-DEL-PROYECTO – app-base
 CONVENCIONES-DEL-PROYECTO – app-base
@@ -7,63 +16,87 @@ MAPA-DE-ENTIDADES – app-base
 BASE-VISUAL-DEL-PROYECTO – app-base
 TODO-DEL-PROYECTO – app-base
 
+
 ARQUITECTURA DEL SISTEMA
 
 Tipo de sistema:
-
 Plataforma SaaS multi-tenant desarrollada en Laravel.
 
-El sistema permite que múltiples empresas utilicen la misma aplicación
-manteniendo aislamiento lógico de datos por empresa.
+Aislamiento de datos mediante:
+tenant_id
 
-REGLAS DEL PROYECTO
+Traits obligatorios en entidades del negocio:
 
-multi-tenancy mediante tenant_id
-aislamiento automático mediante TenantScoped
-protección de rutas mediante ResolvesTenantRouteBinding
-soft delete obligatorio
+TenantScoped
+ResolvesTenantRouteBinding
+SoftDeletes
 
 La arquitectura multi-tenant ya está implementada y no debe modificarse.
 
+
 MODELO DEL NEGOCIO
 
-users es una entidad del sistema.
+users es entidad del sistema.
 
 parties es la entidad base del negocio.
 
-En la interfaz se utiliza el término:
+Nombre técnico:
+parties
 
-Contactos
+Nombre en interfaz:
+contactos
+
 
 BASE VISUAL
 
-Las páginas internas siguen esta estructura:
+Las páginas internas utilizan el layout estándar:
 
-<x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
+<x-page>
+<x-breadcrumb />
+<x-page-header />
+<x-card />
+</x-page>
 
-Los listados deben seguir el patrón:
+Patrón de listados:
 
 page.list-page
 card.list-card
 table-wrap.list-scroll
 
-MÓDULOS IMPLEMENTADOS
 
+ESTADO ACTUAL DEL PROYECTO
+
+Arquitectura SaaS implementada.
+
+Multi-tenancy funcional.
+
+Middleware ResolveTenant operativo.
+
+Traits de aislamiento funcionando.
+
+Base visual definida.
+
+
+ENTIDADES IMPLEMENTADAS
+
+users
+tenants
+memberships
+parties
 projects
-parties (contactos)
+tasks
 
-OBJETIVO DEL CHAT
 
-Desarrollar o modificar funcionalidad del sistema respetando:
+MÓDULOS PENDIENTES PRINCIPALES
 
-arquitectura SaaS
-aislamiento multi-tenant
-convenciones del proyecto
-checklist oficial de módulos
+products
+orders
+documents
+
 
 REGLA DE DESARROLLO
 
-Los nuevos módulos deben seguir el mismo patrón utilizado en:
+Los nuevos módulos deben seguir el patrón utilizado en:
 
 models
 controllers
@@ -71,14 +104,14 @@ routes
 vistas
 estructura CRUD
 
-ANTES DE COMENZAR
 
-Si es necesario crear una entidad nueva:
+REGLA DE CREACIÓN DE ENTIDADES
 
-seguir el procedimiento definido en:
+Antes de crear una entidad nueva seguir el procedimiento definido en:
 
 CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS
 
-OBJETIVO ESPECÍFICO DE ESTE CHAT
+
+OBJETIVO DE ESTE CHAT
 
 [describir aquí el objetivo puntual del chat]

@@ -1,6 +1,6 @@
 <?php
 
-//FILE: app/Http/Controllers/TaskController.php
+//FILE: app/Models/Task.php
 
 namespace App\Models;
 

@@ -1,5 +1,7 @@
 <?php
 
+// FILE: app/Models/Project.php
+
 namespace App\Models;
 
 use App\Models\Concerns\ResolvesTenantRouteBinding;
@@ -20,4 +22,9 @@ class Project extends Model
         'name',
         'description',
     ];
+
+    public function tasks()
+    {
+        return $this->hasMany(Task::class);
+    }
 }

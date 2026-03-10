@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PartyController;
 use App\Http\Controllers\TaskController;
@@ -16,7 +17,6 @@ use App\Models\Invitation;
 use App\Models\User;
 use App\Models\Membership;
 use App\Models\Tenant;
-use App\Models\Project;
 
 Route::get('/', function () {
     return view('welcome');
@@ -126,14 +126,8 @@ Route::middleware(['auth'])->post('/tenants/select/{tenant}', function (Tenant $
     return redirect()->route('dashboard');
 })->name('tenants.select.store');
 
-Route::middleware(['auth', 'tenant'])->get('/dashboard', function () {
-    $tenant = app('tenant');
-
-    return view('dashboard', [
-        'tenant' => $tenant,
-        'projectsCount' => Project::count(),
-    ]);
-})->name('dashboard');
+Route::middleware(['auth', 'tenant'])->get('/dashboard', [DashboardController::class, 'index'])
+    ->name('dashboard');
 
 // Aceptación real de invitación (dejamos UNA sola)
 Route::get('/accept-invitation/{token}', function ($token) {

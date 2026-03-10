@@ -1,9 +1,11 @@
+{{-- FILE: resources/views/projects/index.blade.php | v2 --}}
+
 @extends('layouts.app')
 
 @section('title', 'Proyectos')
 
 @section('content')
-    <x-page>
+    <x-page class="list-page">
         <x-breadcrumb :items="[
             ['label' => 'Inicio', 'url' => route('dashboard')],
             ['label' => 'Proyectos'],
@@ -15,9 +17,9 @@
             </a>
         </x-page-header>
 
-        <x-card>
+        <x-card class="list-card">
             @if ($projects->count())
-                <div class="table-wrap">
+                <div class="table-wrap list-scroll">
                     <table class="table">
                         <thead>
                             <tr>
@@ -35,14 +37,14 @@
                                             {{ $project->name }}
                                         </a>
                                     </td>
-                                    <td>{{ $project->description }}</td>
+                                    <td>{{ $project->description ?: '—' }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
             @else
-                <p>No hay proyectos cargados.</p>
+                <p class="mb-0">No hay proyectos cargados.</p>
             @endif
         </x-card>
     </x-page>

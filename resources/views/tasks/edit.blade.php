@@ -1,3 +1,5 @@
+{{-- FILE: resources/views/tasks/edit.blade.php --}}
+
 @extends('layouts.app')
 
 @section('title', 'Editar tarea')
@@ -5,14 +7,19 @@
 @section('content')
     <x-page>
 
-        <x-breadcrumb :items="[
-            ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Tareas', 'url' => route('tasks.index')],
-            ['label' => $task->name, 'url' => route('tasks.show', $task)],
-            ['label' => 'Editar'],
-        ]" />
+        <x-breadcrumb :items="$breadcrumbItems" />
 
-        <x-page-header title="Editar tarea" />
+        <x-page-header title="Editar tarea">
+            @if ($task->project)
+                <a href="{{ route('projects.show', $task->project) }}" class="btn btn-secondary">
+                    Volver al proyecto
+                </a>
+            @else
+                <a href="{{ route('tasks.show', $task) }}" class="btn btn-secondary">
+                    Volver al detalle
+                </a>
+            @endif
+        </x-page-header>
 
         <x-card>
             <form method="POST" action="{{ route('tasks.update', $task) }}">
@@ -22,8 +29,19 @@
                 @include('tasks._form')
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                    <a href="{{ route('tasks.show', $task) }}" class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">
+                        Guardar cambios
+                    </button>
+
+                    @if ($task->project)
+                        <a href="{{ route('projects.show', $task->project) }}" class="btn btn-secondary">
+                            Cancelar
+                        </a>
+                    @else
+                        <a href="{{ route('tasks.show', $task) }}" class="btn btn-secondary">
+                            Cancelar
+                        </a>
+                    @endif
                 </div>
             </form>
         </x-card>

@@ -1,6 +1,6 @@
 <?php
 
-// file: app/Http/Controllers/ProjectController.php
+// FILE: app/Http/Controllers/ProjectController.php
 
 namespace App\Http\Controllers;
 
@@ -49,6 +49,14 @@ class ProjectController extends Controller
     public function show(Project $project)
     {
         $tenant = app('tenant');
+
+        $project->load([
+            'tasks' => function ($query) {
+                $query->with('assignedUser')
+                    ->orderBy('due_date')
+                    ->orderBy('name');
+            },
+        ]);
 
         return view('projects.show', [
             'tenant' => $tenant,

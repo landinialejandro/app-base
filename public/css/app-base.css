@@ -52,12 +52,18 @@
     box-sizing: border-box;
 }
 
+html,
+body {
+    height: 100%;
+}
+
 body {
     margin: 0;
     font-family: Arial, Helvetica, sans-serif;
     background: var(--color-bg);
     color: var(--color-text);
     line-height: 1.5;
+    overflow: hidden;
 }
 
 a {
@@ -81,7 +87,22 @@ a:hover {
 }
 
 .app-main {
-    padding: var(--space-6) 0;
+    min-height: 0;
+    overflow-y: auto;
+    padding: var(--space-5) 0;
+}
+
+.app-main>.container {
+    height: 100%;
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.app-shell {
+    height: 100vh;
+    display: grid;
+    grid-template-rows: auto 1fr auto;
 }
 
 /* =========================================================
@@ -159,15 +180,56 @@ a:hover {
     color: var(--color-text);
 }
 
-/* Badge viejo; se puede conservar por compatibilidad */
-.tenant-badge {
-    display: inline-block;
-    padding: 0.35rem 0.65rem;
-    border: 1px solid var(--color-border);
-    border-radius: 999px;
-    background: #f9fafb;
+.app-footer {
+    border-top: 1px solid var(--color-border);
+    background: var(--color-surface);
+}
+
+.app-footer-inner {
+    min-height: 56px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: 0 var(--space-4);
+}
+
+.app-footer-brand {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.app-footer-text {
+    font-size: 0.85rem;
     color: var(--color-muted);
-    font-size: 0.875rem;
+}
+
+.page.list-page {
+    flex: 1;
+    min-height: 0;
+    display: grid;
+    grid-template-rows: auto auto 1fr;
+    gap: var(--space-4);
+}
+
+.card.list-card {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+}
+
+.card.list-card .card-body {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    flex: 1;
+}
+
+.table-wrap.list-scroll {
+    min-height: 0;
+    flex: 1;
+    overflow: auto;
 }
 
 /* =========================================================
@@ -231,6 +293,15 @@ a:hover {
     border: 1px solid var(--color-border);
     border-radius: var(--radius);
     box-shadow: var(--shadow-sm);
+}
+
+.card-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-3);
+    margin-bottom: var(--space-4);
+    flex-wrap: wrap;
 }
 
 .card-body {
@@ -355,10 +426,21 @@ a:hover {
 }
 
 .table th {
+    position: sticky;
+    top: 0;
+    z-index: 1;
     font-size: 0.9rem;
     color: var(--color-muted);
     font-weight: 700;
-    background: #f9fafb;
+    background: #f8fafc;
+}
+
+.table tbody tr {
+    transition: background 0.15s ease;
+}
+
+.table tbody tr:hover {
+    background: #f8fafc;
 }
 
 .table tr:last-child td {
@@ -543,6 +625,60 @@ textarea.form-control {
     font-size: 0.95rem;
 }
 
+.dashboard-link-meta {
+    color: #9ca3af;
+    font-size: 0.82rem;
+}
+
+.dashboard-tenant-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+}
+
+.dashboard-tenant-main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.dashboard-tenant-label {
+    font-size: 0.85rem;
+    color: var(--color-muted);
+}
+
+.dashboard-tenant-name {
+    margin: 0;
+    font-size: 1.4rem;
+    line-height: 1.2;
+}
+
+.dashboard-tenant-slug {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--color-muted);
+}
+
+.dashboard-tenant-stats {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.dashboard-tenant-stat {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.4rem 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: #f9fafb;
+    color: var(--color-muted);
+    font-size: 0.82rem;
+    font-weight: 600;
+}
+
 /* =========================================================
    15. Utilidades mínimas
    ========================================================= */
@@ -631,4 +767,40 @@ textarea.form-control {
 .breadcrumb-current {
     color: var(--color-text);
     font-weight: 600;
+}
+
+/* =========================================================
+   18. Badges de estado
+   Estados visuales para tareas y otros módulos
+   ========================================================= */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.status-badge--pending {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge--in-progress {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.status-badge--done {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-badge--cancelled {
+    background: #e5e7eb;
+    color: #4b5563;
 }

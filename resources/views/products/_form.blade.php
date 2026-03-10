@@ -38,13 +38,13 @@
 </div>
 
 <div class="mb-3">
-    <label class="form-label d-block">Activo</label>
+    <label class="form-label d-block">Estado</label>
 
     <div class="form-check">
         <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1"
             @checked(old('is_active', $product->is_active ?? true))>
         <label class="form-check-label" for="is_active">
-            Sí
+            Activo
         </label>
     </div>
 </div>

@@ -12,6 +12,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PartyController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\ProductController;
 
 use App\Models\Invitation;
 use App\Models\User;
@@ -181,4 +182,6 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::resource('parties', PartyController::class);
 
     Route::resource('tasks', TaskController::class);
+
+    Route::resource('products', ProductController::class);
 });

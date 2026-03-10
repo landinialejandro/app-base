@@ -1,4 +1,19 @@
 @csrf
+<div class="mb-3">
+    <label for="kind" class="form-label">Tipo</label>
+    <select
+        id="kind"
+        name="kind"
+        class="form-control @error('kind') is-invalid @enderror"
+        required
+    >
+        <option value="product" @selected(old('kind', $product->kind ?? 'product') === 'product')>Producto</option>
+        <option value="service" @selected(old('kind', $product->kind ?? 'product') === 'service')>Servicio</option>
+    </select>
+    @error('kind')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
 
 <div class="mb-3">
     <label for="name" class="form-label">Nombre</label>
@@ -24,6 +39,21 @@
         class="form-control @error('price') is-invalid @enderror"
         value="{{ old('price', isset($product) && $product->price !== null ? $product->price : '') }}">
     @error('price')
+        <div class="invalid-feedback">{{ $message }}</div>
+    @enderror
+</div>
+
+<div class="mb-3">
+    <label for="unit_label" class="form-label">Unidad</label>
+    <input
+        type="text"
+        id="unit_label"
+        name="unit_label"
+        class="form-control @error('unit_label') is-invalid @enderror"
+        value="{{ old('unit_label', $product->unit_label ?? 'unidad') }}"
+        required
+    >
+    @error('unit_label')
         <div class="invalid-feedback">{{ $message }}</div>
     @enderror
 </div>

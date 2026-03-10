@@ -36,6 +36,9 @@
                 <div class="detail-label">ID</div>
                 <div class="detail-value">{{ $product->id }}</div>
 
+                <div class="detail-label">Tipo</div>
+                <div class="detail-value">{{ $product->kind === 'service' ? 'Servicio' : 'Producto' }}</div>
+
                 <div class="detail-label">Nombre</div>
                 <div class="detail-value">{{ $product->name }}</div>
 
@@ -49,6 +52,9 @@
                 <div class="detail-value">
                     {{ $product->price !== null ? number_format((float) $product->price, 2, ',', '.') : '—' }}
                 </div>
+
+                <div class="detail-label">Unidad</div>
+                <div class="detail-value">{{ $product->unit_label ?? '—' }}</div>
 
                 <div class="detail-label">Activo</div>
                 <div class="detail-value">{{ $product->is_active ? 'Sí' : 'No' }}</div>

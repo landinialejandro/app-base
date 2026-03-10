@@ -28,28 +28,32 @@
                                 <th>Nombre</th>
                                 <th>SKU</th>
                                 <th>Precio</th>
+                                <th>Unidad</th>
+                                <th>Tipo</th>
                                 <th>Activo</th>
                                 <th>Creado</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($products as $product)
-                                <tr>
-                                    <td>{{ $product->id }}</td>
-                                    <td>
-                                        <a href="{{ route('products.show', $product) }}">
-                                            {{ $product->name }}
-                                        </a>
-                                    </td>
-                                    <td>{{ $product->sku ?? '—' }}</td>
-                                    <td>
-                                        {{ $product->price !== null
-                                            ? number_format((float) $product->price, 2, ',', '.')
-                                            : '—' }}
-                                    </td>
-                                    <td>{{ $product->is_active ? 'Sí' : 'No' }}</td>
-                                    <td>{{ $product->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
-                                </tr>
+                                        <tr>
+                                            <td>{{ $product->id }}</td>
+                                            <td>
+                                                <a href="{{ route('products.show', $product) }}">
+                                                    {{ $product->name }}
+                                                </a>
+                                            </td>
+                                            <td>{{ $product->sku ?? '—' }}</td>
+                                            <td>
+                                                {{ $product->price !== null
+                                ? number_format((float) $product->price, 2, ',', '.')
+                                : '—' }}
+                                            </td>
+                                            <td>{{ $product->unit_label ?? '—' }}</td>
+                                            <td>{{ $product->kind === 'service' ? 'Servicio' : 'Producto' }}</td>
+                                            <td>{{ $product->is_active ? 'Sí' : 'No' }}</td>
+                                            <td>{{ $product->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                                        </tr>
                             @endforeach
                         </tbody>
                     </table>

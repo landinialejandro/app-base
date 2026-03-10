@@ -21,6 +21,8 @@ class Product extends Model
         'sku',
         'description',
         'price',
+        'kind',
+        'unit_label',
         'is_active',
     ];
 

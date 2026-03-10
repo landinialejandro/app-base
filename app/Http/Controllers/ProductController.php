@@ -79,6 +79,8 @@ class ProductController extends Controller
             'sku' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'price' => ['nullable', 'numeric', 'min:0'],
+            'kind' => ['required', 'string', 'max:50'],
+            'unit_label' => ['required', 'string', 'max:50'],
             'is_active' => ['nullable', 'boolean'],
         ];
     }

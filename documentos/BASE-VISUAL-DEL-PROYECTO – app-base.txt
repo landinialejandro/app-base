@@ -1,196 +1,110 @@
-BASE VISUAL DEL PROYECTO – app-base
------------------------------------
-
 OBJETIVO
 
-Definir una base visual simple, consistente y escalable para la aplicación SaaS app-base.
-El objetivo es contar con una interfaz limpia, profesional y mantenible, sin introducir
-complejidad innecesaria en las primeras etapas del desarrollo.
-
-La base visual debe permitir:
-- consistencia entre módulos
-- facilidad para agregar nuevas pantallas
-- separación clara entre lógica y presentación
-- evolución futura sin reescrituras grandes.
-
-
-PRINCIPIOS DE DISEÑO
-
-1. Simplicidad primero
-La interfaz debe ser simple y funcional. Se prioriza claridad sobre estética avanzada.
-
-2. Consistencia
-Todos los módulos deben usar la misma estructura visual.
-
-3. Componentización mínima
-Se utilizan componentes Blade reutilizables cuando aportan claridad o evitan repetición.
-
-4. Evolución gradual
-La base visual debe poder evolucionar hacia un diseño más completo sin romper lo existente.
-
-
-ARQUITECTURA VISUAL ACTUAL
-
-La aplicación utiliza un layout principal basado en Blade.
-
-layouts/app.blade.php
-
-Este layout define:
-
-- barra superior de la aplicación
-- contenedor principal
-- área de contenido
-- carga del CSS global
-- navegación básica del sistema
-
+Definir una base visual simple y consistente para el sistema app-base que permita desarrollar módulos con una interfaz uniforme, clara y fácil de mantener.
 
 ESTRUCTURA GENERAL DE PÁGINA
 
-Las páginas internas siguen esta estructura:
+Todas las páginas internas del sistema deben seguir la siguiente estructura:
 
-<x-page>
-    <x-breadcrumb />
-    <x-page-header />
-    <x-card />
-</x-page>
+<x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
 
-Componentes utilizados:
+Esta estructura establece un patrón visual uniforme para todas las pantallas del sistema.
+
+COMPONENTES DISPONIBLES
+
+Componentes Blade reutilizables para la interfaz:
 
 x-page
 Contenedor principal de una pantalla.
 
 x-breadcrumb
-Navegación jerárquica dentro del sistema.
+Ruta de navegación dentro del sistema.
 
 x-page-header
-Encabezado de la página con título y acciones.
+Encabezado de la página con título y acciones principales.
 
 x-card
-Contenedor visual para contenido o secciones.
+Contenedor visual para contenido de la página.
 
+REGLAS DE LISTADOS
 
-COMPONENTES BLADE DISPONIBLES
+Las vistas de tipo listado (index) deben seguir el patrón estándar de listas.
 
-Actualmente existen los siguientes componentes visuales reutilizables:
+Estructura recomendada:
 
-x-page
-Define el layout base de una pantalla.
+<x-page class="list-page"> <x-breadcrumb /> <x-page-header /> <x-card class="list-card"> <div class="table-wrap list-scroll"> <table class="table">
 
-x-page-header
-Contiene el título de la pantalla y acciones (botones).
+Clases CSS obligatorias para listados:
 
-x-card
-Caja visual que contiene contenido.
+page.list-page
+card.list-card
+table-wrap.list-scroll
 
-x-breadcrumb
-Ruta de navegación de la página.
+Características del patrón de listas:
 
+la tabla se encuentra dentro de una card
 
-BARRA SUPERIOR DE LA APLICACIÓN
+el listado utiliza scroll interno
 
-El layout principal incluye una barra superior con:
+el encabezado de la tabla permanece visible
 
-- marca de la aplicación (app-base)
-- empresa actual
-- selector de empresa (cuando el usuario tiene más de una)
-- usuario autenticado
-- acceso para cerrar sesión
+el breadcrumb y el título permanecen visibles
 
-La empresa actual se muestra en el header global, evitando repetirla en cada vista.
+REGLAS DE FORMULARIOS
 
+Los formularios deben reutilizar parciales.
 
-PÁGINAS PÚBLICAS
+Estructura recomendada:
 
-Algunas páginas son consideradas públicas y no muestran el layout completo.
+_form.blade.php
 
-Ejemplos:
+Este archivo es utilizado por:
 
-- welcome
-- login
-- register
-- selección de empresa
+create.blade.php
+edit.blade.php
 
-Estas páginas utilizan la variable:
+Reglas generales:
 
-$publicPage = true
+reutilizar el mismo formulario para crear y editar
 
-Esto permite ocultar elementos de navegación interna.
+agrupar campos de forma clara
 
+ubicar botones dentro de un bloque de acciones
 
-DASHBOARD
+ESTADOS VACÍOS
 
-Se implementó un dashboard inicial con:
+Cuando un listado no tenga registros, el mensaje debe mostrarse dentro de la card del listado.
 
-- empresa actual
-- cantidad de proyectos
-- accesos rápidos a módulos principales
+TERMINOLOGÍA DE INTERFAZ
 
-El dashboard actúa como punto de entrada al sistema.
+La interfaz del sistema debe utilizar términos orientados al usuario.
 
-
-LISTADOS
-
-Los listados utilizan el siguiente patrón visual:
-
-- x-card
-- table-wrap
-- table
-
-Las tablas deben incluir encabezado y filas de datos.
-
-Los estados vacíos deben mostrarse dentro de la card.
-
-
-FORMULARIOS
-
-Los formularios siguen estas reglas:
-
-- campos agrupados con clases consistentes
-- botones en un bloque form-actions
-- formularios reutilizan archivos parciales (_form)
-
-Ejemplo:
-
-projects/_form
-parties/_form
-
-
-MÓDULOS ADAPTADOS A LA BASE VISUAL
-
-Actualmente los siguientes módulos ya utilizan la base visual:
-
-- projects
-- parties (contactos)
-
-Esto define el patrón que deben seguir los nuevos módulos.
-
-
-NOMENCLATURA DE INTERFAZ
-
-En la interfaz se utilizan los siguientes términos:
+Equivalencias:
 
 Tenant → Empresa
 Party → Contacto
 
-La terminología técnica puede mantenerse en el código, pero la interfaz debe usar
-los términos orientados al usuario.
+La nomenclatura técnica puede mantenerse en el código, pero la interfaz debe utilizar los términos funcionales.
 
+MÓDULOS QUE DEFINEN EL PATRÓN
 
-EVOLUCIÓN FUTURA
+Los siguientes módulos ya utilizan esta base visual:
 
-La base visual permite incorporar en el futuro:
+projects
+parties (contactos)
 
-- sidebar de navegación
-- mejoras en el dashboard
-- sistema de iconos
-- temas visuales
-- dark mode
-- mejoras de UX
+Los nuevos módulos deben seguir el mismo patrón visual.
 
+REGLA DE CONSISTENCIA
 
-CONCLUSIÓN
+Todos los módulos nuevos deben utilizar:
 
-La base visual actual define una estructura clara y consistente para el sistema.
+la misma estructura de página
 
-Los nuevos módulos deben seguir el mismo patrón implementado en projects y parties
-para mantener coherencia visual y facilitar el mantenimiento del sistema.
+los mismos componentes Blade
+
+el mismo patrón de listados
+
+las mismas reglas de formularios
+
+Esto garantiza coherencia visual en todo el sistema.

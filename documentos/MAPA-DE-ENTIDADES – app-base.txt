@@ -1,18 +1,13 @@
-Objetivo
-
-Este documento define el mapa general de entidades del proyecto app-base en su estado actual y su dirección de crecimiento.
+Este documento define el mapa conceptual de entidades del proyecto app-base.
 
 Su finalidad es:
 
-visualizar la estructura general del sistema
-distinguir entidades del sistema y entidades del negocio
+visualizar la estructura del sistema
 evitar duplicación de modelos
 orientar la creación de nuevos módulos
-mantener una visión coherente del crecimiento del ERP SaaS
+mantener coherencia en el crecimiento del SaaS
 
-Este documento no redefine la arquitectura multi-tenant, sino que organiza conceptualmente el dominio.
-
-1. Criterio general de modelado
+Criterio general de modelado
 
 El sistema distingue entre:
 
@@ -22,17 +17,15 @@ entidades operativas
 entidades documentales
 entidades futuras de soporte
 
-La regla general es:
+Reglas principales:
 
-users pertenece al sistema
-parties es la entidad base del negocio para personas y organizaciones
-en la interfaz y en el lenguaje funcional del sistema, parties se presentará como contactos
-los módulos operativos deben relacionarse preferentemente con parties cuando intervengan actores externos o internos del negocio
-antes de crear nuevas tablas base debe evaluarse si el caso corresponde a una variante de una entidad ya existente
+users es entidad del sistema
+parties es la entidad base del negocio
+antes de crear una entidad nueva evaluar si puede resolverse con una entidad existente
 
-2. Entidades del sistema
+Entidades del sistema
 
-Estas entidades forman el núcleo técnico y de acceso del SaaS.
+Estas entidades forman el núcleo técnico del SaaS.
 
 users
 
@@ -41,41 +34,38 @@ Representa usuarios con acceso al sistema.
 Responsabilidades:
 
 autenticación
-acceso
-permisos
-sesiones
-operación interna del sistema
+acceso al sistema
+gestión de sesión
 
 tenants
 
-Representa empresas o cuentas independientes dentro del SaaS.
+Representa empresas dentro del SaaS.
 
 Responsabilidades:
 
 aislamiento lógico de datos
-contexto de operación
-pertenencia empresarial
+contexto empresarial de operación
 
 memberships
 
-Vincula usuarios con tenants.
+Relaciona usuarios con empresas.
 
 Responsabilidades:
 
-pertenencia de un usuario a una o varias empresas
-eventual relación con roles/permisos dentro del tenant
+pertenencia de un usuario a uno o más tenants
+gestión futura de roles o permisos dentro del tenant
 
-3. Entidad base del negocio
-
-parties
-
-Entidad general para personas u organizaciones vinculadas a la operación de un tenant.
-
-Nombre técnico interno:
+Entidad base del negocio
 
 parties
 
-Nombre funcional e interfaz:
+Entidad general para personas u organizaciones relacionadas con el negocio.
+
+Nombre técnico:
+
+parties
+
+Nombre visible en interfaz:
 
 contactos
 
@@ -84,17 +74,12 @@ Ejemplos de uso:
 cliente
 proveedor
 empleado
-contacto
 contratista
 tercero
 
-Criterio actual:
+La diferenciación inicial se realiza mediante un campo de tipo.
 
-implementación simple y funcional
-diferenciación inicial mediante campo de tipo o clase
-evolución futura posible hacia perfiles especializados o múltiples roles
-
-Campos conceptuales esperables:
+Campos conceptuales esperados
 
 tenant_id
 kind
@@ -111,51 +96,25 @@ is_active
 timestamps
 soft deletes
 
-Criterio de interfaz:
+Entidades operativas
 
-en pantallas, menús y textos visibles al usuario se utilizará contacto o contactos
-el término party queda reservado al modelo técnico, tabla, rutas y convenciones internas
-
-4. Entidades operativas principales
-
-Estas entidades representan la operación diaria del negocio.
+Representan la operación diaria del negocio.
 
 projects
 
-Agrupa trabajos, servicios, iniciativas o procesos internos/comerciales.
+Agrupa trabajos o iniciativas.
 
 Relaciones principales:
 
-pertenece a tenant
-puede vincularse a contacts
-puede contener múltiples tasks
-puede vincular documentos en el futuro
+tenant → projects
+party → projects
+projects → tasks
 
 tasks
 
 Unidad operativa de trabajo.
 
-Representa actividades concretas que deben realizarse dentro del sistema.
-
-Las tareas pueden existir:
-
-dentro de un proyecto
-asociadas a un contacto
-asignadas a un usuario
-o de manera independiente
-
-Campos relevantes:
-
-tenant_id
-project_id nullable
-party_id nullable
-assigned_user_id nullable
-name
-description
-status
-due_date
-timestamps
-soft deletes
+Representa actividades concretas dentro del sistema.
 
 Relaciones principales:
 
@@ -164,147 +123,93 @@ project → tasks
 party → tasks
 user → tasks
 
-tasks constituye el núcleo operativo del sistema para la gestión del trabajo diario.
-
 products
 
-Representa productos, artículos, repuestos, insumos o ítems comercializables o utilizables.
+Representa productos, artículos o insumos.
 
-Relaciones probables:
+Relaciones posibles:
 
-pertenece a tenant
-puede participar en orders
-puede participar en documents
-puede vincularse a inventory
+tenant → products
+products → orders
+products → inventory
+products → documents
 
 orders
 
-Representa pedidos u órdenes comerciales u operativas.
+Representa pedidos u órdenes comerciales.
 
-Relaciones probables:
+Relaciones posibles:
 
-pertenece a tenant
-se vincula con un contacto
-puede tener múltiples productos
-puede derivar en documents
-puede relacionarse con payments
+tenant → orders
+orders → parties
+orders → products
+orders → documents
 
-5. Entidades documentales
-
-El sistema tenderá a una familia documental unificada.
+Entidades documentales
 
 documents
 
 Entidad genérica para documentos comerciales u operativos.
 
-Ejemplos de tipos:
+Ejemplos de documentos:
 
 factura
 remito
-proforma
-orden de trabajo
 presupuesto
+orden de trabajo
 nota de crédito
 recibo
-comprobante interno
 
-Criterio actual:
+Relaciones posibles:
 
-no profundizar todavía en exceso
-pensar la familia documental como una misma línea conceptual
-diferenciar inicialmente por document_type
-dejar para una segunda etapa la profundización de numeración, series, estados complejos y relaciones avanzadas
+tenant → documents
+documents → parties
+documents → products
+documents → projects
+documents → orders
 
-Relaciones probables:
-
-pertenece a tenant
-puede vincularse a contacts
-puede vincularse a orders
-puede vincularse a projects
-puede vincularse a products mediante detalle
-puede vincularse a payments
-
-6. Entidades financieras futuras
+Entidades financieras futuras
 
 payments
 
-Representa cobros, pagos o movimientos relacionados con documentos u órdenes.
+Representa pagos o cobros asociados a documentos.
 
-Relaciones probables:
+Relaciones posibles:
 
-pertenece a tenant
-puede vincularse a documents
-puede vincularse a contacts
-puede vincularse a orders
+tenant → payments
+payments → documents
+payments → parties
 
-7. Entidades de inventario futuras
+Entidades de inventario futuras
 
 inventory
 
-Representa stock o existencia de productos.
-
-Relaciones probables:
-
-pertenece a tenant
-se vincula con products
-puede vincular movimientos futuros
+Representa stock de productos.
 
 inventory_movements
 
-Entidad futura para entradas, salidas, ajustes o transferencias.
+Registra entradas, salidas o ajustes de stock.
 
-Relaciones probables:
-
-pertenece a tenant
-se vincula con inventory o products
-puede relacionarse con documents o orders
-
-8. Entidades futuras de soporte
-
-Estas no son prioridad en la etapa actual, pero forman parte del crecimiento natural del sistema.
+Entidades futuras de soporte
 
 addresses
-
-Para múltiples direcciones por entidad.
-
-contacts
-
-Reservado conceptualmente para múltiples medios de contacto o contactos secundarios.
-
-Nota importante:
-
-aunque la interfaz del sistema utilizará la palabra contactos para referirse a parties,
-no se creará una tabla contacts en esta etapa.
-
+attachments
+notes
+roles
+permissions
+branches
+document_sequences
 party_profiles
 
-Para especializaciones futuras por tipo de party.
+Nota importante
 
-document_sequences
+Aunque la interfaz utiliza el término contactos, no se creará una tabla contacts.
 
-Para numeración por tipo documental, sucursal o tenant.
+La entidad real continúa siendo:
 
-branches
+parties
 
-Sucursales o sedes del tenant.
-
-roles
-
-Roles internos de acceso o de negocio.
-
-permissions
-
-Permisos del sistema.
-
-attachments
-
-Archivos adjuntos relacionados con contacts, projects, tasks o documents.
-
-notes
-
-Notas internas vinculables a distintas entidades.
-
-9. Relación conceptual general del sistema
+Relación conceptual general del sistema
 
 Núcleo SaaS
 
@@ -318,25 +223,23 @@ Dominio de negocio
 
 tenants
 ↓
-parties
-↓
-contactos
+parties (contactos)
 ↓
 projects
 ↓
 tasks
 
-Dominio de productos
+Dominio comercial
 
 tenants
 ↓
 products
 ↓
-inventory / orders / documents
+orders
+↓
+documents
 
-10. Orden conceptual recomendado de implementación
-
-Orden sugerido de crecimiento:
+Orden recomendado de implementación
 
 parties
 tasks
@@ -346,19 +249,18 @@ documents
 payments
 inventory
 
-11. Regla de racionalización
+Regla de racionalización
 
-Antes de crear una nueva entidad base debe evaluarse:
+Antes de crear una nueva entidad base evaluar:
 
 si pertenece al sistema o al negocio
-si puede resolverse dentro de parties
-si puede resolverse dentro de documents
-si es una verdadera entidad nueva o una especialización futura
-si conviene implementarla ahora o dejarla como TODO
+si puede resolverse con parties
+si puede resolverse con documents
+si es realmente necesaria ahora
 
-12. Estado actual del mapa
+Estado actual del sistema
 
-Ya existentes
+Entidades ya implementadas:
 
 users
 tenants
@@ -367,37 +269,12 @@ parties
 projects
 tasks
 
-Nombre funcional visible al usuario
+Regla final
 
-contactos
-
-Transitorio retirado
-
-clients
-
-Próximas recomendadas
-
-products
-orders
-documents
-
-Futuras
-
-payments
-inventory
-attachments
-notes
-addresses
-perfiles especializados
-
-13. Regla final
-
-El crecimiento del sistema debe seguir una lógica de:
+El crecimiento del sistema debe seguir estos principios:
 
 núcleo estable
 entidades reutilizables
 especialización progresiva
 mínima duplicación
-evolución por capas
-
-La prioridad actual es construir una base operativa y adaptable, evitando profundizaciones innecesarias en esta etapa.
+evolución gradual del dominio.

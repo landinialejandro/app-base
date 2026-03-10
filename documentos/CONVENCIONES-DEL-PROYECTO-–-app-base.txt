@@ -1,89 +1,77 @@
-CONVENCIONES DEL PROYECTO – app-base
-------------------------------------
+Objetivo
 
-Este documento define las convenciones de desarrollo que deben seguirse
-en el proyecto app-base para mantener consistencia, claridad y facilidad
-de mantenimiento del sistema.
+Definir las convenciones técnicas y de desarrollo que deben seguir todos los módulos del proyecto app-base.
 
+Estas reglas permiten mantener consistencia, previsibilidad y facilidad de mantenimiento del sistema.
 
-OBJETIVO
+Arquitectura base
 
-Establecer reglas claras sobre:
+El sistema utiliza la arquitectura estándar de Laravel basada en:
 
-- organización del código
-- nomenclatura
-- estructura de módulos
-- diseño de vistas
-- convenciones de interfaz
+Modelos Eloquent
+Controladores
+Vistas Blade
+Migraciones
+Middleware
+Rutas REST
 
-Estas convenciones deben aplicarse a todos los módulos nuevos del sistema.
+Multi-tenancy
 
+El sistema es SaaS multi-tenant.
 
-ARQUITECTURA GENERAL
-
-El sistema está construido con Laravel y utiliza una arquitectura basada en:
-
-- controladores
-- modelos Eloquent
-- vistas Blade
-- middleware
-- migraciones
-
-Cada módulo debe seguir la estructura estándar de Laravel.
-
-
-MULTI-TENANT
-
-El sistema utiliza un modelo multi-tenant basado en empresa.
-
-Entidad central:
-
-Tenant
-
-Cada registro de datos debe pertenecer a un tenant.
-
-
-RESOLUCIÓN DE TENANT
-
-El tenant actual se resuelve mediante:
-
-Middleware:
-ResolveTenant
-
-El tenant puede obtenerse desde:
-
-1. sesión del usuario
-2. header X-Tenant (modo API/debug)
-
-
-ACCESO AL TENANT ACTUAL
-
-Dentro de la aplicación el tenant actual puede obtenerse mediante:
-
-app('tenant')
-
-Los controladores deben utilizar siempre este tenant para filtrar datos.
-
-
-CONVENCIONES DE BASE DE DATOS
-
-Cada tabla relacionada a datos de negocio debe incluir:
+El aislamiento de datos se realiza mediante la columna:
 
 tenant_id
 
-Ejemplo:
+Todas las entidades del negocio deben pertenecer a un tenant.
 
-projects
-parties
-tasks
-documents
+Acceso al tenant actual
 
+El tenant activo puede obtenerse mediante:
 
-CONVENCIONES DE CONTROLADORES
+app('tenant')
+
+Los controladores deben utilizar siempre este tenant como contexto de operación.
+
+Trait obligatorio en modelos empresariales
+
+Los modelos del negocio deben utilizar:
+
+TenantScoped
+ResolvesTenantRouteBinding
+SoftDeletes
+
+Objetivos:
+
+TenantScoped
+aplica automáticamente el filtro por tenant.
+
+ResolvesTenantRouteBinding
+protege el acceso por URL.
+
+SoftDeletes
+permite eliminación lógica.
+
+Convenciones de base de datos
+
+Todas las tablas del negocio deben incluir:
+
+tenant_id
+timestamps
+softDeletes
+
+Ejemplo conceptual mínimo:
+
+tenant_id
+name
+timestamps
+softDeletes
+
+Convenciones de controladores
 
 Los controladores deben seguir el patrón REST estándar de Laravel.
 
-Ejemplo:
+Métodos esperados:
 
 index
 create
@@ -93,23 +81,7 @@ edit
 update
 destroy
 
-Los controladores deben ser responsables de:
-
-- obtener datos
-- aplicar filtros por tenant
-- enviar datos a las vistas
-
-
-CONVENCIONES DE MODELOS
-
-Los modelos deben utilizar:
-
-- Eloquent
-- relaciones explícitas
-- fillable o guarded correctamente definidos
-
-
-CONVENCIONES DE RUTAS
+Convenciones de rutas
 
 Las rutas deben definirse en:
 
@@ -121,119 +93,100 @@ Ejemplo:
 
 Route::resource('projects', ProjectController::class);
 
+Las rutas deben ejecutarse dentro de los middlewares:
 
-CONVENCIONES DE VISTAS
+auth
+tenant
 
-Las vistas deben utilizar Blade.
+Convenciones de modelos
 
-Cada módulo debe tener su carpeta:
+Los modelos deben:
+
+usar Eloquent
+definir relaciones explícitas
+definir fillable o guarded correctamente
+utilizar los traits de multi-tenancy
+
+Convenciones de vistas
+
+Cada módulo debe tener su carpeta de vistas:
+
+resources/views/nombre_modulo
+
+Ejemplos:
 
 resources/views/projects
 resources/views/parties
-etc.
+resources/views/tasks
 
+Estructura visual de páginas
 
-BASE VISUAL
+Todas las páginas internas deben seguir esta estructura:
 
-El sistema utiliza un layout principal:
+<x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
 
-layouts/app.blade.php
-
-Las páginas internas deben seguir la siguiente estructura:
-
-<x-page>
-    <x-breadcrumb />
-    <x-page-header />
-    <x-card />
-</x-page>
-
-
-COMPONENTES BLADE
-
-Componentes visuales disponibles:
+Componentes Blade disponibles
 
 x-page
-Contenedor base de página.
+Contenedor principal de página.
 
 x-breadcrumb
 Ruta de navegación.
 
 x-page-header
-Encabezado de página con título y acciones.
+Título de página y acciones.
 
 x-card
 Contenedor visual de contenido.
 
+Convención de listados
 
-LISTADOS
+Las vistas index deben utilizar el patrón de lista del sistema.
 
-Los listados deben utilizar:
+Estructura visual:
 
-- x-card
-- table-wrap
-- table
+page.list-page
+card.list-card
+table-wrap.list-scroll
 
-Las tablas deben incluir encabezados y filas de datos.
+Esto garantiza:
 
-Los estados vacíos deben mostrarse dentro de la card.
+scroll interno en tablas
+encabezado visible
+layout estable
 
+Convención de formularios
 
-FORMULARIOS
+Los formularios deben:
 
-Los formularios deben seguir estas reglas:
+utilizar parciales _form
+agrupar campos de forma consistente
+mostrar errores de validación cerca del campo
+ubicar botones dentro de form-actions
 
-- reutilizar parciales (_form)
-- botones dentro de form-actions
-- validaciones mostradas cerca del campo
+Terminología de interfaz
 
-Ejemplo:
+La interfaz debe utilizar términos orientados al usuario.
 
-projects/_form
-parties/_form
-
-
-TERMINOLOGÍA DE INTERFAZ
-
-La interfaz del sistema debe utilizar términos orientados al usuario.
-
-Ejemplos:
+Equivalencias:
 
 Tenant → Empresa
 Party → Contacto
 
-En el código se puede mantener la nomenclatura técnica,
-pero en la interfaz se deben usar los términos amigables.
+La nomenclatura técnica puede mantenerse en el código.
 
+Selector de empresa
 
-EMPRESA ACTUAL
+Un usuario puede pertenecer a múltiples empresas.
 
-La empresa actual se muestra en el header global de la aplicación.
+Reglas:
 
-Por lo tanto no es necesario repetir la empresa dentro de cada vista.
+si tiene una sola empresa se accede directamente
+si tiene varias puede cambiar mediante selector en el header
 
+Páginas públicas
 
-USUARIOS Y EMPRESAS
-
-Reglas del sistema:
-
-- un usuario debe pertenecer al menos a una empresa
-- un usuario puede pertenecer a múltiples empresas
-- si un usuario tiene una sola empresa, no debe pasar por el selector
-- si tiene varias, puede cambiar entre ellas desde la interfaz
-
-
-CAMBIO DE EMPRESA
-
-El cambio de empresa se realiza mediante:
-
-selector en el header de la aplicación.
-
-Esto evita obligar al usuario a cerrar sesión.
-
-
-PÁGINAS PÚBLICAS
-
-Algunas páginas son públicas y no utilizan el layout completo.
+Algunas páginas no utilizan el layout completo.
 
 Ejemplos:
 
@@ -246,38 +199,24 @@ Estas páginas utilizan:
 
 $publicPage = true
 
+Principios generales
 
-CREACIÓN DE NUEVOS MÓDULOS
-
-Al crear un módulo nuevo se debe:
-
-1. crear modelo
-2. crear migración
-3. crear controlador resource
-4. registrar rutas
-5. crear vistas siguiendo la base visual
-6. filtrar datos por tenant
-
-
-PRINCIPIOS GENERALES
-
-1. Simplicidad
+Simplicidad
 Evitar complejidad innecesaria.
 
-2. Consistencia
-Seguir siempre las convenciones del sistema.
+Consistencia
+Seguir siempre las convenciones definidas.
 
-3. Escalabilidad
-Las decisiones deben permitir crecimiento futuro.
+Escalabilidad
+Permitir evolución futura del sistema.
 
-4. Claridad
-El código debe ser fácil de entender.
+Claridad
+El código debe ser fácil de entender y mantener.
 
+Regla de decisiones arquitectónicas
 
-CONCLUSIÓN
+Si durante el desarrollo aparece una decisión que afectará a todo el sistema:
 
-Estas convenciones permiten mantener el sistema ordenado,
-predecible y fácil de mantener.
+no improvisar.
 
-Todos los módulos nuevos deben seguir estas reglas para
-garantizar coherencia en todo el proyecto.
+Registrar la decisión en este documento antes de continuar.

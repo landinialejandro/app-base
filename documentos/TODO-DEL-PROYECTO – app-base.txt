@@ -1,196 +1,106 @@
-BASE VISUAL DEL PROYECTO – app-base
------------------------------------
+Objetivo
 
-OBJETIVO
+Este documento funciona como memoria operativa del proyecto.
 
-Definir una base visual simple, consistente y escalable para la aplicación SaaS app-base.
-El objetivo es contar con una interfaz limpia, profesional y mantenible, sin introducir
-complejidad innecesaria en las primeras etapas del desarrollo.
+Su finalidad es registrar:
 
-La base visual debe permitir:
-- consistencia entre módulos
-- facilidad para agregar nuevas pantallas
-- separación clara entre lógica y presentación
-- evolución futura sin reescrituras grandes.
+módulos pendientes
+mejoras futuras
+refactors necesarios
 
+No debe contener documentación extensa.
+Solo registrar elementos pendientes del sistema.
 
-PRINCIPIOS DE DISEÑO
+ESTADO ACTUAL DEL SISTEMA
 
-1. Simplicidad primero
-La interfaz debe ser simple y funcional. Se prioriza claridad sobre estética avanzada.
+Arquitectura SaaS multi-tenant implementada.
 
-2. Consistencia
-Todos los módulos deben usar la misma estructura visual.
+Características validadas:
 
-3. Componentización mínima
-Se utilizan componentes Blade reutilizables cuando aportan claridad o evitan repetición.
+multi-tenancy por tenant_id
+aislamiento automático mediante TenantScoped
+protección de rutas mediante ResolvesTenantRouteBinding
+soft delete obligatorio
 
-4. Evolución gradual
-La base visual debe poder evolucionar hacia un diseño más completo sin romper lo existente.
+Módulos implementados:
 
+projects
+parties (contactos)
 
-ARQUITECTURA VISUAL ACTUAL
+Base visual implementada.
 
-La aplicación utiliza un layout principal basado en Blade.
+Dashboard inicial disponible.
 
-layouts/app.blade.php
+MÓDULOS PENDIENTES
 
-Este layout define:
+tasks
+products
+orders
+documents
 
-- barra superior de la aplicación
-- contenedor principal
-- área de contenido
-- carga del CSS global
-- navegación básica del sistema
+Posibles módulos futuros:
 
+activities
+notes
+attachments
+tags
 
-ESTRUCTURA GENERAL DE PÁGINA
+MEJORAS FUTURAS
 
-Las páginas internas siguen esta estructura:
+Relación opcional entre users y parties.
 
-<x-page>
-    <x-breadcrumb />
-    <x-page-header />
-    <x-card />
-</x-page>
+Sistema de roles múltiples para parties.
 
-Componentes utilizados:
+Perfiles especializados para parties.
 
-x-page
-Contenedor principal de una pantalla.
+Sistema de documentos comerciales.
 
-x-breadcrumb
-Navegación jerárquica dentro del sistema.
+Sistema de atributos dinámicos para entidades.
 
-x-page-header
-Encabezado de la página con título y acciones.
+MEJORAS DE INTERFAZ
 
-x-card
-Contenedor visual para contenido o secciones.
+Aplicar el patrón de listas a todos los módulos.
 
+Evaluar ocultar IDs internos en listados.
 
-COMPONENTES BLADE DISPONIBLES
+Agregar badges de estado en módulos con estados.
 
-Actualmente existen los siguientes componentes visuales reutilizables:
+Evaluar paginación para listados grandes.
 
-x-page
-Define el layout base de una pantalla.
+Mejorar dashboard con métricas básicas.
 
-x-page-header
-Contiene el título de la pantalla y acciones (botones).
+Posible incorporación futura de sidebar.
 
-x-card
-Caja visual que contiene contenido.
+MEJORAS DE ARQUITECTURA
 
-x-breadcrumb
-Ruta de navegación de la página.
+Sistema de permisos más avanzado.
 
+Sistema de auditoría de cambios.
 
-BARRA SUPERIOR DE LA APLICACIÓN
+Sistema de archivos y adjuntos.
 
-El layout principal incluye una barra superior con:
+Sistema de eventos o actividad de usuario.
 
-- marca de la aplicación (app-base)
-- empresa actual
-- selector de empresa (cuando el usuario tiene más de una)
-- usuario autenticado
-- acceso para cerrar sesión
+REFACTORS
 
-La empresa actual se muestra en el header global, evitando repetirla en cada vista.
+Revisar evolución del módulo clients hacia parties.
 
+Evaluar estructura futura de documentos.
 
-PÁGINAS PÚBLICAS
+Revisar consistencia de nomenclatura en módulos futuros.
 
-Algunas páginas son consideradas públicas y no muestran el layout completo.
+Mantener simplificación del modelo mientras el sistema evoluciona.
 
-Ejemplos:
+REGLA DEL DOCUMENTO
 
-- welcome
-- login
-- register
-- selección de empresa
+Este documento debe mantenerse corto.
 
-Estas páginas utilizan la variable:
+Solo registrar:
 
-$publicPage = true
+pendientes
+ideas futuras
+refactors necesarios
 
-Esto permite ocultar elementos de navegación interna.
+Las decisiones estructurales deben registrarse en:
 
-
-DASHBOARD
-
-Se implementó un dashboard inicial con:
-
-- empresa actual
-- cantidad de proyectos
-- accesos rápidos a módulos principales
-
-El dashboard actúa como punto de entrada al sistema.
-
-
-LISTADOS
-
-Los listados utilizan el siguiente patrón visual:
-
-- x-card
-- table-wrap
-- table
-
-Las tablas deben incluir encabezado y filas de datos.
-
-Los estados vacíos deben mostrarse dentro de la card.
-
-
-FORMULARIOS
-
-Los formularios siguen estas reglas:
-
-- campos agrupados con clases consistentes
-- botones en un bloque form-actions
-- formularios reutilizan archivos parciales (_form)
-
-Ejemplo:
-
-projects/_form
-parties/_form
-
-
-MÓDULOS ADAPTADOS A LA BASE VISUAL
-
-Actualmente los siguientes módulos ya utilizan la base visual:
-
-- projects
-- parties (contactos)
-
-Esto define el patrón que deben seguir los nuevos módulos.
-
-
-NOMENCLATURA DE INTERFAZ
-
-En la interfaz se utilizan los siguientes términos:
-
-Tenant → Empresa
-Party → Contacto
-
-La terminología técnica puede mantenerse en el código, pero la interfaz debe usar
-los términos orientados al usuario.
-
-
-EVOLUCIÓN FUTURA
-
-La base visual permite incorporar en el futuro:
-
-- sidebar de navegación
-- mejoras en el dashboard
-- sistema de iconos
-- temas visuales
-- dark mode
-- mejoras de UX
-
-
-CONCLUSIÓN
-
-La base visual actual define una estructura clara y consistente para el sistema.
-
-Los nuevos módulos deben seguir el mismo patrón implementado en projects y parties
-para mantener coherencia visual y facilitar el mantenimiento del sistema.
+CONVENCIONES-DEL-PROYECTO.

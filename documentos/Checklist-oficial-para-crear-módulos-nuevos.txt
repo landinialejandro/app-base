@@ -1,39 +1,46 @@
 Objetivo
 
-Este checklist define el procedimiento estándar para crear un nuevo módulo dentro del proyecto app-base.
+Este checklist define el procedimiento estándar para crear nuevos módulos dentro del proyecto app-base.
 
 Su finalidad es:
 
 mantener consistencia entre módulos
-evitar errores estructurales
 garantizar compatibilidad multi-tenant
-acelerar desarrollo
+evitar errores estructurales
+acelerar el desarrollo
+mantener coherencia en todo el sistema
 
 Este checklist aplica a todos los módulos CRUD del sistema.
 
-1. Evaluación inicial (ANTES de crear el módulo)
+Evaluación de la entidad (ANTES de crear el módulo)
 
-Antes de crear una entidad nueva verificar:
+Antes de crear una nueva entidad verificar:
 
-si puede resolverse con Party (Contactos)
-si puede resolverse con Documents
-si es una verdadera entidad nueva
+si el caso puede resolverse con la entidad parties
 
-Si no es imprescindible ahora:
+si corresponde a una extensión de contacts en la interfaz
 
-registrarlo en TODO-DEL-PROYECTO.
+si realmente es una entidad nueva del sistema
 
-2. Crear migración
+Recordar:
 
-Crear la migración.
+parties es la entidad base del negocio.
+
+Si la entidad no es necesaria en esta etapa:
+
+registrarla en TODO-DEL-PROYECTO.
+
+Crear migración
+
+Crear la migración correspondiente.
 
 Ejemplo:
 
 php artisan make:migration create_products_table
 
-Reglas de migración
+Reglas obligatorias para entidades del negocio:
 
-Toda entidad del negocio debe tener:
+toda tabla debe incluir:
 
 tenant_id
 timestamps
@@ -46,19 +53,16 @@ $table->string('name');
 $table->timestamps();
 $table->softDeletes();
 
-Índices recomendados
+Índices recomendados:
 
-Siempre indexar:
-
-tenant_id
-
-y campos de búsqueda relevantes.
+siempre indexar tenant_id
+indexar campos utilizados en búsquedas
 
 Ejemplo:
 
 $table->index(['tenant_id','name']);
 
-3. Crear modelo
+Crear modelo
 
 Crear modelo:
 
@@ -66,12 +70,12 @@ php artisan make:model Product
 
 El modelo debe incluir:
 
-use HasFactory;
-use TenantScoped;
-use SoftDeletes;
-use ResolvesTenantRouteBinding;
+HasFactory
+TenantScoped
+SoftDeletes
+ResolvesTenantRouteBinding
 
-Ejemplo:
+Ejemplo de traits utilizados:
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Concerns\TenantScoped;
@@ -80,14 +84,12 @@ use Illuminate\Database\Eloquent\SoftDeletes;
 
 Motivación:
 
-HasFactory permite generar datos de prueba mediante factories
-TenantScoped garantiza aislamiento automático multi-tenant
+HasFactory permite generar datos de prueba
+TenantScoped garantiza aislamiento multi-tenant
 SoftDeletes permite eliminación lógica
-ResolvesTenantRouteBinding asegura resolución segura de rutas
+ResolvesTenantRouteBinding protege el acceso por URL
 
-fillable
-
-Definir los campos editables.
+Definir fillable.
 
 Ejemplo:
 
@@ -97,15 +99,15 @@ protected $fillable = [
 'description',
 ];
 
-4. Crear controller
+Crear controller
 
-Crear controller tipo resource:
+Crear controller tipo resource.
+
+Ejemplo:
 
 php artisan make:controller ProductController
 
-Métodos mínimos
-
-El controller debe incluir:
+El controller debe implementar:
 
 index
 create
@@ -115,17 +117,15 @@ edit
 update
 destroy
 
-Regla de tenant
+Regla de tenant:
 
-Siempre obtener el tenant:
+cuando sea necesario obtener el tenant actual:
 
 $tenant = app('tenant');
 
-y pasarlo a la vista cuando sea necesario.
+Definir rutas
 
-5. Definir rutas
-
-Agregar en:
+Registrar rutas en:
 
 routes/web.php
 
@@ -133,20 +133,18 @@ Ejemplo:
 
 Route::resource('products', ProductController::class);
 
-Las rutas deben quedar dentro del grupo:
+Las rutas deben quedar dentro del grupo protegido por:
 
 auth
 tenant
 
-6. Crear vistas
+Crear vistas
 
-Crear carpeta:
+Crear carpeta del módulo:
 
 resources/views/products
 
-Vistas mínimas
-
-Crear:
+Vistas mínimas:
 
 index.blade.php
 create.blade.php
@@ -154,49 +152,51 @@ edit.blade.php
 show.blade.php
 _form.blade.php
 
-7. Convención de listados (index)
+Convención de listados (index)
 
-Los listados deben seguir el patrón usado en projects.
+Los listados deben seguir el patrón visual del sistema.
 
-Reglas:
+Estructura:
 
-no usar columna de acciones
-el nombre enlaza al detalle
-crear botón "Nuevo"
+page.list-page
+card.list-card
+table-wrap.list-scroll
 
-Ejemplo:
+Reglas del listado:
 
-Nombre → link a show
+el nombre enlaza a la vista show
+incluir botón "Nuevo"
+mostrar estados vacíos dentro de la card
 
-8. Convención de show
+Convención de show
 
 La vista de detalle debe incluir:
 
-Editar
-Eliminar
-Volver al listado
-Detalle de campos
+editar
+eliminar
+volver al listado
+detalle de campos
 
-El botón eliminar debe usar:
+El botón eliminar debe utilizar:
 
 POST + method DELETE
 
-con confirmación.
+y confirmación de usuario.
 
-9. Convención de formularios
+Convención de formularios
 
-Usar archivo compartido:
+Los formularios deben reutilizar:
 
 _form.blade.php
 
-utilizado por:
+Este archivo debe ser utilizado por:
 
 create
 edit
 
-10. Validación
+Validación
 
-Validar en el controller inicialmente.
+La validación se realiza inicialmente en el controller.
 
 Ejemplo:
 
@@ -204,71 +204,67 @@ $request->validate([
 'name' => ['required','string','max:255'],
 ]);
 
-Si el módulo crece, migrar a FormRequest.
+Si el módulo crece se puede migrar a FormRequest.
 
-11. Mensajes de éxito
+Mensajes de éxito
 
-Usar mensajes simples.
+Usar mensajes simples y consistentes.
 
-Ejemplo:
+Ejemplos:
 
 Entidad creada correctamente
 Entidad actualizada correctamente
 Entidad eliminada correctamente
 
-Ejemplo:
+Prueba funcional mínima
 
-->with('success', 'Producto creado correctamente');
+Verificar funcionamiento del módulo:
 
-12. Prueba mínima del módulo
+listado
+creación
+edición
+eliminación
 
-Verificar:
-
-✔ listado
-✔ creación
-✔ edición
-✔ eliminación
-✔ aislamiento por tenant
-
-13. Verificar aislamiento multi-tenant
+Verificación de aislamiento multi-tenant
 
 Confirmar que:
 
 un tenant no puede ver datos de otro tenant.
 
-Esto debe resolverse automáticamente por:
+Este comportamiento es gestionado por:
 
 TenantScoped
 
-pero siempre debe verificarse.
+pero debe verificarse manualmente.
 
-14. Datos de prueba
+Datos de prueba
 
-Cuando un módulo nuevo es relevante para el funcionamiento del sistema:
+Si el módulo es relevante para el sistema:
 
-crear factory correspondiente
+crear factory.
+
+Ejemplo:
 
 php artisan make:factory ProductFactory
 
-y agregar datos al DemoSeeder para facilitar pruebas.
+Agregar datos al DemoSeeder.
 
-Esto permite reconstruir el entorno de desarrollo mediante:
+Esto permite reconstruir el entorno con:
 
 php artisan migrate:fresh --seed
 
-15. Actualizar documentos del proyecto
+Actualizar documentos del proyecto
 
-Si el módulo es nuevo, actualizar:
+Si se crea un módulo nuevo actualizar:
 
 MAPA-DE-ENTIDADES
 TODO-DEL-PROYECTO
 
-16. Regla de simplicidad
+Regla de simplicidad
 
 Antes de agregar:
 
-roles
-estados complejos
+roles complejos
 subtablas
 polimorfismos
 arquitecturas complejas
@@ -279,36 +275,37 @@ preguntarse:
 
 Si no lo es:
 
-registrarlo en TODO y seguir con el sistema funcional.
+registrarlo en TODO-DEL-PROYECTO.
 
-17. Regla de coherencia
+Regla de coherencia
 
-Cada módulo nuevo debe parecer parte del mismo sistema.
+Cada módulo nuevo debe seguir el mismo patrón que:
 
-Debe respetar:
+projects
+parties
+
+Esto garantiza coherencia en:
 
 estructura
 rutas
 vistas
-convenciones
 flujo de trabajo
 
-18. Flujo resumido para crear módulo
-
-Flujo recomendado:
+Flujo resumido para crear módulo
 
 evaluar entidad
 crear migración
 crear modelo
 crear controller
-crear rutas
+definir rutas
 crear vistas
 validar funcionamiento
+probar aislamiento tenant
 actualizar documentos
 
 Regla final
 
-Si al implementar un módulo aparece una decisión que afectará a todo el sistema:
+Si una decisión afecta a toda la arquitectura del sistema:
 
 no improvisar.
 

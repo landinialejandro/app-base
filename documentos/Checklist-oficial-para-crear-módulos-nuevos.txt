@@ -2,17 +2,15 @@ CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS – app-base
 
 OBJETIVO
 
-Este documento define el procedimiento estándar para crear nuevos módulos dentro del proyecto app-base.
+Este documento define el procedimiento obligatorio para crear nuevos módulos dentro del sistema app-base.
 
 Su finalidad es:
 
 mantener consistencia entre módulos
-garantizar compatibilidad multi-tenant
+garantizar compatibilidad con la arquitectura multi-tenant
 evitar errores estructurales
-acelerar el desarrollo
-mantener coherencia en todo el sistema
-
-Este checklist aplica a todos los módulos CRUD del sistema.
+facilitar el mantenimiento del sistema
+asegurar coherencia en el crecimiento del proyecto
 
 EVALUACIÓN DE LA ENTIDAD (ANTES DE CREAR EL MÓDULO)
 
@@ -30,6 +28,20 @@ Si la entidad no es necesaria en esta etapa:
 
 registrarla en TODO-DEL-PROYECTO.
 
+VERIFICAR PATRÓN REAL ANTES DE CREAR LA MIGRACIÓN
+
+Antes de crear una nueva migración revisar migraciones existentes del proyecto.
+
+Verificar específicamente:
+
+tipo real utilizado para tenant_id
+si las foreign keys se definen mediante foreignId() o manualmente
+si existe un patrón de definición ya validado en módulos existentes
+
+Regla:
+
+no asumir tipos por convención de Laravel si el proyecto ya utiliza otro patrón validado.
+
 CREAR MIGRACIÓN
 
 Crear la migración correspondiente.
@@ -40,18 +52,18 @@ php artisan make:migration create_products_table
 
 Reglas obligatorias para entidades del negocio:
 
-toda tabla debe incluir:
+todas las tablas deben incluir:
 
 tenant_id
 timestamps
 softDeletes
 
-Ejemplo mínimo:
+Ejemplo conceptual mínimo:
 
-$table->uuid('tenant_id')->index();
-$table->string('name');
-$table->timestamps();
-$table->softDeletes();
+tenant_id
+name
+timestamps
+softDeletes
 
 CREAR MODELO
 
@@ -59,21 +71,15 @@ Crear modelo:
 
 php artisan make:model Product
 
-El modelo debe incluir los traits:
+El modelo debe incluir los traits obligatorios del proyecto:
 
 TenantScoped
 ResolvesTenantRouteBinding
 SoftDeletes
 
-Ejemplo:
-
-use App\Models\Concerns\TenantScoped;
-use App\Models\Concerns\ResolvesTenantRouteBinding;
-use Illuminate\Database\Eloquent\SoftDeletes;
-
 DEFINIR CAMPOS FILLABLE
 
-Definir los campos permitidos.
+Definir los campos permitidos para asignación masiva.
 
 Ejemplo:
 
@@ -144,9 +150,9 @@ table-wrap.list-scroll
 
 Esto garantiza:
 
-scroll interno
+scroll interno en tablas
 layout estable
-coherencia visual
+consistencia visual entre módulos
 
 FORMULARIOS
 
@@ -169,14 +175,41 @@ $request->validate([
 'name' => ['required','string','max:255']
 ]);
 
-PRUEBAS FUNCIONALES MÍNIMAS
+REGLA PARA MÓDULOS CON CABECERA + DETALLE
 
-Verificar funcionamiento del módulo:
+Si el módulo tiene estructura cabecera/detalle (por ejemplo orders o documents):
+
+implementar primero la entidad cabecera
+luego implementar el manejo de ítems mediante rutas anidadas
+
+Ejemplo conceptual:
+
+orders
+orders/{order}/items
+
+Reglas:
+
+no mezclar, salvo necesidad justificada, la creación de cabecera e ítems en un único store()
+el flujo debe permitir crear cabecera primero y luego gestionar los ítems
+
+PRUEBAS FUNCIONALES
+
+Verificar funcionamiento básico del módulo:
 
 crear
 editar
 eliminar
 listar
+
+PRUEBAS FUNCIONALES AVANZADAS
+
+Verificar adicionalmente:
+
+verificar relaciones hijas
+verificar eliminación cuando existen registros hijos
+verificar route model binding multi-tenant
+verificar sublistados internos si el módulo tiene detalle
+verificar acciones compactas en tablas si existen registros relacionados
 
 VERIFICACIÓN MULTI-TENANT
 
@@ -184,14 +217,14 @@ Confirmar que:
 
 un tenant no puede acceder a datos de otro tenant.
 
-Este comportamiento es gestionado por:
+Esto debe estar garantizado mediante:
 
 TenantScoped
 ResolvesTenantRouteBinding
 
 DATOS DE PRUEBA (OPCIONAL)
 
-Si el módulo es relevante:
+Si el módulo es relevante para el sistema:
 
 crear factory.
 
@@ -203,24 +236,26 @@ y agregar datos al DemoSeeder.
 
 ACTUALIZAR DOCUMENTACIÓN DEL PROYECTO
 
-Si se crea una entidad nueva actualizar:
+Si se crea una nueva entidad actualizar:
 
 MAPA-DE-ENTIDADES
 TODO-DEL-PROYECTO
 
 REGLA DE COHERENCIA
 
-Todo módulo nuevo debe seguir el mismo patrón que:
+Todo módulo nuevo debe seguir el mismo patrón utilizado en:
 
 projects
 parties
 
 REGLA FINAL
 
-Si una decisión afecta a toda la arquitectura:
+Si durante el desarrollo aparece una decisión que afectará a toda la arquitectura del sistema:
 
 no improvisar.
 
 Registrar la decisión en:
 
-CONVENCIONES-DEL-PROYECTO.
+CONVENCIONES-DEL-PROYECTO
+
+antes de continuar el desarrollo.

@@ -115,3 +115,42 @@ CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS
 OBJETIVO DE ESTE CHAT
 
 [describir aquí el objetivo puntual del chat]
+
+
+6. PLANTILLA MÍNIMA PARA NUEVOS CHATS
+
+Sí, también conviene actualizarla.
+
+Agregar al bloque de arquitectura/reglas
+
+tenants.id es char(36)
+
+tenant_id no debe asumirse como foreignId
+
+copiar patrón real validado del proyecto antes de crear nuevas migraciones
+
+Actualizar módulos implementados
+
+Hoy está vieja. Debe incluir:
+
+projects
+
+parties
+
+tasks
+
+products
+
+orders
+
+order_items
+
+documents
+
+document_items
+
+Agregar una regla de trabajo útil
+
+si el módulo tiene cabecera y detalle, diseñar primero estructura y relaciones, luego migraciones, luego cabecera, luego ítems
+
+Eso resume exactamente el aprendizaje de este chat.

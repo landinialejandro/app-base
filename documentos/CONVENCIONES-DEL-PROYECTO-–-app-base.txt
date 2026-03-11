@@ -1,3 +1,5 @@
+CONVENCIONES-DEL-PROYECTO – app-base
+
 Objetivo
 
 Definir las convenciones técnicas y de desarrollo que deben seguir todos los módulos del proyecto app-base.
@@ -60,12 +62,15 @@ tenant_id
 timestamps
 softDeletes
 
-Ejemplo conceptual mínimo:
+Reglas para tenant_id:
 
-tenant_id
-name
-timestamps
-softDeletes
+tenant_id no debe crearse con foreignId('tenant_id')
+
+debe definirse manualmente con un tipo compatible con tenants.id
+
+antes de crear una nueva migración se debe copiar el patrón real ya utilizado en módulos existentes del proyecto
+
+Esto garantiza consistencia con la arquitectura multi-tenant real del sistema.
 
 Convenciones de controladores
 
@@ -163,6 +168,26 @@ utilizar parciales _form
 agrupar campos de forma consistente
 mostrar errores de validación cerca del campo
 ubicar botones dentro de form-actions
+
+Convención de entidades padre/hijo
+
+Cuando una entidad padre tenga registros hijos relevantes:
+
+la eliminación debe advertir explícitamente al usuario que existen registros relacionados.
+
+Si el usuario confirma la acción, la eliminación puede ejecutarse en cascada.
+
+No se debe obligar por defecto al usuario a eliminar manualmente cada registro hijo, salvo que el módulo requiera trazabilidad estricta.
+
+Convención para totales documentales
+
+En entidades documentales o transaccionales donde existan registros de detalle:
+
+los totales deben persistirse en la tabla padre.
+
+los importes de cada línea deben persistirse en la tabla de detalle como snapshot.
+
+No se debe depender únicamente de accessors calculados cuando el registro cumple una función documental o contable.
 
 Terminología de interfaz
 

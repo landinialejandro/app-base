@@ -9,7 +9,11 @@ ESTRUCTURA GENERAL DE UNA PANTALLA
 
 Todas las vistas internas del sistema deben utilizar la siguiente estructura base:
 
-<x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
+<x-page>
+    <x-breadcrumb />
+    <x-page-header />
+    <x-card />
+</x-page>
 
 COMPONENTES DISPONIBLES
 
@@ -40,6 +44,8 @@ table-wrap.list-scroll
 Ejemplo:
 
 <x-page class="list-page">
+
+```
 <x-breadcrumb />
 
 <x-page-header />
@@ -53,16 +59,13 @@ Ejemplo:
     </div>
 
 </x-card>
+```
+
 </x-page>
 
 ACCIONES EN LISTADOS
 
 Las acciones en listados deben utilizar botones compactos con iconos para reducir el ancho de las columnas.
-
-Ejemplo:
-
-Editar
-Eliminar
 
 COMPONENTES DE ICONOS
 
@@ -79,13 +82,23 @@ x-icons.trash
 
 Uso en botones:
 
-<button class="btn btn-secondary btn-sm"> <x-icons.pencil /> </button> <button class="btn btn-danger btn-sm"> <x-icons.trash /> </button>
+<button class="btn btn-secondary btn-sm">
+    <x-icons.pencil />
+</button>
+
+<button class="btn btn-danger btn-sm">
+    <x-icons.trash />
+</button>
 
 OBJETIVO DE LOS ICONOS
 
 Reducir el ancho de las columnas de acciones.
 Mejorar la legibilidad de tablas.
 Permitir reutilización consistente en todo el sistema.
+
+VISTAS SHOW CON SUBLISTADOS
+
+En vistas show que contengan sublistados internos se permiten acciones compactas con iconos para reducir espacio visual y mantener consistencia con los listados principales.
 
 REGLAS DE FORMULARIOS
 
@@ -105,6 +118,16 @@ Reglas:
 reutilizar el mismo formulario para crear y editar
 agrupar campos de forma clara
 ubicar botones dentro de un bloque de acciones
+
+CONFIRMACIONES DE ELIMINACIÓN
+
+Las operaciones de eliminación deben utilizar confirmación previa del usuario.
+
+Cuando una entidad padre tenga registros relacionados, la confirmación debe indicar explícitamente que la eliminación afectará registros relacionados.
+
+Si existe eliminación en cascada, la confirmación debe ser más explícita para evitar borrados accidentales.
+
+Cuando sea posible, la confirmación debe incluir información contextual sobre la cantidad de registros relacionados.
 
 ESTADOS VACÍOS
 
@@ -126,10 +149,17 @@ Los dropdowns se implementan utilizando el elemento HTML:
 
 Ejemplo:
 
-<details class="app-nav-dropdown"> <summary class="app-nav-link"> Gestión </summary>
+<details class="app-nav-dropdown">
+    <summary class="app-nav-link">
+        Gestión
+    </summary>
+
+```
 <div class="app-nav-dropdown-menu">
     ...
 </div>
+```
+
 </details>
 
 IMPORTANTE

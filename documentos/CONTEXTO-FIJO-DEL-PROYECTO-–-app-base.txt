@@ -1,3 +1,5 @@
+CONTEXTO-FIJO-DEL-PROYECTO – app-base
+
 Tipo de sistema
 
 app-base es una plataforma SaaS multi-tenant desarrollada en Laravel.
@@ -12,8 +14,8 @@ Entorno técnico
 OS: Linux
 Web: Apache
 PHP: 8.4
-Laravel: 12.53
-DB: MariaDB 11.8
+Laravel: 12.x
+DB: MariaDB
 
 URL local de desarrollo
 
@@ -55,10 +57,6 @@ Resolución del tenant activo
 Middleware utilizado:
 
 ResolveTenant
-
-Ubicación:
-
-app/Http/Middleware/ResolveTenant.php
 
 Orden de resolución:
 
@@ -131,20 +129,20 @@ El sistema distingue entre:
 Entidades del sistema
 Entidades del negocio
 
-Entidades del sistema:
+Entidades del sistema
 
 users
 tenants
 memberships
 
-Entidades del negocio:
+Entidades del negocio
 
 parties
 projects
 tasks
 products
 orders
-documents
+order_items
 
 Entidad base del negocio
 
@@ -178,6 +176,9 @@ memberships
 parties
 projects
 tasks
+products
+orders
+order_items
 
 Regla de arquitectura
 

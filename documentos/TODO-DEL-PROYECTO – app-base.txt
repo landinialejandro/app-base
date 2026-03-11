@@ -11,17 +11,22 @@ mejoras futuras
 refactors necesarios
 
 No debe contener documentación extensa.
+Solo registrar elementos pendientes del sistema.
 
 ESTADO ACTUAL DEL SISTEMA
 
 Arquitectura SaaS multi-tenant implementada.
 
-Características activas:
+Características activas del sistema:
 
 multi-tenancy mediante tenant_id
 aislamiento automático mediante TenantScoped
 protección de rutas mediante ResolvesTenantRouteBinding
 soft delete obligatorio
+
+Estas reglas forman parte de la arquitectura base del sistema y no deben modificarse. 
+
+CONTEXTO-FIJO-DEL-PROYECTO-–-ap…
 
 MÓDULOS IMPLEMENTADOS
 
@@ -31,45 +36,61 @@ tasks
 products
 orders
 order_items
+documents
+document_items
 
 MÓDULOS PENDIENTES
 
-documents
+Actualmente no hay módulos operativos pendientes inmediatos.
 
-MÓDULOS FUTUROS POSIBLES
+Próximos módulos posibles según evolución del sistema:
 
-activities
-notes
-attachments
-tags
 payments
 inventory
 
 MEJORAS FUTURAS
 
 relación opcional entre users y parties
+
 perfiles especializados para parties
-atributos dinámicos para entidades
-documentos comerciales genéricos
+
+sistema de atributos dinámicos para entidades
+
+documentos comerciales genéricos reutilizables
+
+unificar criterio visual y funcional de confirmaciones de eliminación cuando existen registros hijos
+
+normalizar etiquetas visibles de kind y status en módulos documentales y operativos
 
 MEJORAS DE INTERFAZ
 
-aplicar patrón de listas a todos los módulos
+aplicar el patrón de listas a todos los módulos
+
 evaluar paginación para tablas grandes
+
 mejorar dashboard con métricas básicas
 
 MEJORAS DE ARQUITECTURA
 
 sistema de permisos más avanzado
+
 sistema de auditoría de cambios
+
 sistema de archivos y adjuntos
+
 registro de actividad de usuario
 
 REFACTORS
 
-revisión de evolución histórica de parties
-revisión futura del modelo documents
+revisión histórica de evolución de parties
+
+revisión futura de estructura de documents
+
 revisión de nomenclatura entre módulos
+
+unificación futura del patrón de definición de tenant_id entre migraciones históricas (uuid vs char(36))
+
+revisión de etiquetas amigables para enums técnicos (quote, draft, delivery_note, etc.)
 
 REGLA DEL DOCUMENTO
 
@@ -81,6 +102,6 @@ pendientes
 ideas futuras
 refactors necesarios
 
-Las decisiones estructurales deben registrarse en:
+Las decisiones estructurales del sistema deben registrarse en:
 
 CONVENCIONES-DEL-PROYECTO.

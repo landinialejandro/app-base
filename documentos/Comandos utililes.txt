@@ -1,0 +1,32 @@
+Ejecuta este comando desde la raíz del proyecto:
+
+find resources/views/orders -type f -name "*.blade.php" | while read file; do
+    echo "===== $file ====="
+    cat "$file"
+    echo
+    echo
+done > orders_views.txt
+
+Esto generará un archivo:
+
+orders_views.txt
+
+con este formato:
+
+===== resources/views/orders/index.blade.php =====
+(contenido completo)
+
+
+===== resources/views/orders/create.blade.php =====
+(contenido completo)
+
+
+===== resources/views/orders/edit.blade.php =====
+(contenido completo)
+
+Para crear los archivos de vista:
+touch resources/views/documents/index.blade.php
+touch resources/views/documents/show.blade.php
+touch resources/views/documents/create.blade.php
+touch resources/views/documents/edit.blade.php
+touch resources/views/documents/_form.blade.php

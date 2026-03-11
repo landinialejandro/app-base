@@ -15,6 +15,8 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\ProductController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemController;
+use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\DocumentItemController;
 
 use App\Models\Invitation;
 use App\Models\User;
@@ -173,13 +175,6 @@ Route::get('/accept-invitation/{token}', function ($token) {
 });
 
 Route::middleware(['auth', 'tenant'])->group(function () {
-    // Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
-    // Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
-    // Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
-    // Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
-    // Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
-    // Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
-    // Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
 
     Route::resource('projects', ProjectController::class);
 
@@ -193,4 +188,14 @@ Route::middleware(['auth', 'tenant'])->group(function () {
 
     Route::resource('orders.items', OrderItemController::class)
         ->except(['index', 'show']);
+
+    Route::resource('documents', DocumentController::class);
+
+    Route::prefix('documents/{document}')->name('documents.')->group(function () {
+        Route::get('items/create', [DocumentItemController::class, 'create'])->name('items.create');
+        Route::post('items', [DocumentItemController::class, 'store'])->name('items.store');
+        Route::get('items/{item}/edit', [DocumentItemController::class, 'edit'])->name('items.edit');
+        Route::put('items/{item}', [DocumentItemController::class, 'update'])->name('items.update');
+        Route::delete('items/{item}', [DocumentItemController::class, 'destroy'])->name('items.destroy');
+    });
 });

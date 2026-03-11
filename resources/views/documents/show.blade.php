@@ -1,26 +1,26 @@
-{{-- FILE: resources/views/orders/show.blade.php --}}
+{{-- FILE: resources/views/documents/show.blade.php --}}
 @extends('layouts.app')
 
-@section('title', 'Detalle de la orden')
+@section('title', 'Detalle del documento')
 
 @section('content')
     <x-page>
 
         <x-breadcrumb :items="[
             ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Órdenes', 'url' => route('orders.index')],
-            ['label' => $order->number ?: 'Sin número'],
+            ['label' => 'Documentos', 'url' => route('documents.index')],
+            ['label' => $document->number ?: 'Sin número'],
         ]" />
 
-        <x-page-header title="Detalle de la orden">
-            <a href="{{ route('orders.edit', $order) }}" class="btn btn-primary">
+        <x-page-header title="Detalle del documento">
+            <a href="{{ route('documents.edit', $document) }}" class="btn btn-primary">
                 Editar
             </a>
 
-            <form method="POST" action="{{ route('orders.destroy', $order) }}" class="d-inline" onsubmit="return confirm(@js(
-                $order->items->count()
-                ? 'Esta orden tiene ítems cargados. Si la eliminas, también se eliminarán sus ítems. ¿Deseas continuar?'
-                : '¿Deseas eliminar esta orden?'
+            <form method="POST" action="{{ route('documents.destroy', $document) }}" class="d-inline" onsubmit="return confirm(@js(
+                $document->items->count()
+                ? 'Este documento tiene ítems cargados. Si lo eliminas, también se eliminarán sus ítems. ¿Deseas continuar?'
+                : '¿Deseas eliminar este documento?'
             ))">
                 @csrf
                 @method('DELETE')
@@ -30,7 +30,7 @@
                 </button>
             </form>
 
-            <a href="{{ route('orders.index') }}" class="btn btn-secondary">
+            <a href="{{ route('documents.index') }}" class="btn btn-secondary">
                 Volver
             </a>
         </x-page-header>
@@ -39,59 +39,92 @@
             <div class="detail-list">
                 <div>
                     <div class="detail-label">Número</div>
-                    <div class="detail-value">{{ $order->number ?: 'Sin número' }}</div>
+                    <div class="detail-value">{{ $document->number ?: 'Sin número' }}</div>
                 </div>
 
                 <div>
                     <div class="detail-label">Tipo</div>
-                    <div class="detail-value">{{ $order->kind }}</div>
+                    <div class="detail-value">{{ $document->kind }}</div>
                 </div>
 
                 <div>
                     <div class="detail-label">Estado</div>
-                    <div class="detail-value">{{ $order->status }}</div>
+                    <div class="detail-value">{{ $document->status }}</div>
                 </div>
 
                 <div>
                     <div class="detail-label">Contacto</div>
-                    <div class="detail-value">{{ $order->party?->name ?: '—' }}</div>
+                    <div class="detail-value">{{ $document->party?->name ?: '—' }}</div>
                 </div>
 
                 <div>
-                    <div class="detail-label">Fecha</div>
-                    <div class="detail-value">{{ $order->ordered_at?->format('d/m/Y') ?: '—' }}</div>
+                    <div class="detail-label">Orden asociada</div>
+                    <div class="detail-value">
+                        @if ($document->order)
+                            <a href="{{ route('orders.show', $document->order) }}">
+                                {{ $document->order->number ?: 'Sin número' }}
+                            </a>
+                        @else
+                            —
+                        @endif
+                    </div>
+                </div>
+
+                <div>
+                    <div class="detail-label">Fecha de emisión</div>
+                    <div class="detail-value">{{ $document->issued_at?->format('d/m/Y') ?: '—' }}</div>
+                </div>
+
+                <div>
+                    <div class="detail-label">Fecha de vencimiento</div>
+                    <div class="detail-value">{{ $document->due_at?->format('d/m/Y') ?: '—' }}</div>
+                </div>
+
+                <div>
+                    <div class="detail-label">Moneda</div>
+                    <div class="detail-value">{{ $document->currency_code ?: '—' }}</div>
                 </div>
 
                 <div>
                     <div class="detail-label">Creado por</div>
-                    <div class="detail-value">{{ $order->creator?->name ?: '—' }}</div>
+                    <div class="detail-value">{{ $document->creator?->name ?: '—' }}</div>
                 </div>
 
                 <div>
                     <div class="detail-label">Actualizado por</div>
-                    <div class="detail-value">{{ $order->updater?->name ?: '—' }}</div>
+                    <div class="detail-value">{{ $document->updater?->name ?: '—' }}</div>
+                </div>
+
+                <div>
+                    <div class="detail-label">Subtotal</div>
+                    <div class="detail-value">${{ number_format($document->subtotal, 2, ',', '.') }}</div>
+                </div>
+
+                <div>
+                    <div class="detail-label">Impuestos</div>
+                    <div class="detail-value">${{ number_format($document->tax_total, 2, ',', '.') }}</div>
                 </div>
 
                 <div>
                     <div class="detail-label">Total</div>
-                    <div class="detail-value">${{ number_format($order->total, 2, ',', '.') }}</div>
+                    <div class="detail-value">${{ number_format($document->total, 2, ',', '.') }}</div>
                 </div>
 
                 <div>
                     <div class="detail-label">Notas</div>
-                    <div class="detail-value">{{ $order->notes ?: '—' }}</div>
+                    <div class="detail-value">{{ $document->notes ?: '—' }}</div>
                 </div>
             </div>
         </x-card>
 
-        <x-page-header title="Ítems de la orden">
-            <a href="{{ route('orders.items.create', $order) }}" class="btn btn-primary">
+        <x-page-header title="Ítems del documento">
+            <a href="{{ route('documents.items.create', $document) }}" class="btn btn-primary">
                 Agregar ítem
             </a>
         </x-page-header>
 
         <x-card class="list-card">
-            @if ($order->items->count())
+            @if ($document->items->count())
                 <div class="table-wrap list-scroll">
                     <table class="table">
                         <thead>
@@ -101,28 +134,28 @@
                                 <th>Descripción</th>
                                 <th>Cantidad</th>
                                 <th>Precio unitario</th>
-                                <th>Subtotal</th>
+                                <th>Total línea</th>
                                 <th></th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($order->items->sortBy('position') as $item)
+                            @foreach ($document->items->sortBy('position') as $item)
                                 <tr>
                                     <td>{{ $item->position }}</td>
                                     <td>{{ $item->kind }}</td>
                                     <td>{{ $item->description }}</td>
                                     <td>{{ number_format($item->quantity, 2, ',', '.') }}</td>
                                     <td>${{ number_format($item->unit_price, 2, ',', '.') }}</td>
-                                    <td>${{ number_format($item->subtotal, 2, ',', '.') }}</td>
+                                    <td>${{ number_format($item->line_total, 2, ',', '.') }}</td>
                                     <td class="text-end">
                                         <div class="d-inline-flex gap-1">
 
-                                            <a href="{{ route('orders.items.edit', [$order, $item]) }}"
+                                            <a href="{{ route('documents.items.edit', [$document, $item]) }}"
                                                 class="btn btn-secondary btn-sm" title="Editar ítem" aria-label="Editar ítem">
                                                 <x-icons.pencil />
                                             </a>
 
-                                            <form method="POST" action="{{ route('orders.items.destroy', [$order, $item]) }}"
+                                            <form method="POST" action="{{ route('documents.items.destroy', [$document, $item]) }}"
                                                 class="d-inline" onsubmit="return confirm('¿Deseas eliminar este ítem?')">
 
                                                 @csrf
@@ -143,7 +176,7 @@
                     </table>
                 </div>
             @else
-                <p class="mb-0">No hay ítems cargados en esta orden.</p>
+                <p class="mb-0">No hay ítems cargados en este documento.</p>
             @endif
         </x-card>
 

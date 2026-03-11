@@ -1,5 +1,4 @@
 {{-- FILE: resources/views/projects/show.blade.php --}}
-
 @extends('layouts.app')
 
 @section('title', 'Detalle del proyecto')
@@ -19,8 +18,11 @@
                 Editar
             </a>
 
-            <form method="POST" action="{{ route('projects.destroy', $project) }}"
-                onsubmit="return confirm('¿Eliminar proyecto?');" class="inline-form">
+            <form method="POST" action="{{ route('projects.destroy', $project) }}" onsubmit="return confirm(@js(
+                $project->tasks->count()
+                ? 'Este proyecto tiene tareas cargadas. Si lo eliminas, también se eliminarán sus tareas. ¿Deseas continuar?'
+                : '¿Deseas eliminar este proyecto?'
+            ));" class="inline-form">
                 @csrf
                 @method('DELETE')
 

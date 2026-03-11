@@ -1,14 +1,15 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderController.php
+// FILE: app/Http/Controllers/DocumentController.php
 
 namespace App\Http\Controllers;
 
+use App\Models\Document;
 use App\Models\Order;
 use App\Models\Party;
 use Illuminate\Http\Request;
 
-class OrderController extends Controller
+class DocumentController extends Controller
 {
     /*
     |--------------------------------------------------------------------------
@@ -18,11 +19,11 @@ class OrderController extends Controller
 
     public function index()
     {
-        $orders = Order::with(['party', 'items'])
+        $documents = Document::with(['party', 'order', 'items'])
             ->latest()
             ->paginate(20);
 
-        return view('orders.index', compact('orders'));
+        return view('documents.index', compact('documents'));
     }
 
     /*
@@ -34,8 +35,14 @@ class OrderController extends Controller
     public function create()
     {
         $parties = Party::orderBy('name')->get();
+        $orders = Order::latest()->get();
 
-        return view('orders.create', compact('parties'));
+        $document = new Document([
+            'kind' => 'quote',
+            'status' => 'draft',
+        ]);
+
+        return view('documents.create', compact('document', 'parties', 'orders'));
     }
 
     /*
@@ -48,20 +55,26 @@ class OrderController extends Controller
     {
         $data = $request->validate([
             'party_id' => ['nullable', 'exists:parties,id'],
-            'kind' => ['required', 'in:sale,purchase,service'],
+            'order_id' => ['nullable', 'exists:orders,id'],
+            'kind' => ['required', 'in:quote,invoice,delivery_note,work_order,receipt,credit_note'],
             'number' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', 'in:draft,confirmed,cancelled'],
-            'ordered_at' => ['nullable', 'date'],
+            'status' => ['required', 'in:draft,issued,cancelled'],
+            'issued_at' => ['nullable', 'date'],
+            'due_at' => ['nullable', 'date'],
+            'currency_code' => ['nullable', 'string', 'max:10'],
             'notes' => ['nullable', 'string'],
         ]);
 
         $data['created_by'] = auth()->id();
+        $data['subtotal'] = 0;
+        $data['tax_total'] = 0;
+        $data['total'] = 0;
 
-        $order = Order::create($data);
+        $document = Document::create($data);
 
         return redirect()
-            ->route('orders.show', $order)
-            ->with('success', 'Orden creada correctamente.');
+            ->route('documents.show', $document)
+            ->with('success', 'Documento creado correctamente.');
     }
 
     /*
@@ -70,16 +83,17 @@ class OrderController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function show(Order $order)
+    public function show(Document $document)
     {
-        $order->load([
+        $document->load([
             'party',
+            'order',
             'creator',
             'updater',
             'items.product',
         ]);
 
-        return view('orders.show', compact('order'));
+        return view('documents.show', compact('document'));
     }
 
     /*
@@ -88,11 +102,12 @@ class OrderController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function edit(Order $order)
+    public function edit(Document $document)
     {
         $parties = Party::orderBy('name')->get();
+        $orders = Order::latest()->get();
 
-        return view('orders.edit', compact('order', 'parties'));
+        return view('documents.edit', compact('document', 'parties', 'orders'));
     }
 
     /*
@@ -101,24 +116,27 @@ class OrderController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function update(Request $request, Order $order)
+    public function update(Request $request, Document $document)
     {
         $data = $request->validate([
             'party_id' => ['nullable', 'exists:parties,id'],
-            'kind' => ['required', 'in:sale,purchase,service'],
+            'order_id' => ['nullable', 'exists:orders,id'],
+            'kind' => ['required', 'in:quote,invoice,delivery_note,work_order,receipt,credit_note'],
             'number' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', 'in:draft,confirmed,cancelled'],
-            'ordered_at' => ['nullable', 'date'],
+            'status' => ['required', 'in:draft,issued,cancelled'],
+            'issued_at' => ['nullable', 'date'],
+            'due_at' => ['nullable', 'date'],
+            'currency_code' => ['nullable', 'string', 'max:10'],
             'notes' => ['nullable', 'string'],
         ]);
 
         $data['updated_by'] = auth()->id();
 
-        $order->update($data);
+        $document->update($data);
 
         return redirect()
-            ->route('orders.show', $order)
-            ->with('success', 'Orden actualizada.');
+            ->route('documents.show', $document)
+            ->with('success', 'Documento actualizado.');
     }
 
     /*
@@ -127,12 +145,12 @@ class OrderController extends Controller
     |--------------------------------------------------------------------------
     */
 
-    public function destroy(Order $order)
+    public function destroy(Document $document)
     {
-        $order->delete();
+        $document->delete();
 
         return redirect()
-            ->route('orders.index')
-            ->with('success', 'Orden eliminada.');
+            ->route('documents.index')
+            ->with('success', 'Documento eliminado.');
     }
 }

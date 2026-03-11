@@ -1,5 +1,7 @@
 <?php
 
+// FILE: app/Models/Order.php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;

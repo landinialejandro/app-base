@@ -1,5 +1,7 @@
 <?php
 
+//FILE: database/migrations/2026_03_06_205103_create_parties_table.php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

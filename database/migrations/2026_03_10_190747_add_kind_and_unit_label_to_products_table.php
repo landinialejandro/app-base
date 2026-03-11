@@ -1,5 +1,7 @@
 <?php
 
+// FILE: database/migrations/2026_03_10_190747_add_kind_and_unit_label_to_products_table.php
+
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;

@@ -138,8 +138,6 @@ class TaskController extends Controller
             }
         }
 
-        $data['tenant_id'] = $tenant->id;
-
         $task = Task::create($data);
         $task->load('project');
 

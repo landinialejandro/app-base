@@ -12,7 +12,7 @@ return new class extends Migration
     {
         Schema::create('parties', function (Blueprint $table) {
             $table->id();
-            $table->uuid('tenant_id')->index();
+            $table->char('tenant_id', 36)->index();
 
             $table->string('kind', 50);
             $table->string('name');

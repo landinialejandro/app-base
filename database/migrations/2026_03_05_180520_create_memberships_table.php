@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('memberships', function (Blueprint $table) {
             $table->id();
 
-            $table->uuid('tenant_id');
+            $table->char('tenant_id', 36);
             $table->foreignId('user_id')->constrained()->cascadeOnDelete();
 
             $table->string('status')->default('invited'); // invited|active|blocked|left

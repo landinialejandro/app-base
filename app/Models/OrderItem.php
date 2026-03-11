@@ -17,7 +17,6 @@ class OrderItem extends Model
     use ResolvesTenantRouteBinding;
 
     protected $fillable = [
-        'tenant_id',
         'order_id',
         'product_id',
         'position',

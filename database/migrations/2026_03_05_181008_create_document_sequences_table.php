@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('document_sequences', function (Blueprint $table) {
             $table->id();
 
-            $table->uuid('tenant_id');
+            $table->char('tenant_id', 36);
             $table->foreignId('branch_id')->nullable()->constrained('branches')->nullOnDelete();
 
             $table->string('doc_type', 30); // ej: invoice, work_order, receipt

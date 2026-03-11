@@ -10,7 +10,7 @@ return new class extends Migration
     {
         Schema::create('projects', function (Blueprint $table) {
             $table->id();
-            $table->uuid('tenant_id');
+            $table->char('tenant_id', 36);
             $table->string('name');
             $table->text('description')->nullable();
             $table->timestamps();

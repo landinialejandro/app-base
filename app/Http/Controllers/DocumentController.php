@@ -4,10 +4,12 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+
 use App\Models\Document;
 use App\Models\Order;
 use App\Models\Party;
-use Illuminate\Http\Request;
 
 class DocumentController extends Controller
 {
@@ -53,22 +55,34 @@ class DocumentController extends Controller
 
     public function store(Request $request)
     {
+        $tenant = app('tenant');
+
         $data = $request->validate([
-            'party_id' => ['nullable', 'exists:parties,id'],
-            'order_id' => ['nullable', 'exists:orders,id'],
-            'kind' => ['required', 'in:quote,invoice,delivery_note,work_order,receipt,credit_note'],
+            'party_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)
+                        ->whereNull('deleted_at');
+                }),
+            ],
+
+            'order_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('orders', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id);
+                }),
+            ],
+
+            'kind' => ['required', 'string', 'max:50'],
             'number' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', 'in:draft,issued,cancelled'],
+            'status' => ['required', 'string', 'max:50'],
             'issued_at' => ['nullable', 'date'],
-            'due_at' => ['nullable', 'date'],
-            'currency_code' => ['nullable', 'string', 'max:10'],
             'notes' => ['nullable', 'string'],
         ]);
 
         $data['created_by'] = auth()->id();
-        $data['subtotal'] = 0;
-        $data['tax_total'] = 0;
-        $data['total'] = 0;
 
         $document = Document::create($data);
 
@@ -118,15 +132,30 @@ class DocumentController extends Controller
 
     public function update(Request $request, Document $document)
     {
+        $tenant = app('tenant');
+
         $data = $request->validate([
-            'party_id' => ['nullable', 'exists:parties,id'],
-            'order_id' => ['nullable', 'exists:orders,id'],
-            'kind' => ['required', 'in:quote,invoice,delivery_note,work_order,receipt,credit_note'],
+            'party_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)
+                        ->whereNull('deleted_at');
+                }),
+            ],
+
+            'order_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('orders', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id);
+                }),
+            ],
+
+            'kind' => ['required', 'string', 'max:50'],
             'number' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', 'in:draft,issued,cancelled'],
+            'status' => ['required', 'string', 'max:50'],
             'issued_at' => ['nullable', 'date'],
-            'due_at' => ['nullable', 'date'],
-            'currency_code' => ['nullable', 'string', 'max:10'],
             'notes' => ['nullable', 'string'],
         ]);
 

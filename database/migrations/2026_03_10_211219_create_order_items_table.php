@@ -13,7 +13,6 @@ return new class extends Migration
         Schema::create('order_items', function (Blueprint $table) {
             $table->id();
 
-            // Multi-tenant: NO usar foreignId('tenant_id')
             $table->char('tenant_id', 36)->index();
             $table->foreign('tenant_id')
                 ->references('id')

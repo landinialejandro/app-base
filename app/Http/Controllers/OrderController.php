@@ -4,9 +4,11 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+
 use App\Models\Order;
 use App\Models\Party;
-use Illuminate\Http\Request;
 
 class OrderController extends Controller
 {
@@ -46,8 +48,17 @@ class OrderController extends Controller
 
     public function store(Request $request)
     {
+        $tenant = app('tenant');
+
         $data = $request->validate([
-            'party_id' => ['nullable', 'exists:parties,id'],
+            'party_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)
+                        ->whereNull('deleted_at');
+                }),
+            ],
             'kind' => ['required', 'in:sale,purchase,service'],
             'number' => ['nullable', 'string', 'max:255'],
             'status' => ['required', 'in:draft,confirmed,cancelled'],
@@ -103,8 +114,17 @@ class OrderController extends Controller
 
     public function update(Request $request, Order $order)
     {
+        $tenant = app('tenant');
+
         $data = $request->validate([
-            'party_id' => ['nullable', 'exists:parties,id'],
+            'party_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)
+                        ->whereNull('deleted_at');
+                }),
+            ],
             'kind' => ['required', 'in:sale,purchase,service'],
             'number' => ['nullable', 'string', 'max:255'],
             'status' => ['required', 'in:draft,confirmed,cancelled'],

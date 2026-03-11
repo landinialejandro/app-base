@@ -12,7 +12,7 @@ return new class extends Migration {
         Schema::create('products', function (Blueprint $table) {
             $table->id();
 
-            $table->uuid('tenant_id');
+            $table->char('tenant_id', 36);
             $table->foreign('tenant_id')->references('id')->on('tenants')->cascadeOnDelete();
 
             $table->string('name');

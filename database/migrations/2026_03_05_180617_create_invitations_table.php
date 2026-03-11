@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('invitations', function (Blueprint $table) {
             $table->id();
 
-            $table->uuid('tenant_id');
+            $table->char('tenant_id', 36);
 
             $table->string('email');
             $table->string('token', 64)->unique();

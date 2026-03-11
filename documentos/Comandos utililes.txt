@@ -1,28 +1,19 @@
 Ejecuta este comando desde la raíz del proyecto:
 
-find resources/views/orders -type f -name "*.blade.php" | while read file; do
+(
+find app/Models -type f -name "*.php";
+find app/Http/Controllers -type f -name "*.php";
+find app/Http/Middleware -type f -name "*.php";
+find database/migrations -type f -name "*.php";
+find resources/views/orders -type f -name "*.blade.php";
+find resources/views/documents -type f -name "*.blade.php";
+) | sort | while read file; do
     echo "===== $file ====="
     cat "$file"
     echo
     echo
-done > orders_views.txt
+done > auditoria-tenant.txt
 
-Esto generará un archivo:
-
-orders_views.txt
-
-con este formato:
-
-===== resources/views/orders/index.blade.php =====
-(contenido completo)
-
-
-===== resources/views/orders/create.blade.php =====
-(contenido completo)
-
-
-===== resources/views/orders/edit.blade.php =====
-(contenido completo)
 
 Para crear los archivos de vista:
 touch resources/views/documents/index.blade.php

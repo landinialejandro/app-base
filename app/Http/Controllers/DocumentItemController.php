@@ -4,10 +4,12 @@
 
 namespace App\Http\Controllers;
 
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
+
 use App\Models\Document;
 use App\Models\DocumentItem;
 use App\Models\Product;
-use Illuminate\Http\Request;
 
 class DocumentItemController extends Controller
 {
@@ -26,8 +28,17 @@ class DocumentItemController extends Controller
 
     public function store(Request $request, Document $document)
     {
+        $tenant = app('tenant');
+
         $data = $request->validate([
-            'product_id' => ['nullable', 'exists:products,id'],
+            'product_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('products', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)
+                        ->whereNull('deleted_at');
+                }),
+            ],
             'position' => ['nullable', 'integer', 'min:1'],
             'kind' => ['required', 'in:product,service'],
             'description' => ['required', 'string', 'max:255'],
@@ -35,15 +46,16 @@ class DocumentItemController extends Controller
             'unit_price' => ['required', 'numeric', 'min:0'],
         ]);
 
-        $data['tenant_id'] = $document->tenant_id;
-        $data['document_id'] = $document->id;
         $data['position'] = $data['position'] ?? (($document->items()->max('position') ?? 0) + 1);
 
         $quantity = (float) $data['quantity'];
         $unitPrice = (float) $data['unit_price'];
         $data['line_total'] = $quantity * $unitPrice;
 
-        $document->items()->create($data);
+        $item = new DocumentItem($data);
+        $item->tenant_id = $document->tenant_id;
+        $item->document_id = $document->id;
+        $item->save();
 
         $this->recalculateTotals($document);
 
@@ -51,6 +63,7 @@ class DocumentItemController extends Controller
             ->route('documents.show', $document)
             ->with('success', 'Ítem agregado correctamente.');
     }
+
 
     public function edit(Document $document, DocumentItem $item)
     {
@@ -65,8 +78,17 @@ class DocumentItemController extends Controller
     {
         abort_unless($item->document_id === $document->id, 404);
 
+        $tenant = app('tenant');
+
         $data = $request->validate([
-            'product_id' => ['nullable', 'exists:products,id'],
+            'product_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('products', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)
+                        ->whereNull('deleted_at');
+                }),
+            ],
             'position' => ['nullable', 'integer', 'min:1'],
             'kind' => ['required', 'in:product,service'],
             'description' => ['required', 'string', 'max:255'],
@@ -86,6 +108,7 @@ class DocumentItemController extends Controller
             ->route('documents.show', $document)
             ->with('success', 'Ítem actualizado correctamente.');
     }
+
 
     public function destroy(Document $document, DocumentItem $item)
     {

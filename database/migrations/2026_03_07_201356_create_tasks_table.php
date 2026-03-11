@@ -12,7 +12,7 @@ return new class extends Migration {
         Schema::create('tasks', function (Blueprint $table) {
             $table->id();
 
-            $table->uuid('tenant_id')->index();
+            $table->char('tenant_id', 36)->index();
             $table->foreignId('project_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('party_id')->nullable()->constrained()->nullOnDelete();
             $table->foreignId('assigned_user_id')->nullable()->constrained('users')->nullOnDelete();

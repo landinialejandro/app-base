@@ -13,7 +13,7 @@ return new class extends Migration {
         Schema::create('roles', function (Blueprint $table) {
             $table->id();
 
-            $table->uuid('tenant_id');
+            $table->char('tenant_id', 36);
 
             $table->string('name'); // ej: Owner, Admin, Operador
             $table->string('slug'); // ej: owner, admin, operator

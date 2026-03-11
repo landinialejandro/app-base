@@ -14,54 +14,9 @@
     <div class="app-shell">
         @if (!($publicPage ?? false))
 
-            <header class="app-header">
-                <div class="container app-header-inner">
-
-                    <div class="app-brand">
-                        <a href="{{ url('/') }}">
-                            app-base
-                        </a>
-                    </div>
-
-                    <nav class="app-nav">
-                        @auth
-                            <a class="app-nav-link" href="{{ route('dashboard') }}">Dashboard</a>
-                            <a class="app-nav-link" href="{{ route('projects.index') }}">Projects</a>
-                            <a class="app-nav-link" href="{{ route('tasks.index') }}">Tasks</a>
-                            <a class="app-nav-link" href="{{ route('parties.index') }}">Contacts</a>
-                        @endauth
-                    </nav>
-
-                    <div class="app-header-actions">
-
-                        @auth
-                            @if (app()->bound('tenant'))
-                                <div class="app-company">
-                                    <span class="app-company-label">Empresa</span>
-                                    <span class="app-company-name">
-                                        {{ app('tenant')->name }}
-                                    </span>
-                                </div>
-
-                                @if (auth()->user()->tenants->count() > 1)
-                                    <a class="btn btn-secondary" href="{{ route('tenants.select') }}">
-                                        Cambiar
-                                    </a>
-                                @endif
-                            @endif
-
-                            <form method="POST" action="{{ route('logout') }}">
-                                @csrf
-                                <button class="btn btn-link" type="submit">
-                                    Cerrar sesión
-                                </button>
-                            </form>
-                        @endauth
-
-                    </div>
-
-                </div>
-            </header>
+            @if (!($publicPage ?? false))
+                <x-layout.navbar />
+            @endif
 
         @endif
 
@@ -103,6 +58,7 @@
             </footer>
         @endif
     </div>
+    <script src="{{ asset('js/app-base.js') }}"></script>
 </body>
 
 </html>

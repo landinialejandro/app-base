@@ -558,3 +558,13 @@ tasks
 invoices
 products
 orders
+
+Modelo B = PARTIES + ASSETS + TRANSACTIONS como núcleo. Esto te da un ERP que “cambia de rubro” sin reescrituras: solo agregás tipos, campos y flujos.
+
+A partir de acá, la regla es: todo lo que la empresa hace se puede describir como:
+
+con quién (Party),
+
+sobre qué (Asset),
+
+qué pasó (Transaction).

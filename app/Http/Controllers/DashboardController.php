@@ -4,7 +4,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use App\Models\Party;
+use App\Models\Product;
 use App\Models\Project;
 use App\Models\Task;
 
@@ -22,6 +24,8 @@ class DashboardController extends Controller
                 ->where('status', 'done')
                 ->count(),
             'partiesCount' => Party::query()->count(),
+            'productsCount' => Product::query()->count(),
+            'ordersCount' => Order::query()->count(),
         ]);
     }
 }

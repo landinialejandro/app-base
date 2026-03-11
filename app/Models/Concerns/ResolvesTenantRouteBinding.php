@@ -1,5 +1,7 @@
 <?php
 
+// FILE: app/Models/Concerns/ResolvesTenantRouteBinding.php
+
 namespace App\Models\Concerns;
 
 use Illuminate\Database\Eloquent\SoftDeletes;

@@ -27,6 +27,12 @@
                     <span class="dashboard-tenant-stat">
                         {{ $partiesCount }} contactos
                     </span>
+                    <span class="dashboard-tenant-stat">
+                        {{ $productsCount }} productos
+                    </span>
+                    <span class="dashboard-tenant-stat">
+                        {{ $ordersCount }} órdenes
+                    </span>
                 </div>
             </div>
         </x-card>
@@ -53,6 +59,18 @@
                     <span class="dashboard-link-title">Contactos</span>
                     <span class="dashboard-link-text">Ver y administrar contactos</span>
                     <span class="dashboard-link-meta">{{ $partiesCount }} contactos</span>
+                </a>
+
+                <a href="{{ route('products.index') }}" class="dashboard-link-card">
+                    <span class="dashboard-link-title">Productos</span>
+                    <span class="dashboard-link-text">Ver y administrar productos y servicios</span>
+                    <span class="dashboard-link-meta">{{ $productsCount }} productos</span>
+                </a>
+
+                <a href="{{ route('orders.index') }}" class="dashboard-link-card">
+                    <span class="dashboard-link-title">Órdenes</span>
+                    <span class="dashboard-link-text">Ver y administrar órdenes</span>
+                    <span class="dashboard-link-meta">{{ $ordersCount }} órdenes</span>
                 </a>
             </div>
         </x-card>

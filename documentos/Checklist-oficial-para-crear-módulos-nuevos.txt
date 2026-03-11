@@ -22,7 +22,7 @@ si realmente es una entidad nueva del dominio del sistema
 
 Recordar:
 
-parties es la entidad base del negocio.
+parties es la entidad base del negocio. 
 
 Si la entidad no es necesaria en esta etapa:
 
@@ -58,18 +58,11 @@ tenant_id
 timestamps
 softDeletes
 
-Ejemplo conceptual mínimo:
-
-tenant_id
-name
-timestamps
-softDeletes
-
 CREAR MODELO
 
 Crear modelo:
 
-php artisan make:model Product
+php artisan make:model NombreModelo
 
 El modelo debe incluir los traits obligatorios del proyecto:
 
@@ -81,19 +74,16 @@ DEFINIR CAMPOS FILLABLE
 
 Definir los campos permitidos para asignación masiva.
 
-Ejemplo:
+Reglas:
 
-protected $fillable = [
-'tenant_id',
-'name',
-'description'
-];
+no incluir tenant_id en fillable si no es necesario
+evitar permitir asignación manual de tenant_id desde formularios
 
 CREAR CONTROLLER
 
 Crear controlador tipo resource.
 
-php artisan make:controller ProductController --resource
+php artisan make:controller NombreController --resource
 
 Métodos esperados:
 
@@ -105,6 +95,31 @@ edit
 update
 destroy
 
+REGLA DE TENANT EN CONTROLADORES
+
+Verificar la correcta asignación de tenant según el tipo de entidad.
+
+Si la entidad es padre:
+
+confirmar que utiliza TenantScoped
+no asignar tenant_id manualmente en store()
+
+Si la entidad es hija:
+
+asignar tenant_id explícitamente desde el contexto del padre
+asignar también la foreign key del padre
+
+CONSULTAS TENANT-AWARE
+
+Revisar store() y update() para asegurar que:
+
+las verificaciones exists(...) o validaciones de relaciones
+sean tenant-aware
+
+Ejemplo conceptual:
+
+verificar que el registro referenciado pertenezca al tenant activo.
+
 DEFINIR RUTAS
 
 Registrar rutas en:
@@ -113,7 +128,7 @@ routes/web.php
 
 Ejemplo:
 
-Route::resource('products', ProductController::class);
+Route::resource('nombre', NombreController::class);
 
 Las rutas deben ejecutarse dentro de los middlewares:
 
@@ -124,7 +139,7 @@ CREAR VISTAS
 
 Crear carpeta del módulo:
 
-resources/views/products
+resources/views/nombre
 
 Vistas mínimas:
 
@@ -138,7 +153,11 @@ ESTRUCTURA VISUAL OBLIGATORIA
 
 Todas las páginas internas deben utilizar:
 
-<x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
+<x-page>  
+<x-breadcrumb />  
+<x-page-header />  
+<x-card />  
+</x-page>
 
 PATRÓN DE LISTADOS
 
@@ -147,12 +166,6 @@ Las vistas index deben utilizar:
 page.list-page
 card.list-card
 table-wrap.list-scroll
-
-Esto garantiza:
-
-scroll interno en tablas
-layout estable
-consistencia visual entre módulos
 
 FORMULARIOS
 
@@ -209,7 +222,6 @@ verificar relaciones hijas
 verificar eliminación cuando existen registros hijos
 verificar route model binding multi-tenant
 verificar sublistados internos si el módulo tiene detalle
-verificar acciones compactas en tablas si existen registros relacionados
 
 VERIFICACIÓN MULTI-TENANT
 
@@ -230,9 +242,17 @@ crear factory.
 
 Ejemplo:
 
-php artisan make:factory ProductFactory
+php artisan make:factory NombreModeloFactory
 
 y agregar datos al DemoSeeder.
+
+LIMPIEZA DE MÓDULOS ABSORBIDOS
+
+Si un módulo previo fue absorbido por otro módulo más general:
+
+eliminar restos técnicos del módulo anterior
+eliminar migraciones innecesarias
+eliminar rutas, modelos o controladores que ya no tengan uso
 
 ACTUALIZAR DOCUMENTACIÓN DEL PROYECTO
 

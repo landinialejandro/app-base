@@ -24,9 +24,11 @@ aislamiento automático mediante TenantScoped
 protección de rutas mediante ResolvesTenantRouteBinding
 soft delete obligatorio
 
-Estas reglas forman parte de la arquitectura base del sistema y no deben modificarse. 
+Decisiones estructurales ya consolidadas:
 
-CONTEXTO-FIJO-DEL-PROYECTO-–-ap…
+unificación del criterio real de tenant_id
+migraciones multi-tenant normalizadas a char(36)
+módulo clients eliminado en favor de parties
 
 MÓDULOS IMPLEMENTADOS
 
@@ -79,6 +81,8 @@ sistema de auditoría de cambios
 sistema de archivos y adjuntos
 
 registro de actividad de usuario
+
+evaluar unificación futura de la fuente utilizada por ResolvesTenantRouteBinding con el origen conceptual del middleware para evitar duplicación entre session('tenant_id') y app('tenant')
 
 REFACTORS
 

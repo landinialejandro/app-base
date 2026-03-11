@@ -27,6 +27,21 @@ tenant_id
 
 Todas las entidades del negocio deben pertenecer a un tenant.
 
+Fuente del tenant operativo
+
+La única fuente válida del tenant operativo es:
+
+app('tenant')
+
+No se debe utilizar directamente:
+
+auth()->user()->tenant_id
+request()->tenant_id
+
+Todas las operaciones del sistema deben resolver el tenant actual mediante:
+
+app('tenant')
+
 Acceso al tenant actual
 
 El tenant activo puede obtenerse mediante:
@@ -71,6 +86,36 @@ debe definirse manualmente con un tipo compatible con tenants.id
 antes de crear una nueva migración se debe copiar el patrón real ya utilizado en módulos existentes del proyecto
 
 Esto garantiza consistencia con la arquitectura multi-tenant real del sistema.
+
+Asignación de tenant_id en entidades
+
+Entidades padre
+
+Cuando el modelo utiliza el trait TenantScoped, tenant_id no debe asignarse manualmente en el controller.
+
+El trait se encarga automáticamente de asignarlo al crear el registro.
+
+Entidades hijas
+
+En entidades hijas dependientes de una cabecera (por ejemplo items de documentos u órdenes), tenant_id debe asignarse explícitamente desde la entidad padre en el controller.
+
+Esto evita inconsistencias cuando se crean registros en cascada.
+
+Convenciones de validación multi-tenant
+
+En validaciones que utilicen exists o validaciones de claves foráneas sensibles, siempre se debe restringir al tenant actual.
+
+Ejemplo conceptual:
+
+la validación debe garantizar que la entidad referenciada pertenece al mismo tenant activo.
+
+Esto evita referencias cruzadas entre tenants.
+
+Protección de tenant_id en modelos
+
+tenant_id no debe quedar expuesto innecesariamente en el atributo fillable de entidades hijas.
+
+La asignación de tenant_id debe realizarse de forma controlada desde el modelo o desde el controller utilizando el contexto del tenant actual.
 
 Convenciones de controladores
 
@@ -128,7 +173,11 @@ Estructura visual de páginas
 
 Todas las páginas internas deben seguir esta estructura:
 
-<x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
+<x-page>  
+<x-breadcrumb />  
+<x-page-header />  
+<x-card />  
+</x-page>
 
 Componentes Blade disponibles
 
@@ -188,6 +237,12 @@ los totales deben persistirse en la tabla padre.
 los importes de cada línea deben persistirse en la tabla de detalle como snapshot.
 
 No se debe depender únicamente de accessors calculados cuando el registro cumple una función documental o contable.
+
+Gestión de módulos reemplazados
+
+Cuando un módulo sea reemplazado por otro más general o por una entidad más adecuada, el módulo anterior debe eliminarse.
+
+No deben mantenerse módulos “obsoletos” dentro del sistema.
 
 Terminología de interfaz
 

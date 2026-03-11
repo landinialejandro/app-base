@@ -1,6 +1,8 @@
-Objetivo
+CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS – app-base
 
-Este checklist define el procedimiento estándar para crear nuevos módulos dentro del proyecto app-base.
+OBJETIVO
+
+Este documento define el procedimiento estándar para crear nuevos módulos dentro del proyecto app-base.
 
 Su finalidad es:
 
@@ -12,15 +14,13 @@ mantener coherencia en todo el sistema
 
 Este checklist aplica a todos los módulos CRUD del sistema.
 
-Evaluación de la entidad (ANTES de crear el módulo)
+EVALUACIÓN DE LA ENTIDAD (ANTES DE CREAR EL MÓDULO)
 
 Antes de crear una nueva entidad verificar:
 
-si el caso puede resolverse con la entidad parties
-
-si corresponde a una extensión de contacts en la interfaz
-
-si realmente es una entidad nueva del sistema
+si el caso puede resolverse utilizando la entidad parties
+si corresponde a una extensión funcional de parties
+si realmente es una entidad nueva del dominio del sistema
 
 Recordar:
 
@@ -30,7 +30,7 @@ Si la entidad no es necesaria en esta etapa:
 
 registrarla en TODO-DEL-PROYECTO.
 
-Crear migración
+CREAR MIGRACIÓN
 
 Crear la migración correspondiente.
 
@@ -53,61 +53,43 @@ $table->string('name');
 $table->timestamps();
 $table->softDeletes();
 
-Índices recomendados:
-
-siempre indexar tenant_id
-indexar campos utilizados en búsquedas
-
-Ejemplo:
-
-$table->index(['tenant_id','name']);
-
-Crear modelo
+CREAR MODELO
 
 Crear modelo:
 
 php artisan make:model Product
 
-El modelo debe incluir:
+El modelo debe incluir los traits:
 
-HasFactory
 TenantScoped
-SoftDeletes
 ResolvesTenantRouteBinding
+SoftDeletes
 
-Ejemplo de traits utilizados:
+Ejemplo:
 
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 use App\Models\Concerns\TenantScoped;
 use App\Models\Concerns\ResolvesTenantRouteBinding;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-Motivación:
+DEFINIR CAMPOS FILLABLE
 
-HasFactory permite generar datos de prueba
-TenantScoped garantiza aislamiento multi-tenant
-SoftDeletes permite eliminación lógica
-ResolvesTenantRouteBinding protege el acceso por URL
-
-Definir fillable.
+Definir los campos permitidos.
 
 Ejemplo:
 
 protected $fillable = [
 'tenant_id',
 'name',
-'description',
+'description'
 ];
 
-Crear controller
+CREAR CONTROLLER
 
-Crear controller tipo resource.
+Crear controlador tipo resource.
 
-Ejemplo:
+php artisan make:controller ProductController --resource
 
-php artisan make:controller ProductController
-
-El controller debe implementar:
+Métodos esperados:
 
 index
 create
@@ -117,13 +99,7 @@ edit
 update
 destroy
 
-Regla de tenant:
-
-cuando sea necesario obtener el tenant actual:
-
-$tenant = app('tenant');
-
-Definir rutas
+DEFINIR RUTAS
 
 Registrar rutas en:
 
@@ -133,12 +109,12 @@ Ejemplo:
 
 Route::resource('products', ProductController::class);
 
-Las rutas deben quedar dentro del grupo protegido por:
+Las rutas deben ejecutarse dentro de los middlewares:
 
 auth
 tenant
 
-Crear vistas
+CREAR VISTAS
 
 Crear carpeta del módulo:
 
@@ -152,40 +128,29 @@ edit.blade.php
 show.blade.php
 _form.blade.php
 
-Convención de listados (index)
+ESTRUCTURA VISUAL OBLIGATORIA
 
-Los listados deben seguir el patrón visual del sistema.
+Todas las páginas internas deben utilizar:
 
-Estructura:
+<x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
+
+PATRÓN DE LISTADOS
+
+Las vistas index deben utilizar:
 
 page.list-page
 card.list-card
 table-wrap.list-scroll
 
-Reglas del listado:
+Esto garantiza:
 
-el nombre enlaza a la vista show
-incluir botón "Nuevo"
-mostrar estados vacíos dentro de la card
+scroll interno
+layout estable
+coherencia visual
 
-Convención de show
+FORMULARIOS
 
-La vista de detalle debe incluir:
-
-editar
-eliminar
-volver al listado
-detalle de campos
-
-El botón eliminar debe utilizar:
-
-POST + method DELETE
-
-y confirmación de usuario.
-
-Convención de formularios
-
-Los formularios deben reutilizar:
+Los formularios deben reutilizar el parcial:
 
 _form.blade.php
 
@@ -194,52 +159,39 @@ Este archivo debe ser utilizado por:
 create
 edit
 
-Validación
+VALIDACIONES
 
-La validación se realiza inicialmente en el controller.
+Las validaciones deben definirse inicialmente en el controlador.
 
 Ejemplo:
 
 $request->validate([
-'name' => ['required','string','max:255'],
+'name' => ['required','string','max:255']
 ]);
 
-Si el módulo crece se puede migrar a FormRequest.
-
-Mensajes de éxito
-
-Usar mensajes simples y consistentes.
-
-Ejemplos:
-
-Entidad creada correctamente
-Entidad actualizada correctamente
-Entidad eliminada correctamente
-
-Prueba funcional mínima
+PRUEBAS FUNCIONALES MÍNIMAS
 
 Verificar funcionamiento del módulo:
 
-listado
-creación
-edición
-eliminación
+crear
+editar
+eliminar
+listar
 
-Verificación de aislamiento multi-tenant
+VERIFICACIÓN MULTI-TENANT
 
 Confirmar que:
 
-un tenant no puede ver datos de otro tenant.
+un tenant no puede acceder a datos de otro tenant.
 
 Este comportamiento es gestionado por:
 
 TenantScoped
+ResolvesTenantRouteBinding
 
-pero debe verificarse manualmente.
+DATOS DE PRUEBA (OPCIONAL)
 
-Datos de prueba
-
-Si el módulo es relevante para el sistema:
+Si el módulo es relevante:
 
 crear factory.
 
@@ -247,70 +199,28 @@ Ejemplo:
 
 php artisan make:factory ProductFactory
 
-Agregar datos al DemoSeeder.
+y agregar datos al DemoSeeder.
 
-Esto permite reconstruir el entorno con:
+ACTUALIZAR DOCUMENTACIÓN DEL PROYECTO
 
-php artisan migrate:fresh --seed
-
-Actualizar documentos del proyecto
-
-Si se crea un módulo nuevo actualizar:
+Si se crea una entidad nueva actualizar:
 
 MAPA-DE-ENTIDADES
 TODO-DEL-PROYECTO
 
-Regla de simplicidad
+REGLA DE COHERENCIA
 
-Antes de agregar:
-
-roles complejos
-subtablas
-polimorfismos
-arquitecturas complejas
-
-preguntarse:
-
-¿esto es necesario ahora?
-
-Si no lo es:
-
-registrarlo en TODO-DEL-PROYECTO.
-
-Regla de coherencia
-
-Cada módulo nuevo debe seguir el mismo patrón que:
+Todo módulo nuevo debe seguir el mismo patrón que:
 
 projects
 parties
 
-Esto garantiza coherencia en:
+REGLA FINAL
 
-estructura
-rutas
-vistas
-flujo de trabajo
-
-Flujo resumido para crear módulo
-
-evaluar entidad
-crear migración
-crear modelo
-crear controller
-definir rutas
-crear vistas
-validar funcionamiento
-probar aislamiento tenant
-actualizar documentos
-
-Regla final
-
-Si una decisión afecta a toda la arquitectura del sistema:
+Si una decisión afecta a toda la arquitectura:
 
 no improvisar.
 
 Registrar la decisión en:
 
-CONVENCIONES-DEL-PROYECTO
-
-y luego continuar el desarrollo.
+CONVENCIONES-DEL-PROYECTO.

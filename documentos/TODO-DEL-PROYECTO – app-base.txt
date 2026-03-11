@@ -1,4 +1,6 @@
-Objetivo
+TODO-DEL-PROYECTO – app-base
+
+OBJETIVO
 
 Este documento funciona como memoria operativa del proyecto.
 
@@ -9,87 +11,65 @@ mejoras futuras
 refactors necesarios
 
 No debe contener documentación extensa.
-Solo registrar elementos pendientes del sistema.
 
 ESTADO ACTUAL DEL SISTEMA
 
 Arquitectura SaaS multi-tenant implementada.
 
-Características validadas:
+Características activas:
 
-multi-tenancy por tenant_id
+multi-tenancy mediante tenant_id
 aislamiento automático mediante TenantScoped
 protección de rutas mediante ResolvesTenantRouteBinding
 soft delete obligatorio
 
-Módulos implementados:
+MÓDULOS IMPLEMENTADOS
 
 projects
 parties (contactos)
-
-Base visual implementada.
-
-Dashboard inicial disponible.
+tasks
+products
+orders
+order_items
 
 MÓDULOS PENDIENTES
 
-tasks - implementado
-products - implementado
-orders
 documents
 
-Posibles módulos futuros:
+MÓDULOS FUTUROS POSIBLES
 
 activities
 notes
 attachments
 tags
+payments
+inventory
 
 MEJORAS FUTURAS
 
-Relación opcional entre users y parties.
-
-Sistema de roles múltiples para parties.
-
-Perfiles especializados para parties.
-
-Sistema de documentos comerciales.
-
-Sistema de atributos dinámicos para entidades.
+relación opcional entre users y parties
+perfiles especializados para parties
+atributos dinámicos para entidades
+documentos comerciales genéricos
 
 MEJORAS DE INTERFAZ
 
-Aplicar el patrón de listas a todos los módulos.
-
-Evaluar ocultar IDs internos en listados.
-
-Agregar badges de estado en módulos con estados.
-
-Evaluar paginación para listados grandes.
-
-Mejorar dashboard con métricas básicas.
-
-Posible incorporación futura de sidebar.
+aplicar patrón de listas a todos los módulos
+evaluar paginación para tablas grandes
+mejorar dashboard con métricas básicas
 
 MEJORAS DE ARQUITECTURA
 
-Sistema de permisos más avanzado.
-
-Sistema de auditoría de cambios.
-
-Sistema de archivos y adjuntos.
-
-Sistema de eventos o actividad de usuario.
+sistema de permisos más avanzado
+sistema de auditoría de cambios
+sistema de archivos y adjuntos
+registro de actividad de usuario
 
 REFACTORS
 
-Revisar evolución del módulo clients hacia parties.
-
-Evaluar estructura futura de documentos.
-
-Revisar consistencia de nomenclatura en módulos futuros.
-
-Mantener simplificación del modelo mientras el sistema evoluciona.
+revisión de evolución histórica de parties
+revisión futura del modelo documents
+revisión de nomenclatura entre módulos
 
 REGLA DEL DOCUMENTO
 

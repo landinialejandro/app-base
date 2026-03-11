@@ -1,90 +1,173 @@
+BASE VISUAL DEL PROYECTO – app-base
+
 OBJETIVO
 
-Definir una base visual simple y consistente para el sistema app-base que permita desarrollar módulos con una interfaz uniforme, clara y fácil de mantener.
+Este documento define la estructura visual mínima y obligatoria del sistema.
+Su objetivo es mantener consistencia visual entre todos los módulos.
 
-ESTRUCTURA GENERAL DE PÁGINA
+ESTRUCTURA GENERAL DE UNA PANTALLA
 
-Todas las páginas internas del sistema deben seguir la siguiente estructura:
+Todas las vistas internas del sistema deben utilizar la siguiente estructura base:
 
 <x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
 
-Esta estructura establece un patrón visual uniforme para todas las pantallas del sistema.
-
 COMPONENTES DISPONIBLES
 
-Componentes Blade reutilizables para la interfaz:
+Componentes Blade reutilizables utilizados en todas las vistas.
 
 x-page
-Contenedor principal de una pantalla.
+Contenedor general de la página.
 
 x-breadcrumb
-Ruta de navegación dentro del sistema.
+Navegación contextual.
 
 x-page-header
-Encabezado de la página con título y acciones principales.
+Título de la pantalla y acciones principales.
 
 x-card
-Contenedor visual para contenido de la página.
+Contenedor visual del contenido principal.
 
-REGLAS DE LISTADOS
+ESTRUCTURA DE LISTADOS (INDEX)
 
-Las vistas de tipo listado (index) deben seguir el patrón estándar de listas.
+Los listados deben utilizar el patrón visual del sistema.
 
-Estructura recomendada:
-
-<x-page class="list-page"> <x-breadcrumb /> <x-page-header /> <x-card class="list-card"> <div class="table-wrap list-scroll"> <table class="table">
-
-Clases CSS obligatorias para listados:
+Clases utilizadas:
 
 page.list-page
 card.list-card
 table-wrap.list-scroll
 
-Características del patrón de listas:
+Ejemplo:
 
-la tabla se encuentra dentro de una card
+<x-page class="list-page">
+<x-breadcrumb />
 
-el listado utiliza scroll interno
+<x-page-header />
 
-el encabezado de la tabla permanece visible
+<x-card class="list-card">
 
-el breadcrumb y el título permanecen visibles
+    <div class="table-wrap list-scroll">
+        <table class="table">
+            ...
+        </table>
+    </div>
+
+</x-card>
+</x-page>
+
+ACCIONES EN LISTADOS
+
+Las acciones en listados deben utilizar botones compactos con iconos para reducir el ancho de las columnas.
+
+Ejemplo:
+
+Editar
+Eliminar
+
+COMPONENTES DE ICONOS
+
+Los iconos reutilizables se definen como componentes Blade.
+
+Ubicación:
+
+resources/views/components/icons/
+
+Ejemplos:
+
+x-icons.pencil
+x-icons.trash
+
+Uso en botones:
+
+<button class="btn btn-secondary btn-sm"> <x-icons.pencil /> </button> <button class="btn btn-danger btn-sm"> <x-icons.trash /> </button>
+
+OBJETIVO DE LOS ICONOS
+
+Reducir el ancho de las columnas de acciones.
+Mejorar la legibilidad de tablas.
+Permitir reutilización consistente en todo el sistema.
 
 REGLAS DE FORMULARIOS
 
 Los formularios deben reutilizar parciales.
 
-Estructura recomendada:
+Estructura:
 
 _form.blade.php
 
-Este archivo es utilizado por:
+Este archivo debe ser utilizado por:
 
 create.blade.php
 edit.blade.php
 
-Reglas generales:
+Reglas:
 
 reutilizar el mismo formulario para crear y editar
-
 agrupar campos de forma clara
-
 ubicar botones dentro de un bloque de acciones
 
 ESTADOS VACÍOS
 
-Cuando un listado no tenga registros, el mensaje debe mostrarse dentro de la card del listado.
+Cuando un listado no tenga registros el mensaje debe mostrarse dentro de la card del listado.
+
+NAVEGACIÓN SUPERIOR
+
+La navegación superior del sistema utiliza las siguientes clases:
+
+.app-nav
+.app-nav-link
+.app-nav-dropdown
+
+DROPDOWNS DE NAVEGACIÓN
+
+Los dropdowns se implementan utilizando el elemento HTML:
+
+<details>
+
+Ejemplo:
+
+<details class="app-nav-dropdown"> <summary class="app-nav-link"> Gestión </summary>
+<div class="app-nav-dropdown-menu">
+    ...
+</div>
+</details>
+
+IMPORTANTE
+
+Los dropdowns no deben usar el atributo "open" de forma persistente desde Blade.
+
+El estado abierto es controlado por interacción del usuario.
+
+COMPORTAMIENTO DEL DROPDOWN
+
+El dropdown debe:
+
+abrirse al hacer click
+cerrarse al hacer click fuera
+cerrarse al seleccionar un item
+
+Este comportamiento es gestionado por JavaScript mínimo global.
+
+JAVASCRIPT GLOBAL
+
+El sistema utiliza un archivo JS mínimo:
+
+public/js/app-base.js
+
+Este archivo controla pequeños comportamientos UI globales como:
+
+cierre de dropdowns
+interacciones simples
+comportamientos UX mínimos
 
 TERMINOLOGÍA DE INTERFAZ
 
-La interfaz del sistema debe utilizar términos orientados al usuario.
+La interfaz debe utilizar términos orientados al usuario.
 
 Equivalencias:
 
 Tenant → Empresa
 Party → Contacto
-
-La nomenclatura técnica puede mantenerse en el código, pero la interfaz debe utilizar los términos funcionales.
 
 MÓDULOS QUE DEFINEN EL PATRÓN
 
@@ -93,18 +176,13 @@ Los siguientes módulos ya utilizan esta base visual:
 projects
 parties (contactos)
 
-Los nuevos módulos deben seguir el mismo patrón visual.
-
 REGLA DE CONSISTENCIA
 
 Todos los módulos nuevos deben utilizar:
 
 la misma estructura de página
-
 los mismos componentes Blade
-
 el mismo patrón de listados
-
 las mismas reglas de formularios
 
 Esto garantiza coherencia visual en todo el sistema.

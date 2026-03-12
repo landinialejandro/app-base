@@ -1,0 +1,16 @@
+Tengo las siguientes actulizaciones de otro chat para el 
+documento [documento], 
+por favor auditalo y verifica si corresponde agregar o quitar cosas en el 
+documento actual, pero devuelveme solo el documento final para sobre escribir:
+
+
+no dudes en preguntar o solicita rinformación para poder darme la mejor
+respuesta sin trtatar de adivinar, ya tenemos el proyecto con varios modulos y
+puede ser más util pedir información que pensar en vano y optimizar el uso del tiempo.
+Siempre dame la mejor opcion para no tener que ir revisando, 
+viendo si el sieguiente es paoso es mejor o no.
+Si hay que crear archivo/s dame el comando de lilnea para generarlo o 
+si corresponde el comando artinsan
+
+En base a los que hemos visto en este chat te consulto sobre si hay que agreagr o 
+modificar algo en los documentos de referencia del proyecto

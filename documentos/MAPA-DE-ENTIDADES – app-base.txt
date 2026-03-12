@@ -102,6 +102,10 @@ tercero
 
 La diferenciación inicial se realiza mediante un campo de tipo.
 
+Dominio funcional:
+
+kind es un dominio cerrado que define el tipo de actor representado por la entidad.
+
 Campos conceptuales esperados
 
 tenant_id
@@ -133,6 +137,10 @@ tenant → projects
 party → projects
 projects → tasks
 
+Nota:
+
+projects no posee catálogo funcional propio por el momento.
+
 tasks
 
 Unidad operativa de trabajo.
@@ -146,6 +154,10 @@ project → tasks
 party → tasks
 user → tasks
 
+Dominio funcional:
+
+status es un dominio cerrado que define el estado operativo de la tarea.
+
 products
 
 Representa productos, artículos o insumos.
@@ -156,6 +168,10 @@ tenant → products
 products → orders
 products → inventory
 products → documents
+
+Dominio funcional:
+
+kind es un dominio cerrado que define la naturaleza del producto.
 
 orders
 
@@ -173,6 +189,11 @@ orders → parties
 orders → products
 orders → documents
 
+Dominios funcionales:
+
+kind define el tipo de orden
+status define el estado del proceso comercial
+
 order_items
 
 Representa el detalle de productos dentro de una orden.
@@ -187,6 +208,10 @@ Características:
 heredan el tenant desde la cabecera
 no exponen tenant_id en fillable
 la posición del ítem es responsabilidad del módulo
+
+Dominio funcional:
+
+kind reutiliza el mismo dominio definido para products.
 
 Entidades documentales
 
@@ -216,6 +241,11 @@ documents → products
 documents → projects
 documents → orders
 
+Dominios funcionales:
+
+kind define el tipo documental
+status define el estado del documento
+
 document_items
 
 Representa el detalle de líneas dentro de un documento.
@@ -229,6 +259,10 @@ Características:
 
 heredan el tenant desde la cabecera
 la eliminación de la cabecera elimina sus ítems
+
+Dominio funcional:
+
+kind reutiliza el mismo dominio definido para products.
 
 Entidades financieras futuras
 

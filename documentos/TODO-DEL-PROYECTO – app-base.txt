@@ -62,7 +62,9 @@ documentos comerciales genéricos reutilizables
 
 unificar criterio visual y funcional de confirmaciones de eliminación cuando existen registros hijos
 
-normalizar etiquetas visibles de kind y status en módulos documentales y operativos
+revisar módulos restantes para terminar de migrar a catálogos reutilizables
+
+evaluar futuro catálogo comercial de disponibilidad para products (availability o sale_status) sin mezclarlo con is_active
 
 cuando se implemente generación automática de numeración, vincular orders y documents con document_sequences y aplicar restricciones de unicidad por tenant
 
@@ -95,8 +97,6 @@ revisión futura de estructura de documents
 revisión de nomenclatura entre módulos
 
 unificación futura del patrón de definición de tenant_id entre migraciones históricas (uuid vs char(36))
-
-revisión de etiquetas amigables para enums técnicos (quote, draft, delivery_note, etc.)
 
 REGLA DEL DOCUMENTO
 

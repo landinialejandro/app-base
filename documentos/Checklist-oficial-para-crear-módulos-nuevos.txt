@@ -22,7 +22,9 @@ si realmente es una entidad nueva del dominio del sistema
 
 Recordar:
 
-parties es la entidad base del negocio.
+parties es la entidad base del negocio. 
+
+CONTEXTO-FIJO-DEL-PROYECTO-–-ap…
 
 Si la entidad no es necesaria en esta etapa:
 
@@ -40,7 +42,9 @@ si existe un patrón de definición ya validado en módulos existentes
 
 Regla:
 
-no asumir tipos por convención de Laravel si el proyecto ya utiliza otro patrón validado.
+no asumir tipos por convención de Laravel si el proyecto ya utiliza otro patrón validado. 
+
+CONVENCIONES-DEL-PROYECTO-–-app…
 
 CREAR MIGRACIÓN
 
@@ -155,6 +159,10 @@ Todas las páginas internas deben utilizar:
 
 <x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
 
+Esto garantiza consistencia visual entre módulos. 
+
+BASE-VISUAL-DEL-PROYECTO – app-…
+
 PATRÓN DE LISTADOS
 
 Las vistas index deben utilizar:
@@ -183,6 +191,26 @@ Ejemplo:
 $request->validate([
 'name' => ['required','string','max:255']
 ]);
+
+CATÁLOGOS FUNCIONALES (DOMINIOS CERRADOS)
+
+Antes de implementar campos con valores cerrados (por ejemplo status, kind, type):
+
+identificar si el módulo utiliza dominios cerrados
+centralizar esos valores en un catálogo reutilizable
+antes de crear un catálogo nuevo revisar si existe uno reutilizable en el sistema
+
+Evitar repetir strings hardcodeados en:
+
+controllers o requests
+formularios (_form)
+vistas index o show
+badges o filtros
+seeders
+
+La definición centralizada debe ser reutilizada por validaciones, formularios, badges y filtros. 
+
+CONVENCIONES-DEL-PROYECTO-–-app…
 
 REGLA PARA MÓDULOS CON CABECERA + DETALLE
 
@@ -246,7 +274,9 @@ FACTORIES Y SEEDERS
 Factories pueden crear tenants automáticamente si es necesario para pruebas aisladas.
 
 Los seeders del sistema deben utilizar tenants existentes y no crear tenants implícitos
-para evitar inconsistencias en datos de demostración.
+para evitar inconsistencias en datos de demostración. 
+
+CONTEXTO-FIJO-DEL-PROYECTO-–-ap…
 
 DATOS DE PRUEBA (OPCIONAL)
 

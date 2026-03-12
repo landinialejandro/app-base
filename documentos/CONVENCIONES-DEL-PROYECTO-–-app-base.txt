@@ -205,6 +205,12 @@ Título de página y acciones.
 x-card
 Contenedor visual de contenido.
 
+La base visual del sistema se define en el documento:
+
+BASE-VISUAL-DEL-PROYECTO – app-base. 
+
+BASE-VISUAL-DEL-PROYECTO – app-…
+
 Convención de listados
 
 Las vistas index deben utilizar el patrón de lista del sistema.
@@ -268,6 +274,10 @@ Los estados, tipos y variantes funcionales de cada módulo no deben repetirse co
 
 Cada módulo que tenga catálogos funcionales (status, kind, type, etc.) debe centralizarlos en una única fuente reutilizable.
 
+Implementación recomendada:
+
+app/Support/Catalogs
+
 Esa fuente debe ser utilizada por:
 
 validaciones
@@ -275,6 +285,10 @@ formularios
 badges
 filtros
 seeders
+
+Si un dominio funcional ya existe en otro módulo, debe reutilizarse y no duplicarse.
+
+No deben crearse catálogos nuevos si uno existente cubre el mismo dominio conceptual.
 
 Gestión de módulos reemplazados
 

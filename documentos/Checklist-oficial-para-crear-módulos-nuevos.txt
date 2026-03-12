@@ -22,7 +22,7 @@ si realmente es una entidad nueva del dominio del sistema
 
 Recordar:
 
-parties es la entidad base del negocio. 
+parties es la entidad base del negocio.
 
 Si la entidad no es necesaria en esta etapa:
 
@@ -153,11 +153,7 @@ ESTRUCTURA VISUAL OBLIGATORIA
 
 Todas las páginas internas deben utilizar:
 
-<x-page>  
-<x-breadcrumb />  
-<x-page-header />  
-<x-card />  
-</x-page>
+<x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
 
 PATRÓN DE LISTADOS
 
@@ -205,6 +201,17 @@ Reglas:
 no mezclar, salvo necesidad justificada, la creación de cabecera e ítems en un único store()
 el flujo debe permitir crear cabecera primero y luego gestionar los ítems
 
+REGLA PARA NUMERACIÓN DE DOCUMENTOS
+
+En módulos documentales u operativos (por ejemplo orders o documents) el campo:
+
+number
+
+no debe tener restricción unique a nivel global.
+
+La numeración será gestionada posteriormente mediante un sistema de secuencias
+(por ejemplo document_sequences) que permitirá numeración por tenant o por tipo de documento.
+
 PRUEBAS FUNCIONALES
 
 Verificar funcionamiento básico del módulo:
@@ -233,6 +240,13 @@ Esto debe estar garantizado mediante:
 
 TenantScoped
 ResolvesTenantRouteBinding
+
+FACTORIES Y SEEDERS
+
+Factories pueden crear tenants automáticamente si es necesario para pruebas aisladas.
+
+Los seeders del sistema deben utilizar tenants existentes y no crear tenants implícitos
+para evitar inconsistencias en datos de demostración.
 
 DATOS DE PRUEBA (OPCIONAL)
 

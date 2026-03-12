@@ -1,3 +1,7 @@
+MAPA-DE-ENTIDADES – app-base
+
+Objetivo
+
 Este documento define el mapa conceptual de entidades del proyecto app-base.
 
 Su finalidad es:
@@ -54,6 +58,25 @@ Responsabilidades:
 
 pertenencia de un usuario a uno o más tenants
 gestión futura de roles o permisos dentro del tenant
+
+Regla sobre TenantScoped
+
+El trait TenantScoped se utiliza únicamente en entidades cuyo ciclo de vida pertenece completamente a un tenant.
+
+Ejemplos de uso correcto:
+
+Product
+Order
+Document
+Branch
+Role
+Invitation
+
+No debe utilizarse en entidades del sistema como:
+
+User
+Tenant
+Membership
 
 Entidad base del negocio
 
@@ -138,12 +161,32 @@ orders
 
 Representa pedidos u órdenes comerciales.
 
+Características funcionales:
+
+representan intención comercial
+los totales se calculan dinámicamente a partir de los ítems
+
 Relaciones posibles:
 
 tenant → orders
 orders → parties
 orders → products
 orders → documents
+
+order_items
+
+Representa el detalle de productos dentro de una orden.
+
+Relaciones principales:
+
+order → order_items
+product → order_items
+
+Características:
+
+heredan el tenant desde la cabecera
+no exponen tenant_id en fillable
+la posición del ítem es responsabilidad del módulo
 
 Entidades documentales
 
@@ -160,6 +203,11 @@ orden de trabajo
 nota de crédito
 recibo
 
+Características funcionales:
+
+representan documentos formales
+los totales se persisten en la cabecera
+
 Relaciones posibles:
 
 tenant → documents
@@ -167,6 +215,20 @@ documents → parties
 documents → products
 documents → projects
 documents → orders
+
+document_items
+
+Representa el detalle de líneas dentro de un documento.
+
+Relaciones principales:
+
+document → document_items
+product → document_items
+
+Características:
+
+heredan el tenant desde la cabecera
+la eliminación de la cabecera elimina sus ítems
 
 Entidades financieras futuras
 
@@ -268,6 +330,9 @@ memberships
 parties
 projects
 tasks
+products
+orders
+order_items
 
 Regla final
 

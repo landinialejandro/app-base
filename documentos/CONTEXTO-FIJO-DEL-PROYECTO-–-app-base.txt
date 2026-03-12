@@ -84,6 +84,16 @@ WHERE tenant_id = tenant_actual
 
 Además asigna automáticamente el tenant_id al crear nuevos registros.
 
+Regla de uso del trait:
+
+TenantScoped solo debe aplicarse a modelos cuyo ciclo de vida pertenece completamente a un tenant.
+
+No debe utilizarse en entidades del sistema como:
+
+User
+Tenant
+Membership
+
 Protección de acceso por URL
 
 Las entidades empresariales utilizan el trait:
@@ -165,6 +175,30 @@ En la interfaz del sistema se utiliza el término:
 contactos
 
 El término party queda reservado al modelo técnico.
+
+Patrón de modelado cabecera / detalle
+
+Cuando un módulo represente una operación compuesta por múltiples renglones, debe modelarse preferentemente utilizando el patrón cabecera/detalle.
+
+Reglas del patrón:
+
+la cabecera representa el acto principal
+los ítems representan el detalle operativo
+los ítems heredan el tenant de la cabecera
+los ítems no exponen tenant_id en fillable
+la eliminación de la cabecera elimina sus ítems
+la posición del ítem es responsabilidad del módulo
+los importes pueden calcularse dinámicamente o persistirse según la naturaleza funcional del documento
+
+Factories y seeders
+
+En factories utilizadas para testing es válido crear tenants automáticamente, por ejemplo:
+
+tenant_id => Tenant::factory()
+
+En seeders reales del sistema el tenant normalmente se asigna explícitamente desde el seeder.
+
+No es necesario modificar este comportamiento.
 
 Estado actual del sistema
 

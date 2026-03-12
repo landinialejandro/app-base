@@ -64,6 +64,8 @@ unificar criterio visual y funcional de confirmaciones de eliminación cuando ex
 
 normalizar etiquetas visibles de kind y status en módulos documentales y operativos
 
+cuando se implemente generación automática de numeración, vincular orders y documents con document_sequences y aplicar restricciones de unicidad por tenant
+
 MEJORAS DE INTERFAZ
 
 aplicar el patrón de listas a todos los módulos

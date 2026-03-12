@@ -69,6 +69,16 @@ protege el acceso por URL.
 SoftDeletes
 permite eliminación lógica.
 
+Uso de ResolvesTenantRouteBinding
+
+Todo modelo accesible mediante route model binding que pertenezca a un tenant debe utilizar el trait:
+
+ResolvesTenantRouteBinding
+
+Esto evita acceso cruzado entre tenants mediante URLs manipuladas.
+
+La resolución efectiva del modelo debe garantizar que el registro pertenece al tenant actual.
+
 Convenciones de base de datos
 
 Todas las tablas del negocio deben incluir:
@@ -97,17 +107,23 @@ El trait se encarga automáticamente de asignarlo al crear el registro.
 
 Entidades hijas
 
-En entidades hijas dependientes de una cabecera (por ejemplo items de documentos u órdenes), tenant_id debe asignarse explícitamente desde la entidad padre en el controller.
+En entidades hijas dependientes de una cabecera (por ejemplo items de documentos u órdenes), tenant_id debe asignarse automáticamente a partir de la cabecera correspondiente.
 
-Esto evita inconsistencias cuando se crean registros en cascada.
+Regla para entidades hijas con tenant_id
+
+En entidades hijas (items de documentos, items de órdenes, etc):
+
+tenant_id existe en la tabla para facilitar índices y consultas.
+
+tenant_id NO debe exponerse en $fillable.
+
+tenant_id debe asignarse automáticamente desde la cabecera correspondiente o desde el contexto del tenant.
 
 Convenciones de validación multi-tenant
 
 En validaciones que utilicen exists o validaciones de claves foráneas sensibles, siempre se debe restringir al tenant actual.
 
-Ejemplo conceptual:
-
-la validación debe garantizar que la entidad referenciada pertenece al mismo tenant activo.
+La validación debe garantizar que la entidad referenciada pertenece al mismo tenant activo.
 
 Esto evita referencias cruzadas entre tenants.
 
@@ -173,11 +189,7 @@ Estructura visual de páginas
 
 Todas las páginas internas deben seguir esta estructura:
 
-<x-page>  
-<x-breadcrumb />  
-<x-page-header />  
-<x-card />  
-</x-page>
+<x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
 
 Componentes Blade disponibles
 
@@ -228,15 +240,41 @@ Si el usuario confirma la acción, la eliminación puede ejecutarse en cascada.
 
 No se debe obligar por defecto al usuario a eliminar manualmente cada registro hijo, salvo que el módulo requiera trazabilidad estricta.
 
-Convención para totales documentales
+Convención para cálculos de totales
 
-En entidades documentales o transaccionales donde existan registros de detalle:
+Existen dos estrategias posibles para manejar totales en el sistema:
 
-los totales deben persistirse en la tabla padre.
+Estrategia dinámica
 
-los importes de cada línea deben persistirse en la tabla de detalle como snapshot.
+Los totales se calculan dinámicamente a partir de los ítems mediante métodos del modelo (por ejemplo calculateTotal()).
 
-No se debe depender únicamente de accessors calculados cuando el registro cumple una función documental o contable.
+Esto se utiliza cuando el registro no cumple función documental.
+
+Estrategia persistida
+
+Los totales se almacenan en la tabla principal del documento.
+
+Ejemplo de campos:
+
+subtotal
+tax_total
+total
+
+Esto se utiliza cuando el registro cumple función documental o contable.
+
+Convención para catálogos funcionales
+
+Los estados, tipos y variantes funcionales de cada módulo no deben repetirse como strings sueltos en controllers, vistas, seeders o filtros.
+
+Cada módulo que tenga catálogos funcionales (status, kind, type, etc.) debe centralizarlos en una única fuente reutilizable.
+
+Esa fuente debe ser utilizada por:
+
+validaciones
+formularios
+badges
+filtros
+seeders
 
 Gestión de módulos reemplazados
 

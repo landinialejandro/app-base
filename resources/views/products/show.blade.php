@@ -1,8 +1,14 @@
+{{-- FILE: resources/views/products/show.blade.php --}}
 @extends('layouts.app')
 
 @section('title', 'Detalle del producto')
 
 @section('content')
+
+    @php
+        use App\Support\Catalogs\ProductCatalog;
+    @endphp
+
     <x-page>
 
         <x-breadcrumb :items="[
@@ -37,7 +43,7 @@
                 <div class="detail-value">{{ $product->id }}</div>
 
                 <div class="detail-label">Tipo</div>
-                <div class="detail-value">{{ $product->kind === 'service' ? 'Servicio' : 'Producto' }}</div>
+                <div class="detail-value">{{ ProductCatalog::label($product->kind) }}</div>
 
                 <div class="detail-label">Nombre</div>
                 <div class="detail-value">{{ $product->name }}</div>
@@ -60,10 +66,10 @@
                 <div class="detail-value">{{ $product->is_active ? 'Sí' : 'No' }}</div>
 
                 <div class="detail-label">Creado</div>
-                <div class="detail-value">{{ $product->created_at }}</div>
+                <div class="detail-value">{{ $product->created_at?->format('d/m/Y H:i') ?? '—' }}</div>
 
                 <div class="detail-label">Actualizado</div>
-                <div class="detail-value">{{ $product->updated_at }}</div>
+                <div class="detail-value">{{ $product->updated_at?->format('d/m/Y H:i') ?? '—' }}</div>
             </div>
         </x-card>
 

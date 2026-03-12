@@ -1,3 +1,4 @@
+{{-- FILE: resources/views/projects/create.blade.php --}}
 @extends('layouts.app')
 
 @section('title', 'Nuevo proyecto')

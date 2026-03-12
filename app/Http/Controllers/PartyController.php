@@ -1,5 +1,7 @@
 <?php
 
+// FILE: app/Http/Controllers/PartyController.php
+
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePartyRequest;

@@ -10,6 +10,7 @@ use Illuminate\Validation\Rule;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Support\Catalogs\ProductCatalog;
 
 class OrderItemController extends Controller
 {
@@ -17,7 +18,13 @@ class OrderItemController extends Controller
     {
         $products = Product::orderBy('name')->get();
 
-        return view('orders.items.create', compact('order', 'products'));
+        $item = new OrderItem([
+            'kind' => ProductCatalog::KIND_PRODUCT,
+            'quantity' => 1,
+            'unit_price' => 0,
+        ]);
+
+        return view('orders.items.create', compact('order', 'item', 'products'));
     }
 
     public function store(Request $request, Order $order)
@@ -34,7 +41,10 @@ class OrderItemController extends Controller
                 }),
             ],
             'position' => ['nullable', 'integer', 'min:1'],
-            'kind' => ['required', 'in:product,service'],
+            'kind' => [
+                'required',
+                Rule::in(ProductCatalog::kinds()),
+            ],
             'description' => ['required', 'string', 'max:255'],
             'quantity' => ['required', 'numeric', 'min:0.01'],
             'unit_price' => ['required', 'numeric', 'min:0'],
@@ -51,7 +61,6 @@ class OrderItemController extends Controller
             ->route('orders.show', $order)
             ->with('success', 'Ítem agregado correctamente.');
     }
-
 
     public function edit(Order $order, OrderItem $item)
     {
@@ -78,7 +87,10 @@ class OrderItemController extends Controller
                 }),
             ],
             'position' => ['nullable', 'integer', 'min:1'],
-            'kind' => ['required', 'in:product,service'],
+            'kind' => [
+                'required',
+                Rule::in(ProductCatalog::kinds()),
+            ],
             'description' => ['required', 'string', 'max:255'],
             'quantity' => ['required', 'numeric', 'min:0.01'],
             'unit_price' => ['required', 'numeric', 'min:0'],
@@ -90,7 +102,7 @@ class OrderItemController extends Controller
             ->route('orders.show', $order)
             ->with('success', 'Ítem actualizado correctamente.');
     }
-    
+
     public function destroy(Order $order, OrderItem $item)
     {
         abort_unless($item->order_id === $order->id, 404);

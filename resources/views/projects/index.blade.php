@@ -1,51 +1,73 @@
-{{-- FILE: resources/views/projects/index.blade.php | v2 --}}
+{{-- FILE: resources/views/products/index.blade.php | V2 --}}
 
 @extends('layouts.app')
 
-@section('title', 'Proyectos')
+@section('title', 'Productos')
 
 @section('content')
+
+    @php
+        use App\Support\Catalogs\ProductCatalog;
+    @endphp
+
     <x-page class="list-page">
+
         <x-breadcrumb :items="[
             ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Proyectos'],
+            ['label' => 'Productos'],
         ]" />
 
-        <x-page-header title="Proyectos">
-            <a href="{{ route('projects.create') }}" class="btn btn-primary">
-                Nuevo proyecto
+        <x-page-header title="Productos">
+            <a href="{{ route('products.create') }}" class="btn btn-primary">
+                Nuevo producto
             </a>
         </x-page-header>
 
         <x-card class="list-card">
-            @if ($projects->count())
+            @if ($products->count())
                 <div class="table-wrap list-scroll">
                     <table class="table">
                         <thead>
                             <tr>
                                 <th>ID</th>
                                 <th>Nombre</th>
-                                <th>Descripción</th>
+                                <th>SKU</th>
+                                <th>Precio</th>
+                                <th>Unidad</th>
+                                <th>Tipo</th>
+                                <th>Activo</th>
+                                <th>Creado</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($projects as $project)
+                            @foreach ($products as $product)
                                 <tr>
-                                    <td>{{ $project->id }}</td>
+                                    <td>{{ $product->id }}</td>
                                     <td>
-                                        <a href="{{ route('projects.show', $project) }}">
-                                            {{ $project->name }}
+                                        <a href="{{ route('products.show', $product) }}">
+                                            {{ $product->name }}
                                         </a>
                                     </td>
-                                    <td>{{ $project->description ?: '—' }}</td>
+                                    <td>{{ $product->sku ?? '—' }}</td>
+                                    <td>
+                                        {{ $product->price !== null
+                                            ? number_format((float) $product->price, 2, ',', '.')
+                                            : '—' }}
+                                    </td>
+                                    <td>{{ $product->unit_label ?? '—' }}</td>
+                                    <td>{{ ProductCatalog::label($product->kind) }}</td>
+                                    <td>{{ $product->is_active ? 'Sí' : 'No' }}</td>
+                                    <td>{{ $product->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
+                    {{ $products->links() }}
                 </div>
             @else
-                <p class="mb-0">No hay proyectos cargados.</p>
+                <p class="mb-0">No hay productos para esta empresa.</p>
             @endif
         </x-card>
+
     </x-page>
 @endsection

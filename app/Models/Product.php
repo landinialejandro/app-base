@@ -1,5 +1,7 @@
 <?php
 
+// FILE: app/Models/Product.php
+
 namespace App\Models;
 
 use App\Models\Concerns\ResolvesTenantRouteBinding;

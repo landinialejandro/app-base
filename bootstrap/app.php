@@ -1,8 +1,12 @@
 <?php
 
+// FILE: bootstrap/app.php
+
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
+use Illuminate\Session\TokenMismatchException;
+use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
     ->withRouting(
@@ -19,5 +23,16 @@ return Application::configure(basePath: dirname(__DIR__))
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
-        //
-    })->create();
+        $exceptions->render(function (TokenMismatchException $e, $request): Response {
+            if ($request->expectsJson()) {
+                return response()->json([
+                    'message' => 'La sesión ha expirado.',
+                ], 419);
+            }
+
+            return redirect()
+                ->route('login')
+                ->with('error', 'Tu sesión expiró. Inicia sesión nuevamente.');
+        });
+    })
+    ->create();

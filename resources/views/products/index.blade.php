@@ -1,10 +1,15 @@
-{{-- FILE: resources/views/products/index.blade.php | V2 --}}
+{{-- FILE: resources/views/products/index.blade.php --}}
 
 @extends('layouts.app')
 
 @section('title', 'Productos')
 
 @section('content')
+
+    @php
+        use App\Support\Catalogs\ProductCatalog;
+    @endphp
+
     <x-page class="list-page">
 
         <x-breadcrumb :items="[
@@ -36,24 +41,24 @@
                         </thead>
                         <tbody>
                             @foreach ($products as $product)
-                                        <tr>
-                                            <td>{{ $product->id }}</td>
-                                            <td>
-                                                <a href="{{ route('products.show', $product) }}">
-                                                    {{ $product->name }}
-                                                </a>
-                                            </td>
-                                            <td>{{ $product->sku ?? '—' }}</td>
-                                            <td>
-                                                {{ $product->price !== null
-                                ? number_format((float) $product->price, 2, ',', '.')
-                                : '—' }}
-                                            </td>
-                                            <td>{{ $product->unit_label ?? '—' }}</td>
-                                            <td>{{ $product->kind === 'service' ? 'Servicio' : 'Producto' }}</td>
-                                            <td>{{ $product->is_active ? 'Sí' : 'No' }}</td>
-                                            <td>{{ $product->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
-                                        </tr>
+                                <tr>
+                                    <td>{{ $product->id }}</td>
+                                    <td>
+                                        <a href="{{ route('products.show', $product) }}">
+                                            {{ $product->name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ $product->sku ?? '—' }}</td>
+                                    <td>
+                                        {{ $product->price !== null
+                                            ? number_format((float) $product->price, 2, ',', '.')
+                                            : '—' }}
+                                    </td>
+                                    <td>{{ $product->unit_label ?? '—' }}</td>
+                                    <td>{{ ProductCatalog::label($product->kind) }}</td>
+                                    <td>{{ $product->is_active ? 'Sí' : 'No' }}</td>
+                                    <td>{{ $product->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                                </tr>
                             @endforeach
                         </tbody>
                     </table>

@@ -1,5 +1,9 @@
 {{-- FILE: resources/views/tasks/_form.blade.php --}}
 
+@php
+use App\Support\Catalogs\TaskCatalog;
+@endphp
+
 <div class="form-group">
     <label for="name">Nombre</label>
     <input type="text" name="name" id="name" class="form-control" value="{{ old('name', $task->name ?? '') }}" required>
@@ -21,12 +25,14 @@
     <label for="status">Estado</label>
     <select name="status" id="status" class="form-control">
         @php
-            $currentStatus = old('status', $task->status ?? 'pending');
+            $currentStatus = old('status', $task->status ?? TaskCatalog::STATUS_PENDING);
         @endphp
-        <option value="pending" @selected($currentStatus === 'pending')>Pendiente</option>
-        <option value="in_progress" @selected($currentStatus === 'in_progress')>En progreso</option>
-        <option value="done" @selected($currentStatus === 'done')>Hecha</option>
-        <option value="cancelled" @selected($currentStatus === 'cancelled')>Cancelada</option>
+
+        @foreach (TaskCatalog::statusLabels() as $value => $label)
+            <option value="{{ $value }}" @selected($currentStatus === $value)>
+                {{ $label }}
+            </option>
+        @endforeach
     </select>
     @error('status')
         <div class="text-danger">{{ $message }}</div>

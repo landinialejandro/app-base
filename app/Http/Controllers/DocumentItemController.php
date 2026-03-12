@@ -10,6 +10,7 @@ use Illuminate\Validation\Rule;
 use App\Models\Document;
 use App\Models\DocumentItem;
 use App\Models\Product;
+use App\Support\Catalogs\ProductCatalog;
 
 class DocumentItemController extends Controller
 {
@@ -18,7 +19,7 @@ class DocumentItemController extends Controller
         $products = Product::orderBy('name')->get();
 
         $item = new DocumentItem([
-            'kind' => 'product',
+            'kind' => ProductCatalog::KIND_PRODUCT,
             'quantity' => 1,
             'unit_price' => 0,
         ]);
@@ -40,7 +41,10 @@ class DocumentItemController extends Controller
                 }),
             ],
             'position' => ['nullable', 'integer', 'min:1'],
-            'kind' => ['required', 'in:product,service'],
+            'kind' => [
+                'required',
+                Rule::in(ProductCatalog::kinds()),
+            ],
             'description' => ['required', 'string', 'max:255'],
             'quantity' => ['required', 'numeric', 'min:0.01'],
             'unit_price' => ['required', 'numeric', 'min:0'],
@@ -63,7 +67,6 @@ class DocumentItemController extends Controller
             ->route('documents.show', $document)
             ->with('success', 'Ítem agregado correctamente.');
     }
-
 
     public function edit(Document $document, DocumentItem $item)
     {
@@ -90,7 +93,10 @@ class DocumentItemController extends Controller
                 }),
             ],
             'position' => ['nullable', 'integer', 'min:1'],
-            'kind' => ['required', 'in:product,service'],
+            'kind' => [
+                'required',
+                Rule::in(ProductCatalog::kinds()),
+            ],
             'description' => ['required', 'string', 'max:255'],
             'quantity' => ['required', 'numeric', 'min:0.01'],
             'unit_price' => ['required', 'numeric', 'min:0'],
@@ -108,7 +114,6 @@ class DocumentItemController extends Controller
             ->route('documents.show', $document)
             ->with('success', 'Ítem actualizado correctamente.');
     }
-
 
     public function destroy(Document $document, DocumentItem $item)
     {

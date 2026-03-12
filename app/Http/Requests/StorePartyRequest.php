@@ -1,8 +1,12 @@
 <?php
 
+// FILE: app/Http/Requests/StorePartyRequest.php
+
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
+use App\Support\Catalogs\PartyCatalog;
 
 class StorePartyRequest extends FormRequest
 {
@@ -14,7 +18,10 @@ class StorePartyRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'kind' => ['required', 'string', 'max:50'],
+            'kind' => [
+                'required',
+                Rule::in(PartyCatalog::kinds()),
+            ],
             'name' => ['required', 'string', 'max:255'],
             'display_name' => ['nullable', 'string', 'max:255'],
             'document_type' => ['nullable', 'string', 'max:50'],

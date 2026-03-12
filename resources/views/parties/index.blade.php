@@ -5,6 +5,11 @@
 @section('title', 'Contactos')
 
 @section('content')
+
+    @php
+        use App\Support\Catalogs\PartyCatalog;
+    @endphp
+
     <x-page class="list-page">
 
         <x-breadcrumb :items="[
@@ -37,7 +42,7 @@
                             @foreach ($parties as $party)
                                 <tr>
                                     <td>{{ $party->id }}</td>
-                                    <td>{{ $party->kind ?? '—' }}</td>
+                                    <td>{{ $party->kind ? PartyCatalog::label($party->kind) : '—' }}</td>
                                     <td>
                                         <a href="{{ route('parties.show', $party) }}">
                                             {{ $party->name }}

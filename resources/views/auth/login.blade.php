@@ -1,3 +1,5 @@
+{{-- resources/views/auth/login.blade.php --}}
+
 @php($publicPage = true)
 
 @extends('layouts.app')
@@ -14,6 +16,12 @@
                 <x-page-header title="Ingresar" vertical="vertical" />
 
                 <x-card>
+
+                    @if (session('error'))
+                        <div class="alert alert-error">
+                            <p>{{ session('error') }}</p>
+                        </div>
+                    @endif
 
                     @if ($errors->any())
                         <div class="alert alert-error">

@@ -1,10 +1,14 @@
 <?php
 
+// FILE: app/Http/Controllers/ProductController.php
+
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Support\Catalogs\ProductCatalog;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 
 class ProductController extends Controller
@@ -79,7 +83,10 @@ class ProductController extends Controller
             'sku' => ['nullable', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'price' => ['nullable', 'numeric', 'min:0'],
-            'kind' => ['required', 'string', 'max:50'],
+            'kind' => [
+                'required',
+                Rule::in(ProductCatalog::kinds()),
+            ],
             'unit_label' => ['required', 'string', 'max:50'],
             'is_active' => ['nullable', 'boolean'],
         ];

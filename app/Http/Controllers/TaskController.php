@@ -10,6 +10,7 @@ use App\Models\Task;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use App\Support\Catalogs\TaskCatalog;
 
 class TaskController extends Controller
 {
@@ -21,13 +22,18 @@ class TaskController extends Controller
             ->with(['project', 'party', 'assignedUser'])
             ->orderByRaw("
             CASE
-                WHEN status = 'pending' THEN 1
-                WHEN status = 'in_progress' THEN 2
-                WHEN status = 'done' THEN 3
-                WHEN status = 'cancelled' THEN 4
+                WHEN status = ? THEN 1
+                WHEN status = ? THEN 2
+                WHEN status = ? THEN 3
+                WHEN status = ? THEN 4
                 ELSE 5
             END
-        ")
+        ", [
+                TaskCatalog::STATUS_PENDING,
+                TaskCatalog::STATUS_IN_PROGRESS,
+                TaskCatalog::STATUS_DONE,
+                TaskCatalog::STATUS_CANCELLED,
+            ])
             ->orderByRaw("
             CASE
                 WHEN due_date IS NULL THEN 1
@@ -119,7 +125,11 @@ class TaskController extends Controller
             ],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'status' => ['required', 'string', Rule::in(['pending', 'in_progress', 'done', 'cancelled'])],
+            'status' => [
+                'required',
+                'string',
+                Rule::in(TaskCatalog::statuses()),
+            ],
             'due_date' => ['nullable', 'date'],
         ]);
 
@@ -251,7 +261,11 @@ class TaskController extends Controller
             ],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
-            'status' => ['required', 'string', Rule::in(['pending', 'in_progress', 'done', 'cancelled'])],
+            'status' => [
+                'required',
+                'string',
+                Rule::in(TaskCatalog::statuses()),
+            ],
             'due_date' => ['nullable', 'date'],
         ]);
 

@@ -5,6 +5,11 @@
 @section('title', 'Tareas')
 
 @section('content')
+
+    @php
+        use App\Support\Catalogs\TaskCatalog;
+    @endphp
+
     <x-page class="list-page">
         <x-breadcrumb :items="[
             ['label' => 'Inicio', 'url' => route('dashboard')],
@@ -50,19 +55,8 @@
                                     </td>
 
                                     <td>
-                                        @php
-                                            $statusMap = [
-                                                'pending' => ['label' => 'Pendiente', 'class' => 'status-badge--pending'],
-                                                'in_progress' => ['label' => 'En progreso', 'class' => 'status-badge--in-progress'],
-                                                'done' => ['label' => 'Hecha', 'class' => 'status-badge--done'],
-                                                'cancelled' => ['label' => 'Cancelada', 'class' => 'status-badge--cancelled'],
-                                            ];
-
-                                            $statusData = $statusMap[$task->status] ?? ['label' => $task->status, 'class' => ''];
-                                        @endphp
-
-                                        <span class="status-badge {{ $statusData['class'] }}">
-                                            {{ $statusData['label'] }}
+                                        <span class="status-badge {{ TaskCatalog::badgeClass($task->status) }}">
+                                            {{ TaskCatalog::label($task->status) }}
                                         </span>
                                     </td>
 

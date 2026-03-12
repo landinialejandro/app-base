@@ -11,6 +11,8 @@ use App\Models\Document;
 use App\Models\Order;
 use App\Models\Party;
 
+use App\Support\Catalogs\DocumentCatalog;
+
 class DocumentController extends Controller
 {
     /*
@@ -40,8 +42,8 @@ class DocumentController extends Controller
         $orders = Order::latest()->get();
 
         $document = new Document([
-            'kind' => 'quote',
-            'status' => 'draft',
+            'kind' => DocumentCatalog::KIND_QUOTE,
+            'status' => DocumentCatalog::STATUS_DRAFT,
         ]);
 
         return view('documents.create', compact('document', 'parties', 'orders'));
@@ -75,9 +77,18 @@ class DocumentController extends Controller
                 }),
             ],
 
-            'kind' => ['required', 'string', 'max:50'],
+            'kind' => [
+                'required',
+                Rule::in(DocumentCatalog::kinds()),
+            ],
+
             'number' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', 'string', 'max:50'],
+
+            'status' => [
+                'required',
+                Rule::in(DocumentCatalog::statuses()),
+            ],
+
             'issued_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
         ]);
@@ -152,9 +163,18 @@ class DocumentController extends Controller
                 }),
             ],
 
-            'kind' => ['required', 'string', 'max:50'],
+            'kind' => [
+                'required',
+                Rule::in(DocumentCatalog::kinds()),
+            ],
+
             'number' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', 'string', 'max:50'],
+
+            'status' => [
+                'required',
+                Rule::in(DocumentCatalog::statuses()),
+            ],
+
             'issued_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
         ]);

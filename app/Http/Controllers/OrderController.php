@@ -10,6 +10,8 @@ use Illuminate\Validation\Rule;
 use App\Models\Order;
 use App\Models\Party;
 
+use App\Support\Catalogs\OrderCatalog;
+
 class OrderController extends Controller
 {
     /*
@@ -59,9 +61,19 @@ class OrderController extends Controller
                         ->whereNull('deleted_at');
                 }),
             ],
-            'kind' => ['required', 'in:sale,purchase,service'],
+
+            'kind' => [
+                'required',
+                Rule::in(OrderCatalog::kinds()),
+            ],
+
             'number' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', 'in:draft,confirmed,cancelled'],
+
+            'status' => [
+                'required',
+                Rule::in(OrderCatalog::statuses()),
+            ],
+
             'ordered_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
         ]);
@@ -125,9 +137,19 @@ class OrderController extends Controller
                         ->whereNull('deleted_at');
                 }),
             ],
-            'kind' => ['required', 'in:sale,purchase,service'],
+
+            'kind' => [
+                'required',
+                Rule::in(OrderCatalog::kinds()),
+            ],
+
             'number' => ['nullable', 'string', 'max:255'],
-            'status' => ['required', 'in:draft,confirmed,cancelled'],
+
+            'status' => [
+                'required',
+                Rule::in(OrderCatalog::statuses()),
+            ],
+
             'ordered_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
         ]);

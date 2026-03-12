@@ -1,4 +1,10 @@
+{{-- FILE: resources/views/products/_form.blade.php --}}
+@php
+    use App\Support\Catalogs\ProductCatalog;
+@endphp
+
 @csrf
+
 <div class="mb-3">
     <label for="kind" class="form-label">Tipo</label>
     <select
@@ -7,8 +13,12 @@
         class="form-control @error('kind') is-invalid @enderror"
         required
     >
-        <option value="product" @selected(old('kind', $product->kind ?? 'product') === 'product')>Producto</option>
-        <option value="service" @selected(old('kind', $product->kind ?? 'product') === 'service')>Servicio</option>
+        @foreach (ProductCatalog::kindLabels() as $value => $label)
+            <option value="{{ $value }}"
+                @selected(old('kind', $product->kind ?? ProductCatalog::KIND_PRODUCT) === $value)>
+                {{ $label }}
+            </option>
+        @endforeach
     </select>
     @error('kind')
         <div class="invalid-feedback">{{ $message }}</div>

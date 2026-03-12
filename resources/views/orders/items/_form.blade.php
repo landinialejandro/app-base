@@ -1,3 +1,7 @@
+@php
+    use App\Support\Catalogs\ProductCatalog;
+@endphp
+
 <div class="form-group">
     <label for="product_id" class="form-label">Producto</label>
     <select name="product_id" id="product_id" class="form-control">
@@ -26,8 +30,12 @@
 <div class="form-group">
     <label for="kind" class="form-label">Tipo</label>
     <select name="kind" id="kind" class="form-control" required>
-        <option value="product" @selected(old('kind', $item->kind ?? 'product') === 'product')>Producto</option>
-        <option value="service" @selected(old('kind', $item->kind ?? '') === 'service')>Servicio</option>
+        @foreach (ProductCatalog::kindLabels() as $value => $label)
+            <option value="{{ $value }}"
+                @selected(old('kind', $item->kind ?? ProductCatalog::KIND_PRODUCT) === $value)>
+                {{ $label }}
+            </option>
+        @endforeach
     </select>
     @error('kind')
         <div class="text-danger mt-1">{{ $message }}</div>

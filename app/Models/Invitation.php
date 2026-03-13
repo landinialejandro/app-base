@@ -1,19 +1,22 @@
 <?php
 
+// FILE: app/Models/Invitation.php
+
 namespace App\Models;
 
-use App\Models\Concerns\TenantScoped;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 class Invitation extends Model
 {
-    use TenantScoped;
-
     protected $fillable = [
         'tenant_id',
+        'type',
+        'status',
         'email',
         'token',
+        'signup_request_id',
+        'invited_by_user_id',
         'expires_at',
         'accepted_at',
         'accepted_ip',
@@ -30,5 +33,15 @@ class Invitation extends Model
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    public function signupRequest(): BelongsTo
+    {
+        return $this->belongsTo(SignupRequest::class);
+    }
+
+    public function invitedBy(): BelongsTo
+    {
+        return $this->belongsTo(User::class, 'invited_by_user_id');
     }
 }

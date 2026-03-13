@@ -13,11 +13,7 @@
 <body>
     <div class="app-shell">
         @if (!($publicPage ?? false))
-
-            @if (!($publicPage ?? false))
-                <x-layout.navbar />
-            @endif
-
+            <x-layout.navbar />
         @endif
 
         <main class="app-main">
@@ -58,6 +54,7 @@
             </footer>
         @endif
     </div>
+
     <script src="{{ asset('js/app-base.js') }}"></script>
 </body>
 

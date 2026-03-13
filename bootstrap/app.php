@@ -6,6 +6,7 @@ use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
 use Illuminate\Foundation\Configuration\Middleware;
 use Illuminate\Session\TokenMismatchException;
+use Illuminate\Support\Facades\Auth;
 use Symfony\Component\HttpFoundation\Response;
 
 return Application::configure(basePath: dirname(__DIR__))
@@ -30,9 +31,15 @@ return Application::configure(basePath: dirname(__DIR__))
                 ], 419);
             }
 
+            Auth::guard('web')->logout();
+
+            $request->session()->forget('tenant_id');
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+
             return redirect()
                 ->route('login')
-                ->with('error', 'Tu sesión expiró. Inicia sesión nuevamente.');
+                ->with('error', 'Tu sesión o el formulario expiró. Inicia sesión nuevamente.');
         });
     })
     ->create();

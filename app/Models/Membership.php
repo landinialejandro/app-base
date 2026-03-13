@@ -1,15 +1,15 @@
 <?php
 
+// FILE: app/Models/Membership.php
+
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use App\Models\Concerns\TenantScoped;
 
 class Membership extends Model
 {
-    use TenantScoped;
     protected $fillable = [
         'tenant_id',
         'user_id',
@@ -37,11 +37,9 @@ class Membership extends Model
     }
 
     public function roles(): BelongsToMany
-{
-    return $this->belongsToMany(
-        Role::class,
-        'membership_role'
-    )->withPivot('branch_id')
-     ->withTimestamps();
-}
+    {
+        return $this->belongsToMany(Role::class, 'membership_role')
+            ->withPivot('branch_id')
+            ->withTimestamps();
+    }
 }

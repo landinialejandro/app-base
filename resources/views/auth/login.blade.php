@@ -8,15 +8,11 @@
 
 @section('content')
     <x-page>
-
         <div class="welcome-page">
-
             <div style="width:400px;max-width:100%;">
-
                 <x-page-header title="Ingresar" vertical="vertical" />
 
                 <x-card>
-
                     @if (session('error'))
                         <div class="alert alert-error">
                             <p>{{ session('error') }}</p>
@@ -31,18 +27,19 @@
                         </div>
                     @endif
 
-                    <form method="POST" action="/login">
+                    <form method="POST" action="{{ route('login') }}">
                         @csrf
 
                         <div class="form-group">
-                            <label class="form-label">Email</label>
-                            <input class="form-control" name="email" type="email" value="{{ old('email') }}" required
-                                autofocus>
+                            <label class="form-label" for="email">Email</label>
+                            <input id="email" class="form-control" name="email" type="email" value="{{ old('email') }}"
+                                required autofocus autocomplete="username">
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Password</label>
-                            <input class="form-control" name="password" type="password" required>
+                            <label class="form-label" for="password">Password</label>
+                            <input id="password" class="form-control" name="password" type="password" required
+                                autocomplete="current-password">
                         </div>
 
                         <div class="form-group">
@@ -55,18 +52,9 @@
                         <button type="submit" class="btn btn-primary">
                             Entrar
                         </button>
-
                     </form>
-
-                    <p style="margin-top:var(--space-3);">
-                        <a href="/register">Crear cuenta</a>
-                    </p>
-
                 </x-card>
-
             </div>
-
         </div>
-
     </x-page>
 @endsection

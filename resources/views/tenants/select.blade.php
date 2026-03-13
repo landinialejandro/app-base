@@ -1,3 +1,5 @@
+{{-- FILE: resources/views/tenants/select.blade.php --}}
+
 @php($publicPage = true)
 
 @extends('layouts.app')
@@ -6,7 +8,6 @@
 
 @section('content')
   <x-page>
-
     <div class="welcome-page">
       <div style="width: 520px; max-width: 100%;">
 
@@ -14,7 +15,18 @@
 
         <x-card>
           @if ($tenants->isEmpty())
-            <p class="mb-0">No tenés empresas asignadas.</p>
+            <p>No tenés empresas asignadas.</p>
+            <p style="margin-top: var(--space-2);">
+              Para ingresar al sistema necesitas una invitación válida asociada a una empresa.
+              Si crees que esto es un error, contacta al administrador correspondiente.
+            </p>
+
+            <form method="POST" action="{{ route('logout') }}" style="margin-top: var(--space-3);">
+              @csrf
+              <button type="submit" class="btn btn-secondary">
+                Cerrar sesión
+              </button>
+            </form>
           @else
             <div class="tenant-list">
               @foreach ($tenants as $tenant)
@@ -33,6 +45,5 @@
 
       </div>
     </div>
-
   </x-page>
 @endsection

@@ -1,3 +1,5 @@
+{{-- FILE: resources/views/welcome.blade.php --}}
+
 @php($publicPage = true)
 
 @extends('layouts.app')
@@ -5,18 +7,12 @@
 @section('title', 'app-base')
 
 @section('content')
-
     <x-page>
-
         <div class="welcome-page">
-
             <div style="width:400px;max-width:100%;">
-
                 <x-page-header title="Panel de acceso" vertical="vertical">
-
                     @auth
-
-                        <a href="/dashboard" class="btn btn-primary">
+                        <a href="{{ route('dashboard') }}" class="btn btn-primary">
                             Ir al dashboard
                         </a>
 
@@ -26,23 +22,14 @@
                             <button type="submit" class="btn btn-secondary">
                                 Cerrar sesión
                             </button>
-
                         </form>
-
                     @else
-
-                        <a href="/login" class="btn btn-primary">
+                        <a href="{{ route('login') }}" class="btn btn-primary">
                             Ingresar
                         </a>
-
                     @endauth
-
                 </x-page-header>
-
             </div>
-
         </div>
-
     </x-page>
-
 @endsection

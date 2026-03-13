@@ -5,9 +5,9 @@
 namespace App\Models;
 
 use App\Models\Concerns\HasUuid;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
 
 class Tenant extends Model
 {
@@ -23,6 +23,7 @@ class Tenant extends Model
     protected $casts = [
         'settings' => 'array',
     ];
+
     public function branches(): HasMany
     {
         return $this->hasMany(Branch::class);
@@ -31,5 +32,10 @@ class Tenant extends Model
     public function memberships(): HasMany
     {
         return $this->hasMany(Membership::class);
+    }
+
+    public function invitations(): HasMany
+    {
+        return $this->hasMany(Invitation::class);
     }
 }

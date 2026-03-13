@@ -22,9 +22,7 @@ si realmente es una entidad nueva del dominio del sistema
 
 Recordar:
 
-parties es la entidad base del negocio. 
-
-CONTEXTO-FIJO-DEL-PROYECTO-–-ap…
+parties es la entidad base del negocio.
 
 Si la entidad no es necesaria en esta etapa:
 
@@ -42,9 +40,7 @@ si existe un patrón de definición ya validado en módulos existentes
 
 Regla:
 
-no asumir tipos por convención de Laravel si el proyecto ya utiliza otro patrón validado. 
-
-CONVENCIONES-DEL-PROYECTO-–-app…
+no asumir tipos por convención de Laravel si el proyecto ya utiliza otro patrón validado.
 
 CREAR MIGRACIÓN
 
@@ -159,9 +155,7 @@ Todas las páginas internas deben utilizar:
 
 <x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
 
-Esto garantiza consistencia visual entre módulos. 
-
-BASE-VISUAL-DEL-PROYECTO – app-…
+Esto garantiza consistencia visual entre módulos.
 
 PATRÓN DE LISTADOS
 
@@ -208,9 +202,13 @@ vistas index o show
 badges o filtros
 seeders
 
-La definición centralizada debe ser reutilizada por validaciones, formularios, badges y filtros. 
+La definición centralizada debe ser reutilizada por:
 
-CONVENCIONES-DEL-PROYECTO-–-app…
+validaciones
+formularios
+badges
+filtros
+seeders
 
 REGLA PARA MÓDULOS CON CABECERA + DETALLE
 
@@ -239,6 +237,20 @@ no debe tener restricción unique a nivel global.
 
 La numeración será gestionada posteriormente mediante un sistema de secuencias
 (por ejemplo document_sequences) que permitirá numeración por tenant o por tipo de documento.
+
+REGLA DE SEGURIDAD PARA INVITACIONES
+
+Cuando un módulo implemente mecanismos de invitación a usuarios (por ejemplo para membresías o acceso a empresas):
+
+las invitaciones deben validar la identidad del usuario antes de aplicar cambios sobre membresías o creación de tenants.
+
+Reglas:
+
+una invitación nunca debe aplicarse automáticamente sobre un usuario autenticado distinto al destinatario de la invitación
+la aceptación de la invitación debe confirmar la identidad del usuario (por ejemplo mediante email o token firmado)
+solo después de validar la identidad debe crearse o modificarse la membership correspondiente
+
+Esta regla evita que un usuario autenticado pueda consumir una invitación destinada a otro usuario.
 
 PRUEBAS FUNCIONALES
 
@@ -274,9 +286,7 @@ FACTORIES Y SEEDERS
 Factories pueden crear tenants automáticamente si es necesario para pruebas aisladas.
 
 Los seeders del sistema deben utilizar tenants existentes y no crear tenants implícitos
-para evitar inconsistencias en datos de demostración. 
-
-CONTEXTO-FIJO-DEL-PROYECTO-–-ap…
+para evitar inconsistencias en datos de demostración.
 
 DATOS DE PRUEBA (OPCIONAL)
 

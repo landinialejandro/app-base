@@ -76,6 +76,8 @@ evaluar paginación para tablas grandes
 
 mejorar dashboard con métricas básicas
 
+mejorar redirección post-login cuando se accede desde invitación
+
 MEJORAS DE ARQUITECTURA
 
 sistema de permisos más avanzado

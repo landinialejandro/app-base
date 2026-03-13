@@ -1,14 +1,16 @@
 MAPA-DE-ENTIDADES – app-base
-
 Objetivo
 
 Este documento define el mapa conceptual de entidades del proyecto app-base.
 
 Su finalidad es:
 
-visualizar la estructura del sistema
+visualizar la estructura general del sistema
+
 evitar duplicación de modelos
+
 orientar la creación de nuevos módulos
+
 mantener coherencia en el crecimiento del SaaS
 
 Criterio general de modelado
@@ -16,48 +18,228 @@ Criterio general de modelado
 El sistema distingue entre:
 
 entidades del sistema
+
 entidades del negocio
+
 entidades operativas
+
 entidades documentales
+
 entidades futuras de soporte
 
 Reglas principales:
 
 users es entidad del sistema
+
 parties es la entidad base del negocio
+
 antes de crear una entidad nueva evaluar si puede resolverse con una entidad existente
 
 Entidades del sistema
 
 Estas entidades forman el núcleo técnico del SaaS.
 
-users
+SIGNUP_REQUESTS
 
-Representa usuarios con acceso al sistema.
+Entidad que representa la solicitud pública inicial para crear una nueva empresa en el sistema.
+
+Se utiliza como etapa previa de validación manual o comercial antes de crear un tenant.
+
+Campos principales:
+
+id
+
+requested_name
+
+requested_email
+
+company_name
+
+phone_whatsapp
+
+status
+
+review_notes
+
+approved_at
+
+rejected_at
+
+approved_by
+
+created_at
+
+updated_at
+
+Notas:
+
+No crea por sí sola ni un user ni un tenant.
+
+Representa un proceso previo de validación administrativa o comercial.
+
+Puede dar origen a una o más invitations.
+
+INVITATIONS
+
+Entidad que representa una invitación formal de ingreso o vinculación al sistema.
+
+Es el mecanismo central de onboarding y alta de usuarios relevantes dentro del sistema.
+
+Campos principales:
+
+id
+
+tenant_id (nullable)
+
+type
+
+status
+
+email
+
+token
+
+signup_request_id (nullable)
+
+invited_by_user_id (nullable)
+
+expires_at
+
+accepted_at
+
+accepted_ip
+
+user_agent
+
+meta
+
+created_at
+
+updated_at
+
+Relaciones:
+
+belongsTo tenant (nullable)
+
+belongsTo signupRequest (nullable)
+
+belongsTo invitedBy user (nullable)
+
+Dominios cerrados:
+
+type
+
+owner_signup
+
+member_invite
+
+status
+
+pending
+
+accepted
+
+expired
+
+cancelled
+
+Notas importantes:
+
+tenant_id puede ser NULL cuando type = owner_signup.
+
+owner_signup se utiliza para completar el alta de una nueva empresa aprobada desde signup_requests.
+
+member_invite se utiliza para sumar un usuario a un tenant existente.
+
+No existe registro público libre en el sistema; el alta de usuarios relevantes parte desde invitations.
+
+TENANTS
+
+Entidad que representa una organización dentro del sistema.
+
+Define el aislamiento principal del modelo multi-tenant.
+
+Campos principales:
+
+id
+
+name
+
+slug
+
+settings
+
+created_at
+
+updated_at
+
+Notas importantes:
+
+id utiliza UUID (char(36)) como primary key.
+
+slug es único.
+
+Todas las relaciones hacia tenants deben utilizar CHAR(36).
+
+Esto evita incompatibilidades con migraciones que utilicen bigint por defecto.
+
+USERS
+
+Entidad que representa la identidad global del sistema.
 
 Responsabilidades:
 
 autenticación
+
+identidad única del usuario
+
 acceso al sistema
-gestión de sesión
 
-tenants
+Notas:
 
-Representa empresas dentro del SaaS.
+email es único global.
 
-Responsabilidades:
+Un mismo user puede pertenecer a muchos tenants.
 
-aislamiento lógico de datos
-contexto empresarial de operación
+Un mismo user puede ser owner de muchos tenants.
 
-memberships
+La pertenencia real no se resuelve desde users, sino desde memberships.
 
-Relaciona usuarios con empresas.
+MEMBERSHIPS
 
-Responsabilidades:
+Entidad que representa la pertenencia real entre un user y un tenant.
 
-pertenencia de un usuario a uno o más tenants
-gestión futura de roles o permisos dentro del tenant
+Es la tabla puente central del modelo multi-tenant.
+
+Campos principales:
+
+id
+
+tenant_id
+
+user_id
+
+status
+
+is_owner
+
+joined_at
+
+blocked_at
+
+blocked_reason
+
+created_at
+
+updated_at
+
+Notas:
+
+Define si un usuario pertenece o no a una empresa.
+
+Permite múltiples memberships para un mismo user en distintos tenants.
+
+Es la fuente válida de pertenencia user-tenant.
 
 Regla sobre TenantScoped
 
@@ -71,16 +253,18 @@ Document
 Branch
 Role
 Invitation
+Party
+Project
+Task
 
 No debe utilizarse en entidades del sistema como:
 
 User
 Tenant
 Membership
-
+SignupRequest
 Entidad base del negocio
-
-parties
+PARTIES
 
 Entidad general para personas u organizaciones relacionadas con el negocio.
 
@@ -95,39 +279,55 @@ contactos
 Ejemplos de uso:
 
 cliente
+
 proveedor
+
 empleado
+
 contratista
+
 tercero
 
 La diferenciación inicial se realiza mediante un campo de tipo.
 
 Dominio funcional:
 
+kind
+
 kind es un dominio cerrado que define el tipo de actor representado por la entidad.
 
-Campos conceptuales esperados
+Campos conceptuales esperados:
 
 tenant_id
+
 kind
+
 name
+
 display_name opcional
+
 document_type nullable
+
 document_number nullable
+
 tax_id nullable
+
 email nullable
+
 phone nullable
+
 address nullable
+
 notes nullable
+
 is_active
+
 timestamps
-soft deletes
+
+softDeletes
 
 Entidades operativas
-
-Representan la operación diaria del negocio.
-
-projects
+PROJECTS
 
 Agrupa trabajos o iniciativas.
 
@@ -141,7 +341,7 @@ Nota:
 
 projects no posee catálogo funcional propio por el momento.
 
-tasks
+TASKS
 
 Unidad operativa de trabajo.
 
@@ -156,9 +356,11 @@ user → tasks
 
 Dominio funcional:
 
-status es un dominio cerrado que define el estado operativo de la tarea.
+status
 
-products
+status es un dominio cerrado.
+
+PRODUCTS
 
 Representa productos, artículos o insumos.
 
@@ -171,18 +373,18 @@ products → documents
 
 Dominio funcional:
 
-kind es un dominio cerrado que define la naturaleza del producto.
-
-orders
+kind
+ORDERS
 
 Representa pedidos u órdenes comerciales.
 
-Características funcionales:
+Características:
 
 representan intención comercial
+
 los totales se calculan dinámicamente a partir de los ítems
 
-Relaciones posibles:
+Relaciones principales:
 
 tenant → orders
 orders → parties
@@ -191,12 +393,11 @@ orders → documents
 
 Dominios funcionales:
 
-kind define el tipo de orden
-status define el estado del proceso comercial
+kind
+status
+ORDER_ITEMS
 
-order_items
-
-Representa el detalle de productos dentro de una orden.
+Detalle de productos dentro de una orden.
 
 Relaciones principales:
 
@@ -205,35 +406,44 @@ product → order_items
 
 Características:
 
-heredan el tenant desde la cabecera
+heredan tenant desde la cabecera
+
 no exponen tenant_id en fillable
-la posición del ítem es responsabilidad del módulo
 
 Dominio funcional:
 
-kind reutiliza el mismo dominio definido para products.
+kind
+
+Regla importante:
+
+kind reutiliza el mismo dominio definido en products.
 
 Entidades documentales
-
-documents
+DOCUMENTS
 
 Entidad genérica para documentos comerciales u operativos.
 
-Ejemplos de documentos:
+Ejemplos:
 
 factura
+
 remito
+
 presupuesto
+
 orden de trabajo
+
 nota de crédito
+
 recibo
 
-Características funcionales:
+Características:
 
 representan documentos formales
+
 los totales se persisten en la cabecera
 
-Relaciones posibles:
+Relaciones principales:
 
 tenant → documents
 documents → parties
@@ -243,12 +453,11 @@ documents → orders
 
 Dominios funcionales:
 
-kind define el tipo documental
-status define el estado del documento
+kind
+status
+DOCUMENT_ITEMS
 
-document_items
-
-Representa el detalle de líneas dentro de un documento.
+Detalle de líneas dentro de un documento.
 
 Relaciones principales:
 
@@ -257,16 +466,20 @@ product → document_items
 
 Características:
 
-heredan el tenant desde la cabecera
-la eliminación de la cabecera elimina sus ítems
+heredan tenant desde cabecera
+
+eliminación de cabecera elimina ítems
 
 Dominio funcional:
 
-kind reutiliza el mismo dominio definido para products.
+kind
+
+Regla:
+
+kind reutiliza el mismo dominio de products.
 
 Entidades financieras futuras
-
-payments
+PAYMENTS
 
 Representa pagos o cobros asociados a documentos.
 
@@ -275,19 +488,16 @@ Relaciones posibles:
 tenant → payments
 payments → documents
 payments → parties
-
 Entidades de inventario futuras
-
-inventory
+INVENTORY
 
 Representa stock de productos.
 
-inventory_movements
+INVENTORY_MOVEMENTS
 
-Registra entradas, salidas o ajustes de stock.
+Registra movimientos de stock.
 
 Entidades futuras de soporte
-
 addresses
 attachments
 notes
@@ -296,7 +506,6 @@ permissions
 branches
 document_sequences
 party_profiles
-
 Nota importante
 
 Aunque la interfaz utiliza el término contactos, no se creará una tabla contacts.
@@ -304,29 +513,22 @@ Aunque la interfaz utiliza el término contactos, no se creará una tabla contac
 La entidad real continúa siendo:
 
 parties
-
 Relación conceptual general del sistema
-
 Núcleo SaaS
-
 users
 ↓
 memberships
 ↓
 tenants
-
 Dominio de negocio
-
 tenants
 ↓
-parties (contactos)
+parties
 ↓
 projects
 ↓
 tasks
-
 Dominio comercial
-
 tenants
 ↓
 products
@@ -334,9 +536,7 @@ products
 orders
 ↓
 documents
-
 Orden recomendado de implementación
-
 parties
 tasks
 products
@@ -345,35 +545,16 @@ documents
 payments
 inventory
 
-Regla de racionalización
-
-Antes de crear una nueva entidad base evaluar:
-
-si pertenece al sistema o al negocio
-si puede resolverse con parties
-si puede resolverse con documents
-si es realmente necesaria ahora
-
-Estado actual del sistema
-
-Entidades ya implementadas:
-
-users
-tenants
-memberships
-parties
-projects
-tasks
-products
-orders
-order_items
-
 Regla final
 
 El crecimiento del sistema debe seguir estos principios:
 
 núcleo estable
+
 entidades reutilizables
+
 especialización progresiva
+
 mínima duplicación
+
 evolución gradual del dominio.

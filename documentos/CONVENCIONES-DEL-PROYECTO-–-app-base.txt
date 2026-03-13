@@ -1,5 +1,4 @@
 CONVENCIONES-DEL-PROYECTO – app-base
-
 Objetivo
 
 Definir las convenciones técnicas y de desarrollo que deben seguir todos los módulos del proyecto app-base.
@@ -11,10 +10,15 @@ Arquitectura base
 El sistema utiliza la arquitectura estándar de Laravel basada en:
 
 Modelos Eloquent
+
 Controladores
+
 Vistas Blade
+
 Migraciones
+
 Middleware
+
 Rutas REST
 
 Multi-tenancy
@@ -41,7 +45,6 @@ request()->tenant_id
 Todas las operaciones del sistema deben resolver el tenant actual mediante:
 
 app('tenant')
-
 Acceso al tenant actual
 
 El tenant activo puede obtenerse mediante:
@@ -49,6 +52,138 @@ El tenant activo puede obtenerse mediante:
 app('tenant')
 
 Los controladores deben utilizar siempre este tenant como contexto de operación.
+
+CONVENCIONES ESPECÍFICAS DEL NÚCLEO SAAS
+
+Estas reglas describen el funcionamiento estructural del núcleo multi-tenant del sistema.
+
+1. IDENTIDAD GLOBAL
+
+users.email es único global en el sistema.
+
+No existe relación directa user -> tenant mediante un tenant_id en users.
+
+La pertenencia real entre usuario y empresa se resuelve exclusivamente mediante memberships.
+
+2. TENANTS Y CLAVES
+
+tenants.id utiliza UUID (char(36)) como primary key.
+
+Por lo tanto:
+
+Toda relación hacia tenants debe utilizar CHAR(36).
+
+No deben asumirse bigint ni foreignId() por defecto en relaciones hacia tenants.
+
+Antes de crear una migración debe verificarse el patrón real utilizado en el proyecto.
+
+3. MEMBERSHIPS
+
+memberships es la tabla puente central del modelo multi-tenant.
+
+Reglas:
+
+Un mismo user puede pertenecer a múltiples tenants.
+
+Un mismo user puede ser owner de múltiples tenants.
+
+memberships define la pertenencia real entre usuario y empresa.
+
+Importante:
+
+Membership no debe tratarse como una entidad tenant-scoped al estilo de los módulos internos.
+
+Por lo tanto:
+
+Membership no debe usar TenantScoped
+4. INVITATIONS
+
+No existe registro libre público de usuarios.
+
+Toda alta o vinculación relevante dentro del sistema debe originarse desde una invitación válida.
+
+Dominios cerrados:
+
+invitations.type
+owner_signup
+member_invite
+invitations.status
+pending
+accepted
+expired
+cancelled
+5. REGLA DE tenant_id EN INVITATIONS
+
+invitations.tenant_id puede ser NULL cuando la invitación es de tipo:
+
+owner_signup
+
+Esto permite emitir invitaciones para onboarding de nuevas empresas antes de crear el tenant real.
+
+Cuando:
+
+type = member_invite
+
+entonces:
+
+tenant_id debe existir
+
+y debe apuntar a un tenant válido.
+
+6. SIGNUP_REQUESTS
+
+signup_requests representa una solicitud pública inicial para crear una empresa en el sistema.
+
+Reglas:
+
+signup_requests no crea users ni tenants por sí sola.
+
+Su función es separar la fase comercial/manual del alta real del sistema.
+
+Una signup_request aprobada puede originar una invitation de tipo:
+
+owner_signup
+7. VALIDACIÓN DE IDENTIDAD EN INVITACIONES
+
+Una invitación nunca debe aplicarse sobre una sesión autenticada con otro email.
+
+Regla:
+
+Si existe conflicto entre el email de la invitación y la sesión activa:
+
+debe cerrarse la sesión actual
+
+debe forzarse autenticación con el email correcto
+
+Comportamiento esperado:
+
+member_invite
+
+si el email no existe, el usuario completa el alta
+
+si el email ya existe, debe pasar por login obligatorio
+
+owner_signup
+
+el flujo continúa por alta/onboarding del owner
+
+si el user ya existe, se reutiliza ese user
+
+no se debe crear un usuario duplicado
+
+8. CREACIÓN DE TENANT
+
+En el flujo:
+
+owner_signup
+
+el tenant se crea al momento de aceptar la invitación, no durante la solicitud pública.
+
+Reglas:
+
+el slug del tenant debe generarse automáticamente
+
+el sistema debe resolver posibles colisiones de slug
 
 Trait obligatorio en modelos empresariales
 
@@ -77,8 +212,6 @@ ResolvesTenantRouteBinding
 
 Esto evita acceso cruzado entre tenants mediante URLs manipuladas.
 
-La resolución efectiva del modelo debe garantizar que el registro pertenece al tenant actual.
-
 Convenciones de base de datos
 
 Todas las tablas del negocio deben incluir:
@@ -86,52 +219,34 @@ Todas las tablas del negocio deben incluir:
 tenant_id
 timestamps
 softDeletes
+Reglas para tenant_id
 
-Reglas para tenant_id:
+tenant_id no debe crearse con:
 
-tenant_id no debe crearse con foreignId('tenant_id')
+foreignId('tenant_id')
 
-debe definirse manualmente con un tipo compatible con tenants.id
-
-antes de crear una nueva migración se debe copiar el patrón real ya utilizado en módulos existentes del proyecto
-
-Esto garantiza consistencia con la arquitectura multi-tenant real del sistema.
+Debe definirse manualmente con un tipo compatible con tenants.id.
 
 Asignación de tenant_id en entidades
-
 Entidades padre
 
 Cuando el modelo utiliza el trait TenantScoped, tenant_id no debe asignarse manualmente en el controller.
 
-El trait se encarga automáticamente de asignarlo al crear el registro.
-
 Entidades hijas
 
-En entidades hijas dependientes de una cabecera (por ejemplo items de documentos u órdenes), tenant_id debe asignarse automáticamente a partir de la cabecera correspondiente.
+En entidades hijas dependientes de una cabecera:
 
-Regla para entidades hijas con tenant_id
+tenant_id existe para facilitar índices
 
-En entidades hijas (items de documentos, items de órdenes, etc):
+no debe exponerse en $fillable
 
-tenant_id existe en la tabla para facilitar índices y consultas.
-
-tenant_id NO debe exponerse en $fillable.
-
-tenant_id debe asignarse automáticamente desde la cabecera correspondiente o desde el contexto del tenant.
+debe heredarse desde la cabecera o desde el contexto del tenant
 
 Convenciones de validación multi-tenant
 
-En validaciones que utilicen exists o validaciones de claves foráneas sensibles, siempre se debe restringir al tenant actual.
-
-La validación debe garantizar que la entidad referenciada pertenece al mismo tenant activo.
+Las validaciones que utilicen exists o claves foráneas deben restringirse al tenant activo.
 
 Esto evita referencias cruzadas entre tenants.
-
-Protección de tenant_id en modelos
-
-tenant_id no debe quedar expuesto innecesariamente en el atributo fillable de entidades hijas.
-
-La asignación de tenant_id debe realizarse de forma controlada desde el modelo o desde el controller utilizando el contexto del tenant actual.
 
 Convenciones de controladores
 
@@ -146,7 +261,6 @@ show
 edit
 update
 destroy
-
 Convenciones de rutas
 
 Las rutas deben definirse en:
@@ -163,14 +277,16 @@ Las rutas deben ejecutarse dentro de los middlewares:
 
 auth
 tenant
-
 Convenciones de modelos
 
 Los modelos deben:
 
 usar Eloquent
+
 definir relaciones explícitas
+
 definir fillable o guarded correctamente
+
 utilizar los traits de multi-tenancy
 
 Convenciones de vistas
@@ -184,38 +300,23 @@ Ejemplos:
 resources/views/projects
 resources/views/parties
 resources/views/tasks
-
 Estructura visual de páginas
 
 Todas las páginas internas deben seguir esta estructura:
 
-<x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
-
+<x-page>
+    <x-breadcrumb />
+    <x-page-header />
+    <x-card />
+</x-page>
 Componentes Blade disponibles
-
 x-page
-Contenedor principal de página.
-
 x-breadcrumb
-Ruta de navegación.
-
 x-page-header
-Título de página y acciones.
-
 x-card
-Contenedor visual de contenido.
-
-La base visual del sistema se define en el documento:
-
-BASE-VISUAL-DEL-PROYECTO – app-base. 
-
-BASE-VISUAL-DEL-PROYECTO – app-…
-
 Convención de listados
 
 Las vistas index deben utilizar el patrón de lista del sistema.
-
-Estructura visual:
 
 page.list-page
 card.list-card
@@ -224,7 +325,9 @@ table-wrap.list-scroll
 Esto garantiza:
 
 scroll interno en tablas
+
 encabezado visible
+
 layout estable
 
 Convención de formularios
@@ -232,78 +335,39 @@ Convención de formularios
 Los formularios deben:
 
 utilizar parciales _form
+
 agrupar campos de forma consistente
-mostrar errores de validación cerca del campo
+
+mostrar errores cerca del campo
+
 ubicar botones dentro de form-actions
-
-Convención de entidades padre/hijo
-
-Cuando una entidad padre tenga registros hijos relevantes:
-
-la eliminación debe advertir explícitamente al usuario que existen registros relacionados.
-
-Si el usuario confirma la acción, la eliminación puede ejecutarse en cascada.
-
-No se debe obligar por defecto al usuario a eliminar manualmente cada registro hijo, salvo que el módulo requiera trazabilidad estricta.
-
-Convención para cálculos de totales
-
-Existen dos estrategias posibles para manejar totales en el sistema:
-
-Estrategia dinámica
-
-Los totales se calculan dinámicamente a partir de los ítems mediante métodos del modelo (por ejemplo calculateTotal()).
-
-Esto se utiliza cuando el registro no cumple función documental.
-
-Estrategia persistida
-
-Los totales se almacenan en la tabla principal del documento.
-
-Ejemplo de campos:
-
-subtotal
-tax_total
-total
-
-Esto se utiliza cuando el registro cumple función documental o contable.
 
 Convención para catálogos funcionales
 
-Los estados, tipos y variantes funcionales de cada módulo no deben repetirse como strings sueltos en controllers, vistas, seeders o filtros.
+Los estados, tipos y variantes funcionales del sistema no deben repetirse como strings sueltos.
 
-Cada módulo que tenga catálogos funcionales (status, kind, type, etc.) debe centralizarlos en una única fuente reutilizable.
-
-Implementación recomendada:
+La implementación recomendada es centralizar estos catálogos en:
 
 app/Support/Catalogs
 
-Esa fuente debe ser utilizada por:
-
-validaciones
-formularios
-badges
-filtros
-seeders
-
-Si un dominio funcional ya existe en otro módulo, debe reutilizarse y no duplicarse.
-
-No deben crearse catálogos nuevos si uno existente cubre el mismo dominio conceptual.
+Si un dominio ya existe en otro módulo debe reutilizarse y no duplicarse.
 
 Gestión de módulos reemplazados
 
-Cuando un módulo sea reemplazado por otro más general o por una entidad más adecuada, el módulo anterior debe eliminarse.
+Cuando un módulo sea reemplazado por otro más general:
 
-No deben mantenerse módulos “obsoletos” dentro del sistema.
+el módulo anterior debe eliminarse
+
+no deben mantenerse módulos obsoletos
 
 Terminología de interfaz
 
-La interfaz debe utilizar términos orientados al usuario.
+La interfaz utiliza términos orientados al usuario.
 
 Equivalencias:
 
 Tenant → Empresa
-Party → Contacto
+Party  → Contacto
 
 La nomenclatura técnica puede mantenerse en el código.
 
@@ -314,6 +378,7 @@ Un usuario puede pertenecer a múltiples empresas.
 Reglas:
 
 si tiene una sola empresa se accede directamente
+
 si tiene varias puede cambiar mediante selector en el header
 
 Páginas públicas
@@ -323,14 +388,16 @@ Algunas páginas no utilizan el layout completo.
 Ejemplos:
 
 welcome
+
 login
+
 register
+
 selección de empresa
 
 Estas páginas utilizan:
 
 $publicPage = true
-
 Principios generales
 
 Simplicidad
@@ -344,11 +411,3 @@ Permitir evolución futura del sistema.
 
 Claridad
 El código debe ser fácil de entender y mantener.
-
-Regla de decisiones arquitectónicas
-
-Si durante el desarrollo aparece una decisión que afectará a todo el sistema:
-
-no improvisar.
-
-Registrar la decisión en este documento antes de continuar.

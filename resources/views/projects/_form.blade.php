@@ -1,95 +1,19 @@
 {{-- FILE: resources/views/projects/_form.blade.php --}}
-@php
-    use App\Support\Catalogs\ProductCatalog;
-@endphp
 
-@csrf
-
-<div class="mb-3">
-    <label for="kind" class="form-label">Tipo</label>
-    <select
-        id="kind"
-        name="kind"
-        class="form-control @error('kind') is-invalid @enderror"
-        required
-    >
-        @foreach (ProductCatalog::kindLabels() as $value => $label)
-            <option value="{{ $value }}"
-                @selected(old('kind', $product->kind ?? ProductCatalog::KIND_PRODUCT) === $value)>
-                {{ $label }}
-            </option>
-        @endforeach
-    </select>
-    @error('kind')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
-</div>
-
-<div class="mb-3">
-    <label for="name" class="form-label">Nombre</label>
-    <input type="text" id="name" name="name" class="form-control @error('name') is-invalid @enderror"
-        value="{{ old('name', $product->name ?? '') }}" required>
+<div class="form-group">
+    <label class="form-label" for="name">Nombre</label>
+    <input id="name" class="form-control @error('name') is-invalid @enderror" name="name" type="text"
+        value="{{ old('name', $project->name ?? '') }}" required>
     @error('name')
         <div class="invalid-feedback">{{ $message }}</div>
     @enderror
 </div>
 
-<div class="mb-3">
-    <label for="sku" class="form-label">SKU</label>
-    <input type="text" id="sku" name="sku" class="form-control @error('sku') is-invalid @enderror"
-        value="{{ old('sku', $product->sku ?? '') }}">
-    @error('sku')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
-</div>
-
-<div class="mb-3">
-    <label for="price" class="form-label">Precio</label>
-    <input type="number" step="0.01" min="0" id="price" name="price"
-        class="form-control @error('price') is-invalid @enderror"
-        value="{{ old('price', isset($product) && $product->price !== null ? $product->price : '') }}">
-    @error('price')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
-</div>
-
-<div class="mb-3">
-    <label for="unit_label" class="form-label">Unidad</label>
-    <input
-        type="text"
-        id="unit_label"
-        name="unit_label"
-        class="form-control @error('unit_label') is-invalid @enderror"
-        value="{{ old('unit_label', $product->unit_label ?? 'unidad') }}"
-        required
-    >
-    @error('unit_label')
-        <div class="invalid-feedback">{{ $message }}</div>
-    @enderror
-</div>
-
-<div class="mb-3">
-    <label for="description" class="form-label">Descripción</label>
-    <textarea id="description" name="description" rows="4"
-        class="form-control @error('description') is-invalid @enderror">{{ old('description', $product->description ?? '') }}</textarea>
+<div class="form-group">
+    <label class="form-label" for="description">Descripción</label>
+    <textarea id="description" class="form-control @error('description') is-invalid @enderror" name="description"
+        rows="5">{{ old('description', $project->description ?? '') }}</textarea>
     @error('description')
         <div class="invalid-feedback">{{ $message }}</div>
     @enderror
-</div>
-
-<div class="mb-3">
-    <label class="form-label d-block">Estado</label>
-
-    <div class="form-check">
-        <input class="form-check-input" type="checkbox" id="is_active" name="is_active" value="1"
-            @checked(old('is_active', $product->is_active ?? true))>
-        <label class="form-check-label" for="is_active">
-            Activo
-        </label>
-    </div>
-</div>
-
-<div class="form-actions d-flex gap-2">
-    <button type="submit" class="btn btn-primary">Guardar</button>
-    <a href="{{ route('products.index') }}" class="btn btn-secondary">Cancelar</a>
 </div>

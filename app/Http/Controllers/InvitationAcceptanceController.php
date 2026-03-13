@@ -23,7 +23,11 @@ class InvitationAcceptanceController extends Controller
             ->where('token', $token)
             ->firstOrFail();
 
-        $emailExists = User::where('email', $invitation->email)->exists();
+        $existingUser = User::query()
+            ->where('email', $invitation->email)
+            ->first();
+
+        $emailExists = (bool) $existingUser;
 
         if ($invitation->accepted_at || $invitation->status === 'accepted') {
             return view('invitations.show', [
@@ -45,21 +49,26 @@ class InvitationAcceptanceController extends Controller
             ]);
         }
 
-        $prefillUser = $emailExists
-            ? User::query()->where('email', $invitation->email)->first()
-            : null;
-
-        $mustLogin = $invitation->type === 'member_invite' && $emailExists;
-
-        if ($mustLogin && Auth::check() && Auth::user()->email !== $invitation->email) {
+        if ($emailExists && Auth::check() && Auth::user()->email !== $invitation->email) {
             Auth::guard('web')->logout();
             $request->session()->forget('tenant_id');
             $request->session()->invalidate();
             $request->session()->regenerateToken();
 
+            $request->session()->put('invitation_accept_url', route('invitation.accept.show', $invitation->token));
+
             return redirect()
-                ->route('invitation.accept.show', $invitation->token)
+                ->route('login')
                 ->with('error', 'Se cerró la sesión activa. Inicia sesión con el email invitado para continuar.');
+        }
+
+        $mustLogin = $emailExists && !Auth::check();
+
+        if ($mustLogin) {
+            $request->session()->put(
+                'invitation_accept_url',
+                route('invitation.accept.show', $invitation->token)
+            );
         }
 
         return view('invitations.show', [
@@ -67,7 +76,7 @@ class InvitationAcceptanceController extends Controller
             'state' => 'valid',
             'emailExists' => $emailExists,
             'mustLogin' => $mustLogin,
-            'prefillUser' => $prefillUser,
+            'prefillUser' => $existingUser,
         ]);
     }
 
@@ -95,10 +104,28 @@ class InvitationAcceptanceController extends Controller
             ->first();
 
         if ($invitation->type === 'member_invite') {
+            if (!$invitation->tenant_id) {
+                return redirect()
+                    ->route('invitation.accept.show', $invitation->token)
+                    ->with('error', 'La invitación de miembro no tiene tenant asociado.');
+            }
+
             return $this->handleMemberInvite($request, $invitation, $existingUser);
         }
 
         if ($invitation->type === 'owner_signup') {
+            if (!$invitation->signup_request_id) {
+                return redirect()
+                    ->route('invitation.accept.show', $invitation->token)
+                    ->with('error', 'La invitación de owner no tiene solicitud asociada.');
+            }
+
+            if (is_null($invitation->accepted_at) && !is_null($invitation->tenant_id)) {
+                return redirect()
+                    ->route('invitation.accept.show', $invitation->token)
+                    ->with('error', 'La invitación owner tiene un tenant asignado antes de ser aceptada.');
+            }
+
             return $this->handleOwnerSignup($request, $invitation, $existingUser);
         }
 
@@ -111,6 +138,8 @@ class InvitationAcceptanceController extends Controller
     {
         if ($existingUser) {
             if (!Auth::check()) {
+                $request->session()->put('invitation_accept_url', route('invitation.accept.show', $invitation->token));
+
                 return redirect()
                     ->route('login')
                     ->with('error', 'Inicia sesión con el email invitado para continuar.');
@@ -121,6 +150,8 @@ class InvitationAcceptanceController extends Controller
                 $request->session()->forget('tenant_id');
                 $request->session()->invalidate();
                 $request->session()->regenerateToken();
+
+                $request->session()->put('invitation_accept_url', route('invitation.accept.show', $invitation->token));
 
                 return redirect()
                     ->route('login')
@@ -161,42 +192,42 @@ class InvitationAcceptanceController extends Controller
 
     protected function handleOwnerSignup(Request $request, Invitation $invitation, ?User $existingUser)
     {
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-            'password' => ['nullable', 'confirmed', 'min:8'],
-        ]);
+        if ($existingUser) {
+            if (!Auth::check()) {
+                $request->session()->put('invitation_accept_url', route('invitation.accept.show', $invitation->token));
 
-        if ($existingUser && Auth::check() && Auth::user()->email !== $invitation->email) {
-            Auth::guard('web')->logout();
-            $request->session()->forget('tenant_id');
-            $request->session()->invalidate();
-            $request->session()->regenerateToken();
+                return redirect()
+                    ->route('login')
+                    ->with('error', 'Inicia sesión con el email invitado para completar el alta de la nueva empresa.');
+            }
 
-            return redirect()
-                ->route('invitation.accept.show', $invitation->token)
-                ->with('error', 'Se cerró la sesión activa. Continúa con el email asociado a la invitación.');
-        }
+            if (Auth::user()->email !== $invitation->email) {
+                Auth::guard('web')->logout();
+                $request->session()->forget('tenant_id');
+                $request->session()->invalidate();
+                $request->session()->regenerateToken();
 
-        if ($existingUser && !Auth::check()) {
-            return redirect()
-                ->route('login')
-                ->with('error', 'Inicia sesión con el email invitado para completar el alta de la nueva empresa.');
-        }
+                $request->session()->put('invitation_accept_url', route('invitation.accept.show', $invitation->token));
 
-        if ($existingUser && Auth::user()->email !== $invitation->email) {
-            return redirect()
-                ->route('invitation.accept.show', $invitation->token)
-                ->with('error', 'Debes iniciar sesión con el email asociado a la invitación.');
+                return redirect()
+                    ->route('login')
+                    ->with('error', 'Debes iniciar sesión con el email asociado a la invitación.');
+            }
+
+            $data = $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+            ]);
+        } else {
+            $data = $request->validate([
+                'name' => ['required', 'string', 'max:255'],
+                'password' => ['required', 'confirmed', 'min:8'],
+            ]);
         }
 
         $user = DB::transaction(function () use ($invitation, $existingUser, $data, $request) {
             $user = $existingUser;
 
             if (!$user) {
-                if (empty($data['password'])) {
-                    abort(422, 'Debes definir una contraseña para crear la cuenta.');
-                }
-
                 $user = User::create([
                     'name' => $data['name'],
                     'email' => $invitation->email,
@@ -257,6 +288,14 @@ class InvitationAcceptanceController extends Controller
 
     protected function createTenantForOwnerInvitation(Invitation $invitation): Tenant
     {
+        if ($invitation->tenant_id) {
+            $tenant = Tenant::query()->find($invitation->tenant_id);
+
+            if ($tenant) {
+                return $tenant;
+            }
+        }
+
         $signupRequest = $invitation->signupRequest;
 
         if (!$signupRequest) {

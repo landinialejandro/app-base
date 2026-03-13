@@ -28,7 +28,7 @@ return new class extends Migration
             $table->foreign('tenant_id')
                 ->references('id')
                 ->on('tenants')
-                ->nullOnDelete();
+                ->cascadeOnDelete();
         });
     }
 

@@ -11,6 +11,16 @@ class LoginResponse implements LoginResponseContract
 {
     public function toResponse($request)
     {
+        $invitationUrl = $request->session()->pull('invitation_accept_url');
+
+        if ($invitationUrl) {
+            return redirect()->to($invitationUrl);
+        }
+
+        if ($request->session()->has('url.intended')) {
+            return redirect()->intended();
+        }
+
         $user = Auth::user();
 
         $tenantsCount = $user->tenants()->count();

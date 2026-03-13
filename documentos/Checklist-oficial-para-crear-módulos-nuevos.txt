@@ -192,7 +192,8 @@ Antes de implementar campos con valores cerrados (por ejemplo status, kind, type
 
 identificar si el módulo utiliza dominios cerrados
 centralizar esos valores en un catálogo reutilizable
-antes de crear un catálogo nuevo revisar si existe uno reutilizable en el sistema
+
+antes de crear un catálogo nuevo revisar si existe uno reutilizable en el sistema.
 
 Evitar repetir strings hardcodeados en:
 
@@ -247,10 +248,17 @@ las invitaciones deben validar la identidad del usuario antes de aplicar cambios
 Reglas:
 
 una invitación nunca debe aplicarse automáticamente sobre un usuario autenticado distinto al destinatario de la invitación
+
 la aceptación de la invitación debe confirmar la identidad del usuario (por ejemplo mediante email o token firmado)
+
 solo después de validar la identidad debe crearse o modificarse la membership correspondiente
 
-Esta regla evita que un usuario autenticado pueda consumir una invitación destinada a otro usuario.
+si la invitación corresponde a un usuario que ya existe y el flujo requiere login:
+
+el sistema debe redirigir nuevamente a la invitación pendiente después del login
+y no al dashboard ni al selector genérico de tenant
+
+esto garantiza que el usuario continúe el flujo correcto de aceptación de la invitación.
 
 PRUEBAS FUNCIONALES
 

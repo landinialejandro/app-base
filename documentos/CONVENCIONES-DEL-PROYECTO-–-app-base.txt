@@ -10,15 +10,10 @@ Arquitectura base
 El sistema utiliza la arquitectura estándar de Laravel basada en:
 
 Modelos Eloquent
-
 Controladores
-
 Vistas Blade
-
 Migraciones
-
 Middleware
-
 Rutas REST
 
 Multi-tenancy
@@ -45,6 +40,7 @@ request()->tenant_id
 Todas las operaciones del sistema deben resolver el tenant actual mediante:
 
 app('tenant')
+
 Acceso al tenant actual
 
 El tenant activo puede obtenerse mediante:
@@ -96,6 +92,7 @@ Membership no debe tratarse como una entidad tenant-scoped al estilo de los mód
 Por lo tanto:
 
 Membership no debe usar TenantScoped
+
 4. INVITATIONS
 
 No existe registro libre público de usuarios.
@@ -105,13 +102,17 @@ Toda alta o vinculación relevante dentro del sistema debe originarse desde una 
 Dominios cerrados:
 
 invitations.type
+
 owner_signup
 member_invite
+
 invitations.status
+
 pending
 accepted
 expired
 cancelled
+
 5. REGLA DE tenant_id EN INVITATIONS
 
 invitations.tenant_id puede ser NULL cuando la invitación es de tipo:
@@ -143,6 +144,7 @@ Su función es separar la fase comercial/manual del alta real del sistema.
 Una signup_request aprobada puede originar una invitation de tipo:
 
 owner_signup
+
 7. VALIDACIÓN DE IDENTIDAD EN INVITACIONES
 
 Una invitación nunca debe aplicarse sobre una sesión autenticada con otro email.
@@ -152,7 +154,6 @@ Regla:
 Si existe conflicto entre el email de la invitación y la sesión activa:
 
 debe cerrarse la sesión actual
-
 debe forzarse autenticación con el email correcto
 
 Comportamiento esperado:
@@ -170,6 +171,28 @@ el flujo continúa por alta/onboarding del owner
 si el user ya existe, se reutiliza ese user
 
 no se debe crear un usuario duplicado
+
+Regla de reanudación del flujo de invitación
+
+Cuando una invitación requiere autenticación (por ejemplo porque el usuario ya existe):
+
+el sistema debe redirigir al usuario al flujo original de la invitación inmediatamente después del login.
+
+La redirección posterior al login no debe utilizar la redirección estándar del sistema (dashboard o selector de empresa).
+
+El flujo correcto debe ser:
+
+login requerido
+↓
+autenticación exitosa
+↓
+reanudar aceptación de la invitación pendiente
+
+Esto garantiza que:
+
+la invitación no se pierda
+el usuario complete el flujo correcto
+no se generen inconsistencias en memberships o creación de tenants.
 
 8. CREACIÓN DE TENANT
 
@@ -219,6 +242,7 @@ Todas las tablas del negocio deben incluir:
 tenant_id
 timestamps
 softDeletes
+
 Reglas para tenant_id
 
 tenant_id no debe crearse con:
@@ -261,6 +285,7 @@ show
 edit
 update
 destroy
+
 Convenciones de rutas
 
 Las rutas deben definirse en:
@@ -277,6 +302,7 @@ Las rutas deben ejecutarse dentro de los middlewares:
 
 auth
 tenant
+
 Convenciones de modelos
 
 Los modelos deben:
@@ -300,20 +326,19 @@ Ejemplos:
 resources/views/projects
 resources/views/parties
 resources/views/tasks
+
 Estructura visual de páginas
 
 Todas las páginas internas deben seguir esta estructura:
 
-<x-page>
-    <x-breadcrumb />
-    <x-page-header />
-    <x-card />
-</x-page>
+<x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
 Componentes Blade disponibles
+
 x-page
 x-breadcrumb
 x-page-header
 x-card
+
 Convención de listados
 
 Las vistas index deben utilizar el patrón de lista del sistema.
@@ -325,9 +350,7 @@ table-wrap.list-scroll
 Esto garantiza:
 
 scroll interno en tablas
-
 encabezado visible
-
 layout estable
 
 Convención de formularios
@@ -367,7 +390,7 @@ La interfaz utiliza términos orientados al usuario.
 Equivalencias:
 
 Tenant → Empresa
-Party  → Contacto
+Party → Contacto
 
 La nomenclatura técnica puede mantenerse en el código.
 
@@ -388,16 +411,14 @@ Algunas páginas no utilizan el layout completo.
 Ejemplos:
 
 welcome
-
 login
-
 register
-
 selección de empresa
 
 Estas páginas utilizan:
 
 $publicPage = true
+
 Principios generales
 
 Simplicidad

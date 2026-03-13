@@ -1,5 +1,7 @@
 <?php
 
+// FILE: app/View/Components/Layout/Navbar.php
+
 namespace App\View\Components\Layout;
 
 use Closure;
@@ -15,16 +17,6 @@ class Navbar extends Component
     {
         $this->mainLinks = [
             [
-                'label' => 'Inicio',
-                'route' => 'dashboard',
-                'active' => ['dashboard'],
-            ],
-            [
-                'label' => 'Proyectos',
-                'route' => 'projects.index',
-                'active' => ['projects.*'],
-            ],
-            [
                 'label' => 'Tareas',
                 'route' => 'tasks.index',
                 'active' => ['tasks.*'],
@@ -38,6 +30,11 @@ class Navbar extends Component
 
         $this->managementLinks = [
             [
+                'label' => 'Proyectos',
+                'route' => 'projects.index',
+                'active' => ['projects.*'],
+            ],
+            [
                 'label' => 'Productos',
                 'route' => 'products.index',
                 'active' => ['products.*'],
@@ -46,6 +43,11 @@ class Navbar extends Component
                 'label' => 'Órdenes',
                 'route' => 'orders.index',
                 'active' => ['orders.*', 'orders.items.*'],
+            ],
+            [
+                'label' => 'Documentos',
+                'route' => 'documents.index',
+                'active' => ['documents.*'],
             ],
         ];
     }

@@ -6,6 +6,8 @@ use Illuminate\Support\Facades\Route;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 use App\Http\Controllers\InvitationAcceptanceController;
 use App\Http\Controllers\DashboardController;
@@ -73,6 +75,45 @@ Route::post('/accept-invitation/{token}', [InvitationAcceptanceController::class
     ->name('invitation.accept.store');
 
 Route::middleware(['auth', 'tenant'])->group(function () {
+
+    Route::view('/profile', 'profile.show')->name('profile.show');
+
+    Route::get('/tenant/profile', function () {
+        $tenant = app('tenant');
+
+        $membership = auth()->user()
+            ->memberships()
+            ->where('tenant_id', $tenant->id)
+            ->first();
+
+        abort_unless($membership?->is_owner, 403);
+
+        return view('tenants.profile', [
+            'tenant' => $tenant,
+        ]);
+    })->name('tenant.profile.show');
+
+    Route::put('/tenant/profile', function (Request $request) {
+        $tenant = app('tenant');
+
+        $membership = auth()->user()
+            ->memberships()
+            ->where('tenant_id', $tenant->id)
+            ->first();
+
+        abort_unless($membership?->is_owner, 403);
+
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
+        ]);
+
+        $tenant->update($data);
+
+        return redirect()
+            ->route('tenant.profile.show')
+            ->with('success', 'Perfil de empresa actualizado correctamente.');
+    })->name('tenant.profile.update');
+
     Route::resource('projects', ProjectController::class);
 
     Route::resource('parties', PartyController::class);

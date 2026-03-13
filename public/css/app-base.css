@@ -292,6 +292,123 @@ a:hover {
     flex: 1;
 }
 
+/* =========================================================
+   Header - menú de usuario
+   Dropdown de acciones del usuario autenticado
+   ========================================================= */
+
+.app-user-dropdown {
+    position: relative;
+}
+
+.app-user-dropdown summary {
+    list-style: none;
+    cursor: pointer;
+}
+
+.app-user-dropdown summary::-webkit-details-marker {
+    display: none;
+}
+
+.app-user-trigger {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    min-height: 42px;
+    padding: 0.45rem 0.8rem;
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    background: var(--color-surface);
+    color: var(--color-text);
+}
+
+.app-user-trigger:hover {
+    background: #f9fafb;
+}
+
+.app-user-trigger-text {
+    display: flex;
+    flex-direction: column;
+    line-height: 1.15;
+    text-align: left;
+}
+
+.app-user-trigger-label {
+    font-size: 0.72rem;
+    color: var(--color-muted);
+}
+
+.app-user-trigger-name {
+    font-size: 0.92rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.app-user-dropdown-menu {
+    position: absolute;
+    top: calc(100% + 0.45rem);
+    right: 0;
+    min-width: 220px;
+    background: var(--color-surface);
+    border: 1px solid var(--color-border);
+    border-radius: 0.75rem;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.10);
+    padding: 0.4rem;
+    display: none;
+    z-index: 100;
+}
+
+.app-user-dropdown[open] .app-user-dropdown-menu {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.app-user-dropdown-link,
+.app-user-dropdown-button {
+    display: block;
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 0;
+    border-radius: 0.5rem;
+    background: transparent;
+    color: var(--color-text);
+    text-align: left;
+    text-decoration: none;
+    font: inherit;
+    cursor: pointer;
+}
+
+.app-user-dropdown-link:hover,
+.app-user-dropdown-button:hover {
+    background: var(--color-bg);
+    text-decoration: none;
+}
+
+.app-user-dropdown-link.is-active {
+    background: rgba(37, 99, 235, 0.10);
+    color: var(--color-primary);
+    font-weight: 600;
+}
+
+.app-user-dropdown-divider {
+    height: 1px;
+    margin: 0.25rem 0;
+    background: var(--color-border);
+}
+
+.tenant-settings-json {
+    margin: 0;
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: #f8fafc;
+    white-space: pre-wrap;
+    word-break: break-word;
+    font-size: 0.85rem;
+    line-height: 1.4;
+}
+
 
 /* =========================================================
    5. Estructura de página
@@ -662,9 +779,20 @@ textarea.form-control {
     flex-wrap: wrap;
 }
 
+.dashboard-section-header {
+    margin-bottom: var(--space-4);
+}
+
 .dashboard-section-title {
-    margin: 0 0 var(--space-4);
-    font-size: 1.1rem;
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.2;
+}
+
+.dashboard-section-text {
+    margin: var(--space-1) 0 0;
+    color: var(--color-muted);
+    font-size: 0.9rem;
 }
 
 .dashboard-grid {
@@ -683,6 +811,7 @@ textarea.form-control {
     background: #fff;
     color: var(--color-text);
     text-decoration: none;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
 }
 
 .dashboard-link-card:hover {
@@ -692,22 +821,25 @@ textarea.form-control {
 }
 
 .dashboard-link-title {
-    font-weight: 700;
+    font-weight: 600;
+    font-size: 0.98rem;
+    line-height: 1.2;
 }
 
 .dashboard-link-text {
     color: var(--color-muted);
-    font-size: 0.95rem;
+    font-size: 0.92rem;
 }
 
 .dashboard-link-meta {
     color: #9ca3af;
-    font-size: 0.82rem;
+    font-size: 0.8rem;
+    font-weight: 500;
 }
 
 .dashboard-tenant-summary {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     justify-content: space-between;
     gap: var(--space-4);
     flex-wrap: wrap;
@@ -720,19 +852,22 @@ textarea.form-control {
 }
 
 .dashboard-tenant-label {
-    font-size: 0.85rem;
+    font-size: 0.8rem;
     color: var(--color-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
 }
 
 .dashboard-tenant-name {
     margin: 0;
-    font-size: 1.4rem;
+    font-size: 1.2rem;
     line-height: 1.2;
+    font-weight: 600;
 }
 
 .dashboard-tenant-slug {
     margin: 0;
-    font-size: 0.9rem;
+    font-size: 0.88rem;
     color: var(--color-muted);
 }
 
@@ -745,13 +880,14 @@ textarea.form-control {
 .dashboard-tenant-stat {
     display: inline-flex;
     align-items: center;
-    padding: 0.4rem 0.75rem;
+    padding: 0.3rem 0.65rem;
     border: 1px solid var(--color-border);
     border-radius: 999px;
     background: #f9fafb;
-    color: var(--color-muted);
-    font-size: 0.82rem;
-    font-weight: 600;
+    color: #9ca3af;
+    font-size: 0.76rem;
+    font-weight: 500;
+    line-height: 1.2;
 }
 
 /* =========================================================

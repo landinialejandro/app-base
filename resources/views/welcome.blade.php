@@ -9,7 +9,7 @@
 @section('content')
     <x-page>
         <div class="welcome-page">
-            <div style="width:400px;max-width:100%;">
+            <div class="public-panel public-panel--sm">
                 <x-page-header title="Panel de acceso" vertical="vertical">
                     @auth
                         <a href="{{ route('dashboard') }}" class="btn btn-primary">

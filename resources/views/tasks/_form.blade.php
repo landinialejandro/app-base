@@ -1,28 +1,28 @@
 {{-- FILE: resources/views/tasks/_form.blade.php --}}
 
 @php
-use App\Support\Catalogs\TaskCatalog;
+    use App\Support\Catalogs\TaskCatalog;
 @endphp
 
 <div class="form-group">
-    <label for="name">Nombre</label>
+    <label for="name" class="form-label">Nombre</label>
     <input type="text" name="name" id="name" class="form-control" value="{{ old('name', $task->name ?? '') }}" required>
     @error('name')
-        <div class="text-danger">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
 <div class="form-group">
-    <label for="description">Descripción</label>
+    <label for="description" class="form-label">Descripción</label>
     <textarea name="description" id="description" class="form-control"
         rows="4">{{ old('description', $task->description ?? '') }}</textarea>
     @error('description')
-        <div class="text-danger">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
 <div class="form-group">
-    <label for="status">Estado</label>
+    <label for="status" class="form-label">Estado</label>
     <select name="status" id="status" class="form-control">
         @php
             $currentStatus = old('status', $task->status ?? TaskCatalog::STATUS_PENDING);
@@ -35,7 +35,7 @@ use App\Support\Catalogs\TaskCatalog;
         @endforeach
     </select>
     @error('status')
-        <div class="text-danger">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
@@ -47,16 +47,16 @@ use App\Support\Catalogs\TaskCatalog;
 
 @if ($lockedProject)
     <div class="form-group">
-        <label>Proyecto</label>
+        <label class="form-label">Proyecto</label>
         <input type="text" class="form-control" value="{{ $lockedProjectName }}" disabled>
         <input type="hidden" name="project_id" value="{{ $lockedProjectId }}">
         @error('project_id')
-            <div class="text-danger">{{ $message }}</div>
+            <div class="form-help is-error">{{ $message }}</div>
         @enderror
     </div>
 @else
     <div class="form-group">
-        <label for="project_id">Proyecto</label>
+        <label for="project_id" class="form-label">Proyecto</label>
         <select name="project_id" id="project_id" class="form-control">
             <option value="">Sin proyecto</option>
             @foreach ($projects as $project)
@@ -66,13 +66,13 @@ use App\Support\Catalogs\TaskCatalog;
             @endforeach
         </select>
         @error('project_id')
-            <div class="text-danger">{{ $message }}</div>
+            <div class="form-help is-error">{{ $message }}</div>
         @enderror
     </div>
 @endif
 
 <div class="form-group">
-    <label for="party_id">Contacto</label>
+    <label for="party_id" class="form-label">Contacto</label>
     <select name="party_id" id="party_id" class="form-control">
         <option value="">Sin contacto</option>
         @foreach ($parties as $party)
@@ -82,12 +82,12 @@ use App\Support\Catalogs\TaskCatalog;
         @endforeach
     </select>
     @error('party_id')
-        <div class="text-danger">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
 <div class="form-group">
-    <label for="assigned_user_id">Asignado a</label>
+    <label for="assigned_user_id" class="form-label">Asignado a</label>
     <select name="assigned_user_id" id="assigned_user_id" class="form-control">
         <option value="">Sin asignar</option>
         @foreach ($users as $user)
@@ -97,15 +97,15 @@ use App\Support\Catalogs\TaskCatalog;
         @endforeach
     </select>
     @error('assigned_user_id')
-        <div class="text-danger">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
 <div class="form-group">
-    <label for="due_date">Vencimiento</label>
+    <label for="due_date" class="form-label">Vencimiento</label>
     <input type="date" name="due_date" id="due_date" class="form-control"
         value="{{ old('due_date', isset($task->due_date) ? $task->due_date->format('Y-m-d') : '') }}">
     @error('due_date')
-        <div class="text-danger">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>

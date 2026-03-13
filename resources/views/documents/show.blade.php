@@ -4,6 +4,11 @@
 @section('title', 'Detalle del documento')
 
 @section('content')
+    @php
+        use App\Support\Catalogs\DocumentCatalog;
+        use App\Support\Catalogs\ProductCatalog;
+    @endphp
+
     <x-page>
 
         <x-breadcrumb :items="[
@@ -17,7 +22,7 @@
                 Editar
             </a>
 
-            <form method="POST" action="{{ route('documents.destroy', $document) }}" class="d-inline" onsubmit="return confirm(@js(
+            <form method="POST" action="{{ route('documents.destroy', $document) }}" class="inline-form" onsubmit="return confirm(@js(
                 $document->items->count()
                 ? 'Este documento tiene ítems cargados. Si lo eliminas, también se eliminarán sus ítems. ¿Deseas continuar?'
                 : '¿Deseas eliminar este documento?'
@@ -44,12 +49,12 @@
 
                 <div>
                     <div class="detail-label">Tipo</div>
-                    <div class="detail-value">{{ $document->kind }}</div>
+                    <div class="detail-value">{{ DocumentCatalog::label($document->kind) }}</div>
                 </div>
 
                 <div>
                     <div class="detail-label">Estado</div>
-                    <div class="detail-value">{{ $document->status }}</div>
+                    <div class="detail-value">{{ DocumentCatalog::label($document->status) }}</div>
                 </div>
 
                 <div>
@@ -135,39 +140,35 @@
                                 <th>Cantidad</th>
                                 <th>Precio unitario</th>
                                 <th>Total línea</th>
-                                <th></th>
+                                <th class="compact-actions-cell">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($document->items->sortBy('position') as $item)
                                 <tr>
                                     <td>{{ $item->position }}</td>
-                                    <td>{{ $item->kind }}</td>
+                                    <td>{{ ProductCatalog::label($item->kind) }}</td>
                                     <td>{{ $item->description }}</td>
                                     <td>{{ number_format($item->quantity, 2, ',', '.') }}</td>
                                     <td>${{ number_format($item->unit_price, 2, ',', '.') }}</td>
                                     <td>${{ number_format($item->line_total, 2, ',', '.') }}</td>
-                                    <td class="text-end">
-                                        <div class="d-inline-flex gap-1">
-
+                                    <td class="compact-actions-cell">
+                                        <div class="compact-actions">
                                             <a href="{{ route('documents.items.edit', [$document, $item]) }}"
-                                                class="btn btn-secondary btn-sm" title="Editar ítem" aria-label="Editar ítem">
+                                                class="btn btn-secondary btn-icon" title="Editar ítem" aria-label="Editar ítem">
                                                 <x-icons.pencil />
                                             </a>
 
                                             <form method="POST" action="{{ route('documents.items.destroy', [$document, $item]) }}"
-                                                class="d-inline" onsubmit="return confirm('¿Deseas eliminar este ítem?')">
-
+                                                class="inline-form" onsubmit="return confirm('¿Deseas eliminar este ítem?')">
                                                 @csrf
                                                 @method('DELETE')
 
-                                                <button type="submit" class="btn btn-danger btn-sm" title="Eliminar ítem"
+                                                <button type="submit" class="btn btn-danger btn-icon" title="Eliminar ítem"
                                                     aria-label="Eliminar ítem">
                                                     <x-icons.trash />
                                                 </button>
-
                                             </form>
-
                                         </div>
                                     </td>
                                 </tr>

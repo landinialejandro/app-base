@@ -1,114 +1,90 @@
-{{-- FILE: resources/views/documents/items/_form.blade.php --}}
+{{-- FILE: resources/views/documents/_form.blade.php --}}
 
 @php
-    use App\Support\Catalogs\ProductCatalog;
+    use App\Support\Catalogs\DocumentCatalog;
 @endphp
 
 <div class="form-group">
-    <label for="product_id" class="form-label">Producto</label>
-    <select name="product_id" id="product_id" class="form-control">
-        <option value="">Seleccionar producto o servicio</option>
-        @foreach ($products as $product)
-            <option value="{{ $product->id }}" data-kind="{{ $product->kind }}" data-description="{{ $product->name }}"
-                data-price="{{ $product->price }}" @selected(old('product_id', $item->product_id ?? '') == $product->id)>
-                {{ $product->name }}
+    <label for="party_id" class="form-label">Contacto</label>
+    <select name="party_id" id="party_id" class="form-control">
+        <option value="">Seleccionar contacto</option>
+        @foreach ($parties as $party)
+            <option value="{{ $party->id }}" @selected(old('party_id', $document->party_id ?? '') == $party->id)>
+                {{ $party->name }}
             </option>
         @endforeach
     </select>
-    @error('product_id')
-        <div class="text-danger mt-1">{{ $message }}</div>
+    @error('party_id')
+        <div class="form-help">{{ $message }}</div>
     @enderror
 </div>
 
 <div class="form-group">
-    <label for="position" class="form-label">Posición</label>
-    <input type="number" name="position" id="position" class="form-control" min="1"
-        value="{{ old('position', $item->position ?? '') }}">
-    @error('position')
-        <div class="text-danger mt-1">{{ $message }}</div>
+    <label for="order_id" class="form-label">Orden asociada</label>
+    <select name="order_id" id="order_id" class="form-control">
+        <option value="">Sin orden asociada</option>
+        @foreach ($orders as $order)
+            <option value="{{ $order->id }}" @selected(old('order_id', $document->order_id ?? '') == $order->id)>
+                {{ $order->number ?: 'Sin número' }}
+            </option>
+        @endforeach
+    </select>
+    @error('order_id')
+        <div class="form-help">{{ $message }}</div>
     @enderror
 </div>
 
 <div class="form-group">
     <label for="kind" class="form-label">Tipo</label>
     <select name="kind" id="kind" class="form-control" required>
-        @foreach (ProductCatalog::kindLabels() as $value => $label)
-            <option value="{{ $value }}" @selected(old('kind', $item->kind ?? ProductCatalog::KIND_PRODUCT) === $value)>
+        @foreach (DocumentCatalog::kindLabels() as $value => $label)
+            <option value="{{ $value }}" @selected(old('kind', $document->kind ?? DocumentCatalog::KIND_QUOTE) === $value)>
                 {{ $label }}
             </option>
         @endforeach
     </select>
     @error('kind')
-        <div class="text-danger mt-1">{{ $message }}</div>
+        <div class="form-help">{{ $message }}</div>
     @enderror
 </div>
 
 <div class="form-group">
-    <label for="description" class="form-label">Descripción</label>
-    <input type="text" name="description" id="description" class="form-control"
-        value="{{ old('description', $item->description ?? '') }}" required>
-    @error('description')
-        <div class="text-danger mt-1">{{ $message }}</div>
+    <label for="number" class="form-label">Número</label>
+    <input type="text" name="number" id="number" class="form-control"
+        value="{{ old('number', $document->number ?? '') }}">
+    @error('number')
+        <div class="form-help">{{ $message }}</div>
     @enderror
 </div>
 
 <div class="form-group">
-    <label for="quantity" class="form-label">Cantidad</label>
-    <input type="number" name="quantity" id="quantity" class="form-control" step="0.01" min="0.01"
-        value="{{ old('quantity', $item->quantity ?? 1) }}" required>
-    @error('quantity')
-        <div class="text-danger mt-1">{{ $message }}</div>
+    <label for="status" class="form-label">Estado</label>
+    <select name="status" id="status" class="form-control" required>
+        @foreach (DocumentCatalog::statusLabels() as $value => $label)
+            <option value="{{ $value }}" @selected(old('status', $document->status ?? DocumentCatalog::STATUS_DRAFT) === $value)>
+                {{ $label }}
+            </option>
+        @endforeach
+    </select>
+    @error('status')
+        <div class="form-help">{{ $message }}</div>
     @enderror
 </div>
 
 <div class="form-group">
-    <label for="unit_price" class="form-label">Precio unitario</label>
-    <input type="number" name="unit_price" id="unit_price" class="form-control" step="0.01" min="0"
-        value="{{ old('unit_price', $item->unit_price ?? 0) }}" required>
-    @error('unit_price')
-        <div class="text-danger mt-1">{{ $message }}</div>
+    <label for="issued_at" class="form-label">Fecha de emisión</label>
+    <input type="date" name="issued_at" id="issued_at" class="form-control"
+        value="{{ old('issued_at', isset($document) && $document->issued_at ? $document->issued_at->format('Y-m-d') : '') }}">
+    @error('issued_at')
+        <div class="form-help">{{ $message }}</div>
     @enderror
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        const productSelect = document.getElementById('product_id');
-        const kindField = document.getElementById('kind');
-        const descriptionField = document.getElementById('description');
-        const priceField = document.getElementById('unit_price');
-
-        if (!productSelect || !kindField || !descriptionField || !priceField) {
-            return;
-        }
-
-        function applySelectedProductData(force = false) {
-            const selected = productSelect.options[productSelect.selectedIndex];
-
-            if (!selected || !selected.value) {
-                return;
-            }
-
-            const kind = selected.dataset.kind || '';
-            const description = selected.dataset.description || '';
-            const price = selected.dataset.price || '';
-
-            if (kind && (force || !kindField.value)) {
-                kindField.value = kind;
-            }
-
-            if (description && (force || !descriptionField.value)) {
-                descriptionField.value = description;
-            }
-
-            if (price !== '' && (force || !priceField.value || Number(priceField.value) === 0)) {
-                priceField.value = price;
-            }
-        }
-
-        productSelect.addEventListener('change', function () {
-            applySelectedProductData(true);
-        });
-
-        applySelectedProductData(false);
-    });
-</script>
+<div class="form-group">
+    <label for="notes" class="form-label">Notas</label>
+    <textarea name="notes" id="notes" class="form-control"
+        rows="4">{{ old('notes', $document->notes ?? '') }}</textarea>
+    @error('notes')
+        <div class="form-help">{{ $message }}</div>
+    @enderror
+</div>

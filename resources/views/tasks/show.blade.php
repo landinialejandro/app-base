@@ -5,6 +5,10 @@
 @section('title', $task->name)
 
 @section('content')
+    @php
+        use App\Support\Catalogs\TaskCatalog;
+    @endphp
+
     <x-page>
 
         <x-breadcrumb :items="$task->project
@@ -25,8 +29,8 @@
                 Editar
             </a>
 
-            <form method="POST" action="{{ route('tasks.destroy', $task) }}"
-                onsubmit="return confirm('¿Eliminar tarea?');" class="inline-form">
+            <form method="POST" action="{{ route('tasks.destroy', $task) }}" onsubmit="return confirm('¿Eliminar tarea?');"
+                class="inline-form">
                 @csrf
                 @method('DELETE')
 
@@ -58,7 +62,11 @@
                 <div class="detail-value">{{ $task->description ?: '—' }}</div>
 
                 <div class="detail-label">Estado</div>
-                <div class="detail-value">{{ $task->status }}</div>
+                <div class="detail-value">
+                    <span class="status-badge {{ TaskCatalog::badgeClass($task->status) }}">
+                        {{ TaskCatalog::label($task->status) }}
+                    </span>
+                </div>
 
                 <div class="detail-label">Proyecto</div>
                 <div class="detail-value">

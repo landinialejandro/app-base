@@ -9,17 +9,14 @@
 @section('content')
     <x-page>
         <div class="welcome-page">
-            <div style="width: 520px; max-width: 100%;">
+            <div class="public-panel public-panel--md">
                 <x-page-header title="Sesión expirada" vertical="vertical" />
 
                 <x-card>
-                    <p>La sesión o el formulario expiró por inactividad.</p>
+                    <p class="public-text">La sesión o el formulario expiró por inactividad.</p>
+                    <p class="public-text">Vuelve a ingresar para continuar.</p>
 
-                    <p style="margin-top: var(--space-2);">
-                        Vuelve a ingresar para continuar.
-                    </p>
-
-                    <div style="margin-top: var(--space-3);">
+                    <div class="public-actions">
                         <a href="{{ route('login') }}" class="btn btn-primary">
                             Ir al login
                         </a>

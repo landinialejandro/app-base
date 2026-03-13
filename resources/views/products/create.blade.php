@@ -1,3 +1,5 @@
+{{-- FILE: resources/views/products/create.blade.php --}}
+
 @extends('layouts.app')
 
 @section('title', 'Nuevo producto')
@@ -14,7 +16,7 @@
         <x-page-header title="Nuevo producto" />
 
         <x-card>
-            <form action="{{ route('products.store') }}" method="POST">
+            <form action="{{ route('products.store') }}" method="POST" class="form">
                 @include('products._form')
             </form>
         </x-card>

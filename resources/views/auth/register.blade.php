@@ -1,3 +1,5 @@
+{{-- FILE: resources/views/auth/register.blade.php --}}
+
 @php($publicPage = true)
 
 @extends('layouts.app')
@@ -6,61 +8,46 @@
 
 @section('content')
     <x-page>
-
         <div class="welcome-page">
-
-            <div style="width:400px;max-width:100%;">
-
+            <div class="public-panel public-panel--sm">
                 <x-page-header title="Crear cuenta" vertical="vertical" />
 
                 <x-card>
-
-                    @if ($errors->any())
-                        <div class="alert alert-error">
-                            @foreach ($errors->all() as $error)
-                                <p>{{ $error }}</p>
-                            @endforeach
-                        </div>
-                    @endif
-
-                    <form method="POST" action="/register">
+                    <form method="POST" action="{{ route('register') }}" class="form">
                         @csrf
 
                         <div class="form-group">
-                            <label class="form-label">Nombre</label>
-                            <input class="form-control" name="name" type="text" value="{{ old('name') }}" required>
+                            <label class="form-label" for="name">Nombre</label>
+                            <input id="name" class="form-control" name="name" type="text" value="{{ old('name') }}" required>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Email</label>
-                            <input class="form-control" name="email" type="email" value="{{ old('email') }}" required>
+                            <label class="form-label" for="email">Email</label>
+                            <input id="email" class="form-control" name="email" type="email" value="{{ old('email') }}" required>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Password</label>
-                            <input class="form-control" name="password" type="password" required>
+                            <label class="form-label" for="password">Contraseña</label>
+                            <input id="password" class="form-control" name="password" type="password" required>
                         </div>
 
                         <div class="form-group">
-                            <label class="form-label">Confirmar password</label>
-                            <input class="form-control" name="password_confirmation" type="password" required>
+                            <label class="form-label" for="password_confirmation">Confirmar contraseña</label>
+                            <input id="password_confirmation" class="form-control" name="password_confirmation" type="password" required>
                         </div>
 
-                        <button type="submit" class="btn btn-primary">
-                            Crear cuenta
-                        </button>
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-primary">
+                                Crear cuenta
+                            </button>
 
+                            <a href="{{ route('login') }}" class="btn btn-secondary">
+                                Volver al login
+                            </a>
+                        </div>
                     </form>
-
-                    <p style="margin-top:var(--space-3);">
-                        <a href="/login">Volver al login</a>
-                    </p>
-
                 </x-card>
-
             </div>
-
         </div>
-
     </x-page>
 @endsection

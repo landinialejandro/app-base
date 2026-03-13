@@ -5,6 +5,10 @@
 @section('title', 'Detalle del proyecto')
 
 @section('content')
+    @php
+        use App\Support\Catalogs\TaskCatalog;
+    @endphp
+
     <x-page>
 
         <x-breadcrumb :items="[
@@ -18,12 +22,11 @@
                 Editar
             </a>
 
-            <form method="POST" action="{{ route('projects.destroy', $project) }}" class="d-inline"
-                onsubmit="return confirm(@js(
-                    $project->tasks->count()
-                        ? 'Este proyecto tiene tareas asociadas. Si lo eliminas, también se eliminarán sus tareas. ¿Deseas continuar?'
-                        : '¿Deseas eliminar este proyecto?'
-                ))">
+            <form method="POST" action="{{ route('projects.destroy', $project) }}" class="inline-form" onsubmit="return confirm(@js(
+                $project->tasks->count()
+                ? 'Este proyecto tiene tareas asociadas. Si lo eliminas, también se eliminarán sus tareas. ¿Deseas continuar?'
+                : '¿Deseas eliminar este proyecto?'
+            ))">
                 @csrf
                 @method('DELETE')
 
@@ -99,9 +102,14 @@
                                             {{ $task->name }}
                                         </a>
                                     </td>
-                                    <td>{{ $task->status }}</td>
+                                    <td>
+                                        <span class="status-badge {{ TaskCatalog::badgeClass($task->status) }}">
+                                            {{ TaskCatalog::label($task->status) }}
+                                        </span>
+                                    </td>
                                     <td>{{ $task->assignedUser?->name ?: '—' }}</td>
-                                    <td>{{ $task->due_date ? \Illuminate\Support\Carbon::parse($task->due_date)->format('d/m/Y') : '—' }}</td>
+                                    <td>{{ $task->due_date ? \Illuminate\Support\Carbon::parse($task->due_date)->format('d/m/Y') : '—' }}
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>

@@ -9,24 +9,25 @@
 @section('content')
   <x-page>
     <div class="welcome-page">
-      <div style="width: 520px; max-width: 100%;">
-
+      <div class="public-panel public-panel--md">
         <x-page-header title="Seleccionar empresa" vertical="vertical" />
 
         <x-card>
           @if ($tenants->isEmpty())
-            <p>No tenés empresas asignadas.</p>
-            <p style="margin-top: var(--space-2);">
+            <p class="public-text">No tenés empresas asignadas.</p>
+            <p class="public-text">
               Para ingresar al sistema necesitas una invitación válida asociada a una empresa.
               Si crees que esto es un error, contacta al administrador correspondiente.
             </p>
 
-            <form method="POST" action="{{ route('logout') }}" style="margin-top: var(--space-3);">
-              @csrf
-              <button type="submit" class="btn btn-secondary">
-                Cerrar sesión
-              </button>
-            </form>
+            <div class="public-actions">
+              <form method="POST" action="{{ route('logout') }}">
+                @csrf
+                <button type="submit" class="btn btn-secondary">
+                  Cerrar sesión
+                </button>
+              </form>
+            </div>
           @else
             <div class="tenant-list">
               @foreach ($tenants as $tenant)
@@ -42,7 +43,6 @@
             </div>
           @endif
         </x-card>
-
       </div>
     </div>
   </x-page>

@@ -1,3 +1,5 @@
+{{-- FILE: resources/views/products/edit.blade.php --}}
+
 @extends('layouts.app')
 
 @section('title', 'Editar producto')
@@ -15,7 +17,7 @@
         <x-page-header title="Editar producto" />
 
         <x-card>
-            <form action="{{ route('products.update', $product) }}" method="POST">
+            <form action="{{ route('products.update', $product) }}" method="POST" class="form">
                 @method('PUT')
                 @include('products._form', ['product' => $product])
             </form>

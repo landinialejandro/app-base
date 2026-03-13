@@ -4,6 +4,11 @@
 @section('title', 'Detalle de la orden')
 
 @section('content')
+    @php
+        use App\Support\Catalogs\OrderCatalog;
+        use App\Support\Catalogs\ProductCatalog;
+    @endphp
+
     <x-page>
 
         <x-breadcrumb :items="[
@@ -17,7 +22,7 @@
                 Editar
             </a>
 
-            <form method="POST" action="{{ route('orders.destroy', $order) }}" class="d-inline" onsubmit="return confirm(@js(
+            <form method="POST" action="{{ route('orders.destroy', $order) }}" class="inline-form" onsubmit="return confirm(@js(
                 $order->items->count()
                 ? 'Esta orden tiene ítems cargados. Si la eliminas, también se eliminarán sus ítems. ¿Deseas continuar?'
                 : '¿Deseas eliminar esta orden?'
@@ -44,12 +49,12 @@
 
                 <div>
                     <div class="detail-label">Tipo</div>
-                    <div class="detail-value">{{ $order->kind }}</div>
+                    <div class="detail-value">{{ OrderCatalog::label($order->kind) }}</div>
                 </div>
 
                 <div>
                     <div class="detail-label">Estado</div>
-                    <div class="detail-value">{{ $order->status }}</div>
+                    <div class="detail-value">{{ OrderCatalog::label($order->status) }}</div>
                 </div>
 
                 <div>
@@ -102,39 +107,35 @@
                                 <th>Cantidad</th>
                                 <th>Precio unitario</th>
                                 <th>Subtotal</th>
-                                <th></th>
+                                <th class="compact-actions-cell">Acciones</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($order->items->sortBy('position') as $item)
                                 <tr>
                                     <td>{{ $item->position }}</td>
-                                    <td>{{ $item->kind }}</td>
+                                    <td>{{ ProductCatalog::label($item->kind) }}</td>
                                     <td>{{ $item->description }}</td>
                                     <td>{{ number_format($item->quantity, 2, ',', '.') }}</td>
                                     <td>${{ number_format($item->unit_price, 2, ',', '.') }}</td>
                                     <td>${{ number_format($item->subtotal, 2, ',', '.') }}</td>
-                                    <td class="text-end">
-                                        <div class="d-inline-flex gap-1">
-
+                                    <td class="compact-actions-cell">
+                                        <div class="compact-actions">
                                             <a href="{{ route('orders.items.edit', [$order, $item]) }}"
-                                                class="btn btn-secondary btn-sm" title="Editar ítem" aria-label="Editar ítem">
+                                                class="btn btn-secondary btn-icon" title="Editar ítem" aria-label="Editar ítem">
                                                 <x-icons.pencil />
                                             </a>
 
                                             <form method="POST" action="{{ route('orders.items.destroy', [$order, $item]) }}"
-                                                class="d-inline" onsubmit="return confirm('¿Deseas eliminar este ítem?')">
-
+                                                class="inline-form" onsubmit="return confirm('¿Deseas eliminar este ítem?')">
                                                 @csrf
                                                 @method('DELETE')
 
-                                                <button type="submit" class="btn btn-danger btn-sm" title="Eliminar ítem"
+                                                <button type="submit" class="btn btn-danger btn-icon" title="Eliminar ítem"
                                                     aria-label="Eliminar ítem">
                                                     <x-icons.trash />
                                                 </button>
-
                                             </form>
-
                                         </div>
                                     </td>
                                 </tr>

@@ -9,48 +9,46 @@
 @section('content')
     <x-page>
         <div class="welcome-page">
-            <div style="width: 560px; max-width: 100%;">
+            <div class="public-panel public-panel--lg">
                 <x-page-header title="Invitación" vertical="vertical" />
 
                 <x-card>
                     @if ($state === 'accepted')
-                        <p>Esta invitación ya fue aceptada.</p>
-
+                        <p class="public-text">Esta invitación ya fue aceptada.</p>
                     @elseif ($state === 'expired')
-                        <p>Esta invitación está vencida.</p>
-
+                        <p class="public-text">Esta invitación está vencida.</p>
                     @else
-                        <p>La invitación para <strong>{{ $invitation->email }}</strong> es válida.</p>
+                        <p class="public-text">La invitación para <strong>{{ $invitation->email }}</strong> es válida.</p>
 
-                        <p style="margin-top: var(--space-2);">
+                        <p class="public-text">
                             Tipo de invitación:
                             <strong>{{ $invitation->type }}</strong>
                         </p>
 
                         @if ($invitation->type === 'owner_signup' && $invitation->signupRequest)
-                            <p style="margin-top: var(--space-2);">
+                            <p class="public-text">
                                 Empresa:
                                 <strong>{{ $invitation->signupRequest->company_name }}</strong>
                             </p>
                         @endif
 
                         @if ($mustLogin)
-                            <p style="margin-top: var(--space-2);">
+                            <p class="public-text">
                                 Ya existe una cuenta con este email. Para continuar, inicia sesión con el email invitado.
                             </p>
 
-                            <div style="margin-top: var(--space-3);">
+                            <div class="public-actions">
                                 <a href="{{ route('login') }}" class="btn btn-primary">
                                     Iniciar sesión
                                 </a>
                             </div>
                         @else
-                            <p style="margin-top: var(--space-2);">
+                            <p class="public-text">
                                 Completa tus datos para finalizar el alta.
                             </p>
 
                             <form method="POST" action="{{ route('invitation.accept.store', $invitation->token) }}"
-                                style="margin-top: var(--space-3);">
+                                class="form public-actions">
                                 @csrf
 
                                 <div class="form-group">
@@ -62,24 +60,26 @@
 
                                 @if (!$emailExists)
                                     <div class="form-group">
-                                        <label class="form-label" for="password">Password</label>
+                                        <label class="form-label" for="password">Contraseña</label>
                                         <input id="password" class="form-control" name="password" type="password" required>
                                     </div>
 
                                     <div class="form-group">
-                                        <label class="form-label" for="password_confirmation">Confirmar password</label>
+                                        <label class="form-label" for="password_confirmation">Confirmar contraseña</label>
                                         <input id="password_confirmation" class="form-control" name="password_confirmation"
                                             type="password" required>
                                     </div>
                                 @else
-                                    <p style="margin-top: var(--space-2);">
+                                    <p class="public-text">
                                         Se usarán tus datos de cuenta existentes para continuar con esta invitación.
                                     </p>
                                 @endif
 
-                                <button type="submit" class="btn btn-primary">
-                                    {{ $invitation->type === 'owner_signup' ? 'Crear empresa y continuar' : 'Finalizar alta' }}
-                                </button>
+                                <div class="form-actions">
+                                    <button type="submit" class="btn btn-primary">
+                                        {{ $invitation->type === 'owner_signup' ? 'Crear empresa y continuar' : 'Finalizar alta' }}
+                                    </button>
+                                </div>
                             </form>
                         @endif
                     @endif

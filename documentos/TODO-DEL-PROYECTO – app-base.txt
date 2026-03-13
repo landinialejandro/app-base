@@ -115,3 +115,13 @@ refactors necesarios
 Las decisiones estructurales del sistema deben registrarse en:
 
 CONVENCIONES-DEL-PROYECTO.
+
+Actualizar solo TODO-DEL-PROYECTO, reemplazando:
+
+mejorar dashboard con métricas básicas
+
+por algo más preciso, por ejemplo:
+
+evaluar evolución futura del dashboard (métricas más útiles, filtros y jerarquía operativa/comercial)
+
+Porque el dashboard básico ya quedó implementado, pero sigue siendo razonable dejar abierta una mejora futura.

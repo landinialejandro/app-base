@@ -1,4 +1,9 @@
 {{-- FILE: resources/views/documents/items/_form.blade.php --}}
+
+@php
+    use App\Support\Catalogs\ProductCatalog;
+@endphp
+
 <div class="form-group">
     <label for="product_id" class="form-label">Producto</label>
     <select name="product_id" id="product_id" class="form-control">
@@ -11,7 +16,7 @@
         @endforeach
     </select>
     @error('product_id')
-        <div class="text-danger mt-1">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
@@ -20,18 +25,21 @@
     <input type="number" name="position" id="position" class="form-control" min="1"
         value="{{ old('position', $item->position ?? '') }}">
     @error('position')
-        <div class="text-danger mt-1">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
 <div class="form-group">
     <label for="kind" class="form-label">Tipo</label>
     <select name="kind" id="kind" class="form-control" required>
-        <option value="product" @selected(old('kind', $item->kind ?? 'product') === 'product')>Producto</option>
-        <option value="service" @selected(old('kind', $item->kind ?? '') === 'service')>Servicio</option>
+        @foreach (ProductCatalog::kindLabels() as $value => $label)
+            <option value="{{ $value }}" @selected(old('kind', $item->kind ?? ProductCatalog::KIND_PRODUCT) === $value)>
+                {{ $label }}
+            </option>
+        @endforeach
     </select>
     @error('kind')
-        <div class="text-danger mt-1">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
@@ -40,7 +48,7 @@
     <input type="text" name="description" id="description" class="form-control"
         value="{{ old('description', $item->description ?? '') }}" required>
     @error('description')
-        <div class="text-danger mt-1">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
@@ -49,7 +57,7 @@
     <input type="number" name="quantity" id="quantity" class="form-control" step="0.01" min="0.01"
         value="{{ old('quantity', $item->quantity ?? 1) }}" required>
     @error('quantity')
-        <div class="text-danger mt-1">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
@@ -58,7 +66,7 @@
     <input type="number" name="unit_price" id="unit_price" class="form-control" step="0.01" min="0"
         value="{{ old('unit_price', $item->unit_price ?? 0) }}" required>
     @error('unit_price')
-        <div class="text-danger mt-1">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 

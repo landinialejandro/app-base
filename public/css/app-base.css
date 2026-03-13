@@ -583,6 +583,34 @@ a:hover {
 }
 
 /* =========================================================
+   Acciones compactas
+   Botones pequeños con íconos para sublistados y tablas
+   ========================================================= */
+
+.compact-actions {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.compact-actions-cell {
+    text-align: right;
+    white-space: nowrap;
+}
+
+.btn-icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 34px;
+    min-height: 34px;
+    padding: 0.45rem;
+    line-height: 1;
+}
+
+
+/* =========================================================
    9. Tablas
    ========================================================= */
 
@@ -727,6 +755,45 @@ textarea.form-control {
     align-items: center;
     justify-content: center;
 }
+
+/* =========================================================
+   Pantallas públicas
+   Contenedores y textos auxiliares para acceso e invitaciones
+   ========================================================= */
+
+.public-panel {
+    width: 100%;
+    max-width: 520px;
+}
+
+.public-panel--sm {
+    max-width: 400px;
+}
+
+.public-panel--md {
+    max-width: 520px;
+}
+
+.public-panel--lg {
+    max-width: 560px;
+}
+
+.public-text {
+    margin: 0;
+}
+
+.public-text+.public-text {
+    margin-top: var(--space-2);
+}
+
+.public-actions {
+    margin-top: var(--space-3);
+}
+
+.form-help.is-error {
+    color: var(--color-error-text);
+}
+
 
 /* =========================================================
    13. Selector de empresa

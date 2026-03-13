@@ -1,4 +1,5 @@
 CONVENCIONES-DEL-PROYECTO – app-base
+
 Objetivo
 
 Definir las convenciones técnicas y de desarrollo que deben seguir todos los módulos del proyecto app-base.
@@ -53,7 +54,7 @@ CONVENCIONES ESPECÍFICAS DEL NÚCLEO SAAS
 
 Estas reglas describen el funcionamiento estructural del núcleo multi-tenant del sistema.
 
-1. IDENTIDAD GLOBAL
+IDENTIDAD GLOBAL
 
 users.email es único global en el sistema.
 
@@ -61,7 +62,7 @@ No existe relación directa user -> tenant mediante un tenant_id en users.
 
 La pertenencia real entre usuario y empresa se resuelve exclusivamente mediante memberships.
 
-2. TENANTS Y CLAVES
+TENANTS Y CLAVES
 
 tenants.id utiliza UUID (char(36)) como primary key.
 
@@ -73,14 +74,13 @@ No deben asumirse bigint ni foreignId() por defecto en relaciones hacia tenants.
 
 Antes de crear una migración debe verificarse el patrón real utilizado en el proyecto.
 
-3. MEMBERSHIPS
+MEMBERSHIPS
 
 memberships es la tabla puente central del modelo multi-tenant.
 
 Reglas:
 
 Un mismo user puede pertenecer a múltiples tenants.
-
 Un mismo user puede ser owner de múltiples tenants.
 
 memberships define la pertenencia real entre usuario y empresa.
@@ -93,7 +93,7 @@ Por lo tanto:
 
 Membership no debe usar TenantScoped
 
-4. INVITATIONS
+INVITATIONS
 
 No existe registro libre público de usuarios.
 
@@ -113,7 +113,7 @@ accepted
 expired
 cancelled
 
-5. REGLA DE tenant_id EN INVITATIONS
+REGLA DE tenant_id EN INVITATIONS
 
 invitations.tenant_id puede ser NULL cuando la invitación es de tipo:
 
@@ -128,10 +128,9 @@ type = member_invite
 entonces:
 
 tenant_id debe existir
-
 y debe apuntar a un tenant válido.
 
-6. SIGNUP_REQUESTS
+SIGNUP_REQUESTS
 
 signup_requests representa una solicitud pública inicial para crear una empresa en el sistema.
 
@@ -145,7 +144,7 @@ Una signup_request aprobada puede originar una invitation de tipo:
 
 owner_signup
 
-7. VALIDACIÓN DE IDENTIDAD EN INVITACIONES
+VALIDACIÓN DE IDENTIDAD EN INVITACIONES
 
 Una invitación nunca debe aplicarse sobre una sesión autenticada con otro email.
 
@@ -194,7 +193,7 @@ la invitación no se pierda
 el usuario complete el flujo correcto
 no se generen inconsistencias en memberships o creación de tenants.
 
-8. CREACIÓN DE TENANT
+CREACIÓN DE TENANT
 
 En el flujo:
 
@@ -252,6 +251,7 @@ foreignId('tenant_id')
 Debe definirse manualmente con un tipo compatible con tenants.id.
 
 Asignación de tenant_id en entidades
+
 Entidades padre
 
 Cuando el modelo utiliza el trait TenantScoped, tenant_id no debe asignarse manualmente en el controller.
@@ -308,11 +308,8 @@ Convenciones de modelos
 Los modelos deben:
 
 usar Eloquent
-
 definir relaciones explícitas
-
 definir fillable o guarded correctamente
-
 utilizar los traits de multi-tenancy
 
 Convenciones de vistas
@@ -332,6 +329,7 @@ Estructura visual de páginas
 Todas las páginas internas deben seguir esta estructura:
 
 <x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
+
 Componentes Blade disponibles
 
 x-page
@@ -358,12 +356,64 @@ Convención de formularios
 Los formularios deben:
 
 utilizar parciales _form
-
 agrupar campos de forma consistente
-
 mostrar errores cerca del campo
-
 ubicar botones dentro de form-actions
+
+CONVENCIONES DE VISTAS Y CSS
+
+Las vistas Blade deben utilizar exclusivamente las clases y patrones visuales definidos en:
+
+public/css/app-base.css
+
+y en el documento:
+
+BASE VISUAL DEL PROYECTO – app-base.
+
+No deben incorporarse clases de frameworks externos o ajenos al proyecto si esas clases no están definidas explícitamente en la base visual propia.
+
+Reglas para formularios
+
+Los formularios deben seguir el patrón visual común del proyecto.
+
+Clases permitidas:
+
+form
+form-group
+form-label
+form-control
+form-help
+form-actions
+
+Los mensajes de error deben utilizar clases definidas dentro del sistema visual del proyecto.
+
+No deben utilizarse clases externas o utilidades no soportadas por app-base.css.
+
+Ejemplos de clases que no deben utilizarse si no están definidas en el sistema visual:
+
+invalid-feedback
+is-invalid
+text-danger
+form-check
+d-flex
+gap-*
+btn-sm
+
+Acciones compactas con íconos
+
+Las acciones compactas en tablas o sublistados deben utilizar el patrón visual propio del proyecto.
+
+No deben utilizarse utilidades externas de frameworks para compactar botones o alinear iconos.
+
+Deben utilizarse los componentes de iconos definidos en el sistema.
+
+Visualización de catálogos
+
+Cuando una entidad utilice catálogos funcionales (Catalogs), las vistas deben mostrar siempre las etiquetas legibles del catálogo.
+
+No deben mostrarse directamente los valores internos persistidos en la base de datos.
+
+Esto evita exponer códigos internos al usuario y mejora la claridad de la interfaz.
 
 Convención para catálogos funcionales
 

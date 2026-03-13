@@ -9,11 +9,7 @@ ESTRUCTURA GENERAL DE UNA PANTALLA
 
 Todas las vistas internas del sistema deben utilizar la siguiente estructura base:
 
-<x-page>
-    <x-breadcrumb />
-    <x-page-header />
-    <x-card />
-</x-page>
+<x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
 
 COMPONENTES DISPONIBLES
 
@@ -44,8 +40,6 @@ table-wrap.list-scroll
 Ejemplo:
 
 <x-page class="list-page">
-
-```
 <x-breadcrumb />
 
 <x-page-header />
@@ -59,7 +53,6 @@ Ejemplo:
     </div>
 
 </x-card>
-```
 
 </x-page>
 
@@ -82,19 +75,21 @@ x-icons.trash
 
 Uso en botones:
 
-<button class="btn btn-secondary btn-sm">
-    <x-icons.pencil />
-</button>
-
-<button class="btn btn-danger btn-sm">
-    <x-icons.trash />
-</button>
+<button class="btn btn-secondary btn-sm"> <x-icons.pencil /> </button> <button class="btn btn-danger btn-sm"> <x-icons.trash /> </button>
 
 OBJETIVO DE LOS ICONOS
 
 Reducir el ancho de las columnas de acciones.
 Mejorar la legibilidad de tablas.
 Permitir reutilización consistente en todo el sistema.
+
+ACCIONES COMPACTAS EN TABLAS Y SUBLISTADOS
+
+En sublistados internos dentro de vistas show se permiten acciones compactas con iconos.
+
+Estas acciones deben usar clases visuales propias del proyecto y mantener tamaño, alineación y espaciado consistentes.
+
+No deben utilizarse utilidades externas o no definidas en app-base.css.
 
 VISTAS SHOW CON SUBLISTADOS
 
@@ -133,6 +128,28 @@ ESTADOS VACÍOS
 
 Cuando un listado no tenga registros el mensaje debe mostrarse dentro de la card del listado.
 
+PANTALLAS PÚBLICAS
+
+Las pantallas públicas del sistema deben mantener consistencia con la base visual general.
+
+Ejemplos:
+
+welcome
+login
+register
+invitations
+errores
+selección de empresa
+
+Estas vistas pueden utilizar un layout simplificado, pero deben mantener:
+
+consistencia de ancho
+espaciado del sistema
+contenedores reutilizables
+acciones visualmente consistentes
+
+No deben utilizar estilos inline salvo en casos excepcionales.
+
 NAVEGACIÓN SUPERIOR
 
 La navegación superior del sistema utiliza las siguientes clases:
@@ -149,16 +166,10 @@ Los dropdowns se implementan utilizando el elemento HTML:
 
 Ejemplo:
 
-<details class="app-nav-dropdown">
-    <summary class="app-nav-link">
-        Gestión
-    </summary>
-
-```
+<details class="app-nav-dropdown"> <summary class="app-nav-link"> Gestión </summary>
 <div class="app-nav-dropdown-menu">
     ...
 </div>
-```
 
 </details>
 

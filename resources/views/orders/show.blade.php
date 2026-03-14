@@ -22,6 +22,30 @@
                 Editar
             </a>
 
+            <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form">
+                @csrf
+                <input type="hidden" name="kind" value="{{ \App\Support\Catalogs\DocumentCatalog::KIND_QUOTE }}">
+                <button type="submit" class="btn btn-secondary">
+                    Crear presupuesto
+                </button>
+            </form>
+
+            <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form">
+                @csrf
+                <input type="hidden" name="kind" value="{{ \App\Support\Catalogs\DocumentCatalog::KIND_DELIVERY_NOTE }}">
+                <button type="submit" class="btn btn-secondary">
+                    Crear remito
+                </button>
+            </form>
+
+            <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form">
+                @csrf
+                <input type="hidden" name="kind" value="{{ \App\Support\Catalogs\DocumentCatalog::KIND_INVOICE }}">
+                <button type="submit" class="btn btn-secondary">
+                    Crear factura
+                </button>
+            </form>
+
             <form method="POST" action="{{ route('orders.destroy', $order) }}" class="inline-form" onsubmit="return confirm(@js(
                 $order->items->count()
                 ? 'Esta orden tiene ítems cargados. Si la eliminas, también se eliminarán sus ítems. ¿Deseas continuar?'

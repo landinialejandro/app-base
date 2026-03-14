@@ -6,12 +6,15 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 use App\Models\Document;
+use App\Models\DocumentItem;
 use App\Models\Order;
 use App\Models\Party;
 
 use App\Support\Catalogs\DocumentCatalog;
+use App\Support\Documents\DocumentTotalsCalculator;
 
 class DocumentController extends Controller
 {
@@ -100,6 +103,51 @@ class DocumentController extends Controller
         return redirect()
             ->route('documents.show', $document)
             ->with('success', 'Documento creado correctamente.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Crear documento desde orden
+    |--------------------------------------------------------------------------
+    */
+
+    public function storeFromOrder(Request $request, Order $order)
+    {
+        $data = $request->validate([
+            'kind' => [
+                'required',
+                Rule::in([
+                    DocumentCatalog::KIND_QUOTE,
+                    DocumentCatalog::KIND_DELIVERY_NOTE,
+                    DocumentCatalog::KIND_INVOICE,
+                ]),
+            ],
+        ]);
+
+        $document = DB::transaction(function () use ($order, $data) {
+            $document = Document::create([
+                'tenant_id' => $order->tenant_id,
+                'party_id' => $order->party_id,
+                'order_id' => $order->id,
+                'kind' => $data['kind'],
+                'status' => DocumentCatalog::STATUS_DRAFT,
+                'issued_at' => now()->toDateString(),
+                'subtotal' => 0,
+                'tax_total' => 0,
+                'total' => 0,
+                'created_by' => auth()->id(),
+            ]);
+
+            $this->copyItemsFromOrder($order, $document);
+
+            DocumentTotalsCalculator::apply($document);
+
+            return $document;
+        });
+
+        return redirect()
+            ->route('documents.show', $document)
+            ->with('success', 'Documento creado correctamente desde la orden.');
     }
 
     /*
@@ -201,5 +249,34 @@ class DocumentController extends Controller
         return redirect()
             ->route('documents.index')
             ->with('success', 'Documento eliminado.');
+    }
+
+    /*
+    |--------------------------------------------------------------------------
+    | Helpers
+    |--------------------------------------------------------------------------
+    */
+
+    protected function copyItemsFromOrder(Order $order, Document $document): void
+    {
+        $order->loadMissing('items');
+
+        foreach ($order->items as $orderItem) {
+            $quantity = (float) $orderItem->quantity;
+            $unitPrice = (float) $orderItem->unit_price;
+            $lineTotal = $quantity * $unitPrice;
+
+            DocumentItem::create([
+                'tenant_id' => $document->tenant_id,
+                'document_id' => $document->id,
+                'product_id' => $orderItem->product_id,
+                'position' => $orderItem->position,
+                'kind' => $orderItem->kind,
+                'description' => $orderItem->description,
+                'quantity' => $quantity,
+                'unit_price' => $unitPrice,
+                'line_total' => $lineTotal,
+            ]);
+        }
     }
 }

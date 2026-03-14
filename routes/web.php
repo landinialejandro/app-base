@@ -174,6 +174,9 @@ Route::middleware(['auth', 'tenant'])->group(function () {
 
     Route::resource('orders', OrderController::class);
 
+    Route::post('/orders/{order}/documents', [DocumentController::class, 'storeFromOrder'])
+        ->name('orders.documents.store');
+
     Route::resource('orders.items', OrderItemController::class)
         ->except(['index', 'show']);
 

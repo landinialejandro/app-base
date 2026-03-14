@@ -11,6 +11,7 @@ use App\Models\Document;
 use App\Models\DocumentItem;
 use App\Models\Product;
 use App\Support\Catalogs\ProductCatalog;
+use App\Support\Documents\DocumentTotalsCalculator;
 
 class DocumentItemController extends Controller
 {
@@ -61,7 +62,7 @@ class DocumentItemController extends Controller
         $item->document_id = $document->id;
         $item->save();
 
-        $this->recalculateTotals($document);
+        DocumentTotalsCalculator::apply($document);
 
         return redirect()
             ->route('documents.show', $document)
@@ -108,7 +109,7 @@ class DocumentItemController extends Controller
 
         $item->update($data);
 
-        $this->recalculateTotals($document);
+        DocumentTotalsCalculator::apply($document);
 
         return redirect()
             ->route('documents.show', $document)
@@ -121,23 +122,10 @@ class DocumentItemController extends Controller
 
         $item->delete();
 
-        $this->recalculateTotals($document);
+        DocumentTotalsCalculator::apply($document);
 
         return redirect()
             ->route('documents.show', $document)
             ->with('success', 'Ítem eliminado correctamente.');
-    }
-
-    protected function recalculateTotals(Document $document): void
-    {
-        $subtotal = (float) $document->items()->sum('line_total');
-        $taxTotal = 0;
-        $total = $subtotal + $taxTotal;
-
-        $document->update([
-            'subtotal' => $subtotal,
-            'tax_total' => $taxTotal,
-            'total' => $total,
-        ]);
     }
 }

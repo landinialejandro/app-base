@@ -38,7 +38,7 @@ class OrderController extends Controller
 
         $data = $request->validate([
             'party_id' => [
-                'nullable',
+                'required',
                 'integer',
                 Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
                     $query->where('tenant_id', $tenant->id)
@@ -109,7 +109,7 @@ class OrderController extends Controller
 
         $data = $request->validate([
             'party_id' => [
-                'nullable',
+                'required',
                 'integer',
                 Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
                     $query->where('tenant_id', $tenant->id)

@@ -9,7 +9,7 @@
 
 <div class="form-group">
     <label for="party_id" class="form-label">Contacto</label>
-    <select name="party_id" id="party_id" class="form-control">
+    <select name="party_id" id="party_id" class="form-control" required>
         <option value="">Seleccionar contacto</option>
         @foreach ($parties as $party)
             <option value="{{ $party->id }}" @selected(old('party_id', $document->party_id ?? '') == $party->id)>

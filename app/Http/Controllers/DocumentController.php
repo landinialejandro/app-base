@@ -47,7 +47,7 @@ class DocumentController extends Controller
 
         $data = $request->validate([
             'party_id' => [
-                'nullable',
+                'required',
                 'integer',
                 Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
                     $query->where('tenant_id', $tenant->id)
@@ -142,6 +142,8 @@ class DocumentController extends Controller
                 'created_by' => auth()->id(),
             ]);
 
+            abort_unless($order->party_id, 422, 'La orden debe tener un contacto asociado para generar documentos.');
+            
             $this->copyItemsFromOrder($order, $document);
 
             DocumentTotalsCalculator::apply($document);
@@ -193,7 +195,7 @@ class DocumentController extends Controller
 
         $data = $request->validate([
             'party_id' => [
-                'nullable',
+                'required',
                 'integer',
                 Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
                     $query->where('tenant_id', $tenant->id)

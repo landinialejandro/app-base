@@ -6,20 +6,16 @@ namespace App\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use Illuminate\Support\Facades\DB;
 
 use App\Models\Order;
 use App\Models\Party;
 
 use App\Support\Catalogs\OrderCatalog;
+use App\Support\Documents\DocumentNumberGenerator;
 
 class OrderController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Listado
-    |--------------------------------------------------------------------------
-    */
-
     public function index()
     {
         $orders = Order::with(['party', 'items'])
@@ -29,24 +25,12 @@ class OrderController extends Controller
         return view('orders.index', compact('orders'));
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Crear
-    |--------------------------------------------------------------------------
-    */
-
     public function create()
     {
         $parties = Party::orderBy('name')->get();
 
         return view('orders.create', compact('parties'));
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Guardar
-    |--------------------------------------------------------------------------
-    */
 
     public function store(Request $request)
     {
@@ -67,8 +51,6 @@ class OrderController extends Controller
                 Rule::in(OrderCatalog::kinds()),
             ],
 
-            'number' => ['nullable', 'string', 'max:255'],
-
             'status' => [
                 'required',
                 Rule::in(OrderCatalog::statuses()),
@@ -78,20 +60,28 @@ class OrderController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        $data['created_by'] = auth()->id();
+        $order = DB::transaction(function () use ($tenant, $data) {
+            $sequence = DocumentNumberGenerator::generate(
+                tenantId: $tenant->id,
+                kind: 'order.' . $data['kind'],
+                pointOfSale: '0001',
+            );
 
-        $order = Order::create($data);
+            $payload = array_merge($data, [
+                'number' => $sequence['number'],
+                'sequence_prefix' => $sequence['prefix'],
+                'point_of_sale' => $sequence['point_of_sale'],
+                'sequence_number' => $sequence['sequence_number'],
+                'created_by' => auth()->id(),
+            ]);
+
+            return Order::create($payload);
+        });
 
         return redirect()
             ->route('orders.show', $order)
-            ->with('success', 'Orden creada correctamente.');
+            ->with('success', "Orden creada correctamente con número {$order->number}.");
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Mostrar
-    |--------------------------------------------------------------------------
-    */
 
     public function show(Order $order)
     {
@@ -106,24 +96,12 @@ class OrderController extends Controller
         return view('orders.show', compact('order'));
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Editar
-    |--------------------------------------------------------------------------
-    */
-
     public function edit(Order $order)
     {
         $parties = Party::orderBy('name')->get();
 
         return view('orders.edit', compact('order', 'parties'));
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Actualizar
-    |--------------------------------------------------------------------------
-    */
 
     public function update(Request $request, Order $order)
     {
@@ -144,8 +122,6 @@ class OrderController extends Controller
                 Rule::in(OrderCatalog::kinds()),
             ],
 
-            'number' => ['nullable', 'string', 'max:255'],
-
             'status' => [
                 'required',
                 Rule::in(OrderCatalog::statuses()),
@@ -155,6 +131,14 @@ class OrderController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
+        if ($order->number && $data['kind'] !== $order->kind) {
+            return back()
+                ->withErrors([
+                    'kind' => 'No se puede cambiar el tipo de una orden que ya fue numerada.',
+                ])
+                ->withInput();
+        }
+
         $data['updated_by'] = auth()->id();
 
         $order->update($data);
@@ -163,12 +147,6 @@ class OrderController extends Controller
             ->route('orders.show', $order)
             ->with('success', 'Orden actualizada.');
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Eliminar
-    |--------------------------------------------------------------------------
-    */
 
     public function destroy(Order $order)
     {

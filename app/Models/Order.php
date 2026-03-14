@@ -21,6 +21,9 @@ class Order extends Model
         'party_id',
         'kind',
         'number',
+        'sequence_prefix',
+        'point_of_sale',
+        'sequence_number',
         'status',
         'ordered_at',
         'notes',
@@ -30,13 +33,8 @@ class Order extends Model
 
     protected $casts = [
         'ordered_at' => 'date',
+        'sequence_number' => 'integer',
     ];
-
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
 
     public function party()
     {

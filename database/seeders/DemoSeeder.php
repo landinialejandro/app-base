@@ -841,6 +841,24 @@ class DemoSeeder extends Seeder
                 'padding' => 8,
                 'next_number' => 1,
             ],
+            [
+                'doc_type' => 'order.sale',
+                'prefix' => 'ORD',
+                'padding' => 8,
+                'next_number' => 1,
+            ],
+            [
+                'doc_type' => 'order.purchase',
+                'prefix' => 'OCO',
+                'padding' => 8,
+                'next_number' => 1,
+            ],
+            [
+                'doc_type' => 'order.service',
+                'prefix' => 'OSE',
+                'padding' => 8,
+                'next_number' => 1,
+            ],
         ];
 
         foreach ($definitions as $definition) {

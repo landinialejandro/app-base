@@ -10,6 +10,10 @@ use Illuminate\Database\QueryException;
 class DocumentNumberGenerator
 {
     protected static array $defaultPrefixes = [
+        'order.sale' => 'ORD',
+        'order.purchase' => 'OCO',
+        'order.service' => 'OSE',
+
         'quote' => 'PRE',
         'delivery_note' => 'REM',
         'invoice' => 'FAC',
@@ -80,7 +84,7 @@ class DocumentNumberGenerator
                 'next_number' => 1,
             ]);
         } catch (QueryException $e) {
-            // Otra transacción pudo crearla al mismo tiempo.
+            // otra transacción pudo crearla
         }
 
         return DocumentSequence::query()

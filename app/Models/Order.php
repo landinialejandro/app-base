@@ -48,6 +48,11 @@ class Order extends Model
         return $this->hasMany(OrderItem::class);
     }
 
+    public function documents()
+    {
+        return $this->hasMany(Document::class);
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');

@@ -100,6 +100,7 @@ class OrderController extends Controller
             'creator',
             'updater',
             'items.product',
+            'documents',
         ]);
 
         return view('orders.show', compact('order'));

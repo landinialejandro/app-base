@@ -7,6 +7,13 @@
     @php
         use App\Support\Catalogs\OrderCatalog;
         use App\Support\Catalogs\ProductCatalog;
+        use App\Support\Catalogs\DocumentCatalog;
+
+        $documents = $order->documents->sortByDesc('id');
+
+        $quoteCount = $documents->where('kind', DocumentCatalog::KIND_QUOTE)->count();
+        $deliveryNoteCount = $documents->where('kind', DocumentCatalog::KIND_DELIVERY_NOTE)->count();
+        $invoiceCount = $documents->where('kind', DocumentCatalog::KIND_INVOICE)->count();
     @endphp
 
     <x-page>
@@ -22,27 +29,42 @@
                 Editar
             </a>
 
-            <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form">
+            <form method="POST"
+                action="{{ route('orders.documents.store', $order) }}"
+                class="inline-form"
+                @if ($quoteCount > 0)
+                    onsubmit="return confirm('Esta orden ya tiene {{ $quoteCount }} presupuesto(s) asociado(s). ¿Deseas crear otro?')"
+                @endif>
                 @csrf
-                <input type="hidden" name="kind" value="{{ \App\Support\Catalogs\DocumentCatalog::KIND_QUOTE }}">
+                <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_QUOTE }}">
                 <button type="submit" class="btn btn-secondary">
-                    Crear presupuesto
+                    {{ $quoteCount > 0 ? 'Crear otro presupuesto' : 'Crear presupuesto' }}
                 </button>
             </form>
 
-            <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form">
+            <form method="POST"
+                action="{{ route('orders.documents.store', $order) }}"
+                class="inline-form"
+                @if ($deliveryNoteCount > 0)
+                    onsubmit="return confirm('Esta orden ya tiene {{ $deliveryNoteCount }} remito(s) asociado(s). ¿Deseas crear otro?')"
+                @endif>
                 @csrf
-                <input type="hidden" name="kind" value="{{ \App\Support\Catalogs\DocumentCatalog::KIND_DELIVERY_NOTE }}">
+                <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_DELIVERY_NOTE }}">
                 <button type="submit" class="btn btn-secondary">
-                    Crear remito
+                    {{ $deliveryNoteCount > 0 ? 'Crear otro remito' : 'Crear remito' }}
                 </button>
             </form>
 
-            <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form">
+            <form method="POST"
+                action="{{ route('orders.documents.store', $order) }}"
+                class="inline-form"
+                @if ($invoiceCount > 0)
+                    onsubmit="return confirm('Esta orden ya tiene {{ $invoiceCount }} factura(s) asociada(s). ¿Deseas crear otra?')"
+                @endif>
                 @csrf
-                <input type="hidden" name="kind" value="{{ \App\Support\Catalogs\DocumentCatalog::KIND_INVOICE }}">
+                <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_INVOICE }}">
                 <button type="submit" class="btn btn-secondary">
-                    Crear factura
+                    {{ $invoiceCount > 0 ? 'Crear otra factura' : 'Crear factura' }}
                 </button>
             </form>
 
@@ -111,6 +133,65 @@
                     <div class="detail-value">{{ $order->notes ?: '—' }}</div>
                 </div>
             </div>
+        </x-card>
+
+        <x-page-header title="Documentos asociados" />
+
+        <x-card class="list-card">
+            @if ($documents->count())
+                <div class="detail-list" style="margin-bottom: 1rem;">
+                    <div>
+                        <div class="detail-label">Total asociados</div>
+                        <div class="detail-value">{{ $documents->count() }}</div>
+                    </div>
+
+                    <div>
+                        <div class="detail-label">Presupuestos</div>
+                        <div class="detail-value">{{ $quoteCount }}</div>
+                    </div>
+
+                    <div>
+                        <div class="detail-label">Remitos</div>
+                        <div class="detail-value">{{ $deliveryNoteCount }}</div>
+                    </div>
+
+                    <div>
+                        <div class="detail-label">Facturas</div>
+                        <div class="detail-value">{{ $invoiceCount }}</div>
+                    </div>
+                </div>
+
+                <div class="table-wrap list-scroll">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Número</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                                <th>Fecha</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($documents as $document)
+                                <tr>
+                                    <td>
+                                        <a href="{{ route('documents.show', $document) }}">
+                                            {{ $document->number ?: 'Sin número' }}
+                                        </a>
+                                    </td>
+                                    <td>{{ DocumentCatalog::label($document->kind) }}</td>
+                                    <td>{{ DocumentCatalog::label($document->status) }}</td>
+                                    <td>{{ $document->issued_at?->format('d/m/Y') ?: '—' }}</td>
+                                    <td>${{ number_format($document->total, 2, ',', '.') }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <p class="mb-0">Esta orden todavía no tiene documentos asociados.</p>
+            @endif
         </x-card>
 
         <x-page-header title="Ítems de la orden">

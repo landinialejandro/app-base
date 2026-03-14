@@ -9,7 +9,11 @@ ESTRUCTURA GENERAL DE UNA PANTALLA
 
 Todas las vistas internas del sistema deben utilizar la siguiente estructura base:
 
-<x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
+<x-page>
+    <x-breadcrumb />
+    <x-page-header />
+    <x-card />
+</x-page>
 
 COMPONENTES DISPONIBLES
 
@@ -40,17 +44,20 @@ table-wrap.list-scroll
 Ejemplo:
 
 <x-page class="list-page">
+
 <x-breadcrumb />
 
 <x-page-header />
 
 <x-card class="list-card">
 
-    <div class="table-wrap list-scroll">
-        <table class="table">
-            ...
-        </table>
-    </div>
+```
+<div class="table-wrap list-scroll">
+    <table class="table">
+        ...
+    </table>
+</div>
+```
 
 </x-card>
 
@@ -75,7 +82,13 @@ x-icons.trash
 
 Uso en botones:
 
-<button class="btn btn-secondary btn-sm"> <x-icons.pencil /> </button> <button class="btn btn-danger btn-sm"> <x-icons.trash /> </button>
+<button class="btn btn-secondary btn-sm">
+    <x-icons.pencil />
+</button>
+
+<button class="btn btn-danger btn-sm">
+    <x-icons.trash />
+</button>
 
 OBJETIVO DE LOS ICONOS
 
@@ -166,7 +179,12 @@ Los dropdowns se implementan utilizando el elemento HTML:
 
 Ejemplo:
 
-<details class="app-nav-dropdown"> <summary class="app-nav-link"> Gestión </summary>
+<details class="app-nav-dropdown">
+
+<summary class="app-nav-link">
+Gestión
+</summary>
+
 <div class="app-nav-dropdown-menu">
     ...
 </div>
@@ -200,6 +218,19 @@ Este archivo controla pequeños comportamientos UI globales como:
 cierre de dropdowns
 interacciones simples
 comportamientos UX mínimos
+
+DASHBOARD SUPERADMIN
+
+La capa de superadmin debe reutilizar el mismo patrón visual del dashboard tenant siempre que sea posible.
+
+Clases reutilizables:
+
+dashboard-tenant-summary
+dashboard-section-header
+dashboard-grid
+dashboard-link-card
+
+No debe crearse una base visual paralela para superadmin salvo necesidad funcional real.
 
 TERMINOLOGÍA DE INTERFAZ
 

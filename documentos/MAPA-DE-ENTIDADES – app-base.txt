@@ -1,4 +1,5 @@
 MAPA-DE-ENTIDADES – app-base
+
 Objetivo
 
 Este documento define el mapa conceptual de entidades del proyecto app-base.
@@ -6,11 +7,8 @@ Este documento define el mapa conceptual de entidades del proyecto app-base.
 Su finalidad es:
 
 visualizar la estructura general del sistema
-
 evitar duplicación de modelos
-
 orientar la creación de nuevos módulos
-
 mantener coherencia en el crecimiento del SaaS
 
 Criterio general de modelado
@@ -18,21 +16,15 @@ Criterio general de modelado
 El sistema distingue entre:
 
 entidades del sistema
-
 entidades del negocio
-
 entidades operativas
-
 entidades documentales
-
 entidades futuras de soporte
 
 Reglas principales:
 
 users es entidad del sistema
-
 parties es la entidad base del negocio
-
 antes de crear una entidad nueva evaluar si puede resolverse con una entidad existente
 
 Entidades del sistema
@@ -48,27 +40,16 @@ Se utiliza como etapa previa de validación manual o comercial antes de crear un
 Campos principales:
 
 id
-
 requested_name
-
 requested_email
-
 company_name
-
 phone_whatsapp
-
 status
-
 review_notes
-
 approved_at
-
 rejected_at
-
 approved_by
-
 created_at
-
 updated_at
 
 Notas:
@@ -79,6 +60,16 @@ Representa un proceso previo de validación administrativa o comercial.
 
 Puede dar origen a una o más invitations.
 
+Relación de flujo:
+
+signup_requests aprobada
+↓
+genera invitation owner_signup
+↓
+owner acepta invitación
+↓
+se crea tenant y membership owner
+
 INVITATIONS
 
 Entidad que representa una invitación formal de ingreso o vinculación al sistema.
@@ -88,41 +79,26 @@ Es el mecanismo central de onboarding y alta de usuarios relevantes dentro del s
 Campos principales:
 
 id
-
 tenant_id (nullable)
-
 type
-
 status
-
 email
-
 token
-
 signup_request_id (nullable)
-
 invited_by_user_id (nullable)
-
+sent_at
 expires_at
-
 accepted_at
-
 accepted_ip
-
 user_agent
-
 meta
-
 created_at
-
 updated_at
 
 Relaciones:
 
 belongsTo tenant (nullable)
-
 belongsTo signupRequest (nullable)
-
 belongsTo invitedBy user (nullable)
 
 Dominios cerrados:
@@ -130,18 +106,22 @@ Dominios cerrados:
 type
 
 owner_signup
-
 member_invite
 
 status
 
 pending
-
 accepted
-
 expired
-
 cancelled
+
+Interpretación de campos del flujo:
+
+sent_at
+momento en que el superadmin marca la invitación como enviada al owner
+
+accepted_at
+momento en que el owner acepta la invitación
 
 Notas importantes:
 
@@ -162,15 +142,10 @@ Define el aislamiento principal del modelo multi-tenant.
 Campos principales:
 
 id
-
 name
-
 slug
-
 settings
-
 created_at
-
 updated_at
 
 Notas importantes:
@@ -190,10 +165,15 @@ Entidad que representa la identidad global del sistema.
 Responsabilidades:
 
 autenticación
-
 identidad única del usuario
-
 acceso al sistema
+
+Campo global relevante:
+
+is_superadmin
+
+Define acceso administrativo global al sistema.
+No depende de memberships ni de pertenencia a tenants.
 
 Notas:
 
@@ -214,23 +194,14 @@ Es la tabla puente central del modelo multi-tenant.
 Campos principales:
 
 id
-
 tenant_id
-
 user_id
-
 status
-
 is_owner
-
 joined_at
-
 blocked_at
-
 blocked_reason
-
 created_at
-
 updated_at
 
 Notas:
@@ -263,7 +234,9 @@ User
 Tenant
 Membership
 SignupRequest
+
 Entidad base del negocio
+
 PARTIES
 
 Entidad general para personas u organizaciones relacionadas con el negocio.
@@ -279,13 +252,9 @@ contactos
 Ejemplos de uso:
 
 cliente
-
 proveedor
-
 empleado
-
 contratista
-
 tercero
 
 La diferenciación inicial se realiza mediante un campo de tipo.
@@ -299,34 +268,22 @@ kind es un dominio cerrado que define el tipo de actor representado por la entid
 Campos conceptuales esperados:
 
 tenant_id
-
 kind
-
 name
-
 display_name opcional
-
 document_type nullable
-
 document_number nullable
-
 tax_id nullable
-
 email nullable
-
 phone nullable
-
 address nullable
-
 notes nullable
-
 is_active
-
 timestamps
-
 softDeletes
 
 Entidades operativas
+
 PROJECTS
 
 Agrupa trabajos o iniciativas.
@@ -374,6 +331,7 @@ products → documents
 Dominio funcional:
 
 kind
+
 ORDERS
 
 Representa pedidos u órdenes comerciales.
@@ -381,7 +339,6 @@ Representa pedidos u órdenes comerciales.
 Características:
 
 representan intención comercial
-
 los totales se calculan dinámicamente a partir de los ítems
 
 Relaciones principales:
@@ -395,6 +352,7 @@ Dominios funcionales:
 
 kind
 status
+
 ORDER_ITEMS
 
 Detalle de productos dentro de una orden.
@@ -407,7 +365,6 @@ product → order_items
 Características:
 
 heredan tenant desde la cabecera
-
 no exponen tenant_id en fillable
 
 Dominio funcional:
@@ -419,6 +376,7 @@ Regla importante:
 kind reutiliza el mismo dominio definido en products.
 
 Entidades documentales
+
 DOCUMENTS
 
 Entidad genérica para documentos comerciales u operativos.
@@ -426,21 +384,15 @@ Entidad genérica para documentos comerciales u operativos.
 Ejemplos:
 
 factura
-
 remito
-
 presupuesto
-
 orden de trabajo
-
 nota de crédito
-
 recibo
 
 Características:
 
 representan documentos formales
-
 los totales se persisten en la cabecera
 
 Relaciones principales:
@@ -455,6 +407,7 @@ Dominios funcionales:
 
 kind
 status
+
 DOCUMENT_ITEMS
 
 Detalle de líneas dentro de un documento.
@@ -467,7 +420,6 @@ product → document_items
 Características:
 
 heredan tenant desde cabecera
-
 eliminación de cabecera elimina ítems
 
 Dominio funcional:
@@ -479,6 +431,7 @@ Regla:
 kind reutiliza el mismo dominio de products.
 
 Entidades financieras futuras
+
 PAYMENTS
 
 Representa pagos o cobros asociados a documentos.
@@ -488,7 +441,9 @@ Relaciones posibles:
 tenant → payments
 payments → documents
 payments → parties
+
 Entidades de inventario futuras
+
 INVENTORY
 
 Representa stock de productos.
@@ -498,6 +453,7 @@ INVENTORY_MOVEMENTS
 Registra movimientos de stock.
 
 Entidades futuras de soporte
+
 addresses
 attachments
 notes
@@ -506,6 +462,7 @@ permissions
 branches
 document_sequences
 party_profiles
+
 Nota importante
 
 Aunque la interfaz utiliza el término contactos, no se creará una tabla contacts.
@@ -513,14 +470,19 @@ Aunque la interfaz utiliza el término contactos, no se creará una tabla contac
 La entidad real continúa siendo:
 
 parties
+
 Relación conceptual general del sistema
+
 Núcleo SaaS
+
 users
 ↓
 memberships
 ↓
 tenants
+
 Dominio de negocio
+
 tenants
 ↓
 parties
@@ -528,7 +490,9 @@ parties
 projects
 ↓
 tasks
+
 Dominio comercial
+
 tenants
 ↓
 products
@@ -536,7 +500,9 @@ products
 orders
 ↓
 documents
+
 Orden recomendado de implementación
+
 parties
 tasks
 products
@@ -550,11 +516,7 @@ Regla final
 El crecimiento del sistema debe seguir estos principios:
 
 núcleo estable
-
 entidades reutilizables
-
 especialización progresiva
-
 mínima duplicación
-
 evolución gradual del dominio.

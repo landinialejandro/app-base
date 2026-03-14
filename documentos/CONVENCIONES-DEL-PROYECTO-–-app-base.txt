@@ -91,7 +91,70 @@ Membership no debe tratarse como una entidad tenant-scoped al estilo de los mód
 
 Por lo tanto:
 
-Membership no debe usar TenantScoped
+Membership no debe usar TenantScoped.
+
+CAPA GLOBAL / SUPERADMIN
+
+SUPERADMIN GLOBAL
+
+El sistema incorpora una capa global de superadmin separada del flujo tenant.
+
+Reglas:
+
+superadmin no es un tenant
+superadmin no requiere tenant activo para operar
+la autorización global se resuelve mediante users.is_superadmin
+memberships no define privilegios de superadmin
+un mismo user puede pertenecer a tenants y además ser superadmin, pero ambas capacidades deben mantenerse conceptualmente separadas
+
+RUTAS DEL SUPERADMIN
+
+Las rutas globales del panel administrativo deben quedar bajo:
+
+/admin
+
+y utilizar middleware:
+
+auth
+superadmin
+
+Estas rutas no deben depender del middleware tenant ni de app('tenant') como contexto operativo principal.
+
+CAPA PÚBLICA
+
+La landing pública y la solicitud inicial de alta de empresa no requieren autenticación ni tenant activo.
+
+La solicitud pública genera:
+
+signup_requests
+
+FLUJO OPERATIVO DEL ONBOARDING
+
+El flujo administrativo mínimo del onboarding queda dividido en etapas:
+
+signup_requests pendientes
+↓
+aprobación o rechazo por superadmin
+↓
+generación de invitation owner_signup
+↓
+envío manual del link por parte del superadmin
+↓
+aceptación por parte del owner
+↓
+creación real del tenant al aceptar la invitación
+
+INVITATIONS OWNER_SIGNUP
+
+En invitaciones de tipo owner_signup:
+
+tenant_id puede ser null antes de la aceptación
+
+sent_at representa el momento en que el superadmin marca el link como enviado
+
+accepted_at representa la aceptación efectiva por parte del owner
+
+El tenant se crea recién al aceptar la invitación.
 
 INVITATIONS
 
@@ -328,7 +391,11 @@ Estructura visual de páginas
 
 Todas las páginas internas deben seguir esta estructura:
 
-<x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
+<x-page>  
+<x-breadcrumb />  
+<x-page-header />  
+<x-card />  
+</x-page>
 
 Componentes Blade disponibles
 

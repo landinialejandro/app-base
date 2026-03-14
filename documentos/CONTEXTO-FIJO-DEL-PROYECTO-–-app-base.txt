@@ -19,7 +19,7 @@ DB: MariaDB
 
 URL local de desarrollo
 
-http://app-base.local
+[http://app-base.local](http://app-base.local)
 
 Sesiones
 
@@ -153,6 +153,8 @@ tasks
 products
 orders
 order_items
+documents
+document_items
 
 Entidad base del negocio
 
@@ -202,17 +204,37 @@ No es necesario modificar este comportamiento.
 
 Estado actual del sistema
 
-Entidades ya implementadas:
+Además del flujo multi-tenant principal, el sistema incorpora una capa global de administración denominada **superadmin**.
+
+Esta capa está separada del flujo tenant y permite gestionar aspectos globales del sistema.
+
+El superadmin puede administrar:
+
+landing pública
+signup_requests
+invitations de tipo owner_signup
+onboarding inicial de nuevas empresas
+
+El superadmin opera sin depender de un tenant activo.
+
+Entidades ya implementadas
 
 users
 tenants
 memberships
+
+signup_requests
+invitations (owner_signup y member_invite)
+
 parties
 projects
 tasks
 products
 orders
 order_items
+
+documents
+document_items
 
 Regla de arquitectura
 
@@ -231,10 +253,6 @@ El sistema crecerá mediante módulos empresariales reutilizando la arquitectura
 
 Módulos previstos:
 
-parties
-tasks
-products
-orders
 documents
 payments
 inventory

@@ -9,12 +9,20 @@
 @section('content')
     <x-page>
         <div class="welcome-page">
-            <div class="public-panel public-panel--sm">
-                <x-page-header title="Panel de acceso" vertical="vertical">
+            <div class="public-panel">
+                <x-page-header title="app-base" vertical="vertical">
+                    <p>Base SaaS multi-tenant para gestión comercial y operativa.</p>
+
                     @auth
-                        <a href="{{ route('dashboard') }}" class="btn btn-primary">
-                            Ir al dashboard
-                        </a>
+                        @if (auth()->user()->is_superadmin)
+                            <a href="{{ route('admin.dashboard') }}" class="btn btn-primary">
+                                Ir a administración
+                            </a>
+                        @else
+                            <a href="{{ route('dashboard') }}" class="btn btn-primary">
+                                Ir al dashboard
+                            </a>
+                        @endif
 
                         <form method="POST" action="{{ route('logout') }}">
                             @csrf
@@ -24,9 +32,15 @@
                             </button>
                         </form>
                     @else
-                        <a href="{{ route('login') }}" class="btn btn-primary">
-                            Ingresar
-                        </a>
+                        <div class="form-actions">
+                            <a href="{{ route('public.signup-requests.create') }}" class="btn btn-primary">
+                                Solicitar una empresa
+                            </a>
+
+                            <a href="{{ route('login') }}" class="btn btn-secondary">
+                                Ingresar
+                            </a>
+                        </div>
                     @endauth
                 </x-page-header>
             </div>

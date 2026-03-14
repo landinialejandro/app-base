@@ -23,6 +23,10 @@ class LoginResponse implements LoginResponseContract
 
         $user = Auth::user();
 
+        if ($user->is_superadmin) {
+            return redirect()->route('admin.dashboard');
+        }
+
         $tenantsCount = $user->tenants()->count();
 
         if ($tenantsCount > 1) {

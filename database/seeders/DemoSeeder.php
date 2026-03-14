@@ -56,36 +56,65 @@ class DemoSeeder extends Seeder
             );
 
             /*
-            |--------------------------------------------------------------------------
-            | USERS
-            |--------------------------------------------------------------------------
-            | password para todos: password
-            |--------------------------------------------------------------------------
-            */
+|--------------------------------------------------------------------------
+| USERS
+|--------------------------------------------------------------------------
+| password para todos: password
+|--------------------------------------------------------------------------
+*/
+
+            $superadmin = User::updateOrCreate(
+                ['email' => 'superadmin@app-base.local'],
+                [
+                    'name' => 'Super Admin',
+                    'password' => 'password',
+                    'is_superadmin' => true,
+                ]
+            );
 
             $ownerTech = User::firstOrCreate(
                 ['email' => 'juan@tech.local'],
-                ['name' => 'Juan Tech', 'password' => 'password']
+                [
+                    'name' => 'Juan Tech',
+                    'password' => 'password',
+                    'is_superadmin' => false,
+                ]
             );
 
             $ownerAndina = User::firstOrCreate(
                 ['email' => 'maria@andina.local'],
-                ['name' => 'María Andina', 'password' => 'password']
+                [
+                    'name' => 'María Andina',
+                    'password' => 'password',
+                    'is_superadmin' => false,
+                ]
             );
 
             $sharedUser = User::firstOrCreate(
                 ['email' => 'carlos@demo.local'],
-                ['name' => 'Carlos Operaciones', 'password' => 'password']
+                [
+                    'name' => 'Carlos Operaciones',
+                    'password' => 'password',
+                    'is_superadmin' => false,
+                ]
             );
 
             $techUser = User::firstOrCreate(
                 ['email' => 'ana@demo.local'],
-                ['name' => 'Ana Comercial', 'password' => 'password']
+                [
+                    'name' => 'Ana Comercial',
+                    'password' => 'password',
+                    'is_superadmin' => false,
+                ]
             );
 
             $andinaUser = User::firstOrCreate(
                 ['email' => 'pedro@demo.local'],
-                ['name' => 'Pedro Obra', 'password' => 'password']
+                [
+                    'name' => 'Pedro Obra',
+                    'password' => 'password',
+                    'is_superadmin' => false,
+                ]
             );
 
             /*

@@ -12,7 +12,7 @@
 
 <body>
     <div class="app-shell">
-        @if (!($publicPage ?? false))
+        @if (!($publicPage ?? false) && !(auth()->check() && auth()->user()->is_superadmin))
             <x-layout.navbar />
         @endif
 
@@ -45,7 +45,7 @@
             </div>
         </main>
 
-        @if (!($publicPage ?? false))
+        @if (!($publicPage ?? false) && !(auth()->check() && auth()->user()->is_superadmin))
             <footer class="app-footer">
                 <div class="container app-footer-inner">
                     <span class="app-footer-brand">app-base</span>
@@ -53,6 +53,7 @@
                 </div>
             </footer>
         @endif
+
     </div>
 
     <script src="{{ asset('js/app-base.js') }}"></script>

@@ -9,6 +9,7 @@ use Illuminate\Support\Str;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
+use App\Http\Controllers\SuperadminDashboardController;
 use App\Http\Controllers\InvitationAcceptanceController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProjectController;
@@ -19,6 +20,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentItemController;
+use App\Http\Controllers\PublicSignupRequestController;
 
 use App\Models\Invitation;
 use App\Models\User;
@@ -28,6 +30,15 @@ use App\Models\Tenant;
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::get('/solicitar-empresa', [PublicSignupRequestController::class, 'create'])
+    ->name('public.signup-requests.create');
+
+Route::post('/solicitar-empresa', [PublicSignupRequestController::class, 'store'])
+    ->name('public.signup-requests.store');
+
+Route::view('/solicitud-enviada', 'public.signup-requests.thank-you')
+    ->name('public.signup-requests.thank-you');
 
 // Debug API: tenant por header X-Tenant
 Route::middleware('tenant')->get('/whoami', function () {
@@ -74,9 +85,18 @@ Route::get('/accept-invitation/{token}', [InvitationAcceptanceController::class,
 Route::post('/accept-invitation/{token}', [InvitationAcceptanceController::class, 'store'])
     ->name('invitation.accept.store');
 
-Route::middleware(['auth', 'tenant'])->group(function () {
+Route::middleware(['auth', 'superadmin'])
+    ->prefix('admin')
+    ->name('admin.')
+    ->group(function () {
+        Route::get('/', [SuperadminDashboardController::class, 'index'])->name('dashboard');
+    });
 
-    Route::view('/profile', 'profile.show')->name('profile.show');
+Route::view('/profile', 'profile.show')
+    ->middleware('auth')
+    ->name('profile.show');
+
+Route::middleware(['auth', 'tenant'])->group(function () {
 
     Route::get('/tenant/profile', function () {
         $tenant = app('tenant');

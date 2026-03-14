@@ -5,9 +5,14 @@
 @section('title', 'Perfil')
 
 @section('content')
+    @php
+        $isSuperadmin = auth()->user()->is_superadmin;
+        $homeRoute = $isSuperadmin ? route('admin.dashboard') : route('dashboard');
+    @endphp
+
     <x-page>
         <x-breadcrumb :items="[
-            ['label' => 'Inicio', 'url' => route('dashboard')],
+            ['label' => 'Inicio', 'url' => $homeRoute],
             ['label' => 'Perfil'],
         ]" />
 
@@ -20,26 +25,14 @@
 
                 <div class="form-group">
                     <label for="name" class="form-label">Nombre</label>
-                    <input
-                        id="name"
-                        name="name"
-                        type="text"
-                        class="form-control"
-                        value="{{ old('name', auth()->user()->name) }}"
-                        required
-                    >
+                    <input id="name" name="name" type="text" class="form-control"
+                        value="{{ old('name', auth()->user()->name) }}" required>
                 </div>
 
                 <div class="form-group">
                     <label for="email" class="form-label">Correo electrónico</label>
-                    <input
-                        id="email"
-                        name="email"
-                        type="email"
-                        class="form-control"
-                        value="{{ old('email', auth()->user()->email) }}"
-                        required
-                    >
+                    <input id="email" name="email" type="email" class="form-control"
+                        value="{{ old('email', auth()->user()->email) }}" required>
                 </div>
 
                 <div class="form-actions">
@@ -47,7 +40,7 @@
                         Guardar cambios
                     </button>
 
-                    <a href="{{ route('dashboard') }}" class="btn btn-secondary">
+                    <a href="{{ $homeRoute }}" class="btn btn-secondary">
                         Volver
                     </a>
                 </div>

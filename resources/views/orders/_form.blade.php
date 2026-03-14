@@ -1,10 +1,10 @@
 {{-- FILE: resources/views/orders/_form.blade.php --}}
 
 @php
-use App\Support\Catalogs\OrderCatalog;
+    use App\Support\Catalogs\OrderCatalog;
 
-$orderExists = isset($order) && $order->exists;
-$orderIsNumbered = $orderExists && !empty($order->number);
+    $orderExists = isset($order) && $order->exists;
+    $orderIsNumbered = $orderExists && !empty($order->number);
 @endphp
 
 <div class="form-group">
@@ -40,8 +40,7 @@ $orderIsNumbered = $orderExists && !empty($order->number);
     @else
         <select name="kind" id="kind" class="form-control" required>
             @foreach (OrderCatalog::kindLabels() as $value => $label)
-                <option value="{{ $value }}"
-                    @selected(old('kind', $order->kind ?? OrderCatalog::KIND_SALE) === $value)>
+                <option value="{{ $value }}" @selected(old('kind', $order->kind ?? OrderCatalog::KIND_SALE) === $value)>
                     {{ $label }}
                 </option>
             @endforeach
@@ -69,8 +68,7 @@ $orderIsNumbered = $orderExists && !empty($order->number);
     <label for="status" class="form-label">Estado</label>
     <select name="status" id="status" class="form-control" required>
         @foreach (OrderCatalog::statusLabels() as $value => $label)
-            <option value="{{ $value }}"
-                @selected(old('status', $order->status ?? OrderCatalog::STATUS_DRAFT) === $value)>
+            <option value="{{ $value }}" @selected(old('status', $order->status ?? OrderCatalog::STATUS_DRAFT) === $value)>
                 {{ $label }}
             </option>
         @endforeach
@@ -82,12 +80,11 @@ $orderIsNumbered = $orderExists && !empty($order->number);
 
 <div class="form-group">
     <label for="ordered_at" class="form-label">Fecha</label>
-    <input
-        type="date"
-        name="ordered_at"
-        id="ordered_at"
-        class="form-control"
-        value="{{ old('ordered_at', isset($order) && $order->ordered_at ? $order->ordered_at->format('Y-m-d') : '') }}">
+    <input type="date" name="ordered_at" id="ordered_at" class="form-control"
+        value="{{ old('ordered_at', isset($order) && $order->ordered_at ? $order->ordered_at->format('Y-m-d') : now()->format('Y-m-d')) }}"
+        required>
+
+    <div class="form-help">Si no se modifica, se usará la fecha actual. Se permite hasta 30 días hacia el futuro.</div>
 
     @error('ordered_at')
         <div class="form-help is-error">{{ $message }}</div>
@@ -96,11 +93,7 @@ $orderIsNumbered = $orderExists && !empty($order->number);
 
 <div class="form-group">
     <label for="notes" class="form-label">Notas</label>
-    <textarea
-        name="notes"
-        id="notes"
-        class="form-control"
-        rows="4">{{ old('notes', $order->notes ?? '') }}</textarea>
+    <textarea name="notes" id="notes" class="form-control" rows="4">{{ old('notes', $order->notes ?? '') }}</textarea>
 
     @error('notes')
         <div class="form-help is-error">{{ $message }}</div>

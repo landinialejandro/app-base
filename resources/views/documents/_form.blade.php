@@ -18,7 +18,7 @@
         @endforeach
     </select>
     @error('party_id')
-        <div class="form-help">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
@@ -33,7 +33,7 @@
         @endforeach
     </select>
     @error('order_id')
-        <div class="form-help">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
@@ -63,7 +63,7 @@
     @endif
 
     @error('kind')
-        <div class="form-help">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
@@ -89,16 +89,23 @@
         @endforeach
     </select>
     @error('status')
-        <div class="form-help">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
 <div class="form-group">
     <label for="issued_at" class="form-label">Fecha de emisión</label>
     <input type="date" name="issued_at" id="issued_at" class="form-control"
-        value="{{ old('issued_at', isset($document) && $document->issued_at ? $document->issued_at->format('Y-m-d') : '') }}">
+        value="{{ old('issued_at', isset($document) && $document->issued_at ? $document->issued_at->format('Y-m-d') : now()->format('Y-m-d')) }}"
+        required>
+
+    <div class="form-help">
+        Para facturas no se permiten fechas futuras. Si el documento está asociado a una orden, la fecha no puede ser
+        anterior a la de esa orden.
+    </div>
+
     @error('issued_at')
-        <div class="form-help">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
@@ -107,6 +114,6 @@
     <textarea name="notes" id="notes" class="form-control"
         rows="4">{{ old('notes', $document->notes ?? '') }}</textarea>
     @error('notes')
-        <div class="form-help">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>

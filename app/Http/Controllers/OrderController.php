@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 
 use App\Models\Order;
 use App\Models\Party;
@@ -59,6 +60,20 @@ class OrderController extends Controller
             'ordered_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
         ]);
+
+        $orderedAt = $data['ordered_at'] ?? now()->toDateString();
+        $orderedAtDate = Carbon::parse($orderedAt)->startOfDay();
+        $maxFutureDate = now()->startOfDay()->addDays(30);
+
+        if ($orderedAtDate->gt($maxFutureDate)) {
+            return back()
+                ->withErrors([
+                    'ordered_at' => 'La fecha de la orden no puede superar los 30 días hacia el futuro.',
+                ])
+                ->withInput();
+        }
+
+        $data['ordered_at'] = $orderedAtDate->toDateString();
 
         $order = DB::transaction(function () use ($tenant, $data) {
             $sequence = DocumentNumberGenerator::generate(
@@ -139,6 +154,19 @@ class OrderController extends Controller
                 ->withInput();
         }
 
+        $orderedAt = $data['ordered_at'] ?? $order->ordered_at?->toDateString() ?? now()->toDateString();
+        $orderedAtDate = Carbon::parse($orderedAt)->startOfDay();
+        $maxFutureDate = now()->startOfDay()->addDays(30);
+
+        if ($orderedAtDate->gt($maxFutureDate)) {
+            return back()
+                ->withErrors([
+                    'ordered_at' => 'La fecha de la orden no puede superar los 30 días hacia el futuro.',
+                ])
+                ->withInput();
+        }
+
+        $data['ordered_at'] = $orderedAtDate->toDateString();
         $data['updated_by'] = auth()->id();
 
         $order->update($data);

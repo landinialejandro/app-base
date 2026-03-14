@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Carbon;
 
 use App\Models\Document;
 use App\Models\DocumentItem;
@@ -36,6 +37,7 @@ class DocumentController extends Controller
         $document = new Document([
             'kind' => DocumentCatalog::KIND_QUOTE,
             'status' => DocumentCatalog::STATUS_DRAFT,
+            'issued_at' => now(),
         ]);
 
         return view('documents.create', compact('document', 'parties', 'orders'));
@@ -77,6 +79,27 @@ class DocumentController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
+        $issuedAt = $this->resolveIssuedAt($data['issued_at'] ?? null);
+        $order = null;
+
+        if (!empty($data['order_id'])) {
+            $order = Order::query()->find($data['order_id']);
+        }
+
+        $issuedAtError = $this->validateIssuedAtForDocument(
+            issuedAt: $issuedAt,
+            kind: $data['kind'],
+            order: $order,
+        );
+
+        if ($issuedAtError) {
+            return back()
+                ->withErrors(['issued_at' => $issuedAtError])
+                ->withInput();
+        }
+
+        $data['issued_at'] = $issuedAt->toDateString();
+
         $document = DB::transaction(function () use ($tenant, $data) {
             $sequence = DocumentNumberGenerator::generate(
                 tenantId: $tenant->id,
@@ -113,12 +136,27 @@ class DocumentController extends Controller
             ],
         ]);
 
+        abort_unless($order->party_id, 422, 'La orden debe tener un contacto asociado para generar documentos.');
+
         $existingDocumentsCount = $order->documents()->count();
         $existingSameKindCount = $order->documents()
             ->where('kind', $data['kind'])
             ->count();
 
-        $document = DB::transaction(function () use ($order, $data) {
+        $issuedAt = now()->startOfDay();
+
+        $issuedAtError = $this->validateIssuedAtForDocument(
+            issuedAt: $issuedAt,
+            kind: $data['kind'],
+            order: $order,
+        );
+
+        if ($issuedAtError) {
+            return back()
+                ->withErrors(['issued_at' => $issuedAtError]);
+        }
+
+        $document = DB::transaction(function () use ($order, $data, $issuedAt) {
             $sequence = DocumentNumberGenerator::generate(
                 tenantId: $order->tenant_id,
                 kind: $data['kind'],
@@ -135,15 +173,13 @@ class DocumentController extends Controller
                 'point_of_sale' => $sequence['point_of_sale'],
                 'sequence_number' => $sequence['sequence_number'],
                 'status' => DocumentCatalog::STATUS_DRAFT,
-                'issued_at' => now()->toDateString(),
+                'issued_at' => $issuedAt->toDateString(),
                 'subtotal' => 0,
                 'tax_total' => 0,
                 'total' => 0,
                 'created_by' => auth()->id(),
             ]);
 
-            abort_unless($order->party_id, 422, 'La orden debe tener un contacto asociado para generar documentos.');
-            
             $this->copyItemsFromOrder($order, $document);
 
             DocumentTotalsCalculator::apply($document);
@@ -233,6 +269,29 @@ class DocumentController extends Controller
                 ->withInput();
         }
 
+        $issuedAt = $this->resolveIssuedAt(
+            $data['issued_at'] ?? ($document->issued_at?->toDateString() ?? null)
+        );
+
+        $order = null;
+
+        if (!empty($data['order_id'])) {
+            $order = Order::query()->find($data['order_id']);
+        }
+
+        $issuedAtError = $this->validateIssuedAtForDocument(
+            issuedAt: $issuedAt,
+            kind: $data['kind'],
+            order: $order,
+        );
+
+        if ($issuedAtError) {
+            return back()
+                ->withErrors(['issued_at' => $issuedAtError])
+                ->withInput();
+        }
+
+        $data['issued_at'] = $issuedAt->toDateString();
         $data['updated_by'] = auth()->id();
 
         $document->update($data);
@@ -272,5 +331,39 @@ class DocumentController extends Controller
                 'line_total' => $lineTotal,
             ]);
         }
+    }
+
+    protected function resolveIssuedAt(?string $issuedAt): Carbon
+    {
+        return $issuedAt
+            ? Carbon::parse($issuedAt)->startOfDay()
+            : now()->startOfDay();
+    }
+
+    protected function validateIssuedAtForDocument(Carbon $issuedAt, string $kind, ?Order $order = null): ?string
+    {
+        $today = now()->startOfDay();
+
+        if ($kind === DocumentCatalog::KIND_INVOICE && $issuedAt->gt($today)) {
+            return 'La fecha de una factura no puede ser futura.';
+        }
+
+        if ($kind !== DocumentCatalog::KIND_INVOICE) {
+            $maxFutureDate = $today->copy()->addDays(30);
+
+            if ($issuedAt->gt($maxFutureDate)) {
+                return 'La fecha del documento no puede superar los 30 días hacia el futuro.';
+            }
+        }
+
+        if ($order && $order->ordered_at) {
+            $orderDate = Carbon::parse($order->ordered_at)->startOfDay();
+
+            if ($issuedAt->lt($orderDate)) {
+                return 'La fecha del documento no puede ser anterior a la fecha de la orden asociada.';
+            }
+        }
+
+        return null;
     }
 }

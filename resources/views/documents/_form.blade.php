@@ -2,6 +2,9 @@
 
 @php
     use App\Support\Catalogs\DocumentCatalog;
+
+    $documentExists = isset($document) && $document->exists;
+    $documentIsNumbered = $documentExists && !empty($document->number);
 @endphp
 
 <div class="form-group">
@@ -36,25 +39,44 @@
 
 <div class="form-group">
     <label for="kind" class="form-label">Tipo</label>
-    <select name="kind" id="kind" class="form-control" required>
-        @foreach (DocumentCatalog::kindLabels() as $value => $label)
-            <option value="{{ $value }}" @selected(old('kind', $document->kind ?? DocumentCatalog::KIND_QUOTE) === $value)>
-                {{ $label }}
-            </option>
-        @endforeach
-    </select>
+
+    @if ($documentIsNumbered)
+        <select id="kind" class="form-control" disabled>
+            @foreach (DocumentCatalog::kindLabels() as $value => $label)
+                <option value="{{ $value }}" @selected(old('kind', $document->kind) === $value)>
+                    {{ $label }}
+                </option>
+            @endforeach
+        </select>
+
+        <input type="hidden" name="kind" value="{{ old('kind', $document->kind) }}">
+
+        <div class="form-help">El tipo no puede cambiarse una vez numerado el documento.</div>
+    @else
+        <select name="kind" id="kind" class="form-control" required>
+            @foreach (DocumentCatalog::kindLabels() as $value => $label)
+                <option value="{{ $value }}" @selected(old('kind', $document->kind ?? DocumentCatalog::KIND_QUOTE) === $value)>
+                    {{ $label }}
+                </option>
+            @endforeach
+        </select>
+    @endif
+
     @error('kind')
         <div class="form-help">{{ $message }}</div>
     @enderror
 </div>
 
 <div class="form-group">
-    <label for="number" class="form-label">Número</label>
-    <input type="text" name="number" id="number" class="form-control"
-        value="{{ old('number', $document->number ?? '') }}">
-    @error('number')
-        <div class="form-help">{{ $message }}</div>
-    @enderror
+    <label class="form-label">Número</label>
+
+    @if ($documentExists)
+        <input type="text" class="form-control" value="{{ $document->number ?: 'Se asignará al guardar' }}" disabled>
+        <div class="form-help">La numeración es automática y no editable.</div>
+    @else
+        <input type="text" class="form-control" value="Se asignará automáticamente al guardar" disabled>
+        <div class="form-help">El número se genera automáticamente por tenant, tipo y punto de venta.</div>
+    @endif
 </div>
 
 <div class="form-group">

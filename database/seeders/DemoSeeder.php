@@ -490,8 +490,8 @@ class DemoSeeder extends Seeder
             |--------------------------------------------------------------------------
             */
 
-            $this->createDocumentSequences($tenantTech->id, $techBranches);
-            $this->createDocumentSequences($tenantAndina->id, $andinaBranches);
+            $this->createDocumentSequences($tenantTech);
+            $this->createDocumentSequences($tenantAndina);
 
             /*
             |--------------------------------------------------------------------------
@@ -800,32 +800,65 @@ class DemoSeeder extends Seeder
         );
     }
 
-    protected function createDocumentSequences(string $tenantId, Collection $branches): void
+    protected function createDocumentSequences($tenant): void
     {
+        $pointOfSale = '0001';
+
         $definitions = [
-            ['doc_type' => 'quote', 'prefix' => 'PRE'],
-            ['doc_type' => 'invoice', 'prefix' => 'FAC'],
-            ['doc_type' => 'work_order', 'prefix' => 'OTR'],
-            ['doc_type' => 'receipt', 'prefix' => 'REC'],
+            [
+                'doc_type' => 'quote',
+                'prefix' => 'PRE',
+                'padding' => 8,
+                'next_number' => 1,
+            ],
+            [
+                'doc_type' => 'delivery_note',
+                'prefix' => 'REM',
+                'padding' => 8,
+                'next_number' => 1,
+            ],
+            [
+                'doc_type' => 'invoice',
+                'prefix' => 'FAC',
+                'padding' => 8,
+                'next_number' => 1,
+            ],
+            [
+                'doc_type' => 'work_order',
+                'prefix' => 'OTR',
+                'padding' => 8,
+                'next_number' => 1,
+            ],
+            [
+                'doc_type' => 'receipt',
+                'prefix' => 'REC',
+                'padding' => 8,
+                'next_number' => 1,
+            ],
+            [
+                'doc_type' => 'credit_note',
+                'prefix' => 'NCR',
+                'padding' => 8,
+                'next_number' => 1,
+            ],
         ];
 
-        foreach ($branches as $branch) {
-            foreach ($definitions as $definition) {
-                DB::table('document_sequences')->updateOrInsert(
-                    [
-                        'tenant_id' => $tenantId,
-                        'branch_id' => $branch->id,
-                        'doc_type' => $definition['doc_type'],
-                    ],
-                    [
-                        'prefix' => $definition['prefix'],
-                        'padding' => 8,
-                        'next_number' => 2,
-                        'created_at' => now(),
-                        'updated_at' => now(),
-                    ]
-                );
-            }
+        foreach ($definitions as $definition) {
+            \DB::table('document_sequences')->updateOrInsert(
+                [
+                    'tenant_id' => $tenant->id,
+                    'doc_type' => $definition['doc_type'],
+                    'point_of_sale' => $pointOfSale,
+                ],
+                [
+                    'branch_id' => null,
+                    'prefix' => $definition['prefix'],
+                    'padding' => $definition['padding'],
+                    'next_number' => $definition['next_number'],
+                    'updated_at' => now(),
+                    'created_at' => now(),
+                ]
+            );
         }
     }
 

@@ -22,6 +22,9 @@ class Document extends Model
         'order_id',
         'kind',
         'number',
+        'sequence_prefix',
+        'point_of_sale',
+        'sequence_number',
         'status',
         'issued_at',
         'due_at',
@@ -37,16 +40,11 @@ class Document extends Model
     protected $casts = [
         'issued_at' => 'date',
         'due_at' => 'date',
+        'sequence_number' => 'integer',
         'subtotal' => 'decimal:2',
         'tax_total' => 'decimal:2',
         'total' => 'decimal:2',
     ];
-
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
 
     public function party()
     {

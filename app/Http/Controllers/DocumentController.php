@@ -15,15 +15,10 @@ use App\Models\Party;
 
 use App\Support\Catalogs\DocumentCatalog;
 use App\Support\Documents\DocumentTotalsCalculator;
+use App\Support\Documents\DocumentNumberGenerator;
 
 class DocumentController extends Controller
 {
-    /*
-    |--------------------------------------------------------------------------
-    | Listado
-    |--------------------------------------------------------------------------
-    */
-
     public function index()
     {
         $documents = Document::with(['party', 'order', 'items'])
@@ -32,12 +27,6 @@ class DocumentController extends Controller
 
         return view('documents.index', compact('documents'));
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Crear
-    |--------------------------------------------------------------------------
-    */
 
     public function create()
     {
@@ -51,12 +40,6 @@ class DocumentController extends Controller
 
         return view('documents.create', compact('document', 'parties', 'orders'));
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Guardar
-    |--------------------------------------------------------------------------
-    */
 
     public function store(Request $request)
     {
@@ -85,8 +68,6 @@ class DocumentController extends Controller
                 Rule::in(DocumentCatalog::kinds()),
             ],
 
-            'number' => ['nullable', 'string', 'max:255'],
-
             'status' => [
                 'required',
                 Rule::in(DocumentCatalog::statuses()),
@@ -96,20 +77,28 @@ class DocumentController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        $data['created_by'] = auth()->id();
+        $document = DB::transaction(function () use ($tenant, $data) {
+            $sequence = DocumentNumberGenerator::generate(
+                tenantId: $tenant->id,
+                kind: $data['kind'],
+                pointOfSale: '0001',
+            );
 
-        $document = Document::create($data);
+            $payload = array_merge($data, [
+                'number' => $sequence['number'],
+                'sequence_prefix' => $sequence['prefix'],
+                'point_of_sale' => $sequence['point_of_sale'],
+                'sequence_number' => $sequence['sequence_number'],
+                'created_by' => auth()->id(),
+            ]);
+
+            return Document::create($payload);
+        });
 
         return redirect()
             ->route('documents.show', $document)
-            ->with('success', 'Documento creado correctamente.');
+            ->with('success', "Documento creado correctamente con número {$document->number}.");
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Crear documento desde orden
-    |--------------------------------------------------------------------------
-    */
 
     public function storeFromOrder(Request $request, Order $order)
     {
@@ -130,11 +119,21 @@ class DocumentController extends Controller
             ->count();
 
         $document = DB::transaction(function () use ($order, $data) {
+            $sequence = DocumentNumberGenerator::generate(
+                tenantId: $order->tenant_id,
+                kind: $data['kind'],
+                pointOfSale: '0001',
+            );
+
             $document = Document::create([
                 'tenant_id' => $order->tenant_id,
                 'party_id' => $order->party_id,
                 'order_id' => $order->id,
                 'kind' => $data['kind'],
+                'number' => $sequence['number'],
+                'sequence_prefix' => $sequence['prefix'],
+                'point_of_sale' => $sequence['point_of_sale'],
+                'sequence_number' => $sequence['sequence_number'],
                 'status' => DocumentCatalog::STATUS_DRAFT,
                 'issued_at' => now()->toDateString(),
                 'subtotal' => 0,
@@ -152,7 +151,7 @@ class DocumentController extends Controller
 
         $kindLabel = DocumentCatalog::label($data['kind']);
 
-        $message = "Documento {$kindLabel} creado correctamente desde la orden.";
+        $message = "Documento {$kindLabel} creado correctamente desde la orden con número {$document->number}.";
 
         if ($existingDocumentsCount > 0) {
             $message .= " Esta orden ya tenía {$existingDocumentsCount} documento(s) asociado(s).";
@@ -167,12 +166,6 @@ class DocumentController extends Controller
             ->with('success', $message);
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Mostrar
-    |--------------------------------------------------------------------------
-    */
-
     public function show(Document $document)
     {
         $document->load([
@@ -186,12 +179,6 @@ class DocumentController extends Controller
         return view('documents.show', compact('document'));
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Editar
-    |--------------------------------------------------------------------------
-    */
-
     public function edit(Document $document)
     {
         $parties = Party::orderBy('name')->get();
@@ -199,12 +186,6 @@ class DocumentController extends Controller
 
         return view('documents.edit', compact('document', 'parties', 'orders'));
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Actualizar
-    |--------------------------------------------------------------------------
-    */
 
     public function update(Request $request, Document $document)
     {
@@ -233,8 +214,6 @@ class DocumentController extends Controller
                 Rule::in(DocumentCatalog::kinds()),
             ],
 
-            'number' => ['nullable', 'string', 'max:255'],
-
             'status' => [
                 'required',
                 Rule::in(DocumentCatalog::statuses()),
@@ -243,6 +222,14 @@ class DocumentController extends Controller
             'issued_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
         ]);
+
+        if ($document->number && $data['kind'] !== $document->kind) {
+            return back()
+                ->withErrors([
+                    'kind' => 'No se puede cambiar el tipo de un documento que ya fue numerado.',
+                ])
+                ->withInput();
+        }
 
         $data['updated_by'] = auth()->id();
 
@@ -253,12 +240,6 @@ class DocumentController extends Controller
             ->with('success', 'Documento actualizado.');
     }
 
-    /*
-    |--------------------------------------------------------------------------
-    | Eliminar
-    |--------------------------------------------------------------------------
-    */
-
     public function destroy(Document $document)
     {
         $document->delete();
@@ -267,12 +248,6 @@ class DocumentController extends Controller
             ->route('documents.index')
             ->with('success', 'Documento eliminado.');
     }
-
-    /*
-    |--------------------------------------------------------------------------
-    | Helpers
-    |--------------------------------------------------------------------------
-    */
 
     protected function copyItemsFromOrder(Order $order, Document $document): void
     {

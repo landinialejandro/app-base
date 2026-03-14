@@ -38,4 +38,9 @@ class Tenant extends Model
     {
         return $this->hasMany(Invitation::class);
     }
+
+    public function documentSequences(): HasMany
+    {
+        return $this->hasMany(DocumentSequence::class);
+    }
 }

@@ -124,6 +124,11 @@ class DocumentController extends Controller
             ],
         ]);
 
+        $existingDocumentsCount = $order->documents()->count();
+        $existingSameKindCount = $order->documents()
+            ->where('kind', $data['kind'])
+            ->count();
+
         $document = DB::transaction(function () use ($order, $data) {
             $document = Document::create([
                 'tenant_id' => $order->tenant_id,
@@ -145,9 +150,21 @@ class DocumentController extends Controller
             return $document;
         });
 
+        $kindLabel = DocumentCatalog::label($data['kind']);
+
+        $message = "Documento {$kindLabel} creado correctamente desde la orden.";
+
+        if ($existingDocumentsCount > 0) {
+            $message .= " Esta orden ya tenía {$existingDocumentsCount} documento(s) asociado(s).";
+        }
+
+        if ($existingSameKindCount > 0) {
+            $message .= " Ya existía(n) {$existingSameKindCount} documento(s) del tipo {$kindLabel}.";
+        }
+
         return redirect()
             ->route('documents.show', $document)
-            ->with('success', 'Documento creado correctamente desde la orden.');
+            ->with('success', $message);
     }
 
     /*

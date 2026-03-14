@@ -1031,6 +1031,94 @@ textarea.form-control {
 }
 
 /* =========================================================
+   15. Tabs internas
+   Solapas simples para vistas show con mucho contenido
+   ========================================================= */
+
+.tabs {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.tabs-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    padding-bottom: var(--space-2);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.tabs-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0.55rem 0.9rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-muted);
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease;
+}
+
+.tabs-link:hover {
+    background: #f8fafc;
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.tabs-link.is-active {
+    background: rgba(37, 99, 235, 0.10);
+    border-color: rgba(37, 99, 235, 0.18);
+    color: var(--color-primary);
+}
+
+.tab-panel {
+    display: none;
+}
+
+.tab-panel.is-active {
+    display: block;
+}
+
+.tab-panel-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+}
+
+.summary-inline-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--space-3);
+}
+
+.summary-inline-card {
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: #f8fafc;
+}
+
+.summary-inline-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-muted);
+    margin-bottom: var(--space-1);
+}
+
+.summary-inline-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+/* =========================================================
    15. Utilidades mínimas
    ========================================================= */
 

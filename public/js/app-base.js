@@ -54,4 +54,39 @@
             closeAllDropdowns();
         });
     });
+
+    document.querySelectorAll('[data-tabs]').forEach(function (tabsRoot) {
+        const links = Array.from(tabsRoot.querySelectorAll('[data-tab-link]'));
+        const panels = Array.from(tabsRoot.querySelectorAll('[data-tab-panel]'));
+
+        if (!links.length || !panels.length) {
+            return;
+        }
+
+        const activateTab = function (tabName) {
+            links.forEach(function (link) {
+                const isActive = link.dataset.tabLink === tabName;
+                link.classList.toggle('is-active', isActive);
+                link.setAttribute('aria-selected', isActive ? 'true' : 'false');
+            });
+
+            panels.forEach(function (panel) {
+                const isActive = panel.dataset.tabPanel === tabName;
+                panel.classList.toggle('is-active', isActive);
+                panel.hidden = !isActive;
+            });
+        };
+
+        links.forEach(function (link) {
+            link.addEventListener('click', function () {
+                activateTab(link.dataset.tabLink);
+            });
+        });
+
+        const initialActiveLink =
+            links.find((link) => link.classList.contains('is-active')) ||
+            links[0];
+
+        activateTab(initialActiveLink.dataset.tabLink);
+    });
 })();

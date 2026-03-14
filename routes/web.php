@@ -23,6 +23,7 @@ use App\Http\Controllers\DocumentItemController;
 use App\Http\Controllers\PublicSignupRequestController;
 use App\Http\Controllers\AdminSignupRequestController;
 use App\Http\Controllers\AdminInvitationController;
+use App\Http\Controllers\AdminMetricsController;
 
 use App\Models\Invitation;
 use App\Models\User;
@@ -114,6 +115,11 @@ Route::middleware(['auth', 'superadmin'])
         Route::post('/invitations/{invitation}/mark-as-sent', [AdminInvitationController::class, 'markAsSent'])
             ->name('invitations.mark-as-sent');
 
+        Route::get('/metrics/owners', [AdminMetricsController::class, 'owners'])
+            ->name('metrics.owners');
+
+        Route::get('/metrics/tenants', [AdminMetricsController::class, 'tenants'])
+            ->name('metrics.tenants');
     });
 
 Route::view('/profile', 'profile.show')

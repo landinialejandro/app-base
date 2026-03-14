@@ -90,13 +90,13 @@ class InvitationAcceptanceController extends Controller
         if ($invitation->accepted_at || $invitation->status === 'accepted') {
             return redirect()
                 ->route('invitation.accept.show', $invitation->token)
-                ->with('error', 'Esta invitación ya fue aceptada.');
+                ->with('error', 'Esta invitación ya fue utilizada.');
         }
 
         if ($invitation->expires_at && $invitation->expires_at->isPast()) {
             return redirect()
                 ->route('invitation.accept.show', $invitation->token)
-                ->with('error', 'Esta invitación está vencida.');
+                ->with('error', 'Este enlace ya venció.');
         }
 
         $existingUser = User::query()
@@ -107,7 +107,7 @@ class InvitationAcceptanceController extends Controller
             if (!$invitation->tenant_id) {
                 return redirect()
                     ->route('invitation.accept.show', $invitation->token)
-                    ->with('error', 'La invitación de miembro no tiene tenant asociado.');
+                    ->with('error', 'La invitación no tiene una empresa asociada.');
             }
 
             return $this->handleMemberInvite($request, $invitation, $existingUser);
@@ -117,13 +117,13 @@ class InvitationAcceptanceController extends Controller
             if (!$invitation->signup_request_id) {
                 return redirect()
                     ->route('invitation.accept.show', $invitation->token)
-                    ->with('error', 'La invitación de owner no tiene solicitud asociada.');
+                    ->with('error', 'La invitación no tiene una solicitud asociada.');
             }
 
             if (is_null($invitation->accepted_at) && !is_null($invitation->tenant_id)) {
                 return redirect()
                     ->route('invitation.accept.show', $invitation->token)
-                    ->with('error', 'La invitación owner tiene un tenant asignado antes de ser aceptada.');
+                    ->with('error', 'La invitación tiene una empresa asignada antes de ser aceptada.');
             }
 
             return $this->handleOwnerSignup($request, $invitation, $existingUser);
@@ -131,7 +131,7 @@ class InvitationAcceptanceController extends Controller
 
         return redirect()
             ->route('invitation.accept.show', $invitation->token)
-            ->with('error', 'Tipo de invitación no soportado.');
+            ->with('error', 'El tipo de invitación no es válido.');
     }
 
     protected function handleMemberInvite(Request $request, Invitation $invitation, ?User $existingUser)
@@ -155,7 +155,7 @@ class InvitationAcceptanceController extends Controller
 
                 return redirect()
                     ->route('login')
-                    ->with('error', 'Debes iniciar sesión con el email asociado a la invitación.');
+                    ->with('error', 'Debes iniciar sesión con el mismo email al que fue enviada la invitación.');
             }
 
             DB::transaction(function () use ($invitation, $existingUser, $request) {
@@ -163,12 +163,17 @@ class InvitationAcceptanceController extends Controller
                 $this->markInvitationAccepted($invitation, $request);
             });
 
-            return $this->redirectAfterAcceptance($request, $existingUser);
+            return $this->redirectAfterAcceptance($request, $existingUser, $invitation);
         }
 
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'password' => ['required', 'confirmed', 'min:8'],
+        ], [
+            'name.required' => 'Ingresa tu nombre.',
+            'password.required' => 'Ingresa una contraseña.',
+            'password.confirmed' => 'La confirmación de la contraseña no coincide.',
+            'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
         ]);
 
         $user = DB::transaction(function () use ($invitation, $data, $request) {
@@ -187,7 +192,7 @@ class InvitationAcceptanceController extends Controller
         Auth::login($user);
         $request->session()->regenerate();
 
-        return $this->redirectAfterAcceptance($request, $user);
+        return $this->redirectAfterAcceptance($request, $user, $invitation);
     }
 
     protected function handleOwnerSignup(Request $request, Invitation $invitation, ?User $existingUser)
@@ -198,7 +203,7 @@ class InvitationAcceptanceController extends Controller
 
                 return redirect()
                     ->route('login')
-                    ->with('error', 'Inicia sesión con el email invitado para completar el alta de la nueva empresa.');
+                    ->with('error', 'Inicia sesión con el email invitado para completar el alta de la empresa.');
             }
 
             if (Auth::user()->email !== $invitation->email) {
@@ -211,16 +216,23 @@ class InvitationAcceptanceController extends Controller
 
                 return redirect()
                     ->route('login')
-                    ->with('error', 'Debes iniciar sesión con el email asociado a la invitación.');
+                    ->with('error', 'Debes iniciar sesión con el mismo email al que fue enviada la invitación.');
             }
 
             $data = $request->validate([
                 'name' => ['required', 'string', 'max:255'],
+            ], [
+                'name.required' => 'Ingresa tu nombre.',
             ]);
         } else {
             $data = $request->validate([
                 'name' => ['required', 'string', 'max:255'],
                 'password' => ['required', 'confirmed', 'min:8'],
+            ], [
+                'name.required' => 'Ingresa tu nombre.',
+                'password.required' => 'Ingresa una contraseña.',
+                'password.confirmed' => 'La confirmación de la contraseña no coincide.',
+                'password.min' => 'La contraseña debe tener al menos 8 caracteres.',
             ]);
         }
 
@@ -238,6 +250,15 @@ class InvitationAcceptanceController extends Controller
                     'name' => $data['name'],
                 ]);
             }
+
+            /*
+            |--------------------------------------------------------------------------
+            | Punto futuro de control
+            |--------------------------------------------------------------------------
+            | Aquí podrá validarse más adelante la cantidad de empresas permitidas
+            | por owner según el plan o la política comercial.
+            |--------------------------------------------------------------------------
+            */
 
             $tenant = $this->createTenantForOwnerInvitation($invitation);
 
@@ -264,13 +285,13 @@ class InvitationAcceptanceController extends Controller
             $request->session()->regenerate();
         }
 
-        return $this->redirectAfterAcceptance($request, $user);
+        return $this->redirectAfterAcceptance($request, $user, $invitation);
     }
 
     protected function attachMembershipToExistingTenant(Invitation $invitation, User $user): void
     {
         if (!$invitation->tenant_id) {
-            abort(500, 'La invitación de miembro no tiene tenant asociado.');
+            abort(500, 'La invitación de miembro no tiene una empresa asociada.');
         }
 
         Membership::firstOrCreate(
@@ -299,7 +320,7 @@ class InvitationAcceptanceController extends Controller
         $signupRequest = $invitation->signupRequest;
 
         if (!$signupRequest) {
-            abort(500, 'La invitación de owner no tiene solicitud asociada.');
+            abort(500, 'La invitación no tiene una solicitud asociada.');
         }
 
         return Tenant::create([
@@ -320,14 +341,20 @@ class InvitationAcceptanceController extends Controller
         ]);
     }
 
-    protected function redirectAfterAcceptance(Request $request, User $user)
+    protected function redirectAfterAcceptance(Request $request, User $user, Invitation $invitation)
     {
+        $message = match ($invitation->type) {
+            'owner_signup' => 'Empresa creada y acceso inicial completado correctamente.',
+            'member_invite' => 'Invitación aceptada correctamente.',
+            default => 'Operación completada correctamente.',
+        };
+
         $tenantsCount = $user->tenants()->count();
 
         if ($tenantsCount > 1) {
             return redirect()
                 ->route('tenants.select')
-                ->with('success', 'Invitación aceptada correctamente.');
+                ->with('success', $message);
         }
 
         if ($tenantsCount === 1) {
@@ -337,12 +364,12 @@ class InvitationAcceptanceController extends Controller
 
             return redirect()
                 ->route('dashboard')
-                ->with('success', 'Invitación aceptada correctamente.');
+                ->with('success', $message);
         }
 
         return redirect()
             ->route('tenants.select')
-            ->with('success', 'Invitación aceptada correctamente.');
+            ->with('success', $message);
     }
 
     protected function generateUniqueTenantSlug(string $name): string

@@ -11,14 +11,13 @@
         ]" />
 
         <x-page-header title="Panel de superadmin">
-            <div class="form-actions">
+            <div class="page-actions">
                 <a href="{{ route('profile.show') }}" class="btn btn-secondary">
                     Mi perfil
                 </a>
 
-                <form method="POST" action="{{ route('logout') }}">
+                <form method="POST" action="{{ route('logout') }}" class="inline-form">
                     @csrf
-
                     <button type="submit" class="btn btn-secondary">
                         Cerrar sesión
                     </button>
@@ -27,8 +26,87 @@
         </x-page-header>
 
         <x-card>
-            <p>Acceso global del sistema.</p>
-            <p>Desde aquí se administrará el onboarding y la capa pública.</p>
+            <div class="dashboard-tenant-summary">
+                <div class="dashboard-tenant-main">
+                    <span class="dashboard-tenant-label">Vista global</span>
+                    <h2 class="dashboard-tenant-name">Administración del sistema</h2>
+                    <p class="dashboard-tenant-slug">Capa pública, onboarding y control general</p>
+                </div>
+
+                <div class="dashboard-tenant-stats">
+                    <span class="dashboard-tenant-stat">{{ $tenantsCount }} tenants</span>
+                    <span class="dashboard-tenant-stat">{{ $usersCount }} usuarios</span>
+                    <span class="dashboard-tenant-stat">{{ $pendingSignupRequestsCount }} solicitudes pendientes</span>
+                    <span class="dashboard-tenant-stat">{{ $pendingOwnerInvitationsCount }} invitaciones owner
+                        pendientes</span>
+                </div>
+            </div>
+        </x-card>
+
+        <x-card>
+            <div class="dashboard-section-header">
+                <h2 class="dashboard-section-title">Onboarding</h2>
+                <p class="dashboard-section-text">Seguimiento de solicitudes, aprobaciones e invitaciones iniciales.</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <a href="{{ route('admin.signup-requests.index') }}" class="dashboard-link-card">
+                    <span class="dashboard-link-title">Solicitudes pendientes</span>
+                    <span class="dashboard-link-text">Revisar y procesar solicitudes de nuevas empresas</span>
+                    <span class="dashboard-link-meta">{{ $pendingSignupRequestsCount }} pendientes</span>
+                </a>
+
+                <a href="{{ route('admin.signup-requests.processed') }}" class="dashboard-link-card">
+                    <span class="dashboard-link-title">Solicitudes procesadas</span>
+                    <span class="dashboard-link-text">Consultar solicitudes aprobadas y rechazadas</span>
+                    <span class="dashboard-link-meta">{{ $ownerInvitationsToSendCount }} listas para envío</span>
+                </a>
+
+                <a href="{{ route('admin.invitations.owner-signups') }}" class="dashboard-link-card">
+                    <span class="dashboard-link-title">Invitaciones owner signup</span>
+                    <span class="dashboard-link-text">Ver invitaciones generadas desde solicitudes aprobadas</span>
+                    <span class="dashboard-link-meta">{{ $pendingOwnerInvitationsCount }} enviadas pendientes del owner</span>
+                </a>
+            </div>
+        </x-card>
+
+        <x-card>
+            <div class="dashboard-section-header">
+                <h2 class="dashboard-section-title">Sistema y verificación</h2>
+                <p class="dashboard-section-text">Accesos rápidos a vistas públicas y control general.</p>
+            </div>
+
+            <div class="dashboard-grid">
+                <a href="{{ url('/') }}" class="dashboard-link-card">
+                    <span class="dashboard-link-title">Inicio público</span>
+                    <span class="dashboard-link-text">Ver la landing pública actual del sistema</span>
+                    <span class="dashboard-link-meta">Pantalla pública</span>
+                </a>
+
+                <a href="{{ route('login') }}" class="dashboard-link-card">
+                    <span class="dashboard-link-title">Login</span>
+                    <span class="dashboard-link-text">Verificar acceso y presentación de autenticación</span>
+                    <span class="dashboard-link-meta">Pantalla pública</span>
+                </a>
+
+                <a href="{{ route('public.signup-requests.create') }}" class="dashboard-link-card">
+                    <span class="dashboard-link-title">Solicitar empresa</span>
+                    <span class="dashboard-link-text">Verificar formulario público de alta</span>
+                    <span class="dashboard-link-meta">Pantalla pública</span>
+                </a>
+
+                <a href="{{ route('public.signup-requests.thank-you') }}" class="dashboard-link-card">
+                    <span class="dashboard-link-title">Solicitud enviada</span>
+                    <span class="dashboard-link-text">Verificar confirmación pública posterior al envío</span>
+                    <span class="dashboard-link-meta">Pantalla pública</span>
+                </a>
+
+                <a href="{{ route('profile.show') }}" class="dashboard-link-card">
+                    <span class="dashboard-link-title">Mi perfil</span>
+                    <span class="dashboard-link-text">Editar datos del usuario superadmin</span>
+                    <span class="dashboard-link-meta">Vista interna</span>
+                </a>
+            </div>
         </x-card>
     </x-page>
 @endsection

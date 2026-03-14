@@ -12,7 +12,7 @@ find resources/views/documents -type f -name "*.blade.php";
     cat "$file"
     echo
     echo
-done > auditoria-tenant.txt
+done > documentos/auditoria/auditoria-tenant.txt
 
 
 Para crear los archivos de vista:

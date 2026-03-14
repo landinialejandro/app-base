@@ -21,6 +21,8 @@ use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentItemController;
 use App\Http\Controllers\PublicSignupRequestController;
+use App\Http\Controllers\AdminSignupRequestController;
+use App\Http\Controllers\AdminInvitationController;
 
 use App\Models\Invitation;
 use App\Models\User;
@@ -90,6 +92,28 @@ Route::middleware(['auth', 'superadmin'])
     ->name('admin.')
     ->group(function () {
         Route::get('/', [SuperadminDashboardController::class, 'index'])->name('dashboard');
+
+        Route::get('/signup-requests', [AdminSignupRequestController::class, 'index'])
+            ->name('signup-requests.index');
+
+        Route::get('/signup-requests/processed', [AdminSignupRequestController::class, 'processed'])
+            ->name('signup-requests.processed');
+
+        Route::get('/signup-requests/{signupRequest}', [AdminSignupRequestController::class, 'show'])
+            ->name('signup-requests.show');
+
+        Route::post('/signup-requests/{signupRequest}/approve', [AdminSignupRequestController::class, 'approve'])
+            ->name('signup-requests.approve');
+
+        Route::post('/signup-requests/{signupRequest}/reject', [AdminSignupRequestController::class, 'reject'])
+            ->name('signup-requests.reject');
+
+        Route::get('/invitations/owner-signups', [AdminInvitationController::class, 'ownerSignups'])
+            ->name('invitations.owner-signups');
+
+        Route::post('/invitations/{invitation}/mark-as-sent', [AdminInvitationController::class, 'markAsSent'])
+            ->name('invitations.mark-as-sent');
+
     });
 
 Route::view('/profile', 'profile.show')

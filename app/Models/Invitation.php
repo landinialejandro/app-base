@@ -18,6 +18,7 @@ class Invitation extends Model
         'signup_request_id',
         'invited_by_user_id',
         'expires_at',
+        'sent_at',
         'accepted_at',
         'accepted_ip',
         'user_agent',
@@ -26,6 +27,7 @@ class Invitation extends Model
 
     protected $casts = [
         'expires_at' => 'datetime',
+        'sent_at' => 'datetime',
         'accepted_at' => 'datetime',
         'meta' => 'array',
     ];

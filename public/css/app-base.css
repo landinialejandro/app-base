@@ -720,6 +720,17 @@ textarea.form-control {
     min-height: auto;
 }
 
+.form-control.is-invalid {
+    border-color: #f2c7a5;
+    background: #fffaf5;
+}
+
+.form-control.is-invalid:focus {
+    outline: none;
+    border-color: #e8b07d;
+    box-shadow: 0 0 0 2px rgba(232, 176, 125, 0.18);
+}
+
 .inline-form {
     display: inline;
 }
@@ -793,7 +804,6 @@ textarea.form-control {
 .form-help.is-error {
     color: var(--color-error-text);
 }
-
 
 /* =========================================================
    13. Selector de empresa
@@ -955,6 +965,69 @@ textarea.form-control {
     font-size: 0.76rem;
     font-weight: 500;
     line-height: 1.2;
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+}
+
+.detail-block {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.detail-block--full {
+    grid-column: 1 / -1;
+}
+
+.detail-block-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-muted);
+}
+
+.detail-block-value {
+    color: var(--color-text);
+    word-break: break-word;
+}
+
+.status-badge--approved {
+    background: #dbeafe;
+    color: #1d4ed8;
+}
+
+.status-badge--rejected {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.status-badge--sent {
+    background: #ede9fe;
+    color: #6d28d9;
+}
+
+.status-badge--expiring {
+    background: #fef3c7;
+    color: #92400e;
+}
+
+.status-badge--expired {
+    background: #fee2e2;
+    color: #b91c1c;
+}
+
+.helper-inline {
+    font-size: 0.9rem;
+    color: var(--color-muted);
+}
+
+@media (max-width: 640px) {
+    .detail-grid {
+        grid-template-columns: 1fr;
+    }
 }
 
 /* =========================================================

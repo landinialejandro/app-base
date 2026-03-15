@@ -1,20 +1,15 @@
 CONTEXTO-FIJO-DEL-PROYECTO – app-base
-
----
-
-# Tipo de sistema
+Tipo de sistema
 
 app-base es una plataforma SaaS multi-tenant desarrollada en Laravel.
 
 Permite que múltiples empresas utilicen la misma aplicación manteniendo aislamiento lógico de datos dentro de una única base de datos.
 
-Cada empresa dentro del sistema se denomina **tenant**.
+Cada empresa dentro del sistema se denomina tenant.
 
 El objetivo del proyecto es construir una base ERP SaaS modular que permita gestionar operaciones empresariales reutilizando una arquitectura común y estable.
 
----
-
-# Entorno técnico
+Entorno técnico
 
 OS: Linux
 Web: Apache
@@ -22,25 +17,19 @@ PHP: 8.4
 Laravel: 12.x
 DB: MariaDB
 
----
+URL local de desarrollo
 
-# URL local de desarrollo
+http://app-base.local
 
-[http://app-base.local](http://app-base.local)
-
----
-
-# Sesiones
+Sesiones
 
 SESSION_DRIVER=database
 
-Las sesiones se almacenan en la tabla **sessions**.
+Las sesiones se almacenan en la tabla sessions.
 
----
+Arquitectura SaaS
 
-# Arquitectura SaaS
-
-El sistema utiliza una arquitectura **multi-tenant** basada en una columna:
+El sistema utiliza una arquitectura multi-tenant basada en una columna:
 
 tenant_id
 
@@ -50,9 +39,7 @@ tenant_id
 
 Esto permite aislar los datos de cada empresa dentro de la misma base de datos.
 
----
-
-# Relación principal de identidad
+Relación principal de identidad
 
 La relación de pertenencia del sistema es:
 
@@ -67,9 +54,7 @@ Características:
 Un usuario puede pertenecer a múltiples empresas.
 Cada empresa puede tener múltiples usuarios.
 
----
-
-# Resolución del tenant activo
+Resolución del tenant activo
 
 Middleware utilizado:
 
@@ -79,7 +64,7 @@ Orden de resolución:
 
 session('tenant_id')
 
-Header **X-Tenant** (fallback para API o debug)
+Header X-Tenant (fallback para API o debug)
 
 Cuando el tenant se resuelve se registra en el contenedor de la aplicación:
 
@@ -89,9 +74,7 @@ Esto permite acceder al tenant actual desde cualquier parte del sistema mediante
 
 app('tenant')
 
----
-
-# Aislamiento automático de datos
+Aislamiento automático de datos
 
 Las entidades del negocio utilizan el trait:
 
@@ -103,9 +86,7 @@ WHERE tenant_id = tenant_actual
 
 Además asigna automáticamente el tenant_id al crear nuevos registros.
 
----
-
-# Regla de uso del trait
+Regla de uso del trait
 
 TenantScoped solo debe aplicarse a modelos cuyo ciclo de vida pertenece completamente a un tenant.
 
@@ -115,9 +96,7 @@ User
 Tenant
 Membership
 
----
-
-# Protección de acceso por URL
+Protección de acceso por URL
 
 Las entidades empresariales utilizan el trait:
 
@@ -131,9 +110,7 @@ id = ?
 AND tenant_id = tenant_actual
 AND deleted_at IS NULL
 
----
-
-# Soft delete obligatorio
+Soft delete obligatorio
 
 Las entidades del negocio utilizan:
 
@@ -145,9 +122,7 @@ Los registros eliminados no aparecen en listados.
 No son accesibles mediante URL.
 Siguen existiendo en la base de datos.
 
----
-
-# Flujo básico del sistema
+Flujo básico del sistema
 
 login
 ↓
@@ -159,18 +134,14 @@ ResolveTenant
 ↓
 dashboard
 
----
-
-# Modelo conceptual del sistema
+Modelo conceptual del sistema
 
 El sistema distingue entre:
 
 Entidades del sistema
 Entidades del negocio
 
----
-
-# Entidades del sistema
+Entidades del sistema
 
 users
 tenants
@@ -179,9 +150,7 @@ memberships
 signup_requests
 invitations
 
----
-
-# Entidades del negocio
+Entidades del negocio
 
 parties
 projects
@@ -195,9 +164,7 @@ document_items
 
 document_sequences
 
----
-
-# Entidad base del negocio
+Entidad base del negocio
 
 La entidad base para personas u organizaciones es:
 
@@ -217,27 +184,27 @@ En la interfaz del sistema se utiliza el término:
 
 contactos
 
-El término **party** queda reservado al modelo técnico.
+El término party queda reservado al modelo técnico.
 
----
+Patrón de modelado cabecera / detalle
 
-# Patrón de modelado cabecera / detalle
-
-Cuando un módulo represente una operación compuesta por múltiples renglones, debe modelarse preferentemente utilizando el patrón **cabecera/detalle**.
+Cuando un módulo represente una operación compuesta por múltiples renglones, debe modelarse preferentemente utilizando el patrón cabecera/detalle.
 
 Reglas del patrón:
 
 la cabecera representa el acto principal
 los ítems representan el detalle operativo
 los ítems heredan el tenant de la cabecera
-los ítems no exponen tenant_id en fillable
+
+los ítems, por regla general, no exponen tenant_id en fillable desde formularios públicos.
+
+Si el alta del ítem se realiza internamente desde un flujo controlado del sistema y requiere asignación explícita del tenant heredado de la cabecera, puede incluirse tenant_id en fillable para permitir la creación consistente del registro.
+
 la eliminación de la cabecera elimina sus ítems
 la posición del ítem es responsabilidad del módulo
 los importes pueden calcularse dinámicamente o persistirse según la naturaleza funcional del documento
 
----
-
-# Numeración operativa
+Numeración operativa
 
 El sistema implementa numeración automática para órdenes y documentos.
 
@@ -247,7 +214,7 @@ la numeración se asigna al guardar la entidad
 
 no se reserva numeración antes del guardado
 
-la numeración se controla mediante **document_sequences**
+la numeración se controla mediante document_sequences
 
 la secuencia se define por:
 
@@ -259,9 +226,30 @@ orders y documents no permiten edición manual del número
 
 una vez asignado el número, el tipo de entidad no debe modificarse
 
----
+Flujo orders → documents
 
-# Reglas de fechas del flujo operativo
+Desde orders.show pueden generarse documentos derivados de una orden.
+
+El flujo actual contempla al menos los siguientes tipos:
+
+quote
+delivery_note
+invoice
+work_order
+
+Cuando un documento se genera desde una orden:
+
+documents hereda automáticamente:
+
+tenant_id
+party_id
+order_id
+
+Los order_items pueden copiarse automáticamente a document_items.
+
+Una vez copiados los ítems, los totales del documento deben recalcularse según la lógica del módulo documental.
+
+Reglas de fechas del flujo operativo
 
 Para mantener coherencia en las operaciones comerciales:
 
@@ -275,17 +263,15 @@ documents siempre deben tener:
 party_id
 issued_at
 
-En **orders** la fecha es editable con restricciones razonables hacia el futuro.
+En orders la fecha es editable con restricciones razonables hacia el futuro.
 
-En **documents** la fecha se controla según el tipo documental y su coherencia con la orden asociada.
+En documents la fecha se controla según el tipo documental y su coherencia con la orden asociada.
 
 Por ejemplo:
 
 un documento asociado a una orden no debe tener una fecha anterior a la orden.
 
----
-
-# Factories y seeders
+Factories y seeders
 
 En factories utilizadas para testing es válido crear tenants automáticamente, por ejemplo:
 
@@ -295,11 +281,9 @@ En seeders reales del sistema el tenant normalmente se asigna explícitamente de
 
 No es necesario modificar este comportamiento.
 
----
+Estado actual del sistema
 
-# Estado actual del sistema
-
-Además del flujo multi-tenant principal, el sistema incorpora una capa global de administración denominada **superadmin**.
+Además del flujo multi-tenant principal, el sistema incorpora una capa global de administración denominada superadmin.
 
 Esta capa está separada del flujo tenant y permite gestionar aspectos globales del sistema.
 
@@ -312,9 +296,7 @@ onboarding inicial de nuevas empresas
 
 El superadmin opera sin depender de un tenant activo.
 
----
-
-# Entidades ya implementadas
+Entidades ya implementadas
 
 users
 tenants
@@ -335,11 +317,9 @@ document_items
 
 document_sequences
 
----
+Regla de arquitectura
 
-# Regla de arquitectura
-
-La arquitectura multi-tenant actual **no debe modificarse**.
+La arquitectura multi-tenant actual no debe modificarse.
 
 Los nuevos módulos deben reutilizar:
 
@@ -348,9 +328,7 @@ ResolvesTenantRouteBinding
 SoftDeletes
 tenant_id como mecanismo de aislamiento
 
----
-
-# Dirección de crecimiento del sistema
+Dirección de crecimiento del sistema
 
 El sistema crecerá mediante módulos empresariales reutilizando la arquitectura existente.
 
@@ -360,9 +338,7 @@ documents
 payments
 inventory
 
----
-
-# Principio de desarrollo
+Principio de desarrollo
 
 Priorizar siempre:
 

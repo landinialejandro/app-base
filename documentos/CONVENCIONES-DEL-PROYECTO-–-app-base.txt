@@ -1,652 +1,297 @@
 CONVENCIONES-DEL-PROYECTO – app-base
+Objetivo del documento
 
-Objetivo
+Este documento define las convenciones estructurales y de desarrollo del proyecto app-base.
 
-Definir las convenciones técnicas y de desarrollo que deben seguir todos los módulos del proyecto app-base.
+Su objetivo es mantener consistencia técnica, previsibilidad arquitectónica y coherencia de código a medida que el sistema crece.
 
-Estas reglas permiten mantener consistencia, previsibilidad y facilidad de mantenimiento del sistema.
+Las convenciones aquí definidas deben respetarse al crear:
 
----
+nuevos módulos
 
-# Arquitectura base
+nuevas entidades
 
-El sistema utiliza la arquitectura estándar de Laravel basada en:
+nuevas vistas
 
-Modelos Eloquent
-Controladores
-Vistas Blade
-Migraciones
-Middleware
-Rutas REST
+nuevos controladores
 
----
+nuevos flujos operativos
 
-# Multi-tenancy
+Convenciones generales
 
-El sistema es SaaS multi-tenant.
+El proyecto sigue los principios de:
 
-El aislamiento de datos se realiza mediante la columna:
+simplicidad
 
-tenant_id
+claridad estructural
 
-Todas las entidades del negocio deben pertenecer a un tenant.
+baja duplicación
 
----
+coherencia entre módulos
 
-# Fuente del tenant operativo
+previsibilidad del comportamiento del sistema
 
-La única fuente válida del tenant operativo es:
+Cuando existan varias alternativas técnicas, se debe priorizar siempre la opción más simple y consistente con el resto del proyecto.
 
-app('tenant')
+Convenciones de nombres
+Modelos
 
-No se debe utilizar directamente:
+Los modelos deben estar en singular.
 
-auth()->user()->tenant_id
-request()->tenant_id
+Ejemplos:
 
-Todas las operaciones del sistema deben resolver el tenant actual mediante:
+User
+Tenant
+Membership
+Party
+Project
+Order
+Document
 
-app('tenant')
+Tablas
 
----
+Las tablas deben utilizar plural en snake_case.
 
-# Acceso al tenant actual
+Ejemplos:
 
-El tenant activo puede obtenerse mediante:
-
-app('tenant')
-
-Los controladores deben utilizar siempre este tenant como contexto de operación.
-
----
-
-# CONVENCIONES ESPECÍFICAS DEL NÚCLEO SAAS
-
-Estas reglas describen el funcionamiento estructural del núcleo multi-tenant del sistema.
-
----
-
-# IDENTIDAD GLOBAL
-
-users.email es único global en el sistema.
-
-No existe relación directa user → tenant mediante un tenant_id en users.
-
-La pertenencia real entre usuario y empresa se resuelve exclusivamente mediante memberships.
-
----
-
-# TENANTS Y CLAVES
-
-tenants.id utiliza UUID (char(36)) como primary key.
-
-Por lo tanto:
-
-Toda relación hacia tenants debe utilizar CHAR(36).
-
-No deben asumirse bigint ni foreignId() por defecto en relaciones hacia tenants.
-
-Antes de crear una migración debe verificarse el patrón real utilizado en el proyecto.
-
----
-
-# MEMBERSHIPS
-
-memberships es la tabla puente central del modelo multi-tenant.
-
-Reglas:
-
-Un mismo user puede pertenecer a múltiples tenants.
-Un mismo user puede ser owner de múltiples tenants.
-
-memberships define la pertenencia real entre usuario y empresa.
-
-Importante:
-
-Membership no debe tratarse como una entidad tenant-scoped al estilo de los módulos internos.
-
-Por lo tanto:
-
-Membership no debe usar TenantScoped.
-
----
-
-# CAPA GLOBAL / SUPERADMIN
-
-## SUPERADMIN GLOBAL
-
-El sistema incorpora una capa global de superadmin separada del flujo tenant.
-
-Reglas:
-
-superadmin no es un tenant
-superadmin no requiere tenant activo para operar
-la autorización global se resuelve mediante users.is_superadmin
-memberships no define privilegios de superadmin
-
-Un mismo user puede pertenecer a tenants y además ser superadmin, pero ambas capacidades deben mantenerse conceptualmente separadas.
-
----
-
-# RUTAS DEL SUPERADMIN
-
-Las rutas globales del panel administrativo deben quedar bajo:
-
-/admin
-
-y utilizar middleware:
-
-auth
-superadmin
-
-Estas rutas no deben depender del middleware tenant ni de app('tenant') como contexto operativo principal.
-
----
-
-# CAPA PÚBLICA
-
-La landing pública y la solicitud inicial de alta de empresa no requieren autenticación ni tenant activo.
-
-La solicitud pública genera:
-
-signup_requests
-
----
-
-# FLUJO OPERATIVO DEL ONBOARDING
-
-El flujo administrativo mínimo del onboarding queda dividido en etapas:
-
-signup_requests pendientes
-↓
-aprobación o rechazo por superadmin
-↓
-generación de invitation owner_signup
-↓
-envío manual del link por parte del superadmin
-↓
-aceptación por parte del owner
-↓
-creación real del tenant al aceptar la invitación
-
----
-
-# INVITATIONS OWNER_SIGNUP
-
-En invitaciones de tipo owner_signup:
-
-tenant_id puede ser null antes de la aceptación
-
-sent_at representa el momento en que el superadmin marca el link como enviado
-
-accepted_at representa la aceptación efectiva por parte del owner
-
-El tenant se crea recién al aceptar la invitación.
-
----
-
-# INVITATIONS
-
-No existe registro libre público de usuarios.
-
-Toda alta o vinculación relevante dentro del sistema debe originarse desde una invitación válida.
-
-Dominios cerrados:
-
-invitations.type
-
-owner_signup
-member_invite
-
-invitations.status
-
-pending
-accepted
-expired
-cancelled
-
----
-
-# REGLA DE tenant_id EN INVITATIONS
-
-invitations.tenant_id puede ser NULL cuando la invitación es de tipo:
-
-owner_signup
-
-Esto permite emitir invitaciones para onboarding de nuevas empresas antes de crear el tenant real.
-
-Cuando:
-
-type = member_invite
-
-entonces:
-
-tenant_id debe existir
-y debe apuntar a un tenant válido.
-
----
-
-# SIGNUP_REQUESTS
-
-signup_requests representa una solicitud pública inicial para crear una empresa en el sistema.
-
-Reglas:
-
-signup_requests no crea users ni tenants por sí sola.
-
-Su función es separar la fase comercial/manual del alta real del sistema.
-
-Una signup_request aprobada puede originar una invitation de tipo:
-
-owner_signup
-
----
-
-# VALIDACIÓN DE IDENTIDAD EN INVITACIONES
-
-Una invitación nunca debe aplicarse sobre una sesión autenticada con otro email.
-
-Regla:
-
-Si existe conflicto entre el email de la invitación y la sesión activa:
-
-debe cerrarse la sesión actual
-debe forzarse autenticación con el email correcto
-
-Comportamiento esperado:
-
-member_invite
-
-si el email no existe, el usuario completa el alta
-
-si el email ya existe, debe pasar por login obligatorio
-
-owner_signup
-
-el flujo continúa por alta/onboarding del owner
-
-si el user ya existe, se reutiliza ese user
-
-no se debe crear un usuario duplicado
-
----
-
-# REGLA DE REANUDACIÓN DEL FLUJO DE INVITACIÓN
-
-Cuando una invitación requiere autenticación (por ejemplo porque el usuario ya existe):
-
-el sistema debe redirigir al usuario al flujo original de la invitación inmediatamente después del login.
-
-La redirección posterior al login no debe utilizar la redirección estándar del sistema (dashboard o selector de empresa).
-
-El flujo correcto debe ser:
-
-login requerido
-↓
-autenticación exitosa
-↓
-reanudar aceptación de la invitación pendiente
-
-Esto garantiza que:
-
-la invitación no se pierda
-el usuario complete el flujo correcto
-no se generen inconsistencias en memberships o creación de tenants.
-
----
-
-# CREACIÓN DE TENANT
-
-En el flujo:
-
-owner_signup
-
-el tenant se crea al momento de aceptar la invitación, no durante la solicitud pública.
-
-Reglas:
-
-el slug del tenant debe generarse automáticamente
-
-el sistema debe resolver posibles colisiones de slug
-
----
-
-# NUMERACIÓN AUTOMÁTICA
-
-Las entidades operativas del sistema utilizan numeración automática.
-
-Reglas generales:
-
-orders y documents utilizan numeración automática.
-
-El número se asigna automáticamente al momento de guardar la entidad.
-
-No debe existir ingreso manual del número en formularios.
-
-La numeración se controla mediante la entidad:
-
-document_sequences.
-
-La secuencia se define por:
-
-tenant
-doc_type
-point_of_sale
-
-El número visible se compone de:
-
-prefix
-point_of_sale
-correlativo con padding
-
-Una entidad que ya fue numerada no debe permitir cambio de tipo.
-
-Las secuencias deben bloquearse transaccionalmente al generar el siguiente número para evitar colisiones de numeración.
-
----
-
-# REGLAS DEL FLUJO OPERATIVO
-
-Para mantener consistencia en operaciones comerciales básicas:
-
-orders.party_id es obligatorio.
-
-orders.ordered_at es obligatorio.
-
-documents.party_id es obligatorio.
-
-documents.issued_at es obligatorio.
-
-Esto garantiza trazabilidad mínima en operaciones comerciales y documentales.
-
----
-
-# REGLAS DE FECHAS
-
-Orders
-
-Si no se informa fecha en orders, se utiliza la fecha actual.
-
-orders permiten fecha editable con un límite razonable hacia el futuro.
-
-Documents
-
-Si no se informa fecha en documents, se utiliza la fecha actual.
-
-En invoices no se permiten fechas futuras.
-
-Si un documento está asociado a una orden, su fecha no puede ser anterior a la fecha de la orden.
-
----
-
-# REGLA DE INMUTABILIDAD DE NUMERACIÓN
-
-Una vez que una entidad ha sido numerada:
-
-el número pasa a ser de solo lectura.
-
-El tipo de la entidad queda congelado.
-
-Esto aplica especialmente a:
-
+users
+tenants
+memberships
+parties
+projects
 orders
 documents
 
-y evita inconsistencias en numeración o contabilidad documental.
+Controladores
 
----
+Los controladores utilizan el sufijo:
 
-# Trait obligatorio en modelos empresariales
+Controller
 
-Los modelos del negocio deben utilizar:
+Ejemplos:
 
-TenantScoped
-ResolvesTenantRouteBinding
-SoftDeletes
+UserController
+OrderController
+DocumentController
 
-Objetivos:
+Rutas
 
-TenantScoped
-aplica automáticamente el filtro por tenant.
+Las rutas utilizan plural.
 
-ResolvesTenantRouteBinding
-protege el acceso por URL.
+Ejemplos:
 
-SoftDeletes
-permite eliminación lógica.
+/users
+/orders
+/documents
 
----
+Convenciones de multi-tenancy
 
-# Uso de ResolvesTenantRouteBinding
-
-Todo modelo accesible mediante route model binding que pertenezca a un tenant debe utilizar el trait:
-
-ResolvesTenantRouteBinding
-
-Esto evita acceso cruzado entre tenants mediante URLs manipuladas.
-
----
-
-# Convenciones de base de datos
-
-Todas las tablas del negocio deben incluir:
+Las entidades del negocio deben incluir siempre:
 
 tenant_id
-timestamps
-softDeletes
 
----
+El tenant determina el aislamiento lógico de los datos dentro del sistema.
 
-# Reglas para tenant_id
+Las entidades del sistema no deben incluir tenant_id.
 
-tenant_id no debe crearse con:
+Ejemplos de entidades del sistema:
 
-foreignId('tenant_id')
+User
+Tenant
+Membership
 
-Debe definirse manualmente con un tipo compatible con tenants.id.
+Trait TenantScoped
 
----
+Las entidades del negocio deben utilizar el trait:
 
-# Asignación de tenant_id en entidades
+TenantScoped
 
-Entidades padre
+Este trait se encarga de:
 
-Cuando el modelo utiliza el trait TenantScoped, tenant_id no debe asignarse manualmente en el controller.
+filtrar automáticamente por tenant_id
 
-Entidades hijas
+asignar tenant_id al crear registros
 
-En entidades hijas dependientes de una cabecera:
+Esto garantiza que los datos de diferentes empresas no se mezclen.
 
-tenant_id existe para facilitar índices
+Uso de tenant_id en fillable
 
-no debe exponerse en $fillable
+Como regla general, tenant_id no debe exponerse en formularios ni venir desde input del usuario.
 
-debe heredarse desde la cabecera o desde el contexto del tenant.
+El tenant siempre debe resolverse internamente mediante:
 
----
+app('tenant')
 
-# Convenciones de validación multi-tenant
+y asignarse automáticamente por el sistema.
 
-Las validaciones que utilicen exists o claves foráneas deben restringirse al tenant activo.
+En entidades hijas (por ejemplo items o registros dependientes), tenant_id tampoco debe exponerse desde formularios del usuario.
 
-Esto evita referencias cruzadas entre tenants.
+Sin embargo, si el registro hijo se crea internamente desde un flujo controlado del sistema y el tenant se hereda explícitamente desde la entidad padre, puede incluirse tenant_id en fillable para permitir la creación interna consistente mediante create().
 
----
+Esto permite manejar correctamente casos como:
 
-# Convenciones de controladores
+document_items creados desde documentos
+order_items copiados hacia documentos derivados
 
-Los controladores deben seguir el patrón REST estándar de Laravel.
+Convenciones de entidades hijas
 
-Métodos esperados:
+Las entidades hijas deben cumplir:
 
-index
-create
-store
-show
-edit
-update
-destroy
+pertenecer a una cabecera
 
----
+heredar tenant_id de la cabecera
 
-# Convenciones de rutas
-
-Las rutas deben definirse en:
-
-routes/web.php
-
-Utilizar resource routes siempre que sea posible.
-
-Ejemplo:
-
-Route::resource('projects', ProjectController::class);
-
-Las rutas deben ejecutarse dentro de los middlewares:
-
-auth
-tenant
-
----
-
-# Convenciones de modelos
-
-Los modelos deben:
-
-usar Eloquent
-definir relaciones explícitas
-definir fillable o guarded correctamente
-utilizar los traits de multi-tenancy
-
----
-
-# Convenciones de vistas
-
-Cada módulo debe tener su carpeta de vistas:
-
-resources/views/nombre_modulo
+no recibir tenant_id desde formularios del usuario
 
 Ejemplos:
 
-resources/views/projects
-resources/views/parties
-resources/views/tasks
+order_items
+document_items
 
----
+Convenciones de flujo Order → Document
 
-# Estructura visual de páginas
+Un order puede dar origen a múltiples documents.
 
-Todas las páginas internas deben seguir esta estructura:
+La creación de documentos derivados desde una orden debe realizarse mediante flujos controlados del sistema, nunca mediante formularios manuales que permitan alterar la relación.
 
-<x-page>  
-<x-breadcrumb />  
-<x-page-header />  
-<x-card />  
-</x-page>  
+Cuando un documento se genera desde una orden:
 
----
+documents hereda automáticamente:
 
-# Componentes Blade disponibles
+tenant_id
+party_id
+order_id
 
-x-page
-x-breadcrumb
-x-page-header
-x-card
+Los order_items pueden copiarse a document_items según el tipo documental.
 
----
+Luego de copiar los ítems, los totales del documento deben recalcularse.
 
-# Convención de listados
+Convenciones de controladores
 
-Las vistas index deben utilizar el patrón de lista del sistema.
+Los controladores deben ser lo más delgados posible.
 
-page.list-page
-card.list-card
-table-wrap.list-scroll
+La lógica de negocio debe colocarse preferentemente en:
 
-Esto garantiza:
+servicios
+clases de soporte
+modelos
 
-scroll interno en tablas
-encabezado visible
-layout estable
+Los controladores deben encargarse principalmente de:
 
----
+recibir requests
 
-# Convención de formularios
+validar datos
 
-Los formularios deben:
+delegar lógica
 
-utilizar parciales _form
-agrupar campos de forma consistente
-mostrar errores cerca del campo
-ubicar botones dentro de form-actions
+devolver respuestas
 
----
+Convenciones de catálogos
 
-# CONVENCIONES DE VISTAS Y CSS
+Cuando un módulo tenga estados cerrados o valores controlados, se debe crear un catálogo centralizado.
 
-Las vistas Blade deben utilizar exclusivamente las clases y patrones visuales definidos en:
+El catálogo debe concentrar:
 
-public/css/app-base.css
+constantes
 
-y en el documento:
+labels
 
-BASE VISUAL DEL PROYECTO – app-base.
+clases visuales (badgeClass)
 
-No deben incorporarse clases de frameworks externos o ajenos al proyecto si esas clases no están definidas explícitamente en la base visual propia.
+listas permitidas
 
----
+Esto evita lógica repetida en controladores o vistas.
 
-# Terminología de interfaz
+Ejemplo de responsabilidades del catálogo:
 
-La interfaz utiliza términos orientados al usuario.
+definir estados válidos
 
-Equivalencias:
+devolver label del estado
 
-Tenant → Empresa
-Party → Contacto
+devolver clase CSS del badge
 
-La nomenclatura técnica puede mantenerse en el código.
+Uso de catálogos en vistas
 
----
+Las vistas Blade no deben resolver estados mediante lógica inline si el catálogo ya puede hacerlo.
 
-# Selector de empresa
+En lugar de usar lógica condicional o match en la vista, debe utilizarse el catálogo correspondiente.
 
-Un usuario puede pertenecer a múltiples empresas.
+Uso recomendado:
 
-Reglas:
+<span class="status-badge {{ Catalog::badgeClass($value) }}">
+    {{ Catalog::label($value) }}
+</span>
 
-si tiene una sola empresa se accede directamente
+Esto mantiene las vistas simples y evita duplicación de lógica.
 
-si tiene varias puede cambiar mediante selector en el header
+Convenciones de Blade
 
----
+Las vistas Blade deben mantenerse:
 
-# Páginas públicas
+simples
 
-Algunas páginas no utilizan el layout completo.
+legibles
 
-Ejemplos:
+sin lógica compleja
 
-welcome
-login
-register
-selección de empresa
+La lógica debe resolverse previamente en:
 
-Estas páginas utilizan:
+controladores
+view models
+catálogos
+servicios
 
-$publicPage = true
+Convenciones de formularios
 
----
+Los formularios deben enviar únicamente:
 
-# Principios generales
+datos propios de la entidad
 
-Simplicidad
-Evitar complejidad innecesaria.
+No deben enviar:
 
-Consistencia
-Seguir siempre las convenciones definidas.
+tenant_id
+user_id
+campos derivados
 
-Escalabilidad
-Permitir evolución futura del sistema.
+Estos valores deben resolverse internamente en el backend.
 
-Claridad
-El código debe ser fácil de entender y mantener.
+Convenciones de seguridad
+
+El sistema debe evitar que un usuario pueda acceder a registros de otro tenant.
+
+Esto se logra mediante:
+
+TenantScoped
+ResolvesTenantRouteBinding
+
+Nunca se deben realizar consultas que ignoren el tenant actual.
+
+Convenciones de flujo de invitaciones
+
+Las invitaciones forman parte del flujo de onboarding y acceso al sistema.
+
+Cuando una invitación corresponde a un usuario que ya posee cuenta en el sistema, el flujo debe:
+
+redirigir al login si el usuario no está autenticado
+
+una vez autenticado, reanudar el flujo original de la invitación
+
+En estos casos no debe aplicarse la redirección estándar posterior al login.
+
+El sistema debe retornar al flujo de aceptación de la invitación.
+
+Esto garantiza continuidad del proceso de incorporación al tenant correspondiente.
+
+Convención de simplicidad
+
+Antes de introducir una nueva abstracción, evaluar si realmente es necesaria.
+
+El sistema prioriza:
+
+claridad
+
+consistencia
+
+bajo nivel de complejidad accidental
+
+Las soluciones simples y previsibles deben preferirse sobre arquitecturas excesivamente abstractas.

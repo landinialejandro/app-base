@@ -1,8 +1,6 @@
 TODO-DEL-PROYECTO – app-base
 
----
-
-# OBJETIVO
+OBJETIVO
 
 Este documento funciona como memoria operativa del proyecto.
 
@@ -15,9 +13,7 @@ refactors necesarios
 No debe contener documentación extensa.
 Solo registrar elementos pendientes del sistema.
 
----
-
-# ESTADO ACTUAL DEL SISTEMA
+ESTADO ACTUAL DEL SISTEMA
 
 Arquitectura SaaS multi-tenant implementada.
 
@@ -35,9 +31,7 @@ migraciones multi-tenant normalizadas a char(36)
 módulo clients eliminado en favor de parties
 flujo de onboarding y alta de usuarios resuelto mediante invitations (owner_signup y member_invite)
 
----
-
-# MÓDULOS IMPLEMENTADOS
+MÓDULOS IMPLEMENTADOS
 
 projects
 parties (contactos)
@@ -48,9 +42,7 @@ order_items
 documents
 document_items
 
----
-
-# MÓDULOS PENDIENTES
+MÓDULOS PENDIENTES
 
 Actualmente no hay módulos operativos pendientes inmediatos.
 
@@ -59,9 +51,7 @@ Próximos módulos posibles según evolución del sistema:
 payments
 inventory
 
----
-
-# MEJORAS FUTURAS
+MEJORAS FUTURAS
 
 relación opcional entre users y parties
 
@@ -77,9 +67,12 @@ revisar módulos restantes para terminar de migrar a catálogos reutilizables
 
 evaluar futuro catálogo comercial de disponibilidad para products (availability o sale_status) sin mezclarlo con is_active
 
----
+definir política futura para tipos documentales permitidos por origen de flujo
+(por ejemplo qué documents pueden crearse desde orders y bajo qué restricciones)
 
-# MEJORAS DE INTERFAZ
+revisar política futura de estados documentales más específica por tipo
+
+MEJORAS DE INTERFAZ
 
 aplicar el patrón de listas a todos los módulos
 
@@ -94,9 +87,11 @@ y asegurar consistencia con la base visual del proyecto
 
 agregar pantalla intermedia específica para invitaciones owner_signup listas para envío
 
----
+terminar de revisar consistencia visual de vistas show e index del core restante
 
-# MEJORAS DE ONBOARDING
+evaluar futura unificación de badges en entorno admin/superadmin mediante catálogo o helper específico
+
+MEJORAS DE ONBOARDING
 
 evolucionar el envío manual de invitaciones owner_signup hacia envío real por WhatsApp o email
 
@@ -104,9 +99,7 @@ evaluar validación y normalización más robusta de phone_whatsapp
 
 evaluar control futuro de cantidad máxima de empresas por owner según plan
 
----
-
-# MEJORAS DE NUMERACIÓN (DOCUMENTS / ORDERS)
+MEJORAS DE NUMERACIÓN (DOCUMENTS / ORDERS)
 
 llevar la configuración de secuencias al perfil de empresa
 
@@ -120,19 +113,13 @@ definir si el punto de venta también queda bloqueado una vez con movimiento
 
 evaluar futura partición anual de secuencias sin implementarla todavía
 
----
-
-# MEJORAS DE FLUJO ORDERS / DOCUMENTS
+MEJORAS DE FLUJO ORDERS / DOCUMENTS
 
 endurecer coherencia entre documento y orden asociada
 
 validar coincidencia entre document.party_id y order.party_id cuando exista orden asociada
 
-revisar política futura de estados documentales más específica por tipo
-
----
-
-# MEJORAS DE ARQUITECTURA
+MEJORAS DE ARQUITECTURA
 
 sistema de permisos más avanzado
 
@@ -154,9 +141,9 @@ evaluar endurecimiento futuro de orders.party_id como NOT NULL
 
 evaluar endurecimiento futuro de documents.party_id como NOT NULL
 
----
+revisar consistencia de tenant_id en fillable de entidades hijas creadas internamente por el sistema
 
-# REFACTORS
+REFACTORS
 
 revisión histórica de evolución de parties
 
@@ -167,9 +154,7 @@ revisión de nomenclatura entre módulos
 unificación futura del patrón de definición de tenant_id
 entre migraciones históricas (uuid vs char(36))
 
----
-
-# REGLA DEL DOCUMENTO
+REGLA DEL DOCUMENTO
 
 Este documento debe mantenerse corto.
 

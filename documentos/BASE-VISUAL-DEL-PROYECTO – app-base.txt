@@ -3,17 +3,13 @@ BASE VISUAL DEL PROYECTO – app-base
 OBJETIVO
 
 Este documento define la estructura visual mínima y obligatoria del sistema.
-Su objetivo es mantener consistencia visual entre todos los módulos. 
+Su objetivo es mantener consistencia visual entre todos los módulos.
 
 ESTRUCTURA GENERAL DE UNA PANTALLA
 
 Todas las vistas internas del sistema deben utilizar la siguiente estructura base:
 
-<x-page>  
-<x-breadcrumb />  
-<x-page-header />  
-<x-card />  
-</x-page>
+<x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
 
 COMPONENTES DISPONIBLES
 
@@ -43,23 +39,11 @@ table-wrap.list-scroll
 
 Ejemplo:
 
-<x-page class="list-page">
+<x-page class="list-page"> <x-breadcrumb /> <x-page-header /> <x-card class="list-card"> <div class="table-wrap list-scroll"> <table class="table"> ... </table> </div> </x-card> </x-page>
 
-<x-breadcrumb />
+ESTADOS EN LISTADOS
 
-<x-page-header />
-
-<x-card class="list-card">
-
-<div class="table-wrap list-scroll">
-<table class="table">
-...
-</table>
-</div>
-
-</x-card>
-
-</x-page>
+Cuando el catálogo del módulo lo soporte, el estado debe mostrarse mediante badge visual en las tablas de listados.
 
 ACCIONES EN LISTADOS
 
@@ -80,13 +64,7 @@ x-icons.trash
 
 Uso en botones:
 
-<button class="btn btn-secondary btn-sm">
-<x-icons.pencil />
-</button>
-
-<button class="btn btn-danger btn-sm">
-<x-icons.trash />
-</button>
+<button class="btn btn-secondary btn-sm"> <x-icons.pencil /> </button> <button class="btn btn-danger btn-sm"> <x-icons.trash /> </button>
 
 OBJETIVO DE LOS ICONOS
 
@@ -102,13 +80,44 @@ Estas acciones deben usar clases visuales propias del proyecto y mantener tamañ
 
 No deben utilizarse utilidades externas o no definidas en app-base.css.
 
-VISTAS SHOW CON SUBLISTADOS
+VISTAS SHOW
 
-En vistas show que contengan sublistados internos se permiten acciones compactas con iconos para reducir espacio visual y mantener consistencia con los listados principales.
+Las vistas show deben organizar la información en tres niveles visuales cuando corresponda:
+
+resumen superior inline
+
+bloque principal de información
+
+bloques secundarios opcionales
+
+RESÚMENES INLINE
+
+Para mostrar información resumida dentro de vistas show se pueden utilizar bloques compactos de resumen.
+
+Clases utilizadas:
+
+summary-inline-grid
+summary-inline-card
+
+BLOQUE PRINCIPAL DE LA FICHA
+
+El bloque principal debe contener la información esencial del registro.
+
+Puede utilizar grillas de detalle como:
+
+detail-grid
+detail-grid--3
+
+ESTADO EN FICHA
+
+Cuando el módulo tenga estados funcionales, el estado puede mostrarse mediante badge dentro de la ficha principal.
 
 TABS INTERNAS EN VISTAS SHOW
 
 Cuando una vista show concentre demasiada información, se permite organizar el contenido mediante tabs internas dentro del cuerpo principal de la página.
+
+Las tabs no son obligatorias.
+Solo deben utilizarse cuando ayudan a reducir altura visual o separar información secundaria real.
 
 Clases utilizadas:
 
@@ -124,16 +133,18 @@ controlado por JavaScript mínimo global
 una solapa activa visible por vez
 útil para separar detalle, documentos asociados, historial u otros bloques secundarios
 
-RESÚMENES INLINE
+REGLA SOBRE ENCABEZADOS INTERNOS
 
-Para mostrar información resumida dentro de vistas show se pueden utilizar bloques compactos de resumen.
+Evitar encabezados redundantes dentro de la ficha como:
 
-Clases utilizadas:
+Datos principales
+Información principal
 
-summary-inline-grid
-summary-inline-card
+La página ya se encuentra contextualizada por:
 
-Estos bloques permiten presentar métricas o información clave de forma compacta dentro de la vista.
+breadcrumb
+título
+resumen superior
 
 REGLAS DE FORMULARIOS
 
@@ -206,17 +217,7 @@ Los dropdowns se implementan utilizando el elemento HTML:
 
 Ejemplo:
 
-<details class="app-nav-dropdown">
-
-<summary class="app-nav-link">
-Gestión
-</summary>
-
-<div class="app-nav-dropdown-menu">
-...
-</div>
-
-</details>
+<details class="app-nav-dropdown"> <summary class="app-nav-link"> Gestión </summary> <div class="app-nav-dropdown-menu"> ... </div> </details>
 
 IMPORTANTE
 

@@ -33,6 +33,10 @@ class AssetController extends Controller
                 $query->where(function ($subquery) use ($q) {
                     $subquery->where('name', 'like', "%{$q}%")
                         ->orWhere('internal_code', 'like', "%{$q}%");
+
+                    if (ctype_digit($q)) {
+                        $subquery->orWhere('id', (int) $q);
+                    }
                 });
             })
             ->when($partyId, function ($query) use ($partyId) {

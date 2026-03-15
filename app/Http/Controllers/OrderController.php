@@ -39,6 +39,9 @@ class OrderController extends Controller
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($subquery) use ($q) {
                     $subquery->where('number', 'like', "%{$q}%");
+                    if (ctype_digit($q)) {
+                        $subquery->orWhere('id', (int) $q);
+                    }
                 });
             })
             ->when($partyId, function ($query) use ($partyId) {

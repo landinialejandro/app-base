@@ -13,11 +13,32 @@ use Illuminate\View\View;
 
 class ProductController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $q = trim((string) $request->get('q', ''));
+        $kind = $request->get('kind');
+        $isActive = $request->get('is_active');
+
         $products = Product::query()
+            ->when($q !== '', function ($query) use ($q) {
+                $query->where(function ($subquery) use ($q) {
+                    $subquery->where('name', 'like', "%{$q}%")
+                        ->orWhere('sku', 'like', "%{$q}%");
+
+                    if (ctype_digit($q)) {
+                        $subquery->orWhere('id', (int) $q);
+                    }
+                });
+            })
+            ->when($kind, function ($query) use ($kind) {
+                $query->where('kind', $kind);
+            })
+            ->when($isActive !== null && $isActive !== '', function ($query) use ($isActive) {
+                $query->where('is_active', (bool) $isActive);
+            })
             ->orderBy('name')
-            ->paginate(25);
+            ->paginate(25)
+            ->withQueryString();
 
         return view('products.index', compact('products'));
     }

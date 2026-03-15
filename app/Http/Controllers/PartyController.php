@@ -8,16 +8,42 @@ use App\Http\Requests\StorePartyRequest;
 use App\Http\Requests\UpdatePartyRequest;
 use App\Models\Asset;
 use App\Models\Party;
+use Illuminate\Http\Request;
 
 class PartyController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $tenant = app('tenant');
 
+        $q = trim((string) $request->get('q', ''));
+        $kind = $request->get('kind');
+        $isActive = $request->get('is_active');
+
         $parties = Party::query()
+            ->when($q !== '', function ($query) use ($q) {
+                $query->where(function ($subquery) use ($q) {
+                    $subquery->where('name', 'like', "%{$q}%")
+                        ->orWhere('display_name', 'like', "%{$q}%")
+                        ->orWhere('email', 'like', "%{$q}%")
+                        ->orWhere('phone', 'like', "%{$q}%")
+                        ->orWhere('document_number', 'like', "%{$q}%")
+                        ->orWhere('tax_id', 'like', "%{$q}%");
+
+                    if (ctype_digit($q)) {
+                        $subquery->orWhere('id', (int) $q);
+                    }
+                });
+            })
+            ->when($kind, function ($query) use ($kind) {
+                $query->where('kind', $kind);
+            })
+            ->when($isActive !== null && $isActive !== '', function ($query) use ($isActive) {
+                $query->where('is_active', (bool) $isActive);
+            })
             ->latest()
-            ->get();
+            ->paginate(25)
+            ->withQueryString();
 
         return view('parties.index', [
             'tenant' => $tenant,

@@ -38,6 +38,29 @@
 </div>
 
 <div class="form-group">
+    <label for="asset_id" class="form-label">Activo</label>
+    <select name="asset_id" id="asset_id" class="form-control">
+        <option value="">Sin activo asociado</option>
+        @foreach ($assets as $asset)
+            <option value="{{ $asset->id }}" data-party-id="{{ $asset->party_id }}" @selected(old('asset_id', $document->asset_id ?? '') == $asset->id)>
+                {{ $asset->name }}
+                @if ($asset->internal_code)
+                    — {{ $asset->internal_code }}
+                @endif
+                @if ($asset->party)
+                    — {{ $asset->party->name }}
+                @endif
+            </option>
+        @endforeach
+    </select>
+    <div class="form-help">Si seleccionas un activo, debe corresponder al contacto elegido. Si seleccionas una orden, se
+        heredará el activo de esa orden.</div>
+    @error('asset_id')
+        <div class="form-help is-error">{{ $message }}</div>
+    @enderror
+</div>
+
+<div class="form-group">
     <label for="kind" class="form-label">Tipo</label>
 
     @if ($documentIsNumbered)
@@ -71,7 +94,8 @@
     <label class="form-label">Número</label>
 
     @if ($documentExists)
-        <input type="text" class="form-control" value="{{ $document->number ?: 'Se asignará al guardar' }}" disabled>
+        <input type="text" class="form-control" value="{{ $document->number ?: 'Se asignará al guardar' }}"
+            disabled>
         <div class="form-help">La numeración es automática y no editable.</div>
     @else
         <input type="text" class="form-control" value="Se asignará automáticamente al guardar" disabled>
@@ -111,9 +135,62 @@
 
 <div class="form-group">
     <label for="notes" class="form-label">Notas</label>
-    <textarea name="notes" id="notes" class="form-control"
-        rows="4">{{ old('notes', $document->notes ?? '') }}</textarea>
+    <textarea name="notes" id="notes" class="form-control" rows="4">{{ old('notes', $document->notes ?? '') }}</textarea>
     @error('notes')
         <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const partySelect = document.getElementById('party_id');
+        const assetSelect = document.getElementById('asset_id');
+
+        if (!partySelect || !assetSelect) {
+            return;
+        }
+
+        function filterAssetsByParty() {
+            const selectedPartyId = partySelect.value;
+
+            Array.from(assetSelect.options).forEach(function(option, index) {
+                if (index === 0) {
+                    option.hidden = false;
+                    return;
+                }
+
+                const assetPartyId = option.dataset.partyId || '';
+                const shouldShow = !selectedPartyId || assetPartyId === selectedPartyId;
+
+                option.hidden = !shouldShow;
+            });
+
+            const selectedOption = assetSelect.options[assetSelect.selectedIndex];
+
+            if (selectedOption && selectedOption.value && selectedOption.hidden) {
+                assetSelect.value = '';
+            }
+        }
+
+        assetSelect.addEventListener('change', function() {
+            const selected = assetSelect.options[assetSelect.selectedIndex];
+
+            if (!selected || !selected.value) {
+                return;
+            }
+
+            const assetPartyId = selected.dataset.partyId || '';
+
+            if (assetPartyId) {
+                partySelect.value = assetPartyId;
+                filterAssetsByParty();
+            }
+        });
+
+        partySelect.addEventListener('change', function() {
+            filterAssetsByParty();
+        });
+
+        filterAssetsByParty();
+    });
+</script>

@@ -24,11 +24,8 @@
                 Editar
             </a>
 
-            <form method="POST" action="{{ route('documents.destroy', $document) }}" class="inline-form" onsubmit="return confirm(@js(
-                $document->items->count()
-                ? 'Este documento tiene ítems cargados. Si lo eliminas, también se eliminarán sus ítems. ¿Deseas continuar?'
-                : '¿Deseas eliminar este documento?'
-            ))">
+            <form method="POST" action="{{ route('documents.destroy', $document) }}" class="inline-form"
+                onsubmit="return confirm(@js($document->items->count() ? 'Este documento tiene ítems cargados. Si lo eliminas, también se eliminarán sus ítems. ¿Deseas continuar?' : '¿Deseas eliminar este documento?'))">
                 @csrf
                 @method('DELETE')
 
@@ -86,6 +83,19 @@
                 </div>
 
                 <div class="detail-block">
+                    <span class="detail-block-label">Activo</span>
+                    <div class="detail-block-value">
+                        @if ($document->asset)
+                            <a href="{{ route('assets.show', $document->asset) }}">
+                                {{ $document->asset->name }}
+                            </a>
+                        @else
+                            —
+                        @endif
+                    </div>
+                </div>
+
+                <div class="detail-block">
                     <span class="detail-block-label">Fecha de emisión</span>
                     <div class="detail-block-value">{{ $document->issued_at?->format('d/m/Y') ?: '—' }}</div>
                 </div>
@@ -104,7 +114,8 @@
 
         <div class="tabs" data-tabs>
             <div class="tabs-nav" role="tablist" aria-label="Secciones secundarias del documento">
-                <button type="button" class="tabs-link is-active" data-tab-link="items" role="tab" aria-selected="true">
+                <button type="button" class="tabs-link is-active" data-tab-link="items" role="tab"
+                    aria-selected="true">
                     Ítems
                     @if ($items->count())
                         ({{ $items->count() }})
@@ -208,7 +219,8 @@
                         <div class="detail-grid">
                             <div class="detail-block">
                                 <span class="detail-block-label">Subtotal</span>
-                                <div class="detail-block-value">${{ number_format($document->subtotal, 2, ',', '.') }}</div>
+                                <div class="detail-block-value">${{ number_format($document->subtotal, 2, ',', '.') }}
+                                </div>
                             </div>
 
                             <div class="detail-block">

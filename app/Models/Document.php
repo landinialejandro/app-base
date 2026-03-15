@@ -4,22 +4,22 @@
 
 namespace App\Models;
 
+use App\Models\Concerns\ResolvesTenantRouteBinding;
+use App\Models\Concerns\TenantScoped;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-use App\Models\Concerns\TenantScoped;
-use App\Models\Concerns\ResolvesTenantRouteBinding;
-
 class Document extends Model
 {
+    use ResolvesTenantRouteBinding;
     use SoftDeletes;
     use TenantScoped;
-    use ResolvesTenantRouteBinding;
 
     protected $fillable = [
         'tenant_id',
         'party_id',
         'order_id',
+        'asset_id',
         'kind',
         'number',
         'sequence_prefix',
@@ -54,6 +54,11 @@ class Document extends Model
     public function order()
     {
         return $this->belongsTo(Order::class);
+    }
+
+    public function asset()
+    {
+        return $this->belongsTo(Asset::class);
     }
 
     public function items()

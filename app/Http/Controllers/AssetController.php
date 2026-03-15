@@ -5,6 +5,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Asset;
+use App\Models\Document;
 use App\Models\Order;
 use App\Models\Party;
 use App\Support\Catalogs\AssetCatalog;
@@ -56,7 +57,13 @@ class AssetController extends Controller
             ->latest()
             ->get();
 
-        return view('assets.show', compact('asset', 'orders'));
+        $documents = Document::query()
+            ->with(['party', 'order'])
+            ->where('asset_id', $asset->id)
+            ->latest()
+            ->get();
+
+        return view('assets.show', compact('asset', 'orders', 'documents'));
     }
 
     public function edit(Asset $asset): View

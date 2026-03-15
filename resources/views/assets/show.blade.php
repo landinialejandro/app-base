@@ -8,6 +8,7 @@
 
     @php
         use App\Support\Catalogs\AssetCatalog;
+        use App\Support\Catalogs\DocumentCatalog;
     @endphp
 
     <x-page>
@@ -152,6 +153,64 @@
                 </div>
             @else
                 <p class="mb-0">Este activo no tiene órdenes vinculadas.</p>
+            @endif
+        </x-card>
+
+        <x-card>
+            <div class="dashboard-section-header">
+                <h2 class="dashboard-section-title">Documentos vinculados</h2>
+                <p class="dashboard-section-text">
+                    Documentos actualmente asociados a este activo.
+                </p>
+            </div>
+
+            @if ($documents->count())
+                <div class="table-wrap list-scroll">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Número</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                                <th>Contacto</th>
+                                <th>Orden</th>
+                                <th>Fecha</th>
+                                <th>Total</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($documents as $document)
+                                <tr>
+                                    <td>
+                                        <a href="{{ route('documents.show', $document) }}">
+                                            {{ $document->number ?: 'Sin número' }}
+                                        </a>
+                                    </td>
+                                    <td>{{ DocumentCatalog::label($document->kind) }}</td>
+                                    <td>
+                                        <span class="status-badge {{ DocumentCatalog::badgeClass($document->status) }}">
+                                            {{ DocumentCatalog::label($document->status) }}
+                                        </span>
+                                    </td>
+                                    <td>{{ $document->party?->name ?: '—' }}</td>
+                                    <td>
+                                        @if ($document->order)
+                                            <a href="{{ route('orders.show', $document->order) }}">
+                                                {{ $document->order->number ?: 'Sin número' }}
+                                            </a>
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
+                                    <td>{{ $document->issued_at?->format('d/m/Y') ?: '—' }}</td>
+                                    <td>${{ number_format($document->total, 2, ',', '.') }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <p class="mb-0">Este activo no tiene documentos vinculados.</p>
             @endif
         </x-card>
 

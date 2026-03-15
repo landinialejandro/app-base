@@ -4,25 +4,24 @@
 
 namespace App\Http\Controllers;
 
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Carbon;
-
+use App\Models\Asset;
 use App\Models\Document;
 use App\Models\DocumentItem;
 use App\Models\Order;
 use App\Models\Party;
-
 use App\Support\Catalogs\DocumentCatalog;
-use App\Support\Documents\DocumentTotalsCalculator;
 use App\Support\Documents\DocumentNumberGenerator;
+use App\Support\Documents\DocumentTotalsCalculator;
+use Illuminate\Http\Request;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Validation\Rule;
 
 class DocumentController extends Controller
 {
     public function index()
     {
-        $documents = Document::with(['party', 'order', 'items'])
+        $documents = Document::with(['party', 'order', 'asset', 'items'])
             ->latest()
             ->paginate(20);
 
@@ -32,7 +31,8 @@ class DocumentController extends Controller
     public function create()
     {
         $parties = Party::orderBy('name')->get();
-        $orders = Order::latest()->get();
+        $orders = Order::with(['party', 'asset'])->latest()->get();
+        $assets = Asset::with('party')->orderBy('name')->get();
 
         $document = new Document([
             'kind' => DocumentCatalog::KIND_QUOTE,
@@ -40,7 +40,7 @@ class DocumentController extends Controller
             'issued_at' => now(),
         ]);
 
-        return view('documents.create', compact('document', 'parties', 'orders'));
+        return view('documents.create', compact('document', 'parties', 'orders', 'assets'));
     }
 
     public function store(Request $request)
@@ -65,6 +65,15 @@ class DocumentController extends Controller
                 }),
             ],
 
+            'asset_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('assets', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)
+                        ->whereNull('deleted_at');
+                }),
+            ],
+
             'kind' => [
                 'required',
                 Rule::in(DocumentCatalog::kinds()),
@@ -82,8 +91,25 @@ class DocumentController extends Controller
         $issuedAt = $this->resolveIssuedAt($data['issued_at'] ?? null);
         $order = null;
 
-        if (!empty($data['order_id'])) {
+        if (! empty($data['order_id'])) {
             $order = Order::query()->find($data['order_id']);
+
+            if ($order) {
+                $data['party_id'] = $order->party_id;
+                $data['asset_id'] = $order->asset_id;
+            }
+        }
+
+        if (! empty($data['asset_id'])) {
+            $asset = Asset::query()->findOrFail($data['asset_id']);
+
+            if ((int) $asset->party_id !== (int) $data['party_id']) {
+                return back()
+                    ->withErrors([
+                        'asset_id' => 'El activo seleccionado pertenece a otro contacto.',
+                    ])
+                    ->withInput();
+            }
         }
 
         $issuedAtError = $this->validateIssuedAtForDocument(
@@ -168,6 +194,7 @@ class DocumentController extends Controller
                 'tenant_id' => $order->tenant_id,
                 'party_id' => $order->party_id,
                 'order_id' => $order->id,
+                'asset_id' => $order->asset_id,
                 'kind' => $data['kind'],
                 'number' => $sequence['number'],
                 'sequence_prefix' => $sequence['prefix'],
@@ -210,6 +237,7 @@ class DocumentController extends Controller
         $document->load([
             'party',
             'order',
+            'asset',
             'creator',
             'updater',
             'items.product',
@@ -221,9 +249,10 @@ class DocumentController extends Controller
     public function edit(Document $document)
     {
         $parties = Party::orderBy('name')->get();
-        $orders = Order::latest()->get();
+        $orders = Order::with(['party', 'asset'])->latest()->get();
+        $assets = Asset::with('party')->orderBy('name')->get();
 
-        return view('documents.edit', compact('document', 'parties', 'orders'));
+        return view('documents.edit', compact('document', 'parties', 'orders', 'assets'));
     }
 
     public function update(Request $request, Document $document)
@@ -245,6 +274,15 @@ class DocumentController extends Controller
                 'integer',
                 Rule::exists('orders', 'id')->where(function ($query) use ($tenant) {
                     $query->where('tenant_id', $tenant->id);
+                }),
+            ],
+
+            'asset_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('assets', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)
+                        ->whereNull('deleted_at');
                 }),
             ],
 
@@ -276,8 +314,25 @@ class DocumentController extends Controller
 
         $order = null;
 
-        if (!empty($data['order_id'])) {
+        if (! empty($data['order_id'])) {
             $order = Order::query()->find($data['order_id']);
+
+            if ($order) {
+                $data['party_id'] = $order->party_id;
+                $data['asset_id'] = $order->asset_id;
+            }
+        }
+
+        if (! empty($data['asset_id'])) {
+            $asset = Asset::query()->findOrFail($data['asset_id']);
+
+            if ((int) $asset->party_id !== (int) $data['party_id']) {
+                return back()
+                    ->withErrors([
+                        'asset_id' => 'El activo seleccionado pertenece a otro contacto.',
+                    ])
+                    ->withInput();
+            }
         }
 
         $issuedAtError = $this->validateIssuedAtForDocument(

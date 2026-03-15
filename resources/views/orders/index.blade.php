@@ -59,7 +59,9 @@ use App\Support\Catalogs\OrderCatalog;
                                 </td>
 
                                 <td>
-                                    {{ OrderCatalog::label($order->status) }}
+                                    <span class="status-badge {{ OrderCatalog::badgeClass($order->status) }}">
+                                        {{ OrderCatalog::label($order->status) }}
+                                    </span>
                                 </td>
 
                                 <td>

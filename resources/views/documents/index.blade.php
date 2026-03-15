@@ -59,7 +59,9 @@ use App\Support\Catalogs\DocumentCatalog;
                                 </td>
 
                                 <td>
-                                    {{ DocumentCatalog::label($document->status) }}
+                                    <span class="status-badge {{ DocumentCatalog::badgeClass($document->status) }}">
+                                        {{ DocumentCatalog::label($document->status) }}
+                                    </span>
                                 </td>
 
                                 <td>

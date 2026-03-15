@@ -38,48 +38,75 @@
         </x-page-header>
 
         <x-card>
-            <div class="detail-list">
-                <div class="detail-label">ID</div>
-                <div class="detail-value">{{ $party->id }}</div>
+            <div class="summary-inline-grid">
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Tipo</div>
+                    <div class="summary-inline-value">{{ PartyCatalog::label($party->kind) }}</div>
+                </div>
 
-                <div class="detail-label">Tipo</div>
-                <div class="detail-value">{{ PartyCatalog::label($party->kind) }}</div>
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Nombre</div>
+                    <div class="summary-inline-value">{{ $party->name }}</div>
+                </div>
+            </div>
+        </x-card>
 
-                <div class="detail-label">Nombre</div>
-                <div class="detail-value">{{ $party->name }}</div>
+        <x-card>
+            <div class="detail-grid detail-grid--3">
+                <div class="detail-block">
+                    <span class="detail-block-label">Nombre visible</span>
+                    <div class="detail-block-value">{{ $party->display_name ?: '—' }}</div>
+                </div>
 
-                <div class="detail-label">Nombre visible</div>
-                <div class="detail-value">{{ $party->display_name ?: '—' }}</div>
+                <div class="detail-block">
+                    <span class="detail-block-label">Tipo documento</span>
+                    <div class="detail-block-value">{{ $party->document_type ?: '—' }}</div>
+                </div>
 
-                <div class="detail-label">Tipo documento</div>
-                <div class="detail-value">{{ $party->document_type ?: '—' }}</div>
+                <div class="detail-block">
+                    <span class="detail-block-label">Número documento</span>
+                    <div class="detail-block-value">{{ $party->document_number ?: '—' }}</div>
+                </div>
 
-                <div class="detail-label">Número documento</div>
-                <div class="detail-value">{{ $party->document_number ?: '—' }}</div>
+                <div class="detail-block">
+                    <span class="detail-block-label">CUIT / Tax ID</span>
+                    <div class="detail-block-value">{{ $party->tax_id ?: '—' }}</div>
+                </div>
 
-                <div class="detail-label">CUIT / Tax ID</div>
-                <div class="detail-value">{{ $party->tax_id ?: '—' }}</div>
+                <div class="detail-block">
+                    <span class="detail-block-label">Email</span>
+                    <div class="detail-block-value">{{ $party->email ?: '—' }}</div>
+                </div>
 
-                <div class="detail-label">Email</div>
-                <div class="detail-value">{{ $party->email ?: '—' }}</div>
+                <div class="detail-block">
+                    <span class="detail-block-label">Teléfono</span>
+                    <div class="detail-block-value">{{ $party->phone ?: '—' }}</div>
+                </div>
 
-                <div class="detail-label">Teléfono</div>
-                <div class="detail-value">{{ $party->phone ?: '—' }}</div>
+                <div class="detail-block detail-block--full">
+                    <span class="detail-block-label">Dirección</span>
+                    <div class="detail-block-value">{{ $party->address ?: '—' }}</div>
+                </div>
 
-                <div class="detail-label">Dirección</div>
-                <div class="detail-value">{{ $party->address ?: '—' }}</div>
+                <div class="detail-block">
+                    <span class="detail-block-label">Activo</span>
+                    <div class="detail-block-value">{{ $party->is_active ? 'Sí' : 'No' }}</div>
+                </div>
 
-                <div class="detail-label">Notas</div>
-                <div class="detail-value">{{ $party->notes ?: '—' }}</div>
+                <div class="detail-block">
+                    <span class="detail-block-label">Creado</span>
+                    <div class="detail-block-value">{{ $party->created_at?->format('d/m/Y H:i') ?: '—' }}</div>
+                </div>
 
-                <div class="detail-label">Activo</div>
-                <div class="detail-value">{{ $party->is_active ? 'Sí' : 'No' }}</div>
+                <div class="detail-block">
+                    <span class="detail-block-label">Actualizado</span>
+                    <div class="detail-block-value">{{ $party->updated_at?->format('d/m/Y H:i') ?: '—' }}</div>
+                </div>
 
-                <div class="detail-label">Creado</div>
-                <div class="detail-value">{{ $party->created_at?->format('d/m/Y H:i') ?: '—' }}</div>
-
-                <div class="detail-label">Actualizado</div>
-                <div class="detail-value">{{ $party->updated_at?->format('d/m/Y H:i') ?: '—' }}</div>
+                <div class="detail-block detail-block--full">
+                    <span class="detail-block-label">Notas</span>
+                    <div class="detail-block-value">{{ $party->notes ?: '—' }}</div>
+                </div>
             </div>
         </x-card>
 

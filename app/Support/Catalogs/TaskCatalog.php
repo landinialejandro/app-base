@@ -24,9 +24,4 @@ class TaskCatalog extends BaseCatalog
         self::STATUS_DONE => 'status-badge--done',
         self::STATUS_CANCELLED => 'status-badge--cancelled',
     ];
-
-    public static function badgeClass(?string $value): string
-    {
-        return static::$badges[$value] ?? '';
-    }
 }

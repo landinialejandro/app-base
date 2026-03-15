@@ -25,5 +25,10 @@ class OrderCatalog extends BaseCatalog
         self::STATUS_CONFIRMED => 'Confirmada',
         self::STATUS_CANCELLED => 'Cancelada',
     ];
-}
 
+    protected static array $badges = [
+        self::STATUS_DRAFT => 'status-badge--pending',
+        self::STATUS_CONFIRMED => 'status-badge--done',
+        self::STATUS_CANCELLED => 'status-badge--cancelled',
+    ];
+}

@@ -9,6 +9,7 @@
         use App\Support\Catalogs\ProductCatalog;
         use App\Support\Catalogs\DocumentCatalog;
 
+        $items = $order->items->sortBy('position');
         $documents = $order->documents->sortByDesc('id');
 
         $workOrderCount = $documents->where('kind', DocumentCatalog::KIND_WORK_ORDER)->count();
@@ -100,6 +101,20 @@
             </a>
         </x-page-header>
 
+        <x-card>
+            <div class="summary-inline-grid">
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Tipo</div>
+                    <div class="summary-inline-value">{{ OrderCatalog::label($order->kind) }}</div>
+                </div>
+
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Número</div>
+                    <div class="summary-inline-value">{{ $order->number ?: 'Sin número' }}</div>
+                </div>
+            </div>
+        </x-card>
+
         <div class="tabs" data-tabs>
             <div class="tabs-nav" role="tablist" aria-label="Secciones de la orden">
                 <button type="button"
@@ -126,120 +141,126 @@
                 <div class="tab-panel-stack">
 
                     <x-card>
-                        <div class="detail-list">
-                            <div>
-                                <div class="detail-label">Número</div>
-                                <div class="detail-value">{{ $order->number ?: 'Sin número' }}</div>
+                        <div class="detail-grid detail-grid--3">
+                            <div class="detail-block">
+                                <span class="detail-block-label">Estado</span>
+                                <div class="detail-block-value">
+                                    <span class="status-badge {{ OrderCatalog::badgeClass($order->status) }}">
+                                        {{ OrderCatalog::label($order->status) }}
+                                    </span>
+                                </div>
                             </div>
 
-                            <div>
-                                <div class="detail-label">Tipo</div>
-                                <div class="detail-value">{{ OrderCatalog::label($order->kind) }}</div>
+                            <div class="detail-block">
+                                <span class="detail-block-label">Contacto</span>
+                                <div class="detail-block-value">{{ $order->party?->name ?: '—' }}</div>
                             </div>
 
-                            <div>
-                                <div class="detail-label">Estado</div>
-                                <div class="detail-value">{{ OrderCatalog::label($order->status) }}</div>
+                            <div class="detail-block">
+                                <span class="detail-block-label">Fecha</span>
+                                <div class="detail-block-value">{{ $order->ordered_at?->format('d/m/Y') ?: '—' }}</div>
                             </div>
 
-                            <div>
-                                <div class="detail-label">Contacto</div>
-                                <div class="detail-value">{{ $order->party?->name ?: '—' }}</div>
+                            <div class="detail-block">
+                                <span class="detail-block-label">Total</span>
+                                <div class="detail-block-value">${{ number_format($order->total, 2, ',', '.') }}</div>
                             </div>
 
-                            <div>
-                                <div class="detail-label">Fecha</div>
-                                <div class="detail-value">{{ $order->ordered_at?->format('d/m/Y') ?: '—' }}</div>
+                            <div class="detail-block">
+                                <span class="detail-block-label">Creado por</span>
+                                <div class="detail-block-value">{{ $order->creator?->name ?: '—' }}</div>
                             </div>
 
-                            <div>
-                                <div class="detail-label">Creado por</div>
-                                <div class="detail-value">{{ $order->creator?->name ?: '—' }}</div>
+                            <div class="detail-block">
+                                <span class="detail-block-label">Actualizado por</span>
+                                <div class="detail-block-value">{{ $order->updater?->name ?: '—' }}</div>
                             </div>
 
-                            <div>
-                                <div class="detail-label">Actualizado por</div>
-                                <div class="detail-value">{{ $order->updater?->name ?: '—' }}</div>
-                            </div>
-
-                            <div>
-                                <div class="detail-label">Total</div>
-                                <div class="detail-value">${{ number_format($order->total, 2, ',', '.') }}</div>
-                            </div>
-
-                            <div>
-                                <div class="detail-label">Notas</div>
-                                <div class="detail-value">{{ $order->notes ?: '—' }}</div>
+                            <div class="detail-block detail-block--full">
+                                <span class="detail-block-label">Notas</span>
+                                <div class="detail-block-value">{{ $order->notes ?: '—' }}</div>
                             </div>
                         </div>
                     </x-card>
 
-                    <div>
-                        <x-page-header title="Ítems de la orden">
-                            <a href="{{ route('orders.items.create', $order) }}" class="btn btn-primary">
-                                Agregar ítem
-                            </a>
-                        </x-page-header>
+                    <x-page-header title="Ítems de la orden">
+                        <a href="{{ route('orders.items.create', $order) }}" class="btn btn-primary">
+                            Agregar ítem
+                        </a>
+                    </x-page-header>
 
-                        <x-card class="list-card">
-                            @if ($order->items->count())
-                                <div class="table-wrap list-scroll">
-                                    <table class="table">
-                                        <thead>
+                    <x-card class="list-card">
+                        @if ($items->count())
+                            <div class="table-wrap list-scroll">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Posición</th>
+                                            <th>Tipo</th>
+                                            <th>Descripción</th>
+                                            <th>Cantidad</th>
+                                            <th>Precio unitario</th>
+                                            <th>Subtotal</th>
+                                            <th class="compact-actions-cell">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($items as $item)
                                             <tr>
-                                                <th>Posición</th>
-                                                <th>Tipo</th>
-                                                <th>Descripción</th>
-                                                <th>Cantidad</th>
-                                                <th>Precio unitario</th>
-                                                <th>Subtotal</th>
-                                                <th class="compact-actions-cell">Acciones</th>
+                                                <td>{{ $item->position }}</td>
+                                                <td>{{ ProductCatalog::label($item->kind) }}</td>
+                                                <td>{{ $item->description }}</td>
+                                                <td>{{ number_format($item->quantity, 2, ',', '.') }}</td>
+                                                <td>${{ number_format($item->unit_price, 2, ',', '.') }}</td>
+                                                <td>${{ number_format($item->subtotal, 2, ',', '.') }}</td>
+                                                <td class="compact-actions-cell">
+                                                    <div class="compact-actions">
+                                                        <a href="{{ route('orders.items.edit', [$order, $item]) }}"
+                                                            class="btn btn-secondary btn-icon"
+                                                            title="Editar ítem"
+                                                            aria-label="Editar ítem">
+                                                            <x-icons.pencil />
+                                                        </a>
+
+                                                        <form method="POST"
+                                                            action="{{ route('orders.items.destroy', [$order, $item]) }}"
+                                                            class="inline-form"
+                                                            onsubmit="return confirm('¿Deseas eliminar este ítem?')">
+                                                            @csrf
+                                                            @method('DELETE')
+
+                                                            <button type="submit"
+                                                                class="btn btn-danger btn-icon"
+                                                                title="Eliminar ítem"
+                                                                aria-label="Eliminar ítem">
+                                                                <x-icons.trash />
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
                                             </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach ($order->items->sortBy('position') as $item)
-                                                <tr>
-                                                    <td>{{ $item->position }}</td>
-                                                    <td>{{ ProductCatalog::label($item->kind) }}</td>
-                                                    <td>{{ $item->description }}</td>
-                                                    <td>{{ number_format($item->quantity, 2, ',', '.') }}</td>
-                                                    <td>${{ number_format($item->unit_price, 2, ',', '.') }}</td>
-                                                    <td>${{ number_format($item->subtotal, 2, ',', '.') }}</td>
-                                                    <td class="compact-actions-cell">
-                                                        <div class="compact-actions">
-                                                            <a href="{{ route('orders.items.edit', [$order, $item]) }}"
-                                                                class="btn btn-secondary btn-icon"
-                                                                title="Editar ítem"
-                                                                aria-label="Editar ítem">
-                                                                <x-icons.pencil />
-                                                            </a>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <p class="mb-0">No hay ítems cargados en esta orden.</p>
+                        @endif
+                    </x-card>
 
-                                                            <form method="POST"
-                                                                action="{{ route('orders.items.destroy', [$order, $item]) }}"
-                                                                class="inline-form"
-                                                                onsubmit="return confirm('¿Deseas eliminar este ítem?')">
-                                                                @csrf
-                                                                @method('DELETE')
+                    <x-card>
+                        <div class="summary-inline-grid">
+                            <div class="summary-inline-card">
+                                <div class="summary-inline-label">Cantidad de ítems</div>
+                                <div class="summary-inline-value">{{ $items->count() }}</div>
+                            </div>
 
-                                                                <button type="submit"
-                                                                    class="btn btn-danger btn-icon"
-                                                                    title="Eliminar ítem"
-                                                                    aria-label="Eliminar ítem">
-                                                                    <x-icons.trash />
-                                                                </button>
-                                                            </form>
-                                                        </div>
-                                                    </td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            @else
-                                <p class="mb-0">No hay ítems cargados en esta orden.</p>
-                            @endif
-                        </x-card>
-                    </div>
+                            <div class="summary-inline-card">
+                                <div class="summary-inline-label">Total orden</div>
+                                <div class="summary-inline-value">${{ number_format($order->total, 2, ',', '.') }}</div>
+                            </div>
+                        </div>
+                    </x-card>
 
                 </div>
             </section>
@@ -302,7 +323,11 @@
                                                     </a>
                                                 </td>
                                                 <td>{{ DocumentCatalog::label($document->kind) }}</td>
-                                                <td>{{ DocumentCatalog::label($document->status) }}</td>
+                                                <td>
+                                                    <span class="status-badge {{ DocumentCatalog::badgeClass($document->status) }}">
+                                                        {{ DocumentCatalog::label($document->status) }}
+                                                    </span>
+                                                </td>
                                                 <td>{{ $document->issued_at?->format('d/m/Y') ?: '—' }}</td>
                                                 <td>${{ number_format($document->total, 2, ',', '.') }}</td>
                                             </tr>

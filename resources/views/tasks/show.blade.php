@@ -51,42 +51,52 @@
         </x-page-header>
 
         <x-card>
-            <div class="detail-list">
-                <div class="detail-label">ID</div>
-                <div class="detail-value">{{ $task->id }}</div>
-
-                <div class="detail-label">Nombre</div>
-                <div class="detail-value">{{ $task->name }}</div>
-
-                <div class="detail-label">Descripción</div>
-                <div class="detail-value">{{ $task->description ?: '—' }}</div>
-
-                <div class="detail-label">Estado</div>
-                <div class="detail-value">
-                    <span class="status-badge {{ TaskCatalog::badgeClass($task->status) }}">
-                        {{ TaskCatalog::label($task->status) }}
-                    </span>
+            <div class="summary-inline-grid">
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Estado</div>
+                    <div class="summary-inline-value">
+                        <span class="status-badge {{ TaskCatalog::badgeClass($task->status) }}">
+                            {{ TaskCatalog::label($task->status) }}
+                        </span>
+                    </div>
                 </div>
 
-                <div class="detail-label">Proyecto</div>
-                <div class="detail-value">
-                    @if ($task->project)
-                        <a href="{{ route('projects.show', $task->project) }}">
-                            {{ $task->project->name }}
-                        </a>
-                    @else
-                        —
-                    @endif
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Vencimiento</div>
+                    <div class="summary-inline-value">{{ $task->due_date?->format('d/m/Y') ?? '—' }}</div>
+                </div>
+            </div>
+        </x-card>
+
+        <x-card>
+            <div class="detail-grid detail-grid--3">
+                <div class="detail-block">
+                    <span class="detail-block-label">Proyecto</span>
+                    <div class="detail-block-value">
+                        @if ($task->project)
+                            <a href="{{ route('projects.show', $task->project) }}">
+                                {{ $task->project->name }}
+                            </a>
+                        @else
+                            —
+                        @endif
+                    </div>
                 </div>
 
-                <div class="detail-label">Contacto</div>
-                <div class="detail-value">{{ $task->party?->name ?? '—' }}</div>
+                <div class="detail-block">
+                    <span class="detail-block-label">Contacto</span>
+                    <div class="detail-block-value">{{ $task->party?->name ?? '—' }}</div>
+                </div>
 
-                <div class="detail-label">Asignado a</div>
-                <div class="detail-value">{{ $task->assignedUser?->name ?? '—' }}</div>
+                <div class="detail-block">
+                    <span class="detail-block-label">Asignado a</span>
+                    <div class="detail-block-value">{{ $task->assignedUser?->name ?? '—' }}</div>
+                </div>
 
-                <div class="detail-label">Vencimiento</div>
-                <div class="detail-value">{{ $task->due_date?->format('d/m/Y') ?? '—' }}</div>
+                <div class="detail-block detail-block--full">
+                    <span class="detail-block-label">Descripción</span>
+                    <div class="detail-block-value">{{ $task->description ?: '—' }}</div>
+                </div>
             </div>
         </x-card>
 

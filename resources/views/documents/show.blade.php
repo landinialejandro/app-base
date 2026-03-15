@@ -7,6 +7,8 @@
     @php
         use App\Support\Catalogs\DocumentCatalog;
         use App\Support\Catalogs\ProductCatalog;
+
+        $items = $document->items->sortBy('position');
     @endphp
 
     <x-page>
@@ -41,30 +43,38 @@
         </x-page-header>
 
         <x-card>
-            <div class="detail-list">
-                <div>
-                    <div class="detail-label">Número</div>
-                    <div class="detail-value">{{ $document->number ?: 'Sin número' }}</div>
+            <div class="summary-inline-grid">
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Tipo</div>
+                    <div class="summary-inline-value">{{ DocumentCatalog::label($document->kind) }}</div>
                 </div>
 
-                <div>
-                    <div class="detail-label">Tipo</div>
-                    <div class="detail-value">{{ DocumentCatalog::label($document->kind) }}</div>
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Número</div>
+                    <div class="summary-inline-value">{{ $document->number ?: 'Sin número' }}</div>
+                </div>
+            </div>
+        </x-card>
+
+        <x-card>
+            <div class="detail-grid detail-grid--3">
+                <div class="detail-block">
+                    <span class="detail-block-label">Estado</span>
+                    <div class="detail-block-value">
+                        <span class="status-badge {{ DocumentCatalog::badgeClass($document->status) }}">
+                            {{ DocumentCatalog::label($document->status) }}
+                        </span>
+                    </div>
                 </div>
 
-                <div>
-                    <div class="detail-label">Estado</div>
-                    <div class="detail-value">{{ DocumentCatalog::label($document->status) }}</div>
+                <div class="detail-block">
+                    <span class="detail-block-label">Contacto</span>
+                    <div class="detail-block-value">{{ $document->party?->name ?: '—' }}</div>
                 </div>
 
-                <div>
-                    <div class="detail-label">Contacto</div>
-                    <div class="detail-value">{{ $document->party?->name ?: '—' }}</div>
-                </div>
-
-                <div>
-                    <div class="detail-label">Orden asociada</div>
-                    <div class="detail-value">
+                <div class="detail-block">
+                    <span class="detail-block-label">Orden asociada</span>
+                    <div class="detail-block-value">
                         @if ($document->order)
                             <a href="{{ route('orders.show', $document->order) }}">
                                 {{ $document->order->number ?: 'Sin número' }}
@@ -75,111 +85,170 @@
                     </div>
                 </div>
 
-                <div>
-                    <div class="detail-label">Fecha de emisión</div>
-                    <div class="detail-value">{{ $document->issued_at?->format('d/m/Y') ?: '—' }}</div>
+                <div class="detail-block">
+                    <span class="detail-block-label">Fecha de emisión</span>
+                    <div class="detail-block-value">{{ $document->issued_at?->format('d/m/Y') ?: '—' }}</div>
                 </div>
 
-                <div>
-                    <div class="detail-label">Fecha de vencimiento</div>
-                    <div class="detail-value">{{ $document->due_at?->format('d/m/Y') ?: '—' }}</div>
+                <div class="detail-block">
+                    <span class="detail-block-label">Fecha de vencimiento</span>
+                    <div class="detail-block-value">{{ $document->due_at?->format('d/m/Y') ?: '—' }}</div>
                 </div>
 
-                <div>
-                    <div class="detail-label">Moneda</div>
-                    <div class="detail-value">{{ $document->currency_code ?: '—' }}</div>
-                </div>
-
-                <div>
-                    <div class="detail-label">Creado por</div>
-                    <div class="detail-value">{{ $document->creator?->name ?: '—' }}</div>
-                </div>
-
-                <div>
-                    <div class="detail-label">Actualizado por</div>
-                    <div class="detail-value">{{ $document->updater?->name ?: '—' }}</div>
-                </div>
-
-                <div>
-                    <div class="detail-label">Subtotal</div>
-                    <div class="detail-value">${{ number_format($document->subtotal, 2, ',', '.') }}</div>
-                </div>
-
-                <div>
-                    <div class="detail-label">Impuestos</div>
-                    <div class="detail-value">${{ number_format($document->tax_total, 2, ',', '.') }}</div>
-                </div>
-
-                <div>
-                    <div class="detail-label">Total</div>
-                    <div class="detail-value">${{ number_format($document->total, 2, ',', '.') }}</div>
-                </div>
-
-                <div>
-                    <div class="detail-label">Notas</div>
-                    <div class="detail-value">{{ $document->notes ?: '—' }}</div>
+                <div class="detail-block">
+                    <span class="detail-block-label">Moneda</span>
+                    <div class="detail-block-value">{{ $document->currency_code ?: '—' }}</div>
                 </div>
             </div>
         </x-card>
 
-        <x-page-header title="Ítems del documento">
-            <a href="{{ route('documents.items.create', $document) }}" class="btn btn-primary">
-                Agregar ítem
-            </a>
-        </x-page-header>
+        <div class="tabs" data-tabs>
+            <div class="tabs-nav" role="tablist" aria-label="Secciones secundarias del documento">
+                <button type="button" class="tabs-link is-active" data-tab-link="items" role="tab" aria-selected="true">
+                    Ítems
+                    @if ($items->count())
+                        ({{ $items->count() }})
+                    @endif
+                </button>
 
-        <x-card class="list-card">
-            @if ($document->items->count())
-                <div class="table-wrap list-scroll">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Posición</th>
-                                <th>Tipo</th>
-                                <th>Descripción</th>
-                                <th>Cantidad</th>
-                                <th>Precio unitario</th>
-                                <th>Total línea</th>
-                                <th class="compact-actions-cell">Acciones</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($document->items->sortBy('position') as $item)
-                                <tr>
-                                    <td>{{ $item->position }}</td>
-                                    <td>{{ ProductCatalog::label($item->kind) }}</td>
-                                    <td>{{ $item->description }}</td>
-                                    <td>{{ number_format($item->quantity, 2, ',', '.') }}</td>
-                                    <td>${{ number_format($item->unit_price, 2, ',', '.') }}</td>
-                                    <td>${{ number_format($item->line_total, 2, ',', '.') }}</td>
-                                    <td class="compact-actions-cell">
-                                        <div class="compact-actions">
-                                            <a href="{{ route('documents.items.edit', [$document, $item]) }}"
-                                                class="btn btn-secondary btn-icon" title="Editar ítem" aria-label="Editar ítem">
-                                                <x-icons.pencil />
-                                            </a>
+                <button type="button" class="tabs-link" data-tab-link="amounts" role="tab" aria-selected="false">
+                    Importes
+                </button>
 
-                                            <form method="POST" action="{{ route('documents.items.destroy', [$document, $item]) }}"
-                                                class="inline-form" onsubmit="return confirm('¿Deseas eliminar este ítem?')">
-                                                @csrf
-                                                @method('DELETE')
+                <button type="button" class="tabs-link" data-tab-link="trace" role="tab" aria-selected="false">
+                    Notas y trazabilidad
+                </button>
+            </div>
 
-                                                <button type="submit" class="btn btn-danger btn-icon" title="Eliminar ítem"
-                                                    aria-label="Eliminar ítem">
-                                                    <x-icons.trash />
-                                                </button>
-                                            </form>
-                                        </div>
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+            <section class="tab-panel is-active" data-tab-panel="items">
+                <div class="tab-panel-stack">
+
+                    <x-page-header title="Ítems del documento">
+                        <a href="{{ route('documents.items.create', $document) }}" class="btn btn-primary">
+                            Agregar ítem
+                        </a>
+                    </x-page-header>
+
+                    <x-card class="list-card">
+                        @if ($items->count())
+                            <div class="table-wrap list-scroll">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Posición</th>
+                                            <th>Tipo</th>
+                                            <th>Descripción</th>
+                                            <th>Cantidad</th>
+                                            <th>Precio unitario</th>
+                                            <th>Total línea</th>
+                                            <th class="compact-actions-cell">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($items as $item)
+                                            <tr>
+                                                <td>{{ $item->position }}</td>
+                                                <td>{{ ProductCatalog::label($item->kind) }}</td>
+                                                <td>{{ $item->description }}</td>
+                                                <td>{{ number_format($item->quantity, 2, ',', '.') }}</td>
+                                                <td>${{ number_format($item->unit_price, 2, ',', '.') }}</td>
+                                                <td>${{ number_format($item->line_total, 2, ',', '.') }}</td>
+                                                <td class="compact-actions-cell">
+                                                    <div class="compact-actions">
+                                                        <a href="{{ route('documents.items.edit', [$document, $item]) }}"
+                                                            class="btn btn-secondary btn-icon" title="Editar ítem"
+                                                            aria-label="Editar ítem">
+                                                            <x-icons.pencil />
+                                                        </a>
+
+                                                        <form method="POST"
+                                                            action="{{ route('documents.items.destroy', [$document, $item]) }}"
+                                                            class="inline-form"
+                                                            onsubmit="return confirm('¿Deseas eliminar este ítem?')">
+                                                            @csrf
+                                                            @method('DELETE')
+
+                                                            <button type="submit" class="btn btn-danger btn-icon"
+                                                                title="Eliminar ítem" aria-label="Eliminar ítem">
+                                                                <x-icons.trash />
+                                                            </button>
+                                                        </form>
+                                                    </div>
+                                                </td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <p class="mb-0">No hay ítems cargados en este documento.</p>
+                        @endif
+                    </x-card>
+
+                    <x-card>
+                        <div class="summary-inline-grid">
+                            <div class="summary-inline-card">
+                                <div class="summary-inline-label">Cantidad de ítems</div>
+                                <div class="summary-inline-value">{{ $items->count() }}</div>
+                            </div>
+
+                            <div class="summary-inline-card">
+                                <div class="summary-inline-label">Total documento</div>
+                                <div class="summary-inline-value">${{ number_format($document->total, 2, ',', '.') }}</div>
+                            </div>
+                        </div>
+                    </x-card>
+
                 </div>
-            @else
-                <p class="mb-0">No hay ítems cargados en este documento.</p>
-            @endif
-        </x-card>
+            </section>
+
+            <section class="tab-panel" data-tab-panel="amounts" hidden>
+                <div class="tab-panel-stack">
+                    <x-card>
+                        <div class="detail-grid">
+                            <div class="detail-block">
+                                <span class="detail-block-label">Subtotal</span>
+                                <div class="detail-block-value">${{ number_format($document->subtotal, 2, ',', '.') }}</div>
+                            </div>
+
+                            <div class="detail-block">
+                                <span class="detail-block-label">Impuestos</span>
+                                <div class="detail-block-value">${{ number_format($document->tax_total, 2, ',', '.') }}
+                                </div>
+                            </div>
+
+                            <div class="detail-block">
+                                <span class="detail-block-label">Total</span>
+                                <div class="detail-block-value">${{ number_format($document->total, 2, ',', '.') }}</div>
+                            </div>
+                        </div>
+                    </x-card>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-tab-panel="trace" hidden>
+                <div class="tab-panel-stack">
+                    <x-card>
+                        <div class="detail-grid">
+                            <div class="detail-block">
+                                <span class="detail-block-label">Creado por</span>
+                                <div class="detail-block-value">{{ $document->creator?->name ?: '—' }}</div>
+                            </div>
+
+                            <div class="detail-block">
+                                <span class="detail-block-label">Actualizado por</span>
+                                <div class="detail-block-value">{{ $document->updater?->name ?: '—' }}</div>
+                            </div>
+
+                            <div class="detail-block detail-block--full">
+                                <span class="detail-block-label">Notas</span>
+                                <div class="detail-block-value">{{ $document->notes ?: '—' }}</div>
+                            </div>
+                        </div>
+                    </x-card>
+                </div>
+            </section>
+        </div>
 
     </x-page>
 @endsection

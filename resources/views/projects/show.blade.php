@@ -7,6 +7,12 @@
 @section('content')
     @php
         use App\Support\Catalogs\TaskCatalog;
+
+        $tasks = $project->tasks;
+        $pendingCount = $tasks->where('status', 'pending')->count();
+        $inProgressCount = $tasks->where('status', 'in_progress')->count();
+        $doneCount = $tasks->where('status', 'done')->count();
+        $cancelledCount = $tasks->where('status', 'cancelled')->count();
     @endphp
 
     <x-page>
@@ -41,35 +47,54 @@
         </x-page-header>
 
         <x-card>
-            <div class="detail-list">
-                <div>
-                    <div class="detail-label">ID</div>
-                    <div class="detail-value">{{ $project->id }}</div>
+            <div class="summary-inline-grid">
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Nombre</div>
+                    <div class="summary-inline-value">{{ $project->name }}</div>
                 </div>
 
-                <div>
-                    <div class="detail-label">Nombre</div>
-                    <div class="detail-value">{{ $project->name }}</div>
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Tareas</div>
+                    <div class="summary-inline-value">{{ $tasks->count() }}</div>
+                </div>
+            </div>
+        </x-card>
+
+        <x-card>
+            <div class="detail-grid detail-grid--3">
+                <div class="detail-block">
+                    <span class="detail-block-label">Pendientes</span>
+                    <div class="detail-block-value">{{ $pendingCount }}</div>
                 </div>
 
-                <div>
-                    <div class="detail-label">Descripción</div>
-                    <div class="detail-value">{{ $project->description ?: '—' }}</div>
+                <div class="detail-block">
+                    <span class="detail-block-label">En curso</span>
+                    <div class="detail-block-value">{{ $inProgressCount }}</div>
                 </div>
 
-                <div>
-                    <div class="detail-label">Cantidad de tareas</div>
-                    <div class="detail-value">{{ $project->tasks->count() }}</div>
+                <div class="detail-block">
+                    <span class="detail-block-label">Finalizadas</span>
+                    <div class="detail-block-value">{{ $doneCount }}</div>
                 </div>
 
-                <div>
-                    <div class="detail-label">Creado</div>
-                    <div class="detail-value">{{ $project->created_at?->format('d/m/Y H:i') ?: '—' }}</div>
+                <div class="detail-block">
+                    <span class="detail-block-label">Canceladas</span>
+                    <div class="detail-block-value">{{ $cancelledCount }}</div>
                 </div>
 
-                <div>
-                    <div class="detail-label">Actualizado</div>
-                    <div class="detail-value">{{ $project->updated_at?->format('d/m/Y H:i') ?: '—' }}</div>
+                <div class="detail-block">
+                    <span class="detail-block-label">Creado</span>
+                    <div class="detail-block-value">{{ $project->created_at?->format('d/m/Y H:i') ?: '—' }}</div>
+                </div>
+
+                <div class="detail-block">
+                    <span class="detail-block-label">Actualizado</span>
+                    <div class="detail-block-value">{{ $project->updated_at?->format('d/m/Y H:i') ?: '—' }}</div>
+                </div>
+
+                <div class="detail-block detail-block--full">
+                    <span class="detail-block-label">Descripción</span>
+                    <div class="detail-block-value">{{ $project->description ?: '—' }}</div>
                 </div>
             </div>
         </x-card>
@@ -81,7 +106,7 @@
         </x-page-header>
 
         <x-card class="list-card">
-            @if ($project->tasks->count())
+            @if ($tasks->count())
                 <div class="table-wrap list-scroll">
                     <table class="table">
                         <thead>
@@ -94,7 +119,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach ($project->tasks as $task)
+                            @foreach ($tasks as $task)
                                 <tr>
                                     <td>{{ $task->id }}</td>
                                     <td>

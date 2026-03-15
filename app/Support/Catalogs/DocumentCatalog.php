@@ -29,4 +29,10 @@ class DocumentCatalog extends BaseCatalog
         self::STATUS_ISSUED => 'Emitido',
         self::STATUS_CANCELLED => 'Cancelado',
     ];
+
+    protected static array $badges = [
+        self::STATUS_DRAFT => 'status-badge--pending',
+        self::STATUS_ISSUED => 'status-badge--done',
+        self::STATUS_CANCELLED => 'status-badge--cancelled',
+    ];
 }

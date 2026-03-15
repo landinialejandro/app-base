@@ -38,38 +38,57 @@
         </x-page-header>
 
         <x-card>
-            <div class="detail-list">
-                <div class="detail-label">ID</div>
-                <div class="detail-value">{{ $product->id }}</div>
-
-                <div class="detail-label">Tipo</div>
-                <div class="detail-value">{{ ProductCatalog::label($product->kind) }}</div>
-
-                <div class="detail-label">Nombre</div>
-                <div class="detail-value">{{ $product->name }}</div>
-
-                <div class="detail-label">SKU</div>
-                <div class="detail-value">{{ $product->sku ?? '—' }}</div>
-
-                <div class="detail-label">Descripción</div>
-                <div class="detail-value">{{ $product->description ?? '—' }}</div>
-
-                <div class="detail-label">Precio</div>
-                <div class="detail-value">
-                    {{ $product->price !== null ? number_format((float) $product->price, 2, ',', '.') : '—' }}
+            <div class="summary-inline-grid">
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Tipo</div>
+                    <div class="summary-inline-value">{{ ProductCatalog::label($product->kind) }}</div>
                 </div>
 
-                <div class="detail-label">Unidad</div>
-                <div class="detail-value">{{ $product->unit_label ?? '—' }}</div>
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Nombre</div>
+                    <div class="summary-inline-value">{{ $product->name }}</div>
+                </div>
+            </div>
+        </x-card>
 
-                <div class="detail-label">Activo</div>
-                <div class="detail-value">{{ $product->is_active ? 'Sí' : 'No' }}</div>
+        <x-card>
+            <div class="detail-grid detail-grid--3">
+                <div class="detail-block">
+                    <span class="detail-block-label">SKU</span>
+                    <div class="detail-block-value">{{ $product->sku ?? '—' }}</div>
+                </div>
 
-                <div class="detail-label">Creado</div>
-                <div class="detail-value">{{ $product->created_at?->format('d/m/Y H:i') ?? '—' }}</div>
+                <div class="detail-block">
+                    <span class="detail-block-label">Precio</span>
+                    <div class="detail-block-value">
+                        {{ $product->price !== null ? '$' . number_format((float) $product->price, 2, ',', '.') : '—' }}
+                    </div>
+                </div>
 
-                <div class="detail-label">Actualizado</div>
-                <div class="detail-value">{{ $product->updated_at?->format('d/m/Y H:i') ?? '—' }}</div>
+                <div class="detail-block">
+                    <span class="detail-block-label">Unidad</span>
+                    <div class="detail-block-value">{{ $product->unit_label ?? '—' }}</div>
+                </div>
+
+                <div class="detail-block">
+                    <span class="detail-block-label">Activo</span>
+                    <div class="detail-block-value">{{ $product->is_active ? 'Sí' : 'No' }}</div>
+                </div>
+
+                <div class="detail-block">
+                    <span class="detail-block-label">Creado</span>
+                    <div class="detail-block-value">{{ $product->created_at?->format('d/m/Y H:i') ?? '—' }}</div>
+                </div>
+
+                <div class="detail-block">
+                    <span class="detail-block-label">Actualizado</span>
+                    <div class="detail-block-value">{{ $product->updated_at?->format('d/m/Y H:i') ?? '—' }}</div>
+                </div>
+
+                <div class="detail-block detail-block--full">
+                    <span class="detail-block-label">Descripción</span>
+                    <div class="detail-block-value">{{ $product->description ?? '—' }}</div>
+                </div>
             </div>
         </x-card>
 

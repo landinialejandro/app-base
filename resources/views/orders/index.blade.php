@@ -6,94 +6,92 @@
 
 @section('content')
 
-@php
-use App\Support\Catalogs\OrderCatalog;
-@endphp
+    @php
+        use App\Support\Catalogs\OrderCatalog;
+    @endphp
 
-<x-page class="list-page">
+    <x-page class="list-page">
 
-    <x-breadcrumb :items="[
-        ['label' => 'Inicio', 'url' => route('dashboard')],
-        ['label' => 'Órdenes'],
-    ]" />
+        <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Órdenes']]" />
 
-    <x-page-header title="Órdenes">
-        <a href="{{ route('orders.create') }}" class="btn btn-primary">
-            Nueva orden
-        </a>
-    </x-page-header>
+        <x-page-header title="Órdenes">
+            <a href="{{ route('orders.create') }}" class="btn btn-primary">
+                Nueva orden
+            </a>
+        </x-page-header>
 
-    <x-card class="list-card">
+        <x-card class="list-card">
 
-        @if ($orders->count())
+            @if ($orders->count())
 
-            <div class="table-wrap list-scroll">
+                <div class="table-wrap list-scroll">
 
-                <table class="table">
+                    <table class="table">
 
-                    <thead>
-                        <tr>
-                            <th>Número</th>
-                            <th>Tipo</th>
-                            <th>Estado</th>
-                            <th>Contacto</th>
-                            <th>Fecha</th>
-                            <th>Total</th>
-                        </tr>
-                    </thead>
-
-                    <tbody>
-
-                        @foreach ($orders as $order)
-
+                        <thead>
                             <tr>
-
-                                <td>
-                                    <a href="{{ route('orders.show', $order) }}">
-                                        {{ $order->number ?: 'Sin número' }}
-                                    </a>
-                                </td>
-
-                                <td>
-                                    {{ OrderCatalog::label($order->kind) }}
-                                </td>
-
-                                <td>
-                                    <span class="status-badge {{ OrderCatalog::badgeClass($order->status) }}">
-                                        {{ OrderCatalog::label($order->status) }}
-                                    </span>
-                                </td>
-
-                                <td>
-                                    {{ $order->party?->name ?: '—' }}
-                                </td>
-
-                                <td>
-                                    {{ $order->ordered_at?->format('d/m/Y') ?: '—' }}
-                                </td>
-
-                                <td>
-                                    ${{ number_format($order->total, 2, ',', '.') }}
-                                </td>
-
+                                <th>Número</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                                <th>Contacto</th>
+                                <th>Activo</th>
+                                <th>Fecha</th>
+                                <th>Total</th>
                             </tr>
+                        </thead>
 
-                        @endforeach
+                        <tbody>
 
-                    </tbody>
+                            @foreach ($orders as $order)
+                                <tr>
 
-                </table>
+                                    <td>
+                                        <a href="{{ route('orders.show', $order) }}">
+                                            {{ $order->number ?: 'Sin número' }}
+                                        </a>
+                                    </td>
 
-            </div>
+                                    <td>
+                                        {{ OrderCatalog::label($order->kind) }}
+                                    </td>
 
-        @else
+                                    <td>
+                                        <span class="status-badge {{ OrderCatalog::badgeClass($order->status) }}">
+                                            {{ OrderCatalog::label($order->status) }}
+                                        </span>
+                                    </td>
 
-            <p class="mb-0">No hay órdenes cargadas.</p>
+                                    <td>
+                                        {{ $order->party?->name ?: '—' }}
+                                    </td>
 
-        @endif
+                                    <td>
+                                        {{ $order->asset?->name ?: '—' }}
+                                    </td>
 
-    </x-card>
+                                    <td>
+                                        {{ $order->ordered_at?->format('d/m/Y') ?: '—' }}
+                                    </td>
 
-</x-page>
+                                    <td>
+                                        ${{ number_format($order->total, 2, ',', '.') }}
+                                    </td>
+
+                                </tr>
+                            @endforeach
+
+                        </tbody>
+
+                    </table>
+
+                </div>
+            @else
+                <p class="mb-0">No hay órdenes cargadas.</p>
+
+            @endif
+
+        </x-card>
+
+    </x-page>
 
 @endsection

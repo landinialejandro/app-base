@@ -5,6 +5,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Asset;
+use App\Models\Order;
 use App\Models\Party;
 use App\Support\Catalogs\AssetCatalog;
 use Illuminate\Http\RedirectResponse;
@@ -49,7 +50,13 @@ class AssetController extends Controller
     {
         $asset->load('party');
 
-        return view('assets.show', compact('asset'));
+        $orders = Order::query()
+            ->with('party')
+            ->where('asset_id', $asset->id)
+            ->latest()
+            ->get();
+
+        return view('assets.show', compact('asset', 'orders'));
     }
 
     public function edit(Asset $asset): View
@@ -87,9 +94,9 @@ class AssetController extends Controller
 
         return [
             'party_id' => [
-                'nullable',
+                'required',
                 'integer',
-                Rule::exists('parties', 'id')->where(fn($query) => $query->where('tenant_id', $tenantId)),
+                Rule::exists('parties', 'id')->where(fn ($query) => $query->where('tenant_id', $tenantId)),
             ],
             'kind' => [
                 'required',

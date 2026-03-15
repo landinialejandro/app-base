@@ -31,12 +31,8 @@
                 Editar
             </a>
 
-            <form method="POST"
-                action="{{ route('orders.documents.store', $order) }}"
-                class="inline-form"
-                @if ($quoteCount > 0)
-                    onsubmit="return confirm('Esta orden ya tiene {{ $quoteCount }} presupuesto(s) asociado(s). ¿Deseas crear otro?')"
-                @endif>
+            <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form"
+                @if ($quoteCount > 0) onsubmit="return confirm('Esta orden ya tiene {{ $quoteCount }} presupuesto(s) asociado(s). ¿Deseas crear otro?')" @endif>
                 @csrf
                 <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_QUOTE }}">
                 <button type="submit" class="btn btn-secondary">
@@ -44,12 +40,8 @@
                 </button>
             </form>
 
-            <form method="POST"
-                action="{{ route('orders.documents.store', $order) }}"
-                class="inline-form"
-                @if ($deliveryNoteCount > 0)
-                    onsubmit="return confirm('Esta orden ya tiene {{ $deliveryNoteCount }} remito(s) asociado(s). ¿Deseas crear otro?')"
-                @endif>
+            <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form"
+                @if ($deliveryNoteCount > 0) onsubmit="return confirm('Esta orden ya tiene {{ $deliveryNoteCount }} remito(s) asociado(s). ¿Deseas crear otro?')" @endif>
                 @csrf
                 <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_DELIVERY_NOTE }}">
                 <button type="submit" class="btn btn-secondary">
@@ -57,12 +49,8 @@
                 </button>
             </form>
 
-            <form method="POST"
-                action="{{ route('orders.documents.store', $order) }}"
-                class="inline-form"
-                @if ($invoiceCount > 0)
-                    onsubmit="return confirm('Esta orden ya tiene {{ $invoiceCount }} factura(s) asociada(s). ¿Deseas crear otra?')"
-                @endif>
+            <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form"
+                @if ($invoiceCount > 0) onsubmit="return confirm('Esta orden ya tiene {{ $invoiceCount }} factura(s) asociada(s). ¿Deseas crear otra?')" @endif>
                 @csrf
                 <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_INVOICE }}">
                 <button type="submit" class="btn btn-secondary">
@@ -70,12 +58,8 @@
                 </button>
             </form>
 
-            <form method="POST"
-                action="{{ route('orders.documents.store', $order) }}"
-                class="inline-form"
-                @if ($workOrderCount > 0)
-                    onsubmit="return confirm('Esta orden ya tiene {{ $workOrderCount }} orden(es) de trabajo asociada(s). ¿Deseas crear otra?')"
-                @endif>
+            <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form"
+                @if ($workOrderCount > 0) onsubmit="return confirm('Esta orden ya tiene {{ $workOrderCount }} orden(es) de trabajo asociada(s). ¿Deseas crear otra?')" @endif>
                 @csrf
                 <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_WORK_ORDER }}">
                 <button type="submit" class="btn btn-secondary">
@@ -83,11 +67,8 @@
                 </button>
             </form>
 
-            <form method="POST" action="{{ route('orders.destroy', $order) }}" class="inline-form" onsubmit="return confirm(@js(
-                $order->items->count()
-                ? 'Esta orden tiene ítems cargados. Si la eliminas, también se eliminarán sus ítems. ¿Deseas continuar?'
-                : '¿Deseas eliminar esta orden?'
-            ))">
+            <form method="POST" action="{{ route('orders.destroy', $order) }}" class="inline-form"
+                onsubmit="return confirm(@js($order->items->count() ? 'Esta orden tiene ítems cargados. Si la eliminas, también se eliminarán sus ítems. ¿Deseas continuar?' : '¿Deseas eliminar esta orden?'))">
                 @csrf
                 @method('DELETE')
 
@@ -117,19 +98,12 @@
 
         <div class="tabs" data-tabs>
             <div class="tabs-nav" role="tablist" aria-label="Secciones de la orden">
-                <button type="button"
-                    class="tabs-link is-active"
-                    data-tab-link="detail"
-                    role="tab"
+                <button type="button" class="tabs-link is-active" data-tab-link="detail" role="tab"
                     aria-selected="true">
                     Detalle
                 </button>
 
-                <button type="button"
-                    class="tabs-link"
-                    data-tab-link="documents"
-                    role="tab"
-                    aria-selected="false">
+                <button type="button" class="tabs-link" data-tab-link="documents" role="tab" aria-selected="false">
                     Documentos
                     @if ($documents->count())
                         ({{ $documents->count() }})
@@ -154,6 +128,19 @@
                             <div class="detail-block">
                                 <span class="detail-block-label">Contacto</span>
                                 <div class="detail-block-value">{{ $order->party?->name ?: '—' }}</div>
+                            </div>
+
+                            <div class="detail-block">
+                                <span class="detail-block-label">Activo</span>
+                                <div class="detail-block-value">
+                                    @if ($order->asset)
+                                        <a href="{{ route('assets.show', $order->asset) }}">
+                                            {{ $order->asset->name }}
+                                        </a>
+                                    @else
+                                        —
+                                    @endif
+                                </div>
                             </div>
 
                             <div class="detail-block">
@@ -216,8 +203,7 @@
                                                 <td class="compact-actions-cell">
                                                     <div class="compact-actions">
                                                         <a href="{{ route('orders.items.edit', [$order, $item]) }}"
-                                                            class="btn btn-secondary btn-icon"
-                                                            title="Editar ítem"
+                                                            class="btn btn-secondary btn-icon" title="Editar ítem"
                                                             aria-label="Editar ítem">
                                                             <x-icons.pencil />
                                                         </a>
@@ -229,10 +215,8 @@
                                                             @csrf
                                                             @method('DELETE')
 
-                                                            <button type="submit"
-                                                                class="btn btn-danger btn-icon"
-                                                                title="Eliminar ítem"
-                                                                aria-label="Eliminar ítem">
+                                                            <button type="submit" class="btn btn-danger btn-icon"
+                                                                title="Eliminar ítem" aria-label="Eliminar ítem">
                                                                 <x-icons.trash />
                                                             </button>
                                                         </form>
@@ -324,7 +308,8 @@
                                                 </td>
                                                 <td>{{ DocumentCatalog::label($document->kind) }}</td>
                                                 <td>
-                                                    <span class="status-badge {{ DocumentCatalog::badgeClass($document->status) }}">
+                                                    <span
+                                                        class="status-badge {{ DocumentCatalog::badgeClass($document->status) }}">
                                                         {{ DocumentCatalog::label($document->status) }}
                                                     </span>
                                                 </td>

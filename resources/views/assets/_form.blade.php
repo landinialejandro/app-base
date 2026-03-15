@@ -35,9 +35,9 @@
 </div>
 
 <div class="form-group">
-    <label for="party_id" class="form-label">Contacto relacionado</label>
-    <select id="party_id" name="party_id" class="form-control">
-        <option value="">Sin asignar</option>
+    <label for="party_id" class="form-label">Cliente</label>
+    <select id="party_id" name="party_id" class="form-control" required>
+        <option value="">Seleccionar</option>
         @foreach ($parties as $party)
             <option value="{{ $party->id }}" @selected((string) old('party_id', $asset->party_id ?? '') === (string) $party->id)>
                 {{ $party->name }}
@@ -51,8 +51,8 @@
 
 <div class="form-group">
     <label for="name" class="form-label">Nombre</label>
-    <input type="text" id="name" name="name" class="form-control" value="{{ old('name', $asset->name ?? '') }}"
-        required>
+    <input type="text" id="name" name="name" class="form-control"
+        value="{{ old('name', $asset->name ?? '') }}" required>
     @error('name')
         <div class="form-help">{{ $message }}</div>
     @enderror

@@ -5,19 +5,100 @@
 
     $orderExists = isset($order) && $order->exists;
     $orderIsNumbered = $orderExists && !empty($order->number);
+
+    $prefilledAsset = $prefilledAsset ?? null;
+    $prefilledPartyId = $prefilledPartyId ?? null;
+    $fromAsset = $fromAsset ?? false;
+    $prefilledKind = $prefilledKind ?? old('kind', $order->kind ?? OrderCatalog::KIND_SALE);
+
+    $lockedByExistingAsset = $orderExists && !empty($order->asset_id);
+    $lockPartyAndAsset = $fromAsset || $lockedByExistingAsset;
 @endphp
 
 <div class="form-group">
     <label for="party_id" class="form-label">Contacto</label>
-    <select name="party_id" id="party_id" class="form-control" required>
-        <option value="">Seleccionar contacto</option>
-        @foreach ($parties as $party)
-            <option value="{{ $party->id }}" @selected(old('party_id', $order->party_id ?? '') == $party->id)>
-                {{ $party->name }}
-            </option>
-        @endforeach
-    </select>
+
+    @if ($lockPartyAndAsset)
+        <select id="party_id_display" class="form-control" disabled>
+            @foreach ($parties as $party)
+                <option value="{{ $party->id }}" @selected(old('party_id', $order->party_id ?? ($prefilledPartyId ?? '')) == $party->id)>
+                    {{ $party->name }}
+                </option>
+            @endforeach
+        </select>
+
+        <input type="hidden" name="party_id" value="{{ old('party_id', $order->party_id ?? ($prefilledPartyId ?? '')) }}">
+
+        @if ($fromAsset)
+            <div class="form-help">El contacto se toma automáticamente del activo seleccionado.</div>
+        @else
+            <div class="form-help">Esta orden ya quedó vinculada a un activo. Para preservar la trazabilidad, el
+                contacto no puede modificarse.</div>
+        @endif
+    @else
+        <select name="party_id" id="party_id" class="form-control" required>
+            <option value="">Seleccionar contacto</option>
+            @foreach ($parties as $party)
+                <option value="{{ $party->id }}" @selected(old('party_id', $order->party_id ?? ($prefilledPartyId ?? '')) == $party->id)>
+                    {{ $party->name }}
+                </option>
+            @endforeach
+        </select>
+    @endif
+
     @error('party_id')
+        <div class="form-help is-error">{{ $message }}</div>
+    @enderror
+</div>
+
+<div class="form-group">
+    <label for="asset_id" class="form-label">Activo</label>
+
+    @if ($lockPartyAndAsset)
+        <select id="asset_id_display" class="form-control" disabled>
+            <option value="">Sin activo asociado</option>
+            @foreach ($assets as $asset)
+                <option value="{{ $asset->id }}" @selected(old('asset_id', $order->asset_id ?? ($prefilledAsset->id ?? '')) == $asset->id)>
+                    {{ $asset->name }}
+                    @if ($asset->internal_code)
+                        — {{ $asset->internal_code }}
+                    @endif
+                    @if ($asset->party)
+                        — {{ $asset->party->name }}
+                    @endif
+                </option>
+            @endforeach
+        </select>
+
+        <input type="hidden" name="asset_id"
+            value="{{ old('asset_id', $order->asset_id ?? ($prefilledAsset->id ?? '')) }}">
+
+        @if ($fromAsset)
+            <div class="form-help">El activo se toma automáticamente desde el contexto de origen.</div>
+        @else
+            <div class="form-help">Esta orden ya quedó vinculada a un activo. Para preservar la trazabilidad, el activo
+                no puede modificarse.</div>
+        @endif
+    @else
+        <select name="asset_id" id="asset_id" class="form-control">
+            <option value="">Sin activo asociado</option>
+            @foreach ($assets as $asset)
+                <option value="{{ $asset->id }}" data-party-id="{{ $asset->party_id }}"
+                    @selected(old('asset_id', $order->asset_id ?? ($prefilledAsset->id ?? '')) == $asset->id)>
+                    {{ $asset->name }}
+                    @if ($asset->internal_code)
+                        — {{ $asset->internal_code }}
+                    @endif
+                    @if ($asset->party)
+                        — {{ $asset->party->name }}
+                    @endif
+                </option>
+            @endforeach
+        </select>
+        <div class="form-help">Si seleccionas un activo, debe corresponder al contacto elegido.</div>
+    @endif
+
+    @error('asset_id')
         <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
@@ -25,7 +106,18 @@
 <div class="form-group">
     <label for="kind" class="form-label">Tipo</label>
 
-    @if ($orderIsNumbered)
+    @if ($fromAsset)
+        <select id="kind_display" class="form-control" disabled>
+            @foreach (OrderCatalog::kindLabels() as $value => $label)
+                <option value="{{ $value }}" @selected(($prefilledKind ?? OrderCatalog::KIND_SERVICE) === $value)>
+                    {{ $label }}
+                </option>
+            @endforeach
+        </select>
+
+        <input type="hidden" name="kind" value="{{ OrderCatalog::KIND_SERVICE }}">
+        <div class="form-help">Las órdenes creadas desde un activo se generan como órdenes de servicio.</div>
+    @elseif ($orderIsNumbered)
         <select id="kind" class="form-control" disabled>
             @foreach (OrderCatalog::kindLabels() as $value => $label)
                 <option value="{{ $value }}" @selected(old('kind', $order->kind) === $value)>
@@ -40,7 +132,7 @@
     @else
         <select name="kind" id="kind" class="form-control" required>
             @foreach (OrderCatalog::kindLabels() as $value => $label)
-                <option value="{{ $value }}" @selected(old('kind', $order->kind ?? OrderCatalog::KIND_SALE) === $value)>
+                <option value="{{ $value }}" @selected(old('kind', $order->kind ?? ($prefilledKind ?? OrderCatalog::KIND_SALE)) === $value)>
                     {{ $label }}
                 </option>
             @endforeach
@@ -99,3 +191,62 @@
         <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
+
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const partySelect = document.getElementById('party_id');
+        const assetSelect = document.getElementById('asset_id');
+
+        if (!partySelect || !assetSelect) {
+            return;
+        }
+
+        function filterAssetsByParty() {
+            const selectedPartyId = partySelect.value;
+            const currentAssetValue = assetSelect.value;
+
+            Array.from(assetSelect.options).forEach(function(option, index) {
+                if (index === 0) {
+                    option.hidden = false;
+                    return;
+                }
+
+                const assetPartyId = option.dataset.partyId || '';
+                const shouldShow = !selectedPartyId || assetPartyId === selectedPartyId;
+
+                option.hidden = !shouldShow;
+            });
+
+            const selectedOption = assetSelect.options[assetSelect.selectedIndex];
+
+            if (
+                selectedOption &&
+                selectedOption.value &&
+                selectedOption.hidden
+            ) {
+                assetSelect.value = '';
+            }
+        }
+
+        assetSelect.addEventListener('change', function() {
+            const selected = assetSelect.options[assetSelect.selectedIndex];
+
+            if (!selected || !selected.value) {
+                return;
+            }
+
+            const assetPartyId = selected.dataset.partyId || '';
+
+            if (assetPartyId) {
+                partySelect.value = assetPartyId;
+                filterAssetsByParty();
+            }
+        });
+
+        partySelect.addEventListener('change', function() {
+            filterAssetsByParty();
+        });
+
+        filterAssetsByParty();
+    });
+</script>

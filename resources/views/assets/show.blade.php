@@ -19,12 +19,16 @@
         ]" />
 
         <x-page-header title="Detalle del activo">
+            <a href="{{ route('orders.create', ['asset_id' => $asset->id]) }}" class="btn btn-secondary">
+                Nueva orden
+            </a>
+
             <a href="{{ route('assets.edit', $asset) }}" class="btn btn-primary">
                 Editar
             </a>
 
-            <form method="POST" action="{{ route('assets.destroy', $asset) }}"
-                onsubmit="return confirm('¿Eliminar activo?');" class="inline-form">
+            <form method="POST" action="{{ route('assets.destroy', $asset) }}" onsubmit="return confirm('¿Eliminar activo?');"
+                class="inline-form">
                 @csrf
                 @method('DELETE')
 
@@ -70,8 +74,16 @@
                 </div>
 
                 <div class="detail-block">
-                    <span class="detail-block-label">Contacto relacionado</span>
-                    <div class="detail-block-value">{{ $asset->party?->name ?? '—' }}</div>
+                    <span class="detail-block-label">Cliente</span>
+                    <div class="detail-block-value">
+                        @if ($asset->party)
+                            <a href="{{ route('parties.show', $asset->party) }}">
+                                {{ $asset->party->name }}
+                            </a>
+                        @else
+                            —
+                        @endif
+                    </div>
                 </div>
 
                 <div class="detail-block">
@@ -94,6 +106,53 @@
                     <div class="detail-block-value">{{ $asset->notes ?? '—' }}</div>
                 </div>
             </div>
+        </x-card>
+
+        <x-card>
+            <div class="dashboard-section-header">
+                <h2 class="dashboard-section-title">Órdenes vinculadas</h2>
+                <p class="dashboard-section-text">
+                    Órdenes actualmente asociadas a este activo.
+                </p>
+            </div>
+
+            @if ($orders->count())
+                <div class="table-wrap list-scroll">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Número</th>
+                                <th>Tipo</th>
+                                <th>Estado</th>
+                                <th>Contacto</th>
+                                <th>Fecha</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($orders as $order)
+                                <tr>
+                                    <td>
+                                        <a href="{{ route('orders.show', $order) }}">
+                                            {{ $order->number ?: 'Sin número' }}
+                                        </a>
+                                    </td>
+                                    <td>{{ \App\Support\Catalogs\OrderCatalog::label($order->kind) }}</td>
+                                    <td>
+                                        <span
+                                            class="status-badge {{ \App\Support\Catalogs\OrderCatalog::badgeClass($order->status) }}">
+                                            {{ \App\Support\Catalogs\OrderCatalog::label($order->status) }}
+                                        </span>
+                                    </td>
+                                    <td>{{ $order->party?->name ?: '—' }}</td>
+                                    <td>{{ $order->ordered_at?->format('d/m/Y') ?: '—' }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <p class="mb-0">Este activo no tiene órdenes vinculadas.</p>
+            @endif
         </x-card>
 
     </x-page>

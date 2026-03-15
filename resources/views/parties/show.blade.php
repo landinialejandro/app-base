@@ -1,4 +1,5 @@
 {{-- FILE: resources/views/parties/show.blade.php --}}
+
 @extends('layouts.app')
 
 @section('title', 'Detalle del contacto')
@@ -7,6 +8,7 @@
 
     @php
         use App\Support\Catalogs\PartyCatalog;
+        use App\Support\Catalogs\AssetCatalog;
     @endphp
 
     <x-page>
@@ -108,6 +110,54 @@
                     <div class="detail-block-value">{{ $party->notes ?: '—' }}</div>
                 </div>
             </div>
+        </x-card>
+
+        <x-card>
+            <div class="dashboard-section-header">
+                <h2 class="dashboard-section-title">Activos vinculados</h2>
+                <p class="dashboard-section-text">
+                    Activos actualmente asociados a este contacto.
+                </p>
+            </div>
+
+            @if ($assets->count())
+                <div class="table-wrap list-scroll">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Nombre</th>
+                                <th>Tipo</th>
+                                <th>Relación</th>
+                                <th>Código</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($assets as $asset)
+                                <tr>
+                                    <td>{{ $asset->id }}</td>
+                                    <td>
+                                        <a href="{{ route('assets.show', $asset) }}">
+                                            {{ $asset->name }}
+                                        </a>
+                                    </td>
+                                    <td>{{ AssetCatalog::label($asset->kind) }}</td>
+                                    <td>{{ AssetCatalog::relationshipTypeLabel($asset->relationship_type) }}</td>
+                                    <td>{{ $asset->internal_code ?? '—' }}</td>
+                                    <td>
+                                        <span class="status-badge {{ AssetCatalog::badgeClass($asset->status) }}">
+                                            {{ AssetCatalog::statusLabel($asset->status) }}
+                                        </span>
+                                    </td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+            @else
+                <p class="mb-0">Este contacto no tiene activos vinculados.</p>
+            @endif
         </x-card>
 
     </x-page>

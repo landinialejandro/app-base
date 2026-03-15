@@ -12,10 +12,7 @@
 
     <x-page class="list-page">
 
-        <x-breadcrumb :items="[
-            ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Activos'],
-        ]" />
+        <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Activos']]" />
 
         <x-page-header title="Activos">
             <a href="{{ route('assets.create') }}" class="btn btn-primary">
@@ -33,7 +30,7 @@
                                 <th>Nombre</th>
                                 <th>Tipo</th>
                                 <th>Relación</th>
-                                <th>Contacto</th>
+                                <th>Cliente</th>
                                 <th>Código</th>
                                 <th>Estado</th>
                                 <th>Creado</th>
@@ -50,7 +47,15 @@
                                     </td>
                                     <td>{{ AssetCatalog::label($asset->kind) }}</td>
                                     <td>{{ AssetCatalog::relationshipTypeLabel($asset->relationship_type) }}</td>
-                                    <td>{{ $asset->party?->name ?? '—' }}</td>
+                                    <td>
+                                        @if ($asset->party)
+                                            <a href="{{ route('parties.show', $asset->party) }}">
+                                                {{ $asset->party->name }}
+                                            </a>
+                                        @else
+                                            —
+                                        @endif
+                                    </td>
                                     <td>{{ $asset->internal_code ?? '—' }}</td>
                                     <td>
                                         <span class="status-badge {{ AssetCatalog::badgeClass($asset->status) }}">

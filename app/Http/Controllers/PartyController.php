@@ -6,6 +6,7 @@ namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePartyRequest;
 use App\Http\Requests\UpdatePartyRequest;
+use App\Models\Asset;
 use App\Models\Party;
 
 class PartyController extends Controller
@@ -48,9 +49,15 @@ class PartyController extends Controller
     {
         $tenant = app('tenant');
 
+        $assets = Asset::query()
+            ->where('party_id', $party->id)
+            ->orderBy('name')
+            ->get();
+
         return view('parties.show', [
             'tenant' => $tenant,
             'party' => $party,
+            'assets' => $assets,
         ]);
     }
 
@@ -72,7 +79,7 @@ class PartyController extends Controller
 
         return redirect()
             ->route('parties.show', $party)
-            ->with('success', "Contacto actualizado correctamente.");
+            ->with('success', 'Contacto actualizado correctamente.');
     }
 
     public function destroy(Party $party)
@@ -81,6 +88,6 @@ class PartyController extends Controller
 
         return redirect()
             ->route('parties.index')
-            ->with('success', "Contacto eliminado correctamente.");
+            ->with('success', 'Contacto eliminado correctamente.');
     }
 }

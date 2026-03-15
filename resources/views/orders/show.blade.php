@@ -11,6 +11,7 @@
 
         $documents = $order->documents->sortByDesc('id');
 
+        $workOrderCount = $documents->where('kind', DocumentCatalog::KIND_WORK_ORDER)->count();
         $quoteCount = $documents->where('kind', DocumentCatalog::KIND_QUOTE)->count();
         $deliveryNoteCount = $documents->where('kind', DocumentCatalog::KIND_DELIVERY_NOTE)->count();
         $invoiceCount = $documents->where('kind', DocumentCatalog::KIND_INVOICE)->count();
@@ -65,6 +66,19 @@
                 <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_INVOICE }}">
                 <button type="submit" class="btn btn-secondary">
                     {{ $invoiceCount > 0 ? 'Crear otra factura' : 'Crear factura' }}
+                </button>
+            </form>
+
+            <form method="POST"
+                action="{{ route('orders.documents.store', $order) }}"
+                class="inline-form"
+                @if ($workOrderCount > 0)
+                    onsubmit="return confirm('Esta orden ya tiene {{ $workOrderCount }} orden(es) de trabajo asociada(s). ¿Deseas crear otra?')"
+                @endif>
+                @csrf
+                <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_WORK_ORDER }}">
+                <button type="submit" class="btn btn-secondary">
+                    {{ $workOrderCount > 0 ? 'Crear otra orden de trabajo' : 'Crear orden de trabajo' }}
                 </button>
             </form>
 
@@ -239,6 +253,11 @@
                                 <div class="summary-inline-card">
                                     <div class="summary-inline-label">Total asociados</div>
                                     <div class="summary-inline-value">{{ $documents->count() }}</div>
+                                </div>
+
+                                <div class="summary-inline-card">
+                                    <div class="summary-inline-label">Órdenes de trabajo</div>
+                                    <div class="summary-inline-value">{{ $workOrderCount }}</div>
                                 </div>
 
                                 <div class="summary-inline-card">

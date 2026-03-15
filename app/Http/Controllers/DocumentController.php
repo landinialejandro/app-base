@@ -132,6 +132,7 @@ class DocumentController extends Controller
                     DocumentCatalog::KIND_QUOTE,
                     DocumentCatalog::KIND_DELIVERY_NOTE,
                     DocumentCatalog::KIND_INVOICE,
+                    DocumentCatalog::KIND_WORK_ORDER,
                 ]),
             ],
         ]);

@@ -17,6 +17,7 @@ class DocumentItem extends Model
     use ResolvesTenantRouteBinding;
 
     protected $fillable = [
+        'tenant_id',
         'document_id',
         'product_id',
         'position',

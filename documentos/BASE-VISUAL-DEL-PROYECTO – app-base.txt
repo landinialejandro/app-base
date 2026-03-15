@@ -3,16 +3,16 @@ BASE VISUAL DEL PROYECTO – app-base
 OBJETIVO
 
 Este documento define la estructura visual mínima y obligatoria del sistema.
-Su objetivo es mantener consistencia visual entre todos los módulos.
+Su objetivo es mantener consistencia visual entre todos los módulos. 
 
 ESTRUCTURA GENERAL DE UNA PANTALLA
 
 Todas las vistas internas del sistema deben utilizar la siguiente estructura base:
 
-<x-page>
-    <x-breadcrumb />
-    <x-page-header />
-    <x-card />
+<x-page>  
+<x-breadcrumb />  
+<x-page-header />  
+<x-card />  
 </x-page>
 
 COMPONENTES DISPONIBLES
@@ -51,13 +51,11 @@ Ejemplo:
 
 <x-card class="list-card">
 
-```
 <div class="table-wrap list-scroll">
-    <table class="table">
-        ...
-    </table>
+<table class="table">
+...
+</table>
 </div>
-```
 
 </x-card>
 
@@ -83,11 +81,11 @@ x-icons.trash
 Uso en botones:
 
 <button class="btn btn-secondary btn-sm">
-    <x-icons.pencil />
+<x-icons.pencil />
 </button>
 
 <button class="btn btn-danger btn-sm">
-    <x-icons.trash />
+<x-icons.trash />
 </button>
 
 OBJETIVO DE LOS ICONOS
@@ -107,6 +105,35 @@ No deben utilizarse utilidades externas o no definidas en app-base.css.
 VISTAS SHOW CON SUBLISTADOS
 
 En vistas show que contengan sublistados internos se permiten acciones compactas con iconos para reducir espacio visual y mantener consistencia con los listados principales.
+
+TABS INTERNAS EN VISTAS SHOW
+
+Cuando una vista show concentre demasiada información, se permite organizar el contenido mediante tabs internas dentro del cuerpo principal de la página.
+
+Clases utilizadas:
+
+tabs
+tabs-nav
+tabs-link
+tab-panel
+tab-panel-stack
+
+Comportamiento:
+
+controlado por JavaScript mínimo global
+una solapa activa visible por vez
+útil para separar detalle, documentos asociados, historial u otros bloques secundarios
+
+RESÚMENES INLINE
+
+Para mostrar información resumida dentro de vistas show se pueden utilizar bloques compactos de resumen.
+
+Clases utilizadas:
+
+summary-inline-grid
+summary-inline-card
+
+Estos bloques permiten presentar métricas o información clave de forma compacta dentro de la vista.
 
 REGLAS DE FORMULARIOS
 
@@ -186,7 +213,7 @@ Gestión
 </summary>
 
 <div class="app-nav-dropdown-menu">
-    ...
+...
 </div>
 
 </details>

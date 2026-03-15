@@ -6,7 +6,9 @@ Definir las convenciones técnicas y de desarrollo que deben seguir todos los m�
 
 Estas reglas permiten mantener consistencia, previsibilidad y facilidad de mantenimiento del sistema.
 
-Arquitectura base
+---
+
+# Arquitectura base
 
 El sistema utiliza la arquitectura estándar de Laravel basada en:
 
@@ -17,7 +19,9 @@ Migraciones
 Middleware
 Rutas REST
 
-Multi-tenancy
+---
+
+# Multi-tenancy
 
 El sistema es SaaS multi-tenant.
 
@@ -27,7 +31,9 @@ tenant_id
 
 Todas las entidades del negocio deben pertenecer a un tenant.
 
-Fuente del tenant operativo
+---
+
+# Fuente del tenant operativo
 
 La única fuente válida del tenant operativo es:
 
@@ -42,7 +48,9 @@ Todas las operaciones del sistema deben resolver el tenant actual mediante:
 
 app('tenant')
 
-Acceso al tenant actual
+---
+
+# Acceso al tenant actual
 
 El tenant activo puede obtenerse mediante:
 
@@ -50,19 +58,25 @@ app('tenant')
 
 Los controladores deben utilizar siempre este tenant como contexto de operación.
 
-CONVENCIONES ESPECÍFICAS DEL NÚCLEO SAAS
+---
+
+# CONVENCIONES ESPECÍFICAS DEL NÚCLEO SAAS
 
 Estas reglas describen el funcionamiento estructural del núcleo multi-tenant del sistema.
 
-IDENTIDAD GLOBAL
+---
+
+# IDENTIDAD GLOBAL
 
 users.email es único global en el sistema.
 
-No existe relación directa user -> tenant mediante un tenant_id en users.
+No existe relación directa user → tenant mediante un tenant_id en users.
 
 La pertenencia real entre usuario y empresa se resuelve exclusivamente mediante memberships.
 
-TENANTS Y CLAVES
+---
+
+# TENANTS Y CLAVES
 
 tenants.id utiliza UUID (char(36)) como primary key.
 
@@ -74,7 +88,9 @@ No deben asumirse bigint ni foreignId() por defecto en relaciones hacia tenants.
 
 Antes de crear una migración debe verificarse el patrón real utilizado en el proyecto.
 
-MEMBERSHIPS
+---
+
+# MEMBERSHIPS
 
 memberships es la tabla puente central del modelo multi-tenant.
 
@@ -93,9 +109,11 @@ Por lo tanto:
 
 Membership no debe usar TenantScoped.
 
-CAPA GLOBAL / SUPERADMIN
+---
 
-SUPERADMIN GLOBAL
+# CAPA GLOBAL / SUPERADMIN
+
+## SUPERADMIN GLOBAL
 
 El sistema incorpora una capa global de superadmin separada del flujo tenant.
 
@@ -105,9 +123,12 @@ superadmin no es un tenant
 superadmin no requiere tenant activo para operar
 la autorización global se resuelve mediante users.is_superadmin
 memberships no define privilegios de superadmin
-un mismo user puede pertenecer a tenants y además ser superadmin, pero ambas capacidades deben mantenerse conceptualmente separadas
 
-RUTAS DEL SUPERADMIN
+Un mismo user puede pertenecer a tenants y además ser superadmin, pero ambas capacidades deben mantenerse conceptualmente separadas.
+
+---
+
+# RUTAS DEL SUPERADMIN
 
 Las rutas globales del panel administrativo deben quedar bajo:
 
@@ -120,7 +141,9 @@ superadmin
 
 Estas rutas no deben depender del middleware tenant ni de app('tenant') como contexto operativo principal.
 
-CAPA PÚBLICA
+---
+
+# CAPA PÚBLICA
 
 La landing pública y la solicitud inicial de alta de empresa no requieren autenticación ni tenant activo.
 
@@ -128,7 +151,9 @@ La solicitud pública genera:
 
 signup_requests
 
-FLUJO OPERATIVO DEL ONBOARDING
+---
+
+# FLUJO OPERATIVO DEL ONBOARDING
 
 El flujo administrativo mínimo del onboarding queda dividido en etapas:
 
@@ -144,7 +169,9 @@ aceptación por parte del owner
 ↓
 creación real del tenant al aceptar la invitación
 
-INVITATIONS OWNER_SIGNUP
+---
+
+# INVITATIONS OWNER_SIGNUP
 
 En invitaciones de tipo owner_signup:
 
@@ -156,7 +183,9 @@ accepted_at representa la aceptación efectiva por parte del owner
 
 El tenant se crea recién al aceptar la invitación.
 
-INVITATIONS
+---
+
+# INVITATIONS
 
 No existe registro libre público de usuarios.
 
@@ -176,7 +205,9 @@ accepted
 expired
 cancelled
 
-REGLA DE tenant_id EN INVITATIONS
+---
+
+# REGLA DE tenant_id EN INVITATIONS
 
 invitations.tenant_id puede ser NULL cuando la invitación es de tipo:
 
@@ -193,7 +224,9 @@ entonces:
 tenant_id debe existir
 y debe apuntar a un tenant válido.
 
-SIGNUP_REQUESTS
+---
+
+# SIGNUP_REQUESTS
 
 signup_requests representa una solicitud pública inicial para crear una empresa en el sistema.
 
@@ -207,7 +240,9 @@ Una signup_request aprobada puede originar una invitation de tipo:
 
 owner_signup
 
-VALIDACIÓN DE IDENTIDAD EN INVITACIONES
+---
+
+# VALIDACIÓN DE IDENTIDAD EN INVITACIONES
 
 Una invitación nunca debe aplicarse sobre una sesión autenticada con otro email.
 
@@ -234,7 +269,9 @@ si el user ya existe, se reutiliza ese user
 
 no se debe crear un usuario duplicado
 
-Regla de reanudación del flujo de invitación
+---
+
+# REGLA DE REANUDACIÓN DEL FLUJO DE INVITACIÓN
 
 Cuando una invitación requiere autenticación (por ejemplo porque el usuario ya existe):
 
@@ -256,7 +293,9 @@ la invitación no se pierda
 el usuario complete el flujo correcto
 no se generen inconsistencias en memberships o creación de tenants.
 
-CREACIÓN DE TENANT
+---
+
+# CREACIÓN DE TENANT
 
 En el flujo:
 
@@ -270,7 +309,94 @@ el slug del tenant debe generarse automáticamente
 
 el sistema debe resolver posibles colisiones de slug
 
-Trait obligatorio en modelos empresariales
+---
+
+# NUMERACIÓN AUTOMÁTICA
+
+Las entidades operativas del sistema utilizan numeración automática.
+
+Reglas generales:
+
+orders y documents utilizan numeración automática.
+
+El número se asigna automáticamente al momento de guardar la entidad.
+
+No debe existir ingreso manual del número en formularios.
+
+La numeración se controla mediante la entidad:
+
+document_sequences.
+
+La secuencia se define por:
+
+tenant
+doc_type
+point_of_sale
+
+El número visible se compone de:
+
+prefix
+point_of_sale
+correlativo con padding
+
+Una entidad que ya fue numerada no debe permitir cambio de tipo.
+
+Las secuencias deben bloquearse transaccionalmente al generar el siguiente número para evitar colisiones de numeración.
+
+---
+
+# REGLAS DEL FLUJO OPERATIVO
+
+Para mantener consistencia en operaciones comerciales básicas:
+
+orders.party_id es obligatorio.
+
+orders.ordered_at es obligatorio.
+
+documents.party_id es obligatorio.
+
+documents.issued_at es obligatorio.
+
+Esto garantiza trazabilidad mínima en operaciones comerciales y documentales.
+
+---
+
+# REGLAS DE FECHAS
+
+Orders
+
+Si no se informa fecha en orders, se utiliza la fecha actual.
+
+orders permiten fecha editable con un límite razonable hacia el futuro.
+
+Documents
+
+Si no se informa fecha en documents, se utiliza la fecha actual.
+
+En invoices no se permiten fechas futuras.
+
+Si un documento está asociado a una orden, su fecha no puede ser anterior a la fecha de la orden.
+
+---
+
+# REGLA DE INMUTABILIDAD DE NUMERACIÓN
+
+Una vez que una entidad ha sido numerada:
+
+el número pasa a ser de solo lectura.
+
+El tipo de la entidad queda congelado.
+
+Esto aplica especialmente a:
+
+orders
+documents
+
+y evita inconsistencias en numeración o contabilidad documental.
+
+---
+
+# Trait obligatorio en modelos empresariales
 
 Los modelos del negocio deben utilizar:
 
@@ -289,7 +415,9 @@ protege el acceso por URL.
 SoftDeletes
 permite eliminación lógica.
 
-Uso de ResolvesTenantRouteBinding
+---
+
+# Uso de ResolvesTenantRouteBinding
 
 Todo modelo accesible mediante route model binding que pertenezca a un tenant debe utilizar el trait:
 
@@ -297,7 +425,9 @@ ResolvesTenantRouteBinding
 
 Esto evita acceso cruzado entre tenants mediante URLs manipuladas.
 
-Convenciones de base de datos
+---
+
+# Convenciones de base de datos
 
 Todas las tablas del negocio deben incluir:
 
@@ -305,7 +435,9 @@ tenant_id
 timestamps
 softDeletes
 
-Reglas para tenant_id
+---
+
+# Reglas para tenant_id
 
 tenant_id no debe crearse con:
 
@@ -313,7 +445,9 @@ foreignId('tenant_id')
 
 Debe definirse manualmente con un tipo compatible con tenants.id.
 
-Asignación de tenant_id en entidades
+---
+
+# Asignación de tenant_id en entidades
 
 Entidades padre
 
@@ -327,15 +461,19 @@ tenant_id existe para facilitar índices
 
 no debe exponerse en $fillable
 
-debe heredarse desde la cabecera o desde el contexto del tenant
+debe heredarse desde la cabecera o desde el contexto del tenant.
 
-Convenciones de validación multi-tenant
+---
+
+# Convenciones de validación multi-tenant
 
 Las validaciones que utilicen exists o claves foráneas deben restringirse al tenant activo.
 
 Esto evita referencias cruzadas entre tenants.
 
-Convenciones de controladores
+---
+
+# Convenciones de controladores
 
 Los controladores deben seguir el patrón REST estándar de Laravel.
 
@@ -349,7 +487,9 @@ edit
 update
 destroy
 
-Convenciones de rutas
+---
+
+# Convenciones de rutas
 
 Las rutas deben definirse en:
 
@@ -366,7 +506,9 @@ Las rutas deben ejecutarse dentro de los middlewares:
 auth
 tenant
 
-Convenciones de modelos
+---
+
+# Convenciones de modelos
 
 Los modelos deben:
 
@@ -375,7 +517,9 @@ definir relaciones explícitas
 definir fillable o guarded correctamente
 utilizar los traits de multi-tenancy
 
-Convenciones de vistas
+---
+
+# Convenciones de vistas
 
 Cada módulo debe tener su carpeta de vistas:
 
@@ -387,7 +531,9 @@ resources/views/projects
 resources/views/parties
 resources/views/tasks
 
-Estructura visual de páginas
+---
+
+# Estructura visual de páginas
 
 Todas las páginas internas deben seguir esta estructura:
 
@@ -395,16 +541,20 @@ Todas las páginas internas deben seguir esta estructura:
 <x-breadcrumb />  
 <x-page-header />  
 <x-card />  
-</x-page>
+</x-page>  
 
-Componentes Blade disponibles
+---
+
+# Componentes Blade disponibles
 
 x-page
 x-breadcrumb
 x-page-header
 x-card
 
-Convención de listados
+---
+
+# Convención de listados
 
 Las vistas index deben utilizar el patrón de lista del sistema.
 
@@ -418,7 +568,9 @@ scroll interno en tablas
 encabezado visible
 layout estable
 
-Convención de formularios
+---
+
+# Convención de formularios
 
 Los formularios deben:
 
@@ -427,7 +579,9 @@ agrupar campos de forma consistente
 mostrar errores cerca del campo
 ubicar botones dentro de form-actions
 
-CONVENCIONES DE VISTAS Y CSS
+---
+
+# CONVENCIONES DE VISTAS Y CSS
 
 Las vistas Blade deben utilizar exclusivamente las clases y patrones visuales definidos en:
 
@@ -439,68 +593,9 @@ BASE VISUAL DEL PROYECTO – app-base.
 
 No deben incorporarse clases de frameworks externos o ajenos al proyecto si esas clases no están definidas explícitamente en la base visual propia.
 
-Reglas para formularios
+---
 
-Los formularios deben seguir el patrón visual común del proyecto.
-
-Clases permitidas:
-
-form
-form-group
-form-label
-form-control
-form-help
-form-actions
-
-Los mensajes de error deben utilizar clases definidas dentro del sistema visual del proyecto.
-
-No deben utilizarse clases externas o utilidades no soportadas por app-base.css.
-
-Ejemplos de clases que no deben utilizarse si no están definidas en el sistema visual:
-
-invalid-feedback
-is-invalid
-text-danger
-form-check
-d-flex
-gap-*
-btn-sm
-
-Acciones compactas con íconos
-
-Las acciones compactas en tablas o sublistados deben utilizar el patrón visual propio del proyecto.
-
-No deben utilizarse utilidades externas de frameworks para compactar botones o alinear iconos.
-
-Deben utilizarse los componentes de iconos definidos en el sistema.
-
-Visualización de catálogos
-
-Cuando una entidad utilice catálogos funcionales (Catalogs), las vistas deben mostrar siempre las etiquetas legibles del catálogo.
-
-No deben mostrarse directamente los valores internos persistidos en la base de datos.
-
-Esto evita exponer códigos internos al usuario y mejora la claridad de la interfaz.
-
-Convención para catálogos funcionales
-
-Los estados, tipos y variantes funcionales del sistema no deben repetirse como strings sueltos.
-
-La implementación recomendada es centralizar estos catálogos en:
-
-app/Support/Catalogs
-
-Si un dominio ya existe en otro módulo debe reutilizarse y no duplicarse.
-
-Gestión de módulos reemplazados
-
-Cuando un módulo sea reemplazado por otro más general:
-
-el módulo anterior debe eliminarse
-
-no deben mantenerse módulos obsoletos
-
-Terminología de interfaz
+# Terminología de interfaz
 
 La interfaz utiliza términos orientados al usuario.
 
@@ -511,7 +606,9 @@ Party → Contacto
 
 La nomenclatura técnica puede mantenerse en el código.
 
-Selector de empresa
+---
+
+# Selector de empresa
 
 Un usuario puede pertenecer a múltiples empresas.
 
@@ -521,7 +618,9 @@ si tiene una sola empresa se accede directamente
 
 si tiene varias puede cambiar mediante selector en el header
 
-Páginas públicas
+---
+
+# Páginas públicas
 
 Algunas páginas no utilizan el layout completo.
 
@@ -536,7 +635,9 @@ Estas páginas utilizan:
 
 $publicPage = true
 
-Principios generales
+---
+
+# Principios generales
 
 Simplicidad
 Evitar complejidad innecesaria.

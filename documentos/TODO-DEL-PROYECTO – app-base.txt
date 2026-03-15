@@ -1,5 +1,8 @@
 TODO-DEL-PROYECTO – app-base
-OBJETIVO
+
+---
+
+# OBJETIVO
 
 Este documento funciona como memoria operativa del proyecto.
 
@@ -12,7 +15,9 @@ refactors necesarios
 No debe contener documentación extensa.
 Solo registrar elementos pendientes del sistema.
 
-ESTADO ACTUAL DEL SISTEMA
+---
+
+# ESTADO ACTUAL DEL SISTEMA
 
 Arquitectura SaaS multi-tenant implementada.
 
@@ -30,7 +35,9 @@ migraciones multi-tenant normalizadas a char(36)
 módulo clients eliminado en favor de parties
 flujo de onboarding y alta de usuarios resuelto mediante invitations (owner_signup y member_invite)
 
-MÓDULOS IMPLEMENTADOS
+---
+
+# MÓDULOS IMPLEMENTADOS
 
 projects
 parties (contactos)
@@ -41,7 +48,9 @@ order_items
 documents
 document_items
 
-MÓDULOS PENDIENTES
+---
+
+# MÓDULOS PENDIENTES
 
 Actualmente no hay módulos operativos pendientes inmediatos.
 
@@ -50,7 +59,9 @@ Próximos módulos posibles según evolución del sistema:
 payments
 inventory
 
-MEJORAS FUTURAS
+---
+
+# MEJORAS FUTURAS
 
 relación opcional entre users y parties
 
@@ -66,11 +77,9 @@ revisar módulos restantes para terminar de migrar a catálogos reutilizables
 
 evaluar futuro catálogo comercial de disponibilidad para products (availability o sale_status) sin mezclarlo con is_active
 
-cuando se implemente generación automática de numeración,
-vincular orders y documents con document_sequences
-y aplicar restricciones de unicidad por tenant
+---
 
-MEJORAS DE INTERFAZ
+# MEJORAS DE INTERFAZ
 
 aplicar el patrón de listas a todos los módulos
 
@@ -85,7 +94,9 @@ y asegurar consistencia con la base visual del proyecto
 
 agregar pantalla intermedia específica para invitaciones owner_signup listas para envío
 
-MEJORAS DE ONBOARDING
+---
+
+# MEJORAS DE ONBOARDING
 
 evolucionar el envío manual de invitaciones owner_signup hacia envío real por WhatsApp o email
 
@@ -93,7 +104,35 @@ evaluar validación y normalización más robusta de phone_whatsapp
 
 evaluar control futuro de cantidad máxima de empresas por owner según plan
 
-MEJORAS DE ARQUITECTURA
+---
+
+# MEJORAS DE NUMERACIÓN (DOCUMENTS / ORDERS)
+
+llevar la configuración de secuencias al perfil de empresa
+
+permitir configurar prefijos documentales y de órdenes desde perfil de empresa
+
+permitir configurar punto de venta base desde perfil de empresa
+
+impedir cambio de prefijo de una secuencia si ya tuvo movimiento
+
+definir si el punto de venta también queda bloqueado una vez con movimiento
+
+evaluar futura partición anual de secuencias sin implementarla todavía
+
+---
+
+# MEJORAS DE FLUJO ORDERS / DOCUMENTS
+
+endurecer coherencia entre documento y orden asociada
+
+validar coincidencia entre document.party_id y order.party_id cuando exista orden asociada
+
+revisar política futura de estados documentales más específica por tipo
+
+---
+
+# MEJORAS DE ARQUITECTURA
 
 sistema de permisos más avanzado
 
@@ -107,7 +146,17 @@ evaluar unificación futura de la fuente utilizada por ResolvesTenantRouteBindin
 con el origen conceptual del middleware
 para evitar duplicación entre session('tenant_id') y app('tenant')
 
-REFACTORS
+evaluar endurecimiento futuro de base de datos para que orders.ordered_at sea NOT NULL
+
+evaluar endurecimiento futuro de base de datos para que documents.issued_at sea NOT NULL
+
+evaluar endurecimiento futuro de orders.party_id como NOT NULL
+
+evaluar endurecimiento futuro de documents.party_id como NOT NULL
+
+---
+
+# REFACTORS
 
 revisión histórica de evolución de parties
 
@@ -118,7 +167,9 @@ revisión de nomenclatura entre módulos
 unificación futura del patrón de definición de tenant_id
 entre migraciones históricas (uuid vs char(36))
 
-REGLA DEL DOCUMENTO
+---
+
+# REGLA DEL DOCUMENTO
 
 Este documento debe mantenerse corto.
 

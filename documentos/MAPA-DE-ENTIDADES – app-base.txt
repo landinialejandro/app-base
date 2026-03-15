@@ -1,6 +1,6 @@
 MAPA-DE-ENTIDADES – app-base
 
-Objetivo
+## Objetivo
 
 Este documento define el mapa conceptual de entidades del proyecto app-base.
 
@@ -11,7 +11,9 @@ evitar duplicación de modelos
 orientar la creación de nuevos módulos
 mantener coherencia en el crecimiento del SaaS
 
-Criterio general de modelado
+---
+
+# Criterio general de modelado
 
 El sistema distingue entre:
 
@@ -27,11 +29,15 @@ users es entidad del sistema
 parties es la entidad base del negocio
 antes de crear una entidad nueva evaluar si puede resolverse con una entidad existente
 
-Entidades del sistema
+---
+
+# Entidades del sistema
 
 Estas entidades forman el núcleo técnico del SaaS.
 
-SIGNUP_REQUESTS
+---
+
+# SIGNUP_REQUESTS
 
 Entidad que representa la solicitud pública inicial para crear una nueva empresa en el sistema.
 
@@ -70,7 +76,9 @@ owner acepta invitación
 ↓
 se crea tenant y membership owner
 
-INVITATIONS
+---
+
+# INVITATIONS
 
 Entidad que representa una invitación formal de ingreso o vinculación al sistema.
 
@@ -133,7 +141,9 @@ member_invite se utiliza para sumar un usuario a un tenant existente.
 
 No existe registro público libre en el sistema; el alta de usuarios relevantes parte desde invitations.
 
-TENANTS
+---
+
+# TENANTS
 
 Entidad que representa una organización dentro del sistema.
 
@@ -158,7 +168,9 @@ Todas las relaciones hacia tenants deben utilizar CHAR(36).
 
 Esto evita incompatibilidades con migraciones que utilicen bigint por defecto.
 
-USERS
+---
+
+# USERS
 
 Entidad que representa la identidad global del sistema.
 
@@ -185,7 +197,9 @@ Un mismo user puede ser owner de muchos tenants.
 
 La pertenencia real no se resuelve desde users, sino desde memberships.
 
-MEMBERSHIPS
+---
+
+# MEMBERSHIPS
 
 Entidad que representa la pertenencia real entre un user y un tenant.
 
@@ -212,7 +226,9 @@ Permite múltiples memberships para un mismo user en distintos tenants.
 
 Es la fuente válida de pertenencia user-tenant.
 
-Regla sobre TenantScoped
+---
+
+# Regla sobre TenantScoped
 
 El trait TenantScoped se utiliza únicamente en entidades cuyo ciclo de vida pertenece completamente a un tenant.
 
@@ -235,9 +251,11 @@ Tenant
 Membership
 SignupRequest
 
-Entidad base del negocio
+---
 
-PARTIES
+# Entidad base del negocio
+
+## PARTIES
 
 Entidad general para personas u organizaciones relacionadas con el negocio.
 
@@ -263,8 +281,6 @@ Dominio funcional:
 
 kind
 
-kind es un dominio cerrado que define el tipo de actor representado por la entidad.
-
 Campos conceptuales esperados:
 
 tenant_id
@@ -282,9 +298,11 @@ is_active
 timestamps
 softDeletes
 
-Entidades operativas
+---
 
-PROJECTS
+# Entidades operativas
+
+## PROJECTS
 
 Agrupa trabajos o iniciativas.
 
@@ -298,7 +316,9 @@ Nota:
 
 projects no posee catálogo funcional propio por el momento.
 
-TASKS
+---
+
+# TASKS
 
 Unidad operativa de trabajo.
 
@@ -315,9 +335,9 @@ Dominio funcional:
 
 status
 
-status es un dominio cerrado.
+---
 
-PRODUCTS
+# PRODUCTS
 
 Representa productos, artículos o insumos.
 
@@ -332,7 +352,62 @@ Dominio funcional:
 
 kind
 
-ORDERS
+---
+
+# DOCUMENT_SEQUENCES
+
+Entidad que controla la numeración automática de órdenes y documentos dentro de cada tenant.
+
+Finalidad:
+
+gestionar secuencias independientes por tipo documental o tipo de orden.
+
+Campos relevantes:
+
+tenant_id
+branch_id nullable
+doc_type
+prefix
+point_of_sale
+padding
+next_number
+
+Interpretación:
+
+la secuencia se define por tenant + tipo documental + punto de venta.
+
+prefix identifica el tipo documental o tipo de orden.
+
+point_of_sale identifica el punto de venta base de la empresa.
+
+padding define la cantidad de dígitos del número correlativo.
+
+next_number guarda el próximo número a emitir.
+
+Uso actual:
+
+orders utiliza secuencias del tipo:
+
+order.sale
+order.purchase
+order.service
+
+documents utiliza secuencias del tipo:
+
+quote
+delivery_note
+invoice
+work_order
+receipt
+credit_note
+
+Relaciones:
+
+tenant → document_sequences
+
+---
+
+# ORDERS
 
 Representa pedidos u órdenes comerciales.
 
@@ -348,12 +423,29 @@ orders → parties
 orders → products
 orders → documents
 
+Campos relevantes adicionales:
+
+number
+sequence_prefix
+point_of_sale
+sequence_number
+
+Aclaración:
+
+la orden se numera automáticamente al guardarse.
+
+el número no se ingresa manualmente.
+
+el tipo de orden no debe modificarse una vez numerada.
+
 Dominios funcionales:
 
 kind
 status
 
-ORDER_ITEMS
+---
+
+# ORDER_ITEMS
 
 Detalle de productos dentro de una orden.
 
@@ -375,9 +467,11 @@ Regla importante:
 
 kind reutiliza el mismo dominio definido en products.
 
-Entidades documentales
+---
 
-DOCUMENTS
+# Entidades documentales
+
+## DOCUMENTS
 
 Entidad genérica para documentos comerciales u operativos.
 
@@ -403,12 +497,33 @@ documents → products
 documents → projects
 documents → orders
 
+Campos relevantes adicionales:
+
+number
+sequence_prefix
+point_of_sale
+sequence_number
+
+Aclaración:
+
+el documento se numera automáticamente al guardarse.
+
+el número no se ingresa manualmente.
+
+el tipo de documento no debe modificarse una vez numerado.
+
+Relación con secuencias:
+
+document.kind → document_sequences.doc_type
+
 Dominios funcionales:
 
 kind
 status
 
-DOCUMENT_ITEMS
+---
+
+# DOCUMENT_ITEMS
 
 Detalle de líneas dentro de un documento.
 
@@ -430,9 +545,11 @@ Regla:
 
 kind reutiliza el mismo dominio de products.
 
-Entidades financieras futuras
+---
 
-PAYMENTS
+# Entidades financieras futuras
+
+## PAYMENTS
 
 Representa pagos o cobros asociados a documentos.
 
@@ -442,17 +559,21 @@ tenant → payments
 payments → documents
 payments → parties
 
-Entidades de inventario futuras
+---
 
-INVENTORY
+# Entidades de inventario futuras
+
+## INVENTORY
 
 Representa stock de productos.
 
-INVENTORY_MOVEMENTS
+## INVENTORY_MOVEMENTS
 
 Registra movimientos de stock.
 
-Entidades futuras de soporte
+---
+
+# Entidades futuras de soporte
 
 addresses
 attachments
@@ -460,10 +581,11 @@ notes
 roles
 permissions
 branches
-document_sequences
 party_profiles
 
-Nota importante
+---
+
+# Nota importante
 
 Aunque la interfaz utiliza el término contactos, no se creará una tabla contacts.
 
@@ -471,9 +593,11 @@ La entidad real continúa siendo:
 
 parties
 
-Relación conceptual general del sistema
+---
 
-Núcleo SaaS
+# Relación conceptual general del sistema
+
+## Núcleo SaaS
 
 users
 ↓
@@ -481,7 +605,7 @@ memberships
 ↓
 tenants
 
-Dominio de negocio
+## Dominio de negocio
 
 tenants
 ↓
@@ -491,7 +615,7 @@ projects
 ↓
 tasks
 
-Dominio comercial
+## Dominio comercial
 
 tenants
 ↓
@@ -501,7 +625,17 @@ orders
 ↓
 documents
 
-Orden recomendado de implementación
+## Sistema de numeración
+
+tenant
+↓
+document_sequences
+↓
+orders / documents
+
+---
+
+# Orden recomendado de implementación
 
 parties
 tasks
@@ -511,7 +645,9 @@ documents
 payments
 inventory
 
-Regla final
+---
+
+# Regla final
 
 El crecimiento del sistema debe seguir estos principios:
 
@@ -519,4 +655,4 @@ núcleo estable
 entidades reutilizables
 especialización progresiva
 mínima duplicación
-evolución gradual del dominio.
+evolución gradual del dominio

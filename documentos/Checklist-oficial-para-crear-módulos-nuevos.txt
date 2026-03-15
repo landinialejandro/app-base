@@ -12,7 +12,9 @@ evitar errores estructurales
 facilitar el mantenimiento del sistema
 asegurar coherencia en el crecimiento del proyecto
 
-EVALUACIÓN DE LA ENTIDAD (ANTES DE CREAR EL MÓDULO)
+---
+
+# EVALUACIÓN DE LA ENTIDAD (ANTES DE CREAR EL MÓDULO)
 
 Antes de crear una nueva entidad verificar:
 
@@ -28,7 +30,9 @@ Si la entidad no es necesaria en esta etapa:
 
 registrarla en TODO-DEL-PROYECTO.
 
-VERIFICAR PATRÓN REAL ANTES DE CREAR LA MIGRACIÓN
+---
+
+# VERIFICAR PATRÓN REAL ANTES DE CREAR LA MIGRACIÓN
 
 Antes de crear una nueva migración revisar migraciones existentes del proyecto.
 
@@ -42,7 +46,9 @@ Regla:
 
 no asumir tipos por convención de Laravel si el proyecto ya utiliza otro patrón validado.
 
-CREAR MIGRACIÓN
+---
+
+# CREAR MIGRACIÓN
 
 Crear la migración correspondiente.
 
@@ -58,7 +64,9 @@ tenant_id
 timestamps
 softDeletes
 
-CREAR MODELO
+---
+
+# CREAR MODELO
 
 Crear modelo:
 
@@ -70,7 +78,9 @@ TenantScoped
 ResolvesTenantRouteBinding
 SoftDeletes
 
-DEFINIR CAMPOS FILLABLE
+---
+
+# DEFINIR CAMPOS FILLABLE
 
 Definir los campos permitidos para asignación masiva.
 
@@ -79,7 +89,9 @@ Reglas:
 no incluir tenant_id en fillable si no es necesario
 evitar permitir asignación manual de tenant_id desde formularios
 
-CREAR CONTROLLER
+---
+
+# CREAR CONTROLLER
 
 Crear controlador tipo resource.
 
@@ -95,7 +107,9 @@ edit
 update
 destroy
 
-REGLA DE TENANT EN CONTROLADORES
+---
+
+# REGLA DE TENANT EN CONTROLADORES
 
 Verificar la correcta asignación de tenant según el tipo de entidad.
 
@@ -109,7 +123,9 @@ Si la entidad es hija:
 asignar tenant_id explícitamente desde el contexto del padre
 asignar también la foreign key del padre
 
-CONSULTAS TENANT-AWARE
+---
+
+# CONSULTAS TENANT-AWARE
 
 Revisar store() y update() para asegurar que:
 
@@ -120,7 +136,9 @@ Ejemplo conceptual:
 
 verificar que el registro referenciado pertenezca al tenant activo.
 
-DEFINIR RUTAS
+---
+
+# DEFINIR RUTAS
 
 Registrar rutas en:
 
@@ -135,7 +153,9 @@ Las rutas deben ejecutarse dentro de los middlewares:
 auth
 tenant
 
-CREAR VISTAS
+---
+
+# CREAR VISTAS
 
 Crear carpeta del módulo:
 
@@ -149,7 +169,9 @@ edit.blade.php
 show.blade.php
 _form.blade.php
 
-ESTRUCTURA VISUAL OBLIGATORIA
+---
+
+# ESTRUCTURA VISUAL OBLIGATORIA
 
 Todas las páginas internas deben utilizar:
 
@@ -157,7 +179,9 @@ Todas las páginas internas deben utilizar:
 
 Esto garantiza consistencia visual entre módulos.
 
-PATRÓN DE LISTADOS
+---
+
+# PATRÓN DE LISTADOS
 
 Las vistas index deben utilizar:
 
@@ -165,7 +189,9 @@ page.list-page
 card.list-card
 table-wrap.list-scroll
 
-FORMULARIOS
+---
+
+# FORMULARIOS
 
 Los formularios deben reutilizar el parcial:
 
@@ -176,7 +202,9 @@ Este archivo debe ser utilizado por:
 create
 edit
 
-VALIDACIONES
+---
+
+# VALIDACIONES
 
 Las validaciones deben definirse inicialmente en el controlador.
 
@@ -186,7 +214,9 @@ $request->validate([
 'name' => ['required','string','max:255']
 ]);
 
-CATÁLOGOS FUNCIONALES (DOMINIOS CERRADOS)
+---
+
+# CATÁLOGOS FUNCIONALES (DOMINIOS CERRADOS)
 
 Antes de implementar campos con valores cerrados (por ejemplo status, kind, type):
 
@@ -211,7 +241,9 @@ badges
 filtros
 seeders
 
-REGLA PARA MÓDULOS CON CABECERA + DETALLE
+---
+
+# REGLA PARA MÓDULOS CON CABECERA + DETALLE
 
 Si el módulo tiene estructura cabecera/detalle (por ejemplo orders o documents):
 
@@ -228,7 +260,9 @@ Reglas:
 no mezclar, salvo necesidad justificada, la creación de cabecera e ítems en un único store()
 el flujo debe permitir crear cabecera primero y luego gestionar los ítems
 
-REGLA PARA NUMERACIÓN DE DOCUMENTOS
+---
+
+# REGLA PARA NUMERACIÓN DE DOCUMENTOS
 
 En módulos documentales u operativos (por ejemplo orders o documents) el campo:
 
@@ -239,11 +273,32 @@ no debe tener restricción unique a nivel global.
 La numeración será gestionada posteriormente mediante un sistema de secuencias
 (por ejemplo document_sequences) que permitirá numeración por tenant o por tipo de documento.
 
-REGLA DE SEGURIDAD PARA INVITACIONES
+---
+
+# SI EL MÓDULO REQUIERE NUMERACIÓN OPERATIVA
+
+Si el módulo requiere numeración secuencial (por ejemplo documentos comerciales u operaciones registrables):
+
+verificar si el módulo debe integrarse con document_sequences
+
+no implementar numeración manual o hardcodeada dentro de controladores
+
+evaluar si el módulo requiere soporte para:
+
+prefix
+point_of_sale
+correlativo
+bloqueo por tipo una vez numerado
+
+Esto permite mantener un único sistema de numeración coherente dentro del SaaS.
+
+---
+
+# REGLA DE SEGURIDAD PARA INVITACIONES
 
 Cuando un módulo implemente mecanismos de invitación a usuarios (por ejemplo para membresías o acceso a empresas):
 
-las invitaciones deben validar la identidad del usuario antes de aplicar cambios sobre membresías o creación de tenants.
+las invitaciones deben validar la identidad del usuario antes de aplicar cambios sobre memberships o creación de tenants.
 
 Reglas:
 
@@ -260,7 +315,9 @@ y no al dashboard ni al selector genérico de tenant
 
 esto garantiza que el usuario continúe el flujo correcto de aceptación de la invitación.
 
-PRUEBAS FUNCIONALES
+---
+
+# PRUEBAS FUNCIONALES
 
 Verificar funcionamiento básico del módulo:
 
@@ -269,7 +326,9 @@ editar
 eliminar
 listar
 
-PRUEBAS FUNCIONALES AVANZADAS
+---
+
+# PRUEBAS FUNCIONALES AVANZADAS
 
 Verificar adicionalmente:
 
@@ -278,7 +337,9 @@ verificar eliminación cuando existen registros hijos
 verificar route model binding multi-tenant
 verificar sublistados internos si el módulo tiene detalle
 
-VERIFICACIÓN MULTI-TENANT
+---
+
+# VERIFICACIÓN MULTI-TENANT
 
 Confirmar que:
 
@@ -289,14 +350,18 @@ Esto debe estar garantizado mediante:
 TenantScoped
 ResolvesTenantRouteBinding
 
-FACTORIES Y SEEDERS
+---
+
+# FACTORIES Y SEEDERS
 
 Factories pueden crear tenants automáticamente si es necesario para pruebas aisladas.
 
 Los seeders del sistema deben utilizar tenants existentes y no crear tenants implícitos
 para evitar inconsistencias en datos de demostración.
 
-DATOS DE PRUEBA (OPCIONAL)
+---
+
+# DATOS DE PRUEBA (OPCIONAL)
 
 Si el módulo es relevante para el sistema:
 
@@ -308,7 +373,9 @@ php artisan make:factory NombreModeloFactory
 
 y agregar datos al DemoSeeder.
 
-LIMPIEZA DE MÓDULOS ABSORBIDOS
+---
+
+# LIMPIEZA DE MÓDULOS ABSORBIDOS
 
 Si un módulo previo fue absorbido por otro módulo más general:
 
@@ -316,21 +383,27 @@ eliminar restos técnicos del módulo anterior
 eliminar migraciones innecesarias
 eliminar rutas, modelos o controladores que ya no tengan uso
 
-ACTUALIZAR DOCUMENTACIÓN DEL PROYECTO
+---
+
+# ACTUALIZAR DOCUMENTACIÓN DEL PROYECTO
 
 Si se crea una nueva entidad actualizar:
 
 MAPA-DE-ENTIDADES
 TODO-DEL-PROYECTO
 
-REGLA DE COHERENCIA
+---
+
+# REGLA DE COHERENCIA
 
 Todo módulo nuevo debe seguir el mismo patrón utilizado en:
 
 projects
 parties
 
-REGLA FINAL
+---
+
+# REGLA FINAL
 
 Si durante el desarrollo aparece una decisión que afectará a toda la arquitectura del sistema:
 

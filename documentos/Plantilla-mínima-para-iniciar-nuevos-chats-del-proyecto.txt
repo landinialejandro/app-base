@@ -1,10 +1,14 @@
 PLANTILLA MÍNIMA PARA INICIAR NUEVOS CHATS DEL PROYECTO – app-base
 
+---
+
 PROYECTO
 
 app-base
 
 Sistema SaaS multi-tenant desarrollado en Laravel.
+
+---
 
 DOCUMENTOS DE REFERENCIA DEL PROYECTO
 
@@ -16,6 +20,8 @@ CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS
 MAPA-DE-ENTIDADES – app-base
 BASE-VISUAL-DEL-PROYECTO – app-base
 TODO-DEL-PROYECTO – app-base
+
+---
 
 ARQUITECTURA DEL SISTEMA
 
@@ -45,6 +51,8 @@ tenants.id es char(36)
 tenant_id no debe asumirse como foreignId()
 copiar siempre el patrón real validado del proyecto antes de crear nuevas migraciones
 
+---
+
 MODELO DEL NEGOCIO
 
 users es entidad del sistema.
@@ -59,6 +67,8 @@ Nombre visible en la interfaz:
 
 contactos
 
+---
+
 BASE VISUAL
 
 Las páginas internas utilizan el layout estándar:
@@ -71,6 +81,8 @@ page.list-page
 card.list-card
 table-wrap.list-scroll
 
+---
+
 ESTADO ACTUAL DEL PROYECTO
 
 Arquitectura SaaS implementada.
@@ -82,6 +94,10 @@ Middleware ResolveTenant operativo.
 Traits de aislamiento funcionando.
 
 Base visual definida.
+
+La numeración de **orders** y **documents** se gestiona mediante el sistema de secuencias **document_sequences**, evitando numeración manual o restricciones unique globales.
+
+---
 
 ENTIDADES IMPLEMENTADAS
 
@@ -96,6 +112,8 @@ orders
 order_items
 documents
 document_items
+
+---
 
 REGLA DE DESARROLLO
 
@@ -114,6 +132,8 @@ luego crear migraciones
 luego implementar cabecera
 luego implementar ítems
 
+---
+
 CATÁLOGOS FUNCIONALES
 
 Antes de implementar campos con valores cerrados (por ejemplo status, kind o type):
@@ -125,11 +145,15 @@ app/Support/Catalogs
 
 Evitar definir strings hardcodeados directamente en controladores, vistas o seeders.
 
+---
+
 REGLA DE CREACIÓN DE ENTIDADES
 
 Antes de crear una entidad nueva seguir el procedimiento definido en:
 
 CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS
+
+---
 
 OBJETIVO DE ESTE CHAT
 

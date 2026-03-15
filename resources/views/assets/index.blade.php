@@ -21,6 +21,61 @@
         </x-page-header>
 
         <x-card class="list-card">
+
+            <form method="GET" action="{{ route('assets.index') }}" class="form list-filters">
+                <div class="list-filters-grid">
+                    <div class="form-group">
+                        <label for="q" class="form-label">Buscar</label>
+                        <input type="text" id="q" name="q" class="form-control" value="{{ request('q') }}"
+                            placeholder="Nombre o código interno">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="party_id" class="form-label">Contacto</label>
+                        <select id="party_id" name="party_id" class="form-control">
+                            <option value="">Todos</option>
+                            @foreach ($parties as $party)
+                                <option value="{{ $party->id }}" @selected((string) request('party_id') === (string) $party->id)>
+                                    {{ $party->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="kind" class="form-label">Tipo</label>
+                        <select id="kind" name="kind" class="form-control">
+                            <option value="">Todos</option>
+                            @foreach (AssetCatalog::kindLabels() as $value => $label)
+                                <option value="{{ $value }}" @selected(request('kind') === $value)>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status" class="form-label">Estado</label>
+                        <select id="status" name="status" class="form-control">
+                            <option value="">Todos</option>
+                            @foreach (AssetCatalog::statusLabels() as $value => $label)
+                                <option value="{{ $value }}" @selected(request('status') === $value)>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+
+                <div class="list-filters-actions">
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+
+                    <a href="{{ route('assets.index') }}" class="btn btn-secondary">
+                        Limpiar
+                    </a>
+                </div>
+            </form>
+
             @if ($assets->count())
                 <div class="table-wrap list-scroll">
                     <table class="table">

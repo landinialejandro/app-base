@@ -16,14 +16,39 @@ use Illuminate\View\View;
 
 class AssetController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
+        $q = trim((string) $request->get('q', ''));
+        $partyId = $request->get('party_id');
+        $kind = $request->get('kind');
+        $status = $request->get('status');
+
+        $parties = Party::query()
+            ->orderBy('name')
+            ->get();
+
         $assets = Asset::query()
             ->with('party')
+            ->when($q !== '', function ($query) use ($q) {
+                $query->where(function ($subquery) use ($q) {
+                    $subquery->where('name', 'like', "%{$q}%")
+                        ->orWhere('internal_code', 'like', "%{$q}%");
+                });
+            })
+            ->when($partyId, function ($query) use ($partyId) {
+                $query->where('party_id', $partyId);
+            })
+            ->when($kind, function ($query) use ($kind) {
+                $query->where('kind', $kind);
+            })
+            ->when($status, function ($query) use ($status) {
+                $query->where('status', $status);
+            })
             ->orderBy('name')
-            ->paginate(25);
+            ->paginate(25)
+            ->withQueryString();
 
-        return view('assets.index', compact('assets'));
+        return view('assets.index', compact('assets', 'parties'));
     }
 
     public function create(): View

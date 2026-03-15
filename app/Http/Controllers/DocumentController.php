@@ -19,13 +19,60 @@ use Illuminate\Validation\Rule;
 
 class DocumentController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $documents = Document::with(['party', 'order', 'asset', 'items'])
-            ->latest()
-            ->paginate(20);
+        $q = trim((string) $request->get('q', ''));
+        $partyId = $request->get('party_id');
+        $assetId = $request->get('asset_id');
+        $orderId = $request->get('order_id');
+        $kind = $request->get('kind');
+        $status = $request->get('status');
+        $issuedAt = $request->get('issued_at');
 
-        return view('documents.index', compact('documents'));
+        $parties = Party::query()
+            ->orderBy('name')
+            ->get();
+
+        $assets = Asset::query()
+            ->with('party')
+            ->orderBy('name')
+            ->get();
+
+        $orders = Order::query()
+            ->with(['party', 'asset'])
+            ->latest()
+            ->get();
+
+        $documents = Document::query()
+            ->with(['party', 'order', 'asset', 'items'])
+            ->when($q !== '', function ($query) use ($q) {
+                $query->where(function ($subquery) use ($q) {
+                    $subquery->where('number', 'like', "%{$q}%");
+                });
+            })
+            ->when($partyId, function ($query) use ($partyId) {
+                $query->where('party_id', $partyId);
+            })
+            ->when($assetId, function ($query) use ($assetId) {
+                $query->where('asset_id', $assetId);
+            })
+            ->when($orderId, function ($query) use ($orderId) {
+                $query->where('order_id', $orderId);
+            })
+            ->when($kind, function ($query) use ($kind) {
+                $query->where('kind', $kind);
+            })
+            ->when($status, function ($query) use ($status) {
+                $query->where('status', $status);
+            })
+            ->when($issuedAt, function ($query) use ($issuedAt) {
+                $query->whereDate('issued_at', $issuedAt);
+            })
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('documents.index', compact('documents', 'parties', 'assets', 'orders'));
     }
 
     public function create()

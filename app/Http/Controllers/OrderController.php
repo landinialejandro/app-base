@@ -16,13 +16,51 @@ use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
-        $orders = Order::with(['party', 'asset', 'items'])
-            ->latest()
-            ->paginate(20);
+        $q = trim((string) $request->get('q', ''));
+        $partyId = $request->get('party_id');
+        $assetId = $request->get('asset_id');
+        $kind = $request->get('kind');
+        $status = $request->get('status');
+        $orderedAt = $request->get('ordered_at');
 
-        return view('orders.index', compact('orders'));
+        $parties = Party::query()
+            ->orderBy('name')
+            ->get();
+
+        $assets = Asset::query()
+            ->with('party')
+            ->orderBy('name')
+            ->get();
+
+        $orders = Order::query()
+            ->with(['party', 'asset', 'items'])
+            ->when($q !== '', function ($query) use ($q) {
+                $query->where(function ($subquery) use ($q) {
+                    $subquery->where('number', 'like', "%{$q}%");
+                });
+            })
+            ->when($partyId, function ($query) use ($partyId) {
+                $query->where('party_id', $partyId);
+            })
+            ->when($assetId, function ($query) use ($assetId) {
+                $query->where('asset_id', $assetId);
+            })
+            ->when($kind, function ($query) use ($kind) {
+                $query->where('kind', $kind);
+            })
+            ->when($status, function ($query) use ($status) {
+                $query->where('status', $status);
+            })
+            ->when($orderedAt, function ($query) use ($orderedAt) {
+                $query->whereDate('ordered_at', $orderedAt);
+            })
+            ->latest()
+            ->paginate(20)
+            ->withQueryString();
+
+        return view('orders.index', compact('orders', 'parties', 'assets'));
     }
 
     public function create(Request $request)

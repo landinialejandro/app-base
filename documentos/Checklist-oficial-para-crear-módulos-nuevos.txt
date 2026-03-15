@@ -116,9 +116,12 @@ Revisar store() y update() para asegurar que:
 las verificaciones exists(...) o validaciones de relaciones
 sean tenant-aware
 
+Si una entidad operativa referencia otra entidad del negocio (por ejemplo asset_id, party_id, order_id), validar también la coherencia funcional entre relaciones cuando aplique, no solo la pertenencia al tenant.
+
 Ejemplo conceptual:
 
 verificar que el registro referenciado pertenezca al tenant activo.
+verificar también que las relaciones entre entidades no entren en contradicción funcional.
 
 DEFINIR RUTAS
 
@@ -183,7 +186,7 @@ Las validaciones deben definirse inicialmente en el controlador.
 Ejemplo:
 
 $request->validate([
-'name' => ['required','string','max:255']
+    'name' => ['required', 'string', 'max:255']
 ]);
 
 CATÁLOGOS FUNCIONALES (DOMINIOS CERRADOS)

@@ -37,6 +37,7 @@ projects
 parties (contactos)
 tasks
 products
+assets
 orders
 order_items
 documents
@@ -72,11 +73,19 @@ definir política futura para tipos documentales permitidos por origen de flujo
 
 revisar política futura de estados documentales más específica por tipo
 
+definir política futura de historial de vinculación entre activos y contactos o clientes
+
+evaluar tabla futura de historial para relación activo-cliente
+
 MEJORAS DE INTERFAZ
 
-aplicar el patrón de listas a todos los módulos
+revisar mensajes de vacío cuando hay filtros activos
 
-evaluar paginación para tablas grandes
+revisar optimización de cargas en listados con relaciones pesadas
+
+evaluar evolución futura de filtros si crece mucho el volumen
+
+mejorar filtros contextuales por cliente o activo en formularios operativos cuando el volumen crezca
 
 evaluar evolución futura del dashboard
 (métricas más útiles, filtros y jerarquía operativa/comercial)
@@ -112,6 +121,14 @@ impedir cambio de prefijo de una secuencia si ya tuvo movimiento
 definir si el punto de venta también queda bloqueado una vez con movimiento
 
 evaluar futura partición anual de secuencias sin implementarla todavía
+
+MEJORAS DE FLUJO ASSETS / ORDERS / DOCUMENTS
+
+endurecer a nivel de base de datos assets.party_id como NOT NULL si se confirma la regla de obligatoriedad
+
+evaluar endurecimiento futuro de orders.asset_id y documents.asset_id según política final de obligatoriedad por flujo
+
+evaluar reglas futuras de bloqueo de edición en documents cuando estén vinculados a orders y/o assets
 
 MEJORAS DE FLUJO ORDERS / DOCUMENTS
 

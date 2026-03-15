@@ -1,4 +1,5 @@
 CONTEXTO-FIJO-DEL-PROYECTO – app-base
+
 Tipo de sistema
 
 app-base es una plataforma SaaS multi-tenant desarrollada en Laravel.
@@ -156,6 +157,7 @@ parties
 projects
 tasks
 products
+assets
 orders
 order_items
 
@@ -226,6 +228,23 @@ orders y documents no permiten edición manual del número
 
 una vez asignado el número, el tipo de entidad no debe modificarse
 
+Flujo assets → orders → documents
+
+El sistema ya contempla una relación operativa opcional entre activos, órdenes y documentos.
+
+Reglas actuales:
+
+orders puede vincularse opcionalmente a assets
+
+documents puede vincularse opcionalmente a assets
+
+cuando un document se genera desde un order, hereda automáticamente:
+
+tenant_id
+party_id
+order_id
+asset_id si la orden lo posee
+
 Flujo orders → documents
 
 Desde orders.show pueden generarse documentos derivados de una orden.
@@ -244,6 +263,7 @@ documents hereda automáticamente:
 tenant_id
 party_id
 order_id
+asset_id si la orden lo posee
 
 Los order_items pueden copiarse automáticamente a document_items.
 
@@ -309,6 +329,7 @@ parties
 projects
 tasks
 products
+assets
 orders
 order_items
 
@@ -334,7 +355,6 @@ El sistema crecerá mediante módulos empresariales reutilizando la arquitectura
 
 Módulos previstos:
 
-documents
 payments
 inventory
 

@@ -1,4 +1,5 @@
 CONVENCIONES-DEL-PROYECTO – app-base
+
 Objetivo del documento
 
 Este documento define las convenciones estructurales y de desarrollo del proyecto app-base.
@@ -34,6 +35,7 @@ previsibilidad del comportamiento del sistema
 Cuando existan varias alternativas técnicas, se debe priorizar siempre la opción más simple y consistente con el resto del proyecto.
 
 Convenciones de nombres
+
 Modelos
 
 Los modelos deben estar en singular.
@@ -47,6 +49,7 @@ Party
 Project
 Order
 Document
+Asset
 
 Tablas
 
@@ -61,6 +64,7 @@ parties
 projects
 orders
 documents
+assets
 
 Controladores
 
@@ -73,6 +77,7 @@ Ejemplos:
 UserController
 OrderController
 DocumentController
+AssetController
 
 Rutas
 
@@ -83,6 +88,7 @@ Ejemplos:
 /users
 /orders
 /documents
+/assets
 
 Convenciones de multi-tenancy
 
@@ -124,6 +130,8 @@ app('tenant')
 
 y asignarse automáticamente por el sistema.
 
+Algunos modelos padre del proyecto exponen tenant_id en fillable por consistencia histórica, pero igualmente no debe venir desde formularios públicos ni desde input del usuario.
+
 En entidades hijas (por ejemplo items o registros dependientes), tenant_id tampoco debe exponerse desde formularios del usuario.
 
 Sin embargo, si el registro hijo se crea internamente desde un flujo controlado del sistema y el tenant se hereda explícitamente desde la entidad padre, puede incluirse tenant_id en fillable para permitir la creación interna consistente mediante create().
@@ -148,6 +156,14 @@ Ejemplos:
 order_items
 document_items
 
+Convenciones de flujo Asset → Order
+
+Un order puede vincularse opcionalmente a un asset.
+
+Si un order tiene asset_id, debe ser consistente con party_id.
+
+Si una orden ya quedó vinculada a un activo, no debe permitirse cambiar libremente asset_id ni party_id en edición si eso compromete la trazabilidad funcional del registro.
+
 Convenciones de flujo Order → Document
 
 Un order puede dar origen a múltiples documents.
@@ -161,10 +177,29 @@ documents hereda automáticamente:
 tenant_id
 party_id
 order_id
+asset_id si la orden lo posee
 
 Los order_items pueden copiarse a document_items según el tipo documental.
 
 Luego de copiar los ítems, los totales del documento deben recalcularse.
+
+Convenciones de búsquedas y filtros en index
+
+Los listados index deben preferir filtros simples por GET.
+
+Reglas:
+
+usar when(...) en queries para mantener controladores legibles
+
+usar paginate(...)->withQueryString() para preservar filtros entre páginas
+
+usar q como búsqueda libre cuando aporte valor real
+
+usar select para filtros cerrados o catálogos
+
+evitar buscadores globales o sobrearquitectura antes de necesidad real
+
+Los catálogos reutilizables del sistema también deben aprovecharse en filtros cuando corresponda.
 
 Convenciones de controladores
 

@@ -1,4 +1,4 @@
-BASE VISUAL DEL PROYECTO – app-base
+BASE-VISUAL-DEL-PROYECTO – app-base
 
 OBJETIVO
 
@@ -40,6 +40,35 @@ table-wrap.list-scroll
 Ejemplo:
 
 <x-page class="list-page"> <x-breadcrumb /> <x-page-header /> <x-card class="list-card"> <div class="table-wrap list-scroll"> <table class="table"> ... </table> </div> </x-card> </x-page>
+
+FILTROS EN LISTADOS (INDEX)
+
+Cuando el módulo lo requiera, los filtros deben ubicarse arriba de la tabla, dentro del mismo x-card.list-card del listado.
+
+Patrón validado:
+
+formulario GET
+bloque superior de filtros dentro del mismo card
+tabla debajo del bloque de filtros
+paginación preservando query string
+
+Clases utilizadas:
+
+list-filters
+list-filters-grid
+list-filters-actions
+
+Reglas:
+
+los filtros deben ser simples y previsibles
+
+deben usar método GET
+
+deben evitar UX compleja innecesaria
+
+la tabla debe mantenerse como bloque principal del listado
+
+la paginación debe conservar el estado del filtro
 
 ESTADOS EN LISTADOS
 

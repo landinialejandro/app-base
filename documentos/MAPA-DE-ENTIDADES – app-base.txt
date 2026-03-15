@@ -1,6 +1,5 @@
 MAPA-DE-ENTIDADES – app-base
-
-## Objetivo
+Objetivo
 
 Este documento define el mapa conceptual de entidades del proyecto app-base.
 
@@ -11,9 +10,7 @@ evitar duplicación de modelos
 orientar la creación de nuevos módulos
 mantener coherencia en el crecimiento del SaaS
 
----
-
-# Criterio general de modelado
+Criterio general de modelado
 
 El sistema distingue entre:
 
@@ -29,15 +26,11 @@ users es entidad del sistema
 parties es la entidad base del negocio
 antes de crear una entidad nueva evaluar si puede resolverse con una entidad existente
 
----
-
-# Entidades del sistema
+Entidades del sistema
 
 Estas entidades forman el núcleo técnico del SaaS.
 
----
-
-# SIGNUP_REQUESTS
+SIGNUP_REQUESTS
 
 Entidad que representa la solicitud pública inicial para crear una nueva empresa en el sistema.
 
@@ -76,9 +69,7 @@ owner acepta invitación
 ↓
 se crea tenant y membership owner
 
----
-
-# INVITATIONS
+INVITATIONS
 
 Entidad que representa una invitación formal de ingreso o vinculación al sistema.
 
@@ -141,9 +132,7 @@ member_invite se utiliza para sumar un usuario a un tenant existente.
 
 No existe registro público libre en el sistema; el alta de usuarios relevantes parte desde invitations.
 
----
-
-# TENANTS
+TENANTS
 
 Entidad que representa una organización dentro del sistema.
 
@@ -168,9 +157,7 @@ Todas las relaciones hacia tenants deben utilizar CHAR(36).
 
 Esto evita incompatibilidades con migraciones que utilicen bigint por defecto.
 
----
-
-# USERS
+USERS
 
 Entidad que representa la identidad global del sistema.
 
@@ -197,9 +184,7 @@ Un mismo user puede ser owner de muchos tenants.
 
 La pertenencia real no se resuelve desde users, sino desde memberships.
 
----
-
-# MEMBERSHIPS
+MEMBERSHIPS
 
 Entidad que representa la pertenencia real entre un user y un tenant.
 
@@ -226,9 +211,7 @@ Permite múltiples memberships para un mismo user en distintos tenants.
 
 Es la fuente válida de pertenencia user-tenant.
 
----
-
-# Regla sobre TenantScoped
+Regla sobre TenantScoped
 
 El trait TenantScoped se utiliza únicamente en entidades cuyo ciclo de vida pertenece completamente a un tenant.
 
@@ -243,6 +226,7 @@ Invitation
 Party
 Project
 Task
+Asset
 
 No debe utilizarse en entidades del sistema como:
 
@@ -251,11 +235,8 @@ Tenant
 Membership
 SignupRequest
 
----
-
-# Entidad base del negocio
-
-## PARTIES
+Entidad base del negocio
+PARTIES
 
 Entidad general para personas u organizaciones relacionadas con el negocio.
 
@@ -298,11 +279,8 @@ is_active
 timestamps
 softDeletes
 
----
-
-# Entidades operativas
-
-## PROJECTS
+Entidades operativas
+PROJECTS
 
 Agrupa trabajos o iniciativas.
 
@@ -316,9 +294,7 @@ Nota:
 
 projects no posee catálogo funcional propio por el momento.
 
----
-
-# TASKS
+TASKS
 
 Unidad operativa de trabajo.
 
@@ -335,9 +311,7 @@ Dominio funcional:
 
 status
 
----
-
-# PRODUCTS
+PRODUCTS
 
 Representa productos, artículos o insumos.
 
@@ -352,9 +326,48 @@ Dominio funcional:
 
 kind
 
----
+ASSETS
 
-# DOCUMENT_SEQUENCES
+Entidad base reusable para representar una unidad identificable y operable del negocio.
+
+Campos base relevantes:
+
+id
+tenant_id
+party_id
+kind
+relationship_type
+name
+internal_code
+status
+notes
+created_at
+updated_at
+deleted_at
+
+Notas:
+
+representa un activo operativo genérico, no contable ni patrimonial
+
+permite especialización futura por tablas complementarias
+
+ejemplo futuro:
+
+asset_motorcycles
+asset_machinery
+
+party_id representa el vínculo actual principal del activo con un contacto o cliente
+
+el historial de cambios de titularidad o vinculación no se resuelve aún en v1
+
+Relaciones principales:
+
+tenant → assets
+party → assets
+assets → orders
+assets → documents
+
+DOCUMENT_SEQUENCES
 
 Entidad que controla la numeración automática de órdenes y documentos dentro de cada tenant.
 
@@ -405,9 +418,7 @@ Relaciones:
 
 tenant → document_sequences
 
----
-
-# ORDERS
+ORDERS
 
 Representa pedidos u órdenes comerciales.
 
@@ -420,6 +431,7 @@ Relaciones principales:
 
 tenant → orders
 orders → parties
+orders → assets
 orders → products
 orders → documents
 
@@ -443,9 +455,15 @@ Dominios funcionales:
 kind
 status
 
----
+Notas operativas:
 
-# ORDER_ITEMS
+belongsTo party
+
+belongsTo asset (nullable)
+
+una orden vinculada a un activo debe mantener consistencia con el contacto del activo
+
+ORDER_ITEMS
 
 Detalle de productos dentro de una orden.
 
@@ -467,11 +485,8 @@ Regla importante:
 
 kind reutiliza el mismo dominio definido en products.
 
----
-
-# Entidades documentales
-
-## DOCUMENTS
+Entidades documentales
+DOCUMENTS
 
 Entidad genérica para documentos comerciales u operativos.
 
@@ -493,6 +508,7 @@ Relaciones principales:
 
 tenant → documents
 documents → parties
+documents → assets
 documents → products
 documents → projects
 documents → orders
@@ -521,9 +537,17 @@ Dominios funcionales:
 kind
 status
 
----
+Notas operativas:
 
-# DOCUMENT_ITEMS
+belongsTo party
+
+belongsTo order (nullable)
+
+belongsTo asset (nullable)
+
+cuando un documento se genera desde una orden, hereda el activo si la orden lo tiene
+
+DOCUMENT_ITEMS
 
 Detalle de líneas dentro de un documento.
 
@@ -545,11 +569,8 @@ Regla:
 
 kind reutiliza el mismo dominio de products.
 
----
-
-# Entidades financieras futuras
-
-## PAYMENTS
+Entidades financieras futuras
+PAYMENTS
 
 Representa pagos o cobros asociados a documentos.
 
@@ -559,21 +580,16 @@ tenant → payments
 payments → documents
 payments → parties
 
----
-
-# Entidades de inventario futuras
-
-## INVENTORY
+Entidades de inventario futuras
+INVENTORY
 
 Representa stock de productos.
 
-## INVENTORY_MOVEMENTS
+INVENTORY_MOVEMENTS
 
 Registra movimientos de stock.
 
----
-
-# Entidades futuras de soporte
+Entidades futuras de soporte
 
 addresses
 attachments
@@ -583,9 +599,7 @@ permissions
 branches
 party_profiles
 
----
-
-# Nota importante
+Nota importante
 
 Aunque la interfaz utiliza el término contactos, no se creará una tabla contacts.
 
@@ -593,11 +607,8 @@ La entidad real continúa siendo:
 
 parties
 
----
-
-# Relación conceptual general del sistema
-
-## Núcleo SaaS
+Relación conceptual general del sistema
+Núcleo SaaS
 
 users
 ↓
@@ -605,7 +616,7 @@ memberships
 ↓
 tenants
 
-## Dominio de negocio
+Dominio de negocio
 
 tenants
 ↓
@@ -615,17 +626,17 @@ projects
 ↓
 tasks
 
-## Dominio comercial
+Dominio comercial y operativo
 
 tenants
 ↓
-products
+products / assets
 ↓
 orders
 ↓
 documents
 
-## Sistema de numeración
+Sistema de numeración
 
 tenant
 ↓
@@ -633,21 +644,18 @@ document_sequences
 ↓
 orders / documents
 
----
-
-# Orden recomendado de implementación
+Orden recomendado de implementación
 
 parties
 tasks
 products
+assets
 orders
 documents
 payments
 inventory
 
----
-
-# Regla final
+Regla final
 
 El crecimiento del sistema debe seguir estos principios:
 

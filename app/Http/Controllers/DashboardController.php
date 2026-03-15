@@ -10,6 +10,7 @@ use App\Models\Party;
 use App\Models\Product;
 use App\Models\Project;
 use App\Models\Task;
+use App\Models\Asset;
 use App\Support\Catalogs\TaskCatalog;
 
 class DashboardController extends Controller
@@ -29,6 +30,7 @@ class DashboardController extends Controller
             'productsCount' => Product::query()->count(),
             'ordersCount' => Order::query()->count(),
             'documentsCount' => Document::query()->count(),
+            'assetsCount' => Asset::query()->count(),
         ]);
     }
 }

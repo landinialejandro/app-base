@@ -26,6 +26,11 @@ class Navbar extends Component
                 'route' => 'parties.index',
                 'active' => ['parties.*'],
             ],
+            [
+                'label' => 'Activos',
+                'route' => 'assets.index',
+                'active' => ['assets.*'],
+            ],
         ];
 
         $this->managementLinks = [

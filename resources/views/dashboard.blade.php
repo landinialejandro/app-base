@@ -6,9 +6,7 @@
 
 @section('content')
     <x-page>
-        <x-breadcrumb :items="[
-            ['label' => 'Inicio'],
-        ]" />
+        <x-breadcrumb :items="[['label' => 'Inicio']]" />
 
         <x-page-header title="Dashboard" />
 
@@ -25,6 +23,7 @@
                     <span class="dashboard-tenant-stat">{{ $tasksCount }} tareas</span>
                     <span class="dashboard-tenant-stat">{{ $partiesCount }} contactos</span>
                     <span class="dashboard-tenant-stat">{{ $productsCount }} productos</span>
+                    <span class="dashboard-tenant-stat">{{ $assetsCount }} activos</span>
                     <span class="dashboard-tenant-stat">{{ $ordersCount }} órdenes</span>
                     <span class="dashboard-tenant-stat">{{ $documentsCount }} documentos</span>
                 </div>
@@ -56,6 +55,12 @@
                     <span class="dashboard-link-title">Contactos</span>
                     <span class="dashboard-link-text">Ver y administrar contactos</span>
                     <span class="dashboard-link-meta">{{ $partiesCount }} contactos</span>
+                </a>
+
+                <a href="{{ route('assets.index') }}" class="dashboard-link-card">
+                    <span class="dashboard-link-title">Activos</span>
+                    <span class="dashboard-link-text">Ver y administrar activos operativos</span>
+                    <span class="dashboard-link-meta">{{ $assetsCount }} activos</span>
                 </a>
             </div>
         </x-card>

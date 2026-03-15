@@ -7,10 +7,7 @@
 @section('content')
     <x-page class="list-page">
 
-        <x-breadcrumb :items="[
-            ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Proyectos'],
-        ]" />
+        <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Proyectos']]" />
 
         <x-page-header title="Proyectos">
             <a href="{{ route('projects.create') }}" class="btn btn-primary">
@@ -19,6 +16,25 @@
         </x-page-header>
 
         <x-card class="list-card">
+
+            <form method="GET" action="{{ route('projects.index') }}" class="form list-filters">
+                <div class="list-filters-grid">
+                    <div class="form-group">
+                        <label for="q" class="form-label">Buscar</label>
+                        <input type="text" id="q" name="q" class="form-control" value="{{ request('q') }}"
+                            placeholder="Nombre, descripción o ID">
+                    </div>
+                </div>
+
+                <div class="list-filters-actions">
+                    <button type="submit" class="btn btn-primary">Filtrar</button>
+
+                    <a href="{{ route('projects.index') }}" class="btn btn-secondary">
+                        Limpiar
+                    </a>
+                </div>
+            </form>
+
             @if ($projects->count())
                 <div class="table-wrap list-scroll">
                     <table class="table">
@@ -47,6 +63,8 @@
                             @endforeach
                         </tbody>
                     </table>
+
+                    {{ $projects->links() }}
                 </div>
             @else
                 <p class="mb-0">No hay proyectos para esta empresa.</p>

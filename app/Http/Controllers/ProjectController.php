@@ -9,13 +9,26 @@ use Illuminate\Http\Request;
 
 class ProjectController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         $tenant = app('tenant');
 
+        $q = trim((string) $request->get('q', ''));
+
         $projects = Project::query()
+            ->when($q !== '', function ($query) use ($q) {
+                $query->where(function ($subquery) use ($q) {
+                    $subquery->where('name', 'like', "%{$q}%")
+                        ->orWhere('description', 'like', "%{$q}%");
+
+                    if (ctype_digit($q)) {
+                        $subquery->orWhere('id', (int) $q);
+                    }
+                });
+            })
             ->latest()
-            ->get();
+            ->paginate(25)
+            ->withQueryString();
 
         return view('projects.index', [
             'tenant' => $tenant,

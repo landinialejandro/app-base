@@ -24,6 +24,7 @@ use App\Http\Controllers\PublicSignupRequestController;
 use App\Http\Controllers\AdminSignupRequestController;
 use App\Http\Controllers\AdminInvitationController;
 use App\Http\Controllers\AdminMetricsController;
+use App\Http\Controllers\AssetController;
 
 use App\Models\Invitation;
 use App\Models\User;
@@ -171,6 +172,8 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::resource('tasks', TaskController::class);
 
     Route::resource('products', ProductController::class);
+
+    Route::resource('assets', AssetController::class);
 
     Route::resource('orders', OrderController::class);
 

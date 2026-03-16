@@ -57,6 +57,7 @@
     </div>
 
     <script src="{{ asset('js/app-base.js') }}"></script>
+    @stack('scripts')
 </body>
 
 </html>

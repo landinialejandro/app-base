@@ -4,6 +4,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Membership;
 use Illuminate\Http\Request;
 
 class TenantProfileController extends Controller
@@ -19,8 +20,22 @@ class TenantProfileController extends Controller
 
         abort_unless($membership?->is_owner, 403);
 
+        $memberships = Membership::query()
+            ->where('tenant_id', $tenant->id)
+            ->with([
+                'user',
+                'roles' => function ($query) {
+                    $query->orderBy('name');
+                },
+            ])
+            ->orderByDesc('is_owner')
+            ->orderBy('status')
+            ->orderBy('id')
+            ->get();
+
         return view('tenants.profile', [
             'tenant' => $tenant,
+            'memberships' => $memberships,
         ]);
     }
 

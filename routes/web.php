@@ -18,6 +18,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PublicSignupRequestController;
 use App\Http\Controllers\SuperadminDashboardController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TenantMembershipController;
 use App\Http\Controllers\TenantProfileController;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Auth;
@@ -49,6 +50,7 @@ Route::middleware('tenant')->get('/whoami', function () {
 // Selector de empresa
 Route::middleware('auth')->get('/tenants/select', function () {
     $tenants = Auth::user()->tenants()
+        ->wherePivot('status', 'active')
         ->select('tenants.id', 'tenants.name', 'tenants.slug')
         ->get();
 
@@ -58,12 +60,13 @@ Route::middleware('auth')->get('/tenants/select', function () {
 Route::middleware('auth')->post('/tenants/select/{tenant}', function (Tenant $tenant) {
     $user = Auth::user();
 
-    $allowed = $user->tenants()
-        ->where('tenants.id', $tenant->id)
+    $allowed = $user->memberships()
+        ->where('tenant_id', $tenant->id)
+        ->where('status', 'active')
         ->exists();
 
     if (! $allowed) {
-        abort(403, 'You are not a member of this tenant.');
+        abort(403, 'You do not have active access to this tenant.');
     }
 
     session(['tenant_id' => $tenant->id]);
@@ -126,6 +129,12 @@ Route::middleware(['auth', 'tenant'])->group(function () {
 
     Route::put('/tenant/profile', [TenantProfileController::class, 'update'])
         ->name('tenant.profile.update');
+
+    Route::post('/tenant/memberships/{membership}/block', [TenantMembershipController::class, 'block'])
+        ->name('tenant.memberships.block');
+
+    Route::post('/tenant/memberships/{membership}/unblock', [TenantMembershipController::class, 'unblock'])
+        ->name('tenant.memberships.unblock');
 
     // Projects
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');

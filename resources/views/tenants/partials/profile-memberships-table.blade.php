@@ -46,9 +46,9 @@
 
                             <td>
                                 @if ($membership->roles->count())
-                                    <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                                    <div class="role-list">
                                         @foreach ($membership->roles as $role)
-                                            <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                                            <div class="role-row">
                                                 <span>{{ $role->name }}</span>
 
                                                 <form method="POST"
@@ -73,11 +73,10 @@
                                 @if ($assignableRoles->count())
                                     <form method="POST"
                                         action="{{ route('tenant.memberships.roles.attach', $membership) }}"
-                                        class="inline-form"
-                                        style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                                        class="inline-form inline-form-wrap">
                                         @csrf
 
-                                        <select name="role_id" class="form-control" style="min-width: 180px;">
+                                        <select name="role_id" class="form-control form-control--role-select">
                                             @foreach ($assignableRoles as $role)
                                                 <option value="{{ $role->id }}">{{ $role->name }}</option>
                                             @endforeach

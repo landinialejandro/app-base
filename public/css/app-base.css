@@ -1340,14 +1340,39 @@ textarea.form-control {
     border-top: 1px solid var(--color-border);
 }
 
-.summary-inline-item {
-    padding: var(--space-3);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    background: #f8fafc;
+.expiration-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.helper-inline-spaced {
+    margin-top: 0.35rem;
+}
+
+.role-list {
     display: flex;
     flex-direction: column;
-    gap: var(--space-1);
+    gap: 0.5rem;
+}
+
+.role-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.inline-form-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.form-control--role-select {
+    min-width: 180px;
 }
 
 /* =========================================================

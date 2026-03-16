@@ -60,12 +60,12 @@
 
                             <td>
                                 @if ($expiresAt)
-                                    <div style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                                    <div class="expiration-meta">
                                         <span class="{{ $expirationBadgeClass }}">{{ $expirationLabel }}</span>
                                         <span>{{ $expiresAt->format('d/m/Y H:i') }}</span>
                                     </div>
 
-                                    <div class="helper-inline" style="margin-top:0.35rem;">
+                                    <div class="helper-inline helper-inline-spaced">
                                         {{ $humanDiff }}
                                     </div>
                                 @else

@@ -256,7 +256,7 @@
                                     <div class="detail-block-value">
                                         @if ($expiresAt)
                                             <span class="{{ $expirationBadgeClass }}">{{ $expirationLabel }}</span>
-                                            <div class="helper-inline" style="margin-top: 0.35rem;">
+                                            <div class="helper-inline helper-inline-spaced">
                                                 {{ $expiresAt->format('d/m/Y H:i') }}
                                                 @if ($humanDiff)
                                                     · {{ $humanDiff }}

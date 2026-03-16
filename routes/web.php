@@ -18,8 +18,8 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PublicSignupRequestController;
 use App\Http\Controllers\SuperadminDashboardController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TenantProfileController;
 use App\Models\Tenant;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
@@ -121,41 +121,11 @@ Route::view('/profile', 'profile.show')
 
 Route::middleware(['auth', 'tenant'])->group(function () {
 
-    Route::get('/tenant/profile', function () {
-        $tenant = app('tenant');
+    Route::get('/tenant/profile', [TenantProfileController::class, 'show'])
+        ->name('tenant.profile.show');
 
-        $membership = auth()->user()
-            ->memberships()
-            ->where('tenant_id', $tenant->id)
-            ->first();
-
-        abort_unless($membership?->is_owner, 403);
-
-        return view('tenants.profile', [
-            'tenant' => $tenant,
-        ]);
-    })->name('tenant.profile.show');
-
-    Route::put('/tenant/profile', function (Request $request) {
-        $tenant = app('tenant');
-
-        $membership = auth()->user()
-            ->memberships()
-            ->where('tenant_id', $tenant->id)
-            ->first();
-
-        abort_unless($membership?->is_owner, 403);
-
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
-        ]);
-
-        $tenant->update($data);
-
-        return redirect()
-            ->route('tenant.profile.show')
-            ->with('success', 'Perfil de empresa actualizado correctamente.');
-    })->name('tenant.profile.update');
+    Route::put('/tenant/profile', [TenantProfileController::class, 'update'])
+        ->name('tenant.profile.update');
 
     // Projects
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');

@@ -144,3 +144,29 @@ CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS
 OBJETIVO DE ESTE CHAT
 
 [describir aquí el objetivo puntual del chat]
+
+
+
+Avancemos con pasos cortos
+no dudes en preguntar o solicitar información para darme la mejor respuesta
+no es necesario adivinar, ya tenemos el proyecto con varios modulos
+es más util pedir información así oprimizamos el uso del tiempo
+siempre dame la mejor opcion de respuesta para no tener sobrerevisar
+prevenimos el analisi viendo si el siguiente paso es mejor o no
+Si necesitas archivos creame un comado de consola similar al siguiente:
+
+(
+find app/Models -type f -name "Product.php";
+find app/Http/Controllers -type f -name "ProductController.php";
+find resources/views/products -type f -name "*.blade.php";
+) | sort | while read file; do
+    echo "===== $file ====="
+    cat "$file"
+    echo
+    echo
+done > documentos/auditoria/auditoria-[nombre de referencia].txt
+
+indicando todos los que necesaitas así te los paso
+
+Si hay que crear archivo/s dame el comando de lilnea para generarlo o 
+si corresponde el comando artinsan

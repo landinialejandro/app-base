@@ -128,7 +128,7 @@
                                 <span class="detail-block-label">Estado</span>
                                 <div class="detail-block-value">
                                     <span class="status-badge {{ OrderCatalog::badgeClass($order->status) }}">
-                                        {{ OrderCatalog::label($order->status) }}
+                                        {{ OrderCatalog::statusLabel($order->status) }}
                                     </span>
                                 </div>
                             </div>
@@ -185,59 +185,13 @@
                     </x-page-header>
 
                     <x-card class="list-card">
-                        @if ($items->count())
-                            <div class="table-wrap list-scroll">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Posición</th>
-                                            <th>Tipo</th>
-                                            <th>Descripción</th>
-                                            <th>Cantidad</th>
-                                            <th>Precio unitario</th>
-                                            <th>Subtotal</th>
-                                            <th class="compact-actions-cell">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($items as $item)
-                                            <tr>
-                                                <td>{{ $item->position }}</td>
-                                                <td>{{ ProductCatalog::label($item->kind) }}</td>
-                                                <td>{{ $item->description }}</td>
-                                                <td>{{ number_format($item->quantity, 2, ',', '.') }}</td>
-                                                <td>${{ number_format($item->unit_price, 2, ',', '.') }}</td>
-                                                <td>${{ number_format($item->subtotal, 2, ',', '.') }}</td>
-                                                <td class="compact-actions-cell">
-                                                    <div class="compact-actions">
-                                                        <a href="{{ route('orders.items.edit', [$order, $item]) }}"
-                                                            class="btn btn-secondary btn-icon" title="Editar ítem"
-                                                            aria-label="Editar ítem">
-                                                            <x-icons.pencil />
-                                                        </a>
-
-                                                        <form method="POST"
-                                                            action="{{ route('orders.items.destroy', [$order, $item]) }}"
-                                                            class="inline-form" data-action="app-confirm-submit"
-                                                            data-confirm-message="¿Deseas eliminar este ítem?">
-                                                            @csrf
-                                                            @method('DELETE')
-
-                                                            <button type="submit" class="btn btn-danger btn-icon"
-                                                                title="Eliminar ítem" aria-label="Eliminar ítem">
-                                                                <x-icons.trash />
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        @else
-                            <p class="mb-0">No hay ítems cargados en esta orden.</p>
-                        @endif
+                        @include('documents.partials.embedded-table', [
+                            'documents' => $documents,
+                            'showParty' => false,
+                            'showAsset' => false,
+                            'showOrder' => false,
+                            'emptyMessage' => 'No hay documentos asociados para mostrar.',
+                        ])
                     </x-card>
 
                     <x-card>
@@ -318,7 +272,7 @@
                                                 <td>
                                                     <span
                                                         class="status-badge {{ DocumentCatalog::badgeClass($document->status) }}">
-                                                        {{ DocumentCatalog::label($document->status) }}
+                                                        {{ DocumentCatalog::statusLabel($document->status) }}
                                                     </span>
                                                 </td>
                                                 <td>{{ $document->issued_at?->format('d/m/Y') ?: '—' }}</td>

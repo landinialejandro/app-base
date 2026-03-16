@@ -142,7 +142,7 @@
                                     <td>{{ \App\Support\Catalogs\OrderCatalog::label($order->kind) }}</td>
                                     <td>
                                         <span
-                                            class="status-badge {{ \App\Support\Catalogs\OrderCatalog::badgeClass($order->status) }}">
+                                            class="status-badge {{ \App\Support\Catalogs\OrderCatalog::statusLabel($order->status) }}">
                                             {{ \App\Support\Catalogs\OrderCatalog::label($order->status) }}
                                         </span>
                                     </td>
@@ -166,55 +166,13 @@
                 </p>
             </div>
 
-            @if ($documents->count())
-                <div class="table-wrap list-scroll">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Número</th>
-                                <th>Tipo</th>
-                                <th>Estado</th>
-                                <th>Contacto</th>
-                                <th>Orden</th>
-                                <th>Fecha</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($documents as $document)
-                                <tr>
-                                    <td>
-                                        <a href="{{ route('documents.show', $document) }}">
-                                            {{ $document->number ?: 'Sin número' }}
-                                        </a>
-                                    </td>
-                                    <td>{{ DocumentCatalog::label($document->kind) }}</td>
-                                    <td>
-                                        <span class="status-badge {{ DocumentCatalog::badgeClass($document->status) }}">
-                                            {{ DocumentCatalog::label($document->status) }}
-                                        </span>
-                                    </td>
-                                    <td>{{ $document->party?->name ?: '—' }}</td>
-                                    <td>
-                                        @if ($document->order)
-                                            <a href="{{ route('orders.show', $document->order) }}">
-                                                {{ $document->order->number ?: 'Sin número' }}
-                                            </a>
-                                        @else
-                                            —
-                                        @endif
-                                    </td>
-                                    <td>{{ $document->issued_at?->format('d/m/Y') ?: '—' }}</td>
-                                    <td>${{ number_format($document->total, 2, ',', '.') }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @else
-                <p class="mb-0">Este activo no tiene documentos vinculados.</p>
-            @endif
+            @include('documents.partials.embedded-table', [
+                'documents' => $documents,
+                'showParty' => true,
+                'showAsset' => false,
+                'showOrder' => true,
+                'emptyMessage' => 'Este activo no tiene documentos vinculados.',
+            ])
         </x-card>
-
     </x-page>
 @endsection

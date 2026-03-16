@@ -127,12 +127,12 @@
                                     </td>
 
                                     <td>
-                                        {{ OrderCatalog::label($order->kind) }}
+                                        {{ OrderCatalog::kindLabel($order->kind) }}
                                     </td>
 
                                     <td>
                                         <span class="status-badge {{ OrderCatalog::badgeClass($order->status) }}">
-                                            {{ OrderCatalog::label($order->status) }}
+                                            {{ OrderCatalog::statusLabel($order->status) }}
                                         </span>
                                     </td>
 

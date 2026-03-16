@@ -64,7 +64,7 @@
                     <span class="detail-block-label">Estado</span>
                     <div class="detail-block-value">
                         <span class="status-badge {{ DocumentCatalog::badgeClass($document->status) }}">
-                            {{ DocumentCatalog::label($document->status) }}
+                            {{ DocumentCatalog::statusLabel($document->status) }}
                         </span>
                     </div>
                 </div>
@@ -164,7 +164,7 @@
                                         @foreach ($items as $item)
                                             <tr>
                                                 <td>{{ $item->position }}</td>
-                                                <td>{{ ProductCatalog::label($item->kind) }}</td>
+                                                <td>{{ ProductCatalog::kindLabel($item->kind) }}</td>
                                                 <td>{{ $item->description }}</td>
                                                 <td>{{ number_format($item->quantity, 2, ',', '.') }}</td>
                                                 <td>${{ number_format($item->unit_price, 2, ',', '.') }}</td>

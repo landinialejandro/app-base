@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Http\Requests\StorePartyRequest;
 use App\Http\Requests\UpdatePartyRequest;
 use App\Models\Asset;
+use App\Models\Document;
 use App\Models\Party;
 use Illuminate\Http\Request;
 
@@ -80,10 +81,18 @@ class PartyController extends Controller
             ->orderBy('name')
             ->get();
 
+        $documents = Document::query()
+            ->with(['order', 'asset'])
+            ->where('party_id', $party->id)
+            ->orderByDesc('issued_at')
+            ->orderByDesc('id')
+            ->get();
+
         return view('parties.show', [
             'tenant' => $tenant,
             'party' => $party,
             'assets' => $assets,
+            'documents' => $documents,
         ]);
     }
 

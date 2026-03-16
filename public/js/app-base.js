@@ -402,24 +402,21 @@
 
             const links = Array.from(
                 tabsRoot.querySelectorAll("[data-tab-link]"),
-            );
+            ).filter(function (link) {
+                return link.closest("[data-tabs]") === tabsRoot;
+            });
+
             const panels = Array.from(
                 tabsRoot.querySelectorAll("[data-tab-panel]"),
-            );
+            ).filter(function (panel) {
+                return panel.parentElement.closest("[data-tabs]") === tabsRoot;
+            });
 
             if (!links.length || !panels.length) {
                 return;
             }
 
-            const updateUrlTabParam = function (tabName) {
-                const url = new URL(window.location.href);
-                url.searchParams.set("tab", tabName);
-                window.history.replaceState({}, "", url);
-            };
-
-            const activateTab = function (tabName, options = {}) {
-                const shouldUpdateUrl = options.updateUrl ?? true;
-
+            const activateTab = function (tabName) {
                 links.forEach(function (link) {
                     const isActive = link.dataset.tabLink === tabName;
                     link.classList.toggle("is-active", isActive);
@@ -434,31 +431,19 @@
                     panel.classList.toggle("is-active", isActive);
                     panel.hidden = !isActive;
                 });
-
-                if (shouldUpdateUrl) {
-                    updateUrlTabParam(tabName);
-                }
             };
 
             links.forEach(function (link) {
                 link.addEventListener("click", function () {
-                    activateTab(link.dataset.tabLink, { updateUrl: true });
+                    activateTab(link.dataset.tabLink);
                 });
             });
 
-            const initialTabFromUrl = new URL(
-                window.location.href,
-            ).searchParams.get("tab");
             const initialActiveLink =
-                links.find(
-                    (link) => link.dataset.tabLink === initialTabFromUrl,
-                ) ||
                 links.find((link) => link.classList.contains("is-active")) ||
                 links[0];
 
-            activateTab(initialActiveLink.dataset.tabLink, {
-                updateUrl: false,
-            });
+            activateTab(initialActiveLink.dataset.tabLink);
         });
     };
 

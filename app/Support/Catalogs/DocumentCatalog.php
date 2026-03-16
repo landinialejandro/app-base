@@ -1,18 +1,27 @@
 <?php
 
+// FILE: app/Support/Catalogs/DocumentCatalog.php
+
 namespace App\Support\Catalogs;
 
 class DocumentCatalog extends BaseCatalog
 {
     public const KIND_QUOTE = 'quote';
+
     public const KIND_INVOICE = 'invoice';
+
     public const KIND_DELIVERY_NOTE = 'delivery_note';
+
     public const KIND_WORK_ORDER = 'work_order';
+
     public const KIND_RECEIPT = 'receipt';
+
     public const KIND_CREDIT_NOTE = 'credit_note';
 
     public const STATUS_DRAFT = 'draft';
+
     public const STATUS_ISSUED = 'issued';
+
     public const STATUS_CANCELLED = 'cancelled';
 
     protected static array $kinds = [
@@ -35,4 +44,22 @@ class DocumentCatalog extends BaseCatalog
         self::STATUS_ISSUED => 'status-badge--done',
         self::STATUS_CANCELLED => 'status-badge--cancelled',
     ];
+
+    public static function kindLabel(?string $value, ?string $default = '—'): ?string
+    {
+        if ($value === null) {
+            return $default;
+        }
+
+        return static::$kinds[$value] ?? $default;
+    }
+
+    public static function statusLabel(?string $value, ?string $default = '—'): ?string
+    {
+        if ($value === null) {
+            return $default;
+        }
+
+        return static::$statuses[$value] ?? $default;
+    }
 }

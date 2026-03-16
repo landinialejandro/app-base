@@ -139,12 +139,12 @@
                                     </td>
 
                                     <td>
-                                        {{ DocumentCatalog::label($document->kind) }}
+                                        {{ DocumentCatalog::kindLabel($document->kind) }}
                                     </td>
 
                                     <td>
                                         <span class="status-badge {{ DocumentCatalog::badgeClass($document->status) }}">
-                                            {{ DocumentCatalog::label($document->status) }}
+                                            {{ DocumentCatalog::statusLabel($document->status) }}
                                         </span>
                                     </td>
 

@@ -54,6 +54,17 @@ Características:
 
 Un usuario puede pertenecer a múltiples empresas.
 Cada empresa puede tener múltiples usuarios.
+Un mismo user puede pertenecer a tenants no relacionados entre sí.
+users representa identidad global.
+memberships representa acceso por empresa.
+
+Acceso efectivo por empresa
+
+El estado de acceso efectivo a un tenant se resuelve por memberships.status y no por users.
+
+El bloqueo o inhabilitación de acceso debe resolverse por membership y no por user.
+
+Esto permite que un usuario continúe activo en un tenant y al mismo tiempo se encuentre bloqueado o inactivo en otro.
 
 Resolución del tenant activo
 
@@ -74,6 +85,12 @@ app()->instance('tenant', $tenant)
 Esto permite acceder al tenant actual desde cualquier parte del sistema mediante:
 
 app('tenant')
+
+Reglas operativas del tenant activo
+
+El selector de empresa debe mostrar únicamente memberships activas del usuario autenticado.
+
+ResolveTenant debe validar pertenencia activa al tenant antes de permitir acceso operativo.
 
 Aislamiento automático de datos
 
@@ -321,6 +338,17 @@ invitations de tipo owner_signup
 onboarding inicial de nuevas empresas
 
 El superadmin opera sin depender de un tenant activo.
+
+Invitations soporta actualmente al menos los siguientes tipos:
+
+owner_signup
+member_invite
+
+Configuración básica de empresa
+
+tenants.settings se utiliza para persistir configuración básica editable de empresa cuando esa configuración no justifica entidad propia.
+
+El perfil de empresa ya existe como pantalla operativa para owner.
 
 Entidades ya implementadas
 

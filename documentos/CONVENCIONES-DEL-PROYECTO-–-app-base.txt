@@ -114,6 +114,12 @@ User
 Tenant
 Membership
 
+Acceso operativo por tenant
+
+La restricción operativa de acceso a empresa debe validarse por memberships.status = active.
+
+No debe utilizarse desactivación global de users para resolver bajas, bloqueos o pérdida de acceso específicos de un tenant.
+
 Trait TenantScoped
 
 Las entidades del negocio deben utilizar el trait:
@@ -191,6 +197,26 @@ Los order_items pueden copiarse a document_items según el tipo documental.
 
 Luego de copiar los ítems, los totales del documento deben recalcularse.
 
+Convenciones de perfil de empresa
+
+El perfil de empresa es una pantalla reservada a owner.
+
+La configuración básica de empresa debe persistirse en tenants.settings cuando no justifique entidad propia.
+
+Si una configuración adquiere complejidad funcional significativa, podrá migrarse a entidad específica más adelante.
+
+Convenciones de invitaciones
+
+Las invitaciones de miembros del tenant se generan desde el contexto del owner.
+
+No debe permitirse generar una invitación nueva si:
+
+el email ya pertenece a un usuario del tenant
+
+existe una invitación pendiente y vigente para ese email y tenant
+
+El owner puede eliminar invitaciones pendientes no aceptadas.
+
 Convenciones de búsquedas y filtros en index
 
 Los listados index deben preferir filtros simples por GET.
@@ -261,7 +287,9 @@ En lugar de usar lógica condicional o match en la vista, debe utilizarse el cat
 
 Uso recomendado:
 
-<span class="status-badge {{ Catalog::badgeClass($value) }}"> {{ Catalog::label($value) }} </span>
+<span class="status-badge {{ Catalog::badgeClass($value) }}">
+    {{ Catalog::label($value) }}
+</span>
 
 Esto mantiene las vistas simples y evita duplicación de lógica.
 
@@ -282,6 +310,10 @@ view models
 catálogos
 servicios
 
+Cuando una vista crezca demasiado, debe dividirse en partials por bloques visuales claros.
+
+Se deben preferir partials antes que componentes globales cuando el bloque todavía sea local a una sola pantalla.
+
 Convenciones de formularios
 
 Los formularios deben enviar únicamente:
@@ -295,6 +327,35 @@ user_id
 campos derivados
 
 Estos valores deben resolverse internamente en el backend.
+
+Convenciones de frontend y JavaScript
+
+Evitar onclick, onsubmit, onchange y cualquier handler inline en Blade.
+
+El comportamiento reutilizable debe resolverse mediante:
+
+atributos data-action="app-..."
+
+JavaScript global en public/js/app-base.js
+
+El comportamiento puntual de una vista puede definirse en el blade raíz mediante:
+
+@push('scripts')
+
+Separación recomendada:
+
+clases CSS = estilo
+data-* = comportamiento
+
+Convenciones de preservación de contexto UX
+
+En vistas con tabs, filtros o acciones internas, debe preservarse el contexto funcional al refrescar o redirigir cuando eso mejore la UX.
+
+Ejemplos de contexto a preservar:
+
+tab activa
+filtros
+paginación cuando aplique
 
 Convenciones de seguridad
 

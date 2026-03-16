@@ -79,6 +79,12 @@ evaluar tabla futura de historial para relación activo-cliente
 
 reevaluar en el futuro, sobre entorno con SSH/CLI, si conviene volver parcial o totalmente a Route::resource(...) o mantener la convención de rutas explícitas como estándar permanente
 
+revisar extensión del perfil de empresa con gestión futura de sucursales y configuraciones operativas separadas
+
+evaluar política futura para edición, reenvío o regeneración de invitaciones de miembros
+
+revisar futura gestión de roles por sucursal usando membership_role.branch_id
+
 MEJORAS DE INTERFAZ
 
 revisar mensajes de vacío cuando hay filtros activos
@@ -101,6 +107,12 @@ agregar pantalla intermedia específica para invitaciones owner_signup listas pa
 terminar de revisar consistencia visual de vistas show e index del core restante
 
 evaluar futura unificación de badges en entorno admin/superadmin mediante catálogo o helper específico
+
+limpiar JavaScript inline y estandarizar acciones reutilizables con data-action="app-..."
+
+revisar otras vistas grandes para dividirlas en partials cuando superen complejidad razonable
+
+extender patrón de preservación de contexto UX en tabs, filtros y paginación a otras pantallas
 
 MEJORAS DE ONBOARDING
 

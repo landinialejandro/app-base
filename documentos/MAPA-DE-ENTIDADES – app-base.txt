@@ -1,4 +1,5 @@
 MAPA-DE-ENTIDADES – app-base
+
 Objetivo
 
 Este documento define el mapa conceptual de entidades del proyecto app-base.
@@ -157,6 +158,15 @@ Todas las relaciones hacia tenants deben utilizar CHAR(36).
 
 Esto evita incompatibilidades con migraciones que utilicen bigint por defecto.
 
+settings se utiliza para configuración básica editable de empresa cuando no justifica entidad propia.
+
+Relaciones conceptuales relevantes:
+
+tenants → memberships
+tenants → document_sequences
+
+Las invitaciones de miembros se relacionan operativamente con el tenant mediante invitations.tenant_id.
+
 USERS
 
 Entidad que representa la identidad global del sistema.
@@ -209,7 +219,29 @@ Define si un usuario pertenece o no a una empresa.
 
 Permite múltiples memberships para un mismo user en distintos tenants.
 
-Es la fuente válida de pertenencia user-tenant.
+Es la entidad de acceso por tenant.
+
+El acceso operativo debe resolverse a través de membership y su estado.
+
+membership_role
+
+Tabla pivote para asignación de roles por membership.
+
+Campos relevantes conceptuales:
+
+membership_id
+role_id
+branch_id nullable
+created_at
+updated_at
+
+Notas:
+
+el proyecto ya permite asignación de roles por membership
+
+branch_id puede utilizarse null como asignación general al tenant
+
+si en el futuro se implementa gestión por sucursal, branch_id permitirá especialización más fina del alcance del rol
 
 Regla sobre TenantScoped
 
@@ -236,6 +268,7 @@ Membership
 SignupRequest
 
 Entidad base del negocio
+
 PARTIES
 
 Entidad general para personas u organizaciones relacionadas con el negocio.
@@ -280,6 +313,7 @@ timestamps
 softDeletes
 
 Entidades operativas
+
 PROJECTS
 
 Agrupa trabajos o iniciativas.
@@ -486,6 +520,7 @@ Regla importante:
 kind reutiliza el mismo dominio definido en products.
 
 Entidades documentales
+
 DOCUMENTS
 
 Entidad genérica para documentos comerciales u operativos.
@@ -570,6 +605,7 @@ Regla:
 kind reutiliza el mismo dominio de products.
 
 Entidades financieras futuras
+
 PAYMENTS
 
 Representa pagos o cobros asociados a documentos.
@@ -581,6 +617,7 @@ payments → documents
 payments → parties
 
 Entidades de inventario futuras
+
 INVENTORY
 
 Representa stock de productos.
@@ -608,6 +645,7 @@ La entidad real continúa siendo:
 parties
 
 Relación conceptual general del sistema
+
 Núcleo SaaS
 
 users

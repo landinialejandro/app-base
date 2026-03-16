@@ -59,6 +59,11 @@ Nombre visible en la interfaz:
 
 contactos
 
+El acceso por empresa se resuelve por memberships.
+
+users representa identidad global.
+memberships representa acceso por tenant.
+
 BASE VISUAL
 
 Las páginas internas utilizan el layout estándar:
@@ -78,6 +83,14 @@ detail-grid
 detail-grid--3
 tabs internas para información secundaria
 badges de estado resueltos desde catálogo en el core
+
+Convenciones recientes de frontend:
+
+evitar handlers JS inline en Blade
+preferir data-action="app-..." para comportamiento reutilizable
+resolver comportamiento reusable en app-base.js
+resolver comportamiento puntual de pantalla con @push('scripts')
+en vistas con tabs, preservar contexto activo cuando mejore la UX
 
 ESTADO ACTUAL DEL PROYECTO
 
@@ -102,6 +115,7 @@ parties
 projects
 tasks
 products
+assets
 orders
 order_items
 documents
@@ -144,7 +158,6 @@ CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS
 OBJETIVO DE ESTE CHAT
 
 [describir aquí el objetivo puntual del chat]
-
 
 
 Avancemos con pasos cortos

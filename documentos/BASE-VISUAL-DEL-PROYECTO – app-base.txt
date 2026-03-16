@@ -3,6 +3,7 @@ BASE-VISUAL-DEL-PROYECTO – app-base
 OBJETIVO
 
 Este documento define la estructura visual mínima y obligatoria del sistema.
+
 Su objetivo es mantener consistencia visual entre todos los módulos.
 
 ESTRUCTURA GENERAL DE UNA PANTALLA
@@ -162,6 +163,22 @@ controlado por JavaScript mínimo global
 una solapa activa visible por vez
 útil para separar detalle, documentos asociados, historial u otros bloques secundarios
 
+Las tabs internas pueden contener múltiples cards apiladas por sección.
+
+Cuando la UX lo requiera, debe preservarse la tab activa al recargar o luego de acciones POST, PUT o DELETE.
+
+El contexto activo puede resolverse por query string, por ejemplo:
+
+?tab=users
+
+SHOW COMPLEJOS Y PANTALLAS DE CONFIGURACIÓN
+
+En vistas tipo configuración, perfil de empresa o show complejos con más de un bloque funcional, es válido utilizar:
+
+resumen superior
+tabs
+múltiples cards dentro de cada tab
+
 REGLA SOBRE ENCABEZADOS INTERNOS
 
 Evitar encabezados redundantes dentro de la ficha como:
@@ -229,6 +246,14 @@ contenedores reutilizables
 acciones visualmente consistentes
 
 No deben utilizar estilos inline salvo en casos excepcionales.
+
+Tampoco deben utilizar handlers JavaScript inline salvo excepción justificada y transitoria.
+
+FRAGMENTACIÓN DE BLADES
+
+Cuando una vista principal tenga múltiples bloques funcionales, puede dividirse en partials dentro de la carpeta del módulo.
+
+Esto es especialmente válido en vistas show complejas, perfiles, configuraciones y pantallas con tabs internas.
 
 NAVEGACIÓN SUPERIOR
 

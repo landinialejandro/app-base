@@ -4,7 +4,9 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Invitation;
 use App\Models\Membership;
+use App\Models\Role;
 use Illuminate\Http\Request;
 
 class TenantProfileController extends Controller
@@ -33,16 +35,33 @@ class TenantProfileController extends Controller
             ->orderBy('id')
             ->get();
 
+        $availableRoles = Role::query()
+            ->where('tenant_id', $tenant->id)
+            ->orderBy('name')
+            ->get();
+
         $activeTab = $request->query('tab', 'general');
 
         if (! in_array($activeTab, ['general', 'users'], true)) {
             $activeTab = 'general';
         }
 
+        $generatedInvitation = null;
+
+        if ($request->filled('generated_invitation')) {
+            $generatedInvitation = Invitation::query()
+                ->where('tenant_id', $tenant->id)
+                ->where('type', 'member_invite')
+                ->where('id', $request->integer('generated_invitation'))
+                ->first();
+        }
+
         return view('tenants.profile', [
             'tenant' => $tenant,
             'memberships' => $memberships,
+            'availableRoles' => $availableRoles,
             'activeTab' => $activeTab,
+            'generatedInvitation' => $generatedInvitation,
         ]);
     }
 

@@ -1,6 +1,6 @@
 <?php
 
-//FILE: app/Models/Tenant.php
+// FILE: app/Models/Tenant.php
 
 namespace App\Models;
 

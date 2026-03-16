@@ -166,6 +166,71 @@
                 <div class="tab-panel-stack">
                     <x-card>
                         <div class="dashboard-section-header">
+                            <h2 class="dashboard-section-title">Invitar usuario</h2>
+                            <p class="dashboard-section-text">
+                                Genera un link de acceso para compartir manualmente por WhatsApp o cualquier otro medio.
+                            </p>
+                        </div>
+
+                        <form method="POST" action="{{ route('tenant.invitations.store') }}" class="form">
+                            @csrf
+
+                            <div class="form-group">
+                                <label for="invite_email" class="form-label">Correo electrónico</label>
+                                <input id="invite_email" name="email" type="email" class="form-control"
+                                    value="{{ old('email') }}" placeholder="correo@empresa.com" required>
+                                <div class="form-help">
+                                    El sistema generará un enlace individual para esta empresa.
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    Generar link
+                                </button>
+                            </div>
+                        </form>
+
+                        @if (!empty($generatedInvitation))
+                            @php
+                                $generatedInvitationUrl = route('invitation.accept.show', $generatedInvitation->token);
+                            @endphp
+
+                            <hr style="margin: 1rem 0; border: 0; border-top: 1px solid #d9e1ec;">
+
+                            <div class="form-group">
+                                <label for="generated-invitation-link" class="form-label">Link generado</label>
+                                <input id="generated-invitation-link" type="text" class="form-control"
+                                    value="{{ $generatedInvitationUrl }}" readonly onclick="this.select();">
+                                <div class="form-help">
+                                    Copia este enlace y compártelo manualmente con la persona invitada.
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="button" class="btn btn-secondary"
+                                    onclick="
+                const input = document.getElementById('generated-invitation-link');
+                input.removeAttribute('readonly');
+                input.select();
+                input.setSelectionRange(0, 99999);
+                document.execCommand('copy');
+                input.setAttribute('readonly', 'readonly');
+                this.textContent = 'Link copiado';
+                setTimeout(() => this.textContent = 'Copiar link', 1500);
+            ">
+                                    Copiar link
+                                </button>
+
+                                <a href="{{ $generatedInvitationUrl }}" class="btn btn-secondary" target="_blank">
+                                    Abrir link
+                                </a>
+                            </div>
+                        @endif
+                    </x-card>
+
+                    <x-card>
+                        <div class="dashboard-section-header">
                             <h2 class="dashboard-section-title">Usuarios del tenant</h2>
                             <p class="dashboard-section-text">
                                 Gestión básica de acceso por empresa. El bloqueo afecta solo a este tenant.
@@ -181,6 +246,7 @@
                                             <th>Email</th>
                                             <th>Owner</th>
                                             <th>Roles</th>
+                                            <th>Agregar rol</th>
                                             <th>Estado</th>
                                             <th>Alta</th>
                                             <th class="compact-actions-cell"></th>
@@ -188,9 +254,17 @@
                                     </thead>
                                     <tbody>
                                         @foreach ($memberships as $membership)
+                                            @php
+                                                $assignedRoleIds = $membership->roles->pluck('id')->all();
+                                                $assignableRoles = $availableRoles->filter(
+                                                    fn($role) => !in_array($role->id, $assignedRoleIds, true),
+                                                );
+                                            @endphp
+
                                             <tr>
                                                 <td>{{ $membership->user?->name ?? '—' }}</td>
                                                 <td>{{ $membership->user?->email ?? '—' }}</td>
+
                                                 <td>
                                                     @if ($membership->is_owner)
                                                         <span class="status-badge status-badge--done">Sí</span>
@@ -198,15 +272,58 @@
                                                         <span class="helper-inline">No</span>
                                                     @endif
                                                 </td>
+
                                                 <td>
                                                     @if ($membership->roles->count())
-                                                        @foreach ($membership->roles as $role)
-                                                            <div>{{ $role->name }}</div>
-                                                        @endforeach
+                                                        <div style="display:flex; flex-direction:column; gap:0.5rem;">
+                                                            @foreach ($membership->roles as $role)
+                                                                <div
+                                                                    style="display:flex; align-items:center; gap:0.5rem; flex-wrap:wrap;">
+                                                                    <span>{{ $role->name }}</span>
+
+                                                                    <form method="POST"
+                                                                        action="{{ route('tenant.memberships.roles.detach', [$membership, $role]) }}">
+                                                                        @csrf
+                                                                        @method('DELETE')
+
+                                                                        <button type="submit"
+                                                                            class="btn btn-secondary btn-sm">
+                                                                            Quitar
+                                                                        </button>
+                                                                    </form>
+                                                                </div>
+                                                            @endforeach
+                                                        </div>
                                                     @else
                                                         <span class="helper-inline">Sin roles</span>
                                                     @endif
                                                 </td>
+
+                                                <td>
+                                                    @if ($assignableRoles->count())
+                                                        <form method="POST"
+                                                            action="{{ route('tenant.memberships.roles.attach', $membership) }}"
+                                                            class="inline-form"
+                                                            style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                                                            @csrf
+
+                                                            <select name="role_id" class="form-control"
+                                                                style="min-width: 180px;">
+                                                                @foreach ($assignableRoles as $role)
+                                                                    <option value="{{ $role->id }}">
+                                                                        {{ $role->name }}</option>
+                                                                @endforeach
+                                                            </select>
+
+                                                            <button type="submit" class="btn btn-secondary">
+                                                                Agregar
+                                                            </button>
+                                                        </form>
+                                                    @else
+                                                        <span class="helper-inline">Sin roles disponibles</span>
+                                                    @endif
+                                                </td>
+
                                                 <td>
                                                     @if ($membership->status === 'blocked')
                                                         <span class="status-badge status-badge--cancelled">Bloqueado</span>
@@ -214,7 +331,9 @@
                                                         <span class="status-badge status-badge--done">Activo</span>
                                                     @endif
                                                 </td>
+
                                                 <td>{{ $membership->joined_at?->format('d/m/Y H:i') ?? '—' }}</td>
+
                                                 <td class="compact-actions-cell">
                                                     @if ($membership->is_owner)
                                                         <span class="helper-inline">Owner</span>

@@ -18,7 +18,9 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PublicSignupRequestController;
 use App\Http\Controllers\SuperadminDashboardController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TenantInvitationController;
 use App\Http\Controllers\TenantMembershipController;
+use App\Http\Controllers\TenantMembershipRoleController;
 use App\Http\Controllers\TenantProfileController;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Auth;
@@ -135,6 +137,15 @@ Route::middleware(['auth', 'tenant'])->group(function () {
 
     Route::post('/tenant/memberships/{membership}/unblock', [TenantMembershipController::class, 'unblock'])
         ->name('tenant.memberships.unblock');
+
+    Route::post('/tenant/memberships/{membership}/roles', [TenantMembershipRoleController::class, 'attach'])
+        ->name('tenant.memberships.roles.attach');
+
+    Route::delete('/tenant/memberships/{membership}/roles/{role}', [TenantMembershipRoleController::class, 'detach'])
+        ->name('tenant.memberships.roles.detach');
+
+    Route::post('/tenant/invitations', [TenantInvitationController::class, 'store'])
+        ->name('tenant.invitations.store');
 
     // Projects
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');

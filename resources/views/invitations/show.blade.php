@@ -82,7 +82,7 @@
                             @endif
                         </div>
 
-                        <hr style="margin: 1rem 0; border: 0; border-top: 1px solid #d9e1ec;">
+                        <hr class="hr-muted">
 
                         @if ($mustLogin)
                             <div class="dashboard-section-header">
@@ -93,7 +93,8 @@
                             </div>
 
                             <p class="public-text">
-                                Para continuar con esta invitación, inicia sesión con el mismo correo al que fue enviado este
+                                Para continuar con esta invitación, inicia sesión con el mismo correo al que fue enviado
+                                este
                                 enlace.
                             </p>
 
@@ -116,7 +117,8 @@
 
                             @if (!$emailExists)
                                 <p class="public-text">
-                                    Como todavía no tienes una cuenta registrada con este email, ahora podrás definir tu contraseña
+                                    Como todavía no tienes una cuenta registrada con este email, ahora podrás definir tu
+                                    contraseña
                                     inicial.
                                 </p>
                             @else
@@ -135,9 +137,9 @@
 
                                 <div class="form-group">
                                     <label class="form-label" for="name">Nombre</label>
-                                    <input id="name" class="form-control @error('name') is-invalid @enderror" name="name"
-                                        type="text"
-                                        value="{{ old('name', $prefillUser->name ?? $invitation->signupRequest->requested_name ?? '') }}"
+                                    <input id="name" class="form-control @error('name') is-invalid @enderror"
+                                        name="name" type="text"
+                                        value="{{ old('name', $prefillUser->name ?? ($invitation->signupRequest->requested_name ?? '')) }}"
                                         placeholder="Tu nombre" required>
                                     <div class="form-help">
                                         Este nombre se utilizará para identificar tu cuenta dentro del sistema.

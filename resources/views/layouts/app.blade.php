@@ -20,24 +20,53 @@
             <div class="container">
 
                 @if (session('success'))
-                    <div class="alert alert-success">
-                        {{ session('success') }}
+                    <div class="alert alert-success" data-action="app-alert" data-alert-dismissible="true"
+                        data-alert-autohide="true" data-alert-timeout="5000" role="status" aria-live="polite">
+                        <div class="alert-content">
+                            <div class="alert-body">
+                                {{ session('success') }}
+                            </div>
+
+                            <button type="button" class="alert-dismiss" data-alert-dismiss aria-label="Cerrar alerta">
+                                ×
+                            </button>
+                        </div>
                     </div>
                 @endif
 
                 @if (session('error'))
-                    <div class="alert alert-error">
-                        {{ session('error') }}
+                    <div class="alert alert-error" data-action="app-alert" data-alert-dismissible="true"
+                        data-alert-autohide="false" role="alert" aria-live="assertive">
+                        <div class="alert-content">
+                            <div class="alert-body">
+                                {{ session('error') }}
+                            </div>
+
+                            <button type="button" class="alert-dismiss" data-alert-dismiss aria-label="Cerrar alerta">
+                                ×
+                            </button>
+                        </div>
                     </div>
                 @endif
 
                 @if ($errors->any())
-                    <div class="alert alert-error">
-                        <ul>
-                            @foreach ($errors->all() as $error)
-                                <li>{{ $error }}</li>
-                            @endforeach
-                        </ul>
+                    <div class="alert alert-error" data-action="app-alert" data-alert-dismissible="true"
+                        data-alert-autohide="false" role="alert" aria-live="assertive">
+                        <div class="alert-content">
+                            <div class="alert-body">
+                                <div class="alert-title">Revisa los siguientes datos:</div>
+
+                                <ul class="alert-list">
+                                    @foreach ($errors->all() as $error)
+                                        <li>{{ $error }}</li>
+                                    @endforeach
+                                </ul>
+                            </div>
+
+                            <button type="button" class="alert-dismiss" data-alert-dismiss aria-label="Cerrar alerta">
+                                ×
+                            </button>
+                        </div>
                     </div>
                 @endif
 

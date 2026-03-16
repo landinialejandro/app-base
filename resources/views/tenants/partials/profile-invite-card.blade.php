@@ -32,7 +32,7 @@
             $generatedInvitationUrl = route('invitation.accept.show', $generatedInvitation->token);
         @endphp
 
-        <hr style="margin: 1rem 0; border: 0; border-top: 1px solid #d9e1ec;">
+        <hr class="hr-muted">
 
         <div class="form-group">
             <label for="generated-invitation-link" class="form-label">Link generado</label>

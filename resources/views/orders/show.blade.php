@@ -28,11 +28,12 @@
 
         <x-page-header title="Detalle de la orden">
             <a href="{{ route('orders.edit', $order) }}" class="btn btn-primary">
-                Editar
+                <x-icons.pencil />
+                <span>Editar</span>
             </a>
-
             <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form"
-                @if ($quoteCount > 0) onsubmit="return confirm('Esta orden ya tiene {{ $quoteCount }} presupuesto(s) asociado(s). ¿Deseas crear otro?')" @endif>
+                @if ($quoteCount > 0) data-action="app-confirm-submit"
+        data-confirm-message="Esta orden ya tiene {{ $quoteCount }} presupuesto(s) asociado(s). ¿Deseas crear otro?" @endif>
                 @csrf
                 <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_QUOTE }}">
                 <button type="submit" class="btn btn-secondary">
@@ -41,7 +42,8 @@
             </form>
 
             <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form"
-                @if ($deliveryNoteCount > 0) onsubmit="return confirm('Esta orden ya tiene {{ $deliveryNoteCount }} remito(s) asociado(s). ¿Deseas crear otro?')" @endif>
+                @if ($deliveryNoteCount > 0) data-action="app-confirm-submit"
+        data-confirm-message="Esta orden ya tiene {{ $deliveryNoteCount }} remito(s) asociado(s). ¿Deseas crear otro?" @endif>
                 @csrf
                 <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_DELIVERY_NOTE }}">
                 <button type="submit" class="btn btn-secondary">
@@ -50,7 +52,8 @@
             </form>
 
             <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form"
-                @if ($invoiceCount > 0) onsubmit="return confirm('Esta orden ya tiene {{ $invoiceCount }} factura(s) asociada(s). ¿Deseas crear otra?')" @endif>
+                @if ($invoiceCount > 0) data-action="app-confirm-submit"
+        data-confirm-message="Esta orden ya tiene {{ $invoiceCount }} factura(s) asociada(s). ¿Deseas crear otra?" @endif>
                 @csrf
                 <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_INVOICE }}">
                 <button type="submit" class="btn btn-secondary">
@@ -59,7 +62,8 @@
             </form>
 
             <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form"
-                @if ($workOrderCount > 0) onsubmit="return confirm('Esta orden ya tiene {{ $workOrderCount }} orden(es) de trabajo asociada(s). ¿Deseas crear otra?')" @endif>
+                @if ($workOrderCount > 0) data-action="app-confirm-submit"
+        data-confirm-message="Esta orden ya tiene {{ $workOrderCount }} orden(es) de trabajo asociada(s). ¿Deseas crear otra?" @endif>
                 @csrf
                 <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_WORK_ORDER }}">
                 <button type="submit" class="btn btn-secondary">
@@ -68,12 +72,16 @@
             </form>
 
             <form method="POST" action="{{ route('orders.destroy', $order) }}" class="inline-form"
-                onsubmit="return confirm(@js($order->items->count() ? 'Esta orden tiene ítems cargados. Si la eliminas, también se eliminarán sus ítems. ¿Deseas continuar?' : '¿Deseas eliminar esta orden?'))">
+                data-action="app-confirm-submit"
+                data-confirm-message="{{ $order->items->count()
+                    ? 'Esta orden tiene ítems cargados. Si la eliminas, también se eliminarán sus ítems. ¿Deseas continuar?'
+                    : '¿Deseas eliminar esta orden?' }}">
                 @csrf
                 @method('DELETE')
 
                 <button type="submit" class="btn btn-danger">
-                    Eliminar
+                    <x-icons.trash />
+                    <span>Eliminar</span>
                 </button>
             </form>
 
@@ -210,8 +218,8 @@
 
                                                         <form method="POST"
                                                             action="{{ route('orders.items.destroy', [$order, $item]) }}"
-                                                            class="inline-form"
-                                                            onsubmit="return confirm('¿Deseas eliminar este ítem?')">
+                                                            class="inline-form" data-action="app-confirm-submit"
+                                                            data-confirm-message="¿Deseas eliminar este ítem?">
                                                             @csrf
                                                             @method('DELETE')
 

@@ -285,23 +285,18 @@
                                 <div class="form-group">
                                     <label for="owner-invitation-link" class="form-label">URL de acceso</label>
                                     <input id="owner-invitation-link" type="text" class="form-control" value="{{ $invitationUrl }}"
-                                        readonly onclick="this.select();">
+                                        readonly data-action="app-select-on-click">
                                     <div class="form-help">
                                         Puedes copiar este enlace y compartirlo manualmente con la persona solicitante.
                                     </div>
                                 </div>
 
                                 <div class="form-actions">
-                                    <button type="button" class="btn btn-secondary" onclick="
-                                        const input = document.getElementById('owner-invitation-link');
-                                        input.removeAttribute('readonly');
-                                        input.select();
-                                        input.setSelectionRange(0, 99999);
-                                        document.execCommand('copy');
-                                        input.setAttribute('readonly', 'readonly');
-                                        this.textContent = 'Link copiado';
-                                        setTimeout(() => this.textContent = 'Copiar link', 1500);
-                                    ">
+                                    <button type="button" class="btn btn-secondary"
+                                        data-action="app-copy-target"
+                                        data-copy-target="#owner-invitation-link"
+                                        data-copy-feedback="Link copiado"
+                                        data-copy-feedback-reset="Copiar link">
                                         Copiar link
                                     </button>
 

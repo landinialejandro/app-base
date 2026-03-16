@@ -35,7 +35,7 @@
 </div>
 
 <div class="form-group">
-    <label for="party_id" class="form-label">Cliente</label>
+    <label for="party_id" class="form-label">Contacto</label>
     <select id="party_id" name="party_id" class="form-control" required>
         <option value="">Seleccionar</option>
         @foreach ($parties as $party)

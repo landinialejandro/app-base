@@ -37,24 +37,16 @@
         <div class="form-group">
             <label for="generated-invitation-link" class="form-label">Link generado</label>
             <input id="generated-invitation-link" type="text" class="form-control"
-                value="{{ $generatedInvitationUrl }}" readonly onclick="this.select();">
+                value="{{ $generatedInvitationUrl }}" readonly data-action="app-select-on-click">
             <div class="form-help">
                 Copia este enlace y compártelo manualmente con la persona invitada.
             </div>
         </div>
 
         <div class="form-actions">
-            <button type="button" class="btn btn-secondary"
-                onclick="
-                const input = document.getElementById('generated-invitation-link');
-                input.removeAttribute('readonly');
-                input.select();
-                input.setSelectionRange(0, 99999);
-                document.execCommand('copy');
-                input.setAttribute('readonly', 'readonly');
-                this.textContent = 'Link copiado';
-                setTimeout(() => this.textContent = 'Copiar link', 1500);
-            ">
+            <button type="button" class="btn btn-secondary" data-action="app-copy-target"
+                data-copy-target="#generated-invitation-link" data-copy-feedback="Link copiado"
+                data-copy-feedback-reset="Copiar link">
                 Copiar link
             </button>
         </div>

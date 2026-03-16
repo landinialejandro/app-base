@@ -19,16 +19,18 @@
 
         <x-page-header title="Detalle del producto">
             <a href="{{ route('products.edit', $product) }}" class="btn btn-primary">
-                Editar
+                <x-icons.pencil />
+                <span>Editar</span>
             </a>
 
-            <form method="POST" action="{{ route('products.destroy', $product) }}"
-                onsubmit="return confirm('¿Eliminar producto?');" class="inline-form">
+            <form method="POST" action="{{ route('products.destroy', $product) }}" class="inline-form"
+                data-action="app-confirm-submit" data-confirm-message="¿Eliminar producto?">
                 @csrf
                 @method('DELETE')
 
                 <button type="submit" class="btn btn-danger">
-                    Eliminar
+                    <x-icons.trash />
+                    <span>Eliminar</span>
                 </button>
             </form>
 

@@ -56,8 +56,9 @@
                                                     @csrf
                                                     @method('DELETE')
 
-                                                    <button type="submit" class="btn btn-secondary btn-sm">
-                                                        Quitar
+                                                    <button type="submit" class="btn btn-danger btn-icon"
+                                                        title="Eliminar rol" aria-label="Eliminar rol">
+                                                        <x-icons.trash />
                                                     </button>
                                                 </form>
                                             </div>
@@ -82,8 +83,9 @@
                                             @endforeach
                                         </select>
 
-                                        <button type="submit" class="btn btn-secondary">
-                                            Agregar
+                                        <button type="submit" class="btn btn-secondary btn-icon" title="Agregar rol"
+                                            aria-label="Agregar rol">
+                                            <x-icons.plus />
                                         </button>
                                     </form>
                                 @else
@@ -108,15 +110,17 @@
                                     <form method="POST"
                                         action="{{ route('tenant.memberships.unblock', $membership) }}">
                                         @csrf
-                                        <button type="submit" class="btn btn-secondary">
-                                            Rehabilitar
+                                        <button type="submit" class="btn btn-secondary btn-icon"
+                                            title="Desbloquear acceso" aria-label="Desbloquear acceso">
+                                            <x-icons.unlock />
                                         </button>
                                     </form>
                                 @else
                                     <form method="POST" action="{{ route('tenant.memberships.block', $membership) }}">
                                         @csrf
-                                        <button type="submit" class="btn btn-secondary">
-                                            Bloquear
+                                        <button type="submit" class="btn btn-secondary btn-icon"
+                                            title="Bloquear acceso" aria-label="Bloquear acceso">
+                                            <x-icons.lock />
                                         </button>
                                     </form>
                                 @endif

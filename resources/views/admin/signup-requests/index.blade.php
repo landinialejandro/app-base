@@ -51,8 +51,9 @@
                                     <td>{{ $request->phone_whatsapp }}</td>
                                     <td>{{ $request->status }}</td>
                                     <td class="compact-actions-cell">
-                                        <a href="{{ route('admin.signup-requests.show', $request) }}" class="btn btn-secondary">
-                                            Ver
+                                        <a href="{{ route('admin.signup-requests.show', $request) }}"
+                                            class="btn btn-secondary btn-icon" title="Ver detalle" aria-label="Ver detalle">
+                                            <x-icons.eye />
                                         </a>
                                     </td>
                                 </tr>

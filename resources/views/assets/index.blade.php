@@ -85,7 +85,7 @@
                                 <th>Nombre</th>
                                 <th>Tipo</th>
                                 <th>Relación</th>
-                                <th>Cliente</th>
+                                <th>Contacto</th>
                                 <th>Código</th>
                                 <th>Estado</th>
                                 <th>Creado</th>

@@ -76,28 +76,20 @@
                             <td class="compact-actions-cell">
                                 <div class="compact-actions">
                                     <button type="button" class="btn btn-secondary btn-icon" title="Copiar link"
-                                        onclick="
-                                            const value = @js($invitationUrl);
-                                            const temp = document.createElement('input');
-                                            temp.value = value;
-                                            document.body.appendChild(temp);
-                                            temp.select();
-                                            temp.setSelectionRange(0, 99999);
-                                            document.execCommand('copy');
-                                            document.body.removeChild(temp);
-                                            this.textContent = '✓';
-                                            setTimeout(() => this.textContent = 'Copiar', 1500);
-                                        ">
-                                        Copiar
+                                        aria-label="Copiar link" data-action="app-copy-value"
+                                        data-copy-value="{{ $invitationUrl }}" data-copy-feedback="✓"
+                                        data-copy-feedback-reset="">
+                                        <x-icons.copy />
                                     </button>
 
-                                    <form method="POST"
-                                        action="{{ route('tenant.invitations.destroy', $invitation) }}">
+                                    <form method="POST" action="{{ route('tenant.invitations.destroy', $invitation) }}"
+                                        data-action="app-confirm-submit" data-confirm-message="¿Eliminar invitación?">
                                         @csrf
                                         @method('DELETE')
 
-                                        <button type="submit" class="btn btn-secondary">
-                                            Eliminar
+                                        <button type="submit" class="btn btn-danger btn-icon"
+                                            title="Eliminar invitación" aria-label="Eliminar invitación">
+                                            <x-icons.trash />
                                         </button>
                                     </form>
                                 </div>

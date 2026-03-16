@@ -25,16 +25,18 @@
             </a>
 
             <a href="{{ route('assets.edit', $asset) }}" class="btn btn-primary">
-                Editar
+                <x-icons.pencil />
+                <span>Editar</span>
             </a>
 
-            <form method="POST" action="{{ route('assets.destroy', $asset) }}" onsubmit="return confirm('¿Eliminar activo?');"
-                class="inline-form">
+            <form method="POST" action="{{ route('assets.destroy', $asset) }}" class="inline-form"
+                data-action="app-confirm-submit" data-confirm-message="¿Eliminar activo?">
                 @csrf
                 @method('DELETE')
 
                 <button type="submit" class="btn btn-danger">
-                    Eliminar
+                    <x-icons.trash />
+                    <span>Eliminar</span>
                 </button>
             </form>
 
@@ -75,7 +77,7 @@
                 </div>
 
                 <div class="detail-block">
-                    <span class="detail-block-label">Cliente</span>
+                    <span class="detail-block-label">Contacto</span>
                     <div class="detail-block-value">
                         @if ($asset->party)
                             <a href="{{ route('parties.show', $asset->party) }}">

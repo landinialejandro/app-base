@@ -21,16 +21,21 @@
 
         <x-page-header title="Detalle del documento">
             <a href="{{ route('documents.edit', $document) }}" class="btn btn-primary">
-                Editar
+                <x-icons.pencil />
+                <span>Editar</span>
             </a>
 
             <form method="POST" action="{{ route('documents.destroy', $document) }}" class="inline-form"
-                onsubmit="return confirm(@js($document->items->count() ? 'Este documento tiene ítems cargados. Si lo eliminas, también se eliminarán sus ítems. ¿Deseas continuar?' : '¿Deseas eliminar este documento?'))">
+                data-action="app-confirm-submit"
+                data-confirm-message="{{ $document->items->count()
+                    ? 'Este documento tiene ítems cargados. Si lo eliminas, también se eliminarán sus ítems. ¿Deseas continuar?'
+                    : '¿Deseas eliminar este documento?' }}">
                 @csrf
                 @method('DELETE')
 
                 <button type="submit" class="btn btn-danger">
-                    Eliminar
+                    <x-icons.trash />
+                    <span>Eliminar</span>
                 </button>
             </form>
 
@@ -174,8 +179,8 @@
 
                                                         <form method="POST"
                                                             action="{{ route('documents.items.destroy', [$document, $item]) }}"
-                                                            class="inline-form"
-                                                            onsubmit="return confirm('¿Deseas eliminar este ítem?')">
+                                                            class="inline-form" data-action="app-confirm-submit"
+                                                            data-confirm-message="¿Deseas eliminar este ítem?">
                                                             @csrf
                                                             @method('DELETE')
 

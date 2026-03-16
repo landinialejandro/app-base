@@ -25,19 +25,21 @@
 
         <x-page-header title="Detalle del proyecto">
             <a href="{{ route('projects.edit', $project) }}" class="btn btn-primary">
-                Editar
+                <x-icons.pencil />
+                <span>Editar</span>
             </a>
 
-            <form method="POST" action="{{ route('projects.destroy', $project) }}" class="inline-form" onsubmit="return confirm(@js(
-                $project->tasks->count()
-                ? 'Este proyecto tiene tareas asociadas. Si lo eliminas, también se eliminarán sus tareas. ¿Deseas continuar?'
-                : '¿Deseas eliminar este proyecto?'
-            ))">
+            <form method="POST" action="{{ route('projects.destroy', $project) }}" class="inline-form"
+                data-action="app-confirm-submit"
+                data-confirm-message="{{ $project->tasks->count()
+                    ? 'Este proyecto tiene tareas asociadas. Si lo eliminas, también se eliminarán sus tareas. ¿Deseas continuar?'
+                    : '¿Deseas eliminar este proyecto?' }}">
                 @csrf
                 @method('DELETE')
 
                 <button type="submit" class="btn btn-danger">
-                    Eliminar
+                    <x-icons.trash />
+                    <span>Eliminar</span>
                 </button>
             </form>
 

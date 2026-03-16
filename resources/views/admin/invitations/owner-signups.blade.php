@@ -46,18 +46,25 @@
                                     $invitationUrl = route('invitation.accept.show', $invitation->token);
                                     $expiresAt = $invitation->expires_at;
                                     $isExpired = $expiresAt && $expiresAt->isPast();
-                                    $isExpiringSoon = $expiresAt && !$isExpired && now()->diffInHours($expiresAt, false) <= 48;
+                                    $isExpiringSoon =
+                                        $expiresAt && !$isExpired && now()->diffInHours($expiresAt, false) <= 48;
 
                                     $expirationBadgeClass = $isExpired
                                         ? 'status-badge status-badge--expired'
-                                        : ($isExpiringSoon ? 'status-badge status-badge--expiring' : 'status-badge status-badge--sent');
+                                        : ($isExpiringSoon
+                                            ? 'status-badge status-badge--expiring'
+                                            : 'status-badge status-badge--sent');
 
                                     $expirationLabel = $isExpired
                                         ? 'Vencida'
-                                        : ($isExpiringSoon ? 'Próxima a vencer' : 'Disponible');
+                                        : ($isExpiringSoon
+                                            ? 'Próxima a vencer'
+                                            : 'Disponible');
 
                                     $humanDiff = $expiresAt
-                                        ? ($isExpired ? 'Venció ' . $expiresAt->diffForHumans() : 'Vence ' . $expiresAt->diffForHumans())
+                                        ? ($isExpired
+                                            ? 'Venció ' . $expiresAt->diffForHumans()
+                                            : 'Vence ' . $expiresAt->diffForHumans())
                                         : null;
                                 @endphp
 
@@ -101,23 +108,16 @@
 
                                     <td class="compact-actions-cell">
                                         <div class="compact-actions">
-                                            <button type="button" class="btn btn-secondary btn-icon" title="Copiar link" onclick="
-                                                                const value = @js($invitationUrl);
-                                                                const temp = document.createElement('input');
-                                                                temp.value = value;
-                                                                document.body.appendChild(temp);
-                                                                temp.select();
-                                                                temp.setSelectionRange(0, 99999);
-                                                                document.execCommand('copy');
-                                                                document.body.removeChild(temp);
-                                                                this.textContent = '✓';
-                                                                setTimeout(() => this.textContent = 'Copiar', 1500);
-                                                            ">
-                                                Copiar
+                                            <button type="button" class="btn btn-secondary btn-icon" title="Copiar link"
+                                                aria-label="Copiar link" data-action="app-copy-value"
+                                                data-copy-value="{{ $invitationUrl }}" data-copy-feedback="✓"
+                                                data-copy-feedback-reset="">
+                                                <x-icons.copy />
                                             </button>
 
-                                            <a href="{{ $invitationUrl }}" class="btn btn-secondary" target="_blank">
-                                                Abrir
+                                            <a href="{{ $invitationUrl }}" class="btn btn-secondary btn-icon"
+                                                target="_blank" title="Abrir link" aria-label="Abrir link">
+                                                <x-icons.external-link />
                                             </a>
                                         </div>
                                     </td>

@@ -26,16 +26,18 @@
 
         <x-page-header :title="$task->name">
             <a href="{{ route('tasks.edit', $task) }}" class="btn btn-primary">
-                Editar
+                <x-icons.pencil />
+                <span>Editar</span>
             </a>
 
-            <form method="POST" action="{{ route('tasks.destroy', $task) }}" onsubmit="return confirm('¿Eliminar tarea?');"
-                class="inline-form">
+            <form method="POST" action="{{ route('tasks.destroy', $task) }}" class="inline-form"
+                data-action="app-confirm-submit" data-confirm-message="¿Eliminar tarea?">
                 @csrf
                 @method('DELETE')
 
                 <button type="submit" class="btn btn-danger">
-                    Eliminar
+                    <x-icons.trash />
+                    <span>Eliminar</span>
                 </button>
             </form>
 

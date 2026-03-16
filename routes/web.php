@@ -2,34 +2,26 @@
 
 // FILE: routes/web.php
 
-use Illuminate\Support\Facades\Route;
-use Illuminate\Support\Facades\Hash;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
-
-use App\Http\Controllers\SuperadminDashboardController;
-use App\Http\Controllers\InvitationAcceptanceController;
-use App\Http\Controllers\DashboardController;
-use App\Http\Controllers\ProjectController;
-use App\Http\Controllers\PartyController;
-use App\Http\Controllers\TaskController;
-use App\Http\Controllers\ProductController;
-use App\Http\Controllers\OrderController;
-use App\Http\Controllers\OrderItemController;
-use App\Http\Controllers\DocumentController;
-use App\Http\Controllers\DocumentItemController;
-use App\Http\Controllers\PublicSignupRequestController;
-use App\Http\Controllers\AdminSignupRequestController;
 use App\Http\Controllers\AdminInvitationController;
 use App\Http\Controllers\AdminMetricsController;
+use App\Http\Controllers\AdminSignupRequestController;
 use App\Http\Controllers\AssetController;
-
-use App\Models\Invitation;
-use App\Models\User;
-use App\Models\Membership;
+use App\Http\Controllers\DashboardController;
+use App\Http\Controllers\DocumentController;
+use App\Http\Controllers\DocumentItemController;
+use App\Http\Controllers\InvitationAcceptanceController;
+use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderItemController;
+use App\Http\Controllers\PartyController;
+use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\PublicSignupRequestController;
+use App\Http\Controllers\SuperadminDashboardController;
+use App\Http\Controllers\TaskController;
 use App\Models\Tenant;
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
+use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
     return view('welcome');
@@ -70,7 +62,7 @@ Route::middleware('auth')->post('/tenants/select/{tenant}', function (Tenant $te
         ->where('tenants.id', $tenant->id)
         ->exists();
 
-    if (!$allowed) {
+    if (! $allowed) {
         abort(403, 'You are not a member of this tenant.');
     }
 
@@ -165,25 +157,83 @@ Route::middleware(['auth', 'tenant'])->group(function () {
             ->with('success', 'Perfil de empresa actualizado correctamente.');
     })->name('tenant.profile.update');
 
-    Route::resource('projects', ProjectController::class);
+    // Projects
+    Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
+    Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
+    Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
+    Route::get('/projects/{project}', [ProjectController::class, 'show'])->name('projects.show');
+    Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
+    Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
+    Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
 
-    Route::resource('parties', PartyController::class);
+    // Parties
+    Route::get('/parties', [PartyController::class, 'index'])->name('parties.index');
+    Route::get('/parties/create', [PartyController::class, 'create'])->name('parties.create');
+    Route::post('/parties', [PartyController::class, 'store'])->name('parties.store');
+    Route::get('/parties/{party}', [PartyController::class, 'show'])->name('parties.show');
+    Route::get('/parties/{party}/edit', [PartyController::class, 'edit'])->name('parties.edit');
+    Route::put('/parties/{party}', [PartyController::class, 'update'])->name('parties.update');
+    Route::delete('/parties/{party}', [PartyController::class, 'destroy'])->name('parties.destroy');
 
-    Route::resource('tasks', TaskController::class);
+    // Tasks
+    Route::get('/tasks', [TaskController::class, 'index'])->name('tasks.index');
+    Route::get('/tasks/create', [TaskController::class, 'create'])->name('tasks.create');
+    Route::post('/tasks', [TaskController::class, 'store'])->name('tasks.store');
+    Route::get('/tasks/{task}', [TaskController::class, 'show'])->name('tasks.show');
+    Route::get('/tasks/{task}/edit', [TaskController::class, 'edit'])->name('tasks.edit');
+    Route::put('/tasks/{task}', [TaskController::class, 'update'])->name('tasks.update');
+    Route::delete('/tasks/{task}', [TaskController::class, 'destroy'])->name('tasks.destroy');
 
-    Route::resource('products', ProductController::class);
+    // Products
+    Route::get('/products', [ProductController::class, 'index'])->name('products.index');
+    Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
+    Route::post('/products', [ProductController::class, 'store'])->name('products.store');
+    Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+    Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
+    Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
+    Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
 
-    Route::resource('assets', AssetController::class);
+    // Assets
+    Route::get('/assets', [AssetController::class, 'index'])->name('assets.index');
+    Route::get('/assets/create', [AssetController::class, 'create'])->name('assets.create');
+    Route::post('/assets', [AssetController::class, 'store'])->name('assets.store');
+    Route::get('/assets/{asset}', [AssetController::class, 'show'])->name('assets.show');
+    Route::get('/assets/{asset}/edit', [AssetController::class, 'edit'])->name('assets.edit');
+    Route::put('/assets/{asset}', [AssetController::class, 'update'])->name('assets.update');
+    Route::delete('/assets/{asset}', [AssetController::class, 'destroy'])->name('assets.destroy');
 
-    Route::resource('orders', OrderController::class);
+    // Orders
+    Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+    Route::get('/orders/create', [OrderController::class, 'create'])->name('orders.create');
+    Route::post('/orders', [OrderController::class, 'store'])->name('orders.store');
+    Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+    Route::get('/orders/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
+    Route::put('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
+    Route::delete('/orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
 
     Route::post('/orders/{order}/documents', [DocumentController::class, 'storeFromOrder'])
         ->name('orders.documents.store');
 
-    Route::resource('orders.items', OrderItemController::class)
-        ->except(['index', 'show']);
+    // Order items
+    Route::get('/orders/{order}/items/create', [OrderItemController::class, 'create'])
+        ->name('orders.items.create');
+    Route::post('/orders/{order}/items', [OrderItemController::class, 'store'])
+        ->name('orders.items.store');
+    Route::get('/orders/{order}/items/{item}/edit', [OrderItemController::class, 'edit'])
+        ->name('orders.items.edit');
+    Route::put('/orders/{order}/items/{item}', [OrderItemController::class, 'update'])
+        ->name('orders.items.update');
+    Route::delete('/orders/{order}/items/{item}', [OrderItemController::class, 'destroy'])
+        ->name('orders.items.destroy');
 
-    Route::resource('documents', DocumentController::class);
+    // Documents
+    Route::get('/documents', [DocumentController::class, 'index'])->name('documents.index');
+    Route::get('/documents/create', [DocumentController::class, 'create'])->name('documents.create');
+    Route::post('/documents', [DocumentController::class, 'store'])->name('documents.store');
+    Route::get('/documents/{document}', [DocumentController::class, 'show'])->name('documents.show');
+    Route::get('/documents/{document}/edit', [DocumentController::class, 'edit'])->name('documents.edit');
+    Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
+    Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
 
     Route::prefix('documents/{document}')->name('documents.')->group(function () {
         Route::get('items/create', [DocumentItemController::class, 'create'])->name('items.create');

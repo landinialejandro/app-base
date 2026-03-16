@@ -48,13 +48,22 @@ class TenantProfileController extends Controller
 
         $generatedInvitation = null;
 
-        if ($request->filled('generated_invitation')) {
+        $generatedInvitationId = session('generated_invitation_id');
+
+        if ($generatedInvitationId) {
             $generatedInvitation = Invitation::query()
                 ->where('tenant_id', $tenant->id)
                 ->where('type', 'member_invite')
-                ->where('id', $request->integer('generated_invitation'))
+                ->where('id', $generatedInvitationId)
                 ->first();
         }
+
+        $pendingInvitations = Invitation::query()
+            ->where('tenant_id', $tenant->id)
+            ->where('type', 'member_invite')
+            ->whereNull('accepted_at')
+            ->orderByDesc('created_at')
+            ->get();
 
         return view('tenants.profile', [
             'tenant' => $tenant,
@@ -62,6 +71,7 @@ class TenantProfileController extends Controller
             'availableRoles' => $availableRoles,
             'activeTab' => $activeTab,
             'generatedInvitation' => $generatedInvitation,
+            'pendingInvitations' => $pendingInvitations,
         ]);
     }
 

@@ -48,6 +48,24 @@ class TenantInvitationController extends Controller
                 ->with('error', 'Ese correo ya pertenece a un usuario asociado a esta empresa.');
         }
 
+        $existingPendingInvitation = Invitation::query()
+            ->where('tenant_id', $tenant->id)
+            ->where('type', 'member_invite')
+            ->whereRaw('LOWER(email) = ?', [$email])
+            ->whereNull('accepted_at')
+            ->where(function ($query) {
+                $query->whereNull('expires_at')
+                    ->orWhere('expires_at', '>', now());
+            })
+            ->latest()
+            ->first();
+
+        if ($existingPendingInvitation) {
+            return redirect()
+                ->route('tenant.profile.show', ['tab' => 'users'])
+                ->with('error', 'Ya existe una invitación pendiente y vigente para ese correo.');
+        }
+
         $invitation = Invitation::create([
             'tenant_id' => $tenant->id,
             'type' => 'member_invite',
@@ -66,10 +84,29 @@ class TenantInvitationController extends Controller
         ]);
 
         return redirect()
-            ->route('tenant.profile.show', [
-                'tab' => 'users',
-                'generated_invitation' => $invitation->id,
-            ])
-            ->with('success', 'Link de invitación generado correctamente.');
+            ->route('tenant.profile.show', ['tab' => 'users'])
+            ->with('success', 'Link de invitación generado correctamente.')
+            ->with('generated_invitation_id', $invitation->id);
+    }
+
+    public function destroy(Invitation $invitation)
+    {
+        $tenant = app('tenant');
+        $this->ensureOwnerAccess();
+
+        abort_unless($invitation->tenant_id === $tenant->id, 404);
+        abort_unless($invitation->type === 'member_invite', 404);
+
+        if ($invitation->accepted_at) {
+            return redirect()
+                ->route('tenant.profile.show', ['tab' => 'users'])
+                ->with('error', 'No se puede eliminar una invitación ya aceptada.');
+        }
+
+        $invitation->delete();
+
+        return redirect()
+            ->route('tenant.profile.show', ['tab' => 'users'])
+            ->with('success', 'Invitación eliminada correctamente.');
     }
 }

@@ -147,6 +147,9 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::post('/tenant/invitations', [TenantInvitationController::class, 'store'])
         ->name('tenant.invitations.store');
 
+    Route::delete('/tenant/invitations/{invitation}', [TenantInvitationController::class, 'destroy'])
+        ->name('tenant.invitations.destroy');
+
     // Projects
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
     Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');

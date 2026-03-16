@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 
 class TenantProfileController extends Controller
 {
-    public function show()
+    public function show(Request $request)
     {
         $tenant = app('tenant');
 
@@ -33,9 +33,16 @@ class TenantProfileController extends Controller
             ->orderBy('id')
             ->get();
 
+        $activeTab = $request->query('tab', 'general');
+
+        if (! in_array($activeTab, ['general', 'users'], true)) {
+            $activeTab = 'general';
+        }
+
         return view('tenants.profile', [
             'tenant' => $tenant,
             'memberships' => $memberships,
+            'activeTab' => $activeTab,
         ]);
     }
 
@@ -73,7 +80,7 @@ class TenantProfileController extends Controller
         ]);
 
         return redirect()
-            ->route('tenant.profile.show')
+            ->route('tenant.profile.show', ['tab' => 'general'])
             ->with('success', 'Perfil de empresa actualizado correctamente.');
     }
 }

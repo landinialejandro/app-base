@@ -7,6 +7,7 @@
 @section('content')
     @php
         $settings = $tenant->settings ?? [];
+        $activeTab = $activeTab ?? 'general';
     @endphp
 
     <x-page>
@@ -33,17 +34,20 @@
 
         <div class="tabs" data-tabs>
             <div class="tabs-nav" role="tablist" aria-label="Perfil de empresa">
-                <button type="button" class="tabs-link is-active" data-tab-link="general" role="tab"
-                    aria-selected="true">
+                <button type="button" class="tabs-link {{ $activeTab === 'general' ? 'is-active' : '' }}"
+                    data-tab-link="general" role="tab"
+                    aria-selected="{{ $activeTab === 'general' ? 'true' : 'false' }}">
                     General
                 </button>
 
-                <button type="button" class="tabs-link" data-tab-link="users" role="tab" aria-selected="false">
+                <button type="button" class="tabs-link {{ $activeTab === 'users' ? 'is-active' : '' }}"
+                    data-tab-link="users" role="tab" aria-selected="{{ $activeTab === 'users' ? 'true' : 'false' }}">
                     Usuarios y accesos
                 </button>
             </div>
 
-            <section class="tab-panel is-active" data-tab-panel="general">
+            <section class="tab-panel {{ $activeTab === 'general' ? 'is-active' : '' }}" data-tab-panel="general"
+                {{ $activeTab === 'general' ? '' : 'hidden' }}>
                 <div class="tab-panel-stack">
                     <x-card>
                         <form method="POST" action="{{ route('tenant.profile.update') }}" class="form">
@@ -157,7 +161,8 @@
                 </div>
             </section>
 
-            <section class="tab-panel" data-tab-panel="users" hidden>
+            <section class="tab-panel {{ $activeTab === 'users' ? 'is-active' : '' }}" data-tab-panel="users"
+                {{ $activeTab === 'users' ? '' : 'hidden' }}>
                 <div class="tab-panel-stack">
                     <x-card>
                         <div class="dashboard-section-header">

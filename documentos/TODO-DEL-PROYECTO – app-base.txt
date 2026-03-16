@@ -108,15 +108,9 @@ terminar de revisar consistencia visual de vistas show e index del core restante
 
 evaluar futura unificación de badges en entorno admin/superadmin mediante catálogo o helper específico
 
-limpiar JavaScript inline y estandarizar acciones reutilizables con data-action="app-..."
-
 revisar otras vistas grandes para dividirlas en partials cuando superen complejidad razonable
 
 extender patrón de preservación de contexto UX en tabs, filtros y paginación a otras pantallas
-
-mejorar UX de alertas del sistema con cierre manual y auto-dismiss configurable
-
-reforzar identificación visual del tabs-nav para mejorar descubribilidad de tabs internas
 
 evaluar componente reutilizable futuro para botones estándar con icono + texto
 

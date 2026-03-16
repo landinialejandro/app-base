@@ -287,9 +287,7 @@ En lugar de usar lógica condicional o match en la vista, debe utilizarse el cat
 
 Uso recomendado:
 
-<span class="status-badge {{ Catalog::badgeClass($value) }}">
-    {{ Catalog::label($value) }}
-</span>
+<span class="status-badge {{ Catalog::badgeClass($value) }}"> {{ Catalog::label($value) }} </span>
 
 Esto mantiene las vistas simples y evita duplicación de lógica.
 
@@ -328,24 +326,32 @@ campos derivados
 
 Estos valores deben resolverse internamente en el backend.
 
-Convenciones de frontend y JavaScript
+Convenciones de frontend y comportamiento reutilizable
 
-Evitar onclick, onsubmit, onchange y cualquier handler inline en Blade.
+Evitar onclick, onsubmit, onchange y cualquier handler JavaScript inline en Blade.
 
-El comportamiento reutilizable debe resolverse mediante:
+El comportamiento reutilizable debe resolverse en:
 
-atributos data-action="app-..."
+public/js/app-base.js
 
-JavaScript global en public/js/app-base.js
+La activación declarativa debe realizarse mediante:
 
-El comportamiento puntual de una vista puede definirse en el blade raíz mediante:
+data-action="app-..."
+
+El comportamiento exclusivo y no reutilizable de una vista puede resolverse con:
 
 @push('scripts')
+
+en el blade raíz correspondiente.
+
+No usar clases CSS para comportamiento.
 
 Separación recomendada:
 
 clases CSS = estilo
 data-* = comportamiento
+
+Preferir soluciones simples y declarativas antes que lógica distribuida en múltiples blades.
 
 Convenciones de preservación de contexto UX
 
@@ -356,6 +362,29 @@ Ejemplos de contexto a preservar:
 tab activa
 filtros
 paginación cuando aplique
+
+Convenciones de vocabulario UI
+
+Nombre genérico visible de la entidad parties en interfaz:
+
+Contacto
+
+Cliente debe utilizarse solo como categoría, clase o tipo específico dentro del catálogo correspondiente, no como nombre genérico de la entidad.
+
+El verbo destructivo estándar en botones, confirmaciones y mensajes del sistema es:
+
+Eliminar
+
+Convenciones de acciones visuales
+
+Fuera de tablas, los botones principales pueden usar icono + texto cuando eso refuerce la asociación visual de la acción.
+
+Dentro de tablas o celdas compact-actions-cell, las acciones deben mostrarse solo con icono.
+
+Todo botón de solo icono debe incluir:
+
+title
+aria-label
 
 Convenciones de seguridad
 

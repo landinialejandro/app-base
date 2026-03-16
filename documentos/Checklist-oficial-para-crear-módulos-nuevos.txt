@@ -129,9 +129,7 @@ Registrar rutas en:
 
 routes/web.php
 
-Ejemplo:
-
-Route::resource('nombre', NombreController::class);
+No depender de Route::resource(...) para el core funcional mientras se mantenga la convención vigente del proyecto.
 
 Las rutas deben ejecutarse dentro de los middlewares:
 
@@ -186,7 +184,7 @@ Las validaciones deben definirse inicialmente en el controlador.
 Ejemplo:
 
 $request->validate([
-    'name' => ['required', 'string', 'max:255']
+'name' => ['required', 'string', 'max:255']
 ]);
 
 CATÁLOGOS FUNCIONALES (DOMINIOS CERRADOS)
@@ -281,6 +279,32 @@ el sistema debe redirigir nuevamente a la invitación pendiente después del log
 y no al dashboard ni al selector genérico de tenant
 
 esto garantiza que el usuario continúe el flujo correcto de aceptación de la invitación.
+
+REGLA DE ACCIONES Y FRONTEND
+
+Evitar JavaScript inline en blades nuevos.
+
+Si la interacción es reutilizable, integrarla a:
+
+public/js/app-base.js
+
+y activarla mediante:
+
+data-action="app-..."
+
+En tablas con acciones compactas, usar botones con iconos reutilizables y sin texto visible.
+
+Fuera de tablas, usar botones principales consistentes con icono + texto cuando corresponda.
+
+Mantener vocabulario UI consistente con el proyecto:
+
+Contacto
+Eliminar
+
+Los botones compactos de solo icono deben incluir:
+
+title
+aria-label
 
 PRUEBAS FUNCIONALES
 

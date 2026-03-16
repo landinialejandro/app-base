@@ -94,13 +94,37 @@ x-icons.trash
 
 Uso en botones:
 
-<button class="btn btn-secondary btn-sm"> <x-icons.pencil /> </button> <button class="btn btn-danger btn-sm"> <x-icons.trash /> </button>
+<button class="btn btn-secondary btn-sm"> <x-icons.pencil /> </button>
+<button class="btn btn-danger btn-sm"> <x-icons.trash /> </button>
 
 OBJETIVO DE LOS ICONOS
 
 Reducir el ancho de las columnas de acciones.
 Mejorar la legibilidad de tablas.
 Permitir reutilización consistente en todo el sistema.
+
+ACCIONES EN TABLAS
+
+En columnas de acciones compactas, como compact-actions-cell o contenedores equivalentes de acciones compactas, los botones deben mostrarse solo con iconos.
+
+Debe evitarse texto visible dentro de esas celdas para reducir ancho y mejorar legibilidad.
+
+Los iconos deben usar componentes Blade reutilizables del proyecto.
+
+Todo botón de solo icono debe incluir:
+
+title
+aria-label
+
+BOTONES PRINCIPALES FUERA DE TABLAS
+
+Los botones principales de acciones visibles fuera de tablas pueden usar icono + texto cuando eso refuerce la asociación visual.
+
+Ejemplos típicos:
+
+Editar
+Eliminar
+Copiar link
 
 ACCIONES COMPACTAS EN TABLAS Y SUBLISTADOS
 
@@ -171,6 +195,12 @@ El contexto activo puede resolverse por query string, por ejemplo:
 
 ?tab=users
 
+La navegación de tabs debe ser visualmente reconocible como patrón de solapas.
+
+La pestaña activa debe distinguirse con claridad.
+
+El contenedor tabs-nav debe tener jerarquía visual suficiente para que el usuario perciba que puede cambiar de sección.
+
 SHOW COMPLEJOS Y PANTALLAS DE CONFIGURACIÓN
 
 En vistas tipo configuración, perfil de empresa o show complejos con más de un bloque funcional, es válido utilizar:
@@ -220,6 +250,12 @@ Cuando una entidad padre tenga registros relacionados, la confirmación debe ind
 Si existe eliminación en cascada, la confirmación debe ser más explícita para evitar borrados accidentales.
 
 Cuando sea posible, la confirmación debe incluir información contextual sobre la cantidad de registros relacionados.
+
+ALERTAS DEL SISTEMA
+
+Las alertas del sistema deben admitir cierre manual cuando la UX lo justifique.
+
+Las alertas informativas o de éxito pueden evaluar auto-dismiss por tiempo si no compromete comprensión ni trazabilidad del mensaje.
 
 ESTADOS VACÍOS
 

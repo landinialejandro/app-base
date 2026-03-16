@@ -350,6 +350,10 @@ tenants.settings se utiliza para persistir configuración básica editable de em
 
 El perfil de empresa ya existe como pantalla operativa para owner.
 
+Decisión actual de frontend base
+
+El frontend base del proyecto ya migró a un patrón declarativo con data-action="app-..." y public/js/app-base.js como capa mínima reutilizable de comportamiento.
+
 Entidades ya implementadas
 
 users

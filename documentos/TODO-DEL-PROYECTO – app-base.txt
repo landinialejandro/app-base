@@ -114,6 +114,14 @@ revisar otras vistas grandes para dividirlas en partials cuando superen compleji
 
 extender patrón de preservación de contexto UX en tabs, filtros y paginación a otras pantallas
 
+mejorar UX de alertas del sistema con cierre manual y auto-dismiss configurable
+
+reforzar identificación visual del tabs-nav para mejorar descubribilidad de tabs internas
+
+evaluar componente reutilizable futuro para botones estándar con icono + texto
+
+evaluar componente reutilizable futuro para acciones compactas con solo icono
+
 MEJORAS DE ONBOARDING
 
 evolucionar el envío manual de invitaciones owner_signup hacia envío real por WhatsApp o email

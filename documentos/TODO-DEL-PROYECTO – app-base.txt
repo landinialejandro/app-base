@@ -77,6 +77,8 @@ definir política futura de historial de vinculación entre activos y contactos 
 
 evaluar tabla futura de historial para relación activo-cliente
 
+reevaluar en el futuro, sobre entorno con SSH/CLI, si conviene volver parcial o totalmente a Route::resource(...) o mantener la convención de rutas explícitas como estándar permanente
+
 MEJORAS DE INTERFAZ
 
 revisar mensajes de vacío cuando hay filtros activos

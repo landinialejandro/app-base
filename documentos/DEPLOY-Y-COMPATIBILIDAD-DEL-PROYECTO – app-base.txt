@@ -1,0 +1,133 @@
+DEPLOY Y COMPATIBILIDAD DEL PROYECTO – app-base
+
+1. OBJETIVO DEL DOCUMENTO
+
+Este documento deja asentadas las decisiones técnicas y aprendizajes obtenidos durante la primera prueba operativa real del proyecto app-base en un hosting compartido básico, sin acceso a CLI, Composer ni Artisan en servidor.
+
+Su propósito es preservar memoria operativa para futuros despliegues, evitar repetir diagnósticos ya realizados y establecer un criterio técnico estable para este tipo de entornos.
+
+2. CONTEXTO DEL PRIMER DEPLOY REAL
+
+La primera prueba operativa se realizó en un hosting compartido DonWeb con las siguientes restricciones relevantes:
+
+- sin acceso a Composer en servidor
+- sin acceso a CLI
+- sin posibilidad de ejecutar Artisan
+- despliegue por FTP
+- base de datos MySQL del hosting
+- subdominio apuntado a la carpeta public del proyecto
+
+Se confirmó que el proyecto puede ejecutarse operativamente en este tipo de entorno siempre que se suba una versión ya preparada desde local, con vendor incluido y base de datos previamente migrada o importada.
+
+3. ESTRATEGIA DE DEPLOY VALIDADA
+
+La estrategia validada para este tipo de hosting es la siguiente:
+
+- preparar el proyecto completo en local
+- incluir vendor en la subida
+- configurar manualmente el archivo .env de producción
+- importar la base de datos desde SQL
+- apuntar el subdominio a la carpeta public del proyecto
+- limpiar manualmente por FTP los archivos de cache compilada si fuera necesario
+
+En este escenario no debe dependerse de tareas post deploy mediante Artisan.
+
+4. PROBLEMA DETECTADO EN EL REGISTRO DE RUTAS
+
+Durante la prueba operativa se detectó un comportamiento anómalo: las rutas declaradas mediante Route::resource(...) no quedaron registradas correctamente en el servidor, aun cuando:
+
+- routes/web.php estaba actualizado
+- el archivo correcto se encontraba efectivamente subido
+- el grupo de middleware auth + tenant funcionaba
+- las rutas manuales de prueba sí se registraban
+- la aplicación cargaba correctamente hasta ciertos puntos del flujo
+
+El síntoma observable fue la aparición de errores del tipo:
+
+- Route [projects.index] not defined
+- Route [products.index] not defined
+- Route [orders.items.create] not defined
+
+Esto afectó tanto rutas resource simples como algunas anidadas.
+
+5. DECISIÓN TÉCNICA ADOPTADA
+
+Como criterio operativo del proyecto, se decidió reemplazar las declaraciones Route::resource(...) del core funcional por rutas explícitas una a una.
+
+Esta decisión se adopta para:
+
+- asegurar compatibilidad en hosting compartido sin CLI
+- evitar comportamientos no deterministas de registro de rutas
+- reducir dependencia de estados internos del entorno
+- mantener trazabilidad y control explícito del enrutamiento
+
+La decisión se considera válida para el proyecto completo, tanto en local como en servidor, a fin de evitar mantener variantes distintas del archivo routes/web.php.
+
+6. ALCANCE ACTUAL DE LA REESCRITURA DE RUTAS
+
+Se dejaron definidas explícitamente las rutas de:
+
+- projects
+- parties
+- tasks
+- products
+- assets
+- orders
+- documents
+- orders.items
+
+Se mantienen además las rutas manuales ya existentes de:
+
+- orders.documents.store
+- documents.items.*
+
+7. INTERPRETACIÓN TÉCNICA DEL INCIDENTE
+
+Hasta nueva evidencia, este comportamiento no se interpreta como un problema confirmado del código funcional del proyecto, sino como una incompatibilidad o comportamiento irregular del entorno de ejecución, probablemente asociado a una combinación de:
+
+- hosting compartido básico
+- despliegue por FTP
+- ausencia de CLI y Artisan
+- imposibilidad de limpiar de forma confiable el estado del runtime
+- posibles efectos de cache interna u OPcache del servidor
+
+No se adopta por ahora la hipótesis de bug confirmado de Laravel ni de incompatibilidad confirmada de PHP 8.4, aunque se deja constancia del incidente.
+
+8. PROCEDIMIENTO RECOMENDADO DE DEPLOY PARA HOSTING COMPARTIDO
+
+Para futuros despliegues en entornos similares, se recomienda:
+
+- preparar build completa en local
+- subir el proyecto completo por FTP
+- incluir vendor
+- no depender de Composer en servidor
+- no depender de Artisan en servidor
+- crear y vincular correctamente base de datos y usuario desde el panel del hosting
+- verificar tabla sessions si SESSION_DRIVER=database
+- configurar APP_KEY y variables de entorno manualmente
+- apuntar el subdominio a la carpeta public
+- limpiar por FTP, si hace falta:
+  - bootstrap/cache
+  - storage/framework/views
+  - storage/framework/cache
+
+9. CRITERIO DE CONTINUIDAD
+
+Mientras el proyecto siga desplegándose en entornos compartidos sin CLI, debe mantenerse como criterio general:
+
+- rutas explícitas en lugar de Route::resource(...) para el core operativo
+- deploy por versión cerrada
+- mínima dependencia de generación dinámica en servidor
+- prioridad por estabilidad operativa sobre concisión sintáctica
+
+10. POSIBLE REVISIÓN FUTURA
+
+Si en el futuro el proyecto migra a un entorno más robusto, por ejemplo VPS o servidor con SSH, Composer y Artisan, podrá evaluarse si conviene volver a Route::resource(...).
+
+Esa revisión no debe hacerse por preferencia estilística, sino solo si:
+
+- el entorno permite limpiar cache y reiniciar procesos correctamente
+- se valida que el registro de rutas sea estable
+- no se pierde claridad ni mantenibilidad
+
+Hasta entonces, la convención vigente será mantener rutas explícitas.

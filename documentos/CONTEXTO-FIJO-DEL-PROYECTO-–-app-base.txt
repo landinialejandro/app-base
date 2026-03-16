@@ -301,6 +301,12 @@ En seeders reales del sistema el tenant normalmente se asigna explícitamente de
 
 No es necesario modificar este comportamiento.
 
+Criterio actual de deploy y declaración de rutas
+
+En despliegues sobre hosting compartido sin CLI, Composer ni Artisan en servidor, el proyecto prioriza estrategia de deploy por versión cerrada preparada en local.
+
+En ese contexto, las rutas del core operativo se mantienen declaradas explícitamente en routes/web.php en lugar de depender de Route::resource(...), debido a un incidente real de registro inconsistente de rutas durante la primera prueba operativa.
+
 Estado actual del sistema
 
 Además del flujo multi-tenant principal, el sistema incorpora una capa global de administración denominada superadmin.

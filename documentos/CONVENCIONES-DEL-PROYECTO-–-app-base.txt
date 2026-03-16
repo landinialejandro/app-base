@@ -90,6 +90,14 @@ Ejemplos:
 /documents
 /assets
 
+Convención actual de declaración de rutas CRUD
+
+Como convención actual del proyecto, las rutas CRUD del core funcional deben declararse explícitamente en routes/web.php.
+
+No se utilizará Route::resource(...) mientras el proyecto mantenga compatibilidad objetivo con hosting compartido básico sin CLI, salvo revisión técnica posterior en un entorno más robusto.
+
+Esta decisión busca priorizar previsibilidad operativa y reducir riesgo en despliegues cerrados preparados en local.
+
 Convenciones de multi-tenancy
 
 Las entidades del negocio deben incluir siempre:
@@ -253,9 +261,7 @@ En lugar de usar lógica condicional o match en la vista, debe utilizarse el cat
 
 Uso recomendado:
 
-<span class="status-badge {{ Catalog::badgeClass($value) }}">
-    {{ Catalog::label($value) }}
-</span>
+<span class="status-badge {{ Catalog::badgeClass($value) }}"> {{ Catalog::label($value) }} </span>
 
 Esto mantiene las vistas simples y evita duplicación de lógica.
 

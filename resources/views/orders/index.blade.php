@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/index.blade.php --}}
+{{-- FILE: resources/views/orders/index.blade.php | V3 --}}
 
 @extends('layouts.app')
 
@@ -20,9 +20,8 @@
             </a>
         </x-page-header>
 
-        <x-card class="list-card">
-
-            <form method="GET" action="{{ route('orders.index') }}" class="form list-filters">
+        <x-list-filters-card :action="route('orders.index')" secondary-id="orders-extra-filters">
+            <x-slot:primary>
                 <div class="list-filters-grid">
                     <div class="form-group">
                         <label for="q" class="form-label">Buscar</label>
@@ -30,6 +29,22 @@
                             placeholder="Número de orden">
                     </div>
 
+                    <div class="form-group">
+                        <label for="status" class="form-label">Estado</label>
+                        <select id="status" name="status" class="form-control">
+                            <option value="">Todos</option>
+                            @foreach (OrderCatalog::statusLabels() as $value => $label)
+                                <option value="{{ $value }}" @selected(request('status') === $value)>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            </x-slot:primary>
+
+            <x-slot:secondary>
+                <div class="list-filters-grid">
                     <div class="form-group">
                         <label for="party_id" class="form-label">Contacto</label>
                         <select id="party_id" name="party_id" class="form-control">
@@ -70,33 +85,15 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="status" class="form-label">Estado</label>
-                        <select id="status" name="status" class="form-control">
-                            <option value="">Todos</option>
-                            @foreach (OrderCatalog::statusLabels() as $value => $label)
-                                <option value="{{ $value }}" @selected(request('status') === $value)>
-                                    {{ $label }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="form-group">
                         <label for="ordered_at" class="form-label">Fecha</label>
                         <input type="date" id="ordered_at" name="ordered_at" class="form-control"
                             value="{{ request('ordered_at') }}">
                     </div>
                 </div>
+            </x-slot:secondary>
+        </x-list-filters-card>
 
-                <div class="list-filters-actions">
-                    <button type="submit" class="btn btn-primary">Filtrar</button>
-
-                    <a href="{{ route('orders.index') }}" class="btn btn-secondary">
-                        Limpiar
-                    </a>
-                </div>
-            </form>
-
+        <x-card class="list-card">
             @include('orders.partials.table', [
                 'orders' => $orders,
                 'showParty' => true,
@@ -107,7 +104,6 @@
             @if ($orders->count())
                 {{ $orders->links() }}
             @endif
-
         </x-card>
 
     </x-page>

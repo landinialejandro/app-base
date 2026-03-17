@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/index.blade.php | V3 --}}
+{{-- FILE: resources/views/tasks/index.blade.php | V6 --}}
 
 @extends('layouts.app')
 
@@ -19,26 +19,13 @@
             </a>
         </x-page-header>
 
-        <x-card class="list-card">
-
-            <form method="GET" action="{{ route('tasks.index') }}" class="form list-filters">
+        <x-list-filters-card :action="route('tasks.index')" secondary-id="tasks-extra-filters">
+            <x-slot:primary>
                 <div class="list-filters-grid">
                     <div class="form-group">
                         <label for="q" class="form-label">Buscar</label>
                         <input type="text" id="q" name="q" class="form-control" value="{{ request('q') }}"
                             placeholder="Nombre o ID">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="project_id" class="form-label">Proyecto</label>
-                        <select id="project_id" name="project_id" class="form-control">
-                            <option value="">Todos</option>
-                            @foreach ($projects as $project)
-                                <option value="{{ $project->id }}" @selected((string) request('project_id') === (string) $project->id)>
-                                    {{ $project->name }}
-                                </option>
-                            @endforeach
-                        </select>
                     </div>
 
                     <div class="form-group">
@@ -48,6 +35,22 @@
                             @foreach (TaskCatalog::statusLabels() as $value => $label)
                                 <option value="{{ $value }}" @selected(request('status') === $value)>
                                     {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            </x-slot:primary>
+
+            <x-slot:secondary>
+                <div class="list-filters-grid">
+                    <div class="form-group">
+                        <label for="project_id" class="form-label">Proyecto</label>
+                        <select id="project_id" name="project_id" class="form-control">
+                            <option value="">Todos</option>
+                            @foreach ($projects as $project)
+                                <option value="{{ $project->id }}" @selected((string) request('project_id') === (string) $project->id)>
+                                    {{ $project->name }}
                                 </option>
                             @endforeach
                         </select>
@@ -65,64 +68,17 @@
                         </select>
                     </div>
                 </div>
+            </x-slot:secondary>
+        </x-list-filters-card>
 
-                <div class="list-filters-actions">
-                    <button type="submit" class="btn btn-primary">Filtrar</button>
-
-                    <a href="{{ route('tasks.index') }}" class="btn btn-secondary">
-                        Limpiar
-                    </a>
-                </div>
-            </form>
+        <x-card class="list-card">
+            @include('tasks.partials.table', [
+                'tasks' => $tasks,
+                'emptyMessage' => 'No hay tareas registradas para esta empresa.',
+            ])
 
             @if ($tasks->count())
-                <div class="table-wrap list-scroll">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Nombre</th>
-                                <th>Proyecto</th>
-                                <th>Estado</th>
-                                <th>Asignado a</th>
-                                <th>Vencimiento</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($tasks as $task)
-                                <tr>
-                                    <td>
-                                        <a href="{{ route('tasks.show', $task) }}">
-                                            {{ $task->name }}
-                                        </a>
-                                    </td>
-
-                                    <td>
-                                        @if ($task->project)
-                                            <a href="{{ route('projects.show', $task->project) }}">
-                                                {{ $task->project->name }}
-                                            </a>
-                                        @else
-                                            —
-                                        @endif
-                                    </td>
-
-                                    <td>
-                                        <span class="status-badge {{ TaskCatalog::badgeClass($task->status) }}">
-                                            {{ TaskCatalog::label($task->status) }}
-                                        </span>
-                                    </td>
-
-                                    <td>{{ $task->assignedUser?->name ?? 'Sin asignar' }}</td>
-                                    <td>{{ $task->due_date?->format('d/m/Y') ?? '—' }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-
-                    {{ $tasks->links() }}
-                </div>
-            @else
-                <p class="mb-0">No hay tareas registradas para esta empresa.</p>
+                {{ $tasks->links() }}
             @endif
         </x-card>
     </x-page>

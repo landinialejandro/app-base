@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/projects/index.blade.php --}}
+{{-- FILE: resources/views/projects/index.blade.php | V3 --}}
 
 @extends('layouts.app')
 
@@ -15,9 +15,8 @@
             </a>
         </x-page-header>
 
-        <x-card class="list-card">
-
-            <form method="GET" action="{{ route('projects.index') }}" class="form list-filters">
+        <x-list-filters-card :action="route('projects.index')">
+            <x-slot:primary>
                 <div class="list-filters-grid">
                     <div class="form-group">
                         <label for="q" class="form-label">Buscar</label>
@@ -25,49 +24,17 @@
                             placeholder="Nombre, descripción o ID">
                     </div>
                 </div>
+            </x-slot:primary>
+        </x-list-filters-card>
 
-                <div class="list-filters-actions">
-                    <button type="submit" class="btn btn-primary">Filtrar</button>
-
-                    <a href="{{ route('projects.index') }}" class="btn btn-secondary">
-                        Limpiar
-                    </a>
-                </div>
-            </form>
+        <x-card class="list-card">
+            @include('projects.partials.table', [
+                'projects' => $projects,
+                'emptyMessage' => 'No hay proyectos para esta empresa.',
+            ])
 
             @if ($projects->count())
-                <div class="table-wrap list-scroll">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Descripción</th>
-                                <th>Creado</th>
-                                <th>Actualizado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($projects as $project)
-                                <tr>
-                                    <td>{{ $project->id }}</td>
-                                    <td>
-                                        <a href="{{ route('projects.show', $project) }}">
-                                            {{ $project->name }}
-                                        </a>
-                                    </td>
-                                    <td>{{ $project->description ?: '—' }}</td>
-                                    <td>{{ $project->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
-                                    <td>{{ $project->updated_at?->format('d/m/Y H:i') ?? '—' }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-
-                    {{ $projects->links() }}
-                </div>
-            @else
-                <p class="mb-0">No hay proyectos para esta empresa.</p>
+                {{ $projects->links() }}
             @endif
         </x-card>
 

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/products/index.blade.php --}}
+{{-- FILE: resources/views/products/index.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -20,9 +20,8 @@
             </a>
         </x-page-header>
 
-        <x-card class="list-card">
-
-            <form method="GET" action="{{ route('products.index') }}" class="form list-filters">
+        <x-list-filters-card :action="route('products.index')" secondary-id="products-extra-filters">
+            <x-slot:primary>
                 <div class="list-filters-grid">
                     <div class="form-group">
                         <label for="q" class="form-label">Buscar</label>
@@ -41,7 +40,11 @@
                             @endforeach
                         </select>
                     </div>
+                </div>
+            </x-slot:primary>
 
+            <x-slot:secondary>
+                <div class="list-filters-grid">
                     <div class="form-group">
                         <label for="is_active" class="form-label">Activo</label>
                         <select id="is_active" name="is_active" class="form-control">
@@ -51,57 +54,17 @@
                         </select>
                     </div>
                 </div>
+            </x-slot:secondary>
+        </x-list-filters-card>
 
-                <div class="list-filters-actions">
-                    <button type="submit" class="btn btn-primary">Filtrar</button>
-
-                    <a href="{{ route('products.index') }}" class="btn btn-secondary">
-                        Limpiar
-                    </a>
-                </div>
-            </form>
+        <x-card class="list-card">
+            @include('products.partials.table', [
+                'products' => $products,
+                'emptyMessage' => 'No hay productos para esta empresa.',
+            ])
 
             @if ($products->count())
-                <div class="table-wrap list-scroll">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>SKU</th>
-                                <th>Precio</th>
-                                <th>Unidad</th>
-                                <th>Tipo</th>
-                                <th>Activo</th>
-                                <th>Creado</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($products as $product)
-                                <tr>
-                                    <td>{{ $product->id }}</td>
-                                    <td>
-                                        <a href="{{ route('products.show', $product) }}">
-                                            {{ $product->name }}
-                                        </a>
-                                    </td>
-                                    <td>{{ $product->sku ?? '—' }}</td>
-                                    <td>
-                                        {{ $product->price !== null ? number_format((float) $product->price, 2, ',', '.') : '—' }}
-                                    </td>
-                                    <td>{{ $product->unit_label ?? '—' }}</td>
-                                    <td>{{ ProductCatalog::label($product->kind) }}</td>
-                                    <td>{{ $product->is_active ? 'Sí' : 'No' }}</td>
-                                    <td>{{ $product->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-
-                    {{ $products->links() }}
-                </div>
-            @else
-                <p class="mb-0">No hay productos para esta empresa.</p>
+                {{ $products->links() }}
             @endif
         </x-card>
 

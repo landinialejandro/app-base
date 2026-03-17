@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/projects/show.blade.php --}}
+{{-- FILE: resources/views/projects/show.blade.php | V2 --}}
 
 @extends('layouts.app')
 
@@ -6,8 +6,6 @@
 
 @section('content')
     @php
-        use App\Support\Catalogs\TaskCatalog;
-
         $tasks = $project->tasks;
         $pendingCount = $tasks->where('status', 'pending')->count();
         $inProgressCount = $tasks->where('status', 'in_progress')->count();
@@ -59,44 +57,52 @@
                     <div class="summary-inline-label">Tareas</div>
                     <div class="summary-inline-value">{{ $tasks->count() }}</div>
                 </div>
+
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">En curso</div>
+                    <div class="summary-inline-value">{{ $inProgressCount }}</div>
+                </div>
             </div>
-        </x-card>
 
-        <x-card>
-            <div class="detail-grid detail-grid--3">
-                <div class="detail-block">
-                    <span class="detail-block-label">Pendientes</span>
-                    <div class="detail-block-value">{{ $pendingCount }}</div>
-                </div>
+            <div class="list-filters-actions">
+                <button type="button" class="btn btn-secondary" data-action="app-toggle-details"
+                    data-toggle-target="#project-more-detail" data-toggle-text-collapsed="Más detalle"
+                    data-toggle-text-expanded="Menos detalle">
+                    Más detalle
+                </button>
+            </div>
 
-                <div class="detail-block">
-                    <span class="detail-block-label">En curso</span>
-                    <div class="detail-block-value">{{ $inProgressCount }}</div>
-                </div>
+            <div id="project-more-detail" hidden>
+                <div class="detail-grid detail-grid--3">
+                    <div class="detail-block">
+                        <span class="detail-block-label">Pendientes</span>
+                        <div class="detail-block-value">{{ $pendingCount }}</div>
+                    </div>
 
-                <div class="detail-block">
-                    <span class="detail-block-label">Finalizadas</span>
-                    <div class="detail-block-value">{{ $doneCount }}</div>
-                </div>
+                    <div class="detail-block">
+                        <span class="detail-block-label">Finalizadas</span>
+                        <div class="detail-block-value">{{ $doneCount }}</div>
+                    </div>
 
-                <div class="detail-block">
-                    <span class="detail-block-label">Canceladas</span>
-                    <div class="detail-block-value">{{ $cancelledCount }}</div>
-                </div>
+                    <div class="detail-block">
+                        <span class="detail-block-label">Canceladas</span>
+                        <div class="detail-block-value">{{ $cancelledCount }}</div>
+                    </div>
 
-                <div class="detail-block">
-                    <span class="detail-block-label">Creado</span>
-                    <div class="detail-block-value">{{ $project->created_at?->format('d/m/Y H:i') ?: '—' }}</div>
-                </div>
+                    <div class="detail-block">
+                        <span class="detail-block-label">Creado</span>
+                        <div class="detail-block-value">{{ $project->created_at?->format('d/m/Y H:i') ?: '—' }}</div>
+                    </div>
 
-                <div class="detail-block">
-                    <span class="detail-block-label">Actualizado</span>
-                    <div class="detail-block-value">{{ $project->updated_at?->format('d/m/Y H:i') ?: '—' }}</div>
-                </div>
+                    <div class="detail-block">
+                        <span class="detail-block-label">Actualizado</span>
+                        <div class="detail-block-value">{{ $project->updated_at?->format('d/m/Y H:i') ?: '—' }}</div>
+                    </div>
 
-                <div class="detail-block detail-block--full">
-                    <span class="detail-block-label">Descripción</span>
-                    <div class="detail-block-value">{{ $project->description ?: '—' }}</div>
+                    <div class="detail-block detail-block--full">
+                        <span class="detail-block-label">Descripción</span>
+                        <div class="detail-block-value">{{ $project->description ?: '—' }}</div>
+                    </div>
                 </div>
             </div>
         </x-card>
@@ -108,43 +114,10 @@
         </x-page-header>
 
         <x-card class="list-card">
-            @if ($tasks->count())
-                <div class="table-wrap list-scroll">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Estado</th>
-                                <th>Asignado a</th>
-                                <th>Vence</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($tasks as $task)
-                                <tr>
-                                    <td>{{ $task->id }}</td>
-                                    <td>
-                                        <a href="{{ route('tasks.show', $task) }}">
-                                            {{ $task->name }}
-                                        </a>
-                                    </td>
-                                    <td>
-                                        <span class="status-badge {{ TaskCatalog::badgeClass($task->status) }}">
-                                            {{ TaskCatalog::label($task->status) }}
-                                        </span>
-                                    </td>
-                                    <td>{{ $task->assignedUser?->name ?: '—' }}</td>
-                                    <td>{{ $task->due_date ? \Illuminate\Support\Carbon::parse($task->due_date)->format('d/m/Y') : '—' }}
-                                    </td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
-            @else
-                <p class="mb-0">No hay tareas asociadas a este proyecto.</p>
-            @endif
+            @include('tasks.partials.table', [
+                'tasks' => $tasks,
+                'emptyMessage' => 'No hay tareas asociadas a este proyecto.',
+            ])
         </x-card>
 
     </x-page>

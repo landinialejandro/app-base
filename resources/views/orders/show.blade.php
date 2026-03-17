@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php --}}
+{{-- FILE: resources/views/orders/show.blade.php | V3 --}}
 
 @extends('layouts.app')
 
@@ -7,23 +7,22 @@
 @section('content')
     @php
         use App\Support\Catalogs\OrderCatalog;
-        use App\Support\Catalogs\ProductCatalog;
         use App\Support\Catalogs\DocumentCatalog;
 
         $items = $order->items->sortBy('position');
-        $documents = $order->documents->sortByDesc('id');
+        $documents = $order->documents->sortByDesc('id')->values();
 
-        $quotes = $documents->where('kind', DocumentCatalog::KIND_QUOTE)->values();
-        $deliveryNotes = $documents->where('kind', DocumentCatalog::KIND_DELIVERY_NOTE)->values();
-        $invoices = $documents->where('kind', DocumentCatalog::KIND_INVOICE)->values();
-        $workOrders = $documents->where('kind', DocumentCatalog::KIND_WORK_ORDER)->values();
-        $receipts = $documents->where('kind', DocumentCatalog::KIND_RECEIPT)->values();
-        $creditNotes = $documents->where('kind', DocumentCatalog::KIND_CREDIT_NOTE)->values();
+        $orderDetailTitle = match ($order->kind) {
+            OrderCatalog::KIND_SALE => 'Detalle de la orden de venta',
+            OrderCatalog::KIND_PURCHASE => 'Detalle de la orden de compra',
+            OrderCatalog::KIND_SERVICE => 'Detalle de la orden de servicio',
+            default => 'Detalle de la orden',
+        };
 
-        $workOrderCount = $workOrders->count();
-        $quoteCount = $quotes->count();
-        $deliveryNoteCount = $deliveryNotes->count();
-        $invoiceCount = $invoices->count();
+        $quoteCount = $documents->where('kind', DocumentCatalog::KIND_QUOTE)->count();
+        $deliveryNoteCount = $documents->where('kind', DocumentCatalog::KIND_DELIVERY_NOTE)->count();
+        $invoiceCount = $documents->where('kind', DocumentCatalog::KIND_INVOICE)->count();
+        $workOrderCount = $documents->where('kind', DocumentCatalog::KIND_WORK_ORDER)->count();
     @endphp
 
     <x-page>
@@ -34,51 +33,11 @@
             ['label' => $order->number ?: 'Sin número'],
         ]" />
 
-        <x-page-header title="Detalle de la orden">
+        <x-page-header :title="$orderDetailTitle">
             <a href="{{ route('orders.edit', $order) }}" class="btn btn-primary">
                 <x-icons.pencil />
                 <span>Editar</span>
             </a>
-
-            <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form"
-                @if ($quoteCount > 0) data-action="app-confirm-submit"
-                data-confirm-message="Esta orden ya tiene {{ $quoteCount }} presupuesto(s) asociado(s). ¿Deseas crear otro?" @endif>
-                @csrf
-                <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_QUOTE }}">
-                <button type="submit" class="btn btn-secondary">
-                    {{ $quoteCount > 0 ? 'Crear otro presupuesto' : 'Crear presupuesto' }}
-                </button>
-            </form>
-
-            <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form"
-                @if ($deliveryNoteCount > 0) data-action="app-confirm-submit"
-                data-confirm-message="Esta orden ya tiene {{ $deliveryNoteCount }} remito(s) asociado(s). ¿Deseas crear otro?" @endif>
-                @csrf
-                <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_DELIVERY_NOTE }}">
-                <button type="submit" class="btn btn-secondary">
-                    {{ $deliveryNoteCount > 0 ? 'Crear otro remito' : 'Crear remito' }}
-                </button>
-            </form>
-
-            <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form"
-                @if ($invoiceCount > 0) data-action="app-confirm-submit"
-                data-confirm-message="Esta orden ya tiene {{ $invoiceCount }} factura(s) asociada(s). ¿Deseas crear otra?" @endif>
-                @csrf
-                <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_INVOICE }}">
-                <button type="submit" class="btn btn-secondary">
-                    {{ $invoiceCount > 0 ? 'Crear otra factura' : 'Crear factura' }}
-                </button>
-            </form>
-
-            <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form"
-                @if ($workOrderCount > 0) data-action="app-confirm-submit"
-                data-confirm-message="Esta orden ya tiene {{ $workOrderCount }} orden(es) de trabajo asociada(s). ¿Deseas crear otra?" @endif>
-                @csrf
-                <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_WORK_ORDER }}">
-                <button type="submit" class="btn btn-secondary">
-                    {{ $workOrderCount > 0 ? 'Crear otra orden de trabajo' : 'Crear orden de trabajo' }}
-                </button>
-            </form>
 
             <form method="POST" action="{{ route('orders.destroy', $order) }}" class="inline-form"
                 data-action="app-confirm-submit"
@@ -102,8 +61,13 @@
         <x-card>
             <div class="summary-inline-grid">
                 <div class="summary-inline-card">
-                    <div class="summary-inline-label">Tipo</div>
-                    <div class="summary-inline-value">{{ OrderCatalog::label($order->kind) }}</div>
+                    <div class="summary-inline-label">Contacto</div>
+                    <div class="summary-inline-value">{{ $order->party?->name ?: '—' }}</div>
+                </div>
+
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Fecha</div>
+                    <div class="summary-inline-value">{{ $order->ordered_at?->format('d/m/Y') ?: '—' }}</div>
                 </div>
 
                 <div class="summary-inline-card">
@@ -111,13 +75,60 @@
                     <div class="summary-inline-value">{{ $order->number ?: 'Sin número' }}</div>
                 </div>
             </div>
+
+            <div class="list-filters-actions">
+                <button type="button" class="btn btn-secondary" data-action="app-toggle-details"
+                    data-toggle-target="#order-more-detail" data-toggle-text-collapsed="Más detalle"
+                    data-toggle-text-expanded="Menos detalle">
+                    Más detalle
+                </button>
+            </div>
+
+            <div id="order-more-detail" hidden>
+                <div class="detail-grid detail-grid--3">
+                    <div class="detail-block">
+                        <span class="detail-block-label">Tipo</span>
+                        <div class="detail-block-value">{{ OrderCatalog::label($order->kind) }}</div>
+                    </div>
+
+                    <div class="detail-block">
+                        <span class="detail-block-label">Estado</span>
+                        <div class="detail-block-value">
+                            <span class="status-badge {{ OrderCatalog::badgeClass($order->status) }}">
+                                {{ OrderCatalog::statusLabel($order->status) }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="detail-block">
+                        <span class="detail-block-label">Activo</span>
+                        <div class="detail-block-value">
+                            @if ($order->asset)
+                                <a href="{{ route('assets.show', $order->asset) }}">
+                                    {{ $order->asset->name }}
+                                </a>
+                            @else
+                                —
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="detail-block detail-block--full">
+                        <span class="detail-block-label">Notas</span>
+                        <div class="detail-block-value">{{ $order->notes ?: '—' }}</div>
+                    </div>
+                </div>
+            </div>
         </x-card>
 
         <div class="tabs" data-tabs>
-            <div class="tabs-nav" role="tablist" aria-label="Secciones de la orden">
-                <button type="button" class="tabs-link is-active" data-tab-link="detail" role="tab"
+            <div class="tabs-nav" role="tablist" aria-label="Secciones secundarias de la orden">
+                <button type="button" class="tabs-link is-active" data-tab-link="items" role="tab"
                     aria-selected="true">
-                    Detalle
+                    Ítems
+                    @if ($items->count())
+                        ({{ $items->count() }})
+                    @endif
                 </button>
 
                 <button type="button" class="tabs-link" data-tab-link="documents" role="tab" aria-selected="false">
@@ -128,7 +139,7 @@
                 </button>
             </div>
 
-            <section class="tab-panel is-active" data-tab-panel="detail">
+            <section class="tab-panel is-active" data-tab-panel="items">
                 <div class="tab-panel-stack">
 
                     <x-page-header title="Ítems de la orden">
@@ -138,59 +149,11 @@
                     </x-page-header>
 
                     <x-card class="list-card">
-                        @if ($items->count())
-                            <div class="table-wrap list-scroll">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Posición</th>
-                                            <th>Tipo</th>
-                                            <th>Descripción</th>
-                                            <th>Cantidad</th>
-                                            <th>Precio unitario</th>
-                                            <th>Total línea</th>
-                                            <th class="compact-actions-cell">Acciones</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($items as $item)
-                                            <tr>
-                                                <td>{{ $item->position }}</td>
-                                                <td>{{ ProductCatalog::kindLabel($item->kind) }}</td>
-                                                <td>{{ $item->description }}</td>
-                                                <td>{{ number_format($item->quantity, 2, ',', '.') }}</td>
-                                                <td>${{ number_format($item->unit_price, 2, ',', '.') }}</td>
-                                                <td>${{ number_format($item->line_total, 2, ',', '.') }}</td>
-                                                <td class="compact-actions-cell">
-                                                    <div class="compact-actions">
-                                                        <a href="{{ route('orders.items.edit', [$order, $item]) }}"
-                                                            class="btn btn-secondary btn-icon" title="Editar ítem"
-                                                            aria-label="Editar ítem">
-                                                            <x-icons.pencil />
-                                                        </a>
-
-                                                        <form method="POST"
-                                                            action="{{ route('orders.items.destroy', [$order, $item]) }}"
-                                                            class="inline-form" data-action="app-confirm-submit"
-                                                            data-confirm-message="¿Deseas eliminar este ítem?">
-                                                            @csrf
-                                                            @method('DELETE')
-
-                                                            <button type="submit" class="btn btn-danger btn-icon"
-                                                                title="Eliminar ítem" aria-label="Eliminar ítem">
-                                                                <x-icons.trash />
-                                                            </button>
-                                                        </form>
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        @else
-                            <p class="mb-0">No hay ítems cargados en esta orden.</p>
-                        @endif
+                        @include('orders.items.partials.table', [
+                            'order' => $order,
+                            'items' => $items,
+                            'emptyMessage' => 'No hay ítems cargados en esta orden.',
+                        ])
                     </x-card>
 
                     <x-card>
@@ -213,166 +176,57 @@
             <section class="tab-panel" data-tab-panel="documents" hidden>
                 <div class="tab-panel-stack">
 
-                    <div class="tabs" data-tabs>
-                        <div class="tabs-nav" role="tablist" aria-label="Tipos de documentos de la orden">
-                            <button type="button" class="tabs-link is-active" data-tab-link="documents-all"
-                                role="tab" aria-selected="true">
-                                Todos
-                                @if ($documents->count())
-                                    ({{ $documents->count() }})
-                                @endif
+                    <x-page-header title="Documentos de la orden">
+                        <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form"
+                            @if ($quoteCount > 0) data-action="app-confirm-submit"
+                            data-confirm-message="Esta orden ya tiene {{ $quoteCount }} presupuesto(s) asociado(s). ¿Deseas crear otro?" @endif>
+                            @csrf
+                            <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_QUOTE }}">
+                            <button type="submit" class="btn btn-secondary">
+                                {{ $quoteCount > 0 ? 'Crear otro presupuesto' : 'Crear presupuesto' }}
                             </button>
+                        </form>
 
-                            <button type="button" class="tabs-link" data-tab-link="documents-quotes" role="tab"
-                                aria-selected="false">
-                                Presupuestos
-                                @if ($quotes->count())
-                                    ({{ $quotes->count() }})
-                                @endif
+                        <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form"
+                            @if ($deliveryNoteCount > 0) data-action="app-confirm-submit"
+                            data-confirm-message="Esta orden ya tiene {{ $deliveryNoteCount }} remito(s) asociado(s). ¿Deseas crear otro?" @endif>
+                            @csrf
+                            <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_DELIVERY_NOTE }}">
+                            <button type="submit" class="btn btn-secondary">
+                                {{ $deliveryNoteCount > 0 ? 'Crear otro remito' : 'Crear remito' }}
                             </button>
+                        </form>
 
-                            <button type="button" class="tabs-link" data-tab-link="documents-delivery-notes"
-                                role="tab" aria-selected="false">
-                                Remitos
-                                @if ($deliveryNotes->count())
-                                    ({{ $deliveryNotes->count() }})
-                                @endif
+                        <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form"
+                            @if ($invoiceCount > 0) data-action="app-confirm-submit"
+                            data-confirm-message="Esta orden ya tiene {{ $invoiceCount }} factura(s) asociada(s). ¿Deseas crear otra?" @endif>
+                            @csrf
+                            <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_INVOICE }}">
+                            <button type="submit" class="btn btn-secondary">
+                                {{ $invoiceCount > 0 ? 'Crear otra factura' : 'Crear factura' }}
                             </button>
+                        </form>
 
-                            <button type="button" class="tabs-link" data-tab-link="documents-invoices" role="tab"
-                                aria-selected="false">
-                                Facturas
-                                @if ($invoices->count())
-                                    ({{ $invoices->count() }})
-                                @endif
+                        <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form"
+                            @if ($workOrderCount > 0) data-action="app-confirm-submit"
+                            data-confirm-message="Esta orden ya tiene {{ $workOrderCount }} orden(es) de trabajo asociada(s). ¿Deseas crear otra?" @endif>
+                            @csrf
+                            <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_WORK_ORDER }}">
+                            <button type="submit" class="btn btn-secondary">
+                                {{ $workOrderCount > 0 ? 'Crear otra orden de trabajo' : 'Crear orden de trabajo' }}
                             </button>
+                        </form>
+                    </x-page-header>
 
-                            <button type="button" class="tabs-link" data-tab-link="documents-work-orders"
-                                role="tab" aria-selected="false">
-                                Órdenes de trabajo
-                                @if ($workOrders->count())
-                                    ({{ $workOrders->count() }})
-                                @endif
-                            </button>
-
-                            @if ($receipts->count())
-                                <button type="button" class="tabs-link" data-tab-link="documents-receipts"
-                                    role="tab" aria-selected="false">
-                                    Recibos ({{ $receipts->count() }})
-                                </button>
-                            @endif
-
-                            @if ($creditNotes->count())
-                                <button type="button" class="tabs-link" data-tab-link="documents-credit-notes"
-                                    role="tab" aria-selected="false">
-                                    Notas de crédito ({{ $creditNotes->count() }})
-                                </button>
-                            @endif
-                        </div>
-
-                        <section class="tab-panel is-active" data-tab-panel="documents-all">
-                            <div class="tab-panel-stack">
-                                <x-card class="list-card">
-                                    @include('documents.partials.table', [
-                                        'documents' => $documents,
-                                        'showParty' => false,
-                                        'showAsset' => false,
-                                        'showOrder' => false,
-                                        'emptyMessage' => 'No hay documentos asociados para mostrar.',
-                                    ])
-                                </x-card>
-                            </div>
-                        </section>
-
-                        <section class="tab-panel" data-tab-panel="documents-quotes" hidden>
-                            <div class="tab-panel-stack">
-                                <x-card class="list-card">
-                                    @include('documents.partials.table', [
-                                        'documents' => $quotes,
-                                        'showParty' => false,
-                                        'showAsset' => false,
-                                        'showOrder' => false,
-                                        'emptyMessage' => 'Esta orden no tiene presupuestos asociados.',
-                                    ])
-                                </x-card>
-                            </div>
-                        </section>
-
-                        <section class="tab-panel" data-tab-panel="documents-delivery-notes" hidden>
-                            <div class="tab-panel-stack">
-                                <x-card class="list-card">
-                                    @include('documents.partials.table', [
-                                        'documents' => $deliveryNotes,
-                                        'showParty' => false,
-                                        'showAsset' => false,
-                                        'showOrder' => false,
-                                        'emptyMessage' => 'Esta orden no tiene remitos asociados.',
-                                    ])
-                                </x-card>
-                            </div>
-                        </section>
-
-                        <section class="tab-panel" data-tab-panel="documents-invoices" hidden>
-                            <div class="tab-panel-stack">
-                                <x-card class="list-card">
-                                    @include('documents.partials.table', [
-                                        'documents' => $invoices,
-                                        'showParty' => false,
-                                        'showAsset' => false,
-                                        'showOrder' => false,
-                                        'emptyMessage' => 'Esta orden no tiene facturas asociadas.',
-                                    ])
-                                </x-card>
-                            </div>
-                        </section>
-
-                        <section class="tab-panel" data-tab-panel="documents-work-orders" hidden>
-                            <div class="tab-panel-stack">
-                                <x-card class="list-card">
-                                    @include('documents.partials.table', [
-                                        'documents' => $workOrders,
-                                        'showParty' => false,
-                                        'showAsset' => false,
-                                        'showOrder' => false,
-                                        'emptyMessage' => 'Esta orden no tiene órdenes de trabajo asociadas.',
-                                    ])
-                                </x-card>
-                            </div>
-                        </section>
-
-                        @if ($receipts->count())
-                            <section class="tab-panel" data-tab-panel="documents-receipts" hidden>
-                                <div class="tab-panel-stack">
-                                    <x-card class="list-card">
-                                        @include('documents.partials.table', [
-                                            'documents' => $receipts,
-                                            'showParty' => false,
-                                            'showAsset' => false,
-                                            'showOrder' => false,
-                                            'emptyMessage' => 'Esta orden no tiene recibos asociados.',
-                                        ])
-                                    </x-card>
-                                </div>
-                            </section>
-                        @endif
-
-                        @if ($creditNotes->count())
-                            <section class="tab-panel" data-tab-panel="documents-credit-notes" hidden>
-                                <div class="tab-panel-stack">
-                                    <x-card class="list-card">
-                                        @include('documents.partials.table', [
-                                            'documents' => $creditNotes,
-                                            'showParty' => false,
-                                            'showAsset' => false,
-                                            'showOrder' => false,
-                                            'emptyMessage' => 'Esta orden no tiene notas de crédito asociadas.',
-                                        ])
-                                    </x-card>
-                                </div>
-                            </section>
-                        @endif
-                    </div>
-
+                    @include('documents.partials.embedded-tabs', [
+                        'documents' => $documents,
+                        'showParty' => false,
+                        'showAsset' => false,
+                        'showOrder' => false,
+                        'emptyMessage' => 'No hay documentos asociados para mostrar.',
+                        'allLabel' => 'Todos',
+                        'tabsId' => 'order-documents-tabs',
+                    ])
                 </div>
             </section>
         </div>

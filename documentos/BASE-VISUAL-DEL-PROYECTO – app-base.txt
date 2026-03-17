@@ -42,14 +42,39 @@ Ejemplo:
 
 <x-page class="list-page"> <x-breadcrumb /> <x-page-header /> <x-card class="list-card"> <div class="table-wrap list-scroll"> <table class="table"> ... </table> </div> </x-card> </x-page>
 
+PATRÓN DE DOS CARDS EN INDEX
+
+Cuando mejore la lectura o la organización visual, las vistas index pueden resolverse mediante dos cards separadas:
+
+card de filtros y acciones
+card de resultados, tabla y paginación
+
+Este patrón es válido especialmente cuando el listado incorpora toolbar compacta, filtros colapsables o acciones visibles separadas de la tabla.
+
+LIST-TOOLBAR EN INDEX
+
+Cuando un index requiera filtros y acciones compactas, se admite el patrón list-toolbar.
+
+Reglas del patrón:
+
+máximo 2 filtros visibles por defecto
+
+acciones del listado alineadas a la derecha en desktop
+
+apilado natural en mobile
+
+filtros extra bajo patrón colapsable tipo “Más filtros”
+
+debe priorizar lectura rápida y baja altura visual
+
 FILTROS EN LISTADOS (INDEX)
 
-Cuando el módulo lo requiera, los filtros deben ubicarse arriba de la tabla, dentro del mismo x-card.list-card del listado.
+Cuando el módulo lo requiera, los filtros deben ubicarse arriba de la tabla, dentro del mismo card del listado o dentro de una card específica de filtros.
 
 Patrón validado:
 
 formulario GET
-bloque superior de filtros dentro del mismo card
+bloque superior de filtros
 tabla debajo del bloque de filtros
 paginación preservando query string
 
@@ -126,6 +151,12 @@ Editar
 Eliminar
 Copiar link
 
+PAGINACIÓN
+
+La paginación debe utilizar vista propia del proyecto.
+
+Debe evitarse markup visual externo de Tailwind o Bootstrap cuando no coincida con la base visual de app-base.
+
 ACCIONES COMPACTAS EN TABLAS Y SUBLISTADOS
 
 En sublistados internos dentro de vistas show se permiten acciones compactas con iconos.
@@ -162,9 +193,25 @@ Puede utilizar grillas de detalle como:
 detail-grid
 detail-grid--3
 
+En vistas show complejas se admite como patrón preferente:
+
+card principal compacta
+resumen visible
+detalle secundario colapsable dentro de la misma card cuando eso reduzca altura visual y mejore la lectura general
+
 ESTADO EN FICHA
 
 Cuando el módulo tenga estados funcionales, el estado puede mostrarse mediante badge dentro de la ficha principal.
+
+DETALLE COLAPSABLE EN SHOW
+
+Cuando una ficha principal concentre demasiada información secundaria, se permite ocultar parte del detalle bajo un patrón colapsable dentro de la misma card principal.
+
+Este patrón debe utilizarse cuando:
+
+reduzca altura visual excesiva
+mejore la lectura inicial
+no oculte información crítica para la tarea principal
 
 TABS INTERNAS EN VISTAS SHOW
 
@@ -189,17 +236,25 @@ una solapa activa visible por vez
 
 Las tabs internas pueden contener múltiples cards apiladas por sección.
 
-Cuando la UX lo requiera, debe preservarse la tab activa al recargar o luego de acciones POST, PUT o DELETE.
+Cuando la UX lo requiera, puede preservarse la tab activa al recargar o luego de acciones POST, PUT o DELETE.
 
-El contexto activo puede resolverse por query string, por ejemplo:
+La persistencia de tab activa no debe asumirse como regla global por query string si existen tabs anidadas o múltiples contenedores de tabs en una misma pantalla.
 
-?tab=users
+Debe resolverse con criterio por contenedor, o no aplicarse, cuando la preservación complique la UX.
 
 La navegación de tabs debe ser visualmente reconocible como patrón de solapas.
 
 La pestaña activa debe distinguirse con claridad.
 
 El contenedor tabs-nav debe tener jerarquía visual suficiente para que el usuario perciba que puede cambiar de sección.
+
+TABS ANIDADAS
+
+Las tabs anidadas están permitidas cuando una relación secundaria real necesita una segunda capa de organización.
+
+No deben usarse por ornamentación ni por sobrefragmentación.
+
+Solo deben adoptarse cuando mejoran claramente la lectura o navegación de relaciones embebidas.
 
 SHOW COMPLEJOS Y PANTALLAS DE CONFIGURACIÓN
 
@@ -208,6 +263,16 @@ En vistas tipo configuración, perfil de empresa o show complejos con más de un
 resumen superior
 tabs
 múltiples cards dentro de cada tab
+
+También puede combinarse:
+
+card principal compacta
+detalle secundario colapsable
+tabs internas o tabs anidadas cuando la estructura funcional lo justifique
+
+SUBLISTADOS DOCUMENTALES EMBEBIDOS
+
+Los listados embebidos de documentos o sublistados documentales recurrentes pueden resolverse mediante partial reutilizable dentro del módulo o en una ubicación común si el patrón ya está consolidado.
 
 REGLA SOBRE ENCABEZADOS INTERNOS
 

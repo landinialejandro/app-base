@@ -97,6 +97,13 @@ usar Contacto como nombre visible genérico de parties
 usar Eliminar como verbo destructivo estándar
 usar title y aria-label en botones compactos con solo icono
 
+Criterios operativos recientes de UX:
+
+en index, priorizar toolbar compacto con hasta 2 filtros visibles
+en index, cuando mejore la lectura, separar filtros y resultados en dos cards
+en show, priorizar card principal compacta y colapsar detalle secundario cuando reduzca altura visual
+usar paginación propia del proyecto y evitar markup visual externo al sistema
+
 ESTADO ACTUAL DEL PROYECTO
 
 Arquitectura SaaS implementada.
@@ -170,6 +177,7 @@ no es necesario adivinar, ya tenemos el proyecto con varios modulos
 es más util pedir información así optimizamos el uso del tiempo
 siempre dame la mejor opcion de respuesta para no tener sobrerevisar
 prevenimos el analisis viendo si el siguiente paso es mejor o no
+
 Si necesitas archivos creame un comando de consola similar al siguiente:
 
 (

@@ -116,6 +116,16 @@ evaluar componente reutilizable futuro para botones estándar con icono + texto
 
 evaluar componente reutilizable futuro para acciones compactas con solo icono
 
+extender patrón list-toolbar al core restante (assets, documents, orders, etc.)
+
+evaluar consolidación de card principal + detalle colapsable en vistas show
+
+revisar y normalizar uso de tabs anidadas en módulos del core
+
+seguir unificando sublistados documentales mediante partial reutilizable
+
+revisar paginación propia del proyecto en todos los index
+
 MEJORAS DE ONBOARDING
 
 evolucionar el envío manual de invitaciones owner_signup hacia envío real por WhatsApp o email

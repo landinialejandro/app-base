@@ -51,6 +51,14 @@ card de resultados, tabla y paginación
 
 Este patrón es válido especialmente cuando el listado incorpora toolbar compacta, filtros colapsables o acciones visibles separadas de la tabla.
 
+WRAPPER GLOBAL DE FILTROS
+
+Cuando el index utilice card específica de filtros, debe priorizarse el wrapper global reutilizable:
+
+x-list-filters-card
+
+Su objetivo es unificar espaciado, jerarquía visual y comportamiento general del bloque de filtros del sistema.
+
 LIST-TOOLBAR EN INDEX
 
 Cuando un index requiera filtros y acciones compactas, se admite el patrón list-toolbar.
@@ -165,6 +173,23 @@ Estas acciones deben usar clases visuales propias del proyecto y mantener tamañ
 
 No deben utilizarse utilidades externas o no definidas en app-base.css.
 
+PARTIALS REUTILIZABLES POR MÓDULO
+
+Cuando un módulo requiera separar estructura y reutilización visual, se admite la convención:
+
+partials/table.blade.php
+partials/embedded-tabs.blade.php
+
+Reglas:
+
+partials/table.blade.php debe concentrar el listado puro o tabla base del módulo
+
+partials/embedded-tabs.blade.php debe reutilizar esa tabla cuando el mismo dataset necesite agruparse en tabs dentro de una vista show u otro contexto embebido
+
+debe evitarse duplicar tablas manualmente en index y show si ya existe una tabla reusable consolidada para el módulo
+
+esta convención es válida para módulos donde la misma tabla necesite mostrarse en listado puro y también agrupada por tabs
+
 VISTAS SHOW
 
 Las vistas show deben organizar la información en tres niveles visuales cuando corresponda:
@@ -183,6 +208,18 @@ Clases utilizadas:
 
 summary-inline-grid
 summary-inline-card
+
+SUMMARY OPERATIVO EN SHOW
+
+Cuando la pantalla lo justifique, el show puede incluir un summary operativo compacto de hasta 3 cards principales.
+
+Reglas:
+
+debe priorizar datos de uso diario o lectura inmediata
+
+no debe transformarse en un resumen exhaustivo de toda la entidad
+
+la información secundaria o menos consultada debe moverse al detalle colapsable o a tabs si corresponde
 
 BLOQUE PRINCIPAL DE LA FICHA
 
@@ -248,6 +285,20 @@ La pestaña activa debe distinguirse con claridad.
 
 El contenedor tabs-nav debe tener jerarquía visual suficiente para que el usuario perciba que puede cambiar de sección.
 
+CRITERIO DE TABS POR MÓDULO
+
+Las tabs no son solo documentales.
+
+También pueden utilizarse para agrupar relaciones o sublistados por tipo o por estado según el módulo, cuando eso mejore realmente la lectura.
+
+Ejemplos válidos:
+
+documents, orders o assets agrupados por tipo
+
+tasks agrupadas por estado, si el caso funcional lo justifica
+
+No deben incorporarse tabs si la agrupación no aporta valor de lectura o navegación.
+
 TABS ANIDADAS
 
 Las tabs anidadas están permitidas cuando una relación secundaria real necesita una segunda capa de organización.
@@ -270,9 +321,11 @@ card principal compacta
 detalle secundario colapsable
 tabs internas o tabs anidadas cuando la estructura funcional lo justifique
 
-SUBLISTADOS DOCUMENTALES EMBEBIDOS
+SUBLISTADOS EMBEBIDOS Y TABS REUTILIZABLES
 
-Los listados embebidos de documentos o sublistados documentales recurrentes pueden resolverse mediante partial reutilizable dentro del módulo o en una ubicación común si el patrón ya está consolidado.
+Los sublistados embebidos pueden resolverse mediante partial reutilizable dentro del módulo o en una ubicación común si el patrón ya está consolidado.
+
+Cuando un sublistado se agrupe por tabs, debe priorizarse la reutilización de la tabla base del módulo a través de partials, evitando mantener variantes duplicadas del mismo listado.
 
 REGLA SOBRE ENCABEZADOS INTERNOS
 

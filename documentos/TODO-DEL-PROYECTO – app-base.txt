@@ -126,6 +126,8 @@ seguir unificando sublistados documentales mediante partial reutilizable
 
 revisar paginación propia del proyecto en todos los index
 
+extender patrón reusable table + embedded-tabs al core restante (tasks, products, etc.) y revisar en qué módulos realmente corresponde tabs
+
 MEJORAS DE ONBOARDING
 
 evolucionar el envío manual de invitaciones owner_signup hacia envío real por WhatsApp o email

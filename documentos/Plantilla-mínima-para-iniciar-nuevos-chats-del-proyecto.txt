@@ -103,6 +103,11 @@ en index, priorizar toolbar compacto con hasta 2 filtros visibles
 en index, cuando mejore la lectura, separar filtros y resultados en dos cards
 en show, priorizar card principal compacta y colapsar detalle secundario cuando reduzca altura visual
 usar paginación propia del proyecto y evitar markup visual externo al sistema
+Convenciones reusables recientes por módulo:
+usar partials/table.blade.php para listados puros del módulo
+usar partials/embedded-tabs.blade.php cuando el mismo listado deba agruparse por tabs dentro de una vista embebida o show
+reutilizar la misma tabla base del módulo antes de crear variantes duplicadas en index y show
+usar tabs por tipo o por estado solo cuando el módulo realmente lo justifique
 
 ESTADO ACTUAL DEL PROYECTO
 

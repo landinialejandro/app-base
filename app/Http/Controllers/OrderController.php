@@ -60,7 +60,7 @@ class OrderController extends Controller
                 $query->whereDate('ordered_at', $orderedAt);
             })
             ->latest()
-            ->paginate(20)
+            ->paginate(10)
             ->withQueryString();
 
         return view('orders.index', compact('orders', 'parties', 'assets'));

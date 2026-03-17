@@ -72,7 +72,7 @@ class TaskController extends Controller
             ->orderByRaw('CASE WHEN due_date IS NULL THEN 1 ELSE 0 END')
             ->orderBy('due_date')
             ->orderBy('name')
-            ->paginate(25)
+            ->paginate(10)
             ->withQueryString();
 
         return view('tasks.index', compact('tenant', 'tasks', 'projects', 'users'));

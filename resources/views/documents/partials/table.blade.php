@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/partials/embedded-table.blade.php --}}
+{{-- FILE: resources/views/documents/partials/table.blade.php --}}
 
 @php
     use App\Support\Catalogs\DocumentCatalog;

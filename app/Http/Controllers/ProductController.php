@@ -37,7 +37,7 @@ class ProductController extends Controller
                 $query->where('is_active', (bool) $isActive);
             })
             ->orderBy('name')
-            ->paginate(25)
+            ->paginate(10)
             ->withQueryString();
 
         return view('products.index', compact('products'));

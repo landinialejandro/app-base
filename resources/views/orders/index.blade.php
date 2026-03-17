@@ -97,74 +97,15 @@
                 </div>
             </form>
 
+            @include('orders.partials.table', [
+                'orders' => $orders,
+                'showParty' => true,
+                'showAsset' => true,
+                'emptyMessage' => 'No hay órdenes cargadas.',
+            ])
+
             @if ($orders->count())
-
-                <div class="table-wrap list-scroll">
-
-                    <table class="table">
-
-                        <thead>
-                            <tr>
-                                <th>Número</th>
-                                <th>Tipo</th>
-                                <th>Estado</th>
-                                <th>Contacto</th>
-                                <th>Activo</th>
-                                <th>Fecha</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-
-                            @foreach ($orders as $order)
-                                <tr>
-
-                                    <td>
-                                        <a href="{{ route('orders.show', $order) }}">
-                                            {{ $order->number ?: 'Sin número' }}
-                                        </a>
-                                    </td>
-
-                                    <td>
-                                        {{ OrderCatalog::kindLabel($order->kind) }}
-                                    </td>
-
-                                    <td>
-                                        <span class="status-badge {{ OrderCatalog::badgeClass($order->status) }}">
-                                            {{ OrderCatalog::statusLabel($order->status) }}
-                                        </span>
-                                    </td>
-
-                                    <td>
-                                        {{ $order->party?->name ?: '—' }}
-                                    </td>
-
-                                    <td>
-                                        {{ $order->asset?->name ?: '—' }}
-                                    </td>
-
-                                    <td>
-                                        {{ $order->ordered_at?->format('d/m/Y') ?: '—' }}
-                                    </td>
-
-                                    <td>
-                                        ${{ number_format($order->total, 2, ',', '.') }}
-                                    </td>
-
-                                </tr>
-                            @endforeach
-
-                        </tbody>
-
-                    </table>
-
-                    {{ $orders->links() }}
-
-                </div>
-            @else
-                <p class="mb-0">No hay órdenes cargadas.</p>
-
+                {{ $orders->links() }}
             @endif
 
         </x-card>

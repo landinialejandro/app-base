@@ -17,7 +17,7 @@ class AdminSignupRequestController extends Controller
         $signupRequests = SignupRequest::query()
             ->where('status', 'pending')
             ->latest()
-            ->paginate(20);
+            ->paginate(10);
 
         return view('admin.signup-requests.index', [
             'signupRequests' => $signupRequests,
@@ -29,7 +29,7 @@ class AdminSignupRequestController extends Controller
         $signupRequests = SignupRequest::query()
             ->whereIn('status', ['approved', 'rejected'])
             ->latest()
-            ->paginate(20);
+            ->paginate(10);
 
         return view('admin.signup-requests.processed', [
             'signupRequests' => $signupRequests,

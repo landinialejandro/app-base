@@ -49,7 +49,7 @@ class AssetController extends Controller
                 $query->where('status', $status);
             })
             ->orderBy('name')
-            ->paginate(25)
+            ->paginate(10)
             ->withQueryString();
 
         return view('assets.index', compact('assets', 'parties'));

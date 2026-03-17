@@ -109,74 +109,16 @@
                 </div>
             </form>
 
+            @include('documents.partials.table', [
+                'documents' => $documents,
+                'showParty' => true,
+                'showAsset' => true,
+                'showOrder' => true,
+                'emptyMessage' => 'No hay documentos cargados.',
+            ])
+
             @if ($documents->count())
-
-                <div class="table-wrap list-scroll">
-
-                    <table class="table">
-
-                        <thead>
-                            <tr>
-                                <th>Número</th>
-                                <th>Tipo</th>
-                                <th>Estado</th>
-                                <th>Contacto</th>
-                                <th>Activo</th>
-                                <th>Fecha</th>
-                                <th>Total</th>
-                            </tr>
-                        </thead>
-
-                        <tbody>
-
-                            @foreach ($documents as $document)
-                                <tr>
-
-                                    <td>
-                                        <a href="{{ route('documents.show', $document) }}">
-                                            {{ $document->number ?: 'Sin número' }}
-                                        </a>
-                                    </td>
-
-                                    <td>
-                                        {{ DocumentCatalog::kindLabel($document->kind) }}
-                                    </td>
-
-                                    <td>
-                                        <span class="status-badge {{ DocumentCatalog::badgeClass($document->status) }}">
-                                            {{ DocumentCatalog::statusLabel($document->status) }}
-                                        </span>
-                                    </td>
-
-                                    <td>
-                                        {{ $document->party?->name ?: '—' }}
-                                    </td>
-
-                                    <td>
-                                        {{ $document->asset?->name ?: '—' }}
-                                    </td>
-
-                                    <td>
-                                        {{ $document->issued_at?->format('d/m/Y') ?: '—' }}
-                                    </td>
-
-                                    <td>
-                                        ${{ number_format($document->total, 2, ',', '.') }}
-                                    </td>
-
-                                </tr>
-                            @endforeach
-
-                        </tbody>
-
-                    </table>
-
-                    {{ $documents->links() }}
-
-                </div>
-            @else
-                <p class="mb-0">No hay documentos cargados.</p>
-
+                {{ $documents->links() }}
             @endif
 
         </x-card>

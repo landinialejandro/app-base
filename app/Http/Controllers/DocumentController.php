@@ -73,7 +73,7 @@ class DocumentController extends Controller
                 $query->whereDate('issued_at', $issuedAt);
             })
             ->latest()
-            ->paginate(20)
+            ->paginate(10)
             ->withQueryString();
 
         return view('documents.index', compact('documents', 'parties', 'assets', 'orders'));

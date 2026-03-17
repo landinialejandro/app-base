@@ -8,7 +8,9 @@
 
     @php
         use App\Support\Catalogs\AssetCatalog;
-        use App\Support\Catalogs\DocumentCatalog;
+
+        $orders = $orders ?? collect();
+        $documents = $documents ?? collect();
     @endphp
 
     <x-page>
@@ -48,37 +50,13 @@
         <x-card>
             <div class="summary-inline-grid">
                 <div class="summary-inline-card">
-                    <div class="summary-inline-label">Tipo</div>
-                    <div class="summary-inline-value">{{ AssetCatalog::label($asset->kind) }}</div>
-                </div>
-
-                <div class="summary-inline-card">
                     <div class="summary-inline-label">Nombre</div>
                     <div class="summary-inline-value">{{ $asset->name }}</div>
                 </div>
 
                 <div class="summary-inline-card">
-                    <div class="summary-inline-label">Estado</div>
+                    <div class="summary-inline-label">Contacto</div>
                     <div class="summary-inline-value">
-                        <span class="status-badge {{ AssetCatalog::badgeClass($asset->status) }}">
-                            {{ AssetCatalog::statusLabel($asset->status) }}
-                        </span>
-                    </div>
-                </div>
-            </div>
-        </x-card>
-
-        <x-card>
-            <div class="detail-grid detail-grid--3">
-                <div class="detail-block">
-                    <span class="detail-block-label">Relación</span>
-                    <div class="detail-block-value">{{ AssetCatalog::relationshipTypeLabel($asset->relationship_type) }}
-                    </div>
-                </div>
-
-                <div class="detail-block">
-                    <span class="detail-block-label">Contacto</span>
-                    <div class="detail-block-value">
                         @if ($asset->party)
                             <a href="{{ route('parties.show', $asset->party) }}">
                                 {{ $asset->party->name }}
@@ -89,90 +67,102 @@
                     </div>
                 </div>
 
-                <div class="detail-block">
-                    <span class="detail-block-label">Código interno</span>
-                    <div class="detail-block-value">{{ $asset->internal_code ?? '—' }}</div>
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Código interno</div>
+                    <div class="summary-inline-value">{{ $asset->internal_code ?: '—' }}</div>
                 </div>
+            </div>
 
-                <div class="detail-block">
-                    <span class="detail-block-label">Creado</span>
-                    <div class="detail-block-value">{{ $asset->created_at?->format('d/m/Y H:i') ?? '—' }}</div>
-                </div>
+            <div class="list-filters-actions">
+                <button type="button" class="btn btn-secondary" data-action="app-toggle-details"
+                    data-toggle-target="#asset-detail-panel" data-toggle-text-expanded="Ocultar detalle"
+                    data-toggle-text-collapsed="Más detalle">
+                    Más detalle
+                </button>
+            </div>
 
-                <div class="detail-block">
-                    <span class="detail-block-label">Actualizado</span>
-                    <div class="detail-block-value">{{ $asset->updated_at?->format('d/m/Y H:i') ?? '—' }}</div>
-                </div>
+            <div id="asset-detail-panel" hidden>
+                <div class="detail-grid detail-grid--3">
+                    <div class="detail-block">
+                        <span class="detail-block-label">Tipo</span>
+                        <div class="detail-block-value">{{ AssetCatalog::kindLabel($asset->kind) }}</div>
+                    </div>
 
-                <div class="detail-block detail-block--full">
-                    <span class="detail-block-label">Notas</span>
-                    <div class="detail-block-value">{{ $asset->notes ?? '—' }}</div>
+                    <div class="detail-block">
+                        <span class="detail-block-label">Estado</span>
+                        <div class="detail-block-value">
+                            <span class="status-badge {{ AssetCatalog::badgeClass($asset->status) }}">
+                                {{ AssetCatalog::statusLabel($asset->status) }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="detail-block">
+                        <span class="detail-block-label">Relación</span>
+                        <div class="detail-block-value">
+                            {{ AssetCatalog::relationshipTypeLabel($asset->relationship_type) }}
+                        </div>
+                    </div>
+
+                    <div class="detail-block">
+                        <span class="detail-block-label">Creado</span>
+                        <div class="detail-block-value">{{ $asset->created_at?->format('d/m/Y H:i') ?: '—' }}</div>
+                    </div>
+
+                    <div class="detail-block">
+                        <span class="detail-block-label">Actualizado</span>
+                        <div class="detail-block-value">{{ $asset->updated_at?->format('d/m/Y H:i') ?: '—' }}</div>
+                    </div>
+
+                    <div class="detail-block detail-block--full">
+                        <span class="detail-block-label">Notas</span>
+                        <div class="detail-block-value">{{ $asset->notes ?: '—' }}</div>
+                    </div>
                 </div>
             </div>
         </x-card>
 
-        <x-card>
-            <div class="dashboard-section-header">
-                <h2 class="dashboard-section-title">Órdenes vinculadas</h2>
-                <p class="dashboard-section-text">
-                    Órdenes actualmente asociadas a este activo.
-                </p>
+        <div class="tabs" data-tabs>
+            <div class="tabs-nav" role="tablist" aria-label="Secciones del activo">
+                <button type="button" class="tabs-link" data-tab-link="documents" role="tab" aria-selected="false">
+                    Documentos
+                    @if ($documents->count())
+                        ({{ $documents->count() }})
+                    @endif
+                </button>
+
+                <button type="button" class="tabs-link is-active" data-tab-link="orders" role="tab"
+                    aria-selected="true">
+                    Órdenes
+                    @if ($orders->count())
+                        ({{ $orders->count() }})
+                    @endif
+                </button>
             </div>
 
-            @if ($orders->count())
-                <div class="table-wrap list-scroll">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>Número</th>
-                                <th>Tipo</th>
-                                <th>Estado</th>
-                                <th>Contacto</th>
-                                <th>Fecha</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($orders as $order)
-                                <tr>
-                                    <td>
-                                        <a href="{{ route('orders.show', $order) }}">
-                                            {{ $order->number ?: 'Sin número' }}
-                                        </a>
-                                    </td>
-                                    <td>{{ \App\Support\Catalogs\OrderCatalog::label($order->kind) }}</td>
-                                    <td>
-                                        <span
-                                            class="status-badge {{ \App\Support\Catalogs\OrderCatalog::statusLabel($order->status) }}">
-                                            {{ \App\Support\Catalogs\OrderCatalog::label($order->status) }}
-                                        </span>
-                                    </td>
-                                    <td>{{ $order->party?->name ?: '—' }}</td>
-                                    <td>{{ $order->ordered_at?->format('d/m/Y') ?: '—' }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
+            <section class="tab-panel" data-tab-panel="documents" hidden>
+                <div class="tab-panel-stack">
+                    @include('documents.partials.embedded-tabs', [
+                        'documents' => $documents,
+                        'showParty' => true,
+                        'showAsset' => false,
+                        'showOrder' => true,
+                        'emptyMessage' => 'Este activo no tiene documentos vinculados.',
+                    ])
                 </div>
-            @else
-                <p class="mb-0">Este activo no tiene órdenes vinculadas.</p>
-            @endif
-        </x-card>
+            </section>
 
-        <x-card>
-            <div class="dashboard-section-header">
-                <h2 class="dashboard-section-title">Documentos vinculados</h2>
-                <p class="dashboard-section-text">
-                    Documentos actualmente asociados a este activo.
-                </p>
-            </div>
+            <section class="tab-panel is-active" data-tab-panel="orders">
+                <div class="tab-panel-stack">
+                    @include('orders.partials.embedded-tabs', [
+                        'orders' => $orders,
+                        'showParty' => true,
+                        'showAsset' => false,
+                        'emptyMessage' => 'Este activo no tiene órdenes vinculadas.',
+                    ])
+                </div>
+            </section>
+        </div>
 
-            @include('documents.partials.embedded-table', [
-                'documents' => $documents,
-                'showParty' => true,
-                'showAsset' => false,
-                'showOrder' => true,
-                'emptyMessage' => 'Este activo no tiene documentos vinculados.',
-            ])
-        </x-card>
     </x-page>
 @endsection

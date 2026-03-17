@@ -27,7 +27,7 @@ class ProjectController extends Controller
                 });
             })
             ->latest()
-            ->paginate(25)
+            ->paginate(10)
             ->withQueryString();
 
         return view('projects.index', [

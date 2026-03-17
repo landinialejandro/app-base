@@ -30,7 +30,7 @@ class AdminMetricsController extends Controller
             ])
             ->orderByDesc('owner_tenants_count')
             ->orderBy('name')
-            ->paginate(20);
+            ->paginate(10);
 
         return view('admin.metrics.owners', [
             'owners' => $owners,
@@ -48,7 +48,7 @@ class AdminMetricsController extends Controller
             ])
             ->orderByDesc('users_count')
             ->orderBy('name')
-            ->paginate(20);
+            ->paginate(10);
 
         return view('admin.metrics.tenants', [
             'tenants' => $tenants,

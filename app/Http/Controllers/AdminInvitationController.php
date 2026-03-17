@@ -15,7 +15,7 @@ class AdminInvitationController extends Controller
             ->whereNotNull('sent_at')
             ->whereNull('accepted_at')
             ->latest()
-            ->paginate(20);
+            ->paginate(10);
 
         return view('admin.invitations.owner-signups', [
             'invitations' => $invitations,

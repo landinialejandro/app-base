@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/index.blade.php | V5 --}}
+{{-- FILE: resources/views/parties/index.blade.php | V6 --}}
 
 @extends('layouts.app')
 
@@ -21,7 +21,6 @@
         </x-page-header>
 
         <x-card class="list-card">
-
             <form method="GET" action="{{ route('parties.index') }}" class="form list-toolbar-form">
                 <div class="list-toolbar">
                     <div class="list-toolbar-main">
@@ -55,7 +54,9 @@
                     </div>
                 </div>
             </form>
+        </x-card>
 
+        <x-card class="list-card">
             @if ($parties->count())
                 <div class="table-wrap list-scroll">
                     <table class="table">
@@ -86,9 +87,9 @@
                             @endforeach
                         </tbody>
                     </table>
-
-                    {{ $parties->links() }}
                 </div>
+
+                {{ $parties->links() }}
             @else
                 <p class="mb-0">No hay contactos para esta empresa.</p>
             @endif

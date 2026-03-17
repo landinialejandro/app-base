@@ -43,7 +43,7 @@ class PartyController extends Controller
                 $query->where('is_active', (bool) $isActive);
             })
             ->latest()
-            ->paginate(25)
+            ->paginate(10)
             ->withQueryString();
 
         return view('parties.index', [

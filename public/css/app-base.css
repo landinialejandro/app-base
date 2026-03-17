@@ -738,13 +738,20 @@ a:hover {
 
 .form-control {
     width: 100%;
-    min-height: 42px;
+    min-height: 2.75rem;
     padding: 0.7rem 0.85rem;
     border: 1px solid var(--color-border);
     border-radius: 6px;
     background: #fff;
     color: var(--color-text);
     font: inherit;
+    line-height: 1.2;
+    box-sizing: border-box;
+}
+
+select.form-control {
+    height: 2.75rem;
+    padding-right: 2.25rem;
 }
 
 textarea.form-control {
@@ -807,15 +814,76 @@ textarea.form-control {
 
 .list-filters-actions {
     display: flex;
-    gap: var(--space-2);
+    justify-content: flex-end;
+    gap: 0.75rem;
     flex-wrap: wrap;
-    align-items: center;
-    margin-top: var(--space-2);
+    margin-top: 0.5rem;
+}
+
+.list-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.list-toolbar-main {
+    flex: 1 1 32rem;
+    min-width: 16rem;
+}
+
+.list-toolbar-form {
+    width: 100%;
+    margin-bottom: var(--space-4);
+}
+
+.list-toolbar-filters {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: end;
+}
+
+.list-toolbar-filters .form-group {
+    flex: 0 1 15rem;
+    min-width: 12rem;
+    max-width: 18rem;
+    margin-bottom: 0;
+}
+
+.list-toolbar-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-left: auto;
 }
 
 @media (max-width: 900px) {
     .list-filters-grid {
         grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 768px) {
+    .list-toolbar {
+        align-items: stretch;
+    }
+
+    .list-toolbar-main,
+    .list-toolbar-actions {
+        width: 100%;
+    }
+
+    .list-toolbar-actions {
+        justify-content: flex-end;
+    }
+
+    .list-toolbar-filters .form-group {
+        flex: 1 1 100%;
+        min-width: 0;
+        max-width: none;
     }
 }
 

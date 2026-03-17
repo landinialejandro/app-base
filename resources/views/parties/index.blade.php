@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/index.blade.php | V3 --}}
+{{-- FILE: resources/views/parties/index.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -22,42 +22,37 @@
 
         <x-card class="list-card">
 
-            <form method="GET" action="{{ route('parties.index') }}" class="form list-filters">
-                <div class="list-filters-grid">
-                    <div class="form-group">
-                        <label for="q" class="form-label">Buscar</label>
-                        <input type="text" id="q" name="q" class="form-control" value="{{ request('q') }}"
-                            placeholder="Nombre, email, teléfono, documento, CUIT o ID">
+            <form method="GET" action="{{ route('parties.index') }}" class="form list-toolbar-form">
+                <div class="list-toolbar">
+                    <div class="list-toolbar-main">
+                        <div class="list-toolbar-filters">
+                            <div class="form-group">
+                                <label for="q" class="form-label">Buscar</label>
+                                <input type="text" id="q" name="q" class="form-control"
+                                    value="{{ request('q') }}" placeholder="Nombre, email, teléfono, documento, CUIT o ID">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="kind" class="form-label">Tipo</label>
+                                <select id="kind" name="kind" class="form-control">
+                                    <option value="">Todos</option>
+                                    @foreach (PartyCatalog::kindLabels() as $value => $label)
+                                        <option value="{{ $value }}" @selected(request('kind') === $value)>
+                                            {{ $label }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label for="kind" class="form-label">Tipo</label>
-                        <select id="kind" name="kind" class="form-control">
-                            <option value="">Todos</option>
-                            @foreach (PartyCatalog::kindLabels() as $value => $label)
-                                <option value="{{ $value }}" @selected(request('kind') === $value)>
-                                    {{ $label }}
-                                </option>
-                            @endforeach
-                        </select>
+                    <div class="list-toolbar-actions">
+                        <a href="{{ route('parties.index') }}" class="btn btn-secondary">
+                            Limpiar
+                        </a>
+
+                        <button type="submit" class="btn btn-primary">Filtrar</button>
                     </div>
-
-                    <div class="form-group">
-                        <label for="is_active" class="form-label">Activo</label>
-                        <select id="is_active" name="is_active" class="form-control">
-                            <option value="">Todos</option>
-                            <option value="1" @selected(request('is_active') === '1')>Sí</option>
-                            <option value="0" @selected(request('is_active') === '0')>No</option>
-                        </select>
-                    </div>
-                </div>
-
-                <div class="list-filters-actions">
-                    <button type="submit" class="btn btn-primary">Filtrar</button>
-
-                    <a href="{{ route('parties.index') }}" class="btn btn-secondary">
-                        Limpiar
-                    </a>
                 </div>
             </form>
 
@@ -67,19 +62,17 @@
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Tipo</th>
                                 <th>Nombre</th>
                                 <th>Email</th>
                                 <th>Teléfono</th>
                                 <th>Activo</th>
-                                <th>Creado</th>
+                                <th>Tipo</th>
                             </tr>
                         </thead>
                         <tbody>
                             @foreach ($parties as $party)
                                 <tr>
                                     <td>{{ $party->id }}</td>
-                                    <td>{{ $party->kind ? PartyCatalog::label($party->kind) : '—' }}</td>
                                     <td>
                                         <a href="{{ route('parties.show', $party) }}">
                                             {{ $party->name }}
@@ -88,7 +81,7 @@
                                     <td>{{ $party->email ?? '—' }}</td>
                                     <td>{{ $party->phone ?? '—' }}</td>
                                     <td>{{ $party->is_active ? 'Sí' : 'No' }}</td>
-                                    <td>{{ $party->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                                    <td>{{ $party->kind ? PartyCatalog::label($party->kind) : '—' }}</td>
                                 </tr>
                             @endforeach
                         </tbody>

@@ -392,6 +392,46 @@
             });
     };
 
+    const bindToggleDetails = () => {
+        document
+            .querySelectorAll('[data-action~="app-toggle-details"]')
+            .forEach((button) => {
+                if (button.dataset.appToggleDetailsBound === "1") {
+                    return;
+                }
+
+                button.dataset.appToggleDetailsBound = "1";
+
+                button.addEventListener("click", function () {
+                    const selector = this.dataset.toggleTarget;
+
+                    if (!selector) {
+                        return;
+                    }
+
+                    const panel = document.querySelector(selector);
+
+                    if (!panel) {
+                        return;
+                    }
+
+                    const isHidden = panel.hasAttribute("hidden");
+
+                    if (isHidden) {
+                        panel.removeAttribute("hidden");
+                        if (this.dataset.toggleTextExpanded) {
+                            this.textContent = this.dataset.toggleTextExpanded;
+                        }
+                    } else {
+                        panel.setAttribute("hidden", "hidden");
+                        if (this.dataset.toggleTextCollapsed) {
+                            this.textContent = this.dataset.toggleTextCollapsed;
+                        }
+                    }
+                });
+            });
+    };
+
     const bindTabs = () => {
         document.querySelectorAll("[data-tabs]").forEach(function (tabsRoot) {
             if (tabsRoot.dataset.appTabsBound === "1") {
@@ -503,6 +543,7 @@
         bindProductAutofill();
         bindAlerts();
         bindTabs();
+        bindToggleDetails();
     };
 
     bindDropdowns();

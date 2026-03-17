@@ -64,63 +64,71 @@
                     <div class="summary-inline-value">{{ $party->name }}</div>
                 </div>
             </div>
-        </x-card>
 
-        <x-card>
-            <div class="detail-grid detail-grid--3">
-                <div class="detail-block">
-                    <span class="detail-block-label">Nombre visible</span>
-                    <div class="detail-block-value">{{ $party->display_name ?: '—' }}</div>
-                </div>
+            <div class="list-filters-actions">
+                <button type="button" class="btn btn-secondary" data-action="app-toggle-details"
+                    data-toggle-target="#party-detail-panel" data-toggle-text-expanded="Ocultar detalle"
+                    data-toggle-text-collapsed="Más detalle">
+                    Más detalle
+                </button>
+            </div>
 
-                <div class="detail-block">
-                    <span class="detail-block-label">Tipo documento</span>
-                    <div class="detail-block-value">{{ $party->document_type ?: '—' }}</div>
-                </div>
+            <div id="party-detail-panel" hidden>
+                <div class="detail-grid detail-grid--3">
+                    <div class="detail-block">
+                        <span class="detail-block-label">Nombre visible</span>
+                        <div class="detail-block-value">{{ $party->display_name ?: '—' }}</div>
+                    </div>
 
-                <div class="detail-block">
-                    <span class="detail-block-label">Número documento</span>
-                    <div class="detail-block-value">{{ $party->document_number ?: '—' }}</div>
-                </div>
+                    <div class="detail-block">
+                        <span class="detail-block-label">Tipo documento</span>
+                        <div class="detail-block-value">{{ $party->document_type ?: '—' }}</div>
+                    </div>
 
-                <div class="detail-block">
-                    <span class="detail-block-label">CUIT / Tax ID</span>
-                    <div class="detail-block-value">{{ $party->tax_id ?: '—' }}</div>
-                </div>
+                    <div class="detail-block">
+                        <span class="detail-block-label">Número documento</span>
+                        <div class="detail-block-value">{{ $party->document_number ?: '—' }}</div>
+                    </div>
 
-                <div class="detail-block">
-                    <span class="detail-block-label">Email</span>
-                    <div class="detail-block-value">{{ $party->email ?: '—' }}</div>
-                </div>
+                    <div class="detail-block">
+                        <span class="detail-block-label">CUIT / Tax ID</span>
+                        <div class="detail-block-value">{{ $party->tax_id ?: '—' }}</div>
+                    </div>
 
-                <div class="detail-block">
-                    <span class="detail-block-label">Teléfono</span>
-                    <div class="detail-block-value">{{ $party->phone ?: '—' }}</div>
-                </div>
+                    <div class="detail-block">
+                        <span class="detail-block-label">Email</span>
+                        <div class="detail-block-value">{{ $party->email ?: '—' }}</div>
+                    </div>
 
-                <div class="detail-block detail-block--full">
-                    <span class="detail-block-label">Dirección</span>
-                    <div class="detail-block-value">{{ $party->address ?: '—' }}</div>
-                </div>
+                    <div class="detail-block">
+                        <span class="detail-block-label">Teléfono</span>
+                        <div class="detail-block-value">{{ $party->phone ?: '—' }}</div>
+                    </div>
 
-                <div class="detail-block">
-                    <span class="detail-block-label">Activo</span>
-                    <div class="detail-block-value">{{ $party->is_active ? 'Sí' : 'No' }}</div>
-                </div>
+                    <div class="detail-block detail-block--full">
+                        <span class="detail-block-label">Dirección</span>
+                        <div class="detail-block-value">{{ $party->address ?: '—' }}</div>
+                    </div>
 
-                <div class="detail-block">
-                    <span class="detail-block-label">Creado</span>
-                    <div class="detail-block-value">{{ $party->created_at?->format('d/m/Y H:i') ?: '—' }}</div>
-                </div>
+                    <div class="detail-block">
+                        <span class="detail-block-label">Activo</span>
+                        <div class="detail-block-value">{{ $party->is_active ? 'Sí' : 'No' }}</div>
+                    </div>
 
-                <div class="detail-block">
-                    <span class="detail-block-label">Actualizado</span>
-                    <div class="detail-block-value">{{ $party->updated_at?->format('d/m/Y H:i') ?: '—' }}</div>
-                </div>
+                    <div class="detail-block">
+                        <span class="detail-block-label">Creado</span>
+                        <div class="detail-block-value">{{ $party->created_at?->format('d/m/Y H:i') ?: '—' }}</div>
+                    </div>
 
-                <div class="detail-block detail-block--full">
-                    <span class="detail-block-label">Notas</span>
-                    <div class="detail-block-value">{{ $party->notes ?: '—' }}</div>
+                    <div class="detail-block">
+                        <span class="detail-block-label">Actualizado</span>
+                        <div class="detail-block-value">{{ $party->updated_at?->format('d/m/Y H:i') ?: '—' }}</div>
+                    </div>
+
+                    <div class="detail-block detail-block--full">
+                        <span class="detail-block-label">Notas</span>
+                        <div class="detail-block-value">{{ $party->notes ?: '—' }}</div>
+                    </div>
                 </div>
             </div>
         </x-card>
@@ -180,8 +188,8 @@
                                 @endif
                             </button>
 
-                            <button type="button" class="tabs-link" data-tab-link="documents-work-orders" role="tab"
-                                aria-selected="false">
+                            <button type="button" class="tabs-link" data-tab-link="documents-work-orders"
+                                role="tab" aria-selected="false">
                                 Órdenes de trabajo
                                 @if ($workOrders->count())
                                     ({{ $workOrders->count() }})

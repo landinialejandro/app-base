@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V3 --}}
+{{-- FILE: resources/views/orders/show.blade.php --}}
 
 @extends('layouts.app')
 
@@ -53,6 +53,12 @@
                 </button>
             </form>
 
+            @if ($order->task)
+                <a href="{{ route('tasks.show', $order->task) }}" class="btn btn-secondary">
+                    Ver tarea
+                </a>
+            @endif
+
             <a href="{{ route('orders.index') }}" class="btn btn-secondary">
                 Volver
             </a>
@@ -73,6 +79,19 @@
                 <div class="summary-inline-card">
                     <div class="summary-inline-label">Número</div>
                     <div class="summary-inline-value">{{ $order->number ?: 'Sin número' }}</div>
+                </div>
+
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Tarea origen</div>
+                    <div class="summary-inline-value">
+                        @if ($order->task)
+                            <a href="{{ route('tasks.show', $order->task) }}">
+                                {{ $order->task->name }}
+                            </a>
+                        @else
+                            —
+                        @endif
+                    </div>
                 </div>
             </div>
 

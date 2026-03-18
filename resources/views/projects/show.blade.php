@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/projects/show.blade.php | V2 --}}
+{{-- FILE: resources/views/projects/show.blade.php --}}
 
 @extends('layouts.app')
 
@@ -6,11 +6,38 @@
 
 @section('content')
     @php
-        $tasks = $project->tasks;
+        $membership = auth()
+            ->user()
+            ?->memberships()
+            ->with('roles')
+            ->where('tenant_id', app('tenant')->id)
+            ->where('status', 'active')
+            ->first();
+
+        $canDeleteProject =
+            $membership &&
+            ($membership->is_owner || $membership->roles->contains(fn($role) => $role->slug === 'admin'));
+
+        $tasks = $project->tasks->sortBy([['due_date', 'asc'], ['name', 'asc']])->values();
+
+        $openTasks = $tasks->whereIn('status', ['pending', 'in_progress'])->values();
+        $doneTasks = $tasks->where('status', 'done')->values();
+        $cancelledTasks = $tasks->where('status', 'cancelled')->values();
+
         $pendingCount = $tasks->where('status', 'pending')->count();
         $inProgressCount = $tasks->where('status', 'in_progress')->count();
-        $doneCount = $tasks->where('status', 'done')->count();
-        $cancelledCount = $tasks->where('status', 'cancelled')->count();
+        $doneCount = $doneTasks->count();
+        $cancelledCount = $cancelledTasks->count();
+
+        $overdueCount = $tasks
+            ->filter(function ($task) {
+                return $task->due_date &&
+                    $task->due_date->isPast() &&
+                    !in_array($task->status, ['done', 'cancelled'], true);
+            })
+            ->count();
+
+        $progress = $tasks->count() > 0 ? round(($doneCount / $tasks->count()) * 100) : 0;
     @endphp
 
     <x-page>
@@ -27,19 +54,21 @@
                 <span>Editar</span>
             </a>
 
-            <form method="POST" action="{{ route('projects.destroy', $project) }}" class="inline-form"
-                data-action="app-confirm-submit"
-                data-confirm-message="{{ $project->tasks->count()
-                    ? 'Este proyecto tiene tareas asociadas. Si lo eliminas, también se eliminarán sus tareas. ¿Deseas continuar?'
-                    : '¿Deseas eliminar este proyecto?' }}">
-                @csrf
-                @method('DELETE')
+            @if ($canDeleteProject)
+                <form method="POST" action="{{ route('projects.destroy', $project) }}" class="inline-form"
+                    data-action="app-confirm-submit"
+                    data-confirm-message="{{ $project->tasks->count()
+                        ? 'Este proyecto tiene tareas asociadas. Si lo eliminas, también se eliminarán sus tareas. ¿Deseas continuar?'
+                        : '¿Deseas eliminar este proyecto?' }}">
+                    @csrf
+                    @method('DELETE')
 
-                <button type="submit" class="btn btn-danger">
-                    <x-icons.trash />
-                    <span>Eliminar</span>
-                </button>
-            </form>
+                    <button type="submit" class="btn btn-danger">
+                        <x-icons.trash />
+                        <span>Eliminar</span>
+                    </button>
+                </form>
+            @endif
 
             <a href="{{ route('projects.index') }}" class="btn btn-secondary">
                 Volver
@@ -59,8 +88,13 @@
                 </div>
 
                 <div class="summary-inline-card">
-                    <div class="summary-inline-label">En curso</div>
-                    <div class="summary-inline-value">{{ $inProgressCount }}</div>
+                    <div class="summary-inline-label">Abiertas</div>
+                    <div class="summary-inline-value">{{ $openTasks->count() }}</div>
+                </div>
+
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Avance</div>
+                    <div class="summary-inline-value">{{ $progress }}%</div>
                 </div>
             </div>
 
@@ -80,6 +114,16 @@
                     </div>
 
                     <div class="detail-block">
+                        <span class="detail-block-label">En progreso</span>
+                        <div class="detail-block-value">{{ $inProgressCount }}</div>
+                    </div>
+
+                    <div class="detail-block">
+                        <span class="detail-block-label">Vencidas</span>
+                        <div class="detail-block-value">{{ $overdueCount }}</div>
+                    </div>
+
+                    <div class="detail-block">
                         <span class="detail-block-label">Finalizadas</span>
                         <div class="detail-block-value">{{ $doneCount }}</div>
                     </div>
@@ -87,11 +131,6 @@
                     <div class="detail-block">
                         <span class="detail-block-label">Canceladas</span>
                         <div class="detail-block-value">{{ $cancelledCount }}</div>
-                    </div>
-
-                    <div class="detail-block">
-                        <span class="detail-block-label">Creado</span>
-                        <div class="detail-block-value">{{ $project->created_at?->format('d/m/Y H:i') ?: '—' }}</div>
                     </div>
 
                     <div class="detail-block">
@@ -107,18 +146,66 @@
             </div>
         </x-card>
 
-        <x-page-header title="Tareas del proyecto">
-            <a href="{{ route('tasks.create', ['project_id' => $project->id]) }}" class="btn btn-primary">
-                Agregar tarea
-            </a>
-        </x-page-header>
+        <div class="tabs" data-tabs>
+            <div class="tabs-nav" role="tablist" aria-label="Tareas del proyecto">
+                <button type="button" class="tabs-link is-active" data-tab-link="open" role="tab" aria-selected="true">
+                    Abiertas @if ($openTasks->count())
+                        ({{ $openTasks->count() }})
+                    @endif
+                </button>
 
-        <x-card class="list-card">
-            @include('tasks.partials.table', [
-                'tasks' => $tasks,
-                'emptyMessage' => 'No hay tareas asociadas a este proyecto.',
-            ])
-        </x-card>
+                <button type="button" class="tabs-link" data-tab-link="done" role="tab" aria-selected="false">
+                    Finalizadas @if ($doneTasks->count())
+                        ({{ $doneTasks->count() }})
+                    @endif
+                </button>
+
+                <button type="button" class="tabs-link" data-tab-link="all" role="tab" aria-selected="false">
+                    Todas @if ($tasks->count())
+                        ({{ $tasks->count() }})
+                    @endif
+                </button>
+            </div>
+
+            <section class="tab-panel is-active" data-tab-panel="open">
+                <div class="tab-panel-stack">
+                    <x-page-header title="Tareas abiertas">
+                        <a href="{{ route('tasks.create', ['project_id' => $project->id]) }}" class="btn btn-primary">
+                            Agregar tarea
+                        </a>
+                    </x-page-header>
+
+                    <x-card class="list-card">
+                        @include('tasks.partials.table', [
+                            'tasks' => $openTasks,
+                            'emptyMessage' => 'No hay tareas abiertas en este proyecto.',
+                        ])
+                    </x-card>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-tab-panel="done" hidden>
+                <div class="tab-panel-stack">
+                    <x-card class="list-card">
+                        @include('tasks.partials.table', [
+                            'tasks' => $doneTasks,
+                            'emptyMessage' => 'No hay tareas finalizadas en este proyecto.',
+                        ])
+                    </x-card>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-tab-panel="all" hidden>
+                <div class="tab-panel-stack">
+                    <x-card class="list-card">
+                        @include('tasks.partials.table', [
+                            'tasks' => $tasks,
+                            'emptyMessage' => 'No hay tareas asociadas a este proyecto.',
+                        ])
+                    </x-card>
+                </div>
+            </section>
+        </div>
 
     </x-page>
 @endsection

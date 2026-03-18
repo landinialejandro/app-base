@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Order.php
+// FILE: app/Models/Order.php \ V2
 
 namespace App\Models;
 
@@ -19,6 +19,7 @@ class Order extends Model
         'tenant_id',
         'party_id',
         'asset_id',
+        'task_id',
         'kind',
         'number',
         'sequence_prefix',
@@ -44,6 +45,11 @@ class Order extends Model
     public function asset()
     {
         return $this->belongsTo(Asset::class);
+    }
+
+    public function task()
+    {
+        return $this->belongsTo(Task::class);
     }
 
     public function items()

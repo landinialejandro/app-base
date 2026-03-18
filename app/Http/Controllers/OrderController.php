@@ -7,6 +7,7 @@ namespace App\Http\Controllers;
 use App\Models\Asset;
 use App\Models\Order;
 use App\Models\Party;
+use App\Models\Task;
 use App\Support\Catalogs\OrderCatalog;
 use App\Support\Documents\DocumentNumberGenerator;
 use Illuminate\Http\Request;
@@ -35,10 +36,11 @@ class OrderController extends Controller
             ->get();
 
         $orders = Order::query()
-            ->with(['party', 'asset', 'items'])
+            ->with(['party', 'asset', 'task', 'items'])
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($subquery) use ($q) {
                     $subquery->where('number', 'like', "%{$q}%");
+
                     if (ctype_digit($q)) {
                         $subquery->orWhere('id', (int) $q);
                     }
@@ -77,6 +79,7 @@ class OrderController extends Controller
         $prefilledPartyId = null;
         $fromAsset = false;
         $prefilledKind = old('kind', OrderCatalog::KIND_SALE);
+        $prefilledTask = null;
 
         if ($request->filled('asset_id')) {
             $prefilledAsset = Asset::query()
@@ -92,6 +95,27 @@ class OrderController extends Controller
             }
         }
 
+        if ($request->filled('task_id')) {
+            $prefilledTask = Task::query()
+                ->with('order')
+                ->where('id', $request->integer('task_id'))
+                ->where('tenant_id', $tenant->id)
+                ->whereNull('deleted_at')
+                ->firstOrFail();
+
+            if ($prefilledTask->order) {
+                return redirect()
+                    ->route('orders.show', $prefilledTask->order)
+                    ->with('success', 'La tarea ya tiene una orden asociada.');
+            }
+
+            if ($prefilledTask->party_id) {
+                $prefilledPartyId = $prefilledTask->party_id;
+            }
+
+            $prefilledKind = OrderCatalog::KIND_SERVICE;
+        }
+
         return view('orders.create', compact(
             'parties',
             'assets',
@@ -99,6 +123,7 @@ class OrderController extends Controller
             'prefilledPartyId',
             'prefilledKind',
             'fromAsset',
+            'prefilledTask',
         ));
     }
 
@@ -120,6 +145,19 @@ class OrderController extends Controller
                 'nullable',
                 'integer',
                 Rule::exists('assets', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)
+                        ->whereNull('deleted_at');
+                }),
+            ],
+
+            'task_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('tasks', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)
+                        ->whereNull('deleted_at');
+                }),
+                Rule::unique('orders', 'task_id')->where(function ($query) use ($tenant) {
                     $query->where('tenant_id', $tenant->id)
                         ->whereNull('deleted_at');
                 }),
@@ -193,6 +231,7 @@ class OrderController extends Controller
         $order->load([
             'party',
             'asset',
+            'task',
             'creator',
             'updater',
             'items.product',
@@ -233,6 +272,21 @@ class OrderController extends Controller
                 }),
             ],
 
+            'task_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('tasks', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)
+                        ->whereNull('deleted_at');
+                }),
+                Rule::unique('orders', 'task_id')
+                    ->ignore($order->id)
+                    ->where(function ($query) use ($tenant) {
+                        $query->where('tenant_id', $tenant->id)
+                            ->whereNull('deleted_at');
+                    }),
+            ],
+
             'kind' => [
                 'required',
                 Rule::in(OrderCatalog::kinds()),
@@ -255,8 +309,6 @@ class OrderController extends Controller
                 ->withInput();
         }
 
-        // Seguridad: si la orden ya está vinculada a un activo, no se permite
-        // cambiar ni el activo ni el contacto asociado.
         if (! empty($order->asset_id)) {
             if ((int) ($data['asset_id'] ?? 0) !== (int) $order->asset_id) {
                 return back()
@@ -275,8 +327,6 @@ class OrderController extends Controller
             }
         }
 
-        // Si la orden aún no tenía activo, pero ahora se selecciona uno,
-        // debe corresponder al contacto elegido.
         if (! empty($data['asset_id'])) {
             $asset = Asset::query()->findOrFail($data['asset_id']);
 
@@ -303,6 +353,10 @@ class OrderController extends Controller
 
         $data['ordered_at'] = $orderedAtDate->toDateString();
         $data['updated_by'] = auth()->id();
+
+        if (! array_key_exists('task_id', $data)) {
+            $data['task_id'] = $order->task_id;
+        }
 
         $order->update($data);
 

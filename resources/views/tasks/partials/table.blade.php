@@ -2,6 +2,7 @@
 
 @php
     use App\Support\Catalogs\TaskCatalog;
+    use Illuminate\Support\Carbon;
 
     $tasks = $tasks ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay tareas para mostrar.';
@@ -14,13 +15,32 @@
                 <tr>
                     <th>Nombre</th>
                     <th>Proyecto</th>
+                    <th>Prioridad</th>
                     <th>Estado</th>
                     <th>Asignado a</th>
                     <th>Vencimiento</th>
+                    <th>Orden</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($tasks as $task)
+                    @php
+                        $dueText = '—';
+
+                        if ($task->due_date) {
+                            $today = now()->startOfDay();
+                            $dueDate = Carbon::parse($task->due_date)->startOfDay();
+                            $diffInDays = $today->diffInDays($dueDate, false);
+
+                            $dueText = match (true) {
+                                $diffInDays === 0 => $task->due_date->format('d/m/Y') . ' · Hoy',
+                                $diffInDays === 1 => $task->due_date->format('d/m/Y') . ' · Mañana',
+                                $diffInDays < 0 => $task->due_date->format('d/m/Y') . ' · Vencida',
+                                default => $task->due_date->format('d/m/Y'),
+                            };
+                        }
+                    @endphp
+
                     <tr>
                         <td>
                             <a href="{{ route('tasks.show', $task) }}">
@@ -39,13 +59,28 @@
                         </td>
 
                         <td>
+                            <span class="status-badge {{ TaskCatalog::priorityBadgeClass($task->priority) }}">
+                                {{ TaskCatalog::priorityLabel($task->priority) }}
+                            </span>
+                        </td>
+
+                        <td>
                             <span class="status-badge {{ TaskCatalog::badgeClass($task->status) }}">
                                 {{ TaskCatalog::label($task->status) }}
                             </span>
                         </td>
 
                         <td>{{ $task->assignedUser?->name ?? 'Sin asignar' }}</td>
-                        <td>{{ $task->due_date?->format('d/m/Y') ?? '—' }}</td>
+                        <td>{{ $dueText }}</td>
+                        <td>
+                            @if ($task->order)
+                                <a href="{{ route('orders.show', $task->order) }}">
+                                    {{ $task->order->number ?: 'Ver orden' }}
+                                </a>
+                            @else
+                                —
+                            @endif
+                        </td>
                     </tr>
                 @endforeach
             </tbody>

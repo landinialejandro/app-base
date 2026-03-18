@@ -9,13 +9,30 @@
     $prefilledAsset = $prefilledAsset ?? null;
     $prefilledPartyId = $prefilledPartyId ?? null;
     $fromAsset = $fromAsset ?? false;
+    $prefilledTask = $prefilledTask ?? null;
     $prefilledKind = $prefilledKind ?? old('kind', $order->kind ?? OrderCatalog::KIND_SALE);
 
     $lockedByExistingAsset = $orderExists && !empty($order->asset_id);
     $lockPartyAndAsset = $fromAsset || $lockedByExistingAsset;
+
+    $currentTaskId = old('task_id', $order->task_id ?? ($prefilledTask?->id ?? ''));
+    $currentTaskName = $prefilledTask?->name ?? ($order->task?->name ?? '');
 @endphp
 
 <div data-action="app-party-asset-sync" data-party-select="#party_id" data-asset-select="#asset_id">
+
+    @if ($currentTaskId)
+        <div class="form-group">
+            <label class="form-label">Tarea origen</label>
+            <input type="text" class="form-control" value="{{ $currentTaskName }}" disabled>
+            <input type="hidden" name="task_id" value="{{ $currentTaskId }}">
+            <div class="form-help">Cada tarea puede tener una sola orden asociada.</div>
+            @error('task_id')
+                <div class="form-help is-error">{{ $message }}</div>
+            @enderror
+        </div>
+    @endif
+
     <div class="form-group">
         <label for="party_id" class="form-label">Contacto</label>
 
@@ -79,8 +96,7 @@
                 <div class="form-help">El activo se toma automáticamente desde el contexto de origen.</div>
             @else
                 <div class="form-help">Esta orden ya quedó vinculada a un activo. Para preservar la trazabilidad, el
-                    activo
-                    no puede modificarse.</div>
+                    activo no puede modificarse.</div>
             @endif
         @else
             <select name="asset_id" id="asset_id" class="form-control">
@@ -109,17 +125,18 @@
     <div class="form-group">
         <label for="kind" class="form-label">Tipo</label>
 
-        @if ($fromAsset)
+        @if ($fromAsset || $currentTaskId)
             <select id="kind_display" class="form-control" disabled>
                 @foreach (OrderCatalog::kindLabels() as $value => $label)
-                    <option value="{{ $value }}" @selected(($prefilledKind ?? OrderCatalog::KIND_SERVICE) === $value)>
+                    <option value="{{ $value }}" @selected(OrderCatalog::KIND_SERVICE === $value)>
                         {{ $label }}
                     </option>
                 @endforeach
             </select>
 
             <input type="hidden" name="kind" value="{{ OrderCatalog::KIND_SERVICE }}">
-            <div class="form-help">Las órdenes creadas desde un activo se generan como órdenes de servicio.</div>
+            <div class="form-help">Las órdenes creadas desde una tarea o un activo se generan como órdenes de servicio.
+            </div>
         @elseif ($orderIsNumbered)
             <select id="kind" class="form-control" disabled>
                 @foreach (OrderCatalog::kindLabels() as $value => $label)

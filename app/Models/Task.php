@@ -1,22 +1,23 @@
 <?php
 
-//FILE: app/Models/Task.php
+// FILE: app/Models/Task.php | V2
 
 namespace App\Models;
 
 use App\Models\Concerns\ResolvesTenantRouteBinding;
 use App\Models\Concerns\TenantScoped;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Task extends Model
 {
     use HasFactory;
-    use TenantScoped;
     use ResolvesTenantRouteBinding;
     use SoftDeletes;
+    use TenantScoped;
 
     protected $fillable = [
         'tenant_id',
@@ -26,6 +27,7 @@ class Task extends Model
         'name',
         'description',
         'status',
+        'priority',
         'due_date',
     ];
 
@@ -46,5 +48,10 @@ class Task extends Model
     public function assignedUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_user_id');
+    }
+
+    public function order(): HasOne
+    {
+        return $this->hasOne(Order::class);
     }
 }

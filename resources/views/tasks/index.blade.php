@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/index.blade.php | V6 --}}
+{{-- FILE: resources/views/tasks/index.blade.php |V7 --}}
 
 @extends('layouts.app')
 
@@ -29,6 +29,18 @@
                     </div>
 
                     <div class="form-group">
+                        <label for="scope" class="form-label">Vista</label>
+                        <select id="scope" name="scope" class="form-control">
+                            <option value="mine" @selected(($scope ?? request('scope', 'mine')) === 'mine')>Mis tareas</option>
+                            <option value="all" @selected(($scope ?? request('scope', 'mine')) === 'all')>Todas las tareas</option>
+                        </select>
+                    </div>
+                </div>
+            </x-slot:primary>
+
+            <x-slot:secondary>
+                <div class="list-filters-grid">
+                    <div class="form-group">
                         <label for="status" class="form-label">Estado</label>
                         <select id="status" name="status" class="form-control">
                             <option value="">Todos</option>
@@ -39,11 +51,19 @@
                             @endforeach
                         </select>
                     </div>
-                </div>
-            </x-slot:primary>
 
-            <x-slot:secondary>
-                <div class="list-filters-grid">
+                    <div class="form-group">
+                        <label for="priority" class="form-label">Prioridad</label>
+                        <select id="priority" name="priority" class="form-control">
+                            <option value="">Todas</option>
+                            @foreach (TaskCatalog::priorityLabels() as $value => $label)
+                                <option value="{{ $value }}" @selected(request('priority') === $value)>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
                     <div class="form-group">
                         <label for="project_id" class="form-label">Proyecto</label>
                         <select id="project_id" name="project_id" class="form-control">

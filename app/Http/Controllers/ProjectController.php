@@ -65,7 +65,7 @@ class ProjectController extends Controller
 
         $project->load([
             'tasks' => function ($query) {
-                $query->with('assignedUser')
+                $query->with(['assignedUser', 'order'])
                     ->orderBy('due_date')
                     ->orderBy('name');
             },
@@ -103,10 +103,35 @@ class ProjectController extends Controller
 
     public function destroy(Project $project)
     {
+        $tenant = app('tenant');
+
+        abort_unless($this->isTenantAdmin($tenant->id), 403);
+
         $project->delete();
 
         return redirect()
             ->route('projects.index')
             ->with('success', 'Proyecto eliminado correctamente.');
+    }
+
+    private function isTenantAdmin(string $tenantId): bool
+    {
+        $membership = auth()->user()?->memberships()
+            ->with('roles')
+            ->where('tenant_id', $tenantId)
+            ->where('status', 'active')
+            ->first();
+
+        if (! $membership) {
+            return false;
+        }
+
+        if ($membership->is_owner) {
+            return true;
+        }
+
+        return $membership->roles->contains(function ($role) {
+            return $role->slug === 'admin';
+        });
     }
 }

@@ -2,11 +2,16 @@
 
 @php
     use App\Support\Catalogs\TaskCatalog;
+
+    $canChangeProject = $canChangeProject ?? false;
+    $defaultAssignedUserId = $defaultAssignedUserId ?? old('assigned_user_id', auth()->id());
+    $isForeignTaskForAdmin = $isForeignTaskForAdmin ?? false;
 @endphp
 
 <div class="form-group">
     <label for="name" class="form-label">Nombre</label>
-    <input type="text" name="name" id="name" class="form-control" value="{{ old('name', $task->name ?? '') }}" required>
+    <input type="text" name="name" id="name" class="form-control" value="{{ old('name', $task->name ?? '') }}"
+        required>
     @error('name')
         <div class="form-help is-error">{{ $message }}</div>
     @enderror
@@ -14,8 +19,7 @@
 
 <div class="form-group">
     <label for="description" class="form-label">Descripción</label>
-    <textarea name="description" id="description" class="form-control"
-        rows="4">{{ old('description', $task->description ?? '') }}</textarea>
+    <textarea name="description" id="description" class="form-control" rows="4">{{ old('description', $task->description ?? '') }}</textarea>
     @error('description')
         <div class="form-help is-error">{{ $message }}</div>
     @enderror
@@ -39,10 +43,28 @@
     @enderror
 </div>
 
+<div class="form-group">
+    <label for="priority" class="form-label">Prioridad</label>
+    <select name="priority" id="priority" class="form-control">
+        @php
+            $currentPriority = old('priority', $task->priority ?? TaskCatalog::PRIORITY_MEDIUM);
+        @endphp
+
+        @foreach (TaskCatalog::priorityLabels() as $value => $label)
+            <option value="{{ $value }}" @selected($currentPriority === $value)>
+                {{ $label }}
+            </option>
+        @endforeach
+    </select>
+    @error('priority')
+        <div class="form-help is-error">{{ $message }}</div>
+    @enderror
+</div>
+
 @php
-    $lockedProject = !empty($forcedProject) || !empty($task?->project_id);
-    $lockedProjectId = old('project_id', $forcedProject->id ?? $task->project_id ?? '');
-    $lockedProjectName = $forcedProject->name ?? $task->project?->name ?? '';
+    $lockedProject = !empty($forcedProject) || (!empty($task?->project_id) && !$canChangeProject);
+    $lockedProjectId = old('project_id', $forcedProject->id ?? ($task->project_id ?? ''));
+    $lockedProjectName = $forcedProject->name ?? ($task->project?->name ?? '');
 @endphp
 
 @if ($lockedProject)
@@ -50,6 +72,9 @@
         <label class="form-label">Proyecto</label>
         <input type="text" class="form-control" value="{{ $lockedProjectName }}" disabled>
         <input type="hidden" name="project_id" value="{{ $lockedProjectId }}">
+        @if (!empty($task?->project_id) && !$canChangeProject)
+            <div class="form-help">Solo owner o admin pueden cambiar el proyecto de una tarea ya vinculada.</div>
+        @endif
         @error('project_id')
             <div class="form-help is-error">{{ $message }}</div>
         @enderror
@@ -88,14 +113,15 @@
 
 <div class="form-group">
     <label for="assigned_user_id" class="form-label">Asignado a</label>
-    <select name="assigned_user_id" id="assigned_user_id" class="form-control">
-        <option value="">Sin asignar</option>
+    <select name="assigned_user_id" id="assigned_user_id" class="form-control" required>
+        <option value="">Seleccionar colaborador</option>
         @foreach ($users as $user)
-            <option value="{{ $user->id }}" @selected((string) old('assigned_user_id', $task->assigned_user_id ?? '') === (string) $user->id)>
+            <option value="{{ $user->id }}" @selected((string) old('assigned_user_id', $task->assigned_user_id ?? $defaultAssignedUserId) === (string) $user->id)>
                 {{ $user->name }}
             </option>
         @endforeach
     </select>
+    <div class="form-help">La tarea debe quedar asignada a un colaborador. Por defecto se asigna a quien la crea.</div>
     @error('assigned_user_id')
         <div class="form-help is-error">{{ $message }}</div>
     @enderror
@@ -109,3 +135,15 @@
         <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
+
+@if ($isForeignTaskForAdmin)
+    <div class="form-group">
+        <label class="form-check">
+            <input type="checkbox" name="confirm_foreign_task_edit" value="1" @checked(old('confirm_foreign_task_edit') === '1')>
+            <span>Confirmo que estoy modificando una tarea asignada a otro colaborador.</span>
+        </label>
+        @error('confirm_foreign_task_edit')
+            <div class="form-help is-error">{{ $message }}</div>
+        @enderror
+    </div>
+@endif

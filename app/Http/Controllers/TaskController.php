@@ -21,7 +21,13 @@ class TaskController extends Controller
         $q = trim((string) $request->get('q', ''));
         $projectId = $request->get('project_id');
         $status = $request->get('status');
+        $priority = $request->get('priority');
         $assignedUserId = $request->get('assigned_user_id');
+        $scope = $request->get('scope', 'mine');
+
+        if (! in_array($scope, ['mine', 'all'], true)) {
+            $scope = 'mine';
+        }
 
         $projects = Project::query()
             ->orderBy('name')
@@ -29,13 +35,17 @@ class TaskController extends Controller
 
         $users = User::query()
             ->whereHas('memberships', function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id);
+                $query->where('tenant_id', $tenant->id)
+                    ->where('status', 'active');
             })
             ->orderBy('name')
             ->get();
 
         $tasks = Task::query()
-            ->with(['project', 'party', 'assignedUser'])
+            ->with(['project', 'party', 'assignedUser', 'order'])
+            ->when($scope === 'mine', function ($query) {
+                $query->where('assigned_user_id', auth()->id());
+            })
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($subquery) use ($q) {
                     $subquery->where('name', 'like', "%{$q}%");
@@ -51,22 +61,40 @@ class TaskController extends Controller
             ->when($status, function ($query) use ($status) {
                 $query->where('status', $status);
             })
+            ->when($priority, function ($query) use ($priority) {
+                $query->where('priority', $priority);
+            })
             ->when($assignedUserId, function ($query) use ($assignedUserId) {
                 $query->where('assigned_user_id', $assignedUserId);
             })
             ->orderByRaw(
                 'CASE
-                WHEN status = ? THEN 1
-                WHEN status = ? THEN 2
-                WHEN status = ? THEN 3
-                WHEN status = ? THEN 4
-                ELSE 5
-            END',
+                    WHEN status = ? THEN 1
+                    WHEN status = ? THEN 2
+                    WHEN status = ? THEN 3
+                    WHEN status = ? THEN 4
+                    ELSE 5
+                END',
                 [
                     TaskCatalog::STATUS_PENDING,
                     TaskCatalog::STATUS_IN_PROGRESS,
                     TaskCatalog::STATUS_DONE,
                     TaskCatalog::STATUS_CANCELLED,
+                ]
+            )
+            ->orderByRaw(
+                'CASE
+                    WHEN priority = ? THEN 1
+                    WHEN priority = ? THEN 2
+                    WHEN priority = ? THEN 3
+                    WHEN priority = ? THEN 4
+                    ELSE 5
+                END',
+                [
+                    TaskCatalog::PRIORITY_URGENT,
+                    TaskCatalog::PRIORITY_HIGH,
+                    TaskCatalog::PRIORITY_MEDIUM,
+                    TaskCatalog::PRIORITY_LOW,
                 ]
             )
             ->orderByRaw('CASE WHEN due_date IS NULL THEN 1 ELSE 0 END')
@@ -75,109 +103,328 @@ class TaskController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('tasks.index', compact('tenant', 'tasks', 'projects', 'users'));
+        return view('tasks.index', compact('tenant', 'tasks', 'projects', 'users', 'scope'));
     }
 
     public function create(Request $request)
     {
         $tenant = app('tenant');
+
         $forcedProject = null;
+
         if ($request->filled('project_id')) {
-            $forcedProject = Project::query()->whereKey($request->integer('project_id'))->firstOrFail();
+            $forcedProject = Project::query()
+                ->whereKey($request->integer('project_id'))
+                ->firstOrFail();
         }
+
         $projects = Project::query()->orderBy('name')->get();
         $parties = Party::query()->orderBy('name')->get();
-        $users = User::query()->whereHas('memberships', function ($query) use ($tenant) {
-            $query->where('tenant_id', $tenant->id);
-        })->orderBy('name')->get();
-        $breadcrumbItems = $forcedProject ? [['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Proyectos', 'url' => route('projects.index')], ['label' => $forcedProject->name, 'url' => route('projects.show', $forcedProject)], ['label' => 'Nueva tarea']] : [['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Tareas', 'url' => route('tasks.index')], ['label' => 'Nueva tarea']];
+        $users = User::query()
+            ->whereHas('memberships', function ($query) use ($tenant) {
+                $query->where('tenant_id', $tenant->id)
+                    ->where('status', 'active');
+            })
+            ->orderBy('name')
+            ->get();
 
-        return view('tasks.create', compact('tenant', 'projects', 'parties', 'users', 'forcedProject', 'breadcrumbItems'));
+        $defaultAssignedUserId = old('assigned_user_id', (string) auth()->id());
+
+        $breadcrumbItems = $forcedProject
+            ? [
+                ['label' => 'Inicio', 'url' => route('dashboard')],
+                ['label' => 'Proyectos', 'url' => route('projects.index')],
+                ['label' => $forcedProject->name, 'url' => route('projects.show', $forcedProject)],
+                ['label' => 'Nueva tarea'],
+            ]
+            : [
+                ['label' => 'Inicio', 'url' => route('dashboard')],
+                ['label' => 'Tareas', 'url' => route('tasks.index')],
+                ['label' => 'Nueva tarea'],
+            ];
+
+        $canChangeProject = $this->isTenantAdmin($tenant->id);
+
+        return view('tasks.create', compact(
+            'tenant',
+            'projects',
+            'parties',
+            'users',
+            'forcedProject',
+            'breadcrumbItems',
+            'defaultAssignedUserId',
+            'canChangeProject'
+        ));
     }
 
     public function store(Request $request)
     {
         $tenant = app('tenant');
-        $data = $request->validate(['project_id' => ['nullable', 'integer', Rule::exists('projects', 'id')->where(function ($query) use ($tenant) {
-            $query->where('tenant_id', $tenant->id)->whereNull('deleted_at');
-        }), ], 'party_id' => ['nullable', 'integer', Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
-            $query->where('tenant_id', $tenant->id)->whereNull('deleted_at');
-        }), ], 'assigned_user_id' => ['nullable', 'integer', Rule::exists('users', 'id')], 'name' => ['required', 'string', 'max:255'], 'description' => ['nullable', 'string'], 'status' => ['required', 'string', Rule::in(TaskCatalog::statuses())], 'due_date' => ['nullable', 'date'], ]);
-        if (! empty($data['assigned_user_id'])) {
-            $userBelongsToTenant = User::query()->whereKey($data['assigned_user_id'])->whereHas('memberships', function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id);
-            })->exists();
-            if (! $userBelongsToTenant) {
-                return back()->withErrors(['assigned_user_id' => 'El usuario asignado no pertenece a la empresa actual.'])->withInput();
-            }
-        }
-        $task = Task::create($data);
-        $task->load('project');
-        if ($task->project) {
-            return redirect()->route('projects.show', $task->project)->with('success', 'Tarea creada correctamente');
+
+        $data = $request->validate([
+            'project_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('projects', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)->whereNull('deleted_at');
+                }),
+            ],
+            'party_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)->whereNull('deleted_at');
+                }),
+            ],
+            'assigned_user_id' => ['required', 'integer', Rule::exists('users', 'id')],
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'status' => ['required', 'string', Rule::in(TaskCatalog::statuses())],
+            'priority' => ['required', 'string', Rule::in(array_keys(TaskCatalog::priorityLabels()))],
+            'due_date' => ['nullable', 'date'],
+        ]);
+
+        $userBelongsToTenant = User::query()
+            ->whereKey($data['assigned_user_id'])
+            ->whereHas('memberships', function ($query) use ($tenant) {
+                $query->where('tenant_id', $tenant->id)
+                    ->where('status', 'active');
+            })
+            ->exists();
+
+        if (! $userBelongsToTenant) {
+            return back()
+                ->withErrors([
+                    'assigned_user_id' => 'El colaborador asignado no pertenece a la empresa actual.',
+                ])
+                ->withInput();
         }
 
-        return redirect()->route('tasks.show', $task)->with('success', 'Tarea creada correctamente');
+        $task = Task::create($data);
+        $task->load('project');
+
+        if ($task->project) {
+            return redirect()
+                ->route('projects.show', $task->project)
+                ->with('success', 'Tarea creada correctamente.');
+        }
+
+        return redirect()
+            ->route('tasks.show', $task)
+            ->with('success', 'Tarea creada correctamente.');
     }
 
     public function show(Task $task)
     {
         $tenant = app('tenant');
-        $task->load(['project', 'party', 'assignedUser']);
-        $breadcrumbItems = $task->project ? [['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Proyectos', 'url' => route('projects.index')], ['label' => $task->project->name, 'url' => route('projects.show', $task->project)], ['label' => $task->name]] : [['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Tareas', 'url' => route('tasks.index')], ['label' => $task->name]];
 
-        return view('tasks.show', compact('tenant', 'task', 'breadcrumbItems'));
+        $task->load(['project', 'party', 'assignedUser', 'order']);
+
+        $canEditTask = $this->canEditTask($tenant->id, $task);
+        $canDeleteTask = $this->isTenantAdmin($tenant->id);
+        $isForeignTaskForAdmin = $this->isTenantAdmin($tenant->id) && (int) $task->assigned_user_id !== (int) auth()->id();
+
+        $breadcrumbItems = $task->project
+            ? [
+                ['label' => 'Inicio', 'url' => route('dashboard')],
+                ['label' => 'Proyectos', 'url' => route('projects.index')],
+                ['label' => $task->project->name, 'url' => route('projects.show', $task->project)],
+                ['label' => $task->name],
+            ]
+            : [
+                ['label' => 'Inicio', 'url' => route('dashboard')],
+                ['label' => 'Tareas', 'url' => route('tasks.index')],
+                ['label' => $task->name],
+            ];
+
+        return view('tasks.show', compact(
+            'tenant',
+            'task',
+            'breadcrumbItems',
+            'canEditTask',
+            'canDeleteTask',
+            'isForeignTaskForAdmin'
+        ));
     }
 
     public function edit(Task $task)
     {
         $tenant = app('tenant');
-        $task->load(['project']);
+
+        abort_unless($this->canEditTask($tenant->id, $task), 403);
+
+        $task->load(['project', 'order']);
+
         $projects = Project::query()->orderBy('name')->get();
         $parties = Party::query()->orderBy('name')->get();
-        $users = User::query()->whereHas('memberships', function ($query) use ($tenant) {
-            $query->where('tenant_id', $tenant->id);
-        })->orderBy('name')->get();
-        $forcedProject = null;
-        $breadcrumbItems = $task->project ? [['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Proyectos', 'url' => route('projects.index')], ['label' => $task->project->name, 'url' => route('projects.show', $task->project)], ['label' => $task->name, 'url' => route('tasks.show', $task)], ['label' => 'Editar']] : [['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Tareas', 'url' => route('tasks.index')], ['label' => $task->name, 'url' => route('tasks.show', $task)], ['label' => 'Editar']];
+        $users = User::query()
+            ->whereHas('memberships', function ($query) use ($tenant) {
+                $query->where('tenant_id', $tenant->id)
+                    ->where('status', 'active');
+            })
+            ->orderBy('name')
+            ->get();
 
-        return view('tasks.edit', compact('tenant', 'task', 'projects', 'parties', 'users', 'forcedProject', 'breadcrumbItems'));
+        $forcedProject = null;
+        $canChangeProject = $this->isTenantAdmin($tenant->id);
+        $defaultAssignedUserId = old('assigned_user_id', (string) ($task->assigned_user_id ?? auth()->id()));
+        $isForeignTaskForAdmin = $this->isTenantAdmin($tenant->id) && (int) $task->assigned_user_id !== (int) auth()->id();
+
+        $breadcrumbItems = $task->project
+            ? [
+                ['label' => 'Inicio', 'url' => route('dashboard')],
+                ['label' => 'Proyectos', 'url' => route('projects.index')],
+                ['label' => $task->project->name, 'url' => route('projects.show', $task->project)],
+                ['label' => $task->name, 'url' => route('tasks.show', $task)],
+                ['label' => 'Editar'],
+            ]
+            : [
+                ['label' => 'Inicio', 'url' => route('dashboard')],
+                ['label' => 'Tareas', 'url' => route('tasks.index')],
+                ['label' => $task->name, 'url' => route('tasks.show', $task)],
+                ['label' => 'Editar'],
+            ];
+
+        return view('tasks.edit', compact(
+            'tenant',
+            'task',
+            'projects',
+            'parties',
+            'users',
+            'forcedProject',
+            'breadcrumbItems',
+            'canChangeProject',
+            'defaultAssignedUserId',
+            'isForeignTaskForAdmin'
+        ));
     }
 
     public function update(Request $request, Task $task)
     {
         $tenant = app('tenant');
-        $data = $request->validate(['project_id' => ['nullable', 'integer', Rule::exists('projects', 'id')->where(function ($query) use ($tenant) {
-            $query->where('tenant_id', $tenant->id)->whereNull('deleted_at');
-        }), ], 'party_id' => ['nullable', 'integer', Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
-            $query->where('tenant_id', $tenant->id)->whereNull('deleted_at');
-        }), ], 'assigned_user_id' => ['nullable', 'integer', Rule::exists('users', 'id')], 'name' => ['required', 'string', 'max:255'], 'description' => ['nullable', 'string'], 'status' => ['required', 'string', Rule::in(TaskCatalog::statuses())], 'due_date' => ['nullable', 'date'], ]);
-        if (! empty($data['assigned_user_id'])) {
-            $userBelongsToTenant = User::query()->whereKey($data['assigned_user_id'])->whereHas('memberships', function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id);
-            })->exists();
-            if (! $userBelongsToTenant) {
-                return back()->withErrors(['assigned_user_id' => 'El usuario asignado no pertenece a la empresa actual.'])->withInput();
-            }
-        }
-        $task->update($data);
-        $task->load('project');
-        if ($task->project) {
-            return redirect()->route('projects.show', $task->project)->with('success', 'Tarea actualizada correctamente');
+
+        abort_unless($this->canEditTask($tenant->id, $task), 403);
+
+        $data = $request->validate([
+            'project_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('projects', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)->whereNull('deleted_at');
+                }),
+            ],
+            'party_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)->whereNull('deleted_at');
+                }),
+            ],
+            'assigned_user_id' => ['required', 'integer', Rule::exists('users', 'id')],
+            'name' => ['required', 'string', 'max:255'],
+            'description' => ['nullable', 'string'],
+            'status' => ['required', 'string', Rule::in(TaskCatalog::statuses())],
+            'priority' => ['required', 'string', Rule::in(array_keys(TaskCatalog::priorityLabels()))],
+            'due_date' => ['nullable', 'date'],
+            'confirm_foreign_task_edit' => ['nullable', 'string'],
+        ]);
+
+        $userBelongsToTenant = User::query()
+            ->whereKey($data['assigned_user_id'])
+            ->whereHas('memberships', function ($query) use ($tenant) {
+                $query->where('tenant_id', $tenant->id)
+                    ->where('status', 'active');
+            })
+            ->exists();
+
+        if (! $userBelongsToTenant) {
+            return back()
+                ->withErrors([
+                    'assigned_user_id' => 'El colaborador asignado no pertenece a la empresa actual.',
+                ])
+                ->withInput();
         }
 
-        return redirect()->route('tasks.show', $task)->with('success', 'Tarea actualizada correctamente');
+        $isAdminEditingForeignTask = $this->isTenantAdmin($tenant->id)
+            && (int) $task->assigned_user_id !== (int) auth()->id();
+
+        if ($isAdminEditingForeignTask && $request->input('confirm_foreign_task_edit') !== '1') {
+            return back()
+                ->withErrors([
+                    'confirm_foreign_task_edit' => 'Estás editando una tarea asignada a otro colaborador. Confirmá la modificación antes de guardar.',
+                ])
+                ->withInput();
+        }
+
+        if (! $this->isTenantAdmin($tenant->id)) {
+            $data['project_id'] = $task->project_id;
+        }
+
+        unset($data['confirm_foreign_task_edit']);
+
+        $task->update($data);
+        $task->load('project');
+
+        if ($task->project) {
+            return redirect()
+                ->route('projects.show', $task->project)
+                ->with('success', 'Tarea actualizada correctamente.');
+        }
+
+        return redirect()
+            ->route('tasks.show', $task)
+            ->with('success', 'Tarea actualizada correctamente.');
     }
 
     public function destroy(Task $task)
     {
+        $tenant = app('tenant');
+
+        abort_unless($this->isTenantAdmin($tenant->id), 403);
+
         $task->load('project');
         $project = $task->project;
+
         $task->delete();
+
         if ($project) {
-            return redirect()->route('projects.show', $project)->with('success', 'Tarea eliminada correctamente');
+            return redirect()
+                ->route('projects.show', $project)
+                ->with('success', 'Tarea eliminada correctamente.');
         }
 
-        return redirect()->route('tasks.index')->with('success', 'Tarea eliminada correctamente');
+        return redirect()
+            ->route('tasks.index')
+            ->with('success', 'Tarea eliminada correctamente.');
+    }
+
+    private function canEditTask(string $tenantId, Task $task): bool
+    {
+        if ($this->isTenantAdmin($tenantId)) {
+            return true;
+        }
+
+        return (int) $task->assigned_user_id === (int) auth()->id();
+    }
+
+    private function isTenantAdmin(string $tenantId): bool
+    {
+        $membership = auth()->user()?->memberships()
+            ->with('roles')
+            ->where('tenant_id', $tenantId)
+            ->where('status', 'active')
+            ->first();
+
+        if (! $membership) {
+            return false;
+        }
+
+        if ($membership->is_owner) {
+            return true;
+        }
+
+        return $membership->roles->contains(function ($role) {
+            return $role->slug === 'admin';
+        });
     }
 }

@@ -71,59 +71,38 @@
             @endif
         </x-page-header>
 
-        <x-card>
-            <div class="summary-inline-grid">
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Asignado a</div>
-                    <div class="summary-inline-value">{{ $task->assignedUser?->name ?? 'Sin asignar' }}</div>
+        <x-show-summary details-id="task-more-detail">
+            <x-show-summary-item label="Asignado a">
+                {{ $task->assignedUser?->name ?? 'Sin asignar' }}
+            </x-show-summary-item>
+
+            <x-show-summary-item label="Proyecto">
+                @if ($task->project)
+                    <a href="{{ route('projects.show', $task->project) }}">
+                        {{ $task->project->name }}
+                    </a>
+                @else
+                    —
+                @endif
+            </x-show-summary-item>
+
+            <x-show-summary-item label="Estado operativo" help="{{ $dueDateText }}">
+                <div class="summary-badge-stack">
+                    <span class="status-badge {{ TaskCatalog::priorityBadgeClass($task->priority) }}">
+                        Prioridad: {{ TaskCatalog::priorityLabel($task->priority) }}
+                    </span>
+
+                    <span class="status-badge {{ TaskCatalog::badgeClass($task->status) }}">
+                        Estado: {{ TaskCatalog::label($task->status) }}
+                    </span>
                 </div>
+            </x-show-summary-item>
 
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Prioridad</div>
-                    <div class="summary-inline-value">
-                        <span class="status-badge {{ TaskCatalog::priorityBadgeClass($task->priority) }}">
-                            {{ TaskCatalog::priorityLabel($task->priority) }}
-                        </span>
-                    </div>
-                </div>
-
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Estado</div>
-                    <div class="summary-inline-value">
-                        <span class="status-badge {{ TaskCatalog::badgeClass($task->status) }}">
-                            {{ TaskCatalog::label($task->status) }}
-                        </span>
-                    </div>
-                </div>
-
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Vencimiento</div>
-                    <div class="summary-inline-value">{{ $task->due_date?->format('d/m/Y') ?? '—' }}</div>
-                    <div class="summary-inline-help">{{ $dueDateText }}</div>
-                </div>
-            </div>
-
-            <div class="list-filters-actions">
-                <button type="button" class="btn btn-secondary" data-action="app-toggle-details"
-                    data-toggle-target="#task-more-detail" data-toggle-text-collapsed="Más detalle"
-                    data-toggle-text-expanded="Menos detalle">
-                    Más detalle
-                </button>
-            </div>
-
-            <div id="task-more-detail" hidden>
+            <x-slot:details>
                 <div class="detail-grid detail-grid--3">
                     <div class="detail-block">
-                        <span class="detail-block-label">Proyecto</span>
-                        <div class="detail-block-value">
-                            @if ($task->project)
-                                <a href="{{ route('projects.show', $task->project) }}">
-                                    {{ $task->project->name }}
-                                </a>
-                            @else
-                                —
-                            @endif
-                        </div>
+                        <span class="detail-block-label">Vencimiento</span>
+                        <div class="detail-block-value">{{ $task->due_date?->format('d/m/Y') ?? 'Sin fecha' }}</div>
                     </div>
 
                     <div class="detail-block">
@@ -153,8 +132,8 @@
                         <div class="detail-block-value">{{ $task->description ?: '—' }}</div>
                     </div>
                 </div>
-            </div>
-        </x-card>
+            </x-slot:details>
+        </x-show-summary>
 
     </x-page>
 @endsection

@@ -1433,6 +1433,236 @@ textarea.form-control {
     color: var(--color-text);
 }
 
+.summary-inline-help {
+    margin-top: 0.2rem;
+    font-size: 0.82rem;
+    color: var(--color-muted);
+    line-height: 1.35;
+}
+
+.summary-badge-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.45rem;
+    min-height: 100%;
+}
+
+.summary-badge-stack .status-badge {
+    max-width: 100%;
+}
+
+.show-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+}
+
+.show-summary-item {
+    min-height: 96px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.show-summary-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--space-4);
+}
+
+.show-summary-details {
+    margin-top: var(--space-4);
+}
+
+.project-visual-detail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.project-visual-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+}
+
+.project-visual-grid--stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.project-visual-card {
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: #f8fafc;
+}
+
+.project-visual-title {
+    margin-bottom: var(--space-3);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-muted);
+}
+
+.project-progress {
+    width: 100%;
+    height: 14px;
+    border-radius: 999px;
+    background: #e5e7eb;
+    overflow: hidden;
+}
+
+.project-progress-bar {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--color-primary);
+}
+
+.project-progress-meta {
+    margin-top: var(--space-3);
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+    color: var(--color-text);
+}
+
+.project-pie-layout {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: var(--space-4);
+    align-items: center;
+}
+
+.project-pie-chart-wrap {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    margin: 0 auto;
+}
+
+.project-pie-chart {
+    width: 160px;
+    height: 160px;
+    transform: rotate(-90deg);
+}
+
+.project-pie-track,
+.project-pie-segment {
+    fill: none;
+    stroke-width: 3.8;
+}
+
+.project-pie-track {
+    stroke: #e5e7eb;
+}
+
+.project-pie-segment--pending {
+    stroke: #f59e0b;
+}
+
+.project-pie-segment--in-progress {
+    stroke: #2563eb;
+}
+
+.project-pie-segment--done {
+    stroke: #16a34a;
+}
+
+.project-pie-segment--cancelled {
+    stroke: #6b7280;
+}
+
+.project-pie-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.1;
+    text-align: center;
+}
+
+.project-pie-center strong {
+    font-size: 1.35rem;
+    color: var(--color-text);
+}
+
+.project-pie-center span {
+    font-size: 0.82rem;
+    color: var(--color-muted);
+}
+
+.project-pie-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.project-pie-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 0.92rem;
+    color: var(--color-text);
+}
+
+.project-pie-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    flex: 0 0 auto;
+}
+
+.project-pie-dot--pending {
+    background: #f59e0b;
+}
+
+.project-pie-dot--in-progress {
+    background: #2563eb;
+}
+
+.project-pie-dot--done {
+    background: #16a34a;
+}
+
+.project-pie-dot--cancelled {
+    background: #6b7280;
+}
+
+.project-visual-kpi {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--color-text);
+}
+
+.project-visual-note {
+    margin-top: var(--space-2);
+    font-size: 0.88rem;
+    color: var(--color-muted);
+}
+
+@media (max-width: 900px) {
+
+    .project-visual-grid,
+    .project-visual-grid--stats,
+    .project-pie-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .show-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .show-summary-item {
+        min-height: 0;
+    }
+}
+
 /* =========================================================
    20. Breadcrumb
    Navegación contextual simple

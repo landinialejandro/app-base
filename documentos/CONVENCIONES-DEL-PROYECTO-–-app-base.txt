@@ -227,6 +227,18 @@ Los order_items pueden copiarse a document_items según el tipo documental.
 
 Luego de copiar los ítems, los totales del documento deben recalcularse.
 
+Convenciones para módulos agregadores con uso operativo diario
+
+Cuando un módulo agregador del core tenga uso operativo diario, su index puede dejar de ser nominal y pasar a una tabla operativa con métricas derivadas.
+
+Reglas:
+
+si el módulo tiene estados cerrados, debe usar catálogo centralizado y badge visual
+
+los porcentajes, contadores o métricas operativas deben resolverse preferentemente en controller, query u otra capa previa, no en Blade, cuando la lógica empiece a crecer
+
+este patrón ya se considera válido para projects.index
+
 Convenciones de perfil de empresa
 
 El perfil de empresa es una pantalla reservada a owner.

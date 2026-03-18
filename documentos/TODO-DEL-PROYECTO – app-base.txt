@@ -130,7 +130,9 @@ revisar paginación propia del proyecto en todos los index
 
 extender patrón reusable table + embedded-tabs al core restante (tasks, products, etc.) y revisar en qué módulos realmente corresponde tabs
 
-mejorar projects.index para volverlo más operativo como pantalla de entrada del módulo
+evaluar bloqueo funcional de alta de tareas en proyectos cerrados
+
+evaluar filtros adicionales en projects.index si crece el volumen
 
 MEJORAS DE ONBOARDING
 

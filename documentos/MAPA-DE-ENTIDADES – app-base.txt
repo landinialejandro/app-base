@@ -323,9 +323,18 @@ Relaciones principales:
 tenant → projects
 projects → tasks
 
-Nota:
+Dominios funcionales:
 
-projects no posee catálogo funcional propio por el momento.
+status
+
+Notas operativas:
+
+projects utiliza un estado funcional mínimo:
+
+active
+closed
+
+projects.index puede funcionar como vista operativa resumida basada en métricas derivadas de tareas asociadas.
 
 TASKS
 

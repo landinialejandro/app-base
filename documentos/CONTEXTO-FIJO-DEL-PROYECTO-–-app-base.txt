@@ -211,6 +211,18 @@ Para la asignación interna de tareas, el término visible recomendado es:
 
 colaborador
 
+Projects como capa de seguimiento agregado
+
+projects representa un agrupador operativo de trabajo.
+
+Reglas actuales consolidadas:
+
+posee estado mínimo active/closed
+
+su index prioriza seguimiento diario mediante métricas derivadas de tareas asociadas
+
+tasks continúa siendo la unidad operativa fina, mientras projects funciona como capa de seguimiento agregado
+
 Tasks como unidad operativa interna
 
 tasks representa la unidad operativa interna básica del sistema.

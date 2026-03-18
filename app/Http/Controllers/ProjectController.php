@@ -5,7 +5,10 @@
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Support\Catalogs\ProjectCatalog;
+use App\Support\Catalogs\TaskCatalog;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class ProjectController extends Controller
 {
@@ -14,8 +17,62 @@ class ProjectController extends Controller
         $tenant = app('tenant');
 
         $q = trim((string) $request->get('q', ''));
+        $status = (string) $request->get('status', '');
 
         $projects = Project::query()
+            ->select('projects.*')
+            ->selectSub(function ($query) {
+                $query->from('tasks')
+                    ->selectRaw('COUNT(*)')
+                    ->whereColumn('tasks.project_id', 'projects.id')
+                    ->whereNull('tasks.deleted_at')
+                    ->whereIn('tasks.status', [
+                        TaskCatalog::STATUS_PENDING,
+                        TaskCatalog::STATUS_IN_PROGRESS,
+                    ]);
+            }, 'open_tasks_count')
+            ->selectSub(function ($query) {
+                $query->from('tasks')
+                    ->selectRaw('COUNT(*)')
+                    ->whereColumn('tasks.project_id', 'projects.id')
+                    ->whereNull('tasks.deleted_at')
+                    ->where('tasks.status', TaskCatalog::STATUS_IN_PROGRESS);
+            }, 'in_progress_tasks_count')
+            ->selectSub(function ($query) {
+                $query->from('tasks')
+                    ->selectRaw('COUNT(*)')
+                    ->whereColumn('tasks.project_id', 'projects.id')
+                    ->whereNull('tasks.deleted_at')
+                    ->whereNotIn('tasks.status', [
+                        TaskCatalog::STATUS_DONE,
+                        TaskCatalog::STATUS_CANCELLED,
+                    ])
+                    ->whereDate('tasks.due_date', '<', now()->toDateString());
+            }, 'overdue_tasks_count')
+            ->selectSub(function ($query) {
+                $query->from('tasks')
+                    ->selectRaw('COUNT(*)')
+                    ->whereColumn('tasks.project_id', 'projects.id')
+                    ->whereNull('tasks.deleted_at');
+            }, 'tasks_count')
+            ->selectSub(function ($query) {
+                $query->from('tasks')
+                    ->selectRaw('COUNT(*)')
+                    ->whereColumn('tasks.project_id', 'projects.id')
+                    ->whereNull('tasks.deleted_at')
+                    ->where('tasks.status', TaskCatalog::STATUS_DONE);
+            }, 'done_tasks_count')
+            ->selectSub(function ($query) {
+                $query->from('tasks')
+                    ->selectRaw('MIN(tasks.due_date)')
+                    ->whereColumn('tasks.project_id', 'projects.id')
+                    ->whereNull('tasks.deleted_at')
+                    ->whereNotIn('tasks.status', [
+                        TaskCatalog::STATUS_DONE,
+                        TaskCatalog::STATUS_CANCELLED,
+                    ])
+                    ->whereNotNull('tasks.due_date');
+            }, 'next_due_date')
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($subquery) use ($q) {
                     $subquery->where('name', 'like', "%{$q}%")
@@ -26,7 +83,22 @@ class ProjectController extends Controller
                     }
                 });
             })
-            ->latest()
+            ->when($status !== '' && in_array($status, ProjectCatalog::statuses(), true), function ($query) use ($status) {
+                $query->where('status', $status);
+            })
+            ->orderByRaw('
+                CASE
+                    WHEN status = ? THEN 1
+                    WHEN status = ? THEN 2
+                    ELSE 3
+                END
+            ', [
+                ProjectCatalog::STATUS_ACTIVE,
+                ProjectCatalog::STATUS_CLOSED,
+            ])
+            ->orderByRaw('CASE WHEN next_due_date IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('next_due_date')
+            ->orderByDesc('updated_at')
             ->paginate(10)
             ->withQueryString();
 
@@ -50,6 +122,7 @@ class ProjectController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'status' => ['required', 'string', Rule::in(ProjectCatalog::statuses())],
         ]);
 
         $project = Project::create($data);
@@ -92,6 +165,7 @@ class ProjectController extends Controller
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
+            'status' => ['required', 'string', Rule::in(ProjectCatalog::statuses())],
         ]);
 
         $project->update($data);

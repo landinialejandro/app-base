@@ -1,10 +1,14 @@
-{{-- FILE: resources/views/projects/index.blade.php | V3 --}}
+{{-- FILE: resources/views/projects/index.blade.php | V4 --}}
 
 @extends('layouts.app')
 
 @section('title', 'Proyectos')
 
 @section('content')
+    @php
+        use App\Support\Catalogs\ProjectCatalog;
+    @endphp
+
     <x-page class="list-page">
 
         <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Proyectos']]" />
@@ -22,6 +26,18 @@
                         <label for="q" class="form-label">Buscar</label>
                         <input type="text" id="q" name="q" class="form-control" value="{{ request('q') }}"
                             placeholder="Nombre, descripción o ID">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status" class="form-label">Estado</label>
+                        <select id="status" name="status" class="form-control">
+                            <option value="">Todos</option>
+                            @foreach (ProjectCatalog::statusLabels() as $value => $label)
+                                <option value="{{ $value }}" @selected(request('status') === $value)>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
                     </div>
                 </div>
             </x-slot:primary>

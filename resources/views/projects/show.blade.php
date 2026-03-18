@@ -6,6 +6,7 @@
 
 @section('content')
     @php
+        use App\Support\Catalogs\ProjectCatalog;
         $membership = auth()
             ->user()
             ?->memberships()
@@ -85,6 +86,15 @@
                 <div class="summary-inline-card">
                     <div class="summary-inline-label">Tareas</div>
                     <div class="summary-inline-value">{{ $tasks->count() }}</div>
+                </div>
+
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Estado</div>
+                    <div class="summary-inline-value">
+                        <span class="status-badge {{ ProjectCatalog::badgeClass($project->status) }}">
+                            {{ ProjectCatalog::label($project->status) }}
+                        </span>
+                    </div>
                 </div>
 
                 <div class="summary-inline-card">

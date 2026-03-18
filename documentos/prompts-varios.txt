@@ -1,9 +1,12 @@
-Tengo las siguientes actulizaciones/recomendaciones de otro chat para el 
-documento [documento], 
-por favor auditalo y verifica si corresponde agregar o quitar cosas en el 
-documento actual, pero devuelveme solo el documento final para sobre escribir:
+Tengo las siguientes fragmetos de actulizaciones/recomendaciones de otros chat 
+para los documentos del proyecto, por favor auditalo y verifica si corresponde 
+agregar o quitar cosas de los documento. Pero devuelveme cada uno de los documentos 
+alcanzados completo final para sobre escribir:
+
 
 -------------------
+
+
 Avancemos con pasos cortos
 no dudes en preguntar o solicitar información para darme la mejor respuesta
 no es necesario adivinar, ya tenemos el proyecto con varios modulos

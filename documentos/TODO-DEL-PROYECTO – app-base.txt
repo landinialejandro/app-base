@@ -85,6 +85,8 @@ evaluar política futura para edición, reenvío o regeneración de invitaciones
 
 revisar futura gestión de roles por sucursal usando membership_role.branch_id
 
+evaluar base futura de turnero o calendario a partir de tasks
+
 MEJORAS DE INTERFAZ
 
 revisar mensajes de vacío cuando hay filtros activos
@@ -128,6 +130,8 @@ revisar paginación propia del proyecto en todos los index
 
 extender patrón reusable table + embedded-tabs al core restante (tasks, products, etc.) y revisar en qué módulos realmente corresponde tabs
 
+mejorar projects.index para volverlo más operativo como pantalla de entrada del módulo
+
 MEJORAS DE ONBOARDING
 
 evolucionar el envío manual de invitaciones owner_signup hacia envío real por WhatsApp o email
@@ -157,6 +161,14 @@ endurecer a nivel de base de datos assets.party_id como NOT NULL si se confirma 
 evaluar endurecimiento futuro de orders.asset_id y documents.asset_id según política final de obligatoriedad por flujo
 
 evaluar reglas futuras de bloqueo de edición en documents cuando estén vinculados a orders y/o assets
+
+MEJORAS DE FLUJO TASKS / ORDERS
+
+revisar consolidación funcional del vínculo 1 a 1 entre tasks y orders
+
+evaluar reglas futuras de bloqueo o trazabilidad cuando una tarea ya derivó en orden
+
+evaluar migración futura desde checks en controller hacia policies formales para permisos de tareas
 
 MEJORAS DE FLUJO ORDERS / DOCUMENTS
 

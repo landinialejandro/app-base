@@ -170,6 +170,36 @@ Ejemplos:
 order_items
 document_items
 
+Convenciones de ownership funcional y permisos operativos simples
+
+Cuando un módulo lo permita, puede adoptarse un criterio simple de ownership funcional del registro en lugar de una capa temprana de permisos compleja.
+
+Reglas:
+
+usuario normal gestiona los registros de su responsabilidad operativa
+
+owner y admin pueden gestionar registros ajenos dentro del tenant
+
+los borrados sensibles pueden reservarse a owner y admin aunque la edición o seguimiento sea más amplia
+
+Este patrón ya se considera válido para tasks.
+
+Convenciones de flujo Task → Order
+
+Cuando una entidad derive otra en una relación operativa 1 a 1, el vínculo puede resolverse desde la entidad derivada.
+
+En el caso actual:
+
+orders.task_id expresa que una orden nace desde una tarea
+
+Reglas:
+
+una tarea puede derivar en una única orden
+
+la relación debe mantenerse simple y explícita
+
+no debe duplicarse el vínculo en ambas entidades si no aporta valor real
+
 Convenciones de flujo Asset → Order
 
 Un order puede vincularse opcionalmente a un asset.
@@ -370,6 +400,10 @@ Nombre genérico visible de la entidad parties en interfaz:
 Contacto
 
 Cliente debe utilizarse solo como categoría, clase o tipo específico dentro del catálogo correspondiente, no como nombre genérico de la entidad.
+
+Para asignación interna de tareas, el término visible recomendado es:
+
+Colaborador
 
 El verbo destructivo estándar en botones, confirmaciones y mensajes del sistema es:
 

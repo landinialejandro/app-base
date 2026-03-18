@@ -321,7 +321,6 @@ Agrupa trabajos o iniciativas.
 Relaciones principales:
 
 tenant → projects
-party → projects
 projects → tasks
 
 Nota:
@@ -339,11 +338,21 @@ Relaciones principales:
 tenant → tasks
 project → tasks
 party → tasks
-user → tasks
+assigned user → tasks
+order → task (relación operativa opcional 1 a 1 resuelta desde orders.task_id)
 
-Dominio funcional:
+Dominios funcionales:
 
 status
+priority
+
+Notas operativas:
+
+toda tarea nace asignada a un usuario del tenant
+
+assigned_user_id referencia al usuario responsable operativo de la tarea
+
+una tarea puede derivar en una única orden, normalmente de servicio
 
 PRODUCTS
 
@@ -468,6 +477,7 @@ orders → parties
 orders → assets
 orders → products
 orders → documents
+orders → task (nullable)
 
 Campos relevantes adicionales:
 
@@ -495,7 +505,11 @@ belongsTo party
 
 belongsTo asset (nullable)
 
+belongsTo task (nullable)
+
 una orden vinculada a un activo debe mantener consistencia con el contacto del activo
+
+cuando una orden nace desde una tarea, la relación operativa 1 a 1 se expresa mediante orders.task_id
 
 ORDER_ITEMS
 
@@ -669,6 +683,8 @@ Dominio comercial y operativo
 tenants
 ↓
 products / assets
+↓
+tasks
 ↓
 orders
 ↓

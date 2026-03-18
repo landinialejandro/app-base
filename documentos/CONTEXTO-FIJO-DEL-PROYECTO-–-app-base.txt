@@ -195,15 +195,37 @@ Ejemplos:
 
 cliente
 proveedor
-empleado
 contacto
 contratista
+tercero
 
 En la interfaz del sistema se utiliza el término:
 
 contactos
 
 El término party queda reservado al modelo técnico.
+
+La asignación interna de responsabilidad operativa no se modela desde Party, sino desde User + Membership.
+
+Para la asignación interna de tareas, el término visible recomendado es:
+
+colaborador
+
+Tasks como unidad operativa interna
+
+tasks representa la unidad operativa interna básica del sistema.
+
+Reglas actuales consolidadas:
+
+las tareas se crean obligatoriamente asignadas
+
+assigned_user_id debe referenciar a un usuario activo del tenant
+
+owner y admin pueden gestionar tareas ajenas
+
+los usuarios normales gestionan solamente sus propias tareas
+
+una tarea puede derivar en una única orden, normalmente de servicio
 
 Patrón de modelado cabecera / detalle
 
@@ -244,6 +266,18 @@ punto de venta
 orders y documents no permiten edición manual del número
 
 una vez asignado el número, el tipo de entidad no debe modificarse
+
+Flujo tasks → orders
+
+El sistema contempla una derivación operativa opcional desde tasks hacia orders.
+
+Reglas actuales:
+
+una tarea puede originar una única orden
+
+la relación operativa 1 a 1 se expresa desde orders.task_id
+
+la orden derivada suele corresponder a una operación de servicio u otra acción formalizada a partir de la tarea
 
 Flujo assets → orders → documents
 

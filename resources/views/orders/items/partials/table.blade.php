@@ -32,24 +32,28 @@
                         <td>${{ number_format($item->unit_price, 2, ',', '.') }}</td>
                         <td>${{ number_format($item->subtotal, 2, ',', '.') }}</td>
                         <td class="compact-actions-cell">
-                            <div class="compact-actions">
-                                <a href="{{ route('orders.items.edit', [$order, $item]) }}"
-                                    class="btn btn-secondary btn-icon" title="Editar ítem" aria-label="Editar ítem">
-                                    <x-icons.pencil />
-                                </a>
+                            @can('update', $order)
+                                <div class="compact-actions">
+                                    <a href="{{ route('orders.items.edit', [$order, $item]) }}"
+                                        class="btn btn-secondary btn-icon" title="Editar ítem" aria-label="Editar ítem">
+                                        <x-icons.pencil />
+                                    </a>
 
-                                <form method="POST" action="{{ route('orders.items.destroy', [$order, $item]) }}"
-                                    class="inline-form" data-action="app-confirm-submit"
-                                    data-confirm-message="¿Deseas eliminar este ítem?">
-                                    @csrf
-                                    @method('DELETE')
+                                    <form method="POST" action="{{ route('orders.items.destroy', [$order, $item]) }}"
+                                        class="inline-form" data-action="app-confirm-submit"
+                                        data-confirm-message="¿Deseas eliminar este ítem?">
+                                        @csrf
+                                        @method('DELETE')
 
-                                    <button type="submit" class="btn btn-danger btn-icon" title="Eliminar ítem"
-                                        aria-label="Eliminar ítem">
-                                        <x-icons.trash />
-                                    </button>
-                                </form>
-                            </div>
+                                        <button type="submit" class="btn btn-danger btn-icon" title="Eliminar ítem"
+                                            aria-label="Eliminar ítem">
+                                            <x-icons.trash />
+                                        </button>
+                                    </form>
+                                </div>
+                            @else
+                                —
+                            @endcan
                         </td>
                     </tr>
                 @endforeach

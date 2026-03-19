@@ -34,24 +34,28 @@
         ]" />
 
         <x-page-header :title="$orderDetailTitle">
-            <a href="{{ route('orders.edit', $order) }}" class="btn btn-primary">
-                <x-icons.pencil />
-                <span>Editar</span>
-            </a>
+            @can('update', $order)
+                <a href="{{ route('orders.edit', $order) }}" class="btn btn-primary">
+                    <x-icons.pencil />
+                    <span>Editar</span>
+                </a>
+            @endcan
 
-            <form method="POST" action="{{ route('orders.destroy', $order) }}" class="inline-form"
-                data-action="app-confirm-submit"
-                data-confirm-message="{{ $order->items->count()
-                    ? 'Esta orden tiene ítems cargados. Si la eliminas, también se eliminarán sus ítems. ¿Deseas continuar?'
-                    : '¿Deseas eliminar esta orden?' }}">
-                @csrf
-                @method('DELETE')
+            @can('delete', $order)
+                <form method="POST" action="{{ route('orders.destroy', $order) }}" class="inline-form"
+                    data-action="app-confirm-submit"
+                    data-confirm-message="{{ $order->items->count()
+                        ? 'Esta orden tiene ítems cargados. Si la eliminas, también se eliminarán sus ítems. ¿Deseas continuar?'
+                        : '¿Deseas eliminar esta orden?' }}">
+                    @csrf
+                    @method('DELETE')
 
-                <button type="submit" class="btn btn-danger">
-                    <x-icons.trash />
-                    <span>Eliminar</span>
-                </button>
-            </form>
+                    <button type="submit" class="btn btn-danger">
+                        <x-icons.trash />
+                        <span>Eliminar</span>
+                    </button>
+                </form>
+            @endcan
 
             @if ($order->task)
                 <a href="{{ route('tasks.show', $order->task) }}" class="btn btn-secondary">
@@ -162,9 +166,11 @@
                 <div class="tab-panel-stack">
 
                     <x-page-header title="Ítems de la orden">
-                        <a href="{{ route('orders.items.create', $order) }}" class="btn btn-primary">
-                            Agregar ítem
-                        </a>
+                        @can('update', $order)
+                            <a href="{{ route('orders.items.create', $order) }}" class="btn btn-primary">
+                                Agregar ítem
+                            </a>
+                        @endcan
                     </x-page-header>
 
                     <x-card class="list-card">

@@ -286,17 +286,29 @@ los roles base reservados no deben modificarse ni eliminarse
 
 a futuro el owner podrá crear roles nuevos propios del tenant
 
-Capa conceptual de permisos prevista
+Capa central prevista para acceso y permisos
 
-La arquitectura de permisos debe prepararse para incorporar una capa centralizada compuesta por:
+La arquitectura de acceso y permisos debe prepararse para incorporar una capa centralizada compuesta por:
 
+ModuleCatalog
+TenantModuleAccess
 RolePermissionMatrix
 RolePermissionResolver
+
+Rol conceptual de cada pieza:
+
+ModuleCatalog define la base de módulos cerrados del sistema y actúa como fuente de verdad para slugs funcionales y módulos navegables del core.
+
+TenantModuleAccess debe resolver la habilitación efectiva de módulos por tenant y por usuario, reutilizando una única lógica tanto para acceso operativo como para navegación visible.
+
+RolePermissionMatrix define la matriz base de permisos por rol y módulo.
+
+RolePermissionResolver debe resolver el permiso efectivo por usuario, tenant y módulo, reutilizando la matriz base y la capa de acceso al módulo.
 
 Estado actual de esta capa:
 
 conceptualmente aprobada
-pendiente de implementación formal consolidada
+pendiente de implementación formal consolidada en todo el core
 
 Dirección de diseño:
 
@@ -307,6 +319,34 @@ la lógica debe diseñarse para migrar luego a base de datos
 las policies no deben hardcodear permisos dispersos cuando esta capa exista formalmente
 
 la navegación y accesos visibles deben reutilizar la misma lógica real de acceso
+
+la habilitación efectiva de módulos puede admitir capas de override controladas, siempre subordinadas a la base definida en ModuleCatalog
+
+Precedencia conceptual prevista para habilitación de módulos
+
+La habilitación efectiva de módulos puede resolverse, cuando el sistema lo necesite, con una precedencia como la siguiente:
+
+base desde ModuleCatalog
+
+override global externo
+
+override externo por tenant
+
+override persistido en settings del tenant
+
+Esta precedencia debe entenderse como criterio de diseño para crecimiento controlado del sistema, no como obligación de implementación inmediata en todos los entornos.
+
+Overrrides externos controlados
+
+La matriz base de permisos y la habilitación base de módulos pueden admitir overrides externos parciales cuando haga falta realizar ajustes rápidos y controlados sin modificar directamente las clases principales.
+
+Estos overrides deben respetar siempre:
+
+los roles definidos en RoleCatalog
+los módulos definidos en ModuleCatalog
+la estructura base del sistema
+
+No deben utilizarse para inventar roles o módulos inexistentes.
 
 Roles y niveles actuales del sistema
 
@@ -398,6 +438,8 @@ navbar, dashboard y accesos rápidos deben respetar acceso real del usuario al m
 la navegación no debe asumir acceso total al tenant si el módulo o la acción están restringidos por rol
 
 el acceso al módulo, la visibilidad del dataset y las acciones permitidas deben tratarse como capas distintas
+
+el navbar no debe depender de un hardcode manual de módulos cuando exista una capa central disponible para resolver acceso y navegación
 
 Patrón de modelado cabecera / detalle
 

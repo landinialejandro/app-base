@@ -164,6 +164,7 @@ La arquitectura de permisos debe prepararse para incorporar una capa centralizad
 
 RolePermissionMatrix
 RolePermissionResolver
+TenantModuleAccess
 
 Reglas de diseño:
 
@@ -172,6 +173,21 @@ las policies no deben hardcodear permisos dispersos cuando la capa central ya ex
 la policy debe consumir la capa central de permisos en lugar de multiplicar lógica por módulo
 
 la matriz actual puede ser hardcodeada, pero debe diseñarse para migrar más adelante a persistencia en base de datos
+
+cuando exista resolución central disponible, no hardcodear permisos por rol directamente en controllers, blades o componentes
+
+toda autorización funcional nueva debe apoyarse, según corresponda, en:
+
+RolePermissionMatrix
+RolePermissionResolver
+TenantModuleAccess
+Policy
+
+el acceso a módulo no reemplaza la policy por registro
+
+el acceso a módulo, la visibilidad de registros y la capacidad de acción deben tratarse como capas separadas
+
+cuando un módulo tenga reglas específicas por ownership, asignación o participación operativa, la policy debe resolver esa diferencia reutilizando la capa central y el criterio de visibilidad del módulo
 
 Trait TenantScoped
 
@@ -326,6 +342,14 @@ las acciones visibles en listados, show y sublistados deben respetar permisos re
 
 la navegación no debe asumir acceso total al tenant si el módulo o la acción están restringidos por rol
 
+la navegación principal del tenant debe construirse desde ModuleCatalog cuando exista una capa de navegación central disponible
+
+no se deben hardcodear módulos navegables en componentes de layout cuando el sistema ya pueda resolverlos desde catálogo y acceso efectivo
+
+el navbar debe renderizar únicamente módulos definidos en ModuleCatalog y habilitados realmente para el usuario actual
+
+dashboard y navbar deben mantenerse alineados respecto al acceso real a módulos
+
 Regla de delete
 
 Como convención operativa general:
@@ -343,6 +367,20 @@ qué registros puede ver
 qué acciones puede ejecutar
 
 No debe mezclarse acceso al módulo con visibilidad del dataset ni con permisos de edición.
+
+Configuración externa temporal
+
+Cuando una matriz base o habilitación base requiera ajustes rápidos sin modificar clases principales, se admite una capa de configuración externa temporal.
+
+Reglas:
+
+estos overrides deben ser parciales, controlados y compatibles con la estructura base
+
+no deben utilizarse para inventar módulos o roles inexistentes en los catálogos del sistema
+
+deben subordinarse siempre a RoleCatalog y ModuleCatalog
+
+deben entenderse como solución operativa transitoria y no como reemplazo del modelo definitivo
 
 Convenciones de flujo Task → Order
 

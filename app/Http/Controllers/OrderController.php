@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderController.php
+// FILE: app/Http/Controllers/OrderController.php | V4
 
 namespace App\Http\Controllers;
 
@@ -19,6 +19,8 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Order::class);
+
         $q = trim((string) $request->get('q', ''));
         $partyId = $request->get('party_id');
         $assetId = $request->get('asset_id');
@@ -70,6 +72,8 @@ class OrderController extends Controller
 
     public function create(Request $request)
     {
+        $this->authorize('create', Order::class);
+
         $tenant = app('tenant');
 
         $parties = Party::orderBy('name')->get();
@@ -129,6 +133,8 @@ class OrderController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorize('create', Order::class);
+
         $tenant = app('tenant');
 
         $data = $request->validate([
@@ -228,6 +234,8 @@ class OrderController extends Controller
 
     public function show(Order $order)
     {
+        $this->authorize('view', $order);
+
         $order->load([
             'party',
             'asset',
@@ -243,6 +251,8 @@ class OrderController extends Controller
 
     public function edit(Order $order)
     {
+        $this->authorize('update', $order);
+
         $parties = Party::orderBy('name')->get();
         $assets = Asset::with('party')->orderBy('name')->get();
 
@@ -251,6 +261,8 @@ class OrderController extends Controller
 
     public function update(Request $request, Order $order)
     {
+        $this->authorize('update', $order);
+
         $tenant = app('tenant');
 
         $data = $request->validate([
@@ -367,6 +379,8 @@ class OrderController extends Controller
 
     public function destroy(Order $order)
     {
+        $this->authorize('delete', $order);
+
         $order->delete();
 
         return redirect()

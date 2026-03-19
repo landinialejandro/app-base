@@ -1,21 +1,22 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderItemController.php
+// FILE: app/Http/Controllers/OrderItemController.php | V4
 
 namespace App\Http\Controllers;
-
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Support\Catalogs\ProductCatalog;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class OrderItemController extends Controller
 {
     public function create(Order $order)
     {
+        $this->authorize('update', $order);
+
         $products = Product::orderBy('name')->get();
 
         $item = new OrderItem([
@@ -29,6 +30,8 @@ class OrderItemController extends Controller
 
     public function store(Request $request, Order $order)
     {
+        $this->authorize('update', $order);
+
         $tenant = app('tenant');
 
         $data = $request->validate([
@@ -64,6 +67,8 @@ class OrderItemController extends Controller
 
     public function edit(Order $order, OrderItem $item)
     {
+        $this->authorize('update', $order);
+
         abort_unless($item->order_id === $order->id, 404);
 
         $products = Product::orderBy('name')->get();
@@ -73,6 +78,8 @@ class OrderItemController extends Controller
 
     public function update(Request $request, Order $order, OrderItem $item)
     {
+        $this->authorize('update', $order);
+
         abort_unless($item->order_id === $order->id, 404);
 
         $tenant = app('tenant');
@@ -105,6 +112,8 @@ class OrderItemController extends Controller
 
     public function destroy(Order $order, OrderItem $item)
     {
+        $this->authorize('update', $order);
+
         abort_unless($item->order_id === $order->id, 404);
 
         $item->delete();

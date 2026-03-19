@@ -239,6 +239,34 @@ los usuarios normales gestionan solamente sus propias tareas
 
 una tarea puede derivar en una única orden, normalmente de servicio
 
+Capa base de acceso y visibilidad operativa
+
+El sistema ya incorpora una capa base de acceso y visibilidad por módulo.
+
+Reglas actuales consolidadas:
+
+owner y admin son equivalentes a nivel de privilegios operativos dentro del tenant
+
+sales y operator son roles operativos base
+
+el acceso a módulos se resuelve en dos niveles:
+
+módulo habilitado para el tenant
+módulo permitido para el rol del usuario
+
+por ahora esa habilitación parte de una base hardcodeada y de catálogos técnicos, pero queda diseñada para crecer
+
+la visibilidad no necesariamente coincide con la capacidad de edición
+
+projects ya tiene visibilidad operativa restringida:
+
+owner y admin ven todos los proyectos
+roles operativos ven solo proyectos donde tengan tareas asignadas
+
+tasks mantiene foco operativo mine/all, con permisos gobernados por policy
+
+la visibilidad del dashboard y de métricas agregadas puede variar según rol
+
 Patrón de modelado cabecera / detalle
 
 Cuando un módulo represente una operación compuesta por múltiples renglones, debe modelarse preferentemente utilizando el patrón cabecera/detalle.
@@ -382,6 +410,7 @@ landing pública
 signup_requests
 invitations de tipo owner_signup
 onboarding inicial de nuevas empresas
+habilitación inicial de módulos por tenant
 
 El superadmin opera sin depender de un tenant activo.
 

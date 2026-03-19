@@ -9,13 +9,9 @@ Su objetivo es mantener consistencia técnica, previsibilidad arquitectónica y 
 Las convenciones aquí definidas deben respetarse al crear:
 
 nuevos módulos
-
 nuevas entidades
-
 nuevas vistas
-
 nuevos controladores
-
 nuevos flujos operativos
 
 Convenciones generales
@@ -23,13 +19,9 @@ Convenciones generales
 El proyecto sigue los principios de:
 
 simplicidad
-
 claridad estructural
-
 baja duplicación
-
 coherencia entre módulos
-
 previsibilidad del comportamiento del sistema
 
 Cuando existan varias alternativas técnicas, se debe priorizar siempre la opción más simple y consistente con el resto del proyecto.
@@ -120,6 +112,32 @@ La restricción operativa de acceso a empresa debe validarse por memberships.sta
 
 No debe utilizarse desactivación global de users para resolver bajas, bloqueos o pérdida de acceso específicos de un tenant.
 
+Convenciones de acceso por módulo y roles
+
+La autorización operativa del sistema debe resolverse diferenciando:
+
+módulo habilitado para el tenant
+módulo permitido para el rol del usuario
+
+Reglas actuales consolidadas:
+
+owner y admin equivalen funcionalmente a nivel de control operativo del tenant
+
+roles operativos base esperados:
+
+sales
+operator
+
+como regla mínima por módulo:
+
+owner y admin tienen control total operativo
+
+los roles operativos pueden ver el módulo habilitado y crear o editar registros propios o de su responsabilidad operativa, según defina la policy del módulo
+
+la eliminación sensible debe reservarse a owner y admin, salvo necesidad funcional justificada
+
+la visibilidad del dashboard y de métricas agregadas debe respetar el rol y no asumir siempre conteos globales del tenant
+
 Trait TenantScoped
 
 Las entidades del negocio deben utilizar el trait:
@@ -129,7 +147,6 @@ TenantScoped
 Este trait se encarga de:
 
 filtrar automáticamente por tenant_id
-
 asignar tenant_id al crear registros
 
 Esto garantiza que los datos de diferentes empresas no se mezclen.
@@ -160,9 +177,7 @@ Convenciones de entidades hijas
 Las entidades hijas deben cumplir:
 
 pertenecer a una cabecera
-
 heredar tenant_id de la cabecera
-
 no recibir tenant_id desde formularios del usuario
 
 Ejemplos:
@@ -182,7 +197,67 @@ owner y admin pueden gestionar registros ajenos dentro del tenant
 
 los borrados sensibles pueden reservarse a owner y admin aunque la edición o seguimiento sea más amplia
 
+si un módulo tiene asignado directo, assigned_user_id define la responsabilidad operativa actual
+
+si el registro puede reasignarse, el nuevo asignado pasa a ser responsable operativo
+
+si no existe propietario directo, el control sensible queda en owner y admin o en la policy específica del módulo
+
 Este patrón ya se considera válido para tasks.
+
+Convenciones de catálogos técnicos del sistema
+
+No hardcodear slugs funcionales del sistema en controllers, policies o helpers si ya existe catálogo técnico.
+
+Reglas:
+
+usar ModuleCatalog para slugs de módulos
+
+usar RoleCatalog para slugs de roles
+
+mantener en catálogos los conceptos cerrados que estructuran acceso, permisos o navegación del sistema
+
+esto aplica además de los catálogos funcionales de estados o tipos de entidades
+
+Convenciones de support y helpers de acceso
+
+La lógica transversal de acceso tenant/roles no debe dispersarse en controllers o blades.
+
+Debe centralizarse preferentemente en clases de soporte ubicadas bajo:
+
+app/Support/Auth
+
+Clases conceptuales ya alineadas con esta convención:
+
+TenantAccess
+TenantModuleAccess
+RoleModuleAccess
+
+Cuando la visibilidad de registros dependa del módulo, debe resolverse preferentemente en clases específicas de soporte, por ejemplo:
+
+Support/<Modulo>/<Entidad>Visibility
+
+Esto ya se considera válido para la visibilidad operativa de projects.
+
+Convenciones de policies
+
+La autorización por acción debe resolverse preferentemente mediante Policies.
+
+Acciones típicas:
+
+viewAny
+view
+create
+update
+delete
+
+Reglas:
+
+evitar lógica de permisos duplicada en controllers
+
+usar controllers delgados y delegar la autorización a policies o helpers de acceso
+
+si una policy necesita conceptos cerrados del sistema, reutilizar ModuleCatalog, RoleCatalog y support de acceso en lugar de strings hardcodeados
 
 Convenciones de flujo Task → Order
 
@@ -290,25 +365,19 @@ modelos
 Los controladores deben encargarse principalmente de:
 
 recibir requests
-
 validar datos
-
 delegar lógica
-
 devolver respuestas
 
-Convenciones de catálogos
+Convenciones de catálogos funcionales
 
 Cuando un módulo tenga estados cerrados o valores controlados, se debe crear un catálogo centralizado.
 
 El catálogo debe concentrar:
 
 constantes
-
 labels
-
 clases visuales (badgeClass)
-
 listas permitidas
 
 Esto evita lógica repetida en controladores o vistas.
@@ -316,9 +385,7 @@ Esto evita lógica repetida en controladores o vistas.
 Ejemplo de responsabilidades del catálogo:
 
 definir estados válidos
-
 devolver label del estado
-
 devolver clase CSS del badge
 
 Uso de catálogos en vistas
@@ -338,9 +405,7 @@ Convenciones de Blade
 Las vistas Blade deben mantenerse:
 
 simples
-
 legibles
-
 sin lógica compleja
 
 La lógica debe resolverse previamente en:
@@ -466,9 +531,7 @@ Antes de introducir una nueva abstracción, evaluar si realmente es necesaria.
 El sistema prioriza:
 
 claridad
-
 consistencia
-
 bajo nivel de complejidad accidental
 
 Las soluciones simples y previsibles deben preferirse sobre arquitecturas excesivamente abstractas.

@@ -4,211 +4,95 @@ PROYECTO
 
 app-base
 
-Sistema SaaS multi-tenant desarrollado en Laravel.
+INSTRUCCIÓN INICIAL OBLIGATORIA
 
-DOCUMENTOS DE REFERENCIA DEL PROYECTO
+Antes de proponer cambios, auditar código o escribir implementación, revisar y tomar como contexto los documentos vigentes del proyecto.
 
-Usar como contexto los siguientes documentos del proyecto:
+Documentos base a considerar:
 
-CONTEXTO-FIJO-DEL-PROYECTO – app-base
-CONVENCIONES-DEL-PROYECTO – app-base
-CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS
-MAPA-DE-ENTIDADES – app-base
-BASE-VISUAL-DEL-PROYECTO – app-base
-TODO-DEL-PROYECTO – app-base
+- CONTEXTO-FIJO-DEL-PROYECTO – app-base
+- CONVENCIONES-DEL-PROYECTO – app-base
+- CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS
+- MAPA-DE-ENTIDADES – app-base
+- BASE-VISUAL-DEL-PROYECTO – app-base
+- TODO-DEL-PROYECTO – app-base
 
-ARQUITECTURA DEL SISTEMA
+REGLA DE TRABAJO
 
-Tipo de sistema:
+No asumir patrones por memoria si deben validarse contra los documentos del proyecto.
+Primero analizar el contexto documental y luego responder.
+No inventar estructuras nuevas si el proyecto ya tiene una convención resuelta.
+Si el tema ya está normado en los documentos del proyecto, respetar esa base antes de proponer cambios.
 
-Plataforma SaaS multi-tenant desarrollada en Laravel.
+REGLA DE VALIDACIÓN DEL PEDIDO
 
-Aislamiento de datos mediante:
+Si detectás que el pedido parte de una premisa incorrecta, incompleta o que contradice documentos vigentes del proyecto, señalalo primero y luego proponé la salida correcta.
+No avances directamente a implementación si antes hace falta corregir el enfoque.
 
-tenant_id
+FORMA DE RESPUESTA ESPERADA
 
-Traits obligatorios en entidades del negocio:
+No respondas con generalidades ni con texto de relleno.
+La información debe ser concreta, específica y directamente aplicable al proyecto.
+No hace falta que la respuesta sea breve, pero sí debe tener foco, sustancia y utilidad real.
+Mantené una estructura estable de respuesta, salvo que el pedido requiera explícitamente otro formato.
 
-TenantScoped
-ResolvesTenantRouteBinding
-SoftDeletes
+ESTRUCTURA DE RESPUESTA OBLIGATORIA
 
-Fuente del tenant operativo:
+1. Análisis de lo solicitado
+Explicá brevemente cómo interpretás el pedido y verificá que quede claro qué se va a resolver en el contexto del proyecto.
 
-app('tenant')
+2. Propuesta
+Indicá qué conviene hacer y por qué, alineado a los documentos y convenciones vigentes del proyecto.
 
-La arquitectura multi-tenant ya está implementada y no debe modificarse.
+3. Pasos a seguir
+Describí los pasos concretos recomendados, en orden de ejecución.
 
-Convención de base de datos:
+4. Implementación concreta
+Si corresponde, devolvé:
+- código completo
+- archivos completos
+- cambios puntuales
+- comandos de consola
+- comandos artisan
 
-tenants.id es char(36)
-tenant_id no debe asumirse como foreignId()
-copiar siempre el patrón real validado del proyecto antes de crear nuevas migraciones
-
-MODELO DEL NEGOCIO
-
-users es entidad del sistema.
-
-parties es la entidad base del negocio.
-
-Nombre técnico:
-
-parties
-
-Nombre visible en la interfaz:
-
-contactos
-
-El acceso por empresa se resuelve por memberships.
-
-users representa identidad global.
-memberships representa acceso por tenant.
-
-projects ya está validado como módulo con estado mínimo active/closed.
-
-projects.index funciona como listado operativo con métricas por proyecto y filtro por estado.
-
-BASE VISUAL
-
-Las páginas internas utilizan el layout estándar:
-
-<x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
-
-Patrón de listados:
-
-page.list-page
-card.list-card
-table-wrap.list-scroll
-
-Existen patrones recientes validados para vistas show:
-
-summary-inline-grid
-detail-grid
-detail-grid--3
-tabs internas para información secundaria
-badges de estado resueltos desde catálogo en el core
-
-Convenciones recientes de frontend:
-
-evitar handlers JS inline en Blade
-preferir data-action="app-..." para comportamiento reutilizable
-resolver comportamiento reusable en app-base.js
-resolver comportamiento puntual de pantalla con @push('scripts')
-en vistas con tabs, preservar contexto activo cuando mejore la UX
-en tablas con compact-actions, usar solo iconos
-fuera de tablas, los botones principales pueden usar icono + texto
-usar Contacto como nombre visible genérico de parties
-usar Eliminar como verbo destructivo estándar
-usar title y aria-label en botones compactos con solo icono
-
-Criterios operativos recientes de UX:
-
-en index, priorizar toolbar compacto con hasta 2 filtros visibles
-
-en index, cuando mejore la lectura, separar filtros y resultados en dos cards
-
-en show, priorizar card principal compacta y colapsar detalle secundario cuando reduzca altura visual
-
-usar paginación propia del proyecto y evitar markup visual externo al sistema
-
-Convenciones reusables recientes por módulo:
-
-usar partials/table.blade.php para listados puros del módulo
-
-usar partials/embedded-tabs.blade.php cuando el mismo listado deba agruparse por tabs dentro de una vista embebida o show
-
-reutilizar la misma tabla base del módulo antes de crear variantes duplicadas en index y show
-
-usar tabs por tipo o por estado solo cuando el módulo realmente lo justifique
-
-ESTADO ACTUAL DEL PROYECTO
-
-Arquitectura SaaS implementada.
-
-Multi-tenancy funcional.
-
-Middleware ResolveTenant operativo.
-
-Traits de aislamiento funcionando.
-
-Base visual definida.
-
-La numeración de orders y documents se gestiona mediante el sistema de secuencias document_sequences, evitando numeración manual o restricciones unique globales.
-
-ENTIDADES IMPLEMENTADAS
-
-users
-tenants
-memberships
-parties
-projects
-tasks
-products
-assets
-orders
-order_items
-documents
-document_items
-
-REGLA DE DESARROLLO
-
-Los nuevos módulos deben seguir el patrón utilizado en:
-
-models
-controllers
-routes
-vistas
-estructura CRUD
-
-Si el módulo tiene cabecera y detalle:
-
-diseñar primero la estructura y relaciones
-luego crear migraciones
-luego implementar cabecera
-luego implementar ítems
-
-CATÁLOGOS FUNCIONALES
-
-Antes de implementar campos con valores cerrados (por ejemplo status, kind o type):
-
-verificar si el sistema ya dispone de un catálogo reutilizable
-si corresponde, reutilizar o extender los catálogos existentes en:
-
-app/Support/Catalogs
-
-Evitar definir strings hardcodeados directamente en controladores, vistas o seeders.
-
-REGLA DE CREACIÓN DE ENTIDADES
-
-Antes de crear una entidad nueva seguir el procedimiento definido en:
-
-CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS
+5. Cierre operativo
+Solo al final y solo si corresponde, indicá:
+- impacto documental
+- documentos a revisar o actualizar
+- descripción sugerida para commit o git
+- pendiente inmediato o siguiente paso lógico, si realmente aporta valor
 
 OBJETIVO DE ESTE CHAT
 
-[describir aquí el objetivo puntual del chat]
+[describir aquí el objetivo puntual]
 
-Avancemos con pasos cortos
-no dudes en preguntar o solicitar información para darme la mejor respuesta
-no es necesario adivinar, ya tenemos el proyecto con varios modulos
-es más util pedir información así optimizamos el uso del tiempo
-siempre dame la mejor opcion de respuesta para no tener sobrerevisar
-prevenimos el analisis viendo si el siguiente paso es mejor o no
+ALCANCE
 
-Si necesitas archivos creame un comando de consola similar al siguiente:
+[describir módulo/s, vista/s, flujo/s o archivo/s alcanzados]
+
+ESTADO O RESTRICCIÓN ESPECIAL
+
+[opcional: dejar aquí acuerdos puntuales del momento]
+
+SI NECESITAS ARCHIVOS
+
+Si necesitás archivos, generame un comando de consola similar al siguiente, indicando todos los archivos exactos que necesitás para la auditoría:
 
 (
 find app/Models -type f -name "Product.php";
 find app/Http/Controllers -type f -name "ProductController.php";
 find resources/views/products -type f -name "*.blade.php";
 ) | sort | while read file; do
-echo "===== $file ====="
-cat "$file"
-echo
-echo
-done > documentos/auditoria/auditoria-[nombre de referencia].txt
+    echo "===== $file ====="
+    cat "$file"
+    echo
+    echo
+done > documentos/auditoria/auditoria-[nombre-de-referencia].txt
 
-indicando todos los que necesitas así te los paso
+Indicame todos los archivos necesarios así te los paso en un único bloque.
 
-Si hay que crear archivo/s dame el comando de línea para generarlo o
-si corresponde el comando artisan
+SI HAY QUE CREAR ARCHIVOS
+
+Si hay que crear archivos nuevos, dame el comando de consola correspondiente.
+Si aplica, usar comando artisan.
+Si no aplica artisan, dar comando manual claro de creación.

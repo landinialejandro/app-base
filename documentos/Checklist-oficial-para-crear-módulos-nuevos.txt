@@ -280,6 +280,41 @@ y no al dashboard ni al selector genérico de tenant
 
 esto garantiza que el usuario continúe el flujo correcto de aceptación de la invitación.
 
+REGLA DE AUTORIZACIÓN Y SEGURIDAD DEL MÓDULO
+
+Antes de dar un módulo por terminado, verificar:
+
+si el módulo requiere Policy formal
+
+si existe Policy del módulo cuando corresponde
+
+si el controller usa authorize(...) o authorizeResource(...)
+
+si las vistas ocultan acciones con @can
+
+si delete queda restringido correctamente según la naturaleza del módulo
+
+si el módulo tiene entidad hija, si la autorización hereda correctamente desde la cabecera
+
+si el módulo evita ownership artificial cuando no existe necesidad funcional real
+
+si navbar, dashboard o accesos relacionados respetan el acceso real al módulo cuando el nuevo desarrollo impacta navegación
+
+Las decisiones estructurales de autorización, acceso o visibilidad deben quedar asentadas en:
+
+CONTEXTO-FIJO-DEL-PROYECTO
+CONVENCIONES-DEL-PROYECTO
+
+REGLA PARA MÓDULOS COMPARTIDOS DEL TENANT
+
+Si el módulo es operativo y compartido por el tenant, y no tiene responsable operativo directo:
+
+permitir view, create y update a los roles habilitados del módulo
+
+reservar delete a owner y admin, salvo necesidad funcional justificada
+
+no agregar assigned_user_id, owner_user_id o restricciones por created_by solo para fabricar un ownership inexistente
+
 REGLA DE ACCIONES Y FRONTEND
 
 Evitar JavaScript inline en blades nuevos.
@@ -323,6 +358,8 @@ verificar relaciones hijas
 verificar eliminación cuando existen registros hijos
 verificar route model binding multi-tenant
 verificar sublistados internos si el módulo tiene detalle
+verificar permisos reales por acción según rol
+verificar visibilidad real de botones y accesos en UI
 
 En vistas show, evaluar si corresponde utilizar:
 
@@ -374,6 +411,11 @@ Si se crea una nueva entidad actualizar:
 
 MAPA-DE-ENTIDADES
 TODO-DEL-PROYECTO
+
+Si el módulo introduce una regla general de autorización, navegación, visibilidad o seguridad, actualizar además:
+
+CONTEXTO-FIJO-DEL-PROYECTO
+CONVENCIONES-DEL-PROYECTO
 
 REGLA DE COHERENCIA
 

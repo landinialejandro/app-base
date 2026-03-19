@@ -1,35 +1,30 @@
-Tengo las siguientes fragmetos de actulizaciones/recomendaciones de otros chat 
-para los documentos del proyecto, por favor auditalo y verifica si corresponde 
-agregar o quitar cosas de los documento. Pero devuelveme cada uno de los documentos 
-alcanzados completo final para sobre escribir:
+Te voy a pasar fragmentos de actualizaciones o recomendaciones surgidas en otros chats para los documentos del proyecto.
+
+Quiero que los audites contra los documentos vigentes del proyecto y resuelvas lo siguiente:
+
+1. qué puntos corresponde incorporar
+2. qué puntos no corresponde incorporar
+3. qué puntos conviene mover a otro documento
+4. si hace falta crear un documento nuevo para agrupar un tema específico
+
+Reglas:
+- no validar automáticamente lo que viene en los fragmentos
+- primero contrastarlo con la documentación real del proyecto
+- evitar duplicaciones, contradicciones y solapamientos
+- respetar la función de cada documento
+- no mezclar decisiones vigentes, pendientes e ideas futuras sin distinguirlas correctamente
+
+Salida esperada:
+- devolveme solo los documentos realmente afectados
+- cada documento debe venir completo, en su versión final, listo para sobreescribir
+- no devuelvas documentos sin cambios
+- si recomendás un documento nuevo, incluilo completo también
+
+Fragmentos a auditar:
+{texto}
 
 
--------------------
 
-
-Avancemos con pasos cortos
-no dudes en preguntar o solicitar información para darme la mejor respuesta
-no es necesario adivinar, ya tenemos el proyecto con varios modulos
-es más util pedir información así oprimizamos el uso del tiempo
-siempre dame la mejor opcion de respuesta para no tener sobrerevisar
-prevenimos el analisi viendo si el siguiente paso es mejor o no
-Si necesitas archivos creame un comado de consola similar al siguiente:
-
-(
-find app/Models -type f -name "Product.php";
-find app/Http/Controllers -type f -name "ProductController.php";
-find resources/views/products -type f -name "*.blade.php";
-) | sort | while read file; do
-    echo "===== $file ====="
-    cat "$file"
-    echo
-    echo
-done > documentos/auditoria/auditoria-[nombre de referencia].txt
-
-indicando todos los que necesaitas así te los paso
-
-Si hay que crear archivo/s dame el comando de lilnea para generarlo o 
-si corresponde el comando artinsan
 
 
 -----------------------

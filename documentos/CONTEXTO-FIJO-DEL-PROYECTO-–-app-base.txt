@@ -159,7 +159,7 @@ El sistema distingue entre:
 Entidades del sistema
 Entidades del negocio
 
-Entidades del sistema
+Entidades del sistema y acceso
 
 users
 tenants
@@ -167,6 +167,18 @@ memberships
 
 signup_requests
 invitations
+
+Aclaración sobre invitations
+
+invitations forma parte del flujo de acceso y onboarding del sistema.
+
+Es una entidad híbrida:
+
+puede existir sin tenant asociado cuando type = owner_signup
+
+puede vincularse a un tenant existente cuando type = member_invite
+
+Por esta razón, no debe interpretarse como una entidad del negocio tenant-scoped pura.
 
 Entidades del negocio
 
@@ -235,37 +247,157 @@ assigned_user_id debe referenciar a un usuario activo del tenant
 
 owner y admin pueden gestionar tareas ajenas
 
-los usuarios normales gestionan solamente sus propias tareas
+los usuarios operativos gestionan solamente sus propias tareas
 
 una tarea puede derivar en una única orden, normalmente de servicio
 
-Capa base de acceso y visibilidad operativa
+Modelo actual de acceso, visibilidad y autorización operativa
 
 El sistema ya incorpora una capa base de acceso y visibilidad por módulo.
 
+La autorización efectiva debe entenderse como una combinación de niveles distintos:
+
+tenant activo válido
+módulo habilitado para el tenant
+permiso del rol del usuario
+visibilidad del registro
+acción permitida sobre ese registro
+restricciones futuras por tipo o contexto
+
+Estos niveles no deben mezclarse entre sí.
+
 Reglas actuales consolidadas:
+
+por ahora todos los tenants tienen todos los módulos habilitados de forma hardcodeada
+
+más adelante superadmin podrá habilitar o deshabilitar módulos por tenant
 
 owner y admin son equivalentes a nivel de privilegios operativos dentro del tenant
 
-sales y operator son roles operativos base
-
-el acceso a módulos se resuelve en dos niveles:
-
-módulo habilitado para el tenant
-módulo permitido para el rol del usuario
-
-por ahora esa habilitación parte de una base hardcodeada y de catálogos técnicos, pero queda diseñada para crecer
+sales y operator son los roles operativos base actuales
 
 la visibilidad no necesariamente coincide con la capacidad de edición
 
-projects ya tiene visibilidad operativa restringida:
+roles base del sistema se definen en RoleCatalog
+
+esos roles base se siembran al crear el tenant
+
+los roles base reservados no deben modificarse ni eliminarse
+
+a futuro el owner podrá crear roles nuevos propios del tenant
+
+Capa conceptual de permisos prevista
+
+La arquitectura de permisos debe prepararse para incorporar una capa centralizada compuesta por:
+
+RolePermissionMatrix
+RolePermissionResolver
+
+Estado actual de esta capa:
+
+conceptualmente aprobada
+pendiente de implementación formal consolidada
+
+Dirección de diseño:
+
+la matriz inicial puede ser hardcodeada
+
+la lógica debe diseñarse para migrar luego a base de datos
+
+las policies no deben hardcodear permisos dispersos cuando esta capa exista formalmente
+
+la navegación y accesos visibles deben reutilizar la misma lógica real de acceso
+
+Roles y niveles actuales del sistema
+
+SUPERADMIN
+
+Es la capa global de administración del sistema.
+
+Opera fuera del flujo tenant.
+
+Responsabilidades actuales:
+
+landing pública
+signup_requests
+invitations de tipo owner_signup
+onboarding inicial de nuevas empresas
+habilitación inicial de módulos por tenant
+
+OWNER Y ADMIN
+
+Conforman el nivel privilegiado actual dentro del tenant.
+
+Regla vigente:
+
+owner y admin son equivalentes a nivel de privilegios operativos por módulo dentro del tenant
+
+ROLES OPERATIVOS BASE
+
+Roles actuales esperados:
+
+sales
+operator
+
+Representan el nivel operativo base del tenant.
+
+No tienen control total sobre todos los datos o acciones.
+
+Su acceso depende del módulo y de la policy aplicable.
+
+Reglas operativas actuales por módulo
+
+orders, parties, assets y products siguen actualmente un patrón compartido del tenant:
+
+owner y admin pueden ver, crear, editar y eliminar
+
+sales y operator pueden ver, crear y editar
+
+la eliminación queda reservada a owner y admin
+
+por ahora no se usa ownership artificial en módulos base o compartidos como parties, assets y products
+
+tasks mantiene ownership operativo real por assigned_user_id
+
+roles operativos pueden ver tareas del tenant según la policy vigente
+
+roles operativos solo editan sus propias tareas, salvo permisos superiores
+
+projects mantiene visibilidad restringida por participación operativa:
 
 owner y admin ven todos los proyectos
-roles operativos ven solo proyectos donde tengan tareas asignadas
 
-tasks mantiene foco operativo mine/all, con permisos gobernados por policy
+roles operativos ven solo proyectos donde tengan al menos una tarea asignada
 
 la visibilidad del dashboard y de métricas agregadas puede variar según rol
+
+el dashboard analítico queda reservado al nivel privilegiado owner y admin
+
+documents queda deliberadamente postergado como módulo de endurecimiento posterior por su mayor sensibilidad de trazabilidad, flujo y acciones visibles en UI
+
+Reglas generales de autorización ya consolidadas
+
+la autorización por acción debe resolverse preferentemente mediante policies
+
+cuando exista una policy, no alcanza con crearla:
+el controller debe invocar authorize(...) o authorizeResource(...)
+la vista debe respetar permisos reales con @can al mostrar acciones
+
+la tríada obligatoria del sistema es:
+
+policy
+authorize en controller
+@can en vistas
+
+delete de registros principales compartidos debe reservarse a owner y admin, salvo excepción funcional justificada
+
+los ítems embebidos pueden heredar autorización desde la cabecera cuando la acción dependa naturalmente de ella
+
+navbar, dashboard y accesos rápidos deben respetar acceso real del usuario al módulo
+
+la navegación no debe asumir acceso total al tenant si el módulo o la acción están restringidos por rol
+
+el acceso al módulo, la visibilidad del dataset y las acciones permitidas deben tratarse como capas distintas
 
 Patrón de modelado cabecera / detalle
 

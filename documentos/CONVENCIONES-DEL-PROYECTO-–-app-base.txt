@@ -118,6 +118,8 @@ La autorización operativa del sistema debe resolverse diferenciando:
 
 módulo habilitado para el tenant
 módulo permitido para el rol del usuario
+visibilidad del registro
+acción permitida
 
 Reglas actuales consolidadas:
 
@@ -137,6 +139,39 @@ los roles operativos pueden ver el módulo habilitado y crear o editar registros
 la eliminación sensible debe reservarse a owner y admin, salvo necesidad funcional justificada
 
 la visibilidad del dashboard y de métricas agregadas debe respetar el rol y no asumir siempre conteos globales del tenant
+
+RoleCatalog y ModuleCatalog
+
+RoleCatalog es el catálogo base mínimo y reservado del sistema para roles estructurales.
+
+ModuleCatalog es la fuente de verdad para slugs de módulos cerrados del sistema.
+
+Reglas:
+
+no hardcodear slugs funcionales del sistema en controllers, policies, helpers o blades si ya existe catálogo técnico
+
+los roles base del sistema deben resolverse desde RoleCatalog
+
+los módulos base del sistema deben resolverse desde ModuleCatalog
+
+los roles base sembrados al crear el tenant no deben modificarse ni eliminarse
+
+a futuro el tenant podrá agregar roles propios en base de datos, pero sin alterar la base reservada del sistema
+
+Evolución prevista de permisos
+
+La arquitectura de permisos debe prepararse para incorporar una capa centralizada compuesta por:
+
+RolePermissionMatrix
+RolePermissionResolver
+
+Reglas de diseño:
+
+las policies no deben hardcodear permisos dispersos cuando la capa central ya exista
+
+la policy debe consumir la capa central de permisos en lugar de multiplicar lógica por módulo
+
+la matriz actual puede ser hardcodeada, pero debe diseñarse para migrar más adelante a persistencia en base de datos
 
 Trait TenantScoped
 
@@ -185,6 +220,17 @@ Ejemplos:
 order_items
 document_items
 
+Cuando la autorización de la entidad hija dependa naturalmente de la cabecera:
+
+debe heredar autorización desde la entidad padre
+
+debe evitarse una policy independiente compleja si no aporta valor real
+
+Esto ya se considera válido para entidades como:
+
+order_items respecto de orders
+document_items respecto de documents
+
 Convenciones de ownership funcional y permisos operativos simples
 
 Cuando un módulo lo permita, puede adoptarse un criterio simple de ownership funcional del registro en lugar de una capa temprana de permisos compleja.
@@ -205,19 +251,22 @@ si no existe propietario directo, el control sensible queda en owner y admin o e
 
 Este patrón ya se considera válido para tasks.
 
-Convenciones de catálogos técnicos del sistema
+Regla para módulos operativos compartidos del tenant
 
-No hardcodear slugs funcionales del sistema en controllers, policies o helpers si ya existe catálogo técnico.
+Cuando un módulo operativo compartido del tenant no tenga responsable operativo directo:
 
-Reglas:
+la policy debe permitir view, create y update a los roles habilitados del módulo
 
-usar ModuleCatalog para slugs de módulos
+delete debe quedar restringido a owner y admin
 
-usar RoleCatalog para slugs de roles
+no debe inventarse ownership artificial mediante assigned_user_id, owner_user_id o restricciones por created_by si el módulo no lo necesita realmente
 
-mantener en catálogos los conceptos cerrados que estructuran acceso, permisos o navegación del sistema
+Esto aplica especialmente a módulos base o compartidos como:
 
-esto aplica además de los catálogos funcionales de estados o tipos de entidades
+parties
+assets
+products
+orders
 
 Convenciones de support y helpers de acceso
 
@@ -258,6 +307,42 @@ evitar lógica de permisos duplicada en controllers
 usar controllers delgados y delegar la autorización a policies o helpers de acceso
 
 si una policy necesita conceptos cerrados del sistema, reutilizar ModuleCatalog, RoleCatalog y support de acceso en lugar de strings hardcodeados
+
+cuando exista una policy, no alcanza con crearla:
+el controller debe invocar authorize(...) o authorizeResource(...)
+la vista debe respetar permisos reales con @can al mostrar acciones
+
+una policy que no se consume desde controller y vista no protege efectivamente el sistema
+
+Regla de navegación y visibilidad de UI
+
+La interfaz no debe mostrar accesos que el usuario no puede usar realmente.
+
+Reglas:
+
+navbar, dashboard y accesos rápidos deben respetar acceso real del usuario al módulo
+
+las acciones visibles en listados, show y sublistados deben respetar permisos reales mediante @can
+
+la navegación no debe asumir acceso total al tenant si el módulo o la acción están restringidos por rol
+
+Regla de delete
+
+Como convención operativa general:
+
+las cabeceras sensibles deben reservar delete a owner y admin
+
+los ítems embebidos deben seguir el permiso efectivo de edición o gestión de su cabecera, salvo excepción justificada
+
+Convención de visibilidad
+
+Debe separarse conceptualmente:
+
+puede usar el módulo
+qué registros puede ver
+qué acciones puede ejecutar
+
+No debe mezclarse acceso al módulo con visibilidad del dataset ni con permisos de edición.
 
 Convenciones de flujo Task → Order
 

@@ -6,12 +6,16 @@ Este documento funciona como memoria operativa del proyecto.
 
 Su finalidad es registrar:
 
-módulos pendientes
-mejoras futuras
+pendientes reales
+mejoras concretas
 refactors necesarios
+ideas futuras resumidas
 
-No debe contener documentación extensa.
-Solo registrar elementos pendientes del sistema.
+No debe contener doctrina general del sistema.
+Las decisiones estructurales deben vivir en:
+
+CONTEXTO-FIJO-DEL-PROYECTO
+CONVENCIONES-DEL-PROYECTO
 
 ESTADO ACTUAL DEL SISTEMA
 
@@ -43,106 +47,68 @@ order_items
 documents
 document_items
 
-MÓDULOS PENDIENTES
-
-Actualmente no hay módulos operativos pendientes inmediatos.
-
-Próximos módulos posibles según evolución del sistema:
+MÓDULOS POSIBLES A FUTURO
 
 payments
 inventory
 
-MEJORAS FUTURAS
+PENDIENTES INMEDIATOS
 
-relación opcional entre users y parties
-
-perfiles especializados para parties
-
-sistema de atributos dinámicos para entidades
-
-documentos comerciales genéricos reutilizables
-
-unificar criterio visual y funcional de confirmaciones de eliminación cuando existen registros hijos
-
-revisar módulos restantes para terminar de migrar a catálogos reutilizables
-
-evaluar futuro catálogo comercial de disponibilidad para products (availability o sale_status) sin mezclarlo con is_active
-
-definir política futura para tipos documentales permitidos por origen de flujo
-(por ejemplo qué documents pueden crearse desde orders y bajo qué restricciones)
-
-revisar política futura de estados documentales más específica por tipo
-
-definir política futura de historial de vinculación entre activos y contactos o clientes
-
-evaluar tabla futura de historial para relación activo-cliente
-
-reevaluar en el futuro, sobre entorno con SSH/CLI, si conviene volver parcial o totalmente a Route::resource(...) o mantener la convención de rutas explícitas como estándar permanente
-
-revisar extensión del perfil de empresa con gestión futura de sucursales y configuraciones operativas separadas
-
-evaluar política futura para edición, reenvío o regeneración de invitaciones de miembros
-
-revisar futura gestión de roles por sucursal usando membership_role.branch_id
-
-evaluar base futura de turnero o calendario a partir de tasks
-
-MEJORAS DE INTERFAZ
-
-revisar mensajes de vacío cuando hay filtros activos
-
-revisar optimización de cargas en listados con relaciones pesadas
-
-evaluar evolución futura de filtros si crece mucho el volumen
-
-mejorar filtros contextuales por cliente o activo en formularios operativos cuando el volumen crezca
-
-evaluar evolución futura del dashboard
-(métricas más útiles, filtros y jerarquía operativa/comercial)
-
-revisar limpieza final de vistas Blade
-para detectar clases visuales ajenas al sistema
-y asegurar consistencia con la base visual del proyecto
-
-agregar pantalla intermedia específica para invitaciones owner_signup listas para envío
-
-terminar de revisar consistencia visual de vistas show e index del core restante
-
-evaluar futura unificación de badges en entorno admin/superadmin mediante catálogo o helper específico
-
-revisar otras vistas grandes para dividirlas en partials cuando superen complejidad razonable
-
-extender patrón de preservación de contexto UX en tabs, filtros y paginación a otras pantallas
-
-evaluar componente reutilizable futuro para botones estándar con icono + texto
-
-evaluar componente reutilizable futuro para acciones compactas con solo icono
-
-extender patrón list-toolbar al core restante (assets, documents, orders, etc.)
-
-evaluar consolidación de card principal + detalle colapsable en vistas show
-
-revisar y normalizar uso de tabs anidadas en módulos del core
-
-seguir unificando sublistados documentales mediante partial reutilizable
+terminar de revisar consistencia visual y funcional de vistas show e index del core restante
 
 revisar paginación propia del proyecto en todos los index
 
-extender patrón reusable table + embedded-tabs al core restante (tasks, products, etc.) y revisar en qué módulos realmente corresponde tabs
+seguir dividiendo vistas grandes en partials cuando superen complejidad razonable
+
+seguir unificando sublistados documentales mediante partial reutilizable
+
+extender preservación de contexto UX en tabs, filtros y paginación a otras pantallas
+
+revisar normalización final de tablas, acciones compactas y estructura reusable en módulos restantes del core
+
+AUTORIZACIÓN Y PERMISOS
+
+implementar RolePermissionMatrix
+
+implementar RolePermissionResolver
+
+sembrar roles base del tenant desde RoleCatalog
+
+proteger roles reservados contra edición o eliminación futura
+
+auditar globalmente el uso real de authorize(...) y authorizeResource(...) en todos los controllers
+
+auditar globalmente el uso real de @can en vistas CRUD y sublistados internos
+
+verificar qué módulos tienen Policy creada pero no aplicada realmente
+
+alinear navbar y dashboard con acceso real por módulo y por rol
+
+normalizar botones y acciones visibles con @can donde falte
+
+revisar módulos de gestión no auditados aún para alinear permisos
+
+dejar documents y document_items como pendiente prioritario de endurecimiento de permisos, trazabilidad y acciones visibles en UI
+
+evaluar si conviene estandarizar un patrón base para CRUD controllers con autorización explícita por acción
+
+FLUJOS FUNCIONALES
+
+revisar consolidación funcional del vínculo 1 a 1 entre tasks y orders
+
+alinear tasks definitivamente con la regla operativa acordada de ownership por assigned_user_id mediante policy formal consolidada
+
+evaluar reglas futuras de bloqueo o trazabilidad cuando una tarea ya derivó en orden
+
+endurecer coherencia entre documents y orders asociadas
+
+validar coincidencia entre document.party_id y order.party_id cuando exista order asociada
+
+evaluar reglas futuras de bloqueo de edición en documents cuando estén vinculados a orders y/o assets
 
 evaluar bloqueo funcional de alta de tareas en proyectos cerrados
 
-evaluar filtros adicionales en projects.index si crece el volumen
-
-MEJORAS DE ONBOARDING
-
-evolucionar el envío manual de invitaciones owner_signup hacia envío real por WhatsApp o email
-
-evaluar validación y normalización más robusta de phone_whatsapp
-
-evaluar control futuro de cantidad máxima de empresas por owner según plan
-
-MEJORAS DE NUMERACIÓN (DOCUMENTS / ORDERS)
+NUMERACIÓN Y CONFIGURACIÓN OPERATIVA
 
 llevar la configuración de secuencias al perfil de empresa
 
@@ -154,64 +120,35 @@ impedir cambio de prefijo de una secuencia si ya tuvo movimiento
 
 definir si el punto de venta también queda bloqueado una vez con movimiento
 
-evaluar futura partición anual de secuencias sin implementarla todavía
+ONBOARDING Y EMPRESA
 
-MEJORAS DE FLUJO ASSETS / ORDERS / DOCUMENTS
+evolucionar el envío manual de invitaciones owner_signup hacia envío real por WhatsApp o email
 
-endurecer a nivel de base de datos assets.party_id como NOT NULL si se confirma la regla de obligatoriedad
+evaluar validación y normalización más robusta de phone_whatsapp
 
-evaluar endurecimiento futuro de orders.asset_id y documents.asset_id según política final de obligatoriedad por flujo
+revisar extensión del perfil de empresa con gestión futura de sucursales y configuraciones operativas separadas
 
-evaluar reglas futuras de bloqueo de edición en documents cuando estén vinculados a orders y/o assets
+ARQUITECTURA Y TRAZABILIDAD
 
-MEJORAS DE FLUJO TASKS / ORDERS
+implementar sistema de auditoría de cambios
 
-revisar consolidación funcional del vínculo 1 a 1 entre tasks y orders
+implementar sistema de archivos y adjuntos
 
-evaluar reglas futuras de bloqueo o trazabilidad cuando una tarea ya derivó en orden
-
-evaluar migración futura desde checks en controller hacia policies formales para permisos de tareas
-
-MEJORAS DE FLUJO ORDERS / DOCUMENTS
-
-endurecer coherencia entre documento y orden asociada
-
-validar coincidencia entre document.party_id y order.party_id cuando exista orden asociada
-
-MEJORAS DE ARQUITECTURA
-
-sistema de permisos más avanzado
-
-sistema de auditoría de cambios
-
-sistema de archivos y adjuntos
-
-registro de actividad de usuario
-
-evaluar unificación futura de la fuente utilizada por ResolvesTenantRouteBinding
-con el origen conceptual del middleware
-para evitar duplicación entre session('tenant_id') y app('tenant')
-
-evaluar endurecimiento futuro de base de datos para que orders.ordered_at sea NOT NULL
-
-evaluar endurecimiento futuro de base de datos para que documents.issued_at sea NOT NULL
-
-evaluar endurecimiento futuro de orders.party_id como NOT NULL
-
-evaluar endurecimiento futuro de documents.party_id como NOT NULL
+implementar registro de actividad de usuario
 
 revisar consistencia de tenant_id en fillable de entidades hijas creadas internamente por el sistema
 
-REFACTORS
+IDEAS FUTURAS
 
-revisión histórica de evolución de parties
+relación opcional entre users y parties
 
-revisión futura de estructura de documents
+perfiles especializados para parties
 
-revisión de nomenclatura entre módulos
+sistema de atributos dinámicos para entidades
 
-unificación futura del patrón de definición de tenant_id
-entre migraciones históricas (uuid vs char(36))
+tabla de historial para relación activo-cliente
+
+base futura de turnero o calendario a partir de tasks
 
 REGLA DEL DOCUMENTO
 
@@ -219,10 +156,7 @@ Este documento debe mantenerse corto.
 
 Solo registrar:
 
-pendientes
-ideas futuras
+pendientes reales
+mejoras concretas
 refactors necesarios
-
-Las decisiones estructurales del sistema deben registrarse en:
-
-CONVENCIONES-DEL-PROYECTO
+ideas futuras resumidas

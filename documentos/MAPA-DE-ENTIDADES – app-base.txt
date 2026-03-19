@@ -1,251 +1,183 @@
 MAPA-DE-ENTIDADES – app-base
 
-Objetivo
+OBJETIVO
 
-Este documento define el mapa conceptual de entidades del proyecto app-base.
+Este documento describe el mapa conceptual actual de entidades del sistema app-base.
 
 Su finalidad es:
 
-visualizar la estructura general del sistema
-evitar duplicación de modelos
-orientar la creación de nuevos módulos
-mantener coherencia en el crecimiento del SaaS
+entender la estructura general del dominio
+visualizar relaciones entre entidades
+definir qué entidades ya existen
+detectar futuras extensiones funcionales sin duplicar conceptos
 
-Criterio general de modelado
+REGLA GENERAL DEL SISTEMA
 
-El sistema distingue entre:
+El sistema distingue dos grandes grupos:
 
 entidades del sistema
 entidades del negocio
-entidades operativas
-entidades documentales
-entidades futuras de soporte
 
-Reglas principales:
+ENTIDADES DEL SISTEMA
 
-users es entidad del sistema
-parties es la entidad base del negocio
-antes de crear una entidad nueva evaluar si puede resolverse con una entidad existente
+Son las entidades que permiten que la plataforma funcione como SaaS multi-tenant.
 
-Entidades del sistema
+Incluyen:
 
-Estas entidades forman el núcleo técnico del SaaS.
+users
+tenants
+memberships
+signup_requests
+invitations
 
-SIGNUP_REQUESTS
+FUNCIÓN DE CADA UNA
 
-Entidad que representa la solicitud pública inicial para crear una nueva empresa en el sistema.
+users
 
-Se utiliza como etapa previa de validación manual o comercial antes de crear un tenant.
+Representa la identidad global del usuario en todo el sistema.
 
-Campos principales:
+Un user puede pertenecer a múltiples tenants.
 
-id
-requested_name
-requested_email
-company_name
-phone_whatsapp
-status
-review_notes
-approved_at
-rejected_at
-approved_by
-created_at
-updated_at
+No pertenece a un tenant específico.
 
-Notas:
+tenants
 
-No crea por sí sola ni un user ni un tenant.
+Representa cada empresa o espacio de trabajo dentro del SaaS.
 
-Representa un proceso previo de validación administrativa o comercial.
+Cada tenant contiene sus propios datos operativos.
 
-Puede dar origen a una o más invitations.
+memberships
 
-Relación de flujo:
+Representa la pertenencia de un user a un tenant.
 
-signup_requests aprobada
-↓
-genera invitation owner_signup
-↓
-owner acepta invitación
-↓
-se crea tenant y membership owner
+Define acceso real por empresa.
 
-INVITATIONS
+Es la entidad correcta para resolver:
 
-Entidad que representa una invitación formal de ingreso o vinculación al sistema.
+a qué empresa pertenece un usuario
+qué estado tiene dentro de esa empresa
+qué roles tiene dentro de esa empresa
 
-Es el mecanismo central de onboarding y alta de usuarios relevantes dentro del sistema.
+signup_requests
 
-Campos principales:
+Representa solicitudes iniciales de alta o interés desde la landing pública.
 
-id
-tenant_id (nullable)
-type
-status
-email
-token
-signup_request_id (nullable)
-invited_by_user_id (nullable)
-sent_at
-expires_at
-accepted_at
-accepted_ip
-user_agent
-meta
-created_at
-updated_at
+No pertenece al dominio operativo interno del tenant.
 
-Relaciones:
+invitations
 
-belongsTo tenant (nullable)
-belongsTo signupRequest (nullable)
-belongsTo invitedBy user (nullable)
+Representa invitaciones dentro del flujo de acceso y onboarding del sistema.
 
-Dominios cerrados:
-
-type
+Puede operar en dos modos:
 
 owner_signup
 member_invite
 
-status
+Cuando type = owner_signup puede existir sin tenant asociado.
 
-pending
-accepted
-expired
-cancelled
+Cuando type = member_invite sí se vincula operativamente a un tenant existente.
 
-Interpretación de campos del flujo:
+Por esta razón, no debe tratarse como una entidad tenant-scoped pura del negocio.
 
-sent_at
-momento en que el superadmin marca la invitación como enviada al owner
+ENTIDADES DEL NEGOCIO
 
-accepted_at
-momento en que el owner acepta la invitación
+Son las entidades operativas propias de cada tenant.
 
-Notas importantes:
+Estas entidades deben estar aisladas por:
 
-tenant_id puede ser NULL cuando type = owner_signup.
-
-owner_signup se utiliza para completar el alta de una nueva empresa aprobada desde signup_requests.
-
-member_invite se utiliza para sumar un usuario a un tenant existente.
-
-No existe registro público libre en el sistema; el alta de usuarios relevantes parte desde invitations.
-
-TENANTS
-
-Entidad que representa una organización dentro del sistema.
-
-Define el aislamiento principal del modelo multi-tenant.
-
-Campos principales:
-
-id
-name
-slug
-settings
-created_at
-updated_at
-
-Notas importantes:
-
-id utiliza UUID (char(36)) como primary key.
-
-slug es único.
-
-Todas las relaciones hacia tenants deben utilizar CHAR(36).
-
-Esto evita incompatibilidades con migraciones que utilicen bigint por defecto.
-
-settings se utiliza para configuración básica editable de empresa cuando no justifica entidad propia.
-
-Relaciones conceptuales relevantes:
-
-tenants → memberships
-tenants → document_sequences
-
-Las invitaciones de miembros se relacionan operativamente con el tenant mediante invitations.tenant_id.
-
-USERS
-
-Entidad que representa la identidad global del sistema.
-
-Responsabilidades:
-
-autenticación
-identidad única del usuario
-acceso al sistema
-
-Campo global relevante:
-
-is_superadmin
-
-Define acceso administrativo global al sistema.
-No depende de memberships ni de pertenencia a tenants.
-
-Notas:
-
-email es único global.
-
-Un mismo user puede pertenecer a muchos tenants.
-
-Un mismo user puede ser owner de muchos tenants.
-
-La pertenencia real no se resuelve desde users, sino desde memberships.
-
-MEMBERSHIPS
-
-Entidad que representa la pertenencia real entre un user y un tenant.
-
-Es la tabla puente central del modelo multi-tenant.
-
-Campos principales:
-
-id
 tenant_id
-user_id
-status
-is_owner
-joined_at
-blocked_at
-blocked_reason
-created_at
-updated_at
 
-Notas:
+Actualmente incluyen:
 
-Define si un usuario pertenece o no a una empresa.
+parties
+projects
+tasks
+products
+assets
+orders
+order_items
+documents
+document_items
+document_sequences
 
-Permite múltiples memberships para un mismo user en distintos tenants.
+ENTIDAD BASE DEL NEGOCIO
 
-Es la entidad de acceso por tenant.
+parties
 
-El acceso operativo debe resolverse a través de membership y su estado.
+Es la entidad base para personas u organizaciones dentro del sistema.
 
+Debe absorber conceptualmente actores como:
+
+clientes
+proveedores
+contactos
+contratistas
+terceros
+
+Regla actual:
+
+no crear entidades nuevas si el caso puede resolverse extendiendo parties.
+
+Nombre técnico:
+
+Party
+
+Nombre visible sugerido en la interfaz:
+
+Contacto
+
+MODELO DE ACCESO Y PERTENENCIA
+
+Relación principal:
+
+users
+↓
+memberships
+↓
+tenants
+
+Regla:
+
+users resuelve identidad global
+memberships resuelve acceso real por tenant
+
+No usar user.tenant_id porque rompería el modelo multi-tenant actual.
+
+ROLES Y AUTORIZACIÓN
+
+La pertenencia a un tenant puede tener uno o más roles por usuario.
+
+Relación conceptual actual:
+
+memberships
+↓
 membership_role
+↓
+roles
 
-Tabla pivote para asignación de roles por membership.
+Reglas actuales:
 
-Campos relevantes conceptuales:
+los roles base mínimos del sistema se definen en RoleCatalog
 
-membership_id
-role_id
-branch_id nullable
-created_at
-updated_at
+al crear un tenant, esos roles base deben sembrarse
 
-Notas:
+los roles base reservados no deben modificarse ni eliminarse
 
-el proyecto ya permite asignación de roles por membership
+más adelante el owner podrá crear roles propios del tenant
 
-branch_id puede utilizarse null como asignación general al tenant
+roles ya forma parte de la base actual de soporte de autorización del sistema, con evolución futura prevista para permitir ampliación por tenant sin modificar los roles base reservados.
 
-si en el futuro se implementa gestión por sucursal, branch_id permitirá especialización más fina del alcance del rol
+Relación futura prevista de permisos:
 
-Regla sobre TenantScoped
+roles
+↓
+permissions
 
-El trait TenantScoped se utiliza únicamente en entidades cuyo ciclo de vida pertenece completamente a un tenant.
+o bien una capa equivalente resuelta por matriz y resolver, según evolución de la implementación.
+
+ACLARACIÓN SOBRE TENANT-SCOPED
+
+El trait TenantScoped debe usarse en entidades cuyo ciclo de vida pertenece completamente a un tenant.
 
 Ejemplos de uso correcto:
 
@@ -254,422 +186,196 @@ Order
 Document
 Branch
 Role
-Invitation
 Party
 Project
 Task
 Asset
 
-No debe utilizarse en entidades del sistema como:
+Aclaración sobre Invitation
+
+Invitation no debe tomarse como ejemplo simple de entidad tenant-scoped pura, porque su comportamiento depende del tipo de invitación.
+
+Cuando type = owner_signup puede operar sin tenant asociado.
+
+Cuando type = member_invite sí se vincula operativamente a un tenant existente.
+
+No debe usarse TenantScoped en entidades del sistema como:
 
 User
 Tenant
 Membership
 SignupRequest
 
-Entidad base del negocio
+MÓDULOS ACTUALES DEL NEGOCIO
 
 PARTIES
 
-Entidad general para personas u organizaciones relacionadas con el negocio.
+Entidad base transversal del dominio.
 
-Nombre técnico:
+Relaciones actuales y futuras:
 
-parties
+un Party puede vincularse a muchos Orders
+un Party puede vincularse a muchos Documents
+un Party puede vincularse a muchos Assets
+un Party puede representar cliente, proveedor, contacto u otro actor
 
-Nombre visible en interfaz:
+Regla:
 
-contactos
-
-Ejemplos de uso:
-
-cliente
-proveedor
-empleado
-contratista
-tercero
-
-La diferenciación inicial se realiza mediante un campo de tipo.
-
-Dominio funcional:
-
-kind
-
-Campos conceptuales esperados:
-
-tenant_id
-kind
-name
-display_name opcional
-document_type nullable
-document_number nullable
-tax_id nullable
-email nullable
-phone nullable
-address nullable
-notes nullable
-is_active
-timestamps
-softDeletes
-
-Entidades operativas
+no duplicar esta función en entidades paralelas como Client o Supplier.
 
 PROJECTS
 
-Agrupa trabajos o iniciativas.
+Agrupador operativo de trabajo.
 
-Relaciones principales:
+Relaciones:
 
-tenant → projects
-projects → tasks
+un Project tiene muchas Tasks
 
-Dominios funcionales:
+Estado actual:
 
-status
+usa estado mínimo active/closed
 
-Notas operativas:
+Función actual:
 
-projects utiliza un estado funcional mínimo:
+seguimiento agregado del trabajo
 
-active
-closed
+Regla operativa actual:
 
-projects.index puede funcionar como vista operativa resumida basada en métricas derivadas de tareas asociadas.
+owner y admin ven todos los proyectos
+
+roles operativos ven solo proyectos donde tengan al menos una tarea asignada
 
 TASKS
 
-Unidad operativa de trabajo.
+Unidad operativa interna fina.
 
-Representa actividades concretas dentro del sistema.
+Relaciones:
 
-Relaciones principales:
+una Task pertenece a un Project
+una Task puede asignarse a un User
+una Task puede derivar opcionalmente en un Order
 
-tenant → tasks
-project → tasks
-party → tasks
-assigned user → tasks
-order → task (relación operativa opcional 1 a 1 resuelta desde orders.task_id)
+Reglas actuales:
 
-Dominios funcionales:
+assigned_user_id define responsabilidad operativa actual
 
-status
-priority
+toda tarea debe crearse asignada
 
-Notas operativas:
+owner y admin pueden gestionar tareas ajenas
 
-toda tarea nace asignada a un usuario del tenant
-
-assigned_user_id referencia al usuario responsable operativo de la tarea
-
-una tarea puede derivar en una única orden, normalmente de servicio
+roles operativos solo editan las propias
 
 PRODUCTS
 
-Representa productos, artículos o insumos.
+Catálogo operativo de productos o ítems comercializables.
 
-Relaciones posibles:
+Relaciones:
 
-tenant → products
-products → orders
-products → inventory
-products → documents
-
-Dominio funcional:
-
-kind
+puede aparecer en OrderItems
+puede aparecer en DocumentItems
 
 ASSETS
 
-Entidad base reusable para representar una unidad identificable y operable del negocio.
+Representa activos o equipos asociados a un tenant.
 
-Campos base relevantes:
+Relaciones actuales:
 
-id
-tenant_id
-party_id
-kind
-relationship_type
-name
-internal_code
-status
-notes
-created_at
-updated_at
-deleted_at
+un Asset puede vincularse opcionalmente a un Party
+un Asset puede vincularse opcionalmente a muchos Orders
+un Asset puede vincularse opcionalmente a muchos Documents
 
-Notas:
+Relación futura posible:
 
-representa un activo operativo genérico, no contable ni patrimonial
+historial de asociación Asset ↔ Party
 
-permite especialización futura por tablas complementarias
+ORDERS
 
-ejemplo futuro:
+Cabecera operativa de órdenes.
 
-asset_motorcycles
-asset_machinery
+Relaciones:
 
-party_id representa el vínculo actual principal del activo con un contacto o cliente
+una Order pertenece a un Party
+una Order puede vincularse opcionalmente a un Asset
+una Order tiene muchos OrderItems
+una Order puede derivar de una Task
+una Order puede originar muchos Documents
 
-el historial de cambios de titularidad o vinculación no se resuelve aún en v1
+Relación Task → Order actual:
 
-Relaciones principales:
+una Task puede derivar en una única Order
 
-tenant → assets
-party → assets
-assets → orders
-assets → documents
+el vínculo operativo se expresa desde orders.task_id
 
-DOCUMENT_SEQUENCES
+ORDER_ITEMS
 
-Entidad que controla la numeración automática de órdenes y documentos dentro de cada tenant.
+Detalle de una Order.
 
-Finalidad:
+Reglas:
 
-gestionar secuencias independientes por tipo documental o tipo de orden.
+pertenece a una Order
+hereda tenant_id desde la cabecera
+normalmente no requiere policy independiente compleja
+su autorización puede heredarse desde Order
 
-Campos relevantes:
+DOCUMENTS
 
-tenant_id
-branch_id nullable
-doc_type
-prefix
-point_of_sale
-padding
-next_number
+Cabecera documental.
 
-Interpretación:
+Relaciones:
 
-la secuencia se define por tenant + tipo documental + punto de venta.
+un Document pertenece a un Party
+un Document puede vincularse opcionalmente a un Asset
+un Document puede vincularse opcionalmente a un Order
+un Document tiene muchos DocumentItems
 
-prefix identifica el tipo documental o tipo de orden.
-
-point_of_sale identifica el punto de venta base de la empresa.
-
-padding define la cantidad de dígitos del número correlativo.
-
-next_number guarda el próximo número a emitir.
-
-Uso actual:
-
-orders utiliza secuencias del tipo:
-
-order.sale
-order.purchase
-order.service
-
-documents utiliza secuencias del tipo:
+Tipos documentales actuales previstos al menos:
 
 quote
 delivery_note
 invoice
 work_order
-receipt
-credit_note
 
-Relaciones:
+Regla actual importante:
 
-tenant → document_sequences
+si un Document nace desde una Order, hereda automáticamente:
 
-ORDERS
-
-Representa pedidos u órdenes comerciales.
-
-Características:
-
-representan intención comercial
-los totales se calculan dinámicamente a partir de los ítems
-
-Relaciones principales:
-
-tenant → orders
-orders → parties
-orders → assets
-orders → products
-orders → documents
-orders → task (nullable)
-
-Campos relevantes adicionales:
-
-number
-sequence_prefix
-point_of_sale
-sequence_number
-
-Aclaración:
-
-la orden se numera automáticamente al guardarse.
-
-el número no se ingresa manualmente.
-
-el tipo de orden no debe modificarse una vez numerada.
-
-Dominios funcionales:
-
-kind
-status
-
-Notas operativas:
-
-belongsTo party
-
-belongsTo asset (nullable)
-
-belongsTo task (nullable)
-
-una orden vinculada a un activo debe mantener consistencia con el contacto del activo
-
-cuando una orden nace desde una tarea, la relación operativa 1 a 1 se expresa mediante orders.task_id
-
-ORDER_ITEMS
-
-Detalle de productos dentro de una orden.
-
-Relaciones principales:
-
-order → order_items
-product → order_items
-
-Características:
-
-heredan tenant desde la cabecera
-no exponen tenant_id en fillable
-
-Dominio funcional:
-
-kind
-
-Regla importante:
-
-kind reutiliza el mismo dominio definido en products.
-
-Entidades documentales
-
-DOCUMENTS
-
-Entidad genérica para documentos comerciales u operativos.
-
-Ejemplos:
-
-factura
-remito
-presupuesto
-orden de trabajo
-nota de crédito
-recibo
-
-Características:
-
-representan documentos formales
-los totales se persisten en la cabecera
-
-Relaciones principales:
-
-tenant → documents
-documents → parties
-documents → assets
-documents → products
-documents → projects
-documents → orders
-
-Campos relevantes adicionales:
-
-number
-sequence_prefix
-point_of_sale
-sequence_number
-
-Aclaración:
-
-el documento se numera automáticamente al guardarse.
-
-el número no se ingresa manualmente.
-
-el tipo de documento no debe modificarse una vez numerado.
-
-Relación con secuencias:
-
-document.kind → document_sequences.doc_type
-
-Dominios funcionales:
-
-kind
-status
-
-Notas operativas:
-
-belongsTo party
-
-belongsTo order (nullable)
-
-belongsTo asset (nullable)
-
-cuando un documento se genera desde una orden, hereda el activo si la orden lo tiene
+tenant_id
+party_id
+order_id
+asset_id si corresponde
 
 DOCUMENT_ITEMS
 
-Detalle de líneas dentro de un documento.
+Detalle de un Document.
 
-Relaciones principales:
+Reglas:
 
-document → document_items
-product → document_items
+pertenece a un Document
+hereda tenant_id desde la cabecera
+puede originarse manualmente o por copia desde OrderItems
+su autorización puede heredarse desde Document
 
-Características:
+DOCUMENT_SEQUENCES
 
-heredan tenant desde cabecera
-eliminación de cabecera elimina ítems
+Entidad de soporte para numeración operativa.
 
-Dominio funcional:
+Función:
 
-kind
+gestionar numeración secuencial de Orders y Documents
+
+Dimensiones actuales de secuencia:
+
+tenant
+tipo documental
+punto de venta
 
 Regla:
 
-kind reutiliza el mismo dominio de products.
+no modelar numeración manual o unique global en cabeceras operativas cuando ya existe este sistema.
 
-Entidades financieras futuras
+FLUJOS PRINCIPALES DEL SISTEMA
 
-PAYMENTS
-
-Representa pagos o cobros asociados a documentos.
-
-Relaciones posibles:
-
-tenant → payments
-payments → documents
-payments → parties
-
-Entidades de inventario futuras
-
-INVENTORY
-
-Representa stock de productos.
-
-INVENTORY_MOVEMENTS
-
-Registra movimientos de stock.
-
-Entidades futuras de soporte
-
-addresses
-attachments
-notes
-roles
-permissions
-branches
-party_profiles
-
-Nota importante
-
-Aunque la interfaz utiliza el término contactos, no se creará una tabla contacts.
-
-La entidad real continúa siendo:
-
-parties
-
-Relación conceptual general del sistema
-
-Núcleo SaaS
+FLUJO DE IDENTIDAD Y ACCESO
 
 users
 ↓
@@ -677,53 +383,86 @@ memberships
 ↓
 tenants
 
-Dominio de negocio
+FLUJO OPERATIVO BASE
 
-tenants
-↓
 parties
 ↓
+orders
+↓
+order_items
+
+FLUJO DOCUMENTAL
+
+orders
+↓
+documents
+↓
+document_items
+
+FLUJO INTERNO DE TRABAJO
+
 projects
-↓
-tasks
-
-Dominio comercial y operativo
-
-tenants
-↓
-products / assets
 ↓
 tasks
 ↓
 orders
-↓
-documents
 
-Sistema de numeración
+FLUJO DE ONBOARDING
 
-tenant
+signup_requests
 ↓
-document_sequences
+invitations
 ↓
-orders / documents
+tenants / memberships
 
-Orden recomendado de implementación
+ENTIDADES YA IMPLEMENTADAS
+
+users
+tenants
+memberships
+roles
+membership_role
+signup_requests
+invitations
 
 parties
+projects
 tasks
 products
 assets
 orders
+order_items
 documents
+document_items
+document_sequences
+
+ENTIDADES FUTURAS POSIBLES
+
+permissions
+branches
 payments
 inventory
+activity_logs
+attachments
+asset_party_history
 
-Regla final
+REGLA GENERAL DE CRECIMIENTO
 
-El crecimiento del sistema debe seguir estos principios:
+Antes de crear una nueva entidad, verificar:
 
-núcleo estable
-entidades reutilizables
-especialización progresiva
-mínima duplicación
-evolución gradual del dominio
+si el caso puede resolverse con una entidad ya existente
+si parties puede absorber el nuevo caso
+si la relación puede modelarse como extensión y no como nueva tabla
+si la necesidad corresponde realmente al dominio o solo a una vista específica
+
+REGLA FINAL
+
+Este documento describe el mapa conceptual del sistema.
+
+No reemplaza:
+
+CONTEXTO-FIJO-DEL-PROYECTO
+CONVENCIONES-DEL-PROYECTO
+CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS
+
+Debe mantenerse alineado con esos documentos.

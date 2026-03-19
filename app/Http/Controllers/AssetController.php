@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AssetController.php
+// FILE: app/Http/Controllers/AssetController.php | V2
 
 namespace App\Http\Controllers;
 
@@ -18,6 +18,8 @@ class AssetController extends Controller
 {
     public function index(Request $request): View
     {
+        $this->authorize('viewAny', Asset::class);
+
         $q = trim((string) $request->get('q', ''));
         $partyId = $request->get('party_id');
         $kind = $request->get('kind');
@@ -57,6 +59,8 @@ class AssetController extends Controller
 
     public function create(): View
     {
+        $this->authorize('create', Asset::class);
+
         $parties = Party::query()
             ->orderBy('name')
             ->get();
@@ -66,6 +70,8 @@ class AssetController extends Controller
 
     public function store(Request $request): RedirectResponse
     {
+        $this->authorize('create', Asset::class);
+
         $validated = validator($request->all(), $this->rules())->validate();
 
         $asset = new Asset($validated);
@@ -78,6 +84,8 @@ class AssetController extends Controller
 
     public function show(Asset $asset): View
     {
+        $this->authorize('view', $asset);
+
         $asset->load('party');
 
         $orders = Order::query()
@@ -97,6 +105,8 @@ class AssetController extends Controller
 
     public function edit(Asset $asset): View
     {
+        $this->authorize('update', $asset);
+
         $parties = Party::query()
             ->orderBy('name')
             ->get();
@@ -106,6 +116,8 @@ class AssetController extends Controller
 
     public function update(Request $request, Asset $asset): RedirectResponse
     {
+        $this->authorize('update', $asset);
+
         $validated = validator($request->all(), $this->rules())->validate();
 
         $asset->update($validated);
@@ -117,6 +129,8 @@ class AssetController extends Controller
 
     public function destroy(Asset $asset): RedirectResponse
     {
+        $this->authorize('delete', $asset);
+
         $asset->delete();
 
         return redirect()

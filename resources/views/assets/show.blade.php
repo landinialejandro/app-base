@@ -22,31 +22,36 @@
         ]" />
 
         <x-page-header title="Detalle del activo">
-            <a href="{{ route('orders.create', ['asset_id' => $asset->id]) }}" class="btn btn-secondary">
-                Nueva orden
-            </a>
+            @can('create', App\Models\Order::class)
+                <a href="{{ route('orders.create', ['asset_id' => $asset->id]) }}" class="btn btn-secondary">
+                    Nueva orden
+                </a>
+            @endcan
 
-            <a href="{{ route('assets.edit', $asset) }}" class="btn btn-primary">
-                <x-icons.pencil />
-                <span>Editar</span>
-            </a>
+            @can('update', $asset)
+                <a href="{{ route('assets.edit', $asset) }}" class="btn btn-primary">
+                    <x-icons.pencil />
+                    <span>Editar</span>
+                </a>
+            @endcan
 
-            <form method="POST" action="{{ route('assets.destroy', $asset) }}" class="inline-form"
-                data-action="app-confirm-submit" data-confirm-message="¿Eliminar activo?">
-                @csrf
-                @method('DELETE')
+            @can('delete', $asset)
+                <form method="POST" action="{{ route('assets.destroy', $asset) }}" class="inline-form"
+                    data-action="app-confirm-submit" data-confirm-message="¿Eliminar activo?">
+                    @csrf
+                    @method('DELETE')
 
-                <button type="submit" class="btn btn-danger">
-                    <x-icons.trash />
-                    <span>Eliminar</span>
-                </button>
-            </form>
+                    <button type="submit" class="btn btn-danger">
+                        <x-icons.trash />
+                        <span>Eliminar</span>
+                    </button>
+                </form>
+            @endcan
 
             <a href="{{ route('assets.index') }}" class="btn btn-secondary">
                 Volver
             </a>
         </x-page-header>
-
         <x-card>
             <div class="summary-inline-grid">
                 <div class="summary-inline-card">

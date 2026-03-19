@@ -6,6 +6,7 @@
     $document = $document ?? null;
     $items = $items ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay ítems cargados en este documento.';
+    $canManageItems = $document && auth()->user()->can('update', $document);
 @endphp
 
 @if ($items->count())
@@ -19,7 +20,9 @@
                     <th>Cantidad</th>
                     <th>Precio unitario</th>
                     <th>Total línea</th>
-                    <th class="compact-actions-cell">Acciones</th>
+                    @if ($canManageItems)
+                        <th class="compact-actions-cell">Acciones</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -31,26 +34,30 @@
                         <td>{{ number_format($item->quantity, 2, ',', '.') }}</td>
                         <td>${{ number_format($item->unit_price, 2, ',', '.') }}</td>
                         <td>${{ number_format($item->line_total, 2, ',', '.') }}</td>
-                        <td class="compact-actions-cell">
-                            <div class="compact-actions">
-                                <a href="{{ route('documents.items.edit', [$document, $item]) }}"
-                                    class="btn btn-secondary btn-icon" title="Editar ítem" aria-label="Editar ítem">
-                                    <x-icons.pencil />
-                                </a>
 
-                                <form method="POST" action="{{ route('documents.items.destroy', [$document, $item]) }}"
-                                    class="inline-form" data-action="app-confirm-submit"
-                                    data-confirm-message="¿Deseas eliminar este ítem?">
-                                    @csrf
-                                    @method('DELETE')
+                        @if ($canManageItems)
+                            <td class="compact-actions-cell">
+                                <div class="compact-actions">
+                                    <a href="{{ route('documents.items.edit', [$document, $item]) }}"
+                                        class="btn btn-secondary btn-icon" title="Editar ítem" aria-label="Editar ítem">
+                                        <x-icons.pencil />
+                                    </a>
 
-                                    <button type="submit" class="btn btn-danger btn-icon" title="Eliminar ítem"
-                                        aria-label="Eliminar ítem">
-                                        <x-icons.trash />
-                                    </button>
-                                </form>
-                            </div>
-                        </td>
+                                    <form method="POST"
+                                        action="{{ route('documents.items.destroy', [$document, $item]) }}"
+                                        class="inline-form" data-action="app-confirm-submit"
+                                        data-confirm-message="¿Deseas eliminar este ítem?">
+                                        @csrf
+                                        @method('DELETE')
+
+                                        <button type="submit" class="btn btn-danger btn-icon" title="Eliminar ítem"
+                                            aria-label="Eliminar ítem">
+                                            <x-icons.trash />
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        @endif
                     </tr>
                 @endforeach
             </tbody>

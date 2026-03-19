@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DashboardController.php
+// FILE: app/Http/Controllers/DashboardController.php | V4
 
 namespace App\Http\Controllers;
 
@@ -10,7 +10,8 @@ use App\Models\Order;
 use App\Models\Party;
 use App\Models\Product;
 use App\Support\Auth\RecordVisibility;
-use App\Support\Auth\TenantAccess;
+use App\Support\Auth\RolePermissionResolver;
+use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\ProjectCatalog;
 use App\Support\Catalogs\TaskCatalog;
 
@@ -20,6 +21,7 @@ class DashboardController extends Controller
     {
         $tenant = app('tenant');
         $user = auth()->user();
+        $resolver = app(RolePermissionResolver::class);
 
         $visibleProjects = RecordVisibility::visibleProjectsQuery($user, $tenant->id)->get([
             'projects.id',
@@ -92,6 +94,7 @@ class DashboardController extends Controller
         $pendingTasksCount = $visibleTasks->where('status', TaskCatalog::STATUS_PENDING)->count();
         $inProgressTasksCount = $visibleTasks->where('status', TaskCatalog::STATUS_IN_PROGRESS)->count();
         $doneTasksCount = $visibleTasks->where('status', TaskCatalog::STATUS_DONE)->count();
+        $cancelledTasksCount = $visibleTasks->where('status', TaskCatalog::STATUS_CANCELLED)->count();
 
         $myOverdueTasksCount = $visibleTasks
             ->filter(function ($task) use ($user, $today) {
@@ -105,9 +108,31 @@ class DashboardController extends Controller
             })
             ->count();
 
+        $canAccessParties = $resolver->canUseModule(ModuleCatalog::PARTIES, $tenant, $user);
+        $canAccessAssets = $resolver->canUseModule(ModuleCatalog::ASSETS, $tenant, $user);
+        $canAccessOrders = $resolver->canUseModule(ModuleCatalog::ORDERS, $tenant, $user);
+        $canAccessTasks = $resolver->canUseModule(ModuleCatalog::TASKS, $tenant, $user);
+        $canAccessProjects = $resolver->canUseModule(ModuleCatalog::PROJECTS, $tenant, $user);
+        $canAccessProducts = $resolver->canUseModule(ModuleCatalog::PRODUCTS, $tenant, $user);
+        $canAccessDocuments = $resolver->canUseModule(ModuleCatalog::DOCUMENTS, $tenant, $user);
+
         return view('dashboard', [
             'tenant' => $tenant,
-            'canSeeAnalytics' => TenantAccess::isOwnerOrAdmin($tenant->id, $user),
+
+            'canSeeAnalytics' => $resolver->can(
+                ModuleCatalog::DASHBOARD,
+                'view_analytics',
+                $tenant,
+                $user
+            ),
+
+            'canAccessParties' => $canAccessParties,
+            'canAccessAssets' => $canAccessAssets,
+            'canAccessOrders' => $canAccessOrders,
+            'canAccessTasks' => $canAccessTasks,
+            'canAccessProjects' => $canAccessProjects,
+            'canAccessProducts' => $canAccessProducts,
+            'canAccessDocuments' => $canAccessDocuments,
 
             'projectOverview' => [
                 'visible_projects_count' => $visibleProjectsCount,
@@ -124,14 +149,15 @@ class DashboardController extends Controller
                 'pending_tasks_count' => $pendingTasksCount,
                 'in_progress_tasks_count' => $inProgressTasksCount,
                 'done_tasks_count' => $doneTasksCount,
+                'cancelled_tasks_count' => $cancelledTasksCount,
                 'my_overdue_tasks_count' => $myOverdueTasksCount,
             ],
 
-            'partiesCount' => Party::query()->count(),
-            'productsCount' => Product::query()->count(),
-            'assetsCount' => Asset::query()->count(),
-            'ordersCount' => Order::query()->count(),
-            'documentsCount' => Document::query()->count(),
+            'partiesCount' => $canAccessParties ? Party::query()->count() : null,
+            'productsCount' => $canAccessProducts ? Product::query()->count() : null,
+            'assetsCount' => $canAccessAssets ? Asset::query()->count() : null,
+            'ordersCount' => $canAccessOrders ? Order::query()->count() : null,
+            'documentsCount' => $canAccessDocuments ? Document::query()->count() : null,
         ]);
     }
 }

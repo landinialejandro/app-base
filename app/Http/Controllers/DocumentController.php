@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DocumentController.php
+// FILE: app/Http/Controllers/DocumentController.php | V4
 
 namespace App\Http\Controllers;
 
@@ -21,6 +21,8 @@ class DocumentController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Document::class);
+
         $q = trim((string) $request->get('q', ''));
         $partyId = $request->get('party_id');
         $assetId = $request->get('asset_id');
@@ -81,6 +83,8 @@ class DocumentController extends Controller
 
     public function create()
     {
+        $this->authorize('create', Document::class);
+
         $parties = Party::orderBy('name')->get();
         $orders = Order::with(['party', 'asset'])->latest()->get();
         $assets = Asset::with('party')->orderBy('name')->get();
@@ -96,6 +100,8 @@ class DocumentController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorize('create', Document::class);
+
         $tenant = app('tenant');
 
         $data = $request->validate([
@@ -202,6 +208,8 @@ class DocumentController extends Controller
 
     public function storeFromOrder(Request $request, Order $order)
     {
+        $this->authorize('create', Document::class);
+
         $data = $request->validate([
             'kind' => [
                 'required',
@@ -285,6 +293,8 @@ class DocumentController extends Controller
 
     public function show(Document $document)
     {
+        $this->authorize('view', $document);
+
         $document->load([
             'party',
             'order',
@@ -299,6 +309,8 @@ class DocumentController extends Controller
 
     public function edit(Document $document)
     {
+        $this->authorize('update', $document);
+
         $parties = Party::orderBy('name')->get();
         $orders = Order::with(['party', 'asset'])->latest()->get();
         $assets = Asset::with('party')->orderBy('name')->get();
@@ -308,6 +320,8 @@ class DocumentController extends Controller
 
     public function update(Request $request, Document $document)
     {
+        $this->authorize('update', $document);
+
         $tenant = app('tenant');
 
         $data = $request->validate([
@@ -410,6 +424,8 @@ class DocumentController extends Controller
 
     public function destroy(Document $document)
     {
+        $this->authorize('delete', $document);
+
         $document->delete();
 
         return redirect()

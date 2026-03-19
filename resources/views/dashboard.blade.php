@@ -130,65 +130,83 @@
 
         <x-page-header title="Dashboard" />
 
-        <x-card>
-            <div class="dashboard-section-header">
-                <h2 class="dashboard-section-title">Operación diaria</h2>
-                <p class="dashboard-section-text">Accesos principales para el trabajo cotidiano.</p>
-            </div>
+        @if ($canAccessParties || $canAccessAssets || $canAccessOrders)
+            <x-card>
+                <div class="dashboard-section-header">
+                    <h2 class="dashboard-section-title">Operación diaria</h2>
+                    <p class="dashboard-section-text">Accesos principales para el trabajo cotidiano.</p>
+                </div>
 
-            <div class="dashboard-grid">
-                <a href="{{ route('parties.index') }}" class="dashboard-link-card">
-                    <span class="dashboard-link-title">Contactos</span>
-                    <span class="dashboard-link-text">Ver y administrar contactos</span>
-                    <span class="dashboard-link-meta">{{ $partiesCount }} contactos</span>
-                </a>
+                <div class="dashboard-grid">
+                    @if ($canAccessParties)
+                        <a href="{{ route('parties.index') }}" class="dashboard-link-card">
+                            <span class="dashboard-link-title">Contactos</span>
+                            <span class="dashboard-link-text">Ver y administrar contactos</span>
+                            <span class="dashboard-link-meta">{{ $partiesCount }} contactos</span>
+                        </a>
+                    @endif
 
-                <a href="{{ route('assets.index') }}" class="dashboard-link-card">
-                    <span class="dashboard-link-title">Activos</span>
-                    <span class="dashboard-link-text">Ver y administrar activos operativos</span>
-                    <span class="dashboard-link-meta">{{ $assetsCount }} activos</span>
-                </a>
+                    @if ($canAccessAssets)
+                        <a href="{{ route('assets.index') }}" class="dashboard-link-card">
+                            <span class="dashboard-link-title">Activos</span>
+                            <span class="dashboard-link-text">Ver y administrar activos operativos</span>
+                            <span class="dashboard-link-meta">{{ $assetsCount }} activos</span>
+                        </a>
+                    @endif
 
-                <a href="{{ route('orders.index') }}" class="dashboard-link-card">
-                    <span class="dashboard-link-title">Órdenes</span>
-                    <span class="dashboard-link-text">Ver y administrar órdenes</span>
-                    <span class="dashboard-link-meta">{{ $ordersCount }} órdenes</span>
-                </a>
-            </div>
-        </x-card>
+                    @if ($canAccessOrders)
+                        <a href="{{ route('orders.index') }}" class="dashboard-link-card">
+                            <span class="dashboard-link-title">Órdenes</span>
+                            <span class="dashboard-link-text">Ver y administrar órdenes</span>
+                            <span class="dashboard-link-meta">{{ $ordersCount }} órdenes</span>
+                        </a>
+                    @endif
+                </div>
+            </x-card>
+        @endif
 
-        <x-card>
-            <div class="dashboard-section-header">
-                <h2 class="dashboard-section-title">Gestión complementaria</h2>
-                <p class="dashboard-section-text">Módulos de seguimiento interno, planificación y soporte.</p>
-            </div>
+        @if ($canAccessTasks || $canAccessProjects || $canAccessProducts || $canAccessDocuments)
+            <x-card>
+                <div class="dashboard-section-header">
+                    <h2 class="dashboard-section-title">Gestión complementaria</h2>
+                    <p class="dashboard-section-text">Módulos de seguimiento interno, planificación y soporte.</p>
+                </div>
 
-            <div class="dashboard-grid">
-                <a href="{{ route('tasks.index') }}" class="dashboard-link-card">
-                    <span class="dashboard-link-title">Tareas</span>
-                    <span class="dashboard-link-text">Ver y administrar tareas</span>
-                    <span class="dashboard-link-meta">Trabajo diario</span>
-                </a>
+                <div class="dashboard-grid">
+                    @if ($canAccessTasks)
+                        <a href="{{ route('tasks.index') }}" class="dashboard-link-card">
+                            <span class="dashboard-link-title">Tareas</span>
+                            <span class="dashboard-link-text">Ver y administrar tareas</span>
+                            <span class="dashboard-link-meta">Trabajo diario</span>
+                        </a>
+                    @endif
 
-                <a href="{{ route('projects.index') }}" class="dashboard-link-card">
-                    <span class="dashboard-link-title">Proyectos</span>
-                    <span class="dashboard-link-text">Ver y administrar proyectos</span>
-                    <span class="dashboard-link-meta">Seguimiento operativo</span>
-                </a>
+                    @if ($canAccessProjects)
+                        <a href="{{ route('projects.index') }}" class="dashboard-link-card">
+                            <span class="dashboard-link-title">Proyectos</span>
+                            <span class="dashboard-link-text">Ver y administrar proyectos</span>
+                            <span class="dashboard-link-meta">Seguimiento operativo</span>
+                        </a>
+                    @endif
 
-                <a href="{{ route('products.index') }}" class="dashboard-link-card">
-                    <span class="dashboard-link-title">Productos</span>
-                    <span class="dashboard-link-text">Ver y administrar productos y servicios</span>
-                    <span class="dashboard-link-meta">{{ $productsCount }} productos</span>
-                </a>
+                    @if ($canAccessProducts)
+                        <a href="{{ route('products.index') }}" class="dashboard-link-card">
+                            <span class="dashboard-link-title">Productos</span>
+                            <span class="dashboard-link-text">Ver y administrar productos y servicios</span>
+                            <span class="dashboard-link-meta">{{ $productsCount }} productos</span>
+                        </a>
+                    @endif
 
-                <a href="{{ route('documents.index') }}" class="dashboard-link-card">
-                    <span class="dashboard-link-title">Documentos</span>
-                    <span class="dashboard-link-text">Ver y administrar documentos comerciales</span>
-                    <span class="dashboard-link-meta">{{ $documentsCount }} documentos</span>
-                </a>
-            </div>
-        </x-card>
+                    @if ($canAccessDocuments)
+                        <a href="{{ route('documents.index') }}" class="dashboard-link-card">
+                            <span class="dashboard-link-title">Documentos</span>
+                            <span class="dashboard-link-text">Ver y administrar documentos comerciales</span>
+                            <span class="dashboard-link-meta">{{ $documentsCount }} documentos</span>
+                        </a>
+                    @endif
+                </div>
+            </x-card>
+        @endif
 
         @if ($canSeeAnalytics)
             <x-show-summary details-id="dashboard-analytics-detail" toggle-label="Ver análisis"

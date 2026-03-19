@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/show.blade.php | V3 --}}
+{{-- FILE: resources/views/documents/show.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -16,6 +16,9 @@
         DocumentCatalog::KIND_CREDIT_NOTE => 'Detalle de la nota de crédito',
         default => 'Detalle del documento',
     };
+
+    $canUpdateDocument = auth()->user()->can('update', $document);
+    $canDeleteDocument = auth()->user()->can('delete', $document);
 @endphp
 
 @section('title', $documentDetailTitle)
@@ -30,24 +33,28 @@
         ]" />
 
         <x-page-header :title="$documentDetailTitle">
-            <a href="{{ route('documents.edit', $document) }}" class="btn btn-primary">
-                <x-icons.pencil />
-                <span>Editar</span>
-            </a>
+            @if ($canUpdateDocument)
+                <a href="{{ route('documents.edit', $document) }}" class="btn btn-primary">
+                    <x-icons.pencil />
+                    <span>Editar</span>
+                </a>
+            @endif
 
-            <form method="POST" action="{{ route('documents.destroy', $document) }}" class="inline-form"
-                data-action="app-confirm-submit"
-                data-confirm-message="{{ $document->items->count()
-                    ? 'Este documento tiene ítems cargados. Si lo eliminas, también se eliminarán sus ítems. ¿Deseas continuar?'
-                    : '¿Deseas eliminar este documento?' }}">
-                @csrf
-                @method('DELETE')
+            @if ($canDeleteDocument)
+                <form method="POST" action="{{ route('documents.destroy', $document) }}" class="inline-form"
+                    data-action="app-confirm-submit"
+                    data-confirm-message="{{ $document->items->count()
+                        ? 'Este documento tiene ítems cargados. Si lo eliminas, también se eliminarán sus ítems. ¿Deseas continuar?'
+                        : '¿Deseas eliminar este documento?' }}">
+                    @csrf
+                    @method('DELETE')
 
-                <button type="submit" class="btn btn-danger">
-                    <x-icons.trash />
-                    <span>Eliminar</span>
-                </button>
-            </form>
+                    <button type="submit" class="btn btn-danger">
+                        <x-icons.trash />
+                        <span>Eliminar</span>
+                    </button>
+                </form>
+            @endif
 
             <a href="{{ route('documents.index') }}" class="btn btn-secondary">
                 Volver
@@ -158,9 +165,11 @@
                 <div class="tab-panel-stack">
 
                     <x-page-header title="Ítems del documento">
-                        <a href="{{ route('documents.items.create', $document) }}" class="btn btn-primary">
-                            Agregar ítem
-                        </a>
+                        @if ($canUpdateDocument)
+                            <a href="{{ route('documents.items.create', $document) }}" class="btn btn-primary">
+                                Agregar ítem
+                            </a>
+                        @endif
                     </x-page-header>
 
                     <x-card class="list-card">

@@ -7,107 +7,10 @@
 @section('content')
     @php
         use App\Support\Catalogs\ProjectCatalog;
-        $membership = auth()
-            ->user()
-            ?->memberships()
-            ->with('roles')
-            ->where('tenant_id', app('tenant')->id)
-            ->where('status', 'active')
-            ->first();
 
-        $canDeleteProject =
-            $membership &&
-            ($membership->is_owner || $membership->roles->contains(fn($role) => $role->slug === 'admin'));
+        extract($metrics, EXTR_SKIP);
 
-        $tasks = $project->tasks->sortBy([['due_date', 'asc'], ['name', 'asc']])->values();
-
-        $openTasks = $tasks->whereIn('status', ['pending', 'in_progress'])->values();
-        $doneTasks = $tasks->where('status', 'done')->values();
-        $cancelledTasks = $tasks->where('status', 'cancelled')->values();
-
-        $pendingCount = $tasks->where('status', 'pending')->count();
-        $inProgressCount = $tasks->where('status', 'in_progress')->count();
-        $doneCount = $doneTasks->count();
-        $cancelledCount = $cancelledTasks->count();
-
-        $overdueCount = $tasks
-            ->filter(function ($task) {
-                return $task->due_date &&
-                    $task->due_date->isPast() &&
-                    !in_array($task->status, ['done', 'cancelled'], true);
-            })
-            ->count();
-
-        $progress = $tasks->count() > 0 ? round(($doneCount / $tasks->count()) * 100) : 0;
-        $projectStartDate = $project->created_at?->copy()->startOfDay();
-        $today = now()->startOfDay();
-
-        $daysElapsed = $projectStartDate ? $projectStartDate->diffInDays($today) : null;
-
-        $lastOpenDueDate = $openTasks
-            ->filter(fn($task) => !empty($task->due_date))
-            ->sortByDesc(fn($task) => $task->due_date)
-            ->first()
-            ?->due_date?->copy()
-            ?->startOfDay();
-
-        $daysRemaining = null;
-
-        if ($lastOpenDueDate) {
-            $daysRemaining = $today->diffInDays($lastOpenDueDate, false);
-        }
-
-        $totalTasks = $tasks->count();
-
-        $pendingPercent = $totalTasks > 0 ? round(($pendingCount / $totalTasks) * 100, 2) : 0;
-        $inProgressPercent = $totalTasks > 0 ? round(($inProgressCount / $totalTasks) * 100, 2) : 0;
-        $donePercent = $totalTasks > 0 ? round(($doneCount / $totalTasks) * 100, 2) : 0;
-        $cancelledPercent = $totalTasks > 0 ? round(($cancelledCount / $totalTasks) * 100, 2) : 0;
-
-        $pieSegments = [];
-        $offset = 0;
-
-        foreach (
-            [
-                [
-                    'key' => 'pending',
-                    'count' => $pendingCount,
-                    'percent' => $pendingPercent,
-                    'class' => 'project-pie-segment--pending',
-                ],
-                [
-                    'key' => 'in_progress',
-                    'count' => $inProgressCount,
-                    'percent' => $inProgressPercent,
-                    'class' => 'project-pie-segment--in-progress',
-                ],
-                [
-                    'key' => 'done',
-                    'count' => $doneCount,
-                    'percent' => $donePercent,
-                    'class' => 'project-pie-segment--done',
-                ],
-                [
-                    'key' => 'cancelled',
-                    'count' => $cancelledCount,
-                    'percent' => $cancelledPercent,
-                    'class' => 'project-pie-segment--cancelled',
-                ],
-            ]
-            as $segment
-        ) {
-            if ($segment['count'] <= 0) {
-                continue;
-            }
-
-            $pieSegments[] = [
-                ...$segment,
-                'dash' => $segment['percent'] . ' ' . (100 - $segment['percent']),
-                'offset' => -$offset,
-            ];
-
-            $offset += $segment['percent'];
-        }
+        $canDeleteProject = auth()->user()->can('delete', $project);
     @endphp
 
     <x-page>
@@ -284,36 +187,38 @@
                     <div class="project-visual-grid project-visual-grid--stats">
                         <div class="project-visual-card">
                             <div class="project-visual-title">Tiempo transcurrido</div>
-                            <div class="project-visual-kpi">{{ $daysElapsed ?? '—' }}</div>
+                            <div class="project-visual-kpi">
+                                {{ is_null($daysElapsed) ? '—' : $daysElapsed . ' días' }}
+                            </div>
                             <div class="project-visual-note">
                                 Desde {{ $projectStartDate?->format('d/m/Y') ?: '—' }}
                             </div>
                         </div>
 
                         <div class="project-visual-card">
-                            <div class="project-visual-title">Horizonte pendiente</div>
+                            <div class="project-visual-title">Días hasta el fin previsto</div>
                             <div class="project-visual-kpi">
                                 @if (is_null($daysRemaining))
                                     —
                                 @elseif($daysRemaining < 0)
                                     Vencido
                                 @else
-                                    {{ $daysRemaining }}
+                                    {{ $daysRemaining }} días
                                 @endif
                             </div>
                             <div class="project-visual-note">
                                 @if ($lastOpenDueDate)
-                                    Fin previsto: {{ $lastOpenDueDate->format('d/m/Y') }}
+                                    Fecha estimada: {{ $lastOpenDueDate->format('d/m/Y') }}
                                 @else
-                                    Sin vencimientos pendientes
+                                    Sin tareas abiertas con vencimiento
                                 @endif
                             </div>
                         </div>
 
                         <div class="project-visual-card">
-                            <div class="project-visual-title">Próximo tramo</div>
+                            <div class="project-visual-title">Tareas vencidas</div>
                             <div class="project-visual-kpi">{{ $overdueCount }}</div>
-                            <div class="project-visual-note">Tareas vencidas actualmente</div>
+                            <div class="project-visual-note">Pendientes fuera de fecha</div>
                         </div>
                     </div>
                 </div>

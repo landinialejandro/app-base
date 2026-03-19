@@ -7,6 +7,8 @@ namespace App\Http\Controllers;
 use App\Models\Project;
 use App\Support\Catalogs\ProjectCatalog;
 use App\Support\Catalogs\TaskCatalog;
+use App\Support\Projects\ProjectMetrics;
+use App\Support\Projects\ProjectVisibility;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -16,10 +18,12 @@ class ProjectController extends Controller
     {
         $tenant = app('tenant');
 
+        $this->authorize('viewAny', Project::class);
+
         $q = trim((string) $request->get('q', ''));
         $status = (string) $request->get('status', '');
 
-        $projects = Project::query()
+        $projects = ProjectVisibility::visibleQuery()
             ->select('projects.*')
             ->selectSub(function ($query) {
                 $query->from('tasks')
@@ -83,9 +87,12 @@ class ProjectController extends Controller
                     }
                 });
             })
-            ->when($status !== '' && in_array($status, ProjectCatalog::statuses(), true), function ($query) use ($status) {
-                $query->where('status', $status);
-            })
+            ->when(
+                $status !== '' && in_array($status, ProjectCatalog::statuses(), true),
+                function ($query) use ($status) {
+                    $query->where('status', $status);
+                }
+            )
             ->orderByRaw('
                 CASE
                     WHEN status = ? THEN 1
@@ -112,6 +119,8 @@ class ProjectController extends Controller
     {
         $tenant = app('tenant');
 
+        $this->authorize('create', Project::class);
+
         return view('projects.create', [
             'tenant' => $tenant,
         ]);
@@ -119,6 +128,8 @@ class ProjectController extends Controller
 
     public function store(Request $request)
     {
+        $this->authorize('create', Project::class);
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
@@ -136,6 +147,8 @@ class ProjectController extends Controller
     {
         $tenant = app('tenant');
 
+        $this->authorize('view', $project);
+
         $project->load([
             'tasks' => function ($query) {
                 $query->with(['assignedUser', 'order'])
@@ -144,15 +157,20 @@ class ProjectController extends Controller
             },
         ]);
 
+        $metrics = ProjectMetrics::forShow($project);
+
         return view('projects.show', [
             'tenant' => $tenant,
             'project' => $project,
+            'metrics' => $metrics,
         ]);
     }
 
     public function edit(Project $project)
     {
         $tenant = app('tenant');
+
+        $this->authorize('update', $project);
 
         return view('projects.edit', [
             'tenant' => $tenant,
@@ -162,6 +180,8 @@ class ProjectController extends Controller
 
     public function update(Request $request, Project $project)
     {
+        $this->authorize('update', $project);
+
         $data = $request->validate([
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
@@ -177,35 +197,12 @@ class ProjectController extends Controller
 
     public function destroy(Project $project)
     {
-        $tenant = app('tenant');
-
-        abort_unless($this->isTenantAdmin($tenant->id), 403);
+        $this->authorize('delete', $project);
 
         $project->delete();
 
         return redirect()
             ->route('projects.index')
             ->with('success', 'Proyecto eliminado correctamente.');
-    }
-
-    private function isTenantAdmin(string $tenantId): bool
-    {
-        $membership = auth()->user()?->memberships()
-            ->with('roles')
-            ->where('tenant_id', $tenantId)
-            ->where('status', 'active')
-            ->first();
-
-        if (! $membership) {
-            return false;
-        }
-
-        if ($membership->is_owner) {
-            return true;
-        }
-
-        return $membership->roles->contains(function ($role) {
-            return $role->slug === 'admin';
-        });
     }
 }

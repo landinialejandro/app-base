@@ -9,6 +9,7 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Support\Catalogs\TaskCatalog;
+use App\Support\Tasks\TaskVisibility;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -17,6 +18,8 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         $tenant = app('tenant');
+
+        $this->authorize('viewAny', Task::class);
 
         $q = trim((string) $request->get('q', ''));
         $projectId = $request->get('project_id');
@@ -41,7 +44,7 @@ class TaskController extends Controller
             ->orderBy('name')
             ->get();
 
-        $tasks = Task::query()
+        $tasks = TaskVisibility::visibleQuery()
             ->with(['project', 'party', 'assignedUser', 'order'])
             ->when($scope === 'mine', function ($query) {
                 $query->where('assigned_user_id', auth()->id());
@@ -110,6 +113,8 @@ class TaskController extends Controller
     {
         $tenant = app('tenant');
 
+        $this->authorize('create', Task::class);
+
         $forcedProject = null;
 
         if ($request->filled('project_id')) {
@@ -143,7 +148,7 @@ class TaskController extends Controller
                 ['label' => 'Nueva tarea'],
             ];
 
-        $canChangeProject = $this->isTenantAdmin($tenant->id);
+        $canChangeProject = auth()->user()->can('create', Project::class);
 
         return view('tasks.create', compact(
             'tenant',
@@ -160,6 +165,8 @@ class TaskController extends Controller
     public function store(Request $request)
     {
         $tenant = app('tenant');
+
+        $this->authorize('create', Task::class);
 
         $data = $request->validate([
             'project_id' => [
@@ -218,11 +225,14 @@ class TaskController extends Controller
     {
         $tenant = app('tenant');
 
+        $this->authorize('view', $task);
+
         $task->load(['project', 'party', 'assignedUser', 'order']);
 
-        $canEditTask = $this->canEditTask($tenant->id, $task);
-        $canDeleteTask = $this->isTenantAdmin($tenant->id);
-        $isForeignTaskForAdmin = $this->isTenantAdmin($tenant->id) && (int) $task->assigned_user_id !== (int) auth()->id();
+        $canEditTask = auth()->user()->can('update', $task);
+        $canDeleteTask = auth()->user()->can('delete', $task);
+        $isForeignTaskForAdmin = $canDeleteTask
+            && (int) $task->assigned_user_id !== (int) auth()->id();
 
         $breadcrumbItems = $task->project
             ? [
@@ -251,7 +261,7 @@ class TaskController extends Controller
     {
         $tenant = app('tenant');
 
-        abort_unless($this->canEditTask($tenant->id, $task), 403);
+        $this->authorize('update', $task);
 
         $task->load(['project', 'order']);
 
@@ -266,9 +276,10 @@ class TaskController extends Controller
             ->get();
 
         $forcedProject = null;
-        $canChangeProject = $this->isTenantAdmin($tenant->id);
+        $canChangeProject = auth()->user()->can('create', Project::class);
         $defaultAssignedUserId = old('assigned_user_id', (string) ($task->assigned_user_id ?? auth()->id()));
-        $isForeignTaskForAdmin = $this->isTenantAdmin($tenant->id) && (int) $task->assigned_user_id !== (int) auth()->id();
+        $isForeignTaskForAdmin = auth()->user()->can('delete', $task)
+            && (int) $task->assigned_user_id !== (int) auth()->id();
 
         $breadcrumbItems = $task->project
             ? [
@@ -303,7 +314,7 @@ class TaskController extends Controller
     {
         $tenant = app('tenant');
 
-        abort_unless($this->canEditTask($tenant->id, $task), 403);
+        $this->authorize('update', $task);
 
         $data = $request->validate([
             'project_id' => [
@@ -345,7 +356,7 @@ class TaskController extends Controller
                 ->withInput();
         }
 
-        $isAdminEditingForeignTask = $this->isTenantAdmin($tenant->id)
+        $isAdminEditingForeignTask = auth()->user()->can('delete', $task)
             && (int) $task->assigned_user_id !== (int) auth()->id();
 
         if ($isAdminEditingForeignTask && $request->input('confirm_foreign_task_edit') !== '1') {
@@ -356,7 +367,7 @@ class TaskController extends Controller
                 ->withInput();
         }
 
-        if (! $this->isTenantAdmin($tenant->id)) {
+        if (! auth()->user()->can('create', Project::class)) {
             $data['project_id'] = $task->project_id;
         }
 
@@ -378,9 +389,7 @@ class TaskController extends Controller
 
     public function destroy(Task $task)
     {
-        $tenant = app('tenant');
-
-        abort_unless($this->isTenantAdmin($tenant->id), 403);
+        $this->authorize('delete', $task);
 
         $task->load('project');
         $project = $task->project;
@@ -396,35 +405,5 @@ class TaskController extends Controller
         return redirect()
             ->route('tasks.index')
             ->with('success', 'Tarea eliminada correctamente.');
-    }
-
-    private function canEditTask(string $tenantId, Task $task): bool
-    {
-        if ($this->isTenantAdmin($tenantId)) {
-            return true;
-        }
-
-        return (int) $task->assigned_user_id === (int) auth()->id();
-    }
-
-    private function isTenantAdmin(string $tenantId): bool
-    {
-        $membership = auth()->user()?->memberships()
-            ->with('roles')
-            ->where('tenant_id', $tenantId)
-            ->where('status', 'active')
-            ->first();
-
-        if (! $membership) {
-            return false;
-        }
-
-        if ($membership->is_owner) {
-            return true;
-        }
-
-        return $membership->roles->contains(function ($role) {
-            return $role->slug === 'admin';
-        });
     }
 }

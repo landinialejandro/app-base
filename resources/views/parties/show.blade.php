@@ -20,21 +20,25 @@
         ]" />
 
         <x-page-header title="Detalle del contacto">
-            <a href="{{ route('parties.edit', $party) }}" class="btn btn-primary">
-                <x-icons.pencil />
-                <span>Editar</span>
-            </a>
+            @can('update', $party)
+                <a href="{{ route('parties.edit', $party) }}" class="btn btn-primary">
+                    <x-icons.pencil />
+                    <span>Editar</span>
+                </a>
+            @endcan
 
-            <form method="POST" action="{{ route('parties.destroy', $party) }}" class="inline-form"
-                data-action="app-confirm-submit" data-confirm-message="¿Eliminar contacto?">
-                @csrf
-                @method('DELETE')
+            @can('delete', $party)
+                <form method="POST" action="{{ route('parties.destroy', $party) }}" class="inline-form"
+                    data-action="app-confirm-submit" data-confirm-message="¿Eliminar contacto?">
+                    @csrf
+                    @method('DELETE')
 
-                <button type="submit" class="btn btn-danger">
-                    <x-icons.trash />
-                    <span>Eliminar</span>
-                </button>
-            </form>
+                    <button type="submit" class="btn btn-danger">
+                        <x-icons.trash />
+                        <span>Eliminar</span>
+                    </button>
+                </form>
+            @endcan
 
             <a href="{{ route('parties.index') }}" class="btn btn-secondary">
                 Volver

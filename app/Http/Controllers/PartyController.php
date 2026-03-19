@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/PartyController.php
+// FILE: app/Http/Controllers/PartyController.php | V2
 
 namespace App\Http\Controllers;
 
@@ -15,6 +15,8 @@ class PartyController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorize('viewAny', Party::class);
+
         $tenant = app('tenant');
 
         $q = trim((string) $request->get('q', ''));
@@ -54,6 +56,8 @@ class PartyController extends Controller
 
     public function create()
     {
+        $this->authorize('create', Party::class);
+
         $tenant = app('tenant');
 
         return view('parties.create', [
@@ -63,6 +67,8 @@ class PartyController extends Controller
 
     public function store(StorePartyRequest $request)
     {
+        $this->authorize('create', Party::class);
+
         $data = $request->validated();
 
         $party = Party::create($data);
@@ -74,6 +80,8 @@ class PartyController extends Controller
 
     public function show(Party $party)
     {
+        $this->authorize('view', $party);
+
         $tenant = app('tenant');
 
         $assets = Asset::query()
@@ -98,6 +106,8 @@ class PartyController extends Controller
 
     public function edit(Party $party)
     {
+        $this->authorize('update', $party);
+
         $tenant = app('tenant');
 
         return view('parties.edit', [
@@ -108,6 +118,8 @@ class PartyController extends Controller
 
     public function update(UpdatePartyRequest $request, Party $party)
     {
+        $this->authorize('update', $party);
+
         $data = $request->validated();
 
         $party->update($data);
@@ -119,6 +131,8 @@ class PartyController extends Controller
 
     public function destroy(Party $party)
     {
+        $this->authorize('delete', $party);
+
         $party->delete();
 
         return redirect()

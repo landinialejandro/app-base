@@ -12,7 +12,7 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>ID!</th>
+                    <th>ID</th>
                     <th>Nombre</th>
                     <th>SKU</th>
                     <th>Precio</th>

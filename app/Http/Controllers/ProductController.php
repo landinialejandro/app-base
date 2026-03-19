@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/ProductController.php
+// FILE: app/Http/Controllers/ProductController.php | V2
 
 namespace App\Http\Controllers;
 
@@ -15,6 +15,8 @@ class ProductController extends Controller
 {
     public function index(Request $request): View
     {
+        $this->authorize('viewAny', Product::class);
+
         $q = trim((string) $request->get('q', ''));
         $kind = $request->get('kind');
         $isActive = $request->get('is_active');
@@ -45,11 +47,15 @@ class ProductController extends Controller
 
     public function create(): View
     {
+        $this->authorize('create', Product::class);
+
         return view('products.create');
     }
 
     public function store(Request $request): RedirectResponse
     {
+        $this->authorize('create', Product::class);
+
         $data = $request->all();
 
         $data['is_active'] = $request->boolean('is_active');
@@ -65,16 +71,22 @@ class ProductController extends Controller
 
     public function show(Product $product): View
     {
+        $this->authorize('view', $product);
+
         return view('products.show', compact('product'));
     }
 
     public function edit(Product $product): View
     {
+        $this->authorize('update', $product);
+
         return view('products.edit', compact('product'));
     }
 
     public function update(Request $request, Product $product): RedirectResponse
     {
+        $this->authorize('update', $product);
+
         $data = $request->all();
 
         $data['is_active'] = $request->boolean('is_active');
@@ -90,6 +102,8 @@ class ProductController extends Controller
 
     public function destroy(Product $product): RedirectResponse
     {
+        $this->authorize('delete', $product);
+
         $product->delete();
 
         return redirect()

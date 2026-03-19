@@ -19,21 +19,25 @@
         ]" />
 
         <x-page-header title="Detalle del producto">
-            <a href="{{ route('products.edit', $product) }}" class="btn btn-primary">
-                <x-icons.pencil />
-                <span>Editar</span>
-            </a>
+            @can('update', $product)
+                <a href="{{ route('products.edit', $product) }}" class="btn btn-primary">
+                    <x-icons.pencil />
+                    <span>Editar</span>
+                </a>
+            @endcan
 
-            <form method="POST" action="{{ route('products.destroy', $product) }}" class="inline-form"
-                data-action="app-confirm-submit" data-confirm-message="¿Eliminar producto?">
-                @csrf
-                @method('DELETE')
+            @can('delete', $product)
+                <form method="POST" action="{{ route('products.destroy', $product) }}" class="inline-form"
+                    data-action="app-confirm-submit" data-confirm-message="¿Eliminar producto?">
+                    @csrf
+                    @method('DELETE')
 
-                <button type="submit" class="btn btn-danger">
-                    <x-icons.trash />
-                    <span>Eliminar</span>
-                </button>
-            </form>
+                    <button type="submit" class="btn btn-danger">
+                        <x-icons.trash />
+                        <span>Eliminar</span>
+                    </button>
+                </form>
+            @endcan
 
             <a href="{{ route('products.index') }}" class="btn btn-secondary">
                 Volver

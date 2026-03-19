@@ -15,9 +15,11 @@
         <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Productos']]" />
 
         <x-page-header title="Productos">
-            <a href="{{ route('products.create') }}" class="btn btn-primary">
-                Nuevo producto
-            </a>
+            @can('create', App\Models\Product::class)
+                <a href="{{ route('products.create') }}" class="btn btn-primary">
+                    Nuevo producto
+                </a>
+            @endcan
         </x-page-header>
 
         <x-list-filters-card :action="route('products.index')" secondary-id="products-extra-filters">

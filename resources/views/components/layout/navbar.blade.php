@@ -4,10 +4,7 @@
     $user = auth()->user();
     $tenant = app()->bound('tenant') ? app('tenant') : null;
 
-    $currentMembership =
-        $user && $tenant
-        ? $user->memberships()->where('tenant_id', $tenant->id)->first()
-        : null;
+    $currentMembership = $user && $tenant ? $user->memberships()->where('tenant_id', $tenant->id)->first() : null;
 @endphp
 
 <header class="app-header">
@@ -21,30 +18,34 @@
 
         <nav class="app-nav">
             @auth
-                @php
-                    $managementIsActive = collect($managementLinks)
-                        ->flatMap(fn($link) => $link['active'])
-                        ->contains(fn($pattern) => request()->routeIs($pattern));
-                @endphp
+                @if (count($managementLinks))
+                    @php
+                        $managementIsActive = collect($managementLinks)
+                            ->flatMap(fn($link) => $link['active'])
+                            ->contains(fn($pattern) => request()->routeIs($pattern));
+                    @endphp
 
-                <details class="app-nav-dropdown">
-                    <summary class="app-nav-link {{ $managementIsActive ? 'is-active' : '' }}">
-                        Gestión
-                    </summary>
+                    <details class="app-nav-dropdown">
+                        <summary class="app-nav-link {{ $managementIsActive ? 'is-active' : '' }}">
+                            Gestión
+                        </summary>
 
-                    <div class="app-nav-dropdown-menu">
-                        @foreach ($managementLinks as $link)
-                            @php
-                                $isActive = collect($link['active'])->contains(fn($pattern) => request()->routeIs($pattern));
-                            @endphp
+                        <div class="app-nav-dropdown-menu">
+                            @foreach ($managementLinks as $link)
+                                @php
+                                    $isActive = collect($link['active'])->contains(
+                                        fn($pattern) => request()->routeIs($pattern),
+                                    );
+                                @endphp
 
-                            <a class="app-nav-dropdown-link {{ $isActive ? 'is-active' : '' }}"
-                                href="{{ route($link['route']) }}">
-                                {{ $link['label'] }}
-                            </a>
-                        @endforeach
-                    </div>
-                </details>
+                                <a class="app-nav-dropdown-link {{ $isActive ? 'is-active' : '' }}"
+                                    href="{{ route($link['route']) }}">
+                                    {{ $link['label'] }}
+                                </a>
+                            @endforeach
+                        </div>
+                    </details>
+                @endif
 
                 @foreach ($mainLinks as $link)
                     @php

@@ -209,143 +209,146 @@
         @endif
 
         @if ($canSeeAnalytics)
-            <x-show-summary details-id="dashboard-analytics-detail" toggle-label="Ver análisis"
-                toggle-label-expanded="Ocultar análisis">
+            <x-card>
                 <div class="dashboard-section-header">
-                    <h2 class="dashboard-section-title">Indicadores clave</h2>
-                    <p class="dashboard-section-text">Resumen rápido de avance, apertura y demoras en proyectos visibles.
-                    </p>
+                    <h2 class="dashboard-section-title">Análisis operativo</h2>
+                    <p class="dashboard-section-text">Resumen visual de proyectos y tareas visibles para esta empresa.</p>
                 </div>
-                <x-show-summary-item label="Proyectos visibles">
-                    {{ $visible_projects_count }}
-                </x-show-summary-item>
 
-                <x-show-summary-item label="Tareas visibles">
-                    {{ $visible_tasks_count }}
-                </x-show-summary-item>
+                <x-show-summary details-id="dashboard-analytics-detail" toggle-label="Ver análisis"
+                    toggle-label-expanded="Ocultar análisis">
 
-                <x-show-summary-item label="Mis tareas vencidas">
-                    {{ $my_overdue_tasks_count }}
-                </x-show-summary-item>
+                    <x-show-summary-item label="Proyectos visibles">
+                        {{ $visible_projects_count }}
+                    </x-show-summary-item>
 
-                <x-slot:details>
-                    <div class="project-visual-detail">
-                        <div class="project-visual-grid">
-                            <div class="project-visual-card">
-                                <div class="project-visual-title">Estado de proyectos</div>
+                    <x-show-summary-item label="Tareas visibles">
+                        {{ $visible_tasks_count }}
+                    </x-show-summary-item>
 
-                                @if ($totalProjectStates > 0 && count($projectSegments) > 0)
-                                    <div class="project-pie-layout">
-                                        <div class="project-pie-chart-wrap">
-                                            <svg viewBox="0 0 42 42" class="project-pie-chart" aria-hidden="true">
-                                                <circle class="project-pie-track" cx="21" cy="21" r="15.9155">
-                                                </circle>
+                    <x-show-summary-item label="Mis tareas vencidas">
+                        {{ $my_overdue_tasks_count }}
+                    </x-show-summary-item>
 
-                                                @foreach ($projectSegments as $segment)
-                                                    <circle class="project-pie-segment {{ $segment['class'] }}"
-                                                        cx="21" cy="21" r="15.9155"
-                                                        stroke-dasharray="{{ $segment['dash'] }}"
-                                                        stroke-dashoffset="{{ $segment['offset'] }}"></circle>
-                                                @endforeach
-                                            </svg>
+                    <x-slot:details>
+                        <div class="project-visual-detail">
+                            <div class="project-visual-grid">
+                                <div class="project-visual-card">
+                                    <div class="project-visual-title">Estado de proyectos</div>
 
-                                            <div class="project-pie-center">
-                                                <strong>{{ $visible_projects_count }}</strong>
-                                                <span>proyectos</span>
+                                    @if ($totalProjectStates > 0 && count($projectSegments) > 0)
+                                        <div class="project-pie-layout">
+                                            <div class="project-pie-chart-wrap">
+                                                <svg viewBox="0 0 42 42" class="project-pie-chart" aria-hidden="true">
+                                                    <circle class="project-pie-track" cx="21" cy="21"
+                                                        r="15.9155"></circle>
+
+                                                    @foreach ($projectSegments as $segment)
+                                                        <circle class="project-pie-segment {{ $segment['class'] }}"
+                                                            cx="21" cy="21" r="15.9155"
+                                                            stroke-dasharray="{{ $segment['dash'] }}"
+                                                            stroke-dashoffset="{{ $segment['offset'] }}"></circle>
+                                                    @endforeach
+                                                </svg>
+
+                                                <div class="project-pie-center">
+                                                    <strong>{{ $visible_projects_count }}</strong>
+                                                    <span>proyectos</span>
+                                                </div>
+                                            </div>
+
+                                            <div class="project-pie-legend">
+                                                <div class="project-pie-legend-item">
+                                                    <span class="project-pie-dot project-pie-dot--done"></span>
+                                                    <span>Activos: {{ $active_projects_count }}</span>
+                                                </div>
+
+                                                <div class="project-pie-legend-item">
+                                                    <span class="project-pie-dot project-pie-dot--cancelled"></span>
+                                                    <span>Cerrados: {{ $closed_projects_count }}</span>
+                                                </div>
                                             </div>
                                         </div>
+                                    @else
+                                        <p class="mb-0">No hay proyectos suficientes para graficar.</p>
+                                    @endif
+                                </div>
 
-                                        <div class="project-pie-legend">
-                                            <div class="project-pie-legend-item">
-                                                <span class="project-pie-dot project-pie-dot--done"></span>
-                                                <span>Activos: {{ $active_projects_count }}</span>
+                                <div class="project-visual-card">
+                                    <div class="project-visual-title">Estado de tareas</div>
+
+                                    @if ($totalTaskStates > 0 && count($taskSegments) > 0)
+                                        <div class="project-pie-layout">
+                                            <div class="project-pie-chart-wrap">
+                                                <svg viewBox="0 0 42 42" class="project-pie-chart" aria-hidden="true">
+                                                    <circle class="project-pie-track" cx="21" cy="21"
+                                                        r="15.9155"></circle>
+
+                                                    @foreach ($taskSegments as $segment)
+                                                        <circle class="project-pie-segment {{ $segment['class'] }}"
+                                                            cx="21" cy="21" r="15.9155"
+                                                            stroke-dasharray="{{ $segment['dash'] }}"
+                                                            stroke-dashoffset="{{ $segment['offset'] }}"></circle>
+                                                    @endforeach
+                                                </svg>
+
+                                                <div class="project-pie-center">
+                                                    <strong>{{ $visible_tasks_count }}</strong>
+                                                    <span>tareas</span>
+                                                </div>
                                             </div>
 
-                                            <div class="project-pie-legend-item">
-                                                <span class="project-pie-dot project-pie-dot--cancelled"></span>
-                                                <span>Cerrados: {{ $closed_projects_count }}</span>
+                                            <div class="project-pie-legend">
+                                                <div class="project-pie-legend-item">
+                                                    <span class="project-pie-dot project-pie-dot--pending"></span>
+                                                    <span>Pendientes: {{ $pending_tasks_count }}</span>
+                                                </div>
+
+                                                <div class="project-pie-legend-item">
+                                                    <span class="project-pie-dot project-pie-dot--in-progress"></span>
+                                                    <span>En progreso: {{ $in_progress_tasks_count }}</span>
+                                                </div>
+
+                                                <div class="project-pie-legend-item">
+                                                    <span class="project-pie-dot project-pie-dot--done"></span>
+                                                    <span>Finalizadas: {{ $done_tasks_count }}</span>
+                                                </div>
+
+                                                <div class="project-pie-legend-item">
+                                                    <span class="project-pie-dot project-pie-dot--cancelled"></span>
+                                                    <span>Canceladas: {{ $cancelled_tasks_count }}</span>
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                @else
-                                    <p class="mb-0">No hay proyectos suficientes para graficar.</p>
-                                @endif
+                                    @else
+                                        <p class="mb-0">No hay tareas suficientes para graficar.</p>
+                                    @endif
+                                </div>
                             </div>
 
-                            <div class="project-visual-card">
-                                <div class="project-visual-title">Estado de tareas</div>
+                            <div class="project-visual-grid project-visual-grid--stats">
+                                <div class="project-visual-card">
+                                    <div class="project-visual-title">Proyectos con tareas abiertas</div>
+                                    <div class="project-visual-kpi">{{ $projects_with_open_tasks_count }}</div>
+                                    <div class="project-visual-note">Proyectos visibles aún en ejecución</div>
+                                </div>
 
-                                @if ($totalTaskStates > 0 && count($taskSegments) > 0)
-                                    <div class="project-pie-layout">
-                                        <div class="project-pie-chart-wrap">
-                                            <svg viewBox="0 0 42 42" class="project-pie-chart" aria-hidden="true">
-                                                <circle class="project-pie-track" cx="21" cy="21" r="15.9155">
-                                                </circle>
+                                <div class="project-visual-card">
+                                    <div class="project-visual-title">Proyectos con vencidas</div>
+                                    <div class="project-visual-kpi">{{ $projects_with_overdue_tasks_count }}</div>
+                                    <div class="project-visual-note">Proyectos visibles con tareas demoradas</div>
+                                </div>
 
-                                                @foreach ($taskSegments as $segment)
-                                                    <circle class="project-pie-segment {{ $segment['class'] }}"
-                                                        cx="21" cy="21" r="15.9155"
-                                                        stroke-dasharray="{{ $segment['dash'] }}"
-                                                        stroke-dashoffset="{{ $segment['offset'] }}"></circle>
-                                                @endforeach
-                                            </svg>
-
-                                            <div class="project-pie-center">
-                                                <strong>{{ $visible_tasks_count }}</strong>
-                                                <span>tareas</span>
-                                            </div>
-                                        </div>
-
-                                        <div class="project-pie-legend">
-                                            <div class="project-pie-legend-item">
-                                                <span class="project-pie-dot project-pie-dot--pending"></span>
-                                                <span>Pendientes: {{ $pending_tasks_count }}</span>
-                                            </div>
-
-                                            <div class="project-pie-legend-item">
-                                                <span class="project-pie-dot project-pie-dot--in-progress"></span>
-                                                <span>En progreso: {{ $in_progress_tasks_count }}</span>
-                                            </div>
-
-                                            <div class="project-pie-legend-item">
-                                                <span class="project-pie-dot project-pie-dot--done"></span>
-                                                <span>Finalizadas: {{ $done_tasks_count }}</span>
-                                            </div>
-
-                                            <div class="project-pie-legend-item">
-                                                <span class="project-pie-dot project-pie-dot--cancelled"></span>
-                                                <span>Canceladas: {{ $cancelled_tasks_count }}</span>
-                                            </div>
-                                        </div>
-                                    </div>
-                                @else
-                                    <p class="mb-0">No hay tareas suficientes para graficar.</p>
-                                @endif
+                                <div class="project-visual-card">
+                                    <div class="project-visual-title">Avance promedio</div>
+                                    <div class="project-visual-kpi">{{ $projects_average_progress }}%</div>
+                                    <div class="project-visual-note">Promedio simple entre proyectos visibles</div>
+                                </div>
                             </div>
                         </div>
-
-                        <div class="project-visual-grid project-visual-grid--stats">
-                            <div class="project-visual-card">
-                                <div class="project-visual-title">Proyectos con tareas abiertas</div>
-                                <div class="project-visual-kpi">{{ $projects_with_open_tasks_count }}</div>
-                                <div class="project-visual-note">Proyectos visibles aún en ejecución</div>
-                            </div>
-
-                            <div class="project-visual-card">
-                                <div class="project-visual-title">Proyectos con vencidas</div>
-                                <div class="project-visual-kpi">{{ $projects_with_overdue_tasks_count }}</div>
-                                <div class="project-visual-note">Proyectos visibles con tareas demoradas</div>
-                            </div>
-
-                            <div class="project-visual-card">
-                                <div class="project-visual-title">Avance promedio</div>
-                                <div class="project-visual-kpi">{{ $projects_average_progress }}%</div>
-                                <div class="project-visual-note">Promedio simple entre proyectos visibles</div>
-                            </div>
-                        </div>
-                    </div>
-                </x-slot:details>
-            </x-show-summary>
+                    </x-slot:details>
+                </x-show-summary>
+            </x-card>
         @endif
     </x-page>
 @endsection

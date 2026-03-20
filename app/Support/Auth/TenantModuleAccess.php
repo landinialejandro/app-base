@@ -1,5 +1,7 @@
 <?php
 
+// FILE: app/Support/Auth/TenantModuleAccess.php | V2
+
 namespace App\Support\Auth;
 
 use App\Models\Tenant;
@@ -43,7 +45,7 @@ class TenantModuleAccess
         $overrides = config('tenant_module_access.global', []);
 
         return is_array($overrides)
-            ? static::normalizeModuleMap($overrides)
+            ? static::filterValidModuleMap($overrides)
             : [];
     }
 
@@ -58,14 +60,14 @@ class TenantModuleAccess
         $overrides = [];
 
         if (isset($allTenantOverrides[$tenant->id]) && is_array($allTenantOverrides[$tenant->id])) {
-            $overrides = static::mergeModuleMap($overrides, $allTenantOverrides[$tenant->id]);
+            $overrides = static::mergeModuleMap($overrides, static::filterValidModuleMap($allTenantOverrides[$tenant->id]));
         }
 
         if (isset($tenant->slug) && isset($allTenantOverrides[$tenant->slug]) && is_array($allTenantOverrides[$tenant->slug])) {
-            $overrides = static::mergeModuleMap($overrides, $allTenantOverrides[$tenant->slug]);
+            $overrides = static::mergeModuleMap($overrides, static::filterValidModuleMap($allTenantOverrides[$tenant->slug]));
         }
 
-        return static::normalizeModuleMap($overrides);
+        return $overrides;
     }
 
     protected static function tenantSettingOverrides(Tenant $tenant): array
@@ -76,33 +78,20 @@ class TenantModuleAccess
             return [];
         }
 
-        /*
-        |--------------------------------------------------------------------------
-        | Compatibilidad actual
-        |--------------------------------------------------------------------------
-        |
-        | Se mantiene soporte a:
-        | - settings['enabled_modules']
-        |
-        | Y se deja listo soporte futuro más explícito:
-        | - settings['module_access']['enabled_modules']
-        |
-        */
-
         $legacyOverrides = $settings['enabled_modules'] ?? [];
         $nestedOverrides = data_get($settings, 'module_access.enabled_modules', []);
 
         $overrides = [];
 
         if (is_array($legacyOverrides)) {
-            $overrides = static::mergeModuleMap($overrides, $legacyOverrides);
+            $overrides = static::mergeModuleMap($overrides, static::filterValidModuleMap($legacyOverrides));
         }
 
         if (is_array($nestedOverrides)) {
-            $overrides = static::mergeModuleMap($overrides, $nestedOverrides);
+            $overrides = static::mergeModuleMap($overrides, static::filterValidModuleMap($nestedOverrides));
         }
 
-        return static::normalizeModuleMap($overrides);
+        return $overrides;
     }
 
     protected static function mergeModuleMap(array $base, array $overrides): array
@@ -116,6 +105,21 @@ class TenantModuleAccess
         }
 
         return $base;
+    }
+
+    protected static function filterValidModuleMap(array $modules): array
+    {
+        $filtered = [];
+
+        foreach ($modules as $module => $enabled) {
+            if (! in_array($module, ModuleCatalog::all(), true)) {
+                continue;
+            }
+
+            $filtered[$module] = (bool) $enabled;
+        }
+
+        return $filtered;
     }
 
     protected static function normalizeModuleMap(array $modules): array

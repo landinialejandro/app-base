@@ -1,5 +1,7 @@
 <?php
 
+// FILE: app/Support/Auth/TenantAccess.php
+
 namespace App\Support\Auth;
 
 use App\Models\Membership;

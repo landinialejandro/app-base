@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Auth/RolePermissionResolver.php | V1
+// FILE: app/Support/Auth/RolePermissionResolver.php
 
 namespace App\Support\Auth;
 

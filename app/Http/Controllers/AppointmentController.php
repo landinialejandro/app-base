@@ -140,13 +140,14 @@ class AppointmentController extends Controller
         $cursor = $gridStart->copy();
 
         while ($cursor->lte($gridEnd)) {
-            $week = [];
+            $weekStart = $cursor->copy();
+            $days = [];
 
             for ($i = 0; $i < 7; $i++) {
                 $date = $cursor->copy();
                 $dateKey = $date->toDateString();
 
-                $week[] = [
+                $days[] = [
                     'date' => $date,
                     'date_key' => $dateKey,
                     'is_current_month' => $date->month === $baseMonth->month,
@@ -157,7 +158,10 @@ class AppointmentController extends Controller
                 $cursor->addDay();
             }
 
-            $weeks[] = $week;
+            $weeks[] = [
+                'week_number' => $weekStart->isoWeek(),
+                'days' => $days,
+            ];
         }
 
         $previousMonth = $baseMonth->copy()->subMonthNoOverflow()->format('Y-m');

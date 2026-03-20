@@ -3,7 +3,11 @@
 @endphp
 
 <div class="appointment-calendar">
-    <div class="appointment-calendar-head">
+    <div class="appointment-calendar-head appointment-calendar-head--with-week">
+        <div class="appointment-calendar-weeknumber-head">
+            Sem.
+        </div>
+
         @foreach ($weekdays as $weekday)
             <div class="appointment-calendar-weekday">
                 {{ $weekday }}
@@ -11,9 +15,13 @@
         @endforeach
     </div>
 
-    <div class="appointment-calendar-body">
+    <div class="appointment-calendar-body appointment-calendar-body--with-week">
         @foreach ($weeks as $week)
-            @foreach ($week as $day)
+            <div class="appointment-calendar-weeknumber">
+                {{ $week['week_number'] }}
+            </div>
+
+            @foreach ($week['days'] as $day)
                 @include('appointments.partials.calendar-day-cell', ['day' => $day])
             @endforeach
         @endforeach

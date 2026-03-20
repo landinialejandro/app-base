@@ -1980,6 +1980,10 @@ textarea.form-control {
    Vista mensual operativa del módulo appointments
    ========================================================= */
 
+.appointment-calendar-card {
+    overflow-x: auto;
+}
+
 .appointment-calendar-card .card-body {
     padding: 0;
 }
@@ -1987,13 +1991,34 @@ textarea.form-control {
 .appointment-calendar {
     display: flex;
     flex-direction: column;
-    min-width: 980px;
+    min-width: 1080px;
 }
 
 .appointment-calendar-head {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
+    position: sticky;
+    top: 0;
+    z-index: 20;
+    background: var(--color-surface-muted);
     border-bottom: 1px solid var(--color-border);
+}
+
+.appointment-calendar-head--with-week {
+    display: grid;
+    grid-template-columns: 72px repeat(7, minmax(0, 1fr));
+}
+
+.appointment-calendar-weeknumber-head {
+    position: sticky;
+    left: 0;
+    z-index: 22;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.85rem 0.5rem;
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--color-muted);
+    border-right: 1px solid var(--color-border);
     background: var(--color-surface-muted);
 }
 
@@ -2003,15 +2028,32 @@ textarea.form-control {
     font-weight: 600;
     color: var(--color-muted);
     border-right: 1px solid var(--color-border);
+    background: var(--color-surface-muted);
 }
 
 .appointment-calendar-weekday:last-child {
     border-right: 0;
 }
 
-.appointment-calendar-body {
+.appointment-calendar-body--with-week {
     display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-columns: 72px repeat(7, minmax(0, 1fr));
+}
+
+.appointment-calendar-weeknumber {
+    position: sticky;
+    left: 0;
+    z-index: 12;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 0.9rem 0.5rem;
+    border-right: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface-muted);
+    font-size: 0.82rem;
+    font-weight: 700;
+    color: var(--color-muted);
 }
 
 .appointment-calendar-day {

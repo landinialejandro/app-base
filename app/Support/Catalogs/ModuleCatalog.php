@@ -20,6 +20,8 @@ class ModuleCatalog
 
     public const DOCUMENTS = 'documents';
 
+    public const APPOINTMENTS = 'appointments';
+
     protected static array $definitions = [
         self::DASHBOARD => [
             'label' => 'Dashboard',
@@ -42,6 +44,16 @@ class ModuleCatalog
                 'route' => 'tasks.index',
                 'active' => ['tasks.*'],
                 'order' => 10,
+            ],
+        ],
+
+        self::APPOINTMENTS => [
+            'label' => 'Turnos',
+            'nav' => [
+                'group' => 'main',
+                'route' => 'appointments.index',
+                'active' => ['appointments.*'],
+                'order' => 15,
             ],
         ],
 

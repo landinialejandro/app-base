@@ -1,9 +1,10 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderController.php | V4
+// FILE: app/Http/Controllers/OrderController.php | V5
 
 namespace App\Http\Controllers;
 
+use App\Models\Appointment;
 use App\Models\Asset;
 use App\Models\Order;
 use App\Models\Party;
@@ -84,6 +85,7 @@ class OrderController extends Controller
         $fromAsset = false;
         $prefilledKind = old('kind', OrderCatalog::KIND_SALE);
         $prefilledTask = null;
+        $prefilledAppointment = null;
 
         if ($request->filled('asset_id')) {
             $prefilledAsset = Asset::query()
@@ -120,6 +122,35 @@ class OrderController extends Controller
             $prefilledKind = OrderCatalog::KIND_SERVICE;
         }
 
+        if ($request->filled('appointment_id')) {
+            $prefilledAppointment = Appointment::query()
+                ->with('order')
+                ->where('id', $request->integer('appointment_id'))
+                ->where('tenant_id', $tenant->id)
+                ->whereNull('deleted_at')
+                ->firstOrFail();
+
+            if ($prefilledAppointment->order) {
+                return redirect()
+                    ->route('orders.show', $prefilledAppointment->order)
+                    ->with('success', 'El turno ya tiene una orden asociada.');
+            }
+
+            if ($prefilledAppointment->party_id) {
+                $prefilledPartyId = $prefilledAppointment->party_id;
+            }
+
+            if ($prefilledAppointment->asset_id) {
+                $prefilledAsset = Asset::query()
+                    ->where('id', $prefilledAppointment->asset_id)
+                    ->where('tenant_id', $tenant->id)
+                    ->whereNull('deleted_at')
+                    ->first();
+            }
+
+            $prefilledKind = OrderCatalog::KIND_SERVICE;
+        }
+
         return view('orders.create', compact(
             'parties',
             'assets',
@@ -128,6 +159,7 @@ class OrderController extends Controller
             'prefilledKind',
             'fromAsset',
             'prefilledTask',
+            'prefilledAppointment',
         ));
     }
 
@@ -164,6 +196,15 @@ class OrderController extends Controller
                         ->whereNull('deleted_at');
                 }),
                 Rule::unique('orders', 'task_id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)
+                        ->whereNull('deleted_at');
+                }),
+            ],
+
+            'appointment_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('appointments', 'id')->where(function ($query) use ($tenant) {
                     $query->where('tenant_id', $tenant->id)
                         ->whereNull('deleted_at');
                 }),
@@ -209,6 +250,9 @@ class OrderController extends Controller
 
         $data['ordered_at'] = $orderedAtDate->toDateString();
 
+        $appointmentId = $data['appointment_id'] ?? null;
+        unset($data['appointment_id']);
+
         $order = DB::transaction(function () use ($tenant, $data) {
             $sequence = DocumentNumberGenerator::generate(
                 tenantId: $tenant->id,
@@ -226,6 +270,21 @@ class OrderController extends Controller
 
             return Order::create($payload);
         });
+
+        if (! empty($appointmentId)) {
+            $appointment = Appointment::query()
+                ->where('id', $appointmentId)
+                ->where('tenant_id', $tenant->id)
+                ->whereNull('deleted_at')
+                ->firstOrFail();
+
+            if (empty($appointment->order_id)) {
+                $appointment->update([
+                    'order_id' => $order->id,
+                    'updated_by' => auth()->id(),
+                ]);
+            }
+        }
 
         return redirect()
             ->route('orders.show', $order)

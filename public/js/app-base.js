@@ -534,16 +534,215 @@
             });
     };
 
+    const bindAppointmentPartyAssetSync = () => {
+        document
+            .querySelectorAll(
+                '[data-action~="app-appointment-party-asset-sync"]',
+            )
+            .forEach((root) => {
+                if (root.dataset.appAppointmentPartyAssetSyncBound === "1") {
+                    return;
+                }
+
+                root.dataset.appAppointmentPartyAssetSyncBound = "1";
+
+                const partySelect = root.querySelector("#party_id");
+                const assetSelect = root.querySelector("#asset_id");
+                const startField = root.querySelector("#starts_at");
+                const endField = root.querySelector("#ends_at");
+
+                if (!partySelect || !assetSelect) {
+                    return;
+                }
+
+                const assetOptions = Array.from(assetSelect.options).map(
+                    (option) => ({
+                        value: option.value,
+                        label: option.textContent,
+                        partyId: option.dataset.partyId || "",
+                    }),
+                );
+
+                const rebuildAssets = (partyId, selectedValue = "") => {
+                    assetSelect.innerHTML = "";
+
+                    const emptyOption = document.createElement("option");
+                    emptyOption.value = "";
+                    emptyOption.textContent = "Sin activo asociado";
+                    assetSelect.appendChild(emptyOption);
+
+                    const matchingAssets = assetOptions.filter((option) => {
+                        if (!option.value) {
+                            return false;
+                        }
+
+                        if (!partyId) {
+                            return true;
+                        }
+
+                        return option.partyId === partyId;
+                    });
+
+                    matchingAssets.forEach((optionData) => {
+                        const option = document.createElement("option");
+                        option.value = optionData.value;
+                        option.textContent = optionData.label;
+                        option.dataset.partyId = optionData.partyId;
+
+                        if (
+                            selectedValue &&
+                            selectedValue === optionData.value
+                        ) {
+                            option.selected = true;
+                        }
+
+                        assetSelect.appendChild(option);
+                    });
+
+                    return matchingAssets;
+                };
+
+                const syncAssetsFromParty = () => {
+                    const partyId = partySelect.value;
+                    const currentAssetValue = assetSelect.value;
+
+                    const matchingAssets = rebuildAssets(
+                        partyId,
+                        currentAssetValue,
+                    );
+
+                    if (!partyId) {
+                        return;
+                    }
+
+                    if (matchingAssets.length === 1) {
+                        assetSelect.value = matchingAssets[0].value;
+                    }
+                };
+
+                const syncPartyFromAsset = () => {
+                    const selectedOption =
+                        assetSelect.options[assetSelect.selectedIndex];
+
+                    if (!selectedOption || !selectedOption.value) {
+                        return;
+                    }
+
+                    const assetPartyId = selectedOption.dataset.partyId || "";
+
+                    if (!assetPartyId) {
+                        return;
+                    }
+
+                    partySelect.value = assetPartyId;
+                    rebuildAssets(assetPartyId, selectedOption.value);
+                    assetSelect.value = selectedOption.value;
+                };
+
+                const fillEndAtFromStartAt = () => {
+                    if (!startField || !endField) {
+                        return;
+                    }
+
+                    if (!startField.value || endField.value) {
+                        return;
+                    }
+
+                    const startDate = new Date(startField.value);
+
+                    if (Number.isNaN(startDate.getTime())) {
+                        return;
+                    }
+
+                    const endDate = new Date(
+                        startDate.getTime() + 2 * 60 * 60 * 1000,
+                    );
+
+                    const pad = (value) => String(value).padStart(2, "0");
+
+                    const formatted =
+                        [
+                            endDate.getFullYear(),
+                            pad(endDate.getMonth() + 1),
+                            pad(endDate.getDate()),
+                        ].join("-") +
+                        "T" +
+                        [
+                            pad(endDate.getHours()),
+                            pad(endDate.getMinutes()),
+                        ].join(":");
+
+                    endField.value = formatted;
+                };
+
+                partySelect.addEventListener("change", syncAssetsFromParty);
+                assetSelect.addEventListener("change", syncPartyFromAsset);
+
+                if (startField && endField) {
+                    startField.addEventListener("change", fillEndAtFromStartAt);
+                }
+
+                if (assetSelect.value) {
+                    syncPartyFromAsset();
+                } else {
+                    syncAssetsFromParty();
+                }
+            });
+    };
+
+    const bindAppointmentKindSync = () => {
+        document
+            .querySelectorAll('[data-action~="app-appointment-kind-sync"]')
+            .forEach((root) => {
+                if (root.dataset.appAppointmentKindSyncBound === "1") {
+                    return;
+                }
+
+                root.dataset.appAppointmentKindSyncBound = "1";
+
+                const kindField = root.querySelector("#kind");
+                const workModeField = root.querySelector("#work_mode");
+                const referenceLabel = root.querySelector(
+                    "#workstation_name_label",
+                );
+
+                if (!kindField || !workModeField || !referenceLabel) {
+                    return;
+                }
+
+                const applyKindRules = () => {
+                    const kind = kindField.value;
+
+                    if (kind === "service") {
+                        workModeField.value = "in_shop";
+                        referenceLabel.textContent = "Ubicación en taller";
+                    } else if (kind === "visit") {
+                        workModeField.value = "on_site";
+                        referenceLabel.textContent = "Dirección";
+                    } else if (kind === "block") {
+                        referenceLabel.textContent = "Referencia";
+                    } else {
+                        referenceLabel.textContent = "Referencia";
+                    }
+                };
+
+                kindField.addEventListener("change", applyKindRules);
+                applyKindRules();
+            });
+    };
+
     const initAppBase = () => {
         bindConfirmSubmit();
         bindSelectOnClick();
         bindCopyTarget();
         bindCopyValue();
         bindPartyAssetSync();
+        bindAppointmentPartyAssetSync();
         bindProductAutofill();
         bindAlerts();
         bindTabs();
         bindToggleDetails();
+        bindAppointmentKindSync();
     };
 
     bindDropdowns();

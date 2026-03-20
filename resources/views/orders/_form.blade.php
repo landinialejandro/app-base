@@ -12,6 +12,13 @@
     $prefilledTask = $prefilledTask ?? null;
     $prefilledKind = $prefilledKind ?? old('kind', $order->kind ?? OrderCatalog::KIND_SALE);
 
+    $prefilledAppointment = $prefilledAppointment ?? null;
+    $currentAppointmentId = old('appointment_id', $prefilledAppointment?->id ?? '');
+    $currentAppointmentLabel = $prefilledAppointment
+        ? ($prefilledAppointment->title ?:
+        'Turno #' . $prefilledAppointment->id)
+        : '';
+
     $lockedByExistingAsset = $orderExists && !empty($order->asset_id);
     $lockPartyAndAsset = $fromAsset || $lockedByExistingAsset;
 
@@ -28,6 +35,18 @@
             <input type="hidden" name="task_id" value="{{ $currentTaskId }}">
             <div class="form-help">Cada tarea puede tener una sola orden asociada.</div>
             @error('task_id')
+                <div class="form-help is-error">{{ $message }}</div>
+            @enderror
+        </div>
+    @endif
+
+    @if ($currentAppointmentId)
+        <div class="form-group">
+            <label class="form-label">Turno origen</label>
+            <input type="text" class="form-control" value="{{ $currentAppointmentLabel }}" disabled>
+            <input type="hidden" name="appointment_id" value="{{ $currentAppointmentId }}">
+            <div class="form-help">La orden quedará asociada al turno desde el cual fue creada.</div>
+            @error('appointment_id')
                 <div class="form-help is-error">{{ $message }}</div>
             @enderror
         </div>

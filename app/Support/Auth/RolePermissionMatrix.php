@@ -127,6 +127,57 @@ class RolePermissionMatrix
                 ],
             ],
 
+            ModuleCatalog::APPOINTMENTS => [
+                RoleCatalog::OWNER => [
+                    'module_access' => true,
+                    'record_visibility' => 'tenant_all',
+                    'actions' => [
+                        'view_any' => true,
+                        'view' => true,
+                        'create' => true,
+                        'update' => 'all',
+                        'delete' => true,
+                    ],
+                    'type_restrictions' => ['*'],
+                ],
+                RoleCatalog::ADMIN => [
+                    'module_access' => true,
+                    'record_visibility' => 'tenant_all',
+                    'actions' => [
+                        'view_any' => true,
+                        'view' => true,
+                        'create' => true,
+                        'update' => 'all',
+                        'delete' => true,
+                    ],
+                    'type_restrictions' => ['*'],
+                ],
+                RoleCatalog::SALES => [
+                    'module_access' => true,
+                    'record_visibility' => 'tenant_all',
+                    'actions' => [
+                        'view_any' => true,
+                        'view' => true,
+                        'create' => true,
+                        'update' => 'own_assigned',
+                        'delete' => false,
+                    ],
+                    'type_restrictions' => ['*'],
+                ],
+                RoleCatalog::OPERATOR => [
+                    'module_access' => true,
+                    'record_visibility' => 'tenant_all',
+                    'actions' => [
+                        'view_any' => true,
+                        'view' => true,
+                        'create' => true,
+                        'update' => 'own_assigned',
+                        'delete' => false,
+                    ],
+                    'type_restrictions' => ['*'],
+                ],
+            ],
+
             ModuleCatalog::PARTIES => [
                 RoleCatalog::OWNER => [
                     'module_access' => true,

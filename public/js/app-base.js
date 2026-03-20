@@ -731,6 +731,32 @@
             });
     };
 
+    const bindAppointmentWeekAutoScroll = () => {
+        document
+            .querySelectorAll("[data-appointment-week-scroll]")
+            .forEach((scrollRoot) => {
+                if (
+                    scrollRoot.dataset.appAppointmentWeekAutoScrollBound === "1"
+                ) {
+                    return;
+                }
+
+                scrollRoot.dataset.appAppointmentWeekAutoScrollBound = "1";
+
+                const todayColumn = scrollRoot.querySelector(
+                    "[data-calendar-today-column]",
+                );
+
+                if (!todayColumn) {
+                    return;
+                }
+
+                const targetLeft = Math.max(todayColumn.offsetLeft - 12, 0);
+
+                scrollRoot.scrollLeft = targetLeft;
+            });
+    };
+
     const initAppBase = () => {
         bindConfirmSubmit();
         bindSelectOnClick();
@@ -743,6 +769,7 @@
         bindTabs();
         bindToggleDetails();
         bindAppointmentKindSync();
+        bindAppointmentWeekAutoScroll();
     };
 
     bindDropdowns();

@@ -2213,6 +2213,24 @@ textarea.form-control {
         var(--color-surface-muted);
 }
 
+.appointment-calendar--week {
+    min-width: 1540px;
+}
+
+.appointment-calendar--week .appointment-calendar-head {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(220px, 1fr));
+}
+
+.appointment-calendar-body--week {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(220px, 1fr));
+}
+
+.appointment-calendar-body--week .appointment-calendar-day {
+    min-height: 320px;
+}
+
 .appointment-calendar-day.is-past-day .appointment-calendar-day-number,
 .appointment-calendar-day.is-past-day .appointment-calendar-day-summary,
 .appointment-calendar-day.is-past-day .appointment-calendar-empty,

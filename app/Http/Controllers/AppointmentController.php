@@ -75,9 +75,10 @@ class AppointmentController extends Controller
             ->when($status, fn ($query) => $query->where('status', $status))
             ->when($scheduledDate, fn ($query) => $query->whereDate('scheduled_date', $scheduledDate))
             ->orderBy('scheduled_date')
+            ->orderByDesc('is_all_day')
             ->orderByRaw('CASE WHEN starts_at IS NULL THEN 1 ELSE 0 END')
             ->orderBy('starts_at')
-            ->orderBy('id')
+            ->orderBy('created_at')
             ->paginate(10)
             ->withQueryString();
 
@@ -98,9 +99,75 @@ class AppointmentController extends Controller
         $scope = $this->resolveCalendarScope($request);
         $assignedUserId = $request->get('assigned_user_id');
         $status = $request->get('status');
+        $view = $this->resolveCalendarView((string) $request->get('view', 'month'));
 
-        $monthInput = (string) $request->get('month', now()->format('Y-m'));
-        $baseMonth = $this->resolveCalendarMonth($monthInput);
+        $baseDate = $this->resolveCalendarDate((string) $request->get('date', now()->toDateString()));
+        $baseMonth = $this->resolveCalendarMonth((string) $request->get('month', now()->format('Y-m')));
+
+        if ($view === 'week') {
+            $weekStart = $baseDate->copy()->startOfWeek(Carbon::MONDAY);
+            $weekEnd = $baseDate->copy()->endOfWeek(Carbon::SUNDAY);
+
+            $users = User::query()
+                ->whereHas('memberships', function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)
+                        ->where('status', 'active');
+                })
+                ->orderBy('name')
+                ->get();
+
+            $appointments = Appointment::query()
+                ->with(['party', 'asset', 'order', 'assignedUser'])
+                ->whereBetween('scheduled_date', [
+                    $weekStart->toDateString(),
+                    $weekEnd->toDateString(),
+                ])
+                ->when($scope === 'mine', function ($query) {
+                    $query->where('assigned_user_id', auth()->id());
+                })
+                ->when($assignedUserId, fn ($query) => $query->where('assigned_user_id', $assignedUserId))
+                ->when($status, fn ($query) => $query->where('status', $status))
+                ->orderBy('scheduled_date')
+                ->orderByRaw('CASE WHEN starts_at IS NULL THEN 1 ELSE 0 END')
+                ->orderBy('starts_at')
+                ->orderBy('id')
+                ->get();
+
+            $appointmentsByDate = $appointments
+                ->groupBy(fn (Appointment $appointment) => $appointment->scheduled_date?->toDateString());
+
+            $days = [];
+            $cursor = $weekStart->copy();
+
+            while ($cursor->lte($weekEnd)) {
+                $date = $cursor->copy();
+                $dateKey = $date->toDateString();
+
+                $days[] = [
+                    'date' => $date,
+                    'date_key' => $dateKey,
+                    'is_current_month' => true,
+                    'is_today' => $date->isToday(),
+                    'appointments' => $appointmentsByDate->get($dateKey, collect()),
+                ];
+
+                $cursor->addDay();
+            }
+
+            return view('appointments.calendar', [
+                'viewMode' => 'week',
+                'days' => $days,
+                'users' => $users,
+                'scope' => $scope,
+                'selectedAssignedUserId' => $assignedUserId,
+                'selectedStatus' => $status,
+                'currentDate' => $baseDate,
+                'currentWeekStart' => $weekStart,
+                'currentWeekEnd' => $weekEnd,
+                'previousDate' => $weekStart->copy()->subWeek()->toDateString(),
+                'nextDate' => $weekStart->copy()->addWeek()->toDateString(),
+            ]);
+        }
 
         $monthStart = $baseMonth->copy()->startOfMonth();
         $monthEnd = $baseMonth->copy()->endOfMonth();
@@ -168,6 +235,7 @@ class AppointmentController extends Controller
         $nextMonth = $baseMonth->copy()->addMonthNoOverflow()->format('Y-m');
 
         return view('appointments.calendar', [
+            'viewMode' => 'month',
             'weeks' => $weeks,
             'users' => $users,
             'scope' => $scope,
@@ -503,6 +571,24 @@ class AppointmentController extends Controller
         }
 
         return in_array($scope, ['mine', 'all'], true) ? $scope : 'mine';
+    }
+
+    protected function resolveCalendarView(string $view): string
+    {
+        return in_array($view, ['month', 'week'], true) ? $view : 'month';
+    }
+
+    protected function resolveCalendarDate(string $dateInput): Carbon
+    {
+        if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $dateInput) !== 1) {
+            return now()->startOfDay();
+        }
+
+        try {
+            return Carbon::createFromFormat('Y-m-d', $dateInput)->startOfDay();
+        } catch (\Throwable $e) {
+            return now()->startOfDay();
+        }
     }
 
     protected function resolveCalendarMonth(string $monthInput): Carbon

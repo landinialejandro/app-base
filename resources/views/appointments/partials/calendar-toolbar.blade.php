@@ -1,41 +1,86 @@
 @php
     use App\Support\Catalogs\AppointmentCatalog;
 
-    $queryBase = request()->except('month', 'page');
+    $viewMode = $viewMode ?? 'month';
+
+    if ($viewMode === 'week') {
+        $queryBase = request()->except('date', 'month', 'page');
+    } else {
+        $queryBase = request()->except('month', 'date', 'page');
+    }
 @endphp
 
 <x-list-filters-card :action="route('appointments.calendar')" secondary-id="appointments-calendar-extra-filters">
     <x-slot:primary>
         <div class="list-filters-grid">
             <div class="form-group">
-                <label class="form-label">Mes</label>
+                <label class="form-label">Vista</label>
 
                 <div class="calendar-nav">
-                    <a href="{{ route('appointments.calendar', array_merge($queryBase, ['month' => $previousMonth])) }}"
-                        class="btn btn-secondary" title="Mes anterior" aria-label="Mes anterior">
-                        <x-icons.chevron-left />
+                    <a href="{{ route('appointments.calendar', array_merge(request()->except('page', 'date', 'month'), ['view' => 'month', 'month' => now()->format('Y-m')])) }}"
+                        class="btn {{ $viewMode === 'month' ? 'btn-primary' : 'btn-secondary' }}">
+                        Mensual
                     </a>
 
-                    <div class="calendar-nav-current">
-                        {{ $currentMonth->translatedFormat('F Y') }}
-                    </div>
-
-                    <a href="{{ route('appointments.calendar', array_merge($queryBase, ['month' => $nextMonth])) }}"
-                        class="btn btn-secondary" title="Mes siguiente" aria-label="Mes siguiente">
-                        <x-icons.chevron-right />
-                    </a>
-                </div>
-
-                <div class="calendar-nav-today">
-                    <a
-                        href="{{ route('appointments.calendar', array_merge($queryBase, ['month' => now()->format('Y-m')])) }}">
-                        Ir a hoy
+                    <a href="{{ route('appointments.calendar', array_merge(request()->except('page', 'date', 'month'), ['view' => 'week', 'date' => now()->toDateString()])) }}"
+                        class="btn {{ $viewMode === 'week' ? 'btn-primary' : 'btn-secondary' }}">
+                        Semanal
                     </a>
                 </div>
             </div>
 
             <div class="form-group">
-                <label for="scope" class="form-label">Vista</label>
+                <label class="form-label">{{ $viewMode === 'week' ? 'Semana' : 'Mes' }}</label>
+
+                <div class="calendar-nav">
+                    @if ($viewMode === 'week')
+                        <a href="{{ route('appointments.calendar', array_merge($queryBase, ['view' => 'week', 'date' => $previousDate])) }}"
+                            class="btn btn-secondary" title="Semana anterior" aria-label="Semana anterior">
+                            <x-icons.chevron-left />
+                        </a>
+
+                        <div class="calendar-nav-current">
+                            {{ $currentWeekStart->format('d/m/Y') }} - {{ $currentWeekEnd->format('d/m/Y') }}
+                        </div>
+
+                        <a href="{{ route('appointments.calendar', array_merge($queryBase, ['view' => 'week', 'date' => $nextDate])) }}"
+                            class="btn btn-secondary" title="Semana siguiente" aria-label="Semana siguiente">
+                            <x-icons.chevron-right />
+                        </a>
+                    @else
+                        <a href="{{ route('appointments.calendar', array_merge($queryBase, ['view' => 'month', 'month' => $previousMonth])) }}"
+                            class="btn btn-secondary" title="Mes anterior" aria-label="Mes anterior">
+                            <x-icons.chevron-left />
+                        </a>
+
+                        <div class="calendar-nav-current">
+                            {{ $currentMonth->translatedFormat('F Y') }}
+                        </div>
+
+                        <a href="{{ route('appointments.calendar', array_merge($queryBase, ['view' => 'month', 'month' => $nextMonth])) }}"
+                            class="btn btn-secondary" title="Mes siguiente" aria-label="Mes siguiente">
+                            <x-icons.chevron-right />
+                        </a>
+                    @endif
+                </div>
+
+                <div class="calendar-nav-today">
+                    @if ($viewMode === 'week')
+                        <a
+                            href="{{ route('appointments.calendar', array_merge($queryBase, ['view' => 'week', 'date' => now()->toDateString()])) }}">
+                            Ir a hoy
+                        </a>
+                    @else
+                        <a
+                            href="{{ route('appointments.calendar', array_merge($queryBase, ['view' => 'month', 'month' => now()->format('Y-m')])) }}">
+                            Ir a hoy
+                        </a>
+                    @endif
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="scope" class="form-label">Vista operativa</label>
                 <select id="scope" name="scope" class="form-control">
                     <option value="mine" @selected($scope === 'mine')>Mis turnos</option>
                     <option value="all" @selected($scope === 'all')>Todos los turnos</option>
@@ -45,7 +90,13 @@
     </x-slot:primary>
 
     <x-slot:secondary>
-        <input type="hidden" name="month" value="{{ $currentMonth->format('Y-m') }}">
+        <input type="hidden" name="view" value="{{ $viewMode }}">
+
+        @if ($viewMode === 'week')
+            <input type="hidden" name="date" value="{{ $currentDate->toDateString() }}">
+        @else
+            <input type="hidden" name="month" value="{{ $currentMonth->format('Y-m') }}">
+        @endif
 
         <div class="list-filters-grid">
             <div class="form-group">

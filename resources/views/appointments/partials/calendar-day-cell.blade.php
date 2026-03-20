@@ -2,7 +2,8 @@
     use App\Support\Catalogs\AppointmentCatalog;
 
     $appointments = $day['appointments'];
-    $visibleAppointments = $appointments->take(4);
+    $maxVisibleAppointments = $maxVisibleAppointments ?? 4;
+    $visibleAppointments = $appointments->take($maxVisibleAppointments);
     $remainingCount = max($appointments->count() - $visibleAppointments->count(), 0);
     $isPastDay = $day['date']
         ->copy()

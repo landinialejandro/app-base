@@ -29,16 +29,30 @@
             'scope' => $scope,
             'selectedAssignedUserId' => $selectedAssignedUserId,
             'selectedStatus' => $selectedStatus,
-            'currentMonth' => $currentMonth,
-            'previousMonth' => $previousMonth,
-            'nextMonth' => $nextMonth,
+            'viewMode' => $viewMode,
+            'currentMonth' => $currentMonth ?? null,
+            'previousMonth' => $previousMonth ?? null,
+            'nextMonth' => $nextMonth ?? null,
+            'currentDate' => $currentDate ?? null,
+            'currentWeekStart' => $currentWeekStart ?? null,
+            'currentWeekEnd' => $currentWeekEnd ?? null,
+            'previousDate' => $previousDate ?? null,
+            'nextDate' => $nextDate ?? null,
         ])
 
         <x-card class="list-card appointment-calendar-card">
-            @include('appointments.partials.calendar-grid', [
-                'weeks' => $weeks,
-                'currentMonth' => $currentMonth,
-            ])
+            @if ($viewMode === 'week')
+                @include('appointments.partials.calendar-week-grid', [
+                    'days' => $days,
+                    'currentWeekStart' => $currentWeekStart,
+                    'currentWeekEnd' => $currentWeekEnd,
+                ])
+            @else
+                @include('appointments.partials.calendar-grid', [
+                    'weeks' => $weeks,
+                    'currentMonth' => $currentMonth,
+                ])
+            @endif
         </x-card>
     </x-page>
 @endsection

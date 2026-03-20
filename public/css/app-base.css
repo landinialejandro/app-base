@@ -1,5 +1,5 @@
 /* =========================================================
-   FILE: public/css/app-base.css | V1
+   FILE: public/css/app-base.css | V2
    app-base - CSS global mínimo
    Base visual común para todo el sistema
    ========================================================= */
@@ -12,12 +12,16 @@
 :root {
     --color-bg: #f5f7fb;
     --color-surface: #ffffff;
+    --color-surface-muted: #f8fafc;
     --color-border: #d9e1ec;
     --color-text: #1f2937;
     --color-muted: #6b7280;
+    --color-text-muted: #6b7280;
 
     --color-primary: #2563eb;
     --color-primary-hover: #1d4ed8;
+    --color-primary-soft: rgba(37, 99, 235, 0.12);
+    --color-primary-strong: #1d4ed8;
 
     --color-secondary: #e5e7eb;
     --color-secondary-hover: #d1d5db;
@@ -36,6 +40,7 @@
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
 
     --radius: 8px;
+    --radius-md: 8px;
 
     --space-1: 0.25rem;
     --space-2: 0.5rem;
@@ -578,7 +583,10 @@ a:hover {
    ========================================================= */
 
 .btn {
-    display: inline-block;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
     border: 1px solid transparent;
     border-radius: 6px;
     padding: 0.625rem 1rem;
@@ -587,6 +595,8 @@ a:hover {
     cursor: pointer;
     text-decoration: none;
     line-height: 1.2;
+    font-family: inherit;
+    white-space: nowrap;
 }
 
 .btn:hover {
@@ -632,6 +642,12 @@ a:hover {
     background: transparent;
     color: var(--color-primary);
     font-weight: 600;
+}
+
+.btn.disabled,
+.btn[aria-disabled="true"] {
+    opacity: 0.6;
+    pointer-events: none;
 }
 
 /* =========================================================
@@ -1960,7 +1976,187 @@ textarea.form-control {
 }
 
 /* =========================================================
-   22. Utilidades mínimas
+   22. Calendario mensual de appointments
+   Vista mensual operativa del módulo appointments
+   ========================================================= */
+
+.appointment-calendar-card .card-body {
+    padding: 0;
+}
+
+.appointment-calendar {
+    display: flex;
+    flex-direction: column;
+    min-width: 980px;
+}
+
+.appointment-calendar-head {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface-muted);
+}
+
+.appointment-calendar-weekday {
+    padding: 0.85rem 1rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-muted);
+    border-right: 1px solid var(--color-border);
+}
+
+.appointment-calendar-weekday:last-child {
+    border-right: 0;
+}
+
+.appointment-calendar-body {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(0, 1fr));
+}
+
+.appointment-calendar-day {
+    min-height: 180px;
+    padding: 0.75rem;
+    border-right: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.appointment-calendar-day.is-outside-month {
+    background: var(--color-surface-muted);
+    opacity: 0.72;
+}
+
+.appointment-calendar-day.is-today {
+    background: rgba(37, 99, 235, 0.06);
+}
+
+.appointment-calendar-day-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.appointment-calendar-day-number {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.appointment-calendar-day-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.appointment-calendar-add {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.7rem;
+    height: 1.7rem;
+    border-radius: 999px;
+    text-decoration: none;
+    color: inherit;
+    background: var(--color-surface-muted);
+    border: 1px solid var(--color-border);
+}
+
+.appointment-calendar-add:hover {
+    background: var(--color-secondary);
+    text-decoration: none;
+}
+
+.appointment-calendar-day-summary {
+    font-size: 0.78rem;
+    color: var(--color-muted);
+}
+
+.appointment-calendar-day-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.appointment-calendar-item {
+    display: block;
+    padding: 0.55rem 0.6rem;
+    border-radius: 0.75rem;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+}
+
+.appointment-calendar-item:hover {
+    background: var(--color-surface-muted);
+    text-decoration: none;
+}
+
+.appointment-calendar-item-time {
+    font-size: 0.72rem;
+    color: var(--color-muted);
+    margin-bottom: 0.2rem;
+}
+
+.appointment-calendar-item-title {
+    font-size: 0.84rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--color-text);
+}
+
+.appointment-calendar-item-meta {
+    margin-top: 0.15rem;
+    font-size: 0.75rem;
+    color: var(--color-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.appointment-calendar-empty,
+.appointment-calendar-more {
+    font-size: 0.78rem;
+    color: var(--color-muted);
+}
+
+.calendar-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.calendar-nav-current {
+    min-width: 11rem;
+    font-weight: 600;
+    color: var(--color-text);
+    text-transform: capitalize;
+}
+
+.calendar-nav-today {
+    margin-top: 0.35rem;
+    font-size: 0.82rem;
+}
+
+.status-accent-scheduled {
+    border-left: 4px solid #f59e0b;
+}
+
+.status-accent-completed {
+    border-left: 4px solid #10b981;
+}
+
+.status-accent-cancelled {
+    border-left: 4px solid #ef4444;
+}
+
+/* =========================================================
+   23. Utilidades mínimas
    ========================================================= */
 
 .mt-0 {
@@ -2017,9 +2213,15 @@ textarea.form-control {
 }
 
 /* =========================================================
-   23. Responsive general
+   24. Responsive general
    Ajustes básicos para layout y header
    ========================================================= */
+
+@media (max-width: 1100px) {
+    .appointment-calendar-card {
+        overflow-x: auto;
+    }
+}
 
 @media (max-width: 900px) {
     .app-header-inner {

@@ -12,6 +12,10 @@
         <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Turnos']]" />
 
         <x-page-header title="Turnos">
+            <a href="{{ route('appointments.calendar') }}" class="btn btn-secondary">
+                Ver calendario
+            </a>
+
             <a href="{{ route('appointments.create') }}" class="btn btn-primary">
                 Nuevo turno
             </a>

@@ -1,5 +1,7 @@
 <?php
 
+// FILE: app/Support/Auth/RecordVisibility.php | V1
+
 namespace App\Support\Auth;
 
 use App\Models\Project;

@@ -1,5 +1,7 @@
 <?php
 
+// FILE: app/Http/Controllers/AppointmentController.php | V2
+
 namespace App\Http\Controllers;
 
 use App\Models\Appointment;
@@ -85,6 +87,92 @@ class AppointmentController extends Controller
             'parties',
             'scope'
         ));
+    }
+
+    public function calendar(Request $request)
+    {
+        $tenant = app('tenant');
+
+        $this->authorize('viewAny', Appointment::class);
+
+        $scope = $this->resolveCalendarScope($request);
+        $assignedUserId = $request->get('assigned_user_id');
+        $status = $request->get('status');
+
+        $monthInput = (string) $request->get('month', now()->format('Y-m'));
+        $baseMonth = $this->resolveCalendarMonth($monthInput);
+
+        $monthStart = $baseMonth->copy()->startOfMonth();
+        $monthEnd = $baseMonth->copy()->endOfMonth();
+
+        $gridStart = $monthStart->copy()->startOfWeek(Carbon::MONDAY);
+        $gridEnd = $monthEnd->copy()->endOfWeek(Carbon::SUNDAY);
+
+        $users = User::query()
+            ->whereHas('memberships', function ($query) use ($tenant) {
+                $query->where('tenant_id', $tenant->id)
+                    ->where('status', 'active');
+            })
+            ->orderBy('name')
+            ->get();
+
+        $appointments = Appointment::query()
+            ->with(['party', 'asset', 'order', 'assignedUser'])
+            ->whereBetween('scheduled_date', [
+                $gridStart->toDateString(),
+                $gridEnd->toDateString(),
+            ])
+            ->when($scope === 'mine', function ($query) {
+                $query->where('assigned_user_id', auth()->id());
+            })
+            ->when($assignedUserId, fn ($query) => $query->where('assigned_user_id', $assignedUserId))
+            ->when($status, fn ($query) => $query->where('status', $status))
+            ->orderBy('scheduled_date')
+            ->orderByRaw('CASE WHEN starts_at IS NULL THEN 1 ELSE 0 END')
+            ->orderBy('starts_at')
+            ->orderBy('id')
+            ->get();
+
+        $appointmentsByDate = $appointments
+            ->groupBy(fn (Appointment $appointment) => $appointment->scheduled_date?->toDateString());
+
+        $weeks = [];
+        $cursor = $gridStart->copy();
+
+        while ($cursor->lte($gridEnd)) {
+            $week = [];
+
+            for ($i = 0; $i < 7; $i++) {
+                $date = $cursor->copy();
+                $dateKey = $date->toDateString();
+
+                $week[] = [
+                    'date' => $date,
+                    'date_key' => $dateKey,
+                    'is_current_month' => $date->month === $baseMonth->month,
+                    'is_today' => $date->isToday(),
+                    'appointments' => $appointmentsByDate->get($dateKey, collect()),
+                ];
+
+                $cursor->addDay();
+            }
+
+            $weeks[] = $week;
+        }
+
+        $previousMonth = $baseMonth->copy()->subMonthNoOverflow()->format('Y-m');
+        $nextMonth = $baseMonth->copy()->addMonthNoOverflow()->format('Y-m');
+
+        return view('appointments.calendar', [
+            'weeks' => $weeks,
+            'users' => $users,
+            'scope' => $scope,
+            'selectedAssignedUserId' => $assignedUserId,
+            'selectedStatus' => $status,
+            'currentMonth' => $baseMonth,
+            'previousMonth' => $previousMonth,
+            'nextMonth' => $nextMonth,
+        ]);
     }
 
     public function create()
@@ -389,6 +477,38 @@ class AppointmentController extends Controller
                 'starts_at' => 'El colaborador ya tiene otro turno que se superpone en ese horario.',
                 'ends_at' => 'El colaborador ya tiene otro turno que se superpone en ese horario.',
             ]);
+        }
+    }
+
+    protected function resolveCalendarScope(Request $request): string
+    {
+        $scope = $request->get('scope', 'mine');
+
+        $resolver = app(\App\Support\Auth\RolePermissionResolver::class);
+        $updateScope = $resolver->actionScope(
+            \App\Support\Catalogs\ModuleCatalog::APPOINTMENTS,
+            'update',
+            app('tenant'),
+            auth()->user()
+        );
+
+        if ($updateScope !== 'all' && $scope === 'all') {
+            return 'mine';
+        }
+
+        return in_array($scope, ['mine', 'all'], true) ? $scope : 'mine';
+    }
+
+    protected function resolveCalendarMonth(string $monthInput): Carbon
+    {
+        if (preg_match('/^\d{4}-\d{2}$/', $monthInput) !== 1) {
+            return now()->startOfMonth();
+        }
+
+        try {
+            return Carbon::createFromFormat('Y-m', $monthInput)->startOfMonth();
+        } catch (\Throwable $e) {
+            return now()->startOfMonth();
         }
     }
 }

@@ -50,7 +50,7 @@
     <div class="form-group">
         <label for="scheduled_date" class="form-label">Cuándo</label>
         <input type="date" name="scheduled_date" id="scheduled_date" class="form-control"
-            value="{{ old('scheduled_date', isset($appointment->scheduled_date) ? $appointment->scheduled_date->format('Y-m-d') : now()->format('Y-m-d')) }}"
+            value="{{ old('scheduled_date', isset($appointment->scheduled_date) ? $appointment->scheduled_date->format('Y-m-d') : request('scheduled_date', now()->format('Y-m-d'))) }}"
             required>
         @error('scheduled_date')
             <div class="form-help is-error">{{ $message }}</div>

@@ -46,6 +46,12 @@ Representa cada empresa o espacio de trabajo dentro del SaaS.
 
 Cada tenant contiene sus propios datos operativos.
 
+Además de datos generales, puede contener configuración funcional en:
+
+tenants.settings
+
+Esto permite persistir contexto operativo del tenant cuando todavía no justifica entidad propia.
+
 memberships
 
 Representa la pertenencia de un user a un tenant.
@@ -92,6 +98,7 @@ Actualmente incluyen:
 parties
 projects
 tasks
+appointments
 products
 assets
 orders
@@ -189,6 +196,7 @@ Role
 Party
 Project
 Task
+Appointment
 Asset
 
 Aclaración sobre Invitation
@@ -265,6 +273,22 @@ owner y admin pueden gestionar tareas ajenas
 
 roles operativos solo editan las propias
 
+APPOINTMENTS
+
+Agenda operativa reutilizable por tenant.
+
+Relaciones actuales:
+
+pertenece a un tenant
+requiere assigned_user_id
+puede vincularse opcionalmente a un Party
+puede vincularse opcionalmente a un Asset
+puede vincularse opcionalmente a un Order
+
+Regla funcional actual:
+
+su capa visible puede adaptar vocabulario o etiquetas según el rubro configurado del tenant, sin permitir etiquetas libres por empresa.
+
 PRODUCTS
 
 Catálogo operativo de productos o ítems comercializables.
@@ -299,6 +323,7 @@ una Order puede vincularse opcionalmente a un Asset
 una Order tiene muchos OrderItems
 una Order puede derivar de una Task
 una Order puede originar muchos Documents
+una Order puede vincularse opcionalmente desde un Appointment
 
 Relación Task → Order actual:
 
@@ -373,6 +398,16 @@ Regla:
 
 no modelar numeración manual o unique global en cabeceras operativas cuando ya existe este sistema.
 
+CONTEXTO FUNCIONAL DEL TENANT
+
+El tenant puede incorporar configuración funcional en:
+
+settings.business_profile.type
+
+Ese valor no representa texto libre de interfaz.
+
+Debe resolverse a partir de un catálogo cerrado de rubros y servir como contexto para módulos adaptables, por ejemplo appointments.
+
 FLUJOS PRINCIPALES DEL SISTEMA
 
 FLUJO DE IDENTIDAD Y ACCESO
@@ -407,6 +442,12 @@ tasks
 ↓
 orders
 
+FLUJO DE AGENDA OPERATIVA
+
+appointments
+↓
+orders
+
 FLUJO DE ONBOARDING
 
 signup_requests
@@ -428,6 +469,7 @@ invitations
 parties
 projects
 tasks
+appointments
 products
 assets
 orders

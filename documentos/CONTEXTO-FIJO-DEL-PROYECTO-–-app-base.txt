@@ -40,6 +40,14 @@ tenant_id
 
 Esto permite aislar los datos de cada empresa dentro de la misma base de datos.
 
+Convención real de identificador de tenant
+
+tenants.id utiliza char(36)
+
+Las foreign keys hacia tenant deben respetar ese tipo real validado del proyecto.
+
+No debe asumirse tenant_id como foreignId() por convención de Laravel sin verificar primero el patrón real existente.
+
 Relación principal de identidad
 
 La relación de pertenencia del sistema es:
@@ -185,6 +193,7 @@ Entidades del negocio
 parties
 projects
 tasks
+appointments
 products
 assets
 orders
@@ -250,6 +259,40 @@ owner y admin pueden gestionar tareas ajenas
 los usuarios operativos gestionan solamente sus propias tareas
 
 una tarea puede derivar en una única orden, normalmente de servicio
+
+Appointments como agenda operativa reutilizable
+
+appointments es un módulo core de agenda o reserva operativa reutilizable por tenant.
+
+Reglas actuales consolidadas:
+
+pertenece a un tenant
+
+requiere assigned_user_id como responsable operativo
+
+puede vincularse opcionalmente con parties
+
+puede vincularse opcionalmente con assets
+
+puede vincularse opcionalmente con orders
+
+su capa visible puede adaptar vocabulario funcional según el rubro configurado del tenant
+
+Perfil funcional del tenant
+
+El tenant ya incorpora un perfil funcional de rubro persistido en:
+
+settings.business_profile.type
+
+Este rubro define etiquetas funcionales visibles en módulos adaptables, comenzando por appointments.
+
+La personalización por tenant no se resuelve mediante etiquetas libres.
+
+Debe apoyarse en:
+
+un catálogo cerrado de rubros
+el contexto del tenant
+catálogos funcionales del módulo correspondiente
 
 Modelo actual de acceso, visibilidad y autorización operativa
 
@@ -599,6 +642,12 @@ tenants.settings se utiliza para persistir configuración básica editable de em
 
 El perfil de empresa ya existe como pantalla operativa para owner.
 
+Además de datos generales, settings puede contener configuración funcional del tenant cuando esta no justifique todavía una entidad específica.
+
+Esto incluye, entre otros casos, el perfil de rubro en:
+
+settings.business_profile.type
+
 Decisión actual de frontend base
 
 El frontend base del proyecto ya migró a un patrón declarativo con data-action="app-..." y public/js/app-base.js como capa mínima reutilizable de comportamiento.
@@ -615,6 +664,7 @@ invitations
 parties
 projects
 tasks
+appointments
 products
 assets
 orders

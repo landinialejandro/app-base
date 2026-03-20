@@ -382,6 +382,48 @@ deben subordinarse siempre a RoleCatalog y ModuleCatalog
 
 deben entenderse como solución operativa transitoria y no como reemplazo del modelo definitivo
 
+Convenciones de configuración funcional por tenant
+
+La configuración funcional por tenant puede persistirse en:
+
+tenants.settings
+
+Esto es válido cuando la configuración no justifica todavía entidad propia y puede mantenerse como parte del contexto operativo del tenant.
+
+Cuando se actualicen estructuras anidadas dentro de settings, debe preferirse:
+
+array_replace_recursive
+
+sobre:
+
+array_merge
+
+para evitar pérdida accidental de ramas hermanas, reindexación no deseada o sobreescrituras ambiguas en configuraciones compuestas.
+
+Convenciones de adaptación por rubro del tenant
+
+Cuando un módulo necesite adaptar vocabulario visible o etiquetas funcionales según el rubro del tenant:
+
+no se permiten etiquetas libres por tenant
+
+la adaptación debe resolverse mediante:
+
+catálogo base cerrado
+contexto del tenant
+catálogo funcional del módulo
+
+Patrón conceptual válido:
+
+BusinessTypeCatalog
+TenantBusinessContext
+AppointmentCatalog consumiendo ese contexto
+
+El rubro funcional del tenant debe persistirse preferentemente en:
+
+settings.business_profile.type
+
+Este patrón permite personalización controlada sin romper consistencia global del sistema ni introducir variaciones arbitrarias por empresa.
+
 Convenciones de flujo Task → Order
 
 Cuando una entidad derive otra en una relación operativa 1 a 1, el vínculo puede resolverse desde la entidad derivada.

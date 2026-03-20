@@ -40,6 +40,7 @@ MÓDULOS IMPLEMENTADOS
 projects
 parties (contactos)
 tasks
+appointments
 products
 assets
 orders
@@ -108,6 +109,14 @@ evaluar reglas futuras de bloqueo de edición en documents cuando estén vincula
 
 evaluar bloqueo funcional de alta de tareas en proyectos cerrados
 
+completar evolución del módulo appointments con vista calendario
+
+evaluar solapamiento multifecha real para turnos que cruzan de día
+
+revisar si conviene desacoplar workstation_name en dos campos futuros: referencia interna y dirección real
+
+extender adaptación por rubro a otras pantallas o módulos cuando realmente aporte valor
+
 NUMERACIÓN Y CONFIGURACIÓN OPERATIVA
 
 llevar la configuración de secuencias al perfil de empresa
@@ -119,6 +128,10 @@ permitir configurar punto de venta base desde perfil de empresa
 impedir cambio de prefijo de una secuencia si ya tuvo movimiento
 
 definir si el punto de venta también queda bloqueado una vez con movimiento
+
+revisar exposición del rubro elegido en resumen o configuración del tenant si más adelante hace falta
+
+evaluar si otros módulos core necesitan consumir TenantBusinessContext
 
 ONBOARDING Y EMPRESA
 
@@ -147,8 +160,6 @@ perfiles especializados para parties
 sistema de atributos dinámicos para entidades
 
 tabla de historial para relación activo-cliente
-
-base futura de turnero o calendario a partir de tasks
 
 REGLA DEL DOCUMENTO
 

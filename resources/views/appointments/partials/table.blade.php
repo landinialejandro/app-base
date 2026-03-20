@@ -11,28 +11,20 @@
             <thead>
                 <tr>
                     <th>Turno</th>
-                    <th>A quién</th>
-                    <th>Qué voy a ver</th>
+                    <th>{{ AppointmentCatalog::contactLabel() }}</th>
+                    <th>{{ AppointmentCatalog::assetLabel() }}</th>
                     <th>Cuándo</th>
-                    <th>Quién lo realiza</th>
-                    <th>Orden</th>
+                    <th>{{ AppointmentCatalog::assignedUserLabel() }}</th>
+                    <th>{{ AppointmentCatalog::orderLabel() }}</th>
                     <th>Estado operativo</th>
-                    <th>Lugar de trabajo</th>
+                    <th>{{ AppointmentCatalog::workPlaceLabel() }}</th>
                     <th>Referencia</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($appointments as $appointment)
                     @php
-                        $rowTitle = match (true) {
-                            $appointment->kind === AppointmentCatalog::KIND_BLOCK => 'Bloqueo de agenda',
-                            $appointment->kind === AppointmentCatalog::KIND_VISIT => 'Turno de visita',
-                            $appointment->work_mode === AppointmentCatalog::WORK_MODE_FIELD_ASSISTANCE
-                                => 'Turno de asistencia externa',
-                            default => 'Turno de taller',
-                        };
-
-                        $referenceLabel = AppointmentCatalog::referenceLabelForKind($appointment->kind);
+                        $rowTitle = AppointmentCatalog::rowTitleFor($appointment->kind, $appointment->work_mode);
                     @endphp
 
                     <tr>
@@ -95,10 +87,7 @@
                         </td>
 
                         <td>{{ AppointmentCatalog::workModeLabel($appointment->work_mode) }}</td>
-
-                        <td title="{{ $referenceLabel }}">
-                            {{ $appointment->workstation_name ?: '—' }}
-                        </td>
+                        <td>{{ $appointment->workstation_name ?: '—' }}</td>
                     </tr>
                 @endforeach
             </tbody>

@@ -1,13 +1,15 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantProfileController.php
+// FILE: app/Http/Controllers/TenantProfileController.php | V2
 
 namespace App\Http\Controllers;
 
 use App\Models\Invitation;
 use App\Models\Membership;
 use App\Models\Role;
+use App\Support\Catalogs\BusinessTypeCatalog;
 use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class TenantProfileController extends Controller
 {
@@ -72,6 +74,7 @@ class TenantProfileController extends Controller
             'activeTab' => $activeTab,
             'generatedInvitation' => $generatedInvitation,
             'pendingInvitations' => $pendingInvitations,
+            'businessTypeLabels' => BusinessTypeCatalog::labels(),
         ]);
     }
 
@@ -98,11 +101,17 @@ class TenantProfileController extends Controller
             'settings.city' => ['nullable', 'string', 'max:150'],
             'settings.state' => ['nullable', 'string', 'max:150'],
             'settings.country' => ['nullable', 'string', 'max:150'],
+
+            'settings.business_profile.type' => [
+                'nullable',
+                'string',
+                Rule::in(BusinessTypeCatalog::all()),
+            ],
         ]);
 
         $tenant->update([
             'name' => $data['name'],
-            'settings' => array_merge(
+            'settings' => array_replace_recursive(
                 $tenant->settings ?? [],
                 $data['settings'] ?? []
             ),

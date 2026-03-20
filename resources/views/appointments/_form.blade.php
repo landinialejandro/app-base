@@ -10,9 +10,9 @@
 <div data-action="app-appointment-party-asset-sync app-appointment-kind-sync">
 
     <div class="form-group">
-        <label for="party_id" class="form-label">A quién le doy el turno</label>
+        <label for="party_id" class="form-label">{{ AppointmentCatalog::contactLabel() }}</label>
         <select name="party_id" id="party_id" class="form-control">
-            <option value="">Sin contacto</option>
+            <option value="">Sin {{ strtolower(AppointmentCatalog::contactLabel()) }}</option>
             @foreach ($parties as $party)
                 <option value="{{ $party->id }}" @selected((string) old('party_id', $appointment->party_id ?? '') === (string) $party->id)>
                     {{ $party->name }}
@@ -25,9 +25,9 @@
     </div>
 
     <div class="form-group">
-        <label for="asset_id" class="form-label">Qué voy a ver</label>
+        <label for="asset_id" class="form-label">{{ AppointmentCatalog::assetLabel() }}</label>
         <select name="asset_id" id="asset_id" class="form-control">
-            <option value="">Sin activo asociado</option>
+            <option value="">Sin {{ strtolower(AppointmentCatalog::assetLabel()) }}</option>
             @foreach ($assets as $asset)
                 <option value="{{ $asset->id }}" data-party-id="{{ $asset->party_id }}" @selected((string) old('asset_id', $appointment->asset_id ?? '') === (string) $asset->id)>
                     {{ $asset->name }}
@@ -40,8 +40,8 @@
                 </option>
             @endforeach
         </select>
-        <div class="form-help">Si eliges un contacto, se filtrarán los activos de ese contacto. Si tiene uno solo, se
-            seleccionará automáticamente.</div>
+        <div class="form-help">Si eliges un {{ strtolower(AppointmentCatalog::contactLabel()) }}, se filtrarán los
+            {{ strtolower(AppointmentCatalog::assetLabel()) }}s vinculados.</div>
         @error('asset_id')
             <div class="form-help is-error">{{ $message }}</div>
         @enderror
@@ -78,25 +78,24 @@
     </div>
 
     <div class="form-group">
-        <label for="assigned_user_id" class="form-label">Quién lo va a realizar</label>
+        <label for="assigned_user_id" class="form-label">{{ AppointmentCatalog::assignedUserLabel() }}</label>
         <select name="assigned_user_id" id="assigned_user_id" class="form-control" required>
-            <option value="">Seleccionar colaborador</option>
+            <option value="">Seleccionar</option>
             @foreach ($users as $user)
                 <option value="{{ $user->id }}" @selected((string) old('assigned_user_id', $appointment->assigned_user_id ?? $defaultAssignedUserId) === (string) $user->id)>
                     {{ $user->name }}
                 </option>
             @endforeach
         </select>
-        <div class="form-help">El turno debe quedar asignado a un colaborador.</div>
         @error('assigned_user_id')
             <div class="form-help is-error">{{ $message }}</div>
         @enderror
     </div>
 
     <div class="form-group">
-        <label for="order_id" class="form-label">Con qué orden</label>
+        <label for="order_id" class="form-label">{{ AppointmentCatalog::orderLabel() }}</label>
         <select name="order_id" id="order_id" class="form-control">
-            <option value="">Sin orden asociada</option>
+            <option value="">Sin {{ strtolower(AppointmentCatalog::orderLabel()) }}</option>
             @foreach ($orders as $order)
                 <option value="{{ $order->id }}" @selected((string) old('order_id', $appointment->order_id ?? '') === (string) $order->id)>
                     {{ $order->number ?: 'Orden #' . $order->id }}
@@ -140,7 +139,7 @@
     </div>
 
     <div class="form-group">
-        <label for="work_mode" class="form-label">Lugar de trabajo</label>
+        <label for="work_mode" class="form-label">{{ AppointmentCatalog::workPlaceLabel() }}</label>
         <select name="work_mode" id="work_mode" class="form-control">
             @foreach (AppointmentCatalog::workModeLabels() as $value => $label)
                 <option value="{{ $value }}" @selected(old('work_mode', $appointment->work_mode ?? (AppointmentCatalog::suggestedWorkModeForKind($currentKind) ?? AppointmentCatalog::WORK_MODE_IN_SHOP)) === $value)>
@@ -167,8 +166,7 @@
     <div class="form-group">
         <label for="title" class="form-label">Título</label>
         <input type="text" name="title" id="title" class="form-control"
-            value="{{ old('title', $appointment->title ?? '') }}"
-            placeholder="Ej: Service 10.000 km, Visita a cliente, Bloqueo de agenda">
+            value="{{ old('title', $appointment->title ?? '') }}" placeholder="Opcional">
         @error('title')
             <div class="form-help is-error">{{ $message }}</div>
         @enderror

@@ -3,13 +3,7 @@
 @php
     use App\Support\Catalogs\AppointmentCatalog;
 
-    $appointmentTitle = match (true) {
-        $appointment->kind === AppointmentCatalog::KIND_BLOCK => 'Bloqueo de agenda',
-        $appointment->kind === AppointmentCatalog::KIND_VISIT => 'Turno de visita',
-        $appointment->work_mode === AppointmentCatalog::WORK_MODE_FIELD_ASSISTANCE => 'Turno de asistencia externa',
-        default => 'Turno de taller',
-    };
-
+    $appointmentTitle = AppointmentCatalog::rowTitleFor($appointment->kind, $appointment->work_mode);
     $referenceLabel = AppointmentCatalog::referenceLabelForKind($appointment->kind);
 @endphp
 
@@ -46,7 +40,7 @@
 
             @if ($appointment->order)
                 <a href="{{ route('orders.show', $appointment->order) }}" class="btn btn-secondary">
-                    Ver orden
+                    Ver {{ strtolower(AppointmentCatalog::orderLabel()) }}
                 </a>
             @elseif ($appointment->party_id)
                 <a href="{{ route('orders.create', [
@@ -55,12 +49,12 @@
                     'asset_id' => $appointment->asset_id,
                 ]) }}"
                     class="btn btn-secondary">
-                    Crear orden
+                    Crear {{ strtolower(AppointmentCatalog::orderLabel()) }}
                 </a>
             @else
                 <span class="btn btn-secondary disabled" aria-disabled="true"
-                    title="Asociá un contacto al turno para poder crear una orden.">
-                    Crear orden
+                    title="Asociá un {{ strtolower(AppointmentCatalog::contactLabel()) }} para poder crear una {{ strtolower(AppointmentCatalog::orderLabel()) }}.">
+                    Crear {{ strtolower(AppointmentCatalog::orderLabel()) }}
                 </span>
             @endif
 
@@ -70,7 +64,7 @@
         </x-page-header>
 
         <x-show-summary details-id="appointment-more-detail">
-            <x-show-summary-item label="A quién le doy el turno">
+            <x-show-summary-item :label="AppointmentCatalog::contactLabel()">
                 @if ($appointment->party)
                     <a href="{{ route('parties.show', $appointment->party) }}">
                         {{ $appointment->party->name }}
@@ -80,7 +74,7 @@
                 @endif
             </x-show-summary-item>
 
-            <x-show-summary-item label="Qué voy a ver">
+            <x-show-summary-item :label="AppointmentCatalog::assetLabel()">
                 @if ($appointment->asset)
                     <a href="{{ route('assets.show', $appointment->asset) }}">
                         {{ $appointment->asset->name }}
@@ -102,11 +96,11 @@
                 @endif
             </x-show-summary-item>
 
-            <x-show-summary-item label="Quién lo va a realizar">
+            <x-show-summary-item :label="AppointmentCatalog::assignedUserLabel()">
                 {{ $appointment->assignedUser?->name ?? '—' }}
             </x-show-summary-item>
 
-            <x-show-summary-item label="Con qué orden">
+            <x-show-summary-item :label="AppointmentCatalog::orderLabel()">
                 @if ($appointment->order)
                     <a href="{{ route('orders.show', $appointment->order) }}">
                         {{ $appointment->order->number ?: 'Orden #' . $appointment->order->id }}
@@ -118,10 +112,11 @@
                             'party_id' => $appointment->party_id,
                             'asset_id' => $appointment->asset_id,
                         ]) }}">
-                        Crear orden
+                        Crear {{ strtolower(AppointmentCatalog::orderLabel()) }}
                     </a>
                 @else
-                    Asociá un contacto para poder crear una orden.
+                    Asociá un {{ strtolower(AppointmentCatalog::contactLabel()) }} para poder crear una
+                    {{ strtolower(AppointmentCatalog::orderLabel()) }}.
                 @endif
             </x-show-summary-item>
 
@@ -137,7 +132,7 @@
                 </div>
             </x-show-summary-item>
 
-            <x-show-summary-item label="Lugar de trabajo">
+            <x-show-summary-item :label="AppointmentCatalog::workPlaceLabel()">
                 {{ AppointmentCatalog::workModeLabel($appointment->work_mode) }}
             </x-show-summary-item>
 
@@ -150,11 +145,6 @@
                     <div class="detail-block">
                         <span class="detail-block-label">ID</span>
                         <div class="detail-block-value">#{{ $appointment->id }}</div>
-                    </div>
-
-                    <div class="detail-block">
-                        <span class="detail-block-label">{{ $referenceLabel }}</span>
-                        <div class="detail-block-value">{{ $appointment->workstation_name ?: '—' }}</div>
                     </div>
 
                     <div class="detail-block">

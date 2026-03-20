@@ -36,6 +36,7 @@
                 'tenant' => $tenant,
                 'settings' => $settings,
                 'activeTab' => $activeTab,
+                'businessTypeLabels' => $businessTypeLabels ?? [],
             ])
 
             @include('tenants.partials.profile-users-tab', [

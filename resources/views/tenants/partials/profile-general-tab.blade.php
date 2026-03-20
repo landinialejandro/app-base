@@ -29,6 +29,26 @@
                             <input id="tax_id" name="settings[tax_id]" type="text" class="form-control"
                                 value="{{ old('settings.tax_id', $settings['tax_id'] ?? '') }}">
                         </div>
+
+                        <div class="form-group">
+                            <label for="business_type" class="form-label">Rubro</label>
+                            <select id="business_type" name="settings[business_profile][type]" class="form-control">
+                                <option value="">Seleccionar rubro</option>
+                                @foreach ($businessTypeLabels ?? [] as $value => $label)
+                                    <option value="{{ $value }}" @selected(old('settings.business_profile.type', data_get($settings, 'business_profile.type')) === $value)>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
+                            </select>
+                            <div class="form-help">
+                                Define el perfil operativo principal de la empresa. Se utilizará para adaptar etiquetas
+                                y
+                                textos del sistema.
+                            </div>
+                            @error('settings.business_profile.type')
+                                <div class="form-help is-error">{{ $message }}</div>
+                            @enderror
+                        </div>
                     </div>
                 </div>
 

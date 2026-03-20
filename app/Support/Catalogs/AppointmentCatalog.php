@@ -2,6 +2,8 @@
 
 namespace App\Support\Catalogs;
 
+use App\Support\Tenants\TenantBusinessContext;
+
 class AppointmentCatalog extends BaseCatalog
 {
     public const KIND_SERVICE = 'service';
@@ -104,13 +106,114 @@ class AppointmentCatalog extends BaseCatalog
         };
     }
 
+    public static function contactLabel(): string
+    {
+        return match (TenantBusinessContext::type()) {
+            BusinessTypeCatalog::WORKSHOP => 'Cliente',
+            BusinessTypeCatalog::DENTISTRY => 'Paciente',
+            BusinessTypeCatalog::CAR_WASH => 'Cliente',
+            default => 'Contacto',
+        };
+    }
+
+    public static function assetLabel(): string
+    {
+        return match (TenantBusinessContext::type()) {
+            BusinessTypeCatalog::WORKSHOP => 'Vehículo',
+            BusinessTypeCatalog::DENTISTRY => 'Ficha o tratamiento',
+            BusinessTypeCatalog::CAR_WASH => 'Vehículo',
+            default => 'Activo',
+        };
+    }
+
+    public static function assignedUserLabel(): string
+    {
+        return match (TenantBusinessContext::type()) {
+            BusinessTypeCatalog::WORKSHOP => 'Asignado a',
+            BusinessTypeCatalog::DENTISTRY => 'Profesional',
+            BusinessTypeCatalog::CAR_WASH => 'Operario',
+            default => 'Asignado a',
+        };
+    }
+
+    public static function orderLabel(): string
+    {
+        return match (TenantBusinessContext::type()) {
+            BusinessTypeCatalog::WORKSHOP => 'Orden',
+            BusinessTypeCatalog::DENTISTRY => 'Prestación',
+            BusinessTypeCatalog::CAR_WASH => 'Orden',
+            default => 'Orden',
+        };
+    }
+
+    public static function workPlaceLabel(): string
+    {
+        return match (TenantBusinessContext::type()) {
+            BusinessTypeCatalog::DENTISTRY => 'Lugar de atención',
+            default => 'Lugar de trabajo',
+        };
+    }
+
     public static function referenceLabelForKind(?string $kind): string
     {
-        return match ($kind) {
-            self::KIND_SERVICE => 'Ubicación en taller',
-            self::KIND_VISIT => 'Dirección',
-            self::KIND_BLOCK => 'Referencia',
-            default => 'Referencia',
+        return match (TenantBusinessContext::type()) {
+            BusinessTypeCatalog::WORKSHOP => match ($kind) {
+                self::KIND_SERVICE => 'Ubicación en taller',
+                self::KIND_VISIT => 'Dirección',
+                self::KIND_BLOCK => 'Referencia',
+                default => 'Referencia',
+            },
+
+            BusinessTypeCatalog::DENTISTRY => match ($kind) {
+                self::KIND_SERVICE => 'Consultorio',
+                self::KIND_VISIT => 'Dirección',
+                self::KIND_BLOCK => 'Referencia',
+                default => 'Referencia',
+            },
+
+            BusinessTypeCatalog::CAR_WASH => match ($kind) {
+                self::KIND_SERVICE => 'Box o sector',
+                self::KIND_VISIT => 'Dirección',
+                self::KIND_BLOCK => 'Referencia',
+                default => 'Referencia',
+            },
+
+            default => match ($kind) {
+                self::KIND_SERVICE => 'Referencia del lugar',
+                self::KIND_VISIT => 'Dirección',
+                self::KIND_BLOCK => 'Referencia',
+                default => 'Referencia',
+            },
+        };
+    }
+
+    public static function rowTitleFor(?string $kind, ?string $workMode): string
+    {
+        return match (TenantBusinessContext::type()) {
+            BusinessTypeCatalog::WORKSHOP => match (true) {
+                $kind === self::KIND_BLOCK => 'Bloqueo de agenda',
+                $kind === self::KIND_VISIT => 'Turno de visita',
+                $workMode === self::WORK_MODE_FIELD_ASSISTANCE => 'Turno de asistencia externa',
+                default => 'Turno de taller',
+            },
+
+            BusinessTypeCatalog::DENTISTRY => match (true) {
+                $kind === self::KIND_BLOCK => 'Bloqueo de agenda',
+                $kind === self::KIND_VISIT => 'Visita profesional',
+                default => 'Turno de atención',
+            },
+
+            BusinessTypeCatalog::CAR_WASH => match (true) {
+                $kind === self::KIND_BLOCK => 'Bloqueo de agenda',
+                $kind === self::KIND_VISIT => 'Visita de servicio',
+                default => 'Turno de lavado',
+            },
+
+            default => match (true) {
+                $kind === self::KIND_BLOCK => 'Bloqueo de agenda',
+                $kind === self::KIND_VISIT => 'Turno de visita',
+                default => 'Turno',
+            },
         };
     }
 }

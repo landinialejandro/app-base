@@ -218,6 +218,7 @@ class AppointmentController extends Controller
 
         $this->validateAssignedUserBelongsToTenant($data['assigned_user_id'], $tenant->id);
         $this->validateChronology($data);
+        $this->validateCreateDateRules($data);
         $this->validateOverlap($data);
 
         $data['created_by'] = auth()->id();
@@ -298,6 +299,7 @@ class AppointmentController extends Controller
 
         $this->validateAssignedUserBelongsToTenant($data['assigned_user_id'], $tenant->id);
         $this->validateChronology($data);
+        $this->validateUpdateDateRules($data, $appointment);
 
         $isAdminEditingForeignAppointment = auth()->user()->can('delete', $appointment)
             && (int) $appointment->assigned_user_id !== (int) auth()->id();
@@ -513,6 +515,60 @@ class AppointmentController extends Controller
             return Carbon::createFromFormat('Y-m', $monthInput)->startOfMonth();
         } catch (\Throwable $e) {
             return now()->startOfMonth();
+        }
+    }
+
+    protected function validateCreateDateRules(array $data): void
+    {
+        $scheduledDate = Carbon::parse($data['scheduled_date'])->startOfDay();
+        $today = now()->startOfDay();
+
+        if ($scheduledDate->lt($today)) {
+            throw ValidationException::withMessages([
+                'scheduled_date' => 'No se pueden crear turnos en fechas anteriores a hoy.',
+            ]);
+        }
+    }
+
+    protected function validateUpdateDateRules(array $data, Appointment $appointment): void
+    {
+        $scheduledDate = Carbon::parse($data['scheduled_date'])->startOfDay();
+        $today = now()->startOfDay();
+
+        if ($appointment->status === AppointmentCatalog::STATUS_COMPLETED) {
+            $originalDate = $appointment->scheduled_date?->copy()?->startOfDay();
+
+            if (! $originalDate || ! $scheduledDate->equalTo($originalDate)) {
+                throw ValidationException::withMessages([
+                    'scheduled_date' => 'Un turno completado no puede moverse de fecha.',
+                ]);
+            }
+
+            if (
+                ! empty($data['starts_at']) && $appointment->starts_at &&
+                ! Carbon::parse($data['starts_at'])->equalTo($appointment->starts_at)
+            ) {
+                throw ValidationException::withMessages([
+                    'starts_at' => 'Un turno completado no puede modificar su horario.',
+                ]);
+            }
+
+            if (
+                ! empty($data['ends_at']) && $appointment->ends_at &&
+                ! Carbon::parse($data['ends_at'])->equalTo($appointment->ends_at)
+            ) {
+                throw ValidationException::withMessages([
+                    'ends_at' => 'Un turno completado no puede modificar su horario.',
+                ]);
+            }
+
+            return;
+        }
+
+        if ($scheduledDate->lt($today)) {
+            throw ValidationException::withMessages([
+                'scheduled_date' => 'Solo puedes mover el turno a hoy o a una fecha posterior.',
+            ]);
         }
     }
 }

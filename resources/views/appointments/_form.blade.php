@@ -5,6 +5,8 @@
     $isForeignAppointmentForAdmin = $isForeignAppointmentForAdmin ?? false;
     $currentKind = old('kind', $appointment->kind ?? AppointmentCatalog::KIND_SERVICE);
     $currentReferenceLabel = AppointmentCatalog::referenceLabelForKind($currentKind);
+    $todayDate = now()->format('Y-m-d');
+    $isCompletedAppointment = isset($appointment) && $appointment->status === AppointmentCatalog::STATUS_COMPLETED;
 @endphp
 
 <div data-action="app-appointment-party-asset-sync app-appointment-kind-sync">
@@ -50,8 +52,15 @@
     <div class="form-group">
         <label for="scheduled_date" class="form-label">Cuándo</label>
         <input type="date" name="scheduled_date" id="scheduled_date" class="form-control"
-            value="{{ old('scheduled_date', isset($appointment->scheduled_date) ? $appointment->scheduled_date->format('Y-m-d') : request('scheduled_date', now()->format('Y-m-d'))) }}"
-            required>
+            value="{{ old('scheduled_date', isset($appointment->scheduled_date) ? $appointment->scheduled_date->format('Y-m-d') : request('scheduled_date', $todayDate)) }}"
+            min="{{ $isCompletedAppointment ? '' : $todayDate }}" required>
+        <div class="form-help">
+            @if ($isCompletedAppointment)
+                El turno está completado. La fecha no debería modificarse.
+            @else
+                Solo se permiten fechas de hoy en adelante.
+            @endif
+        </div>
         @error('scheduled_date')
             <div class="form-help is-error">{{ $message }}</div>
         @enderror
@@ -61,8 +70,13 @@
         <label for="starts_at" class="form-label">Hora de inicio</label>
         <input type="datetime-local" name="starts_at" id="starts_at" class="form-control"
             value="{{ old('starts_at', isset($appointment->starts_at) ? $appointment->starts_at->format('Y-m-d\TH:i') : '') }}">
-        <div class="form-help">Opcional. Si cargas inicio y el fin está vacío, se completará automáticamente con +2
-            horas.</div>
+        <div class="form-help">
+            @if ($isCompletedAppointment)
+                El turno está completado. El horario no debería modificarse.
+            @else
+                Opcional. Si cargas inicio y el fin está vacío, se completará automáticamente con +2 horas.
+            @endif
+        </div>
         @error('starts_at')
             <div class="form-help is-error">{{ $message }}</div>
         @enderror
@@ -72,6 +86,11 @@
         <label for="ends_at" class="form-label">Hora de fin</label>
         <input type="datetime-local" name="ends_at" id="ends_at" class="form-control"
             value="{{ old('ends_at', isset($appointment->ends_at) ? $appointment->ends_at->format('Y-m-d\TH:i') : '') }}">
+        <div class="form-help">
+            @if ($isCompletedAppointment)
+                El turno está completado. El horario no debería modificarse.
+            @endif
+        </div>
         @error('ends_at')
             <div class="form-help is-error">{{ $message }}</div>
         @enderror

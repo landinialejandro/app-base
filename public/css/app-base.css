@@ -2202,6 +2202,24 @@ textarea.form-control {
     border-left: 4px solid #ef4444;
 }
 
+.appointment-calendar-day.is-past-day {
+    position: relative;
+    background:
+        repeating-linear-gradient(-45deg,
+            rgba(107, 114, 128, 0.06) 0,
+            rgba(107, 114, 128, 0.06) 8px,
+            rgba(107, 114, 128, 0.12) 8px,
+            rgba(107, 114, 128, 0.12) 16px),
+        var(--color-surface-muted);
+}
+
+.appointment-calendar-day.is-past-day .appointment-calendar-day-number,
+.appointment-calendar-day.is-past-day .appointment-calendar-day-summary,
+.appointment-calendar-day.is-past-day .appointment-calendar-empty,
+.appointment-calendar-day.is-past-day .appointment-calendar-more {
+    color: #6b7280;
+}
+
 /* =========================================================
    23. Utilidades mínimas
    ========================================================= */

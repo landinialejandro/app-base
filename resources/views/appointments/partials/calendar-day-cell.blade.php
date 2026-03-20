@@ -4,23 +4,30 @@
     $appointments = $day['appointments'];
     $visibleAppointments = $appointments->take(4);
     $remainingCount = max($appointments->count() - $visibleAppointments->count(), 0);
+    $isPastDay = $day['date']
+        ->copy()
+        ->startOfDay()
+        ->lt(now()->startOfDay());
 @endphp
 
 <div
     class="appointment-calendar-day
         {{ $day['is_current_month'] ? 'is-current-month' : 'is-outside-month' }}
-        {{ $day['is_today'] ? 'is-today' : '' }}">
+        {{ $day['is_today'] ? 'is-today' : '' }}
+        {{ $isPastDay ? 'is-past-day' : '' }}">
     <div class="appointment-calendar-day-header">
         <div class="appointment-calendar-day-number">
             {{ $day['date']->day }}
         </div>
 
         <div class="appointment-calendar-day-actions">
-            <a href="{{ route('appointments.create', ['scheduled_date' => $day['date_key']]) }}"
-                class="appointment-calendar-add" title="Crear turno para {{ $day['date']->format('d/m/Y') }}"
-                aria-label="Crear turno para {{ $day['date']->format('d/m/Y') }}">
-                <x-icons.plus />
-            </a>
+            @unless ($isPastDay)
+                <a href="{{ route('appointments.create', ['scheduled_date' => $day['date_key']]) }}"
+                    class="appointment-calendar-add" title="Crear turno para {{ $day['date']->format('d/m/Y') }}"
+                    aria-label="Crear turno para {{ $day['date']->format('d/m/Y') }}">
+                    <x-icons.plus />
+                </a>
+            @endunless
         </div>
     </div>
 

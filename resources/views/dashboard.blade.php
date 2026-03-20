@@ -211,6 +211,11 @@
         @if ($canSeeAnalytics)
             <x-show-summary details-id="dashboard-analytics-detail" toggle-label="Ver análisis"
                 toggle-label-expanded="Ocultar análisis">
+                <div class="dashboard-section-header">
+                    <h2 class="dashboard-section-title">Indicadores clave</h2>
+                    <p class="dashboard-section-text">Resumen rápido de avance, apertura y demoras en proyectos visibles.
+                    </p>
+                </div>
                 <x-show-summary-item label="Proyectos visibles">
                     {{ $visible_projects_count }}
                 </x-show-summary-item>

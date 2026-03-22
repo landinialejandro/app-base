@@ -1,45 +1,32 @@
-{{-- FILE: resources/views/appointments/create.blade.php | V2 --}}
+{{-- FILE: resources/views/appointments/create.blade.php | V3 --}}
 
 @extends('layouts.app')
 
-@section('title', 'Nueva orden')
+@section('title', 'Nuevo turno')
 
 @section('content')
     @php
-        $contextRouteParams = $navigationContext
-            ? ['context_type' => $navigationContext['type'], 'context_id' => $navigationContext['id']]
-            : [];
+        use App\Support\Navigation\NavigationTrail;
 
-        $breadcrumbItems = [['label' => 'Inicio', 'url' => route('dashboard')]];
-
-        if (($navigationContext['type'] ?? null) === 'appointment') {
-            $breadcrumbItems[] = ['label' => 'Turnos', 'url' => route('appointments.index')];
-            $breadcrumbItems[] = ['label' => $navigationContext['label'], 'url' => $navigationContext['url']];
-            $breadcrumbItems[] = ['label' => 'Nueva orden'];
-        } else {
-            $breadcrumbItems[] = ['label' => 'Órdenes', 'url' => route('orders.index')];
-            $breadcrumbItems[] = ['label' => 'Nueva orden'];
-        }
-
-        $cancelUrl =
-            ($navigationContext['type'] ?? null) === 'appointment' ? $navigationContext['url'] : route('orders.index');
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+        $cancelUrl = NavigationTrail::previousUrl($navigationTrail, route('appointments.index'));
     @endphp
 
     <x-page>
-
         <x-breadcrumb :items="$breadcrumbItems" />
 
-        <x-page-header title="Nueva orden">
+        <x-page-header title="Nuevo turno">
             <a href="{{ $cancelUrl }}" class="btn btn-secondary">
                 Cancelar
             </a>
         </x-page-header>
 
         <x-card>
-            <form method="POST" action="{{ route('orders.store', $contextRouteParams) }}" class="form">
+            <form method="POST" action="{{ route('appointments.store', $trailQuery) }}" class="form">
                 @csrf
 
-                @include('orders._form')
+                @include('appointments._form')
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Guardar</button>
@@ -47,6 +34,5 @@
                 </div>
             </form>
         </x-card>
-
     </x-page>
 @endsection

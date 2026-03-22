@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AppointmentController.php | V2
+// FILE: app/Http/Controllers/AppointmentController.php | V3
 
 namespace App\Http\Controllers;
 
@@ -10,6 +10,8 @@ use App\Models\Order;
 use App\Models\Party;
 use App\Models\User;
 use App\Support\Catalogs\AppointmentCatalog;
+use App\Support\Navigation\AppointmentNavigationTrail;
+use App\Support\Navigation\NavigationTrail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -269,13 +271,15 @@ class AppointmentController extends Controller
         $assets = Asset::query()->with('party')->orderBy('name')->get();
 
         $defaultAssignedUserId = old('assigned_user_id', (string) auth()->id());
+        $navigationTrail = AppointmentNavigationTrail::create();
 
         return view('appointments.create', compact(
             'users',
             'parties',
             'orders',
             'assets',
-            'defaultAssignedUserId'
+            'defaultAssignedUserId',
+            'navigationTrail'
         ));
     }
 
@@ -295,13 +299,14 @@ class AppointmentController extends Controller
         $data['created_by'] = auth()->id();
 
         $appointment = Appointment::create($data);
+        $navigationTrail = AppointmentNavigationTrail::base($appointment);
 
         return redirect()
-            ->route('appointments.show', $appointment)
+            ->route('appointments.show', ['appointment' => $appointment] + NavigationTrail::toQuery($navigationTrail))
             ->with('success', 'Turno creado correctamente.');
     }
 
-    public function show(Appointment $appointment)
+    public function show(Request $request, Appointment $appointment)
     {
         $this->authorize('view', $appointment);
 
@@ -319,15 +324,18 @@ class AppointmentController extends Controller
         $isForeignAppointmentForAdmin = $canDeleteAppointment
             && (int) $appointment->assigned_user_id !== (int) auth()->id();
 
+        $navigationTrail = AppointmentNavigationTrail::show($request, $appointment);
+
         return view('appointments.show', compact(
             'appointment',
             'canEditAppointment',
             'canDeleteAppointment',
-            'isForeignAppointmentForAdmin'
+            'isForeignAppointmentForAdmin',
+            'navigationTrail'
         ));
     }
 
-    public function edit(Appointment $appointment)
+    public function edit(Request $request, Appointment $appointment)
     {
         $tenant = app('tenant');
 
@@ -348,6 +356,7 @@ class AppointmentController extends Controller
         $defaultAssignedUserId = old('assigned_user_id', (string) $appointment->assigned_user_id);
         $isForeignAppointmentForAdmin = auth()->user()->can('delete', $appointment)
             && (int) $appointment->assigned_user_id !== (int) auth()->id();
+        $navigationTrail = AppointmentNavigationTrail::edit($request, $appointment);
 
         return view('appointments.edit', compact(
             'appointment',
@@ -356,7 +365,8 @@ class AppointmentController extends Controller
             'orders',
             'assets',
             'defaultAssignedUserId',
-            'isForeignAppointmentForAdmin'
+            'isForeignAppointmentForAdmin',
+            'navigationTrail'
         ));
     }
 
@@ -389,19 +399,24 @@ class AppointmentController extends Controller
 
         $appointment->update($data);
 
+        $navigationTrail = AppointmentNavigationTrail::show($request, $appointment);
+
         return redirect()
-            ->route('appointments.show', $appointment)
+            ->route('appointments.show', ['appointment' => $appointment] + NavigationTrail::toQuery($navigationTrail))
             ->with('success', 'Turno actualizado correctamente.');
     }
 
-    public function destroy(Appointment $appointment)
+    public function destroy(Request $request, Appointment $appointment)
     {
         $this->authorize('delete', $appointment);
+
+        $navigationTrail = AppointmentNavigationTrail::show($request, $appointment);
+        $redirectUrl = NavigationTrail::previousUrl($navigationTrail, route('appointments.index'));
 
         $appointment->delete();
 
         return redirect()
-            ->route('appointments.index')
+            ->to($redirectUrl)
             ->with('success', 'Turno eliminado correctamente.');
     }
 

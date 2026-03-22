@@ -1,7 +1,9 @@
-{{-- FILE: resources/views/appointments/partials/table.blade.php | V2 --}}
+{{-- FILE: resources/views/appointments/partials/table.blade.php | V3 --}}
 
 @php
     use App\Support\Catalogs\AppointmentCatalog;
+    use App\Support\Navigation\AppointmentNavigationTrail;
+    use App\Support\Navigation\NavigationTrail;
 
     $appointments = $appointments ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay turnos para mostrar.';
@@ -27,10 +29,7 @@
                 @foreach ($appointments as $appointment)
                     @php
                         $rowTitle = AppointmentCatalog::rowTitleFor($appointment->kind, $appointment->work_mode);
-                        $orderContextParams = [
-                            'context_type' => 'appointment',
-                            'context_id' => $appointment->id,
-                        ];
+                        $orderTrailQuery = NavigationTrail::toQuery(AppointmentNavigationTrail::base($appointment));
                     @endphp
 
                     <tr>
@@ -79,7 +78,7 @@
                         <td>
                             @if ($appointment->order)
                                 <a
-                                    href="{{ route('orders.show', ['order' => $appointment->order] + $orderContextParams) }}">
+                                    href="{{ route('orders.show', ['order' => $appointment->order] + $orderTrailQuery) }}">
                                     {{ $appointment->order->number ?: 'Orden #' . $appointment->order->id }}
                                 </a>
                             @else

@@ -1,55 +1,39 @@
-{{-- FILE: resources/views/appointments/edit.blade.php | V2 --}}
+{{-- FILE: resources/views/appointments/edit.blade.php | V3 --}}
 
 @extends('layouts.app')
 
-@section('title', 'Editar orden')
+@section('title', 'Editar turno')
 
 @section('content')
     @php
-        $contextRouteParams = $navigationContext
-            ? ['context_type' => $navigationContext['type'], 'context_id' => $navigationContext['id']]
-            : [];
+        use App\Support\Navigation\NavigationTrail;
 
-        $orderLabel = $order->number ?: 'Orden #' . $order->id;
-
-        $breadcrumbItems = [['label' => 'Inicio', 'url' => route('dashboard')]];
-
-        if (($navigationContext['type'] ?? null) === 'appointment') {
-            $breadcrumbItems[] = ['label' => 'Turnos', 'url' => route('appointments.index')];
-            $breadcrumbItems[] = ['label' => $navigationContext['label'], 'url' => $navigationContext['url']];
-            $breadcrumbItems[] = [
-                'label' => $orderLabel,
-                'url' => route('orders.show', ['order' => $order] + $contextRouteParams),
-            ];
-            $breadcrumbItems[] = ['label' => 'Editar'];
-        } else {
-            $breadcrumbItems[] = ['label' => 'Órdenes', 'url' => route('orders.index')];
-            $breadcrumbItems[] = ['label' => $orderLabel, 'url' => route('orders.show', $order)];
-            $breadcrumbItems[] = ['label' => 'Editar'];
-        }
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+        $cancelUrl = NavigationTrail::previousUrl(
+            $navigationTrail,
+            route('appointments.show', ['appointment' => $appointment]),
+        );
     @endphp
 
     <x-page>
-
         <x-breadcrumb :items="$breadcrumbItems" />
 
-        <x-page-header title="Editar orden" />
+        <x-page-header title="Editar turno" />
 
         <x-card>
-            <form method="POST" action="{{ route('orders.update', ['order' => $order] + $contextRouteParams) }}"
+            <form method="POST" action="{{ route('appointments.update', ['appointment' => $appointment] + $trailQuery) }}"
                 class="form">
                 @csrf
                 @method('PUT')
 
-                @include('orders._form')
+                @include('appointments._form')
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                    <a href="{{ route('orders.show', ['order' => $order] + $contextRouteParams) }}"
-                        class="btn btn-secondary">Cancelar</a>
+                    <a href="{{ $cancelUrl }}" class="btn btn-secondary">Cancelar</a>
                 </div>
             </form>
         </x-card>
-
     </x-page>
 @endsection

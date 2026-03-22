@@ -1,39 +1,38 @@
-{{-- FILE: resources/views/appointments/show.blade.php | V2 --}}
+{{-- FILE: resources/views/appointments/show.blade.php | V3 --}}
 
 @extends('layouts.app')
 
 @php
     use App\Support\Catalogs\AppointmentCatalog;
+    use App\Support\Navigation\NavigationTrail;
 
     $appointmentTitle = AppointmentCatalog::rowTitleFor($appointment->kind, $appointment->work_mode);
     $referenceLabel = AppointmentCatalog::referenceLabelForKind($appointment->kind);
-    $orderContextParams = [
-        'context_type' => 'appointment',
-        'context_id' => $appointment->id,
-    ];
+
+    $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+    $trailQuery = NavigationTrail::toQuery($navigationTrail);
+    $backUrl = NavigationTrail::previousUrl($navigationTrail, route('appointments.index'));
 @endphp
 
 @section('title', $appointmentTitle)
 
 @section('content')
     <x-page>
-        <x-breadcrumb :items="[
-            ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Turnos', 'url' => route('appointments.index')],
-            ['label' => $appointmentTitle],
-        ]" />
+        <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header :title="$appointmentTitle">
             @if ($canEditAppointment)
-                <a href="{{ route('appointments.edit', $appointment) }}" class="btn btn-primary">
+                <a href="{{ route('appointments.edit', ['appointment' => $appointment] + $trailQuery) }}"
+                    class="btn btn-primary">
                     <x-icons.pencil />
                     <span>Editar</span>
                 </a>
             @endif
 
             @if ($canDeleteAppointment)
-                <form method="POST" action="{{ route('appointments.destroy', $appointment) }}" class="inline-form"
-                    data-action="app-confirm-submit" data-confirm-message="¿Eliminar turno?">
+                <form method="POST"
+                    action="{{ route('appointments.destroy', ['appointment' => $appointment] + $trailQuery) }}"
+                    class="inline-form" data-action="app-confirm-submit" data-confirm-message="¿Eliminar turno?">
                     @csrf
                     @method('DELETE')
 
@@ -45,7 +44,7 @@
             @endif
 
             @if ($appointment->order)
-                <a href="{{ route('orders.show', ['order' => $appointment->order] + $orderContextParams) }}"
+                <a href="{{ route('orders.show', ['order' => $appointment->order] + $trailQuery) }}"
                     class="btn btn-secondary">
                     Ver {{ strtolower(AppointmentCatalog::orderLabel()) }}
                 </a>
@@ -56,7 +55,7 @@
                         'appointment_id' => $appointment->id,
                         'party_id' => $appointment->party_id,
                         'asset_id' => $appointment->asset_id,
-                    ] + $orderContextParams,
+                    ] + $trailQuery,
                 ) }}"
                     class="btn btn-secondary">
                     Crear {{ strtolower(AppointmentCatalog::orderLabel()) }}
@@ -68,7 +67,7 @@
                 </span>
             @endif
 
-            <a href="{{ route('appointments.index') }}" class="btn btn-secondary">
+            <a href="{{ $backUrl }}" class="btn btn-secondary">
                 Volver al listado
             </a>
         </x-page-header>
@@ -112,7 +111,7 @@
 
             <x-show-summary-item :label="AppointmentCatalog::orderLabel()">
                 @if ($appointment->order)
-                    <a href="{{ route('orders.show', ['order' => $appointment->order] + $orderContextParams) }}">
+                    <a href="{{ route('orders.show', ['order' => $appointment->order] + $trailQuery) }}">
                         {{ $appointment->order->number ?: 'Orden #' . $appointment->order->id }}
                     </a>
                 @elseif ($appointment->party_id)
@@ -123,7 +122,7 @@
                                 'appointment_id' => $appointment->id,
                                 'party_id' => $appointment->party_id,
                                 'asset_id' => $appointment->asset_id,
-                            ] + $orderContextParams,
+                            ] + $trailQuery,
                         ) }}">
                         Crear {{ strtolower(AppointmentCatalog::orderLabel()) }}
                     </a>

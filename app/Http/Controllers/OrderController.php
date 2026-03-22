@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderController.php | V9
+// FILE: app/Http/Controllers/OrderController.php | V11
 
 namespace App\Http\Controllers;
 
@@ -11,7 +11,9 @@ use App\Models\Party;
 use App\Models\Task;
 use App\Support\Catalogs\OrderCatalog;
 use App\Support\Documents\DocumentNumberGenerator;
+use App\Support\Navigation\AppointmentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
+use App\Support\Navigation\OrderNavigationTrail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -94,8 +96,6 @@ class OrderController extends Controller
         $prefilledTask = null;
         $prefilledAppointment = null;
 
-        $navigationTrail = NavigationTrail::fromRequest($request);
-
         if ($request->filled('asset_id')) {
             $prefilledAsset = Asset::query()
                 ->where('id', $request->integer('asset_id'))
@@ -119,7 +119,7 @@ class OrderController extends Controller
                 ->firstOrFail();
 
             if ($prefilledTask->order) {
-                $orderTrail = $this->buildOrderShowTrail($request, $prefilledTask->order);
+                $orderTrail = OrderNavigationTrail::show($request, $prefilledTask->order);
 
                 return redirect()
                     ->route('orders.show', ['order' => $prefilledTask->order] + NavigationTrail::toQuery($orderTrail))
@@ -142,7 +142,7 @@ class OrderController extends Controller
                 ->firstOrFail();
 
             if ($prefilledAppointment->order) {
-                $orderTrail = $this->buildOrderShowTrail($request, $prefilledAppointment->order, $prefilledAppointment);
+                $orderTrail = OrderNavigationTrail::show($request, $prefilledAppointment->order, $prefilledAppointment);
 
                 return redirect()
                     ->route('orders.show', ['order' => $prefilledAppointment->order] + NavigationTrail::toQuery($orderTrail))
@@ -164,7 +164,7 @@ class OrderController extends Controller
             $prefilledKind = OrderCatalog::KIND_SERVICE;
         }
 
-        $navigationTrail = $this->buildOrderCreateTrail($request, $prefilledAppointment);
+        $navigationTrail = OrderNavigationTrail::create($request, $prefilledAppointment);
 
         return view('orders.create', compact(
             'parties',
@@ -184,7 +184,6 @@ class OrderController extends Controller
         $this->authorize('create', Order::class);
 
         $tenant = app('tenant');
-        $navigationTrail = NavigationTrail::fromRequest($request);
 
         $data = $request->validate([
             'party_id' => [
@@ -298,7 +297,7 @@ class OrderController extends Controller
             }
         }
 
-        $navigationTrail = $this->buildOrderShowTrail($request, $order, $appointment);
+        $navigationTrail = OrderNavigationTrail::show($request, $order, $appointment);
 
         return redirect()
             ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
@@ -319,7 +318,8 @@ class OrderController extends Controller
             'documents',
         ]);
 
-        $navigationTrail = $this->buildOrderShowTrail($request, $order);
+        $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
+        $navigationTrail = OrderNavigationTrail::show($request, $order, $appointment);
 
         return view('orders.show', compact('order', 'navigationTrail'));
     }
@@ -337,7 +337,8 @@ class OrderController extends Controller
             ->orderBy('name')
             ->get();
 
-        $navigationTrail = $this->buildOrderEditTrail($request, $order);
+        $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
+        $navigationTrail = OrderNavigationTrail::edit($request, $order, $appointment);
 
         return view('orders.edit', compact('order', 'parties', 'assets', 'navigationTrail'));
     }
@@ -450,7 +451,8 @@ class OrderController extends Controller
 
         $order->update($data);
 
-        $navigationTrail = $this->buildOrderShowTrail($request, $order);
+        $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
+        $navigationTrail = OrderNavigationTrail::show($request, $order, $appointment);
 
         return redirect()
             ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
@@ -461,7 +463,8 @@ class OrderController extends Controller
     {
         $this->authorize('delete', $order);
 
-        $navigationTrail = $this->buildOrderShowTrail($request, $order);
+        $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
+        $navigationTrail = OrderNavigationTrail::show($request, $order, $appointment);
         $redirectUrl = NavigationTrail::previousUrl($navigationTrail, route('orders.index'));
 
         $order->delete();
@@ -469,129 +472,5 @@ class OrderController extends Controller
         return redirect()
             ->to($redirectUrl)
             ->with('success', 'Orden eliminada.');
-    }
-
-    protected function buildOrderCreateTrail(Request $request, ?Appointment $appointment = null): array
-    {
-        $trail = NavigationTrail::fromRequest($request);
-
-        if (empty($trail)) {
-            if ($appointment) {
-                $trail = $this->appointmentBaseTrail($appointment);
-            } else {
-                $trail = $this->ordersBaseTrail();
-            }
-        }
-
-        $trail = NavigationTrail::appendOrCollapse(
-            $trail,
-            NavigationTrail::makeNode(
-                'orders.create',
-                'new',
-                'Nueva orden',
-                route('orders.create')
-            )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('orders.create', NavigationTrail::toQuery($trail))
-        );
-    }
-
-    protected function buildOrderShowTrail(Request $request, Order $order, ?Appointment $appointment = null): array
-    {
-        $trail = NavigationTrail::fromRequest($request);
-
-        if (empty($trail)) {
-            $appointment = $appointment ?: $this->resolveAppointmentFromRequest($request, $order->tenant_id);
-
-            if ($appointment) {
-                $trail = $this->appointmentBaseTrail($appointment);
-            } else {
-                $trail = $this->ordersBaseTrail();
-            }
-        }
-
-        $trail = NavigationTrail::appendOrCollapse(
-            $trail,
-            NavigationTrail::makeNode(
-                'orders.show',
-                $order->id,
-                $order->number ?: 'Orden #'.$order->id,
-                route('orders.show', ['order' => $order])
-            )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('orders.show', ['order' => $order] + NavigationTrail::toQuery($trail))
-        );
-    }
-
-    protected function buildOrderEditTrail(Request $request, Order $order): array
-    {
-        $trail = NavigationTrail::fromRequest($request);
-
-        if (empty($trail) || ! NavigationTrail::hasNode($trail, 'orders.show', $order->id)) {
-            $trail = $this->buildOrderShowTrail($request, $order);
-        }
-
-        $trail = NavigationTrail::appendOrCollapse(
-            $trail,
-            NavigationTrail::makeNode(
-                'orders.edit',
-                $order->id,
-                'Editar',
-                route('orders.edit', ['order' => $order])
-            )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('orders.edit', ['order' => $order] + NavigationTrail::toQuery($trail))
-        );
-    }
-
-    protected function ordersBaseTrail(): array
-    {
-        return NavigationTrail::base([
-            NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
-            NavigationTrail::makeNode('orders.index', null, 'Órdenes', route('orders.index')),
-        ]);
-    }
-
-    protected function appointmentBaseTrail(Appointment $appointment): array
-    {
-        $trail = NavigationTrail::base([
-            NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
-            NavigationTrail::makeNode('appointments.index', null, 'Turnos', route('appointments.index')),
-            NavigationTrail::makeNode(
-                'appointments.show',
-                $appointment->id,
-                $appointment->title ?: 'Turno #'.$appointment->id,
-                route('appointments.show', ['appointment' => $appointment])
-            ),
-        ]);
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('appointments.show', ['appointment' => $appointment] + NavigationTrail::toQuery($trail))
-        );
-    }
-
-    protected function resolveAppointmentFromRequest(Request $request, string $tenantId): ?Appointment
-    {
-        $appointmentId = $request->integer('appointment_id');
-
-        if ($appointmentId <= 0) {
-            return null;
-        }
-
-        return Appointment::query()
-            ->where('id', $appointmentId)
-            ->where('tenant_id', $tenantId)
-            ->whereNull('deleted_at')
-            ->first();
     }
 }

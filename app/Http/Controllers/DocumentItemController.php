@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DocumentItemController.php | V5
+// FILE: app/Http/Controllers/DocumentItemController.php | V7
 
 namespace App\Http\Controllers;
 
@@ -8,6 +8,7 @@ use App\Models\Document;
 use App\Models\DocumentItem;
 use App\Models\Product;
 use App\Support\Documents\DocumentTotalsCalculator;
+use App\Support\Navigation\DocumentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -30,40 +31,7 @@ class DocumentItemController extends Controller
             'unit_price' => null,
         ]);
 
-        $navigationTrail = NavigationTrail::fromRequest($request);
-
-        if (empty($navigationTrail) || ! NavigationTrail::hasNode($navigationTrail, 'documents.show', $document->id)) {
-            $navigationTrail = NavigationTrail::base([
-                NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
-                NavigationTrail::makeNode('documents.index', null, 'Documentos', route('documents.index')),
-                NavigationTrail::makeNode(
-                    'documents.show',
-                    $document->id,
-                    $document->number ?: 'Documento #'.$document->id,
-                    route('documents.show', ['document' => $document])
-                ),
-            ]);
-
-            $navigationTrail = NavigationTrail::replaceCurrentUrl(
-                $navigationTrail,
-                route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
-            );
-        }
-
-        $navigationTrail = NavigationTrail::appendOrCollapse(
-            $navigationTrail,
-            NavigationTrail::makeNode(
-                'documents.items.create',
-                $document->id,
-                'Agregar ítem',
-                route('documents.items.create', ['document' => $document])
-            )
-        );
-
-        $navigationTrail = NavigationTrail::replaceCurrentUrl(
-            $navigationTrail,
-            route('documents.items.create', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
-        );
+        $navigationTrail = DocumentNavigationTrail::itemCreate($request, $document);
 
         return view('documents.items.create', compact('document', 'item', 'products', 'navigationTrail'));
     }
@@ -71,8 +39,6 @@ class DocumentItemController extends Controller
     public function store(Request $request, Document $document)
     {
         $this->authorize('update', $document);
-
-        $navigationTrail = NavigationTrail::fromRequest($request);
 
         $data = $request->validate([
             'product_id' => [
@@ -98,20 +64,7 @@ class DocumentItemController extends Controller
 
         DocumentTotalsCalculator::apply($document->fresh());
 
-        $navigationTrail = NavigationTrail::appendOrCollapse(
-            $navigationTrail,
-            NavigationTrail::makeNode(
-                'documents.show',
-                $document->id,
-                $document->number ?: 'Documento #'.$document->id,
-                route('documents.show', ['document' => $document])
-            )
-        );
-
-        $navigationTrail = NavigationTrail::replaceCurrentUrl(
-            $navigationTrail,
-            route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
-        );
+        $navigationTrail = DocumentNavigationTrail::show($request, $document);
 
         return redirect()
             ->route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
@@ -130,40 +83,7 @@ class DocumentItemController extends Controller
             ->orderBy('name')
             ->get();
 
-        $navigationTrail = NavigationTrail::fromRequest($request);
-
-        if (empty($navigationTrail) || ! NavigationTrail::hasNode($navigationTrail, 'documents.show', $document->id)) {
-            $navigationTrail = NavigationTrail::base([
-                NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
-                NavigationTrail::makeNode('documents.index', null, 'Documentos', route('documents.index')),
-                NavigationTrail::makeNode(
-                    'documents.show',
-                    $document->id,
-                    $document->number ?: 'Documento #'.$document->id,
-                    route('documents.show', ['document' => $document])
-                ),
-            ]);
-
-            $navigationTrail = NavigationTrail::replaceCurrentUrl(
-                $navigationTrail,
-                route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
-            );
-        }
-
-        $navigationTrail = NavigationTrail::appendOrCollapse(
-            $navigationTrail,
-            NavigationTrail::makeNode(
-                'documents.items.edit',
-                $item->id,
-                'Editar ítem',
-                route('documents.items.edit', ['document' => $document, 'item' => $item])
-            )
-        );
-
-        $navigationTrail = NavigationTrail::replaceCurrentUrl(
-            $navigationTrail,
-            route('documents.items.edit', ['document' => $document, 'item' => $item] + NavigationTrail::toQuery($navigationTrail))
-        );
+        $navigationTrail = DocumentNavigationTrail::itemEdit($request, $document, $item);
 
         return view('documents.items.edit', compact('document', 'item', 'products', 'navigationTrail'));
     }
@@ -173,8 +93,6 @@ class DocumentItemController extends Controller
         $this->authorize('update', $document);
 
         abort_unless((int) $item->document_id === (int) $document->id, 404);
-
-        $navigationTrail = NavigationTrail::fromRequest($request);
 
         $data = $request->validate([
             'product_id' => [
@@ -198,20 +116,7 @@ class DocumentItemController extends Controller
 
         DocumentTotalsCalculator::apply($document->fresh());
 
-        $navigationTrail = NavigationTrail::appendOrCollapse(
-            $navigationTrail,
-            NavigationTrail::makeNode(
-                'documents.show',
-                $document->id,
-                $document->number ?: 'Documento #'.$document->id,
-                route('documents.show', ['document' => $document])
-            )
-        );
-
-        $navigationTrail = NavigationTrail::replaceCurrentUrl(
-            $navigationTrail,
-            route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
-        );
+        $navigationTrail = DocumentNavigationTrail::show($request, $document);
 
         return redirect()
             ->route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
@@ -224,26 +129,11 @@ class DocumentItemController extends Controller
 
         abort_unless((int) $item->document_id === (int) $document->id, 404);
 
-        $navigationTrail = NavigationTrail::fromRequest($request);
-
         $item->delete();
 
         DocumentTotalsCalculator::apply($document->fresh());
 
-        $navigationTrail = NavigationTrail::appendOrCollapse(
-            $navigationTrail,
-            NavigationTrail::makeNode(
-                'documents.show',
-                $document->id,
-                $document->number ?: 'Documento #'.$document->id,
-                route('documents.show', ['document' => $document])
-            )
-        );
-
-        $navigationTrail = NavigationTrail::replaceCurrentUrl(
-            $navigationTrail,
-            route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
-        );
+        $navigationTrail = DocumentNavigationTrail::show($request, $document);
 
         return redirect()
             ->route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))

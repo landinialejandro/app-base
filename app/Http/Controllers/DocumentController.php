@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DocumentController.php | V8
+// FILE: app/Http/Controllers/DocumentController.php | V10
 
 namespace App\Http\Controllers;
 
@@ -12,6 +12,7 @@ use App\Models\Party;
 use App\Support\Catalogs\DocumentCatalog;
 use App\Support\Documents\DocumentNumberGenerator;
 use App\Support\Documents\DocumentTotalsCalculator;
+use App\Support\Navigation\DocumentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -121,7 +122,7 @@ class DocumentController extends Controller
             'issued_at' => now(),
         ]);
 
-        $navigationTrail = $this->buildDocumentCreateTrail($request, $order);
+        $navigationTrail = DocumentNavigationTrail::create($request, $order);
 
         return view('documents.create', compact(
             'document',
@@ -234,7 +235,7 @@ class DocumentController extends Controller
             return Document::create($payload);
         });
 
-        $navigationTrail = $this->buildDocumentShowTrail($request, $document);
+        $navigationTrail = DocumentNavigationTrail::show($request, $document);
 
         return redirect()
             ->route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
@@ -321,7 +322,7 @@ class DocumentController extends Controller
             $message .= " Ya existía(n) {$existingSameKindCount} documento(s) del tipo {$kindLabel}.";
         }
 
-        $navigationTrail = $this->buildDocumentShowTrail($request, $document);
+        $navigationTrail = DocumentNavigationTrail::show($request, $document);
 
         return redirect()
             ->route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
@@ -341,7 +342,7 @@ class DocumentController extends Controller
             'items.product',
         ]);
 
-        $navigationTrail = $this->buildDocumentShowTrail($request, $document);
+        $navigationTrail = DocumentNavigationTrail::show($request, $document);
 
         return view('documents.show', compact('document', 'navigationTrail'));
     }
@@ -364,7 +365,7 @@ class DocumentController extends Controller
             ->orderBy('name')
             ->get();
 
-        $navigationTrail = $this->buildDocumentEditTrail($request, $document);
+        $navigationTrail = DocumentNavigationTrail::edit($request, $document);
 
         return view('documents.edit', compact('document', 'parties', 'orders', 'assets', 'navigationTrail'));
     }
@@ -466,7 +467,7 @@ class DocumentController extends Controller
 
         $document->update($data);
 
-        $navigationTrail = $this->buildDocumentShowTrail($request, $document);
+        $navigationTrail = DocumentNavigationTrail::show($request, $document);
 
         return redirect()
             ->route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
@@ -477,7 +478,7 @@ class DocumentController extends Controller
     {
         $this->authorize('delete', $document);
 
-        $navigationTrail = $this->buildDocumentShowTrail($request, $document);
+        $navigationTrail = DocumentNavigationTrail::show($request, $document);
         $redirectUrl = NavigationTrail::previousUrl($navigationTrail, route('documents.index'));
 
         $document->delete();
@@ -485,113 +486,6 @@ class DocumentController extends Controller
         return redirect()
             ->to($redirectUrl)
             ->with('success', 'Documento eliminado.');
-    }
-
-    protected function buildDocumentCreateTrail(Request $request, ?Order $order = null): array
-    {
-        $trail = NavigationTrail::fromRequest($request);
-
-        if (empty($trail)) {
-            if ($order) {
-                $trail = $this->orderBaseTrail($order);
-            } else {
-                $trail = $this->documentsBaseTrail();
-            }
-        }
-
-        $trail = NavigationTrail::appendOrCollapse(
-            $trail,
-            NavigationTrail::makeNode(
-                'documents.create',
-                'new',
-                'Nuevo documento',
-                route('documents.create')
-            )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('documents.create', NavigationTrail::toQuery($trail))
-        );
-    }
-
-    protected function buildDocumentShowTrail(Request $request, Document $document): array
-    {
-        $trail = NavigationTrail::fromRequest($request);
-
-        if (empty($trail)) {
-            if ($document->order) {
-                $trail = $this->documentsBaseTrail();
-            } else {
-                $trail = $this->documentsBaseTrail();
-            }
-        }
-
-        $trail = NavigationTrail::appendOrCollapse(
-            $trail,
-            NavigationTrail::makeNode(
-                'documents.show',
-                $document->id,
-                $document->number ?: 'Documento #'.$document->id,
-                route('documents.show', ['document' => $document])
-            )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('documents.show', ['document' => $document] + NavigationTrail::toQuery($trail))
-        );
-    }
-
-    protected function buildDocumentEditTrail(Request $request, Document $document): array
-    {
-        $trail = NavigationTrail::fromRequest($request);
-
-        if (empty($trail) || ! NavigationTrail::hasNode($trail, 'documents.show', $document->id)) {
-            $trail = $this->buildDocumentShowTrail($request, $document);
-        }
-
-        $trail = NavigationTrail::appendOrCollapse(
-            $trail,
-            NavigationTrail::makeNode(
-                'documents.edit',
-                $document->id,
-                'Editar',
-                route('documents.edit', ['document' => $document])
-            )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('documents.edit', ['document' => $document] + NavigationTrail::toQuery($trail))
-        );
-    }
-
-    protected function documentsBaseTrail(): array
-    {
-        return NavigationTrail::base([
-            NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
-            NavigationTrail::makeNode('documents.index', null, 'Documentos', route('documents.index')),
-        ]);
-    }
-
-    protected function orderBaseTrail(Order $order): array
-    {
-        $trail = NavigationTrail::base([
-            NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
-            NavigationTrail::makeNode('orders.index', null, 'Órdenes', route('orders.index')),
-            NavigationTrail::makeNode(
-                'orders.show',
-                $order->id,
-                $order->number ?: 'Orden #'.$order->id,
-                route('orders.show', ['order' => $order])
-            ),
-        ]);
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('orders.show', ['order' => $order] + NavigationTrail::toQuery($trail))
-        );
     }
 
     protected function copyItemsFromOrder(Order $order, Document $document): void

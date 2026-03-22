@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderItemController.php | V7
+// FILE: app/Http/Controllers/OrderItemController.php | V9
 
 namespace App\Http\Controllers;
 
@@ -8,6 +8,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Support\Navigation\NavigationTrail;
+use App\Support\Navigation\OrderNavigationTrail;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -29,40 +30,7 @@ class OrderItemController extends Controller
             'unit_price' => null,
         ]);
 
-        $navigationTrail = NavigationTrail::fromRequest($request);
-
-        if (empty($navigationTrail) || ! NavigationTrail::hasNode($navigationTrail, 'orders.show', $order->id)) {
-            $navigationTrail = NavigationTrail::base([
-                NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
-                NavigationTrail::makeNode('orders.index', null, 'Órdenes', route('orders.index')),
-                NavigationTrail::makeNode(
-                    'orders.show',
-                    $order->id,
-                    $order->number ?: 'Orden #'.$order->id,
-                    route('orders.show', ['order' => $order])
-                ),
-            ]);
-
-            $navigationTrail = NavigationTrail::replaceCurrentUrl(
-                $navigationTrail,
-                route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
-            );
-        }
-
-        $navigationTrail = NavigationTrail::appendOrCollapse(
-            $navigationTrail,
-            NavigationTrail::makeNode(
-                'orders.items.create',
-                $order->id,
-                'Agregar ítem',
-                route('orders.items.create', ['order' => $order])
-            )
-        );
-
-        $navigationTrail = NavigationTrail::replaceCurrentUrl(
-            $navigationTrail,
-            route('orders.items.create', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
-        );
+        $navigationTrail = OrderNavigationTrail::itemCreate($request, $order);
 
         return view('orders.items.create', compact('order', 'item', 'products', 'navigationTrail'));
     }
@@ -70,8 +38,6 @@ class OrderItemController extends Controller
     public function store(Request $request, Order $order)
     {
         $this->authorize('update', $order);
-
-        $navigationTrail = NavigationTrail::fromRequest($request);
 
         $data = $request->validate([
             'product_id' => [
@@ -96,20 +62,7 @@ class OrderItemController extends Controller
 
         OrderItem::create($data);
 
-        $navigationTrail = NavigationTrail::appendOrCollapse(
-            $navigationTrail,
-            NavigationTrail::makeNode(
-                'orders.show',
-                $order->id,
-                $order->number ?: 'Orden #'.$order->id,
-                route('orders.show', ['order' => $order])
-            )
-        );
-
-        $navigationTrail = NavigationTrail::replaceCurrentUrl(
-            $navigationTrail,
-            route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
-        );
+        $navigationTrail = OrderNavigationTrail::show($request, $order);
 
         return redirect()
             ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
@@ -128,40 +81,7 @@ class OrderItemController extends Controller
             ->orderBy('name')
             ->get();
 
-        $navigationTrail = NavigationTrail::fromRequest($request);
-
-        if (empty($navigationTrail) || ! NavigationTrail::hasNode($navigationTrail, 'orders.show', $order->id)) {
-            $navigationTrail = NavigationTrail::base([
-                NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
-                NavigationTrail::makeNode('orders.index', null, 'Órdenes', route('orders.index')),
-                NavigationTrail::makeNode(
-                    'orders.show',
-                    $order->id,
-                    $order->number ?: 'Orden #'.$order->id,
-                    route('orders.show', ['order' => $order])
-                ),
-            ]);
-
-            $navigationTrail = NavigationTrail::replaceCurrentUrl(
-                $navigationTrail,
-                route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
-            );
-        }
-
-        $navigationTrail = NavigationTrail::appendOrCollapse(
-            $navigationTrail,
-            NavigationTrail::makeNode(
-                'orders.items.edit',
-                $item->id,
-                'Editar ítem',
-                route('orders.items.edit', ['order' => $order, 'item' => $item])
-            )
-        );
-
-        $navigationTrail = NavigationTrail::replaceCurrentUrl(
-            $navigationTrail,
-            route('orders.items.edit', ['order' => $order, 'item' => $item] + NavigationTrail::toQuery($navigationTrail))
-        );
+        $navigationTrail = OrderNavigationTrail::itemEdit($request, $order, $item);
 
         return view('orders.items.edit', compact('order', 'item', 'products', 'navigationTrail'));
     }
@@ -171,8 +91,6 @@ class OrderItemController extends Controller
         $this->authorize('update', $order);
 
         abort_unless((int) $item->order_id === (int) $order->id, 404);
-
-        $navigationTrail = NavigationTrail::fromRequest($request);
 
         $data = $request->validate([
             'product_id' => [
@@ -194,20 +112,7 @@ class OrderItemController extends Controller
 
         $item->update($data);
 
-        $navigationTrail = NavigationTrail::appendOrCollapse(
-            $navigationTrail,
-            NavigationTrail::makeNode(
-                'orders.show',
-                $order->id,
-                $order->number ?: 'Orden #'.$order->id,
-                route('orders.show', ['order' => $order])
-            )
-        );
-
-        $navigationTrail = NavigationTrail::replaceCurrentUrl(
-            $navigationTrail,
-            route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
-        );
+        $navigationTrail = OrderNavigationTrail::show($request, $order);
 
         return redirect()
             ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
@@ -220,24 +125,9 @@ class OrderItemController extends Controller
 
         abort_unless((int) $item->order_id === (int) $order->id, 404);
 
-        $navigationTrail = NavigationTrail::fromRequest($request);
-
         $item->delete();
 
-        $navigationTrail = NavigationTrail::appendOrCollapse(
-            $navigationTrail,
-            NavigationTrail::makeNode(
-                'orders.show',
-                $order->id,
-                $order->number ?: 'Orden #'.$order->id,
-                route('orders.show', ['order' => $order])
-            )
-        );
-
-        $navigationTrail = NavigationTrail::replaceCurrentUrl(
-            $navigationTrail,
-            route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
-        );
+        $navigationTrail = OrderNavigationTrail::show($request, $order);
 
         return redirect()
             ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))

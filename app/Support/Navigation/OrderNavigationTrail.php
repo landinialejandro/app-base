@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/OrderNavigationTrail.php | V1
+// FILE: app/Support/Navigation/OrderNavigationTrail.php | V2
 
 namespace App\Support\Navigation;
 
@@ -23,7 +23,7 @@ class OrderNavigationTrail
     {
         $trail = self::ordersBase();
 
-        $trail = NavigationTrail::appendOrCollapse(
+        return NavigationTrail::appendOrCollapse(
             $trail,
             NavigationTrail::makeNode(
                 'orders.show',
@@ -31,11 +31,6 @@ class OrderNavigationTrail
                 $order->number ?: 'Orden #'.$order->id,
                 route('orders.show', ['order' => $order])
             )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('orders.show', ['order' => $order] + NavigationTrail::toQuery($trail))
         );
     }
 
@@ -49,7 +44,7 @@ class OrderNavigationTrail
                 : self::ordersBase();
         }
 
-        $trail = NavigationTrail::appendOrCollapse(
+        return NavigationTrail::appendOrCollapse(
             $trail,
             NavigationTrail::makeNode(
                 'orders.create',
@@ -57,11 +52,6 @@ class OrderNavigationTrail
                 'Nueva orden',
                 route('orders.create')
             )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('orders.create', NavigationTrail::toQuery($trail))
         );
     }
 
@@ -75,7 +65,7 @@ class OrderNavigationTrail
                 : self::ordersBase();
         }
 
-        $trail = NavigationTrail::appendOrCollapse(
+        return NavigationTrail::appendOrCollapse(
             $trail,
             NavigationTrail::makeNode(
                 'orders.show',
@@ -83,11 +73,6 @@ class OrderNavigationTrail
                 $order->number ?: 'Orden #'.$order->id,
                 route('orders.show', ['order' => $order])
             )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('orders.show', ['order' => $order] + NavigationTrail::toQuery($trail))
         );
     }
 
@@ -99,7 +84,7 @@ class OrderNavigationTrail
             $trail = self::show($request, $order, $appointment);
         }
 
-        $trail = NavigationTrail::appendOrCollapse(
+        return NavigationTrail::appendOrCollapse(
             $trail,
             NavigationTrail::makeNode(
                 'orders.edit',
@@ -107,11 +92,6 @@ class OrderNavigationTrail
                 'Editar',
                 route('orders.edit', ['order' => $order])
             )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('orders.edit', ['order' => $order] + NavigationTrail::toQuery($trail))
         );
     }
 
@@ -123,7 +103,7 @@ class OrderNavigationTrail
             $trail = self::base($order);
         }
 
-        $trail = NavigationTrail::appendOrCollapse(
+        return NavigationTrail::appendOrCollapse(
             $trail,
             NavigationTrail::makeNode(
                 'orders.items.create',
@@ -131,11 +111,6 @@ class OrderNavigationTrail
                 'Agregar ítem',
                 route('orders.items.create', ['order' => $order])
             )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('orders.items.create', ['order' => $order] + NavigationTrail::toQuery($trail))
         );
     }
 
@@ -147,7 +122,7 @@ class OrderNavigationTrail
             $trail = self::base($order);
         }
 
-        $trail = NavigationTrail::appendOrCollapse(
+        return NavigationTrail::appendOrCollapse(
             $trail,
             NavigationTrail::makeNode(
                 'orders.items.edit',
@@ -155,11 +130,6 @@ class OrderNavigationTrail
                 'Editar ítem',
                 route('orders.items.edit', ['order' => $order, 'item' => $item])
             )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('orders.items.edit', ['order' => $order, 'item' => $item] + NavigationTrail::toQuery($trail))
         );
     }
 }

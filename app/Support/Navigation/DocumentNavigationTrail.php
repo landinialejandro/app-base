@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/DocumentNavigationTrail.php
+// FILE: app/Support/Navigation/DocumentNavigationTrail.php | V2
 
 namespace App\Support\Navigation;
 
@@ -23,7 +23,7 @@ class DocumentNavigationTrail
     {
         $trail = self::documentsBase();
 
-        $trail = NavigationTrail::appendOrCollapse(
+        return NavigationTrail::appendOrCollapse(
             $trail,
             NavigationTrail::makeNode(
                 'documents.show',
@@ -31,11 +31,6 @@ class DocumentNavigationTrail
                 $document->number ?: 'Documento #'.$document->id,
                 route('documents.show', ['document' => $document])
             )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('documents.show', ['document' => $document] + NavigationTrail::toQuery($trail))
         );
     }
 
@@ -49,7 +44,7 @@ class DocumentNavigationTrail
                 : self::documentsBase();
         }
 
-        $trail = NavigationTrail::appendOrCollapse(
+        return NavigationTrail::appendOrCollapse(
             $trail,
             NavigationTrail::makeNode(
                 'documents.create',
@@ -57,11 +52,6 @@ class DocumentNavigationTrail
                 'Nuevo documento',
                 route('documents.create')
             )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('documents.create', NavigationTrail::toQuery($trail))
         );
     }
 
@@ -73,7 +63,7 @@ class DocumentNavigationTrail
             $trail = self::documentsBase();
         }
 
-        $trail = NavigationTrail::appendOrCollapse(
+        return NavigationTrail::appendOrCollapse(
             $trail,
             NavigationTrail::makeNode(
                 'documents.show',
@@ -81,11 +71,6 @@ class DocumentNavigationTrail
                 $document->number ?: 'Documento #'.$document->id,
                 route('documents.show', ['document' => $document])
             )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('documents.show', ['document' => $document] + NavigationTrail::toQuery($trail))
         );
     }
 
@@ -97,7 +82,7 @@ class DocumentNavigationTrail
             $trail = self::show($request, $document);
         }
 
-        $trail = NavigationTrail::appendOrCollapse(
+        return NavigationTrail::appendOrCollapse(
             $trail,
             NavigationTrail::makeNode(
                 'documents.edit',
@@ -105,11 +90,6 @@ class DocumentNavigationTrail
                 'Editar',
                 route('documents.edit', ['document' => $document])
             )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('documents.edit', ['document' => $document] + NavigationTrail::toQuery($trail))
         );
     }
 
@@ -121,7 +101,7 @@ class DocumentNavigationTrail
             $trail = self::base($document);
         }
 
-        $trail = NavigationTrail::appendOrCollapse(
+        return NavigationTrail::appendOrCollapse(
             $trail,
             NavigationTrail::makeNode(
                 'documents.items.create',
@@ -129,11 +109,6 @@ class DocumentNavigationTrail
                 'Agregar ítem',
                 route('documents.items.create', ['document' => $document])
             )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('documents.items.create', ['document' => $document] + NavigationTrail::toQuery($trail))
         );
     }
 
@@ -145,7 +120,7 @@ class DocumentNavigationTrail
             $trail = self::base($document);
         }
 
-        $trail = NavigationTrail::appendOrCollapse(
+        return NavigationTrail::appendOrCollapse(
             $trail,
             NavigationTrail::makeNode(
                 'documents.items.edit',
@@ -153,11 +128,6 @@ class DocumentNavigationTrail
                 'Editar ítem',
                 route('documents.items.edit', ['document' => $document, 'item' => $item])
             )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('documents.items.edit', ['document' => $document, 'item' => $item] + NavigationTrail::toQuery($trail))
         );
     }
 }

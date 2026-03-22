@@ -11,7 +11,6 @@
     $fromAsset = $fromAsset ?? false;
     $prefilledTask = $prefilledTask ?? null;
     $prefilledAppointment = $prefilledAppointment ?? null;
-    $navigationContext = $navigationContext ?? null;
 
     $prefilledKind = $prefilledKind ?? old('kind', $order->kind ?? OrderCatalog::KIND_SALE);
 
@@ -21,12 +20,7 @@
     $currentAppointmentId = old('appointment_id', $prefilledAppointment?->id ?? '');
     $currentAppointmentLabel = old(
         'appointment_label',
-        ($prefilledAppointment?->title ?:
-            ($navigationContext['type'] ?? null) === 'appointment')
-            ? $navigationContext['label'] ?? 'Turno #' . $currentAppointmentId
-            : ($currentAppointmentId
-                ? 'Turno #' . $currentAppointmentId
-                : ''),
+        $prefilledAppointment?->title ?? ($currentAppointmentId ? 'Turno #' . $currentAppointmentId : ''),
     );
 
     $lockedByExistingAsset = $orderExists && !empty($order->asset_id);

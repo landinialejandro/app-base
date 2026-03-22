@@ -29,12 +29,14 @@
                 @foreach ($appointments as $appointment)
                     @php
                         $rowTitle = AppointmentCatalog::rowTitleFor($appointment->kind, $appointment->work_mode);
-                        $orderTrailQuery = NavigationTrail::toQuery(AppointmentNavigationTrail::base($appointment));
+                        $appointmentTrail = AppointmentNavigationTrail::base($appointment);
+                        $appointmentTrailQuery = NavigationTrail::toQuery($appointmentTrail);
                     @endphp
 
                     <tr>
                         <td>
-                            <a href="{{ route('appointments.show', $appointment) }}">
+                            <a
+                                href="{{ route('appointments.show', ['appointment' => $appointment] + $appointmentTrailQuery) }}">
                                 {{ $rowTitle }}
                             </a>
                             <div class="text-muted">#{{ $appointment->id }}</div>
@@ -78,7 +80,7 @@
                         <td>
                             @if ($appointment->order)
                                 <a
-                                    href="{{ route('orders.show', ['order' => $appointment->order] + $orderTrailQuery) }}">
+                                    href="{{ route('orders.show', ['order' => $appointment->order] + $appointmentTrailQuery) }}">
                                     {{ $appointment->order->number ?: 'Orden #' . $appointment->order->id }}
                                 </a>
                             @else

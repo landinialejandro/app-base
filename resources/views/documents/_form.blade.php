@@ -6,7 +6,6 @@
     $documentExists = isset($document) && $document->exists;
     $documentIsNumbered = $documentExists && !empty($document->number);
 
-    $navigationContext = $navigationContext ?? null;
     $boundOrder = $order ?? ($document->order ?? null);
 
     $currentOrderId = old('order_id', $boundOrder?->id ?? ($document->order_id ?? ''));

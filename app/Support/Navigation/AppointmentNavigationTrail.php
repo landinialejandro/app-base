@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/AppointmentNavigationTrail.php | V2
+// FILE: app/Support/Navigation/AppointmentNavigationTrail.php | V3
 
 namespace App\Support\Navigation;
 
@@ -21,7 +21,7 @@ class AppointmentNavigationTrail
     {
         $trail = self::appointmentsBase();
 
-        $trail = NavigationTrail::appendOrCollapse(
+        return NavigationTrail::appendOrCollapse(
             $trail,
             NavigationTrail::makeNode(
                 'appointments.show',
@@ -30,18 +30,13 @@ class AppointmentNavigationTrail
                 route('appointments.show', ['appointment' => $appointment])
             )
         );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('appointments.show', ['appointment' => $appointment] + NavigationTrail::toQuery($trail))
-        );
     }
 
     public static function create(): array
     {
         $trail = self::appointmentsBase();
 
-        $trail = NavigationTrail::appendOrCollapse(
+        return NavigationTrail::appendOrCollapse(
             $trail,
             NavigationTrail::makeNode(
                 'appointments.create',
@@ -49,11 +44,6 @@ class AppointmentNavigationTrail
                 'Nuevo turno',
                 route('appointments.create')
             )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('appointments.create', NavigationTrail::toQuery($trail))
         );
     }
 
@@ -65,7 +55,7 @@ class AppointmentNavigationTrail
             $trail = self::appointmentsBase();
         }
 
-        $trail = NavigationTrail::appendOrCollapse(
+        return NavigationTrail::appendOrCollapse(
             $trail,
             NavigationTrail::makeNode(
                 'appointments.show',
@@ -73,11 +63,6 @@ class AppointmentNavigationTrail
                 $appointment->title ?: 'Turno #'.$appointment->id,
                 route('appointments.show', ['appointment' => $appointment])
             )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('appointments.show', ['appointment' => $appointment] + NavigationTrail::toQuery($trail))
         );
     }
 
@@ -89,7 +74,7 @@ class AppointmentNavigationTrail
             $trail = self::show($request, $appointment);
         }
 
-        $trail = NavigationTrail::appendOrCollapse(
+        return NavigationTrail::appendOrCollapse(
             $trail,
             NavigationTrail::makeNode(
                 'appointments.edit',
@@ -97,11 +82,6 @@ class AppointmentNavigationTrail
                 'Editar',
                 route('appointments.edit', ['appointment' => $appointment])
             )
-        );
-
-        return NavigationTrail::replaceCurrentUrl(
-            $trail,
-            route('appointments.edit', ['appointment' => $appointment] + NavigationTrail::toQuery($trail))
         );
     }
 

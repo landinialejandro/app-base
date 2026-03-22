@@ -1,42 +1,55 @@
+{{-- FILE: resources/views/appointments/edit.blade.php | V2 --}}
+
 @extends('layouts.app')
 
-@section('title', 'Editar turno')
+@section('title', 'Editar orden')
 
 @section('content')
-    <x-page>
-        <x-breadcrumb :items="[
-            ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Turnos', 'url' => route('appointments.index')],
-            [
-                'label' => $appointment->title ?: 'Turno #' . $appointment->id,
-                'url' => route('appointments.show', $appointment),
-            ],
-            ['label' => 'Editar'],
-        ]" />
+    @php
+        $contextRouteParams = $navigationContext
+            ? ['context_type' => $navigationContext['type'], 'context_id' => $navigationContext['id']]
+            : [];
 
-        <x-page-header title="Editar turno">
-            <a href="{{ route('appointments.show', $appointment) }}" class="btn btn-secondary">
-                Volver al detalle
-            </a>
-        </x-page-header>
+        $orderLabel = $order->number ?: 'Orden #' . $order->id;
+
+        $breadcrumbItems = [['label' => 'Inicio', 'url' => route('dashboard')]];
+
+        if (($navigationContext['type'] ?? null) === 'appointment') {
+            $breadcrumbItems[] = ['label' => 'Turnos', 'url' => route('appointments.index')];
+            $breadcrumbItems[] = ['label' => $navigationContext['label'], 'url' => $navigationContext['url']];
+            $breadcrumbItems[] = [
+                'label' => $orderLabel,
+                'url' => route('orders.show', ['order' => $order] + $contextRouteParams),
+            ];
+            $breadcrumbItems[] = ['label' => 'Editar'];
+        } else {
+            $breadcrumbItems[] = ['label' => 'Órdenes', 'url' => route('orders.index')];
+            $breadcrumbItems[] = ['label' => $orderLabel, 'url' => route('orders.show', $order)];
+            $breadcrumbItems[] = ['label' => 'Editar'];
+        }
+    @endphp
+
+    <x-page>
+
+        <x-breadcrumb :items="$breadcrumbItems" />
+
+        <x-page-header title="Editar orden" />
 
         <x-card>
-            <form method="POST" action="{{ route('appointments.update', $appointment) }}">
+            <form method="POST" action="{{ route('orders.update', ['order' => $order] + $contextRouteParams) }}"
+                class="form">
                 @csrf
                 @method('PUT')
 
-                @include('appointments._form')
+                @include('orders._form')
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">
-                        Guardar cambios
-                    </button>
-
-                    <a href="{{ route('appointments.show', $appointment) }}" class="btn btn-secondary">
-                        Cancelar
-                    </a>
+                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    <a href="{{ route('orders.show', ['order' => $order] + $contextRouteParams) }}"
+                        class="btn btn-secondary">Cancelar</a>
                 </div>
             </form>
         </x-card>
+
     </x-page>
 @endsection

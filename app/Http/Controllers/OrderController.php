@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderController.php | V5
+// FILE: app/Http/Controllers/OrderController.php | V7
 
 namespace App\Http\Controllers;
 
@@ -11,6 +11,7 @@ use App\Models\Party;
 use App\Models\Task;
 use App\Support\Catalogs\OrderCatalog;
 use App\Support\Documents\DocumentNumberGenerator;
+use App\Support\Navigation\NavigationContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -87,6 +88,8 @@ class OrderController extends Controller
         $prefilledTask = null;
         $prefilledAppointment = null;
 
+        $navigationContext = NavigationContext::resolveFromRequest($request, $tenant->id);
+
         if ($request->filled('asset_id')) {
             $prefilledAsset = Asset::query()
                 ->where('id', $request->integer('asset_id'))
@@ -111,7 +114,7 @@ class OrderController extends Controller
 
             if ($prefilledTask->order) {
                 return redirect()
-                    ->route('orders.show', $prefilledTask->order)
+                    ->route('orders.show', ['order' => $prefilledTask->order] + NavigationContext::routeParams($navigationContext))
                     ->with('success', 'La tarea ya tiene una orden asociada.');
             }
 
@@ -132,7 +135,9 @@ class OrderController extends Controller
 
             if ($prefilledAppointment->order) {
                 return redirect()
-                    ->route('orders.show', $prefilledAppointment->order)
+                    ->route('orders.show', ['order' => $prefilledAppointment->order] + NavigationContext::routeParams(
+                        $navigationContext ?: NavigationContext::makeAppointment($prefilledAppointment)
+                    ))
                     ->with('success', 'El turno ya tiene una orden asociada.');
             }
 
@@ -149,6 +154,10 @@ class OrderController extends Controller
             }
 
             $prefilledKind = OrderCatalog::KIND_SERVICE;
+
+            if (! $navigationContext) {
+                $navigationContext = NavigationContext::makeAppointment($prefilledAppointment);
+            }
         }
 
         return view('orders.create', compact(
@@ -160,6 +169,7 @@ class OrderController extends Controller
             'fromAsset',
             'prefilledTask',
             'prefilledAppointment',
+            'navigationContext',
         ));
     }
 
@@ -168,6 +178,7 @@ class OrderController extends Controller
         $this->authorize('create', Order::class);
 
         $tenant = app('tenant');
+        $navigationContext = NavigationContext::resolveFromRequest($request, $tenant->id);
 
         $data = $request->validate([
             'party_id' => [
@@ -284,14 +295,18 @@ class OrderController extends Controller
                     'updated_by' => auth()->id(),
                 ]);
             }
+
+            if (! $navigationContext) {
+                $navigationContext = NavigationContext::makeAppointment($appointment);
+            }
         }
 
         return redirect()
-            ->route('orders.show', $order)
+            ->route('orders.show', ['order' => $order] + NavigationContext::routeParams($navigationContext))
             ->with('success', "Orden creada correctamente con número {$order->number}.");
     }
 
-    public function show(Order $order)
+    public function show(Request $request, Order $order)
     {
         $this->authorize('view', $order);
 
@@ -305,17 +320,20 @@ class OrderController extends Controller
             'documents',
         ]);
 
-        return view('orders.show', compact('order'));
+        $navigationContext = NavigationContext::resolveFromRequest($request, $order->tenant_id);
+
+        return view('orders.show', compact('order', 'navigationContext'));
     }
 
-    public function edit(Order $order)
+    public function edit(Request $request, Order $order)
     {
         $this->authorize('update', $order);
 
         $parties = Party::orderBy('name')->get();
         $assets = Asset::with('party')->orderBy('name')->get();
+        $navigationContext = NavigationContext::resolveFromRequest($request, $order->tenant_id);
 
-        return view('orders.edit', compact('order', 'parties', 'assets'));
+        return view('orders.edit', compact('order', 'parties', 'assets', 'navigationContext'));
     }
 
     public function update(Request $request, Order $order)
@@ -323,6 +341,7 @@ class OrderController extends Controller
         $this->authorize('update', $order);
 
         $tenant = app('tenant');
+        $navigationContext = NavigationContext::resolveFromRequest($request, $tenant->id);
 
         $data = $request->validate([
             'party_id' => [
@@ -432,7 +451,7 @@ class OrderController extends Controller
         $order->update($data);
 
         return redirect()
-            ->route('orders.show', $order)
+            ->route('orders.show', ['order' => $order] + NavigationContext::routeParams($navigationContext))
             ->with('success', 'Orden actualizada.');
     }
 

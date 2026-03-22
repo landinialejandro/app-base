@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/show.blade.php | V4 --}}
+{{-- FILE: resources/views/documents/show.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -19,6 +19,36 @@
 
     $canUpdateDocument = auth()->user()->can('update', $document);
     $canDeleteDocument = auth()->user()->can('delete', $document);
+
+    $contextRouteParams = $navigationContext
+        ? ['context_type' => $navigationContext['type'], 'context_id' => $navigationContext['id']]
+        : [];
+
+    $documentLabel = $document->number ?: 'Sin número';
+
+    $breadcrumbItems = [['label' => 'Inicio', 'url' => route('dashboard')]];
+
+    if (($navigationContext['type'] ?? null) === 'appointment') {
+        $breadcrumbItems[] = ['label' => 'Turnos', 'url' => route('appointments.index')];
+        $breadcrumbItems[] = ['label' => $navigationContext['label'], 'url' => $navigationContext['url']];
+
+        if ($document->order) {
+            $breadcrumbItems[] = [
+                'label' => $document->order->number ?: 'Orden #' . $document->order->id,
+                'url' => route('orders.show', ['order' => $document->order] + $contextRouteParams),
+            ];
+        }
+
+        $breadcrumbItems[] = ['label' => $documentLabel];
+    } else {
+        $breadcrumbItems[] = ['label' => 'Documentos', 'url' => route('documents.index')];
+        $breadcrumbItems[] = ['label' => $documentLabel];
+    }
+
+    $backUrl =
+        ($navigationContext['type'] ?? null) === 'appointment' && $document->order
+            ? route('orders.show', ['order' => $document->order] + $contextRouteParams)
+            : route('documents.index');
 @endphp
 
 @section('title', $documentDetailTitle)
@@ -26,15 +56,12 @@
 @section('content')
     <x-page>
 
-        <x-breadcrumb :items="[
-            ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Documentos', 'url' => route('documents.index')],
-            ['label' => $document->number ?: 'Sin número'],
-        ]" />
+        <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header :title="$documentDetailTitle">
             @if ($canUpdateDocument)
-                <a href="{{ route('documents.edit', $document) }}" class="btn btn-primary">
+                <a href="{{ route('documents.edit', ['document' => $document] + $contextRouteParams) }}"
+                    class="btn btn-primary">
                     <x-icons.pencil />
                     <span>Editar</span>
                 </a>
@@ -56,8 +83,8 @@
                 </form>
             @endif
 
-            <a href="{{ route('documents.index') }}" class="btn btn-secondary">
-                Volver
+            <a href="{{ $backUrl }}" class="btn btn-secondary">
+                {{ ($navigationContext['type'] ?? null) === 'appointment' && $document->order ? 'Volver a la orden' : 'Volver' }}
             </a>
         </x-page-header>
 
@@ -107,7 +134,7 @@
                         <span class="detail-block-label">Orden asociada</span>
                         <div class="detail-block-value">
                             @if ($document->order)
-                                <a href="{{ route('orders.show', $document->order) }}">
+                                <a href="{{ route('orders.show', ['order' => $document->order] + $contextRouteParams) }}">
                                     {{ $document->order->number ?: 'Sin número' }}
                                 </a>
                             @else
@@ -166,7 +193,8 @@
 
                     <x-page-header title="Ítems del documento">
                         @if ($canUpdateDocument)
-                            <a href="{{ route('documents.items.create', $document) }}" class="btn btn-primary">
+                            <a href="{{ route('documents.items.create', ['document' => $document] + $contextRouteParams) }}"
+                                class="btn btn-primary">
                                 Agregar ítem
                             </a>
                         @endif
@@ -177,6 +205,7 @@
                             'document' => $document,
                             'items' => $items,
                             'emptyMessage' => 'No hay ítems cargados en este documento.',
+                            'contextRouteParams' => $contextRouteParams,
                         ])
                     </x-card>
 

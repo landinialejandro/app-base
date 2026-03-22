@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DocumentController.php | V4
+// FILE: app/Http/Controllers/DocumentController.php | V6
 
 namespace App\Http\Controllers;
 
@@ -12,6 +12,7 @@ use App\Models\Party;
 use App\Support\Catalogs\DocumentCatalog;
 use App\Support\Documents\DocumentNumberGenerator;
 use App\Support\Documents\DocumentTotalsCalculator;
+use App\Support\Navigation\NavigationContext;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -81,7 +82,7 @@ class DocumentController extends Controller
         return view('documents.index', compact('documents', 'parties', 'assets', 'orders'));
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $this->authorize('create', Document::class);
 
@@ -95,7 +96,9 @@ class DocumentController extends Controller
             'issued_at' => now(),
         ]);
 
-        return view('documents.create', compact('document', 'parties', 'orders', 'assets'));
+        $navigationContext = NavigationContext::resolveFromRequest($request, app('tenant')->id);
+
+        return view('documents.create', compact('document', 'parties', 'orders', 'assets', 'navigationContext'));
     }
 
     public function store(Request $request)
@@ -103,6 +106,7 @@ class DocumentController extends Controller
         $this->authorize('create', Document::class);
 
         $tenant = app('tenant');
+        $navigationContext = NavigationContext::resolveFromRequest($request, $tenant->id);
 
         $data = $request->validate([
             'party_id' => [
@@ -202,13 +206,15 @@ class DocumentController extends Controller
         });
 
         return redirect()
-            ->route('documents.show', $document)
+            ->route('documents.show', ['document' => $document] + NavigationContext::routeParams($navigationContext))
             ->with('success', "Documento creado correctamente con número {$document->number}.");
     }
 
     public function storeFromOrder(Request $request, Order $order)
     {
         $this->authorize('create', Document::class);
+
+        $navigationContext = NavigationContext::resolveFromRequest($request, $order->tenant_id);
 
         $data = $request->validate([
             'kind' => [
@@ -287,11 +293,11 @@ class DocumentController extends Controller
         }
 
         return redirect()
-            ->route('documents.show', $document)
+            ->route('documents.show', ['document' => $document] + NavigationContext::routeParams($navigationContext))
             ->with('success', $message);
     }
 
-    public function show(Document $document)
+    public function show(Request $request, Document $document)
     {
         $this->authorize('view', $document);
 
@@ -304,18 +310,21 @@ class DocumentController extends Controller
             'items.product',
         ]);
 
-        return view('documents.show', compact('document'));
+        $navigationContext = NavigationContext::resolveFromRequest($request, $document->tenant_id);
+
+        return view('documents.show', compact('document', 'navigationContext'));
     }
 
-    public function edit(Document $document)
+    public function edit(Request $request, Document $document)
     {
         $this->authorize('update', $document);
 
         $parties = Party::orderBy('name')->get();
         $orders = Order::with(['party', 'asset'])->latest()->get();
         $assets = Asset::with('party')->orderBy('name')->get();
+        $navigationContext = NavigationContext::resolveFromRequest($request, $document->tenant_id);
 
-        return view('documents.edit', compact('document', 'parties', 'orders', 'assets'));
+        return view('documents.edit', compact('document', 'parties', 'orders', 'assets', 'navigationContext'));
     }
 
     public function update(Request $request, Document $document)
@@ -323,6 +332,7 @@ class DocumentController extends Controller
         $this->authorize('update', $document);
 
         $tenant = app('tenant');
+        $navigationContext = NavigationContext::resolveFromRequest($request, $tenant->id);
 
         $data = $request->validate([
             'party_id' => [
@@ -418,7 +428,7 @@ class DocumentController extends Controller
         $document->update($data);
 
         return redirect()
-            ->route('documents.show', $document)
+            ->route('documents.show', ['document' => $document] + NavigationContext::routeParams($navigationContext))
             ->with('success', 'Documento actualizado.');
     }
 

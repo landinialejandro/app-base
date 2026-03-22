@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/items/partials/table.blade.php --}}
+{{-- FILE: resources/views/documents/items/partials/table.blade.php | V3 --}}
 
 @php
     use App\Support\Catalogs\ProductCatalog;
@@ -7,6 +7,7 @@
     $items = $items ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay ítems cargados en este documento.';
     $canManageItems = $document && auth()->user()->can('update', $document);
+    $contextRouteParams = $contextRouteParams ?? [];
 @endphp
 
 @if ($items->count())
@@ -38,13 +39,13 @@
                         @if ($canManageItems)
                             <td class="compact-actions-cell">
                                 <div class="compact-actions">
-                                    <a href="{{ route('documents.items.edit', [$document, $item]) }}"
+                                    <a href="{{ route('documents.items.edit', ['document' => $document, 'item' => $item] + $contextRouteParams) }}"
                                         class="btn btn-secondary btn-icon" title="Editar ítem" aria-label="Editar ítem">
                                         <x-icons.pencil />
                                     </a>
 
                                     <form method="POST"
-                                        action="{{ route('documents.items.destroy', [$document, $item]) }}"
+                                        action="{{ route('documents.items.destroy', ['document' => $document, 'item' => $item] + $contextRouteParams) }}"
                                         class="inline-form" data-action="app-confirm-submit"
                                         data-confirm-message="¿Deseas eliminar este ítem?">
                                         @csrf

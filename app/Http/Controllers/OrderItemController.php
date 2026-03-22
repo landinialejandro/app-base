@@ -1,125 +1,131 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderItemController.php | V4
+// FILE: app/Http/Controllers/OrderItemController.php | V5
 
 namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
-use App\Support\Catalogs\ProductCatalog;
+use App\Support\Navigation\NavigationContext;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class OrderItemController extends Controller
 {
-    public function create(Order $order)
+    public function create(Request $request, Order $order)
     {
         $this->authorize('update', $order);
 
-        $products = Product::orderBy('name')->get();
+        $products = Product::query()
+            ->orderBy('name')
+            ->get();
 
         $item = new OrderItem([
-            'kind' => ProductCatalog::KIND_PRODUCT,
+            'position' => ((int) $order->items()->max('position')) + 1,
             'quantity' => 1,
-            'unit_price' => 0,
+            'unit_price' => null,
         ]);
 
-        return view('orders.items.create', compact('order', 'item', 'products'));
+        $navigationContext = NavigationContext::resolveFromRequest($request, $order->tenant_id);
+
+        return view('orders.items.create', compact('order', 'item', 'products', 'navigationContext'));
     }
 
     public function store(Request $request, Order $order)
     {
         $this->authorize('update', $order);
 
-        $tenant = app('tenant');
+        $navigationContext = NavigationContext::resolveFromRequest($request, $order->tenant_id);
 
         $data = $request->validate([
             'product_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('products', 'id')->where(function ($query) use ($tenant) {
-                    $query->where('tenant_id', $tenant->id)
+                Rule::exists('products', 'id')->where(function ($query) use ($order) {
+                    $query->where('tenant_id', $order->tenant_id)
                         ->whereNull('deleted_at');
                 }),
             ],
-            'position' => ['nullable', 'integer', 'min:1'],
-            'kind' => [
-                'required',
-                Rule::in(ProductCatalog::kinds()),
-            ],
+            'position' => ['required', 'integer', 'min:1'],
+            'kind' => ['required', 'string', 'max:50'],
             'description' => ['required', 'string', 'max:255'],
-            'quantity' => ['required', 'numeric', 'min:0.01'],
+            'quantity' => ['required', 'numeric', 'gt:0'],
             'unit_price' => ['required', 'numeric', 'min:0'],
         ]);
 
-        $data['position'] = $data['position'] ?? (($order->items()->max('position') ?? 0) + 1);
+        $data['tenant_id'] = $order->tenant_id;
+        $data['order_id'] = $order->id;
+        $data['created_by'] = auth()->id();
+        $data['updated_by'] = auth()->id();
 
-        $item = new OrderItem($data);
-        $item->tenant_id = $order->tenant_id;
-        $item->order_id = $order->id;
-        $item->save();
+        OrderItem::create($data);
 
         return redirect()
-            ->route('orders.show', $order)
+            ->route('orders.show', ['order' => $order] + NavigationContext::routeParams($navigationContext))
             ->with('success', 'Ítem agregado correctamente.');
     }
 
-    public function edit(Order $order, OrderItem $item)
+    public function edit(Request $request, Order $order, OrderItem $item)
     {
         $this->authorize('update', $order);
 
-        abort_unless($item->order_id === $order->id, 404);
+        abort_unless((int) $item->order_id === (int) $order->id, 404);
 
-        $products = Product::orderBy('name')->get();
+        $products = Product::query()
+            ->orderBy('name')
+            ->get();
 
-        return view('orders.items.edit', compact('order', 'item', 'products'));
+        $navigationContext = NavigationContext::resolveFromRequest($request, $order->tenant_id);
+
+        return view('orders.items.edit', compact('order', 'item', 'products', 'navigationContext'));
     }
 
     public function update(Request $request, Order $order, OrderItem $item)
     {
         $this->authorize('update', $order);
 
-        abort_unless($item->order_id === $order->id, 404);
+        abort_unless((int) $item->order_id === (int) $order->id, 404);
 
-        $tenant = app('tenant');
+        $navigationContext = NavigationContext::resolveFromRequest($request, $order->tenant_id);
 
         $data = $request->validate([
             'product_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('products', 'id')->where(function ($query) use ($tenant) {
-                    $query->where('tenant_id', $tenant->id)
+                Rule::exists('products', 'id')->where(function ($query) use ($order) {
+                    $query->where('tenant_id', $order->tenant_id)
                         ->whereNull('deleted_at');
                 }),
             ],
-            'position' => ['nullable', 'integer', 'min:1'],
-            'kind' => [
-                'required',
-                Rule::in(ProductCatalog::kinds()),
-            ],
+            'position' => ['required', 'integer', 'min:1'],
+            'kind' => ['required', 'string', 'max:50'],
             'description' => ['required', 'string', 'max:255'],
-            'quantity' => ['required', 'numeric', 'min:0.01'],
+            'quantity' => ['required', 'numeric', 'gt:0'],
             'unit_price' => ['required', 'numeric', 'min:0'],
         ]);
+
+        $data['updated_by'] = auth()->id();
 
         $item->update($data);
 
         return redirect()
-            ->route('orders.show', $order)
+            ->route('orders.show', ['order' => $order] + NavigationContext::routeParams($navigationContext))
             ->with('success', 'Ítem actualizado correctamente.');
     }
 
-    public function destroy(Order $order, OrderItem $item)
+    public function destroy(Request $request, Order $order, OrderItem $item)
     {
         $this->authorize('update', $order);
 
-        abort_unless($item->order_id === $order->id, 404);
+        abort_unless((int) $item->order_id === (int) $order->id, 404);
+
+        $navigationContext = NavigationContext::resolveFromRequest($request, $order->tenant_id);
 
         $item->delete();
 
         return redirect()
-            ->route('orders.show', $order)
+            ->route('orders.show', ['order' => $order] + NavigationContext::routeParams($navigationContext))
             ->with('success', 'Ítem eliminado correctamente.');
     }
 }

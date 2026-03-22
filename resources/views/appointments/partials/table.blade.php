@@ -1,3 +1,5 @@
+{{-- FILE: resources/views/appointments/partials/table.blade.php | V2 --}}
+
 @php
     use App\Support\Catalogs\AppointmentCatalog;
 
@@ -25,6 +27,10 @@
                 @foreach ($appointments as $appointment)
                     @php
                         $rowTitle = AppointmentCatalog::rowTitleFor($appointment->kind, $appointment->work_mode);
+                        $orderContextParams = [
+                            'context_type' => 'appointment',
+                            'context_id' => $appointment->id,
+                        ];
                     @endphp
 
                     <tr>
@@ -72,7 +78,8 @@
 
                         <td>
                             @if ($appointment->order)
-                                <a href="{{ route('orders.show', $appointment->order) }}">
+                                <a
+                                    href="{{ route('orders.show', ['order' => $appointment->order] + $orderContextParams) }}">
                                     {{ $appointment->order->number ?: 'Orden #' . $appointment->order->id }}
                                 </a>
                             @else

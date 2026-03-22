@@ -1,131 +1,137 @@
 <?php
 
-// FILE: app/Http/Controllers/DocumentItemController.php
+// FILE: app/Http/Controllers/DocumentItemController.php | V3
 
 namespace App\Http\Controllers;
-
-use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 use App\Models\Document;
 use App\Models\DocumentItem;
 use App\Models\Product;
-use App\Support\Catalogs\ProductCatalog;
 use App\Support\Documents\DocumentTotalsCalculator;
+use App\Support\Navigation\NavigationContext;
+use Illuminate\Http\Request;
+use Illuminate\Validation\Rule;
 
 class DocumentItemController extends Controller
 {
-    public function create(Document $document)
+    public function create(Request $request, Document $document)
     {
-        $products = Product::orderBy('name')->get();
+        $this->authorize('update', $document);
+
+        $products = Product::query()
+            ->orderBy('name')
+            ->get();
 
         $item = new DocumentItem([
-            'kind' => ProductCatalog::KIND_PRODUCT,
+            'position' => ((int) $document->items()->max('position')) + 1,
             'quantity' => 1,
-            'unit_price' => 0,
+            'unit_price' => null,
         ]);
 
-        return view('documents.items.create', compact('document', 'item', 'products'));
+        $navigationContext = NavigationContext::resolveFromRequest($request, $document->tenant_id);
+
+        return view('documents.items.create', compact('document', 'item', 'products', 'navigationContext'));
     }
 
     public function store(Request $request, Document $document)
     {
-        $tenant = app('tenant');
+        $this->authorize('update', $document);
+
+        $navigationContext = NavigationContext::resolveFromRequest($request, $document->tenant_id);
 
         $data = $request->validate([
             'product_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('products', 'id')->where(function ($query) use ($tenant) {
-                    $query->where('tenant_id', $tenant->id)
+                Rule::exists('products', 'id')->where(function ($query) use ($document) {
+                    $query->where('tenant_id', $document->tenant_id)
                         ->whereNull('deleted_at');
                 }),
             ],
-            'position' => ['nullable', 'integer', 'min:1'],
-            'kind' => [
-                'required',
-                Rule::in(ProductCatalog::kinds()),
-            ],
+            'position' => ['required', 'integer', 'min:1'],
+            'kind' => ['required', 'string', 'max:50'],
             'description' => ['required', 'string', 'max:255'],
-            'quantity' => ['required', 'numeric', 'min:0.01'],
+            'quantity' => ['required', 'numeric', 'gt:0'],
             'unit_price' => ['required', 'numeric', 'min:0'],
         ]);
 
-        $data['position'] = $data['position'] ?? (($document->items()->max('position') ?? 0) + 1);
+        $data['tenant_id'] = $document->tenant_id;
+        $data['document_id'] = $document->id;
+        $data['line_total'] = (float) $data['quantity'] * (float) $data['unit_price'];
 
-        $quantity = (float) $data['quantity'];
-        $unitPrice = (float) $data['unit_price'];
-        $data['line_total'] = $quantity * $unitPrice;
+        DocumentItem::create($data);
 
-        $item = new DocumentItem($data);
-        $item->tenant_id = $document->tenant_id;
-        $item->document_id = $document->id;
-        $item->save();
-
-        DocumentTotalsCalculator::apply($document);
+        DocumentTotalsCalculator::apply($document->fresh());
 
         return redirect()
-            ->route('documents.show', $document)
+            ->route('documents.show', ['document' => $document] + NavigationContext::routeParams($navigationContext))
             ->with('success', 'Ítem agregado correctamente.');
     }
 
-    public function edit(Document $document, DocumentItem $item)
+    public function edit(Request $request, Document $document, DocumentItem $item)
     {
-        abort_unless($item->document_id === $document->id, 404);
+        $this->authorize('update', $document);
 
-        $products = Product::orderBy('name')->get();
+        abort_unless((int) $item->document_id === (int) $document->id, 404);
 
-        return view('documents.items.edit', compact('document', 'item', 'products'));
+        $products = Product::query()
+            ->orderBy('name')
+            ->get();
+
+        $navigationContext = NavigationContext::resolveFromRequest($request, $document->tenant_id);
+
+        return view('documents.items.edit', compact('document', 'item', 'products', 'navigationContext'));
     }
 
     public function update(Request $request, Document $document, DocumentItem $item)
     {
-        abort_unless($item->document_id === $document->id, 404);
+        $this->authorize('update', $document);
 
-        $tenant = app('tenant');
+        abort_unless((int) $item->document_id === (int) $document->id, 404);
+
+        $navigationContext = NavigationContext::resolveFromRequest($request, $document->tenant_id);
 
         $data = $request->validate([
             'product_id' => [
                 'nullable',
                 'integer',
-                Rule::exists('products', 'id')->where(function ($query) use ($tenant) {
-                    $query->where('tenant_id', $tenant->id)
+                Rule::exists('products', 'id')->where(function ($query) use ($document) {
+                    $query->where('tenant_id', $document->tenant_id)
                         ->whereNull('deleted_at');
                 }),
             ],
-            'position' => ['nullable', 'integer', 'min:1'],
-            'kind' => [
-                'required',
-                Rule::in(ProductCatalog::kinds()),
-            ],
+            'position' => ['required', 'integer', 'min:1'],
+            'kind' => ['required', 'string', 'max:50'],
             'description' => ['required', 'string', 'max:255'],
-            'quantity' => ['required', 'numeric', 'min:0.01'],
+            'quantity' => ['required', 'numeric', 'gt:0'],
             'unit_price' => ['required', 'numeric', 'min:0'],
         ]);
 
-        $quantity = (float) $data['quantity'];
-        $unitPrice = (float) $data['unit_price'];
-        $data['line_total'] = $quantity * $unitPrice;
+        $data['line_total'] = (float) $data['quantity'] * (float) $data['unit_price'];
 
         $item->update($data);
 
-        DocumentTotalsCalculator::apply($document);
+        DocumentTotalsCalculator::apply($document->fresh());
 
         return redirect()
-            ->route('documents.show', $document)
+            ->route('documents.show', ['document' => $document] + NavigationContext::routeParams($navigationContext))
             ->with('success', 'Ítem actualizado correctamente.');
     }
 
-    public function destroy(Document $document, DocumentItem $item)
+    public function destroy(Request $request, Document $document, DocumentItem $item)
     {
-        abort_unless($item->document_id === $document->id, 404);
+        $this->authorize('update', $document);
+
+        abort_unless((int) $item->document_id === (int) $document->id, 404);
+
+        $navigationContext = NavigationContext::resolveFromRequest($request, $document->tenant_id);
 
         $item->delete();
 
-        DocumentTotalsCalculator::apply($document);
+        DocumentTotalsCalculator::apply($document->fresh());
 
         return redirect()
-            ->route('documents.show', $document)
+            ->route('documents.show', ['document' => $document] + NavigationContext::routeParams($navigationContext))
             ->with('success', 'Ítem eliminado correctamente.');
     }
 }

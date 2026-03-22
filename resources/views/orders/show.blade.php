@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php --}}
+{{-- FILE: resources/views/orders/show.blade.php | V2 --}}
 
 @extends('layouts.app')
 
@@ -23,19 +23,35 @@
         $deliveryNoteCount = $documents->where('kind', DocumentCatalog::KIND_DELIVERY_NOTE)->count();
         $invoiceCount = $documents->where('kind', DocumentCatalog::KIND_INVOICE)->count();
         $workOrderCount = $documents->where('kind', DocumentCatalog::KIND_WORK_ORDER)->count();
+
+        $contextRouteParams = $navigationContext
+            ? ['context_type' => $navigationContext['type'], 'context_id' => $navigationContext['id']]
+            : [];
+
+        $orderLabel = $order->number ?: 'Orden #' . $order->id;
+
+        $breadcrumbItems = [['label' => 'Inicio', 'url' => route('dashboard')]];
+
+        if (($navigationContext['type'] ?? null) === 'appointment') {
+            $breadcrumbItems[] = ['label' => 'Turnos', 'url' => route('appointments.index')];
+            $breadcrumbItems[] = ['label' => $navigationContext['label'], 'url' => $navigationContext['url']];
+            $breadcrumbItems[] = ['label' => $orderLabel];
+        } else {
+            $breadcrumbItems[] = ['label' => 'Órdenes', 'url' => route('orders.index')];
+            $breadcrumbItems[] = ['label' => $orderLabel];
+        }
+
+        $backUrl =
+            ($navigationContext['type'] ?? null) === 'appointment' ? $navigationContext['url'] : route('orders.index');
     @endphp
 
     <x-page>
 
-        <x-breadcrumb :items="[
-            ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Órdenes', 'url' => route('orders.index')],
-            ['label' => $order->number ?: 'Sin número'],
-        ]" />
+        <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header :title="$orderDetailTitle">
             @can('update', $order)
-                <a href="{{ route('orders.edit', $order) }}" class="btn btn-primary">
+                <a href="{{ route('orders.edit', ['order' => $order] + $contextRouteParams) }}" class="btn btn-primary">
                     <x-icons.pencil />
                     <span>Editar</span>
                 </a>
@@ -63,8 +79,8 @@
                 </a>
             @endif
 
-            <a href="{{ route('orders.index') }}" class="btn btn-secondary">
-                Volver
+            <a href="{{ $backUrl }}" class="btn btn-secondary">
+                {{ ($navigationContext['type'] ?? null) === 'appointment' ? 'Volver al turno' : 'Volver' }}
             </a>
         </x-page-header>
 
@@ -167,7 +183,8 @@
 
                     <x-page-header title="Ítems de la orden">
                         @can('update', $order)
-                            <a href="{{ route('orders.items.create', $order) }}" class="btn btn-primary">
+                            <a href="{{ route('orders.items.create', ['order' => $order] + $contextRouteParams) }}"
+                                class="btn btn-primary">
                                 Agregar ítem
                             </a>
                         @endcan
@@ -178,6 +195,7 @@
                             'order' => $order,
                             'items' => $items,
                             'emptyMessage' => 'No hay ítems cargados en esta orden.',
+                            'contextRouteParams' => $contextRouteParams,
                         ])
                     </x-card>
 
@@ -202,7 +220,9 @@
                 <div class="tab-panel-stack">
 
                     <x-page-header title="Documentos de la orden">
-                        <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form"
+                        <form method="POST"
+                            action="{{ route('orders.documents.store', ['order' => $order] + $contextRouteParams) }}"
+                            class="inline-form"
                             @if ($quoteCount > 0) data-action="app-confirm-submit"
                             data-confirm-message="Esta orden ya tiene {{ $quoteCount }} presupuesto(s) asociado(s). ¿Deseas crear otro?" @endif>
                             @csrf
@@ -212,7 +232,9 @@
                             </button>
                         </form>
 
-                        <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form"
+                        <form method="POST"
+                            action="{{ route('orders.documents.store', ['order' => $order] + $contextRouteParams) }}"
+                            class="inline-form"
                             @if ($deliveryNoteCount > 0) data-action="app-confirm-submit"
                             data-confirm-message="Esta orden ya tiene {{ $deliveryNoteCount }} remito(s) asociado(s). ¿Deseas crear otro?" @endif>
                             @csrf
@@ -222,7 +244,9 @@
                             </button>
                         </form>
 
-                        <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form"
+                        <form method="POST"
+                            action="{{ route('orders.documents.store', ['order' => $order] + $contextRouteParams) }}"
+                            class="inline-form"
                             @if ($invoiceCount > 0) data-action="app-confirm-submit"
                             data-confirm-message="Esta orden ya tiene {{ $invoiceCount }} factura(s) asociada(s). ¿Deseas crear otra?" @endif>
                             @csrf
@@ -232,7 +256,9 @@
                             </button>
                         </form>
 
-                        <form method="POST" action="{{ route('orders.documents.store', $order) }}" class="inline-form"
+                        <form method="POST"
+                            action="{{ route('orders.documents.store', ['order' => $order] + $contextRouteParams) }}"
+                            class="inline-form"
                             @if ($workOrderCount > 0) data-action="app-confirm-submit"
                             data-confirm-message="Esta orden ya tiene {{ $workOrderCount }} orden(es) de trabajo asociada(s). ¿Deseas crear otra?" @endif>
                             @csrf
@@ -251,6 +277,7 @@
                         'emptyMessage' => 'No hay documentos asociados para mostrar.',
                         'allLabel' => 'Todos',
                         'tabsId' => 'order-documents-tabs',
+                        'contextRouteParams' => $contextRouteParams,
                     ])
                 </div>
             </section>

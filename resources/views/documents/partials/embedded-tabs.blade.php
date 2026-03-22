@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/partials/embedded-tabs.blade.php --}}
+{{-- FILE: resources/views/documents/partials/embedded-tabs.blade.php | V3 --}}
 
 @php
     use App\Support\Catalogs\DocumentCatalog;
@@ -11,6 +11,7 @@
 
     $emptyMessage = $emptyMessage ?? 'No hay documentos para mostrar.';
     $allLabel = $allLabel ?? 'Todos';
+    $contextRouteParams = $contextRouteParams ?? [];
 
     $kinds = DocumentCatalog::kindLabels();
     $tabsId = $tabsId ?? 'documents-tabs-' . uniqid();
@@ -50,6 +51,7 @@
                     'showAsset' => $showAsset,
                     'showOrder' => $showOrder,
                     'emptyMessage' => $emptyMessage,
+                    'contextRouteParams' => $contextRouteParams,
                 ])
             </x-card>
         </div>
@@ -69,6 +71,7 @@
                         'showAsset' => $showAsset,
                         'showOrder' => $showOrder,
                         'emptyMessage' => "No hay documentos de tipo {$label} para mostrar.",
+                        'contextRouteParams' => $contextRouteParams,
                     ])
                 </x-card>
             </div>

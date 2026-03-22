@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/items/partials/table.blade.php --}}
+{{-- FILE: resources/views/orders/items/partials/table.blade.php | V3 --}}
 
 @php
     use App\Support\Catalogs\ProductCatalog;
@@ -6,6 +6,7 @@
     $order = $order ?? null;
     $items = $items ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay ítems cargados en esta orden.';
+    $contextRouteParams = $contextRouteParams ?? [];
 @endphp
 
 @if ($items->count())
@@ -34,12 +35,13 @@
                         <td class="compact-actions-cell">
                             @can('update', $order)
                                 <div class="compact-actions">
-                                    <a href="{{ route('orders.items.edit', [$order, $item]) }}"
+                                    <a href="{{ route('orders.items.edit', ['order' => $order, 'item' => $item] + $contextRouteParams) }}"
                                         class="btn btn-secondary btn-icon" title="Editar ítem" aria-label="Editar ítem">
                                         <x-icons.pencil />
                                     </a>
 
-                                    <form method="POST" action="{{ route('orders.items.destroy', [$order, $item]) }}"
+                                    <form method="POST"
+                                        action="{{ route('orders.items.destroy', ['order' => $order, 'item' => $item] + $contextRouteParams) }}"
                                         class="inline-form" data-action="app-confirm-submit"
                                         data-confirm-message="¿Deseas eliminar este ítem?">
                                         @csrf

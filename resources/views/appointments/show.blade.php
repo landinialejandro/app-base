@@ -1,3 +1,5 @@
+{{-- FILE: resources/views/appointments/show.blade.php | V2 --}}
+
 @extends('layouts.app')
 
 @php
@@ -5,6 +7,10 @@
 
     $appointmentTitle = AppointmentCatalog::rowTitleFor($appointment->kind, $appointment->work_mode);
     $referenceLabel = AppointmentCatalog::referenceLabelForKind($appointment->kind);
+    $orderContextParams = [
+        'context_type' => 'appointment',
+        'context_id' => $appointment->id,
+    ];
 @endphp
 
 @section('title', $appointmentTitle)
@@ -39,15 +45,19 @@
             @endif
 
             @if ($appointment->order)
-                <a href="{{ route('orders.show', $appointment->order) }}" class="btn btn-secondary">
+                <a href="{{ route('orders.show', ['order' => $appointment->order] + $orderContextParams) }}"
+                    class="btn btn-secondary">
                     Ver {{ strtolower(AppointmentCatalog::orderLabel()) }}
                 </a>
             @elseif ($appointment->party_id)
-                <a href="{{ route('orders.create', [
-                    'appointment_id' => $appointment->id,
-                    'party_id' => $appointment->party_id,
-                    'asset_id' => $appointment->asset_id,
-                ]) }}"
+                <a href="{{ route(
+                    'orders.create',
+                    [
+                        'appointment_id' => $appointment->id,
+                        'party_id' => $appointment->party_id,
+                        'asset_id' => $appointment->asset_id,
+                    ] + $orderContextParams,
+                ) }}"
                     class="btn btn-secondary">
                     Crear {{ strtolower(AppointmentCatalog::orderLabel()) }}
                 </a>
@@ -102,16 +112,19 @@
 
             <x-show-summary-item :label="AppointmentCatalog::orderLabel()">
                 @if ($appointment->order)
-                    <a href="{{ route('orders.show', $appointment->order) }}">
+                    <a href="{{ route('orders.show', ['order' => $appointment->order] + $orderContextParams) }}">
                         {{ $appointment->order->number ?: 'Orden #' . $appointment->order->id }}
                     </a>
                 @elseif ($appointment->party_id)
                     <a
-                        href="{{ route('orders.create', [
-                            'appointment_id' => $appointment->id,
-                            'party_id' => $appointment->party_id,
-                            'asset_id' => $appointment->asset_id,
-                        ]) }}">
+                        href="{{ route(
+                            'orders.create',
+                            [
+                                'appointment_id' => $appointment->id,
+                                'party_id' => $appointment->party_id,
+                                'asset_id' => $appointment->asset_id,
+                            ] + $orderContextParams,
+                        ) }}">
                         Crear {{ strtolower(AppointmentCatalog::orderLabel()) }}
                     </a>
                 @else

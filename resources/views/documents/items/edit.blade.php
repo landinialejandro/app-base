@@ -1,22 +1,46 @@
-{{-- FILE: resources/views/documents/items/edit.blade.php --}}
+{{-- FILE: resources/views/documents/items/edit.blade.php | V3 --}}
 @extends('layouts.app')
 
 @section('title', 'Editar ítem')
 
 @section('content')
+    @php
+        $contextRouteParams = request()->only(['context_type', 'context_id']);
+
+        $breadcrumbItems = [['label' => 'Inicio', 'url' => route('dashboard')]];
+
+        if (($contextRouteParams['context_type'] ?? null) === 'appointment' && $document->order) {
+            $breadcrumbItems[] = ['label' => 'Turnos', 'url' => route('appointments.index')];
+            $breadcrumbItems[] = ['label' => 'Turno', 'url' => url()->previous()];
+            $breadcrumbItems[] = [
+                'label' => $document->order->number ?: 'Orden #' . $document->order->id,
+                'url' => route('orders.show', ['order' => $document->order] + $contextRouteParams),
+            ];
+            $breadcrumbItems[] = [
+                'label' => $document->number ?: 'Sin número',
+                'url' => route('documents.show', ['document' => $document] + $contextRouteParams),
+            ];
+            $breadcrumbItems[] = ['label' => 'Editar ítem'];
+        } else {
+            $breadcrumbItems[] = ['label' => 'Documentos', 'url' => route('documents.index')];
+            $breadcrumbItems[] = [
+                'label' => $document->number ?: 'Sin número',
+                'url' => route('documents.show', ['document' => $document] + $contextRouteParams),
+            ];
+            $breadcrumbItems[] = ['label' => 'Editar ítem'];
+        }
+    @endphp
+
     <x-page>
 
-        <x-breadcrumb :items="[
-            ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Documentos', 'url' => route('documents.index')],
-            ['label' => $document->number ?: 'Sin número', 'url' => route('documents.show', $document)],
-            ['label' => 'Editar ítem'],
-        ]" />
+        <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header title="Editar ítem" />
 
         <x-card>
-            <form method="POST" action="{{ route('documents.items.update', [$document, $item]) }}" class="form">
+            <form method="POST"
+                action="{{ route('documents.items.update', ['document' => $document, 'item' => $item] + $contextRouteParams) }}"
+                class="form">
                 @csrf
                 @method('PUT')
 
@@ -24,7 +48,8 @@
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                    <a href="{{ route('documents.show', $document) }}" class="btn btn-secondary">Cancelar</a>
+                    <a href="{{ route('documents.show', ['document' => $document] + $contextRouteParams) }}"
+                        class="btn btn-secondary">Cancelar</a>
                 </div>
             </form>
         </x-card>

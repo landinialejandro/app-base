@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/partials/table.blade.php --}}
+{{-- FILE: resources/views/documents/partials/table.blade.php | V3 --}}
 
 @php
     use App\Support\Catalogs\DocumentCatalog;
@@ -8,6 +8,7 @@
     $showParty = $showParty ?? false;
     $showAsset = $showAsset ?? true;
     $showOrder = $showOrder ?? true;
+    $contextRouteParams = $contextRouteParams ?? [];
 @endphp
 
 @if ($documents->count())
@@ -39,7 +40,7 @@
                 @foreach ($documents as $document)
                     <tr>
                         <td>
-                            <a href="{{ route('documents.show', $document) }}">
+                            <a href="{{ route('documents.show', ['document' => $document] + $contextRouteParams) }}">
                                 {{ $document->number ?: 'Sin número' }}
                             </a>
                         </td>
@@ -79,7 +80,8 @@
                         @if ($showOrder)
                             <td>
                                 @if ($document->order)
-                                    <a href="{{ route('orders.show', $document->order) }}">
+                                    <a
+                                        href="{{ route('orders.show', ['order' => $document->order] + $contextRouteParams) }}">
                                         {{ $document->order->number ?: 'Sin número' }}
                                     </a>
                                 @else

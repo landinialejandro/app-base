@@ -731,29 +731,32 @@
             });
     };
 
-    const bindAppointmentWeekAutoScroll = () => {
+    const bindAppointmentCalendarAutoScroll = () => {
         document
-            .querySelectorAll("[data-appointment-week-scroll]")
+            .querySelectorAll("[data-appointment-calendar-scroll]")
             .forEach((scrollRoot) => {
                 if (
-                    scrollRoot.dataset.appAppointmentWeekAutoScrollBound === "1"
+                    scrollRoot.dataset.appAppointmentCalendarAutoScrollBound ===
+                    "1"
                 ) {
                     return;
                 }
 
-                scrollRoot.dataset.appAppointmentWeekAutoScrollBound = "1";
+                scrollRoot.dataset.appAppointmentCalendarAutoScrollBound = "1";
 
-                const todayColumn = scrollRoot.querySelector(
-                    "[data-calendar-today-column]",
+                const todayCell = scrollRoot.querySelector(
+                    "[data-calendar-today-cell]",
                 );
 
-                if (!todayColumn) {
+                if (!todayCell) {
                     return;
                 }
 
-                const targetLeft = Math.max(todayColumn.offsetLeft - 12, 0);
+                const targetLeft = Math.max(todayCell.offsetLeft - 12, 0);
+                const targetTop = Math.max(todayCell.offsetTop - 12, 0);
 
                 scrollRoot.scrollLeft = targetLeft;
+                scrollRoot.scrollTop = targetTop;
             });
     };
 
@@ -769,7 +772,7 @@
         bindTabs();
         bindToggleDetails();
         bindAppointmentKindSync();
-        bindAppointmentWeekAutoScroll();
+        bindAppointmentCalendarAutoScroll();
     };
 
     bindDropdowns();

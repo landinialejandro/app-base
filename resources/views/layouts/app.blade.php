@@ -7,7 +7,15 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'app-base')</title>
+
+    {{-- Base visual global obligatoria del sistema --}}
     <link rel="stylesheet" href="{{ asset('css/app-base.css') }}">
+
+    {{-- Patrones visuales reutilizables: index, show, tabs, badges, summaries, visuales --}}
+    <link rel="stylesheet" href="{{ asset('css/app-patterns.css') }}">
+
+    {{-- Estilos específicos de módulos complejos --}}
+    <link rel="stylesheet" href="{{ asset('css/modules/appointments.css') }}">
 </head>
 
 <body>
@@ -82,7 +90,6 @@
                 </div>
             </footer>
         @endif
-
     </div>
 
     <script src="{{ asset('js/app-base.js') }}"></script>

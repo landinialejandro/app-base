@@ -2,9 +2,9 @@
     $weekdays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 @endphp
 
-<div class="appointment-calendar-scroll" data-appointment-week-scroll>
+<div class="appointment-calendar-scroll" data-appointment-calendar-scroll>
     <div class="appointment-calendar appointment-calendar--week">
-        <div class="appointment-calendar-head">
+        <div class="appointment-calendar-head appointment-calendar-head--week">
             @foreach ($days as $index => $day)
                 <div class="appointment-calendar-weekday">
                     <div>{{ $weekdays[$index] }}</div>
@@ -15,9 +15,11 @@
 
         <div class="appointment-calendar-body appointment-calendar-body--week">
             @foreach ($days as $day)
-                <div @if ($day['is_today']) data-calendar-today-column @endif>
+                <div class="appointment-calendar-day-slot"
+                    @if ($day['is_today']) data-calendar-today-cell @endif>
                     @include('appointments.partials.calendar-day-cell', [
                         'day' => $day,
+                        'mode' => 'week',
                         'maxVisibleAppointments' => 8,
                     ])
                 </div>

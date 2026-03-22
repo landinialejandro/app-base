@@ -1,0 +1,454 @@
+/* =========================================================
+   FILE: public/css/modules/appointments.css
+   Estilos específicos del módulo appointments.
+
+   Este archivo contiene únicamente reglas visuales propias
+   de la agenda de turnos y sus vistas de calendario.
+
+   Debe incluir:
+   - calendario mensual
+   - calendario semanal
+   - cabeceras sticky del calendario
+   - columna de número de semana
+   - celdas de día
+   - items de turnos dentro del calendario
+   - estados visuales del día
+   - bloqueos visuales de fechas pasadas
+   - responsive propio del calendario
+
+   No debe incluir:
+   - layout global del sistema
+   - tablas o cards genéricas
+   - patterns reutilizables de otros módulos
+   ========================================================= */
+
+/* =========================================================
+   1. Contenedor principal del calendario
+   Card y scroll del bloque principal de agenda.
+
+   Esta sección resuelve el contenedor visual del calendario
+   dentro de la pantalla del módulo appointments.
+   ========================================================= */
+
+.appointment-calendar-card .card-body {
+    padding: 0;
+}
+
+.appointment-calendar-scroll {
+    overflow: auto;
+    max-height: 70vh;
+}
+
+.appointment-calendar {
+    display: flex;
+    flex-direction: column;
+    min-width: 1020px;
+    position: relative;
+}
+
+/* =========================================================
+   2. Calendario mensual
+   Grilla principal de visualización de turnos por mes.
+
+   Esta sección define la estructura del calendario mensual,
+   incluyendo cabecera sticky, columna de semana y celdas de
+   día.
+   ========================================================= */
+
+.appointment-calendar-head {
+    position: sticky;
+    top: 0;
+    z-index: 30;
+    background: var(--color-surface-muted);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.appointment-calendar-head--with-week {
+    display: grid;
+    grid-template-columns: 44px repeat(7, minmax(0, 1fr));
+}
+
+.appointment-calendar-weeknumber-head {
+    position: sticky;
+    left: 0;
+    z-index: 32;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.8rem 0.2rem;
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--color-muted);
+    border-right: 1px solid var(--color-border);
+    background: var(--color-surface-muted);
+}
+
+.appointment-calendar-weeknumber-link {
+    text-decoration: none;
+    color: inherit;
+}
+
+.appointment-calendar-weeknumber-link:hover {
+    background: var(--color-secondary);
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.appointment-calendar-weekday {
+    display: flex;
+    align-items: center;
+    min-height: 46px;
+    padding: 0.8rem 0.75rem;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-muted);
+    border-right: 1px solid var(--color-border);
+    background: var(--color-surface-muted);
+}
+
+.appointment-calendar-weekday:last-child {
+    border-right: 0;
+}
+
+.appointment-calendar-body--with-week {
+    display: grid;
+    grid-template-columns: 44px repeat(7, minmax(0, 1fr));
+    align-items: stretch;
+}
+
+.appointment-calendar-weeknumber {
+    position: sticky;
+    left: 0;
+    z-index: 12;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.8rem 0.2rem;
+    border-right: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface-muted);
+    font-size: 0.74rem;
+    font-weight: 700;
+    color: var(--color-muted);
+    min-height: 100%;
+}
+
+.appointment-calendar-day-slot {
+    display: flex;
+    align-self: stretch;
+    height: 100%;
+}
+
+.appointment-calendar-day {
+    min-height: 180px;
+    padding: 0.75rem;
+    border-right: 1px solid var(--color-border);
+    border-bottom: 1px solid var(--color-border);
+    background: var(--color-surface);
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.appointment-calendar-day-slot .appointment-calendar-day {
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 180px;
+}
+
+/* =========================================================
+   3. Contenido diario del calendario
+   Turnos, acciones y contenido interno de cada celda.
+
+   Esta sección define cómo se presentan los turnos dentro
+   del día.
+   ========================================================= */
+
+.appointment-calendar-day-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+}
+
+.appointment-calendar-day-number {
+    font-size: 0.95rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.appointment-calendar-day-actions {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.appointment-calendar-add {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.7rem;
+    height: 1.7rem;
+    border-radius: 999px;
+    text-decoration: none;
+    color: inherit;
+    background: var(--color-surface-muted);
+    border: 1px solid var(--color-border);
+}
+
+.appointment-calendar-add:hover {
+    background: var(--color-secondary);
+    text-decoration: none;
+}
+
+.appointment-calendar-day-summary {
+    font-size: 0.78rem;
+    color: var(--color-muted);
+}
+
+.appointment-calendar-day-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.45rem;
+}
+
+.appointment-calendar-item {
+    display: block;
+    padding: 0.55rem 0.6rem;
+    border-radius: 0.75rem;
+    text-decoration: none;
+    color: inherit;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface);
+}
+
+.appointment-calendar-item:hover {
+    background: var(--color-surface-muted);
+    text-decoration: none;
+}
+
+.appointment-calendar-item-time {
+    font-size: 0.72rem;
+    color: var(--color-muted);
+    margin-bottom: 0.2rem;
+}
+
+.appointment-calendar-item-title {
+    font-size: 0.84rem;
+    font-weight: 600;
+    line-height: 1.25;
+    color: var(--color-text);
+}
+
+.appointment-calendar-item-meta {
+    margin-top: 0.15rem;
+    font-size: 0.75rem;
+    color: var(--color-muted);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.appointment-calendar-item-chips {
+    margin-top: 0.35rem;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem;
+}
+
+.appointment-calendar-chip {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.16rem 0.45rem;
+    border-radius: 999px;
+    font-size: 0.68rem;
+    font-weight: 600;
+    line-height: 1;
+    border: 1px solid var(--color-border);
+    background: var(--color-surface-muted);
+    color: var(--color-muted);
+}
+
+.appointment-calendar-chip--status {
+    background: rgba(59, 130, 246, 0.08);
+    color: var(--color-text);
+}
+
+.appointment-calendar-chip--kind {
+    background: rgba(107, 114, 128, 0.08);
+    color: var(--color-text);
+}
+
+.appointment-calendar-chip--order {
+    background: rgba(16, 185, 129, 0.08);
+    color: #047857;
+}
+
+.appointment-calendar-chip--no-order {
+    background: rgba(245, 158, 11, 0.08);
+    color: #b45309;
+}
+
+.appointment-calendar-item-extra {
+    margin-top: 0.35rem;
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    font-size: 0.74rem;
+    color: var(--color-muted);
+}
+
+.appointment-calendar-item-line {
+    display: flex;
+    gap: 0.25rem;
+    min-width: 0;
+}
+
+.appointment-calendar-item-line span:last-child {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.appointment-calendar-item-label {
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+.appointment-calendar-item-action {
+    margin-top: 0.2rem;
+    font-size: 0.74rem;
+    font-weight: 600;
+    color: var(--color-primary);
+}
+
+.appointment-calendar-empty,
+.appointment-calendar-more {
+    font-size: 0.78rem;
+    color: var(--color-muted);
+}
+
+/* =========================================================
+   4. Estados visuales del día
+   Variantes de celdas según contexto temporal.
+
+   Esta sección controla la apariencia de días del mes
+   actual, días externos, día actual y días pasados.
+   ========================================================= */
+
+.appointment-calendar-day.is-outside-month {
+    background: var(--color-surface-muted);
+    opacity: 0.72;
+}
+
+.appointment-calendar-day.is-today {
+    background: rgba(37, 99, 235, 0.07);
+    box-shadow: inset 0 0 0 2px rgba(37, 99, 235, 0.22);
+}
+
+.appointment-calendar-day.is-today .appointment-calendar-day-number {
+    color: #1d4ed8;
+}
+
+.appointment-calendar-day.is-past-day {
+    position: relative;
+    background:
+        repeating-linear-gradient(-45deg,
+            rgba(107, 114, 128, 0.025) 0,
+            rgba(107, 114, 128, 0.025) 4px,
+            rgba(107, 114, 128, 0.05) 4px,
+            rgba(107, 114, 128, 0.05) 8px),
+        var(--color-surface-muted);
+}
+
+.appointment-calendar-day.is-past-day .appointment-calendar-day-number,
+.appointment-calendar-day.is-past-day .appointment-calendar-day-summary,
+.appointment-calendar-day.is-past-day .appointment-calendar-empty,
+.appointment-calendar-day.is-past-day .appointment-calendar-more {
+    color: #6b7280;
+}
+
+/* =========================================================
+   5. Estados visuales de turnos
+   Acentos y variantes de turnos dentro del calendario.
+
+   Esta sección contiene marcas visuales propias del módulo
+   para distinguir estados funcionales de los turnos.
+   ========================================================= */
+
+.status-accent-scheduled {
+    border-left: 4px solid #f59e0b;
+}
+
+.status-accent-completed {
+    border-left: 4px solid #10b981;
+}
+
+.status-accent-cancelled {
+    border-left: 4px solid #ef4444;
+}
+
+/* =========================================================
+   6. Navegación del calendario
+   Controles auxiliares de cambio de mes, semana y acceso a
+   la fecha actual.
+   ========================================================= */
+
+.calendar-nav {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.calendar-nav-current {
+    min-width: 11rem;
+    font-weight: 600;
+    color: var(--color-text);
+    text-transform: capitalize;
+}
+
+.calendar-nav-today {
+    margin-top: 0.35rem;
+    font-size: 0.82rem;
+}
+
+/* =========================================================
+   7. Vista semanal
+   Variante de agenda por semana.
+
+   Esta sección adapta el calendario para navegación
+   semanal, manteniendo consistencia con el patrón mensual.
+   ========================================================= */
+
+.appointment-calendar--week {
+    min-width: 1540px;
+}
+
+.appointment-calendar-head--week {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(220px, 1fr));
+}
+
+.appointment-calendar-body--week {
+    display: grid;
+    grid-template-columns: repeat(7, minmax(220px, 1fr));
+    align-items: stretch;
+}
+
+.appointment-calendar-body--week .appointment-calendar-day {
+    min-height: 320px;
+}
+
+/* =========================================================
+   8. Responsive del módulo appointments
+   Ajustes de calendario para tablet y mobile.
+
+   Esta sección concentra únicamente adaptaciones del
+   calendario y de sus subestructuras específicas.
+   ========================================================= */
+
+@media (max-width: 1100px) {
+    .appointment-calendar-card {
+        overflow-x: auto;
+    }
+}

@@ -1,0 +1,1091 @@
+/* =========================================================
+   FILE: public/css/app-patterns.css
+   Patrones visuales reutilizables del sistema.
+
+   Este archivo contiene estructuras compartidas entre
+   múltiples vistas o módulos, pero que ya exceden la base
+   global de app-base.css.
+
+   Debe incluir:
+   - listados operativos reutilizables
+   - filtros y toolbar
+   - paginación
+   - vistas de detalle
+   - summary inline
+   - summary operativo
+   - tabs internas
+   - badges de estado
+   - visuales reutilizables como KPI, barras y gráficos
+   - pequeñas utilidades compartidas
+
+   No debe incluir:
+   - layout global
+   - navegación global
+   - pantallas públicas
+   - estilos exclusivos de un módulo puntual
+   ========================================================= */
+
+/* =========================================================
+   1. Listados base reutilizables
+   Estructura operativa para vistas index.
+
+   Esta sección agrupa variantes reutilizables de listados
+   que ya no pertenecen solo a la base de tabla.
+   ========================================================= */
+
+.page.list-page {
+    flex: 0 0 auto;
+    min-height: 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.card.list-card {
+    min-height: 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    height: auto;
+    flex: 0 0 auto;
+}
+
+.card.list-card .card-body {
+    min-height: 0;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    flex: 0 0 auto;
+}
+
+.table-wrap.list-scroll {
+    min-height: 0;
+    min-width: 0;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    flex: 0 0 auto;
+}
+
+/* =========================================================
+   2. Filtros y toolbar de listados
+   Bloques reutilizables para búsqueda, filtros y acciones
+   en vistas index.
+
+   Esta sección concentra el patrón visual de filtros del
+   sistema: formulario GET, toolbar compacta y card de
+   filtros.
+   ========================================================= */
+
+.list-filters {
+    padding-bottom: var(--space-4);
+    margin-bottom: var(--space-4);
+}
+
+.list-filters-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+}
+
+.list-filters-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 0.5rem;
+}
+
+.list-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: end;
+    gap: 1rem;
+    flex-wrap: wrap;
+}
+
+.list-toolbar-main {
+    flex: 1 1 32rem;
+    min-width: 16rem;
+}
+
+.list-toolbar-form {
+    width: 100%;
+    margin-bottom: var(--space-4);
+}
+
+.list-toolbar-filters {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    align-items: end;
+}
+
+.list-toolbar-filters .form-group {
+    flex: 0 1 15rem;
+    min-width: 12rem;
+    max-width: 18rem;
+    margin-bottom: 0;
+}
+
+.list-toolbar-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-left: auto;
+}
+
+/* =========================================================
+   3. Wrapper visual de filtros
+   Card shell y composición avanzada para filtros de index.
+
+   Esta sección permite separar filtros principales,
+   secundarios y acciones laterales dentro de una misma
+   card.
+   ========================================================= */
+
+.list-filters-shell {
+    display: block;
+}
+
+.list-filters-layout {
+    display: grid;
+    grid-template-columns: minmax(0, 3.5fr) minmax(140px, 0.55fr);
+    gap: 1rem;
+    align-items: start;
+}
+
+.list-filters-main {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.list-filters-primary,
+.list-filters-secondary {
+    min-width: 0;
+}
+
+.list-filters-primary .list-filters-grid,
+.list-filters-secondary .list-filters-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1rem;
+    margin: 0;
+}
+
+.list-filters-side {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    align-self: start;
+}
+
+.list-filters-side .btn,
+.list-filters-side a.btn {
+    padding: 0.5rem 0.75rem;
+    min-height: 38px;
+    font-size: 0.92rem;
+    justify-content: center;
+    text-align: center;
+}
+
+.list-filters-secondary {
+    padding-top: 0.25rem;
+}
+
+/* =========================================================
+   4. Paginación
+   Navegación de resultados del sistema.
+
+   Esta sección define la vista propia de paginación de
+   app-base y debe reutilizarse en todos los listados.
+   ========================================================= */
+
+.app-pagination {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+    margin-top: var(--space-4);
+}
+
+.app-pagination-summary {
+    color: var(--color-text-muted);
+    font-size: 0.95rem;
+    line-height: 1.3;
+}
+
+.app-pagination-summary span {
+    display: inline-block;
+}
+
+.app-pagination-links {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.app-pagination-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 2.25rem;
+    height: 2.25rem;
+    padding: 0 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    background: var(--color-surface);
+    color: var(--color-text);
+    text-decoration: none;
+    line-height: 1;
+    box-sizing: border-box;
+    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
+}
+
+.app-pagination-link:hover {
+    background: var(--color-surface-muted);
+}
+
+.app-pagination-link.is-active {
+    background: var(--color-primary-soft);
+    border-color: var(--color-primary);
+    color: var(--color-primary-strong);
+    font-weight: 600;
+    cursor: default;
+}
+
+.app-pagination-link.is-disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+    pointer-events: none;
+}
+
+/* =========================================================
+   5. Vistas de detalle
+   Grillas y bloques de lectura para pantallas show.
+
+   Esta sección define el patrón reusable para presentar
+   datos principales y secundarios dentro de fichas.
+   ========================================================= */
+
+.detail-list {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: var(--space-3) var(--space-4);
+}
+
+.detail-label {
+    font-weight: 700;
+    color: var(--color-muted);
+}
+
+.detail-value {
+    color: var(--color-text);
+}
+
+.detail-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+}
+
+.detail-grid--3 {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.detail-block {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.detail-block--full {
+    grid-column: 1 / -1;
+}
+
+.detail-block-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--color-muted);
+}
+
+.detail-block-value {
+    color: var(--color-text);
+    word-break: break-word;
+}
+
+/* =========================================================
+   6. Summary inline
+   Resumen superior compacto para vistas show.
+
+   Esta sección contiene pequeñas cards de lectura rápida
+   para datos principales de una ficha.
+   ========================================================= */
+
+.summary-inline-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: var(--space-3);
+}
+
+.summary-inline-card {
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface-muted);
+}
+
+.summary-inline-label {
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-muted);
+    margin-bottom: var(--space-1);
+}
+
+.summary-inline-value {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-text);
+}
+
+.summary-inline-help {
+    margin-top: 0.2rem;
+    font-size: 0.82rem;
+    color: var(--color-muted);
+    line-height: 1.35;
+}
+
+/* =========================================================
+   7. Summary operativo
+   Resumen visible para información de uso diario.
+
+   Esta sección agrupa resúmenes más operativos que el
+   summary inline simple.
+   ========================================================= */
+
+.summary-badge-stack {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.45rem;
+    min-height: 100%;
+}
+
+.summary-badge-stack .status-badge {
+    max-width: 100%;
+}
+
+.show-summary-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-3);
+}
+
+.show-summary-item {
+    min-height: 96px;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+}
+
+.show-summary-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: var(--space-4);
+}
+
+.show-summary-details {
+    margin-top: var(--space-4);
+}
+
+/* =========================================================
+   8. Tabs internas
+   Solapas reutilizables para show complejos.
+
+   Esta sección define el patrón visual de tabs del sistema.
+   ========================================================= */
+
+.tabs {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.tabs-nav {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    padding: var(--space-2);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface-muted);
+}
+
+.tabs-link {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 40px;
+    padding: 0.55rem 0.95rem;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--color-muted);
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.tabs-link:hover {
+    background: #ffffff;
+    border-color: var(--color-track);
+    color: var(--color-text);
+    text-decoration: none;
+}
+
+.tabs-link:focus-visible {
+    outline: 2px solid rgba(37, 99, 235, 0.28);
+    outline-offset: 2px;
+}
+
+.tabs-link.is-active {
+    background: rgba(37, 99, 235, 0.12);
+    border-color: rgba(37, 99, 235, 0.22);
+    color: var(--color-primary);
+    box-shadow: 0 1px 2px rgba(37, 99, 235, 0.08);
+}
+
+.tab-panel {
+    display: none;
+}
+
+.tab-panel.is-active {
+    display: block;
+}
+
+.tab-panel-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-5);
+}
+
+/* =========================================================
+   9. Badges de estado
+   Representación visual reutilizable de estados cerrados.
+
+   Esta sección contiene los badges comunes del sistema.
+   ========================================================= */
+
+.status-badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.2rem 0.65rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    line-height: 1;
+    white-space: nowrap;
+}
+
+.status-badge--pending {
+    background: var(--color-warning-soft);
+    color: var(--color-warning-text);
+}
+
+.status-badge--in-progress {
+    background: var(--color-info-soft);
+    color: var(--color-info-text);
+}
+
+.status-badge--done {
+    background: var(--color-done-soft);
+    color: var(--color-done-text);
+}
+
+.status-badge--cancelled {
+    background: var(--color-cancelled-soft);
+    color: var(--color-cancelled-text);
+}
+
+.status-badge--approved {
+    background: var(--color-info-soft);
+    color: var(--color-info-text);
+}
+
+.status-badge--rejected {
+    background: var(--color-danger-soft);
+    color: var(--color-danger-strong);
+}
+
+.status-badge--sent {
+    background: var(--color-purple-soft);
+    color: var(--color-purple-text);
+}
+
+.status-badge--expiring {
+    background: var(--color-warning-soft);
+    color: var(--color-warning-text);
+}
+
+.status-badge--expired {
+    background: var(--color-danger-soft);
+    color: var(--color-danger-strong);
+}
+
+/* =========================================================
+   10. Accesos rápidos y tarjetas navegables
+   Patrones reutilizables para dashboards o pantallas de
+   entrada con módulos visibles.
+   ========================================================= */
+
+.module-links {
+    display: flex;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+
+.dashboard-section-header {
+    margin-bottom: var(--space-4);
+}
+
+.dashboard-section-title {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.2;
+}
+
+.dashboard-section-text {
+    margin: var(--space-1) 0 0;
+    color: var(--color-muted);
+    font-size: 0.9rem;
+}
+
+.dashboard-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: var(--space-4);
+}
+
+.dashboard-link-card {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    color: var(--color-text);
+    text-decoration: none;
+    transition: border-color 0.15s ease, background-color 0.15s ease;
+}
+
+.dashboard-link-card:hover {
+    border-color: var(--color-primary);
+    background: var(--color-surface-hover);
+    text-decoration: none;
+}
+
+.dashboard-link-title {
+    font-weight: 600;
+    font-size: 0.98rem;
+    line-height: 1.2;
+}
+
+.dashboard-link-text {
+    color: var(--color-muted);
+    font-size: 0.92rem;
+}
+
+.dashboard-link-meta {
+    color: #9ca3af;
+    font-size: 0.8rem;
+    font-weight: 500;
+}
+
+.dashboard-tenant-summary {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-4);
+    flex-wrap: wrap;
+}
+
+.dashboard-tenant-main {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+}
+
+.dashboard-tenant-label {
+    font-size: 0.8rem;
+    color: var(--color-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+}
+
+.dashboard-tenant-name {
+    margin: 0;
+    font-size: 1.2rem;
+    line-height: 1.2;
+    font-weight: 600;
+}
+
+.dashboard-tenant-slug {
+    margin: 0;
+    font-size: 0.88rem;
+    color: var(--color-muted);
+}
+
+.dashboard-tenant-stats {
+    display: flex;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+}
+
+.dashboard-tenant-stat {
+    display: inline-flex;
+    align-items: center;
+    padding: 0.3rem 0.65rem;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-surface-hover);
+    color: #9ca3af;
+    font-size: 0.76rem;
+    font-weight: 500;
+    line-height: 1.2;
+}
+
+.dashboard-analytics-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    flex-wrap: wrap;
+    margin-bottom: var(--space-4);
+}
+
+.dashboard-analytics-stack {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+/* =========================================================
+   11. Visuales reutilizables
+   KPI, barras de progreso y gráficos simples compartidos.
+
+   Esta sección unifica el patrón visual reutilizable para
+   dashboards y summaries operativos.
+
+   Se define una nomenclatura nueva neutral `visual-*`,
+   `progress-*` y `pie-*`.
+
+   También se mantienen aliases con clases actuales
+   `dashboard-*` y `project-*` para no romper vistas
+   existentes durante la transición.
+   ========================================================= */
+
+.visual-grid,
+.dashboard-analytics-grid,
+.visual-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: var(--space-4);
+}
+
+.visual-grid--stats,
+.dashboard-analytics-grid--stats,
+.visual-grid--stats visual-grid--stats {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.visual-card,
+.dashboard-visual-card,
+.visual-card {
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface-muted);
+}
+
+.visual-title,
+.dashboard-visual-title,
+.visual-title {
+    margin-bottom: var(--space-3);
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-muted);
+}
+
+.progress,
+.dashboard-progress,
+.progress {
+    width: 100%;
+    height: 14px;
+    border-radius: 999px;
+    background: var(--color-track);
+    overflow: hidden;
+}
+
+.progress-bar,
+.dashboard-progress-bar,
+.progress-bar {
+    height: 100%;
+    border-radius: 999px;
+    background: var(--color-primary);
+}
+
+.progress-meta,
+.dashboard-progress-meta,
+.progress-meta {
+    margin-top: var(--space-3);
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+    font-size: 0.9rem;
+    color: var(--color-text);
+}
+
+.pie-layout,
+.dashboard-pie-layout,
+.pie-layout {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    gap: var(--space-4);
+    align-items: center;
+}
+
+.pie-chart-wrap,
+.dashboard-pie-chart-wrap,
+.pie-chart-wrap {
+    position: relative;
+    width: 160px;
+    height: 160px;
+    margin: 0 auto;
+}
+
+.pie-chart,
+.dashboard-pie-chart,
+.pie-chart {
+    width: 160px;
+    height: 160px;
+    transform: rotate(-90deg);
+}
+
+.pie-track,
+.pie-segment,
+.dashboard-pie-track,
+.dashboard-pie-segment,
+.pie-track,
+.project-pie-segment {
+    fill: none;
+    stroke-width: 3.8;
+}
+
+.pie-track,
+.dashboard-pie-track,
+.pie-track {
+    stroke: var(--color-track);
+}
+
+.pie-segment--pending,
+.dashboard-pie-segment--pending,
+.pie-segment--pending {
+    stroke: #f59e0b;
+}
+
+.pie-segment--in-progress,
+.dashboard-pie-segment--in-progress,
+.pie-segment--in-progress {
+    stroke: #2563eb;
+}
+
+.pie-segment--done,
+.dashboard-pie-segment--done,
+.pie-segment--done {
+    stroke: #16a34a;
+}
+
+.pie-segment--cancelled,
+.dashboard-pie-segment--cancelled,
+.pie-segment--cancelled {
+    stroke: #6b7280;
+}
+
+.pie-center,
+.dashboard-pie-center,
+.pie-center {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    line-height: 1.1;
+    text-align: center;
+}
+
+.pie-center strong,
+.dashboard-pie-center strong,
+.pie-center strong {
+    font-size: 1.35rem;
+    color: var(--color-text);
+}
+
+.pie-center span,
+.dashboard-pie-center span,
+.pie-center span {
+    font-size: 0.82rem;
+    color: var(--color-muted);
+}
+
+.pie-legend,
+.dashboard-pie-legend,
+.pie-legend {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.pie-legend-item,
+.dashboard-pie-legend-item,
+.pie-legend-item {
+    display: flex;
+    align-items: center;
+    gap: 0.55rem;
+    font-size: 0.92rem;
+    color: var(--color-text);
+}
+
+.pie-dot,
+.dashboard-pie-dot,
+.pie-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 999px;
+    flex: 0 0 auto;
+}
+
+.pie-dot--pending,
+.dashboard-pie-dot--pending,
+.pie-dot--pending {
+    background: #f59e0b;
+}
+
+.pie-dot--in-progress,
+.dashboard-pie-dot--in-progress,
+.pie-dot--in-progress {
+    background: #2563eb;
+}
+
+.pie-dot--done,
+.dashboard-pie-dot--done,
+.pie-dot--done {
+    background: #16a34a;
+}
+
+.pie-dot--cancelled,
+.dashboard-pie-dot--cancelled,
+.pie-dot--cancelled {
+    background: #6b7280;
+}
+
+.visual-kpi,
+.dashboard-visual-kpi,
+.visual-kpi {
+    font-size: 1.6rem;
+    font-weight: 700;
+    line-height: 1.1;
+    color: var(--color-text);
+}
+
+.visual-note,
+.dashboard-visual-note,
+.visual-note {
+    margin-top: var(--space-2);
+    font-size: 0.88rem;
+    color: var(--color-muted);
+}
+
+/* =========================================================
+   12. Contenedores específicos que reutilizan visuales
+   Wrappers livianos que organizan patrones ya compartidos.
+
+   Se dejan porque aportan composición, pero delegan la
+   apariencia al patrón reusable.
+   ========================================================= */
+
+.project-visual-detail {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-4);
+}
+
+.helper-inline {
+    font-size: 0.9rem;
+    color: var(--color-muted);
+}
+
+/* =========================================================
+   13. Utilidades compartidas mínimas
+   Helpers breves realmente transversales.
+
+   Esta sección debe mantenerse pequeña.
+   ========================================================= */
+
+.mt-0 {
+    margin-top: 0;
+}
+
+.mb-0 {
+    margin-bottom: 0;
+}
+
+.mb-3 {
+    margin-bottom: var(--space-3);
+}
+
+.hr-muted {
+    margin: 1rem 0;
+    border: 0;
+    border-top: 1px solid var(--color-border);
+}
+
+.expiration-meta {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.helper-inline-spaced {
+    margin-top: 0.35rem;
+}
+
+.role-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.role-row {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.inline-form-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+}
+
+.form-control--role-select {
+    min-width: 180px;
+}
+
+/* =========================================================
+   14. Responsive de patrones
+   Adaptaciones de listados, summaries, tabs y visuales
+   reutilizables.
+   ========================================================= */
+
+@media (max-width: 900px) {
+    .list-filters-grid {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .detail-grid--3 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .visual-grid,
+    .visual-grid--stats,
+    .pie-layout,
+    .dashboard-analytics-grid,
+    .dashboard-analytics-grid--stats,
+    .dashboard-pie-layout,
+    .visual-grid,
+    .visual-grid--stats visual-grid--stats,
+    .pie-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .show-summary-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .show-summary-item {
+        min-height: 0;
+    }
+}
+
+@media (max-width: 768px) {
+    .list-toolbar {
+        align-items: stretch;
+    }
+
+    .list-toolbar-main,
+    .list-toolbar-actions {
+        width: 100%;
+    }
+
+    .list-toolbar-actions,
+    .app-pagination-links {
+        justify-content: flex-end;
+    }
+
+    .list-toolbar-filters .form-group {
+        flex: 1 1 100%;
+        min-width: 0;
+        max-width: none;
+    }
+
+    .app-pagination {
+        align-items: stretch;
+    }
+
+    .app-pagination-summary,
+    .app-pagination-links {
+        width: 100%;
+    }
+}
+
+@media (max-width: 640px) {
+
+    .list-filters-grid,
+    .detail-grid,
+    .detail-grid--3 {
+        grid-template-columns: 1fr;
+    }
+
+    .detail-list {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 600px) {
+    .list-filters-layout {
+        grid-template-columns: 1fr;
+    }
+
+    .list-filters-primary .list-filters-grid,
+    .list-filters-secondary .list-filters-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .list-filters-side {
+        width: 100%;
+    }
+}

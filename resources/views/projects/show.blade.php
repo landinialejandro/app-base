@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/projects/show.blade.php --}}
+{{-- FILE: resources/views/projects/show.blade.php | V3 --}}
 
 @extends('layouts.app')
 
@@ -119,61 +119,60 @@
 
             <x-slot:details>
                 <div class="project-visual-detail">
-                    <div class="project-visual-grid">
-                        <div class="project-visual-card">
-                            <div class="project-visual-title">Progreso general</div>
+                    <div class="visual-grid">
+                        <div class="visual-card">
+                            <div class="visual-title">Progreso general</div>
 
-                            <div class="project-progress">
-                                <div class="project-progress-bar" style="width: {{ $progress }}%;"></div>
+                            <div class="progress">
+                                <div class="progress-bar" style="width: {{ $progress }}%;"></div>
                             </div>
 
-                            <div class="project-progress-meta">
+                            <div class="progress-meta">
                                 <span>{{ $doneCount }} de {{ $totalTasks }} tareas finalizadas</span>
                                 <strong>{{ $progress }}%</strong>
                             </div>
                         </div>
 
-                        <div class="project-visual-card">
-                            <div class="project-visual-title">Estados de tareas</div>
+                        <div class="visual-card">
+                            <div class="visual-title">Estados de tareas</div>
 
                             @if ($totalTasks > 0 && count($pieSegments) > 0)
-                                <div class="project-pie-layout">
-                                    <div class="project-pie-chart-wrap">
-                                        <svg viewBox="0 0 42 42" class="project-pie-chart" aria-hidden="true">
-                                            <circle class="project-pie-track" cx="21" cy="21" r="15.9155">
-                                            </circle>
+                                <div class="pie-layout">
+                                    <div class="pie-chart-wrap">
+                                        <svg viewBox="0 0 42 42" class="pie-chart" aria-hidden="true">
+                                            <circle class="pie-track" cx="21" cy="21" r="15.9155"></circle>
 
                                             @foreach ($pieSegments as $segment)
-                                                <circle class="project-pie-segment {{ $segment['class'] }}" cx="21"
+                                                <circle class="pie-segment {{ $segment['class'] }}" cx="21"
                                                     cy="21" r="15.9155" stroke-dasharray="{{ $segment['dash'] }}"
                                                     stroke-dashoffset="{{ $segment['offset'] }}"></circle>
                                             @endforeach
                                         </svg>
 
-                                        <div class="project-pie-center">
+                                        <div class="pie-center">
                                             <strong>{{ $totalTasks }}</strong>
                                             <span>tareas</span>
                                         </div>
                                     </div>
 
-                                    <div class="project-pie-legend">
-                                        <div class="project-pie-legend-item">
-                                            <span class="project-pie-dot project-pie-dot--pending"></span>
+                                    <div class="pie-legend">
+                                        <div class="pie-legend-item">
+                                            <span class="pie-dot pie-dot--pending"></span>
                                             <span>Pendientes: {{ $pendingCount }}</span>
                                         </div>
 
-                                        <div class="project-pie-legend-item">
-                                            <span class="project-pie-dot project-pie-dot--in-progress"></span>
+                                        <div class="pie-legend-item">
+                                            <span class="pie-dot pie-dot--in-progress"></span>
                                             <span>En progreso: {{ $inProgressCount }}</span>
                                         </div>
 
-                                        <div class="project-pie-legend-item">
-                                            <span class="project-pie-dot project-pie-dot--done"></span>
+                                        <div class="pie-legend-item">
+                                            <span class="pie-dot pie-dot--done"></span>
                                             <span>Finalizadas: {{ $doneCount }}</span>
                                         </div>
 
-                                        <div class="project-pie-legend-item">
-                                            <span class="project-pie-dot project-pie-dot--cancelled"></span>
+                                        <div class="pie-legend-item">
+                                            <span class="pie-dot pie-dot--cancelled"></span>
                                             <span>Canceladas: {{ $cancelledCount }}</span>
                                         </div>
                                     </div>
@@ -184,20 +183,20 @@
                         </div>
                     </div>
 
-                    <div class="project-visual-grid project-visual-grid--stats">
-                        <div class="project-visual-card">
-                            <div class="project-visual-title">Tiempo transcurrido</div>
-                            <div class="project-visual-kpi">
+                    <div class="visual-grid visual-grid--stats">
+                        <div class="visual-card">
+                            <div class="visual-title">Tiempo transcurrido</div>
+                            <div class="visual-kpi">
                                 {{ is_null($daysElapsed) ? '—' : $daysElapsed . ' días' }}
                             </div>
-                            <div class="project-visual-note">
+                            <div class="visual-note">
                                 Desde {{ $projectStartDate?->format('d/m/Y') ?: '—' }}
                             </div>
                         </div>
 
-                        <div class="project-visual-card">
-                            <div class="project-visual-title">Días hasta el fin previsto</div>
-                            <div class="project-visual-kpi">
+                        <div class="visual-card">
+                            <div class="visual-title">Días hasta el fin previsto</div>
+                            <div class="visual-kpi">
                                 @if (is_null($daysRemaining))
                                     —
                                 @elseif($daysRemaining < 0)
@@ -206,7 +205,7 @@
                                     {{ $daysRemaining }} días
                                 @endif
                             </div>
-                            <div class="project-visual-note">
+                            <div class="visual-note">
                                 @if ($lastOpenDueDate)
                                     Fecha estimada: {{ $lastOpenDueDate->format('d/m/Y') }}
                                 @else
@@ -215,10 +214,10 @@
                             </div>
                         </div>
 
-                        <div class="project-visual-card">
-                            <div class="project-visual-title">Tareas vencidas</div>
-                            <div class="project-visual-kpi">{{ $overdueCount }}</div>
-                            <div class="project-visual-note">Pendientes fuera de fecha</div>
+                        <div class="visual-card">
+                            <div class="visual-title">Tareas vencidas</div>
+                            <div class="visual-kpi">{{ $overdueCount }}</div>
+                            <div class="visual-note">Pendientes fuera de fecha</div>
                         </div>
                     </div>
                 </div>

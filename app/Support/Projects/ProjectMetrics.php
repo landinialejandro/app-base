@@ -1,5 +1,7 @@
 <?php
 
+// FILE: app/Support/Projects/ProjectMetrics.php | V2
+
 namespace App\Support\Projects;
 
 use App\Models\Project;
@@ -68,25 +70,25 @@ class ProjectMetrics
                 'key' => 'pending',
                 'count' => $pendingCount,
                 'percent' => $pendingPercent,
-                'class' => 'project-pie-segment--pending',
+                'class' => 'pie-segment--pending',
             ],
             [
                 'key' => 'in_progress',
                 'count' => $inProgressCount,
                 'percent' => $inProgressPercent,
-                'class' => 'project-pie-segment--in-progress',
+                'class' => 'pie-segment--in-progress',
             ],
             [
                 'key' => 'done',
                 'count' => $doneCount,
                 'percent' => $donePercent,
-                'class' => 'project-pie-segment--done',
+                'class' => 'pie-segment--done',
             ],
             [
                 'key' => 'cancelled',
                 'count' => $cancelledCount,
                 'percent' => $cancelledPercent,
-                'class' => 'project-pie-segment--cancelled',
+                'class' => 'pie-segment--cancelled',
             ],
         ] as $segment) {
             if ($segment['count'] <= 0) {

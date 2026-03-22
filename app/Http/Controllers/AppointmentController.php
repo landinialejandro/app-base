@@ -128,9 +128,10 @@ class AppointmentController extends Controller
                 ->when($assignedUserId, fn ($query) => $query->where('assigned_user_id', $assignedUserId))
                 ->when($status, fn ($query) => $query->where('status', $status))
                 ->orderBy('scheduled_date')
+                ->orderByDesc('is_all_day')
                 ->orderByRaw('CASE WHEN starts_at IS NULL THEN 1 ELSE 0 END')
                 ->orderBy('starts_at')
-                ->orderBy('id')
+                ->orderBy('created_at')
                 ->get();
 
             $appointmentsByDate = $appointments
@@ -195,9 +196,10 @@ class AppointmentController extends Controller
             ->when($assignedUserId, fn ($query) => $query->where('assigned_user_id', $assignedUserId))
             ->when($status, fn ($query) => $query->where('status', $status))
             ->orderBy('scheduled_date')
+            ->orderByDesc('is_all_day')
             ->orderByRaw('CASE WHEN starts_at IS NULL THEN 1 ELSE 0 END')
             ->orderBy('starts_at')
-            ->orderBy('id')
+            ->orderBy('created_at')
             ->get();
 
         $appointmentsByDate = $appointments
@@ -227,6 +229,7 @@ class AppointmentController extends Controller
 
             $weeks[] = [
                 'week_number' => $weekStart->isoWeek(),
+                'week_start_date' => $weekStart->toDateString(),
                 'days' => $days,
             ];
         }

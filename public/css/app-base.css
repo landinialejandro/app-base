@@ -1,12 +1,43 @@
 /* =========================================================
-   FILE: public/css/app-base.css | V2
-   app-base - CSS global mínimo
-   Base visual común para todo el sistema
+   FILE: public/css/app-base.css
+   Base visual global obligatoria del sistema.
+
+   Este archivo contiene únicamente la estructura visual
+   común y estable de app-base.
+
+   Debe incluir:
+   - tokens base
+   - reset
+   - layout general
+   - header global
+   - navegación principal y dropdowns globales
+   - menú de usuario
+   - footer
+   - estructura común de página
+   - cards
+   - alertas
+   - botones y acciones compactas
+   - tablas base
+   - formularios base
+   - pantallas públicas
+   - selector de empresa
+   - breadcrumb
+   - responsive global
+
+   No debe incluir:
+   - estilos específicos de módulos
+   - calendario de appointments
+   - patrones reutilizables avanzados de show/index
+   - summaries, tabs internas o visuales analíticas
    ========================================================= */
 
 /* =========================================================
    1. Tokens base
-   Colores, espaciados y radios reutilizables
+   Colores, espaciados, radios y sombras reutilizables.
+
+   Esta sección define la paleta y las medidas base del
+   sistema. Debe concentrar variables transversales que
+   puedan utilizarse en cualquier módulo o pantalla.
    ========================================================= */
 
 :root {
@@ -37,10 +68,33 @@
     --color-error-border: #fecaca;
     --color-error-text: #991b1b;
 
+    --color-warning-soft: #fef3c7;
+    --color-warning-text: #92400e;
+
+    --color-info-soft: #dbeafe;
+    --color-info-text: #1d4ed8;
+
+    --color-done-soft: #dcfce7;
+    --color-done-text: #166534;
+
+    --color-cancelled-soft: #e5e7eb;
+    --color-cancelled-text: #4b5563;
+
+    --color-purple-soft: #ede9fe;
+    --color-purple-text: #6d28d9;
+
+    --color-danger-soft: #fee2e2;
+    --color-danger-strong: #b91c1c;
+
+    --color-track: #e5e7eb;
+    --color-surface-hover: #f9fafb;
+
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.06);
+    --shadow-dropdown: 0 10px 30px rgba(15, 23, 42, 0.1);
 
     --radius: 8px;
     --radius-md: 8px;
+    --radius-pill: 999px;
 
     --space-1: 0.25rem;
     --space-2: 0.5rem;
@@ -52,6 +106,10 @@
 
 /* =========================================================
    2. Reset y base
+   Normalización mínima del documento.
+
+   Esta sección resuelve comportamiento global del navegador
+   y define la base tipográfica y de lectura del sistema.
    ========================================================= */
 
 * {
@@ -83,6 +141,11 @@ a:hover {
 
 /* =========================================================
    3. Layout general
+   Estructura principal de la aplicación.
+
+   Esta sección define el contenedor global y el reparto
+   vertical de header, contenido y footer. También controla
+   el scroll principal de la aplicación.
    ========================================================= */
 
 .container {
@@ -116,7 +179,10 @@ a:hover {
 
 /* =========================================================
    4. Header global
-   Barra superior principal del sistema
+   Barra superior principal del sistema.
+
+   Esta sección contiene la estructura visual del encabezado
+   común de la aplicación.
    ========================================================= */
 
 .app-header {
@@ -139,6 +205,40 @@ a:hover {
     color: var(--color-text);
     text-decoration: none;
 }
+
+.app-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-3);
+    flex-wrap: wrap;
+}
+
+.app-company {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    line-height: 1.2;
+}
+
+.app-company-label {
+    font-size: 0.8rem;
+    color: var(--color-muted);
+}
+
+.app-company-name {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-text);
+}
+
+/* =========================================================
+   5. Navegación principal
+   Links y agrupaciones de navegación global.
+
+   Esta sección incluye navegación superior y dropdowns
+   generales del sistema.
+   ========================================================= */
 
 .app-nav {
     display: flex;
@@ -169,37 +269,6 @@ a:hover {
     font-weight: 600;
 }
 
-.app-header-actions {
-    display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    gap: var(--space-3);
-    flex-wrap: wrap;
-}
-
-.app-company {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-    line-height: 1.2;
-}
-
-.app-company-label {
-    font-size: 0.8rem;
-    color: var(--color-muted);
-}
-
-.app-company-name {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--color-text);
-}
-
-/* =========================================================
-   5. Navegación desplegable
-   Dropdown principal de navegación
-   ========================================================= */
-
 .app-nav-dropdown {
     position: relative;
 }
@@ -221,7 +290,7 @@ a:hover {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 0.75rem;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+    box-shadow: var(--shadow-dropdown);
     padding: 0.4rem;
     display: none;
     z-index: 100;
@@ -255,7 +324,10 @@ a:hover {
 
 /* =========================================================
    6. Menú de usuario
-   Dropdown de acciones del usuario autenticado
+   Dropdown de acciones del usuario autenticado.
+
+   Esta sección resuelve el disparador visual y el menú del
+   usuario dentro del layout global.
    ========================================================= */
 
 .app-user-dropdown {
@@ -284,7 +356,7 @@ a:hover {
 }
 
 .app-user-trigger:hover {
-    background: #f9fafb;
+    background: var(--color-surface-hover);
 }
 
 .app-user-trigger-text {
@@ -313,7 +385,7 @@ a:hover {
     background: var(--color-surface);
     border: 1px solid var(--color-border);
     border-radius: 0.75rem;
-    box-shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
+    box-shadow: var(--shadow-dropdown);
     padding: 0.4rem;
     display: none;
     z-index: 100;
@@ -360,6 +432,7 @@ a:hover {
 
 /* =========================================================
    7. Footer global
+   Pie de aplicación común a todas las pantallas internas.
    ========================================================= */
 
 .app-footer {
@@ -389,22 +462,16 @@ a:hover {
 
 /* =========================================================
    8. Estructura de página
-   Para index, show, create, edit y pantallas similares
+   Esqueleto común para index, show, create y edit.
+
+   Esta sección define la jerarquía visual base de una
+   pantalla interna.
    ========================================================= */
 
 .page {
     display: flex;
     flex-direction: column;
     gap: var(--space-5);
-}
-
-.page.list-page {
-    flex: 0 0 auto;
-    min-height: 0;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
 }
 
 .page-header {
@@ -449,7 +516,10 @@ a:hover {
 
 /* =========================================================
    9. Cards
-   Bloques principales de contenido
+   Bloques principales de contenido.
+
+   Esta sección concentra el contenedor visual estándar del
+   sistema.
    ========================================================= */
 
 .card {
@@ -473,26 +543,9 @@ a:hover {
     flex-wrap: wrap;
 }
 
-.card.list-card {
-    min-height: 0;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    height: auto;
-    flex: 0 0 auto;
-}
-
-.card.list-card .card-body {
-    min-height: 0;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    flex: 0 0 auto;
-}
-
 /* =========================================================
    10. Alertas
-   Mensajes globales de éxito, error y validación
+   Mensajes globales de éxito, error y validación.
    ========================================================= */
 
 .alert {
@@ -579,7 +632,11 @@ a:hover {
 }
 
 /* =========================================================
-   11. Botones
+   11. Botones y acciones compactas
+   Acciones visibles principales y acciones breves.
+
+   Esta sección define botones reutilizables del sistema:
+   principales, secundarios, destructivos e iconográficos.
    ========================================================= */
 
 .btn {
@@ -650,11 +707,6 @@ a:hover {
     pointer-events: none;
 }
 
-/* =========================================================
-   12. Acciones compactas
-   Botones pequeños con íconos para sublistados y tablas
-   ========================================================= */
-
 .compact-actions {
     display: inline-flex;
     align-items: center;
@@ -678,7 +730,11 @@ a:hover {
 }
 
 /* =========================================================
-   13. Tablas
+   12. Tablas
+   Base tabular reutilizable del sistema.
+
+   Esta sección define estructura, lectura, alineación y
+   comportamiento base de tablas.
    ========================================================= */
 
 .table-wrap {
@@ -686,16 +742,6 @@ a:hover {
     width: 100%;
     max-width: 100%;
     overflow-x: auto;
-}
-
-.table-wrap.list-scroll {
-    min-height: 0;
-    min-width: 0;
-    width: 100%;
-    max-width: 100%;
-    overflow-x: auto;
-    overflow-y: auto;
-    flex: 0 0 auto;
 }
 
 .table {
@@ -719,7 +765,7 @@ a:hover {
     font-size: 0.9rem;
     color: var(--color-muted);
     font-weight: 700;
-    background: #f8fafc;
+    background: var(--color-surface-muted);
 }
 
 .table tbody tr {
@@ -727,7 +773,7 @@ a:hover {
 }
 
 .table tbody tr:hover {
-    background: #f8fafc;
+    background: var(--color-surface-muted);
 }
 
 .table tr:last-child td {
@@ -735,7 +781,11 @@ a:hover {
 }
 
 /* =========================================================
-   14. Formularios
+   13. Formularios base
+   Campos y grupos reutilizables del sistema.
+
+   Esta sección define inputs, labels, ayudas, errores y
+   acciones de formularios comunes.
    ========================================================= */
 
 .form {
@@ -814,327 +864,8 @@ textarea.form-control {
 }
 
 /* =========================================================
-   14.b Filtros de listados
-   Bloque simple para búsquedas y filtros en vistas index
-   ========================================================= */
-
-.list-filters {
-    padding-bottom: var(--space-4);
-    margin-bottom: var(--space-4);
-    /* border-bottom: 1px solid var(--color-border); */
-}
-
-.list-filters-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-4);
-}
-
-.list-filters-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    margin-top: 0.5rem;
-}
-
-.list-toolbar {
-    display: flex;
-    justify-content: space-between;
-    align-items: end;
-    gap: 1rem;
-    flex-wrap: wrap;
-}
-
-.list-toolbar-main {
-    flex: 1 1 32rem;
-    min-width: 16rem;
-}
-
-.list-toolbar-form {
-    width: 100%;
-    margin-bottom: var(--space-4);
-}
-
-.list-toolbar-filters {
-    display: flex;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    align-items: end;
-}
-
-.list-toolbar-filters .form-group {
-    flex: 0 1 15rem;
-    min-width: 12rem;
-    max-width: 18rem;
-    margin-bottom: 0;
-}
-
-.list-toolbar-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 0.75rem;
-    flex-wrap: wrap;
-    margin-left: auto;
-}
-
-@media (max-width: 900px) {
-    .list-filters-grid {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-@media (max-width: 768px) {
-    .list-toolbar {
-        align-items: stretch;
-    }
-
-    .list-toolbar-main,
-    .list-toolbar-actions {
-        width: 100%;
-    }
-
-    .list-toolbar-actions {
-        justify-content: flex-end;
-    }
-
-    .list-toolbar-filters .form-group {
-        flex: 1 1 100%;
-        min-width: 0;
-        max-width: none;
-    }
-}
-
-@media (max-width: 640px) {
-    .list-filters-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* =========================================================
-   List filters card shell
-   Wrapper visual global para cards de filtros
-   ========================================================= */
-
-.list-filters-shell {
-    display: block;
-}
-
-.list-filters-layout {
-    display: grid;
-    grid-template-columns: minmax(0, 3.5fr) minmax(140px, 0.55fr);
-    gap: 1rem;
-    align-items: start;
-}
-
-.list-filters-main {
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.list-filters-primary,
-.list-filters-secondary {
-    min-width: 0;
-}
-
-.list-filters-primary .list-filters-grid,
-.list-filters-secondary .list-filters-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 1rem;
-    margin: 0;
-}
-
-.list-filters-side {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    align-self: start;
-}
-
-.list-filters-side .btn,
-.list-filters-side a.btn {
-    padding: 0.5rem 0.75rem;
-    min-height: 38px;
-    font-size: 0.92rem;
-    justify-content: center;
-    text-align: center;
-}
-
-.list-filters-secondary {
-    padding-top: 0.25rem;
-    /* border-top: 1px solid var(--color-border); */
-}
-
-@media (max-width: 600px) {
-    .list-filters-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .list-filters-primary .list-filters-grid,
-    .list-filters-secondary .list-filters-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .list-filters-side {
-        width: 100%;
-    }
-}
-
-/* =========================================================
-   14.c Paginación
-   Navegación de resultados para vistas index
-   ========================================================= */
-
-.app-pagination {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: var(--space-4);
-    flex-wrap: wrap;
-    margin-top: var(--space-4);
-}
-
-.app-pagination-summary {
-    color: var(--color-text-muted);
-    font-size: 0.95rem;
-    line-height: 1.3;
-}
-
-.app-pagination-summary span {
-    display: inline-block;
-}
-
-.app-pagination-links {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.app-pagination-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-width: 2.25rem;
-    height: 2.25rem;
-    padding: 0 0.75rem;
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius-md);
-    background: var(--color-surface);
-    color: var(--color-text);
-    text-decoration: none;
-    line-height: 1;
-    box-sizing: border-box;
-    transition: background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease;
-}
-
-.app-pagination-link:hover {
-    background: var(--color-surface-muted);
-}
-
-.app-pagination-link.is-active {
-    background: var(--color-primary-soft);
-    border-color: var(--color-primary);
-    color: var(--color-primary-strong);
-    font-weight: 600;
-    cursor: default;
-}
-
-.app-pagination-link.is-disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-    pointer-events: none;
-}
-
-@media (max-width: 768px) {
-    .app-pagination {
-        align-items: stretch;
-    }
-
-    .app-pagination-summary,
-    .app-pagination-links {
-        width: 100%;
-    }
-
-    .app-pagination-links {
-        justify-content: flex-end;
-    }
-}
-
-/* =========================================================
-   15. Vistas de detalle
-   Para show y bloques de información clave
-   ========================================================= */
-
-.detail-list {
-    display: grid;
-    grid-template-columns: 180px 1fr;
-    gap: var(--space-3) var(--space-4);
-}
-
-.detail-label {
-    font-weight: 700;
-    color: var(--color-muted);
-}
-
-.detail-value {
-    color: var(--color-text);
-}
-
-.detail-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-4);
-}
-
-.detail-grid--3 {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.detail-block {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-}
-
-.detail-block--full {
-    grid-column: 1 / -1;
-}
-
-.detail-block-label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--color-muted);
-}
-
-.detail-block-value {
-    color: var(--color-text);
-    word-break: break-word;
-}
-
-@media (max-width: 900px) {
-    .detail-grid--3 {
-        grid-template-columns: repeat(2, minmax(0, 1fr));
-    }
-}
-
-@media (max-width: 640px) {
-    .detail-list {
-        grid-template-columns: 1fr;
-    }
-
-    .detail-grid,
-    .detail-grid--3 {
-        grid-template-columns: 1fr;
-    }
-}
-
-/* =========================================================
-   16. Pantallas públicas y acceso
-   Para welcome, login, register, invitaciones y similares
+   14. Pantallas públicas y acceso
+   Layout para welcome, login, register e invitaciones.
    ========================================================= */
 
 .welcome-page {
@@ -1174,7 +905,8 @@ textarea.form-control {
 }
 
 /* =========================================================
-   17. Selector de empresa
+   15. Selector de empresa
+   Selección inicial de tenant o empresa activa.
    ========================================================= */
 
 .tenant-list {
@@ -1201,7 +933,7 @@ textarea.form-control {
 
 .tenant-option:hover {
     border-color: var(--color-primary);
-    background: #f9fafb;
+    background: var(--color-surface-hover);
 }
 
 .tenant-option-name {
@@ -1218,7 +950,7 @@ textarea.form-control {
     padding: var(--space-3);
     border: 1px solid var(--color-border);
     border-radius: 6px;
-    background: #f8fafc;
+    background: var(--color-surface-muted);
     white-space: pre-wrap;
     word-break: break-word;
     font-size: 0.85rem;
@@ -1226,650 +958,11 @@ textarea.form-control {
 }
 
 /* =========================================================
-   18. Dashboard
-   Accesos rápidos y bloques principales
-   ========================================================= */
-
-.module-links {
-    display: flex;
-    gap: var(--space-3);
-    flex-wrap: wrap;
-}
-
-.dashboard-section-header {
-    margin-bottom: var(--space-4);
-}
-
-.dashboard-section-title {
-    margin: 0;
-    font-size: 1rem;
-    line-height: 1.2;
-}
-
-.dashboard-section-text {
-    margin: var(--space-1) 0 0;
-    color: var(--color-muted);
-    font-size: 0.9rem;
-}
-
-.dashboard-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: var(--space-4);
-}
-
-.dashboard-link-card {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-    padding: var(--space-4);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    background: #fff;
-    color: var(--color-text);
-    text-decoration: none;
-    transition: border-color 0.15s ease, background-color 0.15s ease;
-}
-
-.dashboard-link-card:hover {
-    border-color: var(--color-primary);
-    background: #f9fafb;
-    text-decoration: none;
-}
-
-.dashboard-link-title {
-    font-weight: 600;
-    font-size: 0.98rem;
-    line-height: 1.2;
-}
-
-.dashboard-link-text {
-    color: var(--color-muted);
-    font-size: 0.92rem;
-}
-
-.dashboard-link-meta {
-    color: #9ca3af;
-    font-size: 0.8rem;
-    font-weight: 500;
-}
-
-.dashboard-tenant-summary {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-    gap: var(--space-4);
-    flex-wrap: wrap;
-}
-
-.dashboard-tenant-main {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-1);
-}
-
-.dashboard-tenant-label {
-    font-size: 0.8rem;
-    color: var(--color-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-}
-
-.dashboard-tenant-name {
-    margin: 0;
-    font-size: 1.2rem;
-    line-height: 1.2;
-    font-weight: 600;
-}
-
-.dashboard-tenant-slug {
-    margin: 0;
-    font-size: 0.88rem;
-    color: var(--color-muted);
-}
-
-.dashboard-tenant-stats {
-    display: flex;
-    gap: var(--space-2);
-    flex-wrap: wrap;
-}
-
-.dashboard-tenant-stat {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.3rem 0.65rem;
-    border: 1px solid var(--color-border);
-    border-radius: 999px;
-    background: #f9fafb;
-    color: #9ca3af;
-    font-size: 0.76rem;
-    font-weight: 500;
-    line-height: 1.2;
-}
-
-.dashboard-analytics-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: var(--space-2);
-    flex-wrap: wrap;
-    margin-bottom: var(--space-4);
-}
-
-.dashboard-analytics-stack {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-}
-
-.dashboard-analytics-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-4);
-}
-
-.dashboard-analytics-grid--stats {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.dashboard-visual-card {
-    padding: var(--space-4);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    background: #f8fafc;
-}
-
-.dashboard-visual-title {
-    margin-bottom: var(--space-3);
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--color-muted);
-}
-
-.dashboard-progress {
-    width: 100%;
-    height: 14px;
-    border-radius: 999px;
-    background: #e5e7eb;
-    overflow: hidden;
-}
-
-.dashboard-progress-bar {
-    height: 100%;
-    border-radius: 999px;
-    background: var(--color-primary);
-}
-
-.dashboard-progress-meta {
-    margin-top: var(--space-3);
-    display: flex;
-    justify-content: space-between;
-    gap: var(--space-3);
-    flex-wrap: wrap;
-    font-size: 0.9rem;
-    color: var(--color-text);
-}
-
-.dashboard-pie-layout {
-    display: grid;
-    grid-template-columns: 180px 1fr;
-    gap: var(--space-4);
-    align-items: center;
-}
-
-.dashboard-pie-chart-wrap {
-    position: relative;
-    width: 160px;
-    height: 160px;
-    margin: 0 auto;
-}
-
-.dashboard-pie-chart {
-    width: 160px;
-    height: 160px;
-    transform: rotate(-90deg);
-}
-
-.dashboard-pie-track,
-.dashboard-pie-segment {
-    fill: none;
-    stroke-width: 3.8;
-}
-
-.dashboard-pie-track {
-    stroke: #e5e7eb;
-}
-
-.dashboard-pie-segment--pending {
-    stroke: #f59e0b;
-}
-
-.dashboard-pie-segment--in-progress {
-    stroke: #2563eb;
-}
-
-.dashboard-pie-segment--done {
-    stroke: #16a34a;
-}
-
-.dashboard-pie-segment--cancelled {
-    stroke: #6b7280;
-}
-
-.dashboard-pie-center {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    line-height: 1.1;
-    text-align: center;
-}
-
-.dashboard-pie-center strong {
-    font-size: 1.35rem;
-    color: var(--color-text);
-}
-
-.dashboard-pie-center span {
-    font-size: 0.82rem;
-    color: var(--color-muted);
-}
-
-.dashboard-pie-legend {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.dashboard-pie-legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
-    font-size: 0.92rem;
-    color: var(--color-text);
-}
-
-.dashboard-pie-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 999px;
-    flex: 0 0 auto;
-}
-
-.dashboard-pie-dot--pending {
-    background: #f59e0b;
-}
-
-.dashboard-pie-dot--in-progress {
-    background: #2563eb;
-}
-
-.dashboard-pie-dot--done {
-    background: #16a34a;
-}
-
-.dashboard-pie-dot--cancelled {
-    background: #6b7280;
-}
-
-.dashboard-visual-kpi {
-    font-size: 1.6rem;
-    font-weight: 700;
-    line-height: 1.1;
-    color: var(--color-text);
-}
-
-.dashboard-visual-note {
-    margin-top: var(--space-2);
-    font-size: 0.88rem;
-    color: var(--color-muted);
-}
-
-@media (max-width: 900px) {
-
-    .dashboard-analytics-grid,
-    .dashboard-analytics-grid--stats,
-    .dashboard-pie-layout {
-        grid-template-columns: 1fr;
-    }
-}
-
-.helper-inline {
-    font-size: 0.9rem;
-    color: var(--color-muted);
-}
-
-/* =========================================================
-   19. Tabs internas
-   Solapas simples para vistas show con mucho contenido
-   ========================================================= */
-
-.tabs {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-}
-
-.tabs-nav {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    flex-wrap: wrap;
-    padding: var(--space-2);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    background: #f8fafc;
-}
-
-.tabs-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    min-height: 40px;
-    padding: 0.55rem 0.95rem;
-    border: 1px solid transparent;
-    border-radius: 999px;
-    background: transparent;
-    color: var(--color-muted);
-    text-decoration: none;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
-}
-
-.tabs-link:hover {
-    background: #ffffff;
-    border-color: #e5e7eb;
-    color: var(--color-text);
-    text-decoration: none;
-}
-
-.tabs-link:focus-visible {
-    outline: 2px solid rgba(37, 99, 235, 0.28);
-    outline-offset: 2px;
-}
-
-.tabs-link.is-active {
-    background: rgba(37, 99, 235, 0.12);
-    border-color: rgba(37, 99, 235, 0.22);
-    color: var(--color-primary);
-    box-shadow: 0 1px 2px rgba(37, 99, 235, 0.08);
-}
-
-.tab-panel {
-    display: none;
-}
-
-.tab-panel.is-active {
-    display: block;
-}
-
-.tab-panel-stack {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-5);
-}
-
-.summary-inline-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
-    gap: var(--space-3);
-}
-
-.summary-inline-card {
-    padding: var(--space-3);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    background: #f8fafc;
-}
-
-.summary-inline-label {
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--color-muted);
-    margin-bottom: var(--space-1);
-}
-
-.summary-inline-value {
-    font-size: 1rem;
-    font-weight: 700;
-    color: var(--color-text);
-}
-
-.summary-inline-help {
-    margin-top: 0.2rem;
-    font-size: 0.82rem;
-    color: var(--color-muted);
-    line-height: 1.35;
-}
-
-.summary-badge-stack {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.45rem;
-    min-height: 100%;
-}
-
-.summary-badge-stack .status-badge {
-    max-width: 100%;
-}
-
-.show-summary-grid {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: var(--space-3);
-}
-
-.show-summary-item {
-    min-height: 96px;
-    display: flex;
-    flex-direction: column;
-    justify-content: flex-start;
-}
-
-.show-summary-actions {
-    display: flex;
-    justify-content: flex-end;
-    margin-top: var(--space-4);
-}
-
-.show-summary-details {
-    margin-top: var(--space-4);
-}
-
-.project-visual-detail {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-4);
-}
-
-.project-visual-grid {
-    display: grid;
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: var(--space-4);
-}
-
-.project-visual-grid--stats {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
-.project-visual-card {
-    padding: var(--space-4);
-    border: 1px solid var(--color-border);
-    border-radius: var(--radius);
-    background: #f8fafc;
-}
-
-.project-visual-title {
-    margin-bottom: var(--space-3);
-    font-size: 0.9rem;
-    font-weight: 600;
-    color: var(--color-muted);
-}
-
-.project-progress {
-    width: 100%;
-    height: 14px;
-    border-radius: 999px;
-    background: #e5e7eb;
-    overflow: hidden;
-}
-
-.project-progress-bar {
-    height: 100%;
-    border-radius: 999px;
-    background: var(--color-primary);
-}
-
-.project-progress-meta {
-    margin-top: var(--space-3);
-    display: flex;
-    justify-content: space-between;
-    gap: var(--space-3);
-    flex-wrap: wrap;
-    font-size: 0.9rem;
-    color: var(--color-text);
-}
-
-.project-pie-layout {
-    display: grid;
-    grid-template-columns: 180px 1fr;
-    gap: var(--space-4);
-    align-items: center;
-}
-
-.project-pie-chart-wrap {
-    position: relative;
-    width: 160px;
-    height: 160px;
-    margin: 0 auto;
-}
-
-.project-pie-chart {
-    width: 160px;
-    height: 160px;
-    transform: rotate(-90deg);
-}
-
-.project-pie-track,
-.project-pie-segment {
-    fill: none;
-    stroke-width: 3.8;
-}
-
-.project-pie-track {
-    stroke: #e5e7eb;
-}
-
-.project-pie-segment--pending {
-    stroke: #f59e0b;
-}
-
-.project-pie-segment--in-progress {
-    stroke: #2563eb;
-}
-
-.project-pie-segment--done {
-    stroke: #16a34a;
-}
-
-.project-pie-segment--cancelled {
-    stroke: #6b7280;
-}
-
-.project-pie-center {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    line-height: 1.1;
-    text-align: center;
-}
-
-.project-pie-center strong {
-    font-size: 1.35rem;
-    color: var(--color-text);
-}
-
-.project-pie-center span {
-    font-size: 0.82rem;
-    color: var(--color-muted);
-}
-
-.project-pie-legend {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.project-pie-legend-item {
-    display: flex;
-    align-items: center;
-    gap: 0.55rem;
-    font-size: 0.92rem;
-    color: var(--color-text);
-}
-
-.project-pie-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 999px;
-    flex: 0 0 auto;
-}
-
-.project-pie-dot--pending {
-    background: #f59e0b;
-}
-
-.project-pie-dot--in-progress {
-    background: #2563eb;
-}
-
-.project-pie-dot--done {
-    background: #16a34a;
-}
-
-.project-pie-dot--cancelled {
-    background: #6b7280;
-}
-
-.project-visual-kpi {
-    font-size: 1.6rem;
-    font-weight: 700;
-    line-height: 1.1;
-    color: var(--color-text);
-}
-
-.project-visual-note {
-    margin-top: var(--space-2);
-    font-size: 0.88rem;
-    color: var(--color-muted);
-}
-
-@media (max-width: 900px) {
-
-    .project-visual-grid,
-    .project-visual-grid--stats,
-    .project-pie-layout {
-        grid-template-columns: 1fr;
-    }
-
-    .show-summary-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .show-summary-item {
-        min-height: 0;
-    }
-}
-
-/* =========================================================
-   20. Breadcrumb
-   Navegación contextual simple
+   16. Breadcrumb
+   Navegación contextual base.
+
+   Esta sección define el patrón visual de breadcrumb del
+   sistema.
    ========================================================= */
 
 .breadcrumb {
@@ -1915,396 +1008,12 @@ textarea.form-control {
 }
 
 /* =========================================================
-   21. Badges de estado
-   Estados visuales para tareas y otros módulos
+   17. Responsive global
+   Ajustes transversales de layout y componentes base.
+
+   Esta sección concentra adaptaciones mobile y tablet de
+   elementos globales del sistema.
    ========================================================= */
-
-.status-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.2rem 0.65rem;
-    border-radius: 999px;
-    font-size: 0.85rem;
-    font-weight: 600;
-    line-height: 1;
-    white-space: nowrap;
-}
-
-.status-badge--pending {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.status-badge--in-progress {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-
-.status-badge--done {
-    background: #dcfce7;
-    color: #166534;
-}
-
-.status-badge--cancelled {
-    background: #e5e7eb;
-    color: #4b5563;
-}
-
-.status-badge--approved {
-    background: #dbeafe;
-    color: #1d4ed8;
-}
-
-.status-badge--rejected {
-    background: #fee2e2;
-    color: #b91c1c;
-}
-
-.status-badge--sent {
-    background: #ede9fe;
-    color: #6d28d9;
-}
-
-.status-badge--expiring {
-    background: #fef3c7;
-    color: #92400e;
-}
-
-.status-badge--expired {
-    background: #fee2e2;
-    color: #b91c1c;
-}
-
-/* =========================================================
-   22. Calendario mensual de appointments
-   Vista mensual operativa del módulo appointments
-   ========================================================= */
-
-.appointment-calendar-card .card-body {
-    padding: 0;
-}
-
-.appointment-calendar-scroll {
-    overflow: auto;
-    max-height: 70vh;
-}
-
-.appointment-calendar {
-    display: flex;
-    flex-direction: column;
-    min-width: 1020px;
-    position: relative;
-}
-
-.appointment-calendar-head {
-    position: sticky;
-    top: 0;
-    z-index: 30;
-    background: var(--color-surface-muted);
-    border-bottom: 1px solid var(--color-border);
-}
-
-.appointment-calendar-head--with-week {
-    display: grid;
-    grid-template-columns: 44px repeat(7, minmax(0, 1fr));
-}
-
-.appointment-calendar-weeknumber-head {
-    position: sticky;
-    left: 0;
-    z-index: 32;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    padding: 0.8rem 0.2rem;
-    font-size: 0.74rem;
-    font-weight: 700;
-    color: var(--color-muted);
-    border-right: 1px solid var(--color-border);
-    background: var(--color-surface-muted);
-}
-
-.appointment-calendar-weekday {
-    display: flex;
-    align-items: center;
-    min-height: 46px;
-    padding: 0.8rem 0.75rem;
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: var(--color-muted);
-    border-right: 1px solid var(--color-border);
-    background: var(--color-surface-muted);
-}
-
-.appointment-calendar-weekday:last-child {
-    border-right: 0;
-}
-
-.appointment-calendar-body--with-week {
-    display: grid;
-    grid-template-columns: 44px repeat(7, minmax(0, 1fr));
-}
-
-.appointment-calendar-weeknumber {
-    position: sticky;
-    left: 0;
-    z-index: 12;
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 0.8rem 0.2rem;
-    border-right: 1px solid var(--color-border);
-    border-bottom: 1px solid var(--color-border);
-    background: var(--color-surface-muted);
-    font-size: 0.74rem;
-    font-weight: 700;
-    color: var(--color-muted);
-}
-
-.appointment-calendar-day {
-    min-height: 180px;
-    padding: 0.75rem;
-    border-right: 1px solid var(--color-border);
-    border-bottom: 1px solid var(--color-border);
-    background: var(--color-surface);
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.appointment-calendar-day.is-outside-month {
-    background: var(--color-surface-muted);
-    opacity: 0.72;
-}
-
-.appointment-calendar-day.is-today {
-    background: rgba(37, 99, 235, 0.06);
-}
-
-.appointment-calendar-day-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem;
-}
-
-.appointment-calendar-day-number {
-    font-size: 0.95rem;
-    font-weight: 700;
-    color: var(--color-text);
-}
-
-.appointment-calendar-day-actions {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-}
-
-.appointment-calendar-add {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.7rem;
-    height: 1.7rem;
-    border-radius: 999px;
-    text-decoration: none;
-    color: inherit;
-    background: var(--color-surface-muted);
-    border: 1px solid var(--color-border);
-}
-
-.appointment-calendar-add:hover {
-    background: var(--color-secondary);
-    text-decoration: none;
-}
-
-.appointment-calendar-day-summary {
-    font-size: 0.78rem;
-    color: var(--color-muted);
-}
-
-.appointment-calendar-day-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.45rem;
-}
-
-.appointment-calendar-item {
-    display: block;
-    padding: 0.55rem 0.6rem;
-    border-radius: 0.75rem;
-    text-decoration: none;
-    color: inherit;
-    border: 1px solid var(--color-border);
-    background: var(--color-surface);
-}
-
-.appointment-calendar-item:hover {
-    background: var(--color-surface-muted);
-    text-decoration: none;
-}
-
-.appointment-calendar-item-time {
-    font-size: 0.72rem;
-    color: var(--color-muted);
-    margin-bottom: 0.2rem;
-}
-
-.appointment-calendar-item-title {
-    font-size: 0.84rem;
-    font-weight: 600;
-    line-height: 1.25;
-    color: var(--color-text);
-}
-
-.appointment-calendar-item-meta {
-    margin-top: 0.15rem;
-    font-size: 0.75rem;
-    color: var(--color-muted);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.appointment-calendar-empty,
-.appointment-calendar-more {
-    font-size: 0.78rem;
-    color: var(--color-muted);
-}
-
-.calendar-nav {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.calendar-nav-current {
-    min-width: 11rem;
-    font-weight: 600;
-    color: var(--color-text);
-    text-transform: capitalize;
-}
-
-.calendar-nav-today {
-    margin-top: 0.35rem;
-    font-size: 0.82rem;
-}
-
-.status-accent-scheduled {
-    border-left: 4px solid #f59e0b;
-}
-
-.status-accent-completed {
-    border-left: 4px solid #10b981;
-}
-
-.status-accent-cancelled {
-    border-left: 4px solid #ef4444;
-}
-
-.appointment-calendar-day.is-past-day {
-    position: relative;
-    background:
-        repeating-linear-gradient(-45deg,
-            rgba(107, 114, 128, 0.025) 0,
-            rgba(107, 114, 128, 0.025) 4px,
-            rgba(107, 114, 128, 0.05) 4px,
-            rgba(107, 114, 128, 0.05) 8px),
-        var(--color-surface-muted);
-}
-
-.appointment-calendar--week {
-    min-width: 1540px;
-}
-
-.appointment-calendar--week .appointment-calendar-head {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(220px, 1fr));
-}
-
-.appointment-calendar-body--week {
-    display: grid;
-    grid-template-columns: repeat(7, minmax(220px, 1fr));
-}
-
-.appointment-calendar-body--week .appointment-calendar-day {
-    min-height: 320px;
-}
-
-.appointment-calendar-day.is-past-day .appointment-calendar-day-number,
-.appointment-calendar-day.is-past-day .appointment-calendar-day-summary,
-.appointment-calendar-day.is-past-day .appointment-calendar-empty,
-.appointment-calendar-day.is-past-day .appointment-calendar-more {
-    color: #6b7280;
-}
-
-/* =========================================================
-   23. Utilidades mínimas
-   ========================================================= */
-
-.mt-0 {
-    margin-top: 0;
-}
-
-.mb-0 {
-    margin-bottom: 0;
-}
-
-.mb-3 {
-    margin-bottom: var(--space-3);
-}
-
-.hr-muted {
-    margin: 1rem 0;
-    border: 0;
-    border-top: 1px solid var(--color-border);
-}
-
-.expiration-meta {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.helper-inline-spaced {
-    margin-top: 0.35rem;
-}
-
-.role-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-}
-
-.role-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.inline-form-wrap {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    flex-wrap: wrap;
-}
-
-.form-control--role-select {
-    min-width: 180px;
-}
-
-/* =========================================================
-   24. Responsive general
-   Ajustes básicos para layout y header
-   ========================================================= */
-
-@media (max-width: 1100px) {
-    .appointment-calendar-card {
-        overflow-x: auto;
-    }
-}
 
 @media (max-width: 900px) {
     .app-header-inner {

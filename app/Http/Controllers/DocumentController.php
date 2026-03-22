@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DocumentController.php | V6
+// FILE: app/Http/Controllers/DocumentController.php | V7
 
 namespace App\Http\Controllers;
 
@@ -86,19 +86,50 @@ class DocumentController extends Controller
     {
         $this->authorize('create', Document::class);
 
-        $parties = Party::orderBy('name')->get();
-        $orders = Order::with(['party', 'asset'])->latest()->get();
-        $assets = Asset::with('party')->orderBy('name')->get();
+        $tenant = app('tenant');
+        $navigationContext = NavigationContext::resolveFromRequest($request, $tenant->id);
+
+        $parties = Party::query()
+            ->orderBy('name')
+            ->get();
+
+        $orders = Order::query()
+            ->with(['party', 'asset'])
+            ->latest()
+            ->get();
+
+        $assets = Asset::query()
+            ->with('party')
+            ->orderBy('name')
+            ->get();
+
+        $order = null;
+
+        if ($request->filled('order_id')) {
+            $order = Order::query()
+                ->with(['party', 'asset'])
+                ->where('id', $request->integer('order_id'))
+                ->where('tenant_id', $tenant->id)
+                ->firstOrFail();
+        }
 
         $document = new Document([
+            'party_id' => $order?->party_id,
+            'order_id' => $order?->id,
+            'asset_id' => $order?->asset_id,
             'kind' => DocumentCatalog::KIND_QUOTE,
             'status' => DocumentCatalog::STATUS_DRAFT,
             'issued_at' => now(),
         ]);
 
-        $navigationContext = NavigationContext::resolveFromRequest($request, app('tenant')->id);
-
-        return view('documents.create', compact('document', 'parties', 'orders', 'assets', 'navigationContext'));
+        return view('documents.create', compact(
+            'document',
+            'order',
+            'parties',
+            'orders',
+            'assets',
+            'navigationContext',
+        ));
     }
 
     public function store(Request $request)
@@ -117,7 +148,6 @@ class DocumentController extends Controller
                         ->whereNull('deleted_at');
                 }),
             ],
-
             'order_id' => [
                 'nullable',
                 'integer',
@@ -125,7 +155,6 @@ class DocumentController extends Controller
                     $query->where('tenant_id', $tenant->id);
                 }),
             ],
-
             'asset_id' => [
                 'nullable',
                 'integer',
@@ -134,17 +163,14 @@ class DocumentController extends Controller
                         ->whereNull('deleted_at');
                 }),
             ],
-
             'kind' => [
                 'required',
                 Rule::in(DocumentCatalog::kinds()),
             ],
-
             'status' => [
                 'required',
                 Rule::in(DocumentCatalog::statuses()),
             ],
-
             'issued_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
         ]);
@@ -153,7 +179,10 @@ class DocumentController extends Controller
         $order = null;
 
         if (! empty($data['order_id'])) {
-            $order = Order::query()->find($data['order_id']);
+            $order = Order::query()
+                ->where('id', $data['order_id'])
+                ->where('tenant_id', $tenant->id)
+                ->first();
 
             if ($order) {
                 $data['party_id'] = $order->party_id;
@@ -319,9 +348,20 @@ class DocumentController extends Controller
     {
         $this->authorize('update', $document);
 
-        $parties = Party::orderBy('name')->get();
-        $orders = Order::with(['party', 'asset'])->latest()->get();
-        $assets = Asset::with('party')->orderBy('name')->get();
+        $parties = Party::query()
+            ->orderBy('name')
+            ->get();
+
+        $orders = Order::query()
+            ->with(['party', 'asset'])
+            ->latest()
+            ->get();
+
+        $assets = Asset::query()
+            ->with('party')
+            ->orderBy('name')
+            ->get();
+
         $navigationContext = NavigationContext::resolveFromRequest($request, $document->tenant_id);
 
         return view('documents.edit', compact('document', 'parties', 'orders', 'assets', 'navigationContext'));
@@ -343,7 +383,6 @@ class DocumentController extends Controller
                         ->whereNull('deleted_at');
                 }),
             ],
-
             'order_id' => [
                 'nullable',
                 'integer',
@@ -351,7 +390,6 @@ class DocumentController extends Controller
                     $query->where('tenant_id', $tenant->id);
                 }),
             ],
-
             'asset_id' => [
                 'nullable',
                 'integer',
@@ -360,17 +398,14 @@ class DocumentController extends Controller
                         ->whereNull('deleted_at');
                 }),
             ],
-
             'kind' => [
                 'required',
                 Rule::in(DocumentCatalog::kinds()),
             ],
-
             'status' => [
                 'required',
                 Rule::in(DocumentCatalog::statuses()),
             ],
-
             'issued_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
         ]);
@@ -390,7 +425,10 @@ class DocumentController extends Controller
         $order = null;
 
         if (! empty($data['order_id'])) {
-            $order = Order::query()->find($data['order_id']);
+            $order = Order::query()
+                ->where('id', $data['order_id'])
+                ->where('tenant_id', $tenant->id)
+                ->first();
 
             if ($order) {
                 $data['party_id'] = $order->party_id;
@@ -441,7 +479,7 @@ class DocumentController extends Controller
 
         $document->delete();
 
-        if (($navigationContext['type'] ?? null) === 'appointment' && $order) {
+        if ($order) {
             return redirect()
                 ->route('orders.show', ['order' => $order] + NavigationContext::routeParams($navigationContext))
                 ->with('success', 'Documento eliminado.');

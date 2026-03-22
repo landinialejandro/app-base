@@ -125,6 +125,14 @@ si participa en navegación cruzada real, aceptar y propagar el trail o mecanism
 
 si ya existe un resolutor, builder o adaptador central del módulo, reutilizarlo en lugar de crear una variante paralela
 
+verificar que el builder o resolutor del módulo guarde URLs limpias en los nodos
+
+verificar que el trail no quede serializado dentro del propio campo url de los nodos
+
+verificar que, al volver a una entidad ya presente, el trail colapse sin duplicarse
+
+verificar que el módulo no conserve mecanismos anteriores de contexto redundantes una vez migrado al esquema central vigente
+
 Reglas:
 
 usar breadcrumb estructural por defecto
@@ -138,8 +146,6 @@ no deducir breadcrumb funcional desde relaciones implícitas del modelo ni desde
 no introducir mecanismos paralelos de contexto si ya existe trail central vigente
 
 no duplicar en blades lógica que ya fue resuelta por controller o capa central de navegación
-
-
 CIERRE
 
 Un módulo no debe considerarse terminado solo porque funciona.

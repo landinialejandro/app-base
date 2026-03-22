@@ -464,6 +464,16 @@ cuando el trail vuelva a un nodo ya existente, debe priorizarse una resolución 
 
 no sostener en paralelo mecanismos redundantes de breadcrumb contextual si ya existe una forma central adoptada por el proyecto
 
+los nodos del trail deben almacenar URLs limpias de la entidad actual
+
+no debe serializarse el propio trail dentro del campo url de los nodos
+
+el trail se propaga solo en links, forms y redirects
+
+si un módulo recibe trail válido, debe heredarlo y colapsarlo; no debe reinyectarlo dentro de la definición interna del nodo
+
+cuando un módulo ya esté migrado al trail central, deben eliminarse mecanismos legacy de contexto equivalentes o redundantes
+
 las decisiones técnicas concretas de clases o nombres de implementación pueden evolucionar, pero la convención estable es:
 
 motor central reutilizable
@@ -471,6 +481,7 @@ controller resuelve
 vista consume
 sin deducción desde historial
 sin duplicación por módulo
+sin serialización recursiva del trail dentro de nodos
 
 
 CONVENCIONES DE VOCABULARIO UI

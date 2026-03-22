@@ -187,6 +187,10 @@ breadcrumb no debe depender del historial del navegador para representar relacio
 
 cuando exista navegación cruzada entre pantallas relacionadas, el breadcrumb puede resolverse mediante un trail heredable previamente validado por controller
 
+cuando una pantalla use breadcrumb contextual mediante trail heredable, el retorno visible no debe duplicar nodos ya recorridos
+
+la salida visual debe mantenerse compacta y limpia aunque el usuario navegue entre entidades relacionadas en ambos sentidos
+
 
 PANTALLAS TIPO CALENDARIO
 

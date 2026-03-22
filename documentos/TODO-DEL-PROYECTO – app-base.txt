@@ -73,6 +73,14 @@ extender preservación de contexto UX en tabs, filtros y paginación a otras pan
 
 revisar normalización final de tablas, acciones compactas y estructura reusable en módulos restantes del core
 
+migrar projects y tasks al esquema central vigente de trail o navegación contextual reutilizable
+
+evaluar y preparar builders o resolutores de trail para parties, assets y products si esos módulos pasan a participar en navegación cruzada real
+
+auditar módulos restantes para eliminar mecanismos legacy de contexto que dupliquen la resolución central vigente
+
+revisar preservación de trail en filtros, tabs y paginación donde corresponda
+
 
 AUTORIZACIÓN Y PERMISOS
 
@@ -155,6 +163,10 @@ extender preservación de contexto en redirects, cancelar y volver dentro de flu
 evaluar extensión controlada del patrón actual a otros módulos relacionados
 
 no avanzar todavía a navegación tipo tabs de ruta o workspace hasta cerrar una convención simple y estable de navegación contextual
+
+mantener como referencia resuelta el tramo contextual appointments -> orders -> documents y su herencia hacia items
+
+evitar reaparición de serialización recursiva del trail dentro de URLs internas de nodos
 
 
 NUMERACIÓN Y CONFIGURACIÓN OPERATIVA

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DocumentItemController.php | V3
+// FILE: app/Http/Controllers/DocumentItemController.php | V4
 
 namespace App\Http\Controllers;
 
@@ -19,6 +19,8 @@ class DocumentItemController extends Controller
         $this->authorize('update', $document);
 
         $products = Product::query()
+            ->where('tenant_id', $document->tenant_id)
+            ->whereNull('deleted_at')
             ->orderBy('name')
             ->get();
 
@@ -75,6 +77,8 @@ class DocumentItemController extends Controller
         abort_unless((int) $item->document_id === (int) $document->id, 404);
 
         $products = Product::query()
+            ->where('tenant_id', $document->tenant_id)
+            ->whereNull('deleted_at')
             ->orderBy('name')
             ->get();
 

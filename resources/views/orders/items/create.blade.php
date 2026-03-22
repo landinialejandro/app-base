@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/items/create.blade.php | V2 --}}
+{{-- FILE: resources/views/orders/items/create.blade.php | V3 --}}
 
 @extends('layouts.app')
 
@@ -24,7 +24,10 @@
             $breadcrumbItems[] = ['label' => 'Agregar ítem'];
         } else {
             $breadcrumbItems[] = ['label' => 'Órdenes', 'url' => route('orders.index')];
-            $breadcrumbItems[] = ['label' => $orderLabel, 'url' => route('orders.show', $order)];
+            $breadcrumbItems[] = [
+                'label' => $orderLabel,
+                'url' => route('orders.show', ['order' => $order] + $contextRouteParams),
+            ];
             $breadcrumbItems[] = ['label' => 'Agregar ítem'];
         }
 
@@ -32,7 +35,6 @@
     @endphp
 
     <x-page>
-
         <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header title="Agregar ítem" />
@@ -50,6 +52,5 @@
                 </div>
             </form>
         </x-card>
-
     </x-page>
 @endsection

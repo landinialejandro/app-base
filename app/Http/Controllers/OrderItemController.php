@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderItemController.php | V5
+// FILE: app/Http/Controllers/OrderItemController.php | V6
 
 namespace App\Http\Controllers;
 
@@ -18,6 +18,8 @@ class OrderItemController extends Controller
         $this->authorize('update', $order);
 
         $products = Product::query()
+            ->where('tenant_id', $order->tenant_id)
+            ->whereNull('deleted_at')
             ->orderBy('name')
             ->get();
 
@@ -73,6 +75,8 @@ class OrderItemController extends Controller
         abort_unless((int) $item->order_id === (int) $order->id, 404);
 
         $products = Product::query()
+            ->where('tenant_id', $order->tenant_id)
+            ->whereNull('deleted_at')
             ->orderBy('name')
             ->get();
 

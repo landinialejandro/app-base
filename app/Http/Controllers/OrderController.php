@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderController.php | V7
+// FILE: app/Http/Controllers/OrderController.php | V8
 
 namespace App\Http\Controllers;
 
@@ -78,8 +78,14 @@ class OrderController extends Controller
 
         $tenant = app('tenant');
 
-        $parties = Party::orderBy('name')->get();
-        $assets = Asset::with('party')->orderBy('name')->get();
+        $parties = Party::query()
+            ->orderBy('name')
+            ->get();
+
+        $assets = Asset::query()
+            ->with('party')
+            ->orderBy('name')
+            ->get();
 
         $prefilledAsset = null;
         $prefilledPartyId = null;
@@ -134,10 +140,10 @@ class OrderController extends Controller
                 ->firstOrFail();
 
             if ($prefilledAppointment->order) {
+                $appointmentContext = $navigationContext ?: NavigationContext::makeAppointment($prefilledAppointment);
+
                 return redirect()
-                    ->route('orders.show', ['order' => $prefilledAppointment->order] + NavigationContext::routeParams(
-                        $navigationContext ?: NavigationContext::makeAppointment($prefilledAppointment)
-                    ))
+                    ->route('orders.show', ['order' => $prefilledAppointment->order] + NavigationContext::routeParams($appointmentContext))
                     ->with('success', 'El turno ya tiene una orden asociada.');
             }
 
@@ -189,7 +195,6 @@ class OrderController extends Controller
                         ->whereNull('deleted_at');
                 }),
             ],
-
             'asset_id' => [
                 'nullable',
                 'integer',
@@ -198,7 +203,6 @@ class OrderController extends Controller
                         ->whereNull('deleted_at');
                 }),
             ],
-
             'task_id' => [
                 'nullable',
                 'integer',
@@ -211,7 +215,6 @@ class OrderController extends Controller
                         ->whereNull('deleted_at');
                 }),
             ],
-
             'appointment_id' => [
                 'nullable',
                 'integer',
@@ -220,17 +223,14 @@ class OrderController extends Controller
                         ->whereNull('deleted_at');
                 }),
             ],
-
             'kind' => [
                 'required',
                 Rule::in(OrderCatalog::kinds()),
             ],
-
             'status' => [
                 'required',
                 Rule::in(OrderCatalog::statuses()),
             ],
-
             'ordered_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
         ]);
@@ -329,8 +329,15 @@ class OrderController extends Controller
     {
         $this->authorize('update', $order);
 
-        $parties = Party::orderBy('name')->get();
-        $assets = Asset::with('party')->orderBy('name')->get();
+        $parties = Party::query()
+            ->orderBy('name')
+            ->get();
+
+        $assets = Asset::query()
+            ->with('party')
+            ->orderBy('name')
+            ->get();
+
         $navigationContext = NavigationContext::resolveFromRequest($request, $order->tenant_id);
 
         return view('orders.edit', compact('order', 'parties', 'assets', 'navigationContext'));
@@ -352,7 +359,6 @@ class OrderController extends Controller
                         ->whereNull('deleted_at');
                 }),
             ],
-
             'asset_id' => [
                 'nullable',
                 'integer',
@@ -361,7 +367,6 @@ class OrderController extends Controller
                         ->whereNull('deleted_at');
                 }),
             ],
-
             'task_id' => [
                 'nullable',
                 'integer',
@@ -376,17 +381,14 @@ class OrderController extends Controller
                             ->whereNull('deleted_at');
                     }),
             ],
-
             'kind' => [
                 'required',
                 Rule::in(OrderCatalog::kinds()),
             ],
-
             'status' => [
                 'required',
                 Rule::in(OrderCatalog::statuses()),
             ],
-
             'ordered_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
         ]);
@@ -455,11 +457,19 @@ class OrderController extends Controller
             ->with('success', 'Orden actualizada.');
     }
 
-    public function destroy(Order $order)
+    public function destroy(Request $request, Order $order)
     {
         $this->authorize('delete', $order);
 
+        $navigationContext = NavigationContext::resolveFromRequest($request, $order->tenant_id);
+
         $order->delete();
+
+        if (($navigationContext['type'] ?? null) === 'appointment') {
+            return redirect()
+                ->to($navigationContext['url'])
+                ->with('success', 'Orden eliminada.');
+        }
 
         return redirect()
             ->route('orders.index')

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/create.blade.php | V3 --}}
+{{-- FILE: resources/views/documents/create.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -12,17 +12,20 @@
 
         $breadcrumbItems = [['label' => 'Inicio', 'url' => route('dashboard')]];
 
-        if (($navigationContext['type'] ?? null) === 'appointment') {
+        if (($navigationContext['type'] ?? null) === 'appointment' && isset($order) && $order) {
             $breadcrumbItems[] = ['label' => 'Turnos', 'url' => route('appointments.index')];
             $breadcrumbItems[] = ['label' => $navigationContext['label'], 'url' => $navigationContext['url']];
-
-            if ($document->order_id) {
-                $breadcrumbItems[] = [
-                    'label' => $document->order?->number ?: 'Orden #' . $document->order_id,
-                    'url' => route('orders.show', ['order' => $document->order_id] + $contextRouteParams),
-                ];
-            }
-
+            $breadcrumbItems[] = [
+                'label' => $order->number ?: 'Orden #' . $order->id,
+                'url' => route('orders.show', ['order' => $order] + $contextRouteParams),
+            ];
+            $breadcrumbItems[] = ['label' => 'Nuevo documento'];
+        } elseif (isset($order) && $order) {
+            $breadcrumbItems[] = ['label' => 'Órdenes', 'url' => route('orders.index')];
+            $breadcrumbItems[] = [
+                'label' => $order->number ?: 'Orden #' . $order->id,
+                'url' => route('orders.show', ['order' => $order] + $contextRouteParams),
+            ];
             $breadcrumbItems[] = ['label' => 'Nuevo documento'];
         } else {
             $breadcrumbItems[] = ['label' => 'Documentos', 'url' => route('documents.index')];
@@ -30,8 +33,8 @@
         }
 
         $cancelUrl =
-            ($navigationContext['type'] ?? null) === 'appointment' && $document->order_id
-                ? route('orders.show', ['order' => $document->order_id] + $contextRouteParams)
+            isset($order) && $order
+                ? route('orders.show', ['order' => $order] + $contextRouteParams)
                 : route('documents.index');
     @endphp
 

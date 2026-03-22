@@ -432,11 +432,26 @@ class DocumentController extends Controller
             ->with('success', 'Documento actualizado.');
     }
 
-    public function destroy(Document $document)
+    public function destroy(Request $request, Document $document)
     {
         $this->authorize('delete', $document);
 
+        $navigationContext = NavigationContext::resolveFromRequest($request, $document->tenant_id);
+        $order = $document->order;
+
         $document->delete();
+
+        if (($navigationContext['type'] ?? null) === 'appointment' && $order) {
+            return redirect()
+                ->route('orders.show', ['order' => $order] + NavigationContext::routeParams($navigationContext))
+                ->with('success', 'Documento eliminado.');
+        }
+
+        if (($navigationContext['type'] ?? null) === 'appointment') {
+            return redirect()
+                ->to($navigationContext['url'])
+                ->with('success', 'Documento eliminado.');
+        }
 
         return redirect()
             ->route('documents.index')

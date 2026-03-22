@@ -68,8 +68,9 @@
             @endif
 
             @if ($canDeleteDocument)
-                <form method="POST" action="{{ route('documents.destroy', $document) }}" class="inline-form"
-                    data-action="app-confirm-submit"
+                <form method="POST"
+                    action="{{ route('documents.destroy', ['document' => $document] + $contextRouteParams) }}"
+                    class="inline-form" data-action="app-confirm-submit"
                     data-confirm-message="{{ $document->items->count()
                         ? 'Este documento tiene ítems cargados. Si lo eliminas, también se eliminarán sus ítems. ¿Deseas continuar?'
                         : '¿Deseas eliminar este documento?' }}">

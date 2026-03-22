@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/items/edit.blade.php | V2 --}}
+{{-- FILE: resources/views/orders/items/edit.blade.php | V3 --}}
 
 @extends('layouts.app')
 
@@ -24,7 +24,10 @@
             $breadcrumbItems[] = ['label' => 'Editar ítem'];
         } else {
             $breadcrumbItems[] = ['label' => 'Órdenes', 'url' => route('orders.index')];
-            $breadcrumbItems[] = ['label' => $orderLabel, 'url' => route('orders.show', $order)];
+            $breadcrumbItems[] = [
+                'label' => $orderLabel,
+                'url' => route('orders.show', ['order' => $order] + $contextRouteParams),
+            ];
             $breadcrumbItems[] = ['label' => 'Editar ítem'];
         }
 
@@ -32,7 +35,6 @@
     @endphp
 
     <x-page>
-
         <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header title="Editar ítem" />
@@ -52,6 +54,5 @@
                 </div>
             </form>
         </x-card>
-
     </x-page>
 @endsection

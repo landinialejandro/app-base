@@ -1,30 +1,35 @@
-{{-- FILE: resources/views/documents/items/create.blade.php | V 3 --}}
+{{-- FILE: resources/views/documents/items/create.blade.php | V4 --}}
+
 @extends('layouts.app')
 
 @section('title', 'Agregar ítem')
 
 @section('content')
     @php
-        $contextRouteParams = request()->only(['context_type', 'context_id']);
+        $contextRouteParams = $navigationContext
+            ? ['context_type' => $navigationContext['type'], 'context_id' => $navigationContext['id']]
+            : [];
+
+        $documentLabel = $document->number ?: 'Sin número';
 
         $breadcrumbItems = [['label' => 'Inicio', 'url' => route('dashboard')]];
 
-        if (($contextRouteParams['context_type'] ?? null) === 'appointment' && $document->order) {
+        if (($navigationContext['type'] ?? null) === 'appointment' && $document->order) {
             $breadcrumbItems[] = ['label' => 'Turnos', 'url' => route('appointments.index')];
-            $breadcrumbItems[] = ['label' => 'Turno', 'url' => url()->previous()];
+            $breadcrumbItems[] = ['label' => $navigationContext['label'], 'url' => $navigationContext['url']];
             $breadcrumbItems[] = [
                 'label' => $document->order->number ?: 'Orden #' . $document->order->id,
                 'url' => route('orders.show', ['order' => $document->order] + $contextRouteParams),
             ];
             $breadcrumbItems[] = [
-                'label' => $document->number ?: 'Sin número',
+                'label' => $documentLabel,
                 'url' => route('documents.show', ['document' => $document] + $contextRouteParams),
             ];
             $breadcrumbItems[] = ['label' => 'Agregar ítem'];
         } else {
             $breadcrumbItems[] = ['label' => 'Documentos', 'url' => route('documents.index')];
             $breadcrumbItems[] = [
-                'label' => $document->number ?: 'Sin número',
+                'label' => $documentLabel,
                 'url' => route('documents.show', ['document' => $document] + $contextRouteParams),
             ];
             $breadcrumbItems[] = ['label' => 'Agregar ítem'];

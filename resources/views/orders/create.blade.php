@@ -1,8 +1,8 @@
-{{-- FILE: resources/views/orders/create.blade.php | V2  --}}
+{{-- FILE: resources/views/orders/create.blade.php | V3 --}}
 
 @extends('layouts.app')
 
-@section('title', 'Agregar ítem')
+@section('title', 'Nueva orden')
 
 @section('content')
     @php
@@ -10,46 +10,38 @@
             ? ['context_type' => $navigationContext['type'], 'context_id' => $navigationContext['id']]
             : [];
 
-        $orderLabel = $order->number ?: 'Orden #' . $order->id;
-
         $breadcrumbItems = [['label' => 'Inicio', 'url' => route('dashboard')]];
 
         if (($navigationContext['type'] ?? null) === 'appointment') {
             $breadcrumbItems[] = ['label' => 'Turnos', 'url' => route('appointments.index')];
             $breadcrumbItems[] = ['label' => $navigationContext['label'], 'url' => $navigationContext['url']];
-            $breadcrumbItems[] = [
-                'label' => $orderLabel,
-                'url' => route('orders.show', ['order' => $order] + $contextRouteParams),
-            ];
-            $breadcrumbItems[] = ['label' => 'Agregar ítem'];
+            $breadcrumbItems[] = ['label' => 'Nueva orden'];
         } else {
             $breadcrumbItems[] = ['label' => 'Órdenes', 'url' => route('orders.index')];
-            $breadcrumbItems[] = ['label' => $orderLabel, 'url' => route('orders.show', $order)];
-            $breadcrumbItems[] = ['label' => 'Agregar ítem'];
+            $breadcrumbItems[] = ['label' => 'Nueva orden'];
         }
-
-        $cancelUrl = route('orders.show', ['order' => $order] + $contextRouteParams);
     @endphp
 
     <x-page>
-
         <x-breadcrumb :items="$breadcrumbItems" />
-
-        <x-page-header title="Agregar ítem" />
+        <x-page-header title="Nueva orden" />
 
         <x-card>
-            <form method="POST" action="{{ route('orders.items.store', ['order' => $order] + $contextRouteParams) }}"
-                class="form">
+            <form method="POST" action="{{ route('orders.store', $contextRouteParams) }}" class="form">
                 @csrf
 
-                @include('orders.items._form')
+                @include('orders._form')
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Guardar</button>
-                    <a href="{{ $cancelUrl }}" class="btn btn-secondary">Cancelar</a>
+
+                    @if (($navigationContext['type'] ?? null) === 'appointment')
+                        <a href="{{ $navigationContext['url'] }}" class="btn btn-secondary">Cancelar</a>
+                    @else
+                        <a href="{{ route('orders.index') }}" class="btn btn-secondary">Cancelar</a>
+                    @endif
                 </div>
             </form>
         </x-card>
-
     </x-page>
 @endsection

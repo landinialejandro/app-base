@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V2 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V3 --}}
 
 @extends('layouts.app')
 
@@ -6,10 +6,10 @@
 
 @section('content')
     @php
-        use App\Support\Catalogs\OrderCatalog;
         use App\Support\Catalogs\DocumentCatalog;
+        use App\Support\Catalogs\OrderCatalog;
 
-        $items = $order->items->sortBy('position');
+        $items = $order->items->sortBy('position')->values();
         $documents = $order->documents->sortByDesc('id')->values();
 
         $orderDetailTitle = match ($order->kind) {
@@ -46,7 +46,6 @@
     @endphp
 
     <x-page>
-
         <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header :title="$orderDetailTitle">
@@ -58,9 +57,9 @@
             @endcan
 
             @can('delete', $order)
-                <form method="POST" action="{{ route('orders.destroy', $order) }}" class="inline-form"
-                    data-action="app-confirm-submit"
-                    data-confirm-message="{{ $order->items->count()
+                <form method="POST" action="{{ route('orders.destroy', ['order' => $order] + $contextRouteParams) }}"
+                    class="inline-form" data-action="app-confirm-submit"
+                    data-confirm-message="{{ $items->count()
                         ? 'Esta orden tiene ítems cargados. Si la eliminas, también se eliminarán sus ítems. ¿Deseas continuar?'
                         : '¿Deseas eliminar esta orden?' }}">
                     @csrf
@@ -180,7 +179,6 @@
 
             <section class="tab-panel is-active" data-tab-panel="items">
                 <div class="tab-panel-stack">
-
                     <x-page-header title="Ítems de la orden">
                         @can('update', $order)
                             <a href="{{ route('orders.items.create', ['order' => $order] + $contextRouteParams) }}"
@@ -212,13 +210,11 @@
                             </div>
                         </div>
                     </x-card>
-
                 </div>
             </section>
 
             <section class="tab-panel" data-tab-panel="documents" hidden>
                 <div class="tab-panel-stack">
-
                     <x-page-header title="Documentos de la orden">
                         <form method="POST"
                             action="{{ route('orders.documents.store', ['order' => $order] + $contextRouteParams) }}"
@@ -282,6 +278,5 @@
                 </div>
             </section>
         </div>
-
     </x-page>
 @endsection

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/_form.blade.php --}}
+{{-- FILE: resources/views/orders/_form.blade.php | V3 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
@@ -10,20 +10,27 @@
     $prefilledPartyId = $prefilledPartyId ?? null;
     $fromAsset = $fromAsset ?? false;
     $prefilledTask = $prefilledTask ?? null;
+    $prefilledAppointment = $prefilledAppointment ?? null;
+    $navigationContext = $navigationContext ?? null;
+
     $prefilledKind = $prefilledKind ?? old('kind', $order->kind ?? OrderCatalog::KIND_SALE);
 
-    $prefilledAppointment = $prefilledAppointment ?? null;
+    $currentTaskId = old('task_id', $order->task_id ?? ($prefilledTask?->id ?? ''));
+    $currentTaskName = old('task_name', $prefilledTask?->name ?? ($order->task?->name ?? ''));
+
     $currentAppointmentId = old('appointment_id', $prefilledAppointment?->id ?? '');
-    $currentAppointmentLabel = $prefilledAppointment
-        ? ($prefilledAppointment->title ?:
-        'Turno #' . $prefilledAppointment->id)
-        : '';
+    $currentAppointmentLabel = old(
+        'appointment_label',
+        ($prefilledAppointment?->title ?:
+            ($navigationContext['type'] ?? null) === 'appointment')
+            ? $navigationContext['label'] ?? 'Turno #' . $currentAppointmentId
+            : ($currentAppointmentId
+                ? 'Turno #' . $currentAppointmentId
+                : ''),
+    );
 
     $lockedByExistingAsset = $orderExists && !empty($order->asset_id);
     $lockPartyAndAsset = $fromAsset || $lockedByExistingAsset;
-
-    $currentTaskId = old('task_id', $order->task_id ?? ($prefilledTask?->id ?? ''));
-    $currentTaskName = $prefilledTask?->name ?? ($order->task?->name ?? '');
 @endphp
 
 <div data-action="app-party-asset-sync" data-party-select="#party_id" data-asset-select="#asset_id">
@@ -45,7 +52,6 @@
             <label class="form-label">Turno origen</label>
             <input type="text" class="form-control" value="{{ $currentAppointmentLabel }}" disabled>
             <input type="hidden" name="appointment_id" value="{{ $currentAppointmentId }}">
-            <div class="form-help">La orden quedará asociada al turno desde el cual fue creada.</div>
             @error('appointment_id')
                 <div class="form-help is-error">{{ $message }}</div>
             @enderror

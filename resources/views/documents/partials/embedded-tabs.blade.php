@@ -4,61 +4,55 @@
     use App\Support\Catalogs\DocumentCatalog;
 
     $documents = $documents ?? collect();
+
     $showParty = $showParty ?? true;
     $showAsset = $showAsset ?? true;
     $showOrder = $showOrder ?? true;
+
     $emptyMessage = $emptyMessage ?? 'No hay documentos para mostrar.';
     $allLabel = $allLabel ?? 'Todos';
-    $tabsId = $tabsId ?? 'documents-tabs';
-    $trailQuery = $trailQuery ?? [];
 
-    $documentsByKind = [
-        'all' => $documents,
-        DocumentCatalog::KIND_QUOTE => $documents->where('kind', DocumentCatalog::KIND_QUOTE)->values(),
-        DocumentCatalog::KIND_DELIVERY_NOTE => $documents->where('kind', DocumentCatalog::KIND_DELIVERY_NOTE)->values(),
-        DocumentCatalog::KIND_INVOICE => $documents->where('kind', DocumentCatalog::KIND_INVOICE)->values(),
-        DocumentCatalog::KIND_WORK_ORDER => $documents->where('kind', DocumentCatalog::KIND_WORK_ORDER)->values(),
-    ];
-
-    $tabLabels = [
-        'all' => $allLabel,
+    $kinds = [
         DocumentCatalog::KIND_QUOTE => DocumentCatalog::label(DocumentCatalog::KIND_QUOTE),
         DocumentCatalog::KIND_DELIVERY_NOTE => DocumentCatalog::label(DocumentCatalog::KIND_DELIVERY_NOTE),
         DocumentCatalog::KIND_INVOICE => DocumentCatalog::label(DocumentCatalog::KIND_INVOICE),
         DocumentCatalog::KIND_WORK_ORDER => DocumentCatalog::label(DocumentCatalog::KIND_WORK_ORDER),
     ];
+
+    $tabsId = $tabsId ?? 'documents-tabs-' . uniqid();
+    $trailQuery = $trailQuery ?? [];
 @endphp
 
-<div class="tabs" data-tabs id="{{ $tabsId }}">
+<div class="tabs" data-tabs>
     <div class="tabs-nav" role="tablist" aria-label="Tipos de documentos">
-        @foreach ($tabLabels as $tabKey => $tabLabel)
+        <button type="button" class="tabs-link is-active" data-tab-link="{{ $tabsId }}-all" role="tab"
+            aria-selected="true">
+            {{ $allLabel }}
+            @if ($documents->count())
+                ({{ $documents->count() }})
+            @endif
+        </button>
+
+        @foreach ($kinds as $value => $label)
             @php
-                $count = $documentsByKind[$tabKey]->count();
-                $isActive = $loop->first;
+                $kindDocuments = $documents->where('kind', $value)->values();
             @endphp
 
-            <button type="button" class="tabs-link {{ $isActive ? 'is-active' : '' }}"
-                data-tab-link="{{ $tabsId }}-{{ $tabKey }}" role="tab"
-                aria-selected="{{ $isActive ? 'true' : 'false' }}">
-                {{ $tabLabel }}
-                @if ($count > 0)
-                    ({{ $count }})
+            <button type="button" class="tabs-link" data-tab-link="{{ $tabsId }}-{{ $value }}"
+                role="tab" aria-selected="false">
+                {{ $label }}
+                @if ($kindDocuments->count())
+                    ({{ $kindDocuments->count() }})
                 @endif
             </button>
         @endforeach
     </div>
 
-    @foreach ($tabLabels as $tabKey => $tabLabel)
-        @php
-            $tabDocuments = $documentsByKind[$tabKey];
-            $isActive = $loop->first;
-        @endphp
-
-        <section class="tab-panel {{ $isActive ? 'is-active' : '' }}"
-            data-tab-panel="{{ $tabsId }}-{{ $tabKey }}" @if (!$isActive) hidden @endif>
+    <section class="tab-panel is-active" data-tab-panel="{{ $tabsId }}-all">
+        <div class="tab-panel-stack">
             <x-card class="list-card">
                 @include('documents.partials.table', [
-                    'documents' => $tabDocuments,
+                    'documents' => $documents,
                     'showParty' => $showParty,
                     'showAsset' => $showAsset,
                     'showOrder' => $showOrder,
@@ -66,6 +60,27 @@
                     'trailQuery' => $trailQuery,
                 ])
             </x-card>
+        </div>
+    </section>
+
+    @foreach ($kinds as $value => $label)
+        @php
+            $kindDocuments = $documents->where('kind', $value)->values();
+        @endphp
+
+        <section class="tab-panel" data-tab-panel="{{ $tabsId }}-{{ $value }}" hidden>
+            <div class="tab-panel-stack">
+                <x-card class="list-card">
+                    @include('documents.partials.table', [
+                        'documents' => $kindDocuments,
+                        'showParty' => $showParty,
+                        'showAsset' => $showAsset,
+                        'showOrder' => $showOrder,
+                        'emptyMessage' => "No hay documentos de tipo {$label} para mostrar.",
+                        'trailQuery' => $trailQuery,
+                    ])
+                </x-card>
+            </div>
         </section>
     @endforeach
 </div>

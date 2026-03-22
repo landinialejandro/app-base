@@ -67,6 +67,12 @@ extender preservación de contexto UX en tabs, filtros y paginación a otras pan
 
 revisar normalización final de tablas, acciones compactas y estructura reusable en módulos restantes del core
 
+revisar y consolidar el comportamiento funcional del breadcrumb según contexto, navegación cruzada y profundidad real de la pantalla
+
+evaluar si conviene incorporar un patrón acotado de navegación interna entre entidades relacionadas antes de pensar en tabs de ruta tipo workspace
+
+si se adopta, definir primero alcance limitado por módulo y no como regla global del sistema
+
 AUTORIZACIÓN Y PERMISOS
 
 implementar RolePermissionMatrix
@@ -109,14 +115,23 @@ evaluar reglas futuras de bloqueo de edición en documents cuando estén vincula
 
 evaluar bloqueo funcional de alta de tareas en proyectos cerrados
 
-completar evolución del módulo appointments con vista calendario
+implementar vista semanal de appointments
 
-evaluar solapamiento multifecha real para turnos que cruzan de día
+evaluar vista diaria de appointments
+
+evaluar detalle diario o cuadro de consulta operativa por día para appointments
+
+revisar si la navegación entre vista mensual, semanal y diaria de appointments conviene resolverse dentro de una misma pantalla o con vistas separadas
+
+evaluar si el bloqueo de alta en fechas pasadas en appointments necesita endurecimiento adicional por estado o por rubro
+
+evaluar si appointments necesita contemplar casos multifecha reales
+
+revisar si el calendario semanal de appointments requiere grilla horaria o solo agrupación por día
 
 revisar si conviene desacoplar workstation_name en dos campos futuros: referencia interna y dirección real
 
 extender adaptación por rubro a otras pantallas o módulos cuando realmente aporte valor
-
 NUMERACIÓN Y CONFIGURACIÓN OPERATIVA
 
 llevar la configuración de secuencias al perfil de empresa

@@ -285,6 +285,11 @@ La pestaña activa debe distinguirse con claridad.
 
 El contenedor tabs-nav debe tener jerarquía visual suficiente para que el usuario perciba que puede cambiar de sección.
 
+Las tabs documentadas en esta base visual corresponden a tabs internas de contenido.
+
+No implican todavía un sistema general de navegación entre rutas dentro de tabs de app.
+
+
 CRITERIO DE TABS POR MÓDULO
 
 Las tabs no son solo documentales.
@@ -494,3 +499,73 @@ el mismo patrón de listados
 las mismas reglas de formularios
 
 Esto garantiza coherencia visual en todo el sistema.
+
+ORGANIZACIÓN DE CSS VISUAL
+
+La organización del CSS visual del proyecto debe seguir esta estructura:
+
+public/css/app-base.css
+public/css/app-patterns.css
+public/css/modules/<modulo>.css
+
+Criterios:
+
+app-base.css contiene la base global obligatoria del sistema
+
+app-patterns.css concentra patrones visuales reutilizables y neutrales compartidos entre módulos
+
+modules/<modulo>.css debe reservarse para estilos específicos de módulos complejos cuando realmente no corresponda promoverlos todavía a patrón global
+
+Cuando un patrón visual deja de ser exclusivo de un módulo, debe migrarse a nomenclatura neutral reusable y salir del archivo específico del módulo.
+
+PATRONES VISUALES NEUTRALES REUTILIZABLES
+
+Cuando un patrón visual se reutilice en más de un módulo, debe adoptar una nomenclatura neutral y reusable.
+
+Familias válidas ya alineadas con este criterio:
+
+visual-grid
+visual-card
+visual-title
+progress
+progress-bar
+progress-meta
+pie-layout
+pie-chart
+pie-track
+pie-segment--*
+pie-center
+pie-legend
+pie-dot--*
+visual-kpi
+visual-note
+
+Regla:
+
+no mantener prefijos de módulo en clases que ya funcionan como patrón transversal del sistema.
+
+PANTALLAS TIPO CALENDARIO
+
+Cuando un módulo necesite lectura temporal, agenda visual o navegación por fechas, se admite una pantalla tipo calendario dentro de la misma base visual del sistema.
+
+Estructura recomendada:
+
+x-page
+x-breadcrumb
+x-page-header
+card superior de navegación o filtros
+card principal con contenedor scrolleable interno
+
+Estas pantallas pueden fragmentarse en partials específicas del módulo, por ejemplo:
+
+partials/calendar-toolbar.blade.php
+partials/calendar-grid.blade.php
+partials/calendar-day-cell.blade.php
+
+Cuando la UX lo requiera, el calendario puede utilizar:
+
+cabecera sticky interna
+scroll interno del bloque
+columna auxiliar de contexto temporal, como número de semana
+
+No corresponde documentar aquí detalles finos de CSS o ajuste visual puntual de implementación.

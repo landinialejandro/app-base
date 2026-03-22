@@ -635,6 +635,10 @@ tab activa
 filtros
 paginación cuando aplique
 
+Las tabs mencionadas en esta convención refieren a tabs internas de contenido dentro de una pantalla.
+
+No debe asumirse todavía como convención general del sistema una navegación entre rutas dentro de tabs de app o tipo workspace.
+
 Convenciones de vocabulario UI
 
 Nombre genérico visible de la entidad parties en interfaz:
@@ -700,3 +704,25 @@ consistencia
 bajo nivel de complejidad accidental
 
 Las soluciones simples y previsibles deben preferirse sobre arquitecturas excesivamente abstractas.
+
+Convenciones de CSS y patrones visuales
+
+La organización del CSS visual del proyecto debe seguir esta base:
+
+public/css/app-base.css
+public/css/app-patterns.css
+public/css/modules/<modulo>.css
+
+Reglas:
+
+app-base.css concentra la base visual global obligatoria
+
+app-patterns.css concentra patrones visuales reutilizables y neutrales compartidos entre módulos
+
+modules/<modulo>.css debe reservarse para estilos específicos de módulos complejos
+
+no duplicar variantes visuales equivalentes con prefijos de módulo si ya existe un patrón reusable neutral
+
+cuando un patrón visual deje de ser exclusivo de un módulo, debe migrarse a nomenclatura neutral reusable
+
+preferir nombres neutrales cuando el patrón ya se utilice en más de un módulo

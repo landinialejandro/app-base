@@ -278,6 +278,18 @@ puede vincularse opcionalmente con orders
 
 su capa visible puede adaptar vocabulario funcional según el rubro configurado del tenant
 
+el módulo ya dispone de una vista calendario mensual operativa
+
+la vista calendario reutiliza el mismo contexto funcional del tenant que usa el resto del módulo
+
+desde calendario no se permite crear turnos en fechas anteriores a hoy
+
+los turnos en fechas pasadas siguen siendo visibles y consultables
+
+un turno pasado puede reprogramarse a hoy o futuro si no está completado
+
+un turno en estado completado no debe poder moverse de fecha ni modificar su horario
+
 Perfil funcional del tenant
 
 El tenant ya incorpora un perfil funcional de rubro persistido en:

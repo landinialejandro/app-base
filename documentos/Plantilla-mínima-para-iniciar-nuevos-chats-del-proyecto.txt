@@ -14,6 +14,7 @@ Documentos base a considerar:
 - CONVENCIONES-DEL-PROYECTO – app-base
 - CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS
 - MAPA-DE-ENTIDADES – app-base
+- MAPA-DE-NAVEGACION-Y-RELACIONES – app-base
 - BASE-VISUAL-DEL-PROYECTO – app-base
 - TODO-DEL-PROYECTO – app-base
 
@@ -27,6 +28,17 @@ Si el módulo se relaciona con otras entidades, definir desde el inicio:
 breadcrumb esperado
 retorno al origen
 preservación o no del contexto UX
+
+REGLA PARA ARCHIVOS COMPLETOS DE CÓDIGO
+
+- cuando devuelvas un archivo completo de código, la primera línea debe ser siempre un comentario válido para ese lenguaje con este formato:
+FILE: ruta/del/archivo.ext | VX
+- si el archivo es nuevo, usar V1
+- si el archivo ya existe y no tiene comentario de versión, al devolverlo completo agregarlo como V2
+- si el archivo ya tiene comentario de versión, incrementar en 1 la última versión existente
+- esta regla aplica solo cuando se devuelve el archivo completo
+- si se devuelve solo un fragmento, bloque parcial o sección aislada, no agregar ni modificar versión
+- el comentario debe escribirse con la sintaxis correcta del archivo correspondiente
 
 REGLA DE VALIDACIÓN DEL PEDIDO
 

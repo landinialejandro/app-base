@@ -73,13 +73,19 @@ extender preservación de contexto UX en tabs, filtros y paginación a otras pan
 
 revisar normalización final de tablas, acciones compactas y estructura reusable en módulos restantes del core
 
-migrar projects y tasks al esquema central vigente de trail o navegación contextual reutilizable
+consolidar y probar navegación contextual ya migrada en projects, tasks, parties, assets y products
 
-evaluar y preparar builders o resolutores de trail para parties, assets y products si esos módulos pasan a participar en navegación cruzada real
+auditar propagación de trail en sublistados, tablas embebidas, filtros, tabs y paginación donde todavía pueda perderse contexto
 
-auditar módulos restantes para eliminar mecanismos legacy de contexto que dupliquen la resolución central vigente
+revisar etiquetado contextual de botones volver en vistas show relacionadas según nodo previo real
 
-revisar preservación de trail en filtros, tabs y paginación donde corresponda
+auditar criterio del navbar y sidebar para evitar que el estado activo dependa solo de la pantalla hoja y no del área funcional esperada
+
+crear documento base de mapa de navegación y relaciones del sistema
+
+implementar sistema de auditoría de cambios
+
+implementar sistema de archivos y adjuntos
 
 
 AUTORIZACIÓN Y PERMISOS
@@ -143,14 +149,18 @@ revisar si conviene desacoplar workstation_name en dos campos futuros: referenci
 
 extender adaptación por rubro a otras pantallas o módulos cuando realmente aporte valor
 
+evaluar más adelante una máquina de estados simple para orders
+
+evaluar más adelante una máquina de estados simple para documents
+
 
 NAVEGACIÓN Y CONTEXTO UX
 
 revisar y consolidar la implementación de navegación contextual según contexto funcional real, navegación cruzada y profundidad de pantalla
 
-normalizar implementación de navegación contextual ya adoptada en orders, documents y sus items
+normalizar implementación de navegación contextual ya adoptada en orders, documents, projects, tasks, parties, assets y products
 
-migrar módulos relacionados que todavía no utilicen el mecanismo central vigente de trail o contexto reutilizable
+auditar propagación de trail en sublistados, tablas embebidas, tabs, filtros y paginación donde todavía pueda perderse contexto
 
 eliminar reconstrucciones manuales de breadcrumb o retorno basadas en request suelta o url()->previous()
 
@@ -160,11 +170,11 @@ unificar criterio de controller resuelve contexto y vista consume contexto
 
 extender preservación de contexto en redirects, cancelar y volver dentro de flujos relacionados donde ya exista contexto funcional real
 
-evaluar extensión controlada del patrón actual a otros módulos relacionados
+auditar y definir una convención estable para navbar y sidebar cuando el usuario recorre flujos contextuales entre módulos relacionados
 
 no avanzar todavía a navegación tipo tabs de ruta o workspace hasta cerrar una convención simple y estable de navegación contextual
 
-mantener como referencia resuelta el tramo contextual appointments -> orders -> documents y su herencia hacia items
+mantener como referencias resueltas los tramos contextuales appointments -> orders -> documents, projects -> tasks -> orders y parties -> assets -> orders/documents
 
 evitar reaparición de serialización recursiva del trail dentro de URLs internas de nodos
 
@@ -196,10 +206,6 @@ revisar extensión del perfil de empresa con gestión futura de sucursales y con
 
 
 ARQUITECTURA Y TRAZABILIDAD
-
-implementar sistema de auditoría de cambios
-
-implementar sistema de archivos y adjuntos
 
 implementar registro de actividad de usuario
 

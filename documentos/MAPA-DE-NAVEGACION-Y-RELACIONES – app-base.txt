@@ -1,0 +1,312 @@
+MAPA-DE-NAVEGACION-Y-RELACIONES – app-base
+
+
+OBJETIVO
+
+Este documento describe el mapa actual de navegación funcional entre módulos y pantallas del sistema app-base.
+
+Su finalidad es:
+
+visualizar recorridos reales entre módulos relacionados
+detectar qué flujos aceptan trail heredado
+separar navegación real de mapa de entidades
+servir como referencia rápida para auditorías de breadcrumb, volver, redirects y navbar/sidebar
+
+Este documento no reemplaza:
+
+MAPA-DE-ENTIDADES – app-base
+CONVENCIONES-DEL-PROYECTO – app-base
+TODO-DEL-PROYECTO – app-base
+
+
+REGLA GENERAL
+
+El sistema distingue entre:
+
+navegación estructural
+navegación contextual
+
+navegación estructural:
+expresa la ubicación normal de una pantalla dentro de su módulo
+
+navegación contextual:
+expresa el origen funcional desde el cual se llegó a una pantalla relacionada cuando ese origen sigue siendo útil para continuar el trabajo
+
+Como regla general:
+
+toda pantalla debe poder abrirse en modo estructural
+
+solo ciertos flujos aceptan además trail contextual heredado
+
+
+CLASIFICACIÓN GENERAL DE MÓDULOS
+
+MÓDULOS PRINCIPALMENTE ESTRUCTURALES
+
+appointments
+projects
+parties
+assets
+products
+orders
+documents
+
+Estos módulos tienen navegación propia y pantallas index/show/create/edit utilizables sin contexto previo obligatorio.
+
+MÓDULOS PRINCIPALMENTE CONTEXTUALES O DERIVADOS
+
+tasks
+order_items
+document_items
+
+Estos módulos suelen vivir enlazados a una entidad padre o a un flujo relacionado, aunque también pueden requerir resolución estructural según el caso.
+
+MÓDULOS MIXTOS
+
+orders
+documents
+tasks
+assets
+
+Pueden abrirse de forma estructural o como continuación de otro flujo operativo.
+
+
+REGLAS DEL TRAIL
+
+Cuando exista trail contextual válido:
+
+el controller resuelve el contexto
+
+la vista consume el contexto
+
+el trail se propaga en links, forms y redirects relevantes
+
+el trail debe colapsar nodos repetidos
+
+el breadcrumb visible no debe duplicar nodos ya recorridos
+
+los botones volver, cancelar y redirects post acción deben respetar el nodo previo real cuando ese contexto siga siendo útil
+
+El trail no debe reconstruirse desde:
+
+url()->previous()
+historial del navegador
+supuestos implícitos del modelo
+
+El trail no debe serializarse dentro de las URLs internas de sus propios nodos.
+
+
+MAPA DE NAVEGACIÓN PRINCIPAL
+
+FLUJO ESTRUCTURAL BASE
+
+dashboard
+↓
+módulo
+↓
+index
+↓
+show / create / edit
+
+Este flujo existe para todos los módulos principales aunque además admitan contexto heredado.
+
+FLUJOS CONTEXTUALES YA VALIDADOS
+
+appointments
+↓
+orders
+↓
+documents
+↓
+document_items
+
+projects
+↓
+tasks
+↓
+orders
+
+parties
+↓
+assets
+↓
+orders / documents
+
+orders
+↓
+order_items
+
+documents
+↓
+document_items
+
+
+DETALLE DE FLUJOS RELEVANTES
+
+APPOINTMENTS -> ORDERS
+
+Uso típico:
+
+un turno deriva en una orden operativa
+
+Contexto esperado:
+
+si la orden se abre desde appointment relacionado, puede conservarse retorno útil al turno o al módulo de agenda
+
+Observación:
+
+appointments mantiene además navegación estructural propia y calendario mensual operativo
+
+ORDERS -> DOCUMENTS
+
+Uso típico:
+
+desde una orden se generan o consultan documentos derivados
+
+Contexto esperado:
+
+documents puede abrirse en modo estructural o como continuación directa del trabajo iniciado en orders
+
+Observación:
+
+es uno de los tramos principales del trail contextual actual
+
+DOCUMENTS -> DOCUMENT_ITEMS
+
+Uso típico:
+
+edición o consulta de detalle documental dentro del flujo de documents
+
+Contexto esperado:
+
+document_items hereda normalmente el contexto del document padre
+
+PROJECTS -> TASKS
+
+Uso típico:
+
+desde project.show o project index contextual se accede a tareas relacionadas
+
+Contexto esperado:
+
+tasks puede necesitar retorno al proyecto de origen si se abrió desde allí
+
+Observación:
+
+tasks sigue teniendo también lógica operativa propia por asignación
+
+TASKS -> ORDERS
+
+Uso típico:
+
+una tarea deriva en una orden
+
+Contexto esperado:
+
+si el flujo empezó en project o task, la orden puede conservar ese origen funcional cuando siga siendo útil
+
+PARTIES -> ASSETS
+
+Uso típico:
+
+consulta de activos asociados a un contacto o entidad base del negocio
+
+Contexto esperado:
+
+assets puede abrirse como continuación del trabajo iniciado en parties
+
+ASSETS -> ORDERS / DOCUMENTS
+
+Uso típico:
+
+desde un activo se consultan o generan operaciones relacionadas
+
+Contexto esperado:
+
+orders y documents pueden conservar retorno al asset si ese origen sigue siendo relevante
+
+ORDERS -> ORDER_ITEMS
+
+Uso típico:
+
+alta, edición o consulta de renglones de orden
+
+Contexto esperado:
+
+order_items hereda normalmente el contexto de la order padre
+
+
+PANTALLAS QUE DEBEN AUDITARSE CON ESPECIAL ATENCIÓN
+
+show de módulos relacionados
+
+sublistados embebidos en show
+
+tablas con links cruzados entre módulos
+
+acciones crear desde contexto relacionado
+
+acciones editar desde contexto relacionado
+
+botones volver
+
+botones cancelar
+
+redirects posteriores a store, update y delete
+
+filtros
+
+tabs internas
+
+paginación en listados con contexto activo
+
+
+CRITERIOS DE AUDITORÍA FUTURA
+
+Al auditar breadcrumb, trail o navegación entre módulos, verificar:
+
+si la pantalla debía abrirse en modo estructural o contextual
+
+si el trail se propagó correctamente
+
+si hubo colapso de nodos repetidos
+
+si volver y cancelar respetan el nodo previo real
+
+si redirects post acción mantienen el contexto útil
+
+si el breadcrumb visible sigue siendo compacto
+
+si navbar y sidebar marcan el área funcional esperada y no solo la hoja final abierta
+
+si hay pantallas donde el contexto se pierde por filtros, tabs o paginación
+
+
+RELACIÓN CON OTROS DOCUMENTOS
+
+MAPA-DE-ENTIDADES – app-base
+debe seguir describiendo entidades y relaciones de negocio, no recorridos de navegación
+
+CONVENCIONES-DEL-PROYECTO – app-base
+debe seguir definiendo doctrina estable del trail, breadcrumb y resolución central
+
+BASE-VISUAL-DEL-PROYECTO – app-base
+debe seguir definiendo cómo se expresa visualmente el breadcrumb y la pantalla
+
+TODO-DEL-PROYECTO – app-base
+debe seguir registrando pendientes de auditoría, migración y consolidación
+
+
+REGLA FINAL
+
+Este documento debe mantenerse como referencia práctica de navegación real del sistema.
+
+No debe llenarse con teoría general ni con detalle técnico transitorio de implementación.
+
+Debe priorizar:
+
+mapa de recorridos reales
+módulos relacionados
+tramos contextuales validados
+puntos donde suele perderse contexto
+referencia útil para futuras auditorías

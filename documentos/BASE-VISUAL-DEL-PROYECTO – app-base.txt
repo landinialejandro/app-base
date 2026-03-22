@@ -1,16 +1,40 @@
 BASE-VISUAL-DEL-PROYECTO – app-base
 
-OBJETIVO
 
-Este documento define la estructura visual mínima y obligatoria del sistema.
+OBJETIVO DEL DOCUMENTO
 
-Su objetivo es mantener consistencia visual entre todos los módulos.
+Este documento define la base visual común del sistema.
 
-ESTRUCTURA GENERAL DE UNA PANTALLA
+Su objetivo es asegurar una interfaz coherente, reusable, limpia y predecible entre módulos.
 
-Todas las vistas internas del sistema deben utilizar la siguiente estructura base:
+No documenta decisiones de negocio ni reglas funcionales profundas.
 
-<x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
+Documenta:
+
+estructura visual base
+componentes reutilizables
+criterios de composición de vistas
+patrones visuales compartidos
+
+
+ESTRUCTURA GENERAL DE PÁGINA
+
+Toda pantalla principal del sistema debe construirse sobre una estructura consistente.
+
+Base esperada:
+
+x-page
+x-breadcrumb
+x-page-header
+contenido principal dentro de cards o bloques equivalentes
+
+La estructura debe mantener:
+
+jerarquía visual clara
+encabezado consistente
+acciones principales visibles
+lectura simple del contenido
+
 
 COMPONENTES DISPONIBLES
 
@@ -20,7 +44,7 @@ x-page
 Contenedor general de la página.
 
 x-breadcrumb
-Navegación contextual.
+Navegación contextual y estructural de la pantalla.
 
 x-page-header
 Título de la pantalla y acciones principales.
@@ -28,227 +52,166 @@ Título de la pantalla y acciones principales.
 x-card
 Contenedor visual del contenido principal.
 
-ESTRUCTURA DE LISTADOS (INDEX)
 
-Los listados deben utilizar el patrón visual del sistema.
+PATRÓN GENERAL PARA VISTAS INDEX
 
-Clases utilizadas:
+Las vistas index deben usar, como criterio general, una estructura de dos bloques principales:
 
-page.list-page
-card.list-card
-table-wrap.list-scroll
+bloque superior para filtros, búsqueda o acciones secundarias
+bloque principal para listado, tabla o grilla
 
-Ejemplo:
+Cuando corresponda, debe priorizarse el uso de partials o componentes reutilizables.
 
-<x-page class="list-page"> <x-breadcrumb /> <x-page-header /> <x-card class="list-card"> <div class="table-wrap list-scroll"> <table class="table"> ... </table> </div> </x-card> </x-page>
 
-PATRÓN DE DOS CARDS EN INDEX
+CARD DE FILTROS REUTILIZABLE
 
-Cuando mejore la lectura o la organización visual, las vistas index pueden resolverse mediante dos cards separadas:
+Cuando una vista index requiera filtros, debe priorizarse el patrón reusable correspondiente.
 
-card de filtros y acciones
-card de resultados, tabla y paginación
+Este bloque debe funcionar como card superior de filtros o búsqueda y mantener consistencia entre módulos.
 
-Este patrón es válido especialmente cuando el listado incorpora toolbar compacta, filtros colapsables o acciones visibles separadas de la tabla.
+No debe mezclarse con summaries, métricas o bloques de navegación secundaria salvo necesidad justificada.
 
-WRAPPER GLOBAL DE FILTROS
 
-Cuando el index utilice card específica de filtros, debe priorizarse el wrapper global reutilizable:
+SUMMARY Y BLOQUES VISUALES REUTILIZABLES
 
-x-list-filters-card
+Los bloques de summary, métricas o visualización rápida deben poder resolverse mediante wrappers o partials reusables cuando el patrón ya sea claro.
 
-Su objetivo es unificar espaciado, jerarquía visual y comportamiento general del bloque de filtros del sistema.
+No deben desarrollarse variantes aisladas por módulo si la misma estructura visual puede reutilizarse.
 
-LIST-TOOLBAR EN INDEX
+Cuando un patrón visual deje de ser exclusivo de un módulo, debe migrarse a una forma neutral reusable.
 
-Cuando un index requiera filtros y acciones compactas, se admite el patrón list-toolbar.
 
-Reglas del patrón:
+FRAGMENTACIÓN DE BLADES
 
-máximo 2 filtros visibles por defecto
+Las vistas grandes deben dividirse en partials cuando superen complejidad razonable.
 
-acciones del listado alineadas a la derecha en desktop
+Especialmente cuando mezclen:
 
-apilado natural en mobile
+filtros
+tablas
+resúmenes
+formularios secundarios
+bloques visuales repetidos
 
-filtros extra bajo patrón colapsable tipo “Más filtros”
+La fragmentación debe buscar:
 
-debe priorizar lectura rápida y baja altura visual
+legibilidad
+mantenibilidad
+reutilización
 
-FILTROS EN LISTADOS (INDEX)
+No debe fragmentarse artificialmente si el archivo sigue siendo claro y simple.
 
-Cuando el módulo lo requiera, los filtros deben ubicarse arriba de la tabla, dentro del mismo card del listado o dentro de una card específica de filtros.
 
-Patrón validado:
+ORGANIZACIÓN DE CSS VISUAL
 
-formulario GET
-bloque superior de filtros
-tabla debajo del bloque de filtros
-paginación preservando query string
+La organización del CSS visual del proyecto debe seguir esta estructura:
 
-Clases utilizadas:
+public/css/app-base.css
+public/css/app-patterns.css
+public/css/modules/<modulo>.css
 
-list-filters
-list-filters-grid
-list-filters-actions
+Criterios:
+
+app-base.css contiene la base global obligatoria del sistema
+
+app-patterns.css concentra patrones visuales reutilizables y neutrales compartidos entre módulos
+
+modules/<modulo>.css debe reservarse para estilos específicos de módulos complejos cuando realmente no corresponda promoverlos todavía a patrón global
+
+Cuando un patrón visual deja de ser exclusivo de un módulo, debe migrarse a nomenclatura neutral reusable y salir del archivo específico del módulo.
+
+
+PATRONES VISUALES NEUTRALES REUTILIZABLES
+
+Cuando un patrón visual se reutilice en más de un módulo, debe adoptar una nomenclatura neutral y reusable.
+
+Familias válidas ya alineadas con este criterio:
+
+visual-grid
+visual-card
+visual-title
+progress
+progress-bar
+progress-meta
+pie-layout
+pie-chart
+pie-track
+pie-segment--*
+pie-center
+pie-legend
+pie-dot--*
+visual-kpi
+visual-note
+
+Regla:
+
+no mantener prefijos de módulo en clases que ya funcionan como patrón transversal del sistema.
+
+
+BREADCRUMB ESTRUCTURAL Y CONTEXTUAL
+
+x-breadcrumb representa la ruta visible de ubicación actual de la pantalla.
+
+Debe poder resolverse en dos modos:
+
+breadcrumb estructural
+breadcrumb contextual
+
+breadcrumb estructural:
+expresa la ubicación normal y estable de la pantalla dentro del módulo o del sistema
+
+breadcrumb contextual:
+expresa el retorno al contexto de origen cuando el usuario llegó desde una entidad relacionada y ese origen sigue siendo relevante para la tarea actual
 
 Reglas:
 
-los filtros deben ser simples y previsibles
+x-breadcrumb es un único componente visual del sistema
 
-deben usar método GET
+no deben coexistir dos breadcrumb distintos en una misma pantalla
 
-deben evitar UX compleja innecesaria
+el breadcrumb estructural debe actuar como base por defecto
 
-la tabla debe mantenerse como bloque principal del listado
+el breadcrumb contextual solo debe utilizarse cuando exista un flujo relacionado real, válido y útil para la continuidad de uso
 
-la paginación debe conservar el estado del filtro
+no usar breadcrumb contextual si no existe origen funcional claro
 
-ESTADOS EN LISTADOS
+no reconstruir jerarquías artificiales ni cadenas excesivas solo porque exista una relación entre entidades
 
-Cuando el catálogo del módulo lo soporte, el estado debe mostrarse mediante badge visual en las tablas de listados.
+el breadcrumb contextual debe mejorar orientación y retorno, no agregar ruido visual
 
-ACCIONES EN LISTADOS
+cuando el usuario acceda a una pantalla desde navegación propia del módulo, búsqueda, acceso directo o index del mismo módulo, debe priorizarse breadcrumb estructural
 
-Las acciones en listados deben utilizar botones compactos con iconos para reducir el ancho de las columnas.
+cuando exista navegación cruzada entre entidades relacionadas, puede priorizarse una salida visual de retorno al origen siempre que esa salida mejore realmente la UX
 
-COMPONENTES DE ICONOS
+breadcrumb no debe depender del historial del navegador para representar relaciones de negocio
 
-Los iconos reutilizables se definen como componentes Blade.
 
-Ubicación:
+PANTALLAS TIPO CALENDARIO
 
-resources/views/components/icons/
+Cuando un módulo necesite lectura temporal, agenda visual o navegación por fechas, se admite una pantalla tipo calendario dentro de la misma base visual del sistema.
 
-Ejemplos:
+Estructura recomendada:
 
-x-icons.pencil
-x-icons.trash
+x-page
+x-breadcrumb
+x-page-header
+card superior de navegación o filtros
+card principal con contenedor scrolleable interno
 
-Uso en botones:
+Estas pantallas pueden fragmentarse en partials específicas del módulo, por ejemplo:
 
-<button class="btn btn-secondary btn-sm"> <x-icons.pencil /> </button>
-<button class="btn btn-danger btn-sm"> <x-icons.trash /> </button>
+partials/calendar-toolbar.blade.php
+partials/calendar-grid.blade.php
+partials/calendar-day-cell.blade.php
 
-OBJETIVO DE LOS ICONOS
+Cuando la UX lo requiera, el calendario puede utilizar:
 
-Reducir el ancho de las columnas de acciones.
-Mejorar la legibilidad de tablas.
-Permitir reutilización consistente en todo el sistema.
+cabecera sticky interna
+scroll interno del bloque
+columna auxiliar de contexto temporal, como número de semana
 
-ACCIONES EN TABLAS
+No corresponde documentar aquí detalles finos de CSS o ajuste visual puntual de implementación.
 
-En columnas de acciones compactas, como compact-actions-cell o contenedores equivalentes de acciones compactas, los botones deben mostrarse solo con iconos.
-
-Debe evitarse texto visible dentro de esas celdas para reducir ancho y mejorar legibilidad.
-
-Los iconos deben usar componentes Blade reutilizables del proyecto.
-
-Todo botón de solo icono debe incluir:
-
-title
-aria-label
-
-BOTONES PRINCIPALES FUERA DE TABLAS
-
-Los botones principales de acciones visibles fuera de tablas pueden usar icono + texto cuando eso refuerce la asociación visual.
-
-Ejemplos típicos:
-
-Editar
-Eliminar
-Copiar link
-
-PAGINACIÓN
-
-La paginación debe utilizar vista propia del proyecto.
-
-Debe evitarse markup visual externo de Tailwind o Bootstrap cuando no coincida con la base visual de app-base.
-
-ACCIONES COMPACTAS EN TABLAS Y SUBLISTADOS
-
-En sublistados internos dentro de vistas show se permiten acciones compactas con iconos.
-
-Estas acciones deben usar clases visuales propias del proyecto y mantener tamaño, alineación y espaciado consistentes.
-
-No deben utilizarse utilidades externas o no definidas en app-base.css.
-
-PARTIALS REUTILIZABLES POR MÓDULO
-
-Cuando un módulo requiera separar estructura y reutilización visual, se admite la convención:
-
-partials/table.blade.php
-partials/embedded-tabs.blade.php
-
-Reglas:
-
-partials/table.blade.php debe concentrar el listado puro o tabla base del módulo
-
-partials/embedded-tabs.blade.php debe reutilizar esa tabla cuando el mismo dataset necesite agruparse en tabs dentro de una vista show u otro contexto embebido
-
-debe evitarse duplicar tablas manualmente en index y show si ya existe una tabla reusable consolidada para el módulo
-
-esta convención es válida para módulos donde la misma tabla necesite mostrarse en listado puro y también agrupada por tabs
-
-VISTAS SHOW
-
-Las vistas show deben organizar la información en tres niveles visuales cuando corresponda:
-
-resumen superior inline
-
-bloque principal de información
-
-bloques secundarios opcionales
-
-RESÚMENES INLINE
-
-Para mostrar información resumida dentro de vistas show se pueden utilizar bloques compactos de resumen.
-
-Clases utilizadas:
-
-summary-inline-grid
-summary-inline-card
-
-SUMMARY OPERATIVO EN SHOW
-
-Cuando la pantalla lo justifique, el show puede incluir un summary operativo compacto de hasta 3 cards principales.
-
-Reglas:
-
-debe priorizar datos de uso diario o lectura inmediata
-
-no debe transformarse en un resumen exhaustivo de toda la entidad
-
-la información secundaria o menos consultada debe moverse al detalle colapsable o a tabs si corresponde
-
-BLOQUE PRINCIPAL DE LA FICHA
-
-El bloque principal debe contener la información esencial del registro.
-
-Puede utilizar grillas de detalle como:
-
-detail-grid
-detail-grid--3
-
-En vistas show complejas se admite como patrón preferente:
-
-card principal compacta
-resumen visible
-detalle secundario colapsable dentro de la misma card cuando eso reduzca altura visual y mejore la lectura general
-
-ESTADO EN FICHA
-
-Cuando el módulo tenga estados funcionales, el estado puede mostrarse mediante badge dentro de la ficha principal.
-
-DETALLE COLAPSABLE EN SHOW
-
-Cuando una ficha principal concentre demasiada información secundaria, se permite ocultar parte del detalle bajo un patrón colapsable dentro de la misma card principal.
-
-Este patrón debe utilizarse cuando:
-
-reduzca altura visual excesiva
-mejore la lectura inicial
-no oculte información crítica para la tarea principal
 
 TABS INTERNAS EN VISTAS SHOW
 
@@ -289,283 +252,18 @@ Las tabs documentadas en esta base visual corresponden a tabs internas de conten
 
 No implican todavía un sistema general de navegación entre rutas dentro de tabs de app.
 
+No deben confundirse con navegación cruzada entre entidades relacionadas ni con retorno contextual al origen.
 
-CRITERIO DE TABS POR MÓDULO
 
-Las tabs no son solo documentales.
+REGLA GENERAL DE SOBRIEDAD VISUAL
 
-También pueden utilizarse para agrupar relaciones o sublistados por tipo o por estado según el módulo, cuando eso mejore realmente la lectura.
+La interfaz debe privilegiar claridad y continuidad visual.
 
-Ejemplos válidos:
+Evitar:
 
-documents, orders o assets agrupados por tipo
+sobrecarga de cards sin necesidad
+soluciones visuales demasiado particulares por módulo
+fragmentación artificial de patrones equivalentes
+exceso de variaciones tipográficas o espaciales sin valor funcional
 
-tasks agrupadas por estado, si el caso funcional lo justifica
-
-No deben incorporarse tabs si la agrupación no aporta valor de lectura o navegación.
-
-TABS ANIDADAS
-
-Las tabs anidadas están permitidas cuando una relación secundaria real necesita una segunda capa de organización.
-
-No deben usarse por ornamentación ni por sobrefragmentación.
-
-Solo deben adoptarse cuando mejoran claramente la lectura o navegación de relaciones embebidas.
-
-SHOW COMPLEJOS Y PANTALLAS DE CONFIGURACIÓN
-
-En vistas tipo configuración, perfil de empresa o show complejos con más de un bloque funcional, es válido utilizar:
-
-resumen superior
-tabs
-múltiples cards dentro de cada tab
-
-También puede combinarse:
-
-card principal compacta
-detalle secundario colapsable
-tabs internas o tabs anidadas cuando la estructura funcional lo justifique
-
-SUBLISTADOS EMBEBIDOS Y TABS REUTILIZABLES
-
-Los sublistados embebidos pueden resolverse mediante partial reutilizable dentro del módulo o en una ubicación común si el patrón ya está consolidado.
-
-Cuando un sublistado se agrupe por tabs, debe priorizarse la reutilización de la tabla base del módulo a través de partials, evitando mantener variantes duplicadas del mismo listado.
-
-REGLA SOBRE ENCABEZADOS INTERNOS
-
-Evitar encabezados redundantes dentro de la ficha como:
-
-Datos principales
-Información principal
-
-La página ya se encuentra contextualizada por:
-
-breadcrumb
-título
-resumen superior
-
-REGLAS DE FORMULARIOS
-
-Los formularios deben reutilizar parciales.
-
-Estructura:
-
-_form.blade.php
-
-Este archivo debe ser utilizado por:
-
-create.blade.php
-edit.blade.php
-
-Reglas:
-
-reutilizar el mismo formulario para crear y editar
-agrupar campos de forma clara
-ubicar botones dentro de un bloque de acciones
-
-CONFIRMACIONES DE ELIMINACIÓN
-
-Las operaciones de eliminación deben utilizar confirmación previa del usuario.
-
-Cuando una entidad padre tenga registros relacionados, la confirmación debe indicar explícitamente que la eliminación afectará registros relacionados.
-
-Si existe eliminación en cascada, la confirmación debe ser más explícita para evitar borrados accidentales.
-
-Cuando sea posible, la confirmación debe incluir información contextual sobre la cantidad de registros relacionados.
-
-ALERTAS DEL SISTEMA
-
-Las alertas del sistema deben admitir cierre manual cuando la UX lo justifique.
-
-Las alertas informativas o de éxito pueden evaluar auto-dismiss por tiempo si no compromete comprensión ni trazabilidad del mensaje.
-
-ESTADOS VACÍOS
-
-Cuando un listado no tenga registros el mensaje debe mostrarse dentro de la card del listado.
-
-PANTALLAS PÚBLICAS
-
-Las pantallas públicas del sistema deben mantener consistencia con la base visual general.
-
-Ejemplos:
-
-welcome
-login
-register
-invitations
-errores
-selección de empresa
-
-Estas vistas pueden utilizar un layout simplificado, pero deben mantener:
-
-consistencia de ancho
-espaciado del sistema
-contenedores reutilizables
-acciones visualmente consistentes
-
-No deben utilizar estilos inline salvo en casos excepcionales.
-
-Tampoco deben utilizar handlers JavaScript inline salvo excepción justificada y transitoria.
-
-FRAGMENTACIÓN DE BLADES
-
-Cuando una vista principal tenga múltiples bloques funcionales, puede dividirse en partials dentro de la carpeta del módulo.
-
-Esto es especialmente válido en vistas show complejas, perfiles, configuraciones y pantallas con tabs internas.
-
-NAVEGACIÓN SUPERIOR
-
-La navegación superior del sistema utiliza las siguientes clases:
-
-.app-nav
-.app-nav-link
-.app-nav-dropdown
-
-DROPDOWNS DE NAVEGACIÓN
-
-Los dropdowns se implementan utilizando el elemento HTML:
-
-<details>
-
-Ejemplo:
-
-<details class="app-nav-dropdown"> <summary class="app-nav-link"> Gestión </summary> <div class="app-nav-dropdown-menu"> ... </div> </details>
-
-IMPORTANTE
-
-Los dropdowns no deben usar el atributo "open" de forma persistente desde Blade.
-
-El estado abierto es controlado por interacción del usuario.
-
-COMPORTAMIENTO DEL DROPDOWN
-
-El dropdown debe:
-
-abrirse al hacer click
-cerrarse al hacer click fuera
-cerrarse al seleccionar un item
-
-Este comportamiento es gestionado por JavaScript mínimo global.
-
-JAVASCRIPT GLOBAL
-
-El sistema utiliza un archivo JS mínimo:
-
-public/js/app-base.js
-
-Este archivo controla pequeños comportamientos UI globales como:
-
-cierre de dropdowns
-interacciones simples
-comportamientos UX mínimos
-
-DASHBOARD SUPERADMIN
-
-La capa de superadmin debe reutilizar el mismo patrón visual del dashboard tenant siempre que sea posible.
-
-Clases reutilizables:
-
-dashboard-tenant-summary
-dashboard-section-header
-dashboard-grid
-dashboard-link-card
-
-No debe crearse una base visual paralela para superadmin salvo necesidad funcional real.
-
-TERMINOLOGÍA DE INTERFAZ
-
-La interfaz debe utilizar términos orientados al usuario.
-
-Equivalencias:
-
-Tenant → Empresa
-Party → Contacto
-
-MÓDULOS QUE DEFINEN EL PATRÓN
-
-Los siguientes módulos ya utilizan esta base visual:
-
-projects
-parties (contactos)
-
-REGLA DE CONSISTENCIA
-
-Todos los módulos nuevos deben utilizar:
-
-la misma estructura de página
-los mismos componentes Blade
-el mismo patrón de listados
-las mismas reglas de formularios
-
-Esto garantiza coherencia visual en todo el sistema.
-
-ORGANIZACIÓN DE CSS VISUAL
-
-La organización del CSS visual del proyecto debe seguir esta estructura:
-
-public/css/app-base.css
-public/css/app-patterns.css
-public/css/modules/<modulo>.css
-
-Criterios:
-
-app-base.css contiene la base global obligatoria del sistema
-
-app-patterns.css concentra patrones visuales reutilizables y neutrales compartidos entre módulos
-
-modules/<modulo>.css debe reservarse para estilos específicos de módulos complejos cuando realmente no corresponda promoverlos todavía a patrón global
-
-Cuando un patrón visual deja de ser exclusivo de un módulo, debe migrarse a nomenclatura neutral reusable y salir del archivo específico del módulo.
-
-PATRONES VISUALES NEUTRALES REUTILIZABLES
-
-Cuando un patrón visual se reutilice en más de un módulo, debe adoptar una nomenclatura neutral y reusable.
-
-Familias válidas ya alineadas con este criterio:
-
-visual-grid
-visual-card
-visual-title
-progress
-progress-bar
-progress-meta
-pie-layout
-pie-chart
-pie-track
-pie-segment--*
-pie-center
-pie-legend
-pie-dot--*
-visual-kpi
-visual-note
-
-Regla:
-
-no mantener prefijos de módulo en clases que ya funcionan como patrón transversal del sistema.
-
-PANTALLAS TIPO CALENDARIO
-
-Cuando un módulo necesite lectura temporal, agenda visual o navegación por fechas, se admite una pantalla tipo calendario dentro de la misma base visual del sistema.
-
-Estructura recomendada:
-
-x-page
-x-breadcrumb
-x-page-header
-card superior de navegación o filtros
-card principal con contenedor scrolleable interno
-
-Estas pantallas pueden fragmentarse en partials específicas del módulo, por ejemplo:
-
-partials/calendar-toolbar.blade.php
-partials/calendar-grid.blade.php
-partials/calendar-day-cell.blade.php
-
-Cuando la UX lo requiera, el calendario puede utilizar:
-
-cabecera sticky interna
-scroll interno del bloque
-columna auxiliar de contexto temporal, como número de semana
-
-No corresponde documentar aquí detalles finos de CSS o ajuste visual puntual de implementación.
+Cuando dos pantallas resuelven el mismo problema visual, deben parecer parte del mismo sistema.

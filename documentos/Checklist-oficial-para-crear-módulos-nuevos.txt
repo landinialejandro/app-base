@@ -1,437 +1,145 @@
-CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS – app-base
+CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS
+
 
 OBJETIVO
 
-Este documento define el procedimiento obligatorio para crear nuevos módulos dentro del sistema app-base.
+Este checklist define los mínimos obligatorios al crear un módulo nuevo en el proyecto.
 
-Su finalidad es:
+Debe utilizarse como control de consistencia antes de considerar el módulo integrado al core.
 
-mantener consistencia entre módulos
-garantizar compatibilidad con la arquitectura multi-tenant
-evitar errores estructurales
-facilitar el mantenimiento del sistema
-asegurar coherencia en el crecimiento del proyecto
+No reemplaza la revisión técnica.
+Funciona como piso común obligatorio.
 
-EVALUACIÓN DE LA ENTIDAD (ANTES DE CREAR EL MÓDULO)
 
-Antes de crear una nueva entidad verificar:
+ESTRUCTURA GENERAL
 
-si el caso puede resolverse utilizando la entidad parties
-si corresponde a una extensión funcional de parties
-si realmente es una entidad nueva del dominio del sistema
+Verificar:
 
-Recordar:
+modelo creado
+migración creada
+controller creado
+rutas declaradas explícitamente
+vistas base creadas
+enlace en navegación si corresponde
+validaciones mínimas implementadas
+tenant resuelto correctamente
+autorización revisada
+documentación actualizada
 
-parties es la entidad base del negocio.
 
-Si la entidad no es necesaria en esta etapa:
+MODELO Y MIGRACIÓN
 
-registrarla en TODO-DEL-PROYECTO.
+Verificar:
 
-VERIFICAR PATRÓN REAL ANTES DE CREAR LA MIGRACIÓN
+la tabla usa naming consistente
+la entidad incluye tenant_id si corresponde al negocio
+la entidad no incluye tenant_id si es del sistema
+soft delete aplicado cuando corresponda
+fillable revisado
+casts revisados
+relaciones definidas
+trait TenantScoped aplicado si corresponde
 
-Antes de crear una nueva migración revisar migraciones existentes del proyecto.
 
-Verificar específicamente:
+RUTAS Y CONTROLADOR
 
-tipo real utilizado para tenant_id
-si las foreign keys se definen mediante foreignId() o manualmente
-si existe un patrón de definición ya validado en módulos existentes
+Verificar:
 
-Regla:
+rutas CRUD declaradas explícitamente
+no usar Route::resource(...) mientras siga vigente la convención actual del proyecto
+nombres de ruta consistentes
+controller delgado
+validación separada cuando haga falta
+authorize(...) o authorizeResource(...) aplicado cuando corresponda
+no duplicar permisos en controller si la policy ya resuelve la acción
 
-no asumir tipos por convención de Laravel si el proyecto ya utiliza otro patrón validado.
 
-CREAR MIGRACIÓN
+VISTAS
 
-Crear la migración correspondiente.
+Verificar:
 
-Ejemplo:
+index consistente con la base visual
+show consistente con la base visual
+create y edit consistentes entre sí
+uso de x-page
+uso de x-breadcrumb
+uso de x-page-header
+uso de cards o bloques visuales consistentes
+acciones visibles alineadas con permisos reales
+partials creados si la vista crece demasiado
 
-php artisan make:migration create_products_table
 
-Reglas obligatorias para entidades del negocio:
+AUTORIZACIÓN Y UI
 
-todas las tablas deben incluir:
+Verificar:
 
-tenant_id
-timestamps
-softDeletes
+policy creada si el módulo lo necesita
+policy realmente aplicada desde controller
+@can aplicado en botones, acciones y accesos sensibles
+la UI no muestra acciones no permitidas
+navbar o dashboard no exponen accesos irreales
+permisos alineados con rol, módulo y tipo de acción
 
-CREAR MODELO
 
-Crear modelo:
+DOCUMENTACIÓN OBLIGATORIA
 
-php artisan make:model NombreModelo
-
-El modelo debe incluir los traits obligatorios del proyecto:
-
-TenantScoped
-ResolvesTenantRouteBinding
-SoftDeletes
-
-DEFINIR CAMPOS FILLABLE
-
-Definir los campos permitidos para asignación masiva.
-
-Reglas:
-
-no incluir tenant_id en fillable si no es necesario
-evitar permitir asignación manual de tenant_id desde formularios
-
-CREAR CONTROLLER
-
-Crear controlador tipo resource.
-
-php artisan make:controller NombreController --resource
-
-Métodos esperados:
-
-index
-create
-store
-show
-edit
-update
-destroy
-
-REGLA DE TENANT EN CONTROLADORES
-
-Verificar la correcta asignación de tenant según el tipo de entidad.
-
-Si la entidad es padre:
-
-confirmar que utiliza TenantScoped
-no asignar tenant_id manualmente en store()
-
-Si la entidad es hija:
-
-asignar tenant_id explícitamente desde el contexto del padre
-asignar también la foreign key del padre
-
-CONSULTAS TENANT-AWARE
-
-Revisar store() y update() para asegurar que:
-
-las verificaciones exists(...) o validaciones de relaciones
-sean tenant-aware
-
-Si una entidad operativa referencia otra entidad del negocio (por ejemplo asset_id, party_id, order_id), validar también la coherencia funcional entre relaciones cuando aplique, no solo la pertenencia al tenant.
-
-Ejemplo conceptual:
-
-verificar que el registro referenciado pertenezca al tenant activo.
-verificar también que las relaciones entre entidades no entren en contradicción funcional.
-
-DEFINIR RUTAS
-
-Registrar rutas en:
-
-routes/web.php
-
-No depender de Route::resource(...) para el core funcional mientras se mantenga la convención vigente del proyecto.
-
-Las rutas deben ejecutarse dentro de los middlewares:
-
-auth
-tenant
-
-CREAR VISTAS
-
-Crear carpeta del módulo:
-
-resources/views/nombre
-
-Vistas mínimas:
-
-index.blade.php
-create.blade.php
-edit.blade.php
-show.blade.php
-_form.blade.php
-
-ESTRUCTURA VISUAL OBLIGATORIA
-
-Todas las páginas internas deben utilizar:
-
-<x-page> <x-breadcrumb /> <x-page-header /> <x-card /> </x-page>
-
-Esto garantiza consistencia visual entre módulos.
-
-PATRÓN DE LISTADOS
-
-Las vistas index deben utilizar:
-
-page.list-page
-card.list-card
-table-wrap.list-scroll
-
-FORMULARIOS
-
-Los formularios deben reutilizar el parcial:
-
-_form.blade.php
-
-Este archivo debe ser utilizado por:
-
-create
-edit
-
-VALIDACIONES
-
-Las validaciones deben definirse inicialmente en el controlador.
-
-Ejemplo:
-
-$request->validate([
-'name' => ['required', 'string', 'max:255']
-]);
-
-CATÁLOGOS FUNCIONALES (DOMINIOS CERRADOS)
-
-Antes de implementar campos con valores cerrados (por ejemplo status, kind, type):
-
-identificar si el módulo utiliza dominios cerrados
-centralizar esos valores en un catálogo reutilizable
-
-antes de crear un catálogo nuevo revisar si existe uno reutilizable en el sistema.
-
-Evitar repetir strings hardcodeados en:
-
-controllers o requests
-formularios (_form)
-vistas index o show
-badges o filtros
-seeders
-
-La definición centralizada debe ser reutilizada por:
-
-validaciones
-formularios
-badges
-filtros
-seeders
-
-Si el módulo tiene estados cerrados, definir también badgeClass() desde catálogo.
-
-REGLA PARA MÓDULOS CON CABECERA + DETALLE
-
-Si el módulo tiene estructura cabecera/detalle (por ejemplo orders o documents):
-
-implementar primero la entidad cabecera
-luego implementar el manejo de ítems mediante rutas anidadas
-
-Ejemplo conceptual:
-
-orders
-orders/{order}/items
-
-Reglas:
-
-no mezclar, salvo necesidad justificada, la creación de cabecera e ítems en un único store()
-el flujo debe permitir crear cabecera primero y luego gestionar los ítems
-
-REGLA PARA NUMERACIÓN DE DOCUMENTOS
-
-En módulos documentales u operativos (por ejemplo orders o documents) el campo:
-
-number
-
-no debe tener restricción unique a nivel global.
-
-La numeración será gestionada posteriormente mediante un sistema de secuencias
-(por ejemplo document_sequences) que permitirá numeración por tenant o por tipo de documento.
-
-SI EL MÓDULO REQUIERE NUMERACIÓN OPERATIVA
-
-Si el módulo requiere numeración secuencial (por ejemplo documentos comerciales u operaciones registrables):
-
-verificar si el módulo debe integrarse con document_sequences
-
-no implementar numeración manual o hardcodeada dentro de controladores
-
-evaluar si el módulo requiere soporte para:
-
-prefix
-point_of_sale
-correlativo
-bloqueo por tipo una vez numerado
-
-Esto permite mantener un único sistema de numeración coherente dentro del SaaS.
-
-REGLA DE SEGURIDAD PARA INVITACIONES
-
-Cuando un módulo implemente mecanismos de invitación a usuarios (por ejemplo para membresías o acceso a empresas):
-
-las invitaciones deben validar la identidad del usuario antes de aplicar cambios sobre memberships o creación de tenants.
-
-Reglas:
-
-una invitación nunca debe aplicarse automáticamente sobre un usuario autenticado distinto al destinatario de la invitación
-
-la aceptación de la invitación debe confirmar la identidad del usuario (por ejemplo mediante email o token firmado)
-
-solo después de validar la identidad debe crearse o modificarse la membership correspondiente
-
-si la invitación corresponde a un usuario que ya existe y el flujo requiere login:
-
-el sistema debe redirigir nuevamente a la invitación pendiente después del login
-y no al dashboard ni al selector genérico de tenant
-
-esto garantiza que el usuario continúe el flujo correcto de aceptación de la invitación.
-
-REGLA DE AUTORIZACIÓN Y SEGURIDAD DEL MÓDULO
-
-Antes de dar un módulo por terminado, verificar:
-
-si el módulo requiere Policy formal
-
-si existe Policy del módulo cuando corresponde
-
-si el controller usa authorize(...) o authorizeResource(...)
-
-si las vistas ocultan acciones con @can
-
-si delete queda restringido correctamente según la naturaleza del módulo
-
-si el módulo tiene entidad hija, si la autorización hereda correctamente desde la cabecera
-
-si el módulo evita ownership artificial cuando no existe necesidad funcional real
-
-si navbar, dashboard o accesos relacionados respetan el acceso real al módulo cuando el nuevo desarrollo impacta navegación
-
-Las decisiones estructurales de autorización, acceso o visibilidad deben quedar asentadas en:
+Verificar si corresponde actualizar:
 
 CONTEXTO-FIJO-DEL-PROYECTO
-CONVENCIONES-DEL-PROYECTO
-
-REGLA PARA MÓDULOS COMPARTIDOS DEL TENANT
-
-Si el módulo es operativo y compartido por el tenant, y no tiene responsable operativo directo:
-
-permitir view, create y update a los roles habilitados del módulo
-
-reservar delete a owner y admin, salvo necesidad funcional justificada
-
-no agregar assigned_user_id, owner_user_id o restricciones por created_by solo para fabricar un ownership inexistente
-
-REGLA DE ACCIONES Y FRONTEND
-
-Evitar JavaScript inline en blades nuevos.
-
-Si la interacción es reutilizable, integrarla a:
-
-public/js/app-base.js
-
-y activarla mediante:
-
-data-action="app-..."
-
-En tablas con acciones compactas, usar botones con iconos reutilizables y sin texto visible.
-
-Fuera de tablas, usar botones principales consistentes con icono + texto cuando corresponda.
-
-Mantener vocabulario UI consistente con el proyecto:
-
-Contacto
-Eliminar
-
-Los botones compactos de solo icono deben incluir:
-
-title
-aria-label
-
-PRUEBAS FUNCIONALES
-
-Verificar funcionamiento básico del módulo:
-
-crear
-editar
-eliminar
-listar
-
-PRUEBAS FUNCIONALES AVANZADAS
-
-Verificar adicionalmente:
-
-verificar relaciones hijas
-verificar eliminación cuando existen registros hijos
-verificar route model binding multi-tenant
-verificar sublistados internos si el módulo tiene detalle
-verificar permisos reales por acción según rol
-verificar visibilidad real de botones y accesos en UI
-
-En vistas show, evaluar si corresponde utilizar:
-
-card simple
-card + sublistado
-tabs secundarias
-
-VERIFICACIÓN MULTI-TENANT
-
-Confirmar que:
-
-un tenant no puede acceder a datos de otro tenant.
-
-Esto debe estar garantizado mediante:
-
-TenantScoped
-ResolvesTenantRouteBinding
-
-FACTORIES Y SEEDERS
-
-Factories pueden crear tenants automáticamente si es necesario para pruebas aisladas.
-
-Los seeders del sistema deben utilizar tenants existentes y no crear tenants implícitos
-para evitar inconsistencias en datos de demostración.
-
-DATOS DE PRUEBA (OPCIONAL)
-
-Si el módulo es relevante para el sistema:
-
-crear factory.
-
-Ejemplo:
-
-php artisan make:factory NombreModeloFactory
-
-y agregar datos al DemoSeeder.
-
-LIMPIEZA DE MÓDULOS ABSORBIDOS
-
-Si un módulo previo fue absorbido por otro módulo más general:
-
-eliminar restos técnicos del módulo anterior
-eliminar migraciones innecesarias
-eliminar rutas, modelos o controladores que ya no tengan uso
-
-ACTUALIZAR DOCUMENTACIÓN DEL PROYECTO
-
-Si se crea una nueva entidad actualizar:
-
 MAPA-DE-ENTIDADES
+CONVENCIONES-DEL-PROYECTO
+BASE-VISUAL-DEL-PROYECTO
 TODO-DEL-PROYECTO
+DEPLOY-Y-COMPATIBILIDAD-DEL-PROYECTO
 
-Si el módulo introduce una regla general de autorización, navegación, visibilidad o seguridad, actualizar además:
+No actualizar documentos por inercia.
 
-CONTEXTO-FIJO-DEL-PROYECTO
-CONVENCIONES-DEL-PROYECTO
+Solo tocar los realmente afectados.
 
-REGLA DE COHERENCIA
 
-Todo módulo nuevo debe seguir el mismo patrón utilizado en:
+NAVEGACIÓN Y BREADCRUMB
 
-projects
-parties
+Definir desde el inicio si el módulo necesita solo navegación estructural o también navegación contextual.
 
-REGLA FINAL
+Preguntas de control:
 
-Si durante el desarrollo aparece una decisión que afectará a toda la arquitectura del sistema:
+la entidad puede abrirse desde otra entidad relacionada como continuación natural de trabajo
 
-no improvisar.
+el usuario necesita volver al origen sin perder el hilo operativo
 
-Registrar la decisión en:
+ese origen es semántico y estable, no solo la página anterior
 
-CONVENCIONES-DEL-PROYECTO
+Si alguna de estas respuestas es sí, el módulo debe evaluar e implementar navegación contextual explícita.
 
-antes de continuar el desarrollo.
+Si corresponde, el módulo debe:
+
+aceptar contexto de navegación de forma explícita
+
+resolver ese contexto desde una capa reutilizable central si ya existe
+
+propagar ese contexto en enlaces internos, acciones create, edit, show y redirects relevantes
+
+resolver cancelar, volver y redirect post acción de forma consistente con ese contexto
+
+Reglas:
+
+usar breadcrumb estructural por defecto
+
+usar breadcrumb contextual solo cuando el origen siga siendo útil
+
+no reconstruir breadcrumb funcional desde url()->previous()
+
+no duplicar en blades lógica que ya fue resuelta por controller o capa central de navegación
+
+
+CIERRE
+
+Un módulo no debe considerarse terminado solo porque funciona.
+
+Debe quedar:
+
+consistente con el sistema
+alineado con permisos reales
+alineado con multi-tenancy
+alineado con la base visual
+alineado con la documentación vigente

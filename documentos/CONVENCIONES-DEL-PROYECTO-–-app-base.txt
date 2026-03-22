@@ -1,6 +1,7 @@
 CONVENCIONES-DEL-PROYECTO – app-base
 
-Objetivo del documento
+
+OBJETIVO DEL DOCUMENTO
 
 Este documento define las convenciones estructurales y de desarrollo del proyecto app-base.
 
@@ -14,7 +15,8 @@ nuevas vistas
 nuevos controladores
 nuevos flujos operativos
 
-Convenciones generales
+
+CONVENCIONES GENERALES
 
 El proyecto sigue los principios de:
 
@@ -26,7 +28,8 @@ previsibilidad del comportamiento del sistema
 
 Cuando existan varias alternativas técnicas, se debe priorizar siempre la opción más simple y consistente con el resto del proyecto.
 
-Convenciones de nombres
+
+CONVENCIONES DE NOMBRES
 
 Modelos
 
@@ -82,7 +85,8 @@ Ejemplos:
 /documents
 /assets
 
-Convención actual de declaración de rutas CRUD
+
+CONVENCIÓN ACTUAL DE DECLARACIÓN DE RUTAS CRUD
 
 Como convención actual del proyecto, las rutas CRUD del core funcional deben declararse explícitamente en routes/web.php.
 
@@ -90,7 +94,8 @@ No se utilizará Route::resource(...) mientras el proyecto mantenga compatibilid
 
 Esta decisión busca priorizar previsibilidad operativa y reducir riesgo en despliegues cerrados preparados en local.
 
-Convenciones de multi-tenancy
+
+CONVENCIONES DE MULTI-TENANCY
 
 Las entidades del negocio deben incluir siempre:
 
@@ -106,13 +111,15 @@ User
 Tenant
 Membership
 
-Acceso operativo por tenant
+
+ACCESO OPERATIVO POR TENANT
 
 La restricción operativa de acceso a empresa debe validarse por memberships.status = active.
 
 No debe utilizarse desactivación global de users para resolver bajas, bloqueos o pérdida de acceso específicos de un tenant.
 
-Convenciones de acceso por módulo y roles
+
+CONVENCIONES DE ACCESO POR MÓDULO Y ROLES
 
 La autorización operativa del sistema debe resolverse diferenciando:
 
@@ -140,7 +147,8 @@ la eliminación sensible debe reservarse a owner y admin, salvo necesidad funcio
 
 la visibilidad del dashboard y de métricas agregadas debe respetar el rol y no asumir siempre conteos globales del tenant
 
-RoleCatalog y ModuleCatalog
+
+ROLECATALOG Y MODULECATALOG
 
 RoleCatalog es el catálogo base mínimo y reservado del sistema para roles estructurales.
 
@@ -158,7 +166,8 @@ los roles base sembrados al crear el tenant no deben modificarse ni eliminarse
 
 a futuro el tenant podrá agregar roles propios en base de datos, pero sin alterar la base reservada del sistema
 
-Evolución prevista de permisos
+
+EVOLUCIÓN PREVISTA DE PERMISOS
 
 La arquitectura de permisos debe prepararse para incorporar una capa centralizada compuesta por:
 
@@ -189,7 +198,8 @@ el acceso a módulo, la visibilidad de registros y la capacidad de acción deben
 
 cuando un módulo tenga reglas específicas por ownership, asignación o participación operativa, la policy debe resolver esa diferencia reutilizando la capa central y el criterio de visibilidad del módulo
 
-Trait TenantScoped
+
+TRAIT TENANTSCOPED
 
 Las entidades del negocio deben utilizar el trait:
 
@@ -202,7 +212,8 @@ asignar tenant_id al crear registros
 
 Esto garantiza que los datos de diferentes empresas no se mezclen.
 
-Uso de tenant_id en fillable
+
+USO DE TENANT_ID EN FILLABLE
 
 Como regla general, tenant_id no debe exponerse en formularios ni venir desde input del usuario.
 
@@ -223,7 +234,8 @@ Esto permite manejar correctamente casos como:
 document_items creados desde documentos
 order_items copiados hacia documentos derivados
 
-Convenciones de entidades hijas
+
+CONVENCIONES DE ENTIDADES HIJAS
 
 Las entidades hijas deben cumplir:
 
@@ -247,7 +259,8 @@ Esto ya se considera válido para entidades como:
 order_items respecto de orders
 document_items respecto de documents
 
-Convenciones de ownership funcional y permisos operativos simples
+
+CONVENCIONES DE OWNERSHIP FUNCIONAL Y PERMISOS OPERATIVOS SIMPLES
 
 Cuando un módulo lo permita, puede adoptarse un criterio simple de ownership funcional del registro en lugar de una capa temprana de permisos compleja.
 
@@ -267,7 +280,8 @@ si no existe propietario directo, el control sensible queda en owner y admin o e
 
 Este patrón ya se considera válido para tasks.
 
-Regla para módulos operativos compartidos del tenant
+
+REGLA PARA MÓDULOS OPERATIVOS COMPARTIDOS DEL TENANT
 
 Cuando un módulo operativo compartido del tenant no tenga responsable operativo directo:
 
@@ -284,7 +298,8 @@ assets
 products
 orders
 
-Convenciones de support y helpers de acceso
+
+CONVENCIONES DE SUPPORT Y HELPERS DE ACCESO
 
 La lógica transversal de acceso tenant/roles no debe dispersarse en controllers o blades.
 
@@ -304,7 +319,8 @@ Support/<Modulo>/<Entidad>Visibility
 
 Esto ya se considera válido para la visibilidad operativa de projects.
 
-Convenciones de policies
+
+CONVENCIONES DE POLICIES
 
 La autorización por acción debe resolverse preferentemente mediante Policies.
 
@@ -330,7 +346,8 @@ la vista debe respetar permisos reales con @can al mostrar acciones
 
 una policy que no se consume desde controller y vista no protege efectivamente el sistema
 
-Regla de navegación y visibilidad de UI
+
+REGLA DE NAVEGACIÓN Y VISIBILIDAD DE UI
 
 La interfaz no debe mostrar accesos que el usuario no puede usar realmente.
 
@@ -346,277 +363,24 @@ la navegación principal del tenant debe construirse desde ModuleCatalog cuando 
 
 no se deben hardcodear módulos navegables en componentes de layout cuando el sistema ya pueda resolverlos desde catálogo y acceso efectivo
 
-el navbar debe renderizar únicamente módulos definidos en ModuleCatalog y habilitados realmente para el usuario actual
 
-dashboard y navbar deben mantenerse alineados respecto al acceso real a módulos
+CONVENCIONES DE BLADE Y FRONTEND LIVIANO
 
-Regla de delete
-
-Como convención operativa general:
-
-las cabeceras sensibles deben reservar delete a owner y admin
-
-los ítems embebidos deben seguir el permiso efectivo de edición o gestión de su cabecera, salvo excepción justificada
-
-Convención de visibilidad
-
-Debe separarse conceptualmente:
-
-puede usar el módulo
-qué registros puede ver
-qué acciones puede ejecutar
-
-No debe mezclarse acceso al módulo con visibilidad del dataset ni con permisos de edición.
-
-Configuración externa temporal
-
-Cuando una matriz base o habilitación base requiera ajustes rápidos sin modificar clases principales, se admite una capa de configuración externa temporal.
+Las vistas Blade deben mantenerse simples, explícitas y previsibles.
 
 Reglas:
 
-estos overrides deben ser parciales, controlados y compatibles con la estructura base
+evitar lógica de negocio en Blade
 
-no deben utilizarse para inventar módulos o roles inexistentes en los catálogos del sistema
+permitir condicionales simples de interfaz
 
-deben subordinarse siempre a RoleCatalog y ModuleCatalog
+extraer bloques repetidos a componentes o partials cuando el patrón ya sea claro
 
-deben entenderse como solución operativa transitoria y no como reemplazo del modelo definitivo
+no introducir complejidad de frontend innecesaria si la interacción puede resolverse con HTML, Blade, CSS y JavaScript mínimo
 
-Convenciones de configuración funcional por tenant
+cuando una interacción visual se repita en varias pantallas, priorizar componente o patrón reusable antes que copiar markup
 
-La configuración funcional por tenant puede persistirse en:
-
-tenants.settings
-
-Esto es válido cuando la configuración no justifica todavía entidad propia y puede mantenerse como parte del contexto operativo del tenant.
-
-Cuando se actualicen estructuras anidadas dentro de settings, debe preferirse:
-
-array_replace_recursive
-
-sobre:
-
-array_merge
-
-para evitar pérdida accidental de ramas hermanas, reindexación no deseada o sobreescrituras ambiguas en configuraciones compuestas.
-
-Convenciones de adaptación por rubro del tenant
-
-Cuando un módulo necesite adaptar vocabulario visible o etiquetas funcionales según el rubro del tenant:
-
-no se permiten etiquetas libres por tenant
-
-la adaptación debe resolverse mediante:
-
-catálogo base cerrado
-contexto del tenant
-catálogo funcional del módulo
-
-Patrón conceptual válido:
-
-BusinessTypeCatalog
-TenantBusinessContext
-AppointmentCatalog consumiendo ese contexto
-
-El rubro funcional del tenant debe persistirse preferentemente en:
-
-settings.business_profile.type
-
-Este patrón permite personalización controlada sin romper consistencia global del sistema ni introducir variaciones arbitrarias por empresa.
-
-Convenciones de flujo Task → Order
-
-Cuando una entidad derive otra en una relación operativa 1 a 1, el vínculo puede resolverse desde la entidad derivada.
-
-En el caso actual:
-
-orders.task_id expresa que una orden nace desde una tarea
-
-Reglas:
-
-una tarea puede derivar en una única orden
-
-la relación debe mantenerse simple y explícita
-
-no debe duplicarse el vínculo en ambas entidades si no aporta valor real
-
-Convenciones de flujo Asset → Order
-
-Un order puede vincularse opcionalmente a un asset.
-
-Si un order tiene asset_id, debe ser consistente con party_id.
-
-Si una orden ya quedó vinculada a un activo, no debe permitirse cambiar libremente asset_id ni party_id en edición si eso compromete la trazabilidad funcional del registro.
-
-Convenciones de flujo Order → Document
-
-Un order puede dar origen a múltiples documents.
-
-La creación de documentos derivados desde una orden debe realizarse mediante flujos controlados del sistema, nunca mediante formularios manuales que permitan alterar la relación.
-
-Cuando un documento se genera desde una orden:
-
-documents hereda automáticamente:
-
-tenant_id
-party_id
-order_id
-asset_id si la orden lo posee
-
-Los order_items pueden copiarse a document_items según el tipo documental.
-
-Luego de copiar los ítems, los totales del documento deben recalcularse.
-
-Convenciones para módulos agregadores con uso operativo diario
-
-Cuando un módulo agregador del core tenga uso operativo diario, su index puede dejar de ser nominal y pasar a una tabla operativa con métricas derivadas.
-
-Reglas:
-
-si el módulo tiene estados cerrados, debe usar catálogo centralizado y badge visual
-
-los porcentajes, contadores o métricas operativas deben resolverse preferentemente en controller, query u otra capa previa, no en Blade, cuando la lógica empiece a crecer
-
-este patrón ya se considera válido para projects.index
-
-Convenciones de perfil de empresa
-
-El perfil de empresa es una pantalla reservada a owner.
-
-La configuración básica de empresa debe persistirse en tenants.settings cuando no justifique entidad propia.
-
-Si una configuración adquiere complejidad funcional significativa, podrá migrarse a entidad específica más adelante.
-
-Convenciones de invitaciones
-
-Las invitaciones de miembros del tenant se generan desde el contexto del owner.
-
-No debe permitirse generar una invitación nueva si:
-
-el email ya pertenece a un usuario del tenant
-
-existe una invitación pendiente y vigente para ese email y tenant
-
-El owner puede eliminar invitaciones pendientes no aceptadas.
-
-Convenciones de búsquedas y filtros en index
-
-Los listados index deben preferir filtros simples por GET.
-
-Reglas:
-
-usar when(...) en queries para mantener controladores legibles
-
-usar paginate(...)->withQueryString() para preservar filtros entre páginas
-
-usar q como búsqueda libre cuando aporte valor real
-
-usar select para filtros cerrados o catálogos
-
-evitar buscadores globales o sobrearquitectura antes de necesidad real
-
-Los catálogos reutilizables del sistema también deben aprovecharse en filtros cuando corresponda.
-
-Convenciones de controladores
-
-Los controladores deben ser lo más delgados posible.
-
-La lógica de negocio debe colocarse preferentemente en:
-
-servicios
-clases de soporte
-modelos
-
-Los controladores deben encargarse principalmente de:
-
-recibir requests
-validar datos
-delegar lógica
-devolver respuestas
-
-Convenciones de catálogos funcionales
-
-Cuando un módulo tenga estados cerrados o valores controlados, se debe crear un catálogo centralizado.
-
-El catálogo debe concentrar:
-
-constantes
-labels
-clases visuales (badgeClass)
-listas permitidas
-
-Esto evita lógica repetida en controladores o vistas.
-
-Ejemplo de responsabilidades del catálogo:
-
-definir estados válidos
-devolver label del estado
-devolver clase CSS del badge
-
-Uso de catálogos en vistas
-
-Las vistas Blade no deben resolver estados mediante lógica inline si el catálogo ya puede hacerlo.
-
-En lugar de usar lógica condicional o match en la vista, debe utilizarse el catálogo correspondiente.
-
-Uso recomendado:
-
-<span class="status-badge {{ Catalog::badgeClass($value) }}"> {{ Catalog::label($value) }} </span>
-
-Esto mantiene las vistas simples y evita duplicación de lógica.
-
-Convenciones de Blade
-
-Las vistas Blade deben mantenerse:
-
-simples
-legibles
-sin lógica compleja
-
-La lógica debe resolverse previamente en:
-
-controladores
-view models
-catálogos
-servicios
-
-Cuando una vista crezca demasiado, debe dividirse en partials por bloques visuales claros.
-
-Se deben preferir partials antes que componentes globales cuando el bloque todavía sea local a una sola pantalla.
-
-Convenciones de formularios
-
-Los formularios deben enviar únicamente:
-
-datos propios de la entidad
-
-No deben enviar:
-
-tenant_id
-user_id
-campos derivados
-
-Estos valores deben resolverse internamente en el backend.
-
-Convenciones de frontend y comportamiento reutilizable
-
-Evitar onclick, onsubmit, onchange y cualquier handler JavaScript inline en Blade.
-
-El comportamiento reutilizable debe resolverse en:
-
-public/js/app-base.js
-
-La activación declarativa debe realizarse mediante:
-
-data-action="app-..."
-
-El comportamiento exclusivo y no reutilizable de una vista puede resolverse con:
-
-@push('scripts')
-
-en el blade raíz correspondiente.
-
-No usar clases CSS para comportamiento.
+para comportamiento JavaScript simple, usar data-* claros y estables en lugar de acoplar JS a clases puramente visuales cuando eso ayude a separar estilo y comportamiento
 
 Separación recomendada:
 
@@ -625,7 +389,8 @@ data-* = comportamiento
 
 Preferir soluciones simples y declarativas antes que lógica distribuida en múltiples blades.
 
-Convenciones de preservación de contexto UX
+
+CONVENCIONES DE PRESERVACIÓN DE CONTEXTO UX
 
 En vistas con tabs, filtros o acciones internas, debe preservarse el contexto funcional al refrescar o redirigir cuando eso mejore la UX.
 
@@ -639,7 +404,51 @@ Las tabs mencionadas en esta convención refieren a tabs internas de contenido d
 
 No debe asumirse todavía como convención general del sistema una navegación entre rutas dentro de tabs de app o tipo workspace.
 
-Convenciones de vocabulario UI
+
+NAVEGACIÓN ESTRUCTURAL Y CONTEXTUAL
+
+La navegación del sistema debe distinguir entre:
+
+navegación estructural
+navegación contextual
+
+navegación estructural:
+expresa la ubicación estable de la pantalla dentro del sistema o dentro de su módulo
+
+navegación contextual:
+expresa el origen funcional desde el cual el usuario llegó a una entidad relacionada, cuando ese origen sigue siendo relevante para la tarea actual
+
+Reglas generales:
+
+toda pantalla debe tener una resolución estructural válida como base, aunque en ciertos flujos pueda mostrarse en modo contextual
+
+la navegación contextual solo debe aplicarse cuando exista un flujo relacionado real y útil para la continuidad de uso
+
+no debe inventarse un origen contextual si la pantalla fue abierta de forma directa, desde index propio, desde búsqueda o desde navegación general del módulo
+
+el breadcrumb del sistema es uno solo, pero debe poder resolverse en modo estructural o en modo contextual según el caso
+
+si ya existe una capa central reutilizable para resolver contexto de navegación, no duplicar esa lógica en múltiples controllers, blades o helpers dispersos
+
+controller resuelve contexto
+vista consume contexto
+
+no reconstruir breadcrumb de negocio desde url()->previous() ni desde supuestos del historial del navegador
+
+breadcrumb, retorno al origen y redirects posteriores a acciones deben mantenerse consistentes entre entidades relacionadas
+
+la preservación de contexto UX debe aplicarse con criterio y solo cuando aporte continuidad real de uso
+
+como regla general:
+
+usar navegación estructural por defecto
+
+usar navegación contextual solo como override útil cuando el origen funcional deba preservarse
+
+cuando no exista contexto válido o el origen no agregue valor operativo, debe mostrarse navegación estructural normal
+
+
+CONVENCIONES DE VOCABULARIO UI
 
 Nombre genérico visible de la entidad parties en interfaz:
 
@@ -655,7 +464,8 @@ El verbo destructivo estándar en botones, confirmaciones y mensajes del sistema
 
 Eliminar
 
-Convenciones de acciones visuales
+
+CONVENCIONES DE ACCIONES VISUALES
 
 Fuera de tablas, los botones principales pueden usar icono + texto cuando eso refuerce la asociación visual de la acción.
 
@@ -666,7 +476,8 @@ Todo botón de solo icono debe incluir:
 title
 aria-label
 
-Convenciones de seguridad
+
+CONVENCIONES DE SEGURIDAD
 
 El sistema debe evitar que un usuario pueda acceder a registros de otro tenant.
 
@@ -677,7 +488,8 @@ ResolvesTenantRouteBinding
 
 Nunca se deben realizar consultas que ignoren el tenant actual.
 
-Convenciones de flujo de invitaciones
+
+CONVENCIONES DE FLUJO DE INVITACIONES
 
 Las invitaciones forman parte del flujo de onboarding y acceso al sistema.
 
@@ -693,7 +505,8 @@ El sistema debe retornar al flujo de aceptación de la invitación.
 
 Esto garantiza continuidad del proceso de incorporación al tenant correspondiente.
 
-Convención de simplicidad
+
+CONVENCIÓN DE SIMPLICIDAD
 
 Antes de introducir una nueva abstracción, evaluar si realmente es necesaria.
 
@@ -705,7 +518,8 @@ bajo nivel de complejidad accidental
 
 Las soluciones simples y previsibles deben preferirse sobre arquitecturas excesivamente abstractas.
 
-Convenciones de CSS y patrones visuales
+
+CONVENCIONES DE CSS Y PATRONES VISUALES
 
 La organización del CSS visual del proyecto debe seguir esta base:
 
@@ -726,3 +540,18 @@ no duplicar variantes visuales equivalentes con prefijos de módulo si ya existe
 cuando un patrón visual deje de ser exclusivo de un módulo, debe migrarse a nomenclatura neutral reusable
 
 preferir nombres neutrales cuando el patrón ya se utilice en más de un módulo
+
+
+CONVENCIONES DE NAVEGACIÓN CONTEXTUAL
+
+Cuando exista navegación cruzada entre entidades relacionadas, no debe resetearse el contexto de origen sin necesidad funcional real.
+
+Reglas:
+
+si ya existe una capa central reutilizable para resolver contexto de navegación, no duplicar esa lógica en múltiples controllers
+
+no hardcodear variantes divergentes por módulo si la regla de navegación ya existe a nivel reutilizable
+
+la preservación de contexto UX debe aplicarse con criterio y solo cuando aporte continuidad real de uso
+
+breadcrumb, retorno al origen y preservación de contexto deben resolverse de forma consistente entre módulos relacionados

@@ -23,6 +23,10 @@ No asumir patrones por memoria si deben validarse contra los documentos del proy
 Primero analizar el contexto documental y luego responder.
 No inventar estructuras nuevas si el proyecto ya tiene una convención resuelta.
 Si el tema ya está normado en los documentos del proyecto, respetar esa base antes de proponer cambios.
+Si el módulo se relaciona con otras entidades, definir desde el inicio:
+breadcrumb esperado
+retorno al origen
+preservación o no del contexto UX
 
 REGLA DE VALIDACIÓN DEL PEDIDO
 
@@ -55,11 +59,9 @@ Si corresponde, devolvé:
 - comandos de consola
 - comandos artisan
 
-5. Cierre operativo
+5. Cierre 
 Solo al final y solo si corresponde, indicá:
-- impacto documental
-- documentos a revisar o actualizar
-- descripción sugerida para commit o git
+- descripción sugerida para commit de vscode, si es necesario
 - pendiente inmediato o siguiente paso lógico, si realmente aporta valor
 
 OBJETIVO DE ESTE CHAT

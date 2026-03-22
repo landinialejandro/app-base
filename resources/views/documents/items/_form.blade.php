@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/items/_form.blade.php --}}
+{{-- FILE: resources/views/documents/items/_form.blade.php | V3 --}}
 
 @php
     use App\Support\Catalogs\ProductCatalog;

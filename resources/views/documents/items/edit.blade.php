@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/items/edit.blade.php | V4 --}}
+{{-- FILE: resources/views/documents/items/edit.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -10,7 +10,8 @@
             ? ['context_type' => $navigationContext['type'], 'context_id' => $navigationContext['id']]
             : [];
 
-        $documentLabel = $document->number ?: 'Sin número';
+        $documentLabel = $document->number ?: 'Documento #' . $document->id;
+        $orderLabel = $document->order ? ($document->order->number ?: 'Orden #' . $document->order->id) : null;
 
         $breadcrumbItems = [['label' => 'Inicio', 'url' => route('dashboard')]];
 
@@ -18,7 +19,18 @@
             $breadcrumbItems[] = ['label' => 'Turnos', 'url' => route('appointments.index')];
             $breadcrumbItems[] = ['label' => $navigationContext['label'], 'url' => $navigationContext['url']];
             $breadcrumbItems[] = [
-                'label' => $document->order->number ?: 'Orden #' . $document->order->id,
+                'label' => $orderLabel,
+                'url' => route('orders.show', ['order' => $document->order] + $contextRouteParams),
+            ];
+            $breadcrumbItems[] = [
+                'label' => $documentLabel,
+                'url' => route('documents.show', ['document' => $document] + $contextRouteParams),
+            ];
+            $breadcrumbItems[] = ['label' => 'Editar ítem'];
+        } elseif ($document->order) {
+            $breadcrumbItems[] = ['label' => 'Órdenes', 'url' => route('orders.index')];
+            $breadcrumbItems[] = [
+                'label' => $orderLabel,
                 'url' => route('orders.show', ['order' => $document->order] + $contextRouteParams),
             ];
             $breadcrumbItems[] = [
@@ -34,10 +46,11 @@
             ];
             $breadcrumbItems[] = ['label' => 'Editar ítem'];
         }
+
+        $cancelUrl = route('documents.show', ['document' => $document] + $contextRouteParams);
     @endphp
 
     <x-page>
-
         <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header title="Editar ítem" />
@@ -52,12 +65,10 @@
                 @include('documents.items._form')
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Guardar</button>
-                    <a href="{{ route('documents.show', ['document' => $document] + $contextRouteParams) }}"
-                        class="btn btn-secondary">Cancelar</a>
+                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    <a href="{{ $cancelUrl }}" class="btn btn-secondary">Cancelar</a>
                 </div>
             </form>
         </x-card>
-
     </x-page>
 @endsection

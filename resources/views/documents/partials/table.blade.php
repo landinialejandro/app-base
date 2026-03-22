@@ -1,24 +1,25 @@
 {{-- FILE: resources/views/documents/partials/table.blade.php | V3 --}}
 
 @php
-    use App\Support\Catalogs\DocumentCatalog;
-
     $documents = $documents ?? collect();
-    $emptyMessage = $emptyMessage ?? 'No hay documentos para mostrar.';
-    $showParty = $showParty ?? false;
+    $showParty = $showParty ?? true;
     $showAsset = $showAsset ?? true;
     $showOrder = $showOrder ?? true;
-    $contextRouteParams = $contextRouteParams ?? [];
+    $emptyMessage = $emptyMessage ?? 'No hay documentos para mostrar.';
+    $trailQuery = $trailQuery ?? [];
 @endphp
 
-@if ($documents->count())
-    <div class="table-wrap list-scroll">
+@if ($documents->isEmpty())
+    <p class="text-muted">{{ $emptyMessage }}</p>
+@else
+    <div class="table-responsive">
         <table class="table">
             <thead>
                 <tr>
                     <th>Número</th>
                     <th>Tipo</th>
                     <th>Estado</th>
+                    <th>Fecha</th>
 
                     @if ($showParty)
                         <th>Contacto</th>
@@ -32,71 +33,59 @@
                         <th>Orden</th>
                     @endif
 
-                    <th>Fecha</th>
-                    <th>Total</th>
+                    <th class="text-end">Total</th>
+                    <th class="table-actions">Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($documents as $document)
                     <tr>
+                        <td>{{ $document->number ?: 'Sin número' }}</td>
+                        <td>{{ \App\Support\Catalogs\DocumentCatalog::label($document->kind) }}</td>
                         <td>
-                            <a href="{{ route('documents.show', ['document' => $document] + $contextRouteParams) }}">
-                                {{ $document->number ?: 'Sin número' }}
-                            </a>
-                        </td>
-
-                        <td>{{ DocumentCatalog::kindLabel($document->kind) }}</td>
-
-                        <td>
-                            <span class="status-badge {{ DocumentCatalog::badgeClass($document->status) }}">
-                                {{ DocumentCatalog::statusLabel($document->status) }}
+                            <span
+                                class="status-badge {{ \App\Support\Catalogs\DocumentCatalog::badgeClass($document->status) }}">
+                                {{ \App\Support\Catalogs\DocumentCatalog::statusLabel($document->status) }}
                             </span>
                         </td>
+                        <td>{{ $document->issued_at?->format('d/m/Y') ?: '—' }}</td>
 
                         @if ($showParty)
-                            <td>
-                                @if ($document->party)
-                                    <a href="{{ route('parties.show', $document->party) }}">
-                                        {{ $document->party->name }}
-                                    </a>
-                                @else
-                                    —
-                                @endif
-                            </td>
+                            <td>{{ $document->party?->name ?: '—' }}</td>
                         @endif
 
                         @if ($showAsset)
-                            <td>
-                                @if ($document->asset)
-                                    <a href="{{ route('assets.show', $document->asset) }}">
-                                        {{ $document->asset->name }}
-                                    </a>
-                                @else
-                                    —
-                                @endif
-                            </td>
+                            <td>{{ $document->asset?->name ?: '—' }}</td>
                         @endif
 
                         @if ($showOrder)
                             <td>
                                 @if ($document->order)
-                                    <a
-                                        href="{{ route('orders.show', ['order' => $document->order] + $contextRouteParams) }}">
-                                        {{ $document->order->number ?: 'Sin número' }}
-                                    </a>
+                                    {{ $document->order->number ?: 'Orden #' . $document->order->id }}
                                 @else
                                     —
                                 @endif
                             </td>
                         @endif
 
-                        <td>{{ $document->issued_at?->format('d/m/Y') ?: '—' }}</td>
-                        <td>${{ number_format((float) $document->total, 2, ',', '.') }}</td>
+                        <td class="text-end">${{ number_format($document->total, 2, ',', '.') }}</td>
+
+                        <td class="table-actions">
+                            <a href="{{ route('documents.show', ['document' => $document] + $trailQuery) }}"
+                                class="btn btn-secondary btn-sm">
+                                Ver
+                            </a>
+
+                            @can('update', $document)
+                                <a href="{{ route('documents.edit', ['document' => $document] + $trailQuery) }}"
+                                    class="btn btn-secondary btn-sm">
+                                    Editar
+                                </a>
+                            @endcan
+                        </td>
                     </tr>
                 @endforeach
             </tbody>
         </table>
     </div>
-@else
-    <p class="mb-0">{{ $emptyMessage }}</p>
 @endif

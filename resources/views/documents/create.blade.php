@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/create.blade.php | V5 --}}
+{{-- FILE: resources/views/documents/create.blade.php | V6 --}}
 
 @extends('layouts.app')
 
@@ -6,38 +6,11 @@
 
 @section('content')
     @php
-        $contextRouteParams = $navigationContext
-            ? ['context_type' => $navigationContext['type'], 'context_id' => $navigationContext['id']]
-            : [];
+        use App\Support\Navigation\NavigationTrail;
 
-        $orderLabel = isset($order) && $order ? ($order->number ?: 'Orden #' . $order->id) : null;
-
-        $breadcrumbItems = [['label' => 'Inicio', 'url' => route('dashboard')]];
-
-        if (($navigationContext['type'] ?? null) === 'appointment' && isset($order) && $order) {
-            $breadcrumbItems[] = ['label' => 'Turnos', 'url' => route('appointments.index')];
-            $breadcrumbItems[] = ['label' => $navigationContext['label'], 'url' => $navigationContext['url']];
-            $breadcrumbItems[] = [
-                'label' => $orderLabel,
-                'url' => route('orders.show', ['order' => $order] + $contextRouteParams),
-            ];
-            $breadcrumbItems[] = ['label' => 'Nuevo documento'];
-        } elseif (isset($order) && $order) {
-            $breadcrumbItems[] = ['label' => 'Órdenes', 'url' => route('orders.index')];
-            $breadcrumbItems[] = [
-                'label' => $orderLabel,
-                'url' => route('orders.show', ['order' => $order] + $contextRouteParams),
-            ];
-            $breadcrumbItems[] = ['label' => 'Nuevo documento'];
-        } else {
-            $breadcrumbItems[] = ['label' => 'Documentos', 'url' => route('documents.index')];
-            $breadcrumbItems[] = ['label' => 'Nuevo documento'];
-        }
-
-        $cancelUrl =
-            isset($order) && $order
-                ? route('orders.show', ['order' => $order] + $contextRouteParams)
-                : route('documents.index');
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+        $cancelUrl = NavigationTrail::previousUrl($navigationTrail, route('documents.index'));
     @endphp
 
     <x-page>
@@ -46,7 +19,7 @@
         <x-page-header title="Nuevo documento" />
 
         <x-card>
-            <form method="POST" action="{{ route('documents.store', $contextRouteParams) }}" class="form">
+            <form method="POST" action="{{ route('documents.store', $trailQuery) }}" class="form">
                 @csrf
 
                 @include('documents._form')

@@ -1,555 +1,280 @@
-<?php
-
-// FILE: app/Http/Controllers/DocumentController.php | V7
-
-namespace App\Http\Controllers;
-
-use App\Models\Asset;
-use App\Models\Document;
-use App\Models\DocumentItem;
-use App\Models\Order;
-use App\Models\Party;
-use App\Support\Catalogs\DocumentCatalog;
-use App\Support\Documents\DocumentNumberGenerator;
-use App\Support\Documents\DocumentTotalsCalculator;
-use App\Support\Navigation\NavigationContext;
-use Illuminate\Http\Request;
-use Illuminate\Support\Carbon;
-use Illuminate\Support\Facades\DB;
-use Illuminate\Validation\Rule;
-
-class DocumentController extends Controller
-{
-    public function index(Request $request)
-    {
-        $this->authorize('viewAny', Document::class);
-
-        $q = trim((string) $request->get('q', ''));
-        $partyId = $request->get('party_id');
-        $assetId = $request->get('asset_id');
-        $orderId = $request->get('order_id');
-        $kind = $request->get('kind');
-        $status = $request->get('status');
-        $issuedAt = $request->get('issued_at');
-
-        $parties = Party::query()
-            ->orderBy('name')
-            ->get();
-
-        $assets = Asset::query()
-            ->with('party')
-            ->orderBy('name')
-            ->get();
-
-        $orders = Order::query()
-            ->with(['party', 'asset'])
-            ->latest()
-            ->get();
-
-        $documents = Document::query()
-            ->with(['party', 'order', 'asset', 'items'])
-            ->when($q !== '', function ($query) use ($q) {
-                $query->where(function ($subquery) use ($q) {
-                    $subquery->where('number', 'like', "%{$q}%");
-
-                    if (ctype_digit($q)) {
-                        $subquery->orWhere('id', (int) $q);
-                    }
-                });
-            })
-            ->when($partyId, function ($query) use ($partyId) {
-                $query->where('party_id', $partyId);
-            })
-            ->when($assetId, function ($query) use ($assetId) {
-                $query->where('asset_id', $assetId);
-            })
-            ->when($orderId, function ($query) use ($orderId) {
-                $query->where('order_id', $orderId);
-            })
-            ->when($kind, function ($query) use ($kind) {
-                $query->where('kind', $kind);
-            })
-            ->when($status, function ($query) use ($status) {
-                $query->where('status', $status);
-            })
-            ->when($issuedAt, function ($query) use ($issuedAt) {
-                $query->whereDate('issued_at', $issuedAt);
-            })
-            ->latest()
-            ->paginate(10)
-            ->withQueryString();
-
-        return view('documents.index', compact('documents', 'parties', 'assets', 'orders'));
-    }
-
-    public function create(Request $request)
-    {
-        $this->authorize('create', Document::class);
-
-        $tenant = app('tenant');
-        $navigationContext = NavigationContext::resolveFromRequest($request, $tenant->id);
-
-        $parties = Party::query()
-            ->orderBy('name')
-            ->get();
-
-        $orders = Order::query()
-            ->with(['party', 'asset'])
-            ->latest()
-            ->get();
-
-        $assets = Asset::query()
-            ->with('party')
-            ->orderBy('name')
-            ->get();
-
-        $order = null;
-
-        if ($request->filled('order_id')) {
-            $order = Order::query()
-                ->with(['party', 'asset'])
-                ->where('id', $request->integer('order_id'))
-                ->where('tenant_id', $tenant->id)
-                ->firstOrFail();
-        }
-
-        $document = new Document([
-            'party_id' => $order?->party_id,
-            'order_id' => $order?->id,
-            'asset_id' => $order?->asset_id,
-            'kind' => DocumentCatalog::KIND_QUOTE,
-            'status' => DocumentCatalog::STATUS_DRAFT,
-            'issued_at' => now(),
-        ]);
-
-        return view('documents.create', compact(
-            'document',
-            'order',
-            'parties',
-            'orders',
-            'assets',
-            'navigationContext',
-        ));
-    }
-
-    public function store(Request $request)
-    {
-        $this->authorize('create', Document::class);
-
-        $tenant = app('tenant');
-        $navigationContext = NavigationContext::resolveFromRequest($request, $tenant->id);
-
-        $data = $request->validate([
-            'party_id' => [
-                'required',
-                'integer',
-                Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
-                    $query->where('tenant_id', $tenant->id)
-                        ->whereNull('deleted_at');
-                }),
-            ],
-            'order_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('orders', 'id')->where(function ($query) use ($tenant) {
-                    $query->where('tenant_id', $tenant->id);
-                }),
-            ],
-            'asset_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('assets', 'id')->where(function ($query) use ($tenant) {
-                    $query->where('tenant_id', $tenant->id)
-                        ->whereNull('deleted_at');
-                }),
-            ],
-            'kind' => [
-                'required',
-                Rule::in(DocumentCatalog::kinds()),
-            ],
-            'status' => [
-                'required',
-                Rule::in(DocumentCatalog::statuses()),
-            ],
-            'issued_at' => ['nullable', 'date'],
-            'notes' => ['nullable', 'string'],
-        ]);
-
-        $issuedAt = $this->resolveIssuedAt($data['issued_at'] ?? null);
-        $order = null;
-
-        if (! empty($data['order_id'])) {
-            $order = Order::query()
-                ->where('id', $data['order_id'])
-                ->where('tenant_id', $tenant->id)
-                ->first();
-
-            if ($order) {
-                $data['party_id'] = $order->party_id;
-                $data['asset_id'] = $order->asset_id;
-            }
-        }
-
-        if (! empty($data['asset_id'])) {
-            $asset = Asset::query()->findOrFail($data['asset_id']);
-
-            if ((int) $asset->party_id !== (int) $data['party_id']) {
-                return back()
-                    ->withErrors([
-                        'asset_id' => 'El activo seleccionado pertenece a otro contacto.',
-                    ])
-                    ->withInput();
-            }
-        }
-
-        $issuedAtError = $this->validateIssuedAtForDocument(
-            issuedAt: $issuedAt,
-            kind: $data['kind'],
-            order: $order,
-        );
-
-        if ($issuedAtError) {
-            return back()
-                ->withErrors(['issued_at' => $issuedAtError])
-                ->withInput();
-        }
-
-        $data['issued_at'] = $issuedAt->toDateString();
-
-        $document = DB::transaction(function () use ($tenant, $data) {
-            $sequence = DocumentNumberGenerator::generate(
-                tenantId: $tenant->id,
-                kind: $data['kind'],
-                pointOfSale: '0001',
-            );
-
-            $payload = array_merge($data, [
-                'number' => $sequence['number'],
-                'sequence_prefix' => $sequence['prefix'],
-                'point_of_sale' => $sequence['point_of_sale'],
-                'sequence_number' => $sequence['sequence_number'],
-                'created_by' => auth()->id(),
-            ]);
-
-            return Document::create($payload);
-        });
-
-        return redirect()
-            ->route('documents.show', ['document' => $document] + NavigationContext::routeParams($navigationContext))
-            ->with('success', "Documento creado correctamente con número {$document->number}.");
-    }
-
-    public function storeFromOrder(Request $request, Order $order)
-    {
-        $this->authorize('create', Document::class);
-
-        $navigationContext = NavigationContext::resolveFromRequest($request, $order->tenant_id);
-
-        $data = $request->validate([
-            'kind' => [
-                'required',
-                Rule::in([
-                    DocumentCatalog::KIND_QUOTE,
-                    DocumentCatalog::KIND_DELIVERY_NOTE,
-                    DocumentCatalog::KIND_INVOICE,
-                    DocumentCatalog::KIND_WORK_ORDER,
-                ]),
-            ],
-        ]);
-
-        abort_unless($order->party_id, 422, 'La orden debe tener un contacto asociado para generar documentos.');
-
-        $existingDocumentsCount = $order->documents()->count();
-        $existingSameKindCount = $order->documents()
-            ->where('kind', $data['kind'])
-            ->count();
-
-        $issuedAt = now()->startOfDay();
-
-        $issuedAtError = $this->validateIssuedAtForDocument(
-            issuedAt: $issuedAt,
-            kind: $data['kind'],
-            order: $order,
-        );
-
-        if ($issuedAtError) {
-            return back()
-                ->withErrors(['issued_at' => $issuedAtError]);
-        }
-
-        $document = DB::transaction(function () use ($order, $data, $issuedAt) {
-            $sequence = DocumentNumberGenerator::generate(
-                tenantId: $order->tenant_id,
-                kind: $data['kind'],
-                pointOfSale: '0001',
-            );
-
-            $document = Document::create([
-                'tenant_id' => $order->tenant_id,
-                'party_id' => $order->party_id,
-                'order_id' => $order->id,
-                'asset_id' => $order->asset_id,
-                'kind' => $data['kind'],
-                'number' => $sequence['number'],
-                'sequence_prefix' => $sequence['prefix'],
-                'point_of_sale' => $sequence['point_of_sale'],
-                'sequence_number' => $sequence['sequence_number'],
-                'status' => DocumentCatalog::STATUS_DRAFT,
-                'issued_at' => $issuedAt->toDateString(),
-                'subtotal' => 0,
-                'tax_total' => 0,
-                'total' => 0,
-                'created_by' => auth()->id(),
-            ]);
-
-            $this->copyItemsFromOrder($order, $document);
-
-            DocumentTotalsCalculator::apply($document);
-
-            return $document;
-        });
-
-        $kindLabel = DocumentCatalog::label($data['kind']);
-
-        $message = "Documento {$kindLabel} creado correctamente desde la orden con número {$document->number}.";
-
-        if ($existingDocumentsCount > 0) {
-            $message .= " Esta orden ya tenía {$existingDocumentsCount} documento(s) asociado(s).";
-        }
-
-        if ($existingSameKindCount > 0) {
-            $message .= " Ya existía(n) {$existingSameKindCount} documento(s) del tipo {$kindLabel}.";
-        }
-
-        return redirect()
-            ->route('documents.show', ['document' => $document] + NavigationContext::routeParams($navigationContext))
-            ->with('success', $message);
-    }
-
-    public function show(Request $request, Document $document)
-    {
-        $this->authorize('view', $document);
-
-        $document->load([
-            'party',
-            'order',
-            'asset',
-            'creator',
-            'updater',
-            'items.product',
-        ]);
-
-        $navigationContext = NavigationContext::resolveFromRequest($request, $document->tenant_id);
-
-        return view('documents.show', compact('document', 'navigationContext'));
-    }
-
-    public function edit(Request $request, Document $document)
-    {
-        $this->authorize('update', $document);
-
-        $parties = Party::query()
-            ->orderBy('name')
-            ->get();
-
-        $orders = Order::query()
-            ->with(['party', 'asset'])
-            ->latest()
-            ->get();
-
-        $assets = Asset::query()
-            ->with('party')
-            ->orderBy('name')
-            ->get();
-
-        $navigationContext = NavigationContext::resolveFromRequest($request, $document->tenant_id);
-
-        return view('documents.edit', compact('document', 'parties', 'orders', 'assets', 'navigationContext'));
-    }
-
-    public function update(Request $request, Document $document)
-    {
-        $this->authorize('update', $document);
-
-        $tenant = app('tenant');
-        $navigationContext = NavigationContext::resolveFromRequest($request, $tenant->id);
-
-        $data = $request->validate([
-            'party_id' => [
-                'required',
-                'integer',
-                Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
-                    $query->where('tenant_id', $tenant->id)
-                        ->whereNull('deleted_at');
-                }),
-            ],
-            'order_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('orders', 'id')->where(function ($query) use ($tenant) {
-                    $query->where('tenant_id', $tenant->id);
-                }),
-            ],
-            'asset_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('assets', 'id')->where(function ($query) use ($tenant) {
-                    $query->where('tenant_id', $tenant->id)
-                        ->whereNull('deleted_at');
-                }),
-            ],
-            'kind' => [
-                'required',
-                Rule::in(DocumentCatalog::kinds()),
-            ],
-            'status' => [
-                'required',
-                Rule::in(DocumentCatalog::statuses()),
-            ],
-            'issued_at' => ['nullable', 'date'],
-            'notes' => ['nullable', 'string'],
-        ]);
-
-        if ($document->number && $data['kind'] !== $document->kind) {
-            return back()
-                ->withErrors([
-                    'kind' => 'No se puede cambiar el tipo de un documento que ya fue numerado.',
+{{-- FILE: resources/views/documents/partials/embedded-tabs.blade.php | V3 --}}
+
+@php
+    use App\Support\Catalogs\DocumentCatalog;
+
+    $documents = $documents ?? collect();
+
+    $showParty = $showParty ?? false;
+    $showAsset = $showAsset ?? true;
+    $showOrder = $showOrder ?? true;
+
+    $emptyMessage = $emptyMessage ?? 'No hay documentos para mostrar.';
+    $allLabel = $allLabel ?? 'Todos';
+    $trailQuery = $trailQuery ?? [];
+
+    $kinds = DocumentCatalog::kindLabels();
+    $tabsId = $tabsId ?? 'documents-tabs-' . uniqid();
+@endphp
+
+<div class="tabs" data-tabs>
+    <div class="tabs-nav" role="tablist" aria-label="Tipos de documentos">
+        <button type="button" class="tabs-link is-active" data-tab-link="{{ $tabsId }}-all" role="tab"
+            aria-selected="true">
+            {{ $allLabel }}
+            @if ($documents->count())
+                ({{ $documents->count() }})
+            @endif
+        </button>
+
+        @foreach ($kinds as $value => $label)
+            @php
+                $kindDocuments = $documents->where('kind', $value)->values();
+            @endphp
+
+            <button type="button" class="tabs-link" data-tab-link="{{ $tabsId }}-{{ $value }}"
+                role="tab" aria-selected="false">
+                {{ $label }}
+                @if ($kindDocuments->count())
+                    ({{ $kindDocuments->count() }})
+                @endif
+            </button>
+        @endforeach
+    </div>
+
+    <section class="tab-panel is-active" data-tab-panel="{{ $tabsId }}-all">
+        <div class="tab-panel-stack">
+            <x-card class="list-card">
+                @include('documents.partials.table', [
+                    'documents' => $documents,
+                    'showParty' => $showParty,
+                    'showAsset' => $showAsset,
+                    'showOrder' => $showOrder,
+                    'emptyMessage' => $emptyMessage,
+                    'trailQuery' => $trailQuery,
                 ])
-                ->withInput();
-        }
+            </x-card>
+        </div>
+    </section>
 
-        $issuedAt = $this->resolveIssuedAt(
-            $data['issued_at'] ?? ($document->issued_at?->toDateString() ?? null)
-        );
+    @foreach ($kinds as $value => $label)
+        @php
+            $kindDocuments = $documents->where('kind', $value)->values();
+        @endphp
 
-        $order = null;
-
-        if (! empty($data['order_id'])) {
-            $order = Order::query()
-                ->where('id', $data['order_id'])
-                ->where('tenant_id', $tenant->id)
-                ->first();
-
-            if ($order) {
-                $data['party_id'] = $order->party_id;
-                $data['asset_id'] = $order->asset_id;
-            }
-        }
-
-        if (! empty($data['asset_id'])) {
-            $asset = Asset::query()->findOrFail($data['asset_id']);
-
-            if ((int) $asset->party_id !== (int) $data['party_id']) {
-                return back()
-                    ->withErrors([
-                        'asset_id' => 'El activo seleccionado pertenece a otro contacto.',
+        <section class="tab-panel" data-tab-panel="{{ $tabsId }}-{{ $value }}" hidden>
+            <div class="tab-panel-stack">
+                <x-card class="list-card">
+                    @include('documents.partials.table', [
+                        'documents' => $kindDocuments,
+                        'showParty' => $showParty,
+                        'showAsset' => $showAsset,
+                        'showOrder' => $showOrder,
+                        'emptyMessage' => "No hay documentos de tipo {$label} para mostrar.",
+                        'trailQuery' => $trailQuery,
                     ])
-                    ->withInput();
-            }
-        }
+                </x-card>
+            </div>
+        </section>
+    @endforeach
+</div>
 
-        $issuedAtError = $this->validateIssuedAtForDocument(
-            issuedAt: $issuedAt,
-            kind: $data['kind'],
-            order: $order,
-        );
 
-        if ($issuedAtError) {
-            return back()
-                ->withErrors(['issued_at' => $issuedAtError])
-                ->withInput();
-        }
 
-        $data['issued_at'] = $issuedAt->toDateString();
-        $data['updated_by'] = auth()->id();
+{{-- FILE: resources/views/orders/items/partials/table.blade.php | V3 --}}
 
-        $document->update($data);
+@php
+    use App\Support\Catalogs\ProductCatalog;
 
-        return redirect()
-            ->route('documents.show', ['document' => $document] + NavigationContext::routeParams($navigationContext))
-            ->with('success', 'Documento actualizado.');
-    }
+    $order = $order ?? null;
+    $items = $items ?? collect();
+    $emptyMessage = $emptyMessage ?? 'No hay ítems cargados en esta orden.';
+    $trailQuery = $trailQuery ?? [];
+@endphp
 
-    public function destroy(Request $request, Document $document)
-    {
-        $this->authorize('delete', $document);
+@if ($items->count())
+    <div class="table-wrap list-scroll">
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>Posición</th>
+                    <th>Tipo</th>
+                    <th>Descripción</th>
+                    <th>Cantidad</th>
+                    <th>Precio unitario</th>
+                    <th>Total línea</th>
+                    <th class="compact-actions-cell">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach ($items as $item)
+                    <tr>
+                        <td>{{ $item->position }}</td>
+                        <td>{{ ProductCatalog::kindLabel($item->kind) }}</td>
+                        <td>{{ $item->description }}</td>
+                        <td>{{ number_format($item->quantity, 2, ',', '.') }}</td>
+                        <td>${{ number_format($item->unit_price, 2, ',', '.') }}</td>
+                        <td>${{ number_format($item->subtotal, 2, ',', '.') }}</td>
+                        <td class="compact-actions-cell">
+                            @can('update', $order)
+                                <div class="compact-actions">
+                                    <a href="{{ route('orders.items.edit', ['order' => $order, 'item' => $item] + $trailQuery) }}"
+                                        class="btn btn-secondary btn-icon" title="Editar ítem" aria-label="Editar ítem">
+                                        <x-icons.pencil />
+                                    </a>
 
-        $navigationContext = NavigationContext::resolveFromRequest($request, $document->tenant_id);
-        $order = $document->order;
+                                    <form method="POST"
+                                        action="{{ route('orders.items.destroy', ['order' => $order, 'item' => $item] + $trailQuery) }}"
+                                        class="inline-form" data-action="app-confirm-submit"
+                                        data-confirm-message="¿Deseas eliminar este ítem?">
+                                        @csrf
+                                        @method('DELETE')
 
-        $document->delete();
+                                        <button type="submit" class="btn btn-danger btn-icon" title="Eliminar ítem"
+                                            aria-label="Eliminar ítem">
+                                            <x-icons.trash />
+                                        </button>
+                                    </form>
+                                </div>
+                            @else
+                                —
+                            @endcan
+                        </td>
+                    </tr>
+                @endforeach
+            </tbody>
+        </table>
+    </div>
+@else
+    <p class="mb-0">{{ $emptyMessage }}</p>
+@endif
 
-        if ($order) {
-            return redirect()
-                ->route('orders.show', ['order' => $order] + NavigationContext::routeParams($navigationContext))
-                ->with('success', 'Documento eliminado.');
-        }
 
-        if (($navigationContext['type'] ?? null) === 'appointment') {
-            return redirect()
-                ->to($navigationContext['url'])
-                ->with('success', 'Documento eliminado.');
-        }
 
-        return redirect()
-            ->route('documents.index')
-            ->with('success', 'Documento eliminado.');
-    }
+{{-- FILE: resources/views/appointments/partials/calendar-day-cell.blade.php | V1 --}}
 
-    protected function copyItemsFromOrder(Order $order, Document $document): void
-    {
-        $order->loadMissing('items');
+@php
+    use App\Support\Catalogs\AppointmentCatalog;
 
-        foreach ($order->items as $orderItem) {
-            $quantity = (float) $orderItem->quantity;
-            $unitPrice = (float) $orderItem->unit_price;
-            $lineTotal = $quantity * $unitPrice;
+    $mode = $mode ?? 'month';
+    $appointments = $day['appointments'];
+    $maxVisibleAppointments = $maxVisibleAppointments ?? ($mode === 'week' ? 8 : 4);
+    $visibleAppointments = $appointments->take($maxVisibleAppointments);
+    $remainingCount = max($appointments->count() - $visibleAppointments->count(), 0);
+    $isPastDay = $day['date']
+        ->copy()
+        ->startOfDay()
+        ->lt(now()->startOfDay());
+@endphp
 
-            DocumentItem::create([
-                'tenant_id' => $document->tenant_id,
-                'document_id' => $document->id,
-                'product_id' => $orderItem->product_id,
-                'position' => $orderItem->position,
-                'kind' => $orderItem->kind,
-                'description' => $orderItem->description,
-                'quantity' => $quantity,
-                'unit_price' => $unitPrice,
-                'line_total' => $lineTotal,
-            ]);
-        }
-    }
+<div
+    class="appointment-calendar-day
+        {{ $day['is_current_month'] ? 'is-current-month' : 'is-outside-month' }}
+        {{ $day['is_today'] ? 'is-today' : '' }}
+        {{ $isPastDay ? 'is-past-day' : '' }}
+        {{ $mode === 'week' ? 'is-week-mode' : 'is-month-mode' }}">
+    <div class="appointment-calendar-day-header">
+        <div class="appointment-calendar-day-number">
+            {{ $day['date']->day }}
+        </div>
 
-    protected function resolveIssuedAt(?string $issuedAt): Carbon
-    {
-        return $issuedAt
-            ? Carbon::parse($issuedAt)->startOfDay()
-            : now()->startOfDay();
-    }
+        <div class="appointment-calendar-day-actions">
+            @unless ($isPastDay)
+                <a href="{{ route('appointments.create', ['scheduled_date' => $day['date_key']]) }}"
+                    class="appointment-calendar-add" title="Crear turno para {{ $day['date']->format('d/m/Y') }}"
+                    aria-label="Crear turno para {{ $day['date']->format('d/m/Y') }}">
+                    <x-icons.plus />
+                </a>
+            @endunless
+        </div>
+    </div>
 
-    protected function validateIssuedAtForDocument(Carbon $issuedAt, string $kind, ?Order $order = null): ?string
-    {
-        $today = now()->startOfDay();
+    <div class="appointment-calendar-day-summary">
+        @if ($appointments->count())
+            {{ $appointments->count() }} {{ $appointments->count() === 1 ? 'turno' : 'turnos' }}
+        @else
+            Sin turnos
+        @endif
+    </div>
 
-        if ($kind === DocumentCatalog::KIND_INVOICE && $issuedAt->gt($today)) {
-            return 'La fecha de una factura no puede ser futura.';
-        }
+    <div class="appointment-calendar-day-list">
+        @forelse ($visibleAppointments as $appointment)
+            @php
+                $rowTitle = AppointmentCatalog::rowTitleFor($appointment->kind, $appointment->work_mode);
+                $timeLabel = $appointment->is_all_day
+                    ? 'Día completo'
+                    : ($appointment->starts_at && $appointment->ends_at
+                        ? $appointment->starts_at->format('H:i') . ' - ' . $appointment->ends_at->format('H:i')
+                        : 'Sin horario');
 
-        if ($kind !== DocumentCatalog::KIND_INVOICE) {
-            $maxFutureDate = $today->copy()->addDays(30);
+                $orderLabel = $appointment->order
+                    ? ($appointment->order->number ?:
+                    'Orden #' . $appointment->order->id)
+                    : null;
 
-            if ($issuedAt->gt($maxFutureDate)) {
-                return 'La fecha del documento no puede superar los 30 días hacia el futuro.';
-            }
-        }
+                $secondaryReference = $appointment->workstation_name ?: ($appointment->asset?->name ?: null);
+            @endphp
 
-        if ($order && $order->ordered_at) {
-            $orderDate = Carbon::parse($order->ordered_at)->startOfDay();
+            <a href="{{ route('appointments.show', $appointment) }}"
+                class="appointment-calendar-item status-accent-{{ $appointment->status }}">
+                <div class="appointment-calendar-item-time">{{ $timeLabel }}</div>
 
-            if ($issuedAt->lt($orderDate)) {
-                return 'La fecha del documento no puede ser anterior a la fecha de la orden asociada.';
-            }
-        }
+                <div class="appointment-calendar-item-title">
+                    {{ $appointment->title ?: $rowTitle }}
+                </div>
 
-        return null;
-    }
-}
+                <div class="appointment-calendar-item-meta">
+                    @if ($appointment->party)
+                        <span>{{ $appointment->party->name }}</span>
+                    @elseif ($appointment->assignedUser)
+                        <span>{{ $appointment->assignedUser->name }}</span>
+                    @endif
+                </div>
+
+                @if ($mode === 'week')
+                    <div class="appointment-calendar-item-chips">
+                        <span class="appointment-calendar-chip appointment-calendar-chip--status">
+                            {{ AppointmentCatalog::statusLabel($appointment->status) }}
+                        </span>
+
+                        <span class="appointment-calendar-chip appointment-calendar-chip--kind">
+                            {{ AppointmentCatalog::kindLabel($appointment->kind) }}
+                        </span>
+
+                        <span
+                            class="appointment-calendar-chip {{ $appointment->order ? 'appointment-calendar-chip--order' : 'appointment-calendar-chip--no-order' }}">
+                            {{ $appointment->order ? 'Con ' . strtolower(AppointmentCatalog::orderLabel()) : 'Sin ' . strtolower(AppointmentCatalog::orderLabel()) }}
+                        </span>
+                    </div>
+
+                    <div class="appointment-calendar-item-extra">
+                        @if ($orderLabel)
+                            <div class="appointment-calendar-item-line">
+                                <span
+                                    class="appointment-calendar-item-label">{{ AppointmentCatalog::orderLabel() }}:</span>
+                                <span>{{ $orderLabel }}</span>
+                            </div>
+                        @endif
+
+                        @if ($secondaryReference)
+                            <div class="appointment-calendar-item-line">
+                                <span class="appointment-calendar-item-label">Ref.:</span>
+                                <span>{{ $secondaryReference }}</span>
+                            </div>
+                        @endif
+                    </div>
+                @endif
+            </a>
+        @empty
+            <div class="appointment-calendar-empty">
+                —
+            </div>
+        @endforelse
+
+        @if ($remainingCount > 0)
+            <div class="appointment-calendar-more">
+                +{{ $remainingCount }} más
+            </div>
+        @endif
+    </div>
+</div>

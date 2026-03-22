@@ -1,9 +1,10 @@
-{{-- FILE: resources/views/documents/show.blade.php | V6 --}}
+{{-- FILE: resources/views/documents/show.blade.php | V7 --}}
 
 @extends('layouts.app')
 
 @php
     use App\Support\Catalogs\DocumentCatalog;
+    use App\Support\Navigation\NavigationTrail;
 
     $items = $document->items->sortBy('position')->values();
 
@@ -20,40 +21,12 @@
     $canUpdateDocument = auth()->user()->can('update', $document);
     $canDeleteDocument = auth()->user()->can('delete', $document);
 
-    $contextRouteParams = $navigationContext
-        ? ['context_type' => $navigationContext['type'], 'context_id' => $navigationContext['id']]
-        : [];
+    $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+    $trailQuery = NavigationTrail::toQuery($navigationTrail);
+    $backUrl = NavigationTrail::previousUrl($navigationTrail, route('documents.index'));
+    $previousNode = NavigationTrail::previous($navigationTrail);
 
-    $documentLabel = $document->number ?: 'Documento #' . $document->id;
-    $orderLabel = $document->order ? ($document->order->number ?: 'Orden #' . $document->order->id) : null;
-
-    $breadcrumbItems = [['label' => 'Inicio', 'url' => route('dashboard')]];
-
-    if (($navigationContext['type'] ?? null) === 'appointment' && $document->order) {
-        $breadcrumbItems[] = ['label' => 'Turnos', 'url' => route('appointments.index')];
-        $breadcrumbItems[] = ['label' => $navigationContext['label'], 'url' => $navigationContext['url']];
-        $breadcrumbItems[] = [
-            'label' => $orderLabel,
-            'url' => route('orders.show', ['order' => $document->order] + $contextRouteParams),
-        ];
-        $breadcrumbItems[] = ['label' => $documentLabel];
-    } elseif ($document->order) {
-        $breadcrumbItems[] = ['label' => 'Órdenes', 'url' => route('orders.index')];
-        $breadcrumbItems[] = [
-            'label' => $orderLabel,
-            'url' => route('orders.show', ['order' => $document->order] + $contextRouteParams),
-        ];
-        $breadcrumbItems[] = ['label' => $documentLabel];
-    } else {
-        $breadcrumbItems[] = ['label' => 'Documentos', 'url' => route('documents.index')];
-        $breadcrumbItems[] = ['label' => $documentLabel];
-    }
-
-    $backUrl = $document->order
-        ? route('orders.show', ['order' => $document->order] + $contextRouteParams)
-        : (($navigationContext['type'] ?? null) === 'appointment'
-            ? $navigationContext['url']
-            : route('documents.index'));
+    $backLabel = ($previousNode['key'] ?? null) === 'orders.show' ? 'Volver a la orden' : 'Volver';
 @endphp
 
 @section('title', $documentDetailTitle)
@@ -64,16 +37,14 @@
 
         <x-page-header :title="$documentDetailTitle">
             @if ($canUpdateDocument)
-                <a href="{{ route('documents.edit', ['document' => $document] + $contextRouteParams) }}"
-                    class="btn btn-primary">
+                <a href="{{ route('documents.edit', ['document' => $document] + $trailQuery) }}" class="btn btn-primary">
                     <x-icons.pencil />
                     <span>Editar</span>
                 </a>
             @endif
 
             @if ($canDeleteDocument)
-                <form method="POST"
-                    action="{{ route('documents.destroy', ['document' => $document] + $contextRouteParams) }}"
+                <form method="POST" action="{{ route('documents.destroy', ['document' => $document] + $trailQuery) }}"
                     class="inline-form" data-action="app-confirm-submit"
                     data-confirm-message="{{ $items->count()
                         ? 'Este documento tiene ítems cargados. Si lo eliminas, también se eliminarán sus ítems. ¿Deseas continuar?'
@@ -89,7 +60,7 @@
             @endif
 
             <a href="{{ $backUrl }}" class="btn btn-secondary">
-                {{ $document->order ? 'Volver a la orden' : 'Volver' }}
+                {{ $backLabel }}
             </a>
         </x-page-header>
 
@@ -139,8 +110,8 @@
                         <span class="detail-block-label">Orden asociada</span>
                         <div class="detail-block-value">
                             @if ($document->order)
-                                <a href="{{ route('orders.show', ['order' => $document->order] + $contextRouteParams) }}">
-                                    {{ $orderLabel }}
+                                <a href="{{ route('orders.show', ['order' => $document->order] + $trailQuery) }}">
+                                    {{ $document->order->number ?: 'Orden #' . $document->order->id }}
                                 </a>
                             @else
                                 —
@@ -197,7 +168,7 @@
                 <div class="tab-panel-stack">
                     <x-page-header title="Ítems del documento">
                         @if ($canUpdateDocument)
-                            <a href="{{ route('documents.items.create', ['document' => $document] + $contextRouteParams) }}"
+                            <a href="{{ route('documents.items.create', ['document' => $document] + $trailQuery) }}"
                                 class="btn btn-primary">
                                 Agregar ítem
                             </a>
@@ -209,7 +180,7 @@
                             'document' => $document,
                             'items' => $items,
                             'emptyMessage' => 'No hay ítems cargados en este documento.',
-                            'contextRouteParams' => $contextRouteParams,
+                            'trailQuery' => $trailQuery,
                         ])
                     </x-card>
 

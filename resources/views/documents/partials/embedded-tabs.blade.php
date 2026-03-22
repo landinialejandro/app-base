@@ -11,7 +11,7 @@
 
     $emptyMessage = $emptyMessage ?? 'No hay documentos para mostrar.';
     $allLabel = $allLabel ?? 'Todos';
-    $contextRouteParams = $contextRouteParams ?? [];
+    $trailQuery = $trailQuery ?? [];
 
     $kinds = DocumentCatalog::kindLabels();
     $tabsId = $tabsId ?? 'documents-tabs-' . uniqid();
@@ -51,7 +51,7 @@
                     'showAsset' => $showAsset,
                     'showOrder' => $showOrder,
                     'emptyMessage' => $emptyMessage,
-                    'contextRouteParams' => $contextRouteParams,
+                    'trailQuery' => $trailQuery,
                 ])
             </x-card>
         </div>
@@ -71,7 +71,7 @@
                         'showAsset' => $showAsset,
                         'showOrder' => $showOrder,
                         'emptyMessage' => "No hay documentos de tipo {$label} para mostrar.",
-                        'contextRouteParams' => $contextRouteParams,
+                        'trailQuery' => $trailQuery,
                     ])
                 </x-card>
             </div>

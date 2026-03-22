@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/items/edit.blade.php | V3 --}}
+{{-- FILE: resources/views/orders/items/edit.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -6,32 +6,11 @@
 
 @section('content')
     @php
-        $contextRouteParams = $navigationContext
-            ? ['context_type' => $navigationContext['type'], 'context_id' => $navigationContext['id']]
-            : [];
+        use App\Support\Navigation\NavigationTrail;
 
-        $orderLabel = $order->number ?: 'Orden #' . $order->id;
-
-        $breadcrumbItems = [['label' => 'Inicio', 'url' => route('dashboard')]];
-
-        if (($navigationContext['type'] ?? null) === 'appointment') {
-            $breadcrumbItems[] = ['label' => 'Turnos', 'url' => route('appointments.index')];
-            $breadcrumbItems[] = ['label' => $navigationContext['label'], 'url' => $navigationContext['url']];
-            $breadcrumbItems[] = [
-                'label' => $orderLabel,
-                'url' => route('orders.show', ['order' => $order] + $contextRouteParams),
-            ];
-            $breadcrumbItems[] = ['label' => 'Editar ítem'];
-        } else {
-            $breadcrumbItems[] = ['label' => 'Órdenes', 'url' => route('orders.index')];
-            $breadcrumbItems[] = [
-                'label' => $orderLabel,
-                'url' => route('orders.show', ['order' => $order] + $contextRouteParams),
-            ];
-            $breadcrumbItems[] = ['label' => 'Editar ítem'];
-        }
-
-        $cancelUrl = route('orders.show', ['order' => $order] + $contextRouteParams);
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+        $cancelUrl = NavigationTrail::previousUrl($navigationTrail, route('orders.show', ['order' => $order]));
     @endphp
 
     <x-page>
@@ -41,7 +20,7 @@
 
         <x-card>
             <form method="POST"
-                action="{{ route('orders.items.update', ['order' => $order, 'item' => $item] + $contextRouteParams) }}"
+                action="{{ route('orders.items.update', ['order' => $order, 'item' => $item] + $trailQuery) }}"
                 class="form">
                 @csrf
                 @method('PUT')

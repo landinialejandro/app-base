@@ -6,7 +6,7 @@
     $order = $order ?? null;
     $items = $items ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay ítems cargados en esta orden.';
-    $contextRouteParams = $contextRouteParams ?? [];
+    $trailQuery = $trailQuery ?? [];
 @endphp
 
 @if ($items->count())
@@ -35,13 +35,13 @@
                         <td class="compact-actions-cell">
                             @can('update', $order)
                                 <div class="compact-actions">
-                                    <a href="{{ route('orders.items.edit', ['order' => $order, 'item' => $item] + $contextRouteParams) }}"
+                                    <a href="{{ route('orders.items.edit', ['order' => $order, 'item' => $item] + $trailQuery) }}"
                                         class="btn btn-secondary btn-icon" title="Editar ítem" aria-label="Editar ítem">
                                         <x-icons.pencil />
                                     </a>
 
                                     <form method="POST"
-                                        action="{{ route('orders.items.destroy', ['order' => $order, 'item' => $item] + $contextRouteParams) }}"
+                                        action="{{ route('orders.items.destroy', ['order' => $order, 'item' => $item] + $trailQuery) }}"
                                         class="inline-form" data-action="app-confirm-submit"
                                         data-confirm-message="¿Deseas eliminar este ítem?">
                                         @csrf

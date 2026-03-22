@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V3 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -8,6 +8,7 @@
     @php
         use App\Support\Catalogs\DocumentCatalog;
         use App\Support\Catalogs\OrderCatalog;
+        use App\Support\Navigation\NavigationTrail;
 
         $items = $order->items->sortBy('position')->values();
         $documents = $order->documents->sortByDesc('id')->values();
@@ -24,25 +25,11 @@
         $invoiceCount = $documents->where('kind', DocumentCatalog::KIND_INVOICE)->count();
         $workOrderCount = $documents->where('kind', DocumentCatalog::KIND_WORK_ORDER)->count();
 
-        $contextRouteParams = $navigationContext
-            ? ['context_type' => $navigationContext['type'], 'context_id' => $navigationContext['id']]
-            : [];
-
-        $orderLabel = $order->number ?: 'Orden #' . $order->id;
-
-        $breadcrumbItems = [['label' => 'Inicio', 'url' => route('dashboard')]];
-
-        if (($navigationContext['type'] ?? null) === 'appointment') {
-            $breadcrumbItems[] = ['label' => 'Turnos', 'url' => route('appointments.index')];
-            $breadcrumbItems[] = ['label' => $navigationContext['label'], 'url' => $navigationContext['url']];
-            $breadcrumbItems[] = ['label' => $orderLabel];
-        } else {
-            $breadcrumbItems[] = ['label' => 'Órdenes', 'url' => route('orders.index')];
-            $breadcrumbItems[] = ['label' => $orderLabel];
-        }
-
-        $backUrl =
-            ($navigationContext['type'] ?? null) === 'appointment' ? $navigationContext['url'] : route('orders.index');
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+        $backUrl = NavigationTrail::previousUrl($navigationTrail, route('orders.index'));
+        $previousNode = NavigationTrail::previous($navigationTrail);
+        $backLabel = ($previousNode['key'] ?? null) === 'appointments.show' ? 'Volver al turno' : 'Volver';
     @endphp
 
     <x-page>
@@ -50,15 +37,15 @@
 
         <x-page-header :title="$orderDetailTitle">
             @can('update', $order)
-                <a href="{{ route('orders.edit', ['order' => $order] + $contextRouteParams) }}" class="btn btn-primary">
+                <a href="{{ route('orders.edit', ['order' => $order] + $trailQuery) }}" class="btn btn-primary">
                     <x-icons.pencil />
                     <span>Editar</span>
                 </a>
             @endcan
 
             @can('delete', $order)
-                <form method="POST" action="{{ route('orders.destroy', ['order' => $order] + $contextRouteParams) }}"
-                    class="inline-form" data-action="app-confirm-submit"
+                <form method="POST" action="{{ route('orders.destroy', ['order' => $order] + $trailQuery) }}" class="inline-form"
+                    data-action="app-confirm-submit"
                     data-confirm-message="{{ $items->count()
                         ? 'Esta orden tiene ítems cargados. Si la eliminas, también se eliminarán sus ítems. ¿Deseas continuar?'
                         : '¿Deseas eliminar esta orden?' }}">
@@ -79,7 +66,7 @@
             @endif
 
             <a href="{{ $backUrl }}" class="btn btn-secondary">
-                {{ ($navigationContext['type'] ?? null) === 'appointment' ? 'Volver al turno' : 'Volver' }}
+                {{ $backLabel }}
             </a>
         </x-page-header>
 
@@ -181,7 +168,7 @@
                 <div class="tab-panel-stack">
                     <x-page-header title="Ítems de la orden">
                         @can('update', $order)
-                            <a href="{{ route('orders.items.create', ['order' => $order] + $contextRouteParams) }}"
+                            <a href="{{ route('orders.items.create', ['order' => $order] + $trailQuery) }}"
                                 class="btn btn-primary">
                                 Agregar ítem
                             </a>
@@ -193,7 +180,7 @@
                             'order' => $order,
                             'items' => $items,
                             'emptyMessage' => 'No hay ítems cargados en esta orden.',
-                            'contextRouteParams' => $contextRouteParams,
+                            'trailQuery' => $trailQuery,
                         ])
                     </x-card>
 
@@ -217,7 +204,7 @@
                 <div class="tab-panel-stack">
                     <x-page-header title="Documentos de la orden">
                         <form method="POST"
-                            action="{{ route('orders.documents.store', ['order' => $order] + $contextRouteParams) }}"
+                            action="{{ route('orders.documents.store', ['order' => $order] + $trailQuery) }}"
                             class="inline-form"
                             @if ($quoteCount > 0) data-action="app-confirm-submit"
                             data-confirm-message="Esta orden ya tiene {{ $quoteCount }} presupuesto(s) asociado(s). ¿Deseas crear otro?" @endif>
@@ -229,7 +216,7 @@
                         </form>
 
                         <form method="POST"
-                            action="{{ route('orders.documents.store', ['order' => $order] + $contextRouteParams) }}"
+                            action="{{ route('orders.documents.store', ['order' => $order] + $trailQuery) }}"
                             class="inline-form"
                             @if ($deliveryNoteCount > 0) data-action="app-confirm-submit"
                             data-confirm-message="Esta orden ya tiene {{ $deliveryNoteCount }} remito(s) asociado(s). ¿Deseas crear otro?" @endif>
@@ -241,7 +228,7 @@
                         </form>
 
                         <form method="POST"
-                            action="{{ route('orders.documents.store', ['order' => $order] + $contextRouteParams) }}"
+                            action="{{ route('orders.documents.store', ['order' => $order] + $trailQuery) }}"
                             class="inline-form"
                             @if ($invoiceCount > 0) data-action="app-confirm-submit"
                             data-confirm-message="Esta orden ya tiene {{ $invoiceCount }} factura(s) asociada(s). ¿Deseas crear otra?" @endif>
@@ -253,7 +240,7 @@
                         </form>
 
                         <form method="POST"
-                            action="{{ route('orders.documents.store', ['order' => $order] + $contextRouteParams) }}"
+                            action="{{ route('orders.documents.store', ['order' => $order] + $trailQuery) }}"
                             class="inline-form"
                             @if ($workOrderCount > 0) data-action="app-confirm-submit"
                             data-confirm-message="Esta orden ya tiene {{ $workOrderCount }} orden(es) de trabajo asociada(s). ¿Deseas crear otra?" @endif>
@@ -273,7 +260,7 @@
                         'emptyMessage' => 'No hay documentos asociados para mostrar.',
                         'allLabel' => 'Todos',
                         'tabsId' => 'order-documents-tabs',
-                        'contextRouteParams' => $contextRouteParams,
+                        'trailQuery' => $trailQuery,
                     ])
                 </div>
             </section>

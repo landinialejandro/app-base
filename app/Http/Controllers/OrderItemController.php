@@ -1,13 +1,13 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderItemController.php | V6
+// FILE: app/Http/Controllers/OrderItemController.php | V7
 
 namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
-use App\Support\Navigation\NavigationContext;
+use App\Support\Navigation\NavigationTrail;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -29,16 +29,49 @@ class OrderItemController extends Controller
             'unit_price' => null,
         ]);
 
-        $navigationContext = NavigationContext::resolveFromRequest($request, $order->tenant_id);
+        $navigationTrail = NavigationTrail::fromRequest($request);
 
-        return view('orders.items.create', compact('order', 'item', 'products', 'navigationContext'));
+        if (empty($navigationTrail) || ! NavigationTrail::hasNode($navigationTrail, 'orders.show', $order->id)) {
+            $navigationTrail = NavigationTrail::base([
+                NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
+                NavigationTrail::makeNode('orders.index', null, 'Órdenes', route('orders.index')),
+                NavigationTrail::makeNode(
+                    'orders.show',
+                    $order->id,
+                    $order->number ?: 'Orden #'.$order->id,
+                    route('orders.show', ['order' => $order])
+                ),
+            ]);
+
+            $navigationTrail = NavigationTrail::replaceCurrentUrl(
+                $navigationTrail,
+                route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
+            );
+        }
+
+        $navigationTrail = NavigationTrail::appendOrCollapse(
+            $navigationTrail,
+            NavigationTrail::makeNode(
+                'orders.items.create',
+                $order->id,
+                'Agregar ítem',
+                route('orders.items.create', ['order' => $order])
+            )
+        );
+
+        $navigationTrail = NavigationTrail::replaceCurrentUrl(
+            $navigationTrail,
+            route('orders.items.create', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
+        );
+
+        return view('orders.items.create', compact('order', 'item', 'products', 'navigationTrail'));
     }
 
     public function store(Request $request, Order $order)
     {
         $this->authorize('update', $order);
 
-        $navigationContext = NavigationContext::resolveFromRequest($request, $order->tenant_id);
+        $navigationTrail = NavigationTrail::fromRequest($request);
 
         $data = $request->validate([
             'product_id' => [
@@ -63,8 +96,23 @@ class OrderItemController extends Controller
 
         OrderItem::create($data);
 
+        $navigationTrail = NavigationTrail::appendOrCollapse(
+            $navigationTrail,
+            NavigationTrail::makeNode(
+                'orders.show',
+                $order->id,
+                $order->number ?: 'Orden #'.$order->id,
+                route('orders.show', ['order' => $order])
+            )
+        );
+
+        $navigationTrail = NavigationTrail::replaceCurrentUrl(
+            $navigationTrail,
+            route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
+        );
+
         return redirect()
-            ->route('orders.show', ['order' => $order] + NavigationContext::routeParams($navigationContext))
+            ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
             ->with('success', 'Ítem agregado correctamente.');
     }
 
@@ -80,9 +128,42 @@ class OrderItemController extends Controller
             ->orderBy('name')
             ->get();
 
-        $navigationContext = NavigationContext::resolveFromRequest($request, $order->tenant_id);
+        $navigationTrail = NavigationTrail::fromRequest($request);
 
-        return view('orders.items.edit', compact('order', 'item', 'products', 'navigationContext'));
+        if (empty($navigationTrail) || ! NavigationTrail::hasNode($navigationTrail, 'orders.show', $order->id)) {
+            $navigationTrail = NavigationTrail::base([
+                NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
+                NavigationTrail::makeNode('orders.index', null, 'Órdenes', route('orders.index')),
+                NavigationTrail::makeNode(
+                    'orders.show',
+                    $order->id,
+                    $order->number ?: 'Orden #'.$order->id,
+                    route('orders.show', ['order' => $order])
+                ),
+            ]);
+
+            $navigationTrail = NavigationTrail::replaceCurrentUrl(
+                $navigationTrail,
+                route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
+            );
+        }
+
+        $navigationTrail = NavigationTrail::appendOrCollapse(
+            $navigationTrail,
+            NavigationTrail::makeNode(
+                'orders.items.edit',
+                $item->id,
+                'Editar ítem',
+                route('orders.items.edit', ['order' => $order, 'item' => $item])
+            )
+        );
+
+        $navigationTrail = NavigationTrail::replaceCurrentUrl(
+            $navigationTrail,
+            route('orders.items.edit', ['order' => $order, 'item' => $item] + NavigationTrail::toQuery($navigationTrail))
+        );
+
+        return view('orders.items.edit', compact('order', 'item', 'products', 'navigationTrail'));
     }
 
     public function update(Request $request, Order $order, OrderItem $item)
@@ -91,7 +172,7 @@ class OrderItemController extends Controller
 
         abort_unless((int) $item->order_id === (int) $order->id, 404);
 
-        $navigationContext = NavigationContext::resolveFromRequest($request, $order->tenant_id);
+        $navigationTrail = NavigationTrail::fromRequest($request);
 
         $data = $request->validate([
             'product_id' => [
@@ -113,8 +194,23 @@ class OrderItemController extends Controller
 
         $item->update($data);
 
+        $navigationTrail = NavigationTrail::appendOrCollapse(
+            $navigationTrail,
+            NavigationTrail::makeNode(
+                'orders.show',
+                $order->id,
+                $order->number ?: 'Orden #'.$order->id,
+                route('orders.show', ['order' => $order])
+            )
+        );
+
+        $navigationTrail = NavigationTrail::replaceCurrentUrl(
+            $navigationTrail,
+            route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
+        );
+
         return redirect()
-            ->route('orders.show', ['order' => $order] + NavigationContext::routeParams($navigationContext))
+            ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
             ->with('success', 'Ítem actualizado correctamente.');
     }
 
@@ -124,12 +220,27 @@ class OrderItemController extends Controller
 
         abort_unless((int) $item->order_id === (int) $order->id, 404);
 
-        $navigationContext = NavigationContext::resolveFromRequest($request, $order->tenant_id);
+        $navigationTrail = NavigationTrail::fromRequest($request);
 
         $item->delete();
 
+        $navigationTrail = NavigationTrail::appendOrCollapse(
+            $navigationTrail,
+            NavigationTrail::makeNode(
+                'orders.show',
+                $order->id,
+                $order->number ?: 'Orden #'.$order->id,
+                route('orders.show', ['order' => $order])
+            )
+        );
+
+        $navigationTrail = NavigationTrail::replaceCurrentUrl(
+            $navigationTrail,
+            route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
+        );
+
         return redirect()
-            ->route('orders.show', ['order' => $order] + NavigationContext::routeParams($navigationContext))
+            ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
             ->with('success', 'Ítem eliminado correctamente.');
     }
 }

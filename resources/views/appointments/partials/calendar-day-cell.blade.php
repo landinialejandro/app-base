@@ -1,3 +1,5 @@
+{{-- FILE: resources/views/appointments/partials/calendar-day-cell.blade.php | V1 --}}
+
 @php
     use App\Support\Catalogs\AppointmentCatalog;
 

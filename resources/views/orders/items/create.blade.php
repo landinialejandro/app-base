@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/items/create.blade.php | V3 --}}
+{{-- FILE: resources/views/orders/items/create.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -6,32 +6,11 @@
 
 @section('content')
     @php
-        $contextRouteParams = $navigationContext
-            ? ['context_type' => $navigationContext['type'], 'context_id' => $navigationContext['id']]
-            : [];
+        use App\Support\Navigation\NavigationTrail;
 
-        $orderLabel = $order->number ?: 'Orden #' . $order->id;
-
-        $breadcrumbItems = [['label' => 'Inicio', 'url' => route('dashboard')]];
-
-        if (($navigationContext['type'] ?? null) === 'appointment') {
-            $breadcrumbItems[] = ['label' => 'Turnos', 'url' => route('appointments.index')];
-            $breadcrumbItems[] = ['label' => $navigationContext['label'], 'url' => $navigationContext['url']];
-            $breadcrumbItems[] = [
-                'label' => $orderLabel,
-                'url' => route('orders.show', ['order' => $order] + $contextRouteParams),
-            ];
-            $breadcrumbItems[] = ['label' => 'Agregar ítem'];
-        } else {
-            $breadcrumbItems[] = ['label' => 'Órdenes', 'url' => route('orders.index')];
-            $breadcrumbItems[] = [
-                'label' => $orderLabel,
-                'url' => route('orders.show', ['order' => $order] + $contextRouteParams),
-            ];
-            $breadcrumbItems[] = ['label' => 'Agregar ítem'];
-        }
-
-        $cancelUrl = route('orders.show', ['order' => $order] + $contextRouteParams);
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+        $cancelUrl = NavigationTrail::previousUrl($navigationTrail, route('orders.show', ['order' => $order]));
     @endphp
 
     <x-page>
@@ -40,8 +19,7 @@
         <x-page-header title="Agregar ítem" />
 
         <x-card>
-            <form method="POST" action="{{ route('orders.items.store', ['order' => $order] + $contextRouteParams) }}"
-                class="form">
+            <form method="POST" action="{{ route('orders.items.store', ['order' => $order] + $trailQuery) }}" class="form">
                 @csrf
 
                 @include('orders.items._form')

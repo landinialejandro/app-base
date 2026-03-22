@@ -142,7 +142,11 @@ revisar y consolidar la implementación de navegación contextual según context
 
 normalizar implementación de navegación contextual ya adoptada en orders, documents y sus items
 
+migrar módulos relacionados que todavía no utilicen el mecanismo central vigente de trail o contexto reutilizable
+
 eliminar reconstrucciones manuales de breadcrumb o retorno basadas en request suelta o url()->previous()
+
+barrer restos de mecanismos anteriores de contexto si duplican o contradicen la resolución central vigente
 
 unificar criterio de controller resuelve contexto y vista consume contexto
 

@@ -31,7 +31,7 @@ Cuando existan varias alternativas técnicas, se debe priorizar siempre la opci�
 
 CONVENCIONES DE NOMBRES
 
-Modelos
+MODELOS
 
 Los modelos deben estar en singular.
 
@@ -46,7 +46,7 @@ Order
 Document
 Asset
 
-Tablas
+TABLAS
 
 Las tablas deben utilizar plural en snake_case.
 
@@ -61,7 +61,7 @@ orders
 documents
 assets
 
-Controladores
+CONTROLADORES
 
 Los controladores utilizan el sufijo:
 
@@ -74,7 +74,7 @@ OrderController
 DocumentController
 AssetController
 
-Rutas
+RUTAS
 
 Las rutas utilizan plural.
 
@@ -446,6 +446,31 @@ usar navegación estructural por defecto
 usar navegación contextual solo como override útil cuando el origen funcional deba preservarse
 
 cuando no exista contexto válido o el origen no agregue valor operativo, debe mostrarse navegación estructural normal
+
+
+RESOLUCIÓN TÉCNICA DEL TRAIL DE NAVEGACIÓN
+
+Cuando la navegación contextual ya exista como patrón real del sistema, debe resolverse mediante un mecanismo central reutilizable y estable.
+
+Reglas:
+
+preferir un motor genérico de trail reutilizable antes que variantes dispersas por módulo
+
+cuando un módulo necesite lógica propia de navegación contextual, debe apoyarse en resolutores, builders o adaptadores compatibles con el mecanismo central vigente
+
+si una pantalla relacionada recibe un trail válido, debe poder heredarlo, extenderlo o colapsarlo sin reconstruir manualmente la navegación desde parámetros sueltos o historial del navegador
+
+cuando el trail vuelva a un nodo ya existente, debe priorizarse una resolución limpia y no duplicada
+
+no sostener en paralelo mecanismos redundantes de breadcrumb contextual si ya existe una forma central adoptada por el proyecto
+
+las decisiones técnicas concretas de clases o nombres de implementación pueden evolucionar, pero la convención estable es:
+
+motor central reutilizable
+controller resuelve
+vista consume
+sin deducción desde historial
+sin duplicación por módulo
 
 
 CONVENCIONES DE VOCABULARIO UI

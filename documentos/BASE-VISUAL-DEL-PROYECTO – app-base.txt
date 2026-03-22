@@ -185,6 +185,8 @@ cuando exista navegación cruzada entre entidades relacionadas, puede priorizars
 
 breadcrumb no debe depender del historial del navegador para representar relaciones de negocio
 
+cuando exista navegación cruzada entre pantallas relacionadas, el breadcrumb puede resolverse mediante un trail heredable previamente validado por controller
+
 
 PANTALLAS TIPO CALENDARIO
 

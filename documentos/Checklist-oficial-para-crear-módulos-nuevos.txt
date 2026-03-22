@@ -121,6 +121,10 @@ propagar ese contexto en enlaces internos, acciones create, edit, show y redirec
 
 resolver cancelar, volver y redirect post acción de forma consistente con ese contexto
 
+si participa en navegación cruzada real, aceptar y propagar el trail o mecanismo contextual vigente del proyecto
+
+si ya existe un resolutor, builder o adaptador central del módulo, reutilizarlo en lugar de crear una variante paralela
+
 Reglas:
 
 usar breadcrumb estructural por defecto
@@ -128,6 +132,10 @@ usar breadcrumb estructural por defecto
 usar breadcrumb contextual solo cuando el origen siga siendo útil
 
 no reconstruir breadcrumb funcional desde url()->previous()
+
+no deducir breadcrumb funcional desde relaciones implícitas del modelo ni desde historial del navegador
+
+no introducir mecanismos paralelos de contexto si ya existe trail central vigente
 
 no duplicar en blades lógica que ya fue resuelta por controller o capa central de navegación
 

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TaskController.php
+// FILE: app/Http/Controllers/TaskController.php | V3
 
 namespace App\Http\Controllers;
 
@@ -9,6 +9,8 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Support\Catalogs\TaskCatalog;
+use App\Support\Navigation\NavigationTrail;
+use App\Support\Navigation\TaskNavigationTrail;
 use App\Support\Tasks\TaskVisibility;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -134,21 +136,8 @@ class TaskController extends Controller
             ->get();
 
         $defaultAssignedUserId = old('assigned_user_id', (string) auth()->id());
-
-        $breadcrumbItems = $forcedProject
-            ? [
-                ['label' => 'Inicio', 'url' => route('dashboard')],
-                ['label' => 'Proyectos', 'url' => route('projects.index')],
-                ['label' => $forcedProject->name, 'url' => route('projects.show', $forcedProject)],
-                ['label' => 'Nueva tarea'],
-            ]
-            : [
-                ['label' => 'Inicio', 'url' => route('dashboard')],
-                ['label' => 'Tareas', 'url' => route('tasks.index')],
-                ['label' => 'Nueva tarea'],
-            ];
-
         $canChangeProject = auth()->user()->can('create', Project::class);
+        $navigationTrail = TaskNavigationTrail::create($request, $forcedProject);
 
         return view('tasks.create', compact(
             'tenant',
@@ -156,9 +145,9 @@ class TaskController extends Controller
             'parties',
             'users',
             'forcedProject',
-            'breadcrumbItems',
             'defaultAssignedUserId',
-            'canChangeProject'
+            'canChangeProject',
+            'navigationTrail'
         ));
     }
 
@@ -208,20 +197,16 @@ class TaskController extends Controller
         }
 
         $task = Task::create($data);
-        $task->load('project');
+        $task->load(['project', 'party', 'assignedUser', 'order']);
 
-        if ($task->project) {
-            return redirect()
-                ->route('projects.show', $task->project)
-                ->with('success', 'Tarea creada correctamente.');
-        }
+        $navigationTrail = TaskNavigationTrail::show($request, $task);
 
         return redirect()
-            ->route('tasks.show', $task)
+            ->route('tasks.show', ['task' => $task] + NavigationTrail::toQuery($navigationTrail))
             ->with('success', 'Tarea creada correctamente.');
     }
 
-    public function show(Task $task)
+    public function show(Request $request, Task $task)
     {
         $tenant = app('tenant');
 
@@ -234,30 +219,19 @@ class TaskController extends Controller
         $isForeignTaskForAdmin = $canDeleteTask
             && (int) $task->assigned_user_id !== (int) auth()->id();
 
-        $breadcrumbItems = $task->project
-            ? [
-                ['label' => 'Inicio', 'url' => route('dashboard')],
-                ['label' => 'Proyectos', 'url' => route('projects.index')],
-                ['label' => $task->project->name, 'url' => route('projects.show', $task->project)],
-                ['label' => $task->name],
-            ]
-            : [
-                ['label' => 'Inicio', 'url' => route('dashboard')],
-                ['label' => 'Tareas', 'url' => route('tasks.index')],
-                ['label' => $task->name],
-            ];
+        $navigationTrail = TaskNavigationTrail::show($request, $task);
 
         return view('tasks.show', compact(
             'tenant',
             'task',
-            'breadcrumbItems',
+            'navigationTrail',
             'canEditTask',
             'canDeleteTask',
             'isForeignTaskForAdmin'
         ));
     }
 
-    public function edit(Task $task)
+    public function edit(Request $request, Task $task)
     {
         $tenant = app('tenant');
 
@@ -281,20 +255,7 @@ class TaskController extends Controller
         $isForeignTaskForAdmin = auth()->user()->can('delete', $task)
             && (int) $task->assigned_user_id !== (int) auth()->id();
 
-        $breadcrumbItems = $task->project
-            ? [
-                ['label' => 'Inicio', 'url' => route('dashboard')],
-                ['label' => 'Proyectos', 'url' => route('projects.index')],
-                ['label' => $task->project->name, 'url' => route('projects.show', $task->project)],
-                ['label' => $task->name, 'url' => route('tasks.show', $task)],
-                ['label' => 'Editar'],
-            ]
-            : [
-                ['label' => 'Inicio', 'url' => route('dashboard')],
-                ['label' => 'Tareas', 'url' => route('tasks.index')],
-                ['label' => $task->name, 'url' => route('tasks.show', $task)],
-                ['label' => 'Editar'],
-            ];
+        $navigationTrail = TaskNavigationTrail::edit($request, $task);
 
         return view('tasks.edit', compact(
             'tenant',
@@ -303,10 +264,10 @@ class TaskController extends Controller
             'parties',
             'users',
             'forcedProject',
-            'breadcrumbItems',
             'canChangeProject',
             'defaultAssignedUserId',
-            'isForeignTaskForAdmin'
+            'isForeignTaskForAdmin',
+            'navigationTrail'
         ));
     }
 
@@ -374,36 +335,33 @@ class TaskController extends Controller
         unset($data['confirm_foreign_task_edit']);
 
         $task->update($data);
-        $task->load('project');
+        $task->load(['project', 'party', 'assignedUser', 'order']);
 
-        if ($task->project) {
-            return redirect()
-                ->route('projects.show', $task->project)
-                ->with('success', 'Tarea actualizada correctamente.');
-        }
+        $navigationTrail = TaskNavigationTrail::show($request, $task);
 
         return redirect()
-            ->route('tasks.show', $task)
+            ->route('tasks.show', ['task' => $task] + NavigationTrail::toQuery($navigationTrail))
             ->with('success', 'Tarea actualizada correctamente.');
     }
 
-    public function destroy(Task $task)
+    public function destroy(Request $request, Task $task)
     {
         $this->authorize('delete', $task);
 
         $task->load('project');
-        $project = $task->project;
+
+        $navigationTrail = TaskNavigationTrail::show($request, $task);
+        $redirectUrl = NavigationTrail::previousUrl(
+            $navigationTrail,
+            $task->project
+                ? route('projects.show', $task->project)
+                : route('tasks.index')
+        );
 
         $task->delete();
 
-        if ($project) {
-            return redirect()
-                ->route('projects.show', $project)
-                ->with('success', 'Tarea eliminada correctamente.');
-        }
-
         return redirect()
-            ->route('tasks.index')
+            ->to($redirectUrl)
             ->with('success', 'Tarea eliminada correctamente.');
     }
 }

@@ -7,29 +7,29 @@
 @section('content')
     @php
         use App\Support\Catalogs\ProjectCatalog;
+        use App\Support\Navigation\NavigationTrail;
 
         extract($metrics, EXTR_SKIP);
 
         $canDeleteProject = auth()->user()->can('delete', $project);
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+        $backUrl = NavigationTrail::previousUrl($navigationTrail, route('projects.index'));
     @endphp
 
     <x-page>
 
-        <x-breadcrumb :items="[
-            ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Proyectos', 'url' => route('projects.index')],
-            ['label' => $project->name],
-        ]" />
+        <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header title="Detalle del proyecto">
-            <a href="{{ route('projects.edit', $project) }}" class="btn btn-primary">
+            <a href="{{ route('projects.edit', ['project' => $project] + $trailQuery) }}" class="btn btn-primary">
                 <x-icons.pencil />
                 <span>Editar</span>
             </a>
 
             @if ($canDeleteProject)
-                <form method="POST" action="{{ route('projects.destroy', $project) }}" class="inline-form"
-                    data-action="app-confirm-submit"
+                <form method="POST" action="{{ route('projects.destroy', ['project' => $project] + $trailQuery) }}"
+                    class="inline-form" data-action="app-confirm-submit"
                     data-confirm-message="{{ $project->tasks->count()
                         ? 'Este proyecto tiene tareas asociadas. Si lo eliminas, también se eliminarán sus tareas. ¿Deseas continuar?'
                         : '¿Deseas eliminar este proyecto?' }}">
@@ -43,7 +43,7 @@
                 </form>
             @endif
 
-            <a href="{{ route('projects.index') }}" class="btn btn-secondary">
+            <a href="{{ $backUrl }}" class="btn btn-secondary">
                 Volver
             </a>
         </x-page-header>
@@ -249,7 +249,8 @@
             <section class="tab-panel is-active" data-tab-panel="open">
                 <div class="tab-panel-stack">
                     <x-page-header title="Tareas abiertas">
-                        <a href="{{ route('tasks.create', ['project_id' => $project->id]) }}" class="btn btn-primary">
+                        <a href="{{ route('tasks.create', ['project_id' => $project->id] + $trailQuery) }}"
+                            class="btn btn-primary">
                             Agregar tarea
                         </a>
                     </x-page-header>
@@ -258,6 +259,7 @@
                         @include('tasks.partials.table', [
                             'tasks' => $openTasks,
                             'emptyMessage' => 'No hay tareas abiertas en este proyecto.',
+                            'trailQuery' => $trailQuery,
                         ])
                     </x-card>
                 </div>
@@ -269,6 +271,7 @@
                         @include('tasks.partials.table', [
                             'tasks' => $doneTasks,
                             'emptyMessage' => 'No hay tareas finalizadas en este proyecto.',
+                            'trailQuery' => $trailQuery,
                         ])
                     </x-card>
                 </div>
@@ -280,6 +283,7 @@
                         @include('tasks.partials.table', [
                             'tasks' => $tasks,
                             'emptyMessage' => 'No hay tareas asociadas a este proyecto.',
+                            'trailQuery' => $trailQuery,
                         ])
                     </x-card>
                 </div>

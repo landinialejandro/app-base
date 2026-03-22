@@ -1,28 +1,33 @@
-{{-- FILE: resources/views/tasks/edit.blade.php --}}
+{{-- FILE: resources/views/tasks/edit.blade.php | V3 --}}
 
 @extends('layouts.app')
 
 @section('title', 'Editar tarea')
 
 @section('content')
+    @php
+        use App\Support\Navigation\NavigationTrail;
+
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+        $cancelUrl = NavigationTrail::previousUrl(
+            $navigationTrail,
+            $task->project ? route('projects.show', $task->project) : route('tasks.show', $task),
+        );
+    @endphp
+
     <x-page>
 
         <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header title="Editar tarea">
-            @if ($task->project)
-                <a href="{{ route('projects.show', $task->project) }}" class="btn btn-secondary">
-                    Volver al proyecto
-                </a>
-            @else
-                <a href="{{ route('tasks.show', $task) }}" class="btn btn-secondary">
-                    Volver al detalle
-                </a>
-            @endif
+            <a href="{{ $cancelUrl }}" class="btn btn-secondary">
+                Cancelar
+            </a>
         </x-page-header>
 
         <x-card>
-            <form method="POST" action="{{ route('tasks.update', $task) }}">
+            <form method="POST" action="{{ route('tasks.update', ['task' => $task] + $trailQuery) }}">
                 @csrf
                 @method('PUT')
 
@@ -33,15 +38,9 @@
                         Guardar cambios
                     </button>
 
-                    @if ($task->project)
-                        <a href="{{ route('projects.show', $task->project) }}" class="btn btn-secondary">
-                            Cancelar
-                        </a>
-                    @else
-                        <a href="{{ route('tasks.show', $task) }}" class="btn btn-secondary">
-                            Cancelar
-                        </a>
-                    @endif
+                    <a href="{{ $cancelUrl }}" class="btn btn-secondary">
+                        Cancelar
+                    </a>
                 </div>
             </form>
         </x-card>

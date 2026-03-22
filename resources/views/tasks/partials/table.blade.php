@@ -6,6 +6,7 @@
 
     $tasks = $tasks ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay tareas para mostrar.';
+    $trailQuery = $trailQuery ?? [];
 @endphp
 
 @if ($tasks->count())
@@ -43,7 +44,7 @@
 
                     <tr>
                         <td>
-                            <a href="{{ route('tasks.show', $task) }}">
+                            <a href="{{ route('tasks.show', ['task' => $task] + $trailQuery) }}">
                                 {{ $task->name }}
                             </a>
                         </td>
@@ -74,7 +75,7 @@
                         <td>{{ $dueText }}</td>
                         <td>
                             @if ($task->order)
-                                <a href="{{ route('orders.show', $task->order) }}">
+                                <a href="{{ route('orders.show', ['order' => $task->order] + $trailQuery) }}">
                                     {{ $task->order->number ?: 'Ver orden' }}
                                 </a>
                             @else

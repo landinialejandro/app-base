@@ -1,28 +1,33 @@
-{{-- FILE: resources/views/tasks/create.blade.php --}}
+{{-- FILE: resources/views/tasks/create.blade.php | V3 --}}
 
 @extends('layouts.app')
 
 @section('title', 'Nueva tarea')
 
 @section('content')
+    @php
+        use App\Support\Navigation\NavigationTrail;
+
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+        $cancelUrl = NavigationTrail::previousUrl(
+            $navigationTrail,
+            !empty($forcedProject) ? route('projects.show', $forcedProject) : route('tasks.index'),
+        );
+    @endphp
+
     <x-page>
 
         <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header title="Nueva tarea">
-            @if (!empty($forcedProject))
-                <a href="{{ route('projects.show', $forcedProject) }}" class="btn btn-secondary">
-                    Volver al proyecto
-                </a>
-            @else
-                <a href="{{ route('tasks.index') }}" class="btn btn-secondary">
-                    Volver al listado
-                </a>
-            @endif
+            <a href="{{ $cancelUrl }}" class="btn btn-secondary">
+                Cancelar
+            </a>
         </x-page-header>
 
         <x-card>
-            <form method="POST" action="{{ route('tasks.store') }}">
+            <form method="POST" action="{{ route('tasks.store', $trailQuery) }}">
                 @csrf
 
                 @include('tasks._form')
@@ -32,15 +37,9 @@
                         Guardar tarea
                     </button>
 
-                    @if (!empty($forcedProject))
-                        <a href="{{ route('projects.show', $forcedProject) }}" class="btn btn-secondary">
-                            Cancelar
-                        </a>
-                    @else
-                        <a href="{{ route('tasks.index') }}" class="btn btn-secondary">
-                            Cancelar
-                        </a>
-                    @endif
+                    <a href="{{ $cancelUrl }}" class="btn btn-secondary">
+                        Cancelar
+                    </a>
                 </div>
             </form>
         </x-card>

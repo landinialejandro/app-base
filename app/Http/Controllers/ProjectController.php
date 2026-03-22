@@ -1,12 +1,14 @@
 <?php
 
-// FILE: app/Http/Controllers/ProjectController.php
+// FILE: app/Http/Controllers/ProjectController.php | V3
 
 namespace App\Http\Controllers;
 
 use App\Models\Project;
 use App\Support\Catalogs\ProjectCatalog;
 use App\Support\Catalogs\TaskCatalog;
+use App\Support\Navigation\NavigationTrail;
+use App\Support\Navigation\ProjectNavigationTrail;
 use App\Support\Projects\ProjectMetrics;
 use App\Support\Projects\ProjectVisibility;
 use Illuminate\Http\Request;
@@ -115,14 +117,17 @@ class ProjectController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $tenant = app('tenant');
 
         $this->authorize('create', Project::class);
 
+        $navigationTrail = ProjectNavigationTrail::create($request);
+
         return view('projects.create', [
             'tenant' => $tenant,
+            'navigationTrail' => $navigationTrail,
         ]);
     }
 
@@ -138,12 +143,14 @@ class ProjectController extends Controller
 
         $project = Project::create($data);
 
+        $navigationTrail = ProjectNavigationTrail::show($request, $project);
+
         return redirect()
-            ->route('projects.index')
+            ->route('projects.show', ['project' => $project] + NavigationTrail::toQuery($navigationTrail))
             ->with('success', "Proyecto #{$project->id} creado correctamente.");
     }
 
-    public function show(Project $project)
+    public function show(Request $request, Project $project)
     {
         $tenant = app('tenant');
 
@@ -151,30 +158,35 @@ class ProjectController extends Controller
 
         $project->load([
             'tasks' => function ($query) {
-                $query->with(['assignedUser', 'order'])
+                $query->with(['project', 'assignedUser', 'order'])
                     ->orderBy('due_date')
                     ->orderBy('name');
             },
         ]);
 
         $metrics = ProjectMetrics::forShow($project);
+        $navigationTrail = ProjectNavigationTrail::show($request, $project);
 
         return view('projects.show', [
             'tenant' => $tenant,
             'project' => $project,
             'metrics' => $metrics,
+            'navigationTrail' => $navigationTrail,
         ]);
     }
 
-    public function edit(Project $project)
+    public function edit(Request $request, Project $project)
     {
         $tenant = app('tenant');
 
         $this->authorize('update', $project);
 
+        $navigationTrail = ProjectNavigationTrail::edit($request, $project);
+
         return view('projects.edit', [
             'tenant' => $tenant,
             'project' => $project,
+            'navigationTrail' => $navigationTrail,
         ]);
     }
 
@@ -190,19 +202,24 @@ class ProjectController extends Controller
 
         $project->update($data);
 
+        $navigationTrail = ProjectNavigationTrail::show($request, $project);
+
         return redirect()
-            ->route('projects.show', $project)
+            ->route('projects.show', ['project' => $project] + NavigationTrail::toQuery($navigationTrail))
             ->with('success', 'Proyecto actualizado');
     }
 
-    public function destroy(Project $project)
+    public function destroy(Request $request, Project $project)
     {
         $this->authorize('delete', $project);
+
+        $navigationTrail = ProjectNavigationTrail::show($request, $project);
+        $redirectUrl = NavigationTrail::previousUrl($navigationTrail, route('projects.index'));
 
         $project->delete();
 
         return redirect()
-            ->route('projects.index')
+            ->to($redirectUrl)
             ->with('success', 'Proyecto eliminado correctamente.');
     }
 }

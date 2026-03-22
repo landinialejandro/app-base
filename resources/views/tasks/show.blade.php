@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/show.blade.php |V4 --}}
+{{-- FILE: resources/views/tasks/show.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -7,6 +7,7 @@
 @section('content')
     @php
         use App\Support\Catalogs\TaskCatalog;
+        use App\Support\Navigation\NavigationTrail;
         use Illuminate\Support\Carbon;
 
         $dueDateText = 'Sin vencimiento';
@@ -25,24 +26,35 @@
                 default => 'Sin vencimiento',
             };
         }
+
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+        $backUrl = NavigationTrail::previousUrl(
+            $navigationTrail,
+            $task->project ? route('projects.show', $task->project) : route('tasks.index'),
+        );
+        $previousNode = NavigationTrail::previous($navigationTrail);
+        $backLabel = match ($previousNode['key'] ?? null) {
+            'projects.show' => 'Volver al proyecto',
+            'orders.show' => 'Volver a la orden',
+            default => 'Volver',
+        };
     @endphp
 
     <x-page>
 
         <x-breadcrumb :items="$breadcrumbItems" />
 
-        {{-- solo reemplazá el bloque del header por este --}}
-
         <x-page-header :title="$task->name">
             @if ($canEditTask)
-                <a href="{{ route('tasks.edit', $task) }}" class="btn btn-primary">
+                <a href="{{ route('tasks.edit', ['task' => $task] + $trailQuery) }}" class="btn btn-primary">
                     <x-icons.pencil />
                     <span>Editar</span>
                 </a>
             @endif
 
             @if ($canDeleteTask)
-                <form method="POST" action="{{ route('tasks.destroy', $task) }}" class="inline-form"
+                <form method="POST" action="{{ route('tasks.destroy', ['task' => $task] + $trailQuery) }}" class="inline-form"
                     data-action="app-confirm-submit" data-confirm-message="¿Eliminar tarea?">
                     @csrf
                     @method('DELETE')
@@ -55,20 +67,14 @@
             @endif
 
             @if (!$task->order && $task->party_id)
-                <a href="{{ route('orders.create', ['task_id' => $task->id]) }}" class="btn btn-secondary">
+                <a href="{{ route('orders.create', ['task_id' => $task->id] + $trailQuery) }}" class="btn btn-secondary">
                     Crear orden
                 </a>
             @endif
 
-            @if ($task->project)
-                <a href="{{ route('projects.show', $task->project) }}" class="btn btn-secondary">
-                    Volver al proyecto
-                </a>
-            @else
-                <a href="{{ route('tasks.index') }}" class="btn btn-secondary">
-                    Volver al listado
-                </a>
-            @endif
+            <a href="{{ $backUrl }}" class="btn btn-secondary">
+                {{ $backLabel }}
+            </a>
         </x-page-header>
 
         <x-show-summary details-id="task-more-detail">
@@ -78,7 +84,7 @@
 
             <x-show-summary-item label="Proyecto">
                 @if ($task->project)
-                    <a href="{{ route('projects.show', $task->project) }}">
+                    <a href="{{ route('projects.show', ['project' => $task->project] + $trailQuery) }}">
                         {{ $task->project->name }}
                     </a>
                 @else
@@ -114,11 +120,11 @@
                         <span class="detail-block-label">Orden asociada</span>
                         <div class="detail-block-value">
                             @if ($task->order)
-                                <a href="{{ route('orders.show', $task->order) }}">
+                                <a href="{{ route('orders.show', ['order' => $task->order] + $trailQuery) }}">
                                     {{ $task->order->number ?: 'Ver orden' }}
                                 </a>
                             @elseif ($task->party_id)
-                                <a href="{{ route('orders.create', ['task_id' => $task->id]) }}">
+                                <a href="{{ route('orders.create', ['task_id' => $task->id] + $trailQuery) }}">
                                     Crear orden
                                 </a>
                             @else

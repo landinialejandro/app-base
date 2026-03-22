@@ -60,7 +60,7 @@
             @endcan
 
             @if ($order->task)
-                <a href="{{ route('tasks.show', $order->task) }}" class="btn btn-secondary">
+                <a href="{{ route('tasks.show', ['task' => $order->task] + $trailQuery) }}" class="btn btn-secondary">
                     Ver tarea
                 </a>
             @endif
@@ -91,7 +91,7 @@
                     <div class="summary-inline-label">Tarea origen</div>
                     <div class="summary-inline-value">
                         @if ($order->task)
-                            <a href="{{ route('tasks.show', $order->task) }}">
+                            <a href="{{ route('tasks.show', ['task' => $order->task] + $trailQuery) }}">
                                 {{ $order->task->name }}
                             </a>
                         @else

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/create.blade.php | V4 --}}
+{{-- FILE: resources/views/documents/create.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -10,20 +10,22 @@
             ? ['context_type' => $navigationContext['type'], 'context_id' => $navigationContext['id']]
             : [];
 
+        $orderLabel = isset($order) && $order ? ($order->number ?: 'Orden #' . $order->id) : null;
+
         $breadcrumbItems = [['label' => 'Inicio', 'url' => route('dashboard')]];
 
         if (($navigationContext['type'] ?? null) === 'appointment' && isset($order) && $order) {
             $breadcrumbItems[] = ['label' => 'Turnos', 'url' => route('appointments.index')];
             $breadcrumbItems[] = ['label' => $navigationContext['label'], 'url' => $navigationContext['url']];
             $breadcrumbItems[] = [
-                'label' => $order->number ?: 'Orden #' . $order->id,
+                'label' => $orderLabel,
                 'url' => route('orders.show', ['order' => $order] + $contextRouteParams),
             ];
             $breadcrumbItems[] = ['label' => 'Nuevo documento'];
         } elseif (isset($order) && $order) {
             $breadcrumbItems[] = ['label' => 'Órdenes', 'url' => route('orders.index')];
             $breadcrumbItems[] = [
-                'label' => $order->number ?: 'Orden #' . $order->id,
+                'label' => $orderLabel,
                 'url' => route('orders.show', ['order' => $order] + $contextRouteParams),
             ];
             $breadcrumbItems[] = ['label' => 'Nuevo documento'];
@@ -39,7 +41,6 @@
     @endphp
 
     <x-page>
-
         <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header title="Nuevo documento" />
@@ -56,6 +57,5 @@
                 </div>
             </form>
         </x-card>
-
     </x-page>
 @endsection

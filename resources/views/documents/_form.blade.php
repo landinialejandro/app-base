@@ -1,10 +1,17 @@
-{{-- FILE: resources/views/documents/_form.blade.php --}}
+{{-- FILE: resources/views/documents/_form.blade.php | V2 --}}
 
 @php
     use App\Support\Catalogs\DocumentCatalog;
 
     $documentExists = isset($document) && $document->exists;
     $documentIsNumbered = $documentExists && !empty($document->number);
+
+    $navigationContext = $navigationContext ?? null;
+    $boundOrder = $order ?? ($document->order ?? null);
+
+    $currentOrderId = old('order_id', $boundOrder?->id ?? ($document->order_id ?? ''));
+    $currentPartyId = old('party_id', $boundOrder?->party_id ?? ($document->party_id ?? ''));
+    $currentAssetId = old('asset_id', $boundOrder?->asset_id ?? ($document->asset_id ?? ''));
 @endphp
 
 <div data-action="app-party-asset-sync" data-party-select="#party_id" data-asset-select="#asset_id">
@@ -13,7 +20,7 @@
         <select name="party_id" id="party_id" class="form-control" required>
             <option value="">Seleccionar contacto</option>
             @foreach ($parties as $party)
-                <option value="{{ $party->id }}" @selected(old('party_id', $document->party_id ?? '') == $party->id)>
+                <option value="{{ $party->id }}" @selected($currentPartyId == $party->id)>
                     {{ $party->name }}
                 </option>
             @endforeach
@@ -27,12 +34,18 @@
         <label for="order_id" class="form-label">Orden asociada</label>
         <select name="order_id" id="order_id" class="form-control">
             <option value="">Sin orden asociada</option>
-            @foreach ($orders as $order)
-                <option value="{{ $order->id }}" @selected(old('order_id', $document->order_id ?? '') == $order->id)>
-                    {{ $order->number ?: 'Sin número' }}
+            @foreach ($orders as $orderOption)
+                <option value="{{ $orderOption->id }}" @selected($currentOrderId == $orderOption->id)>
+                    {{ $orderOption->number ?: 'Orden #' . $orderOption->id }}
+                    @if ($orderOption->party)
+                        — {{ $orderOption->party->name }}
+                    @endif
                 </option>
             @endforeach
         </select>
+        <div class="form-help">
+            Si seleccionas una orden, el contacto y el activo deben corresponder a esa orden.
+        </div>
         @error('order_id')
             <div class="form-help is-error">{{ $message }}</div>
         @enderror
@@ -43,7 +56,7 @@
         <select name="asset_id" id="asset_id" class="form-control">
             <option value="">Sin activo asociado</option>
             @foreach ($assets as $asset)
-                <option value="{{ $asset->id }}" data-party-id="{{ $asset->party_id }}" @selected(old('asset_id', $document->asset_id ?? '') == $asset->id)>
+                <option value="{{ $asset->id }}" data-party-id="{{ $asset->party_id }}" @selected($currentAssetId == $asset->id)>
                     {{ $asset->name }}
                     @if ($asset->internal_code)
                         — {{ $asset->internal_code }}
@@ -54,9 +67,10 @@
                 </option>
             @endforeach
         </select>
-        <div class="form-help">Si seleccionas un activo, debe corresponder al contacto elegido. Si seleccionas una
-            orden, se
-            heredará el activo de esa orden.</div>
+        <div class="form-help">
+            Si seleccionas un activo, debe corresponder al contacto elegido. Si el documento está asociado a una orden,
+            se usará el activo de esa orden.
+        </div>
         @error('asset_id')
             <div class="form-help is-error">{{ $message }}</div>
         @enderror
@@ -127,8 +141,7 @@
 
         <div class="form-help">
             Para facturas no se permiten fechas futuras. Si el documento está asociado a una orden, la fecha no puede
-            ser
-            anterior a la de esa orden.
+            ser anterior a la de esa orden.
         </div>
 
         @error('issued_at')

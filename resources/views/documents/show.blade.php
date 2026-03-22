@@ -1,11 +1,11 @@
-{{-- FILE: resources/views/documents/show.blade.php | V5 --}}
+{{-- FILE: resources/views/documents/show.blade.php | V6 --}}
 
 @extends('layouts.app')
 
 @php
     use App\Support\Catalogs\DocumentCatalog;
 
-    $items = $document->items->sortBy('position');
+    $items = $document->items->sortBy('position')->values();
 
     $documentDetailTitle = match ($document->kind) {
         DocumentCatalog::KIND_QUOTE => 'Detalle del presupuesto',
@@ -24,38 +24,42 @@
         ? ['context_type' => $navigationContext['type'], 'context_id' => $navigationContext['id']]
         : [];
 
-    $documentLabel = $document->number ?: 'Sin número';
+    $documentLabel = $document->number ?: 'Documento #' . $document->id;
+    $orderLabel = $document->order ? ($document->order->number ?: 'Orden #' . $document->order->id) : null;
 
     $breadcrumbItems = [['label' => 'Inicio', 'url' => route('dashboard')]];
 
-    if (($navigationContext['type'] ?? null) === 'appointment') {
+    if (($navigationContext['type'] ?? null) === 'appointment' && $document->order) {
         $breadcrumbItems[] = ['label' => 'Turnos', 'url' => route('appointments.index')];
         $breadcrumbItems[] = ['label' => $navigationContext['label'], 'url' => $navigationContext['url']];
-
-        if ($document->order) {
-            $breadcrumbItems[] = [
-                'label' => $document->order->number ?: 'Orden #' . $document->order->id,
-                'url' => route('orders.show', ['order' => $document->order] + $contextRouteParams),
-            ];
-        }
-
+        $breadcrumbItems[] = [
+            'label' => $orderLabel,
+            'url' => route('orders.show', ['order' => $document->order] + $contextRouteParams),
+        ];
+        $breadcrumbItems[] = ['label' => $documentLabel];
+    } elseif ($document->order) {
+        $breadcrumbItems[] = ['label' => 'Órdenes', 'url' => route('orders.index')];
+        $breadcrumbItems[] = [
+            'label' => $orderLabel,
+            'url' => route('orders.show', ['order' => $document->order] + $contextRouteParams),
+        ];
         $breadcrumbItems[] = ['label' => $documentLabel];
     } else {
         $breadcrumbItems[] = ['label' => 'Documentos', 'url' => route('documents.index')];
         $breadcrumbItems[] = ['label' => $documentLabel];
     }
 
-    $backUrl =
-        ($navigationContext['type'] ?? null) === 'appointment' && $document->order
-            ? route('orders.show', ['order' => $document->order] + $contextRouteParams)
-            : route('documents.index');
+    $backUrl = $document->order
+        ? route('orders.show', ['order' => $document->order] + $contextRouteParams)
+        : (($navigationContext['type'] ?? null) === 'appointment'
+            ? $navigationContext['url']
+            : route('documents.index'));
 @endphp
 
 @section('title', $documentDetailTitle)
 
 @section('content')
     <x-page>
-
         <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header :title="$documentDetailTitle">
@@ -71,7 +75,7 @@
                 <form method="POST"
                     action="{{ route('documents.destroy', ['document' => $document] + $contextRouteParams) }}"
                     class="inline-form" data-action="app-confirm-submit"
-                    data-confirm-message="{{ $document->items->count()
+                    data-confirm-message="{{ $items->count()
                         ? 'Este documento tiene ítems cargados. Si lo eliminas, también se eliminarán sus ítems. ¿Deseas continuar?'
                         : '¿Deseas eliminar este documento?' }}">
                     @csrf
@@ -85,7 +89,7 @@
             @endif
 
             <a href="{{ $backUrl }}" class="btn btn-secondary">
-                {{ ($navigationContext['type'] ?? null) === 'appointment' && $document->order ? 'Volver a la orden' : 'Volver' }}
+                {{ $document->order ? 'Volver a la orden' : 'Volver' }}
             </a>
         </x-page-header>
 
@@ -136,7 +140,7 @@
                         <div class="detail-block-value">
                             @if ($document->order)
                                 <a href="{{ route('orders.show', ['order' => $document->order] + $contextRouteParams) }}">
-                                    {{ $document->order->number ?: 'Sin número' }}
+                                    {{ $orderLabel }}
                                 </a>
                             @else
                                 —
@@ -191,7 +195,6 @@
 
             <section class="tab-panel is-active" data-tab-panel="items">
                 <div class="tab-panel-stack">
-
                     <x-page-header title="Ítems del documento">
                         @if ($canUpdateDocument)
                             <a href="{{ route('documents.items.create', ['document' => $document] + $contextRouteParams) }}"
@@ -223,7 +226,6 @@
                             </div>
                         </div>
                     </x-card>
-
                 </div>
             </section>
 
@@ -256,6 +258,11 @@
                 <div class="tab-panel-stack">
                     <x-card>
                         <div class="detail-grid">
+                            <div class="detail-block detail-block--full">
+                                <span class="detail-block-label">Notas</span>
+                                <div class="detail-block-value">{{ $document->notes ?: '—' }}</div>
+                            </div>
+
                             <div class="detail-block">
                                 <span class="detail-block-label">Creado por</span>
                                 <div class="detail-block-value">{{ $document->creator?->name ?: '—' }}</div>
@@ -266,15 +273,15 @@
                                 <div class="detail-block-value">{{ $document->updater?->name ?: '—' }}</div>
                             </div>
 
-                            <div class="detail-block detail-block--full">
-                                <span class="detail-block-label">Notas</span>
-                                <div class="detail-block-value">{{ $document->notes ?: '—' }}</div>
+                            <div class="detail-block">
+                                <span class="detail-block-label">Actualizado el</span>
+                                <div class="detail-block-value">{{ $document->updated_at?->format('d/m/Y H:i') ?: '—' }}
+                                </div>
                             </div>
                         </div>
                     </x-card>
                 </div>
             </section>
         </div>
-
     </x-page>
 @endsection

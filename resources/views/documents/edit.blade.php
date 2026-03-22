@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/edit.blade.php | V3 --}}
+{{-- FILE: resources/views/documents/edit.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -10,21 +10,29 @@
             ? ['context_type' => $navigationContext['type'], 'context_id' => $navigationContext['id']]
             : [];
 
-        $documentLabel = $document->number ?: 'Sin número';
+        $documentLabel = $document->number ?: 'Documento #' . $document->id;
+        $orderLabel = $document->order ? ($document->order->number ?: 'Orden #' . $document->order->id) : null;
 
         $breadcrumbItems = [['label' => 'Inicio', 'url' => route('dashboard')]];
 
-        if (($navigationContext['type'] ?? null) === 'appointment') {
+        if (($navigationContext['type'] ?? null) === 'appointment' && $document->order) {
             $breadcrumbItems[] = ['label' => 'Turnos', 'url' => route('appointments.index')];
             $breadcrumbItems[] = ['label' => $navigationContext['label'], 'url' => $navigationContext['url']];
-
-            if ($document->order) {
-                $breadcrumbItems[] = [
-                    'label' => $document->order->number ?: 'Orden #' . $document->order->id,
-                    'url' => route('orders.show', ['order' => $document->order] + $contextRouteParams),
-                ];
-            }
-
+            $breadcrumbItems[] = [
+                'label' => $orderLabel,
+                'url' => route('orders.show', ['order' => $document->order] + $contextRouteParams),
+            ];
+            $breadcrumbItems[] = [
+                'label' => $documentLabel,
+                'url' => route('documents.show', ['document' => $document] + $contextRouteParams),
+            ];
+            $breadcrumbItems[] = ['label' => 'Editar'];
+        } elseif ($document->order) {
+            $breadcrumbItems[] = ['label' => 'Órdenes', 'url' => route('orders.index')];
+            $breadcrumbItems[] = [
+                'label' => $orderLabel,
+                'url' => route('orders.show', ['order' => $document->order] + $contextRouteParams),
+            ];
             $breadcrumbItems[] = [
                 'label' => $documentLabel,
                 'url' => route('documents.show', ['document' => $document] + $contextRouteParams),
@@ -32,7 +40,10 @@
             $breadcrumbItems[] = ['label' => 'Editar'];
         } else {
             $breadcrumbItems[] = ['label' => 'Documentos', 'url' => route('documents.index')];
-            $breadcrumbItems[] = ['label' => $documentLabel, 'url' => route('documents.show', $document)];
+            $breadcrumbItems[] = [
+                'label' => $documentLabel,
+                'url' => route('documents.show', ['document' => $document] + $contextRouteParams),
+            ];
             $breadcrumbItems[] = ['label' => 'Editar'];
         }
 
@@ -40,7 +51,6 @@
     @endphp
 
     <x-page>
-
         <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header title="Editar documento" />
@@ -59,6 +69,5 @@
                 </div>
             </form>
         </x-card>
-
     </x-page>
 @endsection

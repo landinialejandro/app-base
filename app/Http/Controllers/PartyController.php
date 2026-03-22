@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/PartyController.php | V2
+// FILE: app/Http/Controllers/PartyController.php | V3
 
 namespace App\Http\Controllers;
 
@@ -9,6 +9,8 @@ use App\Http\Requests\UpdatePartyRequest;
 use App\Models\Asset;
 use App\Models\Document;
 use App\Models\Party;
+use App\Support\Navigation\NavigationTrail;
+use App\Support\Navigation\PartyNavigationTrail;
 use Illuminate\Http\Request;
 
 class PartyController extends Controller
@@ -54,14 +56,16 @@ class PartyController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $this->authorize('create', Party::class);
 
         $tenant = app('tenant');
+        $navigationTrail = PartyNavigationTrail::create($request);
 
         return view('parties.create', [
             'tenant' => $tenant,
+            'navigationTrail' => $navigationTrail,
         ]);
     }
 
@@ -72,13 +76,14 @@ class PartyController extends Controller
         $data = $request->validated();
 
         $party = Party::create($data);
+        $navigationTrail = PartyNavigationTrail::show($request, $party);
 
         return redirect()
-            ->route('parties.index')
+            ->route('parties.show', ['party' => $party] + NavigationTrail::toQuery($navigationTrail))
             ->with('success', "Contacto #{$party->id} creado correctamente.");
     }
 
-    public function show(Party $party)
+    public function show(Request $request, Party $party)
     {
         $this->authorize('view', $party);
 
@@ -96,23 +101,28 @@ class PartyController extends Controller
             ->orderByDesc('id')
             ->get();
 
+        $navigationTrail = PartyNavigationTrail::show($request, $party);
+
         return view('parties.show', [
             'tenant' => $tenant,
             'party' => $party,
             'assets' => $assets,
             'documents' => $documents,
+            'navigationTrail' => $navigationTrail,
         ]);
     }
 
-    public function edit(Party $party)
+    public function edit(Request $request, Party $party)
     {
         $this->authorize('update', $party);
 
         $tenant = app('tenant');
+        $navigationTrail = PartyNavigationTrail::edit($request, $party);
 
         return view('parties.edit', [
             'tenant' => $tenant,
             'party' => $party,
+            'navigationTrail' => $navigationTrail,
         ]);
     }
 
@@ -123,20 +133,24 @@ class PartyController extends Controller
         $data = $request->validated();
 
         $party->update($data);
+        $navigationTrail = PartyNavigationTrail::show($request, $party);
 
         return redirect()
-            ->route('parties.show', $party)
+            ->route('parties.show', ['party' => $party] + NavigationTrail::toQuery($navigationTrail))
             ->with('success', 'Contacto actualizado correctamente.');
     }
 
-    public function destroy(Party $party)
+    public function destroy(Request $request, Party $party)
     {
         $this->authorize('delete', $party);
+
+        $navigationTrail = PartyNavigationTrail::show($request, $party);
+        $redirectUrl = NavigationTrail::previousUrl($navigationTrail, route('parties.index'));
 
         $party->delete();
 
         return redirect()
-            ->route('parties.index')
+            ->to($redirectUrl)
             ->with('success', 'Contacto eliminado correctamente.');
     }
 }

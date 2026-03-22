@@ -5,30 +5,30 @@
 @section('title', 'Detalle del contacto')
 
 @section('content')
-
     @php
+        use App\Support\Navigation\NavigationTrail;
+
         $documents = $documents ?? collect();
         $assets = $assets ?? collect();
+
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+        $backUrl = NavigationTrail::previousUrl($navigationTrail, route('parties.index'));
     @endphp
 
     <x-page>
-
-        <x-breadcrumb :items="[
-            ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Contactos', 'url' => route('parties.index')],
-            ['label' => $party->name],
-        ]" />
+        <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header title="Detalle del contacto">
             @can('update', $party)
-                <a href="{{ route('parties.edit', $party) }}" class="btn btn-primary">
+                <a href="{{ route('parties.edit', ['party' => $party] + $trailQuery) }}" class="btn btn-primary">
                     <x-icons.pencil />
                     <span>Editar</span>
                 </a>
             @endcan
 
             @can('delete', $party)
-                <form method="POST" action="{{ route('parties.destroy', $party) }}" class="inline-form"
+                <form method="POST" action="{{ route('parties.destroy', ['party' => $party] + $trailQuery) }}" class="inline-form"
                     data-action="app-confirm-submit" data-confirm-message="¿Eliminar contacto?">
                     @csrf
                     @method('DELETE')
@@ -40,7 +40,7 @@
                 </form>
             @endcan
 
-            <a href="{{ route('parties.index') }}" class="btn btn-secondary">
+            <a href="{{ $backUrl }}" class="btn btn-secondary">
                 Volver
             </a>
         </x-page-header>
@@ -152,6 +152,7 @@
                         'showAsset' => true,
                         'showOrder' => true,
                         'emptyMessage' => 'Este contacto no tiene documentos vinculados.',
+                        'trailQuery' => $trailQuery,
                     ])
                 </div>
             </section>
@@ -162,6 +163,7 @@
                         'assets' => $assets,
                         'showParty' => false,
                         'emptyMessage' => 'Este contacto no tiene activos vinculados.',
+                        'trailQuery' => $trailQuery,
                     ])
                 </div>
             </section>

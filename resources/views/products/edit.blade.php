@@ -5,23 +5,23 @@
 @section('title', 'Editar producto')
 
 @section('content')
-    <x-page>
+    @php
+        use App\Support\Navigation\NavigationTrail;
 
-        <x-breadcrumb :items="[
-            ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Productos', 'url' => route('products.index')],
-            ['label' => $product->name, 'url' => route('products.show', $product)],
-            ['label' => 'Editar'],
-        ]" />
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+    @endphp
+
+    <x-page>
+        <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header title="Editar producto" />
 
         <x-card>
-            <form action="{{ route('products.update', $product) }}" method="POST" class="form">
+            <form action="{{ route('products.update', ['product' => $product] + $trailQuery) }}" method="POST" class="form">
                 @method('PUT')
                 @include('products._form', ['product' => $product])
             </form>
         </x-card>
-
     </x-page>
 @endsection

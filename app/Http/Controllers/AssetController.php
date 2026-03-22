@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AssetController.php | V2
+// FILE: app/Http/Controllers/AssetController.php | V3
 
 namespace App\Http\Controllers;
 
@@ -9,6 +9,8 @@ use App\Models\Document;
 use App\Models\Order;
 use App\Models\Party;
 use App\Support\Catalogs\AssetCatalog;
+use App\Support\Navigation\AssetNavigationTrail;
+use App\Support\Navigation\NavigationTrail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -57,7 +59,7 @@ class AssetController extends Controller
         return view('assets.index', compact('assets', 'parties'));
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
         $this->authorize('create', Asset::class);
 
@@ -65,7 +67,17 @@ class AssetController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('assets.create', compact('parties'));
+        $prefilledParty = null;
+
+        if ($request->filled('party_id')) {
+            $prefilledParty = Party::query()
+                ->whereKey($request->integer('party_id'))
+                ->firstOrFail();
+        }
+
+        $navigationTrail = AssetNavigationTrail::create($request, $prefilledParty);
+
+        return view('assets.create', compact('parties', 'prefilledParty', 'navigationTrail'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -76,13 +88,16 @@ class AssetController extends Controller
 
         $asset = new Asset($validated);
         $asset->save();
+        $asset->load('party');
+
+        $navigationTrail = AssetNavigationTrail::show($request, $asset);
 
         return redirect()
-            ->route('assets.index')
+            ->route('assets.show', ['asset' => $asset] + NavigationTrail::toQuery($navigationTrail))
             ->with('success', 'Activo creado correctamente.');
     }
 
-    public function show(Asset $asset): View
+    public function show(Request $request, Asset $asset): View
     {
         $this->authorize('view', $asset);
 
@@ -100,10 +115,12 @@ class AssetController extends Controller
             ->latest()
             ->get();
 
-        return view('assets.show', compact('asset', 'orders', 'documents'));
+        $navigationTrail = AssetNavigationTrail::show($request, $asset);
+
+        return view('assets.show', compact('asset', 'orders', 'documents', 'navigationTrail'));
     }
 
-    public function edit(Asset $asset): View
+    public function edit(Request $request, Asset $asset): View
     {
         $this->authorize('update', $asset);
 
@@ -111,7 +128,9 @@ class AssetController extends Controller
             ->orderBy('name')
             ->get();
 
-        return view('assets.edit', compact('asset', 'parties'));
+        $navigationTrail = AssetNavigationTrail::edit($request, $asset);
+
+        return view('assets.edit', compact('asset', 'parties', 'navigationTrail'));
     }
 
     public function update(Request $request, Asset $asset): RedirectResponse
@@ -121,20 +140,26 @@ class AssetController extends Controller
         $validated = validator($request->all(), $this->rules())->validate();
 
         $asset->update($validated);
+        $asset->load('party');
+
+        $navigationTrail = AssetNavigationTrail::show($request, $asset);
 
         return redirect()
-            ->route('assets.show', $asset)
+            ->route('assets.show', ['asset' => $asset] + NavigationTrail::toQuery($navigationTrail))
             ->with('success', 'Activo actualizado correctamente.');
     }
 
-    public function destroy(Asset $asset): RedirectResponse
+    public function destroy(Request $request, Asset $asset): RedirectResponse
     {
         $this->authorize('delete', $asset);
+
+        $navigationTrail = AssetNavigationTrail::show($request, $asset);
+        $redirectUrl = NavigationTrail::previousUrl($navigationTrail, route('assets.index'));
 
         $asset->delete();
 
         return redirect()
-            ->route('assets.index')
+            ->to($redirectUrl)
             ->with('success', 'Activo eliminado correctamente.');
     }
 

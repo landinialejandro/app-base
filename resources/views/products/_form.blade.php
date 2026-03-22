@@ -2,6 +2,14 @@
 
 @php
     use App\Support\Catalogs\ProductCatalog;
+    use App\Support\Navigation\NavigationTrail;
+
+    $trailQuery = $trailQuery ?? (isset($navigationTrail) ? NavigationTrail::toQuery($navigationTrail) : []);
+    $cancelUrl =
+        $cancelUrl ??
+        (isset($product)
+            ? NavigationTrail::previousUrl($navigationTrail ?? [], route('products.show', ['product' => $product]))
+            : NavigationTrail::previousUrl($navigationTrail ?? [], route('products.index')));
 @endphp
 
 @csrf
@@ -22,8 +30,8 @@
 
 <div class="form-group">
     <label for="name" class="form-label">Nombre</label>
-    <input type="text" id="name" name="name" class="form-control" value="{{ old('name', $product->name ?? '') }}"
-        required>
+    <input type="text" id="name" name="name" class="form-control"
+        value="{{ old('name', $product->name ?? '') }}" required>
     @error('name')
         <div class="form-help">{{ $message }}</div>
     @enderror
@@ -31,7 +39,8 @@
 
 <div class="form-group">
     <label for="sku" class="form-label">SKU</label>
-    <input type="text" id="sku" name="sku" class="form-control" value="{{ old('sku', $product->sku ?? '') }}">
+    <input type="text" id="sku" name="sku" class="form-control"
+        value="{{ old('sku', $product->sku ?? '') }}">
     @error('sku')
         <div class="form-help">{{ $message }}</div>
     @enderror
@@ -57,8 +66,7 @@
 
 <div class="form-group">
     <label for="description" class="form-label">Descripción</label>
-    <textarea id="description" name="description" rows="4"
-        class="form-control">{{ old('description', $product->description ?? '') }}</textarea>
+    <textarea id="description" name="description" rows="4" class="form-control">{{ old('description', $product->description ?? '') }}</textarea>
     @error('description')
         <div class="form-help">{{ $message }}</div>
     @enderror
@@ -66,12 +74,13 @@
 
 <div class="form-group">
     <label class="form-label" for="is_active">
-        <input class="form-checkbox" type="checkbox" id="is_active" name="is_active" value="1" @checked(old('is_active', $product->is_active ?? true))>
+        <input class="form-checkbox" type="checkbox" id="is_active" name="is_active" value="1"
+            @checked(old('is_active', $product->is_active ?? true))>
         Activo
     </label>
 </div>
 
 <div class="form-actions">
     <button type="submit" class="btn btn-primary">Guardar</button>
-    <a href="{{ route('products.index') }}" class="btn btn-secondary">Cancelar</a>
+    <a href="{{ $cancelUrl }}" class="btn btn-secondary">Cancelar</a>
 </div>

@@ -64,7 +64,10 @@
                         @if ($showOrder)
                             <td>
                                 @if ($document->order)
-                                    {{ $document->order->number ?: 'Orden #' . $document->order->id }}
+                                    <a
+                                        href="{{ route('orders.show', ['order' => $document->order] + ($trailQuery ?? [])) }}">
+                                        {{ $document->order->number ?: 'Ver orden' }}
+                                    </a>
                                 @else
                                     —
                                 @endif

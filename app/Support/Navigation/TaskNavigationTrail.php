@@ -61,9 +61,7 @@ class TaskNavigationTrail
         $trail = NavigationTrail::fromRequest($request);
 
         if (empty($trail)) {
-            $trail = self::base($task);
-
-            return $trail;
+            return self::base($task);
         }
 
         return NavigationTrail::appendOrCollapse(

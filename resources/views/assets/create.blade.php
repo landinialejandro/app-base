@@ -5,21 +5,23 @@
 @section('title', 'Nuevo activo')
 
 @section('content')
-    <x-page>
+    @php
+        use App\Support\Navigation\NavigationTrail;
 
-        <x-breadcrumb :items="[
-            ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Activos', 'url' => route('assets.index')],
-            ['label' => 'Nuevo activo'],
-        ]" />
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+        $cancelUrl = NavigationTrail::previousUrl($navigationTrail, route('assets.index'));
+    @endphp
+
+    <x-page>
+        <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header title="Nuevo activo" />
 
         <x-card>
-            <form action="{{ route('assets.store') }}" method="POST" class="form">
+            <form action="{{ route('assets.store', $trailQuery) }}" method="POST" class="form">
                 @include('assets._form')
             </form>
         </x-card>
-
     </x-page>
 @endsection

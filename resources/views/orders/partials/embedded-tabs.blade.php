@@ -13,6 +13,7 @@
 
     $kinds = OrderCatalog::kindLabels();
     $tabsId = $tabsId ?? 'orders-tabs-' . uniqid();
+    $trailQuery = $trailQuery ?? [];
 @endphp
 
 <div class="tabs" data-tabs>
@@ -48,6 +49,7 @@
                     'showParty' => $showParty,
                     'showAsset' => $showAsset,
                     'emptyMessage' => $emptyMessage,
+                    'trailQuery' => $trailQuery,
                 ])
             </x-card>
         </div>
@@ -66,6 +68,7 @@
                         'showParty' => $showParty,
                         'showAsset' => $showAsset,
                         'emptyMessage' => "No hay órdenes de tipo {$label} para mostrar.",
+                        'trailQuery' => $trailQuery,
                     ])
                 </x-card>
             </div>

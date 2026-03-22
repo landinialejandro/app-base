@@ -5,38 +5,37 @@
 @section('title', 'Detalle del activo')
 
 @section('content')
-
     @php
         use App\Support\Catalogs\AssetCatalog;
+        use App\Support\Navigation\NavigationTrail;
 
         $orders = $orders ?? collect();
         $documents = $documents ?? collect();
+
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+        $backUrl = NavigationTrail::previousUrl($navigationTrail, route('assets.index'));
     @endphp
 
     <x-page>
-
-        <x-breadcrumb :items="[
-            ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Activos', 'url' => route('assets.index')],
-            ['label' => $asset->name],
-        ]" />
+        <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header title="Detalle del activo">
             @can('create', App\Models\Order::class)
-                <a href="{{ route('orders.create', ['asset_id' => $asset->id]) }}" class="btn btn-secondary">
+                <a href="{{ route('orders.create', ['asset_id' => $asset->id] + $trailQuery) }}" class="btn btn-secondary">
                     Nueva orden
                 </a>
             @endcan
 
             @can('update', $asset)
-                <a href="{{ route('assets.edit', $asset) }}" class="btn btn-primary">
+                <a href="{{ route('assets.edit', ['asset' => $asset] + $trailQuery) }}" class="btn btn-primary">
                     <x-icons.pencil />
                     <span>Editar</span>
                 </a>
             @endcan
 
             @can('delete', $asset)
-                <form method="POST" action="{{ route('assets.destroy', $asset) }}" class="inline-form"
+                <form method="POST" action="{{ route('assets.destroy', ['asset' => $asset] + $trailQuery) }}" class="inline-form"
                     data-action="app-confirm-submit" data-confirm-message="¿Eliminar activo?">
                     @csrf
                     @method('DELETE')
@@ -48,10 +47,11 @@
                 </form>
             @endcan
 
-            <a href="{{ route('assets.index') }}" class="btn btn-secondary">
+            <a href="{{ $backUrl }}" class="btn btn-secondary">
                 Volver
             </a>
         </x-page-header>
+
         <x-card>
             <div class="summary-inline-grid">
                 <div class="summary-inline-card">
@@ -63,7 +63,7 @@
                     <div class="summary-inline-label">Contacto</div>
                     <div class="summary-inline-value">
                         @if ($asset->party)
-                            <a href="{{ route('parties.show', $asset->party) }}">
+                            <a href="{{ route('parties.show', ['party' => $asset->party] + $trailQuery) }}">
                                 {{ $asset->party->name }}
                             </a>
                         @else
@@ -153,6 +153,7 @@
                         'showAsset' => false,
                         'showOrder' => true,
                         'emptyMessage' => 'Este activo no tiene documentos vinculados.',
+                        'trailQuery' => $trailQuery,
                     ])
                 </div>
             </section>
@@ -164,6 +165,7 @@
                         'showParty' => true,
                         'showAsset' => false,
                         'emptyMessage' => 'Este activo no tiene órdenes vinculadas.',
+                        'trailQuery' => $trailQuery,
                     ])
                 </div>
             </section>

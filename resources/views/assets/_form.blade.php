@@ -2,6 +2,9 @@
 
 @php
     use App\Support\Catalogs\AssetCatalog;
+
+    $prefilledParty = $prefilledParty ?? null;
+    $currentPartyId = old('party_id', $asset->party_id ?? ($prefilledParty?->id ?? ''));
 @endphp
 
 @csrf
@@ -39,7 +42,7 @@
     <select id="party_id" name="party_id" class="form-control" required>
         <option value="">Seleccionar</option>
         @foreach ($parties as $party)
-            <option value="{{ $party->id }}" @selected((string) old('party_id', $asset->party_id ?? '') === (string) $party->id)>
+            <option value="{{ $party->id }}" @selected((string) $currentPartyId === (string) $party->id)>
                 {{ $party->name }}
             </option>
         @endforeach
@@ -89,9 +92,21 @@
     @enderror
 </div>
 
+@php
+    $trailQuery =
+        $trailQuery ??
+        (isset($navigationTrail) ? \App\Support\Navigation\NavigationTrail::toQuery($navigationTrail) : []);
+    $cancelUrl =
+        $cancelUrl ??
+        (isset($asset)
+            ? \App\Support\Navigation\NavigationTrail::previousUrl(
+                $navigationTrail ?? [],
+                route('assets.show', ['asset' => $asset]),
+            )
+            : \App\Support\Navigation\NavigationTrail::previousUrl($navigationTrail ?? [], route('assets.index')));
+@endphp
+
 <div class="form-actions">
     <button type="submit" class="btn btn-primary">Guardar</button>
-    <a href="{{ isset($asset) ? route('assets.show', $asset) : route('assets.index') }}" class="btn btn-secondary">
-        Cancelar
-    </a>
+    <a href="{{ $cancelUrl }}" class="btn btn-secondary">Cancelar</a>
 </div>

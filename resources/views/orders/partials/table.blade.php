@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/partials/table.blade.php | V2 --}}
+{{-- FILE: resources/views/orders/partials/table.blade.php | V3 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
@@ -7,6 +7,7 @@
     $emptyMessage = $emptyMessage ?? 'No hay órdenes para mostrar.';
     $showParty = $showParty ?? false;
     $showAsset = $showAsset ?? true;
+    $trailQuery = $trailQuery ?? [];
 @endphp
 
 @if ($orders->count())
@@ -34,7 +35,7 @@
                 @foreach ($orders as $order)
                     <tr>
                         <td>
-                            <a href="{{ route('orders.show', $order) }}">
+                            <a href="{{ route('orders.show', ['order' => $order] + $trailQuery) }}">
                                 {{ $order->number ?: 'Sin número' }}
                             </a>
                         </td>

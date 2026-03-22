@@ -11,6 +11,7 @@
 
     $kinds = AssetCatalog::kindLabels();
     $tabsId = $tabsId ?? 'assets-tabs-' . uniqid();
+    $trailQuery = $trailQuery ?? [];
 @endphp
 
 <div class="tabs" data-tabs>
@@ -45,6 +46,7 @@
                     'assets' => $assets,
                     'showParty' => $showParty,
                     'emptyMessage' => $emptyMessage,
+                    'trailQuery' => $trailQuery,
                 ])
             </x-card>
         </div>
@@ -62,6 +64,7 @@
                         'assets' => $kindAssets,
                         'showParty' => $showParty,
                         'emptyMessage' => "No hay activos de tipo {$label} para mostrar.",
+                        'trailQuery' => $trailQuery,
                     ])
                 </x-card>
             </div>

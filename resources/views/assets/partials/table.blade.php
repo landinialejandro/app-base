@@ -6,6 +6,7 @@
     $assets = $assets ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay activos para mostrar.';
     $showParty = $showParty ?? false;
+    $trailQuery = $trailQuery ?? [];
 @endphp
 
 @if ($assets->count())
@@ -24,7 +25,6 @@
                     <th>Tipo</th>
                     <th>Estado</th>
                     <th>Relación</th>
-
                 </tr>
             </thead>
             <tbody>
@@ -33,7 +33,7 @@
                         <td>{{ $asset->id }}</td>
 
                         <td>
-                            <a href="{{ route('assets.show', $asset) }}">
+                            <a href="{{ route('assets.show', ['asset' => $asset] + $trailQuery) }}">
                                 {{ $asset->name }}
                             </a>
                         </td>
@@ -41,7 +41,7 @@
                         @if ($showParty)
                             <td>
                                 @if ($asset->party)
-                                    <a href="{{ route('parties.show', $asset->party) }}">
+                                    <a href="{{ route('parties.show', ['party' => $asset->party] + $trailQuery) }}">
                                         {{ $asset->party->name }}
                                     </a>
                                 @else
@@ -51,7 +51,6 @@
                         @endif
 
                         <td>{{ $asset->internal_code ?: '—' }}</td>
-
                         <td>{{ AssetCatalog::kindLabel($asset->kind) }}</td>
 
                         <td>
@@ -59,8 +58,8 @@
                                 {{ AssetCatalog::statusLabel($asset->status) }}
                             </span>
                         </td>
-                        <td>{{ AssetCatalog::relationshipTypeLabel($asset->relationship_type) }}</td>
 
+                        <td>{{ AssetCatalog::relationshipTypeLabel($asset->relationship_type) }}</td>
                     </tr>
                 @endforeach
             </tbody>

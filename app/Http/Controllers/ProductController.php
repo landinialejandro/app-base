@@ -1,11 +1,13 @@
 <?php
 
-// FILE: app/Http/Controllers/ProductController.php | V2
+// FILE: app/Http/Controllers/ProductController.php | V3
 
 namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Support\Catalogs\ProductCatalog;
+use App\Support\Navigation\NavigationTrail;
+use App\Support\Navigation\ProductNavigationTrail;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -45,11 +47,13 @@ class ProductController extends Controller
         return view('products.index', compact('products'));
     }
 
-    public function create(): View
+    public function create(Request $request): View
     {
         $this->authorize('create', Product::class);
 
-        return view('products.create');
+        $navigationTrail = ProductNavigationTrail::create($request);
+
+        return view('products.create', compact('navigationTrail'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -57,30 +61,34 @@ class ProductController extends Controller
         $this->authorize('create', Product::class);
 
         $data = $request->all();
-
         $data['is_active'] = $request->boolean('is_active');
 
         $validated = validator($data, $this->rules())->validate();
 
-        Product::create($validated);
+        $product = Product::create($validated);
+        $navigationTrail = ProductNavigationTrail::show($request, $product);
 
         return redirect()
-            ->route('products.index')
+            ->route('products.show', ['product' => $product] + NavigationTrail::toQuery($navigationTrail))
             ->with('success', 'Producto creado correctamente.');
     }
 
-    public function show(Product $product): View
+    public function show(Request $request, Product $product): View
     {
         $this->authorize('view', $product);
 
-        return view('products.show', compact('product'));
+        $navigationTrail = ProductNavigationTrail::show($request, $product);
+
+        return view('products.show', compact('product', 'navigationTrail'));
     }
 
-    public function edit(Product $product): View
+    public function edit(Request $request, Product $product): View
     {
         $this->authorize('update', $product);
 
-        return view('products.edit', compact('product'));
+        $navigationTrail = ProductNavigationTrail::edit($request, $product);
+
+        return view('products.edit', compact('product', 'navigationTrail'));
     }
 
     public function update(Request $request, Product $product): RedirectResponse
@@ -88,26 +96,29 @@ class ProductController extends Controller
         $this->authorize('update', $product);
 
         $data = $request->all();
-
         $data['is_active'] = $request->boolean('is_active');
 
         $validated = validator($data, $this->rules())->validate();
 
         $product->update($validated);
+        $navigationTrail = ProductNavigationTrail::show($request, $product);
 
         return redirect()
-            ->route('products.show', $product)
+            ->route('products.show', ['product' => $product] + NavigationTrail::toQuery($navigationTrail))
             ->with('success', 'Producto actualizado correctamente.');
     }
 
-    public function destroy(Product $product): RedirectResponse
+    public function destroy(Request $request, Product $product): RedirectResponse
     {
         $this->authorize('delete', $product);
+
+        $navigationTrail = ProductNavigationTrail::show($request, $product);
+        $redirectUrl = NavigationTrail::previousUrl($navigationTrail, route('products.index'));
 
         $product->delete();
 
         return redirect()
-            ->route('products.index')
+            ->to($redirectUrl)
             ->with('success', 'Producto eliminado correctamente.');
     }
 

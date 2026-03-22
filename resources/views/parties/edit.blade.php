@@ -1,21 +1,25 @@
+{{-- FILE:resources/views/parties/edit.blade.php | V2 --}}
+
 @extends('layouts.app')
 
 @section('title', 'Editar contacto')
 
 @section('content')
-    <x-page>
+    @php
+        use App\Support\Navigation\NavigationTrail;
 
-        <x-breadcrumb :items="[
-            ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Contactos', 'url' => route('parties.index')],
-            ['label' => $party->name, 'url' => route('parties.show', $party)],
-            ['label' => 'Editar'],
-        ]" />
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+        $cancelUrl = NavigationTrail::previousUrl($navigationTrail, route('parties.show', ['party' => $party]));
+    @endphp
+
+    <x-page>
+        <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header title="Editar contacto" />
 
         <x-card>
-            <form method="POST" action="{{ route('parties.update', $party) }}" class="form">
+            <form method="POST" action="{{ route('parties.update', ['party' => $party] + $trailQuery) }}" class="form">
                 @csrf
                 @method('PUT')
 
@@ -23,10 +27,9 @@
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Guardar cambios</button>
-                    <a href="{{ route('parties.show', $party) }}" class="btn btn-secondary">Cancelar</a>
+                    <a href="{{ $cancelUrl }}" class="btn btn-secondary">Cancelar</a>
                 </div>
             </form>
         </x-card>
-
     </x-page>
 @endsection

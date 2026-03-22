@@ -5,23 +5,24 @@
 @section('title', 'Editar activo')
 
 @section('content')
-    <x-page>
+    @php
+        use App\Support\Navigation\NavigationTrail;
 
-        <x-breadcrumb :items="[
-            ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Activos', 'url' => route('assets.index')],
-            ['label' => $asset->name, 'url' => route('assets.show', $asset)],
-            ['label' => 'Editar'],
-        ]" />
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+        $cancelUrl = NavigationTrail::previousUrl($navigationTrail, route('assets.show', ['asset' => $asset]));
+    @endphp
+
+    <x-page>
+        <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header title="Editar activo" />
 
         <x-card>
-            <form action="{{ route('assets.update', $asset) }}" method="POST" class="form">
+            <form action="{{ route('assets.update', ['asset' => $asset] + $trailQuery) }}" method="POST" class="form">
                 @method('PUT')
                 @include('assets._form', ['asset' => $asset])
             </form>
         </x-card>
-
     </x-page>
 @endsection

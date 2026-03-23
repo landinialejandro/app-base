@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/components/layout/navbar.blade.php --}}
+{{-- FILE: resources/views/components/layout/navbar.blade.php | V2 --}}
 
 @php
     $user = auth()->user();
@@ -19,13 +19,7 @@
         <nav class="app-nav">
             @auth
                 @if (count($managementLinks))
-                    @php
-                        $managementIsActive = collect($managementLinks)
-                            ->flatMap(fn($link) => $link['active'])
-                            ->contains(fn($pattern) => request()->routeIs($pattern));
-                    @endphp
-
-                    <details class="app-nav-dropdown">
+                    <details class="app-nav-dropdown" @if ($managementIsExpanded) open @endif>
                         <summary class="app-nav-link {{ $managementIsActive ? 'is-active' : '' }}">
                             Gestión
                         </summary>
@@ -33,13 +27,13 @@
                         <div class="app-nav-dropdown-menu">
                             @foreach ($managementLinks as $link)
                                 @php
-                                    $isActive = collect($link['active'])->contains(
-                                        fn($pattern) => request()->routeIs($pattern),
-                                    );
+                                    $isActive = $activeModule === $link['module'];
+                                    $isCurrent = $currentModule === $link['module'];
                                 @endphp
 
                                 <a class="app-nav-dropdown-link {{ $isActive ? 'is-active' : '' }}"
-                                    href="{{ route($link['route']) }}">
+                                    href="{{ route($link['route']) }}"
+                                    @if ($isCurrent) aria-current="page" @endif>
                                     {{ $link['label'] }}
                                 </a>
                             @endforeach
@@ -49,10 +43,12 @@
 
                 @foreach ($mainLinks as $link)
                     @php
-                        $isActive = collect($link['active'])->contains(fn($pattern) => request()->routeIs($pattern));
+                        $isActive = $activeModule === $link['module'];
+                        $isCurrent = $currentModule === $link['module'];
                     @endphp
 
-                    <a class="app-nav-link {{ $isActive ? 'is-active' : '' }}" href="{{ route($link['route']) }}">
+                    <a class="app-nav-link {{ $isActive ? 'is-active' : '' }}" href="{{ route($link['route']) }}"
+                        @if ($isCurrent) aria-current="page" @endif>
                         {{ $link['label'] }}
                     </a>
                 @endforeach

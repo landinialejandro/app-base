@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/show.blade.php | V3 --}}
+{{-- FILE: resources/views/appointments/show.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -75,7 +75,7 @@
         <x-show-summary details-id="appointment-more-detail">
             <x-show-summary-item :label="AppointmentCatalog::contactLabel()">
                 @if ($appointment->party)
-                    <a href="{{ route('parties.show', $appointment->party) }}">
+                    <a href="{{ route('parties.show', ['party' => $appointment->party] + $trailQuery) }}">
                         {{ $appointment->party->name }}
                     </a>
                 @else
@@ -85,7 +85,7 @@
 
             <x-show-summary-item :label="AppointmentCatalog::assetLabel()">
                 @if ($appointment->asset)
-                    <a href="{{ route('assets.show', $appointment->asset) }}">
+                    <a href="{{ route('assets.show', ['asset' => $appointment->asset] + $trailQuery) }}">
                         {{ $appointment->asset->name }}
                     </a>
                 @else

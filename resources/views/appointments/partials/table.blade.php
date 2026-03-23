@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/partials/table.blade.php | V3 --}}
+{{-- FILE: resources/views/appointments/partials/table.blade.php | V4 --}}
 
 @php
     use App\Support\Catalogs\AppointmentCatalog;
@@ -44,7 +44,8 @@
 
                         <td>
                             @if ($appointment->party)
-                                <a href="{{ route('parties.show', $appointment->party) }}">
+                                <a
+                                    href="{{ route('parties.show', ['party' => $appointment->party] + $appointmentTrailQuery) }}">
                                     {{ $appointment->party->name }}
                                 </a>
                             @else
@@ -54,7 +55,8 @@
 
                         <td>
                             @if ($appointment->asset)
-                                <a href="{{ route('assets.show', $appointment->asset) }}">
+                                <a
+                                    href="{{ route('assets.show', ['asset' => $appointment->asset] + $appointmentTrailQuery) }}">
                                     {{ $appointment->asset->name }}
                                 </a>
                             @else

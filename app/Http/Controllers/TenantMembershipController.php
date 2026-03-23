@@ -1,10 +1,12 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantMembershipController.php
+// FILE: app/Http/Controllers/TenantMembershipController.php | V2
 
 namespace App\Http\Controllers;
 
 use App\Models\Membership;
+use App\Models\Role;
+use App\Support\Catalogs\RoleCatalog;
 use Illuminate\Http\Request;
 
 class TenantMembershipController extends Controller
@@ -65,8 +67,34 @@ class TenantMembershipController extends Controller
             'blocked_reason' => null,
         ]);
 
+        $this->ensureOperationalRole($membership);
+
         return redirect()
             ->route('tenant.profile.show', ['tab' => 'users'])
             ->with('success', 'Acceso del usuario rehabilitado para esta empresa.');
+    }
+
+    protected function ensureOperationalRole(Membership $membership): void
+    {
+        $membership->loadMissing('roles');
+
+        if ($membership->is_owner || $membership->roles->isNotEmpty()) {
+            return;
+        }
+
+        $defaultRole = Role::query()
+            ->where('tenant_id', $membership->tenant_id)
+            ->where('slug', RoleCatalog::defaultOperational())
+            ->first();
+
+        if (! $defaultRole) {
+            return;
+        }
+
+        $membership->roles()->syncWithoutDetaching([
+            $defaultRole->id => [
+                'branch_id' => null,
+            ],
+        ]);
     }
 }

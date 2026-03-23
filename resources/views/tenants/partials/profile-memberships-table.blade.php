@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/partials/profile-memberships-table.blade.php --}}
+{{-- FILE: resources/views/tenants/partials/profile-memberships-table.blade.php | V2 --}}
 
 <x-card>
     <div class="dashboard-section-header">
@@ -27,9 +27,30 @@
                     @foreach ($memberships as $membership)
                         @php
                             $assignedRoleIds = $membership->roles->pluck('id')->all();
-                            $assignableRoles = $availableRoles->filter(
-                                fn($role) => !in_array($role->id, $assignedRoleIds, true),
-                            );
+                            $assignedRoleSlugs = $membership->roles->pluck('slug')->filter()->values();
+                            $hasAdminRole = $assignedRoleSlugs->contains(\App\Support\Catalogs\RoleCatalog::ADMIN);
+
+                            $assignableRoles = collect();
+
+                            if (!$membership->is_owner) {
+                                $assignableRoles = $availableRoles->filter(function ($role) use (
+                                    $assignedRoleIds,
+                                    $assignedRoleSlugs,
+                                ) {
+                                    if (in_array($role->id, $assignedRoleIds, true)) {
+                                        return false;
+                                    }
+
+                                    if (
+                                        $assignedRoleSlugs->contains(\App\Support\Catalogs\RoleCatalog::ADMIN) &&
+                                        $role->slug === \App\Support\Catalogs\RoleCatalog::ADMIN
+                                    ) {
+                                        return false;
+                                    }
+
+                                    return true;
+                                });
+                            }
                         @endphp
 
                         <tr>
@@ -45,7 +66,9 @@
                             </td>
 
                             <td>
-                                @if ($membership->roles->count())
+                                @if ($membership->is_owner)
+                                    <span class="status-badge status-badge--done">Owner</span>
+                                @elseif ($membership->roles->count())
                                     <div class="role-list">
                                         @foreach ($membership->roles as $role)
                                             <div class="role-row">
@@ -65,12 +88,14 @@
                                         @endforeach
                                     </div>
                                 @else
-                                    <span class="helper-inline">Sin roles</span>
+                                    <span class="helper-inline">Sin rol operativo</span>
                                 @endif
                             </td>
 
                             <td>
-                                @if ($assignableRoles->count())
+                                @if ($membership->is_owner)
+                                    <span class="helper-inline">No editable</span>
+                                @elseif ($assignableRoles->count())
                                     <form method="POST"
                                         action="{{ route('tenant.memberships.roles.attach', $membership) }}"
                                         class="inline-form inline-form-wrap">
@@ -87,6 +112,12 @@
                                             <x-icons.plus />
                                         </button>
                                     </form>
+
+                                    @if ($hasAdminRole)
+                                        <div class="form-help">
+                                            Admin es exclusivo. Si agregas otro rol, reemplazará al actual.
+                                        </div>
+                                    @endif
                                 @else
                                     <span class="helper-inline">Sin roles disponibles</span>
                                 @endif

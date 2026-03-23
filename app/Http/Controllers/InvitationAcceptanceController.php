@@ -1,13 +1,15 @@
 <?php
 
-// FILE: app/Http/Controllers/InvitationAcceptanceController.php
+// FILE: app/Http/Controllers/InvitationAcceptanceController.php | V2
 
 namespace App\Http\Controllers;
 
 use App\Models\Invitation;
 use App\Models\Membership;
+use App\Models\Role;
 use App\Models\Tenant;
 use App\Models\User;
+use App\Support\Catalogs\RoleCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
@@ -62,7 +64,7 @@ class InvitationAcceptanceController extends Controller
                 ->with('error', 'Se cerró la sesión activa. Inicia sesión con el email invitado para continuar.');
         }
 
-        $mustLogin = $emailExists && !Auth::check();
+        $mustLogin = $emailExists && ! Auth::check();
 
         if ($mustLogin) {
             $request->session()->put(
@@ -104,7 +106,7 @@ class InvitationAcceptanceController extends Controller
             ->first();
 
         if ($invitation->type === 'member_invite') {
-            if (!$invitation->tenant_id) {
+            if (! $invitation->tenant_id) {
                 return redirect()
                     ->route('invitation.accept.show', $invitation->token)
                     ->with('error', 'La invitación no tiene una empresa asociada.');
@@ -114,13 +116,13 @@ class InvitationAcceptanceController extends Controller
         }
 
         if ($invitation->type === 'owner_signup') {
-            if (!$invitation->signup_request_id) {
+            if (! $invitation->signup_request_id) {
                 return redirect()
                     ->route('invitation.accept.show', $invitation->token)
                     ->with('error', 'La invitación no tiene una solicitud asociada.');
             }
 
-            if (is_null($invitation->accepted_at) && !is_null($invitation->tenant_id)) {
+            if (is_null($invitation->accepted_at) && ! is_null($invitation->tenant_id)) {
                 return redirect()
                     ->route('invitation.accept.show', $invitation->token)
                     ->with('error', 'La invitación tiene una empresa asignada antes de ser aceptada.');
@@ -137,7 +139,7 @@ class InvitationAcceptanceController extends Controller
     protected function handleMemberInvite(Request $request, Invitation $invitation, ?User $existingUser)
     {
         if ($existingUser) {
-            if (!Auth::check()) {
+            if (! Auth::check()) {
                 $request->session()->put('invitation_accept_url', route('invitation.accept.show', $invitation->token));
 
                 return redirect()
@@ -198,7 +200,7 @@ class InvitationAcceptanceController extends Controller
     protected function handleOwnerSignup(Request $request, Invitation $invitation, ?User $existingUser)
     {
         if ($existingUser) {
-            if (!Auth::check()) {
+            if (! Auth::check()) {
                 $request->session()->put('invitation_accept_url', route('invitation.accept.show', $invitation->token));
 
                 return redirect()
@@ -239,7 +241,7 @@ class InvitationAcceptanceController extends Controller
         $user = DB::transaction(function () use ($invitation, $existingUser, $data, $request) {
             $user = $existingUser;
 
-            if (!$user) {
+            if (! $user) {
                 $user = User::create([
                     'name' => $data['name'],
                     'email' => $invitation->email,
@@ -251,18 +253,9 @@ class InvitationAcceptanceController extends Controller
                 ]);
             }
 
-            /*
-            |--------------------------------------------------------------------------
-            | Punto futuro de control
-            |--------------------------------------------------------------------------
-            | Aquí podrá validarse más adelante la cantidad de empresas permitidas
-            | por owner según el plan o la política comercial.
-            |--------------------------------------------------------------------------
-            */
-
             $tenant = $this->createTenantForOwnerInvitation($invitation);
 
-            Membership::firstOrCreate(
+            $membership = Membership::firstOrCreate(
                 [
                     'tenant_id' => $tenant->id,
                     'user_id' => $user->id,
@@ -274,13 +267,15 @@ class InvitationAcceptanceController extends Controller
                 ]
             );
 
+            $this->normalizeMembershipRoles($membership);
+
             $invitation->tenant_id = $tenant->id;
             $this->markInvitationAccepted($invitation, $request);
 
             return $user;
         });
 
-        if (!Auth::check()) {
+        if (! Auth::check()) {
             Auth::login($user);
             $request->session()->regenerate();
         }
@@ -290,11 +285,11 @@ class InvitationAcceptanceController extends Controller
 
     protected function attachMembershipToExistingTenant(Invitation $invitation, User $user): void
     {
-        if (!$invitation->tenant_id) {
+        if (! $invitation->tenant_id) {
             abort(500, 'La invitación de miembro no tiene una empresa asociada.');
         }
 
-        Membership::firstOrCreate(
+        $membership = Membership::firstOrCreate(
             [
                 'tenant_id' => $invitation->tenant_id,
                 'user_id' => $user->id,
@@ -305,6 +300,38 @@ class InvitationAcceptanceController extends Controller
                 'joined_at' => now(),
             ]
         );
+
+        $this->normalizeMembershipRoles($membership);
+    }
+
+    protected function normalizeMembershipRoles(Membership $membership): void
+    {
+        $membership->loadMissing('roles');
+
+        if ($membership->is_owner) {
+            $membership->roles()->detach();
+
+            return;
+        }
+
+        if ($membership->roles->isNotEmpty()) {
+            return;
+        }
+
+        $defaultRole = Role::query()
+            ->where('tenant_id', $membership->tenant_id)
+            ->where('slug', RoleCatalog::defaultOperational())
+            ->first();
+
+        if (! $defaultRole) {
+            return;
+        }
+
+        $membership->roles()->syncWithoutDetaching([
+            $defaultRole->id => [
+                'branch_id' => null,
+            ],
+        ]);
     }
 
     protected function createTenantForOwnerInvitation(Invitation $invitation): Tenant
@@ -319,7 +346,7 @@ class InvitationAcceptanceController extends Controller
 
         $signupRequest = $invitation->signupRequest;
 
-        if (!$signupRequest) {
+        if (! $signupRequest) {
             abort(500, 'La invitación no tiene una solicitud asociada.');
         }
 
@@ -384,7 +411,7 @@ class InvitationAcceptanceController extends Controller
         $counter = 2;
 
         while (Tenant::query()->where('slug', $slug)->exists()) {
-            $slug = $base . '-' . $counter;
+            $slug = $base.'-'.$counter;
             $counter++;
         }
 

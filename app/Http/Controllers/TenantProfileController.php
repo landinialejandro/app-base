@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantProfileController.php | V2
+// FILE: app/Http/Controllers/TenantProfileController.php | V3
 
 namespace App\Http\Controllers;
 
@@ -8,6 +8,7 @@ use App\Models\Invitation;
 use App\Models\Membership;
 use App\Models\Role;
 use App\Support\Catalogs\BusinessTypeCatalog;
+use App\Support\Catalogs\RoleCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -39,6 +40,19 @@ class TenantProfileController extends Controller
 
         $availableRoles = Role::query()
             ->where('tenant_id', $tenant->id)
+            ->whereIn('slug', RoleCatalog::assignable())
+            ->orderByRaw('
+                CASE slug
+                    WHEN ? THEN 1
+                    WHEN ? THEN 2
+                    WHEN ? THEN 3
+                    ELSE 99
+                END
+            ', [
+                RoleCatalog::ADMIN,
+                RoleCatalog::SALES,
+                RoleCatalog::OPERATOR,
+            ])
             ->orderBy('name')
             ->get();
 

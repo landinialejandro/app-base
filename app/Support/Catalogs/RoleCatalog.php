@@ -1,5 +1,7 @@
 <?php
 
+// FILE: app/Support/Catalogs/RoleCatalog.php | V2
+
 namespace App\Support\Catalogs;
 
 class RoleCatalog
@@ -52,5 +54,37 @@ class RoleCatalog
             self::SALES,
             self::OPERATOR,
         ];
+    }
+
+    public static function assignable(): array
+    {
+        return [
+            self::ADMIN,
+            self::SALES,
+            self::OPERATOR,
+        ];
+    }
+
+    public static function exclusive(): array
+    {
+        return [
+            self::OWNER,
+            self::ADMIN,
+        ];
+    }
+
+    public static function isAssignable(?string $role): bool
+    {
+        return in_array($role, static::assignable(), true);
+    }
+
+    public static function isExclusive(?string $role): bool
+    {
+        return in_array($role, static::exclusive(), true);
+    }
+
+    public static function defaultOperational(): string
+    {
+        return self::OPERATOR;
     }
 }

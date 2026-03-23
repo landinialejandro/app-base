@@ -1,11 +1,12 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantMembershipRoleController.php
+// FILE: app/Http/Controllers/TenantMembershipRoleController.php | V2
 
 namespace App\Http\Controllers;
 
 use App\Models\Membership;
 use App\Models\Role;
+use App\Support\Catalogs\RoleCatalog;
 use Illuminate\Http\Request;
 
 class TenantMembershipRoleController extends Controller
@@ -27,9 +28,15 @@ class TenantMembershipRoleController extends Controller
     public function attach(Request $request, Membership $membership)
     {
         $tenant = app('tenant');
-        $ownerMembership = $this->getOwnerMembership();
+        $this->getOwnerMembership();
 
         abort_unless($membership->tenant_id === $tenant->id, 404);
+
+        if ($membership->is_owner) {
+            return redirect()
+                ->route('tenant.profile.show', ['tab' => 'users'])
+                ->with('error', 'El owner no admite roles asignables.');
+        }
 
         $data = $request->validate([
             'role_id' => ['required', 'integer'],
@@ -39,24 +46,47 @@ class TenantMembershipRoleController extends Controller
             ->where('tenant_id', $tenant->id)
             ->findOrFail($data['role_id']);
 
-        if ($membership->user_id === $ownerMembership->user_id && $membership->is_owner) {
-            // Permitido asignar roles al owner si querés; si no, podés bloquearlo.
-            // De momento lo dejamos permitido.
+        if (! RoleCatalog::isAssignable($role->slug)) {
+            return redirect()
+                ->route('tenant.profile.show', ['tab' => 'users'])
+                ->with('error', 'Ese rol no se puede asignar desde esta pantalla.');
         }
 
-        $alreadyAssigned = $membership->roles()
-            ->where('roles.id', $role->id)
-            ->wherePivot('branch_id', null)
-            ->exists();
+        $membership->load('roles');
 
-        if ($alreadyAssigned) {
+        $currentRoleSlugs = $membership->roles
+            ->pluck('slug')
+            ->filter()
+            ->values();
+
+        if ($currentRoleSlugs->contains($role->slug)) {
             return redirect()
                 ->route('tenant.profile.show', ['tab' => 'users'])
                 ->with('error', 'Ese rol ya está asignado a este usuario.');
         }
 
-        $membership->roles()->attach($role->id, [
-            'branch_id' => null,
+        if (RoleCatalog::isExclusive($role->slug)) {
+            $membership->roles()->sync([
+                $role->id => ['branch_id' => null],
+            ]);
+
+            return redirect()
+                ->route('tenant.profile.show', ['tab' => 'users'])
+                ->with('success', 'Rol exclusivo asignado correctamente.');
+        }
+
+        if ($currentRoleSlugs->contains(RoleCatalog::ADMIN)) {
+            $membership->roles()->sync([
+                $role->id => ['branch_id' => null],
+            ]);
+
+            return redirect()
+                ->route('tenant.profile.show', ['tab' => 'users'])
+                ->with('success', 'Rol reemplazado correctamente.');
+        }
+
+        $membership->roles()->syncWithoutDetaching([
+            $role->id => ['branch_id' => null],
         ]);
 
         return redirect()
@@ -67,14 +97,31 @@ class TenantMembershipRoleController extends Controller
     public function detach(Request $request, Membership $membership, Role $role)
     {
         $tenant = app('tenant');
-        $ownerMembership = $this->getOwnerMembership();
+        $this->getOwnerMembership();
 
         abort_unless($membership->tenant_id === $tenant->id, 404);
         abort_unless($role->tenant_id === $tenant->id, 404);
 
-        if ($membership->user_id === $ownerMembership->user_id && $membership->is_owner) {
-            // Permitido quitar roles extra al owner; no afecta is_owner.
-            // Si después querés endurecerlo, se ajusta.
+        if ($membership->is_owner) {
+            return redirect()
+                ->route('tenant.profile.show', ['tab' => 'users'])
+                ->with('error', 'El owner no admite edición de roles.');
+        }
+
+        $membership->load('roles');
+
+        $assignedRoleIds = $membership->roles->pluck('id')->all();
+
+        if (! in_array($role->id, $assignedRoleIds, true)) {
+            return redirect()
+                ->route('tenant.profile.show', ['tab' => 'users'])
+                ->with('error', 'Ese rol no está asignado a este usuario.');
+        }
+
+        if ($membership->status === 'active' && count($assignedRoleIds) === 1) {
+            return redirect()
+                ->route('tenant.profile.show', ['tab' => 'users'])
+                ->with('error', 'La membership activa debe conservar al menos un rol.');
         }
 
         $membership->roles()

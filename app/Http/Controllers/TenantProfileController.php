@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantProfileController.php | V3
+// FILE: app/Http/Controllers/TenantProfileController.php | V4
 
 namespace App\Http\Controllers;
 
@@ -58,7 +58,7 @@ class TenantProfileController extends Controller
 
         $activeTab = $request->query('tab', 'general');
 
-        if (! in_array($activeTab, ['general', 'users'], true)) {
+        if (! in_array($activeTab, ['general', 'users', 'accesses'], true)) {
             $activeTab = 'general';
         }
 

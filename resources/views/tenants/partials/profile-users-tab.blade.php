@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/partials/profile-users-tab.blade.php --}}
+{{-- FILE: resources/views/tenants/partials/profile-users-tab.blade.php | V2 --}}
 
 <section class="tab-panel {{ $activeTab === 'users' ? 'is-active' : '' }}" data-tab-panel="users"
     {{ $activeTab === 'users' ? '' : 'hidden' }}>
@@ -12,9 +12,8 @@
             'pendingInvitations' => $pendingInvitations,
         ])
 
-        @include('tenants.partials.profile-memberships-table', [
+        @include('tenants.partials.profile-users-table', [
             'memberships' => $memberships,
-            'availableRoles' => $availableRoles,
         ])
 
     </div>

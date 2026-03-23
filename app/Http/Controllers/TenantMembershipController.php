@@ -34,13 +34,13 @@ class TenantMembershipController extends Controller
 
         if ($membership->is_owner) {
             return redirect()
-                ->route('tenant.profile.show', ['tab' => 'users'])
+                ->route('tenant.profile.show', ['tab' => 'accesses'])
                 ->with('error', 'No se puede bloquear un owner desde esta pantalla.');
         }
 
         if ($membership->user_id === $ownerMembership->user_id) {
             return redirect()
-                ->route('tenant.profile.show', ['tab' => 'users'])
+                ->route('tenant.profile.show', ['tab' => 'accesses'])
                 ->with('error', 'No puedes bloquear tu propia membership.');
         }
 
@@ -50,7 +50,7 @@ class TenantMembershipController extends Controller
         ]);
 
         return redirect()
-            ->route('tenant.profile.show', ['tab' => 'users'])
+            ->route('tenant.profile.show', ['tab' => 'accesses'])
             ->with('success', 'Acceso del usuario inhabilitado para esta empresa.');
     }
 
@@ -70,7 +70,7 @@ class TenantMembershipController extends Controller
         $this->ensureOperationalRole($membership);
 
         return redirect()
-            ->route('tenant.profile.show', ['tab' => 'users'])
+            ->route('tenant.profile.show', ['tab' => 'accesses'])
             ->with('success', 'Acceso del usuario rehabilitado para esta empresa.');
     }
 

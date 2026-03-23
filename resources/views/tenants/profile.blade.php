@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/profile.blade.php --}}
+{{-- FILE: resources/views/tenants/profile.blade.php | V2 --}}
 
 @extends('layouts.app')
 
@@ -28,7 +28,13 @@
 
                 <button type="button" class="tabs-link {{ $activeTab === 'users' ? 'is-active' : '' }}"
                     data-tab-link="users" role="tab" aria-selected="{{ $activeTab === 'users' ? 'true' : 'false' }}">
-                    Usuarios y accesos
+                    Invitaciones y usuarios
+                </button>
+
+                <button type="button" class="tabs-link {{ $activeTab === 'accesses' ? 'is-active' : '' }}"
+                    data-tab-link="accesses" role="tab"
+                    aria-selected="{{ $activeTab === 'accesses' ? 'true' : 'false' }}">
+                    Roles y acceso
                 </button>
             </div>
 
@@ -42,9 +48,15 @@
             @include('tenants.partials.profile-users-tab', [
                 'tenant' => $tenant,
                 'memberships' => $memberships,
-                'availableRoles' => $availableRoles,
                 'generatedInvitation' => $generatedInvitation ?? null,
                 'pendingInvitations' => $pendingInvitations ?? collect(),
+                'activeTab' => $activeTab,
+            ])
+
+            @include('tenants.partials.profile-accesses-tab', [
+                'tenant' => $tenant,
+                'memberships' => $memberships,
+                'availableRoles' => $availableRoles,
                 'activeTab' => $activeTab,
             ])
         </div>

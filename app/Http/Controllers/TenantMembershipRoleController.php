@@ -34,7 +34,7 @@ class TenantMembershipRoleController extends Controller
 
         if ($membership->is_owner) {
             return redirect()
-                ->route('tenant.profile.show', ['tab' => 'users'])
+                ->route('tenant.profile.show', ['tab' => 'accesses'])
                 ->with('error', 'El owner no admite roles asignables.');
         }
 
@@ -48,7 +48,7 @@ class TenantMembershipRoleController extends Controller
 
         if (! RoleCatalog::isAssignable($role->slug)) {
             return redirect()
-                ->route('tenant.profile.show', ['tab' => 'users'])
+                ->route('tenant.profile.show', ['tab' => 'accesses'])
                 ->with('error', 'Ese rol no se puede asignar desde esta pantalla.');
         }
 
@@ -61,7 +61,7 @@ class TenantMembershipRoleController extends Controller
 
         if ($currentRoleSlugs->contains($role->slug)) {
             return redirect()
-                ->route('tenant.profile.show', ['tab' => 'users'])
+                ->route('tenant.profile.show', ['tab' => 'accesses'])
                 ->with('error', 'Ese rol ya está asignado a este usuario.');
         }
 
@@ -71,7 +71,7 @@ class TenantMembershipRoleController extends Controller
             ]);
 
             return redirect()
-                ->route('tenant.profile.show', ['tab' => 'users'])
+                ->route('tenant.profile.show', ['tab' => 'accesses'])
                 ->with('success', 'Rol exclusivo asignado correctamente.');
         }
 
@@ -81,7 +81,7 @@ class TenantMembershipRoleController extends Controller
             ]);
 
             return redirect()
-                ->route('tenant.profile.show', ['tab' => 'users'])
+                ->route('tenant.profile.show', ['tab' => 'accesses'])
                 ->with('success', 'Rol reemplazado correctamente.');
         }
 
@@ -90,7 +90,7 @@ class TenantMembershipRoleController extends Controller
         ]);
 
         return redirect()
-            ->route('tenant.profile.show', ['tab' => 'users'])
+            ->route('tenant.profile.show', ['tab' => 'accesses'])
             ->with('success', 'Rol asignado correctamente.');
     }
 
@@ -104,7 +104,7 @@ class TenantMembershipRoleController extends Controller
 
         if ($membership->is_owner) {
             return redirect()
-                ->route('tenant.profile.show', ['tab' => 'users'])
+                ->route('tenant.profile.show', ['tab' => 'accesses'])
                 ->with('error', 'El owner no admite edición de roles.');
         }
 
@@ -114,13 +114,13 @@ class TenantMembershipRoleController extends Controller
 
         if (! in_array($role->id, $assignedRoleIds, true)) {
             return redirect()
-                ->route('tenant.profile.show', ['tab' => 'users'])
+                ->route('tenant.profile.show', ['tab' => 'accesses'])
                 ->with('error', 'Ese rol no está asignado a este usuario.');
         }
 
         if ($membership->status === 'active' && count($assignedRoleIds) === 1) {
             return redirect()
-                ->route('tenant.profile.show', ['tab' => 'users'])
+                ->route('tenant.profile.show', ['tab' => 'accesses'])
                 ->with('error', 'La membership activa debe conservar al menos un rol.');
         }
 
@@ -132,7 +132,7 @@ class TenantMembershipRoleController extends Controller
             ->delete();
 
         return redirect()
-            ->route('tenant.profile.show', ['tab' => 'users'])
+            ->route('tenant.profile.show', ['tab' => 'accesses'])
             ->with('success', 'Rol quitado correctamente.');
     }
 }

@@ -93,30 +93,34 @@ Route::middleware(['auth', 'superadmin'])
     ->group(function () {
         Route::get('/', [SuperadminDashboardController::class, 'index'])->name('dashboard');
 
+        Route::get('/tenants', [\App\Http\Controllers\AdminTenantController::class, 'index'])
+            ->name('tenants.index');
+        Route::get('/tenants/{tenant}', [\App\Http\Controllers\AdminTenantController::class, 'show'])
+            ->name('tenants.show');
+        Route::get('/tenants/{tenant}/modules', [\App\Http\Controllers\AdminTenantModuleAccessController::class, 'edit'])
+            ->name('tenants.modules.edit');
+        Route::put('/tenants/{tenant}/modules', [\App\Http\Controllers\AdminTenantModuleAccessController::class, 'update'])
+            ->name('tenants.modules.update');
+        Route::delete('/tenants/{tenant}/modules', [\App\Http\Controllers\AdminTenantModuleAccessController::class, 'reset'])
+            ->name('tenants.modules.reset');
+
         Route::get('/signup-requests', [AdminSignupRequestController::class, 'index'])
             ->name('signup-requests.index');
-
         Route::get('/signup-requests/processed', [AdminSignupRequestController::class, 'processed'])
             ->name('signup-requests.processed');
-
         Route::get('/signup-requests/{signupRequest}', [AdminSignupRequestController::class, 'show'])
             ->name('signup-requests.show');
-
         Route::post('/signup-requests/{signupRequest}/approve', [AdminSignupRequestController::class, 'approve'])
             ->name('signup-requests.approve');
-
         Route::post('/signup-requests/{signupRequest}/reject', [AdminSignupRequestController::class, 'reject'])
             ->name('signup-requests.reject');
 
         Route::get('/invitations/owner-signups', [AdminInvitationController::class, 'ownerSignups'])
             ->name('invitations.owner-signups');
-
         Route::post('/invitations/{invitation}/mark-as-sent', [AdminInvitationController::class, 'markAsSent'])
             ->name('invitations.mark-as-sent');
-
         Route::get('/metrics/owners', [AdminMetricsController::class, 'owners'])
             ->name('metrics.owners');
-
         Route::get('/metrics/tenants', [AdminMetricsController::class, 'tenants'])
             ->name('metrics.tenants');
     });

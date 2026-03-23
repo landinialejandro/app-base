@@ -17,9 +17,15 @@
                     <p class="public-text">Revisa la dirección o vuelve al inicio para continuar.</p>
 
                     <div class="public-actions">
-                        <a href="{{ route('dashboard') }}" class="btn btn-primary">
-                            Ir al inicio
-                        </a>
+                        @auth
+                            <a href="{{ route('dashboard') }}" class="btn btn-primary">
+                                Ir al inicio
+                            </a>
+                        @else
+                            <a href="{{ route('login') }}" class="btn btn-primary">
+                                Ir al login
+                            </a>
+                        @endauth
                     </div>
                 </x-card>
             </div>

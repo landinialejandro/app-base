@@ -1,20 +1,20 @@
-{{-- FILE: resources/views/errors/403.blade.php | V1 --}}
+{{-- FILE: resources/views/errors/500.blade.php | V1 --}}
 
 @php($publicPage = true)
 
 @extends('layouts.app')
 
-@section('title', 'Acceso denegado')
+@section('title', 'Error interno')
 
 @section('content')
     <x-page>
         <div class="welcome-page">
             <div class="public-panel public-panel--md">
-                <x-page-header title="Acceso denegado" vertical="vertical" />
+                <x-page-header title="Error interno" vertical="vertical" />
 
                 <x-card>
-                    <p class="public-text">No tienes permisos para acceder a esta sección.</p>
-                    <p class="public-text">Si crees que se trata de un error, consulta con la persona administradora.</p>
+                    <p class="public-text">Ocurrió un problema inesperado al procesar la solicitud.</p>
+                    <p class="public-text">Inténtalo nuevamente en unos minutos.</p>
 
                     <div class="public-actions">
                         @auth

@@ -20,7 +20,6 @@
                     <th>Unidad</th>
                     <th>Tipo</th>
                     <th>Activo</th>
-                    <th>Creado</th>
                 </tr>
             </thead>
             <tbody>
@@ -39,7 +38,6 @@
                         <td>{{ $product->unit_label ?? '—' }}</td>
                         <td>{{ ProductCatalog::label($product->kind) }}</td>
                         <td>{{ $product->is_active ? 'Sí' : 'No' }}</td>
-                        <td>{{ $product->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
                     </tr>
                 @endforeach
             </tbody>

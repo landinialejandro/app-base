@@ -74,25 +74,15 @@ El bloqueo o inhabilitación de acceso debe resolverse por membership y no por u
 
 Esto permite que un usuario continúe activo en un tenant y al mismo tiempo se encuentre bloqueado o inactivo en otro.
 
-Resolución del tenant activo
 
-Middleware utilizado:
+RESOLUCIÓN DEL TENANT ACTIVO
 
-ResolveTenant
+En el flujo tenant, el tenant activo se resuelve por middleware.
 
-Orden de resolución:
+Luego de esa resolución, el tenant vigente del request debe consumirse desde app('tenant').
 
-session('tenant_id')
+No deben mantenerse helpers, soportes legacy o mecanismos paralelos redundantes para resolver el tenant activo si duplican o contradicen esa fuente vigente.
 
-Header X-Tenant (fallback para API o debug)
-
-Cuando el tenant se resuelve se registra en el contenedor de la aplicación:
-
-app()->instance('tenant', $tenant)
-
-Esto permite acceder al tenant actual desde cualquier parte del sistema mediante:
-
-app('tenant')
 
 Reglas operativas del tenant activo
 
@@ -306,9 +296,10 @@ un catálogo cerrado de rubros
 el contexto del tenant
 catálogos funcionales del módulo correspondiente
 
-Modelo actual de acceso, visibilidad y autorización operativa
 
-El sistema ya incorpora una capa base de acceso y visibilidad por módulo.
+MODELO ACTUAL DE ACCESO, VISIBILIDAD Y AUTORIZACIÓN OPERATIVA
+
+El sistema ya incorpora una capa base real de acceso y visibilidad por módulo.
 
 La autorización efectiva debe entenderse como una combinación de niveles distintos:
 
@@ -323,23 +314,31 @@ Estos niveles no deben mezclarse entre sí.
 
 Reglas actuales consolidadas:
 
-por ahora todos los tenants tienen todos los módulos habilitados de forma hardcodeada
+la habilitación de módulos del tenant se resuelve mediante una capa central específica de acceso por tenant
 
-más adelante superadmin podrá habilitar o deshabilitar módulos por tenant
+el tenant define qué módulos están operativamente disponibles
 
-owner y admin son equivalentes a nivel de privilegios operativos dentro del tenant
+sobre esos módulos habilitados, el permiso efectivo se resuelve por rol
+
+owner no debe tratarse como un rol delegable ordinario
+
+owner se define estructuralmente por memberships.is_owner = true
+
+admin es el rol administrativo delegable exclusivo
 
 sales y operator son los roles operativos base actuales
+
+una membership activa no-owner no debe quedar sin al menos un rol válido
+
+el rol por defecto para nuevas memberships activas no-owner es operator
 
 la visibilidad no necesariamente coincide con la capacidad de edición
 
 roles base del sistema se definen en RoleCatalog
 
-esos roles base se siembran al crear el tenant
-
 los roles base reservados no deben modificarse ni eliminarse
 
-a futuro el owner podrá crear roles nuevos propios del tenant
+a futuro el tenant podrá incorporar más flexibilidad de roles sin romper esta jerarquía base
 
 Capa central prevista para acceso y permisos
 

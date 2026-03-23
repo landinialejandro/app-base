@@ -93,7 +93,7 @@ implementar RolePermissionMatrix
 
 implementar RolePermissionResolver
 
-sembrar roles base del tenant desde RoleCatalog
+terminar de alinear acceso efectivo por módulo habilitado del tenant y por rol real del usuario
 
 proteger roles reservados contra edición o eliminación futura
 
@@ -113,6 +113,15 @@ dejar documents y document_items como pendiente prioritario de endurecimiento de
 
 evaluar si conviene estandarizar un patrón base para CRUD controllers con autorización explícita por acción
 
+revisar y corregir datos legacy donde existan memberships activas no-owner sin rol asignado
+
+asegurar que los flujos nuevos asignen operator por defecto cuando corresponda
+
+definir comportamiento del sistema cuando un usuario ingresa a un tenant sin ningún módulo habilitado
+
+decidir si en ese caso corresponde dashboard vacío, pantalla informativa o redirección controlada
+
+definir también cómo deben comportarse navbar y dashboard cuando no exista ningún módulo operativo visible
 
 FLUJOS FUNCIONALES
 
@@ -225,6 +234,10 @@ evolucionar el envío manual de invitaciones owner_signup hacia envío real por 
 evaluar validación y normalización más robusta de phone_whatsapp
 
 revisar extensión del perfil de empresa con gestión futura de sucursales y configuraciones operativas separadas
+
+evaluar separar la gestión de roles y accesos del perfil de empresa hacia una pantalla propia cuando la complejidad funcional lo justifique
+
+evaluar más adelante si alguna parte no sensible del perfil de empresa puede delegarse a admin sin abrir acceso a configuraciones críticas
 
 
 ARQUITECTURA Y TRAZABILIDAD

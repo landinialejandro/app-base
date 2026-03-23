@@ -488,6 +488,36 @@ activity_logs
 attachments
 asset_party_history
 
+
+MEMBERSHIPS, OWNER Y ROLES
+
+La pertenencia operativa de un usuario a un tenant se resuelve por memberships.
+
+Reglas actuales:
+
+memberships.is_owner expresa la condición estructural de owner
+
+owner no debe modelarse como un rol asignable ordinario dentro del flujo normal de edición
+
+la pivote membership_role se utiliza para roles delegables del tenant
+
+admin es el rol administrativo delegable exclusivo
+
+operator es el rol operativo base por defecto
+
+sales permanece como rol operativo específico
+
+una membership activa no-owner no debe quedar sin rol
+
+puede existir una membership owner sin registros en membership_role y eso no constituye un error del modelo
+
+La jerarquía efectiva debe entenderse así:
+
+owner como condición estructural
+roles delegables como capa operativa
+permisos concretos como capa de autorización
+
+
 REGLA GENERAL DE CRECIMIENTO
 
 Antes de crear una nueva entidad, verificar:

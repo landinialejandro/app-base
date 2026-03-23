@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/assets/index.blade.php | V2 --}}
+{{-- FILE: resources/views/assets/index.blade.php | V3 --}}
 
 @extends('layouts.app')
 
@@ -54,7 +54,7 @@
             ])
 
             @if ($assets->count())
-                {{ $assets->links() }}
+                {{ $assets->appends(request()->query())->links() }}
             @endif
         </x-card>
 

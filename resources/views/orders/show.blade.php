@@ -129,7 +129,7 @@
                         <span class="detail-block-label">Activo</span>
                         <div class="detail-block-value">
                             @if ($order->asset)
-                                <a href="{{ route('assets.show', $order->asset) }}">
+                                <a href="{{ route('assets.show', ['asset' => $order->asset] + $trailQuery) }}">
                                     {{ $order->asset->name }}
                                 </a>
                             @else

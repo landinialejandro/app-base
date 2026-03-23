@@ -1,10 +1,11 @@
-{{-- FILE: resources/views/products/partials/table.blade.php --}}
+{{-- FILE: resources/views/products/partials/table.blade.php | V2 --}}
 
 @php
     use App\Support\Catalogs\ProductCatalog;
 
     $products = $products ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay productos para mostrar.';
+    $trailQuery = $trailQuery ?? [];
 @endphp
 
 @if ($products->count())
@@ -27,7 +28,7 @@
                     <tr>
                         <td>{{ $product->id }}</td>
                         <td>
-                            <a href="{{ route('products.show', $product) }}">
+                            <a href="{{ route('products.show', ['product' => $product] + $trailQuery) }}">
                                 {{ $product->name }}
                             </a>
                         </td>

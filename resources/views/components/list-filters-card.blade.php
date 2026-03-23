@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/components/list-filters-card.blade.php --}}
+{{-- FILE: resources/views/components/list-filters-card.blade.php | V2 --}}
 
 @props([
     'action',
@@ -6,6 +6,7 @@
     'secondaryId' => 'extra-filters-' . uniqid(),
     'toggleLabel' => 'Más filtros',
     'toggleLabelExpanded' => 'Menos filtros',
+    'clearUrl' => null,
 ])
 
 <x-card class="list-card">
@@ -33,7 +34,7 @@
             <div class="list-filters-side">
                 <button type="submit" class="btn btn-primary">Filtrar</button>
 
-                <a href="{{ $action }}" class="btn btn-secondary">Limpiar</a>
+                <a href="{{ $clearUrl ?: $action }}" class="btn btn-secondary">Limpiar</a>
 
                 @isset($secondary)
                     <button type="button" class="btn btn-secondary" data-action="app-toggle-details"

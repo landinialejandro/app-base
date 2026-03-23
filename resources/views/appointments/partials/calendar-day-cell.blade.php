@@ -1,7 +1,9 @@
-{{-- FILE: resources/views/appointments/partials/calendar-day-cell.blade.php | V1 --}}
+{{-- FILE: resources/views/appointments/partials/calendar-day-cell.blade.php | V2 --}}
 
 @php
     use App\Support\Catalogs\AppointmentCatalog;
+    use App\Support\Navigation\AppointmentNavigationTrail;
+    use App\Support\Navigation\NavigationTrail;
 
     $mode = $mode ?? 'month';
     $appointments = $day['appointments'];
@@ -60,9 +62,12 @@
                     : null;
 
                 $secondaryReference = $appointment->workstation_name ?: ($appointment->asset?->name ?: null);
+
+                $appointmentTrail = AppointmentNavigationTrail::base($appointment);
+                $appointmentTrailQuery = NavigationTrail::toQuery($appointmentTrail);
             @endphp
 
-            <a href="{{ route('appointments.show', $appointment) }}"
+            <a href="{{ route('appointments.show', ['appointment' => $appointment] + $appointmentTrailQuery) }}"
                 class="appointment-calendar-item status-accent-{{ $appointment->status }}">
                 <div class="appointment-calendar-item-time">{{ $timeLabel }}</div>
 

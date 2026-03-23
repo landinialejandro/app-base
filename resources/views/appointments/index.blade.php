@@ -1,3 +1,5 @@
+{{-- FILE: resources/views/appointments/index.blade.php | V2 --}}
+
 @extends('layouts.app')
 
 @section('title', 'Turnos')
@@ -112,7 +114,7 @@
             ])
 
             @if ($appointments->count())
-                {{ $appointments->links() }}
+                {{ $appointments->appends(request()->query())->links() }}
             @endif
         </x-card>
     </x-page>

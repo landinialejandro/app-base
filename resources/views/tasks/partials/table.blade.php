@@ -1,7 +1,9 @@
-{{-- FILE: resources/views/tasks/partials/table.blade.php --}}
+{{-- FILE: resources/views/tasks/partials/table.blade.php | V3 --}}
 
 @php
     use App\Support\Catalogs\TaskCatalog;
+    use App\Support\Navigation\NavigationTrail;
+    use App\Support\Navigation\TaskNavigationTrail;
     use Illuminate\Support\Carbon;
 
     $tasks = $tasks ?? collect();
@@ -40,6 +42,8 @@
                                 default => $task->due_date->format('d/m/Y'),
                             };
                         }
+
+                        $taskTrailQuery = NavigationTrail::toQuery(TaskNavigationTrail::base($task));
                     @endphp
 
                     <tr>
@@ -51,7 +55,7 @@
 
                         <td>
                             @if ($task->project)
-                                <a href="{{ route('projects.show', $task->project) }}">
+                                <a href="{{ route('projects.show', ['project' => $task->project] + $trailQuery) }}">
                                     {{ $task->project->name }}
                                 </a>
                             @else
@@ -75,7 +79,7 @@
                         <td>{{ $dueText }}</td>
                         <td>
                             @if ($task->order)
-                                <a href="{{ route('orders.show', ['order' => $task->order] + $trailQuery) }}">
+                                <a href="{{ route('orders.show', ['order' => $task->order] + $taskTrailQuery) }}">
                                     {{ $task->order->number ?: 'Ver orden' }}
                                 </a>
                             @else

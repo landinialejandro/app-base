@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/index.blade.php | V3 --}}
+{{-- FILE: resources/views/orders/index.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -104,7 +104,7 @@
             ])
 
             @if ($orders->count())
-                {{ $orders->links() }}
+                {{ $orders->appends(request()->query())->links() }}
             @endif
         </x-card>
 

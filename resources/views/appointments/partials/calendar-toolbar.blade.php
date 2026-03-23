@@ -1,3 +1,5 @@
+{{-- FILE:resources/views/appointments/partials/calendar-toolbar.blade.php | V2 --}}
+
 @php
     use App\Support\Catalogs\AppointmentCatalog;
 
@@ -5,12 +7,20 @@
 
     if ($viewMode === 'week') {
         $queryBase = request()->except('date', 'month', 'page');
+        $clearUrl = route('appointments.calendar', [
+            'view' => 'week',
+            'date' => $currentDate->toDateString(),
+        ]);
     } else {
         $queryBase = request()->except('month', 'date', 'page');
+        $clearUrl = route('appointments.calendar', [
+            'view' => 'month',
+            'month' => $currentMonth->format('Y-m'),
+        ]);
     }
 @endphp
 
-<x-list-filters-card :action="route('appointments.calendar')" secondary-id="appointments-calendar-extra-filters">
+<x-list-filters-card :action="route('appointments.calendar')" :clear-url="$clearUrl" secondary-id="appointments-calendar-extra-filters">
     <x-slot:primary>
         <div class="list-filters-grid">
             <div class="form-group">

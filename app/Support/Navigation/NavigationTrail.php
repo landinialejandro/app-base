@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/NavigationTrail.php | V1
+// FILE: app/Support/Navigation/NavigationTrail.php | V2
 
 namespace App\Support\Navigation;
 
@@ -151,6 +151,22 @@ class NavigationTrail
         $trail[$existingIndex] = $node;
 
         return self::normalize($trail);
+    }
+
+    public static function sliceBefore(array $trail, string $key, mixed $id = null): array
+    {
+        $trail = self::normalize($trail);
+
+        foreach ($trail as $index => $node) {
+            $sameKey = (string) ($node['key'] ?? '') === $key;
+            $sameId = $id === null || (($node['id'] ?? null) == $id);
+
+            if ($sameKey && $sameId) {
+                return array_values(array_slice($trail, 0, $index));
+            }
+        }
+
+        return $trail;
     }
 
     public static function replaceCurrentUrl(array $trail, string $url): array

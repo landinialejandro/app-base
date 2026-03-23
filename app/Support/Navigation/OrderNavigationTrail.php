@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/OrderNavigationTrail.php | V2
+// FILE: app/Support/Navigation/OrderNavigationTrail.php | V3
 
 namespace App\Support\Navigation;
 
@@ -64,6 +64,9 @@ class OrderNavigationTrail
                 ? AppointmentNavigationTrail::base($appointment)
                 : self::ordersBase();
         }
+
+        $trail = NavigationTrail::sliceBefore($trail, 'orders.create', 'new');
+        $trail = NavigationTrail::sliceBefore($trail, 'orders.edit', $order->id);
 
         return NavigationTrail::appendOrCollapse(
             $trail,

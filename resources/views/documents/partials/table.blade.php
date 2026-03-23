@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/partials/table.blade.php | V3 --}}
+{{-- FILE: resources/views/documents/partials/table.blade.php | V4 --}}
 
 @php
     use App\Support\Catalogs\DocumentCatalog;
@@ -54,18 +54,33 @@
                         </td>
 
                         @if ($showParty)
-                            <td>{{ $document->party?->name ?: '—' }}</td>
+                            <td>
+                                @if ($document->party)
+                                    <a href="{{ route('parties.show', ['party' => $document->party] + $trailQuery) }}">
+                                        {{ $document->party->name }}
+                                    </a>
+                                @else
+                                    —
+                                @endif
+                            </td>
                         @endif
 
                         @if ($showAsset)
-                            <td>{{ $document->asset?->name ?: '—' }}</td>
+                            <td>
+                                @if ($document->asset)
+                                    <a href="{{ route('assets.show', ['asset' => $document->asset] + $trailQuery) }}">
+                                        {{ $document->asset->name }}
+                                    </a>
+                                @else
+                                    —
+                                @endif
+                            </td>
                         @endif
 
                         @if ($showOrder)
                             <td>
                                 @if ($document->order)
-                                    <a
-                                        href="{{ route('orders.show', ['order' => $document->order] + ($trailQuery ?? [])) }}">
+                                    <a href="{{ route('orders.show', ['order' => $document->order] + $trailQuery) }}">
                                         {{ $document->order->number ?: 'Ver orden' }}
                                     </a>
                                 @else

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Order.php \ V2
+// FILE: app/Models/Order.php | V3
 
 namespace App\Models;
 
@@ -36,6 +36,23 @@ class Order extends Model
         'ordered_at' => 'date',
         'sequence_number' => 'integer',
     ];
+
+    protected static function booted(): void
+    {
+        static::deleting(function (Order $order): void {
+            if ($order->isForceDeleting()) {
+                return;
+            }
+
+            if ($order->task_id === null) {
+                return;
+            }
+
+            $order->forceFill([
+                'task_id' => null,
+            ])->saveQuietly();
+        });
+    }
 
     public function party()
     {

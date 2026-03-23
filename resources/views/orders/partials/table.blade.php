@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/partials/table.blade.php | V3 --}}
+{{-- FILE: resources/views/orders/partials/table.blade.php | V4 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
@@ -49,11 +49,27 @@
                         </td>
 
                         @if ($showParty)
-                            <td>{{ $order->party?->name ?: '—' }}</td>
+                            <td>
+                                @if ($order->party)
+                                    <a href="{{ route('parties.show', ['party' => $order->party] + $trailQuery) }}">
+                                        {{ $order->party->name }}
+                                    </a>
+                                @else
+                                    —
+                                @endif
+                            </td>
                         @endif
 
                         @if ($showAsset)
-                            <td>{{ $order->asset?->name ?: '—' }}</td>
+                            <td>
+                                @if ($order->asset)
+                                    <a href="{{ route('assets.show', ['asset' => $order->asset] + $trailQuery) }}">
+                                        {{ $order->asset->name }}
+                                    </a>
+                                @else
+                                    —
+                                @endif
+                            </td>
                         @endif
 
                         <td>{{ $order->ordered_at?->format('d/m/Y') ?: '—' }}</td>

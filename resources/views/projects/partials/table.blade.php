@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/projects/partials/table.blade.php --}}
+{{-- FILE: resources/views/projects/partials/table.blade.php | V2 --}}
 
 @php
     use App\Support\Catalogs\ProjectCatalog;
@@ -6,6 +6,7 @@
 
     $projects = $projects ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay proyectos para mostrar.';
+    $trailQuery = $trailQuery ?? [];
 @endphp
 
 @if ($projects->count())
@@ -49,7 +50,7 @@
                     <tr>
                         <td>
                             <div>
-                                <a href="{{ route('projects.show', $project) }}">
+                                <a href="{{ route('projects.show', ['project' => $project] + $trailQuery) }}">
                                     {{ $project->name }}
                                 </a>
                             </div>

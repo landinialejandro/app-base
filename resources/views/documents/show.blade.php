@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/show.blade.php | V7 --}}
+{{-- FILE: resources/views/documents/show.blade.php | V8 --}}
 
 @extends('layouts.app')
 
@@ -68,7 +68,15 @@
             <div class="summary-inline-grid">
                 <div class="summary-inline-card">
                     <div class="summary-inline-label">Contacto</div>
-                    <div class="summary-inline-value">{{ $document->party?->name ?: '—' }}</div>
+                    <div class="summary-inline-value">
+                        @if ($document->party)
+                            <a href="{{ route('parties.show', ['party' => $document->party] + $trailQuery) }}">
+                                {{ $document->party->name }}
+                            </a>
+                        @else
+                            —
+                        @endif
+                    </div>
                 </div>
 
                 <div class="summary-inline-card">
@@ -123,7 +131,7 @@
                         <span class="detail-block-label">Activo</span>
                         <div class="detail-block-value">
                             @if ($document->asset)
-                                <a href="{{ route('assets.show', $document->asset) }}">
+                                <a href="{{ route('assets.show', ['asset' => $document->asset] + $trailQuery) }}">
                                     {{ $document->asset->name }}
                                 </a>
                             @else

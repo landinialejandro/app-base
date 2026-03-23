@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/index.blade.php | V4 --}}
+{{-- FILE: resources/views/orders/index.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -8,6 +8,10 @@
 
     @php
         use App\Support\Catalogs\OrderCatalog;
+        use App\Support\Navigation\NavigationTrail;
+        use App\Support\Navigation\OrderNavigationTrail;
+
+        $trailQuery = NavigationTrail::toQuery(OrderNavigationTrail::ordersBase());
     @endphp
 
     <x-page class="list-page">
@@ -101,6 +105,7 @@
                 'showParty' => true,
                 'showAsset' => true,
                 'emptyMessage' => 'No hay órdenes cargadas.',
+                'trailQuery' => $trailQuery,
             ])
 
             @if ($orders->count())

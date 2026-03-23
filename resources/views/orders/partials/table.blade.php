@@ -1,7 +1,9 @@
-{{-- FILE: resources/views/orders/partials/table.blade.php | V4 --}}
+{{-- FILE: resources/views/orders/partials/table.blade.php | V5 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
+    use App\Support\Navigation\NavigationTrail;
+    use App\Support\Navigation\OrderNavigationTrail;
 
     $orders = $orders ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay órdenes para mostrar.';
@@ -33,6 +35,10 @@
             </thead>
             <tbody>
                 @foreach ($orders as $order)
+                    @php
+                        $orderTrailQuery = NavigationTrail::toQuery(OrderNavigationTrail::base($order));
+                    @endphp
+
                     <tr>
                         <td>
                             <a href="{{ route('orders.show', ['order' => $order] + $trailQuery) }}">
@@ -51,7 +57,7 @@
                         @if ($showParty)
                             <td>
                                 @if ($order->party)
-                                    <a href="{{ route('parties.show', ['party' => $order->party] + $trailQuery) }}">
+                                    <a href="{{ route('parties.show', ['party' => $order->party] + $orderTrailQuery) }}">
                                         {{ $order->party->name }}
                                     </a>
                                 @else
@@ -63,7 +69,7 @@
                         @if ($showAsset)
                             <td>
                                 @if ($order->asset)
-                                    <a href="{{ route('assets.show', ['asset' => $order->asset] + $trailQuery) }}">
+                                    <a href="{{ route('assets.show', ['asset' => $order->asset] + $orderTrailQuery) }}">
                                         {{ $order->asset->name }}
                                     </a>
                                 @else

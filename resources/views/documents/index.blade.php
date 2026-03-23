@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/index.blade.php | V4 --}}
+{{-- FILE: resources/views/documents/index.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -8,6 +8,10 @@
 
     @php
         use App\Support\Catalogs\DocumentCatalog;
+        use App\Support\Navigation\DocumentNavigationTrail;
+        use App\Support\Navigation\NavigationTrail;
+
+        $trailQuery = NavigationTrail::toQuery(DocumentNavigationTrail::documentsBase());
     @endphp
 
     <x-page class="list-page">
@@ -112,6 +116,7 @@
                 'showAsset' => true,
                 'showOrder' => true,
                 'emptyMessage' => 'No hay documentos cargados.',
+                'trailQuery' => $trailQuery,
             ])
 
             @if ($documents->count())

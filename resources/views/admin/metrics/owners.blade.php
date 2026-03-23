@@ -1,41 +1,35 @@
-{{-- FILE: resources/views/admin/metrics/owners.blade.php --}}
+{{-- FILE: resources/views/admin/metrics/owners.blade.php | V2 --}}
 
 @extends('layouts.app')
 
 @section('title', 'Owners activos')
 
 @section('content')
-    <x-page>
-        <x-breadcrumb :items="[
-            ['label' => 'Administración', 'url' => route('admin.dashboard')],
-            ['label' => 'Owners activos'],
-        ]" />
+    <x-page class="list-page">
+        <x-breadcrumb :items="[['label' => 'Administración', 'url' => route('admin.dashboard')], ['label' => 'Owners activos']]" />
 
         <x-page-header title="Owners activos">
-            <div class="page-actions">
-                <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary">
-                    Volver
-                </a>
-            </div>
+            <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary">Volver al panel</a>
         </x-page-header>
 
-        <x-card>
-            <div class="dashboard-section-header">
-                <h2 class="dashboard-section-title">Owners del sistema</h2>
-                <p class="dashboard-section-text">
-                    Usuarios que tienen al menos una membership con rol owner.
-                </p>
-            </div>
+        <x-card class="mb-4">
+            <p class="mb-0">
+                Owners con membresías activas en tenants del sistema.
+            </p>
+        </x-card>
 
-            @if ($owners->count())
-                <div class="table-wrap">
+        <x-card class="list-card">
+            @if ($owners->isEmpty())
+                <p class="mb-0">No hay owners activos registrados.</p>
+            @else
+                <div class="table-wrap list-scroll">
                     <table class="table">
                         <thead>
                             <tr>
                                 <th>Nombre</th>
                                 <th>Email</th>
-                                <th>Tenants owner</th>
                                 <th>Empresas</th>
+                                <th>Cantidad de empresas</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -43,25 +37,25 @@
                                 <tr>
                                     <td>{{ $owner->name }}</td>
                                     <td>{{ $owner->email }}</td>
-                                    <td>{{ $owner->owner_tenants_count }}</td>
                                     <td>
                                         @foreach ($owner->memberships as $membership)
                                             @if ($membership->tenant)
-                                                <div>{{ $membership->tenant->name }}</div>
+                                                <div>
+                                                    <a href="{{ route('admin.tenants.show', $membership->tenant) }}">
+                                                        {{ $membership->tenant->name }}
+                                                    </a>
+                                                </div>
                                             @endif
                                         @endforeach
                                     </td>
+                                    <td>{{ $owner->memberships->count() }}</td>
                                 </tr>
                             @endforeach
                         </tbody>
                     </table>
                 </div>
 
-                <div class="mt-3">
-                    {{ $owners->links() }}
-                </div>
-            @else
-                <p class="mb-0">No hay owners registrados.</p>
+                {{ $owners->links() }}
             @endif
         </x-card>
     </x-page>

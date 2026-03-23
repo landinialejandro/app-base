@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/admin/tenants/modules-edit.blade.php | V1 --}}
+{{-- FILE: resources/views/admin/tenants/modules-edit.blade.php | V3 --}}
 
 @extends('layouts.app')
 
@@ -7,99 +7,114 @@
 @section('content')
     <x-page>
         <x-breadcrumb :items="[
-            ['label' => 'Inicio', 'url' => route('admin.dashboard')],
+            ['label' => 'Administración', 'url' => route('admin.dashboard')],
             ['label' => 'Tenants', 'url' => route('admin.tenants.index')],
             ['label' => $tenant->name, 'url' => route('admin.tenants.show', $tenant)],
             ['label' => 'Configurar módulos'],
         ]" />
 
         <x-page-header title="Configurar módulos">
-            <a href="{{ route('admin.tenants.show', $tenant) }}" class="btn btn-secondary">Volver al tenant</a>
+            <a href="{{ route('admin.tenants.show', $tenant) }}" class="btn btn-secondary">Volver</a>
         </x-page-header>
 
-        <div class="summary-inline-grid">
-            <div class="summary-inline-card">
-                <div class="summary-inline-label">Empresa</div>
-                <div class="summary-inline-value">{{ $tenant->name }}</div>
-            </div>
+        <x-show-summary details-id="tenant-modules-summary-{{ $tenant->id }}" toggle-label="Más detalle"
+            toggle-label-expanded="Ocultar detalle">
+            <x-show-summary-item label="Empresa">
+                {{ $tenant->name }}
+            </x-show-summary-item>
 
-            <div class="summary-inline-card">
-                <div class="summary-inline-label">Slug</div>
-                <div class="summary-inline-value">{{ $tenant->slug }}</div>
-            </div>
+            <x-show-summary-item label="Slug">
+                {{ $tenant->slug }}
+            </x-show-summary-item>
 
-            <div class="summary-inline-card">
-                <div class="summary-inline-label">Módulos efectivos activos</div>
-                <div class="summary-inline-value">{{ $enabledModulesCount }}</div>
-            </div>
-        </div>
+            <x-show-summary-item label="Módulos efectivos activos">
+                {{ $enabledModulesCount }}
+            </x-show-summary-item>
 
-        <x-card class="mb-4">
-            <p>
-                Esta pantalla guarda un override editable en <code>settings.module_access.enabled_modules</code>.
-            </p>
+            <x-show-summary-item label="Override editable">
+                {{ $hasEditableOverride ? 'Sí' : 'No' }}
+            </x-show-summary-item>
 
-            <p>
-                El valor mostrado como “estado efectivo” ya contempla la resolución real del sistema.
-            </p>
+            <x-slot:details>
+                <div class="detail-grid detail-grid--3">
+                    <div class="detail-block detail-block--full">
+                        <span class="detail-block-label">Persistencia</span>
+                        <div class="detail-block-value">
+                            Esta pantalla guarda un override editable en
+                            <code>settings.module_access.enabled_modules</code>.
+                        </div>
+                    </div>
 
-            @if (!$hasEditableOverride)
-                <p>
-                    Actualmente este tenant está heredando configuración. Al guardar, se generará un override explícito.
-                </p>
-            @endif
+                    <div class="detail-block detail-block--full">
+                        <span class="detail-block-label">Estado efectivo</span>
+                        <div class="detail-block-value">
+                            El estado efectivo mostrado contempla la resolución real del sistema.
+                        </div>
+                    </div>
+                </div>
+            </x-slot:details>
+        </x-show-summary>
+
+        @if ($errors->any())
+            <x-card class="mb-4">
+                <ul class="mb-0">
+                    @foreach ($errors->all() as $error)
+                        <li>{{ $error }}</li>
+                    @endforeach
+                </ul>
+            </x-card>
+        @endif
+
+        <x-card>
+            <form method="POST" action="{{ route('admin.tenants.modules.update', $tenant) }}" class="form">
+                @csrf
+                @method('PUT')
+
+                <div class="table-wrap list-scroll">
+                    <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Módulo</th>
+                                <th>Slug</th>
+                                <th>Habilitado</th>
+                                <th>Estado efectivo actual</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach ($moduleLabels as $module => $label)
+                                @php
+                                    $checked = array_key_exists($module, $editableOverrides)
+                                        ? (bool) $editableOverrides[$module]
+                                        : (bool) ($effectiveModules[$module] ?? false);
+
+                                    $effectiveValue = (bool) ($effectiveModules[$module] ?? false);
+                                @endphp
+
+                                <tr>
+                                    <td>{{ $label }}</td>
+                                    <td><code>{{ $module }}</code></td>
+                                    <td>
+                                        <label>
+                                            <input type="checkbox" name="modules[{{ $module }}]" value="1"
+                                                {{ old('modules.' . $module, $checked) ? 'checked' : '' }}>
+                                            Habilitado
+                                        </label>
+                                    </td>
+                                    <td>{{ $effectiveValue ? 'Habilitado' : 'Deshabilitado' }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Guardar configuración</button>
+                    <a href="{{ route('admin.tenants.show', $tenant) }}" class="btn btn-secondary">Cancelar</a>
+                </div>
+            </form>
         </x-card>
 
-        <form method="POST" action="{{ route('admin.tenants.modules.update', $tenant) }}" class="form">
-            @csrf
-            @method('PUT')
-
-            <div class="table-card">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Módulo</th>
-                            <th>Slug</th>
-                            <th>Habilitado</th>
-                            <th>Estado efectivo actual</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($moduleLabels as $module => $label)
-                            @php
-                                $checked = array_key_exists($module, $editableOverrides)
-                                    ? (bool) $editableOverrides[$module]
-                                    : (bool) ($effectiveModules[$module] ?? false);
-
-                                $effectiveValue = (bool) ($effectiveModules[$module] ?? false);
-                            @endphp
-
-                            <tr>
-                                <td>{{ $label }}</td>
-                                <td><code>{{ $module }}</code></td>
-                                <td>
-                                    <label>
-                                        <input type="checkbox" name="modules[{{ $module }}]" value="1"
-                                            {{ old('modules.' . $module, $checked) ? 'checked' : '' }}>
-                                        Habilitado
-                                    </label>
-                                </td>
-                                <td>{{ $effectiveValue ? 'Habilitado' : 'Deshabilitado' }}</td>
-                            </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
-
-            <div class="form-actions mt-4">
-                <button type="submit" class="btn btn-primary">Guardar configuración</button>
-                <a href="{{ route('admin.tenants.show', $tenant) }}" class="btn btn-secondary">Cancelar</a>
-            </div>
-        </form>
-
         <x-card class="mt-4">
-            <h2 class="card-title">Restaurar configuración heredada</h2>
-
             <p>
                 Esta acción elimina el override editable persistido para este tenant y vuelve a aplicar la configuración
                 heredada.
@@ -109,9 +124,11 @@
                 @csrf
                 @method('DELETE')
 
-                <button type="submit" class="btn btn-secondary">
-                    Restaurar valores heredados
-                </button>
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-secondary">
+                        Restaurar valores heredados
+                    </button>
+                </div>
             </form>
         </x-card>
     </x-page>

@@ -133,25 +133,18 @@ Route::middleware(['auth', 'tenant'])->group(function () {
 
     Route::get('/tenant/profile', [TenantProfileController::class, 'show'])
         ->name('tenant.profile.show');
-
     Route::put('/tenant/profile', [TenantProfileController::class, 'update'])
         ->name('tenant.profile.update');
-
     Route::post('/tenant/memberships/{membership}/block', [TenantMembershipController::class, 'block'])
         ->name('tenant.memberships.block');
-
     Route::post('/tenant/memberships/{membership}/unblock', [TenantMembershipController::class, 'unblock'])
         ->name('tenant.memberships.unblock');
-
     Route::post('/tenant/memberships/{membership}/roles', [TenantMembershipRoleController::class, 'attach'])
         ->name('tenant.memberships.roles.attach');
-
     Route::delete('/tenant/memberships/{membership}/roles/{role}', [TenantMembershipRoleController::class, 'detach'])
         ->name('tenant.memberships.roles.detach');
-
     Route::post('/tenant/invitations', [TenantInvitationController::class, 'store'])
         ->name('tenant.invitations.store');
-
     Route::delete('/tenant/invitations/{invitation}', [TenantInvitationController::class, 'destroy'])
         ->name('tenant.invitations.destroy');
 
@@ -191,6 +184,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::get('/appointments/{appointment}/edit', [AppointmentController::class, 'edit'])->name('appointments.edit');
     Route::put('/appointments/{appointment}', [AppointmentController::class, 'update'])->name('appointments.update');
     Route::delete('/appointments/{appointment}', [AppointmentController::class, 'destroy'])->name('appointments.destroy');
+
     // Products
     Route::get('/products', [ProductController::class, 'index'])->name('products.index');
     Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');

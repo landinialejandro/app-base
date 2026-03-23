@@ -6,10 +6,7 @@
 
 @section('content')
     <x-page>
-        <x-breadcrumb :items="[
-            ['label' => 'Administración', 'url' => route('admin.dashboard')],
-            ['label' => 'Tenants'],
-        ]" />
+        <x-breadcrumb :items="[['label' => 'Administración', 'url' => route('admin.dashboard')], ['label' => 'Tenants']]" />
 
         <x-page-header title="Tenants">
             <div class="page-actions">
@@ -42,8 +39,16 @@
                         <tbody>
                             @foreach ($tenants as $tenant)
                                 <tr>
-                                    <td>{{ $tenant->name }}</td>
-                                    <td>{{ $tenant->slug }}</td>
+                                    <td>
+                                        <a href="{{ route('admin.tenants.show', $tenant) }}">
+                                            {{ $tenant->name }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('admin.tenants.show', $tenant) }}">
+                                            {{ $tenant->slug }}
+                                        </a>
+                                    </td>
                                     <td>{{ $tenant->users_count }}</td>
                                     <td>{{ $tenant->owners_count }}</td>
                                     <td>{{ $tenant->created_at?->format('d/m/Y H:i') }}</td>

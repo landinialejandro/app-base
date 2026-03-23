@@ -1,80 +1,68 @@
-{{-- FILE: resources/views/admin/tenants/index.blade.php | V1 --}}
+{{-- FILE: resources/views/admin/tenants/index.blade.php | V4 --}}
 
 @extends('layouts.app')
 
 @section('title', 'Tenants')
 
 @section('content')
-    <x-page>
-        <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('admin.dashboard')], ['label' => 'Tenants']]" />
+    <x-page class="list-page">
+        <x-breadcrumb :items="[['label' => 'Administración', 'url' => route('admin.dashboard')], ['label' => 'Tenants']]" />
 
         <x-page-header title="Tenants">
             <a href="{{ route('admin.dashboard') }}" class="btn btn-secondary">Volver al panel</a>
         </x-page-header>
 
-        <x-card class="mb-4">
-            <form method="GET" action="{{ route('admin.tenants.index') }}" class="form">
-                <div class="form-grid form-grid-2">
-                    <div class="form-field">
-                        <label for="q" class="form-label">Buscar tenant</label>
-                        <input id="q" type="text" name="q" value="{{ $search }}" class="form-input"
+        <x-list-filters-card :action="route('admin.tenants.index')">
+            <x-slot:primary>
+                <div class="list-filters-grid">
+                    <div class="form-group">
+                        <label for="q" class="form-label">Buscar</label>
+                        <input type="text" id="q" name="q" class="form-control" value="{{ $search }}"
                             placeholder="Nombre, slug o ID">
                     </div>
-
-                    <div class="form-actions">
-                        <button type="submit" class="btn btn-primary">Buscar</button>
-                        <a href="{{ route('admin.tenants.index') }}" class="btn btn-secondary">Limpiar</a>
-                    </div>
                 </div>
-            </form>
-        </x-card>
+            </x-slot:primary>
+        </x-list-filters-card>
 
-        @if ($tenants->isEmpty())
-            <x-card>
-                <p>No se encontraron tenants para el criterio indicado.</p>
-            </x-card>
-        @else
-            <div class="table-card">
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Tenant</th>
-                            <th>Slug</th>
-                            <th>ID</th>
-                            <th>Usuarios</th>
-                            <th>Owners</th>
-                            <th>Acciones</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        @foreach ($tenants as $tenant)
+        <x-card class="list-card">
+            @if ($tenants->isEmpty())
+                <p class="mb-0">No se encontraron tenants para el criterio indicado.</p>
+            @else
+                <div class="table-wrap list-scroll">
+                    <table class="table">
+                        <thead>
                             <tr>
-                                <td>{{ $tenant->name }}</td>
-                                <td>{{ $tenant->slug }}</td>
-                                <td>{{ $tenant->id }}</td>
-                                <td>{{ $tenant->users_count }}</td>
-                                <td>{{ $tenant->owners_count }}</td>
-                                <td>
-                                    <div class="table-actions">
-                                        <a href="{{ route('admin.tenants.show', $tenant) }}" class="btn btn-secondary">
-                                            Ver
-                                        </a>
-
-                                        <a href="{{ route('admin.tenants.modules.edit', $tenant) }}"
-                                            class="btn btn-primary">
-                                            Módulos
-                                        </a>
-                                    </div>
-                                </td>
+                                <th>Tenant</th>
+                                <th>Slug</th>
+                                <th>ID</th>
+                                <th>Usuarios</th>
+                                <th>Owners</th>
                             </tr>
-                        @endforeach
-                    </tbody>
-                </table>
-            </div>
+                        </thead>
+                        <tbody>
+                            @foreach ($tenants as $tenant)
+                                <tr>
+                                    <td>
+                                        <a href="{{ route('admin.tenants.show', $tenant) }}">
+                                            {{ $tenant->name }}
+                                        </a>
+                                    </td>
+                                    <td>
+                                        <a href="{{ route('admin.tenants.show', $tenant) }}">
+                                            {{ $tenant->slug }}
+                                        </a>
+                                    </td>
+                                    <td>{{ $tenant->id }}</td>
+                                    <td>{{ $tenant->users_count }}</td>
+                                    <td>{{ $tenant->owners_count }}</td>
+                                </tr>
+                            @endforeach
+                        </tbody>
+                    </table>
+                </div>
 
-            <div class="pagination-wrap">
                 {{ $tenants->links() }}
-            </div>
-        @endif
+            @endif
+        </x-card>
     </x-page>
 @endsection

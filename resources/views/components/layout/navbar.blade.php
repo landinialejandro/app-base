@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/components/layout/navbar.blade.php | V2 --}}
+{{-- FILE: resources/views/components/layout/navbar.blade.php | V3 --}}
 
 @php
     $user = auth()->user();
@@ -18,14 +18,14 @@
 
         <nav class="app-nav">
             @auth
-                @if (count($managementLinks))
-                    <details class="app-nav-dropdown" @if ($managementIsExpanded) open @endif>
-                        <summary class="app-nav-link {{ $managementIsActive ? 'is-active' : '' }}">
+                @if (count($secondaryLinks))
+                    <details class="app-nav-dropdown" @if ($secondaryIsExpanded) open @endif>
+                        <summary class="app-nav-link {{ $secondaryIsActive ? 'is-active' : '' }}">
                             Gestión
                         </summary>
 
                         <div class="app-nav-dropdown-menu">
-                            @foreach ($managementLinks as $link)
+                            @foreach ($secondaryLinks as $link)
                                 @php
                                     $isActive = $activeModule === $link['module'];
                                     $isCurrent = $currentModule === $link['module'];
@@ -41,7 +41,7 @@
                     </details>
                 @endif
 
-                @foreach ($mainLinks as $link)
+                @foreach ($quickLinks as $link)
                     @php
                         $isActive = $activeModule === $link['module'];
                         $isCurrent = $currentModule === $link['module'];

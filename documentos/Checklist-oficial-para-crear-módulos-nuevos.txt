@@ -114,13 +114,19 @@ Si alguna de estas respuestas es sí, el módulo debe evaluar e implementar nave
 
 Si corresponde, el módulo debe:
 
+tener builder o resolutor de trail propio compatible con el mecanismo central vigente del proyecto
+
 aceptar contexto de navegación de forma explícita
 
-resolver ese contexto desde una capa reutilizable central si ya existe
+resolver ese contexto desde la capa reutilizable central vigente
 
-propagar ese contexto en enlaces internos, acciones create, edit, show y redirects relevantes
+propagar ese contexto en tablas, tabs, acciones por fila, links relacionales, paginación, filtros, botones volver, botones cancelar y redirects relevantes
 
-resolver cancelar, volver y redirect post acción de forma consistente con ese contexto
+resolver create -> store -> show sin persistencia de nodos transitorios de “Nuevo …”
+
+resolver show -> edit -> update -> show sin persistencia de nodos transitorios de “Editar …”
+
+resolver correctamente submódulos tipo ítems, de modo que item create o item edit retornen al show del padre sin contaminar el trail final
 
 si participa en navegación cruzada real, aceptar y propagar el trail o mecanismo contextual vigente del proyecto
 
@@ -133,6 +139,15 @@ verificar que el trail no quede serializado dentro del propio campo url de los n
 verificar que, al volver a una entidad ya presente, el trail colapse sin duplicarse
 
 verificar que el módulo no conserve mecanismos anteriores de contexto redundantes una vez migrado al esquema central vigente
+
+verificar links relacionales en tablas y sublistados:
+si el contexto real es la fila, usar el trail de la fila y no solo el del contenedor
+
+verificar index contextual:
+si desde un index se navega a una entidad relacionada, decidir explícitamente si el breadcrumb debe conservar solo módulo origen o módulo origen más entidad fila
+
+verificar navbar:
+no debe saltar automáticamente solo por el módulo profundo actual si el flujo funcional sigue anclado en otro módulo de origen
 
 Reglas:
 
@@ -147,6 +162,7 @@ no deducir breadcrumb funcional desde relaciones implícitas del modelo ni desde
 no introducir mecanismos paralelos de contexto si ya existe trail central vigente
 
 no duplicar en blades lógica que ya fue resuelta por controller o capa central de navegación
+
 CIERRE
 
 Un módulo no debe considerarse terminado solo porque funciona.

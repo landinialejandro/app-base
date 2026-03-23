@@ -363,6 +363,13 @@ la navegación principal del tenant debe construirse desde ModuleCatalog cuando 
 
 no se deben hardcodear módulos navegables en componentes de layout cuando el sistema ya pueda resolverlos desde catálogo y acceso efectivo
 
+el breadcrumb representa recorrido contextual o estructural de la pantalla actual
+
+el navbar representa anclaje funcional estable del sistema
+
+el navbar no debe copiar ni duplicar el breadcrumb
+
+cuando exista navegación contextual entre módulos relacionados, el módulo activo del navbar puede resolverse por origen funcional del flujo y no solo por la pantalla hoja actualmente abierta
 
 CONVENCIONES DE BLADE Y FRONTEND LIVIANO
 
@@ -454,35 +461,53 @@ Cuando la navegación contextual ya exista como patrón real del sistema, debe r
 
 Reglas:
 
-preferir un motor genérico de trail reutilizable antes que variantes dispersas por módulo
+el mecanismo central vigente del proyecto para breadcrumb contextual es NavigationTrail
 
-cuando un módulo necesite lógica propia de navegación contextual, debe apoyarse en resolutores, builders o adaptadores compatibles con el mecanismo central vigente
+los módulos que participen en navegación contextual deben apoyarse en builders o resolutores propios compatibles con NavigationTrail, sin crear variantes paralelas de criterio
 
-si una pantalla relacionada recibe un trail válido, debe poder heredarlo, extenderlo o colapsarlo sin reconstruir manualmente la navegación desde parámetros sueltos o historial del navegador
+controller resuelve trail
 
-cuando el trail vuelva a un nodo ya existente, debe priorizarse una resolución limpia y no duplicada
+vista consume trail
 
-no sostener en paralelo mecanismos redundantes de breadcrumb contextual si ya existe una forma central adoptada por el proyecto
+si una pantalla relacionada recibe un trail válido, debe poder heredarlo, extenderlo o colapsarlo sin reconstruir manualmente la navegación desde parámetros sueltos, historial del navegador o deducciones implícitas de relaciones del modelo
 
 los nodos del trail deben almacenar URLs limpias de la entidad actual
 
 no debe serializarse el propio trail dentro del campo url de los nodos
 
-el trail se propaga solo en links, forms y redirects
+el trail se propaga solo en links, forms y redirects relevantes
 
-si un módulo recibe trail válido, debe heredarlo y colapsarlo; no debe reinyectarlo dentro de la definición interna del nodo
+cuando el trail vuelva a un nodo ya existente, debe colapsarse de forma limpia y no duplicada
 
-cuando un módulo ya esté migrado al trail central, deben eliminarse mecanismos legacy de contexto equivalentes o redundantes
+cuando un módulo ya esté migrado a NavigationTrail, no debe seguir usando mecanismos legacy equivalentes o redundantes, incluyendo:
 
-las decisiones técnicas concretas de clases o nombres de implementación pueden evolucionar, pero la convención estable es:
+url()->previous()
+
+context_type / context_id
+
+NavigationContext
+
+reconstrucción manual por relaciones del modelo
+
+en tablas embebidas o listados contextuales, cuando el contexto real de navegación sea la fila y no solo el contenedor, los links profundos a entidades relacionadas deben usar el trail de la fila
+
+los nodos transitorios de formulario como create, edit, items.create o items.edit no deben persistir al volver a show después de store o update exitoso
+
+las decisiones internas de implementación pueden evolucionar, pero la convención estable es:
 
 motor central reutilizable
-controller resuelve
-vista consume
-sin deducción desde historial
-sin duplicación por módulo
-sin serialización recursiva del trail dentro de nodos
 
+builders compatibles por módulo
+
+controller resuelve
+
+vista consume
+
+sin deducción desde historial
+
+sin duplicación por módulo
+
+sin serialización recursiva del trail dentro de nodos
 
 CONVENCIONES DE VOCABULARIO UI
 
@@ -591,3 +616,11 @@ no hardcodear variantes divergentes por módulo si la regla de navegación ya ex
 la preservación de contexto UX debe aplicarse con criterio y solo cuando aporte continuidad real de uso
 
 breadcrumb, retorno al origen y preservación de contexto deben resolverse de forma consistente entre módulos relacionados
+
+cuando una navegación surja desde una tabla contextual, debe verificarse si el contexto real a preservar es:
+
+solo el módulo contenedor
+
+o el módulo contenedor más la entidad fila desde la cual se abre la entidad relacionada
+
+esa decisión no debe dejarse implícita ni variar accidentalmente entre módulos

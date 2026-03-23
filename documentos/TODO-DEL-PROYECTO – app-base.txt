@@ -81,7 +81,6 @@ revisar etiquetado contextual de botones volver en vistas show relacionadas seg�
 
 auditar criterio del navbar y sidebar para evitar que el estado activo dependa solo de la pantalla hoja y no del área funcional esperada
 
-crear documento base de mapa de navegación y relaciones del sistema
 
 implementar sistema de auditoría de cambios
 
@@ -176,8 +175,31 @@ no avanzar todavía a navegación tipo tabs de ruta o workspace hasta cerrar una
 
 mantener como referencias resueltas los tramos contextuales appointments -> orders -> documents, projects -> tasks -> orders y parties -> assets -> orders/documents
 
-evitar reaparición de serialización recursiva del trail dentro de URLs internas de nodos
+incorporar explícitamente a la auditoría los flujos appointments -> parties, appointments -> assets, orders -> parties, orders -> assets, documents -> parties, documents -> assets y documents -> orders
 
+auditar y definir criterio de compactación o corte de breadcrumb contextual para navegaciones profundas
+
+evaluar cuándo conviene conservar simultáneamente:
+
+módulo origen
+
+entidad fila
+
+jerarquía natural del destino
+
+definir regla UX para no perder contexto sin generar breadcrumbs excesivos
+
+auditar remanentes de propagación de trail en navegación profunda, especialmente en:
+
+tablas embebidas
+
+tabs
+
+acciones secundarias
+
+rutas cruzadas poco frecuentes
+
+evitar reaparición de serialización recursiva del trail dentro de URLs internas de nodos
 
 NUMERACIÓN Y CONFIGURACIÓN OPERATIVA
 
@@ -233,3 +255,21 @@ pendientes reales
 mejoras concretas
 refactors necesarios
 ideas futuras resumidas
+
+
+== AUTENTICACIÓN Y SEGURIDAD ==
+
+- Auditar LoginResponse para garantizar que el autoingreso post-login resuelva únicamente memberships activas y no permita acceso automático a tenants con membership bloqueada.
+
+- Revisar el alta interna de usuarios para asegurar que cualquier flujo que cree User fuera del registro público genere también la Membership correspondiente y no deje usuarios sin acceso operativo a ningún tenant.
+
+- Revisar endurecimiento del modelo User respecto de atributos sensibles, en particular is_superadmin, para evitar riesgos de mass assignment o escalamiento accidental de privilegios.
+
+- Definir formalmente la estrategia de Two-Factor Authentication en Fortify:
+  - o se soporta completamente en modelo, columnas y flujo;
+  - o se desactiva explícitamente hasta implementarlo de forma consistente.
+
+- Verificar que rutas o utilidades de debug de identidad o tenant, por ejemplo whoami, no queden expuestas en producción.
+
+- Revisar el flujo de logout para confirmar que no queden residuos de contexto tenant en sesión cuando existan respuestas custom de cierre de sesión.
+

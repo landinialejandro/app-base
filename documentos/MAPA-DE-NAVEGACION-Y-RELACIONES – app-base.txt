@@ -114,6 +114,65 @@ FLUJOS CONTEXTUALES YA VALIDADOS
 
 appointments
 ↓
+parties
+
+appointments
+↓
+assets
+
+appointments
+↓
+orders
+↓
+documents
+↓
+document_items
+
+projects
+↓
+tasks
+↓
+orders
+
+orders
+↓
+parties
+
+orders
+↓
+assets
+
+orders
+↓
+order_items
+
+documents
+↓
+parties
+
+documents
+↓
+assets
+
+documents
+↓
+orders
+
+documents
+↓
+document_items
+
+parties
+↓
+assets
+↓
+orders / documents
+
+assets
+↓
+orders / documents
+
+↓
 orders
 ↓
 documents
@@ -141,7 +200,204 @@ documents
 document_items
 
 
+REGLA PARA LINKS RELACIONALES DESDE TABLAS CONTEXTUALES
+
+Cuando una tabla enlaza desde una entidad fila hacia una entidad relacionada, debe evaluarse cuál es el contexto real que el breadcrumb necesita preservar.
+
+Regla práctica:
+
+si el trabajo sigue anclado en la fila desde la que se abrió el vínculo, el breadcrumb esperado puede ser:
+
+módulo origen
+↓
+entidad fila
+↓
+entidad relacionada
+
+Esto aplica especialmente en:
+
+tablas embebidas dentro de show
+
+listados contextuales dentro de tabs
+
+acciones por fila hacia entidades relacionadas
+
+sublistados donde el contenedor no alcanza por sí solo para conservar el contexto de origen
+
+
 DETALLE DE FLUJOS RELEVANTES
+
+APPOINTMENTS -> PARTIES
+
+Uso típico:
+
+desde un turno se consulta o abre el contacto relacionado
+
+Contexto esperado:
+
+si la party se abre desde el turno, puede conservarse retorno útil al appointment de origen cuando siga siendo relevante para la tarea actual
+
+
+APPOINTMENTS -> ASSETS
+
+Uso típico:
+
+desde un turno se consulta o abre el activo relacionado
+
+Contexto esperado:
+
+si el asset se abre desde el turno, puede conservarse retorno útil al appointment de origen cuando siga siendo relevante para la tarea actual
+
+
+APPOINTMENTS -> ORDERS
+
+Uso típico:
+
+un turno deriva en una orden operativa
+
+Contexto esperado:
+
+si la orden se abre desde appointment relacionado, puede conservarse retorno útil al turno o al módulo de agenda
+
+Observación:
+
+appointments mantiene además navegación estructural propia y calendario mensual operativo
+
+
+PROJECTS -> TASKS
+
+Uso típico:
+
+desde project.show o desde listados relacionados se accede a tareas vinculadas
+
+Contexto esperado:
+
+tasks puede necesitar retorno al proyecto de origen si se abrió desde allí
+
+
+TASKS -> ORDERS
+
+Uso típico:
+
+una tarea deriva en una orden
+
+Contexto esperado:
+
+si el flujo empezó en project o task, la orden puede conservar ese origen funcional cuando siga siendo útil
+
+
+ORDERS -> PARTIES
+
+Uso típico:
+
+desde una orden se consulta o abre el contacto asociado
+
+Contexto esperado:
+
+si la party se abre desde la orden, el breadcrumb puede conservar la orden de origen cuando esa relación siga siendo parte del trabajo en curso
+
+
+ORDERS -> ASSETS
+
+Uso típico:
+
+desde una orden se consulta o abre el activo asociado
+
+Contexto esperado:
+
+si el asset se abre desde la orden, el breadcrumb puede conservar la orden de origen cuando esa relación siga siendo parte del trabajo en curso
+
+
+ORDERS -> DOCUMENTS
+
+Uso típico:
+
+desde una orden se generan o consultan documentos derivados
+
+Contexto esperado:
+
+documents puede abrirse en modo estructural o como continuación directa del trabajo iniciado en orders
+
+Observación:
+
+es uno de los tramos principales del trail contextual actual
+
+
+DOCUMENTS -> PARTIES
+
+Uso típico:
+
+desde un documento se consulta o abre el contacto asociado
+
+Contexto esperado:
+
+si la party se abre desde el documento, el breadcrumb puede conservar el document de origen cuando siga siendo útil para la continuidad del trabajo
+
+
+DOCUMENTS -> ASSETS
+
+Uso típico:
+
+desde un documento se consulta o abre el activo asociado
+
+Contexto esperado:
+
+si el asset se abre desde el documento, el breadcrumb puede conservar el document de origen cuando siga siendo útil para la continuidad del trabajo
+
+
+DOCUMENTS -> ORDERS
+
+Uso típico:
+
+desde un documento se abre la orden asociada
+
+Contexto esperado:
+
+si la order se abre desde el documento, el breadcrumb puede conservar el document de origen cuando el usuario siga trabajando sobre ese recorrido relacionado
+
+
+DOCUMENTS -> DOCUMENT_ITEMS
+
+Uso típico:
+
+edición o consulta de detalle documental dentro del flujo de documents
+
+Contexto esperado:
+
+document_items hereda normalmente el contexto del document padre
+
+
+PARTIES -> ASSETS
+
+Uso típico:
+
+consulta de activos asociados a un contacto o entidad base del negocio
+
+Contexto esperado:
+
+assets puede abrirse como continuación del trabajo iniciado en parties
+
+
+ASSETS -> ORDERS / DOCUMENTS
+
+Uso típico:
+
+desde un activo se consultan o generan operaciones relacionadas
+
+Contexto esperado:
+
+orders y documents pueden conservar retorno al asset si ese origen sigue siendo relevante
+
+
+ORDERS -> ORDER_ITEMS
+
+Uso típico:
+
+alta, edición o consulta de renglones de orden
+
+Contexto esperado:
+
+order_items hereda normalmente el contexto de la order padre
 
 APPOINTMENTS -> ORDERS
 
@@ -279,8 +535,9 @@ si el breadcrumb visible sigue siendo compacto
 
 si navbar y sidebar marcan el área funcional esperada y no solo la hoja final abierta
 
-si hay pantallas donde el contexto se pierde por filtros, tabs o paginación
+si en tablas contextuales el trail correcto era el del contenedor o el de la fila
 
+si hay pantallas donde el contexto se pierde por filtros, tabs, paginación o acciones secundarias
 
 RELACIÓN CON OTROS DOCUMENTOS
 

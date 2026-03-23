@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/dashboard.blade.php --}}
+{{-- FILE: resources/views/dashboard.blade.php | V2 --}}
 
 @extends('layouts.app')
 
@@ -130,7 +130,7 @@
 
         <x-page-header title="Dashboard" />
 
-        @if ($canAccessParties || $canAccessAssets || $canAccessOrders)
+        @if ($canAccessAppointments || $canAccessParties || $canAccessAssets)
             <x-card>
                 <div class="dashboard-section-header">
                     <h2 class="dashboard-section-title">Operación diaria</h2>
@@ -138,6 +138,14 @@
                 </div>
 
                 <div class="dashboard-grid">
+                    @if ($canAccessAppointments)
+                        <a href="{{ route('appointments.calendar') }}" class="dashboard-link-card">
+                            <span class="dashboard-link-title">Agenda</span>
+                            <span class="dashboard-link-text">Ver calendario mensual y administrar turnos</span>
+                            <span class="dashboard-link-meta">Calendario operativo</span>
+                        </a>
+                    @endif
+
                     @if ($canAccessParties)
                         <a href="{{ route('parties.index') }}" class="dashboard-link-card">
                             <span class="dashboard-link-title">Contactos</span>
@@ -153,19 +161,11 @@
                             <span class="dashboard-link-meta">{{ $assetsCount }} activos</span>
                         </a>
                     @endif
-
-                    @if ($canAccessOrders)
-                        <a href="{{ route('orders.index') }}" class="dashboard-link-card">
-                            <span class="dashboard-link-title">Órdenes</span>
-                            <span class="dashboard-link-text">Ver y administrar órdenes</span>
-                            <span class="dashboard-link-meta">{{ $ordersCount }} órdenes</span>
-                        </a>
-                    @endif
                 </div>
             </x-card>
         @endif
 
-        @if ($canAccessTasks || $canAccessProjects || $canAccessProducts || $canAccessDocuments)
+        @if ($canAccessOrders || $canAccessTasks || $canAccessProjects || $canAccessProducts || $canAccessDocuments)
             <x-card>
                 <div class="dashboard-section-header">
                     <h2 class="dashboard-section-title">Gestión complementaria</h2>
@@ -173,6 +173,14 @@
                 </div>
 
                 <div class="dashboard-grid">
+                    @if ($canAccessOrders)
+                        <a href="{{ route('orders.index') }}" class="dashboard-link-card">
+                            <span class="dashboard-link-title">Órdenes</span>
+                            <span class="dashboard-link-text">Ver y administrar órdenes</span>
+                            <span class="dashboard-link-meta">{{ $ordersCount }} órdenes</span>
+                        </a>
+                    @endif
+
                     @if ($canAccessTasks)
                         <a href="{{ route('tasks.index') }}" class="dashboard-link-card">
                             <span class="dashboard-link-title">Tareas</span>

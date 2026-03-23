@@ -108,6 +108,7 @@ class DashboardController extends Controller
             })
             ->count();
 
+        $canAccessAppointments = $resolver->canUseModule(ModuleCatalog::APPOINTMENTS, $tenant, $user);
         $canAccessParties = $resolver->canUseModule(ModuleCatalog::PARTIES, $tenant, $user);
         $canAccessAssets = $resolver->canUseModule(ModuleCatalog::ASSETS, $tenant, $user);
         $canAccessOrders = $resolver->canUseModule(ModuleCatalog::ORDERS, $tenant, $user);
@@ -126,6 +127,7 @@ class DashboardController extends Controller
                 $user
             ),
 
+            'canAccessAppointments' => $canAccessAppointments,
             'canAccessParties' => $canAccessParties,
             'canAccessAssets' => $canAccessAssets,
             'canAccessOrders' => $canAccessOrders,

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/ProjectNavigationTrail.php | V1
+// FILE: app/Support/Navigation/ProjectNavigationTrail.php | V2
 
 namespace App\Support\Navigation;
 
@@ -58,6 +58,9 @@ class ProjectNavigationTrail
         if (empty($trail)) {
             $trail = self::projectsBase();
         }
+
+        $trail = NavigationTrail::sliceBefore($trail, 'projects.create', 'new');
+        $trail = NavigationTrail::sliceBefore($trail, 'projects.edit', $project->id);
 
         return NavigationTrail::appendOrCollapse(
             $trail,

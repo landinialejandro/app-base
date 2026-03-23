@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/DocumentNavigationTrail.php | V2
+// FILE: app/Support/Navigation/DocumentNavigationTrail.php | V3
 
 namespace App\Support\Navigation;
 
@@ -62,6 +62,11 @@ class DocumentNavigationTrail
         if (empty($trail)) {
             $trail = self::documentsBase();
         }
+
+        $trail = NavigationTrail::sliceBefore($trail, 'documents.create', 'new');
+        $trail = NavigationTrail::sliceBefore($trail, 'documents.edit', $document->id);
+        $trail = NavigationTrail::sliceBefore($trail, 'documents.items.create', $document->id);
+        $trail = NavigationTrail::sliceBefore($trail, 'documents.items.edit', null);
 
         return NavigationTrail::appendOrCollapse(
             $trail,

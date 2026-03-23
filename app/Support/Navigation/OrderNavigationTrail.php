@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/OrderNavigationTrail.php | V3
+// FILE: app/Support/Navigation/OrderNavigationTrail.php | V4
 
 namespace App\Support\Navigation;
 
@@ -67,6 +67,8 @@ class OrderNavigationTrail
 
         $trail = NavigationTrail::sliceBefore($trail, 'orders.create', 'new');
         $trail = NavigationTrail::sliceBefore($trail, 'orders.edit', $order->id);
+        $trail = NavigationTrail::sliceBefore($trail, 'orders.items.create', $order->id);
+        $trail = NavigationTrail::sliceBefore($trail, 'orders.items.edit', null);
 
         return NavigationTrail::appendOrCollapse(
             $trail,

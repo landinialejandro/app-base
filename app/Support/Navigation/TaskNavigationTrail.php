@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/TaskNavigationTrail.php | V1
+// FILE: app/Support/Navigation/TaskNavigationTrail.php | V2
 
 namespace App\Support\Navigation;
 
@@ -63,6 +63,9 @@ class TaskNavigationTrail
         if (empty($trail)) {
             return self::base($task);
         }
+
+        $trail = NavigationTrail::sliceBefore($trail, 'tasks.create', 'new');
+        $trail = NavigationTrail::sliceBefore($trail, 'tasks.edit', $task->id);
 
         return NavigationTrail::appendOrCollapse(
             $trail,

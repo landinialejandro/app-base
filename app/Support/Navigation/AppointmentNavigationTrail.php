@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/AppointmentNavigationTrail.php | V3
+// FILE: app/Support/Navigation/AppointmentNavigationTrail.php | V4
 
 namespace App\Support\Navigation;
 
@@ -54,6 +54,9 @@ class AppointmentNavigationTrail
         if (empty($trail)) {
             $trail = self::appointmentsBase();
         }
+
+        $trail = NavigationTrail::sliceBefore($trail, 'appointments.create', 'new');
+        $trail = NavigationTrail::sliceBefore($trail, 'appointments.edit', $appointment->id);
 
         return NavigationTrail::appendOrCollapse(
             $trail,

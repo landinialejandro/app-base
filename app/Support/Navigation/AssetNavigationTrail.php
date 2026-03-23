@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/AssetNavigationTrail.php
+// FILE: app/Support/Navigation/AssetNavigationTrail.php | V2
 
 namespace App\Support\Navigation;
 
@@ -63,6 +63,9 @@ class AssetNavigationTrail
         if (empty($trail)) {
             return self::base($asset);
         }
+
+        $trail = NavigationTrail::sliceBefore($trail, 'assets.create', 'new');
+        $trail = NavigationTrail::sliceBefore($trail, 'assets.edit', $asset->id);
 
         return NavigationTrail::appendOrCollapse(
             $trail,

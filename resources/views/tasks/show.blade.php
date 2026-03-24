@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/show.blade.php | V4 --}}
+{{-- FILE: resources/views/tasks/show.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -105,39 +105,31 @@
             </x-show-summary-item>
 
             <x-slot:details>
-                <div class="detail-grid detail-grid--3">
-                    <div class="detail-block">
-                        <span class="detail-block-label">Vencimiento</span>
-                        <div class="detail-block-value">{{ $task->due_date?->format('d/m/Y') ?? 'Sin fecha' }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="Vencimiento">
+                    {{ $task->due_date?->format('d/m/Y') ?? 'Sin fecha' }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Contacto</span>
-                        <div class="detail-block-value">{{ $task->party?->name ?? '—' }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="Contacto">
+                    {{ $task->party?->name ?? '—' }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Orden asociada</span>
-                        <div class="detail-block-value">
-                            @if ($task->order)
-                                <a href="{{ route('orders.show', ['order' => $task->order] + $trailQuery) }}">
-                                    {{ $task->order->number ?: 'Ver orden' }}
-                                </a>
-                            @elseif ($task->party_id)
-                                <a href="{{ route('orders.create', ['task_id' => $task->id] + $trailQuery) }}">
-                                    Crear orden
-                                </a>
-                            @else
-                                Asociá un contacto para poder crear una orden.
-                            @endif
-                        </div>
-                    </div>
+                <x-show-summary-item-detail-block label="Orden asociada">
+                    @if ($task->order)
+                        <a href="{{ route('orders.show', ['order' => $task->order] + $trailQuery) }}">
+                            {{ $task->order->number ?: 'Ver orden' }}
+                        </a>
+                    @elseif ($task->party_id)
+                        <a href="{{ route('orders.create', ['task_id' => $task->id] + $trailQuery) }}">
+                            Crear orden
+                        </a>
+                    @else
+                        Asociá un contacto para poder crear una orden.
+                    @endif
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block detail-block--full">
-                        <span class="detail-block-label">Descripción</span>
-                        <div class="detail-block-value">{{ $task->description ?: '—' }}</div>
-                    </div>
-                </div>
+                <x-show-summary-item-detail-block label="Descripción" full>
+                    {{ $task->description ?: '—' }}
+                </x-show-summary-item-detail-block>
             </x-slot:details>
         </x-show-summary>
 

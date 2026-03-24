@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/show.blade.php | V6 --}}
+{{-- FILE: resources/views/parties/show.blade.php | V7 --}}
 
 @extends('layouts.app')
 
@@ -109,27 +109,31 @@
         <div class="tabs" data-tabs>
             <x-tab-toolbar label="Secciones del contacto">
                 <x-slot:tabs>
-                    <button type="button" class="tabs-link is-active" data-tab-link="orders" role="tab"
-                        aria-selected="true">
-                        Órdenes
-                        @if ($orders->count())
-                            ({{ $orders->count() }})
-                        @endif
-                    </button>
+                    <x-horizontal-scroll label="Secciones del contacto">
+                        <button type="button" class="tabs-link is-active" data-tab-link="orders" role="tab"
+                            aria-selected="true">
+                            Órdenes
+                            @if ($orders->count())
+                                ({{ $orders->count() }})
+                            @endif
+                        </button>
 
-                    <button type="button" class="tabs-link" data-tab-link="documents" role="tab" aria-selected="false">
-                        Documentos
-                        @if ($documents->count())
-                            ({{ $documents->count() }})
-                        @endif
-                    </button>
+                        <button type="button" class="tabs-link" data-tab-link="documents" role="tab"
+                            aria-selected="false">
+                            Documentos
+                            @if ($documents->count())
+                                ({{ $documents->count() }})
+                            @endif
+                        </button>
 
-                    <button type="button" class="tabs-link" data-tab-link="assets" role="tab" aria-selected="false">
-                        Activos
-                        @if ($assets->count())
-                            ({{ $assets->count() }})
-                        @endif
-                    </button>
+                        <button type="button" class="tabs-link" data-tab-link="assets" role="tab"
+                            aria-selected="false">
+                            Activos
+                            @if ($assets->count())
+                                ({{ $assets->count() }})
+                            @endif
+                        </button>
+                    </x-horizontal-scroll>
                 </x-slot:tabs>
             </x-tab-toolbar>
 

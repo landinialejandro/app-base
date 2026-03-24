@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/assets/show.blade.php | V5 --}}
+{{-- FILE: resources/views/assets/show.blade.php | V6 --}}
 
 @extends('layouts.app')
 
@@ -108,20 +108,23 @@
         <div class="tabs" data-tabs>
             <x-tab-toolbar label="Secciones del activo">
                 <x-slot:tabs>
-                    <button type="button" class="tabs-link is-active" data-tab-link="orders" role="tab"
-                        aria-selected="true">
-                        Órdenes
-                        @if ($orders->count())
-                            ({{ $orders->count() }})
-                        @endif
-                    </button>
+                    <x-horizontal-scroll label="Secciones del activo">
+                        <button type="button" class="tabs-link is-active" data-tab-link="orders" role="tab"
+                            aria-selected="true">
+                            Órdenes
+                            @if ($orders->count())
+                                ({{ $orders->count() }})
+                            @endif
+                        </button>
 
-                    <button type="button" class="tabs-link" data-tab-link="documents" role="tab" aria-selected="false">
-                        Documentos
-                        @if ($documents->count())
-                            ({{ $documents->count() }})
-                        @endif
-                    </button>
+                        <button type="button" class="tabs-link" data-tab-link="documents" role="tab"
+                            aria-selected="false">
+                            Documentos
+                            @if ($documents->count())
+                                ({{ $documents->count() }})
+                            @endif
+                        </button>
+                    </x-horizontal-scroll>
                 </x-slot:tabs>
             </x-tab-toolbar>
 

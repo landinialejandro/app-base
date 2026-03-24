@@ -1,74 +1,89 @@
-{{-- FILE: resources/views/products/index.blade.php | V5 --}}
+{{-- FILE: resources/views/products/show.blade.php | V4 --}}
 
 @extends('layouts.app')
 
-@section('title', 'Productos')
+@section('title', 'Detalle del producto')
 
 @section('content')
-
     @php
         use App\Support\Catalogs\ProductCatalog;
+        use App\Support\Navigation\NavigationTrail;
+
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+        $backUrl = NavigationTrail::previousUrl($navigationTrail, route('products.index'));
     @endphp
 
-    <x-page class="list-page">
+    <x-page>
+        <x-breadcrumb :items="$breadcrumbItems" />
 
-        <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Productos']]" />
-
-        <x-page-header title="Productos">
-            @can('create', App\Models\Product::class)
-                <a href="{{ route('products.create') }}" class="btn btn-success">
-                    Nuevo producto
+        <x-page-header title="Detalle del producto">
+            @can('update', $product)
+                <a href="{{ route('products.edit', ['product' => $product] + $trailQuery) }}" class="btn btn-primary">
+                    <x-icons.pencil />
+                    <span>Editar</span>
                 </a>
             @endcan
+
+            @can('delete', $product)
+                <form method="POST" action="{{ route('products.destroy', ['product' => $product] + $trailQuery) }}"
+                    class="inline-form" data-action="app-confirm-submit" data-confirm-message="¿Eliminar producto?">
+                    @csrf
+                    @method('DELETE')
+
+                    <button type="submit" class="btn btn-danger">
+                        <x-icons.trash />
+                        <span>Eliminar</span>
+                    </button>
+                </form>
+            @endcan
+
+            <a href="{{ $backUrl }}" class="btn btn-secondary">
+                <x-icons.chevron-left />
+                <span>Volver</span>
+            </a>
         </x-page-header>
 
-        <x-list-filters-card :action="route('products.index')" secondary-id="products-extra-filters">
-            <x-slot:primary>
-                <div class="list-filters-grid">
-                    <div class="form-group">
-                        <label for="q" class="form-label">Buscar</label>
-                        <input type="text" id="q" name="q" class="form-control" value="{{ request('q') }}"
-                            placeholder="Nombre, SKU o ID">
-                    </div>
+        <x-show-summary details-id="product-more-detail">
+            <x-show-summary-item label="Nombre">
+                {{ $product->name }}
+            </x-show-summary-item>
 
-                    <div class="form-group">
-                        <label for="kind" class="form-label">Tipo</label>
-                        <select id="kind" name="kind" class="form-control">
-                            <option value="">Todos</option>
-                            @foreach (ProductCatalog::kindLabels() as $value => $label)
-                                <option value="{{ $value }}" @selected(request('kind') === $value)>
-                                    {{ $label }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-                </div>
-            </x-slot:primary>
+            <x-show-summary-item label="Precio">
+                {{ $product->price !== null ? '$' . number_format((float) $product->price, 2, ',', '.') : '—' }}
+            </x-show-summary-item>
 
-            <x-slot:secondary>
-                <div class="list-filters-grid">
-                    <div class="form-group">
-                        <label for="is_active" class="form-label">Activo</label>
-                        <select id="is_active" name="is_active" class="form-control">
-                            <option value="">Todos</option>
-                            <option value="1" @selected(request('is_active') === '1')>Sí</option>
-                            <option value="0" @selected(request('is_active') === '0')>No</option>
-                        </select>
-                    </div>
-                </div>
-            </x-slot:secondary>
-        </x-list-filters-card>
+            <x-show-summary-item label="Unidad">
+                {{ $product->unit_label ?? '—' }}
+            </x-show-summary-item>
 
-        <x-card class="list-card">
-            @include('products.partials.table', [
-                'products' => $products,
-                'emptyMessage' => 'No hay productos para esta empresa.',
-            ])
+            <x-slot:details>
+                <x-show-summary-item-detail-block label="Tipo">
+                    {{ ProductCatalog::label($product->kind) }}
+                </x-show-summary-item-detail-block>
 
-            @if ($products->count())
-                {{ $products->links() }}
-            @endif
-        </x-card>
+                <x-show-summary-item-detail-block label="Activo">
+                    <span class="status-badge {{ $product->is_active ? 'status-badge--done' : 'status-badge--cancelled' }}">
+                        {{ $product->is_active ? 'Sí' : 'No' }}
+                    </span>
+                </x-show-summary-item-detail-block>
 
+                <x-show-summary-item-detail-block label="SKU">
+                    {{ $product->sku ?? '—' }}
+                </x-show-summary-item-detail-block>
+
+                <x-show-summary-item-detail-block label="Creado">
+                    {{ $product->created_at?->format('d/m/Y H:i') ?? '—' }}
+                </x-show-summary-item-detail-block>
+
+                <x-show-summary-item-detail-block label="Actualizado">
+                    {{ $product->updated_at?->format('d/m/Y H:i') ?? '—' }}
+                </x-show-summary-item-detail-block>
+
+                <x-show-summary-item-detail-block label="Descripción" full>
+                    {{ $product->description ?: '—' }}
+                </x-show-summary-item-detail-block>
+            </x-slot:details>
+        </x-show-summary>
     </x-page>
 @endsection

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/projects/show.blade.php | V3 --}}
+{{-- FILE: resources/views/projects/show.blade.php | V6 --}}
 
 @extends('layouts.app')
 
@@ -64,42 +64,33 @@
             </x-show-summary-item>
 
             <x-slot:details>
-                <div class="detail-grid detail-grid--3">
-                    <div class="detail-block">
-                        <span class="detail-block-label">Pendientes</span>
-                        <div class="detail-block-value">{{ $pendingCount }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="Pendientes">
+                    {{ $pendingCount }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">En progreso</span>
-                        <div class="detail-block-value">{{ $inProgressCount }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="En progreso">
+                    {{ $inProgressCount }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Vencidas</span>
-                        <div class="detail-block-value">{{ $overdueCount }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="Vencidas">
+                    {{ $overdueCount }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Finalizadas</span>
-                        <div class="detail-block-value">{{ $doneCount }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="Finalizadas">
+                    {{ $doneCount }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Canceladas</span>
-                        <div class="detail-block-value">{{ $cancelledCount }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="Canceladas">
+                    {{ $cancelledCount }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Actualizado</span>
-                        <div class="detail-block-value">{{ $project->updated_at?->format('d/m/Y H:i') ?: '—' }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="Actualizado">
+                    {{ $project->updated_at?->format('d/m/Y H:i') ?: '—' }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block detail-block--full">
-                        <span class="detail-block-label">Descripción</span>
-                        <div class="detail-block-value">{{ $project->description ?: '—' }}</div>
-                    </div>
-                </div>
+                <x-show-summary-item-detail-block label="Descripción" full>
+                    {{ $project->description ?: '—' }}
+                </x-show-summary-item-detail-block>
             </x-slot:details>
         </x-show-summary>
 
@@ -110,7 +101,13 @@
             </x-show-summary-item>
 
             <x-show-summary-item label="Avance">
-                {{ $progress }}%
+                <div class="summary-progress-inline">
+                    <div class="progress">
+                        <div class="progress-bar" style="width: {{ $progress }}%;"></div>
+                    </div>
+
+                    <div class="summary-progress-value">{{ $progress }}%</div>
+                </div>
             </x-show-summary-item>
 
             <x-show-summary-item label="Vencidas">
@@ -118,143 +115,128 @@
             </x-show-summary-item>
 
             <x-slot:details>
-                <div class="project-visual-detail">
-                    <div class="visual-grid">
-                        <div class="visual-card">
-                            <div class="visual-title">Progreso general</div>
 
-                            <div class="progress">
-                                <div class="progress-bar" style="width: {{ $progress }}%;"></div>
-                            </div>
+                <x-show-summary-item label="Estados de tareas" span="3">
+                    @if ($totalTasks > 0 && count($pieSegments) > 0)
+                        <div class="pie-layout pie-layout--wide">
+                            <div class="pie-chart-wrap">
+                                <svg viewBox="0 0 42 42" class="pie-chart" aria-hidden="true">
+                                    <circle class="pie-track" cx="21" cy="21" r="15.9155"></circle>
 
-                            <div class="progress-meta">
-                                <span>{{ $doneCount }} de {{ $totalTasks }} tareas finalizadas</span>
-                                <strong>{{ $progress }}%</strong>
-                            </div>
-                        </div>
+                                    @foreach ($pieSegments as $segment)
+                                        <circle class="pie-segment {{ $segment['class'] }}" cx="21" cy="21"
+                                            r="15.9155" stroke-dasharray="{{ $segment['dash'] }}"
+                                            stroke-dashoffset="{{ $segment['offset'] }}"></circle>
+                                    @endforeach
+                                </svg>
 
-                        <div class="visual-card">
-                            <div class="visual-title">Estados de tareas</div>
-
-                            @if ($totalTasks > 0 && count($pieSegments) > 0)
-                                <div class="pie-layout">
-                                    <div class="pie-chart-wrap">
-                                        <svg viewBox="0 0 42 42" class="pie-chart" aria-hidden="true">
-                                            <circle class="pie-track" cx="21" cy="21" r="15.9155"></circle>
-
-                                            @foreach ($pieSegments as $segment)
-                                                <circle class="pie-segment {{ $segment['class'] }}" cx="21"
-                                                    cy="21" r="15.9155" stroke-dasharray="{{ $segment['dash'] }}"
-                                                    stroke-dashoffset="{{ $segment['offset'] }}"></circle>
-                                            @endforeach
-                                        </svg>
-
-                                        <div class="pie-center">
-                                            <strong>{{ $totalTasks }}</strong>
-                                            <span>tareas</span>
-                                        </div>
-                                    </div>
-
-                                    <div class="pie-legend">
-                                        <div class="pie-legend-item">
-                                            <span class="pie-dot pie-dot--pending"></span>
-                                            <span>Pendientes: {{ $pendingCount }}</span>
-                                        </div>
-
-                                        <div class="pie-legend-item">
-                                            <span class="pie-dot pie-dot--in-progress"></span>
-                                            <span>En progreso: {{ $inProgressCount }}</span>
-                                        </div>
-
-                                        <div class="pie-legend-item">
-                                            <span class="pie-dot pie-dot--done"></span>
-                                            <span>Finalizadas: {{ $doneCount }}</span>
-                                        </div>
-
-                                        <div class="pie-legend-item">
-                                            <span class="pie-dot pie-dot--cancelled"></span>
-                                            <span>Canceladas: {{ $cancelledCount }}</span>
-                                        </div>
-                                    </div>
+                                <div class="pie-center">
+                                    <strong>{{ $totalTasks }}</strong>
+                                    <span>tareas</span>
                                 </div>
-                            @else
-                                <p class="mb-0">No hay tareas suficientes para graficar.</p>
-                            @endif
+                            </div>
+
+                            <div class="pie-legend">
+                                <div class="pie-legend-item">
+                                    <span class="pie-dot pie-dot--pending"></span>
+                                    <span>Pendientes: {{ $pendingCount }}</span>
+                                </div>
+
+                                <div class="pie-legend-item">
+                                    <span class="pie-dot pie-dot--in-progress"></span>
+                                    <span>En progreso: {{ $inProgressCount }}</span>
+                                </div>
+
+                                <div class="pie-legend-item">
+                                    <span class="pie-dot pie-dot--done"></span>
+                                    <span>Finalizadas: {{ $doneCount }}</span>
+                                </div>
+
+                                <div class="pie-legend-item">
+                                    <span class="pie-dot pie-dot--cancelled"></span>
+                                    <span>Canceladas: {{ $cancelledCount }}</span>
+                                </div>
+                            </div>
                         </div>
+                    @else
+                        <p class="mb-0">No hay tareas suficientes para graficar.</p>
+                    @endif
+                </x-show-summary-item>
+
+                <x-show-summary-item label="Tiempo transcurrido">
+                    <div class="visual-kpi">
+                        {{ is_null($daysElapsed) ? '—' : $daysElapsed . ' días' }}
                     </div>
-
-                    <div class="visual-grid visual-grid--stats">
-                        <div class="visual-card">
-                            <div class="visual-title">Tiempo transcurrido</div>
-                            <div class="visual-kpi">
-                                {{ is_null($daysElapsed) ? '—' : $daysElapsed . ' días' }}
-                            </div>
-                            <div class="visual-note">
-                                Desde {{ $projectStartDate?->format('d/m/Y') ?: '—' }}
-                            </div>
-                        </div>
-
-                        <div class="visual-card">
-                            <div class="visual-title">Días hasta el fin previsto</div>
-                            <div class="visual-kpi">
-                                @if (is_null($daysRemaining))
-                                    —
-                                @elseif($daysRemaining < 0)
-                                    Vencido
-                                @else
-                                    {{ $daysRemaining }} días
-                                @endif
-                            </div>
-                            <div class="visual-note">
-                                @if ($lastOpenDueDate)
-                                    Fecha estimada: {{ $lastOpenDueDate->format('d/m/Y') }}
-                                @else
-                                    Sin tareas abiertas con vencimiento
-                                @endif
-                            </div>
-                        </div>
-
-                        <div class="visual-card">
-                            <div class="visual-title">Tareas vencidas</div>
-                            <div class="visual-kpi">{{ $overdueCount }}</div>
-                            <div class="visual-note">Pendientes fuera de fecha</div>
-                        </div>
+                    <div class="visual-note">
+                        Desde {{ $projectStartDate?->format('d/m/Y') ?: '—' }}
                     </div>
-                </div>
+                </x-show-summary-item>
+
+                <x-show-summary-item label="Días hasta el fin previsto">
+                    <div class="visual-kpi">
+                        @if (is_null($daysRemaining))
+                            —
+                        @elseif($daysRemaining < 0)
+                            Vencido
+                        @else
+                            {{ $daysRemaining }} días
+                        @endif
+                    </div>
+                    <div class="visual-note">
+                        @if ($lastOpenDueDate)
+                            Fecha estimada: {{ $lastOpenDueDate->format('d/m/Y') }}
+                        @else
+                            Sin tareas abiertas con vencimiento
+                        @endif
+                    </div>
+                </x-show-summary-item>
+
+                <x-show-summary-item label="Tareas vencidas">
+                    <div class="visual-kpi">{{ $overdueCount }}</div>
+                    <div class="visual-note">Pendientes fuera de fecha</div>
+                </x-show-summary-item>
             </x-slot:details>
         </x-show-summary>
 
         <div class="tabs" data-tabs>
-            <div class="tabs-nav" role="tablist" aria-label="Tareas del proyecto">
-                <button type="button" class="tabs-link is-active" data-tab-link="open" role="tab"
-                    aria-selected="true">
-                    Abiertas @if ($openTasks->count())
-                        ({{ $openTasks->count() }})
-                    @endif
-                </button>
+            <x-tab-toolbar label="Tareas del proyecto">
+                <x-slot:tabs>
+                    <x-horizontal-scroll label="Tareas del proyecto">
+                        <button type="button" class="tabs-link is-active" data-tab-link="open" role="tab"
+                            aria-selected="true">
+                            Abiertas
+                            @if ($openTasks->count())
+                                ({{ $openTasks->count() }})
+                            @endif
+                        </button>
 
-                <button type="button" class="tabs-link" data-tab-link="done" role="tab" aria-selected="false">
-                    Finalizadas @if ($doneTasks->count())
-                        ({{ $doneTasks->count() }})
-                    @endif
-                </button>
+                        <button type="button" class="tabs-link" data-tab-link="done" role="tab" aria-selected="false">
+                            Finalizadas
+                            @if ($doneTasks->count())
+                                ({{ $doneTasks->count() }})
+                            @endif
+                        </button>
 
-                <button type="button" class="tabs-link" data-tab-link="all" role="tab" aria-selected="false">
-                    Todas @if ($tasks->count())
-                        ({{ $tasks->count() }})
-                    @endif
-                </button>
-            </div>
+                        <button type="button" class="tabs-link" data-tab-link="all" role="tab" aria-selected="false">
+                            Todas
+                            @if ($tasks->count())
+                                ({{ $tasks->count() }})
+                            @endif
+                        </button>
+                    </x-horizontal-scroll>
+                </x-slot:tabs>
+
+                <x-slot:actions>
+                    <a href="{{ route('tasks.create', ['project_id' => $project->id] + $trailQuery) }}"
+                        class="btn btn-success">
+                        <x-icons.plus />
+                        <span>Agregar tarea</span>
+                    </a>
+                </x-slot:actions>
+            </x-tab-toolbar>
 
             <section class="tab-panel is-active" data-tab-panel="open">
                 <div class="tab-panel-stack">
-                    <x-page-header title="Tareas abiertas">
-                        <a href="{{ route('tasks.create', ['project_id' => $project->id] + $trailQuery) }}"
-                            class="btn btn-primary">
-                            Agregar tarea
-                        </a>
-                    </x-page-header>
-
                     <x-card class="list-card">
                         @include('tasks.partials.table', [
                             'tasks' => $openTasks,

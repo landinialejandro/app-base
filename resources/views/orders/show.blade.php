@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V5 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V6 --}}
 
 @extends('layouts.app')
 
@@ -59,12 +59,6 @@
                 </form>
             @endcan
 
-            @if ($order->task)
-                <a href="{{ route('tasks.show', ['task' => $order->task] + $trailQuery) }}" class="btn btn-secondary">
-                    Ver tarea
-                </a>
-            @endif
-
             <a href="{{ $backUrl }}" class="btn btn-secondary">
                 {{ $backLabel }}
             </a>
@@ -83,82 +77,78 @@
                 {{ $order->number ?: 'Sin número' }}
             </x-show-summary-item>
 
-            <x-show-summary-item label="Tarea origen">
-                @if ($order->task)
-                    <a href="{{ route('tasks.show', ['task' => $order->task] + $trailQuery) }}">
-                        {{ $order->task->name }}
-                    </a>
-                @else
-                    —
-                @endif
-            </x-show-summary-item>
-
             <x-slot:details>
-                <div class="detail-grid detail-grid--3">
-                    <div class="detail-block">
-                        <span class="detail-block-label">Tipo</span>
-                        <div class="detail-block-value">{{ OrderCatalog::label($order->kind) }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="Tipo">
+                    {{ OrderCatalog::label($order->kind) }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Estado</span>
-                        <div class="detail-block-value">
-                            <span class="status-badge {{ OrderCatalog::badgeClass($order->status) }}">
-                                {{ OrderCatalog::statusLabel($order->status) }}
-                            </span>
-                        </div>
-                    </div>
+                <x-show-summary-item-detail-block label="Tarea origen">
+                    @if ($order->task)
+                        <a href="{{ route('tasks.show', ['task' => $order->task] + $trailQuery) }}">
+                            {{ $order->task->name }}
+                        </a>
+                    @else
+                        —
+                    @endif
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Activo</span>
-                        <div class="detail-block-value">
-                            @if ($order->asset)
-                                <a href="{{ route('assets.show', ['asset' => $order->asset] + $trailQuery) }}">
-                                    {{ $order->asset->name }}
-                                </a>
-                            @else
-                                —
-                            @endif
-                        </div>
-                    </div>
+                <x-show-summary-item-detail-block label="Estado">
+                    <span class="status-badge {{ OrderCatalog::badgeClass($order->status) }}">
+                        {{ OrderCatalog::statusLabel($order->status) }}
+                    </span>
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block detail-block--full">
-                        <span class="detail-block-label">Notas</span>
-                        <div class="detail-block-value">{{ $order->notes ?: '—' }}</div>
-                    </div>
-                </div>
+                <x-show-summary-item-detail-block label="Activo">
+                    @if ($order->asset)
+                        <a href="{{ route('assets.show', ['asset' => $order->asset] + $trailQuery) }}">
+                            {{ $order->asset->name }}
+                        </a>
+                    @else
+                        —
+                    @endif
+                </x-show-summary-item-detail-block>
+
+                <x-show-summary-item-detail-block label="Notas" full>
+                    {{ $order->notes ?: '—' }}
+                </x-show-summary-item-detail-block>
             </x-slot:details>
         </x-show-summary>
 
         <div class="tabs" data-tabs>
-            <div class="tabs-nav" role="tablist" aria-label="Secciones secundarias de la orden">
-                <button type="button" class="tabs-link is-active" data-tab-link="items" role="tab"
-                    aria-selected="true">
-                    Ítems
-                    @if ($items->count())
-                        ({{ $items->count() }})
-                    @endif
-                </button>
+            <x-tab-toolbar label="Secciones secundarias de la orden">
+                <x-slot:tabs>
+                    <x-horizontal-scroll label="Secciones secundarias de la orden">
+                        <button type="button" class="tabs-link is-active" data-tab-link="items" role="tab"
+                            aria-selected="true">
+                            Ítems
+                            @if ($items->count())
+                                ({{ $items->count() }})
+                            @endif
+                        </button>
 
-                <button type="button" class="tabs-link" data-tab-link="documents" role="tab" aria-selected="false">
-                    Documentos
-                    @if ($documents->count())
-                        ({{ $documents->count() }})
-                    @endif
-                </button>
-            </div>
+                        <button type="button" class="tabs-link" data-tab-link="documents" role="tab"
+                            aria-selected="false">
+                            Documentos
+                            @if ($documents->count())
+                                ({{ $documents->count() }})
+                            @endif
+                        </button>
+                    </x-horizontal-scroll>
+                </x-slot:tabs>
+
+                <x-slot:actions>
+                    @can('update', $order)
+                        <a href="{{ route('orders.items.create', ['order' => $order] + $trailQuery) }}"
+                            class="btn btn-success">
+                            <x-icons.plus />
+                            <span>Agregar ítem</span>
+                        </a>
+                    @endcan
+                </x-slot:actions>
+            </x-tab-toolbar>
 
             <section class="tab-panel is-active" data-tab-panel="items">
                 <div class="tab-panel-stack">
-                    <x-page-header title="Ítems de la orden">
-                        @can('update', $order)
-                            <a href="{{ route('orders.items.create', ['order' => $order] + $trailQuery) }}"
-                                class="btn btn-primary">
-                                Agregar ítem
-                            </a>
-                        @endcan
-                    </x-page-header>
-
                     <x-card class="list-card">
                         @include('orders.items.partials.table', [
                             'order' => $order,
@@ -186,55 +176,61 @@
 
             <section class="tab-panel" data-tab-panel="documents" hidden>
                 <div class="tab-panel-stack">
-                    <x-page-header title="Documentos de la orden">
-                        <form method="POST"
-                            action="{{ route('orders.documents.store', ['order' => $order] + $trailQuery) }}"
-                            class="inline-form"
-                            @if ($quoteCount > 0) data-action="app-confirm-submit"
-                            data-confirm-message="Esta orden ya tiene {{ $quoteCount }} presupuesto(s) asociado(s). ¿Deseas crear otro?" @endif>
-                            @csrf
-                            <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_QUOTE }}">
-                            <button type="submit" class="btn btn-secondary">
-                                {{ $quoteCount > 0 ? 'Crear otro presupuesto' : 'Crear presupuesto' }}
-                            </button>
-                        </form>
+                    <x-tab-toolbar label="Acciones de documentos de la orden">
+                        <x-slot:tabs>
+                            <span class="tab-toolbar-title">Documentos de la orden</span>
+                        </x-slot:tabs>
 
-                        <form method="POST"
-                            action="{{ route('orders.documents.store', ['order' => $order] + $trailQuery) }}"
-                            class="inline-form"
-                            @if ($deliveryNoteCount > 0) data-action="app-confirm-submit"
-                            data-confirm-message="Esta orden ya tiene {{ $deliveryNoteCount }} remito(s) asociado(s). ¿Deseas crear otro?" @endif>
-                            @csrf
-                            <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_DELIVERY_NOTE }}">
-                            <button type="submit" class="btn btn-secondary">
-                                {{ $deliveryNoteCount > 0 ? 'Crear otro remito' : 'Crear remito' }}
-                            </button>
-                        </form>
+                        <x-slot:actions>
+                            <form method="POST"
+                                action="{{ route('orders.documents.store', ['order' => $order] + $trailQuery) }}"
+                                class="inline-form"
+                                @if ($quoteCount > 0) data-action="app-confirm-submit"
+                                data-confirm-message="Esta orden ya tiene {{ $quoteCount }} presupuesto(s) asociado(s). ¿Deseas crear otro?" @endif>
+                                @csrf
+                                <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_QUOTE }}">
+                                <button type="submit" class="btn btn-secondary">
+                                    {{ $quoteCount > 0 ? 'Crear otro presupuesto' : 'Crear presupuesto' }}
+                                </button>
+                            </form>
 
-                        <form method="POST"
-                            action="{{ route('orders.documents.store', ['order' => $order] + $trailQuery) }}"
-                            class="inline-form"
-                            @if ($invoiceCount > 0) data-action="app-confirm-submit"
-                            data-confirm-message="Esta orden ya tiene {{ $invoiceCount }} factura(s) asociada(s). ¿Deseas crear otra?" @endif>
-                            @csrf
-                            <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_INVOICE }}">
-                            <button type="submit" class="btn btn-secondary">
-                                {{ $invoiceCount > 0 ? 'Crear otra factura' : 'Crear factura' }}
-                            </button>
-                        </form>
+                            <form method="POST"
+                                action="{{ route('orders.documents.store', ['order' => $order] + $trailQuery) }}"
+                                class="inline-form"
+                                @if ($deliveryNoteCount > 0) data-action="app-confirm-submit"
+                                data-confirm-message="Esta orden ya tiene {{ $deliveryNoteCount }} remito(s) asociado(s). ¿Deseas crear otro?" @endif>
+                                @csrf
+                                <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_DELIVERY_NOTE }}">
+                                <button type="submit" class="btn btn-secondary">
+                                    {{ $deliveryNoteCount > 0 ? 'Crear otro remito' : 'Crear remito' }}
+                                </button>
+                            </form>
 
-                        <form method="POST"
-                            action="{{ route('orders.documents.store', ['order' => $order] + $trailQuery) }}"
-                            class="inline-form"
-                            @if ($workOrderCount > 0) data-action="app-confirm-submit"
-                            data-confirm-message="Esta orden ya tiene {{ $workOrderCount }} orden(es) de trabajo asociada(s). ¿Deseas crear otra?" @endif>
-                            @csrf
-                            <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_WORK_ORDER }}">
-                            <button type="submit" class="btn btn-secondary">
-                                {{ $workOrderCount > 0 ? 'Crear otra orden de trabajo' : 'Crear orden de trabajo' }}
-                            </button>
-                        </form>
-                    </x-page-header>
+                            <form method="POST"
+                                action="{{ route('orders.documents.store', ['order' => $order] + $trailQuery) }}"
+                                class="inline-form"
+                                @if ($invoiceCount > 0) data-action="app-confirm-submit"
+                                data-confirm-message="Esta orden ya tiene {{ $invoiceCount }} factura(s) asociada(s). ¿Deseas crear otra?" @endif>
+                                @csrf
+                                <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_INVOICE }}">
+                                <button type="submit" class="btn btn-secondary">
+                                    {{ $invoiceCount > 0 ? 'Crear otra factura' : 'Crear factura' }}
+                                </button>
+                            </form>
+
+                            <form method="POST"
+                                action="{{ route('orders.documents.store', ['order' => $order] + $trailQuery) }}"
+                                class="inline-form"
+                                @if ($workOrderCount > 0) data-action="app-confirm-submit"
+                                data-confirm-message="Esta orden ya tiene {{ $workOrderCount }} orden(es) de trabajo asociada(s). ¿Deseas crear otra?" @endif>
+                                @csrf
+                                <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_WORK_ORDER }}">
+                                <button type="submit" class="btn btn-secondary">
+                                    {{ $workOrderCount > 0 ? 'Crear otra orden de trabajo' : 'Crear orden de trabajo' }}
+                                </button>
+                            </form>
+                        </x-slot:actions>
+                    </x-tab-toolbar>
 
                     @include('documents.partials.embedded-tabs', [
                         'documents' => $documents,

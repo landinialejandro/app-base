@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/show.blade.php | V9 --}}
+{{-- FILE: resources/views/documents/show.blade.php | V10 --}}
 
 @extends('layouts.app')
 
@@ -84,90 +84,82 @@
             </x-show-summary-item>
 
             <x-slot:details>
-                <div class="detail-grid detail-grid--3">
-                    <div class="detail-block">
-                        <span class="detail-block-label">Tipo</span>
-                        <div class="detail-block-value">{{ DocumentCatalog::label($document->kind) }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="Tipo">
+                    {{ DocumentCatalog::label($document->kind) }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Estado</span>
-                        <div class="detail-block-value">
-                            <span class="status-badge {{ DocumentCatalog::badgeClass($document->status) }}">
-                                {{ DocumentCatalog::statusLabel($document->status) }}
-                            </span>
-                        </div>
-                    </div>
+                <x-show-summary-item-detail-block label="Estado">
+                    <span class="status-badge {{ DocumentCatalog::badgeClass($document->status) }}">
+                        {{ DocumentCatalog::statusLabel($document->status) }}
+                    </span>
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Orden asociada</span>
-                        <div class="detail-block-value">
-                            @if ($document->order)
-                                <a href="{{ route('orders.show', ['order' => $document->order] + $trailQuery) }}">
-                                    {{ $document->order->number ?: 'Orden #' . $document->order->id }}
-                                </a>
-                            @else
-                                —
-                            @endif
-                        </div>
-                    </div>
+                <x-show-summary-item-detail-block label="Orden asociada">
+                    @if ($document->order)
+                        <a href="{{ route('orders.show', ['order' => $document->order] + $trailQuery) }}">
+                            {{ $document->order->number ?: 'Orden #' . $document->order->id }}
+                        </a>
+                    @else
+                        —
+                    @endif
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Activo</span>
-                        <div class="detail-block-value">
-                            @if ($document->asset)
-                                <a href="{{ route('assets.show', ['asset' => $document->asset] + $trailQuery) }}">
-                                    {{ $document->asset->name }}
-                                </a>
-                            @else
-                                —
-                            @endif
-                        </div>
-                    </div>
+                <x-show-summary-item-detail-block label="Activo">
+                    @if ($document->asset)
+                        <a href="{{ route('assets.show', ['asset' => $document->asset] + $trailQuery) }}">
+                            {{ $document->asset->name }}
+                        </a>
+                    @else
+                        —
+                    @endif
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Fecha de vencimiento</span>
-                        <div class="detail-block-value">{{ $document->due_at?->format('d/m/Y') ?: '—' }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="Fecha de vencimiento">
+                    {{ $document->due_at?->format('d/m/Y') ?: '—' }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Moneda</span>
-                        <div class="detail-block-value">{{ $document->currency_code ?: '—' }}</div>
-                    </div>
-                </div>
+                <x-show-summary-item-detail-block label="Moneda">
+                    {{ $document->currency_code ?: '—' }}
+                </x-show-summary-item-detail-block>
             </x-slot:details>
         </x-show-summary>
 
         <div class="tabs" data-tabs>
-            <div class="tabs-nav" role="tablist" aria-label="Secciones secundarias del documento">
-                <button type="button" class="tabs-link is-active" data-tab-link="items" role="tab"
-                    aria-selected="true">
-                    Ítems
-                    @if ($items->count())
-                        ({{ $items->count() }})
+            <x-tab-toolbar label="Secciones secundarias del documento">
+                <x-slot:tabs>
+                    <x-horizontal-scroll label="Secciones secundarias del documento">
+                        <button type="button" class="tabs-link is-active" data-tab-link="items" role="tab"
+                            aria-selected="true">
+                            Ítems
+                            @if ($items->count())
+                                ({{ $items->count() }})
+                            @endif
+                        </button>
+
+                        <button type="button" class="tabs-link" data-tab-link="amounts" role="tab"
+                            aria-selected="false">
+                            Importes
+                        </button>
+
+                        <button type="button" class="tabs-link" data-tab-link="trace" role="tab" aria-selected="false">
+                            Notas y trazabilidad
+                        </button>
+                    </x-horizontal-scroll>
+                </x-slot:tabs>
+
+                <x-slot:actions>
+                    @if ($canUpdateDocument)
+                        <a href="{{ route('documents.items.create', ['document' => $document] + $trailQuery) }}"
+                            class="btn btn-success">
+                            <x-icons.plus />
+                            <span>Agregar ítem</span>
+                        </a>
                     @endif
-                </button>
-
-                <button type="button" class="tabs-link" data-tab-link="amounts" role="tab" aria-selected="false">
-                    Importes
-                </button>
-
-                <button type="button" class="tabs-link" data-tab-link="trace" role="tab" aria-selected="false">
-                    Notas y trazabilidad
-                </button>
-            </div>
+                </x-slot:actions>
+            </x-tab-toolbar>
 
             <section class="tab-panel is-active" data-tab-panel="items">
                 <div class="tab-panel-stack">
-                    <x-page-header title="Ítems del documento">
-                        @if ($canUpdateDocument)
-                            <a href="{{ route('documents.items.create', ['document' => $document] + $trailQuery) }}"
-                                class="btn btn-primary">
-                                Agregar ítem
-                            </a>
-                        @endif
-                    </x-page-header>
-
                     <x-card class="list-card">
                         @include('documents.items.partials.table', [
                             'document' => $document,
@@ -197,22 +189,17 @@
                 <div class="tab-panel-stack">
                     <x-card>
                         <div class="detail-grid">
-                            <div class="detail-block">
-                                <span class="detail-block-label">Subtotal</span>
-                                <div class="detail-block-value">${{ number_format($document->subtotal, 2, ',', '.') }}
-                                </div>
-                            </div>
+                            <x-show-summary-item-detail-block label="Subtotal">
+                                ${{ number_format($document->subtotal, 2, ',', '.') }}
+                            </x-show-summary-item-detail-block>
 
-                            <div class="detail-block">
-                                <span class="detail-block-label">Impuestos</span>
-                                <div class="detail-block-value">${{ number_format($document->tax_total, 2, ',', '.') }}
-                                </div>
-                            </div>
+                            <x-show-summary-item-detail-block label="Impuestos">
+                                ${{ number_format($document->tax_total, 2, ',', '.') }}
+                            </x-show-summary-item-detail-block>
 
-                            <div class="detail-block">
-                                <span class="detail-block-label">Total</span>
-                                <div class="detail-block-value">${{ number_format($document->total, 2, ',', '.') }}</div>
-                            </div>
+                            <x-show-summary-item-detail-block label="Total">
+                                ${{ number_format($document->total, 2, ',', '.') }}
+                            </x-show-summary-item-detail-block>
                         </div>
                     </x-card>
                 </div>
@@ -222,26 +209,21 @@
                 <div class="tab-panel-stack">
                     <x-card>
                         <div class="detail-grid">
-                            <div class="detail-block detail-block--full">
-                                <span class="detail-block-label">Notas</span>
-                                <div class="detail-block-value">{{ $document->notes ?: '—' }}</div>
-                            </div>
+                            <x-show-summary-item-detail-block label="Notas" full>
+                                {{ $document->notes ?: '—' }}
+                            </x-show-summary-item-detail-block>
 
-                            <div class="detail-block">
-                                <span class="detail-block-label">Creado por</span>
-                                <div class="detail-block-value">{{ $document->creator?->name ?: '—' }}</div>
-                            </div>
+                            <x-show-summary-item-detail-block label="Creado por">
+                                {{ $document->creator?->name ?: '—' }}
+                            </x-show-summary-item-detail-block>
 
-                            <div class="detail-block">
-                                <span class="detail-block-label">Actualizado por</span>
-                                <div class="detail-block-value">{{ $document->updater?->name ?: '—' }}</div>
-                            </div>
+                            <x-show-summary-item-detail-block label="Actualizado por">
+                                {{ $document->updater?->name ?: '—' }}
+                            </x-show-summary-item-detail-block>
 
-                            <div class="detail-block">
-                                <span class="detail-block-label">Actualizado el</span>
-                                <div class="detail-block-value">{{ $document->updated_at?->format('d/m/Y H:i') ?: '—' }}
-                                </div>
-                            </div>
+                            <x-show-summary-item-detail-block label="Actualizado el">
+                                {{ $document->updated_at?->format('d/m/Y H:i') ?: '—' }}
+                            </x-show-summary-item-detail-block>
                         </div>
                     </x-card>
                 </div>

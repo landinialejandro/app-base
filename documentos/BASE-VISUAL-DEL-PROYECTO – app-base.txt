@@ -81,6 +81,74 @@ No deben desarrollarse variantes aisladas por módulo si la misma estructura vis
 Cuando un patrón visual deje de ser exclusivo de un módulo, debe migrarse a una forma neutral reusable.
 
 
+PATRÓN VISUAL PARA VISTAS SHOW
+
+Las vistas show del core deben tender a una estructura visual consistente.
+
+Base esperada:
+
+x-page
+x-breadcrumb
+x-page-header
+x-show-summary para el resumen principal del registro
+bloques secundarios dentro de tabs o cards según la complejidad del módulo
+
+Reglas:
+
+el bloque superior de resumen del registro no debe resolverse inline por módulo si ya existe wrapper reusable consolidado
+
+el summary principal del show resume el registro principal de la pantalla
+
+los summaries operativos internos de tabs o sublistados no deben confundirse con el summary principal del show
+
+las vistas show deben mantener una separación clara entre:
+
+acciones del registro principal
+navegación entre secciones relacionadas
+acciones contextuales de subbloques o tabs internos
+resúmenes operativos de subcolecciones
+
+no mezclar en un mismo bloque visual:
+
+acciones globales del registro
+acciones contextuales del subtab
+resúmenes operativos de subcolecciones
+
+cuando un patrón visual del detalle expandible se repita con claridad, los bloques detail-grid, detail-block o equivalentes pueden migrarse a wrappers o partials chicos reusables, siempre que eso reduzca repetición sin agregar complejidad innecesaria
+
+
+ACCIONES VISUALES EN INDEX Y SHOW
+
+Debe mantenerse una jerarquía visual clara entre acciones de alta, acciones operativas y acciones de retorno.
+
+Criterios:
+
+en vistas index, el botón principal de alta puede utilizar semántica success cuando represente creación directa del registro principal
+
+en cards de filtros, filtrar puede mantenerse como acción primary y limpiar como acción secundaria
+
+en vistas show, deben estar presentes como base:
+
+editar
+eliminar
+volver
+
+si el módulo requiere una acción adicional relevante para el registro principal, debe ubicarse junto a esas acciones y no mezclarse con acciones contextuales de tabs internos
+
+orden visual recomendado en acciones de header de show:
+
+editar
+eliminar
+acciones secundarias específicas del módulo
+volver
+
+volver debe tender a una iconografía homogénea en todas las vistas show y quedar como última acción visible del grupo
+
+las acciones de alta o agregado dentro de tabs o subpaneles deben utilizar iconografía de suma y una escala visual más contenida que el CTA principal de la pantalla
+
+las acciones contextuales de tabs o subpaneles no deben mezclarse con el grupo principal de acciones del show
+
+
 FRAGMENTACIÓN DE BLADES
 
 Las vistas grandes deben dividirse en partials cuando superen complejidad razonable.
@@ -258,18 +326,70 @@ Las tabs documentadas en esta base visual corresponden a tabs internas de conten
 
 No implican todavía un sistema general de navegación entre rutas dentro de tabs de app.
 
-No deben confundirse con navegación cruzada entre entidades relacionadas ni con retorno contextual al origen.
+
+TABS REUTILIZABLES Y TOOLBAR DE TABS
+
+El proyecto puede reutilizar la misma base visual de tabs en distintos niveles de la interfaz.
+
+Reglas:
+
+no crear variantes nuevas de tabs si el patrón base existente ya resuelve correctamente navegación y estado activo
+
+cuando un bloque de tabs necesite compartir fila con acciones contextuales, debe resolverse mediante un wrapper reusable de toolbar de tabs
+
+ese toolbar debe poder usarse:
+
+con acciones a la derecha
+sin acciones, cuando solo se necesite mantener el mismo contenedor visual
+
+el toolbar de tabs debe vivir dentro de un card o contenedor visual compartido para evitar que las acciones queden flotando respecto del grupo de tabs
+
+si el card del toolbar requiere una densidad visual más compacta, el ajuste debe resolverse mediante una clase específica del wrapper y no modificando el card global del sistema
+
+las acciones contextuales deben percibirse como propias del panel activo y no como CTA principal de toda la pantalla
 
 
-REGLA GENERAL DE SOBRIEDAD VISUAL
+TABS REUTILIZABLES, TOOLBAR Y OVERFLOW HORIZONTAL
 
-La interfaz debe privilegiar claridad y continuidad visual.
+Los tabs reutilizables del proyecto deben sostener una misma base visual y de comportamiento, tanto en tabs de primer nivel como en tabs internos o embebidos.
 
-Evitar:
+Criterios consolidados:
 
-sobrecarga de cards sin necesidad
-soluciones visuales demasiado particulares por módulo
-fragmentación artificial de patrones equivalentes
-exceso de variaciones tipográficas o espaciales sin valor funcional
+el mismo wrapper visual de tab-toolbar puede utilizarse:
+con acciones contextuales a la derecha
+sin acciones, cuando solo se necesite el grupo de tabs dentro del mismo contenedor visual
 
-Cuando dos pantallas resuelven el mismo problema visual, deben parecer parte del mismo sistema.
+no conviene crear familias distintas de tabs superiores e inferiores si la misma base ya resuelve correctamente el patrón visual y el comportamiento
+
+cuando el conjunto de tabs pueda desbordar horizontalmente, el overflow debe resolverse mediante un wrapper reusable de scroll horizontal y no con soluciones ad hoc por módulo
+
+el wrapper reusable de scroll horizontal debe:
+ocultar el scroll nativo visible
+permitir desplazamiento horizontal del contenido
+mostrar affordance clara mediante chevrons laterales cuando exista overflow real
+recalcular visibilidad de chevrons según ancho real disponible del viewport y del track
+
+las acciones contextuales deben quedar fuera del área desplazable de tabs y mantener ancho propio, mientras el bloque de tabs ocupa solo el espacio restante del contenedor
+
+el efecto visual del viewport horizontal puede reforzarse con una sombra interna muy sutil, sin alterar la legibilidad ni competir con el tab activo
+
+no deben mezclarse dentro del área scrollable:
+botones de acción
+controles contextuales del panel
+navegación horizontal de tabs
+
+las acciones contextuales de tabs deben permanecer fijas a la derecha y los tabs desplazarse únicamente dentro de su viewport
+
+
+EMBEDDED TABS EN SHOW RELACIONADOS
+
+Los bloques embebidos dentro de show relacionados deben tender a una misma estructura:
+
+tab-toolbar reutilizable
+tabs internos con posibilidad de overflow horizontal reusable
+acción contextual fija a la derecha
+tabla o listado debajo en card independiente
+
+Cuando un embedded-tabs tenga riesgo razonable de desborde en pantallas chicas o por crecimiento futuro de etiquetas, conviene aplicar desde el inicio el wrapper reusable de scroll horizontal.
+
+No esperar a que el layout rompa para recién introducir un patrón especial si ya se sabe que el bloque puede crecer.

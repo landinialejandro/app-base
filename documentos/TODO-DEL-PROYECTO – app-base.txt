@@ -81,6 +81,14 @@ revisar etiquetado contextual de botones volver en vistas show relacionadas seg�
 
 auditar criterio del navbar y sidebar para evitar que el estado activo dependa solo de la pantalla hoja y no del área funcional esperada
 
+terminar de alinear visualmente los show del core con el patrón ya consolidado de:
+
+x-show-summary
+tab-toolbar reutilizable
+acciones base de show
+bloques detail-block reusables donde la repetición ya sea clara
+
+revisar densidad visual final del tab-toolbar y del card que lo contiene para asegurar una altura consistente con el resto del sistema
 
 implementar sistema de auditoría de cambios
 
@@ -123,6 +131,7 @@ decidir si en ese caso corresponde dashboard vacío, pantalla informativa o redi
 
 definir también cómo deben comportarse navbar y dashboard cuando no exista ningún módulo operativo visible
 
+
 FLUJOS FUNCIONALES
 
 revisar consolidación funcional del vínculo 1 a 1 entre tasks y orders
@@ -161,6 +170,16 @@ evaluar más adelante una máquina de estados simple para orders
 
 evaluar más adelante una máquina de estados simple para documents
 
+terminar de alinear los flujos de alta contextual desde show relacionados, especialmente:
+
+assets -> crear order
+assets -> crear document
+assets -> agendar appointment
+
+dejar resuelto el precompletado del formulario de appointments cuando se ingresa desde un activo o desde una relación contextual
+
+evaluar más adelante si el botón contextual de creación dentro de subtabs debe reaccionar dinámicamente al tab interno seleccionado o si alcanza con un default operativo estable por contexto
+
 
 NAVEGACIÓN Y CONTEXTO UX
 
@@ -191,9 +210,7 @@ auditar y definir criterio de compactación o corte de breadcrumb contextual par
 evaluar cuándo conviene conservar simultáneamente:
 
 módulo origen
-
 entidad fila
-
 jerarquía natural del destino
 
 definir regla UX para no perder contexto sin generar breadcrumbs excesivos
@@ -201,14 +218,14 @@ definir regla UX para no perder contexto sin generar breadcrumbs excesivos
 auditar remanentes de propagación de trail en navegación profunda, especialmente en:
 
 tablas embebidas
-
 tabs
-
 acciones secundarias
-
 rutas cruzadas poco frecuentes
 
 evitar reaparición de serialización recursiva del trail dentro de URLs internas de nodos
+
+revisar casos donde el breadcrumb contextual del show siga resolviendo una salida incorrecta aunque la pantalla ya haya sido alineada visualmente
+
 
 NUMERACIÓN Y CONFIGURACIÓN OPERATIVA
 
@@ -245,6 +262,40 @@ ARQUITECTURA Y TRAZABILIDAD
 implementar registro de actividad de usuario
 
 revisar consistencia de tenant_id en fillable de entidades hijas creadas internamente por el sistema
+
+
+PENDIENTES RELACIONADOS
+
+breadcrumb contextual incorrecto en algunos show ya alineados visualmente, especialmente cuando el origen funcional no coincide con la jerarquía visible actual
+
+prefill real del formulario de appointments cuando se agenda desde assets.show
+
+definir si la acción contextual del subtab debe mantenerse fija por contexto o cambiar según el tab interno seleccionado
+
+extender el patrón consolidado de:
+tab-toolbar
+horizontal-scroll reusable
+acciones contextuales fijas a la derecha
+bloques detail reutilizables
+a los show y embedded-tabs restantes del core
+
+auditar qué otros grupos horizontales del sistema conviene migrar a horizontal-scroll reusable además de tabs
+
+revisar si la solución de overflow horizontal con chevrons debe aplicarse también en:
+filtros tipo chips
+agrupadores horizontales
+tabs secundarios futuros
+
+seguir unificando el orden de acciones en show:
+editar
+eliminar
+acciones secundarias
+volver
+
+evaluar más adelante si conviene agregar comportamiento más rico al horizontal-scroll:
+gradientes laterales
+autoscroll hacia tab activo
+visibilidad refinada de chevrons en cambios de tab oculto/visible
 
 
 IDEAS FUTURAS
@@ -285,4 +336,3 @@ ideas futuras resumidas
 - Verificar que rutas o utilidades de debug de identidad o tenant, por ejemplo whoami, no queden expuestas en producción.
 
 - Revisar el flujo de logout para confirmar que no queden residuos de contexto tenant en sesión cuando existan respuestas custom de cierre de sesión.
-

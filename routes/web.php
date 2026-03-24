@@ -15,6 +15,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\PartyController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PublicSignupRequestController;
 use App\Http\Controllers\SuperadminDashboardController;
@@ -125,9 +126,13 @@ Route::middleware(['auth', 'superadmin'])
             ->name('metrics.tenants');
     });
 
-Route::view('/profile', 'profile.show')
+Route::get('/profile', [ProfileController::class, 'show'])
     ->middleware('auth')
     ->name('profile.show');
+
+Route::get('/profile/tenant', [ProfileController::class, 'showTenant'])
+    ->middleware(['auth', 'tenant'])
+    ->name('profile.tenant.show');
 
 Route::middleware(['auth', 'tenant'])->group(function () {
 

@@ -117,6 +117,29 @@ resúmenes operativos de subcolecciones
 cuando un patrón visual del detalle expandible se repita con claridad, los bloques detail-grid, detail-block o equivalentes pueden migrarse a wrappers o partials chicos reusables, siempre que eso reduzca repetición sin agregar complejidad innecesaria
 
 
+REGLAS PARA X-SHOW-SUMMARY Y X-SHOW-SUMMARY-ITEM
+
+x-show-summary es el contenedor visual base para el resumen principal de una vista show.
+
+x-show-summary-item representa cada bloque interno de resumen.
+
+Reglas:
+
+x-show-summary-item debe seguir siendo la unidad visual reusable del summary principal
+
+cuando el contenido del bloque requiera más ancho para análisis, métricas, visualización o composición interna más compleja, x-show-summary-item puede admitir span variable
+
+ese span puede utilizarse para ocupar ancho doble o ancho completo dentro del summary, según la grilla disponible
+
+no crear variantes visuales aisladas por módulo cuando el mismo resultado pueda resolverse extendiendo x-show-summary-item con span
+
+el uso de span debe reservarse a bloques que realmente necesiten mayor ancho visual y no como excepción arbitraria de maquetado
+
+si un bloque analítico requiere más espacio horizontal, debe priorizarse esta capacidad reusable antes que crear wrappers específicos del módulo
+
+la capacidad de span en x-show-summary-item forma parte de la base visual reusable del sistema y debe validarse en uso real antes de extenderla a casos más complejos
+
+
 ACCIONES VISUALES EN INDEX Y SHOW
 
 Debe mantenerse una jerarquía visual clara entre acciones de alta, acciones operativas y acciones de retorno.

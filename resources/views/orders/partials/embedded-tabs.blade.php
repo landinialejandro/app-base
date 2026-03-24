@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/partials/embedded-tabs.blade.php --}}
+{{-- FILE: resources/views/orders/partials/embedded-tabs.blade.php | V6 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
@@ -14,32 +14,56 @@
     $kinds = OrderCatalog::kindLabels();
     $tabsId = $tabsId ?? 'orders-tabs-' . uniqid();
     $trailQuery = $trailQuery ?? [];
+    $createBaseQuery = $createBaseQuery ?? [];
 @endphp
 
 <div class="tabs" data-tabs>
-    <div class="tabs-nav" role="tablist" aria-label="Tipos de órdenes">
-        <button type="button" class="tabs-link is-active" data-tab-link="{{ $tabsId }}-all" role="tab"
-            aria-selected="true">
-            {{ $allLabel }}
-            @if ($orders->count())
-                ({{ $orders->count() }})
+    @php
+        $toolbarActions = null;
+    @endphp
+
+    @can('create', App\Models\Order::class)
+        @php
+            $toolbarActions = route('orders.create', $createBaseQuery + $trailQuery);
+        @endphp
+    @endcan
+
+    <x-tab-toolbar label="Tipos de órdenes">
+        <x-slot:tabs>
+            <x-horizontal-scroll label="Tipos de órdenes">
+                <button type="button" class="tabs-link is-active" data-tab-link="{{ $tabsId }}-all" role="tab"
+                    aria-selected="true">
+                    {{ $allLabel }}
+                    @if ($orders->count())
+                        ({{ $orders->count() }})
+                    @endif
+                </button>
+
+                @foreach ($kinds as $value => $label)
+                    @php
+                        $kindOrders = $orders->where('kind', $value)->values();
+                    @endphp
+
+                    <button type="button" class="tabs-link" data-tab-link="{{ $tabsId }}-{{ $value }}"
+                        role="tab" aria-selected="false">
+                        {{ $label }}
+                        @if ($kindOrders->count())
+                            ({{ $kindOrders->count() }})
+                        @endif
+                    </button>
+                @endforeach
+            </x-horizontal-scroll>
+        </x-slot:tabs>
+
+        <x-slot:actions>
+            @if ($toolbarActions)
+                <a href="{{ $toolbarActions }}" class="btn btn-success btn-sm">
+                    <x-icons.plus />
+                    <span>Nueva orden</span>
+                </a>
             @endif
-        </button>
-
-        @foreach ($kinds as $value => $label)
-            @php
-                $kindOrders = $orders->where('kind', $value)->values();
-            @endphp
-
-            <button type="button" class="tabs-link" data-tab-link="{{ $tabsId }}-{{ $value }}"
-                role="tab" aria-selected="false">
-                {{ $label }}
-                @if ($kindOrders->count())
-                    ({{ $kindOrders->count() }})
-                @endif
-            </button>
-        @endforeach
-    </div>
+        </x-slot:actions>
+    </x-tab-toolbar>
 
     <section class="tab-panel is-active" data-tab-panel="{{ $tabsId }}-all">
         <div class="tab-panel-stack">

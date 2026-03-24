@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/index.blade.php | V7 --}}
+{{-- FILE: resources/views/parties/index.blade.php | V8 --}}
 
 @extends('layouts.app')
 
@@ -15,7 +15,7 @@
         <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Contactos']]" />
 
         <x-page-header title="Contactos">
-            <a href="{{ route('parties.create') }}" class="btn btn-primary">
+            <a href="{{ route('parties.create') }}" class="btn btn-success">
                 Nuevo contacto
             </a>
         </x-page-header>
@@ -69,7 +69,12 @@
                                     </td>
                                     <td>{{ $party->email ?? '—' }}</td>
                                     <td>{{ $party->phone ?? '—' }}</td>
-                                    <td>{{ $party->is_active ? 'Sí' : 'No' }}</td>
+                                    <td>
+                                        <span
+                                            class="status-badge {{ $party->is_active ? 'status-badge--done' : 'status-badge--cancelled' }}">
+                                            {{ $party->is_active ? 'Sí' : 'No' }}
+                                        </span>
+                                    </td>
                                     <td>{{ $party->kind ? PartyCatalog::label($party->kind) : '—' }}</td>
                                 </tr>
                             @endforeach

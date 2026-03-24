@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/show.blade.php --}}
+{{-- FILE: resources/views/parties/show.blade.php | V6 --}}
 
 @extends('layouts.app')
 
@@ -6,8 +6,10 @@
 
 @section('content')
     @php
+        use App\Support\Catalogs\PartyCatalog;
         use App\Support\Navigation\NavigationTrail;
 
+        $orders = $orders ?? collect();
         $documents = $documents ?? collect();
         $assets = $assets ?? collect();
 
@@ -41,110 +43,109 @@
             @endcan
 
             <a href="{{ $backUrl }}" class="btn btn-secondary">
-                Volver
+                <x-icons.chevron-left />
+                <span>Volver</span>
             </a>
         </x-page-header>
 
-        <x-card>
-            <div class="summary-inline-grid">
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Nombre</div>
-                    <div class="summary-inline-value">{{ $party->name }}</div>
-                </div>
+        <x-show-summary details-id="party-detail-panel">
+            <x-show-summary-item label="Nombre">
+                {{ $party->name }}
+            </x-show-summary-item>
 
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Teléfono</div>
-                    <div class="summary-inline-value">{{ $party->phone ?: '—' }}</div>
-                </div>
+            <x-show-summary-item label="Teléfono">
+                {{ $party->phone ?: '—' }}
+            </x-show-summary-item>
 
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Email</div>
-                    <div class="summary-inline-value">{{ $party->email ?: '—' }}</div>
-                </div>
-            </div>
+            <x-show-summary-item label="Email">
+                {{ $party->email ?: '—' }}
+            </x-show-summary-item>
 
-            <div class="list-filters-actions">
-                <button type="button" class="btn btn-secondary" data-action="app-toggle-details"
-                    data-toggle-target="#party-detail-panel" data-toggle-text-expanded="Ocultar detalle"
-                    data-toggle-text-collapsed="Más detalle">
-                    Más detalle
-                </button>
-            </div>
+            <x-slot:details>
+                <x-show-summary-item-detail-block label="Tipo">
+                    {{ PartyCatalog::label($party->kind) }}
+                </x-show-summary-item-detail-block>
 
-            <div id="party-detail-panel" hidden>
-                <div class="detail-grid detail-grid--3">
-                    <div class="detail-block">
-                        <span class="detail-block-label">Tipo</span>
-                        <div class="detail-block-value">{{ \App\Support\Catalogs\PartyCatalog::label($party->kind) }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="Nombre visible">
+                    {{ $party->display_name ?: '—' }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Nombre visible</span>
-                        <div class="detail-block-value">{{ $party->display_name ?: '—' }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="Tipo documento">
+                    {{ $party->document_type ?: '—' }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Tipo documento</span>
-                        <div class="detail-block-value">{{ $party->document_type ?: '—' }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="Número documento">
+                    {{ $party->document_number ?: '—' }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Número documento</span>
-                        <div class="detail-block-value">{{ $party->document_number ?: '—' }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="CUIT / Tax ID">
+                    {{ $party->tax_id ?: '—' }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">CUIT / Tax ID</span>
-                        <div class="detail-block-value">{{ $party->tax_id ?: '—' }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="Activo">
+                    <span class="status-badge {{ $party->is_active ? 'status-badge--done' : 'status-badge--cancelled' }}">
+                        {{ $party->is_active ? 'Sí' : 'No' }}
+                    </span>
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Activo</span>
-                        <div class="detail-block-value">{{ $party->is_active ? 'Sí' : 'No' }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="Dirección" full>
+                    {{ $party->address ?: '—' }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block detail-block--full">
-                        <span class="detail-block-label">Dirección</span>
-                        <div class="detail-block-value">{{ $party->address ?: '—' }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="Creado">
+                    {{ $party->created_at?->format('d/m/Y H:i') ?: '—' }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Creado</span>
-                        <div class="detail-block-value">{{ $party->created_at?->format('d/m/Y H:i') ?: '—' }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="Actualizado">
+                    {{ $party->updated_at?->format('d/m/Y H:i') ?: '—' }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Actualizado</span>
-                        <div class="detail-block-value">{{ $party->updated_at?->format('d/m/Y H:i') ?: '—' }}</div>
-                    </div>
-
-                    <div class="detail-block detail-block--full">
-                        <span class="detail-block-label">Notas</span>
-                        <div class="detail-block-value">{{ $party->notes ?: '—' }}</div>
-                    </div>
-                </div>
-            </div>
-        </x-card>
+                <x-show-summary-item-detail-block label="Notas" full>
+                    {{ $party->notes ?: '—' }}
+                </x-show-summary-item-detail-block>
+            </x-slot:details>
+        </x-show-summary>
 
         <div class="tabs" data-tabs>
-            <div class="tabs-nav" role="tablist" aria-label="Secciones del contacto">
-                <button type="button" class="tabs-link is-active" data-tab-link="documents" role="tab"
-                    aria-selected="true">
-                    Documentos
-                    @if ($documents->count())
-                        ({{ $documents->count() }})
-                    @endif
-                </button>
+            <x-tab-toolbar label="Secciones del contacto">
+                <x-slot:tabs>
+                    <button type="button" class="tabs-link is-active" data-tab-link="orders" role="tab"
+                        aria-selected="true">
+                        Órdenes
+                        @if ($orders->count())
+                            ({{ $orders->count() }})
+                        @endif
+                    </button>
 
-                <button type="button" class="tabs-link" data-tab-link="assets" role="tab" aria-selected="false">
-                    Activos
-                    @if ($assets->count())
-                        ({{ $assets->count() }})
-                    @endif
-                </button>
-            </div>
+                    <button type="button" class="tabs-link" data-tab-link="documents" role="tab" aria-selected="false">
+                        Documentos
+                        @if ($documents->count())
+                            ({{ $documents->count() }})
+                        @endif
+                    </button>
 
-            <section class="tab-panel is-active" data-tab-panel="documents">
+                    <button type="button" class="tabs-link" data-tab-link="assets" role="tab" aria-selected="false">
+                        Activos
+                        @if ($assets->count())
+                            ({{ $assets->count() }})
+                        @endif
+                    </button>
+                </x-slot:tabs>
+            </x-tab-toolbar>
+
+            <section class="tab-panel is-active" data-tab-panel="orders">
+                <div class="tab-panel-stack">
+                    @include('orders.partials.embedded-tabs', [
+                        'orders' => $orders,
+                        'showParty' => false,
+                        'showAsset' => true,
+                        'emptyMessage' => 'Este contacto no tiene órdenes vinculadas.',
+                        'trailQuery' => $trailQuery,
+                    ])
+                </div>
+            </section>
+
+            <section class="tab-panel" data-tab-panel="documents" hidden>
                 <div class="tab-panel-stack">
                     @include('documents.partials.embedded-tabs', [
                         'documents' => $documents,
@@ -163,6 +164,9 @@
                         'assets' => $assets,
                         'showParty' => false,
                         'emptyMessage' => 'Este contacto no tiene activos vinculados.',
+                        'createBaseQuery' => [
+                            'party_id' => $party->id,
+                        ],
                         'trailQuery' => $trailQuery,
                     ])
                 </div>

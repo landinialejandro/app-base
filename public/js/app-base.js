@@ -760,6 +760,94 @@
             });
     };
 
+    const bindHorizontalScroll = () => {
+        document
+            .querySelectorAll("[data-horizontal-scroll]")
+            .forEach((root) => {
+                if (root.dataset.appHorizontalScrollBound === "1") {
+                    return;
+                }
+
+                root.dataset.appHorizontalScrollBound = "1";
+
+                const viewport = root.querySelector(
+                    "[data-horizontal-scroll-viewport]",
+                );
+                const prevButton = root.querySelector(
+                    "[data-horizontal-scroll-prev]",
+                );
+                const nextButton = root.querySelector(
+                    "[data-horizontal-scroll-next]",
+                );
+
+                if (!viewport || !prevButton || !nextButton) {
+                    return;
+                }
+
+                const updateButtons = () => {
+                    const maxScrollLeft = Math.max(
+                        0,
+                        viewport.scrollWidth - viewport.clientWidth,
+                    );
+
+                    const canScroll = maxScrollLeft > 4;
+
+                    if (!canScroll) {
+                        prevButton.hidden = true;
+                        nextButton.hidden = true;
+                        return;
+                    }
+
+                    prevButton.hidden = viewport.scrollLeft <= 4;
+                    nextButton.hidden =
+                        viewport.scrollLeft >= maxScrollLeft - 4;
+                };
+
+                const scrollByStep = (direction) => {
+                    const amount = Math.max(viewport.clientWidth * 0.6, 160);
+
+                    viewport.scrollBy({
+                        left: direction * amount,
+                        behavior: "smooth",
+                    });
+                };
+
+                const scheduleUpdate = () => {
+                    requestAnimationFrame(() => {
+                        updateButtons();
+
+                        requestAnimationFrame(() => {
+                            updateButtons();
+                        });
+                    });
+
+                    setTimeout(updateButtons, 80);
+                };
+
+                prevButton.addEventListener("click", () => {
+                    scrollByStep(-1);
+                });
+
+                nextButton.addEventListener("click", () => {
+                    scrollByStep(1);
+                });
+
+                viewport.addEventListener("scroll", updateButtons);
+                window.addEventListener("resize", scheduleUpdate);
+
+                if (typeof ResizeObserver !== "undefined") {
+                    const observer = new ResizeObserver(() => {
+                        updateButtons();
+                    });
+
+                    observer.observe(viewport);
+                    root._appHorizontalScrollObserver = observer;
+                }
+
+                scheduleUpdate();
+            });
+    };
+
     const initAppBase = () => {
         bindConfirmSubmit();
         bindSelectOnClick();
@@ -773,6 +861,7 @@
         bindToggleDetails();
         bindAppointmentKindSync();
         bindAppointmentCalendarAutoScroll();
+        bindHorizontalScroll();
     };
 
     bindDropdowns();

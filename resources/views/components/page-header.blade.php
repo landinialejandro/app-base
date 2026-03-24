@@ -1,3 +1,5 @@
+{{-- FILE:resources/views/components/page-header.blade.php | V1 --}}
+
 @props([
     'title' => null,
     'vertical' => null,

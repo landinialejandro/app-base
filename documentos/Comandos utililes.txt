@@ -24,3 +24,22 @@ touch resources/views/documents/_form.blade.php
 
 php artisan optimize:clear
 php artisan route:list | grep metrics
+
+
+zip -r app-base-deploy.zip \
+app bootstrap config database public resources routes storage vendor composer.json composer.lock artisan .htaccess .env.production \
+-x "storage/logs/*" \
+-x "storage/framework/cache/*" \
+-x "storage/framework/views/*" \
+-x "storage/framework/sessions/*" \
+-x "bootstrap/cache/*.php" \
+-x ".git/*" \
+-x ".gitignore" \
+-x ".gitattributes" \
+-x "node_modules/*" \
+-x "tests/*" \
+-x "docs/*" \
+-x "documentos/*" \
+-x ".env" \
+-x ".env.*.example" \
+-x "README.md"

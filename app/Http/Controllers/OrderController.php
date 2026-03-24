@@ -96,6 +96,12 @@ class OrderController extends Controller
         $prefilledTask = null;
         $prefilledAppointment = null;
 
+        $requestedKind = (string) $request->get('kind', '');
+
+        if ($requestedKind !== '' && in_array($requestedKind, OrderCatalog::kinds(), true)) {
+            $prefilledKind = $requestedKind;
+        }
+
         if ($request->filled('asset_id')) {
             $prefilledAsset = Asset::query()
                 ->where('id', $request->integer('asset_id'))

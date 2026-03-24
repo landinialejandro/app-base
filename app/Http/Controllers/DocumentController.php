@@ -104,6 +104,7 @@ class DocumentController extends Controller
             ->get();
 
         $order = null;
+        $asset = null;
 
         if ($request->filled('order_id')) {
             $order = Order::query()
@@ -113,11 +114,45 @@ class DocumentController extends Controller
                 ->firstOrFail();
         }
 
+        if ($request->filled('asset_id')) {
+            $asset = Asset::query()
+                ->with('party')
+                ->where('id', $request->integer('asset_id'))
+                ->where('tenant_id', $tenant->id)
+                ->whereNull('deleted_at')
+                ->first();
+        }
+
+        $requestedKind = (string) $request->get('kind', '');
+        $prefilledKind = in_array($requestedKind, DocumentCatalog::kinds(), true)
+            ? $requestedKind
+            : DocumentCatalog::KIND_QUOTE;
+
+        $prefilledPartyId = $order?->party_id;
+        $prefilledAssetId = $order?->asset_id;
+
+        if (! $order && $asset) {
+            $prefilledAssetId = $asset->id;
+            $prefilledPartyId = $asset->party_id;
+        }
+
+        if (! $order && ! $asset && $request->filled('party_id')) {
+            $party = Party::query()
+                ->where('id', $request->integer('party_id'))
+                ->where('tenant_id', $tenant->id)
+                ->whereNull('deleted_at')
+                ->first();
+
+            if ($party) {
+                $prefilledPartyId = $party->id;
+            }
+        }
+
         $document = new Document([
-            'party_id' => $order?->party_id,
+            'party_id' => $prefilledPartyId,
             'order_id' => $order?->id,
-            'asset_id' => $order?->asset_id,
-            'kind' => DocumentCatalog::KIND_QUOTE,
+            'asset_id' => $prefilledAssetId,
+            'kind' => $prefilledKind,
             'status' => DocumentCatalog::STATUS_DRAFT,
             'issued_at' => now(),
         ]);

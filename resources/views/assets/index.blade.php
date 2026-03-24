@@ -16,7 +16,7 @@
 
         <x-page-header title="Activos">
             @can('create', App\Models\Asset::class)
-                <a href="{{ route('assets.create') }}" class="btn btn-primary">
+                <a href="{{ route('assets.create') }}" class="btn btn-success">
                     Nuevo activo
                 </a>
             @endcan

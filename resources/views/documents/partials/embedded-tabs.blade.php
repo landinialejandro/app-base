@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/partials/embedded-tabs.blade.php | V3 --}}
+{{-- FILE: resources/views/documents/partials/embedded-tabs.blade.php | V8 --}}
 
 @php
     use App\Support\Catalogs\DocumentCatalog;
@@ -21,32 +21,56 @@
 
     $tabsId = $tabsId ?? 'documents-tabs-' . uniqid();
     $trailQuery = $trailQuery ?? [];
+    $createBaseQuery = $createBaseQuery ?? [];
 @endphp
 
 <div class="tabs" data-tabs>
-    <div class="tabs-nav" role="tablist" aria-label="Tipos de documentos">
-        <button type="button" class="tabs-link is-active" data-tab-link="{{ $tabsId }}-all" role="tab"
-            aria-selected="true">
-            {{ $allLabel }}
-            @if ($documents->count())
-                ({{ $documents->count() }})
+    @php
+        $toolbarActions = null;
+    @endphp
+
+    @can('create', App\Models\Document::class)
+        @php
+            $toolbarActions = route('documents.create', $createBaseQuery + $trailQuery);
+        @endphp
+    @endcan
+
+    <x-tab-toolbar label="Tipos de documentos">
+        <x-slot:tabs>
+            <x-horizontal-scroll label="Tipos de documentos">
+                <button type="button" class="tabs-link is-active" data-tab-link="{{ $tabsId }}-all" role="tab"
+                    aria-selected="true">
+                    {{ $allLabel }}
+                    @if ($documents->count())
+                        ({{ $documents->count() }})
+                    @endif
+                </button>
+
+                @foreach ($kinds as $value => $label)
+                    @php
+                        $kindDocuments = $documents->where('kind', $value)->values();
+                    @endphp
+
+                    <button type="button" class="tabs-link" data-tab-link="{{ $tabsId }}-{{ $value }}"
+                        role="tab" aria-selected="false">
+                        {{ $label }}
+                        @if ($kindDocuments->count())
+                            ({{ $kindDocuments->count() }})
+                        @endif
+                    </button>
+                @endforeach
+            </x-horizontal-scroll>
+        </x-slot:tabs>
+
+        <x-slot:actions>
+            @if ($toolbarActions)
+                <a href="{{ $toolbarActions }}" class="btn btn-success btn-sm">
+                    <x-icons.plus />
+                    <span>Nuevo documento</span>
+                </a>
             @endif
-        </button>
-
-        @foreach ($kinds as $value => $label)
-            @php
-                $kindDocuments = $documents->where('kind', $value)->values();
-            @endphp
-
-            <button type="button" class="tabs-link" data-tab-link="{{ $tabsId }}-{{ $value }}"
-                role="tab" aria-selected="false">
-                {{ $label }}
-                @if ($kindDocuments->count())
-                    ({{ $kindDocuments->count() }})
-                @endif
-            </button>
-        @endforeach
-    </div>
+        </x-slot:actions>
+    </x-tab-toolbar>
 
     <section class="tab-panel is-active" data-tab-panel="{{ $tabsId }}-all">
         <div class="tab-panel-stack">

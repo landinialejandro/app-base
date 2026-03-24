@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/show.blade.php | V8 --}}
+{{-- FILE: resources/views/documents/show.blade.php | V9 --}}
 
 @extends('layouts.app')
 
@@ -64,41 +64,26 @@
             </a>
         </x-page-header>
 
-        <x-card>
-            <div class="summary-inline-grid">
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Contacto</div>
-                    <div class="summary-inline-value">
-                        @if ($document->party)
-                            <a href="{{ route('parties.show', ['party' => $document->party] + $trailQuery) }}">
-                                {{ $document->party->name }}
-                            </a>
-                        @else
-                            —
-                        @endif
-                    </div>
-                </div>
+        <x-show-summary details-id="document-more-detail">
+            <x-show-summary-item label="Contacto">
+                @if ($document->party)
+                    <a href="{{ route('parties.show', ['party' => $document->party] + $trailQuery) }}">
+                        {{ $document->party->name }}
+                    </a>
+                @else
+                    —
+                @endif
+            </x-show-summary-item>
 
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Fecha</div>
-                    <div class="summary-inline-value">{{ $document->issued_at?->format('d/m/Y') ?: '—' }}</div>
-                </div>
+            <x-show-summary-item label="Fecha">
+                {{ $document->issued_at?->format('d/m/Y') ?: '—' }}
+            </x-show-summary-item>
 
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Número</div>
-                    <div class="summary-inline-value">{{ $document->number ?: 'Sin número' }}</div>
-                </div>
-            </div>
+            <x-show-summary-item label="Número">
+                {{ $document->number ?: 'Sin número' }}
+            </x-show-summary-item>
 
-            <div class="list-filters-actions">
-                <button type="button" class="btn btn-secondary" data-action="app-toggle-details"
-                    data-toggle-target="#document-more-detail" data-toggle-text-collapsed="Más detalle"
-                    data-toggle-text-expanded="Menos detalle">
-                    Más detalle
-                </button>
-            </div>
-
-            <div id="document-more-detail" hidden>
+            <x-slot:details>
                 <div class="detail-grid detail-grid--3">
                     <div class="detail-block">
                         <span class="detail-block-label">Tipo</span>
@@ -150,8 +135,8 @@
                         <div class="detail-block-value">{{ $document->currency_code ?: '—' }}</div>
                     </div>
                 </div>
-            </div>
-        </x-card>
+            </x-slot:details>
+        </x-show-summary>
 
         <div class="tabs" data-tabs>
             <div class="tabs-nav" role="tablist" aria-label="Secciones secundarias del documento">

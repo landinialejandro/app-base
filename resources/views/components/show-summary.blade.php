@@ -26,7 +26,9 @@
         </div>
 
         <div id="{{ $resolvedDetailsId }}" class="show-summary-details" hidden>
-            {{ $details }}
+            <div class="detail-grid detail-grid--3">
+                {{ $details }}
+            </div>
         </div>
     @endif
 </x-card>

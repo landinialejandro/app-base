@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/assets/show.blade.php --}}
+{{-- FILE: resources/views/assets/show.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -7,6 +7,7 @@
 @section('content')
     @php
         use App\Support\Catalogs\AssetCatalog;
+        use App\Support\Catalogs\OrderCatalog;
         use App\Support\Navigation\NavigationTrail;
 
         $orders = $orders ?? collect();
@@ -21,11 +22,6 @@
         <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header title="Detalle del activo">
-            @can('create', App\Models\Order::class)
-                <a href="{{ route('orders.create', ['asset_id' => $asset->id] + $trailQuery) }}" class="btn btn-secondary">
-                    Nueva orden
-                </a>
-            @endcan
 
             @can('update', $asset)
                 <a href="{{ route('assets.edit', ['asset' => $asset] + $trailQuery) }}" class="btn btn-primary">
@@ -47,103 +43,87 @@
                 </form>
             @endcan
 
+            @can('create', App\Models\Appointment::class)
+                <a href="{{ route('appointments.create', ['asset_id' => $asset->id, 'party_id' => $asset->party_id] + $trailQuery) }}"
+                    class="btn btn-secondary">
+                    <x-icons.plus />
+                    <span>Agendar turno</span>
+                </a>
+            @endcan
+
             <a href="{{ $backUrl }}" class="btn btn-secondary">
-                Volver
+                <x-icons.chevron-left />
+                <span>Volver</span>
             </a>
         </x-page-header>
 
-        <x-card>
-            <div class="summary-inline-grid">
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Nombre</div>
-                    <div class="summary-inline-value">{{ $asset->name }}</div>
-                </div>
+        <x-show-summary details-id="asset-detail-panel">
+            <x-show-summary-item label="Nombre">
+                {{ $asset->name }}
+            </x-show-summary-item>
 
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Contacto</div>
-                    <div class="summary-inline-value">
-                        @if ($asset->party)
-                            <a href="{{ route('parties.show', ['party' => $asset->party] + $trailQuery) }}">
-                                {{ $asset->party->name }}
-                            </a>
-                        @else
-                            —
-                        @endif
-                    </div>
-                </div>
+            <x-show-summary-item label="Contacto">
+                @if ($asset->party)
+                    <a href="{{ route('parties.show', ['party' => $asset->party] + $trailQuery) }}">
+                        {{ $asset->party->name }}
+                    </a>
+                @else
+                    —
+                @endif
+            </x-show-summary-item>
 
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Código interno</div>
-                    <div class="summary-inline-value">{{ $asset->internal_code ?: '—' }}</div>
-                </div>
-            </div>
+            <x-show-summary-item label="Código interno">
+                {{ $asset->internal_code ?: '—' }}
+            </x-show-summary-item>
 
-            <div class="list-filters-actions">
-                <button type="button" class="btn btn-secondary" data-action="app-toggle-details"
-                    data-toggle-target="#asset-detail-panel" data-toggle-text-expanded="Ocultar detalle"
-                    data-toggle-text-collapsed="Más detalle">
-                    Más detalle
-                </button>
-            </div>
+            <x-slot:details>
+                <x-show-summary-item-detail-block label="Tipo">
+                    {{ AssetCatalog::kindLabel($asset->kind) }}
+                </x-show-summary-item-detail-block>
 
-            <div id="asset-detail-panel" hidden>
-                <div class="detail-grid detail-grid--3">
-                    <div class="detail-block">
-                        <span class="detail-block-label">Tipo</span>
-                        <div class="detail-block-value">{{ AssetCatalog::kindLabel($asset->kind) }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="Estado">
+                    <span class="status-badge {{ AssetCatalog::badgeClass($asset->status) }}">
+                        {{ AssetCatalog::statusLabel($asset->status) }}
+                    </span>
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Estado</span>
-                        <div class="detail-block-value">
-                            <span class="status-badge {{ AssetCatalog::badgeClass($asset->status) }}">
-                                {{ AssetCatalog::statusLabel($asset->status) }}
-                            </span>
-                        </div>
-                    </div>
+                <x-show-summary-item-detail-block label="Relación">
+                    {{ AssetCatalog::relationshipTypeLabel($asset->relationship_type) }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Relación</span>
-                        <div class="detail-block-value">
-                            {{ AssetCatalog::relationshipTypeLabel($asset->relationship_type) }}
-                        </div>
-                    </div>
+                <x-show-summary-item-detail-block label="Creado">
+                    {{ $asset->created_at?->format('d/m/Y H:i') ?: '—' }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Creado</span>
-                        <div class="detail-block-value">{{ $asset->created_at?->format('d/m/Y H:i') ?: '—' }}</div>
-                    </div>
+                <x-show-summary-item-detail-block label="Actualizado">
+                    {{ $asset->updated_at?->format('d/m/Y H:i') ?: '—' }}
+                </x-show-summary-item-detail-block>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Actualizado</span>
-                        <div class="detail-block-value">{{ $asset->updated_at?->format('d/m/Y H:i') ?: '—' }}</div>
-                    </div>
-
-                    <div class="detail-block detail-block--full">
-                        <span class="detail-block-label">Notas</span>
-                        <div class="detail-block-value">{{ $asset->notes ?: '—' }}</div>
-                    </div>
-                </div>
-            </div>
-        </x-card>
+                <x-show-summary-item-detail-block label="Notas" full>
+                    {{ $asset->notes ?: '—' }}
+                </x-show-summary-item-detail-block>
+            </x-slot:details>
+        </x-show-summary>
 
         <div class="tabs" data-tabs>
-            <div class="tabs-nav" role="tablist" aria-label="Secciones del activo">
-                <button type="button" class="tabs-link" data-tab-link="documents" role="tab" aria-selected="false">
-                    Documentos
-                    @if ($documents->count())
-                        ({{ $documents->count() }})
-                    @endif
-                </button>
+            <x-tab-toolbar label="Secciones del activo">
+                <x-slot:tabs>
+                    <button type="button" class="tabs-link is-active" data-tab-link="orders" role="tab"
+                        aria-selected="true">
+                        Órdenes
+                        @if ($orders->count())
+                            ({{ $orders->count() }})
+                        @endif
+                    </button>
 
-                <button type="button" class="tabs-link is-active" data-tab-link="orders" role="tab"
-                    aria-selected="true">
-                    Órdenes
-                    @if ($orders->count())
-                        ({{ $orders->count() }})
-                    @endif
-                </button>
-            </div>
+                    <button type="button" class="tabs-link" data-tab-link="documents" role="tab" aria-selected="false">
+                        Documentos
+                        @if ($documents->count())
+                            ({{ $documents->count() }})
+                        @endif
+                    </button>
+                </x-slot:tabs>
+            </x-tab-toolbar>
 
             <section class="tab-panel" data-tab-panel="documents" hidden>
                 <div class="tab-panel-stack">
@@ -153,6 +133,11 @@
                         'showAsset' => false,
                         'showOrder' => true,
                         'emptyMessage' => 'Este activo no tiene documentos vinculados.',
+                        'tabsId' => 'asset-documents-tabs',
+                        'createBaseQuery' => [
+                            'asset_id' => $asset->id,
+                            'party_id' => $asset->party_id,
+                        ],
                         'trailQuery' => $trailQuery,
                     ])
                 </div>
@@ -165,6 +150,11 @@
                         'showParty' => true,
                         'showAsset' => false,
                         'emptyMessage' => 'Este activo no tiene órdenes vinculadas.',
+                        'tabsId' => 'asset-orders-tabs',
+                        'createBaseQuery' => [
+                            'asset_id' => $asset->id,
+                            'kind' => OrderCatalog::KIND_SERVICE,
+                        ],
                         'trailQuery' => $trailQuery,
                     ])
                 </div>

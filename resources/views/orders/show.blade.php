@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V4 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -70,46 +70,30 @@
             </a>
         </x-page-header>
 
-        <x-card>
-            <div class="summary-inline-grid">
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Contacto</div>
-                    <div class="summary-inline-value">{{ $order->party?->name ?: '—' }}</div>
-                </div>
+        <x-show-summary details-id="order-more-detail">
+            <x-show-summary-item label="Contacto">
+                {{ $order->party?->name ?: '—' }}
+            </x-show-summary-item>
 
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Fecha</div>
-                    <div class="summary-inline-value">{{ $order->ordered_at?->format('d/m/Y') ?: '—' }}</div>
-                </div>
+            <x-show-summary-item label="Fecha">
+                {{ $order->ordered_at?->format('d/m/Y') ?: '—' }}
+            </x-show-summary-item>
 
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Número</div>
-                    <div class="summary-inline-value">{{ $order->number ?: 'Sin número' }}</div>
-                </div>
+            <x-show-summary-item label="Número">
+                {{ $order->number ?: 'Sin número' }}
+            </x-show-summary-item>
 
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Tarea origen</div>
-                    <div class="summary-inline-value">
-                        @if ($order->task)
-                            <a href="{{ route('tasks.show', ['task' => $order->task] + $trailQuery) }}">
-                                {{ $order->task->name }}
-                            </a>
-                        @else
-                            —
-                        @endif
-                    </div>
-                </div>
-            </div>
+            <x-show-summary-item label="Tarea origen">
+                @if ($order->task)
+                    <a href="{{ route('tasks.show', ['task' => $order->task] + $trailQuery) }}">
+                        {{ $order->task->name }}
+                    </a>
+                @else
+                    —
+                @endif
+            </x-show-summary-item>
 
-            <div class="list-filters-actions">
-                <button type="button" class="btn btn-secondary" data-action="app-toggle-details"
-                    data-toggle-target="#order-more-detail" data-toggle-text-collapsed="Más detalle"
-                    data-toggle-text-expanded="Menos detalle">
-                    Más detalle
-                </button>
-            </div>
-
-            <div id="order-more-detail" hidden>
+            <x-slot:details>
                 <div class="detail-grid detail-grid--3">
                     <div class="detail-block">
                         <span class="detail-block-label">Tipo</span>
@@ -143,8 +127,8 @@
                         <div class="detail-block-value">{{ $order->notes ?: '—' }}</div>
                     </div>
                 </div>
-            </div>
-        </x-card>
+            </x-slot:details>
+        </x-show-summary>
 
         <div class="tabs" data-tabs>
             <div class="tabs-nav" role="tablist" aria-label="Secciones secundarias de la orden">

@@ -161,7 +161,7 @@
                         'attachable' => $asset,
                         'attachments' => $attachments,
                         'title' => 'Adjuntos del activo',
-                        'emptyMessage' => 'Este activo no tiene adjuntos cargados.',
+                        'returnTo' => url()->current(),
                     ])
                 </div>
             </section>

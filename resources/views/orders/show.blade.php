@@ -260,7 +260,7 @@
                         'attachable' => $order,
                         'attachments' => $attachments,
                         'title' => 'Adjuntos de la orden',
-                        'emptyMessage' => 'Esta orden no tiene adjuntos cargados.',
+                        'returnTo' => url()->current(),
                     ])
                 </div>
             </section>

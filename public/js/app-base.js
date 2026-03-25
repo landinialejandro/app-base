@@ -848,6 +848,303 @@
             });
     };
 
+    const openModal = (modal) => {
+        if (!modal) {
+            return;
+        }
+
+        modal.hidden = false;
+        modal.setAttribute("aria-hidden", "false");
+        document.body.classList.add("app-modal-open");
+    };
+
+    const closeModal = (modal) => {
+        if (!modal) {
+            return;
+        }
+
+        modal.hidden = true;
+        modal.setAttribute("aria-hidden", "true");
+
+        const anyOpen = Array.from(
+            document.querySelectorAll(".app-modal"),
+        ).some((item) => !item.hidden);
+
+        if (!anyOpen) {
+            document.body.classList.remove("app-modal-open");
+        }
+    };
+
+    const bindModals = () => {
+        document
+            .querySelectorAll('[data-action~="app-modal-open"]')
+            .forEach((button) => {
+                if (button.dataset.appModalOpenBound === "1") {
+                    return;
+                }
+
+                button.dataset.appModalOpenBound = "1";
+
+                button.addEventListener("click", function (event) {
+                    event.preventDefault();
+
+                    const selector = this.dataset.modalTarget;
+                    if (!selector) {
+                        return;
+                    }
+
+                    openModal(document.querySelector(selector));
+                });
+            });
+
+        document
+            .querySelectorAll('[data-action~="app-modal-close"]')
+            .forEach((button) => {
+                if (button.dataset.appModalCloseBound === "1") {
+                    return;
+                }
+
+                button.dataset.appModalCloseBound = "1";
+
+                button.addEventListener("click", function (event) {
+                    event.preventDefault();
+
+                    const selector = this.dataset.modalTarget;
+                    if (!selector) {
+                        return;
+                    }
+
+                    closeModal(document.querySelector(selector));
+                });
+            });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key !== "Escape") {
+                return;
+            }
+
+            const modals = Array.from(document.querySelectorAll(".app-modal"));
+            const opened = modals.filter((modal) => !modal.hidden);
+            const lastOpen = opened[opened.length - 1];
+
+            if (lastOpen) {
+                closeModal(lastOpen);
+            }
+        });
+    };
+
+    const bindAttachmentViewer = () => {
+        const viewersState = new Map();
+
+        const renderViewer = (modal, state) => {
+            if (!modal || !state || !state.ids.length) {
+                return;
+            }
+
+            const viewerRoot = modal.querySelector("[data-attachment-viewer]");
+            if (!viewerRoot) {
+                return;
+            }
+
+            const currentId = state.ids[state.index];
+            const item = viewerRoot.querySelector(
+                `[data-attachment-viewer-item][data-attachment-id="${currentId}"]`,
+            );
+
+            if (!item) {
+                return;
+            }
+
+            const titleTarget = viewerRoot.querySelector(
+                "[data-attachment-viewer-title]",
+            );
+            const metaTarget = viewerRoot.querySelector(
+                "[data-attachment-viewer-meta]",
+            );
+            const imageWrap = viewerRoot.querySelector(
+                "[data-attachment-viewer-image-wrap]",
+            );
+            const imageTarget = viewerRoot.querySelector(
+                "[data-attachment-viewer-image]",
+            );
+            const fallback = viewerRoot.querySelector(
+                "[data-attachment-viewer-fallback]",
+            );
+            const previewLink = viewerRoot.querySelector(
+                "[data-attachment-viewer-preview-link]",
+            );
+            const downloadLink = viewerRoot.querySelector(
+                "[data-attachment-viewer-download-link]",
+            );
+
+            const isImage = item.dataset.isImage === "1";
+            const name = item.dataset.name || "Adjunto";
+            const meta = item.dataset.meta || "—";
+            const previewUrl = item.dataset.previewUrl || "#";
+            const downloadUrl = item.dataset.downloadUrl || "#";
+
+            if (titleTarget) {
+                titleTarget.textContent = name;
+            }
+
+            if (metaTarget) {
+                metaTarget.textContent = meta;
+            }
+
+            if (previewLink) {
+                previewLink.href = previewUrl;
+            }
+
+            if (downloadLink) {
+                downloadLink.href = downloadUrl;
+            }
+
+            if (isImage) {
+                if (imageTarget) {
+                    imageTarget.src = previewUrl;
+                    imageTarget.alt = name;
+                }
+
+                if (imageWrap) {
+                    imageWrap.hidden = false;
+                }
+
+                if (fallback) {
+                    fallback.hidden = true;
+                }
+            } else {
+                if (imageTarget) {
+                    imageTarget.src = "";
+                    imageTarget.alt = "";
+                }
+
+                if (imageWrap) {
+                    imageWrap.hidden = true;
+                }
+
+                if (fallback) {
+                    fallback.hidden = false;
+                }
+            }
+
+            const prevButton = viewerRoot.querySelector(
+                '[data-action~="app-attachment-viewer-prev"]',
+            );
+            const nextButton = viewerRoot.querySelector(
+                '[data-action~="app-attachment-viewer-next"]',
+            );
+
+            if (prevButton) {
+                prevButton.disabled = state.index <= 0;
+            }
+
+            if (nextButton) {
+                nextButton.disabled = state.index >= state.ids.length - 1;
+            }
+        };
+
+        document
+            .querySelectorAll('[data-action~="app-attachment-viewer-open"]')
+            .forEach((link) => {
+                if (link.dataset.appAttachmentViewerOpenBound === "1") {
+                    return;
+                }
+
+                link.dataset.appAttachmentViewerOpenBound = "1";
+
+                link.addEventListener("click", function (event) {
+                    event.preventDefault();
+
+                    const selector = this.dataset.modalTarget;
+                    const modal = selector
+                        ? document.querySelector(selector)
+                        : null;
+
+                    if (!modal) {
+                        return;
+                    }
+
+                    const rawIds = (this.dataset.viewerIds || "")
+                        .split(",")
+                        .map((value) => value.trim())
+                        .filter(Boolean);
+
+                    const currentId = (this.dataset.attachmentId || "").trim();
+                    const initialIndex = Math.max(
+                        0,
+                        rawIds.findIndex((value) => value === currentId),
+                    );
+
+                    const state = {
+                        ids: rawIds,
+                        index: initialIndex,
+                    };
+
+                    viewersState.set(modal.id, state);
+                    renderViewer(modal, state);
+                    openModal(modal);
+                });
+            });
+
+        document
+            .querySelectorAll('[data-action~="app-attachment-viewer-prev"]')
+            .forEach((button) => {
+                if (button.dataset.appAttachmentViewerPrevBound === "1") {
+                    return;
+                }
+
+                button.dataset.appAttachmentViewerPrevBound = "1";
+
+                button.addEventListener("click", function () {
+                    const selector = this.dataset.modalTarget;
+                    const modal = selector
+                        ? document.querySelector(selector)
+                        : null;
+
+                    if (!modal) {
+                        return;
+                    }
+
+                    const state = viewersState.get(modal.id);
+                    if (!state || state.index <= 0) {
+                        return;
+                    }
+
+                    state.index -= 1;
+                    renderViewer(modal, state);
+                });
+            });
+
+        document
+            .querySelectorAll('[data-action~="app-attachment-viewer-next"]')
+            .forEach((button) => {
+                if (button.dataset.appAttachmentViewerNextBound === "1") {
+                    return;
+                }
+
+                button.dataset.appAttachmentViewerNextBound = "1";
+
+                button.addEventListener("click", function () {
+                    const selector = this.dataset.modalTarget;
+                    const modal = selector
+                        ? document.querySelector(selector)
+                        : null;
+
+                    if (!modal) {
+                        return;
+                    }
+
+                    const state = viewersState.get(modal.id);
+                    if (!state || state.index >= state.ids.length - 1) {
+                        return;
+                    }
+
+                    state.index += 1;
+                    renderViewer(modal, state);
+                });
+            });
+    };
+
     const initAppBase = () => {
         bindConfirmSubmit();
         bindSelectOnClick();
@@ -862,6 +1159,8 @@
         bindAppointmentKindSync();
         bindAppointmentCalendarAutoScroll();
         bindHorizontalScroll();
+        bindModals();
+        bindAttachmentViewer();
     };
 
     bindDropdowns();

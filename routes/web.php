@@ -253,6 +253,10 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     // Attachments
     Route::post('/attachments', [AttachmentController::class, 'store'])
         ->name('attachments.store');
+    Route::get('/attachments/{attachment}/edit', [AttachmentController::class, 'edit'])
+        ->name('attachments.edit');
+    Route::put('/attachments/{attachment}', [AttachmentController::class, 'update'])
+        ->name('attachments.update');
     Route::get('/attachments/{attachment}/preview', [AttachmentController::class, 'preview'])
         ->name('attachments.preview');
     Route::get('/attachments/{attachment}/download', [AttachmentController::class, 'download'])

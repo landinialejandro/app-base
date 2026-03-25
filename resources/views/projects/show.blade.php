@@ -286,7 +286,7 @@
                         'attachable' => $project,
                         'attachments' => $attachments,
                         'title' => 'Adjuntos del proyecto',
-                        'emptyMessage' => 'Este proyecto no tiene adjuntos cargados.',
+                        'returnTo' => url()->current(),
                     ])
                 </div>
             </section>

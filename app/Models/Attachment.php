@@ -1,9 +1,11 @@
 <?php
 
-// FILE: app/Models/Attachment.php | V2
+// FILE: app/Models/Attachment.php | V3
 
 namespace App\Models;
 
+use App\Support\Attachments\AttachmentCategory;
+use App\Support\Attachments\AttachmentKind;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
@@ -83,5 +85,39 @@ class Attachment extends Model
         $title = trim((string) $this->title);
 
         return $title !== '' ? $title : (string) $this->original_name;
+    }
+
+    public function getKindLabelAttribute(): string
+    {
+        return AttachmentKind::label($this->kind);
+    }
+
+    public function getCategoryLabelAttribute(): string
+    {
+        return AttachmentCategory::label($this->category);
+    }
+
+    public function getExtensionLabelAttribute(): string
+    {
+        return strtoupper((string) ($this->extension ?? ''));
+    }
+
+    public function getSizeLabelAttribute(): string
+    {
+        $sizeBytes = (int) ($this->size_bytes ?? 0);
+
+        if ($sizeBytes <= 0) {
+            return '—';
+        }
+
+        if ($sizeBytes < 1024) {
+            return $sizeBytes.' B';
+        }
+
+        if ($sizeBytes < 1024 * 1024) {
+            return number_format($sizeBytes / 1024, 2, ',', '.').' KB';
+        }
+
+        return number_format($sizeBytes / (1024 * 1024), 2, ',', '.').' MB';
     }
 }

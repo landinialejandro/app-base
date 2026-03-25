@@ -103,13 +103,13 @@
                 </x-slot:tabs>
             </x-tab-toolbar>
 
-            <section class="tab-panel is-active" data-tab-panel="attachments">
+            <section class="tab-panel" data-tab-panel="attachments" hidden>
                 <div class="tab-panel-stack">
                     @include('attachments.partials.panel', [
                         'attachable' => $product,
                         'attachments' => $attachments,
                         'title' => 'Adjuntos del producto',
-                        'emptyMessage' => 'Este producto no tiene adjuntos cargados.',
+                        'returnTo' => url()->current(),
                     ])
                 </div>
             </section>

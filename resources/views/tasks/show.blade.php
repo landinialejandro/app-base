@@ -149,13 +149,13 @@
                 </x-slot:tabs>
             </x-tab-toolbar>
 
-            <section class="tab-panel is-active" data-tab-panel="attachments">
+            <section class="tab-panel" data-tab-panel="attachments" hidden>
                 <div class="tab-panel-stack">
                     @include('attachments.partials.panel', [
                         'attachable' => $task,
                         'attachments' => $attachments,
                         'title' => 'Adjuntos de la tarea',
-                        'emptyMessage' => 'Esta tarea no tiene adjuntos cargados.',
+                        'returnTo' => url()->current(),
                     ])
                 </div>
             </section>

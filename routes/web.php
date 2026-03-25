@@ -7,6 +7,7 @@ use App\Http\Controllers\AdminMetricsController;
 use App\Http\Controllers\AdminSignupRequestController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AssetController;
+use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentItemController;
@@ -248,4 +249,14 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         Route::put('items/{item}', [DocumentItemController::class, 'update'])->name('items.update');
         Route::delete('items/{item}', [DocumentItemController::class, 'destroy'])->name('items.destroy');
     });
+
+    // Attachments
+    Route::post('/attachments', [AttachmentController::class, 'store'])
+        ->name('attachments.store');
+    Route::get('/attachments/{attachment}/preview', [AttachmentController::class, 'preview'])
+        ->name('attachments.preview');
+    Route::get('/attachments/{attachment}/download', [AttachmentController::class, 'download'])
+        ->name('attachments.download');
+    Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy'])
+        ->name('attachments.destroy');
 });

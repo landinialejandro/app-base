@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/ProductController.php | V3
+// FILE: app/Http/Controllers/ProductController.php | V5
 
 namespace App\Http\Controllers;
 
@@ -76,6 +76,10 @@ class ProductController extends Controller
     public function show(Request $request, Product $product): View
     {
         $this->authorize('view', $product);
+
+        $product->load([
+            'attachments' => fn ($query) => $query->with('uploadedBy')->ordered(),
+        ]);
 
         $navigationTrail = ProductNavigationTrail::show($request, $product);
 

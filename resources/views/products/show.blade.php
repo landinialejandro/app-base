@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/products/show.blade.php | V4 --}}
+{{-- FILE: resources/views/products/show.blade.php | V6 --}}
 
 @extends('layouts.app')
 
@@ -8,6 +8,8 @@
     @php
         use App\Support\Catalogs\ProductCatalog;
         use App\Support\Navigation\NavigationTrail;
+
+        $attachments = $product->attachments ?? collect();
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
@@ -85,5 +87,32 @@
                 </x-show-summary-item-detail-block>
             </x-slot:details>
         </x-show-summary>
+
+        <div class="tabs" data-tabs>
+            <x-tab-toolbar label="Secciones del producto">
+                <x-slot:tabs>
+                    <x-horizontal-scroll label="Secciones del producto">
+                        <button type="button" class="tabs-link is-active" data-tab-link="attachments" role="tab"
+                            aria-selected="true">
+                            Adjuntos
+                            @if ($attachments->count())
+                                ({{ $attachments->count() }})
+                            @endif
+                        </button>
+                    </x-horizontal-scroll>
+                </x-slot:tabs>
+            </x-tab-toolbar>
+
+            <section class="tab-panel is-active" data-tab-panel="attachments">
+                <div class="tab-panel-stack">
+                    @include('attachments.partials.panel', [
+                        'attachable' => $product,
+                        'attachments' => $attachments,
+                        'title' => 'Adjuntos del producto',
+                        'emptyMessage' => 'Este producto no tiene adjuntos cargados.',
+                    ])
+                </div>
+            </section>
+        </div>
     </x-page>
 @endsection

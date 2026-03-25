@@ -19,7 +19,7 @@
         <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Documentos']]" />
 
         <x-page-header title="Documentos">
-            <a href="{{ route('documents.create') }}" class="btn btn-primary">
+            <a href="{{ route('documents.create') }}" class="btn btn-success">
                 Nuevo documento
             </a>
         </x-page-header>

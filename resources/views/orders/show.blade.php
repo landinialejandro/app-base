@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V6 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V7 --}}
 
 @extends('layouts.app')
 
@@ -12,6 +12,7 @@
 
         $items = $order->items->sortBy('position')->values();
         $documents = $order->documents->sortByDesc('id')->values();
+        $attachments = $order->attachments ?? collect();
 
         $orderDetailTitle = match ($order->kind) {
             OrderCatalog::KIND_SALE => 'Detalle de la orden de venta',
@@ -133,6 +134,14 @@
                                 ({{ $documents->count() }})
                             @endif
                         </button>
+
+                        <button type="button" class="tabs-link" data-tab-link="attachments" role="tab"
+                            aria-selected="false">
+                            Adjuntos
+                            @if ($attachments->count())
+                                ({{ $attachments->count() }})
+                            @endif
+                        </button>
                     </x-horizontal-scroll>
                 </x-slot:tabs>
 
@@ -241,6 +250,17 @@
                         'allLabel' => 'Todos',
                         'tabsId' => 'order-documents-tabs',
                         'trailQuery' => $trailQuery,
+                    ])
+                </div>
+            </section>
+
+            <section class="tab-panel" data-tab-panel="attachments" hidden>
+                <div class="tab-panel-stack">
+                    @include('attachments.partials.panel', [
+                        'attachable' => $order,
+                        'attachments' => $attachments,
+                        'title' => 'Adjuntos de la orden',
+                        'emptyMessage' => 'Esta orden no tiene adjuntos cargados.',
                     ])
                 </div>
             </section>

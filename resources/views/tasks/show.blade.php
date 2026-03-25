@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/show.blade.php | V5 --}}
+{{-- FILE: resources/views/tasks/show.blade.php | V6 --}}
 
 @extends('layouts.app')
 
@@ -10,6 +10,7 @@
         use App\Support\Navigation\NavigationTrail;
         use Illuminate\Support\Carbon;
 
+        $attachments = $task->attachments ?? collect();
         $dueDateText = 'Sin vencimiento';
 
         if ($task->due_date) {
@@ -132,6 +133,33 @@
                 </x-show-summary-item-detail-block>
             </x-slot:details>
         </x-show-summary>
+
+        <div class="tabs" data-tabs>
+            <x-tab-toolbar label="Secciones de la tarea">
+                <x-slot:tabs>
+                    <x-horizontal-scroll label="Secciones de la tarea">
+                        <button type="button" class="tabs-link is-active" data-tab-link="attachments" role="tab"
+                            aria-selected="true">
+                            Adjuntos
+                            @if ($attachments->count())
+                                ({{ $attachments->count() }})
+                            @endif
+                        </button>
+                    </x-horizontal-scroll>
+                </x-slot:tabs>
+            </x-tab-toolbar>
+
+            <section class="tab-panel is-active" data-tab-panel="attachments">
+                <div class="tab-panel-stack">
+                    @include('attachments.partials.panel', [
+                        'attachable' => $task,
+                        'attachments' => $attachments,
+                        'title' => 'Adjuntos de la tarea',
+                        'emptyMessage' => 'Esta tarea no tiene adjuntos cargados.',
+                    ])
+                </div>
+            </section>
+        </div>
 
     </x-page>
 @endsection

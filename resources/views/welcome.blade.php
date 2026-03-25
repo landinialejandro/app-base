@@ -33,7 +33,7 @@
                         </form>
                     @else
                         <div class="form-actions">
-                            <a href="{{ route('public.signup-requests.create') }}" class="btn btn-primary">
+                            <a href="{{ route('public.signup-requests.create') }}" class="btn btn-success">
                                 Solicitar una empresa
                             </a>
 

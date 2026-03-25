@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/ProjectController.php | V3
+// FILE: app/Http/Controllers/ProjectController.php | V4
 
 namespace App\Http\Controllers;
 
@@ -162,6 +162,7 @@ class ProjectController extends Controller
                     ->orderBy('due_date')
                     ->orderBy('name');
             },
+            'attachments' => fn ($query) => $query->with('uploadedBy')->ordered(),
         ]);
 
         $metrics = ProjectMetrics::forShow($project);

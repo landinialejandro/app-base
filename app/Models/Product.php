@@ -8,14 +8,15 @@ use App\Models\Concerns\ResolvesTenantRouteBinding;
 use App\Models\Concerns\TenantScoped;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Product extends Model
 {
     use HasFactory;
-    use TenantScoped;
     use ResolvesTenantRouteBinding;
     use SoftDeletes;
+    use TenantScoped;
 
     protected $fillable = [
         'tenant_id',
@@ -32,4 +33,9 @@ class Product extends Model
         'price' => 'decimal:2',
         'is_active' => 'boolean',
     ];
+
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(Attachment::class, 'attachable')->orderBy('sort_order')->latest('id');
+    }
 }

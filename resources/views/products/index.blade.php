@@ -16,7 +16,7 @@
 
         <x-page-header title="Productos">
             @can('create', App\Models\Product::class)
-                <a href="{{ route('products.create') }}" class="btn btn-primary">
+                <a href="{{ route('products.create') }}" class="btn btn-success">
                     Nuevo producto
                 </a>
             @endcan

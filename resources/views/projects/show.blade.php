@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/projects/show.blade.php | V6 --}}
+{{-- FILE: resources/views/projects/show.blade.php | V7 --}}
 
 @extends('layouts.app')
 
@@ -11,6 +11,7 @@
 
         extract($metrics, EXTR_SKIP);
 
+        $attachments = $project->attachments ?? collect();
         $canDeleteProject = auth()->user()->can('delete', $project);
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
@@ -199,9 +200,9 @@
         </x-show-summary>
 
         <div class="tabs" data-tabs>
-            <x-tab-toolbar label="Tareas del proyecto">
+            <x-tab-toolbar label="Secciones del proyecto">
                 <x-slot:tabs>
-                    <x-horizontal-scroll label="Tareas del proyecto">
+                    <x-horizontal-scroll label="Secciones del proyecto">
                         <button type="button" class="tabs-link is-active" data-tab-link="open" role="tab"
                             aria-selected="true">
                             Abiertas
@@ -221,6 +222,14 @@
                             Todas
                             @if ($tasks->count())
                                 ({{ $tasks->count() }})
+                            @endif
+                        </button>
+
+                        <button type="button" class="tabs-link" data-tab-link="attachments" role="tab"
+                            aria-selected="false">
+                            Adjuntos
+                            @if ($attachments->count())
+                                ({{ $attachments->count() }})
                             @endif
                         </button>
                     </x-horizontal-scroll>
@@ -268,6 +277,17 @@
                             'trailQuery' => $trailQuery,
                         ])
                     </x-card>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-tab-panel="attachments" hidden>
+                <div class="tab-panel-stack">
+                    @include('attachments.partials.panel', [
+                        'attachable' => $project,
+                        'attachments' => $attachments,
+                        'title' => 'Adjuntos del proyecto',
+                        'emptyMessage' => 'Este proyecto no tiene adjuntos cargados.',
+                    ])
                 </div>
             </section>
         </div>

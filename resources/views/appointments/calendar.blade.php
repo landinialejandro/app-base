@@ -15,7 +15,7 @@
         ]" />
 
         <x-page-header title="Calendario de turnos">
-            <a href="{{ route('appointments.create') }}" class="btn btn-primary">
+            <a href="{{ route('appointments.create') }}" class="btn btn-success">
                 Nuevo turno
             </a>
 

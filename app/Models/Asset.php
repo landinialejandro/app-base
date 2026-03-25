@@ -9,14 +9,15 @@ use App\Models\Concerns\TenantScoped;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Asset extends Model
 {
     use HasFactory;
-    use TenantScoped;
     use ResolvesTenantRouteBinding;
     use SoftDeletes;
+    use TenantScoped;
 
     protected $fillable = [
         'tenant_id',
@@ -37,5 +38,10 @@ class Asset extends Model
     public function party(): BelongsTo
     {
         return $this->belongsTo(Party::class);
+    }
+
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(Attachment::class, 'attachable')->orderBy('sort_order')->latest('id');
     }
 }

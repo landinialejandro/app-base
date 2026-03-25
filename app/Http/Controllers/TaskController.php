@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TaskController.php | V3
+// FILE: app/Http/Controllers/TaskController.php | V4
 
 namespace App\Http\Controllers;
 
@@ -212,7 +212,13 @@ class TaskController extends Controller
 
         $this->authorize('view', $task);
 
-        $task->load(['project', 'party', 'assignedUser', 'order']);
+        $task->load([
+            'project',
+            'party',
+            'assignedUser',
+            'order',
+            'attachments' => fn ($query) => $query->with('uploadedBy')->ordered(),
+        ]);
 
         $canEditTask = auth()->user()->can('update', $task);
         $canDeleteTask = auth()->user()->can('delete', $task);

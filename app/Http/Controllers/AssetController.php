@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AssetController.php | V3
+// FILE: app/Http/Controllers/AssetController.php | V4
 
 namespace App\Http\Controllers;
 
@@ -101,7 +101,10 @@ class AssetController extends Controller
     {
         $this->authorize('view', $asset);
 
-        $asset->load('party');
+        $asset->load([
+            'party',
+            'attachments' => fn ($query) => $query->with('uploadedBy')->ordered(),
+        ]);
 
         $orders = Order::query()
             ->with('party')

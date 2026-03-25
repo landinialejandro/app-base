@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/assets/show.blade.php | V6 --}}
+{{-- FILE: resources/views/assets/show.blade.php | V7 --}}
 
 @extends('layouts.app')
 
@@ -12,6 +12,7 @@
 
         $orders = $orders ?? collect();
         $documents = $documents ?? collect();
+        $attachments = $asset->attachments ?? collect();
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
@@ -124,6 +125,14 @@
                                 ({{ $documents->count() }})
                             @endif
                         </button>
+
+                        <button type="button" class="tabs-link" data-tab-link="attachments" role="tab"
+                            aria-selected="false">
+                            Adjuntos
+                            @if ($attachments->count())
+                                ({{ $attachments->count() }})
+                            @endif
+                        </button>
                     </x-horizontal-scroll>
                 </x-slot:tabs>
             </x-tab-toolbar>
@@ -142,6 +151,17 @@
                             'party_id' => $asset->party_id,
                         ],
                         'trailQuery' => $trailQuery,
+                    ])
+                </div>
+            </section>
+
+            <section class="tab-panel" data-tab-panel="attachments" hidden>
+                <div class="tab-panel-stack">
+                    @include('attachments.partials.panel', [
+                        'attachable' => $asset,
+                        'attachments' => $attachments,
+                        'title' => 'Adjuntos del activo',
+                        'emptyMessage' => 'Este activo no tiene adjuntos cargados.',
                     ])
                 </div>
             </section>

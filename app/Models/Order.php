@@ -7,6 +7,7 @@ namespace App\Models;
 use App\Models\Concerns\ResolvesTenantRouteBinding;
 use App\Models\Concerns\TenantScoped;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Order extends Model
@@ -97,5 +98,10 @@ class Order extends Model
     public function getTotalAttribute(): float
     {
         return $this->calculateTotal();
+    }
+
+    public function attachments(): MorphMany
+    {
+        return $this->morphMany(Attachment::class, 'attachable')->orderBy('sort_order')->latest('id');
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderController.php | V11
+// FILE: app/Http/Controllers/OrderController.php | V12
 
 namespace App\Http\Controllers;
 
@@ -322,6 +322,7 @@ class OrderController extends Controller
             'updater',
             'items.product',
             'documents',
+            'attachments' => fn ($query) => $query->with('uploadedBy')->ordered(),
         ]);
 
         $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);

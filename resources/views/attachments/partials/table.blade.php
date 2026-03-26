@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/attachments/partials/table.blade.php | V3 --}}
+{{-- FILE: resources/views/attachments/partials/table.blade.php | V4 --}}
 
 @php
     $trailQuery = $trailQuery ?? [];
@@ -10,6 +10,9 @@
         <thead>
             <tr>
                 <th>Archivo</th>
+                <th>Tipo</th>
+                <th>Tamaño</th>
+                <th>Fecha</th>
                 <th>Descripción</th>
                 <th class="compact-actions-cell"></th>
             </tr>
@@ -25,6 +28,13 @@
                     }
 
                     $destroyRouteParams = ['attachment' => $attachment] + $trailQuery;
+
+                    $extension = strtoupper((string) $attachment->extension ?: '—');
+                    $sizeLabel =
+                        $attachment->size_bytes !== null
+                            ? number_format($attachment->size_bytes / 1024, 1, ',', '.') . ' KB'
+                            : '—';
+                    $uploadedAt = $attachment->created_at?->format('d/m/Y H:i') ?: '—';
                 @endphp
 
                 <tr>
@@ -38,16 +48,24 @@
                         @endcan
                     </td>
 
+                    <td>{{ $extension }}</td>
+
+                    <td>{{ $sizeLabel }}</td>
+
+                    <td>{{ $uploadedAt }}</td>
+
                     <td>{{ $attachment->description ?: '—' }}</td>
 
                     <td class="compact-actions-cell">
-                        @can('update', $attachment)
-                            <div class="compact-actions">
+                        <div class="compact-actions">
+                            @can('update', $attachment)
                                 <a href="{{ route('attachments.edit', $editRouteParams) }}" class="btn btn-secondary btn-icon"
                                     title="Editar" aria-label="Editar">
                                     <x-icons.pencil />
                                 </a>
+                            @endcan
 
+                            @can('delete', $attachment)
                                 <form method="POST" action="{{ route('attachments.destroy', $destroyRouteParams) }}"
                                     class="inline-form" data-action="app-confirm-submit"
                                     data-confirm-message="¿Eliminar adjunto?">
@@ -63,13 +81,13 @@
                                         <x-icons.trash />
                                     </button>
                                 </form>
-                            </div>
-                        @endcan
+                            @endcan
+                        </div>
                     </td>
                 </tr>
             @empty
                 <tr>
-                    <td colspan="3">Sin adjuntos</td>
+                    <td colspan="6">Sin adjuntos cargados.</td>
                 </tr>
             @endforelse
         </tbody>

@@ -209,13 +209,15 @@
 
             <section class="tab-panel" data-tab-panel="attachments" hidden>
                 <div class="tab-panel-stack">
-                    <x-card class="list-card">
-                        @include('attachments.partials.table', [
-                            'attachments' => $attachments,
-                            'returnTo' => url()->current(),
-                            'trailQuery' => $trailQuery,
-                        ])
-                    </x-card>
+                    @include('attachments.partials.embedded', [
+                        'attachments' => $attachments,
+                        'attachableType' => 'document',
+                        'attachableId' => $document->id,
+                        'trailQuery' => $trailQuery,
+                        'returnTo' => url()->current(),
+                        'tabsId' => 'document-attachments-tabs',
+                        'createLabel' => 'Agregar adjunto',
+                    ])
                 </div>
             </section>
 

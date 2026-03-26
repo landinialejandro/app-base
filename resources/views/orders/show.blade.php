@@ -256,34 +256,15 @@
 
             <section class="tab-panel" data-tab-panel="attachments" hidden>
                 <div class="tab-panel-stack">
-                    <x-tab-toolbar label="Acciones de adjuntos de la orden">
-                        <x-slot:tabs>
-                            <span class="tab-toolbar-title">Adjuntos de la orden</span>
-                        </x-slot:tabs>
-
-                        <x-slot:actions>
-                            <a href="{{ route(
-                                'attachments.create',
-                                [
-                                    'attachable_type' => 'order',
-                                    'attachable_id' => $order->id,
-                                    'return_to' => url()->current(),
-                                ] + $trailQuery,
-                            ) }}"
-                                class="btn btn-success">
-                                <x-icons.plus />
-                                <span>Agregar adjunto</span>
-                            </a>
-                        </x-slot:actions>
-                    </x-tab-toolbar>
-
-                    <x-card class="list-card">
-                        @include('attachments.partials.table', [
-                            'attachments' => $attachments,
-                            'trailQuery' => $trailQuery,
-                            'returnTo' => url()->current(),
-                        ])
-                    </x-card>
+                    @include('attachments.partials.embedded', [
+                        'attachments' => $attachments,
+                        'attachableType' => 'order',
+                        'attachableId' => $order->id,
+                        'trailQuery' => $trailQuery,
+                        'returnTo' => url()->current(),
+                        'tabsId' => 'order-attachments-tabs',
+                        'createLabel' => 'Agregar adjunto',
+                    ])
                 </div>
             </section>
         </div>

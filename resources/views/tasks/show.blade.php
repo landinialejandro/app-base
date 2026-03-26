@@ -134,34 +134,15 @@
             </x-slot:details>
         </x-show-summary>
 
-        <x-tab-toolbar label="Adjuntos de la tarea">
-            <x-slot:tabs>
-                <span class="tab-toolbar-title">Adjuntos de la tarea</span>
-            </x-slot:tabs>
-
-            <x-slot:actions>
-                <a href="{{ route(
-                    'attachments.create',
-                    [
-                        'attachable_type' => 'task',
-                        'attachable_id' => $task->id,
-                        'return_to' => url()->current(),
-                    ] + $trailQuery,
-                ) }}"
-                    class="btn btn-success">
-                    <x-icons.plus />
-                    <span>Agregar adjunto</span>
-                </a>
-            </x-slot:actions>
-        </x-tab-toolbar>
-
-        <x-card class="list-card">
-            @include('attachments.partials.table', [
-                'attachments' => $attachments,
-                'trailQuery' => $trailQuery,
-                'returnTo' => url()->current(),
-            ])
-        </x-card>
+        @include('attachments.partials.embedded', [
+            'attachments' => $attachments,
+            'attachableType' => 'task',
+            'attachableId' => $task->id,
+            'trailQuery' => $trailQuery,
+            'returnTo' => url()->current(),
+            'tabsId' => 'task-attachments-tabs',
+            'createLabel' => 'Agregar adjunto',
+        ])
 
     </x-page>
 @endsection

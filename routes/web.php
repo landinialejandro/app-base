@@ -263,4 +263,6 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         ->name('attachments.download');
     Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy'])
         ->name('attachments.destroy');
+    Route::get('/attachments/create', [AttachmentController::class, 'create'])
+        ->name('attachments.create');
 });

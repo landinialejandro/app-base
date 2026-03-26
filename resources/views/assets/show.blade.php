@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/assets/show.blade.php | V7 --}}
+{{-- FILE: resources/views/assets/show.blade.php | V8 --}}
 
 @extends('layouts.app')
 
@@ -157,12 +157,34 @@
 
             <section class="tab-panel" data-tab-panel="attachments" hidden>
                 <div class="tab-panel-stack">
-                    @include('attachments.partials.panel', [
-                        'attachable' => $asset,
-                        'attachments' => $attachments,
-                        'title' => 'Adjuntos del activo',
-                        'returnTo' => url()->current(),
-                    ])
+                    <x-tab-toolbar label="Acciones de adjuntos del activo">
+                        <x-slot:tabs>
+                            <span class="tab-toolbar-title">Adjuntos del activo</span>
+                        </x-slot:tabs>
+
+                        <x-slot:actions>
+                            <a href="{{ route(
+                                'attachments.create',
+                                [
+                                    'attachable_type' => 'asset',
+                                    'attachable_id' => $asset->id,
+                                    'return_to' => url()->current(),
+                                ] + $trailQuery,
+                            ) }}"
+                                class="btn btn-success">
+                                <x-icons.plus />
+                                <span>Agregar adjunto</span>
+                            </a>
+                        </x-slot:actions>
+                    </x-tab-toolbar>
+
+                    <x-card class="list-card">
+                        @include('attachments.partials.table', [
+                            'attachments' => $attachments,
+                            'trailQuery' => $trailQuery,
+                            'returnTo' => url()->current(),
+                        ])
+                    </x-card>
                 </div>
             </section>
 

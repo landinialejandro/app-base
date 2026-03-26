@@ -1,16 +1,15 @@
-{{-- FILE: resources/views/attachments/edit.blade.php | V3 --}}
+{{-- FILE: resources/views/attachments/create.blade.php | V2 --}}
 
 @extends('layouts.app')
 
-@section('title', 'Editar adjunto')
+@section('title', 'Agregar adjunto')
 
 @section('content')
     <x-page>
-        <x-page-header title="Editar adjunto" />
+        <x-page-header title="Agregar adjunto" />
 
         <x-card>
             @include('attachments.partials.form', [
-                'attachment' => $attachment,
                 'attachableType' => $attachableType,
                 'attachableId' => $attachableId,
                 'returnTo' => $returnTo,

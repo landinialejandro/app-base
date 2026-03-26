@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TaskController.php | V4
+// FILE: app/Http/Controllers/TaskController.php | V5
 
 namespace App\Http\Controllers;
 
@@ -217,7 +217,7 @@ class TaskController extends Controller
             'party',
             'assignedUser',
             'order',
-            'attachments' => fn ($query) => $query->with('uploadedBy')->ordered(),
+            'attachments' => fn ($query) => $query->ordered(),
         ]);
 
         $canEditTask = auth()->user()->can('update', $task);

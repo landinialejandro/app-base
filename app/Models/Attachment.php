@@ -1,19 +1,19 @@
 <?php
 
-// FILE: app/Models/Attachment.php | V3
+// FILE: app/Models/Attachment.php | V6
 
 namespace App\Models;
 
-use App\Support\Attachments\AttachmentCategory;
-use App\Support\Attachments\AttachmentKind;
+use App\Models\Concerns\ResolvesTenantRouteBinding;
+use App\Models\Concerns\TenantScoped;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Attachment extends Model
 {
+    use ResolvesTenantRouteBinding;
     use SoftDeletes;
+    use TenantScoped;
 
     protected $fillable = [
         'tenant_id',
@@ -27,97 +27,43 @@ class Attachment extends Model
         'extension',
         'mime_type',
         'size_bytes',
-        'checksum_sha256',
-        'kind',
-        'category',
-        'is_image',
-        'sort_order',
-        'title',
         'description',
-        'tags_json',
-        'visibility',
-        'meta_json',
-        'extracted_text',
-        'analysis_status',
-        'analyzed_at',
-        'analysis_version',
+        'is_image',
     ];
 
     protected $casts = [
-        'is_image' => 'boolean',
         'size_bytes' => 'integer',
-        'sort_order' => 'integer',
-        'tags_json' => 'array',
-        'meta_json' => 'array',
-        'analyzed_at' => 'datetime',
+        'is_image' => 'boolean',
     ];
 
-    public function attachable(): MorphTo
+    public function attachable()
     {
         return $this->morphTo();
     }
 
-    public function uploadedBy(): BelongsTo
+    public function scopeFor($query, string $type, $id)
     {
-        return $this->belongsTo(User::class, 'uploaded_by_user_id');
+        return $query
+            ->where('attachable_type', $type)
+            ->where('attachable_id', $id);
     }
 
     public function scopeOrdered($query)
     {
         return $query
             ->orderBy('sort_order')
-            ->orderByDesc('created_at')
-            ->orderByDesc('id');
+            ->latest('id');
     }
 
-    public function getStoragePathAttribute(): string
+    public function isImage(): bool
     {
-        $directory = trim((string) $this->directory, '/');
-        $storedName = ltrim((string) $this->stored_name, '/');
-
-        return $directory !== ''
-            ? $directory.'/'.$storedName
-            : $storedName;
+        return str_starts_with((string) $this->mime_type, 'image/');
     }
 
-    public function getDisplayNameAttribute(): string
+    public function getFullPathAttribute(): string
     {
-        $title = trim((string) $this->title);
-
-        return $title !== '' ? $title : (string) $this->original_name;
-    }
-
-    public function getKindLabelAttribute(): string
-    {
-        return AttachmentKind::label($this->kind);
-    }
-
-    public function getCategoryLabelAttribute(): string
-    {
-        return AttachmentCategory::label($this->category);
-    }
-
-    public function getExtensionLabelAttribute(): string
-    {
-        return strtoupper((string) ($this->extension ?? ''));
-    }
-
-    public function getSizeLabelAttribute(): string
-    {
-        $sizeBytes = (int) ($this->size_bytes ?? 0);
-
-        if ($sizeBytes <= 0) {
-            return '—';
-        }
-
-        if ($sizeBytes < 1024) {
-            return $sizeBytes.' B';
-        }
-
-        if ($sizeBytes < 1024 * 1024) {
-            return number_format($sizeBytes / 1024, 2, ',', '.').' KB';
-        }
-
-        return number_format($sizeBytes / (1024 * 1024), 2, ',', '.').' MB';
+        return $this->directory
+            ? $this->directory.'/'.$this->stored_name
+            : $this->stored_name;
     }
 }

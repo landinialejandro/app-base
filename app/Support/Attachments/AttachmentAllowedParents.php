@@ -1,73 +1,37 @@
 <?php
 
-// FILE: app/Support/Attachments/AttachmentAllowedParents.php | V1
+// FILE: app/Support/Attachments/AttachmentAllowedParents.php | V3
 
 namespace App\Support\Attachments;
 
-use App\Models\Asset;
-use App\Models\Order;
-use App\Models\Product;
-use App\Models\Project;
-use App\Models\Task;
-use Illuminate\Database\Eloquent\Model;
-
 class AttachmentAllowedParents
 {
-    public static function classes(): array
+    public static function types(): array
     {
         return [
-            Asset::class,
-            Product::class,
-            Project::class,
-            Task::class,
-            Order::class,
+            'order',
+            'document',
+            'asset',
+            'project',
+            'task',
+            'product',
         ];
     }
 
-    public static function isAllowed(string $class): bool
+    public static function map(): array
     {
-        return in_array($class, static::classes(), true);
+        return [
+            'order' => \App\Models\Order::class,
+            'document' => \App\Models\Document::class,
+            'asset' => \App\Models\Asset::class,
+            'project' => \App\Models\Project::class,
+            'task' => \App\Models\Task::class,
+            'product' => \App\Models\Product::class,
+        ];
     }
 
-    public static function directoryNameFor(Model|string $attachable): string
+    public static function resolve(string $type): string
     {
-        $class = is_string($attachable) ? $attachable : $attachable::class;
-
-        return match ($class) {
-            Asset::class => 'assets',
-            Product::class => 'products',
-            Project::class => 'projects',
-            Task::class => 'tasks',
-            Order::class => 'orders',
-            default => 'other',
-        };
-    }
-
-    public static function showRouteNameFor(Model|string $attachable): ?string
-    {
-        $class = is_string($attachable) ? $attachable : $attachable::class;
-
-        return match ($class) {
-            Asset::class => 'assets.show',
-            Product::class => 'products.show',
-            Project::class => 'projects.show',
-            Task::class => 'tasks.show',
-            Order::class => 'orders.show',
-            default => null,
-        };
-    }
-
-    public static function labelFor(Model|string $attachable): string
-    {
-        $class = is_string($attachable) ? $attachable : $attachable::class;
-
-        return match ($class) {
-            Asset::class => 'Activo',
-            Product::class => 'Producto',
-            Project::class => 'Proyecto',
-            Task::class => 'Tarea',
-            Order::class => 'Orden',
-            default => 'Registro',
-        };
+        return self::map()[$type] ?? throw new \InvalidArgumentException('Invalid attachable type');
     }
 }

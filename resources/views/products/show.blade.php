@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/products/show.blade.php | V6 --}}
+{{-- FILE: resources/views/products/show.blade.php | V7 --}}
 
 @extends('layouts.app')
 
@@ -88,31 +88,33 @@
             </x-slot:details>
         </x-show-summary>
 
-        <div class="tabs" data-tabs>
-            <x-tab-toolbar label="Secciones del producto">
-                <x-slot:tabs>
-                    <x-horizontal-scroll label="Secciones del producto">
-                        <button type="button" class="tabs-link is-active" data-tab-link="attachments" role="tab"
-                            aria-selected="true">
-                            Adjuntos
-                            @if ($attachments->count())
-                                ({{ $attachments->count() }})
-                            @endif
-                        </button>
-                    </x-horizontal-scroll>
-                </x-slot:tabs>
-            </x-tab-toolbar>
+        <x-tab-toolbar label="Adjuntos del producto">
+            <x-slot:tabs>
+                <span class="tab-toolbar-title">Adjuntos del producto</span>
+            </x-slot:tabs>
 
-            <section class="tab-panel" data-tab-panel="attachments" hidden>
-                <div class="tab-panel-stack">
-                    @include('attachments.partials.panel', [
-                        'attachable' => $product,
-                        'attachments' => $attachments,
-                        'title' => 'Adjuntos del producto',
-                        'returnTo' => url()->current(),
-                    ])
-                </div>
-            </section>
-        </div>
+            <x-slot:actions>
+                <a href="{{ route(
+                    'attachments.create',
+                    [
+                        'attachable_type' => 'product',
+                        'attachable_id' => $product->id,
+                        'return_to' => url()->current(),
+                    ] + $trailQuery,
+                ) }}"
+                    class="btn btn-success">
+                    <x-icons.plus />
+                    <span>Agregar adjunto</span>
+                </a>
+            </x-slot:actions>
+        </x-tab-toolbar>
+
+        <x-card class="list-card">
+            @include('attachments.partials.table', [
+                'attachments' => $attachments,
+                'trailQuery' => $trailQuery,
+                'returnTo' => url()->current(),
+            ])
+        </x-card>
     </x-page>
 @endsection

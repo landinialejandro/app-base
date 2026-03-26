@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/products/show.blade.php | V7 --}}
+{{-- FILE: resources/views/products/show.blade.php | V8 --}}
 
 @extends('layouts.app')
 
@@ -88,33 +88,14 @@
             </x-slot:details>
         </x-show-summary>
 
-        <x-tab-toolbar label="Adjuntos del producto">
-            <x-slot:tabs>
-                <span class="tab-toolbar-title">Adjuntos del producto</span>
-            </x-slot:tabs>
-
-            <x-slot:actions>
-                <a href="{{ route(
-                    'attachments.create',
-                    [
-                        'attachable_type' => 'product',
-                        'attachable_id' => $product->id,
-                        'return_to' => url()->current(),
-                    ] + $trailQuery,
-                ) }}"
-                    class="btn btn-success">
-                    <x-icons.plus />
-                    <span>Agregar adjunto</span>
-                </a>
-            </x-slot:actions>
-        </x-tab-toolbar>
-
-        <x-card class="list-card">
-            @include('attachments.partials.table', [
-                'attachments' => $attachments,
-                'trailQuery' => $trailQuery,
-                'returnTo' => url()->current(),
-            ])
-        </x-card>
+        @include('attachments.partials.embedded', [
+            'attachments' => $attachments,
+            'attachableType' => 'product',
+            'attachableId' => $product->id,
+            'trailQuery' => $trailQuery,
+            'returnTo' => url()->current(),
+            'tabsId' => 'product-attachments-tabs',
+            'createLabel' => 'Agregar adjunto',
+        ])
     </x-page>
 @endsection

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Attachment.php | V6
+// FILE: app/Models/Attachment.php | V7
 
 namespace App\Models;
 
@@ -58,6 +58,11 @@ class Attachment extends Model
     public function isImage(): bool
     {
         return str_starts_with((string) $this->mime_type, 'image/');
+    }
+
+    public function getFileNameAttribute(): string
+    {
+        return (string) ($this->original_name ?: $this->stored_name ?: '');
     }
 
     public function getFullPathAttribute(): string

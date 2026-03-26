@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Document.php
+// FILE: app/Models/Document.php | V2
 
 namespace App\Models;
 
@@ -64,6 +64,11 @@ class Document extends Model
     public function items()
     {
         return $this->hasMany(DocumentItem::class);
+    }
+
+    public function attachments()
+    {
+        return $this->morphMany(Attachment::class, 'attachable')->ordered();
     }
 
     public function creator()

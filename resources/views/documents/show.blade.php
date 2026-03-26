@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/show.blade.php | V10 --}}
+{{-- FILE: resources/views/documents/show.blade.php | V11 --}}
 
 @extends('layouts.app')
 
@@ -7,6 +7,7 @@
     use App\Support\Navigation\NavigationTrail;
 
     $items = $document->items->sortBy('position')->values();
+    $attachments = $document->attachments->values();
 
     $documentDetailTitle = match ($document->kind) {
         DocumentCatalog::KIND_QUOTE => 'Detalle del presupuesto',
@@ -136,6 +137,14 @@
                             @endif
                         </button>
 
+                        <button type="button" class="tabs-link" data-tab-link="attachments" role="tab"
+                            aria-selected="false">
+                            Adjuntos
+                            @if ($attachments->count())
+                                ({{ $attachments->count() }})
+                            @endif
+                        </button>
+
                         <button type="button" class="tabs-link" data-tab-link="amounts" role="tab"
                             aria-selected="false">
                             Importes
@@ -153,6 +162,19 @@
                             class="btn btn-success">
                             <x-icons.plus />
                             <span>Agregar ítem</span>
+                        </a>
+
+                        <a href="{{ route(
+                            'attachments.create',
+                            [
+                                'attachable_type' => 'document',
+                                'attachable_id' => $document->id,
+                                'return_to' => url()->current(),
+                            ] + $trailQuery,
+                        ) }}"
+                            class="btn btn-success">
+                            <x-icons.plus />
+                            <span>Agregar adjunto</span>
                         </a>
                     @endif
                 </x-slot:actions>
@@ -181,6 +203,18 @@
                                 <div class="summary-inline-value">${{ number_format($document->total, 2, ',', '.') }}</div>
                             </div>
                         </div>
+                    </x-card>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-tab-panel="attachments" hidden>
+                <div class="tab-panel-stack">
+                    <x-card class="list-card">
+                        @include('attachments.partials.table', [
+                            'attachments' => $attachments,
+                            'returnTo' => url()->current(),
+                            'trailQuery' => $trailQuery,
+                        ])
                     </x-card>
                 </div>
             </section>

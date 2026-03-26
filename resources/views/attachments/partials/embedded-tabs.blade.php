@@ -1,13 +1,34 @@
-{{-- FILE: resources/views/attachments/partials/embedded-tabs.blade.php | V2 --}}
+{{-- FILE: resources/views/attachments/partials/embedded-tabs.blade.php | V3 --}}
 
 @php
     use App\Support\Attachments\AttachmentCategory;
+    use Illuminate\Support\Str;
 
     $attachments = ($attachments ?? collect())->values();
     $attachable = $attachable ?? null;
-    $tabsId = $tabsId ?? 'attachments-tabs-' . uniqid();
-    $viewerModalId = $viewerModalId ?? 'attachments-viewer-' . uniqid();
     $returnTo = $returnTo ?? url()->current();
+
+    $attachableSlug = $attachable ? Str::kebab(class_basename($attachable)) . '-' . $attachable->getKey() : 'x';
+
+    $tabsId = $tabsId ?? 'attachments-tabs-' . $attachableSlug;
+    $viewerModalId = $viewerModalId ?? 'attachments-viewer-' . $attachableSlug;
+    $createModalId = $tabsId . '-create-modal';
+
+    $oldMode = old('attachment_form_mode');
+    $oldKey = old('attachment_form_key');
+    $restoreModalId = null;
+
+    if (
+        $oldMode === 'create' &&
+        $oldKey ===
+            'attachment-create-' . ($attachable ? get_class($attachable) : 'x') . '-' . ($attachable?->getKey() ?? 'x')
+    ) {
+        $restoreModalId = $createModalId;
+    }
+
+    if ($oldMode === 'edit' && is_string($oldKey) && Str::startsWith($oldKey, 'attachment-edit-')) {
+        $restoreModalId = 'attachment-edit-modal-' . Str::after($oldKey, 'attachment-edit-');
+    }
 
     $groups = [
         'all' => [
@@ -63,7 +84,7 @@
 
         <x-slot:actions>
             <button type="button" class="btn btn-success btn-sm" data-action="app-modal-open"
-                data-modal-target="#{{ $tabsId }}-create-modal">
+                data-modal-target="#{{ $createModalId }}">
                 <x-icons.plus />
                 <span>Agregar adjunto</span>
             </button>
@@ -88,6 +109,12 @@
             </div>
         </section>
     @endforeach
+
+    @if ($restoreModalId)
+        <div hidden data-attachment-form-restore data-parent-tab-link="attachments"
+            data-modal-target="#{{ $restoreModalId }}">
+        </div>
+    @endif
 </div>
 
 @foreach ($attachments as $attachment)
@@ -101,7 +128,7 @@
 
 @include('attachments.partials.create-modal', [
     'attachable' => $attachable,
-    'modalId' => $tabsId . '-create-modal',
+    'modalId' => $createModalId,
     'returnTo' => $returnTo,
 ])
 

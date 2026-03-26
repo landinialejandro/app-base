@@ -1145,6 +1145,57 @@
             });
     };
 
+    const resetTabsIfRequested = () => {
+        const url = new URL(window.location.href);
+
+        if (url.searchParams.get("reset_tab_state") !== "1") {
+            return;
+        }
+
+        document.querySelectorAll("[data-tabs]").forEach((tabsRoot) => {
+            const firstTab = tabsRoot.querySelector("[data-tab-link]");
+            if (firstTab instanceof HTMLElement) {
+                firstTab.click();
+            }
+        });
+
+        url.searchParams.delete("reset_tab_state");
+        window.history.replaceState({}, document.title, url.toString());
+    };
+
+    const restoreAttachmentFormState = () => {
+        const restoreNode = document.querySelector(
+            "[data-attachment-form-restore]",
+        );
+
+        if (!(restoreNode instanceof HTMLElement)) {
+            return;
+        }
+
+        const parentTabLink = restoreNode.dataset.parentTabLink;
+        const modalSelector = restoreNode.dataset.modalTarget;
+
+        if (parentTabLink) {
+            const trigger = document.querySelector(
+                `[data-tab-link="${parentTabLink}"]`,
+            );
+            if (trigger instanceof HTMLElement) {
+                trigger.click();
+            }
+        }
+
+        if (!modalSelector) {
+            return;
+        }
+
+        window.setTimeout(() => {
+            const modal = document.querySelector(modalSelector);
+            if (modal instanceof HTMLElement) {
+                openModal(modal);
+            }
+        }, 0);
+    };
+
     const initAppBase = () => {
         bindConfirmSubmit();
         bindSelectOnClick();
@@ -1161,6 +1212,8 @@
         bindHorizontalScroll();
         bindModals();
         bindAttachmentViewer();
+        resetTabsIfRequested();
+        restoreAttachmentFormState();
     };
 
     bindDropdowns();

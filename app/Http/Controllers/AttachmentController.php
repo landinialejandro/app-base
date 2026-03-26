@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AttachmentController.php | V2
+// FILE: app/Http/Controllers/AttachmentController.php | V3
 
 namespace App\Http\Controllers;
 
@@ -75,11 +75,7 @@ class AttachmentController extends Controller
             ],
         ]);
 
-        return $this->redirectAfterMutation(
-            $request,
-            $attachable,
-            'Adjunto cargado correctamente.'
-        );
+        return $this->redirectAfterMutation($attachable, 'Adjunto cargado correctamente.');
     }
 
     public function edit(Attachment $attachment)
@@ -112,11 +108,7 @@ class AttachmentController extends Controller
             'description' => $data['description'],
         ]);
 
-        return $this->redirectAfterMutation(
-            $request,
-            $attachable,
-            'Adjunto actualizado correctamente.'
-        );
+        return $this->redirectAfterMutation($attachable, 'Adjunto actualizado correctamente.');
     }
 
     public function preview(Attachment $attachment): Response|StreamedResponse
@@ -174,11 +166,7 @@ class AttachmentController extends Controller
 
         $attachment->delete();
 
-        return $this->redirectAfterMutation(
-            $request,
-            $attachable,
-            'Adjunto eliminado correctamente.'
-        );
+        return $this->redirectAfterMutation($attachable, 'Adjunto eliminado correctamente.');
     }
 
     protected function resolveAttachable(string $attachableType, int $attachableId, string $tenantId): Model
@@ -221,18 +209,13 @@ class AttachmentController extends Controller
         $this->authorize('update', $attachable);
     }
 
-    protected function redirectAfterMutation(Request $request, Model $attachable, string $message): RedirectResponse
+    protected function redirectAfterMutation(Model $attachable, string $message): RedirectResponse
     {
-        $returnTo = trim((string) $request->input('return_to', ''));
-
-        if ($returnTo !== '') {
-            return redirect()->to($returnTo)->with('status', $message);
-        }
-
         $showUrl = $this->attachableShowUrl($attachable);
 
         if ($showUrl) {
-            return redirect()->to($showUrl)->with('status', $message);
+            return redirect()->to($this->appendQueryParameter($showUrl, 'reset_tab_state', '1'))
+                ->with('status', $message);
         }
 
         return back()->with('status', $message);
@@ -247,5 +230,12 @@ class AttachmentController extends Controller
         }
 
         return route($routeName, $attachable);
+    }
+
+    protected function appendQueryParameter(string $url, string $key, string $value): string
+    {
+        $separator = str_contains($url, '?') ? '&' : '?';
+
+        return $url.$separator.urlencode($key).'='.urlencode($value);
     }
 }

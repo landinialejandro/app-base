@@ -59,4 +59,19 @@ class StoreAttachmentRequest extends FormRequest
 
         return mb_substr($value, 0, $max);
     }
+
+    public function messages(): array
+    {
+        return [
+            'file.required' => 'Debes seleccionar un archivo.',
+            'file.file' => 'El archivo seleccionado no es válido.',
+            'file.mimes' => 'El archivo debe ser una imagen JPG, JPEG, PNG o WEBP, o un archivo PDF o TXT.',
+            'file.max' => 'El archivo no puede superar los 15 MB.',
+            'kind.required' => 'Debes indicar el tipo de adjunto.',
+            'kind.in' => 'El tipo de adjunto seleccionado no es válido.',
+            'category.in' => 'La categoría seleccionada no es válida.',
+            'title.max' => 'El título no puede superar los 255 caracteres.',
+            'description.max' => 'La descripción no puede superar los 2000 caracteres.',
+        ];
+    }
 }

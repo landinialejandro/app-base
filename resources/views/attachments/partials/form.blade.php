@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/attachments/partials/form.blade.php | V2 --}}
+{{-- FILE: resources/views/attachments/partials/form.blade.php | V4 --}}
 
 @php
     use App\Support\Attachments\AttachmentCategory;
@@ -41,9 +41,18 @@
     $categoryValue = $categoryValue ?: AttachmentKind::defaultCategory($kindValue);
 
     $descriptionValue = $useOldInput ? old('description') : $attachment?->description ?? null;
+
+    $fileError = $useOldInput ? $errors->first('file') : null;
+    $kindError = $useOldInput ? $errors->first('kind') : null;
+    $categoryError = $useOldInput ? $errors->first('category') : null;
+    $titleError = $useOldInput ? $errors->first('title') : null;
+    $descriptionError = $useOldInput ? $errors->first('description') : null;
+
+    $isCreate = $mode === 'create';
 @endphp
 
-<form method="POST" action="{{ $action }}" enctype="multipart/form-data" class="form">
+<form method="POST" action="{{ $action }}" enctype="multipart/form-data" class="form" autocomplete="off"
+    @if ($isCreate) data-attachment-create-form="1" @endif>
     @csrf
     @if ($method !== 'POST')
         @method($method)
@@ -66,14 +75,14 @@
                     Archivo
                 </label>
                 <input id="attachment-file-{{ $mode }}-{{ $attachableId ?? ($attachment?->id ?? 'x') }}"
-                    type="file" name="file" class="form-control" accept=".jpg,.jpeg,.png,.webp,.pdf,.txt"
-                    required>
+                    type="file" name="file" class="form-control" accept=".jpg,.jpeg,.png,.webp,.pdf,.txt" required
+                    autocomplete="off">
                 <div class="form-help">
                     Permitidos: JPG, JPEG, PNG, WEBP, PDF y TXT. Máximo 15 MB.
                 </div>
-                @error('file')
-                    <div class="form-help">{{ $message }}</div>
-                @enderror
+                @if ($fileError)
+                    <div class="form-help">{{ $fileError }}</div>
+                @endif
             </div>
         @endif
 
@@ -83,14 +92,14 @@
                 Tipo
             </label>
             <select id="attachment-kind-{{ $mode }}-{{ $attachableId ?? ($attachment?->id ?? 'x') }}"
-                name="kind" class="form-control">
+                name="kind" class="form-control" autocomplete="off">
                 @foreach (AttachmentKind::options() as $value => $label)
                     <option value="{{ $value }}" @selected($kindValue === $value)>{{ $label }}</option>
                 @endforeach
             </select>
-            @error('kind')
-                <div class="form-help">{{ $message }}</div>
-            @enderror
+            @if ($kindError)
+                <div class="form-help">{{ $kindError }}</div>
+            @endif
         </div>
 
         <div class="form-group">
@@ -99,14 +108,14 @@
                 Categoría
             </label>
             <select id="attachment-category-{{ $mode }}-{{ $attachableId ?? ($attachment?->id ?? 'x') }}"
-                name="category" class="form-control">
+                name="category" class="form-control" autocomplete="off">
                 @foreach (AttachmentCategory::options() as $value => $label)
                     <option value="{{ $value }}" @selected($categoryValue === $value)>{{ $label }}</option>
                 @endforeach
             </select>
-            @error('category')
-                <div class="form-help">{{ $message }}</div>
-            @enderror
+            @if ($categoryError)
+                <div class="form-help">{{ $categoryError }}</div>
+            @endif
         </div>
 
         <div class="form-group form-group--full">
@@ -115,10 +124,11 @@
                 Título
             </label>
             <input id="attachment-title-{{ $mode }}-{{ $attachableId ?? ($attachment?->id ?? 'x') }}"
-                type="text" name="title" class="form-control" value="{{ $titleValue }}" maxlength="255">
-            @error('title')
-                <div class="form-help">{{ $message }}</div>
-            @enderror
+                type="text" name="title" class="form-control" value="{{ $titleValue }}" maxlength="255"
+                autocomplete="off">
+            @if ($titleError)
+                <div class="form-help">{{ $titleError }}</div>
+            @endif
         </div>
 
         <div class="form-group form-group--full">
@@ -127,10 +137,10 @@
                 Descripción
             </label>
             <textarea id="attachment-description-{{ $mode }}-{{ $attachableId ?? ($attachment?->id ?? 'x') }}"
-                name="description" class="form-control" rows="4">{{ $descriptionValue }}</textarea>
-            @error('description')
-                <div class="form-help">{{ $message }}</div>
-            @enderror
+                name="description" class="form-control" rows="4" autocomplete="off">{{ $descriptionValue }}</textarea>
+            @if ($descriptionError)
+                <div class="form-help">{{ $descriptionError }}</div>
+            @endif
         </div>
     </div>
 

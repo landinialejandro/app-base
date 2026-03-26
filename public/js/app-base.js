@@ -876,47 +876,96 @@
     };
 
     const bindModals = () => {
-        document
-            .querySelectorAll('[data-action~="app-modal-open"]')
-            .forEach((button) => {
-                if (button.dataset.appModalOpenBound === "1") {
+        if (document.body.dataset.appModalsBound === "1") {
+            return;
+        }
+
+        document.body.dataset.appModalsBound = "1";
+
+        document.addEventListener("click", function (event) {
+            const openTrigger = event.target.closest(
+                '[data-action~="app-modal-open"]',
+            );
+            if (openTrigger instanceof HTMLElement) {
+                event.preventDefault();
+
+                const selector = openTrigger.dataset.modalTarget;
+                if (!selector) {
                     return;
                 }
 
-                button.dataset.appModalOpenBound = "1";
-
-                button.addEventListener("click", function (event) {
-                    event.preventDefault();
-
-                    const selector = this.dataset.modalTarget;
-                    if (!selector) {
-                        return;
-                    }
-
-                    openModal(document.querySelector(selector));
-                });
-            });
-
-        document
-            .querySelectorAll('[data-action~="app-modal-close"]')
-            .forEach((button) => {
-                if (button.dataset.appModalCloseBound === "1") {
+                const modal = document.querySelector(selector);
+                if (!(modal instanceof HTMLElement)) {
                     return;
                 }
 
-                button.dataset.appModalCloseBound = "1";
+                const createForm = modal.querySelector(
+                    'form[data-attachment-create-form="1"]',
+                );
 
-                button.addEventListener("click", function (event) {
-                    event.preventDefault();
+                if (createForm instanceof HTMLFormElement) {
+                    createForm.reset();
 
-                    const selector = this.dataset.modalTarget;
-                    if (!selector) {
-                        return;
+                    const kindField = createForm.querySelector(
+                        'select[name="kind"]',
+                    );
+                    const categoryField = createForm.querySelector(
+                        'select[name="category"]',
+                    );
+                    const titleField = createForm.querySelector(
+                        'input[name="title"]',
+                    );
+                    const descriptionField = createForm.querySelector(
+                        'textarea[name="description"]',
+                    );
+                    const fileField = createForm.querySelector(
+                        'input[type="file"][name="file"]',
+                    );
+
+                    if (kindField instanceof HTMLSelectElement) {
+                        kindField.value = "other";
                     }
 
-                    closeModal(document.querySelector(selector));
-                });
-            });
+                    if (categoryField instanceof HTMLSelectElement) {
+                        categoryField.value = "other";
+                    }
+
+                    if (titleField instanceof HTMLInputElement) {
+                        titleField.value = "";
+                    }
+
+                    if (descriptionField instanceof HTMLTextAreaElement) {
+                        descriptionField.value = "";
+                    }
+
+                    if (fileField instanceof HTMLInputElement) {
+                        fileField.value = "";
+                    }
+                }
+
+                openModal(modal);
+                return;
+            }
+
+            const closeTrigger = event.target.closest(
+                '[data-action~="app-modal-close"]',
+            );
+            if (closeTrigger instanceof HTMLElement) {
+                event.preventDefault();
+
+                const selector = closeTrigger.dataset.modalTarget;
+                if (!selector) {
+                    return;
+                }
+
+                const modal = document.querySelector(selector);
+                if (!(modal instanceof HTMLElement)) {
+                    return;
+                }
+
+                closeModal(modal);
+            }
+        });
 
         document.addEventListener("keydown", function (event) {
             if (event.key !== "Escape") {
@@ -927,7 +976,7 @@
             const opened = modals.filter((modal) => !modal.hidden);
             const lastOpen = opened[opened.length - 1];
 
-            if (lastOpen) {
+            if (lastOpen instanceof HTMLElement) {
                 closeModal(lastOpen);
             }
         });
@@ -1145,55 +1194,77 @@
             });
     };
 
-    const resetTabsIfRequested = () => {
+    const focusTabIfRequested = () => {
         const url = new URL(window.location.href);
+        const focusTab = url.searchParams.get("focus_tab");
 
-        if (url.searchParams.get("reset_tab_state") !== "1") {
+        if (!focusTab) {
             return;
         }
 
-        document.querySelectorAll("[data-tabs]").forEach((tabsRoot) => {
-            const firstTab = tabsRoot.querySelector("[data-tab-link]");
-            if (firstTab instanceof HTMLElement) {
-                firstTab.click();
-            }
-        });
+        const trigger = document.querySelector(`[data-tab-link="${focusTab}"]`);
 
-        url.searchParams.delete("reset_tab_state");
+        if (trigger instanceof HTMLElement) {
+            trigger.click();
+        }
+
+        url.searchParams.delete("focus_tab");
         window.history.replaceState({}, document.title, url.toString());
     };
 
-    const restoreAttachmentFormState = () => {
-        const restoreNode = document.querySelector(
-            "[data-attachment-form-restore]",
-        );
+    const resetAttachmentCreateForms = () => {
+        document
+            .querySelectorAll('form[data-attachment-create-form="1"]')
+            .forEach((form) => {
+                if (!(form instanceof HTMLFormElement)) {
+                    return;
+                }
 
-        if (!(restoreNode instanceof HTMLElement)) {
-            return;
-        }
+                const shouldPreserveOldInput =
+                    form.querySelector(
+                        'input[name="attachment_form_mode"][value="create"]',
+                    ) &&
+                    form.querySelector('input[name="attachment_form_key"]') &&
+                    document.querySelector("[data-attachment-form-restore]");
 
-        const parentTabLink = restoreNode.dataset.parentTabLink;
-        const modalSelector = restoreNode.dataset.modalTarget;
+                if (shouldPreserveOldInput) {
+                    return;
+                }
 
-        if (parentTabLink) {
-            const trigger = document.querySelector(
-                `[data-tab-link="${parentTabLink}"]`,
-            );
-            if (trigger instanceof HTMLElement) {
-                trigger.click();
-            }
-        }
+                form.reset();
 
-        if (!modalSelector) {
-            return;
-        }
+                const kindField = form.querySelector('select[name="kind"]');
+                const categoryField = form.querySelector(
+                    'select[name="category"]',
+                );
+                const titleField = form.querySelector('input[name="title"]');
+                const descriptionField = form.querySelector(
+                    'textarea[name="description"]',
+                );
+                const fileField = form.querySelector(
+                    'input[type="file"][name="file"]',
+                );
 
-        window.setTimeout(() => {
-            const modal = document.querySelector(modalSelector);
-            if (modal instanceof HTMLElement) {
-                openModal(modal);
-            }
-        }, 0);
+                if (kindField instanceof HTMLSelectElement) {
+                    kindField.value = "other";
+                }
+
+                if (categoryField instanceof HTMLSelectElement) {
+                    categoryField.value = "other";
+                }
+
+                if (titleField instanceof HTMLInputElement) {
+                    titleField.value = "";
+                }
+
+                if (descriptionField instanceof HTMLTextAreaElement) {
+                    descriptionField.value = "";
+                }
+
+                if (fileField instanceof HTMLInputElement) {
+                    fileField.value = "";
+                }
+            });
     };
 
     const initAppBase = () => {
@@ -1212,8 +1283,8 @@
         bindHorizontalScroll();
         bindModals();
         bindAttachmentViewer();
-        resetTabsIfRequested();
-        restoreAttachmentFormState();
+        focusTabIfRequested();
+        resetAttachmentCreateForms();
     };
 
     bindDropdowns();

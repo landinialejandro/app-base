@@ -214,7 +214,7 @@ class AttachmentController extends Controller
         $showUrl = $this->attachableShowUrl($attachable);
 
         if ($showUrl) {
-            return redirect()->to($this->appendQueryParameter($showUrl, 'reset_tab_state', '1'))
+            return redirect()->to($this->appendQueryParameter($showUrl, 'focus_tab', 'attachments'))
                 ->with('status', $message);
         }
 

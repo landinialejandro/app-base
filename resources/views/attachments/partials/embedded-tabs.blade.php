@@ -14,22 +14,6 @@
     $viewerModalId = $viewerModalId ?? 'attachments-viewer-' . $attachableSlug;
     $createModalId = $tabsId . '-create-modal';
 
-    $oldMode = old('attachment_form_mode');
-    $oldKey = old('attachment_form_key');
-    $restoreModalId = null;
-
-    if (
-        $oldMode === 'create' &&
-        $oldKey ===
-            'attachment-create-' . ($attachable ? get_class($attachable) : 'x') . '-' . ($attachable?->getKey() ?? 'x')
-    ) {
-        $restoreModalId = $createModalId;
-    }
-
-    if ($oldMode === 'edit' && is_string($oldKey) && Str::startsWith($oldKey, 'attachment-edit-')) {
-        $restoreModalId = 'attachment-edit-modal-' . Str::after($oldKey, 'attachment-edit-');
-    }
-
     $groups = [
         'all' => [
             'label' => 'Todos',
@@ -110,11 +94,6 @@
         </section>
     @endforeach
 
-    @if ($restoreModalId)
-        <div hidden data-attachment-form-restore data-parent-tab-link="attachments"
-            data-modal-target="#{{ $restoreModalId }}">
-        </div>
-    @endif
 </div>
 
 @foreach ($attachments as $attachment)

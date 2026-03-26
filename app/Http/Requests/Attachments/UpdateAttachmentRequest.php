@@ -51,4 +51,15 @@ class UpdateAttachmentRequest extends FormRequest
 
         return mb_substr($value, 0, $max);
     }
+
+    public function messages(): array
+    {
+        return [
+            'kind.required' => 'Debes indicar el tipo de adjunto.',
+            'kind.in' => 'El tipo de adjunto seleccionado no es válido.',
+            'category.in' => 'La categoría seleccionada no es válida.',
+            'title.max' => 'El título no puede superar los 255 caracteres.',
+            'description.max' => 'La descripción no puede superar los 2000 caracteres.',
+        ];
+    }
 }

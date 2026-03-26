@@ -371,6 +371,7 @@ el navbar no debe copiar ni duplicar el breadcrumb
 
 cuando exista navegación contextual entre módulos relacionados, el módulo activo del navbar puede resolverse por origen funcional del flujo y no solo por la pantalla hoja actualmente abierta
 
+
 CONVENCIONES DE BLADE Y FRONTEND LIVIANO
 
 Las vistas Blade deben mantenerse simples, explícitas y previsibles.
@@ -395,6 +396,53 @@ clases CSS = estilo
 data-* = comportamiento
 
 Preferir soluciones simples y declarativas antes que lógica distribuida en múltiples blades.
+
+
+CONVENCIONES DE FORMULARIOS OPERATIVOS
+
+Regla general:
+
+los formularios operativos de create y edit deben resolverse en pantallas dedicadas
+
+los modales no deben utilizarse para operaciones principales de creación o edición
+
+los modales pueden utilizarse únicamente para:
+
+confirmaciones simples
+visualización puntual y liviana
+
+Objetivos de esta convención:
+
+reducir complejidad de JavaScript
+evitar problemas de estado, foco y validación
+mantener consistencia de navegación y breadcrumb
+
+Si una operación requiere validación completa, navegación consistente o interacción de formulario real, debe resolverse como pantalla y no como modal.
+
+
+CONVENCIONES DE MÓDULOS TRANSVERSALES
+
+Un módulo transversal es aquel que:
+
+no tiene navegación principal propia
+se integra dentro del show de otros módulos
+puede tener pantallas propias para acciones como create o edit
+
+Reglas:
+
+debe diseñarse desacoplado de módulos específicos
+
+no debe implementar navegación paralela propia mientras su uso principal siga siendo embebido o contextual
+
+puede tener pantallas dedicadas para acciones operativas si eso mejora consistencia y mantenibilidad
+
+no debe depender de nombres de clase del backend en el frontend
+
+debe poder evolucionar en el futuro hacia una vista independiente sin romper su base conceptual ni su integración actual
+
+Ejemplo actual de este patrón:
+
+attachments
 
 
 CONVENCIONES DE PRESERVACIÓN DE CONTEXTO UX
@@ -508,6 +556,7 @@ sin deducción desde historial
 sin duplicación por módulo
 
 sin serialización recursiva del trail dentro de nodos
+
 
 CONVENCIONES DE VOCABULARIO UI
 

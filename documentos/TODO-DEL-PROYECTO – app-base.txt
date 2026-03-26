@@ -87,7 +87,27 @@ revisar densidad visual final del tab-toolbar y del card que lo contiene para as
 
 implementar sistema de auditoría de cambios
 
-implementar sistema de archivos y adjuntos
+
+ATTACHMENTS
+
+Estado actual:
+
+V1.1 implementado como módulo transversal embebido en múltiples módulos del sistema
+
+Refactor V1.2 en curso:
+
+eliminación de create y edit en modal
+migración completa a pantallas dedicadas
+limpieza de JavaScript específico del módulo
+limpieza y consolidación de CSS
+eliminación de partials legacy
+alineación total con las convenciones actuales del proyecto
+
+Pendientes futuros:
+
+viewer simple y puntual, evitando modal pesado
+mejora móvil para captura rápida de fotos o fotos consecutivas
+análisis de adjuntos por IA
 
 
 AUTORIZACIÓN Y PERMISOS

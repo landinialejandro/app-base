@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AttachmentController.php | V7
+// FILE: app/Http/Controllers/AttachmentController.php | V8
 
 namespace App\Http\Controllers;
 
@@ -10,6 +10,7 @@ use App\Models\Attachment;
 use App\Support\Attachments\AttachmentAllowedParents;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
+use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 
 class AttachmentController extends Controller
 {
@@ -39,8 +40,10 @@ class AttachmentController extends Controller
         $this->authorize('update', $attachable);
 
         $file = $request->file('file');
+        $disk = 'local';
         $directory = 'attachments';
-        $path = $file->store($directory);
+
+        $path = $file->store($directory, $disk);
         $storedName = basename($path);
 
         Attachment::create([
@@ -48,6 +51,7 @@ class AttachmentController extends Controller
             'attachable_type' => $attachable::class,
             'attachable_id' => $attachable->id,
             'uploaded_by_user_id' => auth()->id(),
+            'disk' => $disk,
             'directory' => $directory,
             'stored_name' => $storedName,
             'original_name' => $file->getClientOriginalName(),
@@ -90,7 +94,12 @@ class AttachmentController extends Controller
     {
         $this->authorize('delete', $attachment);
 
-        Storage::delete($attachment->full_path);
+        $disk = $this->disk($attachment);
+
+        if ($disk->exists($attachment->full_path)) {
+            $disk->delete($attachment->full_path);
+        }
+
         $attachment->delete();
 
         $returnTo = $request->input('return_to');
@@ -103,19 +112,37 @@ class AttachmentController extends Controller
     {
         $this->authorize('view', $attachment);
 
-        return Storage::download(
-            $attachment->full_path,
-            $attachment->original_name
-        );
+        $disk = $this->disk($attachment);
+
+        if (! $disk->exists($attachment->full_path)) {
+            throw new NotFoundHttpException('El archivo adjunto no existe en el almacenamiento configurado.');
+        }
+
+        return $disk->download($attachment->full_path, $attachment->original_name);
     }
 
     public function preview(Attachment $attachment)
     {
         $this->authorize('view', $attachment);
 
+        $disk = $this->disk($attachment);
+
+        if (! $disk->exists($attachment->full_path)) {
+            throw new NotFoundHttpException('El archivo adjunto no existe en el almacenamiento configurado.');
+        }
+
         return response()->file(
-            storage_path('app/'.$attachment->full_path)
+            $disk->path($attachment->full_path),
+            [
+                'Content-Type' => $attachment->mime_type ?: 'application/octet-stream',
+                'Content-Disposition' => 'inline; filename="'.addslashes($attachment->original_name).'"',
+            ]
         );
+    }
+
+    private function disk(Attachment $attachment)
+    {
+        return Storage::disk($attachment->disk ?: config('filesystems.default'));
     }
 
     private function resolveAttachable(string $attachableType, string $attachableId): object

@@ -440,9 +440,32 @@ no debe depender de nombres de clase del backend en el frontend
 
 debe poder evolucionar en el futuro hacia una vista independiente sin romper su base conceptual ni su integración actual
 
+cuando un patrón transversal se repita en varios módulos, debe tender a resolverse con partials, componentes o catálogos reusables antes que con variantes aisladas por módulo
+
 Ejemplo actual de este patrón:
 
 attachments
+
+
+CONVENCIONES ESPECÍFICAS PARA ATTACHMENTS
+
+Attachments se considera un módulo transversal embebido alineado al patrón general del proyecto.
+
+Reglas actuales:
+
+attachments debe integrarse principalmente dentro del show de otros módulos y no como navegación principal paralela
+
+create y edit de attachments deben resolverse en pantallas dedicadas y no en modales operativos
+
+cuando el patrón de attachments se repita entre módulos, debe resolverse con partials o componentes reusables
+
+AttachmentCatalog debe actuar como fuente de verdad para kinds, etiquetas y segmentaciones visibles del módulo
+
+en el embebido visible de attachments, kind es la dimensión principal y estable de segmentación
+
+no debe agregarse una segunda dimensión visible equivalente si no aporta valor operativo real
+
+attachments no debe depender en frontend de nombres de clase del backend para resolver integración, comportamiento o segmentación
 
 
 CONVENCIONES DE PRESERVACIÓN DE CONTEXTO UX

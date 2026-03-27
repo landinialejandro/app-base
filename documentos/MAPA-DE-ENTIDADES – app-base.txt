@@ -106,6 +106,7 @@ order_items
 documents
 document_items
 document_sequences
+attachments
 
 ENTIDAD BASE DEL NEGOCIO
 
@@ -198,6 +199,7 @@ Project
 Task
 Appointment
 Asset
+Attachment
 
 Aclaración sobre Invitation
 
@@ -398,6 +400,26 @@ Regla:
 
 no modelar numeración manual o unique global en cabeceras operativas cuando ya existe este sistema.
 
+ATTACHMENTS
+
+Entidad transversal del negocio para archivos y adjuntos operativos del tenant.
+
+Función actual:
+
+resolver adjuntos de forma reutilizable entre múltiples módulos del sistema sin crear una implementación aislada por módulo
+
+Características conceptuales:
+
+pertenece al tenant
+se integra de forma transversal y embebida en entidades operativas
+puede tener pantallas operativas propias para create y edit
+su dimensión visible principal en UI es kind
+su organización funcional debe apoyarse en AttachmentCatalog
+
+Regla:
+
+attachments ya no debe tratarse como futura posible, sino como parte implementada del mapa actual del sistema
+
 CONTEXTO FUNCIONAL DEL TENANT
 
 El tenant puede incorporar configuración funcional en:
@@ -456,6 +478,12 @@ invitations
 ↓
 tenants / memberships
 
+FLUJO TRANSVERSAL DE ADJUNTOS
+
+módulos operativos
+↓
+attachments
+
 ENTIDADES YA IMPLEMENTADAS
 
 users
@@ -477,6 +505,7 @@ order_items
 documents
 document_items
 document_sequences
+attachments
 
 ENTIDADES FUTURAS POSIBLES
 
@@ -485,7 +514,6 @@ branches
 payments
 inventory
 activity_logs
-attachments
 asset_party_history
 
 

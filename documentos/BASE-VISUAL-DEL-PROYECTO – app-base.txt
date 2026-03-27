@@ -99,6 +99,10 @@ el bloque superior de resumen del registro no debe resolverse inline por módulo
 
 el summary principal del show resume el registro principal de la pantalla
 
+el summary principal debe mantenerse acotado y centrado en la lectura rápida del registro principal
+
+cuando exista detalle complementario importante pero no prioritario, debe priorizarse un detalle expandible dentro del mismo bloque superior antes que dispersarlo sin criterio en otras zonas del show
+
 los summaries operativos internos de tabs o sublistados no deben confundirse con el summary principal del show
 
 las vistas show deben mantener una separación clara entre:
@@ -138,6 +142,52 @@ el uso de span debe reservarse a bloques que realmente necesiten mayor ancho vis
 si un bloque analítico requiere más espacio horizontal, debe priorizarse esta capacidad reusable antes que crear wrappers específicos del módulo
 
 la capacidad de span en x-show-summary-item forma parte de la base visual reusable del sistema y debe validarse en uso real antes de extenderla a casos más complejos
+
+
+ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW
+
+La zona de relaciones de una vista show debe resolverse con una estructura visual simple y predecible.
+
+Reglas:
+
+si el show tiene una única relación operativa relevante, debe priorizarse embebido directo dentro de la pantalla, sin introducir tabs del padre innecesarias
+
+si el show tiene dos o más relaciones operativas relevantes, debe evaluarse resolverlas mediante tabs del padre para separar zonas sin alargar innecesariamente la pantalla
+
+el embebido relacionado debe comportarse visualmente como un mini index contextual del registro actual
+
+ese mini index contextual no debe competir con el summary principal ni con las acciones base del show
+
+si el embebido requiere estructura completa, el orden recomendado es:
+
+título opcional
+tabs y acción principal contextual dentro del tab-toolbar
+toolbar secundario opcional
+tabla o listado principal
+summary inferior opcional
+
+el toolbar secundario solo debe existir cuando agregue una acción o control real y no por simetría visual vacía
+
+si el embebido solo necesita un listado simple, no debe forzarse una estructura más pesada de la necesaria
+
+
+TABS INTERNAS DEL EMBEBIDO
+
+Las tabs internas de un bloque embebido deben usarse solo cuando exista una dimensión visible, estable y útil para segmentar el contenido.
+
+Reglas:
+
+no introducir tabs internas en embebidos por anticipación o por estética
+
+si la segmentación visible responde a una dimensión clara del dominio o de la operación, las tabs internas son válidas
+
+si no existe una dimensión clara, debe priorizarse listado único con filtros o lectura directa
+
+las tabs internas del embebido no deben duplicar sin necesidad una segmentación ya resuelta por tabs del padre
+
+cuando un embebido requiera tabs internas y además una acción principal contextual, debe priorizarse el patrón tab-toolbar reusable
+
+el embebido sigue siendo un bloque subordinado al show principal, aunque internamente utilice tabs
 
 
 ACCIONES VISUALES EN INDEX Y SHOW
@@ -416,3 +466,5 @@ tabla o listado debajo en card independiente
 Cuando un embedded-tabs tenga riesgo razonable de desborde en pantallas chicas o por crecimiento futuro de etiquetas, conviene aplicar desde el inicio el wrapper reusable de scroll horizontal.
 
 No esperar a que el layout rompa para recién introducir un patrón especial si ya se sabe que el bloque puede crecer.
+
+Attachments se considera el caso estándar actual de embebido tabulado por kind dentro de una vista show relacionada.

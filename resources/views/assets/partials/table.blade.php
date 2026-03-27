@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/assets/partials/table.blade.php --}}
+{{-- FILE: resources/views/assets/partials/table.blade.php | V2 --}}
 
 @php
     use App\Support\Catalogs\AssetCatalog;

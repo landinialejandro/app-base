@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/assets/partials/embedded-tabs.blade.php | V2 --}}
+{{-- FILE: resources/views/assets/partials/embedded-tabs.blade.php | V3 --}}
 
 @php
     use App\Support\Catalogs\AssetCatalog;
@@ -16,6 +16,16 @@
 @endphp
 
 <div class="tabs" data-tabs>
+    @php
+        $toolbarAction = null;
+    @endphp
+
+    @can('create', App\Models\Asset::class)
+        @php
+            $toolbarAction = route('assets.create', $createBaseQuery + $trailQuery);
+        @endphp
+    @endcan
+
     <x-tab-toolbar label="Tipos de activos">
         <x-slot:tabs>
             <x-horizontal-scroll label="Tipos de activos">
@@ -44,12 +54,12 @@
         </x-slot:tabs>
 
         <x-slot:actions>
-            @can('create', App\Models\Asset::class)
-                <a href="{{ route('assets.create', $createBaseQuery + $trailQuery) }}" class="btn btn-success btn-sm">
+            @if ($toolbarAction)
+                <a href="{{ $toolbarAction }}" class="btn btn-success btn-sm">
                     <x-icons.plus />
                     <span>Nuevo activo</span>
                 </a>
-            @endcan
+            @endif
         </x-slot:actions>
     </x-tab-toolbar>
 

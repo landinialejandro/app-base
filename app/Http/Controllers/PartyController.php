@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/PartyController.php | V3
+// FILE: app/Http/Controllers/PartyController.php | V4
 
 namespace App\Http\Controllers;
 
@@ -8,6 +8,7 @@ use App\Http\Requests\StorePartyRequest;
 use App\Http\Requests\UpdatePartyRequest;
 use App\Models\Asset;
 use App\Models\Document;
+use App\Models\Order;
 use App\Models\Party;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\PartyNavigationTrail;
@@ -94,6 +95,12 @@ class PartyController extends Controller
             ->orderBy('name')
             ->get();
 
+        $orders = Order::query()
+            ->with('asset')
+            ->where('party_id', $party->id)
+            ->latest()
+            ->get();
+
         $documents = Document::query()
             ->with(['order', 'asset'])
             ->where('party_id', $party->id)
@@ -107,6 +114,7 @@ class PartyController extends Controller
             'tenant' => $tenant,
             'party' => $party,
             'assets' => $assets,
+            'orders' => $orders,
             'documents' => $documents,
             'navigationTrail' => $navigationTrail,
         ]);

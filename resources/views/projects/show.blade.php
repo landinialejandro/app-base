@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/projects/show.blade.php | V8 --}}
+{{-- FILE: resources/views/projects/show.blade.php | V9 --}}
 
 @extends('layouts.app')
 
@@ -116,7 +116,6 @@
             </x-show-summary-item>
 
             <x-slot:details>
-
                 <x-show-summary-item label="Estados de tareas" span="3">
                     @if ($totalTasks > 0 && count($pieSegments) > 0)
                         <div class="pie-layout pie-layout--wide">
@@ -203,23 +202,9 @@
             <x-tab-toolbar label="Secciones del proyecto">
                 <x-slot:tabs>
                     <x-horizontal-scroll label="Secciones del proyecto">
-                        <button type="button" class="tabs-link is-active" data-tab-link="open" role="tab"
+                        <button type="button" class="tabs-link is-active" data-tab-link="tasks" role="tab"
                             aria-selected="true">
-                            Abiertas
-                            @if ($openTasks->count())
-                                ({{ $openTasks->count() }})
-                            @endif
-                        </button>
-
-                        <button type="button" class="tabs-link" data-tab-link="done" role="tab" aria-selected="false">
-                            Finalizadas
-                            @if ($doneTasks->count())
-                                ({{ $doneTasks->count() }})
-                            @endif
-                        </button>
-
-                        <button type="button" class="tabs-link" data-tab-link="all" role="tab" aria-selected="false">
-                            Todas
+                            Tareas
                             @if ($tasks->count())
                                 ({{ $tasks->count() }})
                             @endif
@@ -234,49 +219,23 @@
                         </button>
                     </x-horizontal-scroll>
                 </x-slot:tabs>
-
-                <x-slot:actions>
-                    <a href="{{ route('tasks.create', ['project_id' => $project->id] + $trailQuery) }}"
-                        class="btn btn-success">
-                        <x-icons.plus />
-                        <span>Agregar tarea</span>
-                    </a>
-                </x-slot:actions>
             </x-tab-toolbar>
 
-            <section class="tab-panel is-active" data-tab-panel="open">
+            <section class="tab-panel is-active" data-tab-panel="tasks">
                 <div class="tab-panel-stack">
-                    <x-card class="list-card">
-                        @include('tasks.partials.table', [
-                            'tasks' => $openTasks,
-                            'emptyMessage' => 'No hay tareas abiertas en este proyecto.',
-                            'trailQuery' => $trailQuery,
-                        ])
-                    </x-card>
-                </div>
-            </section>
-
-            <section class="tab-panel" data-tab-panel="done" hidden>
-                <div class="tab-panel-stack">
-                    <x-card class="list-card">
-                        @include('tasks.partials.table', [
-                            'tasks' => $doneTasks,
-                            'emptyMessage' => 'No hay tareas finalizadas en este proyecto.',
-                            'trailQuery' => $trailQuery,
-                        ])
-                    </x-card>
-                </div>
-            </section>
-
-            <section class="tab-panel" data-tab-panel="all" hidden>
-                <div class="tab-panel-stack">
-                    <x-card class="list-card">
-                        @include('tasks.partials.table', [
-                            'tasks' => $tasks,
-                            'emptyMessage' => 'No hay tareas asociadas a este proyecto.',
-                            'trailQuery' => $trailQuery,
-                        ])
-                    </x-card>
+                    @include('tasks.partials.embedded-tabs', [
+                        'tasks' => $tasks,
+                        'openTasks' => $openTasks,
+                        'doneTasks' => $doneTasks,
+                        'emptyMessageOpen' => 'No hay tareas abiertas en este proyecto.',
+                        'emptyMessageDone' => 'No hay tareas finalizadas en este proyecto.',
+                        'emptyMessageAll' => 'No hay tareas asociadas a este proyecto.',
+                        'tabsId' => 'project-tasks-tabs',
+                        'createBaseQuery' => [
+                            'project_id' => $project->id,
+                        ],
+                        'trailQuery' => $trailQuery,
+                    ])
                 </div>
             </section>
 

@@ -1,9 +1,7 @@
-{{-- FILE: resources/views/documents/partials/table.blade.php | V5 --}}
+{{-- FILE: resources/views/documents/partials/table.blade.php | V6 --}}
 
 @php
     use App\Support\Catalogs\DocumentCatalog;
-    use App\Support\Navigation\DocumentNavigationTrail;
-    use App\Support\Navigation\NavigationTrail;
 
     $documents = $documents ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay documentos para mostrar.';
@@ -40,10 +38,6 @@
             </thead>
             <tbody>
                 @foreach ($documents as $document)
-                    @php
-                        $documentTrailQuery = NavigationTrail::toQuery(DocumentNavigationTrail::base($document));
-                    @endphp
-
                     <tr>
                         <td>
                             <a href="{{ route('documents.show', ['document' => $document] + $trailQuery) }}">
@@ -62,8 +56,7 @@
                         @if ($showParty)
                             <td>
                                 @if ($document->party)
-                                    <a
-                                        href="{{ route('parties.show', ['party' => $document->party] + $documentTrailQuery) }}">
+                                    <a href="{{ route('parties.show', ['party' => $document->party] + $trailQuery) }}">
                                         {{ $document->party->name }}
                                     </a>
                                 @else
@@ -75,8 +68,7 @@
                         @if ($showAsset)
                             <td>
                                 @if ($document->asset)
-                                    <a
-                                        href="{{ route('assets.show', ['asset' => $document->asset] + $documentTrailQuery) }}">
+                                    <a href="{{ route('assets.show', ['asset' => $document->asset] + $trailQuery) }}">
                                         {{ $document->asset->name }}
                                     </a>
                                 @else
@@ -88,8 +80,7 @@
                         @if ($showOrder)
                             <td>
                                 @if ($document->order)
-                                    <a
-                                        href="{{ route('orders.show', ['order' => $document->order] + $documentTrailQuery) }}">
+                                    <a href="{{ route('orders.show', ['order' => $document->order] + $trailQuery) }}">
                                         {{ $document->order->number ?: 'Ver orden' }}
                                     </a>
                                 @else

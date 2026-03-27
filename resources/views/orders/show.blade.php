@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V8 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V9 --}}
 
 @extends('layouts.app')
 
@@ -20,11 +20,6 @@
             OrderCatalog::KIND_SERVICE => 'Detalle de la orden de servicio',
             default => 'Detalle de la orden',
         };
-
-        $quoteCount = $documents->where('kind', DocumentCatalog::KIND_QUOTE)->count();
-        $deliveryNoteCount = $documents->where('kind', DocumentCatalog::KIND_DELIVERY_NOTE)->count();
-        $invoiceCount = $documents->where('kind', DocumentCatalog::KIND_INVOICE)->count();
-        $workOrderCount = $documents->where('kind', DocumentCatalog::KIND_WORK_ORDER)->count();
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
@@ -144,104 +139,23 @@
                         </button>
                     </x-horizontal-scroll>
                 </x-slot:tabs>
-
-                <x-slot:actions>
-                    @can('update', $order)
-                        <a href="{{ route('orders.items.create', ['order' => $order] + $trailQuery) }}"
-                            class="btn btn-success">
-                            <x-icons.plus />
-                            <span>Agregar ítem</span>
-                        </a>
-                    @endcan
-                </x-slot:actions>
             </x-tab-toolbar>
 
             <section class="tab-panel is-active" data-tab-panel="items">
                 <div class="tab-panel-stack">
-                    <x-card class="list-card">
-                        @include('orders.items.partials.table', [
-                            'order' => $order,
-                            'items' => $items,
-                            'emptyMessage' => 'No hay ítems cargados en esta orden.',
-                            'trailQuery' => $trailQuery,
-                        ])
-                    </x-card>
-
-                    <x-card>
-                        <div class="summary-inline-grid">
-                            <div class="summary-inline-card">
-                                <div class="summary-inline-label">Cantidad de ítems</div>
-                                <div class="summary-inline-value">{{ $items->count() }}</div>
-                            </div>
-
-                            <div class="summary-inline-card">
-                                <div class="summary-inline-label">Total orden</div>
-                                <div class="summary-inline-value">${{ number_format($order->total, 2, ',', '.') }}</div>
-                            </div>
-                        </div>
-                    </x-card>
+                    @include('orders.items.partials.embedded', [
+                        'order' => $order,
+                        'items' => $items,
+                        'emptyMessage' => 'No hay ítems cargados en esta orden.',
+                        'trailQuery' => $trailQuery,
+                    ])
                 </div>
             </section>
 
             <section class="tab-panel" data-tab-panel="documents" hidden>
                 <div class="tab-panel-stack">
-                    <x-tab-toolbar label="Acciones de documentos de la orden">
-                        <x-slot:tabs>
-                            <span class="tab-toolbar-title">Documentos de la orden</span>
-                        </x-slot:tabs>
-
-                        <x-slot:actions>
-                            <form method="POST"
-                                action="{{ route('orders.documents.store', ['order' => $order] + $trailQuery) }}"
-                                class="inline-form"
-                                @if ($quoteCount > 0) data-action="app-confirm-submit"
-                                data-confirm-message="Esta orden ya tiene {{ $quoteCount }} presupuesto(s) asociado(s). ¿Deseas crear otro?" @endif>
-                                @csrf
-                                <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_QUOTE }}">
-                                <button type="submit" class="btn btn-secondary">
-                                    {{ $quoteCount > 0 ? 'Crear otro presupuesto' : 'Crear presupuesto' }}
-                                </button>
-                            </form>
-
-                            <form method="POST"
-                                action="{{ route('orders.documents.store', ['order' => $order] + $trailQuery) }}"
-                                class="inline-form"
-                                @if ($deliveryNoteCount > 0) data-action="app-confirm-submit"
-                                data-confirm-message="Esta orden ya tiene {{ $deliveryNoteCount }} remito(s) asociado(s). ¿Deseas crear otro?" @endif>
-                                @csrf
-                                <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_DELIVERY_NOTE }}">
-                                <button type="submit" class="btn btn-secondary">
-                                    {{ $deliveryNoteCount > 0 ? 'Crear otro remito' : 'Crear remito' }}
-                                </button>
-                            </form>
-
-                            <form method="POST"
-                                action="{{ route('orders.documents.store', ['order' => $order] + $trailQuery) }}"
-                                class="inline-form"
-                                @if ($invoiceCount > 0) data-action="app-confirm-submit"
-                                data-confirm-message="Esta orden ya tiene {{ $invoiceCount }} factura(s) asociada(s). ¿Deseas crear otra?" @endif>
-                                @csrf
-                                <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_INVOICE }}">
-                                <button type="submit" class="btn btn-secondary">
-                                    {{ $invoiceCount > 0 ? 'Crear otra factura' : 'Crear factura' }}
-                                </button>
-                            </form>
-
-                            <form method="POST"
-                                action="{{ route('orders.documents.store', ['order' => $order] + $trailQuery) }}"
-                                class="inline-form"
-                                @if ($workOrderCount > 0) data-action="app-confirm-submit"
-                                data-confirm-message="Esta orden ya tiene {{ $workOrderCount }} orden(es) de trabajo asociada(s). ¿Deseas crear otra?" @endif>
-                                @csrf
-                                <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_WORK_ORDER }}">
-                                <button type="submit" class="btn btn-secondary">
-                                    {{ $workOrderCount > 0 ? 'Crear otra orden de trabajo' : 'Crear orden de trabajo' }}
-                                </button>
-                            </form>
-                        </x-slot:actions>
-                    </x-tab-toolbar>
-
                     @include('documents.partials.embedded-tabs', [
+                        'order' => $order,
                         'documents' => $documents,
                         'showParty' => false,
                         'showAsset' => false,
@@ -250,6 +164,10 @@
                         'allLabel' => 'Todos',
                         'tabsId' => 'order-documents-tabs',
                         'trailQuery' => $trailQuery,
+                        'quoteCount' => $documents->where('kind', DocumentCatalog::KIND_QUOTE)->count(),
+                        'deliveryNoteCount' => $documents->where('kind', DocumentCatalog::KIND_DELIVERY_NOTE)->count(),
+                        'invoiceCount' => $documents->where('kind', DocumentCatalog::KIND_INVOICE)->count(),
+                        'workOrderCount' => $documents->where('kind', DocumentCatalog::KIND_WORK_ORDER)->count(),
                     ])
                 </div>
             </section>

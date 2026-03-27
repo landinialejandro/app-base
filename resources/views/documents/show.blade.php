@@ -122,13 +122,23 @@
                 <x-show-summary-item-detail-block label="Moneda">
                     {{ $document->currency_code ?: '—' }}
                 </x-show-summary-item-detail-block>
+                <x-show-summary-item-detail-block label="Notas" full>
+                    {{ $document->notes ?: '—' }}
+                </x-show-summary-item-detail-block>
+
+                <x-show-summary-item-detail-block label="Trazabilidad" full>
+                    Creado: {{ $document->created_at?->format('d/m/Y H:i') ?? '—' }}<br>
+                    Actualizado: {{ $document->updated_at?->format('d/m/Y H:i') ?? '—' }}
+                </x-show-summary-item-detail-block>
             </x-slot:details>
         </x-show-summary>
 
         <div class="tabs" data-tabs>
-            <x-tab-toolbar label="Secciones secundarias del documento">
+
+            <x-tab-toolbar label="Secciones del documento">
                 <x-slot:tabs>
-                    <x-horizontal-scroll label="Secciones secundarias del documento">
+                    <x-horizontal-scroll label="Secciones del documento">
+
                         <button type="button" class="tabs-link is-active" data-tab-link="items" role="tab"
                             aria-selected="true">
                             Ítems
@@ -145,68 +155,22 @@
                             @endif
                         </button>
 
-                        <button type="button" class="tabs-link" data-tab-link="amounts" role="tab"
-                            aria-selected="false">
-                            Importes
-                        </button>
-
-                        <button type="button" class="tabs-link" data-tab-link="trace" role="tab" aria-selected="false">
-                            Notas y trazabilidad
-                        </button>
                     </x-horizontal-scroll>
                 </x-slot:tabs>
-
-                <x-slot:actions>
-                    @if ($canUpdateDocument)
-                        <a href="{{ route('documents.items.create', ['document' => $document] + $trailQuery) }}"
-                            class="btn btn-success">
-                            <x-icons.plus />
-                            <span>Agregar ítem</span>
-                        </a>
-
-                        <a href="{{ route(
-                            'attachments.create',
-                            [
-                                'attachable_type' => 'document',
-                                'attachable_id' => $document->id,
-                                'return_to' => url()->current(),
-                            ] + $trailQuery,
-                        ) }}"
-                            class="btn btn-success">
-                            <x-icons.plus />
-                            <span>Agregar adjunto</span>
-                        </a>
-                    @endif
-                </x-slot:actions>
             </x-tab-toolbar>
 
+            {{-- ITEMS --}}
             <section class="tab-panel is-active" data-tab-panel="items">
                 <div class="tab-panel-stack">
-                    <x-card class="list-card">
-                        @include('documents.items.partials.table', [
-                            'document' => $document,
-                            'items' => $items,
-                            'emptyMessage' => 'No hay ítems cargados en este documento.',
-                            'trailQuery' => $trailQuery,
-                        ])
-                    </x-card>
-
-                    <x-card>
-                        <div class="summary-inline-grid">
-                            <div class="summary-inline-card">
-                                <div class="summary-inline-label">Cantidad de ítems</div>
-                                <div class="summary-inline-value">{{ $items->count() }}</div>
-                            </div>
-
-                            <div class="summary-inline-card">
-                                <div class="summary-inline-label">Total documento</div>
-                                <div class="summary-inline-value">${{ number_format($document->total, 2, ',', '.') }}</div>
-                            </div>
-                        </div>
-                    </x-card>
+                    @include('documents.items.partials.embedded', [
+                        'document' => $document,
+                        'items' => $items,
+                        'trailQuery' => $trailQuery,
+                    ])
                 </div>
             </section>
 
+            {{-- ATTACHMENTS --}}
             <section class="tab-panel" data-tab-panel="attachments" hidden>
                 <div class="tab-panel-stack">
                     @include('attachments.partials.embedded', [
@@ -221,49 +185,6 @@
                 </div>
             </section>
 
-            <section class="tab-panel" data-tab-panel="amounts" hidden>
-                <div class="tab-panel-stack">
-                    <x-card>
-                        <div class="detail-grid">
-                            <x-show-summary-item-detail-block label="Subtotal">
-                                ${{ number_format($document->subtotal, 2, ',', '.') }}
-                            </x-show-summary-item-detail-block>
-
-                            <x-show-summary-item-detail-block label="Impuestos">
-                                ${{ number_format($document->tax_total, 2, ',', '.') }}
-                            </x-show-summary-item-detail-block>
-
-                            <x-show-summary-item-detail-block label="Total">
-                                ${{ number_format($document->total, 2, ',', '.') }}
-                            </x-show-summary-item-detail-block>
-                        </div>
-                    </x-card>
-                </div>
-            </section>
-
-            <section class="tab-panel" data-tab-panel="trace" hidden>
-                <div class="tab-panel-stack">
-                    <x-card>
-                        <div class="detail-grid">
-                            <x-show-summary-item-detail-block label="Notas" full>
-                                {{ $document->notes ?: '—' }}
-                            </x-show-summary-item-detail-block>
-
-                            <x-show-summary-item-detail-block label="Creado por">
-                                {{ $document->creator?->name ?: '—' }}
-                            </x-show-summary-item-detail-block>
-
-                            <x-show-summary-item-detail-block label="Actualizado por">
-                                {{ $document->updater?->name ?: '—' }}
-                            </x-show-summary-item-detail-block>
-
-                            <x-show-summary-item-detail-block label="Actualizado el">
-                                {{ $document->updated_at?->format('d/m/Y H:i') ?: '—' }}
-                            </x-show-summary-item-detail-block>
-                        </div>
-                    </x-card>
-                </div>
-            </section>
         </div>
     </x-page>
 @endsection

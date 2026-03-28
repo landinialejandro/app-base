@@ -104,7 +104,7 @@
                     </button>
                 </form>
 
-                <form method="POST" action="{{ route('orders.documents.store', ['order' => $order] + $trailQuery) }}"
+                {{-- <form method="POST" action="{{ route('orders.documents.store', ['order' => $order] + $trailQuery) }}"
                     class="inline-form"
                     @if ($workOrderCount > 0) data-action="app-confirm-submit"
                     data-confirm-message="Esta orden ya tiene {{ $workOrderCount }} orden(es) de trabajo asociada(s). ¿Deseas crear otra?" @endif>
@@ -113,7 +113,7 @@
                     <button type="submit" class="btn btn-secondary btn-sm">
                         {{ $workOrderCount > 0 ? 'Otra orden de trabajo' : 'Crear orden de trabajo' }}
                     </button>
-                </form>
+                </form> --}}
             @elseif ($toolbarActions)
                 <a href="{{ $toolbarActions }}" class="btn btn-success btn-sm">
                     <x-icons.plus />

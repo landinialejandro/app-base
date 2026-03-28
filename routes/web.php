@@ -265,4 +265,12 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         ->name('attachments.destroy');
     Route::get('/attachments/create', [AttachmentController::class, 'create'])
         ->name('attachments.create');
+
+    // PRINT
+    Route::get('/appointments/{appointment}/print', [AppointmentController::class, 'print'])
+        ->name('appointments.print');
+    Route::get('/orders/{order}/print', [OrderController::class, 'print'])
+        ->name('orders.print');
+    Route::get('/documents/{document}/print', [DocumentController::class, 'print'])
+        ->name('documents.print');
 });

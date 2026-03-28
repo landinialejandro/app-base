@@ -453,4 +453,18 @@ class AppointmentController extends Controller
             return now()->startOfMonth();
         }
     }
+
+    public function print(Appointment $appointment)
+    {
+        $this->authorize('view', $appointment);
+
+        $appointment->load([
+            'party',
+            'order',
+            'asset',
+            'assignedUser',
+        ]);
+
+        return view('appointments.print', compact('appointment'));
+    }
 }

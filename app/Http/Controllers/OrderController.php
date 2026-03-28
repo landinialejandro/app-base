@@ -480,4 +480,18 @@ class OrderController extends Controller
             ->to($redirectUrl)
             ->with('success', 'Orden eliminada.');
     }
+
+    public function print(Order $order)
+    {
+        $this->authorize('view', $order);
+
+        $order->load([
+            'party',
+            'asset',
+            'task',
+            'items.product',
+        ]);
+
+        return view('orders.print', compact('order'));
+    }
 }

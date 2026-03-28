@@ -67,6 +67,11 @@
                 </span>
             @endif
 
+            <a href="{{ route('appointments.print', ['appointment' => $appointment]) }}" class="btn btn-secondary"
+                target="_blank">
+                Imprimir
+            </a>
+
             <a href="{{ $backUrl }}" class="btn btn-secondary">
                 Volver al listado
             </a>

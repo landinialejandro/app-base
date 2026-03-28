@@ -579,4 +579,18 @@ class DocumentController extends Controller
 
         return null;
     }
+
+    public function print(Document $document)
+    {
+        $this->authorize('view', $document);
+
+        $document->load([
+            'party',
+            'order',
+            'asset',
+            'items.product',
+        ]);
+
+        return view('documents.print', compact('document'));
+    }
 }

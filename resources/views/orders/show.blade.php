@@ -55,6 +55,10 @@
                 </form>
             @endcan
 
+            <a href="{{ route('orders.print', ['order' => $order]) }}" class="btn btn-secondary" target="_blank">
+                Imprimir
+            </a>
+
             <a href="{{ $backUrl }}" class="btn btn-secondary">
                 {{ $backLabel }}
             </a>

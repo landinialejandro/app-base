@@ -6,7 +6,7 @@ app-base
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
-Antes de proponer cambios, auditar código o escribir implementación, revisar y tomar como contexto los documentos vigentes del proyecto.
+Antes de proponer cambios, auditar código o escribir implementación, revisar los documentos vigentes del proyecto y tomarlos como contexto.
 
 Documentos base a considerar:
 
@@ -17,64 +17,93 @@ Documentos base a considerar:
 - MAPA-DE-NAVEGACION-Y-RELACIONES – app-base
 - BASE-VISUAL-DEL-PROYECTO – app-base
 - TODO-DEL-PROYECTO – app-base
+- DEPLOY-Y-COMPATIBILIDAD-DEL-PROYECTO – app-base
 
-REGLA DE TRABAJO
+REGLA CENTRAL DE TRABAJO
 
-No asumir patrones por memoria si deben validarse contra los documentos del proyecto.
-Primero analizar el contexto documental y luego responder.
-No inventar estructuras nuevas si el proyecto ya tiene una convención resuelta.
-Si el tema ya está normado en los documentos del proyecto, respetar esa base antes de proponer cambios.
-Si el módulo se relaciona con otras entidades, definir desde el inicio:
-breadcrumb esperado
-retorno al origen
-preservación o no del contexto UX
+No inventar nada.
+
+No asumir patrones por memoria.
+No completar huecos con supuestos.
+No proponer estructuras, flujos, archivos o convenciones no verificadas.
+
+Primero entender con precisión:
+
+- el pedido puntual
+- el código real entregado
+- el estado real verificable del proyecto
+
+Luego contrastar eso con la documentación vigente.
+
+La documentación es contexto obligatorio, pero el pedido puntual y el código real tienen prioridad para determinar el estado efectivo del proyecto.
+
+Si el código o el pedido muestran una actualización todavía no reflejada en la documentación:
+
+- no forzar la documentación por encima del código
+- no inventar explicación
+- señalar la diferencia con claridad
+- trabajar sobre el estado real verificable
+- indicar si corresponde o no actualizar documentación
+
+REGLAS ESPECÍFICAS DEL PROYECTO
+
+- no usar Route::resource(...) en el core mientras siga vigente la convención actual
+- no proponer modales para create/edit operativos salvo excepción muy justificada
+- si hay navegación contextual, reutilizar el mecanismo central vigente y no inventar variantes paralelas
+- no reconstruir navegación funcional desde url()->previous(), historial o supuestos implícitos
+- no inventar clases CSS, estructuras visuales ni patrones frontend fuera de la base visual vigente
+- no exponer tenant_id como dato de formulario del usuario
+- no asumir tenant_id como foreignId() sin verificar el patrón real del proyecto
+- si el tema toca permisos, validar policy + authorize + @can
+
+REGLA DE VALIDACIÓN DEL PEDIDO
+
+Si el pedido parte de una premisa incorrecta, incompleta o contradictoria con el código o con documentos vigentes, señalarlo primero.
+
+Si el código real contradice la documentación, indicar la diferencia y trabajar con el estado verificable.
+
+No avanzar a implementación sobre una base falsa, incompleta o dudosa.
 
 REGLA PARA ARCHIVOS COMPLETOS DE CÓDIGO
 
-- cuando devuelvas un archivo completo de código, la primera línea debe ser siempre un comentario válido para ese lenguaje con este formato:
+- cuando devuelvas un archivo completo, la primera línea debe ser siempre un comentario válido para ese lenguaje con este formato:
 FILE: ruta/del/archivo.ext | VX
 - si el archivo es nuevo, usar V1
 - si el archivo ya existe y no tiene comentario de versión, al devolverlo completo agregarlo como V2
 - si el archivo ya tiene comentario de versión, incrementar en 1 la última versión existente
 - esta regla aplica solo cuando se devuelve el archivo completo
-- si se devuelve solo un fragmento, bloque parcial o sección aislada, no agregar ni modificar versión
+- si se devuelve solo un fragmento o bloque parcial, no agregar ni modificar versión
 - el comentario debe escribirse con la sintaxis correcta del archivo correspondiente
-
-REGLA DE VALIDACIÓN DEL PEDIDO
-
-Si detectás que el pedido parte de una premisa incorrecta, incompleta o que contradice documentos vigentes del proyecto, señalalo primero y luego proponé la salida correcta.
-No avances directamente a implementación si antes hace falta corregir el enfoque.
 
 FORMA DE RESPUESTA ESPERADA
 
-No respondas con generalidades ni con texto de relleno.
-La información debe ser concreta, específica y directamente aplicable al proyecto.
-No hace falta que la respuesta sea breve, pero sí debe tener foco, sustancia y utilidad real.
-Mantené una estructura estable de respuesta, salvo que el pedido requiera explícitamente otro formato.
+Responder solo con contenido objetivo, útil y aplicable.
 
-ESTRUCTURA DE RESPUESTA OBLIGATORIA
+- no usar texto de relleno
+- no repetir información en una misma respuesta
+- no sostener una estructura artificial si no aporta valor
+- no responder apartados vacíos solo por cumplir formato
+
+La estructura de respuesta es una guía, no una obligación rígida.
+
+Priorizar respuestas:
+
+- cortas
+- precisas
+- completas
+- no redundantes
+
+ESTRUCTURA GUÍA DE RESPUESTA
+
+Usar solo si aporta valor real:
 
 1. Análisis de lo solicitado
-Explicá brevemente cómo interpretás el pedido y verificá que quede claro qué se va a resolver en el contexto del proyecto.
-
-2. Propuesta
-Indicá qué conviene hacer y por qué, alineado a los documentos y convenciones vigentes del proyecto.
-
-3. Pasos a seguir
-Describí los pasos concretos recomendados, en orden de ejecución.
-
-4. Implementación concreta
-Si corresponde, devolvé:
-- código completo
-- archivos completos
-- cambios puntuales
-- comandos de consola
-- comandos artisan
-
-5. Cierre 
-Solo al final y solo si corresponde, indicá:
-- descripción sugerida para commit de vscode, si es necesario
-- pendiente inmediato o siguiente paso lógico, si realmente aporta valor
+2. Validación contra documentación y/o código real
+3. Propuesta
+4. Pasos concretos
+5. Implementación concreta
+6. Impacto documental
+7. Cierre
 
 OBJETIVO DE ESTE CHAT
 
@@ -88,9 +117,17 @@ ESTADO O RESTRICCIÓN ESPECIAL
 
 [opcional: dejar aquí acuerdos puntuales del momento]
 
-SI NECESITAS ARCHIVOS
+SI NECESITÁS ARCHIVOS
 
-Si necesitás archivos, generame un comando de consola similar al siguiente, indicando todos los archivos exactos que necesitás para la auditoría:
+Si necesitás archivos, primero determiná exactamente cuáles son necesarios para entender o auditar el caso.
+
+- no pedir archivos de más
+- no pedir bloques genéricos si no hacen falta
+- no arrancar implementación si falta contexto mínimo indispensable
+
+Cuando los necesites, generame un único comando de consola con todos los archivos exactos y suficientes.
+
+Ejemplo:
 
 (
 find app/Models -type f -name "Product.php";

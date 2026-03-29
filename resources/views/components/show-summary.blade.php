@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/components/show-summary.blade.php --}}
+{{-- FILE: resources/views/components/show-summary.blade.php | V2 --}}
 
 @props([
     'detailsId' => null,
@@ -11,7 +11,7 @@
     $resolvedDetailsId = $detailsId ?: 'show-summary-details-' . uniqid();
 @endphp
 
-<x-card {{ $attributes->merge(['class' => 'show-summary']) }}>
+<x-card {{ $attributes->class(['show-summary']) }}>
     <div class="show-summary-grid">
         {{ $slot }}
     </div>

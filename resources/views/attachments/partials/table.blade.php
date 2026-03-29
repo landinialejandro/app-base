@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/attachments/partials/table.blade.php | V6 --}}
+{{-- FILE: resources/views/attachments/partials/table.blade.php | V7 --}}
 
 @php
     use App\Support\Catalogs\AttachmentCatalog;
@@ -70,21 +70,19 @@
                                     </div>
                                 </div>
                             @else
-                                <div class="attachment-file-cell">
-                                    @if ($attachment->isImage())
-                                        <span class="attachment-thumb-wrap">
-                                            <span class="attachment-thumb attachment-thumb--placeholder">IMG</span>
-                                        </span>
-                                    @else
-                                        <span class="attachment-thumb attachment-thumb--placeholder">
-                                            {{ $extension ?: 'FILE' }}
-                                        </span>
-                                    @endif
+                                @if ($attachment->isImage())
+                                    <span class="attachment-thumb-wrap">
+                                        <span class="attachment-thumb attachment-thumb--placeholder">IMG</span>
+                                    </span>
+                                @else
+                                    <span class="attachment-thumb attachment-thumb--placeholder">
+                                        {{ $extension ?: 'FILE' }}
+                                    </span>
+                                @endif
 
-                                    <div class="attachment-file-meta">
-                                        <div>{{ $attachment->file_name }}</div>
-                                        <div class="table-meta">{{ $extension ?: '—' }}</div>
-                                    </div>
+                                <div class="attachment-file-meta">
+                                    <div>{{ $attachment->file_name }}</div>
+                                    <div class="table-meta">{{ $extension ?: '—' }}</div>
                                 </div>
                             @endcan
                         </div>

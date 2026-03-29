@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DocumentController.php | V10
+// FILE: app/Http/Controllers/DocumentController.php | V11
 
 namespace App\Http\Controllers;
 
@@ -14,6 +14,7 @@ use App\Support\Documents\DocumentNumberGenerator;
 use App\Support\Documents\DocumentTotalsCalculator;
 use App\Support\Navigation\DocumentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -375,6 +376,7 @@ class DocumentController extends Controller
             'creator',
             'updater',
             'items.product',
+            'attachments' => fn ($query) => $query->ordered(),
         ]);
 
         $navigationTrail = DocumentNavigationTrail::show($request, $document);
@@ -455,15 +457,34 @@ class DocumentController extends Controller
                 ->withInput();
         }
 
+        $currentOrderId = $document->order_id !== null ? (int) $document->order_id : null;
+        $incomingOrderId = ! empty($data['order_id']) ? (int) $data['order_id'] : null;
+
+        if ($currentOrderId !== null && $incomingOrderId === null) {
+            return back()
+                ->withErrors([
+                    'order_id' => 'No se puede quitar la orden asociada de un documento ya vinculado.',
+                ])
+                ->withInput();
+        }
+
+        if ($currentOrderId !== null && $incomingOrderId !== null && $currentOrderId !== $incomingOrderId) {
+            return back()
+                ->withErrors([
+                    'order_id' => 'No se puede cambiar la orden asociada de un documento ya vinculado.',
+                ])
+                ->withInput();
+        }
+
         $issuedAt = $this->resolveIssuedAt(
             $data['issued_at'] ?? ($document->issued_at?->toDateString() ?? null)
         );
 
         $order = null;
 
-        if (! empty($data['order_id'])) {
+        if ($incomingOrderId !== null) {
             $order = Order::query()
-                ->where('id', $data['order_id'])
+                ->where('id', $incomingOrderId)
                 ->where('tenant_id', $tenant->id)
                 ->first();
 
@@ -612,7 +633,7 @@ class DocumentController extends Controller
             ? 'documento-'.strtolower(str_replace([' ', '/'], '-', $document->number)).'.pdf'
             : 'documento-'.$document->id.'.pdf';
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('documents.print', [
+        $pdf = Pdf::loadView('documents.print', [
             'document' => $document,
             'renderMode' => 'pdf',
         ]);

@@ -1,10 +1,10 @@
-{{-- FILE: resources/views/components/horizontal-scroll.blade.php | V1 --}}
+{{-- FILE: resources/views/components/horizontal-scroll.blade.php | V2 --}}
 
 @props([
     'label' => null,
 ])
 
-<div class="horizontal-scroll" data-horizontal-scroll>
+<div {{ $attributes->class(['horizontal-scroll']) }} data-horizontal-scroll>
     <button type="button" class="horizontal-scroll-button horizontal-scroll-button--left" data-horizontal-scroll-prev
         aria-label="Desplazar a la izquierda" hidden>
         <x-icons.chevron-left />

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/index.blade.php |V7 --}}
+{{-- FILE: resources/views/tasks/index.blade.php | V8 --}}
 
 @extends('layouts.app')
 
@@ -14,9 +14,11 @@
         <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Tareas']]" />
 
         <x-page-header title="Tareas">
-            <a href="{{ route('tasks.create') }}" class="btn btn-success">
-                Nueva tarea
-            </a>
+            @can('create', App\Models\Task::class)
+                <a href="{{ route('tasks.create') }}" class="btn btn-success">
+                    Nueva tarea
+                </a>
+            @endcan
         </x-page-header>
 
         <x-list-filters-card :action="route('tasks.index')" secondary-id="tasks-extra-filters">

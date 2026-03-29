@@ -1,9 +1,11 @@
+{{-- FILE: resources/views/components/breadcrumb.blade.php | V2 --}}
+
 @props([
     'items' => [],
 ])
 
 @if (!empty($items))
-    <nav class="breadcrumb" aria-label="Breadcrumb">
+    <nav {{ $attributes->class(['breadcrumb']) }} aria-label="Breadcrumb">
         <ol class="breadcrumb-list">
             @foreach ($items as $item)
                 <li class="breadcrumb-item">

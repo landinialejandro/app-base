@@ -1,6 +1,6 @@
-{{-- FILE: resources/views/components/card.blade.php | v2 --}}
+{{-- FILE: resources/views/components/card.blade.php | V3 --}}
 
-<div {{ $attributes->merge(['class' => 'card']) }}>
+<div {{ $attributes->class(['card']) }}>
     <div class="card-body">
         {{ $slot }}
     </div>

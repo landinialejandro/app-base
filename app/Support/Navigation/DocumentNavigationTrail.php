@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/DocumentNavigationTrail.php | V3
+// FILE: app/Support/Navigation/DocumentNavigationTrail.php | V4
 
 namespace App\Support\Navigation;
 
@@ -63,13 +63,33 @@ class DocumentNavigationTrail
             $trail = self::documentsBase();
         }
 
-        $trail = NavigationTrail::sliceBefore($trail, 'documents.create', 'new');
-        $trail = NavigationTrail::sliceBefore($trail, 'documents.edit', $document->id);
-        $trail = NavigationTrail::sliceBefore($trail, 'documents.items.create', $document->id);
-        $trail = NavigationTrail::sliceBefore($trail, 'documents.items.edit', null);
+        $normalized = NavigationTrail::normalize($trail);
+
+        $filtered = array_values(array_filter($normalized, function (array $node) use ($document) {
+            $key = (string) ($node['key'] ?? '');
+            $id = $node['id'] ?? null;
+
+            if ($key === 'documents.create' && $id === 'new') {
+                return false;
+            }
+
+            if ($key === 'documents.edit' && (string) $id === (string) $document->id) {
+                return false;
+            }
+
+            if ($key === 'documents.items.create' && (string) $id === (string) $document->id) {
+                return false;
+            }
+
+            if ($key === 'documents.items.edit') {
+                return false;
+            }
+
+            return true;
+        }));
 
         return NavigationTrail::appendOrCollapse(
-            $trail,
+            $filtered,
             NavigationTrail::makeNode(
                 'documents.show',
                 $document->id,

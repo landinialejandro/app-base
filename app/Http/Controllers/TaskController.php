@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TaskController.php | V5
+// FILE: app/Http/Controllers/TaskController.php | V6
 
 namespace App\Http\Controllers;
 
@@ -8,6 +8,8 @@ use App\Models\Party;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
+use App\Support\Auth\RolePermissionResolver;
+use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\TaskCatalog;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\TaskNavigationTrail;
@@ -29,6 +31,13 @@ class TaskController extends Controller
         $priority = $request->get('priority');
         $assignedUserId = $request->get('assigned_user_id');
         $scope = $request->get('scope', 'mine');
+
+        $resolver = app(RolePermissionResolver::class);
+        $updateScope = $resolver->actionScope(ModuleCatalog::TASKS, 'update', $tenant, auth()->user());
+
+        if ($updateScope !== 'all' && $scope === 'all') {
+            $scope = 'mine';
+        }
 
         if (! in_array($scope, ['mine', 'all'], true)) {
             $scope = 'mine';

@@ -1,17 +1,20 @@
-{{-- FILE: resources/views/attachments/partials/embedded.blade.php | V1 --}}
+{{-- FILE: resources/views/attachments/partials/embedded.blade.php | V2 --}}
 
 @php
     use App\Support\Catalogs\AttachmentCatalog;
+    use App\Support\Navigation\NavigationTrail;
 
     $attachments = $attachments ?? collect();
     $attachableType = $attachableType ?? null;
     $attachableId = $attachableId ?? null;
     $trailQuery = $trailQuery ?? [];
-    $returnTo = $returnTo ?? url()->current();
     $tabsId = $tabsId ?? 'attachments-tabs-' . uniqid();
     $allLabel = $allLabel ?? 'Todos';
     $createLabel = $createLabel ?? 'Agregar adjunto';
     $kinds = AttachmentCatalog::kindLabels();
+
+    $resolvedReturnTo =
+        $returnTo ?? NavigationTrail::previousUrl(NavigationTrail::fromRequest(request()), url()->current());
 @endphp
 
 <div class="tabs" data-tabs>
@@ -49,7 +52,7 @@
                     [
                         'attachable_type' => $attachableType,
                         'attachable_id' => $attachableId,
-                        'return_to' => $returnTo,
+                        'return_to' => $resolvedReturnTo,
                     ] + $trailQuery,
                 ) }}"
                     class="btn btn-success btn-sm">
@@ -66,7 +69,7 @@
                 @include('attachments.partials.table', [
                     'attachments' => $attachments,
                     'trailQuery' => $trailQuery,
-                    'returnTo' => $returnTo,
+                    'returnTo' => $resolvedReturnTo,
                 ])
             </x-card>
         </div>
@@ -83,7 +86,7 @@
                     @include('attachments.partials.table', [
                         'attachments' => $kindAttachments,
                         'trailQuery' => $trailQuery,
-                        'returnTo' => $returnTo,
+                        'returnTo' => $resolvedReturnTo,
                     ])
                 </x-card>
             </div>

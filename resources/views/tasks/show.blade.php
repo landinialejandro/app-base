@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/show.blade.php | V8 --}}
+{{-- FILE: resources/views/tasks/show.blade.php | V9 --}}
 
 @extends('layouts.app')
 
@@ -73,7 +73,7 @@
                 </a>
             @endif
 
-            <a href="{{ $backUrl }}" class="btn btn-secondary" title="{{ $backLabel }}"
+            <a href="{{ $backUrl }}" class="btn btn-secondary btn-icon" title="{{ $backLabel }}"
                 aria-label="{{ $backLabel }}">
                 <x-icons.chevron-left />
             </a>
@@ -157,7 +157,6 @@
                         'attachableType' => 'task',
                         'attachableId' => $task->id,
                         'trailQuery' => $trailQuery,
-                        'returnTo' => url()->current(),
                         'tabsId' => 'task-attachments-tabs',
                         'createLabel' => 'Agregar adjunto',
                     ])

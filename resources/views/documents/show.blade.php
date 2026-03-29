@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/show.blade.php | V11 --}}
+{{-- FILE: resources/views/documents/show.blade.php | V12 --}}
 
 @extends('layouts.app')
 
@@ -68,8 +68,9 @@
                 Descargar PDF
             </a>
 
-            <a href="{{ $backUrl }}" class="btn btn-secondary">
-                {{ $backLabel }}
+            <a href="{{ $backUrl }}" class="btn btn-secondary btn-icon" title="{{ $backLabel }}"
+                aria-label="{{ $backLabel }}">
+                <x-icons.chevron-left />
             </a>
         </x-page-header>
 
@@ -130,6 +131,7 @@
                 <x-show-summary-item-detail-block label="Moneda">
                     {{ $document->currency_code ?: '—' }}
                 </x-show-summary-item-detail-block>
+
                 <x-show-summary-item-detail-block label="Notas" full>
                     {{ $document->notes ?: '—' }}
                 </x-show-summary-item-detail-block>
@@ -167,7 +169,6 @@
                 </x-slot:tabs>
             </x-tab-toolbar>
 
-            {{-- ITEMS --}}
             <section class="tab-panel is-active" data-tab-panel="items">
                 <div class="tab-panel-stack">
                     @include('documents.items.partials.embedded', [
@@ -178,7 +179,6 @@
                 </div>
             </section>
 
-            {{-- ATTACHMENTS --}}
             <section class="tab-panel" data-tab-panel="attachments" hidden>
                 <div class="tab-panel-stack">
                     @include('attachments.partials.embedded', [
@@ -186,7 +186,6 @@
                         'attachableType' => 'document',
                         'attachableId' => $document->id,
                         'trailQuery' => $trailQuery,
-                        'returnTo' => url()->current(),
                         'tabsId' => 'document-attachments-tabs',
                         'createLabel' => 'Agregar adjunto',
                     ])

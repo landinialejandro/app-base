@@ -1,5 +1,5 @@
-{{-- FILE: resources/views/components/page.blade.php | v2 --}}
+{{-- FILE: resources/views/components/page.blade.php | V3 --}}
 
-<div {{ $attributes->merge(['class' => 'page']) }}>
+<div {{ $attributes->class(['page']) }}>
     {{ $slot }}
 </div>

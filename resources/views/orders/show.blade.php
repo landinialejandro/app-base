@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V9 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V10 --}}
 
 @extends('layouts.app')
 
@@ -63,8 +63,9 @@
                 Descargar PDF
             </a>
 
-            <a href="{{ $backUrl }}" class="btn btn-secondary">
-                {{ $backLabel }}
+            <a href="{{ $backUrl }}" class="btn btn-secondary btn-icon" title="{{ $backLabel }}"
+                aria-label="{{ $backLabel }}">
+                <x-icons.chevron-left />
             </a>
         </x-page-header>
 
@@ -187,7 +188,6 @@
                         'attachableType' => 'order',
                         'attachableId' => $order->id,
                         'trailQuery' => $trailQuery,
-                        'returnTo' => url()->current(),
                         'tabsId' => 'order-attachments-tabs',
                         'createLabel' => 'Agregar adjunto',
                     ])

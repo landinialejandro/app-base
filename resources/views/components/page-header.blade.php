@@ -1,20 +1,18 @@
-{{-- FILE:resources/views/components/page-header.blade.php | V1 --}}
+{{-- FILE: resources/views/components/page-header.blade.php | V2 --}}
 
 @props([
     'title' => null,
-    'vertical' => null,
+    'vertical' => false,
 ])
 
-<div class="page-header {{ $vertical }}">
-
+<div {{ $attributes->class(['page-header', 'vertical' => $vertical]) }}>
     @if ($title)
         <h1 class="page-title">{{ $title }}</h1>
     @endif
 
-    @if (trim($slot) !== '')
+    @if (trim((string) $slot) !== '')
         <div class="page-actions">
             {{ $slot }}
         </div>
     @endif
-
 </div>

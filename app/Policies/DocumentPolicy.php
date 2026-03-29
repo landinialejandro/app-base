@@ -1,5 +1,7 @@
 <?php
 
+// FILE: app/Policies/DocumentPolicy.php | V3
+
 namespace App\Policies;
 
 use App\Models\Document;
@@ -21,7 +23,15 @@ class DocumentPolicy
 
     public function view(User $user, Document $document): bool
     {
-        return $this->resolver()->canUseModule(ModuleCatalog::DOCUMENTS, app('tenant'), $user);
+        if (! $this->resolver()->canUseModule(ModuleCatalog::DOCUMENTS, app('tenant'), $user)) {
+            return false;
+        }
+
+        if ($document->order) {
+            return $user->can('view', $document->order);
+        }
+
+        return true;
     }
 
     public function create(User $user): bool
@@ -31,11 +41,27 @@ class DocumentPolicy
 
     public function update(User $user, Document $document): bool
     {
-        return $this->resolver()->can(ModuleCatalog::DOCUMENTS, 'update', app('tenant'), $user);
+        if (! $this->resolver()->can(ModuleCatalog::DOCUMENTS, 'update', app('tenant'), $user)) {
+            return false;
+        }
+
+        if ($document->order) {
+            return $user->can('update', $document->order);
+        }
+
+        return true;
     }
 
     public function delete(User $user, Document $document): bool
     {
-        return $this->resolver()->can(ModuleCatalog::DOCUMENTS, 'delete', app('tenant'), $user);
+        if (! $this->resolver()->can(ModuleCatalog::DOCUMENTS, 'delete', app('tenant'), $user)) {
+            return false;
+        }
+
+        if ($document->order) {
+            return $user->can('delete', $document->order);
+        }
+
+        return true;
     }
 }

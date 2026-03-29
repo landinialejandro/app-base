@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/components/modal.blade.php | V1 --}}
+{{-- FILE: resources/views/components/modal.blade.php | V2 --}}
 
 @props(['id', 'title' => null, 'size' => 'md'])
 
@@ -11,7 +11,7 @@
     };
 @endphp
 
-<div id="{{ $id }}" class="app-modal" hidden aria-hidden="true" data-modal-root>
+<div {{ $attributes->class(['app-modal']) }} id="{{ $id }}" hidden aria-hidden="true" data-modal-root>
     <div class="app-modal__backdrop" data-action="app-modal-close" data-modal-target="#{{ $id }}"></div>
 
     <div class="app-modal__dialog {{ $sizeClass }}" role="dialog" aria-modal="true"

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/components/list-filters-card.blade.php | V2 --}}
+{{-- FILE: resources/views/components/list-filters-card.blade.php | V3 --}}
 
 @props([
     'action',
@@ -9,7 +9,7 @@
     'clearUrl' => null,
 ])
 
-<x-card class="list-card">
+<x-card {{ $attributes->class(['list-card']) }}>
     <form method="{{ strtoupper($method) === 'GET' ? 'GET' : 'POST' }}" action="{{ $action }}"
         class="form list-filters-shell">
         @if (strtoupper($method) !== 'GET')

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/AssetNavigationTrail.php | V2
+// FILE: app/Support/Navigation/AssetNavigationTrail.php | V3
 
 namespace App\Support\Navigation;
 
@@ -20,9 +20,7 @@ class AssetNavigationTrail
 
     public static function base(Asset $asset): array
     {
-        $trail = $asset->party
-            ? PartyNavigationTrail::base($asset->party)
-            : self::assetsBase();
+        $trail = self::assetsBase();
 
         return NavigationTrail::appendOrCollapse(
             $trail,
@@ -61,7 +59,7 @@ class AssetNavigationTrail
         $trail = NavigationTrail::fromRequest($request);
 
         if (empty($trail)) {
-            return self::base($asset);
+            $trail = self::base($asset);
         }
 
         $trail = NavigationTrail::sliceBefore($trail, 'assets.create', 'new');

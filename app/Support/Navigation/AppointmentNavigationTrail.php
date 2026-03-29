@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/AppointmentNavigationTrail.php | V4
+// FILE: app/Support/Navigation/AppointmentNavigationTrail.php | V5
 
 namespace App\Support\Navigation;
 
@@ -32,9 +32,13 @@ class AppointmentNavigationTrail
         );
     }
 
-    public static function create(): array
+    public static function create(Request $request): array
     {
-        $trail = self::appointmentsBase();
+        $trail = NavigationTrail::fromRequest($request);
+
+        if (empty($trail)) {
+            $trail = self::appointmentsBase();
+        }
 
         return NavigationTrail::appendOrCollapse(
             $trail,

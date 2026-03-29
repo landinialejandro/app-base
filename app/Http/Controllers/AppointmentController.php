@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AppointmentController.php | V5
+// FILE: app/Http/Controllers/AppointmentController.php | V6
 
 namespace App\Http\Controllers;
 
@@ -10,8 +10,11 @@ use App\Models\Asset;
 use App\Models\Order;
 use App\Models\Party;
 use App\Models\User;
+use App\Support\Auth\RolePermissionResolver;
+use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Navigation\AppointmentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
@@ -32,8 +35,8 @@ class AppointmentController extends Controller
         $scheduledDate = $request->get('scheduled_date');
         $scope = $request->get('scope', 'mine');
 
-        $resolver = app(\App\Support\Auth\RolePermissionResolver::class);
-        $updateScope = $resolver->actionScope(\App\Support\Catalogs\ModuleCatalog::APPOINTMENTS, 'update', app('tenant'), auth()->user());
+        $resolver = app(RolePermissionResolver::class);
+        $updateScope = $resolver->actionScope(ModuleCatalog::APPOINTMENTS, 'update', app('tenant'), auth()->user());
 
         if ($updateScope !== 'all' && $scope === 'all') {
             $scope = 'mine';
@@ -251,7 +254,7 @@ class AppointmentController extends Controller
         ]);
     }
 
-    public function create()
+    public function create(Request $request)
     {
         $tenant = app('tenant');
 
@@ -270,7 +273,7 @@ class AppointmentController extends Controller
         $assets = Asset::query()->with('party')->orderBy('name')->get();
 
         $defaultAssignedUserId = old('assigned_user_id', (string) auth()->id());
-        $navigationTrail = AppointmentNavigationTrail::create();
+        $navigationTrail = AppointmentNavigationTrail::create($request);
 
         return view('appointments.create', compact(
             'users',
@@ -290,7 +293,7 @@ class AppointmentController extends Controller
         $data['created_by'] = auth()->id();
 
         $appointment = Appointment::create($data);
-        $navigationTrail = AppointmentNavigationTrail::base($appointment);
+        $navigationTrail = AppointmentNavigationTrail::show($request, $appointment);
 
         return redirect()
             ->route('appointments.show', ['appointment' => $appointment] + NavigationTrail::toQuery($navigationTrail))
@@ -408,9 +411,9 @@ class AppointmentController extends Controller
     {
         $scope = $request->get('scope', 'mine');
 
-        $resolver = app(\App\Support\Auth\RolePermissionResolver::class);
+        $resolver = app(RolePermissionResolver::class);
         $updateScope = $resolver->actionScope(
-            \App\Support\Catalogs\ModuleCatalog::APPOINTMENTS,
+            ModuleCatalog::APPOINTMENTS,
             'update',
             app('tenant'),
             auth()->user()
@@ -482,7 +485,7 @@ class AppointmentController extends Controller
             'assignedUser',
         ]);
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('appointments.print', [
+        $pdf = Pdf::loadView('appointments.print', [
             'appointment' => $appointment,
             'renderMode' => 'pdf',
         ]);

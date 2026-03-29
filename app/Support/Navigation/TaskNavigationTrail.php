@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/TaskNavigationTrail.php | V2
+// FILE: app/Support/Navigation/TaskNavigationTrail.php | V3
 
 namespace App\Support\Navigation;
 
@@ -20,9 +20,7 @@ class TaskNavigationTrail
 
     public static function base(Task $task): array
     {
-        $trail = $task->project
-            ? ProjectNavigationTrail::base($task->project)
-            : self::tasksBase();
+        $trail = self::tasksBase();
 
         return NavigationTrail::appendOrCollapse(
             $trail,
@@ -61,7 +59,7 @@ class TaskNavigationTrail
         $trail = NavigationTrail::fromRequest($request);
 
         if (empty($trail)) {
-            return self::base($task);
+            $trail = self::base($task);
         }
 
         $trail = NavigationTrail::sliceBefore($trail, 'tasks.create', 'new');

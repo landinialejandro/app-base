@@ -92,22 +92,53 @@ ATTACHMENTS
 
 Estado actual:
 
-V1.1 implementado como módulo transversal embebido en múltiples módulos del sistema
+el módulo de adjuntos se encuentra implementado y consolidado funcionalmente como sistema transversal a los módulos principales del sistema
 
-Refactor V1.2 en curso:
+su operación se resuelve mediante:
 
-eliminación de create y edit en modal
-migración completa a pantallas dedicadas
-limpieza de JavaScript específico del módulo
-limpieza y consolidación de CSS
-eliminación de partials legacy
-alineación total con las convenciones actuales del proyecto
+vistas dedicadas para alta y edición
+integración embebida en vistas show mediante patrón tab-toolbar
+segmentación visual por kind
+control de acceso mediante policies y acciones visibles condicionadas por permisos
+almacenamiento estructurado con metadata básica
+
+El modelo de datos ya contempla soporte para:
+
+clasificación funcional mediante kind
+ordenamiento mediante sort_order
+identificación de tipo de archivo mediante mime y extension
+preparación para extensiones futuras como análisis, texto extraído y metadata adicional
+
+Convenciones ya implementadas:
+
+kind es la dimensión principal de organización visual del módulo
+
+la extensión del archivo es un dato secundario y no define agrupación
+
+el formulario de adjuntos permite definir tipo y descripción
+
+la navegación del flujo se resuelve mediante retorno al recurso padre
+
+las acciones de tabla son icon-only y respetan permisos reales
+
+el acceso a archivos se resuelve mediante preview inline y download
+
+Alcance actual:
+
+adjuntar archivos a múltiples entidades del sistema
+visualizar adjuntos en contexto mediante tabs embebidas
+descargar archivos
+visualizar imágenes en navegador
+editar metadata básica
+eliminar adjuntos con control de permisos
 
 Pendientes futuros:
 
-viewer simple y puntual, evitando modal pesado
-mejora móvil para captura rápida de fotos o fotos consecutivas
-análisis de adjuntos por IA
+visor avanzado de adjuntos con navegación entre archivos
+generación de thumbnails optimizados
+carga rápida de fotos desde dispositivos móviles
+análisis automático de archivos mediante IA
+indexación de contenido para búsqueda
 
 
 AUTORIZACIÓN Y PERMISOS

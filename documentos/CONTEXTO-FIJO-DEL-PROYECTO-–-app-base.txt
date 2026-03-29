@@ -610,6 +610,28 @@ Por ejemplo:
 
 un documento asociado a una orden no debe tener una fecha anterior a la orden.
 
+Capa inicial de impresión y PDF
+
+El sistema ya incorpora una capa inicial de impresión y exportación PDF aplicada sobre módulos operativos existentes.
+
+Alcance actual validado:
+
+appointments
+orders
+documents
+
+Reglas y decisiones actuales:
+
+la capa de impresión no se modela como módulo de negocio independiente
+
+las vistas Blade imprimibles se reutilizan como base común para salida HTML de impresión y para generación de PDF
+
+la generación real de PDF se resuelve mediante librería externa
+
+el branding mínimo por tenant puede resolverse desde tenants.settings cuando la plantilla imprimible lo requiera
+
+la capa de impresión puede incorporar CSS y JavaScript específicos del módulo print siempre que permanezcan acotados a esa responsabilidad y no dupliquen innecesariamente la base visual global
+
 Factories y seeders
 
 En factories utilizadas para testing es válido crear tenants automáticamente, por ejemplo:
@@ -662,6 +684,8 @@ settings.business_profile.type
 Decisión actual de frontend base
 
 El frontend base del proyecto ya migró a un patrón declarativo con data-action="app-..." y public/js/app-base.js como capa mínima reutilizable de comportamiento.
+
+La capa de impresión puede incorporar además recursos propios acotados a esa responsabilidad, por ejemplo CSS y JavaScript específicos del módulo print, sin romper la base declarativa general del proyecto.
 
 Entidades ya implementadas
 

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AppointmentController.php | V6
+// FILE: app/Http/Controllers/AppointmentController.php | V7
 
 namespace App\Http\Controllers;
 
@@ -272,6 +272,60 @@ class AppointmentController extends Controller
         $orders = Order::query()->with('party')->latest()->limit(100)->get();
         $assets = Asset::query()->with('party')->orderBy('name')->get();
 
+        $prefilledPartyId = null;
+        $prefilledAssetId = null;
+        $prefilledOrderId = null;
+        $prefilledScheduledDate = null;
+
+        if ($request->filled('party_id')) {
+            $party = Party::query()
+                ->where('id', $request->integer('party_id'))
+                ->where('tenant_id', $tenant->id)
+                ->whereNull('deleted_at')
+                ->first();
+
+            if ($party) {
+                $prefilledPartyId = $party->id;
+            }
+        }
+
+        if ($request->filled('asset_id')) {
+            $asset = Asset::query()
+                ->with('party')
+                ->where('id', $request->integer('asset_id'))
+                ->where('tenant_id', $tenant->id)
+                ->whereNull('deleted_at')
+                ->first();
+
+            if ($asset) {
+                $prefilledAssetId = $asset->id;
+                $prefilledPartyId = $asset->party_id;
+            }
+        }
+
+        if ($request->filled('order_id')) {
+            $order = Order::query()
+                ->with(['party', 'asset'])
+                ->where('id', $request->integer('order_id'))
+                ->where('tenant_id', $tenant->id)
+                ->whereNull('deleted_at')
+                ->first();
+
+            if ($order) {
+                $prefilledOrderId = $order->id;
+                $prefilledPartyId = $order->party_id;
+                $prefilledAssetId = $order->asset_id;
+            }
+        }
+
+        if ($request->filled('scheduled_date')) {
+            $scheduledDateInput = (string) $request->get('scheduled_date');
+
+            if (preg_match('/^\d{4}-\d{2}-\d{2}$/', $scheduledDateInput) === 1) {
+                $prefilledScheduledDate = $scheduledDateInput;
+            }
+        }
+
         $defaultAssignedUserId = old('assigned_user_id', (string) auth()->id());
         $navigationTrail = AppointmentNavigationTrail::create($request);
 
@@ -281,14 +335,18 @@ class AppointmentController extends Controller
             'orders',
             'assets',
             'defaultAssignedUserId',
-            'navigationTrail'
+            'navigationTrail',
+            'prefilledPartyId',
+            'prefilledAssetId',
+            'prefilledOrderId',
+            'prefilledScheduledDate',
         ));
     }
 
     public function store(AppointmentRequest $request)
     {
-        $tenant = app('tenant');
         $this->authorize('create', Appointment::class);
+
         $data = $request->validated();
         $data['created_by'] = auth()->id();
 
@@ -366,7 +424,6 @@ class AppointmentController extends Controller
 
     public function update(AppointmentRequest $request, Appointment $appointment)
     {
-        $tenant = app('tenant');
         $this->authorize('update', $appointment);
 
         $data = $request->validated();
@@ -398,7 +455,10 @@ class AppointmentController extends Controller
         $this->authorize('delete', $appointment);
 
         $navigationTrail = AppointmentNavigationTrail::show($request, $appointment);
-        $redirectUrl = NavigationTrail::previousUrl($navigationTrail, route('appointments.index'));
+        $redirectUrl = NavigationTrail::previousUrl($navigationTrail, route('appointments.calendar', [
+            'view' => 'month',
+            'month' => now()->format('Y-m'),
+        ]));
 
         $appointment->delete();
 

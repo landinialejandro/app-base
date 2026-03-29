@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/show.blade.php | V4 --}}
+{{-- FILE: resources/views/appointments/show.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -11,7 +11,13 @@
 
     $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
     $trailQuery = NavigationTrail::toQuery($navigationTrail);
-    $backUrl = NavigationTrail::previousUrl($navigationTrail, route('appointments.index'));
+    $backUrl = NavigationTrail::previousUrl(
+        $navigationTrail,
+        route('appointments.calendar', [
+            'view' => 'month',
+            'month' => now()->format('Y-m'),
+        ]),
+    );
 @endphp
 
 @section('title', $appointmentTitle)
@@ -76,8 +82,8 @@
                 Descargar PDF
             </a>
 
-            <a href="{{ $backUrl }}" class="btn btn-secondary">
-                Volver al listado
+            <a href="{{ $backUrl }}" class="btn btn-secondary btn-icon" title="Volver" aria-label="Volver">
+                <x-icons.chevron-left />
             </a>
         </x-page-header>
 

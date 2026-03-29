@@ -1,3 +1,5 @@
+{{-- FILE: resources/views/appointments/_form.blade.php | V2 --}}
+
 @php
     use App\Support\Catalogs\AppointmentCatalog;
 
@@ -7,6 +9,21 @@
     $currentReferenceLabel = AppointmentCatalog::referenceLabelForKind($currentKind);
     $todayDate = now()->format('Y-m-d');
     $isCompletedAppointment = isset($appointment) && $appointment->status === AppointmentCatalog::STATUS_COMPLETED;
+
+    $prefilledPartyId = $prefilledPartyId ?? null;
+    $prefilledAssetId = $prefilledAssetId ?? null;
+    $prefilledOrderId = $prefilledOrderId ?? null;
+    $prefilledScheduledDate = $prefilledScheduledDate ?? null;
+
+    $currentPartyId = old('party_id', $appointment->party_id ?? ($prefilledPartyId ?? ''));
+    $currentAssetId = old('asset_id', $appointment->asset_id ?? ($prefilledAssetId ?? ''));
+    $currentOrderId = old('order_id', $appointment->order_id ?? ($prefilledOrderId ?? ''));
+    $currentScheduledDate = old(
+        'scheduled_date',
+        isset($appointment->scheduled_date)
+            ? $appointment->scheduled_date->format('Y-m-d')
+            : $prefilledScheduledDate ?? request('scheduled_date', $todayDate),
+    );
 @endphp
 
 <div data-action="app-appointment-party-asset-sync app-appointment-kind-sync">
@@ -16,7 +33,7 @@
         <select name="party_id" id="party_id" class="form-control">
             <option value="">Sin {{ strtolower(AppointmentCatalog::contactLabel()) }}</option>
             @foreach ($parties as $party)
-                <option value="{{ $party->id }}" @selected((string) old('party_id', $appointment->party_id ?? '') === (string) $party->id)>
+                <option value="{{ $party->id }}" @selected((string) $currentPartyId === (string) $party->id)>
                     {{ $party->name }}
                 </option>
             @endforeach
@@ -31,7 +48,7 @@
         <select name="asset_id" id="asset_id" class="form-control">
             <option value="">Sin {{ strtolower(AppointmentCatalog::assetLabel()) }}</option>
             @foreach ($assets as $asset)
-                <option value="{{ $asset->id }}" data-party-id="{{ $asset->party_id }}" @selected((string) old('asset_id', $appointment->asset_id ?? '') === (string) $asset->id)>
+                <option value="{{ $asset->id }}" data-party-id="{{ $asset->party_id }}" @selected((string) $currentAssetId === (string) $asset->id)>
                     {{ $asset->name }}
                     @if ($asset->internal_code)
                         — {{ $asset->internal_code }}
@@ -52,8 +69,7 @@
     <div class="form-group">
         <label for="scheduled_date" class="form-label">Cuándo</label>
         <input type="date" name="scheduled_date" id="scheduled_date" class="form-control"
-            value="{{ old('scheduled_date', isset($appointment->scheduled_date) ? $appointment->scheduled_date->format('Y-m-d') : request('scheduled_date', $todayDate)) }}"
-            min="{{ $isCompletedAppointment ? '' : $todayDate }}" required>
+            value="{{ $currentScheduledDate }}" min="{{ $isCompletedAppointment ? '' : $todayDate }}" required>
         <div class="form-help">
             @if ($isCompletedAppointment)
                 El turno está completado. La fecha no debería modificarse.
@@ -116,7 +132,7 @@
         <select name="order_id" id="order_id" class="form-control">
             <option value="">Sin {{ strtolower(AppointmentCatalog::orderLabel()) }}</option>
             @foreach ($orders as $order)
-                <option value="{{ $order->id }}" @selected((string) old('order_id', $appointment->order_id ?? '') === (string) $order->id)>
+                <option value="{{ $order->id }}" @selected((string) $currentOrderId === (string) $order->id)>
                     {{ $order->number ?: 'Orden #' . $order->id }}
                     @if ($order->party)
                         — {{ $order->party->name }}

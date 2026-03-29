@@ -1,8 +1,7 @@
-{{-- FILE: resources/views/appointments/partials/calendar-day-cell.blade.php | V2 --}}
+{{-- FILE: resources/views/appointments/partials/calendar-day-cell.blade.php | V3 --}}
 
 @php
     use App\Support\Catalogs\AppointmentCatalog;
-    use App\Support\Navigation\AppointmentNavigationTrail;
     use App\Support\Navigation\NavigationTrail;
 
     $mode = $mode ?? 'month';
@@ -14,6 +13,14 @@
         ->copy()
         ->startOfDay()
         ->lt(now()->startOfDay());
+
+    $calendarTrail = NavigationTrail::base([
+        NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
+        NavigationTrail::makeNode('appointments.index', null, 'Turnos', route('appointments.index')),
+        NavigationTrail::makeNode('appointments.calendar', $mode, 'Calendario', url()->current()),
+    ]);
+    $calendarTrail = NavigationTrail::replaceCurrentUrl($calendarTrail, request()->fullUrl());
+    $calendarTrailQuery = NavigationTrail::toQuery($calendarTrail);
 @endphp
 
 <div
@@ -28,13 +35,15 @@
         </div>
 
         <div class="appointment-calendar-day-actions">
-            @unless ($isPastDay)
-                <a href="{{ route('appointments.create', ['scheduled_date' => $day['date_key']]) }}"
-                    class="appointment-calendar-add" title="Crear turno para {{ $day['date']->format('d/m/Y') }}"
-                    aria-label="Crear turno para {{ $day['date']->format('d/m/Y') }}">
-                    <x-icons.plus />
-                </a>
-            @endunless
+            @can('create', App\Models\Appointment::class)
+                @unless ($isPastDay)
+                    <a href="{{ route('appointments.create', ['scheduled_date' => $day['date_key']] + $calendarTrailQuery) }}"
+                        class="appointment-calendar-add" title="Crear turno para {{ $day['date']->format('d/m/Y') }}"
+                        aria-label="Crear turno para {{ $day['date']->format('d/m/Y') }}">
+                        <x-icons.plus />
+                    </a>
+                @endunless
+            @endcan
         </div>
     </div>
 
@@ -62,12 +71,9 @@
                     : null;
 
                 $secondaryReference = $appointment->workstation_name ?: ($appointment->asset?->name ?: null);
-
-                $appointmentTrail = AppointmentNavigationTrail::base($appointment);
-                $appointmentTrailQuery = NavigationTrail::toQuery($appointmentTrail);
             @endphp
 
-            <a href="{{ route('appointments.show', ['appointment' => $appointment] + $appointmentTrailQuery) }}"
+            <a href="{{ route('appointments.show', ['appointment' => $appointment] + $calendarTrailQuery) }}"
                 class="appointment-calendar-item status-accent-{{ $appointment->status }}">
                 <div class="appointment-calendar-item-time">{{ $timeLabel }}</div>
 

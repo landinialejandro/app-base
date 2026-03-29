@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/index.blade.php | V2 --}}
+{{-- FILE: resources/views/appointments/index.blade.php | V3 --}}
 
 @extends('layouts.app')
 
@@ -11,9 +11,9 @@
     @endphp
 
     <x-page class="list-page">
-        <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Turnos']]" />
+        <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Turnos'], ['label' => 'Listado']]" />
 
-        <x-page-header title="Turnos">
+        <x-page-header title="Listado de turnos">
             <a href="{{ route('appointments.calendar', ['view' => 'month', 'month' => now()->format('Y-m')]) }}"
                 class="btn btn-secondary">
                 Calendario mensual
@@ -24,9 +24,11 @@
                 Calendario semanal
             </a>
 
-            <a href="{{ route('appointments.create') }}" class="btn btn-success">
-                Nuevo turno
-            </a>
+            @can('create', App\Models\Appointment::class)
+                <a href="{{ route('appointments.create') }}" class="btn btn-success">
+                    Nuevo turno
+                </a>
+            @endcan
         </x-page-header>
 
         <x-list-filters-card :action="route('appointments.index')" secondary-id="appointments-extra-filters">

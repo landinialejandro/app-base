@@ -1,3 +1,5 @@
+{{-- FILE: resources/views/appointments/calendar.blade.php | V2 --}}
+
 @extends('layouts.app')
 
 @section('title', 'Calendario de turnos')
@@ -10,18 +12,16 @@
     <x-page class="list-page">
         <x-breadcrumb :items="[
             ['label' => 'Inicio', 'url' => route('dashboard')],
-            ['label' => 'Turnos', 'url' => route('appointments.index')],
+            ['label' => 'Turnos'],
             ['label' => 'Calendario'],
         ]" />
 
         <x-page-header title="Calendario de turnos">
-            <a href="{{ route('appointments.create') }}" class="btn btn-success">
-                Nuevo turno
-            </a>
-
-            <a href="{{ route('appointments.index') }}" class="btn btn-secondary">
-                Ver listado
-            </a>
+            @can('create', App\Models\Appointment::class)
+                <a href="{{ route('appointments.create') }}" class="btn btn-success">
+                    Nuevo turno
+                </a>
+            @endcan
         </x-page-header>
 
         @include('appointments.partials.calendar-toolbar', [

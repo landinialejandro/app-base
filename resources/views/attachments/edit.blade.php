@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/attachments/edit.blade.php | V3 --}}
+{{-- FILE: resources/views/attachments/edit.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -6,6 +6,8 @@
 
 @section('content')
     <x-page>
+        <x-breadcrumb :items="$breadcrumbItems ?? []" />
+
         <x-page-header title="Editar adjunto" />
 
         <x-card>

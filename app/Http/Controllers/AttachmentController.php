@@ -1,12 +1,18 @@
 <?php
 
-// FILE: app/Http/Controllers/AttachmentController.php | V8
+// FILE: app/Http/Controllers/AttachmentController.php | V9
 
 namespace App\Http\Controllers;
 
 use App\Http\Requests\Attachments\StoreAttachmentRequest;
 use App\Http\Requests\Attachments\UpdateAttachmentRequest;
+use App\Models\Asset;
 use App\Models\Attachment;
+use App\Models\Document;
+use App\Models\Order;
+use App\Models\Product;
+use App\Models\Project;
+use App\Models\Task;
 use App\Support\Attachments\AttachmentAllowedParents;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
@@ -27,6 +33,7 @@ class AttachmentController extends Controller
             'attachableType' => $attachableType,
             'attachableId' => $attachableId,
             'returnTo' => $request->query('return_to') ?: $this->parentShowUrl($attachableType, $attachable),
+            'breadcrumbItems' => $this->breadcrumbItemsForCreate($attachableType, $attachable),
         ]);
     }
 
@@ -58,6 +65,7 @@ class AttachmentController extends Controller
             'extension' => $file->getClientOriginalExtension(),
             'mime_type' => $file->getMimeType(),
             'size_bytes' => $file->getSize(),
+            'kind' => $request->validated('kind'),
             'is_image' => str_starts_with((string) $file->getMimeType(), 'image/'),
             'description' => $request->validated('description'),
         ]);
@@ -70,11 +78,15 @@ class AttachmentController extends Controller
     {
         $this->authorize('update', $attachment);
 
+        $attachableType = $this->typeAliasFromStoredType($attachment->attachable_type);
+        $attachable = $attachment->attachable;
+
         return view('attachments.edit', [
             'attachment' => $attachment,
-            'attachableType' => $this->typeAliasFromStoredType($attachment->attachable_type),
+            'attachableType' => $attachableType,
             'attachableId' => $attachment->attachable_id,
-            'returnTo' => $request->query('return_to') ?: $this->parentShowUrl($attachment->attachable_type, $attachment->attachable),
+            'returnTo' => $request->query('return_to') ?: $this->parentShowUrl($attachment->attachable_type, $attachable),
+            'breadcrumbItems' => $this->breadcrumbItemsForEdit($attachableType, $attachable),
         ]);
     }
 
@@ -83,6 +95,7 @@ class AttachmentController extends Controller
         $this->authorize('update', $attachment);
 
         $attachment->update([
+            'kind' => $request->validated('kind'),
             'description' => $request->validated('description'),
         ]);
 
@@ -159,12 +172,12 @@ class AttachmentController extends Controller
     private function typeAliasFromStoredType(string $storedType): string
     {
         return match ($storedType) {
-            'order', \App\Models\Order::class => 'order',
-            'document', \App\Models\Document::class => 'document',
-            'asset', \App\Models\Asset::class => 'asset',
-            'project', \App\Models\Project::class => 'project',
-            'task', \App\Models\Task::class => 'task',
-            'product', \App\Models\Product::class => 'product',
+            'order', Order::class => 'order',
+            'document', Document::class => 'document',
+            'asset', Asset::class => 'asset',
+            'project', Project::class => 'project',
+            'task', Task::class => 'task',
+            'product', Product::class => 'product',
             default => 'document',
         };
     }
@@ -172,13 +185,54 @@ class AttachmentController extends Controller
     private function parentShowUrl(string $attachableType, object $attachable): string
     {
         return match ($attachableType) {
-            'order', \App\Models\Order::class => route('orders.show', $attachable),
-            'document', \App\Models\Document::class => route('documents.show', $attachable),
-            'asset', \App\Models\Asset::class => route('assets.show', $attachable),
-            'project', \App\Models\Project::class => route('projects.show', $attachable),
-            'task', \App\Models\Task::class => route('tasks.show', $attachable),
-            'product', \App\Models\Product::class => route('products.show', $attachable),
+            'order', Order::class => route('orders.show', $attachable),
+            'document', Document::class => route('documents.show', $attachable),
+            'asset', Asset::class => route('assets.show', $attachable),
+            'project', Project::class => route('projects.show', $attachable),
+            'task', Task::class => route('tasks.show', $attachable),
+            'product', Product::class => route('products.show', $attachable),
             default => route('dashboard'),
         };
+    }
+
+    private function parentLabel(string $attachableType): string
+    {
+        return match ($attachableType) {
+            'order', Order::class => 'Orden',
+            'document', Document::class => 'Documento',
+            'asset', Asset::class => 'Activo',
+            'project', Project::class => 'Proyecto',
+            'task', Task::class => 'Tarea',
+            'product', Product::class => 'Producto',
+            default => 'Registro',
+        };
+    }
+
+    private function breadcrumbItemsForCreate(string $attachableType, object $attachable): array
+    {
+        return [
+            [
+                'label' => $this->parentLabel($attachableType),
+                'url' => $this->parentShowUrl($attachableType, $attachable),
+            ],
+            [
+                'label' => 'Agregar adjunto',
+                'url' => null,
+            ],
+        ];
+    }
+
+    private function breadcrumbItemsForEdit(string $attachableType, object $attachable): array
+    {
+        return [
+            [
+                'label' => $this->parentLabel($attachableType),
+                'url' => $this->parentShowUrl($attachableType, $attachable),
+            ],
+            [
+                'label' => 'Editar adjunto',
+                'url' => null,
+            ],
+        ];
     }
 }

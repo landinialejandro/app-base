@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/index.blade.php | V5 --}}
+{{-- FILE: resources/views/documents/index.blade.php | V6 --}}
 
 @extends('layouts.app')
 
@@ -19,9 +19,11 @@
         <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Documentos']]" />
 
         <x-page-header title="Documentos">
-            <a href="{{ route('documents.create') }}" class="btn btn-success">
-                Nuevo documento
-            </a>
+            @can('create', App\Models\Document::class)
+                <a href="{{ route('documents.create') }}" class="btn btn-success">
+                    Nuevo documento
+                </a>
+            @endcan
         </x-page-header>
 
         <x-list-filters-card :action="route('documents.index')" secondary-id="documents-extra-filters">

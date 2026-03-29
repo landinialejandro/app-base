@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Attachment.php | V7
+// FILE: app/Models/Attachment.php | V8
 
 namespace App\Models;
 
@@ -27,6 +27,7 @@ class Attachment extends Model
         'extension',
         'mime_type',
         'size_bytes',
+        'kind',
         'description',
         'is_image',
     ];

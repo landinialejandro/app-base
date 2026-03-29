@@ -1,5 +1,7 @@
 <?php
 
+// FILE: app/Support/Tasks/TaskVisibility.php | V2
+
 namespace App\Support\Tasks;
 
 use App\Models\Task;
@@ -24,7 +26,19 @@ class TaskVisibility
             return $query;
         }
 
-        return $query;
+        return $query->where(function (Builder $visibleQuery) use ($user) {
+            $visibleQuery->where('assigned_user_id', $user->id)
+                ->orWhere(function (Builder $projectScopeQuery) use ($user) {
+                    $projectScopeQuery->whereNotNull('project_id')
+                        ->whereExists(function ($subquery) use ($user) {
+                            $subquery->selectRaw('1')
+                                ->from('tasks as user_project_tasks')
+                                ->whereColumn('user_project_tasks.project_id', 'tasks.project_id')
+                                ->whereNull('user_project_tasks.deleted_at')
+                                ->where('user_project_tasks.assigned_user_id', $user->id);
+                        });
+                });
+        });
     }
 
     public static function mineQuery(?User $user = null): Builder

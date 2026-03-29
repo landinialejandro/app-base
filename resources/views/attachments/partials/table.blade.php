@@ -1,6 +1,8 @@
-{{-- FILE: resources/views/attachments/partials/table.blade.php | V5 --}}
+{{-- FILE: resources/views/attachments/partials/table.blade.php | V6 --}}
 
 @php
+    use App\Support\Catalogs\AttachmentCatalog;
+
     $trailQuery = $trailQuery ?? [];
     $returnTo = $returnTo ?? null;
 @endphp
@@ -37,6 +39,7 @@
 
                     $previewUrl = route('attachments.preview', $attachment);
                     $downloadUrl = route('attachments.download', $attachment);
+                    $kindLabel = AttachmentCatalog::kindLabel($attachment->kind);
                 @endphp
 
                 <tr>
@@ -61,6 +64,10 @@
                                         class="attachment-file-link">
                                         {{ $attachment->file_name }}
                                     </a>
+
+                                    <div class="table-meta">
+                                        {{ $extension ?: '—' }}
+                                    </div>
                                 </div>
                             @else
                                 <div class="attachment-file-cell">
@@ -75,14 +82,15 @@
                                     @endif
 
                                     <div class="attachment-file-meta">
-                                        {{ $attachment->file_name }}
+                                        <div>{{ $attachment->file_name }}</div>
+                                        <div class="table-meta">{{ $extension ?: '—' }}</div>
                                     </div>
                                 </div>
                             @endcan
                         </div>
                     </td>
 
-                    <td>{{ $extension ?: '—' }}</td>
+                    <td>{{ $kindLabel ?: '—' }}</td>
                     <td>{{ $sizeLabel }}</td>
                     <td>{{ $uploadedAt }}</td>
                     <td>{{ $attachment->description ?: '—' }}</td>

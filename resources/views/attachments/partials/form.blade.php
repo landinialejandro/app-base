@@ -1,4 +1,8 @@
-{{-- FILE: resources/views/attachments/partials/form.blade.php | V2 --}}
+{{-- FILE: resources/views/attachments/partials/form.blade.php | V3 --}}
+
+@php
+    use App\Support\Catalogs\AttachmentCatalog;
+@endphp
 
 <form method="POST" enctype="multipart/form-data"
     action="{{ isset($attachment) ? route('attachments.update', $attachment) : route('attachments.store') }}"
@@ -14,8 +18,13 @@
 
     @if (!isset($attachment))
         <div class="form-group">
-            <label class="form-label">Archivo</label>
-            <input type="file" name="file" class="form-control" required>
+            <label class="form-label" for="file">Archivo</label>
+            <input type="file" id="file" name="file" class="form-control @error('file') is-invalid @enderror"
+                required>
+
+            @error('file')
+                <div class="form-help is-error">{{ $message }}</div>
+            @enderror
         </div>
     @else
         <div class="form-group">
@@ -25,9 +34,29 @@
     @endif
 
     <div class="form-group">
-        <label class="form-label">Descripción</label>
-        <input type="text" name="description" class="form-control"
+        <label class="form-label" for="kind">Tipo</label>
+        <select id="kind" name="kind" class="form-control @error('kind') is-invalid @enderror" required>
+            @foreach (AttachmentCatalog::kindLabels() as $value => $label)
+                <option value="{{ $value }}" @selected(old('kind', $attachment->kind ?? AttachmentCatalog::KIND_OTHER) === $value)>
+                    {{ $label }}
+                </option>
+            @endforeach
+        </select>
+
+        @error('kind')
+            <div class="form-help is-error">{{ $message }}</div>
+        @enderror
+    </div>
+
+    <div class="form-group">
+        <label class="form-label" for="description">Descripción</label>
+        <input type="text" id="description" name="description"
+            class="form-control @error('description') is-invalid @enderror"
             value="{{ old('description', $attachment->description ?? '') }}">
+
+        @error('description')
+            <div class="form-help is-error">{{ $message }}</div>
+        @enderror
     </div>
 
     <div class="form-actions">

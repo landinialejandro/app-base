@@ -1,10 +1,13 @@
 <?php
 
+// FILE: app/Policies/TaskPolicy.php | V2
+
 namespace App\Policies;
 
 use App\Models\Task;
 use App\Models\User;
 use App\Support\Auth\RolePermissionResolver;
+use App\Support\Auth\TenantAccess;
 use App\Support\Catalogs\ModuleCatalog;
 
 class TaskPolicy
@@ -21,11 +24,29 @@ class TaskPolicy
 
     public function view(User $user, Task $task): bool
     {
-        if (! $this->resolver()->canUseModule(ModuleCatalog::TASKS, app('tenant'), $user)) {
+        $tenant = app('tenant');
+
+        if (! $this->resolver()->canUseModule(ModuleCatalog::TASKS, $tenant, $user)) {
             return false;
         }
 
-        return true;
+        if (TenantAccess::isOwnerOrAdmin($tenant->id, $user)) {
+            return true;
+        }
+
+        if ((int) $task->assigned_user_id === (int) $user->id) {
+            return true;
+        }
+
+        if (empty($task->project_id)) {
+            return false;
+        }
+
+        return Task::query()
+            ->where('project_id', $task->project_id)
+            ->where('assigned_user_id', $user->id)
+            ->whereNull('deleted_at')
+            ->exists();
     }
 
     public function create(User $user): bool

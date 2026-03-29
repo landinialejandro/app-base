@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/show.blade.php | V7 --}}
+{{-- FILE: resources/views/tasks/show.blade.php | V8 --}}
 
 @extends('layouts.app')
 
@@ -73,8 +73,9 @@
                 </a>
             @endif
 
-            <a href="{{ $backUrl }}" class="btn btn-secondary">
-                {{ $backLabel }}
+            <a href="{{ $backUrl }}" class="btn btn-secondary" title="{{ $backLabel }}"
+                aria-label="{{ $backLabel }}">
+                <x-icons.chevron-left />
             </a>
         </x-page-header>
 
@@ -134,15 +135,35 @@
             </x-slot:details>
         </x-show-summary>
 
-        @include('attachments.partials.embedded', [
-            'attachments' => $attachments,
-            'attachableType' => 'task',
-            'attachableId' => $task->id,
-            'trailQuery' => $trailQuery,
-            'returnTo' => url()->current(),
-            'tabsId' => 'task-attachments-tabs',
-            'createLabel' => 'Agregar adjunto',
-        ])
+        <div class="tabs" data-tabs>
+            <x-tab-toolbar label="Secciones de la tarea">
+                <x-slot:tabs>
+                    <x-horizontal-scroll label="Secciones de la tarea">
+                        <button type="button" class="tabs-link is-active" data-tab-link="attachments" role="tab"
+                            aria-selected="true">
+                            Adjuntos
+                            @if ($attachments->count())
+                                ({{ $attachments->count() }})
+                            @endif
+                        </button>
+                    </x-horizontal-scroll>
+                </x-slot:tabs>
+            </x-tab-toolbar>
+
+            <section class="tab-panel is-active" data-tab-panel="attachments">
+                <div class="tab-panel-stack">
+                    @include('attachments.partials.embedded', [
+                        'attachments' => $attachments,
+                        'attachableType' => 'task',
+                        'attachableId' => $task->id,
+                        'trailQuery' => $trailQuery,
+                        'returnTo' => url()->current(),
+                        'tabsId' => 'task-attachments-tabs',
+                        'createLabel' => 'Agregar adjunto',
+                    ])
+                </div>
+            </section>
+        </div>
 
     </x-page>
 @endsection

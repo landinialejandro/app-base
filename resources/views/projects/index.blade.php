@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/projects/index.blade.php | V4 --}}
+{{-- FILE: resources/views/projects/index.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -14,9 +14,11 @@
         <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Proyectos']]" />
 
         <x-page-header title="Proyectos">
-            <a href="{{ route('projects.create') }}" class="btn btn-success">
-                Nuevo proyecto
-            </a>
+            @can('create', App\Models\Project::class)
+                <a href="{{ route('projects.create') }}" class="btn btn-success">
+                    Nuevo proyecto
+                </a>
+            @endcan
         </x-page-header>
 
         <x-list-filters-card :action="route('projects.index')">

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/projects/show.blade.php | V9 --}}
+{{-- FILE: resources/views/projects/show.blade.php | V10 --}}
 
 @extends('layouts.app')
 
@@ -12,6 +12,7 @@
         extract($metrics, EXTR_SKIP);
 
         $attachments = $project->attachments ?? collect();
+        $canUpdateProject = auth()->user()->can('update', $project);
         $canDeleteProject = auth()->user()->can('delete', $project);
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
@@ -23,10 +24,12 @@
         <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header title="Detalle del proyecto">
-            <a href="{{ route('projects.edit', ['project' => $project] + $trailQuery) }}" class="btn btn-primary">
-                <x-icons.pencil />
-                <span>Editar</span>
-            </a>
+            @if ($canUpdateProject)
+                <a href="{{ route('projects.edit', ['project' => $project] + $trailQuery) }}" class="btn btn-primary">
+                    <x-icons.pencil />
+                    <span>Editar</span>
+                </a>
+            @endif
 
             @if ($canDeleteProject)
                 <form method="POST" action="{{ route('projects.destroy', ['project' => $project] + $trailQuery) }}"
@@ -44,8 +47,8 @@
                 </form>
             @endif
 
-            <a href="{{ $backUrl }}" class="btn btn-secondary">
-                Volver
+            <a href="{{ $backUrl }}" class="btn btn-secondary" title="Volver" aria-label="Volver">
+                <x-icons.chevron-left />
             </a>
         </x-page-header>
 

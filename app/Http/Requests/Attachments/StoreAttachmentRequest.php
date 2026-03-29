@@ -1,10 +1,11 @@
 <?php
 
-// FILE: app/Http/Requests/Attachments/StoreAttachmentRequest.php | V3
+// FILE: app/Http/Requests/Attachments/StoreAttachmentRequest.php | V4
 
 namespace App\Http\Requests\Attachments;
 
 use App\Support\Attachments\AttachmentAllowedParents;
+use App\Support\Catalogs\AttachmentCatalog;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -32,6 +33,11 @@ class StoreAttachmentRequest extends FormRequest
                 'file',
                 'mimes:jpg,jpeg,png,pdf,txt',
                 'max:10240',
+            ],
+            'kind' => [
+                'required',
+                'string',
+                Rule::in(AttachmentCatalog::kinds()),
             ],
             'description' => [
                 'nullable',

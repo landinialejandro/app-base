@@ -1,4 +1,8 @@
-{{-- FILE: resources/views/layouts/print.blade.php | V1 --}}
+{{-- FILE: resources/views/layouts/print.blade.php | V3 --}}
+@php
+    $renderMode = $renderMode ?? 'print';
+@endphp
+
 <!DOCTYPE html>
 <html lang="es">
 
@@ -7,20 +11,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'Impresión')</title>
 
-    <link rel="stylesheet" href="{{ asset('css/modules/print.css') }}">
+    @if ($renderMode === 'pdf')
+        <style>
+            {!! file_get_contents(public_path('css/modules/print.css')) !!}
+        </style>
+    @else
+        <link rel="stylesheet" href="{{ asset('css/modules/print.css') }}">
+    @endif
 </head>
 
-<body>
+<body class="print-body {{ $renderMode === 'pdf' ? 'print-body--pdf' : 'print-body--html' }}">
     <div class="print-page">
-        <div class="print-toolbar" data-action="app-print-toolbar">
-            <button type="button" class="print-toolbar-button" data-print-action="print">
-                Imprimir
-            </button>
+        @if ($renderMode !== 'pdf')
+            <div class="print-toolbar" data-action="app-print-toolbar">
+                <button type="button" class="print-toolbar-button" data-print-action="print">
+                    Imprimir
+                </button>
 
-            <button type="button" class="print-toolbar-button" data-print-action="close">
-                Cerrar
-            </button>
-        </div>
+                <button type="button" class="print-toolbar-button" data-print-action="close">
+                    Cerrar
+                </button>
+            </div>
+        @endif
 
         <div class="print-document">
             @include('print.partials.header')
@@ -31,7 +43,9 @@
         </div>
     </div>
 
-    <script src="{{ asset('js/print.js') }}"></script>
+    @if ($renderMode !== 'pdf')
+        <script src="{{ asset('js/print.js') }}"></script>
+    @endif
 </body>
 
 </html>

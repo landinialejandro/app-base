@@ -18,7 +18,6 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
-use Barryvdh\DomPDF\Facade\Pdf;
 
 class DocumentController extends Controller
 {
@@ -592,7 +591,10 @@ class DocumentController extends Controller
             'items.product',
         ]);
 
-        return view('documents.print', compact('document'));
+        return view('documents.print', [
+            'document' => $document,
+            'renderMode' => 'print',
+        ]);
     }
 
     public function pdf(Document $document)
@@ -610,7 +612,10 @@ class DocumentController extends Controller
             ? 'documento-'.strtolower(str_replace([' ', '/'], '-', $document->number)).'.pdf'
             : 'documento-'.$document->id.'.pdf';
 
-        $pdf = Pdf::loadView('documents.print', compact('document'));
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('documents.print', [
+            'document' => $document,
+            'renderMode' => 'pdf',
+        ]);
 
         return $pdf->download($filename);
     }

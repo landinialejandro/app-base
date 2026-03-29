@@ -14,7 +14,6 @@ use App\Support\Documents\DocumentNumberGenerator;
 use App\Support\Navigation\AppointmentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\OrderNavigationTrail;
-use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -493,7 +492,10 @@ class OrderController extends Controller
             'items.product',
         ]);
 
-        return view('orders.print', compact('order'));
+        return view('orders.print', [
+            'order' => $order,
+            'renderMode' => 'print',
+        ]);
     }
 
     public function pdf(Order $order)
@@ -511,7 +513,10 @@ class OrderController extends Controller
             ? 'orden-'.strtolower(str_replace([' ', '/'], '-', $order->number)).'.pdf'
             : 'orden-'.$order->id.'.pdf';
 
-        $pdf = Pdf::loadView('orders.print', compact('order'));
+        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('orders.print', [
+            'order' => $order,
+            'renderMode' => 'pdf',
+        ]);
 
         return $pdf->download($filename);
     }

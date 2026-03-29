@@ -18,50 +18,64 @@
 
 @section('content')
     <div class="print-title-row">
-        <div>
+        <div class="print-title-main">
             <h2 class="print-title">{{ $title }}</h2>
             <div class="print-subtitle">{{ $order->number ?: 'Sin número' }}</div>
         </div>
 
-        <div class="print-badge">
-            {{ OrderCatalog::statusLabel($order->status) }}
+        <div class="print-title-badge">
+            <span class="print-badge">
+                {{ OrderCatalog::statusLabel($order->status) }}
+            </span>
         </div>
     </div>
 
     <section class="print-section">
         <h3 class="print-section-title">Datos principales</h3>
 
-        <div class="print-grid">
-            <div class="print-block">
-                <div class="print-block-label">Número</div>
-                <div class="print-block-value">{{ $order->number ?: '—' }}</div>
-            </div>
+        <table class="print-grid-table" role="presentation">
+            <tr>
+                <td>
+                    <div class="print-block">
+                        <div class="print-block-label">Número</div>
+                        <div class="print-block-value">{{ $order->number ?: '—' }}</div>
+                    </div>
+                </td>
+                <td>
+                    <div class="print-block">
+                        <div class="print-block-label">Fecha</div>
+                        <div class="print-block-value">{{ $order->ordered_at?->format('d/m/Y') ?: '—' }}</div>
+                    </div>
+                </td>
+                <td>
+                    <div class="print-block">
+                        <div class="print-block-label">Tipo</div>
+                        <div class="print-block-value">{{ OrderCatalog::kindLabel($order->kind) }}</div>
+                    </div>
+                </td>
+            </tr>
 
-            <div class="print-block">
-                <div class="print-block-label">Fecha</div>
-                <div class="print-block-value">{{ $order->ordered_at?->format('d/m/Y') ?: '—' }}</div>
-            </div>
-
-            <div class="print-block">
-                <div class="print-block-label">Tipo</div>
-                <div class="print-block-value">{{ OrderCatalog::kindLabel($order->kind) }}</div>
-            </div>
-
-            <div class="print-block">
-                <div class="print-block-label">Contacto</div>
-                <div class="print-block-value">{{ $order->party?->name ?: '—' }}</div>
-            </div>
-
-            <div class="print-block">
-                <div class="print-block-label">Activo</div>
-                <div class="print-block-value">{{ $order->asset?->name ?: '—' }}</div>
-            </div>
-
-            <div class="print-block">
-                <div class="print-block-label">Tarea origen</div>
-                <div class="print-block-value">{{ $order->task?->name ?: '—' }}</div>
-            </div>
-        </div>
+            <tr>
+                <td>
+                    <div class="print-block">
+                        <div class="print-block-label">Contacto</div>
+                        <div class="print-block-value">{{ $order->party?->name ?: '—' }}</div>
+                    </div>
+                </td>
+                <td>
+                    <div class="print-block">
+                        <div class="print-block-label">Activo</div>
+                        <div class="print-block-value">{{ $order->asset?->name ?: '—' }}</div>
+                    </div>
+                </td>
+                <td>
+                    <div class="print-block">
+                        <div class="print-block-label">Tarea origen</div>
+                        <div class="print-block-value">{{ $order->task?->name ?: '—' }}</div>
+                    </div>
+                </td>
+            </tr>
+        </table>
     </section>
 
     <section class="print-section">

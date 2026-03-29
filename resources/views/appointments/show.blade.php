@@ -72,6 +72,10 @@
                 Imprimir
             </a>
 
+            <a href="{{ route('appointments.pdf', ['appointment' => $appointment]) }}" class="btn btn-secondary">
+                Descargar PDF
+            </a>
+
             <a href="{{ $backUrl }}" class="btn btn-secondary">
                 Volver al listado
             </a>

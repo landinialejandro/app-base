@@ -18,6 +18,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Validation\Rule;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 class DocumentController extends Controller
 {
@@ -592,5 +593,25 @@ class DocumentController extends Controller
         ]);
 
         return view('documents.print', compact('document'));
+    }
+
+    public function pdf(Document $document)
+    {
+        $this->authorize('view', $document);
+
+        $document->load([
+            'party',
+            'order',
+            'asset',
+            'items.product',
+        ]);
+
+        $filename = $document->number
+            ? 'documento-'.strtolower(str_replace([' ', '/'], '-', $document->number)).'.pdf'
+            : 'documento-'.$document->id.'.pdf';
+
+        $pdf = Pdf::loadView('documents.print', compact('document'));
+
+        return $pdf->download($filename);
     }
 }

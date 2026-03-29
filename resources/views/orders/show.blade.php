@@ -59,6 +59,10 @@
                 Imprimir
             </a>
 
+            <a href="{{ route('orders.pdf', ['order' => $order]) }}" class="btn btn-secondary">
+                Descargar PDF
+            </a>
+
             <a href="{{ $backUrl }}" class="btn btn-secondary">
                 {{ $backLabel }}
             </a>

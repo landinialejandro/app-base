@@ -267,10 +267,17 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         ->name('attachments.create');
 
     // PRINT
+    Route::get('/appointments/{appointment}/pdf', [AppointmentController::class, 'pdf'])
+        ->name('appointments.pdf');
+    Route::get('/orders/{order}/pdf', [OrderController::class, 'pdf'])
+        ->name('orders.pdf');
+    Route::get('/documents/{document}/pdf', [DocumentController::class, 'pdf'])
+        ->name('documents.pdf');
     Route::get('/appointments/{appointment}/print', [AppointmentController::class, 'print'])
         ->name('appointments.print');
     Route::get('/orders/{order}/print', [OrderController::class, 'print'])
         ->name('orders.print');
     Route::get('/documents/{document}/print', [DocumentController::class, 'print'])
         ->name('documents.print');
+
 });

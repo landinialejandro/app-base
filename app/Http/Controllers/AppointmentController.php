@@ -12,6 +12,7 @@ use App\Models\Party;
 use App\Models\User;
 use App\Support\Navigation\AppointmentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\ValidationException;
@@ -466,5 +467,21 @@ class AppointmentController extends Controller
         ]);
 
         return view('appointments.print', compact('appointment'));
+    }
+
+    public function pdf(Appointment $appointment)
+    {
+        $this->authorize('view', $appointment);
+
+        $appointment->load([
+            'party',
+            'order',
+            'asset',
+            'assignedUser',
+        ]);
+
+        $pdf = Pdf::loadView('appointments.print', compact('appointment'));
+
+        return $pdf->download('turno-'.$appointment->id.'.pdf');
     }
 }

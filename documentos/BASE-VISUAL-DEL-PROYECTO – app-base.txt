@@ -267,6 +267,16 @@ mantenibilidad
 reutilización
 
 No debe fragmentarse artificialmente si el archivo sigue siendo claro y simple.
+
+Criterio consolidado para formularios operativos:
+
+las vistas create y edit deben actuar como contenedor completo del formulario dentro de la card o bloque principal de la pantalla
+
+los parciales _form deben funcionar como bloque interno reusable centrado en los campos
+
+cuando un _form agrupe múltiples campos mediante un wrapper raíz, ese wrapper puede y debe usar la clase .form para mantener el espaciado vertical uniforme del sistema, aunque no coincida con la etiqueta <form> principal
+
+no debe fragmentarse un formulario de modo que se disperse entre partials la responsabilidad del <form>, @csrf, @method y form-actions
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE CSS VISUAL>>

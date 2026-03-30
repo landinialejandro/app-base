@@ -446,6 +446,23 @@ evitar problemas de estado, foco y validación
 mantener consistencia de navegación y breadcrumb
 
 Si una operación requiere validación completa, navegación consistente o interacción de formulario real, debe resolverse como pantalla y no como modal.
+
+Regla de composición:
+
+las vistas create y edit deben contener el formulario completo, incluyendo:
+
+<form> @csrf @method cuando corresponda form-actions
+
+los parciales _form deben contener únicamente:
+
+campos
+ayudas
+mensajes de error
+bloques internos estrictamente propios de los campos
+
+el parcial _form no debe abrir ni cerrar el <form> principal ni contener acciones finales del formulario
+
+cuando un _form utilice un wrapper raíz para agrupar múltiples .form-group, ese wrapper debe usar class="form" para heredar el espaciado vertical base del sistema
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE MÓDULOS TRANSVERSALES>>

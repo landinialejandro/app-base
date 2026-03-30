@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/_form.blade.php --}}
+{{-- FILE: resources/views/tasks/_form.blade.php | V2 --}}
 
 @php
     use App\Support\Catalogs\TaskCatalog;
@@ -138,9 +138,10 @@
 
 @if ($isForeignTaskForAdmin)
     <div class="form-group">
-        <label class="form-check">
-            <input type="checkbox" name="confirm_foreign_task_edit" value="1" @checked(old('confirm_foreign_task_edit') === '1')>
-            <span>Confirmo que estoy modificando una tarea asignada a otro colaborador.</span>
+        <label class="form-label" for="confirm_foreign_task_edit">
+            <input class="form-checkbox" type="checkbox" id="confirm_foreign_task_edit" name="confirm_foreign_task_edit"
+                value="1" @checked(old('confirm_foreign_task_edit') === '1')>
+            Confirmo que estoy modificando una tarea asignada a otro colaborador.
         </label>
         @error('confirm_foreign_task_edit')
             <div class="form-help is-error">{{ $message }}</div>

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/_form.blade.php | V2 --}}
+{{-- FILE: resources/views/documents/_form.blade.php | V3 --}}
 
 @php
     use App\Support\Catalogs\DocumentCatalog;
@@ -13,7 +13,7 @@
     $currentAssetId = old('asset_id', $boundOrder?->asset_id ?? ($document->asset_id ?? ''));
 @endphp
 
-<div data-action="app-party-asset-sync" data-party-select="#party_id" data-asset-select="#asset_id">
+<div class="form" data-action="app-party-asset-sync" data-party-select="#party_id" data-asset-select="#asset_id">
     <div class="form-group">
         <label for="party_id" class="form-label">Contacto</label>
         <select name="party_id" id="party_id" class="form-control" required>

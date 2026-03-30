@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/assets/create.blade.php --}}
+{{-- FILE: resources/views/assets/create.blade.php | V2 --}}
 
 @extends('layouts.app')
 
@@ -20,7 +20,14 @@
 
         <x-card>
             <form action="{{ route('assets.store', $trailQuery) }}" method="POST" class="form">
+                @csrf
+
                 @include('assets._form')
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Guardar</button>
+                    <a href="{{ $cancelUrl }}" class="btn btn-secondary">Cancelar</a>
+                </div>
             </form>
         </x-card>
     </x-page>

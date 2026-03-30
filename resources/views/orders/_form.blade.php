@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/_form.blade.php | V3 --}}
+{{-- FILE: resources/views/orders/_form.blade.php | V4 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
@@ -27,7 +27,7 @@
     $lockPartyAndAsset = $fromAsset || $lockedByExistingAsset;
 @endphp
 
-<div data-action="app-party-asset-sync" data-party-select="#party_id" data-asset-select="#asset_id">
+<div class="form" data-action="app-party-asset-sync" data-party-select="#party_id" data-asset-select="#asset_id">
 
     @if ($currentTaskId)
         <div class="form-group">

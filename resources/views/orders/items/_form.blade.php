@@ -1,10 +1,10 @@
-{{-- FILE: resources/views/orders/items/_form.blade.php | V2 --}}
+{{-- FILE: resources/views/orders/items/_form.blade.php | V3 --}}
 
 @php
     use App\Support\Catalogs\ProductCatalog;
 @endphp
 
-<div data-action="app-product-autofill" data-product-select="#product_id" data-kind-field="#kind"
+<div class="form" data-action="app-product-autofill" data-product-select="#product_id" data-kind-field="#kind"
     data-description-field="#description" data-price-field="#unit_price">
     <div class="form-group">
         <label for="product_id" class="form-label">Producto</label>

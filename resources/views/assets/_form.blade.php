@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/assets/_form.blade.php --}}
+{{-- FILE: resources/views/assets/_form.blade.php | V2 --}}
 
 @php
     use App\Support\Catalogs\AssetCatalog;
@@ -6,8 +6,6 @@
     $prefilledParty = $prefilledParty ?? null;
     $currentPartyId = old('party_id', $asset->party_id ?? ($prefilledParty?->id ?? ''));
 @endphp
-
-@csrf
 
 <div class="form-group">
     <label for="kind" class="form-label">Tipo</label>
@@ -19,7 +17,7 @@
         @endforeach
     </select>
     @error('kind')
-        <div class="form-help">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
@@ -33,7 +31,7 @@
         @endforeach
     </select>
     @error('relationship_type')
-        <div class="form-help">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
@@ -48,7 +46,7 @@
         @endforeach
     </select>
     @error('party_id')
-        <div class="form-help">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
@@ -57,7 +55,7 @@
     <input type="text" id="name" name="name" class="form-control"
         value="{{ old('name', $asset->name ?? '') }}" required>
     @error('name')
-        <div class="form-help">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
@@ -66,7 +64,7 @@
     <input type="text" id="internal_code" name="internal_code" class="form-control"
         value="{{ old('internal_code', $asset->internal_code ?? '') }}">
     @error('internal_code')
-        <div class="form-help">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
@@ -80,7 +78,7 @@
         @endforeach
     </select>
     @error('status')
-        <div class="form-help">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
 
@@ -88,25 +86,6 @@
     <label for="notes" class="form-label">Notas</label>
     <textarea id="notes" name="notes" rows="4" class="form-control">{{ old('notes', $asset->notes ?? '') }}</textarea>
     @error('notes')
-        <div class="form-help">{{ $message }}</div>
+        <div class="form-help is-error">{{ $message }}</div>
     @enderror
-</div>
-
-@php
-    $trailQuery =
-        $trailQuery ??
-        (isset($navigationTrail) ? \App\Support\Navigation\NavigationTrail::toQuery($navigationTrail) : []);
-    $cancelUrl =
-        $cancelUrl ??
-        (isset($asset)
-            ? \App\Support\Navigation\NavigationTrail::previousUrl(
-                $navigationTrail ?? [],
-                route('assets.show', ['asset' => $asset]),
-            )
-            : \App\Support\Navigation\NavigationTrail::previousUrl($navigationTrail ?? [], route('assets.index')));
-@endphp
-
-<div class="form-actions">
-    <button type="submit" class="btn btn-primary">Guardar</button>
-    <a href="{{ $cancelUrl }}" class="btn btn-secondary">Cancelar</a>
 </div>

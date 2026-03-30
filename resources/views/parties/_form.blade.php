@@ -1,10 +1,8 @@
-{{-- FILE: resources/views/parties/_form.blade.php --}}
+{{-- FILE: resources/views/parties/_form.blade.php | V2 --}}
 
 @php
     use App\Support\Catalogs\PartyCatalog;
 @endphp
-
-@csrf
 
 <div class="form-group">
     <label for="kind" class="form-label">Tipo</label>
@@ -22,8 +20,8 @@
 
 <div class="form-group">
     <label for="name" class="form-label">Nombre</label>
-    <input type="text" id="name" name="name" class="form-control" value="{{ old('name', $party->name ?? '') }}"
-        required>
+    <input type="text" id="name" name="name" class="form-control"
+        value="{{ old('name', $party->name ?? '') }}" required>
     @error('name')
         <div class="form-help is-error">{{ $message }}</div>
     @enderror
@@ -58,7 +56,8 @@
 
 <div class="form-group">
     <label for="tax_id" class="form-label">CUIT / ID fiscal</label>
-    <input type="text" id="tax_id" name="tax_id" class="form-control" value="{{ old('tax_id', $party->tax_id ?? '') }}">
+    <input type="text" id="tax_id" name="tax_id" class="form-control"
+        value="{{ old('tax_id', $party->tax_id ?? '') }}">
     @error('tax_id')
         <div class="form-help is-error">{{ $message }}</div>
     @enderror
@@ -66,7 +65,8 @@
 
 <div class="form-group">
     <label for="email" class="form-label">Email</label>
-    <input type="email" id="email" name="email" class="form-control" value="{{ old('email', $party->email ?? '') }}">
+    <input type="email" id="email" name="email" class="form-control"
+        value="{{ old('email', $party->email ?? '') }}">
     @error('email')
         <div class="form-help is-error">{{ $message }}</div>
     @enderror
@@ -74,7 +74,8 @@
 
 <div class="form-group">
     <label for="phone" class="form-label">Teléfono</label>
-    <input type="text" id="phone" name="phone" class="form-control" value="{{ old('phone', $party->phone ?? '') }}">
+    <input type="text" id="phone" name="phone" class="form-control"
+        value="{{ old('phone', $party->phone ?? '') }}">
     @error('phone')
         <div class="form-help is-error">{{ $message }}</div>
     @enderror
@@ -99,10 +100,10 @@
 
 <div class="form-group">
     <label class="form-label" for="is_active">
-        <input class="form-checkbox" type="checkbox" id="is_active" name="is_active" value="1" @checked(old('is_active', $party->is_active ?? true))>
+        <input class="form-checkbox" type="checkbox" id="is_active" name="is_active" value="1"
+            @checked(old('is_active', $party->is_active ?? true))>
         Activo
     </label>
-
     @error('is_active')
         <div class="form-help is-error">{{ $message }}</div>
     @enderror

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/create.blade.php | V3 --}}
+{{-- FILE: resources/views/appointments/create.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -16,11 +16,7 @@
     <x-page>
         <x-breadcrumb :items="$breadcrumbItems" />
 
-        <x-page-header title="Nuevo turno">
-            <a href="{{ $cancelUrl }}" class="btn btn-secondary">
-                Cancelar
-            </a>
-        </x-page-header>
+        <x-page-header title="Nuevo turno" />
 
         <x-card>
             <form method="POST" action="{{ route('appointments.store', $trailQuery) }}" class="form">

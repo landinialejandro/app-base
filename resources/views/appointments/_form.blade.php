@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/_form.blade.php | V2 --}}
+{{-- FILE: resources/views/appointments/_form.blade.php | V4 --}}
 
 @php
     use App\Support\Catalogs\AppointmentCatalog;
@@ -26,7 +26,7 @@
     );
 @endphp
 
-<div data-action="app-appointment-party-asset-sync app-appointment-kind-sync">
+<div class="form" data-action="app-appointment-party-asset-sync app-appointment-kind-sync">
 
     <div class="form-group">
         <label for="party_id" class="form-label">{{ AppointmentCatalog::contactLabel() }}</label>
@@ -208,9 +208,10 @@
     </div>
 
     <div class="form-group">
-        <label class="form-check">
-            <input type="checkbox" name="is_all_day" value="1" @checked((bool) old('is_all_day', $appointment->is_all_day ?? false))>
-            <span>Ocupa el día completo</span>
+        <label class="form-label" for="is_all_day">
+            <input class="form-checkbox" type="checkbox" id="is_all_day" name="is_all_day" value="1"
+                @checked((bool) old('is_all_day', $appointment->is_all_day ?? false))>
+            Ocupa el día completo
         </label>
         @error('is_all_day')
             <div class="form-help is-error">{{ $message }}</div>
@@ -227,10 +228,10 @@
 
     @if ($isForeignAppointmentForAdmin)
         <div class="form-group">
-            <label class="form-check">
-                <input type="checkbox" name="confirm_foreign_appointment_edit" value="1"
-                    @checked(old('confirm_foreign_appointment_edit') === '1')>
-                <span>Confirmo que estoy modificando un turno asignado a otro colaborador.</span>
+            <label class="form-label" for="confirm_foreign_appointment_edit">
+                <input class="form-checkbox" type="checkbox" id="confirm_foreign_appointment_edit"
+                    name="confirm_foreign_appointment_edit" value="1" @checked(old('confirm_foreign_appointment_edit') === '1')>
+                Confirmo que estoy modificando un turno asignado a otro colaborador.
             </label>
             @error('confirm_foreign_appointment_edit')
                 <div class="form-help is-error">{{ $message }}</div>

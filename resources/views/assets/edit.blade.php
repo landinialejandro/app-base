@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/assets/edit.blade.php --}}
+{{-- FILE: resources/views/assets/edit.blade.php | V2 --}}
 
 @extends('layouts.app')
 
@@ -20,8 +20,15 @@
 
         <x-card>
             <form action="{{ route('assets.update', ['asset' => $asset] + $trailQuery) }}" method="POST" class="form">
+                @csrf
                 @method('PUT')
+
                 @include('assets._form', ['asset' => $asset])
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    <a href="{{ $cancelUrl }}" class="btn btn-secondary">Cancelar</a>
+                </div>
             </form>
         </x-card>
     </x-page>

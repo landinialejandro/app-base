@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/create.blade.php | V3 --}}
+{{-- FILE: resources/views/tasks/create.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -20,14 +20,10 @@
 
         <x-breadcrumb :items="$breadcrumbItems" />
 
-        <x-page-header title="Nueva tarea">
-            <a href="{{ $cancelUrl }}" class="btn btn-secondary">
-                Cancelar
-            </a>
-        </x-page-header>
+        <x-page-header title="Nueva tarea" />
 
         <x-card>
-            <form method="POST" action="{{ route('tasks.store', $trailQuery) }}">
+            <form method="POST" action="{{ route('tasks.store', $trailQuery) }}" class="form">
                 @csrf
 
                 @include('tasks._form')

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/edit.blade.php | V3 --}}
+{{-- FILE: resources/views/tasks/edit.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -20,14 +20,10 @@
 
         <x-breadcrumb :items="$breadcrumbItems" />
 
-        <x-page-header title="Editar tarea">
-            <a href="{{ $cancelUrl }}" class="btn btn-secondary">
-                Cancelar
-            </a>
-        </x-page-header>
+        <x-page-header title="Editar tarea" />
 
         <x-card>
-            <form method="POST" action="{{ route('tasks.update', ['task' => $task] + $trailQuery) }}">
+            <form method="POST" action="{{ route('tasks.update', ['task' => $task] + $trailQuery) }}" class="form">
                 @csrf
                 @method('PUT')
 

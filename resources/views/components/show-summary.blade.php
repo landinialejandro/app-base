@@ -1,9 +1,10 @@
-{{-- FILE: resources/views/components/show-summary.blade.php | V2 --}}
+{{-- FILE: resources/views/components/show-summary.blade.php | V3 --}}
 
 @props([
     'detailsId' => null,
     'toggleLabel' => 'Más información',
     'toggleLabelExpanded' => 'Menos información',
+    'detailsLayout' => 'grid',
 ])
 
 @php
@@ -26,9 +27,13 @@
         </div>
 
         <div id="{{ $resolvedDetailsId }}" class="show-summary-details" hidden>
-            <div class="detail-grid detail-grid--3">
+            @if ($detailsLayout === 'grid')
+                <div class="detail-grid detail-grid--3">
+                    {{ $details }}
+                </div>
+            @else
                 {{ $details }}
-            </div>
+            @endif
         </div>
     @endif
 </x-card>

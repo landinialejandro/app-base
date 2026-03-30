@@ -419,6 +419,10 @@ clases CSS = estilo
 data-* = comportamiento
 
 Preferir soluciones simples y declarativas antes que lógica distribuida en múltiples blades.
+
+Cuando una pieza global del layout necesite exponer información compartida del sistema, debe priorizarse la inyección desde provider, composer o capa equivalente antes que resolver lógica inline en Blade.
+
+Esto ya se considera una aplicación válida de la convención en el footer general del shell de la app.
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE FORMULARIOS OPERATIVOS>>

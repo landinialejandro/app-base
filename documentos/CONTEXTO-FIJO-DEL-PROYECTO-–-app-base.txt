@@ -785,6 +785,12 @@ Decisión actual de frontend base
 El frontend base del proyecto ya migró a un patrón declarativo con data-action="app-..." y public/js/app-base.js como capa mínima reutilizable de comportamiento.
 
 La capa de impresión puede incorporar además recursos propios acotados a esa responsabilidad, por ejemplo CSS y JavaScript específicos del módulo print, sin romper la base declarativa general del proyecto.
+
+El shell general de la app ya incorpora un footer reusable en pantallas internas no públicas.
+
+Ese footer puede exponer identificación visible de versión o estado del sistema.
+
+En entorno local, esa identificación puede resolverse automáticamente desde .git como identificador de desarrollo.
 <<END SECTION>>
 
 <<SECTION: Entidades ya implementadas>>

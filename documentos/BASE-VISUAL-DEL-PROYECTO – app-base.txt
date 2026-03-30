@@ -34,6 +34,7 @@ x-page
 x-breadcrumb
 x-page-header
 contenido principal dentro de cards o bloques equivalentes
+footer reusable del shell general de la app cuando corresponda al layout interno del sistema
 
 La estructura debe mantener:
 
@@ -41,6 +42,14 @@ jerarquía visual clara
 encabezado consistente
 acciones principales visibles
 lectura simple del contenido
+
+Reglas:
+
+el footer general de la app forma parte del shell reusable de pantallas internas no públicas
+
+no debe resolverse como bloque inline aislado por vista o por módulo
+
+su presencia debe mantenerse consistente dentro del layout general y fuera del flujo público o de layouts especiales que no compartan ese shell
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>

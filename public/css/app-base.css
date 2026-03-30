@@ -328,6 +328,28 @@ a:hover {
     font-weight: 600;
 }
 
+.app-footer {
+    border-top: 1px solid var(--color-border, #e5e7eb);
+    margin-top: 24px;
+}
+
+.app-footer-inner {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    min-height: 48px;
+    font-size: 13px;
+    color: #6b7280;
+}
+
+.app-footer-brand {
+    font-weight: 500;
+}
+
+.app-footer-version {
+    white-space: nowrap;
+}
+
 /* =========================================================
    6. Menú de usuario
    Dropdown de acciones del usuario autenticado.

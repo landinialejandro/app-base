@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/layouts/app.blade.php --}}
+{{-- FILE: resources/views/layouts/app.blade.php | V2 --}}
 
 <!DOCTYPE html>
 <html lang="es">
@@ -83,12 +83,7 @@
         </main>
 
         @if (!($publicPage ?? false) && !(auth()->check() && auth()->user()->is_superadmin))
-            <footer class="app-footer">
-                <div class="container app-footer-inner">
-                    <span class="app-footer-brand">app-base</span>
-                    <span class="app-footer-text">Sistema interno</span>
-                </div>
-            </footer>
+            <x-layout.footer />
         @endif
     </div>
 

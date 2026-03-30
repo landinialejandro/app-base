@@ -1,11 +1,20 @@
 DEPLOY Y COMPATIBILIDAD DEL PROYECTO – app-base
 
+METODOLOGÍA DE EDICIÓN
+
+Este archivo se actualiza por reemplazo completo de bloques delimitados.
+Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
+Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
+
+<<SECTION: OBJETIVO DEL DOCUMENTO>>
 1. OBJETIVO DEL DOCUMENTO
 
 Este documento deja asentadas las decisiones técnicas y aprendizajes obtenidos durante la primera prueba operativa real del proyecto app-base en un hosting compartido básico, sin acceso a CLI, Composer ni Artisan en servidor.
 
 Su propósito es preservar memoria operativa para futuros despliegues, evitar repetir diagnósticos ya realizados y establecer un criterio técnico estable para este tipo de entornos.
+<<END SECTION>>
 
+<<SECTION: CONTEXTO DEL PRIMER DEPLOY REAL>>
 2. CONTEXTO DEL PRIMER DEPLOY REAL
 
 La primera prueba operativa se realizó en un hosting compartido DonWeb con las siguientes restricciones relevantes:
@@ -18,7 +27,9 @@ La primera prueba operativa se realizó en un hosting compartido DonWeb con las 
 - subdominio apuntado a la carpeta public del proyecto
 
 Se confirmó que el proyecto puede ejecutarse operativamente en este tipo de entorno siempre que se suba una versión ya preparada desde local, con vendor incluido y base de datos previamente migrada o importada.
+<<END SECTION>>
 
+<<SECTION: ESTRATEGIA DE DEPLOY VALIDADA>>
 3. ESTRATEGIA DE DEPLOY VALIDADA
 
 La estrategia validada para este tipo de hosting es la siguiente:
@@ -31,7 +42,9 @@ La estrategia validada para este tipo de hosting es la siguiente:
 - limpiar manualmente por FTP los archivos de cache compilada si fuera necesario
 
 En este escenario no debe dependerse de tareas post deploy mediante Artisan.
+<<END SECTION>>
 
+<<SECTION: PROBLEMA DETECTADO EN EL REGISTRO DE RUTAS>>
 4. PROBLEMA DETECTADO EN EL REGISTRO DE RUTAS
 
 Durante la prueba operativa se detectó un comportamiento anómalo: las rutas declaradas mediante Route::resource(...) no quedaron registradas correctamente en el servidor, aun cuando:
@@ -49,7 +62,9 @@ El síntoma observable fue la aparición de errores del tipo:
 - Route [orders.items.create] not defined
 
 Esto afectó tanto rutas resource simples como algunas anidadas.
+<<END SECTION>>
 
+<<SECTION: DECISIÓN TÉCNICA ADOPTADA>>
 5. DECISIÓN TÉCNICA ADOPTADA
 
 Como criterio operativo del proyecto, se decidió reemplazar las declaraciones Route::resource(...) del core funcional por rutas explícitas una a una.
@@ -62,7 +77,9 @@ Esta decisión se adopta para:
 - mantener trazabilidad y control explícito del enrutamiento
 
 La decisión se considera válida para el proyecto completo, tanto en local como en servidor, a fin de evitar mantener variantes distintas del archivo routes/web.php.
+<<END SECTION>>
 
+<<SECTION: ALCANCE ACTUAL DE LA REESCRITURA DE RUTAS>>
 6. ALCANCE ACTUAL DE LA REESCRITURA DE RUTAS
 
 Se dejaron definidas explícitamente las rutas de:
@@ -80,7 +97,9 @@ Se mantienen además las rutas manuales ya existentes de:
 
 - orders.documents.store
 - documents.items.*
+<<END SECTION>>
 
+<<SECTION: INTERPRETACIÓN TÉCNICA DEL INCIDENTE>>
 7. INTERPRETACIÓN TÉCNICA DEL INCIDENTE
 
 Hasta nueva evidencia, este comportamiento no se interpreta como un problema confirmado del código funcional del proyecto, sino como una incompatibilidad o comportamiento irregular del entorno de ejecución, probablemente asociado a una combinación de:
@@ -92,7 +111,9 @@ Hasta nueva evidencia, este comportamiento no se interpreta como un problema con
 - posibles efectos de cache interna u OPcache del servidor
 
 No se adopta por ahora la hipótesis de bug confirmado de Laravel ni de incompatibilidad confirmada de PHP 8.4, aunque se deja constancia del incidente.
+<<END SECTION>>
 
+<<SECTION: PROCEDIMIENTO RECOMENDADO DE DEPLOY PARA HOSTING COMPARTIDO>>
 8. PROCEDIMIENTO RECOMENDADO DE DEPLOY PARA HOSTING COMPARTIDO
 
 Para futuros despliegues en entornos similares, se recomienda:
@@ -110,7 +131,9 @@ Para futuros despliegues en entornos similares, se recomienda:
   - bootstrap/cache
   - storage/framework/views
   - storage/framework/cache
+<<END SECTION>>
 
+<<SECTION: CRITERIO DE CONTINUIDAD>>
 9. CRITERIO DE CONTINUIDAD
 
 Mientras el proyecto siga desplegándose en entornos compartidos sin CLI, debe mantenerse como criterio general:
@@ -119,7 +142,9 @@ Mientras el proyecto siga desplegándose en entornos compartidos sin CLI, debe m
 - deploy por versión cerrada
 - mínima dependencia de generación dinámica en servidor
 - prioridad por estabilidad operativa sobre concisión sintáctica
+<<END SECTION>>
 
+<<SECTION: POSIBLE REVISIÓN FUTURA>>
 10. POSIBLE REVISIÓN FUTURA
 
 Si en el futuro el proyecto migra a un entorno más robusto, por ejemplo VPS o servidor con SSH, Composer y Artisan, podrá evaluarse si conviene volver a Route::resource(...).
@@ -131,3 +156,4 @@ Esa revisión no debe hacerse por preferencia estilística, sino solo si:
 - no se pierde claridad ni mantenibilidad
 
 Hasta entonces, la convención vigente será mantener rutas explícitas.
+<<END SECTION>>

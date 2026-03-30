@@ -1,5 +1,12 @@
 CONTEXTO-FIJO-DEL-PROYECTO – app-base
 
+METODOLOGÍA DE EDICIÓN
+
+Este archivo se actualiza por reemplazo completo de bloques delimitados.
+Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
+Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
+
+<<SECTION: Tipo de sistema>>
 Tipo de sistema
 
 app-base es una plataforma SaaS multi-tenant desarrollada en Laravel.
@@ -9,7 +16,9 @@ Permite que múltiples empresas utilicen la misma aplicación manteniendo aislam
 Cada empresa dentro del sistema se denomina tenant.
 
 El objetivo del proyecto es construir una base ERP SaaS modular que permita gestionar operaciones empresariales reutilizando una arquitectura común y estable.
+<<END SECTION>>
 
+<<SECTION: Entorno técnico>>
 Entorno técnico
 
 OS: Linux
@@ -17,17 +26,23 @@ Web: Apache
 PHP: 8.4
 Laravel: 12.x
 DB: MariaDB
+<<END SECTION>>
 
+<<SECTION: URL local de desarrollo>>
 URL local de desarrollo
 
 http://app-base.local
+<<END SECTION>>
 
+<<SECTION: Sesiones>>
 Sesiones
 
 SESSION_DRIVER=database
 
 Las sesiones se almacenan en la tabla sessions.
+<<END SECTION>>
 
+<<SECTION: Arquitectura SaaS>>
 Arquitectura SaaS
 
 El sistema utiliza una arquitectura multi-tenant basada en una columna:
@@ -39,7 +54,9 @@ Todas las entidades del negocio incluyen:
 tenant_id
 
 Esto permite aislar los datos de cada empresa dentro de la misma base de datos.
+<<END SECTION>>
 
+<<SECTION: Convención real de identificador de tenant>>
 Convención real de identificador de tenant
 
 tenants.id utiliza char(36)
@@ -47,7 +64,9 @@ tenants.id utiliza char(36)
 Las foreign keys hacia tenant deben respetar ese tipo real validado del proyecto.
 
 No debe asumirse tenant_id como foreignId() por convención de Laravel sin verificar primero el patrón real existente.
+<<END SECTION>>
 
+<<SECTION: Relación principal de identidad>>
 Relación principal de identidad
 
 La relación de pertenencia del sistema es:
@@ -65,7 +84,9 @@ Cada empresa puede tener múltiples usuarios.
 Un mismo user puede pertenecer a tenants no relacionados entre sí.
 users representa identidad global.
 memberships representa acceso por empresa.
+<<END SECTION>>
 
+<<SECTION: Acceso efectivo por empresa>>
 Acceso efectivo por empresa
 
 El estado de acceso efectivo a un tenant se resuelve por memberships.status y no por users.
@@ -73,8 +94,9 @@ El estado de acceso efectivo a un tenant se resuelve por memberships.status y no
 El bloqueo o inhabilitación de acceso debe resolverse por membership y no por user.
 
 Esto permite que un usuario continúe activo en un tenant y al mismo tiempo se encuentre bloqueado o inactivo en otro.
+<<END SECTION>>
 
-
+<<SECTION: RESOLUCIÓN DEL TENANT ACTIVO>>
 RESOLUCIÓN DEL TENANT ACTIVO
 
 En el flujo tenant, el tenant activo se resuelve por middleware.
@@ -82,14 +104,17 @@ En el flujo tenant, el tenant activo se resuelve por middleware.
 Luego de esa resolución, el tenant vigente del request debe consumirse desde app('tenant').
 
 No deben mantenerse helpers, soportes legacy o mecanismos paralelos redundantes para resolver el tenant activo si duplican o contradicen esa fuente vigente.
+<<END SECTION>>
 
-
+<<SECTION: Reglas operativas del tenant activo>>
 Reglas operativas del tenant activo
 
 El selector de empresa debe mostrar únicamente memberships activas del usuario autenticado.
 
 ResolveTenant debe validar pertenencia activa al tenant antes de permitir acceso operativo.
+<<END SECTION>>
 
+<<SECTION: Aislamiento automático de datos>>
 Aislamiento automático de datos
 
 Las entidades del negocio utilizan el trait:
@@ -101,7 +126,9 @@ Este trait aplica automáticamente:
 WHERE tenant_id = tenant_actual
 
 Además asigna automáticamente el tenant_id al crear nuevos registros.
+<<END SECTION>>
 
+<<SECTION: Regla de uso del trait>>
 Regla de uso del trait
 
 TenantScoped solo debe aplicarse a modelos cuyo ciclo de vida pertenece completamente a un tenant.
@@ -111,7 +138,9 @@ No debe utilizarse en entidades del sistema como:
 User
 Tenant
 Membership
+<<END SECTION>>
 
+<<SECTION: Protección de acceso por URL>>
 Protección de acceso por URL
 
 Las entidades empresariales utilizan el trait:
@@ -125,7 +154,9 @@ Consulta efectiva:
 id = ?
 AND tenant_id = tenant_actual
 AND deleted_at IS NULL
+<<END SECTION>>
 
+<<SECTION: Soft delete obligatorio>>
 Soft delete obligatorio
 
 Las entidades del negocio utilizan:
@@ -137,7 +168,9 @@ Reglas:
 Los registros eliminados no aparecen en listados.
 No son accesibles mediante URL.
 Siguen existiendo en la base de datos.
+<<END SECTION>>
 
+<<SECTION: Flujo básico del sistema>>
 Flujo básico del sistema
 
 login
@@ -149,14 +182,23 @@ session('tenant_id')
 ResolveTenant
 ↓
 dashboard
+<<END SECTION>>
 
+<<SECTION: Modelo conceptual del sistema>>
 Modelo conceptual del sistema
 
 El sistema distingue entre:
 
 Entidades del sistema
+<<END SECTION>>
+
+<<SECTION: Entidades del negocio>>
 Entidades del negocio
 
+
+<<END SECTION>>
+
+<<SECTION: Entidades del sistema y acceso>>
 Entidades del sistema y acceso
 
 users
@@ -165,7 +207,9 @@ memberships
 
 signup_requests
 invitations
+<<END SECTION>>
 
+<<SECTION: Aclaración sobre invitations>>
 Aclaración sobre invitations
 
 invitations forma parte del flujo de acceso y onboarding del sistema.
@@ -193,7 +237,9 @@ documents
 document_items
 
 document_sequences
+<<END SECTION>>
 
+<<SECTION: Entidad base del negocio>>
 Entidad base del negocio
 
 La entidad base para personas u organizaciones es:
@@ -221,7 +267,9 @@ La asignación interna de responsabilidad operativa no se modela desde Party, si
 Para la asignación interna de tareas, el término visible recomendado es:
 
 colaborador
+<<END SECTION>>
 
+<<SECTION: Projects como capa de seguimiento agregado>>
 Projects como capa de seguimiento agregado
 
 projects representa un agrupador operativo de trabajo.
@@ -233,7 +281,9 @@ posee estado mínimo active/closed
 su index prioriza seguimiento diario mediante métricas derivadas de tareas asociadas
 
 tasks continúa siendo la unidad operativa fina, mientras projects funciona como capa de seguimiento agregado
+<<END SECTION>>
 
+<<SECTION: Tasks como unidad operativa interna>>
 Tasks como unidad operativa interna
 
 tasks representa la unidad operativa interna básica del sistema.
@@ -249,7 +299,9 @@ owner y admin pueden gestionar tareas ajenas
 los usuarios operativos gestionan solamente sus propias tareas
 
 una tarea puede derivar en una única orden, normalmente de servicio
+<<END SECTION>>
 
+<<SECTION: Appointments como agenda operativa reutilizable>>
 Appointments como agenda operativa reutilizable
 
 appointments es un módulo core de agenda o reserva operativa reutilizable por tenant.
@@ -279,7 +331,9 @@ los turnos en fechas pasadas siguen siendo visibles y consultables
 un turno pasado puede reprogramarse a hoy o futuro si no está completado
 
 un turno en estado completado no debe poder moverse de fecha ni modificar su horario
+<<END SECTION>>
 
+<<SECTION: Perfil funcional del tenant>>
 Perfil funcional del tenant
 
 El tenant ya incorpora un perfil funcional de rubro persistido en:
@@ -295,8 +349,9 @@ Debe apoyarse en:
 un catálogo cerrado de rubros
 el contexto del tenant
 catálogos funcionales del módulo correspondiente
+<<END SECTION>>
 
-
+<<SECTION: MODELO ACTUAL DE ACCESO, VISIBILIDAD Y AUTORIZACIÓN OPERATIVA>>
 MODELO ACTUAL DE ACCESO, VISIBILIDAD Y AUTORIZACIÓN OPERATIVA
 
 El sistema ya incorpora una capa base real de acceso y visibilidad por módulo.
@@ -339,7 +394,9 @@ roles base del sistema se definen en RoleCatalog
 los roles base reservados no deben modificarse ni eliminarse
 
 a futuro el tenant podrá incorporar más flexibilidad de roles sin romper esta jerarquía base
+<<END SECTION>>
 
+<<SECTION: Capa central prevista para acceso y permisos>>
 Capa central prevista para acceso y permisos
 
 La arquitectura de acceso y permisos debe prepararse para incorporar una capa centralizada compuesta por:
@@ -375,7 +432,9 @@ las policies no deben hardcodear permisos dispersos cuando esta capa exista form
 la navegación y accesos visibles deben reutilizar la misma lógica real de acceso
 
 la habilitación efectiva de módulos puede admitir capas de override controladas, siempre subordinadas a la base definida en ModuleCatalog
+<<END SECTION>>
 
+<<SECTION: Precedencia conceptual prevista para habilitación de módulos>>
 Precedencia conceptual prevista para habilitación de módulos
 
 La habilitación efectiva de módulos puede resolverse, cuando el sistema lo necesite, con una precedencia como la siguiente:
@@ -389,7 +448,9 @@ override externo por tenant
 override persistido en settings del tenant
 
 Esta precedencia debe entenderse como criterio de diseño para crecimiento controlado del sistema, no como obligación de implementación inmediata en todos los entornos.
+<<END SECTION>>
 
+<<SECTION: Overrrides externos controlados>>
 Overrrides externos controlados
 
 La matriz base de permisos y la habilitación base de módulos pueden admitir overrides externos parciales cuando haga falta realizar ajustes rápidos y controlados sin modificar directamente las clases principales.
@@ -401,9 +462,15 @@ los módulos definidos en ModuleCatalog
 la estructura base del sistema
 
 No deben utilizarse para inventar roles o módulos inexistentes.
+<<END SECTION>>
 
+<<SECTION: Roles y niveles actuales del sistema>>
 Roles y niveles actuales del sistema
 
+
+<<END SECTION>>
+
+<<SECTION: SUPERADMIN>>
 SUPERADMIN
 
 Es la capa global de administración del sistema.
@@ -417,7 +484,9 @@ signup_requests
 invitations de tipo owner_signup
 onboarding inicial de nuevas empresas
 habilitación inicial de módulos por tenant
+<<END SECTION>>
 
+<<SECTION: OWNER Y ADMIN>>
 OWNER Y ADMIN
 
 Conforman el nivel privilegiado actual dentro del tenant.
@@ -425,7 +494,9 @@ Conforman el nivel privilegiado actual dentro del tenant.
 Regla vigente:
 
 owner y admin son equivalentes a nivel de privilegios operativos por módulo dentro del tenant
+<<END SECTION>>
 
+<<SECTION: ROLES OPERATIVOS BASE>>
 ROLES OPERATIVOS BASE
 
 Roles actuales esperados:
@@ -438,7 +509,9 @@ Representan el nivel operativo base del tenant.
 No tienen control total sobre todos los datos o acciones.
 
 Su acceso depende del módulo y de la policy aplicable.
+<<END SECTION>>
 
+<<SECTION: Reglas operativas actuales por módulo>>
 Reglas operativas actuales por módulo
 
 orders, parties, assets y products siguen actualmente un patrón compartido del tenant:
@@ -468,7 +541,9 @@ la visibilidad del dashboard y de métricas agregadas puede variar según rol
 el dashboard analítico queda reservado al nivel privilegiado owner y admin
 
 documents queda deliberadamente postergado como módulo de endurecimiento posterior por su mayor sensibilidad de trazabilidad, flujo y acciones visibles en UI
+<<END SECTION>>
 
+<<SECTION: Reglas generales de autorización ya consolidadas>>
 Reglas generales de autorización ya consolidadas
 
 la autorización por acción debe resolverse preferentemente mediante policies
@@ -494,7 +569,9 @@ la navegación no debe asumir acceso total al tenant si el módulo o la acción 
 el acceso al módulo, la visibilidad del dataset y las acciones permitidas deben tratarse como capas distintas
 
 el navbar no debe depender de un hardcode manual de módulos cuando exista una capa central disponible para resolver acceso y navegación
+<<END SECTION>>
 
+<<SECTION: Patrón de modelado cabecera / detalle>>
 Patrón de modelado cabecera / detalle
 
 Cuando un módulo represente una operación compuesta por múltiples renglones, debe modelarse preferentemente utilizando el patrón cabecera/detalle.
@@ -512,7 +589,9 @@ Si el alta del ítem se realiza internamente desde un flujo controlado del siste
 la eliminación de la cabecera elimina sus ítems
 la posición del ítem es responsabilidad del módulo
 los importes pueden calcularse dinámicamente o persistirse según la naturaleza funcional del documento
+<<END SECTION>>
 
+<<SECTION: Numeración operativa>>
 Numeración operativa
 
 El sistema implementa numeración automática para órdenes y documentos.
@@ -534,7 +613,9 @@ punto de venta
 orders y documents no permiten edición manual del número
 
 una vez asignado el número, el tipo de entidad no debe modificarse
+<<END SECTION>>
 
+<<SECTION: Flujo tasks → orders>>
 Flujo tasks → orders
 
 El sistema contempla una derivación operativa opcional desde tasks hacia orders.
@@ -546,7 +627,9 @@ una tarea puede originar una única orden
 la relación operativa 1 a 1 se expresa desde orders.task_id
 
 la orden derivada suele corresponder a una operación de servicio u otra acción formalizada a partir de la tarea
+<<END SECTION>>
 
+<<SECTION: Flujo assets → orders → documents>>
 Flujo assets → orders → documents
 
 El sistema ya contempla una relación operativa opcional entre activos, órdenes y documentos.
@@ -563,7 +646,9 @@ tenant_id
 party_id
 order_id
 asset_id si la orden lo posee
+<<END SECTION>>
 
+<<SECTION: Flujo orders → documents>>
 Flujo orders → documents
 
 Desde orders.show pueden generarse documentos derivados de una orden.
@@ -587,7 +672,9 @@ asset_id si la orden lo posee
 Los order_items pueden copiarse automáticamente a document_items.
 
 Una vez copiados los ítems, los totales del documento deben recalcularse según la lógica del módulo documental.
+<<END SECTION>>
 
+<<SECTION: Reglas de fechas del flujo operativo>>
 Reglas de fechas del flujo operativo
 
 Para mantener coherencia en las operaciones comerciales:
@@ -609,7 +696,9 @@ En documents la fecha se controla según el tipo documental y su coherencia con 
 Por ejemplo:
 
 un documento asociado a una orden no debe tener una fecha anterior a la orden.
+<<END SECTION>>
 
+<<SECTION: Capa inicial de impresión y PDF>>
 Capa inicial de impresión y PDF
 
 El sistema ya incorpora una capa inicial de impresión y exportación PDF aplicada sobre módulos operativos existentes.
@@ -631,7 +720,9 @@ la generación real de PDF se resuelve mediante librería externa
 el branding mínimo por tenant puede resolverse desde tenants.settings cuando la plantilla imprimible lo requiera
 
 la capa de impresión puede incorporar CSS y JavaScript específicos del módulo print siempre que permanezcan acotados a esa responsabilidad y no dupliquen innecesariamente la base visual global
+<<END SECTION>>
 
+<<SECTION: Factories y seeders>>
 Factories y seeders
 
 En factories utilizadas para testing es válido crear tenants automáticamente, por ejemplo:
@@ -641,13 +732,17 @@ tenant_id => Tenant::factory()
 En seeders reales del sistema el tenant normalmente se asigna explícitamente desde el seeder.
 
 No es necesario modificar este comportamiento.
+<<END SECTION>>
 
+<<SECTION: Criterio actual de deploy y declaración de rutas>>
 Criterio actual de deploy y declaración de rutas
 
 En despliegues sobre hosting compartido sin CLI, Composer ni Artisan en servidor, el proyecto prioriza estrategia de deploy por versión cerrada preparada en local.
 
 En ese contexto, las rutas del core operativo se mantienen declaradas explícitamente en routes/web.php en lugar de depender de Route::resource(...), debido a un incidente real de registro inconsistente de rutas durante la primera prueba operativa.
+<<END SECTION>>
 
+<<SECTION: Estado actual del sistema>>
 Estado actual del sistema
 
 Además del flujo multi-tenant principal, el sistema incorpora una capa global de administración denominada superadmin.
@@ -668,7 +763,9 @@ Invitations soporta actualmente al menos los siguientes tipos:
 
 owner_signup
 member_invite
+<<END SECTION>>
 
+<<SECTION: Configuración básica de empresa>>
 Configuración básica de empresa
 
 tenants.settings se utiliza para persistir configuración básica editable de empresa cuando esa configuración no justifica entidad propia.
@@ -680,13 +777,17 @@ Además de datos generales, settings puede contener configuración funcional del
 Esto incluye, entre otros casos, el perfil de rubro en:
 
 settings.business_profile.type
+<<END SECTION>>
 
+<<SECTION: Decisión actual de frontend base>>
 Decisión actual de frontend base
 
 El frontend base del proyecto ya migró a un patrón declarativo con data-action="app-..." y public/js/app-base.js como capa mínima reutilizable de comportamiento.
 
 La capa de impresión puede incorporar además recursos propios acotados a esa responsabilidad, por ejemplo CSS y JavaScript específicos del módulo print, sin romper la base declarativa general del proyecto.
+<<END SECTION>>
 
+<<SECTION: Entidades ya implementadas>>
 Entidades ya implementadas
 
 users
@@ -709,7 +810,9 @@ documents
 document_items
 
 document_sequences
+<<END SECTION>>
 
+<<SECTION: Regla de arquitectura>>
 Regla de arquitectura
 
 La arquitectura multi-tenant actual no debe modificarse.
@@ -720,7 +823,9 @@ TenantScoped
 ResolvesTenantRouteBinding
 SoftDeletes
 tenant_id como mecanismo de aislamiento
+<<END SECTION>>
 
+<<SECTION: Dirección de crecimiento del sistema>>
 Dirección de crecimiento del sistema
 
 El sistema crecerá mediante módulos empresariales reutilizando la arquitectura existente.
@@ -729,7 +834,9 @@ Módulos previstos:
 
 payments
 inventory
+<<END SECTION>>
 
+<<SECTION: Principio de desarrollo>>
 Principio de desarrollo
 
 Priorizar siempre:
@@ -738,3 +845,4 @@ simplicidad
 reutilización de entidades
 mínima duplicación
 evolución progresiva del sistema
+<<END SECTION>>

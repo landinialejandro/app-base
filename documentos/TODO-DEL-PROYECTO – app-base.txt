@@ -1,6 +1,12 @@
 TODO-DEL-PROYECTO – app-base
 
+METODOLOGÍA DE EDICIÓN
 
+Este archivo se actualiza por reemplazo completo de bloques delimitados.
+Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
+Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
+
+<<SECTION: OBJETIVO>>
 OBJETIVO
 
 Este documento funciona como memoria operativa del proyecto.
@@ -18,8 +24,9 @@ Las decisiones estructurales deben vivir en:
 
 CONTEXTO-FIJO-DEL-PROYECTO
 CONVENCIONES-DEL-PROYECTO
+<<END SECTION>>
 
-
+<<SECTION: ESTADO ACTUAL DEL SISTEMA>>
 ESTADO ACTUAL DEL SISTEMA
 
 Arquitectura SaaS multi-tenant implementada.
@@ -37,8 +44,9 @@ unificación del criterio real de tenant_id
 migraciones multi-tenant normalizadas a char(36)
 módulo clients eliminado en favor de parties
 flujo de onboarding y alta de usuarios resuelto mediante invitations (owner_signup y member_invite)
+<<END SECTION>>
 
-
+<<SECTION: MÓDULOS IMPLEMENTADOS>>
 MÓDULOS IMPLEMENTADOS
 
 projects
@@ -51,14 +59,16 @@ orders
 order_items
 documents
 document_items
+<<END SECTION>>
 
-
+<<SECTION: MÓDULOS POSIBLES A FUTURO>>
 MÓDULOS POSIBLES A FUTURO
 
 payments
 inventory
+<<END SECTION>>
 
-
+<<SECTION: PENDIENTES INMEDIATOS>>
 PENDIENTES INMEDIATOS
 
 cerrar revisión visual final pendiente en projects.show para el bloque analítico de estados de tareas, especialmente el layout entre gráfico, leyendas y espaciados
@@ -86,8 +96,9 @@ auditar criterio del navbar y sidebar para evitar que el estado activo dependa s
 revisar densidad visual final del tab-toolbar y del card que lo contiene para asegurar una altura consistente con el resto del sistema
 
 implementar sistema de auditoría de cambios
+<<END SECTION>>
 
-
+<<SECTION: ATTACHMENTS>>
 ATTACHMENTS
 
 Estado actual:
@@ -139,8 +150,9 @@ generación de thumbnails optimizados
 carga rápida de fotos desde dispositivos móviles
 análisis automático de archivos mediante IA
 indexación de contenido para búsqueda
+<<END SECTION>>
 
-
+<<SECTION: AUTORIZACIÓN Y PERMISOS>>
 AUTORIZACIÓN Y PERMISOS
 
 implementar RolePermissionMatrix
@@ -163,8 +175,6 @@ normalizar botones y acciones visibles con @can donde falte
 
 revisar módulos de gestión no auditados aún para alinear permisos
 
-dejar documents y document_items como pendiente prioritario de endurecimiento de permisos, trazabilidad y acciones visibles en UI
-
 evaluar si conviene estandarizar un patrón base para CRUD controllers con autorización explícita por acción
 
 revisar y corregir datos legacy donde existan memberships activas no-owner sin rol asignado
@@ -176,8 +186,9 @@ definir comportamiento del sistema cuando un usuario ingresa a un tenant sin nin
 decidir si en ese caso corresponde dashboard vacío, pantalla informativa o redirección controlada
 
 definir también cómo deben comportarse navbar y dashboard cuando no exista ningún módulo operativo visible
+<<END SECTION>>
 
-
+<<SECTION: FLUJOS FUNCIONALES>>
 FLUJOS FUNCIONALES
 
 revisar consolidación funcional del vínculo 1 a 1 entre tasks y orders
@@ -225,8 +236,9 @@ assets -> agendar appointment
 dejar resuelto el precompletado del formulario de appointments cuando se ingresa desde un activo o desde una relación contextual
 
 evaluar más adelante si el botón contextual de creación dentro de subtabs debe reaccionar dinámicamente al tab interno seleccionado o si alcanza con un default operativo estable por contexto
+<<END SECTION>>
 
-
+<<SECTION: NAVEGACIÓN Y CONTEXTO UX>>
 NAVEGACIÓN Y CONTEXTO UX
 
 revisar y consolidar la implementación de navegación contextual según contexto funcional real, navegación cruzada y profundidad de pantalla
@@ -235,7 +247,10 @@ normalizar implementación de navegación contextual ya adoptada en orders, docu
 
 auditar propagación de trail en sublistados, tablas embebidas, tabs, filtros y paginación donde todavía pueda perderse contexto
 
-eliminar reconstrucciones manuales de breadcrumb o retorno basadas en request suelta o url()->previous()
+eliminar completamente cualquier fallback basado en:
+
+url()->current()
+url()->previous()
 
 barrer restos de mecanismos anteriores de contexto si duplican o contradicen la resolución central vigente
 
@@ -272,7 +287,10 @@ evitar reaparición de serialización recursiva del trail dentro de URLs interna
 
 revisar casos donde el breadcrumb contextual del show siga resolviendo una salida incorrecta aunque la pantalla ya haya sido alineada visualmente
 
+auditar includes embebidos para asegurar uso exclusivo de NavigationTrail sin parámetros manuales
+<<END SECTION>>
 
+<<SECTION: NUMERACIÓN Y CONFIGURACIÓN OPERATIVA>>
 NUMERACIÓN Y CONFIGURACIÓN OPERATIVA
 
 llevar la configuración de secuencias al perfil de empresa
@@ -288,8 +306,9 @@ definir si el punto de venta también queda bloqueado una vez con movimiento
 revisar exposición del rubro elegido en resumen o configuración del tenant si más adelante hace falta
 
 evaluar si otros módulos core necesitan consumir TenantBusinessContext
+<<END SECTION>>
 
-
+<<SECTION: ONBOARDING Y EMPRESA>>
 ONBOARDING Y EMPRESA
 
 evolucionar el envío manual de invitaciones owner_signup hacia envío real por WhatsApp o email
@@ -301,15 +320,17 @@ revisar extensión del perfil de empresa con gestión futura de sucursales y con
 evaluar separar la gestión de roles y accesos del perfil de empresa hacia una pantalla propia cuando la complejidad funcional lo justifique
 
 evaluar más adelante si alguna parte no sensible del perfil de empresa puede delegarse a admin sin abrir acceso a configuraciones críticas
+<<END SECTION>>
 
-
+<<SECTION: ARQUITECTURA Y TRAZABILIDAD>>
 ARQUITECTURA Y TRAZABILIDAD
 
 implementar registro de actividad de usuario
 
 revisar consistencia de tenant_id en fillable de entidades hijas creadas internamente por el sistema
+<<END SECTION>>
 
-
+<<SECTION: PENDIENTES RELACIONADOS>>
 PENDIENTES RELACIONADOS
 
 breadcrumb contextual incorrecto en algunos show ya alineados visualmente, especialmente cuando el origen funcional no coincide con la jerarquía visible actual
@@ -342,8 +363,9 @@ evaluar más adelante si conviene agregar comportamiento más rico al horizontal
 gradientes laterales
 autoscroll hacia tab activo
 visibilidad refinada de chevrons en cambios de tab oculto/visible
+<<END SECTION>>
 
-
+<<SECTION: IDEAS FUTURAS>>
 IDEAS FUTURAS
 
 relación opcional entre users y parties
@@ -353,8 +375,9 @@ perfiles especializados para parties
 sistema de atributos dinámicos para entidades
 
 tabla de historial para relación activo-cliente
+<<END SECTION>>
 
-
+<<SECTION: REGLA DEL DOCUMENTO>>
 REGLA DEL DOCUMENTO
 
 Este documento debe mantenerse corto.
@@ -365,9 +388,10 @@ pendientes reales
 mejoras concretas
 refactors necesarios
 ideas futuras resumidas
+<<END SECTION>>
 
-
-== AUTENTICACIÓN Y SEGURIDAD ==
+<<SECTION: AUTENTICACIÓN Y SEGURIDAD>>
+AUTENTICACIÓN Y SEGURIDAD
 
 - Auditar LoginResponse para garantizar que el autoingreso post-login resuelva únicamente memberships activas y no permita acceso automático a tenants con membership bloqueada.
 
@@ -382,3 +406,4 @@ ideas futuras resumidas
 - Verificar que rutas o utilidades de debug de identidad o tenant, por ejemplo whoami, no queden expuestas en producción.
 
 - Revisar el flujo de logout para confirmar que no queden residuos de contexto tenant en sesión cuando existan respuestas custom de cierre de sesión.
+<<END SECTION>>

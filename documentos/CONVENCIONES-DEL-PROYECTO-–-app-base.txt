@@ -1,6 +1,12 @@
 CONVENCIONES-DEL-PROYECTO – app-base
 
+METODOLOGÍA DE EDICIÓN
 
+Este archivo se actualiza por reemplazo completo de bloques delimitados.
+Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
+Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
+
+<<SECTION: OBJETIVO DEL DOCUMENTO>>
 OBJETIVO DEL DOCUMENTO
 
 Este documento define las convenciones estructurales y de desarrollo del proyecto app-base.
@@ -14,8 +20,9 @@ nuevas entidades
 nuevas vistas
 nuevos controladores
 nuevos flujos operativos
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIONES GENERALES>>
 CONVENCIONES GENERALES
 
 El proyecto sigue los principios de:
@@ -27,8 +34,9 @@ coherencia entre módulos
 previsibilidad del comportamiento del sistema
 
 Cuando existan varias alternativas técnicas, se debe priorizar siempre la opción más simple y consistente con el resto del proyecto.
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIONES DE NOMBRES>>
 CONVENCIONES DE NOMBRES
 
 MODELOS
@@ -84,8 +92,9 @@ Ejemplos:
 /orders
 /documents
 /assets
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIÓN ACTUAL DE DECLARACIÓN DE RUTAS CRUD>>
 CONVENCIÓN ACTUAL DE DECLARACIÓN DE RUTAS CRUD
 
 Como convención actual del proyecto, las rutas CRUD del core funcional deben declararse explícitamente en routes/web.php.
@@ -93,8 +102,9 @@ Como convención actual del proyecto, las rutas CRUD del core funcional deben de
 No se utilizará Route::resource(...) mientras el proyecto mantenga compatibilidad objetivo con hosting compartido básico sin CLI, salvo revisión técnica posterior en un entorno más robusto.
 
 Esta decisión busca priorizar previsibilidad operativa y reducir riesgo en despliegues cerrados preparados en local.
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIONES DE MULTI-TENANCY>>
 CONVENCIONES DE MULTI-TENANCY
 
 Las entidades del negocio deben incluir siempre:
@@ -110,15 +120,17 @@ Ejemplos de entidades del sistema:
 User
 Tenant
 Membership
+<<END SECTION>>
 
-
+<<SECTION: ACCESO OPERATIVO POR TENANT>>
 ACCESO OPERATIVO POR TENANT
 
 La restricción operativa de acceso a empresa debe validarse por memberships.status = active.
 
 No debe utilizarse desactivación global de users para resolver bajas, bloqueos o pérdida de acceso específicos de un tenant.
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIONES DE ACCESO POR MÓDULO Y ROLES>>
 CONVENCIONES DE ACCESO POR MÓDULO Y ROLES
 
 La autorización operativa del sistema debe resolverse diferenciando:
@@ -146,8 +158,9 @@ los roles operativos pueden ver el módulo habilitado y crear o editar registros
 la eliminación sensible debe reservarse a owner y admin, salvo necesidad funcional justificada
 
 la visibilidad del dashboard y de métricas agregadas debe respetar el rol y no asumir siempre conteos globales del tenant
+<<END SECTION>>
 
-
+<<SECTION: ROLECATALOG Y MODULECATALOG>>
 ROLECATALOG Y MODULECATALOG
 
 RoleCatalog es el catálogo base mínimo y reservado del sistema para roles estructurales.
@@ -165,8 +178,9 @@ los módulos base del sistema deben resolverse desde ModuleCatalog
 los roles base sembrados al crear el tenant no deben modificarse ni eliminarse
 
 a futuro el tenant podrá agregar roles propios en base de datos, pero sin alterar la base reservada del sistema
+<<END SECTION>>
 
-
+<<SECTION: EVOLUCIÓN PREVISTA DE PERMISOS>>
 EVOLUCIÓN PREVISTA DE PERMISOS
 
 La arquitectura de permisos debe prepararse para incorporar una capa centralizada compuesta por:
@@ -197,8 +211,9 @@ el acceso a módulo no reemplaza la policy por registro
 el acceso a módulo, la visibilidad de registros y la capacidad de acción deben tratarse como capas separadas
 
 cuando un módulo tenga reglas específicas por ownership, asignación o participación operativa, la policy debe resolver esa diferencia reutilizando la capa central y el criterio de visibilidad del módulo
+<<END SECTION>>
 
-
+<<SECTION: TRAIT TENANTSCOPED>>
 TRAIT TENANTSCOPED
 
 Las entidades del negocio deben utilizar el trait:
@@ -211,8 +226,9 @@ filtrar automáticamente por tenant_id
 asignar tenant_id al crear registros
 
 Esto garantiza que los datos de diferentes empresas no se mezclen.
+<<END SECTION>>
 
-
+<<SECTION: USO DE TENANT_ID EN FILLABLE>>
 USO DE TENANT_ID EN FILLABLE
 
 Como regla general, tenant_id no debe exponerse en formularios ni venir desde input del usuario.
@@ -233,8 +249,9 @@ Esto permite manejar correctamente casos como:
 
 document_items creados desde documentos
 order_items copiados hacia documentos derivados
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIONES DE ENTIDADES HIJAS>>
 CONVENCIONES DE ENTIDADES HIJAS
 
 Las entidades hijas deben cumplir:
@@ -258,8 +275,9 @@ Esto ya se considera válido para entidades como:
 
 order_items respecto de orders
 document_items respecto de documents
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIONES DE OWNERSHIP FUNCIONAL Y PERMISOS OPERATIVOS SIMPLES>>
 CONVENCIONES DE OWNERSHIP FUNCIONAL Y PERMISOS OPERATIVOS SIMPLES
 
 Cuando un módulo lo permita, puede adoptarse un criterio simple de ownership funcional del registro en lugar de una capa temprana de permisos compleja.
@@ -279,8 +297,9 @@ si el registro puede reasignarse, el nuevo asignado pasa a ser responsable opera
 si no existe propietario directo, el control sensible queda en owner y admin o en la policy específica del módulo
 
 Este patrón ya se considera válido para tasks.
+<<END SECTION>>
 
-
+<<SECTION: REGLA PARA MÓDULOS OPERATIVOS COMPARTIDOS DEL TENANT>>
 REGLA PARA MÓDULOS OPERATIVOS COMPARTIDOS DEL TENANT
 
 Cuando un módulo operativo compartido del tenant no tenga responsable operativo directo:
@@ -297,8 +316,9 @@ parties
 assets
 products
 orders
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIONES DE SUPPORT Y HELPERS DE ACCESO>>
 CONVENCIONES DE SUPPORT Y HELPERS DE ACCESO
 
 La lógica transversal de acceso tenant/roles no debe dispersarse en controllers o blades.
@@ -318,8 +338,9 @@ Cuando la visibilidad de registros dependa del módulo, debe resolverse preferen
 Support/<Modulo>/<Entidad>Visibility
 
 Esto ya se considera válido para la visibilidad operativa de projects.
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIONES DE POLICIES>>
 CONVENCIONES DE POLICIES
 
 La autorización por acción debe resolverse preferentemente mediante Policies.
@@ -345,8 +366,9 @@ el controller debe invocar authorize(...) o authorizeResource(...)
 la vista debe respetar permisos reales con @can al mostrar acciones
 
 una policy que no se consume desde controller y vista no protege efectivamente el sistema
+<<END SECTION>>
 
-
+<<SECTION: REGLA DE NAVEGACIÓN Y VISIBILIDAD DE UI>>
 REGLA DE NAVEGACIÓN Y VISIBILIDAD DE UI
 
 La interfaz no debe mostrar accesos que el usuario no puede usar realmente.
@@ -370,8 +392,9 @@ el navbar representa anclaje funcional estable del sistema
 el navbar no debe copiar ni duplicar el breadcrumb
 
 cuando exista navegación contextual entre módulos relacionados, el módulo activo del navbar puede resolverse por origen funcional del flujo y no solo por la pantalla hoja actualmente abierta
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIONES DE BLADE Y FRONTEND LIVIANO>>
 CONVENCIONES DE BLADE Y FRONTEND LIVIANO
 
 Las vistas Blade deben mantenerse simples, explícitas y previsibles.
@@ -396,8 +419,9 @@ clases CSS = estilo
 data-* = comportamiento
 
 Preferir soluciones simples y declarativas antes que lógica distribuida en múltiples blades.
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIONES DE FORMULARIOS OPERATIVOS>>
 CONVENCIONES DE FORMULARIOS OPERATIVOS
 
 Regla general:
@@ -418,8 +442,9 @@ evitar problemas de estado, foco y validación
 mantener consistencia de navegación y breadcrumb
 
 Si una operación requiere validación completa, navegación consistente o interacción de formulario real, debe resolverse como pantalla y no como modal.
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIONES DE MÓDULOS TRANSVERSALES>>
 CONVENCIONES DE MÓDULOS TRANSVERSALES
 
 Un módulo transversal es aquel que:
@@ -445,8 +470,9 @@ cuando un patrón transversal se repita en varios módulos, debe tender a resolv
 Ejemplo actual de este patrón:
 
 attachments
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIONES ESPECÍFICAS PARA ATTACHMENTS>>
 CONVENCIONES ESPECÍFICAS PARA ATTACHMENTS
 
 Attachments se considera un módulo transversal embebido alineado al patrón general del proyecto.
@@ -466,8 +492,9 @@ en el embebido visible de attachments, kind es la dimensión principal y estable
 no debe agregarse una segunda dimensión visible equivalente si no aporta valor operativo real
 
 attachments no debe depender en frontend de nombres de clase del backend para resolver integración, comportamiento o segmentación
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIONES DE PRESERVACIÓN DE CONTEXTO UX>>
 CONVENCIONES DE PRESERVACIÓN DE CONTEXTO UX
 
 En vistas con tabs, filtros o acciones internas, debe preservarse el contexto funcional al refrescar o redirigir cuando eso mejore la UX.
@@ -481,8 +508,9 @@ paginación cuando aplique
 Las tabs mencionadas en esta convención refieren a tabs internas de contenido dentro de una pantalla.
 
 No debe asumirse todavía como convención general del sistema una navegación entre rutas dentro de tabs de app o tipo workspace.
+<<END SECTION>>
 
-
+<<SECTION: NAVEGACIÓN ESTRUCTURAL Y CONTEXTUAL>>
 NAVEGACIÓN ESTRUCTURAL Y CONTEXTUAL
 
 La navegación del sistema debe distinguir entre:
@@ -524,8 +552,9 @@ usar navegación estructural por defecto
 usar navegación contextual solo como override útil cuando el origen funcional deba preservarse
 
 cuando no exista contexto válido o el origen no agregue valor operativo, debe mostrarse navegación estructural normal
+<<END SECTION>>
 
-
+<<SECTION: RESOLUCIÓN TÉCNICA DEL TRAIL DE NAVEGACIÓN>>
 RESOLUCIÓN TÉCNICA DEL TRAIL DE NAVEGACIÓN
 
 Cuando la navegación contextual ya exista como patrón real del sistema, debe resolverse mediante un mecanismo central reutilizable y estable.
@@ -579,8 +608,9 @@ sin deducción desde historial
 sin duplicación por módulo
 
 sin serialización recursiva del trail dentro de nodos
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIONES DE VOCABULARIO UI>>
 CONVENCIONES DE VOCABULARIO UI
 
 Nombre genérico visible de la entidad parties en interfaz:
@@ -596,8 +626,9 @@ Colaborador
 El verbo destructivo estándar en botones, confirmaciones y mensajes del sistema es:
 
 Eliminar
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIONES DE ACCIONES VISUALES>>
 CONVENCIONES DE ACCIONES VISUALES
 
 Fuera de tablas, los botones principales pueden usar icono + texto cuando eso refuerce la asociación visual de la acción.
@@ -608,8 +639,9 @@ Todo botón de solo icono debe incluir:
 
 title
 aria-label
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIONES DE SEGURIDAD>>
 CONVENCIONES DE SEGURIDAD
 
 El sistema debe evitar que un usuario pueda acceder a registros de otro tenant.
@@ -620,8 +652,9 @@ TenantScoped
 ResolvesTenantRouteBinding
 
 Nunca se deben realizar consultas que ignoren el tenant actual.
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIONES DE FLUJO DE INVITACIONES>>
 CONVENCIONES DE FLUJO DE INVITACIONES
 
 Las invitaciones forman parte del flujo de onboarding y acceso al sistema.
@@ -637,8 +670,9 @@ En estos casos no debe aplicarse la redirección estándar posterior al login.
 El sistema debe retornar al flujo de aceptación de la invitación.
 
 Esto garantiza continuidad del proceso de incorporación al tenant correspondiente.
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIÓN DE SIMPLICIDAD>>
 CONVENCIÓN DE SIMPLICIDAD
 
 Antes de introducir una nueva abstracción, evaluar si realmente es necesaria.
@@ -650,8 +684,9 @@ consistencia
 bajo nivel de complejidad accidental
 
 Las soluciones simples y previsibles deben preferirse sobre arquitecturas excesivamente abstractas.
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIONES DE CSS Y PATRONES VISUALES>>
 CONVENCIONES DE CSS Y PATRONES VISUALES
 
 La organización del CSS visual del proyecto debe seguir esta base:
@@ -673,8 +708,9 @@ no duplicar variantes visuales equivalentes con prefijos de módulo si ya existe
 cuando un patrón visual deje de ser exclusivo de un módulo, debe migrarse a nomenclatura neutral reusable
 
 preferir nombres neutrales cuando el patrón ya se utilice en más de un módulo
+<<END SECTION>>
 
-
+<<SECTION: CONVENCIONES DE NAVEGACIÓN CONTEXTUAL>>
 CONVENCIONES DE NAVEGACIÓN CONTEXTUAL
 
 Cuando exista navegación cruzada entre entidades relacionadas, no debe resetearse el contexto de origen sin necesidad funcional real.
@@ -696,3 +732,4 @@ solo el módulo contenedor
 o el módulo contenedor más la entidad fila desde la cual se abre la entidad relacionada
 
 esa decisión no debe dejarse implícita ni variar accidentalmente entre módulos
+<<END SECTION>>

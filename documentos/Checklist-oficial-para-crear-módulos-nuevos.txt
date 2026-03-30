@@ -1,6 +1,12 @@
 CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS
 
+METODOLOGÍA DE EDICIÓN
 
+Este archivo se actualiza por reemplazo completo de bloques delimitados.
+Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
+Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
+
+<<SECTION: OBJETIVO>>
 OBJETIVO
 
 Este checklist define los mínimos obligatorios al crear un módulo nuevo en el proyecto.
@@ -9,8 +15,9 @@ Debe utilizarse como control de consistencia antes de considerar el módulo inte
 
 No reemplaza la revisión técnica.
 Funciona como piso común obligatorio.
+<<END SECTION>>
 
-
+<<SECTION: ESTRUCTURA GENERAL>>
 ESTRUCTURA GENERAL
 
 Verificar:
@@ -25,8 +32,9 @@ validaciones mínimas implementadas
 tenant resuelto correctamente
 autorización revisada
 documentación actualizada
+<<END SECTION>>
 
-
+<<SECTION: MODELO Y MIGRACIÓN>>
 MODELO Y MIGRACIÓN
 
 Verificar:
@@ -39,8 +47,9 @@ fillable revisado
 casts revisados
 relaciones definidas
 trait TenantScoped aplicado si corresponde
+<<END SECTION>>
 
-
+<<SECTION: RUTAS Y CONTROLADOR>>
 RUTAS Y CONTROLADOR
 
 Verificar:
@@ -52,8 +61,9 @@ controller delgado
 validación separada cuando haga falta
 authorize(...) o authorizeResource(...) aplicado cuando corresponda
 no duplicar permisos en controller si la policy ya resuelve la acción
+<<END SECTION>>
 
-
+<<SECTION: VISTAS>>
 VISTAS
 
 Verificar:
@@ -67,8 +77,9 @@ uso de x-page-header
 uso de cards o bloques visuales consistentes
 acciones visibles alineadas con permisos reales
 partials creados si la vista crece demasiado
+<<END SECTION>>
 
-
+<<SECTION: AUTORIZACIÓN Y UI>>
 AUTORIZACIÓN Y UI
 
 Verificar:
@@ -79,8 +90,9 @@ policy realmente aplicada desde controller
 la UI no muestra acciones no permitidas
 navbar o dashboard no exponen accesos irreales
 permisos alineados con rol, módulo y tipo de acción
+<<END SECTION>>
 
-
+<<SECTION: DOCUMENTACIÓN OBLIGATORIA>>
 DOCUMENTACIÓN OBLIGATORIA
 
 Verificar si corresponde actualizar:
@@ -96,8 +108,9 @@ DEPLOY-Y-COMPATIBILIDAD-DEL-PROYECTO
 No actualizar documentos por inercia.
 
 Solo tocar los realmente afectados.
+<<END SECTION>>
 
-
+<<SECTION: NAVEGACIÓN Y BREADCRUMB>>
 NAVEGACIÓN Y BREADCRUMB
 
 Definir desde el inicio si el módulo necesita solo navegación estructural o también navegación contextual.
@@ -162,7 +175,9 @@ no deducir breadcrumb funcional desde relaciones implícitas del modelo ni desde
 no introducir mecanismos paralelos de contexto si ya existe trail central vigente
 
 no duplicar en blades lógica que ya fue resuelta por controller o capa central de navegación
+<<END SECTION>>
 
+<<SECTION: CIERRE>>
 CIERRE
 
 Un módulo no debe considerarse terminado solo porque funciona.
@@ -174,3 +189,4 @@ alineado con permisos reales
 alineado con multi-tenancy
 alineado con la base visual
 alineado con la documentación vigente
+<<END SECTION>>

@@ -1,5 +1,12 @@
 MAPA-DE-ENTIDADES – app-base
 
+METODOLOGÍA DE EDICIÓN
+
+Este archivo se actualiza por reemplazo completo de bloques delimitados.
+Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
+Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
+
+<<SECTION: OBJETIVO>>
 OBJETIVO
 
 Este documento describe el mapa conceptual actual de entidades del sistema app-base.
@@ -10,14 +17,18 @@ entender la estructura general del dominio
 visualizar relaciones entre entidades
 definir qué entidades ya existen
 detectar futuras extensiones funcionales sin duplicar conceptos
+<<END SECTION>>
 
+<<SECTION: REGLA GENERAL DEL SISTEMA>>
 REGLA GENERAL DEL SISTEMA
 
 El sistema distingue dos grandes grupos:
 
 entidades del sistema
 entidades del negocio
+<<END SECTION>>
 
+<<SECTION: ENTIDADES DEL SISTEMA>>
 ENTIDADES DEL SISTEMA
 
 Son las entidades que permiten que la plataforma funcione como SaaS multi-tenant.
@@ -29,7 +40,9 @@ tenants
 memberships
 signup_requests
 invitations
+<<END SECTION>>
 
+<<SECTION: FUNCIÓN DE CADA UNA>>
 FUNCIÓN DE CADA UNA
 
 users
@@ -84,7 +97,9 @@ Cuando type = owner_signup puede existir sin tenant asociado.
 Cuando type = member_invite sí se vincula operativamente a un tenant existente.
 
 Por esta razón, no debe tratarse como una entidad tenant-scoped pura del negocio.
+<<END SECTION>>
 
+<<SECTION: ENTIDADES DEL NEGOCIO>>
 ENTIDADES DEL NEGOCIO
 
 Son las entidades operativas propias de cada tenant.
@@ -107,7 +122,9 @@ documents
 document_items
 document_sequences
 attachments
+<<END SECTION>>
 
+<<SECTION: ENTIDAD BASE DEL NEGOCIO>>
 ENTIDAD BASE DEL NEGOCIO
 
 parties
@@ -133,7 +150,9 @@ Party
 Nombre visible sugerido en la interfaz:
 
 Contacto
+<<END SECTION>>
 
+<<SECTION: MODELO DE ACCESO Y PERTENENCIA>>
 MODELO DE ACCESO Y PERTENENCIA
 
 Relación principal:
@@ -150,7 +169,9 @@ users resuelve identidad global
 memberships resuelve acceso real por tenant
 
 No usar user.tenant_id porque rompería el modelo multi-tenant actual.
+<<END SECTION>>
 
+<<SECTION: ROLES Y AUTORIZACIÓN>>
 ROLES Y AUTORIZACIÓN
 
 La pertenencia a un tenant puede tener uno o más roles por usuario.
@@ -182,7 +203,9 @@ roles
 permissions
 
 o bien una capa equivalente resuelta por matriz y resolver, según evolución de la implementación.
+<<END SECTION>>
 
+<<SECTION: ACLARACIÓN SOBRE TENANT-SCOPED>>
 ACLARACIÓN SOBRE TENANT-SCOPED
 
 El trait TenantScoped debe usarse en entidades cuyo ciclo de vida pertenece completamente a un tenant.
@@ -215,9 +238,15 @@ User
 Tenant
 Membership
 SignupRequest
+<<END SECTION>>
 
+<<SECTION: MÓDULOS ACTUALES DEL NEGOCIO>>
 MÓDULOS ACTUALES DEL NEGOCIO
 
+
+<<END SECTION>>
+
+<<SECTION: PARTIES>>
 PARTIES
 
 Entidad base transversal del dominio.
@@ -232,7 +261,9 @@ un Party puede representar cliente, proveedor, contacto u otro actor
 Regla:
 
 no duplicar esta función en entidades paralelas como Client o Supplier.
+<<END SECTION>>
 
+<<SECTION: PROJECTS>>
 PROJECTS
 
 Agrupador operativo de trabajo.
@@ -254,7 +285,9 @@ Regla operativa actual:
 owner y admin ven todos los proyectos
 
 roles operativos ven solo proyectos donde tengan al menos una tarea asignada
+<<END SECTION>>
 
+<<SECTION: TASKS>>
 TASKS
 
 Unidad operativa interna fina.
@@ -274,7 +307,9 @@ toda tarea debe crearse asignada
 owner y admin pueden gestionar tareas ajenas
 
 roles operativos solo editan las propias
+<<END SECTION>>
 
+<<SECTION: APPOINTMENTS>>
 APPOINTMENTS
 
 Agenda operativa reutilizable por tenant.
@@ -290,7 +325,9 @@ puede vincularse opcionalmente a un Order
 Regla funcional actual:
 
 su capa visible puede adaptar vocabulario o etiquetas según el rubro configurado del tenant, sin permitir etiquetas libres por empresa.
+<<END SECTION>>
 
+<<SECTION: PRODUCTS>>
 PRODUCTS
 
 Catálogo operativo de productos o ítems comercializables.
@@ -299,7 +336,9 @@ Relaciones:
 
 puede aparecer en OrderItems
 puede aparecer en DocumentItems
+<<END SECTION>>
 
+<<SECTION: ASSETS>>
 ASSETS
 
 Representa activos o equipos asociados a un tenant.
@@ -313,7 +352,9 @@ un Asset puede vincularse opcionalmente a muchos Documents
 Relación futura posible:
 
 historial de asociación Asset ↔ Party
+<<END SECTION>>
 
+<<SECTION: ORDERS>>
 ORDERS
 
 Cabecera operativa de órdenes.
@@ -332,7 +373,9 @@ Relación Task → Order actual:
 una Task puede derivar en una única Order
 
 el vínculo operativo se expresa desde orders.task_id
+<<END SECTION>>
 
+<<SECTION: ORDER_ITEMS>>
 ORDER_ITEMS
 
 Detalle de una Order.
@@ -343,7 +386,9 @@ pertenece a una Order
 hereda tenant_id desde la cabecera
 normalmente no requiere policy independiente compleja
 su autorización puede heredarse desde Order
+<<END SECTION>>
 
+<<SECTION: DOCUMENTS>>
 DOCUMENTS
 
 Cabecera documental.
@@ -370,7 +415,9 @@ tenant_id
 party_id
 order_id
 asset_id si corresponde
+<<END SECTION>>
 
+<<SECTION: DOCUMENT_ITEMS>>
 DOCUMENT_ITEMS
 
 Detalle de un Document.
@@ -381,7 +428,9 @@ pertenece a un Document
 hereda tenant_id desde la cabecera
 puede originarse manualmente o por copia desde OrderItems
 su autorización puede heredarse desde Document
+<<END SECTION>>
 
+<<SECTION: DOCUMENT_SEQUENCES>>
 DOCUMENT_SEQUENCES
 
 Entidad de soporte para numeración operativa.
@@ -399,7 +448,9 @@ punto de venta
 Regla:
 
 no modelar numeración manual o unique global en cabeceras operativas cuando ya existe este sistema.
+<<END SECTION>>
 
+<<SECTION: ATTACHMENTS>>
 ATTACHMENTS
 
 Entidad transversal del negocio para archivos y adjuntos operativos del tenant.
@@ -419,7 +470,9 @@ su organización funcional debe apoyarse en AttachmentCatalog
 Regla:
 
 attachments ya no debe tratarse como futura posible, sino como parte implementada del mapa actual del sistema
+<<END SECTION>>
 
+<<SECTION: CONTEXTO FUNCIONAL DEL TENANT>>
 CONTEXTO FUNCIONAL DEL TENANT
 
 El tenant puede incorporar configuración funcional en:
@@ -429,7 +482,9 @@ settings.business_profile.type
 Ese valor no representa texto libre de interfaz.
 
 Debe resolverse a partir de un catálogo cerrado de rubros y servir como contexto para módulos adaptables, por ejemplo appointments.
+<<END SECTION>>
 
+<<SECTION: FLUJOS PRINCIPALES DEL SISTEMA>>
 FLUJOS PRINCIPALES DEL SISTEMA
 
 FLUJO DE IDENTIDAD Y ACCESO
@@ -483,7 +538,9 @@ FLUJO TRANSVERSAL DE ADJUNTOS
 módulos operativos
 ↓
 attachments
+<<END SECTION>>
 
+<<SECTION: ENTIDADES YA IMPLEMENTADAS>>
 ENTIDADES YA IMPLEMENTADAS
 
 users
@@ -506,7 +563,9 @@ documents
 document_items
 document_sequences
 attachments
+<<END SECTION>>
 
+<<SECTION: ENTIDADES FUTURAS POSIBLES>>
 ENTIDADES FUTURAS POSIBLES
 
 permissions
@@ -515,8 +574,9 @@ payments
 inventory
 activity_logs
 asset_party_history
+<<END SECTION>>
 
-
+<<SECTION: MEMBERSHIPS, OWNER Y ROLES>>
 MEMBERSHIPS, OWNER Y ROLES
 
 La pertenencia operativa de un usuario a un tenant se resuelve por memberships.
@@ -544,8 +604,9 @@ La jerarquía efectiva debe entenderse así:
 owner como condición estructural
 roles delegables como capa operativa
 permisos concretos como capa de autorización
+<<END SECTION>>
 
-
+<<SECTION: REGLA GENERAL DE CRECIMIENTO>>
 REGLA GENERAL DE CRECIMIENTO
 
 Antes de crear una nueva entidad, verificar:
@@ -554,7 +615,9 @@ si el caso puede resolverse con una entidad ya existente
 si parties puede absorber el nuevo caso
 si la relación puede modelarse como extensión y no como nueva tabla
 si la necesidad corresponde realmente al dominio o solo a una vista específica
+<<END SECTION>>
 
+<<SECTION: REGLA FINAL>>
 REGLA FINAL
 
 Este documento describe el mapa conceptual del sistema.
@@ -566,3 +629,4 @@ CONVENCIONES-DEL-PROYECTO
 CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS
 
 Debe mantenerse alineado con esos documentos.
+<<END SECTION>>

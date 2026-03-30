@@ -1,6 +1,12 @@
 MAPA-DE-NAVEGACION-Y-RELACIONES – app-base
 
+METODOLOGÍA DE EDICIÓN
 
+Este archivo se actualiza por reemplazo completo de bloques delimitados.
+Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
+Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
+
+<<SECTION: OBJETIVO>>
 OBJETIVO
 
 Este documento describe el mapa actual de navegación funcional entre módulos y pantallas del sistema app-base.
@@ -17,8 +23,9 @@ Este documento no reemplaza:
 MAPA-DE-ENTIDADES – app-base
 CONVENCIONES-DEL-PROYECTO – app-base
 TODO-DEL-PROYECTO – app-base
+<<END SECTION>>
 
-
+<<SECTION: REGLA GENERAL>>
 REGLA GENERAL
 
 El sistema distingue entre:
@@ -37,8 +44,9 @@ Como regla general:
 toda pantalla debe poder abrirse en modo estructural
 
 solo ciertos flujos aceptan además trail contextual heredado
+<<END SECTION>>
 
-
+<<SECTION: CLASIFICACIÓN GENERAL DE MÓDULOS>>
 CLASIFICACIÓN GENERAL DE MÓDULOS
 
 MÓDULOS PRINCIPALMENTE ESTRUCTURALES
@@ -69,8 +77,9 @@ tasks
 assets
 
 Pueden abrirse de forma estructural o como continuación de otro flujo operativo.
+<<END SECTION>>
 
-
+<<SECTION: REGLAS DEL TRAIL>>
 REGLAS DEL TRAIL
 
 Cuando exista trail contextual válido:
@@ -94,8 +103,9 @@ historial del navegador
 supuestos implícitos del modelo
 
 El trail no debe serializarse dentro de las URLs internas de sus propios nodos.
+<<END SECTION>>
 
-
+<<SECTION: MAPA DE NAVEGACIÓN PRINCIPAL>>
 MAPA DE NAVEGACIÓN PRINCIPAL
 
 FLUJO ESTRUCTURAL BASE
@@ -198,8 +208,9 @@ order_items
 documents
 ↓
 document_items
+<<END SECTION>>
 
-
+<<SECTION: REGLA PARA LINKS RELACIONALES DESDE TABLAS CONTEXTUALES>>
 REGLA PARA LINKS RELACIONALES DESDE TABLAS CONTEXTUALES
 
 Cuando una tabla enlaza desde una entidad fila hacia una entidad relacionada, debe evaluarse cuál es el contexto real que el breadcrumb necesita preservar.
@@ -223,8 +234,9 @@ listados contextuales dentro de tabs
 acciones por fila hacia entidades relacionadas
 
 sublistados donde el contenedor no alcanza por sí solo para conservar el contexto de origen
+<<END SECTION>>
 
-
+<<SECTION: DETALLE DE FLUJOS RELEVANTES>>
 DETALLE DE FLUJOS RELEVANTES
 
 APPOINTMENTS -> PARTIES
@@ -490,8 +502,9 @@ alta, edición o consulta de renglones de orden
 Contexto esperado:
 
 order_items hereda normalmente el contexto de la order padre
+<<END SECTION>>
 
-
+<<SECTION: PANTALLAS QUE DEBEN AUDITARSE CON ESPECIAL ATENCIÓN>>
 PANTALLAS QUE DEBEN AUDITARSE CON ESPECIAL ATENCIÓN
 
 show de módulos relacionados
@@ -515,8 +528,9 @@ filtros
 tabs internas
 
 paginación en listados con contexto activo
+<<END SECTION>>
 
-
+<<SECTION: CRITERIOS DE AUDITORÍA FUTURA>>
 CRITERIOS DE AUDITORÍA FUTURA
 
 Al auditar breadcrumb, trail o navegación entre módulos, verificar:
@@ -538,7 +552,9 @@ si navbar y sidebar marcan el área funcional esperada y no solo la hoja final a
 si en tablas contextuales el trail correcto era el del contenedor o el de la fila
 
 si hay pantallas donde el contexto se pierde por filtros, tabs, paginación o acciones secundarias
+<<END SECTION>>
 
+<<SECTION: RELACIÓN CON OTROS DOCUMENTOS>>
 RELACIÓN CON OTROS DOCUMENTOS
 
 MAPA-DE-ENTIDADES – app-base
@@ -552,8 +568,9 @@ debe seguir definiendo cómo se expresa visualmente el breadcrumb y la pantalla
 
 TODO-DEL-PROYECTO – app-base
 debe seguir registrando pendientes de auditoría, migración y consolidación
+<<END SECTION>>
 
-
+<<SECTION: REGLA FINAL>>
 REGLA FINAL
 
 Este documento debe mantenerse como referencia práctica de navegación real del sistema.
@@ -567,3 +584,4 @@ módulos relacionados
 tramos contextuales validados
 puntos donde suele perderse contexto
 referencia útil para futuras auditorías
+<<END SECTION>>

@@ -1,9 +1,18 @@
 PLANTILLA MÍNIMA PARA INICIAR NUEVOS CHATS DEL PROYECTO – app-base
 
+METODOLOGÍA DE EDICIÓN
+
+Este archivo se actualiza por reemplazo completo de bloques delimitados.
+Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
+Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
+
+<<SECTION: PROYECTO>>
 PROYECTO
 
 app-base
+<<END SECTION>>
 
+<<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
 Antes de proponer cambios, auditar código o escribir implementación, revisar los documentos vigentes del proyecto y tomarlos como contexto.
@@ -18,7 +27,9 @@ Documentos base a considerar:
 - BASE-VISUAL-DEL-PROYECTO – app-base
 - TODO-DEL-PROYECTO – app-base
 - DEPLOY-Y-COMPATIBILIDAD-DEL-PROYECTO – app-base
+<<END SECTION>>
 
+<<SECTION: REGLA CENTRAL DE TRABAJO>>
 REGLA CENTRAL DE TRABAJO
 
 No inventar nada.
@@ -43,7 +54,9 @@ Si el código o el pedido muestran una actualización todavía no reflejada en l
 - señalar la diferencia con claridad
 - trabajar sobre el estado real verificable
 - indicar si corresponde o no actualizar documentación
+<<END SECTION>>
 
+<<SECTION: CRITERIO DE AVANCE>>
 CRITERIO DE AVANCE
 
 No bloquear la respuesta por faltantes menores si igualmente se puede aportar algo útil, concreto y razonable.
@@ -53,7 +66,9 @@ Si el contexto alcanza para responder, proponer, corregir o implementar parcialm
 Solo frenar o pedir archivos cuando falte contexto realmente crítico para no romper el proyecto, contradecir el código o inventar una solución no verificable.
 
 Ante duda menor, priorizar mejor esfuerzo útil y explícito antes que silencio o bloqueo innecesario.
+<<END SECTION>>
 
+<<SECTION: REGLAS ESPECÍFICAS DEL PROYECTO>>
 REGLAS ESPECÍFICAS DEL PROYECTO
 
 - no usar Route::resource(...) en el core mientras siga vigente la convención actual
@@ -64,7 +79,9 @@ REGLAS ESPECÍFICAS DEL PROYECTO
 - no exponer tenant_id como dato de formulario del usuario
 - no asumir tenant_id como foreignId() sin verificar el patrón real del proyecto
 - si el tema toca permisos, validar policy + authorize + @can cuando corresponda
+<<END SECTION>>
 
+<<SECTION: REGLA DE VALIDACIÓN DEL PEDIDO>>
 REGLA DE VALIDACIÓN DEL PEDIDO
 
 Si el pedido parte de una premisa incorrecta, incompleta o contradictoria con el código o con documentos vigentes, señalarlo primero.
@@ -72,7 +89,9 @@ Si el pedido parte de una premisa incorrecta, incompleta o contradictoria con el
 Si el código real contradice la documentación, indicar la diferencia y trabajar con el estado verificable.
 
 No avanzar a implementación solo cuando la base sea lo bastante incierta como para generar una solución riesgosa, inconsistente o inventada.
+<<END SECTION>>
 
+<<SECTION: REGLA PARA ARCHIVOS COMPLETOS DE CÓDIGO>>
 REGLA PARA ARCHIVOS COMPLETOS DE CÓDIGO
 
 - cuando devuelvas un archivo completo, la primera línea debe ser siempre un comentario válido para ese lenguaje con este formato:
@@ -83,7 +102,9 @@ FILE: ruta/del/archivo.ext | VX
 - esta regla aplica solo cuando se devuelve el archivo completo
 - si se devuelve solo un fragmento o bloque parcial, no agregar ni modificar versión
 - el comentario debe escribirse con la sintaxis correcta del archivo correspondiente
+<<END SECTION>>
 
+<<SECTION: FORMA DE RESPUESTA ESPERADA>>
 FORMA DE RESPUESTA ESPERADA
 
 Responder con contenido objetivo, útil y aplicable.
@@ -101,7 +122,9 @@ Priorizar respuestas:
 - precisas
 - completas
 - no redundantes
+<<END SECTION>>
 
+<<SECTION: ESTRUCTURA GUÍA DE RESPUESTA>>
 ESTRUCTURA GUÍA DE RESPUESTA
 
 Usar solo si aporta valor real:
@@ -113,19 +136,27 @@ Usar solo si aporta valor real:
 5. Implementación concreta
 6. Impacto documental
 7. Cierre
+<<END SECTION>>
 
+<<SECTION: OBJETIVO DE ESTE CHAT>>
 OBJETIVO DE ESTE CHAT
 
 [describir aquí el objetivo puntual]
+<<END SECTION>>
 
+<<SECTION: ALCANCE>>
 ALCANCE
 
 [describir módulo/s, vista/s, flujo/s o archivo/s alcanzados]
+<<END SECTION>>
 
+<<SECTION: ESTADO O RESTRICCIÓN ESPECIAL>>
 ESTADO O RESTRICCIÓN ESPECIAL
 
 [opcional: dejar aquí acuerdos puntuales del momento]
+<<END SECTION>>
 
+<<SECTION: SI NECESITÁS ARCHIVOS>>
 SI NECESITÁS ARCHIVOS
 
 Si necesitás archivos, primero determiná exactamente cuáles son necesarios para entender o auditar el caso.
@@ -150,9 +181,12 @@ find resources/views/products -type f -name "*.blade.php";
 done > documentos/auditoria/auditoria-[nombre-de-referencia].txt
 
 Indicame todos los archivos necesarios así te los paso en un único bloque.
+<<END SECTION>>
 
+<<SECTION: SI HAY QUE CREAR ARCHIVOS>>
 SI HAY QUE CREAR ARCHIVOS
 
 Si hay que crear archivos nuevos, dame el comando de consola correspondiente.
 Si aplica, usar comando artisan.
 Si no aplica artisan, dar comando manual claro de creación.
+<<END SECTION>>

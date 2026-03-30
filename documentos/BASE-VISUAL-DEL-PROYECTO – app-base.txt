@@ -1,6 +1,12 @@
 BASE-VISUAL-DEL-PROYECTO – app-base
 
+METODOLOGÍA DE EDICIÓN
 
+Este archivo se actualiza por reemplazo completo de bloques delimitados.
+Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
+Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
+
+<<SECTION: OBJETIVO DEL DOCUMENTO>>
 OBJETIVO DEL DOCUMENTO
 
 Este documento define la base visual común del sistema.
@@ -15,8 +21,9 @@ estructura visual base
 componentes reutilizables
 criterios de composición de vistas
 patrones visuales compartidos
+<<END SECTION>>
 
-
+<<SECTION: ESTRUCTURA GENERAL DE PÁGINA>>
 ESTRUCTURA GENERAL DE PÁGINA
 
 Toda pantalla principal del sistema debe construirse sobre una estructura consistente.
@@ -34,8 +41,9 @@ jerarquía visual clara
 encabezado consistente
 acciones principales visibles
 lectura simple del contenido
+<<END SECTION>>
 
-
+<<SECTION: COMPONENTES DISPONIBLES>>
 COMPONENTES DISPONIBLES
 
 Componentes Blade reutilizables utilizados en todas las vistas.
@@ -51,8 +59,9 @@ Título de la pantalla y acciones principales.
 
 x-card
 Contenedor visual del contenido principal.
+<<END SECTION>>
 
-
+<<SECTION: PATRÓN GENERAL PARA VISTAS INDEX>>
 PATRÓN GENERAL PARA VISTAS INDEX
 
 Las vistas index deben usar, como criterio general, una estructura de dos bloques principales:
@@ -61,8 +70,9 @@ bloque superior para filtros, búsqueda o acciones secundarias
 bloque principal para listado, tabla o grilla
 
 Cuando corresponda, debe priorizarse el uso de partials o componentes reutilizables.
+<<END SECTION>>
 
-
+<<SECTION: CARD DE FILTROS REUTILIZABLE>>
 CARD DE FILTROS REUTILIZABLE
 
 Cuando una vista index requiera filtros, debe priorizarse el patrón reusable correspondiente.
@@ -70,8 +80,9 @@ Cuando una vista index requiera filtros, debe priorizarse el patrón reusable co
 Este bloque debe funcionar como card superior de filtros o búsqueda y mantener consistencia entre módulos.
 
 No debe mezclarse con summaries, métricas o bloques de navegación secundaria salvo necesidad justificada.
+<<END SECTION>>
 
-
+<<SECTION: SUMMARY Y BLOQUES VISUALES REUTILIZABLES>>
 SUMMARY Y BLOQUES VISUALES REUTILIZABLES
 
 Los bloques de summary, métricas o visualización rápida deben poder resolverse mediante wrappers o partials reusables cuando el patrón ya sea claro.
@@ -79,8 +90,9 @@ Los bloques de summary, métricas o visualización rápida deben poder resolvers
 No deben desarrollarse variantes aisladas por módulo si la misma estructura visual puede reutilizarse.
 
 Cuando un patrón visual deje de ser exclusivo de un módulo, debe migrarse a una forma neutral reusable.
+<<END SECTION>>
 
-
+<<SECTION: PATRÓN VISUAL PARA VISTAS SHOW>>
 PATRÓN VISUAL PARA VISTAS SHOW
 
 Las vistas show del core deben tender a una estructura visual consistente.
@@ -119,8 +131,9 @@ acciones contextuales del subtab
 resúmenes operativos de subcolecciones
 
 cuando un patrón visual del detalle expandible se repita con claridad, los bloques detail-grid, detail-block o equivalentes pueden migrarse a wrappers o partials chicos reusables, siempre que eso reduzca repetición sin agregar complejidad innecesaria
+<<END SECTION>>
 
-
+<<SECTION: REGLAS PARA X-SHOW-SUMMARY Y X-SHOW-SUMMARY-ITEM>>
 REGLAS PARA X-SHOW-SUMMARY Y X-SHOW-SUMMARY-ITEM
 
 x-show-summary es el contenedor visual base para el resumen principal de una vista show.
@@ -142,8 +155,9 @@ el uso de span debe reservarse a bloques que realmente necesiten mayor ancho vis
 si un bloque analítico requiere más espacio horizontal, debe priorizarse esta capacidad reusable antes que crear wrappers específicos del módulo
 
 la capacidad de span en x-show-summary-item forma parte de la base visual reusable del sistema y debe validarse en uso real antes de extenderla a casos más complejos
+<<END SECTION>>
 
-
+<<SECTION: ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW>>
 ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW
 
 La zona de relaciones de una vista show debe resolverse con una estructura visual simple y predecible.
@@ -169,8 +183,9 @@ summary inferior opcional
 el toolbar secundario solo debe existir cuando agregue una acción o control real y no por simetría visual vacía
 
 si el embebido solo necesita un listado simple, no debe forzarse una estructura más pesada de la necesaria
+<<END SECTION>>
 
-
+<<SECTION: TABS INTERNAS DEL EMBEBIDO>>
 TABS INTERNAS DEL EMBEBIDO
 
 Las tabs internas de un bloque embebido deben usarse solo cuando exista una dimensión visible, estable y útil para segmentar el contenido.
@@ -188,8 +203,9 @@ las tabs internas del embebido no deben duplicar sin necesidad una segmentación
 cuando un embebido requiera tabs internas y además una acción principal contextual, debe priorizarse el patrón tab-toolbar reusable
 
 el embebido sigue siendo un bloque subordinado al show principal, aunque internamente utilice tabs
+<<END SECTION>>
 
-
+<<SECTION: ACCIONES VISUALES EN INDEX Y SHOW>>
 ACCIONES VISUALES EN INDEX Y SHOW
 
 Debe mantenerse una jerarquía visual clara entre acciones de alta, acciones operativas y acciones de retorno.
@@ -220,8 +236,9 @@ volver debe tender a una iconografía homogénea en todas las vistas show y qued
 las acciones de alta o agregado dentro de tabs o subpaneles deben utilizar iconografía de suma y una escala visual más contenida que el CTA principal de la pantalla
 
 las acciones contextuales de tabs o subpaneles no deben mezclarse con el grupo principal de acciones del show
+<<END SECTION>>
 
-
+<<SECTION: FRAGMENTACIÓN DE BLADES>>
 FRAGMENTACIÓN DE BLADES
 
 Las vistas grandes deben dividirse en partials cuando superen complejidad razonable.
@@ -241,8 +258,9 @@ mantenibilidad
 reutilización
 
 No debe fragmentarse artificialmente si el archivo sigue siendo claro y simple.
+<<END SECTION>>
 
-
+<<SECTION: ORGANIZACIÓN DE CSS VISUAL>>
 ORGANIZACIÓN DE CSS VISUAL
 
 La organización del CSS visual del proyecto debe seguir esta estructura:
@@ -260,8 +278,9 @@ app-patterns.css concentra patrones visuales reutilizables y neutrales compartid
 modules/<modulo>.css debe reservarse para estilos específicos de módulos complejos cuando realmente no corresponda promoverlos todavía a patrón global
 
 Cuando un patrón visual deja de ser exclusivo de un módulo, debe migrarse a nomenclatura neutral reusable y salir del archivo específico del módulo.
+<<END SECTION>>
 
-
+<<SECTION: PATRONES VISUALES NEUTRALES REUTILIZABLES>>
 PATRONES VISUALES NEUTRALES REUTILIZABLES
 
 Cuando un patrón visual se reutilice en más de un módulo, debe adoptar una nomenclatura neutral y reusable.
@@ -287,8 +306,9 @@ visual-note
 Regla:
 
 no mantener prefijos de módulo en clases que ya funcionan como patrón transversal del sistema.
+<<END SECTION>>
 
-
+<<SECTION: BREADCRUMB ESTRUCTURAL Y CONTEXTUAL>>
 BREADCRUMB ESTRUCTURAL Y CONTEXTUAL
 
 x-breadcrumb representa la ruta visible de ubicación actual de la pantalla.
@@ -331,8 +351,9 @@ cuando exista navegación cruzada entre pantallas relacionadas, el breadcrumb pu
 cuando una pantalla use breadcrumb contextual mediante trail heredable, el retorno visible no debe duplicar nodos ya recorridos
 
 la salida visual debe mantenerse compacta y limpia aunque el usuario navegue entre entidades relacionadas en ambos sentidos
+<<END SECTION>>
 
-
+<<SECTION: PANTALLAS TIPO CALENDARIO>>
 PANTALLAS TIPO CALENDARIO
 
 Cuando un módulo necesite lectura temporal, agenda visual o navegación por fechas, se admite una pantalla tipo calendario dentro de la misma base visual del sistema.
@@ -358,8 +379,9 @@ scroll interno del bloque
 columna auxiliar de contexto temporal, como número de semana
 
 No corresponde documentar aquí detalles finos de CSS o ajuste visual puntual de implementación.
+<<END SECTION>>
 
-
+<<SECTION: TABS INTERNAS EN VISTAS SHOW>>
 TABS INTERNAS EN VISTAS SHOW
 
 Cuando una vista show concentre demasiada información, se permite organizar el contenido mediante tabs internas dentro del cuerpo principal de la página.
@@ -398,8 +420,9 @@ El contenedor tabs-nav debe tener jerarquía visual suficiente para que el usuar
 Las tabs documentadas en esta base visual corresponden a tabs internas de contenido.
 
 No implican todavía un sistema general de navegación entre rutas dentro de tabs de app.
+<<END SECTION>>
 
-
+<<SECTION: TABS REUTILIZABLES Y TOOLBAR DE TABS>>
 TABS REUTILIZABLES Y TOOLBAR DE TABS
 
 El proyecto puede reutilizar la misma base visual de tabs en distintos niveles de la interfaz.
@@ -420,8 +443,9 @@ el toolbar de tabs debe vivir dentro de un card o contenedor visual compartido p
 si el card del toolbar requiere una densidad visual más compacta, el ajuste debe resolverse mediante una clase específica del wrapper y no modificando el card global del sistema
 
 las acciones contextuales deben percibirse como propias del panel activo y no como CTA principal de toda la pantalla
+<<END SECTION>>
 
-
+<<SECTION: TABS REUTILIZABLES, TOOLBAR Y OVERFLOW HORIZONTAL>>
 TABS REUTILIZABLES, TOOLBAR Y OVERFLOW HORIZONTAL
 
 Los tabs reutilizables del proyecto deben sostener una misma base visual y de comportamiento, tanto en tabs de primer nivel como en tabs internos o embebidos.
@@ -452,8 +476,9 @@ controles contextuales del panel
 navegación horizontal de tabs
 
 las acciones contextuales de tabs deben permanecer fijas a la derecha y los tabs desplazarse únicamente dentro de su viewport
+<<END SECTION>>
 
-
+<<SECTION: EMBEDDED TABS EN SHOW RELACIONADOS>>
 EMBEDDED TABS EN SHOW RELACIONADOS
 
 Los bloques embebidos dentro de show relacionados deben tender a una misma estructura:
@@ -468,3 +493,4 @@ Cuando un embedded-tabs tenga riesgo razonable de desborde en pantallas chicas o
 No esperar a que el layout rompa para recién introducir un patrón especial si ya se sabe que el bloque puede crecer.
 
 Attachments se considera el caso estándar actual de embebido tabulado por kind dentro de una vista show relacionada.
+<<END SECTION>>

@@ -729,6 +729,14 @@ no duplicar variantes visuales equivalentes con prefijos de módulo si ya existe
 cuando un patrón visual deje de ser exclusivo de un módulo, debe migrarse a nomenclatura neutral reusable
 
 preferir nombres neutrales cuando el patrón ya se utilice en más de un módulo
+
+Regla específica de analytics:
+
+los bloques analíticos deben utilizar una nomenclatura neutral basada en analytics.* y no deben apoyarse en componentes de tipo ficha como show-summary
+
+no anidar grillas analíticas dentro de otras grillas base del sistema
+
+los estados de visibilidad deben resolverse mediante atributos estándar como [hidden] y no mediante clases ad hoc
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE NAVEGACIÓN CONTEXTUAL>>

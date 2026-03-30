@@ -71,9 +71,13 @@ inventory
 <<SECTION: PENDIENTES INMEDIATOS>>
 PENDIENTES INMEDIATOS
 
-cerrar revisión visual final pendiente en projects.show para el bloque analítico de estados de tareas, especialmente el layout entre gráfico, leyendas y espaciados
+validar en uso real el sistema visual de analytics implementado en dashboard y project show, especialmente:
 
-validar en uso real la nueva capacidad de span en x-show-summary-item para bloques de análisis o visualización que requieran ancho doble o completo, evitando variantes aisladas por módulo
+consistencia de layout entre summary y details
+lectura de métricas en pantallas operativas reales
+comportamiento responsive de grillas y subgrillas
+
+revisar posibles mejoras en composición de filas del bloque details para evitar saturación visual en casos con múltiples métricas
 
 revisar paginación propia del proyecto en todos los index
 

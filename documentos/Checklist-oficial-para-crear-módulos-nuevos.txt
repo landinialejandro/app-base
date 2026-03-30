@@ -77,6 +77,8 @@ uso de x-page-header
 uso de cards o bloques visuales consistentes
 acciones visibles alineadas con permisos reales
 partials creados si la vista crece demasiado
+
+si el módulo requiere métricas o visualización analítica, utilizar el patrón analytics.panel en lugar de x-show-summary
 <<END SECTION>>
 
 <<SECTION: AUTORIZACIÓN Y UI>>

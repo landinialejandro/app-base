@@ -99,6 +99,66 @@ Los bloques de summary, métricas o visualización rápida deben poder resolvers
 No deben desarrollarse variantes aisladas por módulo si la misma estructura visual puede reutilizarse.
 
 Cuando un patrón visual deje de ser exclusivo de un módulo, debe migrarse a una forma neutral reusable.
+
+Regla específica:
+
+los bloques analíticos no deben resolverse utilizando x-show-summary ni sus derivados cuando la información a representar sea de tipo métrico, agregado o comparativo.
+
+Para esos casos debe utilizarse un patrón visual específico de analytics separado del summary del registro.
+<<END SECTION>>
+
+<<SECTION: SISTEMA VISUAL DE ANALYTICS>>
+SISTEMA VISUAL DE ANALYTICS
+
+El sistema define un patrón visual específico para bloques analíticos, separado del summary del registro.
+
+Estructura base:
+
+analytics.panel
+header
+summary
+details expandible
+
+Reglas:
+
+analytics.panel actúa como contenedor principal de análisis
+
+summary contiene métricas principales y lectura rápida
+
+details contiene bloques secundarios organizados por filas independientes
+
+no debe utilizarse x-show-summary para representar información analítica
+
+las tarjetas analíticas deben resolverse mediante:
+
+analytics.card
+kpi-card
+
+las métricas principales deben presentarse en summary y no dispersarse entre múltiples bloques
+
+Composición:
+
+máximo 3 columnas por fila
+
+cuando se requiera subdivisión interna, se permite subgrilla mediante analytics-grid--2
+
+no anidar grillas analíticas dentro de grillas base del sistema
+
+details no debe tener grilla automática, debe componerse por filas independientes
+
+Visibilidad:
+
+los bloques expandibles deben utilizar [hidden] como estado base
+
+la visibilidad debe controlarse mediante CSS con :not([hidden]) para evitar conflictos visuales
+
+Objetivo:
+
+separar claramente información analítica de la ficha del registro
+
+evitar reutilización incorrecta de componentes de summary para datos agregados
+
+mantener consistencia visual entre dashboard y vistas show con métricas
 <<END SECTION>>
 
 <<SECTION: PATRÓN VISUAL PARA VISTAS SHOW>>
@@ -121,6 +181,8 @@ el bloque superior de resumen del registro no debe resolverse inline por módulo
 el summary principal del show resume el registro principal de la pantalla
 
 el summary principal debe mantenerse acotado y centrado en la lectura rápida del registro principal
+
+los bloques analíticos no forman parte del summary principal y deben resolverse en contenedores específicos separados
 
 cuando exista detalle complementario importante pero no prioritario, debe priorizarse un detalle expandible dentro del mismo bloque superior antes que dispersarlo sin criterio en otras zonas del show
 

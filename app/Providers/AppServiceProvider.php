@@ -49,19 +49,19 @@ class AppServiceProvider extends ServiceProvider
 
     protected function resolveAppFooterVersionLabel(): string
     {
-        if (! App::environment('local')) {
-            return '';
+        if (App::environment('local')) {
+            return Cache::remember('app_footer_version_label', now()->addSeconds(15), function () {
+                $shortHash = $this->resolveGitShortHashFromFiles();
+
+                if ($shortHash === null || $shortHash === '') {
+                    return 'dev-unknown';
+                }
+
+                return 'dev-'.$shortHash;
+            });
         }
 
-        return Cache::remember('app_footer_version_label', now()->addSeconds(15), function () {
-            $shortHash = $this->resolveGitShortHashFromFiles();
-
-            if ($shortHash === null || $shortHash === '') {
-                return 'dev-unknown';
-            }
-
-            return 'dev-'.$shortHash;
-        });
+        return (string) config('app.public_version', 'v0.1.0');
     }
 
     protected function resolveGitShortHashFromFiles(): ?string

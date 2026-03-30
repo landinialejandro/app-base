@@ -14,6 +14,7 @@ return [
     */
 
     'name' => env('APP_NAME', 'Laravel'),
+    'public_version' => env('APP_PUBLIC_VERSION', 'v0.1.0'),
 
     /*
     |--------------------------------------------------------------------------
@@ -83,7 +84,7 @@ return [
     'fallback_locale' => env('APP_FALLBACK_LOCALE', 'es'),
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'es_AR'),
-    
+
     /*
     |--------------------------------------------------------------------------
     | Encryption Key

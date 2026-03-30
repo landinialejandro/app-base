@@ -1,15 +1,15 @@
 <?php
 
 $documents = [
-    'CONTEXTO-FIJO-DEL-PROYECTO – app-base' => 'CONTEXTO-FIJO-DEL-PROYECTO – app-base.txt',
-    'CONVENCIONES-DEL-PROYECTO – app-base' => 'CONVENCIONES-DEL-PROYECTO – app-base.txt',
-    'CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS' => 'CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS.txt',
+    'CONTEXTO-FIJO-DEL-PROYECTO – app-base' => 'CONTEXTO-FIJO-DEL-PROYECTO-–-app-base.txt',
+    'CONVENCIONES-DEL-PROYECTO – app-base' => 'CONVENCIONES-DEL-PROYECTO-–-app-base.txt',
+    'CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS' => 'Checklist-oficial-para-crear-módulos-nuevos.txt',
     'MAPA-DE-ENTIDADES – app-base' => 'MAPA-DE-ENTIDADES – app-base.txt',
     'MAPA-DE-NAVEGACION-Y-RELACIONES – app-base' => 'MAPA-DE-NAVEGACION-Y-RELACIONES – app-base.txt',
     'BASE-VISUAL-DEL-PROYECTO – app-base' => 'BASE-VISUAL-DEL-PROYECTO – app-base.txt',
     'TODO-DEL-PROYECTO – app-base' => 'TODO-DEL-PROYECTO – app-base.txt',
     'DEPLOY-Y-COMPATIBILIDAD-DEL-PROYECTO – app-base' => 'DEPLOY-Y-COMPATIBILIDAD-DEL-PROYECTO – app-base.txt',
-    'PLANTILLA MÍNIMA PARA INICIAR NUEVOS CHATS DEL PROYECTO – app-base' => 'PLANTILLA MÍNIMA PARA INICIAR NUEVOS CHATS DEL PROYECTO – app-base.txt',
+    'PLANTILLA MÍNIMA PARA INICIAR NUEVOS CHATS DEL PROYECTO – app-base' => 'Plantilla-mínima-para-iniciar-nuevos-chats-del-proyecto.txt',
 ];
 
 $baseDir = __DIR__.DIRECTORY_SEPARATOR.'documentos';

@@ -1,32 +1,128 @@
-Te voy a pasar fragmentos de actualizaciones o recomendaciones surgidas en otros chats para los documentos del proyecto.
+🔥 Recordatorio rápido de uso
+Terminás sesión → Prompt 1
+Copiás resultado → Prompt 2
+Copiás bloques
+Ejecutás:
+appdocs
 
-Quiero que los audites contra los documentos vigentes del proyecto y resuelvas lo siguiente:
+------------------------------------------------
 
-1. qué puntos corresponde incorporar
-2. qué puntos no corresponde incorporar
-3. qué puntos conviene mover a otro documento
-4. si hace falta crear un documento nuevo para agrupar un tema específico
+CIERRE DE SESIÓN – DETECCIÓN DE ACTUALIZACIONES
 
-Reglas:
-- no validar automáticamente lo que viene en los fragmentos
-- primero contrastarlo con la documentación real del proyecto
-- evitar duplicaciones, contradicciones y solapamientos
+OBJETIVO
+
+Detectar qué cambios realizados en esta sesión implican actualización de documentación del proyecto.
+
+ALCANCE
+
+- considerar todo lo trabajado en la sesión
+- considerar decisiones, cambios de lógica, UI, permisos y navegación
+- ignorar ideas no implementadas o no confirmadas
+
+DOCUMENTOS POSIBLES
+
+- CONTEXTO-FIJO-DEL-PROYECTO – app-base
+- CONVENCIONES-DEL-PROYECTO – app-base
+- CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS
+- MAPA-DE-ENTIDADES – app-base
+- MAPA-DE-NAVEGACION-Y-RELACIONES – app-base
+- BASE-VISUAL-DEL-PROYECTO – app-base
+- TODO-DEL-PROYECTO – app-base
+- DEPLOY-Y-COMPATIBILIDAD-DEL-PROYECTO – app-base
+
+REGLAS
+
+- no inventar nada
+- no proponer mejoras futuras
+- solo incluir cambios reales confirmados
+- no repetir contenido ya documentado
+- no mezclar documentos
+- no redactar documentos completos
+
+FORMATO DE SALIDA
+
+Para cada documento afectado:
+
+DOCUMENTO: [nombre exacto]
+
+SECCIONES AFECTADAS:
+- [nombre exacto de sección]
+- [nombre exacto de sección]
+
+CAMBIOS DETECTADOS:
+
+[descripción concreta, corta, sin relleno]
+
+IMPORTANTE
+
+- no devolver contenido listo para pegar
+- no devolver secciones completas
+- solo detectar qué hay que actualizar
+
+
+-----------------------------------------
+
+
+
+AUDITORÍA Y GENERACIÓN DE SECCIONES
+
+OBJETIVO
+
+Auditar los cambios detectados contra los documentos vigentes del proyecto y devolver únicamente las secciones que deben ser actualizadas, listas para reemplazo automático.
+
+DOCUMENTOS BASE
+
+(ya disponibles en el contexto del chat)
+
+REGLAS
+
+- no inventar contenido
+- no asumir comportamiento no validado
+- no duplicar contenido existente
+- no generar contradicciones
 - respetar la función de cada documento
-- no mezclar decisiones vigentes, pendientes e ideas futuras sin distinguirlas correctamente
+- no mezclar decisiones vigentes con ideas futuras
+- no modificar nombres de secciones
+- no devolver documentos completos
+- si una sección no cambia, no devolverla
 
-Salida esperada:
-- devolveme solo los documentos realmente afectados
-- cada documento debe venir completo, en su versión final, listo para sobreescribir
-- no devuelvas documentos sin cambios
-- si recomendás un documento nuevo, incluilo completo también
+REGLA SOBRE SECCIONES NUEVAS
 
-Fragmentos a auditar:
-{texto}
+- no crear secciones nuevas salvo que sea estrictamente necesario
+- si aparece una sección nueva:
+  - no devolverla como reemplazo automático
+  - devolverla como propuesta separada
+  - indicar ubicación sugerida dentro del documento
 
+FORMATO OBLIGATORIO DE SALIDA
 
+Para cada sección modificada:
 
+REEMPLAZAR EN: [nombre exacto del documento]
 
+<<SECTION: NOMBRE EXACTO DE LA SECCIÓN>>
+[contenido completo actualizado de la sección]
+<<END SECTION>>
 
------------------------
-En base a los que hemos visto en este chat te consulto sobre si hay que agreagr o 
-modificar algo en los documentos de referencia del proyecto
+FORMATO PARA SECCIÓN NUEVA (SI APLICA)
+
+NUEVA SECCIÓN PROPUESTA EN: [nombre exacto del documento]
+
+UBICAR DESPUÉS DE:
+<<SECTION: NOMBRE DE SECCIÓN EXISTENTE>>
+
+<<SECTION: NOMBRE DE NUEVA SECCIÓN>>
+[contenido]
+<<END SECTION>>
+
+RESTRICCIONES CRÍTICAS
+
+- no agregar texto fuera de los bloques SECTION
+- no devolver explicaciones
+- cada bloque debe ser autónomo y completo
+- mantener estilo y estructura del documento original
+
+ENTRADA
+
+CAMBIOS DETECTADOS:
+[pegar salida del prompt 1]

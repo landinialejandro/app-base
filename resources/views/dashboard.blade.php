@@ -1,24 +1,10 @@
-{{-- FILE: resources/views/dashboard.blade.php | V3 --}}
+{{-- FILE: resources/views/dashboard.blade.php | V4 --}}
 
 @extends('layouts.app')
 
 @section('title', 'Dashboard')
 
 @section('content')
-    @php
-        $projectOverview = $projectOverview ?? [];
-        $taskOverview = $taskOverview ?? [];
-
-        if ($canSeeAnalytics) {
-            extract($projectOverview, EXTR_SKIP);
-            extract($taskOverview, EXTR_SKIP);
-
-            $visible_projects_count = $visible_projects_count ?? 0;
-            $visible_tasks_count = $visible_tasks_count ?? 0;
-            $my_overdue_tasks_count = $my_overdue_tasks_count ?? 0;
-        }
-    @endphp
-
     <x-page>
         <x-breadcrumb :items="[['label' => 'Inicio']]" />
 
@@ -111,44 +97,10 @@
         @endif
 
         @if ($canSeeAnalytics)
-            <x-card>
-                <div class="dashboard-section-header">
-                    <h2 class="dashboard-section-title">Análisis operativo</h2>
-                    <p class="dashboard-section-text">Resumen visual de proyectos y tareas visibles para esta empresa.</p>
-                </div>
-
-                <x-show-summary details-id="dashboard-analytics-detail" toggle-label="Ver análisis"
-                    toggle-label-expanded="Ocultar análisis" details-layout="raw">
-
-                    <x-show-summary-item label="Proyectos visibles">
-                        {{ $visible_projects_count }}
-                    </x-show-summary-item>
-
-                    <x-show-summary-item label="Tareas visibles">
-                        {{ $visible_tasks_count }}
-                    </x-show-summary-item>
-
-                    <x-show-summary-item label="Mis tareas vencidas">
-                        {{ $my_overdue_tasks_count }}
-                    </x-show-summary-item>
-
-                    <x-slot:details>
-                        @include('projects.partials.operational-analysis', [
-                            'visible_projects_count' => $visible_projects_count,
-                            'active_projects_count' => $active_projects_count ?? 0,
-                            'closed_projects_count' => $closed_projects_count ?? 0,
-                            'projects_with_open_tasks_count' => $projects_with_open_tasks_count ?? 0,
-                            'projects_with_overdue_tasks_count' => $projects_with_overdue_tasks_count ?? 0,
-                            'projects_average_progress' => $projects_average_progress ?? 0,
-                            'visible_tasks_count' => $visible_tasks_count,
-                            'pending_tasks_count' => $pending_tasks_count ?? 0,
-                            'in_progress_tasks_count' => $in_progress_tasks_count ?? 0,
-                            'done_tasks_count' => $done_tasks_count ?? 0,
-                            'cancelled_tasks_count' => $cancelled_tasks_count ?? 0,
-                        ])
-                    </x-slot:details>
-                </x-show-summary>
-            </x-card>
+            @include('projects.partials.operational-analysis', [
+                'projectOverview' => $projectOverview ?? [],
+                'taskOverview' => $taskOverview ?? [],
+            ])
         @endif
     </x-page>
 @endsection

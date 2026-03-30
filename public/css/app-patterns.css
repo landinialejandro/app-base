@@ -519,6 +519,15 @@
     max-width: 220px;
 }
 
+.pie-layout--no-legend {
+    grid-template-columns: 1fr;
+    justify-items: center;
+}
+
+.pie-layout--no-legend .pie-chart-wrap {
+    margin: 0 auto;
+}
+
 @media (max-width: 900px) {
     .pie-layout--wide {
         grid-template-columns: 1fr;
@@ -1308,4 +1317,158 @@
     max-width: 100%;
     font-weight: 600;
     word-break: break-word;
+}
+
+/* =========================================================
+   15. Analytics panel y analytics cards
+   Sistema visual propio para bloques analíticos expandibles.
+
+   Esta sección define:
+   - contenedor principal del panel analítico
+   - header
+   - acciones
+   - grilla analítica con máximo 3 columnas
+   - subgrillas internas
+   - cards analíticas base
+   ========================================================= */
+
+.analytics-panel__header {
+    margin-bottom: var(--space-4);
+}
+
+.analytics-panel__title {
+    margin: 0;
+    font-size: 1.25rem;
+    line-height: 1.2;
+    color: var(--color-text);
+}
+
+.analytics-panel__subtitle {
+    margin: var(--space-1) 0 0;
+    color: var(--color-muted);
+    font-size: 0.95rem;
+}
+
+.analytics-panel__summary {
+    margin-bottom: var(--space-4);
+}
+
+.analytics-panel__actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: var(--space-4);
+}
+
+.analytics-panel__details {
+    margin-top: 0;
+}
+
+.analytics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: var(--space-4);
+}
+
+.analytics-grid--summary,
+.analytics-grid--details {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.analytics-grid--2 {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.analytics-card {
+    min-width: 0;
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+    background: var(--color-surface-muted);
+}
+
+.analytics-card--span-2 {
+    grid-column: span 2;
+}
+
+.analytics-card--span-3 {
+    grid-column: 1 / -1;
+}
+
+.analytics-card__title {
+    margin: 0 0 var(--space-3);
+    font-size: 0.98rem;
+    line-height: 1.2;
+    font-weight: 600;
+    color: var(--color-muted);
+}
+
+.analytics-card__body {
+    min-width: 0;
+}
+
+/* Ajuste opcional para reutilizar visual-card dentro del sistema analytics */
+.analytics-card .visual-card {
+    padding: 0;
+    border: 0;
+    border-radius: 0;
+    background: transparent;
+}
+
+.analytics-card .pie-layout {
+    height: 100%;
+}
+
+.analytics-card .pie-layout--wide {
+    min-height: 0;
+}
+
+.analytics-card .pie-chart-wrap {
+    margin: 0 auto;
+}
+
+.analytics-card .visual-kpi {
+    margin: 0;
+}
+
+.analytics-card .visual-note {
+    margin-top: var(--space-2);
+}
+
+.analytics-panel__summary .analytics-card,
+.analytics-panel__details .analytics-card {
+    height: 100%;
+}
+
+.analytics-panel__details:not([hidden]) {
+    display: grid;
+    gap: var(--space-4);
+}
+
+@media (max-width: 900px) {
+
+    .analytics-grid,
+    .analytics-grid--summary,
+    .analytics-grid--details,
+    .analytics-grid--2 {
+        grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+
+    .analytics-card--span-3 {
+        grid-column: 1 / -1;
+    }
+}
+
+@media (max-width: 640px) {
+
+    .analytics-grid,
+    .analytics-grid--summary,
+    .analytics-grid--details,
+    .analytics-grid--2 {
+        grid-template-columns: 1fr;
+    }
+
+    .analytics-card--span-2,
+    .analytics-card--span-3 {
+        grid-column: 1 / -1;
+    }
 }

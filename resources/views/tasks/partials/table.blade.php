@@ -1,13 +1,14 @@
-{{-- FILE: resources/views/tasks/partials/table.blade.php | V5 --}}
+{{-- FILE: resources/views/tasks/partials/table.blade.php | V6 --}}
 
 @php
     use App\Support\Catalogs\TaskCatalog;
     use App\Support\Navigation\NavigationTrail;
-    use App\Support\Navigation\TaskNavigationTrail;
     use Illuminate\Support\Carbon;
 
     $tasks = $tasks ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay tareas para mostrar.';
+    $trailQuery = $trailQuery ?? [];
+    $containerTrail = NavigationTrail::decode($trailQuery['trail'] ?? null);
 @endphp
 
 @if ($tasks->count())
@@ -27,8 +28,30 @@
             <tbody>
                 @foreach ($tasks as $task)
                     @php
-                        $taskTrail = TaskNavigationTrail::base($task);
-                        $taskTrailQuery = NavigationTrail::toQuery($taskTrail);
+                        $rowTrail = NavigationTrail::appendOrCollapse(
+                            $containerTrail,
+                            NavigationTrail::makeNode(
+                                'tasks.show',
+                                $task->id,
+                                $task->name ?: 'Tarea #' . $task->id,
+                                route('tasks.show', ['task' => $task]),
+                            ),
+                        );
+
+                        if (empty($rowTrail)) {
+                            $rowTrail = NavigationTrail::base([
+                                NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
+                                NavigationTrail::makeNode('tasks.index', null, 'Tareas', route('tasks.index')),
+                                NavigationTrail::makeNode(
+                                    'tasks.show',
+                                    $task->id,
+                                    $task->name ?: 'Tarea #' . $task->id,
+                                    route('tasks.show', ['task' => $task]),
+                                ),
+                            ]);
+                        }
+
+                        $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
 
                         $dueText = '—';
 
@@ -48,14 +71,14 @@
 
                     <tr>
                         <td>
-                            <a href="{{ route('tasks.show', ['task' => $task] + $taskTrailQuery) }}">
+                            <a href="{{ route('tasks.show', ['task' => $task] + $rowTrailQuery) }}">
                                 {{ $task->name }}
                             </a>
                         </td>
 
                         <td>
                             @if ($task->project)
-                                <a href="{{ route('projects.show', ['project' => $task->project] + $taskTrailQuery) }}">
+                                <a href="{{ route('projects.show', ['project' => $task->project] + $rowTrailQuery) }}">
                                     {{ $task->project->name }}
                                 </a>
                             @else
@@ -79,7 +102,7 @@
                         <td>{{ $dueText }}</td>
                         <td>
                             @if ($task->order)
-                                <a href="{{ route('orders.show', ['order' => $task->order] + $taskTrailQuery) }}">
+                                <a href="{{ route('orders.show', ['order' => $task->order] + $rowTrailQuery) }}">
                                     {{ $task->order->number ?: 'Ver orden' }}
                                 </a>
                             @else

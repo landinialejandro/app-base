@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/items/edit.blade.php | V6 --}}
+{{-- FILE: resources/views/documents/items/edit.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -10,7 +10,9 @@
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
-        $cancelUrl = NavigationTrail::previousUrl($navigationTrail, route('documents.show', ['document' => $document]));
+
+        $showTrail = NavigationTrail::sliceBefore($navigationTrail, 'documents.items.edit', $item->id);
+        $cancelUrl = route('documents.show', ['document' => $document] + NavigationTrail::toQuery($showTrail));
     @endphp
 
     <x-page>
@@ -28,7 +30,7 @@
                 @include('documents.items._form')
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
                     <a href="{{ $cancelUrl }}" class="btn btn-secondary">Cancelar</a>
                 </div>
             </form>

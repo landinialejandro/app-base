@@ -10,7 +10,9 @@
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
-        $cancelUrl = NavigationTrail::previousUrl($navigationTrail, route('orders.show', ['order' => $order]));
+
+        $showTrail = NavigationTrail::sliceBefore($navigationTrail, 'orders.items.edit', $item->id);
+        $cancelUrl = route('orders.show', ['order' => $order] + NavigationTrail::toQuery($showTrail));
     @endphp
 
     <x-page>
@@ -28,7 +30,7 @@
                 @include('orders.items._form')
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+                    <button type="submit" class="btn btn-primary">Guardar</button>
                     <a href="{{ $cancelUrl }}" class="btn btn-secondary">Cancelar</a>
                 </div>
             </form>

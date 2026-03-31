@@ -8,7 +8,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'app-base')</title>
 
-    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/brand/favicon.svg') }}">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('brand/favicon.svg') }}">
 
     {{-- Base visual global obligatoria del sistema --}}
     <link rel="stylesheet" href="{{ asset('css/app-base.css') }}">

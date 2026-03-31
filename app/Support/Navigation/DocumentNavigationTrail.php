@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/DocumentNavigationTrail.php | V5
+// FILE: app/Support/Navigation/DocumentNavigationTrail.php | V6
 
 namespace App\Support\Navigation;
 
@@ -105,7 +105,7 @@ class DocumentNavigationTrail
         $trail = NavigationTrail::fromRequest($request);
 
         if (empty($trail) || ! NavigationTrail::hasNode($trail, 'documents.show', $document->id)) {
-            $trail = self::base($document);
+            $trail = self::show($request, $document);
         }
 
         return NavigationTrail::appendOrCollapse(
@@ -124,7 +124,7 @@ class DocumentNavigationTrail
         $trail = NavigationTrail::fromRequest($request);
 
         if (empty($trail) || ! NavigationTrail::hasNode($trail, 'documents.show', $document->id)) {
-            $trail = self::base($document);
+            $trail = self::show($request, $document);
         }
 
         return NavigationTrail::appendOrCollapse(

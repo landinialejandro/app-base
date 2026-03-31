@@ -1,8 +1,7 @@
-{{-- FILE: resources/views/documents/partials/table.blade.php | V7 --}}
+{{-- FILE: resources/views/documents/partials/table.blade.php | V8 --}}
 
 @php
     use App\Support\Catalogs\DocumentCatalog;
-    use App\Support\Navigation\DocumentNavigationTrail;
     use App\Support\Navigation\NavigationTrail;
 
     $documents = $documents ?? collect();
@@ -10,6 +9,8 @@
     $showParty = $showParty ?? true;
     $showAsset = $showAsset ?? true;
     $showOrder = $showOrder ?? true;
+    $trailQuery = $trailQuery ?? [];
+    $containerTrail = NavigationTrail::decode($trailQuery['trail'] ?? null);
 @endphp
 
 @if ($documents->count())
@@ -40,13 +41,40 @@
             <tbody>
                 @foreach ($documents as $document)
                     @php
-                        $documentTrail = DocumentNavigationTrail::base($document);
-                        $documentTrailQuery = NavigationTrail::toQuery($documentTrail);
+                        $rowTrail = NavigationTrail::appendOrCollapse(
+                            $containerTrail,
+                            NavigationTrail::makeNode(
+                                'documents.show',
+                                $document->id,
+                                $document->number ?: 'Documento #' . $document->id,
+                                route('documents.show', ['document' => $document]),
+                            ),
+                        );
+
+                        if (empty($rowTrail)) {
+                            $rowTrail = NavigationTrail::base([
+                                NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
+                                NavigationTrail::makeNode(
+                                    'documents.index',
+                                    null,
+                                    'Documentos',
+                                    route('documents.index'),
+                                ),
+                                NavigationTrail::makeNode(
+                                    'documents.show',
+                                    $document->id,
+                                    $document->number ?: 'Documento #' . $document->id,
+                                    route('documents.show', ['document' => $document]),
+                                ),
+                            ]);
+                        }
+
+                        $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
                     @endphp
 
                     <tr>
                         <td>
-                            <a href="{{ route('documents.show', ['document' => $document] + $documentTrailQuery) }}">
+                            <a href="{{ route('documents.show', ['document' => $document] + $rowTrailQuery) }}">
                                 {{ $document->number ?: 'Sin número' }}
                             </a>
                         </td>
@@ -62,7 +90,8 @@
                         @if ($showParty)
                             <td>
                                 @if ($document->party)
-                                    <a href="{{ route('parties.show', ['party' => $document->party] + $documentTrailQuery) }}">
+                                    <a
+                                        href="{{ route('parties.show', ['party' => $document->party] + $rowTrailQuery) }}">
                                         {{ $document->party->name }}
                                     </a>
                                 @else
@@ -74,7 +103,7 @@
                         @if ($showAsset)
                             <td>
                                 @if ($document->asset)
-                                    <a href="{{ route('assets.show', ['asset' => $document->asset] + $documentTrailQuery) }}">
+                                    <a href="{{ route('assets.show', ['asset' => $document->asset] + $rowTrailQuery) }}">
                                         {{ $document->asset->name }}
                                     </a>
                                 @else
@@ -86,7 +115,7 @@
                         @if ($showOrder)
                             <td>
                                 @if ($document->order)
-                                    <a href="{{ route('orders.show', ['order' => $document->order] + $documentTrailQuery) }}">
+                                    <a href="{{ route('orders.show', ['order' => $document->order] + $rowTrailQuery) }}">
                                         {{ $document->order->number ?: 'Ver orden' }}
                                     </a>
                                 @else

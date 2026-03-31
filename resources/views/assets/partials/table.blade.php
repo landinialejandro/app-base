@@ -1,13 +1,14 @@
-{{-- FILE: resources/views/assets/partials/table.blade.php | V3 --}}
+{{-- FILE: resources/views/assets/partials/table.blade.php | V4 --}}
 
 @php
     use App\Support\Catalogs\AssetCatalog;
-    use App\Support\Navigation\AssetNavigationTrail;
     use App\Support\Navigation\NavigationTrail;
 
     $assets = $assets ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay activos para mostrar.';
     $showParty = $showParty ?? false;
+    $trailQuery = $trailQuery ?? [];
+    $containerTrail = NavigationTrail::decode($trailQuery['trail'] ?? null);
 @endphp
 
 @if ($assets->count())
@@ -31,15 +32,37 @@
             <tbody>
                 @foreach ($assets as $asset)
                     @php
-                        $assetTrail = AssetNavigationTrail::base($asset);
-                        $assetTrailQuery = NavigationTrail::toQuery($assetTrail);
+                        $rowTrail = NavigationTrail::appendOrCollapse(
+                            $containerTrail,
+                            NavigationTrail::makeNode(
+                                'assets.show',
+                                $asset->id,
+                                $asset->name ?: 'Activo #' . $asset->id,
+                                route('assets.show', ['asset' => $asset]),
+                            ),
+                        );
+
+                        if (empty($rowTrail)) {
+                            $rowTrail = NavigationTrail::base([
+                                NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
+                                NavigationTrail::makeNode('assets.index', null, 'Activos', route('assets.index')),
+                                NavigationTrail::makeNode(
+                                    'assets.show',
+                                    $asset->id,
+                                    $asset->name ?: 'Activo #' . $asset->id,
+                                    route('assets.show', ['asset' => $asset]),
+                                ),
+                            ]);
+                        }
+
+                        $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
                     @endphp
 
                     <tr>
                         <td>{{ $asset->id }}</td>
 
                         <td>
-                            <a href="{{ route('assets.show', ['asset' => $asset] + $assetTrailQuery) }}">
+                            <a href="{{ route('assets.show', ['asset' => $asset] + $rowTrailQuery) }}">
                                 {{ $asset->name }}
                             </a>
                         </td>
@@ -47,7 +70,7 @@
                         @if ($showParty)
                             <td>
                                 @if ($asset->party)
-                                    <a href="{{ route('parties.show', ['party' => $asset->party] + $assetTrailQuery) }}">
+                                    <a href="{{ route('parties.show', ['party' => $asset->party] + $rowTrailQuery) }}">
                                         {{ $asset->party->name }}
                                     </a>
                                 @else

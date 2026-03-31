@@ -10,7 +10,9 @@
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
-        $cancelUrl = NavigationTrail::previousUrl($navigationTrail, route('orders.show', ['order' => $order]));
+
+        $showTrail = NavigationTrail::sliceBefore($navigationTrail, 'orders.items.create', $order->id);
+        $cancelUrl = route('orders.show', ['order' => $order] + NavigationTrail::toQuery($showTrail));
     @endphp
 
     <x-page>

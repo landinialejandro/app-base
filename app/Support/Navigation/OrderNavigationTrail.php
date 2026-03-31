@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/OrderNavigationTrail.php | V5
+// FILE: app/Support/Navigation/OrderNavigationTrail.php | V6
 
 namespace App\Support\Navigation;
 
@@ -107,7 +107,7 @@ class OrderNavigationTrail
         $trail = NavigationTrail::fromRequest($request);
 
         if (empty($trail) || ! NavigationTrail::hasNode($trail, 'orders.show', $order->id)) {
-            $trail = self::base($order);
+            $trail = self::show($request, $order);
         }
 
         return NavigationTrail::appendOrCollapse(
@@ -126,7 +126,7 @@ class OrderNavigationTrail
         $trail = NavigationTrail::fromRequest($request);
 
         if (empty($trail) || ! NavigationTrail::hasNode($trail, 'orders.show', $order->id)) {
-            $trail = self::base($order);
+            $trail = self::show($request, $order);
         }
 
         return NavigationTrail::appendOrCollapse(

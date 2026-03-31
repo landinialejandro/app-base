@@ -1,14 +1,15 @@
-{{-- FILE: resources/views/orders/partials/table.blade.php | V7 --}}
+{{-- FILE: resources/views/orders/partials/table.blade.php | V8 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
     use App\Support\Navigation\NavigationTrail;
-    use App\Support\Navigation\OrderNavigationTrail;
 
     $orders = $orders ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay órdenes para mostrar.';
     $showParty = $showParty ?? false;
     $showAsset = $showAsset ?? true;
+    $trailQuery = $trailQuery ?? [];
+    $containerTrail = NavigationTrail::decode($trailQuery['trail'] ?? null);
 @endphp
 
 @if ($orders->count())
@@ -35,13 +36,35 @@
             <tbody>
                 @foreach ($orders as $order)
                     @php
-                        $orderTrail = OrderNavigationTrail::base($order);
-                        $orderTrailQuery = NavigationTrail::toQuery($orderTrail);
+                        $rowTrail = NavigationTrail::appendOrCollapse(
+                            $containerTrail,
+                            NavigationTrail::makeNode(
+                                'orders.show',
+                                $order->id,
+                                $order->number ?: 'Orden #' . $order->id,
+                                route('orders.show', ['order' => $order]),
+                            ),
+                        );
+
+                        if (empty($rowTrail)) {
+                            $rowTrail = NavigationTrail::base([
+                                NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
+                                NavigationTrail::makeNode('orders.index', null, 'Órdenes', route('orders.index')),
+                                NavigationTrail::makeNode(
+                                    'orders.show',
+                                    $order->id,
+                                    $order->number ?: 'Orden #' . $order->id,
+                                    route('orders.show', ['order' => $order]),
+                                ),
+                            ]);
+                        }
+
+                        $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
                     @endphp
 
                     <tr>
                         <td>
-                            <a href="{{ route('orders.show', ['order' => $order] + $orderTrailQuery) }}">
+                            <a href="{{ route('orders.show', ['order' => $order] + $rowTrailQuery) }}">
                                 {{ $order->number ?: 'Sin número' }}
                             </a>
                         </td>
@@ -57,7 +80,7 @@
                         @if ($showParty)
                             <td>
                                 @if ($order->party)
-                                    <a href="{{ route('parties.show', ['party' => $order->party] + $orderTrailQuery) }}">
+                                    <a href="{{ route('parties.show', ['party' => $order->party] + $rowTrailQuery) }}">
                                         {{ $order->party->name }}
                                     </a>
                                 @else
@@ -69,7 +92,7 @@
                         @if ($showAsset)
                             <td>
                                 @if ($order->asset)
-                                    <a href="{{ route('assets.show', ['asset' => $order->asset] + $orderTrailQuery) }}">
+                                    <a href="{{ route('assets.show', ['asset' => $order->asset] + $rowTrailQuery) }}">
                                         {{ $order->asset->name }}
                                     </a>
                                 @else

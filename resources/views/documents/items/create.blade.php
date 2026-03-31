@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/items/create.blade.php | V6 --}}
+{{-- FILE: resources/views/documents/items/create.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -10,7 +10,9 @@
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
-        $cancelUrl = NavigationTrail::previousUrl($navigationTrail, route('documents.show', ['document' => $document]));
+
+        $showTrail = NavigationTrail::sliceBefore($navigationTrail, 'documents.items.create', $document->id);
+        $cancelUrl = route('documents.show', ['document' => $document] + NavigationTrail::toQuery($showTrail));
     @endphp
 
     <x-page>

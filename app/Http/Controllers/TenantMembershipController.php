@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantMembershipController.php | V2
+// FILE: app/Http/Controllers/TenantMembershipController.php | V4
 
 namespace App\Http\Controllers;
 
@@ -11,38 +11,9 @@ use Illuminate\Http\Request;
 
 class TenantMembershipController extends Controller
 {
-    protected function getOwnerMembership()
-    {
-        $tenant = app('tenant');
-
-        $membership = auth()->user()
-            ->memberships()
-            ->where('tenant_id', $tenant->id)
-            ->first();
-
-        abort_unless($membership?->is_owner, 403);
-
-        return $membership;
-    }
-
     public function block(Request $request, Membership $membership)
     {
-        $tenant = app('tenant');
-        $ownerMembership = $this->getOwnerMembership();
-
-        abort_unless($membership->tenant_id === $tenant->id, 404);
-
-        if ($membership->is_owner) {
-            return redirect()
-                ->route('tenant.profile.show', ['tab' => 'accesses'])
-                ->with('error', 'No se puede bloquear un owner desde esta pantalla.');
-        }
-
-        if ($membership->user_id === $ownerMembership->user_id) {
-            return redirect()
-                ->route('tenant.profile.show', ['tab' => 'accesses'])
-                ->with('error', 'No puedes bloquear tu propia membership.');
-        }
+        $this->authorize('block', $membership);
 
         $membership->update([
             'status' => 'blocked',
@@ -56,10 +27,7 @@ class TenantMembershipController extends Controller
 
     public function unblock(Request $request, Membership $membership)
     {
-        $tenant = app('tenant');
-        $this->getOwnerMembership();
-
-        abort_unless($membership->tenant_id === $tenant->id, 404);
+        $this->authorize('unblock', $membership);
 
         $membership->update([
             'status' => 'active',

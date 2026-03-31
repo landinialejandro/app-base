@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantMembershipRoleController.php | V2
+// FILE: app/Http/Controllers/TenantMembershipRoleController.php | V3
 
 namespace App\Http\Controllers;
 
@@ -11,32 +11,11 @@ use Illuminate\Http\Request;
 
 class TenantMembershipRoleController extends Controller
 {
-    protected function getOwnerMembership(): Membership
-    {
-        $tenant = app('tenant');
-
-        $membership = auth()->user()
-            ->memberships()
-            ->where('tenant_id', $tenant->id)
-            ->first();
-
-        abort_unless($membership?->is_owner, 403);
-
-        return $membership;
-    }
-
     public function attach(Request $request, Membership $membership)
     {
         $tenant = app('tenant');
-        $this->getOwnerMembership();
 
-        abort_unless($membership->tenant_id === $tenant->id, 404);
-
-        if ($membership->is_owner) {
-            return redirect()
-                ->route('tenant.profile.show', ['tab' => 'accesses'])
-                ->with('error', 'El owner no admite roles asignables.');
-        }
+        $this->authorize('attachRole', $membership);
 
         $data = $request->validate([
             'role_id' => ['required', 'integer'],
@@ -97,16 +76,10 @@ class TenantMembershipRoleController extends Controller
     public function detach(Request $request, Membership $membership, Role $role)
     {
         $tenant = app('tenant');
-        $this->getOwnerMembership();
 
-        abort_unless($membership->tenant_id === $tenant->id, 404);
+        $this->authorize('detachRole', $membership);
+
         abort_unless($role->tenant_id === $tenant->id, 404);
-
-        if ($membership->is_owner) {
-            return redirect()
-                ->route('tenant.profile.show', ['tab' => 'accesses'])
-                ->with('error', 'El owner no admite edición de roles.');
-        }
 
         $membership->load('roles');
 

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/partials/profile-pending-invitations.blade.php --}}
+{{-- FILE: resources/views/tenants/partials/profile-pending-invitations.blade.php | V2 --}}
 
 <x-card>
     <div class="dashboard-section-header">
@@ -82,16 +82,18 @@
                                         <x-icons.copy />
                                     </button>
 
-                                    <form method="POST" action="{{ route('tenant.invitations.destroy', $invitation) }}"
-                                        data-action="app-confirm-submit" data-confirm-message="¿Eliminar invitación?">
-                                        @csrf
-                                        @method('DELETE')
+                                    @can('delete', $invitation)
+                                        <form method="POST" action="{{ route('tenant.invitations.destroy', $invitation) }}"
+                                            data-action="app-confirm-submit" data-confirm-message="¿Eliminar invitación?">
+                                            @csrf
+                                            @method('DELETE')
 
-                                        <button type="submit" class="btn btn-danger btn-icon"
-                                            title="Eliminar invitación" aria-label="Eliminar invitación">
-                                            <x-icons.trash />
-                                        </button>
-                                    </form>
+                                            <button type="submit" class="btn btn-danger btn-icon"
+                                                title="Eliminar invitación" aria-label="Eliminar invitación">
+                                                <x-icons.trash />
+                                            </button>
+                                        </form>
+                                    @endcan
                                 </div>
                             </td>
                         </tr>

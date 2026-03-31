@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantInvitationController.php
+// FILE: app/Http/Controllers/TenantInvitationController.php | V3
 
 namespace App\Http\Controllers;
 
@@ -10,25 +10,14 @@ use Illuminate\Support\Str;
 
 class TenantInvitationController extends Controller
 {
-    protected function ensureOwnerAccess(): void
-    {
-        $tenant = app('tenant');
-
-        $membership = auth()->user()
-            ->memberships()
-            ->where('tenant_id', $tenant->id)
-            ->first();
-
-        abort_unless($membership?->is_owner, 403);
-    }
-
     public function store(Request $request)
     {
         $tenant = app('tenant');
-        $this->ensureOwnerAccess();
+
+        $this->authorize('createTenantInvite', Invitation::class);
 
         $data = $request->validate([
-            'email' => ['required', 'email:rfc,dns', 'max:255'],
+            'email' => ['required', 'email:rfc', 'max:255'],
         ], [
             'email.required' => 'Ingresa un correo electrónico.',
             'email.email' => 'Ingresa un correo válido.',
@@ -91,17 +80,7 @@ class TenantInvitationController extends Controller
 
     public function destroy(Invitation $invitation)
     {
-        $tenant = app('tenant');
-        $this->ensureOwnerAccess();
-
-        abort_unless($invitation->tenant_id === $tenant->id, 404);
-        abort_unless($invitation->type === 'member_invite', 404);
-
-        if ($invitation->accepted_at) {
-            return redirect()
-                ->route('tenant.profile.show', ['tab' => 'users'])
-                ->with('error', 'No se puede eliminar una invitación ya aceptada.');
-        }
+        $this->authorize('delete', $invitation);
 
         $invitation->delete();
 

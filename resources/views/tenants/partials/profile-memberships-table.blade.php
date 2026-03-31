@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/partials/profile-memberships-table.blade.php | V2 --}}
+{{-- FILE: resources/views/tenants/partials/profile-memberships-table.blade.php | V4 --}}
 
 <x-card>
     <div class="dashboard-section-header">
@@ -74,16 +74,20 @@
                                             <div class="role-row">
                                                 <span>{{ $role->name }}</span>
 
-                                                <form method="POST"
-                                                    action="{{ route('tenant.memberships.roles.detach', [$membership, $role]) }}">
-                                                    @csrf
-                                                    @method('DELETE')
+                                                @can('detachRole', $membership)
+                                                    <form method="POST"
+                                                        action="{{ route('tenant.memberships.roles.detach', [$membership, $role]) }}"
+                                                        data-action="app-confirm-submit"
+                                                        data-confirm-message="¿Quitar este rol al usuario?">
+                                                        @csrf
+                                                        @method('DELETE')
 
-                                                    <button type="submit" class="btn btn-danger btn-icon"
-                                                        title="Eliminar rol" aria-label="Eliminar rol">
-                                                        <x-icons.trash />
-                                                    </button>
-                                                </form>
+                                                        <button type="submit" class="btn btn-danger btn-icon"
+                                                            title="Eliminar rol" aria-label="Eliminar rol">
+                                                            <x-icons.trash />
+                                                        </button>
+                                                    </form>
+                                                @endcan
                                             </div>
                                         @endforeach
                                     </div>
@@ -96,22 +100,26 @@
                                 @if ($membership->is_owner)
                                     <span class="helper-inline">No editable</span>
                                 @elseif ($assignableRoles->count())
-                                    <form method="POST"
-                                        action="{{ route('tenant.memberships.roles.attach', $membership) }}"
-                                        class="inline-form inline-form-wrap">
-                                        @csrf
+                                    @can('attachRole', $membership)
+                                        <form method="POST"
+                                            action="{{ route('tenant.memberships.roles.attach', $membership) }}"
+                                            class="inline-form inline-form-wrap">
+                                            @csrf
 
-                                        <select name="role_id" class="form-control form-control--role-select">
-                                            @foreach ($assignableRoles as $role)
-                                                <option value="{{ $role->id }}">{{ $role->name }}</option>
-                                            @endforeach
-                                        </select>
+                                            <select name="role_id" class="form-control form-control--role-select">
+                                                @foreach ($assignableRoles as $role)
+                                                    <option value="{{ $role->id }}">{{ $role->name }}</option>
+                                                @endforeach
+                                            </select>
 
-                                        <button type="submit" class="btn btn-secondary btn-icon" title="Agregar rol"
-                                            aria-label="Agregar rol">
-                                            <x-icons.plus />
-                                        </button>
-                                    </form>
+                                            <button type="submit" class="btn btn-secondary btn-icon" title="Agregar rol"
+                                                aria-label="Agregar rol">
+                                                <x-icons.plus />
+                                            </button>
+                                        </form>
+                                    @else
+                                        <span class="helper-inline">No editable</span>
+                                    @endcan
 
                                     @if ($hasAdminRole)
                                         <div class="form-help">
@@ -137,22 +145,29 @@
                                 @if ($membership->is_owner)
                                     <span class="helper-inline">Owner</span>
                                 @elseif ($membership->status === 'blocked')
-                                    <form method="POST"
-                                        action="{{ route('tenant.memberships.unblock', $membership) }}">
-                                        @csrf
-                                        <button type="submit" class="btn btn-secondary btn-icon"
-                                            title="Desbloquear acceso" aria-label="Desbloquear acceso">
-                                            <x-icons.unlock />
-                                        </button>
-                                    </form>
+                                    @can('unblock', $membership)
+                                        <form method="POST" action="{{ route('tenant.memberships.unblock', $membership) }}"
+                                            data-action="app-confirm-submit"
+                                            data-confirm-message="¿Rehabilitar el acceso de este usuario para esta empresa?">
+                                            @csrf
+                                            <button type="submit" class="btn btn-secondary btn-icon"
+                                                title="Desbloquear acceso" aria-label="Desbloquear acceso">
+                                                <x-icons.unlock />
+                                            </button>
+                                        </form>
+                                    @endcan
                                 @else
-                                    <form method="POST" action="{{ route('tenant.memberships.block', $membership) }}">
-                                        @csrf
-                                        <button type="submit" class="btn btn-secondary btn-icon"
-                                            title="Bloquear acceso" aria-label="Bloquear acceso">
-                                            <x-icons.lock />
-                                        </button>
-                                    </form>
+                                    @can('block', $membership)
+                                        <form method="POST" action="{{ route('tenant.memberships.block', $membership) }}"
+                                            data-action="app-confirm-submit"
+                                            data-confirm-message="¿Bloquear el acceso de este usuario para esta empresa?">
+                                            @csrf
+                                            <button type="submit" class="btn btn-secondary btn-icon"
+                                                title="Bloquear acceso" aria-label="Bloquear acceso">
+                                                <x-icons.lock />
+                                            </button>
+                                        </form>
+                                    @endcan
                                 @endif
                             </td>
                         </tr>

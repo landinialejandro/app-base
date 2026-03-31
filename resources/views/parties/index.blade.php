@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/index.blade.php | V9 --}}
+{{-- FILE: resources/views/parties/index.blade.php | V10 --}}
 
 @extends('layouts.app')
 
@@ -8,6 +8,14 @@
 
     @php
         use App\Support\Catalogs\PartyCatalog;
+        use App\Support\Navigation\NavigationTrail;
+
+        $trailQuery = NavigationTrail::toQuery(
+            NavigationTrail::base([
+                NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
+                NavigationTrail::makeNode('parties.index', null, 'Contactos', route('parties.index')),
+            ]),
+        );
     @endphp
 
     <x-page class="list-page">
@@ -16,7 +24,7 @@
 
         <x-page-header title="Contactos">
             @can('create', App\Models\Party::class)
-                <a href="{{ route('parties.create') }}" class="btn btn-success">
+                <a href="{{ route('parties.create', $trailQuery) }}" class="btn btn-success">
                     Nuevo contacto
                 </a>
             @endcan
@@ -47,46 +55,14 @@
         </x-list-filters-card>
 
         <x-card class="list-card">
-            @if ($parties->count())
-                <div class="table-wrap list-scroll">
-                    <table class="table">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Nombre</th>
-                                <th>Email</th>
-                                <th>Teléfono</th>
-                                <th>Activo</th>
-                                <th>Tipo</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach ($parties as $party)
-                                <tr>
-                                    <td>{{ $party->id }}</td>
-                                    <td>
-                                        <a href="{{ route('parties.show', $party) }}">
-                                            {{ $party->name }}
-                                        </a>
-                                    </td>
-                                    <td>{{ $party->email ?? '—' }}</td>
-                                    <td>{{ $party->phone ?? '—' }}</td>
-                                    <td>
-                                        <span
-                                            class="status-badge {{ $party->is_active ? 'status-badge--done' : 'status-badge--cancelled' }}">
-                                            {{ $party->is_active ? 'Sí' : 'No' }}
-                                        </span>
-                                    </td>
-                                    <td>{{ $party->kind ? PartyCatalog::label($party->kind) : '—' }}</td>
-                                </tr>
-                            @endforeach
-                        </tbody>
-                    </table>
-                </div>
+            @include('parties.partials.table', [
+                'parties' => $parties,
+                'emptyMessage' => 'No hay contactos para esta empresa.',
+                'trailQuery' => $trailQuery,
+            ])
 
+            @if ($parties->count())
                 {{ $parties->links() }}
-            @else
-                <p class="mb-0">No hay contactos para esta empresa.</p>
             @endif
         </x-card>
 

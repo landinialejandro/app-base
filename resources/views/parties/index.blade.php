@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/index.blade.php | V8 --}}
+{{-- FILE: resources/views/parties/index.blade.php | V9 --}}
 
 @extends('layouts.app')
 
@@ -15,9 +15,11 @@
         <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Contactos']]" />
 
         <x-page-header title="Contactos">
-            <a href="{{ route('parties.create') }}" class="btn btn-success">
-                Nuevo contacto
-            </a>
+            @can('create', App\Models\Party::class)
+                <a href="{{ route('parties.create') }}" class="btn btn-success">
+                    Nuevo contacto
+                </a>
+            @endcan
         </x-page-header>
 
         <x-list-filters-card :action="route('parties.index')">

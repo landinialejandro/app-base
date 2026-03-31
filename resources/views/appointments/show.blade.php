@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/show.blade.php | V5 --}}
+{{-- FILE: resources/views/appointments/show.blade.php | V6 --}}
 
 @extends('layouts.app')
 
@@ -27,17 +27,15 @@
         <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header :title="$appointmentTitle">
-            @if ($canEditAppointment)
-                <a href="{{ route('appointments.edit', ['appointment' => $appointment] + $trailQuery) }}"
-                    class="btn btn-primary">
+            @can('update', $appointment)
+                <a href="{{ route('appointments.edit', ['appointment' => $appointment] + $trailQuery) }}" class="btn btn-primary">
                     <x-icons.pencil />
                     <span>Editar</span>
                 </a>
-            @endif
+            @endcan
 
-            @if ($canDeleteAppointment)
-                <form method="POST"
-                    action="{{ route('appointments.destroy', ['appointment' => $appointment] + $trailQuery) }}"
+            @can('delete', $appointment)
+                <form method="POST" action="{{ route('appointments.destroy', ['appointment' => $appointment] + $trailQuery) }}"
                     class="inline-form" data-action="app-confirm-submit" data-confirm-message="¿Eliminar turno?">
                     @csrf
                     @method('DELETE')
@@ -47,7 +45,7 @@
                         <span>Eliminar</span>
                     </button>
                 </form>
-            @endif
+            @endcan
 
             @if ($appointment->order)
                 <a href="{{ route('orders.show', ['order' => $appointment->order] + $trailQuery) }}"

@@ -1,59 +1,43 @@
 <?php
 
+// FILE: app/Policies/AssetPolicy.php | V2
+
 namespace App\Policies;
 
 use App\Models\Asset;
 use App\Models\User;
-use App\Support\Auth\RoleModuleAccess;
-use App\Support\Auth\TenantAccess;
+use App\Support\Auth\RolePermissionResolver;
 use App\Support\Catalogs\ModuleCatalog;
 
 class AssetPolicy
 {
+    protected function resolver(): RolePermissionResolver
+    {
+        return app(RolePermissionResolver::class);
+    }
+
     public function viewAny(User $user): bool
     {
-        $tenant = app('tenant');
-
-        return RoleModuleAccess::canUse(ModuleCatalog::ASSETS, $tenant, $user);
+        return $this->resolver()->canUseModule(ModuleCatalog::ASSETS, app('tenant'), $user);
     }
 
     public function view(User $user, Asset $asset): bool
     {
-        $tenant = app('tenant');
-
-        if (! RoleModuleAccess::canUse(ModuleCatalog::ASSETS, $tenant, $user)) {
-            return false;
-        }
-
-        return true;
+        return $this->resolver()->canUseModule(ModuleCatalog::ASSETS, app('tenant'), $user);
     }
 
     public function create(User $user): bool
     {
-        $tenant = app('tenant');
-
-        return RoleModuleAccess::canUse(ModuleCatalog::ASSETS, $tenant, $user);
+        return $this->resolver()->can(ModuleCatalog::ASSETS, 'create', app('tenant'), $user);
     }
 
     public function update(User $user, Asset $asset): bool
     {
-        $tenant = app('tenant');
-
-        if (! RoleModuleAccess::canUse(ModuleCatalog::ASSETS, $tenant, $user)) {
-            return false;
-        }
-
-        return true;
+        return $this->resolver()->can(ModuleCatalog::ASSETS, 'update', app('tenant'), $user);
     }
 
     public function delete(User $user, Asset $asset): bool
     {
-        $tenant = app('tenant');
-
-        if (! RoleModuleAccess::canUse(ModuleCatalog::ASSETS, $tenant, $user)) {
-            return false;
-        }
-
-        return TenantAccess::isOwnerOrAdmin($tenant->id, $user);
+        return $this->resolver()->can(ModuleCatalog::ASSETS, 'delete', app('tenant'), $user);
     }
 }

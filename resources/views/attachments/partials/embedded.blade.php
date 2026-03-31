@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/attachments/partials/embedded.blade.php | V4 --}}
+{{-- FILE: resources/views/attachments/partials/embedded.blade.php | V5 --}}
 
 @php
     use App\Support\Catalogs\AttachmentCatalog;
@@ -46,18 +46,20 @@
 
         <x-slot:actions>
             @if ($attachableType && $attachableId)
-                <a href="{{ route(
-                    'attachments.create',
-                    [
-                        'attachable_type' => $attachableType,
-                        'attachable_id' => $attachableId,
-                        'return_to' => $resolvedReturnTo,
-                    ] + $trailQuery,
-                ) }}"
-                    class="btn btn-success btn-sm">
-                    <x-icons.plus />
-                    <span>{{ $createLabel }}</span>
-                </a>
+                @can('create', App\Models\Attachment::class)
+                    <a href="{{ route(
+                        'attachments.create',
+                        [
+                            'attachable_type' => $attachableType,
+                            'attachable_id' => $attachableId,
+                            'return_to' => $resolvedReturnTo,
+                        ] + $trailQuery,
+                    ) }}"
+                        class="btn btn-success btn-sm">
+                        <x-icons.plus />
+                        <span>{{ $createLabel }}</span>
+                    </a>
+                @endcan
             @endif
         </x-slot:actions>
     </x-tab-toolbar>

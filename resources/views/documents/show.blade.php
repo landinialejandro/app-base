@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/show.blade.php | V12 --}}
+{{-- FILE: resources/views/documents/show.blade.php | V13 --}}
 
 @extends('layouts.app')
 
@@ -19,9 +19,6 @@
         default => 'Detalle del documento',
     };
 
-    $canUpdateDocument = auth()->user()->can('update', $document);
-    $canDeleteDocument = auth()->user()->can('delete', $document);
-
     $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
     $trailQuery = NavigationTrail::toQuery($navigationTrail);
     $backUrl = NavigationTrail::previousUrl($navigationTrail, route('documents.index'));
@@ -37,14 +34,14 @@
         <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header :title="$documentDetailTitle">
-            @if ($canUpdateDocument)
+            @can('update', $document)
                 <a href="{{ route('documents.edit', ['document' => $document] + $trailQuery) }}" class="btn btn-primary">
                     <x-icons.pencil />
                     <span>Editar</span>
                 </a>
-            @endif
+            @endcan
 
-            @if ($canDeleteDocument)
+            @can('delete', $document)
                 <form method="POST" action="{{ route('documents.destroy', ['document' => $document] + $trailQuery) }}"
                     class="inline-form" data-action="app-confirm-submit"
                     data-confirm-message="{{ $items->count()
@@ -58,7 +55,7 @@
                         <span>Eliminar</span>
                     </button>
                 </form>
-            @endif
+            @endcan
 
             <a href="{{ route('documents.print', ['document' => $document]) }}" class="btn btn-secondary" target="_blank">
                 Imprimir

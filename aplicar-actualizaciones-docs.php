@@ -13,6 +13,8 @@ $documents = [
 ];
 
 $baseDir = __DIR__.DIRECTORY_SEPARATOR.'documentos';
+// Definimos la subcarpeta de backups
+$backupDir = $baseDir.DIRECTORY_SEPARATOR.'baks';
 
 $input = stream_get_contents(STDIN);
 $input = trim($input);
@@ -60,8 +62,14 @@ if (empty($changesByDocument)) {
     exit(1);
 }
 
+// Nos aseguramos de que la carpeta de backups exista
+if (! is_dir($backupDir)) {
+    mkdir($backupDir, 0777, true);
+}
+
 foreach ($changesByDocument as $documentName => $changes) {
-    $filePath = $baseDir.DIRECTORY_SEPARATOR.$documents[$documentName];
+    $fileName = $documents[$documentName];
+    $filePath = $baseDir.DIRECTORY_SEPARATOR.$fileName;
 
     if (! file_exists($filePath)) {
         fwrite(STDERR, "No existe el archivo del documento: {$filePath}\n");
@@ -97,7 +105,9 @@ foreach ($changesByDocument as $documentName => $changes) {
     }
 
     if ($content !== $originalContent) {
-        $backupPath = $filePath.'.bak';
+        // Modificado para guardar en la subcarpeta baks
+        $backupPath = $backupDir.DIRECTORY_SEPARATOR.$fileName.'.bak';
+
         file_put_contents($backupPath, $originalContent);
 
         if (file_put_contents($filePath, $content) === false) {

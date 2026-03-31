@@ -34,14 +34,22 @@ Se confirmó que el proyecto puede ejecutarse operativamente en este tipo de ent
 
 La estrategia validada para este tipo de hosting es la siguiente:
 
-- preparar el proyecto completo en local
-- incluir vendor en la subida
-- configurar manualmente el archivo .env de producción
-- importar la base de datos desde SQL
-- apuntar el subdominio a la carpeta public del proyecto
-- limpiar manualmente por FTP los archivos de cache compilada si fuera necesario
+preparar el proyecto completo en local
+incluir vendor en la subida
+configurar manualmente el archivo .env de producción
+importar la base de datos desde SQL
+apuntar el subdominio a la carpeta public del proyecto
+limpiar manualmente por FTP los archivos de cache compilada si fuera necesario
 
 En este escenario no debe dependerse de tareas post deploy mediante Artisan.
+
+Consideraciones adicionales de assets:
+
+los assets públicos deben incluir recursos de branding como SVG accesibles desde public
+
+el layout puede requerir la inclusión explícita de favicon mediante <link rel="icon">
+
+no deben generarse dependencias de build no disponibles en entorno sin CLI
 <<END SECTION>>
 
 <<SECTION: PROBLEMA DETECTADO EN EL REGISTRO DE RUTAS>>

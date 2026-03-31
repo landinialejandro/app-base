@@ -50,6 +50,8 @@ el footer general de la app forma parte del shell reusable de pantallas internas
 no debe resolverse como bloque inline aislado por vista o por módulo
 
 su presencia debe mantenerse consistente dentro del layout general y fuera del flujo público o de layouts especiales que no compartan ese shell
+
+el header/navbar forma parte del shell global y debe mantener una identidad visual consistente basada en iconografía de marca
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
@@ -68,6 +70,39 @@ Título de la pantalla y acciones principales.
 
 x-card
 Contenedor visual del contenido principal.
+
+Componentes globales del layout:
+
+footer del shell general de la app
+forma parte del layout base en pantallas internas no públicas
+
+brand del sistema en header/navbar
+resuelto exclusivamente mediante iconografía SVG inline
+no debe utilizar texto visible como representación de marca
+<<END SECTION>>
+
+<<SECTION: IDENTIDAD VISUAL Y BRANDING DEL HEADER>>
+IDENTIDAD VISUAL Y BRANDING DEL HEADER
+
+El sistema utiliza una identidad visual basada en iconografía SVG en el header/navbar.
+
+Reglas:
+
+la marca visible del sistema en el header se representa únicamente mediante un icono SVG inline
+
+no debe utilizarse texto visible como representación de marca en el header
+
+el SVG debe utilizar currentColor para integrarse con el color del layout
+
+la composición visual del logo responde a una grilla simple (por ejemplo 2x2) para mantener consistencia geométrica
+
+el bloque activo del logo puede diferenciarse mediante tamaño, peso visual o sombra sutil
+
+puede incorporarse interacción visual leve (hover) siempre que no genere distracción ni complejidad innecesaria
+
+la identidad visual debe mantenerse simple, reconocible y consistente en todas las pantallas internas del sistema
+
+favicon y logo cumplen roles distintos y no deben confundirse
 <<END SECTION>>
 
 <<SECTION: PATRÓN GENERAL PARA VISTAS INDEX>>

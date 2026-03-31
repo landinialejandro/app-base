@@ -44,6 +44,11 @@ unificación del criterio real de tenant_id
 migraciones multi-tenant normalizadas a char(36)
 módulo clients eliminado en favor de parties
 flujo de onboarding y alta de usuarios resuelto mediante invitations (owner_signup y member_invite)
+
+Estado visual consolidado:
+identidad visual base definida mediante iconografía SVG en header
+favicon implementado como asset público
+footer global del layout operativo integrado al shell de la app
 <<END SECTION>>
 
 <<SECTION: MÓDULOS IMPLEMENTADOS>>

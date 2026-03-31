@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/layouts/app.blade.php | V2 --}}
+{{-- FILE: resources/views/layouts/app.blade.php | V3 --}}
 
 <!DOCTYPE html>
 <html lang="es">
@@ -7,6 +7,8 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>@yield('title', 'app-base')</title>
+
+    <link rel="icon" type="image/svg+xml" href="{{ asset('assets/brand/favicon.svg') }}">
 
     {{-- Base visual global obligatoria del sistema --}}
     <link rel="stylesheet" href="{{ asset('css/app-base.css') }}">

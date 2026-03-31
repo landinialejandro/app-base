@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/components/layout/navbar.blade.php | V3 --}}
+{{-- FILE: resources/views/components/layout/navbar.blade.php | V4 --}}
 
 @php
     $user = auth()->user();
@@ -11,8 +11,10 @@
     <div class="container app-header-inner">
 
         <div class="app-brand">
-            <a href="{{ auth()->check() ? route('dashboard') : url('/') }}">
-                app-base
+            <a href="{{ auth()->check() ? route('dashboard') : url('/') }}" class="app-brand-link" aria-label="app-base">
+                <span class="app-brand__icon" aria-hidden="true">
+                    @include('svg.app-logo')
+                </span>
             </a>
         </div>
 

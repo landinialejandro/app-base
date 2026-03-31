@@ -342,6 +342,8 @@ volver debe tender a una iconografía homogénea en todas las vistas show y qued
 las acciones de alta o agregado dentro de tabs o subpaneles deben utilizar iconografía de suma y una escala visual más contenida que el CTA principal de la pantalla
 
 las acciones contextuales de tabs o subpaneles no deben mezclarse con el grupo principal de acciones del show
+
+en formularios embebidos o contextuales, la acción cancelar debe respetar el contexto completo del flujo vigente y no volver por defecto al show estructural del módulo padre
 <<END SECTION>>
 
 <<SECTION: FRAGMENTACIÓN DE BLADES>>

@@ -178,28 +178,27 @@ assets
 ↓
 orders / documents
 
-assets
-↓
-orders / documents
-
-↓
-orders
-↓
-documents
-↓
-document_items
-
-projects
-↓
-tasks
+parties
 ↓
 orders
 
 parties
 ↓
+documents
+
 assets
 ↓
 orders / documents
+
+task
+↓
+order
+
+orders
+↓
+documents
+↓
+document_items
 
 orders
 ↓
@@ -249,7 +248,6 @@ Contexto esperado:
 
 si la party se abre desde el turno, puede conservarse retorno útil al appointment de origen cuando siga siendo relevante para la tarea actual
 
-
 APPOINTMENTS -> ASSETS
 
 Uso típico:
@@ -259,7 +257,6 @@ desde un turno se consulta o abre el activo relacionado
 Contexto esperado:
 
 si el asset se abre desde el turno, puede conservarse retorno útil al appointment de origen cuando siga siendo relevante para la tarea actual
-
 
 APPOINTMENTS -> ORDERS
 
@@ -274,7 +271,6 @@ si la orden se abre desde appointment relacionado, puede conservarse retorno út
 Observación:
 
 appointments mantiene además navegación estructural propia y calendario mensual operativo
-
 
 PROJECTS -> TASKS
 
@@ -286,7 +282,6 @@ Contexto esperado:
 
 tasks puede necesitar retorno al proyecto de origen si se abrió desde allí
 
-
 TASKS -> ORDERS
 
 Uso típico:
@@ -296,7 +291,6 @@ una tarea deriva en una orden
 Contexto esperado:
 
 si el flujo empezó en project o task, la orden puede conservar ese origen funcional cuando siga siendo útil
-
 
 ORDERS -> PARTIES
 
@@ -308,7 +302,6 @@ Contexto esperado:
 
 si la party se abre desde la orden, el breadcrumb puede conservar la orden de origen cuando esa relación siga siendo parte del trabajo en curso
 
-
 ORDERS -> ASSETS
 
 Uso típico:
@@ -318,7 +311,6 @@ desde una orden se consulta o abre el activo asociado
 Contexto esperado:
 
 si el asset se abre desde la orden, el breadcrumb puede conservar la orden de origen cuando esa relación siga siendo parte del trabajo en curso
-
 
 ORDERS -> DOCUMENTS
 
@@ -333,7 +325,6 @@ documents puede abrirse en modo estructural o como continuación directa del tra
 Observación:
 
 es uno de los tramos principales del trail contextual actual
-
 
 DOCUMENTS -> PARTIES
 
@@ -345,7 +336,6 @@ Contexto esperado:
 
 si la party se abre desde el documento, el breadcrumb puede conservar el document de origen cuando siga siendo útil para la continuidad del trabajo
 
-
 DOCUMENTS -> ASSETS
 
 Uso típico:
@@ -355,7 +345,6 @@ desde un documento se consulta o abre el activo asociado
 Contexto esperado:
 
 si el asset se abre desde el documento, el breadcrumb puede conservar el document de origen cuando siga siendo útil para la continuidad del trabajo
-
 
 DOCUMENTS -> ORDERS
 
@@ -367,7 +356,6 @@ Contexto esperado:
 
 si la order se abre desde el documento, el breadcrumb puede conservar el document de origen cuando el usuario siga trabajando sobre ese recorrido relacionado
 
-
 DOCUMENTS -> DOCUMENT_ITEMS
 
 Uso típico:
@@ -378,6 +366,9 @@ Contexto esperado:
 
 document_items hereda normalmente el contexto del document padre
 
+Observación:
+
+las acciones create, edit, store, update y cancelar deben volver al show del documento padre respetando el trail completo del flujo
 
 PARTIES -> ASSETS
 
@@ -389,99 +380,25 @@ Contexto esperado:
 
 assets puede abrirse como continuación del trabajo iniciado en parties
 
-
-ASSETS -> ORDERS / DOCUMENTS
-
-Uso típico:
-
-desde un activo se consultan o generan operaciones relacionadas
-
-Contexto esperado:
-
-orders y documents pueden conservar retorno al asset si ese origen sigue siendo relevante
-
-
-ORDERS -> ORDER_ITEMS
+PARTIES -> ORDERS
 
 Uso típico:
 
-alta, edición o consulta de renglones de orden
+desde una party se consultan órdenes asociadas
 
 Contexto esperado:
 
-order_items hereda normalmente el contexto de la order padre
+orders puede abrirse conservando la party de origen cuando el trabajo siga anclado en ese contacto
 
-APPOINTMENTS -> ORDERS
+PARTIES -> DOCUMENTS
 
 Uso típico:
 
-un turno deriva en una orden operativa
+desde una party se consultan documentos asociados
 
 Contexto esperado:
 
-si la orden se abre desde appointment relacionado, puede conservarse retorno útil al turno o al módulo de agenda
-
-Observación:
-
-appointments mantiene además navegación estructural propia y calendario mensual operativo
-
-ORDERS -> DOCUMENTS
-
-Uso típico:
-
-desde una orden se generan o consultan documentos derivados
-
-Contexto esperado:
-
-documents puede abrirse en modo estructural o como continuación directa del trabajo iniciado en orders
-
-Observación:
-
-es uno de los tramos principales del trail contextual actual
-
-DOCUMENTS -> DOCUMENT_ITEMS
-
-Uso típico:
-
-edición o consulta de detalle documental dentro del flujo de documents
-
-Contexto esperado:
-
-document_items hereda normalmente el contexto del document padre
-
-PROJECTS -> TASKS
-
-Uso típico:
-
-desde project.show o project index contextual se accede a tareas relacionadas
-
-Contexto esperado:
-
-tasks puede necesitar retorno al proyecto de origen si se abrió desde allí
-
-Observación:
-
-tasks sigue teniendo también lógica operativa propia por asignación
-
-TASKS -> ORDERS
-
-Uso típico:
-
-una tarea deriva en una orden
-
-Contexto esperado:
-
-si el flujo empezó en project o task, la orden puede conservar ese origen funcional cuando siga siendo útil
-
-PARTIES -> ASSETS
-
-Uso típico:
-
-consulta de activos asociados a un contacto o entidad base del negocio
-
-Contexto esperado:
-
-assets puede abrirse como continuación del trabajo iniciado en parties
+documents puede abrirse conservando la party de origen cuando el trabajo siga anclado en ese contacto
 
 ASSETS -> ORDERS / DOCUMENTS
 
@@ -502,6 +419,10 @@ alta, edición o consulta de renglones de orden
 Contexto esperado:
 
 order_items hereda normalmente el contexto de la order padre
+
+Observación:
+
+las acciones create, edit, store, update y cancelar deben volver al show de la orden padre respetando el trail completo del flujo
 <<END SECTION>>
 
 <<SECTION: PANTALLAS QUE DEBEN AUDITARSE CON ESPECIAL ATENCIÓN>>

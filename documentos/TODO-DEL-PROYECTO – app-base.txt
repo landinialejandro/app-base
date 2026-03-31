@@ -273,7 +273,17 @@ no avanzar todavía a navegación tipo tabs de ruta o workspace hasta cerrar una
 
 mantener como referencias resueltas los tramos contextuales appointments -> orders -> documents, projects -> tasks -> orders y parties -> assets -> orders/documents
 
-incorporar explícitamente a la auditoría los flujos appointments -> parties, appointments -> assets, orders -> parties, orders -> assets, documents -> parties, documents -> assets y documents -> orders
+incorporar explícitamente a la auditoría los flujos appointments -> parties, appointments -> assets, orders -> parties, orders -> assets, documents -> parties, documents -> assets, documents -> orders
+
+considerar como ya resueltos en la base actual los recorridos:
+
+party -> asset
+party -> order
+party -> document
+asset -> order
+asset -> document
+project -> task
+task -> order
 
 auditar y definir criterio de compactación o corte de breadcrumb contextual para navegaciones profundas
 
@@ -297,6 +307,8 @@ evitar reaparición de serialización recursiva del trail dentro de URLs interna
 revisar casos donde el breadcrumb contextual del show siga resolviendo una salida incorrecta aunque la pantalla ya haya sido alineada visualmente
 
 auditar includes embebidos para asegurar uso exclusivo de NavigationTrail sin parámetros manuales
+
+mantener el criterio de que en tablas relacionales por fila el link principal construye el contexto de fila y los links relacionados reutilizan ese mismo trail
 <<END SECTION>>
 
 <<SECTION: NUMERACIÓN Y CONFIGURACIÓN OPERATIVA>>

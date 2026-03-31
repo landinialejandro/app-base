@@ -615,7 +615,13 @@ reconstrucción manual por relaciones del modelo
 
 en tablas embebidas o listados contextuales, cuando el contexto real de navegación sea la fila y no solo el contenedor, los links profundos a entidades relacionadas deben usar el trail de la fila
 
+en tablas embebidas o relacionales, el link principal de la fila debe construir el trail desde el contexto del contenedor más el nodo de la fila
+
+los links relacionados de esa misma fila deben reutilizar ese trail contextual ya construido y no reiniciar el contexto desde el contenedor ni desde mecanismos manuales
+
 los nodos transitorios de formulario como create, edit, items.create o items.edit no deben persistir al volver a show después de store o update exitoso
+
+las acciones cancelar dentro de formularios contextuales deben respetar el trail completo vigente y no volver por defecto al show estructural del módulo
 
 las decisiones internas de implementación pueden evolucionar, pero la convención estable es:
 
@@ -796,4 +802,8 @@ solo el módulo contenedor
 o el módulo contenedor más la entidad fila desde la cual se abre la entidad relacionada
 
 esa decisión no debe dejarse implícita ni variar accidentalmente entre módulos
+
+en tablas embebidas o relacionales, el link principal de la fila debe consolidar primero el contexto completo de esa fila
+
+los links secundarios o relacionados de esa fila deben reutilizar ese mismo contexto y no reconstruirse desde la pantalla contenedora
 <<END SECTION>>

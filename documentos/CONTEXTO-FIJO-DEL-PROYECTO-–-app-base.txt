@@ -791,6 +791,8 @@ El shell general de la app ya incorpora un footer reusable en pantallas internas
 Ese footer puede exponer identificación visible de versión o estado del sistema.
 
 En entorno local, esa identificación puede resolverse automáticamente desde .git como identificador de desarrollo.
+
+Este comportamiento forma parte efectiva del shell del sistema y no debe tratarse como funcionalidad futura.
 <<END SECTION>>
 
 <<SECTION: Entidades ya implementadas>>

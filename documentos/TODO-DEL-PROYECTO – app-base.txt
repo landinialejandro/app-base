@@ -172,15 +172,9 @@ terminar de alinear acceso efectivo por módulo habilitado del tenant y por rol 
 
 proteger roles reservados contra edición o eliminación futura
 
-auditar globalmente el uso real de authorize(...) y authorizeResource(...) en todos los controllers
-
-auditar globalmente el uso real de @can en vistas CRUD y sublistados internos
-
 verificar qué módulos tienen Policy creada pero no aplicada realmente
 
 alinear navbar y dashboard con acceso real por módulo y por rol
-
-normalizar botones y acciones visibles con @can donde falte
 
 revisar módulos de gestión no auditados aún para alinear permisos
 

@@ -51,6 +51,8 @@ no debe resolverse como bloque inline aislado por vista o por módulo
 
 su presencia debe mantenerse consistente dentro del layout general y fuera del flujo público o de layouts especiales que no compartan ese shell
 
+el footer debe considerarse parte estructural del layout base y no un componente opcional por pantalla
+
 el header/navbar forma parte del shell global y debe mantener una identidad visual consistente basada en iconografía de marca
 <<END SECTION>>
 

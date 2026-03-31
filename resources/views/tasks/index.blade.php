@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/index.blade.php | V8 --}}
+{{-- FILE: resources/views/tasks/index.blade.php | V9 --}}
 
 @extends('layouts.app')
 
@@ -8,6 +8,10 @@
 
     @php
         use App\Support\Catalogs\TaskCatalog;
+        use App\Support\Navigation\NavigationTrail;
+        use App\Support\Navigation\TaskNavigationTrail;
+
+        $trailQuery = NavigationTrail::toQuery(TaskNavigationTrail::tasksBase());
     @endphp
 
     <x-page class="list-page">
@@ -15,7 +19,7 @@
 
         <x-page-header title="Tareas">
             @can('create', App\Models\Task::class)
-                <a href="{{ route('tasks.create') }}" class="btn btn-success">
+                <a href="{{ route('tasks.create', $trailQuery) }}" class="btn btn-success">
                     Nueva tarea
                 </a>
             @endcan
@@ -97,10 +101,11 @@
             @include('tasks.partials.table', [
                 'tasks' => $tasks,
                 'emptyMessage' => 'No hay tareas registradas para esta empresa.',
+                'trailQuery' => $trailQuery,
             ])
 
             @if ($tasks->count())
-                {{ $tasks->links() }}
+                {{ $tasks->appends(request()->query())->links() }}
             @endif
         </x-card>
     </x-page>

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/attachments/partials/embedded.blade.php | V2 --}}
+{{-- FILE: resources/views/attachments/partials/embedded.blade.php | V4 --}}
 
 @php
     use App\Support\Catalogs\AttachmentCatalog;
@@ -13,8 +13,7 @@
     $createLabel = $createLabel ?? 'Agregar adjunto';
     $kinds = AttachmentCatalog::kindLabels();
 
-    $resolvedReturnTo =
-        $returnTo ?? NavigationTrail::previousUrl(NavigationTrail::fromRequest(request()), url()->current());
+    $resolvedReturnTo = $returnTo ?? NavigationTrail::previousUrl($navigationTrail ?? []);
 @endphp
 
 <div class="tabs" data-tabs>

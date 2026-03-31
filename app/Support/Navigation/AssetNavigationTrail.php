@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/AssetNavigationTrail.php | V3
+// FILE: app/Support/Navigation/AssetNavigationTrail.php | V4
 
 namespace App\Support\Navigation;
 
@@ -62,8 +62,10 @@ class AssetNavigationTrail
             $trail = self::base($asset);
         }
 
-        $trail = NavigationTrail::sliceBefore($trail, 'assets.create', 'new');
-        $trail = NavigationTrail::sliceBefore($trail, 'assets.edit', $asset->id);
+        $trail = NavigationTrail::removeNodes($trail, [
+            ['key' => 'assets.create', 'id' => 'new'],
+            ['key' => 'assets.edit', 'id' => $asset->id],
+        ]);
 
         return NavigationTrail::appendOrCollapse(
             $trail,

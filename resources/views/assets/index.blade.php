@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/assets/index.blade.php | V3 --}}
+{{-- FILE: resources/views/assets/index.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -8,6 +8,10 @@
 
     @php
         use App\Support\Catalogs\AssetCatalog;
+        use App\Support\Navigation\AssetNavigationTrail;
+        use App\Support\Navigation\NavigationTrail;
+
+        $trailQuery = NavigationTrail::toQuery(AssetNavigationTrail::assetsBase());
     @endphp
 
     <x-page class="list-page">
@@ -16,7 +20,7 @@
 
         <x-page-header title="Activos">
             @can('create', App\Models\Asset::class)
-                <a href="{{ route('assets.create') }}" class="btn btn-success">
+                <a href="{{ route('assets.create', $trailQuery) }}" class="btn btn-success">
                     Nuevo activo
                 </a>
             @endcan
@@ -51,6 +55,7 @@
                 'assets' => $assets,
                 'showParty' => true,
                 'emptyMessage' => 'No hay activos para esta empresa.',
+                'trailQuery' => $trailQuery,
             ])
 
             @if ($assets->count())

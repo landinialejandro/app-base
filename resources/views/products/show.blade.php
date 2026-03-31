@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/products/show.blade.php | V9 --}}
+{{-- FILE: resources/views/products/show.blade.php | V10 --}}
 
 @extends('layouts.app')
 
@@ -109,7 +109,7 @@
                         'attachableType' => 'product',
                         'attachableId' => $product->id,
                         'trailQuery' => $trailQuery,
-                        'returnTo' => url()->current(),
+                        'navigationTrail' => $navigationTrail,
                         'tabsId' => 'product-attachments-tabs',
                         'createLabel' => 'Agregar adjunto',
                     ])

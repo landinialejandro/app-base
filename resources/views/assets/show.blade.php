@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/assets/show.blade.php | V8 --}}
+{{-- FILE: resources/views/assets/show.blade.php | V9 --}}
 
 @extends('layouts.app')
 
@@ -8,6 +8,7 @@
     @php
         use App\Support\Catalogs\AssetCatalog;
         use App\Support\Catalogs\OrderCatalog;
+        use App\Support\Navigation\AssetNavigationTrail;
         use App\Support\Navigation\NavigationTrail;
 
         $orders = $orders ?? collect();
@@ -16,6 +17,7 @@
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
+        $assetTrailQuery = NavigationTrail::toQuery(AssetNavigationTrail::base($asset));
         $backUrl = NavigationTrail::previousUrl($navigationTrail, route('assets.index'));
     @endphp
 
@@ -65,7 +67,7 @@
 
             <x-show-summary-item label="Contacto">
                 @if ($asset->party)
-                    <a href="{{ route('parties.show', ['party' => $asset->party] + $trailQuery) }}">
+                    <a href="{{ route('parties.show', ['party' => $asset->party] + $assetTrailQuery) }}">
                         {{ $asset->party->name }}
                     </a>
                 @else
@@ -162,7 +164,7 @@
                         'attachableType' => 'asset',
                         'attachableId' => $asset->id,
                         'trailQuery' => $trailQuery,
-                        'returnTo' => url()->current(),
+                        'navigationTrail' => $navigationTrail,
                         'tabsId' => 'asset-attachments-tabs',
                         'createLabel' => 'Agregar adjunto',
                     ])

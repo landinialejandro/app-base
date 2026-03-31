@@ -1,12 +1,13 @@
-{{-- FILE: resources/views/tasks/partials/table.blade.php | V4 --}}
+{{-- FILE: resources/views/tasks/partials/table.blade.php | V5 --}}
 
 @php
     use App\Support\Catalogs\TaskCatalog;
+    use App\Support\Navigation\NavigationTrail;
+    use App\Support\Navigation\TaskNavigationTrail;
     use Illuminate\Support\Carbon;
 
     $tasks = $tasks ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay tareas para mostrar.';
-    $trailQuery = $trailQuery ?? [];
 @endphp
 
 @if ($tasks->count())
@@ -26,6 +27,9 @@
             <tbody>
                 @foreach ($tasks as $task)
                     @php
+                        $taskTrail = TaskNavigationTrail::base($task);
+                        $taskTrailQuery = NavigationTrail::toQuery($taskTrail);
+
                         $dueText = '—';
 
                         if ($task->due_date) {
@@ -44,14 +48,14 @@
 
                     <tr>
                         <td>
-                            <a href="{{ route('tasks.show', ['task' => $task] + $trailQuery) }}">
+                            <a href="{{ route('tasks.show', ['task' => $task] + $taskTrailQuery) }}">
                                 {{ $task->name }}
                             </a>
                         </td>
 
                         <td>
                             @if ($task->project)
-                                <a href="{{ route('projects.show', ['project' => $task->project] + $trailQuery) }}">
+                                <a href="{{ route('projects.show', ['project' => $task->project] + $taskTrailQuery) }}">
                                     {{ $task->project->name }}
                                 </a>
                             @else
@@ -75,7 +79,7 @@
                         <td>{{ $dueText }}</td>
                         <td>
                             @if ($task->order)
-                                <a href="{{ route('orders.show', ['order' => $task->order] + $trailQuery) }}">
+                                <a href="{{ route('orders.show', ['order' => $task->order] + $taskTrailQuery) }}">
                                     {{ $task->order->number ?: 'Ver orden' }}
                                 </a>
                             @else

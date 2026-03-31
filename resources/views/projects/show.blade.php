@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/projects/show.blade.php | V13 --}}
+{{-- FILE: resources/views/projects/show.blade.php | V15 --}}
 
 @extends('layouts.app')
 
@@ -150,7 +150,7 @@
                         'attachableType' => 'project',
                         'attachableId' => $project->id,
                         'trailQuery' => $trailQuery,
-                        'returnTo' => url()->current(),
+                        'navigationTrail' => $navigationTrail,
                         'tabsId' => 'project-attachments-tabs',
                         'createLabel' => 'Agregar adjunto',
                     ])

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/ProjectNavigationTrail.php | V2
+// FILE: app/Support/Navigation/ProjectNavigationTrail.php | V3
 
 namespace App\Support\Navigation;
 
@@ -56,11 +56,13 @@ class ProjectNavigationTrail
         $trail = NavigationTrail::fromRequest($request);
 
         if (empty($trail)) {
-            $trail = self::projectsBase();
+            $trail = self::base($project);
         }
 
-        $trail = NavigationTrail::sliceBefore($trail, 'projects.create', 'new');
-        $trail = NavigationTrail::sliceBefore($trail, 'projects.edit', $project->id);
+        $trail = NavigationTrail::removeNodes($trail, [
+            ['key' => 'projects.create', 'id' => 'new'],
+            ['key' => 'projects.edit', 'id' => $project->id],
+        ]);
 
         return NavigationTrail::appendOrCollapse(
             $trail,

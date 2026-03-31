@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AttachmentController.php | V9
+// FILE: app/Http/Controllers/AttachmentController.php | V10
 
 namespace App\Http\Controllers;
 
@@ -14,6 +14,13 @@ use App\Models\Product;
 use App\Models\Project;
 use App\Models\Task;
 use App\Support\Attachments\AttachmentAllowedParents;
+use App\Support\Navigation\AssetNavigationTrail;
+use App\Support\Navigation\DocumentNavigationTrail;
+use App\Support\Navigation\NavigationTrail;
+use App\Support\Navigation\OrderNavigationTrail;
+use App\Support\Navigation\ProductNavigationTrail;
+use App\Support\Navigation\ProjectNavigationTrail;
+use App\Support\Navigation\TaskNavigationTrail;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
@@ -29,11 +36,28 @@ class AttachmentController extends Controller
 
         $this->authorize('update', $attachable);
 
+        $parentTrail = $this->parentTrailFromRequest($request, $attachableType, $attachable);
+        $trailQuery = NavigationTrail::toQuery($parentTrail);
+
+        $navigationTrail = NavigationTrail::appendOrCollapse(
+            $parentTrail,
+            NavigationTrail::makeNode(
+                'attachments.create',
+                $attachableType.'-'.$attachableId,
+                'Agregar adjunto',
+                route('attachments.create', [
+                    'attachable_type' => $attachableType,
+                    'attachable_id' => $attachableId,
+                ] + $trailQuery)
+            )
+        );
+
         return view('attachments.create', [
             'attachableType' => $attachableType,
             'attachableId' => $attachableId,
-            'returnTo' => $request->query('return_to') ?: $this->parentShowUrl($attachableType, $attachable),
-            'breadcrumbItems' => $this->breadcrumbItemsForCreate($attachableType, $attachable),
+            'returnTo' => $request->query('return_to') ?: $this->parentShowUrlWithTrail($attachableType, $attachable, $parentTrail),
+            'breadcrumbItems' => NavigationTrail::toBreadcrumbItems($navigationTrail),
+            'navigationTrail' => $navigationTrail,
         ]);
     }
 
@@ -70,7 +94,9 @@ class AttachmentController extends Controller
             'description' => $request->validated('description'),
         ]);
 
-        return redirect($request->validated('return_to') ?: $this->parentShowUrl($attachableType, $attachable))
+        $parentTrail = $this->parentTrailFromRequest($request, $attachableType, $attachable);
+
+        return redirect($request->validated('return_to') ?: $this->parentShowUrlWithTrail($attachableType, $attachable, $parentTrail))
             ->with('success', 'Archivo adjuntado correctamente.');
     }
 
@@ -81,12 +107,26 @@ class AttachmentController extends Controller
         $attachableType = $this->typeAliasFromStoredType($attachment->attachable_type);
         $attachable = $attachment->attachable;
 
+        $parentTrail = $this->parentTrailFromRequest($request, $attachableType, $attachable);
+        $trailQuery = NavigationTrail::toQuery($parentTrail);
+
+        $navigationTrail = NavigationTrail::appendOrCollapse(
+            $parentTrail,
+            NavigationTrail::makeNode(
+                'attachments.edit',
+                $attachment->id,
+                'Editar adjunto',
+                route('attachments.edit', ['attachment' => $attachment] + $trailQuery)
+            )
+        );
+
         return view('attachments.edit', [
             'attachment' => $attachment,
             'attachableType' => $attachableType,
             'attachableId' => $attachment->attachable_id,
-            'returnTo' => $request->query('return_to') ?: $this->parentShowUrl($attachment->attachable_type, $attachable),
-            'breadcrumbItems' => $this->breadcrumbItemsForEdit($attachableType, $attachable),
+            'returnTo' => $request->query('return_to') ?: $this->parentShowUrlWithTrail($attachableType, $attachable, $parentTrail),
+            'breadcrumbItems' => NavigationTrail::toBreadcrumbItems($navigationTrail),
+            'navigationTrail' => $navigationTrail,
         ]);
     }
 
@@ -99,7 +139,10 @@ class AttachmentController extends Controller
             'description' => $request->validated('description'),
         ]);
 
-        return redirect($request->validated('return_to') ?: $this->parentShowUrl($attachment->attachable_type, $attachment->attachable))
+        $attachableType = $this->typeAliasFromStoredType($attachment->attachable_type);
+        $parentTrail = $this->parentTrailFromRequest($request, $attachableType, $attachment->attachable);
+
+        return redirect($request->validated('return_to') ?: $this->parentShowUrlWithTrail($attachableType, $attachment->attachable, $parentTrail))
             ->with('success', 'Adjunto actualizado.');
     }
 
@@ -113,11 +156,14 @@ class AttachmentController extends Controller
             $disk->delete($attachment->full_path);
         }
 
+        $attachableType = $this->typeAliasFromStoredType($attachment->attachable_type);
+        $attachable = $attachment->attachable;
         $attachment->delete();
 
+        $parentTrail = $this->parentTrailFromRequest($request, $attachableType, $attachable);
         $returnTo = $request->input('return_to');
 
-        return redirect($returnTo ?: $this->parentShowUrl($attachment->attachable_type, $attachment->attachable))
+        return redirect($returnTo ?: $this->parentShowUrlWithTrail($attachableType, $attachable, $parentTrail))
             ->with('success', 'Adjunto eliminado.');
     }
 
@@ -195,44 +241,46 @@ class AttachmentController extends Controller
         };
     }
 
-    private function parentLabel(string $attachableType): string
+    private function parentShowUrlWithTrail(string $attachableType, object $attachable, array $parentTrail): string
     {
         return match ($attachableType) {
-            'order', Order::class => 'Orden',
-            'document', Document::class => 'Documento',
-            'asset', Asset::class => 'Activo',
-            'project', Project::class => 'Proyecto',
-            'task', Task::class => 'Tarea',
-            'product', Product::class => 'Producto',
-            default => 'Registro',
+            'order', Order::class => route('orders.show', ['order' => $attachable] + NavigationTrail::toQuery($parentTrail)),
+            'document', Document::class => route('documents.show', ['document' => $attachable] + NavigationTrail::toQuery($parentTrail)),
+            'asset', Asset::class => route('assets.show', ['asset' => $attachable] + NavigationTrail::toQuery($parentTrail)),
+            'project', Project::class => route('projects.show', ['project' => $attachable] + NavigationTrail::toQuery($parentTrail)),
+            'task', Task::class => route('tasks.show', ['task' => $attachable] + NavigationTrail::toQuery($parentTrail)),
+            'product', Product::class => route('products.show', ['product' => $attachable] + NavigationTrail::toQuery($parentTrail)),
+            default => route('dashboard'),
         };
     }
 
-    private function breadcrumbItemsForCreate(string $attachableType, object $attachable): array
+    private function parentTrailFromRequest(Request $request, string $attachableType, object $attachable): array
     {
-        return [
-            [
-                'label' => $this->parentLabel($attachableType),
-                'url' => $this->parentShowUrl($attachableType, $attachable),
-            ],
-            [
-                'label' => 'Agregar adjunto',
-                'url' => null,
-            ],
-        ];
+        $trail = NavigationTrail::fromRequest($request);
+
+        if (empty($trail)) {
+            $trail = NavigationTrail::decode((string) $request->input('trail', ''));
+        }
+
+        if (empty($trail)) {
+            return $this->parentBaseTrail($attachableType, $attachable);
+        }
+
+        return $trail;
     }
 
-    private function breadcrumbItemsForEdit(string $attachableType, object $attachable): array
+    private function parentBaseTrail(string $attachableType, object $attachable): array
     {
-        return [
-            [
-                'label' => $this->parentLabel($attachableType),
-                'url' => $this->parentShowUrl($attachableType, $attachable),
-            ],
-            [
-                'label' => 'Editar adjunto',
-                'url' => null,
-            ],
-        ];
+        return match ($attachableType) {
+            'order', Order::class => OrderNavigationTrail::base($attachable),
+            'document', Document::class => DocumentNavigationTrail::base($attachable),
+            'asset', Asset::class => AssetNavigationTrail::base($attachable),
+            'project', Project::class => ProjectNavigationTrail::base($attachable),
+            'task', Task::class => TaskNavigationTrail::base($attachable),
+            'product', Product::class => ProductNavigationTrail::base($attachable),
+            default => NavigationTrail::base([
+                NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
+            ]),
+        };
     }
 }

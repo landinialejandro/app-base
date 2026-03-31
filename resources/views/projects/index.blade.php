@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/projects/index.blade.php | V5 --}}
+{{-- FILE: resources/views/projects/index.blade.php | V6 --}}
 
 @extends('layouts.app')
 
@@ -7,6 +7,10 @@
 @section('content')
     @php
         use App\Support\Catalogs\ProjectCatalog;
+        use App\Support\Navigation\NavigationTrail;
+        use App\Support\Navigation\ProjectNavigationTrail;
+
+        $trailQuery = NavigationTrail::toQuery(ProjectNavigationTrail::projectsBase());
     @endphp
 
     <x-page class="list-page">
@@ -15,13 +19,13 @@
 
         <x-page-header title="Proyectos">
             @can('create', App\Models\Project::class)
-                <a href="{{ route('projects.create') }}" class="btn btn-success">
+                <a href="{{ route('projects.create', $trailQuery) }}" class="btn btn-success">
                     Nuevo proyecto
                 </a>
             @endcan
         </x-page-header>
 
-        <x-list-filters-card :action="route('projects.index')">
+        <x-list-filters-card :action="route('projects.index')" secondary-id="projects-extra-filters">
             <x-slot:primary>
                 <div class="list-filters-grid">
                     <div class="form-group">
@@ -49,10 +53,11 @@
             @include('projects.partials.table', [
                 'projects' => $projects,
                 'emptyMessage' => 'No hay proyectos para esta empresa.',
+                'trailQuery' => $trailQuery,
             ])
 
             @if ($projects->count())
-                {{ $projects->links() }}
+                {{ $projects->appends(request()->query())->links() }}
             @endif
         </x-card>
 

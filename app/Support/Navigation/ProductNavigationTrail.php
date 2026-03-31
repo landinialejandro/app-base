@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/ProductNavigationTrail.php | V2
+// FILE: app/Support/Navigation/ProductNavigationTrail.php | V3
 
 namespace App\Support\Navigation;
 
@@ -56,11 +56,13 @@ class ProductNavigationTrail
         $trail = NavigationTrail::fromRequest($request);
 
         if (empty($trail)) {
-            $trail = self::productsBase();
+            $trail = self::base($product);
         }
 
-        $trail = NavigationTrail::sliceBefore($trail, 'products.create', 'new');
-        $trail = NavigationTrail::sliceBefore($trail, 'products.edit', $product->id);
+        $trail = NavigationTrail::removeNodes($trail, [
+            ['key' => 'products.create', 'id' => 'new'],
+            ['key' => 'products.edit', 'id' => $product->id],
+        ]);
 
         return NavigationTrail::appendOrCollapse(
             $trail,

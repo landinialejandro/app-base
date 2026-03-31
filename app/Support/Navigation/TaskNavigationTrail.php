@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/TaskNavigationTrail.php | V3
+// FILE: app/Support/Navigation/TaskNavigationTrail.php | V4
 
 namespace App\Support\Navigation;
 
@@ -62,8 +62,10 @@ class TaskNavigationTrail
             $trail = self::base($task);
         }
 
-        $trail = NavigationTrail::sliceBefore($trail, 'tasks.create', 'new');
-        $trail = NavigationTrail::sliceBefore($trail, 'tasks.edit', $task->id);
+        $trail = NavigationTrail::removeNodes($trail, [
+            ['key' => 'tasks.create', 'id' => 'new'],
+            ['key' => 'tasks.edit', 'id' => $task->id],
+        ]);
 
         return NavigationTrail::appendOrCollapse(
             $trail,

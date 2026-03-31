@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/PartyNavigationTrail.php | V2
+// FILE: app/Support/Navigation/PartyNavigationTrail.php | V3
 
 namespace App\Support\Navigation;
 
@@ -56,11 +56,13 @@ class PartyNavigationTrail
         $trail = NavigationTrail::fromRequest($request);
 
         if (empty($trail)) {
-            $trail = self::partiesBase();
+            $trail = self::base($party);
         }
 
-        $trail = NavigationTrail::sliceBefore($trail, 'parties.create', 'new');
-        $trail = NavigationTrail::sliceBefore($trail, 'parties.edit', $party->id);
+        $trail = NavigationTrail::removeNodes($trail, [
+            ['key' => 'parties.create', 'id' => 'new'],
+            ['key' => 'parties.edit', 'id' => $party->id],
+        ]);
 
         return NavigationTrail::appendOrCollapse(
             $trail,

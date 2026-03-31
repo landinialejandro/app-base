@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/partials/calendar-day-cell.blade.php | V3 --}}
+{{-- FILE: resources/views/appointments/partials/calendar-day-cell.blade.php | V4 --}}
 
 @php
     use App\Support\Catalogs\AppointmentCatalog;
@@ -14,10 +14,11 @@
         ->startOfDay()
         ->lt(now()->startOfDay());
 
+    $calendarBaseUrl = route('appointments.calendar', ['view' => $mode]);
     $calendarTrail = NavigationTrail::base([
         NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
         NavigationTrail::makeNode('appointments.index', null, 'Turnos', route('appointments.index')),
-        NavigationTrail::makeNode('appointments.calendar', $mode, 'Calendario', url()->current()),
+        NavigationTrail::makeNode('appointments.calendar', $mode, 'Calendario', $calendarBaseUrl),
     ]);
     $calendarTrail = NavigationTrail::replaceCurrentUrl($calendarTrail, request()->fullUrl());
     $calendarTrailQuery = NavigationTrail::toQuery($calendarTrail);

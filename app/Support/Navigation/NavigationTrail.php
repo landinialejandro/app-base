@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/NavigationTrail.php | V2
+// FILE: app/Support/Navigation/NavigationTrail.php | V3
 
 namespace App\Support\Navigation;
 
@@ -167,6 +167,35 @@ class NavigationTrail
         }
 
         return $trail;
+    }
+
+    public static function removeNode(array $trail, string $key, mixed $id = null): array
+    {
+        $trail = self::normalize($trail);
+
+        return array_values(array_filter($trail, function (array $node) use ($key, $id) {
+            $sameKey = (string) ($node['key'] ?? '') === $key;
+            $sameId = $id === null || (($node['id'] ?? null) == $id);
+
+            return ! ($sameKey && $sameId);
+        }));
+    }
+
+    public static function removeNodes(array $trail, array $rules): array
+    {
+        $trail = self::normalize($trail);
+
+        foreach ($rules as $rule) {
+            $key = trim((string) ($rule['key'] ?? ''));
+
+            if ($key === '') {
+                continue;
+            }
+
+            $trail = self::removeNode($trail, $key, $rule['id'] ?? null);
+        }
+
+        return self::normalize($trail);
     }
 
     public static function replaceCurrentUrl(array $trail, string $url): array

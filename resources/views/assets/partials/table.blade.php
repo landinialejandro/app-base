@@ -1,12 +1,13 @@
-{{-- FILE: resources/views/assets/partials/table.blade.php | V2 --}}
+{{-- FILE: resources/views/assets/partials/table.blade.php | V3 --}}
 
 @php
     use App\Support\Catalogs\AssetCatalog;
+    use App\Support\Navigation\AssetNavigationTrail;
+    use App\Support\Navigation\NavigationTrail;
 
     $assets = $assets ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay activos para mostrar.';
     $showParty = $showParty ?? false;
-    $trailQuery = $trailQuery ?? [];
 @endphp
 
 @if ($assets->count())
@@ -29,11 +30,16 @@
             </thead>
             <tbody>
                 @foreach ($assets as $asset)
+                    @php
+                        $assetTrail = AssetNavigationTrail::base($asset);
+                        $assetTrailQuery = NavigationTrail::toQuery($assetTrail);
+                    @endphp
+
                     <tr>
                         <td>{{ $asset->id }}</td>
 
                         <td>
-                            <a href="{{ route('assets.show', ['asset' => $asset] + $trailQuery) }}">
+                            <a href="{{ route('assets.show', ['asset' => $asset] + $assetTrailQuery) }}">
                                 {{ $asset->name }}
                             </a>
                         </td>
@@ -41,7 +47,7 @@
                         @if ($showParty)
                             <td>
                                 @if ($asset->party)
-                                    <a href="{{ route('parties.show', ['party' => $asset->party] + $trailQuery) }}">
+                                    <a href="{{ route('parties.show', ['party' => $asset->party] + $assetTrailQuery) }}">
                                         {{ $asset->party->name }}
                                     </a>
                                 @else

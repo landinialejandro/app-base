@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/assets/show.blade.php | V9 --}}
+{{-- FILE: resources/views/assets/show.blade.php | V10 --}}
 
 @extends('layouts.app')
 
@@ -8,7 +8,6 @@
     @php
         use App\Support\Catalogs\AssetCatalog;
         use App\Support\Catalogs\OrderCatalog;
-        use App\Support\Navigation\AssetNavigationTrail;
         use App\Support\Navigation\NavigationTrail;
 
         $orders = $orders ?? collect();
@@ -17,7 +16,6 @@
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
-        $assetTrailQuery = NavigationTrail::toQuery(AssetNavigationTrail::base($asset));
         $backUrl = NavigationTrail::previousUrl($navigationTrail, route('assets.index'));
     @endphp
 
@@ -67,7 +65,7 @@
 
             <x-show-summary-item label="Contacto">
                 @if ($asset->party)
-                    <a href="{{ route('parties.show', ['party' => $asset->party] + $assetTrailQuery) }}">
+                    <a href="{{ route('parties.show', ['party' => $asset->party] + $trailQuery) }}">
                         {{ $asset->party->name }}
                     </a>
                 @else

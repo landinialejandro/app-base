@@ -1,12 +1,14 @@
-{{-- FILE: resources/views/projects/partials/table.blade.php | V2 --}}
+{{-- FILE: resources/views/projects/partials/table.blade.php | V3 --}}
 
 @php
     use App\Support\Catalogs\ProjectCatalog;
+    use App\Support\Navigation\NavigationTrail;
     use Illuminate\Support\Carbon;
 
     $projects = $projects ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay proyectos para mostrar.';
     $trailQuery = $trailQuery ?? [];
+    $containerTrail = NavigationTrail::decode($trailQuery['trail'] ?? null);
 @endphp
 
 @if ($projects->count())
@@ -27,6 +29,31 @@
             <tbody>
                 @foreach ($projects as $project)
                     @php
+                        $rowTrail = NavigationTrail::appendOrCollapse(
+                            $containerTrail,
+                            NavigationTrail::makeNode(
+                                'projects.show',
+                                $project->id,
+                                $project->name ?: 'Proyecto #' . $project->id,
+                                route('projects.show', ['project' => $project]),
+                            ),
+                        );
+
+                        if (empty($rowTrail)) {
+                            $rowTrail = NavigationTrail::base([
+                                NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
+                                NavigationTrail::makeNode('projects.index', null, 'Proyectos', route('projects.index')),
+                                NavigationTrail::makeNode(
+                                    'projects.show',
+                                    $project->id,
+                                    $project->name ?: 'Proyecto #' . $project->id,
+                                    route('projects.show', ['project' => $project]),
+                                ),
+                            ]);
+                        }
+
+                        $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
+
                         $tasksCount = (int) ($project->tasks_count ?? 0);
                         $doneCount = (int) ($project->done_tasks_count ?? 0);
                         $progress = $tasksCount > 0 ? round(($doneCount / $tasksCount) * 100) : 0;
@@ -50,7 +77,7 @@
                     <tr>
                         <td>
                             <div>
-                                <a href="{{ route('projects.show', ['project' => $project] + $trailQuery) }}">
+                                <a href="{{ route('projects.show', ['project' => $project] + $rowTrailQuery) }}">
                                     {{ $project->name }}
                                 </a>
                             </div>

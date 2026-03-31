@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/show.blade.php | V9 --}}
+{{-- FILE: resources/views/tasks/show.blade.php | V10 --}}
 
 @extends('layouts.app')
 
@@ -47,14 +47,14 @@
         <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header :title="$task->name">
-            @if ($canEditTask)
+            @can('update', $task)
                 <a href="{{ route('tasks.edit', ['task' => $task] + $trailQuery) }}" class="btn btn-primary">
                     <x-icons.pencil />
                     <span>Editar</span>
                 </a>
-            @endif
+            @endcan
 
-            @if ($canDeleteTask)
+            @can('delete', $task)
                 <form method="POST" action="{{ route('tasks.destroy', ['task' => $task] + $trailQuery) }}" class="inline-form"
                     data-action="app-confirm-submit" data-confirm-message="¿Eliminar tarea?">
                     @csrf
@@ -65,7 +65,7 @@
                         <span>Eliminar</span>
                     </button>
                 </form>
-            @endif
+            @endcan
 
             @if (!$task->order && $task->party_id)
                 <a href="{{ route('orders.create', ['task_id' => $task->id] + $trailQuery) }}" class="btn btn-secondary">

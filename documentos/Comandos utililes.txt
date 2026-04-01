@@ -26,6 +26,25 @@ php artisan optimize:clear
 php artisan route:list | grep metrics
 
 
+
+comando en linea tinker
+php artisan tinker --execute="
+\$tenant = App\Models\Tenant::where('slug', 'constructora-andina-srl')->first();
+app()->instance('tenant', \$tenant);
+
+\$operatorUser = App\Models\User::where('email', 'carlos@demo.local')->first();
+\$resolver = app(App\Support\Auth\RolePermissionResolver::class);
+
+dump([
+    'view_any_scope' => \$resolver->actionScope(App\Support\Catalogs\ModuleCatalog::TASKS, App\Support\Catalogs\CapabilityCatalog::VIEW_ANY, \$tenant, \$operatorUser),
+    'view_scope' => \$resolver->actionScope(App\Support\Catalogs\ModuleCatalog::TASKS, App\Support\Catalogs\CapabilityCatalog::VIEW, \$tenant, \$operatorUser),
+    'update_scope' => \$resolver->actionScope(App\Support\Catalogs\ModuleCatalog::TASKS, App\Support\Catalogs\CapabilityCatalog::UPDATE, \$tenant, \$operatorUser),
+    'delete_scope' => \$resolver->actionScope(App\Support\Catalogs\ModuleCatalog::TASKS, App\Support\Catalogs\CapabilityCatalog::DELETE, \$tenant, \$operatorUser),
+    'resolved' => \$resolver->resolve(App\Support\Catalogs\ModuleCatalog::TASKS, \$tenant, \$operatorUser),
+]);
+"
+
+
 zip -r app-base-deploy.zip \
 app bootstrap config database public resources routes storage vendor composer.json composer.lock artisan .htaccess .env.production \
 -x "storage/logs/*" \

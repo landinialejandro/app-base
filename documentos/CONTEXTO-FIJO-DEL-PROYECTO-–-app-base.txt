@@ -451,7 +451,20 @@ profile_slug en memberships
 scope, execution_mode y constraints en role_permission
 membership_permission_overrides como estructura real
 
-la aplicación funcional por módulo comienza por orders como primer tramo operativo de V2
+orders queda como primer módulo migrado completamente a V2 y validado en flujo real completo:
+
+resolver
+policy
+controller
+UI mediante @can
+
+la validación operativa ya confirmó compatibilidad con:
+
+NavigationTrail
+controllers existentes
+vistas existentes
+
+la migración del resto de módulos debe tomar a orders como módulo piloto ya validado
 <<END SECTION>>
 
 <<SECTION: Precedencia conceptual prevista para habilitación de módulos>>
@@ -561,6 +574,10 @@ la visibilidad del dashboard y de métricas agregadas puede variar según rol
 el dashboard analítico queda reservado al nivel privilegiado owner y admin
 
 orders debe consolidarse como cabecera operativa interna del tenant, incluyendo trabajo comercial y operativo de servicio
+
+orders ya opera sobre el sistema de permisos V2 persistido en base de datos
+
+en orders, viewAny y view se resuelven mediante actionScope y delete ya no depende de lógica hardcodeada por rol
 
 documents debe consolidarse como módulo documental, formal y fiscal, separado de la operación interna diaria
 

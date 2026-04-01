@@ -164,7 +164,7 @@ indexación de contenido para búsqueda
 <<SECTION: AUTORIZACIÓN Y PERMISOS>>
 AUTORIZACIÓN Y PERMISOS
 
-migrar primero orders como módulo piloto de aplicación de V2
+migrar progresivamente el resto de módulos al sistema de permisos V2 ya validado en orders
 
 no migrar todavía documents al endurecimiento funcional completo
 

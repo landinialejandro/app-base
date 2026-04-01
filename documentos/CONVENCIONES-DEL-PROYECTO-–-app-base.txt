@@ -238,7 +238,15 @@ profile_slug en memberships
 scope, execution_mode y constraints en role_permission
 membership_permission_overrides como estructura real
 
-la aplicación funcional por módulo comienza por orders como primer tramo operativo de implementación
+orders queda como primer módulo ya migrado de forma completa a V2 y validado en flujo real
+
+en módulos migrados, las policies deben resolver capacidades específicas mediante RolePermissionResolver y no mediante canUseModule para acciones puntuales
+
+viewAny y view deben apoyarse en actionScope cuando corresponda
+
+delete no debe resolverse con lógica hardcodeada por rol si la capacidad ya existe persistida
+
+la migración del resto de módulos debe tomar orders como referencia operativa de implementación
 <<END SECTION>>
 
 <<SECTION: TRAIT TENANTSCOPED>>

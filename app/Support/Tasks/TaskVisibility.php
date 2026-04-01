@@ -1,12 +1,14 @@
 <?php
 
-// FILE: app/Support/Tasks/TaskVisibility.php | V2
+// FILE: app/Support/Tasks/TaskVisibility.php | V3
 
 namespace App\Support\Tasks;
 
 use App\Models\Task;
 use App\Models\User;
-use App\Support\Auth\TenantAccess;
+use App\Support\Auth\RolePermissionResolver;
+use App\Support\Catalogs\CapabilityCatalog;
+use App\Support\Catalogs\ModuleCatalog;
 use Illuminate\Database\Eloquent\Builder;
 
 class TaskVisibility
@@ -22,23 +24,33 @@ class TaskVisibility
             return $query->whereRaw('1 = 0');
         }
 
-        if (TenantAccess::isOwnerOrAdmin($tenant->id, $user)) {
+        $resolver = app(RolePermissionResolver::class);
+
+        $scope = $resolver->actionScope(
+            ModuleCatalog::TASKS,
+            CapabilityCatalog::VIEW_ANY,
+            $tenant,
+            $user
+        );
+
+        if ($scope === false || $scope === null || $scope === 'none') {
+            $scope = $resolver->actionScope(
+                ModuleCatalog::TASKS,
+                CapabilityCatalog::VIEW,
+                $tenant,
+                $user
+            );
+        }
+
+        if (in_array($scope, [true, 'tenant_all', 'all'], true)) {
             return $query;
         }
 
-        return $query->where(function (Builder $visibleQuery) use ($user) {
-            $visibleQuery->where('assigned_user_id', $user->id)
-                ->orWhere(function (Builder $projectScopeQuery) use ($user) {
-                    $projectScopeQuery->whereNotNull('project_id')
-                        ->whereExists(function ($subquery) use ($user) {
-                            $subquery->selectRaw('1')
-                                ->from('tasks as user_project_tasks')
-                                ->whereColumn('user_project_tasks.project_id', 'tasks.project_id')
-                                ->whereNull('user_project_tasks.deleted_at')
-                                ->where('user_project_tasks.assigned_user_id', $user->id);
-                        });
-                });
-        });
+        if ($scope === 'own_assigned') {
+            return $query->where('assigned_user_id', $user->id);
+        }
+
+        return $query->whereRaw('1 = 0');
     }
 
     public static function mineQuery(?User $user = null): Builder

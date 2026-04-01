@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TaskController.php | V6
+// FILE: app/Http/Controllers/TaskController.php | V7
 
 namespace App\Http\Controllers;
 
@@ -9,6 +9,7 @@ use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
 use App\Support\Auth\RolePermissionResolver;
+use App\Support\Catalogs\CapabilityCatalog;
 use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\TaskCatalog;
 use App\Support\Navigation\NavigationTrail;
@@ -33,14 +34,22 @@ class TaskController extends Controller
         $scope = $request->get('scope', 'mine');
 
         $resolver = app(RolePermissionResolver::class);
-        $updateScope = $resolver->actionScope(ModuleCatalog::TASKS, 'update', $tenant, auth()->user());
 
-        if ($updateScope !== 'all' && $scope === 'all') {
+        $viewAnyScope = $resolver->actionScope(
+            ModuleCatalog::TASKS,
+            CapabilityCatalog::VIEW_ANY,
+            $tenant,
+            auth()->user()
+        );
+
+        $canViewAll = in_array($viewAnyScope, [true, 'tenant_all', 'all'], true);
+
+        if (! $canViewAll && $scope === 'all') {
             $scope = 'mine';
         }
 
         if (! in_array($scope, ['mine', 'all'], true)) {
-            $scope = 'mine';
+            $scope = $canViewAll ? 'all' : 'mine';
         }
 
         $projects = Project::query()
@@ -117,7 +126,14 @@ class TaskController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('tasks.index', compact('tenant', 'tasks', 'projects', 'users', 'scope'));
+        return view('tasks.index', compact(
+            'tenant',
+            'tasks',
+            'projects',
+            'users',
+            'scope',
+            'canViewAll'
+        ));
     }
 
     public function create(Request $request)

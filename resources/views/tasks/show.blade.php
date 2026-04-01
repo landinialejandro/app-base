@@ -121,9 +121,13 @@
                             {{ $task->order->number ?: 'Ver orden' }}
                         </a>
                     @elseif ($task->party_id)
-                        <a href="{{ route('orders.create', ['task_id' => $task->id] + $trailQuery) }}">
-                            Crear orden
-                        </a>
+                        @can('create', App\Models\Order::class)
+                            <a href="{{ route('orders.create', ['task_id' => $task->id] + $trailQuery) }}">
+                                Crear orden
+                            </a>
+                        @else
+                            —
+                        @endcan
                     @else
                         Asociá un contacto para poder crear una orden.
                     @endif

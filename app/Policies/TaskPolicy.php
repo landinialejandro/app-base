@@ -1,13 +1,13 @@
 <?php
 
-// FILE: app/Policies/TaskPolicy.php | V2
+// FILE: app/Policies/TaskPolicy.php | V3
 
 namespace App\Policies;
 
 use App\Models\Task;
 use App\Models\User;
 use App\Support\Auth\RolePermissionResolver;
-use App\Support\Auth\TenantAccess;
+use App\Support\Catalogs\CapabilityCatalog;
 use App\Support\Catalogs\ModuleCatalog;
 
 class TaskPolicy
@@ -19,46 +19,56 @@ class TaskPolicy
 
     public function viewAny(User $user): bool
     {
-        return $this->resolver()->canUseModule(ModuleCatalog::TASKS, app('tenant'), $user);
+        $scope = $this->resolver()->actionScope(
+            ModuleCatalog::TASKS,
+            CapabilityCatalog::VIEW_ANY,
+            app('tenant'),
+            $user
+        );
+
+        return in_array($scope, [true, 'tenant_all', 'all', 'own_assigned'], true);
     }
 
     public function view(User $user, Task $task): bool
     {
-        $tenant = app('tenant');
+        $scope = $this->resolver()->actionScope(
+            ModuleCatalog::TASKS,
+            CapabilityCatalog::VIEW,
+            app('tenant'),
+            $user
+        );
 
-        if (! $this->resolver()->canUseModule(ModuleCatalog::TASKS, $tenant, $user)) {
-            return false;
-        }
-
-        if (TenantAccess::isOwnerOrAdmin($tenant->id, $user)) {
+        if (in_array($scope, [true, 'tenant_all', 'all'], true)) {
             return true;
         }
 
-        if ((int) $task->assigned_user_id === (int) $user->id) {
-            return true;
+        if ($scope === 'own_assigned') {
+            return (int) $task->assigned_user_id === (int) $user->id;
         }
 
-        if (empty($task->project_id)) {
-            return false;
-        }
-
-        return Task::query()
-            ->where('project_id', $task->project_id)
-            ->where('assigned_user_id', $user->id)
-            ->whereNull('deleted_at')
-            ->exists();
+        return false;
     }
 
     public function create(User $user): bool
     {
-        return $this->resolver()->can(ModuleCatalog::TASKS, 'create', app('tenant'), $user);
+        return $this->resolver()->can(
+            ModuleCatalog::TASKS,
+            CapabilityCatalog::CREATE,
+            app('tenant'),
+            $user
+        );
     }
 
     public function update(User $user, Task $task): bool
     {
-        $scope = $this->resolver()->actionScope(ModuleCatalog::TASKS, 'update', app('tenant'), $user);
+        $scope = $this->resolver()->actionScope(
+            ModuleCatalog::TASKS,
+            CapabilityCatalog::UPDATE,
+            app('tenant'),
+            $user
+        );
 
-        if ($scope === 'all') {
+        if (in_array($scope, [true, 'all'], true)) {
             return true;
         }
 
@@ -71,6 +81,11 @@ class TaskPolicy
 
     public function delete(User $user, Task $task): bool
     {
-        return $this->resolver()->can(ModuleCatalog::TASKS, 'delete', app('tenant'), $user);
+        return $this->resolver()->can(
+            ModuleCatalog::TASKS,
+            CapabilityCatalog::DELETE,
+            app('tenant'),
+            $user
+        );
     }
 }

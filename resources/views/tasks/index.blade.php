@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/index.blade.php | V9 --}}
+{{-- FILE: resources/views/tasks/index.blade.php | V10 --}}
 
 @extends('layouts.app')
 
@@ -38,7 +38,12 @@
                         <label for="scope" class="form-label">Vista</label>
                         <select id="scope" name="scope" class="form-control">
                             <option value="mine" @selected(($scope ?? request('scope', 'mine')) === 'mine')>Mis tareas</option>
-                            <option value="all" @selected(($scope ?? request('scope', 'mine')) === 'all')>Todas las tareas</option>
+
+                            @if ($canViewAll ?? false)
+                                <option value="all" @selected(($scope ?? request('scope', 'mine')) === 'all')>
+                                    Todas las tareas
+                                </option>
+                            @endif
                         </select>
                     </div>
                 </div>
@@ -109,4 +114,5 @@
             @endif
         </x-card>
     </x-page>
+
 @endsection

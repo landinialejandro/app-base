@@ -191,15 +191,18 @@ class RolePermissionResolver
     {
         $replace = (bool) ($incoming['replace'] ?? false);
 
-        $currentScope = $resolved['actions'][$capability] ?? null;
+        $hasCurrentScope = array_key_exists($capability, $resolved['actions']);
+        $currentScope = $hasCurrentScope ? $resolved['actions'][$capability] : null;
         $incomingScope = $incoming['scope'] ?? null;
 
-        $resolved['actions'][$capability] = $replace
-            ? $this->normalizeActionValue($incomingScope)
-            : $this->mergeActionValue(
-                $this->normalizeActionValue($currentScope),
+        if ($replace || ! $hasCurrentScope) {
+            $resolved['actions'][$capability] = $this->normalizeActionValue($incomingScope);
+        } else {
+            $resolved['actions'][$capability] = $this->mergeActionValue(
+                $currentScope,
                 $this->normalizeActionValue($incomingScope)
             );
+        }
 
         $currentExecutionMode = $resolved['execution_modes'][$capability] ?? null;
         $incomingExecutionMode = $incoming['execution_mode'] ?? null;

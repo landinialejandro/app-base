@@ -390,7 +390,7 @@ una membership activa no-owner no debe quedar sin al menos un rol válido
 
 el rol por defecto para nuevas memberships activas no-owner es operator
 
-la membership podrá incorporar además un perfil funcional persistido para refinar capacidades sin multiplicar roles base
+la membership incorpora profile_slug persistido para refinar capacidades sin multiplicar roles base
 
 la visibilidad no necesariamente coincide con la capacidad de edición
 
@@ -402,7 +402,7 @@ la IA no debe operar como bypass ni como superadmin, sino como actor del tenant 
 <<SECTION: Capa central prevista para acceso y permisos>>
 Capa central prevista para acceso y permisos
 
-La arquitectura de acceso y permisos debe evolucionar hacia una capa centralizada compuesta por:
+La arquitectura de acceso y permisos ya consolida una capa centralizada compuesta por:
 
 ModuleCatalog
 TenantModuleAccess
@@ -421,7 +421,7 @@ CapabilityCatalog define las capacidades concretas del sistema por acción de ne
 
 ProfileCatalog define perfiles funcionales listos para usar, aplicables sobre memberships sin multiplicar roles base.
 
-RolePermissionResolver resuelve el permiso efectivo por usuario, tenant, módulo y capacidad, reutilizando la capa de acceso al módulo, los roles base, el perfil funcional y los overrides vigentes.
+RolePermissionResolver resuelve el permiso efectivo por usuario, tenant, módulo y capacidad, reutilizando la capa de acceso al módulo, los roles base, el perfil funcional, los permisos persistidos y los overrides vigentes.
 
 RecordScopeResolver resuelve el alcance efectivo sobre registros concretos, por ejemplo assigned, own, participating o all.
 
@@ -443,7 +443,15 @@ las policies no deben hardcodear permisos dispersos cuando esta capa exista form
 
 la navegación y accesos visibles deben reutilizar la misma lógica real de acceso
 
-la implementación puede comenzar con catálogos en código y persistencia parcial, preparada para crecer sin romper la arquitectura
+la resolución efectiva deja de depender de una matriz fija en código y pasa a operar sobre datos persistidos en base de datos, manteniendo interfaz estable del resolver
+
+la implementación actual incorpora como base persistida:
+
+profile_slug en memberships
+scope, execution_mode y constraints en role_permission
+membership_permission_overrides como estructura real
+
+la aplicación funcional por módulo comienza por orders como primer tramo operativo de V2
 <<END SECTION>>
 
 <<SECTION: Precedencia conceptual prevista para habilitación de módulos>>

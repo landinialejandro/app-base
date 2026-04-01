@@ -76,6 +76,7 @@ Es la entidad correcta para resolver:
 a qué empresa pertenece un usuario
 qué estado tiene dentro de esa empresa
 qué roles tiene dentro de esa empresa
+qué perfil funcional persistido tiene dentro de esa empresa
 
 signup_requests
 
@@ -190,11 +191,15 @@ memberships
 ↓
 profile_slug
 
-y
-
 roles
 ↓
-permissions
+role_permission
+↓
+permissions / capabilities
+
+memberships
+↓
+membership_permission_overrides
 
 Reglas actuales:
 
@@ -212,9 +217,17 @@ admin
 sales
 operator
 
-la membership podrá incorporar un perfil funcional para agrupar capacidades operativas sin crear nuevos roles base por cada puesto del negocio
+la membership incorpora profile_slug para agrupar capacidades operativas sin crear nuevos roles base por cada puesto del negocio
 
-permissions deja de considerarse una posibilidad abstracta futura y pasa a formar parte de la evolución activa de la capa V2 de autorización
+role_permission incorpora metadatos persistidos para resolver autorización real mediante:
+
+scope
+execution_mode
+constraints
+
+permissions deja de considerarse una posibilidad abstracta futura y pasa a formar parte de la base activa de la capa V2 de autorización
+
+membership_permission_overrides forma parte de la estructura real del sistema para excepciones puntuales sobre la base de permisos
 <<END SECTION>>
 
 <<SECTION: ACLARACIÓN SOBRE TENANT-SCOPED>>

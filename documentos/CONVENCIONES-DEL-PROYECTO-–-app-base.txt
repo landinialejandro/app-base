@@ -156,11 +156,11 @@ como regla estructural:
 
 owner sigue resolviéndose desde memberships.is_owner y no como rol delegable ordinario
 
-la membership podrá incorporar profile_slug para refinar capacidades sin multiplicar roles base
+la membership incorpora profile_slug para refinar capacidades sin multiplicar roles base
 
 la autorización no debe depender únicamente de una matriz plana módulo × rol
 
-la resolución efectiva debe considerar además capacidades concretas y alcance real sobre el registro
+la resolución efectiva debe considerar además capacidades concretas, scope, execution mode y alcance real sobre el registro
 
 la eliminación sensible debe reservarse a owner y admin, salvo necesidad funcional justificada
 
@@ -192,7 +192,7 @@ a futuro el tenant podrá agregar roles propios en base de datos, pero sin alter
 <<SECTION: EVOLUCIÓN PREVISTA DE PERMISOS>>
 EVOLUCIÓN PREVISTA DE PERMISOS
 
-La arquitectura de permisos debe prepararse para incorporar y consolidar una capa centralizada compuesta por:
+La arquitectura de permisos debe sostener una capa centralizada compuesta por:
 
 RolePermissionResolver
 RecordScopeResolver
@@ -211,6 +211,7 @@ la resolución no debe quedar limitada a módulo y rol, sino incorporar:
 capacidad concreta
 scope
 execution mode
+constraints
 
 los roles base del sistema deben seguir siendo pocos y estables
 
@@ -229,7 +230,15 @@ el acceso a módulo, la visibilidad de registros, la capacidad de acción y el m
 
 cuando un módulo tenga reglas específicas por ownership, asignación o participación operativa, la policy debe resolver esa diferencia reutilizando la capa central y el criterio de visibilidad del módulo
 
-la implementación puede comenzar con catálogos en código y persistencia parcial, siempre preparada para migrar luego a base de datos sin romper la semántica del sistema
+la base V2 deja de depender de una matriz fija en código y pasa a persistirse en base de datos, manteniendo estable la interfaz pública del resolver
+
+la persistencia actual de V2 incorpora:
+
+profile_slug en memberships
+scope, execution_mode y constraints en role_permission
+membership_permission_overrides como estructura real
+
+la aplicación funcional por módulo comienza por orders como primer tramo operativo de implementación
 <<END SECTION>>
 
 <<SECTION: TRAIT TENANTSCOPED>>

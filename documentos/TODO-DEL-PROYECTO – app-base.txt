@@ -164,32 +164,7 @@ indexación de contenido para búsqueda
 <<SECTION: AUTORIZACIÓN Y PERMISOS>>
 AUTORIZACIÓN Y PERMISOS
 
-implementar V2 real de permisos sobre la base actual del proyecto
-
-agregar profile_slug a memberships
-
-enriquecer role_permission con:
-
-scope
-execution_mode
-constraints
-
-crear membership_permission_overrides
-
-crear CapabilityCatalog
-
-crear ProfileCatalog
-
-reemplazar la resolución actual por una capa V2 basada en:
-
-módulo habilitado
-rol base
-perfil funcional
-capacidad
-scope
-execution mode
-
-migrar primero orders como módulo piloto de V2
+migrar primero orders como módulo piloto de aplicación de V2
 
 no migrar todavía documents al endurecimiento funcional completo
 

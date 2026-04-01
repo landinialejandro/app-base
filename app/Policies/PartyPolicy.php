@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Policies/PartyPolicy.php | V2
+// FILE: app/Policies/PartyPolicy.php | V3
 
 namespace App\Policies;
 
@@ -18,12 +18,22 @@ class PartyPolicy
 
     public function viewAny(User $user): bool
     {
-        return $this->resolver()->canUseModule(ModuleCatalog::PARTIES, app('tenant'), $user);
+        return (bool) $this->resolver()->actionScope(
+            ModuleCatalog::PARTIES,
+            'view_any',
+            app('tenant'),
+            $user
+        );
     }
 
     public function view(User $user, Party $party): bool
     {
-        return $this->resolver()->canUseModule(ModuleCatalog::PARTIES, app('tenant'), $user);
+        return (bool) $this->resolver()->actionScope(
+            ModuleCatalog::PARTIES,
+            'view',
+            app('tenant'),
+            $user
+        );
     }
 
     public function create(User $user): bool
@@ -33,7 +43,12 @@ class PartyPolicy
 
     public function update(User $user, Party $party): bool
     {
-        return $this->resolver()->can(ModuleCatalog::PARTIES, 'update', app('tenant'), $user);
+        return (bool) $this->resolver()->actionScope(
+            ModuleCatalog::PARTIES,
+            'update',
+            app('tenant'),
+            $user
+        );
     }
 
     public function delete(User $user, Party $party): bool

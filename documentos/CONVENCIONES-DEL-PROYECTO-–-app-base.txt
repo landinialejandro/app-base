@@ -136,9 +136,12 @@ CONVENCIONES DE ACCESO POR MÓDULO Y ROLES
 La autorización operativa del sistema debe resolverse diferenciando:
 
 módulo habilitado para el tenant
-módulo permitido para el rol del usuario
+rol base del usuario
+perfil funcional de la membership
+capacidad concreta
 visibilidad del registro
 acción permitida
+modo de ejecución
 
 Reglas actuales consolidadas:
 
@@ -149,15 +152,21 @@ roles operativos base esperados:
 sales
 operator
 
-como regla mínima por módulo:
+como regla estructural:
 
-owner y admin tienen control total operativo
+owner sigue resolviéndose desde memberships.is_owner y no como rol delegable ordinario
 
-los roles operativos pueden ver el módulo habilitado y crear o editar registros propios o de su responsabilidad operativa, según defina la policy del módulo
+la membership podrá incorporar profile_slug para refinar capacidades sin multiplicar roles base
+
+la autorización no debe depender únicamente de una matriz plana módulo × rol
+
+la resolución efectiva debe considerar además capacidades concretas y alcance real sobre el registro
 
 la eliminación sensible debe reservarse a owner y admin, salvo necesidad funcional justificada
 
 la visibilidad del dashboard y de métricas agregadas debe respetar el rol y no asumir siempre conteos globales del tenant
+
+la IA y automatizaciones no deben operar por fuera del sistema de permisos, sino como actores sujetos a la misma arquitectura de autorización
 <<END SECTION>>
 
 <<SECTION: ROLECATALOG Y MODULECATALOG>>
@@ -183,34 +192,44 @@ a futuro el tenant podrá agregar roles propios en base de datos, pero sin alter
 <<SECTION: EVOLUCIÓN PREVISTA DE PERMISOS>>
 EVOLUCIÓN PREVISTA DE PERMISOS
 
-La arquitectura de permisos debe prepararse para incorporar una capa centralizada compuesta por:
+La arquitectura de permisos debe prepararse para incorporar y consolidar una capa centralizada compuesta por:
 
-RolePermissionMatrix
 RolePermissionResolver
+RecordScopeResolver
 TenantModuleAccess
+CapabilityCatalog
+ProfileCatalog
 
 Reglas de diseño:
 
-las policies no deben hardcodear permisos dispersos cuando la capa central ya exista
+las policies no deben hardcodear permisos dispersos cuando la capa central exista
 
 la policy debe consumir la capa central de permisos en lugar de multiplicar lógica por módulo
 
-la matriz actual puede ser hardcodeada, pero debe diseñarse para migrar más adelante a persistencia en base de datos
+la resolución no debe quedar limitada a módulo y rol, sino incorporar:
 
-cuando exista resolución central disponible, no hardcodear permisos por rol directamente en controllers, blades o componentes
+capacidad concreta
+scope
+execution mode
+
+los roles base del sistema deben seguir siendo pocos y estables
+
+la especialización funcional del trabajo debe resolverse preferentemente mediante perfiles y capacidades, no creando nuevos roles base por cada puesto
 
 toda autorización funcional nueva debe apoyarse, según corresponda, en:
 
-RolePermissionMatrix
-RolePermissionResolver
 TenantModuleAccess
+RolePermissionResolver
+RecordScopeResolver
 Policy
 
 el acceso a módulo no reemplaza la policy por registro
 
-el acceso a módulo, la visibilidad de registros y la capacidad de acción deben tratarse como capas separadas
+el acceso a módulo, la visibilidad de registros, la capacidad de acción y el modo de ejecución deben tratarse como capas separadas
 
 cuando un módulo tenga reglas específicas por ownership, asignación o participación operativa, la policy debe resolver esa diferencia reutilizando la capa central y el criterio de visibilidad del módulo
+
+la implementación puede comenzar con catálogos en código y persistencia parcial, siempre preparada para migrar luego a base de datos sin romper la semántica del sistema
 <<END SECTION>>
 
 <<SECTION: TRAIT TENANTSCOPED>>
@@ -304,7 +323,7 @@ REGLA PARA MÓDULOS OPERATIVOS COMPARTIDOS DEL TENANT
 
 Cuando un módulo operativo compartido del tenant no tenga responsable operativo directo:
 
-la policy debe permitir view, create y update a los roles habilitados del módulo
+la policy debe permitir view, create y update a los roles y capacidades habilitados del módulo
 
 delete debe quedar restringido a owner y admin
 
@@ -316,6 +335,12 @@ parties
 assets
 products
 orders
+
+Aclaración conceptual consolidada:
+
+orders debe tratarse como módulo operativo interno del tenant
+
+documents no debe absorber órdenes de trabajo operativas ni duplicar la función interna de orders
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE SUPPORT Y HELPERS DE ACCESO>>

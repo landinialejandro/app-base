@@ -316,15 +316,15 @@ ORDERS -> DOCUMENTS
 
 Uso típico:
 
-desde una orden se generan o consultan documentos derivados
+desde una orden operativa se generan o consultan documentos derivados
 
 Contexto esperado:
 
-documents puede abrirse en modo estructural o como continuación directa del trabajo iniciado en orders
+documents puede abrirse en modo estructural o como continuación documental del trabajo iniciado en orders
 
 Observación:
 
-es uno de los tramos principales del trail contextual actual
+este tramo debe entenderse como derivación documental o fiscal de una operación interna, no como duplicación de la orden operativa
 
 DOCUMENTS -> PARTIES
 

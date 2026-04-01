@@ -184,6 +184,18 @@ membership_role
 ↓
 roles
 
+y además, como evolución activa del sistema:
+
+memberships
+↓
+profile_slug
+
+y
+
+roles
+↓
+permissions
+
 Reglas actuales:
 
 los roles base mínimos del sistema se definen en RoleCatalog
@@ -192,17 +204,17 @@ al crear un tenant, esos roles base deben sembrarse
 
 los roles base reservados no deben modificarse ni eliminarse
 
-más adelante el owner podrá crear roles propios del tenant
+owner no forma parte del flujo normal de roles asignables y se resuelve estructuralmente desde memberships.is_owner
 
-roles ya forma parte de la base actual de soporte de autorización del sistema, con evolución futura prevista para permitir ampliación por tenant sin modificar los roles base reservados.
+los roles base delegables actuales son:
 
-Relación futura prevista de permisos:
+admin
+sales
+operator
 
-roles
-↓
-permissions
+la membership podrá incorporar un perfil funcional para agrupar capacidades operativas sin crear nuevos roles base por cada puesto del negocio
 
-o bien una capa equivalente resuelta por matriz y resolver, según evolución de la implementación.
+permissions deja de considerarse una posibilidad abstracta futura y pasa a formar parte de la evolución activa de la capa V2 de autorización
 <<END SECTION>>
 
 <<SECTION: ACLARACIÓN SOBRE TENANT-SCOPED>>
@@ -373,6 +385,14 @@ Relación Task → Order actual:
 una Task puede derivar en una única Order
 
 el vínculo operativo se expresa desde orders.task_id
+
+Función conceptual consolidada:
+
+orders representa la operación interna del tenant
+
+debe absorber tanto la dimensión comercial operativa como la dimensión de servicio u operación técnica
+
+la orden de servicio real del sistema pertenece a orders y no a documents
 <<END SECTION>>
 
 <<SECTION: ORDER_ITEMS>>
@@ -400,12 +420,19 @@ un Document puede vincularse opcionalmente a un Asset
 un Document puede vincularse opcionalmente a un Order
 un Document tiene muchos DocumentItems
 
-Tipos documentales actuales previstos al menos:
+Tipos documentales activos previstos al menos:
 
 quote
 delivery_note
 invoice
-work_order
+
+work_order permanece como kind legacy inhabilitado.
+
+Regla conceptual consolidada:
+
+documents no debe representar la operación interna diaria del tenant
+
+documents debe concentrar la dimensión documental, formal, comercial o fiscal derivada de la operación
 
 Regla actual importante:
 
@@ -599,10 +626,13 @@ una membership activa no-owner no debe quedar sin rol
 
 puede existir una membership owner sin registros en membership_role y eso no constituye un error del modelo
 
+como evolución activa de la autorización, membership podrá incorporar además un profile_slug para refinar capacidades funcionales sin multiplicar roles base
+
 La jerarquía efectiva debe entenderse así:
 
 owner como condición estructural
-roles delegables como capa operativa
+roles delegables como capa operativa base
+perfil funcional como especialización de trabajo
 permisos concretos como capa de autorización
 <<END SECTION>>
 

@@ -164,21 +164,38 @@ indexación de contenido para búsqueda
 <<SECTION: AUTORIZACIÓN Y PERMISOS>>
 AUTORIZACIÓN Y PERMISOS
 
-implementar RolePermissionMatrix
+implementar V2 real de permisos sobre la base actual del proyecto
 
-implementar RolePermissionResolver
+agregar profile_slug a memberships
 
-terminar de alinear acceso efectivo por módulo habilitado del tenant y por rol real del usuario
+enriquecer role_permission con:
+
+scope
+execution_mode
+constraints
+
+crear membership_permission_overrides
+
+crear CapabilityCatalog
+
+crear ProfileCatalog
+
+reemplazar la resolución actual por una capa V2 basada en:
+
+módulo habilitado
+rol base
+perfil funcional
+capacidad
+scope
+execution mode
+
+migrar primero orders como módulo piloto de V2
+
+no migrar todavía documents al endurecimiento funcional completo
 
 proteger roles reservados contra edición o eliminación futura
 
-verificar qué módulos tienen Policy creada pero no aplicada realmente
-
-alinear navbar y dashboard con acceso real por módulo y por rol
-
-revisar módulos de gestión no auditados aún para alinear permisos
-
-evaluar si conviene estandarizar un patrón base para CRUD controllers con autorización explícita por acción
+alinear navbar y dashboard con acceso real por módulo, capacidad y rol
 
 revisar y corregir datos legacy donde existan memberships activas no-owner sin rol asignado
 
@@ -199,6 +216,12 @@ revisar consolidación funcional del vínculo 1 a 1 entre tasks y orders
 alinear tasks definitivamente con la regla operativa acordada de ownership por assigned_user_id mediante policy formal consolidada
 
 evaluar reglas futuras de bloqueo o trazabilidad cuando una tarea ya derivó en orden
+
+consolidar orders como módulo operativo interno principal del tenant
+
+consolidar documents como módulo documental, formal y fiscal derivado de la operación
+
+inhabilitar work_order como tipo documental activo en UI y flujo normal, manteniéndolo solo como legacy
 
 endurecer coherencia entre documents y orders asociadas
 

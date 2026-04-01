@@ -360,10 +360,13 @@ La autorización efectiva debe entenderse como una combinación de niveles disti
 
 tenant activo válido
 módulo habilitado para el tenant
-permiso del rol del usuario
+rol base del usuario
+perfil funcional de la membership
+capacidad concreta
 visibilidad del registro
 acción permitida sobre ese registro
-restricciones futuras por tipo o contexto
+modo de ejecución
+restricciones por tipo o contexto
 
 Estos niveles no deben mezclarse entre sí.
 
@@ -373,65 +376,74 @@ la habilitación de módulos del tenant se resuelve mediante una capa central es
 
 el tenant define qué módulos están operativamente disponibles
 
-sobre esos módulos habilitados, el permiso efectivo se resuelve por rol
-
 owner no debe tratarse como un rol delegable ordinario
 
 owner se define estructuralmente por memberships.is_owner = true
 
-admin es el rol administrativo delegable exclusivo
+los roles base delegables del tenant son:
 
-sales y operator son los roles operativos base actuales
+admin
+sales
+operator
 
 una membership activa no-owner no debe quedar sin al menos un rol válido
 
 el rol por defecto para nuevas memberships activas no-owner es operator
 
+la membership podrá incorporar además un perfil funcional persistido para refinar capacidades sin multiplicar roles base
+
 la visibilidad no necesariamente coincide con la capacidad de edición
 
-roles base del sistema se definen en RoleCatalog
+el permiso efectivo no debe resolverse únicamente por módulo y rol, sino por capacidad concreta y alcance real sobre el registro
 
-los roles base reservados no deben modificarse ni eliminarse
-
-a futuro el tenant podrá incorporar más flexibilidad de roles sin romper esta jerarquía base
+la IA no debe operar como bypass ni como superadmin, sino como actor del tenant sujeto al mismo sistema de autorización
 <<END SECTION>>
 
 <<SECTION: Capa central prevista para acceso y permisos>>
 Capa central prevista para acceso y permisos
 
-La arquitectura de acceso y permisos debe prepararse para incorporar una capa centralizada compuesta por:
+La arquitectura de acceso y permisos debe evolucionar hacia una capa centralizada compuesta por:
 
 ModuleCatalog
 TenantModuleAccess
-RolePermissionMatrix
+CapabilityCatalog
+ProfileCatalog
 RolePermissionResolver
+RecordScopeResolver
 
 Rol conceptual de cada pieza:
 
 ModuleCatalog define la base de módulos cerrados del sistema y actúa como fuente de verdad para slugs funcionales y módulos navegables del core.
 
-TenantModuleAccess debe resolver la habilitación efectiva de módulos por tenant y por usuario, reutilizando una única lógica tanto para acceso operativo como para navegación visible.
+TenantModuleAccess resuelve la habilitación efectiva de módulos por tenant y por usuario, reutilizando una única lógica tanto para acceso operativo como para navegación visible.
 
-RolePermissionMatrix define la matriz base de permisos por rol y módulo.
+CapabilityCatalog define las capacidades concretas del sistema por acción de negocio.
 
-RolePermissionResolver debe resolver el permiso efectivo por usuario, tenant y módulo, reutilizando la matriz base y la capa de acceso al módulo.
+ProfileCatalog define perfiles funcionales listos para usar, aplicables sobre memberships sin multiplicar roles base.
 
-Estado actual de esta capa:
+RolePermissionResolver resuelve el permiso efectivo por usuario, tenant, módulo y capacidad, reutilizando la capa de acceso al módulo, los roles base, el perfil funcional y los overrides vigentes.
 
-conceptualmente aprobada
-pendiente de implementación formal consolidada en todo el core
+RecordScopeResolver resuelve el alcance efectivo sobre registros concretos, por ejemplo assigned, own, participating o all.
 
-Dirección de diseño:
+Dirección de diseño consolidada:
 
-la matriz inicial puede ser hardcodeada
+la lógica no debe quedar acoplada a una matriz plana módulo × rol
 
-la lógica debe diseñarse para migrar luego a base de datos
+la autorización debe resolverse mediante:
+
+módulo habilitado
+rol base
+perfil funcional
+capacidad
+scope
+execution mode
+restricciones específicas
 
 las policies no deben hardcodear permisos dispersos cuando esta capa exista formalmente
 
 la navegación y accesos visibles deben reutilizar la misma lógica real de acceso
 
-la habilitación efectiva de módulos puede admitir capas de override controladas, siempre subordinadas a la base definida en ModuleCatalog
+la implementación puede comenzar con catálogos en código y persistencia parcial, preparada para crecer sin romper la arquitectura
 <<END SECTION>>
 
 <<SECTION: Precedencia conceptual prevista para habilitación de módulos>>
@@ -540,7 +552,11 @@ la visibilidad del dashboard y de métricas agregadas puede variar según rol
 
 el dashboard analítico queda reservado al nivel privilegiado owner y admin
 
-documents queda deliberadamente postergado como módulo de endurecimiento posterior por su mayor sensibilidad de trazabilidad, flujo y acciones visibles en UI
+orders debe consolidarse como cabecera operativa interna del tenant, incluyendo trabajo comercial y operativo de servicio
+
+documents debe consolidarse como módulo documental, formal y fiscal, separado de la operación interna diaria
+
+work_order deja de considerarse tipo documental operativo activo y pasa a tratarse como kind legacy inhabilitado, sin uso normal en UI ni en flujos corrientes
 <<END SECTION>>
 
 <<SECTION: Reglas generales de autorización ya consolidadas>>
@@ -653,12 +669,19 @@ Flujo orders → documents
 
 Desde orders.show pueden generarse documentos derivados de una orden.
 
-El flujo actual contempla al menos los siguientes tipos:
+La relación entre ambos módulos debe entenderse así:
+
+orders representa la operación interna del tenant
+
+documents representa la formalización documental, comercial o fiscal derivada de esa operación
+
+El flujo actual contempla como tipos documentales activos al menos:
 
 quote
 delivery_note
 invoice
-work_order
+
+work_order permanece solo como kind legacy inhabilitado y no debe formar parte del flujo operativo normal ni de la UI corriente.
 
 Cuando un documento se genera desde una orden:
 

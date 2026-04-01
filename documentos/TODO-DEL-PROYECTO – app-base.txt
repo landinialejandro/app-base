@@ -164,9 +164,16 @@ indexación de contenido para búsqueda
 <<SECTION: AUTORIZACIÓN Y PERMISOS>>
 AUTORIZACIÓN Y PERMISOS
 
-migrar progresivamente el resto de módulos al sistema de permisos V2 ya validado en orders
+completar migración del sistema de permisos V2 en módulos restantes fuera del core principal
 
-no migrar todavía documents al endurecimiento funcional completo
+módulos ya migrados y validados en V2:
+
+orders
+tasks
+documents
+parties
+assets
+products
 
 proteger roles reservados contra edición o eliminación futura
 

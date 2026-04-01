@@ -451,7 +451,7 @@ profile_slug en memberships
 scope, execution_mode y constraints en role_permission
 membership_permission_overrides como estructura real
 
-orders queda como primer módulo migrado completamente a V2 y validado en flujo real completo:
+orders, tasks y documents quedan como módulos migrados completamente a V2 y validados en flujo real completo:
 
 resolver
 policy
@@ -464,7 +464,15 @@ NavigationTrail
 controllers existentes
 vistas existentes
 
-la migración del resto de módulos debe tomar a orders como módulo piloto ya validado
+assets y products quedan migrados y validados sobre el sistema de permisos V2
+
+ambos módulos utilizan matriz persistida en base de datos sin fallback a lógica anterior
+
+mantienen visibilidad tenant_all y eliminación restringida a owner/admin según capacidades persistidas
+
+no requieren lógica adicional de ownership ni comportamiento específico en resolver
+
+la migración del resto de módulos debe tomar a orders, tasks y documents como módulos piloto ya validados
 <<END SECTION>>
 
 <<SECTION: Precedencia conceptual prevista para habilitación de módulos>>
@@ -547,23 +555,32 @@ Su acceso depende del módulo y de la policy aplicable.
 <<SECTION: Reglas operativas actuales por módulo>>
 Reglas operativas actuales por módulo
 
-orders, parties, assets y products siguen actualmente un patrón compartido del tenant:
+orders, parties, assets y products siguen un patrón compartido del tenant ya alineado a V2:
 
 owner y admin pueden ver, crear, editar y eliminar
 
 sales y operator pueden ver, crear y editar
 
-la eliminación queda reservada a owner y admin
+la eliminación queda restringida a owner y admin mediante capacidad persistida
 
-por ahora no se usa ownership artificial en módulos base o compartidos como parties, assets y products
+assets y products no utilizan ownership por registro ni assigned_user_id
 
-tasks mantiene ownership operativo real por assigned_user_id
+orders ya opera completamente sobre V2 utilizando actionScope para viewAny y view
 
-roles operativos pueden ver tareas del tenant según la policy vigente
+documents ya se encuentra migrado y validado sobre V2
 
-roles operativos solo editan sus propias tareas, salvo permisos superiores
+tasks mantiene ownership operativo por assigned_user_id
 
-projects mantiene visibilidad restringida por participación operativa:
+owner y admin mantienen control total sobre tasks
+
+para sales y operator en tasks:
+
+view_any = tenant_all
+view = tenant_all
+update = own_assigned
+delete no permitido
+
+projects mantiene visibilidad por participación operativa:
 
 owner y admin ven todos los proyectos
 
@@ -574,10 +591,6 @@ la visibilidad del dashboard y de métricas agregadas puede variar según rol
 el dashboard analítico queda reservado al nivel privilegiado owner y admin
 
 orders debe consolidarse como cabecera operativa interna del tenant, incluyendo trabajo comercial y operativo de servicio
-
-orders ya opera sobre el sistema de permisos V2 persistido en base de datos
-
-en orders, viewAny y view se resuelven mediante actionScope y delete ya no depende de lógica hardcodeada por rol
 
 documents debe consolidarse como módulo documental, formal y fiscal, separado de la operación interna diaria
 

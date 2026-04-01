@@ -238,7 +238,7 @@ profile_slug en memberships
 scope, execution_mode y constraints en role_permission
 membership_permission_overrides como estructura real
 
-orders queda como primer módulo ya migrado de forma completa a V2 y validado en flujo real
+orders, tasks y documents quedan como módulos ya migrados de forma completa a V2 y validados en flujo real
 
 en módulos migrados, las policies deben resolver capacidades específicas mediante RolePermissionResolver y no mediante canUseModule para acciones puntuales
 
@@ -246,7 +246,31 @@ viewAny y view deben apoyarse en actionScope cuando corresponda
 
 delete no debe resolverse con lógica hardcodeada por rol si la capacidad ya existe persistida
 
-la migración del resto de módulos debe tomar orders como referencia operativa de implementación
+en tasks, update debe respetar el scope persistido own_assigned
+
+el resolver no debe degradar scopes persistidos a true al mergear capacidades nuevas
+
+además de orders, los módulos:
+
+documents
+parties
+assets
+products
+
+ya se encuentran migrados y validados sobre la base V2 de permisos persistidos
+
+en estos módulos:
+
+viewAny y view deben resolverse por capacidad concreta y no únicamente por acceso al módulo
+
+delete debe depender exclusivamente de la capacidad persistida y no de lógica hardcodeada por rol
+
+los módulos compartidos del tenant que no requieren ownership deben mantener:
+
+scope tenant_all
+sin restricciones por registro
+
+la migración del resto de módulos debe tomar orders, tasks y documents como referencia operativa de implementación
 <<END SECTION>>
 
 <<SECTION: TRAIT TENANTSCOPED>>

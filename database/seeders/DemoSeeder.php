@@ -8,6 +8,7 @@ use Database\Seeders\Modules\AppointmentModuleSeeder;
 use Database\Seeders\Modules\AssetModuleSeeder;
 use Database\Seeders\Modules\BaseModuleSeeder;
 use Database\Seeders\Modules\BranchModuleSeeder;
+use Database\Seeders\Modules\CrossRelationsSeeder;
 use Database\Seeders\Modules\DocumentModuleSeeder;
 use Database\Seeders\Modules\InvitationModuleSeeder;
 use Database\Seeders\Modules\MembershipModuleSeeder;
@@ -47,6 +48,7 @@ class DemoSeeder extends Seeder
             DocumentModuleSeeder::class,
             AssetModuleSeeder::class,
             AppointmentModuleSeeder::class,
+            CrossRelationsSeeder::class,
         ]);
     }
 

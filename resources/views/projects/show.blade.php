@@ -1,100 +1,171 @@
-<?php
-// FILE: app/Http/Controllers/TenantMembershipRoleController.php | V3
+{{-- FILE: resources/views/projects/show.blade.php | V16 --}}
 
-namespace App\Http\Controllers;
+@extends('layouts.app')
 
-use App\Models\Membership;
-use App\Models\Role;
-use App\Support\Catalogs\RoleCatalog;
-use Illuminate\Http\Request;
+@section('title', 'Detalle del proyecto')
 
-class TenantMembershipRoleController extends Controller
-{
-    public function attach(Request $request, Membership $membership)
-    {
-        $tenant = app('tenant');
+@section('content')
+    @php
+        use App\Support\Catalogs\ProjectCatalog;
+        use App\Support\Navigation\NavigationTrail;
 
-        $this->authorize('attachRole', $membership);
+        $metrics = $metrics ?? [];
 
-        $data = $request->validate([
-            'role_id' => ['required', 'integer'],
-        ]);
+        extract($metrics, EXTR_SKIP);
 
-        $role = Role::query()->where('tenant_id', $tenant->id)->findOrFail($data['role_id']);
+        $tasks = $tasks ?? ($project->tasks ?? collect());
+        $openTasks = $openTasks ?? collect();
+        $doneTasks = $doneTasks ?? collect();
 
-        if (!RoleCatalog::isAssignable($role->slug)) {
-            return redirect()
-                ->route('tenant.profile.show', ['tab' => 'accesses'])
-                ->with('error', 'Ese rol no se puede asignar desde esta pantalla.');
-        }
+        $pendingCount = $pendingCount ?? 0;
+        $inProgressCount = $inProgressCount ?? 0;
+        $overdueCount = $overdueCount ?? 0;
+        $doneCount = $doneCount ?? 0;
+        $cancelledCount = $cancelledCount ?? 0;
 
-        $membership->load('roles');
+        $attachments = $project->attachments ?? collect();
 
-        $currentRoleSlugs = $membership->roles->pluck('slug')->filter()->values();
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+        $backUrl = NavigationTrail::previousUrl($navigationTrail, route('projects.index'));
+    @endphp
 
-        if ($currentRoleSlugs->contains($role->slug)) {
-            return redirect()
-                ->route('tenant.profile.show', ['tab' => 'accesses'])
-                ->with('error', 'Ese rol ya está asignado a este usuario.');
-        }
+    <x-page>
+        <x-breadcrumb :items="$breadcrumbItems" />
 
-        if (RoleCatalog::isExclusive($role->slug)) {
-            $membership->roles()->sync([
-                $role->id => ['branch_id' => null],
-            ]);
+        <x-page-header title="Detalle del proyecto">
+            @can('update', $project)
+                <a href="{{ route('projects.edit', ['project' => $project] + $trailQuery) }}" class="btn btn-primary">
+                    <x-icons.pencil />
+                    <span>Editar</span>
+                </a>
+            @endcan
 
-            return redirect()
-                ->route('tenant.profile.show', ['tab' => 'accesses'])
-                ->with('success', 'Rol exclusivo asignado correctamente.');
-        }
+            @can('delete', $project)
+                <form method="POST" action="{{ route('projects.destroy', ['project' => $project] + $trailQuery) }}"
+                    class="inline-form" data-action="app-confirm-submit"
+                    data-confirm-message="{{ $tasks->count()
+                        ? 'Este proyecto tiene tareas asociadas. Si lo eliminas, también se eliminarán sus tareas. ¿Deseas continuar?'
+                        : '¿Deseas eliminar este proyecto?' }}">
+                    @csrf
+                    @method('DELETE')
 
-        if ($currentRoleSlugs->contains(RoleCatalog::ADMIN)) {
-            $membership->roles()->sync([
-                $role->id => ['branch_id' => null],
-            ]);
+                    <button type="submit" class="btn btn-danger">
+                        <x-icons.trash />
+                        <span>Eliminar</span>
+                    </button>
+                </form>
+            @endcan
 
-            return redirect()
-                ->route('tenant.profile.show', ['tab' => 'accesses'])
-                ->with('success', 'Rol reemplazado correctamente.');
-        }
+            <a href="{{ $backUrl }}" class="btn btn-secondary" title="Volver" aria-label="Volver">
+                <x-icons.chevron-left />
+            </a>
+        </x-page-header>
 
-        $membership->roles()->syncWithoutDetaching([
-            $role->id => ['branch_id' => null],
-        ]);
+        <x-show-summary details-id="project-more-detail">
+            <x-show-summary-item label="Nombre">
+                {{ $project->name }}
+            </x-show-summary-item>
 
-        return redirect()
-            ->route('tenant.profile.show', ['tab' => 'accesses'])
-            ->with('success', 'Rol asignado correctamente.');
-    }
+            <x-show-summary-item label="Estado">
+                <span class="status-badge {{ ProjectCatalog::badgeClass($project->status) }}">
+                    {{ ProjectCatalog::label($project->status) }}
+                </span>
+            </x-show-summary-item>
 
-    public function detach(Request $request, Membership $membership, Role $role)
-    {
-        $tenant = app('tenant');
+            <x-show-summary-item label="Tareas">
+                {{ $tasks->count() }}
+            </x-show-summary-item>
 
-        $this->authorize('detachRole', $membership);
+            <x-slot:details>
+                <x-show-summary-item-detail-block label="Pendientes">
+                    {{ $pendingCount }}
+                </x-show-summary-item-detail-block>
 
-        abort_unless($role->tenant_id === $tenant->id, 404);
+                <x-show-summary-item-detail-block label="En progreso">
+                    {{ $inProgressCount }}
+                </x-show-summary-item-detail-block>
 
-        $membership->load('roles');
+                <x-show-summary-item-detail-block label="Vencidas">
+                    {{ $overdueCount }}
+                </x-show-summary-item-detail-block>
 
-        $assignedRoleIds = $membership->roles->pluck('id')->all();
+                <x-show-summary-item-detail-block label="Finalizadas">
+                    {{ $doneCount }}
+                </x-show-summary-item-detail-block>
 
-        if (!in_array($role->id, $assignedRoleIds, true)) {
-            return redirect()
-                ->route('tenant.profile.show', ['tab' => 'accesses'])
-                ->with('error', 'Ese rol no está asignado a este usuario.');
-        }
+                <x-show-summary-item-detail-block label="Canceladas">
+                    {{ $cancelledCount }}
+                </x-show-summary-item-detail-block>
 
-        if ($membership->status === 'active' && count($assignedRoleIds) === 1) {
-            return redirect()
-                ->route('tenant.profile.show', ['tab' => 'accesses'])
-                ->with('error', 'La membership activa debe conservar al menos un rol.');
-        }
+                <x-show-summary-item-detail-block label="Actualizado">
+                    {{ $project->updated_at?->format('d/m/Y H:i') ?: '—' }}
+                </x-show-summary-item-detail-block>
 
-        $membership->roles()->newPivotStatement()->where('membership_id', $membership->id)->where('role_id', $role->id)->whereNull('branch_id')->delete();
+                <x-show-summary-item-detail-block label="Descripción" full>
+                    {{ $project->description ?: '—' }}
+                </x-show-summary-item-detail-block>
+            </x-slot:details>
+        </x-show-summary>
 
-        return redirect()
-            ->route('tenant.profile.show', ['tab' => 'accesses'])
-            ->with('success', 'Rol quitado correctamente.');
-    }
-}
+        @include('projects.partials.show-analytics', [
+            'metrics' => $metrics,
+        ])
+
+        <div class="tabs" data-tabs>
+            <x-tab-toolbar label="Secciones del proyecto">
+                <x-slot:tabs>
+                    <x-horizontal-scroll label="Secciones del proyecto">
+                        <button type="button" class="tabs-link is-active" data-tab-link="tasks" role="tab"
+                            aria-selected="true">
+                            Tareas
+                            @if ($tasks->count())
+                                ({{ $tasks->count() }})
+                            @endif
+                        </button>
+
+                        <button type="button" class="tabs-link" data-tab-link="attachments" role="tab"
+                            aria-selected="false">
+                            Adjuntos
+                            @if ($attachments->count())
+                                ({{ $attachments->count() }})
+                            @endif
+                        </button>
+                    </x-horizontal-scroll>
+                </x-slot:tabs>
+            </x-tab-toolbar>
+
+            <section class="tab-panel is-active" data-tab-panel="tasks">
+                <div class="tab-panel-stack">
+                    @include('tasks.partials.embedded-tabs', [
+                        'tasks' => $tasks,
+                        'openTasks' => $openTasks,
+                        'doneTasks' => $doneTasks,
+                        'emptyMessageOpen' => 'No hay tareas abiertas en este proyecto.',
+                        'emptyMessageDone' => 'No hay tareas finalizadas en este proyecto.',
+                        'emptyMessageAll' => 'No hay tareas asociadas a este proyecto.',
+                        'tabsId' => 'project-tasks-tabs',
+                        'createBaseQuery' => [
+                            'project_id' => $project->id,
+                        ],
+                        'trailQuery' => $trailQuery,
+                    ])
+                </div>
+            </section>
+
+            <section class="tab-panel" data-tab-panel="attachments" hidden>
+                <div class="tab-panel-stack">
+                    @include('attachments.partials.embedded', [
+                        'attachments' => $attachments,
+                        'attachableType' => 'project',
+                        'attachableId' => $project->id,
+                        'trailQuery' => $trailQuery,
+                        'navigationTrail' => $navigationTrail,
+                        'tabsId' => 'project-attachments-tabs',
+                        'createLabel' => 'Agregar adjunto',
+                    ])
+                </div>
+            </section>
+        </div>
+    </x-page>
+@endsection

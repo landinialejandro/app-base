@@ -1,12 +1,13 @@
 <?php
 
-// FILE: app/Models/Membership.php
+// FILE: app/Models/Membership.php | V2
 
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Membership extends Model
 {
@@ -15,6 +16,7 @@ class Membership extends Model
         'user_id',
         'status',
         'is_owner',
+        'profile_slug',
         'joined_at',
         'blocked_at',
         'blocked_reason',
@@ -41,5 +43,10 @@ class Membership extends Model
         return $this->belongsToMany(Role::class, 'membership_role')
             ->withPivot('branch_id')
             ->withTimestamps();
+    }
+
+    public function permissionOverrides(): HasMany
+    {
+        return $this->hasMany(MembershipPermissionOverride::class);
     }
 }

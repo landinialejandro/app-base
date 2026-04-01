@@ -1,17 +1,18 @@
 <?php
 
-// FILE: app/Models/Role.php
+// FILE: app/Models/Role.php | V3
 
 namespace App\Models;
 
+use App\Models\Concerns\TenantScoped;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
-use App\Models\Concerns\TenantScoped;
 
 class Role extends Model
 {
     use TenantScoped;
+
     protected $fillable = [
         'tenant_id',
         'name',
@@ -26,9 +27,8 @@ class Role extends Model
 
     public function permissions(): BelongsToMany
     {
-        return $this->belongsToMany(
-            Permission::class,
-            'role_permission'
-        )->withTimestamps();
+        return $this->belongsToMany(Permission::class, 'role_permission')
+            ->withPivot('scope', 'execution_mode', 'constraints')
+            ->withTimestamps();
     }
 }

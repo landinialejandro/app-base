@@ -167,6 +167,22 @@ la eliminación sensible debe reservarse a owner y admin, salvo necesidad funcio
 la visibilidad del dashboard y de métricas agregadas debe respetar el rol y no asumir siempre conteos globales del tenant
 
 la IA y automatizaciones no deben operar por fuera del sistema de permisos, sino como actores sujetos a la misma arquitectura de autorización
+
+primera regla UX consolidada para permisos del tenant:
+
+la primera UI real de gestión de permisos por rol vive dentro de tenant.profile como tab interno permissions
+
+la habilitación de módulos sigue siendo competencia de superadmin y no debe exponerse como capacidad editable del owner en tenant.profile
+
+el owner solo ajusta permisos sobre módulos ya habilitados para el tenant
+
+las UIs sensibles de configuración deben priorizar:
+
+catálogos cerrados
+etiquetas humanas
+mínima libertad de combinación accidental
+
+los alcances visibles deben resolverse mediante catálogo central y no hardcodearse en Blade
 <<END SECTION>>
 
 <<SECTION: ROLECATALOG Y MODULECATALOG>>
@@ -492,6 +508,7 @@ Esto ya se considera una aplicación válida de la convención en:
 
 footer general del shell de la app
 elementos globales del header como identidad visual o branding
+pantallas de configuración sensible del owner como tenant.profile.permissions, donde capacidades y alcances visibles deben resolverse desde catálogos centrales y no desde texto libre hardcodeado en la vista
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE FORMULARIOS OPERATIVOS>>

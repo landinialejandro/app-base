@@ -175,6 +175,15 @@ parties
 assets
 products
 
+primera UI real de gestión de permisos por rol del tenant implementada en tenant.profile para owner, limitada a módulos habilitados y persistencia sobre role_permission
+
+pendientes futuros de esta capa:
+
+editar membership_permission_overrides
+mostrar permiso efectivo final por usuario
+historial o auditoría de cambios de permisos
+posibles refinamientos de ayuda visual o delegación adicional
+
 proteger roles reservados contra edición o eliminación futura
 
 alinear navbar y dashboard con acceso real por módulo, capacidad y rol
@@ -337,7 +346,7 @@ evaluar validación y normalización más robusta de phone_whatsapp
 
 revisar extensión del perfil de empresa con gestión futura de sucursales y configuraciones operativas separadas
 
-evaluar separar la gestión de roles y accesos del perfil de empresa hacia una pantalla propia cuando la complejidad funcional lo justifique
+evaluar más adelante si la gestión de permisos por rol del tenant debe seguir viviendo dentro de tenant.profile o si conviene separarla a una pantalla propia cuando la complejidad funcional lo justifique
 
 evaluar más adelante si alguna parte no sensible del perfil de empresa puede delegarse a admin sin abrir acceso a configuraciones críticas
 <<END SECTION>>

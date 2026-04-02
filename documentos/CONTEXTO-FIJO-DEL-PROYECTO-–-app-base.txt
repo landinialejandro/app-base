@@ -838,6 +838,24 @@ Además de datos generales, settings puede contener configuración funcional del
 Esto incluye, entre otros casos, el perfil de rubro en:
 
 settings.business_profile.type
+
+La pantalla tenant.profile incorpora además una primera UI real de gestión de permisos V2 por tenant mediante un tab interno permissions.
+
+Reglas actuales de esa pantalla:
+
+solo owner puede operar esta primera gestión
+
+el owner no habilita módulos desde tenant.profile, solo ajusta permisos sobre módulos ya habilitados previamente para el tenant
+
+la edición actual se limita a roles base delegables:
+
+admin
+sales
+operator
+
+la persistencia de esta fase se realiza sobre role_permission
+
+membership_permission_overrides queda fuera de alcance en esta primera UI
 <<END SECTION>>
 
 <<SECTION: Decisión actual de frontend base>>

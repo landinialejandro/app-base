@@ -164,27 +164,17 @@ indexación de contenido para búsqueda
 <<SECTION: AUTORIZACIÓN Y PERMISOS>>
 AUTORIZACIÓN Y PERMISOS
 
-completar migración del sistema de permisos V2 en módulos restantes fuera del core principal
-
-módulos ya migrados y validados en V2:
-
-orders
-tasks
-documents
-parties
-assets
-products
-
-primera UI real de gestión de permisos por rol del tenant implementada en tenant.profile para owner, limitada a módulos habilitados y persistencia sobre role_permission
-
-pendientes futuros de esta capa:
-
-editar membership_permission_overrides
-mostrar permiso efectivo final por usuario
-historial o auditoría de cambios de permisos
-posibles refinamientos de ayuda visual o delegación adicional
-
 proteger roles reservados contra edición o eliminación futura
+
+mantener cerrado el conjunto de roles base del tenant en:
+
+owner
+admin
+sales
+operator
+administrator
+
+resolver complejidad funcional futura mediante perfiles funcionales y overrides por usuario, no creando nuevos roles base
 
 alinear navbar y dashboard con acceso real por módulo, capacidad y rol
 

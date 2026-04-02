@@ -145,16 +145,30 @@ modo de ejecución
 
 Reglas actuales consolidadas:
 
-owner y admin equivalen funcionalmente a nivel de control operativo del tenant
-
-roles operativos base esperados:
-
-sales
-operator
-
-como regla estructural:
+owner y admin no deben confundirse conceptualmente
 
 owner sigue resolviéndose desde memberships.is_owner y no como rol delegable ordinario
+
+owner es único por tenant
+
+los roles base cerrados del tenant son:
+
+owner
+admin
+sales
+operator
+administrator
+
+de esos cinco roles base, solo son delegables:
+
+admin
+sales
+operator
+administrator
+
+admin representa gestión amplia del tenant
+
+administrator representa un rol operativo administrativo u oficina, no una capa global ni un equivalente conceptual de admin
 
 la membership incorpora profile_slug para refinar capacidades sin multiplicar roles base
 
@@ -202,7 +216,11 @@ los módulos base del sistema deben resolverse desde ModuleCatalog
 
 los roles base sembrados al crear el tenant no deben modificarse ni eliminarse
 
-a futuro el tenant podrá agregar roles propios en base de datos, pero sin alterar la base reservada del sistema
+los roles base cerrados del tenant no deben crecer por necesidades funcionales puntuales
+
+las variantes funcionales futuras deben resolverse mediante perfiles funcionales y overrides, no creando nuevos roles base
+
+a futuro el tenant podrá ajustar capacidades dentro de la arquitectura vigente, pero sin alterar la base reservada del sistema
 <<END SECTION>>
 
 <<SECTION: EVOLUCIÓN PREVISTA DE PERMISOS>>
@@ -739,6 +757,16 @@ Colaborador
 El verbo destructivo estándar en botones, confirmaciones y mensajes del sistema es:
 
 Eliminar
+
+Naming visible definitivo de roles base del tenant:
+
+Propietario
+Administrador
+Comercial
+Operador
+Administrativo
+
+Estos labels visibles deben mantenerse estables y no deben duplicarse con variantes alternativas en la UI.
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ACCIONES VISUALES>>

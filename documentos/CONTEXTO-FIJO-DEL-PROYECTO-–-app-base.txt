@@ -380,11 +380,22 @@ owner no debe tratarse como un rol delegable ordinario
 
 owner se define estructuralmente por memberships.is_owner = true
 
-los roles base delegables del tenant son:
+owner es único por tenant
+
+los roles base del tenant quedan definidos como:
+
+owner
+admin
+sales
+operator
+administrator
+
+de esos cinco roles base, solo son delegables:
 
 admin
 sales
 operator
+administrator
 
 una membership activa no-owner no debe quedar sin al menos un rol válido
 
@@ -532,24 +543,37 @@ OWNER Y ADMIN
 
 Conforman el nivel privilegiado actual dentro del tenant.
 
-Regla vigente:
+Reglas vigentes:
 
-owner y admin son equivalentes a nivel de privilegios operativos por módulo dentro del tenant
+owner es único por tenant
+
+owner no es un rol delegable y se resuelve estructuralmente desde memberships.is_owner
+
+admin es el rol delegable de gestión amplia dentro del tenant
+
+admin no equivale a owner como condición estructural, aunque puede compartir capacidades elevadas según la configuración de permisos del tenant
 <<END SECTION>>
 
 <<SECTION: ROLES OPERATIVOS BASE>>
 ROLES OPERATIVOS BASE
 
-Roles actuales esperados:
+Roles base actuales del tenant:
 
 sales
 operator
+administrator
 
-Representan el nivel operativo base del tenant.
+Reglas conceptuales:
 
-No tienen control total sobre todos los datos o acciones.
+sales representa el perfil comercial operativo
 
-Su acceso depende del módulo y de la policy aplicable.
+operator representa el perfil operativo de ejecución o campo
+
+administrator representa el perfil operativo administrativo u oficina
+
+estos roles no deben interpretarse como capas globales del sistema, sino como roles base propios del tenant
+
+las diferencias funcionales finas futuras no deben resolverse creando nuevos roles base, sino mediante perfiles funcionales y overrides cuando corresponda
 <<END SECTION>>
 
 <<SECTION: Reglas operativas actuales por módulo>>

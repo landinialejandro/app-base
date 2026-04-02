@@ -1,12 +1,30 @@
-{{-- FILE: resources/views/tenants/partials/permissions/module-card.blade.php | V3 --}}
+{{-- FILE: resources/views/tenants/partials/permissions/module-card.blade.php | V4 --}}
 
-<x-card>
-    <div class="dashboard-section-header">
-        <h2 class="dashboard-section-title">{{ $moduleLabel }}</h2>
-        <p class="dashboard-section-text">
-            Configuración base del rol para este módulo.
-        </p>
-    </div>
+@php
+    $collapsed = $collapsed ?? !$loop->first;
+@endphp
+
+<x-card :collapsible="true" :collapsed="$collapsed" data-module-card data-module="{{ $module }}">
+    <x-slot:header>
+        <div>
+            <h2 class="card-title">{{ $moduleLabel }}</h2>
+            <p class="card-subtitle">
+                Configuración base del rol para este módulo.
+            </p>
+            <div class="form-help">
+                Activa cada capacidad y, cuando corresponda, define sobre qué registros podrá usarla este rol.
+            </div>
+        </div>
+    </x-slot:header>
+
+    <x-slot:toolbox>
+        <button type="button" class="card-tool" data-action="app-card-toggle" aria-label="Expandir o contraer módulo"
+            aria-expanded="{{ $collapsed ? 'false' : 'true' }}">
+            <span class="icon-expand">
+                <x-icons.chevron-down />
+            </span>
+        </button>
+    </x-slot:toolbox>
 
     <div class="table-wrap">
         <table class="table">

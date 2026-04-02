@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/partials/permissions/capability-row.blade.php | V4 --}}
+{{-- FILE: resources/views/tenants/partials/permissions/capability-row.blade.php | V6 --}}
 
 @php
     $enabled = (bool) ($meta['enabled'] ?? false);
@@ -7,14 +7,6 @@
 
     $scopeOptions = \App\Support\Catalogs\PermissionScopeCatalog::optionsForCapability($capability);
     $showScope = !empty($scopeOptions);
-
-    $scopeHelp = match ($capability) {
-        \App\Support\Catalogs\CapabilityCatalog::VIEW_ANY,
-        \App\Support\Catalogs\CapabilityCatalog::VIEW
-            => 'Define qué registros puede consultar este rol.',
-        \App\Support\Catalogs\CapabilityCatalog::UPDATE => 'Define qué registros puede editar este rol.',
-        default => null,
-    };
 
     $selectedScopeHelp = match ($scope) {
         \App\Support\Catalogs\PermissionScopeCatalog::TENANT_ALL
@@ -49,7 +41,8 @@
 
     <td>
         @if ($showScope)
-            <select name="permissions[{{ $module }}][{{ $capability }}][scope]" class="form-control">
+            <select name="permissions[{{ $module }}][{{ $capability }}][scope]" class="form-control"
+                data-permission-scope-select>
                 <option value="">Sin alcance especial</option>
 
                 @foreach ($scopeOptions as $scopeValue => $scopeLabel)
@@ -59,14 +52,13 @@
                 @endforeach
             </select>
 
-            @if ($scopeHelp)
-                <div class="form-help">
-                    {{ $scopeHelp }}
-                </div>
-            @endif
-
             @if ($enabled)
-                <div class="form-help">
+                <div class="form-help" data-permission-scope-help
+                    data-scope-help-default="Selecciona el alcance que tendrá este rol dentro del módulo."
+                    data-scope-help-all="Tiene acceso total sin una restricción adicional de alcance."
+                    data-scope-help-tenant_all="Puede trabajar con todos los registros de este módulo dentro de la empresa."
+                    data-scope-help-own_assigned="Solo puede trabajar con registros que estén bajo su responsabilidad."
+                    data-scope-help-limited="Tiene un acceso parcial según la lógica interna del módulo.">
                     {{ $selectedScopeHelp }}
                 </div>
             @endif

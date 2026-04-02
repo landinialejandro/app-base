@@ -865,6 +865,86 @@
         window.history.replaceState({}, document.title, url.toString());
     };
 
+    const bindCardToggle = () => {
+        document
+            .querySelectorAll('[data-action~="app-card-toggle"]')
+            .forEach((button) => {
+                if (button.dataset.appCardToggleBound === "1") {
+                    return;
+                }
+
+                button.dataset.appCardToggleBound = "1";
+
+                button.addEventListener("click", function () {
+                    const card =
+                        this.closest("[data-card]") || this.closest(".card");
+
+                    if (!card) {
+                        return;
+                    }
+
+                    const body = card.querySelector("[data-card-body]");
+
+                    if (!body) {
+                        return;
+                    }
+
+                    const isHidden = body.hasAttribute("hidden");
+
+                    if (isHidden) {
+                        body.removeAttribute("hidden");
+                        this.setAttribute("aria-expanded", "true");
+                    } else {
+                        body.setAttribute("hidden", "hidden");
+                        this.setAttribute("aria-expanded", "false");
+                    }
+                });
+            });
+    };
+
+    const bindPermissionScopeHelp = () => {
+        document
+            .querySelectorAll("[data-permission-scope-select]")
+            .forEach((select) => {
+                if (select.dataset.appPermissionScopeHelpBound === "1") {
+                    return;
+                }
+
+                select.dataset.appPermissionScopeHelpBound = "1";
+
+                const updateHelp = () => {
+                    const cell = select.closest("td");
+
+                    if (!cell) {
+                        return;
+                    }
+
+                    const help = cell.querySelector(
+                        "[data-permission-scope-help]",
+                    );
+
+                    if (!help) {
+                        return;
+                    }
+
+                    const value = select.value;
+                    const attributeName = value
+                        ? `data-scope-help-${value}`
+                        : "data-scope-help-default";
+
+                    const text =
+                        help.getAttribute(attributeName) ||
+                        help.getAttribute("data-scope-help-default") ||
+                        "";
+
+                    help.textContent = text;
+                };
+
+                select.addEventListener("change", updateHelp);
+                updateHelp();
+            });
+    };
+
     const initAppBase = () => {
         bindConfirmSubmit();
         bindSelectOnClick();
@@ -879,6 +959,8 @@
         bindAppointmentKindSync();
         bindAppointmentCalendarAutoScroll();
         bindHorizontalScroll();
+        bindCardToggle();
+        bindPermissionScopeHelp();
         focusTabIfRequested();
     };
 

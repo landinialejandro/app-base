@@ -618,6 +618,75 @@ a:hover {
     padding: var(--space-5);
 }
 
+/* agregar dentro de la sección de cards de public/css/app-base.css */
+
+.card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: var(--space-3);
+    padding: var(--space-4) var(--space-5);
+    border-bottom: 1px solid var(--color-border);
+}
+
+.card-header__main {
+    flex: 1 1 auto;
+    min-width: 0;
+}
+
+.card-toolbox {
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+}
+
+.card-title {
+    margin: 0;
+    font-size: 1rem;
+    line-height: 1.2;
+}
+
+.card-subtitle {
+    margin: 0.25rem 0 0;
+    color: var(--color-muted);
+    font-size: 0.9rem;
+    line-height: 1.4;
+}
+
+.card-tool {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border: 1px solid var(--color-border);
+    border-radius: 999px;
+    background: var(--color-surface);
+    color: var(--color-text);
+    cursor: pointer;
+}
+
+.card-tool:hover {
+    background: var(--color-surface-hover);
+}
+
+.card-tool .icon-expand {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.18s ease;
+}
+
+.card-tool[aria-expanded="false"] .icon-expand {
+    transform: rotate(-90deg);
+}
+
+.card-tool[aria-expanded="true"] .icon-expand {
+    transform: rotate(0deg);
+}
+
 .card-header-actions {
     display: flex;
     align-items: center;

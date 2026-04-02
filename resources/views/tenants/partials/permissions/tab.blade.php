@@ -35,6 +35,7 @@
                             'moduleLabel' => $moduleLabels[$module] ?? $module,
                             'capabilities' => $capabilities,
                             'capabilityLabels' => $capabilityLabels,
+                            'collapsed' => !$loop->first,
                         ])
                     @endforeach
                 </div>

@@ -1,10 +1,12 @@
 <?php
 
-// FILE: routes/web.php
+// FILE: routes/web.php | V2
 
 use App\Http\Controllers\AdminInvitationController;
 use App\Http\Controllers\AdminMetricsController;
 use App\Http\Controllers\AdminSignupRequestController;
+use App\Http\Controllers\AdminTenantController;
+use App\Http\Controllers\AdminTenantModuleAccessController;
 use App\Http\Controllers\AppointmentController;
 use App\Http\Controllers\AssetController;
 use App\Http\Controllers\AttachmentController;
@@ -25,6 +27,7 @@ use App\Http\Controllers\TenantInvitationController;
 use App\Http\Controllers\TenantMembershipController;
 use App\Http\Controllers\TenantMembershipRoleController;
 use App\Http\Controllers\TenantProfileController;
+use App\Http\Controllers\TenantProfilePermissionController;
 use App\Models\Tenant;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
@@ -95,15 +98,15 @@ Route::middleware(['auth', 'superadmin'])
     ->group(function () {
         Route::get('/', [SuperadminDashboardController::class, 'index'])->name('dashboard');
 
-        Route::get('/tenants', [\App\Http\Controllers\AdminTenantController::class, 'index'])
+        Route::get('/tenants', [AdminTenantController::class, 'index'])
             ->name('tenants.index');
-        Route::get('/tenants/{tenant}', [\App\Http\Controllers\AdminTenantController::class, 'show'])
+        Route::get('/tenants/{tenant}', [AdminTenantController::class, 'show'])
             ->name('tenants.show');
-        Route::get('/tenants/{tenant}/modules', [\App\Http\Controllers\AdminTenantModuleAccessController::class, 'edit'])
+        Route::get('/tenants/{tenant}/modules', [AdminTenantModuleAccessController::class, 'edit'])
             ->name('tenants.modules.edit');
-        Route::put('/tenants/{tenant}/modules', [\App\Http\Controllers\AdminTenantModuleAccessController::class, 'update'])
+        Route::put('/tenants/{tenant}/modules', [AdminTenantModuleAccessController::class, 'update'])
             ->name('tenants.modules.update');
-        Route::delete('/tenants/{tenant}/modules', [\App\Http\Controllers\AdminTenantModuleAccessController::class, 'reset'])
+        Route::delete('/tenants/{tenant}/modules', [AdminTenantModuleAccessController::class, 'reset'])
             ->name('tenants.modules.reset');
 
         Route::get('/signup-requests', [AdminSignupRequestController::class, 'index'])
@@ -141,6 +144,9 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         ->name('tenant.profile.show');
     Route::put('/tenant/profile', [TenantProfileController::class, 'update'])
         ->name('tenant.profile.update');
+    Route::put('/tenant/profile/permissions', [TenantProfilePermissionController::class, 'update'])
+        ->name('tenant.profile.permissions.update');
+
     Route::post('/tenant/memberships/{membership}/block', [TenantMembershipController::class, 'block'])
         ->name('tenant.memberships.block');
     Route::post('/tenant/memberships/{membership}/unblock', [TenantMembershipController::class, 'unblock'])
@@ -149,6 +155,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         ->name('tenant.memberships.roles.attach');
     Route::delete('/tenant/memberships/{membership}/roles/{role}', [TenantMembershipRoleController::class, 'detach'])
         ->name('tenant.memberships.roles.detach');
+
     Route::post('/tenant/invitations', [TenantInvitationController::class, 'store'])
         ->name('tenant.invitations.store');
     Route::delete('/tenant/invitations/{invitation}', [TenantInvitationController::class, 'destroy'])
@@ -251,6 +258,8 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     });
 
     // Attachments
+    Route::get('/attachments/create', [AttachmentController::class, 'create'])
+        ->name('attachments.create');
     Route::post('/attachments', [AttachmentController::class, 'store'])
         ->name('attachments.store');
     Route::get('/attachments/{attachment}/edit', [AttachmentController::class, 'edit'])
@@ -263,21 +272,19 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         ->name('attachments.download');
     Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy'])
         ->name('attachments.destroy');
-    Route::get('/attachments/create', [AttachmentController::class, 'create'])
-        ->name('attachments.create');
 
-    // PRINT
+    // Print
     Route::get('/appointments/{appointment}/pdf', [AppointmentController::class, 'pdf'])
         ->name('appointments.pdf');
     Route::get('/orders/{order}/pdf', [OrderController::class, 'pdf'])
         ->name('orders.pdf');
     Route::get('/documents/{document}/pdf', [DocumentController::class, 'pdf'])
         ->name('documents.pdf');
+
     Route::get('/appointments/{appointment}/print', [AppointmentController::class, 'print'])
         ->name('appointments.print');
     Route::get('/orders/{order}/print', [OrderController::class, 'print'])
         ->name('orders.print');
     Route::get('/documents/{document}/print', [DocumentController::class, 'print'])
         ->name('documents.print');
-
 });

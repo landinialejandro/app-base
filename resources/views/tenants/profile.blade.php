@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/profile.blade.php | V2 --}}
+{{-- FILE: resources/views/tenants/profile.blade.php | V3 --}}
 
 @extends('layouts.app')
 
@@ -36,6 +36,12 @@
                     aria-selected="{{ $activeTab === 'accesses' ? 'true' : 'false' }}">
                     Roles y acceso
                 </button>
+
+                <button type="button" class="tabs-link {{ $activeTab === 'permissions' ? 'is-active' : '' }}"
+                    data-tab-link="permissions" role="tab"
+                    aria-selected="{{ $activeTab === 'permissions' ? 'true' : 'false' }}">
+                    Permisos
+                </button>
             </div>
 
             @include('tenants.partials.profile-general-tab', [
@@ -58,6 +64,15 @@
                 'memberships' => $memberships,
                 'availableRoles' => $availableRoles,
                 'activeTab' => $activeTab,
+            ])
+
+            @include('tenants.partials.permissions.tab', [
+                'activeTab' => $activeTab,
+                'selectedPermissionRole' => $selectedPermissionRole,
+                'permissionRoles' => $permissionRoles,
+                'permissionMatrix' => $permissionMatrix,
+                'moduleLabels' => $moduleLabels,
+                'capabilityLabels' => $capabilityLabels,
             ])
         </div>
     </x-page>

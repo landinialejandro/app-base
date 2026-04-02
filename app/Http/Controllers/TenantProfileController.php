@@ -1,13 +1,18 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantProfileController.php | V4
+// FILE: app/Http/Controllers/TenantProfileController.php | V7
 
 namespace App\Http\Controllers;
 
 use App\Models\Invitation;
 use App\Models\Membership;
+use App\Models\Permission;
 use App\Models\Role;
+use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\BusinessTypeCatalog;
+use App\Support\Catalogs\CapabilityCatalog;
+use App\Support\Catalogs\ModuleCatalog;
+use App\Support\Catalogs\PermissionScopeCatalog;
 use App\Support\Catalogs\RoleCatalog;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
@@ -58,7 +63,7 @@ class TenantProfileController extends Controller
 
         $activeTab = $request->query('tab', 'general');
 
-        if (! in_array($activeTab, ['general', 'users', 'accesses'], true)) {
+        if (! in_array($activeTab, ['general', 'users', 'accesses', 'permissions'], true)) {
             $activeTab = 'general';
         }
 
@@ -81,6 +86,47 @@ class TenantProfileController extends Controller
             ->orderByDesc('created_at')
             ->get();
 
+        $permissionRoles = [
+            RoleCatalog::ADMIN => RoleCatalog::label(RoleCatalog::ADMIN),
+            RoleCatalog::SALES => RoleCatalog::label(RoleCatalog::SALES),
+            RoleCatalog::OPERATOR => RoleCatalog::label(RoleCatalog::OPERATOR),
+        ];
+
+        $selectedPermissionRole = (string) $request->query('role', RoleCatalog::ADMIN);
+
+        if (! array_key_exists($selectedPermissionRole, $permissionRoles)) {
+            $selectedPermissionRole = RoleCatalog::ADMIN;
+        }
+
+        $enabledModules = collect(TenantModuleAccess::enabledModules($tenant))
+            ->filter(fn ($enabled) => $enabled === true)
+            ->keys()
+            ->values()
+            ->all();
+
+        $moduleCapabilityMap = $this->buildModuleCapabilityMap($enabledModules);
+
+        $moduleLabels = collect($enabledModules)
+            ->mapWithKeys(fn ($module) => [$module => ModuleCatalog::label($module, $module)])
+            ->all();
+
+        $capabilityLabels = [
+            CapabilityCatalog::VIEW_ANY => 'Ver lista',
+            CapabilityCatalog::VIEW => 'Ver detalle',
+            CapabilityCatalog::CREATE => 'Crear',
+            CapabilityCatalog::UPDATE => 'Editar',
+            CapabilityCatalog::DELETE => 'Eliminar',
+            CapabilityCatalog::VIEW_ANALYTICS => 'Ver analíticas',
+        ];
+
+        $scopeLabels = PermissionScopeCatalog::labels();
+
+        $permissionMatrix = $this->buildPermissionMatrix(
+            $tenant->id,
+            $selectedPermissionRole,
+            $moduleCapabilityMap
+        );
+
         return view('tenants.profile', [
             'tenant' => $tenant,
             'memberships' => $memberships,
@@ -89,6 +135,14 @@ class TenantProfileController extends Controller
             'generatedInvitation' => $generatedInvitation,
             'pendingInvitations' => $pendingInvitations,
             'businessTypeLabels' => BusinessTypeCatalog::labels(),
+
+            'permissionRoles' => $permissionRoles,
+            'selectedPermissionRole' => $selectedPermissionRole,
+            'moduleLabels' => $moduleLabels,
+            'capabilityLabels' => $capabilityLabels,
+            'scopeLabels' => $scopeLabels,
+            'moduleCapabilityMap' => $moduleCapabilityMap,
+            'permissionMatrix' => $permissionMatrix,
         ]);
     }
 
@@ -134,5 +188,119 @@ class TenantProfileController extends Controller
         return redirect()
             ->route('tenant.profile.show', ['tab' => 'general'])
             ->with('success', 'Perfil de empresa actualizado correctamente.');
+    }
+
+    protected function buildModuleCapabilityMap(array $enabledModules): array
+    {
+        if (empty($enabledModules)) {
+            return [];
+        }
+
+        $permissions = Permission::query()
+            ->whereIn('group', $enabledModules)
+            ->get();
+
+        $map = [];
+
+        foreach ($enabledModules as $module) {
+            $map[$module] = [];
+        }
+
+        foreach ($permissions as $permission) {
+            $parsed = CapabilityCatalog::parsePermissionSlug((string) $permission->slug);
+
+            if (! $parsed) {
+                continue;
+            }
+
+            $module = $parsed['module'];
+            $capability = $parsed['capability'];
+
+            if (! in_array($module, $enabledModules, true)) {
+                continue;
+            }
+
+            $map[$module][] = $capability;
+        }
+
+        foreach ($map as $module => $capabilities) {
+            $map[$module] = collect($capabilities)
+                ->filter(fn ($capability) => in_array($capability, CapabilityCatalog::all(), true))
+                ->unique()
+                ->sortBy(fn ($capability) => array_search($capability, CapabilityCatalog::all(), true))
+                ->values()
+                ->all();
+        }
+
+        return array_filter($map, fn ($capabilities) => ! empty($capabilities));
+    }
+
+    protected function buildPermissionMatrix(string $tenantId, string $roleSlug, array $moduleCapabilityMap): array
+    {
+        $matrix = [];
+
+        foreach ($moduleCapabilityMap as $module => $capabilities) {
+            $matrix[$module] = [];
+
+            foreach ($capabilities as $capability) {
+                $matrix[$module][$capability] = [
+                    'enabled' => false,
+                    'scope' => null,
+                    'execution_mode' => 'manual',
+                ];
+            }
+        }
+
+        if (empty($moduleCapabilityMap)) {
+            return $matrix;
+        }
+
+        $role = Role::query()
+            ->where('tenant_id', $tenantId)
+            ->where('slug', $roleSlug)
+            ->with('permissions')
+            ->first();
+
+        if (! $role) {
+            return $matrix;
+        }
+
+        $permissionSlugs = collect($moduleCapabilityMap)
+            ->flatMap(function ($capabilities, $module) {
+                return collect($capabilities)
+                    ->map(fn ($capability) => CapabilityCatalog::permissionSlug($module, $capability));
+            })
+            ->values()
+            ->all();
+
+        $permissionsBySlug = Permission::query()
+            ->whereIn('slug', $permissionSlugs)
+            ->get()
+            ->keyBy('slug');
+
+        foreach ($moduleCapabilityMap as $module => $capabilities) {
+            foreach ($capabilities as $capability) {
+                $slug = CapabilityCatalog::permissionSlug($module, $capability);
+                $permission = $permissionsBySlug->get($slug);
+
+                if (! $permission) {
+                    continue;
+                }
+
+                $assignedPermission = $role->permissions->firstWhere('id', $permission->id);
+
+                if (! $assignedPermission) {
+                    continue;
+                }
+
+                $matrix[$module][$capability] = [
+                    'enabled' => true,
+                    'scope' => $assignedPermission->pivot->scope,
+                    'execution_mode' => $assignedPermission->pivot->execution_mode ?: 'manual',
+                ];
+            }
+        }
+
+        return $matrix;
     }
 }

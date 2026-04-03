@@ -274,9 +274,11 @@ membership_permission_overrides como estructura real
 
 orders, tasks y documents quedan como módulos ya migrados de forma completa a V2 y validados en flujo real
 
+además, parties, assets y products ya se encuentran migrados y validados sobre la base V2 de permisos persistidos
+
 en módulos migrados, las policies deben resolver capacidades específicas mediante RolePermissionResolver y no mediante canUseModule para acciones puntuales
 
-viewAny y view deben apoyarse en actionScope cuando corresponda
+viewAny y view deben apoyarse en capacidades concretas y en actionScope cuando corresponda
 
 delete no debe resolverse con lógica hardcodeada por rol si la capacidad ya existe persistida
 
@@ -284,27 +286,18 @@ en tasks, update debe respetar el scope persistido own_assigned
 
 el resolver no debe degradar scopes persistidos a true al mergear capacidades nuevas
 
-además de orders, los módulos:
+un módulo no debe considerarse plenamente migrado a V2 si viewAny y view siguen resolviéndose solo con canUseModule para lectura general
 
-documents
-parties
-assets
-products
-
-ya se encuentran migrados y validados sobre la base V2 de permisos persistidos
-
-en estos módulos:
-
-viewAny y view deben resolverse por capacidad concreta y no únicamente por acceso al módulo
-
-delete debe depender exclusivamente de la capacidad persistida y no de lógica hardcodeada por rol
+para considerar un módulo realmente migrado, debe usar capacidades concretas del módulo en lectura y acciones sensibles
 
 los módulos compartidos del tenant que no requieren ownership deben mantener:
 
 scope tenant_all
 sin restricciones por registro
 
-la migración del resto de módulos debe tomar orders, tasks y documents como referencia operativa de implementación
+puede existir excepción explícita para módulos derivados o transversales como attachments, cuya autorización puede delegarse al recurso padre
+
+la migración del resto de módulos debe tomar como referencia operativa el patrón ya validado en orders, tasks, documents, parties, assets y products
 <<END SECTION>>
 
 <<SECTION: TRAIT TENANTSCOPED>>

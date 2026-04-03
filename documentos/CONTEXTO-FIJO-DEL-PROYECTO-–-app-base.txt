@@ -466,12 +466,13 @@ profile_slug en memberships
 scope, execution_mode y constraints en role_permission
 membership_permission_overrides como estructura real
 
-orders, tasks y documents quedan como módulos migrados completamente a V2 y validados en flujo real completo:
+orders, tasks, documents, parties, assets y products quedan validados sobre V2 real
 
-resolver
-policy
-controller
-UI mediante @can
+en esos módulos la autorización ya opera sobre capacidades persistidas sin fallback funcional a lógica anterior para lectura y acciones sensibles
+
+projects y appointments quedan todavía en estado híbrido o parcial respecto del patrón V2 completo
+
+attachments no debe tratarse como módulo V2 autónomo, sino como autorización delegada al recurso padre o attachable
 
 la validación operativa ya confirmó compatibilidad con:
 
@@ -479,15 +480,7 @@ NavigationTrail
 controllers existentes
 vistas existentes
 
-assets y products quedan migrados y validados sobre el sistema de permisos V2
-
-ambos módulos utilizan matriz persistida en base de datos sin fallback a lógica anterior
-
-mantienen visibilidad tenant_all y eliminación restringida a owner/admin según capacidades persistidas
-
-no requieren lógica adicional de ownership ni comportamiento específico en resolver
-
-la migración del resto de módulos debe tomar a orders, tasks y documents como módulos piloto ya validados
+la migración del resto de módulos debe tomar a orders, tasks y documents como referencia operativa y cerrar específicamente los tramos pendientes de projects y appointments
 <<END SECTION>>
 
 <<SECTION: Precedencia conceptual prevista para habilitación de módulos>>

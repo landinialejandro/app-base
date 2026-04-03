@@ -187,6 +187,23 @@ sales
 operator
 administrator
 
+módulos core ya migrados y validados sobre V2 real:
+
+orders
+tasks
+documents
+parties
+assets
+products
+
+pendientes técnicos puntuales de migración V2 real:
+
+cerrar migración completa de projects
+cerrar migración completa de appointments
+definir si la visibilidad por participación en projects queda absorbida por scope V2 o permanece como regla de dominio complementaria
+
+attachments debe mantenerse como delegación al recurso padre salvo decisión futura contraria
+
 pendientes futuros de esta capa:
 
 editar membership_permission_overrides

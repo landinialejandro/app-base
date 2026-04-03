@@ -247,11 +247,17 @@ scope
 execution mode
 constraints
 
+los scopes no deben tratarse como genéricos por capability
+
+los scopes válidos deben definirse por combinación módulo + capacidad
+
+no deben existir scopes inválidos, implícitos o ambiguos
+
 los roles base del sistema deben seguir siendo pocos y estables
 
-la especialización funcional del trabajo debe resolverse preferentemente mediante perfiles y capacidades, no creando nuevos roles base por cada puesto
+la especialización funcional del trabajo debe resolverse preferentemente mediante perfiles y capacidades
 
-toda autorización funcional nueva debe apoyarse, según corresponda, en:
+toda autorización funcional nueva debe apoyarse en:
 
 TenantModuleAccess
 RolePermissionResolver
@@ -262,42 +268,36 @@ el acceso a módulo no reemplaza la policy por registro
 
 el acceso a módulo, la visibilidad de registros, la capacidad de acción y el modo de ejecución deben tratarse como capas separadas
 
-cuando un módulo tenga reglas específicas por ownership, asignación o participación operativa, la policy debe resolver esa diferencia reutilizando la capa central y el criterio de visibilidad del módulo
-
-la base V2 deja de depender de una matriz fija en código y pasa a persistirse en base de datos, manteniendo estable la interfaz pública del resolver
-
-la persistencia actual de V2 incorpora:
-
-profile_slug en memberships
-scope, execution_mode y constraints en role_permission
-membership_permission_overrides como estructura real
+cuando un módulo tenga reglas específicas por ownership o participación, esa regla debe integrarse al scope y no vivir como bypass paralelo
 
 orders, tasks, documents, parties, assets, products, projects y appointments ya se encuentran migrados y validados sobre V2 real
 
-en módulos migrados, las policies deben resolver capacidades específicas mediante RolePermissionResolver y no mediante canUseModule para acciones puntuales
+viewAny y view deben resolverse mediante capacidades concretas y scope efectivo
 
-viewAny y view deben apoyarse en capacidades concretas y en actionScope cuando corresponda
-
-si un módulo mantiene una regla de dominio complementaria, como participación operativa en projects, esa regla debe vivir como complemento explícito del scope y no como bypass híbrido por fuera de la capa central
-
-en appointments, el dataset visible del controller debe alinearse al scope de lectura real y la UI no debe ofrecer opciones de dataset no permitidas
+no deben resolverse mediante canUseModule para lectura general
 
 delete no debe resolverse con lógica hardcodeada por rol si la capacidad ya existe persistida
 
-en tasks, update debe respetar el scope persistido own_assigned
+en tasks, update debe respetar el scope own_assigned
 
-el resolver no debe degradar scopes persistidos a true al mergear capacidades nuevas
+el resolver no debe degradar scopes persistidos a true
 
-un módulo no debe considerarse plenamente migrado a V2 si viewAny y view siguen resolviéndose solo con canUseModule para lectura general
+un módulo no debe considerarse migrado a V2 si la lectura no está resuelta por capacidades reales
 
-para considerar un módulo realmente migrado, debe usar capacidades concretas del módulo en lectura y acciones sensibles
+attachments es un caso especial:
 
-los módulos compartidos del tenant que no requieren ownership deben mantener:
+no es un módulo autónomo de permisos
 
-scope tenant_all
-sin restricciones por registro
+su autorización se delega al recurso padre
 
-puede existir excepción explícita para módulos derivados o transversales como attachments, cuya autorización puede delegarse al recurso padre
+las acciones deben resolverse contra capacidades del attachable
+
+las entidades hijas deben heredar autorización desde la cabecera cuando corresponda
+
+esto aplica explícitamente a:
+
+order_items
+document_items
 <<END SECTION>>
 
 <<SECTION: TRAIT TENANTSCOPED>>
@@ -450,13 +450,31 @@ Reglas:
 
 evitar lógica de permisos duplicada en controllers
 
-usar controllers delgados y delegar la autorización a policies o helpers de acceso
+usar controllers delgados y delegar la autorización a policies o a la capa central
 
-si una policy necesita conceptos cerrados del sistema, reutilizar ModuleCatalog, RoleCatalog y support de acceso en lugar de strings hardcodeados
+si una policy necesita conceptos cerrados del sistema, reutilizar catálogos y resolvers
 
-cuando exista una policy, no alcanza con crearla:
+no utilizar casts booleanos ambiguos sobre scopes
+
+no usar fallbacks implícitos cuando la capa central ya resuelve la capacidad
+
+cuando exista una policy:
+
 el controller debe invocar authorize(...) o authorizeResource(...)
-la vista debe respetar permisos reales con @can al mostrar acciones
+la vista debe respetar permisos reales con @can
+
+las policies deben trabajar con capacidades concretas y scopes efectivos
+
+no deben resolver lectura únicamente con canUseModule
+
+las entidades hijas no deben duplicar lógica de autorización cuando dependen del padre
+
+order_items debe delegar en Order
+document_items debe delegar en Document
+
+attachments no debe tener autorización autónoma
+
+sus acciones deben resolverse contra el attachable
 
 una policy que no se consume desde controller y vista no protege efectivamente el sistema
 <<END SECTION>>
@@ -500,35 +518,44 @@ permitir condicionales simples de interfaz
 
 extraer bloques repetidos a componentes o partials cuando el patrón ya sea claro
 
-no introducir complejidad de frontend innecesaria si la interacción puede resolverse con HTML, Blade, CSS y JavaScript mínimo
-
-cuando una interacción visual se repita en varias pantallas, priorizar componente o patrón reusable antes que copiar markup
-
-para comportamiento JavaScript simple, usar data-* claros y estables en lugar de acoplar JS a clases puramente visuales cuando eso ayude a separar estilo y comportamiento
+no introducir complejidad innecesaria de frontend
 
 Separación recomendada:
 
 clases CSS = estilo
 data-* = comportamiento
 
-Preferir soluciones simples y declarativas antes que lógica distribuida en múltiples blades.
+Las acciones visibles deben respetar siempre permisos reales
 
-Cuando una pieza global del layout necesite exponer información compartida del sistema, debe priorizarse la inyección desde provider, composer o capa equivalente antes que resolver lógica inline en Blade.
+no deben renderizarse acciones no permitidas aunque el backend las bloquee
 
-Esto ya se considera una aplicación válida de la convención en:
+en vistas embebidas o sublistados:
 
-footer general del shell de la app
-elementos globales del header como identidad visual o branding
-pantallas de configuración sensible del owner como tenant.profile.permissions, donde capacidades y alcances visibles deben resolverse desde catálogos centrales y no desde texto libre hardcodeado en la vista
+cuando la autorización dependa del recurso padre, las acciones deben evaluarse contra el modelo padre real
 
-En pantallas sensibles para owner, el microcopy debe ser:
+esto aplica explícitamente a:
 
-breve
-claro
-orientado a confianza
-centrado en funciones y protección del negocio
+attachments
+order_items
+document_items
 
-Debe priorizarse explicar qué puede hacer cada función y qué permanece protegido, evitando tecnicismos innecesarios, mensajes ambiguos o terminología interna del sistema cuando no aporten claridad.
+en attachments:
+
+la UI no debe evaluar create Attachment
+
+debe evaluar update sobre el attachable
+
+los botones de alta, edición y eliminación deben alinearse con esa lógica
+
+las vistas no deben reconstruir lógica de permisos por fuera de la capa central
+
+cuando una pieza global del layout exponga información del sistema, debe resolverse desde provider o capa central y no inline
+
+esto incluye:
+
+footer del shell
+capas de permisos visibles
+pantallas de configuración del owner
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE FORMULARIOS OPERATIVOS>>

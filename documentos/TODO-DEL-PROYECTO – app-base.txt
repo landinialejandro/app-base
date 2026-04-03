@@ -176,16 +176,9 @@ sales
 operator
 administrator
 
-resolver complejidad funcional futura mediante perfiles funcionales y overrides por usuario, no creando nuevos roles base
+resolver complejidad funcional mediante perfiles y overrides por usuario
 
-primera UI real de gestión de permisos por rol del tenant implementada en tenant.profile para owner, limitada a módulos habilitados y persistencia sobre role_permission
-
-la UI ya incorpora efectivamente los roles delegables:
-
-admin
-sales
-operator
-administrator
+la UI de gestión de permisos por rol del tenant ya se encuentra implementada en tenant.profile
 
 módulos core ya migrados y validados sobre V2 real:
 
@@ -198,30 +191,34 @@ products
 projects
 appointments
 
-projects mantiene visibilidad por participación en tareas como regla de dominio complementaria compatible con V2
+RolePermissionMatrix eliminado de la arquitectura vigente
 
-appointments alinea lectura, dataset visible y UI del calendario/listado con el scope de lectura efectivo
+la autorización efectiva se basa en:
 
-attachments debe mantenerse como delegación al recurso padre salvo decisión futura contraria
+RolePermissionResolver
+RecordScopeResolver
+
+los scopes quedan definidos por módulo + capacidad
+
+no deben existir scopes genéricos inválidos
+
+attachments opera como autorización delegada al recurso padre
+
+order_items y document_items operan con autorización heredada desde cabecera
+
+la alineación entre resolver, policies, controllers y UI quedó consolidada
 
 pendientes futuros de esta capa:
 
 editar membership_permission_overrides
 mostrar permiso efectivo final por usuario
 historial o auditoría de cambios de permisos
-posibles refinamientos de ayuda visual o delegación adicional
 
-alinear navbar y dashboard con acceso real por módulo, capacidad y rol
+alinear navbar y dashboard con acceso real por módulo
 
-revisar y corregir datos legacy donde existan memberships activas no-owner sin rol asignado
+revisar datos legacy donde existan memberships sin rol
 
-asegurar que los flujos nuevos asignen operator por defecto cuando corresponda
-
-definir comportamiento del sistema cuando un usuario ingresa a un tenant sin ningún módulo habilitado
-
-decidir si en ese caso corresponde dashboard vacío, pantalla informativa o redirección controlada
-
-definir también cómo deben comportarse navbar y dashboard cuando no exista ningún módulo operativo visible
+definir comportamiento cuando no haya módulos habilitados
 <<END SECTION>>
 
 <<SECTION: FLUJOS FUNCIONALES>>

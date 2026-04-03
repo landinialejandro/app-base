@@ -436,13 +436,14 @@ CapabilityCatalog define las capacidades concretas del sistema por acción de ne
 
 ProfileCatalog define perfiles funcionales listos para usar, aplicables sobre memberships sin multiplicar roles base.
 
-RolePermissionResolver resuelve el permiso efectivo por usuario, tenant, módulo y capacidad, reutilizando la capa de acceso al módulo, los roles base, el perfil funcional, los permisos persistidos y los overrides vigentes.
+RolePermissionResolver resuelve el permiso efectivo por usuario, tenant, módulo y capacidad, utilizando exclusivamente datos persistidos y sin depender de matrices hardcodeadas.
 
 RecordScopeResolver resuelve el alcance efectivo sobre registros concretos, por ejemplo assigned, own, participating o all.
 
 Dirección de diseño consolidada:
 
 la lógica no debe quedar acoplada a una matriz plana módulo × rol
+RolePermissionMatrix deja de formar parte de la arquitectura vigente
 
 la autorización debe resolverse mediante:
 
@@ -452,13 +453,17 @@ perfil funcional
 capacidad
 scope
 execution mode
-restricciones específicas
+constraints
+
+los scopes no son genéricos por capability sino definidos por combinación módulo + capacidad
+
+no deben existir scopes inválidos, ambiguos o genéricos fuera de los definidos explícitamente
 
 las policies no deben hardcodear permisos dispersos cuando esta capa exista formalmente
 
 la navegación y accesos visibles deben reutilizar la misma lógica real de acceso
 
-la resolución efectiva deja de depender de una matriz fija en código y pasa a operar sobre datos persistidos en base de datos, manteniendo interfaz estable del resolver
+la resolución efectiva se basa únicamente en datos persistidos en base de datos
 
 la implementación actual incorpora como base persistida:
 
@@ -468,13 +473,15 @@ membership_permission_overrides como estructura real
 
 orders, tasks, documents, parties, assets, products, projects y appointments quedan validados sobre V2 real
 
-en estos módulos la autorización ya opera sobre capacidades persistidas sin fallback funcional a lógica anterior para lectura y acciones sensibles
+projects conserva una regla de dominio complementaria de visibilidad por participación en tareas, integrada al scope efectivo
 
-projects conserva una regla de dominio complementaria de visibilidad por participación en tareas, integrada al criterio V2 mediante capacidades concretas y scope efectivo
+appointments resuelve lectura y dataset operativo mediante capacidad concreta de lectura
 
-appointments resuelve lectura y dataset operativo mediante capacidad concreta de lectura, sin depender de update para gobernar el scope visible
+attachments no debe tratarse como módulo V2 autónomo
 
-attachments no debe tratarse como módulo V2 autónomo, sino como autorización delegada al recurso padre o attachable
+la autorización de attachments se delega completamente al recurso padre (attachable)
+
+order_items y document_items heredan autorización desde sus cabeceras (Order y Document respectivamente)
 
 la validación operativa ya confirmó compatibilidad con:
 
@@ -635,7 +642,16 @@ authorize en controller
 
 delete de registros principales compartidos debe reservarse a owner y admin, salvo excepción funcional justificada
 
-los ítems embebidos pueden heredar autorización desde la cabecera cuando la acción dependa naturalmente de ella
+los ítems embebidos deben heredar autorización desde la cabecera cuando la acción dependa naturalmente de ella
+
+esto aplica explícitamente a:
+
+order_items respecto de orders
+document_items respecto de documents
+
+attachments no debe resolver autorización propia para acciones operativas
+
+create, update y delete de attachments deben depender de la capacidad update sobre el recurso padre (attachable)
 
 navbar, dashboard y accesos rápidos deben respetar acceso real del usuario al módulo
 

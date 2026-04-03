@@ -1,3 +1,5 @@
+{{-- FILE: resources/views/appointments/partials/calendar-grid.blade.php | V2 --}}
+
 @php
     $weekdays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 

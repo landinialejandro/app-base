@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/calendar.blade.php | V2 --}}
+{{-- FILE: resources/views/appointments/calendar.blade.php | V3 --}}
 
 @extends('layouts.app')
 
@@ -38,6 +38,7 @@
             'currentWeekEnd' => $currentWeekEnd ?? null,
             'previousDate' => $previousDate ?? null,
             'nextDate' => $nextDate ?? null,
+            'canViewAllAppointments' => $canViewAllAppointments ?? false,
         ])
 
         <x-card class="list-card appointment-calendar-card">

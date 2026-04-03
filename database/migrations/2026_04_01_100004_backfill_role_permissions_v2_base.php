@@ -1,6 +1,6 @@
 <?php
 
-// FILE: database/migrations/2026_04_01_100004_backfill_role_permissions_v2_base.php | V2
+// FILE: database/migrations/2026_04_01_100004_backfill_role_permissions_v2_base.php | V3
 
 use App\Support\Catalogs\CapabilityCatalog;
 use App\Support\Catalogs\ModuleCatalog;
@@ -185,6 +185,12 @@ return new class extends Migration
                     CapabilityCatalog::CREATE => ['allowed' => true, 'execution_mode' => 'manual'],
                     CapabilityCatalog::UPDATE => ['allowed' => true, 'scope' => 'own_assigned', 'execution_mode' => 'manual'],
                 ],
+                RoleCatalog::ADMINISTRATOR => [
+                    CapabilityCatalog::VIEW_ANY => ['allowed' => true, 'scope' => 'own_assigned', 'execution_mode' => 'manual'],
+                    CapabilityCatalog::VIEW => ['allowed' => true, 'scope' => 'own_assigned', 'execution_mode' => 'manual'],
+                    CapabilityCatalog::CREATE => ['allowed' => true, 'execution_mode' => 'manual'],
+                    CapabilityCatalog::UPDATE => ['allowed' => true, 'scope' => 'own_assigned', 'execution_mode' => 'manual'],
+                ],
             ],
 
             ModuleCatalog::TASKS => [
@@ -209,6 +215,12 @@ return new class extends Migration
                     CapabilityCatalog::UPDATE => ['allowed' => true, 'scope' => 'own_assigned', 'execution_mode' => 'manual'],
                 ],
                 RoleCatalog::OPERATOR => [
+                    CapabilityCatalog::VIEW_ANY => ['allowed' => true, 'scope' => 'tenant_all', 'execution_mode' => 'manual'],
+                    CapabilityCatalog::VIEW => ['allowed' => true, 'scope' => 'tenant_all', 'execution_mode' => 'manual'],
+                    CapabilityCatalog::CREATE => ['allowed' => true, 'execution_mode' => 'manual'],
+                    CapabilityCatalog::UPDATE => ['allowed' => true, 'scope' => 'own_assigned', 'execution_mode' => 'manual'],
+                ],
+                RoleCatalog::ADMINISTRATOR => [
                     CapabilityCatalog::VIEW_ANY => ['allowed' => true, 'scope' => 'tenant_all', 'execution_mode' => 'manual'],
                     CapabilityCatalog::VIEW => ['allowed' => true, 'scope' => 'tenant_all', 'execution_mode' => 'manual'],
                     CapabilityCatalog::CREATE => ['allowed' => true, 'execution_mode' => 'manual'],
@@ -243,6 +255,12 @@ return new class extends Migration
                     CapabilityCatalog::CREATE => ['allowed' => true, 'execution_mode' => 'manual'],
                     CapabilityCatalog::UPDATE => ['allowed' => true, 'scope' => 'own_assigned', 'execution_mode' => 'manual'],
                 ],
+                RoleCatalog::ADMINISTRATOR => [
+                    CapabilityCatalog::VIEW_ANY => ['allowed' => true, 'scope' => 'tenant_all', 'execution_mode' => 'manual'],
+                    CapabilityCatalog::VIEW => ['allowed' => true, 'scope' => 'tenant_all', 'execution_mode' => 'manual'],
+                    CapabilityCatalog::CREATE => ['allowed' => true, 'execution_mode' => 'manual'],
+                    CapabilityCatalog::UPDATE => ['allowed' => true, 'scope' => 'own_assigned', 'execution_mode' => 'manual'],
+                ],
             ],
 
             ModuleCatalog::PARTIES => [
@@ -267,6 +285,12 @@ return new class extends Migration
                     CapabilityCatalog::UPDATE => ['allowed' => true, 'execution_mode' => 'manual'],
                 ],
                 RoleCatalog::OPERATOR => [
+                    CapabilityCatalog::VIEW_ANY => ['allowed' => true, 'scope' => 'tenant_all', 'execution_mode' => 'manual'],
+                    CapabilityCatalog::VIEW => ['allowed' => true, 'scope' => 'tenant_all', 'execution_mode' => 'manual'],
+                    CapabilityCatalog::CREATE => ['allowed' => true, 'execution_mode' => 'manual'],
+                    CapabilityCatalog::UPDATE => ['allowed' => true, 'execution_mode' => 'manual'],
+                ],
+                RoleCatalog::ADMINISTRATOR => [
                     CapabilityCatalog::VIEW_ANY => ['allowed' => true, 'scope' => 'tenant_all', 'execution_mode' => 'manual'],
                     CapabilityCatalog::VIEW => ['allowed' => true, 'scope' => 'tenant_all', 'execution_mode' => 'manual'],
                     CapabilityCatalog::CREATE => ['allowed' => true, 'execution_mode' => 'manual'],
@@ -301,6 +325,12 @@ return new class extends Migration
                     CapabilityCatalog::CREATE => ['allowed' => true, 'execution_mode' => 'manual'],
                     CapabilityCatalog::UPDATE => ['allowed' => true, 'execution_mode' => 'manual'],
                 ],
+                RoleCatalog::ADMINISTRATOR => [
+                    CapabilityCatalog::VIEW_ANY => ['allowed' => true, 'scope' => 'tenant_all', 'execution_mode' => 'manual'],
+                    CapabilityCatalog::VIEW => ['allowed' => true, 'scope' => 'tenant_all', 'execution_mode' => 'manual'],
+                    CapabilityCatalog::CREATE => ['allowed' => true, 'execution_mode' => 'manual'],
+                    CapabilityCatalog::UPDATE => ['allowed' => true, 'execution_mode' => 'manual'],
+                ],
             ],
 
             ModuleCatalog::ASSETS => [
@@ -325,6 +355,12 @@ return new class extends Migration
                     CapabilityCatalog::UPDATE => ['allowed' => true, 'execution_mode' => 'manual'],
                 ],
                 RoleCatalog::OPERATOR => [
+                    CapabilityCatalog::VIEW_ANY => ['allowed' => true, 'scope' => 'tenant_all', 'execution_mode' => 'manual'],
+                    CapabilityCatalog::VIEW => ['allowed' => true, 'scope' => 'tenant_all', 'execution_mode' => 'manual'],
+                    CapabilityCatalog::CREATE => ['allowed' => true, 'execution_mode' => 'manual'],
+                    CapabilityCatalog::UPDATE => ['allowed' => true, 'execution_mode' => 'manual'],
+                ],
+                RoleCatalog::ADMINISTRATOR => [
                     CapabilityCatalog::VIEW_ANY => ['allowed' => true, 'scope' => 'tenant_all', 'execution_mode' => 'manual'],
                     CapabilityCatalog::VIEW => ['allowed' => true, 'scope' => 'tenant_all', 'execution_mode' => 'manual'],
                     CapabilityCatalog::CREATE => ['allowed' => true, 'execution_mode' => 'manual'],
@@ -359,6 +395,12 @@ return new class extends Migration
                     CapabilityCatalog::CREATE => ['allowed' => true, 'execution_mode' => 'manual'],
                     CapabilityCatalog::UPDATE => ['allowed' => true, 'execution_mode' => 'manual'],
                 ],
+                RoleCatalog::ADMINISTRATOR => [
+                    CapabilityCatalog::VIEW_ANY => ['allowed' => true, 'scope' => 'tenant_all', 'execution_mode' => 'manual'],
+                    CapabilityCatalog::VIEW => ['allowed' => true, 'scope' => 'tenant_all', 'execution_mode' => 'manual'],
+                    CapabilityCatalog::CREATE => ['allowed' => true, 'execution_mode' => 'manual'],
+                    CapabilityCatalog::UPDATE => ['allowed' => true, 'execution_mode' => 'manual'],
+                ],
             ],
 
             ModuleCatalog::DOCUMENTS => [
@@ -388,6 +430,12 @@ return new class extends Migration
                     CapabilityCatalog::CREATE => ['allowed' => true, 'execution_mode' => 'manual'],
                     CapabilityCatalog::UPDATE => ['allowed' => true, 'execution_mode' => 'manual'],
                 ],
+                RoleCatalog::ADMINISTRATOR => [
+                    CapabilityCatalog::VIEW_ANY => ['allowed' => true, 'scope' => 'tenant_all', 'execution_mode' => 'manual'],
+                    CapabilityCatalog::VIEW => ['allowed' => true, 'scope' => 'tenant_all', 'execution_mode' => 'manual'],
+                    CapabilityCatalog::CREATE => ['allowed' => true, 'execution_mode' => 'manual'],
+                    CapabilityCatalog::UPDATE => ['allowed' => true, 'execution_mode' => 'manual'],
+                ],
             ],
 
             ModuleCatalog::DASHBOARD => [
@@ -403,6 +451,9 @@ return new class extends Migration
                     CapabilityCatalog::VIEW => ['allowed' => true, 'scope' => 'limited', 'execution_mode' => 'manual'],
                 ],
                 RoleCatalog::OPERATOR => [
+                    CapabilityCatalog::VIEW => ['allowed' => true, 'scope' => 'limited', 'execution_mode' => 'manual'],
+                ],
+                RoleCatalog::ADMINISTRATOR => [
                     CapabilityCatalog::VIEW => ['allowed' => true, 'scope' => 'limited', 'execution_mode' => 'manual'],
                 ],
             ],

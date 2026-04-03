@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantProfileController.php | V7
+// FILE: app/Http/Controllers/TenantProfileController.php | V8
 
 namespace App\Http\Controllers;
 
@@ -51,12 +51,14 @@ class TenantProfileController extends Controller
                     WHEN ? THEN 1
                     WHEN ? THEN 2
                     WHEN ? THEN 3
+                    WHEN ? THEN 4
                     ELSE 99
                 END
             ', [
                 RoleCatalog::ADMIN,
                 RoleCatalog::SALES,
                 RoleCatalog::OPERATOR,
+                RoleCatalog::ADMINISTRATOR,
             ])
             ->orderBy('name')
             ->get();
@@ -90,6 +92,7 @@ class TenantProfileController extends Controller
             RoleCatalog::ADMIN => RoleCatalog::label(RoleCatalog::ADMIN),
             RoleCatalog::SALES => RoleCatalog::label(RoleCatalog::SALES),
             RoleCatalog::OPERATOR => RoleCatalog::label(RoleCatalog::OPERATOR),
+            RoleCatalog::ADMINISTRATOR => RoleCatalog::label(RoleCatalog::ADMINISTRATOR),
         ];
 
         $selectedPermissionRole = (string) $request->query('role', RoleCatalog::ADMIN);

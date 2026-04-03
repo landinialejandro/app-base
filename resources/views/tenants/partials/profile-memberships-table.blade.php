@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/partials/profile-memberships-table.blade.php | V4 --}}
+{{-- FILE: resources/views/tenants/partials/profile-memberships-table.blade.php | V5 --}}
 
 <x-card>
     <div class="dashboard-section-header">
@@ -28,6 +28,7 @@
                         @php
                             $assignedRoleIds = $membership->roles->pluck('id')->all();
                             $assignedRoleSlugs = $membership->roles->pluck('slug')->filter()->values();
+
                             $hasAdminRole = $assignedRoleSlugs->contains(\App\Support\Catalogs\RoleCatalog::ADMIN);
 
                             $assignableRoles = collect();
@@ -37,10 +38,12 @@
                                     $assignedRoleIds,
                                     $assignedRoleSlugs,
                                 ) {
+                                    // evitar duplicados
                                     if (in_array($role->id, $assignedRoleIds, true)) {
                                         return false;
                                     }
 
+                                    // admin exclusivo
                                     if (
                                         $assignedRoleSlugs->contains(\App\Support\Catalogs\RoleCatalog::ADMIN) &&
                                         $role->slug === \App\Support\Catalogs\RoleCatalog::ADMIN
@@ -108,7 +111,9 @@
 
                                             <select name="role_id" class="form-control form-control--role-select">
                                                 @foreach ($assignableRoles as $role)
-                                                    <option value="{{ $role->id }}">{{ $role->name }}</option>
+                                                    <option value="{{ $role->id }}">
+                                                        {{ $role->name }}
+                                                    </option>
                                                 @endforeach
                                             </select>
 

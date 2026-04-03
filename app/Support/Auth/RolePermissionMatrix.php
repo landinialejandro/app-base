@@ -1,5 +1,7 @@
 <?php
 
+// FILE: app/Support/Auth/RolePermissionMatrix.php | V2
+
 namespace App\Support\Auth;
 
 use App\Support\Catalogs\ModuleCatalog;
@@ -74,6 +76,18 @@ class RolePermissionMatrix
                     ],
                     'type_restrictions' => ['*'],
                 ],
+                RoleCatalog::ADMINISTRATOR => [
+                    'module_access' => true,
+                    'record_visibility' => 'own_assigned',
+                    'actions' => [
+                        'view_any' => true,
+                        'view' => true,
+                        'create' => true,
+                        'update' => true,
+                        'delete' => false,
+                    ],
+                    'type_restrictions' => ['*'],
+                ],
             ],
 
             ModuleCatalog::TASKS => [
@@ -114,6 +128,18 @@ class RolePermissionMatrix
                     'type_restrictions' => ['*'],
                 ],
                 RoleCatalog::OPERATOR => [
+                    'module_access' => true,
+                    'record_visibility' => 'tenant_all',
+                    'actions' => [
+                        'view_any' => true,
+                        'view' => true,
+                        'create' => true,
+                        'update' => 'own_assigned',
+                        'delete' => false,
+                    ],
+                    'type_restrictions' => ['*'],
+                ],
+                RoleCatalog::ADMINISTRATOR => [
                     'module_access' => true,
                     'record_visibility' => 'tenant_all',
                     'actions' => [
@@ -176,6 +202,18 @@ class RolePermissionMatrix
                     ],
                     'type_restrictions' => ['*'],
                 ],
+                RoleCatalog::ADMINISTRATOR => [
+                    'module_access' => true,
+                    'record_visibility' => 'tenant_all',
+                    'actions' => [
+                        'view_any' => true,
+                        'view' => true,
+                        'create' => true,
+                        'update' => 'own_assigned',
+                        'delete' => false,
+                    ],
+                    'type_restrictions' => ['*'],
+                ],
             ],
 
             ModuleCatalog::PARTIES => [
@@ -216,6 +254,18 @@ class RolePermissionMatrix
                     'type_restrictions' => ['*'],
                 ],
                 RoleCatalog::OPERATOR => [
+                    'module_access' => true,
+                    'record_visibility' => 'tenant_all',
+                    'actions' => [
+                        'view_any' => true,
+                        'view' => true,
+                        'create' => true,
+                        'update' => true,
+                        'delete' => false,
+                    ],
+                    'type_restrictions' => ['*'],
+                ],
+                RoleCatalog::ADMINISTRATOR => [
                     'module_access' => true,
                     'record_visibility' => 'tenant_all',
                     'actions' => [
@@ -278,6 +328,18 @@ class RolePermissionMatrix
                     ],
                     'type_restrictions' => ['*'],
                 ],
+                RoleCatalog::ADMINISTRATOR => [
+                    'module_access' => true,
+                    'record_visibility' => 'tenant_all',
+                    'actions' => [
+                        'view_any' => true,
+                        'view' => true,
+                        'create' => true,
+                        'update' => true,
+                        'delete' => false,
+                    ],
+                    'type_restrictions' => ['*'],
+                ],
             ],
 
             ModuleCatalog::ASSETS => [
@@ -318,6 +380,18 @@ class RolePermissionMatrix
                     'type_restrictions' => ['*'],
                 ],
                 RoleCatalog::OPERATOR => [
+                    'module_access' => true,
+                    'record_visibility' => 'tenant_all',
+                    'actions' => [
+                        'view_any' => true,
+                        'view' => true,
+                        'create' => true,
+                        'update' => true,
+                        'delete' => false,
+                    ],
+                    'type_restrictions' => ['*'],
+                ],
+                RoleCatalog::ADMINISTRATOR => [
                     'module_access' => true,
                     'record_visibility' => 'tenant_all',
                     'actions' => [
@@ -380,6 +454,18 @@ class RolePermissionMatrix
                     ],
                     'type_restrictions' => ['*'],
                 ],
+                RoleCatalog::ADMINISTRATOR => [
+                    'module_access' => true,
+                    'record_visibility' => 'tenant_all',
+                    'actions' => [
+                        'view_any' => true,
+                        'view' => true,
+                        'create' => true,
+                        'update' => true,
+                        'delete' => false,
+                    ],
+                    'type_restrictions' => ['*'],
+                ],
             ],
 
             ModuleCatalog::DOCUMENTS => [
@@ -431,6 +517,18 @@ class RolePermissionMatrix
                     ],
                     'type_restrictions' => ['*'],
                 ],
+                RoleCatalog::ADMINISTRATOR => [
+                    'module_access' => true,
+                    'record_visibility' => 'tenant_all',
+                    'actions' => [
+                        'view_any' => true,
+                        'view' => true,
+                        'create' => true,
+                        'update' => true,
+                        'delete' => false,
+                    ],
+                    'type_restrictions' => ['*'],
+                ],
             ],
 
             ModuleCatalog::DASHBOARD => [
@@ -462,6 +560,15 @@ class RolePermissionMatrix
                     'type_restrictions' => ['*'],
                 ],
                 RoleCatalog::OPERATOR => [
+                    'module_access' => true,
+                    'record_visibility' => 'limited',
+                    'actions' => [
+                        'view' => true,
+                        'view_analytics' => false,
+                    ],
+                    'type_restrictions' => ['*'],
+                ],
+                RoleCatalog::ADMINISTRATOR => [
                     'module_access' => true,
                     'record_visibility' => 'limited',
                     'actions' => [

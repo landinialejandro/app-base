@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/RoleCatalog.php | V2
+// FILE: app/Support/Catalogs/RoleCatalog.php | V3
 
 namespace App\Support\Catalogs;
 
@@ -14,11 +14,14 @@ class RoleCatalog
 
     public const OPERATOR = 'operator';
 
+    public const ADMINISTRATOR = 'administrator';
+
     protected static array $labels = [
-        self::OWNER => 'Owner',
-        self::ADMIN => 'Admin',
+        self::OWNER => 'Propietario',
+        self::ADMIN => 'Administrador',
         self::SALES => 'Comercial',
         self::OPERATOR => 'Operador',
+        self::ADMINISTRATOR => 'Administrativo',
     ];
 
     public static function all(): array
@@ -53,6 +56,7 @@ class RoleCatalog
         return [
             self::SALES,
             self::OPERATOR,
+            self::ADMINISTRATOR,
         ];
     }
 
@@ -62,6 +66,7 @@ class RoleCatalog
             self::ADMIN,
             self::SALES,
             self::OPERATOR,
+            self::ADMINISTRATOR,
         ];
     }
 

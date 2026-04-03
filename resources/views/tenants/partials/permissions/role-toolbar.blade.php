@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/partials/permissions/role-toolbar.blade.php | V2 --}}
+{{-- FILE: resources/views/tenants/partials/permissions/role-toolbar.blade.php | V3 --}}
 
 <x-tab-toolbar>
     <x-slot:tabs>
@@ -20,7 +20,7 @@
         </div>
 
         <div class="helper-inline">
-            <span>Se modifican permisos base del rol</span>
+            <span>Se modifican permisos base del rol delegable</span>
         </div>
     </x-slot:actions>
 </x-tab-toolbar>

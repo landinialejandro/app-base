@@ -1,6 +1,6 @@
 <?php
 
-// database/seeders/Modules/RoleModuleSeeder.php
+// FILE: database/seeders/Modules/RoleModuleSeeder.php | V2
 
 namespace Database\Seeders\Modules;
 
@@ -21,26 +21,27 @@ class RoleModuleSeeder extends BaseModuleSeeder
 
         // Tech roles
         $techRoles = $this->createRoles($tenants['tech']->id, [
-            ['name' => 'Owner', 'slug' => 'owner', 'description' => 'Propietario del tenant.'],
-            ['name' => 'Admin', 'slug' => 'admin', 'description' => 'Administrador general.'],
-            ['name' => 'Operador', 'slug' => 'operator', 'description' => 'Usuario operativo.'],
+            ['name' => 'Propietario', 'slug' => 'owner', 'description' => 'Propietario del tenant.'],
+            ['name' => 'Administrador', 'slug' => 'admin', 'description' => 'Administrador general.'],
             ['name' => 'Comercial', 'slug' => 'sales', 'description' => 'Usuario comercial.'],
+            ['name' => 'Operador', 'slug' => 'operator', 'description' => 'Usuario operativo.'],
+            ['name' => 'Administrativo', 'slug' => 'administrator', 'description' => 'Usuario administrativo.'],
         ]);
 
         // Andina roles
         $andinaRoles = $this->createRoles($tenants['andina']->id, [
-            ['name' => 'Owner', 'slug' => 'owner', 'description' => 'Propietario del tenant.'],
-            ['name' => 'Admin', 'slug' => 'admin', 'description' => 'Administrador general.'],
+            ['name' => 'Propietario', 'slug' => 'owner', 'description' => 'Propietario del tenant.'],
+            ['name' => 'Administrador', 'slug' => 'admin', 'description' => 'Administrador general.'],
+            ['name' => 'Comercial', 'slug' => 'sales', 'description' => 'Usuario comercial.'],
             ['name' => 'Operador', 'slug' => 'operator', 'description' => 'Usuario operativo.'],
-            ['name' => 'Obra', 'slug' => 'site', 'description' => 'Usuario de obra.'],
+            ['name' => 'Administrativo', 'slug' => 'administrator', 'description' => 'Usuario administrativo.'],
         ]);
 
         $roles['tech'] = $techRoles;
         $roles['andina'] = $andinaRoles;
 
-        // Assign permissions to roles
-        $this->assignPermissionsToRoles($tenants['tech']->id, $techRoles);
-        $this->assignPermissionsToRoles($tenants['andina']->id, $andinaRoles);
+        $this->assignPermissionsToRoles($techRoles);
+        $this->assignPermissionsToRoles($andinaRoles);
 
         $this->context['roles'] = $roles;
     }
@@ -65,17 +66,16 @@ class RoleModuleSeeder extends BaseModuleSeeder
         return $roles;
     }
 
-    private function assignPermissionsToRoles(string $tenantId, array $roles): void
+    private function assignPermissionsToRoles(array $roles): void
     {
         $permissions = Permission::all()->keyBy('slug');
 
-        // Permission matrix by role
         $matrix = [
             'owner' => ['projects', 'tasks', 'parties', 'products', 'orders', 'documents', 'assets', 'appointments'],
             'admin' => ['projects', 'tasks', 'parties', 'products', 'orders', 'documents', 'assets', 'appointments'],
             'sales' => ['parties', 'products', 'orders', 'documents'],
             'operator' => ['tasks', 'assets', 'appointments'],
-            'site' => ['tasks', 'assets', 'appointments'],
+            'administrator' => ['parties', 'products', 'orders', 'documents', 'appointments'],
         ];
 
         foreach ($matrix as $roleSlug => $modules) {
@@ -86,29 +86,25 @@ class RoleModuleSeeder extends BaseModuleSeeder
             $role = $roles[$roleSlug];
 
             foreach ($modules as $module) {
-                // Assign view permission
                 $viewPerm = $permissions[$module.'.view'] ?? null;
                 if ($viewPerm) {
                     $this->attachPermissionToRole($role->id, $viewPerm->id);
                 }
 
-                // Assign create permission for some roles
-                if (in_array($roleSlug, ['owner', 'admin', 'sales'])) {
+                if (in_array($roleSlug, ['owner', 'admin', 'sales', 'administrator'], true)) {
                     $createPerm = $permissions[$module.'.create'] ?? null;
                     if ($createPerm) {
                         $this->attachPermissionToRole($role->id, $createPerm->id);
                     }
                 }
 
-                // Assign update permission for owner and admin
-                if (in_array($roleSlug, ['owner', 'admin'])) {
+                if (in_array($roleSlug, ['owner', 'admin', 'administrator'], true)) {
                     $updatePerm = $permissions[$module.'.update'] ?? null;
                     if ($updatePerm) {
                         $this->attachPermissionToRole($role->id, $updatePerm->id);
                     }
                 }
 
-                // Assign delete permission only for owner
                 if ($roleSlug === 'owner') {
                     $deletePerm = $permissions[$module.'.delete'] ?? null;
                     if ($deletePerm) {

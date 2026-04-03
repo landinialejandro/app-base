@@ -1,5 +1,7 @@
 <?php
 
+// FILE: app/Policies/AppointmentPolicy.php | V2
+
 namespace App\Policies;
 
 use App\Models\Appointment;
@@ -16,40 +18,70 @@ class AppointmentPolicy
 
     public function viewAny(User $user): bool
     {
-        return $this->resolver()->canUseModule(ModuleCatalog::APPOINTMENTS, app('tenant'), $user);
+        return $this->resolver()->can(
+            ModuleCatalog::APPOINTMENTS,
+            'view_any',
+            app('tenant'),
+            $user
+        );
     }
 
     public function view(User $user, Appointment $appointment): bool
     {
-        if (! $this->resolver()->canUseModule(ModuleCatalog::APPOINTMENTS, app('tenant'), $user)) {
-            return false;
-        }
+        $scope = $this->resolver()->actionScope(
+            ModuleCatalog::APPOINTMENTS,
+            'view',
+            app('tenant'),
+            $user
+        );
 
-        return true;
+        return $this->allowsAppointmentScope($scope, $appointment, $user);
     }
 
     public function create(User $user): bool
     {
-        return $this->resolver()->can(ModuleCatalog::APPOINTMENTS, 'create', app('tenant'), $user);
+        return $this->resolver()->can(
+            ModuleCatalog::APPOINTMENTS,
+            'create',
+            app('tenant'),
+            $user
+        );
     }
 
     public function update(User $user, Appointment $appointment): bool
     {
-        $scope = $this->resolver()->actionScope(ModuleCatalog::APPOINTMENTS, 'update', app('tenant'), $user);
+        $scope = $this->resolver()->actionScope(
+            ModuleCatalog::APPOINTMENTS,
+            'update',
+            app('tenant'),
+            $user
+        );
 
-        if ($scope === 'all') {
-            return true;
-        }
-
-        if ($scope === 'own_assigned') {
-            return (int) $appointment->assigned_user_id === (int) $user->id;
-        }
-
-        return false;
+        return $this->allowsAppointmentScope($scope, $appointment, $user);
     }
 
     public function delete(User $user, Appointment $appointment): bool
     {
-        return $this->resolver()->can(ModuleCatalog::APPOINTMENTS, 'delete', app('tenant'), $user);
+        $scope = $this->resolver()->actionScope(
+            ModuleCatalog::APPOINTMENTS,
+            'delete',
+            app('tenant'),
+            $user
+        );
+
+        return $this->allowsAppointmentScope($scope, $appointment, $user);
+    }
+
+    protected function allowsAppointmentScope(mixed $scope, Appointment $appointment, User $user): bool
+    {
+        if (in_array($scope, [true, 'tenant_all', 'all'], true)) {
+            return true;
+        }
+
+        if (in_array($scope, ['own_assigned', 'limited'], true)) {
+            return (int) $appointment->assigned_user_id === (int) $user->id;
+        }
+
+        return false;
     }
 }

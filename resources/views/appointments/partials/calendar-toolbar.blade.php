@@ -1,4 +1,4 @@
-{{-- FILE:resources/views/appointments/partials/calendar-toolbar.blade.php | V2 --}}
+{{-- FILE: resources/views/appointments/partials/calendar-toolbar.blade.php | V3 --}}
 
 @php
     use App\Support\Catalogs\AppointmentCatalog;
@@ -93,7 +93,9 @@
                 <label for="scope" class="form-label">Vista operativa</label>
                 <select id="scope" name="scope" class="form-control">
                     <option value="mine" @selected($scope === 'mine')>Mis turnos</option>
-                    <option value="all" @selected($scope === 'all')>Todos los turnos</option>
+                    @if ($canViewAllAppointments ?? false)
+                        <option value="all" @selected($scope === 'all')>Todos los turnos</option>
+                    @endif
                 </select>
             </div>
         </div>

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AppointmentController.php | V7
+// FILE: app/Http/Controllers/AppointmentController.php | V8
 
 namespace App\Http\Controllers;
 
@@ -33,18 +33,8 @@ class AppointmentController extends Controller
         $kind = $request->get('kind');
         $status = $request->get('status');
         $scheduledDate = $request->get('scheduled_date');
-        $scope = $request->get('scope', 'mine');
-
-        $resolver = app(RolePermissionResolver::class);
-        $updateScope = $resolver->actionScope(ModuleCatalog::APPOINTMENTS, 'update', app('tenant'), auth()->user());
-
-        if ($updateScope !== 'all' && $scope === 'all') {
-            $scope = 'mine';
-        }
-
-        if (! in_array($scope, ['mine', 'all'], true)) {
-            $scope = 'mine';
-        }
+        $scope = $this->resolveAppointmentDatasetScope($request);
+        $canViewAllAppointments = $this->canViewAllAppointments();
 
         $users = User::query()
             ->whereHas('memberships', function ($query) use ($tenant) {
@@ -90,7 +80,8 @@ class AppointmentController extends Controller
             'appointments',
             'users',
             'parties',
-            'scope'
+            'scope',
+            'canViewAllAppointments'
         ));
     }
 
@@ -100,7 +91,8 @@ class AppointmentController extends Controller
 
         $this->authorize('viewAny', Appointment::class);
 
-        $scope = $this->resolveCalendarScope($request);
+        $scope = $this->resolveAppointmentDatasetScope($request);
+        $canViewAllAppointments = $this->canViewAllAppointments();
         $assignedUserId = $request->get('assigned_user_id');
         $status = $request->get('status');
         $view = $this->resolveCalendarView((string) $request->get('view', 'month'));
@@ -164,6 +156,7 @@ class AppointmentController extends Controller
                 'days' => $days,
                 'users' => $users,
                 'scope' => $scope,
+                'canViewAllAppointments' => $canViewAllAppointments,
                 'selectedAssignedUserId' => $assignedUserId,
                 'selectedStatus' => $status,
                 'currentDate' => $baseDate,
@@ -246,6 +239,7 @@ class AppointmentController extends Controller
             'weeks' => $weeks,
             'users' => $users,
             'scope' => $scope,
+            'canViewAllAppointments' => $canViewAllAppointments,
             'selectedAssignedUserId' => $assignedUserId,
             'selectedStatus' => $status,
             'currentMonth' => $baseMonth,
@@ -373,8 +367,7 @@ class AppointmentController extends Controller
 
         $canEditAppointment = auth()->user()->can('update', $appointment);
         $canDeleteAppointment = auth()->user()->can('delete', $appointment);
-        $isForeignAppointmentForAdmin = $canDeleteAppointment
-            && (int) $appointment->assigned_user_id !== (int) auth()->id();
+        $isForeignAppointmentForAdmin = $this->canManageForeignAppointment($appointment);
 
         $navigationTrail = AppointmentNavigationTrail::show($request, $appointment);
 
@@ -406,8 +399,7 @@ class AppointmentController extends Controller
         $assets = Asset::query()->with('party')->orderBy('name')->get();
 
         $defaultAssignedUserId = old('assigned_user_id', (string) $appointment->assigned_user_id);
-        $isForeignAppointmentForAdmin = auth()->user()->can('delete', $appointment)
-            && (int) $appointment->assigned_user_id !== (int) auth()->id();
+        $isForeignAppointmentForAdmin = $this->canManageForeignAppointment($appointment);
         $navigationTrail = AppointmentNavigationTrail::edit($request, $appointment);
 
         return view('appointments.edit', compact(
@@ -428,8 +420,7 @@ class AppointmentController extends Controller
 
         $data = $request->validated();
 
-        $isAdminEditingForeignAppointment = auth()->user()->can('delete', $appointment)
-            && (int) $appointment->assigned_user_id !== (int) auth()->id();
+        $isAdminEditingForeignAppointment = $this->canManageForeignAppointment($appointment);
 
         if ($isAdminEditingForeignAppointment && $request->input('confirm_foreign_appointment_edit') !== '1') {
             throw ValidationException::withMessages([
@@ -467,23 +458,40 @@ class AppointmentController extends Controller
             ->with('success', 'Turno eliminado correctamente.');
     }
 
-    protected function resolveCalendarScope(Request $request): string
+    protected function resolveAppointmentDatasetScope(Request $request): string
     {
         $scope = $request->get('scope', 'mine');
 
-        $resolver = app(RolePermissionResolver::class);
-        $updateScope = $resolver->actionScope(
+        if (! $this->canViewAllAppointments() && $scope === 'all') {
+            return 'mine';
+        }
+
+        return in_array($scope, ['mine', 'all'], true) ? $scope : 'mine';
+    }
+
+    protected function canViewAllAppointments(): bool
+    {
+        $scope = app(RolePermissionResolver::class)->actionScope(
+            ModuleCatalog::APPOINTMENTS,
+            'view_any',
+            app('tenant'),
+            auth()->user()
+        );
+
+        return in_array($scope, [true, 'tenant_all', 'all'], true);
+    }
+
+    protected function canManageForeignAppointment(Appointment $appointment): bool
+    {
+        $scope = app(RolePermissionResolver::class)->actionScope(
             ModuleCatalog::APPOINTMENTS,
             'update',
             app('tenant'),
             auth()->user()
         );
 
-        if ($updateScope !== 'all' && $scope === 'all') {
-            return 'mine';
-        }
-
-        return in_array($scope, ['mine', 'all'], true) ? $scope : 'mine';
+        return in_array($scope, [true, 'tenant_all', 'all'], true)
+            && (int) $appointment->assigned_user_id !== (int) auth()->id();
     }
 
     protected function resolveCalendarView(string $view): string

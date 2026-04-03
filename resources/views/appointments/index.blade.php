@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/index.blade.php | V3 --}}
+{{-- FILE: resources/views/appointments/index.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -44,7 +44,9 @@
                         <label for="scope" class="form-label">Vista</label>
                         <select id="scope" name="scope" class="form-control">
                             <option value="mine" @selected(($scope ?? request('scope', 'mine')) === 'mine')>Mis turnos</option>
-                            <option value="all" @selected(($scope ?? request('scope', 'mine')) === 'all')>Todos los turnos</option>
+                            @if ($canViewAllAppointments ?? false)
+                                <option value="all" @selected(($scope ?? request('scope', 'mine')) === 'all')>Todos los turnos</option>
+                            @endif
                         </select>
                     </div>
                 </div>

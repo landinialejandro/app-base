@@ -13,8 +13,10 @@ use App\Http\Controllers\AttachmentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\DocumentController;
 use App\Http\Controllers\DocumentItemController;
+use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\InvitationAcceptanceController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\OrderInventoryController;
 use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\PartyController;
 use App\Http\Controllers\ProductController;
@@ -272,6 +274,16 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         ->name('attachments.download');
     Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy'])
         ->name('attachments.destroy');
+
+    // Inventory V1
+    Route::post('/products/{product}/inventory/ingresar', [InventoryController::class, 'ingresar'])
+        ->name('products.inventory.ingresar');
+
+    Route::post('/orders/{order}/inventory/consumir', [OrderInventoryController::class, 'consumir'])
+        ->name('orders.inventory.consumir');
+
+    Route::post('/orders/{order}/inventory/entregar', [OrderInventoryController::class, 'entregar'])
+        ->name('orders.inventory.entregar');
 
     // Print
     Route::get('/appointments/{appointment}/pdf', [AppointmentController::class, 'pdf'])

@@ -1,11 +1,12 @@
 <?php
 
-// FILE: app/Http/Controllers/ProductController.php | V6
+// FILE: app/Http/Controllers/ProductController.php | V7
 
 namespace App\Http\Controllers;
 
 use App\Models\Product;
 use App\Support\Catalogs\ProductCatalog;
+use App\Support\Inventory\ProductStockCalculator;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\ProductNavigationTrail;
 use Illuminate\Http\RedirectResponse;
@@ -81,9 +82,21 @@ class ProductController extends Controller
             'attachments' => fn ($query) => $query->ordered(),
         ]);
 
+        $inventoryMovements = $product->inventoryMovements()
+            ->with(['order', 'document'])
+            ->latest('id')
+            ->get();
+
+        $currentStock = app(ProductStockCalculator::class)->forProduct($product);
+
         $navigationTrail = ProductNavigationTrail::show($request, $product);
 
-        return view('products.show', compact('product', 'navigationTrail'));
+        return view('products.show', compact(
+            'product',
+            'navigationTrail',
+            'inventoryMovements',
+            'currentStock',
+        ));
     }
 
     public function edit(Request $request, Product $product): View

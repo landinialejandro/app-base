@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/products/show.blade.php | V11 --}}
+{{-- FILE: resources/views/products/show.blade.php | V12 --}}
 
 @extends('layouts.app')
 
@@ -10,6 +10,8 @@
         use App\Support\Navigation\NavigationTrail;
 
         $attachments = $product->attachments ?? collect();
+        $inventoryMovements = ($inventoryMovements ?? collect())->values();
+        $currentStock = isset($currentStock) ? (float) $currentStock : 0;
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
@@ -87,12 +89,70 @@
             </x-slot:details>
         </x-show-summary>
 
+        <x-card>
+            <div class="detail-grid">
+                <div class="detail-block">
+                    <div class="detail-label">Stock actual</div>
+                    <div class="detail-value">{{ number_format($currentStock, 2, ',', '.') }}</div>
+                </div>
+
+                <div class="detail-block">
+                    <div class="detail-label">Último movimiento</div>
+                    <div class="detail-value">
+                        @if ($inventoryMovements->isNotEmpty())
+                            {{ $inventoryMovements->first()->created_at?->format('d/m/Y H:i') ?? '—' }}
+                        @else
+                            —
+                        @endif
+                    </div>
+                </div>
+            </div>
+
+            @can('update', $product)
+                @if ($product->kind === ProductCatalog::KIND_PRODUCT)
+                    <form action="{{ route('products.inventory.ingresar', ['product' => $product] + $trailQuery) }}"
+                        method="POST" class="form">
+                        @csrf
+
+                        <div class="form-group">
+                            <label for="inventory_ingresar_quantity" class="form-label">Ingresar stock</label>
+                            <input type="number" step="0.01" min="0.01" id="inventory_ingresar_quantity" name="quantity"
+                                class="form-control" value="{{ old('quantity') }}" required>
+                            @error('quantity')
+                                <div class="form-help is-error">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-group">
+                            <label for="inventory_ingresar_notes" class="form-label">Notas</label>
+                            <textarea id="inventory_ingresar_notes" name="notes" rows="2" class="form-control">{{ old('notes') }}</textarea>
+                            @error('notes')
+                                <div class="form-help is-error">{{ $message }}</div>
+                            @enderror
+                        </div>
+
+                        <div class="form-actions">
+                            <button type="submit" class="btn btn-success">Registrar ingreso</button>
+                        </div>
+                    </form>
+                @endif
+            @endcan
+        </x-card>
+
         <div class="tabs" data-tabs>
             <x-tab-toolbar label="Secciones del producto">
                 <x-slot:tabs>
                     <x-horizontal-scroll label="Secciones del producto">
-                        <button type="button" class="tabs-link is-active" data-tab-link="attachments" role="tab"
+                        <button type="button" class="tabs-link is-active" data-tab-link="inventory" role="tab"
                             aria-selected="true">
+                            Movimientos
+                            @if ($inventoryMovements->count())
+                                ({{ $inventoryMovements->count() }})
+                            @endif
+                        </button>
+
+                        <button type="button" class="tabs-link" data-tab-link="attachments" role="tab"
+                            aria-selected="false">
                             Adjuntos
                             @if ($attachments->count())
                                 ({{ $attachments->count() }})
@@ -102,7 +162,62 @@
                 </x-slot:tabs>
             </x-tab-toolbar>
 
-            <section class="tab-panel is-active" data-tab-panel="attachments">
+            <section class="tab-panel is-active" data-tab-panel="inventory">
+                <div class="tab-panel-stack">
+                    <x-card>
+                        @if ($inventoryMovements->count())
+                            <div class="table-wrap">
+                                <table class="table">
+                                    <thead>
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Tipo</th>
+                                            <th>Cantidad</th>
+                                            <th>Orden</th>
+                                            <th>Documento</th>
+                                            <th>Notas</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        @foreach ($inventoryMovements as $movement)
+                                            <tr>
+                                                <td>{{ $movement->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
+                                                <td>{{ ucfirst($movement->kind) }}</td>
+                                                <td>{{ number_format((float) $movement->quantity, 2, ',', '.') }}</td>
+                                                <td>
+                                                    @if ($movement->order)
+                                                        <a
+                                                            href="{{ route('orders.show', ['order' => $movement->order] + $trailQuery) }}">
+                                                            {{ $movement->order->number ?: 'Orden #' . $movement->order->id }}
+                                                        </a>
+                                                    @else
+                                                        —
+                                                    @endif
+                                                </td>
+                                                <td>
+                                                    @if ($movement->document)
+                                                        <a
+                                                            href="{{ route('documents.show', ['document' => $movement->document] + $trailQuery) }}">
+                                                            {{ $movement->document->number ?: 'Documento #' . $movement->document->id }}
+                                                        </a>
+                                                    @else
+                                                        —
+                                                    @endif
+                                                </td>
+                                                <td>{{ $movement->notes ?: '—' }}</td>
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        @else
+                            <p class="mb-0">No hay movimientos de stock registrados para este producto.</p>
+                        @endif
+                    </x-card>
+                </div>
+            </section>
+
+            <section class="tab-panel" data-tab-panel="attachments" hidden>
                 <div class="tab-panel-stack">
                     @include('attachments.partials.embedded', [
                         'attachments' => $attachments,

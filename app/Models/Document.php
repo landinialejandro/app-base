@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Document.php | V2
+// FILE: app/Models/Document.php | V3
 
 namespace App\Models;
 
@@ -64,6 +64,11 @@ class Document extends Model
     public function items()
     {
         return $this->hasMany(DocumentItem::class);
+    }
+
+    public function inventoryMovements()
+    {
+        return $this->hasMany(InventoryMovement::class);
     }
 
     public function attachments()

@@ -1,10 +1,13 @@
 <?php
 
+// FILE: app/Support/Projects/ProjectVisibility.php | V2
+
 namespace App\Support\Projects;
 
 use App\Models\Project;
 use App\Models\User;
-use App\Support\Auth\TenantAccess;
+use App\Support\Auth\RolePermissionResolver;
+use App\Support\Catalogs\ModuleCatalog;
 use Illuminate\Database\Eloquent\Builder;
 
 class ProjectVisibility
@@ -20,16 +23,29 @@ class ProjectVisibility
             return $query->whereRaw('1 = 0');
         }
 
-        if (TenantAccess::isOwnerOrAdmin($tenant->id, $user)) {
+        $resolver = app(RolePermissionResolver::class);
+
+        $scope = $resolver->actionScope(
+            ModuleCatalog::PROJECTS,
+            'view_any',
+            $tenant,
+            $user
+        );
+
+        if (in_array($scope, [true, 'tenant_all', 'all'], true)) {
             return $query;
         }
 
-        return $query->whereExists(function ($subquery) use ($user) {
-            $subquery->selectRaw('1')
-                ->from('tasks')
-                ->whereColumn('tasks.project_id', 'projects.id')
-                ->whereNull('tasks.deleted_at')
-                ->where('tasks.assigned_user_id', $user->id);
-        });
+        if (in_array($scope, ['own_assigned', 'limited'], true)) {
+            return $query->whereExists(function ($subquery) use ($user) {
+                $subquery->selectRaw('1')
+                    ->from('tasks')
+                    ->whereColumn('tasks.project_id', 'projects.id')
+                    ->whereNull('tasks.deleted_at')
+                    ->where('tasks.assigned_user_id', $user->id);
+            });
+        }
+
+        return $query->whereRaw('1 = 0');
     }
 }

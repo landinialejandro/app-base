@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Product.php
+// FILE: app/Models/Product.php | V2
 
 namespace App\Models;
 
@@ -37,5 +37,10 @@ class Product extends Model
     public function attachments(): MorphMany
     {
         return $this->morphMany(Attachment::class, 'attachable')->orderBy('sort_order')->latest('id');
+    }
+
+    public function inventoryMovements()
+    {
+        return $this->hasMany(InventoryMovement::class);
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderController.php | V13
+// FILE: app/Http/Controllers/OrderController.php | V15
 
 namespace App\Http\Controllers;
 
@@ -10,10 +10,12 @@ use App\Models\Order;
 use App\Models\Party;
 use App\Models\Task;
 use App\Support\Catalogs\OrderCatalog;
+use App\Support\Catalogs\ProductCatalog;
 use App\Support\Documents\DocumentNumberGenerator;
 use App\Support\Navigation\AppointmentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\OrderNavigationTrail;
+use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\DB;
@@ -322,13 +324,25 @@ class OrderController extends Controller
             'updater',
             'items.product',
             'documents',
+            'inventoryMovements.product',
             'attachments' => fn ($query) => $query->ordered(),
         ]);
+
+        $inventoryProducts = $order->items
+            ->filter(fn ($item) => $item->product && $item->product->kind === ProductCatalog::KIND_PRODUCT)
+            ->map(fn ($item) => $item->product)
+            ->unique('id')
+            ->sortBy('name')
+            ->values();
 
         $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
         $navigationTrail = OrderNavigationTrail::show($request, $order, $appointment);
 
-        return view('orders.show', compact('order', 'navigationTrail'));
+        return view('orders.show', compact(
+            'order',
+            'navigationTrail',
+            'inventoryProducts',
+        ));
     }
 
     public function edit(Request $request, Order $order)
@@ -513,7 +527,7 @@ class OrderController extends Controller
             ? 'orden-'.strtolower(str_replace([' ', '/'], '-', $order->number)).'.pdf'
             : 'orden-'.$order->id.'.pdf';
 
-        $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadView('orders.print', [
+        $pdf = Pdf::loadView('orders.print', [
             'order' => $order,
             'renderMode' => 'pdf',
         ]);

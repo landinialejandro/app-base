@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Order.php | V3
+// FILE: app/Models/Order.php | V4
 
 namespace App\Models;
 
@@ -78,6 +78,11 @@ class Order extends Model
     public function documents()
     {
         return $this->hasMany(Document::class);
+    }
+
+    public function inventoryMovements()
+    {
+        return $this->hasMany(InventoryMovement::class);
     }
 
     public function creator()

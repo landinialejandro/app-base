@@ -105,6 +105,8 @@ auditar criterio del navbar y sidebar para evitar que el estado activo dependa s
 revisar densidad visual final del tab-toolbar y del card que lo contiene para asegurar una altura consistente con el resto del sistema
 
 implementar sistema de auditoría de cambios
+
+evaluar automatización de sincronización de roles base en tenants ya existentes cuando el catálogo reservado cambie o se amplíe
 <<END SECTION>>
 
 <<SECTION: ATTACHMENTS>>
@@ -175,6 +177,22 @@ operator
 administrator
 
 resolver complejidad funcional futura mediante perfiles funcionales y overrides por usuario, no creando nuevos roles base
+
+primera UI real de gestión de permisos por rol del tenant implementada en tenant.profile para owner, limitada a módulos habilitados y persistencia sobre role_permission
+
+la UI ya incorpora efectivamente los roles delegables:
+
+admin
+sales
+operator
+administrator
+
+pendientes futuros de esta capa:
+
+editar membership_permission_overrides
+mostrar permiso efectivo final por usuario
+historial o auditoría de cambios de permisos
+posibles refinamientos de ayuda visual o delegación adicional
 
 alinear navbar y dashboard con acceso real por módulo, capacidad y rol
 
@@ -339,6 +357,8 @@ revisar extensión del perfil de empresa con gestión futura de sucursales y con
 evaluar más adelante si la gestión de permisos por rol del tenant debe seguir viviendo dentro de tenant.profile o si conviene separarla a una pantalla propia cuando la complejidad funcional lo justifique
 
 evaluar más adelante si alguna parte no sensible del perfil de empresa puede delegarse a admin sin abrir acceso a configuraciones críticas
+
+incorporar una estrategia operativa de sincronización de roles base por tenant para evitar desajustes entre catálogo y datos persistidos en tenants existentes
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA Y TRAZABILIDAD>>

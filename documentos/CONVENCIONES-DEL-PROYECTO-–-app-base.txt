@@ -527,6 +527,15 @@ Esto ya se considera una aplicación válida de la convención en:
 footer general del shell de la app
 elementos globales del header como identidad visual o branding
 pantallas de configuración sensible del owner como tenant.profile.permissions, donde capacidades y alcances visibles deben resolverse desde catálogos centrales y no desde texto libre hardcodeado en la vista
+
+En pantallas sensibles para owner, el microcopy debe ser:
+
+breve
+claro
+orientado a confianza
+centrado en funciones y protección del negocio
+
+Debe priorizarse explicar qué puede hacer cada función y qué permanece protegido, evitando tecnicismos innecesarios, mensajes ambiguos o terminología interna del sistema cuando no aporten claridad.
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE FORMULARIOS OPERATIVOS>>
@@ -767,6 +776,14 @@ Operador
 Administrativo
 
 Estos labels visibles deben mantenerse estables y no deben duplicarse con variantes alternativas en la UI.
+
+En pantallas sensibles para owner, especialmente las vinculadas a accesos o permisos, debe priorizarse vocabulario no técnico centrado en:
+
+qué puede hacer cada función
+qué información queda protegida
+qué configuraciones sensibles siguen resguardadas
+
+Evitar exponer terminología interna de autorización cuando no agregue claridad real para el usuario final.
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ACCIONES VISUALES>>

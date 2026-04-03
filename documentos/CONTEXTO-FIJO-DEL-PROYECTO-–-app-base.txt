@@ -408,6 +408,10 @@ la visibilidad no necesariamente coincide con la capacidad de edición
 el permiso efectivo no debe resolverse únicamente por módulo y rol, sino por capacidad concreta y alcance real sobre el registro
 
 la IA no debe operar como bypass ni como superadmin, sino como actor del tenant sujeto al mismo sistema de autorización
+
+la primera UI real de permisos del tenant ya opera también sobre administrator como cuarto rol delegable editable por owner
+
+la edición real de permisos por rol presupone que los roles base estén materializados en datos para el tenant correspondiente
 <<END SECTION>>
 
 <<SECTION: Capa central prevista para acceso y permisos>>
@@ -876,10 +880,15 @@ la edición actual se limita a roles base delegables:
 admin
 sales
 operator
+administrator
 
 la persistencia de esta fase se realiza sobre role_permission
 
 membership_permission_overrides queda fuera de alcance en esta primera UI
+
+la edición efectiva de permisos por rol depende de que los roles base existan materialmente en cada tenant y no solo en catálogo o código
+
+si un tenant quedó desincronizado respecto de los roles base persistidos, la UI puede requerir sincronización previa de datos para operar correctamente
 <<END SECTION>>
 
 <<SECTION: Decisión actual de frontend base>>

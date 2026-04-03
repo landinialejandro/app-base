@@ -466,11 +466,13 @@ profile_slug en memberships
 scope, execution_mode y constraints en role_permission
 membership_permission_overrides como estructura real
 
-orders, tasks, documents, parties, assets y products quedan validados sobre V2 real
+orders, tasks, documents, parties, assets, products, projects y appointments quedan validados sobre V2 real
 
-en esos módulos la autorización ya opera sobre capacidades persistidas sin fallback funcional a lógica anterior para lectura y acciones sensibles
+en estos módulos la autorización ya opera sobre capacidades persistidas sin fallback funcional a lógica anterior para lectura y acciones sensibles
 
-projects y appointments quedan todavía en estado híbrido o parcial respecto del patrón V2 completo
+projects conserva una regla de dominio complementaria de visibilidad por participación en tareas, integrada al criterio V2 mediante capacidades concretas y scope efectivo
+
+appointments resuelve lectura y dataset operativo mediante capacidad concreta de lectura, sin depender de update para gobernar el scope visible
 
 attachments no debe tratarse como módulo V2 autónomo, sino como autorización delegada al recurso padre o attachable
 
@@ -479,8 +481,6 @@ la validación operativa ya confirmó compatibilidad con:
 NavigationTrail
 controllers existentes
 vistas existentes
-
-la migración del resto de módulos debe tomar a orders, tasks y documents como referencia operativa y cerrar específicamente los tramos pendientes de projects y appointments
 <<END SECTION>>
 
 <<SECTION: Precedencia conceptual prevista para habilitación de módulos>>
@@ -895,7 +895,7 @@ El shell general de la app ya incorpora un footer reusable en pantallas internas
 
 Ese footer puede exponer identificación visible de versión o estado del sistema.
 
-En entorno local, esa identificación puede resolverse automáticamente desde .git como identificador de desarrollo.
+En entorno local, esa identificación se resuelve automáticamente desde .git como identificador de desarrollo.
 
 Este comportamiento forma parte efectiva del shell del sistema y no debe tratarse como funcionalidad futura.
 <<END SECTION>>

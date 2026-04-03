@@ -272,13 +272,15 @@ profile_slug en memberships
 scope, execution_mode y constraints en role_permission
 membership_permission_overrides como estructura real
 
-orders, tasks y documents quedan como módulos ya migrados de forma completa a V2 y validados en flujo real
-
-además, parties, assets y products ya se encuentran migrados y validados sobre la base V2 de permisos persistidos
+orders, tasks, documents, parties, assets, products, projects y appointments ya se encuentran migrados y validados sobre V2 real
 
 en módulos migrados, las policies deben resolver capacidades específicas mediante RolePermissionResolver y no mediante canUseModule para acciones puntuales
 
 viewAny y view deben apoyarse en capacidades concretas y en actionScope cuando corresponda
+
+si un módulo mantiene una regla de dominio complementaria, como participación operativa en projects, esa regla debe vivir como complemento explícito del scope y no como bypass híbrido por fuera de la capa central
+
+en appointments, el dataset visible del controller debe alinearse al scope de lectura real y la UI no debe ofrecer opciones de dataset no permitidas
 
 delete no debe resolverse con lógica hardcodeada por rol si la capacidad ya existe persistida
 
@@ -296,8 +298,6 @@ scope tenant_all
 sin restricciones por registro
 
 puede existir excepción explícita para módulos derivados o transversales como attachments, cuya autorización puede delegarse al recurso padre
-
-la migración del resto de módulos debe tomar como referencia operativa el patrón ya validado en orders, tasks, documents, parties, assets y products
 <<END SECTION>>
 
 <<SECTION: TRAIT TENANTSCOPED>>

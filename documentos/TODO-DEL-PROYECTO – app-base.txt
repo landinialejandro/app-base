@@ -195,12 +195,12 @@ documents
 parties
 assets
 products
+projects
+appointments
 
-pendientes técnicos puntuales de migración V2 real:
+projects mantiene visibilidad por participación en tareas como regla de dominio complementaria compatible con V2
 
-cerrar migración completa de projects
-cerrar migración completa de appointments
-definir si la visibilidad por participación en projects queda absorbida por scope V2 o permanece como regla de dominio complementaria
+appointments alinea lectura, dataset visible y UI del calendario/listado con el scope de lectura efectivo
 
 attachments debe mantenerse como delegación al recurso padre salvo decisión futura contraria
 

@@ -1,13 +1,16 @@
 <?php
 
-// FILE: app/Policies/PartyPolicy.php | V3
+// FILE: app/Policies/PartyPolicy.php | V4
 
 namespace App\Policies;
 
 use App\Models\Party;
 use App\Models\User;
+use App\Support\Auth\RecordScopeResolver;
 use App\Support\Auth\RolePermissionResolver;
+use App\Support\Catalogs\CapabilityCatalog;
 use App\Support\Catalogs\ModuleCatalog;
+use App\Support\Catalogs\PermissionScopeCatalog;
 
 class PartyPolicy
 {
@@ -16,43 +19,69 @@ class PartyPolicy
         return app(RolePermissionResolver::class);
     }
 
+    protected function recordScopeResolver(): RecordScopeResolver
+    {
+        return app(RecordScopeResolver::class);
+    }
+
     public function viewAny(User $user): bool
     {
-        return (bool) $this->resolver()->actionScope(
+        $scope = $this->resolver()->actionScope(
             ModuleCatalog::PARTIES,
-            'view_any',
+            CapabilityCatalog::VIEW_ANY,
             app('tenant'),
             $user
         );
+
+        return $scope === PermissionScopeCatalog::TENANT_ALL;
     }
 
     public function view(User $user, Party $party): bool
     {
-        return (bool) $this->resolver()->actionScope(
+        $scope = $this->resolver()->actionScope(
             ModuleCatalog::PARTIES,
-            'view',
+            CapabilityCatalog::VIEW,
             app('tenant'),
             $user
         );
+
+        return $this->recordScopeResolver()->allowsSharedScope($scope)
+            && $scope === PermissionScopeCatalog::TENANT_ALL;
     }
 
     public function create(User $user): bool
     {
-        return $this->resolver()->can(ModuleCatalog::PARTIES, 'create', app('tenant'), $user);
-    }
-
-    public function update(User $user, Party $party): bool
-    {
-        return (bool) $this->resolver()->actionScope(
+        return $this->resolver()->can(
             ModuleCatalog::PARTIES,
-            'update',
+            CapabilityCatalog::CREATE,
             app('tenant'),
             $user
         );
     }
 
+    public function update(User $user, Party $party): bool
+    {
+        $scope = $this->resolver()->actionScope(
+            ModuleCatalog::PARTIES,
+            CapabilityCatalog::UPDATE,
+            app('tenant'),
+            $user
+        );
+
+        return $this->recordScopeResolver()->allowsSharedScope($scope)
+            && $scope === PermissionScopeCatalog::TENANT_ALL;
+    }
+
     public function delete(User $user, Party $party): bool
     {
-        return $this->resolver()->can(ModuleCatalog::PARTIES, 'delete', app('tenant'), $user);
+        $scope = $this->resolver()->actionScope(
+            ModuleCatalog::PARTIES,
+            CapabilityCatalog::DELETE,
+            app('tenant'),
+            $user
+        );
+
+        return $this->recordScopeResolver()->allowsSharedScope($scope)
+            && $scope === PermissionScopeCatalog::TENANT_ALL;
     }
 }

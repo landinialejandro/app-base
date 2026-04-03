@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantProfilePermissionController.php | V5
+// FILE: app/Http/Controllers/TenantProfilePermissionController.php | V6
 
 namespace App\Http\Controllers;
 
@@ -46,7 +46,6 @@ class TenantProfilePermissionController extends Controller
         $moduleCapabilityMap = $this->buildModuleCapabilityMap($enabledModules);
 
         $matrix = $this->normalizePermissionMatrix($request, $moduleCapabilityMap);
-
         $matrix = $this->autoFixViewDependencies($matrix);
 
         $this->validateLogicalConsistency($matrix);
@@ -84,18 +83,19 @@ class TenantProfilePermissionController extends Controller
                         continue;
                     }
 
+                    $payload = [
+                        'scope' => $meta['scope'],
+                        'execution_mode' => $meta['execution_mode'],
+                        'constraints' => null,
+                        'updated_at' => now(),
+                    ];
+
                     DB::table('role_permission')->updateOrInsert(
                         [
                             'role_id' => $role->id,
                             'permission_id' => $permission->id,
                         ],
-                        [
-                            'scope' => $meta['scope'],
-                            'execution_mode' => $meta['execution_mode'],
-                            'constraints' => null,
-                            'updated_at' => now(),
-                            'created_at' => now(),
-                        ]
+                        $payload + ['created_at' => now()]
                     );
                 }
             }
@@ -164,11 +164,21 @@ class TenantProfilePermissionController extends Controller
             foreach ($capabilities as $capability) {
                 $scope = $request->input("permissions.$module.$capability.scope");
                 $executionMode = $request->input("permissions.$module.$capability.execution_mode");
+                $enabled = $request->boolean("permissions.$module.$capability.enabled");
+                $normalizedScope = $this->normalizeNullableString($scope);
+
+                if (! $enabled) {
+                    $normalizedScope = null;
+                }
+
+                if (! PermissionScopeCatalog::supports($module, $capability)) {
+                    $normalizedScope = null;
+                }
 
                 $matrix[$module][$capability] = [
-                    'enabled' => $request->boolean("permissions.$module.$capability.enabled"),
-                    'scope' => $this->normalizeNullableString($scope),
-                    'execution_mode' => $this->normalizeNullableString($executionMode) ?? 'manual',
+                    'enabled' => $enabled,
+                    'scope' => $normalizedScope,
+                    'execution_mode' => $this->normalizeExecutionMode($executionMode),
                 ];
             }
         }
@@ -187,34 +197,36 @@ class TenantProfilePermissionController extends Controller
         return $value === '' ? null : $value;
     }
 
+    protected function normalizeExecutionMode(mixed $value): string
+    {
+        $value = $this->normalizeNullableString($value);
+
+        return $value ?? 'manual';
+    }
+
     protected function autoFixViewDependencies(array $matrix): array
     {
         foreach ($matrix as $module => &$capabilities) {
+            $viewAnyEnabled = (bool) ($capabilities[CapabilityCatalog::VIEW_ANY]['enabled'] ?? false);
+            $viewEnabled = (bool) ($capabilities[CapabilityCatalog::VIEW]['enabled'] ?? false);
+            $createEnabled = (bool) ($capabilities[CapabilityCatalog::CREATE]['enabled'] ?? false);
+            $updateEnabled = (bool) ($capabilities[CapabilityCatalog::UPDATE]['enabled'] ?? false);
+            $deleteEnabled = (bool) ($capabilities[CapabilityCatalog::DELETE]['enabled'] ?? false);
 
-            $viewAny = $capabilities[CapabilityCatalog::VIEW_ANY]['enabled'] ?? false;
-            $view = $capabilities[CapabilityCatalog::VIEW]['enabled'] ?? false;
-            $create = $capabilities[CapabilityCatalog::CREATE]['enabled'] ?? false;
-            $update = $capabilities[CapabilityCatalog::UPDATE]['enabled'] ?? false;
-            $delete = $capabilities[CapabilityCatalog::DELETE]['enabled'] ?? false;
-
-            if ($create && ! $view && ! $viewAny) {
-                if (isset($capabilities[CapabilityCatalog::VIEW])) {
-                    $capabilities[CapabilityCatalog::VIEW]['enabled'] = true;
-                }
+            if ($createEnabled && ! $viewEnabled && ! $viewAnyEnabled && isset($capabilities[CapabilityCatalog::VIEW])) {
+                $capabilities[CapabilityCatalog::VIEW]['enabled'] = true;
             }
 
-            if ($update && ! $view) {
-                if (isset($capabilities[CapabilityCatalog::VIEW])) {
-                    $capabilities[CapabilityCatalog::VIEW]['enabled'] = true;
-                }
+            if ($updateEnabled && ! $viewEnabled && isset($capabilities[CapabilityCatalog::VIEW])) {
+                $capabilities[CapabilityCatalog::VIEW]['enabled'] = true;
             }
 
-            if ($delete && ! $view) {
-                if (isset($capabilities[CapabilityCatalog::VIEW])) {
-                    $capabilities[CapabilityCatalog::VIEW]['enabled'] = true;
-                }
+            if ($deleteEnabled && ! $viewEnabled && isset($capabilities[CapabilityCatalog::VIEW])) {
+                $capabilities[CapabilityCatalog::VIEW]['enabled'] = true;
             }
         }
+
+        unset($capabilities);
 
         return $matrix;
     }
@@ -222,21 +234,21 @@ class TenantProfilePermissionController extends Controller
     protected function validateLogicalConsistency(array $matrix): void
     {
         foreach ($matrix as $module => $capabilities) {
-            $viewAny = (bool) ($capabilities[CapabilityCatalog::VIEW_ANY]['enabled'] ?? false);
-            $view = (bool) ($capabilities[CapabilityCatalog::VIEW]['enabled'] ?? false);
-            $create = (bool) ($capabilities[CapabilityCatalog::CREATE]['enabled'] ?? false);
-            $update = (bool) ($capabilities[CapabilityCatalog::UPDATE]['enabled'] ?? false);
-            $delete = (bool) ($capabilities[CapabilityCatalog::DELETE]['enabled'] ?? false);
+            $viewAnyEnabled = (bool) ($capabilities[CapabilityCatalog::VIEW_ANY]['enabled'] ?? false);
+            $viewEnabled = (bool) ($capabilities[CapabilityCatalog::VIEW]['enabled'] ?? false);
+            $createEnabled = (bool) ($capabilities[CapabilityCatalog::CREATE]['enabled'] ?? false);
+            $updateEnabled = (bool) ($capabilities[CapabilityCatalog::UPDATE]['enabled'] ?? false);
+            $deleteEnabled = (bool) ($capabilities[CapabilityCatalog::DELETE]['enabled'] ?? false);
 
-            if ($create && ! $viewAny && ! $view) {
+            if ($createEnabled && ! $viewAnyEnabled && ! $viewEnabled) {
                 abort(422, "El módulo [$module] no puede permitir crear sin permitir ver.");
             }
 
-            if ($update && ! $view) {
+            if ($updateEnabled && ! $viewEnabled) {
                 abort(422, "El módulo [$module] no puede permitir editar sin permitir ver.");
             }
 
-            if ($delete && ! $view) {
+            if ($deleteEnabled && ! $viewEnabled) {
                 abort(422, "El módulo [$module] no puede permitir eliminar sin permitir ver.");
             }
         }
@@ -247,10 +259,14 @@ class TenantProfilePermissionController extends Controller
         foreach ($matrix as $module => $capabilities) {
             foreach ($capabilities as $capability => $meta) {
                 if (! $meta['enabled']) {
+                    if ($meta['scope'] !== null) {
+                        abort(422, "No se puede persistir alcance en [$module][$capability] cuando la capacidad está deshabilitada.");
+                    }
+
                     continue;
                 }
 
-                $allowedScopes = PermissionScopeCatalog::optionsForCapability($capability);
+                $allowedScopes = PermissionScopeCatalog::optionsFor($module, $capability);
 
                 if (empty($allowedScopes)) {
                     if ($meta['scope'] !== null) {
@@ -260,7 +276,11 @@ class TenantProfilePermissionController extends Controller
                     continue;
                 }
 
-                if ($meta['scope'] !== null && ! array_key_exists($meta['scope'], $allowedScopes)) {
+                if ($meta['scope'] === null) {
+                    abort(422, "El módulo [$module] requiere un alcance explícito para [$capability].");
+                }
+
+                if (! array_key_exists($meta['scope'], $allowedScopes)) {
                     abort(422, "El alcance seleccionado no es válido para [$module][$capability].");
                 }
             }

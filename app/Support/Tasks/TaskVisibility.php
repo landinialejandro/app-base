@@ -5,18 +5,20 @@
 namespace App\Support\Tasks;
 
 use App\Models\Task;
+use App\Models\Tenant;
 use App\Models\User;
 use App\Support\Auth\RolePermissionResolver;
 use App\Support\Catalogs\CapabilityCatalog;
 use App\Support\Catalogs\ModuleCatalog;
+use App\Support\Catalogs\PermissionScopeCatalog;
 use Illuminate\Database\Eloquent\Builder;
 
 class TaskVisibility
 {
-    public static function visibleQuery(?User $user = null): Builder
+    public static function visibleQuery(?Tenant $tenant = null, ?User $user = null): Builder
     {
         $user = $user ?: auth()->user();
-        $tenant = app('tenant');
+        $tenant = $tenant ?: (app()->bound('tenant') ? app('tenant') : null);
 
         $query = Task::query();
 
@@ -24,40 +26,17 @@ class TaskVisibility
             return $query->whereRaw('1 = 0');
         }
 
-        $resolver = app(RolePermissionResolver::class);
-
-        $scope = $resolver->actionScope(
+        $viewAnyScope = app(RolePermissionResolver::class)->actionScope(
             ModuleCatalog::TASKS,
             CapabilityCatalog::VIEW_ANY,
             $tenant,
             $user
         );
 
-        if ($scope === false || $scope === null || $scope === 'none') {
-            $scope = $resolver->actionScope(
-                ModuleCatalog::TASKS,
-                CapabilityCatalog::VIEW,
-                $tenant,
-                $user
-            );
-        }
-
-        if (in_array($scope, [true, 'tenant_all', 'all'], true)) {
+        if ($viewAnyScope === PermissionScopeCatalog::TENANT_ALL) {
             return $query;
         }
 
-        if ($scope === 'own_assigned') {
-            return $query->where('assigned_user_id', $user->id);
-        }
-
         return $query->whereRaw('1 = 0');
-    }
-
-    public static function mineQuery(?User $user = null): Builder
-    {
-        $user = $user ?: auth()->user();
-
-        return static::visibleQuery($user)
-            ->where('assigned_user_id', $user?->id);
     }
 }

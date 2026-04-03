@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Auth/RoleModuleAccess.php | V1
+// FILE: app/Support/Auth/RoleModuleAccess.php | V3
 
 namespace App\Support\Auth;
 
@@ -9,7 +9,7 @@ use App\Models\User;
 
 class RoleModuleAccess
 {
-    public static function canUse(string $module, ?Tenant $tenant = null, ?User $user = null): bool
+    public static function canAccess(string $module, ?Tenant $tenant = null, ?User $user = null): bool
     {
         return app(RolePermissionResolver::class)
             ->canUseModule($module, $tenant, $user);

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Auth/RolePermissionResolver.php | V2
+// FILE: app/Support/Auth/RolePermissionResolver.php | V3
 
 namespace App\Support\Auth;
 
@@ -10,6 +10,7 @@ use App\Models\Tenant;
 use App\Models\User;
 use App\Support\Catalogs\CapabilityCatalog;
 use App\Support\Catalogs\ModuleCatalog;
+use App\Support\Catalogs\PermissionScopeCatalog;
 use App\Support\Catalogs\RoleCatalog;
 
 class RolePermissionResolver
@@ -63,8 +64,7 @@ class RolePermissionResolver
 
                 $capability = $parsed['capability'];
 
-                $resolved = $this->mergeCapability($resolved, $capability, [
-                    'allowed' => true,
+                $resolved = $this->mergeCapability($resolved, $module, $capability, [
                     'scope' => $permission->pivot->scope ?? null,
                     'execution_mode' => $permission->pivot->execution_mode ?? null,
                     'constraints' => $this->normalizeConstraints($permission->pivot->constraints ?? null),
@@ -89,9 +89,7 @@ class RolePermissionResolver
 
     public function can(string $module, string $action, ?Tenant $tenant = null, ?User $user = null): bool
     {
-        $resolved = $this->resolve($module, $tenant, $user);
-
-        return array_key_exists($action, $resolved['actions'] ?? []);
+        return $this->actionScope($module, $action, $tenant, $user) !== false;
     }
 
     public function actionScope(string $module, string $action, ?Tenant $tenant = null, ?User $user = null): mixed
@@ -175,8 +173,7 @@ class RolePermissionResolver
                 continue;
             }
 
-            $resolved = $this->mergeCapability($resolved, $capability, [
-                'allowed' => true,
+            $resolved = $this->mergeCapability($resolved, $module, $capability, [
                 'scope' => $override->scope ?? null,
                 'execution_mode' => $override->execution_mode ?? null,
                 'constraints' => $this->normalizeConstraints($override->constraints ?? null),
@@ -187,28 +184,39 @@ class RolePermissionResolver
         return $resolved;
     }
 
-    protected function mergeCapability(array $resolved, string $capability, array $incoming): array
+    protected function mergeCapability(array $resolved, string $module, string $capability, array $incoming): array
     {
         $replace = (bool) ($incoming['replace'] ?? false);
+        $incomingValue = $this->normalizeCapabilityValue(
+            $module,
+            $capability,
+            $incoming['scope'] ?? null
+        );
 
-        $hasCurrentScope = array_key_exists($capability, $resolved['actions']);
-        $currentScope = $hasCurrentScope ? $resolved['actions'][$capability] : null;
-        $incomingScope = $incoming['scope'] ?? null;
+        if ($incomingValue === false) {
+            if ($replace) {
+                unset($resolved['actions'][$capability]);
+                unset($resolved['execution_modes'][$capability]);
+                unset($resolved['constraints'][$capability]);
+            }
 
-        if ($replace || ! $hasCurrentScope) {
-            $resolved['actions'][$capability] = $this->normalizeActionValue($incomingScope);
+            return $resolved;
+        }
+
+        $hasCurrentValue = array_key_exists($capability, $resolved['actions']);
+        $currentValue = $hasCurrentValue ? $resolved['actions'][$capability] : false;
+
+        if ($replace || ! $hasCurrentValue) {
+            $resolved['actions'][$capability] = $incomingValue;
         } else {
-            $resolved['actions'][$capability] = $this->mergeActionValue(
-                $currentScope,
-                $this->normalizeActionValue($incomingScope)
-            );
+            $resolved['actions'][$capability] = $this->mergeActionValue($currentValue, $incomingValue);
         }
 
         $currentExecutionMode = $resolved['execution_modes'][$capability] ?? null;
         $incomingExecutionMode = $incoming['execution_mode'] ?? null;
 
         $resolved['execution_modes'][$capability] = $replace
-            ? $incomingExecutionMode
+            ? $this->normalizeExecutionMode($incomingExecutionMode)
             : $this->mergeExecutionMode($currentExecutionMode, $incomingExecutionMode);
 
         $currentConstraints = $resolved['constraints'][$capability] ?? [];
@@ -221,10 +229,26 @@ class RolePermissionResolver
         return $resolved;
     }
 
-    protected function normalizeActionValue(mixed $scope): mixed
+    protected function normalizeCapabilityValue(string $module, string $capability, mixed $scope): mixed
     {
-        if ($scope === null || $scope === '') {
-            return true;
+        $allowedScopes = PermissionScopeCatalog::optionsFor($module, $capability);
+
+        if (empty($allowedScopes)) {
+            if ($scope === null || $scope === '') {
+                return true;
+            }
+
+            return false;
+        }
+
+        if (! is_string($scope)) {
+            return false;
+        }
+
+        $scope = trim($scope);
+
+        if ($scope === '' || ! array_key_exists($scope, $allowedScopes)) {
+            return false;
         }
 
         return $scope;
@@ -235,10 +259,10 @@ class RolePermissionResolver
         $viewAny = $actions[CapabilityCatalog::VIEW_ANY] ?? null;
         $view = $actions[CapabilityCatalog::VIEW] ?? null;
 
-        $candidate = $viewAny ?? $view;
+        $candidate = $viewAny !== null ? $viewAny : $view;
 
         if ($candidate === true) {
-            return 'tenant_all';
+            return PermissionScopeCatalog::TENANT_ALL;
         }
 
         if (is_string($candidate) && $candidate !== '') {
@@ -252,12 +276,11 @@ class RolePermissionResolver
     {
         $priority = [
             false => 0,
-            'none' => 0,
-            'limited' => 1,
-            'own_assigned' => 2,
-            true => 3,
-            'tenant_all' => 3,
-            'all' => 4,
+            PermissionScopeCatalog::LIMITED => 1,
+            PermissionScopeCatalog::OWN_ASSIGNED => 2,
+            PermissionScopeCatalog::TENANT_ALL => 3,
+            true => 4,
+            PermissionScopeCatalog::ALL => 5,
         ];
 
         return ($priority[$incoming] ?? 0) > ($priority[$base] ?? 0)
@@ -265,11 +288,20 @@ class RolePermissionResolver
             : $base;
     }
 
+    protected function normalizeExecutionMode(?string $value): ?string
+    {
+        if ($value === null) {
+            return 'manual';
+        }
+
+        $value = trim($value);
+
+        return $value === '' ? 'manual' : $value;
+    }
+
     protected function mergeExecutionMode(?string $base, ?string $incoming): ?string
     {
-        if ($incoming === null || $incoming === '') {
-            return $base;
-        }
+        $incoming = $this->normalizeExecutionMode($incoming);
 
         if ($base === null || $base === '') {
             return $incoming;

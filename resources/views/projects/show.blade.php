@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/projects/show.blade.php | V16 --}}
+{{-- FILE: resources/views/projects/show.blade.php | V17 --}}
 
 @extends('layouts.app')
 
@@ -157,6 +157,7 @@
                 <div class="tab-panel-stack">
                     @include('attachments.partials.embedded', [
                         'attachments' => $attachments,
+                        'attachable' => $project,
                         'attachableType' => 'project',
                         'attachableId' => $project->id,
                         'trailQuery' => $trailQuery,

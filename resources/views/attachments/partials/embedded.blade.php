@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/attachments/partials/embedded.blade.php | V5 --}}
+{{-- FILE: resources/views/attachments/partials/embedded.blade.php | V6 --}}
 
 @php
     use App\Support\Catalogs\AttachmentCatalog;
@@ -7,6 +7,7 @@
     $attachments = $attachments ?? collect();
     $attachableType = $attachableType ?? null;
     $attachableId = $attachableId ?? null;
+    $attachable = $attachable ?? null;
     $trailQuery = $trailQuery ?? [];
     $tabsId = $tabsId ?? 'attachments-tabs-' . uniqid();
     $allLabel = $allLabel ?? 'Todos';
@@ -45,8 +46,8 @@
         </x-slot:tabs>
 
         <x-slot:actions>
-            @if ($attachableType && $attachableId)
-                @can('create', App\Models\Attachment::class)
+            @if ($attachable)
+                @can('update', $attachable)
                     <a href="{{ route(
                         'attachments.create',
                         [

@@ -12,15 +12,4 @@
             @endforeach
         </div>
     </x-slot:tabs>
-
-    <x-slot:actions>
-        <div class="helper-inline">
-            <span>Rol activo:</span>
-            <strong>{{ $permissionRoles[$selectedPermissionRole] ?? $selectedPermissionRole }}</strong>
-        </div>
-
-        <div class="helper-inline">
-            <span>Se modifican permisos base del rol delegable</span>
-        </div>
-    </x-slot:actions>
 </x-tab-toolbar>

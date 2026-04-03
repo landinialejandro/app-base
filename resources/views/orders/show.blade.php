@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V15 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V16 --}}
 
 @extends('layouts.app')
 
@@ -149,53 +149,11 @@
 
             <section class="tab-panel is-active" data-tab-panel="items">
                 <div class="tab-panel-stack">
-                    <x-card>
-                        @if ($items->count())
-                            <div class="table-wrap">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>#</th>
-                                            <th>Descripción</th>
-                                            <th>Producto</th>
-                                            <th>Cantidad</th>
-                                            <th>Precio unitario</th>
-                                            <th>Subtotal</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($items as $item)
-                                            <tr>
-                                                <td>{{ $item->position }}</td>
-                                                <td>{{ $item->description ?: '—' }}</td>
-                                                <td>
-                                                    @if ($item->product)
-                                                        <a
-                                                            href="{{ route('products.show', ['product' => $item->product] + $trailQuery) }}">
-                                                            {{ $item->product->name }}
-                                                        </a>
-                                                    @else
-                                                        —
-                                                    @endif
-                                                </td>
-                                                <td>{{ number_format((float) $item->quantity, 2, ',', '.') }}</td>
-                                                <td>${{ number_format((float) $item->unit_price, 2, ',', '.') }}</td>
-                                                <td>${{ number_format((float) $item->subtotal, 2, ',', '.') }}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                    <tfoot>
-                                        <tr>
-                                            <th colspan="5" class="text-end">Total</th>
-                                            <th>${{ number_format((float) $order->total, 2, ',', '.') }}</th>
-                                        </tr>
-                                    </tfoot>
-                                </table>
-                            </div>
-                        @else
-                            <p class="mb-0">Esta orden todavía no tiene ítems.</p>
-                        @endif
-                    </x-card>
+                    @include('orders.items.partials.embedded', [
+                        'order' => $order,
+                        'items' => $items,
+                        'trailQuery' => $trailQuery,
+                    ])
                 </div>
             </section>
 
@@ -385,6 +343,7 @@
                 <div class="tab-panel-stack">
                     @include('attachments.partials.embedded', [
                         'attachments' => $attachments,
+                        'attachable' => $order,
                         'attachableType' => 'order',
                         'attachableId' => $order->id,
                         'trailQuery' => $trailQuery,

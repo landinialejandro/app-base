@@ -1,21 +1,24 @@
 <?php
 
-// FILE: app/Support/Projects/ProjectVisibility.php | V2
+// FILE: app/Support/Projects/ProjectVisibility.php | V3
 
 namespace App\Support\Projects;
 
 use App\Models\Project;
+use App\Models\Tenant;
 use App\Models\User;
 use App\Support\Auth\RolePermissionResolver;
+use App\Support\Catalogs\CapabilityCatalog;
 use App\Support\Catalogs\ModuleCatalog;
+use App\Support\Catalogs\PermissionScopeCatalog;
 use Illuminate\Database\Eloquent\Builder;
 
 class ProjectVisibility
 {
-    public static function visibleQuery(?User $user = null): Builder
+    public static function visibleQuery(?Tenant $tenant = null, ?User $user = null): Builder
     {
         $user = $user ?: auth()->user();
-        $tenant = app('tenant');
+        $tenant = $tenant ?: (app()->bound('tenant') ? app('tenant') : null);
 
         $query = Project::query();
 
@@ -23,20 +26,18 @@ class ProjectVisibility
             return $query->whereRaw('1 = 0');
         }
 
-        $resolver = app(RolePermissionResolver::class);
-
-        $scope = $resolver->actionScope(
+        $scope = app(RolePermissionResolver::class)->actionScope(
             ModuleCatalog::PROJECTS,
-            'view_any',
+            CapabilityCatalog::VIEW,
             $tenant,
             $user
         );
 
-        if (in_array($scope, [true, 'tenant_all', 'all'], true)) {
+        if ($scope === PermissionScopeCatalog::TENANT_ALL) {
             return $query;
         }
 
-        if (in_array($scope, ['own_assigned', 'limited'], true)) {
+        if ($scope === PermissionScopeCatalog::LIMITED) {
             return $query->whereExists(function ($subquery) use ($user) {
                 $subquery->selectRaw('1')
                     ->from('tasks')

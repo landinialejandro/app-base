@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DashboardController.php | V4
+// FILE: app/Http/Controllers/DashboardController.php | V5
 
 namespace App\Http\Controllers;
 
@@ -9,11 +9,13 @@ use App\Models\Document;
 use App\Models\Order;
 use App\Models\Party;
 use App\Models\Product;
-use App\Support\Auth\RecordVisibility;
 use App\Support\Auth\RolePermissionResolver;
+use App\Support\Catalogs\CapabilityCatalog;
 use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\ProjectCatalog;
 use App\Support\Catalogs\TaskCatalog;
+use App\Support\Projects\ProjectVisibility;
+use App\Support\Tasks\TaskVisibility;
 
 class DashboardController extends Controller
 {
@@ -23,12 +25,12 @@ class DashboardController extends Controller
         $user = auth()->user();
         $resolver = app(RolePermissionResolver::class);
 
-        $visibleProjects = RecordVisibility::visibleProjectsQuery($user, $tenant->id)->get([
+        $visibleProjects = ProjectVisibility::visibleQuery($tenant, $user)->get([
             'projects.id',
             'projects.status',
         ]);
 
-        $visibleTasks = RecordVisibility::visibleTasksQuery($user, $tenant->id)->get([
+        $visibleTasks = TaskVisibility::visibleQuery($tenant, $user)->get([
             'tasks.id',
             'tasks.project_id',
             'tasks.assigned_user_id',
@@ -122,7 +124,7 @@ class DashboardController extends Controller
 
             'canSeeAnalytics' => $resolver->can(
                 ModuleCatalog::DASHBOARD,
-                'view_analytics',
+                CapabilityCatalog::VIEW_ANALYTICS,
                 $tenant,
                 $user
             ),

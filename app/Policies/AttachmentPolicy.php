@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Policies/AttachmentPolicy.php | V3
+// FILE: app/Policies/AttachmentPolicy.php | V4
 
 namespace App\Policies;
 
@@ -28,15 +28,7 @@ class AttachmentPolicy
             return false;
         }
 
-        if (! $user->can('view', $attachable)) {
-            return false;
-        }
-
-        if ($user->can('delete', $attachable)) {
-            return true;
-        }
-
-        return (string) $attachment->uploaded_by_user_id === (string) $user->id;
+        return $user->can('update', $attachable);
     }
 
     public function delete(User $user, Attachment $attachment): bool
@@ -47,14 +39,6 @@ class AttachmentPolicy
             return false;
         }
 
-        if (! $user->can('view', $attachable)) {
-            return false;
-        }
-
-        if ($user->can('delete', $attachable)) {
-            return true;
-        }
-
-        return (string) $attachment->uploaded_by_user_id === (string) $user->id;
+        return $user->can('update', $attachable);
     }
 }

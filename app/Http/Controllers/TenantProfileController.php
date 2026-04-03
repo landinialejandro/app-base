@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantProfileController.php | V8
+// FILE: app/Http/Controllers/TenantProfileController.php | V9
 
 namespace App\Http\Controllers;
 
@@ -70,7 +70,6 @@ class TenantProfileController extends Controller
         }
 
         $generatedInvitation = null;
-
         $generatedInvitationId = session('generated_invitation_id');
 
         if ($generatedInvitationId) {
@@ -109,7 +108,7 @@ class TenantProfileController extends Controller
 
         $moduleCapabilityMap = $this->buildModuleCapabilityMap($enabledModules);
 
-        $moduleLabels = collect($enabledModules)
+        $moduleLabels = collect(array_keys($moduleCapabilityMap))
             ->mapWithKeys(fn ($module) => [$module => ModuleCatalog::label($module, $module)])
             ->all();
 
@@ -130,6 +129,8 @@ class TenantProfileController extends Controller
             $moduleCapabilityMap
         );
 
+        $scopeOptionsByModuleCapability = $this->buildScopeOptionsByModuleCapability($moduleCapabilityMap);
+
         return view('tenants.profile', [
             'tenant' => $tenant,
             'memberships' => $memberships,
@@ -146,6 +147,7 @@ class TenantProfileController extends Controller
             'scopeLabels' => $scopeLabels,
             'moduleCapabilityMap' => $moduleCapabilityMap,
             'permissionMatrix' => $permissionMatrix,
+            'scopeOptionsByModuleCapability' => $scopeOptionsByModuleCapability,
         ]);
     }
 
@@ -305,5 +307,20 @@ class TenantProfileController extends Controller
         }
 
         return $matrix;
+    }
+
+    protected function buildScopeOptionsByModuleCapability(array $moduleCapabilityMap): array
+    {
+        $options = [];
+
+        foreach ($moduleCapabilityMap as $module => $capabilities) {
+            $options[$module] = [];
+
+            foreach ($capabilities as $capability) {
+                $options[$module][$capability] = PermissionScopeCatalog::optionsFor($module, $capability);
+            }
+        }
+
+        return $options;
     }
 }

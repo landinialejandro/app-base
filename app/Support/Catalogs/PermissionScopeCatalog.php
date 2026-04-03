@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/PermissionScopeCatalog.php | V1
+// FILE: app/Support/Catalogs/PermissionScopeCatalog.php | V3
 
 namespace App\Support\Catalogs;
 
@@ -40,35 +40,87 @@ class PermissionScopeCatalog
         return static::$labels[$value] ?? $default;
     }
 
-    public static function optionsForCapability(string $capability): array
+    public static function optionsFor(string $module, string $capability): array
     {
-        return match ($capability) {
-            CapabilityCatalog::VIEW_ANY => [
-                self::TENANT_ALL => static::label(self::TENANT_ALL),
-                self::ALL => static::label(self::ALL),
-                self::OWN_ASSIGNED => static::label(self::OWN_ASSIGNED),
-                self::LIMITED => static::label(self::LIMITED),
-            ],
-
-            CapabilityCatalog::VIEW => [
-                self::TENANT_ALL => static::label(self::TENANT_ALL),
-                self::ALL => static::label(self::ALL),
-                self::OWN_ASSIGNED => static::label(self::OWN_ASSIGNED),
-                self::LIMITED => static::label(self::LIMITED),
-            ],
-
-            CapabilityCatalog::UPDATE => [
-                self::TENANT_ALL => static::label(self::TENANT_ALL),
-                self::ALL => static::label(self::ALL),
-                self::OWN_ASSIGNED => static::label(self::OWN_ASSIGNED),
-            ],
-
+        return match ($module) {
+            ModuleCatalog::TASKS => static::taskOptionsFor($capability),
+            ModuleCatalog::APPOINTMENTS => static::appointmentOptionsFor($capability),
+            ModuleCatalog::PROJECTS => static::projectOptionsFor($capability),
+            ModuleCatalog::PARTIES,
+            ModuleCatalog::ASSETS,
+            ModuleCatalog::PRODUCTS,
+            ModuleCatalog::DOCUMENTS,
+            ModuleCatalog::ORDERS => static::sharedModuleOptionsFor($capability),
             default => [],
         };
     }
 
-    public static function supportsCapability(string $capability): bool
+    public static function supports(string $module, string $capability): bool
     {
-        return ! empty(static::optionsForCapability($capability));
+        return ! empty(static::optionsFor($module, $capability));
+    }
+
+    protected static function taskOptionsFor(string $capability): array
+    {
+        return match ($capability) {
+            CapabilityCatalog::VIEW_ANY => [
+                self::TENANT_ALL => static::label(self::TENANT_ALL),
+            ],
+            CapabilityCatalog::VIEW => [
+                self::TENANT_ALL => static::label(self::TENANT_ALL),
+            ],
+            CapabilityCatalog::UPDATE => [
+                self::ALL => static::label(self::ALL),
+                self::OWN_ASSIGNED => static::label(self::OWN_ASSIGNED),
+            ],
+            default => [],
+        };
+    }
+
+    protected static function appointmentOptionsFor(string $capability): array
+    {
+        return match ($capability) {
+            CapabilityCatalog::VIEW => [
+                self::ALL => static::label(self::ALL),
+                self::OWN_ASSIGNED => static::label(self::OWN_ASSIGNED),
+            ],
+            CapabilityCatalog::UPDATE => [
+                self::ALL => static::label(self::ALL),
+                self::OWN_ASSIGNED => static::label(self::OWN_ASSIGNED),
+            ],
+            default => [],
+        };
+    }
+
+    protected static function projectOptionsFor(string $capability): array
+    {
+        return match ($capability) {
+            CapabilityCatalog::VIEW => [
+                self::TENANT_ALL => static::label(self::TENANT_ALL),
+                self::LIMITED => static::label(self::LIMITED),
+            ],
+            CapabilityCatalog::UPDATE => [
+                self::TENANT_ALL => static::label(self::TENANT_ALL),
+                self::LIMITED => static::label(self::LIMITED),
+            ],
+            CapabilityCatalog::DELETE => [
+                self::TENANT_ALL => static::label(self::TENANT_ALL),
+                self::LIMITED => static::label(self::LIMITED),
+            ],
+            default => [],
+        };
+    }
+
+    protected static function sharedModuleOptionsFor(string $capability): array
+    {
+        return match ($capability) {
+            CapabilityCatalog::VIEW_ANY,
+            CapabilityCatalog::VIEW,
+            CapabilityCatalog::UPDATE,
+            CapabilityCatalog::DELETE => [
+                self::TENANT_ALL => static::label(self::TENANT_ALL),
+            ],
+            default => [],
+        };
     }
 }

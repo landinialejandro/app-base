@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AppointmentController.php | V8
+// FILE: app/Http/Controllers/AppointmentController.php | V9
 
 namespace App\Http\Controllers;
 
@@ -11,7 +11,10 @@ use App\Models\Order;
 use App\Models\Party;
 use App\Models\User;
 use App\Support\Auth\RolePermissionResolver;
+use App\Support\Catalogs\AppointmentCatalog;
+use App\Support\Catalogs\CapabilityCatalog;
 use App\Support\Catalogs\ModuleCatalog;
+use App\Support\Catalogs\PermissionScopeCatalog;
 use App\Support\Navigation\AppointmentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -473,24 +476,24 @@ class AppointmentController extends Controller
     {
         $scope = app(RolePermissionResolver::class)->actionScope(
             ModuleCatalog::APPOINTMENTS,
-            'view_any',
+            CapabilityCatalog::VIEW,
             app('tenant'),
             auth()->user()
         );
 
-        return in_array($scope, [true, 'tenant_all', 'all'], true);
+        return $scope === PermissionScopeCatalog::ALL;
     }
 
     protected function canManageForeignAppointment(Appointment $appointment): bool
     {
         $scope = app(RolePermissionResolver::class)->actionScope(
             ModuleCatalog::APPOINTMENTS,
-            'update',
+            CapabilityCatalog::UPDATE,
             app('tenant'),
             auth()->user()
         );
 
-        return in_array($scope, [true, 'tenant_all', 'all'], true)
+        return $scope === PermissionScopeCatalog::ALL
             && (int) $appointment->assigned_user_id !== (int) auth()->id();
     }
 
@@ -539,6 +542,9 @@ class AppointmentController extends Controller
         return view('appointments.print', [
             'appointment' => $appointment,
             'renderMode' => 'print',
+            'kindLabels' => AppointmentCatalog::kindLabels(),
+            'statusLabels' => AppointmentCatalog::statusLabels(),
+            'workModeLabels' => AppointmentCatalog::workModeLabels(),
         ]);
     }
 
@@ -556,6 +562,9 @@ class AppointmentController extends Controller
         $pdf = Pdf::loadView('appointments.print', [
             'appointment' => $appointment,
             'renderMode' => 'pdf',
+            'kindLabels' => AppointmentCatalog::kindLabels(),
+            'statusLabels' => AppointmentCatalog::statusLabels(),
+            'workModeLabels' => AppointmentCatalog::workModeLabels(),
         ]);
 
         return $pdf->download('turno-'.$appointment->id.'.pdf');

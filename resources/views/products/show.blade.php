@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/products/show.blade.php | V12 --}}
+{{-- FILE: resources/views/products/show.blade.php | V13 --}}
 
 @extends('layouts.app')
 
@@ -221,6 +221,7 @@
                 <div class="tab-panel-stack">
                     @include('attachments.partials.embedded', [
                         'attachments' => $attachments,
+                        'attachable' => $product,
                         'attachableType' => 'product',
                         'attachableId' => $product->id,
                         'trailQuery' => $trailQuery,

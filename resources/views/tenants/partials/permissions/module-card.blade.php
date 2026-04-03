@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/partials/permissions/module-card.blade.php | V4 --}}
+{{-- FILE: resources/views/tenants/partials/permissions/module-card.blade.php | V5 --}}
 
 @php
     $collapsed = $collapsed ?? !$loop->first;
@@ -8,11 +8,14 @@
     <x-slot:header>
         <div>
             <h2 class="card-title">{{ $moduleLabel }}</h2>
+
             <p class="card-subtitle">
-                Configuración base del rol para este módulo.
+                Define qué podrá hacer este tipo de acceso en este módulo.
             </p>
+
             <div class="form-help">
-                Activa cada capacidad y, cuando corresponda, define sobre qué registros podrá usarla este rol.
+                Puedes permitir acciones como ver, crear o editar información.
+                Si tienes dudas, conviene dar menos acceso y ampliarlo después.
             </div>
         </div>
     </x-slot:header>
@@ -30,10 +33,10 @@
         <table class="table">
             <thead>
                 <tr>
-                    <th>Capacidad</th>
+                    <th>Acción</th>
                     <th>Permitir</th>
-                    <th>Alcance</th>
-                    <th>Modo</th>
+                    <th>Sobre qué información</th>
+                    <th>Cómo se aplica</th>
                 </tr>
             </thead>
             <tbody>

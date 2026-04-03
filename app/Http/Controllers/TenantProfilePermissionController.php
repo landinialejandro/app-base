@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantProfilePermissionController.php | V4
+// FILE: app/Http/Controllers/TenantProfilePermissionController.php | V5
 
 namespace App\Http\Controllers;
 
@@ -46,6 +46,8 @@ class TenantProfilePermissionController extends Controller
         $moduleCapabilityMap = $this->buildModuleCapabilityMap($enabledModules);
 
         $matrix = $this->normalizePermissionMatrix($request, $moduleCapabilityMap);
+
+        $matrix = $this->autoFixViewDependencies($matrix);
 
         $this->validateLogicalConsistency($matrix);
         $this->validateScopes($matrix);
@@ -183,6 +185,38 @@ class TenantProfilePermissionController extends Controller
         $value = trim($value);
 
         return $value === '' ? null : $value;
+    }
+
+    protected function autoFixViewDependencies(array $matrix): array
+    {
+        foreach ($matrix as $module => &$capabilities) {
+
+            $viewAny = $capabilities[CapabilityCatalog::VIEW_ANY]['enabled'] ?? false;
+            $view = $capabilities[CapabilityCatalog::VIEW]['enabled'] ?? false;
+            $create = $capabilities[CapabilityCatalog::CREATE]['enabled'] ?? false;
+            $update = $capabilities[CapabilityCatalog::UPDATE]['enabled'] ?? false;
+            $delete = $capabilities[CapabilityCatalog::DELETE]['enabled'] ?? false;
+
+            if ($create && ! $view && ! $viewAny) {
+                if (isset($capabilities[CapabilityCatalog::VIEW])) {
+                    $capabilities[CapabilityCatalog::VIEW]['enabled'] = true;
+                }
+            }
+
+            if ($update && ! $view) {
+                if (isset($capabilities[CapabilityCatalog::VIEW])) {
+                    $capabilities[CapabilityCatalog::VIEW]['enabled'] = true;
+                }
+            }
+
+            if ($delete && ! $view) {
+                if (isset($capabilities[CapabilityCatalog::VIEW])) {
+                    $capabilities[CapabilityCatalog::VIEW]['enabled'] = true;
+                }
+            }
+        }
+
+        return $matrix;
     }
 
     protected function validateLogicalConsistency(array $matrix): void

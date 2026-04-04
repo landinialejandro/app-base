@@ -255,7 +255,7 @@ no deben existir scopes inválidos, implícitos o ambiguos
 
 los roles base del sistema deben seguir siendo pocos y estables
 
-la especialización funcional del trabajo debe resolverse preferentemente mediante perfiles y capacidades
+la especialización funcional del trabajo debe resolverse mediante perfiles y capacidades
 
 toda autorización funcional nueva debe apoyarse en:
 
@@ -276,13 +276,9 @@ viewAny y view deben resolverse mediante capacidades concretas y scope efectivo
 
 no deben resolverse mediante canUseModule para lectura general
 
-delete no debe resolverse con lógica hardcodeada por rol si la capacidad ya existe persistida
+un módulo no debe considerarse migrado a V2 si existen inconsistencias entre convención y código real
 
-en tasks, update debe respetar el scope own_assigned
-
-el resolver no debe degradar scopes persistidos a true
-
-un módulo no debe considerarse migrado a V2 si la lectura no está resuelta por capacidades reales
+las entidades hijas no deben considerarse cubiertas por V2 si no existe implementación efectiva de autorización
 
 attachments es un caso especial:
 
@@ -291,13 +287,6 @@ no es un módulo autónomo de permisos
 su autorización se delega al recurso padre
 
 las acciones deben resolverse contra capacidades del attachable
-
-las entidades hijas deben heredar autorización desde la cabecera cuando corresponda
-
-esto aplica explícitamente a:
-
-order_items
-document_items
 <<END SECTION>>
 
 <<SECTION: TRAIT TENANTSCOPED>>
@@ -352,16 +341,23 @@ Ejemplos:
 order_items
 document_items
 
-Cuando la autorización de la entidad hija dependa naturalmente de la cabecera:
+Reglas actualizadas:
 
-debe heredar autorización desde la entidad padre
+cuando la autorización de la entidad hija dependa naturalmente de la cabecera:
 
-debe evitarse una policy independiente compleja si no aporta valor real
+no debe asumirse que la herencia de autorización está garantizada si no existe implementación real en policies
 
-Esto ya se considera válido para entidades como:
+si la entidad hija no tiene policy propia ni delegación explícita implementada hacia la cabecera, se considera que la autorización no está resuelta
 
-order_items respecto de orders
-document_items respecto de documents
+no debe confiarse en la convención declarativa si no está respaldada por código real
+
+la herencia de autorización debe implementarse explícitamente en policies o resolverse mediante la capa central de permisos
+
+hasta tanto no exista esa implementación efectiva:
+
+order_items y document_items no deben considerarse protegidos por herencia automática
+
+cualquier acción sobre entidades hijas debe auditarse contra su implementación real y no contra la intención conceptual
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE OWNERSHIP FUNCIONAL Y PERMISOS OPERATIVOS SIMPLES>>
@@ -467,10 +463,9 @@ las policies deben trabajar con capacidades concretas y scopes efectivos
 
 no deben resolver lectura únicamente con canUseModule
 
-las entidades hijas no deben duplicar lógica de autorización cuando dependen del padre
+las entidades hijas no deben asumir herencia automática de autorización
 
-order_items debe delegar en Order
-document_items debe delegar en Document
+order_items y document_items requieren implementación explícita de autorización o delegación efectiva
 
 attachments no debe tener autorización autónoma
 

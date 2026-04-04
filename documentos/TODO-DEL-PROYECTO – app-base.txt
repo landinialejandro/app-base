@@ -204,9 +204,27 @@ no deben existir scopes genéricos inválidos
 
 attachments opera como autorización delegada al recurso padre
 
-order_items y document_items operan con autorización heredada desde cabecera
+estado actual validado:
 
-la alineación entre resolver, policies, controllers y UI quedó consolidada
+order_items y document_items no poseen implementación efectiva de autorización mediante policy ni delegación real desde cabecera
+
+pendientes reales:
+
+implementar policies o delegación explícita para OrderItem
+
+implementar policies o delegación explícita para DocumentItem
+
+alinear comportamiento real con convención declarada de herencia de autorización
+
+validar consistencia de seeders para pruebas de permisos en:
+
+appointments
+assets
+attachments
+
+corregir inconsistencias de memberships en datos de prueba
+
+asegurar coherencia entre is_owner y rol persistido
 
 pendientes futuros de esta capa:
 

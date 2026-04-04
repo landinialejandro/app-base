@@ -438,7 +438,7 @@ ProfileCatalog define perfiles funcionales listos para usar, aplicables sobre me
 
 RolePermissionResolver resuelve el permiso efectivo por usuario, tenant, módulo y capacidad, utilizando exclusivamente datos persistidos y sin depender de matrices hardcodeadas.
 
-RecordScopeResolver resuelve el alcance efectivo sobre registros concretos, por ejemplo assigned, own, participating o all.
+RecordScopeResolver resuelve el alcance efectivo sobre registros concretos.
 
 Dirección de diseño consolidada:
 
@@ -473,15 +473,13 @@ membership_permission_overrides como estructura real
 
 orders, tasks, documents, parties, assets, products, projects y appointments quedan validados sobre V2 real
 
-projects conserva una regla de dominio complementaria de visibilidad por participación en tareas, integrada al scope efectivo
+projects conserva una regla de dominio complementaria integrada al scope efectivo
 
-appointments resuelve lectura y dataset operativo mediante capacidad concreta de lectura
+appointments resuelve lectura mediante capacidad concreta de lectura
 
 attachments no debe tratarse como módulo V2 autónomo
 
 la autorización de attachments se delega completamente al recurso padre (attachable)
-
-order_items y document_items heredan autorización desde sus cabeceras (Order y Document respectivamente)
 
 la validación operativa ya confirmó compatibilidad con:
 

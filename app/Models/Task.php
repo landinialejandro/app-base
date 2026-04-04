@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Task.php | V2
+// FILE: app/Models/Task.php | V3
 
 namespace App\Models;
 
@@ -30,10 +30,12 @@ class Task extends Model
         'status',
         'priority',
         'due_date',
+        'metadata',
     ];
 
     protected $casts = [
         'due_date' => 'date',
+        'metadata' => 'array',
     ];
 
     public function project(): BelongsTo

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Inventory/InventoryMovementService.php | V1
+// FILE: app/Support/Inventory/InventoryMovementService.php | V2
 
 namespace App\Support\Inventory;
 
@@ -8,6 +8,9 @@ use App\Models\Document;
 use App\Models\InventoryMovement;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\User;
+use App\Support\Catalogs\TaskCatalog;
+use App\Support\System\OwnerAlertTaskService;
 use Illuminate\Support\Facades\DB;
 use InvalidArgumentException;
 
@@ -113,7 +116,7 @@ class InventoryMovementService
         }
 
         return DB::transaction(function () use ($product, $kind, $normalizedQuantity, $notes, $order, $document, $createdBy) {
-            return InventoryMovement::create([
+            $movement = InventoryMovement::create([
                 'tenant_id' => $product->tenant_id,
                 'product_id' => $product->id,
                 'order_id' => $order?->id,
@@ -123,6 +126,112 @@ class InventoryMovementService
                 'notes' => $notes,
                 'created_by' => $createdBy,
             ]);
+
+            $this->notifyOwnerIfStockTurnsNegative(
+                product: $product,
+                movement: $movement,
+                order: $order,
+                actorUserId: $createdBy,
+                movementQuantity: $normalizedQuantity,
+            );
+
+            return $movement;
         });
+    }
+
+    protected function notifyOwnerIfStockTurnsNegative(
+        Product $product,
+        InventoryMovement $movement,
+        ?Order $order = null,
+        int|string|null $actorUserId = null,
+        float $movementQuantity = 0.0,
+    ): void {
+        if (! in_array($movement->kind, [self::KIND_CONSUMIR, self::KIND_ENTREGAR], true)) {
+            return;
+        }
+
+        $stockAfter = app(ProductStockCalculator::class)->forProduct($product);
+
+        if ($stockAfter >= 0) {
+            return;
+        }
+
+        $actorUser = $this->resolveActorUser($actorUserId);
+
+        $summary = sprintf(
+            'El producto %s quedó con stock negativo luego de un movimiento de tipo %s por %s. Stock resultante: %s.',
+            $product->name ?: 'Producto #'.$product->id,
+            $movement->kind,
+            $this->formatQuantity($movementQuantity, $product->unit_label),
+            $this->formatQuantity($stockAfter, $product->unit_label)
+        );
+
+        $descriptionLines = [
+            'Se registró un movimiento que dejó stock negativo y requiere revisión.',
+            '',
+            'Resumen:',
+            $summary,
+            '',
+            'Detalle del evento:',
+            '- Producto: '.($product->name ?: 'Producto #'.$product->id),
+            '- SKU: '.($product->sku ?: '—'),
+            '- Tipo de movimiento: '.$movement->kind,
+            '- Cantidad del movimiento: '.$this->formatQuantity($movementQuantity, $product->unit_label),
+            '- Stock resultante: '.$this->formatQuantity($stockAfter, $product->unit_label),
+            '- Fecha y hora del evento: '.($movement->created_at?->format('d/m/Y H:i:s') ?: '—'),
+            '- Usuario interviniente: '.($actorUser?->name ?: 'Sistema'),
+        ];
+
+        if ($order) {
+            $descriptionLines[] = '- Orden relacionada: '.($order->number ?: 'Orden #'.$order->id);
+        }
+
+        if ($movement->notes) {
+            $descriptionLines[] = '- Notas del movimiento: '.$movement->notes;
+        }
+
+        app(OwnerAlertTaskService::class)->createOnceForTenant(
+            tenant: app('tenant'),
+            type: 'inventory_negative_stock',
+            title: 'Revisar desvío de stock: '.($product->name ?: 'Producto #'.$product->id),
+            description: implode("\n", $descriptionLines),
+            dedupeKey: 'inventory_negative_stock:product:'.$product->id,
+            metadata: [
+                'source' => 'inventory',
+                'summary' => $summary,
+                'occurred_at' => $movement->created_at?->toDateTimeString(),
+                'product_id' => $product->id,
+                'product_name' => $product->name,
+                'product_sku' => $product->sku,
+                'order_id' => $order?->id,
+                'order_number' => $order?->number,
+                'inventory_movement_id' => $movement->id,
+                'movement_kind' => $movement->kind,
+                'movement_quantity' => $movementQuantity,
+                'stock_after' => $stockAfter,
+                'actor_user_id' => $actorUser?->id,
+                'actor_user_name' => $actorUser?->name,
+            ],
+            priority: TaskCatalog::PRIORITY_HIGH,
+            dueDate: now()->toDateString(),
+        );
+    }
+
+    protected function resolveActorUser(int|string|null $actorUserId = null): ?User
+    {
+        if ($actorUserId === null || $actorUserId === '') {
+            return null;
+        }
+
+        return User::query()->find($actorUserId);
+    }
+
+    protected function formatQuantity(float $quantity, ?string $unitLabel = null): string
+    {
+        $formatted = number_format($quantity, 2, ',', '.');
+
+        return $unitLabel
+            ? $formatted.' '.$unitLabel
+            : $formatted;
     }
 }

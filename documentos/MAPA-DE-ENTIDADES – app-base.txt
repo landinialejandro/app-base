@@ -177,7 +177,7 @@ ROLES Y AUTORIZACIÓN
 
 La pertenencia a un tenant puede tener uno o más roles por usuario.
 
-Relación conceptual actual:
+Relación conceptual:
 
 memberships
 ↓
@@ -185,56 +185,38 @@ membership_role
 ↓
 roles
 
-y además, como evolución activa del sistema:
-
-memberships
-↓
-profile_slug
+y como parte de la estructura de autorización:
 
 roles
 ↓
 role_permission
-↓
-permissions / capabilities
 
 memberships
 ↓
 membership_permission_overrides
 
-Reglas actuales:
+Reglas:
 
 los roles base mínimos del sistema se definen en RoleCatalog
 
-al crear un tenant, esos roles base deben sembrarse
-
-los roles base reservados no deben modificarse ni eliminarse
-
-owner no forma parte del flujo normal de roles asignables y se resuelve estructuralmente desde memberships.is_owner
+owner se resuelve estructuralmente desde memberships.is_owner
 
 owner es único por tenant
 
-los roles base delegables actuales son:
+los roles delegables actuales son:
 
 admin
 sales
 operator
 administrator
 
-la membership incorpora profile_slug para agrupar capacidades operativas sin crear nuevos roles base por cada puesto del negocio
+la membership puede incluir profile_slug como especialización funcional
 
-role_permission incorpora metadatos persistidos para resolver autorización real mediante:
+la autorización del sistema no depende únicamente del rol, sino de una combinación de elementos que se resuelven en la capa de seguridad
 
-scope
-execution_mode
-constraints
+La definición operativa completa del modelo de permisos se encuentra en:
 
-la segmentación fina de módulos compartidos puede apoyarse en constraints funcionales y no requiere ownership artificial del registro
-
-allowed_kinds queda consolidada como primera constraint oficial para orders y documents
-
-permissions deja de considerarse una posibilidad abstracta futura y pasa a formar parte de la base activa de la capa V2 de autorización
-
-membership_permission_overrides forma parte de la estructura real del sistema para excepciones puntuales sobre la base de permisos
+SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
 <<END SECTION>>
 
 <<SECTION: ACLARACIÓN SOBRE TENANT-SCOPED>>
@@ -641,9 +623,6 @@ attachments
 <<END SECTION>>
 
 <<SECTION: ENTIDADES FUTURAS POSIBLES>>
-ENTIDADES FUTURAS POSIBLES
-
-permissions
 branches
 payments
 inventory

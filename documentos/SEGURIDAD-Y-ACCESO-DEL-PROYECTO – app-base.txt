@@ -41,8 +41,6 @@ BASE-VISUAL-DEL-PROYECTO
 Este documento consolida específicamente todo lo relacionado con acceso y seguridad.
 <<END SECTION>>
 
----
-
 <<SECTION: ALCANCE>>
 ALCANCE
 
@@ -69,8 +67,6 @@ mapa de navegación completo
 decisiones de deploy
 modelado general del dominio
 <<END SECTION>>
-
----
 
 <<SECTION: FLUJO GLOBAL DE ACCESO>>
 FLUJO GLOBAL DE ACCESO
@@ -103,8 +99,6 @@ CONTEXTO-FIJO-DEL-PROYECTO – app-base
 MAPA-DE-ENTIDADES – app-base
 <<END SECTION>>
 
----
-
 <<SECTION: MODELO DE IDENTIDAD Y PERTENENCIA>>
 MODELO DE IDENTIDAD Y PERTENENCIA
 
@@ -136,8 +130,6 @@ MAPA-DE-ENTIDADES – app-base
 CONTEXTO-FIJO-DEL-PROYECTO – app-base
 <<END SECTION>>
 
----
-
 <<SECTION: AUTENTICACIÓN Y FORTIFY>>
 AUTENTICACIÓN Y FORTIFY
 
@@ -165,15 +157,12 @@ no debe mantenerse contexto operativo luego del cierre
 
 Two-Factor Authentication:
 
-debe definirse explícitamente una de dos opciones:
+Actualmente el sistema no incorpora un flujo activo de Two-Factor Authentication.
 
-implementación completa con soporte real en modelo y flujo
-o desactivación explícita hasta implementación futura
+Fortify debe operar sin 2FA habilitado hasta que exista una implementación completa, consistente y validada en modelo, columnas y flujo.
 
-No debe quedar parcialmente activo.
+No debe quedar ningún estado parcialmente activo.
 <<END SECTION>>
-
----
 
 <<SECTION: MULTI-TENANCY Y AISLAMIENTO>>
 MULTI-TENANCY Y AISLAMIENTO
@@ -206,8 +195,6 @@ La doctrina estructural de multi-tenancy debe mantenerse alineada con:
 CONTEXTO-FIJO-DEL-PROYECTO – app-base
 CONVENCIONES-DEL-PROYECTO – app-base
 <<END SECTION>>
-
----
 
 <<SECTION: ROLES BASE Y MODELO DE AUTORIZACIÓN>>
 ROLES BASE Y MODELO DE AUTORIZACIÓN
@@ -251,8 +238,6 @@ CONTEXTO-FIJO-DEL-PROYECTO – app-base
 MAPA-DE-ENTIDADES – app-base
 CONVENCIONES-DEL-PROYECTO – app-base
 <<END SECTION>>
-
----
 
 <<SECTION: CAPA V2 DE PERMISOS>>
 CAPA V2 DE PERMISOS
@@ -313,8 +298,6 @@ CONVENCIONES-DEL-PROYECTO – app-base
 MAPA-DE-ENTIDADES – app-base
 <<END SECTION>>
 
----
-
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -356,8 +339,6 @@ view controla acceso a registro individual
 No usar view para controlar listados.
 <<END SECTION>>
 
----
-
 <<SECTION: RECURSOS DELEGADOS AL PADRE>>
 RECURSOS DELEGADOS AL PADRE
 
@@ -392,8 +373,6 @@ CONVENCIONES-DEL-PROYECTO – app-base
 MAPA-DE-ENTIDADES – app-base
 <<END SECTION>>
 
----
-
 <<SECTION: FLUJO DE INVITACIONES Y ONBOARDING>>
 FLUJO DE INVITACIONES Y ONBOARDING
 
@@ -421,8 +400,6 @@ no romper continuidad del flujo de onboarding
 El flujo de invitación es parte crítica del acceso seguro al sistema.
 <<END SECTION>>
 
----
-
 <<SECTION: PANTALLAS SENSIBLES DE SEGURIDAD>>
 PANTALLAS SENSIBLES DE SEGURIDAD
 
@@ -447,8 +424,6 @@ usar catálogos cerrados
 evitar combinaciones libres peligrosas
 priorizar claridad sobre flexibilidad
 <<END SECTION>>
-
----
 
 <<SECTION: HARDENING Y AUDITORÍA>>
 HARDENING Y AUDITORÍA
@@ -484,8 +459,6 @@ no dejar memberships sin rol
 
 Seguridad es responsabilidad transversal del sistema y no de un único módulo.
 <<END SECTION>>
-
----
 
 <<SECTION: REGLA FINAL>>
 REGLA FINAL

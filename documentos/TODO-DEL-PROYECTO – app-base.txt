@@ -180,124 +180,26 @@ indexación de contenido para búsqueda
 <<END SECTION>>
 
 <<SECTION: AUTORIZACIÓN Y PERMISOS>>
-AUTORIZACIÓN Y PERMISOS
+Pendientes reales actuales:
 
-proteger roles reservados contra edición o eliminación futura
+* Terminar de consolidar el consumo homogéneo de la capa central de autorización en todos los módulos.
 
-mantener cerrado el conjunto de roles base del tenant en:
+* Formalizar por implementación completa la delegación al recurso padre en order_items y document_items.
 
-owner
-admin
-sales
-operator
-administrator
+* Auditar navegación contextual completa en flujos complejos.
 
-resolver complejidad funcional mediante perfiles y overrides por usuario
+* Editar membership_permission_overrides.
 
-la UI de gestión de permisos por rol del tenant ya se encuentra implementada en tenant.profile
+* Mostrar permiso efectivo final por usuario.
 
-módulos core ya migrados y validados sobre V2 real:
+* Implementar historial o auditoría de cambios de permisos.
 
-orders
-tasks
-documents
-parties
-assets
-products
-projects
-appointments
+* Alinear navbar y dashboard con acceso real por módulo.
 
-RolePermissionMatrix eliminado de la arquitectura vigente
+* Revisar datos legacy donde existan memberships sin rol.
 
-la autorización efectiva se basa en:
-
-RolePermissionResolver
-RecordScopeResolver
-
-owner se resuelve estructuralmente por memberships.is_owner y no requiere rol persistido en membership_role
-
-la matriz V2 normalizada vigente utiliza:
-
-view_any
-view
-create
-update
-delete
-
-create opera como capacidad booleana
-
-view_any, view, update y delete operan mediante scope válido
-
-los scopes quedan definidos por módulo + capacidad
-
-el scope all queda eliminado de la capa vigente
-
-los scopes efectivos validados son:
-
-tenant_all
-own_assigned
-limited
-
-limited requiere resolver explícito por módulo y no debe persistirse como alcance abstracto sin traducción operativa
-
-constraints ya forma parte de la doctrina estable de autorización
-
-allowed_kinds queda consolidada como primera constraint oficial para orders y documents
-
-orders y documents deben mantenerse como módulos compartidos del tenant
-
-no deben reevaluarse como candidatos a ownership por created_by ni por autoría del registro
-
-attachments opera como autorización delegada al recurso padre
-
-order_items y document_items deben formalizarse como recursos delegados al padre para create, update y delete
-
-estado actual validado:
-
-se resolvió inconsistencia crítica entre view y view_any en appointments
-
-appointments utiliza correctamente view_any para definir acceso a dataset completo
-
-la capa de permisos V2 quedó validada en funcionamiento real (resolver, policies, controllers y UI alineados)
-
-tasks y appointments ya no usan scopes legacy en ninguna capa
-
-pendientes reales:
-
-terminar de consolidar el kernel central consumido por policies, controllers y datasets en los puntos remanentes que todavía no lo usen de forma homogénea
-
-formalizar por implementación completa la delegación al padre en order_items y document_items
-
-auditar navegación contextual completa en flujos complejos
-
-pendientes ya resueltos y no reabrir:
-
-inconsistencia de alcance en appointments (view vs view_any)
-
-errores de visibilidad en dataset de appointments
-
-barrido de scope legacy all en módulos auditados
-
-regularización de seeders para pruebas de permisos
-
-consistencia base de memberships en datos de prueba
-
-coherencia entre is_owner y rol persistido
-
-regularización del dataset base para pruebas V2 en tenants, users, memberships, roles, role_permission, tasks, orders, documents, assets y appointments
-
-pendientes futuros de esta capa:
-
-editar membership_permission_overrides
-mostrar permiso efectivo final por usuario
-historial o auditoría de cambios de permisos
-
-alinear navbar y dashboard con acceso real por módulo
-
-revisar datos legacy donde existan memberships sin rol
-
-definir comportamiento cuando no haya módulos habilitados
-<<END SECTION>>
+* Definir comportamiento cuando no haya módulos habilitados.
+  <<END SECTION>>
 
 <<SECTION: FLUJOS FUNCIONALES>>
 FLUJOS FUNCIONALES

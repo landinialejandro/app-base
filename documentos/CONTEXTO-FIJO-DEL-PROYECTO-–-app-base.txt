@@ -190,12 +190,32 @@ Modelo conceptual del sistema
 El sistema distingue entre:
 
 Entidades del sistema
+Entidades del negocio
+
+Las entidades del sistema sostienen identidad, acceso, onboarding y administración global.
+
+Las entidades del negocio representan la operación propia de cada tenant y deben quedar aisladas por tenant_id.
 <<END SECTION>>
 
 <<SECTION: Entidades del negocio>>
 Entidades del negocio
 
+Las entidades del negocio actuales del sistema son:
 
+parties
+projects
+tasks
+appointments
+products
+assets
+orders
+order_items
+documents
+document_items
+document_sequences
+attachments
+
+Todas estas entidades pertenecen operativamente a un tenant y deben respetar el aislamiento multi-tenant del proyecto.
 <<END SECTION>>
 
 <<SECTION: Entidades del sistema y acceso>>
@@ -221,22 +241,6 @@ puede existir sin tenant asociado cuando type = owner_signup
 puede vincularse a un tenant existente cuando type = member_invite
 
 Por esta razón, no debe interpretarse como una entidad del negocio tenant-scoped pura.
-
-Entidades del negocio
-
-parties
-projects
-tasks
-appointments
-products
-assets
-orders
-order_items
-
-documents
-document_items
-
-document_sequences
 <<END SECTION>>
 
 <<SECTION: Entidad base del negocio>>
@@ -351,72 +355,7 @@ el contexto del tenant
 catálogos funcionales del módulo correspondiente
 <<END SECTION>>
 
-<<SECTION: MODELO ACTUAL DE ACCESO, VISIBILIDAD Y AUTORIZACIÓN OPERATIVA>>
-MODELO ACTUAL DE ACCESO, VISIBILIDAD Y AUTORIZACIÓN OPERATIVA
-
-El sistema ya incorpora una capa base real de acceso y visibilidad por módulo.
-
-La autorización efectiva debe entenderse como una combinación de niveles distintos:
-
-tenant activo válido
-módulo habilitado para el tenant
-rol base del usuario
-perfil funcional de la membership
-capacidad concreta
-visibilidad del registro
-acción permitida sobre ese registro
-modo de ejecución
-restricciones por tipo o contexto
-
-Estos niveles no deben mezclarse entre sí.
-
-Resumen estructural actual:
-
-la habilitación de módulos del tenant se resuelve mediante una capa central específica de acceso por tenant
-
-owner no debe tratarse como un rol delegable ordinario
-
-owner se define estructuralmente por memberships.is_owner = true
-
-owner es único por tenant
-
-los roles base del tenant quedan definidos como:
-
-owner
-admin
-sales
-operator
-administrator
-
-de esos cinco roles base, solo son delegables:
-
-admin
-sales
-operator
-administrator
-
-una membership activa no-owner no debe quedar sin al menos un rol válido
-
-el rol por defecto para nuevas memberships activas no-owner es operator
-
-la membership incorpora profile_slug persistido para refinar capacidades sin multiplicar roles base
-
-la visibilidad no necesariamente coincide con la capacidad de edición
-
-el permiso efectivo no debe resolverse únicamente por módulo y rol, sino por capacidad concreta, scope, constraints y alcance real sobre el registro
-
-la IA no debe operar como bypass ni como superadmin, sino como actor del tenant sujeto al mismo sistema de autorización
-
-la UI de permisos del tenant ya opera sobre los roles delegables editables por owner
-
-La doctrina completa de acceso y seguridad debe concentrarse en:
-
-SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
-<<END SECTION>>
-
 <<SECTION: Capa central prevista para acceso y permisos>>
-Capa central prevista para acceso y permisos
-
 La arquitectura de acceso y permisos ya consolida una capa centralizada compuesta por:
 
 ModuleCatalog
@@ -426,27 +365,9 @@ ProfileCatalog
 RolePermissionResolver
 RecordScopeResolver
 
-Rol conceptual de cada pieza:
+Esta capa constituye el núcleo real de autorización del sistema y debe considerarse parte activa del estado actual.
 
-ModuleCatalog define la base de módulos cerrados del sistema y actúa como fuente de verdad para slugs funcionales y módulos navegables del core.
-
-TenantModuleAccess resuelve la habilitación efectiva de módulos por tenant y por usuario, reutilizando una única lógica tanto para acceso operativo como para navegación visible.
-
-CapabilityCatalog define las capacidades concretas del sistema por acción de negocio.
-
-ProfileCatalog define perfiles funcionales listos para usar, aplicables sobre memberships sin multiplicar roles base.
-
-RolePermissionResolver resuelve el permiso efectivo por usuario, tenant, módulo y capacidad, utilizando exclusivamente datos persistidos y sin depender de matrices hardcodeadas.
-
-RecordScopeResolver resuelve el alcance efectivo sobre registros concretos.
-
-Resumen estructural consolidado:
-
-la lógica no debe quedar acoplada a una matriz plana módulo × rol
-
-RolePermissionMatrix deja de formar parte de la arquitectura vigente
-
-la autorización debe resolverse mediante:
+Su función es desacoplar la autorización de una matriz rígida módulo × rol y resolver el permiso efectivo a partir de:
 
 módulo habilitado
 rol base
@@ -456,63 +377,39 @@ scope
 execution mode
 constraints
 
-los scopes válidos del estado actual son:
-
-tenant_all
-own_assigned
-limited
-
-limited solo puede existir cuando el módulo tenga un resolver explícito que traduzca ese alcance a dataset o visibilidad real
-
-orders, tasks, documents, parties, assets, products, projects y appointments quedan validados sobre V2 real
-
-orders y documents no deben resolverse por ownership artificial del registro
-
-su segmentación fina debe apoyarse en constraints.allowed_kinds cuando corresponda
-
-attachments no debe tratarse como módulo V2 autónomo
-
-order_items, document_items y attachments deben consolidarse como recursos delegados al padre para create, update y delete
-
-La doctrina completa de implementación, consumo de esta capa y reglas de seguridad debe concentrarse en:
+La doctrina completa de implementación, uso y validación de esta capa se define exclusivamente en:
 
 SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
-<<END SECTION>>
-
-<<SECTION: Precedencia conceptual prevista para habilitación de módulos>>
-Precedencia conceptual prevista para habilitación de módulos
-
-La habilitación efectiva de módulos puede resolverse, cuando el sistema lo necesite, con una precedencia como la siguiente:
-
-base desde ModuleCatalog
-
-override global externo
-
-override externo por tenant
-
-override persistido en settings del tenant
-
-Esta precedencia debe entenderse como criterio de diseño para crecimiento controlado del sistema, no como obligación de implementación inmediata en todos los entornos.
-<<END SECTION>>
-
-<<SECTION: Overrrides externos controlados>>
-Overrrides externos controlados
-
-La matriz base de permisos y la habilitación base de módulos pueden admitir overrides externos parciales cuando haga falta realizar ajustes rápidos y controlados sin modificar directamente las clases principales.
-
-Estos overrides deben respetar siempre:
-
-los roles definidos en RoleCatalog
-los módulos definidos en ModuleCatalog
-la estructura base del sistema
-
-No deben utilizarse para inventar roles o módulos inexistentes.
 <<END SECTION>>
 
 <<SECTION: Roles y niveles actuales del sistema>>
 Roles y niveles actuales del sistema
 
+El sistema distingue actualmente dos niveles principales:
 
+superadmin
+tenant
+
+superadmin opera fuera del flujo tenant y administra aspectos globales del sistema.
+
+Dentro del tenant, la jerarquía operativa se organiza mediante:
+
+owner como condición estructural
+roles base delegables
+perfil funcional
+permisos concretos
+
+Roles base actuales del tenant:
+
+owner
+admin
+sales
+operator
+administrator
+
+La doctrina completa de acceso, autenticación y seguridad se encuentra centralizada en:
+
+SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
 <<END SECTION>>
 
 <<SECTION: SUPERADMIN>>
@@ -567,66 +464,6 @@ administrator representa el perfil operativo administrativo u oficina
 estos roles no deben interpretarse como capas globales del sistema, sino como roles base propios del tenant
 
 las diferencias funcionales finas futuras no deben resolverse creando nuevos roles base, sino mediante perfiles funcionales y overrides cuando corresponda
-<<END SECTION>>
-
-<<SECTION: Reglas operativas actuales por módulo>>
-Reglas operativas actuales por módulo
-
-orders, parties, assets y products siguen un patrón compartido del tenant ya alineado a V2:
-
-owner y admin pueden ver, crear, editar y eliminar
-
-sales y operator pueden ver, crear y editar
-
-la eliminación queda restringida a owner y admin mediante capacidad persistida
-
-assets y products no utilizan ownership por registro ni assigned_user_id
-
-orders ya opera completamente sobre V2 utilizando actionScope para viewAny y view
-
-documents ya se encuentra migrado y validado sobre V2
-
-tasks mantiene ownership operativo por assigned_user_id
-
-owner y admin mantienen control total sobre tasks
-
-para sales y operator en tasks:
-
-view_any = tenant_all
-view = tenant_all
-update = own_assigned
-delete no permitido
-
-projects mantiene visibilidad por participación operativa:
-
-owner y admin ven todos los proyectos
-
-roles operativos ven solo proyectos donde tengan al menos una tarea asignada
-
-appointments ya quedó alineado al esquema V2 vigente de scopes válidos
-
-en tasks y appointments, controllers, policies, resolver, filtros de dataset y UI auditada consumen únicamente scopes V2 válidos del catálogo
-
-en tasks y appointments no deben utilizarse ni reinterpretarse scopes legacy como:
-
-all
-mine
-
-orders debe consolidarse como cabecera operativa interna del tenant, incluyendo trabajo comercial y operativo de servicio
-
-documents debe consolidarse como módulo documental, formal y fiscal, separado de la operación interna diaria
-
-orders y documents siguen siendo módulos compartidos del tenant
-
-su restricción fina no debe resolverse por ownership ni por created_by
-
-cuando se necesite segmentación funcional por tipo, debe resolverse mediante constraints.allowed_kinds
-
-work_order deja de considerarse tipo documental operativo activo y pasa a tratarse como kind legacy inhabilitado, sin uso normal en UI ni en flujos corrientes
-
-la visibilidad del dashboard y de métricas agregadas puede variar según rol
-
-el dashboard analítico queda reservado al nivel privilegiado owner y admin
 <<END SECTION>>
 
 <<SECTION: Reglas generales de autorización ya consolidadas>>
@@ -934,7 +771,8 @@ Entidades ya implementadas
 users
 tenants
 memberships
-
+roles
+membership_role
 signup_requests
 invitations
 
@@ -946,11 +784,10 @@ products
 assets
 orders
 order_items
-
 documents
 document_items
-
 document_sequences
+attachments
 <<END SECTION>>
 
 <<SECTION: Regla de arquitectura>>

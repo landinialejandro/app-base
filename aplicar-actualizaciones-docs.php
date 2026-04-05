@@ -1,6 +1,7 @@
 <?php
 
 $documents = [
+    'SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base' => 'SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base.txt',
     'CONTEXTO-FIJO-DEL-PROYECTO – app-base' => 'CONTEXTO-FIJO-DEL-PROYECTO-–-app-base.txt',
     'CONVENCIONES-DEL-PROYECTO – app-base' => 'CONVENCIONES-DEL-PROYECTO-–-app-base.txt',
     'CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS' => 'Checklist-oficial-para-crear-módulos-nuevos.txt',

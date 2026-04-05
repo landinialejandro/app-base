@@ -133,100 +133,27 @@ No debe utilizarse desactivación global de users para resolver bajas, bloqueos 
 <<SECTION: CONVENCIONES DE ACCESO POR MÓDULO Y ROLES>>
 CONVENCIONES DE ACCESO POR MÓDULO Y ROLES
 
-La autorización operativa del sistema debe resolverse diferenciando:
+La autorización operativa del sistema debe implementarse respetando la arquitectura central definida para acceso y permisos.
 
-módulo habilitado para el tenant
-rol base del usuario
-perfil funcional de la membership
-capacidad concreta
-visibilidad del registro
-acción permitida
-modo de ejecución
+Reglas de implementación:
 
-Reglas actuales consolidadas:
+no hardcodear permisos en controllers, policies o blades si existe resolución central
 
-owner y admin no deben confundirse conceptualmente
+las policies deben consumir la capa central de autorización y no replicar lógica
 
-owner sigue resolviéndose desde memberships.is_owner y no como rol delegable ordinario
+los controllers deben delegar en authorize(...) y no implementar lógica paralela
 
-owner es único por tenant
+las vistas deben respetar permisos reales mediante @can
 
-los roles base cerrados del tenant son:
+los alcances visibles en UI deben resolverse mediante catálogos o resolvers y no reconstruirse manualmente
 
-owner
-admin
-sales
-operator
-administrator
+la habilitación de módulos depende de la capa central de acceso por tenant y no debe asumirse por defecto
 
-de esos cinco roles base, solo son delegables:
+la UI de permisos del tenant debe operar únicamente sobre módulos habilitados previamente
 
-admin
-sales
-operator
-administrator
+La definición completa de roles, capacidades, scopes y constraints se encuentra en:
 
-admin representa gestión amplia del tenant
-
-administrator representa un rol operativo administrativo u oficina, no una capa global ni un equivalente conceptual de admin
-
-la membership incorpora profile_slug para refinar capacidades sin multiplicar roles base
-
-la autorización no debe depender únicamente de una matriz plana módulo × rol
-
-la resolución efectiva debe considerar además capacidades concretas, scope, execution mode, constraints y alcance real sobre el registro
-
-la matriz V2 normalizada vigente trabaja con las capacidades:
-
-view_any
-view
-create
-update
-delete
-
-create se resuelve como capacidad booleana
-
-view_any, view, update y delete deben resolverse mediante scope válido según módulo y capacidad
-
-view_any no debe resolverse como booleano ambiguo
-
-los scopes legacy o genéricos fuera del catálogo vigente no deben persistirse ni utilizarse
-
-los scopes efectivos validados en la base actual son:
-
-tenant_all
-own_assigned
-limited
-
-all y mine quedan fuera de la capa vigente y no deben utilizarse ni en datos, ni en resolver, ni en policies, ni en UI
-
-limited solo puede existir cuando el módulo tenga resolución explícita de dataset o visibilidad por resolver
-
-la eliminación sensible debe reservarse a owner y admin, salvo necesidad funcional justificada
-
-orders y documents deben tratarse como módulos compartidos del tenant
-
-su segmentación funcional fina debe apoyarse en constraints.allowed_kinds y no en ownership artificial del registro
-
-la visibilidad del dashboard y de métricas agregadas debe respetar el rol y no asumir siempre conteos globales del tenant
-
-la IA y automatizaciones no deben operar por fuera del sistema de permisos, sino como actores sujetos a la misma arquitectura de autorización
-
-primera regla UX consolidada para permisos del tenant:
-
-la primera UI real de gestión de permisos por rol vive dentro de tenant.profile como tab interno permissions
-
-la habilitación de módulos sigue siendo competencia de superadmin y no debe exponerse como capacidad editable del owner en tenant.profile
-
-el owner solo ajusta permisos sobre módulos ya habilitados para el tenant
-
-las UIs sensibles de configuración deben priorizar:
-
-catálogos cerrados
-etiquetas humanas
-mínima libertad de combinación accidental
-
-los alcances visibles deben resolverse mediante catálogo central y no hardcodearse en Blade
+SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
 <<END SECTION>>
 
 <<SECTION: ROLECATALOG Y MODULECATALOG>>
@@ -256,99 +183,23 @@ a futuro el tenant podrá ajustar capacidades dentro de la arquitectura vigente,
 <<SECTION: EVOLUCIÓN PREVISTA DE PERMISOS>>
 EVOLUCIÓN PREVISTA DE PERMISOS
 
-La arquitectura de permisos debe sostener una capa centralizada compuesta por:
+La implementación de permisos del sistema debe apoyarse en una capa centralizada compuesta por resolvers y catálogos del dominio.
 
-RolePermissionResolver
-RecordScopeResolver
-TenantModuleAccess
-CapabilityCatalog
-ProfileCatalog
+Reglas:
 
-Reglas de diseño:
+toda nueva funcionalidad de autorización debe integrarse en la capa central existente
 
-las policies no deben hardcodear permisos dispersos cuando la capa central exista
+no deben crearse matrices paralelas ni lógica aislada por módulo
 
-la policy debe consumir la capa central de permisos en lugar de multiplicar lógica por módulo
+las policies deben mantenerse como wrappers mínimos de consumo de esa capa
 
-la resolución no debe quedar limitada a módulo y rol, sino incorporar:
+los resolvers deben ser la única fuente de verdad para scopes, constraints y visibilidad de dataset
 
-capacidad concreta
-scope
-execution mode
-constraints
+la evolución del sistema de permisos debe respetar la arquitectura vigente sin introducir variantes incompatibles
 
-los scopes no deben tratarse como genéricos por capability
+La doctrina completa de permisos y su modelo operativo se define en:
 
-los scopes válidos deben definirse por combinación módulo + capacidad
-
-no deben existir scopes inválidos, implícitos o ambiguos
-
-los roles base del sistema deben seguir siendo pocos y estables
-
-owner se resuelve estructuralmente por memberships.is_owner y no requiere rol persistido en membership_role
-
-la especialización funcional del trabajo debe resolverse mediante perfiles y capacidades
-
-toda autorización funcional nueva debe apoyarse en:
-
-TenantModuleAccess
-RolePermissionResolver
-RecordScopeResolver
-Policy
-
-el acceso a módulo no reemplaza la policy por registro
-
-el acceso a módulo, la visibilidad de registros, la capacidad de acción y el modo de ejecución deben tratarse como capas separadas
-
-cuando un módulo tenga reglas específicas por ownership o participación, esa regla debe integrarse al scope y no vivir como bypass paralelo
-
-orders, tasks, documents, parties, assets, products, projects y appointments ya se encuentran migrados y validados sobre V2 real
-
-la matriz V2 normalizada vigente utiliza:
-
-view_any
-view
-create
-update
-delete
-
-create debe persistirse y resolverse como capacidad booleana
-
-view_any, view, update y delete deben resolverse mediante scope válido
-
-viewAny y view deben resolverse mediante capacidades concretas y scope efectivo
-
-no deben resolverse mediante canUseModule para lectura general
-
-view_any no debe degradarse a booleano
-
-el scope all queda fuera de la matriz vigente y no debe utilizarse
-
-mine también queda fuera de la capa vigente y no debe utilizarse como alias funcional de scope
-
-los scopes efectivos validados pasan a ser:
-
-tenant_all
-own_assigned
-limited
-
-limited solo puede existir acompañado por un resolver explícito por módulo
-
-constraints forma parte obligatoria de la doctrina estable de permisos y no como metadata decorativa
-
-allowed_kinds queda consolidada como primera constraint funcional oficial para segmentación de orders y documents
-
-orders y documents deben permanecer como módulos compartidos del tenant y no migrar a ownership artificial por registro
-
-un módulo no debe considerarse migrado a V2 si existen inconsistencias entre convención y código real
-
-las entidades hijas no deben considerarse cubiertas por V2 si no existe implementación efectiva de autorización
-
-attachments, order_items y document_items son recursos delegados:
-
-no deben tratarse como módulos autónomos de permisos
-
-sus acciones deben resolverse contra capacidades del recurso padre
+SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
 <<END SECTION>>
 
 <<SECTION: TRAIT TENANTSCOPED>>
@@ -468,40 +319,23 @@ documents no debe absorber órdenes de trabajo operativas ni duplicar la funció
 <<SECTION: CONVENCIONES DE SUPPORT Y HELPERS DE ACCESO>>
 CONVENCIONES DE SUPPORT Y HELPERS DE ACCESO
 
-La lógica transversal de acceso tenant/roles no debe dispersarse en controllers o blades.
-
-Debe centralizarse preferentemente en clases de soporte ubicadas bajo:
-
-app/Support/Auth
-
-Clases conceptuales ya alineadas con esta convención:
-
-TenantAccess
-TenantModuleAccess
-RolePermissionResolver
-RecordScopeResolver
-
-RoleModuleAccess y helpers equivalentes no deben sostener matrices legacy paralelas si la resolución efectiva ya vive en la capa V2 persistida.
-
-Cuando la visibilidad de registros dependa del módulo, debe resolverse preferentemente en clases específicas de soporte o resolvers compatibles con la capa central de autorización.
-
-Esto ya se considera válido para la visibilidad operativa de projects y para la resolución de alcance efectivo de módulos migrados a V2.
+La lógica transversal de acceso tenant/roles debe centralizarse en clases de soporte reutilizables.
 
 Reglas:
 
-no duplicar resolución de scopes y constraints en controllers, blades o policies si ya existe resolver central
+no implementar lógica de permisos en controllers o blades
 
-no reinterpretar view_any como booleano cuando el resolver ya entrega scope válido
+no duplicar resolución de acceso en múltiples capas
 
-no reinterpretar scopes válidos mediante aliases legacy como all o mine
+utilizar siempre la capa central de autorización para resolver permisos efectivos
 
-los alcances visibles en UI deben consumirse desde catálogo o resolver central y no reconstruirse manualmente
+los helpers o clases de soporte deben limitarse a facilitar el acceso a esa capa y no a redefinir su comportamiento
 
-los datasets deben resolverse desde la capa central de autorización y no mediante lógica paralela por controller
+las clases bajo app/Support/Auth deben considerarse punto de acceso técnico a la lógica central, no fuente alternativa de definición
 
-limited solo puede utilizarse si existe resolver explícito por módulo
+La definición completa del modelo de autorización se encuentra en:
 
-la salida del resolver debe mantenerse consistente con la matriz sembrada y con los datos persistidos reales del tenant
+SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE POLICIES>>
@@ -929,19 +763,6 @@ Todo botón de solo icono debe incluir:
 
 title
 aria-label
-<<END SECTION>>
-
-<<SECTION: CONVENCIONES DE SEGURIDAD>>
-CONVENCIONES DE SEGURIDAD
-
-El sistema debe evitar que un usuario pueda acceder a registros de otro tenant.
-
-Esto se logra mediante:
-
-TenantScoped
-ResolvesTenantRouteBinding
-
-Nunca se deben realizar consultas que ignoren el tenant actual.
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE FLUJO DE INVITACIONES>>

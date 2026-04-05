@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Projects/ProjectVisibility.php | V3
+// FILE: app/Support/Projects/ProjectVisibility.php | V4
 
 namespace App\Support\Projects;
 

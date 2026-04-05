@@ -1,87 +1,42 @@
 <?php
 
-// FILE: app/Policies/DocumentPolicy.php | V5
+// FILE: app/Policies/DocumentPolicy.php | V6
 
 namespace App\Policies;
 
 use App\Models\Document;
 use App\Models\User;
-use App\Support\Auth\RecordScopeResolver;
-use App\Support\Auth\RolePermissionResolver;
-use App\Support\Catalogs\CapabilityCatalog;
-use App\Support\Catalogs\ModuleCatalog;
-use App\Support\Catalogs\PermissionScopeCatalog;
+use App\Support\Auth\Security;
 
 class DocumentPolicy
 {
-    protected function resolver(): RolePermissionResolver
+    protected function security(): Security
     {
-        return app(RolePermissionResolver::class);
-    }
-
-    protected function recordScopeResolver(): RecordScopeResolver
-    {
-        return app(RecordScopeResolver::class);
+        return app(Security::class);
     }
 
     public function viewAny(User $user): bool
     {
-        $scope = $this->resolver()->actionScope(
-            ModuleCatalog::DOCUMENTS,
-            CapabilityCatalog::VIEW_ANY,
-            app('tenant'),
-            $user,
-        );
-
-        return $scope === PermissionScopeCatalog::TENANT_ALL;
+        return $this->security()->allows($user, 'documents.viewAny');
     }
 
     public function view(User $user, Document $document): bool
     {
-        $scope = $this->resolver()->actionScope(
-            ModuleCatalog::DOCUMENTS,
-            CapabilityCatalog::VIEW,
-            app('tenant'),
-            $user,
-        );
-
-        return $this->recordScopeResolver()->allowsSharedScope($scope)
-            && $scope === PermissionScopeCatalog::TENANT_ALL;
+        return $this->security()->allows($user, 'documents.view', $document);
     }
 
     public function create(User $user): bool
     {
-        return $this->resolver()->can(
-            ModuleCatalog::DOCUMENTS,
-            CapabilityCatalog::CREATE,
-            app('tenant'),
-            $user,
-        );
+        return $this->security()->allows($user, 'documents.create', Document::class);
     }
 
     public function update(User $user, Document $document): bool
     {
-        $scope = $this->resolver()->actionScope(
-            ModuleCatalog::DOCUMENTS,
-            CapabilityCatalog::UPDATE,
-            app('tenant'),
-            $user,
-        );
-
-        return $this->recordScopeResolver()->allowsSharedScope($scope)
-            && $scope === PermissionScopeCatalog::TENANT_ALL;
+        return $this->security()->allows($user, 'documents.update', $document);
     }
 
     public function delete(User $user, Document $document): bool
     {
-        $scope = $this->resolver()->actionScope(
-            ModuleCatalog::DOCUMENTS,
-            CapabilityCatalog::DELETE,
-            app('tenant'),
-            $user,
-        );
-
-        return $this->recordScopeResolver()->allowsSharedScope($scope)
-            && $scope === PermissionScopeCatalog::TENANT_ALL;
+        return $this->security()->allows($user, 'documents.delete', $document);
     }
 }

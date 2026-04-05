@@ -1,87 +1,42 @@
 <?php
 
-// FILE: app/Policies/OrderPolicy.php | V4
+// FILE: app/Policies/OrderPolicy.php | V5
 
 namespace App\Policies;
 
 use App\Models\Order;
 use App\Models\User;
-use App\Support\Auth\RecordScopeResolver;
-use App\Support\Auth\RolePermissionResolver;
-use App\Support\Catalogs\CapabilityCatalog;
-use App\Support\Catalogs\ModuleCatalog;
-use App\Support\Catalogs\PermissionScopeCatalog;
+use App\Support\Auth\Security;
 
 class OrderPolicy
 {
-    protected function resolver(): RolePermissionResolver
+    protected function security(): Security
     {
-        return app(RolePermissionResolver::class);
-    }
-
-    protected function recordScopeResolver(): RecordScopeResolver
-    {
-        return app(RecordScopeResolver::class);
+        return app(Security::class);
     }
 
     public function viewAny(User $user): bool
     {
-        $scope = $this->resolver()->actionScope(
-            ModuleCatalog::ORDERS,
-            CapabilityCatalog::VIEW_ANY,
-            app('tenant'),
-            $user
-        );
-
-        return $scope === PermissionScopeCatalog::TENANT_ALL;
+        return $this->security()->allows($user, 'orders.viewAny');
     }
 
     public function view(User $user, Order $order): bool
     {
-        $scope = $this->resolver()->actionScope(
-            ModuleCatalog::ORDERS,
-            CapabilityCatalog::VIEW,
-            app('tenant'),
-            $user
-        );
-
-        return $this->recordScopeResolver()->allowsSharedScope($scope)
-            && $scope === PermissionScopeCatalog::TENANT_ALL;
+        return $this->security()->allows($user, 'orders.view', $order);
     }
 
     public function create(User $user): bool
     {
-        return $this->resolver()->can(
-            ModuleCatalog::ORDERS,
-            CapabilityCatalog::CREATE,
-            app('tenant'),
-            $user
-        );
+        return $this->security()->allows($user, 'orders.create', Order::class);
     }
 
     public function update(User $user, Order $order): bool
     {
-        $scope = $this->resolver()->actionScope(
-            ModuleCatalog::ORDERS,
-            CapabilityCatalog::UPDATE,
-            app('tenant'),
-            $user
-        );
-
-        return $this->recordScopeResolver()->allowsSharedScope($scope)
-            && $scope === PermissionScopeCatalog::TENANT_ALL;
+        return $this->security()->allows($user, 'orders.update', $order);
     }
 
     public function delete(User $user, Order $order): bool
     {
-        $scope = $this->resolver()->actionScope(
-            ModuleCatalog::ORDERS,
-            CapabilityCatalog::DELETE,
-            app('tenant'),
-            $user
-        );
-
-        return $this->recordScopeResolver()->allowsSharedScope($scope)
-            && $scope === PermissionScopeCatalog::TENANT_ALL;
+        return $this->security()->allows($user, 'orders.delete', $order);
     }
 }

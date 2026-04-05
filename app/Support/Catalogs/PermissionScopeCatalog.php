@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/PermissionScopeCatalog.php | V4
+// FILE: app/Support/Catalogs/PermissionScopeCatalog.php | V5
 
 namespace App\Support\Catalogs;
 
@@ -62,9 +62,11 @@ class PermissionScopeCatalog
         return match ($capability) {
             CapabilityCatalog::VIEW_ANY => [
                 self::TENANT_ALL => static::label(self::TENANT_ALL),
+                self::OWN_ASSIGNED => static::label(self::OWN_ASSIGNED),
             ],
             CapabilityCatalog::VIEW => [
                 self::TENANT_ALL => static::label(self::TENANT_ALL),
+                self::OWN_ASSIGNED => static::label(self::OWN_ASSIGNED),
             ],
             CapabilityCatalog::UPDATE => [
                 self::TENANT_ALL => static::label(self::TENANT_ALL),
@@ -82,6 +84,7 @@ class PermissionScopeCatalog
         return match ($capability) {
             CapabilityCatalog::VIEW_ANY => [
                 self::TENANT_ALL => static::label(self::TENANT_ALL),
+                self::OWN_ASSIGNED => static::label(self::OWN_ASSIGNED),
             ],
             CapabilityCatalog::VIEW => [
                 self::TENANT_ALL => static::label(self::TENANT_ALL),
@@ -103,6 +106,7 @@ class PermissionScopeCatalog
         return match ($capability) {
             CapabilityCatalog::VIEW_ANY => [
                 self::TENANT_ALL => static::label(self::TENANT_ALL),
+                self::LIMITED => static::label(self::LIMITED),
             ],
             CapabilityCatalog::VIEW => [
                 self::TENANT_ALL => static::label(self::TENANT_ALL),

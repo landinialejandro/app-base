@@ -1,9 +1,12 @@
 <?php
 
-// FILE: app/Providers/AppServiceProvider.php | V4
+// FILE: app/Providers/AppServiceProvider.php | V5
 
 namespace App\Providers;
 
+use App\Support\Auth\RecordScopeResolver;
+use App\Support\Auth\RolePermissionResolver;
+use App\Support\Auth\Security;
 use Carbon\Carbon;
 use Illuminate\Cache\RateLimiting\Limit;
 use Illuminate\Http\Request;
@@ -21,7 +24,12 @@ class AppServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        $this->app->singleton(Security::class, function ($app) {
+            return new Security(
+                $app->make(RolePermissionResolver::class),
+                $app->make(RecordScopeResolver::class),
+            );
+        });
     }
 
     /**

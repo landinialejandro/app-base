@@ -1,94 +1,42 @@
 <?php
 
-// FILE: app/Policies/ProjectPolicy.php | V4
+// FILE: app/Policies/ProjectPolicy.php | V5
 
 namespace App\Policies;
 
 use App\Models\Project;
 use App\Models\User;
-use App\Support\Auth\RecordScopeResolver;
-use App\Support\Auth\RolePermissionResolver;
-use App\Support\Catalogs\CapabilityCatalog;
-use App\Support\Catalogs\ModuleCatalog;
-use App\Support\Catalogs\PermissionScopeCatalog;
+use App\Support\Auth\Security;
 
 class ProjectPolicy
 {
-    protected function resolver(): RolePermissionResolver
+    protected function security(): Security
     {
-        return app(RolePermissionResolver::class);
-    }
-
-    protected function recordScopeResolver(): RecordScopeResolver
-    {
-        return app(RecordScopeResolver::class);
+        return app(Security::class);
     }
 
     public function viewAny(User $user): bool
     {
-        return $this->resolver()->can(
-            ModuleCatalog::PROJECTS,
-            CapabilityCatalog::VIEW_ANY,
-            app('tenant'),
-            $user
-        );
+        return $this->security()->allows($user, 'projects.viewAny');
     }
 
     public function view(User $user, Project $project): bool
     {
-        $scope = $this->resolver()->actionScope(
-            ModuleCatalog::PROJECTS,
-            CapabilityCatalog::VIEW,
-            app('tenant'),
-            $user
-        );
-
-        if (! in_array($scope, [PermissionScopeCatalog::TENANT_ALL, PermissionScopeCatalog::LIMITED], true)) {
-            return false;
-        }
-
-        return $this->recordScopeResolver()->allowsProjectScope($scope, $project, $user);
+        return $this->security()->allows($user, 'projects.view', $project);
     }
 
     public function create(User $user): bool
     {
-        return $this->resolver()->can(
-            ModuleCatalog::PROJECTS,
-            CapabilityCatalog::CREATE,
-            app('tenant'),
-            $user
-        );
+        return $this->security()->allows($user, 'projects.create', Project::class);
     }
 
     public function update(User $user, Project $project): bool
     {
-        $scope = $this->resolver()->actionScope(
-            ModuleCatalog::PROJECTS,
-            CapabilityCatalog::UPDATE,
-            app('tenant'),
-            $user
-        );
-
-        if (! in_array($scope, [PermissionScopeCatalog::TENANT_ALL, PermissionScopeCatalog::LIMITED], true)) {
-            return false;
-        }
-
-        return $this->recordScopeResolver()->allowsProjectScope($scope, $project, $user);
+        return $this->security()->allows($user, 'projects.update', $project);
     }
 
     public function delete(User $user, Project $project): bool
     {
-        $scope = $this->resolver()->actionScope(
-            ModuleCatalog::PROJECTS,
-            CapabilityCatalog::DELETE,
-            app('tenant'),
-            $user
-        );
-
-        if (! in_array($scope, [PermissionScopeCatalog::TENANT_ALL, PermissionScopeCatalog::LIMITED], true)) {
-            return false;
-        }
-
-        return $this->recordScopeResolver()->allowsProjectScope($scope, $project, $user);
+        return $this->security()->allows($user, 'projects.delete', $project);
     }
 }

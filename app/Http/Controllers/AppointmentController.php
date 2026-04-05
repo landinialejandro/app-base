@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AppointmentController.php | V10
+// FILE: app/Http/Controllers/AppointmentController.php | V11
 
 namespace App\Http\Controllers;
 
@@ -10,10 +10,8 @@ use App\Models\Asset;
 use App\Models\Order;
 use App\Models\Party;
 use App\Models\User;
-use App\Support\Auth\RolePermissionResolver;
+use App\Support\Auth\Security;
 use App\Support\Catalogs\AppointmentCatalog;
-use App\Support\Catalogs\CapabilityCatalog;
-use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\PermissionScopeCatalog;
 use App\Support\Navigation\AppointmentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
@@ -36,7 +34,6 @@ class AppointmentController extends Controller
         $kind = $request->get('kind');
         $status = $request->get('status');
         $scheduledDate = $request->get('scheduled_date');
-        $scope = $this->resolveAppointmentDatasetScope($request);
         $canViewAllAppointments = $this->canViewAllAppointments();
 
         $users = User::query()
@@ -51,11 +48,9 @@ class AppointmentController extends Controller
             ->orderBy('name')
             ->get();
 
-        $appointments = Appointment::query()
+        $appointments = app(Security::class)
+            ->scope(auth()->user(), 'appointments.viewAny', Appointment::query())
             ->with(['party', 'order', 'asset', 'assignedUser'])
-            ->when($scope === PermissionScopeCatalog::OWN_ASSIGNED, function ($query) {
-                $query->where('assigned_user_id', auth()->id());
-            })
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($subquery) use ($q) {
                     $subquery->where('title', 'like', "%{$q}%")
@@ -79,13 +74,15 @@ class AppointmentController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('appointments.index', compact(
-            'appointments',
-            'users',
-            'parties',
-            'scope',
-            'canViewAllAppointments'
-        ));
+        return view('appointments.index', [
+            'appointments' => $appointments,
+            'users' => $users,
+            'parties' => $parties,
+            'scope' => $canViewAllAppointments
+                ? PermissionScopeCatalog::TENANT_ALL
+                : PermissionScopeCatalog::OWN_ASSIGNED,
+            'canViewAllAppointments' => $canViewAllAppointments,
+        ]);
     }
 
     public function calendar(Request $request)
@@ -94,7 +91,6 @@ class AppointmentController extends Controller
 
         $this->authorize('viewAny', Appointment::class);
 
-        $scope = $this->resolveAppointmentDatasetScope($request);
         $canViewAllAppointments = $this->canViewAllAppointments();
         $assignedUserId = $request->get('assigned_user_id');
         $status = $request->get('status');
@@ -115,15 +111,13 @@ class AppointmentController extends Controller
                 ->orderBy('name')
                 ->get();
 
-            $appointments = Appointment::query()
+            $appointments = app(Security::class)
+                ->scope(auth()->user(), 'appointments.viewAny', Appointment::query())
                 ->with(['party', 'asset', 'order', 'assignedUser'])
                 ->whereBetween('scheduled_date', [
                     $weekStart->toDateString(),
                     $weekEnd->toDateString(),
                 ])
-                ->when($scope === PermissionScopeCatalog::OWN_ASSIGNED, function ($query) {
-                    $query->where('assigned_user_id', auth()->id());
-                })
                 ->when($assignedUserId, fn ($query) => $query->where('assigned_user_id', $assignedUserId))
                 ->when($status, fn ($query) => $query->where('status', $status))
                 ->orderBy('scheduled_date')
@@ -158,7 +152,9 @@ class AppointmentController extends Controller
                 'viewMode' => 'week',
                 'days' => $days,
                 'users' => $users,
-                'scope' => $scope,
+                'scope' => $canViewAllAppointments
+                    ? PermissionScopeCatalog::TENANT_ALL
+                    : PermissionScopeCatalog::OWN_ASSIGNED,
                 'canViewAllAppointments' => $canViewAllAppointments,
                 'selectedAssignedUserId' => $assignedUserId,
                 'selectedStatus' => $status,
@@ -184,15 +180,13 @@ class AppointmentController extends Controller
             ->orderBy('name')
             ->get();
 
-        $appointments = Appointment::query()
+        $appointments = app(Security::class)
+            ->scope(auth()->user(), 'appointments.viewAny', Appointment::query())
             ->with(['party', 'asset', 'order', 'assignedUser'])
             ->whereBetween('scheduled_date', [
                 $gridStart->toDateString(),
                 $gridEnd->toDateString(),
             ])
-            ->when($scope === PermissionScopeCatalog::OWN_ASSIGNED, function ($query) {
-                $query->where('assigned_user_id', auth()->id());
-            })
             ->when($assignedUserId, fn ($query) => $query->where('assigned_user_id', $assignedUserId))
             ->when($status, fn ($query) => $query->where('status', $status))
             ->orderBy('scheduled_date')
@@ -241,7 +235,9 @@ class AppointmentController extends Controller
             'viewMode' => 'month',
             'weeks' => $weeks,
             'users' => $users,
-            'scope' => $scope,
+            'scope' => $canViewAllAppointments
+                ? PermissionScopeCatalog::TENANT_ALL
+                : PermissionScopeCatalog::OWN_ASSIGNED,
             'canViewAllAppointments' => $canViewAllAppointments,
             'selectedAssignedUserId' => $assignedUserId,
             'selectedStatus' => $status,
@@ -461,41 +457,18 @@ class AppointmentController extends Controller
             ->with('success', 'Turno eliminado correctamente.');
     }
 
-    protected function resolveAppointmentDatasetScope(Request $request): string
-    {
-        $scope = $request->get('scope', PermissionScopeCatalog::OWN_ASSIGNED);
-
-        if (! $this->canViewAllAppointments() && $scope === PermissionScopeCatalog::TENANT_ALL) {
-            return PermissionScopeCatalog::OWN_ASSIGNED;
-        }
-
-        return in_array($scope, [PermissionScopeCatalog::OWN_ASSIGNED, PermissionScopeCatalog::TENANT_ALL], true)
-            ? $scope
-            : PermissionScopeCatalog::OWN_ASSIGNED;
-    }
-
     protected function canViewAllAppointments(): bool
     {
-        $scope = app(RolePermissionResolver::class)->actionScope(
-            ModuleCatalog::APPOINTMENTS,
-            CapabilityCatalog::VIEW_ANY,
-            app('tenant'),
-            auth()->user()
-        );
+        $inspection = app(Security::class)->inspect(auth()->user(), 'appointments.viewAny');
 
-        return $scope === PermissionScopeCatalog::TENANT_ALL;
+        return ($inspection['scope'] ?? null) === PermissionScopeCatalog::TENANT_ALL;
     }
 
     protected function canManageForeignAppointment(Appointment $appointment): bool
     {
-        $scope = app(RolePermissionResolver::class)->actionScope(
-            ModuleCatalog::APPOINTMENTS,
-            CapabilityCatalog::UPDATE,
-            app('tenant'),
-            auth()->user()
-        );
+        $inspection = app(Security::class)->inspect(auth()->user(), 'appointments.update', $appointment);
 
-        return $scope === PermissionScopeCatalog::TENANT_ALL
+        return ($inspection['scope'] ?? null) === PermissionScopeCatalog::TENANT_ALL
             && (int) $appointment->assigned_user_id !== (int) auth()->id();
     }
 

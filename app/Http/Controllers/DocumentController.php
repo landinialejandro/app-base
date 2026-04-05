@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DocumentController.php | V11
+// FILE: app/Http/Controllers/DocumentController.php | V12
 
 namespace App\Http\Controllers;
 
@@ -9,6 +9,7 @@ use App\Models\Document;
 use App\Models\DocumentItem;
 use App\Models\Order;
 use App\Models\Party;
+use App\Support\Auth\Security;
 use App\Support\Catalogs\DocumentCatalog;
 use App\Support\Documents\DocumentNumberGenerator;
 use App\Support\Documents\DocumentTotalsCalculator;
@@ -48,7 +49,8 @@ class DocumentController extends Controller
             ->latest()
             ->get();
 
-        $documents = Document::query()
+        $documents = app(Security::class)
+            ->scope(auth()->user(), 'documents.viewAny', Document::query())
             ->with(['party', 'order', 'asset', 'items'])
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($subquery) use ($q) {
@@ -128,6 +130,13 @@ class DocumentController extends Controller
         $prefilledKind = in_array($requestedKind, DocumentCatalog::kinds(), true)
             ? $requestedKind
             : DocumentCatalog::KIND_QUOTE;
+
+        app(Security::class)->authorize(
+            auth()->user(),
+            'documents.create',
+            Document::class,
+            ['kind' => $prefilledKind]
+        );
 
         $prefilledPartyId = $order?->party_id;
         $prefilledAssetId = $order?->asset_id;
@@ -212,6 +221,13 @@ class DocumentController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
+        app(Security::class)->authorize(
+            auth()->user(),
+            'documents.create',
+            Document::class,
+            ['kind' => $data['kind']]
+        );
+
         $issuedAt = $this->resolveIssuedAt($data['issued_at'] ?? null);
         $order = null;
 
@@ -293,6 +309,13 @@ class DocumentController extends Controller
                 ]),
             ],
         ]);
+
+        app(Security::class)->authorize(
+            auth()->user(),
+            'documents.create',
+            Document::class,
+            ['kind' => $data['kind']]
+        );
 
         abort_unless($order->party_id, 422, 'La orden debe tener un contacto asociado para generar documentos.');
 
@@ -493,6 +516,13 @@ class DocumentController extends Controller
                 $data['asset_id'] = $order->asset_id;
             }
         }
+
+        app(Security::class)->authorize(
+            auth()->user(),
+            'documents.update',
+            $document,
+            ['kind' => $data['kind']]
+        );
 
         if (! empty($data['asset_id'])) {
             $asset = Asset::query()->findOrFail($data['asset_id']);

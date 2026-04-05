@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TaskController.php | V8
+// FILE: app/Http/Controllers/TaskController.php | V9
 
 namespace App\Http\Controllers;
 
@@ -8,9 +8,7 @@ use App\Models\Party;
 use App\Models\Project;
 use App\Models\Task;
 use App\Models\User;
-use App\Support\Auth\RolePermissionResolver;
-use App\Support\Catalogs\CapabilityCatalog;
-use App\Support\Catalogs\ModuleCatalog;
+use App\Support\Auth\Security;
 use App\Support\Catalogs\PermissionScopeCatalog;
 use App\Support\Catalogs\TaskCatalog;
 use App\Support\Navigation\NavigationTrail;
@@ -32,28 +30,7 @@ class TaskController extends Controller
         $status = $request->get('status');
         $priority = $request->get('priority');
         $assignedUserId = $request->get('assigned_user_id');
-        $scope = $request->get('scope', PermissionScopeCatalog::OWN_ASSIGNED);
-
-        $resolver = app(RolePermissionResolver::class);
-
-        $viewAnyScope = $resolver->actionScope(
-            ModuleCatalog::TASKS,
-            CapabilityCatalog::VIEW_ANY,
-            $tenant,
-            auth()->user()
-        );
-
-        $canViewAll = $viewAnyScope === PermissionScopeCatalog::TENANT_ALL;
-
-        if (! $canViewAll && $scope === PermissionScopeCatalog::TENANT_ALL) {
-            $scope = PermissionScopeCatalog::OWN_ASSIGNED;
-        }
-
-        if (! in_array($scope, [PermissionScopeCatalog::OWN_ASSIGNED, PermissionScopeCatalog::TENANT_ALL], true)) {
-            $scope = $canViewAll
-                ? PermissionScopeCatalog::TENANT_ALL
-                : PermissionScopeCatalog::OWN_ASSIGNED;
-        }
+        $canViewAll = $this->canViewAllTasks();
 
         $projects = Project::query()
             ->orderBy('name')
@@ -67,11 +44,9 @@ class TaskController extends Controller
             ->orderBy('name')
             ->get();
 
-        $tasks = TaskVisibility::visibleQuery()
+        $tasks = app(Security::class)
+            ->scope(auth()->user(), 'tasks.viewAny', TaskVisibility::visibleQuery())
             ->with(['project', 'party', 'assignedUser', 'order'])
-            ->when($scope === PermissionScopeCatalog::OWN_ASSIGNED, function ($query) {
-                $query->where('assigned_user_id', auth()->id());
-            })
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($subquery) use ($q) {
                     $subquery->where('name', 'like', "%{$q}%");
@@ -129,14 +104,16 @@ class TaskController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('tasks.index', compact(
-            'tenant',
-            'tasks',
-            'projects',
-            'users',
-            'scope',
-            'canViewAll'
-        ));
+        return view('tasks.index', [
+            'tenant' => $tenant,
+            'tasks' => $tasks,
+            'projects' => $projects,
+            'users' => $users,
+            'scope' => $canViewAll
+                ? PermissionScopeCatalog::TENANT_ALL
+                : PermissionScopeCatalog::OWN_ASSIGNED,
+            'canViewAll' => $canViewAll,
+        ]);
     }
 
     public function create(Request $request)
@@ -250,8 +227,7 @@ class TaskController extends Controller
 
         $canEditTask = auth()->user()->can('update', $task);
         $canDeleteTask = auth()->user()->can('delete', $task);
-        $isForeignTaskForAdmin = $canDeleteTask
-            && (int) $task->assigned_user_id !== (int) auth()->id();
+        $isForeignTaskForAdmin = $this->canManageForeignTask($task);
 
         $navigationTrail = TaskNavigationTrail::show($request, $task);
 
@@ -286,8 +262,7 @@ class TaskController extends Controller
         $forcedProject = null;
         $canChangeProject = auth()->user()->can('create', Project::class);
         $defaultAssignedUserId = old('assigned_user_id', (string) ($task->assigned_user_id ?? auth()->id()));
-        $isForeignTaskForAdmin = auth()->user()->can('delete', $task)
-            && (int) $task->assigned_user_id !== (int) auth()->id();
+        $isForeignTaskForAdmin = $this->canManageForeignTask($task);
 
         $navigationTrail = TaskNavigationTrail::edit($request, $task);
 
@@ -351,8 +326,7 @@ class TaskController extends Controller
                 ->withInput();
         }
 
-        $isAdminEditingForeignTask = auth()->user()->can('delete', $task)
-            && (int) $task->assigned_user_id !== (int) auth()->id();
+        $isAdminEditingForeignTask = $this->canManageForeignTask($task);
 
         if ($isAdminEditingForeignTask && $request->input('confirm_foreign_task_edit') !== '1') {
             return back()
@@ -397,5 +371,20 @@ class TaskController extends Controller
         return redirect()
             ->to($redirectUrl)
             ->with('success', 'Tarea eliminada correctamente.');
+    }
+
+    protected function canViewAllTasks(): bool
+    {
+        $inspection = app(Security::class)->inspect(auth()->user(), 'tasks.viewAny');
+
+        return ($inspection['scope'] ?? null) === PermissionScopeCatalog::TENANT_ALL;
+    }
+
+    protected function canManageForeignTask(Task $task): bool
+    {
+        $inspection = app(Security::class)->inspect(auth()->user(), 'tasks.update', $task);
+
+        return ($inspection['scope'] ?? null) === PermissionScopeCatalog::TENANT_ALL
+            && (int) $task->assigned_user_id !== (int) auth()->id();
     }
 }

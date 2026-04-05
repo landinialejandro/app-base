@@ -1,16 +1,16 @@
 <?php
 
-// FILE: app/Http/Controllers/ProjectController.php | V5
+// FILE: app/Http/Controllers/ProjectController.php | V6
 
 namespace App\Http\Controllers;
 
 use App\Models\Project;
+use App\Support\Auth\Security;
 use App\Support\Catalogs\ProjectCatalog;
 use App\Support\Catalogs\TaskCatalog;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\ProjectNavigationTrail;
 use App\Support\Projects\ProjectMetrics;
-use App\Support\Projects\ProjectVisibility;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -25,7 +25,8 @@ class ProjectController extends Controller
         $q = trim((string) $request->get('q', ''));
         $status = (string) $request->get('status', '');
 
-        $projects = ProjectVisibility::visibleQuery()
+        $projects = app(Security::class)
+            ->scope(auth()->user(), 'projects.viewAny', Project::query())
             ->select('projects.*')
             ->selectSub(function ($query) {
                 $query->from('tasks')

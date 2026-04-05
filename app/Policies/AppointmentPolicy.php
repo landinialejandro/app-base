@@ -1,88 +1,42 @@
 <?php
 
-// FILE: app/Policies/AppointmentPolicy.php | V4
+// FILE: app/Policies/AppointmentPolicy.php | V5
 
 namespace App\Policies;
 
 use App\Models\Appointment;
 use App\Models\User;
-use App\Support\Auth\RecordScopeResolver;
-use App\Support\Auth\RolePermissionResolver;
-use App\Support\Catalogs\CapabilityCatalog;
-use App\Support\Catalogs\ModuleCatalog;
-use App\Support\Catalogs\PermissionScopeCatalog;
+use App\Support\Auth\Security;
 
 class AppointmentPolicy
 {
-    protected function resolver(): RolePermissionResolver
+    protected function security(): Security
     {
-        return app(RolePermissionResolver::class);
-    }
-
-    protected function recordScopeResolver(): RecordScopeResolver
-    {
-        return app(RecordScopeResolver::class);
+        return app(Security::class);
     }
 
     public function viewAny(User $user): bool
     {
-        return $this->resolver()->can(
-            ModuleCatalog::APPOINTMENTS,
-            CapabilityCatalog::VIEW_ANY,
-            app('tenant'),
-            $user
-        );
+        return $this->security()->allows($user, 'appointments.viewAny');
     }
 
     public function view(User $user, Appointment $appointment): bool
     {
-        $scope = $this->resolver()->actionScope(
-            ModuleCatalog::APPOINTMENTS,
-            CapabilityCatalog::VIEW,
-            app('tenant'),
-            $user
-        );
-
-        if (! in_array($scope, [PermissionScopeCatalog::TENANT_ALL, PermissionScopeCatalog::OWN_ASSIGNED], true)) {
-            return false;
-        }
-
-        return $this->recordScopeResolver()->allowsAssignedUserScope($scope, $appointment, $user);
+        return $this->security()->allows($user, 'appointments.view', $appointment);
     }
 
     public function create(User $user): bool
     {
-        return $this->resolver()->can(
-            ModuleCatalog::APPOINTMENTS,
-            CapabilityCatalog::CREATE,
-            app('tenant'),
-            $user
-        );
+        return $this->security()->allows($user, 'appointments.create', Appointment::class);
     }
 
     public function update(User $user, Appointment $appointment): bool
     {
-        $scope = $this->resolver()->actionScope(
-            ModuleCatalog::APPOINTMENTS,
-            CapabilityCatalog::UPDATE,
-            app('tenant'),
-            $user
-        );
-
-        if (! in_array($scope, [PermissionScopeCatalog::TENANT_ALL, PermissionScopeCatalog::OWN_ASSIGNED], true)) {
-            return false;
-        }
-
-        return $this->recordScopeResolver()->allowsAssignedUserScope($scope, $appointment, $user);
+        return $this->security()->allows($user, 'appointments.update', $appointment);
     }
 
     public function delete(User $user, Appointment $appointment): bool
     {
-        return $this->resolver()->can(
-            ModuleCatalog::APPOINTMENTS,
-            CapabilityCatalog::DELETE,
-            app('tenant'),
-            $user
-        );
+        return $this->security()->allows($user, 'appointments.delete', $appointment);
     }
 }

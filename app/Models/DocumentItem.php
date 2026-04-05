@@ -1,20 +1,19 @@
 <?php
 
-// FILE: app/Models/DocumentItem.php
+// FILE: app/Models/DocumentItem.php | V2
 
 namespace App\Models;
 
+use App\Models\Concerns\ResolvesTenantRouteBinding;
+use App\Models\Concerns\TenantScoped;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-use App\Models\Concerns\TenantScoped;
-use App\Models\Concerns\ResolvesTenantRouteBinding;
-
 class DocumentItem extends Model
 {
+    use ResolvesTenantRouteBinding;
     use SoftDeletes;
     use TenantScoped;
-    use ResolvesTenantRouteBinding;
 
     protected $fillable = [
         'tenant_id',
@@ -33,12 +32,6 @@ class DocumentItem extends Model
         'unit_price' => 'decimal:2',
         'line_total' => 'decimal:2',
     ];
-
-    /*
-    |--------------------------------------------------------------------------
-    | Relationships
-    |--------------------------------------------------------------------------
-    */
 
     public function document()
     {

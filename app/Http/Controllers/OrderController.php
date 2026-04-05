@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderController.php | V16
+// FILE: app/Http/Controllers/OrderController.php | V17
 
 namespace App\Http\Controllers;
 
@@ -9,6 +9,7 @@ use App\Models\Asset;
 use App\Models\Order;
 use App\Models\Party;
 use App\Models\Task;
+use App\Support\Auth\Security;
 use App\Support\Catalogs\OrderCatalog;
 use App\Support\Catalogs\ProductCatalog;
 use App\Support\Documents\DocumentNumberGenerator;
@@ -43,7 +44,8 @@ class OrderController extends Controller
             ->orderBy('name')
             ->get();
 
-        $orders = Order::query()
+        $orders = app(Security::class)
+            ->scope(auth()->user(), 'orders.viewAny', Order::query())
             ->with(['party', 'asset', 'task', 'items'])
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($subquery) use ($q) {
@@ -101,6 +103,13 @@ class OrderController extends Controller
         $requestedKind = (string) $request->get('kind', '');
 
         if ($requestedKind !== '' && in_array($requestedKind, OrderCatalog::kinds(), true)) {
+            app(Security::class)->authorize(
+                auth()->user(),
+                'orders.create',
+                Order::class,
+                ['kind' => $requestedKind]
+            );
+
             $prefilledKind = $requestedKind;
         }
 
@@ -172,6 +181,13 @@ class OrderController extends Controller
             $prefilledKind = OrderCatalog::KIND_SERVICE;
         }
 
+        app(Security::class)->authorize(
+            auth()->user(),
+            'orders.create',
+            Order::class,
+            ['kind' => $prefilledKind]
+        );
+
         $navigationTrail = OrderNavigationTrail::create($request, $prefilledAppointment);
 
         return view('orders.create', compact(
@@ -241,6 +257,13 @@ class OrderController extends Controller
             'ordered_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
         ]);
+
+        app(Security::class)->authorize(
+            auth()->user(),
+            'orders.create',
+            Order::class,
+            ['kind' => $data['kind']]
+        );
 
         if (! empty($data['asset_id'])) {
             $asset = Asset::query()->findOrFail($data['asset_id']);
@@ -416,6 +439,13 @@ class OrderController extends Controller
         if ($order->number) {
             $data['kind'] = $order->kind;
         }
+
+        app(Security::class)->authorize(
+            auth()->user(),
+            'orders.update',
+            $order,
+            ['kind' => $data['kind']]
+        );
 
         if (! empty($order->asset_id)) {
             if ((int) ($data['asset_id'] ?? 0) !== (int) $order->asset_id) {

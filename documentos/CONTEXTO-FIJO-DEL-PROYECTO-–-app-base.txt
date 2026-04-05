@@ -468,9 +468,15 @@ tenant_all
 own_assigned
 limited
 
+limited solo puede existir cuando el módulo tenga un resolver explícito que traduzca ese alcance a dataset o visibilidad real
+
 no existen registros persistidos con role_permission.scope = all dentro del estado validado actual
 
 las policies no deben hardcodear permisos dispersos cuando esta capa exista formalmente
+
+el kernel real de autorización debe ser consumido por policies, controllers y resolución de datasets
+
+Blade continúa utilizando @can como capa visible final de la autorización ya resuelta
 
 la navegación y accesos visibles deben reutilizar la misma lógica real de acceso
 
@@ -488,9 +494,13 @@ projects conserva una regla de dominio complementaria integrada al scope efectiv
 
 appointments resuelve lectura mediante capacidad concreta de lectura
 
+orders y documents no deben resolverse por ownership artificial del registro
+
+su segmentación fina debe apoyarse en constraints.allowed_kinds cuando corresponda
+
 attachments no debe tratarse como módulo V2 autónomo
 
-la autorización de attachments se delega completamente al recurso padre (attachable)
+order_items, document_items y attachments deben consolidarse como recursos delegados al padre para create, update y delete
 
 la validación operativa ya confirmó compatibilidad con:
 
@@ -632,15 +642,21 @@ en tasks y appointments no deben utilizarse ni reinterpretarse scopes legacy com
 all
 mine
 
-la visibilidad del dashboard y de métricas agregadas puede variar según rol
-
-el dashboard analítico queda reservado al nivel privilegiado owner y admin
-
 orders debe consolidarse como cabecera operativa interna del tenant, incluyendo trabajo comercial y operativo de servicio
 
 documents debe consolidarse como módulo documental, formal y fiscal, separado de la operación interna diaria
 
+orders y documents siguen siendo módulos compartidos del tenant
+
+su restricción fina no debe resolverse por ownership ni por created_by
+
+cuando se necesite segmentación funcional por tipo, debe resolverse mediante constraints.allowed_kinds
+
 work_order deja de considerarse tipo documental operativo activo y pasa a tratarse como kind legacy inhabilitado, sin uso normal en UI ni en flujos corrientes
+
+la visibilidad del dashboard y de métricas agregadas puede variar según rol
+
+el dashboard analítico queda reservado al nivel privilegiado owner y admin
 <<END SECTION>>
 
 <<SECTION: Reglas generales de autorización ya consolidadas>>
@@ -658,18 +674,23 @@ policy
 authorize en controller
 @can en vistas
 
+la resolución del dataset no debe vivir repartida entre controllers o blades
+
+debe apoyarse en la capa central de autorización y en sus resolvers efectivos
+
+las policies actúan como wrapper mínimo de consumo de esa capa central
+
 delete de registros principales compartidos debe reservarse a owner y admin, salvo excepción funcional justificada
 
-los ítems embebidos deben heredar autorización desde la cabecera cuando la acción dependa naturalmente de ella
+los recursos hijos o embebidos cuya vida operativa dependa de una cabecera no deben tratarse como autorización autónoma
 
 esto aplica explícitamente a:
 
 order_items respecto de orders
 document_items respecto de documents
+attachments respecto de su attachable
 
-attachments no debe resolver autorización propia para acciones operativas
-
-create, update y delete de attachments deben depender de la capacidad update sobre el recurso padre (attachable)
+create, update y delete de order_items, document_items y attachments deben depender de la capacidad update sobre el recurso padre correspondiente
 
 navbar, dashboard y accesos rápidos deben respetar acceso real del usuario al módulo
 

@@ -61,6 +61,8 @@ controller delgado
 validación separada cuando haga falta
 authorize(...) o authorizeResource(...) aplicado cuando corresponda
 no duplicar permisos en controller si la policy ya resuelve la acción
+si el módulo tiene listados o datasets con visibilidad variable, resolverlos desde la capa central de autorización y no con lógica paralela ad hoc
+si el módulo requiere constraints funcionales, declararlas y consumirlas explícitamente desde la capa central
 <<END SECTION>>
 
 <<SECTION: VISTAS>>
@@ -111,6 +113,14 @@ resolver
 policy
 controller
 UI
+
+si el módulo necesita segmentación funcional adicional:
+
+definir si se resuelve solo por scope o además por constraints
+
+si usa constraints, documentarlas y validarlas explícitamente
+
+allowed_kinds es el primer caso oficial consolidado de constraint funcional del proyecto
 
 si el módulo incluye entidades hijas o embebidas:
 
@@ -218,4 +228,12 @@ alineado con permisos reales
 alineado con multi-tenancy
 alineado con la base visual
 alineado con la documentación vigente
+
+Además debe quedar explícitamente resuelto:
+
+si el dataset se gobierna desde la capa central de autorización
+
+si el módulo usa solo scopes o también constraints funcionales
+
+si las entidades hijas o embebidas se autorizan por delegación al padre
 <<END SECTION>>

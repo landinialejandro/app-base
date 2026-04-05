@@ -174,7 +174,7 @@ la membership incorpora profile_slug para refinar capacidades sin multiplicar ro
 
 la autorización no debe depender únicamente de una matriz plana módulo × rol
 
-la resolución efectiva debe considerar además capacidades concretas, scope, execution mode y alcance real sobre el registro
+la resolución efectiva debe considerar además capacidades concretas, scope, execution mode, constraints y alcance real sobre el registro
 
 la matriz V2 normalizada vigente trabaja con las capacidades:
 
@@ -200,7 +200,13 @@ limited
 
 all y mine quedan fuera de la capa vigente y no deben utilizarse ni en datos, ni en resolver, ni en policies, ni en UI
 
+limited solo puede existir cuando el módulo tenga resolución explícita de dataset o visibilidad por resolver
+
 la eliminación sensible debe reservarse a owner y admin, salvo necesidad funcional justificada
+
+orders y documents deben tratarse como módulos compartidos del tenant
+
+su segmentación funcional fina debe apoyarse en constraints.allowed_kinds y no en ownership artificial del registro
 
 la visibilidad del dashboard y de métricas agregadas debe respetar el rol y no asumir siempre conteos globales del tenant
 
@@ -326,17 +332,23 @@ tenant_all
 own_assigned
 limited
 
+limited solo puede existir acompañado por un resolver explícito por módulo
+
+constraints forma parte obligatoria de la doctrina estable de permisos y no como metadata decorativa
+
+allowed_kinds queda consolidada como primera constraint funcional oficial para segmentación de orders y documents
+
+orders y documents deben permanecer como módulos compartidos del tenant y no migrar a ownership artificial por registro
+
 un módulo no debe considerarse migrado a V2 si existen inconsistencias entre convención y código real
 
 las entidades hijas no deben considerarse cubiertas por V2 si no existe implementación efectiva de autorización
 
-attachments es un caso especial:
+attachments, order_items y document_items son recursos delegados:
 
-no es un módulo autónomo de permisos
+no deben tratarse como módulos autónomos de permisos
 
-su autorización se delega al recurso padre
-
-las acciones deben resolverse contra capacidades del attachable
+sus acciones deben resolverse contra capacidades del recurso padre
 <<END SECTION>>
 
 <<SECTION: TRAIT TENANTSCOPED>>
@@ -393,21 +405,17 @@ document_items
 
 Reglas actualizadas:
 
-cuando la autorización de la entidad hija dependa naturalmente de la cabecera:
+cuando la entidad hija forme parte natural de la operación de la cabecera, debe tratarse preferentemente como recurso delegado al padre
 
-no debe asumirse que la herencia de autorización está garantizada si no existe implementación real en policies
+la autorización de create, update y delete debe resolverse contra la capacidad update del recurso padre correspondiente
 
-si la entidad hija no tiene policy propia ni delegación explícita implementada hacia la cabecera, se considera que la autorización no está resuelta
+no debe modelarse una autorización autónoma innecesaria para la entidad hija si su ciclo de vida depende funcionalmente de la cabecera
 
-no debe confiarse en la convención declarativa si no está respaldada por código real
+si existiera una policy propia, debe limitarse a delegar explícitamente en el padre y no duplicar doctrina paralela
 
-la herencia de autorización debe implementarse explícitamente en policies o resolverse mediante la capa central de permisos
+attachments sigue el mismo criterio general de delegación al recurso padre aunque no sea una entidad hija cabecera/detalle clásica
 
-hasta tanto no exista esa implementación efectiva:
-
-order_items y document_items no deben considerarse protegidos por herencia automática
-
-cualquier acción sobre entidades hijas debe auditarse contra su implementación real y no contra la intención conceptual
+cualquier excepción a esta regla debe justificarse por necesidad real del dominio y no por comodidad de implementación
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE OWNERSHIP FUNCIONAL Y PERMISOS OPERATIVOS SIMPLES>>
@@ -481,13 +489,17 @@ Esto ya se considera válido para la visibilidad operativa de projects y para la
 
 Reglas:
 
-no duplicar resolución de scopes en controllers, blades o policies si ya existe resolver central
+no duplicar resolución de scopes y constraints en controllers, blades o policies si ya existe resolver central
 
 no reinterpretar view_any como booleano cuando el resolver ya entrega scope válido
 
 no reinterpretar scopes válidos mediante aliases legacy como all o mine
 
 los alcances visibles en UI deben consumirse desde catálogo o resolver central y no reconstruirse manualmente
+
+los datasets deben resolverse desde la capa central de autorización y no mediante lógica paralela por controller
+
+limited solo puede utilizarse si existe resolver explícito por módulo
 
 la salida del resolver debe mantenerse consistente con la matriz sembrada y con los datos persistidos reales del tenant
 <<END SECTION>>
@@ -522,7 +534,9 @@ cuando exista una policy:
 el controller debe invocar authorize(...) o authorizeResource(...)
 la vista debe respetar permisos reales con @can
 
-las policies deben trabajar con capacidades concretas y scopes efectivos
+las policies deben trabajar con capacidades concretas, scopes efectivos y constraints aplicables
+
+las policies deben tender a wrappers mínimos sobre el kernel central de autorización
 
 distinción obligatoria:
 
@@ -543,11 +557,7 @@ no deben reinterpretar tenant_all, own_assigned o limited como aliases legacy
 
 las entidades hijas no deben asumir herencia automática de autorización
 
-order_items y document_items requieren implementación explícita de autorización o delegación efectiva
-
-attachments no debe tener autorización autónoma
-
-sus acciones deben resolverse contra el attachable
+order_items, document_items y attachments deben resolverse como recursos delegados al padre cuando la acción dependa naturalmente de la cabecera
 
 una policy que no se consume desde controller y vista no protege efectivamente el sistema
 <<END SECTION>>
@@ -614,6 +624,12 @@ data-* = comportamiento
 Las acciones visibles deben respetar siempre permisos reales
 
 no deben renderizarse acciones no permitidas aunque el backend las bloquee
+
+Blade continúa utilizando @can como verificación visible final del permiso
+
+la resolución del dataset no debe reconstruirse en Blade
+
+debe venir ya resuelta desde controllers y capa central de autorización
 
 en vistas embebidas o sublistados:
 

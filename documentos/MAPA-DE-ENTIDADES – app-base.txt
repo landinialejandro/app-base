@@ -228,6 +228,10 @@ scope
 execution_mode
 constraints
 
+la segmentación fina de módulos compartidos puede apoyarse en constraints funcionales y no requiere ownership artificial del registro
+
+allowed_kinds queda consolidada como primera constraint oficial para orders y documents
+
 permissions deja de considerarse una posibilidad abstracta futura y pasa a formar parte de la base activa de la capa V2 de autorización
 
 membership_permission_overrides forma parte de la estructura real del sistema para excepciones puntuales sobre la base de permisos
@@ -409,6 +413,14 @@ orders representa la operación interna del tenant
 debe absorber tanto la dimensión comercial operativa como la dimensión de servicio u operación técnica
 
 la orden de servicio real del sistema pertenece a orders y no a documents
+
+Regla de autorización consolidada:
+
+orders debe tratarse como módulo compartido del tenant
+
+no debe segmentarse por ownership artificial del registro
+
+cuando se requiera segmentación funcional por tipo, debe resolverse mediante constraints.allowed_kinds
 <<END SECTION>>
 
 <<SECTION: ORDER_ITEMS>>
@@ -420,8 +432,8 @@ Reglas:
 
 pertenece a una Order
 hereda tenant_id desde la cabecera
-normalmente no requiere policy independiente compleja
-su autorización puede heredarse desde Order
+no debe tratarse como recurso autónomo de autorización
+su create, update y delete deben delegarse a la capacidad update de Order
 <<END SECTION>>
 
 <<SECTION: DOCUMENTS>>
@@ -450,6 +462,12 @@ documents no debe representar la operación interna diaria del tenant
 
 documents debe concentrar la dimensión documental, formal, comercial o fiscal derivada de la operación
 
+documents debe tratarse como módulo compartido del tenant
+
+su segmentación funcional no debe resolverse por ownership artificial del registro
+
+cuando se requiera segmentación por tipo, debe apoyarse en constraints.allowed_kinds
+
 Regla actual importante:
 
 si un Document nace desde una Order, hereda automáticamente:
@@ -470,7 +488,8 @@ Reglas:
 pertenece a un Document
 hereda tenant_id desde la cabecera
 puede originarse manualmente o por copia desde OrderItems
-su autorización puede heredarse desde Document
+no debe tratarse como recurso autónomo de autorización
+su create, update y delete deben delegarse a la capacidad update de Document
 <<END SECTION>>
 
 <<SECTION: DOCUMENT_SEQUENCES>>
@@ -514,9 +533,11 @@ Regla consolidada en comportamiento real:
 
 attachments no posee lógica de ownership independiente
 
+no debe tratarse como recurso autónomo de autorización
+
 su autorización se delega completamente al recurso padre (attachable)
 
-las acciones sobre attachments dependen de la capacidad update del recurso padre
+las acciones create, update y delete sobre attachments dependen de la capacidad update del recurso padre
 
 esto aplica de forma consistente en:
 

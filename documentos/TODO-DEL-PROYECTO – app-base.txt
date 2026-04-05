@@ -242,6 +242,10 @@ attachments opera como autorización delegada al recurso padre
 
 estado actual validado:
 
+tasks y appointments ya no usan all en UI, controllers, policies, resolver ni datos persistidos
+
+el barrido de scopes legacy quedó resuelto y validado para la capa operativa auditada de tasks y appointments
+
 order_items y document_items no poseen implementación efectiva de autorización mediante policy ni delegación real desde cabecera
 
 pendientes reales:
@@ -261,6 +265,8 @@ consistencia base de memberships en datos de prueba
 coherencia entre is_owner y rol persistido
 
 regularización del dataset base para pruebas V2 en tenants, users, memberships, roles, role_permission, tasks, orders, documents, assets y appointments
+
+barrido de scope legacy all en la capa operativa auditada de tasks y appointments
 
 pendientes futuros de esta capa:
 

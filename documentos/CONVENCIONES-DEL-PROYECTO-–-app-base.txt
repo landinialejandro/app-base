@@ -198,6 +198,8 @@ tenant_all
 own_assigned
 limited
 
+all y mine quedan fuera de la capa vigente y no deben utilizarse ni en datos, ni en resolver, ni en policies, ni en UI
+
 la eliminación sensible debe reservarse a owner y admin, salvo necesidad funcional justificada
 
 la visibilidad del dashboard y de métricas agregadas debe respetar el rol y no asumir siempre conteos globales del tenant
@@ -315,6 +317,8 @@ no deben resolverse mediante canUseModule para lectura general
 view_any no debe degradarse a booleano
 
 el scope all queda fuera de la matriz vigente y no debe utilizarse
+
+mine también queda fuera de la capa vigente y no debe utilizarse como alias funcional de scope
 
 los scopes efectivos validados pasan a ser:
 
@@ -481,6 +485,8 @@ no duplicar resolución de scopes en controllers, blades o policies si ya existe
 
 no reinterpretar view_any como booleano cuando el resolver ya entrega scope válido
 
+no reinterpretar scopes válidos mediante aliases legacy como all o mine
+
 los alcances visibles en UI deben consumirse desde catálogo o resolver central y no reconstruirse manualmente
 
 la salida del resolver debe mantenerse consistente con la matriz sembrada y con los datos persistidos reales del tenant
@@ -521,6 +527,8 @@ las policies deben trabajar con capacidades concretas y scopes efectivos
 viewAny y view no deben resolverse como booleanos genéricos si el resolver ya entrega scope válido
 
 no deben resolver lectura únicamente con canUseModule
+
+no deben reinterpretar tenant_all, own_assigned o limited como aliases legacy
 
 las entidades hijas no deben asumir herencia automática de autorización
 
@@ -602,6 +610,16 @@ debe evaluar update sobre el attachable
 los botones de alta, edición y eliminación deben alinearse con esa lógica
 
 las vistas no deben reconstruir lógica de permisos por fuera de la capa central
+
+la UI no debe usar ni reinterpretar scopes legacy como all o mine
+
+si la interfaz necesita mostrar o seleccionar alcances, debe consumir únicamente scopes válidos del catálogo vigente
+
+esto incluye en especial:
+
+tenant_all
+own_assigned
+limited
 
 cuando una pieza global del layout exponga información del sistema, debe resolverse desde provider o capa central y no inline
 

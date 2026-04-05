@@ -443,6 +443,7 @@ RecordScopeResolver resuelve el alcance efectivo sobre registros concretos.
 Dirección de diseño consolidada:
 
 la lógica no debe quedar acoplada a una matriz plana módulo × rol
+
 RolePermissionMatrix deja de formar parte de la arquitectura vigente
 
 la autorización debe resolverse mediante:
@@ -458,6 +459,16 @@ constraints
 los scopes no son genéricos por capability sino definidos por combinación módulo + capacidad
 
 no deben existir scopes inválidos, ambiguos o genéricos fuera de los definidos explícitamente
+
+la capa vigente ya no utiliza el scope legacy all
+
+la resolución operativa validada utiliza únicamente:
+
+tenant_all
+own_assigned
+limited
+
+no existen registros persistidos con role_permission.scope = all dentro del estado validado actual
 
 las policies no deben hardcodear permisos dispersos cuando esta capa exista formalmente
 
@@ -611,6 +622,15 @@ projects mantiene visibilidad por participación operativa:
 owner y admin ven todos los proyectos
 
 roles operativos ven solo proyectos donde tengan al menos una tarea asignada
+
+appointments ya quedó alineado al esquema V2 vigente de scopes válidos
+
+en tasks y appointments, controllers, policies, resolver, filtros de dataset y UI auditada consumen únicamente scopes V2 válidos del catálogo
+
+en tasks y appointments no deben utilizarse ni reinterpretarse scopes legacy como:
+
+all
+mine
 
 la visibilidad del dashboard y de métricas agregadas puede variar según rol
 

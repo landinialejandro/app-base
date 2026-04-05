@@ -1,10 +1,12 @@
 <?php
 
-// database/seeders/Modules/MembershipModuleSeeder.php
+// FILE: database/seeders/Modules/MembershipModuleSeeder.php | V2
 
 namespace Database\Seeders\Modules;
 
 use App\Models\Membership;
+use App\Support\Catalogs\RoleCatalog;
+use Illuminate\Support\Facades\DB;
 
 class MembershipModuleSeeder extends BaseModuleSeeder
 {
@@ -18,18 +20,114 @@ class MembershipModuleSeeder extends BaseModuleSeeder
         $users = $this->getDependency('users');
 
         $memberships = [
-            [$tenants['tech'], $users['ownerTech'], true],
-            [$tenants['tech'], $users['shared'], false],
-            [$tenants['tech'], $users['techUser'], false],
-            [$tenants['andina'], $users['ownerAndina'], true],
-            [$tenants['andina'], $users['shared'], false],
-            [$tenants['andina'], $users['andinaUser'], false],
+            [
+                'tenant' => $tenants['tech'],
+                'user' => $users['ownerTech'],
+                'is_owner' => true,
+                'status' => 'active',
+                'profile_slug' => null,
+                'roles' => [],
+            ],
+            [
+                'tenant' => $tenants['tech'],
+                'user' => $users['shared'],
+                'is_owner' => false,
+                'status' => 'active',
+                'profile_slug' => null,
+                'roles' => [RoleCatalog::OPERATOR],
+            ],
+            [
+                'tenant' => $tenants['tech'],
+                'user' => $users['techUser'],
+                'is_owner' => false,
+                'status' => 'active',
+                'profile_slug' => null,
+                'roles' => [RoleCatalog::SALES],
+            ],
+            [
+                'tenant' => $tenants['andina'],
+                'user' => $users['ownerAndina'],
+                'is_owner' => true,
+                'status' => 'active',
+                'profile_slug' => null,
+                'roles' => [],
+            ],
+            [
+                'tenant' => $tenants['andina'],
+                'user' => $users['shared'],
+                'is_owner' => false,
+                'status' => 'active',
+                'profile_slug' => null,
+                'roles' => [RoleCatalog::ADMINISTRATOR],
+            ],
+            [
+                'tenant' => $tenants['andina'],
+                'user' => $users['andinaUser'],
+                'is_owner' => false,
+                'status' => 'active',
+                'profile_slug' => null,
+                'roles' => [RoleCatalog::OPERATOR],
+            ],
         ];
 
-        foreach ($memberships as [$tenant, $user, $isOwner]) {
-            Membership::firstOrCreate(
-                ['tenant_id' => $tenant->id, 'user_id' => $user->id],
-                ['status' => 'active', 'is_owner' => $isOwner, 'joined_at' => now()]
+        $createdMemberships = [];
+
+        foreach ($memberships as $definition) {
+            $membership = Membership::updateOrCreate(
+                [
+                    'tenant_id' => $definition['tenant']->id,
+                    'user_id' => $definition['user']->id,
+                ],
+                [
+                    'status' => $definition['status'],
+                    'is_owner' => $definition['is_owner'],
+                    'profile_slug' => $definition['profile_slug'],
+                    'joined_at' => now(),
+                    'blocked_at' => null,
+                    'blocked_reason' => null,
+                ]
+            );
+
+            $this->syncMembershipRoles($membership->id, $definition['tenant']->id, $definition['roles']);
+
+            $createdMemberships[] = $membership;
+        }
+
+        $this->context['memberships'] = collect($createdMemberships);
+    }
+
+    private function syncMembershipRoles(int $membershipId, string $tenantId, array $roleSlugs): void
+    {
+        DB::table('membership_role')
+            ->where('membership_id', $membershipId)
+            ->delete();
+
+        if (empty($roleSlugs)) {
+            return;
+        }
+
+        $roleIds = DB::table('roles')
+            ->where('tenant_id', $tenantId)
+            ->whereIn('slug', $roleSlugs)
+            ->pluck('id', 'slug');
+
+        foreach ($roleSlugs as $roleSlug) {
+            $roleId = $roleIds[$roleSlug] ?? null;
+
+            if (! $roleId) {
+                continue;
+            }
+
+            DB::table('membership_role')->updateOrInsert(
+                [
+                    'membership_id' => $membershipId,
+                    'role_id' => $roleId,
+                ],
+                [
+                    'branch_id' => null,
+                    'created_at' => now(),
+                    'updated_at' => now(),
+                ]
             );
         }
     }

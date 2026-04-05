@@ -1,6 +1,6 @@
 <?php
 
-// database/seeders/Modules/CrossRelationsSeeder.php
+// FILE: database/seeders/Modules/CrossRelationsSeeder.php | V2
 
 namespace Database\Seeders\Modules;
 
@@ -10,7 +10,12 @@ class CrossRelationsSeeder extends BaseModuleSeeder
 {
     public function run(): void
     {
-        if (! $this->hasDependency('tenants') || ! $this->hasDependency('tasks') || ! $this->hasDependency('orders') || ! $this->hasDependency('assets')) {
+        if (
+            ! $this->hasDependency('tenants')
+            || ! $this->hasDependency('tasks')
+            || ! $this->hasDependency('orders')
+            || ! $this->hasDependency('assets')
+        ) {
             throw new \RuntimeException('CrossRelationsSeeder requires tenants, tasks, orders, and assets');
         }
 
@@ -21,236 +26,217 @@ class CrossRelationsSeeder extends BaseModuleSeeder
         $documents = $this->getDependency('documents') ?? [];
         $appointments = $this->getDependency('appointments') ?? [];
 
-        // 1. Vincular tareas a órdenes
-        $this->linkTasksToOrders($tenants, $tasks, $orders);
+        $this->linkTasksToOrders($tasks, $orders);
+        $this->linkOrdersToAssets($orders, $assets);
+        $this->linkDocumentsToAssets($documents, $assets);
+        $this->linkAppointmentsToOrders($appointments, $orders);
+        $this->verifyOrdersToTasks($tenants, $orders, $tasks);
 
-        // 2. Vincular órdenes a activos
-        $this->linkOrdersToAssets($tenants, $orders, $assets);
-
-        // 3. Vincular documentos a activos
-        $this->linkDocumentsToAssets($tenants, $documents, $assets);
-
-        // 4. Vincular turnos a órdenes
-        $this->linkAppointmentsToOrders($tenants, $appointments, $orders);
-
-        // 5. Crear relaciones de orden a tarea (inversa)
-        $this->linkOrdersToTasks($tenants, $orders, $tasks);
-
-        $this->command->info('Cross relations created successfully!');
+        $this->command?->info('Cross relations created successfully!');
     }
 
-    private function linkTasksToOrders($tenants, $tasks, $orders): void
+    private function linkTasksToOrders($tasks, $orders): void
     {
-        // Tech: Vincular tareas de tech con órdenes de tech
-        $techTasks = $tasks['tech'] ?? collect();
-        $techOrders = $orders['tech'] ?? collect();
+        $this->linkTaskAndOrderPair(
+            $tasks['tech'] ?? collect(),
+            $orders['tech'] ?? collect(),
+            'Relevar usuarios operativos',
+            'service'
+        );
 
-        if ($techTasks->count() > 0 && $techOrders->count() > 0) {
-            // Tarea "Service general" con orden de servicio
-            $serviceTask = $techTasks->firstWhere('name', 'Relevar usuarios operativos');
-            $serviceOrder = $techOrders->firstWhere('kind', 'service');
+        $this->linkTaskAndOrderPair(
+            $tasks['tech'] ?? collect(),
+            $orders['tech'] ?? collect(),
+            'Reunión inicial con cliente',
+            'sale'
+        );
 
-            if ($serviceTask && $serviceOrder) {
-                $serviceOrder->update(['task_id' => $serviceTask->id]);
-                $this->command->info("Linked task '{$serviceTask->name}' to order '{$serviceOrder->number}'");
-            }
+        $this->linkTaskAndOrderPair(
+            $tasks['andina'] ?? collect(),
+            $orders['andina'] ?? collect(),
+            'Reunión con dirección de obra',
+            'sale'
+        );
 
-            // Tarea "Reunión inicial" con orden de venta
-            $meetingTask = $techTasks->firstWhere('name', 'Reunión inicial con cliente');
-            $saleOrder = $techOrders->firstWhere('kind', 'sale');
-
-            if ($meetingTask && $saleOrder) {
-                $saleOrder->update(['task_id' => $meetingTask->id]);
-                $this->command->info("Linked task '{$meetingTask->name}' to order '{$saleOrder->number}'");
-            }
-        }
-
-        // Andina: Vincular tareas de andina con órdenes de andina
-        $andinaTasks = $tasks['andina'] ?? collect();
-        $andinaOrders = $orders['andina'] ?? collect();
-
-        if ($andinaTasks->count() > 0 && $andinaOrders->count() > 0) {
-            // Tarea "Reunión dirección obra" con orden de venta
-            $meetingTask = $andinaTasks->firstWhere('name', 'Reunión con dirección de obra');
-            $saleOrder = $andinaOrders->firstWhere('kind', 'sale');
-
-            if ($meetingTask && $saleOrder) {
-                $saleOrder->update(['task_id' => $meetingTask->id]);
-                $this->command->info("Linked task '{$meetingTask->name}' to order '{$saleOrder->number}'");
-            }
-
-            // Tarea "Revisar documentación" con orden de servicio
-            $reviewTask = $andinaTasks->firstWhere('name', 'Revisar documentación estructural');
-            $serviceOrder = $andinaOrders->firstWhere('kind', 'service');
-
-            if ($reviewTask && $serviceOrder) {
-                $serviceOrder->update(['task_id' => $reviewTask->id]);
-                $this->command->info("Linked task '{$reviewTask->name}' to order '{$serviceOrder->number}'");
-            }
-        }
+        $this->linkTaskAndOrderPair(
+            $tasks['andina'] ?? collect(),
+            $orders['andina'] ?? collect(),
+            'Revisar documentación estructural',
+            'service'
+        );
     }
 
-    private function linkOrdersToAssets($tenants, $orders, $assets): void
+    private function linkTaskAndOrderPair($tasks, $orders, string $taskName, string $orderKind): void
     {
-        // Tech: Vincular órdenes a activos
-        $techOrders = $orders['tech'] ?? collect();
-        $techAssets = $assets['tech'] ?? collect();
+        $task = $tasks->firstWhere('name', $taskName);
+        $order = $orders->firstWhere('kind', $orderKind);
 
-        if ($techOrders->count() > 0 && $techAssets->count() > 0) {
-            $vehicleAsset = $techAssets->firstWhere('kind', 'vehicle');
-            $serviceOrder = $techOrders->firstWhere('kind', 'service');
-
-            if ($vehicleAsset && $serviceOrder) {
-                $serviceOrder->update(['asset_id' => $vehicleAsset->id]);
-                $this->command->info("Linked order '{$serviceOrder->number}' to asset '{$vehicleAsset->name}'");
-            }
-
-            $equipmentAsset = $techAssets->firstWhere('kind', 'equipment');
-            $saleOrder = $techOrders->firstWhere('kind', 'sale');
-
-            if ($equipmentAsset && $saleOrder) {
-                $saleOrder->update(['asset_id' => $equipmentAsset->id]);
-                $this->command->info("Linked order '{$saleOrder->number}' to asset '{$equipmentAsset->name}'");
-            }
+        if (! $task || ! $order) {
+            return;
         }
 
-        // Andina: Vincular órdenes a activos
-        $andinaOrders = $orders['andina'] ?? collect();
-        $andinaAssets = $assets['andina'] ?? collect();
+        $order->update(['task_id' => $task->id]);
 
-        if ($andinaOrders->count() > 0 && $andinaAssets->count() > 0) {
-            $machineryAsset = $andinaAssets->firstWhere('kind', 'machinery');
-            $saleOrder = $andinaOrders->firstWhere('kind', 'sale');
-
-            if ($machineryAsset && $saleOrder) {
-                $saleOrder->update(['asset_id' => $machineryAsset->id]);
-                $this->command->info("Linked order '{$saleOrder->number}' to asset '{$machineryAsset->name}'");
-            }
-
-            $toolAsset = $andinaAssets->firstWhere('kind', 'tool');
-            $serviceOrder = $andinaOrders->firstWhere('kind', 'service');
-
-            if ($toolAsset && $serviceOrder) {
-                $serviceOrder->update(['asset_id' => $toolAsset->id]);
-                $this->command->info("Linked order '{$serviceOrder->number}' to asset '{$toolAsset->name}'");
-            }
-        }
+        $this->command?->info("Linked task '{$task->name}' to order '{$order->number}'");
     }
 
-    private function linkDocumentsToAssets($tenants, $documents, $assets): void
+    private function linkOrdersToAssets($orders, $assets): void
     {
-        // Tech documents to assets
-        $techDocuments = $documents['tech'] ?? collect();
-        $techAssets = $assets['tech'] ?? collect();
+        $this->linkOrderAndAssetPair(
+            $orders['tech'] ?? collect(),
+            $assets['tech'] ?? collect(),
+            'service',
+            'vehicle'
+        );
 
-        if ($techDocuments->count() > 0 && $techAssets->count() > 0) {
-            $quote = $techDocuments->firstWhere('kind', 'quote');
-            $vehicleAsset = $techAssets->firstWhere('kind', 'vehicle');
+        $this->linkOrderAndAssetPair(
+            $orders['tech'] ?? collect(),
+            $assets['tech'] ?? collect(),
+            'sale',
+            'equipment'
+        );
 
-            if ($quote && $vehicleAsset) {
-                DB::table('documents')
-                    ->where('id', $quote->id)
-                    ->update(['asset_id' => $vehicleAsset->id]);
-                $this->command->info("Linked document '{$quote->number}' to asset '{$vehicleAsset->name}'");
-            }
+        $this->linkOrderAndAssetPair(
+            $orders['andina'] ?? collect(),
+            $assets['andina'] ?? collect(),
+            'sale',
+            'machinery'
+        );
 
-            $workOrder = $techDocuments->firstWhere('kind', 'work_order');
-            $equipmentAsset = $techAssets->firstWhere('kind', 'equipment');
-
-            if ($workOrder && $equipmentAsset) {
-                DB::table('documents')
-                    ->where('id', $workOrder->id)
-                    ->update(['asset_id' => $equipmentAsset->id]);
-                $this->command->info("Linked document '{$workOrder->number}' to asset '{$equipmentAsset->name}'");
-            }
-        }
-
-        // Andina documents to assets
-        $andinaDocuments = $documents['andina'] ?? collect();
-        $andinaAssets = $assets['andina'] ?? collect();
-
-        if ($andinaDocuments->count() > 0 && $andinaAssets->count() > 0) {
-            $invoice = $andinaDocuments->firstWhere('kind', 'invoice');
-            $machineryAsset = $andinaAssets->firstWhere('kind', 'machinery');
-
-            if ($invoice && $machineryAsset) {
-                DB::table('documents')
-                    ->where('id', $invoice->id)
-                    ->update(['asset_id' => $machineryAsset->id]);
-                $this->command->info("Linked document '{$invoice->number}' to asset '{$machineryAsset->name}'");
-            }
-
-            $receipt = $andinaDocuments->firstWhere('kind', 'receipt');
-            $toolAsset = $andinaAssets->firstWhere('kind', 'tool');
-
-            if ($receipt && $toolAsset) {
-                DB::table('documents')
-                    ->where('id', $receipt->id)
-                    ->update(['asset_id' => $toolAsset->id]);
-                $this->command->info("Linked document '{$receipt->number}' to asset '{$toolAsset->name}'");
-            }
-        }
+        $this->linkOrderAndAssetPair(
+            $orders['andina'] ?? collect(),
+            $assets['andina'] ?? collect(),
+            'service',
+            'tool'
+        );
     }
 
-    private function linkAppointmentsToOrders($tenants, $appointments, $orders): void
+    private function linkOrderAndAssetPair($orders, $assets, string $orderKind, string $assetKind): void
     {
-        // Tech appointments to orders
-        $techAppointments = $appointments['tech'] ?? collect();
-        $techOrders = $orders['tech'] ?? collect();
+        $order = $orders->firstWhere('kind', $orderKind);
+        $asset = $assets->firstWhere('kind', $assetKind);
 
-        if ($techAppointments->count() > 0 && $techOrders->count() > 0) {
-            $serviceAppointment = $techAppointments->firstWhere('kind', 'service');
-            $serviceOrder = $techOrders->firstWhere('kind', 'service');
-
-            if ($serviceAppointment && $serviceOrder) {
-                DB::table('appointments')
-                    ->where('id', $serviceAppointment->id)
-                    ->update(['order_id' => $serviceOrder->id]);
-                $this->command->info("Linked appointment '{$serviceAppointment->title}' to order '{$serviceOrder->number}'");
-            }
-
-            $inspectionAppointment = $techAppointments->firstWhere('kind', 'inspection');
-            $saleOrder = $techOrders->firstWhere('kind', 'sale');
-
-            if ($inspectionAppointment && $saleOrder) {
-                DB::table('appointments')
-                    ->where('id', $inspectionAppointment->id)
-                    ->update(['order_id' => $saleOrder->id]);
-                $this->command->info("Linked appointment '{$inspectionAppointment->title}' to order '{$saleOrder->number}'");
-            }
+        if (! $order || ! $asset) {
+            return;
         }
 
-        // Andina appointments to orders
-        $andinaAppointments = $appointments['andina'] ?? collect();
-        $andinaOrders = $orders['andina'] ?? collect();
+        $order->update(['asset_id' => $asset->id]);
 
-        if ($andinaAppointments->count() > 0 && $andinaOrders->count() > 0) {
-            $maintenanceAppointment = $andinaAppointments->firstWhere('kind', 'maintenance');
-            $saleOrder = $andinaOrders->firstWhere('kind', 'sale');
-
-            if ($maintenanceAppointment && $saleOrder) {
-                DB::table('appointments')
-                    ->where('id', $maintenanceAppointment->id)
-                    ->update(['order_id' => $saleOrder->id]);
-                $this->command->info("Linked appointment '{$maintenanceAppointment->title}' to order '{$saleOrder->number}'");
-            }
-
-            $meetingAppointment = $andinaAppointments->firstWhere('kind', 'meeting');
-            $serviceOrder = $andinaOrders->firstWhere('kind', 'service');
-
-            if ($meetingAppointment && $serviceOrder) {
-                DB::table('appointments')
-                    ->where('id', $meetingAppointment->id)
-                    ->update(['order_id' => $serviceOrder->id]);
-                $this->command->info("Linked appointment '{$meetingAppointment->title}' to order '{$serviceOrder->number}'");
-            }
-        }
+        $this->command?->info("Linked order '{$order->number}' to asset '{$asset->name}'");
     }
 
-    private function linkOrdersToTasks($tenants, $orders, $tasks): void
+    private function linkDocumentsToAssets($documents, $assets): void
     {
-        // Esta es la relación inversa (ya la hicimos en linkTasksToOrders)
-        // Pero aquí podemos agregar lógica adicional si es necesario
-        $this->command->info('Orders to tasks relationships verified');
+        $this->linkDocumentAndAssetPair(
+            $documents['tech'] ?? collect(),
+            $assets['tech'] ?? collect(),
+            'quote',
+            'vehicle'
+        );
+
+        $this->linkDocumentAndAssetPair(
+            $documents['tech'] ?? collect(),
+            $assets['tech'] ?? collect(),
+            'delivery_note',
+            'equipment'
+        );
+
+        $this->linkDocumentAndAssetPair(
+            $documents['andina'] ?? collect(),
+            $assets['andina'] ?? collect(),
+            'quote',
+            'machinery'
+        );
+
+        $this->linkDocumentAndAssetPair(
+            $documents['andina'] ?? collect(),
+            $assets['andina'] ?? collect(),
+            'invoice',
+            'tool'
+        );
+    }
+
+    private function linkDocumentAndAssetPair($documents, $assets, string $documentKind, string $assetKind): void
+    {
+        $document = $documents->firstWhere('kind', $documentKind);
+        $asset = $assets->firstWhere('kind', $assetKind);
+
+        if (! $document || ! $asset) {
+            return;
+        }
+
+        DB::table('documents')
+            ->where('id', $document->id)
+            ->update([
+                'asset_id' => $asset->id,
+                'updated_at' => now(),
+            ]);
+
+        $this->command?->info("Linked document '{$document->number}' to asset '{$asset->name}'");
+    }
+
+    private function linkAppointmentsToOrders($appointments, $orders): void
+    {
+        $this->linkAppointmentAndOrderPair(
+            $appointments['tech'] ?? collect(),
+            $orders['tech'] ?? collect(),
+            'service',
+            'service'
+        );
+
+        $this->linkAppointmentAndOrderPair(
+            $appointments['tech'] ?? collect(),
+            $orders['tech'] ?? collect(),
+            'visit',
+            'sale'
+        );
+
+        $this->linkAppointmentAndOrderPair(
+            $appointments['andina'] ?? collect(),
+            $orders['andina'] ?? collect(),
+            'service',
+            'service'
+        );
+
+        $this->linkAppointmentAndOrderPair(
+            $appointments['andina'] ?? collect(),
+            $orders['andina'] ?? collect(),
+            'visit',
+            'sale'
+        );
+    }
+
+    private function linkAppointmentAndOrderPair($appointments, $orders, string $appointmentKind, string $orderKind): void
+    {
+        $appointment = $appointments->firstWhere('kind', $appointmentKind);
+        $order = $orders->firstWhere('kind', $orderKind);
+
+        if (! $appointment || ! $order) {
+            return;
+        }
+
+        DB::table('appointments')
+            ->where('id', $appointment->id)
+            ->update([
+                'order_id' => $order->id,
+                'updated_at' => now(),
+            ]);
+
+        $this->command?->info("Linked appointment '{$appointment->title}' to order '{$order->number}'");
+    }
+
+    private function verifyOrdersToTasks($tenants, $orders, $tasks): void
+    {
+        foreach (['tech', 'andina'] as $tenantKey) {
+            $tenantOrders = $orders[$tenantKey] ?? collect();
+            $tenantTasks = $tasks[$tenantKey] ?? collect();
+
+            $linkedOrders = $tenantOrders->filter(fn ($order) => ! empty($order->task_id))->count();
+            $availableTasks = $tenantTasks->count();
+
+            $this->command?->info(
+                "Verified task/order relations for tenant '{$tenantKey}': {$linkedOrders} orders linked, {$availableTasks} tasks available."
+            );
+        }
     }
 }

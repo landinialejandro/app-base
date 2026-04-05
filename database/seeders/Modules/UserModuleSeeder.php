@@ -1,6 +1,6 @@
 <?php
 
-// database/seeders/Modules/UserModuleSeeder.php
+// FILE: database/seeders/Modules/UserModuleSeeder.php | V2
 
 namespace Database\Seeders\Modules;
 
@@ -14,32 +14,56 @@ class UserModuleSeeder extends BaseModuleSeeder
 
         $users['superadmin'] = User::updateOrCreate(
             ['email' => 'superadmin@app-base.local'],
-            ['name' => 'Super Admin', 'password' => 'password', 'is_superadmin' => true]
+            [
+                'name' => 'Super Admin',
+                'password' => 'password',
+                'is_superadmin' => true,
+            ]
         );
 
-        $users['ownerTech'] = User::firstOrCreate(
+        $users['ownerTech'] = User::updateOrCreate(
             ['email' => 'juan@tech.local'],
-            ['name' => 'Juan Tech', 'password' => 'password', 'is_superadmin' => false]
+            [
+                'name' => 'Juan Tech',
+                'password' => 'password',
+                'is_superadmin' => false,
+            ]
         );
 
-        $users['ownerAndina'] = User::firstOrCreate(
+        $users['ownerAndina'] = User::updateOrCreate(
             ['email' => 'maria@andina.local'],
-            ['name' => 'María Andina', 'password' => 'password', 'is_superadmin' => false]
+            [
+                'name' => 'María Andina',
+                'password' => 'password',
+                'is_superadmin' => false,
+            ]
         );
 
-        $users['shared'] = User::firstOrCreate(
+        $users['shared'] = User::updateOrCreate(
             ['email' => 'carlos@demo.local'],
-            ['name' => 'Carlos Operaciones', 'password' => 'password', 'is_superadmin' => false]
+            [
+                'name' => 'Carlos Demo',
+                'password' => 'password',
+                'is_superadmin' => false,
+            ]
         );
 
-        $users['techUser'] = User::firstOrCreate(
+        $users['techUser'] = User::updateOrCreate(
             ['email' => 'ana@demo.local'],
-            ['name' => 'Ana Comercial', 'password' => 'password', 'is_superadmin' => false]
+            [
+                'name' => 'Ana Tech',
+                'password' => 'password',
+                'is_superadmin' => false,
+            ]
         );
 
-        $users['andinaUser'] = User::firstOrCreate(
+        $users['andinaUser'] = User::updateOrCreate(
             ['email' => 'pedro@demo.local'],
-            ['name' => 'Pedro Obra', 'password' => 'password', 'is_superadmin' => false]
+            [
+                'name' => 'Pedro Andina',
+                'password' => 'password',
+                'is_superadmin' => false,
+            ]
         );
 
         $this->context['users'] = $users;

@@ -1,10 +1,11 @@
 <?php
 
-// database/seeders/Modules/PartyModuleSeeder.php
+// FILE: database/seeders/Modules/PartyModuleSeeder.php | V2
 
 namespace Database\Seeders\Modules;
 
 use App\Models\Party;
+use Illuminate\Support\Collection;
 
 class PartyModuleSeeder extends BaseModuleSeeder
 {
@@ -17,7 +18,6 @@ class PartyModuleSeeder extends BaseModuleSeeder
         $tenants = $this->getDependency('tenants');
         $parties = [];
 
-        // Tech fixed parties
         $parties['techFixed'] = collect([
             Party::firstOrCreate(
                 ['tenant_id' => $tenants['tech']->id, 'email' => 'contacto@acme.local'],
@@ -29,7 +29,6 @@ class PartyModuleSeeder extends BaseModuleSeeder
             ),
         ]);
 
-        // Andina fixed parties
         $parties['andinaFixed'] = collect([
             Party::firstOrCreate(
                 ['tenant_id' => $tenants['andina']->id, 'email' => 'info@obraspat.local'],
@@ -41,16 +40,25 @@ class PartyModuleSeeder extends BaseModuleSeeder
             ),
         ]);
 
-        // Generate additional parties if needed
-        $parties['techExtra'] = $this->generateAdditionalParties($tenants['tech'], 12);
-        $parties['andinaExtra'] = $this->generateAdditionalParties($tenants['andina'], 10);
+        $parties['techExtra'] = $this->generateAdditionalParties(
+            tenant: $tenants['tech'],
+            targetCount: (int) config('seeders.demo.tech.target_parties', 12)
+        );
+
+        $parties['andinaExtra'] = $this->generateAdditionalParties(
+            tenant: $tenants['andina'],
+            targetCount: (int) config('seeders.demo.andina.target_parties', 10)
+        );
 
         $this->context['parties'] = $parties;
     }
 
     private function generateAdditionalParties($tenant, int $targetCount): Collection
     {
-        $existingCount = Party::where('tenant_id', $tenant->id)->count();
+        $existingCount = Party::query()
+            ->where('tenant_id', $tenant->id)
+            ->count();
+
         $neededCount = max(0, $targetCount - $existingCount);
 
         return $neededCount > 0

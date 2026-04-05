@@ -1,6 +1,6 @@
 <?php
 
-// database/seeders/DemoSeeder.php
+// FILE: database/seeders/DemoSeeder.php | V2
 
 namespace Database\Seeders;
 
@@ -32,29 +32,46 @@ class DemoSeeder extends Seeder
 
     public function __construct()
     {
-        $this->enabledModules = config('seeders.modules.enabled', [
+        $configuredEnabled = config('seeders.modules.enabled', []);
+        $configuredDisabled = config('seeders.modules.disabled', []);
+
+        $configuredEnabled = is_array($configuredEnabled) ? $configuredEnabled : [];
+        $configuredDisabled = is_array($configuredDisabled) ? $configuredDisabled : [];
+
+        $defaultModules = [
             TenantModuleSeeder::class,
             UserModuleSeeder::class,
             PermissionModuleSeeder::class,
+            RoleModuleSeeder::class,
             MembershipModuleSeeder::class,
             BranchModuleSeeder::class,
-            RoleModuleSeeder::class,
             InvitationModuleSeeder::class,
             PartyModuleSeeder::class,
             ProjectModuleSeeder::class,
-            TaskModuleSeeder::class,
             ProductModuleSeeder::class,
+            AssetModuleSeeder::class,
+            TaskModuleSeeder::class,
             OrderModuleSeeder::class,
             DocumentModuleSeeder::class,
-            AssetModuleSeeder::class,
             AppointmentModuleSeeder::class,
             CrossRelationsSeeder::class,
-        ]);
+        ];
+
+        $modules = ! empty($configuredEnabled) ? $configuredEnabled : $defaultModules;
+
+        if (! in_array(CrossRelationsSeeder::class, $modules, true)) {
+            $modules[] = CrossRelationsSeeder::class;
+        }
+
+        $this->enabledModules = array_values(array_filter(
+            $modules,
+            fn (string $moduleClass) => ! in_array($moduleClass, $configuredDisabled, true)
+        ));
     }
 
     public function run(): void
     {
-        DB::transaction(function () {
+        DB::transaction(function (): void {
             $this->loadModules();
         });
     }
@@ -63,7 +80,7 @@ class DemoSeeder extends Seeder
     {
         foreach ($this->enabledModules as $moduleClass) {
             if (! class_exists($moduleClass)) {
-                $this->command->warn("Module {$moduleClass} not found, skipping...");
+                $this->command?->warn("Module {$moduleClass} not found, skipping...");
 
                 continue;
             }
@@ -72,12 +89,12 @@ class DemoSeeder extends Seeder
             $module = app($moduleClass);
             $module->setContext($this->context);
 
-            $this->command->info('Running: '.class_basename($moduleClass));
+            $this->command?->info('Running: '.class_basename($moduleClass));
             $module->run();
 
             $this->context = array_merge($this->context, $module->getContext());
         }
 
-        $this->command->info('Demo seeder completed successfully!');
+        $this->command?->info('Demo seeder completed successfully!');
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Auth/RolePermissionResolver.php | V3
+// FILE: app/Support/Auth/RolePermissionResolver.php | V4
 
 namespace App\Support\Auth;
 
@@ -73,7 +73,6 @@ class RolePermissionResolver
         }
 
         $resolved = $this->applyMembershipOverrides($resolved, $membership, $module);
-
         $resolved['module_access'] = ! empty($resolved['actions']);
         $resolved['record_visibility'] = $this->resolveRecordVisibility($resolved['actions']);
 
@@ -231,13 +230,13 @@ class RolePermissionResolver
 
     protected function normalizeCapabilityValue(string $module, string $capability, mixed $scope): mixed
     {
+        if ($capability === CapabilityCatalog::CREATE) {
+            return ($scope === null || $scope === '') ? true : false;
+        }
+
         $allowedScopes = PermissionScopeCatalog::optionsFor($module, $capability);
 
         if (empty($allowedScopes)) {
-            if ($scope === null || $scope === '') {
-                return true;
-            }
-
             return false;
         }
 
@@ -261,15 +260,9 @@ class RolePermissionResolver
 
         $candidate = $viewAny !== null ? $viewAny : $view;
 
-        if ($candidate === true) {
-            return PermissionScopeCatalog::TENANT_ALL;
-        }
-
-        if (is_string($candidate) && $candidate !== '') {
-            return $candidate;
-        }
-
-        return 'none';
+        return is_string($candidate) && $candidate !== ''
+            ? $candidate
+            : 'none';
     }
 
     protected function mergeActionValue(mixed $base, mixed $incoming): mixed
@@ -280,7 +273,6 @@ class RolePermissionResolver
             PermissionScopeCatalog::OWN_ASSIGNED => 2,
             PermissionScopeCatalog::TENANT_ALL => 3,
             true => 4,
-            PermissionScopeCatalog::ALL => 5,
         ];
 
         return ($priority[$incoming] ?? 0) > ($priority[$base] ?? 0)

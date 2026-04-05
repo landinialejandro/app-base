@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/PermissionScopeCatalog.php | V3
+// FILE: app/Support/Catalogs/PermissionScopeCatalog.php | V4
 
 namespace App\Support\Catalogs;
 
@@ -8,15 +8,12 @@ class PermissionScopeCatalog
 {
     public const TENANT_ALL = 'tenant_all';
 
-    public const ALL = 'all';
-
     public const OWN_ASSIGNED = 'own_assigned';
 
     public const LIMITED = 'limited';
 
     protected static array $labels = [
         self::TENANT_ALL => 'Toda la empresa',
-        self::ALL => 'Todos',
         self::OWN_ASSIGNED => 'Solo asignados al usuario',
         self::LIMITED => 'Limitado',
     ];
@@ -70,8 +67,11 @@ class PermissionScopeCatalog
                 self::TENANT_ALL => static::label(self::TENANT_ALL),
             ],
             CapabilityCatalog::UPDATE => [
-                self::ALL => static::label(self::ALL),
+                self::TENANT_ALL => static::label(self::TENANT_ALL),
                 self::OWN_ASSIGNED => static::label(self::OWN_ASSIGNED),
+            ],
+            CapabilityCatalog::DELETE => [
+                self::TENANT_ALL => static::label(self::TENANT_ALL),
             ],
             default => [],
         };
@@ -80,13 +80,19 @@ class PermissionScopeCatalog
     protected static function appointmentOptionsFor(string $capability): array
     {
         return match ($capability) {
+            CapabilityCatalog::VIEW_ANY => [
+                self::TENANT_ALL => static::label(self::TENANT_ALL),
+            ],
             CapabilityCatalog::VIEW => [
-                self::ALL => static::label(self::ALL),
+                self::TENANT_ALL => static::label(self::TENANT_ALL),
                 self::OWN_ASSIGNED => static::label(self::OWN_ASSIGNED),
             ],
             CapabilityCatalog::UPDATE => [
-                self::ALL => static::label(self::ALL),
+                self::TENANT_ALL => static::label(self::TENANT_ALL),
                 self::OWN_ASSIGNED => static::label(self::OWN_ASSIGNED),
+            ],
+            CapabilityCatalog::DELETE => [
+                self::TENANT_ALL => static::label(self::TENANT_ALL),
             ],
             default => [],
         };
@@ -95,6 +101,9 @@ class PermissionScopeCatalog
     protected static function projectOptionsFor(string $capability): array
     {
         return match ($capability) {
+            CapabilityCatalog::VIEW_ANY => [
+                self::TENANT_ALL => static::label(self::TENANT_ALL),
+            ],
             CapabilityCatalog::VIEW => [
                 self::TENANT_ALL => static::label(self::TENANT_ALL),
                 self::LIMITED => static::label(self::LIMITED),
@@ -105,7 +114,6 @@ class PermissionScopeCatalog
             ],
             CapabilityCatalog::DELETE => [
                 self::TENANT_ALL => static::label(self::TENANT_ALL),
-                self::LIMITED => static::label(self::LIMITED),
             ],
             default => [],
         };

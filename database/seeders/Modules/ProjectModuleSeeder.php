@@ -1,10 +1,11 @@
 <?php
 
-// database/seeders/Modules/ProjectModuleSeeder.php
+// FILE: database/seeders/Modules/ProjectModuleSeeder.php | V2
 
 namespace Database\Seeders\Modules;
 
 use App\Models\Project;
+use Illuminate\Support\Collection;
 
 class ProjectModuleSeeder extends BaseModuleSeeder
 {
@@ -17,45 +18,55 @@ class ProjectModuleSeeder extends BaseModuleSeeder
         $tenants = $this->getDependency('tenants');
         $projects = [];
 
-        // Tech fixed projects
-        $techProjects = collect([
-            $this->createProject($tenants['tech'], 'Implementación ERP', 'Implementación inicial del sistema.'),
-            $this->createProject($tenants['tech'], 'Migración Base de Datos', 'Migración del sistema legado.'),
-        ]);
+        $projects['tech'] = $this->createProjectsForTenant(
+            tenant: $tenants['tech'],
+            fixedProjects: [
+                ['name' => 'Implementación ERP', 'description' => 'Implementación inicial del sistema.'],
+                ['name' => 'Migración Base de Datos', 'description' => 'Migración del sistema legado.'],
+            ],
+            targetCount: (int) config('seeders.demo.tech.target_projects', 7)
+        );
 
-        // Andina fixed projects
-        $andinaProjects = collect([
-            $this->createProject($tenants['andina'], 'Edificio Central', 'Proyecto principal de obra.'),
-            $this->createProject($tenants['andina'], 'Revisión Estructural', 'Validación técnica documental.'),
-        ]);
-
-        // Generate additional projects if needed
-        $techExistingCount = Project::where('tenant_id', $tenants['tech']->id)->count();
-        $andinaExistingCount = Project::where('tenant_id', $tenants['andina']->id)->count();
-
-        $techTarget = config('seeders.demo.tech.target_projects', 7);
-        $andinaTarget = config('seeders.demo.andina.target_projects', 6);
-
-        $techNeeded = max(0, $techTarget - $techExistingCount);
-        $andinaNeeded = max(0, $andinaTarget - $andinaExistingCount);
-
-        $techExtra = $techNeeded > 0
-            ? Project::factory()->count($techNeeded)->create(['tenant_id' => $tenants['tech']->id])
-            : collect();
-
-        $andinaExtra = $andinaNeeded > 0
-            ? Project::factory()->count($andinaNeeded)->create(['tenant_id' => $tenants['andina']->id])
-            : collect();
-
-        $projects['tech'] = $techProjects->merge($techExtra);
-        $projects['andina'] = $andinaProjects->merge($andinaExtra);
+        $projects['andina'] = $this->createProjectsForTenant(
+            tenant: $tenants['andina'],
+            fixedProjects: [
+                ['name' => 'Edificio Central', 'description' => 'Proyecto principal de obra.'],
+                ['name' => 'Revisión Estructural', 'description' => 'Validación técnica documental.'],
+            ],
+            targetCount: (int) config('seeders.demo.andina.target_projects', 6)
+        );
 
         $this->context['projects'] = $projects;
     }
 
+    private function createProjectsForTenant($tenant, array $fixedProjects, int $targetCount): Collection
+    {
+        $createdFixed = collect();
+
+        foreach ($fixedProjects as $definition) {
+            $createdFixed->push($this->createProject(
+                tenant: $tenant,
+                name: $definition['name'],
+                description: $definition['description'] ?? null
+            ));
+        }
+
+        $existingCount = Project::query()
+            ->where('tenant_id', $tenant->id)
+            ->count();
+
+        $neededCount = max(0, $targetCount - $existingCount);
+
+        $extra = $neededCount > 0
+            ? Project::factory()->count($neededCount)->create(['tenant_id' => $tenant->id])
+            : collect();
+
+        return $createdFixed->merge($extra);
+    }
+
     private function createProject($tenant, string $name, ?string $description = null): Project
     {
-        return Project::firstOrCreate(
+        return Project::updateOrCreate(
             [
                 'tenant_id' => $tenant->id,
                 'name' => $name,

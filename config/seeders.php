@@ -1,8 +1,11 @@
 <?php
 
+// FILE: config/seeders.php | V2
+
 use Database\Seeders\Modules\AppointmentModuleSeeder;
 use Database\Seeders\Modules\AssetModuleSeeder;
 use Database\Seeders\Modules\BranchModuleSeeder;
+use Database\Seeders\Modules\CrossRelationsSeeder;
 use Database\Seeders\Modules\DocumentModuleSeeder;
 use Database\Seeders\Modules\InvitationModuleSeeder;
 use Database\Seeders\Modules\MembershipModuleSeeder;
@@ -16,29 +19,29 @@ use Database\Seeders\Modules\TaskModuleSeeder;
 use Database\Seeders\Modules\TenantModuleSeeder;
 use Database\Seeders\Modules\UserModuleSeeder;
 
-// config/seeders.php
-
 return [
     'modules' => [
         'enabled' => [
             TenantModuleSeeder::class,
             UserModuleSeeder::class,
             PermissionModuleSeeder::class,
+            RoleModuleSeeder::class,
             MembershipModuleSeeder::class,
             BranchModuleSeeder::class,
-            RoleModuleSeeder::class,
             InvitationModuleSeeder::class,
             PartyModuleSeeder::class,
             ProjectModuleSeeder::class,
-            TaskModuleSeeder::class,
             ProductModuleSeeder::class,
+            AssetModuleSeeder::class,
+            TaskModuleSeeder::class,
             OrderModuleSeeder::class,
             DocumentModuleSeeder::class,
-            AssetModuleSeeder::class,
             AppointmentModuleSeeder::class,
+            CrossRelationsSeeder::class,
         ],
         'disabled' => [],
     ],
+
     'demo' => [
         'tech' => [
             'target_parties' => 12,
@@ -46,6 +49,7 @@ return [
             'target_tasks' => 20,
             'target_appointments' => 8,
         ],
+
         'andina' => [
             'target_parties' => 10,
             'target_projects' => 6,

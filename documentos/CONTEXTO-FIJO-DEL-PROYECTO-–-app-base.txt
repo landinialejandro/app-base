@@ -370,11 +370,9 @@ restricciones por tipo o contexto
 
 Estos niveles no deben mezclarse entre sí.
 
-Reglas actuales consolidadas:
+Resumen estructural actual:
 
 la habilitación de módulos del tenant se resuelve mediante una capa central específica de acceso por tenant
-
-el tenant define qué módulos están operativamente disponibles
 
 owner no debe tratarse como un rol delegable ordinario
 
@@ -405,13 +403,15 @@ la membership incorpora profile_slug persistido para refinar capacidades sin mul
 
 la visibilidad no necesariamente coincide con la capacidad de edición
 
-el permiso efectivo no debe resolverse únicamente por módulo y rol, sino por capacidad concreta y alcance real sobre el registro
+el permiso efectivo no debe resolverse únicamente por módulo y rol, sino por capacidad concreta, scope, constraints y alcance real sobre el registro
 
 la IA no debe operar como bypass ni como superadmin, sino como actor del tenant sujeto al mismo sistema de autorización
 
-la primera UI real de permisos del tenant ya opera también sobre administrator como cuarto rol delegable editable por owner
+la UI de permisos del tenant ya opera sobre los roles delegables editables por owner
 
-la edición real de permisos por rol presupone que los roles base estén materializados en datos para el tenant correspondiente
+La doctrina completa de acceso y seguridad debe concentrarse en:
+
+SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
 <<END SECTION>>
 
 <<SECTION: Capa central prevista para acceso y permisos>>
@@ -440,7 +440,7 @@ RolePermissionResolver resuelve el permiso efectivo por usuario, tenant, módulo
 
 RecordScopeResolver resuelve el alcance efectivo sobre registros concretos.
 
-Dirección de diseño consolidada:
+Resumen estructural consolidado:
 
 la lógica no debe quedar acoplada a una matriz plana módulo × rol
 
@@ -456,13 +456,7 @@ scope
 execution mode
 constraints
 
-los scopes no son genéricos por capability sino definidos por combinación módulo + capacidad
-
-no deben existir scopes inválidos, ambiguos o genéricos fuera de los definidos explícitamente
-
-la capa vigente ya no utiliza el scope legacy all
-
-la resolución operativa validada utiliza únicamente:
+los scopes válidos del estado actual son:
 
 tenant_all
 own_assigned
@@ -470,29 +464,7 @@ limited
 
 limited solo puede existir cuando el módulo tenga un resolver explícito que traduzca ese alcance a dataset o visibilidad real
 
-no existen registros persistidos con role_permission.scope = all dentro del estado validado actual
-
-las policies no deben hardcodear permisos dispersos cuando esta capa exista formalmente
-
-el kernel real de autorización debe ser consumido por policies, controllers y resolución de datasets
-
-Blade continúa utilizando @can como capa visible final de la autorización ya resuelta
-
-la navegación y accesos visibles deben reutilizar la misma lógica real de acceso
-
-la resolución efectiva se basa únicamente en datos persistidos en base de datos
-
-la implementación actual incorpora como base persistida:
-
-profile_slug en memberships
-scope, execution_mode y constraints en role_permission
-membership_permission_overrides como estructura real
-
 orders, tasks, documents, parties, assets, products, projects y appointments quedan validados sobre V2 real
-
-projects conserva una regla de dominio complementaria integrada al scope efectivo
-
-appointments resuelve lectura mediante capacidad concreta de lectura
 
 orders y documents no deben resolverse por ownership artificial del registro
 
@@ -502,11 +474,9 @@ attachments no debe tratarse como módulo V2 autónomo
 
 order_items, document_items y attachments deben consolidarse como recursos delegados al padre para create, update y delete
 
-la validación operativa ya confirmó compatibilidad con:
+La doctrina completa de implementación, consumo de esta capa y reglas de seguridad debe concentrarse en:
 
-NavigationTrail
-controllers existentes
-vistas existentes
+SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
 <<END SECTION>>
 
 <<SECTION: Precedencia conceptual prevista para habilitación de módulos>>
@@ -662,7 +632,14 @@ el dashboard analítico queda reservado al nivel privilegiado owner y admin
 <<SECTION: Reglas generales de autorización ya consolidadas>>
 Reglas generales de autorización ya consolidadas
 
-la autorización por acción debe resolverse preferentemente mediante policies
+La autorización del sistema debe entenderse mediante una separación obligatoria entre:
+
+dataset visible
+registro individual
+acción permitida
+render visible en UI
+
+Reglas base:
 
 cuando exista una policy, no alcanza con crearla:
 el controller debe invocar authorize(...) o authorizeResource(...)
@@ -692,13 +669,9 @@ attachments respecto de su attachable
 
 create, update y delete de order_items, document_items y attachments deben depender de la capacidad update sobre el recurso padre correspondiente
 
-navbar, dashboard y accesos rápidos deben respetar acceso real del usuario al módulo
+La doctrina detallada de implementación segura, Fortify, onboarding, hardening y controles de acceso debe concentrarse en:
 
-la navegación no debe asumir acceso total al tenant si el módulo o la acción están restringidos por rol
-
-el acceso al módulo, la visibilidad del dataset y las acciones permitidas deben tratarse como capas distintas
-
-el navbar no debe depender de un hardcode manual de módulos cuando exista una capa central disponible para resolver acceso y navegación
+SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
 <<END SECTION>>
 
 <<SECTION: Patrón de modelado cabecera / detalle>>

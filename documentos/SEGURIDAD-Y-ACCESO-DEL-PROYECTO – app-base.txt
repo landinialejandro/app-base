@@ -1,0 +1,515 @@
+SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
+
+METODOLOGÍA DE EDICIÓN
+
+Este archivo se actualiza por reemplazo completo de bloques delimitados.
+Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
+Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
+
+<<SECTION: OBJETIVO>>
+OBJETIVO
+
+Este documento centraliza la definición operativa del modelo de seguridad y acceso del sistema app-base.
+
+Su propósito es unificar en un único lugar:
+
+autenticación de usuarios
+flujo de acceso multi-tenant
+resolución de tenant activo
+uso seguro de memberships dentro del acceso por tenant
+roles base y permisos V2
+reglas de autorización operativa
+uso correcto de policies, controllers y Blade
+criterios de implementación segura
+puntos de auditoría y endurecimiento del sistema
+
+Este documento no redefine por separado:
+
+el mapa conceptual de entidades
+la arquitectura general del sistema
+la base visual
+el mapa de navegación
+
+Esos aspectos siguen viviendo en:
+
+CONTEXTO-FIJO-DEL-PROYECTO
+CONVENCIONES-DEL-PROYECTO
+MAPA-DE-ENTIDADES
+MAPA-DE-NAVEGACION-Y-RELACIONES
+BASE-VISUAL-DEL-PROYECTO
+
+Este documento consolida específicamente todo lo relacionado con acceso y seguridad.
+<<END SECTION>>
+
+---
+
+<<SECTION: ALCANCE>>
+ALCANCE
+
+Este documento cubre:
+
+login y autenticación global
+logout y limpieza de sesión
+flujo de selección de tenant
+resolución de tenant activo
+modelo de acceso basado en users, memberships y tenants
+roles base y condición de owner
+permisos V2 (capabilities, scopes, constraints)
+capa central de autorización
+policies, controllers y Blade
+recursos delegados al padre
+flujo de invitaciones (owner_signup y member_invite)
+integración con Fortify
+hardening y auditoría de seguridad
+
+No cubre como fuente principal:
+
+estructura visual
+mapa de navegación completo
+decisiones de deploy
+modelado general del dominio
+<<END SECTION>>
+
+---
+
+<<SECTION: FLUJO GLOBAL DE ACCESO>>
+FLUJO GLOBAL DE ACCESO
+
+El flujo base del sistema es:
+
+login
+↓
+selección de empresa (/tenants/select)
+↓
+session('tenant_id')
+↓
+ResolveTenant
+↓
+acceso operativo al sistema
+
+Reglas:
+
+el usuario siempre se autentica a nivel global
+
+el acceso real ocurre recién al seleccionar un tenant válido
+
+no debe existir acceso operativo sin tenant activo
+
+ResolveTenant debe validar membership activa antes de permitir acceso
+
+La descripción estructural base de este flujo debe mantenerse alineada con:
+
+CONTEXTO-FIJO-DEL-PROYECTO – app-base
+MAPA-DE-ENTIDADES – app-base
+<<END SECTION>>
+
+---
+
+<<SECTION: MODELO DE IDENTIDAD Y PERTENENCIA>>
+MODELO DE IDENTIDAD Y PERTENENCIA
+
+El acceso del sistema se apoya en la relación:
+
+users
+↓
+memberships
+↓
+tenants
+
+Reglas de seguridad:
+
+users representa identidad global
+
+memberships representa acceso real por empresa
+
+memberships.status = active define acceso efectivo
+
+memberships.is_owner define condición estructural de owner
+
+owner no es un rol asignable ordinario
+
+owner es único por tenant
+
+La descripción conceptual de estas entidades y sus relaciones debe mantenerse alineada con:
+
+MAPA-DE-ENTIDADES – app-base
+CONTEXTO-FIJO-DEL-PROYECTO – app-base
+<<END SECTION>>
+
+---
+
+<<SECTION: AUTENTICACIÓN Y FORTIFY>>
+AUTENTICACIÓN Y FORTIFY
+
+El sistema utiliza Laravel Fortify como base de autenticación.
+
+Responsabilidades:
+
+login
+logout
+recuperación de contraseña
+remember session cuando corresponda
+
+Reglas:
+
+el login autentica identidad global (User), no acceso a tenant
+la selección de tenant es obligatoria posterior al login
+LoginResponse debe redirigir únicamente a tenants con membership activa
+no debe existir autoingreso a tenants bloqueados
+
+Logout:
+
+debe eliminar completamente el contexto de tenant
+no deben quedar residuos de session('tenant_id')
+no debe mantenerse contexto operativo luego del cierre
+
+Two-Factor Authentication:
+
+debe definirse explícitamente una de dos opciones:
+
+implementación completa con soporte real en modelo y flujo
+o desactivación explícita hasta implementación futura
+
+No debe quedar parcialmente activo.
+<<END SECTION>>
+
+---
+
+<<SECTION: MULTI-TENANCY Y AISLAMIENTO>>
+MULTI-TENANCY Y AISLAMIENTO
+
+La seguridad multi-tenant se basa en:
+
+tenant_id en entidades del negocio
+TenantScoped
+ResolvesTenantRouteBinding
+resolución de tenant mediante middleware
+
+Reglas:
+
+todas las consultas deben respetar tenant_id
+
+no deben existir queries sin tenant activo
+
+no debe exponerse tenant_id en formularios
+
+tenant se obtiene exclusivamente desde app('tenant')
+
+route model binding debe validar tenant
+
+no se permite acceso a registros de otro tenant por URL
+
+los registros eliminados mediante SoftDeletes no deben ser accesibles
+
+La doctrina estructural de multi-tenancy debe mantenerse alineada con:
+
+CONTEXTO-FIJO-DEL-PROYECTO – app-base
+CONVENCIONES-DEL-PROYECTO – app-base
+<<END SECTION>>
+
+---
+
+<<SECTION: ROLES BASE Y MODELO DE AUTORIZACIÓN>>
+ROLES BASE Y MODELO DE AUTORIZACIÓN
+
+Los roles base del tenant son:
+
+owner
+admin
+sales
+operator
+administrator
+
+Reglas:
+
+owner se resuelve por memberships.is_owner
+
+owner no es delegable
+
+owner es único por tenant
+
+los roles delegables actuales son:
+
+admin
+sales
+operator
+administrator
+
+administrator representa rol administrativo de oficina, no superadmin
+
+la membership puede incluir profile_slug como especialización funcional
+
+la autorización no depende solo de rol:
+
+debe considerar capacidad
+scope
+constraints
+
+La definición estructural de roles y pertenencia debe mantenerse alineada con:
+
+CONTEXTO-FIJO-DEL-PROYECTO – app-base
+MAPA-DE-ENTIDADES – app-base
+CONVENCIONES-DEL-PROYECTO – app-base
+<<END SECTION>>
+
+---
+
+<<SECTION: CAPA V2 DE PERMISOS>>
+CAPA V2 DE PERMISOS
+
+La autorización se basa en una capa central compuesta por:
+
+TenantModuleAccess
+RolePermissionResolver
+RecordScopeResolver
+CapabilityCatalog
+ModuleCatalog
+
+Capacidades vigentes:
+
+view_any
+view
+create
+update
+delete
+
+Reglas:
+
+create es booleano
+
+view_any, view, update y delete dependen de scope válido
+
+los scopes válidos del estado actual son:
+
+tenant_all
+own_assigned
+limited
+
+no deben usarse scopes legacy como:
+
+all
+mine
+
+view_any no es booleano
+
+los scopes se definen por módulo + capacidad
+
+limited requiere resolver explícito
+
+constraints forman parte obligatoria de la autorización
+
+allowed_kinds es la primera constraint consolidada
+
+orders y documents son módulos compartidos del tenant
+
+no deben resolverse por ownership artificial del registro
+
+su segmentación fina se basa en constraints.allowed_kinds
+
+La doctrina completa de V2 debe mantenerse alineada con:
+
+CONTEXTO-FIJO-DEL-PROYECTO – app-base
+CONVENCIONES-DEL-PROYECTO – app-base
+MAPA-DE-ENTIDADES – app-base
+<<END SECTION>>
+
+---
+
+<<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
+REGLAS DE IMPLEMENTACIÓN SEGURA
+
+La autorización debe implementarse obligatoriamente en cuatro niveles:
+
+resolver central
+policy
+controller
+Blade
+
+Regla obligatoria:
+
+policy
+authorize(...) en controller
+@can en Blade
+
+Roles de cada capa:
+
+resolver central
+resuelve acceso efectivo, scope, constraints y dataset
+
+policy
+wrapper mínimo sobre la capa central
+
+controller
+ejecuta authorize(...)
+no implementa lógica paralela de permisos
+consume dataset ya resuelto desde la capa central
+
+Blade
+usa @can para visibilidad final
+no reconstruye datasets ni permisos por fuera de la capa central
+
+Distinción obligatoria:
+
+view_any controla dataset
+view controla acceso a registro individual
+
+No usar view para controlar listados.
+<<END SECTION>>
+
+---
+
+<<SECTION: RECURSOS DELEGADOS AL PADRE>>
+RECURSOS DELEGADOS AL PADRE
+
+Los siguientes recursos no deben tratarse como autorización autónoma:
+
+attachments
+order_items
+document_items
+
+Reglas:
+
+no deben tener lógica de permisos propia cuando su ciclo de vida dependa naturalmente del padre
+
+create, update y delete dependen de update del recurso padre
+
+Ejemplos:
+
+attachment depende de su attachable
+order_item depende de order
+document_item depende de document
+
+En UI:
+
+no evaluar create Attachment
+
+evaluar update del modelo padre correspondiente
+
+Esta regla debe mantenerse alineada con:
+
+CONTEXTO-FIJO-DEL-PROYECTO – app-base
+CONVENCIONES-DEL-PROYECTO – app-base
+MAPA-DE-ENTIDADES – app-base
+<<END SECTION>>
+
+---
+
+<<SECTION: FLUJO DE INVITACIONES Y ONBOARDING>>
+FLUJO DE INVITACIONES Y ONBOARDING
+
+Tipos de invitación:
+
+owner_signup
+member_invite
+
+Escenarios:
+
+usuario nuevo
+usuario existente
+
+Reglas:
+
+si el usuario no está autenticado → redirigir a login
+luego del login → retomar flujo original
+
+El sistema debe:
+
+crear Membership correspondiente
+no dejar usuarios sin acceso a tenant
+no romper continuidad del flujo de onboarding
+
+El flujo de invitación es parte crítica del acceso seguro al sistema.
+<<END SECTION>>
+
+---
+
+<<SECTION: PANTALLAS SENSIBLES DE SEGURIDAD>>
+PANTALLAS SENSIBLES DE SEGURIDAD
+
+Se consideran pantallas críticas:
+
+login
+tenant select
+tenant.profile
+tab de permisos
+flujo de invitaciones
+pantallas de superadmin
+
+Reglas:
+
+solo owner puede gestionar permisos del tenant
+los módulos visibles dependen de superadmin
+no exponer configuraciones críticas a roles no autorizados
+
+Las pantallas sensibles deben:
+
+usar catálogos cerrados
+evitar combinaciones libres peligrosas
+priorizar claridad sobre flexibilidad
+<<END SECTION>>
+
+---
+
+<<SECTION: HARDENING Y AUDITORÍA>>
+HARDENING Y AUDITORÍA
+
+Puntos obligatorios de revisión:
+
+LoginResponse
+validar acceso solo a memberships activas
+
+Logout
+limpiar contexto tenant completamente
+
+User
+proteger atributos sensibles (ej. is_superadmin)
+
+Creación de usuarios
+garantizar creación de membership
+
+Fortify
+definir estado real de 2FA
+
+Rutas de debug
+no exponer en producción
+
+Permisos
+no permitir scopes inválidos en base
+
+Dataset
+no usar lógica paralela fuera del resolver
+
+Members
+no dejar memberships sin rol
+
+Seguridad es responsabilidad transversal del sistema y no de un único módulo.
+<<END SECTION>>
+
+---
+
+<<SECTION: REGLA FINAL>>
+REGLA FINAL
+
+El sistema debe garantizar que:
+
+ningún usuario acceda a datos de otro tenant
+ninguna acción se ejecute sin autorización real
+ninguna UI muestre acciones no permitidas
+ninguna capa duplique lógica de permisos
+
+La seguridad no es una capa adicional.
+
+Es una responsabilidad transversal que debe cumplirse en:
+
+modelo
+middleware
+resolver
+policy
+controller
+Blade
+UI
+
+Este documento es la fuente principal del proyecto para acceso y seguridad.
+
+Toda implementación nueva que toque autenticación, tenant, permisos, Fortify, onboarding o autorización debe respetar este documento y mantenerse alineada con los documentos estructurales del proyecto.
+<<END SECTION>>

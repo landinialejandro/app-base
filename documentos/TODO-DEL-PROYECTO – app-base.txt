@@ -524,17 +524,26 @@ ideas futuras resumidas
 <<SECTION: AUTENTICACIÓN Y SEGURIDAD>>
 AUTENTICACIÓN Y SEGURIDAD
 
-- Auditar LoginResponse para garantizar que el autoingreso post-login resuelva únicamente memberships activas y no permita acceso automático a tenants con membership bloqueada.
+Este bloque debe registrar únicamente pendientes reales de seguridad.
 
-- Revisar el alta interna de usuarios para asegurar que cualquier flujo que cree User fuera del registro público genere también la Membership correspondiente y no deje usuarios sin acceso operativo a ningún tenant.
+La doctrina general, el flujo de acceso y las reglas de implementación segura deben concentrarse en:
 
-- Revisar endurecimiento del modelo User respecto de atributos sensibles, en particular is_superadmin, para evitar riesgos de mass assignment o escalamiento accidental de privilegios.
+SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
 
-- Definir formalmente la estrategia de Two-Factor Authentication en Fortify:
-  - o se soporta completamente en modelo, columnas y flujo;
-  - o se desactiva explícitamente hasta implementarlo de forma consistente.
+Pendientes reales actuales:
 
-- Verificar que rutas o utilidades de debug de identidad o tenant, por ejemplo whoami, no queden expuestas en producción.
+* Auditar LoginResponse para garantizar que el autoingreso post-login resuelva únicamente memberships activas y no permita acceso automático a tenants con membership bloqueada.
 
-- Revisar el flujo de logout para confirmar que no queden residuos de contexto tenant en sesión cuando existan respuestas custom de cierre de sesión.
-<<END SECTION>>
+* Revisar el alta interna de usuarios para asegurar que cualquier flujo que cree User fuera del registro público genere también la Membership correspondiente y no deje usuarios sin acceso operativo a ningún tenant.
+
+* Revisar endurecimiento del modelo User respecto de atributos sensibles, en particular is_superadmin, para evitar riesgos de mass assignment o escalamiento accidental de privilegios.
+
+* Definir formalmente la estrategia de Two-Factor Authentication en Fortify:
+
+  * o se soporta completamente en modelo, columnas y flujo;
+  * o se desactiva explícitamente hasta implementarlo de forma consistente.
+
+* Verificar que rutas o utilidades de debug de identidad o tenant, por ejemplo whoami, no queden expuestas en producción.
+
+* Revisar el flujo de logout para confirmar que no queden residuos de contexto tenant en sesión cuando existan respuestas custom de cierre de sesión.
+  <<END SECTION>>

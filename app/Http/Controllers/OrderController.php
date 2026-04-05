@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderController.php | V15
+// FILE: app/Http/Controllers/OrderController.php | V16
 
 namespace App\Http\Controllers;
 
@@ -413,12 +413,8 @@ class OrderController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        if ($order->number && $data['kind'] !== $order->kind) {
-            return back()
-                ->withErrors([
-                    'kind' => 'No se puede cambiar el tipo de una orden que ya fue numerada.',
-                ])
-                ->withInput();
+        if ($order->number) {
+            $data['kind'] = $order->kind;
         }
 
         if (! empty($order->asset_id)) {

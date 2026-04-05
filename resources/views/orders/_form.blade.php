@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/_form.blade.php | V4 --}}
+{{-- FILE: resources/views/orders/_form.blade.php | V5 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
@@ -159,13 +159,13 @@
         @elseif ($orderIsNumbered)
             <select id="kind" class="form-control" disabled>
                 @foreach (OrderCatalog::kindLabels() as $value => $label)
-                    <option value="{{ $value }}" @selected(old('kind', $order->kind) === $value)>
+                    <option value="{{ $value }}" @selected($order->kind === $value)>
                         {{ $label }}
                     </option>
                 @endforeach
             </select>
 
-            <input type="hidden" name="kind" value="{{ old('kind', $order->kind) }}">
+            <input type="hidden" name="kind" value="{{ $order->kind }}">
 
             <div class="form-help">El tipo no puede cambiarse una vez numerada la orden.</div>
         @else

@@ -478,7 +478,7 @@ class AppointmentController extends Controller
     {
         $scope = app(RolePermissionResolver::class)->actionScope(
             ModuleCatalog::APPOINTMENTS,
-            CapabilityCatalog::VIEW,
+            CapabilityCatalog::VIEW_ANY,
             app('tenant'),
             auth()->user()
         );

@@ -510,7 +510,18 @@ puede tener pantallas operativas propias para create y edit
 su dimensión visible principal en UI es kind
 su organización funcional debe apoyarse en AttachmentCatalog
 
-Regla:
+Regla consolidada en comportamiento real:
+
+attachments no posee lógica de ownership independiente
+
+su autorización se delega completamente al recurso padre (attachable)
+
+las acciones sobre attachments dependen de la capacidad update del recurso padre
+
+esto aplica de forma consistente en:
+
+orders
+documents
 
 attachments ya no debe tratarse como futura posible, sino como parte implementada del mapa actual del sistema
 <<END SECTION>>

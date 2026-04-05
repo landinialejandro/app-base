@@ -242,11 +242,13 @@ attachments opera como autorización delegada al recurso padre
 
 estado actual validado:
 
-tasks y appointments ya no usan all en UI, controllers, policies, resolver ni datos persistidos
+se resolvió inconsistencia crítica entre view y view_any en appointments
 
-el barrido de scopes legacy quedó resuelto y validado para la capa operativa auditada de tasks y appointments
+appointments utiliza correctamente view_any para definir acceso a dataset completo
 
-order_items y document_items no poseen implementación efectiva de autorización mediante policy ni delegación real desde cabecera
+la capa de permisos V2 quedó validada en funcionamiento real (resolver, policies, controllers y UI alineados)
+
+tasks y appointments ya no usan scopes legacy en ninguna capa
 
 pendientes reales:
 
@@ -254,19 +256,25 @@ implementar policies o delegación explícita para OrderItem
 
 implementar policies o delegación explícita para DocumentItem
 
+auditar navegación contextual completa en flujos complejos
+
 alinear comportamiento real con convención declarada de herencia de autorización
 
 pendientes ya resueltos y no reabrir:
 
-regularización de seeders para pruebas de permisos en appointments y assets
+inconsistencia de alcance en appointments (view vs view_any)
+
+errores de visibilidad en dataset de appointments
+
+barrido de scope legacy all en módulos auditados
+
+regularización de seeders para pruebas de permisos
 
 consistencia base de memberships en datos de prueba
 
 coherencia entre is_owner y rol persistido
 
 regularización del dataset base para pruebas V2 en tenants, users, memberships, roles, role_permission, tasks, orders, documents, assets y appointments
-
-barrido de scope legacy all en la capa operativa auditada de tasks y appointments
 
 pendientes futuros de esta capa:
 

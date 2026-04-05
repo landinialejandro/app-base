@@ -268,9 +268,13 @@ Contexto esperado:
 
 si la orden se abre desde appointment relacionado, puede conservarse retorno útil al turno o al módulo de agenda
 
-Observación:
+Observación actual validada:
 
-appointments mantiene además navegación estructural propia y calendario mensual operativo
+el acceso al dataset completo de appointments depende de view_any
+
+la navegación desde appointments hacia entidades relacionadas ya no se ve restringida por errores de visibilidad
+
+la coherencia entre listado, acceso y navegación quedó validada en funcionamiento real
 
 PROJECTS -> TASKS
 
@@ -369,60 +373,6 @@ document_items hereda normalmente el contexto del document padre
 Observación:
 
 las acciones create, edit, store, update y cancelar deben volver al show del documento padre respetando el trail completo del flujo
-
-PARTIES -> ASSETS
-
-Uso típico:
-
-consulta de activos asociados a un contacto o entidad base del negocio
-
-Contexto esperado:
-
-assets puede abrirse como continuación del trabajo iniciado en parties
-
-PARTIES -> ORDERS
-
-Uso típico:
-
-desde una party se consultan órdenes asociadas
-
-Contexto esperado:
-
-orders puede abrirse conservando la party de origen cuando el trabajo siga anclado en ese contacto
-
-PARTIES -> DOCUMENTS
-
-Uso típico:
-
-desde una party se consultan documentos asociados
-
-Contexto esperado:
-
-documents puede abrirse conservando la party de origen cuando el trabajo siga anclado en ese contacto
-
-ASSETS -> ORDERS / DOCUMENTS
-
-Uso típico:
-
-desde un activo se consultan o generan operaciones relacionadas
-
-Contexto esperado:
-
-orders y documents pueden conservar retorno al asset si ese origen sigue siendo relevante
-
-ORDERS -> ORDER_ITEMS
-
-Uso típico:
-
-alta, edición o consulta de renglones de orden
-
-Contexto esperado:
-
-order_items hereda normalmente el contexto de la order padre
-
-Observación:
-
-las acciones create, edit, store, update y cancelar deben volver al show de la orden padre respetando el trail completo del flujo
 <<END SECTION>>
 
 <<SECTION: PANTALLAS QUE DEBEN AUDITARSE CON ESPECIAL ATENCIÓN>>

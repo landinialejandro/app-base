@@ -378,6 +378,16 @@ los parciales _form deben funcionar como bloque interno reusable centrado en los
 cuando un _form agrupe múltiples campos mediante un wrapper raíz, ese wrapper puede y debe usar la clase .form para mantener el espaciado vertical uniforme del sistema, aunque no coincida con la etiqueta <form> principal
 
 no debe fragmentarse un formulario de modo que se disperse entre partials la responsabilidad del <form>, @csrf, @method y form-actions
+
+Regla validada en comportamiento real:
+
+cuando un campo está bloqueado por reglas de negocio, no debe depender de old()
+
+el valor visible debe reflejar el estado actual del modelo
+
+no debe priorizarse el valor previo del request si ese campo no es editable
+
+esto evita inconsistencias visuales en formularios como órdenes numeradas
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE CSS VISUAL>>

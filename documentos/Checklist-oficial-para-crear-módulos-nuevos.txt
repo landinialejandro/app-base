@@ -92,6 +92,33 @@ policy realmente aplicada desde controller
 la UI no muestra acciones no permitidas
 navbar o dashboard no exponen accesos irreales
 permisos alineados con rol, módulo y tipo de acción
+
+validar explícitamente:
+
+la diferencia entre view_any y view
+
+view_any debe controlar acceso a listados completos
+
+view debe controlar acceso a registros individuales
+
+no implementar listados basados en view
+
+no reinterpretar scopes ni capacidades como booleanos si el resolver entrega scope válido
+
+validar coherencia entre:
+
+resolver
+policy
+controller
+UI
+
+si el módulo incluye entidades hijas o embebidas:
+
+validar si la autorización depende del recurso padre
+
+si depende del padre, implementar delegación explícita
+
+no asumir herencia automática sin código real que la respalde
 <<END SECTION>>
 
 <<SECTION: DOCUMENTACIÓN OBLIGATORIA>>

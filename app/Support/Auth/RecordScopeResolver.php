@@ -1,11 +1,12 @@
 <?php
 
-// FILE: app/Support/Auth/RecordScopeResolver.php | V2
+// FILE: app/Support/Auth/RecordScopeResolver.php | V3
 
 namespace App\Support\Auth;
 
 use App\Models\Project;
 use App\Models\User;
+use App\Support\Catalogs\PermissionScopeCatalog;
 use Illuminate\Database\Eloquent\Model;
 
 class RecordScopeResolver
@@ -13,9 +14,7 @@ class RecordScopeResolver
     public function allowsSharedScope(mixed $scope): bool
     {
         return in_array($scope, [
-            true,
-            'tenant_all',
-            'all',
+            PermissionScopeCatalog::TENANT_ALL,
         ], true);
     }
 
@@ -29,7 +28,7 @@ class RecordScopeResolver
             return true;
         }
 
-        if ($scope !== 'own_assigned') {
+        if ($scope !== PermissionScopeCatalog::OWN_ASSIGNED) {
             return false;
         }
 
@@ -48,7 +47,7 @@ class RecordScopeResolver
             return true;
         }
 
-        if ($scope !== 'limited') {
+        if ($scope !== PermissionScopeCatalog::LIMITED) {
             return false;
         }
 

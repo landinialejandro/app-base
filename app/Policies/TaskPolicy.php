@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Policies/TaskPolicy.php | V4
+// FILE: app/Policies/TaskPolicy.php | V5
 
 namespace App\Policies;
 
@@ -67,7 +67,7 @@ class TaskPolicy
             $user
         );
 
-        if (! in_array($scope, [PermissionScopeCatalog::ALL, PermissionScopeCatalog::OWN_ASSIGNED], true)) {
+        if (! in_array($scope, [PermissionScopeCatalog::TENANT_ALL, PermissionScopeCatalog::OWN_ASSIGNED], true)) {
             return false;
         }
 

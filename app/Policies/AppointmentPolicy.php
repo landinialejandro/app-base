@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Policies/AppointmentPolicy.php | V3
+// FILE: app/Policies/AppointmentPolicy.php | V4
 
 namespace App\Policies;
 
@@ -43,7 +43,7 @@ class AppointmentPolicy
             $user
         );
 
-        if (! in_array($scope, [PermissionScopeCatalog::ALL, PermissionScopeCatalog::OWN_ASSIGNED], true)) {
+        if (! in_array($scope, [PermissionScopeCatalog::TENANT_ALL, PermissionScopeCatalog::OWN_ASSIGNED], true)) {
             return false;
         }
 
@@ -69,7 +69,7 @@ class AppointmentPolicy
             $user
         );
 
-        if (! in_array($scope, [PermissionScopeCatalog::ALL, PermissionScopeCatalog::OWN_ASSIGNED], true)) {
+        if (! in_array($scope, [PermissionScopeCatalog::TENANT_ALL, PermissionScopeCatalog::OWN_ASSIGNED], true)) {
             return false;
         }
 

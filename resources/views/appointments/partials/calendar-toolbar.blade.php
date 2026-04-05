@@ -1,7 +1,8 @@
-{{-- FILE: resources/views/appointments/partials/calendar-toolbar.blade.php | V3 --}}
+{{-- FILE: resources/views/appointments/partials/calendar-toolbar.blade.php | V4 --}}
 
 @php
     use App\Support\Catalogs\AppointmentCatalog;
+    use App\Support\Catalogs\PermissionScopeCatalog;
 
     $viewMode = $viewMode ?? 'month';
 
@@ -92,9 +93,13 @@
             <div class="form-group">
                 <label for="scope" class="form-label">Vista operativa</label>
                 <select id="scope" name="scope" class="form-control">
-                    <option value="mine" @selected($scope === 'mine')>Mis turnos</option>
+                    <option value="{{ PermissionScopeCatalog::OWN_ASSIGNED }}" @selected($scope === PermissionScopeCatalog::OWN_ASSIGNED)>
+                        Mis turnos
+                    </option>
                     @if ($canViewAllAppointments ?? false)
-                        <option value="all" @selected($scope === 'all')>Todos los turnos</option>
+                        <option value="{{ PermissionScopeCatalog::TENANT_ALL }}" @selected($scope === PermissionScopeCatalog::TENANT_ALL)>
+                            Todos los turnos
+                        </option>
                     @endif
                 </select>
             </div>

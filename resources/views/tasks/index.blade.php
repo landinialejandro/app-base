@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/index.blade.php | V10 --}}
+{{-- FILE: resources/views/tasks/index.blade.php | V11 --}}
 
 @extends('layouts.app')
 
@@ -7,6 +7,7 @@
 @section('content')
 
     @php
+        use App\Support\Catalogs\PermissionScopeCatalog;
         use App\Support\Catalogs\TaskCatalog;
         use App\Support\Navigation\NavigationTrail;
         use App\Support\Navigation\TaskNavigationTrail;
@@ -37,10 +38,12 @@
                     <div class="form-group">
                         <label for="scope" class="form-label">Vista</label>
                         <select id="scope" name="scope" class="form-control">
-                            <option value="mine" @selected(($scope ?? request('scope', 'mine')) === 'mine')>Mis tareas</option>
+                            <option value="{{ PermissionScopeCatalog::OWN_ASSIGNED }}" @selected(($scope ?? request('scope', PermissionScopeCatalog::OWN_ASSIGNED)) === PermissionScopeCatalog::OWN_ASSIGNED)>
+                                Mis tareas
+                            </option>
 
                             @if ($canViewAll ?? false)
-                                <option value="all" @selected(($scope ?? request('scope', 'mine')) === 'all')>
+                                <option value="{{ PermissionScopeCatalog::TENANT_ALL }}" @selected(($scope ?? request('scope', PermissionScopeCatalog::OWN_ASSIGNED)) === PermissionScopeCatalog::TENANT_ALL)>
                                     Todas las tareas
                                 </option>
                             @endif

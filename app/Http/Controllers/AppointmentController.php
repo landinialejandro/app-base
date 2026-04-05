@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AppointmentController.php | V9
+// FILE: app/Http/Controllers/AppointmentController.php | V10
 
 namespace App\Http\Controllers;
 
@@ -53,7 +53,7 @@ class AppointmentController extends Controller
 
         $appointments = Appointment::query()
             ->with(['party', 'order', 'asset', 'assignedUser'])
-            ->when($scope === 'mine', function ($query) {
+            ->when($scope === PermissionScopeCatalog::OWN_ASSIGNED, function ($query) {
                 $query->where('assigned_user_id', auth()->id());
             })
             ->when($q !== '', function ($query) use ($q) {
@@ -121,7 +121,7 @@ class AppointmentController extends Controller
                     $weekStart->toDateString(),
                     $weekEnd->toDateString(),
                 ])
-                ->when($scope === 'mine', function ($query) {
+                ->when($scope === PermissionScopeCatalog::OWN_ASSIGNED, function ($query) {
                     $query->where('assigned_user_id', auth()->id());
                 })
                 ->when($assignedUserId, fn ($query) => $query->where('assigned_user_id', $assignedUserId))
@@ -190,7 +190,7 @@ class AppointmentController extends Controller
                 $gridStart->toDateString(),
                 $gridEnd->toDateString(),
             ])
-            ->when($scope === 'mine', function ($query) {
+            ->when($scope === PermissionScopeCatalog::OWN_ASSIGNED, function ($query) {
                 $query->where('assigned_user_id', auth()->id());
             })
             ->when($assignedUserId, fn ($query) => $query->where('assigned_user_id', $assignedUserId))
@@ -463,13 +463,15 @@ class AppointmentController extends Controller
 
     protected function resolveAppointmentDatasetScope(Request $request): string
     {
-        $scope = $request->get('scope', 'mine');
+        $scope = $request->get('scope', PermissionScopeCatalog::OWN_ASSIGNED);
 
-        if (! $this->canViewAllAppointments() && $scope === 'all') {
-            return 'mine';
+        if (! $this->canViewAllAppointments() && $scope === PermissionScopeCatalog::TENANT_ALL) {
+            return PermissionScopeCatalog::OWN_ASSIGNED;
         }
 
-        return in_array($scope, ['mine', 'all'], true) ? $scope : 'mine';
+        return in_array($scope, [PermissionScopeCatalog::OWN_ASSIGNED, PermissionScopeCatalog::TENANT_ALL], true)
+            ? $scope
+            : PermissionScopeCatalog::OWN_ASSIGNED;
     }
 
     protected function canViewAllAppointments(): bool
@@ -481,7 +483,7 @@ class AppointmentController extends Controller
             auth()->user()
         );
 
-        return $scope === PermissionScopeCatalog::ALL;
+        return $scope === PermissionScopeCatalog::TENANT_ALL;
     }
 
     protected function canManageForeignAppointment(Appointment $appointment): bool
@@ -493,7 +495,7 @@ class AppointmentController extends Controller
             auth()->user()
         );
 
-        return $scope === PermissionScopeCatalog::ALL
+        return $scope === PermissionScopeCatalog::TENANT_ALL
             && (int) $appointment->assigned_user_id !== (int) auth()->id();
     }
 

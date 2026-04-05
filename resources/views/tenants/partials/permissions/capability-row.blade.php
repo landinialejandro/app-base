@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/partials/permissions/capability-row.blade.php | V8 --}}
+{{-- FILE: resources/views/tenants/partials/permissions/capability-row.blade.php | V9 --}}
 
 @php
     $enabled = (bool) ($meta['enabled'] ?? false);
@@ -11,8 +11,6 @@
     $selectedScopeHelp = match ($scope) {
         \App\Support\Catalogs\PermissionScopeCatalog::TENANT_ALL
             => 'Puede trabajar con toda la información de este módulo dentro de la empresa.',
-        \App\Support\Catalogs\PermissionScopeCatalog::ALL
-            => 'Tiene acceso completo sobre todos los registros admitidos por esta acción.',
         \App\Support\Catalogs\PermissionScopeCatalog::OWN_ASSIGNED
             => 'Solo puede trabajar con los registros que tenga asignados.',
         \App\Support\Catalogs\PermissionScopeCatalog::LIMITED
@@ -66,7 +64,6 @@
 
             <div class="form-help" data-permission-scope-help
                 data-scope-help-default="Define sobre qué información podrá usar esta acción."
-                data-scope-help-all="Tiene acceso completo sobre todos los registros admitidos por esta acción."
                 data-scope-help-tenant_all="Puede trabajar con toda la información de este módulo dentro de la empresa."
                 data-scope-help-own_assigned="Solo puede trabajar con los registros que tenga asignados."
                 data-scope-help-limited="Tiene acceso parcial según la lógica específica de este módulo.">

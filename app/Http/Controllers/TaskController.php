@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TaskController.php | V7
+// FILE: app/Http/Controllers/TaskController.php | V8
 
 namespace App\Http\Controllers;
 
@@ -11,6 +11,7 @@ use App\Models\User;
 use App\Support\Auth\RolePermissionResolver;
 use App\Support\Catalogs\CapabilityCatalog;
 use App\Support\Catalogs\ModuleCatalog;
+use App\Support\Catalogs\PermissionScopeCatalog;
 use App\Support\Catalogs\TaskCatalog;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\TaskNavigationTrail;
@@ -31,7 +32,7 @@ class TaskController extends Controller
         $status = $request->get('status');
         $priority = $request->get('priority');
         $assignedUserId = $request->get('assigned_user_id');
-        $scope = $request->get('scope', 'mine');
+        $scope = $request->get('scope', PermissionScopeCatalog::OWN_ASSIGNED);
 
         $resolver = app(RolePermissionResolver::class);
 
@@ -42,14 +43,16 @@ class TaskController extends Controller
             auth()->user()
         );
 
-        $canViewAll = in_array($viewAnyScope, [true, 'tenant_all', 'all'], true);
+        $canViewAll = $viewAnyScope === PermissionScopeCatalog::TENANT_ALL;
 
-        if (! $canViewAll && $scope === 'all') {
-            $scope = 'mine';
+        if (! $canViewAll && $scope === PermissionScopeCatalog::TENANT_ALL) {
+            $scope = PermissionScopeCatalog::OWN_ASSIGNED;
         }
 
-        if (! in_array($scope, ['mine', 'all'], true)) {
-            $scope = $canViewAll ? 'all' : 'mine';
+        if (! in_array($scope, [PermissionScopeCatalog::OWN_ASSIGNED, PermissionScopeCatalog::TENANT_ALL], true)) {
+            $scope = $canViewAll
+                ? PermissionScopeCatalog::TENANT_ALL
+                : PermissionScopeCatalog::OWN_ASSIGNED;
         }
 
         $projects = Project::query()
@@ -66,7 +69,7 @@ class TaskController extends Controller
 
         $tasks = TaskVisibility::visibleQuery()
             ->with(['project', 'party', 'assignedUser', 'order'])
-            ->when($scope === 'mine', function ($query) {
+            ->when($scope === PermissionScopeCatalog::OWN_ASSIGNED, function ($query) {
                 $query->where('assigned_user_id', auth()->id());
             })
             ->when($q !== '', function ($query) use ($q) {

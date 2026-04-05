@@ -49,6 +49,22 @@ Estado visual consolidado:
 identidad visual base definida mediante iconografía SVG en header
 favicon implementado como asset público
 footer global del layout operativo integrado al shell de la app
+
+Estado actual de datos base validado:
+la batería de seeders base quedó regularizada para pruebas V2
+
+el dataset actual ya permite correr pruebas consistentes sobre:
+
+tenants
+users
+memberships
+roles
+role_permission
+tasks
+orders
+documents
+assets
+appointments
 <<END SECTION>>
 
 <<SECTION: MÓDULOS IMPLEMENTADOS>>
@@ -198,9 +214,29 @@ la autorización efectiva se basa en:
 RolePermissionResolver
 RecordScopeResolver
 
+owner se resuelve estructuralmente por memberships.is_owner y no requiere rol persistido en membership_role
+
+la matriz V2 normalizada vigente utiliza:
+
+view_any
+view
+create
+update
+delete
+
+create opera como capacidad booleana
+
+view_any, view, update y delete operan mediante scope válido
+
 los scopes quedan definidos por módulo + capacidad
 
-no deben existir scopes genéricos inválidos
+el scope all queda eliminado de la capa vigente
+
+los scopes efectivos validados son:
+
+tenant_all
+own_assigned
+limited
 
 attachments opera como autorización delegada al recurso padre
 
@@ -216,15 +252,15 @@ implementar policies o delegación explícita para DocumentItem
 
 alinear comportamiento real con convención declarada de herencia de autorización
 
-validar consistencia de seeders para pruebas de permisos en:
+pendientes ya resueltos y no reabrir:
 
-appointments
-assets
-attachments
+regularización de seeders para pruebas de permisos en appointments y assets
 
-corregir inconsistencias de memberships en datos de prueba
+consistencia base de memberships en datos de prueba
 
-asegurar coherencia entre is_owner y rol persistido
+coherencia entre is_owner y rol persistido
+
+regularización del dataset base para pruebas V2 en tenants, users, memberships, roles, role_permission, tasks, orders, documents, assets y appointments
 
 pendientes futuros de esta capa:
 

@@ -176,6 +176,28 @@ la autorización no debe depender únicamente de una matriz plana módulo × rol
 
 la resolución efectiva debe considerar además capacidades concretas, scope, execution mode y alcance real sobre el registro
 
+la matriz V2 normalizada vigente trabaja con las capacidades:
+
+view_any
+view
+create
+update
+delete
+
+create se resuelve como capacidad booleana
+
+view_any, view, update y delete deben resolverse mediante scope válido según módulo y capacidad
+
+view_any no debe resolverse como booleano ambiguo
+
+los scopes legacy o genéricos fuera del catálogo vigente no deben persistirse ni utilizarse
+
+los scopes efectivos validados en la base actual son:
+
+tenant_all
+own_assigned
+limited
+
 la eliminación sensible debe reservarse a owner y admin, salvo necesidad funcional justificada
 
 la visibilidad del dashboard y de métricas agregadas debe respetar el rol y no asumir siempre conteos globales del tenant
@@ -255,6 +277,8 @@ no deben existir scopes inválidos, implícitos o ambiguos
 
 los roles base del sistema deben seguir siendo pocos y estables
 
+owner se resuelve estructuralmente por memberships.is_owner y no requiere rol persistido en membership_role
+
 la especialización funcional del trabajo debe resolverse mediante perfiles y capacidades
 
 toda autorización funcional nueva debe apoyarse en:
@@ -272,9 +296,31 @@ cuando un módulo tenga reglas específicas por ownership o participación, esa 
 
 orders, tasks, documents, parties, assets, products, projects y appointments ya se encuentran migrados y validados sobre V2 real
 
+la matriz V2 normalizada vigente utiliza:
+
+view_any
+view
+create
+update
+delete
+
+create debe persistirse y resolverse como capacidad booleana
+
+view_any, view, update y delete deben resolverse mediante scope válido
+
 viewAny y view deben resolverse mediante capacidades concretas y scope efectivo
 
 no deben resolverse mediante canUseModule para lectura general
+
+view_any no debe degradarse a booleano
+
+el scope all queda fuera de la matriz vigente y no debe utilizarse
+
+los scopes efectivos validados pasan a ser:
+
+tenant_all
+own_assigned
+limited
 
 un módulo no debe considerarse migrado a V2 si existen inconsistencias entre convención y código real
 
@@ -420,13 +466,24 @@ Clases conceptuales ya alineadas con esta convención:
 
 TenantAccess
 TenantModuleAccess
-RoleModuleAccess
+RolePermissionResolver
+RecordScopeResolver
 
-Cuando la visibilidad de registros dependa del módulo, debe resolverse preferentemente en clases específicas de soporte, por ejemplo:
+RoleModuleAccess y helpers equivalentes no deben sostener matrices legacy paralelas si la resolución efectiva ya vive en la capa V2 persistida.
 
-Support/<Modulo>/<Entidad>Visibility
+Cuando la visibilidad de registros dependa del módulo, debe resolverse preferentemente en clases específicas de soporte o resolvers compatibles con la capa central de autorización.
 
-Esto ya se considera válido para la visibilidad operativa de projects.
+Esto ya se considera válido para la visibilidad operativa de projects y para la resolución de alcance efectivo de módulos migrados a V2.
+
+Reglas:
+
+no duplicar resolución de scopes en controllers, blades o policies si ya existe resolver central
+
+no reinterpretar view_any como booleano cuando el resolver ya entrega scope válido
+
+los alcances visibles en UI deben consumirse desde catálogo o resolver central y no reconstruirse manualmente
+
+la salida del resolver debe mantenerse consistente con la matriz sembrada y con los datos persistidos reales del tenant
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE POLICIES>>
@@ -460,6 +517,8 @@ el controller debe invocar authorize(...) o authorizeResource(...)
 la vista debe respetar permisos reales con @can
 
 las policies deben trabajar con capacidades concretas y scopes efectivos
+
+viewAny y view no deben resolverse como booleanos genéricos si el resolver ya entrega scope válido
 
 no deben resolver lectura únicamente con canUseModule
 

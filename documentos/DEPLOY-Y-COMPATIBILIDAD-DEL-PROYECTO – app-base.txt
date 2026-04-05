@@ -146,11 +146,17 @@ Para futuros despliegues en entornos similares, se recomienda:
 
 Mientras el proyecto siga desplegándose en entornos compartidos sin CLI, debe mantenerse como criterio general:
 
-- rutas explícitas en lugar de Route::resource(...) para el core operativo
-- deploy por versión cerrada
-- mínima dependencia de generación dinámica en servidor
-- prioridad por estabilidad operativa sobre concisión sintáctica
-<<END SECTION>>
+* rutas explícitas en lugar de Route::resource(...) para el core operativo
+* deploy por versión cerrada
+* mínima dependencia de generación dinámica en servidor
+* prioridad por estabilidad operativa sobre concisión sintáctica
+
+Estado actual validado adicional:
+
+* la batería de seeders base quedó regularizada
+* el proyecto puede reconstruirse en local con migrate:fresh --seed sin errores dentro del estado validado actual de la sesión
+* esta regularización debe preservarse como criterio de continuidad para futuras auditorías, pruebas de permisos y validaciones integrales del sistema
+  <<END SECTION>>
 
 <<SECTION: POSIBLE REVISIÓN FUTURA>>
 10. POSIBLE REVISIÓN FUTURA

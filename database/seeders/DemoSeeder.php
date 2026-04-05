@@ -6,6 +6,7 @@ namespace Database\Seeders;
 
 use Database\Seeders\Modules\AppointmentModuleSeeder;
 use Database\Seeders\Modules\AssetModuleSeeder;
+use Database\Seeders\Modules\AttachmentDemoSeeder;
 use Database\Seeders\Modules\BaseModuleSeeder;
 use Database\Seeders\Modules\BranchModuleSeeder;
 use Database\Seeders\Modules\CrossRelationsSeeder;
@@ -55,6 +56,7 @@ class DemoSeeder extends Seeder
             DocumentModuleSeeder::class,
             AppointmentModuleSeeder::class,
             CrossRelationsSeeder::class,
+            AttachmentDemoSeeder::class,
         ];
 
         $modules = ! empty($configuredEnabled) ? $configuredEnabled : $defaultModules;

@@ -50,9 +50,8 @@
     </td>
 
     <td>
-        @if ($showScope)
-            <select name="permissions[{{ $module }}][{{ $capability }}][scope]" class="form-control"
-                data-permission-scope-select>
+        @if ($showScope && count($scopeOptions) > 1)
+            <select name="permissions[{{ $module }}][{{ $capability }}][scope]" class="form-control">
                 <option value="">Seleccionar alcance</option>
 
                 @foreach ($scopeOptions as $scopeValue => $scopeLabel)
@@ -69,16 +68,17 @@
                 data-scope-help-limited="Tiene acceso parcial según la lógica específica de este módulo.">
                 {{ $selectedScopeHelp }}
             </div>
-        @else
-            <span class="helper-inline">Sin alcance adicional</span>
+        @elseif ($showScope && count($scopeOptions) === 1)
+            @php
+                $onlyScope = array_key_first($scopeOptions);
+            @endphp
 
-            @if ($enabled)
-                <div class="form-help">
-                    Esta acción no requiere restricciones extra.
-                </div>
-            @endif
+            <span class="helper-inline">
+                {{ $scopeOptions[$onlyScope] }}
+            </span>
 
-            <input type="hidden" name="permissions[{{ $module }}][{{ $capability }}][scope]" value="">
+            <input type="hidden" name="permissions[{{ $module }}][{{ $capability }}][scope]"
+                value="{{ $onlyScope }}">
         @endif
     </td>
 

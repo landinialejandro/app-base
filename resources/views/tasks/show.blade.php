@@ -8,6 +8,8 @@
     @php
         use App\Support\Catalogs\TaskCatalog;
         use App\Support\Navigation\NavigationTrail;
+        use App\Support\Auth\TenantModuleAccess;
+        use App\Support\Catalogs\ModuleCatalog;
         use Illuminate\Support\Carbon;
 
         $attachments = $task->attachments ?? collect();
@@ -40,6 +42,12 @@
             'orders.show' => 'Volver a la orden',
             default => 'Volver',
         };
+        $canCreateOrderFromTask =
+            !$task->order &&
+            $task->party_id &&
+            TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, app('tenant')) &&
+            auth()->user()->can('update', $task) &&
+            auth()->user()->can('create', App\Models\Order::class);
     @endphp
 
     <x-page>
@@ -67,7 +75,7 @@
                 </form>
             @endcan
 
-            @if (!$task->order && $task->party_id)
+            @if ($canCreateOrderFromTask)
                 <a href="{{ route('orders.create', ['task_id' => $task->id] + $trailQuery) }}" class="btn btn-secondary">
                     Crear orden
                 </a>
@@ -121,13 +129,13 @@
                             {{ $task->order->number ?: 'Ver orden' }}
                         </a>
                     @elseif ($task->party_id)
-                        @can('create', App\Models\Order::class)
+                        @if ($canCreateOrderFromTask)
                             <a href="{{ route('orders.create', ['task_id' => $task->id] + $trailQuery) }}">
                                 Crear orden
                             </a>
                         @else
                             —
-                        @endcan
+                        @endif
                     @else
                         Asociá un contacto para poder crear una orden.
                     @endif

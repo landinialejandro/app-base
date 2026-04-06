@@ -30,9 +30,14 @@ class TaskController extends Controller
         $status = $request->get('status');
         $priority = $request->get('priority');
         $assignedUserId = $request->get('assigned_user_id');
-        $canViewAll = $this->canViewAllTasks();
+
+        $effectiveScope = $this->taskViewScope();
+        $canViewAll = $effectiveScope === PermissionScopeCatalog::TENANT_ALL;
 
         $projects = Project::query()
+            ->when($effectiveScope === PermissionScopeCatalog::LIMITED, function ($query) {
+                return app(Security::class)->scope(auth()->user(), 'projects.viewAny', $query);
+            })
             ->orderBy('name')
             ->get();
 
@@ -44,8 +49,13 @@ class TaskController extends Controller
             ->orderBy('name')
             ->get();
 
-        $tasks = app(Security::class)
-            ->scope(auth()->user(), 'tasks.viewAny', TaskVisibility::visibleQuery())
+        $baseQuery = match ($effectiveScope) {
+            PermissionScopeCatalog::TENANT_ALL => Task::query(),
+            PermissionScopeCatalog::LIMITED => TaskVisibility::visibleQuery(),
+            default => Task::query()->whereRaw('1 = 0'),
+        };
+
+        $tasks = $baseQuery
             ->with(['project', 'party', 'assignedUser', 'order'])
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($subquery) use ($q) {
@@ -70,12 +80,12 @@ class TaskController extends Controller
             })
             ->orderByRaw(
                 'CASE
-                    WHEN status = ? THEN 1
-                    WHEN status = ? THEN 2
-                    WHEN status = ? THEN 3
-                    WHEN status = ? THEN 4
-                    ELSE 5
-                END',
+                WHEN status = ? THEN 1
+                WHEN status = ? THEN 2
+                WHEN status = ? THEN 3
+                WHEN status = ? THEN 4
+                ELSE 5
+            END',
                 [
                     TaskCatalog::STATUS_PENDING,
                     TaskCatalog::STATUS_IN_PROGRESS,
@@ -85,12 +95,12 @@ class TaskController extends Controller
             )
             ->orderByRaw(
                 'CASE
-                    WHEN priority = ? THEN 1
-                    WHEN priority = ? THEN 2
-                    WHEN priority = ? THEN 3
-                    WHEN priority = ? THEN 4
-                    ELSE 5
-                END',
+                WHEN priority = ? THEN 1
+                WHEN priority = ? THEN 2
+                WHEN priority = ? THEN 3
+                WHEN priority = ? THEN 4
+                ELSE 5
+            END',
                 [
                     TaskCatalog::PRIORITY_URGENT,
                     TaskCatalog::PRIORITY_HIGH,
@@ -109,9 +119,7 @@ class TaskController extends Controller
             'tasks' => $tasks,
             'projects' => $projects,
             'users' => $users,
-            'scope' => $canViewAll
-                ? PermissionScopeCatalog::TENANT_ALL
-                : PermissionScopeCatalog::OWN_ASSIGNED,
+            'scope' => $effectiveScope,
             'canViewAll' => $canViewAll,
         ]);
     }
@@ -373,18 +381,24 @@ class TaskController extends Controller
             ->with('success', 'Tarea eliminada correctamente.');
     }
 
-    protected function canViewAllTasks(): bool
+    protected function taskViewScope(): mixed
     {
         $inspection = app(Security::class)->inspect(auth()->user(), 'tasks.viewAny');
 
-        return ($inspection['scope'] ?? null) === PermissionScopeCatalog::TENANT_ALL;
+        return $inspection['scope'] ?? false;
     }
 
     protected function canManageForeignTask(Task $task): bool
     {
         $inspection = app(Security::class)->inspect(auth()->user(), 'tasks.update', $task);
 
-        return ($inspection['scope'] ?? null) === PermissionScopeCatalog::TENANT_ALL
-            && (int) $task->assigned_user_id !== (int) auth()->id();
+        return in_array(
+            $inspection['scope'] ?? null,
+            [
+                PermissionScopeCatalog::TENANT_ALL,
+                PermissionScopeCatalog::LIMITED,
+            ],
+            true
+        ) && (int) $task->assigned_user_id !== (int) auth()->id();
     }
 }

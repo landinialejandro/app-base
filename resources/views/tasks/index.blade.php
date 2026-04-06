@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/index.blade.php | V11 --}}
+{{-- FILE: resources/views/tasks/index.blade.php | V12 --}}
 
 @extends('layouts.app')
 
@@ -7,7 +7,6 @@
 @section('content')
 
     @php
-        use App\Support\Catalogs\PermissionScopeCatalog;
         use App\Support\Catalogs\TaskCatalog;
         use App\Support\Navigation\NavigationTrail;
         use App\Support\Navigation\TaskNavigationTrail;
@@ -36,17 +35,14 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="scope" class="form-label">Vista</label>
-                        <select id="scope" name="scope" class="form-control">
-                            <option value="{{ PermissionScopeCatalog::OWN_ASSIGNED }}" @selected(($scope ?? request('scope', PermissionScopeCatalog::OWN_ASSIGNED)) === PermissionScopeCatalog::OWN_ASSIGNED)>
-                                Mis tareas
-                            </option>
-
-                            @if ($canViewAll ?? false)
-                                <option value="{{ PermissionScopeCatalog::TENANT_ALL }}" @selected(($scope ?? request('scope', PermissionScopeCatalog::OWN_ASSIGNED)) === PermissionScopeCatalog::TENANT_ALL)>
-                                    Todas las tareas
+                        <label for="assigned_user_id" class="form-label">Asignado a</label>
+                        <select id="assigned_user_id" name="assigned_user_id" class="form-control">
+                            <option value="">Todos</option>
+                            @foreach ($users as $user)
+                                <option value="{{ $user->id }}" @selected((string) request('assigned_user_id') === (string) $user->id)>
+                                    {{ $user->name }}
                                 </option>
-                            @endif
+                            @endforeach
                         </select>
                     </div>
                 </div>
@@ -85,18 +81,6 @@
                             @foreach ($projects as $project)
                                 <option value="{{ $project->id }}" @selected((string) request('project_id') === (string) $project->id)>
                                     {{ $project->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    <div class="form-group">
-                        <label for="assigned_user_id" class="form-label">Asignado a</label>
-                        <select id="assigned_user_id" name="assigned_user_id" class="form-control">
-                            <option value="">Todos</option>
-                            @foreach ($users as $user)
-                                <option value="{{ $user->id }}" @selected((string) request('assigned_user_id') === (string) $user->id)>
-                                    {{ $user->name }}
                                 </option>
                             @endforeach
                         </select>

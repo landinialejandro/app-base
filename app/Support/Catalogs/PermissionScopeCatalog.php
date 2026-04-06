@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/PermissionScopeCatalog.php | V5
+// FILE: app/Support/Catalogs/PermissionScopeCatalog.php | V8
 
 namespace App\Support\Catalogs;
 
@@ -14,8 +14,8 @@ class PermissionScopeCatalog
 
     protected static array $labels = [
         self::TENANT_ALL => 'Toda la empresa',
-        self::OWN_ASSIGNED => 'Solo asignados al usuario',
-        self::LIMITED => 'Limitado',
+        self::LIMITED => 'Propias y asignadas',
+        self::OWN_ASSIGNED => 'Solo asignadas al usuario',
     ];
 
     public static function all(): array
@@ -62,11 +62,11 @@ class PermissionScopeCatalog
         return match ($capability) {
             CapabilityCatalog::VIEW_ANY => [
                 self::TENANT_ALL => static::label(self::TENANT_ALL),
-                self::OWN_ASSIGNED => static::label(self::OWN_ASSIGNED),
+                self::LIMITED => static::label(self::LIMITED),
             ],
             CapabilityCatalog::VIEW => [
                 self::TENANT_ALL => static::label(self::TENANT_ALL),
-                self::OWN_ASSIGNED => static::label(self::OWN_ASSIGNED),
+                self::LIMITED => static::label(self::LIMITED),
             ],
             CapabilityCatalog::UPDATE => [
                 self::TENANT_ALL => static::label(self::TENANT_ALL),
@@ -74,6 +74,7 @@ class PermissionScopeCatalog
             ],
             CapabilityCatalog::DELETE => [
                 self::TENANT_ALL => static::label(self::TENANT_ALL),
+                self::OWN_ASSIGNED => static::label(self::OWN_ASSIGNED),
             ],
             default => [],
         };

@@ -1,15 +1,17 @@
 <?php
 
-// FILE: app/Support/Auth/RecordScopeResolver.php | V4
+// FILE: app/Support/Auth/RecordScopeResolver.php | V6
 
 namespace App\Support\Auth;
 
 use App\Models\Project;
+use App\Models\Task;
 use App\Models\User;
 use App\Support\Catalogs\CapabilityCatalog;
 use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\PermissionScopeCatalog;
 use App\Support\Projects\ProjectVisibility;
+use App\Support\Tasks\TaskVisibility;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 
@@ -174,10 +176,6 @@ class RecordScopeResolver
             return $this->allowsAssignedUserScope($scope, $record, $user);
         }
 
-        if ($scope === PermissionScopeCatalog::OWN_CREATED) {
-            return $this->allowsCreatedByUserScope($record, $user);
-        }
-
         if ($scope === PermissionScopeCatalog::LIMITED) {
             return $this->allowsLimitedRecord($module, $record, $user, $context);
         }
@@ -199,13 +197,6 @@ class RecordScopeResolver
         if ($scope === PermissionScopeCatalog::OWN_ASSIGNED) {
             return $query->where(
                 $query->getModel()->qualifyColumn('assigned_user_id'),
-                $user->id
-            );
-        }
-
-        if ($scope === PermissionScopeCatalog::OWN_CREATED) {
-            return $query->where(
-                $query->getModel()->qualifyColumn('created_by'),
                 $user->id
             );
         }
@@ -246,17 +237,6 @@ class RecordScopeResolver
         return $query;
     }
 
-    protected function allowsCreatedByUserScope(Model $record, User $user): bool
-    {
-        $createdBy = $record->getAttribute('created_by');
-
-        if ($createdBy === null) {
-            return false;
-        }
-
-        return (int) $createdBy === (int) $user->id;
-    }
-
     protected function allowsLimitedRecord(
         string $module,
         Model $record,
@@ -265,6 +245,14 @@ class RecordScopeResolver
     ): bool {
         if ($module === ModuleCatalog::PROJECTS && $record instanceof Project) {
             return $this->allowsProjectScope(PermissionScopeCatalog::LIMITED, $record, $user);
+        }
+
+        if ($module === ModuleCatalog::TASKS && $record instanceof Task) {
+            return TaskVisibility::visibleQuery(
+                Task::query(),
+                app()->bound('tenant') ? app('tenant') : null,
+                $user
+            )->whereKey($record->getKey())->exists();
         }
 
         return false;
@@ -277,7 +265,19 @@ class RecordScopeResolver
         array $context = []
     ): Builder {
         if ($module === ModuleCatalog::PROJECTS) {
-            return ProjectVisibility::visibleQuery($query, $user);
+            return ProjectVisibility::visibleQuery(
+                $query,
+                app()->bound('tenant') ? app('tenant') : null,
+                $user
+            );
+        }
+
+        if ($module === ModuleCatalog::TASKS) {
+            return TaskVisibility::visibleQuery(
+                $query,
+                app()->bound('tenant') ? app('tenant') : null,
+                $user
+            );
         }
 
         return $query->whereRaw('1 = 0');
@@ -319,6 +319,7 @@ class RecordScopeResolver
     {
         return in_array($module, [
             ModuleCatalog::PROJECTS,
+            ModuleCatalog::TASKS,
         ], true);
     }
 

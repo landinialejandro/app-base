@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DocumentController.php | V12
+// FILE: app/Http/Controllers/DocumentController.php | V13
 
 namespace App\Http\Controllers;
 
@@ -305,7 +305,6 @@ class DocumentController extends Controller
                     DocumentCatalog::KIND_QUOTE,
                     DocumentCatalog::KIND_DELIVERY_NOTE,
                     DocumentCatalog::KIND_INVOICE,
-                    DocumentCatalog::KIND_WORK_ORDER,
                 ]),
             ],
         ]);

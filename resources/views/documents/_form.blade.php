@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/_form.blade.php | V3 --}}
+{{-- FILE: resources/views/documents/_form.blade.php | V4 --}}
 
 @php
     use App\Support\Catalogs\DocumentCatalog;
@@ -11,6 +11,10 @@
     $currentOrderId = old('order_id', $boundOrder?->id ?? ($document->order_id ?? ''));
     $currentPartyId = old('party_id', $boundOrder?->party_id ?? ($document->party_id ?? ''));
     $currentAssetId = old('asset_id', $boundOrder?->asset_id ?? ($document->asset_id ?? ''));
+
+    $visibleKinds = collect(DocumentCatalog::kindLabels())->reject(
+        fn($label, $value) => $value === DocumentCatalog::KIND_WORK_ORDER,
+    );
 @endphp
 
 <div class="form" data-action="app-party-asset-sync" data-party-select="#party_id" data-asset-select="#asset_id">
@@ -92,7 +96,7 @@
             <div class="form-help">El tipo no puede cambiarse una vez numerado el documento.</div>
         @else
             <select name="kind" id="kind" class="form-control" required>
-                @foreach (DocumentCatalog::kindLabels() as $value => $label)
+                @foreach ($visibleKinds as $value => $label)
                     <option value="{{ $value }}" @selected(old('kind', $document->kind ?? DocumentCatalog::KIND_QUOTE) === $value)>
                         {{ $label }}
                     </option>

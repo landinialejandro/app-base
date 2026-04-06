@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DashboardController.php | V5
+// FILE: app/Http/Controllers/DashboardController.php | V6
 
 namespace App\Http\Controllers;
 
@@ -25,12 +25,20 @@ class DashboardController extends Controller
         $user = auth()->user();
         $resolver = app(RolePermissionResolver::class);
 
-        $visibleProjects = ProjectVisibility::visibleQuery($tenant, $user)->get([
+        $visibleProjects = ProjectVisibility::visibleQuery(
+            null,
+            $tenant,
+            $user
+        )->get([
             'projects.id',
             'projects.status',
         ]);
 
-        $visibleTasks = TaskVisibility::visibleQuery($tenant, $user)->get([
+        $visibleTasks = TaskVisibility::visibleQuery(
+            null,
+            $tenant,
+            $user
+        )->get([
             'tasks.id',
             'tasks.project_id',
             'tasks.assigned_user_id',

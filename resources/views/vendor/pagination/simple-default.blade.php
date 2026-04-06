@@ -1,3 +1,5 @@
+{{-- FILE: resources/views/vendor/pagination/simple-default.blade.php | V1 --}}
+
 @if ($paginator->hasPages())
     <nav class="app-pagination" role="navigation" aria-label="Paginación">
         <div class="app-pagination-links">

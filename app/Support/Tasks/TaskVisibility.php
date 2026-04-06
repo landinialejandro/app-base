@@ -1,42 +1,50 @@
 <?php
 
-// FILE: app/Support/Tasks/TaskVisibility.php | V3
+// FILE: app/Support/Tasks/TaskVisibility.php | V4
 
 namespace App\Support\Tasks;
 
 use App\Models\Task;
 use App\Models\Tenant;
 use App\Models\User;
-use App\Support\Auth\RolePermissionResolver;
-use App\Support\Catalogs\CapabilityCatalog;
-use App\Support\Catalogs\ModuleCatalog;
-use App\Support\Catalogs\PermissionScopeCatalog;
+use App\Support\Auth\Security;
 use Illuminate\Database\Eloquent\Builder;
 
 class TaskVisibility
 {
-    public static function visibleQuery(?Tenant $tenant = null, ?User $user = null): Builder
-    {
+    public static function visibleQuery(
+        ?Builder $query = null,
+        ?Tenant $tenant = null,
+        ?User $user = null
+    ): Builder {
         $user = $user ?: auth()->user();
         $tenant = $tenant ?: (app()->bound('tenant') ? app('tenant') : null);
-
-        $query = Task::query();
+        $query = $query ?: Task::query();
 
         if (! $user || ! $tenant) {
             return $query->whereRaw('1 = 0');
         }
 
-        $viewAnyScope = app(RolePermissionResolver::class)->actionScope(
-            ModuleCatalog::TASKS,
-            CapabilityCatalog::VIEW_ANY,
-            $tenant,
-            $user
+        $query = app(Security::class)->scope(
+            $user,
+            'tasks.viewAny',
+            $query
         );
 
-        if ($viewAnyScope === PermissionScopeCatalog::TENANT_ALL) {
-            return $query;
-        }
+        return $query->where(function ($q) use ($user) {
 
-        return $query->whereRaw('1 = 0');
+            // tareas propias
+            $q->where('assigned_user_id', $user->id)
+
+            // o tareas de proyectos donde tiene al menos una asignada
+                ->orWhereIn('project_id', function ($sub) use ($user) {
+                    $sub->select('project_id')
+                        ->from('tasks')
+                        ->whereNull('deleted_at')
+                        ->where('assigned_user_id', $user->id)
+                        ->whereNotNull('project_id');
+                });
+
+        });
     }
 }

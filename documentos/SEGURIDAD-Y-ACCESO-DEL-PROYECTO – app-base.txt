@@ -298,6 +298,139 @@ CONVENCIONES-DEL-PROYECTO – app-base
 MAPA-DE-ENTIDADES – app-base
 <<END SECTION>>
 
+<<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
+
+REGLAS OPERATIVAS POR MÓDULO
+
+OBJETIVO
+
+Definir de forma explícita el comportamiento funcional y de autorización de cada módulo del sistema.
+
+Cada módulo debe establecer:
+
+su universo visible
+
+cómo interpreta el alcance LIMITED
+
+reglas de creación
+
+reglas de actualización
+
+reglas de eliminación
+
+atributo que define responsabilidad operativa (si aplica)
+
+REGLA GENERAL
+
+Para todos los módulos:
+
+el backend define completamente el universo visible del usuario
+
+la UI solo puede aplicar filtros dentro de ese universo
+
+no debe existir lógica paralela de visibilidad en controllers o Blade
+
+no debe utilizarse ownership artificial si el dominio no lo requiere
+
+los scopes representan subconjuntos de tenant_all
+
+LIMITED no es un patrón genérico reutilizable automáticamente
+
+LIMITED debe definirse explícitamente por módulo
+
+REGLA DE CONSISTENCIA GLOBAL
+
+Cada módulo debe:
+
+definir explícitamente su comportamiento
+
+no depender de interpretaciones implícitas de scope
+
+no delegar lógica de visibilidad a la UI
+
+mantener alineación entre:
+
+resolver
+policy
+controller
+Blade
+
+Cualquier nuevo módulo que utilice LIMITED debe documentar su comportamiento en esta sección.
+
+<<END SECTION>>
+
+<<SECTION: MÓDULO: PROJECTS>>
+
+MÓDULO: PROJECTS
+
+UNIVERSO VISIBLE
+
+tenant_all:
+todos los proyectos del tenant
+
+limited:
+solo proyectos donde el usuario tiene al menos una tarea asignada dentro de ese proyecto
+
+REGLAS
+
+la visibilidad de proyectos depende de la participación operativa en tareas del proyecto
+
+no se utiliza ownership del proyecto
+
+no se utiliza created_by como criterio de acceso
+
+<<END SECTION>>
+
+<<SECTION: MÓDULO: TASKS>>
+
+MÓDULO: TASKS
+
+UNIVERSO VISIBLE
+
+tenant_all:
+todas las tareas del tenant
+
+limited:
+tareas asignadas al usuario
++
+todas las tareas de proyectos donde el usuario participa por tener al menos una tarea asignada
+
+REGLAS DE VISIBILIDAD
+
+la visibilidad no depende del creador
+
+la visibilidad se basa en asignación operativa (assigned_user_id)
+
+las tareas sin proyecto solo son visibles para el usuario asignado
+
+las tareas con proyecto visible se amplían a todo el proyecto
+
+REGLA DE CREACIÓN
+
+toda tarea debe crearse con assigned_user_id obligatorio
+
+si no se define explícitamente un usuario asignado:
+
+la tarea debe autoasignarse al usuario que la crea
+
+no deben existir tareas sin asignación
+
+REGLA DE ACTUALIZACIÓN
+
+si la capacidad update está permitida:
+
+el usuario puede editar tareas dentro de su universo visible
+
+esto incluye tareas de proyectos donde participa
+
+REGLA DE ELIMINACIÓN
+
+la eliminación depende exclusivamente de la capacidad delete
+
+no depende del scope conceptual
+
+<<END SECTION>>
+
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
 REGLAS DE IMPLEMENTACIÓN SEGURA
 

@@ -300,9 +300,18 @@ assigned_user_id debe referenciar a un usuario activo del tenant
 
 owner y admin pueden gestionar tareas ajenas
 
-los usuarios operativos gestionan solamente sus propias tareas
+los usuarios operativos:
+
+pueden ver tareas asignadas a ellos
+
+pueden ver tareas de proyectos donde participan
+
+solo pueden editar tareas asignadas a ellos
+
+solo pueden eliminar tareas asignadas a ellos
 
 una tarea puede derivar en una única orden, normalmente de servicio
+
 <<END SECTION>>
 
 <<SECTION: Appointments como agenda operativa reutilizable>>

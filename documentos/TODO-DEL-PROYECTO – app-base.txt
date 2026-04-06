@@ -208,6 +208,19 @@ revisar consolidación funcional del vínculo 1 a 1 entre tasks y orders
 
 alinear tasks definitivamente con la regla operativa acordada de ownership por assigned_user_id mediante policy formal consolidada
 
+validar en uso real la consistencia entre:
+
+universo visible de tasks resuelto por backend
+filtros aplicados en UI
+
+validar consistencia entre:
+
+TaskVisibility
+TaskController@index
+filtros por assigned_user_id
+
+asegurar que los filtros de UI operen únicamente sobre el dataset ya resuelto por backend y no alteren el universo visible
+
 evaluar reglas futuras de bloqueo o trazabilidad cuando una tarea ya derivó en orden
 
 consolidar orders como módulo operativo interno principal del tenant
@@ -255,6 +268,7 @@ assets -> agendar appointment
 dejar resuelto el precompletado del formulario de appointments cuando se ingresa desde un activo o desde una relación contextual
 
 evaluar más adelante si el botón contextual de creación dentro de subtabs debe reaccionar dinámicamente al tab interno seleccionado o si alcanza con un default operativo estable por contexto
+
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN Y CONTEXTO UX>>

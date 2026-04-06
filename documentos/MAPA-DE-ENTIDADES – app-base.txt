@@ -320,7 +320,16 @@ toda tarea debe crearse asignada
 
 owner y admin pueden gestionar tareas ajenas
 
-roles operativos solo editan las propias
+los usuarios operativos:
+
+pueden ver tareas asignadas a ellos
+
+pueden ver tareas de proyectos donde participan
+
+solo editan tareas asignadas a ellos
+
+solo eliminan tareas asignadas a ellos
+
 <<END SECTION>>
 
 <<SECTION: APPOINTMENTS>>

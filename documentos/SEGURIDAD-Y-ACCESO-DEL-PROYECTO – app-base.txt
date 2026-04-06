@@ -298,6 +298,152 @@ CONVENCIONES-DEL-PROYECTO – app-base
 MAPA-DE-ENTIDADES – app-base
 <<END SECTION>>
 
+<<SECTION: FLUJO DE GESTIÓN Y CONSUMO DE PERMISOS>>
+OBJETIVO
+
+Definir el flujo operativo de gestión y consumo de permisos dentro del sistema.
+
+FLUJO GENERAL
+
+superadmin define los módulos habilitados por tenant
+
+owner configura los permisos sobre los módulos habilitados
+
+los permisos se definen por:
+
+rol
+módulo
+capacidad
+scope
+
+el backend resuelve:
+
+acceso al módulo
+universo visible de registros
+acciones permitidas sobre cada registro
+
+la UI:
+
+no redefine permisos
+no altera el universo visible
+solo filtra dentro del universo definido por el backend
+solo muestra acciones que el usuario puede ejecutar realmente
+
+REGLA DE UNIVERSO Y ACCIONES
+
+el universo visible y la capacidad de operar sobre un registro son conceptos distintos
+
+un usuario puede:
+
+ver un registro sin poder modificarlo
+
+las acciones deben validarse siempre contra la capacidad correspondiente (view, update, delete, create)
+
+REGLA DE SCOPES
+
+los scopes no se aplican de forma uniforme a todas las capacidades
+
+cada módulo define explícitamente qué scopes admite para cada capacidad
+
+un mismo módulo puede tener:
+
+view basado en limited
+update basado en own_assigned
+
+los scopes representan subconjuntos de tenant_all
+
+REGLA DE MÓDULOS ACTIVOS
+
+solo deben considerarse los módulos habilitados por superadmin para el tenant
+
+no deben mostrarse ni evaluarse permisos sobre módulos inactivos
+
+REGLA DE CONSISTENCIA
+
+la lógica de permisos debe mantenerse alineada entre:
+
+resolver
+policy
+controller
+Blade
+
+no debe existir lógica paralela o contradictoria entre capas
+
+<<END SECTION>>
+
+<<SECTION: FLUJO DE GESTIÓN Y CONSUMO DE PERMISOS>>
+OBJETIVO
+
+Definir el flujo operativo de gestión y consumo de permisos dentro del sistema.
+
+FLUJO GENERAL
+
+superadmin define los módulos habilitados por tenant
+
+owner configura los permisos sobre los módulos habilitados
+
+los permisos se definen por:
+
+rol
+módulo
+capacidad
+scope
+
+el backend resuelve:
+
+acceso al módulo
+universo visible de registros
+acciones permitidas sobre cada registro
+
+la UI:
+
+no redefine permisos
+no altera el universo visible
+solo filtra dentro del universo definido por el backend
+solo muestra acciones que el usuario puede ejecutar realmente
+
+REGLA DE UNIVERSO Y ACCIONES
+
+el universo visible y la capacidad de operar sobre un registro son conceptos distintos
+
+un usuario puede:
+
+ver un registro sin poder modificarlo
+
+las acciones deben validarse siempre contra la capacidad correspondiente (view, update, delete, create)
+
+REGLA DE SCOPES
+
+los scopes no se aplican de forma uniforme a todas las capacidades
+
+cada módulo define explícitamente qué scopes admite para cada capacidad
+
+un mismo módulo puede tener:
+
+view basado en limited
+update basado en own_assigned
+
+los scopes representan subconjuntos de tenant_all
+
+REGLA DE MÓDULOS ACTIVOS
+
+solo deben considerarse los módulos habilitados por superadmin para el tenant
+
+no deben mostrarse ni evaluarse permisos sobre módulos inactivos
+
+REGLA DE CONSISTENCIA
+
+la lógica de permisos debe mantenerse alineada entre:
+
+resolver
+policy
+controller
+Blade
+
+no debe existir lógica paralela o contradictoria entre capas
+
+<<END SECTION>>
+
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
 
 REGLAS OPERATIVAS POR MÓDULO
@@ -395,6 +541,9 @@ tareas asignadas al usuario
 +
 todas las tareas de proyectos donde el usuario participa por tener al menos una tarea asignada
 
+own_assigned:
+solo tareas asignadas al usuario
+
 REGLAS DE VISIBILIDAD
 
 la visibilidad no depende del creador
@@ -404,6 +553,20 @@ la visibilidad se basa en asignación operativa (assigned_user_id)
 las tareas sin proyecto solo son visibles para el usuario asignado
 
 las tareas con proyecto visible se amplían a todo el proyecto
+
+CONFIGURACIÓN DE CAPACIDADES
+
+view_any:
+limited
+
+view:
+limited
+
+update:
+own_assigned
+
+delete:
+own_assigned
 
 REGLA DE CREACIÓN
 
@@ -417,17 +580,15 @@ no deben existir tareas sin asignación
 
 REGLA DE ACTUALIZACIÓN
 
-si la capacidad update está permitida:
+la actualización se limita a tareas asignadas al usuario
 
-el usuario puede editar tareas dentro de su universo visible
-
-esto incluye tareas de proyectos donde participa
+no se permite editar tareas visibles por participación en proyecto si no están asignadas al usuario
 
 REGLA DE ELIMINACIÓN
 
-la eliminación depende exclusivamente de la capacidad delete
+la eliminación se limita a tareas asignadas al usuario
 
-no depende del scope conceptual
+no se permite eliminar tareas visibles por participación en proyecto si no están asignadas al usuario
 
 <<END SECTION>>
 

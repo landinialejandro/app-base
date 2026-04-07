@@ -16,7 +16,7 @@ Detectar qué cambios realizados en esta sesión implican actualización de docu
 ALCANCE
 
 - considerar todo lo trabajado en la sesión
-- considerar decisiones, cambios de lógica, UI, permisos y navegación
+- considerar decisiones, todos los cambios de lógica, UI, permisos y navegación o definiciones
 - ignorar ideas no implementadas o no confirmadas
 
 DOCUMENTOS POSIBLES
@@ -27,6 +27,7 @@ DOCUMENTOS POSIBLES
 - MAPA-DE-ENTIDADES – app-base
 - MAPA-DE-NAVEGACION-Y-RELACIONES – app-base
 - BASE-VISUAL-DEL-PROYECTO – app-base
+- SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
 - TODO-DEL-PROYECTO – app-base
 - DEPLOY-Y-COMPATIBILIDAD-DEL-PROYECTO – app-base
 

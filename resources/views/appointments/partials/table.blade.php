@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/partials/table.blade.php | V5 --}}
+{{-- FILE: resources/views/appointments/partials/table.blade.php | V6 --}}
 
 @php
     use App\Support\Catalogs\AppointmentCatalog;
@@ -7,8 +7,8 @@
 
     $appointments = $appointments ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay turnos para mostrar.';
-    $supportsAssetsModule = $supportsAssetsModule ?? true;
-    $supportsOrdersModule = $supportsOrdersModule ?? true;
+    $supportsAssetsModule = $supportsAssetsModule ?? false;
+    $supportsOrdersModule = $supportsOrdersModule ?? false;
 @endphp
 
 @if ($appointments->count())
@@ -18,10 +18,14 @@
                 <tr>
                     <th>Turno</th>
                     <th>{{ AppointmentCatalog::contactLabel() }}</th>
-                    <th>{{ AppointmentCatalog::assetLabel() }}</th>
+                    @if ($supportsAssetsModule)
+                        <th>{{ AppointmentCatalog::assetLabel() }}</th>
+                    @endif
                     <th>Cuándo</th>
                     <th>{{ AppointmentCatalog::assignedUserLabel() }}</th>
-                    <th>{{ AppointmentCatalog::orderLabel() }}</th>
+                    @if ($supportsOrdersModule)
+                        <th>{{ AppointmentCatalog::orderLabel() }}</th>
+                    @endif
                     <th>Estado operativo</th>
                     <th>{{ AppointmentCatalog::workPlaceLabel() }}</th>
                     <th>Referencia</th>
@@ -33,6 +37,27 @@
                         $rowTitle = AppointmentCatalog::rowTitleFor($appointment->kind, $appointment->work_mode);
                         $appointmentTrail = AppointmentNavigationTrail::base($appointment);
                         $appointmentTrailQuery = NavigationTrail::toQuery($appointmentTrail);
+
+                        $orderAction = [
+                            'supported' => $supportsOrdersModule,
+                            'linked' => (bool) $appointment->order,
+                            'can_view' =>
+                                $supportsOrdersModule && $appointment->order
+                                    ? auth()->user()->can('view', $appointment->order)
+                                    : false,
+                            'can_create' => false,
+                            'show_url' => $appointment->order
+                                ? route('orders.show', ['order' => $appointment->order] + $appointmentTrailQuery)
+                                : null,
+                            'create_url' => null,
+                            'label' => AppointmentCatalog::orderLabel(),
+                            'contact_label' => AppointmentCatalog::contactLabel(),
+                            'has_required_party' => (bool) $appointment->party_id,
+                            'linked_text' => $appointment->order
+                                ? ($appointment->order->number ?:
+                                'Orden #' . $appointment->order->id)
+                                : null,
+                        ];
                     @endphp
 
                     <tr>
@@ -59,9 +84,9 @@
                             @endif
                         </td>
 
-                        <td>
-                            @if ($appointment->asset)
-                                @if ($supportsAssetsModule)
+                        @if ($supportsAssetsModule)
+                            <td>
+                                @if ($appointment->asset)
                                     @can('view', $appointment->asset)
                                         <a
                                             href="{{ route('assets.show', ['asset' => $appointment->asset] + $appointmentTrailQuery) }}">
@@ -71,12 +96,10 @@
                                         {{ $appointment->asset->name }}
                                     @endcan
                                 @else
-                                    {{ $appointment->asset->name }}
+                                    —
                                 @endif
-                            @else
-                                —
-                            @endif
-                        </td>
+                            </td>
+                        @endif
 
                         <td>
                             @if ($appointment->is_all_day)
@@ -93,24 +116,11 @@
 
                         <td>{{ $appointment->assignedUser?->name ?? '—' }}</td>
 
-                        <td>
-                            @if ($appointment->order)
-                                @if ($supportsOrdersModule)
-                                    @can('view', $appointment->order)
-                                        <a
-                                            href="{{ route('orders.show', ['order' => $appointment->order] + $appointmentTrailQuery) }}">
-                                            {{ $appointment->order->number ?: 'Orden #' . $appointment->order->id }}
-                                        </a>
-                                    @else
-                                        {{ $appointment->order->number ?: 'Orden #' . $appointment->order->id }}
-                                    @endcan
-                                @else
-                                    {{ $appointment->order->number ?: 'Orden #' . $appointment->order->id }}
-                                @endif
-                            @else
-                                —
-                            @endif
-                        </td>
+                        @if ($supportsOrdersModule)
+                            <td>
+                                <x-linked-order-action :action="$orderAction" variant="inline" />
+                            </td>
+                        @endif
 
                         <td>
                             <span class="status-badge {{ AppointmentCatalog::badgeClass($appointment->status) }}">

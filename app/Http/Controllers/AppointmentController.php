@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AppointmentController.php | V12
+// FILE: app/Http/Controllers/AppointmentController.php | V13
 
 namespace App\Http\Controllers;
 
@@ -95,6 +95,9 @@ class AppointmentController extends Controller
         $this->authorize('viewAny', Appointment::class);
 
         $canViewAllAppointments = $this->canViewAllAppointments();
+        $supportsAssetsModule = $this->supportsModule(ModuleCatalog::ASSETS);
+        $supportsOrdersModule = $this->supportsModule(ModuleCatalog::ORDERS);
+
         $assignedUserId = $request->get('assigned_user_id');
         $status = $request->get('status');
         $view = $this->resolveCalendarView((string) $request->get('view', 'month'));
@@ -156,6 +159,8 @@ class AppointmentController extends Controller
                 'days' => $days,
                 'users' => $users,
                 'canViewAllAppointments' => $canViewAllAppointments,
+                'supportsAssetsModule' => $supportsAssetsModule,
+                'supportsOrdersModule' => $supportsOrdersModule,
                 'selectedAssignedUserId' => $assignedUserId,
                 'selectedStatus' => $status,
                 'currentDate' => $baseDate,
@@ -236,6 +241,8 @@ class AppointmentController extends Controller
             'weeks' => $weeks,
             'users' => $users,
             'canViewAllAppointments' => $canViewAllAppointments,
+            'supportsAssetsModule' => $supportsAssetsModule,
+            'supportsOrdersModule' => $supportsOrdersModule,
             'selectedAssignedUserId' => $assignedUserId,
             'selectedStatus' => $status,
             'currentMonth' => $baseMonth,

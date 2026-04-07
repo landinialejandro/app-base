@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/partials/calendar-day-cell.blade.php | V4 --}}
+{{-- FILE: resources/views/appointments/partials/calendar-day-cell.blade.php | V5 --}}
 
 @php
     use App\Support\Catalogs\AppointmentCatalog;
@@ -13,6 +13,9 @@
         ->copy()
         ->startOfDay()
         ->lt(now()->startOfDay());
+
+    $supportsOrdersModule = $supportsOrdersModule ?? false;
+    $supportsAssetsModule = $supportsAssetsModule ?? false;
 
     $calendarBaseUrl = route('appointments.calendar', ['view' => $mode]);
     $calendarTrail = NavigationTrail::base([
@@ -66,12 +69,18 @@
                         ? $appointment->starts_at->format('H:i') . ' - ' . $appointment->ends_at->format('H:i')
                         : 'Sin horario');
 
-                $orderLabel = $appointment->order
-                    ? ($appointment->order->number ?:
-                    'Orden #' . $appointment->order->id)
-                    : null;
+                $orderLabel =
+                    $supportsOrdersModule && $appointment->order
+                        ? ($appointment->order->number ?:
+                        'Orden #' . $appointment->order->id)
+                        : null;
 
-                $secondaryReference = $appointment->workstation_name ?: ($appointment->asset?->name ?: null);
+                $secondaryReference =
+                    $appointment->workstation_name ?:
+                    ($supportsAssetsModule
+                        ? ($appointment->asset?->name ?:
+                        null)
+                        : null);
             @endphp
 
             <a href="{{ route('appointments.show', ['appointment' => $appointment] + $calendarTrailQuery) }}"
@@ -100,14 +109,16 @@
                             {{ AppointmentCatalog::kindLabel($appointment->kind) }}
                         </span>
 
-                        <span
-                            class="appointment-calendar-chip {{ $appointment->order ? 'appointment-calendar-chip--order' : 'appointment-calendar-chip--no-order' }}">
-                            {{ $appointment->order ? 'Con ' . strtolower(AppointmentCatalog::orderLabel()) : 'Sin ' . strtolower(AppointmentCatalog::orderLabel()) }}
-                        </span>
+                        @if ($supportsOrdersModule)
+                            <span
+                                class="appointment-calendar-chip {{ $appointment->order ? 'appointment-calendar-chip--order' : 'appointment-calendar-chip--no-order' }}">
+                                {{ $appointment->order ? 'Con ' . strtolower(AppointmentCatalog::orderLabel()) : 'Sin ' . strtolower(AppointmentCatalog::orderLabel()) }}
+                            </span>
+                        @endif
                     </div>
 
                     <div class="appointment-calendar-item-extra">
-                        @if ($orderLabel)
+                        @if ($supportsOrdersModule && $orderLabel)
                             <div class="appointment-calendar-item-line">
                                 <span
                                     class="appointment-calendar-item-label">{{ AppointmentCatalog::orderLabel() }}:</span>

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/show.blade.php | V7 --}}
+{{-- FILE: resources/views/appointments/show.blade.php | V8 --}}
 
 @extends('layouts.app')
 
@@ -18,6 +18,29 @@
             'month' => now()->format('Y-m'),
         ]),
     );
+
+    $orderAction = [
+        'supported' => $supportsOrdersModule,
+        'linked' => (bool) $appointment->order,
+        'can_view' => $canViewLinkedOrder,
+        'can_create' => $canCreateOrder,
+        'show_url' => $appointment->order ? route('orders.show', ['order' => $appointment->order] + $trailQuery) : null,
+        'create_url' => route(
+            'orders.create',
+            [
+                'appointment_id' => $appointment->id,
+                'party_id' => $appointment->party_id,
+                'asset_id' => $appointment->asset_id,
+            ] + $trailQuery,
+        ),
+        'label' => AppointmentCatalog::orderLabel(),
+        'contact_label' => AppointmentCatalog::contactLabel(),
+        'has_required_party' => (bool) $appointment->party_id,
+        'linked_text' => $appointment->order
+            ? ($appointment->order->number ?:
+            'Orden #' . $appointment->order->id)
+            : null,
+    ];
 @endphp
 
 @section('title', $appointmentTitle)
@@ -49,31 +72,7 @@
                 </form>
             @endif
 
-            @if ($supportsOrdersModule)
-                @if ($appointment->order && $canViewLinkedOrder)
-                    <a href="{{ route('orders.show', ['order' => $appointment->order] + $trailQuery) }}"
-                        class="btn btn-secondary">
-                        Ver {{ strtolower(AppointmentCatalog::orderLabel()) }}
-                    </a>
-                @elseif (!$appointment->order && $appointment->party_id && $canCreateOrder)
-                    <a href="{{ route(
-                        'orders.create',
-                        [
-                            'appointment_id' => $appointment->id,
-                            'party_id' => $appointment->party_id,
-                            'asset_id' => $appointment->asset_id,
-                        ] + $trailQuery,
-                    ) }}"
-                        class="btn btn-secondary">
-                        Crear {{ strtolower(AppointmentCatalog::orderLabel()) }}
-                    </a>
-                @elseif (!$appointment->order && !$appointment->party_id)
-                    <span class="btn btn-secondary disabled" aria-disabled="true"
-                        title="Asociá un {{ strtolower(AppointmentCatalog::contactLabel()) }} para poder crear una {{ strtolower(AppointmentCatalog::orderLabel()) }}.">
-                        Crear {{ strtolower(AppointmentCatalog::orderLabel()) }}
-                    </span>
-                @endif
-            @endif
+            <x-linked-order-action :action="$orderAction" variant="button" />
 
             <a href="{{ route('appointments.print', ['appointment' => $appointment]) }}" class="btn btn-secondary"
                 target="_blank">
@@ -104,19 +103,21 @@
                 @endif
             </x-show-summary-item>
 
-            <x-show-summary-item :label="AppointmentCatalog::assetLabel()">
-                @if ($appointment->asset)
-                    @if ($supportsAssetsModule && $canViewLinkedAsset)
-                        <a href="{{ route('assets.show', ['asset' => $appointment->asset] + $trailQuery) }}">
+            @if ($supportsAssetsModule)
+                <x-show-summary-item :label="AppointmentCatalog::assetLabel()">
+                    @if ($appointment->asset)
+                        @if ($canViewLinkedAsset)
+                            <a href="{{ route('assets.show', ['asset' => $appointment->asset] + $trailQuery) }}">
+                                {{ $appointment->asset->name }}
+                            </a>
+                        @else
                             {{ $appointment->asset->name }}
-                        </a>
+                        @endif
                     @else
-                        {{ $appointment->asset->name }}
+                        —
                     @endif
-                @else
-                    —
-                @endif
-            </x-show-summary-item>
+                </x-show-summary-item>
+            @endif
 
             <x-show-summary-item label="Cuándo">
                 @if ($appointment->is_all_day)
@@ -134,34 +135,11 @@
                 {{ $appointment->assignedUser?->name ?? '—' }}
             </x-show-summary-item>
 
-            <x-show-summary-item :label="AppointmentCatalog::orderLabel()">
-                @if ($appointment->order)
-                    @if ($supportsOrdersModule && $canViewLinkedOrder)
-                        <a href="{{ route('orders.show', ['order' => $appointment->order] + $trailQuery) }}">
-                            {{ $appointment->order->number ?: 'Orden #' . $appointment->order->id }}
-                        </a>
-                    @else
-                        {{ $appointment->order->number ?: 'Orden #' . $appointment->order->id }}
-                    @endif
-                @elseif ($supportsOrdersModule && $appointment->party_id && $canCreateOrder)
-                    <a
-                        href="{{ route(
-                            'orders.create',
-                            [
-                                'appointment_id' => $appointment->id,
-                                'party_id' => $appointment->party_id,
-                                'asset_id' => $appointment->asset_id,
-                            ] + $trailQuery,
-                        ) }}">
-                        Crear {{ strtolower(AppointmentCatalog::orderLabel()) }}
-                    </a>
-                @elseif ($supportsOrdersModule)
-                    Asociá un {{ strtolower(AppointmentCatalog::contactLabel()) }} para poder crear una
-                    {{ strtolower(AppointmentCatalog::orderLabel()) }}.
-                @else
-                    —
-                @endif
-            </x-show-summary-item>
+            @if ($supportsOrdersModule)
+                <x-show-summary-item :label="AppointmentCatalog::orderLabel()">
+                    <x-linked-order-action :action="$orderAction" variant="summary" />
+                </x-show-summary-item>
+            @endif
 
             <x-show-summary-item label="Estado operativo">
                 <div class="summary-badge-stack">
@@ -184,26 +162,24 @@
             </x-show-summary-item>
 
             <x-slot:details>
-                <div class="detail-grid detail-grid--3">
-                    <div class="detail-block">
-                        <span class="detail-block-label">ID</span>
-                        <div class="detail-block-value">#{{ $appointment->id }}</div>
-                    </div>
+                <div class="detail-block">
+                    <span class="detail-block-label">ID</span>
+                    <div class="detail-block-value">#{{ $appointment->id }}</div>
+                </div>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Creado por</span>
-                        <div class="detail-block-value">{{ $appointment->creator?->name ?: '—' }}</div>
-                    </div>
+                <div class="detail-block">
+                    <span class="detail-block-label">Creado por</span>
+                    <div class="detail-block-value">{{ $appointment->creator?->name ?: '—' }}</div>
+                </div>
 
-                    <div class="detail-block">
-                        <span class="detail-block-label">Actualizado por</span>
-                        <div class="detail-block-value">{{ $appointment->updater?->name ?: '—' }}</div>
-                    </div>
+                <div class="detail-block">
+                    <span class="detail-block-label">Actualizado por</span>
+                    <div class="detail-block-value">{{ $appointment->updater?->name ?: '—' }}</div>
+                </div>
 
-                    <div class="detail-block detail-block--full">
-                        <span class="detail-block-label">Notas</span>
-                        <div class="detail-block-value">{{ $appointment->notes ?: '—' }}</div>
-                    </div>
+                <div class="detail-block detail-block--full">
+                    <span class="detail-block-label">Notas</span>
+                    <div class="detail-block-value">{{ $appointment->notes ?: '—' }}</div>
                 </div>
             </x-slot:details>
         </x-show-summary>

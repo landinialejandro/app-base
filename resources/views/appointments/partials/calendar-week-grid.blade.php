@@ -1,5 +1,9 @@
+{{-- FILE: resources/views/appointments/partials/calendar-week-grid.blade.php | V2 --}}
+
 @php
     $weekdays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    $supportsAssetsModule = $supportsAssetsModule ?? false;
+    $supportsOrdersModule = $supportsOrdersModule ?? false;
 @endphp
 
 <div class="appointment-calendar-scroll" data-appointment-calendar-scroll>
@@ -21,6 +25,8 @@
                         'day' => $day,
                         'mode' => 'week',
                         'maxVisibleAppointments' => 8,
+                        'supportsAssetsModule' => $supportsAssetsModule,
+                        'supportsOrdersModule' => $supportsOrdersModule,
                     ])
                 </div>
             @endforeach

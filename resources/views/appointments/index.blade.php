@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/index.blade.php | V6 --}}
+{{-- FILE: resources/views/appointments/index.blade.php | V7 --}}
 
 @extends('layouts.app')
 

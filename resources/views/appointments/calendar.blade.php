@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/calendar.blade.php | V4 --}}
+{{-- FILE: resources/views/appointments/calendar.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -46,11 +46,15 @@
                     'days' => $days,
                     'currentWeekStart' => $currentWeekStart,
                     'currentWeekEnd' => $currentWeekEnd,
+                    'supportsAssetsModule' => $supportsAssetsModule,
+                    'supportsOrdersModule' => $supportsOrdersModule,
                 ])
             @else
                 @include('appointments.partials.calendar-grid', [
                     'weeks' => $weeks,
                     'currentMonth' => $currentMonth,
+                    'supportsAssetsModule' => $supportsAssetsModule,
+                    'supportsOrdersModule' => $supportsOrdersModule,
                 ])
             @endif
         </x-card>

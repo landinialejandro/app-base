@@ -333,6 +333,8 @@ el embebido sigue siendo un bloque subordinado al show principal, aunque interna
 <<END SECTION>>
 
 <<SECTION: ACCIONES VISUALES EN INDEX Y SHOW>>
+SECTION_VERSION: 00002
+
 ACCIONES VISUALES EN INDEX Y SHOW
 
 Debe mantenerse una jerarquía visual clara entre acciones de alta, acciones operativas y acciones de retorno.
@@ -370,13 +372,14 @@ los botones de acción deben renderizarse en función de capacidades efectivas r
 
 no deben depender de @can abstracto cuando la capacidad requiera contexto
 
-pueden depender de combinaciones de constraints (por ejemplo allowed_kinds)
+deben contemplar constraints cuando apliquen (por ejemplo allowed_kinds en orders)
 
 las acciones en tablas deben alinearse estrictamente con permisos reales
 
 no deben renderizarse acciones no permitidas
 
 en formularios embebidos o contextuales, la acción cancelar debe respetar el contexto completo del flujo vigente y no volver por defecto al show estructural del módulo padre
+
 <<END SECTION>>
 
 <<SECTION: FRAGMENTACIÓN DE BLADES>>

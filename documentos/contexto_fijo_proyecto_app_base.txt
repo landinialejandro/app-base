@@ -707,6 +707,8 @@ un documento asociado a una orden no debe tener una fecha anterior a la orden.
 <<END SECTION>>
 
 <<SECTION: Capa inicial de impresión y PDF>>
+SECTION_VERSION: 00002
+
 Capa inicial de impresión y PDF
 
 El sistema ya incorpora una capa inicial de impresión y exportación PDF aplicada sobre módulos operativos existentes.
@@ -728,6 +730,15 @@ la generación real de PDF se resuelve mediante librería externa
 el branding mínimo por tenant puede resolverse desde tenants.settings cuando la plantilla imprimible lo requiera
 
 la capa de impresión puede incorporar CSS y JavaScript específicos del módulo print siempre que permanezcan acotados a esa responsabilidad y no dupliquen innecesariamente la base visual global
+
+Aclaración estructural consolidada:
+
+el modelo de permisos V2 incluye constraints como componente obligatorio junto con scope y capability
+
+orders es el primer módulo completamente validado bajo este esquema, utilizando constraints.allowed_kinds como mecanismo de segmentación funcional principal
+
+cualquier implementación que no contemple constraints debe considerarse incompleta respecto al modelo vigente
+
 <<END SECTION>>
 
 <<SECTION: Factories y seeders>>

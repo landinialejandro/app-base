@@ -155,6 +155,8 @@ No debe utilizarse desactivación global de users para resolver bajas, bloqueos 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ACCESO POR MÓDULO Y ROLES>>
+SECTION_VERSION: 00003
+
 CONVENCIONES DE ACCESO POR MÓDULO Y ROLES
 
 La autorización operativa del sistema debe implementarse respetando la arquitectura central definida para acceso y permisos.
@@ -191,9 +193,24 @@ view_any debe ser igual o más amplio que view
 
 no debe existir un contrato donde view_any quede más restringido que view para el mismo módulo
 
+Reglas adicionales consolidadas:
+
+los permisos pueden diferenciarse por capability dentro de un mismo módulo
+
+los roles son acumulables y el permiso efectivo surge de su combinación
+
+la capa de autorización debe contemplar la fusión de constraints por capability
+
+la UI de configuración de permisos no debe simplificar el modelo a matrices planas de enabled + scope
+
+cuando el dominio del módulo lo requiera, deben utilizarse catálogos dinámicos como fuente única de verdad para valores configurables (por ejemplo OrderCatalog para allowed_kinds)
+
+no deben hardcodearse valores de dominio en frontend
+
 La definición completa de roles, capacidades, scopes y constraints se encuentra en:
 
 <DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
+
 <<END SECTION>>
 
 <<SECTION: ROLECATALOG Y MODULECATALOG>>

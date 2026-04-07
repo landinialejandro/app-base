@@ -87,6 +87,8 @@ si el módulo requiere métricas o visualización analítica, utilizar el patró
 <<END SECTION>>
 
 <<SECTION: AUTORIZACIÓN Y UI>>
+SECTION_VERSION: 00002
+
 AUTORIZACIÓN Y UI
 
 Verificar:
@@ -121,7 +123,15 @@ si el módulo necesita segmentación funcional adicional:
 
 definir si se resuelve solo por scope o además por constraints
 
-si usa constraints, documentarlas y validarlas explícitamente
+si usa constraints:
+
+definirlas explícitamente desde el inicio
+
+exponerlas en la UI del owner
+
+no depender únicamente de scope para segmentación funcional
+
+consumirlas desde la capa central de autorización
 
 allowed_kinds es el primer caso oficial consolidado de constraint funcional del proyecto
 
@@ -132,6 +142,7 @@ validar si la autorización depende del recurso padre
 si depende del padre, implementar delegación explícita
 
 no asumir herencia automática sin código real que la respalde
+
 <<END SECTION>>
 
 <<SECTION: DOCUMENTACIÓN OBLIGATORIA>>
@@ -139,13 +150,19 @@ DOCUMENTACIÓN OBLIGATORIA
 
 Verificar si corresponde actualizar:
 
-CONTEXTO-FIJO-DEL-PROYECTO
-MAPA-DE-ENTIDADES
-MAPA-DE-NAVEGACION-Y-RELACIONES
-CONVENCIONES-DEL-PROYECTO
-BASE-VISUAL-DEL-PROYECTO
-TODO-DEL-PROYECTO
-DEPLOY-Y-COMPATIBILIDAD-DEL-PROYECTO
+<DOC_REF slug="contexto_fijo_proyecto_app_base">Contexto fijo del proyecto</DOC_REF>
+
+<DOC_REF slug="mapa_entidades_app_base">Mapa de entidades</DOC_REF>
+
+<DOC_REF slug="mapa_navegacion_relaciones_app_base">Mapa de navegación y relaciones</DOC_REF>
+
+<DOC_REF slug="convenciones_proyecto_app_base">Convenciones del proyecto</DOC_REF>
+
+<DOC_REF slug="base_visual_proyecto_app_base">Base visual del proyecto</DOC_REF>
+
+<DOC_REF slug="todo_proyecto_app_base">Todo del proyecto</DOC_REF>
+
+<DOC_REF slug="deploy_compatibilidad_proyecto_app_base">Deploy y compatibilidad del proyecto</DOC_REF>
 
 No actualizar documentos por inercia.
 

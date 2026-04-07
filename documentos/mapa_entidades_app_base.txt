@@ -403,6 +403,8 @@ historial de asociación Asset ↔ Party
 <<END SECTION>>
 
 <<SECTION: ORDERS>>
+SECTION_VERSION: 00002
+
 ORDERS
 
 Cabecera operativa de órdenes.
@@ -434,15 +436,24 @@ Regla de autorización consolidada:
 
 orders debe tratarse como módulo compartido del tenant
 
-no debe segmentarse por ownership artificial del registro
+no depende de assigned_user_id
 
-cuando se requiera segmentación funcional por tipo, debe resolverse mediante constraints.allowed_kinds
+no utiliza ownership como base de permisos
+
+created_by es un dato estructural sin impacto en autorización
+
+no utiliza own_assigned como contrato del módulo
+
+su segmentación funcional se resuelve exclusivamente mediante constraints.allowed_kinds
+
+cualquier segmentación futura por usuario deberá definirse explícitamente y no inferirse del modelo actual
 
 Regla de relaciones:
 
 las relaciones hacia otros módulos deben considerarse opcionales a nivel UI según estado activo del módulo destino
 
 si un módulo relacionado está deshabilitado, la relación no debe exponerse ni operar en UI
+
 <<END SECTION>>
 
 <<SECTION: ORDER_ITEMS>>

@@ -212,6 +212,8 @@ indexación de contenido para búsqueda
 <<END SECTION>>
 
 <<SECTION: AUTORIZACIÓN Y PERMISOS>>
+SECTION_VERSION: 00003
+
 AUTORIZACIÓN Y PERMISOS
 
 Pendientes reales actuales:
@@ -234,24 +236,23 @@ Pendientes reales actuales:
 
 * Definir comportamiento cuando no haya módulos habilitados.
 
-* Pendiente crítico: UI de permisos no soporta correctamente constraints (allowed_kinds).
-
-* Pendiente crítico: persistencia desde UI puede romper configuración existente de constraints.
-
-* Pendiente: definir comportamiento de own_assigned en módulo orders.
-
-* Pendiente: auditoría completa de módulo parties en permisos.
-
 Pendientes cerrados y no reabrir:
 
-* cierre contractual básico de appointments en permisos del módulo
+* cierre contractual completo de permisos V2 en módulo orders (scope + constraints + UI + persistencia)
+
+* eliminación de dependencia de ownership y own_assigned en orders
+
+* validación de segmentación funcional por constraints.allowed_kinds
+
+* soporte de lectura más amplia que escritura en el modelo
 
 * eliminación de visibilidad residual hacia módulos deshabilitados en relaciones desde appointments
 
 Ajuste documental pendiente a reflejar de forma consistente en el set:
 
 * parties como módulo base intrínseco del sistema y no como módulo opcional común
-  <<END SECTION>>
+
+<<END SECTION>>
 
 <<SECTION: FLUJOS FUNCIONALES>>
 FLUJOS FUNCIONALES

@@ -663,6 +663,8 @@ no debe existir navegación residual hacia ese módulo
 <<END SECTION>>
 
 <<SECTION: MÓDULO: ORDERS>>
+SECTION_VERSION: 00002
+
 MÓDULO: ORDERS
 
 UNIVERSO VISIBLE
@@ -678,7 +680,11 @@ no utiliza ownership artificial del registro
 
 no utiliza assigned_user_id como base del módulo
 
+no utiliza own_assigned como scope válido del módulo
+
 su segmentación funcional no se resuelve por responsable operativo sino por constraints.allowed_kinds
+
+created_by es un dato estructural y no forma parte del modelo de autorización
 
 CONFIGURACIÓN DE CAPACIDADES
 
@@ -703,19 +709,48 @@ orders.create no puede evaluarse en abstracto
 
 la autorización de create requiere obligatoriamente contexto kind
 
-si el kind solicitado no está permitido por constraints.allowed_kinds, la creación no debe considerarse autorizada aunque exista scope persistido para el módulo
+si no se provee kind, la capacidad debe considerarse no autorizada
+
+si el kind solicitado no está permitido por constraints.allowed_kinds, la creación no debe considerarse autorizada aunque exista scope persistido
 
 REGLA DE CONSTRAINTS
 
 en orders, view_any, view, update y delete deben interpretarse junto con constraints.allowed_kinds
 
+la segmentación funcional del módulo depende exclusivamente de constraints
+
 el módulo no funciona correctamente solo con scope si faltan allowed_kinds
 
 la persistencia incompleta de constraints rompe la segmentación funcional efectiva del módulo
 
+las capacidades pueden diferenciarse por capability, permitiendo:
+
+lectura más amplia (view, view_any)
+operación más restringida (create, update, delete)
+
+REGLA DE CONSISTENCIA
+
+los roles son acumulables
+
+la configuración efectiva del usuario es el resultado de la combinación de roles activos
+
+el resolver debe fusionar permisos y constraints por capability
+
+se consideran válidas configuraciones donde:
+
+view es más amplio que update o delete
+
+no se consideran válidas configuraciones donde:
+
+delete esté permitido sin view
+
 REGLA DE UI
 
 la UI no debe inferir permisos abstractos del módulo
+
+debe reflejar fielmente el contrato del resolver
+
+no debe simplificar el modelo ni ocultar constraints
 
 las decisiones visibles deben resolverse desde backend con contexto completo
 
@@ -732,6 +767,7 @@ order_items puede operar en modo manual cuando products está deshabilitado
 el selector de producto no es obligatorio para el funcionamiento del detalle
 
 la ausencia del módulo products no debe bloquear la operación manual del detalle de órdenes
+
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>

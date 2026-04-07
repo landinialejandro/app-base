@@ -1,10 +1,13 @@
-{{-- FILE: resources/views/appointments/_form.blade.php | V4 --}}
+{{-- FILE: resources/views/appointments/_form.blade.php | V5 --}}
 
 @php
     use App\Support\Catalogs\AppointmentCatalog;
 
     $defaultAssignedUserId = $defaultAssignedUserId ?? old('assigned_user_id', auth()->id());
     $isForeignAppointmentForAdmin = $isForeignAppointmentForAdmin ?? false;
+    $supportsAssetsModule = $supportsAssetsModule ?? true;
+    $supportsOrdersModule = $supportsOrdersModule ?? true;
+
     $currentKind = old('kind', $appointment->kind ?? AppointmentCatalog::KIND_SERVICE);
     $currentReferenceLabel = AppointmentCatalog::referenceLabelForKind($currentKind);
     $todayDate = now()->format('Y-m-d');
@@ -43,28 +46,31 @@
         @enderror
     </div>
 
-    <div class="form-group">
-        <label for="asset_id" class="form-label">{{ AppointmentCatalog::assetLabel() }}</label>
-        <select name="asset_id" id="asset_id" class="form-control">
-            <option value="">Sin {{ strtolower(AppointmentCatalog::assetLabel()) }}</option>
-            @foreach ($assets as $asset)
-                <option value="{{ $asset->id }}" data-party-id="{{ $asset->party_id }}" @selected((string) $currentAssetId === (string) $asset->id)>
-                    {{ $asset->name }}
-                    @if ($asset->internal_code)
-                        — {{ $asset->internal_code }}
-                    @endif
-                    @if ($asset->party)
-                        — {{ $asset->party->name }}
-                    @endif
-                </option>
-            @endforeach
-        </select>
-        <div class="form-help">Si eliges un {{ strtolower(AppointmentCatalog::contactLabel()) }}, se filtrarán los
-            {{ strtolower(AppointmentCatalog::assetLabel()) }}s vinculados.</div>
-        @error('asset_id')
-            <div class="form-help is-error">{{ $message }}</div>
-        @enderror
-    </div>
+    @if ($supportsAssetsModule)
+        <div class="form-group">
+            <label for="asset_id" class="form-label">{{ AppointmentCatalog::assetLabel() }}</label>
+            <select name="asset_id" id="asset_id" class="form-control">
+                <option value="">Sin {{ strtolower(AppointmentCatalog::assetLabel()) }}</option>
+                @foreach ($assets as $asset)
+                    <option value="{{ $asset->id }}" data-party-id="{{ $asset->party_id }}"
+                        @selected((string) $currentAssetId === (string) $asset->id)>
+                        {{ $asset->name }}
+                        @if ($asset->internal_code)
+                            — {{ $asset->internal_code }}
+                        @endif
+                        @if ($asset->party)
+                            — {{ $asset->party->name }}
+                        @endif
+                    </option>
+                @endforeach
+            </select>
+            <div class="form-help">Si eliges un {{ strtolower(AppointmentCatalog::contactLabel()) }}, se filtrarán los
+                {{ strtolower(AppointmentCatalog::assetLabel()) }}s vinculados.</div>
+            @error('asset_id')
+                <div class="form-help is-error">{{ $message }}</div>
+            @enderror
+        </div>
+    @endif
 
     <div class="form-group">
         <label for="scheduled_date" class="form-label">Cuándo</label>
@@ -127,23 +133,25 @@
         @enderror
     </div>
 
-    <div class="form-group">
-        <label for="order_id" class="form-label">{{ AppointmentCatalog::orderLabel() }}</label>
-        <select name="order_id" id="order_id" class="form-control">
-            <option value="">Sin {{ strtolower(AppointmentCatalog::orderLabel()) }}</option>
-            @foreach ($orders as $order)
-                <option value="{{ $order->id }}" @selected((string) $currentOrderId === (string) $order->id)>
-                    {{ $order->number ?: 'Orden #' . $order->id }}
-                    @if ($order->party)
-                        — {{ $order->party->name }}
-                    @endif
-                </option>
-            @endforeach
-        </select>
-        @error('order_id')
-            <div class="form-help is-error">{{ $message }}</div>
-        @enderror
-    </div>
+    @if ($supportsOrdersModule)
+        <div class="form-group">
+            <label for="order_id" class="form-label">{{ AppointmentCatalog::orderLabel() }}</label>
+            <select name="order_id" id="order_id" class="form-control">
+                <option value="">Sin {{ strtolower(AppointmentCatalog::orderLabel()) }}</option>
+                @foreach ($orders as $order)
+                    <option value="{{ $order->id }}" @selected((string) $currentOrderId === (string) $order->id)>
+                        {{ $order->number ?: 'Orden #' . $order->id }}
+                        @if ($order->party)
+                            — {{ $order->party->name }}
+                        @endif
+                    </option>
+                @endforeach
+            </select>
+            @error('order_id')
+                <div class="form-help is-error">{{ $message }}</div>
+            @enderror
+        </div>
+    @endif
 
     <div class="form-group">
         <label for="status" class="form-label">Estado operativo</label>

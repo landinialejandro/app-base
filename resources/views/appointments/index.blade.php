@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/index.blade.php | V5 --}}
+{{-- FILE: resources/views/appointments/index.blade.php | V6 --}}
 
 @extends('layouts.app')
 
@@ -8,7 +8,6 @@
 
     @php
         use App\Support\Catalogs\AppointmentCatalog;
-        use App\Support\Catalogs\PermissionScopeCatalog;
     @endphp
 
     <x-page class="list-page">
@@ -39,20 +38,6 @@
                         <label for="q" class="form-label">Buscar</label>
                         <input type="text" id="q" name="q" class="form-control" value="{{ request('q') }}"
                             placeholder="Título, nota o ID">
-                    </div>
-
-                    <div class="form-group">
-                        <label for="scope" class="form-label">Vista</label>
-                        <select id="scope" name="scope" class="form-control">
-                            <option value="{{ PermissionScopeCatalog::OWN_ASSIGNED }}" @selected(($scope ?? request('scope', PermissionScopeCatalog::OWN_ASSIGNED)) === PermissionScopeCatalog::OWN_ASSIGNED)>
-                                Mis turnos
-                            </option>
-                            @if ($canViewAllAppointments ?? false)
-                                <option value="{{ PermissionScopeCatalog::TENANT_ALL }}" @selected(($scope ?? request('scope', PermissionScopeCatalog::OWN_ASSIGNED)) === PermissionScopeCatalog::TENANT_ALL)>
-                                    Todos los turnos
-                                </option>
-                            @endif
-                        </select>
                     </div>
                 </div>
             </x-slot:primary>
@@ -95,17 +80,19 @@
                         </select>
                     </div>
 
-                    <div class="form-group">
-                        <label for="assigned_user_id" class="form-label">Asignado a</label>
-                        <select id="assigned_user_id" name="assigned_user_id" class="form-control">
-                            <option value="">Todos</option>
-                            @foreach ($users as $user)
-                                <option value="{{ $user->id }}" @selected((string) request('assigned_user_id') === (string) $user->id)>
-                                    {{ $user->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                    @if ($canViewAllAppointments)
+                        <div class="form-group">
+                            <label for="assigned_user_id" class="form-label">Asignado a</label>
+                            <select id="assigned_user_id" name="assigned_user_id" class="form-control">
+                                <option value="">Todos</option>
+                                @foreach ($users as $user)
+                                    <option value="{{ $user->id }}" @selected((string) request('assigned_user_id') === (string) $user->id)>
+                                        {{ $user->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
 
                     <div class="form-group">
                         <label for="scheduled_date" class="form-label">Fecha</label>
@@ -120,6 +107,8 @@
             @include('appointments.partials.table', [
                 'appointments' => $appointments,
                 'emptyMessage' => 'No hay turnos registrados para esta empresa.',
+                'supportsAssetsModule' => $supportsAssetsModule,
+                'supportsOrdersModule' => $supportsOrdersModule,
             ])
 
             @if ($appointments->count())

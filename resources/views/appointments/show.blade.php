@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/show.blade.php | V6 --}}
+{{-- FILE: resources/views/appointments/show.blade.php | V7 --}}
 
 @extends('layouts.app')
 
@@ -27,15 +27,17 @@
         <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header :title="$appointmentTitle">
-            @can('update', $appointment)
-                <a href="{{ route('appointments.edit', ['appointment' => $appointment] + $trailQuery) }}" class="btn btn-primary">
+            @if ($canEditAppointment)
+                <a href="{{ route('appointments.edit', ['appointment' => $appointment] + $trailQuery) }}"
+                    class="btn btn-primary">
                     <x-icons.pencil />
                     <span>Editar</span>
                 </a>
-            @endcan
+            @endif
 
-            @can('delete', $appointment)
-                <form method="POST" action="{{ route('appointments.destroy', ['appointment' => $appointment] + $trailQuery) }}"
+            @if ($canDeleteAppointment)
+                <form method="POST"
+                    action="{{ route('appointments.destroy', ['appointment' => $appointment] + $trailQuery) }}"
                     class="inline-form" data-action="app-confirm-submit" data-confirm-message="¿Eliminar turno?">
                     @csrf
                     @method('DELETE')
@@ -45,30 +47,32 @@
                         <span>Eliminar</span>
                     </button>
                 </form>
-            @endcan
+            @endif
 
-            @if ($appointment->order)
-                <a href="{{ route('orders.show', ['order' => $appointment->order] + $trailQuery) }}"
-                    class="btn btn-secondary">
-                    Ver {{ strtolower(AppointmentCatalog::orderLabel()) }}
-                </a>
-            @elseif ($appointment->party_id)
-                <a href="{{ route(
-                    'orders.create',
-                    [
-                        'appointment_id' => $appointment->id,
-                        'party_id' => $appointment->party_id,
-                        'asset_id' => $appointment->asset_id,
-                    ] + $trailQuery,
-                ) }}"
-                    class="btn btn-secondary">
-                    Crear {{ strtolower(AppointmentCatalog::orderLabel()) }}
-                </a>
-            @else
-                <span class="btn btn-secondary disabled" aria-disabled="true"
-                    title="Asociá un {{ strtolower(AppointmentCatalog::contactLabel()) }} para poder crear una {{ strtolower(AppointmentCatalog::orderLabel()) }}.">
-                    Crear {{ strtolower(AppointmentCatalog::orderLabel()) }}
-                </span>
+            @if ($supportsOrdersModule)
+                @if ($appointment->order && $canViewLinkedOrder)
+                    <a href="{{ route('orders.show', ['order' => $appointment->order] + $trailQuery) }}"
+                        class="btn btn-secondary">
+                        Ver {{ strtolower(AppointmentCatalog::orderLabel()) }}
+                    </a>
+                @elseif (!$appointment->order && $appointment->party_id && $canCreateOrder)
+                    <a href="{{ route(
+                        'orders.create',
+                        [
+                            'appointment_id' => $appointment->id,
+                            'party_id' => $appointment->party_id,
+                            'asset_id' => $appointment->asset_id,
+                        ] + $trailQuery,
+                    ) }}"
+                        class="btn btn-secondary">
+                        Crear {{ strtolower(AppointmentCatalog::orderLabel()) }}
+                    </a>
+                @elseif (!$appointment->order && !$appointment->party_id)
+                    <span class="btn btn-secondary disabled" aria-disabled="true"
+                        title="Asociá un {{ strtolower(AppointmentCatalog::contactLabel()) }} para poder crear una {{ strtolower(AppointmentCatalog::orderLabel()) }}.">
+                        Crear {{ strtolower(AppointmentCatalog::orderLabel()) }}
+                    </span>
+                @endif
             @endif
 
             <a href="{{ route('appointments.print', ['appointment' => $appointment]) }}" class="btn btn-secondary"
@@ -88,9 +92,13 @@
         <x-show-summary details-id="appointment-more-detail">
             <x-show-summary-item :label="AppointmentCatalog::contactLabel()">
                 @if ($appointment->party)
-                    <a href="{{ route('parties.show', ['party' => $appointment->party] + $trailQuery) }}">
+                    @if ($canViewLinkedParty)
+                        <a href="{{ route('parties.show', ['party' => $appointment->party] + $trailQuery) }}">
+                            {{ $appointment->party->name }}
+                        </a>
+                    @else
                         {{ $appointment->party->name }}
-                    </a>
+                    @endif
                 @else
                     —
                 @endif
@@ -98,9 +106,13 @@
 
             <x-show-summary-item :label="AppointmentCatalog::assetLabel()">
                 @if ($appointment->asset)
-                    <a href="{{ route('assets.show', ['asset' => $appointment->asset] + $trailQuery) }}">
+                    @if ($supportsAssetsModule && $canViewLinkedAsset)
+                        <a href="{{ route('assets.show', ['asset' => $appointment->asset] + $trailQuery) }}">
+                            {{ $appointment->asset->name }}
+                        </a>
+                    @else
                         {{ $appointment->asset->name }}
-                    </a>
+                    @endif
                 @else
                     —
                 @endif
@@ -124,10 +136,14 @@
 
             <x-show-summary-item :label="AppointmentCatalog::orderLabel()">
                 @if ($appointment->order)
-                    <a href="{{ route('orders.show', ['order' => $appointment->order] + $trailQuery) }}">
+                    @if ($supportsOrdersModule && $canViewLinkedOrder)
+                        <a href="{{ route('orders.show', ['order' => $appointment->order] + $trailQuery) }}">
+                            {{ $appointment->order->number ?: 'Orden #' . $appointment->order->id }}
+                        </a>
+                    @else
                         {{ $appointment->order->number ?: 'Orden #' . $appointment->order->id }}
-                    </a>
-                @elseif ($appointment->party_id)
+                    @endif
+                @elseif ($supportsOrdersModule && $appointment->party_id && $canCreateOrder)
                     <a
                         href="{{ route(
                             'orders.create',
@@ -139,9 +155,11 @@
                         ) }}">
                         Crear {{ strtolower(AppointmentCatalog::orderLabel()) }}
                     </a>
-                @else
+                @elseif ($supportsOrdersModule)
                     Asociá un {{ strtolower(AppointmentCatalog::contactLabel()) }} para poder crear una
                     {{ strtolower(AppointmentCatalog::orderLabel()) }}.
+                @else
+                    —
                 @endif
             </x-show-summary-item>
 

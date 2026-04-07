@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AppointmentController.php | V11
+// FILE: app/Http/Controllers/AppointmentController.php | V12
 
 namespace App\Http\Controllers;
 
@@ -11,8 +11,9 @@ use App\Models\Order;
 use App\Models\Party;
 use App\Models\User;
 use App\Support\Auth\Security;
+use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\AppointmentCatalog;
-use App\Support\Catalogs\PermissionScopeCatalog;
+use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Navigation\AppointmentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -34,7 +35,10 @@ class AppointmentController extends Controller
         $kind = $request->get('kind');
         $status = $request->get('status');
         $scheduledDate = $request->get('scheduled_date');
+
         $canViewAllAppointments = $this->canViewAllAppointments();
+        $supportsAssetsModule = $this->supportsModule(ModuleCatalog::ASSETS);
+        $supportsOrdersModule = $this->supportsModule(ModuleCatalog::ORDERS);
 
         $users = User::query()
             ->whereHas('memberships', function ($query) use ($tenant) {
@@ -61,7 +65,7 @@ class AppointmentController extends Controller
                     }
                 });
             })
-            ->when($assignedUserId, fn ($query) => $query->where('assigned_user_id', $assignedUserId))
+            ->when($canViewAllAppointments && $assignedUserId, fn ($query) => $query->where('assigned_user_id', $assignedUserId))
             ->when($partyId, fn ($query) => $query->where('party_id', $partyId))
             ->when($kind, fn ($query) => $query->where('kind', $kind))
             ->when($status, fn ($query) => $query->where('status', $status))
@@ -78,10 +82,9 @@ class AppointmentController extends Controller
             'appointments' => $appointments,
             'users' => $users,
             'parties' => $parties,
-            'scope' => $canViewAllAppointments
-                ? PermissionScopeCatalog::TENANT_ALL
-                : PermissionScopeCatalog::OWN_ASSIGNED,
             'canViewAllAppointments' => $canViewAllAppointments,
+            'supportsAssetsModule' => $supportsAssetsModule,
+            'supportsOrdersModule' => $supportsOrdersModule,
         ]);
     }
 
@@ -118,7 +121,7 @@ class AppointmentController extends Controller
                     $weekStart->toDateString(),
                     $weekEnd->toDateString(),
                 ])
-                ->when($assignedUserId, fn ($query) => $query->where('assigned_user_id', $assignedUserId))
+                ->when($canViewAllAppointments && $assignedUserId, fn ($query) => $query->where('assigned_user_id', $assignedUserId))
                 ->when($status, fn ($query) => $query->where('status', $status))
                 ->orderBy('scheduled_date')
                 ->orderByDesc('is_all_day')
@@ -152,9 +155,6 @@ class AppointmentController extends Controller
                 'viewMode' => 'week',
                 'days' => $days,
                 'users' => $users,
-                'scope' => $canViewAllAppointments
-                    ? PermissionScopeCatalog::TENANT_ALL
-                    : PermissionScopeCatalog::OWN_ASSIGNED,
                 'canViewAllAppointments' => $canViewAllAppointments,
                 'selectedAssignedUserId' => $assignedUserId,
                 'selectedStatus' => $status,
@@ -187,7 +187,7 @@ class AppointmentController extends Controller
                 $gridStart->toDateString(),
                 $gridEnd->toDateString(),
             ])
-            ->when($assignedUserId, fn ($query) => $query->where('assigned_user_id', $assignedUserId))
+            ->when($canViewAllAppointments && $assignedUserId, fn ($query) => $query->where('assigned_user_id', $assignedUserId))
             ->when($status, fn ($query) => $query->where('status', $status))
             ->orderBy('scheduled_date')
             ->orderByDesc('is_all_day')
@@ -235,9 +235,6 @@ class AppointmentController extends Controller
             'viewMode' => 'month',
             'weeks' => $weeks,
             'users' => $users,
-            'scope' => $canViewAllAppointments
-                ? PermissionScopeCatalog::TENANT_ALL
-                : PermissionScopeCatalog::OWN_ASSIGNED,
             'canViewAllAppointments' => $canViewAllAppointments,
             'selectedAssignedUserId' => $assignedUserId,
             'selectedStatus' => $status,
@@ -253,6 +250,9 @@ class AppointmentController extends Controller
 
         $this->authorize('create', Appointment::class);
 
+        $supportsAssetsModule = $this->supportsModule(ModuleCatalog::ASSETS);
+        $supportsOrdersModule = $this->supportsModule(ModuleCatalog::ORDERS);
+
         $users = User::query()
             ->whereHas('memberships', function ($query) use ($tenant) {
                 $query->where('tenant_id', $tenant->id)
@@ -262,8 +262,12 @@ class AppointmentController extends Controller
             ->get();
 
         $parties = Party::query()->orderBy('name')->get();
-        $orders = Order::query()->with('party')->latest()->limit(100)->get();
-        $assets = Asset::query()->with('party')->orderBy('name')->get();
+        $orders = $supportsOrdersModule
+            ? Order::query()->with('party')->latest()->limit(100)->get()
+            : collect();
+        $assets = $supportsAssetsModule
+            ? Asset::query()->with('party')->orderBy('name')->get()
+            : collect();
 
         $prefilledPartyId = null;
         $prefilledAssetId = null;
@@ -282,7 +286,7 @@ class AppointmentController extends Controller
             }
         }
 
-        if ($request->filled('asset_id')) {
+        if ($supportsAssetsModule && $request->filled('asset_id')) {
             $asset = Asset::query()
                 ->with('party')
                 ->where('id', $request->integer('asset_id'))
@@ -296,7 +300,7 @@ class AppointmentController extends Controller
             }
         }
 
-        if ($request->filled('order_id')) {
+        if ($supportsOrdersModule && $request->filled('order_id')) {
             $order = Order::query()
                 ->with(['party', 'asset'])
                 ->where('id', $request->integer('order_id'))
@@ -333,6 +337,8 @@ class AppointmentController extends Controller
             'prefilledAssetId',
             'prefilledOrderId',
             'prefilledScheduledDate',
+            'supportsAssetsModule',
+            'supportsOrdersModule',
         ));
     }
 
@@ -364,9 +370,17 @@ class AppointmentController extends Controller
             'updater',
         ]);
 
+        $supportsAssetsModule = $this->supportsModule(ModuleCatalog::ASSETS);
+        $supportsOrdersModule = $this->supportsModule(ModuleCatalog::ORDERS);
+
         $canEditAppointment = auth()->user()->can('update', $appointment);
         $canDeleteAppointment = auth()->user()->can('delete', $appointment);
         $isForeignAppointmentForAdmin = $this->canManageForeignAppointment($appointment);
+
+        $canViewLinkedParty = $appointment->party && auth()->user()->can('view', $appointment->party);
+        $canViewLinkedAsset = $supportsAssetsModule && $appointment->asset && auth()->user()->can('view', $appointment->asset);
+        $canViewLinkedOrder = $supportsOrdersModule && $appointment->order && auth()->user()->can('view', $appointment->order);
+        $canCreateOrder = $supportsOrdersModule && auth()->user()->can('create', Order::class);
 
         $navigationTrail = AppointmentNavigationTrail::show($request, $appointment);
 
@@ -375,7 +389,13 @@ class AppointmentController extends Controller
             'canEditAppointment',
             'canDeleteAppointment',
             'isForeignAppointmentForAdmin',
-            'navigationTrail'
+            'navigationTrail',
+            'supportsAssetsModule',
+            'supportsOrdersModule',
+            'canViewLinkedParty',
+            'canViewLinkedAsset',
+            'canViewLinkedOrder',
+            'canCreateOrder',
         ));
     }
 
@@ -384,6 +404,9 @@ class AppointmentController extends Controller
         $tenant = app('tenant');
 
         $this->authorize('update', $appointment);
+
+        $supportsAssetsModule = $this->supportsModule(ModuleCatalog::ASSETS);
+        $supportsOrdersModule = $this->supportsModule(ModuleCatalog::ORDERS);
 
         $users = User::query()
             ->whereHas('memberships', function ($query) use ($tenant) {
@@ -394,8 +417,12 @@ class AppointmentController extends Controller
             ->get();
 
         $parties = Party::query()->orderBy('name')->get();
-        $orders = Order::query()->with('party')->latest()->limit(100)->get();
-        $assets = Asset::query()->with('party')->orderBy('name')->get();
+        $orders = $supportsOrdersModule
+            ? Order::query()->with('party')->latest()->limit(100)->get()
+            : collect();
+        $assets = $supportsAssetsModule
+            ? Asset::query()->with('party')->orderBy('name')->get()
+            : collect();
 
         $defaultAssignedUserId = old('assigned_user_id', (string) $appointment->assigned_user_id);
         $isForeignAppointmentForAdmin = $this->canManageForeignAppointment($appointment);
@@ -409,7 +436,9 @@ class AppointmentController extends Controller
             'assets',
             'defaultAssignedUserId',
             'isForeignAppointmentForAdmin',
-            'navigationTrail'
+            'navigationTrail',
+            'supportsAssetsModule',
+            'supportsOrdersModule',
         ));
     }
 
@@ -461,15 +490,20 @@ class AppointmentController extends Controller
     {
         $inspection = app(Security::class)->inspect(auth()->user(), 'appointments.viewAny');
 
-        return ($inspection['scope'] ?? null) === PermissionScopeCatalog::TENANT_ALL;
+        return ($inspection['scope'] ?? null) === 'tenant_all';
     }
 
     protected function canManageForeignAppointment(Appointment $appointment): bool
     {
         $inspection = app(Security::class)->inspect(auth()->user(), 'appointments.update', $appointment);
 
-        return ($inspection['scope'] ?? null) === PermissionScopeCatalog::TENANT_ALL
+        return ($inspection['scope'] ?? null) === 'tenant_all'
             && (int) $appointment->assigned_user_id !== (int) auth()->id();
+    }
+
+    protected function supportsModule(string $module): bool
+    {
+        return TenantModuleAccess::isEnabled($module, app('tenant'));
     }
 
     protected function resolveCalendarView(string $view): string

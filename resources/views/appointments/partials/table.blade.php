@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/partials/table.blade.php | V4 --}}
+{{-- FILE: resources/views/appointments/partials/table.blade.php | V5 --}}
 
 @php
     use App\Support\Catalogs\AppointmentCatalog;
@@ -7,6 +7,8 @@
 
     $appointments = $appointments ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay turnos para mostrar.';
+    $supportsAssetsModule = $supportsAssetsModule ?? true;
+    $supportsOrdersModule = $supportsOrdersModule ?? true;
 @endphp
 
 @if ($appointments->count())
@@ -44,10 +46,14 @@
 
                         <td>
                             @if ($appointment->party)
-                                <a
-                                    href="{{ route('parties.show', ['party' => $appointment->party] + $appointmentTrailQuery) }}">
+                                @can('view', $appointment->party)
+                                    <a
+                                        href="{{ route('parties.show', ['party' => $appointment->party] + $appointmentTrailQuery) }}">
+                                        {{ $appointment->party->name }}
+                                    </a>
+                                @else
                                     {{ $appointment->party->name }}
-                                </a>
+                                @endcan
                             @else
                                 —
                             @endif
@@ -55,10 +61,18 @@
 
                         <td>
                             @if ($appointment->asset)
-                                <a
-                                    href="{{ route('assets.show', ['asset' => $appointment->asset] + $appointmentTrailQuery) }}">
+                                @if ($supportsAssetsModule)
+                                    @can('view', $appointment->asset)
+                                        <a
+                                            href="{{ route('assets.show', ['asset' => $appointment->asset] + $appointmentTrailQuery) }}">
+                                            {{ $appointment->asset->name }}
+                                        </a>
+                                    @else
+                                        {{ $appointment->asset->name }}
+                                    @endcan
+                                @else
                                     {{ $appointment->asset->name }}
-                                </a>
+                                @endif
                             @else
                                 —
                             @endif
@@ -81,10 +95,18 @@
 
                         <td>
                             @if ($appointment->order)
-                                <a
-                                    href="{{ route('orders.show', ['order' => $appointment->order] + $appointmentTrailQuery) }}">
+                                @if ($supportsOrdersModule)
+                                    @can('view', $appointment->order)
+                                        <a
+                                            href="{{ route('orders.show', ['order' => $appointment->order] + $appointmentTrailQuery) }}">
+                                            {{ $appointment->order->number ?: 'Orden #' . $appointment->order->id }}
+                                        </a>
+                                    @else
+                                        {{ $appointment->order->number ?: 'Orden #' . $appointment->order->id }}
+                                    @endcan
+                                @else
                                     {{ $appointment->order->number ?: 'Orden #' . $appointment->order->id }}
-                                </a>
+                                @endif
                             @else
                                 —
                             @endif

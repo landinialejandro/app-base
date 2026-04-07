@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/calendar.blade.php | V3 --}}
+{{-- FILE: resources/views/appointments/calendar.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -26,7 +26,6 @@
 
         @include('appointments.partials.calendar-toolbar', [
             'users' => $users,
-            'scope' => $scope,
             'selectedAssignedUserId' => $selectedAssignedUserId,
             'selectedStatus' => $selectedStatus,
             'viewMode' => $viewMode,

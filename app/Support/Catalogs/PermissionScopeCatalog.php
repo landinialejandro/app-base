@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/PermissionScopeCatalog.php | V8
+// FILE: app/Support/Catalogs/PermissionScopeCatalog.php | V9
 
 namespace App\Support\Catalogs;
 
@@ -97,6 +97,7 @@ class PermissionScopeCatalog
             ],
             CapabilityCatalog::DELETE => [
                 self::TENANT_ALL => static::label(self::TENANT_ALL),
+                self::OWN_ASSIGNED => static::label(self::OWN_ASSIGNED),
             ],
             default => [],
         };

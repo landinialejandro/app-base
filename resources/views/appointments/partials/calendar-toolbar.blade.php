@@ -1,8 +1,7 @@
-{{-- FILE: resources/views/appointments/partials/calendar-toolbar.blade.php | V4 --}}
+{{-- FILE: resources/views/appointments/partials/calendar-toolbar.blade.php | V5 --}}
 
 @php
     use App\Support\Catalogs\AppointmentCatalog;
-    use App\Support\Catalogs\PermissionScopeCatalog;
 
     $viewMode = $viewMode ?? 'month';
 
@@ -89,20 +88,6 @@
                     @endif
                 </div>
             </div>
-
-            <div class="form-group">
-                <label for="scope" class="form-label">Vista operativa</label>
-                <select id="scope" name="scope" class="form-control">
-                    <option value="{{ PermissionScopeCatalog::OWN_ASSIGNED }}" @selected($scope === PermissionScopeCatalog::OWN_ASSIGNED)>
-                        Mis turnos
-                    </option>
-                    @if ($canViewAllAppointments ?? false)
-                        <option value="{{ PermissionScopeCatalog::TENANT_ALL }}" @selected($scope === PermissionScopeCatalog::TENANT_ALL)>
-                            Todos los turnos
-                        </option>
-                    @endif
-                </select>
-            </div>
         </div>
     </x-slot:primary>
 
@@ -116,17 +101,20 @@
         @endif
 
         <div class="list-filters-grid">
-            <div class="form-group">
-                <label for="assigned_user_id" class="form-label">{{ AppointmentCatalog::assignedUserLabel() }}</label>
-                <select id="assigned_user_id" name="assigned_user_id" class="form-control">
-                    <option value="">Todos</option>
-                    @foreach ($users as $user)
-                        <option value="{{ $user->id }}" @selected((string) $selectedAssignedUserId === (string) $user->id)>
-                            {{ $user->name }}
-                        </option>
-                    @endforeach
-                </select>
-            </div>
+            @if ($canViewAllAppointments)
+                <div class="form-group">
+                    <label for="assigned_user_id"
+                        class="form-label">{{ AppointmentCatalog::assignedUserLabel() }}</label>
+                    <select id="assigned_user_id" name="assigned_user_id" class="form-control">
+                        <option value="">Todos</option>
+                        @foreach ($users as $user)
+                            <option value="{{ $user->id }}" @selected((string) $selectedAssignedUserId === (string) $user->id)>
+                                {{ $user->name }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+            @endif
 
             <div class="form-group">
                 <label for="status" class="form-label">Estado</label>

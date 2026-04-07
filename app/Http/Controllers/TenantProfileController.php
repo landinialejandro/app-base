@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantProfileController.php | V9
+// FILE: app/Http/Controllers/TenantProfileController.php | V10
 
 namespace App\Http\Controllers;
 
@@ -12,6 +12,7 @@ use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\BusinessTypeCatalog;
 use App\Support\Catalogs\CapabilityCatalog;
 use App\Support\Catalogs\ModuleCatalog;
+use App\Support\Catalogs\OrderCatalog;
 use App\Support\Catalogs\PermissionScopeCatalog;
 use App\Support\Catalogs\RoleCatalog;
 use Illuminate\Http\Request;
@@ -130,6 +131,7 @@ class TenantProfileController extends Controller
         );
 
         $scopeOptionsByModuleCapability = $this->buildScopeOptionsByModuleCapability($moduleCapabilityMap);
+        $constraintOptionsByModuleCapability = $this->buildConstraintOptionsByModuleCapability($moduleCapabilityMap);
 
         return view('tenants.profile', [
             'tenant' => $tenant,
@@ -148,6 +150,7 @@ class TenantProfileController extends Controller
             'moduleCapabilityMap' => $moduleCapabilityMap,
             'permissionMatrix' => $permissionMatrix,
             'scopeOptionsByModuleCapability' => $scopeOptionsByModuleCapability,
+            'constraintOptionsByModuleCapability' => $constraintOptionsByModuleCapability,
         ]);
     }
 
@@ -252,6 +255,7 @@ class TenantProfileController extends Controller
                     'enabled' => false,
                     'scope' => null,
                     'execution_mode' => 'manual',
+                    'constraints' => [],
                 ];
             }
         }
@@ -302,6 +306,7 @@ class TenantProfileController extends Controller
                     'enabled' => true,
                     'scope' => $assignedPermission->pivot->scope,
                     'execution_mode' => $assignedPermission->pivot->execution_mode ?: 'manual',
+                    'constraints' => $this->normalizeConstraints($assignedPermission->pivot->constraints ?? null),
                 ];
             }
         }
@@ -322,5 +327,55 @@ class TenantProfileController extends Controller
         }
 
         return $options;
+    }
+
+    protected function buildConstraintOptionsByModuleCapability(array $moduleCapabilityMap): array
+    {
+        $options = [];
+
+        foreach ($moduleCapabilityMap as $module => $capabilities) {
+            $options[$module] = [];
+
+            foreach ($capabilities as $capability) {
+                $options[$module][$capability] = $this->buildConstraintOptionsFor($module, $capability);
+            }
+        }
+
+        return $options;
+    }
+
+    protected function buildConstraintOptionsFor(string $module, string $capability): array
+    {
+        if (
+            $module === ModuleCatalog::ORDERS
+            && in_array($capability, [
+                CapabilityCatalog::VIEW_ANY,
+                CapabilityCatalog::VIEW,
+                CapabilityCatalog::CREATE,
+                CapabilityCatalog::UPDATE,
+                CapabilityCatalog::DELETE,
+            ], true)
+        ) {
+            return [
+                'allowed_kinds' => OrderCatalog::kindLabels(),
+            ];
+        }
+
+        return [];
+    }
+
+    protected function normalizeConstraints(mixed $constraints): array
+    {
+        if (is_array($constraints)) {
+            return $constraints;
+        }
+
+        if (is_string($constraints) && trim($constraints) !== '') {
+            $decoded = json_decode($constraints, true);
+
+            return is_array($decoded) ? $decoded : [];
+        }
+
+        return [];
     }
 }

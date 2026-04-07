@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/profile.blade.php | V3 --}}
+{{-- FILE: resources/views/tenants/profile.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -73,6 +73,8 @@
                 'permissionMatrix' => $permissionMatrix,
                 'moduleLabels' => $moduleLabels,
                 'capabilityLabels' => $capabilityLabels,
+                'scopeOptionsByModuleCapability' => $scopeOptionsByModuleCapability,
+                'constraintOptionsByModuleCapability' => $constraintOptionsByModuleCapability,
             ])
         </div>
     </x-page>

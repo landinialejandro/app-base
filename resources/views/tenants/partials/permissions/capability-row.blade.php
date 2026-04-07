@@ -1,12 +1,24 @@
-{{-- FILE: resources/views/tenants/partials/permissions/capability-row.blade.php | V9 --}}
+{{-- FILE: resources/views/tenants/partials/permissions/capability-row.blade.php | V10 --}}
 
 @php
-    $enabled = (bool) ($meta['enabled'] ?? false);
-    $scope = $meta['scope'] ?? null;
-    $executionMode = $meta['execution_mode'] ?? 'manual';
+    $oldEnabled = old("permissions.$module.$capability.enabled");
+    $enabled = $oldEnabled !== null ? (bool) $oldEnabled : (bool) ($meta['enabled'] ?? false);
+
+    $scope = old("permissions.$module.$capability.scope", $meta['scope'] ?? null);
+    $executionMode = old("permissions.$module.$capability.execution_mode", $meta['execution_mode'] ?? 'manual');
+
+    $constraints = $meta['constraints'] ?? [];
+    $oldAllowedKinds = old("permissions.$module.$capability.constraints.allowed_kinds");
+    $selectedAllowedKinds = is_array($oldAllowedKinds)
+        ? array_values(array_unique(array_filter($oldAllowedKinds)))
+        : array_values(array_unique(array_filter($constraints['allowed_kinds'] ?? [])));
 
     $scopeOptions = $scopeOptionsByModuleCapability[$module][$capability] ?? [];
     $showScope = !empty($scopeOptions);
+
+    $constraintOptions = $constraintOptionsByModuleCapability[$module][$capability] ?? [];
+    $allowedKindOptions = $constraintOptions['allowed_kinds'] ?? [];
+    $showAllowedKinds = !empty($allowedKindOptions);
 
     $selectedScopeHelp = match ($scope) {
         \App\Support\Catalogs\PermissionScopeCatalog::TENANT_ALL
@@ -47,6 +59,10 @@
                 {{ $enabled ? 'checked' : '' }}>
             <span>Permitir</span>
         </label>
+
+        @error("permissions.$module.$capability.enabled")
+            <div class="form-help is-error">{{ $message }}</div>
+        @enderror
     </td>
 
     <td>
@@ -68,6 +84,10 @@
                 data-scope-help-limited="Tiene acceso parcial según la lógica específica de este módulo.">
                 {{ $selectedScopeHelp }}
             </div>
+
+            @error("permissions.$module.$capability.scope")
+                <div class="form-help is-error">{{ $message }}</div>
+            @enderror
         @elseif ($showScope && count($scopeOptions) === 1)
             @php
                 $onlyScope = array_key_first($scopeOptions);
@@ -79,6 +99,37 @@
 
             <input type="hidden" name="permissions[{{ $module }}][{{ $capability }}][scope]"
                 value="{{ $onlyScope }}">
+
+            @error("permissions.$module.$capability.scope")
+                <div class="form-help is-error">{{ $message }}</div>
+            @enderror
+        @endif
+
+        @if ($showAllowedKinds)
+            <div style="margin-top: 0.75rem;">
+                <div class="form-help" style="margin-bottom: 0.5rem;">
+                    Tipos de orden permitidos para esta acción
+                </div>
+
+                <div class="inline-form inline-form-wrap">
+                    @foreach ($allowedKindOptions as $kindValue => $kindLabel)
+                        <label class="inline-form">
+                            <input type="checkbox"
+                                name="permissions[{{ $module }}][{{ $capability }}][constraints][allowed_kinds][]"
+                                value="{{ $kindValue }}" @checked(in_array($kindValue, $selectedAllowedKinds, true))>
+                            <span>{{ $kindLabel }}</span>
+                        </label>
+                    @endforeach
+                </div>
+
+                <div class="form-help">
+                    La acción solo se permitirá sobre órdenes de los tipos seleccionados.
+                </div>
+
+                @error("permissions.$module.$capability.constraints.allowed_kinds")
+                    <div class="form-help is-error">{{ $message }}</div>
+                @enderror
+            </div>
         @endif
     </td>
 

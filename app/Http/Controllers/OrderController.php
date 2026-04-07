@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderController.php | V18
+// FILE: app/Http/Controllers/OrderController.php | V21
 
 namespace App\Http\Controllers;
 
@@ -107,8 +107,6 @@ class OrderController extends Controller
 
     public function create(Request $request)
     {
-        $this->authorize('create', Order::class);
-
         $tenant = app('tenant');
 
         $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
@@ -134,13 +132,6 @@ class OrderController extends Controller
         $requestedKind = (string) $request->get('kind', '');
 
         if ($requestedKind !== '' && in_array($requestedKind, OrderCatalog::kinds(), true)) {
-            app(Security::class)->authorize(
-                auth()->user(),
-                'orders.create',
-                Order::class,
-                ['kind' => $requestedKind]
-            );
-
             $prefilledKind = $requestedKind;
         }
 
@@ -237,8 +228,6 @@ class OrderController extends Controller
 
     public function store(Request $request)
     {
-        $this->authorize('create', Order::class);
-
         $tenant = app('tenant');
 
         $data = $request->validate([
@@ -449,6 +438,7 @@ class OrderController extends Controller
         $this->authorize('update', $order);
 
         $tenant = app('tenant');
+        $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
 
         $data = $request->validate([
             'party_id' => [
@@ -497,6 +487,10 @@ class OrderController extends Controller
             $data['kind'] = $order->kind;
         }
 
+        if (! $supportsAssetsModule || ! array_key_exists('asset_id', $data)) {
+            $data['asset_id'] = $order->asset_id;
+        }
+
         app(Security::class)->authorize(
             auth()->user(),
             'orders.update',
@@ -505,7 +499,7 @@ class OrderController extends Controller
         );
 
         if (! empty($order->asset_id)) {
-            if ((int) ($data['asset_id'] ?? 0) !== (int) $order->asset_id) {
+            if ((int) $data['asset_id'] !== (int) $order->asset_id) {
                 return back()
                     ->withErrors([
                         'asset_id' => 'No se puede cambiar el activo de una orden ya vinculada.',
@@ -522,7 +516,7 @@ class OrderController extends Controller
             }
         }
 
-        if (! empty($data['asset_id'])) {
+        if (empty($order->asset_id) && ! empty($data['asset_id'])) {
             $asset = Asset::query()->findOrFail($data['asset_id']);
 
             if ((int) $asset->party_id !== (int) $data['party_id']) {

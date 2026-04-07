@@ -362,6 +362,14 @@ solo deben considerarse los módulos habilitados por superadmin para el tenant
 
 no deben mostrarse ni evaluarse permisos sobre módulos inactivos
 
+toda relación, acción o campo que dependa de otro módulo debe verificar este estado antes de resolverse
+
+si el módulo destino está deshabilitado:
+
+no debe evaluarse autorización
+no debe exponerse en UI
+no debe mantenerse acceso residual
+
 REGLA DE CONSISTENCIA
 
 la lógica de permisos debe mantenerse alineada entre:
@@ -586,6 +594,16 @@ la operación individual sobre registros puede restringirse a los propios median
 REGLA DE CONSISTENCIA
 
 view_any no puede ser más restrictivo que view
+
+REGLA DE RELACIONES
+
+los vínculos hacia parties, assets y orders deben depender del estado activo del módulo destino
+
+si el módulo destino está deshabilitado:
+
+no deben evaluarse acciones
+no deben renderizarse campos ni accesos
+no debe existir navegación residual hacia ese módulo
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>

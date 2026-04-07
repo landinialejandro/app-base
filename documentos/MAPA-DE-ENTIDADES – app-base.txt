@@ -153,6 +153,10 @@ Party
 Nombre visible sugerido en la interfaz:
 
 Contacto
+
+Regla adicional:
+
+las relaciones hacia parties desde otros módulos deben respetar el estado activo del módulo destino y no deben exponerse en UI si el módulo parties no estuviera disponible
 <<END SECTION>>
 
 <<SECTION: MODELO DE ACCESO Y PERTENENCIA>>
@@ -360,6 +364,12 @@ appointments utiliza assigned_user_id como referencia de responsabilidad operati
 puede resolver lectura con tenant_all o own_assigned según la capacidad configurada
 
 no utiliza semántica limited como contrato del módulo
+
+Regla de relaciones:
+
+los vínculos hacia parties, assets y orders deben depender del estado activo del módulo destino
+
+si el módulo destino está deshabilitado para el tenant, la relación no debe exponerse ni operarse en UI
 <<END SECTION>>
 
 <<SECTION: PRODUCTS>>
@@ -602,6 +612,12 @@ FLUJO DE AGENDA OPERATIVA
 appointments
 ↓
 orders
+
+Regla de consistencia:
+
+la transición appointments → orders debe respetar el estado activo del módulo orders
+
+si orders no está habilitado para el tenant, el flujo no debe exponerse en UI
 
 FLUJO DE ONBOARDING
 

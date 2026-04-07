@@ -206,6 +206,8 @@ Pendientes cerrados y no reabrir:
 
 * cierre contractual básico de appointments en permisos del módulo
 
+* eliminación de visibilidad residual hacia módulos deshabilitados en relaciones desde appointments
+
 Ajuste documental pendiente a reflejar de forma consistente en el set:
 
 * parties como módulo base intrínseco del sistema y no como módulo opcional común
@@ -280,6 +282,8 @@ dejar resuelto el precompletado del formulario de appointments cuando se ingresa
 evaluar más adelante si el botón contextual de creación dentro de subtabs debe reaccionar dinámicamente al tab interno seleccionado o si alcanza con un default operativo estable por contexto
 
 mantener reflejada en documentación la decisión de parties como módulo base intrínseco del sistema y no como módulo opcional apagable por tenant
+
+mantener como regla estable que los flujos entre módulos (ej. appointments → orders) dependen del estado activo del módulo destino y no deben exponerse si el módulo está deshabilitado
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN Y CONTEXTO UX>>

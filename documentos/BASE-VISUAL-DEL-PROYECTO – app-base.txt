@@ -239,6 +239,14 @@ acciones contextuales del subtab
 resúmenes operativos de subcolecciones
 
 cuando un patrón visual del detalle expandible se repita con claridad, los bloques detail-grid, detail-block o equivalentes pueden migrarse a wrappers o partials chicos reusables, siempre que eso reduzca repetición sin agregar complejidad innecesaria
+
+Regla de relaciones:
+
+si un bloque del show depende de un módulo relacionado:
+
+el x-show-summary-item completo no debe renderizarse si el módulo destino está deshabilitado
+
+no deben mostrarse placeholders ni estados vacíos artificiales
 <<END SECTION>>
 
 <<SECTION: REGLAS PARA X-SHOW-SUMMARY Y X-SHOW-SUMMARY-ITEM>>
@@ -263,6 +271,14 @@ el uso de span debe reservarse a bloques que realmente necesiten mayor ancho vis
 si un bloque analítico requiere más espacio horizontal, debe priorizarse esta capacidad reusable antes que crear wrappers específicos del módulo
 
 la capacidad de span en x-show-summary-item forma parte de la base visual reusable del sistema y debe validarse en uso real antes de extenderla a casos más complejos
+
+Regla operativa:
+
+si el bloque representa una relación hacia otro módulo:
+
+no debe renderizarse si el módulo destino está deshabilitado
+
+la unidad visual completa debe desaparecer y no solo el contenido interno
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW>>

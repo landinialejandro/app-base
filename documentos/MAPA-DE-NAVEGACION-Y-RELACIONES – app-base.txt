@@ -284,7 +284,11 @@ la navegación desde appointments hacia entidades relacionadas ya no se ve restr
 
 la coherencia entre listado, acceso y navegación quedó validada en funcionamiento real
 
-si orders no está habilitado para el tenant, la UI no debe mostrar ni mantener operativo ese acceso relacional
+si orders no está habilitado para el tenant:
+
+no debe mostrarse el acceso
+no debe renderizarse el bloque asociado
+no debe existir navegación residual hacia ese módulo
 
 PROJECTS -> TASKS
 
@@ -358,7 +362,7 @@ desde un documento se consulta o abre el activo asociado
 
 Contexto esperado:
 
-si el asset se abre desde el documento, el breadcrumb puede conservar el document de origen cuando siga siendo útil para la continuidad del trabajo
+si el asset se abre desde el document, el breadcrumb puede conservar el document de origen cuando siga siendo útil para la continuidad del trabajo
 
 DOCUMENTS -> ORDERS
 
@@ -436,7 +440,13 @@ si hay pantallas donde el contexto se pierde por filtros, tabs, paginación o ac
 
 si los enlaces, acciones y campos relacionales hacia módulos relacionados verifican primero que el módulo destino esté habilitado para el tenant
 
-si la deshabilitación de módulos destino oculta correctamente accesos cruzados desde appointments, especialmente hacia orders y assets
+si la deshabilitación de módulos destino elimina completamente:
+
+accesos
+bloques visuales
+referencias indirectas
+
+especialmente en flujos desde appointments hacia orders y assets
 <<END SECTION>>
 
 <<SECTION: RELACIÓN CON OTROS DOCUMENTOS>>

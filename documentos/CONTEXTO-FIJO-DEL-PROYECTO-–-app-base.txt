@@ -222,6 +222,10 @@ Aclaración estructural:
 parties debe tratarse como entidad base transversal del dominio y como módulo base intrínseco del sistema
 
 no debe considerarse un módulo opcional apagable por tenant en el mismo sentido que otros módulos operativos
+
+las relaciones por *_id hacia otras entidades modulares deben considerarse dependientes del estado activo del módulo destino
+
+si el módulo destino no está habilitado para el tenant, esas relaciones no deben exponerse ni operar a nivel de UI
 <<END SECTION>>
 
 <<SECTION: Entidades del sistema y acceso>>
@@ -355,7 +359,11 @@ appointments debe tratarse como módulo operativo asignable basado en assigned_u
 
 su lectura puede ser amplia a nivel tenant o restringida a own_assigned según la capacidad configurada
 
-su operación individual puede restringirse mediante own_assigned sin introducir semántica limited para el módulo
+su operación individual puede restringirse mediante own_assigned
+
+appointments no utiliza semántica limited como contrato del módulo
+
+las relaciones hacia otros módulos mediante *_id deben respetar el estado activo del módulo destino y no exponerse en UI si dicho módulo está deshabilitado
 <<END SECTION>>
 
 <<SECTION: Perfil funcional del tenant>>
@@ -534,6 +542,13 @@ view_any debe ser igual o más amplio que view
 el dataset visible del módulo no puede quedar definido por un scope más restrictivo que el acceso individual efectivo a sus registros
 
 la UI, las acciones derivadas, los campos relacionales y la navegación hacia otra entidad modular por *_id deben verificar primero si el módulo relacionado está habilitado para el tenant
+
+si el módulo destino está deshabilitado:
+
+no deben renderizarse enlaces
+no deben renderizarse campos relacionales
+no deben renderizarse bloques visuales asociados
+no deben mantenerse accesos operativos residuales
 
 La doctrina detallada de implementación segura, Fortify, onboarding, hardening y controles de acceso debe concentrarse en:
 

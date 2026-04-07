@@ -1,27 +1,34 @@
-{{-- FILE: resources/views/orders/items/_form.blade.php | V3 --}}
+{{-- FILE: resources/views/orders/items/_form.blade.php | V4 --}}
 
 @php
     use App\Support\Catalogs\ProductCatalog;
+
+    $supportsProductsModule = $supportsProductsModule ?? true;
 @endphp
 
-<div class="form" data-action="app-product-autofill" data-product-select="#product_id" data-kind-field="#kind"
-    data-description-field="#description" data-price-field="#unit_price">
-    <div class="form-group">
-        <label for="product_id" class="form-label">Producto</label>
-        <select name="product_id" id="product_id" class="form-control">
-            <option value="">Seleccionar producto o servicio</option>
-            @foreach ($products as $product)
-                <option value="{{ $product->id }}" data-kind="{{ $product->kind }}"
-                    data-description="{{ $product->name }}" data-price="{{ $product->price }}"
-                    @selected(old('product_id', $item->product_id ?? '') == $product->id)>
-                    {{ $product->name }}
-                </option>
-            @endforeach
-        </select>
-        @error('product_id')
-            <div class="form-help is-error">{{ $message }}</div>
-        @enderror
-    </div>
+<div class="form"
+    @if ($supportsProductsModule) data-action="app-product-autofill" data-product-select="#product_id"
+    data-kind-field="#kind" data-description-field="#description" data-price-field="#unit_price" @endif>
+    @if ($supportsProductsModule)
+        <div class="form-group">
+            <label for="product_id" class="form-label">Producto</label>
+            <select name="product_id" id="product_id" class="form-control">
+                <option value="">Seleccionar producto o servicio</option>
+                @foreach ($products as $product)
+                    <option value="{{ $product->id }}" data-kind="{{ $product->kind }}"
+                        data-description="{{ $product->name }}" data-price="{{ $product->price }}"
+                        @selected(old('product_id', $item->product_id ?? '') == $product->id)>
+                        {{ $product->name }}
+                    </option>
+                @endforeach
+            </select>
+            <div class="form-help">Opcional. Si seleccionas un producto, se completan automáticamente tipo,
+                descripción y precio.</div>
+            @error('product_id')
+                <div class="form-help is-error">{{ $message }}</div>
+            @enderror
+        </div>
+    @endif
 
     <div class="form-group">
         <label for="position" class="form-label">Posición</label>

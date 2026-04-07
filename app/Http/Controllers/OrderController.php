@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderController.php | V17
+// FILE: app/Http/Controllers/OrderController.php | V18
 
 namespace App\Http\Controllers;
 
@@ -10,6 +10,8 @@ use App\Models\Order;
 use App\Models\Party;
 use App\Models\Task;
 use App\Support\Auth\Security;
+use App\Support\Auth\TenantModuleAccess;
+use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\OrderCatalog;
 use App\Support\Catalogs\ProductCatalog;
 use App\Support\Documents\DocumentNumberGenerator;
@@ -28,9 +30,13 @@ class OrderController extends Controller
     {
         $this->authorize('viewAny', Order::class);
 
+        $tenant = app('tenant');
+
+        $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
+
         $q = trim((string) $request->get('q', ''));
         $partyId = $request->get('party_id');
-        $assetId = $request->get('asset_id');
+        $assetId = $supportsAssetsModule ? $request->get('asset_id') : null;
         $kind = $request->get('kind');
         $status = $request->get('status');
         $orderedAt = $request->get('ordered_at');
@@ -39,10 +45,12 @@ class OrderController extends Controller
             ->orderBy('name')
             ->get();
 
-        $assets = Asset::query()
-            ->with('party')
-            ->orderBy('name')
-            ->get();
+        $assets = $supportsAssetsModule
+            ? Asset::query()
+                ->with('party')
+                ->orderBy('name')
+                ->get()
+            : collect();
 
         $orders = app(Security::class)
             ->scope(auth()->user(), 'orders.viewAny', Order::query())
@@ -59,7 +67,7 @@ class OrderController extends Controller
             ->when($partyId, function ($query) use ($partyId) {
                 $query->where('party_id', $partyId);
             })
-            ->when($assetId, function ($query) use ($assetId) {
+            ->when($supportsAssetsModule && $assetId, function ($query) use ($assetId) {
                 $query->where('asset_id', $assetId);
             })
             ->when($kind, function ($query) use ($kind) {
@@ -75,7 +83,26 @@ class OrderController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('orders.index', compact('orders', 'parties', 'assets'));
+        $allowedCreateKinds = collect(OrderCatalog::kinds())
+            ->filter(fn (string $kind) => app(Security::class)->allows(
+                auth()->user(),
+                'orders.create',
+                Order::class,
+                ['kind' => $kind]
+            ))
+            ->values();
+
+        $canCreateOrders = $allowedCreateKinds->isNotEmpty();
+        $defaultCreateKind = $allowedCreateKinds->first();
+
+        return view('orders.index', compact(
+            'orders',
+            'parties',
+            'assets',
+            'supportsAssetsModule',
+            'canCreateOrders',
+            'defaultCreateKind',
+        ));
     }
 
     public function create(Request $request)
@@ -84,14 +111,18 @@ class OrderController extends Controller
 
         $tenant = app('tenant');
 
+        $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
+
         $parties = Party::query()
             ->orderBy('name')
             ->get();
 
-        $assets = Asset::query()
-            ->with('party')
-            ->orderBy('name')
-            ->get();
+        $assets = $supportsAssetsModule
+            ? Asset::query()
+                ->with('party')
+                ->orderBy('name')
+                ->get()
+            : collect();
 
         $prefilledAsset = null;
         $prefilledPartyId = null;
@@ -113,7 +144,7 @@ class OrderController extends Controller
             $prefilledKind = $requestedKind;
         }
 
-        if ($request->filled('asset_id')) {
+        if ($supportsAssetsModule && $request->filled('asset_id')) {
             $prefilledAsset = Asset::query()
                 ->where('id', $request->integer('asset_id'))
                 ->where('tenant_id', $tenant->id)
@@ -170,7 +201,7 @@ class OrderController extends Controller
                 $prefilledPartyId = $prefilledAppointment->party_id;
             }
 
-            if ($prefilledAppointment->asset_id) {
+            if ($supportsAssetsModule && $prefilledAppointment->asset_id) {
                 $prefilledAsset = Asset::query()
                     ->where('id', $prefilledAppointment->asset_id)
                     ->where('tenant_id', $tenant->id)
@@ -200,6 +231,7 @@ class OrderController extends Controller
             'prefilledTask',
             'prefilledAppointment',
             'navigationTrail',
+            'supportsAssetsModule',
         ));
     }
 
@@ -339,6 +371,13 @@ class OrderController extends Controller
     {
         $this->authorize('view', $order);
 
+        $tenant = app('tenant');
+
+        $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
+        $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, $tenant);
+        $supportsDocumentsModule = TenantModuleAccess::isEnabled(ModuleCatalog::DOCUMENTS, $tenant);
+        $supportsTasksModule = TenantModuleAccess::isEnabled(ModuleCatalog::TASKS, $tenant);
+
         $order->load([
             'party',
             'asset',
@@ -351,12 +390,14 @@ class OrderController extends Controller
             'attachments' => fn ($query) => $query->ordered(),
         ]);
 
-        $inventoryProducts = $order->items
-            ->filter(fn ($item) => $item->product && $item->product->kind === ProductCatalog::KIND_PRODUCT)
-            ->map(fn ($item) => $item->product)
-            ->unique('id')
-            ->sortBy('name')
-            ->values();
+        $inventoryProducts = $supportsProductsModule
+            ? $order->items
+                ->filter(fn ($item) => $item->product && $item->product->kind === ProductCatalog::KIND_PRODUCT)
+                ->map(fn ($item) => $item->product)
+                ->unique('id')
+                ->sortBy('name')
+                ->values()
+            : collect();
 
         $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
         $navigationTrail = OrderNavigationTrail::show($request, $order, $appointment);
@@ -365,6 +406,10 @@ class OrderController extends Controller
             'order',
             'navigationTrail',
             'inventoryProducts',
+            'supportsAssetsModule',
+            'supportsProductsModule',
+            'supportsDocumentsModule',
+            'supportsTasksModule',
         ));
     }
 
@@ -372,19 +417,31 @@ class OrderController extends Controller
     {
         $this->authorize('update', $order);
 
+        $tenant = app('tenant');
+
+        $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
+
         $parties = Party::query()
             ->orderBy('name')
             ->get();
 
-        $assets = Asset::query()
-            ->with('party')
-            ->orderBy('name')
-            ->get();
+        $assets = $supportsAssetsModule
+            ? Asset::query()
+                ->with('party')
+                ->orderBy('name')
+                ->get()
+            : collect();
 
         $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
         $navigationTrail = OrderNavigationTrail::edit($request, $order, $appointment);
 
-        return view('orders.edit', compact('order', 'parties', 'assets', 'navigationTrail'));
+        return view('orders.edit', compact(
+            'order',
+            'parties',
+            'assets',
+            'navigationTrail',
+            'supportsAssetsModule',
+        ));
     }
 
     public function update(Request $request, Order $order)

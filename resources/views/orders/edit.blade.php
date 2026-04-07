@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/edit.blade.php | V4 --}}
+{{-- FILE: resources/views/orders/edit.blade.php | V6 --}}
 
 @extends('layouts.app')
 
@@ -23,7 +23,9 @@
                 @csrf
                 @method('PUT')
 
-                @include('orders._form')
+                @include('orders._form', [
+                    'supportsAssetsModule' => $supportsAssetsModule,
+                ])
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Guardar cambios</button>

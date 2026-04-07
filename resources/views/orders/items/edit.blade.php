@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/items/edit.blade.php | V4 --}}
+{{-- FILE: resources/views/orders/items/edit.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -27,7 +27,9 @@
                 @csrf
                 @method('PUT')
 
-                @include('orders.items._form')
+                @include('orders.items._form', [
+                    'supportsProductsModule' => $supportsProductsModule,
+                ])
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Guardar</button>

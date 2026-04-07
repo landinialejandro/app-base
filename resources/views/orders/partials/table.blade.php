@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/partials/table.blade.php | V8 --}}
+{{-- FILE: resources/views/orders/partials/table.blade.php | V9 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
@@ -102,7 +102,7 @@
                         @endif
 
                         <td>{{ $order->ordered_at?->format('d/m/Y') ?: '—' }}</td>
-                        <td>${{ number_format($order->total, 2, ',', '.') }}</td>
+                        <td>${{ number_format((float) $order->total, 2, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>

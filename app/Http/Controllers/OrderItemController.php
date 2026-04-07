@@ -1,12 +1,14 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderItemController.php | V9
+// FILE: app/Http/Controllers/OrderItemController.php | V11
 
 namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Support\Auth\TenantModuleAccess;
+use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\OrderNavigationTrail;
 use Illuminate\Http\Request;
@@ -18,11 +20,15 @@ class OrderItemController extends Controller
     {
         $this->authorize('update', $order);
 
-        $products = Product::query()
-            ->where('tenant_id', $order->tenant_id)
-            ->whereNull('deleted_at')
-            ->orderBy('name')
-            ->get();
+        $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
+
+        $products = $supportsProductsModule
+            ? Product::query()
+                ->where('tenant_id', $order->tenant_id)
+                ->whereNull('deleted_at')
+                ->orderBy('name')
+                ->get()
+            : collect();
 
         $item = new OrderItem([
             'position' => ((int) $order->items()->max('position')) + 1,
@@ -32,22 +38,32 @@ class OrderItemController extends Controller
 
         $navigationTrail = OrderNavigationTrail::itemCreate($request, $order);
 
-        return view('orders.items.create', compact('order', 'item', 'products', 'navigationTrail'));
+        return view('orders.items.create', compact(
+            'order',
+            'item',
+            'products',
+            'navigationTrail',
+            'supportsProductsModule',
+        ));
     }
 
     public function store(Request $request, Order $order)
     {
         $this->authorize('update', $order);
 
+        $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
+
+        $productRules = ['nullable', 'integer'];
+
+        if ($supportsProductsModule) {
+            $productRules[] = Rule::exists('products', 'id')->where(function ($query) use ($order) {
+                $query->where('tenant_id', $order->tenant_id)
+                    ->whereNull('deleted_at');
+            });
+        }
+
         $data = $request->validate([
-            'product_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('products', 'id')->where(function ($query) use ($order) {
-                    $query->where('tenant_id', $order->tenant_id)
-                        ->whereNull('deleted_at');
-                }),
-            ],
+            'product_id' => $productRules,
             'position' => ['required', 'integer', 'min:1'],
             'kind' => ['required', 'string', 'max:50'],
             'description' => ['required', 'string', 'max:255'],
@@ -55,10 +71,12 @@ class OrderItemController extends Controller
             'unit_price' => ['required', 'numeric', 'min:0'],
         ]);
 
+        if (! $supportsProductsModule) {
+            $data['product_id'] = null;
+        }
+
         $data['tenant_id'] = $order->tenant_id;
         $data['order_id'] = $order->id;
-        $data['created_by'] = auth()->id();
-        $data['updated_by'] = auth()->id();
 
         OrderItem::create($data);
 
@@ -75,15 +93,25 @@ class OrderItemController extends Controller
 
         abort_unless((int) $item->order_id === (int) $order->id, 404);
 
-        $products = Product::query()
-            ->where('tenant_id', $order->tenant_id)
-            ->whereNull('deleted_at')
-            ->orderBy('name')
-            ->get();
+        $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
+
+        $products = $supportsProductsModule
+            ? Product::query()
+                ->where('tenant_id', $order->tenant_id)
+                ->whereNull('deleted_at')
+                ->orderBy('name')
+                ->get()
+            : collect();
 
         $navigationTrail = OrderNavigationTrail::itemEdit($request, $order, $item);
 
-        return view('orders.items.edit', compact('order', 'item', 'products', 'navigationTrail'));
+        return view('orders.items.edit', compact(
+            'order',
+            'item',
+            'products',
+            'navigationTrail',
+            'supportsProductsModule',
+        ));
     }
 
     public function update(Request $request, Order $order, OrderItem $item)
@@ -92,15 +120,19 @@ class OrderItemController extends Controller
 
         abort_unless((int) $item->order_id === (int) $order->id, 404);
 
+        $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
+
+        $productRules = ['nullable', 'integer'];
+
+        if ($supportsProductsModule) {
+            $productRules[] = Rule::exists('products', 'id')->where(function ($query) use ($order) {
+                $query->where('tenant_id', $order->tenant_id)
+                    ->whereNull('deleted_at');
+            });
+        }
+
         $data = $request->validate([
-            'product_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('products', 'id')->where(function ($query) use ($order) {
-                    $query->where('tenant_id', $order->tenant_id)
-                        ->whereNull('deleted_at');
-                }),
-            ],
+            'product_id' => $productRules,
             'position' => ['required', 'integer', 'min:1'],
             'kind' => ['required', 'string', 'max:50'],
             'description' => ['required', 'string', 'max:255'],
@@ -108,7 +140,9 @@ class OrderItemController extends Controller
             'unit_price' => ['required', 'numeric', 'min:0'],
         ]);
 
-        $data['updated_by'] = auth()->id();
+        if (! $supportsProductsModule) {
+            $data['product_id'] = null;
+        }
 
         $item->update($data);
 

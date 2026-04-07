@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/items/create.blade.php | V4 --}}
+{{-- FILE: resources/views/orders/items/create.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -24,7 +24,9 @@
             <form method="POST" action="{{ route('orders.items.store', ['order' => $order] + $trailQuery) }}" class="form">
                 @csrf
 
-                @include('orders.items._form')
+                @include('orders.items._form', [
+                    'supportsProductsModule' => $supportsProductsModule,
+                ])
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Guardar</button>

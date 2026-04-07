@@ -1,10 +1,11 @@
-{{-- FILE: resources/views/orders/items/partials/embedded.blade.php | V1 --}}
+{{-- FILE: resources/views/orders/items/partials/embedded.blade.php | V2 --}}
 
 @php
     $order = $order ?? null;
     $items = $items ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay ítems cargados en esta orden.';
     $trailQuery = $trailQuery ?? [];
+    $supportsProductsModule = $supportsProductsModule ?? true;
 @endphp
 
 <div class="tab-panel-stack">
@@ -54,5 +55,11 @@
                 </div>
             </div>
         </div>
+
+        @unless ($supportsProductsModule)
+            <div class="form-help mt-3">
+                El módulo de productos no está habilitado para esta empresa. Los ítems pueden cargarse manualmente.
+            </div>
+        @endunless
     </x-card>
 </div>

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/index.blade.php | V5 --}}
+{{-- FILE: resources/views/orders/index.blade.php | V7 --}}
 
 @extends('layouts.app')
 
@@ -19,11 +19,12 @@
         <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Órdenes']]" />
 
         <x-page-header title="Órdenes">
-            @can('create', App\Models\Order::class)
-                <a href="{{ route('orders.create') }}" class="btn btn-success">
+            @if ($canCreateOrders)
+                <a href="{{ route('orders.create', array_merge($trailQuery, ['kind' => $defaultCreateKind])) }}"
+                    class="btn btn-success">
                     Nueva orden
                 </a>
-            @endcan
+            @endif
         </x-page-header>
 
         <x-list-filters-card :action="route('orders.index')" secondary-id="orders-extra-filters">
@@ -63,20 +64,22 @@
                         </select>
                     </div>
 
-                    <div class="form-group">
-                        <label for="asset_id" class="form-label">Activo</label>
-                        <select id="asset_id" name="asset_id" class="form-control">
-                            <option value="">Todos</option>
-                            @foreach ($assets as $asset)
-                                <option value="{{ $asset->id }}" @selected((string) request('asset_id') === (string) $asset->id)>
-                                    {{ $asset->name }}
-                                    @if ($asset->internal_code)
-                                        — {{ $asset->internal_code }}
-                                    @endif
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                    @if ($supportsAssetsModule)
+                        <div class="form-group">
+                            <label for="asset_id" class="form-label">Activo</label>
+                            <select id="asset_id" name="asset_id" class="form-control">
+                                <option value="">Todos</option>
+                                @foreach ($assets as $asset)
+                                    <option value="{{ $asset->id }}" @selected((string) request('asset_id') === (string) $asset->id)>
+                                        {{ $asset->name }}
+                                        @if ($asset->internal_code)
+                                            — {{ $asset->internal_code }}
+                                        @endif
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
 
                     <div class="form-group">
                         <label for="kind" class="form-label">Tipo</label>
@@ -103,7 +106,7 @@
             @include('orders.partials.table', [
                 'orders' => $orders,
                 'showParty' => true,
-                'showAsset' => true,
+                'showAsset' => $supportsAssetsModule,
                 'emptyMessage' => 'No hay órdenes cargadas.',
                 'trailQuery' => $trailQuery,
             ])

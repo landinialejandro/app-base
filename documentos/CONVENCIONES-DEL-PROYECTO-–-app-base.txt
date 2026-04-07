@@ -151,6 +151,12 @@ la habilitación de módulos depende de la capa central de acceso por tenant y n
 
 la UI de permisos del tenant debe operar únicamente sobre módulos habilitados previamente
 
+regla de consistencia obligatoria:
+
+view_any debe ser igual o más amplio que view
+
+no debe existir un contrato donde view_any quede más restringido que view para el mismo módulo
+
 La definición completa de roles, capacidades, scopes y constraints se encuentra en:
 
 SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
@@ -385,6 +391,8 @@ viewAny debe consumir directamente el scope resuelto por el resolver
 
 viewAny y view no deben resolverse como booleanos genéricos si el resolver ya entrega scope válido
 
+view_any debe ser igual o más amplio que view
+
 no deben resolver lectura únicamente con canUseModule
 
 no deben reinterpretar tenant_all, own_assigned o limited como aliases legacy
@@ -421,10 +429,16 @@ la visibilidad de acciones sobre registros individuales debe depender de view, u
 
 no debe utilizarse view como criterio para mostrar listados completos
 
+view_any debe ser igual o más amplio que view
+
 no deben existir inconsistencias entre:
 
 lo que el listado muestra
 lo que el usuario puede abrir
+
+toda acción derivada, campo relacional o navegación hacia otra entidad modular por *_id debe verificar primero si el módulo relacionado está habilitado para el tenant
+
+si el módulo destino está deshabilitado, la UI no debe mostrar ni mantener operativos esos accesos
 
 el breadcrumb representa recorrido contextual o estructural de la pantalla actual
 
@@ -494,6 +508,10 @@ esto incluye en especial:
 tenant_all
 own_assigned
 limited
+
+toda acción derivada, campo relacional o navegación hacia otra entidad modular por *_id debe verificar primero si el módulo relacionado está habilitado para el tenant
+
+si el módulo relacionado está deshabilitado, esos elementos no deben renderizarse ni dejar accesos operativos residuales
 
 cuando una pieza global del layout exponga información del sistema, debe resolverse desde provider o capa central y no inline
 

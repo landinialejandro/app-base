@@ -142,7 +142,9 @@ terceros
 
 Regla actual:
 
-no crear entidades nuevas si el caso puede resolverse extendiendo parties.
+no crear entidades nuevas si el caso puede resolverse extendiendo parties
+
+parties no debe tratarse como un módulo opcional común, sino como entidad base transversal del dominio y módulo base intrínseco del sistema
 
 Nombre técnico:
 
@@ -263,7 +265,7 @@ MÓDULOS ACTUALES DEL NEGOCIO
 <<SECTION: PARTIES>>
 PARTIES
 
-Entidad base transversal del dominio.
+Entidad base transversal del dominio y módulo base del sistema.
 
 Relaciones actuales y futuras:
 
@@ -272,9 +274,11 @@ un Party puede vincularse a muchos Documents
 un Party puede vincularse a muchos Assets
 un Party puede representar cliente, proveedor, contacto u otro actor
 
-Regla:
+Reglas:
 
-no duplicar esta función en entidades paralelas como Client o Supplier.
+no duplicar esta función en entidades paralelas como Client o Supplier
+
+no debe tratarse como módulo opcional apagable por tenant en el mismo sentido que otros módulos operativos
 <<END SECTION>>
 
 <<SECTION: PROJECTS>>
@@ -347,7 +351,15 @@ puede vincularse opcionalmente a un Order
 
 Regla funcional actual:
 
-su capa visible puede adaptar vocabulario o etiquetas según el rubro configurado del tenant, sin permitir etiquetas libres por empresa.
+su capa visible puede adaptar vocabulario o etiquetas según el rubro configurado del tenant, sin permitir etiquetas libres por empresa
+
+Regla operativa actual:
+
+appointments utiliza assigned_user_id como referencia de responsabilidad operativa
+
+puede resolver lectura con tenant_all o own_assigned según la capacidad configurada
+
+no utiliza semántica limited como contrato del módulo
 <<END SECTION>>
 
 <<SECTION: PRODUCTS>>

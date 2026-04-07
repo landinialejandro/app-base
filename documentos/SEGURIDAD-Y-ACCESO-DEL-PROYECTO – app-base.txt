@@ -352,78 +352,9 @@ update basado en own_assigned
 
 los scopes representan subconjuntos de tenant_all
 
-REGLA DE MÓDULOS ACTIVOS
+no todos los módulos deben usar limited
 
-solo deben considerarse los módulos habilitados por superadmin para el tenant
-
-no deben mostrarse ni evaluarse permisos sobre módulos inactivos
-
-REGLA DE CONSISTENCIA
-
-la lógica de permisos debe mantenerse alineada entre:
-
-resolver
-policy
-controller
-Blade
-
-no debe existir lógica paralela o contradictoria entre capas
-
-<<END SECTION>>
-
-<<SECTION: FLUJO DE GESTIÓN Y CONSUMO DE PERMISOS>>
-OBJETIVO
-
-Definir el flujo operativo de gestión y consumo de permisos dentro del sistema.
-
-FLUJO GENERAL
-
-superadmin define los módulos habilitados por tenant
-
-owner configura los permisos sobre los módulos habilitados
-
-los permisos se definen por:
-
-rol
-módulo
-capacidad
-scope
-
-el backend resuelve:
-
-acceso al módulo
-universo visible de registros
-acciones permitidas sobre cada registro
-
-la UI:
-
-no redefine permisos
-no altera el universo visible
-solo filtra dentro del universo definido por el backend
-solo muestra acciones que el usuario puede ejecutar realmente
-
-REGLA DE UNIVERSO Y ACCIONES
-
-el universo visible y la capacidad de operar sobre un registro son conceptos distintos
-
-un usuario puede:
-
-ver un registro sin poder modificarlo
-
-las acciones deben validarse siempre contra la capacidad correspondiente (view, update, delete, create)
-
-REGLA DE SCOPES
-
-los scopes no se aplican de forma uniforme a todas las capacidades
-
-cada módulo define explícitamente qué scopes admite para cada capacidad
-
-un mismo módulo puede tener:
-
-view basado en limited
-update basado en own_assigned
-
-los scopes representan subconjuntos de tenant_all
+si un módulo no utiliza limited, su contrato debe definirse explícitamente con los scopes que sí admite
 
 REGLA DE MÓDULOS ACTIVOS
 
@@ -442,10 +373,10 @@ Blade
 
 no debe existir lógica paralela o contradictoria entre capas
 
+view_any debe ser igual o más amplio que view
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-
 REGLAS OPERATIVAS POR MÓDULO
 
 OBJETIVO
@@ -501,12 +432,12 @@ policy
 controller
 Blade
 
-Cualquier nuevo módulo que utilice LIMITED debe documentar su comportamiento en esta sección.
+view_any debe ser igual o más amplio que view
 
+Cualquier nuevo módulo que utilice LIMITED debe documentar su comportamiento en una sección independiente dentro de este documento.
 <<END SECTION>>
 
 <<SECTION: MÓDULO: PROJECTS>>
-
 MÓDULO: PROJECTS
 
 UNIVERSO VISIBLE
@@ -528,7 +459,6 @@ no se utiliza created_by como criterio de acceso
 <<END SECTION>>
 
 <<SECTION: MÓDULO: TASKS>>
-
 MÓDULO: TASKS
 
 UNIVERSO VISIBLE
@@ -590,6 +520,72 @@ la eliminación se limita a tareas asignadas al usuario
 
 no se permite eliminar tareas visibles por participación en proyecto si no están asignadas al usuario
 
+<<END SECTION>>
+
+<<SECTION: MÓDULO: APPOINTMENTS>>
+MÓDULO: APPOINTMENTS
+
+UNIVERSO VISIBLE
+
+tenant_all:
+todos los turnos del tenant
+
+own_assigned:
+solo turnos asignados al usuario mediante assigned_user_id
+
+REGLAS DE VISIBILIDAD
+
+appointments utiliza assigned_user_id como referencia de responsabilidad operativa
+
+appointments no utiliza semántica limited como contrato del módulo
+
+el módulo puede resolver lectura amplia del tenant y restringir operación individual a registros propios mediante own_assigned
+
+CONFIGURACIÓN DE CAPACIDADES
+
+owner
+
+view_any:
+tenant_all
+
+view:
+tenant_all
+
+create:
+true
+
+update:
+tenant_all
+
+delete:
+tenant_all
+
+roles operativos habilitados, por ejemplo operator y sales
+
+view_any:
+tenant_all
+
+view:
+own_assigned
+
+create:
+true
+
+update:
+own_assigned
+
+delete:
+own_assigned
+
+REGLA FUNCIONAL
+
+los roles operativos pueden ver el listado completo de agenda cuando así se configure
+
+la operación individual sobre registros puede restringirse a los propios mediante own_assigned
+
+REGLA DE CONSISTENCIA
+
+view_any no puede ser más restrictivo que view
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>

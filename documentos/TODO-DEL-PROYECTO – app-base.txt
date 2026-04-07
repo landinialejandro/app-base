@@ -180,6 +180,8 @@ indexación de contenido para búsqueda
 <<END SECTION>>
 
 <<SECTION: AUTORIZACIÓN Y PERMISOS>>
+AUTORIZACIÓN Y PERMISOS
+
 Pendientes reales actuales:
 
 * Terminar de consolidar el consumo homogéneo de la capa central de autorización en todos los módulos.
@@ -199,6 +201,14 @@ Pendientes reales actuales:
 * Revisar datos legacy donde existan memberships sin rol.
 
 * Definir comportamiento cuando no haya módulos habilitados.
+
+Pendientes cerrados y no reabrir:
+
+* cierre contractual básico de appointments en permisos del módulo
+
+Ajuste documental pendiente a reflejar de forma consistente en el set:
+
+* parties como módulo base intrínseco del sistema y no como módulo opcional común
   <<END SECTION>>
 
 <<SECTION: FLUJOS FUNCIONALES>>
@@ -269,6 +279,7 @@ dejar resuelto el precompletado del formulario de appointments cuando se ingresa
 
 evaluar más adelante si el botón contextual de creación dentro de subtabs debe reaccionar dinámicamente al tab interno seleccionado o si alcanza con un default operativo estable por contexto
 
+mantener reflejada en documentación la decisión de parties como módulo base intrínseco del sistema y no como módulo opcional apagable por tenant
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN Y CONTEXTO UX>>

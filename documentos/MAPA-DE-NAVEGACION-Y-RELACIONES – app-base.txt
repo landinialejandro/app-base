@@ -248,6 +248,10 @@ Contexto esperado:
 
 si la party se abre desde el turno, puede conservarse retorno útil al appointment de origen cuando siga siendo relevante para la tarea actual
 
+Regla adicional validada:
+
+si parties no está habilitado para el tenant, la UI no debe mostrar ni mantener operativo ese acceso relacional
+
 APPOINTMENTS -> ASSETS
 
 Uso típico:
@@ -257,6 +261,10 @@ desde un turno se consulta o abre el activo relacionado
 Contexto esperado:
 
 si el asset se abre desde el turno, puede conservarse retorno útil al appointment de origen cuando siga siendo relevante para la tarea actual
+
+Regla adicional validada:
+
+si assets no está habilitado para el tenant, la UI no debe mostrar ni mantener operativo ese acceso relacional
 
 APPOINTMENTS -> ORDERS
 
@@ -275,6 +283,8 @@ el acceso al dataset completo de appointments depende de view_any
 la navegación desde appointments hacia entidades relacionadas ya no se ve restringida por errores de visibilidad
 
 la coherencia entre listado, acceso y navegación quedó validada en funcionamiento real
+
+si orders no está habilitado para el tenant, la UI no debe mostrar ni mantener operativo ese acceso relacional
 
 PROJECTS -> TASKS
 
@@ -423,6 +433,10 @@ si navbar y sidebar marcan el área funcional esperada y no solo la hoja final a
 si en tablas contextuales el trail correcto era el del contenedor o el de la fila
 
 si hay pantallas donde el contexto se pierde por filtros, tabs, paginación o acciones secundarias
+
+si los enlaces, acciones y campos relacionales hacia módulos relacionados verifican primero que el módulo destino esté habilitado para el tenant
+
+si la deshabilitación de módulos destino oculta correctamente accesos cruzados desde appointments, especialmente hacia orders y assets
 <<END SECTION>>
 
 <<SECTION: RELACIÓN CON OTROS DOCUMENTOS>>

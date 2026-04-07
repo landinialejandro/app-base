@@ -1,10 +1,13 @@
-CONVENCIONES-DEL-PROYECTO – app-base
+<<SECTION: METADATOS>>
+TÍTULO: Convenciones del proyecto
+DOC_SLUG: convenciones_proyecto_app_base
+DOC_VERSION: 00000
 
-METODOLOGÍA DE EDICIÓN
-
+METODOLOGÍA DE EDICIÓN:
 Este archivo se actualiza por reemplazo completo de bloques delimitados.
 Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
 Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
+<<END SECTION>>
 
 <<SECTION: OBJETIVO DEL DOCUMENTO>>
 OBJETIVO DEL DOCUMENTO
@@ -23,6 +26,8 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
+SECTION_VERSION: 00002
+
 CONVENCIONES GENERALES
 
 El proyecto sigue los principios de:
@@ -34,6 +39,25 @@ coherencia entre módulos
 previsibilidad del comportamiento del sistema
 
 Cuando existan varias alternativas técnicas, se debe priorizar siempre la opción más simple y consistente con el resto del proyecto.
+
+Convención documental consolidada:
+
+la base documental técnica del proyecto debe tender a una estructura homogénea y navegable
+
+los documentos técnicos activos deben utilizar:
+
+bloque <<SECTION: METADATOS>>
+TÍTULO como nombre humano del documento
+DOC_SLUG como identificador técnico canónico
+DOC_VERSION como versión general del documento
+
+las referencias internas entre documentos deben tender a resolverse mediante:
+
+<DOC_REF slug="...">Título visible</DOC_REF>
+
+no deben utilizarse nombres de archivo físicos como referencia narrativa dentro del cuerpo del documento
+
+las carpetas baks y auditoria no forman parte de la base documental activa navegable
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE NOMBRES>>
@@ -143,7 +167,9 @@ las policies deben consumir la capa central de autorización y no replicar lógi
 
 los controllers deben delegar en authorize(...) y no implementar lógica paralela
 
-las vistas deben respetar permisos reales mediante @can
+las vistas no deben inferir permisos
+
+las vistas deben respetar permisos reales mediante @can solo como verificación final cuando la capacidad no dependa de contexto
 
 los alcances visibles en UI deben resolverse mediante catálogos o resolvers y no reconstruirse manualmente
 
@@ -151,7 +177,15 @@ la habilitación de módulos depende de la capa central de acceso por tenant y n
 
 la UI de permisos del tenant debe operar únicamente sobre módulos habilitados previamente
 
-regla de consistencia obligatoria:
+Regla crítica validada:
+
+no se debe usar autorización abstracta cuando la capacidad depende de contexto
+
+no utilizar authorize('create', Model::class) en estos casos
+
+debe utilizarse la capa central con parámetros explícitos
+
+Regla de consistencia obligatoria:
 
 view_any debe ser igual o más amplio que view
 
@@ -159,7 +193,7 @@ no debe existir un contrato donde view_any quede más restringido que view para 
 
 La definición completa de roles, capacidades, scopes y constraints se encuentra en:
 
-SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
+<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
 <<END SECTION>>
 
 <<SECTION: ROLECATALOG Y MODULECATALOG>>
@@ -205,7 +239,7 @@ la evolución del sistema de permisos debe respetar la arquitectura vigente sin 
 
 La doctrina completa de permisos y su modelo operativo se define en:
 
-SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
+<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
 <<END SECTION>>
 
 <<SECTION: TRAIT TENANTSCOPED>>
@@ -341,7 +375,7 @@ las clases bajo app/Support/Auth deben considerarse punto de acceso técnico a l
 
 La definición completa del modelo de autorización se encuentra en:
 
-SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
+<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE POLICIES>>
@@ -478,7 +512,15 @@ Las acciones visibles deben respetar siempre permisos reales
 
 no deben renderizarse acciones no permitidas aunque el backend las bloquee
 
-Blade continúa utilizando @can como verificación visible final del permiso
+Blade puede utilizar @can como verificación final solo cuando la capacidad no dependa de contexto
+
+Regla crítica validada:
+
+cuando una capacidad depende de constraints, la UI no debe evaluarla directamente
+
+no utilizar @can('create') en módulos con constraints
+
+la UI debe consumir flags ya resueltos desde backend
 
 la resolución del dataset no debe reconstruirse en Blade
 

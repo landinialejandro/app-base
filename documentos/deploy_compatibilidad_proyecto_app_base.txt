@@ -1,10 +1,13 @@
-DEPLOY Y COMPATIBILIDAD DEL PROYECTO – app-base
+<<SECTION: METADATOS>>
+TÍTULO: Deploy y compatibilidad del proyecto
+DOC_SLUG: deploy_compatibilidad_proyecto_app_base
+DOC_VERSION: 00000
 
-METODOLOGÍA DE EDICIÓN
-
+METODOLOGÍA DE EDICIÓN:
 Este archivo se actualiza por reemplazo completo de bloques delimitados.
 Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
 Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
+<<END SECTION>>
 
 <<SECTION: OBJETIVO DEL DOCUMENTO>>
 1. OBJETIVO DEL DOCUMENTO

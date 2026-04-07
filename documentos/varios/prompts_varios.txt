@@ -1,0 +1,172 @@
+🔥 Recordatorio rápido de uso
+Terminás sesión → Prompt 1
+Copiás resultado → Prompt 2
+Copiás bloques
+Ejecutás:
+appdocs
+
+------------------------------------------------
+
+CIERRE DE SESIÓN – DETECCIÓN DE ACTUALIZACIONES DOCUMENTALES
+
+OBJETIVO
+
+Detectar todos los cambios realizados en la sesión que puedan impactar en la documentación del proyecto.
+
+ALCANCE
+
+- considerar todo lo trabajado en la sesión
+- considerar decisiones explícitas e implícitas
+- considerar cambios de lógica, arquitectura, UI, navegación, permisos y modelo mental del sistema
+- considerar también acuerdos, criterios o reglas operativas que no necesariamente se hayan implementado aún
+- no limitarse solo a cambios en código
+- no descartar información por considerarla menor si afecta coherencia del sistema
+
+DOCUMENTOS BASE
+
+(ya disponibles en el contexto del chat)
+
+- contexto_fijo_proyecto_app_base
+- convenciones_proyecto_app_base
+- checklist_modulos_nuevos_app_base
+- mapa_entidades_app_base
+- mapa_navegacion_relaciones_app_base
+- base_visual_proyecto_app_base
+- todo_proyecto_app_base
+- deploy_compatibilidad_proyecto_app_base
+- seguridad_acceso_proyecto_app_base
+- plantilla_inicio_chats_proyecto_app_base
+
+REGLAS
+
+- no inventar información
+- no proponer mejoras futuras
+- incluir decisiones aunque no estén implementadas si afectan la arquitectura o la doctrina del sistema
+- no descartar información relevante por ambigüedad
+- no transformar esto en una auditoría (no devolver secciones todavía)
+- agrupar por documento cuando sea posible
+- si una decisión impacta en múltiples documentos, indicarlo
+
+FORMATO DE SALIDA
+
+DOCUMENTO: [DOC_SLUG]
+
+SECCIONES AFECTADAS:
+
+- [nombre de sección aproximado o existente]
+- [otra sección si aplica]
+
+CAMBIOS DETECTADOS:
+
+[descripción clara, concreta y completa del cambio]
+
+REGLA CLAVE
+
+Este prompt debe capturar TODO lo relevante.
+
+La depuración, validación estricta y generación de secciones correctas se realiza en el prompt de auditoría posterior.
+
+
+-----------------------------------------
+
+
+
+AUDITORÍA Y GENERACIÓN DE SECCIONES
+
+OBJETIVO
+
+Auditar los cambios detectados contra los documentos vigentes del proyecto y devolver las secciones que deben ser actualizadas, listas para reemplazo automático.
+
+DOCUMENTOS BASE
+
+(ya disponibles en el contexto del chat)
+
+- contexto_fijo_proyecto_app_base
+- convenciones_proyecto_app_base
+- checklist_modulos_nuevos_app_base
+- mapa_entidades_app_base
+- mapa_navegacion_relaciones_app_base
+- base_visual_proyecto_app_base
+- todo_proyecto_app_base
+- deploy_compatibilidad_proyecto_app_base
+- seguridad_acceso_proyecto_app_base
+- plantilla_inicio_chats_proyecto_app_base
+
+REGLAS GENERALES
+
+- no inventar contenido
+- no asumir comportamiento no validado
+- no generar contradicciones
+- respetar la función de cada documento
+- no mezclar decisiones vigentes con ideas futuras
+- no modificar nombres de secciones
+- no devolver documentos completos
+- no omitir cambios relevantes
+
+REGLA CLAVE
+
+Si un cambio impacta realmente en un documento, debe reflejarse en una sección.
+No omitir cambios por exceso de cautela.
+
+CRITERIOS DE AUDITORÍA
+
+- validar si el cambio impacta en el documento
+- ubicar cada cambio en el documento correcto
+- evitar duplicación innecesaria entre documentos
+- mantener coherencia con la estructura actual
+- si un cambio afecta múltiples documentos, aplicarlo donde corresponda sin redundancia excesiva
+
+REGLAS DE VERSIONADO DE SECCIONES
+
+- si la sección ya tiene SECTION_VERSION, incrementarla en 1
+- si la sección existe pero no tiene SECTION_VERSION, asignar SECTION_VERSION: 00002
+- si la sección es nueva, asignar SECTION_VERSION: 00001
+- no modificar versiones de secciones no alcanzadas
+
+REGLA SOBRE SECCIONES NUEVAS
+
+- crear una nueva sección cuando el contenido no encaje correctamente en ninguna existente
+- no forzar contenido en secciones incorrectas
+- si se crea una nueva sección:
+  - devolverla como NUEVA SECCIÓN PROPUESTA
+  - indicar ubicación sugerida
+
+FORMATO OBLIGATORIO DE SALIDA
+
+Para cada sección modificada:
+
+REEMPLAZAR EN: [DOC_SLUG]
+
+<<SECTION: NOMBRE EXACTO DE LA SECCIÓN>>
+SECTION_VERSION: XXXXX
+
+[contenido completo actualizado de la sección]
+<<END SECTION>>
+
+FORMATO PARA SECCIÓN NUEVA (SI APLICA)
+
+NUEVA SECCIÓN PROPUESTA EN: [DOC_SLUG]
+
+UBICAR DESPUÉS DE:
+<<SECTION: NOMBRE DE SECCIÓN EXISTENTE>>
+
+<<SECTION: NOMBRE DE NUEVA SECCIÓN>>
+SECTION_VERSION: 00001
+
+[contenido]
+<<END SECTION>>
+
+RESTRICCIONES CRÍTICAS
+
+- no agregar texto fuera de los bloques SECTION
+- cada bloque debe ser autónomo y completo
+- mantener estilo y estructura del documento original
+- no incluir explicaciones fuera de los bloques
+- usar exclusivamente DOC_SLUG como identificador
+- no usar nombres legacy ni títulos humanos como clave técnica
+
+ENTRADA
+
+CAMBIOS DETECTADOS:
+
+[pegar salida del prompt de cierre de sesión]

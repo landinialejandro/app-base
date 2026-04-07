@@ -1,10 +1,13 @@
-BASE-VISUAL-DEL-PROYECTO – app-base
+<<SECTION: METADATOS>>
+TÍTULO: Base visual del proyecto
+DOC_SLUG: base_visual_proyecto_app_base
+DOC_VERSION: 00000
 
-METODOLOGÍA DE EDICIÓN
-
+METODOLOGÍA DE EDICIÓN:
 Este archivo se actualiza por reemplazo completo de bloques delimitados.
 Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
 Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
+<<END SECTION>>
 
 <<SECTION: OBJETIVO DEL DOCUMENTO>>
 OBJETIVO DEL DOCUMENTO
@@ -360,6 +363,18 @@ volver debe tender a una iconografía homogénea en todas las vistas show y qued
 las acciones de alta o agregado dentro de tabs o subpaneles deben utilizar iconografía de suma y una escala visual más contenida que el CTA principal de la pantalla
 
 las acciones contextuales de tabs o subpaneles no deben mezclarse con el grupo principal de acciones del show
+
+Regla crítica validada:
+
+los botones de acción deben renderizarse en función de capacidades efectivas resueltas desde backend
+
+no deben depender de @can abstracto cuando la capacidad requiera contexto
+
+pueden depender de combinaciones de constraints (por ejemplo allowed_kinds)
+
+las acciones en tablas deben alinearse estrictamente con permisos reales
+
+no deben renderizarse acciones no permitidas
 
 en formularios embebidos o contextuales, la acción cancelar debe respetar el contexto completo del flujo vigente y no volver por defecto al show estructural del módulo padre
 <<END SECTION>>

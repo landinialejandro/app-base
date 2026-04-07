@@ -1,10 +1,13 @@
-SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
+<<SECTION: METADATOS>>
+TÍTULO: Seguridad y acceso del proyecto
+DOC_SLUG: seguridad_acceso_proyecto_app_base
+DOC_VERSION: 00000
 
-METODOLOGÍA DE EDICIÓN
-
+METODOLOGÍA DE EDICIÓN:
 Este archivo se actualiza por reemplazo completo de bloques delimitados.
 Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
 Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
+<<END SECTION>>
 
 <<SECTION: OBJETIVO>>
 OBJETIVO
@@ -95,8 +98,8 @@ ResolveTenant debe validar membership activa antes de permitir acceso
 
 La descripción estructural base de este flujo debe mantenerse alineada con:
 
-CONTEXTO-FIJO-DEL-PROYECTO – app-base
-MAPA-DE-ENTIDADES – app-base
+<DOC_REF slug="contexto_fijo_proyecto_app_base">Contexto fijo del proyecto</DOC_REF>
+<DOC_REF slug="mapa_entidades_app_base">Mapa de entidades</DOC_REF>
 <<END SECTION>>
 
 <<SECTION: MODELO DE IDENTIDAD Y PERTENENCIA>>
@@ -126,8 +129,8 @@ owner es único por tenant
 
 La descripción conceptual de estas entidades y sus relaciones debe mantenerse alineada con:
 
-MAPA-DE-ENTIDADES – app-base
-CONTEXTO-FIJO-DEL-PROYECTO – app-base
+<DOC_REF slug="mapa_entidades_app_base">Mapa de entidades</DOC_REF>
+<DOC_REF slug="contexto_fijo_proyecto_app_base">Contexto fijo del proyecto</DOC_REF>
 <<END SECTION>>
 
 <<SECTION: AUTENTICACIÓN Y FORTIFY>>
@@ -192,8 +195,8 @@ los registros eliminados mediante SoftDeletes no deben ser accesibles
 
 La doctrina estructural de multi-tenancy debe mantenerse alineada con:
 
-CONTEXTO-FIJO-DEL-PROYECTO – app-base
-CONVENCIONES-DEL-PROYECTO – app-base
+<DOC_REF slug="contexto_fijo_proyecto_app_base">Contexto fijo del proyecto</DOC_REF>
+<DOC_REF slug="convenciones_proyecto_app_base">Convenciones del proyecto</DOC_REF>
 <<END SECTION>>
 
 <<SECTION: ROLES BASE Y MODELO DE AUTORIZACIÓN>>
@@ -234,9 +237,9 @@ constraints
 
 La definición estructural de roles y pertenencia debe mantenerse alineada con:
 
-CONTEXTO-FIJO-DEL-PROYECTO – app-base
-MAPA-DE-ENTIDADES – app-base
-CONVENCIONES-DEL-PROYECTO – app-base
+<DOC_REF slug="contexto_fijo_proyecto_app_base">Contexto fijo del proyecto</DOC_REF>
+<DOC_REF slug="mapa_entidades_app_base">Mapa de entidades</DOC_REF>
+<DOC_REF slug="convenciones_proyecto_app_base">Convenciones del proyecto</DOC_REF>
 <<END SECTION>>
 
 <<SECTION: CAPA V2 DE PERMISOS>>
@@ -260,7 +263,7 @@ delete
 
 Reglas:
 
-create es booleano
+create no es necesariamente booleano cuando la capacidad depende de contexto funcional
 
 view_any, view, update y delete dependen de scope válido
 
@@ -291,11 +294,29 @@ no deben resolverse por ownership artificial del registro
 
 su segmentación fina se basa en constraints.allowed_kinds
 
+Regla crítica validada:
+
+cuando una capacidad depende de constraints, la autorización no puede evaluarse en abstracto
+
+ejemplo:
+
+orders.create requiere obligatoriamente contexto kind
+
+no es válido evaluar create sin ese contexto
+
+view_any, view, update y delete de orders no deben leerse solo por scope
+
+deben interpretarse conjuntamente con las constraints activas del módulo
+
+si faltan allowed_kinds, el contrato efectivo del módulo queda incompleto aunque exista scope persistido
+
+la evaluación debe realizarse mediante la capa central con parámetros explícitos
+
 La doctrina completa de V2 debe mantenerse alineada con:
 
-CONTEXTO-FIJO-DEL-PROYECTO – app-base
-CONVENCIONES-DEL-PROYECTO – app-base
-MAPA-DE-ENTIDADES – app-base
+<DOC_REF slug="contexto_fijo_proyecto_app_base">Contexto fijo del proyecto</DOC_REF>
+<DOC_REF slug="convenciones_proyecto_app_base">Convenciones del proyecto</DOC_REF>
+<DOC_REF slug="mapa_entidades_app_base">Mapa de entidades</DOC_REF>
 <<END SECTION>>
 
 <<SECTION: FLUJO DE GESTIÓN Y CONSUMO DE PERMISOS>>
@@ -315,6 +336,7 @@ rol
 módulo
 capacidad
 scope
+constraints
 
 el backend resuelve:
 
@@ -355,6 +377,26 @@ los scopes representan subconjuntos de tenant_all
 no todos los módulos deben usar limited
 
 si un módulo no utiliza limited, su contrato debe definirse explícitamente con los scopes que sí admite
+
+REGLA DE CONSTRAINTS
+
+cuando una capacidad depende de constraints:
+
+la evaluación debe realizarse con contexto completo
+
+no es válido evaluar capacidades abstractas sin parámetros
+
+ejemplo:
+
+orders.create requiere evaluar allowed_kinds
+
+REGLA DE UI
+
+la UI no puede inferir permisos ni evaluar capacidades abstractas
+
+no debe utilizar @can directo cuando la capacidad depende de contexto
+
+debe consumir flags o resoluciones ya evaluadas desde backend
 
 REGLA DE MÓDULOS ACTIVOS
 
@@ -442,7 +484,21 @@ Blade
 
 view_any debe ser igual o más amplio que view
 
-Cualquier nuevo módulo que utilice LIMITED debe documentar su comportamiento en una sección independiente dentro de este documento.
+REGLA PARA MÓDULOS CON CONSTRAINTS
+
+cuando un módulo utilice constraints (por ejemplo allowed_kinds):
+
+la autorización de create no puede evaluarse en abstracto
+
+debe evaluarse contra un caso concreto
+
+la UI no puede resolver visibilidad mediante @can('create', Model::class)
+
+la visibilidad de acciones debe derivarse de capacidades efectivas ya resueltas por backend
+
+la segmentación funcional del módulo debe apoyarse en constraints y no en ownership artificial
+
+Cualquier nuevo módulo que utilice constraints debe documentar su comportamiento en una sección independiente dentro de este documento.
 <<END SECTION>>
 
 <<SECTION: MÓDULO: PROJECTS>>
@@ -606,6 +662,78 @@ no deben renderizarse campos ni accesos
 no debe existir navegación residual hacia ese módulo
 <<END SECTION>>
 
+<<SECTION: MÓDULO: ORDERS>>
+MÓDULO: ORDERS
+
+UNIVERSO VISIBLE
+
+tenant_all:
+todas las órdenes del tenant
+
+REGLAS DE VISIBILIDAD
+
+orders debe tratarse como módulo compartido del tenant
+
+no utiliza ownership artificial del registro
+
+no utiliza assigned_user_id como base del módulo
+
+su segmentación funcional no se resuelve por responsable operativo sino por constraints.allowed_kinds
+
+CONFIGURACIÓN DE CAPACIDADES
+
+view_any:
+tenant_all + constraints.allowed_kinds cuando corresponda
+
+view:
+tenant_all + constraints.allowed_kinds cuando corresponda
+
+create:
+requiere contexto kind + constraints.allowed_kinds cuando corresponda
+
+update:
+tenant_all + constraints.allowed_kinds cuando corresponda
+
+delete:
+tenant_all + constraints.allowed_kinds cuando corresponda
+
+REGLA DE CREACIÓN
+
+orders.create no puede evaluarse en abstracto
+
+la autorización de create requiere obligatoriamente contexto kind
+
+si el kind solicitado no está permitido por constraints.allowed_kinds, la creación no debe considerarse autorizada aunque exista scope persistido para el módulo
+
+REGLA DE CONSTRAINTS
+
+en orders, view_any, view, update y delete deben interpretarse junto con constraints.allowed_kinds
+
+el módulo no funciona correctamente solo con scope si faltan allowed_kinds
+
+la persistencia incompleta de constraints rompe la segmentación funcional efectiva del módulo
+
+REGLA DE UI
+
+la UI no debe inferir permisos abstractos del módulo
+
+las decisiones visibles deben resolverse desde backend con contexto completo
+
+si un módulo relacionado está deshabilitado para el tenant, la UI de orders debe ocultar completamente relaciones, enlaces y bloques asociados hacia:
+
+assets
+products
+documents
+
+REGLA DE DETALLE
+
+order_items puede operar en modo manual cuando products está deshabilitado
+
+el selector de producto no es obligatorio para el funcionamiento del detalle
+
+la ausencia del módulo products no debe bloquear la operación manual del detalle de órdenes
+<<END SECTION>>
+
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -676,9 +804,9 @@ evaluar update del modelo padre correspondiente
 
 Esta regla debe mantenerse alineada con:
 
-CONTEXTO-FIJO-DEL-PROYECTO – app-base
-CONVENCIONES-DEL-PROYECTO – app-base
-MAPA-DE-ENTIDADES – app-base
+<DOC_REF slug="contexto_fijo_proyecto_app_base">Contexto fijo del proyecto</DOC_REF>
+<DOC_REF slug="convenciones_proyecto_app_base">Convenciones del proyecto</DOC_REF>
+<DOC_REF slug="mapa_entidades_app_base">Mapa de entidades</DOC_REF>
 <<END SECTION>>
 
 <<SECTION: FLUJO DE INVITACIONES Y ONBOARDING>>

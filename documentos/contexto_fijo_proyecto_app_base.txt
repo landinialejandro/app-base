@@ -1,10 +1,13 @@
-CONTEXTO-FIJO-DEL-PROYECTO – app-base
+<<SECTION: METADATOS>>
+TÍTULO: Contexto fijo del proyecto
+DOC_SLUG: contexto_fijo_proyecto_app_base
+DOC_VERSION: 00000
 
-METODOLOGÍA DE EDICIÓN
-
+METODOLOGÍA DE EDICIÓN:
 Este archivo se actualiza por reemplazo completo de bloques delimitados.
 Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
 Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
+<<END SECTION>>
 
 <<SECTION: Tipo de sistema>>
 Tipo de sistema
@@ -406,9 +409,23 @@ scope
 execution mode
 constraints
 
+Reglas validadas:
+
+los constraints forman parte activa del modelo y no son opcionales
+
+allowed_kinds se utiliza en producción como mecanismo de segmentación funcional
+
+los módulos pueden resolver permisos en función de dimensiones funcionales (por ejemplo kind)
+
+orders no utiliza ownership ni assigned_user_id como criterio de segmentación
+
+su segmentación se realiza exclusivamente mediante constraints
+
+la UI de permisos actual no es compatible completamente con constraints y puede generar inconsistencias
+
 La doctrina completa de implementación, uso y validación de esta capa se define exclusivamente en:
 
-SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
+<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
 <<END SECTION>>
 
 <<SECTION: Roles y niveles actuales del sistema>>
@@ -438,7 +455,7 @@ administrator
 
 La doctrina completa de acceso, autenticación y seguridad se encuentra centralizada en:
 
-SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
+<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
 <<END SECTION>>
 
 <<SECTION: SUPERADMIN>>
@@ -552,7 +569,7 @@ no deben mantenerse accesos operativos residuales
 
 La doctrina detallada de implementación segura, Fortify, onboarding, hardening y controles de acceso debe concentrarse en:
 
-SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
+<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
 <<END SECTION>>
 
 <<SECTION: Patrón de modelado cabecera / detalle>>
@@ -734,6 +751,8 @@ En ese contexto, las rutas del core operativo se mantienen declaradas explícita
 <<END SECTION>>
 
 <<SECTION: Estado actual del sistema>>
+SECTION_VERSION: 00002
+
 Estado actual del sistema
 
 Además del flujo multi-tenant principal, el sistema incorpora una capa global de administración denominada superadmin.
@@ -754,7 +773,15 @@ Invitations soporta actualmente al menos los siguientes tipos:
 
 owner_signup
 member_invite
-<<END SECTION>>
+
+Estado documental consolidado:
+
+la base documental técnica del proyecto ya utiliza una estructura común basada en:
+
+bloque METADATOS
+DOC_SLUG como identificador canónico
+DOC_VERSION como versión general del documento
+secciones delimitadas por <<SECTION: ...>> y <<END SECTION>>
 
 <<SECTION: Configuración básica de empresa>>
 Configuración básica de empresa

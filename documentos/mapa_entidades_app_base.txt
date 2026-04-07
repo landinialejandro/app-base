@@ -1,10 +1,13 @@
-MAPA-DE-ENTIDADES – app-base
+<<SECTION: METADATOS>>
+TÍTULO: Mapa de entidades
+DOC_SLUG: mapa_entidades_app_base
+DOC_VERSION: 00000
 
-METODOLOGÍA DE EDICIÓN
-
+METODOLOGÍA DE EDICIÓN:
 Este archivo se actualiza por reemplazo completo de bloques delimitados.
 Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
 Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
+<<END SECTION>>
 
 <<SECTION: OBJETIVO>>
 OBJETIVO
@@ -222,7 +225,7 @@ la autorización del sistema no depende únicamente del rol, sino de una combina
 
 La definición operativa completa del modelo de permisos se encuentra en:
 
-SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
+<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
 <<END SECTION>>
 
 <<SECTION: ACLARACIÓN SOBRE TENANT-SCOPED>>
@@ -434,6 +437,12 @@ orders debe tratarse como módulo compartido del tenant
 no debe segmentarse por ownership artificial del registro
 
 cuando se requiera segmentación funcional por tipo, debe resolverse mediante constraints.allowed_kinds
+
+Regla de relaciones:
+
+las relaciones hacia otros módulos deben considerarse opcionales a nivel UI según estado activo del módulo destino
+
+si un módulo relacionado está deshabilitado, la relación no debe exponerse ni operar en UI
 <<END SECTION>>
 
 <<SECTION: ORDER_ITEMS>>
@@ -726,7 +735,7 @@ No reemplaza:
 
 CONTEXTO-FIJO-DEL-PROYECTO
 CONVENCIONES-DEL-PROYECTO
-CHECKLIST OFICIAL PARA CREAR MÓDULOS NUEVOS
+<DOC_REF slug="checklist_modulos_nuevos_app_base">Checklist oficial para crear módulos nuevos</DOC_REF>
 
 Debe mantenerse alineado con esos documentos.
 <<END SECTION>>

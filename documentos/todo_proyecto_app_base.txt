@@ -1,10 +1,13 @@
-TODO-DEL-PROYECTO – app-base
+<<SECTION: METADATOS>>
+TÍTULO: Todo del proyecto
+DOC_SLUG: todo_proyecto_app_base
+DOC_VERSION: 00000
 
-METODOLOGÍA DE EDICIÓN
-
+METODOLOGÍA DE EDICIÓN:
 Este archivo se actualiza por reemplazo completo de bloques delimitados.
 Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
 Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
+<<END SECTION>>
 
 <<SECTION: OBJETIVO>>
 OBJETIVO
@@ -27,6 +30,8 @@ CONVENCIONES-DEL-PROYECTO
 <<END SECTION>>
 
 <<SECTION: ESTADO ACTUAL DEL SISTEMA>>
+SECTION_VERSION: 00002
+
 ESTADO ACTUAL DEL SISTEMA
 
 Arquitectura SaaS multi-tenant implementada.
@@ -65,6 +70,19 @@ orders
 documents
 assets
 appointments
+
+Estado documental consolidado:
+
+los documentos técnicos activos ya fueron normalizados por slug y metadatos comunes
+
+la base documental ya incorpora:
+
+DOC_SLUG
+DOC_VERSION
+bloque METADATOS
+referencias internas mediante DOC_REF
+
+la siguiente evolución prevista es un visor navegable dentro de Laravel para documentación técnica del proyecto
 <<END SECTION>>
 
 <<SECTION: MÓDULOS IMPLEMENTADOS>>
@@ -90,6 +108,8 @@ inventory
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
+SECTION_VERSION: 00002
+
 PENDIENTES INMEDIATOS
 
 validar en uso real el sistema visual de analytics implementado en dashboard y project show, especialmente:
@@ -123,6 +143,18 @@ revisar densidad visual final del tab-toolbar y del card que lo contiene para as
 implementar sistema de auditoría de cambios
 
 evaluar automatización de sincronización de roles base en tenants ya existentes cuando el catálogo reservado cambie o se amplíe
+
+implementar visor navegable de documentación técnica dentro de Laravel
+
+resolverlo inicialmente como página pública técnica fuera del flujo tenant
+
+interpretar DOC_SLUG como identificador canónico del documento dentro del visor
+
+renderizar DOC_REF como navegación interna entre documentos
+
+excluir explícitamente del visor las carpetas baks y auditoria
+
+dejar preparada la migración futura del visor documental hacia una capa restringida o superadmin
 <<END SECTION>>
 
 <<SECTION: ATTACHMENTS>>
@@ -201,6 +233,14 @@ Pendientes reales actuales:
 * Revisar datos legacy donde existan memberships sin rol.
 
 * Definir comportamiento cuando no haya módulos habilitados.
+
+* Pendiente crítico: UI de permisos no soporta correctamente constraints (allowed_kinds).
+
+* Pendiente crítico: persistencia desde UI puede romper configuración existente de constraints.
+
+* Pendiente: definir comportamiento de own_assigned en módulo orders.
+
+* Pendiente: auditoría completa de módulo parties en permisos.
 
 Pendientes cerrados y no reabrir:
 
@@ -459,7 +499,7 @@ Este bloque debe registrar únicamente pendientes reales de seguridad.
 
 La doctrina general, el flujo de acceso y las reglas de implementación segura deben concentrarse en:
 
-SEGURIDAD-Y-ACCESO-DEL-PROYECTO – app-base
+<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
 
 Pendientes reales actuales:
 

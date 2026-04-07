@@ -25,6 +25,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PublicSignupRequestController;
 use App\Http\Controllers\SuperadminDashboardController;
 use App\Http\Controllers\TaskController;
+use App\Http\Controllers\TechnicalDocController;
 use App\Http\Controllers\TenantInvitationController;
 use App\Http\Controllers\TenantMembershipController;
 use App\Http\Controllers\TenantMembershipRoleController;
@@ -46,6 +47,9 @@ Route::post('/solicitar-empresa', [PublicSignupRequestController::class, 'store'
 
 Route::view('/solicitud-enviada', 'public.signup-requests.thank-you')
     ->name('public.signup-requests.thank-you');
+
+Route::get('/docs', [TechnicalDocController::class, 'index'])->name('docs.index');
+Route::get('/docs/{slug}', [TechnicalDocController::class, 'show'])->name('docs.show');
 
 // Debug API: tenant por header X-Tenant
 Route::middleware('tenant')->get('/whoami', function () {

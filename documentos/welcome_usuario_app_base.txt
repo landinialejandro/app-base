@@ -1,0 +1,326 @@
+<<SECTION: METADATOS>>
+
+TÍTULO: Bienvenida y guía de uso
+DOC_SLUG: welcome_usuario_app_base
+DOC_VERSION: 00002
+<<END SECTION>>
+
+<<SECTION: OBJETIVO>>
+
+Este documento está pensado para acompañarte en tus primeros pasos dentro del sistema.
+
+Vas a encontrar una guía clara para entender cómo funciona, cómo empezar y cómo organizar tu actividad de forma simple.
+
+No necesitás conocimientos técnicos.
+
+Todo está pensado para que puedas enfocarte en lo que más te importa.
+
+<<END SECTION>>
+
+<<SECTION: UNA BIENVENIDA A TU SISTEMA>>
+
+Bienvenido/a.
+
+Estás ingresando a un entorno preparado para acompañar la actividad de tu empresa con claridad, orden y control.
+
+No se trata solo de una herramienta.
+
+Es un sistema pensado para que puedas trabajar con comodidad, confianza y una base sólida desde el primer momento.
+
+👉 Tu empresa, tu sistema.
+
+<<END SECTION>>
+
+<<SECTION: CÓMO EMPEZAR EN EL SISTEMA>>
+
+Dar inicio es simple.
+
+Desde el primer ingreso, el sistema prepara una base de trabajo clara, ordenada y lista para acompañar tu actividad.
+
+No hace falta configurar nada antes de comenzar.
+
+Ingresás → accedés a tu empresa → empezás a trabajar
+
+En ese momento:
+
+• asumís el rol de Fundador
+• podés invitar colaboradores si lo necesitás
+• contás con una organización inicial lista para usar
+
+El sistema ya incorpora lo necesario para que puedas empezar a trabajar desde el primer momento y enfocarte en lo que más te importa.
+
+<<END SECTION>>
+
+<<SECTION: CÓMO FUNCIONAN LAS EMPRESAS>>
+
+Tu empresa, tu sistema.
+
+No se trata solo de un acceso o de un espacio de trabajo: es un entorno preparado para acompañar la operación diaria con orden, claridad y control.
+
+Todo está dispuesto para que el trabajo se desarrolle con comodidad y confianza:
+
+• información organizada
+• acceso cuidado
+• funciones según cada rol
+• herramientas disponibles para la gestión diaria
+
+La experiencia está pensada para que tu empresa tenga un entorno sólido, cuidado y preparado para trabajar con profesionalismo.
+
+<<END SECTION>>
+
+<<SECTION: DESDE EL PRIMER MOMENTO>>
+
+Desde el primer ingreso, todo está dispuesto para que puedas comenzar a trabajar con claridad.
+
+No es necesario preparar el sistema antes de usarlo.
+
+La base ya está lista para acompañar tu actividad, tanto si trabajás de manera individual como si más adelante sumás colaboradores.
+
+👉 Podés empezar sin fricción, a tu ritmo.
+
+<<END SECTION>>
+
+<<SECTION: UNA ORGANIZACIÓN LISTA PARA TRABAJAR>>
+
+El sistema incorpora una organización inicial pensada para el trabajo diario.
+
+No necesitás construir todo desde cero.
+
+Esta base te permite:
+
+• comenzar a registrar información
+• organizar tu actividad
+• mantener orden desde el inicio
+
+👉 Todo está preparado para que puedas enfocarte en lo importante.
+
+<<END SECTION>>
+
+<<SECTION: CÓMO INVITAR COLABORADORES>>
+
+Si en algún momento querés sumar colaboradores, podés incorporarlos de forma simple.
+
+El sistema acompaña tanto el trabajo individual como el crecimiento del equipo.
+
+El proceso es:
+
+Enviás una invitación
+La persona accede a esa invitación
+Su incorporación queda bajo tu decisión
+
+Cada colaborador se suma con un rol definido, acorde a su participación.
+
+Esto permite mantener:
+
+• orden en la organización
+• claridad en las funciones
+• control sobre el acceso
+
+👉 Podés incorporar colaboradores cuando lo necesites, a tu ritmo y con control claro.
+
+<<END SECTION>>
+
+<<SECTION: ROLES DENTRO DE LA EMPRESA>>
+
+Dentro del sistema, cada colaborador participa según su función.
+
+Las principales funciones son:
+
+• Fundador
+Define la organización y mantiene el control general
+
+• Administrador
+Acompaña la gestión del sistema
+
+• Operador
+Trabaja sobre la actividad diaria
+
+• Comercial
+Gestiona vínculos y seguimiento
+
+• Administrativo
+Organiza la gestión interna
+
+Cada rol permite que el trabajo se mantenga claro, ordenado y bien distribuido.
+
+<<END SECTION>>
+
+<<SECTION: CUIDAR TU INFORMACIÓN>>
+
+Tu empresa trabaja en un entorno propio, donde la información se mantiene resguardada y bajo tu control.
+
+Como Fundador:
+
+• definís quién forma parte de tu empresa
+• decidís cuándo ingresa y hasta cuándo permanece
+• asignás el rol de cada colaborador
+• podés definir qué puede ver y qué no
+
+Si lo necesitás, podés profundizar ese control con mayor precisión.
+
+👉 La información de tu empresa permanece siempre bajo tu control.
+
+<<END SECTION>>
+
+<<SECTION: CÓMO TRABAJAR DENTRO DEL SISTEMA>>
+
+El sistema está organizado en módulos que representan distintas partes de la actividad.
+
+Entre ellos:
+
+• contactos
+• tareas
+• agenda
+• órdenes
+• documentos
+• activos
+• productos
+
+Estos módulos trabajan de forma integrada, permitiendo que la información se mantenga conectada y ordenada.
+
+No necesitás usarlos todos desde el inicio.
+
+Podés avanzar según tu forma de trabajo.
+
+<<END SECTION>>
+
+<<SECTION: UNA EXPERIENCIA PENSADA PARA TRABAJAR BIEN>>
+
+El sistema no solo organiza información.
+
+También está pensado para que el trabajo sea:
+
+• claro
+• ordenado
+• previsible
+• cómodo
+
+Cada parte del entorno está diseñada para acompañar tu actividad diaria sin fricción.
+
+👉 Para que puedas enfocarte en lo importante.
+
+<<END SECTION>>
+
+<<SECTION: MÓDULO: CONTACTOS>>
+
+Este módulo te permite organizar las personas y organizaciones con las que trabajás.
+
+Desde aquí podés mantener la información clara, ordenada y siempre disponible para tu actividad diaria.
+
+Los contactos funcionan como base para otros procesos del sistema, acompañando la gestión de órdenes, documentos y agenda.
+
+👉 Todo parte de tener bien organizados tus vínculos.
+
+<<END SECTION>>
+
+<<SECTION: MÓDULO: TAREAS>>
+
+Este módulo te permite organizar y dar seguimiento a tu actividad diaria.
+
+Podés registrar tareas, asignarlas si lo necesitás y mantener una visión clara de lo que está en curso.
+
+Está pensado para ayudarte a trabajar con orden y continuidad, sin perder de vista lo importante.
+
+👉 Cada tarea te permite avanzar con claridad en tu día a día.
+
+<<END SECTION>>
+
+<<SECTION: MÓDULO: AGENDA>>
+
+Este módulo organiza tu tiempo.
+
+Te permite planificar turnos, coordinar actividades y mantener una visión clara de lo que viene.
+
+La agenda se integra con el resto del sistema, acompañando la organización del trabajo diario.
+
+👉 Todo lo que necesitás hacer, en el momento adecuado.
+
+<<END SECTION>>
+
+<<SECTION: MÓDULO: ÓRDENES>>
+
+Este módulo representa el trabajo operativo de tu empresa.
+
+Desde aquí podés registrar, organizar y dar seguimiento a las actividades que forman parte de tu operación.
+
+Las órdenes funcionan como eje central, vinculando información, tareas y documentos en un mismo flujo.
+
+👉 Donde el trabajo toma forma y se organiza.
+
+<<END SECTION>>
+
+<<SECTION: MÓDULO: DOCUMENTOS>>
+
+Este módulo te permite generar y gestionar los documentos que acompañan tu actividad.
+
+Incluye presupuestos, comprobantes y otros registros necesarios para formalizar tu operación.
+
+Los documentos se integran con las órdenes, manteniendo coherencia y continuidad en el proceso.
+
+👉 La formalización de tu trabajo, con claridad y orden.
+
+<<END SECTION>>
+
+<<SECTION: MÓDULO: ACTIVOS>>
+
+Este módulo te permite registrar y organizar los elementos clave con los que trabajás.
+
+Pueden ser equipos, unidades o cualquier recurso que forme parte de tu operación.
+
+Los activos se integran con órdenes, agenda y documentos, aportando contexto y continuidad al trabajo.
+
+👉 Todo lo que forma parte de tu operación, bien identificado y organizado.
+
+<<END SECTION>>
+
+<<SECTION: MÓDULO: PRODUCTOS>>
+
+Este módulo te permite organizar los productos o servicios que forman parte de tu actividad.
+
+Desde aquí podés definir lo que ofrecés y utilizarlo dentro de órdenes y documentos.
+
+Esto facilita mantener coherencia, claridad y orden en toda la operación.
+
+👉 Tu oferta, clara y lista para usar en cada proceso.
+
+<<END SECTION>>
+
+<<SECTION: MÓDULO: PROYECTOS>>
+
+Este módulo te permite agrupar y dar seguimiento a conjuntos de trabajo relacionados.
+
+Funciona como una vista más amplia que conecta tareas y actividad en curso.
+
+Te ayuda a mantener una mirada general sin perder el detalle de lo que está pasando.
+
+👉 Una forma clara de organizar y seguir el avance de tu trabajo.
+
+<<END SECTION>>
+
+<<SECTION: MÓDULO: ADJUNTOS>>
+
+Este módulo te permite incorporar archivos a tu trabajo.
+
+Podés adjuntar imágenes, documentos u otros archivos relevantes en distintos puntos del sistema.
+
+Esto te permite respaldar información, agregar contexto y mantener todo organizado en un mismo lugar.
+
+👉 La información que acompaña tu trabajo, siempre disponible.
+
+<<END SECTION>>
+
+<<SECTION: RESUMEN FINAL>>
+
+app-base es un sistema pensado para acompañar la actividad de tu empresa con orden, claridad y control.
+
+Te permite:
+
+• empezar a trabajar desde el primer momento
+• mantener la información organizada
+• definir el acceso de cada colaborador
+• trabajar de forma individual o en equipo
+• crecer sin perder orden
+
+👉 Todo dentro de un entorno propio, preparado y bajo tu control.
+
+<<END SECTION>>

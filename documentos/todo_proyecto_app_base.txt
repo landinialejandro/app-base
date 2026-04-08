@@ -228,7 +228,7 @@ indexación de contenido para búsqueda
 <<END SECTION>>
 
 <<SECTION: AUTORIZACIÓN Y PERMISOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 AUTORIZACIÓN Y PERMISOS
 
@@ -264,9 +264,7 @@ Pendientes cerrados y no reabrir:
 
 * eliminación de visibilidad residual hacia módulos deshabilitados en relaciones desde appointments
 
-Ajuste documental pendiente a reflejar de forma consistente en el set:
-
-* parties como módulo base intrínseco del sistema y no como módulo opcional común
+* consolidación documental de parties como módulo base intrínseco del sistema y no como módulo opcional común
 
 <<END SECTION>>
 

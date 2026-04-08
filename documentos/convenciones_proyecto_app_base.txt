@@ -263,7 +263,9 @@ no deben crearse matrices paralelas ni lógica aislada por módulo
 
 las policies deben mantenerse como wrappers mínimos de consumo de esa capa
 
-los resolvers deben ser la única fuente de verdad para scopes, constraints y visibilidad de dataset
+los resolvers no definen el contrato de permisos
+
+los resolvers deben resolver y consumir el contrato persistido, incluyendo scopes, constraints y visibilidad de dataset según lo definido en base de datos
 
 la evolución del sistema de permisos debe respetar la arquitectura vigente sin introducir variantes incompatibles
 

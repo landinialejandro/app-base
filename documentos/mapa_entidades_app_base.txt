@@ -239,7 +239,6 @@ Product
 Order
 Document
 Branch
-Role
 Party
 Project
 Task

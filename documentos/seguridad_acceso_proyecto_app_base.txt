@@ -59,14 +59,20 @@ Este bloque define reglas que no admiten excepción.
 
 REGLA 1 — FUENTE DE VERDAD
 
-La base de datos es la única fuente de verdad del contrato de permisos V2.
+La base de datos es la única fuente de verdad del contrato de permisos V2 persistido.
 
 Esto incluye:
 
-role_permission  
-constraints  
-scopes  
-capabilities  
+role_permission
+constraints
+scopes
+capabilities
+
+Este documento define la normativa de implementación del sistema.
+
+Los catálogos definen el vocabulario técnico permitido.
+
+La capa central (resolvers) resuelve y aplica el contrato persistido.
 
 Cualquier definición de permisos fuera de la base de datos debe considerarse una desviación arquitectónica inválida.
 
@@ -76,9 +82,9 @@ Toda autorización debe resolverse exclusivamente mediante la capa central.
 
 No se permite:
 
-definir permisos en controllers  
-definir permisos en policies  
-definir permisos en Blade  
+definir permisos en controllers
+definir permisos en policies
+definir permisos en Blade
 
 Estas capas solo pueden consumir la capa central.
 
@@ -98,9 +104,9 @@ REGLA 4 — CONSTRAINTS OBLIGATORIOS
 
 Si un módulo define constraints:
 
-las constraints son obligatorias  
-no son opcionales  
-forman parte del contrato del permiso  
+las constraints son obligatorias
+no son opcionales
+forman parte del contrato del permiso
 
 Un permiso sin constraints completas debe considerarse inválido.
 
@@ -108,20 +114,21 @@ REGLA 5 — NO DUPLICACIÓN
 
 No puede existir lógica de permisos en más de un nivel.
 
-resolver define  
-policy consume  
-controller ejecuta  
-Blade muestra  
+la base de datos define el contrato
+el resolver resuelve el contrato persistido
+policy consume esa resolución
+controller consume y ejecuta la autorización correspondiente
+Blade muestra solo el resultado permitido
 
-Nunca redefinen.
+Ninguna de estas capas puede redefinir permisos.
 
 REGLA 6 — UI SIN LÓGICA
 
 La UI no puede:
 
-inferir permisos  
-evaluar capacidades abstractas  
-reconstruir lógica  
+inferir permisos
+evaluar capacidades abstractas
+reconstruir lógica
 
 Solo puede consumir resultados del backend.
 
@@ -130,6 +137,23 @@ REGLA 7 — CONSISTENCIA GLOBAL
 view_any debe ser igual o más amplio que view.
 
 No se permiten configuraciones inconsistentes.
+
+REGLA 8 — CATÁLOGOS COMO VOCABULARIO CONTROLADO
+
+Los catálogos del sistema definen el conjunto válido de:
+
+capabilities  
+scopes  
+módulos  
+perfiles  
+
+No se permite:
+
+definir valores fuera de los catálogos  
+interpretar valores no registrados  
+introducir enums implícitos en código  
+
+El contrato persistido debe utilizar exclusivamente valores válidos definidos en los catálogos.
 <<END SECTION>>
 
 <<SECTION: FLUJO GLOBAL DE ACCESO>>
@@ -213,35 +237,37 @@ CAPA V2 DE PERMISOS
 
 Componentes:
 
-RolePermissionResolver  
-RecordScopeResolver  
-CapabilityCatalog  
-ModuleCatalog  
+RolePermissionResolver
+RecordScopeResolver
+CapabilityCatalog
+ModuleCatalog
+TenantModuleAccess
 
 Capacidades:
 
-view_any  
-view  
-create  
-update  
-delete  
+view_any
+view
+create
+update
+delete
 
 Scopes válidos:
 
-tenant_all  
-own_assigned  
-limited  
+tenant_all
+own_assigned
+limited
 
 Scopes inválidos:
 
-all  
-mine  
+all
+mine
 
 Reglas:
 
-view_any no es booleano  
-create puede depender de contexto  
-constraints son obligatorias  
+view_any no es booleano
+create puede depender de contexto
+constraints son obligatorias
+el acceso a un módulo depende previamente de su habilitación mediante TenantModuleAccess
 <<END SECTION>>
 
 <<SECTION: FLUJO DE GESTIÓN Y CONSUMO DE PERMISOS>>
@@ -279,292 +305,339 @@ delegar lógica a UI
 <<END SECTION>>
 
 <<SECTION: MÓDULO: TASKS>>
+SECTION_VERSION: 00001
+
 ESTADO: CONTRATO CERRADO
 
 UNIVERSO VISIBLE
 
-tenant_all  
-limited  
-own_assigned  
+tenant_all
+limited
+own_assigned
 
 REGLAS
 
-assigned_user_id define responsabilidad operativa  
+assigned_user_id define responsabilidad operativa
 
-no existen tareas sin asignación  
+no existen tareas sin asignación
 
 limited incluye:
 
-tareas asignadas al usuario  
-tareas de proyectos donde participa  
+tareas asignadas al usuario
+tareas de proyectos donde participa
 
 CONFIGURACIÓN DE CAPACIDADES
 
-view_any: limited  
-view: limited  
-update: own_assigned  
-delete: own_assigned  
+view_any: limited
+view: limited
+update: own_assigned
+delete: own_assigned
 
 REGLA
 
-la visibilidad no depende del creador  
+la visibilidad no depende del creador
 
-no se utiliza ownership  
+no se utiliza ownership
 
 <<END SECTION>>
 
 <<SECTION: MÓDULO: APPOINTMENTS>>
+SECTION_VERSION: 00002
+
 ESTADO: CONTRATO CERRADO
 
 UNIVERSO VISIBLE
 
-tenant_all  
-own_assigned  
+tenant_all
+own_assigned
 
 REGLAS
 
-usa assigned_user_id  
+usa assigned_user_id
 
-no utiliza limited  
+no utiliza limited
 
-puede separar lectura de operación  
+puede separar lectura de operación
 
 CONFIGURACIÓN DE CAPACIDADES
 
-view_any: tenant_all  
-view: own_assigned  
-update: own_assigned  
-delete: own_assigned  
+view_any: tenant_all
+view: own_assigned
+update: own_assigned
+delete: own_assigned
+
+ACLARACIÓN DE CONTRATO
+
+view_any controla el acceso al dataset
+view controla el acceso individual a cada registro
+
+la asimetría entre view_any y view es deliberada
+
+permite lectura amplia del tenant y operación restringida por responsabilidad
 
 REGLA
 
-view_any no puede ser más restrictivo que view  
+view_any no puede ser más restrictivo que view
 
 RELACIONES
 
-dependen del estado activo de otros módulos  
-
+dependen del estado activo de otros módulos
 <<END SECTION>>
 
 <<SECTION: MÓDULO: ORDERS>>
+SECTION_VERSION: 00001
+
 ESTADO: CONTRATO CERRADO
 
 UNIVERSO VISIBLE
 
-tenant_all  
+tenant_all
 
 REGLAS
 
-no utiliza ownership  
-no utiliza assigned_user_id  
-no utiliza own_assigned  
+no utiliza ownership
+no utiliza assigned_user_id
+no utiliza own_assigned
 
 segmentación funcional:
 
-constraints.allowed_kinds  
+constraints.allowed_kinds
 
 REGLA CRÍTICA
 
-orders.create requiere contexto kind obligatorio  
+orders.create requiere contexto kind obligatorio
 
-sin contexto → no autorizado  
+sin contexto → no autorizado
 
-si no cumple constraints → no autorizado  
+si no cumple constraints → no autorizado
 
 REGLA DE CONSTRAINTS
 
-view_any, view, update y delete deben evaluarse junto con constraints  
+view_any, view, update y delete deben evaluarse junto con constraints
 
-el módulo es inválido si no se consideran constraints  
+el módulo es inválido si no se consideran constraints
 
 REGLA DE UI
 
-la UI no puede inferir permisos  
+la UI no puede inferir permisos
 
-debe consumir backend  
+debe consumir backend
 
 REGLA DE CONSISTENCIA
 
-los roles son acumulables  
+los roles son acumulables
 
-view puede ser más amplio que update o delete  
+view puede ser más amplio que update o delete
 
 <<END SECTION>>
 
 <<SECTION: MÓDULO: PROJECTS>>
-ESTADO: CONTRATO CERRADO
+SECTION_VERSION: 00001
 
-UNIVERSO VISIBLE
-
-tenant_all  
-limited  
-
-REGLAS ACTUALES
-
-limited depende de participación en tareas  
-
-no utiliza ownership directo  
-
-PENDIENTE
-
-definir contrato formal de capacidades  
-validar interacción con tasks  
-definir reglas completas de update y delete  
-
-<<END SECTION>>
-
-<<SECTION: MÓDULO: PARTIES>>
 ESTADO: EN REVISIÓN
 
 UNIVERSO VISIBLE
 
-tenant_all  
+tenant_all
+limited
 
 REGLAS ACTUALES
 
-módulo base transversal del sistema  
+limited depende de participación en tareas
 
-no utiliza ownership  
+no utiliza ownership directo
 
 PENDIENTE
 
-definir contrato completo de capacidades  
-definir restricciones de delete  
-validar relación con otros módulos  
+definir contrato formal de capacidades
+validar interacción con tasks
+definir reglas completas de update y delete
+
+REGLA
+
+mientras el contrato permanezca en revisión, projects no debe utilizarse como patrón doctrinal para módulos nuevos.
+<<END SECTION>>
+
+<<SECTION: MÓDULO: PARTIES>>
+SECTION_VERSION: 00002
+
+ESTADO: EN REVISIÓN
+
+UNIVERSO VISIBLE
+
+tenant_all
+
+REGLAS ACTUALES
+
+módulo base transversal del sistema
+
+no utiliza ownership
+
+ROL CONCEPTUAL
+
+parties es la entidad base del dominio
+
+debe tratarse como módulo base intrínseco del sistema
+
+no es opcional en el mismo sentido que otros módulos operativos
+
+PENDIENTE
+
+definir contrato completo de capacidades
+definir restricciones de delete
+validar relación con otros módulos
 
 <<END SECTION>>
 
 <<SECTION: MÓDULO: PRODUCTS>>
+SECTION_VERSION: 00001
+
 ESTADO: EN REVISIÓN
 
 UNIVERSO VISIBLE
 
-tenant_all  
+tenant_all
 
 REGLAS ACTUALES
 
-catálogo operativo  
+catálogo operativo
 
 PENDIENTE
 
-definir si admite segmentación  
-definir constraints si aplica  
-definir reglas de update y delete  
+definir si admite segmentación
+definir constraints si aplica
+definir reglas de update y delete
 
 <<END SECTION>>
 
 <<SECTION: MÓDULO: ASSETS>>
+SECTION_VERSION: 00001
+
 ESTADO: EN REVISIÓN
 
 UNIVERSO VISIBLE
 
-tenant_all  
+tenant_all
 
 REGLAS ACTUALES
 
-relación con parties  
-relación con orders  
+relación con parties
+relación con orders
 
 PENDIENTE
 
-definir contrato de permisos  
-definir segmentación  
-definir restricciones operativas  
+definir contrato de permisos
+definir segmentación
+definir restricciones operativas
 
 <<END SECTION>>
 
 <<SECTION: MÓDULO: DOCUMENTS>>
+SECTION_VERSION: 00001
+
 ESTADO: EN REVISIÓN
 
 UNIVERSO VISIBLE
 
-tenant_all  
+tenant_all
 
 REGLAS ACTUALES
 
-módulo documental derivado  
+módulo documental derivado
 
-posible uso de constraints.allowed_kinds  
+posible uso de constraints.allowed_kinds
 
 PENDIENTE
 
-confirmar contrato equivalente a orders  
-definir create con contexto  
-definir relación con orders  
+confirmar contrato equivalente a orders
+definir create con contexto
+definir relación con orders
 
 <<END SECTION>>
 
 <<SECTION: MÓDULO: ATTACHMENTS>>
+SECTION_VERSION: 00001
+
 ESTADO: EN REVISIÓN
 
 TIPO
 
-módulo transversal  
+módulo transversal
 
 REGLA ACTUAL
 
-autorización delegada al padre  
+autorización delegada al padre
 
 PENDIENTE
 
-formalizar contrato como módulo delegado  
-validar consistencia en todos los padres  
+formalizar contrato como módulo delegado
+validar consistencia en todos los padres
 
 <<END SECTION>>
 
 <<SECTION: MÓDULO: INVENTORY>>
+SECTION_VERSION: 00001
+
 ESTADO: EN REVISIÓN
 
 ESTADO FUNCIONAL
 
-módulo en preparación  
+módulo en preparación
 
 PENDIENTE
 
-definir modelo conceptual  
-definir si es módulo compartido o segmentado  
-definir si usa constraints  
-definir relación con products  
-definir contrato completo de permisos  
+definir modelo conceptual
+definir si es módulo compartido o segmentado
+definir si usa constraints
+definir relación con products
+definir contrato completo de permisos
 
 REGLA
 
-no debe implementarse sin contrato definido  
+no debe implementarse sin contrato definido
 
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
-resolver → única fuente  
-policy → wrapper  
-controller → authorize  
-Blade → muestra  
+la base de datos es la única fuente de verdad del contrato de permisos V2
+
+resolver → resuelve el contrato persistido
+policy → wrapper mínimo de consumo
+controller → consume y ejecuta la autorización correspondiente
+Blade → muestra solo el resultado permitido
 
 Prohibido:
 
-lógica paralela  
-evaluación abstracta  
-redefinir permisos  
+lógica paralela
+evaluación abstracta
+redefinir permisos
 
 Distinción:
 
-view_any → dataset  
-view → registro  
+view_any → dataset
+view → registro
 <<END SECTION>>
 
 <<SECTION: RECURSOS DELEGADOS AL PADRE>>
 RECURSOS DELEGADOS AL PADRE
 
-attachments  
-order_items  
-document_items  
+attachments
+order_items
+document_items
 
 Regla:
 
-dependen del padre  
+su autorización operativa depende del recurso padre
 
-No tienen permisos propios  
+no deben tratarse como recursos autónomos de autorización cuando su ciclo de vida depende de la cabecera
+
+cualquier policy existente debe delegar explícitamente en el recurso padre
+
+No se permite:
+
+definir lógica de permisos independiente del recurso padre
 <<END SECTION>>
 
 <<SECTION: HARDENING Y AUDITORÍA>>
@@ -608,9 +681,9 @@ El documento completo debe mantenerse coherente.
 
 No pueden existir:
 
-contradicciones entre secciones  
-reglas que se anulen entre sí  
-definiciones ambiguas o abiertas a interpretación  
+contradicciones entre secciones
+reglas que se anulen entre sí
+definiciones ambiguas o abiertas a interpretación
 
 Cualquier inconsistencia invalida el documento como fuente de verdad.
 
@@ -622,18 +695,20 @@ Los contratos de módulos son la base operativa del sistema.
 
 Regla obligatoria:
 
-ningún módulo puede implementarse sin contrato definido en este documento  
+ningún módulo puede entrar en implementación operativa real dentro del sistema sin contrato definido en este documento
 
 El contrato del módulo debe definirse antes de:
 
-controller  
-policy  
-modelo  
-UI  
+controller
+policy
+implementación operativa del modelo
+UI operativa
 
 Si el contrato no existe:
 
-el módulo no debe desarrollarse  
+el módulo no debe desarrollarse operativamente
+
+Esta regla no impide pruebas locales, exploraciones técnicas o borradores internos que todavía no formen parte del sistema como módulo operativo real.
 
 ---
 
@@ -641,14 +716,14 @@ REGLA 3 — ESTADO DE CONTRATO
 
 Cada módulo debe declarar su estado:
 
-CONTRATO CERRADO  
-EN REVISIÓN  
+CONTRATO CERRADO
+EN REVISIÓN
 
 Reglas:
 
-solo los módulos con CONTRATO CERRADO pueden tomarse como referencia  
+solo los módulos con CONTRATO CERRADO pueden tomarse como referencia
 
-los módulos EN REVISIÓN no deben replicarse como patrón  
+los módulos EN REVISIÓN no deben replicarse como patrón
 
 ---
 
@@ -658,10 +733,10 @@ Cada sección de módulo debe incluir su propia versión.
 
 Reglas:
 
-cualquier cambio en el contrato de un módulo requiere incrementar su versión  
+cualquier cambio en el contrato de un módulo requiere incrementar su versión
 
-los cambios deben ser explícitos  
-no se permiten modificaciones implícitas  
+los cambios deben ser explícitos
+no se permiten modificaciones implícitas
 
 ---
 
@@ -669,21 +744,21 @@ REGLA 5 — VERSIONADO GLOBAL DEL DOCUMENTO
 
 Las secciones del documento se dividen en dos tipos:
 
-SECCIONES DE CONTRATO (módulos)  
-SECCIONES ESTRUCTURALES (reglas generales)  
+SECCIONES DE CONTRATO (módulos)
+SECCIONES ESTRUCTURALES (reglas generales)
 
 Reglas:
 
-modificar una sección de contrato → no requiere versionado global  
+modificar una sección de contrato → no requiere versionado global
 
-modificar una sección estructural → requiere nueva versión completa del documento  
+modificar una sección estructural → requiere nueva versión completa del documento
 
 Esto incluye:
 
-principios inmutables  
-capa V2  
-flujo de permisos  
-reglas de implementación  
+principios inmutables
+capa V2
+flujo de permisos
+reglas de implementación
 
 ---
 
@@ -691,13 +766,13 @@ REGLA 6 — PROCESO DE CAMBIO
 
 Antes de modificar cualquier sección estructural del documento:
 
-debe realizarse una validación explícita  
-debe evaluarse impacto en módulos existentes  
-debe confirmarse coherencia con el resto del documento  
+debe realizarse una validación explícita
+debe evaluarse impacto en módulos existentes
+debe confirmarse coherencia con el resto del documento
 
 No se permite:
 
-modificar parcialmente una regla sin revisar su impacto global  
+modificar parcialmente una regla sin revisar su impacto global
 
 ---
 
@@ -705,13 +780,13 @@ REGLA 7 — PROHIBICIÓN DE CAMBIOS IMPLÍCITOS
 
 No se permite:
 
-cambiar comportamiento del sistema sin reflejarlo en este documento  
+cambiar comportamiento del sistema sin reflejarlo en este documento
 
 Si una implementación cambia el comportamiento real:
 
-el documento debe actualizarse primero o en simultáneo  
+el documento debe actualizarse primero o en simultáneo
 
-Nunca después  
+Nunca después
 
 ---
 
@@ -719,11 +794,11 @@ REGLA 8 — ORDEN DE IMPLEMENTACIÓN
 
 El orden correcto es:
 
-definir contrato en este documento  
-validar coherencia  
-luego implementar  
+definir contrato en este documento
+validar coherencia
+luego implementar
 
-Nunca al revés  
+Nunca al revés
 
 ---
 
@@ -733,15 +808,15 @@ Ningún cambio en permisos puede implementarse sin pasar por una auditoría expl
 
 Esto incluye:
 
-nuevos módulos  
-cambios en módulos existentes  
-cambios en constraints  
-cambios en scopes  
-cambios en lógica de resolución  
+nuevos módulos
+cambios en módulos existentes
+cambios en constraints
+cambios en scopes
+cambios en lógica de resolución
 
 Si no hay auditoría:
 
-el cambio debe considerarse inválido  
+el cambio debe considerarse inválido
 
 ---
 
@@ -749,9 +824,9 @@ REGLA 10 — ROL DEL DOCUMENTO
 
 Este documento define:
 
-qué es válido  
-qué es inválido  
-qué está prohibido  
+qué es válido
+qué es inválido
+qué está prohibido
 
 No es una guía.
 
@@ -763,8 +838,8 @@ REGLA FINAL DE GOBERNANZA
 
 Si existe diferencia entre:
 
-lo implementado  
-y lo definido en este documento  
+lo implementado
+y lo definido en este documento
 
 la implementación debe considerarse incorrecta.
 <<END SECTION>>

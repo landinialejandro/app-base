@@ -1,12 +1,12 @@
 <?php
 
-// FILE: app/Http/Requests/StorePartyRequest.php
+// FILE: app/Http/Requests/StorePartyRequest.php | V2
 
 namespace App\Http\Requests;
 
+use App\Support\Catalogs\PartyCatalog;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
-use App\Support\Catalogs\PartyCatalog;
 
 class StorePartyRequest extends FormRequest
 {
@@ -20,6 +20,7 @@ class StorePartyRequest extends FormRequest
         return [
             'kind' => [
                 'required',
+                'string',
                 Rule::in(PartyCatalog::kinds()),
             ],
             'name' => ['required', 'string', 'max:255'],
@@ -38,6 +39,7 @@ class StorePartyRequest extends FormRequest
     protected function prepareForValidation(): void
     {
         $this->merge([
+            'kind' => is_string($this->input('kind')) ? trim($this->input('kind')) : $this->input('kind'),
             'is_active' => $this->boolean('is_active'),
         ]);
     }

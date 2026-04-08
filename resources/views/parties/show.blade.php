@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/show.blade.php | V8 --}}
+{{-- FILE: resources/views/parties/show.blade.php | V9 --}}
 
 @extends('layouts.app')
 
@@ -8,10 +8,6 @@
     @php
         use App\Support\Catalogs\PartyCatalog;
         use App\Support\Navigation\NavigationTrail;
-
-        $orders = $orders ?? collect();
-        $documents = $documents ?? collect();
-        $assets = $assets ?? collect();
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
@@ -105,77 +101,6 @@
                 </x-show-summary-item-detail-block>
             </x-slot:details>
         </x-show-summary>
-
-        <div class="tabs" data-tabs>
-            <x-tab-toolbar label="Secciones del contacto">
-                <x-slot:tabs>
-                    <x-horizontal-scroll label="Secciones del contacto">
-                        <button type="button" class="tabs-link is-active" data-tab-link="orders" role="tab"
-                            aria-selected="true">
-                            Órdenes
-                            @if ($orders->count())
-                                ({{ $orders->count() }})
-                            @endif
-                        </button>
-
-                        <button type="button" class="tabs-link" data-tab-link="documents" role="tab"
-                            aria-selected="false">
-                            Documentos
-                            @if ($documents->count())
-                                ({{ $documents->count() }})
-                            @endif
-                        </button>
-
-                        <button type="button" class="tabs-link" data-tab-link="assets" role="tab"
-                            aria-selected="false">
-                            Activos
-                            @if ($assets->count())
-                                ({{ $assets->count() }})
-                            @endif
-                        </button>
-                    </x-horizontal-scroll>
-                </x-slot:tabs>
-            </x-tab-toolbar>
-
-            <section class="tab-panel is-active" data-tab-panel="orders">
-                <div class="tab-panel-stack">
-                    @include('orders.partials.embedded-tabs', [
-                        'orders' => $orders,
-                        'showParty' => false,
-                        'showAsset' => true,
-                        'emptyMessage' => 'Este contacto no tiene órdenes vinculadas.',
-                        'trailQuery' => $trailQuery,
-                    ])
-                </div>
-            </section>
-
-            <section class="tab-panel" data-tab-panel="documents" hidden>
-                <div class="tab-panel-stack">
-                    @include('documents.partials.embedded-tabs', [
-                        'documents' => $documents,
-                        'showParty' => false,
-                        'showAsset' => true,
-                        'showOrder' => true,
-                        'emptyMessage' => 'Este contacto no tiene documentos vinculados.',
-                        'trailQuery' => $trailQuery,
-                    ])
-                </div>
-            </section>
-
-            <section class="tab-panel" data-tab-panel="assets" hidden>
-                <div class="tab-panel-stack">
-                    @include('assets.partials.embedded-tabs', [
-                        'assets' => $assets,
-                        'showParty' => false,
-                        'emptyMessage' => 'Este contacto no tiene activos vinculados.',
-                        'createBaseQuery' => [
-                            'party_id' => $party->id,
-                        ],
-                        'trailQuery' => $trailQuery,
-                    ])
-                </div>
-            </section>
-        </div>
 
     </x-page>
 @endsection

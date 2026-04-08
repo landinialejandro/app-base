@@ -1,3 +1,5 @@
+{{-- FILE: resources/views/parties/create.blade.php | V2 --}}
+
 @extends('layouts.app')
 
 @section('title', 'Nuevo contacto')
@@ -20,7 +22,11 @@
             <form method="POST" action="{{ route('parties.store', $trailQuery) }}" class="form">
                 @csrf
 
-                @include('parties._form', ['party' => null])
+                @include('parties._form', [
+                    'party' => null,
+                    'allowedKinds' => $allowedKinds,
+                    'defaultKind' => $defaultKind,
+                ])
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Guardar</button>

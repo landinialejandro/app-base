@@ -1,15 +1,15 @@
 <?php
 
-// FILE: app/Http/Controllers/PartyController.php | V4
+// FILE: app/Http/Controllers/PartyController.php | V5
 
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePartyRequest;
 use App\Http\Requests\UpdatePartyRequest;
-use App\Models\Asset;
-use App\Models\Document;
-use App\Models\Order;
 use App\Models\Party;
+use App\Support\Auth\Security;
+use App\Support\Catalogs\ModuleCatalog;
+use App\Support\Catalogs\PartyCatalog;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\PartyNavigationTrail;
 use Illuminate\Http\Request;
@@ -26,7 +26,13 @@ class PartyController extends Controller
         $kind = $request->get('kind');
         $isActive = $request->get('is_active');
 
-        $parties = Party::query()
+        $partiesQuery = app(Security::class)->scope(
+            auth()->user(),
+            ModuleCatalog::PARTIES.'.viewAny',
+            Party::query()
+        );
+
+        $parties = $partiesQuery
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($subquery) use ($q) {
                     $subquery->where('name', 'like', "%{$q}%")
@@ -51,30 +57,59 @@ class PartyController extends Controller
             ->paginate(10)
             ->withQueryString();
 
+        $resolvedKinds = $this->resolvedAllowedKinds();
+
         return view('parties.index', [
             'tenant' => $tenant,
             'parties' => $parties,
+            'allowedKinds' => $resolvedKinds,
+            'canCreateByKind' => $this->resolveCreateAvailabilityByKind($resolvedKinds),
         ]);
     }
 
     public function create(Request $request)
     {
-        $this->authorize('create', Party::class);
-
         $tenant = app('tenant');
         $navigationTrail = PartyNavigationTrail::create($request);
+        $resolvedKinds = $this->resolvedAllowedKinds();
+
+        $requestedKind = $request->get('kind');
+        $defaultKind = $this->resolveDefaultCreatableKind($resolvedKinds, $requestedKind);
+
+        abort_unless($defaultKind !== null, 403);
+
+        abort_unless(
+            app(Security::class)->allows(
+                $request->user(),
+                ModuleCatalog::PARTIES.'.create',
+                Party::class,
+                ['kind' => $defaultKind]
+            ),
+            403
+        );
 
         return view('parties.create', [
             'tenant' => $tenant,
             'navigationTrail' => $navigationTrail,
+            'allowedKinds' => $resolvedKinds,
+            'defaultKind' => $defaultKind,
         ]);
     }
 
     public function store(StorePartyRequest $request)
     {
-        $this->authorize('create', Party::class);
-
         $data = $request->validated();
+        $kind = $data['kind'] ?? null;
+
+        abort_unless(
+            is_string($kind) && app(Security::class)->allows(
+                $request->user(),
+                ModuleCatalog::PARTIES.'.create',
+                Party::class,
+                ['kind' => $kind]
+            ),
+            403
+        );
 
         $party = Party::create($data);
         $navigationTrail = PartyNavigationTrail::show($request, $party);
@@ -89,33 +124,11 @@ class PartyController extends Controller
         $this->authorize('view', $party);
 
         $tenant = app('tenant');
-
-        $assets = Asset::query()
-            ->where('party_id', $party->id)
-            ->orderBy('name')
-            ->get();
-
-        $orders = Order::query()
-            ->with('asset')
-            ->where('party_id', $party->id)
-            ->latest()
-            ->get();
-
-        $documents = Document::query()
-            ->with(['order', 'asset'])
-            ->where('party_id', $party->id)
-            ->orderByDesc('issued_at')
-            ->orderByDesc('id')
-            ->get();
-
         $navigationTrail = PartyNavigationTrail::show($request, $party);
 
         return view('parties.show', [
             'tenant' => $tenant,
             'party' => $party,
-            'assets' => $assets,
-            'orders' => $orders,
-            'documents' => $documents,
             'navigationTrail' => $navigationTrail,
         ]);
     }
@@ -126,11 +139,13 @@ class PartyController extends Controller
 
         $tenant = app('tenant');
         $navigationTrail = PartyNavigationTrail::edit($request, $party);
+        $resolvedKinds = $this->resolvedAllowedKinds();
 
         return view('parties.edit', [
             'tenant' => $tenant,
             'party' => $party,
             'navigationTrail' => $navigationTrail,
+            'allowedKinds' => $resolvedKinds,
         ]);
     }
 
@@ -160,5 +175,64 @@ class PartyController extends Controller
         return redirect()
             ->to($redirectUrl)
             ->with('success', 'Contacto eliminado correctamente.');
+    }
+
+    protected function resolvedAllowedKinds(): array
+    {
+        $tenant = app('tenant');
+        $user = auth()->user();
+
+        $constraints = app(Security::class)->inspect(
+            $user,
+            ModuleCatalog::PARTIES.'.viewAny',
+            Party::class
+        )['constraints'] ?? [];
+
+        $allowedKinds = $constraints['allowed_kinds'] ?? [];
+
+        if (! is_array($allowedKinds) || empty($allowedKinds)) {
+            return array_keys(PartyCatalog::kindLabels());
+        }
+
+        return array_values(array_filter(
+            array_keys(PartyCatalog::kindLabels()),
+            fn ($kind) => in_array($kind, $allowedKinds, true)
+        ));
+    }
+
+    protected function resolveCreateAvailabilityByKind(array $allowedKinds): array
+    {
+        $security = app(Security::class);
+        $user = auth()->user();
+
+        $result = [];
+
+        foreach ($allowedKinds as $kind) {
+            $result[$kind] = $security->allows(
+                $user,
+                ModuleCatalog::PARTIES.'.create',
+                Party::class,
+                ['kind' => $kind]
+            );
+        }
+
+        return $result;
+    }
+
+    protected function resolveDefaultCreatableKind(array $allowedKinds, mixed $requestedKind): ?string
+    {
+        $creatableByKind = $this->resolveCreateAvailabilityByKind($allowedKinds);
+
+        if (is_string($requestedKind) && ($creatableByKind[$requestedKind] ?? false) === true) {
+            return $requestedKind;
+        }
+
+        foreach ($creatableByKind as $kind => $allowed) {
+            if ($allowed) {
+                return $kind;
+            }
+        }
+
+        return null;
     }
 }

@@ -1,6 +1,9 @@
-{{-- FILE: resources/views/tenants/partials/permissions/capability-row.blade.php | V10 --}}
+{{-- FILE: resources/views/tenants/partials/permissions/capability-row.blade.php | V11 --}}
 
 @php
+    use App\Support\Catalogs\ModuleCatalog;
+    use App\Support\Catalogs\PermissionScopeCatalog;
+
     $oldEnabled = old("permissions.$module.$capability.enabled");
     $enabled = $oldEnabled !== null ? (bool) $oldEnabled : (bool) ($meta['enabled'] ?? false);
 
@@ -21,12 +24,10 @@
     $showAllowedKinds = !empty($allowedKindOptions);
 
     $selectedScopeHelp = match ($scope) {
-        \App\Support\Catalogs\PermissionScopeCatalog::TENANT_ALL
+        PermissionScopeCatalog::TENANT_ALL
             => 'Puede trabajar con toda la información de este módulo dentro de la empresa.',
-        \App\Support\Catalogs\PermissionScopeCatalog::OWN_ASSIGNED
-            => 'Solo puede trabajar con los registros que tenga asignados.',
-        \App\Support\Catalogs\PermissionScopeCatalog::LIMITED
-            => 'Tiene acceso parcial según la lógica específica de este módulo.',
+        PermissionScopeCatalog::OWN_ASSIGNED => 'Solo puede trabajar con los registros que tenga asignados.',
+        PermissionScopeCatalog::LIMITED => 'Tiene acceso parcial según la lógica específica de este módulo.',
         default => $showScope
             ? 'Define sobre qué información podrá usar esta acción.'
             : 'Esta acción no requiere un alcance adicional.',
@@ -38,6 +39,18 @@
     };
 
     $isSensitive = in_array($capability, ['delete'], true);
+
+    $allowedKindsTitle = match ($module) {
+        ModuleCatalog::ORDERS => 'Tipos de orden permitidos para esta acción',
+        ModuleCatalog::PARTIES => 'Tipos de contacto permitidos para esta acción',
+        default => 'Tipos permitidos para esta acción',
+    };
+
+    $allowedKindsHelp = match ($module) {
+        ModuleCatalog::ORDERS => 'La acción solo se permitirá sobre órdenes de los tipos seleccionados.',
+        ModuleCatalog::PARTIES => 'La acción solo se permitirá sobre contactos de los tipos seleccionados.',
+        default => 'La acción solo se permitirá sobre los tipos seleccionados.',
+    };
 @endphp
 
 <tr>
@@ -108,7 +121,7 @@
         @if ($showAllowedKinds)
             <div style="margin-top: 0.75rem;">
                 <div class="form-help" style="margin-bottom: 0.5rem;">
-                    Tipos de orden permitidos para esta acción
+                    {{ $allowedKindsTitle }}
                 </div>
 
                 <div class="inline-form inline-form-wrap">
@@ -123,7 +136,7 @@
                 </div>
 
                 <div class="form-help">
-                    La acción solo se permitirá sobre órdenes de los tipos seleccionados.
+                    {{ $allowedKindsHelp }}
                 </div>
 
                 @error("permissions.$module.$capability.constraints.allowed_kinds")

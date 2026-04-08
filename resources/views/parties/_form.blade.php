@@ -1,14 +1,29 @@
-{{-- FILE: resources/views/parties/_form.blade.php | V2 --}}
+{{-- FILE: resources/views/parties/_form.blade.php | V3 --}}
 
 @php
     use App\Support\Catalogs\PartyCatalog;
+
+    $party = $party ?? null;
+    $allowedKinds = $allowedKinds ?? array_keys(PartyCatalog::kindLabels());
+    $defaultKind = $defaultKind ?? null;
+
+    $currentKind = old(
+        'kind',
+        $party->kind ??
+            ($defaultKind ??
+                (in_array(PartyCatalog::KIND_CUSTOMER, $allowedKinds, true)
+                    ? PartyCatalog::KIND_CUSTOMER
+                    : $allowedKinds[0] ?? null)),
+    );
 @endphp
 
 <div class="form-group">
     <label for="kind" class="form-label">Tipo</label>
     <select name="kind" id="kind" class="form-control" required>
         @foreach (PartyCatalog::kindLabels() as $value => $label)
-            <option value="{{ $value }}" @selected(old('kind', $party->kind ?? PartyCatalog::KIND_CUSTOMER) === $value)>
+            @continue(!in_array($value, $allowedKinds, true))
+
+            <option value="{{ $value }}" @selected($currentKind === $value)>
                 {{ $label }}
             </option>
         @endforeach

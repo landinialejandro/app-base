@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/index.blade.php | V10 --}}
+{{-- FILE: resources/views/parties/index.blade.php | V11 --}}
 
 @extends('layouts.app')
 
@@ -16,6 +16,19 @@
                 NavigationTrail::makeNode('parties.index', null, 'Contactos', route('parties.index')),
             ]),
         );
+
+        $allowedKinds = $allowedKinds ?? array_keys(PartyCatalog::kindLabels());
+        $canCreateByKind = $canCreateByKind ?? [];
+        $defaultCreateKind = null;
+
+        foreach ($allowedKinds as $allowedKind) {
+            if (($canCreateByKind[$allowedKind] ?? false) === true) {
+                $defaultCreateKind = $allowedKind;
+                break;
+            }
+        }
+
+        $canCreateAny = $defaultCreateKind !== null;
     @endphp
 
     <x-page class="list-page">
@@ -23,11 +36,11 @@
         <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Contactos']]" />
 
         <x-page-header title="Contactos">
-            @can('create', App\Models\Party::class)
-                <a href="{{ route('parties.create', $trailQuery) }}" class="btn btn-success">
+            @if ($canCreateAny)
+                <a href="{{ route('parties.create', $trailQuery + ['kind' => $defaultCreateKind]) }}" class="btn btn-success">
                     Nuevo contacto
                 </a>
-            @endcan
+            @endif
         </x-page-header>
 
         <x-list-filters-card :action="route('parties.index')">
@@ -44,6 +57,8 @@
                         <select id="kind" name="kind" class="form-control">
                             <option value="">Todos</option>
                             @foreach (PartyCatalog::kindLabels() as $value => $label)
+                                @continue(!in_array($value, $allowedKinds, true))
+
                                 <option value="{{ $value }}" @selected(request('kind') === $value)>
                                     {{ $label }}
                                 </option>

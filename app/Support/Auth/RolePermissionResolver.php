@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Auth/RolePermissionResolver.php | V4
+// FILE: app/Support/Auth/RolePermissionResolver.php | V5
 
 namespace App\Support\Auth;
 
@@ -308,7 +308,30 @@ class RolePermissionResolver
 
     protected function mergeConstraints(array $base, array $incoming): array
     {
-        return $this->mergeRecursiveDistinct($base, $incoming);
+        foreach ($incoming as $key => $value) {
+            if ($key === 'allowed_kinds') {
+                $base[$key] = array_values(array_unique(array_filter([
+                    ...((array) ($base[$key] ?? [])),
+                    ...((array) $value),
+                ], fn ($item) => is_string($item) && trim($item) !== '')));
+
+                continue;
+            }
+
+            if (
+                array_key_exists($key, $base)
+                && is_array($base[$key])
+                && is_array($value)
+            ) {
+                $base[$key] = $this->mergeRecursiveDistinct($base[$key], $value);
+
+                continue;
+            }
+
+            $base[$key] = $value;
+        }
+
+        return $base;
     }
 
     protected function normalizeConstraints(mixed $constraints): array

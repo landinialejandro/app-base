@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Auth/TenantModuleAccess.php | V2
+// FILE: app/Support/Auth/TenantModuleAccess.php | V3
 
 namespace App\Support\Auth;
 
@@ -28,6 +28,10 @@ class TenantModuleAccess
 
     public static function isEnabled(string $module, ?Tenant $tenant = null): bool
     {
+        if ($module === ModuleCatalog::PARTIES) {
+            return true;
+        }
+
         $modules = static::enabledModules($tenant);
 
         return (bool) ($modules[$module] ?? false);
@@ -36,7 +40,11 @@ class TenantModuleAccess
     protected static function baseModules(): array
     {
         return collect(ModuleCatalog::all())
-            ->mapWithKeys(fn (string $module) => [$module => true])
+            ->mapWithKeys(function (string $module) {
+                return [
+                    $module => $module === ModuleCatalog::PARTIES ? true : true,
+                ];
+            })
             ->all();
     }
 
@@ -60,11 +68,17 @@ class TenantModuleAccess
         $overrides = [];
 
         if (isset($allTenantOverrides[$tenant->id]) && is_array($allTenantOverrides[$tenant->id])) {
-            $overrides = static::mergeModuleMap($overrides, static::filterValidModuleMap($allTenantOverrides[$tenant->id]));
+            $overrides = static::mergeModuleMap(
+                $overrides,
+                static::filterValidModuleMap($allTenantOverrides[$tenant->id])
+            );
         }
 
         if (isset($tenant->slug) && isset($allTenantOverrides[$tenant->slug]) && is_array($allTenantOverrides[$tenant->slug])) {
-            $overrides = static::mergeModuleMap($overrides, static::filterValidModuleMap($allTenantOverrides[$tenant->slug]));
+            $overrides = static::mergeModuleMap(
+                $overrides,
+                static::filterValidModuleMap($allTenantOverrides[$tenant->slug])
+            );
         }
 
         return $overrides;
@@ -101,6 +115,12 @@ class TenantModuleAccess
                 continue;
             }
 
+            if ($module === ModuleCatalog::PARTIES) {
+                $base[$module] = true;
+
+                continue;
+            }
+
             $base[$module] = (bool) $enabled;
         }
 
@@ -116,6 +136,12 @@ class TenantModuleAccess
                 continue;
             }
 
+            if ($module === ModuleCatalog::PARTIES) {
+                $filtered[$module] = true;
+
+                continue;
+            }
+
             $filtered[$module] = (bool) $enabled;
         }
 
@@ -127,7 +153,9 @@ class TenantModuleAccess
         $normalized = [];
 
         foreach (ModuleCatalog::all() as $module) {
-            $normalized[$module] = (bool) ($modules[$module] ?? false);
+            $normalized[$module] = $module === ModuleCatalog::PARTIES
+                ? true
+                : (bool) ($modules[$module] ?? false);
         }
 
         return $normalized;

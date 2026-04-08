@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Auth/RecordScopeResolver.php | V6
+// FILE: app/Support/Auth/RecordScopeResolver.php | V7
 
 namespace App\Support\Auth;
 
@@ -105,7 +105,7 @@ class RecordScopeResolver
             return false;
         }
 
-        return $this->allowsByConstraints($constraints, $record, $context);
+        return $this->allowsByConstraints($module, $capability, $constraints, $record, $context);
     }
 
     public function allowsCreateContext(
@@ -158,7 +158,7 @@ class RecordScopeResolver
             context: $context,
         );
 
-        return $this->applyConstraintsToQuery($query, $constraints);
+        return $this->applyConstraintsToQuery($module, $capability, $query, $constraints);
     }
 
     protected function allowsByScope(
@@ -208,30 +208,43 @@ class RecordScopeResolver
         return $query->whereRaw('1 = 0');
     }
 
-    protected function allowsByConstraints(array $constraints, Model $record, array $context = []): bool
-    {
-        $allowedKinds = $this->extractAllowedKinds($constraints);
+    protected function allowsByConstraints(
+        string $module,
+        string $capability,
+        array $constraints,
+        Model $record,
+        array $context = []
+    ): bool {
+        if ($this->requiresAllowedKinds($module, $capability)) {
+            $allowedKinds = $this->extractAllowedKinds($constraints);
 
-        if (! empty($allowedKinds)) {
-            $kind = $record->getAttribute('kind');
+            if (! empty($allowedKinds)) {
+                $kind = $record->getAttribute('kind');
 
-            if (! is_string($kind) || ! in_array($kind, $allowedKinds, true)) {
-                return false;
+                if (! is_string($kind) || ! in_array($kind, $allowedKinds, true)) {
+                    return false;
+                }
             }
         }
 
         return true;
     }
 
-    protected function applyConstraintsToQuery(Builder $query, array $constraints): Builder
-    {
-        $allowedKinds = $this->extractAllowedKinds($constraints);
+    protected function applyConstraintsToQuery(
+        string $module,
+        string $capability,
+        Builder $query,
+        array $constraints
+    ): Builder {
+        if ($this->requiresAllowedKinds($module, $capability)) {
+            $allowedKinds = $this->extractAllowedKinds($constraints);
 
-        if (! empty($allowedKinds) && $this->modelHasColumn($query->getModel(), 'kind')) {
-            $query->whereIn(
-                $query->getModel()->qualifyColumn('kind'),
-                $allowedKinds
-            );
+            if (! empty($allowedKinds) && $this->modelHasColumn($query->getModel(), 'kind')) {
+                $query->whereIn(
+                    $query->getModel()->qualifyColumn('kind'),
+                    $allowedKinds
+                );
+            }
         }
 
         return $query;
@@ -298,6 +311,7 @@ class RecordScopeResolver
         return in_array($module, [
             ModuleCatalog::ORDERS,
             ModuleCatalog::DOCUMENTS,
+            ModuleCatalog::PARTIES,
         ], true);
     }
 

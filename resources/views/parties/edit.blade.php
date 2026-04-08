@@ -1,4 +1,4 @@
-{{-- FILE:resources/views/parties/edit.blade.php | V2 --}}
+{{-- FILE: resources/views/parties/edit.blade.php | V3 --}}
 
 @extends('layouts.app')
 
@@ -23,7 +23,10 @@
                 @csrf
                 @method('PUT')
 
-                @include('parties._form', ['party' => $party])
+                @include('parties._form', [
+                    'party' => $party,
+                    'allowedKinds' => $allowedKinds,
+                ])
 
                 <div class="form-actions">
                     <button type="submit" class="btn btn-primary">Guardar cambios</button>

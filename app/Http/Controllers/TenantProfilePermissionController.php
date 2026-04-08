@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantProfilePermissionController.php | V7
+// FILE: app/Http/Controllers/TenantProfilePermissionController.php | V8
 
 namespace App\Http\Controllers;
 
@@ -10,6 +10,7 @@ use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\CapabilityCatalog;
 use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\OrderCatalog;
+use App\Support\Catalogs\PartyCatalog;
 use App\Support\Catalogs\PermissionScopeCatalog;
 use App\Support\Catalogs\RoleCatalog;
 use Illuminate\Http\Request;
@@ -444,7 +445,7 @@ class TenantProfilePermissionController extends Controller
                         );
                     }
 
-                    $validKinds = array_keys(OrderCatalog::kindLabels());
+                    $validKinds = $this->validKindsForModule($module);
 
                     foreach ($allowedKinds as $kind) {
                         if (! in_array($kind, $validKinds, true)) {
@@ -461,14 +462,29 @@ class TenantProfilePermissionController extends Controller
 
     protected function supportsAllowedKindsConstraint(string $module, string $capability): bool
     {
-        return $module === ModuleCatalog::ORDERS
-            && in_array($capability, [
-                CapabilityCatalog::VIEW_ANY,
-                CapabilityCatalog::VIEW,
-                CapabilityCatalog::CREATE,
-                CapabilityCatalog::UPDATE,
-                CapabilityCatalog::DELETE,
-            ], true);
+        if (! in_array($capability, [
+            CapabilityCatalog::VIEW_ANY,
+            CapabilityCatalog::VIEW,
+            CapabilityCatalog::CREATE,
+            CapabilityCatalog::UPDATE,
+            CapabilityCatalog::DELETE,
+        ], true)) {
+            return false;
+        }
+
+        return in_array($module, [
+            ModuleCatalog::ORDERS,
+            ModuleCatalog::PARTIES,
+        ], true);
+    }
+
+    protected function validKindsForModule(string $module): array
+    {
+        return match ($module) {
+            ModuleCatalog::ORDERS => array_keys(OrderCatalog::kindLabels()),
+            ModuleCatalog::PARTIES => array_keys(PartyCatalog::kindLabels()),
+            default => [],
+        };
     }
 
     protected function singleScopeOrNull(string $module, string $capability): ?string

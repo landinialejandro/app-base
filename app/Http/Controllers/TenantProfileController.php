@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantProfileController.php | V10
+// FILE: app/Http/Controllers/TenantProfileController.php | V11
 
 namespace App\Http\Controllers;
 
@@ -13,6 +13,7 @@ use App\Support\Catalogs\BusinessTypeCatalog;
 use App\Support\Catalogs\CapabilityCatalog;
 use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\OrderCatalog;
+use App\Support\Catalogs\PartyCatalog;
 use App\Support\Catalogs\PermissionScopeCatalog;
 use App\Support\Catalogs\RoleCatalog;
 use Illuminate\Http\Request;
@@ -347,8 +348,7 @@ class TenantProfileController extends Controller
     protected function buildConstraintOptionsFor(string $module, string $capability): array
     {
         if (
-            $module === ModuleCatalog::ORDERS
-            && in_array($capability, [
+            in_array($capability, [
                 CapabilityCatalog::VIEW_ANY,
                 CapabilityCatalog::VIEW,
                 CapabilityCatalog::CREATE,
@@ -356,9 +356,17 @@ class TenantProfileController extends Controller
                 CapabilityCatalog::DELETE,
             ], true)
         ) {
-            return [
-                'allowed_kinds' => OrderCatalog::kindLabels(),
-            ];
+            if ($module === ModuleCatalog::ORDERS) {
+                return [
+                    'allowed_kinds' => OrderCatalog::kindLabels(),
+                ];
+            }
+
+            if ($module === ModuleCatalog::PARTIES) {
+                return [
+                    'allowed_kinds' => PartyCatalog::kindLabels(),
+                ];
+            }
         }
 
         return [];

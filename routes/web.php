@@ -36,8 +36,12 @@ use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
-    return view('welcome');
-});
+    return view('landing.home');
+})->name('landing.home');
+
+Route::get('/pricing', function () {
+    return view('landing.pricing');
+})->name('landing.pricing');
 
 Route::get('/solicitar-empresa', [PublicSignupRequestController::class, 'create'])
     ->name('public.signup-requests.create');

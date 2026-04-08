@@ -201,6 +201,8 @@ Las entidades del negocio representan la operación propia de cada tenant y debe
 <<END SECTION>>
 
 <<SECTION: Entidades del negocio>>
+SECTION_VERSION: 00002
+
 Entidades del negocio
 
 Las entidades del negocio actuales del sistema son:
@@ -229,6 +231,16 @@ no debe considerarse un módulo opcional apagable por tenant en el mismo sentido
 las relaciones por *_id hacia otras entidades modulares deben considerarse dependientes del estado activo del módulo destino
 
 si el módulo destino no está habilitado para el tenant, esas relaciones no deben exponerse ni operar a nivel de UI
+
+Alineación funcional consolidada:
+
+cada entidad principal del negocio posee:
+
+un módulo visible en el sistema
+una representación clara en UI
+una sección correspondiente en la documentación de usuario
+
+esto refuerza el modelo del sistema como ERP utilizable desde el primer momento
 <<END SECTION>>
 
 <<SECTION: Entidades del sistema y acceso>>

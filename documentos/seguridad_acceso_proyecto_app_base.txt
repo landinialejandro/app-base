@@ -320,6 +320,8 @@ La doctrina completa de V2 debe mantenerse alineada con:
 <<END SECTION>>
 
 <<SECTION: FLUJO DE GESTIÓN Y CONSUMO DE PERMISOS>>
+SECTION_VERSION: 00002
+
 OBJETIVO
 
 Definir el flujo operativo de gestión y consumo de permisos dentro del sistema.
@@ -397,6 +399,20 @@ la UI no puede inferir permisos ni evaluar capacidades abstractas
 no debe utilizar @can directo cuando la capacidad depende de contexto
 
 debe consumir flags o resoluciones ya evaluadas desde backend
+
+la documentación visible al usuario debe abstraer completamente la complejidad del modelo de permisos
+
+no debe exponer:
+
+scopes
+constraints
+capabilities técnicas
+
+debe centrarse en:
+
+qué puede hacer el usuario
+qué puede ver
+qué acciones tiene disponibles
 
 REGLA DE MÓDULOS ACTIVOS
 

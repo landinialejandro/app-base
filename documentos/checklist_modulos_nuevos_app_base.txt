@@ -146,6 +146,8 @@ no asumir herencia automática sin código real que la respalde
 <<END SECTION>>
 
 <<SECTION: DOCUMENTACIÓN OBLIGATORIA>>
+SECTION_VERSION: 00002
+
 DOCUMENTACIÓN OBLIGATORIA
 
 Verificar si corresponde actualizar:
@@ -167,6 +169,18 @@ Verificar si corresponde actualizar:
 No actualizar documentos por inercia.
 
 Solo tocar los realmente afectados.
+
+Regla adicional consolidada:
+
+todo módulo nuevo debe incluir su descripción funcional orientada a usuario dentro de la guía de uso del sistema
+
+esa descripción debe:
+
+seguir el patrón narrativo definido
+utilizar lenguaje no técnico
+mantener coherencia con el resto de módulos
+
+esto asegura consistencia entre sistema, documentación y onboarding
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN Y BREADCRUMB>>

@@ -60,6 +60,8 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
+SECTION_VERSION: 00002
+
 COMPONENTES DISPONIBLES
 
 Componentes Blade reutilizables utilizados en todas las vistas.
@@ -84,6 +86,22 @@ forma parte del layout base en pantallas internas no públicas
 brand del sistema en header/navbar
 resuelto exclusivamente mediante iconografía SVG inline
 no debe utilizar texto visible como representación de marca
+
+Nuevo tipo de contenido consolidado:
+
+bloques de ayuda contextual por módulo
+
+Características:
+
+contenido explicativo orientado a usuario final
+puede integrarse dentro de vistas show o zonas de ayuda
+no forma parte de la estructura operativa principal
+
+Reglas:
+
+deben tratarse como contenido subordinado
+no deben competir visualmente con summary ni acciones
+no deben alterar jerarquía principal de la pantalla
 <<END SECTION>>
 
 <<SECTION: IDENTIDAD VISUAL Y BRANDING DEL HEADER>>
@@ -202,6 +220,8 @@ mantener consistencia visual entre dashboard y vistas show con métricas
 <<END SECTION>>
 
 <<SECTION: PATRÓN VISUAL PARA VISTAS SHOW>>
+SECTION_VERSION: 00002
+
 PATRÓN VISUAL PARA VISTAS SHOW
 
 Las vistas show del core deben tender a una estructura visual consistente.
@@ -241,15 +261,13 @@ acciones globales del registro
 acciones contextuales del subtab
 resúmenes operativos de subcolecciones
 
-cuando un patrón visual del detalle expandible se repita con claridad, los bloques detail-grid, detail-block o equivalentes pueden migrarse a wrappers o partials chicos reusables, siempre que eso reduzca repetición sin agregar complejidad innecesaria
+Regla adicional consolidada:
 
-Regla de relaciones:
+los bloques de ayuda contextual por módulo pueden integrarse dentro del show como contenido subordinado
 
-si un bloque del show depende de un módulo relacionado:
-
-el x-show-summary-item completo no debe renderizarse si el módulo destino está deshabilitado
-
-no deben mostrarse placeholders ni estados vacíos artificiales
+deben ubicarse en zonas de baja jerarquía visual
+no deben competir con summary ni acciones
+deben leerse como ayuda complementaria y no como contenido estructural
 <<END SECTION>>
 
 <<SECTION: REGLAS PARA X-SHOW-SUMMARY Y X-SHOW-SUMMARY-ITEM>>
@@ -285,6 +303,8 @@ la unidad visual completa debe desaparecer y no solo el contenido interno
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW>>
+SECTION_VERSION: 00002
+
 ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW
 
 La zona de relaciones de una vista show debe resolverse con una estructura visual simple y predecible.
@@ -310,6 +330,14 @@ summary inferior opcional
 el toolbar secundario solo debe existir cuando agregue una acción o control real y no por simetría visual vacía
 
 si el embebido solo necesita un listado simple, no debe forzarse una estructura más pesada de la necesaria
+
+Regla adicional consolidada:
+
+los bloques de ayuda contextual deben ubicarse fuera de la zona principal de relaciones
+
+no deben mezclarse con listados operativos
+no deben integrarse dentro de tablas ni tabs funcionales
+deben mantenerse como contenido independiente de apoyo
 <<END SECTION>>
 
 <<SECTION: TABS INTERNAS DEL EMBEBIDO>>

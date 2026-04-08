@@ -30,7 +30,7 @@ CONVENCIONES-DEL-PROYECTO
 <<END SECTION>>
 
 <<SECTION: ESTADO ACTUAL DEL SISTEMA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ESTADO ACTUAL DEL SISTEMA
 
@@ -51,11 +51,13 @@ módulo clients eliminado en favor de parties
 flujo de onboarding y alta de usuarios resuelto mediante invitations (owner_signup y member_invite)
 
 Estado visual consolidado:
+
 identidad visual base definida mediante iconografía SVG en header
 favicon implementado como asset público
 footer global del layout operativo integrado al shell de la app
 
 Estado actual de datos base validado:
+
 la batería de seeders base quedó regularizada para pruebas V2
 
 el dataset actual ya permite correr pruebas consistentes sobre:
@@ -81,6 +83,12 @@ DOC_SLUG
 DOC_VERSION
 bloque METADATOS
 referencias internas mediante DOC_REF
+
+Se consolida adicionalmente:
+
+la documentación funcional de usuario por módulos
+un patrón narrativo homogéneo para onboarding
+una base reutilizable para ayuda contextual dentro del sistema
 
 la siguiente evolución prevista es un visor navegable dentro de Laravel para documentación técnica del proyecto
 <<END SECTION>>
@@ -108,7 +116,7 @@ inventory
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 PENDIENTES INMEDIATOS
 
@@ -155,6 +163,14 @@ renderizar DOC_REF como navegación interna entre documentos
 excluir explícitamente del visor las carpetas baks y auditoria
 
 dejar preparada la migración futura del visor documental hacia una capa restringida o superadmin
+
+Nuevo estado consolidado:
+
+la base de documentación funcional por módulos ya se encuentra disponible
+
+queda habilitada la integración de ayuda contextual dentro de los módulos
+
+la evolución pendiente pasa a ser su incorporación en UI y no su generación base
 <<END SECTION>>
 
 <<SECTION: ATTACHMENTS>>

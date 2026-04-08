@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CONVENCIONES GENERALES
 
@@ -58,6 +58,19 @@ las referencias internas entre documentos deben tender a resolverse mediante:
 no deben utilizarse nombres de archivo físicos como referencia narrativa dentro del cuerpo del documento
 
 las carpetas baks y auditoria no forman parte de la base documental activa navegable
+
+Convención adicional consolidada para contenido orientado a usuario:
+
+los textos dirigidos a usuario final deben utilizar lenguaje no técnico
+deben priorizar claridad, accesibilidad y comprensión inmediata
+deben construirse con frases cortas y cierre conceptual claro
+pueden incorporar líneas de refuerzo tipo “👉 …” como patrón de cierre
+
+este criterio aplica a:
+
+documentación de onboarding
+ayudas contextuales
+contenidos UX embebidos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE NOMBRES>>
@@ -803,6 +816,8 @@ sin serialización recursiva del trail dentro de nodos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE VOCABULARIO UI>>
+SECTION_VERSION: 00002
+
 CONVENCIONES DE VOCABULARIO UI
 
 Nombre genérico visible de la entidad parties en interfaz:
@@ -836,6 +851,17 @@ qué información queda protegida
 qué configuraciones sensibles siguen resguardadas
 
 Evitar exponer terminología interna de autorización cuando no agregue claridad real para el usuario final.
+
+Regla adicional consolidada:
+
+los textos visibles en UI orientados a usuario deben mantener coherencia con el patrón narrativo definido para documentación de usuario
+
+esto implica:
+
+lenguaje claro
+tono directo
+evitar tecnicismos innecesarios
+mantener consistencia entre sistema y documentación
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ACCIONES VISUALES>>

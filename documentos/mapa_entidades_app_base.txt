@@ -264,9 +264,39 @@ SignupRequest
 <<END SECTION>>
 
 <<SECTION: MÓDULOS ACTUALES DEL NEGOCIO>>
+SECTION_VERSION: 00001
+
 MÓDULOS ACTUALES DEL NEGOCIO
 
+Los módulos actuales del sistema corresponden directamente a las entidades principales del dominio.
 
+Cada uno de estos módulos posee:
+
+representación operativa en UI
+correspondencia directa con entidad del negocio
+presencia en documentación funcional de usuario
+
+Listado actual:
+
+parties
+projects
+tasks
+appointments
+products
+assets
+orders
+documents
+attachments
+
+Relación consolidada:
+
+entidad del negocio
+↓
+módulo del sistema
+↓
+sección de documentación de usuario
+
+Esta correspondencia 1 a 1 forma parte del modelo mental estable del sistema y debe mantenerse en futuras extensiones.
 <<END SECTION>>
 
 <<SECTION: PARTIES>>

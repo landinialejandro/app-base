@@ -1,11 +1,13 @@
-{{-- FILE: resources/views/landing/partials/flow.blade.php | V1 --}}
+{{-- FILE: resources/views/landing/partials/flow.blade.php | V2 --}}
 <section class="landing-section">
     <div class="landing-container">
         <div class="landing-section__header">
             <span class="landing-eyebrow">Continuidad operativa</span>
-            <h2>El trabajo no debería cortarse cada vez que cambia de pantalla.</h2>
+            <h2>El trabajo debería avanzar con naturalidad, no romperse entre pantallas o procesos.</h2>
             <p>
-                app-base está pensado para sostener relaciones reales entre módulos y acompañar el recorrido de trabajo.
+                app-base está pensado para que cada parte del recorrido conserve contexto, orden y continuidad dentro de
+                un
+                mismo entorno de trabajo.
             </p>
         </div>
 

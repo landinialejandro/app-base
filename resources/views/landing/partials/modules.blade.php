@@ -1,11 +1,13 @@
-{{-- FILE: resources/views/landing/partials/modules.blade.php | V1 --}}
+{{-- FILE: resources/views/landing/partials/modules.blade.php | V3 --}}
 <section class="landing-section landing-section--dark">
     <div class="landing-container">
         <div class="landing-section__header landing-section__header--light">
-            <span class="landing-eyebrow">Módulos principales</span>
-            <h2>Todo lo importante, organizado en una misma base.</h2>
+            <span class="landing-eyebrow">Base sólida, en expansión</span>
+            <h2>Hoy ya incorpora módulos clave. Y sigue creciendo.</h2>
             <p>
-                Podés avanzar por etapas. No necesitás usar todo desde el primer día.
+                app-base ya ofrece una base operativa completa, integrada y lista para trabajar. Al mismo tiempo, está
+                diseñado para seguir evolucionando junto con la empresa que lo utiliza, incorporando nuevas capacidades
+                cuando realmente agregan valor.
             </p>
         </div>
 
@@ -17,7 +19,7 @@
 
             <article class="landing-module-card">
                 <h3>Agenda</h3>
-                <p>Turnos y organización temporal del trabajo operativo.</p>
+                <p>Organización temporal del trabajo, turnos y coordinación operativa.</p>
             </article>
 
             <article class="landing-module-card">
@@ -42,18 +44,29 @@
 
             <article class="landing-module-card">
                 <h3>Productos</h3>
-                <p>Oferta utilizable dentro de órdenes y documentos.</p>
+                <p>Oferta lista para usarse dentro de órdenes y documentos.</p>
             </article>
 
             <article class="landing-module-card">
                 <h3>Proyectos</h3>
-                <p>Vista agregada para ordenar y seguir conjuntos de trabajo.</p>
+                <p>Vista amplia para organizar y seguir conjuntos de trabajo.</p>
             </article>
 
             <article class="landing-module-card">
                 <h3>Adjuntos</h3>
-                <p>Archivos e imágenes que acompañan y respaldan la operación.</p>
+                <p>Archivos e imágenes disponibles dentro del mismo entorno operativo.</p>
             </article>
         </div>
+
+        <div class="landing-growth-note">
+            <div class="landing-growth-note__content">
+                <span class="landing-eyebrow landing-eyebrow--light">Expansión prevista</span>
+                <h3>La plataforma está preparada para seguir ampliándose.</h3>
+                <p>
+                    Sobre esta base ya consolidada pueden habilitarse nuevas capacidades, como un marketplace integrado
+                    y otros módulos futuros, sin perder coherencia, claridad ni control.
+                </p>
+            </div>
+        </div>
     </div>
-</section>adaptable-agenda.blade
+</section>

@@ -1,21 +1,22 @@
-{{-- FILE: resources/views/landing/partials/hero.blade.php | V1 --}}
+{{-- FILE: resources/views/landing/partials/hero.blade.php | V2 --}}
 <section class="landing-hero">
     <div class="landing-container landing-hero__grid">
         <div class="landing-hero__content">
-            <span class="landing-eyebrow">Base operativa modular para empresas</span>
+            <span class="landing-eyebrow">Infraestructura premium para empresas</span>
 
             <h1 class="landing-title">
-                Ordená tu operación en un solo sistema, sin sumar complejidad.
+                Tu empresa, elevada a otro nivel.
             </h1>
 
             <p class="landing-lead">
-                app-base conecta agenda, contactos, órdenes, documentos, activos, tareas y seguimiento operativo en un
-                entorno claro, sólido y preparado para crecer con tu forma de trabajar.
+                app-base organiza, conecta y potencia la operación diaria en un entorno claro, sólido y preparado para
+                acompañar el crecimiento de tu empresa.
             </p>
 
             <p class="landing-sublead">
-                Pensado para acompañar talleres, servicios, comercios, consultorios y otros entornos donde la actividad
-                diaria necesita orden, continuidad y control.
+                No es solo software. Es un sistema diseñado para trabajar con orden, continuidad, control y una
+                experiencia
+                superior desde el primer momento.
             </p>
 
             <div class="landing-hero__actions">
@@ -42,13 +43,13 @@
 
             <div class="landing-hero__notes">
                 <div class="landing-mini-card">
-                    <strong>Para trabajar solo/a</strong>
-                    <span>No necesitás un equipo para empezar.</span>
+                    <strong>Tu empresa, en un entorno propio</strong>
+                    <span>Todo ocurre dentro de un espacio preparado, aislado y bajo tu control.</span>
                 </div>
 
                 <div class="landing-mini-card">
-                    <strong>Para crecer con orden</strong>
-                    <span>Podés sumar colaboradores cuando lo necesites.</span>
+                    <strong>Listo para empezar y crecer</strong>
+                    <span>Podés comenzar solo/a y sumar colaboradores cuando lo necesites.</span>
                 </div>
             </div>
         </div>
@@ -63,25 +64,29 @@
 
                 <div class="landing-showcase__body">
                     <div class="landing-showcase__block">
-                        <span class="landing-showcase__label">Operación conectada</span>
-                        <strong>Agenda → Orden → Documento</strong>
-                        <p>Un flujo continuo para que el trabajo no se corte entre módulos.</p>
+                        <span class="landing-showcase__label">Experiencia premium</span>
+                        <strong>Todo preparado para trabajar mejor</strong>
+                        <p>
+                            Como entrar a un espacio propio, exclusivo y completamente equipado, donde cada parte
+                            acompaña
+                            tu forma de trabajar.
+                        </p>
                     </div>
 
                     <div class="landing-showcase__stats">
                         <div class="landing-stat">
-                            <span class="landing-stat__label">Base modular</span>
-                            <strong class="landing-stat__value">9 módulos</strong>
+                            <span class="landing-stat__label">Base actual</span>
+                            <strong class="landing-stat__value">9 módulos integrados</strong>
                         </div>
 
                         <div class="landing-stat">
-                            <span class="landing-stat__label">Acceso por empresa</span>
-                            <strong class="landing-stat__value">multi-tenant</strong>
+                            <span class="landing-stat__label">Entorno de empresa</span>
+                            <strong class="landing-stat__value">propio y aislado</strong>
                         </div>
 
                         <div class="landing-stat">
-                            <span class="landing-stat__label">Organización</span>
-                            <strong class="landing-stat__value">clara y escalable</strong>
+                            <span class="landing-stat__label">Evolución</span>
+                            <strong class="landing-stat__value">en crecimiento constante</strong>
                         </div>
                     </div>
                 </div>

@@ -1,12 +1,12 @@
-{{-- FILE: resources/views/landing/partials/cta.blade.php | V1 --}}
+{{-- FILE: resources/views/landing/partials/cta.blade.php | V2 --}}
 <section class="landing-section landing-section--cta">
     <div class="landing-container">
         <div class="landing-cta">
             <div class="landing-cta__content">
-                <span class="landing-eyebrow">Empezá con una base sólida</span>
-                <h2>Tu empresa puede empezar a trabajar con orden desde el primer momento.</h2>
+                <span class="landing-eyebrow">Empezá con una base superior</span>
+                <h2>Tu empresa puede empezar a trabajar con una infraestructura pensada para destacar.</h2>
                 <p>
-                    Solicitá acceso y avanzá con una estructura preparada para acompañar tu operación.
+                    Orden, continuidad, control, crecimiento y una experiencia premium en un mismo entorno.
                 </p>
             </div>
 

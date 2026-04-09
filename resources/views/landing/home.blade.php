@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/landing/home.blade.php | V3 --}}
+{{-- FILE: resources/views/landing/home.blade.php | V4 --}}
 @extends('layouts.landing')
 
 @section('title', 'app-base')
@@ -10,6 +10,7 @@
         @include('landing.partials.hero')
         @include('landing.partials.problem')
         @include('landing.partials.value')
+        @include('landing.partials.ai-agent')
         @include('landing.partials.business-types')
         @include('landing.partials.adaptable-agenda')
         @include('landing.partials.modules')

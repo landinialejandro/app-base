@@ -1,29 +1,32 @@
-{{-- FILE: resources/views/landing/partials/problem.blade.php | V1 --}}
+{{-- FILE: resources/views/landing/partials/problem.blade.php | V2 --}}
 <section class="landing-section landing-section--soft">
     <div class="landing-container">
         <div class="landing-section__header">
             <span class="landing-eyebrow">El problema que resuelve</span>
-            <h2>Cuando la operación crece sin estructura, todo empieza a depender de parches.</h2>
+            <h2>Cuando la operación no tiene una base a la altura, todo empieza a sentirse más chico de lo que debería.
+            </h2>
             <p>
-                Mensajes dispersos, planillas sueltas, agenda separada del trabajo real, documentos desconectados y
-                seguimiento difícil. app-base ordena ese recorrido en una base única.
+                Mensajes dispersos, planillas sueltas, agenda separada del trabajo real, documentos desconectados y una
+                sensación constante de improvisación. app-base transforma eso en una operación clara, conectada y
+                sólida.
             </p>
         </div>
 
         <div class="landing-grid landing-grid--3">
             <article class="landing-card">
-                <h3>Información dispersa</h3>
-                <p>Centralizá contactos, activos, tareas, órdenes y documentos sin fragmentar el trabajo.</p>
+                <h3>Menos dispersión</h3>
+                <p>La información deja de vivir repartida y empieza a formar parte de un mismo entorno de trabajo.</p>
             </article>
 
             <article class="landing-card">
-                <h3>Seguimiento roto</h3>
-                <p>Conectá la actividad diaria con su continuidad operativa y documental.</p>
+                <h3>Más continuidad</h3>
+                <p>La agenda, la operación y la formalización documental dejan de funcionar por separado.</p>
             </article>
 
             <article class="landing-card">
-                <h3>Crecimiento desordenado</h3>
-                <p>Empezá simple y sumá estructura sin perder claridad ni control.</p>
+                <h3>Más nivel</h3>
+                <p>La empresa deja de depender de soluciones provisorias y empieza a apoyarse en una infraestructura
+                    real.</p>
             </article>
         </div>
     </div>

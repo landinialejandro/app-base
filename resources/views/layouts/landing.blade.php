@@ -6,6 +6,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'app-base')</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('brand/favicon.svg') }}">
     <meta name="description"
         content="Sistema SaaS modular para organizar la operación de tu empresa con claridad, continuidad y control.">
 

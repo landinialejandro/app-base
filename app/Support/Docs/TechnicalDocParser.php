@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Docs/TechnicalDocParser.php | V1
+// FILE: app/Support/Docs/TechnicalDocParser.php | V2
 
 namespace App\Support\Docs;
 
@@ -25,6 +25,7 @@ class TechnicalDocParser
                 name: $sectionName,
                 anchor: Str::slug($sectionName),
                 html: $this->renderSectionBody($sectionBody),
+                rawBody: $sectionBody,
             );
         }
 

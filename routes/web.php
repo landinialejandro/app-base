@@ -54,6 +54,8 @@ Route::view('/solicitud-enviada', 'public.signup-requests.thank-you')
 
 Route::get('/docs', [TechnicalDocController::class, 'index'])->name('docs.index');
 Route::get('/docs/{slug}', [TechnicalDocController::class, 'show'])->name('docs.show');
+Route::put('/docs/{slug}/sections/{section}', [TechnicalDocController::class, 'updateSection'])
+    ->name('docs.sections.update');
 
 // Debug API: tenant por header X-Tenant
 Route::middleware('tenant')->get('/whoami', function () {

@@ -168,7 +168,7 @@ No debe utilizarse desactivación global de users para resolver bajas, bloqueos 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ACCESO POR MÓDULO Y ROLES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CONVENCIONES DE ACCESO POR MÓDULO Y ROLES
 
@@ -180,7 +180,7 @@ no hardcodear permisos en controllers, policies o blades si existe resolución c
 
 las policies deben consumir la capa central de autorización y no replicar lógica
 
-los controllers deben delegar en authorize(...) y no implementar lógica paralela
+los controllers deben delegar en authorize(...) o Security y no implementar lógica paralela
 
 las vistas no deben inferir permisos
 
@@ -200,29 +200,17 @@ no utilizar authorize('create', Model::class) en estos casos
 
 debe utilizarse la capa central con parámetros explícitos
 
+Regla de dataset:
+
+cuando la visibilidad depende de permisos, el controller debe usar Security::scope(...)
+
+no deben utilizarse queries paralelas ni filtros manuales
+
 Regla de consistencia obligatoria:
 
 view_any debe ser igual o más amplio que view
 
 no debe existir un contrato donde view_any quede más restringido que view para el mismo módulo
-
-Reglas adicionales consolidadas:
-
-los permisos pueden diferenciarse por capability dentro de un mismo módulo
-
-los roles son acumulables y el permiso efectivo surge de su combinación
-
-la capa de autorización debe contemplar la fusión de constraints por capability
-
-la UI de configuración de permisos no debe simplificar el modelo a matrices planas de enabled + scope
-
-cuando el dominio del módulo lo requiera, deben utilizarse catálogos dinámicos como fuente única de verdad para valores configurables (por ejemplo OrderCatalog para allowed_kinds)
-
-no deben hardcodearse valores de dominio en frontend
-
-La definición completa de roles, capacidades, scopes y constraints se encuentra en:
-
-<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
 
 <<END SECTION>>
 
@@ -389,85 +377,62 @@ documents no debe absorber órdenes de trabajo operativas ni duplicar la funció
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE SUPPORT Y HELPERS DE ACCESO>>
+SECTION_VERSION: 00002
+
 CONVENCIONES DE SUPPORT Y HELPERS DE ACCESO
 
-La lógica transversal de acceso tenant/roles debe centralizarse en clases de soporte reutilizables.
+La lógica transversal de acceso debe centralizarse en Security.
 
 Reglas:
 
 no implementar lógica de permisos en controllers o blades
 
-no duplicar resolución de acceso en múltiples capas
+no duplicar resolución de acceso
 
-utilizar siempre la capa central de autorización para resolver permisos efectivos
+Security es el punto único de consumo de autorización
 
-los helpers o clases de soporte deben limitarse a facilitar el acceso a esa capa y no a redefinir su comportamiento
+los resolvers no deben consumirse directamente
 
-las clases bajo app/Support/Auth deben considerarse punto de acceso técnico a la lógica central, no fuente alternativa de definición
+los helpers deben facilitar acceso a Security y no redefinir lógica
 
-La definición completa del modelo de autorización se encuentra en:
+las classes bajo app/Support/Auth deben actuar como acceso técnico y no como fuente alternativa
 
-<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE POLICIES>>
+SECTION_VERSION: 00002
+
 CONVENCIONES DE POLICIES
 
 La autorización por acción debe resolverse preferentemente mediante Policies.
 
-Acciones típicas:
-
-viewAny
-view
-create
-update
-delete
-
 Reglas:
 
-evitar lógica de permisos duplicada en controllers
+las policies deben actuar como wrappers mínimos sobre Security
 
-usar controllers delgados y delegar la autorización a policies o a la capa central
+no deben contener lógica de negocio ni reconstruir permisos
 
-si una policy necesita conceptos cerrados del sistema, reutilizar catálogos y resolvers
+no deben consumir resolvers directamente
 
-no utilizar casts booleanos ambiguos sobre scopes
+los controllers deben invocar authorize(...) o Security
 
-no usar fallbacks implícitos cuando la capa central ya resuelve la capacidad
+las vistas deben respetar permisos reales con @can solo cuando la capacidad no dependa de contexto
 
-cuando exista una policy:
+Regla crítica:
 
-el controller debe invocar authorize(...) o authorizeResource(...)
-la vista debe respetar permisos reales con @can
+cuando una capacidad depende de constraints
 
-las policies deben trabajar con capacidades concretas, scopes efectivos y constraints aplicables
+no debe utilizarse @can('create', Model::class)
 
-las policies deben tender a wrappers mínimos sobre el kernel central de autorización
+la autorización debe resolverse con contexto explícito o mediante flags precomputados
 
-distinción obligatoria:
+Distinción obligatoria:
 
-viewAny controla acceso al dataset (listados)
+viewAny controla acceso al dataset
 view controla acceso a registros individuales
 
-no debe utilizarse view para resolver visibilidad de listados
+los datasets deben resolverse mediante Security::scope(...)
 
-no deben resolverse listados mediante lógica indirecta o reinterpretación de scopes
-
-viewAny debe consumir directamente el scope resuelto por el resolver
-
-viewAny y view no deben resolverse como booleanos genéricos si el resolver ya entrega scope válido
-
-view_any debe ser igual o más amplio que view
-
-no deben resolver lectura únicamente con canUseModule
-
-no deben reinterpretar tenant_all, own_assigned o limited como aliases legacy
-
-las entidades hijas no deben asumir herencia automática de autorización
-
-order_items, document_items y attachments deben resolverse como recursos delegados al padre cuando la acción dependa naturalmente de la cabecera
-
-una policy que no se consume desde controller y vista no protege efectivamente el sistema
 <<END SECTION>>
 
 <<SECTION: REGLA DE NAVEGACIÓN Y VISIBILIDAD DE UI>>
@@ -521,6 +486,8 @@ cuando exista navegación contextual entre módulos relacionados, el módulo act
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE BLADE Y FRONTEND LIVIANO>>
+SECTION_VERSION: 00002
+
 CONVENCIONES DE BLADE Y FRONTEND LIVIANO
 
 Las vistas Blade deben mantenerse simples, explícitas y previsibles.
@@ -531,78 +498,26 @@ evitar lógica de negocio en Blade
 
 permitir condicionales simples de interfaz
 
-extraer bloques repetidos a componentes o partials cuando el patrón ya sea claro
+no reconstruir lógica de permisos
 
-no introducir complejidad innecesaria de frontend
+la UI debe consumir resultados del backend
 
-Separación recomendada:
+@can puede utilizarse solo cuando la capacidad no dependa de contexto
 
-clases CSS = estilo
-data-* = comportamiento
+Regla crítica:
 
-Las acciones visibles deben respetar siempre permisos reales
+cuando una capacidad depende de constraints
 
-no deben renderizarse acciones no permitidas aunque el backend las bloquee
-
-Blade puede utilizar @can como verificación final solo cuando la capacidad no dependa de contexto
-
-Regla crítica validada:
-
-cuando una capacidad depende de constraints, la UI no debe evaluarla directamente
+la UI no debe evaluarla directamente
 
 no utilizar @can('create') en módulos con constraints
 
-la UI debe consumir flags ya resueltos desde backend
+la UI debe consumir flags resueltos o datasets ya filtrados
 
-la resolución del dataset no debe reconstruirse en Blade
+los botones de creación deben evaluarse según contexto válido
 
-debe venir ya resuelta desde controllers y capa central de autorización
+los datasets visibles deben provenir de Security::scope(...)
 
-en vistas embebidas o sublistados:
-
-cuando la autorización dependa del recurso padre, las acciones deben evaluarse contra el modelo padre real
-
-esto aplica explícitamente a:
-
-attachments
-order_items
-document_items
-
-en attachments:
-
-la UI no debe evaluar create Attachment
-
-debe evaluar update sobre el attachable
-
-los botones de alta, edición y eliminación deben alinearse con esa lógica
-
-las vistas no deben reconstruir lógica de permisos por fuera de la capa central
-
-la UI no debe usar ni reinterpretar scopes legacy como all o mine
-
-si la interfaz necesita mostrar o seleccionar alcances, debe consumir únicamente scopes válidos del catálogo vigente
-
-esto incluye en especial:
-
-tenant_all
-own_assigned
-limited
-
-toda acción derivada, campo relacional o navegación hacia otra entidad modular por *_id debe verificar primero si el módulo relacionado está habilitado para el tenant
-
-si el módulo relacionado está deshabilitado:
-
-el bloque completo no debe renderizarse
-no debe mostrarse versión deshabilitada ni placeholder
-no debe mantenerse acceso indirecto
-
-cuando una pieza global del layout exponga información del sistema, debe resolverse desde provider o capa central y no inline
-
-esto incluye:
-
-footer del shell
-capas de permisos visibles
-pantallas de configuración del owner
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE FORMULARIOS OPERATIVOS>>

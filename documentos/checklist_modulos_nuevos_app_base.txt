@@ -91,57 +91,29 @@ SECTION_VERSION: 00002
 
 AUTORIZACIÓN Y UI
 
-Verificar:
+Reglas:
 
-policy creada si el módulo lo necesita
-policy realmente aplicada desde controller
-@can aplicado en botones, acciones y accesos sensibles
-la UI no muestra acciones no permitidas
-navbar o dashboard no exponen accesos irreales
-permisos alineados con rol, módulo y tipo de acción
+no alcanza con policy + authorize
 
-validar explícitamente:
+los datasets visibles deben validarse mediante Security::scope(...) cuando la visibilidad sea variable
 
-la diferencia entre view_any y view
+no deben existir queries paralelas para listados
 
-view_any debe controlar acceso a listados completos
+no deben existir conteos fuera del scope real
 
-view debe controlar acceso a registros individuales
+los selectores auxiliares deben respetar permisos efectivos
 
-no implementar listados basados en view
+si el módulo utiliza constraints:
 
-no reinterpretar scopes ni capacidades como booleanos si el resolver entrega scope válido
+no deben existir create abstractos
 
-validar coherencia entre:
+no debe usarse @can('create', Model::class)
 
-resolver
-policy
-controller
-UI
+la autorización debe evaluarse con contexto
 
-si el módulo necesita segmentación funcional adicional:
+los valores configurables deben provenir de catálogos
 
-definir si se resuelve solo por scope o además por constraints
-
-si usa constraints:
-
-definirlas explícitamente desde el inicio
-
-exponerlas en la UI del owner
-
-no depender únicamente de scope para segmentación funcional
-
-consumirlas desde la capa central de autorización
-
-allowed_kinds es el primer caso oficial consolidado de constraint funcional del proyecto
-
-si el módulo incluye entidades hijas o embebidas:
-
-validar si la autorización depende del recurso padre
-
-si depende del padre, implementar delegación explícita
-
-no asumir herencia automática sin código real que la respalde
+los recursos hijos deben validarse como delegados al padre
 
 <<END SECTION>>
 

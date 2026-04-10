@@ -147,30 +147,25 @@ Para futuros despliegues en entornos similares, se recomienda:
 <<SECTION: CRITERIO DE CONTINUIDAD>>
 SECTION_VERSION: 00002
 
-9. CRITERIO DE CONTINUIDAD
+CRITERIO DE CONTINUIDAD
 
-Mientras el proyecto siga desplegándose en entornos compartidos sin CLI, debe mantenerse como criterio general:
+El sistema puede reconstruirse desde cero manteniendo coherencia funcional.
 
-* rutas explícitas en lugar de Route::resource(...) para el core operativo
-* deploy por versión cerrada
-* mínima dependencia de generación dinámica en servidor
-* prioridad por estabilidad operativa sobre concisión sintáctica
+Proceso:
 
-Estado actual validado adicional:
+composer dump-autoload
+optimize:clear
+migrate:fresh --seed
 
-* la batería de seeders base quedó regularizada
-* el proyecto puede reconstruirse en local con migrate:fresh --seed sin errores dentro del estado validado actual de la sesión
-* esta regularización debe preservarse como criterio de continuidad para futuras auditorías, pruebas de permisos y validaciones integrales del sistema
+Reglas:
 
-Actualización consolidada:
+los seeders deben estar alineados con el contrato de permisos
 
-* los cambios en permisos V2 que involucren constraints requieren migraciones de backfill sobre role_permission.constraints
-* los seeders deben asegurar que nuevos tenants nazcan con constraints consistentes con el contrato actual del sistema
-* cualquier cambio en el modelo de permisos debe garantizar coherencia entre:
+deben incluir scopes y constraints persistidas
 
-  migraciones
-  seeders
-  resolver
+no deben existir inconsistencias entre seeders y contrato real
+
+la reconstrucción limpia debe reproducir el estado operativo del sistema
 
 <<END SECTION>>
 

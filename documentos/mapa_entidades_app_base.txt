@@ -182,50 +182,29 @@ No usar user.tenant_id porque rompería el modelo multi-tenant actual.
 <<END SECTION>>
 
 <<SECTION: ROLES Y AUTORIZACIÓN>>
+SECTION_VERSION: 00002
+
 ROLES Y AUTORIZACIÓN
 
-La pertenencia a un tenant puede tener uno o más roles por usuario.
+El modelo de autorización se encuentra consolidado en base a permisos V2 persistidos.
 
-Relación conceptual:
+Componentes activos:
 
-memberships
-↓
-membership_role
-↓
-roles
-
-y como parte de la estructura de autorización:
-
-roles
-↓
 role_permission
-
-memberships
-↓
 membership_permission_overrides
 
 Reglas:
 
-los roles base mínimos del sistema se definen en RoleCatalog
+los permisos efectivos se resuelven mediante resolvers y Security
 
-owner se resuelve estructuralmente desde memberships.is_owner
+las memberships no owner deben poseer al menos un rol base
 
-owner es único por tenant
+el owner puede no tener roles explícitos en la relación many-to-many
 
-los roles delegables actuales son:
+el rol owner se resuelve implícitamente mediante lógica del resolver
 
-admin
-sales
-operator
-administrator
+los scopes y constraints forman parte activa del contrato persistido
 
-la membership puede incluir profile_slug como especialización funcional
-
-la autorización del sistema no depende únicamente del rol, sino de una combinación de elementos que se resuelven en la capa de seguridad
-
-La definición operativa completa del modelo de permisos se encuentra en:
-
-<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
 <<END SECTION>>
 
 <<SECTION: ACLARACIÓN SOBRE TENANT-SCOPED>>
@@ -575,38 +554,28 @@ no modelar numeración manual o unique global en cabeceras operativas cuando ya 
 <<END SECTION>>
 
 <<SECTION: ATTACHMENTS>>
+SECTION_VERSION: 00002
+
 ATTACHMENTS
 
-Entidad transversal del negocio para archivos y adjuntos operativos del tenant.
+Tipo:
 
-Función actual:
+módulo transversal
 
-resolver adjuntos de forma reutilizable entre múltiples módulos del sistema sin crear una implementación aislada por módulo
+Estado:
 
-Características conceptuales:
+implementado y consolidado
 
-pertenece al tenant
-se integra de forma transversal y embebida en entidades operativas
-puede tener pantallas operativas propias para create y edit
-su dimensión visible principal en UI es kind
-su organización funcional debe apoyarse en AttachmentCatalog
+Reglas:
 
-Regla consolidada en comportamiento real:
+no posee autonomía de autorización
 
-attachments no posee lógica de ownership independiente
+su acceso depende del recurso padre
 
-no debe tratarse como recurso autónomo de autorización
+la autorización se delega en policies y controllers del padre
 
-su autorización se delega completamente al recurso padre (attachable)
+este patrón se encuentra aplicado en implementación real
 
-las acciones create, update y delete sobre attachments dependen de la capacidad update del recurso padre
-
-esto aplica de forma consistente en:
-
-orders
-documents
-
-attachments ya no debe tratarse como futura posible, sino como parte implementada del mapa actual del sistema
 <<END SECTION>>
 
 <<SECTION: CONTEXTO FUNCIONAL DEL TENANT>>

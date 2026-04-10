@@ -562,6 +562,8 @@ constraints
 <<END SECTION>>
 
 <<SECTION: CAPA V2 DE PERMISOS>>
+SECTION_VERSION: 00002
+
 CAPA V2 DE PERMISOS
 
 Componentes:
@@ -571,6 +573,7 @@ RecordScopeResolver
 CapabilityCatalog
 ModuleCatalog
 TenantModuleAccess
+Security
 
 Capacidades:
 
@@ -597,21 +600,66 @@ view_any no es booleano
 create puede depender de contexto
 constraints son obligatorias
 el acceso a un módulo depende previamente de su habilitación mediante TenantModuleAccess
+
+Regla operativa consolidada:
+
+Security es la puerta central de consumo de autorización
+
+Roles:
+
+la base de datos define el contrato
+los resolvers consumen ese contrato
+Security orquesta la resolución final
+policies actúan como wrapper mínimo
+controllers ejecutan la autorización
+
+No se permite:
+
+consumir resolvers directamente desde controllers
+evaluar permisos fuera de Security
+
 <<END SECTION>>
 
 <<SECTION: FLUJO DE GESTIÓN Y CONSUMO DE PERMISOS>>
+SECTION_VERSION: 00002
+
 FLUJO DE GESTIÓN Y CONSUMO DE PERMISOS
 
-superadmin habilita módulos  
-owner configura permisos  
-backend resuelve  
-UI consume  
+superadmin habilita módulos
+owner configura permisos
+backend resuelve
+UI consume
+
+Flujo operativo consolidado:
+
+base de datos → contrato persistido
+↓
+resolvers → lectura del contrato
+↓
+Security → orquestación y evaluación
+↓
+policy → wrapper mínimo
+↓
+controller → authorize(...) o Security::scope(...)
+↓
+Blade → renderiza según resultado
 
 Reglas:
 
-la UI no define permisos  
-el backend define dataset  
-las acciones dependen de capability real  
+la UI no define permisos
+el backend define dataset
+las acciones dependen de capability real
+
+Regla crítica:
+
+cuando la visibilidad del dataset depende de permisos, el controller debe usar Security::scope(...)
+
+No se permite:
+
+queries paralelas para listados
+conteos fuera del scope efectivo
+datasets auxiliares no alineados con permisos
+
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
@@ -761,7 +809,7 @@ view puede ser más amplio que update o delete
 <<END SECTION>>
 
 <<SECTION: MÓDULO: PROJECTS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 ESTADO: EN REVISIÓN
 
@@ -776,6 +824,14 @@ limited depende de participación en tareas
 
 no utiliza ownership directo
 
+Regla operativa consolidada:
+
+el dataset debe resolverse mediante Security::scope(...)
+
+las policies deben actuar como wrapper mínimo
+
+los controllers no deben resolver visibilidad manual
+
 PENDIENTE
 
 definir contrato formal de capacidades
@@ -784,11 +840,12 @@ definir reglas completas de update y delete
 
 REGLA
 
-mientras el contrato permanezca en revisión, projects no debe utilizarse como patrón doctrinal para módulos nuevos.
+mientras el contrato permanezca en revisión, projects no debe utilizarse como patrón doctrinal para módulos nuevos
+
 <<END SECTION>>
 
 <<SECTION: MÓDULO: PARTIES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ESTADO: EN REVISIÓN
 
@@ -810,6 +867,16 @@ debe tratarse como módulo base intrínseco del sistema
 
 no es opcional en el mismo sentido que otros módulos operativos
 
+Regla operativa consolidada:
+
+admite segmentación funcional mediante constraints.allowed_kinds cuando aplique
+
+las constraints forman parte del contrato del permiso
+
+deben persistirse en role_permission
+
+deben consumirse en backend mediante Security
+
 PENDIENTE
 
 definir contrato completo de capacidades
@@ -819,7 +886,7 @@ validar relación con otros módulos
 <<END SECTION>>
 
 <<SECTION: MÓDULO: PRODUCTS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 ESTADO: EN REVISIÓN
 
@@ -831,6 +898,14 @@ REGLAS ACTUALES
 
 catálogo operativo
 
+Regla operativa consolidada:
+
+los datasets deben resolverse mediante Security::scope(...)
+
+las policies deben actuar como wrapper mínimo
+
+los controllers no deben resolver visibilidad manual
+
 PENDIENTE
 
 definir si admite segmentación
@@ -840,7 +915,7 @@ definir reglas de update y delete
 <<END SECTION>>
 
 <<SECTION: MÓDULO: ASSETS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 ESTADO: EN REVISIÓN
 
@@ -853,6 +928,14 @@ REGLAS ACTUALES
 relación con parties
 relación con orders
 
+Regla operativa consolidada:
+
+los datasets deben resolverse mediante Security::scope(...)
+
+las policies deben actuar como wrapper mínimo
+
+los controllers no deben resolver visibilidad manual
+
 PENDIENTE
 
 definir contrato de permisos
@@ -862,7 +945,7 @@ definir restricciones operativas
 <<END SECTION>>
 
 <<SECTION: MÓDULO: DOCUMENTS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 ESTADO: EN REVISIÓN
 
@@ -876,6 +959,16 @@ módulo documental derivado
 
 posible uso de constraints.allowed_kinds
 
+Regla operativa consolidada:
+
+create puede requerir contexto según kind
+
+las constraints forman parte del contrato del permiso
+
+el dataset debe resolverse mediante Security::scope(...)
+
+las policies deben actuar como wrapper mínimo
+
 PENDIENTE
 
 confirmar contrato equivalente a orders
@@ -885,7 +978,7 @@ definir relación con orders
 <<END SECTION>>
 
 <<SECTION: MÓDULO: ATTACHMENTS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 ESTADO: EN REVISIÓN
 
@@ -896,6 +989,14 @@ módulo transversal
 REGLA ACTUAL
 
 autorización delegada al padre
+
+Regla operativa consolidada:
+
+no posee lógica de autorización propia
+
+las acciones create, update y delete dependen de la capacidad update del recurso padre
+
+las actions view dependen del acceso al recurso padre
 
 PENDIENTE
 
@@ -928,11 +1029,14 @@ no debe implementarse sin contrato definido
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
+SECTION_VERSION: 00002
+
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
 la base de datos es la única fuente de verdad del contrato de permisos V2
 
 resolver → resuelve el contrato persistido
+Security → orquesta la evaluación
 policy → wrapper mínimo de consumo
 controller → consume y ejecuta la autorización correspondiente
 Blade → muestra solo el resultado permitido
@@ -947,9 +1051,16 @@ Distinción:
 
 view_any → dataset
 view → registro
+
+Regla crítica adicional:
+
+cuando el dataset depende de permisos, debe resolverse mediante Security::scope(...)
+
 <<END SECTION>>
 
 <<SECTION: RECURSOS DELEGADOS AL PADRE>>
+SECTION_VERSION: 00002
+
 RECURSOS DELEGADOS AL PADRE
 
 attachments
@@ -967,6 +1078,13 @@ cualquier policy existente debe delegar explícitamente en el recurso padre
 No se permite:
 
 definir lógica de permisos independiente del recurso padre
+
+Regla operativa consolidada:
+
+las acciones create, update y delete deben resolverse contra update del recurso padre
+
+las acciones de lectura deben alinearse con el acceso al recurso padre
+
 <<END SECTION>>
 
 <<SECTION: HARDENING Y AUDITORÍA>>

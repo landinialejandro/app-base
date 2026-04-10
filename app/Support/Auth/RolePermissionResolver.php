@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Auth/RolePermissionResolver.php | V5
+// FILE: app/Support/Auth/RolePermissionResolver.php | V6
 
 namespace App\Support\Auth;
 
@@ -231,7 +231,7 @@ class RolePermissionResolver
     protected function normalizeCapabilityValue(string $module, string $capability, mixed $scope): mixed
     {
         if ($capability === CapabilityCatalog::CREATE) {
-            return ($scope === null || $scope === '') ? true : false;
+            return $scope === null ? true : false;
         }
 
         $allowedScopes = PermissionScopeCatalog::optionsFor($module, $capability);

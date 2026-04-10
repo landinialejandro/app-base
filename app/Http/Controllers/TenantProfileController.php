@@ -1,12 +1,11 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantProfileController.php | V11
+// FILE: app/Http/Controllers/TenantProfileController.php | V12
 
 namespace App\Http\Controllers;
 
 use App\Models\Invitation;
 use App\Models\Membership;
-use App\Models\Permission;
 use App\Models\Role;
 use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\BusinessTypeCatalog;
@@ -120,7 +119,6 @@ class TenantProfileController extends Controller
             CapabilityCatalog::CREATE => 'Crear',
             CapabilityCatalog::UPDATE => 'Editar',
             CapabilityCatalog::DELETE => 'Eliminar',
-            CapabilityCatalog::VIEW_ANALYTICS => 'Ver analíticas',
         ];
 
         $scopeLabels = PermissionScopeCatalog::labels();
@@ -205,43 +203,28 @@ class TenantProfileController extends Controller
             return [];
         }
 
-        $permissions = Permission::query()
-            ->whereIn('group', $enabledModules)
-            ->get();
-
         $map = [];
 
         foreach ($enabledModules as $module) {
-            $map[$module] = [];
-        }
+            $capabilities = $this->capabilitiesForModule($module);
 
-        foreach ($permissions as $permission) {
-            $parsed = CapabilityCatalog::parsePermissionSlug((string) $permission->slug);
-
-            if (! $parsed) {
-                continue;
+            if (! empty($capabilities)) {
+                $map[$module] = $capabilities;
             }
-
-            $module = $parsed['module'];
-            $capability = $parsed['capability'];
-
-            if (! in_array($module, $enabledModules, true)) {
-                continue;
-            }
-
-            $map[$module][] = $capability;
         }
 
-        foreach ($map as $module => $capabilities) {
-            $map[$module] = collect($capabilities)
-                ->filter(fn ($capability) => in_array($capability, CapabilityCatalog::all(), true))
-                ->unique()
-                ->sortBy(fn ($capability) => array_search($capability, CapabilityCatalog::all(), true))
-                ->values()
-                ->all();
-        }
+        return $map;
+    }
 
-        return array_filter($map, fn ($capabilities) => ! empty($capabilities));
+    protected function capabilitiesForModule(string $module): array
+    {
+        return [
+            CapabilityCatalog::VIEW_ANY,
+            CapabilityCatalog::VIEW,
+            CapabilityCatalog::CREATE,
+            CapabilityCatalog::UPDATE,
+            CapabilityCatalog::DELETE,
+        ];
     }
 
     protected function buildPermissionMatrix(string $tenantId, string $roleSlug, array $moduleCapabilityMap): array
@@ -275,29 +258,13 @@ class TenantProfileController extends Controller
             return $matrix;
         }
 
-        $permissionSlugs = collect($moduleCapabilityMap)
-            ->flatMap(function ($capabilities, $module) {
-                return collect($capabilities)
-                    ->map(fn ($capability) => CapabilityCatalog::permissionSlug($module, $capability));
-            })
-            ->values()
-            ->all();
-
-        $permissionsBySlug = Permission::query()
-            ->whereIn('slug', $permissionSlugs)
-            ->get()
+        $permissionsBySlug = $role->permissions
             ->keyBy('slug');
 
         foreach ($moduleCapabilityMap as $module => $capabilities) {
             foreach ($capabilities as $capability) {
                 $slug = CapabilityCatalog::permissionSlug($module, $capability);
-                $permission = $permissionsBySlug->get($slug);
-
-                if (! $permission) {
-                    continue;
-                }
-
-                $assignedPermission = $role->permissions->firstWhere('id', $permission->id);
+                $assignedPermission = $permissionsBySlug->get($slug);
 
                 if (! $assignedPermission) {
                     continue;

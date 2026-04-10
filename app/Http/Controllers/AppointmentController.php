@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AppointmentController.php | V13
+// FILE: app/Http/Controllers/AppointmentController.php | V14
 
 namespace App\Http\Controllers;
 
@@ -26,6 +26,8 @@ class AppointmentController extends Controller
     public function index(Request $request)
     {
         $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
 
         $this->authorize('viewAny', Appointment::class);
 
@@ -40,7 +42,8 @@ class AppointmentController extends Controller
         $supportsAssetsModule = $this->supportsModule(ModuleCatalog::ASSETS);
         $supportsOrdersModule = $this->supportsModule(ModuleCatalog::ORDERS);
 
-        $users = User::query()
+        $users = $security
+            ->scope($user, 'users.viewAny', User::query())
             ->whereHas('memberships', function ($query) use ($tenant) {
                 $query->where('tenant_id', $tenant->id)
                     ->where('status', 'active');
@@ -48,12 +51,13 @@ class AppointmentController extends Controller
             ->orderBy('name')
             ->get();
 
-        $parties = Party::query()
+        $parties = $security
+            ->scope($user, 'parties.viewAny', Party::query())
             ->orderBy('name')
             ->get();
 
-        $appointments = app(Security::class)
-            ->scope(auth()->user(), 'appointments.viewAny', Appointment::query())
+        $appointments = $security
+            ->scope($user, 'appointments.viewAny', Appointment::query())
             ->with(['party', 'order', 'asset', 'assignedUser'])
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($subquery) use ($q) {

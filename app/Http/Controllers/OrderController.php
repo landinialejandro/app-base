@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderController.php | V21
+// FILE: app/Http/Controllers/OrderController.php | V22
 
 namespace App\Http\Controllers;
 
@@ -495,7 +495,7 @@ class OrderController extends Controller
             auth()->user(),
             'orders.update',
             $order,
-            ['kind' => $data['kind']]
+            ['kind' => $order->kind]
         );
 
         if (! empty($order->asset_id)) {

@@ -1,87 +1,42 @@
 <?php
 
-// FILE: app/Policies/AssetPolicy.php | V4
+// FILE: app/Policies/AssetPolicy.php | V5
 
 namespace App\Policies;
 
 use App\Models\Asset;
 use App\Models\User;
-use App\Support\Auth\RecordScopeResolver;
-use App\Support\Auth\RolePermissionResolver;
-use App\Support\Catalogs\CapabilityCatalog;
-use App\Support\Catalogs\ModuleCatalog;
-use App\Support\Catalogs\PermissionScopeCatalog;
+use App\Support\Auth\Security;
 
 class AssetPolicy
 {
-    protected function resolver(): RolePermissionResolver
+    protected function security(): Security
     {
-        return app(RolePermissionResolver::class);
-    }
-
-    protected function recordScopeResolver(): RecordScopeResolver
-    {
-        return app(RecordScopeResolver::class);
+        return app(Security::class);
     }
 
     public function viewAny(User $user): bool
     {
-        $scope = $this->resolver()->actionScope(
-            ModuleCatalog::ASSETS,
-            CapabilityCatalog::VIEW_ANY,
-            app('tenant'),
-            $user,
-        );
-
-        return $scope === PermissionScopeCatalog::TENANT_ALL;
+        return $this->security()->allows($user, 'assets.viewAny');
     }
 
     public function view(User $user, Asset $asset): bool
     {
-        $scope = $this->resolver()->actionScope(
-            ModuleCatalog::ASSETS,
-            CapabilityCatalog::VIEW,
-            app('tenant'),
-            $user,
-        );
-
-        return $this->recordScopeResolver()->allowsSharedScope($scope)
-            && $scope === PermissionScopeCatalog::TENANT_ALL;
+        return $this->security()->allows($user, 'assets.view', $asset);
     }
 
     public function create(User $user): bool
     {
-        return $this->resolver()->can(
-            ModuleCatalog::ASSETS,
-            CapabilityCatalog::CREATE,
-            app('tenant'),
-            $user,
-        );
+        return $this->security()->allows($user, 'assets.create', Asset::class);
     }
 
     public function update(User $user, Asset $asset): bool
     {
-        $scope = $this->resolver()->actionScope(
-            ModuleCatalog::ASSETS,
-            CapabilityCatalog::UPDATE,
-            app('tenant'),
-            $user,
-        );
-
-        return $this->recordScopeResolver()->allowsSharedScope($scope)
-            && $scope === PermissionScopeCatalog::TENANT_ALL;
+        return $this->security()->allows($user, 'assets.update', $asset);
     }
 
     public function delete(User $user, Asset $asset): bool
     {
-        $scope = $this->resolver()->actionScope(
-            ModuleCatalog::ASSETS,
-            CapabilityCatalog::DELETE,
-            app('tenant'),
-            $user,
-        );
-
-        return $this->recordScopeResolver()->allowsSharedScope($scope)
-            && $scope === PermissionScopeCatalog::TENANT_ALL;
+        return $this->security()->allows($user, 'assets.delete', $asset);
     }
 }

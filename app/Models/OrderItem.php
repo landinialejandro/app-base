@@ -1,12 +1,13 @@
 <?php
 
-// FILE: app/Models/OrderItem.php | V2
+// FILE: app/Models/OrderItem.php | V3
 
 namespace App\Models;
 
 use App\Models\Concerns\ResolvesTenantRouteBinding;
 use App\Models\Concerns\TenantScoped;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OrderItem extends Model
@@ -33,12 +34,12 @@ class OrderItem extends Model
         'unit_price' => 'decimal:2',
     ];
 
-    public function order()
+    public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
     }
 
-    public function product()
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }

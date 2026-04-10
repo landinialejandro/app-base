@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Auth/RecordScopeResolver.php | V7
+// FILE: app/Support/Auth/RecordScopeResolver.php | V8
 
 namespace App\Support\Auth;
 
@@ -69,6 +69,18 @@ class RecordScopeResolver
         mixed $scope,
         array $constraints = []
     ): bool {
+        if ($capability === CapabilityCatalog::CREATE) {
+            if ($scope !== true) {
+                return true;
+            }
+
+            if ($this->requiresAllowedKinds($module, $capability) && empty($this->extractAllowedKinds($constraints))) {
+                return true;
+            }
+
+            return false;
+        }
+
         if ($scope === false || $scope === null || $scope === '') {
             return true;
         }
@@ -134,7 +146,7 @@ class RecordScopeResolver
             return in_array($kind, $allowedKinds, true);
         }
 
-        return $scope !== false;
+        return $scope === true;
     }
 
     public function applyToQuery(
@@ -310,7 +322,6 @@ class RecordScopeResolver
 
         return in_array($module, [
             ModuleCatalog::ORDERS,
-            ModuleCatalog::DOCUMENTS,
             ModuleCatalog::PARTIES,
         ], true);
     }

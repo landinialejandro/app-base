@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DashboardController.php | V6
+// FILE: app/Http/Controllers/DashboardController.php | V7
 
 namespace App\Http\Controllers;
 
@@ -9,8 +9,7 @@ use App\Models\Document;
 use App\Models\Order;
 use App\Models\Party;
 use App\Models\Product;
-use App\Support\Auth\RolePermissionResolver;
-use App\Support\Catalogs\CapabilityCatalog;
+use App\Support\Auth\Security;
 use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\ProjectCatalog;
 use App\Support\Catalogs\TaskCatalog;
@@ -23,7 +22,7 @@ class DashboardController extends Controller
     {
         $tenant = app('tenant');
         $user = auth()->user();
-        $resolver = app(RolePermissionResolver::class);
+        $security = app(Security::class);
 
         $visibleProjects = ProjectVisibility::visibleQuery(
             null,
@@ -118,23 +117,21 @@ class DashboardController extends Controller
             })
             ->count();
 
-        $canAccessAppointments = $resolver->canUseModule(ModuleCatalog::APPOINTMENTS, $tenant, $user);
-        $canAccessParties = $resolver->canUseModule(ModuleCatalog::PARTIES, $tenant, $user);
-        $canAccessAssets = $resolver->canUseModule(ModuleCatalog::ASSETS, $tenant, $user);
-        $canAccessOrders = $resolver->canUseModule(ModuleCatalog::ORDERS, $tenant, $user);
-        $canAccessTasks = $resolver->canUseModule(ModuleCatalog::TASKS, $tenant, $user);
-        $canAccessProjects = $resolver->canUseModule(ModuleCatalog::PROJECTS, $tenant, $user);
-        $canAccessProducts = $resolver->canUseModule(ModuleCatalog::PRODUCTS, $tenant, $user);
-        $canAccessDocuments = $resolver->canUseModule(ModuleCatalog::DOCUMENTS, $tenant, $user);
+        $canAccessAppointments = $security->allows($user, ModuleCatalog::APPOINTMENTS.'.viewAny');
+        $canAccessParties = $security->allows($user, ModuleCatalog::PARTIES.'.viewAny');
+        $canAccessAssets = $security->allows($user, ModuleCatalog::ASSETS.'.viewAny');
+        $canAccessOrders = $security->allows($user, ModuleCatalog::ORDERS.'.viewAny');
+        $canAccessTasks = $security->allows($user, ModuleCatalog::TASKS.'.viewAny');
+        $canAccessProjects = $security->allows($user, ModuleCatalog::PROJECTS.'.viewAny');
+        $canAccessProducts = $security->allows($user, ModuleCatalog::PRODUCTS.'.viewAny');
+        $canAccessDocuments = $security->allows($user, ModuleCatalog::DOCUMENTS.'.viewAny');
 
         return view('dashboard', [
             'tenant' => $tenant,
 
-            'canSeeAnalytics' => $resolver->can(
-                ModuleCatalog::DASHBOARD,
-                CapabilityCatalog::VIEW_ANALYTICS,
-                $tenant,
-                $user
+            'canSeeAnalytics' => $security->allows(
+                $user,
+                ModuleCatalog::DASHBOARD.'.viewAny'
             ),
 
             'canAccessAppointments' => $canAccessAppointments,
@@ -165,11 +162,25 @@ class DashboardController extends Controller
                 'my_overdue_tasks_count' => $myOverdueTasksCount,
             ],
 
-            'partiesCount' => $canAccessParties ? Party::query()->count() : null,
-            'productsCount' => $canAccessProducts ? Product::query()->count() : null,
-            'assetsCount' => $canAccessAssets ? Asset::query()->count() : null,
-            'ordersCount' => $canAccessOrders ? Order::query()->count() : null,
-            'documentsCount' => $canAccessDocuments ? Document::query()->count() : null,
+            'partiesCount' => $canAccessParties
+                ? $security->scope($user, 'parties.viewAny', Party::query())->count()
+                : null,
+
+            'productsCount' => $canAccessProducts
+                ? $security->scope($user, 'products.viewAny', Product::query())->count()
+                : null,
+
+            'assetsCount' => $canAccessAssets
+                ? $security->scope($user, 'assets.viewAny', Asset::query())->count()
+                : null,
+
+            'ordersCount' => $canAccessOrders
+                ? $security->scope($user, 'orders.viewAny', Order::query())->count()
+                : null,
+
+            'documentsCount' => $canAccessDocuments
+                ? $security->scope($user, 'documents.viewAny', Document::query())->count()
+                : null,
         ]);
     }
 }

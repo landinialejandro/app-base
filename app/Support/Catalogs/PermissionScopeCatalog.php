@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/PermissionScopeCatalog.php | V9
+// FILE: app/Support/Catalogs/PermissionScopeCatalog.php | V10
 
 namespace App\Support\Catalogs;
 

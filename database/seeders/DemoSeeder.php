@@ -1,6 +1,6 @@
 <?php
 
-// FILE: database/seeders/DemoSeeder.php | V2
+// FILE: database/seeders/DemoSeeder.php | V3
 
 namespace Database\Seeders;
 
@@ -19,6 +19,7 @@ use Database\Seeders\Modules\PermissionModuleSeeder;
 use Database\Seeders\Modules\ProductModuleSeeder;
 use Database\Seeders\Modules\ProjectModuleSeeder;
 use Database\Seeders\Modules\RoleModuleSeeder;
+use Database\Seeders\Modules\RolePermissionModuleSeeder;
 use Database\Seeders\Modules\TaskModuleSeeder;
 use Database\Seeders\Modules\TenantModuleSeeder;
 use Database\Seeders\Modules\UserModuleSeeder;
@@ -44,6 +45,7 @@ class DemoSeeder extends Seeder
             UserModuleSeeder::class,
             PermissionModuleSeeder::class,
             RoleModuleSeeder::class,
+            RolePermissionModuleSeeder::class,
             MembershipModuleSeeder::class,
             BranchModuleSeeder::class,
             InvitationModuleSeeder::class,

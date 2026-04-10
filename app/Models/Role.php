@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Role.php | V3
+// FILE: app/Models/Role.php | V4
 
 namespace App\Models;
 
@@ -20,6 +20,10 @@ class Role extends Model
         'description',
     ];
 
+    protected $casts = [
+        'description' => 'string',
+    ];
+
     public function tenant(): BelongsTo
     {
         return $this->belongsTo(Tenant::class);
@@ -29,6 +33,13 @@ class Role extends Model
     {
         return $this->belongsToMany(Permission::class, 'role_permission')
             ->withPivot(['scope', 'execution_mode', 'constraints'])
+            ->withTimestamps();
+    }
+
+    public function memberships(): BelongsToMany
+    {
+        return $this->belongsToMany(Membership::class, 'membership_role')
+            ->withPivot(['branch_id'])
             ->withTimestamps();
     }
 }

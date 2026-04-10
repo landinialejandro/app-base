@@ -1,5 +1,7 @@
 <?php
 
+// FILE: app/Support/Catalogs/ModuleCatalog.php | V2
+
 namespace App\Support\Catalogs;
 
 class ModuleCatalog
@@ -21,6 +23,8 @@ class ModuleCatalog
     public const DOCUMENTS = 'documents';
 
     public const APPOINTMENTS = 'appointments';
+
+    public const ATTACHMENTS = 'attachments';
 
     protected static array $definitions = [
         self::DASHBOARD => [
@@ -105,6 +109,10 @@ class ModuleCatalog
                 'active' => ['documents.*'],
                 'order' => 40,
             ],
+        ],
+
+        self::ATTACHMENTS => [
+            'label' => 'Adjuntos',
         ],
     ];
 

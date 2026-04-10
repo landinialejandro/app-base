@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/CapabilityCatalog.php | V1
+// FILE: app/Support/Catalogs/CapabilityCatalog.php | V2
 
 namespace App\Support\Catalogs;
 
@@ -16,15 +16,12 @@ class CapabilityCatalog
 
     public const DELETE = 'delete';
 
-    public const VIEW_ANALYTICS = 'view_analytics';
-
     protected static array $labels = [
         self::VIEW_ANY => 'Ver listado',
         self::VIEW => 'Ver',
         self::CREATE => 'Crear',
         self::UPDATE => 'Actualizar',
         self::DELETE => 'Eliminar',
-        self::VIEW_ANALYTICS => 'Ver analíticas',
     ];
 
     public static function all(): array

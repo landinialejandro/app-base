@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Permission.php | V2
+// FILE: app/Models/Permission.php | V3
 
 namespace App\Models;
 
@@ -17,10 +17,14 @@ class Permission extends Model
         'description',
     ];
 
+    protected $casts = [
+        'description' => 'string',
+    ];
+
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class, 'role_permission')
-            ->withPivot('scope', 'execution_mode', 'constraints')
+            ->withPivot(['scope', 'execution_mode', 'constraints'])
             ->withTimestamps();
     }
 

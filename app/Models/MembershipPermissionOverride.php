@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/MembershipPermissionOverride.php | V1
+// FILE: app/Models/MembershipPermissionOverride.php | V2
 
 namespace App\Models;
 

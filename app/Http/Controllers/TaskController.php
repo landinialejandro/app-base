@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TaskController.php | V9
+// FILE: app/Http/Controllers/TaskController.php | V10
 
 namespace App\Http\Controllers;
 
@@ -22,6 +22,8 @@ class TaskController extends Controller
     public function index(Request $request)
     {
         $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
 
         $this->authorize('viewAny', Task::class);
 
@@ -34,14 +36,13 @@ class TaskController extends Controller
         $effectiveScope = $this->taskViewScope();
         $canViewAll = $effectiveScope === PermissionScopeCatalog::TENANT_ALL;
 
-        $projects = Project::query()
-            ->when($effectiveScope === PermissionScopeCatalog::LIMITED, function ($query) {
-                return app(Security::class)->scope(auth()->user(), 'projects.viewAny', $query);
-            })
+        $projects = $security
+            ->scope($user, 'projects.viewAny', Project::query())
             ->orderBy('name')
             ->get();
 
-        $users = User::query()
+        $users = $security
+            ->scope($user, 'users.viewAny', User::query())
             ->whereHas('memberships', function ($query) use ($tenant) {
                 $query->where('tenant_id', $tenant->id)
                     ->where('status', 'active');
@@ -66,18 +67,10 @@ class TaskController extends Controller
                     }
                 });
             })
-            ->when($projectId, function ($query) use ($projectId) {
-                $query->where('project_id', $projectId);
-            })
-            ->when($status, function ($query) use ($status) {
-                $query->where('status', $status);
-            })
-            ->when($priority, function ($query) use ($priority) {
-                $query->where('priority', $priority);
-            })
-            ->when($assignedUserId, function ($query) use ($assignedUserId) {
-                $query->where('assigned_user_id', $assignedUserId);
-            })
+            ->when($projectId, fn ($query) => $query->where('project_id', $projectId))
+            ->when($status, fn ($query) => $query->where('status', $status))
+            ->when($priority, fn ($query) => $query->where('priority', $priority))
+            ->when($assignedUserId, fn ($query) => $query->where('assigned_user_id', $assignedUserId))
             ->orderByRaw(
                 'CASE
                 WHEN status = ? THEN 1

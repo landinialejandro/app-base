@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DocumentController.php | V13
+// FILE: app/Http/Controllers/DocumentController.php | V14
 
 namespace App\Http\Controllers;
 
@@ -35,22 +35,28 @@ class DocumentController extends Controller
         $status = $request->get('status');
         $issuedAt = $request->get('issued_at');
 
-        $parties = Party::query()
+        $security = app(Security::class);
+        $user = auth()->user();
+
+        $parties = $security
+            ->scope($user, 'parties.viewAny', Party::query())
             ->orderBy('name')
             ->get();
 
-        $assets = Asset::query()
+        $assets = $security
+            ->scope($user, 'assets.viewAny', Asset::query())
             ->with('party')
             ->orderBy('name')
             ->get();
 
-        $orders = Order::query()
+        $orders = $security
+            ->scope($user, 'orders.viewAny', Order::query())
             ->with(['party', 'asset'])
             ->latest()
             ->get();
 
-        $documents = app(Security::class)
-            ->scope(auth()->user(), 'documents.viewAny', Document::query())
+        $documents = $security
+            ->scope($user, 'documents.viewAny', Document::query())
             ->with(['party', 'order', 'asset', 'items'])
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($subquery) use ($q) {
@@ -61,24 +67,12 @@ class DocumentController extends Controller
                     }
                 });
             })
-            ->when($partyId, function ($query) use ($partyId) {
-                $query->where('party_id', $partyId);
-            })
-            ->when($assetId, function ($query) use ($assetId) {
-                $query->where('asset_id', $assetId);
-            })
-            ->when($orderId, function ($query) use ($orderId) {
-                $query->where('order_id', $orderId);
-            })
-            ->when($kind, function ($query) use ($kind) {
-                $query->where('kind', $kind);
-            })
-            ->when($status, function ($query) use ($status) {
-                $query->where('status', $status);
-            })
-            ->when($issuedAt, function ($query) use ($issuedAt) {
-                $query->whereDate('issued_at', $issuedAt);
-            })
+            ->when($partyId, fn ($query) => $query->where('party_id', $partyId))
+            ->when($assetId, fn ($query) => $query->where('asset_id', $assetId))
+            ->when($orderId, fn ($query) => $query->where('order_id', $orderId))
+            ->when($kind, fn ($query) => $query->where('kind', $kind))
+            ->when($status, fn ($query) => $query->where('status', $status))
+            ->when($issuedAt, fn ($query) => $query->whereDate('issued_at', $issuedAt))
             ->latest()
             ->paginate(10)
             ->withQueryString();

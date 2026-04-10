@@ -1,6 +1,6 @@
 <?php
 
-// FILE: database/seeders/Modules/MembershipModuleSeeder.php | V2
+// FILE: database/seeders/Modules/MembershipModuleSeeder.php | V3
 
 namespace Database\Seeders\Modules;
 
@@ -73,6 +73,10 @@ class MembershipModuleSeeder extends BaseModuleSeeder
         $createdMemberships = [];
 
         foreach ($memberships as $definition) {
+            if (! $definition['is_owner'] && empty($definition['roles'])) {
+                throw new \RuntimeException('Non-owner membership requires at least one role.');
+            }
+
             $membership = Membership::updateOrCreate(
                 [
                     'tenant_id' => $definition['tenant']->id,
@@ -115,7 +119,7 @@ class MembershipModuleSeeder extends BaseModuleSeeder
             $roleId = $roleIds[$roleSlug] ?? null;
 
             if (! $roleId) {
-                continue;
+                throw new \RuntimeException("Role [$roleSlug] not found for tenant [$tenantId].");
             }
 
             DB::table('membership_role')->updateOrInsert(

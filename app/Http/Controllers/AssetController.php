@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AssetController.php | V5
+// FILE: app/Http/Controllers/AssetController.php | V6
 
 namespace App\Http\Controllers;
 
@@ -8,6 +8,7 @@ use App\Models\Asset;
 use App\Models\Document;
 use App\Models\Order;
 use App\Models\Party;
+use App\Support\Auth\Security;
 use App\Support\Catalogs\AssetCatalog;
 use App\Support\Navigation\AssetNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
@@ -27,11 +28,13 @@ class AssetController extends Controller
         $kind = $request->get('kind');
         $status = $request->get('status');
 
-        $parties = Party::query()
+        $parties = app(Security::class)
+            ->scope(auth()->user(), 'parties.viewAny', Party::query())
             ->orderBy('name')
             ->get();
 
-        $assets = Asset::query()
+        $assets = app(Security::class)
+            ->scope(auth()->user(), 'assets.viewAny', Asset::query())
             ->with('party')
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($subquery) use ($q) {
@@ -63,14 +66,16 @@ class AssetController extends Controller
     {
         $this->authorize('create', Asset::class);
 
-        $parties = Party::query()
+        $parties = app(Security::class)
+            ->scope(auth()->user(), 'parties.viewAny', Party::query())
             ->orderBy('name')
             ->get();
 
         $prefilledParty = null;
 
         if ($request->filled('party_id')) {
-            $prefilledParty = Party::query()
+            $prefilledParty = app(Security::class)
+                ->scope(auth()->user(), 'parties.viewAny', Party::query())
                 ->whereKey($request->integer('party_id'))
                 ->firstOrFail();
         }
@@ -106,13 +111,15 @@ class AssetController extends Controller
             'attachments' => fn ($query) => $query->ordered(),
         ]);
 
-        $orders = Order::query()
+        $orders = app(Security::class)
+            ->scope(auth()->user(), 'orders.viewAny', Order::query())
             ->with('party')
             ->where('asset_id', $asset->id)
             ->latest()
             ->get();
 
-        $documents = Document::query()
+        $documents = app(Security::class)
+            ->scope(auth()->user(), 'documents.viewAny', Document::query())
             ->with(['party', 'order'])
             ->where('asset_id', $asset->id)
             ->latest()
@@ -127,7 +134,8 @@ class AssetController extends Controller
     {
         $this->authorize('update', $asset);
 
-        $parties = Party::query()
+        $parties = app(Security::class)
+            ->scope(auth()->user(), 'parties.viewAny', Party::query())
             ->orderBy('name')
             ->get();
 

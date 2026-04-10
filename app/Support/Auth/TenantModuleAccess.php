@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Auth/TenantModuleAccess.php | V3
+// FILE: app/Support/Auth/TenantModuleAccess.php | V4
 
 namespace App\Support\Auth;
 
@@ -42,7 +42,7 @@ class TenantModuleAccess
         return collect(ModuleCatalog::all())
             ->mapWithKeys(function (string $module) {
                 return [
-                    $module => $module === ModuleCatalog::PARTIES ? true : true,
+                    $module => true,
                 ];
             })
             ->all();

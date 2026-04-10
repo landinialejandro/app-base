@@ -1,10 +1,11 @@
 <?php
 
-// FILE: app/Http/Controllers/ProductController.php | V7
+// FILE: app/Http/Controllers/ProductController.php | V8
 
 namespace App\Http\Controllers;
 
 use App\Models\Product;
+use App\Support\Auth\Security;
 use App\Support\Catalogs\ProductCatalog;
 use App\Support\Inventory\ProductStockCalculator;
 use App\Support\Navigation\NavigationTrail;
@@ -24,7 +25,8 @@ class ProductController extends Controller
         $kind = $request->get('kind');
         $isActive = $request->get('is_active');
 
-        $products = Product::query()
+        $products = app(Security::class)
+            ->scope(auth()->user(), 'products.viewAny', Product::query())
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($subquery) use ($q) {
                     $subquery->where('name', 'like', "%{$q}%")

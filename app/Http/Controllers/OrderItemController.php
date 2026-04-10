@@ -1,12 +1,13 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderItemController.php | V11
+// FILE: app/Http/Controllers/OrderItemController.php | V12
 
 namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Support\Auth\Security;
 use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Navigation\NavigationTrail;
@@ -23,7 +24,7 @@ class OrderItemController extends Controller
         $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
 
         $products = $supportsProductsModule
-            ? Product::query()
+            ? app(Security::class)->scope(auth()->user(), 'products.viewAny', Product::query())
                 ->where('tenant_id', $order->tenant_id)
                 ->whereNull('deleted_at')
                 ->orderBy('name')
@@ -96,7 +97,7 @@ class OrderItemController extends Controller
         $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
 
         $products = $supportsProductsModule
-            ? Product::query()
+            ? app(Security::class)->scope(auth()->user(), 'products.viewAny', Product::query())
                 ->where('tenant_id', $order->tenant_id)
                 ->whereNull('deleted_at')
                 ->orderBy('name')

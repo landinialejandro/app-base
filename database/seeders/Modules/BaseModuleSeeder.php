@@ -1,6 +1,6 @@
 <?php
 
-// database/seeders/Modules/BaseModuleSeeder.php
+// FILE: database/seeders/Modules/BaseModuleSeeder.php | V2
 
 namespace Database\Seeders\Modules;
 
@@ -10,8 +10,6 @@ use Illuminate\Support\Facades\DB;
 abstract class BaseModuleSeeder extends Seeder
 {
     protected array $context = [];
-
-    protected array $dependencies = [];
 
     public function setContext(array $context): void
     {
@@ -30,7 +28,7 @@ abstract class BaseModuleSeeder extends Seeder
         return array_key_exists($key, $this->context);
     }
 
-    protected function getDependency(string $key)
+    protected function getDependency(string $key): mixed
     {
         return $this->context[$key] ?? null;
     }

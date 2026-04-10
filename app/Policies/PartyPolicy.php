@@ -1,13 +1,12 @@
 <?php
 
-// FILE: app/Policies/PartyPolicy.php | V5
+// FILE: app/Policies/PartyPolicy.php | V6
 
 namespace App\Policies;
 
 use App\Models\Party;
 use App\Models\User;
 use App\Support\Auth\Security;
-use App\Support\Catalogs\ModuleCatalog;
 
 class PartyPolicy
 {
@@ -18,12 +17,12 @@ class PartyPolicy
 
     public function viewAny(User $user): bool
     {
-        return $this->security()->allows($user, ModuleCatalog::PARTIES.'.viewAny', Party::class);
+        return $this->security()->allows($user, 'parties.viewAny');
     }
 
     public function view(User $user, Party $party): bool
     {
-        return $this->security()->allows($user, ModuleCatalog::PARTIES.'.view', $party);
+        return $this->security()->allows($user, 'parties.view', $party);
     }
 
     public function create(User $user): bool
@@ -33,11 +32,11 @@ class PartyPolicy
 
     public function update(User $user, Party $party): bool
     {
-        return $this->security()->allows($user, ModuleCatalog::PARTIES.'.update', $party);
+        return $this->security()->allows($user, 'parties.update', $party);
     }
 
     public function delete(User $user, Party $party): bool
     {
-        return $this->security()->allows($user, ModuleCatalog::PARTIES.'.delete', $party);
+        return $this->security()->allows($user, 'parties.delete', $party);
     }
 }

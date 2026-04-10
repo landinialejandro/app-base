@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Membership.php | V2
+// FILE: app/Models/Membership.php | V3
 
 namespace App\Models;
 
@@ -26,6 +26,7 @@ class Membership extends Model
         'is_owner' => 'boolean',
         'joined_at' => 'datetime',
         'blocked_at' => 'datetime',
+        'blocked_reason' => 'string',
     ];
 
     public function tenant(): BelongsTo
@@ -41,7 +42,7 @@ class Membership extends Model
     public function roles(): BelongsToMany
     {
         return $this->belongsToMany(Role::class, 'membership_role')
-            ->withPivot('branch_id')
+            ->withPivot(['branch_id'])
             ->withTimestamps();
     }
 

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Auth/Security.php | V1
+// FILE: app/Support/Auth/Security.php | V3
 
 namespace App\Support\Auth;
 
@@ -55,6 +55,10 @@ class Security
         }
 
         if ($this->recordScopes->deniesByConfiguration($module, $capability, $scope, $constraints)) {
+            return false;
+        }
+
+        if ($this->requiresConcreteContext($module, $capability, $constraints)) {
             return false;
         }
 
@@ -120,5 +124,10 @@ class Security
         };
 
         return [$module, $capability];
+    }
+
+    protected function requiresConcreteContext(string $module, string $capability, array $constraints): bool
+    {
+        return ! empty($this->recordScopes->extractAllowedKinds($constraints));
     }
 }

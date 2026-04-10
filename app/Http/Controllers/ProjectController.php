@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/ProjectController.php | V6
+// FILE: app/Http/Controllers/ProjectController.php | V7
 
 namespace App\Http\Controllers;
 
@@ -19,14 +19,16 @@ class ProjectController extends Controller
     public function index(Request $request)
     {
         $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
 
         $this->authorize('viewAny', Project::class);
 
         $q = trim((string) $request->get('q', ''));
         $status = (string) $request->get('status', '');
 
-        $projects = app(Security::class)
-            ->scope(auth()->user(), 'projects.viewAny', Project::query())
+        $projects = $security
+            ->scope($user, 'projects.viewAny', Project::query())
             ->select('projects.*')
             ->selectSub(function ($query) {
                 $query->from('tasks')
@@ -92,9 +94,7 @@ class ProjectController extends Controller
             })
             ->when(
                 $status !== '' && in_array($status, ProjectCatalog::statuses(), true),
-                function ($query) use ($status) {
-                    $query->where('status', $status);
-                }
+                fn ($query) => $query->where('status', $status)
             )
             ->orderByRaw('
                 CASE

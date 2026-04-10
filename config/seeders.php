@@ -1,6 +1,6 @@
 <?php
 
-// FILE: config/seeders.php | V2
+// FILE: config/seeders.php | V3
 
 use Database\Seeders\Modules\AppointmentModuleSeeder;
 use Database\Seeders\Modules\AssetModuleSeeder;
@@ -15,6 +15,7 @@ use Database\Seeders\Modules\PermissionModuleSeeder;
 use Database\Seeders\Modules\ProductModuleSeeder;
 use Database\Seeders\Modules\ProjectModuleSeeder;
 use Database\Seeders\Modules\RoleModuleSeeder;
+use Database\Seeders\Modules\RolePermissionModuleSeeder;
 use Database\Seeders\Modules\TaskModuleSeeder;
 use Database\Seeders\Modules\TenantModuleSeeder;
 use Database\Seeders\Modules\UserModuleSeeder;
@@ -26,6 +27,7 @@ return [
             UserModuleSeeder::class,
             PermissionModuleSeeder::class,
             RoleModuleSeeder::class,
+            RolePermissionModuleSeeder::class,
             MembershipModuleSeeder::class,
             BranchModuleSeeder::class,
             InvitationModuleSeeder::class,

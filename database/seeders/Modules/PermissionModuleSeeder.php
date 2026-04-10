@@ -1,6 +1,6 @@
 <?php
 
-// FILE: database/seeders/Modules/PermissionModuleSeeder.php | V2
+// FILE: database/seeders/Modules/PermissionModuleSeeder.php | V3
 
 namespace Database\Seeders\Modules;
 
@@ -15,7 +15,7 @@ class PermissionModuleSeeder extends BaseModuleSeeder
         $this->context['permissions'] = [];
 
         foreach ($this->getPermissionDefinitions() as $definition) {
-            $permission = Permission::firstOrCreate(
+            $permission = Permission::updateOrCreate(
                 ['slug' => $definition['slug']],
                 [
                     'name' => $definition['name'],

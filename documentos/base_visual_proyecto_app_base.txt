@@ -23,7 +23,7 @@ Documenta:
 estructura visual base
 componentes reutilizables
 criterios de composición de vistas
-patrones visuales compartidos
+patrones visuales compartidos...
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA GENERAL DE PÁGINA>>

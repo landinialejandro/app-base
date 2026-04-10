@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/index.blade.php | V6 --}}
+{{-- FILE: resources/views/documents/index.blade.php | V7 --}}
 
 @extends('layouts.app')
 
@@ -10,20 +10,34 @@
         use App\Support\Catalogs\DocumentCatalog;
         use App\Support\Navigation\DocumentNavigationTrail;
         use App\Support\Navigation\NavigationTrail;
+        use App\Models\Document;
+        use App\Support\Auth\Security;
 
         $trailQuery = NavigationTrail::toQuery(DocumentNavigationTrail::documentsBase());
+
+        $allowedCreateKinds = collect(DocumentCatalog::kinds())
+            ->filter(
+                fn(string $kind) => app(Security::class)->allows(auth()->user(), 'documents.create', Document::class, [
+                    'kind' => $kind,
+                ]),
+            )
+            ->values();
+
+        $canCreateDocuments = $allowedCreateKinds->isNotEmpty();
+        $defaultCreateKind = $allowedCreateKinds->first();
     @endphp
+
 
     <x-page class="list-page">
 
         <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Documentos']]" />
 
         <x-page-header title="Documentos">
-            @can('create', App\Models\Document::class)
-                <a href="{{ route('documents.create') }}" class="btn btn-success">
+            @if ($canCreateDocuments)
+                <a href="{{ route('documents.create', ['kind' => $defaultCreateKind]) }}" class="btn btn-success">
                     Nuevo documento
                 </a>
-            @endcan
+            @endif
         </x-page-header>
 
         <x-list-filters-card :action="route('documents.index')" secondary-id="documents-extra-filters">

@@ -128,6 +128,10 @@ class Security
 
     protected function requiresConcreteContext(string $module, string $capability, array $constraints): bool
     {
+        if ($capability !== 'create') {
+            return false;
+        }
+
         return ! empty($this->recordScopes->extractAllowedKinds($constraints));
     }
 }

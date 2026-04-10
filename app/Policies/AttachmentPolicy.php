@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Policies/AttachmentPolicy.php | V6
+// FILE: app/Policies/AttachmentPolicy.php | V7
 
 namespace App\Policies;
 

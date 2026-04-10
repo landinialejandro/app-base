@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderController.php | V22
+// FILE: app/Http/Controllers/OrderController.php | V23
 
 namespace App\Http\Controllers;
 
@@ -31,6 +31,8 @@ class OrderController extends Controller
         $this->authorize('viewAny', Order::class);
 
         $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
 
         $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
 
@@ -41,19 +43,21 @@ class OrderController extends Controller
         $status = $request->get('status');
         $orderedAt = $request->get('ordered_at');
 
-        $parties = Party::query()
+        $parties = $security
+            ->scope($user, 'parties.viewAny', Party::query())
             ->orderBy('name')
             ->get();
 
         $assets = $supportsAssetsModule
-            ? Asset::query()
+            ? $security
+                ->scope($user, 'assets.viewAny', Asset::query())
                 ->with('party')
                 ->orderBy('name')
                 ->get()
             : collect();
 
-        $orders = app(Security::class)
-            ->scope(auth()->user(), 'orders.viewAny', Order::query())
+        $orders = $security
+            ->scope($user, 'orders.viewAny', Order::query())
             ->with(['party', 'asset', 'task', 'items'])
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($subquery) use ($q) {
@@ -84,11 +88,11 @@ class OrderController extends Controller
             ->withQueryString();
 
         $allowedCreateKinds = collect(OrderCatalog::kinds())
-            ->filter(fn (string $kind) => app(Security::class)->allows(
-                auth()->user(),
+            ->filter(fn (string $orderKind) => $security->allows(
+                $user,
                 'orders.create',
                 Order::class,
-                ['kind' => $kind]
+                ['kind' => $orderKind]
             ))
             ->values();
 
@@ -108,15 +112,19 @@ class OrderController extends Controller
     public function create(Request $request)
     {
         $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
 
         $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
 
-        $parties = Party::query()
+        $parties = $security
+            ->scope($user, 'parties.viewAny', Party::query())
             ->orderBy('name')
             ->get();
 
         $assets = $supportsAssetsModule
-            ? Asset::query()
+            ? $security
+                ->scope($user, 'assets.viewAny', Asset::query())
                 ->with('party')
                 ->orderBy('name')
                 ->get()
@@ -136,7 +144,8 @@ class OrderController extends Controller
         }
 
         if ($supportsAssetsModule && $request->filled('asset_id')) {
-            $prefilledAsset = Asset::query()
+            $prefilledAsset = $security
+                ->scope($user, 'assets.viewAny', Asset::query())
                 ->where('id', $request->integer('asset_id'))
                 ->where('tenant_id', $tenant->id)
                 ->whereNull('deleted_at')
@@ -150,7 +159,8 @@ class OrderController extends Controller
         }
 
         if ($request->filled('task_id')) {
-            $prefilledTask = Task::query()
+            $prefilledTask = $security
+                ->scope($user, 'tasks.viewAny', Task::query())
                 ->with('order')
                 ->where('id', $request->integer('task_id'))
                 ->where('tenant_id', $tenant->id)
@@ -173,7 +183,8 @@ class OrderController extends Controller
         }
 
         if ($request->filled('appointment_id')) {
-            $prefilledAppointment = Appointment::query()
+            $prefilledAppointment = $security
+                ->scope($user, 'appointments.viewAny', Appointment::query())
                 ->with('order')
                 ->where('id', $request->integer('appointment_id'))
                 ->where('tenant_id', $tenant->id)
@@ -193,7 +204,8 @@ class OrderController extends Controller
             }
 
             if ($supportsAssetsModule && $prefilledAppointment->asset_id) {
-                $prefilledAsset = Asset::query()
+                $prefilledAsset = $security
+                    ->scope($user, 'assets.viewAny', Asset::query())
                     ->where('id', $prefilledAppointment->asset_id)
                     ->where('tenant_id', $tenant->id)
                     ->whereNull('deleted_at')
@@ -203,8 +215,8 @@ class OrderController extends Controller
             $prefilledKind = OrderCatalog::KIND_SERVICE;
         }
 
-        app(Security::class)->authorize(
-            auth()->user(),
+        $security->authorize(
+            $user,
             'orders.create',
             Order::class,
             ['kind' => $prefilledKind]
@@ -229,6 +241,8 @@ class OrderController extends Controller
     public function store(Request $request)
     {
         $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
 
         $data = $request->validate([
             'party_id' => [
@@ -279,15 +293,18 @@ class OrderController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        app(Security::class)->authorize(
-            auth()->user(),
+        $security->authorize(
+            $user,
             'orders.create',
             Order::class,
             ['kind' => $data['kind']]
         );
 
         if (! empty($data['asset_id'])) {
-            $asset = Asset::query()->findOrFail($data['asset_id']);
+            $asset = $security
+                ->scope($user, 'assets.viewAny', Asset::query())
+                ->whereKey($data['asset_id'])
+                ->firstOrFail();
 
             if ((int) $asset->party_id !== (int) $data['party_id']) {
                 return back()
@@ -296,6 +313,13 @@ class OrderController extends Controller
                     ])
                     ->withInput();
             }
+        }
+
+        if (! empty($data['task_id'])) {
+            $security
+                ->scope($user, 'tasks.viewAny', Task::query())
+                ->whereKey($data['task_id'])
+                ->firstOrFail();
         }
 
         $orderedAt = $data['ordered_at'] ?? now()->toDateString();
@@ -335,7 +359,8 @@ class OrderController extends Controller
         });
 
         if (! empty($appointmentId)) {
-            $appointment = Appointment::query()
+            $appointment = $security
+                ->scope($user, 'appointments.viewAny', Appointment::query())
                 ->where('id', $appointmentId)
                 ->where('tenant_id', $tenant->id)
                 ->whereNull('deleted_at')
@@ -407,15 +432,19 @@ class OrderController extends Controller
         $this->authorize('update', $order);
 
         $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
 
         $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
 
-        $parties = Party::query()
+        $parties = $security
+            ->scope($user, 'parties.viewAny', Party::query())
             ->orderBy('name')
             ->get();
 
         $assets = $supportsAssetsModule
-            ? Asset::query()
+            ? $security
+                ->scope($user, 'assets.viewAny', Asset::query())
                 ->with('party')
                 ->orderBy('name')
                 ->get()
@@ -438,6 +467,9 @@ class OrderController extends Controller
         $this->authorize('update', $order);
 
         $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
+
         $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
 
         $data = $request->validate([
@@ -491,8 +523,8 @@ class OrderController extends Controller
             $data['asset_id'] = $order->asset_id;
         }
 
-        app(Security::class)->authorize(
-            auth()->user(),
+        $security->authorize(
+            $user,
             'orders.update',
             $order,
             ['kind' => $order->kind]
@@ -517,7 +549,10 @@ class OrderController extends Controller
         }
 
         if (empty($order->asset_id) && ! empty($data['asset_id'])) {
-            $asset = Asset::query()->findOrFail($data['asset_id']);
+            $asset = $security
+                ->scope($user, 'assets.viewAny', Asset::query())
+                ->whereKey($data['asset_id'])
+                ->firstOrFail();
 
             if ((int) $asset->party_id !== (int) $data['party_id']) {
                 return back()
@@ -526,6 +561,13 @@ class OrderController extends Controller
                     ])
                     ->withInput();
             }
+        }
+
+        if (! empty($data['task_id'])) {
+            $security
+                ->scope($user, 'tasks.viewAny', Task::query())
+                ->whereKey($data['task_id'])
+                ->firstOrFail();
         }
 
         $orderedAt = $data['ordered_at'] ?? $order->ordered_at?->toDateString() ?? now()->toDateString();

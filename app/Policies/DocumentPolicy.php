@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Policies/DocumentPolicy.php | V6
+// FILE: app/Policies/DocumentPolicy.php | V7
 
 namespace App\Policies;
 

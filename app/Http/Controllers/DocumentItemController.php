@@ -1,12 +1,13 @@
 <?php
 
-// FILE: app/Http/Controllers/DocumentItemController.php | V7
+// FILE: app/Http/Controllers/DocumentItemController.php | V8
 
 namespace App\Http\Controllers;
 
 use App\Models\Document;
 use App\Models\DocumentItem;
 use App\Models\Product;
+use App\Support\Auth\Security;
 use App\Support\Documents\DocumentTotalsCalculator;
 use App\Support\Navigation\DocumentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
@@ -19,7 +20,11 @@ class DocumentItemController extends Controller
     {
         $this->authorize('update', $document);
 
-        $products = Product::query()
+        $security = app(Security::class);
+        $user = auth()->user();
+
+        $products = $security
+            ->scope($user, 'products.viewAny', Product::query())
             ->where('tenant_id', $document->tenant_id)
             ->whereNull('deleted_at')
             ->orderBy('name')
@@ -40,6 +45,9 @@ class DocumentItemController extends Controller
     {
         $this->authorize('update', $document);
 
+        $security = app(Security::class);
+        $user = auth()->user();
+
         $data = $request->validate([
             'product_id' => [
                 'nullable',
@@ -55,6 +63,15 @@ class DocumentItemController extends Controller
             'quantity' => ['required', 'numeric', 'gt:0'],
             'unit_price' => ['required', 'numeric', 'min:0'],
         ]);
+
+        if (! empty($data['product_id'])) {
+            $security
+                ->scope($user, 'products.viewAny', Product::query())
+                ->where('tenant_id', $document->tenant_id)
+                ->whereNull('deleted_at')
+                ->whereKey($data['product_id'])
+                ->firstOrFail();
+        }
 
         $data['tenant_id'] = $document->tenant_id;
         $data['document_id'] = $document->id;
@@ -77,7 +94,11 @@ class DocumentItemController extends Controller
 
         abort_unless((int) $item->document_id === (int) $document->id, 404);
 
-        $products = Product::query()
+        $security = app(Security::class);
+        $user = auth()->user();
+
+        $products = $security
+            ->scope($user, 'products.viewAny', Product::query())
             ->where('tenant_id', $document->tenant_id)
             ->whereNull('deleted_at')
             ->orderBy('name')
@@ -94,6 +115,9 @@ class DocumentItemController extends Controller
 
         abort_unless((int) $item->document_id === (int) $document->id, 404);
 
+        $security = app(Security::class);
+        $user = auth()->user();
+
         $data = $request->validate([
             'product_id' => [
                 'nullable',
@@ -109,6 +133,15 @@ class DocumentItemController extends Controller
             'quantity' => ['required', 'numeric', 'gt:0'],
             'unit_price' => ['required', 'numeric', 'min:0'],
         ]);
+
+        if (! empty($data['product_id'])) {
+            $security
+                ->scope($user, 'products.viewAny', Product::query())
+                ->where('tenant_id', $document->tenant_id)
+                ->whereNull('deleted_at')
+                ->whereKey($data['product_id'])
+                ->firstOrFail();
+        }
 
         $data['line_total'] = (float) $data['quantity'] * (float) $data['unit_price'];
 

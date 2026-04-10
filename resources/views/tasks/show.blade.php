@@ -10,6 +10,9 @@
         use App\Support\Navigation\NavigationTrail;
         use App\Support\Auth\TenantModuleAccess;
         use App\Support\Catalogs\ModuleCatalog;
+        use App\Support\Auth\Security;
+        use App\Support\Catalogs\OrderCatalog;
+        use App\Models\Order;
         use Illuminate\Support\Carbon;
 
         $attachments = $task->attachments ?? collect();
@@ -47,7 +50,11 @@
             $task->party_id &&
             TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, app('tenant')) &&
             auth()->user()->can('update', $task) &&
-            auth()->user()->can('create', App\Models\Order::class);
+            collect(OrderCatalog::kinds())->contains(
+                fn(string $kind) => app(Security::class)->allows(auth()->user(), 'orders.create', Order::class, [
+                    'kind' => $kind,
+                ]),
+            );
     @endphp
 
     <x-page>

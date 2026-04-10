@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TaskController.php | V10
+// FILE: app/Http/Controllers/TaskController.php | V11
 
 namespace App\Http\Controllers;
 
@@ -142,7 +142,6 @@ class TaskController extends Controller
             ->get();
 
         $defaultAssignedUserId = old('assigned_user_id', (string) auth()->id());
-        $canChangeProject = auth()->user()->can('create', Project::class);
         $navigationTrail = TaskNavigationTrail::create($request, $forcedProject);
 
         return view('tasks.create', compact(
@@ -152,7 +151,6 @@ class TaskController extends Controller
             'users',
             'forcedProject',
             'defaultAssignedUserId',
-            'canChangeProject',
             'navigationTrail'
         ));
     }
@@ -261,7 +259,6 @@ class TaskController extends Controller
             ->get();
 
         $forcedProject = null;
-        $canChangeProject = auth()->user()->can('create', Project::class);
         $defaultAssignedUserId = old('assigned_user_id', (string) ($task->assigned_user_id ?? auth()->id()));
         $isForeignTaskForAdmin = $this->canManageForeignTask($task);
 
@@ -274,7 +271,6 @@ class TaskController extends Controller
             'parties',
             'users',
             'forcedProject',
-            'canChangeProject',
             'defaultAssignedUserId',
             'isForeignTaskForAdmin',
             'navigationTrail'
@@ -335,10 +331,6 @@ class TaskController extends Controller
                     'confirm_foreign_task_edit' => 'Estás editando una tarea asignada a otro colaborador. Confirmá la modificación antes de guardar.',
                 ])
                 ->withInput();
-        }
-
-        if (! auth()->user()->can('create', Project::class)) {
-            $data['project_id'] = $task->project_id;
         }
 
         unset($data['confirm_foreign_task_edit']);

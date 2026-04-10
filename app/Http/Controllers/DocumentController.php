@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DocumentController.php | V14
+// FILE: app/Http/Controllers/DocumentController.php | V15
 
 namespace App\Http\Controllers;
 
@@ -27,6 +27,9 @@ class DocumentController extends Controller
     {
         $this->authorize('viewAny', Document::class);
 
+        $security = app(Security::class);
+        $user = auth()->user();
+
         $q = trim((string) $request->get('q', ''));
         $partyId = $request->get('party_id');
         $assetId = $request->get('asset_id');
@@ -34,9 +37,6 @@ class DocumentController extends Controller
         $kind = $request->get('kind');
         $status = $request->get('status');
         $issuedAt = $request->get('issued_at');
-
-        $security = app(Security::class);
-        $user = auth()->user();
 
         $parties = $security
             ->scope($user, 'parties.viewAny', Party::query())
@@ -82,20 +82,23 @@ class DocumentController extends Controller
 
     public function create(Request $request)
     {
-        $this->authorize('create', Document::class);
-
         $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
 
-        $parties = Party::query()
+        $parties = $security
+            ->scope($user, 'parties.viewAny', Party::query())
             ->orderBy('name')
             ->get();
 
-        $orders = Order::query()
+        $orders = $security
+            ->scope($user, 'orders.viewAny', Order::query())
             ->with(['party', 'asset'])
             ->latest()
             ->get();
 
-        $assets = Asset::query()
+        $assets = $security
+            ->scope($user, 'assets.viewAny', Asset::query())
             ->with('party')
             ->orderBy('name')
             ->get();
@@ -104,7 +107,8 @@ class DocumentController extends Controller
         $asset = null;
 
         if ($request->filled('order_id')) {
-            $order = Order::query()
+            $order = $security
+                ->scope($user, 'orders.viewAny', Order::query())
                 ->with(['party', 'asset'])
                 ->where('id', $request->integer('order_id'))
                 ->where('tenant_id', $tenant->id)
@@ -112,7 +116,8 @@ class DocumentController extends Controller
         }
 
         if ($request->filled('asset_id')) {
-            $asset = Asset::query()
+            $asset = $security
+                ->scope($user, 'assets.viewAny', Asset::query())
                 ->with('party')
                 ->where('id', $request->integer('asset_id'))
                 ->where('tenant_id', $tenant->id)
@@ -125,8 +130,8 @@ class DocumentController extends Controller
             ? $requestedKind
             : DocumentCatalog::KIND_QUOTE;
 
-        app(Security::class)->authorize(
-            auth()->user(),
+        $security->authorize(
+            $user,
             'documents.create',
             Document::class,
             ['kind' => $prefilledKind]
@@ -141,7 +146,8 @@ class DocumentController extends Controller
         }
 
         if (! $order && ! $asset && $request->filled('party_id')) {
-            $party = Party::query()
+            $party = $security
+                ->scope($user, 'parties.viewAny', Party::query())
                 ->where('id', $request->integer('party_id'))
                 ->where('tenant_id', $tenant->id)
                 ->whereNull('deleted_at')
@@ -175,9 +181,9 @@ class DocumentController extends Controller
 
     public function store(Request $request)
     {
-        $this->authorize('create', Document::class);
-
         $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
 
         $data = $request->validate([
             'party_id' => [
@@ -215,8 +221,8 @@ class DocumentController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        app(Security::class)->authorize(
-            auth()->user(),
+        $security->authorize(
+            $user,
             'documents.create',
             Document::class,
             ['kind' => $data['kind']]
@@ -226,19 +232,21 @@ class DocumentController extends Controller
         $order = null;
 
         if (! empty($data['order_id'])) {
-            $order = Order::query()
+            $order = $security
+                ->scope($user, 'orders.viewAny', Order::query())
                 ->where('id', $data['order_id'])
                 ->where('tenant_id', $tenant->id)
-                ->first();
+                ->firstOrFail();
 
-            if ($order) {
-                $data['party_id'] = $order->party_id;
-                $data['asset_id'] = $order->asset_id;
-            }
+            $data['party_id'] = $order->party_id;
+            $data['asset_id'] = $order->asset_id;
         }
 
         if (! empty($data['asset_id'])) {
-            $asset = Asset::query()->findOrFail($data['asset_id']);
+            $asset = $security
+                ->scope($user, 'assets.viewAny', Asset::query())
+                ->whereKey($data['asset_id'])
+                ->firstOrFail();
 
             if ((int) $asset->party_id !== (int) $data['party_id']) {
                 return back()
@@ -247,6 +255,13 @@ class DocumentController extends Controller
                     ])
                     ->withInput();
             }
+        }
+
+        if (! empty($data['party_id'])) {
+            $security
+                ->scope($user, 'parties.viewAny', Party::query())
+                ->whereKey($data['party_id'])
+                ->firstOrFail();
         }
 
         $issuedAtError = $this->validateIssuedAtForDocument(
@@ -292,6 +307,14 @@ class DocumentController extends Controller
     {
         $this->authorize('create', Document::class);
 
+        $security = app(Security::class);
+        $user = auth()->user();
+
+        $order = $security
+            ->scope($user, 'orders.viewAny', Order::query())
+            ->whereKey($order->id)
+            ->firstOrFail();
+
         $data = $request->validate([
             'kind' => [
                 'required',
@@ -303,8 +326,8 @@ class DocumentController extends Controller
             ],
         ]);
 
-        app(Security::class)->authorize(
-            auth()->user(),
+        $security->authorize(
+            $user,
             'documents.create',
             Document::class,
             ['kind' => $data['kind']]
@@ -363,7 +386,6 @@ class DocumentController extends Controller
         });
 
         $kindLabel = DocumentCatalog::label($data['kind']);
-
         $message = "Documento {$kindLabel} creado correctamente desde la orden con número {$document->number}.";
 
         if ($existingDocumentsCount > 0) {
@@ -404,16 +426,22 @@ class DocumentController extends Controller
     {
         $this->authorize('update', $document);
 
-        $parties = Party::query()
+        $security = app(Security::class);
+        $user = auth()->user();
+
+        $parties = $security
+            ->scope($user, 'parties.viewAny', Party::query())
             ->orderBy('name')
             ->get();
 
-        $orders = Order::query()
+        $orders = $security
+            ->scope($user, 'orders.viewAny', Order::query())
             ->with(['party', 'asset'])
             ->latest()
             ->get();
 
-        $assets = Asset::query()
+        $assets = $security
+            ->scope($user, 'assets.viewAny', Asset::query())
             ->with('party')
             ->orderBy('name')
             ->get();
@@ -428,6 +456,8 @@ class DocumentController extends Controller
         $this->authorize('update', $document);
 
         $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
 
         $data = $request->validate([
             'party_id' => [
@@ -499,26 +529,28 @@ class DocumentController extends Controller
         $order = null;
 
         if ($incomingOrderId !== null) {
-            $order = Order::query()
+            $order = $security
+                ->scope($user, 'orders.viewAny', Order::query())
                 ->where('id', $incomingOrderId)
                 ->where('tenant_id', $tenant->id)
-                ->first();
+                ->firstOrFail();
 
-            if ($order) {
-                $data['party_id'] = $order->party_id;
-                $data['asset_id'] = $order->asset_id;
-            }
+            $data['party_id'] = $order->party_id;
+            $data['asset_id'] = $order->asset_id;
         }
 
-        app(Security::class)->authorize(
-            auth()->user(),
+        $security->authorize(
+            $user,
             'documents.update',
             $document,
             ['kind' => $data['kind']]
         );
 
         if (! empty($data['asset_id'])) {
-            $asset = Asset::query()->findOrFail($data['asset_id']);
+            $asset = $security
+                ->scope($user, 'assets.viewAny', Asset::query())
+                ->whereKey($data['asset_id'])
+                ->firstOrFail();
 
             if ((int) $asset->party_id !== (int) $data['party_id']) {
                 return back()
@@ -527,6 +559,13 @@ class DocumentController extends Controller
                     ])
                     ->withInput();
             }
+        }
+
+        if (! empty($data['party_id'])) {
+            $security
+                ->scope($user, 'parties.viewAny', Party::query())
+                ->whereKey($data['party_id'])
+                ->firstOrFail();
         }
 
         $issuedAtError = $this->validateIssuedAtForDocument(

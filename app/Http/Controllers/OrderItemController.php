@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderItemController.php | V12
+// FILE: app/Http/Controllers/OrderItemController.php | V13
 
 namespace App\Http\Controllers;
 
@@ -22,9 +22,12 @@ class OrderItemController extends Controller
         $this->authorize('update', $order);
 
         $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
+        $security = app(Security::class);
+        $user = auth()->user();
 
         $products = $supportsProductsModule
-            ? app(Security::class)->scope(auth()->user(), 'products.viewAny', Product::query())
+            ? $security
+                ->scope($user, 'products.viewAny', Product::query())
                 ->where('tenant_id', $order->tenant_id)
                 ->whereNull('deleted_at')
                 ->orderBy('name')
@@ -53,6 +56,8 @@ class OrderItemController extends Controller
         $this->authorize('update', $order);
 
         $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
+        $security = app(Security::class);
+        $user = auth()->user();
 
         $productRules = ['nullable', 'integer'];
 
@@ -76,6 +81,15 @@ class OrderItemController extends Controller
             $data['product_id'] = null;
         }
 
+        if (! empty($data['product_id'])) {
+            $security
+                ->scope($user, 'products.viewAny', Product::query())
+                ->where('tenant_id', $order->tenant_id)
+                ->whereNull('deleted_at')
+                ->whereKey($data['product_id'])
+                ->firstOrFail();
+        }
+
         $data['tenant_id'] = $order->tenant_id;
         $data['order_id'] = $order->id;
 
@@ -95,9 +109,12 @@ class OrderItemController extends Controller
         abort_unless((int) $item->order_id === (int) $order->id, 404);
 
         $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
+        $security = app(Security::class);
+        $user = auth()->user();
 
         $products = $supportsProductsModule
-            ? app(Security::class)->scope(auth()->user(), 'products.viewAny', Product::query())
+            ? $security
+                ->scope($user, 'products.viewAny', Product::query())
                 ->where('tenant_id', $order->tenant_id)
                 ->whereNull('deleted_at')
                 ->orderBy('name')
@@ -122,6 +139,8 @@ class OrderItemController extends Controller
         abort_unless((int) $item->order_id === (int) $order->id, 404);
 
         $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
+        $security = app(Security::class);
+        $user = auth()->user();
 
         $productRules = ['nullable', 'integer'];
 
@@ -143,6 +162,15 @@ class OrderItemController extends Controller
 
         if (! $supportsProductsModule) {
             $data['product_id'] = null;
+        }
+
+        if (! empty($data['product_id'])) {
+            $security
+                ->scope($user, 'products.viewAny', Product::query())
+                ->where('tenant_id', $order->tenant_id)
+                ->whereNull('deleted_at')
+                ->whereKey($data['product_id'])
+                ->firstOrFail();
         }
 
         $item->update($data);

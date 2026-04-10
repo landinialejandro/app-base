@@ -1,7 +1,9 @@
 {{-- FILE: resources/views/documents/partials/embedded-tabs.blade.php | V9 --}}
 
 @php
+    use App\Models\Document;
     use App\Support\Catalogs\DocumentCatalog;
+    use App\Support\Auth\Security;
 
     $documents = $documents ?? collect();
 
@@ -25,6 +27,17 @@
 
     $order = $order ?? null;
 
+    $allowedCreateKinds = collect(DocumentCatalog::kinds())
+        ->filter(
+            fn(string $kind) => app(Security::class)->allows(auth()->user(), 'documents.create', Document::class, [
+                'kind' => $kind,
+            ]),
+        )
+        ->values();
+
+    $canCreateDocuments = $allowedCreateKinds->isNotEmpty();
+    $defaultCreateKind = $allowedCreateKinds->first();
+
     $quoteCount = $quoteCount ?? $documents->where('kind', DocumentCatalog::KIND_QUOTE)->count();
     $deliveryNoteCount = $deliveryNoteCount ?? $documents->where('kind', DocumentCatalog::KIND_DELIVERY_NOTE)->count();
     $invoiceCount = $invoiceCount ?? $documents->where('kind', DocumentCatalog::KIND_INVOICE)->count();
@@ -36,11 +49,14 @@
         $toolbarActions = null;
     @endphp
 
-    @can('create', App\Models\Document::class)
+    @if ($canCreateDocuments)
         @php
-            $toolbarActions = route('documents.create', $createBaseQuery + $trailQuery);
+            $toolbarActions = route(
+                'documents.create',
+                $createBaseQuery + $trailQuery + ['kind' => $defaultCreateKind],
+            );
         @endphp
-    @endcan
+    @endif
 
     <x-tab-toolbar label="Tipos de documentos">
         <x-slot:tabs>

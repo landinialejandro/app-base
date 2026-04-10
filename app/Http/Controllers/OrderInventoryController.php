@@ -1,11 +1,12 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderInventoryController.php | V2
+// FILE: app/Http/Controllers/OrderInventoryController.php | V3
 
 namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Product;
+use App\Support\Auth\Security;
 use App\Support\Catalogs\ProductCatalog;
 use App\Support\Inventory\InventoryMovementService;
 use App\Support\Navigation\NavigationTrail;
@@ -79,6 +80,13 @@ class OrderInventoryController extends Controller
             ->first(fn ($product) => (int) $product->id === $productId);
 
         abort_if(! $product, 422, 'El producto seleccionado no pertenece a los ítems físicos de esta orden.');
+
+        app(Security::class)
+            ->scope(auth()->user(), 'products.viewAny', Product::query())
+            ->where('tenant_id', $order->tenant_id)
+            ->whereNull('deleted_at')
+            ->whereKey($product->id)
+            ->firstOrFail();
 
         return $product;
     }

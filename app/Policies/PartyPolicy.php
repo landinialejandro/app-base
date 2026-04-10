@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Policies/PartyPolicy.php | V6
+// FILE: app/Policies/PartyPolicy.php | V7
 
 namespace App\Policies;
 
@@ -27,7 +27,7 @@ class PartyPolicy
 
     public function create(User $user): bool
     {
-        return false;
+        return $this->security()->allows($user, 'parties.create', Party::class);
     }
 
     public function update(User $user, Party $party): bool

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantProfilePermissionController.php | V10
+// FILE: app/Http/Controllers/TenantProfilePermissionController.php | V11
 
 namespace App\Http\Controllers;
 
@@ -51,7 +51,6 @@ class TenantProfilePermissionController extends Controller
         $existingMatrix = $this->buildExistingPermissionMatrix($role, $moduleCapabilityMap);
 
         $matrix = $this->normalizePermissionMatrix($request, $moduleCapabilityMap, $existingMatrix);
-        $matrix = $this->autoFixViewDependencies($matrix);
 
         $this->validateLogicalConsistency($matrix);
         $this->validateScopes($matrix);
@@ -261,36 +260,6 @@ class TenantProfilePermissionController extends Controller
         return [];
     }
 
-    protected function autoFixViewDependencies(array $matrix): array
-    {
-        foreach ($matrix as $module => &$capabilities) {
-            $viewAnyEnabled = (bool) ($capabilities[CapabilityCatalog::VIEW_ANY]['enabled'] ?? false);
-            $viewEnabled = (bool) ($capabilities[CapabilityCatalog::VIEW]['enabled'] ?? false);
-            $createEnabled = (bool) ($capabilities[CapabilityCatalog::CREATE]['enabled'] ?? false);
-            $updateEnabled = (bool) ($capabilities[CapabilityCatalog::UPDATE]['enabled'] ?? false);
-            $deleteEnabled = (bool) ($capabilities[CapabilityCatalog::DELETE]['enabled'] ?? false);
-
-            if ($createEnabled && ! $viewEnabled && ! $viewAnyEnabled && isset($capabilities[CapabilityCatalog::VIEW])) {
-                $capabilities[CapabilityCatalog::VIEW]['enabled'] = true;
-                $capabilities[CapabilityCatalog::VIEW]['scope'] ??= $this->singleScopeOrNull($module, CapabilityCatalog::VIEW);
-            }
-
-            if ($updateEnabled && ! $viewEnabled && isset($capabilities[CapabilityCatalog::VIEW])) {
-                $capabilities[CapabilityCatalog::VIEW]['enabled'] = true;
-                $capabilities[CapabilityCatalog::VIEW]['scope'] ??= $this->singleScopeOrNull($module, CapabilityCatalog::VIEW);
-            }
-
-            if ($deleteEnabled && ! $viewEnabled && isset($capabilities[CapabilityCatalog::VIEW])) {
-                $capabilities[CapabilityCatalog::VIEW]['enabled'] = true;
-                $capabilities[CapabilityCatalog::VIEW]['scope'] ??= $this->singleScopeOrNull($module, CapabilityCatalog::VIEW);
-            }
-        }
-
-        unset($capabilities);
-
-        return $matrix;
-    }
-
     protected function validateLogicalConsistency(array $matrix): void
     {
         foreach ($matrix as $module => $capabilities) {
@@ -426,15 +395,6 @@ class TenantProfilePermissionController extends Controller
             ModuleCatalog::PARTIES => array_keys(PartyCatalog::kindLabels()),
             default => [],
         };
-    }
-
-    protected function singleScopeOrNull(string $module, string $capability): ?string
-    {
-        $options = PermissionScopeCatalog::optionsFor($module, $capability);
-
-        return count($options) === 1
-            ? array_key_first($options)
-            : null;
     }
 
     protected function permissionIdFor(string $module, string $capability): int

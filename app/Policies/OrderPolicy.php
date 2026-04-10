@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Policies/OrderPolicy.php | V6
+// FILE: app/Policies/OrderPolicy.php | V7
 
 namespace App\Policies;
 
@@ -27,7 +27,7 @@ class OrderPolicy
 
     public function create(User $user): bool
     {
-        return false;
+        return $this->security()->allows($user, 'orders.create', Order::class);
     }
 
     public function update(User $user, Order $order): bool

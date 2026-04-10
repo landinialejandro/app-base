@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AppointmentController.php | V14
+// FILE: app/Http/Controllers/AppointmentController.php | V15
 
 namespace App\Http\Controllers;
 
@@ -14,6 +14,7 @@ use App\Support\Auth\Security;
 use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\AppointmentCatalog;
 use App\Support\Catalogs\ModuleCatalog;
+use App\Support\Catalogs\OrderCatalog;
 use App\Support\Navigation\AppointmentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
 use Barryvdh\DomPDF\Facade\Pdf;
@@ -95,6 +96,8 @@ class AppointmentController extends Controller
     public function calendar(Request $request)
     {
         $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
 
         $this->authorize('viewAny', Appointment::class);
 
@@ -113,7 +116,8 @@ class AppointmentController extends Controller
             $weekStart = $baseDate->copy()->startOfWeek(Carbon::MONDAY);
             $weekEnd = $baseDate->copy()->endOfWeek(Carbon::SUNDAY);
 
-            $users = User::query()
+            $users = $security
+                ->scope($user, 'users.viewAny', User::query())
                 ->whereHas('memberships', function ($query) use ($tenant) {
                     $query->where('tenant_id', $tenant->id)
                         ->where('status', 'active');
@@ -121,8 +125,8 @@ class AppointmentController extends Controller
                 ->orderBy('name')
                 ->get();
 
-            $appointments = app(Security::class)
-                ->scope(auth()->user(), 'appointments.viewAny', Appointment::query())
+            $appointments = $security
+                ->scope($user, 'appointments.viewAny', Appointment::query())
                 ->with(['party', 'asset', 'order', 'assignedUser'])
                 ->whereBetween('scheduled_date', [
                     $weekStart->toDateString(),
@@ -181,7 +185,8 @@ class AppointmentController extends Controller
         $gridStart = $monthStart->copy()->startOfWeek(Carbon::MONDAY);
         $gridEnd = $monthEnd->copy()->endOfWeek(Carbon::SUNDAY);
 
-        $users = User::query()
+        $users = $security
+            ->scope($user, 'users.viewAny', User::query())
             ->whereHas('memberships', function ($query) use ($tenant) {
                 $query->where('tenant_id', $tenant->id)
                     ->where('status', 'active');
@@ -189,8 +194,8 @@ class AppointmentController extends Controller
             ->orderBy('name')
             ->get();
 
-        $appointments = app(Security::class)
-            ->scope(auth()->user(), 'appointments.viewAny', Appointment::query())
+        $appointments = $security
+            ->scope($user, 'appointments.viewAny', Appointment::query())
             ->with(['party', 'asset', 'order', 'assignedUser'])
             ->whereBetween('scheduled_date', [
                 $gridStart->toDateString(),
@@ -258,13 +263,16 @@ class AppointmentController extends Controller
     public function create(Request $request)
     {
         $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
 
         $this->authorize('create', Appointment::class);
 
         $supportsAssetsModule = $this->supportsModule(ModuleCatalog::ASSETS);
         $supportsOrdersModule = $this->supportsModule(ModuleCatalog::ORDERS);
 
-        $users = User::query()
+        $users = $security
+            ->scope($user, 'users.viewAny', User::query())
             ->whereHas('memberships', function ($query) use ($tenant) {
                 $query->where('tenant_id', $tenant->id)
                     ->where('status', 'active');
@@ -272,12 +280,26 @@ class AppointmentController extends Controller
             ->orderBy('name')
             ->get();
 
-        $parties = Party::query()->orderBy('name')->get();
+        $parties = $security
+            ->scope($user, 'parties.viewAny', Party::query())
+            ->orderBy('name')
+            ->get();
+
         $orders = $supportsOrdersModule
-            ? Order::query()->with('party')->latest()->limit(100)->get()
+            ? $security
+                ->scope($user, 'orders.viewAny', Order::query())
+                ->with('party')
+                ->latest()
+                ->limit(100)
+                ->get()
             : collect();
+
         $assets = $supportsAssetsModule
-            ? Asset::query()->with('party')->orderBy('name')->get()
+            ? $security
+                ->scope($user, 'assets.viewAny', Asset::query())
+                ->with('party')
+                ->orderBy('name')
+                ->get()
             : collect();
 
         $prefilledPartyId = null;
@@ -286,7 +308,8 @@ class AppointmentController extends Controller
         $prefilledScheduledDate = null;
 
         if ($request->filled('party_id')) {
-            $party = Party::query()
+            $party = $security
+                ->scope($user, 'parties.viewAny', Party::query())
                 ->where('id', $request->integer('party_id'))
                 ->where('tenant_id', $tenant->id)
                 ->whereNull('deleted_at')
@@ -298,7 +321,8 @@ class AppointmentController extends Controller
         }
 
         if ($supportsAssetsModule && $request->filled('asset_id')) {
-            $asset = Asset::query()
+            $asset = $security
+                ->scope($user, 'assets.viewAny', Asset::query())
                 ->with('party')
                 ->where('id', $request->integer('asset_id'))
                 ->where('tenant_id', $tenant->id)
@@ -312,7 +336,8 @@ class AppointmentController extends Controller
         }
 
         if ($supportsOrdersModule && $request->filled('order_id')) {
-            $order = Order::query()
+            $order = $security
+                ->scope($user, 'orders.viewAny', Order::query())
                 ->with(['party', 'asset'])
                 ->where('id', $request->integer('order_id'))
                 ->where('tenant_id', $tenant->id)
@@ -391,7 +416,14 @@ class AppointmentController extends Controller
         $canViewLinkedParty = $appointment->party && auth()->user()->can('view', $appointment->party);
         $canViewLinkedAsset = $supportsAssetsModule && $appointment->asset && auth()->user()->can('view', $appointment->asset);
         $canViewLinkedOrder = $supportsOrdersModule && $appointment->order && auth()->user()->can('view', $appointment->order);
-        $canCreateOrder = $supportsOrdersModule && auth()->user()->can('create', Order::class);
+
+        $canCreateOrder = $supportsOrdersModule && collect(OrderCatalog::kinds())
+            ->contains(fn (string $kind) => app(Security::class)->allows(
+                auth()->user(),
+                'orders.create',
+                Order::class,
+                ['kind' => $kind]
+            ));
 
         $navigationTrail = AppointmentNavigationTrail::show($request, $appointment);
 
@@ -413,13 +445,16 @@ class AppointmentController extends Controller
     public function edit(Request $request, Appointment $appointment)
     {
         $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
 
         $this->authorize('update', $appointment);
 
         $supportsAssetsModule = $this->supportsModule(ModuleCatalog::ASSETS);
         $supportsOrdersModule = $this->supportsModule(ModuleCatalog::ORDERS);
 
-        $users = User::query()
+        $users = $security
+            ->scope($user, 'users.viewAny', User::query())
             ->whereHas('memberships', function ($query) use ($tenant) {
                 $query->where('tenant_id', $tenant->id)
                     ->where('status', 'active');
@@ -427,12 +462,26 @@ class AppointmentController extends Controller
             ->orderBy('name')
             ->get();
 
-        $parties = Party::query()->orderBy('name')->get();
+        $parties = $security
+            ->scope($user, 'parties.viewAny', Party::query())
+            ->orderBy('name')
+            ->get();
+
         $orders = $supportsOrdersModule
-            ? Order::query()->with('party')->latest()->limit(100)->get()
+            ? $security
+                ->scope($user, 'orders.viewAny', Order::query())
+                ->with('party')
+                ->latest()
+                ->limit(100)
+                ->get()
             : collect();
+
         $assets = $supportsAssetsModule
-            ? Asset::query()->with('party')->orderBy('name')->get()
+            ? $security
+                ->scope($user, 'assets.viewAny', Asset::query())
+                ->with('party')
+                ->orderBy('name')
+                ->get()
             : collect();
 
         $defaultAssignedUserId = old('assigned_user_id', (string) $appointment->assigned_user_id);

@@ -271,7 +271,7 @@ el tenant activo nunca puede resolverse desde input del cliente como fuente fina
 <<END SECTION>>
 
 <<SECTION: REGLAS DEL LOGIN PÚBLICO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 REGLAS DEL LOGIN PÚBLICO
 
@@ -299,7 +299,29 @@ existencia del usuario
 validez parcial de credenciales
 estado interno
 
-luego de autenticar, el flujo debe continuar únicamente por selección o resolución válida de tenant
+Reglas de continuidad de flujo:
+
+cuando el login se origine desde un flujo previo válido (por ejemplo invitación o recuperación):
+
+el sistema debe reanudar ese flujo original
+
+no debe aplicarse la redirección estándar posterior al login
+
+no debe perderse el contexto del flujo iniciado
+
+Regla crítica:
+
+el login no define contexto tenant
+
+el contexto tenant solo puede definirse posteriormente mediante selección o resolución válida
+
+Regla consolidada:
+
+ninguna redirección posterior al login puede:
+
+asignar tenant implícitamente
+resolver acceso operativo sin validación completa
+ignorar el flujo funcional previo si existe
 
 <<END SECTION>>
 
@@ -364,7 +386,7 @@ no debe convertirse en bypass del onboarding controlado
 <<END SECTION>>
 
 <<SECTION: LINKS SENSIBLES E INVITACIONES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 LINKS SENSIBLES E INVITACIONES
 
@@ -374,7 +396,7 @@ owner_signup
 member_invite
 recuperación de credenciales
 
-Reglas:
+Reglas generales:
 
 todo link debe ser de uso único
 
@@ -384,11 +406,52 @@ todo link debe invalidarse al consumirse
 
 no debe permitirse reutilización
 
-no debe permitirse incorporación a tenant sin cierre válido de membership
-
-no debe permitirse finalización de flujo sin invitación válida
-
 ningún link sensible puede derivar directamente en acceso operativo sin autenticación y pertenencia válida
+
+Reglas de consistencia de identidad:
+
+el flujo iniciado por un link debe completarse únicamente por la identidad correspondiente
+
+no debe permitirse aceptar o completar un flujo con una identidad distinta a la originalmente vinculada
+
+no debe permitirse transferencia implícita del acceso entre usuarios
+
+Reglas de invitaciones (member_invite):
+
+la invitación válida es condición obligatoria para generar o activar una membership
+
+no debe permitirse incorporación a tenant sin invitación válida
+
+la aceptación de invitación debe generar o validar una membership consistente
+
+no debe permitirse cerrar el flujo si la membership resultante no es válida
+
+Reglas de alta de owner (owner_signup):
+
+owner_signup puede originarse sin tenant previo
+
+la finalización del flujo debe crear:
+
+tenant válido
+membership owner válida
+
+no debe existir tenant sin owner válido
+
+Reglas de recuperación de credenciales:
+
+no debe permitir escalar privilegios
+
+no debe alterar memberships existentes
+
+no debe modificar pertenencia a tenant
+
+Regla crítica consolidada:
+
+ningún flujo basado en links puede:
+
+crear acceso operativo directo
+bypassar autenticación
+bypassar validación de membership
 
 <<END SECTION>>
 

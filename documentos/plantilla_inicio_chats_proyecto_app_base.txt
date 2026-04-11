@@ -14,7 +14,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -32,12 +32,18 @@ Documentos base a considerar:
 * deploy_compatibilidad_proyecto_app_base
 * seguridad_acceso_proyecto_app_base
 
+Documento operativo adicional cuando el caso involucre permisos, constraints, multi-tenancy, runtime real o validaciones manuales:
+
+* guia_tinker_proyecto_app_base
+
 Regla documental adicional:
 
 cuando el pedido involucre navegación o automatización sobre la base documental del proyecto, tratar DOC_SLUG como identificador canónico del documento y no usar nombres de archivo legacy ni títulos humanos como clave técnica
 <<END SECTION>>
 
 <<SECTION: REGLA CENTRAL DE TRABAJO>>
+SECTION_VERSION: 00002
+
 REGLA CENTRAL DE TRABAJO
 
 No inventar nada.
@@ -48,9 +54,9 @@ No proponer estructuras, flujos, archivos o convenciones no verificadas como si 
 
 Primero entender con precisión:
 
-- el pedido puntual
-- el código real entregado
-- el estado real verificable del proyecto
+* el pedido puntual
+* el código real entregado
+* el estado real verificable del proyecto
 
 Luego contrastar eso con la documentación vigente.
 
@@ -58,10 +64,20 @@ La documentación es contexto obligatorio, pero el pedido puntual y el código r
 
 Si el código o el pedido muestran una actualización todavía no reflejada en la documentación:
 
-- no forzar la documentación por encima del código
-- señalar la diferencia con claridad
-- trabajar sobre el estado real verificable
-- indicar si corresponde o no actualizar documentación
+* no forzar la documentación por encima del código
+* señalar la diferencia con claridad
+* trabajar sobre el estado real verificable
+* indicar si corresponde o no actualizar documentación
+
+Aplicación operativa explícita de la regla:
+
+NO SE ASUME.
+NO SE SUPONE.
+
+No asumir tenant activo en Tinker.
+No asumir que una prueba abstracta reproduce el runtime real.
+No asumir que Gate o policy abstracta equivalen a autorización válida cuando el contrato exige contexto.
+
 <<END SECTION>>
 
 <<SECTION: CRITERIO DE AVANCE>>
@@ -77,6 +93,8 @@ Ante duda menor, priorizar mejor esfuerzo útil y explícito antes que silencio 
 <<END SECTION>>
 
 <<SECTION: REGLAS ESPECÍFICAS DEL PROYECTO>>
+SECTION_VERSION: 00002
+
 REGLAS ESPECÍFICAS DEL PROYECTO
 
 * no usar Route::resource(...) en el core mientras siga vigente la convención actual
@@ -91,7 +109,10 @@ REGLAS ESPECÍFICAS DEL PROYECTO
 * no usar autorización abstracta cuando la capacidad dependa de constraints
 * auditar cualquier cambio de permisos contra el documento de seguridad antes de proponer implementación
 * validar policy + authorize + @can cuando corresponda, sin contradecir la capa central ni el contrato persistido
-  <<END SECTION>>
+* si el caso toca runtime real de permisos o multi-tenancy, usar como referencia operativa la guia_tinker_proyecto_app_base
+* no asumir que Gate o policy abstracta resuelven create contextual cuando el contrato exige contexto funcional obligatorio
+
+<<END SECTION>>
 
 <<SECTION: REGLA DE VALIDACIÓN DEL PEDIDO>>
 REGLA DE VALIDACIÓN DEL PEDIDO
@@ -169,13 +190,19 @@ ESTADO O RESTRICCIÓN ESPECIAL
 <<END SECTION>>
 
 <<SECTION: SI NECESITÁS ARCHIVOS>>
+SECTION_VERSION: 00002
+
 SI NECESITÁS ARCHIVOS
 
 Si necesitás archivos, primero determiná exactamente cuáles son necesarios para entender o auditar el caso.
 
-- no pedir archivos de más
-- no pedir bloques genéricos si no hacen falta
-- no pedir archivos si el caso ya puede resolverse razonablemente con lo disponible
+* no pedir archivos de más
+* no pedir bloques genéricos si no hacen falta
+* no pedir archivos si el caso ya puede resolverse razonablemente con lo disponible
+
+Cuando el caso sea de permisos, constraints, Security, policies o multi-tenancy, pedir además lo mínimo necesario para reproducir el runtime real y no una abstracción incompleta.
+
+Si el caso requiere Tinker, seguir la guía operativa vigente del proyecto.
 
 Cuando los necesites, generame un único comando de consola con todos los archivos exactos y suficientes.
 
@@ -186,10 +213,10 @@ find app/Models -type f -name "Product.php";
 find app/Http/Controllers -type f -name "ProductController.php";
 find resources/views/products -type f -name "*.blade.php";
 ) | sort | while read file; do
-    echo "===== $file ====="
-    cat "$file"
-    echo
-    echo
+echo "===== $file ====="
+cat "$file"
+echo
+echo
 done > documentos/auditoria/auditoria-[nombre-de-referencia].txt
 
 Indicame todos los archivos necesarios así te los paso en un único bloque.

@@ -53,6 +53,8 @@ Esos aspectos se definen en otros documentos del proyecto.
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
+SECTION_VERSION: 00003
+
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
 Este bloque define reglas que no admiten excepción.
@@ -90,7 +92,7 @@ Estas capas solo pueden consumir la capa central.
 
 REGLA 3 — PROHIBICIÓN DE EVALUACIÓN ABSTRACTA
 
-Ninguna capacidad puede evaluarse sin contexto si el módulo utiliza constraints.
+Ninguna capacidad puede evaluarse sin contexto si el módulo utiliza constraints obligatorias o si la acción depende de datos funcionales previos.
 
 Evaluar capacidades sin contexto debe considerarse implementación inválida.
 
@@ -99,6 +101,8 @@ Ejemplo inválido:
 authorize('create', Order::class)
 
 cuando el módulo requiere kind.
+
+Gate o policy abstracta no equivalen a autorización válida cuando el contrato exige contexto funcional explícito.
 
 REGLA 4 — CONSTRAINTS OBLIGATORIOS
 
@@ -142,18 +146,37 @@ REGLA 8 — CATÁLOGOS COMO VOCABULARIO CONTROLADO
 
 Los catálogos del sistema definen el conjunto válido de:
 
-capabilities  
-scopes  
-módulos  
-perfiles  
+capabilities
+scopes
+módulos
+perfiles
 
 No se permite:
 
-definir valores fuera de los catálogos  
-interpretar valores no registrados  
-introducir enums implícitos en código  
+definir valores fuera de los catálogos
+interpretar valores no registrados
+introducir enums implícitos en código
 
 El contrato persistido debe utilizar exclusivamente valores válidos definidos en los catálogos.
+
+REGLA 9 — CREATE CONTEXTUAL SIN CLASS-STRING OBLIGATORIO
+
+Cuando una capacidad create sea contextual, la autorización debe poder resolverse por:
+
+módulo
+capacidad
+contexto funcional
+
+La presencia de subject class-string no es condición doctrinal para evaluar constraints en create contextual.
+
+Si el contrato requiere contexto funcional, ese contexto es obligatorio.
+
+Si el contexto falta o es inválido:
+
+la autorización debe devolver no autorizado
+
+sin depender de parches por módulo ni de lógica especial en controller o policy.
+
 <<END SECTION>>
 
 <<SECTION: FLUJO GLOBAL DE ACCESO>>
@@ -562,7 +585,7 @@ constraints
 <<END SECTION>>
 
 <<SECTION: CAPA V2 DE PERMISOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CAPA V2 DE PERMISOS
 
@@ -618,10 +641,24 @@ No se permite:
 consumir resolvers directamente desde controllers
 evaluar permisos fuera de Security
 
+Aclaración doctrinal consolidada para create contextual:
+
+cuando una capacidad create depende de constraints funcionales, la resolución válida debe poder hacerse por:
+
+module + capability + context
+
+sin exigir subject class-string como condición estructural de evaluación.
+
+Si el contexto requerido falta o no cumple constraints:
+
+allowed = false
+
+La semántica correcta debe resolverse en la capa central y no mediante parches puntuales por módulo.
+
 <<END SECTION>>
 
 <<SECTION: FLUJO DE GESTIÓN Y CONSUMO DE PERMISOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 FLUJO DE GESTIÓN Y CONSUMO DE PERMISOS
 
@@ -659,6 +696,27 @@ No se permite:
 queries paralelas para listados
 conteos fuera del scope efectivo
 datasets auxiliares no alineados con permisos
+
+Regla adicional consolidada para create contextual:
+
+cuando create depende de contexto funcional obligatorio, el flujo correcto de consumo no pasa por Gate o policy abstracta.
+
+Debe pasar por Security con contexto explícito.
+
+En esos casos:
+
+policy o Gate abstracta pueden actuar solo como fail-closed
+controller y validación deben consumir Security con el contexto real requerido por el contrato
+
+Ejemplo doctrinal del patrón correcto:
+
+orders.create con kind explícito
+
+Patrón doctrinal inválido:
+
+Gate::allows('create', Order::class)
+
+cuando create requiere constraints obligatorias.
 
 <<END SECTION>>
 
@@ -762,7 +820,7 @@ dependen del estado activo de otros módulos
 <<END SECTION>>
 
 <<SECTION: MÓDULO: ORDERS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 ESTADO: CONTRATO CERRADO
 
@@ -788,6 +846,12 @@ sin contexto → no autorizado
 
 si no cumple constraints → no autorizado
 
+La autorización válida de create debe resolverse mediante Security con contexto explícito.
+
+La presencia de subject class-string no es requisito doctrinal para evaluar orders.create.
+
+Tanto subject nulo como class-string solo son válidos si la capa central los soporta sin alterar el contrato.
+
 REGLA DE CONSTRAINTS
 
 view_any, view, update y delete deben evaluarse junto con constraints
@@ -805,6 +869,12 @@ REGLA DE CONSISTENCIA
 los roles son acumulables
 
 view puede ser más amplio que update o delete
+
+REGLA DE POLICY ABSTRACTA
+
+Gate o policy abstracta de create no constituyen el canal válido de autorización para este módulo cuando falta kind.
+
+En ese escenario, el comportamiento correcto es fail-closed.
 
 <<END SECTION>>
 
@@ -1029,7 +1099,7 @@ no debe implementarse sin contrato definido
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -1055,6 +1125,14 @@ view → registro
 Regla crítica adicional:
 
 cuando el dataset depende de permisos, debe resolverse mediante Security::scope(...)
+
+Regla crítica adicional para create contextual:
+
+si la capacidad depende de contexto funcional obligatorio, no debe autorizarse mediante Gate o policy abstracta.
+
+Debe resolverse mediante Security con el contexto real del caso.
+
+La corrección doctrinal debe hacerse en la semántica central de Security y no mediante excepciones ad hoc por módulo.
 
 <<END SECTION>>
 

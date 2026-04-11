@@ -53,6 +53,8 @@ trait TenantScoped aplicado si corresponde
 <<END SECTION>>
 
 <<SECTION: RUTAS Y CONTROLADOR>>
+SECTION_VERSION: 00002
+
 RUTAS Y CONTROLADOR
 
 Verificar:
@@ -66,6 +68,15 @@ authorize(...) o authorizeResource(...) aplicado cuando corresponda
 no duplicar permisos en controller si la policy ya resuelve la acción
 si el módulo tiene listados o datasets con visibilidad variable, resolverlos desde la capa central de autorización y no con lógica paralela ad hoc
 si el módulo requiere constraints funcionales, declararlas y consumirlas explícitamente desde la capa central
+
+Regla adicional para create contextual:
+
+si create depende de contexto funcional obligatorio, debe quedar definido explícitamente en controller cuál es el canal válido de autorización
+
+no debe asumirse que authorize('create', Model::class) resuelve el caso
+
+debe consumirse Security con el contexto real requerido por el contrato
+
 <<END SECTION>>
 
 <<SECTION: VISTAS>>
@@ -87,7 +98,7 @@ si el módulo requiere métricas o visualización analítica, utilizar el patró
 <<END SECTION>>
 
 <<SECTION: AUTORIZACIÓN Y UI>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 AUTORIZACIÓN Y UI
 
@@ -115,10 +126,19 @@ los valores configurables deben provenir de catálogos
 
 los recursos hijos deben validarse como delegados al padre
 
+Regla adicional consolidada:
+
+si el módulo tiene create contextual con constraints, debe quedar cerrado explícitamente:
+
+si la policy abstracta queda fail-closed
+cuál es el contexto obligatorio
+cuál es el punto real de consumo de Security
+cómo se comporta la UI cuando falta contexto válido
+
 <<END SECTION>>
 
 <<SECTION: DOCUMENTACIÓN OBLIGATORIA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 DOCUMENTACIÓN OBLIGATORIA
 
@@ -137,6 +157,12 @@ Verificar si corresponde actualizar:
 <DOC_REF slug="todo_proyecto_app_base">Todo del proyecto</DOC_REF>
 
 <DOC_REF slug="deploy_compatibilidad_proyecto_app_base">Deploy y compatibilidad del proyecto</DOC_REF>
+
+<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
+
+Cuando el trabajo involucre validaciones manuales, permisos, constraints, multi-tenancy o reproducción de runtime, verificar además si corresponde considerar:
+
+<DOC_REF slug="guia_tinker_proyecto_app_base">Guía operativa de pruebas con Tinker</DOC_REF>
 
 No actualizar documentos por inercia.
 
@@ -223,6 +249,8 @@ no duplicar en blades lógica que ya fue resuelta por controller o capa central 
 <<END SECTION>>
 
 <<SECTION: CIERRE>>
+SECTION_VERSION: 00002
+
 CIERRE
 
 Un módulo no debe considerarse terminado solo porque funciona.
@@ -242,4 +270,9 @@ si el dataset se gobierna desde la capa central de autorización
 si el módulo usa solo scopes o también constraints funcionales
 
 si las entidades hijas o embebidas se autorizan por delegación al padre
+
+si un create contextual requiere contexto obligatorio y cuál es su canal válido de autorización
+
+si la validación manual del módulo puede reproducirse de forma canónica con Tinker sin ambigüedad operativa
+
 <<END SECTION>>

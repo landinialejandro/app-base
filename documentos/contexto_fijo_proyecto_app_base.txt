@@ -100,6 +100,8 @@ Esto permite que un usuario continúe activo en un tenant y al mismo tiempo se e
 <<END SECTION>>
 
 <<SECTION: RESOLUCIÓN DEL TENANT ACTIVO>>
+SECTION_VERSION: 00002
+
 RESOLUCIÓN DEL TENANT ACTIVO
 
 En el flujo tenant, el tenant activo se resuelve por middleware.
@@ -107,14 +109,34 @@ En el flujo tenant, el tenant activo se resuelve por middleware.
 Luego de esa resolución, el tenant vigente del request debe consumirse desde app('tenant').
 
 No deben mantenerse helpers, soportes legacy o mecanismos paralelos redundantes para resolver el tenant activo si duplican o contradicen esa fuente vigente.
+
+Regla operativa consolidada:
+
+cuando una prueba técnica se ejecute fuera del flujo HTTP normal, debe reproducirse explícitamente esta misma resolución operacional.
+
+Si la verificación depende del runtime tenant-aware del sistema, el tenant activo debe bindearse en el contenedor antes de consumir la lógica correspondiente.
+
 <<END SECTION>>
 
 <<SECTION: Reglas operativas del tenant activo>>
+SECTION_VERSION: 00002
+
 Reglas operativas del tenant activo
 
 El selector de empresa debe mostrar únicamente memberships activas del usuario autenticado.
 
 ResolveTenant debe validar pertenencia activa al tenant antes de permitir acceso operativo.
+
+Regla operativa adicional validada:
+
+en pruebas manuales, auditorías técnicas o validaciones en Tinker, el tenant activo no debe asumirse.
+
+Debe resolverse desde una membership activa real y luego bindearse explícitamente con:
+
+app()->instance('tenant', $tenant)
+
+Sin ese paso, cualquier prueba tenant-aware puede resultar inválida, incompleta o dar falsos negativos.
+
 <<END SECTION>>
 
 <<SECTION: Aislamiento automático de datos>>
@@ -400,6 +422,8 @@ catálogos funcionales del módulo correspondiente
 <<END SECTION>>
 
 <<SECTION: Capa central prevista para acceso y permisos>>
+SECTION_VERSION: 00002
+
 La arquitectura de acceso y permisos ya consolida una capa centralizada compuesta por:
 
 ModuleCatalog
@@ -435,9 +459,19 @@ su segmentación se realiza exclusivamente mediante constraints
 
 la UI de permisos actual no es compatible completamente con constraints y puede generar inconsistencias
 
+Regla operativa consolidada:
+
+Security es la puerta central efectiva de consumo de autorización
+
+las pruebas técnicas que busquen reproducir comportamiento real del sistema deben consumir Security y no recrear lógica manual ni evaluar permisos de forma abstracta cuando el contrato requiere contexto
+
 La doctrina completa de implementación, uso y validación de esta capa se define exclusivamente en:
 
 <DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
+
+La bajada operativa para pruebas manuales se define en:
+
+<DOC_REF slug="guia_tinker_proyecto_app_base">Guía operativa de pruebas con Tinker</DOC_REF>
 <<END SECTION>>
 
 <<SECTION: Roles y niveles actuales del sistema>>
@@ -525,6 +559,8 @@ las diferencias funcionales finas futuras no deben resolverse creando nuevos rol
 <<END SECTION>>
 
 <<SECTION: Reglas generales de autorización ya consolidadas>>
+SECTION_VERSION: 00002
+
 Reglas generales de autorización ya consolidadas
 
 La autorización del sistema debe entenderse mediante una separación obligatoria entre:
@@ -578,6 +614,12 @@ no deben renderizarse enlaces
 no deben renderizarse campos relacionales
 no deben renderizarse bloques visuales asociados
 no deben mantenerse accesos operativos residuales
+
+Regla crítica consolidada para create contextual:
+
+cuando una capacidad create dependa de contexto funcional obligatorio, la autorización abstracta vía Gate o policy no es válida como canal principal de consumo
+
+en esos casos debe consumirse Security con contexto explícito
 
 La doctrina detallada de implementación segura, Fortify, onboarding, hardening y controles de acceso debe concentrarse en:
 

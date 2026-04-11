@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CONVENCIONES GENERALES
 
@@ -71,6 +71,14 @@ este criterio aplica a:
 documentación de onboarding
 ayudas contextuales
 contenidos UX embebidos
+
+Convención operativa adicional:
+
+las pruebas manuales con Tinker forman parte del proceso real de validación técnica del proyecto
+
+cuando el caso toque permisos, constraints, multi-tenancy o runtime real, debe utilizarse la guía operativa vigente y no una prueba abstracta improvisada
+
+<DOC_REF slug="guia_tinker_proyecto_app_base">Guía operativa de pruebas con Tinker</DOC_REF>
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE NOMBRES>>
@@ -168,7 +176,7 @@ No debe utilizarse desactivación global de users para resolver bajas, bloqueos 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ACCESO POR MÓDULO Y ROLES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 CONVENCIONES DE ACCESO POR MÓDULO Y ROLES
 
@@ -199,6 +207,10 @@ no se debe usar autorización abstracta cuando la capacidad depende de contexto
 no utilizar authorize('create', Model::class) en estos casos
 
 debe utilizarse la capa central con parámetros explícitos
+
+La existencia de subject class-string no debe asumirse como condición doctrinal para resolver create contextual.
+
+Si el contrato requiere contexto funcional obligatorio, la autorización válida se resuelve por Security con ese contexto.
 
 Regla de dataset:
 
@@ -377,7 +389,7 @@ documents no debe absorber órdenes de trabajo operativas ni duplicar la funció
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE SUPPORT Y HELPERS DE ACCESO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CONVENCIONES DE SUPPORT Y HELPERS DE ACCESO
 
@@ -397,10 +409,14 @@ los helpers deben facilitar acceso a Security y no redefinir lógica
 
 las classes bajo app/Support/Auth deben actuar como acceso técnico y no como fuente alternativa
 
+Regla operativa adicional:
+
+si una corrección de autorización afecta create contextual, constraints o semántica general de consumo, debe resolverse en la capa central y no mediante helper ad hoc ni parche por módulo.
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE POLICIES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CONVENCIONES DE POLICIES
 
@@ -425,6 +441,8 @@ cuando una capacidad depende de constraints
 no debe utilizarse @can('create', Model::class)
 
 la autorización debe resolverse con contexto explícito o mediante flags precomputados
+
+En create contextuales, la policy abstracta puede quedar fail-closed y no debe tratarse como el canal válido principal de autorización si el contrato exige contexto funcional obligatorio.
 
 Distinción obligatoria:
 
@@ -486,7 +504,7 @@ cuando exista navegación contextual entre módulos relacionados, el módulo act
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE BLADE Y FRONTEND LIVIANO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CONVENCIONES DE BLADE Y FRONTEND LIVIANO
 
@@ -517,6 +535,8 @@ la UI debe consumir flags resueltos o datasets ya filtrados
 los botones de creación deben evaluarse según contexto válido
 
 los datasets visibles deben provenir de Security::scope(...)
+
+La UI no debe asumir que Gate o policy abstracta equivalen a autorización operativa válida cuando el contrato exige contexto explícito.
 
 <<END SECTION>>
 

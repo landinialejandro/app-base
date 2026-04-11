@@ -116,7 +116,7 @@ inventory
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 PENDIENTES INMEDIATOS
 
@@ -171,6 +171,13 @@ la base de documentación funcional por módulos ya se encuentra disponible
 queda habilitada la integración de ayuda contextual dentro de los módulos
 
 la evolución pendiente pasa a ser su incorporación en UI y no su generación base
+
+Nuevo insumo operativo consolidado:
+
+la guía de Tinker pasa a formar parte de la base operativa útil para auditorías de permisos, constraints y runtime multi-tenant
+
+queda pendiente revisar documents como siguiente caso equivalente de create contextual utilizando el patrón ya validado en orders
+
 <<END SECTION>>
 
 <<SECTION: ATTACHMENTS>>
@@ -228,7 +235,7 @@ indexación de contenido para búsqueda
 <<END SECTION>>
 
 <<SECTION: AUTORIZACIÓN Y PERMISOS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 AUTORIZACIÓN Y PERMISOS
 
@@ -266,9 +273,17 @@ Pendientes cerrados y no reabrir:
 
 * consolidación documental de parties como módulo base intrínseco del sistema y no como módulo opcional común
 
+* corrección estructural de create contextual en la capa central para evitar dependencia indebida de subject class-string al evaluar constraints
+
+* validación de orders.create por module + capability + context con subject nulo y contexto kind obligatorio
+
+* cierre doctrinal de que Gate o policy abstracta no constituyen canal válido para create contextual con constraints obligatorias
+
 <<END SECTION>>
 
 <<SECTION: FLUJOS FUNCIONALES>>
+SECTION_VERSION: 00002
+
 FLUJOS FUNCIONALES
 
 revisar consolidación funcional del vínculo 1 a 1 entre tasks y orders
@@ -339,6 +354,11 @@ evaluar más adelante si el botón contextual de creación dentro de subtabs deb
 mantener reflejada en documentación la decisión de parties como módulo base intrínseco del sistema y no como módulo opcional apagable por tenant
 
 mantener como regla estable que los flujos entre módulos (ej. appointments → orders) dependen del estado activo del módulo destino y no deben exponerse si el módulo está deshabilitado
+
+pendiente inmediato derivado de autorización:
+
+revisar documents como siguiente caso de create contextual con constraints obligatorias reutilizando el patrón ya validado en orders y sin reabrir la discusión doctrinal ya cerrada
+
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN Y CONTEXTO UX>>

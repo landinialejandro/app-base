@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Policies/OrderPolicy.php | V7
+// FILE: app/Policies/OrderPolicy.php | V8
 
 namespace App\Policies;
 
@@ -27,7 +27,12 @@ class OrderPolicy
 
     public function create(User $user): bool
     {
-        return $this->security()->allows($user, 'orders.create', Order::class);
+        /**
+         * orders.create es contextual.
+         * Requiere kind y no debe resolverse mediante policy abstracta.
+         * El consumo correcto es Security::authorize/allows con contexto explícito.
+         */
+        return false;
     }
 
     public function update(User $user, Order $order): bool

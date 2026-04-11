@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Auth/Security.php | V3
+// FILE: app/Support/Auth/Security.php | V4
 
 namespace App\Support\Auth;
 
@@ -32,6 +32,16 @@ class Security
         $scope = $this->permissions->actionScope($module, $capability, $tenant, $user);
         $constraints = $this->permissions->constraints($module, $capability, $tenant, $user);
 
+        if ($capability === 'create') {
+            return $this->recordScopes->allowsCreateContext(
+                module: $module,
+                capability: $capability,
+                scope: $scope,
+                constraints: $constraints,
+                context: $context,
+            );
+        }
+
         if ($subject instanceof Model) {
             return $this->recordScopes->allows(
                 module: $module,
@@ -44,21 +54,7 @@ class Security
             );
         }
 
-        if (is_string($subject) && class_exists($subject)) {
-            return $this->recordScopes->allowsCreateContext(
-                module: $module,
-                capability: $capability,
-                scope: $scope,
-                constraints: $constraints,
-                context: $context,
-            );
-        }
-
         if ($this->recordScopes->deniesByConfiguration($module, $capability, $scope, $constraints)) {
-            return false;
-        }
-
-        if ($this->requiresConcreteContext($module, $capability, $constraints)) {
             return false;
         }
 
@@ -124,14 +120,5 @@ class Security
         };
 
         return [$module, $capability];
-    }
-
-    protected function requiresConcreteContext(string $module, string $capability, array $constraints): bool
-    {
-        if ($capability !== 'create') {
-            return false;
-        }
-
-        return ! empty($this->recordScopes->extractAllowedKinds($constraints));
     }
 }

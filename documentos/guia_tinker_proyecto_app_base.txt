@@ -1,0 +1,444 @@
+<<SECTION: METADATOS>>
+TÍTULO: Guía operativa de pruebas con Tinker
+DOC_SLUG: guia_tinker_proyecto_app_base
+DOC_VERSION: 00001
+
+METODOLOGÍA DE EDICIÓN:
+Este archivo se actualiza por reemplazo completo de bloques delimitados.
+Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
+Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
+<<END SECTION>>
+
+<<SECTION: OBJETIVO>>
+OBJETIVO
+
+Este documento define la forma correcta de ejecutar pruebas manuales con Tinker dentro del proyecto app-base.
+
+Su finalidad es:
+
+evitar pruebas ambiguas o mal contextualizadas
+asegurar que las verificaciones reproduzcan el runtime real del sistema
+dejar una base operativa reusable para auditorías técnicas
+registrar datos mínimos ya validados para pruebas controladas
+
+Este documento no reemplaza:
+
+<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
+<DOC_REF slug="contexto_fijo_proyecto_app_base">Contexto fijo del proyecto</DOC_REF>
+
+Este documento traduce esas reglas a una forma operativa concreta de uso en Tinker.
+<<END SECTION>>
+
+<<SECTION: REGLA CENTRAL>>
+REGLA CENTRAL
+
+Las pruebas en Tinker no deben ejecutarse de forma abstracta ni incompleta.
+
+Toda prueba debe respetar el runtime real del sistema.
+
+En especial:
+
+si el flujo real depende de tenant activo, Tinker debe bindear tenant activo
+si el flujo real depende de Security, Tinker debe consumir Security
+si el flujo real depende de contexto funcional, Tinker debe pasar ese contexto de forma explícita
+
+NO SE ASUME.
+NO SE SUPONE.
+
+Si una prueba requiere un dato no validado:
+
+no inventarlo
+no inferirlo
+no completarlo por memoria
+primero obtenerlo de base o de una validación previa
+<<END SECTION>>
+
+<<SECTION: REGLA DE TENANT ACTIVO EN TINKER>>
+REGLA DE TENANT ACTIVO EN TINKER
+
+En este proyecto, muchas resoluciones dependen de:
+
+app('tenant')
+
+Por lo tanto, una prueba en Tinker no reproduce correctamente el sistema si no existe tenant activo bindeado en el contenedor.
+
+Regla operativa:
+
+antes de probar permisos, visibilidad, queries tenant-aware o lógica que consume Security, debe resolverse y bindearse un tenant activo real.
+
+Forma correcta:
+
+1. obtener un usuario real
+2. obtener una membership activa real de ese usuario
+3. tomar el tenant de esa membership
+4. bindearlo con:
+
+app()->instance('tenant', $tenant)
+
+Sin ese paso, la prueba puede:
+
+fallar artificialmente
+devolver falsos negativos
+no representar el comportamiento real del sistema
+<<END SECTION>>
+
+<<SECTION: REGLA DE AUTORIZACIÓN EN TINKER>>
+REGLA DE AUTORIZACIÓN EN TINKER
+
+La autorización debe probarse desde la capa central.
+
+Regla operativa:
+
+para permisos, visibilidad o acciones permitidas, usar:
+
+app(Security::class)
+
+No probar permisos reconstruyendo lógica manualmente.
+
+Usos válidos:
+
+inspect(...)
+allows(...)
+authorize(...)
+scope(...)
+
+Regla adicional:
+
+si el módulo utiliza constraints, la prueba debe incluir el contexto funcional real requerido.
+
+Ejemplo conceptual:
+
+si la capacidad requiere kind, probar con kind explícito
+si la capacidad no requiere contexto, no inventarlo
+<<END SECTION>>
+
+<<SECTION: REGLA PARA CREATE CONTEXTUAL>>
+REGLA PARA CREATE CONTEXTUAL
+
+Cuando un módulo tenga create contextual, la prueba no debe resolverse mediante evaluación abstracta.
+
+Regla operativa:
+
+no usar pruebas equivalentes a:
+
+authorize('create', Model::class)
+
+cuando el módulo requiere contexto funcional
+
+En esos casos, la prueba correcta debe pasar por Security con contexto explícito.
+
+Ejemplo conceptual:
+
+Security::inspect($user, 'orders.create', null, ['kind' => 'service'])
+
+La prueba debe verificar:
+
+contrato persistido
+constraints efectivas
+resultado allowed
+consistencia entre subject nulo y class-string si ambas formas están soportadas por la capa central
+<<END SECTION>>
+
+<<SECTION: DATOS VERIFICADOS ACTUALES PARA PRUEBAS>>
+DATOS VERIFICADOS ACTUALES PARA PRUEBAS
+
+Los siguientes datos fueron validados en sesión y pueden utilizarse como referencia inmediata para pruebas controladas.
+
+USUARIO VALIDADO
+
+email:
+juan@tech.local
+
+TENANT VALIDADO
+
+tenant_id:
+9bd1cfe0-f903-48e7-afee-f1c499e27a1a
+
+tenant_name:
+Tech Solutions SA
+
+Regla:
+
+estos datos pueden usarse como contexto base de ejemplo mientras no cambien.
+
+No extender esta sección con otros usuarios, tenants o ids no validados explícitamente.
+<<END SECTION>>
+
+<<SECTION: BOOTSTRAP BASE RECOMENDADO PARA TINKER>>
+BOOTSTRAP BASE RECOMENDADO PARA TINKER
+
+Bloque base recomendado para comenzar pruebas reales:
+
+use App\Models\User;
+use App\Support\Auth\Security;
+
+$user = User::where('email', 'juan@tech.local')->firstOrFail();
+
+$tenant = $user->memberships()
+    ->where('status', 'active')
+    ->with('tenant')
+    ->firstOrFail()
+    ->tenant;
+
+app()->instance('tenant', $tenant);
+
+$security = app(Security::class);
+
+Este bloque deja resuelto:
+
+usuario real
+membership activa real
+tenant real
+tenant activo en contenedor
+acceso a la capa central de autorización
+
+A partir de ahí ya pueden ejecutarse pruebas confiables.
+<<END SECTION>>
+
+<<SECTION: COMANDOS BASE RECOMENDADOS>>
+COMANDOS BASE RECOMENDADOS
+
+PRUEBA DE CONTEXTO ACTIVO
+
+Verificar primero:
+
+tenant_id
+tenant_name
+
+Ejemplo:
+
+echo $tenant->id;
+echo $tenant->name;
+
+PRUEBA DE INSPECCIÓN DE PERMISOS
+
+Usar:
+
+$security->inspect($user, 'modulo.capacidad', $subject, $context);
+
+PRUEBA DE PERMISO BOOLEANO
+
+Usar:
+
+$security->allows($user, 'modulo.capacidad', $subject, $context);
+
+PRUEBA DE AUTORIZACIÓN DURA
+
+Usar:
+
+$security->authorize($user, 'modulo.capacidad', $subject, $context);
+
+PRUEBA DE DATASET
+
+Usar:
+
+$security->scope($user, 'modulo.viewAny', Modelo::query())
+
+y luego aplicar count(), get(), paginate(), etc. según el caso.
+<<END SECTION>>
+
+<<SECTION: CASO BASE YA VALIDADO: ORDERS.CREATE>>
+CASO BASE YA VALIDADO: ORDERS.CREATE
+
+Estado actual validado:
+
+orders.create ya no depende indebidamente de subject para funcionar
+
+Comportamiento validado:
+
+con kind válido:
+allowed = true
+
+sin kind:
+allowed = false
+
+con kind inválido:
+allowed = false
+
+Regla operativa derivada:
+
+orders.create debe probarse siempre como create contextual
+
+Ejemplos válidos:
+
+$security->inspect($user, 'orders.create', null, ['kind' => 'service'])
+
+$security->inspect($user, 'orders.create', Order::class, ['kind' => 'service'])
+
+Ejemplos inválidos como prueba doctrinal del contrato:
+
+Gate::allows('create', Order::class)
+
+o cualquier evaluación abstracta equivalente sin contexto kind
+<<END SECTION>>
+
+<<SECTION: PATRÓN DE PRUEBA RECOMENDADO PARA MÓDULOS CON CONSTRAINTS>>
+PATRÓN DE PRUEBA RECOMENDADO PARA MÓDULOS CON CONSTRAINTS
+
+Cuando un módulo use constraints funcionales, conviene probar siempre la misma matriz mínima:
+
+1. caso válido con contexto completo
+2. caso inválido sin contexto
+3. caso inválido con valor fuera de constraints
+4. caso de control de no regresión sobre view
+5. caso de control de no regresión sobre update
+6. caso de control de no regresión sobre viewAny o scope
+
+Objetivo:
+
+confirmar que la autorización:
+
+requiere el contexto correcto
+respeta constraints
+no se rompe en acciones vecinas
+no altera el dataset del módulo
+<<END SECTION>>
+
+<<SECTION: REGLA PARA SUJETOS EN PRUEBAS>>
+REGLA PARA SUJETOS EN PRUEBAS
+
+Distinguir siempre entre:
+
+subject nulo
+subject class-string
+subject record real
+
+subject nulo:
+útil para create contextual o inspecciones donde no existe registro real todavía
+
+subject class-string:
+solo usar si el caso realmente lo admite o si se quiere comparar comportamiento
+
+subject record real:
+usar para view, update, delete y verificaciones sobre registros existentes
+
+Regla práctica:
+
+no pasar modelos o clases por inercia
+
+el tipo de subject debe responder al tipo real de prueba
+<<END SECTION>>
+
+<<SECTION: ERRORES COMUNES A EVITAR>>
+ERRORES COMUNES A EVITAR
+
+No ejecutar pruebas de permisos sin tenant activo.
+
+No probar autorización directamente contra policies cuando el caso depende de contexto y el contrato exige Security.
+
+No interpretar un false en Tinker como problema del sistema si antes no se confirmó:
+
+usuario real
+membership activa
+tenant activo
+contexto funcional requerido
+constraints efectivas
+
+No usar usuarios o tenant ids recordados por memoria sin revalidarlos.
+
+No mezclar pruebas doctrinales con pruebas de conveniencia.
+
+No concluir que un módulo está roto si la prueba fue abstracta cuando el contrato exigía contexto.
+<<END SECTION>>
+
+<<SECTION: CUÁNDO USAR GATE O POLICY EN TINKER>>
+CUÁNDO USAR GATE O POLICY EN TINKER
+
+Gate o Policy pueden usarse para:
+
+viewAny
+view
+update
+delete
+create simples
+
+No deben usarse como mecanismo principal de prueba para:
+
+create contextuales
+casos con constraints obligatorias
+casos donde el contrato ya define consumo por Security
+
+Regla práctica:
+
+si el create necesita un dato previo del negocio, la prueba principal debe hacerse con Security.
+<<END SECTION>>
+
+<<SECTION: PLANTILLA DE PRUEBA RÁPIDA>>
+PLANTILLA DE PRUEBA RÁPIDA
+
+php artisan tinker --execute='
+use App\Models\User;
+use App\Support\Auth\Security;
+
+$user = User::where("email", "juan@tech.local")->firstOrFail();
+
+$tenant = $user->memberships()
+    ->where("status", "active")
+    ->with("tenant")
+    ->firstOrFail()
+    ->tenant;
+
+app()->instance("tenant", $tenant);
+
+$security = app(Security::class);
+
+echo "tenant_id: {$tenant->id}\n";
+echo "tenant_name: {$tenant->name}\n";
+'
+
+Esta plantilla solo prepara contexto.
+
+A partir de ella deben agregarse las pruebas específicas del caso.
+<<END SECTION>>
+
+<<SECTION: REGLA DE MANTENIMIENTO DEL DOCUMENTO>>
+REGLA DE MANTENIMIENTO DEL DOCUMENTO
+
+Este documento debe mantenerse operativo y corto.
+
+Debe registrar:
+
+forma correcta de preparar Tinker
+datos reales validados para pruebas controladas
+patrones de prueba reutilizables
+errores comunes a evitar
+
+No debe transformarse en:
+
+manual general de Laravel Tinker
+documento doctrinal duplicado de seguridad
+listado masivo de usuarios o tenants no verificados
+
+Cada nuevo dato operativo agregado debe haber sido validado previamente en una sesión real.
+<<END SECTION>>
+
+<<SECTION: RELACIÓN CON OTROS DOCUMENTOS>>
+RELACIÓN CON OTROS DOCUMENTOS
+
+<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
+define la doctrina obligatoria del sistema de permisos
+
+<DOC_REF slug="contexto_fijo_proyecto_app_base">Contexto fijo del proyecto</DOC_REF>
+define la resolución del tenant activo y la arquitectura multi-tenant
+
+<DOC_REF slug="plantilla_inicio_chats_proyecto_app_base">Plantilla de inicio de chats del proyecto</DOC_REF>
+refuerza la regla de no asumir y de auditar permisos contra la documentación vigente
+
+Este documento solo baja esas reglas a práctica operativa de Tinker.
+<<END SECTION>>
+
+<<SECTION: REGLA FINAL>>
+REGLA FINAL
+
+Una prueba en Tinker solo es válida si reproduce el contexto real del sistema.
+
+En app-base eso implica, como mínimo:
+
+usuario real
+membership activa real
+tenant activo real
+consumo de Security cuando el caso toca permisos
+contexto funcional explícito cuando el contrato lo requiere
+
+Sin eso, la prueba puede servir como exploración, pero no como validación del sistema.
+<<END SECTION>>

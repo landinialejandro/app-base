@@ -1,7 +1,8 @@
-{{-- FILE: resources/views/appointments/partials/calendar-week-grid.blade.php | V2 --}}
+{{-- FILE: resources/views/appointments/partials/calendar-week-grid.blade.php | V3 --}}
 
 @php
     $weekdays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
+    $supportsPartiesModule = $supportsPartiesModule ?? false;
     $supportsAssetsModule = $supportsAssetsModule ?? false;
     $supportsOrdersModule = $supportsOrdersModule ?? false;
 @endphp
@@ -25,6 +26,7 @@
                         'day' => $day,
                         'mode' => 'week',
                         'maxVisibleAppointments' => 8,
+                        'supportsPartiesModule' => $supportsPartiesModule,
                         'supportsAssetsModule' => $supportsAssetsModule,
                         'supportsOrdersModule' => $supportsOrdersModule,
                     ])

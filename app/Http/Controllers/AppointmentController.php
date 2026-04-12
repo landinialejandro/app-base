@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AppointmentController.php | V15
+// FILE: app/Http/Controllers/AppointmentController.php | V17
 
 namespace App\Http\Controllers;
 
@@ -40,6 +40,7 @@ class AppointmentController extends Controller
         $scheduledDate = $request->get('scheduled_date');
 
         $canViewAllAppointments = $this->canViewAllAppointments();
+        $supportsPartiesModule = $this->supportsModule(ModuleCatalog::PARTIES);
         $supportsAssetsModule = $this->supportsModule(ModuleCatalog::ASSETS);
         $supportsOrdersModule = $this->supportsModule(ModuleCatalog::ORDERS);
 
@@ -52,10 +53,12 @@ class AppointmentController extends Controller
             ->orderBy('name')
             ->get();
 
-        $parties = $security
-            ->scope($user, 'parties.viewAny', Party::query())
-            ->orderBy('name')
-            ->get();
+        $parties = $supportsPartiesModule
+            ? $security
+                ->scope($user, 'parties.viewAny', Party::query())
+                ->orderBy('name')
+                ->get()
+            : collect();
 
         $appointments = $security
             ->scope($user, 'appointments.viewAny', Appointment::query())
@@ -71,7 +74,7 @@ class AppointmentController extends Controller
                 });
             })
             ->when($canViewAllAppointments && $assignedUserId, fn ($query) => $query->where('assigned_user_id', $assignedUserId))
-            ->when($partyId, fn ($query) => $query->where('party_id', $partyId))
+            ->when($supportsPartiesModule && $partyId, fn ($query) => $query->where('party_id', $partyId))
             ->when($kind, fn ($query) => $query->where('kind', $kind))
             ->when($status, fn ($query) => $query->where('status', $status))
             ->when($scheduledDate, fn ($query) => $query->whereDate('scheduled_date', $scheduledDate))
@@ -88,6 +91,7 @@ class AppointmentController extends Controller
             'users' => $users,
             'parties' => $parties,
             'canViewAllAppointments' => $canViewAllAppointments,
+            'supportsPartiesModule' => $supportsPartiesModule,
             'supportsAssetsModule' => $supportsAssetsModule,
             'supportsOrdersModule' => $supportsOrdersModule,
         ]);
@@ -102,6 +106,7 @@ class AppointmentController extends Controller
         $this->authorize('viewAny', Appointment::class);
 
         $canViewAllAppointments = $this->canViewAllAppointments();
+        $supportsPartiesModule = $this->supportsModule(ModuleCatalog::PARTIES);
         $supportsAssetsModule = $this->supportsModule(ModuleCatalog::ASSETS);
         $supportsOrdersModule = $this->supportsModule(ModuleCatalog::ORDERS);
 
@@ -167,6 +172,7 @@ class AppointmentController extends Controller
                 'days' => $days,
                 'users' => $users,
                 'canViewAllAppointments' => $canViewAllAppointments,
+                'supportsPartiesModule' => $supportsPartiesModule,
                 'supportsAssetsModule' => $supportsAssetsModule,
                 'supportsOrdersModule' => $supportsOrdersModule,
                 'selectedAssignedUserId' => $assignedUserId,
@@ -250,6 +256,7 @@ class AppointmentController extends Controller
             'weeks' => $weeks,
             'users' => $users,
             'canViewAllAppointments' => $canViewAllAppointments,
+            'supportsPartiesModule' => $supportsPartiesModule,
             'supportsAssetsModule' => $supportsAssetsModule,
             'supportsOrdersModule' => $supportsOrdersModule,
             'selectedAssignedUserId' => $assignedUserId,
@@ -268,6 +275,7 @@ class AppointmentController extends Controller
 
         $this->authorize('create', Appointment::class);
 
+        $supportsPartiesModule = $this->supportsModule(ModuleCatalog::PARTIES);
         $supportsAssetsModule = $this->supportsModule(ModuleCatalog::ASSETS);
         $supportsOrdersModule = $this->supportsModule(ModuleCatalog::ORDERS);
 
@@ -280,10 +288,12 @@ class AppointmentController extends Controller
             ->orderBy('name')
             ->get();
 
-        $parties = $security
-            ->scope($user, 'parties.viewAny', Party::query())
-            ->orderBy('name')
-            ->get();
+        $parties = $supportsPartiesModule
+            ? $security
+                ->scope($user, 'parties.viewAny', Party::query())
+                ->orderBy('name')
+                ->get()
+            : collect();
 
         $orders = $supportsOrdersModule
             ? $security
@@ -307,7 +317,7 @@ class AppointmentController extends Controller
         $prefilledOrderId = null;
         $prefilledScheduledDate = null;
 
-        if ($request->filled('party_id')) {
+        if ($supportsPartiesModule && $request->filled('party_id')) {
             $party = $security
                 ->scope($user, 'parties.viewAny', Party::query())
                 ->where('id', $request->integer('party_id'))
@@ -331,7 +341,19 @@ class AppointmentController extends Controller
 
             if ($asset) {
                 $prefilledAssetId = $asset->id;
-                $prefilledPartyId = $asset->party_id;
+
+                if ($supportsPartiesModule && $asset->party_id) {
+                    $linkedParty = $security
+                        ->scope($user, 'parties.viewAny', Party::query())
+                        ->where('id', $asset->party_id)
+                        ->where('tenant_id', $tenant->id)
+                        ->whereNull('deleted_at')
+                        ->first();
+
+                    if ($linkedParty) {
+                        $prefilledPartyId = $linkedParty->id;
+                    }
+                }
             }
         }
 
@@ -346,8 +368,32 @@ class AppointmentController extends Controller
 
             if ($order) {
                 $prefilledOrderId = $order->id;
-                $prefilledPartyId = $order->party_id;
-                $prefilledAssetId = $order->asset_id;
+
+                if ($supportsPartiesModule && $order->party_id) {
+                    $linkedParty = $security
+                        ->scope($user, 'parties.viewAny', Party::query())
+                        ->where('id', $order->party_id)
+                        ->where('tenant_id', $tenant->id)
+                        ->whereNull('deleted_at')
+                        ->first();
+
+                    if ($linkedParty) {
+                        $prefilledPartyId = $linkedParty->id;
+                    }
+                }
+
+                if ($supportsAssetsModule && $order->asset_id) {
+                    $linkedAsset = $security
+                        ->scope($user, 'assets.viewAny', Asset::query())
+                        ->where('id', $order->asset_id)
+                        ->where('tenant_id', $tenant->id)
+                        ->whereNull('deleted_at')
+                        ->first();
+
+                    if ($linkedAsset) {
+                        $prefilledAssetId = $linkedAsset->id;
+                    }
+                }
             }
         }
 
@@ -373,6 +419,7 @@ class AppointmentController extends Controller
             'prefilledAssetId',
             'prefilledOrderId',
             'prefilledScheduledDate',
+            'supportsPartiesModule',
             'supportsAssetsModule',
             'supportsOrdersModule',
         ));
@@ -406,6 +453,7 @@ class AppointmentController extends Controller
             'updater',
         ]);
 
+        $supportsPartiesModule = $this->supportsModule(ModuleCatalog::PARTIES);
         $supportsAssetsModule = $this->supportsModule(ModuleCatalog::ASSETS);
         $supportsOrdersModule = $this->supportsModule(ModuleCatalog::ORDERS);
 
@@ -413,7 +461,7 @@ class AppointmentController extends Controller
         $canDeleteAppointment = auth()->user()->can('delete', $appointment);
         $isForeignAppointmentForAdmin = $this->canManageForeignAppointment($appointment);
 
-        $canViewLinkedParty = $appointment->party && auth()->user()->can('view', $appointment->party);
+        $canViewLinkedParty = $supportsPartiesModule && $appointment->party && auth()->user()->can('view', $appointment->party);
         $canViewLinkedAsset = $supportsAssetsModule && $appointment->asset && auth()->user()->can('view', $appointment->asset);
         $canViewLinkedOrder = $supportsOrdersModule && $appointment->order && auth()->user()->can('view', $appointment->order);
 
@@ -433,6 +481,7 @@ class AppointmentController extends Controller
             'canDeleteAppointment',
             'isForeignAppointmentForAdmin',
             'navigationTrail',
+            'supportsPartiesModule',
             'supportsAssetsModule',
             'supportsOrdersModule',
             'canViewLinkedParty',
@@ -450,6 +499,7 @@ class AppointmentController extends Controller
 
         $this->authorize('update', $appointment);
 
+        $supportsPartiesModule = $this->supportsModule(ModuleCatalog::PARTIES);
         $supportsAssetsModule = $this->supportsModule(ModuleCatalog::ASSETS);
         $supportsOrdersModule = $this->supportsModule(ModuleCatalog::ORDERS);
 
@@ -462,10 +512,12 @@ class AppointmentController extends Controller
             ->orderBy('name')
             ->get();
 
-        $parties = $security
-            ->scope($user, 'parties.viewAny', Party::query())
-            ->orderBy('name')
-            ->get();
+        $parties = $supportsPartiesModule
+            ? $security
+                ->scope($user, 'parties.viewAny', Party::query())
+                ->orderBy('name')
+                ->get()
+            : collect();
 
         $orders = $supportsOrdersModule
             ? $security
@@ -497,6 +549,7 @@ class AppointmentController extends Controller
             'defaultAssignedUserId',
             'isForeignAppointmentForAdmin',
             'navigationTrail',
+            'supportsPartiesModule',
             'supportsAssetsModule',
             'supportsOrdersModule',
         ));

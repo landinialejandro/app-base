@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V17 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V18 --}}
 
 @extends('layouts.app')
 
@@ -6,7 +6,9 @@
 
 @section('content')
     @php
+        use App\Support\Auth\TenantModuleAccess;
         use App\Support\Catalogs\DocumentCatalog;
+        use App\Support\Catalogs\ModuleCatalog;
         use App\Support\Catalogs\OrderCatalog;
         use App\Support\Navigation\NavigationTrail;
 
@@ -16,6 +18,10 @@
         $inventoryMovements = $order->inventoryMovements ?? collect();
         $inventoryProducts = $inventoryProducts ?? collect();
 
+        $tenant = app('tenant');
+        $user = auth()->user();
+
+        $supportsPartiesModule = TenantModuleAccess::isEnabled(ModuleCatalog::PARTIES, $tenant);
         $supportsAssetsModule = $supportsAssetsModule ?? true;
         $supportsProductsModule = $supportsProductsModule ?? true;
         $supportsDocumentsModule = $supportsDocumentsModule ?? true;
@@ -24,6 +30,15 @@
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
         $backUrl = NavigationTrail::previousUrl($navigationTrail, route('orders.index'));
+
+        $canViewLinkedParty = $supportsPartiesModule && $order->party && $user && $user->can('view', $order->party);
+
+        $canViewLinkedAsset = $supportsAssetsModule && $order->asset && $user && $user->can('view', $order->asset);
+
+        $canViewLinkedTask = $supportsTasksModule && $order->task && $user && $user->can('view', $order->task);
+
+        $canViewLinkedDocuments = $supportsDocumentsModule;
+        $canViewLinkedProducts = $supportsProductsModule;
     @endphp
 
     <x-page>
@@ -61,7 +76,13 @@
             </x-show-summary-item>
 
             <x-show-summary-item label="Contacto">
-                {{ $order->party?->name ?: '—' }}
+                @if ($canViewLinkedParty)
+                    <a href="{{ route('parties.show', ['party' => $order->party] + $trailQuery) }}">
+                        {{ $order->party->name }}
+                    </a>
+                @else
+                    {{ $order->party?->name ?: '—' }}
+                @endif
             </x-show-summary-item>
 
             <x-show-summary-item label="Estado">
@@ -81,24 +102,24 @@
 
                 @if ($supportsAssetsModule)
                     <x-show-summary-item-detail-block label="Activo">
-                        @if ($order->asset)
+                        @if ($canViewLinkedAsset)
                             <a href="{{ route('assets.show', ['asset' => $order->asset] + $trailQuery) }}">
                                 {{ $order->asset->name }}
                             </a>
                         @else
-                            —
+                            {{ $order->asset?->name ?: '—' }}
                         @endif
                     </x-show-summary-item-detail-block>
                 @endif
 
                 @if ($supportsTasksModule)
                     <x-show-summary-item-detail-block label="Tarea">
-                        @if ($order->task)
+                        @if ($canViewLinkedTask)
                             <a href="{{ route('tasks.show', ['task' => $order->task] + $trailQuery) }}">
                                 {{ $order->task->name ?: 'Tarea #' . $order->task->id }}
                             </a>
                         @else
-                            —
+                            {{ $order->task?->name ?: ($order->task ? 'Tarea #' . $order->task->id : '—') }}
                         @endif
                     </x-show-summary-item-detail-block>
                 @endif
@@ -280,26 +301,43 @@
                                         </thead>
                                         <tbody>
                                             @foreach ($inventoryMovements as $movement)
+                                                @php
+                                                    $canViewMovementProduct =
+                                                        $canViewLinkedProducts &&
+                                                        $movement->product &&
+                                                        $user &&
+                                                        $user->can('view', $movement->product);
+
+                                                    $canViewMovementDocument =
+                                                        $canViewLinkedDocuments &&
+                                                        $movement->document &&
+                                                        $user &&
+                                                        $user->can('view', $movement->document);
+                                                @endphp
                                                 <tr>
                                                     <td>{{ $movement->created_at?->format('d/m/Y H:i') ?: '—' }}</td>
                                                     <td>{{ ucfirst($movement->kind) }}</td>
                                                     <td>
-                                                        @if ($movement->product)
+                                                        @if ($canViewMovementProduct)
                                                             <a
                                                                 href="{{ route('products.show', ['product' => $movement->product] + $trailQuery) }}">
                                                                 {{ $movement->product->name }}
                                                             </a>
+                                                        @elseif ($movement->product)
+                                                            {{ $movement->product->name }}
                                                         @else
                                                             —
                                                         @endif
                                                     </td>
                                                     <td>{{ number_format((float) $movement->quantity, 2, ',', '.') }}</td>
                                                     <td>
-                                                        @if ($movement->document)
+                                                        @if ($canViewMovementDocument)
                                                             <a
                                                                 href="{{ route('documents.show', ['document' => $movement->document] + $trailQuery) }}">
                                                                 {{ $movement->document->number ?: 'Documento #' . $movement->document->id }}
                                                             </a>
+                                                        @elseif ($movement->document)
+                                                            {{ $movement->document->number ?: 'Documento #' . $movement->document->id }}
                                                         @else
                                                             —
                                                         @endif
@@ -336,12 +374,19 @@
                                         </thead>
                                         <tbody>
                                             @foreach ($documents as $document)
+                                                @php
+                                                    $canViewDocument = $user && $user->can('view', $document);
+                                                @endphp
                                                 <tr>
                                                     <td>
-                                                        <a
-                                                            href="{{ route('documents.show', ['document' => $document] + $trailQuery) }}">
+                                                        @if ($canViewDocument)
+                                                            <a
+                                                                href="{{ route('documents.show', ['document' => $document] + $trailQuery) }}">
+                                                                {{ $document->number ?: 'Documento #' . $document->id }}
+                                                            </a>
+                                                        @else
                                                             {{ $document->number ?: 'Documento #' . $document->id }}
-                                                        </a>
+                                                        @endif
                                                     </td>
                                                     <td>{{ DocumentCatalog::kindLabel($document->kind) }}</td>
                                                     <td>{{ DocumentCatalog::statusLabel($document->status) }}</td>

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DocumentController.php | V15
+// FILE: app/Http/Controllers/DocumentController.php | V16
 
 namespace App\Http\Controllers;
 
@@ -305,8 +305,6 @@ class DocumentController extends Controller
 
     public function storeFromOrder(Request $request, Order $order)
     {
-        $this->authorize('create', Document::class);
-
         $security = app(Security::class);
         $user = auth()->user();
 

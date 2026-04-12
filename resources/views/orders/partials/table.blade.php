@@ -1,6 +1,8 @@
-{{-- FILE: resources/views/orders/partials/table.blade.php | V9 --}}
+{{-- FILE: resources/views/orders/partials/table.blade.php | V11 --}}
 
 @php
+    use App\Support\Auth\TenantModuleAccess;
+    use App\Support\Catalogs\ModuleCatalog;
     use App\Support\Catalogs\OrderCatalog;
     use App\Support\Navigation\NavigationTrail;
 
@@ -10,6 +12,15 @@
     $showAsset = $showAsset ?? true;
     $trailQuery = $trailQuery ?? [];
     $containerTrail = NavigationTrail::decode($trailQuery['trail'] ?? null);
+
+    $tenant = app('tenant');
+    $user = auth()->user();
+
+    $supportsPartiesModule = TenantModuleAccess::isEnabled(ModuleCatalog::PARTIES, $tenant);
+    $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
+
+    $renderPartyColumn = $showParty && $supportsPartiesModule;
+    $renderAssetColumn = $showAsset && $supportsAssetsModule;
 @endphp
 
 @if ($orders->count())
@@ -21,11 +32,11 @@
                     <th>Tipo</th>
                     <th>Estado</th>
 
-                    @if ($showParty)
+                    @if ($renderPartyColumn)
                         <th>Contacto</th>
                     @endif
 
-                    @if ($showAsset)
+                    @if ($renderAssetColumn)
                         <th>Activo</th>
                     @endif
 
@@ -60,6 +71,12 @@
                         }
 
                         $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
+
+                        $canViewParty =
+                            $renderPartyColumn && $order->party && $user && $user->can('view', $order->party);
+
+                        $canViewAsset =
+                            $renderAssetColumn && $order->asset && $user && $user->can('view', $order->asset);
                     @endphp
 
                     <tr>
@@ -77,24 +94,28 @@
                             </span>
                         </td>
 
-                        @if ($showParty)
+                        @if ($renderPartyColumn)
                             <td>
-                                @if ($order->party)
+                                @if ($canViewParty)
                                     <a href="{{ route('parties.show', ['party' => $order->party] + $rowTrailQuery) }}">
                                         {{ $order->party->name }}
                                     </a>
+                                @elseif ($order->party)
+                                    {{ $order->party->name }}
                                 @else
                                     —
                                 @endif
                             </td>
                         @endif
 
-                        @if ($showAsset)
+                        @if ($renderAssetColumn)
                             <td>
-                                @if ($order->asset)
+                                @if ($canViewAsset)
                                     <a href="{{ route('assets.show', ['asset' => $order->asset] + $rowTrailQuery) }}">
                                         {{ $order->asset->name }}
                                     </a>
+                                @elseif ($order->asset)
+                                    {{ $order->asset->name }}
                                 @else
                                     —
                                 @endif

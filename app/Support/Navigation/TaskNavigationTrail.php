@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/TaskNavigationTrail.php | V4
+// FILE: app/Support/Navigation/TaskNavigationTrail.php | V5
 
 namespace App\Support\Navigation;
 
@@ -95,5 +95,20 @@ class TaskNavigationTrail
                 route('tasks.edit', ['task' => $task])
             )
         );
+    }
+
+    public static function resolveFromRequest(Request $request, string $tenantId): ?Task
+    {
+        $taskId = $request->integer('task_id');
+
+        if ($taskId <= 0) {
+            return null;
+        }
+
+        return Task::query()
+            ->where('id', $taskId)
+            ->where('tenant_id', $tenantId)
+            ->whereNull('deleted_at')
+            ->first();
     }
 }

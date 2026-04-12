@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderItemController.php | V14
+// FILE: app/Http/Controllers/OrderItemController.php | V15
 
 namespace App\Http\Controllers;
 
@@ -92,7 +92,6 @@ class OrderItemController extends Controller
 
         $data['tenant_id'] = $order->tenant_id;
         $data['order_id'] = $order->id;
-        $data['created_by'] = auth()->id();
 
         OrderItem::create($data);
 
@@ -173,8 +172,6 @@ class OrderItemController extends Controller
                 ->whereKey($data['product_id'])
                 ->firstOrFail();
         }
-
-        $data['updated_by'] = auth()->id();
 
         $item->update($data);
 

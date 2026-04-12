@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/partials/embedded-tabs.blade.php | V9 --}}
+{{-- FILE: resources/views/documents/partials/embedded-tabs.blade.php | V10 --}}
 
 @php
     use App\Models\Document;
@@ -18,7 +18,6 @@
         DocumentCatalog::KIND_QUOTE => DocumentCatalog::label(DocumentCatalog::KIND_QUOTE),
         DocumentCatalog::KIND_DELIVERY_NOTE => DocumentCatalog::label(DocumentCatalog::KIND_DELIVERY_NOTE),
         DocumentCatalog::KIND_INVOICE => DocumentCatalog::label(DocumentCatalog::KIND_INVOICE),
-        DocumentCatalog::KIND_WORK_ORDER => DocumentCatalog::label(DocumentCatalog::KIND_WORK_ORDER),
     ];
 
     $tabsId = $tabsId ?? 'documents-tabs-' . uniqid();
@@ -27,7 +26,7 @@
 
     $order = $order ?? null;
 
-    $allowedCreateKinds = collect(DocumentCatalog::kinds())
+    $allowedCreateKinds = collect(array_keys($kinds))
         ->filter(
             fn(string $kind) => app(Security::class)->allows(auth()->user(), 'documents.create', Document::class, [
                 'kind' => $kind,
@@ -41,7 +40,6 @@
     $quoteCount = $quoteCount ?? $documents->where('kind', DocumentCatalog::KIND_QUOTE)->count();
     $deliveryNoteCount = $deliveryNoteCount ?? $documents->where('kind', DocumentCatalog::KIND_DELIVERY_NOTE)->count();
     $invoiceCount = $invoiceCount ?? $documents->where('kind', DocumentCatalog::KIND_INVOICE)->count();
-    $workOrderCount = $workOrderCount ?? $documents->where('kind', DocumentCatalog::KIND_WORK_ORDER)->count();
 @endphp
 
 <div class="tabs" data-tabs>
@@ -119,17 +117,6 @@
                         {{ $invoiceCount > 0 ? 'Otra factura' : 'Crear factura' }}
                     </button>
                 </form>
-
-                {{-- <form method="POST" action="{{ route('orders.documents.store', ['order' => $order] + $trailQuery) }}"
-                    class="inline-form"
-                    @if ($workOrderCount > 0) data-action="app-confirm-submit"
-                    data-confirm-message="Esta orden ya tiene {{ $workOrderCount }} orden(es) de trabajo asociada(s). ¿Deseas crear otra?" @endif>
-                    @csrf
-                    <input type="hidden" name="kind" value="{{ DocumentCatalog::KIND_WORK_ORDER }}">
-                    <button type="submit" class="btn btn-secondary btn-sm">
-                        {{ $workOrderCount > 0 ? 'Otra orden de trabajo' : 'Crear orden de trabajo' }}
-                    </button>
-                </form> --}}
             @elseif ($toolbarActions)
                 <a href="{{ $toolbarActions }}" class="btn btn-success btn-sm">
                     <x-icons.plus />

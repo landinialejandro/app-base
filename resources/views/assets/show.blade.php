@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/assets/show.blade.php | V11 --}}
+{{-- FILE: resources/views/assets/show.blade.php | V12 --}}
 
 @extends('layouts.app')
 
@@ -6,7 +6,10 @@
 
 @section('content')
     @php
+        use App\Models\Appointment;
+        use App\Support\Auth\TenantModuleAccess;
         use App\Support\Catalogs\AssetCatalog;
+        use App\Support\Catalogs\ModuleCatalog;
         use App\Support\Catalogs\OrderCatalog;
         use App\Support\Navigation\NavigationTrail;
 
@@ -14,9 +17,21 @@
         $documents = $documents ?? collect();
         $attachments = $asset->attachments ?? collect();
 
+        $tenant = app('tenant');
+        $user = auth()->user();
+
+        $supportsPartiesModule = TenantModuleAccess::isEnabled(ModuleCatalog::PARTIES, $tenant);
+        $supportsAppointmentsModule = TenantModuleAccess::isEnabled(ModuleCatalog::APPOINTMENTS, $tenant);
+        $supportsOrdersModule = TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, $tenant);
+        $supportsDocumentsModule = TenantModuleAccess::isEnabled(ModuleCatalog::DOCUMENTS, $tenant);
+
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
         $backUrl = NavigationTrail::previousUrl($navigationTrail, route('assets.index'));
+
+        $canViewParty = $supportsPartiesModule && $asset->party && $user && $user->can('view', $asset->party);
+
+        $canCreateAppointment = $supportsAppointmentsModule && $user && $user->can('create', Appointment::class);
     @endphp
 
     <x-page>
@@ -44,13 +59,13 @@
                 </form>
             @endcan
 
-            @can('create', App\Models\Appointment::class)
+            @if ($canCreateAppointment)
                 <a href="{{ route('appointments.create', ['asset_id' => $asset->id, 'party_id' => $asset->party_id] + $trailQuery) }}"
                     class="btn btn-secondary">
                     <x-icons.plus />
                     <span>Agendar turno</span>
                 </a>
-            @endcan
+            @endif
 
             <a href="{{ $backUrl }}" class="btn btn-secondary">
                 <x-icons.chevron-left />
@@ -64,10 +79,12 @@
             </x-show-summary-item>
 
             <x-show-summary-item label="Contacto">
-                @if ($asset->party)
+                @if ($canViewParty)
                     <a href="{{ route('parties.show', ['party' => $asset->party] + $trailQuery) }}">
                         {{ $asset->party->name }}
                     </a>
+                @elseif ($asset->party)
+                    {{ $asset->party->name }}
                 @else
                     —
                 @endif
@@ -110,24 +127,31 @@
             <x-tab-toolbar label="Secciones del activo">
                 <x-slot:tabs>
                     <x-horizontal-scroll label="Secciones del activo">
-                        <button type="button" class="tabs-link is-active" data-tab-link="orders" role="tab"
-                            aria-selected="true">
-                            Órdenes
-                            @if ($orders->count())
-                                ({{ $orders->count() }})
-                            @endif
-                        </button>
+                        @if ($supportsOrdersModule)
+                            <button type="button" class="tabs-link is-active" data-tab-link="orders" role="tab"
+                                aria-selected="true">
+                                Órdenes
+                                @if ($orders->count())
+                                    ({{ $orders->count() }})
+                                @endif
+                            </button>
+                        @endif
 
-                        <button type="button" class="tabs-link" data-tab-link="documents" role="tab"
-                            aria-selected="false">
-                            Documentos
-                            @if ($documents->count())
-                                ({{ $documents->count() }})
-                            @endif
-                        </button>
+                        @if ($supportsDocumentsModule)
+                            <button type="button" class="tabs-link {{ $supportsOrdersModule ? '' : 'is-active' }}"
+                                data-tab-link="documents" role="tab"
+                                aria-selected="{{ $supportsOrdersModule ? 'false' : 'true' }}">
+                                Documentos
+                                @if ($documents->count())
+                                    ({{ $documents->count() }})
+                                @endif
+                            </button>
+                        @endif
 
-                        <button type="button" class="tabs-link" data-tab-link="attachments" role="tab"
-                            aria-selected="false">
+                        <button type="button"
+                            class="tabs-link {{ !$supportsOrdersModule && !$supportsDocumentsModule ? 'is-active' : '' }}"
+                            data-tab-link="attachments" role="tab"
+                            aria-selected="{{ !$supportsOrdersModule && !$supportsDocumentsModule ? 'true' : 'false' }}">
                             Adjuntos
                             @if ($attachments->count())
                                 ({{ $attachments->count() }})
@@ -137,25 +161,29 @@
                 </x-slot:tabs>
             </x-tab-toolbar>
 
-            <section class="tab-panel" data-tab-panel="documents" hidden>
-                <div class="tab-panel-stack">
-                    @include('documents.partials.embedded-tabs', [
-                        'documents' => $documents,
-                        'showParty' => true,
-                        'showAsset' => false,
-                        'showOrder' => true,
-                        'emptyMessage' => 'Este activo no tiene documentos vinculados.',
-                        'tabsId' => 'asset-documents-tabs',
-                        'createBaseQuery' => [
-                            'asset_id' => $asset->id,
-                            'party_id' => $asset->party_id,
-                        ],
-                        'trailQuery' => $trailQuery,
-                    ])
-                </div>
-            </section>
+            @if ($supportsDocumentsModule)
+                <section class="tab-panel {{ !$supportsOrdersModule ? 'is-active' : '' }}" data-tab-panel="documents"
+                    @if ($supportsOrdersModule) hidden @endif>
+                    <div class="tab-panel-stack">
+                        @include('documents.partials.embedded-tabs', [
+                            'documents' => $documents,
+                            'showParty' => true,
+                            'showAsset' => false,
+                            'showOrder' => true,
+                            'emptyMessage' => 'Este activo no tiene documentos vinculados.',
+                            'tabsId' => 'asset-documents-tabs',
+                            'createBaseQuery' => [
+                                'asset_id' => $asset->id,
+                                'party_id' => $asset->party_id,
+                            ],
+                            'trailQuery' => $trailQuery,
+                        ])
+                    </div>
+                </section>
+            @endif
 
-            <section class="tab-panel" data-tab-panel="attachments" hidden>
+            <section class="tab-panel {{ !$supportsOrdersModule && !$supportsDocumentsModule ? 'is-active' : '' }}"
+                data-tab-panel="attachments" @if ($supportsOrdersModule || $supportsDocumentsModule) hidden @endif>
                 <div class="tab-panel-stack">
                     @include('attachments.partials.embedded', [
                         'attachments' => $attachments,
@@ -170,22 +198,24 @@
                 </div>
             </section>
 
-            <section class="tab-panel is-active" data-tab-panel="orders">
-                <div class="tab-panel-stack">
-                    @include('orders.partials.embedded-tabs', [
-                        'orders' => $orders,
-                        'showParty' => true,
-                        'showAsset' => false,
-                        'emptyMessage' => 'Este activo no tiene órdenes vinculadas.',
-                        'tabsId' => 'asset-orders-tabs',
-                        'createBaseQuery' => [
-                            'asset_id' => $asset->id,
-                            'kind' => OrderCatalog::KIND_SERVICE,
-                        ],
-                        'trailQuery' => $trailQuery,
-                    ])
-                </div>
-            </section>
+            @if ($supportsOrdersModule)
+                <section class="tab-panel is-active" data-tab-panel="orders">
+                    <div class="tab-panel-stack">
+                        @include('orders.partials.embedded-tabs', [
+                            'orders' => $orders,
+                            'showParty' => true,
+                            'showAsset' => false,
+                            'emptyMessage' => 'Este activo no tiene órdenes vinculadas.',
+                            'tabsId' => 'asset-orders-tabs',
+                            'createBaseQuery' => [
+                                'asset_id' => $asset->id,
+                                'kind' => OrderCatalog::KIND_SERVICE,
+                            ],
+                            'trailQuery' => $trailQuery,
+                        ])
+                    </div>
+                </section>
+            @endif
         </div>
 
     </x-page>

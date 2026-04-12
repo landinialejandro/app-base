@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TaskController.php | V11
+// FILE: app/Http/Controllers/TaskController.php | V12
 
 namespace App\Http\Controllers;
 
@@ -120,20 +120,32 @@ class TaskController extends Controller
     public function create(Request $request)
     {
         $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
 
         $this->authorize('create', Task::class);
 
         $forcedProject = null;
 
         if ($request->filled('project_id')) {
-            $forcedProject = Project::query()
+            $forcedProject = $security
+                ->scope($user, 'projects.viewAny', Project::query())
                 ->whereKey($request->integer('project_id'))
                 ->firstOrFail();
         }
 
-        $projects = Project::query()->orderBy('name')->get();
-        $parties = Party::query()->orderBy('name')->get();
-        $users = User::query()
+        $projects = $security
+            ->scope($user, 'projects.viewAny', Project::query())
+            ->orderBy('name')
+            ->get();
+
+        $parties = $security
+            ->scope($user, 'parties.viewAny', Party::query())
+            ->orderBy('name')
+            ->get();
+
+        $users = $security
+            ->scope($user, 'users.viewAny', User::query())
             ->whereHas('memberships', function ($query) use ($tenant) {
                 $query->where('tenant_id', $tenant->id)
                     ->where('status', 'active');
@@ -243,14 +255,25 @@ class TaskController extends Controller
     public function edit(Request $request, Task $task)
     {
         $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
 
         $this->authorize('update', $task);
 
         $task->load(['project', 'order']);
 
-        $projects = Project::query()->orderBy('name')->get();
-        $parties = Party::query()->orderBy('name')->get();
-        $users = User::query()
+        $projects = $security
+            ->scope($user, 'projects.viewAny', Project::query())
+            ->orderBy('name')
+            ->get();
+
+        $parties = $security
+            ->scope($user, 'parties.viewAny', Party::query())
+            ->orderBy('name')
+            ->get();
+
+        $users = $security
+            ->scope($user, 'users.viewAny', User::query())
             ->whereHas('memberships', function ($query) use ($tenant) {
                 $query->where('tenant_id', $tenant->id)
                     ->where('status', 'active');

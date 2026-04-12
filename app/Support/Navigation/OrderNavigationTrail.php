@@ -1,12 +1,13 @@
 <?php
 
-// FILE: app/Support/Navigation/OrderNavigationTrail.php | V6
+// FILE: app/Support/Navigation/OrderNavigationTrail.php | V7
 
 namespace App\Support\Navigation;
 
 use App\Models\Appointment;
 use App\Models\Order;
 use App\Models\OrderItem;
+use App\Models\Task;
 use Illuminate\Http\Request;
 
 class OrderNavigationTrail
@@ -34,14 +35,25 @@ class OrderNavigationTrail
         );
     }
 
-    public static function create(Request $request, ?Appointment $appointment = null): array
+    protected static function contextualBase(?Task $task = null, ?Appointment $appointment = null): array
+    {
+        if ($task) {
+            return TaskNavigationTrail::base($task);
+        }
+
+        if ($appointment) {
+            return AppointmentNavigationTrail::base($appointment);
+        }
+
+        return self::ordersBase();
+    }
+
+    public static function create(Request $request, ?Appointment $appointment = null, ?Task $task = null): array
     {
         $trail = NavigationTrail::fromRequest($request);
 
         if (empty($trail)) {
-            $trail = $appointment
-                ? AppointmentNavigationTrail::base($appointment)
-                : self::ordersBase();
+            $trail = self::contextualBase($task, $appointment);
         }
 
         return NavigationTrail::appendOrCollapse(
@@ -55,14 +67,16 @@ class OrderNavigationTrail
         );
     }
 
-    public static function show(Request $request, Order $order, ?Appointment $appointment = null): array
+    public static function show(Request $request, Order $order, ?Appointment $appointment = null, ?Task $task = null): array
     {
         $trail = NavigationTrail::fromRequest($request);
 
         if (empty($trail)) {
-            $trail = $appointment
-                ? AppointmentNavigationTrail::base($appointment)
-                : self::base($order);
+            $trail = self::contextualBase($task, $appointment);
+
+            if ($trail === self::ordersBase()) {
+                $trail = self::base($order);
+            }
         }
 
         $trail = NavigationTrail::removeNodes($trail, [
@@ -83,12 +97,12 @@ class OrderNavigationTrail
         );
     }
 
-    public static function edit(Request $request, Order $order, ?Appointment $appointment = null): array
+    public static function edit(Request $request, Order $order, ?Appointment $appointment = null, ?Task $task = null): array
     {
         $trail = NavigationTrail::fromRequest($request);
 
         if (empty($trail) || ! NavigationTrail::hasNode($trail, 'orders.show', $order->id)) {
-            $trail = self::show($request, $order, $appointment);
+            $trail = self::show($request, $order, $appointment, $task);
         }
 
         return NavigationTrail::appendOrCollapse(

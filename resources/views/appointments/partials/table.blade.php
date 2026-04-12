@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/partials/table.blade.php | V6 --}}
+{{-- FILE: resources/views/appointments/partials/table.blade.php | V7 --}}
 
 @php
     use App\Support\Catalogs\AppointmentCatalog;
@@ -7,6 +7,7 @@
 
     $appointments = $appointments ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay turnos para mostrar.';
+    $supportsPartiesModule = $supportsPartiesModule ?? false;
     $supportsAssetsModule = $supportsAssetsModule ?? false;
     $supportsOrdersModule = $supportsOrdersModule ?? false;
 @endphp
@@ -71,14 +72,14 @@
 
                         <td>
                             @if ($appointment->party)
-                                @can('view', $appointment->party)
+                                @if ($supportsPartiesModule && auth()->user()->can('view', $appointment->party))
                                     <a
                                         href="{{ route('parties.show', ['party' => $appointment->party] + $appointmentTrailQuery) }}">
                                         {{ $appointment->party->name }}
                                     </a>
                                 @else
                                     {{ $appointment->party->name }}
-                                @endcan
+                                @endif
                             @else
                                 —
                             @endif

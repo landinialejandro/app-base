@@ -1,12 +1,14 @@
 <?php
 
-// FILE: app/Http/Requests/AppointmentRequest.php | V1
+// FILE: app/Http/Requests/AppointmentRequest.php | V2
 
 namespace App\Http\Requests;
 
 use App\Models\Appointment;
 use App\Models\User;
+use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\AppointmentCatalog;
+use App\Support\Catalogs\ModuleCatalog;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -60,6 +62,7 @@ class AppointmentRequest extends FormRequest
         $data = $this->validated();
         $appointment = $this->route('appointment'); // null en store
 
+        $this->validateEnabledModules($data);
         $this->validateAssignedUserBelongsToTenant($data['assigned_user_id'], $tenant->id);
         $this->validateChronology($data);
 
@@ -70,6 +73,29 @@ class AppointmentRequest extends FormRequest
         }
 
         $this->validateOverlap($data, $appointment);
+    }
+
+    protected function validateEnabledModules(array $data): void
+    {
+        $tenant = app('tenant');
+
+        if (! TenantModuleAccess::isEnabled(ModuleCatalog::PARTIES, $tenant) && ! empty($data['party_id'])) {
+            throw ValidationException::withMessages([
+                'party_id' => 'No puedes vincular un contacto porque el módulo no está habilitado para la empresa actual.',
+            ]);
+        }
+
+        if (! TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant) && ! empty($data['asset_id'])) {
+            throw ValidationException::withMessages([
+                'asset_id' => 'No puedes vincular un activo porque el módulo no está habilitado para la empresa actual.',
+            ]);
+        }
+
+        if (! TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, $tenant) && ! empty($data['order_id'])) {
+            throw ValidationException::withMessages([
+                'order_id' => 'No puedes vincular una orden porque el módulo no está habilitado para la empresa actual.',
+            ]);
+        }
     }
 
     protected function validateAssignedUserBelongsToTenant(int $userId, string $tenantId): void
@@ -86,6 +112,7 @@ class AppointmentRequest extends FormRequest
     protected function validateChronology(array &$data): void
     {
         $data['is_all_day'] = (bool) ($data['is_all_day'] ?? false);
+
         if ($data['is_all_day']) {
             return;
         }
@@ -93,8 +120,11 @@ class AppointmentRequest extends FormRequest
         if (! empty($data['starts_at']) && ! empty($data['ends_at'])) {
             $start = Carbon::parse($data['starts_at']);
             $end = Carbon::parse($data['ends_at']);
+
             if ($end->lte($start)) {
-                throw ValidationException::withMessages(['ends_at' => 'La hora de finalización debe ser mayor a la hora de inicio.']);
+                throw ValidationException::withMessages([
+                    'ends_at' => 'La hora de finalización debe ser mayor a la hora de inicio.',
+                ]);
             }
         }
     }
@@ -115,13 +145,25 @@ class AppointmentRequest extends FormRequest
         }
 
         if (! empty($data['is_all_day']) && $query->exists()) {
-            throw ValidationException::withMessages(['scheduled_date' => 'Ya existe un turno activo para ese colaborador en esa fecha.']);
+            throw ValidationException::withMessages([
+                'scheduled_date' => 'Ya existe un turno activo para ese colaborador en esa fecha.',
+            ]);
         }
 
         if (! empty($data['starts_at']) && ! empty($data['ends_at'])) {
-            $exists = $query->where(fn ($q) => $q->where('is_all_day', true)->orWhere(fn ($rq) => $rq->whereNotNull('starts_at')->where('starts_at', '<', $data['ends_at'])->where('ends_at', '>', $data['starts_at'])))->exists();
+            $exists = $query
+                ->where(fn ($q) => $q
+                    ->where('is_all_day', true)
+                    ->orWhere(fn ($rq) => $rq
+                        ->whereNotNull('starts_at')
+                        ->where('starts_at', '<', $data['ends_at'])
+                        ->where('ends_at', '>', $data['starts_at'])))
+                ->exists();
+
             if ($exists) {
-                throw ValidationException::withMessages(['starts_at' => 'El colaborador ya tiene otro turno que se superpone en ese horario.']);
+                throw ValidationException::withMessages([
+                    'starts_at' => 'El colaborador ya tiene otro turno que se superpone en ese horario.',
+                ]);
             }
         }
     }
@@ -129,7 +171,9 @@ class AppointmentRequest extends FormRequest
     protected function validateCreateDateRules(array $data): void
     {
         if (Carbon::parse($data['scheduled_date'])->startOfDay()->lt(now()->startOfDay())) {
-            throw ValidationException::withMessages(['scheduled_date' => 'No se pueden crear turnos en fechas anteriores a hoy.']);
+            throw ValidationException::withMessages([
+                'scheduled_date' => 'No se pueden crear turnos en fechas anteriores a hoy.',
+            ]);
         }
     }
 
@@ -140,15 +184,20 @@ class AppointmentRequest extends FormRequest
 
         if ($appointment->status === AppointmentCatalog::STATUS_COMPLETED) {
             $originalDate = $appointment->scheduled_date?->copy()?->startOfDay();
+
             if ($originalDate && ! $scheduledDate->equalTo($originalDate)) {
-                throw ValidationException::withMessages(['scheduled_date' => 'Un turno completado no puede moverse de fecha.']);
+                throw ValidationException::withMessages([
+                    'scheduled_date' => 'Un turno completado no puede moverse de fecha.',
+                ]);
             }
 
             return;
         }
 
         if ($scheduledDate->lt($today)) {
-            throw ValidationException::withMessages(['scheduled_date' => 'Solo puedes mover el turno a hoy o a una fecha posterior.']);
+            throw ValidationException::withMessages([
+                'scheduled_date' => 'Solo puedes mover el turno a hoy o a una fecha posterior.',
+            ]);
         }
     }
 }

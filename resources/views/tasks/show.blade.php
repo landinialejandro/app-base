@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/show.blade.php | V11 --}}
+{{-- FILE: resources/views/tasks/show.blade.php | V12 --}}
 
 @extends('layouts.app')
 
@@ -6,13 +6,13 @@
 
 @section('content')
     @php
-        use App\Support\Catalogs\TaskCatalog;
-        use App\Support\Navigation\NavigationTrail;
+        use App\Models\Order;
+        use App\Support\Auth\Security;
         use App\Support\Auth\TenantModuleAccess;
         use App\Support\Catalogs\ModuleCatalog;
-        use App\Support\Auth\Security;
         use App\Support\Catalogs\OrderCatalog;
-        use App\Models\Order;
+        use App\Support\Catalogs\TaskCatalog;
+        use App\Support\Navigation\NavigationTrail;
         use Illuminate\Support\Carbon;
 
         $attachments = $task->attachments ?? collect();
@@ -33,28 +33,59 @@
             };
         }
 
+        $tenant = app('tenant');
+        $user = auth()->user();
+
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
+
         $backUrl = NavigationTrail::previousUrl(
             $navigationTrail,
             $task->project ? route('projects.show', $task->project) : route('tasks.index'),
         );
+
         $previousNode = NavigationTrail::previous($navigationTrail);
+
         $backLabel = match ($previousNode['key'] ?? null) {
             'projects.show' => 'Volver al proyecto',
             'orders.show' => 'Volver a la orden',
             default => 'Volver',
         };
+
+        $supportsOrdersModule = TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, $tenant);
+        $supportsProjectsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PROJECTS, $tenant);
+        $supportsPartiesModule = TenantModuleAccess::isEnabled(ModuleCatalog::PARTIES, $tenant);
+
+        $canViewProject = $supportsProjectsModule && $task->project && $user && $user->can('view', $task->project);
+
+        $canViewParty = $supportsPartiesModule && $task->party && $user && $user->can('view', $task->party);
+
+        $canViewOrder = $supportsOrdersModule && $task->order && $user && $user->can('view', $task->order);
+
         $canCreateOrderFromTask =
+            $supportsOrdersModule &&
             !$task->order &&
             $task->party_id &&
-            TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, app('tenant')) &&
-            auth()->user()->can('update', $task) &&
+            $user &&
+            $user->can('update', $task) &&
             collect(OrderCatalog::kinds())->contains(
-                fn(string $kind) => app(Security::class)->allows(auth()->user(), 'orders.create', Order::class, [
+                fn(string $kind) => app(Security::class)->allows($user, 'orders.create', Order::class, [
                     'kind' => $kind,
                 ]),
             );
+
+        $linkedOrderAction = [
+            'supported' => $supportsOrdersModule,
+            'linked' => (bool) $task->order,
+            'can_view' => $canViewOrder,
+            'can_create' => $canCreateOrderFromTask,
+            'show_url' => $task->order ? route('orders.show', ['order' => $task->order] + $trailQuery) : null,
+            'create_url' => route('orders.create', ['task_id' => $task->id] + $trailQuery),
+            'label' => 'Orden',
+            'contact_label' => 'Contacto',
+            'has_required_party' => (bool) $task->party_id,
+            'linked_text' => $task->order?->number ?: 'Ver orden',
+        ];
     @endphp
 
     <x-page>
@@ -82,11 +113,7 @@
                 </form>
             @endcan
 
-            @if ($canCreateOrderFromTask)
-                <a href="{{ route('orders.create', ['task_id' => $task->id] + $trailQuery) }}" class="btn btn-secondary">
-                    Crear orden
-                </a>
-            @endif
+            <x-linked-order-action :action="$linkedOrderAction" variant="button" />
 
             <a href="{{ $backUrl }}" class="btn btn-secondary btn-icon" title="{{ $backLabel }}"
                 aria-label="{{ $backLabel }}">
@@ -100,12 +127,12 @@
             </x-show-summary-item>
 
             <x-show-summary-item label="Proyecto">
-                @if ($task->project)
+                @if ($canViewProject)
                     <a href="{{ route('projects.show', ['project' => $task->project] + $trailQuery) }}">
                         {{ $task->project->name }}
                     </a>
                 @else
-                    —
+                    {{ $task->project?->name ?? '—' }}
                 @endif
             </x-show-summary-item>
 
@@ -127,25 +154,17 @@
                 </x-show-summary-item-detail-block>
 
                 <x-show-summary-item-detail-block label="Contacto">
-                    {{ $task->party?->name ?? '—' }}
+                    @if ($canViewParty)
+                        <a href="{{ route('parties.show', ['party' => $task->party] + $trailQuery) }}">
+                            {{ $task->party->name }}
+                        </a>
+                    @else
+                        {{ $task->party?->name ?? '—' }}
+                    @endif
                 </x-show-summary-item-detail-block>
 
                 <x-show-summary-item-detail-block label="Orden asociada">
-                    @if ($task->order)
-                        <a href="{{ route('orders.show', ['order' => $task->order] + $trailQuery) }}">
-                            {{ $task->order->number ?: 'Ver orden' }}
-                        </a>
-                    @elseif ($task->party_id)
-                        @if ($canCreateOrderFromTask)
-                            <a href="{{ route('orders.create', ['task_id' => $task->id] + $trailQuery) }}">
-                                Crear orden
-                            </a>
-                        @else
-                            —
-                        @endif
-                    @else
-                        Asociá un contacto para poder crear una orden.
-                    @endif
+                    <x-linked-order-action :action="$linkedOrderAction" variant="summary" />
                 </x-show-summary-item-detail-block>
 
                 <x-show-summary-item-detail-block label="Descripción" full>

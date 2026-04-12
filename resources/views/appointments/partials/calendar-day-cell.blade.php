@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/partials/calendar-day-cell.blade.php | V5 --}}
+{{-- FILE: resources/views/appointments/partials/calendar-day-cell.blade.php | V6 --}}
 
 @php
     use App\Support\Catalogs\AppointmentCatalog;
@@ -14,6 +14,7 @@
         ->startOfDay()
         ->lt(now()->startOfDay());
 
+    $supportsPartiesModule = $supportsPartiesModule ?? false;
     $supportsOrdersModule = $supportsOrdersModule ?? false;
     $supportsAssetsModule = $supportsAssetsModule ?? false;
 
@@ -92,7 +93,7 @@
                 </div>
 
                 <div class="appointment-calendar-item-meta">
-                    @if ($appointment->party)
+                    @if ($supportsPartiesModule && $appointment->party)
                         <span>{{ $appointment->party->name }}</span>
                     @elseif ($appointment->assignedUser)
                         <span>{{ $appointment->assignedUser->name }}</span>

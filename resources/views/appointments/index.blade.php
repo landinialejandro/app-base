@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/index.blade.php | V7 --}}
+{{-- FILE: resources/views/appointments/index.blade.php | V8 --}}
 
 @extends('layouts.app')
 
@@ -68,17 +68,19 @@
                         </select>
                     </div>
 
-                    <div class="form-group">
-                        <label for="party_id" class="form-label">Contacto</label>
-                        <select id="party_id" name="party_id" class="form-control">
-                            <option value="">Todos</option>
-                            @foreach ($parties as $party)
-                                <option value="{{ $party->id }}" @selected((string) request('party_id') === (string) $party->id)>
-                                    {{ $party->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                    @if ($supportsPartiesModule)
+                        <div class="form-group">
+                            <label for="party_id" class="form-label">Contacto</label>
+                            <select id="party_id" name="party_id" class="form-control">
+                                <option value="">Todos</option>
+                                @foreach ($parties as $party)
+                                    <option value="{{ $party->id }}" @selected((string) request('party_id') === (string) $party->id)>
+                                        {{ $party->name }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endif
 
                     @if ($canViewAllAppointments)
                         <div class="form-group">
@@ -107,6 +109,7 @@
             @include('appointments.partials.table', [
                 'appointments' => $appointments,
                 'emptyMessage' => 'No hay turnos registrados para esta empresa.',
+                'supportsPartiesModule' => $supportsPartiesModule,
                 'supportsAssetsModule' => $supportsAssetsModule,
                 'supportsOrdersModule' => $supportsOrdersModule,
             ])

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderController.php | V23
+// FILE: app/Http/Controllers/OrderController.php | V24
 
 namespace App\Http\Controllers;
 
@@ -18,6 +18,7 @@ use App\Support\Documents\DocumentNumberGenerator;
 use App\Support\Navigation\AppointmentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\OrderNavigationTrail;
+use App\Support\Navigation\TaskNavigationTrail;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -168,7 +169,7 @@ class OrderController extends Controller
                 ->firstOrFail();
 
             if ($prefilledTask->order) {
-                $orderTrail = OrderNavigationTrail::show($request, $prefilledTask->order);
+                $orderTrail = OrderNavigationTrail::show($request, $prefilledTask->order, task: $prefilledTask);
 
                 return redirect()
                     ->route('orders.show', ['order' => $prefilledTask->order] + NavigationTrail::toQuery($orderTrail))
@@ -192,7 +193,7 @@ class OrderController extends Controller
                 ->firstOrFail();
 
             if ($prefilledAppointment->order) {
-                $orderTrail = OrderNavigationTrail::show($request, $prefilledAppointment->order, $prefilledAppointment);
+                $orderTrail = OrderNavigationTrail::show($request, $prefilledAppointment->order, appointment: $prefilledAppointment);
 
                 return redirect()
                     ->route('orders.show', ['order' => $prefilledAppointment->order] + NavigationTrail::toQuery($orderTrail))
@@ -222,7 +223,11 @@ class OrderController extends Controller
             ['kind' => $prefilledKind]
         );
 
-        $navigationTrail = OrderNavigationTrail::create($request, $prefilledAppointment);
+        $navigationTrail = OrderNavigationTrail::create(
+            $request,
+            appointment: $prefilledAppointment,
+            task: $prefilledTask,
+        );
 
         return view('orders.create', compact(
             'parties',
@@ -337,8 +342,12 @@ class OrderController extends Controller
         $data['ordered_at'] = $orderedAtDate->toDateString();
 
         $appointment = null;
+        $task = null;
+
         $appointmentId = $data['appointment_id'] ?? null;
         unset($data['appointment_id']);
+
+        $taskId = $data['task_id'] ?? null;
 
         $order = DB::transaction(function () use ($tenant, $data) {
             $sequence = DocumentNumberGenerator::generate(
@@ -374,7 +383,21 @@ class OrderController extends Controller
             }
         }
 
-        $navigationTrail = OrderNavigationTrail::show($request, $order, $appointment);
+        if (! empty($taskId)) {
+            $task = $security
+                ->scope($user, 'tasks.viewAny', Task::query())
+                ->where('id', $taskId)
+                ->where('tenant_id', $tenant->id)
+                ->whereNull('deleted_at')
+                ->first();
+        }
+
+        $navigationTrail = OrderNavigationTrail::show(
+            $request,
+            $order,
+            appointment: $appointment,
+            task: $task,
+        );
 
         return redirect()
             ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
@@ -414,7 +437,14 @@ class OrderController extends Controller
             : collect();
 
         $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
-        $navigationTrail = OrderNavigationTrail::show($request, $order, $appointment);
+        $task = TaskNavigationTrail::resolveFromRequest($request, $order->tenant_id);
+
+        $navigationTrail = OrderNavigationTrail::show(
+            $request,
+            $order,
+            appointment: $appointment,
+            task: $task,
+        );
 
         return view('orders.show', compact(
             'order',
@@ -451,7 +481,14 @@ class OrderController extends Controller
             : collect();
 
         $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
-        $navigationTrail = OrderNavigationTrail::edit($request, $order, $appointment);
+        $task = TaskNavigationTrail::resolveFromRequest($request, $order->tenant_id);
+
+        $navigationTrail = OrderNavigationTrail::edit(
+            $request,
+            $order,
+            appointment: $appointment,
+            task: $task,
+        );
 
         return view('orders.edit', compact(
             'order',
@@ -592,7 +629,14 @@ class OrderController extends Controller
         $order->update($data);
 
         $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
-        $navigationTrail = OrderNavigationTrail::show($request, $order, $appointment);
+        $task = TaskNavigationTrail::resolveFromRequest($request, $order->tenant_id);
+
+        $navigationTrail = OrderNavigationTrail::show(
+            $request,
+            $order,
+            appointment: $appointment,
+            task: $task,
+        );
 
         return redirect()
             ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
@@ -604,7 +648,15 @@ class OrderController extends Controller
         $this->authorize('delete', $order);
 
         $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
-        $navigationTrail = OrderNavigationTrail::show($request, $order, $appointment);
+        $task = TaskNavigationTrail::resolveFromRequest($request, $order->tenant_id);
+
+        $navigationTrail = OrderNavigationTrail::show(
+            $request,
+            $order,
+            appointment: $appointment,
+            task: $task,
+        );
+
         $redirectUrl = NavigationTrail::previousUrl($navigationTrail, route('orders.index'));
 
         $order->delete();

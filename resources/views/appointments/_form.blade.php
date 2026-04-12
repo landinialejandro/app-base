@@ -1,10 +1,11 @@
-{{-- FILE: resources/views/appointments/_form.blade.php | V5 --}}
+{{-- FILE: resources/views/appointments/_form.blade.php | V6 --}}
 
 @php
     use App\Support\Catalogs\AppointmentCatalog;
 
     $defaultAssignedUserId = $defaultAssignedUserId ?? old('assigned_user_id', auth()->id());
     $isForeignAppointmentForAdmin = $isForeignAppointmentForAdmin ?? false;
+    $supportsPartiesModule = $supportsPartiesModule ?? true;
     $supportsAssetsModule = $supportsAssetsModule ?? true;
     $supportsOrdersModule = $supportsOrdersModule ?? true;
 
@@ -27,24 +28,32 @@
             ? $appointment->scheduled_date->format('Y-m-d')
             : $prefilledScheduledDate ?? request('scheduled_date', $todayDate),
     );
+
+    $formActions = ['app-appointment-kind-sync'];
+
+    if ($supportsPartiesModule && $supportsAssetsModule) {
+        $formActions[] = 'app-appointment-party-asset-sync';
+    }
 @endphp
 
-<div class="form" data-action="app-appointment-party-asset-sync app-appointment-kind-sync">
+<div class="form" data-action="{{ implode(' ', $formActions) }}">
 
-    <div class="form-group">
-        <label for="party_id" class="form-label">{{ AppointmentCatalog::contactLabel() }}</label>
-        <select name="party_id" id="party_id" class="form-control">
-            <option value="">Sin {{ strtolower(AppointmentCatalog::contactLabel()) }}</option>
-            @foreach ($parties as $party)
-                <option value="{{ $party->id }}" @selected((string) $currentPartyId === (string) $party->id)>
-                    {{ $party->name }}
-                </option>
-            @endforeach
-        </select>
-        @error('party_id')
-            <div class="form-help is-error">{{ $message }}</div>
-        @enderror
-    </div>
+    @if ($supportsPartiesModule)
+        <div class="form-group">
+            <label for="party_id" class="form-label">{{ AppointmentCatalog::contactLabel() }}</label>
+            <select name="party_id" id="party_id" class="form-control">
+                <option value="">Sin {{ strtolower(AppointmentCatalog::contactLabel()) }}</option>
+                @foreach ($parties as $party)
+                    <option value="{{ $party->id }}" @selected((string) $currentPartyId === (string) $party->id)>
+                        {{ $party->name }}
+                    </option>
+                @endforeach
+            </select>
+            @error('party_id')
+                <div class="form-help is-error">{{ $message }}</div>
+            @enderror
+        </div>
+    @endif
 
     @if ($supportsAssetsModule)
         <div class="form-group">
@@ -52,7 +61,8 @@
             <select name="asset_id" id="asset_id" class="form-control">
                 <option value="">Sin {{ strtolower(AppointmentCatalog::assetLabel()) }}</option>
                 @foreach ($assets as $asset)
-                    <option value="{{ $asset->id }}" data-party-id="{{ $asset->party_id }}"
+                    <option value="{{ $asset->id }}"
+                        @if ($supportsPartiesModule) data-party-id="{{ $asset->party_id }}" @endif
                         @selected((string) $currentAssetId === (string) $asset->id)>
                         {{ $asset->name }}
                         @if ($asset->internal_code)
@@ -64,8 +74,12 @@
                     </option>
                 @endforeach
             </select>
-            <div class="form-help">Si eliges un {{ strtolower(AppointmentCatalog::contactLabel()) }}, se filtrarán los
-                {{ strtolower(AppointmentCatalog::assetLabel()) }}s vinculados.</div>
+            @if ($supportsPartiesModule)
+                <div class="form-help">
+                    Si eliges un {{ strtolower(AppointmentCatalog::contactLabel()) }}, se filtrarán los
+                    {{ strtolower(AppointmentCatalog::assetLabel()) }}s vinculados.
+                </div>
+            @endif
             @error('asset_id')
                 <div class="form-help is-error">{{ $message }}</div>
             @enderror

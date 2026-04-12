@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/OrderItem.php | V3
+// FILE: app/Models/OrderItem.php | V4
 
 namespace App\Models;
 
@@ -25,8 +25,6 @@ class OrderItem extends Model
         'description',
         'quantity',
         'unit_price',
-        'created_by',
-        'updated_by',
     ];
 
     protected $casts = [

@@ -1,9 +1,10 @@
-{{-- FILE: resources/views/appointments/partials/calendar-grid.blade.php | V3 --}}
+{{-- FILE: resources/views/appointments/partials/calendar-grid.blade.php | V4 --}}
 
 @php
     $weekdays = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'];
 
     $weekLinkBase = request()->except('view', 'month', 'date', 'page');
+    $supportsPartiesModule = $supportsPartiesModule ?? false;
     $supportsAssetsModule = $supportsAssetsModule ?? false;
     $supportsOrdersModule = $supportsOrdersModule ?? false;
 @endphp
@@ -43,6 +44,7 @@
                             'day' => $day,
                             'mode' => 'month',
                             'maxVisibleAppointments' => 4,
+                            'supportsPartiesModule' => $supportsPartiesModule,
                             'supportsAssetsModule' => $supportsAssetsModule,
                             'supportsOrdersModule' => $supportsOrdersModule,
                         ])

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/components/linked-order-action.blade.php | V1 --}}
+{{-- FILE: resources/views/components/linked-order-action.blade.php | V2 --}}
 
 @props([
     'action' => [],
@@ -20,8 +20,8 @@
     if (!$supported) {
         $state = 'hidden';
     } elseif ($linked) {
-        $state = $canView ? 'linked_viewable' : 'linked_readonly';
-    } elseif ($hasRequiredParty && $canCreate) {
+        $state = $canView && $showUrl ? 'linked_viewable' : 'linked_readonly';
+    } elseif ($hasRequiredParty && $canCreate && $createUrl) {
         $state = 'creatable';
     } elseif (!$hasRequiredParty) {
         $state = 'missing_requirement';

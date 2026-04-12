@@ -1,9 +1,11 @@
-{{-- FILE: resources/views/appointments/show.blade.php | V8 --}}
+{{-- FILE: resources/views/appointments/show.blade.php | V9 --}}
 
 @extends('layouts.app')
 
 @php
+    use App\Support\Auth\TenantModuleAccess;
     use App\Support\Catalogs\AppointmentCatalog;
+    use App\Support\Catalogs\ModuleCatalog;
     use App\Support\Navigation\NavigationTrail;
 
     $appointmentTitle = AppointmentCatalog::rowTitleFor($appointment->kind, $appointment->work_mode);
@@ -18,6 +20,8 @@
             'month' => now()->format('Y-m'),
         ]),
     );
+
+    $supportsPartiesModule = TenantModuleAccess::isEnabled(ModuleCatalog::PARTIES, app('tenant'));
 
     $orderAction = [
         'supported' => $supportsOrdersModule,
@@ -89,19 +93,21 @@
         </x-page-header>
 
         <x-show-summary details-id="appointment-more-detail">
-            <x-show-summary-item :label="AppointmentCatalog::contactLabel()">
-                @if ($appointment->party)
-                    @if ($canViewLinkedParty)
-                        <a href="{{ route('parties.show', ['party' => $appointment->party] + $trailQuery) }}">
+            @if ($supportsPartiesModule)
+                <x-show-summary-item :label="AppointmentCatalog::contactLabel()">
+                    @if ($appointment->party)
+                        @if ($canViewLinkedParty)
+                            <a href="{{ route('parties.show', ['party' => $appointment->party] + $trailQuery) }}">
+                                {{ $appointment->party->name }}
+                            </a>
+                        @else
                             {{ $appointment->party->name }}
-                        </a>
+                        @endif
                     @else
-                        {{ $appointment->party->name }}
+                        —
                     @endif
-                @else
-                    —
-                @endif
-            </x-show-summary-item>
+                </x-show-summary-item>
+            @endif
 
             @if ($supportsAssetsModule)
                 <x-show-summary-item :label="AppointmentCatalog::assetLabel()">

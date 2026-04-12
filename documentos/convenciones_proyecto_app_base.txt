@@ -1015,15 +1015,13 @@ las integraciones entre módulos deben respetar el contrato del módulo oferente
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 CONVENCIONES DE CONTRATO MODULAR
 
 Todo módulo operativo del sistema debe poder describirse mediante un contrato modular explícito.
 
 Ese contrato no reemplaza la implementación ni la documentación específica del módulo.
-
-La ordena.
 
 Capas mínimas esperadas del contrato modular:
 
@@ -1070,6 +1068,8 @@ no asumir entradas implícitas no declaradas
 no abrir canales paralelos de entrada por conveniencia de implementación
 no resolver create contextuales con patrones distintos si el mismo contrato ya puede absorberlos
 
+si un create requiere contexto funcional obligatorio, no debe documentarse ni implementarse como create abstracto genérico
+
 CONTRATO DE SALIDA
 
 El contrato de salida define qué devuelve o expone el módulo hacia otros módulos o hacia capas consumidoras del sistema.
@@ -1107,6 +1107,8 @@ Reglas:
 un módulo puede publicar oferta de integración aunque todavía no exista un consumidor actual
 la ausencia temporal de consumidor no invalida la oferta
 la publicación de la oferta pertenece al módulo oferente y no debe imponerse desde afuera como excepción ad hoc
+
+si una capacidad reusable ya fue publicada por el módulo oferente, el consumidor debe priorizar su consumo antes de crear una variante local
 
 CONTRATO DE SEGURIDAD
 
@@ -1190,7 +1192,7 @@ la clasificación no debe forzar jerarquías falsas de dependencia existencial c
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -1236,12 +1238,52 @@ permiso efectivo
 existencia o no de registro relacionado
 posible create contextual
 estados UX mutuamente excluyentes
+navegación contextual requerida
 
 debe priorizarse un componente o capacidad compartida publicada por el módulo oferente antes que duplicar lógica en múltiples blades consumidoras
 
 Caso consolidado actual:
 
 linked-order-action como superficie reusable de integración hacia orders
+<<END SECTION>>
+
+<<SECTION: CONVENCIONES DE FLAGS DE SOPORTE MODULAR>>
+SECTION_VERSION: 00001
+
+CONVENCIONES DE FLAGS DE SOPORTE MODULAR
+
+Cuando una pantalla, formulario, partial o componente dependa de la existencia de otro módulo habilitado para el tenant, debe utilizar el flag o señal canónica de soporte modular vigente.
+
+Reglas:
+
+la validación no debe quedarse en la vista principal
+
+debe propagarse hasta la última partial, include, tabla embebida o bloque visual que pueda exponer:
+
+campos relacionales
+tabs
+enlaces
+acciones
+botones de alta
+referencias visibles
+
+no debe asumirse que una partial profunda conoce el estado modular por contexto implícito
+
+el dato debe llegar explícitamente o resolverse por la vía canónica del sistema
+
+si un módulo no está habilitado:
+
+no deben renderizarse superficies residuales hacia ese módulo
+
+Ejemplos típicos:
+
+supportsOrdersModule
+supportsAssetsModule
+supportsPartiesModule
+
+Regla final:
+
+la propagación completa de flags modulares forma parte de la calidad de cierre de un módulo
 <<END SECTION>>
 
 <<SECTION: ROLECATALOG Y MODULECATALOG>>
@@ -1331,7 +1373,7 @@ order_items copiados hacia documentos derivados
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ENTIDADES HIJAS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CONVENCIONES DE ENTIDADES HIJAS
 
@@ -1363,6 +1405,15 @@ Regla modular adicional:
 las entidades hijas no deben confundirse con módulos autónomos ni con módulos agrupados
 
 que una entidad dependa funcionalmente de una cabecera no implica que todo módulo relacionado deba modelarse como entidad hija
+
+no deben agregarse responsabilidades propias de cabecera al hijo por comodidad de implementación técnica
+
+por ejemplo:
+
+auditoría propia
+capabilities independientes
+ownership artificial
+dataset autónomo
 
 cualquier excepción a esta regla debe justificarse por necesidad real del dominio y no por comodidad de implementación
 <<END SECTION>>

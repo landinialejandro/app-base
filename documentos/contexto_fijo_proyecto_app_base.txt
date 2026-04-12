@@ -547,6 +547,8 @@ que tasks pueda agruparse bajo projects no lo convierte en simple subrecurso dep
 <<END SECTION>>
 
 <<SECTION: Appointments como agenda operativa reutilizable>>
+SECTION_VERSION: 00002
+
 Appointments como agenda operativa reutilizable
 
 appointments es un módulo core de agenda o reserva operativa reutilizable por tenant.
@@ -586,6 +588,16 @@ su operación individual puede restringirse mediante own_assigned
 appointments no utiliza semántica limited como contrato del módulo
 
 las relaciones hacia otros módulos mediante *_id deben respetar el estado activo del módulo destino y no exponerse en UI si dicho módulo está deshabilitado
+
+Aclaración operativa adicional consolidada:
+
+la integración appointments → orders forma parte del frente operativo cerrado del sistema
+
+appointments puede abrir una order existente o derivar a create contextual de orders según el contexto recibido y el arbitraje válido del módulo orders
+
+esa integración no convierte a orders en subrecurso de appointments
+
+appointments actúa como origen contextual legítimo de navegación hacia orders cuando el flujo operativo lo requiera
 <<END SECTION>>
 
 <<SECTION: Perfil funcional del tenant>>
@@ -751,7 +763,7 @@ esta clasificación debe orientar futuras decisiones de documentación, integrac
 <<END SECTION>>
 
 <<SECTION: Contrato modular como criterio de crecimiento>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 Contrato modular como criterio de crecimiento
 
@@ -773,11 +785,24 @@ si un módulo necesita exponer capacidades reutilizables para otros módulos, es
 
 no como excepción permanente alojada en el módulo consumidor
 
+Aclaración operativa adicional consolidada:
+
+cuando un módulo consumidor necesite resolver una relación, acción o flujo transversal ya cerrado doctrinalmente por otro módulo, debe consumir la capacidad publicada por el módulo oferente y no duplicar decisiones operativas locales
+
+esto aplica especialmente cuando la integración combine:
+
+permiso efectivo
+estado del módulo destino
+existencia o no de registro relacionado
+create contextual
+navegación contextual
+estados UX mutuamente excluyentes
+
 Este criterio forma parte de la dirección arquitectónica actual del proyecto.
 <<END SECTION>>
 
 <<SECTION: MÓDULO ORDERS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 MÓDULO ORDERS
 
@@ -819,14 +844,68 @@ el seguimiento interno de tasks
 la definición fiscal avanzada de documents
 una autonomía independiente para order_items
 
+CONTRATO MODULAR CONSOLIDADO
+
+NÚCLEO
+
+orders resuelve la operación interna principal del tenant y constituye el frente operativo central del sistema.
+
+CONTRATO DE ENTRADA
+
+orders recibe como contexto funcional obligatorio:
+
+kind
+
+Además puede recibir contexto relacional válido desde:
+
+party
+asset
+task
+appointment
+
+según el flujo operativo aplicable.
+
+CONTRATO DE SALIDA
+
+orders expone hacia el ecosistema:
+
+orden operativa central
+referencia principal del trabajo en curso
+relación derivable hacia documents
+base para detalle operativo mediante order_items
+
+OFERTA DE INTEGRACIÓN
+
+orders publica como capacidades reutilizables del ecosistema:
+
+create contextual de order
+pantalla central del recurso
+navegación estructural y contextual compatible con el trail vigente
+tabla embebida reusable
+acción enlazada reusable
+puente operativo hacia documents
+acción transversal reusable para arbitrar apertura de orden existente, creación contextual o estado no disponible según permiso, módulo activo y contexto recibido
+
 REGLAS OPERATIVAS
 
+orders es un módulo autónomo
+
+no debe tratarse como submódulo de tasks
+
+no debe tratarse como submódulo de appointments
+
+task y appointment pueden conducir a una order según el flujo vigente sin absorber ni degradar la identidad funcional del módulo
+
+orders.create no es un create abstracto
+
 create requiere contexto funcional explícito mediante kind
-task y appointment pueden conducir a una order según el flujo vigente
-task debe tratarse con el mismo nivel doctrinal que appointment como origen funcional legítimo hacia orders
+
 si ya existe una order asociada al contexto recibido, debe reutilizarse la existente según la lógica definida
+
 order_items opera como recurso delegado al padre
+
 la seguridad del módulo se rige por la capa central vigente
+
 la navegación debe respetar el mecanismo central de trail del proyecto
 
 RELACIONES PRINCIPALES
@@ -847,18 +926,6 @@ Relación derivada vigente:
 documents
 
 Mientras documents continúe en evolución hacia su contrato fiscal definitivo, su vínculo con Orders no debe utilizarse para redefinir el núcleo del módulo.
-
-CAPACIDADES PUBLICADAS
-
-Orders expone como capacidades reutilizables del ecosistema:
-
-create contextual de order
-navegación propia del módulo
-tabla embebida reusable de órdenes
-acción enlazada hacia una order
-gestión delegada de items
-pantalla central del recurso como referencia operativa
-acción transversal reusable para arbitrar apertura de orden existente, creación contextual o estado no disponible según permiso, módulo activo y contexto recibido
 
 REGLA FINAL
 
@@ -1019,6 +1086,8 @@ La doctrina detallada de implementación segura, Fortify, onboarding, hardening 
 <<END SECTION>>
 
 <<SECTION: Patrón de modelado cabecera / detalle>>
+SECTION_VERSION: 00002
+
 Patrón de modelado cabecera / detalle
 
 Cuando un módulo represente una operación compuesta por múltiples renglones, debe modelarse preferentemente utilizando el patrón cabecera/detalle.
@@ -1036,6 +1105,23 @@ Si el alta del ítem se realiza internamente desde un flujo controlado del siste
 la eliminación de la cabecera elimina sus ítems
 la posición del ítem es responsabilidad del módulo
 los importes pueden calcularse dinámicamente o persistirse según la naturaleza funcional del documento
+
+Regla doctrinal adicional consolidada:
+
+cuando el detalle no posea identidad funcional propia, debe tratarse como entidad hija delegada y no como módulo autónomo
+
+esto implica que:
+
+su ciclo de vida depende de la cabecera
+su autorización depende del recurso padre
+su lógica operativa no debe independizarse sin decisión doctrinal expresa
+no deben agregarse responsabilidades de cabecera al hijo por comodidad de implementación
+
+Caso consolidado actual:
+
+order_items respecto de orders
+
+order_items debe tratarse como detalle dependiente del padre order, sin autonomía modular ni contrato de seguridad independiente
 <<END SECTION>>
 
 <<SECTION: Numeración operativa>>

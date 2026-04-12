@@ -444,6 +444,102 @@ si el módulo destino está deshabilitado para el tenant, la UI no debe mostrar 
 si una acción contextual reutiliza una capacidad publicada por otro módulo, su visibilidad debe depender del resultado real ya arbitrado por backend y no de inferencias locales en Blade
 <<END SECTION>>
 
+<<SECTION: CHECKLIST DE INTEGRACIÓN>>
+SECTION_VERSION: 00002
+
+CHECKLIST DE INTEGRACIÓN
+
+Verificar:
+
+el módulo define claramente qué consume y qué ofrece al ecosistema
+
+sus relaciones con otros módulos respetan contratos existentes
+
+no invade el núcleo de otros módulos para resolver necesidades propias
+
+si necesita una capacidad transversal ya existente, la reutiliza antes de crear variante local
+
+si publica una capacidad reusable, queda ubicada doctrinalmente en el módulo oferente y no en consumidores accidentales
+
+los create contextuales usan el mismo contrato de entrada en todas sus superficies
+
+si create requiere contexto funcional obligatorio, no se implementa como alta abstracta genérica
+
+las integraciones cruzadas preservan navegación contextual cuando corresponde
+
+si existe relación previa (por ejemplo registro ya creado), se define comportamiento consistente de apertura o reutilización
+<<END SECTION>>
+
+<<SECTION: VALIDACIONES BACKEND VS UI>>
+SECTION_VERSION: 00002
+
+VALIDACIONES BACKEND VS UI
+
+Verificar:
+
+la UI no sea la única barrera de control
+
+campos ocultos también estén validados en backend
+
+acciones no visibles también estén protegidas en backend
+
+datasets respeten scope real desde backend
+
+links relacionales dependan de permiso y módulo activo
+
+si un módulo relacionado está deshabilitado, el backend rechace referencias hacia ese módulo
+
+tabs, tablas parciales, calendarios y formularios embebidos respeten la misma lógica que la pantalla principal
+
+no existan rutas operables residuales aunque la UI ya no las muestre
+<<END SECTION>>
+
+<<SECTION: SUPERFICIES SECUNDARIAS Y PARTIALS>>
+SECTION_VERSION: 00001
+
+SUPERFICIES SECUNDARIAS Y PARTIALS
+
+Verificar:
+
+partials profundas alineadas con la pantalla principal
+
+calendarios alineados con reglas del módulo
+
+formularios embebidos alineados con permisos reales
+
+componentes reutilizables alineados con contrato del módulo
+
+cancelar y redirects respetan trail vigente
+
+no existen botones, filtros o enlaces residuales en vistas secundarias
+
+el módulo puede considerarse cerrado también fuera de index/controller/show principal
+<<END SECTION>>
+
+<<SECTION: ENTIDADES HIJAS Y SUBRECURSOS>>
+SECTION_VERSION: 00002
+
+ENTIDADES HIJAS Y SUBRECURSOS
+
+Verificar:
+
+si el recurso hijo tiene autonomía real o depende funcionalmente del padre
+
+si corresponde delegar autorización en el recurso padre
+
+si evita crear capabilities propias sin necesidad real
+
+si evita ownership artificial en el hijo
+
+si evita dataset independiente cuando solo es detalle operativo
+
+si no agrega responsabilidades de cabecera por comodidad técnica
+
+si las policies del hijo, cuando existan, delegan explícitamente en el padre
+
+si el ciclo de vida del hijo queda claramente subordinado a la cabecera
+<<END SECTION>>
+
 <<SECTION: DOCUMENTACIÓN OBLIGATORIA>>
 SECTION_VERSION: 00003
 

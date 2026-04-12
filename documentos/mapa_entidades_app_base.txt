@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -60,15 +60,23 @@ assets contextualiza orders, appointments y documents
 
 orders puede derivar documents
 
+orders contiene detalle operativo mediante order_items
+
 products alimenta order_items y document_items
 
 parties se relaciona transversalmente con múltiples módulos
 
 attachments puede integrarse transversalmente sobre múltiples recursos
 
-Regla:
+Reglas:
 
 estas relaciones expresan lectura conceptual prioritaria del ecosistema actual
+
+task y appointment actúan como orígenes funcionales legítimos hacia orders sin degradar la autonomía conceptual del módulo orders
+
+order_items debe leerse como detalle dependiente de orders y no como módulo autónomo paralelo
+
+la relación entre order_items y product es opcional y forma parte del detalle operativo del padre
 
 no invalidan otras relaciones técnicas menores ya existentes o futuras
 <<END SECTION>>
@@ -555,7 +563,7 @@ debe conservar identidad propia aunque participe en múltiples flujos cruzados
 <<END SECTION>>
 
 <<SECTION: ORDERS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ORDERS
 
@@ -589,15 +597,25 @@ summary de orden
 acción create contextual
 bridge hacia documents
 lookup mínimo
+acción enlazada reusable
 
 Reglas:
 
+orders debe tratarse como entidad central operativa del ecosistema actual
+
+puede recibir contexto desde tasks y appointments sin perder autonomía conceptual
+
+tasks y appointments pueden originar orders, pero no la absorben como subrecurso ni redefinen su identidad funcional
+
 su núcleo no debe reabrirse por cada nueva integración externa
+
 actúa como hub operativo relevante dentro del ecosistema actual
+
+su create requiere contexto funcional válido mediante kind y no debe interpretarse como create abstracto genérico
 <<END SECTION>>
 
 <<SECTION: ORDER_ITEMS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ORDER_ITEMS
 
@@ -620,7 +638,14 @@ base para derivación a document_items
 Reglas:
 
 su ciclo de vida depende funcionalmente de orders
+
 no debe confundirse con módulo autónomo
+
+no requiere autonomía contractual propia dentro del mapa actual
+
+no debe adquirir responsabilidades de cabecera sin decisión doctrinal expresa
+
+la relación con product es opcional y subordinada al detalle operativo del padre
 <<END SECTION>>
 
 <<SECTION: DOCUMENTS>>
@@ -759,6 +784,8 @@ Debe resolverse a partir de un catálogo cerrado de rubros y servir como context
 <<END SECTION>>
 
 <<SECTION: FLUJOS PRINCIPALES DEL SISTEMA>>
+SECTION_VERSION: 00002
+
 FLUJOS PRINCIPALES DEL SISTEMA
 
 FLUJO DE IDENTIDAD Y ACCESO
@@ -799,7 +826,13 @@ appointments
 ↓
 orders
 
-Regla de consistencia:
+Reglas de consistencia:
+
+tasks y appointments constituyen orígenes funcionales válidos hacia orders dentro del ecosistema actual
+
+la transición tasks → orders y appointments → orders expresa derivación operativa hacia un módulo autónomo y no subordinación conceptual del destino
+
+order_items forma parte del flujo operativo base como detalle dependiente de orders
 
 la transición appointments → orders debe respetar el estado activo del módulo orders
 

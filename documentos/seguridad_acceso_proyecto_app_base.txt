@@ -788,7 +788,7 @@ no debe quedar librada a interpretación implícita al consumir TenantModuleAcce
 <<END SECTION>>
 
 <<SECTION: FLUJO DE GESTIÓN Y CONSUMO DE PERMISOS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 FLUJO DE GESTIÓN Y CONSUMO DE PERMISOS
 
@@ -866,10 +866,16 @@ No se permite:
 
 consumir ofertas modulares saltando el arbitraje central
 redefinir en el módulo consumidor lo que el módulo oferente ya cerró como contrato de seguridad
+
+Regla adicional consolidada para módulos deshabilitados:
+
+la ocultación visual de relaciones, links, campos o acciones no constituye validación suficiente
+
+si una referencia operativa hacia otro módulo depende de que ese módulo esté habilitado para el tenant, el backend también debe rechazarla cuando el módulo destino no esté disponible
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -909,6 +915,14 @@ Regla adicional para módulos base intrínsecos:
 si un módulo ocupa una posición base transversal o intrínseca dentro del sistema, su contrato debe indicar explícitamente cómo se comporta respecto de la habilitación modular del tenant
 
 esa condición no debe quedar repartida entre documentos ni inferirse desde relaciones indirectas
+
+Regla adicional sobre entidades hijas delegadas:
+
+cuando una entidad hija dependa funcionalmente de una cabecera y no posea autonomía modular real, su contrato de seguridad no debe independizarse artificialmente
+
+debe delegar autorización en el recurso padre
+
+esta delegación aplica a create, update y delete del recurso hijo salvo decisión doctrinal expresa en contrario
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
@@ -1034,8 +1048,48 @@ RELACIONES
 dependen del estado activo de otros módulos
 <<END SECTION>>
 
+<<SECTION: VALIDACIONES BACKEND DE RELACIONES MODULARES>>
+SECTION_VERSION: 00001
+
+VALIDACIONES BACKEND DE RELACIONES MODULARES
+
+Cuando un módulo exponga relaciones operativas hacia otros módulos mediante campos como:
+
+party_id
+asset_id
+order_id
+task_id
+appointment_id
+
+el backend debe validar además de la forma y existencia técnica del dato:
+
+que el módulo relacionado esté habilitado para el tenant
+que el recurso referenciado sea consumible dentro del contrato vigente
+que la relación pedida sea coherente con el flujo real permitido
+
+Reglas:
+
+la UI puede ocultar campos, enlaces, tabs o acciones cuando el módulo relacionado no está habilitado
+
+pero esa ocultación no reemplaza la validación backend obligatoria
+
+si un módulo relacionado está deshabilitado:
+
+el backend no debe aceptar referencias operativas hacia ese módulo
+
+Aplicación consolidada del criterio:
+
+en appointments debe validarse especialmente el consumo backend de:
+
+party_id
+asset_id
+order_id
+
+contra el estado real de módulos habilitados y el contrato vigente del sistema
+<<END SECTION>>
+
 <<SECTION: MÓDULO: ORDERS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ESTADO: CONTRATO CERRADO
 
@@ -1091,6 +1145,61 @@ Gate o policy abstracta de create no constituyen el canal válido de autorizaci�
 
 En ese escenario, el comportamiento correcto es fail-closed.
 
+REGLA DE BORDE MODULAR
+
+orders puede recibir referencias contextuales desde task, appointment, party o asset según el flujo operativo aplicable
+
+la existencia de una relación visible en UI no valida por sí sola su consumo
+
+si el módulo de origen o destino no está habilitado o el contexto no es válido, el backend debe rechazar la operación correspondiente
+
+REGLA SOBRE RECURSOS HIJOS
+
+order_items delega autorización en order
+
+no requiere esquema autónomo de seguridad
+
+su create, update y delete dependen de la capacidad update sobre la order padre
+<<END SECTION>>
+
+<<SECTION: MÓDULO: ORDER_ITEMS>>
+SECTION_VERSION: 00001
+
+ESTADO: CONTRATO CERRADO
+
+NATURALEZA
+
+entidad hija delegada de orders
+
+UNIVERSO VISIBLE
+
+heredado del padre order
+
+REGLAS
+
+no constituye módulo autónomo
+
+no define ownership propio
+
+no define assigned_user_id propio
+
+no posee dataset independiente como contrato primario de consumo
+
+su ciclo de vida depende funcionalmente de order
+
+AUTORIZACIÓN
+
+create, update y delete deben delegar en la capacidad update sobre la order padre
+
+view debe resolverse como consumo subordinado del acceso válido a la order padre
+
+no debe incorporarse lógica paralela de permisos en controller, policy o Blade del hijo
+
+REGLA FINAL
+
+cualquier ampliación futura de responsabilidades en order_items debe partir de una decisión doctrinal expresa
+
+mientras esa decisión no exista, order_items debe mantenerse como recurso delegado al padre
 <<END SECTION>>
 
 <<SECTION: MÓDULO: PROJECTS>>

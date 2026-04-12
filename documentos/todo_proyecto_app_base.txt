@@ -61,7 +61,7 @@ priorizar piezas con mayor impacto sistémico
 <<END SECTION>>
 
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 MÓDULOS PRIORITARIOS A REVISAR
 
@@ -69,14 +69,20 @@ ORDERS
 
 módulo piloto natural de reconversión contractual
 
-Revisar:
+Estado actual:
 
-núcleo actual vs integraciones agregadas
+frente operativo principal cerrado en este ciclo de trabajo
+
+Cierres alcanzados:
+
+núcleo actual alineado con doctrina modular
 superficie reusable publicada
-orders_items delegados al padre
-create contextuales unificados
-bloques summary reutilizables
-tablas embebidas exportables
+order_items delegados al padre
+create contextual unificado
+integración appointments → orders consolidada
+acciones transversales reutilizables activas
+
+No reabrir en este frente salvo bug real o cambio doctrinal nuevo.
 
 TASKS
 
@@ -107,9 +113,9 @@ APPOINTMENTS
 
 Revisar:
 
-derivación limpia hacia orders
 agenda reusable
 bloques contextuales
+cierres restantes no cubiertos por integración con orders
 
 ASSETS / PRODUCTS
 
@@ -118,6 +124,35 @@ Revisar:
 selectores comunes
 summaries técnicos
 relaciones cruzadas consistentes
+<<END SECTION>>
+
+<<SECTION: CIERRES OPERATIVOS RECIENTES>>
+SECTION_VERSION: 00001
+
+CIERRES OPERATIVOS RECIENTES
+
+ORDERS
+
+Se considera cerrado operativamente en este frente de trabajo respecto de:
+
+identidad modular
+contrato de entrada y salida
+create contextual por kind
+integración tasks → orders
+integración appointments → orders
+navegación contextual principal
+delegación correcta de order_items
+superficie reusable linked-order-action
+
+Alcance del cierre:
+
+no implica ausencia total de bugs futuros
+
+implica que el frente doctrinal y estructural principal quedó resuelto
+
+Regla:
+
+los próximos trabajos sobre orders deben priorizar bugs reales, mejoras concretas o nuevos objetivos aprobados
 <<END SECTION>>
 
 <<SECTION: CAPACIDADES REUTILIZABLES A CONSOLIDAR>>
@@ -161,7 +196,7 @@ Priorizar auditorías sobre módulos con mayor integración cruzada.
 <<END SECTION>>
 
 <<SECTION: DEUDA TÉCNICA A REDUCIR>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 DEUDA TÉCNICA A REDUCIR
 
@@ -176,6 +211,16 @@ componentes legacy no reutilizados
 JS o CSS muerto
 flujos contextuales inconsistentes
 excepciones por módulo que deberían ser patrón general
+
+Deuda reducida y cerrada en este ciclo:
+
+intento inválido de autonomía técnica en order_items mediante created_by / updated_by sin soporte real de base de datos
+
+Criterio consolidado aplicado:
+
+se corrigió simplificando el hijo delegado
+
+no abriendo migración innecesaria ni responsabilidades nuevas fuera de doctrina
 <<END SECTION>>
 
 NUEVA SECCIÓN PROPUESTA EN: todo_proyecto_app_base
@@ -285,7 +330,7 @@ inventory
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 PENDIENTES INMEDIATOS
 
@@ -343,21 +388,22 @@ Nuevo insumo operativo consolidado:
 
 la guía de Tinker pasa a formar parte de la base operativa útil para auditorías de permisos, constraints y runtime multi-tenant
 
-Pendientes inmediatos del frente orders y derivados:
+Pendientes inmediatos del frente documents y derivados:
 
-continuar revisión de vistas restantes del ecosistema orders para detectar remanentes de trail inconsistente, links relacionales no endurecidos o duplicaciones de lógica todavía no migradas a capacidades reusables
+terminar de auditar el cierre operativo completo de documents como módulo derivado respecto de orders
 
-terminar de auditar el cierre operativo completo de documents como módulo derivado respecto de orders, especialmente su create contextual y su contrato de seguridad efectivo
+revisar create contextual y contrato de seguridad efectivo de documents
 
-revisar formularios embebidos, items y relaciones derivadas restantes para asegurar que cancelar, redirects y navegación profunda respeten el trail completo vigente sin recaer en salidas estructurales por defecto
+alinear items, formularios embebidos y navegación profunda restante en ecosistema documental
 
-considerar como deuda ya reducida y no reabrir en este frente:
+considerar como ya cerrado y no reabrir en este frente:
 
+orders como núcleo operativo principal
 task -> order como origen contextual válido
-endurecimiento de links relacionales según módulo activo y permiso real
+appointment -> order como origen contextual válido
 consumo reusable de linked-order-action
-create contextual de documents desde order alineado a Security
-fallback limpio de tabs embebidas cuando un módulo relacionado no está disponible
+delegación doctrinal correcta de order_items
+corrección sin migración adicional del hijo delegado
 <<END SECTION>>
 
 <<SECTION: ATTACHMENTS>>

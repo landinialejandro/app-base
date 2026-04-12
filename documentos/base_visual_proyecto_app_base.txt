@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 COMPONENTES DISPONIBLES
 
@@ -135,6 +135,8 @@ x-linked-order-action como acción transversal compartida para integración haci
 Regla adicional:
 
 cuando una capacidad visual reusable ya exista como patrón válido del sistema, debe reutilizarse antes de crear una variante específica para un módulo consumidor
+
+si una capacidad reusable pertenece contractualmente a otro módulo, debe conservar identidad visual consistente sin absorber estilos ad hoc del consumidor
 <<END SECTION>>
 
 <<SECTION: JERARQUÍA VISUAL MODULAR>>
@@ -479,7 +481,7 @@ la unidad visual completa debe desaparecer y no solo el contenido interno
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW
 
@@ -524,6 +526,50 @@ si existe tabla embebida reusable, summary reusable o acción contextual reusabl
 si una pestaña o bloque embebido depende de un módulo deshabilitado, debe desaparecer de la composición sin dejar una pestaña activa inválida
 
 la pantalla debe resolver automáticamente una pestaña activa disponible y consistente
+
+Regla adicional de superficies completas:
+
+calendarios, formularios embebidos, tablas parciales y vistas derivadas también forman parte de la superficie oficial del módulo
+
+deben respetar los mismos criterios visuales y modulares que index, create, edit y show
+<<END SECTION>>
+
+<<SECTION: SUPERFICIES CONDICIONALES POR MÓDULO>>
+SECTION_VERSION: 00001
+
+SUPERFICIES CONDICIONALES POR MÓDULO
+
+Toda superficie visual que dependa de otro módulo habilitado debe comportarse de forma consistente en todo el sistema.
+
+Se considera superficie visual:
+
+index
+show
+create
+edit
+partials
+tabs
+calendarios
+formularios embebidos
+tablas embebidas
+componentes reutilizables
+modales si existieran
+
+Reglas:
+
+no alcanza con ocultar la relación en la pantalla principal
+
+la condición debe mantenerse en toda superficie derivada
+
+si el módulo relacionado no está habilitado:
+
+no deben verse accesos residuales
+no deben quedar tabs vacías
+no deben mostrarse filtros inútiles
+no deben aparecer campos no operables
+no deben persistir enlaces muertos
+
+la UI debe recomponerse de forma limpia con lo disponible
 <<END SECTION>>
 
 <<SECTION: TABS INTERNAS DEL EMBEBIDO>>
@@ -547,7 +593,7 @@ el embebido sigue siendo un bloque subordinado al show principal, aunque interna
 <<END SECTION>>
 
 <<SECTION: ACCIONES VISUALES EN INDEX Y SHOW>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 ACCIONES VISUALES EN INDEX Y SHOW
 
@@ -599,6 +645,8 @@ Regla visual adicional:
 cuando una acción consuma una capacidad publicada por otro módulo, debe percibirse como acción contextual de integración y no competir visualmente con las acciones nucleares del módulo principal
 
 si una acción o link hacia un módulo relacionado no es realmente operable por permiso o por módulo deshabilitado, no debe conservar apariencia de navegación disponible
+
+si un módulo relacionado no está habilitado, también deben desaparecer filtros, campos de selección, columnas, enlaces y referencias visuales asociadas a ese módulo
 <<END SECTION>>
 
 <<SECTION: FRAGMENTACIÓN DE BLADES>>

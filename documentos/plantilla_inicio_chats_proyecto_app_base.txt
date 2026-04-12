@@ -14,7 +14,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -39,10 +39,29 @@ Documento operativo adicional cuando el caso involucre permisos, constraints, mu
 Regla documental adicional:
 
 cuando el pedido involucre navegación o automatización sobre la base documental del proyecto, tratar DOC_SLUG como identificador canónico del documento y no usar nombres de archivo legacy ni títulos humanos como clave técnica
+
+Regla de cierre adicional:
+
+un módulo no debe considerarse cerrado solo porque controller, rutas o vista principal parezcan correctos
+
+el cierre válido exige revisar también superficies secundarias relevantes del módulo, por ejemplo:
+
+partials
+tablas embebidas
+calendarios
+formularios embebidos
+acciones reutilizables
+flujos hijos
+redirects
+cancelar
+breadcrumbs
+navegación profunda
+
+el veredicto de cierre debe basarse en código real y comportamiento verificable del sistema
 <<END SECTION>>
 
 <<SECTION: REGLA CENTRAL DE TRABAJO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 REGLA CENTRAL DE TRABAJO
 
@@ -78,6 +97,11 @@ No asumir tenant activo en Tinker.
 No asumir que una prueba abstracta reproduce el runtime real.
 No asumir que Gate o policy abstracta equivalen a autorización válida cuando el contrato exige contexto.
 
+Regla operativa adicional:
+
+no dar por cerrado un módulo por inspección parcial
+
+si el pedido es cerrar, alinear o auditar un módulo, debe revisarse también si quedaron remanentes en superficies secundarias o derivadas antes de emitir veredicto de cierre
 <<END SECTION>>
 
 <<SECTION: CRITERIO DE AVANCE>>
@@ -93,7 +117,7 @@ Ante duda menor, priorizar mejor esfuerzo útil y explícito antes que silencio 
 <<END SECTION>>
 
 <<SECTION: REGLAS ESPECÍFICAS DEL PROYECTO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 REGLAS ESPECÍFICAS DEL PROYECTO
 
@@ -111,8 +135,10 @@ REGLAS ESPECÍFICAS DEL PROYECTO
 * validar policy + authorize + @can cuando corresponda, sin contradecir la capa central ni el contrato persistido
 * si el caso toca runtime real de permisos o multi-tenancy, usar como referencia operativa la guia_tinker_proyecto_app_base
 * no asumir que Gate o policy abstracta resuelven create contextual cuando el contrato exige contexto funcional obligatorio
-
-<<END SECTION>>
+* si una integración entre módulos consume una capacidad reusable ya publicada por otro módulo, reutilizar esa capacidad y no duplicar lógica local
+* propagar flags o señales de soporte modular hasta la última partial o superficie que pueda exponer acciones, campos, links o relaciones
+* no considerar un módulo cerrado si no fueron auditadas también sus superficies secundarias relevantes
+  <<END SECTION>>
 
 <<SECTION: REGLA DE VALIDACIÓN DEL PEDIDO>>
 REGLA DE VALIDACIÓN DEL PEDIDO

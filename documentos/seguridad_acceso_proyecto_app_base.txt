@@ -1,12 +1,13 @@
 <<SECTION: METADATOS>>
+SECTION_VERSION: 00003
+
 TÍTULO: Seguridad y acceso del proyecto
 DOC_SLUG: seguridad_acceso_proyecto_app_base
-DOC_VERSION: 00002
-
-METODOLOGÍA DE EDICIÓN:
-Este archivo se actualiza por reemplazo completo de bloques delimitados.
-Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
-Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
+DOC_VERSION: 00003
+TIPO: doctrinal
+ESTADO: activo
+GESTIÓN: La gobernanza documental, versionado y formato de intercambio se definen:
+<DOC_REF slug="convenciones_proyecto_app_base">Convenciones del proyecto</DOC_REF>
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
@@ -75,7 +76,7 @@ sí define cómo debe arbitrar su validez la capa central de seguridad
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -99,6 +100,16 @@ Los catálogos definen el vocabulario técnico permitido.
 La capa central resuelve y aplica el contrato persistido.
 
 Cualquier definición de permisos fuera de la base de datos debe considerarse una desviación arquitectónica inválida.
+
+Aclaración obligatoria:
+
+la expresión fuente de verdad refiere al permiso persistido efectivo
+
+no reemplaza:
+
+la función normativa de este documento
+la función de vocabulario controlado de los catálogos
+la función de arbitraje y consumo de la capa central
 
 REGLA 2 — CAPA CENTRAL
 
@@ -140,7 +151,7 @@ REGLA 5 — NO DUPLICACIÓN
 
 No puede existir lógica de permisos en más de un nivel.
 
-la base de datos define el contrato
+la base de datos define el contrato persistido
 el contrato de seguridad del módulo define el comportamiento esperado del módulo
 la capa central arbitra el contrato persistido
 policy consume esa resolución
@@ -600,20 +611,54 @@ toda decisión de acceso debe validarse en backend
 <<END SECTION>>
 
 <<SECTION: MODELO DE IDENTIDAD Y PERTENENCIA>>
+SECTION_VERSION: 00002
+
 MODELO DE IDENTIDAD Y PERTENENCIA
 
-users  
-↓  
-memberships  
-↓  
-tenants  
+users
+↓
+memberships
+↓
+tenants
 
 Reglas:
 
-users es identidad global  
-memberships define acceso  
-owner es estructural  
-owner es único  
+users es identidad global
+
+memberships define acceso real por tenant
+
+owner es condición estructural resuelta por memberships.is_owner
+
+owner es único por tenant
+
+no debe modelarse owner como rol delegable ordinario
+
+la pertenencia operativa y el estado de acceso se resuelven por membership activa
+
+el login no define acceso operativo por sí mismo
+
+el tenant seleccionado nunca reemplaza la validación real de membership
+
+La membership constituye la pieza operativa correcta para resolver, como mínimo:
+
+pertenencia a tenant
+estado de acceso
+roles base delegables
+perfil funcional persistido cuando exista
+overrides de permiso cuando corresponda
+
+Regla adicional:
+
+la complejidad funcional futura no debe resolverse multiplicando roles base
+
+debe resolverse mediante la capa ya prevista de:
+
+roles base
+profile_slug
+overrides
+contrato persistido
+
+Ninguna de estas capas reemplaza el arbitraje central de Security.
 <<END SECTION>>
 
 <<SECTION: MULTI-TENANCY Y AISLAMIENTO>>
@@ -656,7 +701,7 @@ constraints
 <<END SECTION>>
 
 <<SECTION: CAPA V2 DE PERMISOS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 CAPA V2 DE PERMISOS
 
@@ -734,6 +779,12 @@ cuando un módulo publique capacidades reutilizables para otros módulos, la cap
 la considera una oferta modular consumible
 
 pero su consumo sigue quedando bajo arbitraje normal de Security y del contrato de seguridad del módulo oferente
+
+Aclaración sobre módulo base intrínseco:
+
+si un módulo forma parte de la base intrínseca del sistema y no debe tratarse como módulo opcional ordinario, esa condición debe quedar explicitada en su contrato modular propio
+
+no debe quedar librada a interpretación implícita al consumir TenantModuleAccess en otras capas del sistema
 <<END SECTION>>
 
 <<SECTION: FLUJO DE GESTIÓN Y CONSUMO DE PERMISOS>>
@@ -818,7 +869,7 @@ redefinir en el módulo consumidor lo que el módulo oferente ya cerró como con
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -852,6 +903,12 @@ la publicación de capacidades de integración por parte de un módulo no altera
 lo amplía como superficie consumible
 
 pero siempre bajo arbitraje de Security
+
+Regla adicional para módulos base intrínsecos:
+
+si un módulo ocupa una posición base transversal o intrínseca dentro del sistema, su contrato debe indicar explícitamente cómo se comporta respecto de la habilitación modular del tenant
+
+esa condición no debe quedar repartida entre documentos ni inferirse desde relaciones indirectas
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
@@ -1073,7 +1130,7 @@ mientras el contrato permanezca en revisión, projects no debe utilizarse como p
 <<END SECTION>>
 
 <<SECTION: MÓDULO: PARTIES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ESTADO: EN REVISIÓN
 
@@ -1095,6 +1152,12 @@ debe tratarse como módulo base intrínseco del sistema
 
 no es opcional en el mismo sentido que otros módulos operativos
 
+REGLA OPERATIVA ESPECÍFICA
+
+su condición de módulo base intrínseco debe prevalecer sobre interpretaciones genéricas de módulo opcional ordinario
+
+si existiera habilitación técnica por tenant para este módulo, no debe interpretarse automáticamente con el mismo criterio doctrinal que módulos operativos comunes sin una definición explícita adicional del sistema
+
 Regla operativa consolidada:
 
 admite segmentación funcional mediante constraints.allowed_kinds cuando aplique
@@ -1110,7 +1173,7 @@ PENDIENTE
 definir contrato completo de capacidades
 definir restricciones de delete
 validar relación con otros módulos
-
+cerrar explícitamente su relación doctrinal con la habilitación modular por tenant
 <<END SECTION>>
 
 <<SECTION: MÓDULO: PRODUCTS>>
@@ -1173,7 +1236,7 @@ definir restricciones operativas
 <<END SECTION>>
 
 <<SECTION: MÓDULO: DOCUMENTS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ESTADO: EN REVISIÓN
 
@@ -1187,6 +1250,14 @@ módulo documental derivado
 
 posible uso de constraints.allowed_kinds
 
+POSICIÓN FUNCIONAL
+
+documents debe tratarse como módulo derivado respecto de orders cuando participa del flujo orders → documents
+
+mantiene identidad modular propia
+
+no debe absorber operación interna propia de orders
+
 Regla operativa consolidada:
 
 create puede requerir contexto según kind
@@ -1197,12 +1268,23 @@ el dataset debe resolverse mediante Security::scope(...)
 
 las policies deben actuar como wrapper mínimo
 
+Regla adicional:
+
+cuando documents se cree desde orders, el consumo válido del flujo debe seguir respetando:
+
+contrato del módulo documents
+constraints efectivas
+contexto funcional provisto
+arbitraje central de Security
+
+no debe resolverse como excepción paralela alojada en orders
+
 PENDIENTE
 
-confirmar contrato equivalente a orders
+confirmar contrato equivalente a orders cuando aplique por kind
 definir create con contexto
-definir relación con orders
-
+definir relación cerrada con orders
+definir reglas completas de update y delete
 <<END SECTION>>
 
 <<SECTION: MÓDULO: ATTACHMENTS>>
@@ -1333,23 +1415,48 @@ las acciones de lectura deben alinearse con el acceso al recurso padre
 <<END SECTION>>
 
 <<SECTION: HARDENING Y AUDITORÍA>>
+SECTION_VERSION: 00002
+
 HARDENING Y AUDITORÍA
 
-Verificar:
+Verificar como mínimo:
 
-login  
-logout  
-tenant  
-dataset  
-permisos  
-roles  
-constraints  
+login
+logout
+tenant
+dataset
+permisos
+roles
+constraints
+módulos habilitados
+delegación al padre cuando corresponda
+consumo real mediante Security
+runtime real en Tinker cuando aplique
 
 No permitir:
 
-datos inconsistentes  
-scopes inválidos  
-permisos incompletos  
+datos inconsistentes
+scopes inválidos
+permisos incompletos
+constraints ausentes cuando sean obligatorias
+queries fuera del scope efectivo
+evaluación abstracta en módulos con contexto obligatorio
+bypasses entre módulos
+accesos residuales a módulos deshabilitados
+
+Criterios mínimos de cierre:
+
+toda validación de permisos que dependa de runtime tenant-aware debe reproducir tenant activo real
+
+toda validación de módulos con constraints debe probar caso válido, caso sin contexto y caso inválido
+
+toda entidad hija o recurso delegado debe auditarse contra el permiso update del padre cuando esa sea la doctrina vigente
+
+si la prueba no reproduce el flujo real del sistema, la conclusión debe considerarse insuficiente
+
+La auditoría técnica no debe sostener supuestos.
+
+Debe verificar comportamiento real del sistema.
 <<END SECTION>>
 
 <<SECTION: GOBERNANZA DEL DOCUMENTO DE SEGURIDAD>>

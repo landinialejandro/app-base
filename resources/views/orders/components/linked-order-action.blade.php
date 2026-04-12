@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/components/linked-order-action.blade.php | V2 --}}
+{{-- FILE: resources/views/orders/components/linked-order-action.blade.php | V1 --}}
 
 @props([
     'action' => [],

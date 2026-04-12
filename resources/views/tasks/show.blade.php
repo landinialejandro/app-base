@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/show.blade.php | V12 --}}
+{{-- FILE: resources/views/tasks/show.blade.php | V13 --}}
 
 @extends('layouts.app')
 
@@ -6,13 +6,11 @@
 
 @section('content')
     @php
-        use App\Models\Order;
-        use App\Support\Auth\Security;
         use App\Support\Auth\TenantModuleAccess;
         use App\Support\Catalogs\ModuleCatalog;
-        use App\Support\Catalogs\OrderCatalog;
         use App\Support\Catalogs\TaskCatalog;
         use App\Support\Navigation\NavigationTrail;
+        use App\Support\Orders\OrderLinkedAction;
         use Illuminate\Support\Carbon;
 
         $attachments = $task->attachments ?? collect();
@@ -52,7 +50,6 @@
             default => 'Volver',
         };
 
-        $supportsOrdersModule = TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, $tenant);
         $supportsProjectsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PROJECTS, $tenant);
         $supportsPartiesModule = TenantModuleAccess::isEnabled(ModuleCatalog::PARTIES, $tenant);
 
@@ -60,32 +57,11 @@
 
         $canViewParty = $supportsPartiesModule && $task->party && $user && $user->can('view', $task->party);
 
-        $canViewOrder = $supportsOrdersModule && $task->order && $user && $user->can('view', $task->order);
-
-        $canCreateOrderFromTask =
-            $supportsOrdersModule &&
-            !$task->order &&
-            $task->party_id &&
-            $user &&
-            $user->can('update', $task) &&
-            collect(OrderCatalog::kinds())->contains(
-                fn(string $kind) => app(Security::class)->allows($user, 'orders.create', Order::class, [
-                    'kind' => $kind,
-                ]),
-            );
-
-        $linkedOrderAction = [
-            'supported' => $supportsOrdersModule,
-            'linked' => (bool) $task->order,
-            'can_view' => $canViewOrder,
-            'can_create' => $canCreateOrderFromTask,
-            'show_url' => $task->order ? route('orders.show', ['order' => $task->order] + $trailQuery) : null,
-            'create_url' => route('orders.create', ['task_id' => $task->id] + $trailQuery),
-            'label' => 'Orden',
-            'contact_label' => 'Contacto',
-            'has_required_party' => (bool) $task->party_id,
-            'linked_text' => $task->order?->number ?: 'Ver orden',
-        ];
+        $linkedOrderAction = OrderLinkedAction::forTask(
+            $task,
+            $trailQuery,
+            (bool) ($user && $user->can('update', $task)),
+        );
     @endphp
 
     <x-page>
@@ -113,7 +89,10 @@
                 </form>
             @endcan
 
-            <x-linked-order-action :action="$linkedOrderAction" variant="button" />
+            @include('orders.components.linked-order-action', [
+                'action' => $linkedOrderAction,
+                'variant' => 'button',
+            ])
 
             <a href="{{ $backUrl }}" class="btn btn-secondary btn-icon" title="{{ $backLabel }}"
                 aria-label="{{ $backLabel }}">
@@ -164,7 +143,10 @@
                 </x-show-summary-item-detail-block>
 
                 <x-show-summary-item-detail-block label="Orden asociada">
-                    <x-linked-order-action :action="$linkedOrderAction" variant="summary" />
+                    @include('orders.components.linked-order-action', [
+                        'action' => $linkedOrderAction,
+                        'variant' => 'summary',
+                    ])
                 </x-show-summary-item-detail-block>
 
                 <x-show-summary-item-detail-block label="Descripción" full>

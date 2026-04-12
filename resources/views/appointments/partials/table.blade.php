@@ -1,9 +1,10 @@
-{{-- FILE: resources/views/appointments/partials/table.blade.php | V7 --}}
+{{-- FILE: resources/views/appointments/partials/table.blade.php | V8 --}}
 
 @php
     use App\Support\Catalogs\AppointmentCatalog;
     use App\Support\Navigation\AppointmentNavigationTrail;
     use App\Support\Navigation\NavigationTrail;
+    use App\Support\Orders\OrderLinkedAction;
 
     $appointments = $appointments ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay turnos para mostrar.';
@@ -39,26 +40,7 @@
                         $appointmentTrail = AppointmentNavigationTrail::base($appointment);
                         $appointmentTrailQuery = NavigationTrail::toQuery($appointmentTrail);
 
-                        $orderAction = [
-                            'supported' => $supportsOrdersModule,
-                            'linked' => (bool) $appointment->order,
-                            'can_view' =>
-                                $supportsOrdersModule && $appointment->order
-                                    ? auth()->user()->can('view', $appointment->order)
-                                    : false,
-                            'can_create' => false,
-                            'show_url' => $appointment->order
-                                ? route('orders.show', ['order' => $appointment->order] + $appointmentTrailQuery)
-                                : null,
-                            'create_url' => null,
-                            'label' => AppointmentCatalog::orderLabel(),
-                            'contact_label' => AppointmentCatalog::contactLabel(),
-                            'has_required_party' => (bool) $appointment->party_id,
-                            'linked_text' => $appointment->order
-                                ? ($appointment->order->number ?:
-                                'Orden #' . $appointment->order->id)
-                                : null,
-                        ];
+                        $orderAction = OrderLinkedAction::forAppointment($appointment, $appointmentTrailQuery, false);
                     @endphp
 
                     <tr>
@@ -119,7 +101,10 @@
 
                         @if ($supportsOrdersModule)
                             <td>
-                                <x-linked-order-action :action="$orderAction" variant="inline" />
+                                @include('orders.components.linked-order-action', [
+                                    'action' => $orderAction,
+                                    'variant' => 'inline',
+                                ])
                             </td>
                         @endif
 

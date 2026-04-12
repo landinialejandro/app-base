@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/show.blade.php | V9 --}}
+{{-- FILE: resources/views/appointments/show.blade.php | V10 --}}
 
 @extends('layouts.app')
 
@@ -7,6 +7,7 @@
     use App\Support\Catalogs\AppointmentCatalog;
     use App\Support\Catalogs\ModuleCatalog;
     use App\Support\Navigation\NavigationTrail;
+    use App\Support\Orders\OrderLinkedAction;
 
     $appointmentTitle = AppointmentCatalog::rowTitleFor($appointment->kind, $appointment->work_mode);
     $referenceLabel = AppointmentCatalog::referenceLabelForKind($appointment->kind);
@@ -23,28 +24,7 @@
 
     $supportsPartiesModule = TenantModuleAccess::isEnabled(ModuleCatalog::PARTIES, app('tenant'));
 
-    $orderAction = [
-        'supported' => $supportsOrdersModule,
-        'linked' => (bool) $appointment->order,
-        'can_view' => $canViewLinkedOrder,
-        'can_create' => $canCreateOrder,
-        'show_url' => $appointment->order ? route('orders.show', ['order' => $appointment->order] + $trailQuery) : null,
-        'create_url' => route(
-            'orders.create',
-            [
-                'appointment_id' => $appointment->id,
-                'party_id' => $appointment->party_id,
-                'asset_id' => $appointment->asset_id,
-            ] + $trailQuery,
-        ),
-        'label' => AppointmentCatalog::orderLabel(),
-        'contact_label' => AppointmentCatalog::contactLabel(),
-        'has_required_party' => (bool) $appointment->party_id,
-        'linked_text' => $appointment->order
-            ? ($appointment->order->number ?:
-            'Orden #' . $appointment->order->id)
-            : null,
-    ];
+    $orderAction = OrderLinkedAction::forAppointment($appointment, $trailQuery, true);
 @endphp
 
 @section('title', $appointmentTitle)
@@ -76,7 +56,10 @@
                 </form>
             @endif
 
-            <x-linked-order-action :action="$orderAction" variant="button" />
+            @include('orders.components.linked-order-action', [
+                'action' => $orderAction,
+                'variant' => 'button',
+            ])
 
             <a href="{{ route('appointments.print', ['appointment' => $appointment]) }}" class="btn btn-secondary"
                 target="_blank">
@@ -143,7 +126,10 @@
 
             @if ($supportsOrdersModule)
                 <x-show-summary-item :label="AppointmentCatalog::orderLabel()">
-                    <x-linked-order-action :action="$orderAction" variant="summary" />
+                    @include('orders.components.linked-order-action', [
+                        'action' => $orderAction,
+                        'variant' => 'summary',
+                    ])
                 </x-show-summary-item>
             @endif
 

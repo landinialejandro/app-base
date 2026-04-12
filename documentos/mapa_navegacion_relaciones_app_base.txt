@@ -180,7 +180,7 @@ la navegación principal debe reflejar contrato real del sistema y no solo exist
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -238,10 +238,20 @@ no crear variantes manuales de breadcrumbs por módulo si ya existe motor común
 cuando un flujo transversal hacia orders deba arbitrar si corresponde abrir una orden existente, crear una nueva, informar requisito faltante o no mostrar capacidad, debe priorizarse el consumo de la capacidad reusable publicada por orders y no lógica duplicada por vista
 
 la capacidad reusable consolidada actual para este frente es linked-order-action
+
+Aclaración operativa consolidada:
+
+linked-order-action ya no debe leerse solo como idea doctrinal ni como bloque aislado reutilizado por conveniencia
+
+debe leerse como superficie publicada por orders y consumida desde módulos como appointments y tasks
+
+su consumo válido incluye tanto la resolución contextual proveniente del propio módulo orders como su bloque visual modular correspondiente
+
+la navegación contextual hacia orders no debe reconstruirse localmente por cada vista consumidora cuando esa superficie ya fue cerrada por el módulo oferente
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -289,6 +299,14 @@ si una relación ya posee bloque reusable válido, reutilizarlo
 las relaciones embebidas no deben reemplazar navegación estructural cuando abrir el recurso completo agrega valor
 
 los accesos embebidos hacia orders desde tasks o appointments deben consumir la misma lógica reusable del módulo orders
+
+Aclaración consolidada:
+
+en el frente actual, esa capacidad reusable ya se encuentra publicada por orders y consumida desde vistas concretas
+
+su consumo no debe limitarse a reutilizar una vista Blade
+
+debe incluir también la resolución de estados operativos proveniente del propio módulo orders
 
 Regla adicional consolidada:
 
@@ -530,7 +548,7 @@ los links relacionales secundarios de esa misma fila deben reutilizar ese trail 
 <<END SECTION>>
 
 <<SECTION: DETALLE DE FLUJOS RELEVANTES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 DETALLE DE FLUJOS RELEVANTES
 
@@ -584,6 +602,8 @@ el acceso hacia orders debe mantenerse consistente entre show, tablas, formulari
 
 la resolución abrir existente / crear nueva / estado no disponible debe priorizar la capacidad reusable publicada por orders
 
+esa capacidad debe consumirse desde el propio módulo orders, tanto en su resolución contextual como en su bloque visual modular
+
 si orders no está habilitado para el tenant:
 
 no debe mostrarse el acceso
@@ -615,6 +635,8 @@ Observación actual validada:
 tasks debe tratarse como origen contextual legítimo del trail hacia orders con el mismo criterio doctrinal aplicado a appointments
 
 la resolución abrir existente / crear nueva / estado no disponible debe apoyarse en la capacidad reusable publicada por orders cuando ese flujo se consuma desde show u otras vistas relacionadas
+
+esa capacidad debe consumirse como superficie oficial del módulo orders y no como reconstrucción local de la vista consumidora
 
 ORDERS -> PARTIES
 

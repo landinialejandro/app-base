@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 CONVENCIONES GENERALES
 
@@ -96,10 +96,19 @@ esta convención no obliga a que todos los módulos publiquen desde el inicio to
 
 sí obliga a que, cuando las publiquen o consuman, lo hagan bajo contrato claro y sin reabrir arbitrariamente el núcleo de otros módulos
 
+cuando una capacidad reusable pertenezca contractualmente a un módulo oferente, su implementación no debe quedar en una ubicación global ambigua que borre esa pertenencia modular
+
+si la capacidad además requiere arbitraje operativo complejo, el módulo oferente debe publicar la unidad completa de integración:
+
+resolución backend
+representación visual
+consumo homogéneo
+ubicación física consistente con su identidad contractual
+
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA BASE DEL PROYECTO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 ESTRUCTURA BASE DEL PROYECTO
 
@@ -186,13 +195,16 @@ resources/views
 vistas Blade del sistema
 
 resources/views/components
-componentes visuales reutilizables
+componentes visuales reutilizables verdaderamente globales
 
 resources/views/layouts
 layouts base del sistema
 
 resources/views/<modulo>
 vistas por módulo operativo
+
+resources/views/<modulo>/components
+capacidades visuales reutilizables publicadas por un módulo oferente cuando su pertenencia contractual sea propia del módulo y no global del sistema
 
 resources/views/tenants
 vistas del contexto tenant, memberships, perfil y permisos
@@ -320,543 +332,6 @@ REGLA FINAL
 Cuando un pedido técnico requiera archivos del proyecto, debe pedirse primero la menor cantidad suficiente de rutas reales dentro de esta estructura canónica.
 
 No asumir ubicaciones por costumbre si el árbol real entregado muestra otra organización vigente.
-
-===== TREE: app =====
-app
-├── Actions
-│   └── Fortify
-│       ├── CreateNewUser.php
-│       ├── PasswordValidationRules.php
-│       ├── ResetUserPassword.php
-│       ├── UpdateUserPassword.php
-│       └── UpdateUserProfileInformation.php
-├── Http
-│   ├── Controllers
-│   │   ├── AdminInvitationController.php
-│   │   ├── AdminMetricsController.php
-│   │   ├── AdminSignupRequestController.php
-│   │   ├── AdminTenantController.php
-│   │   ├── AdminTenantModuleAccessController.php
-│   │   ├── AppointmentController.php
-│   │   ├── AssetController.php
-│   │   ├── AttachmentController.php
-│   │   ├── Controller.php
-│   │   ├── DashboardController.php
-│   │   ├── DocumentController.php
-│   │   ├── DocumentItemController.php
-│   │   ├── InventoryController.php
-│   │   ├── InvitationAcceptanceController.php
-│   │   ├── OrderController.php
-│   │   ├── OrderInventoryController.php
-│   │   ├── OrderItemController.php
-│   │   ├── PartyController.php
-│   │   ├── ProductController.php
-│   │   ├── ProfileController.php
-│   │   ├── ProjectController.php
-│   │   ├── PublicSignupRequestController.php
-│   │   ├── SuperadminDashboardController.php
-│   │   ├── TaskController.php
-│   │   ├── TechnicalDocController.php
-│   │   ├── TenantInvitationController.php
-│   │   ├── TenantMembershipController.php
-│   │   ├── TenantMembershipRoleController.php
-│   │   ├── TenantProfileController.php
-│   │   └── TenantProfilePermissionController.php
-│   ├── Middleware
-│   │   ├── EnsureSuperadmin.php
-│   │   └── ResolveTenant.php
-│   ├── Requests
-│   │   ├── Attachments
-│   │   │   ├── StoreAttachmentRequest.php
-│   │   │   └── UpdateAttachmentRequest.php
-│   │   ├── AppointmentRequest.php
-│   │   ├── StorePartyRequest.php
-│   │   └── UpdatePartyRequest.php
-│   └── Responses
-│       ├── LoginResponse.php
-│       └── LogoutResponse.php
-├── Models
-│   ├── Concerns
-│   │   ├── HasUuid.php
-│   │   ├── ResolvesTenantRouteBinding.php
-│   │   └── TenantScoped.php
-│   ├── Appointment.php
-│   ├── Asset.php
-│   ├── Attachment.php
-│   ├── Branch.php
-│   ├── DocumentItem.php
-│   ├── Document.php
-│   ├── DocumentSequence.php
-│   ├── InventoryMovement.php
-│   ├── Invitation.php
-│   ├── MembershipPermissionOverride.php
-│   ├── Membership.php
-│   ├── OrderItem.php
-│   ├── Order.php
-│   ├── Party.php
-│   ├── Permission.php
-│   ├── Product.php
-│   ├── Project.php
-│   ├── Role.php
-│   ├── SignupRequest.php
-│   ├── Task.php
-│   ├── Tenant.php
-│   └── User.php
-├── Policies
-│   ├── AppointmentPolicy.php
-│   ├── AssetPolicy.php
-│   ├── AttachmentPolicy.php
-│   ├── DocumentPolicy.php
-│   ├── InvitationPolicy.php
-│   ├── MembershipPolicy.php
-│   ├── OrderPolicy.php
-│   ├── PartyPolicy.php
-│   ├── ProductPolicy.php
-│   ├── ProjectPolicy.php
-│   └── TaskPolicy.php
-├── Providers
-│   ├── app
-│   │   └── Http
-│   ├── AppServiceProvider.php
-│   └── FortifyServiceProvider.php
-├── Services
-│   └── Attachments
-│       └── AttachmentStorageService.php
-├── Support
-│   ├── Attachments
-│   │   └── AttachmentAllowedParents.php
-│   ├── Auth
-│   │   ├── RecordScopeResolver.php
-│   │   ├── RecordVisibility.php
-│   │   ├── RoleModuleAccess.php
-│   │   ├── RolePermissionResolver.php
-│   │   ├── Security.php
-│   │   ├── TenantAccess.php
-│   │   └── TenantModuleAccess.php
-│   ├── Catalogs
-│   │   ├── AppointmentCatalog.php
-│   │   ├── AssetCatalog.php
-│   │   ├── AttachmentCatalog.php
-│   │   ├── BaseCatalog.php
-│   │   ├── BusinessTypeCatalog.php
-│   │   ├── CapabilityCatalog.php
-│   │   ├── DocumentCatalog.php
-│   │   ├── ModuleCatalog.php
-│   │   ├── OrderCatalog.php
-│   │   ├── PartyCatalog.php
-│   │   ├── PermissionScopeCatalog.php
-│   │   ├── ProductCatalog.php
-│   │   ├── ProfileCatalog.php
-│   │   ├── ProjectCatalog.php
-│   │   ├── RoleCatalog.php
-│   │   └── TaskCatalog.php
-│   ├── Docs
-│   │   ├── TechnicalDocParser.php
-│   │   ├── TechnicalDoc.php
-│   │   ├── TechnicalDocRepository.php
-│   │   ├── TechnicalDocSection.php
-│   │   └── TechnicalDocSectionWriter.php
-│   ├── Documents
-│   │   ├── DocumentNumberGenerator.php
-│   │   └── DocumentTotalsCalculator.php
-│   ├── Inventory
-│   │   ├── InventoryMovementService.php
-│   │   └── ProductStockCalculator.php
-│   ├── Navigation
-│   │   ├── AppointmentNavigationTrail.php
-│   │   ├── AssetNavigationTrail.php
-│   │   ├── DocumentNavigationTrail.php
-│   │   ├── NavbarContext.php
-│   │   ├── NavigationTrail.php
-│   │   ├── OrderNavigationTrail.php
-│   │   ├── PartyNavigationTrail.php
-│   │   ├── ProductNavigationTrail.php
-│   │   ├── ProjectNavigationTrail.php
-│   │   └── TaskNavigationTrail.php
-│   ├── Projects
-│   │   ├── ProjectMetrics.php
-│   │   ├── ProjectOverview.php
-│   │   └── ProjectVisibility.php
-│   ├── System
-│   │   └── OwnerAlertTaskService.php
-│   ├── Tasks
-│   │   ├── TaskOverview.php
-│   │   └── TaskVisibility.php
-│   └── Tenants
-│       └── TenantBusinessContext.php
-└── View
-    └── Components
-        └── Layout
-            └── Navbar.php
-
-32 directories, 134 files
-
-===== TREE: resources =====
-resources
-├── css
-│   └── app.css
-├── js
-│   ├── app.js
-│   └── bootstrap.js
-└── views
-    ├── admin
-    │   ├── invitations
-    │   │   └── owner-signups.blade.php
-    │   ├── metrics
-    │   │   ├── owners.blade.php
-    │   │   └── tenants.blade.php
-    │   ├── signup-requests
-    │   │   ├── index.blade.php
-    │   │   ├── processed.blade.php
-    │   │   └── show.blade.php
-    │   ├── tenants
-    │   │   ├── index.blade.php
-    │   │   ├── modules-edit.blade.php
-    │   │   └── show.blade.php
-    │   └── dashboard.blade.php
-    ├── appointments
-    │   ├── partials
-    │   │   ├── calendar-day-cell.blade.php
-    │   │   ├── calendar-grid.blade.php
-    │   │   ├── calendar-toolbar.blade.php
-    │   │   ├── calendar-week-grid.blade.php
-    │   │   └── table.blade.php
-    │   ├── calendar.blade.php
-    │   ├── create.blade.php
-    │   ├── edit.blade.php
-    │   ├── _form.blade.php
-    │   ├── index.blade.php
-    │   ├── print.blade.php
-    │   └── show.blade.php
-    ├── assets
-    │   ├── partials
-    │   │   ├── embedded-tabs.blade.php
-    │   │   └── table.blade.php
-    │   ├── create.blade.php
-    │   ├── edit.blade.php
-    │   ├── _form.blade.php
-    │   ├── index.blade.php
-    │   └── show.blade.php
-    ├── attachments
-    │   ├── partials
-    │   │   ├── embedded.blade.php
-    │   │   ├── form.blade.php
-    │   │   └── table.blade.php
-    │   ├── create.blade.php
-    │   └── edit.blade.php
-    ├── auth
-    │   ├── login.blade.php
-    │   └── register.blade.php
-    ├── components
-    │   ├── analytics
-    │   │   ├── card.blade.php
-    │   │   ├── kpi-card.blade.php
-    │   │   ├── panel.blade.php
-    │   │   └── pie-chart.blade.php
-    │   ├── icons
-    │   │   ├── box.blade.php
-    │   │   ├── chevron-down.blade.php
-    │   │   ├── chevron-left.blade.php
-    │   │   ├── chevron-right.blade.php
-    │   │   ├── chevron-up.blade.php
-    │   │   ├── copy.blade.php
-    │   │   ├── download.blade.php
-    │   │   ├── external-link.blade.php
-    │   │   ├── eye.blade.php
-    │   │   ├── lock.blade.php
-    │   │   ├── minus.blade.php
-    │   │   ├── orders.blade.php
-    │   │   ├── pencil.blade.php
-    │   │   ├── plus.blade.php
-    │   │   ├── trash.blade.php
-    │   │   ├── unlock.blade.php
-    │   │   └── x.blade.php
-    │   ├── layout
-    │   │   ├── footer.blade.php
-    │   │   └── navbar.blade.php
-    │   ├── breadcrumb.blade.php
-    │   ├── card.blade.php
-    │   ├── horizontal-scroll.blade.php
-    │   ├── linked-order-action.blade.php
-    │   ├── list-filters-card.blade.php
-    │   ├── modal.blade.php
-    │   ├── page.blade.php
-    │   ├── page-header.blade.php
-    │   ├── show-summary.blade.php
-    │   ├── show-summary-item.blade.php
-    │   ├── show-summary-item-detail-block.blade.php
-    │   └── tab-toolbar.blade.php
-    ├── docs
-    │   ├── partials
-    │   │   ├── document-nav.blade.php
-    │   │   └── section.blade.php
-    │   ├── index.blade.php
-    │   └── show.blade.php
-    ├── documents
-    │   ├── items
-    │   │   ├── partials
-    │   │   ├── create.blade.php
-    │   │   ├── edit.blade.php
-    │   │   └── _form.blade.php
-    │   ├── partials
-    │   │   ├── embedded-tabs.blade.php
-    │   │   └── table.blade.php
-    │   ├── create.blade.php
-    │   ├── edit.blade.php
-    │   ├── _form.blade.php
-    │   ├── index.blade.php
-    │   ├── print.blade.php
-    │   └── show.blade.php
-    ├── errors
-    │   ├── 401.blade.php
-    │   ├── 403.blade.php
-    │   ├── 404.blade.php
-    │   ├── 419.blade.php
-    │   ├── 429.blade.php
-    │   ├── 500.blade.php
-    │   └── 503.blade.php
-    ├── inventory
-    │   ├── index.blade.php
-    │   └── show.blade.php
-    ├── invitations
-    │   └── show.blade.php
-    ├── landing
-    │   ├── partials
-    │   │   ├── adaptable-agenda.blade.php
-    │   │   ├── ai-agent.blade.php
-    │   │   ├── business-types.blade.php
-    │   │   ├── cta.blade.php
-    │   │   ├── flow.blade.php
-    │   │   ├── footer.blade.php
-    │   │   ├── header.blade.php
-    │   │   ├── hero.blade.php
-    │   │   ├── modules.blade.php
-    │   │   ├── problem.blade.php
-    │   │   ├── trust.blade.php
-    │   │   └── value.blade.php
-    │   ├── home.blade.php
-    │   └── pricing.blade.php
-    ├── layouts
-    │   ├── app.blade.php
-    │   ├── landing.blade.php
-    │   └── print.blade.php
-    ├── orders
-    │   ├── items
-    │   │   ├── partials
-    │   │   ├── create.blade.php
-    │   │   ├── edit.blade.php
-    │   │   └── _form.blade.php
-    │   ├── partials
-    │   │   ├── embedded-tabs.blade.php
-    │   │   └── table.blade.php
-    │   ├── create.blade.php
-    │   ├── edit.blade.php
-    │   ├── _form.blade.php
-    │   ├── index.blade.php
-    │   ├── print.blade.php
-    │   └── show.blade.php
-    ├── parties
-    │   ├── partials
-    │   │   └── table.blade.php
-    │   ├── create.blade.php
-    │   ├── edit.blade.php
-    │   ├── _form.blade.php
-    │   ├── index.blade.php
-    │   └── show.blade.php
-    ├── print
-    │   └── partials
-    │       ├── footer.blade.php
-    │       └── header.blade.php
-    ├── products
-    │   ├── partials
-    │   │   └── table.blade.php
-    │   ├── create.blade.php
-    │   ├── edit.blade.php
-    │   ├── _form.blade.php
-    │   ├── index.blade.php
-    │   └── show.blade.php
-    ├── profile
-    │   └── show.blade.php
-    ├── projects
-    │   ├── partials
-    │   │   ├── operational-analysis.blade.php
-    │   │   ├── show-analytics.blade.php
-    │   │   └── table.blade.php
-    │   ├── create.blade.php
-    │   ├── edit.blade.php
-    │   ├── _form.blade.php
-    │   ├── index.blade.php
-    │   └── show.blade.php
-    ├── public
-    │   └── signup-requests
-    │       ├── create.blade.php
-    │       └── thank-you.blade.php
-    ├── svg
-    │   ├── app-favicon.blade.php
-    │   ├── app-logo.blade.php
-    │   └── app-nav-icon.blade.php
-    ├── tasks
-    │   ├── partials
-    │   │   ├── embedded-tabs.blade.php
-    │   │   └── table.blade.php
-    │   ├── create.blade.php
-    │   ├── edit.blade.php
-    │   ├── _form.blade.php
-    │   ├── index.blade.php
-    │   └── show.blade.php
-    ├── tenants
-    │   ├── partials
-    │   │   ├── permissions
-    │   │   ├── profile-accesses-tab.blade.php
-    │   │   ├── profile-general-tab.blade.php
-    │   │   ├── profile-invite-card.blade.php
-    │   │   ├── profile-memberships-table.blade.php
-    │   │   ├── profile-pending-invitations.blade.php
-    │   │   ├── profile-summary.blade.php
-    │   │   ├── profile-users-tab.blade.php
-    │   │   └── profile-users-table.blade.php
-    │   ├── profile.blade.php
-    │   └── select.blade.php
-    ├── dashboard.blade.php
-    └── welcome.blade.php
-
-53 directories, 174 files
-
-===== TREE: routes =====
-routes
-├── console.php
-└── web.php
-
-1 directory, 2 files
-
-===== TREE: public =====
-public
-├── brand
-│   └── favicon.svg
-├── css
-│   ├── modules
-│   │   ├── appointments.css
-│   │   └── print.css
-│   ├── app-base.css
-│   ├── app-patterns.css
-│   └── landing.css
-├── js
-│   ├── app-base.js
-│   ├── landing.js
-│   └── print.js
-├── favicon.ico
-├── index.php
-└── robots.txt
-
-5 directories, 12 files
-
-===== TREE: database =====
-database
-├── factories
-│   ├── PartyFactory.php
-│   ├── ProjectFactory.php
-│   ├── TaskFactory.php
-│   ├── TenantFactory.php
-│   └── UserFactory.php
-├── migrations
-│   ├── 0001_01_01_000000_create_users_table.php
-│   ├── 0001_01_01_000001_create_cache_table.php
-│   ├── 0001_01_01_000002_create_jobs_table.php
-│   ├── 2026_03_05_175359_create_tenants_table.php
-│   ├── 2026_03_05_180408_create_branches_table.php
-│   ├── 2026_03_05_180520_create_memberships_table.php
-│   ├── 2026_03_05_180617_create_invitations_table.php
-│   ├── 2026_03_05_180656_create_roles_table.php
-│   ├── 2026_03_05_180738_create_permissions_table.php
-│   ├── 2026_03_05_180821_create_role_permission_table.php
-│   ├── 2026_03_05_180906_create_membership_role_table.php
-│   ├── 2026_03_05_181008_create_document_sequences_table.php
-│   ├── 2026_03_05_190021_add_unique_branch_name_per_tenant.php
-│   ├── 2026_03_05_194708_add_two_factor_columns_to_users_table.php
-│   ├── 2026_03_06_140723_create_projects_table.php
-│   ├── 2026_03_06_154427_add_deleted_at_to_projects_table.php
-│   ├── 2026_03_06_205103_create_parties_table.php
-│   ├── 2026_03_06_210027_drop_clients_table.php
-│   ├── 2026_03_07_201356_create_tasks_table.php
-│   ├── 2026_03_10_182501_create_products_table.php
-│   ├── 2026_03_10_190747_add_kind_and_unit_label_to_products_table.php
-│   ├── 2026_03_10_211217_create_orders_table.php
-│   ├── 2026_03_10_211219_create_order_items_table.php
-│   ├── 2026_03_11_171431_create_documents_table.php
-│   ├── 2026_03_11_171437_create_document_items_table.php
-│   ├── 2026_03_12_210543_create_signup_requests_table.php
-│   ├── 2026_03_12_210545_alter_invitations_table_add_flow_fields.php
-│   ├── 2026_03_12_224655_alter_invitations_table_make_tenant_id_nullable.php
-│   ├── 2026_03_14_032643_add_is_superadmin_to_users_table.php
-│   ├── 2026_03_14_150539_add_sent_at_to_invitations_table.php
-│   ├── 2026_03_14_220100_alter_documents_add_sequence_fields.php
-│   ├── 2026_03_14_220100_alter_document_sequences_add_point_of_sale_and_adjust_unique_key.php
-│   ├── 2026_03_14_230139_alter_orders_add_sequence_fields.php
-│   ├── 2026_03_15_153257_create_assets_table.php
-│   ├── 2026_03_15_184700_add_asset_id_to_orders_table.php
-│   ├── 2026_03_15_195440_add_asset_id_to_documents_table.php
-│   ├── 2026_03_17_214856_add_priority_to_tasks_table.php
-│   ├── 2026_03_17_214857_add_task_id_to_orders_table.php
-│   ├── 2026_03_17_214858_change_tasks_project_fk_to_cascade_on_delete.php
-│   ├── 2026_03_18_023344_add_status_to_projects_table.php
-│   ├── 2026_03_20_122330_create_appointments_table.php
-│   ├── 2026_03_23_020000_release_task_id_from_soft_deleted_orders.php
-│   ├── 2026_03_24_203958_create_attachments_table.php
-│   ├── 2026_04_01_100001_add_profile_slug_to_memberships_table.php
-│   ├── 2026_04_01_100002_add_v2_columns_to_role_permission_table.php
-│   ├── 2026_04_01_100003_create_membership_permission_overrides_table.php
-│   ├── 2026_04_01_100004_backfill_role_permissions_v2_base.php
-│   ├── 2026_04_03_135026_create_inventory_movements_table.php
-│   ├── 2026_04_03_190008_normalize_role_permission_scopes_v2.php
-│   ├── 2026_04_03_222732_add_metadata_to_tasks_table.php
-│   └── 2026_04_07_220000_backfill_orders_allowed_kinds_constraints.php
-├── seeders
-│   ├── Modules
-│   │   ├── AppointmentModuleSeeder.php
-│   │   ├── AssetModuleSeeder.php
-│   │   ├── AttachmentDemoSeeder.php
-│   │   ├── BaseModuleSeeder.php
-│   │   ├── BranchModuleSeeder.php
-│   │   ├── CrossRelationsSeeder.php
-│   │   ├── DocumentModuleSeeder.php
-│   │   ├── InvitationModuleSeeder.php
-│   │   ├── MembershipModuleSeeder.php
-│   │   ├── OrderModuleSeeder.php
-│   │   ├── PartyModuleSeeder.php
-│   │   ├── PermissionModuleSeeder.php
-│   │   ├── ProductModuleSeeder.php
-│   │   ├── ProjectModuleSeeder.php
-│   │   ├── RoleModuleSeeder.php
-│   │   ├── RolePermissionModuleSeeder.php
-│   │   ├── TaskModuleSeeder.php
-│   │   ├── TenantModuleSeeder.php
-│   │   └── UserModuleSeeder.php
-│   ├── DatabaseSeeder.php
-│   └── DemoSeeder.php
-└── database.sqlite
-
-5 directories, 78 files
-
-===== TREE: documentos =====
-documentos
-├── varios
-│   ├── comandos_utiles.txt
-│   ├── deploy_compatibilidad_proyecto_app_base.txt
-│   ├── prompts_varios.txt
-│   └── resumen_estado_proyecto.md
-├── base_visual_proyecto_app_base.txt
-├── checklist_modulos_nuevos_app_base.txt
-├── contexto_fijo_proyecto_app_base.txt
-├── convenciones_proyecto_app_base.txt
-├── guia_tinker_proyecto_app_base.txt
-├── mapa_entidades_app_base.txt
-├── mapa_navegacion_relaciones_app_base.txt
-├── plantilla_inicio_chats_proyecto_app_base.txt
-├── seguridad_acceso_proyecto_app_base.txt
-├── todo_proyecto_app_base.txt
-└── welcome_usuario_app_base.txt
-
-2 directories, 15 files
 
 <<END SECTION>>
 
@@ -1015,7 +490,7 @@ las integraciones entre módulos deben respetar el contrato del módulo oferente
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -1083,6 +558,7 @@ relación enlazable
 dataset embebible
 acción derivada
 compatibilidad con trail contextual
+payload arbitrado para integraciones complejas
 
 Regla:
 
@@ -1109,6 +585,12 @@ la ausencia temporal de consumidor no invalida la oferta
 la publicación de la oferta pertenece al módulo oferente y no debe imponerse desde afuera como excepción ad hoc
 
 si una capacidad reusable ya fue publicada por el módulo oferente, el consumidor debe priorizar su consumo antes de crear una variante local
+
+si la capacidad reusable requiere arbitraje operativo complejo, su publicación válida no se agota en la vista Blade
+
+debe incluir también una capa de resolución o payload backend publicada por el módulo oferente
+
+si la capacidad pertenece contractualmente al módulo oferente, su ubicación física debe mantener esa pertenencia modular y no diluirse en una carpeta global ambigua
 
 CONTRATO DE SEGURIDAD
 
@@ -1192,7 +674,7 @@ la clasificación no debe forzar jerarquías falsas de dependencia existencial c
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -1240,15 +722,27 @@ posible create contextual
 estados UX mutuamente excluyentes
 navegación contextual requerida
 
-debe priorizarse un componente o capacidad compartida publicada por el módulo oferente antes que duplicar lógica en múltiples blades consumidoras
+debe priorizarse una capacidad compartida publicada por el módulo oferente antes que duplicar lógica en múltiples consumidores
+
+esa capacidad debe revisarse como unidad completa de integración:
+
+arbitraje backend
+payload resuelto
+representación visual
+ubicación doctrinal correcta
+consumo homogéneo
+
+no alcanza con reutilizar solo una vista Blade si la decisión de estados sigue dispersa entre consumidores
+
+cuando la capacidad reusable pertenezca contractualmente a un módulo oferente, su implementación no debe quedar en una ubicación global ambigua que borre su identidad modular
 
 Caso consolidado actual:
 
-linked-order-action como superficie reusable de integración hacia orders
+linked-order-action como superficie reusable de integración publicada por orders
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE FLAGS DE SOPORTE MODULAR>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 CONVENCIONES DE FLAGS DE SOPORTE MODULAR
 
@@ -1274,6 +768,12 @@ el dato debe llegar explícitamente o resolverse por la vía canónica del siste
 si un módulo no está habilitado:
 
 no deben renderizarse superficies residuales hacia ese módulo
+
+cuando una capacidad reusable publicada por un módulo dependa además de arbitraje backend del oferente, el consumidor no debe recomponer localmente estados alternativos a partir del flag modular
+
+el flag solo define soporte del módulo
+
+la decisión operativa específica debe consumirse desde la capacidad publicada por el módulo oferente
 
 Ejemplos típicos:
 

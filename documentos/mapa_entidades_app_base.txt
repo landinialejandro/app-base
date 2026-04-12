@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -77,6 +77,12 @@ task y appointment actúan como orígenes funcionales legítimos hacia orders si
 order_items debe leerse como detalle dependiente de orders y no como módulo autónomo paralelo
 
 la relación entre order_items y product es opcional y forma parte del detalle operativo del padre
+
+orders no solo ocupa posición central por su entidad principal
+
+también publica oferta de integración consumible por otros módulos del ecosistema
+
+esa oferta puede incluir arbitraje backend propio y representación visual modular sin dejar de pertenecer contractualmente al módulo orders
 
 no invalidan otras relaciones técnicas menores ya existentes o futuras
 <<END SECTION>>
@@ -292,7 +298,7 @@ SignupRequest
 <<END SECTION>>
 
 <<SECTION: MÓDULOS ACTUALES DEL NEGOCIO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 MÓDULOS ACTUALES DEL NEGOCIO
 
@@ -325,6 +331,12 @@ módulo del sistema
 sección de documentación de usuario
 
 Esta correspondencia 1 a 1 forma parte del modelo mental estable del sistema y debe mantenerse en futuras extensiones.
+
+Aclaración modular adicional consolidada:
+
+la correspondencia entre módulo y entidad principal no impide que un módulo publique además capacidades reutilizables para el ecosistema
+
+cuando eso ocurra, esas capacidades deben seguir leyéndose como oferta del módulo oferente y no como componentes globales neutrales desligados de su contrato
 <<END SECTION>>
 
 <<SECTION: PARTIES>>
@@ -563,7 +575,7 @@ debe conservar identidad propia aunque participe en múltiples flujos cruzados
 <<END SECTION>>
 
 <<SECTION: ORDERS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 ORDERS
 
@@ -612,6 +624,16 @@ su núcleo no debe reabrirse por cada nueva integración externa
 actúa como hub operativo relevante dentro del ecosistema actual
 
 su create requiere contexto funcional válido mediante kind y no debe interpretarse como create abstracto genérico
+
+Aclaración contractual consolidada:
+
+la oferta de integración de orders ya no debe leerse solo como posibilidad abstracta o futura
+
+incluye una capacidad reusable concreta para arbitrar apertura de orden existente, create contextual, estado readonly o requisito faltante según el contexto recibido
+
+esa capacidad pertenece al módulo orders como parte de su oferta de integración
+
+su resolución válida puede combinar backend propio del módulo y bloque visual modular consumible por otros módulos sin perder identidad contractual
 <<END SECTION>>
 
 <<SECTION: ORDER_ITEMS>>

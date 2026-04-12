@@ -110,7 +110,7 @@ Si estas respuestas no están claras, no debe avanzarse a implementación.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 BLOQUE 1 — CONTRATO MODULAR
 
@@ -140,12 +140,19 @@ OFERTA DE INTEGRACIÓN
 
 Debe quedar claro qué capacidades reutilizables publica o prevé publicar.
 
+Cuando la capacidad reusable sea compleja, debe quedar claro si el módulo publica además:
+
+payload arbitrado desde backend
+bloque visual consumidor
+ubicación modular coherente con su identidad contractual
+
 Preguntas obligatorias:
 
 qué pertenece realmente al núcleo
 qué integraciones deberían vivir fuera del núcleo
 qué debería consumir otro módulo sin tocar implementación interna
 qué puede publicarse hoy aunque todavía no tenga consumidor real
+la capacidad reusable se publica como unidad completa o solo como vista aislada
 <<END SECTION>>
 
 <<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
@@ -184,7 +191,7 @@ qué dataset debe devolver Security::scope(...)
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -198,6 +205,7 @@ si la relación depende de módulo habilitado
 si existe ya una capacidad reusable equivalente
 si la integración respeta contratos existentes
 si evita duplicaciones de selectores, tablas o summaries
+si la capacidad reusable ajena se consume como unidad completa y no solo como vista suelta
 
 Preguntas obligatorias:
 
@@ -205,6 +213,7 @@ esta relación agrega valor real o solo comodidad técnica
 puede resolverse con una capacidad ya publicada
 si falta una capacidad reusable, pertenece al módulo oferente
 la integración está reabriendo un núcleo ajeno sin necesidad
+el arbitraje de estados sigue centralizado en el módulo oferente o quedó disperso entre consumidores
 
 Regla:
 
@@ -212,7 +221,7 @@ ninguna integración válida debe bypassar seguridad ni crear contratos paralelo
 <<END SECTION>>
 
 <<SECTION: BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA
 
@@ -235,12 +244,14 @@ selector usable
 tabla embebida reusable
 summary legible
 acciones contextuales claras
+consumo visual homogéneo entre módulos
 
 Preguntas obligatorias:
 
 la UI refleja el contrato real del módulo
 hay duplicaciones visuales evitables
 el módulo se siente parte del sistema o una excepción aislada
+la capacidad reusable visual vive en una ubicación coherente con el módulo oferente o quedó globalizada sin necesidad
 <<END SECTION>>
 
 <<SECTION: BLOQUE 5 — DOCUMENTACIÓN Y CIERRE>>
@@ -445,7 +456,7 @@ si una acción contextual reutiliza una capacidad publicada por otro módulo, su
 <<END SECTION>>
 
 <<SECTION: CHECKLIST DE INTEGRACIÓN>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CHECKLIST DE INTEGRACIÓN
 
@@ -468,6 +479,10 @@ si create requiere contexto funcional obligatorio, no se implementa como alta ab
 las integraciones cruzadas preservan navegación contextual cuando corresponde
 
 si existe relación previa (por ejemplo registro ya creado), se define comportamiento consistente de apertura o reutilización
+
+si la capacidad reusable compleja ya fue cerrada por el módulo oferente, el consumidor no reconstruye localmente estados, payloads ni decisiones UX operativas
+
+una capacidad reusable no se considera realmente cerrada si su vista está reutilizada pero el arbitraje backend o la resolución de estados sigue dispersa entre consumidores
 <<END SECTION>>
 
 <<SECTION: VALIDACIONES BACKEND VS UI>>
@@ -495,7 +510,7 @@ no existan rutas operables residuales aunque la UI ya no las muestre
 <<END SECTION>>
 
 <<SECTION: SUPERFICIES SECUNDARIAS Y PARTIALS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 SUPERFICIES SECUNDARIAS Y PARTIALS
 
@@ -514,6 +529,10 @@ cancelar y redirects respetan trail vigente
 no existen botones, filtros o enlaces residuales en vistas secundarias
 
 el módulo puede considerarse cerrado también fuera de index/controller/show principal
+
+si una capacidad reusable publicada por un módulo se consume en partials de otros módulos, se consume desde la ubicación modular oficial del oferente y no desde copias o variantes globales ambiguas
+
+si la partial reutilizada depende de payload arbitrado, ese payload proviene del módulo oferente y no de composición local dispersa
 <<END SECTION>>
 
 <<SECTION: ENTIDADES HIJAS Y SUBRECURSOS>>

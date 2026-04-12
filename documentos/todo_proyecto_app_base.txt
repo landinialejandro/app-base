@@ -175,8 +175,6 @@ Regla:
 si una capacidad se repite en varios lugares, debe evaluarse moverla al módulo oferente como superficie reusable oficial
 <<END SECTION>>
 
-NUEVA SECCIÓN PROPUESTA EN: todo_proyecto_app_base
-
 <<SECTION: SEGURIDAD Y CONTRATOS PENDIENTES>>
 SECTION_VERSION: 00001
 
@@ -222,8 +220,6 @@ se corrigió simplificando el hijo delegado
 
 no abriendo migración innecesaria ni responsabilidades nuevas fuera de doctrina
 <<END SECTION>>
-
-NUEVA SECCIÓN PROPUESTA EN: todo_proyecto_app_base
 
 <<SECTION: ORDEN SUGERIDO DE EJECUCIÓN>>
 SECTION_VERSION: 00001

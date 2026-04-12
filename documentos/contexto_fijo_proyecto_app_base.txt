@@ -247,8 +247,6 @@ Esta lectura por capas no reemplaza el modelado de entidades.
 Lo organiza.
 <<END SECTION>>
 
-<<SECTION: Modelo conceptual del sistema>>
-
 <<SECTION: Jerarquía general del sistema>>
 SECTION_VERSION: 00001
 
@@ -763,7 +761,7 @@ esta clasificación debe orientar futuras decisiones de documentación, integrac
 <<END SECTION>>
 
 <<SECTION: Contrato modular como criterio de crecimiento>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 Contrato modular como criterio de crecimiento
 
@@ -798,11 +796,22 @@ create contextual
 navegación contextual
 estados UX mutuamente excluyentes
 
+Cuando la capacidad reusable sea compleja, no alcanza con reutilizar solo una vista.
+
+El módulo oferente debe publicar la capacidad como unidad completa de integración, compuesta por:
+
+capa de resolución o payload arbitrado desde backend
+bloque visual consumidor de ese resultado
+
+La ubicación física de esa capacidad debe respetar su pertenencia modular.
+
+Si una capacidad pertenece contractualmente a un módulo oferente, no debe quedar alojada en una ubicación global ambigua que borre su identidad modular.
+
 Este criterio forma parte de la dirección arquitectónica actual del proyecto.
 <<END SECTION>>
 
 <<SECTION: MÓDULO ORDERS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 MÓDULO ORDERS
 
@@ -886,6 +895,16 @@ acción enlazada reusable
 puente operativo hacia documents
 acción transversal reusable para arbitrar apertura de orden existente, creación contextual o estado no disponible según permiso, módulo activo y contexto recibido
 
+La acción enlazada reusable pertenece contractualmente al módulo orders.
+
+No debe tratarse como componente visual global neutral del sistema.
+
+Su publicación válida como oferta de integración comprende:
+
+un resolver o payload backend propio de orders para arbitrar permiso efectivo, estado operativo, vínculo existente, create contextual y requisito faltante
+
+un bloque visual alojado dentro del propio módulo orders para consumir ese resultado de forma homogénea
+
 REGLAS OPERATIVAS
 
 orders es un módulo autónomo
@@ -907,6 +926,8 @@ order_items opera como recurso delegado al padre
 la seguridad del módulo se rige por la capa central vigente
 
 la navegación debe respetar el mecanismo central de trail del proyecto
+
+los módulos consumidores no deben reconstruir localmente la lógica de apertura, creación, readonly o requisito faltante cuando esa lógica ya fue cerrada por orders como superficie reusable oficial
 
 RELACIONES PRINCIPALES
 

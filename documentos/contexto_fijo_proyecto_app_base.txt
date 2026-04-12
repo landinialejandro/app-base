@@ -776,6 +776,90 @@ no como excepción permanente alojada en el módulo consumidor
 Este criterio forma parte de la dirección arquitectónica actual del proyecto.
 <<END SECTION>>
 
+<<SECTION: MÓDULO ORDERS>>
+SECTION_VERSION: 00001
+
+MÓDULO ORDERS
+
+Orders es el módulo central de ejecución operativa del tenant.
+
+Consolida la operación concreta del sistema y actúa como nodo principal de convergencia entre contexto comercial, contexto operativo, detalle de trabajo y salida documental derivada.
+
+No debe tratarse como un CRUD simple ni como subproducto de tasks, appointments o documents.
+
+FUNCIÓN ESTRUCTURAL
+
+Dentro de la arquitectura actual del sistema, Orders constituye la referencia principal del núcleo operativo.
+
+Los módulos relacionados pueden conducir a una order, vincularse con ella o consumir su información, pero no redefinen su identidad funcional.
+
+Su autonomía debe preservarse aun cuando reciba contexto desde otros módulos o publique capacidades reutilizables.
+
+ALCANCE DEL MÓDULO
+
+Orders comprende como responsabilidad propia:
+
+creación y gestión de órdenes
+clasificación funcional mediante kind
+vinculación con party
+vinculación operativa con asset cuando corresponda
+vinculación contextual con task y appointment
+detalle operativo mediante order_items
+seguimiento por estado, fechas, notas y total
+pantalla central de consulta y operación del recurso
+
+No comprende como responsabilidad propia:
+
+la agenda de appointments
+el seguimiento interno de tasks
+la definición fiscal avanzada de documents
+una autonomía independiente para order_items
+
+REGLAS OPERATIVAS
+
+create requiere contexto funcional explícito mediante kind
+task y appointment pueden conducir a una order según el flujo vigente
+si ya existe una order asociada al contexto recibido, debe reutilizarse la existente según la lógica definida
+order_items opera como recurso delegado al padre
+la seguridad del módulo se rige por la capa central vigente
+la navegación debe respetar el mecanismo central de trail del proyecto
+
+RELACIONES PRINCIPALES
+
+Relaciones que pueden conducir a Orders:
+
+task
+appointment
+
+Relaciones principales del módulo:
+
+party
+asset
+products mediante order_items
+
+Relación derivada vigente:
+
+documents
+
+Mientras documents continúe en evolución hacia su contrato fiscal definitivo, su vínculo con Orders no debe utilizarse para redefinir el núcleo del módulo.
+
+CAPACIDADES PUBLICADAS
+
+Orders expone como capacidades reutilizables del ecosistema:
+
+create contextual de order
+navegación propia del módulo
+tabla embebida de órdenes
+acción enlazada hacia una order
+gestión delegada de items
+pantalla central del recurso como referencia operativa
+
+REGLA FINAL
+
+Toda integración con Orders debe consumir su función estructural vigente sin reabrir arbitrariamente su núcleo operativo.
+
+<<END SECTION>>
+
 <<SECTION: Roles y niveles actuales del sistema>>
 Roles y niveles actuales del sistema
 

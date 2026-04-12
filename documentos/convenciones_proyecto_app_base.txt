@@ -1190,7 +1190,7 @@ la clasificación no debe forzar jerarquías falsas de dependencia existencial c
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -1226,6 +1226,22 @@ Regla de crecimiento:
 un módulo puede dejar publicadas capacidades de integración como oferta futura aun cuando todavía no existan consumidores concretos
 
 esto favorece estabilidad contractual y reduce refactors futuros dispersos
+
+Regla adicional consolidada:
+
+cuando una integración transversal compleja combine:
+
+estado del módulo destino
+permiso efectivo
+existencia o no de registro relacionado
+posible create contextual
+estados UX mutuamente excluyentes
+
+debe priorizarse un componente o capacidad compartida publicada por el módulo oferente antes que duplicar lógica en múltiples blades consumidoras
+
+Caso consolidado actual:
+
+linked-order-action como superficie reusable de integración hacia orders
 <<END SECTION>>
 
 <<SECTION: ROLECATALOG Y MODULECATALOG>>
@@ -1710,9 +1726,9 @@ cuando no exista contexto válido o el origen no agregue valor operativo, debe m
 <<END SECTION>>
 
 <<SECTION: RESOLUCIÓN TÉCNICA DEL TRAIL DE NAVEGACIÓN>>
-RESOLUCIÓN TÉCNICA DEL TRAIL DE NAVEGACIÓN
+SECTION_VERSION: 00002
 
-Cuando la navegación contextual ya exista como patrón real del sistema, debe resolverse mediante un mecanismo central reutilizable y estable.
+RESOLUCIÓN TÉCNICA DEL TRAIL DE NAVEGACIÓN
 
 Reglas:
 
@@ -1737,12 +1753,13 @@ cuando el trail vuelva a un nodo ya existente, debe colapsarse de forma limpia y
 cuando un módulo ya esté migrado a NavigationTrail, no debe seguir usando mecanismos legacy equivalentes o redundantes, incluyendo:
 
 url()->previous()
-
 context_type / context_id
-
 NavigationContext
-
 reconstrucción manual por relaciones del modelo
+
+tasks participa plenamente como origen contextual legítimo hacia orders
+
+appointment y task deben seguir la misma convención técnica para abrir o crear orders relacionadas
 
 en tablas embebidas o listados contextuales, cuando el contexto real de navegación sea la fila y no solo el contenedor, los links profundos a entidades relacionadas deben usar el trail de la fila
 
@@ -1757,17 +1774,11 @@ las acciones cancelar dentro de formularios contextuales deben respetar el trail
 las decisiones internas de implementación pueden evolucionar, pero la convención estable es:
 
 motor central reutilizable
-
 builders compatibles por módulo
-
 controller resuelve
-
 vista consume
-
 sin deducción desde historial
-
 sin duplicación por módulo
-
 sin serialización recursiva del trail dentro de nodos
 <<END SECTION>>
 

@@ -180,7 +180,7 @@ la navegación principal debe reflejar contrato real del sistema y no solo exist
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -220,14 +220,21 @@ projects.show
 
 Reglas:
 
+tasks participa ya como origen contextual pleno hacia orders y no solo como antecedente conceptual del flujo
+
 debe preservarse NavigationTrail cuando exista contexto válido
+
 cancelar o volver debe respetar origen funcional cuando corresponda
+
 si no existe contexto válido, usar navegación estructural estándar
+
 no crear variantes manuales de breadcrumbs por módulo si ya existe motor común
+
+cuando un flujo transversal hacia orders deba arbitrar si corresponde abrir una orden existente, crear una nueva, informar requisito faltante o no mostrar capacidad, debe priorizarse el consumo de la capacidad reusable publicada por orders y no lógica duplicada por vista
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -247,6 +254,9 @@ project.show
 tasks relacionadas
 métricas agregadas
 
+task.show
+capacidad reusable hacia order relacionada
+
 order.show
 items
 attachments
@@ -264,6 +274,12 @@ priorizar componentes reusables
 evitar duplicación de tablas equivalentes
 si una relación ya posee bloque reusable válido, reutilizarlo
 las relaciones embebidas no deben reemplazar navegación estructural cuando abrir el recurso completo agrega valor
+
+Regla adicional consolidada:
+
+si una relación embebida depende de un módulo deshabilitado para el tenant, ese bloque no debe permanecer visible como pestaña operativa residual
+
+la pantalla debe resolver fallback limpio hacia una pestaña activa disponible
 <<END SECTION>>
 
 <<SECTION: FLUJOS DERIVADOS RELEVANTES>>
@@ -461,6 +477,8 @@ document_items
 <<END SECTION>>
 
 <<SECTION: REGLA PARA LINKS RELACIONALES DESDE TABLAS CONTEXTUALES>>
+SECTION_VERSION: 00002
+
 REGLA PARA LINKS RELACIONALES DESDE TABLAS CONTEXTUALES
 
 Cuando una tabla enlaza desde una entidad fila hacia una entidad relacionada, debe evaluarse cuál es el contexto real que el breadcrumb necesita preservar.
@@ -484,9 +502,17 @@ listados contextuales dentro de tabs
 acciones por fila hacia entidades relacionadas
 
 sublistados donde el contenedor no alcanza por sí solo para conservar el contexto de origen
+
+Regla adicional consolidada:
+
+en una tabla contextual, el link principal de la fila debe consolidar primero el trail completo de esa fila
+
+los links relacionales secundarios de esa misma fila deben reutilizar ese trail ya construido y no reiniciar contexto desde el contenedor
 <<END SECTION>>
 
 <<SECTION: DETALLE DE FLUJOS RELEVANTES>>
+SECTION_VERSION: 00002
+
 DETALLE DE FLUJOS RELEVANTES
 
 APPOINTMENTS -> PARTIES
@@ -561,6 +587,12 @@ Contexto esperado:
 
 si el flujo empezó en project o task, la orden puede conservar ese origen funcional cuando siga siendo útil
 
+Observación actual validada:
+
+tasks debe tratarse como origen contextual legítimo del trail hacia orders con el mismo criterio doctrinal aplicado a appointments
+
+la resolución abrir existente / crear nueva / estado no disponible debe apoyarse en la capacidad reusable publicada por orders cuando ese flujo se consuma desde show u otras vistas relacionadas
+
 ORDERS -> PARTIES
 
 Uso típico:
@@ -594,6 +626,8 @@ documents puede abrirse en modo estructural o como continuación documental del 
 Observación:
 
 este tramo debe entenderse como derivación documental o fiscal de una operación interna, no como duplicación de la orden operativa
+
+la creación derivada debe preservar trail contextual válido cuando exista
 
 DOCUMENTS -> PARTIES
 

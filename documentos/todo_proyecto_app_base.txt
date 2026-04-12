@@ -285,7 +285,7 @@ inventory
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 PENDIENTES INMEDIATOS
 
@@ -306,8 +306,6 @@ seguir unificando sublistados documentales mediante partial reutilizable
 extender preservación de contexto UX en tabs, filtros y paginación a otras pantallas
 
 revisar normalización final de tablas, acciones compactas y estructura reusable en módulos restantes del core
-
-consolidar y probar navegación contextual ya migrada en projects, tasks, parties, assets y products
 
 auditar propagación de trail en sublistados, tablas embebidas, filtros, tabs y paginación donde todavía pueda perderse contexto
 
@@ -345,8 +343,21 @@ Nuevo insumo operativo consolidado:
 
 la guía de Tinker pasa a formar parte de la base operativa útil para auditorías de permisos, constraints y runtime multi-tenant
 
-queda pendiente revisar documents como siguiente caso equivalente de create contextual utilizando el patrón ya validado en orders
+Pendientes inmediatos del frente orders y derivados:
 
+continuar revisión de vistas restantes del ecosistema orders para detectar remanentes de trail inconsistente, links relacionales no endurecidos o duplicaciones de lógica todavía no migradas a capacidades reusables
+
+terminar de auditar el cierre operativo completo de documents como módulo derivado respecto de orders, especialmente su create contextual y su contrato de seguridad efectivo
+
+revisar formularios embebidos, items y relaciones derivadas restantes para asegurar que cancelar, redirects y navegación profunda respeten el trail completo vigente sin recaer en salidas estructurales por defecto
+
+considerar como deuda ya reducida y no reabrir en este frente:
+
+task -> order como origen contextual válido
+endurecimiento de links relacionales según módulo activo y permiso real
+consumo reusable de linked-order-action
+create contextual de documents desde order alineado a Security
+fallback limpio de tabs embebidas cuando un módulo relacionado no está disponible
 <<END SECTION>>
 
 <<SECTION: ATTACHMENTS>>

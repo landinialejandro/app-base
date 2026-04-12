@@ -777,7 +777,7 @@ Este criterio forma parte de la dirección arquitectónica actual del proyecto.
 <<END SECTION>>
 
 <<SECTION: MÓDULO ORDERS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 MÓDULO ORDERS
 
@@ -794,6 +794,10 @@ Dentro de la arquitectura actual del sistema, Orders constituye la referencia pr
 Los módulos relacionados pueden conducir a una order, vincularse con ella o consumir su información, pero no redefinen su identidad funcional.
 
 Su autonomía debe preservarse aun cuando reciba contexto desde otros módulos o publique capacidades reutilizables.
+
+Orders no solo ocupa una posición conceptual central.
+
+También actúa como núcleo de integración reusable ya materializado en implementación para otros módulos del ecosistema.
 
 ALCANCE DEL MÓDULO
 
@@ -819,6 +823,7 @@ REGLAS OPERATIVAS
 
 create requiere contexto funcional explícito mediante kind
 task y appointment pueden conducir a una order según el flujo vigente
+task debe tratarse con el mismo nivel doctrinal que appointment como origen funcional legítimo hacia orders
 si ya existe una order asociada al contexto recibido, debe reutilizarse la existente según la lógica definida
 order_items opera como recurso delegado al padre
 la seguridad del módulo se rige por la capa central vigente
@@ -849,10 +854,11 @@ Orders expone como capacidades reutilizables del ecosistema:
 
 create contextual de order
 navegación propia del módulo
-tabla embebida de órdenes
+tabla embebida reusable de órdenes
 acción enlazada hacia una order
 gestión delegada de items
 pantalla central del recurso como referencia operativa
+acción transversal reusable para arbitrar apertura de orden existente, creación contextual o estado no disponible según permiso, módulo activo y contexto recibido
 
 REGLA FINAL
 

@@ -1236,7 +1236,7 @@ definir restricciones operativas
 <<END SECTION>>
 
 <<SECTION: MÓDULO: DOCUMENTS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ESTADO: EN REVISIÓN
 
@@ -1278,6 +1278,16 @@ contexto funcional provisto
 arbitraje central de Security
 
 no debe resolverse como excepción paralela alojada en orders
+
+Alineación operativa ya validada:
+
+el canal contextual desde order hacia documents debe consumirse mediante Security con contexto kind explícito
+
+storeFromOrder no debe funcionar como create abstracto encubierto
+
+la ausencia de kind válido debe cerrar el flujo como no autorizado
+
+cuando el flujo se consuma desde una order válida, debe preservar el contexto funcional y de navegación correspondiente
 
 PENDIENTE
 
@@ -1339,7 +1349,7 @@ no debe implementarse sin contrato definido
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -1370,19 +1380,19 @@ cuando el dataset depende de permisos, debe resolverse mediante Security::scope(
 
 Regla crítica adicional para create contextual:
 
-si la capacidad depende de contexto funcional obligatorio, no debe autorizarse mediante Gate o policy abstracta.
+cuando create depende de contexto funcional obligatorio, Gate o policy abstracta no constituyen el canal válido principal de autorización
 
-Debe resolverse mediante Security con el contexto real del caso.
+debe consumirse Security con contexto explícito
 
-La corrección doctrinal debe hacerse en la semántica central de Security y no mediante excepciones ad hoc por módulo.
+Regla crítica adicional para UI relacional:
 
-Regla modular adicional:
+si un recurso relacionado existe pero el usuario no posee permiso real de vista sobre el módulo destino, la UI no debe renderizar un link operativo hacia ese recurso
 
-si un módulo ya cerró su contrato de seguridad y su superficie de consumo válida, una integración nueva no debe reabrir ni reinterpretar ese contrato desde el módulo consumidor
+puede mostrarse texto o referencia no navegable cuando resulte útil para lectura, pero no navegación efectiva
 
-la validación debe seguir ocurriendo en la capa central
+si el módulo destino está deshabilitado para el tenant, la UI no debe renderizar links, acciones ni bloques residuales hacia ese módulo aunque exista la relación cargada
 
-la ampliación de capacidades consumibles del módulo debe resolverse como evolución propia del módulo y no como excepción impuesta desde afuera
+las integraciones visuales entre módulos deben consumir resultados arbitrados por backend y no reconstruir autorización local en Blade
 <<END SECTION>>
 
 <<SECTION: RECURSOS DELEGADOS AL PADRE>>

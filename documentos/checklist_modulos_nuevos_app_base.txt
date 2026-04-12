@@ -372,6 +372,8 @@ debe consumirse Security con el contexto real requerido por el contrato
 <<END SECTION>>
 
 <<SECTION: VISTAS>>
+SECTION_VERSION: 00002
+
 VISTAS
 
 Verificar:
@@ -387,10 +389,16 @@ acciones visibles alineadas con permisos reales
 partials creados si la vista crece demasiado
 
 si el módulo requiere métricas o visualización analítica, utilizar el patrón analytics.panel en lugar de x-show-summary
+
+Validar además:
+
+si el módulo consumidor utiliza una acción transversal compleja ya publicada por otro módulo, debe reutilizar el componente o capacidad compartida correspondiente y no duplicar la lógica en Blade
+
+si una tabla contextual expone links a entidades relacionadas, debe construir el trail por fila cuando la fila sea el verdadero contexto operativo de apertura
 <<END SECTION>>
 
 <<SECTION: AUTORIZACIÓN Y UI>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 AUTORIZACIÓN Y UI
 
@@ -427,6 +435,13 @@ cuál es el contexto obligatorio
 cuál es el punto real de consumo de Security
 cómo se comporta la UI cuando falta contexto válido
 
+Validar además:
+
+si existe dato relacional pero no permiso real de vista al módulo destino, la UI debe mostrar texto o referencia no navegable y no un link operativo
+
+si el módulo destino está deshabilitado para el tenant, la UI no debe mostrar links, acciones ni bloques operativos residuales hacia ese módulo aunque exista relación cargada
+
+si una acción contextual reutiliza una capacidad publicada por otro módulo, su visibilidad debe depender del resultado real ya arbitrado por backend y no de inferencias locales en Blade
 <<END SECTION>>
 
 <<SECTION: DOCUMENTACIÓN OBLIGATORIA>>
@@ -474,6 +489,8 @@ esto asegura consistencia entre sistema, documentación y onboarding
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN Y BREADCRUMB>>
+SECTION_VERSION: 00002
+
 NAVEGACIÓN Y BREADCRUMB
 
 Definir desde el inicio si el módulo necesita solo navegación estructural o también navegación contextual.

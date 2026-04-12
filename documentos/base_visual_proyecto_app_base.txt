@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 COMPONENTES DISPONIBLES
 
@@ -127,6 +127,10 @@ tablas embebidas
 summary blocks reutilizables
 acciones contextuales de integración
 toolbars de tabs reutilizables
+
+Caso reusable consolidado:
+
+x-linked-order-action como acción transversal compartida para integración hacia orders
 
 Regla adicional:
 
@@ -380,7 +384,7 @@ mantener consistencia visual entre dashboard y vistas show con métricas
 <<END SECTION>>
 
 <<SECTION: PATRÓN VISUAL PARA VISTAS SHOW>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 PATRÓN VISUAL PARA VISTAS SHOW
 
@@ -433,6 +437,8 @@ Regla modular adicional:
 
 la vista show debe dejar visualmente claro qué pertenece al núcleo del módulo principal y qué corresponde a relaciones consumidas o capacidades auxiliares reutilizables
 
+las acciones transversales publicadas por otro módulo deben percibirse como capacidad consumida y no como acción nuclear del módulo contenedor
+
 La pantalla debe poder leerse, como criterio general, en este orden:
 
 módulo principal
@@ -473,7 +479,7 @@ la unidad visual completa debe desaparecer y no solo el contenido interno
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW
 
@@ -514,6 +520,10 @@ Regla modular adicional:
 las relaciones embebidas deben leerse como consumo de capacidades reutilizables del módulo relacionado y no como excepciones visuales improvisadas del módulo contenedor
 
 si existe tabla embebida reusable, summary reusable o acción contextual reusable ya válida, debe priorizarse su reutilización visual
+
+si una pestaña o bloque embebido depende de un módulo deshabilitado, debe desaparecer de la composición sin dejar una pestaña activa inválida
+
+la pantalla debe resolver automáticamente una pestaña activa disponible y consistente
 <<END SECTION>>
 
 <<SECTION: TABS INTERNAS DEL EMBEBIDO>>
@@ -537,7 +547,7 @@ el embebido sigue siendo un bloque subordinado al show principal, aunque interna
 <<END SECTION>>
 
 <<SECTION: ACCIONES VISUALES EN INDEX Y SHOW>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ACCIONES VISUALES EN INDEX Y SHOW
 
@@ -587,6 +597,8 @@ en formularios embebidos o contextuales, la acción cancelar debe respetar el co
 Regla visual adicional:
 
 cuando una acción consuma una capacidad publicada por otro módulo, debe percibirse como acción contextual de integración y no competir visualmente con las acciones nucleares del módulo principal
+
+si una acción o link hacia un módulo relacionado no es realmente operable por permiso o por módulo deshabilitado, no debe conservar apariencia de navegación disponible
 <<END SECTION>>
 
 <<SECTION: FRAGMENTACIÓN DE BLADES>>

@@ -10,6 +10,8 @@ Para actualizar una sección, se reemplaza el bloque completo entre ambos delimi
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DEL DOCUMENTO>>
+SECTION_VERSION: 00001
+
 OBJETIVO DEL DOCUMENTO
 
 Este documento define la base visual común del sistema.
@@ -23,7 +25,22 @@ Documenta:
 estructura visual base
 componentes reutilizables
 criterios de composición de vistas
-patrones visuales compartidos...
+patrones visuales compartidos
+jerarquía visual entre módulo principal, relaciones embebidas y capacidades auxiliares reutilizables
+
+Aclaración consolidada:
+
+la base visual debe acompañar la arquitectura modular vigente del proyecto
+
+esto implica expresar visualmente:
+
+qué pertenece al módulo principal de la pantalla
+qué corresponde a relaciones operativas relevantes
+qué corresponde a capacidades transversales o de integración reutilizable
+
+No corresponde definir aquí contratos doctrinales ni reglas de autorización.
+
+Esos aspectos se resuelven en otros documentos del proyecto.
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA GENERAL DE PÁGINA>>
@@ -60,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 COMPONENTES DISPONIBLES
 
@@ -102,6 +119,149 @@ Reglas:
 deben tratarse como contenido subordinado
 no deben competir visualmente con summary ni acciones
 no deben alterar jerarquía principal de la pantalla
+
+Capacidades visuales reutilizables consolidadas adicionalmente:
+
+selectores reutilizables
+tablas embebidas
+summary blocks reutilizables
+acciones contextuales de integración
+toolbars de tabs reutilizables
+
+Regla adicional:
+
+cuando una capacidad visual reusable ya exista como patrón válido del sistema, debe reutilizarse antes de crear una variante específica para un módulo consumidor
+<<END SECTION>>
+
+<<SECTION: JERARQUÍA VISUAL MODULAR>>
+SECTION_VERSION: 00001
+
+JERARQUÍA VISUAL MODULAR
+
+La UI debe expresar distintos niveles funcionales dentro de una pantalla.
+
+NIVEL 1 — MÓDULO PRINCIPAL
+
+Corresponde al recurso central de la pantalla actual.
+
+Debe tener mayor jerarquía visual mediante:
+
+título claro
+summary principal
+acciones principales
+detalle dominante
+
+NIVEL 2 — RELACIONES OPERATIVAS RELEVANTES
+
+Corresponde a módulos relacionados que aportan continuidad de trabajo.
+
+Debe resolverse mediante:
+
+tabs
+cards secundarias
+tablas embebidas
+bloques relacionados
+
+NIVEL 3 — CAPACIDADES AUXILIARES O TRANSVERSALES
+
+Corresponde a funciones reutilizables o de soporte.
+
+Ejemplos:
+
+attachments
+bloques de ayuda
+lookups
+acciones contextuales
+capacidades embebidas reutilizables
+
+Reglas:
+
+no todos los bloques deben competir en jerarquía visual
+la pantalla debe dejar claro qué pertenece al módulo actual y qué corresponde a una capacidad consumida
+si todo se presenta con igual peso visual, la pantalla pierde claridad operativa
+<<END SECTION>>
+
+<<SECTION: SELECTORES REUTILIZABLES>>
+SECTION_VERSION: 00001
+
+SELECTORES REUTILIZABLES
+
+Los selectores reutilizables son piezas visuales clave para integraciones sanas entre módulos.
+
+Ejemplos típicos:
+
+selector de party
+selector de asset
+selector de product
+selector de order
+selector de task
+
+Reglas:
+
+deben mantener comportamiento consistente entre módulos
+deben priorizar búsqueda rápida y lectura simple
+deben mostrar información mínima útil para decidir
+deben evitar variantes visuales innecesarias por consumidor
+deben poder reutilizarse en create y edit cuando el contrato del módulo lo permita
+
+Si un selector ya existe de forma válida, debe reutilizarse antes de crear uno nuevo.
+
+La responsabilidad visual de un selector reusable pertenece al módulo oferente y no a implementaciones aisladas de cada consumidor.
+<<END SECTION>>
+
+<<SECTION: BLOQUES SUMMARY REUTILIZABLES>>
+SECTION_VERSION: 00001
+
+BLOQUES SUMMARY REUTILIZABLES
+
+Los bloques summary reutilizables permiten representar recursos relacionados sin abrir pantallas completas.
+
+Ejemplos típicos:
+
+summary de order
+summary de task
+summary de party
+summary de asset
+summary de project
+
+Reglas:
+
+deben mostrar solo información de alto valor
+deben ser escaneables en pocos segundos
+deben conservar estilo consistente con el sistema
+deben poder incluir acceso al recurso completo cuando aporte valor
+no deben reemplazar una show page cuando el detalle completo sea necesario
+
+Estos bloques ayudan a integrar módulos sin sobrecargar navegación ni multiplicar excepciones visuales.
+<<END SECTION>>
+
+<<SECTION: OFERTAS DE INTEGRACIÓN VISUAL>>
+SECTION_VERSION: 00001
+
+OFERTAS DE INTEGRACIÓN VISUAL
+
+Cuando un módulo publique capacidades visuales reutilizables para otros módulos, deben seguir patrones comunes del sistema.
+
+Ejemplos:
+
+selector reusable
+tabla embebida
+summary reusable
+acción contextual
+lookup visual
+panel derivado
+
+Reglas:
+
+la capacidad reusable debe sentirse parte del sistema completo
+no debe depender visualmente del módulo consumidor específico
+debe poder evolucionar sin romper pantallas existentes
+debe respetar tokens visuales globales
+debe evitar estilos ad hoc por integración puntual
+
+Regla estratégica:
+
+una buena oferta de integración visual reduce refactors futuros dispersos y mejora consistencia entre módulos.
 <<END SECTION>>
 
 <<SECTION: IDENTIDAD VISUAL Y BRANDING DEL HEADER>>
@@ -220,7 +380,7 @@ mantener consistencia visual entre dashboard y vistas show con métricas
 <<END SECTION>>
 
 <<SECTION: PATRÓN VISUAL PARA VISTAS SHOW>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 PATRÓN VISUAL PARA VISTAS SHOW
 
@@ -268,6 +428,16 @@ los bloques de ayuda contextual por módulo pueden integrarse dentro del show co
 deben ubicarse en zonas de baja jerarquía visual
 no deben competir con summary ni acciones
 deben leerse como ayuda complementaria y no como contenido estructural
+
+Regla modular adicional:
+
+la vista show debe dejar visualmente claro qué pertenece al núcleo del módulo principal y qué corresponde a relaciones consumidas o capacidades auxiliares reutilizables
+
+La pantalla debe poder leerse, como criterio general, en este orden:
+
+módulo principal
+relaciones operativas relevantes
+capacidades auxiliares o transversales
 <<END SECTION>>
 
 <<SECTION: REGLAS PARA X-SHOW-SUMMARY Y X-SHOW-SUMMARY-ITEM>>
@@ -303,7 +473,7 @@ la unidad visual completa debe desaparecer y no solo el contenido interno
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW
 
@@ -338,6 +508,12 @@ los bloques de ayuda contextual deben ubicarse fuera de la zona principal de rel
 no deben mezclarse con listados operativos
 no deben integrarse dentro de tablas ni tabs funcionales
 deben mantenerse como contenido independiente de apoyo
+
+Regla modular adicional:
+
+las relaciones embebidas deben leerse como consumo de capacidades reutilizables del módulo relacionado y no como excepciones visuales improvisadas del módulo contenedor
+
+si existe tabla embebida reusable, summary reusable o acción contextual reusable ya válida, debe priorizarse su reutilización visual
 <<END SECTION>>
 
 <<SECTION: TABS INTERNAS DEL EMBEBIDO>>
@@ -361,7 +537,7 @@ el embebido sigue siendo un bloque subordinado al show principal, aunque interna
 <<END SECTION>>
 
 <<SECTION: ACCIONES VISUALES EN INDEX Y SHOW>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ACCIONES VISUALES EN INDEX Y SHOW
 
@@ -408,6 +584,9 @@ no deben renderizarse acciones no permitidas
 
 en formularios embebidos o contextuales, la acción cancelar debe respetar el contexto completo del flujo vigente y no volver por defecto al show estructural del módulo padre
 
+Regla visual adicional:
+
+cuando una acción consuma una capacidad publicada por otro módulo, debe percibirse como acción contextual de integración y no competir visualmente con las acciones nucleares del módulo principal
 <<END SECTION>>
 
 <<SECTION: FRAGMENTACIÓN DE BLADES>>
@@ -615,6 +794,8 @@ No implican todavía un sistema general de navegación entre rutas dentro de tab
 <<END SECTION>>
 
 <<SECTION: TABS REUTILIZABLES Y TOOLBAR DE TABS>>
+SECTION_VERSION: 00003
+
 TABS REUTILIZABLES Y TOOLBAR DE TABS
 
 El proyecto puede reutilizar la misma base visual de tabs en distintos niveles de la interfaz.
@@ -635,6 +816,10 @@ el toolbar de tabs debe vivir dentro de un card o contenedor visual compartido p
 si el card del toolbar requiere una densidad visual más compacta, el ajuste debe resolverse mediante una clase específica del wrapper y no modificando el card global del sistema
 
 las acciones contextuales deben percibirse como propias del panel activo y no como CTA principal de toda la pantalla
+
+Regla modular adicional:
+
+cuando un módulo publique una capacidad reusable de integración que se consuma mediante tabs, toolbar o bloque embebido, esa capacidad debe reutilizar la base visual existente y no crear una familia nueva de tabs o toolbar específica del consumidor
 <<END SECTION>>
 
 <<SECTION: TABS REUTILIZABLES, TOOLBAR Y OVERFLOW HORIZONTAL>>
@@ -671,6 +856,8 @@ las acciones contextuales de tabs deben permanecer fijas a la derecha y los tabs
 <<END SECTION>>
 
 <<SECTION: EMBEDDED TABS EN SHOW RELACIONADOS>>
+SECTION_VERSION: 00002
+
 EMBEDDED TABS EN SHOW RELACIONADOS
 
 Los bloques embebidos dentro de show relacionados deben tender a una misma estructura:
@@ -685,4 +872,8 @@ Cuando un embedded-tabs tenga riesgo razonable de desborde en pantallas chicas o
 No esperar a que el layout rompa para recién introducir un patrón especial si ya se sabe que el bloque puede crecer.
 
 Attachments se considera el caso estándar actual de embebido tabulado por kind dentro de una vista show relacionada.
+
+Regla adicional:
+
+si otros módulos publican tablas embebidas, bloques summary o acciones contextuales reutilizables, deben priorizar esta misma familia visual antes de introducir layouts paralelos incompatibles
 <<END SECTION>>

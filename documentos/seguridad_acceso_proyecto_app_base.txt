@@ -10,50 +10,72 @@ Para actualizar una sección, se reemplaza el bloque completo entre ambos delimi
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
+SECTION_VERSION: 00001
+
 OBJETIVO
 
 Este documento define el modelo operativo obligatorio de seguridad y acceso del sistema app-base.
 
 Este documento es:
 
-la única fuente de verdad para permisos V2  
-el contrato de implementación obligatorio para cualquier módulo  
-la referencia normativa para resolver autorización en todo el sistema  
+la única fuente de verdad para permisos V2
+el contrato de implementación obligatorio para cualquier módulo
+la referencia normativa para resolver autorización en todo el sistema
+la base doctrinal para arbitrar contratos de seguridad modulares
 
 No describe opciones.
 
 Define reglas obligatorias.
 
 Cualquier implementación que no respete este documento debe considerarse inválida.
+
+Regla doctrinal consolidada:
+
+cada módulo del sistema debe poseer su propio contrato de seguridad
+
+ese contrato no reemplaza la capa central
+
+la capa central de seguridad arbitra, valida y consume los contratos modulares dentro del marco general del sistema
 <<END SECTION>>
 
 <<SECTION: ALCANCE>>
+SECTION_VERSION: 00001
+
 ALCANCE
 
 Este documento cubre:
 
-autenticación  
-flujo multi-tenant  
-resolución de tenant  
-modelo de pertenencia  
-roles base  
-permisos V2  
-resolución de autorización  
-uso de resolver, policy, controller y Blade  
-constraints  
-reglas por módulo  
+autenticación
+flujo multi-tenant
+resolución de tenant
+modelo de pertenencia
+roles base
+permisos V2
+resolución de autorización
+uso de resolver, policy, controller y Blade
+constraints
+reglas por módulo
+contratos de seguridad por módulo
+arbitraje central de contratos modulares
 
 No cubre:
 
-estructura visual  
-navegación  
-modelado del dominio  
+estructura visual
+navegación
+modelado del dominio general
+detalle visual de componentes de integración
 
 Esos aspectos se definen en otros documentos del proyecto.
+
+Aclaración doctrinal:
+
+cuando un módulo exponga capacidades reutilizables o superficies de integración para otros módulos, este documento no define su forma visual ni su detalle de implementación
+
+sí define cómo debe arbitrar su validez la capa central de seguridad
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -74,7 +96,7 @@ Este documento define la normativa de implementación del sistema.
 
 Los catálogos definen el vocabulario técnico permitido.
 
-La capa central (resolvers) resuelve y aplica el contrato persistido.
+La capa central resuelve y aplica el contrato persistido.
 
 Cualquier definición de permisos fuera de la base de datos debe considerarse una desviación arquitectónica inválida.
 
@@ -119,7 +141,8 @@ REGLA 5 — NO DUPLICACIÓN
 No puede existir lógica de permisos en más de un nivel.
 
 la base de datos define el contrato
-el resolver resuelve el contrato persistido
+el contrato de seguridad del módulo define el comportamiento esperado del módulo
+la capa central arbitra el contrato persistido
 policy consume esa resolución
 controller consume y ejecuta la autorización correspondiente
 Blade muestra solo el resultado permitido
@@ -177,6 +200,54 @@ la autorización debe devolver no autorizado
 
 sin depender de parches por módulo ni de lógica especial en controller o policy.
 
+REGLA 10 — CONTRATO DE SEGURIDAD PROPIO POR MÓDULO
+
+Todo módulo operativo real del sistema debe poseer un contrato de seguridad propio.
+
+Ese contrato debe dejar definido, como mínimo:
+
+universo visible
+capacidades aplicables
+scopes válidos
+uso o no de constraints
+reglas de create
+reglas de update
+reglas de delete
+si consume o no contexto funcional obligatorio
+si delega o no autorización en recurso padre
+
+No se permite operar un módulo sin contrato explícito.
+
+REGLA 11 — SECURITY COMO ÁRBITRO CONTRACTUAL
+
+La capa central de seguridad actúa como árbitro de los contratos de seguridad modulares.
+
+Esto implica que Security debe verificar, como mínimo:
+
+si el módulo está habilitado
+si la capacidad existe
+si el scope es válido
+si las constraints requeridas están presentes y son válidas
+si el contexto funcional exigido por el módulo fue provisto
+si el consumo solicitado respeta el contrato persistido del módulo
+
+La capa central no reemplaza el contrato del módulo.
+
+Lo arbitra.
+
+REGLA 12 — INTEGRACIÓN MODULAR BAJO ARBITRAJE
+
+Cuando un módulo consuma capacidades, relaciones o superficies de integración ofrecidas por otro módulo, ese consumo no puede bypassar la capa central de seguridad.
+
+Toda integración válida entre módulos debe seguir respetando:
+
+módulo habilitado
+capacidad efectiva
+scope
+constraints
+contexto funcional cuando corresponda
+
+No se permite que una integración modular cree un canal paralelo de autorización.
 <<END SECTION>>
 
 <<SECTION: FLUJO GLOBAL DE ACCESO>>
@@ -585,7 +656,7 @@ constraints
 <<END SECTION>>
 
 <<SECTION: CAPA V2 DE PERMISOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CAPA V2 DE PERMISOS
 
@@ -626,13 +697,14 @@ el acceso a un módulo depende previamente de su habilitación mediante TenantMo
 
 Regla operativa consolidada:
 
-Security es la puerta central de consumo de autorización
+Security es la puerta central de consumo de autorización y el árbitro contractual de los módulos del sistema.
 
-Roles:
+Roles de la capa:
 
-la base de datos define el contrato
-los resolvers consumen ese contrato
-Security orquesta la resolución final
+la base de datos define el contrato persistido
+los contratos doctrinales de módulo definen el comportamiento esperado
+los resolvers consumen ese contrato persistido
+Security orquesta la resolución final y arbitra su validez
 policies actúan como wrapper mínimo
 controllers ejecutan la autorización
 
@@ -655,10 +727,17 @@ allowed = false
 
 La semántica correcta debe resolverse en la capa central y no mediante parches puntuales por módulo.
 
+Aclaración adicional consolidada:
+
+cuando un módulo publique capacidades reutilizables para otros módulos, la capa V2 no trata esa publicación como excepción arquitectónica
+
+la considera una oferta modular consumible
+
+pero su consumo sigue quedando bajo arbitraje normal de Security y del contrato de seguridad del módulo oferente
 <<END SECTION>>
 
 <<SECTION: FLUJO DE GESTIÓN Y CONSUMO DE PERMISOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 FLUJO DE GESTIÓN Y CONSUMO DE PERMISOS
 
@@ -671,13 +750,15 @@ Flujo operativo consolidado:
 
 base de datos → contrato persistido
 ↓
+contrato de seguridad doctrinal del módulo
+↓
 resolvers → lectura del contrato
 ↓
-Security → orquestación y evaluación
+Security → orquestación y arbitraje
 ↓
 policy → wrapper mínimo
 ↓
-controller → authorize(...) o Security::scope(...)
+controller → authorize(...) o Security::scope(...) o inspect(...)
 ↓
 Blade → renderiza según resultado
 
@@ -718,25 +799,102 @@ Gate::allows('create', Order::class)
 
 cuando create requiere constraints obligatorias.
 
-<<END SECTION>>
+Regla modular consolidada:
 
-<<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-REGLAS OPERATIVAS POR MÓDULO
+cuando un módulo consuma una oferta publicada por otro módulo, por ejemplo selector, create contextual, relación operativa o bloque derivado, el flujo correcto sigue siendo:
 
-Cada módulo debe definir:
-
-universo visible  
-scopes válidos  
-uso de constraints  
-reglas de create  
-reglas de update  
-reglas de delete  
+contrato del módulo oferente
+↓
+contrato persistido
+↓
+Security
+↓
+consumo permitido
 
 No se permite:
 
-interpretación implícita  
-uso genérico de limited  
-delegar lógica a UI  
+consumir ofertas modulares saltando el arbitraje central
+redefinir en el módulo consumidor lo que el módulo oferente ya cerró como contrato de seguridad
+<<END SECTION>>
+
+<<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
+SECTION_VERSION: 00001
+
+REGLAS OPERATIVAS POR MÓDULO
+
+Cada módulo debe definir su propio contrato de seguridad.
+
+Ese contrato debe dejar explícito, como mínimo:
+
+naturaleza del módulo
+universo visible
+scopes válidos
+uso de constraints
+reglas de create
+reglas de update
+reglas de delete
+si requiere contexto funcional
+si delega autorización a un recurso padre
+si publica o no ofertas de integración consumibles por otros módulos
+
+No se permite:
+
+interpretación implícita
+uso genérico de limited
+delegar lógica a UI
+operar un módulo sin contrato explícito
+consumir un módulo desde otro sin arbitraje central de seguridad
+
+Regla adicional consolidada:
+
+la publicación de capacidades de integración por parte de un módulo no altera su contrato de seguridad
+
+lo amplía como superficie consumible
+
+pero siempre bajo arbitraje de Security
+<<END SECTION>>
+
+<<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
+SECTION_VERSION: 00001
+
+CONTRATO DE SEGURIDAD MODULAR
+
+Todo módulo operativo del sistema debe poseer un contrato de seguridad propio.
+
+Ese contrato expresa cómo debe comportarse el módulo dentro del marco general de seguridad del sistema.
+
+Debe dejar explícito, como mínimo:
+
+estado del contrato
+naturaleza del módulo
+universo visible
+capacidades aplicables
+scopes válidos
+constraints requeridas si aplica
+reglas de create
+reglas de view
+reglas de update
+reglas de delete
+si requiere contexto funcional obligatorio
+si delega autorización en recurso padre
+si publica ofertas modulares consumibles por otros módulos
+
+Reglas:
+
+el contrato de seguridad del módulo no reemplaza la capa central
+no autoriza por sí mismo
+no puede consumirse por fuera de Security
+no puede contradecir los principios estructurales del documento
+
+Su función es definir el comportamiento esperado del módulo.
+
+La función de Security es arbitrar si ese comportamiento puede o no consumirse válidamente en cada caso.
+
+Regla adicional consolidada:
+
+si el módulo publica capacidades de integración para otros módulos, esa publicación forma parte de su superficie de consumo válida
+
+pero no constituye una excepción de seguridad ni un canal paralelo de autorización
 <<END SECTION>>
 
 <<SECTION: MÓDULO: TASKS>>
@@ -1099,14 +1257,15 @@ no debe implementarse sin contrato definido
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
 la base de datos es la única fuente de verdad del contrato de permisos V2
 
+contrato doctrinal del módulo → define comportamiento esperado del módulo
 resolver → resuelve el contrato persistido
-Security → orquesta la evaluación
+Security → orquesta y arbitra la evaluación
 policy → wrapper mínimo de consumo
 controller → consume y ejecuta la autorización correspondiente
 Blade → muestra solo el resultado permitido
@@ -1116,6 +1275,7 @@ Prohibido:
 lógica paralela
 evaluación abstracta
 redefinir permisos
+crear integraciones modulares que bypassen arbitraje central
 
 Distinción:
 
@@ -1134,6 +1294,13 @@ Debe resolverse mediante Security con el contexto real del caso.
 
 La corrección doctrinal debe hacerse en la semántica central de Security y no mediante excepciones ad hoc por módulo.
 
+Regla modular adicional:
+
+si un módulo ya cerró su contrato de seguridad y su superficie de consumo válida, una integración nueva no debe reabrir ni reinterpretar ese contrato desde el módulo consumidor
+
+la validación debe seguir ocurriendo en la capa central
+
+la ampliación de capacidades consumibles del módulo debe resolverse como evolución propia del módulo y no como excepción impuesta desde afuera
 <<END SECTION>>
 
 <<SECTION: RECURSOS DELEGADOS AL PADRE>>
@@ -1186,6 +1353,8 @@ permisos incompletos
 <<END SECTION>>
 
 <<SECTION: GOBERNANZA DEL DOCUMENTO DE SEGURIDAD>>
+SECTION_VERSION: 00001
+
 GOBERNANZA DEL DOCUMENTO DE SEGURIDAD
 
 OBJETIVO
@@ -1228,6 +1397,7 @@ controller
 policy
 implementación operativa del modelo
 UI operativa
+publicación de ofertas de integración reutilizables
 
 Si el contrato no existe:
 
@@ -1269,8 +1439,8 @@ REGLA 5 — VERSIONADO GLOBAL DEL DOCUMENTO
 
 Las secciones del documento se dividen en dos tipos:
 
-SECCIONES DE CONTRATO (módulos)
-SECCIONES ESTRUCTURALES (reglas generales)
+SECCIONES DE CONTRATO
+SECCIONES ESTRUCTURALES
 
 Reglas:
 
@@ -1284,6 +1454,7 @@ principios inmutables
 capa V2
 flujo de permisos
 reglas de implementación
+reglas de arbitraje contractual
 
 ---
 
@@ -1338,6 +1509,7 @@ cambios en módulos existentes
 cambios en constraints
 cambios en scopes
 cambios en lógica de resolución
+cambios en ofertas modulares consumibles por otros módulos cuando tengan impacto de autorización
 
 Si no hay auditoría:
 
@@ -1356,6 +1528,22 @@ qué está prohibido
 No es una guía.
 
 Es la referencia obligatoria del sistema.
+
+---
+
+REGLA 11 — RE-VERIFICACIÓN OBLIGATORIA ANTE CAMBIO ESTRUCTURAL
+
+Cuando se modifique una sección estructural de este documento, debe realizarse una re-verificación específica posterior.
+
+Esa re-verificación debe comprobar, como mínimo:
+
+coherencia interna del documento
+alineación con contratos de módulos vigentes
+impacto sobre Security
+impacto sobre controllers, policies y consumo real
+justificación explícita de por qué el cambio era necesario
+
+No debe continuarse con reconversión documental de otros documentos mientras esta verificación siga pendiente.
 
 ---
 

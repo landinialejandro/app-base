@@ -10,16 +10,30 @@ Para actualizar una sección, se reemplaza el bloque completo entre ambos delimi
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
+SECTION_VERSION: 00002
+
 OBJETIVO
 
-Este documento describe el mapa conceptual actual de entidades del sistema app-base.
+Este documento describe el mapa conceptual de entidades, módulos y relaciones del sistema app-base.
 
-Su finalidad es:
+Su función es:
 
-entender la estructura general del dominio
-visualizar relaciones entre entidades
-definir qué entidades ya existen
-detectar futuras extensiones funcionales sin duplicar conceptos
+visualizar la estructura del dominio
+entender vínculos entre piezas del sistema
+identificar responsabilidades funcionales
+evitar duplicaciones conceptuales
+guiar nuevas extensiones del sistema
+
+No reemplaza:
+
+el documento de seguridad
+las convenciones de implementación
+la navegación real del sistema
+la base visual
+
+Aclaración doctrinal consolidada:
+
+además de entidades y relaciones técnicas, este documento debe reflejar la posición conceptual de cada módulo dentro del ecosistema general del sistema
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL DEL SISTEMA>>
@@ -29,6 +43,34 @@ El sistema distingue dos grandes grupos:
 
 entidades del sistema
 entidades del negocio
+<<END SECTION>>
+
+<<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
+SECTION_VERSION: 00001
+
+RELACIONES CLAVE DEL ECOSISTEMA
+
+projects agrupa tasks sin absorber su autonomía
+
+tasks puede originar orders
+
+appointments puede originar orders
+
+assets contextualiza orders, appointments y documents
+
+orders puede derivar documents
+
+products alimenta order_items y document_items
+
+parties se relaciona transversalmente con múltiples módulos
+
+attachments puede integrarse transversalmente sobre múltiples recursos
+
+Regla:
+
+estas relaciones expresan lectura conceptual prioritaria del ecosistema actual
+
+no invalidan otras relaciones técnicas menores ya existentes o futuras
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL SISTEMA>>
@@ -278,259 +320,371 @@ Esta correspondencia 1 a 1 forma parte del modelo mental estable del sistema y d
 <<END SECTION>>
 
 <<SECTION: PARTIES>>
+SECTION_VERSION: 00003
+
 PARTIES
 
-Entidad base transversal del dominio y módulo base del sistema.
+Tipo conceptual:
 
-Relaciones actuales y futuras:
+módulo base del dominio
 
-un Party puede vincularse a muchos Orders
-un Party puede vincularse a muchos Documents
-un Party puede vincularse a muchos Assets
-un Party puede representar cliente, proveedor, contacto u otro actor
+Representa actores externos relacionados con la operación del tenant.
+
+Puede representar:
+
+clientes
+proveedores
+contactos
+terceros
+contratistas
+
+Relaciones consumidas:
+
+tenant
+users para trazabilidad operativa cuando corresponda
+
+Relaciones ofrecidas:
+
+projects
+tasks
+appointments
+assets
+orders
+documents
+
+Superficie contractual conceptual posible:
+
+selector de contacto
+summary de contacto
+lookup mínimo
+tabla de relaciones asociadas
 
 Reglas:
 
-no duplicar esta función en entidades paralelas como Client o Supplier
-
-no debe tratarse como módulo opcional apagable por tenant en el mismo sentido que otros módulos operativos
+no reemplaza users internos del sistema
+no debe tratarse como módulo opcional ordinario si el sistema lo reconoce como base intrínseca del dominio
 <<END SECTION>>
 
 <<SECTION: PROJECTS>>
+SECTION_VERSION: 00002
+
 PROJECTS
 
-Agrupador operativo de trabajo.
+Tipo conceptual:
 
-Relaciones:
+módulo agrupador
 
-un Project tiene muchas Tasks
+Representa agrupación y seguimiento agregado de trabajo.
 
-Estado actual:
+Relaciones consumidas:
 
-usa estado mínimo active/closed
+tenant
+parties opcionalmente
+tasks
 
-Función actual:
+Relaciones ofrecidas:
 
-seguimiento agregado del trabajo
+contexto organizativo para tasks
+métricas agregadas
+seguimiento consolidado
 
-Regla operativa actual:
+Superficie contractual conceptual posible:
 
-owner y admin ven todos los proyectos
+summary de proyecto
+tabla de tareas relacionadas
+dashboard agregado
+selector de proyecto
 
-roles operativos ven solo proyectos donde tengan al menos una tarea asignada
+Reglas:
+
+agrupa tasks pero no absorbe completamente su identidad funcional
 <<END SECTION>>
 
 <<SECTION: TASKS>>
+SECTION_VERSION: 00003
+
 TASKS
 
-Unidad operativa interna fina.
+Tipo conceptual:
 
-Relaciones:
+módulo autónomo
 
-una Task pertenece a un Project
-una Task puede asignarse a un User
-una Task puede derivar opcionalmente en un Order
+Representa unidad operativa interna del sistema.
 
-Reglas actuales:
+Funciones relevantes:
 
-assigned_user_id define responsabilidad operativa actual
+asignación
+seguimiento
+coordinación interna
+derivación operativa
+alertas o tareas automáticas futuras
 
-toda tarea debe crearse asignada
+Relaciones consumidas:
 
-owner y admin pueden gestionar tareas ajenas
+tenant
+users / memberships
+project opcional
+party opcional
+asset opcional
 
-los usuarios operativos:
+Relaciones ofrecidas:
 
-pueden ver tareas asignadas a ellos
+seguimiento operativo
+origen posible de orders
+bloques de trabajo relacionados
+métricas para projects
 
-pueden ver tareas de proyectos donde participan
+Superficie contractual conceptual posible:
 
-solo editan tareas asignadas a ellos
+selector de tarea
+tabla embebida
+summary operativo
+acción derivar a order
+lookup mínimo
 
-solo eliminan tareas asignadas a ellos
+Reglas:
 
+puede vivir sin projects
+su agrupación por projects no lo convierte en subrecurso dependiente
 <<END SECTION>>
 
 <<SECTION: APPOINTMENTS>>
+SECTION_VERSION: 00002
+
 APPOINTMENTS
 
-Agenda operativa reutilizable por tenant.
+Tipo conceptual:
 
-Relaciones actuales:
+módulo autónomo
 
-pertenece a un tenant
-requiere assigned_user_id
-puede vincularse opcionalmente a un Party
-puede vincularse opcionalmente a un Asset
-puede vincularse opcionalmente a un Order
+Representa agenda operativa del tenant.
 
-Regla funcional actual:
+Relaciones consumidas:
 
-su capa visible puede adaptar vocabulario o etiquetas según el rubro configurado del tenant, sin permitir etiquetas libres por empresa
+tenant
+party opcional
+asset opcional
+users internos cuando corresponda
 
-Regla operativa actual:
+Relaciones ofrecidas:
 
-appointments utiliza assigned_user_id como referencia de responsabilidad operativa
+agenda
+contexto temporal
+origen posible de orders
+planificación operativa
 
-puede resolver lectura con tenant_all o own_assigned según la capacidad configurada
+Superficie contractual conceptual posible:
 
-no utiliza semántica limited como contrato del módulo
+selector de turno
+agenda embebible
+summary de turno
+acción crear order contextual
 
-Regla de relaciones:
+Reglas:
 
-los vínculos hacia parties, assets y orders deben depender del estado activo del módulo destino
-
-si el módulo destino está deshabilitado para el tenant, la relación no debe exponerse ni operarse en UI
+su identidad funcional no depende de orders aunque pueda derivar operaciones hacia ese módulo
 <<END SECTION>>
 
 <<SECTION: PRODUCTS>>
+SECTION_VERSION: 00002
+
 PRODUCTS
 
-Catálogo operativo de productos o ítems comercializables.
+Tipo conceptual:
 
-Relaciones:
+módulo autónomo
 
-puede aparecer en OrderItems
-puede aparecer en DocumentItems
+Representa catálogo operativo de bienes o servicios.
+
+Relaciones consumidas:
+
+tenant
+
+Relaciones ofrecidas:
+
+order_items
+document_items
+futuro inventory
+
+Superficie contractual conceptual posible:
+
+selector de producto
+lookup comercial
+tabla de catálogo
+summary de producto
+
+Reglas:
+
+inventory se considera evolución funcional relacionada y no condición obligatoria actual del módulo
 <<END SECTION>>
 
 <<SECTION: ASSETS>>
+SECTION_VERSION: 00002
+
 ASSETS
 
-Representa activos o equipos asociados a un tenant.
+Tipo conceptual:
 
-Relaciones actuales:
+módulo autónomo
 
-un Asset puede vincularse opcionalmente a un Party
-un Asset puede vincularse opcionalmente a muchos Orders
-un Asset puede vincularse opcionalmente a muchos Documents
+Representa activos, equipos o unidades operativas del tenant.
 
-Relación futura posible:
+Relaciones consumidas:
 
-historial de asociación Asset ↔ Party
+tenant
+party opcional como responsable o cliente
+products cuando corresponda
+
+Relaciones ofrecidas:
+
+historial operativo
+contexto para orders
+contexto para appointments
+contexto documental
+
+Superficie contractual conceptual posible:
+
+selector de activo
+summary técnico
+tabla de historial
+acciones contextuales relacionadas
+
+Reglas:
+
+debe conservar identidad propia aunque participe en múltiples flujos cruzados
 <<END SECTION>>
 
 <<SECTION: ORDERS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ORDERS
 
-Cabecera operativa de órdenes.
+Tipo conceptual:
 
-Relaciones:
+módulo autónomo de núcleo operativo fuerte
 
-una Order pertenece a un Party
-una Order puede vincularse opcionalmente a un Asset
-una Order tiene muchos OrderItems
-una Order puede derivar de una Task
-una Order puede originar muchos Documents
-una Order puede vincularse opcionalmente desde un Appointment
+Representa operación interna principal del tenant.
 
-Relación Task → Order actual:
+Relaciones consumidas:
 
-una Task puede derivar en una única Order
+tenant
+party opcional
+asset opcional
+task opcional
+appointment opcional
+products mediante order_items
 
-el vínculo operativo se expresa desde orders.task_id
+Relaciones ofrecidas:
 
-Función conceptual consolidada:
+documents derivados
+historial operativo
+seguimiento de trabajo
+referencia central para otros módulos
 
-orders representa la operación interna del tenant
+Superficie contractual conceptual posible:
 
-debe absorber tanto la dimensión comercial operativa como la dimensión de servicio u operación técnica
+selector de orden
+tabla embebida reusable
+summary de orden
+acción create contextual
+bridge hacia documents
+lookup mínimo
 
-la orden de servicio real del sistema pertenece a orders y no a documents
+Reglas:
 
-Regla de autorización consolidada:
-
-orders debe tratarse como módulo compartido del tenant
-
-no depende de assigned_user_id
-
-no utiliza ownership como base de permisos
-
-created_by es un dato estructural sin impacto en autorización
-
-no utiliza own_assigned como contrato del módulo
-
-su segmentación funcional se resuelve exclusivamente mediante constraints.allowed_kinds
-
-cualquier segmentación futura por usuario deberá definirse explícitamente y no inferirse del modelo actual
-
-Regla de relaciones:
-
-las relaciones hacia otros módulos deben considerarse opcionales a nivel UI según estado activo del módulo destino
-
-si un módulo relacionado está deshabilitado, la relación no debe exponerse ni operar en UI
-
+su núcleo no debe reabrirse por cada nueva integración externa
+actúa como hub operativo relevante dentro del ecosistema actual
 <<END SECTION>>
 
 <<SECTION: ORDER_ITEMS>>
+SECTION_VERSION: 00002
+
 ORDER_ITEMS
 
-Detalle de una Order.
+Tipo conceptual:
+
+entidad hija delegada
+
+Representa detalle operativo de una orden.
+
+Relaciones consumidas:
+
+order
+product opcional
+
+Relaciones ofrecidas:
+
+detalle de operación
+base para derivación a document_items
 
 Reglas:
 
-pertenece a una Order
-hereda tenant_id desde la cabecera
-no debe tratarse como recurso autónomo de autorización
-su create, update y delete deben delegarse a la capacidad update de Order
+su ciclo de vida depende funcionalmente de orders
+no debe confundirse con módulo autónomo
 <<END SECTION>>
 
 <<SECTION: DOCUMENTS>>
+SECTION_VERSION: 00003
+
 DOCUMENTS
 
-Cabecera documental.
+Tipo conceptual:
 
-Relaciones:
+módulo derivado
 
-un Document pertenece a un Party
-un Document puede vincularse opcionalmente a un Asset
-un Document puede vincularse opcionalmente a un Order
-un Document tiene muchos DocumentItems
+Representa formalización documental, comercial o fiscal de operaciones del tenant.
 
-Tipos documentales activos previstos al menos:
+Relaciones consumidas:
 
-quote
-delivery_note
-invoice
+tenant
+order opcional
+party
+asset opcional
+products mediante document_items
 
-work_order permanece como kind legacy inhabilitado.
+Relaciones ofrecidas:
 
-Regla conceptual consolidada:
+comprobantes
+trazabilidad documental
+salida formal de operaciones internas
 
-documents no debe representar la operación interna diaria del tenant
+Superficie contractual conceptual posible:
 
-documents debe concentrar la dimensión documental, formal, comercial o fiscal derivada de la operación
-
-documents debe tratarse como módulo compartido del tenant
-
-su segmentación funcional no debe resolverse por ownership artificial del registro
-
-cuando se requiera segmentación por tipo, debe apoyarse en constraints.allowed_kinds
-
-Regla actual importante:
-
-si un Document nace desde una Order, hereda automáticamente:
-
-tenant_id
-party_id
-order_id
-asset_id si corresponde
-<<END SECTION>>
-
-<<SECTION: DOCUMENT_ITEMS>>
-DOCUMENT_ITEMS
-
-Detalle de un Document.
+selector documental
+summary de comprobante
+tabla documental
+acciones de emisión o descarga
 
 Reglas:
 
-pertenece a un Document
-hereda tenant_id desde la cabecera
-puede originarse manualmente o por copia desde OrderItems
-no debe tratarse como recurso autónomo de autorización
-su create, update y delete deben delegarse a la capacidad update de Document
+respecto del flujo orders → documents ocupa rol derivado
+mantiene identidad modular propia
+<<END SECTION>>
+
+<<SECTION: DOCUMENT_ITEMS>>
+SECTION_VERSION: 00002
+
+DOCUMENT_ITEMS
+
+Tipo conceptual:
+
+entidad hija delegada
+
+Representa detalle de un documento.
+
+Relaciones consumidas:
+
+document
+product opcional
+
+Relaciones ofrecidas:
+
+detalle comercial o fiscal
+
+Reglas:
+
+su ciclo de vida depende funcionalmente de documents
+no debe confundirse con módulo autónomo
 <<END SECTION>>
 
 <<SECTION: DOCUMENT_SEQUENCES>>
@@ -554,28 +708,42 @@ no modelar numeración manual o unique global en cabeceras operativas cuando ya 
 <<END SECTION>>
 
 <<SECTION: ATTACHMENTS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ATTACHMENTS
 
-Tipo:
+Tipo conceptual:
 
 módulo transversal
 
-Estado:
+Representa archivos adjuntos asociados a recursos del sistema.
 
-implementado y consolidado
+Se integra de forma delegada respecto del recurso padre.
+
+Relaciones consumidas:
+
+recurso attachable
+tenant heredado del padre
+autorización heredada del padre
+
+Relaciones ofrecidas:
+
+evidencia documental
+preview
+download
+historial de archivos asociados
+
+Superficie contractual conceptual posible:
+
+tabla embebida
+visor de adjuntos
+acciones create/edit/delete contextualizadas
+panel reusable de evidencias
 
 Reglas:
 
-no posee autonomía de autorización
-
-su acceso depende del recurso padre
-
-la autorización se delega en policies y controllers del padre
-
-este patrón se encuentra aplicado en implementación real
-
+no constituye módulo nuclear del dominio
+su seguridad depende del recurso padre salvo definición futura explícita en contrario
 <<END SECTION>>
 
 <<SECTION: CONTEXTO FUNCIONAL DEL TENANT>>
@@ -722,6 +890,224 @@ perfil funcional como especialización de trabajo
 permisos concretos como capa de autorización
 
 La complejidad funcional futura no debe resolverse creando nuevos roles base fuera de este conjunto cerrado.
+<<END SECTION>>
+
+<<SECTION: REGLAS DE LECTURA>>
+SECTION_VERSION: 00002
+
+REGLAS DE LECTURA
+
+Las relaciones aquí expresadas son conceptuales y funcionales.
+
+No implican automáticamente:
+
+foreign keys obligatorias
+pantallas existentes
+botones visibles
+navegación activa
+permisos concedidos
+
+Toda relación real sigue condicionada por:
+
+módulo habilitado
+contrato de seguridad
+estado funcional del módulo
+implementación vigente
+
+Este documento prioriza:
+
+qué representa cada pieza
+cómo se conecta conceptualmente
+qué consume
+qué ofrece
+qué rol cumple en el ecosistema
+
+Regla adicional consolidada:
+
+si existiera tensión entre una relación técnica puntual y la posición conceptual estable del módulo, debe priorizarse la lectura arquitectónica global antes de introducir nuevas duplicaciones o acoples innecesarios
+<<END SECTION>>
+
+<<SECTION: CAPAS CONCEPTUALES DEL SISTEMA>>
+SECTION_VERSION: 00001
+
+CAPAS CONCEPTUALES DEL SISTEMA
+
+La lectura general del ecosistema app-base debe contemplar las siguientes capas:
+
+capa global
+capa tenant
+capa de gobierno interno
+capa transversal de seguridad
+base transversal del dominio
+módulos funcionales
+
+CAPA GLOBAL
+
+Incluye piezas del gobierno general del sistema.
+
+Casos actuales:
+
+superadmin
+signup_requests
+invitations
+landing pública
+onboarding global
+
+CAPA TENANT
+
+Incluye el contexto empresarial operativo.
+
+Casos actuales:
+
+tenants
+memberships
+usuarios operando dentro del tenant activo
+
+CAPA TRANSVERSAL DE SEGURIDAD
+
+Incluye piezas de arbitraje y autorización.
+
+Casos actuales:
+
+TenantModuleAccess
+RolePermissionResolver
+RecordScopeResolver
+Security
+catálogos de capacidades, módulos y perfiles
+
+BASE TRANSVERSAL DEL DOMINIO
+
+Incluye piezas fundamentales reutilizadas por múltiples módulos.
+
+Casos actuales:
+
+parties
+attachments
+
+MÓDULOS FUNCIONALES
+
+Incluye capacidades operativas del negocio.
+
+Casos actuales:
+
+projects
+tasks
+appointments
+assets
+products
+orders
+documents
+
+Regla:
+
+esta capa conceptual complementa el detalle de entidades y relaciones puntuales
+<<END SECTION>>
+
+<<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
+SECTION_VERSION: 00001
+
+CLASIFICACIÓN CONCEPTUAL DE MÓDULOS
+
+No todos los módulos del sistema cumplen el mismo rol conceptual.
+
+Tipos principales:
+
+módulo base del dominio
+módulo transversal
+módulo autónomo
+módulo agrupador
+módulo derivado
+
+MÓDULO BASE DEL DOMINIO
+
+Caso actual:
+
+parties
+
+Representa la base relacional principal del negocio.
+
+MÓDULO TRANSVERSAL
+
+Caso actual:
+
+attachments
+
+Representa una capacidad reusable embebida o delegada al recurso padre.
+
+MÓDULO AUTÓNOMO
+
+Casos actuales relevantes:
+
+tasks
+appointments
+assets
+products
+orders
+
+Poseen identidad operativa propia.
+
+MÓDULO AGRUPADOR
+
+Caso actual:
+
+projects
+
+Agrupa y da lectura agregada sobre tasks.
+
+MÓDULO DERIVADO
+
+Caso actual:
+
+documents respecto de orders
+
+Formaliza o prolonga documentalmente una operación más nuclear.
+
+Regla:
+
+esta clasificación debe utilizarse para decidir integraciones y evitar jerarquías falsas
+<<END SECTION>>
+
+<<SECTION: CONTRATO MODULAR CONCEPTUAL>>
+SECTION_VERSION: 00001
+
+CONTRATO MODULAR CONCEPTUAL
+
+Cada módulo principal del sistema debe poder describirse conceptualmente mediante:
+
+núcleo
+relaciones que consume
+relaciones que ofrece
+superficie contractual visible
+
+NÚCLEO
+
+Lo que el módulo resuelve por sí mismo.
+
+RELACIONES QUE CONSUME
+
+Lo que toma del ecosistema para ampliar su operación.
+
+RELACIONES QUE OFRECE
+
+Lo que deja disponible a otros módulos.
+
+SUPERFICIE CONTRACTUAL VISIBLE
+
+Piezas conceptuales reutilizables que otros módulos podrían consumir.
+
+Ejemplos:
+
+selector
+tabla embebida
+summary reusable
+acción contextual
+lookup mínimo
+
+Regla:
+
+esta sección no define implementación técnica obligatoria
+
+define cómo pensar el crecimiento del ecosistema modular
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL DE CRECIMIENTO>>

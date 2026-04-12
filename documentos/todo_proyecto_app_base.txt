@@ -10,23 +10,192 @@ Para actualizar una sección, se reemplaza el bloque completo entre ambos delimi
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
+SECTION_VERSION: 00002
+
 OBJETIVO
 
-Este documento funciona como memoria operativa del proyecto.
+Este documento concentra pendientes reales, tareas de mejora y líneas activas de evolución del proyecto app-base.
 
-Su finalidad es registrar:
+Su función es:
 
-pendientes reales
-mejoras concretas
-refactors necesarios
-ideas futuras resumidas
+priorizar trabajo pendiente
+ordenar próximas decisiones
+evitar pérdida de temas relevantes
+traducir doctrina aprobada en acciones concretas
+mantener foco operativo del roadmap
 
-No debe contener doctrina general del sistema.
+No reemplaza:
 
-Las decisiones estructurales deben vivir en:
+documentos doctrinales
+contratos de seguridad
+convenciones de implementación
+mapas conceptuales
 
-CONTEXTO-FIJO-DEL-PROYECTO
-CONVENCIONES-DEL-PROYECTO
+Aclaración consolidada:
+
+todo ítem aquí listado debe representar trabajo real, necesidad validada o deuda técnica concreta
+
+no debe utilizarse como depósito de ideas difusas sin criterio de ejecución
+<<END SECTION>>
+
+<<SECTION: LÍNEA ACTIVA — RECONVERSIÓN MODULAR>>
+SECTION_VERSION: 00001
+
+LÍNEA ACTIVA — RECONVERSIÓN MODULAR
+
+Convertir la nueva doctrina modular aprobada en implementación real del sistema.
+
+Prioridades inmediatas:
+
+auditar módulos existentes contra contrato modular
+detectar núcleos mezclados con integraciones puntuales
+migrar capacidades repetidas a superficies reutilizables
+reducir cambios dispersos entre módulos ante nuevas relaciones
+alinear documentación restante con arquitectura vigente
+
+Criterio:
+
+no rehacer por rehacer
+
+priorizar piezas con mayor impacto sistémico
+<<END SECTION>>
+
+<<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
+SECTION_VERSION: 00001
+
+MÓDULOS PRIORITARIOS A REVISAR
+
+ORDERS
+
+módulo piloto natural de reconversión contractual
+
+Revisar:
+
+núcleo actual vs integraciones agregadas
+superficie reusable publicada
+orders_items delegados al padre
+create contextuales unificados
+bloques summary reutilizables
+tablas embebidas exportables
+
+TASKS
+
+Revisar:
+
+autonomía plena respecto de projects
+capacidades internas tipo mensajería o seguimiento
+generación futura automática por eventos o desvíos
+surface reusable para integraciones
+
+PROJECTS
+
+Revisar:
+
+rol agrupador real
+métricas agregadas
+consumo limpio de tasks sin absorber identidad
+
+DOCUMENTS
+
+Revisar:
+
+rol derivado respecto de orders
+flujos de creación desde órdenes
+superficies reutilizables documentales
+
+APPOINTMENTS
+
+Revisar:
+
+derivación limpia hacia orders
+agenda reusable
+bloques contextuales
+
+ASSETS / PRODUCTS
+
+Revisar:
+
+selectores comunes
+summaries técnicos
+relaciones cruzadas consistentes
+<<END SECTION>>
+
+<<SECTION: CAPACIDADES REUTILIZABLES A CONSOLIDAR>>
+SECTION_VERSION: 00001
+
+CAPACIDADES REUTILIZABLES A CONSOLIDAR
+
+Detectar, unificar o publicar como piezas estándar:
+
+selectores de entidades principales
+tablas embebidas por módulo
+summary blocks
+acciones contextuales create/open related
+payloads mínimos de lookup
+bloques de relación reutilizables
+toolbars contextuales consistentes
+
+Regla:
+
+si una capacidad se repite en varios lugares, debe evaluarse moverla al módulo oferente como superficie reusable oficial
+<<END SECTION>>
+
+NUEVA SECCIÓN PROPUESTA EN: todo_proyecto_app_base
+
+<<SECTION: SEGURIDAD Y CONTRATOS PENDIENTES>>
+SECTION_VERSION: 00001
+
+SEGURIDAD Y CONTRATOS PENDIENTES
+
+Verificar por módulo:
+
+contrato de seguridad explícito
+create contextual correcto
+dataset bajo Security::scope(...)
+delegación correcta en entidades hijas
+ausencia de bypasses entre módulos
+acciones UI alineadas con permisos reales
+constraints documentadas cuando existan
+
+Priorizar auditorías sobre módulos con mayor integración cruzada.
+<<END SECTION>>
+
+<<SECTION: DEUDA TÉCNICA A REDUCIR>>
+SECTION_VERSION: 00001
+
+DEUDA TÉCNICA A REDUCIR
+
+Buscar y corregir progresivamente:
+
+duplicaciones visuales evitables
+selectores paralelos
+queries fuera de scope efectivo
+breadcrumbs manuales innecesarios
+lógica repetida en controllers
+componentes legacy no reutilizados
+JS o CSS muerto
+flujos contextuales inconsistentes
+excepciones por módulo que deberían ser patrón general
+<<END SECTION>>
+
+NUEVA SECCIÓN PROPUESTA EN: todo_proyecto_app_base
+
+<<SECTION: ORDEN SUGERIDO DE EJECUCIÓN>>
+SECTION_VERSION: 00001
+
+ORDEN SUGERIDO DE EJECUCIÓN
+
+cerrar documentación restante
+auditar orders como módulo piloto
+normalizar capacidades reutilizables visibles
+revisar seguridad e integraciones de módulos críticos
+expandir reconversión al resto de módulos
+limpiar deuda técnica detectada
+documentar patrones finales consolidados
+
+Regla:
+
+cada paso debe dejar menos excepciones que el anterior
 <<END SECTION>>
 
 <<SECTION: ESTADO ACTUAL DEL SISTEMA>>
@@ -525,6 +694,27 @@ pendientes reales
 mejoras concretas
 refactors necesarios
 ideas futuras resumidas
+<<END SECTION>>
+
+<<SECTION: CRITERIO FINAL>>
+SECTION_VERSION: 00001
+
+CRITERIO FINAL
+
+El backlog correcto no es el que acumula más tareas.
+
+Es el que transforma decisiones aprobadas en mejoras reales del sistema.
+
+Priorizar siempre:
+
+impacto sistémico
+reducción de complejidad
+consistencia entre módulos
+seguridad correcta
+reutilización
+mantenibilidad futura
+
+Si un pendiente no mejora el sistema o no responde a una necesidad validada, debe revisarse antes de ejecutarse.
 <<END SECTION>>
 
 <<SECTION: AUTENTICACIÓN Y SEGURIDAD>>

@@ -10,23 +10,59 @@ Para actualizar una sección, se reemplaza el bloque completo entre ambos delimi
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
+SECTION_VERSION: 00002
+
 OBJETIVO
 
-Este documento define la forma correcta de ejecutar pruebas manuales con Tinker dentro del proyecto app-base.
+Este documento define criterios operativos para validar comportamiento real del sistema mediante Tinker.
 
-Su finalidad es:
+Su función es:
 
-evitar pruebas ambiguas o mal contextualizadas
-asegurar que las verificaciones reproduzcan el runtime real del sistema
-dejar una base operativa reusable para auditorías técnicas
-registrar datos mínimos ya validados para pruebas controladas
+probar runtime real
+verificar permisos efectivos
+auditar constraints
+inspeccionar relaciones activas
+reproducir flujos técnicos controlados
+reducir suposiciones durante auditorías
 
-Este documento no reemplaza:
+No reemplaza:
 
-<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
-<DOC_REF slug="contexto_fijo_proyecto_app_base">Contexto fijo del proyecto</DOC_REF>
+tests automatizados
+documentación doctrinal
+auditorías funcionales completas
 
-Este documento traduce esas reglas a una forma operativa concreta de uso en Tinker.
+Aclaración consolidada:
+
+cuando exista diferencia entre una hipótesis teórica y lo observado en Tinker sobre runtime real, debe investigarse el código vigente y no sostener supuestos no verificados
+<<END SECTION>>
+
+<<SECTION: 🆕 PRINCIPIOS DE USO>>
+SECTION_VERSION: 00001
+
+PRINCIPIOS DE USO
+
+Regla central:
+
+no asumir
+no suponer
+verificar
+
+Toda prueba debe intentar reproducir el comportamiento real del sistema con el menor nivel posible de simulación artificial.
+
+Priorizar:
+
+modelos reales
+usuarios reales de prueba
+tenants reales de prueba
+datos persistidos reales
+servicios del sistema cuando corresponda
+
+Evitar:
+
+arrays inventados si existe dato real disponible
+resolvers aislados cuando debe probarse Security
+validaciones parciales si el flujo real exige contexto completo
+conclusiones basadas en una sola observación débil
 <<END SECTION>>
 
 <<SECTION: REGLA CENTRAL>>
@@ -162,6 +198,57 @@ Regla:
 estos datos pueden usarse como contexto base de ejemplo mientras no cambien.
 
 No extender esta sección con otros usuarios, tenants o ids no validados explícitamente.
+<<END SECTION>>
+
+<<SECTION: CASOS PRIORITARIOS DE USO>>
+SECTION_VERSION: 00002
+
+CASOS PRIORITARIOS DE USO
+
+Usar Tinker especialmente para:
+
+permisos V2 efectivos
+constraints y allowed_kinds
+módulos habilitados por tenant
+dataset real bajo scope
+bindings multi-tenant
+inspección de relaciones
+debug de create contextual
+delegación de entidades hijas
+flujos entre módulos
+auditorías rápidas sobre runtime
+
+Regla adicional consolidada:
+
+cuando una integración entre módulos genere dudas, priorizar prueba directa del contrato consumido y del arbitraje efectivo antes de modificar código
+<<END SECTION>>
+
+<<SECTION: 🆕 PATRÓN GENERAL DE PRUEBA>>
+SECTION_VERSION: 00001
+
+PATRÓN GENERAL DE PRUEBA
+
+Toda prueba relevante debería intentar responder:
+
+qué quiero validar
+con qué usuario
+en qué tenant
+sobre qué módulo
+con qué contexto funcional
+cuál sería el resultado esperado
+cuál fue el resultado real
+
+Secuencia recomendada:
+
+resolver usuario
+resolver tenant
+setear contexto si aplica
+cargar recurso real
+ejecutar consulta real
+comparar resultado esperado vs real
+anotar hallazgo
+
+Si falta alguno de esos elementos, la conclusión puede quedar incompleta.
 <<END SECTION>>
 
 <<SECTION: BOOTSTRAP BASE RECOMENDADO PARA TINKER>>

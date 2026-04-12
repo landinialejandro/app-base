@@ -10,14 +10,27 @@ Para actualizar una sección, se reemplaza el bloque completo entre ambos delimi
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
+SECTION_VERSION: 00002
+
 OBJETIVO
 
-Este checklist define los mínimos obligatorios al crear un módulo nuevo en el proyecto.
+Este documento define el checklist obligatorio para crear, incorporar o reconvertir módulos dentro de app-base.
 
-Debe utilizarse como control de consistencia antes de considerar el módulo integrado al core.
+Su función es:
 
-No reemplaza la revisión técnica.
-Funciona como piso común obligatorio.
+reducir omisiones
+forzar consistencia arquitectónica
+alinear seguridad, dominio y UI
+evitar módulos incompletos
+mantener coherencia entre implementaciones nuevas y existentes
+
+No es una guía opcional.
+
+Es un control mínimo obligatorio antes de considerar un módulo como integrado al sistema.
+
+Aclaración doctrinal consolidada:
+
+este checklist aplica tanto a módulos nuevos como a reconversiones profundas de módulos existentes cuando cambie su contrato funcional, contractual o de seguridad
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA GENERAL>>
@@ -35,6 +48,285 @@ validaciones mínimas implementadas
 tenant resuelto correctamente
 autorización revisada
 documentación actualizada
+<<END SECTION>>
+
+<<SECTION: REGLA GENERAL>>
+SECTION_VERSION: 00002
+
+REGLA GENERAL
+
+Ningún módulo debe considerarse terminado por tener tablas, rutas o CRUD funcionando.
+
+Un módulo solo puede considerarse integrado cuando supera este checklist en forma coherente.
+
+Orden correcto:
+
+definir contrato conceptual
+definir contrato de seguridad
+definir relaciones reales necesarias
+definir superficie de integración
+implementar
+auditar
+ajustar documentación afectada
+
+Nunca al revés.
+
+Regla adicional consolidada:
+
+si una integración nueva requiere reabrir arbitrariamente el núcleo de otro módulo, primero debe revisarse si la necesidad puede resolverse consumiendo una capacidad ya publicada por ese módulo o evolucionando su superficie contractual propia
+<<END SECTION>>
+
+<<SECTION: BLOQUE 0 — IDENTIDAD DEL MÓDULO>>
+SECTION_VERSION: 00001
+
+BLOQUE 0 — IDENTIDAD DEL MÓDULO
+
+Antes de cualquier decisión técnica debe quedar definida la identidad del módulo.
+
+Validar:
+
+nombre del módulo
+problema real que resuelve
+naturaleza principal del módulo
+posición conceptual en el ecosistema
+si es módulo nuevo o reconversión de uno existente
+
+Clasificación conceptual posible:
+
+módulo base del dominio
+módulo transversal
+módulo autónomo
+módulo agrupador
+módulo derivado
+
+Preguntas obligatorias:
+
+este módulo tiene identidad propia o es solo una entidad hija
+es realmente un módulo o una evolución de otro ya existente
+debe vivir por sí mismo o principalmente embebido
+qué rol ocupa dentro del ecosistema general
+
+Si estas respuestas no están claras, no debe avanzarse a implementación.
+<<END SECTION>>
+
+<<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
+SECTION_VERSION: 00001
+
+BLOQUE 1 — CONTRATO MODULAR
+
+Todo módulo debe poder describirse mediante un contrato modular mínimo.
+
+Validar:
+
+núcleo definido
+contrato de entrada definido
+contrato de salida definido
+oferta de integración definida o declarada como futura
+límites claros del módulo
+
+NÚCLEO
+
+Debe quedar claro qué resuelve por sí mismo.
+
+CONTRATO DE ENTRADA
+
+Debe quedar claro qué puede recibir desde sistema u otros módulos.
+
+CONTRATO DE SALIDA
+
+Debe quedar claro qué devuelve o expone.
+
+OFERTA DE INTEGRACIÓN
+
+Debe quedar claro qué capacidades reutilizables publica o prevé publicar.
+
+Preguntas obligatorias:
+
+qué pertenece realmente al núcleo
+qué integraciones deberían vivir fuera del núcleo
+qué debería consumir otro módulo sin tocar implementación interna
+qué puede publicarse hoy aunque todavía no tenga consumidor real
+<<END SECTION>>
+
+<<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
+SECTION_VERSION: 00001
+
+BLOQUE 2 — SEGURIDAD OBLIGATORIA
+
+Ningún módulo operativo puede entrar al sistema sin contrato de seguridad explícito.
+
+Validar:
+
+módulo registrado
+capacidades válidas
+scopes válidos
+constraints necesarias
+dataset visible
+reglas de create
+reglas de update
+reglas de delete
+si delega autorización al padre
+si requiere contexto funcional obligatorio
+
+Validar además:
+
+consumo correcto mediante Security
+ausencia de lógica paralela en controller
+ausencia de inferencias en Blade
+coherencia entre view_any y view
+
+Preguntas obligatorias:
+
+cómo autoriza realmente este módulo
+qué rompe si falta contexto
+qué acciones dependen de constraints
+qué dataset debe devolver Security::scope(...)
+<<END SECTION>>
+
+<<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
+SECTION_VERSION: 00001
+
+BLOQUE 3 — RELACIONES E INTEGRACIONES
+
+Toda relación con otros módulos debe justificarse por necesidad real del dominio.
+
+Validar:
+
+qué módulos consume
+qué módulos lo consumen
+si la relación depende de módulo habilitado
+si existe ya una capacidad reusable equivalente
+si la integración respeta contratos existentes
+si evita duplicaciones de selectores, tablas o summaries
+
+Preguntas obligatorias:
+
+esta relación agrega valor real o solo comodidad técnica
+puede resolverse con una capacidad ya publicada
+si falta una capacidad reusable, pertenece al módulo oferente
+la integración está reabriendo un núcleo ajeno sin necesidad
+
+Regla:
+
+ninguna integración válida debe bypassar seguridad ni crear contratos paralelos.
+<<END SECTION>>
+
+<<SECTION: BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA>>
+SECTION_VERSION: 00001
+
+BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA
+
+El módulo debe integrarse visualmente al sistema de forma coherente.
+
+Validar:
+
+index consistente
+show consistente
+formularios consistentes
+acciones visibles correctas
+mensajes claros
+embebidos consistentes
+toolbars alineadas
+componentes reusables aprovechados
+
+Si publica oferta de integración visual, validar:
+
+selector usable
+tabla embebida reusable
+summary legible
+acciones contextuales claras
+
+Preguntas obligatorias:
+
+la UI refleja el contrato real del módulo
+hay duplicaciones visuales evitables
+el módulo se siente parte del sistema o una excepción aislada
+<<END SECTION>>
+
+<<SECTION: BLOQUE 5 — DOCUMENTACIÓN Y CIERRE>>
+SECTION_VERSION: 00001
+
+BLOQUE 5 — DOCUMENTACIÓN Y CIERRE
+
+Ningún módulo debe cerrarse sin impacto documental revisado.
+
+Validar:
+
+contexto_fijo actualizado si cambia arquitectura
+convenciones actualizadas si cambia doctrina
+seguridad actualizada si cambia contrato de acceso
+mapa_entidades actualizado si cambia ecosistema
+mapa_navegacion actualizado si cambia recorridos reales
+base_visual actualizada si cambia patrón visual
+todo actualizado con pendientes reales
+
+Validar además:
+
+tests manuales o técnicos realizados
+contradicciones documentales inexistentes
+estado del módulo declarado
+
+Estados posibles:
+
+CONTRATO CERRADO
+EN REVISIÓN
+
+Regla:
+
+solo módulos con contrato cerrado deben usarse como patrón para nuevos desarrollos
+<<END SECTION>>
+
+<<SECTION: CHECKLIST MÍNIMO EXISTENTE>>
+SECTION_VERSION: 00002
+
+CHECKLIST MÍNIMO EXISTENTE
+
+Además de los bloques obligatorios anteriores, verificar como mínimo:
+
+modelo consistente
+migraciones correctas
+tenant scope correcto
+rutas coherentes
+controllers limpios
+requests correctos
+policies alineadas
+Security correctamente consumido
+vistas consistentes
+componentes reusables aprovechados
+relaciones necesarias reales
+documentación impactada revisada
+sin código muerto evidente
+sin duplicaciones evitables
+sin bypasses de seguridad
+
+Este bloque resume mínimos técnicos, pero no reemplaza el checklist completo.
+<<END SECTION>>
+
+<<SECTION: CRITERIO FINAL DE APROBACIÓN>>
+SECTION_VERSION: 00002
+
+CRITERIO FINAL DE APROBACIÓN
+
+Un módulo no se aprueba por cantidad de código implementado.
+
+Se aprueba cuando:
+
+su identidad es clara
+su núcleo está delimitado
+sus contratos son coherentes
+su seguridad está cerrada
+sus integraciones son sanas
+su UI es consistente
+su documentación quedó alineada
+
+Preguntas finales obligatorias:
+
+este módulo mejora el ecosistema o agrega ruido
+podrá crecer sin romper otros módulos
+puede integrarse sin refactors innecesarios futuros
+podría usarse como patrón de calidad para el próximo módulo
+
+Si la respuesta es no o dudosa, el módulo debe seguir en revisión.
 <<END SECTION>>
 
 <<SECTION: MODELO Y MIGRACIÓN>>

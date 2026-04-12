@@ -10,22 +10,34 @@ Para actualizar una sección, se reemplaza el bloque completo entre ambos delimi
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
+SECTION_VERSION: 00002
+
 OBJETIVO
 
-Este documento describe el mapa actual de navegación funcional entre módulos y pantallas del sistema app-base.
+Este documento define el mapa vigente de navegación, recorridos funcionales y relaciones visibles entre módulos de app-base.
 
-Su finalidad es:
+Su función es:
 
-visualizar recorridos reales entre módulos relacionados
-detectar qué flujos aceptan trail heredado
-separar navegación real de mapa de entidades
-servir como referencia rápida para auditorías de breadcrumb, volver, redirects y navbar/sidebar
+describir recorridos reales del sistema
+ordenar navegación principal y contextual
+documentar accesos entre módulos
+evitar flujos inconsistentes
+guiar futuras ampliaciones de navegación
 
-Este documento no reemplaza:
+No define:
 
-<DOC_REF slug="mapa_entidades_app_base">Mapa de entidades</DOC_REF>
-<DOC_REF slug="convenciones_proyecto_app_base">Convenciones del proyecto</DOC_REF>
-<DOC_REF slug="todo_proyecto_app_base">Todo del proyecto</DOC_REF>
+seguridad doctrinal
+modelo conceptual completo de entidades
+contratos modulares internos
+detalle visual de componentes
+
+Esos aspectos se resuelven en otros documentos.
+
+Regla consolidada:
+
+este documento describe navegación real o navegación objetivo ya validada
+
+no debe cargarse con teoría arquitectónica general que corresponda a otros documentos
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
@@ -57,6 +69,232 @@ si el módulo destino está deshabilitado:
 no deben renderizarse links
 no deben renderizarse accesos
 no debe existir navegación residual hacia ese módulo
+<<END SECTION>>
+
+<<SECTION: REGLAS DE LECTURA>>
+SECTION_VERSION: 00002
+
+REGLAS DE LECTURA
+
+Una relación en este documento significa acceso, recorrido o vínculo visible para el usuario dentro del sistema.
+
+No implica automáticamente:
+
+foreign key obligatoria
+permiso concedido
+implementación ya terminada
+visibilidad universal
+módulo siempre habilitado
+
+Toda navegación real sigue condicionada por:
+
+módulo habilitado para el tenant
+permiso efectivo
+estado funcional del recurso
+flujo operativo aplicable
+
+Tipos de navegación relevantes:
+
+estructural
+contextual
+embebida
+derivada
+
+NAVEGACIÓN ESTRUCTURAL
+
+Recorrido estable propio del módulo.
+
+Ejemplo:
+
+menú principal → index → show → edit
+
+NAVEGACIÓN CONTEXTUAL
+
+Recorrido originado desde otro módulo conservando contexto.
+
+Ejemplo:
+
+appointment.show → crear order contextual
+
+NAVEGACIÓN EMBEBIDA
+
+Consumo de tablas, bloques o relaciones dentro de otra pantalla.
+
+Ejemplo:
+
+orders embebidas dentro de asset.show
+
+NAVEGACIÓN DERIVADA
+
+Flujo donde una acción en un módulo genera o abre otro módulo como consecuencia operativa.
+
+Ejemplo:
+
+orders.show → crear document
+
+Regla:
+
+cuando existan varias rutas posibles, debe priorizarse la más consistente con NavigationTrail y con el flujo real del usuario
+<<END SECTION>>
+
+<<SECTION: NAVEGACIÓN PRINCIPAL TENANT>>
+SECTION_VERSION: 00003
+
+NAVEGACIÓN PRINCIPAL TENANT
+
+El tenant autenticado accede a una navegación principal compuesta por módulos habilitados para su empresa y visibles según permiso efectivo.
+
+Recorrido base:
+
+dashboard
+↓
+módulos habilitados
+↓
+index del módulo
+↓
+show del recurso
+↓
+acciones permitidas
+
+Módulos operativos principales actuales:
+
+projects
+tasks
+appointments
+assets
+products
+orders
+documents
+
+Módulos base o transversales visibles según implementación:
+
+parties
+attachments principalmente como navegación embebida o contextual
+
+Reglas:
+
+no mostrar módulos no habilitados
+no mostrar acciones no permitidas
+no asumir igualdad de menú entre tenants distintos
+la navegación principal debe reflejar contrato real del sistema y no solo existencia técnica de rutas
+<<END SECTION>>
+
+<<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
+SECTION_VERSION: 00003
+
+NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
+
+Las relaciones entre módulos deben priorizar navegación contextual cuando mejora continuidad operativa del usuario.
+
+Flujos relevantes actuales:
+
+tasks.show
+→ crear / abrir order relacionada
+
+appointments.show
+→ crear / abrir order relacionada
+
+assets.show
+→ ver órdenes relacionadas
+→ crear order contextual
+→ ver documents relacionados
+
+parties.show
+→ ver relaciones operativas
+→ crear accesos contextuales según módulo habilitado
+
+orders.show
+→ crear document derivado
+→ ver party relacionada
+→ ver asset relacionado
+→ gestionar items
+→ gestionar attachments si aplica
+
+documents.show
+→ volver a order origen cuando exista
+→ ver party relacionada
+→ ver asset relacionado
+
+projects.show
+→ navegar tareas relacionadas
+
+Reglas:
+
+debe preservarse NavigationTrail cuando exista contexto válido
+cancelar o volver debe respetar origen funcional cuando corresponda
+si no existe contexto válido, usar navegación estructural estándar
+no crear variantes manuales de breadcrumbs por módulo si ya existe motor común
+<<END SECTION>>
+
+<<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
+SECTION_VERSION: 00002
+
+RELACIONES EMBEBIDAS EN SHOW PAGES
+
+Las show pages pueden exponer relaciones mediante bloques embebidos consistentes.
+
+Casos actuales o consolidados:
+
+asset.show
+orders relacionadas
+documents relacionados
+attachments
+
+party.show
+relaciones operativas según módulos activos
+
+project.show
+tasks relacionadas
+métricas agregadas
+
+order.show
+items
+attachments
+acciones derivadas
+relaciones principales
+
+document.show
+items
+attachments cuando aplique
+relaciones principales
+
+Reglas:
+
+priorizar componentes reusables
+evitar duplicación de tablas equivalentes
+si una relación ya posee bloque reusable válido, reutilizarlo
+las relaciones embebidas no deben reemplazar navegación estructural cuando abrir el recurso completo agrega valor
+<<END SECTION>>
+
+<<SECTION: FLUJOS DERIVADOS RELEVANTES>>
+SECTION_VERSION: 00002
+
+FLUJOS DERIVADOS RELEVANTES
+
+task
+→ order
+
+appointment
+→ order
+
+order
+→ document
+
+order_items
+→ document_items por copia funcional cuando corresponda
+
+signup_request aprobado
+→ invitation owner_signup
+→ tenant inicializado
+→ owner onboarding
+
+Reglas:
+
+un flujo derivado expresa continuidad operativa entre módulos con identidad propia
+
+no implica subordinación conceptual absoluta del módulo destino respecto del origen
+
+si el flujo derivado requiere contexto, debe preservar seguridad y trail correspondiente
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN GENERAL DE MÓDULOS>>
@@ -460,6 +698,27 @@ bloques visuales
 referencias indirectas
 
 especialmente en flujos desde appointments hacia orders y assets
+<<END SECTION>>
+
+<<SECTION: CRITERIO FINAL>>
+SECTION_VERSION: 00002
+
+CRITERIO FINAL
+
+La navegación correcta del sistema no es la que muestra más enlaces.
+
+Es la que permite al usuario llegar de forma clara, segura y coherente a la acción que necesita.
+
+Una relación visible entre módulos se justifica cuando:
+
+mejora continuidad operativa
+reduce fricción real
+respeta permisos
+respeta módulos habilitados
+mantiene contexto útil
+no duplica caminos innecesarios
+
+Si una relación existe técnicamente pero no cumple estos criterios, no debe priorizarse como navegación visible.
 <<END SECTION>>
 
 <<SECTION: RELACIÓN CON OTROS DOCUMENTOS>>

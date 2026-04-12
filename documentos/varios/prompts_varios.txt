@@ -1,11 +1,3 @@
-🔥 Recordatorio rápido de uso
-Terminás sesión → Prompt 1
-Copiás resultado → Prompt 2
-Copiás bloques
-Ejecutás:
-appdocs
-
-------------------------------------------------
 
 CIERRE DE SESIÓN – DETECCIÓN DE ACTUALIZACIONES DOCUMENTALES
 

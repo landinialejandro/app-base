@@ -1,12 +1,12 @@
 <<SECTION: METADATOS>>
+SECTION_VERSION: 00002
+
 TÍTULO: Convenciones del proyecto
 DOC_SLUG: convenciones_proyecto_app_base
-DOC_VERSION: 00000
-
-METODOLOGÍA DE EDICIÓN:
-Este archivo se actualiza por reemplazo completo de bloques delimitados.
-Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
-Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
+DOC_VERSION: 00001
+TIPO: doctrinal
+ESTADO: activo
+GESTIÓN: La gobernanza documental, versionado y formato de intercambio se definen en este mismo documento.
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DEL DOCUMENTO>>
@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00006
 
 CONVENCIONES GENERALES
 
@@ -46,7 +46,7 @@ la base documental técnica del proyecto debe tender a una estructura homogénea
 
 los documentos técnicos activos deben utilizar:
 
-bloque <<SECTION: METADATOS>>
+bloque estructural de metadatos
 TÍTULO como nombre humano del documento
 DOC_SLUG como identificador técnico canónico
 DOC_VERSION como versión general del documento
@@ -79,6 +79,23 @@ las pruebas manuales con Tinker forman parte del proceso real de validación té
 cuando el caso toque permisos, constraints, multi-tenancy o runtime real, debe utilizarse la guía operativa vigente y no una prueba abstracta improvisada
 
 <DOC_REF slug="guia_tinker_proyecto_app_base">Guía operativa de pruebas con Tinker</DOC_REF>
+
+Convención modular consolidada:
+
+los módulos del sistema deben entenderse como unidades funcionales cerrables equivalentes a mini apps internas del tenant
+
+cada módulo debe tender a describirse mediante:
+
+núcleo propio
+contrato de entrada
+contrato de salida
+contrato de seguridad
+oferta de integración
+
+esta convención no obliga a que todos los módulos publiquen desde el inicio todas sus capacidades reutilizables
+
+sí obliga a que, cuando las publiquen o consuman, lo hagan bajo contrato claro y sin reabrir arbitrariamente el núcleo de otros módulos
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE NOMBRES>>
@@ -176,7 +193,7 @@ No debe utilizarse desactivación global de users para resolver bajas, bloqueos 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ACCESO POR MÓDULO Y ROLES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 CONVENCIONES DE ACCESO POR MÓDULO Y ROLES
 
@@ -224,6 +241,229 @@ view_any debe ser igual o más amplio que view
 
 no debe existir un contrato donde view_any quede más restringido que view para el mismo módulo
 
+Regla modular adicional:
+
+todo módulo debe poseer su propio contrato de seguridad
+
+ese contrato se consume siempre bajo arbitraje de la capa central
+
+la publicación de capacidades reutilizables por parte de un módulo no crea canales paralelos de autorización
+
+las integraciones entre módulos deben respetar el contrato del módulo oferente y no reinterpretarlo desde el módulo consumidor
+<<END SECTION>>
+
+<<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
+SECTION_VERSION: 00001
+
+CONVENCIONES DE CONTRATO MODULAR
+
+Todo módulo operativo del sistema debe poder describirse mediante un contrato modular explícito.
+
+Ese contrato no reemplaza la implementación ni la documentación específica del módulo.
+
+La ordena.
+
+Capas mínimas esperadas del contrato modular:
+
+núcleo
+contrato de entrada
+contrato de salida
+contrato de seguridad
+oferta de integración
+
+NÚCLEO
+
+El núcleo del módulo describe aquello que el módulo resuelve por sí mismo.
+
+Incluye, según corresponda:
+
+entidad o agregado principal
+flujo base
+CRUD o acciones principales
+reglas operativas propias
+navegación estructural base
+recursos hijos propios
+comportamientos internos del módulo
+
+Regla:
+
+el núcleo no debe reabrirse por cada integración nueva solicitada desde otros módulos salvo que cambie realmente el contrato interno del propio módulo.
+
+CONTRATO DE ENTRADA
+
+El contrato de entrada define qué puede recibir el módulo desde el sistema o desde otros módulos.
+
+Puede incluir, según el caso:
+
+contexto funcional
+ids relacionales válidos
+trail compatible
+datos mínimos de precompletado
+origen de creación contextual
+disparadores internos del sistema
+
+Reglas:
+
+no asumir entradas implícitas no declaradas
+no abrir canales paralelos de entrada por conveniencia de implementación
+no resolver create contextuales con patrones distintos si el mismo contrato ya puede absorberlos
+
+CONTRATO DE SALIDA
+
+El contrato de salida define qué devuelve o expone el módulo hacia otros módulos o hacia capas consumidoras del sistema.
+
+Puede incluir, según el caso:
+
+referencia resumida del registro
+summary reusable
+payload mínimo de lookup
+relación enlazable
+dataset embebible
+acción derivada
+compatibilidad con trail contextual
+
+Regla:
+
+el contrato de salida debe tender a estabilizarse para que otras integraciones consuman capacidades del módulo sin reabrir su núcleo.
+
+OFERTA DE INTEGRACIÓN
+
+La oferta de integración expresa qué capacidades reutilizables publica el módulo para consumo de otros módulos.
+
+Puede incluir, según el caso:
+
+selector reusable
+tabla embebida reusable
+summary enlazable
+acciones contextuales
+create contextual compatible
+bloques de relación derivados
+catálogos o adaptadores de integración
+
+Reglas:
+
+un módulo puede publicar oferta de integración aunque todavía no exista un consumidor actual
+la ausencia temporal de consumidor no invalida la oferta
+la publicación de la oferta pertenece al módulo oferente y no debe imponerse desde afuera como excepción ad hoc
+
+CONTRATO DE SEGURIDAD
+
+El contrato de seguridad del módulo no se define en esta sección sino en:
+
+<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
+
+Regla obligatoria:
+
+ningún contrato modular es válido si contradice el contrato de seguridad del módulo o el arbitraje central del sistema
+<<END SECTION>>
+
+<<SECTION: CONVENCIONES DE CLASIFICACIÓN MODULAR>>
+SECTION_VERSION: 00001
+
+CONVENCIONES DE CLASIFICACIÓN MODULAR
+
+Los módulos del sistema pueden cumplir distintas posiciones funcionales dentro del ecosistema general.
+
+Esta clasificación no reemplaza el modelado del dominio ni el contrato de seguridad.
+
+Ayuda a evitar decisiones de integración inconsistentes.
+
+Tipos conceptuales principales:
+
+módulo base del dominio
+módulo transversal
+módulo autónomo
+módulo agrupador
+módulo derivado
+
+MÓDULO BASE DEL DOMINIO
+
+Es una pieza conceptual fundamental del negocio y no debe tratarse como módulo opcional ordinario si el proyecto ya lo reconoce como base intrínseca del sistema.
+
+Caso actual consolidado:
+
+parties
+
+MÓDULO TRANSVERSAL
+
+Es un módulo cuya función principal es integrarse en otros módulos o recursos y no necesariamente vivir como navegación principal independiente.
+
+Caso actual consolidado:
+
+attachments
+
+MÓDULO AUTÓNOMO
+
+Es un módulo con identidad operativa propia que puede vivir por sí mismo aunque también participe en relaciones con otros módulos.
+
+Regla:
+
+su agrupación o vinculación con otros módulos no debe degradarlo a simple subrecurso si conserva función propia.
+
+Caso doctrinal relevante:
+
+tasks
+
+MÓDULO AGRUPADOR
+
+Es un módulo cuya función principal es ordenar, contextualizar o dar lectura agregada sobre otros módulos sin agotar completamente la identidad de esos módulos relacionados.
+
+Caso doctrinal relevante:
+
+projects como agrupador de tasks
+
+MÓDULO DERIVADO
+
+Es un módulo que nace o se entiende principalmente como formalización, consecuencia o prolongación operativa de otro módulo más nuclear.
+
+Caso doctrinal relevante:
+
+documents respecto de orders
+
+Reglas generales:
+
+la clasificación funcional del módulo debe ayudar a definir su contrato y su superficie de integración
+la clasificación no autoriza excepciones de seguridad
+la clasificación no debe forzar jerarquías falsas de dependencia existencial cuando el módulo conserva identidad propia
+<<END SECTION>>
+
+<<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
+SECTION_VERSION: 00001
+
+CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
+
+La integración entre módulos debe resolverse como consumo de contratos y no como invasión del núcleo del módulo destino.
+
+Reglas:
+
+si un módulo consumidor necesita relacionarse con otro módulo, debe priorizar el consumo de la superficie contractual ya expuesta por el módulo oferente
+
+no debe reabrirse el núcleo del módulo destino por cada integración nueva salvo que cambie su propio contrato interno
+
+no deben proliferar variantes paralelas de:
+
+selectores
+tablas embebidas
+bloques summary
+acciones contextuales
+create contextuales
+payloads mínimos de referencia
+
+si el módulo oferente ya dispone de una capacidad reusable válida, debe reutilizarse antes de crear una variante específica en el consumidor
+
+si la capacidad reusable todavía no existe y realmente pertenece al módulo oferente, su incorporación debe tratarse como evolución del propio módulo oferente
+
+no debe tratarse como excepción permanente alojada en el módulo consumidor
+
+Regla de consumo seguro:
+
+toda integración entre módulos sigue sujeta al arbitraje central de seguridad
+
+Regla de crecimiento:
+
+un módulo puede dejar publicadas capacidades de integración como oferta futura aun cuando todavía no existan consumidores concretos
+
+esto favorece estabilidad contractual y reduce refactors futuros dispersos
 <<END SECTION>>
 
 <<SECTION: ROLECATALOG Y MODULECATALOG>>
@@ -313,6 +553,8 @@ order_items copiados hacia documentos derivados
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ENTIDADES HIJAS>>
+SECTION_VERSION: 00002
+
 CONVENCIONES DE ENTIDADES HIJAS
 
 Las entidades hijas deben cumplir:
@@ -337,6 +579,12 @@ no debe modelarse una autorización autónoma innecesaria para la entidad hija s
 si existiera una policy propia, debe limitarse a delegar explícitamente en el padre y no duplicar doctrina paralela
 
 attachments sigue el mismo criterio general de delegación al recurso padre aunque no sea una entidad hija cabecera/detalle clásica
+
+Regla modular adicional:
+
+las entidades hijas no deben confundirse con módulos autónomos ni con módulos agrupados
+
+que una entidad dependa funcionalmente de una cabecera no implica que todo módulo relacionado deba modelarse como entidad hija
 
 cualquier excepción a esta regla debe justificarse por necesidad real del dominio y no por comodidad de implementación
 <<END SECTION>>
@@ -581,13 +829,16 @@ cuando un _form utilice un wrapper raíz para agrupar múltiples .form-group, es
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE MÓDULOS TRANSVERSALES>>
+SECTION_VERSION: 00002
+
 CONVENCIONES DE MÓDULOS TRANSVERSALES
 
 Un módulo transversal es aquel que:
 
-no tiene navegación principal propia
-se integra dentro del show de otros módulos
+no tiene navegación principal propia como rasgo dominante
+se integra dentro del show de otros módulos o recursos
 puede tener pantallas propias para acciones como create o edit
+ofrece capacidades reutilizables sin convertirse necesariamente en módulo nuclear del dominio
 
 Reglas:
 
@@ -602,6 +853,12 @@ no debe depender de nombres de clase del backend en el frontend
 debe poder evolucionar en el futuro hacia una vista independiente sin romper su base conceptual ni su integración actual
 
 cuando un patrón transversal se repita en varios módulos, debe tender a resolverse con partials, componentes o catálogos reusables antes que con variantes aisladas por módulo
+
+Regla adicional:
+
+un módulo transversal también puede publicar oferta contractual reusable para otros módulos
+
+esa publicación debe pertenecer al propio módulo transversal y no a implementaciones sueltas de cada consumidor
 
 Ejemplo actual de este patrón:
 
@@ -936,4 +1193,268 @@ esa decisión no debe dejarse implícita ni variar accidentalmente entre módulo
 en tablas embebidas o relacionales, el link principal de la fila debe consolidar primero el contexto completo de esa fila
 
 los links secundarios o relacionados de esa fila deben reutilizar ese mismo contexto y no reconstruirse desde la pantalla contenedora
+<<END SECTION>>
+
+<<SECTION: GOBERNANZA DOCUMENTAL>>
+SECTION_VERSION: 00003
+
+GOBERNANZA DOCUMENTAL
+
+La base documental activa del proyecto forma parte del sistema de trabajo real.
+
+No es material accesorio.
+
+Su función es conservar doctrina, decisiones vigentes, patrones operativos y criterios reutilizables.
+
+Toda modificación documental debe priorizar:
+
+claridad
+
+coherencia entre documentos
+
+facilidad de mantenimiento
+
+compatibilidad con automatización
+
+trazabilidad de cambios
+
+compatibilidad con visualización segura de documentos
+
+Reglas generales:
+
+no crear secciones por conveniencia momentánea
+
+no duplicar contenido ya resuelto en otro documento
+
+no mezclar backlog con doctrina estable
+
+no mezclar reglas técnicas con textos orientados a usuario final
+
+si un tema pertenece a otro documento, debe referenciarse mediante DOC_REF y no duplicarse
+
+los documentos activos deben tender a una estructura homogénea y previsible
+
+la documentación debe evolucionar junto con el sistema y no quedar como registro histórico desconectado
+
+no incluir dentro del cuerpo de documentos activos ejemplos literales que reproduzcan delimitadores estructurales reales del sistema documental si esos ejemplos pueden ser interpretados por el parser o por el visor como bloques válidos
+
+toda automatización documental debe apoyarse en el contrato real soportado por el script vigente y no en variantes informales de salida
+
+si el automatizador exige bloque completo, SECTION_VERSION y sección ancla para inserción, la doctrina documental debe exigir exactamente esos mismos elementos
+
+Toda incorporación, reemplazo o reorganización debe evaluarse también por impacto en el ecosistema documental completo.
+
+<<END SECTION>>
+
+<<SECTION: VERSIONADO DOCUMENTAL>>
+SECTION_VERSION: 00001
+
+VERSIONADO DOCUMENTAL
+
+El versionado documental distingue nivel documento y nivel sección.
+
+DOC_VERSION
+
+Representa cambios globales del documento.
+
+Debe incrementarse cuando ocurra alguno de estos casos:
+
+reorganización estructural relevante
+
+cambio doctrinal mayor
+
+múltiples secciones impactadas en una misma revisión
+
+cambio de alcance del documento
+
+normalización general del formato
+
+SECTION_VERSION
+
+Representa cambios internos de una sección específica.
+
+Debe incrementarse cuando cambie:
+
+contenido
+
+criterio operativo
+
+redacción sustancial
+
+estructura interna de esa sección
+
+Reglas:
+
+no incrementar versiones por cambios cosméticos mínimos
+
+toda sección modificada debe conservar continuidad de nombre salvo necesidad real
+
+si una sección reemplaza completamente otra con cambio conceptual fuerte, debe evaluarse nueva sección en lugar de renombre artificial
+
+la numeración debe mantener formato homogéneo del proyecto
+
+<<END SECTION>>
+
+<<SECTION: FORMATO DE INTERCAMBIO AUTOMATIZADO>>
+SECTION_VERSION: 00004
+
+FORMATO DE INTERCAMBIO AUTOMATIZADO
+
+Las actualizaciones documentales automatizadas deben respetar formato estricto compatible con el proceso PHP vigente del proyecto.
+
+La doctrina documental debe reflejar exactamente el contrato real del automatizador.
+
+No deben describirse formatos alternativos que el script no soporte.
+
+Para describir ese formato dentro de documentos activos debe utilizarse una convención de metarrepresentación y no la sintaxis ejecutable real.
+
+CONVENCIÓN DE METARREPRESENTACIÓN DEL FORMATO
+
+TOKEN_APERTURA
+
+representa el símbolo inicial utilizado por los delimitadores estructurales reales del sistema.
+
+TOKEN_CIERRE
+
+representa el símbolo final utilizado por los delimitadores estructurales reales del sistema.
+
+CABECERA_DE_REEMPLAZO
+
+representa la línea inicial que indica reemplazo de una sección existente en un documento identificado por DOC_SLUG.
+
+CABECERA_DE_NUEVA_SECCION
+
+representa la línea inicial que indica propuesta de alta de una nueva sección en un documento identificado por DOC_SLUG.
+
+SECCION_ANCLA_DE_INSERCION
+
+representa la instrucción obligatoria que indica después de qué sección existente debe insertarse una nueva sección.
+
+Debe identificar la sección ancla por su nombre exacto.
+
+INICIO_DE_SECCION
+
+representa la apertura del bloque estructural de una sección usando el nombre exacto correspondiente y los delimitadores oficiales del sistema.
+
+FIN_DE_SECCION
+
+representa el cierre del bloque estructural de una sección usando los delimitadores oficiales del sistema.
+
+SECTION_VERSION_LINE
+
+representa la línea de versión interna obligatoria de la sección.
+
+REGLAS OPERATIVAS
+
+La salida automatizada real debe materializar estas piezas exactamente con la sintaxis oficial vigente del proyecto.
+
+Dentro de documentos activos no deben escribirse delimitadores reales ni bloques ejecutables de ejemplo si pueden ser interpretados por el parser o por el visor documental como secciones válidas.
+
+Toda respuesta generada en modo automatizado debe seguir el formato oficial real y no esta representación abstracta.
+
+CONTRATO VÁLIDO DE REEMPLAZO
+
+Toda operación de reemplazo debe incluir:
+
+CABECERA_DE_REEMPLAZO
+INICIO_DE_SECCION
+SECTION_VERSION_LINE
+contenido completo de la sección
+FIN_DE_SECCION
+
+No se permiten:
+
+reemplazos parciales
+fragmentos internos
+cambios sin bloque completo
+cambios sin SECTION_VERSION
+
+CONTRATO VÁLIDO DE NUEVA SECCIÓN
+
+Toda operación de nueva sección debe incluir obligatoriamente:
+
+CABECERA_DE_NUEVA_SECCION
+SECCION_ANCLA_DE_INSERCION
+INICIO_DE_SECCION
+SECTION_VERSION_LINE
+contenido completo de la nueva sección
+FIN_DE_SECCION
+
+No se permiten:
+
+altas sin sección ancla
+altas con ubicación implícita
+altas con posición inferida por contexto
+altas sin SECTION_VERSION
+altas con nombre de ancla aproximado
+
+REGLAS OBLIGATORIAS DE SALIDA AUTOMATIZADA
+
+devolver siempre bloques completos
+
+usar nombre exacto de sección cuando ya exista
+
+usar nombre exacto de sección ancla cuando se trate de una inserción
+
+usar DOC_SLUG exacto
+
+respetar delimitadores oficiales vigentes
+
+incluir SECTION_VERSION con formato numérico homogéneo del proyecto
+
+no mezclar explicaciones dentro del bloque automatizado
+
+si el modo solicitado es automatizado, priorizar salida limpia y procesable
+
+Cualquier desviación de formato debe considerarse salida no compatible con automatización.
+
+<<END SECTION>>
+
+<<SECTION: CRITERIOS PARA NUEVAS SECCIONES>>
+SECTION_VERSION: 00003
+
+CRITERIOS PARA NUEVAS SECCIONES
+
+Una nueva sección solo debe crearse cuando aporte orden real al documento.
+
+Criterios válidos:
+
+el tema no encaja limpiamente en secciones existentes
+
+el contenido tendrá continuidad futura
+
+se evita mezclar responsabilidades distintas
+
+el nuevo bloque mejora lectura, mantenimiento o auditoría
+
+el tema posee identidad conceptual propia dentro del documento
+
+No crear nuevas secciones cuando:
+
+solo cambia una línea menor
+
+el contenido puede integrarse limpiamente en una sección vigente
+
+la separación agrega ruido estructural
+
+se intenta reflejar una necesidad transitoria de una sola sesión
+
+Reglas adicionales:
+
+cada sección debe tender a una responsabilidad principal
+
+el nombre debe ser claro, estable y descriptivo
+
+evitar renombres cosméticos innecesarios
+
+antes de crear una sección nueva, revisar si el contenido pertenece en realidad a otro documento del sistema
+
+si el documento debe explicar el formato técnico de salida automatizada, debe hacerlo de manera descriptiva y no reproduciendo dentro de su propio cuerpo los delimitadores reales que usa el parser
+
+si una nueva sección va a proponerse para inserción automatizada, debe definirse además una sección ancla exacta ya existente en el documento destino
+
+la inserción automatizada de nuevas secciones no debe depender de ubicación implícita, proximidad temática ni interpretación manual posterior
+
+si no existe una sección ancla clara y estable, primero debe revisarse si corresponde realmente crear la nueva sección o si conviene reorganizar el documento antes de automatizar la inserción
+
 <<END SECTION>>

@@ -10,6 +10,8 @@ Para actualizar una sección, se reemplaza el bloque completo entre ambos delimi
 <<END SECTION>>
 
 <<SECTION: Tipo de sistema>>
+SECTION_VERSION: 00001
+
 Tipo de sistema
 
 app-base es una plataforma SaaS multi-tenant desarrollada en Laravel.
@@ -19,6 +21,12 @@ Permite que múltiples empresas utilicen la misma aplicación manteniendo aislam
 Cada empresa dentro del sistema se denomina tenant.
 
 El objetivo del proyecto es construir una base ERP SaaS modular que permita gestionar operaciones empresariales reutilizando una arquitectura común y estable.
+
+Aclaración arquitectónica consolidada:
+
+el sistema no debe entenderse solo como una suma de CRUDs o módulos aislados
+
+debe entenderse como una plataforma modular compuesta por capas de gobierno, contexto operativo, seguridad transversal y módulos con identidad funcional propia
 <<END SECTION>>
 
 <<SECTION: Entorno técnico>>
@@ -210,6 +218,8 @@ dashboard
 <<END SECTION>>
 
 <<SECTION: Modelo conceptual del sistema>>
+SECTION_VERSION: 00001
+
 Modelo conceptual del sistema
 
 El sistema distingue entre:
@@ -220,10 +230,140 @@ Entidades del negocio
 Las entidades del sistema sostienen identidad, acceso, onboarding y administración global.
 
 Las entidades del negocio representan la operación propia de cada tenant y deben quedar aisladas por tenant_id.
+
+Aclaración conceptual consolidada:
+
+además de esta distinción por tipo de entidad, el sistema debe leerse por capas funcionales:
+
+capa global
+capa tenant
+capa de gobierno interno del tenant
+capa transversal de seguridad
+base transversal del dominio
+módulos funcionales del negocio
+
+Esta lectura por capas no reemplaza el modelado de entidades.
+
+Lo organiza.
+<<END SECTION>>
+
+<<SECTION: Modelo conceptual del sistema>>
+
+<<SECTION: Jerarquía general del sistema>>
+SECTION_VERSION: 00001
+
+Jerarquía general del sistema
+
+La arquitectura conceptual del sistema debe leerse en el siguiente orden jerárquico:
+
+app-base
+↓
+superadmin
+↓
+tenant
+↓
+owner y memberships activas
+↓
+capa transversal de seguridad
+↓
+base transversal del dominio
+↓
+módulos funcionales
+
+Esta jerarquía no implica que todos los elementos sean clases, tablas o recursos equivalentes entre sí.
+
+Expresa orden de gobierno, contexto y operación.
+
+Lectura correcta:
+
+superadmin gobierna el ecosistema general
+tenant define el contexto operativo de empresa
+owner gobierna la configuración operativa interna del tenant
+Security arbitra transversalmente el consumo válido del sistema
+los módulos funcionales operan dentro de ese marco
+
+Regla:
+
+no interpretar el sistema como una primera línea plana de módulos al mismo nivel conceptual
+
+el orden de capas forma parte del estado arquitectónico estable del proyecto
+<<END SECTION>>
+
+<<SECTION: Capas funcionales del sistema>>
+SECTION_VERSION: 00001
+
+Capas funcionales del sistema
+
+CAPA GLOBAL
+
+Corresponde al gobierno general del sistema fuera del flujo tenant.
+
+Incluye:
+
+superadmin
+landing pública
+signup_requests
+invitations de tipo owner_signup
+onboarding inicial de nuevas empresas
+habilitación de módulos por tenant
+
+CAPA TENANT
+
+Corresponde al contexto operativo de empresa.
+
+Incluye:
+
+tenant activo
+módulos habilitados para el tenant
+datos aislados por tenant_id
+configuración funcional del tenant
+
+CAPA DE GOBIERNO INTERNO DEL TENANT
+
+Corresponde al gobierno operativo dentro de la empresa activa.
+
+Incluye:
+
+owner
+memberships activas
+roles base
+permisos configurables sobre módulos habilitados
+
+CAPA TRANSVERSAL DE SEGURIDAD
+
+Corresponde al arbitraje central de acceso, visibilidad y consumo válido de módulos.
+
+Incluye:
+
+TenantModuleAccess
+RolePermissionResolver
+RecordScopeResolver
+CapabilityCatalog
+ModuleCatalog
+Security
+
+BASE TRANSVERSAL DEL DOMINIO
+
+Corresponde a piezas conceptuales o funcionales de uso amplio en el ecosistema del negocio.
+
+Casos actuales relevantes:
+
+parties
+attachments
+
+MÓDULOS FUNCIONALES
+
+Corresponden a las capacidades operativas del tenant.
+
+Incluyen los módulos del negocio y sus relaciones entre sí.
+
+Regla:
+
+esta lectura por capas debe prevalecer al pensar arquitectura, documentación y refactorización del sistema
 <<END SECTION>>
 
 <<SECTION: Entidades del negocio>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 Entidades del negocio
 
@@ -263,6 +403,17 @@ una representación clara en UI
 una sección correspondiente en la documentación de usuario
 
 esto refuerza el modelo del sistema como ERP utilizable desde el primer momento
+
+Aclaración modular adicional:
+
+no todas las entidades del negocio cumplen el mismo rol conceptual dentro del ecosistema
+
+algunas operan como base transversal
+otras como módulos autónomos
+otras como agrupadores
+otras como derivadas de una operación más nuclear
+
+esta clasificación conceptual debe considerarse parte del estado actual del proyecto
 <<END SECTION>>
 
 <<SECTION: Entidades del sistema y acceso>>
@@ -291,6 +442,8 @@ Por esta razón, no debe interpretarse como una entidad del negocio tenant-scope
 <<END SECTION>>
 
 <<SECTION: Entidad base del negocio>>
+SECTION_VERSION: 00001
+
 Entidad base del negocio
 
 La entidad base para personas u organizaciones es:
@@ -318,9 +471,19 @@ La asignación interna de responsabilidad operativa no se modela desde Party, si
 Para la asignación interna de tareas, el término visible recomendado es:
 
 colaborador
+
+Regla conceptual consolidada:
+
+parties no debe tratarse solo como un módulo más del core
+
+debe leerse como base transversal del dominio sobre la cual otros módulos pueden construir relaciones operativas
+
+esta condición forma parte estable de la arquitectura del sistema
 <<END SECTION>>
 
 <<SECTION: Projects como capa de seguimiento agregado>>
+SECTION_VERSION: 00001
+
 Projects como capa de seguimiento agregado
 
 projects representa un agrupador operativo de trabajo.
@@ -332,9 +495,19 @@ posee estado mínimo active/closed
 su index prioriza seguimiento diario mediante métricas derivadas de tareas asociadas
 
 tasks continúa siendo la unidad operativa fina, mientras projects funciona como capa de seguimiento agregado
+
+Aclaración arquitectónica consolidada:
+
+projects no agota ni absorbe completamente la identidad funcional de tasks
+
+su función principal es agrupar, contextualizar y ordenar trabajo
+
+no debe interpretarse como dependencia existencial obligatoria del módulo tasks
 <<END SECTION>>
 
 <<SECTION: Tasks como unidad operativa interna>>
+SECTION_VERSION: 00001
+
 Tasks como unidad operativa interna
 
 tasks representa la unidad operativa interna básica del sistema.
@@ -359,6 +532,18 @@ solo pueden eliminar tareas asignadas a ellos
 
 una tarea puede derivar en una única orden, normalmente de servicio
 
+Aclaración modular consolidada:
+
+tasks debe tratarse como módulo autónomo con identidad funcional propia
+
+puede vincularse a projects como agrupador
+puede derivar en orders
+puede operar como canal interno de seguimiento y asignación
+puede crecer hacia generación interna de tareas por sistema ante desvíos o eventos operativos
+
+Regla conceptual:
+
+que tasks pueda agruparse bajo projects no lo convierte en simple subrecurso dependiente del módulo projects
 <<END SECTION>>
 
 <<SECTION: Appointments como agenda operativa reutilizable>>
@@ -422,7 +607,7 @@ catálogos funcionales del módulo correspondiente
 <<END SECTION>>
 
 <<SECTION: Capa central prevista para acceso y permisos>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 La arquitectura de acceso y permisos ya consolida una capa centralizada compuesta por:
 
@@ -461,7 +646,7 @@ la UI de permisos actual no es compatible completamente con constraints y puede 
 
 Regla operativa consolidada:
 
-Security es la puerta central efectiva de consumo de autorización
+Security es la puerta central efectiva de consumo de autorización y la capa transversal de arbitraje del sistema
 
 las pruebas técnicas que busquen reproducir comportamiento real del sistema deben consumir Security y no recrear lógica manual ni evaluar permisos de forma abstracta cuando el contrato requiere contexto
 
@@ -472,6 +657,123 @@ La doctrina completa de implementación, uso y validación de esta capa se defin
 La bajada operativa para pruebas manuales se define en:
 
 <DOC_REF slug="guia_tinker_proyecto_app_base">Guía operativa de pruebas con Tinker</DOC_REF>
+<<END SECTION>>
+
+<<SECTION: Seguridad como capa transversal>>
+SECTION_VERSION: 00001
+
+Seguridad como capa transversal
+
+La seguridad del sistema no debe interpretarse como una preocupación localizada solo en login, policies o permisos de botones.
+
+Debe entenderse como una capa transversal que arbitra el consumo válido del sistema en todos sus niveles operativos.
+
+Esta capa afecta, como mínimo:
+
+módulos habilitados por tenant
+dataset visible
+acciones permitidas
+create contextuales
+constraints funcionales
+integraciones entre módulos
+ofertas de integración consumibles
+recursos delegados al padre
+
+Regla conceptual consolidada:
+
+los módulos pueden tener contrato de seguridad propio
+
+pero ese contrato no se consume por fuera de la capa central
+
+Security actúa como árbitro contractual del sistema
+
+Esto forma parte estable de la arquitectura actual del proyecto y debe reflejarse en implementación, documentación y futuras refactorizaciones.
+<<END SECTION>>
+
+<<SECTION: Clasificación conceptual actual de módulos>>
+SECTION_VERSION: 00001
+
+Clasificación conceptual actual de módulos
+
+La arquitectura actual del proyecto distingue, a nivel conceptual, distintos tipos de módulos.
+
+Esta clasificación no reemplaza el modelado de entidades ni el contrato de seguridad.
+
+Organiza la lectura del sistema.
+
+MÓDULO BASE DEL DOMINIO
+
+Caso actual consolidado:
+
+parties
+
+Debe tratarse como base transversal del dominio.
+
+MÓDULO TRANSVERSAL
+
+Caso actual consolidado:
+
+attachments
+
+Debe tratarse como capacidad reusable embebida o delegada al recurso padre y no como módulo nuclear del dominio.
+
+MÓDULO AUTÓNOMO
+
+Casos doctrinales relevantes:
+
+tasks
+appointments
+assets
+products
+orders
+
+Son módulos con identidad operativa propia que pueden relacionarse con otros sin perder autonomía conceptual.
+
+MÓDULO AGRUPADOR
+
+Caso doctrinal relevante:
+
+projects
+
+Su función principal es agrupar o dar seguimiento agregado sobre otros módulos, especialmente tasks.
+
+MÓDULO DERIVADO
+
+Caso doctrinal relevante:
+
+documents respecto de orders
+
+Su función principal es formalizar o prolongar documentalmente una operación más nuclear.
+
+Regla:
+
+esta clasificación debe orientar futuras decisiones de documentación, integración y refactorización del sistema
+<<END SECTION>>
+
+<<SECTION: Contrato modular como criterio de crecimiento>>
+SECTION_VERSION: 00001
+
+Contrato modular como criterio de crecimiento
+
+El crecimiento futuro del sistema debe apoyarse en contratos modulares explícitos.
+
+Cada módulo debe tender a describirse mediante:
+
+núcleo propio
+contrato de entrada
+contrato de salida
+contrato de seguridad
+oferta de integración
+
+Regla de crecimiento consolidada:
+
+una integración nueva no debe reabrir arbitrariamente el núcleo del módulo destino salvo que cambie realmente su contrato interno
+
+si un módulo necesita exponer capacidades reutilizables para otros módulos, esa exposición debe tratarse como evolución propia del módulo oferente
+
+no como excepción permanente alojada en el módulo consumidor
+
+Este criterio forma parte de la dirección arquitectónica actual del proyecto.
 <<END SECTION>>
 
 <<SECTION: Roles y niveles actuales del sistema>>
@@ -671,6 +973,8 @@ una vez asignado el número, el tipo de entidad no debe modificarse
 <<END SECTION>>
 
 <<SECTION: Flujo tasks → orders>>
+SECTION_VERSION: 00001
+
 Flujo tasks → orders
 
 El sistema contempla una derivación operativa opcional desde tasks hacia orders.
@@ -682,6 +986,12 @@ una tarea puede originar una única orden
 la relación operativa 1 a 1 se expresa desde orders.task_id
 
 la orden derivada suele corresponder a una operación de servicio u otra acción formalizada a partir de la tarea
+
+Aclaración conceptual consolidada:
+
+este flujo no convierte a tasks en submódulo de orders ni a orders en simple consecuencia técnica de tasks
+
+expresa una derivación funcional posible entre dos módulos con identidad propia
 <<END SECTION>>
 
 <<SECTION: Flujo assets → orders → documents>>
@@ -704,6 +1014,8 @@ asset_id si la orden lo posee
 <<END SECTION>>
 
 <<SECTION: Flujo orders → documents>>
+SECTION_VERSION: 00001
+
 Flujo orders → documents
 
 Desde orders.show pueden generarse documentos derivados de una orden.
@@ -734,6 +1046,14 @@ asset_id si la orden lo posee
 Los order_items pueden copiarse automáticamente a document_items.
 
 Una vez copiados los ítems, los totales del documento deben recalcularse según la lógica del módulo documental.
+
+Aclaración conceptual consolidada:
+
+documents debe tratarse como módulo derivado respecto de orders en este flujo
+
+eso no elimina su identidad modular propia
+
+sí define su posición funcional dentro del sistema
 <<END SECTION>>
 
 <<SECTION: Reglas de fechas del flujo operativo>>
@@ -816,7 +1136,7 @@ En ese contexto, las rutas del core operativo se mantienen declaradas explícita
 <<END SECTION>>
 
 <<SECTION: Estado actual del sistema>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 Estado actual del sistema
 

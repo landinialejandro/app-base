@@ -1,6 +1,6 @@
 <?php
 
-// FILE: database/seeders/Modules/PermissionModuleSeeder.php | V3
+// FILE: database/seeders/Modules/PermissionModuleSeeder.php | V4
 
 namespace Database\Seeders\Modules;
 
@@ -33,10 +33,6 @@ class PermissionModuleSeeder extends BaseModuleSeeder
         $definitions = [];
 
         foreach (ModuleCatalog::all() as $module) {
-            if ($module === ModuleCatalog::DASHBOARD) {
-                continue;
-            }
-
             foreach ($this->capabilitiesForModule($module) as $capability) {
                 $definitions[] = [
                     'slug' => CapabilityCatalog::permissionSlug($module, $capability),
@@ -52,13 +48,19 @@ class PermissionModuleSeeder extends BaseModuleSeeder
 
     protected function capabilitiesForModule(string $module): array
     {
-        return [
-            CapabilityCatalog::VIEW_ANY,
-            CapabilityCatalog::VIEW,
-            CapabilityCatalog::CREATE,
-            CapabilityCatalog::UPDATE,
-            CapabilityCatalog::DELETE,
-        ];
+        return match ($module) {
+            ModuleCatalog::DASHBOARD => [
+                CapabilityCatalog::VIEW_ANY,
+            ],
+
+            default => [
+                CapabilityCatalog::VIEW_ANY,
+                CapabilityCatalog::VIEW,
+                CapabilityCatalog::CREATE,
+                CapabilityCatalog::UPDATE,
+                CapabilityCatalog::DELETE,
+            ],
+        };
     }
 
     protected function buildPermissionName(string $module, string $capability): string

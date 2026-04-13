@@ -76,6 +76,19 @@ class RolePermissionModuleSeeder extends BaseModuleSeeder
         $allPartyKinds = array_keys(PartyCatalog::kindLabels());
 
         return [
+            ModuleCatalog::DASHBOARD => [
+                RoleCatalog::OWNER => [
+                    CapabilityCatalog::VIEW_ANY => [
+                        'scope' => PermissionScopeCatalog::TENANT_ALL,
+                    ],
+                ],
+                RoleCatalog::ADMIN => [
+                    CapabilityCatalog::VIEW_ANY => [
+                        'scope' => PermissionScopeCatalog::TENANT_ALL,
+                    ],
+                ],
+            ],
+
             ModuleCatalog::PROJECTS => [
                 RoleCatalog::OWNER => [
                     CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],

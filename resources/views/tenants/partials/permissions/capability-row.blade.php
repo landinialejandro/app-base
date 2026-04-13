@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/partials/permissions/capability-row.blade.php | V11 --}}
+{{-- FILE: resources/views/tenants/partials/permissions/capability-row.blade.php | V12 --}}
 
 @php
     use App\Support\Catalogs\ModuleCatalog;
@@ -51,6 +51,8 @@
         ModuleCatalog::PARTIES => 'La acción solo se permitirá sobre contactos de los tipos seleccionados.',
         default => 'La acción solo se permitirá sobre los tipos seleccionados.',
     };
+
+    $showExecutionMode = $enabled;
 @endphp
 
 <tr>
@@ -147,7 +149,12 @@
     </td>
 
     <td>
-        <span class="helper-inline">{{ $executionModeLabel }}</span>
+        @if ($showExecutionMode)
+            <span class="helper-inline">{{ $executionModeLabel }}</span>
+        @else
+            <span class="helper-inline">No aplica</span>
+        @endif
+
         <input type="hidden" name="permissions[{{ $module }}][{{ $capability }}][execution_mode]"
             value="{{ $executionMode }}">
     </td>

@@ -1,11 +1,12 @@
 <?php
 
-// FILE: app/Http/Controllers/DashboardController.php | V7
+// FILE: app/Http/Controllers/DashboardController.php | V8
 
 namespace App\Http\Controllers;
 
 use App\Models\Asset;
 use App\Models\Document;
+use App\Models\Membership;
 use App\Models\Order;
 use App\Models\Party;
 use App\Models\Product;
@@ -23,6 +24,11 @@ class DashboardController extends Controller
         $tenant = app('tenant');
         $user = auth()->user();
         $security = app(Security::class);
+
+        $membership = Membership::query()
+            ->where('tenant_id', $tenant->id)
+            ->where('user_id', $user->id)
+            ->first();
 
         $visibleProjects = ProjectVisibility::visibleQuery(
             null,
@@ -126,13 +132,16 @@ class DashboardController extends Controller
         $canAccessProducts = $security->allows($user, ModuleCatalog::PRODUCTS.'.viewAny');
         $canAccessDocuments = $security->allows($user, ModuleCatalog::DOCUMENTS.'.viewAny');
 
+        $canSeeAnalytics = ($membership?->is_owner === true)
+            || $security->allows(
+                $user,
+                ModuleCatalog::DASHBOARD.'.viewAny'
+            );
+
         return view('dashboard', [
             'tenant' => $tenant,
 
-            'canSeeAnalytics' => $security->allows(
-                $user,
-                ModuleCatalog::DASHBOARD.'.viewAny'
-            ),
+            'canSeeAnalytics' => $canSeeAnalytics,
 
             'canAccessAppointments' => $canAccessAppointments,
             'canAccessParties' => $canAccessParties,

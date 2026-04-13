@@ -1,7 +1,18 @@
-{{-- FILE: resources/views/tenants/partials/permissions/module-card.blade.php | V5 --}}
+{{-- FILE: resources/views/tenants/partials/permissions/module-card.blade.php | V6 --}}
 
 @php
     $collapsed = $collapsed ?? !$loop->first;
+
+    $moduleHelp = match ($module) {
+        'dashboard' => 'Define si este perfil puede acceder al panel principal.',
+        default => 'Define qué podrá hacer este tipo de acceso en este módulo.',
+    };
+
+    $moduleDetail = match ($module) {
+        'dashboard' => 'Este módulo solo administra acceso al panel y visualización general.',
+        default => 'Puedes permitir acciones como ver, crear o editar información.
+Si tienes dudas, conviene dar menos acceso y ampliarlo después.',
+    };
 @endphp
 
 <x-card :collapsible="true" :collapsed="$collapsed" data-module-card data-module="{{ $module }}">
@@ -10,12 +21,11 @@
             <h2 class="card-title">{{ $moduleLabel }}</h2>
 
             <p class="card-subtitle">
-                Define qué podrá hacer este tipo de acceso en este módulo.
+                {{ $moduleHelp }}
             </p>
 
             <div class="form-help">
-                Puedes permitir acciones como ver, crear o editar información.
-                Si tienes dudas, conviene dar menos acceso y ampliarlo después.
+                {{ $moduleDetail }}
             </div>
         </div>
     </x-slot:header>

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantProfilePermissionController.php | V11
+// FILE: app/Http/Controllers/TenantProfilePermissionController.php | V12
 
 namespace App\Http\Controllers;
 
@@ -110,13 +110,28 @@ class TenantProfilePermissionController extends Controller
 
     protected function capabilitiesForModule(string $module): array
     {
-        return [
-            CapabilityCatalog::VIEW_ANY,
-            CapabilityCatalog::VIEW,
-            CapabilityCatalog::CREATE,
-            CapabilityCatalog::UPDATE,
-            CapabilityCatalog::DELETE,
-        ];
+        return match ($module) {
+            ModuleCatalog::DASHBOARD => [
+                CapabilityCatalog::VIEW_ANY,
+            ],
+
+            ModuleCatalog::APPOINTMENTS,
+            ModuleCatalog::ASSETS,
+            ModuleCatalog::PRODUCTS,
+            ModuleCatalog::DOCUMENTS,
+            ModuleCatalog::PROJECTS,
+            ModuleCatalog::TASKS,
+            ModuleCatalog::ORDERS,
+            ModuleCatalog::PARTIES => [
+                CapabilityCatalog::VIEW_ANY,
+                CapabilityCatalog::VIEW,
+                CapabilityCatalog::CREATE,
+                CapabilityCatalog::UPDATE,
+                CapabilityCatalog::DELETE,
+            ],
+
+            default => [],
+        };
     }
 
     protected function buildExistingPermissionMatrix(Role $role, array $moduleCapabilityMap): array

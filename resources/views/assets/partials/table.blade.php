@@ -1,8 +1,9 @@
-{{-- FILE: resources/views/assets/partials/table.blade.php | V4 --}}
+{{-- FILE: resources/views/assets/partials/table.blade.php | V5 --}}
 
 @php
     use App\Support\Catalogs\AssetCatalog;
     use App\Support\Navigation\NavigationTrail;
+    use App\Support\Parties\PartyLinkedAction;
 
     $assets = $assets ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay activos para mostrar.';
@@ -56,6 +57,8 @@
                         }
 
                         $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
+
+                        $partyAction = PartyLinkedAction::forParty($asset->party, $rowTrailQuery, 'Contacto');
                     @endphp
 
                     <tr>
@@ -69,13 +72,10 @@
 
                         @if ($showParty)
                             <td>
-                                @if ($asset->party)
-                                    <a href="{{ route('parties.show', ['party' => $asset->party] + $rowTrailQuery) }}">
-                                        {{ $asset->party->name }}
-                                    </a>
-                                @else
-                                    —
-                                @endif
+                                @include('parties.components.linked-party-action', [
+                                    'action' => $partyAction,
+                                    'variant' => 'inline',
+                                ])
                             </td>
                         @endif
 

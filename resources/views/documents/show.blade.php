@@ -1,10 +1,11 @@
-{{-- FILE: resources/views/documents/show.blade.php | V14 --}}
+{{-- FILE: resources/views/documents/show.blade.php | V15 --}}
 
 @extends('layouts.app')
 
 @php
     use App\Support\Catalogs\DocumentCatalog;
     use App\Support\Navigation\NavigationTrail;
+    use App\Support\Parties\PartyLinkedAction;
 
     $items = $document->items->sortBy('position')->values();
     $attachments = $document->attachments->values();
@@ -25,6 +26,8 @@
     $previousNode = NavigationTrail::previous($navigationTrail);
 
     $backLabel = ($previousNode['key'] ?? null) === 'orders.show' ? 'Volver a la orden' : 'Volver';
+
+    $partyAction = PartyLinkedAction::forParty($document->party, $trailQuery, 'Contacto');
 @endphp
 
 @section('title', $documentDetailTitle)
@@ -73,13 +76,10 @@
 
         <x-show-summary details-id="document-more-detail">
             <x-show-summary-item label="Contacto">
-                @if ($document->party)
-                    <a href="{{ route('parties.show', ['party' => $document->party] + $trailQuery) }}">
-                        {{ $document->party->name }}
-                    </a>
-                @else
-                    —
-                @endif
+                @include('parties.components.linked-party-action', [
+                    'action' => $partyAction,
+                    'variant' => 'summary',
+                ])
             </x-show-summary-item>
 
             <x-show-summary-item label="Fecha">

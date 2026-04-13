@@ -1,13 +1,17 @@
 <?php
 
-// FILE: app/Http/Controllers/PartyController.php | V5
+// FILE: app/Http/Controllers/PartyController.php | V6
 
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePartyRequest;
 use App\Http\Requests\UpdatePartyRequest;
+use App\Models\Asset;
+use App\Models\Document;
+use App\Models\Order;
 use App\Models\Party;
 use App\Support\Auth\Security;
+use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\PartyCatalog;
 use App\Support\Navigation\NavigationTrail;
@@ -21,13 +25,15 @@ class PartyController extends Controller
         $this->authorize('viewAny', Party::class);
 
         $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = $request->user();
 
         $q = trim((string) $request->get('q', ''));
         $kind = $request->get('kind');
         $isActive = $request->get('is_active');
 
-        $partiesQuery = app(Security::class)->scope(
-            auth()->user(),
+        $partiesQuery = $security->scope(
+            $user,
             ModuleCatalog::PARTIES.'.viewAny',
             Party::query()
         );
@@ -57,58 +63,58 @@ class PartyController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $resolvedKinds = $this->resolvedAllowedKinds();
+        $visibleKinds = $this->resolvedAllowedKindsFor('viewAny');
+        $createKinds = $this->resolvedAllowedKindsFor('create');
+        $canCreateByKind = $this->resolveCreateAvailabilityByKind($createKinds);
 
         return view('parties.index', [
             'tenant' => $tenant,
             'parties' => $parties,
-            'allowedKinds' => $resolvedKinds,
-            'canCreateByKind' => $this->resolveCreateAvailabilityByKind($resolvedKinds),
+            'allowedKinds' => $visibleKinds,
+            'canCreateByKind' => $canCreateByKind,
         ]);
     }
 
     public function create(Request $request)
     {
         $tenant = app('tenant');
+        $security = app(Security::class);
         $navigationTrail = PartyNavigationTrail::create($request);
-        $resolvedKinds = $this->resolvedAllowedKinds();
 
+        $createKinds = $this->resolvedAllowedKindsFor('create');
         $requestedKind = $request->get('kind');
-        $defaultKind = $this->resolveDefaultCreatableKind($resolvedKinds, $requestedKind);
+        $defaultKind = $this->resolveDefaultCreatableKind($createKinds, $requestedKind);
 
         abort_unless($defaultKind !== null, 403);
 
-        abort_unless(
-            app(Security::class)->allows(
-                $request->user(),
-                ModuleCatalog::PARTIES.'.create',
-                Party::class,
-                ['kind' => $defaultKind]
-            ),
-            403
+        $security->authorize(
+            $request->user(),
+            ModuleCatalog::PARTIES.'.create',
+            Party::class,
+            ['kind' => $defaultKind]
         );
 
         return view('parties.create', [
             'tenant' => $tenant,
             'navigationTrail' => $navigationTrail,
-            'allowedKinds' => $resolvedKinds,
+            'allowedKinds' => $createKinds,
             'defaultKind' => $defaultKind,
         ]);
     }
 
     public function store(StorePartyRequest $request)
     {
+        $security = app(Security::class);
         $data = $request->validated();
         $kind = $data['kind'] ?? null;
 
-        abort_unless(
-            is_string($kind) && app(Security::class)->allows(
-                $request->user(),
-                ModuleCatalog::PARTIES.'.create',
-                Party::class,
-                ['kind' => $kind]
-            ),
-            403
+        abort_unless(is_string($kind) && $kind !== '', 403);
+
+        $security->authorize(
+            $request->user(),
+            ModuleCatalog::PARTIES.'.create',
+            Party::class,
+            ['kind' => $kind]
         );
 
         $party = Party::create($data);
@@ -124,12 +130,52 @@ class PartyController extends Controller
         $this->authorize('view', $party);
 
         $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = $request->user();
+
         $navigationTrail = PartyNavigationTrail::show($request, $party);
+
+        $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
+        $supportsOrdersModule = TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, $tenant);
+        $supportsDocumentsModule = TenantModuleAccess::isEnabled(ModuleCatalog::DOCUMENTS, $tenant);
+
+        $assets = $supportsAssetsModule
+            ? $security
+                ->scope($user, 'assets.viewAny', Asset::query())
+                ->with('party')
+                ->where('party_id', $party->id)
+                ->orderBy('name')
+                ->get()
+            : collect();
+
+        $orders = $supportsOrdersModule
+            ? $security
+                ->scope($user, 'orders.viewAny', Order::query())
+                ->with(['party', 'asset', 'task', 'items'])
+                ->where('party_id', $party->id)
+                ->latest()
+                ->get()
+            : collect();
+
+        $documents = $supportsDocumentsModule
+            ? $security
+                ->scope($user, 'documents.viewAny', Document::query())
+                ->with(['party', 'order', 'asset', 'items'])
+                ->where('party_id', $party->id)
+                ->latest()
+                ->get()
+            : collect();
 
         return view('parties.show', [
             'tenant' => $tenant,
             'party' => $party,
             'navigationTrail' => $navigationTrail,
+            'supportsAssetsModule' => $supportsAssetsModule,
+            'supportsOrdersModule' => $supportsOrdersModule,
+            'supportsDocumentsModule' => $supportsDocumentsModule,
+            'assets' => $assets,
+            'orders' => $orders,
+            'documents' => $documents,
         ]);
     }
 
@@ -139,13 +185,13 @@ class PartyController extends Controller
 
         $tenant = app('tenant');
         $navigationTrail = PartyNavigationTrail::edit($request, $party);
-        $resolvedKinds = $this->resolvedAllowedKinds();
+        $allowedKinds = $this->resolvedAllowedKindsFor('update', $party);
 
         return view('parties.edit', [
             'tenant' => $tenant,
             'party' => $party,
             'navigationTrail' => $navigationTrail,
-            'allowedKinds' => $resolvedKinds,
+            'allowedKinds' => $allowedKinds,
         ]);
     }
 
@@ -154,6 +200,13 @@ class PartyController extends Controller
         $this->authorize('update', $party);
 
         $data = $request->validated();
+        $kind = $data['kind'] ?? null;
+        $allowedKinds = $this->resolvedAllowedKindsFor('update', $party);
+
+        abort_unless(
+            is_string($kind) && in_array($kind, $allowedKinds, true),
+            403
+        );
 
         $party->update($data);
         $navigationTrail = PartyNavigationTrail::show($request, $party);
@@ -177,17 +230,27 @@ class PartyController extends Controller
             ->with('success', 'Contacto eliminado correctamente.');
     }
 
-    protected function resolvedAllowedKinds(): array
+    protected function resolvedAllowedKindsFor(string $capability, ?Party $party = null): array
     {
-        $tenant = app('tenant');
         $user = auth()->user();
+        $security = app(Security::class);
 
-        $constraints = app(Security::class)->inspect(
+        $subject = match ($capability) {
+            'viewAny', 'create' => Party::class,
+            default => $party,
+        };
+
+        if ($subject === null) {
+            return [];
+        }
+
+        $inspection = $security->inspect(
             $user,
-            ModuleCatalog::PARTIES.'.viewAny',
-            Party::class
-        )['constraints'] ?? [];
+            ModuleCatalog::PARTIES.'.'.$capability,
+            $subject
+        );
 
+        $constraints = $inspection['constraints'] ?? [];
         $allowedKinds = $constraints['allowed_kinds'] ?? [];
 
         if (! is_array($allowedKinds) || empty($allowedKinds)) {

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Policies/PartyPolicy.php | V7
+// FILE: app/Policies/PartyPolicy.php | V8
 
 namespace App\Policies;
 
@@ -27,7 +27,12 @@ class PartyPolicy
 
     public function create(User $user): bool
     {
-        return $this->security()->allows($user, 'parties.create', Party::class);
+        /**
+         * parties.create es contextual.
+         * Requiere kind y no debe resolverse mediante policy abstracta.
+         * El consumo correcto es Security::authorize/allows con contexto explícito.
+         */
+        return false;
     }
 
     public function update(User $user, Party $party): bool

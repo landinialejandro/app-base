@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/assets/show.blade.php | V12 --}}
+{{-- FILE: resources/views/assets/show.blade.php | V13 --}}
 
 @extends('layouts.app')
 
@@ -12,6 +12,7 @@
         use App\Support\Catalogs\ModuleCatalog;
         use App\Support\Catalogs\OrderCatalog;
         use App\Support\Navigation\NavigationTrail;
+        use App\Support\Parties\PartyLinkedAction;
 
         $orders = $orders ?? collect();
         $documents = $documents ?? collect();
@@ -29,9 +30,9 @@
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
         $backUrl = NavigationTrail::previousUrl($navigationTrail, route('assets.index'));
 
-        $canViewParty = $supportsPartiesModule && $asset->party && $user && $user->can('view', $asset->party);
-
         $canCreateAppointment = $supportsAppointmentsModule && $user && $user->can('create', Appointment::class);
+
+        $partyAction = PartyLinkedAction::forParty($asset->party, $trailQuery, 'Contacto');
     @endphp
 
     <x-page>
@@ -79,15 +80,10 @@
             </x-show-summary-item>
 
             <x-show-summary-item label="Contacto">
-                @if ($canViewParty)
-                    <a href="{{ route('parties.show', ['party' => $asset->party] + $trailQuery) }}">
-                        {{ $asset->party->name }}
-                    </a>
-                @elseif ($asset->party)
-                    {{ $asset->party->name }}
-                @else
-                    —
-                @endif
+                @include('parties.components.linked-party-action', [
+                    'action' => $partyAction,
+                    'variant' => 'summary',
+                ])
             </x-show-summary-item>
 
             <x-show-summary-item label="Código interno">

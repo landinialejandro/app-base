@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V18 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V19 --}}
 
 @extends('layouts.app')
 
@@ -11,6 +11,7 @@
         use App\Support\Catalogs\ModuleCatalog;
         use App\Support\Catalogs\OrderCatalog;
         use App\Support\Navigation\NavigationTrail;
+        use App\Support\Parties\PartyLinkedAction;
 
         $attachments = $order->attachments ?? collect();
         $documents = $order->documents ?? collect();
@@ -31,14 +32,14 @@
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
         $backUrl = NavigationTrail::previousUrl($navigationTrail, route('orders.index'));
 
-        $canViewLinkedParty = $supportsPartiesModule && $order->party && $user && $user->can('view', $order->party);
-
         $canViewLinkedAsset = $supportsAssetsModule && $order->asset && $user && $user->can('view', $order->asset);
 
         $canViewLinkedTask = $supportsTasksModule && $order->task && $user && $user->can('view', $order->task);
 
         $canViewLinkedDocuments = $supportsDocumentsModule;
         $canViewLinkedProducts = $supportsProductsModule;
+
+        $partyAction = PartyLinkedAction::forParty($order->party, $trailQuery, 'Contacto');
     @endphp
 
     <x-page>
@@ -76,13 +77,10 @@
             </x-show-summary-item>
 
             <x-show-summary-item label="Contacto">
-                @if ($canViewLinkedParty)
-                    <a href="{{ route('parties.show', ['party' => $order->party] + $trailQuery) }}">
-                        {{ $order->party->name }}
-                    </a>
-                @else
-                    {{ $order->party?->name ?: '—' }}
-                @endif
+                @include('parties.components.linked-party-action', [
+                    'action' => $partyAction,
+                    'variant' => 'summary',
+                ])
             </x-show-summary-item>
 
             <x-show-summary-item label="Estado">

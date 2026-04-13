@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/show.blade.php | V10 --}}
+{{-- FILE: resources/views/appointments/show.blade.php | V11 --}}
 
 @extends('layouts.app')
 
@@ -8,6 +8,7 @@
     use App\Support\Catalogs\ModuleCatalog;
     use App\Support\Navigation\NavigationTrail;
     use App\Support\Orders\OrderLinkedAction;
+    use App\Support\Parties\PartyLinkedAction;
 
     $appointmentTitle = AppointmentCatalog::rowTitleFor($appointment->kind, $appointment->work_mode);
     $referenceLabel = AppointmentCatalog::referenceLabelForKind($appointment->kind);
@@ -25,6 +26,7 @@
     $supportsPartiesModule = TenantModuleAccess::isEnabled(ModuleCatalog::PARTIES, app('tenant'));
 
     $orderAction = OrderLinkedAction::forAppointment($appointment, $trailQuery, true);
+    $partyAction = PartyLinkedAction::forParty($appointment->party, $trailQuery, AppointmentCatalog::contactLabel());
 @endphp
 
 @section('title', $appointmentTitle)
@@ -78,17 +80,10 @@
         <x-show-summary details-id="appointment-more-detail">
             @if ($supportsPartiesModule)
                 <x-show-summary-item :label="AppointmentCatalog::contactLabel()">
-                    @if ($appointment->party)
-                        @if ($canViewLinkedParty)
-                            <a href="{{ route('parties.show', ['party' => $appointment->party] + $trailQuery) }}">
-                                {{ $appointment->party->name }}
-                            </a>
-                        @else
-                            {{ $appointment->party->name }}
-                        @endif
-                    @else
-                        —
-                    @endif
+                    @include('parties.components.linked-party-action', [
+                        'action' => $partyAction,
+                        'variant' => 'summary',
+                    ])
                 </x-show-summary-item>
             @endif
 

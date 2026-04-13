@@ -1,10 +1,11 @@
-{{-- FILE: resources/views/orders/partials/table.blade.php | V11 --}}
+{{-- FILE: resources/views/orders/partials/table.blade.php | V12 --}}
 
 @php
     use App\Support\Auth\TenantModuleAccess;
     use App\Support\Catalogs\ModuleCatalog;
     use App\Support\Catalogs\OrderCatalog;
     use App\Support\Navigation\NavigationTrail;
+    use App\Support\Parties\PartyLinkedAction;
 
     $orders = $orders ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay órdenes para mostrar.';
@@ -72,8 +73,7 @@
 
                         $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
 
-                        $canViewParty =
-                            $renderPartyColumn && $order->party && $user && $user->can('view', $order->party);
+                        $partyAction = PartyLinkedAction::forParty($order->party, $rowTrailQuery, 'Contacto');
 
                         $canViewAsset =
                             $renderAssetColumn && $order->asset && $user && $user->can('view', $order->asset);
@@ -96,15 +96,10 @@
 
                         @if ($renderPartyColumn)
                             <td>
-                                @if ($canViewParty)
-                                    <a href="{{ route('parties.show', ['party' => $order->party] + $rowTrailQuery) }}">
-                                        {{ $order->party->name }}
-                                    </a>
-                                @elseif ($order->party)
-                                    {{ $order->party->name }}
-                                @else
-                                    —
-                                @endif
+                                @include('parties.components.linked-party-action', [
+                                    'action' => $partyAction,
+                                    'variant' => 'inline',
+                                ])
                             </td>
                         @endif
 

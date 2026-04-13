@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/show.blade.php | V10 --}}
+{{-- FILE: resources/views/parties/show.blade.php | V11 --}}
 
 @extends('layouts.app')
 
@@ -166,14 +166,16 @@
                     <section class="tab-panel {{ $defaultTab === 'assets' ? 'is-active' : '' }}" data-tab-panel="assets"
                         @if ($defaultTab !== 'assets') hidden @endif>
                         <div class="tab-panel-stack">
-                            <x-card>
-                                @include('assets.partials.table', [
-                                    'assets' => $assets,
-                                    'showParty' => false,
-                                    'emptyMessage' => 'Este contacto no tiene activos vinculados.',
-                                    'trailQuery' => $trailQuery,
-                                ])
-                            </x-card>
+                            @include('assets.partials.embedded-tabs', [
+                                'assets' => $assets,
+                                'showParty' => false,
+                                'emptyMessage' => 'Este contacto no tiene activos vinculados.',
+                                'tabsId' => 'party-assets-tabs',
+                                'createBaseQuery' => [
+                                    'party_id' => $party->id,
+                                ],
+                                'trailQuery' => $trailQuery,
+                            ])
                         </div>
                     </section>
                 @endif
@@ -182,66 +184,17 @@
                     <section class="tab-panel {{ $defaultTab === 'orders' ? 'is-active' : '' }}" data-tab-panel="orders"
                         @if ($defaultTab !== 'orders') hidden @endif>
                         <div class="tab-panel-stack">
-                            <x-card>
-                                @if ($orders->count())
-                                    <div class="table-wrap">
-                                        <table class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Número</th>
-                                                    <th>Tipo</th>
-                                                    <th>Estado</th>
-                                                    <th>Fecha</th>
-                                                    <th>Activo</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($orders as $order)
-                                                    @php
-                                                        $canViewOrder =
-                                                            auth()->user() && auth()->user()->can('view', $order);
-                                                        $canViewAsset =
-                                                            $order->asset &&
-                                                            auth()->user() &&
-                                                            auth()->user()->can('view', $order->asset);
-                                                    @endphp
-                                                    <tr>
-                                                        <td>
-                                                            @if ($canViewOrder)
-                                                                <a
-                                                                    href="{{ route('orders.show', ['order' => $order] + $trailQuery) }}">
-                                                                    {{ $order->number ?: 'Orden #' . $order->id }}
-                                                                </a>
-                                                            @else
-                                                                {{ $order->number ?: 'Orden #' . $order->id }}
-                                                            @endif
-                                                        </td>
-                                                        <td>{{ \App\Support\Catalogs\OrderCatalog::kindLabel($order->kind) }}
-                                                        </td>
-                                                        <td>{{ \App\Support\Catalogs\OrderCatalog::statusLabel($order->status) }}
-                                                        </td>
-                                                        <td>{{ $order->ordered_at?->format('d/m/Y') ?: '—' }}</td>
-                                                        <td>
-                                                            @if ($canViewAsset)
-                                                                <a
-                                                                    href="{{ route('assets.show', ['asset' => $order->asset] + $trailQuery) }}">
-                                                                    {{ $order->asset->name }}
-                                                                </a>
-                                                            @elseif ($order->asset)
-                                                                {{ $order->asset->name }}
-                                                            @else
-                                                                —
-                                                            @endif
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                @else
-                                    <p class="mb-0">Este contacto no tiene órdenes vinculadas.</p>
-                                @endif
-                            </x-card>
+                            @include('orders.partials.embedded-tabs', [
+                                'orders' => $orders,
+                                'showParty' => false,
+                                'showAsset' => true,
+                                'emptyMessage' => 'Este contacto no tiene órdenes vinculadas.',
+                                'tabsId' => 'party-orders-tabs',
+                                'createBaseQuery' => [
+                                    'party_id' => $party->id,
+                                ],
+                                'trailQuery' => $trailQuery,
+                            ])
                         </div>
                     </section>
                 @endif
@@ -250,83 +203,18 @@
                     <section class="tab-panel {{ $defaultTab === 'documents' ? 'is-active' : '' }}"
                         data-tab-panel="documents" @if ($defaultTab !== 'documents') hidden @endif>
                         <div class="tab-panel-stack">
-                            <x-card>
-                                @if ($documents->count())
-                                    <div class="table-wrap">
-                                        <table class="table">
-                                            <thead>
-                                                <tr>
-                                                    <th>Número</th>
-                                                    <th>Tipo</th>
-                                                    <th>Estado</th>
-                                                    <th>Fecha</th>
-                                                    <th>Activo</th>
-                                                    <th>Orden</th>
-                                                </tr>
-                                            </thead>
-                                            <tbody>
-                                                @foreach ($documents as $document)
-                                                    @php
-                                                        $canViewDocument =
-                                                            auth()->user() && auth()->user()->can('view', $document);
-                                                        $canViewAsset =
-                                                            $document->asset &&
-                                                            auth()->user() &&
-                                                            auth()->user()->can('view', $document->asset);
-                                                        $canViewOrder =
-                                                            $document->order &&
-                                                            auth()->user() &&
-                                                            auth()->user()->can('view', $document->order);
-                                                    @endphp
-                                                    <tr>
-                                                        <td>
-                                                            @if ($canViewDocument)
-                                                                <a
-                                                                    href="{{ route('documents.show', ['document' => $document] + $trailQuery) }}">
-                                                                    {{ $document->number ?: 'Documento #' . $document->id }}
-                                                                </a>
-                                                            @else
-                                                                {{ $document->number ?: 'Documento #' . $document->id }}
-                                                            @endif
-                                                        </td>
-                                                        <td>{{ \App\Support\Catalogs\DocumentCatalog::kindLabel($document->kind) }}
-                                                        </td>
-                                                        <td>{{ \App\Support\Catalogs\DocumentCatalog::statusLabel($document->status) }}
-                                                        </td>
-                                                        <td>{{ $document->issued_at?->format('d/m/Y') ?: '—' }}</td>
-                                                        <td>
-                                                            @if ($canViewAsset)
-                                                                <a
-                                                                    href="{{ route('assets.show', ['asset' => $document->asset] + $trailQuery) }}">
-                                                                    {{ $document->asset->name }}
-                                                                </a>
-                                                            @elseif ($document->asset)
-                                                                {{ $document->asset->name }}
-                                                            @else
-                                                                —
-                                                            @endif
-                                                        </td>
-                                                        <td>
-                                                            @if ($canViewOrder)
-                                                                <a
-                                                                    href="{{ route('orders.show', ['order' => $document->order] + $trailQuery) }}">
-                                                                    {{ $document->order->number ?: 'Orden #' . $document->order->id }}
-                                                                </a>
-                                                            @elseif ($document->order)
-                                                                {{ $document->order->number ?: 'Orden #' . $document->order->id }}
-                                                            @else
-                                                                —
-                                                            @endif
-                                                        </td>
-                                                    </tr>
-                                                @endforeach
-                                            </tbody>
-                                        </table>
-                                    </div>
-                                @else
-                                    <p class="mb-0">Este contacto no tiene documentos vinculados.</p>
-                                @endif
-                            </x-card>
+                            @include('documents.partials.embedded-tabs', [
+                                'documents' => $documents,
+                                'showParty' => false,
+                                'showAsset' => true,
+                                'showOrder' => true,
+                                'emptyMessage' => 'Este contacto no tiene documentos vinculados.',
+                                'tabsId' => 'party-documents-tabs',
+                                'createBaseQuery' => [
+                                    'party_id' => $party->id,
+                                ],
+                                'trailQuery' => $trailQuery,
+                            ])
                         </div>
                     </section>
                 @endif

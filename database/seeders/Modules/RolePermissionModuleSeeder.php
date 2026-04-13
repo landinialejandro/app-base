@@ -213,7 +213,6 @@ class RolePermissionModuleSeeder extends BaseModuleSeeder
                     CapabilityCatalog::VIEW => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, $allPartyKinds),
                     CapabilityCatalog::CREATE => $this->partyMeta(null, $allPartyKinds),
                     CapabilityCatalog::UPDATE => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, $allPartyKinds),
-                    CapabilityCatalog::DELETE => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, $allPartyKinds),
                 ],
                 RoleCatalog::SALES => [
                     CapabilityCatalog::VIEW_ANY => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, [

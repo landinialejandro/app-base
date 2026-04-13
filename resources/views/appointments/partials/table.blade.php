@@ -1,10 +1,11 @@
-{{-- FILE: resources/views/appointments/partials/table.blade.php | V8 --}}
+{{-- FILE: resources/views/appointments/partials/table.blade.php | V9 --}}
 
 @php
     use App\Support\Catalogs\AppointmentCatalog;
     use App\Support\Navigation\AppointmentNavigationTrail;
     use App\Support\Navigation\NavigationTrail;
     use App\Support\Orders\OrderLinkedAction;
+    use App\Support\Parties\PartyLinkedAction;
 
     $appointments = $appointments ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay turnos para mostrar.';
@@ -41,6 +42,11 @@
                         $appointmentTrailQuery = NavigationTrail::toQuery($appointmentTrail);
 
                         $orderAction = OrderLinkedAction::forAppointment($appointment, $appointmentTrailQuery, false);
+                        $partyAction = PartyLinkedAction::forParty(
+                            $appointment->party,
+                            $appointmentTrailQuery,
+                            AppointmentCatalog::contactLabel(),
+                        );
                     @endphp
 
                     <tr>
@@ -53,18 +59,10 @@
                         </td>
 
                         <td>
-                            @if ($appointment->party)
-                                @if ($supportsPartiesModule && auth()->user()->can('view', $appointment->party))
-                                    <a
-                                        href="{{ route('parties.show', ['party' => $appointment->party] + $appointmentTrailQuery) }}">
-                                        {{ $appointment->party->name }}
-                                    </a>
-                                @else
-                                    {{ $appointment->party->name }}
-                                @endif
-                            @else
-                                —
-                            @endif
+                            @include('parties.components.linked-party-action', [
+                                'action' => $partyAction,
+                                'variant' => 'inline',
+                            ])
                         </td>
 
                         @if ($supportsAssetsModule)

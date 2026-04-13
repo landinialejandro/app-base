@@ -28,9 +28,8 @@ class PartyPolicy
     public function create(User $user): bool
     {
         /**
-         * parties.create es contextual.
-         * Requiere kind y no debe resolverse mediante policy abstracta.
-         * El consumo correcto es Security::authorize/allows con contexto explícito.
+         * parties.create es contextual por kind.
+         * Esta policy no debe autorizar create abstracto sin contexto.
          */
         return false;
     }

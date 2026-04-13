@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/show.blade.php | V13 --}}
+{{-- FILE: resources/views/tasks/show.blade.php | V14 --}}
 
 @extends('layouts.app')
 
@@ -11,6 +11,7 @@
         use App\Support\Catalogs\TaskCatalog;
         use App\Support\Navigation\NavigationTrail;
         use App\Support\Orders\OrderLinkedAction;
+        use App\Support\Parties\PartyLinkedAction;
         use Illuminate\Support\Carbon;
 
         $attachments = $task->attachments ?? collect();
@@ -55,7 +56,7 @@
 
         $canViewProject = $supportsProjectsModule && $task->project && $user && $user->can('view', $task->project);
 
-        $canViewParty = $supportsPartiesModule && $task->party && $user && $user->can('view', $task->party);
+        $partyAction = PartyLinkedAction::forParty($task->party, $trailQuery, 'Contacto');
 
         $linkedOrderAction = OrderLinkedAction::forTask(
             $task,
@@ -133,13 +134,10 @@
                 </x-show-summary-item-detail-block>
 
                 <x-show-summary-item-detail-block label="Contacto">
-                    @if ($canViewParty)
-                        <a href="{{ route('parties.show', ['party' => $task->party] + $trailQuery) }}">
-                            {{ $task->party->name }}
-                        </a>
-                    @else
-                        {{ $task->party?->name ?? '—' }}
-                    @endif
+                    @include('parties.components.linked-party-action', [
+                        'action' => $partyAction,
+                        'variant' => 'summary',
+                    ])
                 </x-show-summary-item-detail-block>
 
                 <x-show-summary-item-detail-block label="Orden asociada">

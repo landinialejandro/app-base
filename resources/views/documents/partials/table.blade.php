@@ -1,8 +1,9 @@
-{{-- FILE: resources/views/documents/partials/table.blade.php | V8 --}}
+{{-- FILE: resources/views/documents/partials/table.blade.php | V9 --}}
 
 @php
     use App\Support\Catalogs\DocumentCatalog;
     use App\Support\Navigation\NavigationTrail;
+    use App\Support\Parties\PartyLinkedAction;
 
     $documents = $documents ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay documentos para mostrar.';
@@ -70,6 +71,8 @@
                         }
 
                         $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
+
+                        $partyAction = PartyLinkedAction::forParty($document->party, $rowTrailQuery, 'Contacto');
                     @endphp
 
                     <tr>
@@ -89,14 +92,10 @@
 
                         @if ($showParty)
                             <td>
-                                @if ($document->party)
-                                    <a
-                                        href="{{ route('parties.show', ['party' => $document->party] + $rowTrailQuery) }}">
-                                        {{ $document->party->name }}
-                                    </a>
-                                @else
-                                    —
-                                @endif
+                                @include('parties.components.linked-party-action', [
+                                    'action' => $partyAction,
+                                    'variant' => 'inline',
+                                ])
                             </td>
                         @endif
 

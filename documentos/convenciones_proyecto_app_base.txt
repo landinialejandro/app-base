@@ -496,7 +496,7 @@ las integraciones entre módulos deben respetar el contrato del módulo oferente
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -608,6 +608,7 @@ Casos doctrinales actuales:
 
 linked-order-action como superficie reusable de orders
 linked-party-action como superficie reusable de parties
+linked-asset-action como superficie reusable de assets
 
 CONTRATO DE SEGURIDAD
 
@@ -758,21 +759,7 @@ Casos consolidados actuales:
 
 linked-order-action como superficie reusable publicada por orders
 linked-party-action como superficie reusable publicada por parties
-
-Alineación operativa consolidada adicional para parties:
-
-cuando una superficie del ecosistema necesite abrir una party relacionada, mostrarla como referencia readonly o derivar a create contextual permitido, no debe reconstruir un link local a parties.show ni una decisión UX manual equivalente
-
-debe consumir la capacidad reusable oficial publicada por parties mediante:
-
-app/Support/Parties/PartyLinkedAction.php
-resources/views/parties/components/linked-party-action.blade.php
-
-las variantes visuales válidas actualmente para esa capacidad son:
-
-inline
-button
-summary
+linked-asset-action como superficie reusable publicada por assets
 
 Regla operativa adicional de cierre:
 
@@ -1130,7 +1117,7 @@ cuando exista navegación contextual entre módulos relacionados, el módulo act
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE BLADE Y FRONTEND LIVIANO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CONVENCIONES DE BLADE Y FRONTEND LIVIANO
 
@@ -1163,6 +1150,17 @@ los botones de creación deben evaluarse según contexto válido
 los datasets visibles deben provenir de Security::scope(...)
 
 La UI no debe asumir que Gate o policy abstracta equivalen a autorización operativa válida cuando el contrato exige contexto explícito.
+
+Convención visual consolidada para índices:
+
+cuando se utilice x-list-filters-card, la alineación correcta del módulo no implica exponer todos los filtros en el bloque principal.
+
+Debe respetarse la composición definida por el componente reusable:
+
+filtros principales visibles en primer plano
+filtros secundarios agrupados en bloque colapsable tipo Más filtros cuando corresponda
+
+La consistencia visual del sistema prevalece sobre variantes locales por módulo.
 
 <<END SECTION>>
 

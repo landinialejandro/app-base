@@ -1,1575 +1,352 @@
+
 <<SECTION: METADATOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00002
 
 TÍTULO: Seguridad y acceso del proyecto
 DOC_SLUG: seguridad_acceso_proyecto_app_base
-DOC_VERSION: 00003
+DOC_VERSION: 00002
 TIPO: doctrinal
 ESTADO: activo
-GESTIÓN: La gobernanza documental, versionado y formato de intercambio se definen:
-<DOC_REF slug="convenciones_proyecto_app_base">Convenciones del proyecto</DOC_REF>
+GESTIÓN: Documento rector de acceso, autorización, aislamiento operativo y contratos de seguridad del sistema.
 <<END SECTION>>
 
-<<SECTION: OBJETIVO>>
-SECTION_VERSION: 00001
+<<SECTION: OBJETIVO DEL DOCUMENTO>>
+SECTION_VERSION: 00002
 
-OBJETIVO
+OBJETIVO DEL DOCUMENTO
 
-Este documento define el modelo operativo obligatorio de seguridad y acceso del sistema app-base.
+Este documento define la doctrina oficial de seguridad, acceso y autorización del proyecto app-base.
 
-Este documento es:
+Su función es establecer las reglas obligatorias para controlar ingreso, pertenencia, tenant activo, visibilidad, capacidades operativas, constraints funcionales y contratos de seguridad modulares dentro de la plataforma.
 
-la única fuente de verdad para permisos V2
-el contrato de implementación obligatorio para cualquier módulo
-la referencia normativa para resolver autorización en todo el sistema
-la base doctrinal para arbitrar contratos de seguridad modulares
+Este documento es la fuente especializada de verdad para toda materia relativa a acceso y autorización.
 
-No describe opciones.
+Si existiera contradicción con un documento no especializado, prevalece este documento en su materia.
 
-Define reglas obligatorias.
+No corresponde definir aquí navegación visual, patrones UI, roadmap, estructura física del código ni contexto arquitectónico general ajeno a seguridad.
 
-Cualquier implementación que no respete este documento debe considerarse inválida.
-
-Regla doctrinal consolidada:
-
-cada módulo del sistema debe poseer su propio contrato de seguridad
-
-ese contrato no reemplaza la capa central
-
-la capa central de seguridad arbitra, valida y consume los contratos modulares dentro del marco general del sistema
 <<END SECTION>>
 
-<<SECTION: ALCANCE>>
-SECTION_VERSION: 00001
+<<SECTION: ALCANCE GENERAL>>
+SECTION_VERSION: 00002
 
-ALCANCE
+ALCANCE GENERAL
 
-Este documento cubre:
+La seguridad del proyecto comprende todo el circuito de operación válida del sistema:
 
+acceso público inicial
 autenticación
-flujo multi-tenant
-resolución de tenant
-modelo de pertenencia
-roles base
-permisos V2
-resolución de autorización
-uso de resolver, policy, controller y Blade
-constraints
-reglas por módulo
-contratos de seguridad por módulo
-arbitraje central de contratos modulares
+pertenencia a tenants
+tenant activo como contexto legítimo
+aislamiento multi-tenant
+autorización sobre módulos
+autorización sobre registros
+constraints funcionales
+consumo correcto desde backend
+expresión coherente en UI
+auditoría doctrinal y runtime
 
-No cubre:
+La seguridad no se limita al login ni a esconder botones.
 
-estructura visual
-navegación
-modelado del dominio general
-detalle visual de componentes de integración
+Comprende quién puede operar, sobre qué universo, bajo qué condiciones y dentro de qué contexto válido.
 
-Esos aspectos se definen en otros documentos del proyecto.
-
-Aclaración doctrinal:
-
-cuando un módulo exponga capacidades reutilizables o superficies de integración para otros módulos, este documento no define su forma visual ni su detalle de implementación
-
-sí define cómo debe arbitrar su validez la capa central de seguridad
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00002
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
-Este bloque define reglas que no admiten excepción.
+La base de datos define el contrato persistido vigente de permisos.
 
-REGLA 1 — FUENTE DE VERDAD
+La capa central de seguridad arbitra la autorización efectiva.
 
-La base de datos es la única fuente de verdad del contrato de permisos V2 persistido.
+Ningún controller, vista, componente visual o módulo consumidor redefine permisos oficiales por fuera del contrato válido.
 
-Esto incluye:
+Cuando una acción requiera contexto obligatorio, no debe resolverse mediante evaluación abstracta sin dicho contexto.
 
-role_permission
-constraints
-scopes
-capabilities
+Las constraints funcionales integran el contrato efectivo y deben respetarse.
 
-Este documento define la normativa de implementación del sistema.
+La UI expresa resultados autorizados; no sustituye autorización.
 
-Los catálogos definen el vocabulario técnico permitido.
+view_any no puede ser más restrictivo que view dentro de un contrato coherente.
 
-La capa central resuelve y aplica el contrato persistido.
+Los catálogos oficiales del sistema definen vocabulario controlado y deben utilizarse como referencia común.
 
-Cualquier definición de permisos fuera de la base de datos debe considerarse una desviación arquitectónica inválida.
+Todo módulo relevante debe poder describirse mediante un contrato de seguridad explícito.
 
-Aclaración obligatoria:
+Las integraciones reutilizables continúan sometidas al arbitraje oficial.
 
-la expresión fuente de verdad refiere al permiso persistido efectivo
+Una implementación funcional que contradiga estos principios debe considerarse incorrecta.
 
-no reemplaza:
-
-la función normativa de este documento
-la función de vocabulario controlado de los catálogos
-la función de arbitraje y consumo de la capa central
-
-REGLA 2 — CAPA CENTRAL
-
-Toda autorización debe resolverse exclusivamente mediante la capa central.
-
-No se permite:
-
-definir permisos en controllers
-definir permisos en policies
-definir permisos en Blade
-
-Estas capas solo pueden consumir la capa central.
-
-REGLA 3 — PROHIBICIÓN DE EVALUACIÓN ABSTRACTA
-
-Ninguna capacidad puede evaluarse sin contexto si el módulo utiliza constraints obligatorias o si la acción depende de datos funcionales previos.
-
-Evaluar capacidades sin contexto debe considerarse implementación inválida.
-
-Ejemplo inválido:
-
-authorize('create', Order::class)
-
-cuando el módulo requiere kind.
-
-Gate o policy abstracta no equivalen a autorización válida cuando el contrato exige contexto funcional explícito.
-
-REGLA 4 — CONSTRAINTS OBLIGATORIOS
-
-Si un módulo define constraints:
-
-las constraints son obligatorias
-no son opcionales
-forman parte del contrato del permiso
-
-Un permiso sin constraints completas debe considerarse inválido.
-
-Regla adicional consolidada:
-
-si el contrato del módulo exige que una constraint arbitre segmentación funcional real, esa constraint debe impactar efectivamente create, view, update y delete según corresponda
-
-no debe tratarse como metadata decorativa ni como validación parcial de una sola acción
-
-REGLA 5 — NO DUPLICACIÓN
-
-No puede existir lógica de permisos en más de un nivel.
-
-la base de datos define el contrato persistido
-el contrato de seguridad del módulo define el comportamiento esperado del módulo
-la capa central arbitra el contrato persistido
-policy consume esa resolución
-controller consume y ejecuta la autorización correspondiente
-Blade muestra solo el resultado permitido
-
-Ninguna de estas capas puede redefinir permisos.
-
-REGLA 6 — UI SIN LÓGICA
-
-La UI no puede:
-
-inferir permisos
-evaluar capacidades abstractas
-reconstruir lógica
-
-Solo puede consumir resultados del backend.
-
-REGLA 7 — CONSISTENCIA GLOBAL
-
-view_any debe ser igual o más amplio que view.
-
-No se permiten configuraciones inconsistentes.
-
-REGLA 8 — CATÁLOGOS COMO VOCABULARIO CONTROLADO
-
-Los catálogos del sistema definen el conjunto válido de:
-
-capabilities
-scopes
-módulos
-perfiles
-
-No se permite:
-
-definir valores fuera de los catálogos
-interpretar valores no registrados
-introducir enums implícitos en código
-
-El contrato persistido debe utilizar exclusivamente valores válidos definidos en los catálogos.
-
-REGLA 9 — CREATE CONTEXTUAL SIN CLASS-STRING OBLIGATORIO
-
-Cuando una capacidad create sea contextual, la autorización debe poder resolverse por:
-
-módulo
-capacidad
-contexto funcional
-
-La presencia de subject class-string no es condición doctrinal para evaluar constraints en create contextual.
-
-Si el contrato requiere contexto funcional, ese contexto es obligatorio.
-
-Si el contexto falta o es inválido:
-
-la autorización debe devolver no autorizado
-
-sin depender de parches por módulo ni de lógica especial en controller o policy.
-
-REGLA 10 — CONTRATO DE SEGURIDAD PROPIO POR MÓDULO
-
-Todo módulo operativo real del sistema debe poseer un contrato de seguridad propio.
-
-Ese contrato debe dejar definido, como mínimo:
-
-universo visible
-capacidades aplicables
-scopes válidos
-uso o no de constraints
-reglas de create
-reglas de update
-reglas de delete
-si consume o no contexto funcional obligatorio
-si delega o no autorización en recurso padre
-
-No se permite operar un módulo sin contrato explícito.
-
-REGLA 11 — SECURITY COMO ÁRBITRO CONTRACTUAL
-
-La capa central de seguridad actúa como árbitro de los contratos de seguridad modulares.
-
-Esto implica que Security debe verificar, como mínimo:
-
-si el módulo está habilitado
-si la capacidad existe
-si el scope es válido
-si las constraints requeridas están presentes y son válidas
-si el contexto funcional exigido por el módulo fue provisto
-si el consumo solicitado respeta el contrato persistido del módulo
-
-La capa central no reemplaza el contrato del módulo.
-
-Lo arbitra.
-
-REGLA 12 — INTEGRACIÓN MODULAR BAJO ARBITRAJE
-
-Cuando un módulo consuma capacidades, relaciones o superficies de integración ofrecidas por otro módulo, ese consumo no puede bypassar la capa central de seguridad.
-
-Toda integración válida entre módulos debe seguir respetando:
-
-módulo habilitado
-capacidad efectiva
-scope
-constraints
-contexto funcional cuando corresponda
-
-No se permite que una integración modular cree un canal paralelo de autorización.
 <<END SECTION>>
 
-<<SECTION: FLUJO GLOBAL DE ACCESO>>
+<<SECTION: ACCESO PÚBLICO Y ACCESO AUTENTICADO>>
 SECTION_VERSION: 00002
 
-FLUJO GLOBAL DE ACCESO
+ACCESO PÚBLICO Y ACCESO AUTENTICADO
 
-login
-↓
-selección de tenant
-↓
-session tenant
-↓
-ResolveTenant
-↓
-acceso al sistema
+ACCESO PÚBLICO
 
-Reglas:
+Corresponde a pantallas o flujos previos a la operación autenticada.
 
-no existe acceso sin tenant activo
-la pertenencia se valida por membership activa
-no debe existir bypass de tenant
+Puede incluir onboarding, ingreso o solicitudes iniciales.
 
-Ampliación del flujo real del sistema:
+No habilita operación interna del tenant.
 
-landing pública
-↓
-signup_requests
-↓
-decisión de superadmin
-↓
-owner_signup válido
-↓
-finalización de registro
-↓
-login
-↓
-selección de tenant
-↓
-ResolveTenant
-↓
-acceso operativo
+ACCESO AUTENTICADO
 
-Reglas adicionales:
+Corresponde al ingreso de una identidad reconocida por el sistema.
 
-no se permite crear acceso operativo directo desde flujos públicos
+La autenticación no agota la seguridad.
 
-no se permite omitir la decisión de superadmin en el alta inicial de tenant
+Luego deben resolverse pertenencia válida, tenant activo y autorización efectiva para operar.
 
-todo acceso operativo debe pasar por autenticación, pertenencia válida y resolución de tenant
+Autenticado no equivale automáticamente a autorizado.
 
 <<END SECTION>>
 
-<<SECTION: SUPERFICIES PÚBLICAS Y FRONTERA DE INGRESO>>
-SECTION_VERSION: 00001
-
-SUPERFICIES PÚBLICAS Y FRONTERA DE INGRESO
-
-El sistema distingue entre:
-
-superficies públicas
-frontera de ingreso
-acceso operativo tenant
-
-Superficies públicas:
-
-landing pública
-login
-solicitud pública de tenant
-links de invitación
-finalización de registro
-recuperación de credenciales
-
-Frontera de ingreso:
-
-selección de tenant
-aceptación de invitación
-logout
-reanudación de flujos previos al acceso operativo
-
-Reglas:
-
-toda superficie pública debe tratarse como no confiable
-
-ninguna superficie pública puede crear acceso operativo directo al tenant por sí sola
-
-ninguna superficie pública puede bypassar:
-
-membership activa
-selección válida de tenant
-ResolveTenant
-
-el acceso operativo real solo existe cuando se completa de forma válida el flujo:
-
-users
-↓
-memberships activas
-↓
-tenant seleccionado
-↓
-ResolveTenant
-↓
-acceso al sistema
-
-toda validación de acceso real debe mantenerse coherente con el modelo:
-
-users como identidad global
-memberships como acceso real
-tenants como contexto operativo
-
-Regla adicional:
-
-el tenant activo nunca puede resolverse desde input del cliente como fuente final de verdad
-
-<<END SECTION>>
-
-<<SECTION: REGLAS DEL LOGIN PÚBLICO>>
+<<SECTION: IDENTIDAD, MEMBERSHIP Y TENANT ACTIVO>>
 SECTION_VERSION: 00002
 
-REGLAS DEL LOGIN PÚBLICO
+IDENTIDAD, MEMBERSHIP Y TENANT ACTIVO
 
-El login autentica identidad global.
+users representa identidad global.
 
-No concede acceso operativo a un tenant por sí mismo.
+memberships representa la pertenencia operativa entre usuario y tenant.
 
-Reglas:
+tenants representa la empresa o espacio de trabajo operativo.
 
-el login resuelve únicamente autenticación de user
+La operación interna válida exige:
 
-no existe acceso operativo válido sin membership activa
+identidad autenticada
+membership vigente
+tenant activo correctamente resuelto
 
-no existe acceso operativo válido sin tenant seleccionado
+Sin esa tríada no existe operación interna legítima.
 
-no debe permitirse autoingreso a tenants no activos o no seleccionados
+La pertenencia a múltiples tenants no debilita el modelo: exige resolver correctamente el contexto activo.
 
-no debe existir fallback automático a tenant si el usuario posee múltiples memberships
-
-el login debe aplicar protección contra abuso e intentos masivos
-
-el login no debe revelar información diferenciada sobre:
-
-existencia del usuario
-validez parcial de credenciales
-estado interno
-
-Reglas de continuidad de flujo:
-
-cuando el login se origine desde un flujo previo válido (por ejemplo invitación o recuperación):
-
-el sistema debe reanudar ese flujo original
-
-no debe aplicarse la redirección estándar posterior al login
-
-no debe perderse el contexto del flujo iniciado
-
-Regla crítica:
-
-el login no define contexto tenant
-
-el contexto tenant solo puede definirse posteriormente mediante selección o resolución válida
-
-Regla consolidada:
-
-ninguna redirección posterior al login puede:
-
-asignar tenant implícitamente
-resolver acceso operativo sin validación completa
-ignorar el flujo funcional previo si existe
-
-<<END SECTION>>
-
-<<SECTION: SELECCIÓN DE TENANT Y CONTEXTO DE SESIÓN>>
-SECTION_VERSION: 00001
-
-SELECCIÓN DE TENANT Y CONTEXTO DE SESIÓN
-
-La selección de tenant forma parte de la frontera de ingreso.
-
-Reglas:
-
-solo pueden mostrarse memberships activas del usuario autenticado
-
-no debe permitirse selección de tenant sin membership activa
-
-no debe permitirse selección de tenant ajeno
-
-la validación de pertenencia debe resolverse en backend
-
-no debe existir bypass por URL, query o parámetros manipulables
-
-la sesión debe contener un único tenant activo válido
-
-no debe permitirse coexistencia de múltiples contextos tenant
-
-el cambio de tenant debe invalidar cualquier contexto previo incompatible
-
-<<END SECTION>>
-
-<<SECTION: SOLICITUD PÚBLICA Y ONBOARDING CONTROLADO>>
-SECTION_VERSION: 00001
-
-SOLICITUD PÚBLICA Y ONBOARDING CONTROLADO
-
-signup_requests pertenece al borde público del sistema.
-
-Reglas:
-
-no crea tenant operativo
-
-no crea membership operativa
-
-no crea acceso autenticado
-
-solo registra intención inicial
-
-requiere decisión explícita de superadmin para continuar el flujo
-
-no se permite creación automática de tenant
-
-no se permite creación automática de owner
-
-el formulario debe aplicar:
-
-rate limiting
-mecanismo anti-automatización
-validación estricta
-
-no debe convertirse en bypass del onboarding controlado
-
-<<END SECTION>>
-
-<<SECTION: LINKS SENSIBLES E INVITACIONES>>
-SECTION_VERSION: 00002
-
-LINKS SENSIBLES E INVITACIONES
-
-Incluye:
-
-owner_signup
-member_invite
-recuperación de credenciales
-
-Reglas generales:
-
-todo link debe ser de uso único
-
-todo link debe expirar
-
-todo link debe invalidarse al consumirse
-
-no debe permitirse reutilización
-
-ningún link sensible puede derivar directamente en acceso operativo sin autenticación y pertenencia válida
-
-Reglas de consistencia de identidad:
-
-el flujo iniciado por un link debe completarse únicamente por la identidad correspondiente
-
-no debe permitirse aceptar o completar un flujo con una identidad distinta a la originalmente vinculada
-
-no debe permitirse transferencia implícita del acceso entre usuarios
-
-Reglas de invitaciones (member_invite):
-
-la invitación válida es condición obligatoria para generar o activar una membership
-
-no debe permitirse incorporación a tenant sin invitación válida
-
-la aceptación de invitación debe generar o validar una membership consistente
-
-no debe permitirse cerrar el flujo si la membership resultante no es válida
-
-Reglas de alta de owner (owner_signup):
-
-owner_signup puede originarse sin tenant previo
-
-la finalización del flujo debe crear:
-
-tenant válido
-membership owner válida
-
-no debe existir tenant sin owner válido
-
-Reglas de recuperación de credenciales:
-
-no debe permitir escalar privilegios
-
-no debe alterar memberships existentes
-
-no debe modificar pertenencia a tenant
-
-Regla crítica consolidada:
-
-ningún flujo basado en links puede:
-
-crear acceso operativo directo
-bypassar autenticación
-bypassar validación de membership
-
-<<END SECTION>>
-
-<<SECTION: LOGOUT Y CONSISTENCIA DE SESIÓN>>
-SECTION_VERSION: 00001
-
-LOGOUT Y CONSISTENCIA DE SESIÓN
-
-Reglas:
-
-logout debe invalidar la sesión autenticada
-
-logout debe eliminar tenant activo
-
-no deben quedar residuos de contexto tenant
-
-no debe existir acceso operativo indirecto luego de logout
-
-la sesión posterior debe quedar fuera de contexto tenant
-
-<<END SECTION>>
-
-<<SECTION: REGLAS TRANSVERSALES DEL BORDE PÚBLICO>>
-SECTION_VERSION: 00001
-
-REGLAS TRANSVERSALES DEL BORDE PÚBLICO
-
-REGLA 1 — NO CONFIANZA
-toda entrada pública es no confiable
-
-REGLA 2 — ANTI-ABUSO
-todo endpoint público debe protegerse con rate limiting y mecanismos anti-automatización cuando corresponda
-
-REGLA 3 — NO ENUMERACIÓN
-no revelar existencia de usuarios, invitaciones o pertenencias
-
-REGLA 4 — NO BYPASS
-ningún flujo público puede generar acceso operativo saltando membership, tenant o ResolveTenant
-
-REGLA 5 — CONSISTENCIA DE SESIÓN
-no mezclar contextos de autenticación, tenant o invitaciones
-
-REGLA 6 — REDIRECCIONES SEGURAS
-no confiar en destinos manipulables
-
-REGLA 7 — EXPOSICIÓN MÍNIMA
-no exponer rutas o utilidades internas
-
-REGLA 8 — VALIDACIÓN BACKEND OBLIGATORIA
-toda decisión de acceso debe validarse en backend
-
-<<END SECTION>>
-
-<<SECTION: MODELO DE IDENTIDAD Y PERTENENCIA>>
-SECTION_VERSION: 00002
-
-MODELO DE IDENTIDAD Y PERTENENCIA
-
-users
-↓
-memberships
-↓
-tenants
-
-Reglas:
-
-users es identidad global
-
-memberships define acceso real por tenant
-
-owner es condición estructural resuelta por memberships.is_owner
-
-owner es único por tenant
-
-no debe modelarse owner como rol delegable ordinario
-
-la pertenencia operativa y el estado de acceso se resuelven por membership activa
-
-el login no define acceso operativo por sí mismo
-
-el tenant seleccionado nunca reemplaza la validación real de membership
-
-La membership constituye la pieza operativa correcta para resolver, como mínimo:
-
-pertenencia a tenant
-estado de acceso
-roles base delegables
-perfil funcional persistido cuando exista
-overrides de permiso cuando corresponda
-
-Regla adicional:
-
-la complejidad funcional futura no debe resolverse multiplicando roles base
-
-debe resolverse mediante la capa ya prevista de:
-
-roles base
-profile_slug
-overrides
-contrato persistido
-
-Ninguna de estas capas reemplaza el arbitraje central de Security.
 <<END SECTION>>
 
 <<SECTION: MULTI-TENANCY Y AISLAMIENTO>>
+SECTION_VERSION: 00003
+
 MULTI-TENANCY Y AISLAMIENTO
 
-Toda entidad del negocio:
+El modelo multi-tenant forma parte de la seguridad efectiva del sistema.
 
-debe tener tenant_id  
-debe usar TenantScoped  
+No es solo una decisión de arquitectura o almacenamiento.
 
-Reglas:
+Toda autorización debe ocurrir dentro del tenant correspondiente y sin mezclar universos de datos entre empresas.
 
-no hay queries sin tenant  
-no se expone tenant_id  
-no se permite acceso cruzado  
-<<END SECTION>>
+Principios obligatorios:
 
-<<SECTION: ROLES BASE Y MODELO DE AUTORIZACIÓN>>
-ROLES BASE Y MODELO DE AUTORIZACIÓN
+no exponer datos de otro tenant
+no operar sobre registros ajenos al tenant activo
+no asumir contexto tenant por conveniencia técnica
+no relajar filtros multi-tenant por atajos de implementación
 
-Roles base:
+Regla doctrinal adicional:
 
-owner  
-admin  
-sales  
-operator  
-administrator  
+el aislamiento no se agota en la UI ni en la ocultación visual de información.
 
-Reglas:
+Debe preservarse también en:
 
-owner no es delegable  
-roles son acumulables  
-la autorización no depende solo del rol  
+consultas
+resolución de registros
+consumo de relaciones
+autorización sobre recursos vinculados
+datasets visibles
+operaciones derivadas entre módulos
 
-Depende de:
-
-capacidad  
-scope  
-constraints  
-<<END SECTION>>
-
-<<SECTION: CAPA V2 DE PERMISOS>>
-SECTION_VERSION: 00006
-
-CAPA V2 DE PERMISOS
-
-Componentes:
-
-RolePermissionResolver
-RecordScopeResolver
-CapabilityCatalog
-ModuleCatalog
-TenantModuleAccess
-Security
-
-Capacidades:
-
-view_any
-view
-create
-update
-delete
-
-Scopes válidos:
-
-tenant_all
-own_assigned
-limited
-
-Scopes inválidos:
-
-all
-mine
-
-Reglas:
-
-view_any no es booleano
-create puede depender de contexto
-constraints son obligatorias
-el acceso a un módulo depende previamente de su habilitación mediante TenantModuleAccess
-
-Regla operativa consolidada:
-
-Security es la puerta central de consumo de autorización y el árbitro contractual de los módulos del sistema.
-
-Roles de la capa:
-
-la base de datos define el contrato persistido
-los contratos doctrinales de módulo definen el comportamiento esperado
-los resolvers consumen ese contrato persistido
-Security orquesta la resolución final y arbitra su validez
-policies actúan como wrapper mínimo
-controllers ejecutan la autorización
-
-No se permite:
-
-consumir resolvers directamente desde controllers
-evaluar permisos fuera de Security
-
-Aclaración doctrinal consolidada para create contextual:
-
-cuando una capacidad create depende de constraints funcionales, la resolución válida debe poder hacerse por:
-
-module + capability + context
-
-sin exigir subject class-string como condición estructural de evaluación.
-
-Si el contexto requerido falta o no cumple constraints:
-
-allowed = false
-
-La semántica correcta debe resolverse en la capa central y no mediante parches puntuales por módulo.
-
-Aclaración adicional consolidada:
-
-cuando un módulo publique capacidades reutilizables para otros módulos, la capa V2 no trata esa publicación como excepción arquitectónica
-
-la considera una oferta modular consumible
-
-pero su consumo sigue quedando bajo arbitraje normal de Security y del contrato de seguridad del módulo oferente
-
-Aclaración sobre constraints funcionales efectivas:
-
-cuando el contrato persistido incluya constraints que segmentan el universo funcional del módulo, su efecto debe mantenerse también sobre registros existentes y no solo sobre create
-
-Caso ya validado:
-
-orders con constraints.allowed_kinds
-
-Aclaración sobre módulo base intrínseco:
-
-si un módulo forma parte de la base intrínseca del sistema y no debe tratarse como módulo opcional ordinario, esa condición debe quedar explicitada en su contrato modular propio
-
-no debe quedar librada a interpretación implícita al consumir TenantModuleAccess en otras capas del sistema
-<<END SECTION>>
-
-<<SECTION: FLUJO DE GESTIÓN Y CONSUMO DE PERMISOS>>
-SECTION_VERSION: 00006
-
-FLUJO DE GESTIÓN Y CONSUMO DE PERMISOS
-
-superadmin habilita módulos
-owner configura permisos
-backend resuelve
-UI consume
-
-Flujo operativo consolidado:
-
-base de datos → contrato persistido
-↓
-contrato de seguridad doctrinal del módulo
-↓
-resolvers → lectura del contrato
-↓
-Security → orquestación y arbitraje
-↓
-policy → wrapper mínimo
-↓
-controller → authorize(...) o Security::scope(...) o inspect(...)
-↓
-Blade → renderiza según resultado
-
-Reglas:
-
-la UI no define permisos
-el backend define dataset
-las acciones dependen de capability real
-
-Regla crítica:
-
-cuando la visibilidad del dataset depende de permisos, el controller debe usar Security::scope(...)
-
-No se permite:
-
-queries paralelas para listados
-conteos fuera del scope efectivo
-datasets auxiliares no alineados con permisos
-
-Regla adicional consolidada para create contextual:
-
-cuando create depende de contexto funcional obligatorio, el flujo correcto de consumo no pasa por Gate o policy abstracta.
-
-Debe pasar por Security con contexto explícito.
-
-En esos casos:
-
-policy o Gate abstracta pueden actuar solo como fail-closed
-controller y validación deben consumir Security con el contexto real requerido por el contrato
-
-Ejemplo doctrinal del patrón correcto:
-
-orders.create con kind explícito
-
-Patrón doctrinal inválido:
-
-Gate::allows('create', Order::class)
-
-cuando create requiere constraints obligatorias.
-
-Regla modular consolidada:
-
-cuando un módulo consuma una oferta publicada por otro módulo, por ejemplo selector, create contextual, relación operativa o bloque derivado, el flujo correcto sigue siendo:
-
-contrato del módulo oferente
-↓
-contrato persistido
-↓
-Security
-↓
-consumo permitido
-
-No se permite:
-
-consumir ofertas modulares saltando el arbitraje central
-redefinir en el módulo consumidor lo que el módulo oferente ya cerró como contrato de seguridad
-
-Regla adicional consolidada para módulos deshabilitados:
-
-la ocultación visual de relaciones, links, campos o acciones no constituye validación suficiente
-
-si una referencia operativa hacia otro módulo depende de que ese módulo esté habilitado para el tenant, el backend también debe rechazarla cuando el módulo destino no esté disponible
-
-Regla adicional sobre segmentación efectiva:
-
-si el contrato persistido incorpora constraints funcionales, el flujo de consumo debe preservarlas también al operar sobre registros reales existentes
-
-no deben perderse al pasar de create a view, update o delete
-<<END SECTION>>
-
-<<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00004
-
-REGLAS OPERATIVAS POR MÓDULO
-
-Cada módulo debe definir su propio contrato de seguridad.
-
-Ese contrato debe dejar explícito, como mínimo:
-
-naturaleza del módulo
-universo visible
-scopes válidos
-uso de constraints
-reglas de create
-reglas de update
-reglas de delete
-si requiere contexto funcional
-si delega autorización a un recurso padre
-si publica o no ofertas de integración consumibles por otros módulos
-
-No se permite:
-
-interpretación implícita
-uso genérico de limited
-delegar lógica a UI
-operar un módulo sin contrato explícito
-consumir un módulo desde otro sin arbitraje central de seguridad
-
-Regla adicional consolidada:
-
-la publicación de capacidades de integración por parte de un módulo no altera su contrato de seguridad
-
-lo amplía como superficie consumible
-
-pero siempre bajo arbitraje de Security
-
-Regla adicional para módulos base intrínsecos:
-
-si un módulo ocupa una posición base transversal o intrínseca dentro del sistema, su contrato debe indicar explícitamente cómo se comporta respecto de la habilitación modular del tenant
-
-esa condición no debe quedar repartida entre documentos ni inferirse desde relaciones indirectas
-
-Regla adicional sobre entidades hijas delegadas:
-
-cuando una entidad hija dependa funcionalmente de una cabecera y no posea autonomía modular real, su contrato de seguridad no debe independizarse artificialmente
-
-debe delegar autorización en el recurso padre
-
-esta delegación aplica a create, update y delete del recurso hijo salvo decisión doctrinal expresa en contrario
-
-Regla adicional sobre relaciones reales:
-
-el contrato del módulo debe describir las relaciones operativas reales tal como existen en código vigente
-
-no deben inferirse foreign keys simétricas inexistentes solo por la existencia de navegación o integración entre módulos
-<<END SECTION>>
-
-<<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00001
-
-CONTRATO DE SEGURIDAD MODULAR
-
-Todo módulo operativo del sistema debe poseer un contrato de seguridad propio.
-
-Ese contrato expresa cómo debe comportarse el módulo dentro del marco general de seguridad del sistema.
-
-Debe dejar explícito, como mínimo:
-
-estado del contrato
-naturaleza del módulo
-universo visible
-capacidades aplicables
-scopes válidos
-constraints requeridas si aplica
-reglas de create
-reglas de view
-reglas de update
-reglas de delete
-si requiere contexto funcional obligatorio
-si delega autorización en recurso padre
-si publica ofertas modulares consumibles por otros módulos
-
-Reglas:
-
-el contrato de seguridad del módulo no reemplaza la capa central
-no autoriza por sí mismo
-no puede consumirse por fuera de Security
-no puede contradecir los principios estructurales del documento
-
-Su función es definir el comportamiento esperado del módulo.
-
-La función de Security es arbitrar si ese comportamiento puede o no consumirse válidamente en cada caso.
-
-Regla adicional consolidada:
-
-si el módulo publica capacidades de integración para otros módulos, esa publicación forma parte de su superficie de consumo válida
-
-pero no constituye una excepción de seguridad ni un canal paralelo de autorización
-<<END SECTION>>
-
-<<SECTION: MÓDULO: TASKS>>
-SECTION_VERSION: 00001
-
-ESTADO: CONTRATO CERRADO
-
-UNIVERSO VISIBLE
-
-tenant_all
-limited
-own_assigned
-
-REGLAS
-
-assigned_user_id define responsabilidad operativa
-
-no existen tareas sin asignación
-
-limited incluye:
-
-tareas asignadas al usuario
-tareas de proyectos donde participa
-
-CONFIGURACIÓN DE CAPACIDADES
-
-view_any: limited
-view: limited
-update: own_assigned
-delete: own_assigned
-
-REGLA
-
-la visibilidad no depende del creador
-
-no se utiliza ownership
+El aislamiento entre tenants es requisito estructural de seguridad operativa.
 
 <<END SECTION>>
 
-<<SECTION: MÓDULO: APPOINTMENTS>>
-SECTION_VERSION: 00002
+<<SECTION: OWNER Y ROLES BASE>>
+SECTION_VERSION: 00003
 
-ESTADO: CONTRATO CERRADO
+OWNER Y ROLES BASE
 
-UNIVERSO VISIBLE
+owner es una condición especial de gobierno interno del tenant.
 
-tenant_all
-own_assigned
+No equivale a un rol delegable ordinario.
 
-REGLAS
+Su determinación oficial se resuelve por memberships.is_owner.
 
-usa assigned_user_id
+Los roles base operativos organizan responsabilidades internas según el contrato persistido vigente.
 
-no utiliza limited
+Los nombres concretos de roles pueden evolucionar sin alterar estos principios.
 
-puede separar lectura de operación
+Regla doctrinal:
 
-CONFIGURACIÓN DE CAPACIDADES
-
-view_any: tenant_all
-view: own_assigned
-update: own_assigned
-delete: own_assigned
-
-ACLARACIÓN DE CONTRATO
-
-view_any controla el acceso al dataset
-view controla el acceso individual a cada registro
-
-la asimetría entre view_any y view es deliberada
-
-permite lectura amplia del tenant y operación restringida por responsabilidad
-
-REGLA
-
-view_any no puede ser más restrictivo que view
-
-RELACIONES
-
-dependen del estado activo de otros módulos
-<<END SECTION>>
-
-<<SECTION: VALIDACIONES BACKEND DE RELACIONES MODULARES>>
-SECTION_VERSION: 00002
-
-VALIDACIONES BACKEND DE RELACIONES MODULARES
-
-Cuando un módulo exponga relaciones operativas hacia otros módulos mediante campos como:
-
-party_id
-asset_id
-order_id
-task_id
-appointment_id
-
-el backend debe validar además de la forma y existencia técnica del dato:
-
-que el módulo relacionado esté habilitado para el tenant
-que el recurso referenciado sea consumible dentro del contrato vigente
-que la relación pedida sea coherente con el flujo real permitido
-
-Reglas:
-
-la UI puede ocultar campos, enlaces, tabs o acciones cuando el módulo relacionado no está habilitado
-
-pero esa ocultación no reemplaza la validación backend obligatoria
-
-si un módulo relacionado está deshabilitado:
-
-el backend no debe aceptar referencias operativas hacia ese módulo
-
-Aplicación consolidada del criterio:
-
-en appointments debe validarse especialmente el consumo backend de:
-
-party_id
-asset_id
-order_id
-
-contra el estado real de módulos habilitados y el contrato vigente del sistema
-
-Aclaración relacional consolidada:
-
-la existencia de una navegación o integración real entre módulos no obliga a que la foreign key viva del lado que intuitivamente podría suponerse
-
-Caso validado:
-
-appointment → order opera realmente mediante appointments.order_id
-
-no debe asumirse orders.appointment_id sin validación de código real
-<<END SECTION>>
-
-<<SECTION: MÓDULO: ORDERS>>
-SECTION_VERSION: 00004
-
-ESTADO: CONTRATO CERRADO
-
-UNIVERSO VISIBLE
-
-tenant_all
-
-REGLAS
-
-no utiliza ownership
-no utiliza assigned_user_id
-no utiliza own_assigned
-
-segmentación funcional:
-
-constraints.allowed_kinds
-
-REGLA CRÍTICA
-
-orders.create requiere contexto kind obligatorio
-
-sin contexto → no autorizado
-
-si no cumple constraints → no autorizado
-
-La autorización válida de create debe resolverse mediante Security con contexto explícito.
-
-La presencia de subject class-string no es requisito doctrinal para evaluar orders.create.
-
-Tanto subject nulo como class-string solo son válidos si la capa central los soporta sin alterar el contrato.
-
-Validación runtime consolidada:
-
-orders.create permite únicamente kinds autorizados por constraints.allowed_kinds del contrato persistido del usuario
-
-caso ya validado:
-sale y purchase permitidos
-service rechazado
-ausencia de kind rechazada
-
-REGLA DE CONSTRAINTS
-
-view_any, view, update y delete deben evaluarse junto con constraints
-
-el módulo es inválido si no se consideran constraints
-
-view_any = tenant_all no invalida la segmentación funcional del módulo
-
-si un registro posee kind fuera de constraints.allowed_kinds, debe quedar denegado en view, update y delete aunque exista acceso amplio al dataset base del tenant
-
-REGLA DE UI
-
-la UI no puede inferir permisos
-
-debe consumir backend
-
-REGLA DE CONSISTENCIA
-
-los roles son acumulables
-
-view puede ser más amplio que update o delete
-
-REGLA DE POLICY ABSTRACTA
-
-Gate o policy abstracta de create no constituyen el canal válido de autorización para este módulo cuando falta kind.
-
-En ese escenario, el comportamiento correcto es fail-closed.
-
-REGLA DE BORDE MODULAR
-
-orders puede recibir referencias contextuales desde task, appointment, party o asset según el flujo operativo aplicable
-
-la existencia de una relación visible en UI no valida por sí sola su consumo
-
-si el módulo de origen o destino no está habilitado o el contexto no es válido, el backend debe rechazar la operación correspondiente
-
-Aclaración relacional consolidada:
-
-la relación estructural persistida con tasks se resuelve desde orders.task_id
-
-el flujo appointment → order no implica orders.appointment_id
-
-la relación operativa real vive en appointments.order_id
-
-por lo tanto, appointment debe leerse como origen contextual y operativo válido hacia orders y no como FK propia del lado de order
-
-REGLA SOBRE RECURSOS HIJOS
-
-order_items delega autorización en order
-
-no requiere esquema autónomo de seguridad
-
-su create, update y delete dependen de la capacidad update sobre la order padre
-<<END SECTION>>
-
-<<SECTION: MÓDULO: ORDER_ITEMS>>
-SECTION_VERSION: 00002
-
-ESTADO: CONTRATO CERRADO
-
-NATURALEZA
-
-entidad hija delegada de orders
-
-UNIVERSO VISIBLE
-
-heredado del padre order
-
-REGLAS
-
-no constituye módulo autónomo
-
-no define ownership propio
-
-no define assigned_user_id propio
-
-no posee dataset independiente como contrato primario de consumo
-
-su ciclo de vida depende funcionalmente de order
-
-AUTORIZACIÓN
-
-create, update y delete deben delegar en la capacidad update sobre la order padre
-
-view debe resolverse como consumo subordinado del acceso válido a la order padre
-
-no debe incorporarse lógica paralela de permisos en controller, policy o Blade del hijo
-
-Regla operativa consolidada:
-
-la delegación al padre debe mantenerse también en:
-
-controllers
-vistas embebidas
-navegación de cancelar o volver
-verificación de pertenencia del item a la order padre
-
-REGLA FINAL
-
-cualquier ampliación futura de responsabilidades en order_items debe partir de una decisión doctrinal expresa
-
-mientras esa decisión no exista, order_items debe mantenerse como recurso delegado al padre
-<<END SECTION>>
-
-<<SECTION: MÓDULO: PROJECTS>>
-SECTION_VERSION: 00002
-
-ESTADO: EN REVISIÓN
-
-UNIVERSO VISIBLE
-
-tenant_all
-limited
-
-REGLAS ACTUALES
-
-limited depende de participación en tareas
-
-no utiliza ownership directo
-
-Regla operativa consolidada:
-
-el dataset debe resolverse mediante Security::scope(...)
-
-las policies deben actuar como wrapper mínimo
-
-los controllers no deben resolver visibilidad manual
-
-PENDIENTE
-
-definir contrato formal de capacidades
-validar interacción con tasks
-definir reglas completas de update y delete
-
-REGLA
-
-mientras el contrato permanezca en revisión, projects no debe utilizarse como patrón doctrinal para módulos nuevos
-
-<<END SECTION>>
-
-<<SECTION: MÓDULO: PARTIES>>
-SECTION_VERSION: 00004
-
-ESTADO: EN REVISIÓN
-
-UNIVERSO VISIBLE
-
-tenant_all
-
-REGLAS ACTUALES
-
-módulo base transversal del sistema
-
-no utiliza ownership
-
-ROL CONCEPTUAL
-
-parties es la entidad base del dominio
-
-debe tratarse como módulo base intrínseco del sistema
-
-no es opcional en el mismo sentido que otros módulos operativos
-
-REGLA OPERATIVA ESPECÍFICA
-
-su condición de módulo base intrínseco debe prevalecer sobre interpretaciones genéricas de módulo opcional ordinario
-
-si existiera habilitación técnica por tenant para este módulo, no debe interpretarse automáticamente con el mismo criterio doctrinal que módulos operativos comunes sin una definición explícita adicional del sistema
-
-Regla operativa consolidada:
-
-admite segmentación funcional mediante constraints.allowed_kinds cuando aplique
-
-las constraints forman parte del contrato del permiso
-
-deben persistirse en role_permission
-
-deben consumirse en backend mediante Security
-
-PENDIENTE
-
-definir contrato completo de capacidades
-definir restricciones de delete
-validar relación con otros módulos
-cerrar explícitamente su relación doctrinal con la habilitación modular por tenant
-<<END SECTION>>
-
-<<SECTION: MÓDULO: PRODUCTS>>
-SECTION_VERSION: 00002
-
-ESTADO: EN REVISIÓN
-
-UNIVERSO VISIBLE
-
-tenant_all
-
-REGLAS ACTUALES
-
-catálogo operativo
-
-Regla operativa consolidada:
-
-los datasets deben resolverse mediante Security::scope(...)
-
-las policies deben actuar como wrapper mínimo
-
-los controllers no deben resolver visibilidad manual
-
-PENDIENTE
-
-definir si admite segmentación
-definir constraints si aplica
-definir reglas de update y delete
-
-<<END SECTION>>
-
-<<SECTION: MÓDULO: ASSETS>>
-SECTION_VERSION: 00002
-
-ESTADO: EN REVISIÓN
-
-UNIVERSO VISIBLE
-
-tenant_all
-
-REGLAS ACTUALES
-
-relación con parties
-relación con orders
-
-Regla operativa consolidada:
-
-los datasets deben resolverse mediante Security::scope(...)
-
-las policies deben actuar como wrapper mínimo
-
-los controllers no deben resolver visibilidad manual
-
-PENDIENTE
-
-definir contrato de permisos
-definir segmentación
-definir restricciones operativas
-
-<<END SECTION>>
-
-<<SECTION: MÓDULO: DOCUMENTS>>
-SECTION_VERSION: 00004
-
-ESTADO: EN REVISIÓN
-
-UNIVERSO VISIBLE
-
-tenant_all
-
-REGLAS ACTUALES
-
-módulo documental derivado
-
-posible uso de constraints.allowed_kinds
-
-POSICIÓN FUNCIONAL
-
-documents debe tratarse como módulo derivado respecto de orders cuando participa del flujo orders → documents
-
-mantiene identidad modular propia
-
-no debe absorber operación interna propia de orders
-
-Regla operativa consolidada:
-
-create puede requerir contexto según kind
-
-las constraints forman parte del contrato del permiso
-
-el dataset debe resolverse mediante Security::scope(...)
-
-las policies deben actuar como wrapper mínimo
+la autoridad excepcional del owner no debe modelarse como simple permiso aislado si conceptualmente responde a una condición estructural del tenant.
 
 Regla adicional:
 
-cuando documents se cree desde orders, el consumo válido del flujo debe seguir respetando:
+owner no debe degradarse doctrinalmente a una variante equivalente de un rol base común.
 
-contrato del módulo documents
-constraints efectivas
-contexto funcional provisto
-arbitraje central de Security
+Su posición dentro del sistema responde a una condición estructural de gobierno interno y no a una combinación arbitraria de permisos delegables ordinarios.
 
-no debe resolverse como excepción paralela alojada en orders
+Los roles base complementan la organización operativa del tenant.
 
-Alineación operativa ya validada:
+No reemplazan la singularidad estructural del owner.
 
-el canal contextual desde order hacia documents debe consumirse mediante Security con contexto kind explícito
-
-storeFromOrder no debe funcionar como create abstracto encubierto
-
-la ausencia de kind válido debe cerrar el flujo como no autorizado
-
-cuando el flujo se consuma desde una order válida, debe preservar el contexto funcional y de navegación correspondiente
-
-PENDIENTE
-
-confirmar contrato equivalente a orders cuando aplique por kind
-definir create con contexto
-definir relación cerrada con orders
-definir reglas completas de update y delete
 <<END SECTION>>
 
-<<SECTION: MÓDULO: ATTACHMENTS>>
+<<SECTION: MODELO V2 DE PERMISOS>>
 SECTION_VERSION: 00002
 
-ESTADO: EN REVISIÓN
+MODELO V2 DE PERMISOS
 
-TIPO
+El sistema utiliza un modelo persistido de permisos orientado a módulos y capacidades.
 
-módulo transversal
+El contrato efectivo puede componerse mediante:
 
-REGLA ACTUAL
+módulo
+capability
+scope
+execution_mode
+constraint
+resolver central
+policy consumidora
+UI consumidora
 
-autorización delegada al padre
+Lectura correcta de cada pieza:
 
-Regla operativa consolidada:
+módulo:
+ámbito funcional de autorización
 
-no posee lógica de autorización propia
+capability:
+acción o capacidad evaluable
 
-las acciones create, update y delete dependen de la capacidad update del recurso padre
+scope:
+universo operativo resultante autorizado
 
-las actions view dependen del acceso al recurso padre
+execution_mode:
+modo especial de resolución cuando exista
 
-PENDIENTE
+constraint:
+condición funcional adicional necesaria para autorizar correctamente
 
-formalizar contrato como módulo delegado
-validar consistencia en todos los padres
+resolver central:
+pieza que interpreta contrato persistido y entrega resultado oficial
+
+policy:
+adaptador de consumo integrado al framework
+
+UI:
+expresión del resultado autorizado ya resuelto
+
+La implementación concreta puede evolucionar siempre que preserve esta doctrina.
 
 <<END SECTION>>
 
-<<SECTION: MÓDULO: INVENTORY>>
-SECTION_VERSION: 00001
+<<SECTION: FLUJO OFICIAL DE AUTORIZACIÓN>>
+SECTION_VERSION: 00002
 
-ESTADO: EN REVISIÓN
+FLUJO OFICIAL DE AUTORIZACIÓN
 
-ESTADO FUNCIONAL
+Secuencia doctrinal esperada:
 
-módulo en preparación
+contrato persistido vigente
+↓
+resolver central
+↓
+policy o consumidor backend
+↓
+controller o servicio de aplicación
+↓
+consulta de datos dentro del universo autorizado
+↓
+UI que expresa el resultado permitido
 
-PENDIENTE
+Lectura operativa:
 
-definir modelo conceptual
-definir si es módulo compartido o segmentado
-definir si usa constraints
-definir relación con products
-definir contrato completo de permisos
+el contrato define qué puede ocurrir
+el resolver transforma contrato en decisión usable
+las capas consumidoras aplican esa decisión
+la UI refleja disponibilidad real
 
-REGLA
+Prohibiciones:
 
-no debe implementarse sin contrato definido
+no invertir el flujo
+no decidir desde la UI lo que backend no autorizó
+no consultar universos más amplios para luego ocultarlos visualmente
+no saltar el resolver central con lógica local improvisada
 
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00002
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
-la base de datos es la única fuente de verdad del contrato de permisos V2
+No duplicar lógica de autorización entre capas.
 
-contrato doctrinal del módulo → define comportamiento esperado del módulo
-resolver → resuelve el contrato persistido
-Security → orquesta y arbitra la evaluación
-policy → wrapper mínimo de consumo
-controller → consume y ejecuta la autorización correspondiente
-Blade → muestra solo el resultado permitido
+No hardcodear permisos por fuera del contrato persistido.
 
-Prohibido:
+No exponer acciones no autorizadas como si fueran operables.
 
-lógica paralela
-evaluación abstracta
-redefinir permisos
-crear integraciones modulares que bypassen arbitraje central
+No omitir contexto obligatorio cuando una capacidad lo requiera.
 
-Distinción:
+No ignorar constraints funcionales vigentes.
 
-view_any → dataset
-view → registro
+No romper aislamiento multi-tenant.
 
-Regla crítica adicional:
+No usar la UI como única barrera de control.
 
-cuando el dataset depende de permisos, debe resolverse mediante Security::scope(...)
+No asumir que una simplificación técnica justifica una excepción doctrinal.
 
-Regla crítica adicional para create contextual:
+Toda implementación debe preferir claridad, centralización y trazabilidad de la decisión autorizadora.
 
-cuando create depende de contexto funcional obligatorio, Gate o policy abstracta no constituyen el canal válido principal de autorización
+<<END SECTION>>
 
-debe consumirse Security con contexto explícito
+<<SECTION: CONSTRAINTS FUNCIONALES>>
+SECTION_VERSION: 00002
 
-Regla crítica adicional para UI relacional:
+CONSTRAINTS FUNCIONALES
 
-si un recurso relacionado existe pero el usuario no posee permiso real de vista sobre el módulo destino, la UI no debe renderizar un link operativo hacia ese recurso
+Las constraints complementan scopes y capacidades cuando una regla requiere mayor precisión funcional.
 
-puede mostrarse texto o referencia no navegable cuando resulte útil para lectura, pero no navegación efectiva
+No son accesorias ni decorativas.
 
-si el módulo destino está deshabilitado para el tenant, la UI no debe renderizar links, acciones ni bloques residuales hacia ese módulo aunque exista la relación cargada
+Forman parte del contrato persistido efectivo.
 
-las integraciones visuales entre módulos deben consumir resultados arbitrados por backend y no reconstruir autorización local en Blade
+Pueden arbitrar create, view, update o delete según la semántica del módulo correspondiente.
+
+Ejemplo doctrinal general:
+
+si un módulo diferencia tipos operativos relevantes, una constraint puede limitar qué tipos resultan autorizables sin romper la estructura general del permiso.
+
+Ignorar constraints equivale a ejecutar un contrato incompleto.
+
+<<END SECTION>>
+
+<<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
+SECTION_VERSION: 00002
+
+CONTRATO DE SEGURIDAD MODULAR
+
+Todo módulo relevante debe poder expresarse mediante un contrato de seguridad claro, consistente y auditable.
+
+Como mínimo debe explicitar:
+
+universo visible
+capacidades principales
+si requiere o no contexto obligatorio
+si utiliza constraints
+delegaciones a recursos hijos
+reglas especiales si existieran
+relación con otros módulos cuando impacte autorización
+
+Regla:
+
+un módulo sin contrato entendible no constituye un frente cerrado de seguridad.
+
+Los contratos modulares concretos deben ser consistentes con los principios generales de este documento.
+
 <<END SECTION>>
 
 <<SECTION: RECURSOS DELEGADOS AL PADRE>>
@@ -1577,27 +354,111 @@ SECTION_VERSION: 00002
 
 RECURSOS DELEGADOS AL PADRE
 
-attachments
-order_items
-document_items
+Algunos recursos no constituyen universo autónomo de autorización.
 
-Regla:
+Su seguridad depende doctrinalmente del recurso padre.
 
-su autorización operativa depende del recurso padre
+Casos típicos:
 
-no deben tratarse como recursos autónomos de autorización cuando su ciclo de vida depende de la cabecera
+order_items respecto de orders
+document_items respecto de documents
+attachments respecto del recurso attachable correspondiente
 
-cualquier policy existente debe delegar explícitamente en el recurso padre
+Reglas:
 
-No se permite:
+no inventar permisos paralelos para hijos delegados
+no romper coherencia entre padre e hijo
+la delegación debe ser explícita, estable y consistente
 
-definir lógica de permisos independiente del recurso padre
+<<END SECTION>>
 
-Regla operativa consolidada:
+<<SECTION: INTEGRACIONES REUSABLES Y AUTORIZACIÓN>>
+SECTION_VERSION: 00002
 
-las acciones create, update y delete deben resolverse contra update del recurso padre
+INTEGRACIONES REUSABLES Y AUTORIZACIÓN
 
-las acciones de lectura deben alinearse con el acceso al recurso padre
+Una capacidad reusable publicada por un módulo no crea permisos nuevos.
+
+El módulo consumidor no redefine autorización del recurso destino.
+
+La visibilidad y operabilidad final continúan sometidas al contrato del módulo oferente y al arbitraje central.
+
+La reutilización mejora consistencia; no reemplaza seguridad.
+
+<<END SECTION>>
+
+<<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
+SECTION_VERSION: 00003
+
+REGLAS OPERATIVAS POR MÓDULO
+
+Esta sección resume la semántica doctrinal general de los módulos más relevantes del sistema.
+
+No reemplaza el contrato específico de cada módulo ni desarrolla por sí sola todas sus reglas operativas.
+
+Su función es fijar cómo debe interpretarse la seguridad de cada tipo de módulo dentro del ecosistema general.
+
+TASKS
+
+Módulo autónomo de trabajo interno.
+
+Su seguridad puede combinar universo visible segmentado con edición más restrictiva que lectura.
+
+No debe interpretarse como módulo puramente libre ni como simple subrecurso de projects.
+
+PROJECTS
+
+Módulo agrupador.
+
+Su seguridad debe respetar su rol agregador sin absorber indebidamente la lógica propia de tasks.
+
+La agrupación no autoriza a trasladar automáticamente al proyecto toda la semántica operativa de la tarea individual.
+
+ORDERS
+
+Módulo operativo central.
+
+Su seguridad puede requerir contexto funcional obligatorio y constraints específicas según tipo de operación.
+
+Su posición central no autoriza simplificaciones abstractas de create cuando el contrato exija contexto.
+
+PARTIES
+
+Módulo base del dominio.
+
+Su seguridad debe contemplar uso transversal, estabilidad relacional y consistencia entre múltiples relaciones del ecosistema.
+
+No debe tratarse doctrinalmente como módulo accesorio ni como módulo opcional ordinario sin definición explícita.
+
+ASSETS
+
+Módulo operativo compartido.
+
+Puede operar con universo común del tenant y sin ownership artificial por defecto.
+
+Su seguridad no debe degradarlo a simple dato auxiliar cuando participa en múltiples relaciones operativas.
+
+DOCUMENTS
+
+Módulo derivado.
+
+Su seguridad puede depender parcialmente de operaciones nucleares previas sin perder reglas propias.
+
+Su condición derivada no autoriza a resolverlo como excepción informal alojada dentro de otro módulo.
+
+PRODUCTS
+
+Módulo de catálogo operativo.
+
+Debe privilegiar consistencia transversal y evitar divergencias de autorización entre consumidores.
+
+Su función de catálogo no lo exime de contrato de seguridad claro.
+
+ATTACHMENTS
+
+Capacidad transversal delegada al recurso padre correspondiente.
+
+Su seguridad no debe construirse como universo autónomo paralelo cuando doctrinalmente depende del recurso principal al que se adjunta.
 
 <<END SECTION>>
 
@@ -1606,269 +467,46 @@ SECTION_VERSION: 00002
 
 HARDENING Y AUDITORÍA
 
-Verificar como mínimo:
+Toda evolución relevante del sistema debe verificar impacto en seguridad.
 
-login
-logout
-tenant
-dataset
-permisos
-roles
-constraints
-módulos habilitados
-delegación al padre cuando corresponda
-consumo real mediante Security
-runtime real en Tinker cuando aplique
+Cambios en módulos, relaciones, integraciones, datasets o flujos pueden exigir revalidación doctrinal y pruebas reales.
 
-No permitir:
+La validación documental no sustituye pruebas de runtime cuando el riesgo es operativo.
 
-datos inconsistentes
-scopes inválidos
-permisos incompletos
-constraints ausentes cuando sean obligatorias
-queries fuera del scope efectivo
-evaluación abstracta en módulos con contexto obligatorio
-bypasses entre módulos
-accesos residuales a módulos deshabilitados
+Una implementación funcional pero contraria a esta doctrina no debe considerarse cierre correcto.
 
-Criterios mínimos de cierre:
+Auditar seguridad implica revisar tanto backend como superficies visibles consumidoras.
 
-toda validación de permisos que dependa de runtime tenant-aware debe reproducir tenant activo real
+La ausencia de error visible no prueba cumplimiento doctrinal.
 
-toda validación de módulos con constraints debe probar caso válido, caso sin contexto y caso inválido
-
-toda entidad hija o recurso delegado debe auditarse contra el permiso update del padre cuando esa sea la doctrina vigente
-
-si la prueba no reproduce el flujo real del sistema, la conclusión debe considerarse insuficiente
-
-La auditoría técnica no debe sostener supuestos.
-
-Debe verificar comportamiento real del sistema.
 <<END SECTION>>
 
-<<SECTION: GOBERNANZA DEL DOCUMENTO DE SEGURIDAD>>
-SECTION_VERSION: 00001
+<<SECTION: GOBERNANZA DEL DOCUMENTO>>
+SECTION_VERSION: 00002
 
-GOBERNANZA DEL DOCUMENTO DE SEGURIDAD
+GOBERNANZA DEL DOCUMENTO
 
-OBJETIVO
+Este documento debe mantenerse coherente, no redundante y alineado con la implementación válida.
 
-Definir reglas estrictas de mantenimiento, actualización y validación del documento de seguridad.
+No deben incorporarse módulos nuevos sin contrato doctrinal mínimo.
 
-Este documento no es descriptivo.
+No deben copiarse reglas de seguridad en documentos no especializados.
 
-Es un contrato operativo del sistema.
+Toda modificación estructural relevante exige revisión integral del documento.
 
-Su modificación implica impacto directo en la arquitectura de permisos.
+Si una sección pierde utilidad doctrinal y solo repite otra, debe fusionarse o eliminarse.
 
----
-
-REGLA 1 — COHERENCIA OBLIGATORIA
-
-El documento completo debe mantenerse coherente.
-
-No pueden existir:
-
-contradicciones entre secciones
-reglas que se anulen entre sí
-definiciones ambiguas o abiertas a interpretación
-
-Cualquier inconsistencia invalida el documento como fuente de verdad.
-
----
-
-REGLA 2 — PRIORIDAD DE CONTRATOS DE MÓDULO
-
-Los contratos de módulos son la base operativa del sistema.
-
-Regla obligatoria:
-
-ningún módulo puede entrar en implementación operativa real dentro del sistema sin contrato definido en este documento
-
-El contrato del módulo debe definirse antes de:
-
-controller
-policy
-implementación operativa del modelo
-UI operativa
-publicación de ofertas de integración reutilizables
-
-Si el contrato no existe:
-
-el módulo no debe desarrollarse operativamente
-
-Esta regla no impide pruebas locales, exploraciones técnicas o borradores internos que todavía no formen parte del sistema como módulo operativo real.
-
----
-
-REGLA 3 — ESTADO DE CONTRATO
-
-Cada módulo debe declarar su estado:
-
-CONTRATO CERRADO
-EN REVISIÓN
-
-Reglas:
-
-solo los módulos con CONTRATO CERRADO pueden tomarse como referencia
-
-los módulos EN REVISIÓN no deben replicarse como patrón
-
----
-
-REGLA 4 — VERSIONADO DE CONTRATOS DE MÓDULO
-
-Cada sección de módulo debe incluir su propia versión.
-
-Reglas:
-
-cualquier cambio en el contrato de un módulo requiere incrementar su versión
-
-los cambios deben ser explícitos
-no se permiten modificaciones implícitas
-
----
-
-REGLA 5 — VERSIONADO GLOBAL DEL DOCUMENTO
-
-Las secciones del documento se dividen en dos tipos:
-
-SECCIONES DE CONTRATO
-SECCIONES ESTRUCTURALES
-
-Reglas:
-
-modificar una sección de contrato → no requiere versionado global
-
-modificar una sección estructural → requiere nueva versión completa del documento
-
-Esto incluye:
-
-principios inmutables
-capa V2
-flujo de permisos
-reglas de implementación
-reglas de arbitraje contractual
-
----
-
-REGLA 6 — PROCESO DE CAMBIO
-
-Antes de modificar cualquier sección estructural del documento:
-
-debe realizarse una validación explícita
-debe evaluarse impacto en módulos existentes
-debe confirmarse coherencia con el resto del documento
-
-No se permite:
-
-modificar parcialmente una regla sin revisar su impacto global
-
----
-
-REGLA 7 — PROHIBICIÓN DE CAMBIOS IMPLÍCITOS
-
-No se permite:
-
-cambiar comportamiento del sistema sin reflejarlo en este documento
-
-Si una implementación cambia el comportamiento real:
-
-el documento debe actualizarse primero o en simultáneo
-
-Nunca después
-
----
-
-REGLA 8 — ORDEN DE IMPLEMENTACIÓN
-
-El orden correcto es:
-
-definir contrato en este documento
-validar coherencia
-luego implementar
-
-Nunca al revés
-
----
-
-REGLA 9 — AUDITORÍA OBLIGATORIA
-
-Ningún cambio en permisos puede implementarse sin pasar por una auditoría explícita contra este documento.
-
-Esto incluye:
-
-nuevos módulos
-cambios en módulos existentes
-cambios en constraints
-cambios en scopes
-cambios en lógica de resolución
-cambios en ofertas modulares consumibles por otros módulos cuando tengan impacto de autorización
-
-Si no hay auditoría:
-
-el cambio debe considerarse inválido
-
----
-
-REGLA 10 — ROL DEL DOCUMENTO
-
-Este documento define:
-
-qué es válido
-qué es inválido
-qué está prohibido
-
-No es una guía.
-
-Es la referencia obligatoria del sistema.
-
----
-
-REGLA 11 — RE-VERIFICACIÓN OBLIGATORIA ANTE CAMBIO ESTRUCTURAL
-
-Cuando se modifique una sección estructural de este documento, debe realizarse una re-verificación específica posterior.
-
-Esa re-verificación debe comprobar, como mínimo:
-
-coherencia interna del documento
-alineación con contratos de módulos vigentes
-impacto sobre Security
-impacto sobre controllers, policies y consumo real
-justificación explícita de por qué el cambio era necesario
-
-No debe continuarse con reconversión documental de otros documentos mientras esta verificación siga pendiente.
-
----
-
-REGLA FINAL DE GOBERNANZA
-
-Si existe diferencia entre:
-
-lo implementado
-y lo definido en este documento
-
-la implementación debe considerarse incorrecta.
 <<END SECTION>>
 
 <<SECTION: REGLA FINAL>>
+SECTION_VERSION: 00002
+
 REGLA FINAL
 
-La seguridad es transversal.
+La seguridad del proyecto no es un agregado posterior.
 
-Debe cumplirse en:
+Forma parte constitutiva del diseño del sistema y condiciona toda operación válida dentro de app-base.
 
-resolver  
-policy  
-controller  
-Blade  
-UI  
+Diseñar sin seguridad equivale a diseñar de forma incompleta.
 
-Este documento es obligatorio.
-
-No es guía.
-
-Es ley de implementación.
-
-Cualquier desviación debe considerarse error del sistema.
 <<END SECTION>>

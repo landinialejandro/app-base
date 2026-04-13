@@ -405,76 +405,60 @@ debe consumirse Security con el contexto real requerido por el contrato
 <<END SECTION>>
 
 <<SECTION: VISTAS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 VISTAS
 
+Todo módulo nuevo debe contar, como mínimo, con superficies visuales coherentes con el sistema.
+
 Verificar:
 
-index consistente con la base visual
-show consistente con la base visual
-create y edit consistentes entre sí
-uso de x-page
-uso de x-breadcrumb
-uso de x-page-header
-uso de cards o bloques visuales consistentes
-acciones visibles alineadas con permisos reales
-partials creados si la vista crece demasiado
-
-si el módulo requiere métricas o visualización analítica, utilizar el patrón analytics.panel en lugar de x-show-summary
-
-Validar además:
-
-si el módulo consumidor utiliza una acción transversal compleja ya publicada por otro módulo, debe reutilizar el componente o capacidad compartida correspondiente y no duplicar la lógica en Blade
-
-si una tabla contextual expone links a entidades relacionadas, debe construir el trail por fila cuando la fila sea el verdadero contexto operativo de apertura
-<<END SECTION>>
-
-<<SECTION: AUTORIZACIÓN Y UI>>
-SECTION_VERSION: 00004
-
-AUTORIZACIÓN Y UI
+index
+show
+create
+edit cuando corresponda
+partials reutilizables necesarias
+componentes modulares propios cuando publiquen capacidades reusables
 
 Reglas:
 
-no alcanza con policy + authorize
+las vistas deben respetar layouts y patrones visuales vigentes
 
-los datasets visibles deben validarse mediante Security::scope(...) cuando la visibilidad sea variable
+no duplicar bloques ya resueltos por componentes existentes
 
-no deben existir queries paralelas para listados
+si una capacidad reusable pertenece al módulo, su bloque visual debe vivir dentro del propio módulo y no en una carpeta global ambigua
 
-no deben existir conteos fuera del scope real
+si el módulo publica una relación navegable reusable, no alcanza con implementarla en su show principal
 
-los selectores auxiliares deben respetar permisos efectivos
+también deben contemplarse tablas, sublistados y superficies secundarias consumidoras relevantes
 
-si el módulo utiliza constraints:
+<<END SECTION>>
 
-no deben existir create abstractos
+<<SECTION: AUTORIZACIÓN Y UI>>
+SECTION_VERSION: 00003
 
-no debe usarse @can('create', Model::class)
+AUTORIZACIÓN Y UI
 
-la autorización debe evaluarse con contexto
+Verificar coherencia entre backend y superficie visible.
 
-los valores configurables deben provenir de catálogos
+Controlar:
 
-los recursos hijos deben validarse como delegados al padre
+acciones visibles alineadas con permisos reales
 
-Regla adicional consolidada:
+dataset proveniente de la capa central cuando aplique
 
-si el módulo tiene create contextual con constraints, debe quedar cerrado explícitamente:
+ausencia de botones inaccesibles
 
-si la policy abstracta queda fail-closed
-cuál es el contexto obligatorio
-cuál es el punto real de consumo de Security
-cómo se comporta la UI cuando falta contexto válido
+ausencia de links residuales hacia módulos no habilitados
 
-Validar además:
+create contextuales resueltos con contexto válido
 
-si existe dato relacional pero no permiso real de vista al módulo destino, la UI debe mostrar texto o referencia no navegable y no un link operativo
+capacidades reusables sin canal paralelo de autorización
 
-si el módulo destino está deshabilitado para el tenant, la UI no debe mostrar links, acciones ni bloques operativos residuales hacia ese módulo aunque exista relación cargada
+Regla adicional:
 
-si una acción contextual reutiliza una capacidad publicada por otro módulo, su visibilidad debe depender del resultado real ya arbitrado por backend y no de inferencias locales en Blade
+si una acción reusable navega hacia otro módulo, la visibilidad final debe seguir arbitrada por el contrato del módulo oferente y no por decisiones locales del consumidor
+
 <<END SECTION>>
 
 <<SECTION: CHECKLIST DE INTEGRACIÓN>>
@@ -482,29 +466,26 @@ SECTION_VERSION: 00003
 
 CHECKLIST DE INTEGRACIÓN
 
-Verificar:
+Cuando un módulo se relacione con otros, verificar:
 
-el módulo define claramente qué consume y qué ofrece al ecosistema
+consumo de contratos existentes antes de crear variantes nuevas
 
-sus relaciones con otros módulos respetan contratos existentes
+uso de capacidades reusables oficiales del módulo oferente
 
-no invade el núcleo de otros módulos para resolver necesidades propias
+trail y retorno consistentes
 
-si necesita una capacidad transversal ya existente, la reutiliza antes de crear variante local
+flags modulares correctamente propagados
 
-si publica una capacidad reusable, queda ubicada doctrinalmente en el módulo oferente y no en consumidores accidentales
+homogeneidad entre show pages, tablas y partials secundarias
 
-los create contextuales usan el mismo contrato de entrada en todas sus superficies
+ausencia de links locales remanentes hacia relaciones ya cerradas doctrinalmente por otro módulo
 
-si create requiere contexto funcional obligatorio, no se implementa como alta abstracta genérica
+Regla de cierre:
 
-las integraciones cruzadas preservan navegación contextual cuando corresponde
+no considerar terminada una integración por haber corregido solo la pantalla principal del consumidor.
 
-si existe relación previa (por ejemplo registro ya creado), se define comportamiento consistente de apertura o reutilización
+Debe revisarse también el ecosistema visible que consume esa relación.
 
-si la capacidad reusable compleja ya fue cerrada por el módulo oferente, el consumidor no reconstruye localmente estados, payloads ni decisiones UX operativas
-
-una capacidad reusable no se considera realmente cerrada si su vista está reutilizada pero el arbitraje backend o la resolución de estados sigue dispersa entre consumidores
 <<END SECTION>>
 
 <<SECTION: VALIDACIONES BACKEND VS UI>>

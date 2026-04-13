@@ -112,51 +112,84 @@ si el pedido es cerrar, alinear o auditar un módulo, debe revisarse también si
 <<END SECTION>>
 
 <<SECTION: CRITERIO DE AVANCE>>
+SECTION_VERSION: 00003
+
 CRITERIO DE AVANCE
 
-No bloquear la respuesta por faltantes menores si igualmente se puede aportar algo útil, concreto y razonable.
+Avanzar en pasos pequeños, verificables y reversibles.
 
-Si el contexto alcanza para responder, proponer, corregir o implementar parcialmente, avanzar.
+Priorizar primero:
 
-Solo frenar o pedir archivos cuando falte contexto realmente crítico para no romper el proyecto, contradecir el código o inventar una solución no verificable.
+contrato doctrinal
+alineación real de implementación
+validación runtime cuando aplique
+homogeneidad de superficies consumidoras
+documentación final
 
-Ante duda menor, priorizar mejor esfuerzo útil y explícito antes que silencio o bloqueo innecesario.
+No declarar cerrado un frente por inspección parcial.
+
+Un módulo puede quedar cerrado en su núcleo y mantener pendientes residuales explícitos.
+
+Cuando el cambio toque permisos, constraints, datasets o multi-tenancy, priorizar prueba real antes de declarar cierre.
+
 <<END SECTION>>
 
 <<SECTION: REGLAS ESPECÍFICAS DEL PROYECTO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00003
 
 REGLAS ESPECÍFICAS DEL PROYECTO
 
-* no usar Route::resource(...) en el core mientras siga vigente la convención actual
-* no proponer modales para create/edit operativos salvo excepción muy justificada
-* si hay navegación contextual, reutilizar el mecanismo central vigente y no inventar variantes paralelas
-* no reconstruir navegación funcional desde url()->previous(), historial o supuestos implícitos
-* no inventar clases CSS, estructuras visuales ni patrones frontend fuera de la base visual vigente
-* no exponer tenant_id como dato de formulario del usuario
-* no asumir tenant_id como foreignId() sin verificar el patrón real del proyecto
-* si el tema toca permisos, tomar como fuente de verdad obligatoria el documento seguridad_acceso_proyecto_app_base
-* no proponer lógica de permisos fuera del contrato persistido en base de datos
-* no usar autorización abstracta cuando la capacidad dependa de constraints
-* auditar cualquier cambio de permisos contra el documento de seguridad antes de proponer implementación
-* validar policy + authorize + @can cuando corresponda, sin contradecir la capa central ni el contrato persistido
-* si el caso toca runtime real de permisos o multi-tenancy, usar como referencia operativa la guia_tinker_proyecto_app_base
-* no asumir que Gate o policy abstracta resuelven create contextual cuando el contrato exige contexto funcional obligatorio
-* si una integración entre módulos consume una capacidad reusable ya publicada por otro módulo, reutilizar esa capacidad y no duplicar lógica local
-* propagar flags o señales de soporte modular hasta la última partial o superficie que pueda exponer acciones, campos, links o relaciones
-* no considerar un módulo cerrado si no fueron auditadas también sus superficies secundarias relevantes
-* no asumir foreign keys simétricas ni modelado relacional por intuición cuando exista navegación real entre módulos
-* si una capacidad reusable compleja ya fue cerrada por el módulo oferente, también sus consumidores secundarios deben usarla y no reconstruir localmente estados o decisiones UX
-  <<END SECTION>>
+La documentación vigente es fuente formal de verdad salvo que se esté auditando una divergencia con código real.
+
+No inventar comportamiento.
+
+No asumir estructuras, tablas, columnas, rutas, APIs ni flujos no verificados.
+
+NO SE ASUME. NO SE SUPONE.
+
+Si falta un dato crítico, pedir exactamente ese dato y no otro.
+
+Leer primero los documentos involucrados antes de proponer cambios documentales.
+
+Si se detecta contradicción entre documentos, señalarla antes de corregir.
+
+Si una capacidad reusable ya fue publicada por el módulo oferente, no proponer duplicaciones locales en módulos consumidores salvo justificación real.
+
+El cierre de un frente modular requiere revisar también superficies secundarias relevantes y no solo la pantalla principal.
+
+<<END SECTION>>
 
 <<SECTION: REGLA DE VALIDACIÓN DEL PEDIDO>>
+SECTION_VERSION: 00003
+
 REGLA DE VALIDACIÓN DEL PEDIDO
 
-Si el pedido parte de una premisa incorrecta, incompleta o contradictoria con el código o con documentos vigentes, señalarlo primero.
+Antes de responder una tarea técnica:
 
-Si el código real contradice la documentación, indicar la diferencia y trabajar con el estado verificable.
+identificar documento o código fuente aplicable
 
-No avanzar a implementación solo cuando la base sea lo bastante incierta como para generar una solución riesgosa, inconsistente o inventada.
+determinar si falta contexto crítico
+
+usar nombres canónicos del proyecto (DOC_SLUG, módulos, catálogos, contratos)
+
+responder en el formato solicitado
+
+Si el pedido es de auditoría documental:
+
+agrupar cambios por documento
+
+respetar nombres exactos de secciones
+
+versionar solo secciones alcanzadas
+
+no devolver texto fuera de bloques requeridos
+
+Si el pedido es de auditoría técnica:
+
+no concluir por intuición
+
+pedir evidencia mínima necesaria o validar con salida real disponible
+
 <<END SECTION>>
 
 <<SECTION: REGLA PARA ARCHIVOS COMPLETOS DE CÓDIGO>>

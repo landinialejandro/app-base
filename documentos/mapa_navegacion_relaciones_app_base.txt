@@ -242,6 +242,10 @@ cuando un flujo transversal hacia orders deba arbitrar si corresponde abrir una 
 
 la capacidad reusable consolidada actual para este frente es linked-order-action
 
+cuando un flujo transversal hacia assets deba arbitrar si corresponde abrir el asset relacionado, mostrar referencia readonly o no exponer acción operable, debe priorizarse el consumo de la capacidad reusable publicada por assets y no links locales dispersos
+
+la capacidad reusable consolidada actual para este frente es linked-asset-action
+
 Aclaración operativa consolidada:
 
 linked-order-action ya no debe leerse solo como idea doctrinal ni como bloque aislado reutilizado por conveniencia
@@ -250,21 +254,23 @@ debe leerse como superficie publicada por orders y consumida desde módulos como
 
 su consumo válido incluye tanto la resolución contextual proveniente del propio módulo orders como su bloque visual modular correspondiente
 
-la navegación contextual hacia orders no debe reconstruirse localmente por cada vista consumidora cuando esa superficie ya fue cerrada por el módulo oferente
+linked-asset-action debe leerse con el mismo criterio doctrinal para relaciones visibles hacia assets desde módulos consumidores
+
+la navegación contextual hacia módulos relacionados no debe reconstruirse localmente por cada vista consumidora cuando esa superficie ya fue cerrada por el módulo oferente
 
 Regla adicional de homogeneidad:
 
-mientras exista una superficie secundaria relevante que todavía resuelva localmente el acceso hacia orders, el frente de navegación contextual no debe considerarse homogéneamente cerrado
+mientras exista una superficie secundaria relevante que todavía resuelva localmente el acceso hacia orders o assets, el frente de navegación contextual no debe considerarse homogéneamente cerrado
 
 Aclaración consolidada para parties:
 
-cuando el flujo transversal hacia parties deba arbitrar si corresponde abrir la party relacionada, mostrarla como referencia readonly o derivar a create contextual permitido, debe priorizarse el consumo de la capacidad reusable publicada por parties y no links locales dispersos por vista
+cuando el flujo transversal hacia parties deba arbitrar si corresponde abrir la party relacionada, mostrarla como referencia readonly o no exponer acción operable, debe tender a priorizarse el consumo de la capacidad reusable publicada por parties y no links locales dispersos por vista
 
-la capacidad reusable vigente para este frente es linked-party-action
+la capacidad reusable prevista para este frente es linked-party-action
 
 parties.show no debe leerse solo como ficha aislada
 
-debe operar como pantalla transversal de relaciones operativas relevantes según módulos activos, permisos efectivos y contexto vigente
+debe tender a operar como pantalla transversal de relaciones operativas relevantes según módulos activos, permisos efectivos y contexto vigente
 
 <<END SECTION>>
 
@@ -291,11 +297,9 @@ métricas agregadas
 
 task.show
 capacidad reusable hacia order relacionada
-capacidad reusable hacia party relacionada
 
 appointment.show
 capacidad reusable hacia order relacionada
-capacidad reusable hacia party relacionada
 
 order.show
 items
@@ -320,15 +324,7 @@ las relaciones embebidas no deben reemplazar navegación estructural cuando abri
 
 los accesos embebidos hacia orders desde tasks o appointments deben consumir la misma lógica reusable del módulo orders
 
-los accesos embebidos hacia parties desde tareas, turnos, órdenes, documentos, activos y tablas equivalentes deben consumir la misma lógica reusable del módulo parties
-
-Aclaración consolidada:
-
-en el frente actual, esa capacidad reusable ya se encuentra publicada por orders y parties y consumida desde vistas concretas
-
-su consumo no debe limitarse a reutilizar una vista Blade
-
-debe incluir también la resolución de estados operativos proveniente del propio módulo oferente
+los accesos embebidos hacia assets desde módulos consumidores deben consumir la misma lógica reusable del módulo assets cuando corresponda
 
 Regla adicional consolidada:
 
@@ -338,7 +334,7 @@ la pantalla debe resolver fallback limpio hacia una pestaña activa disponible
 
 Regla adicional de cierre:
 
-también las tablas parciales y superficies secundarias embebidas deben consumir esa misma capacidad reusable oficial y no resolver localmente el vínculo relacionado
+también las tablas parciales y superficies secundarias embebidas deben consumir esas mismas capacidades reusables oficiales y no resolver localmente el vínculo relacionado
 
 <<END SECTION>>
 
@@ -561,7 +557,7 @@ document_items
 <<END SECTION>>
 
 <<SECTION: REGLA PARA LINKS RELACIONALES DESDE TABLAS CONTEXTUALES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 REGLA PARA LINKS RELACIONALES DESDE TABLAS CONTEXTUALES
 
@@ -598,6 +594,13 @@ Regla adicional para integraciones reusables:
 si la fila expone una capacidad compleja ya publicada por otro módulo, no debe reconstruirse localmente por conveniencia dentro de la tabla
 
 debe consumirse la capacidad oficial del módulo oferente también en esa superficie contextual
+
+Casos vigentes relevantes:
+
+linked-order-action
+linked-party-action
+linked-asset-action
+
 <<END SECTION>>
 
 <<SECTION: DETALLE DE FLUJOS RELEVANTES>>

@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -97,6 +97,16 @@ debe leerse también como módulo base del dominio que puede publicar oferta reu
 caso inmediato previsto:
 
 linked-party-action como capacidad oficial de integración para arbitrar apertura navegable, referencia readonly o ausencia de acción operable según soporte modular, permiso efectivo y existencia de party relacionada
+
+Aclaración adicional consolidada para assets:
+
+assets no solo participa como entidad relacionada consumida por otros módulos
+
+también puede publicar oferta reusable propia para resolver navegación relacional homogénea dentro del ecosistema
+
+Caso consolidado actual:
+
+linked-asset-action como capacidad reusable oficial del módulo assets
 
 no invalidan otras relaciones técnicas menores ya existentes o futuras
 
@@ -585,7 +595,7 @@ inventory se considera evolución funcional relacionada y no condición obligato
 <<END SECTION>>
 
 <<SECTION: ASSETS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ASSETS
 
@@ -614,10 +624,26 @@ selector de activo
 summary técnico
 tabla de historial
 acciones contextuales relacionadas
+acción enlazada reusable
 
 Reglas:
 
 debe conservar identidad propia aunque participe en múltiples flujos cruzados
+
+no utiliza ownership artificial como criterio doctrinal del módulo
+
+no requiere create contextual obligatorio por kind
+
+su universo operativo se interpreta como compartido dentro del tenant según contrato efectivo
+
+Aclaración contractual consolidada:
+
+assets puede publicar capacidades reutilizables propias sin perder identidad modular
+
+Caso consolidado actual:
+
+linked-asset-action
+
 <<END SECTION>>
 
 <<SECTION: ORDERS>>
@@ -858,7 +884,7 @@ Debe resolverse a partir de un catálogo cerrado de rubros y servir como context
 <<END SECTION>>
 
 <<SECTION: FLUJOS PRINCIPALES DEL SISTEMA>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 FLUJOS PRINCIPALES DEL SISTEMA
 
@@ -900,6 +926,12 @@ appointments
 ↓
 orders
 
+FLUJO DE ACTIVOS OPERATIVOS
+
+assets
+↓
+orders / documents / appointments
+
 Reglas de consistencia:
 
 tasks y appointments constituyen orígenes funcionales válidos hacia orders dentro del ecosistema actual
@@ -921,6 +953,12 @@ Aclaración transversal consolidada:
 parties no solo inicia el flujo operativo base hacia orders
 
 también actúa como nodo transversal desde el cual pueden leerse otras relaciones operativas relevantes del ecosistema, por ejemplo assets y documents, según módulos activos y contrato vigente
+
+Aclaración adicional para assets:
+
+assets no solo aporta contexto de datos a otros flujos
+
+también puede actuar como punto de navegación reutilizable mediante capacidades oficiales publicadas por el propio módulo
 
 FLUJO DE ONBOARDING
 

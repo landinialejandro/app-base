@@ -130,8 +130,8 @@ toolbars de tabs reutilizables
 
 Casos reusables consolidados:
 
-x-linked-order-action como acción transversal compartida para integración hacia orders
-x-linked-party-action como acción transversal compartida para integración hacia parties
+linked-order-action como acción transversal compartida para integración hacia orders
+linked-asset-action como acción transversal compartida para integración hacia assets
 
 Regla adicional:
 
@@ -144,12 +144,6 @@ Aclaración consolidada para integraciones complejas:
 cuando una acción reusable dependa de arbitraje backend del módulo oferente, no debe leerse como simple bloque Blade aislado
 
 debe leerse como capacidad compuesta por payload resuelto + representación visual oficial del módulo oferente
-
-Alineación consolidada adicional para parties:
-
-linked-party-action ya quedó materializada como capacidad compuesta oficial del módulo parties
-
-su consumo homogéneo debe extenderse también a tablas parciales, vistas show relacionadas y demás superficies secundarias del ecosistema
 
 <<END SECTION>>
 
@@ -256,7 +250,7 @@ Estos bloques ayudan a integrar módulos sin sobrecargar navegación ni multipli
 <<END SECTION>>
 
 <<SECTION: OFERTAS DE INTEGRACIÓN VISUAL>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 OFERTAS DE INTEGRACIÓN VISUAL
 
@@ -288,6 +282,12 @@ Regla adicional consolidada:
 si la capacidad reusable además requiere arbitraje operativo complejo, su cierre visual no se agota en que la vista principal la use correctamente
 
 también deben consumirla de forma homogénea las superficies secundarias relevantes del ecosistema
+
+Casos consolidados actuales:
+
+linked-order-action como oferta visual reusable de orders
+linked-asset-action como oferta visual reusable de assets
+
 <<END SECTION>>
 
 <<SECTION: IDENTIDAD VISUAL Y BRANDING DEL HEADER>>
@@ -315,6 +315,8 @@ favicon y logo cumplen roles distintos y no deben confundirse
 <<END SECTION>>
 
 <<SECTION: PATRÓN GENERAL PARA VISTAS INDEX>>
+SECTION_VERSION: 00002
+
 PATRÓN GENERAL PARA VISTAS INDEX
 
 Las vistas index deben usar, como criterio general, una estructura de dos bloques principales:
@@ -323,6 +325,18 @@ bloque superior para filtros, búsqueda o acciones secundarias
 bloque principal para listado, tabla o grilla
 
 Cuando corresponda, debe priorizarse el uso de partials o componentes reutilizables.
+
+Regla visual consolidada para filtros:
+
+cuando la vista use x-list-filters-card, no debe asumirse que todos los filtros deban quedar visibles en el bloque principal.
+
+La composición correcta debe respetar el patrón reusable ya definido:
+
+filtros principales visibles en primer plano
+filtros secundarios agrupados en el bloque colapsable de Más filtros cuando corresponda
+
+La alineación visual del módulo consiste en respetar ese patrón y no en expandir sin criterio todos los controles.
+
 <<END SECTION>>
 
 <<SECTION: CARD DE FILTROS REUTILIZABLE>>
@@ -406,7 +420,7 @@ mantener consistencia visual entre dashboard y vistas show con métricas
 <<END SECTION>>
 
 <<SECTION: PATRÓN VISUAL PARA VISTAS SHOW>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 PATRÓN VISUAL PARA VISTAS SHOW
 
@@ -461,11 +475,14 @@ la vista show debe dejar visualmente claro qué pertenece al núcleo del módulo
 
 las acciones transversales publicadas por otro módulo deben percibirse como capacidad consumida y no como acción nuclear del módulo contenedor
 
+si una relación visible hacia otro módulo ya fue cerrada mediante una capacidad reusable oficial del módulo oferente, también las tablas y bloques secundarios del show deben consumir esa misma capacidad y no variantes locales crudas
+
 La pantalla debe poder leerse, como criterio general, en este orden:
 
 módulo principal
 relaciones operativas relevantes
 capacidades auxiliares o transversales
+
 <<END SECTION>>
 
 <<SECTION: REGLAS PARA X-SHOW-SUMMARY Y X-SHOW-SUMMARY-ITEM>>
@@ -557,11 +574,10 @@ Regla adicional de cierre:
 
 si una integración reusable ya fue cerrada por el módulo oferente, no debe persistir en una tabla parcial o superficie secundaria una variante visual local que reconstruya el mismo flujo
 
-Caso consolidado adicional:
+Casos vigentes relevantes:
 
-parties.show debe leerse como show transversal del módulo base del dominio
-
-cuando exponga relaciones operativas relevantes, debe priorizar el consumo de las superficies embebidas oficiales de assets, orders y documents en lugar de reconstruir tablas locales ad hoc
+linked-order-action
+linked-asset-action
 
 <<END SECTION>>
 
@@ -628,7 +644,7 @@ el embebido sigue siendo un bloque subordinado al show principal, aunque interna
 <<END SECTION>>
 
 <<SECTION: ACCIONES VISUALES EN INDEX Y SHOW>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 ACCIONES VISUALES EN INDEX Y SHOW
 
@@ -686,6 +702,12 @@ si un módulo relacionado no está habilitado, también deben desaparecer filtro
 Regla adicional de homogeneidad:
 
 si una acción contextual reusable ya fue definida por el módulo oferente, también las superficies secundarias y tablas parciales deben consumirla con el mismo criterio visual y contractual
+
+Casos vigentes relevantes:
+
+linked-order-action
+linked-asset-action
+
 <<END SECTION>>
 
 <<SECTION: FRAGMENTACIÓN DE BLADES>>

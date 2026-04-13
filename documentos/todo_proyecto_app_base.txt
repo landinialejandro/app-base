@@ -61,7 +61,7 @@ priorizar piezas con mayor impacto sistémico
 <<END SECTION>>
 
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 MÓDULOS PRIORITARIOS A REVISAR
 
@@ -106,6 +106,27 @@ reservar delete a owner con delegación posible a administrator
 publicar linked-party-action como capacidad reusable oficial del módulo
 reconvertir parties.show en superficie transversal con relaciones operativas relevantes
 barrer consumidores secundarios para eliminar links locales residuales hacia parties
+
+ASSETS
+
+módulo operativo compartido del tenant
+
+Estado actual:
+
+contrato simple validado en runtime real
+frente reusable principal cerrado en este ciclo de trabajo
+
+Cierres alcanzados:
+
+lectura doctrinal como módulo autónomo compartido
+sin ownership artificial
+create simple sin contexto obligatorio
+superficie reusable linked-asset-action publicada
+barrido principal de consumidores visibles realizado
+
+Pendiente residual:
+
+confirmar ausencia de consumidores secundarios no auditados y mantener documentación alineada
 
 TASKS
 
@@ -152,7 +173,7 @@ relaciones cruzadas consistentes
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -185,10 +206,28 @@ los próximos trabajos sobre orders deben priorizar bugs reales, mejoras concret
 Aclaración operativa:
 
 la homogeneización total del consumo de la capacidad reusable en superficies secundarias todavía debe seguir auditándose antes de considerar completamente agotado ese frente en todo el ecosistema
+
+ASSETS
+
+Se considera avanzado y cerrado en este frente principal respecto de:
+
+identidad modular como módulo compartido
+contrato simple sin create contextual obligatorio
+ausencia de ownership artificial
+validación runtime real del contrato efectivo
+superficie reusable linked-asset-action
+alineación principal de consumidores visibles
+
+Alcance del cierre:
+
+no implica ausencia total de bugs futuros
+
+implica que el frente doctrinal principal quedó resuelto y solo restan verificaciones residuales o evolución futura aprobada
+
 <<END SECTION>>
 
 <<SECTION: CAPACIDADES REUTILIZABLES A CONSOLIDAR>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CAPACIDADES REUTILIZABLES A CONSOLIDAR
 
@@ -210,9 +249,11 @@ Regla adicional consolidada:
 
 una capacidad reusable no debe considerarse realmente consolidada mientras alguna superficie secundaria relevante siga reconstruyendo localmente su arbitraje o su decisión UX
 
-Caso vigente a terminar de homogeneizar:
+Casos vigentes a terminar de homogeneizar:
 
 consumo transversal de linked-order-action en consumidores secundarios del ecosistema
+confirmación final de adopción homogénea de linked-asset-action en superficies residuales si aparecieran
+
 <<END SECTION>>
 
 <<SECTION: SEGURIDAD Y CONTRATOS PENDIENTES>>
@@ -397,7 +438,7 @@ inventory
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 PENDIENTES INMEDIATOS
 
@@ -481,6 +522,10 @@ reconvertir party.show como superficie transversal con relaciones operativas rel
 
 homogeneizar acceso hacia parties desde assets, appointments, orders, documents y tasks evitando links locales residuales cuando corresponda capacidad reusable oficial
 
+Pendiente residual adicional assets:
+
+confirmar que no existan consumidores secundarios fuera del barrido principal ya realizado
+
 considerar como ya cerrado y no reabrir en este frente:
 
 orders como núcleo operativo principal
@@ -496,6 +541,8 @@ doctrina base de parties como módulo base transversal del dominio
 create contextual de parties por kind como regla doctrinal
 allowed_kinds de parties arbitrando create, view, update y delete como regla doctrinal
 delete de parties reservado a owner con delegación posible a administrator como regla doctrinal
+doctrina principal de assets como módulo compartido del tenant
+linked-asset-action como capacidad reusable oficial de assets
 
 <<END SECTION>>
 

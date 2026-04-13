@@ -1,371 +1,335 @@
 <<SECTION: METADATOS>>
-TÍTULO: Contexto fijo del proyecto
-DOC_SLUG: contexto_fijo_proyecto_app_base
-DOC_VERSION: 00000
-
-METODOLOGÍA DE EDICIÓN:
-Este archivo se actualiza por reemplazo completo de bloques delimitados.
-Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
-Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
-<<END SECTION>>
-
-<<SECTION: Tipo de sistema>>
 SECTION_VERSION: 00001
 
-Tipo de sistema
-
-app-base es una plataforma SaaS multi-tenant desarrollada en Laravel.
-
-Permite que múltiples empresas utilicen la misma aplicación manteniendo aislamiento lógico de datos dentro de una única base de datos.
-
-Cada empresa dentro del sistema se denomina tenant.
-
-El objetivo del proyecto es construir una base ERP SaaS modular que permita gestionar operaciones empresariales reutilizando una arquitectura común y estable.
-
-Aclaración arquitectónica consolidada:
-
-el sistema no debe entenderse solo como una suma de CRUDs o módulos aislados
-
-debe entenderse como una plataforma modular compuesta por capas de gobierno, contexto operativo, seguridad transversal y módulos con identidad funcional propia
+TÍTULO: Contexto fijo del proyecto
+DOC_SLUG: contexto_fijo_proyecto_app_base
+DOC_VERSION: 00002
+TIPO: arquitectónico
+ESTADO: activo
+GESTIÓN: Este documento define el marco arquitectónico estable del sistema. No debe absorber reglas propias de seguridad, navegación, UI, estructura física del código, implementación puntual ni roadmap.
 <<END SECTION>>
 
-<<SECTION: Entorno técnico>>
-Entorno técnico
+<<SECTION: OBJETIVO DEL DOCUMENTO>>
+SECTION_VERSION: 00002
+
+OBJETIVO DEL DOCUMENTO
+
+Este documento define el contexto arquitectónico estable del proyecto app-base.
+
+Su función es fijar, sin ambigüedades, el marco general desde el cual debe leerse, diseñarse y evolucionarse el sistema.
+
+Debe responder, de forma estable, qué es el sistema, cómo se organiza conceptualmente, cuáles son sus capas principales, qué piezas estructurales lo componen y cómo debe interpretarse su ecosistema modular.
+
+ALCANCE OBLIGATORIO DE ESTE DOCUMENTO
+
+naturaleza del sistema
+propósito general del proyecto
+arquitectura SaaS multi-tenant
+modelo de identidad y pertenencia
+tenant activo como contexto operativo
+capas funcionales del sistema
+entidades del sistema y entidades del negocio
+clasificación conceptual de módulos
+relaciones macro del ecosistema
+criterios arquitectónicos estables de crecimiento
+
+NO CORRESPONDE DEFINIR AQUÍ
+
+permisos detallados
+scopes
+constraints
+contratos de seguridad por módulo
+reglas create, update o delete
+dataset visible por permiso
+navegación específica
+breadcrumbs o trail
+patrones visuales
+ubicación de archivos
+decisiones de implementación puntual
+pendientes, backlog o roadmap
+
+REGLA DE FRONTERA DOCUMENTAL
+
+Cuando un tema pertenezca de forma propia a otro documento doctrinal del proyecto, este documento solo debe enunciar su existencia estructural o referenciarlo, pero no duplicar su desarrollo operativo.
+
+REGLA DE PRECEDENCIA DOCUMENTAL
+
+Si existiera una contradicción entre este documento y un documento especializado del proyecto, prevalece el documento especializado en su propia materia.
+
+Este documento debe tender a estabilidad alta y baja rotación.
+
+<<END SECTION>>
+
+<<SECTION: TIPO DE SISTEMA>>
+SECTION_VERSION: 00001
+
+TIPO DE SISTEMA
+
+app-base es una plataforma SaaS multi-tenant desarrollada sobre Laravel.
+
+Permite que múltiples empresas utilicen una misma aplicación manteniendo aislamiento lógico de datos y contexto operativo independiente para cada tenant.
+
+El proyecto busca constituir una base ERP modular reutilizable, capaz de crecer por módulos sin perder coherencia estructural.
+
+El sistema no debe entenderse como una suma de CRUDs aislados.
+
+Debe entenderse como una plataforma con gobierno global, contexto por tenant, base de dominio, capa transversal y módulos funcionales integrados.
+
+<<END SECTION>>
+
+<<SECTION: PROPÓSITO GENERAL DEL PROYECTO>>
+SECTION_VERSION: 00001
+
+PROPÓSITO GENERAL DEL PROYECTO
+
+El propósito general de app-base es ofrecer una base estable para construir operaciones empresariales dentro de un entorno SaaS multi-tenant.
+
+La meta no es solo disponer de entidades persistidas.
+
+La meta es contar con una arquitectura común que permita:
+
+ordenar operación
+mantener aislamiento por tenant
+centralizar gobierno transversal
+integrar módulos sin pérdida de identidad
+crecer sin rehacer arbitrariamente el sistema
+
+El proyecto debe poder servir como base duradera para múltiples frentes operativos del negocio sin degradarse en una colección de soluciones puntuales desconectadas.
+
+<<END SECTION>>
+
+<<SECTION: ENTORNO TÉCNICO BASE>>
+SECTION_VERSION: 00001
+
+ENTORNO TÉCNICO BASE
+
+Stack general validado del proyecto:
 
 OS: Linux
 Web: Apache
 PHP: 8.4
 Laravel: 12.x
 DB: MariaDB
+
+Este bloque describe contexto técnico general del proyecto y no reemplaza validaciones específicas de runtime, deploy o compatibilidad.
+
 <<END SECTION>>
 
-<<SECTION: URL local de desarrollo>>
-URL local de desarrollo
+<<SECTION: ARQUITECTURA SAAS MULTI-TENANT>>
+SECTION_VERSION: 00001
 
-http://app-base.local
+ARQUITECTURA SAAS MULTI-TENANT
+
+El sistema utiliza una arquitectura SaaS multi-tenant.
+
+Cada tenant representa una empresa o espacio de trabajo operativo independiente dentro de una misma aplicación.
+
+El aislamiento entre empresas no se resuelve mediante aplicaciones separadas ni bases separadas por defecto, sino mediante una arquitectura común con separación lógica de datos y contexto operativo.
+
+Principios estructurales:
+
+cada tenant constituye una unidad operativa propia
+el sistema mantiene una única plataforma común
+la operación válida siempre ocurre dentro de un contexto tenant determinado
+la pertenencia del usuario y el tenant activo forman parte de la lectura correcta del sistema
+
 <<END SECTION>>
 
-<<SECTION: Sesiones>>
-Sesiones
+<<SECTION: MODELO DE AISLAMIENTO OPERATIVO>>
+SECTION_VERSION: 00001
 
-SESSION_DRIVER=database
+MODELO DE AISLAMIENTO OPERATIVO
 
-Las sesiones se almacenan en la tabla sessions.
+Las entidades operativas del negocio pertenecen a un tenant y deben respetar aislamiento lógico entre empresas.
+
+Ese aislamiento no es solo un detalle de persistencia.
+
+Forma parte de la arquitectura conceptual del sistema.
+
+Principios estables:
+
+los datos de un tenant no deben mezclarse con los de otro
+la operación visible y válida del usuario depende del tenant activo
+las entidades globales del sistema no deben leerse como entidades del negocio
+el contexto tenant no es opcional ni decorativo dentro de la operación interna
+
+Este documento reconoce el aislamiento como principio estructural general.
+
+Su desarrollo técnico y sus reglas operativas concretas se resuelven en otros documentos del proyecto.
+
 <<END SECTION>>
 
-<<SECTION: Arquitectura SaaS>>
-Arquitectura SaaS
+<<SECTION: IDENTIDAD GLOBAL Y PERTENENCIA POR EMPRESA>>
+SECTION_VERSION: 00001
 
-El sistema utiliza una arquitectura multi-tenant basada en una columna:
+IDENTIDAD GLOBAL Y PERTENENCIA POR EMPRESA
 
-tenant_id
-
-Todas las entidades del negocio incluyen:
-
-tenant_id
-
-Esto permite aislar los datos de cada empresa dentro de la misma base de datos.
-<<END SECTION>>
-
-<<SECTION: Convención real de identificador de tenant>>
-Convención real de identificador de tenant
-
-tenants.id utiliza char(36)
-
-Las foreign keys hacia tenant deben respetar ese tipo real validado del proyecto.
-
-No debe asumirse tenant_id como foreignId() por convención de Laravel sin verificar primero el patrón real existente.
-<<END SECTION>>
-
-<<SECTION: Relación principal de identidad>>
-Relación principal de identidad
-
-La relación de pertenencia del sistema es:
+La relación principal del sistema es:
 
 users
 ↓
 memberships
 ↓
 tenants
-
-Características:
-
-Un usuario puede pertenecer a múltiples empresas.
-Cada empresa puede tener múltiples usuarios.
-Un mismo user puede pertenecer a tenants no relacionados entre sí.
-users representa identidad global.
-memberships representa acceso por empresa.
-<<END SECTION>>
-
-<<SECTION: Acceso efectivo por empresa>>
-Acceso efectivo por empresa
-
-El estado de acceso efectivo a un tenant se resuelve por memberships.status y no por users.
-
-El bloqueo o inhabilitación de acceso debe resolverse por membership y no por user.
-
-Esto permite que un usuario continúe activo en un tenant y al mismo tiempo se encuentre bloqueado o inactivo en otro.
-<<END SECTION>>
-
-<<SECTION: RESOLUCIÓN DEL TENANT ACTIVO>>
-SECTION_VERSION: 00002
-
-RESOLUCIÓN DEL TENANT ACTIVO
-
-En el flujo tenant, el tenant activo se resuelve por middleware.
-
-Luego de esa resolución, el tenant vigente del request debe consumirse desde app('tenant').
-
-No deben mantenerse helpers, soportes legacy o mecanismos paralelos redundantes para resolver el tenant activo si duplican o contradicen esa fuente vigente.
-
-Regla operativa consolidada:
-
-cuando una prueba técnica se ejecute fuera del flujo HTTP normal, debe reproducirse explícitamente esta misma resolución operacional.
-
-Si la verificación depende del runtime tenant-aware del sistema, el tenant activo debe bindearse en el contenedor antes de consumir la lógica correspondiente.
-
-<<END SECTION>>
-
-<<SECTION: Reglas operativas del tenant activo>>
-SECTION_VERSION: 00002
-
-Reglas operativas del tenant activo
-
-El selector de empresa debe mostrar únicamente memberships activas del usuario autenticado.
-
-ResolveTenant debe validar pertenencia activa al tenant antes de permitir acceso operativo.
-
-Regla operativa adicional validada:
-
-en pruebas manuales, auditorías técnicas o validaciones en Tinker, el tenant activo no debe asumirse.
-
-Debe resolverse desde una membership activa real y luego bindearse explícitamente con:
-
-app()->instance('tenant', $tenant)
-
-Sin ese paso, cualquier prueba tenant-aware puede resultar inválida, incompleta o dar falsos negativos.
-
-<<END SECTION>>
-
-<<SECTION: Aislamiento automático de datos>>
-Aislamiento automático de datos
-
-Las entidades del negocio utilizan el trait:
-
-TenantScoped
-
-Este trait aplica automáticamente:
-
-WHERE tenant_id = tenant_actual
-
-Además asigna automáticamente el tenant_id al crear nuevos registros.
-<<END SECTION>>
-
-<<SECTION: Regla de uso del trait>>
-Regla de uso del trait
-
-TenantScoped solo debe aplicarse a modelos cuyo ciclo de vida pertenece completamente a un tenant.
-
-No debe utilizarse en entidades del sistema como:
-
-User
-Tenant
-Membership
-<<END SECTION>>
-
-<<SECTION: Protección de acceso por URL>>
-Protección de acceso por URL
-
-Las entidades empresariales utilizan el trait:
-
-ResolvesTenantRouteBinding
-
-Esto protege el route model binding para evitar acceso a registros de otros tenants.
-
-Consulta efectiva:
-
-id = ?
-AND tenant_id = tenant_actual
-AND deleted_at IS NULL
-<<END SECTION>>
-
-<<SECTION: Soft delete obligatorio>>
-Soft delete obligatorio
-
-Las entidades del negocio utilizan:
-
-SoftDeletes
-
-Reglas:
-
-Los registros eliminados no aparecen en listados.
-No son accesibles mediante URL.
-Siguen existiendo en la base de datos.
-<<END SECTION>>
-
-<<SECTION: Flujo básico del sistema>>
-Flujo básico del sistema
-
-login
-↓
-selección de empresa (/tenants/select)
-↓
-session('tenant_id')
-↓
-ResolveTenant
-↓
-dashboard
-<<END SECTION>>
-
-<<SECTION: Modelo conceptual del sistema>>
-SECTION_VERSION: 00001
-
-Modelo conceptual del sistema
-
-El sistema distingue entre:
-
-Entidades del sistema
-Entidades del negocio
-
-Las entidades del sistema sostienen identidad, acceso, onboarding y administración global.
-
-Las entidades del negocio representan la operación propia de cada tenant y deben quedar aisladas por tenant_id.
-
-Aclaración conceptual consolidada:
-
-además de esta distinción por tipo de entidad, el sistema debe leerse por capas funcionales:
-
-capa global
-capa tenant
-capa de gobierno interno del tenant
-capa transversal de seguridad
-base transversal del dominio
-módulos funcionales del negocio
-
-Esta lectura por capas no reemplaza el modelado de entidades.
-
-Lo organiza.
-<<END SECTION>>
-
-<<SECTION: Jerarquía general del sistema>>
-SECTION_VERSION: 00001
-
-Jerarquía general del sistema
-
-La arquitectura conceptual del sistema debe leerse en el siguiente orden jerárquico:
-
-app-base
-↓
-superadmin
-↓
-tenant
-↓
-owner y memberships activas
-↓
-capa transversal de seguridad
-↓
-base transversal del dominio
-↓
-módulos funcionales
-
-Esta jerarquía no implica que todos los elementos sean clases, tablas o recursos equivalentes entre sí.
-
-Expresa orden de gobierno, contexto y operación.
 
 Lectura correcta:
 
-superadmin gobierna el ecosistema general
-tenant define el contexto operativo de empresa
-owner gobierna la configuración operativa interna del tenant
-Security arbitra transversalmente el consumo válido del sistema
-los módulos funcionales operan dentro de ese marco
+users representa identidad global
+memberships representa pertenencia y acceso por empresa
+tenants representa el contexto operativo de cada empresa
 
-Regla:
+Un usuario puede pertenecer a múltiples tenants.
 
-no interpretar el sistema como una primera línea plana de módulos al mismo nivel conceptual
+La pertenencia a una empresa no se resuelve desde user como atributo directo único, sino mediante la capa intermedia de memberships.
 
-el orden de capas forma parte del estado arquitectónico estable del proyecto
+Esto forma parte estable del modelo del sistema.
+
 <<END SECTION>>
 
-<<SECTION: Capas funcionales del sistema>>
+<<SECTION: TENANT ACTIVO COMO CONTEXTO OPERATIVO>>
 SECTION_VERSION: 00001
 
-Capas funcionales del sistema
+TENANT ACTIVO COMO CONTEXTO OPERATIVO
+
+El uso operativo del sistema ocurre dentro de un tenant activo.
+
+Ese tenant activo constituye el contexto concreto desde el cual deben leerse las entidades operativas, las relaciones del negocio y las capacidades disponibles para la empresa actual.
+
+El tenant activo define, a nivel estructural:
+
+contexto de empresa vigente
+marco operativo de los módulos del negocio
+lectura correcta de las relaciones del ecosistema
+ámbito de operación del usuario dentro del sistema
+
+El tenant activo no debe interpretarse como un dato accesorio de sesión sin relevancia arquitectónica.
+
+Es una pieza estructural del funcionamiento del sistema.
+
+<<END SECTION>>
+
+<<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
+SECTION_VERSION: 00001
+
+CAPAS FUNCIONALES DEL SISTEMA
+
+La arquitectura del sistema debe leerse por capas funcionales.
+
+Esta lectura no reemplaza el modelado de entidades ni los contratos específicos de otros documentos.
+
+Ordena el sistema.
 
 CAPA GLOBAL
 
-Corresponde al gobierno general del sistema fuera del flujo tenant.
+Corresponde al gobierno general de la plataforma fuera del flujo operativo tenant.
 
-Incluye:
-
-superadmin
-landing pública
-signup_requests
-invitations de tipo owner_signup
-onboarding inicial de nuevas empresas
-habilitación de módulos por tenant
+Incluye la administración general del sistema y los procesos previos al ingreso operativo por empresa.
 
 CAPA TENANT
 
-Corresponde al contexto operativo de empresa.
+Corresponde al contexto operativo de una empresa activa.
 
-Incluye:
-
-tenant activo
-módulos habilitados para el tenant
-datos aislados por tenant_id
-configuración funcional del tenant
+Incluye el tenant vigente y el marco general dentro del cual opera esa empresa.
 
 CAPA DE GOBIERNO INTERNO DEL TENANT
 
-Corresponde al gobierno operativo dentro de la empresa activa.
+Corresponde a la organización interna de acceso y funcionamiento dentro de la empresa activa.
 
-Incluye:
+Incluye la pertenencia por membership y la organización interna de actores operativos.
 
-owner
-memberships activas
-roles base
-permisos configurables sobre módulos habilitados
+CAPA TRANSVERSAL
 
-CAPA TRANSVERSAL DE SEGURIDAD
+Corresponde a piezas que arbitran o sostienen funcionamiento compartido entre módulos.
 
-Corresponde al arbitraje central de acceso, visibilidad y consumo válido de módulos.
+Aquí viven responsabilidades comunes del sistema que no deben confundirse con un módulo aislado del negocio.
 
-Incluye:
+BASE DEL DOMINIO
 
-TenantModuleAccess
-RolePermissionResolver
-RecordScopeResolver
-CapabilityCatalog
-ModuleCatalog
-Security
+Corresponde a piezas conceptuales de uso amplio dentro del ecosistema del negocio.
 
-BASE TRANSVERSAL DEL DOMINIO
-
-Corresponde a piezas conceptuales o funcionales de uso amplio en el ecosistema del negocio.
-
-Casos actuales relevantes:
-
-parties
-attachments
+No agotan por sí mismas toda la operación, pero sostienen múltiples relaciones relevantes.
 
 MÓDULOS FUNCIONALES
 
-Corresponden a las capacidades operativas del tenant.
+Corresponden a las capacidades operativas concretas del tenant.
 
-Incluyen los módulos del negocio y sus relaciones entre sí.
+Expresan trabajo, agenda, activos, documentos, órdenes y demás frentes del negocio.
+
+Regla general:
+
+esta lectura por capas debe prevalecer al pensar arquitectura, documentación y evolución general del proyecto.
+
+<<END SECTION>>
+
+<<SECTION: JERARQUÍA GENERAL DEL SISTEMA>>
+SECTION_VERSION: 00001
+
+JERARQUÍA GENERAL DEL SISTEMA
+
+La arquitectura conceptual del sistema debe leerse en el siguiente orden:
+
+app-base
+↓
+capa global
+↓
+tenant
+↓
+gobierno interno del tenant
+↓
+capa transversal
+↓
+base del dominio
+↓
+módulos funcionales
+
+Esta jerarquía expresa orden de gobierno, contexto y operación.
+
+No implica que todos los elementos sean equivalentes como tabla, clase o recurso visible.
+
+Lectura correcta:
+
+la plataforma contiene el ecosistema general
+el tenant define el contexto operativo de empresa
+el gobierno interno del tenant organiza la pertenencia y el uso
+la capa transversal arbitra o sostiene funcionamiento compartido
+la base del dominio aporta anclajes relacionales amplios
+los módulos funcionales ejecutan la operación del negocio
 
 Regla:
 
-esta lectura por capas debe prevalecer al pensar arquitectura, documentación y refactorización del sistema
+no interpretar el sistema como una primera línea plana de módulos al mismo nivel conceptual.
+
 <<END SECTION>>
 
-<<SECTION: Entidades del negocio>>
-SECTION_VERSION: 00004
+<<SECTION: ENTIDADES DEL SISTEMA>>
+SECTION_VERSION: 00001
 
-Entidades del negocio
+ENTIDADES DEL SISTEMA
 
-Las entidades del negocio actuales del sistema son:
+Las entidades del sistema sostienen identidad global, pertenencia, onboarding y gobierno general de la plataforma.
+
+Casos actuales:
+
+users
+tenants
+memberships
+signup_requests
+invitations
+
+Estas entidades no deben confundirse con el dominio operativo del negocio del tenant.
+
+Su función es sostener la plataforma y su frontera de ingreso.
+
+<<END SECTION>>
+
+<<SECTION: ENTIDADES DEL NEGOCIO>>
+SECTION_VERSION: 00001
+
+ENTIDADES DEL NEGOCIO
+
+Las entidades del negocio representan la operación propia de cada tenant.
+
+Casos actuales del proyecto:
 
 parties
 projects
@@ -380,1261 +344,127 @@ document_items
 document_sequences
 attachments
 
-Todas estas entidades pertenecen operativamente a un tenant y deben respetar el aislamiento multi-tenant del proyecto.
+Estas entidades deben leerse como parte del ecosistema operativo de empresa y no como infraestructura global del sistema.
 
-Aclaración estructural:
+No todas cumplen el mismo rol conceptual.
 
-parties debe tratarse como entidad base transversal del dominio y como módulo base intrínseco del sistema
-
-no debe considerarse un módulo opcional apagable por tenant en el mismo sentido que otros módulos operativos
-
-las relaciones por *_id hacia otras entidades modulares deben considerarse dependientes del estado activo del módulo destino
-
-si el módulo destino no está habilitado para el tenant, esas relaciones no deben exponerse ni operar a nivel de UI
-
-Alineación funcional consolidada:
-
-cada entidad principal del negocio posee:
-
-un módulo visible en el sistema
-una representación clara en UI
-una sección correspondiente en la documentación de usuario
-
-esto refuerza el modelo del sistema como ERP utilizable desde el primer momento
-
-Aclaración modular adicional:
-
-no todas las entidades del negocio cumplen el mismo rol conceptual dentro del ecosistema
-
-algunas operan como base transversal
-otras como módulos autónomos
-otras como agrupadores
-otras como derivadas de una operación más nuclear
-
-esta clasificación conceptual debe considerarse parte del estado actual del proyecto
-
-Aclaración relacional consolidada para orders:
-
-la relación estructural persistida entre tasks y orders se resuelve desde:
-
-orders.task_id
-
-la relación operativa con appointments no se persiste del lado de orders
-
-se resuelve desde:
-
-appointments.order_id
-
-por lo tanto, appointment puede operar como origen contextual real hacia orders sin requerir orders.appointment_id
-
-order_items continúa formando parte de las entidades del negocio como detalle dependiente de orders y no como módulo autónomo con ciclo de vida independiente
+Algunas funcionan como base del dominio, otras como módulos autónomos, otras como agrupadores, derivadas o capacidades transversales.
 
 <<END SECTION>>
 
-<<SECTION: Entidades del sistema y acceso>>
-Entidades del sistema y acceso
-
-users
-tenants
-memberships
-
-signup_requests
-invitations
-<<END SECTION>>
-
-<<SECTION: Aclaración sobre invitations>>
-Aclaración sobre invitations
-
-invitations forma parte del flujo de acceso y onboarding del sistema.
-
-Es una entidad híbrida:
-
-puede existir sin tenant asociado cuando type = owner_signup
-
-puede vincularse a un tenant existente cuando type = member_invite
-
-Por esta razón, no debe interpretarse como una entidad del negocio tenant-scoped pura.
-<<END SECTION>>
-
-<<SECTION: Entidad base del negocio>>
-SECTION_VERSION: 00002
-
-Entidad base del negocio
-
-La entidad base para personas u organizaciones es:
-
-parties
-
-Representa cualquier actor externo relacionado con la operación del tenant.
-
-Ejemplos:
-
-cliente
-proveedor
-contacto
-contratista
-tercero
-
-En la interfaz del sistema se utiliza el término:
-
-contactos
-
-El término party queda reservado al modelo técnico.
-
-La asignación interna de responsabilidad operativa no se modela desde Party, sino desde User + Membership.
-
-Para la asignación interna de tareas, el término visible recomendado es:
-
-colaborador
-
-Regla conceptual consolidada:
-
-parties no debe tratarse solo como un módulo más del core
-
-debe leerse como base transversal del dominio sobre la cual otros módulos pueden construir relaciones operativas
-
-esta condición forma parte estable de la arquitectura del sistema
-
-Aclaración modular adicional consolidada:
-
-parties no se agota en una ficha de contacto ni en un CRUD aislado
-
-actúa como punto estable de referencia relacional para múltiples módulos del ecosistema del tenant
-
-por lo tanto, su valor arquitectónico incluye tanto el registro del actor externo como la lectura transversal de sus relaciones operativas asociadas
-
-Aclaración contractual consolidada:
-
-parties debe poder publicar capacidades reutilizables propias para el ecosistema sin perder identidad modular
-
-caso inmediato previsto:
-
-linked-party-action como superficie reusable oficial para arbitrar apertura navegable, referencia readonly o ausencia de acción operable según soporte modular, permiso efectivo y existencia de party relacionada
-
-<<END SECTION>>
-
-<<SECTION: Projects como capa de seguimiento agregado>>
+<<SECTION: DISTINCIÓN ENTRE SISTEMA Y NEGOCIO>>
 SECTION_VERSION: 00001
 
-Projects como capa de seguimiento agregado
+DISTINCIÓN ENTRE SISTEMA Y NEGOCIO
 
-projects representa un agrupador operativo de trabajo.
+La distinción entre entidades del sistema y entidades del negocio es estructural.
 
-Reglas actuales consolidadas:
+Las entidades del sistema sostienen identidad, acceso, onboarding y gobierno general.
 
-posee estado mínimo active/closed
-
-su index prioriza seguimiento diario mediante métricas derivadas de tareas asociadas
-
-tasks continúa siendo la unidad operativa fina, mientras projects funciona como capa de seguimiento agregado
-
-Aclaración arquitectónica consolidada:
-
-projects no agota ni absorbe completamente la identidad funcional de tasks
-
-su función principal es agrupar, contextualizar y ordenar trabajo
-
-no debe interpretarse como dependencia existencial obligatoria del módulo tasks
-<<END SECTION>>
-
-<<SECTION: Tasks como unidad operativa interna>>
-SECTION_VERSION: 00001
-
-Tasks como unidad operativa interna
-
-tasks representa la unidad operativa interna básica del sistema.
-
-Reglas actuales consolidadas:
-
-las tareas se crean obligatoriamente asignadas
-
-assigned_user_id debe referenciar a un usuario activo del tenant
-
-owner y admin pueden gestionar tareas ajenas
-
-los usuarios operativos:
-
-pueden ver tareas asignadas a ellos
-
-pueden ver tareas de proyectos donde participan
-
-solo pueden editar tareas asignadas a ellos
-
-solo pueden eliminar tareas asignadas a ellos
-
-una tarea puede derivar en una única orden, normalmente de servicio
-
-Aclaración modular consolidada:
-
-tasks debe tratarse como módulo autónomo con identidad funcional propia
-
-puede vincularse a projects como agrupador
-puede derivar en orders
-puede operar como canal interno de seguimiento y asignación
-puede crecer hacia generación interna de tareas por sistema ante desvíos o eventos operativos
+Las entidades del negocio sostienen la operación propia de cada tenant.
 
 Regla conceptual:
 
-que tasks pueda agruparse bajo projects no lo convierte en simple subrecurso dependiente del módulo projects
+no debe resolverse una necesidad del negocio trasladándola arbitrariamente a entidades del sistema si esa decisión rompe la separación entre plataforma y operación.
+
+Regla complementaria:
+
+tampoco debe sobredimensionarse el dominio del negocio hasta absorber piezas cuya función real es global o transversal a la plataforma.
+
 <<END SECTION>>
 
-<<SECTION: Appointments como agenda operativa reutilizable>>
-SECTION_VERSION: 00002
-
-Appointments como agenda operativa reutilizable
-
-appointments es un módulo core de agenda o reserva operativa reutilizable por tenant.
-
-Reglas actuales consolidadas:
-
-pertenece a un tenant
-
-requiere assigned_user_id como responsable operativo
-
-puede vincularse opcionalmente con parties
-
-puede vincularse opcionalmente con assets
-
-puede vincularse opcionalmente con orders
-
-su capa visible puede adaptar vocabulario funcional según el rubro configurado del tenant
-
-el módulo ya dispone de una vista calendario mensual operativa
-
-la vista calendario reutiliza el mismo contexto funcional del tenant que usa el resto del módulo
-
-desde calendario no se permite crear turnos en fechas anteriores a hoy
-
-los turnos en fechas pasadas siguen siendo visibles y consultables
-
-un turno pasado puede reprogramarse a hoy o futuro si no está completado
-
-un turno en estado completado no debe poder moverse de fecha ni modificar su horario
-
-appointments debe tratarse como módulo operativo asignable basado en assigned_user_id
-
-su lectura puede ser amplia a nivel tenant o restringida a own_assigned según la capacidad configurada
-
-su operación individual puede restringirse mediante own_assigned
-
-appointments no utiliza semántica limited como contrato del módulo
-
-las relaciones hacia otros módulos mediante *_id deben respetar el estado activo del módulo destino y no exponerse en UI si dicho módulo está deshabilitado
-
-Aclaración operativa adicional consolidada:
-
-la integración appointments → orders forma parte del frente operativo cerrado del sistema
-
-appointments puede abrir una order existente o derivar a create contextual de orders según el contexto recibido y el arbitraje válido del módulo orders
-
-esa integración no convierte a orders en subrecurso de appointments
-
-appointments actúa como origen contextual legítimo de navegación hacia orders cuando el flujo operativo lo requiera
-<<END SECTION>>
-
-<<SECTION: Perfil funcional del tenant>>
-Perfil funcional del tenant
-
-El tenant ya incorpora un perfil funcional de rubro persistido en:
-
-settings.business_profile.type
-
-Este rubro define etiquetas funcionales visibles en módulos adaptables, comenzando por appointments.
-
-La personalización por tenant no se resuelve mediante etiquetas libres.
-
-Debe apoyarse en:
-
-un catálogo cerrado de rubros
-el contexto del tenant
-catálogos funcionales del módulo correspondiente
-<<END SECTION>>
-
-<<SECTION: Capa central prevista para acceso y permisos>>
-SECTION_VERSION: 00003
-
-La arquitectura de acceso y permisos ya consolida una capa centralizada compuesta por:
-
-ModuleCatalog
-TenantModuleAccess
-CapabilityCatalog
-ProfileCatalog
-RolePermissionResolver
-RecordScopeResolver
-
-Esta capa constituye el núcleo real de autorización del sistema y debe considerarse parte activa del estado actual.
-
-Su función es desacoplar la autorización de una matriz rígida módulo × rol y resolver el permiso efectivo a partir de:
-
-módulo habilitado
-rol base
-perfil funcional
-capacidad
-scope
-execution mode
-constraints
-
-Reglas validadas:
-
-los constraints forman parte activa del modelo y no son opcionales
-
-allowed_kinds se utiliza en producción como mecanismo de segmentación funcional
-
-los módulos pueden resolver permisos en función de dimensiones funcionales (por ejemplo kind)
-
-orders no utiliza ownership ni assigned_user_id como criterio de segmentación
-
-su segmentación se realiza exclusivamente mediante constraints
-
-la UI de permisos actual no es compatible completamente con constraints y puede generar inconsistencias
-
-Regla operativa consolidada:
-
-Security es la puerta central efectiva de consumo de autorización y la capa transversal de arbitraje del sistema
-
-las pruebas técnicas que busquen reproducir comportamiento real del sistema deben consumir Security y no recrear lógica manual ni evaluar permisos de forma abstracta cuando el contrato requiere contexto
-
-La doctrina completa de implementación, uso y validación de esta capa se define exclusivamente en:
-
-<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
-
-La bajada operativa para pruebas manuales se define en:
-
-<DOC_REF slug="guia_tinker_proyecto_app_base">Guía operativa de pruebas con Tinker</DOC_REF>
-<<END SECTION>>
-
-<<SECTION: Seguridad como capa transversal>>
+<<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
 SECTION_VERSION: 00001
 
-Seguridad como capa transversal
+CLASIFICACIÓN CONCEPTUAL DE MÓDULOS
 
-La seguridad del sistema no debe interpretarse como una preocupación localizada solo en login, policies o permisos de botones.
+La arquitectura actual del proyecto distingue distintos tipos conceptuales de módulos.
 
-Debe entenderse como una capa transversal que arbitra el consumo válido del sistema en todos sus niveles operativos.
+Esta clasificación organiza la lectura del sistema y orienta futuras decisiones de crecimiento.
 
-Esta capa afecta, como mínimo:
-
-módulos habilitados por tenant
-dataset visible
-acciones permitidas
-create contextuales
-constraints funcionales
-integraciones entre módulos
-ofertas de integración consumibles
-recursos delegados al padre
-
-Regla conceptual consolidada:
-
-los módulos pueden tener contrato de seguridad propio
-
-pero ese contrato no se consume por fuera de la capa central
-
-Security actúa como árbitro contractual del sistema
-
-Esto forma parte estable de la arquitectura actual del proyecto y debe reflejarse en implementación, documentación y futuras refactorizaciones.
-<<END SECTION>>
-
-<<SECTION: Clasificación conceptual actual de módulos>>
-SECTION_VERSION: 00002
-
-Clasificación conceptual actual de módulos
-
-La arquitectura actual del proyecto distingue, a nivel conceptual, distintos tipos de módulos.
-
-Esta clasificación no reemplaza el modelado de entidades ni el contrato de seguridad.
-
-Organiza la lectura del sistema.
+No reemplaza el modelado de entidades ni los contratos específicos de otros documentos.
 
 MÓDULO BASE DEL DOMINIO
 
+Es una pieza conceptual fundamental del negocio y actúa como anclaje relacional amplio dentro del ecosistema.
+
 Caso actual consolidado:
 
 parties
-
-Debe tratarse como base transversal del dominio y como anclaje estable de actores externos del tenant.
-
-Su función no se limita a registrar contactos.
-
-También debe permitir leer y conectar transversalmente relaciones operativas del ecosistema.
 
 MÓDULO TRANSVERSAL
 
+Es una capacidad de soporte o integración amplia, consumible desde otros módulos sin constituir necesariamente el núcleo del dominio operativo.
+
 Caso actual consolidado:
 
 attachments
 
-Debe tratarse como capacidad reusable embebida o delegada al recurso padre y no como módulo nuclear del dominio.
-
 MÓDULO AUTÓNOMO
 
-Casos doctrinales relevantes:
+Es un módulo con identidad operativa propia que puede vivir por sí mismo aunque también participe en relaciones con otros módulos.
+
+Casos relevantes actuales:
 
 tasks
 appointments
-assets
 products
+assets
 orders
-
-Son módulos con identidad operativa propia que pueden relacionarse con otros sin perder autonomía conceptual.
 
 MÓDULO AGRUPADOR
 
-Caso doctrinal relevante:
+Es un módulo cuya función principal es ordenar, agrupar o dar seguimiento agregado sobre otros módulos sin absorber completamente su identidad.
+
+Caso actual relevante:
 
 projects
 
-Su función principal es agrupar o dar seguimiento agregado sobre otros módulos, especialmente tasks.
-
 MÓDULO DERIVADO
 
-Caso doctrinal relevante:
+Es un módulo que se entiende principalmente como formalización o prolongación operativa de otro módulo más nuclear.
+
+Caso actual relevante:
 
 documents respecto de orders
 
-Su función principal es formalizar o prolongar documentalmente una operación más nuclear.
-
 Regla:
 
-esta clasificación debe orientar futuras decisiones de documentación, integración y refactorización del sistema
-
-Aclaración adicional consolidada para parties:
-
-que parties publique acciones, selectores, summaries o superficies reusables para otros módulos no lo convierte en módulo transversal en este esquema
-
-su naturaleza sigue siendo la de módulo base del dominio
-
-la oferta reusable forma parte de su evolución contractual y no altera su posición conceptual de base intrínseca del sistema
+esta clasificación debe orientar futuras decisiones arquitectónicas del proyecto.
 
 <<END SECTION>>
 
-<<SECTION: Contrato modular como criterio de crecimiento>>
-SECTION_VERSION: 00005
-
-Contrato modular como criterio de crecimiento
-
-El crecimiento futuro del sistema debe apoyarse en contratos modulares explícitos.
-
-Cada módulo debe tender a describirse mediante:
-
-núcleo propio
-contrato de entrada
-contrato de salida
-contrato de seguridad
-oferta de integración
-
-Regla de crecimiento consolidada:
-
-una integración nueva no debe reabrir arbitrariamente el núcleo del módulo destino salvo que cambie realmente su contrato interno
-
-si un módulo necesita exponer capacidades reutilizables para otros módulos, esa exposición debe tratarse como evolución propia del módulo oferente
-
-no como excepción permanente alojada en el módulo consumidor
-
-Aclaración operativa adicional consolidada:
-
-cuando un módulo consumidor necesite resolver una relación, acción o flujo transversal ya cerrado doctrinalmente por otro módulo, debe consumir la capacidad publicada por el módulo oferente y no duplicar decisiones operativas locales
-
-esto aplica especialmente cuando la integración combine:
-
-permiso efectivo
-estado del módulo destino
-existencia o no de registro relacionado
-create contextual
-navegación contextual
-estados UX mutuamente excluyentes
-
-Cuando la capacidad reusable sea compleja, no alcanza con reutilizar solo una vista.
-
-El módulo oferente debe publicar la capacidad como unidad completa de integración, compuesta por:
-
-capa de resolución o payload arbitrado desde backend
-bloque visual consumidor de ese resultado
-
-La ubicación física de esa capacidad debe respetar su pertenencia modular.
-
-Si una capacidad pertenece contractualmente a un módulo oferente, no debe quedar alojada en una ubicación global ambigua que borre su identidad modular.
-
-Regla operativa adicional de cierre:
-
-un módulo no debe considerarse realmente cerrado mientras existan superficies secundarias relevantes que todavía reconstruyan localmente una capacidad reusable ya publicada por el módulo oferente
-
-el cierre válido exige revisar también tablas, partials, formularios embebidos y demás superficies derivadas que consuman esa integración
-
-Aplicación doctrinal consolidada adicional:
-
-esto no alcanza solo a módulos operativos nucleares como orders
-
-también alcanza a módulos base del dominio cuando publiquen superficies reutilizables propias para el ecosistema
-
-caso inmediato previsto:
-
-parties mediante linked-party-action como oferta reusable oficial del módulo para resolver apertura navegable, referencia readonly o ausencia de acción operable según contrato efectivo
-
-Este criterio forma parte de la dirección arquitectónica actual del proyecto.
-
-<<END SECTION>>
-
-<<SECTION: MÓDULO ORDERS>>
-SECTION_VERSION: 00005
-
-MÓDULO ORDERS
-
-Orders es el módulo central de ejecución operativa del tenant.
-
-Consolida la operación concreta del sistema y actúa como nodo principal de convergencia entre contexto comercial, contexto operativo, detalle de trabajo y salida documental derivada.
-
-No debe tratarse como un CRUD simple ni como subproducto de tasks, appointments o documents.
-
-FUNCIÓN ESTRUCTURAL
-
-Dentro de la arquitectura actual del sistema, Orders constituye la referencia principal del núcleo operativo.
-
-Los módulos relacionados pueden conducir a una order, vincularse con ella o consumir su información, pero no redefinen su identidad funcional.
-
-Su autonomía debe preservarse aun cuando reciba contexto desde otros módulos o publique capacidades reutilizables.
-
-Orders no solo ocupa una posición conceptual central.
-
-También actúa como núcleo de integración reusable ya materializado en implementación para otros módulos del ecosistema.
-
-ALCANCE DEL MÓDULO
-
-Orders comprende como responsabilidad propia:
-
-creación y gestión de órdenes
-clasificación funcional mediante kind
-vinculación con party
-vinculación operativa con asset cuando corresponda
-vinculación estructural con task cuando corresponda
-consumo contextual desde appointment cuando corresponda
-detalle operativo mediante order_items
-seguimiento por estado, fechas, notas y total
-pantalla central de consulta y operación del recurso
-
-No comprende como responsabilidad propia:
-
-la agenda de appointments
-el seguimiento interno de tasks
-la definición fiscal avanzada de documents
-una autonomía independiente para order_items
-
-CONTRATO MODULAR CONSOLIDADO
-
-NÚCLEO
-
-orders resuelve la operación interna principal del tenant y constituye el frente operativo central del sistema.
-
-CONTRATO DE ENTRADA
-
-orders recibe como contexto funcional obligatorio:
-
-kind
-
-Además puede recibir contexto relacional válido desde:
-
-party
-asset
-task
-appointment
-
-según el flujo operativo aplicable.
-
-Regla de create contextual validada:
-
-orders.create solo es válido cuando Security recibe contexto kind explícito y permitido por constraints
-
-la ausencia de kind debe rechazar la autorización
-
-un kind fuera de constraints.allowed_kinds debe rechazar la autorización
-
-CONTRATO DE SALIDA
-
-orders expone hacia el ecosistema:
-
-orden operativa central
-referencia principal del trabajo en curso
-relación derivable hacia documents
-base para detalle operativo mediante order_items
-
-OFERTA DE INTEGRACIÓN
-
-orders publica como capacidades reutilizables del ecosistema:
-
-create contextual de order
-pantalla central del recurso
-navegación estructural y contextual compatible con el trail vigente
-tabla embebida reusable
-acción enlazada reusable
-puente operativo hacia documents
-acción transversal reusable para arbitrar apertura de orden existente, creación contextual o estado no disponible según permiso, módulo activo y contexto recibido
-
-La acción enlazada reusable pertenece contractualmente al módulo orders.
-
-No debe tratarse como componente visual global neutral del sistema.
-
-Su publicación válida como oferta de integración comprende:
-
-un resolver o payload backend propio de orders para arbitrar permiso efectivo, estado operativo, vínculo existente, create contextual y requisito faltante
-
-un bloque visual alojado dentro del propio módulo orders para consumir ese resultado de forma homogénea
-
-Caso consolidado actual:
-
-linked-order-action forma parte de esta oferta reusable oficial como capacidad compuesta de backend + bloque visual modular
-
-REGLAS OPERATIVAS
-
-orders es un módulo autónomo
-
-no debe tratarse como submódulo de tasks
-
-no debe tratarse como submódulo de appointments
-
-task y appointment pueden conducir a una order según el flujo vigente sin absorber ni degradar la identidad funcional del módulo
-
-orders.create no es un create abstracto
-
-create requiere contexto funcional explícito mediante kind
-
-si ya existe una order asociada al contexto recibido, debe reutilizarse la existente según la lógica definida
-
-La segmentación funcional del módulo se resuelve mediante:
-
-constraints.allowed_kinds
-
-Esa segmentación no aplica solo a create.
-
-Debe arbitrar también view, update y delete sobre registros existentes.
-
-order_items opera como recurso delegado al padre
-
-la seguridad del módulo se rige por la capa central vigente
-
-la navegación debe respetar el mecanismo central de trail del proyecto
-
-los módulos consumidores no deben reconstruir localmente la lógica de apertura, creación, readonly o requisito faltante cuando esa lógica ya fue cerrada por orders como superficie reusable oficial
-
-RELACIONES PRINCIPALES
-
-Relación estructural persistida hacia orders:
-
-tasks mediante orders.task_id
-
-Relación contextual operativa real hacia orders:
-
-appointments mediante appointments.order_id
-
-Relaciones principales del módulo:
-
-party
-asset
-products mediante order_items
-
-Relación derivada vigente:
-
-documents
-
-Mientras documents continúe en evolución hacia su contrato fiscal definitivo, su vínculo con Orders no debe utilizarse para redefinir el núcleo del módulo.
-
-REGLA FINAL
-
-Toda integración con Orders debe consumir su función estructural vigente sin reabrir arbitrariamente su núcleo operativo.
-
-<<END SECTION>>
-
-<<SECTION: MÓDULO PARTIES>>
+<<SECTION: BASE DEL DOMINIO>>
 SECTION_VERSION: 00001
 
-MÓDULO PARTIES
+BASE DEL DOMINIO
 
-Parties es el módulo base transversal del dominio para actores externos del tenant.
+La base del dominio agrupa piezas conceptuales que sostienen múltiples relaciones relevantes dentro del ecosistema operativo.
 
-No debe tratarse como una libreta de contactos aislada ni como un CRUD secundario.
+Caso actual principal:
 
-Constituye la base relacional estable sobre la que se apoyan múltiples módulos operativos del sistema.
+parties
 
-FUNCIÓN ESTRUCTURAL
+Su función no se limita a registrar un dato aislado.
 
-Dentro de la arquitectura actual del sistema, Parties representa el punto de referencia principal para personas u organizaciones externas vinculadas a la operación.
+Debe leerse como anclaje relacional estable para múltiples frentes del negocio.
 
-Su función incluye:
+Regla estructural:
 
-registrar actores externos
-clasificarlos funcionalmente por kind
-mantener datos identificatorios y de contacto
-servir como anclaje transversal para relaciones operativas
-permitir lectura integrada de relaciones relevantes asociadas al contacto
+que una pieza pertenezca a la base del dominio no la convierte en infraestructura global del sistema.
 
-No comprende como responsabilidad propia:
-
-la identidad interna de usuarios del sistema
-membresías de acceso
-asignación operativa interna del trabajo
-ownership por usuario
-lógica interna de módulos consumidores
-
-CONTRATO MODULAR CONSOLIDADO
-
-NÚCLEO
-
-parties resuelve la gestión de actores externos del tenant y constituye la base transversal del dominio para relaciones operativas asociadas.
-
-CONTRATO DE ENTRADA
-
-parties recibe como contexto funcional obligatorio para create:
-
-kind
-
-Además puede consumirse mediante navegación estructural o contextual desde otros módulos del ecosistema.
-
-Regla de create contextual validada doctrinalmente:
-
-parties.create no debe interpretarse como create abstracto genérico
-
-requiere contexto kind explícito y válido según constraints
-
-CONTRATO DE SALIDA
-
-parties expone hacia el ecosistema:
-
-referencia estable del actor externo
-ficha del contacto
-base relacional para otros módulos
-lectura transversal de relaciones operativas asociadas
-
-OFERTA DE INTEGRACIÓN
-
-parties publica o debe tender a publicar como capacidades reutilizables del ecosistema:
-
-linked-party-action
-selector reusable de contacto
-summary reusable de contacto
-lookup mínimo
-bloques o tablas de relaciones asociadas
-
-linked-party-action pertenece contractualmente al módulo parties
-
-no debe tratarse como link ad hoc reconstruido por cada consumidor
-
-su publicación válida debe tender a comprender:
-
-payload o resolución backend arbitrada desde parties
-bloque visual modular alojado dentro del propio módulo parties
-consumo homogéneo en vistas principales y superficies secundarias del ecosistema
-
-REGLAS OPERATIVAS
-
-parties es un módulo base del dominio
-
-no debe degradarse a CRUD aislado
-
-no utiliza ownership como criterio doctrinal del módulo
-
-su segmentación funcional se resuelve mediante constraints.allowed_kinds
-
-esa segmentación debe arbitrar create, view, update y delete
-
-delete queda reservado al owner con delegación posible al rol administrator según contrato persistido
-
-parties puede ser consumido por otros módulos sin perder identidad modular propia
-
-su show debe tender a expresar no solo la ficha del contacto sino también sus relaciones operativas relevantes cuando el ecosistema y los módulos activos lo permitan
-
-REGLA FINAL
-
-toda integración con parties debe respetar su condición de base transversal del dominio y consumir sus capacidades publicadas sin reconstrucciones locales innecesarias
+Sigue perteneciendo al ecosistema operativo del tenant, pero con un rol conceptual más amplio que el de un módulo operativo puntual.
 
 <<END SECTION>>
 
-<<SECTION: Roles y niveles actuales del sistema>>
-Roles y niveles actuales del sistema
-
-El sistema distingue actualmente dos niveles principales:
-
-superadmin
-tenant
-
-superadmin opera fuera del flujo tenant y administra aspectos globales del sistema.
-
-Dentro del tenant, la jerarquía operativa se organiza mediante:
-
-owner como condición estructural
-roles base delegables
-perfil funcional
-permisos concretos
-
-Roles base actuales del tenant:
-
-owner
-admin
-sales
-operator
-administrator
-
-La doctrina completa de acceso, autenticación y seguridad se encuentra centralizada en:
-
-<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
-<<END SECTION>>
-
-<<SECTION: SUPERADMIN>>
-SUPERADMIN
-
-Es la capa global de administración del sistema.
-
-Opera fuera del flujo tenant.
-
-Responsabilidades actuales:
-
-landing pública
-signup_requests
-invitations de tipo owner_signup
-onboarding inicial de nuevas empresas
-habilitación inicial de módulos por tenant
-<<END SECTION>>
-
-<<SECTION: OWNER Y ADMIN>>
-OWNER Y ADMIN
-
-Conforman el nivel privilegiado actual dentro del tenant.
-
-Reglas vigentes:
-
-owner es único por tenant
-
-owner no es un rol delegable y se resuelve estructuralmente desde memberships.is_owner
-
-admin es el rol delegable de gestión amplia dentro del tenant
-
-admin no equivale a owner como condición estructural, aunque puede compartir capacidades elevadas según la configuración de permisos del tenant
-<<END SECTION>>
-
-<<SECTION: ROLES OPERATIVOS BASE>>
-ROLES OPERATIVOS BASE
-
-Roles base actuales del tenant:
-
-sales
-operator
-administrator
-
-Reglas conceptuales:
-
-sales representa el perfil comercial operativo
-
-operator representa el perfil operativo de ejecución o campo
-
-administrator representa el perfil operativo administrativo u oficina
-
-estos roles no deben interpretarse como capas globales del sistema, sino como roles base propios del tenant
-
-las diferencias funcionales finas futuras no deben resolverse creando nuevos roles base, sino mediante perfiles funcionales y overrides cuando corresponda
-<<END SECTION>>
-
-<<SECTION: Reglas generales de autorización ya consolidadas>>
-SECTION_VERSION: 00003
-
-Reglas generales de autorización ya consolidadas
-
-La autorización del sistema debe entenderse mediante una separación obligatoria entre:
-
-dataset visible
-registro individual
-acción permitida
-render visible en UI
-
-Reglas base:
-
-cuando exista una policy, no alcanza con crearla:
-el controller debe invocar authorize(...) o authorizeResource(...)
-la vista debe respetar permisos reales con @can al mostrar acciones
-
-la tríada obligatoria del sistema es:
-
-policy
-authorize en controller
-@can en vistas
-
-la resolución del dataset no debe vivir repartida entre controllers o blades
-
-debe apoyarse en la capa central de autorización y en sus resolvers efectivos
-
-las policies actúan como wrapper mínimo de consumo de esa capa central
-
-delete de registros principales compartidos debe reservarse a owner y admin, salvo excepción funcional justificada
-
-los recursos hijos o embebidos cuya vida operativa dependa de una cabecera no deben tratarse como autorización autónoma
-
-esto aplica explícitamente a:
-
-order_items respecto de orders
-document_items respecto de documents
-attachments respecto de su attachable
-
-create, update y delete de order_items, document_items y attachments deben depender de la capacidad update sobre el recurso padre correspondiente
-
-regla general de consistencia:
-
-view_any debe ser igual o más amplio que view
-
-el dataset visible del módulo no puede quedar definido por un scope más restrictivo que el acceso individual efectivo a sus registros
-
-la UI, las acciones derivadas, los campos relacionales y la navegación hacia otra entidad modular por *_id deben verificar primero si el módulo relacionado está habilitado para el tenant
-
-si el módulo destino está deshabilitado:
-
-no deben renderizarse enlaces
-no deben renderizarse campos relacionales
-no deben renderizarse bloques visuales asociados
-no deben mantenerse accesos operativos residuales
-
-Regla crítica consolidada para create contextual:
-
-cuando una capacidad create dependa de contexto funcional obligatorio, la autorización abstracta vía Gate o policy no es válida como canal principal de consumo
-
-en esos casos debe consumirse Security con contexto explícito
-
-Regla operativa consolidada para módulos con constraints funcionales:
-
-cuando el contrato persistido del usuario incluya constraints activas, esas constraints deben arbitrar realmente create, view, update y delete
-
-no deben tratarse como metadata decorativa ni limitarse a una sola acción
-
-Caso ya validado en runtime real:
-
-orders utiliza constraints.allowed_kinds como segmentación efectiva del contrato
-
-orders.create requiere kind explícito válido
-sin kind debe rechazar
-con kind fuera de constraints debe rechazar
-view, update y delete deben seguir respetando esa misma segmentación funcional sobre registros existentes
-
-La doctrina detallada de implementación segura, Fortify, onboarding, hardening y controles de acceso debe concentrarse en:
-
-<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
-<<END SECTION>>
-
-<<SECTION: Patrón de modelado cabecera / detalle>>
-SECTION_VERSION: 00002
-
-Patrón de modelado cabecera / detalle
-
-Cuando un módulo represente una operación compuesta por múltiples renglones, debe modelarse preferentemente utilizando el patrón cabecera/detalle.
-
-Reglas del patrón:
-
-la cabecera representa el acto principal
-los ítems representan el detalle operativo
-los ítems heredan el tenant de la cabecera
-
-los ítems, por regla general, no exponen tenant_id en fillable desde formularios públicos.
-
-Si el alta del ítem se realiza internamente desde un flujo controlado del sistema y requiere asignación explícita del tenant heredado de la cabecera, puede incluirse tenant_id en fillable para permitir la creación consistente del registro.
-
-la eliminación de la cabecera elimina sus ítems
-la posición del ítem es responsabilidad del módulo
-los importes pueden calcularse dinámicamente o persistirse según la naturaleza funcional del documento
-
-Regla doctrinal adicional consolidada:
-
-cuando el detalle no posea identidad funcional propia, debe tratarse como entidad hija delegada y no como módulo autónomo
-
-esto implica que:
-
-su ciclo de vida depende de la cabecera
-su autorización depende del recurso padre
-su lógica operativa no debe independizarse sin decisión doctrinal expresa
-no deben agregarse responsabilidades de cabecera al hijo por comodidad de implementación
-
-Caso consolidado actual:
-
-order_items respecto de orders
-
-order_items debe tratarse como detalle dependiente del padre order, sin autonomía modular ni contrato de seguridad independiente
-<<END SECTION>>
-
-<<SECTION: Numeración operativa>>
-Numeración operativa
-
-El sistema implementa numeración automática para órdenes y documentos.
-
-Reglas actuales:
-
-la numeración se asigna al guardar la entidad
-
-no se reserva numeración antes del guardado
-
-la numeración se controla mediante document_sequences
-
-la secuencia se define por:
-
-tenant
-tipo documental
-punto de venta
-
-orders y documents no permiten edición manual del número
-
-una vez asignado el número, el tipo de entidad no debe modificarse
-<<END SECTION>>
-
-<<SECTION: Flujo tasks → orders>>
+<<SECTION: MÓDULOS FUNCIONALES ACTUALES>>
 SECTION_VERSION: 00001
 
-Flujo tasks → orders
+MÓDULOS FUNCIONALES ACTUALES
 
-El sistema contempla una derivación operativa opcional desde tasks hacia orders.
+Los módulos funcionales actuales del proyecto corresponden a capacidades operativas del negocio visibles dentro del tenant.
 
-Reglas actuales:
-
-una tarea puede originar una única orden
-
-la relación operativa 1 a 1 se expresa desde orders.task_id
-
-la orden derivada suele corresponder a una operación de servicio u otra acción formalizada a partir de la tarea
-
-Aclaración conceptual consolidada:
-
-este flujo no convierte a tasks en submódulo de orders ni a orders en simple consecuencia técnica de tasks
-
-expresa una derivación funcional posible entre dos módulos con identidad propia
-<<END SECTION>>
-
-<<SECTION: Flujo assets → orders → documents>>
-Flujo assets → orders → documents
-
-El sistema ya contempla una relación operativa opcional entre activos, órdenes y documentos.
-
-Reglas actuales:
-
-orders puede vincularse opcionalmente a assets
-
-documents puede vincularse opcionalmente a assets
-
-cuando un document se genera desde un order, hereda automáticamente:
-
-tenant_id
-party_id
-order_id
-asset_id si la orden lo posee
-<<END SECTION>>
-
-<<SECTION: Flujo orders → documents>>
-SECTION_VERSION: 00001
-
-Flujo orders → documents
-
-Desde orders.show pueden generarse documentos derivados de una orden.
-
-La relación entre ambos módulos debe entenderse así:
-
-orders representa la operación interna del tenant
-
-documents representa la formalización documental, comercial o fiscal derivada de esa operación
-
-El flujo actual contempla como tipos documentales activos al menos:
-
-quote
-delivery_note
-invoice
-
-work_order permanece solo como kind legacy inhabilitado y no debe formar parte del flujo operativo normal ni de la UI corriente.
-
-Cuando un documento se genera desde una orden:
-
-documents hereda automáticamente:
-
-tenant_id
-party_id
-order_id
-asset_id si la orden lo posee
-
-Los order_items pueden copiarse automáticamente a document_items.
-
-Una vez copiados los ítems, los totales del documento deben recalcularse según la lógica del módulo documental.
-
-Aclaración conceptual consolidada:
-
-documents debe tratarse como módulo derivado respecto de orders en este flujo
-
-eso no elimina su identidad modular propia
-
-sí define su posición funcional dentro del sistema
-<<END SECTION>>
-
-<<SECTION: Reglas de fechas del flujo operativo>>
-Reglas de fechas del flujo operativo
-
-Para mantener coherencia en las operaciones comerciales:
-
-orders siempre deben tener:
-
-party_id
-ordered_at
-
-documents siempre deben tener:
-
-party_id
-issued_at
-
-En orders la fecha es editable con restricciones razonables hacia el futuro.
-
-En documents la fecha se controla según el tipo documental y su coherencia con la orden asociada.
-
-Por ejemplo:
-
-un documento asociado a una orden no debe tener una fecha anterior a la orden.
-<<END SECTION>>
-
-<<SECTION: Capa inicial de impresión y PDF>>
-SECTION_VERSION: 00002
-
-Capa inicial de impresión y PDF
-
-El sistema ya incorpora una capa inicial de impresión y exportación PDF aplicada sobre módulos operativos existentes.
-
-Alcance actual validado:
-
-appointments
-orders
-documents
-
-Reglas y decisiones actuales:
-
-la capa de impresión no se modela como módulo de negocio independiente
-
-las vistas Blade imprimibles se reutilizan como base común para salida HTML de impresión y para generación de PDF
-
-la generación real de PDF se resuelve mediante librería externa
-
-el branding mínimo por tenant puede resolverse desde tenants.settings cuando la plantilla imprimible lo requiera
-
-la capa de impresión puede incorporar CSS y JavaScript específicos del módulo print siempre que permanezcan acotados a esa responsabilidad y no dupliquen innecesariamente la base visual global
-
-Aclaración estructural consolidada:
-
-el modelo de permisos V2 incluye constraints como componente obligatorio junto con scope y capability
-
-orders es el primer módulo completamente validado bajo este esquema, utilizando constraints.allowed_kinds como mecanismo de segmentación funcional principal
-
-cualquier implementación que no contemple constraints debe considerarse incompleta respecto al modelo vigente
-
-<<END SECTION>>
-
-<<SECTION: Factories y seeders>>
-Factories y seeders
-
-En factories utilizadas para testing es válido crear tenants automáticamente, por ejemplo:
-
-tenant_id => Tenant::factory()
-
-En seeders reales del sistema el tenant normalmente se asigna explícitamente desde el seeder.
-
-No es necesario modificar este comportamiento.
-<<END SECTION>>
-
-<<SECTION: Criterio actual de deploy y declaración de rutas>>
-Criterio actual de deploy y declaración de rutas
-
-En despliegues sobre hosting compartido sin CLI, Composer ni Artisan en servidor, el proyecto prioriza estrategia de deploy por versión cerrada preparada en local.
-
-En ese contexto, las rutas del core operativo se mantienen declaradas explícitamente en routes/web.php en lugar de depender de Route::resource(...), debido a un incidente real de registro inconsistente de rutas durante la primera prueba operativa.
-<<END SECTION>>
-
-<<SECTION: Estado actual del sistema>>
-SECTION_VERSION: 00003
-
-Estado actual del sistema
-
-Además del flujo multi-tenant principal, el sistema incorpora una capa global de administración denominada superadmin.
-
-Esta capa está separada del flujo tenant y permite gestionar aspectos globales del sistema.
-
-El superadmin puede administrar:
-
-landing pública
-signup_requests
-invitations de tipo owner_signup
-onboarding inicial de nuevas empresas
-habilitación inicial de módulos por tenant
-
-El superadmin opera sin depender de un tenant activo.
-
-Invitations soporta actualmente al menos los siguientes tipos:
-
-owner_signup
-member_invite
-
-Estado documental consolidado:
-
-la base documental técnica del proyecto ya utiliza una estructura común basada en:
-
-bloque METADATOS
-DOC_SLUG como identificador canónico
-DOC_VERSION como versión general del documento
-secciones delimitadas por <<SECTION: ...>> y <<END SECTION>>
-
-<<SECTION: Configuración básica de empresa>>
-Configuración básica de empresa
-
-tenants.settings se utiliza para persistir configuración básica editable de empresa cuando esa configuración no justifica entidad propia.
-
-El perfil de empresa ya existe como pantalla operativa para owner.
-
-Además de datos generales, settings puede contener configuración funcional del tenant cuando esta no justifique todavía una entidad específica.
-
-Esto incluye, entre otros casos, el perfil de rubro en:
-
-settings.business_profile.type
-
-La pantalla tenant.profile incorpora además una primera UI real de gestión de permisos V2 por tenant mediante un tab interno permissions.
-
-Reglas actuales de esa pantalla:
-
-solo owner puede operar esta primera gestión
-
-el owner no habilita módulos desde tenant.profile, solo ajusta permisos sobre módulos ya habilitados previamente para el tenant
-
-la edición actual se limita a roles base delegables:
-
-admin
-sales
-operator
-administrator
-
-la persistencia de esta fase se realiza sobre role_permission
-
-membership_permission_overrides queda fuera de alcance en esta primera UI
-
-la edición efectiva de permisos por rol depende de que los roles base existan materialmente en cada tenant y no solo en catálogo o código
-
-si un tenant quedó desincronizado respecto de los roles base persistidos, la UI puede requerir sincronización previa de datos para operar correctamente
-<<END SECTION>>
-
-<<SECTION: Decisión actual de frontend base>>
-Decisión actual de frontend base
-
-El frontend base del proyecto ya migró a un patrón declarativo con data-action="app-..." y public/js/app-base.js como capa mínima reutilizable de comportamiento.
-
-La capa de impresión puede incorporar además recursos propios acotados a esa responsabilidad, por ejemplo CSS y JavaScript específicos del módulo print, sin romper la base declarativa general del proyecto.
-
-El shell general de la app ya incorpora un footer reusable en pantallas internas no públicas.
-
-Ese footer puede exponer identificación visible de versión o estado del sistema.
-
-En entorno local, esa identificación se resuelve automáticamente desde .git como identificador de desarrollo.
-
-Este comportamiento forma parte efectiva del shell del sistema y no debe tratarse como funcionalidad futura.
-<<END SECTION>>
-
-<<SECTION: Entidades ya implementadas>>
-Entidades ya implementadas
-
-users
-tenants
-memberships
-roles
-membership_role
-signup_requests
-invitations
+Casos actuales:
 
 parties
 projects
@@ -1643,44 +473,181 @@ appointments
 products
 assets
 orders
-order_items
 documents
-document_items
-document_sequences
-attachments
+
+Estos módulos constituyen la lectura funcional principal del sistema dentro de la empresa activa.
+
+La correspondencia entre entidad del negocio y módulo visible puede ser directa o predominantemente directa, pero no todas las entidades del negocio deben leerse como módulo nuclear independiente.
+
 <<END SECTION>>
 
-<<SECTION: Regla de arquitectura>>
-Regla de arquitectura
+<<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
+SECTION_VERSION: 00001
 
-La arquitectura multi-tenant actual no debe modificarse.
+LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES
 
-Los nuevos módulos deben reutilizar:
+La lectura conceptual de los módulos actuales permite comprender el rol arquitectónico principal de cada pieza dentro del ecosistema del proyecto.
 
-TenantScoped
-ResolvesTenantRouteBinding
-SoftDeletes
-tenant_id como mecanismo de aislamiento
+No reemplaza contratos funcionales, reglas de seguridad ni decisiones de implementación específicas.
+
+PARTIES
+
+Debe leerse como módulo base del dominio.
+
+Representa actores externos relacionados con la operación del tenant y funciona como referencia amplia para múltiples relaciones del ecosistema.
+
+PROJECTS
+
+Debe leerse como módulo agrupador.
+
+Su función principal es ordenar, organizar o brindar lectura consolidada sobre trabajo relacionado, especialmente alrededor de tasks, sin absorber su identidad.
+
+TASKS
+
+Debe leerse como módulo autónomo.
+
+Representa una unidad operativa interna que conserva identidad propia aunque participe en agrupaciones o relaciones con otros módulos.
+
+APPOINTMENTS
+
+Debe leerse como módulo autónomo de agenda operativa.
+
+Representa planificación, reserva o coordinación temporal dentro del tenant.
+
+PRODUCTS
+
+Debe leerse como módulo autónomo de catálogo operativo.
+
+Representa bienes, servicios o unidades catalogables que alimentan otros flujos del negocio.
+
+ASSETS
+
+Debe leerse como módulo autónomo de activos operativos.
+
+Representa equipos, unidades o recursos identificables del tenant y aporta contexto operativo a distintos frentes del negocio.
+
+ORDERS
+
+Debe leerse como módulo autónomo de operación central.
+
+Representa una pieza relevante de la operación interna del tenant y puede recibir contexto desde otros módulos sin perder identidad propia.
+
+DOCUMENTS
+
+Debe leerse como módulo derivado respecto de orders.
+
+Su función principal es formalizar o prolongar documentalmente operaciones más nucleares del sistema.
+
+ATTACHMENTS
+
+Debe leerse como módulo transversal.
+
+Su función principal es integrarse sobre otros recursos del sistema como capacidad de soporte, evidencia o documentación asociada.
+
+Regla final:
+
+la posición conceptual de un módulo dentro de esta sección orienta la arquitectura general del proyecto, pero su desarrollo específico pertenece a otros documentos especializados.
+
 <<END SECTION>>
 
-<<SECTION: Dirección de crecimiento del sistema>>
-Dirección de crecimiento del sistema
 
-El sistema crecerá mediante módulos empresariales reutilizando la arquitectura existente.
+<<SECTION: RELACIONES MACRO DEL ECOSISTEMA>>
+SECTION_VERSION: 00002
 
-Módulos previstos:
+RELACIONES MACRO DEL ECOSISTEMA
 
-payments
-inventory
+Las siguientes relaciones expresan la lectura conceptual prioritaria del ecosistema actual:
+
+projects agrupa tasks sin absorber su autonomía
+tasks puede originar operaciones relacionadas con orders
+appointments puede originar operaciones relacionadas con orders
+assets aporta contexto operativo a múltiples frentes
+orders puede derivar documents
+orders contiene detalle operativo mediante order_items
+products alimenta ítems operativos y documentales
+parties se relaciona transversalmente con múltiples módulos
+attachments puede integrarse sobre múltiples recursos
+
+Relaciones estructuralmente especialmente relevantes dentro del estado actual del proyecto:
+
+projects y tasks como agrupador y unidad operativa
+tasks y orders como continuidad posible entre trabajo interno y operación
+appointments y orders como continuidad posible entre agenda y operación
+orders y documents como relación entre operación y formalización documental
+orders y order_items como cabecera y detalle operativo
+products como soporte de detalle operativo y documental
+parties como referencia transversal de actores externos
+assets como referencia de recursos operativos
+attachments como capacidad transversal sobre múltiples recursos
+
+Estas relaciones expresan lectura macro y estructural del sistema.
+
+No reemplazan el detalle técnico de navegación, modelado relacional fino, contrato modular ni seguridad específica.
+
 <<END SECTION>>
 
-<<SECTION: Principio de desarrollo>>
-Principio de desarrollo
+<<SECTION: MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO>>
+SECTION_VERSION: 00001
 
-Priorizar siempre:
+MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO
 
-simplicidad
-reutilización de entidades
-mínima duplicación
-evolución progresiva del sistema
+El crecimiento del sistema debe apoyarse en módulos con identidad clara y responsabilidades separadas.
+
+Toda evolución nueva debe tender a:
+
+respetar el modelo multi-tenant
+preservar la distinción entre sistema y negocio
+mantener identidad conceptual de cada módulo
+evitar duplicaciones estructurales
+apoyarse en relaciones reales del ecosistema
+consumir capacidades existentes antes de crear variantes paralelas
+mantener coherencia entre arquitectura y documentación
+
+Regla general:
+
+una necesidad nueva no debe reabrir arbitrariamente el núcleo conceptual de otro módulo salvo que cambie realmente su posición dentro del sistema.
+
+<<END SECTION>>
+
+<<SECTION: CONTRATO MODULAR COMO DIRECCIÓN DE CRECIMIENTO>>
+SECTION_VERSION: 00001
+
+CONTRATO MODULAR COMO DIRECCIÓN DE CRECIMIENTO
+
+La dirección arquitectónica general del proyecto reconoce el contrato modular como criterio sano de crecimiento.
+
+Esto significa que cada módulo debe tender a consolidar:
+
+núcleo propio
+entrada compatible con su función
+salida coherente con su identidad
+oferta de integración cuando corresponda
+
+Este documento no desarrolla esos contratos.
+
+Solo fija que esa dirección forma parte del marco arquitectónico estable del proyecto.
+
+El detalle doctrinal correspondiente se resuelve en otros documentos.
+
+<<END SECTION>>
+
+<<SECTION: CRITERIO DE LECTURA DOCUMENTAL>>
+SECTION_VERSION: 00001
+
+CRITERIO DE LECTURA DOCUMENTAL
+
+Este documento debe leerse como marco arquitectónico general del proyecto.
+
+Su función no es competir con otros documentos doctrinales, sino dar contexto estable para interpretarlos correctamente.
+
+Lectura correcta:
+
+este documento fija qué es el sistema y cómo se organiza
+los documentos específicos desarrollan seguridad, navegación, visualidad, convenciones o roadmap
+las decisiones particulares deben leerse a la luz del marco definido aquí, sin duplicarlo ni deformarlo
+
+Regla final:
+
+si una definición necesita detalle operativo fino para ser válida, probablemente ese detalle no pertenezca a este documento.
+
 <<END SECTION>>

@@ -457,7 +457,7 @@ Por esta razón, no debe interpretarse como una entidad del negocio tenant-scope
 <<END SECTION>>
 
 <<SECTION: Entidad base del negocio>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 Entidad base del negocio
 
@@ -465,7 +465,7 @@ La entidad base para personas u organizaciones es:
 
 parties
 
-Representa cualquier actor relacionado con la operación del tenant.
+Representa cualquier actor externo relacionado con la operación del tenant.
 
 Ejemplos:
 
@@ -494,6 +494,23 @@ parties no debe tratarse solo como un módulo más del core
 debe leerse como base transversal del dominio sobre la cual otros módulos pueden construir relaciones operativas
 
 esta condición forma parte estable de la arquitectura del sistema
+
+Aclaración modular adicional consolidada:
+
+parties no se agota en una ficha de contacto ni en un CRUD aislado
+
+actúa como punto estable de referencia relacional para múltiples módulos del ecosistema del tenant
+
+por lo tanto, su valor arquitectónico incluye tanto el registro del actor externo como la lectura transversal de sus relaciones operativas asociadas
+
+Aclaración contractual consolidada:
+
+parties debe poder publicar capacidades reutilizables propias para el ecosistema sin perder identidad modular
+
+caso inmediato previsto:
+
+linked-party-action como superficie reusable oficial para arbitrar apertura navegable, referencia readonly o ausencia de acción operable según soporte modular, permiso efectivo y existencia de party relacionada
+
 <<END SECTION>>
 
 <<SECTION: Projects como capa de seguimiento agregado>>
@@ -718,7 +735,7 @@ Esto forma parte estable de la arquitectura actual del proyecto y debe reflejars
 <<END SECTION>>
 
 <<SECTION: Clasificación conceptual actual de módulos>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 Clasificación conceptual actual de módulos
 
@@ -734,7 +751,11 @@ Caso actual consolidado:
 
 parties
 
-Debe tratarse como base transversal del dominio.
+Debe tratarse como base transversal del dominio y como anclaje estable de actores externos del tenant.
+
+Su función no se limita a registrar contactos.
+
+También debe permitir leer y conectar transversalmente relaciones operativas del ecosistema.
 
 MÓDULO TRANSVERSAL
 
@@ -775,10 +796,19 @@ Su función principal es formalizar o prolongar documentalmente una operación m
 Regla:
 
 esta clasificación debe orientar futuras decisiones de documentación, integración y refactorización del sistema
+
+Aclaración adicional consolidada para parties:
+
+que parties publique acciones, selectores, summaries o superficies reusables para otros módulos no lo convierte en módulo transversal en este esquema
+
+su naturaleza sigue siendo la de módulo base del dominio
+
+la oferta reusable forma parte de su evolución contractual y no altera su posición conceptual de base intrínseca del sistema
+
 <<END SECTION>>
 
 <<SECTION: Contrato modular como criterio de crecimiento>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 Contrato modular como criterio de crecimiento
 
@@ -830,7 +860,18 @@ un módulo no debe considerarse realmente cerrado mientras existan superficies s
 
 el cierre válido exige revisar también tablas, partials, formularios embebidos y demás superficies derivadas que consuman esa integración
 
+Aplicación doctrinal consolidada adicional:
+
+esto no alcanza solo a módulos operativos nucleares como orders
+
+también alcanza a módulos base del dominio cuando publiquen superficies reutilizables propias para el ecosistema
+
+caso inmediato previsto:
+
+parties mediante linked-party-action como oferta reusable oficial del módulo para resolver apertura navegable, referencia readonly o ausencia de acción operable según contrato efectivo
+
 Este criterio forma parte de la dirección arquitectónica actual del proyecto.
+
 <<END SECTION>>
 
 <<SECTION: MÓDULO ORDERS>>
@@ -998,6 +1039,110 @@ Mientras documents continúe en evolución hacia su contrato fiscal definitivo, 
 REGLA FINAL
 
 Toda integración con Orders debe consumir su función estructural vigente sin reabrir arbitrariamente su núcleo operativo.
+
+<<END SECTION>>
+
+<<SECTION: MÓDULO PARTIES>>
+SECTION_VERSION: 00001
+
+MÓDULO PARTIES
+
+Parties es el módulo base transversal del dominio para actores externos del tenant.
+
+No debe tratarse como una libreta de contactos aislada ni como un CRUD secundario.
+
+Constituye la base relacional estable sobre la que se apoyan múltiples módulos operativos del sistema.
+
+FUNCIÓN ESTRUCTURAL
+
+Dentro de la arquitectura actual del sistema, Parties representa el punto de referencia principal para personas u organizaciones externas vinculadas a la operación.
+
+Su función incluye:
+
+registrar actores externos
+clasificarlos funcionalmente por kind
+mantener datos identificatorios y de contacto
+servir como anclaje transversal para relaciones operativas
+permitir lectura integrada de relaciones relevantes asociadas al contacto
+
+No comprende como responsabilidad propia:
+
+la identidad interna de usuarios del sistema
+membresías de acceso
+asignación operativa interna del trabajo
+ownership por usuario
+lógica interna de módulos consumidores
+
+CONTRATO MODULAR CONSOLIDADO
+
+NÚCLEO
+
+parties resuelve la gestión de actores externos del tenant y constituye la base transversal del dominio para relaciones operativas asociadas.
+
+CONTRATO DE ENTRADA
+
+parties recibe como contexto funcional obligatorio para create:
+
+kind
+
+Además puede consumirse mediante navegación estructural o contextual desde otros módulos del ecosistema.
+
+Regla de create contextual validada doctrinalmente:
+
+parties.create no debe interpretarse como create abstracto genérico
+
+requiere contexto kind explícito y válido según constraints
+
+CONTRATO DE SALIDA
+
+parties expone hacia el ecosistema:
+
+referencia estable del actor externo
+ficha del contacto
+base relacional para otros módulos
+lectura transversal de relaciones operativas asociadas
+
+OFERTA DE INTEGRACIÓN
+
+parties publica o debe tender a publicar como capacidades reutilizables del ecosistema:
+
+linked-party-action
+selector reusable de contacto
+summary reusable de contacto
+lookup mínimo
+bloques o tablas de relaciones asociadas
+
+linked-party-action pertenece contractualmente al módulo parties
+
+no debe tratarse como link ad hoc reconstruido por cada consumidor
+
+su publicación válida debe tender a comprender:
+
+payload o resolución backend arbitrada desde parties
+bloque visual modular alojado dentro del propio módulo parties
+consumo homogéneo en vistas principales y superficies secundarias del ecosistema
+
+REGLAS OPERATIVAS
+
+parties es un módulo base del dominio
+
+no debe degradarse a CRUD aislado
+
+no utiliza ownership como criterio doctrinal del módulo
+
+su segmentación funcional se resuelve mediante constraints.allowed_kinds
+
+esa segmentación debe arbitrar create, view, update y delete
+
+delete queda reservado al owner con delegación posible al rol administrator según contrato persistido
+
+parties puede ser consumido por otros módulos sin perder identidad modular propia
+
+su show debe tender a expresar no solo la ficha del contacto sino también sus relaciones operativas relevantes cuando el ecosistema y los módulos activos lo permitan
+
+REGLA FINAL
+
+toda integración con parties debe respetar su condición de base transversal del dominio y consumir sus capacidades publicadas sin reconstrucciones locales innecesarias
 
 <<END SECTION>>
 

@@ -61,7 +61,7 @@ priorizar piezas con mayor impacto sistémico
 <<END SECTION>>
 
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 MÓDULOS PRIORITARIOS A REVISAR
 
@@ -88,6 +88,24 @@ Pendiente residual de cierre homogéneo:
 barrer consumidores secundarios y superficies derivadas para asegurar consumo uniforme de la capacidad reusable oficial sin resoluciones locales remanentes
 
 No reabrir en este frente salvo bug real o cambio doctrinal nuevo.
+
+PARTIES
+
+módulo base del dominio y siguiente frente activo de reconversión contractual
+
+Estado actual:
+
+doctrina cerrada en este ciclo de trabajo
+implementación pendiente de alineación final
+
+Líneas de cierre inmediato:
+
+alinear contrato de seguridad efectivo al modelo contextual por kind
+hacer que allowed_kinds arbitre create, view, update y delete
+reservar delete a owner con delegación posible a administrator
+publicar linked-party-action como capacidad reusable oficial del módulo
+reconvertir parties.show en superficie transversal con relaciones operativas relevantes
+barrer consumidores secundarios para eliminar links locales residuales hacia parties
 
 TASKS
 
@@ -130,6 +148,7 @@ Revisar:
 selectores comunes
 summaries técnicos
 relaciones cruzadas consistentes
+
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
@@ -197,7 +216,7 @@ consumo transversal de linked-order-action en consumidores secundarios del ecosi
 <<END SECTION>>
 
 <<SECTION: SEGURIDAD Y CONTRATOS PENDIENTES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 SEGURIDAD Y CONTRATOS PENDIENTES
 
@@ -223,7 +242,18 @@ ya quedó validada la lectura correcta del vínculo estructural con tasks y del 
 
 No reabrir la discusión doctrinal de orders en este frente.
 
-Trasladar el foco a módulos siguientes y a homogeneización de consumidores secundarios cuando corresponda.
+Estado consolidado adicional para parties:
+
+queda definido doctrinalmente que parties.create requiere contexto kind explícito
+
+queda definido doctrinalmente que constraints.allowed_kinds debe arbitrar create, view, update y delete
+
+queda definido doctrinalmente que delete se reserva a owner con delegación posible a administrator según contrato persistido
+
+queda definido doctrinalmente que parties debe publicar linked-party-action como capacidad reusable oficial del módulo
+
+Trasladar el foco a alineación real de implementación, superficies secundarias y validación técnica del contrato efectivo de parties.
+
 <<END SECTION>>
 
 <<SECTION: DEUDA TÉCNICA A REDUCIR>>
@@ -367,7 +397,7 @@ inventory
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 PENDIENTES INMEDIATOS
 
@@ -441,6 +471,16 @@ Caso concreto vigente:
 
 revisar adopción homogénea de linked-order-action en superficies secundarias relacionadas con tasks / orders
 
+Nuevo frente inmediato consolidado:
+
+alinear implementación real de parties al contrato doctrinal ya cerrado
+
+implementar linked-party-action desde el propio módulo parties
+
+reconvertir party.show como superficie transversal con relaciones operativas relevantes
+
+homogeneizar acceso hacia parties desde assets, appointments, orders, documents y tasks evitando links locales residuales cuando corresponda capacidad reusable oficial
+
 considerar como ya cerrado y no reabrir en este frente:
 
 orders como núcleo operativo principal
@@ -452,6 +492,11 @@ corrección sin migración adicional del hijo delegado
 validación runtime real de allowed_kinds sobre contrato efectivo de orders
 confirmación de orders.task_id como vínculo estructural con tasks
 confirmación de appointments.order_id como vínculo operativo real con orders
+doctrina base de parties como módulo base transversal del dominio
+create contextual de parties por kind como regla doctrinal
+allowed_kinds de parties arbitrando create, view, update y delete como regla doctrinal
+delete de parties reservado a owner con delegación posible a administrator como regla doctrinal
+
 <<END SECTION>>
 
 <<SECTION: ATTACHMENTS>>
@@ -509,7 +554,7 @@ indexación de contenido para búsqueda
 <<END SECTION>>
 
 <<SECTION: AUTORIZACIÓN Y PERMISOS>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 AUTORIZACIÓN Y PERMISOS
 
@@ -533,6 +578,8 @@ Pendientes reales actuales:
 
 * Definir comportamiento cuando no haya módulos habilitados.
 
+* Alinear el contrato efectivo de parties con su nueva doctrina cerrada, especialmente create contextual por kind, constraints.allowed_kinds sobre registros existentes, delete reservado y consumo reusable de linked-party-action.
+
 Pendientes cerrados y no reabrir:
 
 * cierre contractual completo de permisos V2 en módulo orders (scope + constraints + UI + persistencia)
@@ -553,10 +600,16 @@ Pendientes cerrados y no reabrir:
 
 * cierre doctrinal de que Gate o policy abstracta no constituyen canal válido para create contextual con constraints obligatorias
 
+* cierre doctrinal de parties.create como create contextual por kind
+
+* cierre doctrinal de allowed_kinds de parties como arbitraje de create, view, update y delete
+
+* cierre doctrinal de delete de parties reservado a owner con delegación posible a administrator
+
 <<END SECTION>>
 
 <<SECTION: FLUJOS FUNCIONALES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 FLUJOS FUNCIONALES
 
@@ -632,6 +685,12 @@ mantener como regla estable que los flujos entre módulos (ej. appointments → 
 pendiente inmediato derivado de autorización:
 
 revisar documents como siguiente caso de create contextual con constraints obligatorias reutilizando el patrón ya validado en orders y sin reabrir la discusión doctrinal ya cerrada
+
+pendiente inmediato adicional del frente parties:
+
+reconvertir party.show desde ficha simple hacia nodo transversal con relaciones operativas relevantes
+
+alinear la navegación y apertura hacia parties desde módulos consumidores bajo la futura capacidad reusable linked-party-action cuando corresponda
 
 <<END SECTION>>
 

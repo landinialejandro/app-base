@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -88,7 +88,18 @@ también publica oferta de integración consumible por otros módulos del ecosis
 
 esa oferta puede incluir arbitraje backend propio y representación visual modular sin dejar de pertenecer contractualmente al módulo orders
 
+Aclaración relacional consolidada adicional:
+
+parties no solo participa como relación transversal pasiva
+
+debe leerse también como módulo base del dominio que puede publicar oferta reusable propia para el ecosistema
+
+caso inmediato previsto:
+
+linked-party-action como capacidad oficial de integración para arbitrar apertura navegable, referencia readonly o ausencia de acción operable según soporte modular, permiso efectivo y existencia de party relacionada
+
 no invalidan otras relaciones técnicas menores ya existentes o futuras
+
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL SISTEMA>>
@@ -344,7 +355,7 @@ cuando eso ocurra, esas capacidades deben seguir leyéndose como oferta del mód
 <<END SECTION>>
 
 <<SECTION: PARTIES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 PARTIES
 
@@ -382,11 +393,39 @@ selector de contacto
 summary de contacto
 lookup mínimo
 tabla de relaciones asociadas
+acción enlazada reusable
 
 Reglas:
 
 no reemplaza users internos del sistema
 no debe tratarse como módulo opcional ordinario si el sistema lo reconoce como base intrínseca del dominio
+
+Aclaración estructural consolidada:
+
+parties no se agota en la alta o edición del contacto
+
+también debe leerse como punto estable de referencia relacional para múltiples módulos operativos del tenant
+
+Aclaración contractual consolidada:
+
+su oferta reusable no debe quedar dispersa como links ad hoc locales en cada consumidor
+
+debe tender a publicarse desde el propio módulo parties como capacidad reusable oficial
+
+caso inmediato previsto:
+
+linked-party-action
+
+Regla adicional de seguridad conceptual:
+
+su segmentación funcional se resuelve mediante constraints.allowed_kinds
+
+y esa segmentación debe arbitrar create, view, update y delete según el contrato del módulo
+
+Regla adicional sobre delete:
+
+delete debe reservarse al owner con delegación posible al rol administrator según contrato persistido
+
 <<END SECTION>>
 
 <<SECTION: PROJECTS>>
@@ -819,7 +858,7 @@ Debe resolverse a partir de un catálogo cerrado de rubros y servir como context
 <<END SECTION>>
 
 <<SECTION: FLUJOS PRINCIPALES DEL SISTEMA>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 FLUJOS PRINCIPALES DEL SISTEMA
 
@@ -877,6 +916,12 @@ la transición appointments → orders debe respetar el estado activo del módul
 
 si orders no está habilitado para el tenant, el flujo no debe exponerse en UI
 
+Aclaración transversal consolidada:
+
+parties no solo inicia el flujo operativo base hacia orders
+
+también actúa como nodo transversal desde el cual pueden leerse otras relaciones operativas relevantes del ecosistema, por ejemplo assets y documents, según módulos activos y contrato vigente
+
 FLUJO DE ONBOARDING
 
 signup_requests
@@ -890,6 +935,7 @@ FLUJO TRANSVERSAL DE ADJUNTOS
 módulos operativos
 ↓
 attachments
+
 <<END SECTION>>
 
 <<SECTION: ENTIDADES YA IMPLEMENTADAS>>

@@ -180,7 +180,7 @@ la navegación principal debe reflejar contrato real del sistema y no solo exist
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -201,10 +201,13 @@ assets.show
 → ver órdenes relacionadas
 → crear order contextual
 → ver documents relacionados
+→ ver party relacionada
 
 parties.show
 → ver relaciones operativas
-→ crear accesos contextuales según módulo habilitado
+→ navegar assets relacionadas
+→ navegar orders relacionadas
+→ navegar documents relacionados
 
 orders.show
 → crear document derivado
@@ -252,6 +255,17 @@ la navegación contextual hacia orders no debe reconstruirse localmente por cada
 Regla adicional de homogeneidad:
 
 mientras exista una superficie secundaria relevante que todavía resuelva localmente el acceso hacia orders, el frente de navegación contextual no debe considerarse homogéneamente cerrado
+
+Aclaración consolidada para parties:
+
+cuando el flujo transversal hacia parties deba arbitrar si corresponde abrir la party relacionada, mostrarla como referencia readonly o no exponer acción operable, debe tender a priorizarse el consumo de la capacidad reusable publicada por parties y no links locales dispersos por vista
+
+la capacidad reusable prevista para este frente es linked-party-action
+
+parties.show no debe leerse solo como ficha aislada
+
+debe tender a operar como pantalla transversal de relaciones operativas relevantes según módulos activos, permisos efectivos y contexto vigente
+
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
@@ -398,6 +412,8 @@ Pueden abrirse de forma estructural o como continuación de otro flujo operativo
 <<END SECTION>>
 
 <<SECTION: REGLAS DEL TRAIL>>
+SECTION_VERSION: 00002
+
 REGLAS DEL TRAIL
 
 Cuando exista trail contextual válido:
@@ -421,6 +437,18 @@ historial del navegador
 supuestos implícitos del modelo
 
 El trail no debe serializarse dentro de las URLs internas de sus propios nodos.
+
+Regla adicional consolidada:
+
+si una apertura entre módulos se resuelve mediante una capacidad reusable oficial del módulo oferente, esa capacidad también debe respetar y propagar el trail válido del flujo activo
+
+esto aplica tanto a módulos operativos como a módulos base del dominio
+
+casos relevantes actuales:
+
+linked-order-action
+linked-party-action
+
 <<END SECTION>>
 
 <<SECTION: MAPA DE NAVEGACIÓN PRINCIPAL>>
@@ -568,7 +596,7 @@ debe consumirse la capacidad oficial del módulo oferente también en esa superf
 <<END SECTION>>
 
 <<SECTION: DETALLE DE FLUJOS RELEVANTES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 DETALLE DE FLUJOS RELEVANTES
 
@@ -672,31 +700,9 @@ Contexto esperado:
 
 si la party se abre desde la orden, el breadcrumb puede conservar la orden de origen cuando esa relación siga siendo parte del trabajo en curso
 
-ORDERS -> ASSETS
+Regla adicional consolidada:
 
-Uso típico:
-
-desde una orden se consulta o abre el activo asociado
-
-Contexto esperado:
-
-si el asset se abre desde la orden, el breadcrumb puede conservar la orden de origen cuando esa relación siga siendo parte del trabajo en curso
-
-ORDERS -> DOCUMENTS
-
-Uso típico:
-
-desde una orden operativa se generan o consultan documentos derivados
-
-Contexto esperado:
-
-documents puede abrirse en modo estructural o como continuación documental del trabajo iniciado en orders
-
-Observación:
-
-este tramo debe entenderse como derivación documental o fiscal de una operación interna, no como duplicación de la orden operativa
-
-la creación derivada debe preservar trail contextual válido cuando exista
+cuando el acceso a parties deba resolver si la referencia es navegable o solo informativa, debe tender a priorizarse una capacidad reusable oficial del módulo parties y no criterios dispersos por tabla, show o partial
 
 DOCUMENTS -> PARTIES
 
@@ -708,39 +714,40 @@ Contexto esperado:
 
 si la party se abre desde el documento, el breadcrumb puede conservar el document de origen cuando siga siendo útil para la continuidad del trabajo
 
-DOCUMENTS -> ASSETS
+PARTIES -> ASSETS
 
 Uso típico:
 
-desde un documento se consulta o abre el activo asociado
+desde el contacto se consultan activos vinculados
 
 Contexto esperado:
 
-si el asset se abre desde el document, el breadcrumb puede conservar el document de origen cuando siga siendo útil para la continuidad del trabajo
+si el flujo parte del contacto, los activos relacionados pueden abrirse preservando party.show como origen contextual útil
 
-DOCUMENTS -> ORDERS
+PARTIES -> ORDERS
 
 Uso típico:
 
-desde un documento se abre la orden asociada
+desde el contacto se consultan órdenes vinculadas
 
 Contexto esperado:
 
-si la order se abre desde el documento, el breadcrumb puede conservar el document de origen cuando el usuario siga trabajando sobre ese recorrido relacionado
+si el flujo parte del contacto, las órdenes relacionadas pueden abrirse preservando party.show como origen contextual útil
 
-DOCUMENTS -> DOCUMENT_ITEMS
+PARTIES -> DOCUMENTS
 
 Uso típico:
 
-edición o consulta de detalle documental dentro del flujo de documents
+desde el contacto se consultan documentos vinculados
 
 Contexto esperado:
 
-document_items hereda normalmente el contexto del document padre
+si el flujo parte del contacto, los documentos relacionados pueden abrirse preservando party.show como origen contextual útil
 
-Observación:
+Aclaración adicional consolidada:
 
-las acciones create, edit, store, update y cancelar deben volver al show del documento padre respetando el trail completo del flujo
+party.show debe tender a comportarse como show transversal con relaciones operativas embebidas relevantes y no solo como ficha aislada del contacto
+
 <<END SECTION>>
 
 <<SECTION: PANTALLAS QUE DEBEN AUDITARSE CON ESPECIAL ATENCIÓN>>

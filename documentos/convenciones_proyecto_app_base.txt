@@ -108,7 +108,7 @@ ubicación física consistente con su identidad contractual
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA BASE DEL PROYECTO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ESTRUCTURA BASE DEL PROYECTO
 
@@ -163,6 +163,12 @@ servicios propios del flujo documental
 
 app/Support/Inventory
 servicios y cálculo de inventario
+
+app/Support/Orders
+servicios, payloads o arbitrajes propios del flujo de orders y sus integraciones reusables
+
+app/Support/Parties
+servicios, payloads o arbitrajes propios del flujo de parties y sus integraciones reusables
 
 app/Support/Projects
 lecturas agregadas o utilidades propias de projects
@@ -220,12 +226,6 @@ partials de impresión reutilizables
 
 resources/views/svg
 fuente Blade de iconografía y marca SVG
-
-resources/css
-fuentes editables del CSS compilable
-
-resources/js
-fuentes editables del JavaScript compilable
 
 ROUTES
 
@@ -496,7 +496,7 @@ las integraciones entre módulos deben respetar el contrato del módulo oferente
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -604,6 +604,11 @@ una capacidad reusable no debe considerarse realmente cerrada mientras existan s
 
 el cierre válido exige revisar también tablas, partials, formularios embebidos y demás superficies derivadas que consuman esa integración
 
+Casos doctrinales actuales:
+
+linked-order-action como superficie reusable de orders
+linked-party-action como superficie reusable de parties
+
 CONTRATO DE SEGURIDAD
 
 El contrato de seguridad del módulo no se define en esta sección sino en:
@@ -613,6 +618,7 @@ El contrato de seguridad del módulo no se define en esta sección sino en:
 Regla obligatoria:
 
 ningún contrato modular es válido si contradice el contrato de seguridad del módulo o el arbitraje central del sistema
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CLASIFICACIÓN MODULAR>>
@@ -686,7 +692,7 @@ la clasificación no debe forzar jerarquías falsas de dependencia existencial c
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -748,13 +754,15 @@ no alcanza con reutilizar solo una vista Blade si la decisión de estados sigue 
 
 cuando la capacidad reusable pertenezca contractualmente a un módulo oferente, su implementación no debe quedar en una ubicación global ambigua que borre su identidad modular
 
-Caso consolidado actual:
+Casos consolidados actuales:
 
-linked-order-action como superficie reusable de integración publicada por orders
+linked-order-action como superficie reusable publicada por orders
+linked-party-action como superficie reusable publicada por parties
 
 Regla operativa adicional de cierre:
 
-si una superficie consumidora todavía resuelve localmente acceso, apertura o creación de una relación ya cerrada por el módulo oferente, el frente de integración no debe considerarse homogéneo ni cerrado
+si una superficie consumidora todavía resuelve localmente acceso, apertura o visualización de una relación ya cerrada por el módulo oferente, el frente de integración no debe considerarse homogéneo ni cerrado
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE FLAGS DE SOPORTE MODULAR>>

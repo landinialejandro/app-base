@@ -76,7 +76,7 @@ sí define cómo debe arbitrar su validez la capa central de seguridad
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -146,6 +146,12 @@ no son opcionales
 forman parte del contrato del permiso
 
 Un permiso sin constraints completas debe considerarse inválido.
+
+Regla adicional consolidada:
+
+si el contrato del módulo exige que una constraint arbitre segmentación funcional real, esa constraint debe impactar efectivamente create, view, update y delete según corresponda
+
+no debe tratarse como metadata decorativa ni como validación parcial de una sola acción
 
 REGLA 5 — NO DUPLICACIÓN
 
@@ -701,7 +707,7 @@ constraints
 <<END SECTION>>
 
 <<SECTION: CAPA V2 DE PERMISOS>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 CAPA V2 DE PERMISOS
 
@@ -780,6 +786,14 @@ la considera una oferta modular consumible
 
 pero su consumo sigue quedando bajo arbitraje normal de Security y del contrato de seguridad del módulo oferente
 
+Aclaración sobre constraints funcionales efectivas:
+
+cuando el contrato persistido incluya constraints que segmentan el universo funcional del módulo, su efecto debe mantenerse también sobre registros existentes y no solo sobre create
+
+Caso ya validado:
+
+orders con constraints.allowed_kinds
+
 Aclaración sobre módulo base intrínseco:
 
 si un módulo forma parte de la base intrínseca del sistema y no debe tratarse como módulo opcional ordinario, esa condición debe quedar explicitada en su contrato modular propio
@@ -788,7 +802,7 @@ no debe quedar librada a interpretación implícita al consumir TenantModuleAcce
 <<END SECTION>>
 
 <<SECTION: FLUJO DE GESTIÓN Y CONSUMO DE PERMISOS>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 FLUJO DE GESTIÓN Y CONSUMO DE PERMISOS
 
@@ -872,10 +886,16 @@ Regla adicional consolidada para módulos deshabilitados:
 la ocultación visual de relaciones, links, campos o acciones no constituye validación suficiente
 
 si una referencia operativa hacia otro módulo depende de que ese módulo esté habilitado para el tenant, el backend también debe rechazarla cuando el módulo destino no esté disponible
+
+Regla adicional sobre segmentación efectiva:
+
+si el contrato persistido incorpora constraints funcionales, el flujo de consumo debe preservarlas también al operar sobre registros reales existentes
+
+no deben perderse al pasar de create a view, update o delete
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -923,6 +943,12 @@ cuando una entidad hija dependa funcionalmente de una cabecera y no posea autono
 debe delegar autorización en el recurso padre
 
 esta delegación aplica a create, update y delete del recurso hijo salvo decisión doctrinal expresa en contrario
+
+Regla adicional sobre relaciones reales:
+
+el contrato del módulo debe describir las relaciones operativas reales tal como existen en código vigente
+
+no deben inferirse foreign keys simétricas inexistentes solo por la existencia de navegación o integración entre módulos
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
@@ -1049,7 +1075,7 @@ dependen del estado activo de otros módulos
 <<END SECTION>>
 
 <<SECTION: VALIDACIONES BACKEND DE RELACIONES MODULARES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 VALIDACIONES BACKEND DE RELACIONES MODULARES
 
@@ -1086,10 +1112,20 @@ asset_id
 order_id
 
 contra el estado real de módulos habilitados y el contrato vigente del sistema
+
+Aclaración relacional consolidada:
+
+la existencia de una navegación o integración real entre módulos no obliga a que la foreign key viva del lado que intuitivamente podría suponerse
+
+Caso validado:
+
+appointment → order opera realmente mediante appointments.order_id
+
+no debe asumirse orders.appointment_id sin validación de código real
 <<END SECTION>>
 
 <<SECTION: MÓDULO: ORDERS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ESTADO: CONTRATO CERRADO
 
@@ -1121,11 +1157,24 @@ La presencia de subject class-string no es requisito doctrinal para evaluar orde
 
 Tanto subject nulo como class-string solo son válidos si la capa central los soporta sin alterar el contrato.
 
+Validación runtime consolidada:
+
+orders.create permite únicamente kinds autorizados por constraints.allowed_kinds del contrato persistido del usuario
+
+caso ya validado:
+sale y purchase permitidos
+service rechazado
+ausencia de kind rechazada
+
 REGLA DE CONSTRAINTS
 
 view_any, view, update y delete deben evaluarse junto con constraints
 
 el módulo es inválido si no se consideran constraints
+
+view_any = tenant_all no invalida la segmentación funcional del módulo
+
+si un registro posee kind fuera de constraints.allowed_kinds, debe quedar denegado en view, update y delete aunque exista acceso amplio al dataset base del tenant
 
 REGLA DE UI
 
@@ -1153,6 +1202,16 @@ la existencia de una relación visible en UI no valida por sí sola su consumo
 
 si el módulo de origen o destino no está habilitado o el contexto no es válido, el backend debe rechazar la operación correspondiente
 
+Aclaración relacional consolidada:
+
+la relación estructural persistida con tasks se resuelve desde orders.task_id
+
+el flujo appointment → order no implica orders.appointment_id
+
+la relación operativa real vive en appointments.order_id
+
+por lo tanto, appointment debe leerse como origen contextual y operativo válido hacia orders y no como FK propia del lado de order
+
 REGLA SOBRE RECURSOS HIJOS
 
 order_items delega autorización en order
@@ -1163,7 +1222,7 @@ su create, update y delete dependen de la capacidad update sobre la order padre
 <<END SECTION>>
 
 <<SECTION: MÓDULO: ORDER_ITEMS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 ESTADO: CONTRATO CERRADO
 
@@ -1194,6 +1253,15 @@ create, update y delete deben delegar en la capacidad update sobre la order padr
 view debe resolverse como consumo subordinado del acceso válido a la order padre
 
 no debe incorporarse lógica paralela de permisos en controller, policy o Blade del hijo
+
+Regla operativa consolidada:
+
+la delegación al padre debe mantenerse también en:
+
+controllers
+vistas embebidas
+navegación de cancelar o volver
+verificación de pertenencia del item a la order padre
 
 REGLA FINAL
 

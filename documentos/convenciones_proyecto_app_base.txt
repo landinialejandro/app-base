@@ -430,7 +430,7 @@ No debe utilizarse desactivación global de users para resolver bajas, bloqueos 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ACCESO POR MÓDULO Y ROLES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 CONVENCIONES DE ACCESO POR MÓDULO Y ROLES
 
@@ -466,6 +466,12 @@ La existencia de subject class-string no debe asumirse como condición doctrinal
 
 Si el contrato requiere contexto funcional obligatorio, la autorización válida se resuelve por Security con ese contexto.
 
+Caso consolidado adicional:
+
+cuando el contrato persistido incluya constraints funcionales reales, esas constraints deben arbitrar create, view, update y delete de forma consistente y no limitarse a una sola acción
+
+En orders, constraints.allowed_kinds constituye segmentación efectiva del contrato y no metadata decorativa.
+
 Regla de dataset:
 
 cuando la visibilidad depende de permisos, el controller debe usar Security::scope(...)
@@ -490,7 +496,7 @@ las integraciones entre módulos deben respetar el contrato del módulo oferente
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -592,6 +598,12 @@ debe incluir también una capa de resolución o payload backend publicada por el
 
 si la capacidad pertenece contractualmente al módulo oferente, su ubicación física debe mantener esa pertenencia modular y no diluirse en una carpeta global ambigua
 
+Regla de cierre adicional:
+
+una capacidad reusable no debe considerarse realmente cerrada mientras existan superficies secundarias relevantes que todavía reconstruyan localmente su arbitraje o sus estados operativos
+
+el cierre válido exige revisar también tablas, partials, formularios embebidos y demás superficies derivadas que consuman esa integración
+
 CONTRATO DE SEGURIDAD
 
 El contrato de seguridad del módulo no se define en esta sección sino en:
@@ -674,7 +686,7 @@ la clasificación no debe forzar jerarquías falsas de dependencia existencial c
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -739,10 +751,14 @@ cuando la capacidad reusable pertenezca contractualmente a un módulo oferente, 
 Caso consolidado actual:
 
 linked-order-action como superficie reusable de integración publicada por orders
+
+Regla operativa adicional de cierre:
+
+si una superficie consumidora todavía resuelve localmente acceso, apertura o creación de una relación ya cerrada por el módulo oferente, el frente de integración no debe considerarse homogéneo ni cerrado
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE FLAGS DE SOPORTE MODULAR>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CONVENCIONES DE FLAGS DE SOPORTE MODULAR
 
@@ -780,6 +796,12 @@ Ejemplos típicos:
 supportsOrdersModule
 supportsAssetsModule
 supportsPartiesModule
+
+Regla adicional consolidada:
+
+la correcta propagación del flag modular no reemplaza la obligación de consumir la capacidad reusable oficial en todas las superficies relevantes
+
+si una partial secundaria conserva una implementación local residual, el cierre del frente modular debe considerarse incompleto aunque la vista principal ya esté alineada
 
 Regla final:
 
@@ -873,7 +895,7 @@ order_items copiados hacia documentos derivados
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ENTIDADES HIJAS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CONVENCIONES DE ENTIDADES HIJAS
 
@@ -914,6 +936,10 @@ auditoría propia
 capabilities independientes
 ownership artificial
 dataset autónomo
+
+Caso consolidado adicional:
+
+order_items debe delegar create, update y delete en orders.update incluyendo controllers, vistas embebidas, navegación de cancelar y verificaciones de pertenencia al padre
 
 cualquier excepción a esta regla debe justificarse por necesidad real del dominio y no por comodidad de implementación
 <<END SECTION>>

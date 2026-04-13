@@ -14,7 +14,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -58,10 +58,16 @@ breadcrumbs
 navegación profunda
 
 el veredicto de cierre debe basarse en código real y comportamiento verificable del sistema
+
+Regla adicional de validación relacional:
+
+no asumir modelado de relaciones por intuición
+
+si una integración entre módulos parece implicar una foreign key, primero verificar columnas, relaciones y flujo real en código o runtime antes de documentarla o implementarla
 <<END SECTION>>
 
 <<SECTION: REGLA CENTRAL DE TRABAJO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 REGLA CENTRAL DE TRABAJO
 
@@ -96,6 +102,7 @@ NO SE SUPONE.
 No asumir tenant activo en Tinker.
 No asumir que una prueba abstracta reproduce el runtime real.
 No asumir que Gate o policy abstracta equivalen a autorización válida cuando el contrato exige contexto.
+No asumir relaciones simétricas o foreign keys del lado intuitivo sin verificar código o base real.
 
 Regla operativa adicional:
 
@@ -117,7 +124,7 @@ Ante duda menor, priorizar mejor esfuerzo útil y explícito antes que silencio 
 <<END SECTION>>
 
 <<SECTION: REGLAS ESPECÍFICAS DEL PROYECTO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 REGLAS ESPECÍFICAS DEL PROYECTO
 
@@ -138,6 +145,8 @@ REGLAS ESPECÍFICAS DEL PROYECTO
 * si una integración entre módulos consume una capacidad reusable ya publicada por otro módulo, reutilizar esa capacidad y no duplicar lógica local
 * propagar flags o señales de soporte modular hasta la última partial o superficie que pueda exponer acciones, campos, links o relaciones
 * no considerar un módulo cerrado si no fueron auditadas también sus superficies secundarias relevantes
+* no asumir foreign keys simétricas ni modelado relacional por intuición cuando exista navegación real entre módulos
+* si una capacidad reusable compleja ya fue cerrada por el módulo oferente, también sus consumidores secundarios deben usarla y no reconstruir localmente estados o decisiones UX
   <<END SECTION>>
 
 <<SECTION: REGLA DE VALIDACIÓN DEL PEDIDO>>

@@ -180,7 +180,7 @@ la navegación principal debe reflejar contrato real del sistema y no solo exist
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -248,10 +248,14 @@ debe leerse como superficie publicada por orders y consumida desde módulos como
 su consumo válido incluye tanto la resolución contextual proveniente del propio módulo orders como su bloque visual modular correspondiente
 
 la navegación contextual hacia orders no debe reconstruirse localmente por cada vista consumidora cuando esa superficie ya fue cerrada por el módulo oferente
+
+Regla adicional de homogeneidad:
+
+mientras exista una superficie secundaria relevante que todavía resuelva localmente el acceso hacia orders, el frente de navegación contextual no debe considerarse homogéneamente cerrado
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -313,10 +317,14 @@ Regla adicional consolidada:
 si una relación embebida depende de un módulo deshabilitado para el tenant, ese bloque no debe permanecer visible como pestaña operativa residual
 
 la pantalla debe resolver fallback limpio hacia una pestaña activa disponible
+
+Regla adicional de cierre:
+
+también las tablas parciales y superficies secundarias embebidas deben consumir esa misma capacidad reusable oficial y no resolver localmente el vínculo relacionado
 <<END SECTION>>
 
 <<SECTION: FLUJOS DERIVADOS RELEVANTES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 FLUJOS DERIVADOS RELEVANTES
 
@@ -348,6 +356,12 @@ task → order y appointment → order representan derivación hacia un módulo 
 si el flujo derivado requiere contexto, debe preservar seguridad y trail correspondiente
 
 si existe una order ya vinculada al origen funcional, debe priorizarse apertura consistente de esa order antes de ofrecer alta duplicada
+
+Aclaración relacional consolidada:
+
+en task → order el vínculo estructural persistido se resuelve desde orders.task_id
+
+en appointment → order el vínculo operativo real se resuelve desde appointments.order_id y no requiere orders.appointment_id
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN GENERAL DE MÓDULOS>>
@@ -514,7 +528,7 @@ document_items
 <<END SECTION>>
 
 <<SECTION: REGLA PARA LINKS RELACIONALES DESDE TABLAS CONTEXTUALES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 REGLA PARA LINKS RELACIONALES DESDE TABLAS CONTEXTUALES
 
@@ -545,10 +559,16 @@ Regla adicional consolidada:
 en una tabla contextual, el link principal de la fila debe consolidar primero el trail completo de esa fila
 
 los links relacionales secundarios de esa misma fila deben reutilizar ese trail ya construido y no reiniciar contexto desde el contenedor
+
+Regla adicional para integraciones reusables:
+
+si la fila expone una capacidad compleja ya publicada por otro módulo, no debe reconstruirse localmente por conveniencia dentro de la tabla
+
+debe consumirse la capacidad oficial del módulo oferente también en esa superficie contextual
 <<END SECTION>>
 
 <<SECTION: DETALLE DE FLUJOS RELEVANTES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 DETALLE DE FLUJOS RELEVANTES
 
@@ -604,6 +624,8 @@ la resolución abrir existente / crear nueva / estado no disponible debe prioriz
 
 esa capacidad debe consumirse desde el propio módulo orders, tanto en su resolución contextual como en su bloque visual modular
 
+la relación operativa real del flujo se resuelve desde appointments.order_id
+
 si orders no está habilitado para el tenant:
 
 no debe mostrarse el acceso
@@ -637,6 +659,8 @@ tasks debe tratarse como origen contextual legítimo del trail hacia orders con 
 la resolución abrir existente / crear nueva / estado no disponible debe apoyarse en la capacidad reusable publicada por orders cuando ese flujo se consuma desde show u otras vistas relacionadas
 
 esa capacidad debe consumirse como superficie oficial del módulo orders y no como reconstrucción local de la vista consumidora
+
+la relación estructural persistida del flujo se resuelve desde orders.task_id
 
 ORDERS -> PARTIES
 

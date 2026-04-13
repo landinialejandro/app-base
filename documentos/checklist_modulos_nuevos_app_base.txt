@@ -110,7 +110,7 @@ Si estas respuestas no están claras, no debe avanzarse a implementación.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 BLOQUE 1 — CONTRATO MODULAR
 
@@ -153,10 +153,16 @@ qué integraciones deberían vivir fuera del núcleo
 qué debería consumir otro módulo sin tocar implementación interna
 qué puede publicarse hoy aunque todavía no tenga consumidor real
 la capacidad reusable se publica como unidad completa o solo como vista aislada
+
+Regla adicional de cierre:
+
+si la capacidad reusable ya fue cerrada doctrinalmente por el módulo oferente, no debe quedar ninguna superficie secundaria relevante reconstruyendo localmente sus estados operativos
+
+antes de considerar cerrado el contrato modular, revisar también tablas, partials, formularios embebidos y demás superficies derivadas que consuman esa integración
 <<END SECTION>>
 
 <<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 BLOQUE 2 — SEGURIDAD OBLIGATORIA
 
@@ -188,10 +194,16 @@ cómo autoriza realmente este módulo
 qué rompe si falta contexto
 qué acciones dependen de constraints
 qué dataset debe devolver Security::scope(...)
+
+Regla adicional consolidada:
+
+si el módulo utiliza constraints funcionales, validar explícitamente que arbitren no solo create sino también view, update y delete cuando corresponda al contrato del módulo
+
+no deben tratarse como metadata decorativa ni como validación parcial
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -218,10 +230,14 @@ el arbitraje de estados sigue centralizado en el módulo oferente o quedó dispe
 Regla:
 
 ninguna integración válida debe bypassar seguridad ni crear contratos paralelos.
+
+Regla adicional de cierre:
+
+no considerar homogénea una integración mientras existan superficies secundarias del consumidor que sigan resolviendo localmente una relación, acción o flujo ya cerrado por el módulo oferente
 <<END SECTION>>
 
 <<SECTION: BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA
 
@@ -252,6 +268,12 @@ la UI refleja el contrato real del módulo
 hay duplicaciones visuales evitables
 el módulo se siente parte del sistema o una excepción aislada
 la capacidad reusable visual vive en una ubicación coherente con el módulo oferente o quedó globalizada sin necesidad
+
+Regla adicional de cierre:
+
+la UI no debe considerarse alineada solo porque la vista principal consuma la capacidad reusable correcta
+
+también deben auditarse tablas, partials, formularios embebidos y demás superficies secundarias que puedan exponer esa misma integración
 <<END SECTION>>
 
 <<SECTION: BLOQUE 5 — DOCUMENTACIÓN Y CIERRE>>
@@ -510,7 +532,7 @@ no existan rutas operables residuales aunque la UI ya no las muestre
 <<END SECTION>>
 
 <<SECTION: SUPERFICIES SECUNDARIAS Y PARTIALS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 SUPERFICIES SECUNDARIAS Y PARTIALS
 
@@ -533,10 +555,14 @@ el módulo puede considerarse cerrado también fuera de index/controller/show pr
 si una capacidad reusable publicada por un módulo se consume en partials de otros módulos, se consume desde la ubicación modular oficial del oferente y no desde copias o variantes globales ambiguas
 
 si la partial reutilizada depende de payload arbitrado, ese payload proviene del módulo oferente y no de composición local dispersa
+
+Regla adicional consolidada:
+
+una integración no debe considerarse cerrada mientras exista хотя sea una superficie secundaria relevante con resolución local residual del mismo flujo o capacidad reusable
 <<END SECTION>>
 
 <<SECTION: ENTIDADES HIJAS Y SUBRECURSOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ENTIDADES HIJAS Y SUBRECURSOS
 
@@ -557,6 +583,18 @@ si no agrega responsabilidades de cabecera por comodidad técnica
 si las policies del hijo, cuando existan, delegan explícitamente en el padre
 
 si el ciclo de vida del hijo queda claramente subordinado a la cabecera
+
+Validar además:
+
+pertenencia real del hijo al padre antes de operar create, edit, update o delete
+
+navegación de cancelar y volver coherente con el padre y con el trail vigente
+
+alineación de controllers, vistas embebidas y formularios al mismo criterio de delegación
+
+Caso patrón ya validado:
+
+order_items como subrecurso delegado a orders bajo orders.update
 <<END SECTION>>
 
 <<SECTION: DOCUMENTACIÓN OBLIGATORIA>>

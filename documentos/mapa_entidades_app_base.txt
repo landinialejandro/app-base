@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -73,6 +73,10 @@ Reglas:
 estas relaciones expresan lectura conceptual prioritaria del ecosistema actual
 
 task y appointment actúan como orígenes funcionales legítimos hacia orders sin degradar la autonomía conceptual del módulo orders
+
+la relación tasks → orders posee además persistencia estructural desde orders.task_id
+
+la relación appointments → orders opera como vínculo contextual y operativo real desde appointments.order_id sin requerir orders.appointment_id
 
 order_items debe leerse como detalle dependiente de orders y no como módulo autónomo paralelo
 
@@ -469,7 +473,7 @@ su agrupación por projects no lo convierte en subrecurso dependiente
 <<END SECTION>>
 
 <<SECTION: APPOINTMENTS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 APPOINTMENTS
 
@@ -485,6 +489,7 @@ tenant
 party opcional
 asset opcional
 users internos cuando corresponda
+order opcional mediante appointments.order_id
 
 Relaciones ofrecidas:
 
@@ -503,6 +508,8 @@ acción crear order contextual
 Reglas:
 
 su identidad funcional no depende de orders aunque pueda derivar operaciones hacia ese módulo
+
+cuando exista vínculo con order, ese vínculo real se persiste desde appointments.order_id y no desde orders.appointment_id
 <<END SECTION>>
 
 <<SECTION: PRODUCTS>>
@@ -575,7 +582,7 @@ debe conservar identidad propia aunque participe en múltiples flujos cruzados
 <<END SECTION>>
 
 <<SECTION: ORDERS>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 ORDERS
 
@@ -590,8 +597,8 @@ Relaciones consumidas:
 tenant
 party opcional
 asset opcional
-task opcional
-appointment opcional
+task opcional mediante orders.task_id
+appointment como origen contextual real mediante appointments.order_id
 products mediante order_items
 
 Relaciones ofrecidas:
@@ -634,10 +641,14 @@ incluye una capacidad reusable concreta para arbitrar apertura de orden existent
 esa capacidad pertenece al módulo orders como parte de su oferta de integración
 
 su resolución válida puede combinar backend propio del módulo y bloque visual modular consumible por otros módulos sin perder identidad contractual
+
+Caso consolidado actual:
+
+linked-order-action forma parte de esa oferta reusable oficial
 <<END SECTION>>
 
 <<SECTION: ORDER_ITEMS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ORDER_ITEMS
 
@@ -668,6 +679,8 @@ no requiere autonomía contractual propia dentro del mapa actual
 no debe adquirir responsabilidades de cabecera sin decisión doctrinal expresa
 
 la relación con product es opcional y subordinada al detalle operativo del padre
+
+su autorización y operación deben leerse como delegadas al padre y no como circuito independiente
 <<END SECTION>>
 
 <<SECTION: DOCUMENTS>>
@@ -806,7 +819,7 @@ Debe resolverse a partir de un catálogo cerrado de rubros y servir como context
 <<END SECTION>>
 
 <<SECTION: FLUJOS PRINCIPALES DEL SISTEMA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 FLUJOS PRINCIPALES DEL SISTEMA
 
@@ -853,6 +866,10 @@ Reglas de consistencia:
 tasks y appointments constituyen orígenes funcionales válidos hacia orders dentro del ecosistema actual
 
 la transición tasks → orders y appointments → orders expresa derivación operativa hacia un módulo autónomo y no subordinación conceptual del destino
+
+la relación estructural persistida con tasks se resuelve desde orders.task_id
+
+la relación operativa real con appointments se resuelve desde appointments.order_id
 
 order_items forma parte del flujo operativo base como detalle dependiente de orders
 
@@ -948,7 +965,7 @@ La complejidad funcional futura no debe resolverse creando nuevos roles base fue
 <<END SECTION>>
 
 <<SECTION: REGLAS DE LECTURA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 REGLAS DE LECTURA
 
@@ -962,24 +979,17 @@ botones visibles
 navegación activa
 permisos concedidos
 
-Toda relación real sigue condicionada por:
-
-módulo habilitado
-contrato de seguridad
-estado funcional del módulo
-implementación vigente
-
-Este documento prioriza:
-
-qué representa cada pieza
-cómo se conecta conceptualmente
-qué consume
-qué ofrece
-qué rol cumple en el ecosistema
-
 Regla adicional consolidada:
 
-si existiera tensión entre una relación técnica puntual y la posición conceptual estable del módulo, debe priorizarse la lectura arquitectónica global antes de introducir nuevas duplicaciones o acoples innecesarios
+cuando una relación se describa aquí como origen funcional, vínculo contextual o flujo operativo real, eso no obliga a una foreign key simétrica en ambos sentidos
+
+puede existir relación estructural persistida desde un solo lado del vínculo y aun así existir integración válida y navegación real entre módulos
+
+Ejemplo consolidado:
+
+orders.task_id expresa vínculo estructural con tasks
+
+appointments.order_id expresa vínculo operativo real con orders sin requerir orders.appointment_id
 <<END SECTION>>
 
 <<SECTION: CAPAS CONCEPTUALES DEL SISTEMA>>

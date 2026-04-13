@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 COMPONENTES DISPONIBLES
 
@@ -137,6 +137,12 @@ Regla adicional:
 cuando una capacidad visual reusable ya exista como patrón válido del sistema, debe reutilizarse antes de crear una variante específica para un módulo consumidor
 
 si una capacidad reusable pertenece contractualmente a otro módulo, debe conservar identidad visual consistente sin absorber estilos ad hoc del consumidor
+
+Aclaración consolidada para integraciones complejas:
+
+cuando una acción reusable dependa de arbitraje backend del módulo oferente, no debe leerse como simple bloque Blade aislado
+
+debe leerse como capacidad compuesta por payload resuelto + representación visual oficial del módulo oferente
 <<END SECTION>>
 
 <<SECTION: JERARQUÍA VISUAL MODULAR>>
@@ -242,7 +248,7 @@ Estos bloques ayudan a integrar módulos sin sobrecargar navegación ni multipli
 <<END SECTION>>
 
 <<SECTION: OFERTAS DE INTEGRACIÓN VISUAL>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 OFERTAS DE INTEGRACIÓN VISUAL
 
@@ -268,6 +274,12 @@ debe evitar estilos ad hoc por integración puntual
 Regla estratégica:
 
 una buena oferta de integración visual reduce refactors futuros dispersos y mejora consistencia entre módulos.
+
+Regla adicional consolidada:
+
+si la capacidad reusable además requiere arbitraje operativo complejo, su cierre visual no se agota en que la vista principal la use correctamente
+
+también deben consumirla de forma homogénea las superficies secundarias relevantes del ecosistema
 <<END SECTION>>
 
 <<SECTION: IDENTIDAD VISUAL Y BRANDING DEL HEADER>>
@@ -481,7 +493,7 @@ la unidad visual completa debe desaparecer y no solo el contenido interno
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW
 
@@ -532,10 +544,14 @@ Regla adicional de superficies completas:
 calendarios, formularios embebidos, tablas parciales y vistas derivadas también forman parte de la superficie oficial del módulo
 
 deben respetar los mismos criterios visuales y modulares que index, create, edit y show
+
+Regla adicional de cierre:
+
+si una integración reusable ya fue cerrada por el módulo oferente, no debe persistir en una tabla parcial o superficie secundaria una variante visual local que reconstruya el mismo flujo
 <<END SECTION>>
 
 <<SECTION: SUPERFICIES CONDICIONALES POR MÓDULO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 SUPERFICIES CONDICIONALES POR MÓDULO
 
@@ -570,6 +586,10 @@ no deben aparecer campos no operables
 no deben persistir enlaces muertos
 
 la UI debe recomponerse de forma limpia con lo disponible
+
+Regla adicional consolidada:
+
+si además existe una capacidad reusable oficial publicada por el módulo relacionado, la superficie derivada no debe sustituirla por una resolución local improvisada
 <<END SECTION>>
 
 <<SECTION: TABS INTERNAS DEL EMBEBIDO>>
@@ -593,7 +613,7 @@ el embebido sigue siendo un bloque subordinado al show principal, aunque interna
 <<END SECTION>>
 
 <<SECTION: ACCIONES VISUALES EN INDEX Y SHOW>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 ACCIONES VISUALES EN INDEX Y SHOW
 
@@ -647,6 +667,10 @@ cuando una acción consuma una capacidad publicada por otro módulo, debe percib
 si una acción o link hacia un módulo relacionado no es realmente operable por permiso o por módulo deshabilitado, no debe conservar apariencia de navegación disponible
 
 si un módulo relacionado no está habilitado, también deben desaparecer filtros, campos de selección, columnas, enlaces y referencias visuales asociadas a ese módulo
+
+Regla adicional de homogeneidad:
+
+si una acción contextual reusable ya fue definida por el módulo oferente, también las superficies secundarias y tablas parciales deben consumirla con el mismo criterio visual y contractual
 <<END SECTION>>
 
 <<SECTION: FRAGMENTACIÓN DE BLADES>>

@@ -61,7 +61,7 @@ priorizar piezas con mayor impacto sistémico
 <<END SECTION>>
 
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 MÓDULOS PRIORITARIOS A REVISAR
 
@@ -81,6 +81,11 @@ order_items delegados al padre
 create contextual unificado
 integración appointments → orders consolidada
 acciones transversales reutilizables activas
+contrato efectivo validado en runtime real con allowed_kinds
+
+Pendiente residual de cierre homogéneo:
+
+barrer consumidores secundarios y superficies derivadas para asegurar consumo uniforme de la capacidad reusable oficial sin resoluciones locales remanentes
 
 No reabrir en este frente salvo bug real o cambio doctrinal nuevo.
 
@@ -92,6 +97,7 @@ autonomía plena respecto de projects
 capacidades internas tipo mensajería o seguimiento
 generación futura automática por eventos o desvíos
 surface reusable para integraciones
+alineación final de superficies secundarias que consumen integración con orders
 
 PROJECTS
 
@@ -127,7 +133,7 @@ relaciones cruzadas consistentes
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -143,6 +149,9 @@ integración appointments → orders
 navegación contextual principal
 delegación correcta de order_items
 superficie reusable linked-order-action
+validación runtime real de constraints.allowed_kinds sobre create, view, update y delete
+confirmación de relación estructural orders.task_id
+confirmación de relación operativa real appointments.order_id
 
 Alcance del cierre:
 
@@ -153,10 +162,14 @@ implica que el frente doctrinal y estructural principal quedó resuelto
 Regla:
 
 los próximos trabajos sobre orders deben priorizar bugs reales, mejoras concretas o nuevos objetivos aprobados
+
+Aclaración operativa:
+
+la homogeneización total del consumo de la capacidad reusable en superficies secundarias todavía debe seguir auditándose antes de considerar completamente agotado ese frente en todo el ecosistema
 <<END SECTION>>
 
 <<SECTION: CAPACIDADES REUTILIZABLES A CONSOLIDAR>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 CAPACIDADES REUTILIZABLES A CONSOLIDAR
 
@@ -173,10 +186,18 @@ toolbars contextuales consistentes
 Regla:
 
 si una capacidad se repite en varios lugares, debe evaluarse moverla al módulo oferente como superficie reusable oficial
+
+Regla adicional consolidada:
+
+una capacidad reusable no debe considerarse realmente consolidada mientras alguna superficie secundaria relevante siga reconstruyendo localmente su arbitraje o su decisión UX
+
+Caso vigente a terminar de homogeneizar:
+
+consumo transversal de linked-order-action en consumidores secundarios del ecosistema
 <<END SECTION>>
 
 <<SECTION: SEGURIDAD Y CONTRATOS PENDIENTES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 SEGURIDAD Y CONTRATOS PENDIENTES
 
@@ -191,10 +212,22 @@ acciones UI alineadas con permisos reales
 constraints documentadas cuando existan
 
 Priorizar auditorías sobre módulos con mayor integración cruzada.
+
+Estado consolidado adicional para orders:
+
+ya quedó validado en runtime real que constraints.allowed_kinds arbitra efectivamente create, view, update y delete
+
+ya quedó validado que orders.create requiere contexto kind explícito y rechaza ausencia de kind o valor fuera de constraints
+
+ya quedó validada la lectura correcta del vínculo estructural con tasks y del vínculo operativo real con appointments
+
+No reabrir la discusión doctrinal de orders en este frente.
+
+Trasladar el foco a módulos siguientes y a homogeneización de consumidores secundarios cuando corresponda.
 <<END SECTION>>
 
 <<SECTION: DEUDA TÉCNICA A REDUCIR>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 DEUDA TÉCNICA A REDUCIR
 
@@ -219,6 +252,14 @@ Criterio consolidado aplicado:
 se corrigió simplificando el hijo delegado
 
 no abriendo migración innecesaria ni responsabilidades nuevas fuera de doctrina
+
+Nueva deuda técnica localizada:
+
+remanentes de resolución local de integraciones ya cerradas doctrinalmente por su módulo oferente en superficies secundarias o parciales del ecosistema
+
+Criterio:
+
+eliminar esas variantes residuales antes de dar por homogéneo el consumo reusable entre módulos
 <<END SECTION>>
 
 <<SECTION: ORDEN SUGERIDO DE EJECUCIÓN>>
@@ -326,7 +367,7 @@ inventory
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 PENDIENTES INMEDIATOS
 
@@ -392,14 +433,25 @@ revisar create contextual y contrato de seguridad efectivo de documents
 
 alinear items, formularios embebidos y navegación profunda restante en ecosistema documental
 
+Pendiente inmediato adicional del frente reusable:
+
+barrer consumidores secundarios para eliminar resoluciones locales residuales de integraciones ya cerradas por el módulo oferente
+
+Caso concreto vigente:
+
+revisar adopción homogénea de linked-order-action en superficies secundarias relacionadas con tasks / orders
+
 considerar como ya cerrado y no reabrir en este frente:
 
 orders como núcleo operativo principal
 task -> order como origen contextual válido
 appointment -> order como origen contextual válido
-consumo reusable de linked-order-action
+consumo reusable de linked-order-action en su núcleo oficial
 delegación doctrinal correcta de order_items
 corrección sin migración adicional del hijo delegado
+validación runtime real de allowed_kinds sobre contrato efectivo de orders
+confirmación de orders.task_id como vínculo estructural con tasks
+confirmación de appointments.order_id como vínculo operativo real con orders
 <<END SECTION>>
 
 <<SECTION: ATTACHMENTS>>
@@ -584,6 +636,8 @@ revisar documents como siguiente caso de create contextual con constraints oblig
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN Y CONTEXTO UX>>
+SECTION_VERSION: 00002
+
 NAVEGACIÓN Y CONTEXTO UX
 
 revisar y consolidar la implementación de navegación contextual según contexto funcional real, navegación cruzada y profundidad de pantalla
@@ -645,6 +699,10 @@ revisar casos donde el breadcrumb contextual del show siga resolviendo una salid
 auditar includes embebidos para asegurar uso exclusivo de NavigationTrail sin parámetros manuales
 
 mantener el criterio de que en tablas relacionales por fila el link principal construye el contexto de fila y los links relacionados reutilizan ese mismo trail
+
+Pendiente residual de homogeneidad:
+
+verificar que las superficies secundarias que abren o crean orders desde otros módulos consuman la misma capacidad reusable oficial y no reconstruyan localmente el flujo contextual
 <<END SECTION>>
 
 <<SECTION: NUMERACIÓN Y CONFIGURACIÓN OPERATIVA>>

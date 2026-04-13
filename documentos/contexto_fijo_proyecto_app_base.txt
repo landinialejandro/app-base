@@ -361,7 +361,7 @@ esta lectura por capas debe prevalecer al pensar arquitectura, documentación y 
 <<END SECTION>>
 
 <<SECTION: Entidades del negocio>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 Entidades del negocio
 
@@ -412,6 +412,23 @@ otras como agrupadores
 otras como derivadas de una operación más nuclear
 
 esta clasificación conceptual debe considerarse parte del estado actual del proyecto
+
+Aclaración relacional consolidada para orders:
+
+la relación estructural persistida entre tasks y orders se resuelve desde:
+
+orders.task_id
+
+la relación operativa con appointments no se persiste del lado de orders
+
+se resuelve desde:
+
+appointments.order_id
+
+por lo tanto, appointment puede operar como origen contextual real hacia orders sin requerir orders.appointment_id
+
+order_items continúa formando parte de las entidades del negocio como detalle dependiente de orders y no como módulo autónomo con ciclo de vida independiente
+
 <<END SECTION>>
 
 <<SECTION: Entidades del sistema y acceso>>
@@ -761,7 +778,7 @@ esta clasificación debe orientar futuras decisiones de documentación, integrac
 <<END SECTION>>
 
 <<SECTION: Contrato modular como criterio de crecimiento>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 Contrato modular como criterio de crecimiento
 
@@ -807,11 +824,17 @@ La ubicación física de esa capacidad debe respetar su pertenencia modular.
 
 Si una capacidad pertenece contractualmente a un módulo oferente, no debe quedar alojada en una ubicación global ambigua que borre su identidad modular.
 
+Regla operativa adicional de cierre:
+
+un módulo no debe considerarse realmente cerrado mientras existan superficies secundarias relevantes que todavía reconstruyan localmente una capacidad reusable ya publicada por el módulo oferente
+
+el cierre válido exige revisar también tablas, partials, formularios embebidos y demás superficies derivadas que consuman esa integración
+
 Este criterio forma parte de la dirección arquitectónica actual del proyecto.
 <<END SECTION>>
 
 <<SECTION: MÓDULO ORDERS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 MÓDULO ORDERS
 
@@ -841,7 +864,8 @@ creación y gestión de órdenes
 clasificación funcional mediante kind
 vinculación con party
 vinculación operativa con asset cuando corresponda
-vinculación contextual con task y appointment
+vinculación estructural con task cuando corresponda
+consumo contextual desde appointment cuando corresponda
 detalle operativo mediante order_items
 seguimiento por estado, fechas, notas y total
 pantalla central de consulta y operación del recurso
@@ -874,6 +898,14 @@ appointment
 
 según el flujo operativo aplicable.
 
+Regla de create contextual validada:
+
+orders.create solo es válido cuando Security recibe contexto kind explícito y permitido por constraints
+
+la ausencia de kind debe rechazar la autorización
+
+un kind fuera de constraints.allowed_kinds debe rechazar la autorización
+
 CONTRATO DE SALIDA
 
 orders expone hacia el ecosistema:
@@ -905,6 +937,10 @@ un resolver o payload backend propio de orders para arbitrar permiso efectivo, e
 
 un bloque visual alojado dentro del propio módulo orders para consumir ese resultado de forma homogénea
 
+Caso consolidado actual:
+
+linked-order-action forma parte de esta oferta reusable oficial como capacidad compuesta de backend + bloque visual modular
+
 REGLAS OPERATIVAS
 
 orders es un módulo autónomo
@@ -921,6 +957,14 @@ create requiere contexto funcional explícito mediante kind
 
 si ya existe una order asociada al contexto recibido, debe reutilizarse la existente según la lógica definida
 
+La segmentación funcional del módulo se resuelve mediante:
+
+constraints.allowed_kinds
+
+Esa segmentación no aplica solo a create.
+
+Debe arbitrar también view, update y delete sobre registros existentes.
+
 order_items opera como recurso delegado al padre
 
 la seguridad del módulo se rige por la capa central vigente
@@ -931,10 +975,13 @@ los módulos consumidores no deben reconstruir localmente la lógica de apertura
 
 RELACIONES PRINCIPALES
 
-Relaciones que pueden conducir a Orders:
+Relación estructural persistida hacia orders:
 
-task
-appointment
+tasks mediante orders.task_id
+
+Relación contextual operativa real hacia orders:
+
+appointments mediante appointments.order_id
 
 Relaciones principales del módulo:
 
@@ -1039,7 +1086,7 @@ las diferencias funcionales finas futuras no deben resolverse creando nuevos rol
 <<END SECTION>>
 
 <<SECTION: Reglas generales de autorización ya consolidadas>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 Reglas generales de autorización ya consolidadas
 
@@ -1100,6 +1147,21 @@ Regla crítica consolidada para create contextual:
 cuando una capacidad create dependa de contexto funcional obligatorio, la autorización abstracta vía Gate o policy no es válida como canal principal de consumo
 
 en esos casos debe consumirse Security con contexto explícito
+
+Regla operativa consolidada para módulos con constraints funcionales:
+
+cuando el contrato persistido del usuario incluya constraints activas, esas constraints deben arbitrar realmente create, view, update y delete
+
+no deben tratarse como metadata decorativa ni limitarse a una sola acción
+
+Caso ya validado en runtime real:
+
+orders utiliza constraints.allowed_kinds como segmentación efectiva del contrato
+
+orders.create requiere kind explícito válido
+sin kind debe rechazar
+con kind fuera de constraints debe rechazar
+view, update y delete deben seguir respetando esa misma segmentación funcional sobre registros existentes
 
 La doctrina detallada de implementación segura, Fortify, onboarding, hardening y controles de acceso debe concentrarse en:
 

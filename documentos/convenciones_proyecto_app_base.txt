@@ -692,7 +692,7 @@ la clasificación no debe forzar jerarquías falsas de dependencia existencial c
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -758,6 +758,21 @@ Casos consolidados actuales:
 
 linked-order-action como superficie reusable publicada por orders
 linked-party-action como superficie reusable publicada por parties
+
+Alineación operativa consolidada adicional para parties:
+
+cuando una superficie del ecosistema necesite abrir una party relacionada, mostrarla como referencia readonly o derivar a create contextual permitido, no debe reconstruir un link local a parties.show ni una decisión UX manual equivalente
+
+debe consumir la capacidad reusable oficial publicada por parties mediante:
+
+app/Support/Parties/PartyLinkedAction.php
+resources/views/parties/components/linked-party-action.blade.php
+
+las variantes visuales válidas actualmente para esa capacidad son:
+
+inline
+button
+summary
 
 Regla operativa adicional de cierre:
 

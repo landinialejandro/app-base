@@ -180,7 +180,7 @@ la navegación principal debe reflejar contrato real del sistema y no solo exist
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -258,18 +258,18 @@ mientras exista una superficie secundaria relevante que todavía resuelva localm
 
 Aclaración consolidada para parties:
 
-cuando el flujo transversal hacia parties deba arbitrar si corresponde abrir la party relacionada, mostrarla como referencia readonly o no exponer acción operable, debe tender a priorizarse el consumo de la capacidad reusable publicada por parties y no links locales dispersos por vista
+cuando el flujo transversal hacia parties deba arbitrar si corresponde abrir la party relacionada, mostrarla como referencia readonly o derivar a create contextual permitido, debe priorizarse el consumo de la capacidad reusable publicada por parties y no links locales dispersos por vista
 
-la capacidad reusable prevista para este frente es linked-party-action
+la capacidad reusable vigente para este frente es linked-party-action
 
 parties.show no debe leerse solo como ficha aislada
 
-debe tender a operar como pantalla transversal de relaciones operativas relevantes según módulos activos, permisos efectivos y contexto vigente
+debe operar como pantalla transversal de relaciones operativas relevantes según módulos activos, permisos efectivos y contexto vigente
 
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -291,9 +291,11 @@ métricas agregadas
 
 task.show
 capacidad reusable hacia order relacionada
+capacidad reusable hacia party relacionada
 
 appointment.show
 capacidad reusable hacia order relacionada
+capacidad reusable hacia party relacionada
 
 order.show
 items
@@ -318,13 +320,15 @@ las relaciones embebidas no deben reemplazar navegación estructural cuando abri
 
 los accesos embebidos hacia orders desde tasks o appointments deben consumir la misma lógica reusable del módulo orders
 
+los accesos embebidos hacia parties desde tareas, turnos, órdenes, documentos, activos y tablas equivalentes deben consumir la misma lógica reusable del módulo parties
+
 Aclaración consolidada:
 
-en el frente actual, esa capacidad reusable ya se encuentra publicada por orders y consumida desde vistas concretas
+en el frente actual, esa capacidad reusable ya se encuentra publicada por orders y parties y consumida desde vistas concretas
 
 su consumo no debe limitarse a reutilizar una vista Blade
 
-debe incluir también la resolución de estados operativos proveniente del propio módulo orders
+debe incluir también la resolución de estados operativos proveniente del propio módulo oferente
 
 Regla adicional consolidada:
 
@@ -335,6 +339,7 @@ la pantalla debe resolver fallback limpio hacia una pestaña activa disponible
 Regla adicional de cierre:
 
 también las tablas parciales y superficies secundarias embebidas deben consumir esa misma capacidad reusable oficial y no resolver localmente el vínculo relacionado
+
 <<END SECTION>>
 
 <<SECTION: FLUJOS DERIVADOS RELEVANTES>>

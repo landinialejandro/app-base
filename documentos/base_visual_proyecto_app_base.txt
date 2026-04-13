@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 COMPONENTES DISPONIBLES
 
@@ -128,9 +128,10 @@ summary blocks reutilizables
 acciones contextuales de integración
 toolbars de tabs reutilizables
 
-Caso reusable consolidado:
+Casos reusables consolidados:
 
 x-linked-order-action como acción transversal compartida para integración hacia orders
+x-linked-party-action como acción transversal compartida para integración hacia parties
 
 Regla adicional:
 
@@ -143,6 +144,13 @@ Aclaración consolidada para integraciones complejas:
 cuando una acción reusable dependa de arbitraje backend del módulo oferente, no debe leerse como simple bloque Blade aislado
 
 debe leerse como capacidad compuesta por payload resuelto + representación visual oficial del módulo oferente
+
+Alineación consolidada adicional para parties:
+
+linked-party-action ya quedó materializada como capacidad compuesta oficial del módulo parties
+
+su consumo homogéneo debe extenderse también a tablas parciales, vistas show relacionadas y demás superficies secundarias del ecosistema
+
 <<END SECTION>>
 
 <<SECTION: JERARQUÍA VISUAL MODULAR>>
@@ -493,7 +501,7 @@ la unidad visual completa debe desaparecer y no solo el contenido interno
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW
 
@@ -548,6 +556,13 @@ deben respetar los mismos criterios visuales y modulares que index, create, edit
 Regla adicional de cierre:
 
 si una integración reusable ya fue cerrada por el módulo oferente, no debe persistir en una tabla parcial o superficie secundaria una variante visual local que reconstruya el mismo flujo
+
+Caso consolidado adicional:
+
+parties.show debe leerse como show transversal del módulo base del dominio
+
+cuando exponga relaciones operativas relevantes, debe priorizar el consumo de las superficies embebidas oficiales de assets, orders y documents en lugar de reconstruir tablas locales ad hoc
+
 <<END SECTION>>
 
 <<SECTION: SUPERFICIES CONDICIONALES POR MÓDULO>>

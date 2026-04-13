@@ -27,6 +27,11 @@ touch resources/views/documents/_form.blade.php
 php artisan optimize:clear
 php artisan route:list | grep metrics
 
+limpienza y resembrado
+php artisan migrate:fresh --seed
+
+Si querés forzar también limpieza de caches antes
+php artisan optimize:clear && php artisan migrate:fresh --seed
 
 
 comando en linea tinker

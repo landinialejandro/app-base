@@ -1,9 +1,10 @@
 <?php
 
-// FILE: database/seeders/Modules/CrossRelationsSeeder.php | V2
+// FILE: database/seeders/Modules/CrossRelationsSeeder.php | V5
 
 namespace Database\Seeders\Modules;
 
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 class CrossRelationsSeeder extends BaseModuleSeeder
@@ -11,208 +12,298 @@ class CrossRelationsSeeder extends BaseModuleSeeder
     public function run(): void
     {
         if (
-            ! $this->hasDependency('tenants')
-            || ! $this->hasDependency('tasks')
+            ! $this->hasDependency('tasks')
             || ! $this->hasDependency('orders')
             || ! $this->hasDependency('assets')
         ) {
-            throw new \RuntimeException('CrossRelationsSeeder requires tenants, tasks, orders, and assets');
+            throw new \RuntimeException('CrossRelationsSeeder requires tasks, orders, and assets');
         }
 
-        $tenants = $this->getDependency('tenants');
         $tasks = $this->getDependency('tasks');
         $orders = $this->getDependency('orders');
         $assets = $this->getDependency('assets');
         $documents = $this->getDependency('documents') ?? [];
         $appointments = $this->getDependency('appointments') ?? [];
 
-        $this->linkTasksToOrders($tasks, $orders);
-        $this->linkOrdersToAssets($orders, $assets);
-        $this->linkDocumentsToAssets($documents, $assets);
-        $this->linkAppointmentsToOrders($appointments, $orders);
-        $this->verifyOrdersToTasks($tenants, $orders, $tasks);
+        $this->linkTechTaskOrderRelations(
+            $tasks['tech'] ?? collect(),
+            $orders['tech'] ?? collect(),
+        );
+
+        $this->linkAndinaTaskOrderRelations(
+            $tasks['andina'] ?? collect(),
+            $orders['andina'] ?? collect(),
+        );
+
+        $this->linkTechOrderAssetRelations(
+            $orders['tech'] ?? collect(),
+            $assets['tech'] ?? collect(),
+        );
+
+        $this->linkAndinaOrderAssetRelations(
+            $orders['andina'] ?? collect(),
+            $assets['andina'] ?? collect(),
+        );
+
+        $this->linkTechDocumentAssetRelations(
+            $documents['tech'] ?? collect(),
+            $assets['tech'] ?? collect(),
+        );
+
+        $this->linkAndinaDocumentAssetRelations(
+            $documents['andina'] ?? collect(),
+            $assets['andina'] ?? collect(),
+        );
+
+        $this->linkTechAppointmentOrderRelations(
+            $appointments['tech'] ?? collect(),
+            $orders['tech'] ?? collect(),
+        );
+
+        $this->linkAndinaAppointmentOrderRelations(
+            $appointments['andina'] ?? collect(),
+            $orders['andina'] ?? collect(),
+        );
 
         $this->command?->info('Cross relations created successfully!');
     }
 
-    private function linkTasksToOrders($tasks, $orders): void
+    private function linkTechTaskOrderRelations(Collection $tasks, Collection $orders): void
     {
-        $this->linkTaskAndOrderPair(
-            $tasks['tech'] ?? collect(),
-            $orders['tech'] ?? collect(),
-            'Relevar usuarios operativos',
-            'service'
+        $this->linkTaskToOrderByIdentifiers(
+            tasks: $tasks,
+            orders: $orders,
+            taskName: 'Relevar usuarios operativos',
+            orderNumber: 'TECH-ORD-0002',
         );
 
-        $this->linkTaskAndOrderPair(
-            $tasks['tech'] ?? collect(),
-            $orders['tech'] ?? collect(),
-            'Reunión inicial con cliente',
-            'sale'
-        );
-
-        $this->linkTaskAndOrderPair(
-            $tasks['andina'] ?? collect(),
-            $orders['andina'] ?? collect(),
-            'Reunión con dirección de obra',
-            'sale'
-        );
-
-        $this->linkTaskAndOrderPair(
-            $tasks['andina'] ?? collect(),
-            $orders['andina'] ?? collect(),
-            'Revisar documentación estructural',
-            'service'
+        $this->linkTaskToOrderByIdentifiers(
+            tasks: $tasks,
+            orders: $orders,
+            taskName: 'Reunión inicial con cliente',
+            orderNumber: 'TECH-ORD-0001',
         );
     }
 
-    private function linkTaskAndOrderPair($tasks, $orders, string $taskName, string $orderKind): void
+    private function linkAndinaTaskOrderRelations(Collection $tasks, Collection $orders): void
     {
-        $task = $tasks->firstWhere('name', $taskName);
-        $order = $orders->firstWhere('kind', $orderKind);
+        $this->linkTaskToOrderByIdentifiers(
+            tasks: $tasks,
+            orders: $orders,
+            taskName: 'Reunión con dirección de obra',
+            orderNumber: 'AND-ORD-0001',
+        );
 
-        if (! $task || ! $order) {
-            return;
-        }
+        $this->linkTaskToOrderByIdentifiers(
+            tasks: $tasks,
+            orders: $orders,
+            taskName: 'Revisar documentación estructural',
+            orderNumber: 'AND-ORD-0002',
+        );
+    }
 
-        $order->update(['task_id' => $task->id]);
+    private function linkTechOrderAssetRelations(Collection $orders, Collection $assets): void
+    {
+        $this->linkOrderToAssetByIdentifiers(
+            orders: $orders,
+            assets: $assets,
+            orderNumber: 'TECH-ORD-0001',
+            assetInternalCode: 'TECH-VEH-001',
+        );
+
+        $this->linkOrderToAssetByIdentifiers(
+            orders: $orders,
+            assets: $assets,
+            orderNumber: 'TECH-ORD-0002',
+            assetInternalCode: 'TECH-EQP-001',
+        );
+    }
+
+    private function linkAndinaOrderAssetRelations(Collection $orders, Collection $assets): void
+    {
+        $this->linkOrderToAssetByIdentifiers(
+            orders: $orders,
+            assets: $assets,
+            orderNumber: 'AND-ORD-0001',
+            assetInternalCode: 'AND-MAQ-001',
+        );
+
+        $this->linkOrderToAssetByIdentifiers(
+            orders: $orders,
+            assets: $assets,
+            orderNumber: 'AND-ORD-0002',
+            assetInternalCode: 'AND-TOL-001',
+        );
+    }
+
+    private function linkTechDocumentAssetRelations(Collection $documents, Collection $assets): void
+    {
+        $this->linkDocumentToAssetByIdentifiers(
+            documents: $documents,
+            assets: $assets,
+            documentNumber: 'PRE-00000001',
+            assetInternalCode: 'TECH-VEH-001',
+        );
+
+        $this->linkDocumentToAssetByIdentifiers(
+            documents: $documents,
+            assets: $assets,
+            documentNumber: 'REM-00000001',
+            assetInternalCode: 'TECH-EQP-001',
+        );
+    }
+
+    private function linkAndinaDocumentAssetRelations(Collection $documents, Collection $assets): void
+    {
+        $this->linkDocumentToAssetByIdentifiers(
+            documents: $documents,
+            assets: $assets,
+            documentNumber: 'PRE-00000002',
+            assetInternalCode: 'AND-MAQ-001',
+        );
+
+        $this->linkDocumentToAssetByIdentifiers(
+            documents: $documents,
+            assets: $assets,
+            documentNumber: 'FAC-00000001',
+            assetInternalCode: 'AND-TOL-001',
+        );
+    }
+
+    private function linkTechAppointmentOrderRelations(Collection $appointments, Collection $orders): void
+    {
+        $this->linkAppointmentToOrderByIdentifiers(
+            appointments: $appointments,
+            orders: $orders,
+            appointmentTitle: 'Servicio programado',
+            orderNumber: 'TECH-ORD-0002',
+        );
+
+        $this->linkAppointmentToOrderByIdentifiers(
+            appointments: $appointments,
+            orders: $orders,
+            appointmentTitle: 'Visita técnica inicial',
+            orderNumber: 'TECH-ORD-0001',
+        );
+    }
+
+    private function linkAndinaAppointmentOrderRelations(Collection $appointments, Collection $orders): void
+    {
+        $this->linkAppointmentToOrderByIdentifiers(
+            appointments: $appointments,
+            orders: $orders,
+            appointmentTitle: 'Servicio de inspección',
+            orderNumber: 'AND-ORD-0002',
+        );
+
+        $this->linkAppointmentToOrderByIdentifiers(
+            appointments: $appointments,
+            orders: $orders,
+            appointmentTitle: 'Visita a obra',
+            orderNumber: 'AND-ORD-0001',
+        );
+    }
+
+    private function linkTaskToOrderByIdentifiers(
+        Collection $tasks,
+        Collection $orders,
+        string $taskName,
+        string $orderNumber
+    ): void {
+        $task = $this->firstOrFailBy($tasks, 'name', $taskName, 'task');
+        $order = $this->firstOrFailBy($orders, 'number', $orderNumber, 'order');
+
+        $order->update([
+            'task_id' => $task->id,
+        ]);
 
         $this->command?->info("Linked task '{$task->name}' to order '{$order->number}'");
     }
 
-    private function linkOrdersToAssets($orders, $assets): void
-    {
-        $this->linkOrderAndAssetPair(
-            $orders['tech'] ?? collect(),
-            $assets['tech'] ?? collect(),
-            'service',
-            'vehicle'
-        );
+    private function linkOrderToAssetByIdentifiers(
+        Collection $orders,
+        Collection $assets,
+        string $orderNumber,
+        string $assetInternalCode
+    ): void {
+        $order = $this->firstOrFailBy($orders, 'number', $orderNumber, 'order');
+        $asset = $this->firstOrFailBy($assets, 'internal_code', $assetInternalCode, 'asset');
 
-        $this->linkOrderAndAssetPair(
-            $orders['tech'] ?? collect(),
-            $assets['tech'] ?? collect(),
-            'sale',
-            'equipment'
-        );
-
-        $this->linkOrderAndAssetPair(
-            $orders['andina'] ?? collect(),
-            $assets['andina'] ?? collect(),
-            'sale',
-            'machinery'
-        );
-
-        $this->linkOrderAndAssetPair(
-            $orders['andina'] ?? collect(),
-            $assets['andina'] ?? collect(),
-            'service',
-            'tool'
-        );
-    }
-
-    private function linkOrderAndAssetPair($orders, $assets, string $orderKind, string $assetKind): void
-    {
-        $order = $orders->firstWhere('kind', $orderKind);
-        $asset = $assets->firstWhere('kind', $assetKind);
-
-        if (! $order || ! $asset) {
-            return;
+        if (
+            $order->party_id !== null
+            && $asset->party_id !== null
+            && (int) $order->party_id !== (int) $asset->party_id
+        ) {
+            throw new \RuntimeException(
+                "CrossRelationsSeeder mismatch: order '{$order->number}' and asset '{$asset->internal_code}' do not share the same party_id."
+            );
         }
 
-        $order->update(['asset_id' => $asset->id]);
+        $order->update([
+            'asset_id' => $asset->id,
+            'party_id' => $asset->party_id ?: $order->party_id,
+        ]);
 
         $this->command?->info("Linked order '{$order->number}' to asset '{$asset->name}'");
     }
 
-    private function linkDocumentsToAssets($documents, $assets): void
-    {
-        $this->linkDocumentAndAssetPair(
-            $documents['tech'] ?? collect(),
-            $assets['tech'] ?? collect(),
-            'quote',
-            'vehicle'
-        );
+    private function linkDocumentToAssetByIdentifiers(
+        Collection $documents,
+        Collection $assets,
+        string $documentNumber,
+        string $assetInternalCode
+    ): void {
+        $document = $this->firstOrFailBy($documents, 'number', $documentNumber, 'document');
+        $asset = $this->firstOrFailBy($assets, 'internal_code', $assetInternalCode, 'asset');
 
-        $this->linkDocumentAndAssetPair(
-            $documents['tech'] ?? collect(),
-            $assets['tech'] ?? collect(),
-            'delivery_note',
-            'equipment'
-        );
-
-        $this->linkDocumentAndAssetPair(
-            $documents['andina'] ?? collect(),
-            $assets['andina'] ?? collect(),
-            'quote',
-            'machinery'
-        );
-
-        $this->linkDocumentAndAssetPair(
-            $documents['andina'] ?? collect(),
-            $assets['andina'] ?? collect(),
-            'invoice',
-            'tool'
-        );
-    }
-
-    private function linkDocumentAndAssetPair($documents, $assets, string $documentKind, string $assetKind): void
-    {
-        $document = $documents->firstWhere('kind', $documentKind);
-        $asset = $assets->firstWhere('kind', $assetKind);
-
-        if (! $document || ! $asset) {
-            return;
+        if (
+            $document->party_id !== null
+            && $asset->party_id !== null
+            && (int) $document->party_id !== (int) $asset->party_id
+        ) {
+            throw new \RuntimeException(
+                "CrossRelationsSeeder mismatch: document '{$document->number}' and asset '{$asset->internal_code}' do not share the same party_id."
+            );
         }
 
         DB::table('documents')
             ->where('id', $document->id)
             ->update([
                 'asset_id' => $asset->id,
+                'party_id' => $asset->party_id ?: $document->party_id,
                 'updated_at' => now(),
             ]);
 
         $this->command?->info("Linked document '{$document->number}' to asset '{$asset->name}'");
     }
 
-    private function linkAppointmentsToOrders($appointments, $orders): void
-    {
-        $this->linkAppointmentAndOrderPair(
-            $appointments['tech'] ?? collect(),
-            $orders['tech'] ?? collect(),
-            'service',
-            'service'
-        );
+    private function linkAppointmentToOrderByIdentifiers(
+        Collection $appointments,
+        Collection $orders,
+        string $appointmentTitle,
+        string $orderNumber
+    ): void {
+        $appointment = $this->firstOrFailBy($appointments, 'title', $appointmentTitle, 'appointment');
+        $order = $this->firstOrFailBy($orders, 'number', $orderNumber, 'order');
 
-        $this->linkAppointmentAndOrderPair(
-            $appointments['tech'] ?? collect(),
-            $orders['tech'] ?? collect(),
-            'visit',
-            'sale'
-        );
+        if (
+            $appointment->party_id !== null
+            && $order->party_id !== null
+            && (int) $appointment->party_id !== (int) $order->party_id
+        ) {
+            throw new \RuntimeException(
+                "CrossRelationsSeeder mismatch: appointment '{$appointment->title}' and order '{$order->number}' do not share the same party_id."
+            );
+        }
 
-        $this->linkAppointmentAndOrderPair(
-            $appointments['andina'] ?? collect(),
-            $orders['andina'] ?? collect(),
-            'service',
-            'service'
-        );
-
-        $this->linkAppointmentAndOrderPair(
-            $appointments['andina'] ?? collect(),
-            $orders['andina'] ?? collect(),
-            'visit',
-            'sale'
-        );
-    }
-
-    private function linkAppointmentAndOrderPair($appointments, $orders, string $appointmentKind, string $orderKind): void
-    {
-        $appointment = $appointments->firstWhere('kind', $appointmentKind);
-        $order = $orders->firstWhere('kind', $orderKind);
-
-        if (! $appointment || ! $order) {
-            return;
+        if (
+            $appointment->asset_id !== null
+            && $order->asset_id !== null
+            && (int) $appointment->asset_id !== (int) $order->asset_id
+        ) {
+            throw new \RuntimeException(
+                "CrossRelationsSeeder mismatch: appointment '{$appointment->title}' and order '{$order->number}' do not share the same asset_id."
+            );
         }
 
         DB::table('appointments')
@@ -225,18 +316,16 @@ class CrossRelationsSeeder extends BaseModuleSeeder
         $this->command?->info("Linked appointment '{$appointment->title}' to order '{$order->number}'");
     }
 
-    private function verifyOrdersToTasks($tenants, $orders, $tasks): void
+    private function firstOrFailBy(Collection $collection, string $field, mixed $value, string $entityLabel): object
     {
-        foreach (['tech', 'andina'] as $tenantKey) {
-            $tenantOrders = $orders[$tenantKey] ?? collect();
-            $tenantTasks = $tasks[$tenantKey] ?? collect();
+        $record = $collection->firstWhere($field, $value);
 
-            $linkedOrders = $tenantOrders->filter(fn ($order) => ! empty($order->task_id))->count();
-            $availableTasks = $tenantTasks->count();
-
-            $this->command?->info(
-                "Verified task/order relations for tenant '{$tenantKey}': {$linkedOrders} orders linked, {$availableTasks} tasks available."
+        if (! $record) {
+            throw new \RuntimeException(
+                "CrossRelationsSeeder could not find {$entityLabel} by {$field}='{$value}'."
             );
         }
+
+        return $record;
     }
 }

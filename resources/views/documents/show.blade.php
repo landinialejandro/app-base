@@ -1,8 +1,9 @@
-{{-- FILE: resources/views/documents/show.blade.php | V15 --}}
+{{-- FILE: resources/views/documents/show.blade.php | V16 --}}
 
 @extends('layouts.app')
 
 @php
+    use App\Support\Assets\AssetLinkedAction;
     use App\Support\Catalogs\DocumentCatalog;
     use App\Support\Navigation\NavigationTrail;
     use App\Support\Parties\PartyLinkedAction;
@@ -28,6 +29,7 @@
     $backLabel = ($previousNode['key'] ?? null) === 'orders.show' ? 'Volver a la orden' : 'Volver';
 
     $partyAction = PartyLinkedAction::forParty($document->party, $trailQuery, 'Contacto');
+    $assetAction = AssetLinkedAction::forAsset($document->asset, $trailQuery, 'Activo');
 @endphp
 
 @section('title', $documentDetailTitle)
@@ -112,13 +114,10 @@
                 </x-show-summary-item-detail-block>
 
                 <x-show-summary-item-detail-block label="Activo">
-                    @if ($document->asset)
-                        <a href="{{ route('assets.show', ['asset' => $document->asset] + $trailQuery) }}">
-                            {{ $document->asset->name }}
-                        </a>
-                    @else
-                        —
-                    @endif
+                    @include('assets.components.linked-asset-action', [
+                        'action' => $assetAction,
+                        'variant' => 'summary',
+                    ])
                 </x-show-summary-item-detail-block>
 
                 <x-show-summary-item-detail-block label="Fecha de vencimiento">

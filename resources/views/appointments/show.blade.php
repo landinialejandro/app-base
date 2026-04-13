@@ -1,8 +1,9 @@
-{{-- FILE: resources/views/appointments/show.blade.php | V11 --}}
+{{-- FILE: resources/views/appointments/show.blade.php | V12 --}}
 
 @extends('layouts.app')
 
 @php
+    use App\Support\Assets\AssetLinkedAction;
     use App\Support\Auth\TenantModuleAccess;
     use App\Support\Catalogs\AppointmentCatalog;
     use App\Support\Catalogs\ModuleCatalog;
@@ -27,6 +28,7 @@
 
     $orderAction = OrderLinkedAction::forAppointment($appointment, $trailQuery, true);
     $partyAction = PartyLinkedAction::forParty($appointment->party, $trailQuery, AppointmentCatalog::contactLabel());
+    $assetAction = AssetLinkedAction::forAsset($appointment->asset, $trailQuery, AppointmentCatalog::assetLabel());
 @endphp
 
 @section('title', $appointmentTitle)
@@ -89,17 +91,10 @@
 
             @if ($supportsAssetsModule)
                 <x-show-summary-item :label="AppointmentCatalog::assetLabel()">
-                    @if ($appointment->asset)
-                        @if ($canViewLinkedAsset)
-                            <a href="{{ route('assets.show', ['asset' => $appointment->asset] + $trailQuery) }}">
-                                {{ $appointment->asset->name }}
-                            </a>
-                        @else
-                            {{ $appointment->asset->name }}
-                        @endif
-                    @else
-                        —
-                    @endif
+                    @include('assets.components.linked-asset-action', [
+                        'action' => $assetAction,
+                        'variant' => 'summary',
+                    ])
                 </x-show-summary-item>
             @endif
 

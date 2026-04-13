@@ -1,8 +1,9 @@
-{{-- FILE: resources/views/documents/partials/table.blade.php | V9 --}}
+{{-- FILE: resources/views/documents/partials/table.blade.php | V10 --}}
 
 @php
     use App\Support\Catalogs\DocumentCatalog;
     use App\Support\Navigation\NavigationTrail;
+    use App\Support\Assets\AssetLinkedAction;
     use App\Support\Parties\PartyLinkedAction;
 
     $documents = $documents ?? collect();
@@ -73,6 +74,7 @@
                         $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
 
                         $partyAction = PartyLinkedAction::forParty($document->party, $rowTrailQuery, 'Contacto');
+                        $assetAction = AssetLinkedAction::forAsset($document->asset, $rowTrailQuery, 'Activo');
                     @endphp
 
                     <tr>
@@ -101,13 +103,10 @@
 
                         @if ($showAsset)
                             <td>
-                                @if ($document->asset)
-                                    <a href="{{ route('assets.show', ['asset' => $document->asset] + $rowTrailQuery) }}">
-                                        {{ $document->asset->name }}
-                                    </a>
-                                @else
-                                    —
-                                @endif
+                                @include('assets.components.linked-asset-action', [
+                                    'action' => $assetAction,
+                                    'variant' => 'inline',
+                                ])
                             </td>
                         @endif
 

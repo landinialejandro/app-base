@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/assets/index.blade.php | V4 --}}
+{{-- FILE: resources/views/assets/index.blade.php | V6 --}}
 
 @extends('layouts.app')
 
@@ -26,7 +26,7 @@
             @endcan
         </x-page-header>
 
-        <x-list-filters-card :action="route('assets.index')">
+        <x-list-filters-card :action="route('assets.index')" secondary-id="assets-extra-filters">
             <x-slot:primary>
                 <div class="list-filters-grid">
                     <div class="form-group">
@@ -48,6 +48,34 @@
                     </div>
                 </div>
             </x-slot:primary>
+
+            <x-slot:secondary>
+                <div class="list-filters-grid">
+                    <div class="form-group">
+                        <label for="party_id" class="form-label">Contacto</label>
+                        <select id="party_id" name="party_id" class="form-control">
+                            <option value="">Todos</option>
+                            @foreach ($parties as $party)
+                                <option value="{{ $party->id }}" @selected((string) request('party_id') === (string) $party->id)>
+                                    {{ $party->name }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status" class="form-label">Estado</label>
+                        <select id="status" name="status" class="form-control">
+                            <option value="">Todos</option>
+                            @foreach (AssetCatalog::statusLabels() as $value => $label)
+                                <option value="{{ $value }}" @selected(request('status') === $value)>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+                </div>
+            </x-slot:secondary>
         </x-list-filters-card>
 
         <x-card class="list-card">

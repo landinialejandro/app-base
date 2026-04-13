@@ -1,6 +1,7 @@
-{{-- FILE: resources/views/orders/partials/table.blade.php | V12 --}}
+{{-- FILE: resources/views/orders/partials/table.blade.php | V13 --}}
 
 @php
+    use App\Support\Assets\AssetLinkedAction;
     use App\Support\Auth\TenantModuleAccess;
     use App\Support\Catalogs\ModuleCatalog;
     use App\Support\Catalogs\OrderCatalog;
@@ -74,9 +75,7 @@
                         $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
 
                         $partyAction = PartyLinkedAction::forParty($order->party, $rowTrailQuery, 'Contacto');
-
-                        $canViewAsset =
-                            $renderAssetColumn && $order->asset && $user && $user->can('view', $order->asset);
+                        $assetAction = AssetLinkedAction::forAsset($order->asset, $rowTrailQuery, 'Activo');
                     @endphp
 
                     <tr>
@@ -86,7 +85,7 @@
                             </a>
                         </td>
 
-                        <td>{{ OrderCatalog::kindLabel($order->kind) }}</td>
+                        <td>{{ OrderCatalog::label($order->kind) }}</td>
 
                         <td>
                             <span class="status-badge {{ OrderCatalog::badgeClass($order->status) }}">
@@ -105,20 +104,15 @@
 
                         @if ($renderAssetColumn)
                             <td>
-                                @if ($canViewAsset)
-                                    <a href="{{ route('assets.show', ['asset' => $order->asset] + $rowTrailQuery) }}">
-                                        {{ $order->asset->name }}
-                                    </a>
-                                @elseif ($order->asset)
-                                    {{ $order->asset->name }}
-                                @else
-                                    —
-                                @endif
+                                @include('assets.components.linked-asset-action', [
+                                    'action' => $assetAction,
+                                    'variant' => 'inline',
+                                ])
                             </td>
                         @endif
 
                         <td>{{ $order->ordered_at?->format('d/m/Y') ?: '—' }}</td>
-                        <td>${{ number_format((float) $order->total, 2, ',', '.') }}</td>
+                        <td>${{ number_format($order->total, 2, ',', '.') }}</td>
                     </tr>
                 @endforeach
             </tbody>

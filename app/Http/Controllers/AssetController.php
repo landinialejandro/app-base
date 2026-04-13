@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AssetController.php | V6
+// FILE: app/Http/Controllers/AssetController.php | V7
 
 namespace App\Http\Controllers;
 
@@ -9,7 +9,9 @@ use App\Models\Document;
 use App\Models\Order;
 use App\Models\Party;
 use App\Support\Auth\Security;
+use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\AssetCatalog;
+use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Navigation\AssetNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
 use Illuminate\Http\RedirectResponse;
@@ -106,24 +108,35 @@ class AssetController extends Controller
     {
         $this->authorize('view', $asset);
 
+        $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
+
+        $supportsOrdersModule = TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, $tenant);
+        $supportsDocumentsModule = TenantModuleAccess::isEnabled(ModuleCatalog::DOCUMENTS, $tenant);
+
         $asset->load([
             'party',
             'attachments' => fn ($query) => $query->ordered(),
         ]);
 
-        $orders = app(Security::class)
-            ->scope(auth()->user(), 'orders.viewAny', Order::query())
-            ->with('party')
-            ->where('asset_id', $asset->id)
-            ->latest()
-            ->get();
+        $orders = $supportsOrdersModule
+            ? $security
+                ->scope($user, 'orders.viewAny', Order::query())
+                ->with('party')
+                ->where('asset_id', $asset->id)
+                ->latest()
+                ->get()
+            : collect();
 
-        $documents = app(Security::class)
-            ->scope(auth()->user(), 'documents.viewAny', Document::query())
-            ->with(['party', 'order'])
-            ->where('asset_id', $asset->id)
-            ->latest()
-            ->get();
+        $documents = $supportsDocumentsModule
+            ? $security
+                ->scope($user, 'documents.viewAny', Document::query())
+                ->with(['party', 'order'])
+                ->where('asset_id', $asset->id)
+                ->latest()
+                ->get()
+            : collect();
 
         $navigationTrail = AssetNavigationTrail::show($request, $asset);
 

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V19 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V20 --}}
 
 @extends('layouts.app')
 
@@ -6,6 +6,7 @@
 
 @section('content')
     @php
+        use App\Support\Assets\AssetLinkedAction;
         use App\Support\Auth\TenantModuleAccess;
         use App\Support\Catalogs\DocumentCatalog;
         use App\Support\Catalogs\ModuleCatalog;
@@ -32,14 +33,13 @@
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
         $backUrl = NavigationTrail::previousUrl($navigationTrail, route('orders.index'));
 
-        $canViewLinkedAsset = $supportsAssetsModule && $order->asset && $user && $user->can('view', $order->asset);
-
         $canViewLinkedTask = $supportsTasksModule && $order->task && $user && $user->can('view', $order->task);
 
         $canViewLinkedDocuments = $supportsDocumentsModule;
         $canViewLinkedProducts = $supportsProductsModule;
 
         $partyAction = PartyLinkedAction::forParty($order->party, $trailQuery, 'Contacto');
+        $assetAction = AssetLinkedAction::forAsset($order->asset, $trailQuery, 'Activo');
     @endphp
 
     <x-page>
@@ -100,13 +100,10 @@
 
                 @if ($supportsAssetsModule)
                     <x-show-summary-item-detail-block label="Activo">
-                        @if ($canViewLinkedAsset)
-                            <a href="{{ route('assets.show', ['asset' => $order->asset] + $trailQuery) }}">
-                                {{ $order->asset->name }}
-                            </a>
-                        @else
-                            {{ $order->asset?->name ?: '—' }}
-                        @endif
+                        @include('assets.components.linked-asset-action', [
+                            'action' => $assetAction,
+                            'variant' => 'summary',
+                        ])
                     </x-show-summary-item-detail-block>
                 @endif
 
@@ -136,7 +133,7 @@
             </x-slot:details>
         </x-show-summary>
 
-        <div class="tabs" data-tabs>
+        <div class="tabs">
             <x-tab-toolbar label="Secciones de la orden">
                 <x-slot:tabs>
                     <x-horizontal-scroll label="Secciones de la orden">
@@ -220,27 +217,25 @@
                                                     class="form-control" required>
                                                     <option value="">Seleccionar producto</option>
                                                     @foreach ($inventoryProducts as $product)
-                                                        <option value="{{ $product->id }}">
-                                                            {{ $product->name }}
-                                                        </option>
+                                                        <option value="{{ $product->id }}">{{ $product->name }}</option>
                                                     @endforeach
                                                 </select>
                                             </div>
 
                                             <div class="form-group">
                                                 <label for="inventory_consumir_quantity" class="form-label">Cantidad</label>
-                                                <input type="number" step="0.01" min="0.01"
-                                                    id="inventory_consumir_quantity" name="quantity" class="form-control"
-                                                    required>
+                                                <input id="inventory_consumir_quantity" name="quantity" type="number"
+                                                    step="0.01" min="0.01" class="form-control" required>
                                             </div>
 
                                             <div class="form-group">
-                                                <label for="inventory_consumir_notes" class="form-label">Notas</label>
-                                                <textarea id="inventory_consumir_notes" name="notes" rows="2" class="form-control"></textarea>
+                                                <label for="inventory_consumir_note" class="form-label">Nota</label>
+                                                <input id="inventory_consumir_note" name="note" type="text"
+                                                    class="form-control" placeholder="Opcional">
                                             </div>
 
                                             <div class="form-actions">
-                                                <button type="submit" class="btn btn-warning">Registrar consumo</button>
+                                                <button type="submit" class="btn btn-secondary">Registrar consumo</button>
                                             </div>
                                         </form>
 
@@ -255,27 +250,25 @@
                                                     class="form-control" required>
                                                     <option value="">Seleccionar producto</option>
                                                     @foreach ($inventoryProducts as $product)
-                                                        <option value="{{ $product->id }}">
-                                                            {{ $product->name }}
-                                                        </option>
+                                                        <option value="{{ $product->id }}">{{ $product->name }}</option>
                                                     @endforeach
                                                 </select>
                                             </div>
 
                                             <div class="form-group">
                                                 <label for="inventory_entregar_quantity" class="form-label">Cantidad</label>
-                                                <input type="number" step="0.01" min="0.01"
-                                                    id="inventory_entregar_quantity" name="quantity" class="form-control"
-                                                    required>
+                                                <input id="inventory_entregar_quantity" name="quantity" type="number"
+                                                    step="0.01" min="0.01" class="form-control" required>
                                             </div>
 
                                             <div class="form-group">
-                                                <label for="inventory_entregar_notes" class="form-label">Notas</label>
-                                                <textarea id="inventory_entregar_notes" name="notes" rows="2" class="form-control"></textarea>
+                                                <label for="inventory_entregar_note" class="form-label">Nota</label>
+                                                <input id="inventory_entregar_note" name="note" type="text"
+                                                    class="form-control" placeholder="Opcional">
                                             </div>
 
                                             <div class="form-actions">
-                                                <button type="submit" class="btn btn-success">Registrar entrega</button>
+                                                <button type="submit" class="btn btn-secondary">Registrar entrega</button>
                                             </div>
                                         </form>
                                     </div>
@@ -283,72 +276,11 @@
                             @endif
                         @endcan
 
-                        <x-card>
-                            @if ($inventoryMovements->count())
-                                <div class="table-wrap">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th>Fecha</th>
-                                                <th>Tipo</th>
-                                                <th>Producto</th>
-                                                <th>Cantidad</th>
-                                                <th>Documento</th>
-                                                <th>Notas</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach ($inventoryMovements as $movement)
-                                                @php
-                                                    $canViewMovementProduct =
-                                                        $canViewLinkedProducts &&
-                                                        $movement->product &&
-                                                        $user &&
-                                                        $user->can('view', $movement->product);
-
-                                                    $canViewMovementDocument =
-                                                        $canViewLinkedDocuments &&
-                                                        $movement->document &&
-                                                        $user &&
-                                                        $user->can('view', $movement->document);
-                                                @endphp
-                                                <tr>
-                                                    <td>{{ $movement->created_at?->format('d/m/Y H:i') ?: '—' }}</td>
-                                                    <td>{{ ucfirst($movement->kind) }}</td>
-                                                    <td>
-                                                        @if ($canViewMovementProduct)
-                                                            <a
-                                                                href="{{ route('products.show', ['product' => $movement->product] + $trailQuery) }}">
-                                                                {{ $movement->product->name }}
-                                                            </a>
-                                                        @elseif ($movement->product)
-                                                            {{ $movement->product->name }}
-                                                        @else
-                                                            —
-                                                        @endif
-                                                    </td>
-                                                    <td>{{ number_format((float) $movement->quantity, 2, ',', '.') }}</td>
-                                                    <td>
-                                                        @if ($canViewMovementDocument)
-                                                            <a
-                                                                href="{{ route('documents.show', ['document' => $movement->document] + $trailQuery) }}">
-                                                                {{ $movement->document->number ?: 'Documento #' . $movement->document->id }}
-                                                            </a>
-                                                        @elseif ($movement->document)
-                                                            {{ $movement->document->number ?: 'Documento #' . $movement->document->id }}
-                                                        @else
-                                                            —
-                                                        @endif
-                                                    </td>
-                                                    <td>{{ $movement->notes ?: '—' }}</td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            @else
-                                <p class="mb-0">No hay movimientos de stock registrados para esta orden.</p>
-                            @endif
+                        <x-card class="list-card">
+                            @include('inventory.partials.movements-table', [
+                                'movements' => $inventoryMovements,
+                                'emptyMessage' => 'No hay movimientos de stock para esta orden.',
+                            ])
                         </x-card>
                     </div>
                 </section>
@@ -357,48 +289,16 @@
             @if ($supportsDocumentsModule)
                 <section class="tab-panel" data-tab-panel="documents" hidden>
                     <div class="tab-panel-stack">
-                        <x-card>
-                            @if ($documents->count())
-                                <div class="table-wrap">
-                                    <table class="table">
-                                        <thead>
-                                            <tr>
-                                                <th>Número</th>
-                                                <th>Tipo</th>
-                                                <th>Estado</th>
-                                                <th>Fecha</th>
-                                                <th>Total</th>
-                                            </tr>
-                                        </thead>
-                                        <tbody>
-                                            @foreach ($documents as $document)
-                                                @php
-                                                    $canViewDocument = $user && $user->can('view', $document);
-                                                @endphp
-                                                <tr>
-                                                    <td>
-                                                        @if ($canViewDocument)
-                                                            <a
-                                                                href="{{ route('documents.show', ['document' => $document] + $trailQuery) }}">
-                                                                {{ $document->number ?: 'Documento #' . $document->id }}
-                                                            </a>
-                                                        @else
-                                                            {{ $document->number ?: 'Documento #' . $document->id }}
-                                                        @endif
-                                                    </td>
-                                                    <td>{{ DocumentCatalog::kindLabel($document->kind) }}</td>
-                                                    <td>{{ DocumentCatalog::statusLabel($document->status) }}</td>
-                                                    <td>{{ $document->issued_at?->format('d/m/Y') ?: '—' }}</td>
-                                                    <td>${{ number_format((float) $document->total, 2, ',', '.') }}</td>
-                                                </tr>
-                                            @endforeach
-                                        </tbody>
-                                    </table>
-                                </div>
-                            @else
-                                <p class="mb-0">No hay documentos asociados a esta orden.</p>
-                            @endif
-                        </x-card>
+                        @include('documents.partials.embedded-tabs', [
+                            'documents' => $documents,
+                            'showParty' => true,
+                            'showAsset' => false,
+                            'showOrder' => false,
+                            'emptyMessage' => 'Esta orden no tiene documentos vinculados.',
+                            'tabsId' => 'order-documents-tabs',
+                            'trailQuery' => $trailQuery,
+                            'order' => $order,
+                        ])
                     </div>
                 </section>
             @endif
@@ -411,7 +311,6 @@
                         'attachableType' => 'order',
                         'attachableId' => $order->id,
                         'trailQuery' => $trailQuery,
-                        'navigationTrail' => $navigationTrail,
                         'tabsId' => 'order-attachments-tabs',
                         'createLabel' => 'Agregar adjunto',
                     ])

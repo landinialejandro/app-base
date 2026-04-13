@@ -1,6 +1,7 @@
-{{-- FILE: resources/views/appointments/partials/table.blade.php | V9 --}}
+{{-- FILE: resources/views/appointments/partials/table.blade.php | V10 --}}
 
 @php
+    use App\Support\Assets\AssetLinkedAction;
     use App\Support\Catalogs\AppointmentCatalog;
     use App\Support\Navigation\AppointmentNavigationTrail;
     use App\Support\Navigation\NavigationTrail;
@@ -47,6 +48,11 @@
                             $appointmentTrailQuery,
                             AppointmentCatalog::contactLabel(),
                         );
+                        $assetAction = AssetLinkedAction::forAsset(
+                            $appointment->asset,
+                            $appointmentTrailQuery,
+                            AppointmentCatalog::assetLabel(),
+                        );
                     @endphp
 
                     <tr>
@@ -67,18 +73,10 @@
 
                         @if ($supportsAssetsModule)
                             <td>
-                                @if ($appointment->asset)
-                                    @can('view', $appointment->asset)
-                                        <a
-                                            href="{{ route('assets.show', ['asset' => $appointment->asset] + $appointmentTrailQuery) }}">
-                                            {{ $appointment->asset->name }}
-                                        </a>
-                                    @else
-                                        {{ $appointment->asset->name }}
-                                    @endcan
-                                @else
-                                    —
-                                @endif
+                                @include('assets.components.linked-asset-action', [
+                                    'action' => $assetAction,
+                                    'variant' => 'inline',
+                                ])
                             </td>
                         @endif
 

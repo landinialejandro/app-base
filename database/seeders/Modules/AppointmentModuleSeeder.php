@@ -1,6 +1,6 @@
 <?php
 
-// FILE: database/seeders/Modules/AppointmentModuleSeeder.php | V3
+// FILE: database/seeders/Modules/AppointmentModuleSeeder.php | V4
 
 namespace Database\Seeders\Modules;
 
@@ -105,7 +105,7 @@ class AppointmentModuleSeeder extends BaseModuleSeeder
             'title' => 'Servicio programado',
             'scheduled_date' => now()->addDays(4)->toDateString(),
             'party_id' => $parties->skip(1)->first()?->id,
-            'asset_id' => $assets->skip(1)->first()?->id,
+            'asset_id' => $assets->skip(2)->first()?->id,
             'assigned_user_id' => $users->get(1)?->id,
             'kind' => 'service',
             'status' => 'confirmed',
@@ -184,7 +184,7 @@ class AppointmentModuleSeeder extends BaseModuleSeeder
             'title' => 'Servicio de inspección',
             'scheduled_date' => now()->addDays(6)->toDateString(),
             'party_id' => $parties->skip(1)->first()?->id,
-            'asset_id' => $assets->first()?->id,
+            'asset_id' => $assets->skip(2)->first()?->id,
             'assigned_user_id' => $users->get(1)?->id,
             'kind' => 'service',
             'status' => 'confirmed',
@@ -243,8 +243,8 @@ class AppointmentModuleSeeder extends BaseModuleSeeder
                 ? $parties[($i - 1) % $parties->count()]
                 : null;
 
-            $asset = $assets->isNotEmpty() && $i % 2 === 0
-                ? $assets[($i - 1) % $assets->count()]
+            $asset = $assets->isNotEmpty() && $party && $i % 2 === 0
+                ? $assets->firstWhere('party_id', $party->id)
                 : null;
 
             $startHour = 9 + (($i - 1) % 6);

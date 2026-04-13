@@ -1,14 +1,20 @@
-{{-- FILE: resources/views/tasks/partials/table.blade.php | V6 --}}
+{{-- FILE: resources/views/tasks/partials/table.blade.php | V7 --}}
 
 @php
+    use App\Support\Auth\TenantModuleAccess;
+    use App\Support\Catalogs\ModuleCatalog;
     use App\Support\Catalogs\TaskCatalog;
     use App\Support\Navigation\NavigationTrail;
+    use App\Support\Orders\OrderLinkedAction;
     use Illuminate\Support\Carbon;
 
     $tasks = $tasks ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay tareas para mostrar.';
     $trailQuery = $trailQuery ?? [];
     $containerTrail = NavigationTrail::decode($trailQuery['trail'] ?? null);
+
+    $tenant = app('tenant');
+    $supportsOrdersModule = TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, $tenant);
 @endphp
 
 @if ($tasks->count())
@@ -22,7 +28,9 @@
                     <th>Estado</th>
                     <th>Asignado a</th>
                     <th>Vencimiento</th>
-                    <th>Orden</th>
+                    @if ($supportsOrdersModule)
+                        <th>Orden</th>
+                    @endif
                 </tr>
             </thead>
             <tbody>
@@ -67,6 +75,10 @@
                                 default => $task->due_date->format('d/m/Y'),
                             };
                         }
+
+                        $orderAction = $supportsOrdersModule
+                            ? OrderLinkedAction::forTask($task, $rowTrailQuery, false)
+                            : [];
                     @endphp
 
                     <tr>
@@ -100,15 +112,15 @@
 
                         <td>{{ $task->assignedUser?->name ?? 'Sin asignar' }}</td>
                         <td>{{ $dueText }}</td>
-                        <td>
-                            @if ($task->order)
-                                <a href="{{ route('orders.show', ['order' => $task->order] + $rowTrailQuery) }}">
-                                    {{ $task->order->number ?: 'Ver orden' }}
-                                </a>
-                            @else
-                                —
-                            @endif
-                        </td>
+
+                        @if ($supportsOrdersModule)
+                            <td>
+                                @include('orders.components.linked-order-action', [
+                                    'action' => $orderAction,
+                                    'variant' => 'inline',
+                                ])
+                            </td>
+                        @endif
                     </tr>
                 @endforeach
             </tbody>

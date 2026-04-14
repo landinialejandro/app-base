@@ -11,6 +11,7 @@ use Database\Seeders\Modules\BaseModuleSeeder;
 use Database\Seeders\Modules\BranchModuleSeeder;
 use Database\Seeders\Modules\CrossRelationsSeeder;
 use Database\Seeders\Modules\DocumentModuleSeeder;
+use Database\Seeders\Modules\InventoryModuleSeeder;
 use Database\Seeders\Modules\InvitationModuleSeeder;
 use Database\Seeders\Modules\MembershipModuleSeeder;
 use Database\Seeders\Modules\OrderModuleSeeder;
@@ -48,6 +49,7 @@ class DemoSeeder extends Seeder
             RolePermissionModuleSeeder::class,
             MembershipModuleSeeder::class,
             BranchModuleSeeder::class,
+            InventoryModuleSeeder::class,
             InvitationModuleSeeder::class,
             PartyModuleSeeder::class,
             ProjectModuleSeeder::class,

@@ -110,7 +110,7 @@ Si estas respuestas no están claras, no debe avanzarse a implementación.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 BLOQUE 1 — CONTRATO MODULAR
 
@@ -153,12 +153,22 @@ qué integraciones deberían vivir fuera del núcleo
 qué debería consumir otro módulo sin tocar implementación interna
 qué puede publicarse hoy aunque todavía no tenga consumidor real
 la capacidad reusable se publica como unidad completa o solo como vista aislada
+cuál es la superficie principal real del módulo
+si existe una superficie secundaria relevante que no debe leerse como base principal
+si la integración reusable requerida es pesada o compacta
 
 Regla adicional de cierre:
 
 si la capacidad reusable ya fue cerrada doctrinalmente por el módulo oferente, no debe quedar ninguna superficie secundaria relevante reconstruyendo localmente sus estados operativos
 
 antes de considerar cerrado el contrato modular, revisar también tablas, partials, formularios embebidos y demás superficies derivadas que consuman esa integración
+
+la definición del contrato modular también debe dejar explícito si el módulo publica:
+
+embebido reusable oficial para relaciones fuertes
+
+o acción compacta oficial para relaciones puntuales
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
@@ -203,7 +213,7 @@ no deben tratarse como metadata decorativa ni como validación parcial
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -218,6 +228,8 @@ si existe ya una capacidad reusable equivalente
 si la integración respeta contratos existentes
 si evita duplicaciones de selectores, tablas o summaries
 si la capacidad reusable ajena se consume como unidad completa y no solo como vista suelta
+si la relación corresponde a embebido fuerte o a integración compacta
+si el consumidor replica el patrón visual ya consolidado del ecosistema
 
 Preguntas obligatorias:
 
@@ -234,6 +246,9 @@ ninguna integración válida debe bypassar seguridad ni crear contratos paralelo
 Regla adicional de cierre:
 
 no considerar homogénea una integración mientras existan superficies secundarias del consumidor que sigan resolviendo localmente una relación, acción o flujo ya cerrado por el módulo oferente
+
+si el módulo consumidor ya posee un patrón visual consolidado para relaciones equivalentes, la nueva integración debe tender a reutilizar ese patrón y no introducir gramática visual nueva sin causa real
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA>>
@@ -462,7 +477,7 @@ si una acción reusable navega hacia otro módulo, la visibilidad final debe seg
 <<END SECTION>>
 
 <<SECTION: CHECKLIST DE INTEGRACIÓN>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CHECKLIST DE INTEGRACIÓN
 
@@ -479,6 +494,10 @@ flags modulares correctamente propagados
 homogeneidad entre show pages, tablas y partials secundarias
 
 ausencia de links locales remanentes hacia relaciones ya cerradas doctrinalmente por otro módulo
+
+diferenciación explícita entre integración pesada embebida e integración compacta
+
+alineación con el patrón visual ya consolidado en el módulo consumidor cuando exista
 
 Regla de cierre:
 
@@ -513,7 +532,7 @@ no existan rutas operables residuales aunque la UI ya no las muestre
 <<END SECTION>>
 
 <<SECTION: SUPERFICIES SECUNDARIAS Y PARTIALS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 SUPERFICIES SECUNDARIAS Y PARTIALS
 
@@ -537,9 +556,12 @@ si una capacidad reusable publicada por un módulo se consume en partials de otr
 
 si la partial reutilizada depende de payload arbitrado, ese payload proviene del módulo oferente y no de composición local dispersa
 
+si la superficie secundaria es una tabla o partial consumida dentro de un contenedor contextual, debe heredar trailQuery contextual y no reiniciar navegación desde una base local del módulo oferente
+
 Regla adicional consolidada:
 
 una integración no debe considerarse cerrada mientras exista хотя sea una superficie secundaria relevante con resolución local residual del mismo flujo o capacidad reusable
+
 <<END SECTION>>
 
 <<SECTION: ENTIDADES HIJAS Y SUBRECURSOS>>
@@ -623,7 +645,7 @@ esto asegura consistencia entre sistema, documentación y onboarding
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN Y BREADCRUMB>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 NAVEGACIÓN Y BREADCRUMB
 
@@ -651,44 +673,18 @@ propagar ese contexto en tablas, tabs, acciones por fila, links relacionales, pa
 
 resolver create -> store -> show sin persistencia de nodos transitorios de “Nuevo …”
 
-resolver show -> edit -> update -> show sin persistencia de nodos transitorios de “Editar …”
+Validar además:
 
-resolver correctamente submódulos tipo ítems, de modo que item create o item edit retornen al show del padre sin contaminar el trail final
+cuál es la superficie principal real del módulo
 
-si participa en navegación cruzada real, aceptar y propagar el trail o mecanismo contextual vigente del proyecto
+si existe una superficie secundaria que permanece accesible pero no debe actuar como base promovida del trail
 
-si ya existe un resolutor, builder o adaptador central del módulo, reutilizarlo en lugar de crear una variante paralela
+si calendarios, tabs o embebidos contextuales necesitan actuar como entrada principal efectiva del módulo
 
-verificar que el builder o resolutor del módulo guarde URLs limpias en los nodos
+Regla adicional consolidada:
 
-verificar que el trail no quede serializado dentro del propio campo url de los nodos
+cuando una capacidad reusable oficial del módulo oferente se consuma dentro de otro módulo, también debe propagar el trail válido del contenedor y no reiniciar navegación desde una lectura estructural local del oferente
 
-verificar que, al volver a una entidad ya presente, el trail colapse sin duplicarse
-
-verificar que el módulo no conserve mecanismos anteriores de contexto redundantes una vez migrado al esquema central vigente
-
-verificar links relacionales en tablas y sublistados:
-si el contexto real es la fila, usar el trail de la fila y no solo el del contenedor
-
-verificar index contextual:
-si desde un index se navega a una entidad relacionada, decidir explícitamente si el breadcrumb debe conservar solo módulo origen o módulo origen más entidad fila
-
-verificar navbar:
-no debe saltar automáticamente solo por el módulo profundo actual si el flujo funcional sigue anclado en otro módulo de origen
-
-Reglas:
-
-usar breadcrumb estructural por defecto
-
-usar breadcrumb contextual solo cuando el origen siga siendo útil
-
-no reconstruir breadcrumb funcional desde url()->previous()
-
-no deducir breadcrumb funcional desde relaciones implícitas del modelo ni desde historial del navegador
-
-no introducir mecanismos paralelos de contexto si ya existe trail central vigente
-
-no duplicar en blades lógica que ya fue resuelta por controller o capa central de navegación
 <<END SECTION>>
 
 <<SECTION: CIERRE>>

@@ -180,7 +180,7 @@ la navegación principal debe reflejar contrato real del sistema y no solo exist
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -202,17 +202,20 @@ assets.show
 → crear order contextual
 → ver documents relacionados
 → ver party relacionada
+→ ver appointments relacionadas
 
 parties.show
 → ver relaciones operativas
 → navegar assets relacionadas
 → navegar orders relacionadas
 → navegar documents relacionados
+→ ver appointments relacionadas
 
 orders.show
 → crear document derivado
 → ver party relacionada
 → ver asset relacionado
+→ ver appointment relacionada cuando exista
 → gestionar items
 → gestionar attachments si aplica
 
@@ -272,10 +275,16 @@ parties.show no debe leerse solo como ficha aislada
 
 debe tender a operar como pantalla transversal de relaciones operativas relevantes según módulos activos, permisos efectivos y contexto vigente
 
+Aclaración consolidada para appointments:
+
+cuando un módulo consumidor necesite exponer turnos relacionados como relación fuerte, debe tender a consumir la capacidad reusable publicada por appointments y no una tabla local reconstruida
+
+cuando el vínculo con appointments sea puntual o 1 a 1, debe priorizarse una integración compacta y no una pestaña pesada por defecto
+
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -286,10 +295,12 @@ Casos actuales o consolidados:
 asset.show
 orders relacionadas
 documents relacionados
+appointments relacionadas
 attachments
 
 party.show
 relaciones operativas según módulos activos
+appointments relacionadas cuando corresponda
 
 project.show
 tasks relacionadas
@@ -306,6 +317,7 @@ items
 attachments
 acciones derivadas
 relaciones principales
+referencia compacta a appointment cuando exista
 
 document.show
 items
@@ -325,6 +337,8 @@ las relaciones embebidas no deben reemplazar navegación estructural cuando abri
 los accesos embebidos hacia orders desde tasks o appointments deben consumir la misma lógica reusable del módulo orders
 
 los accesos embebidos hacia assets desde módulos consumidores deben consumir la misma lógica reusable del módulo assets cuando corresponda
+
+las relaciones embebidas fuertes hacia appointments deben consumir la capacidad reusable oficial publicada por appointments cuando exista
 
 Regla adicional consolidada:
 
@@ -413,7 +427,7 @@ Pueden abrirse de forma estructural o como continuación de otro flujo operativo
 <<END SECTION>>
 
 <<SECTION: REGLAS DEL TRAIL>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 REGLAS DEL TRAIL
 
@@ -449,10 +463,19 @@ casos relevantes actuales:
 
 linked-order-action
 linked-party-action
+linked-asset-action
+
+Regla adicional para tablas y embebidos reusables:
+
+si una tabla reusable se consume dentro de un contenedor contextual, sus links principales y relacionales deben heredar el trailQuery recibido y no reiniciar navegación desde una base local del módulo oferente
+
+esto aplica también a tabs embebidas, tablas por fila y acciones derivadas internas del bloque reusable
 
 <<END SECTION>>
 
 <<SECTION: MAPA DE NAVEGACIÓN PRINCIPAL>>
+SECTION_VERSION: 00002
+
 MAPA DE NAVEGACIÓN PRINCIPAL
 
 FLUJO ESTRUCTURAL BASE
@@ -466,6 +489,12 @@ index
 show / create / edit
 
 Este flujo existe para todos los módulos principales aunque además admitan contexto heredado.
+
+Aclaración estructural consolidada:
+
+en appointments, la lectura principal del módulo debe anclarse en calendar como superficie promovida de agenda
+
+appointments.index puede mantenerse como superficie secundaria accesible, pero no como base principal promovida del módulo
 
 FLUJOS CONTEXTUALES YA VALIDADOS
 
@@ -501,6 +530,10 @@ assets
 
 orders
 ↓
+appointment
+
+orders
+↓
 order_items
 
 documents
@@ -521,6 +554,10 @@ document_items
 
 parties
 ↓
+appointments
+
+parties
+↓
 assets
 ↓
 orders / documents
@@ -532,6 +569,10 @@ orders
 parties
 ↓
 documents
+
+assets
+↓
+appointments
 
 assets
 ↓
@@ -554,6 +595,7 @@ order_items
 documents
 ↓
 document_items
+
 <<END SECTION>>
 
 <<SECTION: REGLA PARA LINKS RELACIONALES DESDE TABLAS CONTEXTUALES>>
@@ -604,7 +646,7 @@ linked-asset-action
 <<END SECTION>>
 
 <<SECTION: DETALLE DE FLUJOS RELEVANTES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 DETALLE DE FLUJOS RELEVANTES
 
@@ -667,6 +709,50 @@ si orders no está habilitado para el tenant:
 no debe mostrarse el acceso
 no debe renderizarse el bloque asociado
 no debe existir navegación residual hacia ese módulo
+
+ASSETS -> APPOINTMENTS
+
+Uso típico:
+
+desde el activo se consultan turnos relacionados dentro de una lectura operativa del recurso
+
+Contexto esperado:
+
+si el flujo parte de asset.show, los turnos relacionados deben abrirse preservando asset.show como origen contextual útil
+
+Regla adicional consolidada:
+
+la relación debe consumirse mediante la capacidad reusable oficial publicada por appointments y no mediante una tabla local reconstruida
+
+PARTIES -> APPOINTMENTS
+
+Uso típico:
+
+desde el contacto se consultan turnos relacionados como parte de la lectura transversal del vínculo operativo
+
+Contexto esperado:
+
+si el flujo parte de party.show, los turnos relacionados deben abrirse preservando party.show como origen contextual útil
+
+Regla adicional consolidada:
+
+la relación debe consumirse mediante la capacidad reusable oficial publicada por appointments y no mediante una tabla local reconstruida
+
+ORDERS -> APPOINTMENTS
+
+Uso típico:
+
+desde una orden se consulta el turno relacionado cuando exista vínculo operativo previo
+
+Contexto esperado:
+
+si el appointment se abre desde la orden, puede conservarse retorno útil a orders.show cuando siga siendo parte del trabajo en curso
+
+Regla adicional consolidada:
+
+esta relación debe resolverse como integración compacta y no como tab pesada del módulo orders
+
+la resolución debe apoyarse en el vínculo appointments.order_id y preservar trail contextual cuando corresponda
 
 PROJECTS -> TASKS
 

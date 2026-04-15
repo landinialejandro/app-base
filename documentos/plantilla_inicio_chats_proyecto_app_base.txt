@@ -14,7 +14,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -64,6 +64,13 @@ Regla adicional de validación relacional:
 no asumir modelado de relaciones por intuición
 
 si una integración entre módulos parece implicar una foreign key, primero verificar columnas, relaciones y flujo real en código o runtime antes de documentarla o implementarla
+
+Regla adicional de cierre modular:
+
+antes de dar por cerrado un módulo, reanclar explícitamente cuál es su superficie principal real
+
+si existe una superficie secundaria relevante, dejarla nombrada como tal y no leerla como base promovida del módulo por inercia
+
 <<END SECTION>>
 
 <<SECTION: REGLA CENTRAL DE TRABAJO>>
@@ -112,7 +119,7 @@ si el pedido es cerrar, alinear o auditar un módulo, debe revisarse también si
 <<END SECTION>>
 
 <<SECTION: CRITERIO DE AVANCE>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CRITERIO DE AVANCE
 
@@ -132,10 +139,20 @@ Un módulo puede quedar cerrado en su núcleo y mantener pendientes residuales e
 
 Cuando el cambio toque permisos, constraints, datasets o multi-tenancy, priorizar prueba real antes de declarar cierre.
 
+Regla adicional consolidada:
+
+si el frente incluye consumo transversal desde otros módulos, el avance correcto tiende a seguir este orden:
+
+reanclar superficie principal del módulo
+publicar oferta reusable oficial desde el propio módulo
+integrar consumidores respetando el patrón visual ya consolidado
+barrer trail, permisos, dataset y superficies secundarias residuales
+cerrar documentación
+
 <<END SECTION>>
 
 <<SECTION: REGLAS ESPECÍFICAS DEL PROYECTO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 REGLAS ESPECÍFICAS DEL PROYECTO
 
@@ -156,6 +173,16 @@ Si se detecta contradicción entre documentos, señalarla antes de corregir.
 Si una capacidad reusable ya fue publicada por el módulo oferente, no proponer duplicaciones locales en módulos consumidores salvo justificación real.
 
 El cierre de un frente modular requiere revisar también superficies secundarias relevantes y no solo la pantalla principal.
+
+Regla adicional consolidada:
+
+cuando un módulo consumidor ya tenga un patrón visual consolidado para relaciones equivalentes, las nuevas integraciones deben replicar ese patrón y no introducir gramática visual nueva sin justificación real.
+
+Regla adicional sobre integraciones:
+
+distinguir explícitamente entre relación embebida fuerte y relación compacta
+
+no forzar tabs o tablas pesadas cuando la relación real solo requiere una acción contextual compacta
 
 <<END SECTION>>
 

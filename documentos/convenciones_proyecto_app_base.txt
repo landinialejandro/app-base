@@ -693,7 +693,7 @@ la clasificación no debe forzar jerarquías falsas de dependencia existencial c
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -755,11 +755,25 @@ no alcanza con reutilizar solo una vista Blade si la decisión de estados sigue 
 
 cuando la capacidad reusable pertenezca contractualmente a un módulo oferente, su implementación no debe quedar en una ubicación global ambigua que borre su identidad modular
 
+Regla adicional consolidada sobre forma de publicación:
+
+si la relación reusable es fuerte, múltiple o de lectura pesada, debe priorizarse el patrón de embebido modular completo publicado por el módulo oferente
+
+ese patrón debe tender a expresarse mediante wrapper modular tipo partials.embedded-tabs y una pieza interna reusable de listado o tabla
+
+si la relación reusable es compacta, puntual o 1 a 1, debe priorizarse una acción contextual compacta del tipo linked-*-action publicada por el propio módulo oferente
+
+no debe forzarse tab pesada cuando la relación no lo necesita
+
 Casos consolidados actuales:
 
 linked-order-action como superficie reusable publicada por orders
 linked-party-action como superficie reusable publicada por parties
 linked-asset-action como superficie reusable publicada por assets
+
+Caso adicional consolidado:
+
+appointments puede publicar embebido reusable oficial para relaciones fuertes y acción compacta cuando el vínculo consumidor sea puntual
 
 Regla operativa adicional de cierre:
 
@@ -1324,7 +1338,7 @@ cuando no exista contexto válido o el origen no agregue valor operativo, debe m
 <<END SECTION>>
 
 <<SECTION: RESOLUCIÓN TÉCNICA DEL TRAIL DE NAVEGACIÓN>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 RESOLUCIÓN TÉCNICA DEL TRAIL DE NAVEGACIÓN
 
@@ -1369,6 +1383,14 @@ los nodos transitorios de formulario como create, edit, items.create o items.edi
 
 las acciones cancelar dentro de formularios contextuales deben respetar el trail completo vigente y no volver por defecto al show estructural del módulo
 
+Regla adicional consolidada para capacidades reusables embebidas:
+
+cuando una tabla reusable o bloque embebido se consuma dentro de otro módulo, no debe reiniciar navegación desde una base local del módulo oferente si el flujo vigente sigue anclado en el contenedor consumidor
+
+debe heredar el trailQuery contextual recibido y propagarlo hacia show, acciones por fila, cancelar y redirects relevantes
+
+esto aplica especialmente a tablas reutilizables consumidas dentro de tabs o cards de relación
+
 las decisiones internas de implementación pueden evolucionar, pero la convención estable es:
 
 motor central reutilizable
@@ -1378,6 +1400,7 @@ vista consume
 sin deducción desde historial
 sin duplicación por módulo
 sin serialización recursiva del trail dentro de nodos
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE VOCABULARIO UI>>

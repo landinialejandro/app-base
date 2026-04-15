@@ -374,7 +374,7 @@ tampoco debe sobredimensionarse el dominio del negocio hasta absorber piezas cuy
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 CLASIFICACIÓN CONCEPTUAL DE MÓDULOS
 
@@ -411,6 +411,14 @@ appointments
 products
 assets
 orders
+
+Aclaración adicional consolidada:
+
+appointments debe leerse además como módulo oferente de integración reutilizable dentro del ecosistema
+
+su publicación de capacidades reusables no lo convierte en subrecurso de assets, parties ni orders
+
+refuerza su autonomía contractual dentro del sistema
 
 MÓDULO AGRUPADOR
 
@@ -458,7 +466,7 @@ Sigue perteneciendo al ecosistema operativo del tenant, pero con un rol conceptu
 <<END SECTION>>
 
 <<SECTION: MÓDULOS FUNCIONALES ACTUALES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 MÓDULOS FUNCIONALES ACTUALES
 
@@ -479,10 +487,18 @@ Estos módulos constituyen la lectura funcional principal del sistema dentro de 
 
 La correspondencia entre entidad del negocio y módulo visible puede ser directa o predominantemente directa, pero no todas las entidades del negocio deben leerse como módulo nuclear independiente.
 
+Aclaración adicional consolidada:
+
+appointments mantiene identidad de módulo funcional propio con superficie principal de agenda
+
+su acceso principal del ecosistema se interpreta desde appointments.calendar
+
+appointments.index puede existir como superficie secundaria, pero no debe leerse como base promovida del módulo
+
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES
 
@@ -513,6 +529,16 @@ APPOINTMENTS
 Debe leerse como módulo autónomo de agenda operativa.
 
 Representa planificación, reserva o coordinación temporal dentro del tenant.
+
+Su superficie principal actual debe leerse desde calendar como expresión primaria del módulo.
+
+Además, appointments ya no debe leerse solo como pantalla navegable aislada.
+
+También publica oferta reusable oficial para consumo desde otros módulos del ecosistema.
+
+Esa oferta puede incluir embebidos relacionales fuertes cuando la relación lo justifique y acciones compactas cuando el vínculo sea puntual o 1 a 1.
+
+Su publicación reusable no degrada su identidad ni lo convierte en subrecurso de módulos consumidores.
 
 PRODUCTS
 
@@ -566,7 +592,7 @@ la posición conceptual de un módulo dentro de esta sección orienta la arquite
 
 
 <<SECTION: RELACIONES MACRO DEL ECOSISTEMA>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 RELACIONES MACRO DEL ECOSISTEMA
 
@@ -588,19 +614,23 @@ Relaciones estructuralmente especialmente relevantes dentro del estado actual de
 projects y tasks como agrupador y unidad operativa
 tasks y orders como continuidad posible entre trabajo interno y operación
 appointments y orders como continuidad posible entre agenda y operación
-orders y documents como relación entre operación y formalización documental
-orders y order_items como cabecera y detalle operativo
-products como soporte maestro de detalle operativo y documental
-products e inventory V1 como relación entre catálogo y capacidad operativa real de stock
-parties como referencia transversal de actores externos
-assets como referencia de recursos operativos
-attachments como capacidad transversal de soporte sobre recursos
+assets como contexto transversal para operationes, agenda y documentos
+parties como base relacional transversal del dominio
+products como base de catálogo operativo e inventory V1
 
-Regla adicional:
+Aclaración adicional consolidada:
 
-la existencia de inventory V1 no debe forzar por ahora la lectura de inventory como módulo funcional autónomo ya cerrado.
+appointments ya no debe leerse solo como módulo que deriva hacia orders
 
-Mientras no consolide identidad modular propia, debe seguir leyéndose como capacidad operativa transversal apoyada en products.
+también publica una oferta reusable oficial para el ecosistema
+
+esa oferta se consume de forma embebida desde relaciones fuertes como assets y parties
+
+y de forma compacta desde relaciones puntuales como orders
+
+Regla:
+
+las relaciones macro aquí descritas expresan lectura arquitectónica del ecosistema y no deben confundirse con detalle de navegación, seguridad o implementación puntual.
 
 <<END SECTION>>
 

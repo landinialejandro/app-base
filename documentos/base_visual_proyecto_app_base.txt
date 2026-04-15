@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 COMPONENTES DISPONIBLES
 
@@ -132,6 +132,11 @@ Casos reusables consolidados:
 
 linked-order-action como acción transversal compartida para integración hacia orders
 linked-asset-action como acción transversal compartida para integración hacia assets
+
+Nuevos casos consolidados:
+
+embebidos reusables oficiales publicados por módulos oferentes para relaciones fuertes
+acciones compactas publicadas por módulos oferentes para relaciones puntuales o 1 a 1
 
 Regla adicional:
 
@@ -250,7 +255,7 @@ Estos bloques ayudan a integrar módulos sin sobrecargar navegación ni multipli
 <<END SECTION>>
 
 <<SECTION: OFERTAS DE INTEGRACIÓN VISUAL>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 OFERTAS DE INTEGRACIÓN VISUAL
 
@@ -287,6 +292,14 @@ Casos consolidados actuales:
 
 linked-order-action como oferta visual reusable de orders
 linked-asset-action como oferta visual reusable de assets
+
+Regla adicional consolidada sobre forma visual:
+
+cuando la relación reusable sea fuerte o múltiple, debe priorizarse un embebido modular completo con wrapper propio del módulo oferente y pieza interna reusable de tabla o listado
+
+cuando la relación sea compacta o 1 a 1, debe priorizarse una acción contextual compacta del tipo linked-*-action
+
+la decisión entre embebido fuerte y acción compacta debe responder al peso real de la relación y no a simetría estética
 
 <<END SECTION>>
 
@@ -518,7 +531,7 @@ la unidad visual completa debe desaparecer y no solo el contenido interno
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW
 
@@ -578,6 +591,12 @@ Casos vigentes relevantes:
 
 linked-order-action
 linked-asset-action
+
+Regla adicional sobre peso visual de la relación:
+
+las relaciones fuertes pueden publicarse como embebidos modulares completos dentro de tabs o cards
+
+las relaciones puntuales o 1 a 1 deben tender a resolverse como acción compacta o summary contextual y no como pestaña pesada por simetría
 
 <<END SECTION>>
 
@@ -644,7 +663,7 @@ el embebido sigue siendo un bloque subordinado al show principal, aunque interna
 <<END SECTION>>
 
 <<SECTION: ACCIONES VISUALES EN INDEX Y SHOW>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 ACCIONES VISUALES EN INDEX Y SHOW
 
@@ -707,6 +726,10 @@ Casos vigentes relevantes:
 
 linked-order-action
 linked-asset-action
+
+Regla adicional de composición:
+
+cuando la relación con otro módulo sea puntual o 1 a 1, debe priorizarse una acción compacta reusable antes que un bloque pesado de tabs o tabla
 
 <<END SECTION>>
 

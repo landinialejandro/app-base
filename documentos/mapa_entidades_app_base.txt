@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -113,6 +113,18 @@ también puede publicar oferta reusable propia para resolver navegación relacio
 Caso consolidado actual:
 
 linked-asset-action como capacidad reusable oficial del módulo assets
+
+Aclaración adicional consolidada para appointments:
+
+appointments no solo participa como origen contextual hacia orders
+
+también publica oferta reusable propia para exponer turnos relacionados dentro del ecosistema
+
+Caso consolidado actual:
+
+embebido reusable oficial para relaciones fuertes consumido desde assets y parties
+
+integración compacta para vínculo puntual con orders
 
 no invalidan otras relaciones técnicas menores ya existentes o futuras
 
@@ -374,7 +386,7 @@ cuando eso ocurra, esas capacidades deben seguir leyéndose como oferta del mód
 <<END SECTION>>
 
 <<SECTION: PARTIES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 PARTIES
 
@@ -413,6 +425,7 @@ summary de contacto
 lookup mínimo
 tabla de relaciones asociadas
 acción enlazada reusable
+embebidos contextuales de relaciones transversales
 
 Reglas:
 
@@ -434,6 +447,10 @@ debe tender a publicarse desde el propio módulo parties como capacidad reusable
 caso inmediato previsto:
 
 linked-party-action
+
+Aclaración adicional consolidada:
+
+parties puede además consumir el embebido reusable oficial de appointments para exponer turnos relacionados dentro de su lectura transversal del ecosistema
 
 Regla adicional de seguridad conceptual:
 
@@ -531,7 +548,7 @@ su agrupación por projects no lo convierte en subrecurso dependiente
 <<END SECTION>>
 
 <<SECTION: APPOINTMENTS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 APPOINTMENTS
 
@@ -555,6 +572,7 @@ agenda
 contexto temporal
 origen posible de orders
 planificación operativa
+embebidos relacionales reutilizables
 
 Superficie contractual conceptual posible:
 
@@ -562,12 +580,26 @@ selector de turno
 agenda embebible
 summary de turno
 acción crear order contextual
+embebido reusable de turnos relacionados
 
 Reglas:
 
 su identidad funcional no depende de orders aunque pueda derivar operaciones hacia ese módulo
 
 cuando exista vínculo con order, ese vínculo real se persiste desde appointments.order_id y no desde orders.appointment_id
+
+su superficie principal debe leerse desde calendar como entrada principal del módulo
+
+appointments.index puede existir como superficie secundaria, pero no debe leerse como base principal promovida
+
+Aclaración contractual consolidada:
+
+appointments publica oferta reusable oficial para el ecosistema
+
+esa oferta puede consumirse como embebido fuerte desde assets y parties
+
+y como integración compacta desde orders cuando la relación sea puntual
+
 <<END SECTION>>
 
 <<SECTION: PRODUCTS>>
@@ -610,7 +642,7 @@ los servicios forman parte válida del catálogo, pero no deben tratarse como st
 <<END SECTION>>
 
 <<SECTION: ASSETS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ASSETS
 
@@ -659,10 +691,14 @@ Caso consolidado actual:
 
 linked-asset-action
 
+Aclaración relacional adicional:
+
+assets puede consumir el embebido reusable oficial de appointments para exponer turnos relacionados como parte de su lectura operacional contextual
+
 <<END SECTION>>
 
 <<SECTION: ORDERS>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 ORDERS
 
@@ -725,6 +761,13 @@ su resolución válida puede combinar backend propio del módulo y bloque visual
 Caso consolidado actual:
 
 linked-order-action forma parte de esa oferta reusable oficial
+
+Aclaración adicional consolidada:
+
+la relación con appointments no requiere embebido pesado desde orders
+
+debe resolverse como integración compacta apoyada en el vínculo appointments.order_id y no como tab relacional fuerte del módulo orders
+
 <<END SECTION>>
 
 <<SECTION: ORDER_ITEMS>>
@@ -899,7 +942,7 @@ Debe resolverse a partir de un catálogo cerrado de rubros y servir como context
 <<END SECTION>>
 
 <<SECTION: FLUJOS PRINCIPALES DEL SISTEMA>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 FLUJOS PRINCIPALES DEL SISTEMA
 
@@ -977,13 +1020,19 @@ Aclaración transversal consolidada:
 
 parties no solo inicia el flujo operativo base hacia orders
 
-también actúa como nodo transversal desde el cual pueden leerse otras relaciones operativas relevantes del ecosistema, por ejemplo assets y documents, según módulos activos y contrato vigente
+también actúa como nodo transversal desde el cual pueden leerse otras relaciones operativas relevantes del ecosistema, por ejemplo assets, appointments y documents, según módulos activos y contrato vigente
 
 Aclaración adicional para assets:
 
 assets no solo aporta contexto de datos a otros flujos
 
 también puede actuar como punto de navegación reutilizable mediante capacidades oficiales publicadas por el propio módulo
+
+Aclaración adicional para appointments:
+
+appointments no solo participa en el flujo appointments → orders
+
+también publica una capacidad reusable que permite ser consumido embebidamente desde assets y parties sin perder identidad modular propia
 
 FLUJO DE ONBOARDING
 

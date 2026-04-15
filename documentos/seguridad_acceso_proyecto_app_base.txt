@@ -325,7 +325,7 @@ Ignorar constraints equivale a ejecutar un contrato incompleto.
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -346,6 +346,14 @@ Regla:
 un módulo sin contrato entendible no constituye un frente cerrado de seguridad.
 
 Los contratos modulares concretos deben ser consistentes con los principios generales de este documento.
+
+Regla adicional consolidada:
+
+si el módulo publica capacidades reutilizables para otros módulos, esas capacidades no generan contratos paralelos de seguridad
+
+deben seguir sometidas al universo visible y a las capacidades efectivas del módulo oferente
+
+esto aplica tanto a acciones compactas como a embebidos relacionales fuertes
 
 <<END SECTION>>
 
@@ -373,7 +381,7 @@ la delegación debe ser explícita, estable y consistente
 <<END SECTION>>
 
 <<SECTION: INTEGRACIONES REUSABLES Y AUTORIZACIÓN>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 INTEGRACIONES REUSABLES Y AUTORIZACIÓN
 
@@ -385,10 +393,20 @@ La visibilidad y operabilidad final continúan sometidas al contrato del módulo
 
 La reutilización mejora consistencia; no reemplaza seguridad.
 
+Regla adicional consolidada:
+
+si la capacidad reusable expone un dataset embebido, ese dataset debe provenir del universo visible autorizado del módulo oferente y no de composición local del consumidor
+
+si la capacidad reusable es compacta, su visibilidad final también debe resolverse bajo el contrato del módulo oferente y no por heurísticas del consumidor
+
+caso consolidado actual:
+
+appointments puede publicar embebido reusable para assets y parties y una integración compacta para orders sin crear permisos nuevos ni redefinir dataset fuera de su contrato propio
+
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -437,6 +455,16 @@ Módulo operativo compartido.
 Puede operar con universo común del tenant y sin ownership artificial por defecto.
 
 Su seguridad no debe degradarlo a simple dato auxiliar cuando participa en múltiples relaciones operativas.
+
+APPOINTMENTS
+
+Módulo autónomo de agenda operativa.
+
+Puede operar con contrato propio de visibilidad y arbitraje central sin perder identidad al ser consumido desde otros módulos.
+
+La publicación de embebidos reusables o integraciones compactas no altera su contrato de seguridad ni habilita reinterpretaciones locales de dataset desde assets, parties u orders.
+
+Su superficie principal puede resolverse desde calendario sin que eso cambie su universo autorizado.
 
 DOCUMENTS
 

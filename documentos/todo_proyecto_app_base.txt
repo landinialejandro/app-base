@@ -61,7 +61,7 @@ priorizar piezas con mayor impacto sistémico
 <<END SECTION>>
 
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 MÓDULOS PRIORITARIOS A REVISAR
 
@@ -123,6 +123,7 @@ sin ownership artificial
 create simple sin contexto obligatorio
 superficie reusable linked-asset-action publicada
 barrido principal de consumidores visibles realizado
+consumo de appointments como relación embebida fuerte ya definido doctrinalmente
 
 Pendiente residual:
 
@@ -177,16 +178,31 @@ superficies reutilizables documentales
 
 APPOINTMENTS
 
-Revisar:
+Estado actual:
 
-agenda reusable
-bloques contextuales
-cierres restantes no cubiertos por integración con orders
+frente doctrinal y estructural principal cerrado en este ciclo de trabajo
+
+Cierres alcanzados:
+
+lectura como módulo autónomo de agenda operativa
+calendar consolidado como superficie principal del módulo
+index relegado a superficie secundaria no promovida
+oferta reusable oficial definida desde el propio módulo
+embebido reusable oficial para relaciones fuertes
+integración compacta definida para vínculo puntual con orders
+consumo doctrinal esperado desde assets y parties sin duplicación local
+trail base reanclado conceptualmente desde calendar
+
+Pendiente residual:
+
+validación runtime final de superficies alineadas y barrido documental restante
+
+No reabrir este frente salvo bug real o divergencia verificable de implementación.
 
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -237,10 +253,30 @@ no implica ausencia total de bugs futuros
 
 implica que el frente doctrinal principal quedó resuelto y solo restan verificaciones residuales o evolución futura aprobada
 
+APPOINTMENTS
+
+Se considera cerrado doctrinal y estructuralmente en este frente respecto de:
+
+identidad modular como agenda operativa autónoma
+calendar como superficie principal del módulo
+index como superficie secundaria no promovida
+integración contextual principal hacia orders
+oferta reusable oficial publicada desde el propio módulo
+definición de embebido reusable para relaciones fuertes
+definición de integración compacta para vínculo puntual con orders
+alineación conceptual del consumo desde assets y parties
+reubicación doctrinal del trail base del módulo
+
+Alcance del cierre:
+
+no implica ausencia total de bugs futuros
+
+implica que el rediseño modular principal quedó resuelto y lo restante pertenece a validación runtime final y documentación asociada
+
 <<END SECTION>>
 
 <<SECTION: CAPACIDADES REUTILIZABLES A CONSOLIDAR>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CAPACIDADES REUTILIZABLES A CONSOLIDAR
 
@@ -266,6 +302,8 @@ Casos vigentes a terminar de homogeneizar:
 
 consumo transversal de linked-order-action en consumidores secundarios del ecosistema
 confirmación final de adopción homogénea de linked-asset-action en superficies residuales si aparecieran
+validación final del embebido reusable de appointments en consumidores visibles y secundarios
+confirmación de que la relación orders ↔ appointments permanezca resuelta de forma compacta sin tab pesada residual
 
 <<END SECTION>>
 
@@ -465,7 +503,7 @@ inventory
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 PENDIENTES INMEDIATOS
 
@@ -561,6 +599,18 @@ revisar si las superficies UI actuales de stock alcanzan o si más adelante conv
 
 no reabrir el núcleo doctrinal de products por este frente
 
+Pendiente inmediato adicional appointments:
+
+validar runtime final del embebido reusable en assets y parties
+
+confirmar ausencia de tabs, links o tablas locales residuales que reconstruyan appointments fuera de su superficie oficial
+
+mantener la lectura orders ↔ appointments como integración compacta y no reintroducir embebido pesado
+
+Caso operativo separado detectado en sesión:
+
+resolver la incompatibilidad runtime de orders.show por include faltante de inventory.partials.movements-table
+
 considerar como ya cerrado y no reabrir en este frente:
 
 orders como núcleo operativo principal
@@ -580,6 +630,9 @@ doctrina principal de assets como módulo compartido del tenant
 linked-asset-action como capacidad reusable oficial de assets
 núcleo doctrinal de products como módulo autónomo de catálogo operativo compartido
 inventory V1 como capacidad operativa real ya validada sobre products
+appointments como módulo autónomo de agenda operativa
+calendar como superficie principal de appointments
+oferta reusable oficial de appointments para relaciones fuertes y compactas
 
 <<END SECTION>>
 

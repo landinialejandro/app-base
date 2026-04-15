@@ -1,12 +1,13 @@
 <?php
 
-// FILE: config/seeders.php | V3
+// FILE: config/seeders.php | V4
 
 use Database\Seeders\Modules\AppointmentModuleSeeder;
 use Database\Seeders\Modules\AssetModuleSeeder;
 use Database\Seeders\Modules\BranchModuleSeeder;
 use Database\Seeders\Modules\CrossRelationsSeeder;
 use Database\Seeders\Modules\DocumentModuleSeeder;
+use Database\Seeders\Modules\InventoryModuleSeeder;
 use Database\Seeders\Modules\InvitationModuleSeeder;
 use Database\Seeders\Modules\MembershipModuleSeeder;
 use Database\Seeders\Modules\OrderModuleSeeder;
@@ -38,6 +39,7 @@ return [
             TaskModuleSeeder::class,
             OrderModuleSeeder::class,
             DocumentModuleSeeder::class,
+            InventoryModuleSeeder::class,
             AppointmentModuleSeeder::class,
             CrossRelationsSeeder::class,
         ],

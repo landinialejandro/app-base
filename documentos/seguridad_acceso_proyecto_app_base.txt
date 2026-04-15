@@ -388,7 +388,7 @@ La reutilización mejora consistencia; no reemplaza seguridad.
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -448,11 +448,31 @@ Su condición derivada no autoriza a resolverlo como excepción informal alojada
 
 PRODUCTS
 
-Módulo de catálogo operativo.
+Módulo autónomo de catálogo operativo compartido del tenant.
 
-Debe privilegiar consistencia transversal y evitar divergencias de autorización entre consumidores.
+Su seguridad debe cubrir de forma coherente tanto el catálogo maestro de bienes y servicios como su consumo transversal desde otros módulos.
 
-Su función de catálogo no lo exime de contrato de seguridad claro.
+Puede operar con universo común del tenant y sin ownership artificial por defecto.
+
+Su función de catálogo no lo degrada a dato auxiliar ni lo reduce a un CRUD aislado.
+
+Cuando participe en flujos operativos o documentales, la visibilidad y operabilidad final deben seguir sometidas al contrato propio de products y al arbitraje central.
+
+Inventory V1 no constituye todavía un módulo autónomo cerrado de seguridad.
+
+Debe leerse como capacidad operativa transversal apoyada en products.
+
+Por lo tanto:
+
+los movimientos de inventario no publican por ahora un universo autónomo de autorización
+las acciones operativas de inventory V1 deben resolverse desde contratos ya existentes del ecosistema
+la operación sobre stock físico debe respetar la distinción entre productos físicos y servicios
+
+Regla doctrinal adicional:
+
+no debe asumirse que todo registro catalogado en products participa del mismo modo en inventario
+
+los servicios pertenecen al módulo products como parte válida del catálogo, pero no deben tratarse como stockeables por defecto
 
 ATTACHMENTS
 

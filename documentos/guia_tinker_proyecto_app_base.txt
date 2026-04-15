@@ -176,6 +176,8 @@ consistencia entre subject nulo y class-string si ambas formas están soportadas
 <<END SECTION>>
 
 <<SECTION: DATOS VERIFICADOS ACTUALES PARA PRUEBAS>>
+SECTION_VERSION: 00002
+
 DATOS VERIFICADOS ACTUALES PARA PRUEBAS
 
 Los siguientes datos fueron validados en sesión y pueden utilizarse como referencia inmediata para pruebas controladas.
@@ -188,16 +190,37 @@ juan@tech.local
 TENANT VALIDADO
 
 tenant_id:
-9bd1cfe0-f903-48e7-afee-f1c499e27a1a
+ff9c66f4-34b9-43c4-afa7-8a8cc03e10fd
 
 tenant_name:
 Tech Solutions SA
+
+tenant_slug:
+tech-solutions-sa
+
+DATASET VALIDADO
+
+products en Tech:
+5
+
+productos físicos:
+3
+
+servicios:
+2
+
+inventory_movements_count:
+13
 
 Regla:
 
 estos datos pueden usarse como contexto base de ejemplo mientras no cambien.
 
 No extender esta sección con otros usuarios, tenants o ids no validados explícitamente.
+
+Regla operativa adicional aprendida:
+
+si una prueba de stock da todo en cero, primero validar que el seeder efectivo esté incluido en config/seeders.php y no solo en DemoSeeder.
 <<END SECTION>>
 
 <<SECTION: CASOS PRIORITARIOS DE USO>>

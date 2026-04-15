@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -63,6 +63,8 @@ orders puede derivar documents
 orders contiene detalle operativo mediante order_items
 
 products alimenta order_items y document_items
+
+products sostiene la base operativa actual de inventory V1 mediante inventory_movements
 
 parties se relaciona transversalmente con múltiples módulos
 
@@ -81,6 +83,10 @@ la relación appointments → orders opera como vínculo contextual y operativo 
 order_items debe leerse como detalle dependiente de orders y no como módulo autónomo paralelo
 
 la relación entre order_items y product es opcional y forma parte del detalle operativo del padre
+
+products ya no debe leerse frente a inventory V1 como promesa futura difusa
+
+la relación products → inventory_movements expresa una capacidad operativa actual, validada y todavía no cerrada como módulo autónomo independiente
 
 orders no solo ocupa posición central por su entidad principal
 
@@ -185,6 +191,8 @@ Por esta razón, no debe tratarse como una entidad tenant-scoped pura del negoci
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
+SECTION_VERSION: 00002
+
 ENTIDADES DEL NEGOCIO
 
 Son las entidades operativas propias de cada tenant.
@@ -206,6 +214,7 @@ order_items
 documents
 document_items
 document_sequences
+inventory_movements
 attachments
 <<END SECTION>>
 
@@ -562,7 +571,7 @@ cuando exista vínculo con order, ese vínculo real se persiste desde appointmen
 <<END SECTION>>
 
 <<SECTION: PRODUCTS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 PRODUCTS
 
@@ -580,7 +589,7 @@ Relaciones ofrecidas:
 
 order_items
 document_items
-futuro inventory
+inventory_movements
 
 Superficie contractual conceptual posible:
 
@@ -591,7 +600,13 @@ summary de producto
 
 Reglas:
 
-inventory se considera evolución funcional relacionada y no condición obligatoria actual del módulo
+inventory V1 se considera capacidad operativa actual apoyada en products y no módulo autónomo cerrado
+
+no todo registro de products participa del mismo modo en inventory V1
+
+los productos físicos pueden sostener movimientos de stock
+
+los servicios forman parte válida del catálogo, pero no deben tratarse como stockeables por defecto
 <<END SECTION>>
 
 <<SECTION: ASSETS>>
@@ -884,7 +899,7 @@ Debe resolverse a partir de un catálogo cerrado de rubros y servir como context
 <<END SECTION>>
 
 <<SECTION: FLUJOS PRINCIPALES DEL SISTEMA>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 FLUJOS PRINCIPALES DEL SISTEMA
 
@@ -932,6 +947,12 @@ assets
 ↓
 orders / documents / appointments
 
+FLUJO OPERATIVO DE CATÁLOGO Y STOCK
+
+products
+↓
+inventory_movements
+
 Reglas de consistencia:
 
 tasks y appointments constituyen orígenes funcionales válidos hacia orders dentro del ecosistema actual
@@ -947,6 +968,10 @@ order_items forma parte del flujo operativo base como detalle dependiente de ord
 la transición appointments → orders debe respetar el estado activo del módulo orders
 
 si orders no está habilitado para el tenant, el flujo no debe exponerse en UI
+
+products → inventory_movements expresa la base operativa actual de inventory V1
+
+ese flujo no debe leerse todavía como prueba de cierre de un módulo inventory autónomo independiente
 
 Aclaración transversal consolidada:
 
@@ -977,6 +1002,8 @@ attachments
 <<END SECTION>>
 
 <<SECTION: ENTIDADES YA IMPLEMENTADAS>>
+SECTION_VERSION: 00002
+
 ENTIDADES YA IMPLEMENTADAS
 
 users
@@ -998,6 +1025,7 @@ order_items
 documents
 document_items
 document_sequences
+inventory_movements
 attachments
 <<END SECTION>>
 

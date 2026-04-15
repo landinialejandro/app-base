@@ -482,7 +482,7 @@ La correspondencia entre entidad del negocio y módulo visible puede ser directa
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00003
 
 LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES
 
@@ -516,9 +516,23 @@ Representa planificación, reserva o coordinación temporal dentro del tenant.
 
 PRODUCTS
 
-Debe leerse como módulo autónomo de catálogo operativo.
+Debe leerse como módulo autónomo de catálogo operativo compartido.
 
-Representa bienes, servicios o unidades catalogables que alimentan otros flujos del negocio.
+Representa bienes y servicios catalogables que alimentan otros flujos del negocio.
+
+No debe leerse solo como catálogo comercial ni como simple CRUD.
+
+También actúa como soporte maestro de ítems operativos y documentales dentro del tenant.
+
+En el estado actual del proyecto, además, constituye la base operativa validada sobre la que se apoya inventory V1.
+
+Esa relación ya no debe leerse solo como dirección teórica de crecimiento, sino como capacidad operativa real verificada en runtime.
+
+La distinción entre productos físicos con movimientos y servicios no stockeables por defecto forma parte de esa lectura vigente.
+
+Esa relación no convierte todavía a inventory en un módulo autónomo cerrado.
+
+Inventory V1 debe leerse, por ahora, como capacidad operativa transversal relacionada con products y no como pieza con identidad modular independiente ya consolidada.
 
 ASSETS
 
@@ -552,7 +566,7 @@ la posición conceptual de un módulo dentro de esta sección orienta la arquite
 
 
 <<SECTION: RELACIONES MACRO DEL ECOSISTEMA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00004
 
 RELACIONES MACRO DEL ECOSISTEMA
 
@@ -565,6 +579,7 @@ assets aporta contexto operativo a múltiples frentes
 orders puede derivar documents
 orders contiene detalle operativo mediante order_items
 products alimenta ítems operativos y documentales
+products sostiene la base operativa actual y validada de inventory V1
 parties se relaciona transversalmente con múltiples módulos
 attachments puede integrarse sobre múltiples recursos
 
@@ -575,14 +590,17 @@ tasks y orders como continuidad posible entre trabajo interno y operación
 appointments y orders como continuidad posible entre agenda y operación
 orders y documents como relación entre operación y formalización documental
 orders y order_items como cabecera y detalle operativo
-products como soporte de detalle operativo y documental
+products como soporte maestro de detalle operativo y documental
+products e inventory V1 como relación entre catálogo y capacidad operativa real de stock
 parties como referencia transversal de actores externos
 assets como referencia de recursos operativos
-attachments como capacidad transversal sobre múltiples recursos
+attachments como capacidad transversal de soporte sobre recursos
 
-Estas relaciones expresan lectura macro y estructural del sistema.
+Regla adicional:
 
-No reemplazan el detalle técnico de navegación, modelado relacional fino, contrato modular ni seguridad específica.
+la existencia de inventory V1 no debe forzar por ahora la lectura de inventory como módulo funcional autónomo ya cerrado.
+
+Mientras no consolide identidad modular propia, debe seguir leyéndose como capacidad operativa transversal apoyada en products.
 
 <<END SECTION>>
 

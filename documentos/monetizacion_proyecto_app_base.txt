@@ -1,0 +1,407 @@
+<<SECTION: METADATOS>>
+SECTION_VERSION: 00001
+TÍTULO: Monetización del proyecto
+DOC_SLUG: monetizacion_proyecto_app_base
+DOC_VERSION: 00001
+TIPO: estratégico-comercial
+ESTADO: activo
+GESTIÓN: Documento doctrinal de líneas comerciales, pricing, confianza comercial y evolución de monetización vigente.
+<<END SECTION>>
+
+<<SECTION: OBJETIVO>>
+SECTION_VERSION: 00001
+
+OBJETIVO
+
+Este documento define el modelo general de monetización de app-base.
+
+Su función es:
+
+definir cómo el proyecto genera ingresos
+ordenar líneas comerciales vigentes
+establecer planes de membresía
+formalizar extras y upgrades
+definir modalidad enterprise
+alinear evolución comercial con la visión del producto
+dejar explícitos criterios de confianza comercial y portabilidad
+
+No define:
+
+detalle técnico de módulos
+implementación de pricing en código
+campañas de marketing tácticas
+costos contables internos
+copy final de landing o publicidad
+
+<<END SECTION>>
+
+<<SECTION: PROPUESTA DE VALOR>>
+SECTION_VERSION: 00001
+
+PROPUESTA DE VALOR
+
+app-base monetiza resolviendo dos necesidades principales del mercado:
+
+ordenar la operación interna de las empresas
+habilitar nuevas oportunidades comerciales y crecimiento digital
+
+El cliente no compra código.
+
+El cliente compra:
+
+orden
+continuidad operativa
+control
+claridad para trabajar
+una base profesional para crecer
+capacidad de ampliar el negocio sin perder coherencia
+
+La propuesta de valor del proyecto debe leerse como una base de trabajo preparada para elevar la forma en que opera una empresa.
+
+No se presenta solo como software.
+
+Se presenta como un entorno propio, claro, sólido y preparado para acompañar crecimiento real.
+
+<<END SECTION>>
+
+<<SECTION: POSICIONAMIENTO COMERCIAL>>
+SECTION_VERSION: 00001
+
+POSICIONAMIENTO COMERCIAL
+
+app-base se posiciona como una plataforma de gestión y crecimiento para empresas que necesitan ordenar su operación, trabajar con más claridad y sostener una evolución más profesional sin perder simplicidad.
+
+No debe posicionarse como una suma de módulos sueltos.
+
+Debe posicionarse como una infraestructura premium para empresas.
+
+Conceptos centrales del posicionamiento vigente:
+
+entorno propio
+orden
+continuidad
+control
+crecimiento con coherencia
+base sólida para trabajar mejor
+
+<<END SECTION>>
+
+<<SECTION: LÍNEAS COMERCIALES>>
+SECTION_VERSION: 00001
+
+LÍNEAS COMERCIALES
+
+El proyecto opera inicialmente en dos líneas comerciales complementarias:
+
+MEMBRESÍA
+
+Acceso al producto estándar en modalidad SaaS.
+
+Incluye:
+
+uso del sistema
+hosting administrado
+mantenimiento general
+mejoras evolutivas comunes
+soporte según plan
+
+Esta línea comercial debe comunicarse como acceso a una infraestructura lista para trabajar y preparada para crecer.
+
+IMPLEMENTACIÓN PARTICULAR
+
+Modalidad orientada a clientes que requieren una solución exclusiva o personalizada.
+
+Puede incluir:
+
+instancia dedicada
+servidor propio o administrado
+branding propio
+dominio propio
+migración de datos
+integraciones
+ajustes funcionales
+soporte preferente
+capacitación inicial
+
+Esta línea no debe leerse solo como plan más grande.
+
+Debe leerse como modalidad comercial distinta, orientada a organizaciones que necesitan mayor exclusividad, control o acompañamiento.
+
+<<END SECTION>>
+
+<<SECTION: PLANES DE MEMBRESÍA>>
+SECTION_VERSION: 00001
+
+PLANES DE MEMBRESÍA
+
+Los planes estándar se estructuran por capacidad operativa y servicio.
+
+Como criterio general, no se limita el acceso al núcleo funcional por módulos, salvo excepciones estratégicas definidas.
+
+Planes vigentes:
+
+Starter
+Growth
+Scale
+
+Enterprise se gestiona fuera de esta tabla como modalidad particular.
+
+<<END SECTION>>
+
+<<SECTION: DETALLE DE PLANES>>
+SECTION_VERSION: 00001
+
+DETALLE DE PLANES
+
+STARTER
+
+USD 26 / mes
+Hasta 5 usuarios incluidos.
+Pensado para empresas pequeñas o en etapa inicial.
+
+Configuración operativa sugerida:
+
+1 owner
+1 admin
+2 operadores
+1 administrativo
+
+Documents no incluido.
+
+Debe comunicarse como una base sólida para empezar a trabajar con orden desde el primer momento.
+
+GROWTH
+
+USD 50 / mes
+Hasta 10 usuarios incluidos.
+Pensado para empresas en crecimiento.
+
+Documents incluido.
+
+Debe comunicarse como una etapa de crecimiento organizado, con más estructura, más continuidad y una operación más madura.
+
+SCALE
+
+USD 99 / mes
+Hasta 20 usuarios incluidos.
+Pensado para operaciones intensivas o equipos consolidados.
+
+Documents incluido.
+
+Debe comunicarse como una base premium para empresas que necesitan más amplitud operativa, más capacidad y más proyección.
+
+ENTERPRISE
+
+Precio a convenir.
+Modalidad consultiva y personalizada.
+
+<<END SECTION>>
+
+<<SECTION: USUARIOS ADICIONALES>>
+SECTION_VERSION: 00001
+
+USUARIOS ADICIONALES
+
+Los planes estándar admiten ampliación mediante usuarios adicionales.
+
+Valor vigente:
+
+USD 5,5 por usuario adicional / mes
+
+Reglas:
+
+el usuario adicional resuelve necesidades intermedias de crecimiento
+no reemplaza la lógica natural de upgrade entre planes
+la estrategia comercial puede sugerir migración al plan superior cuando resulte más conveniente para el cliente
+
+<<END SECTION>>
+
+<<SECTION: DOCUMENTS COMO CAPA AVANZADA>>
+SECTION_VERSION: 00001
+
+DOCUMENTS COMO CAPA AVANZADA
+
+El módulo Documents se habilita desde Growth.
+
+Criterio comercial vigente:
+
+requiere mantenimiento continuo
+puede demandar actualizaciones fiscales o normativas
+implica mayor responsabilidad operativa y soporte
+agrega valor claro en empresas con procesos más maduros
+
+Su exclusión de Starter responde a segmentación estratégica y sostenibilidad del servicio.
+
+No debe comunicarse como recorte arbitrario.
+
+Debe comunicarse como una capa más exigente del producto, asociada a formalización operativa, mantenimiento especializado y evolución regulatoria.
+
+<<END SECTION>>
+
+<<SECTION: INVENTARIO COMO VALOR ACTUAL>>
+SECTION_VERSION: 00001
+
+INVENTARIO COMO VALOR ACTUAL
+
+El componente de inventario ya debe leerse como capacidad real del producto.
+
+Estado vigente:
+
+fase beta en operación
+
+Por lo tanto:
+
+no debe comunicarse como promesa abstracta ni como idea futura difusa
+sí debe comunicarse como capacidad activa en evolución continua
+
+Su valor comercial reside en acompañar control de stock, movimientos y organización operativa sobre una base ya funcional.
+
+<<END SECTION>>
+
+<<SECTION: IA COMO CAPA EVOLUTIVA DE VALOR>>
+SECTION_VERSION: 00001
+
+IA COMO CAPA EVOLUTIVA DE VALOR
+
+El proyecto contempla la incorporación de asistencia inteligente como parte de su evolución comercial y funcional.
+
+Esta capa puede incluir, según etapa y modalidad:
+
+asistencia administrativa
+consulta guiada sobre información operativa
+ayuda para organización del trabajo
+automatización progresiva
+agentes especializados en contextos enterprise
+
+La IA no debe presentarse como accesorio aislado.
+
+Debe leerse como una capa de expansión capaz de aumentar productividad, claridad y capacidad operativa dentro del mismo entorno de trabajo.
+
+<<END SECTION>>
+
+<<SECTION: PORTABILIDAD Y CONFIANZA COMERCIAL>>
+SECTION_VERSION: 00001
+
+PORTABILIDAD Y CONFIANZA COMERCIAL
+
+El vínculo comercial con el cliente debe sostenerse por valor entregado y no por dependencia forzada.
+
+Regla general:
+
+la información principal del cliente debe poder exportarse mediante un proceso de salida razonable, seguro y útil.
+
+Criterios vigentes:
+
+no corresponde entregar código fuente
+no corresponde entregar configuraciones propietarias del sistema
+no corresponde incluir usuarios internos como parte de la portabilidad estándar
+no corresponde incluir catálogos internos cuya utilidad dependa de lógica propia de la plataforma
+
+Sí corresponde contemplar la exportación de datos maestros y operativos principales del negocio cuando resulte aplicable.
+
+Cuando sea posible, las referencias internas deben resolverse a texto legible y no quedar limitadas a ids técnicos.
+
+Si una referencia no pudiera resolverse razonablemente, podrá conservarse el identificador técnico correspondiente.
+
+<<END SECTION>>
+
+<<SECTION: ENTREGA DE EXPORTACIONES Y BAJA>>
+SECTION_VERSION: 00001
+
+ENTREGA DE EXPORTACIONES Y BAJA
+
+La salida del cliente no debe prometerse como entrega inmediata universal ni como descarga irrestricta sin control.
+
+Debe existir un proceso formal y seguro.
+
+Modalidades posibles según volumen:
+
+exportación estándar mediante archivos descargables
+exportación asistida para volúmenes altos
+entrega temporal mediante enlace seguro con vigencia limitada
+
+La doctrina comercial no debe atar esta capacidad a una herramienta puntual.
+
+Lo relevante es preservar:
+
+seguridad
+vigencia controlada
+acceso por titular autorizado
+portabilidad razonable de la información principal
+
+<<END SECTION>>
+
+<<SECTION: PERFIL DE CLIENTE INICIAL>>
+SECTION_VERSION: 00001
+
+PERFIL DE CLIENTE INICIAL
+
+El foco comercial inicial del proyecto debe priorizar empresas donde exista necesidad real de:
+
+orden operativo
+agenda o coordinación diaria
+seguimiento de trabajo
+movimientos de stock o inventario
+documentación operativa o comercial
+crecimiento con más de una persona involucrada
+
+Perfiles especialmente compatibles en etapa inicial:
+
+talleres
+servicios técnicos
+alquileres
+operaciones con atención y agenda
+equipos pequeños o medianos con necesidad de coordinación interna
+
+<<END SECTION>>
+
+<<SECTION: PRINCIPIOS DE PRICING>>
+SECTION_VERSION: 00001
+
+PRINCIPIOS DE PRICING
+
+El pricing del proyecto debe sostenerse en criterios simples y entendibles.
+
+Principios vigentes:
+
+precio claro
+progresión simple entre planes
+upgrade natural
+sin castigos artificiales
+sostenibilidad operativa
+alineación con valor entregado
+
+La lectura económica principal no debe reducirse a precio por módulo.
+
+Debe responder a:
+
+capacidad operativa
+cantidad de usuarios
+nivel de soporte
+complejidad de mantenimiento
+exigencia funcional del servicio
+
+Enterprise queda fuera de la lógica estándar de pricing público y se resuelve por propuesta específica.
+
+<<END SECTION>>
+
+<<SECTION: CRITERIOS DE EVOLUCIÓN FUTURA>>
+SECTION_VERSION: 00001
+
+CRITERIOS DE EVOLUCIÓN FUTURA
+
+A futuro podrán incorporarse nuevas fuentes de ingreso, por ejemplo:
+
+marketplace premium
+comisiones por transacción
+add-ons especializados
+automatizaciones avanzadas
+reportes premium
+integraciones externas
+servicios profesionales
+
+Toda evolución comercial debe preservar simplicidad, claridad y coherencia con la propuesta de valor central del producto.
+
+No debe fragmentar innecesariamente la experiencia base ni degradar la lectura del sistema como una plataforma consistente.
+
+<<END SECTION>>

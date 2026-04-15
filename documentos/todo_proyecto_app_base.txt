@@ -61,7 +61,7 @@ priorizar piezas con mayor impacto sistémico
 <<END SECTION>>
 
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 MÓDULOS PRIORITARIOS A REVISAR
 
@@ -128,6 +128,27 @@ Pendiente residual:
 
 confirmar ausencia de consumidores secundarios no auditados y mantener documentación alineada
 
+PRODUCTS
+
+módulo autónomo de catálogo operativo compartido del tenant
+
+Estado actual:
+
+núcleo doctrinal no requiere reapertura
+inventory V1 ya opera efectivamente apoyado sobre products
+
+Cierres alcanzados:
+
+dataset base alineado para products e inventory V1
+seeder efectivo de inventory integrado en la configuración real
+stock y movimientos validados en runtime real
+distinción operativa validada entre productos físicos con movimientos y servicios no stockeables por defecto
+
+Pendiente residual:
+
+seguir auditando consumidores de stock y superficies UI relacionadas
+evaluar más adelante si inventory requiere superficie propia adicional sin reabrir el núcleo doctrinal de products
+
 TASKS
 
 Revisar:
@@ -161,14 +182,6 @@ Revisar:
 agenda reusable
 bloques contextuales
 cierres restantes no cubiertos por integración con orders
-
-ASSETS / PRODUCTS
-
-Revisar:
-
-selectores comunes
-summaries técnicos
-relaciones cruzadas consistentes
 
 <<END SECTION>>
 
@@ -352,7 +365,7 @@ cada paso debe dejar menos excepciones que el anterior
 <<END SECTION>>
 
 <<SECTION: ESTADO ACTUAL DEL SISTEMA>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ESTADO ACTUAL DEL SISTEMA
 
@@ -394,6 +407,20 @@ orders
 documents
 assets
 appointments
+products
+inventory_movements
+
+Estado operativo consolidado adicional:
+
+products ya sostiene inventory V1 en operación real
+
+el dataset base de inventory V1 quedó alineado
+
+el seeder efectivo de inventory quedó integrado en la configuración real
+
+stock y movimientos ya fueron validados en runtime real
+
+inventory V1 sigue leyéndose como capacidad operativa apoyada en products y no como módulo autónomo cerrado
 
 Estado documental consolidado:
 
@@ -438,7 +465,7 @@ inventory
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 PENDIENTES INMEDIATOS
 
@@ -526,6 +553,14 @@ Pendiente residual adicional assets:
 
 confirmar que no existan consumidores secundarios fuera del barrido principal ya realizado
 
+Pendiente inmediato adicional products / inventory V1:
+
+seguir auditando consumidores de stock y movimientos ya operativos
+
+revisar si las superficies UI actuales de stock alcanzan o si más adelante conviene una superficie propia adicional para inventory
+
+no reabrir el núcleo doctrinal de products por este frente
+
 considerar como ya cerrado y no reabrir en este frente:
 
 orders como núcleo operativo principal
@@ -543,6 +578,8 @@ allowed_kinds de parties arbitrando create, view, update y delete como regla doc
 delete de parties reservado a owner con delegación posible a administrator como regla doctrinal
 doctrina principal de assets como módulo compartido del tenant
 linked-asset-action como capacidad reusable oficial de assets
+núcleo doctrinal de products como módulo autónomo de catálogo operativo compartido
+inventory V1 como capacidad operativa real ya validada sobre products
 
 <<END SECTION>>
 

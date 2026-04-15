@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderInventoryController.php | V3
+// FILE: app/Http/Controllers/OrderInventoryController.php | V4
 
 namespace App\Http\Controllers;
 
@@ -28,7 +28,7 @@ class OrderInventoryController extends Controller
 
         $product = $this->resolveProductFromOrder($order, (int) $data['product_id']);
 
-        app(InventoryMovementService::class)->consumir(
+        $result = app(InventoryMovementService::class)->consumir(
             product: $product,
             quantity: $data['quantity'],
             notes: $data['notes'] ?? null,
@@ -38,9 +38,18 @@ class OrderInventoryController extends Controller
 
         $navigationTrail = OrderNavigationTrail::show($request, $order);
 
-        return redirect()
+        $redirect = redirect()
             ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
             ->with('success', 'Movimiento de consumo registrado correctamente.');
+
+        if (($result['negative_stock'] ?? false) === true) {
+            $redirect->with(
+                'warning',
+                'El producto quedó con stock negativo. Se generó una tarea automática para revisión del owner.'
+            );
+        }
+
+        return $redirect;
     }
 
     public function entregar(Request $request, Order $order): RedirectResponse
@@ -55,7 +64,7 @@ class OrderInventoryController extends Controller
 
         $product = $this->resolveProductFromOrder($order, (int) $data['product_id']);
 
-        app(InventoryMovementService::class)->entregar(
+        $result = app(InventoryMovementService::class)->entregar(
             product: $product,
             quantity: $data['quantity'],
             notes: $data['notes'] ?? null,
@@ -65,9 +74,18 @@ class OrderInventoryController extends Controller
 
         $navigationTrail = OrderNavigationTrail::show($request, $order);
 
-        return redirect()
+        $redirect = redirect()
             ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
             ->with('success', 'Movimiento de entrega registrado correctamente.');
+
+        if (($result['negative_stock'] ?? false) === true) {
+            $redirect->with(
+                'warning',
+                'El producto quedó con stock negativo. Se generó una tarea automática para revisión del owner.'
+            );
+        }
+
+        return $redirect;
     }
 
     protected function resolveProductFromOrder(Order $order, int $productId): Product

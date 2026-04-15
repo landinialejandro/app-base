@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/InventoryController.php | V2
+// FILE: app/Http/Controllers/InventoryController.php | V3
 
 namespace App\Http\Controllers;
 
@@ -29,7 +29,6 @@ class InventoryController extends Controller
     {
         $this->authorize('update', $product);
 
-        // 🔴 VALIDACIÓN CLAVE
         abort_if(
             $product->kind !== ProductCatalog::KIND_PRODUCT,
             422,
@@ -41,7 +40,7 @@ class InventoryController extends Controller
             'notes' => ['nullable', 'string'],
         ]);
 
-        app(InventoryMovementService::class)->ingresar(
+        $result = app(InventoryMovementService::class)->ingresar(
             product: $product,
             quantity: $data['quantity'],
             notes: $data['notes'] ?? null,
@@ -50,8 +49,17 @@ class InventoryController extends Controller
 
         $navigationTrail = ProductNavigationTrail::show($request, $product);
 
-        return redirect()
+        $redirect = redirect()
             ->route('products.show', ['product' => $product] + NavigationTrail::toQuery($navigationTrail))
             ->with('success', 'Ingreso de stock registrado correctamente.');
+
+        if (($result['negative_stock'] ?? false) === true) {
+            $redirect->with(
+                'warning',
+                'El producto quedó con stock negativo. Se generó una tarea automática para revisión del owner.'
+            );
+        }
+
+        return $redirect;
     }
 }

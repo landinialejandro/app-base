@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Inventory/InventoryMovementService.php | V2
+// FILE: app/Support/Inventory/InventoryMovementService.php | V3
 
 namespace App\Support\Inventory;
 
@@ -8,6 +8,7 @@ use App\Models\Document;
 use App\Models\InventoryMovement;
 use App\Models\Order;
 use App\Models\Product;
+use App\Models\Task;
 use App\Models\User;
 use App\Support\Catalogs\TaskCatalog;
 use App\Support\System\OwnerAlertTaskService;
@@ -38,7 +39,7 @@ class InventoryMovementService
         ?Order $order = null,
         ?Document $document = null,
         int|string|null $createdBy = null,
-    ): InventoryMovement {
+    ): array {
         return $this->createMovement(
             product: $product,
             kind: self::KIND_INGRESAR,
@@ -57,7 +58,7 @@ class InventoryMovementService
         ?Order $order = null,
         ?Document $document = null,
         int|string|null $createdBy = null,
-    ): InventoryMovement {
+    ): array {
         return $this->createMovement(
             product: $product,
             kind: self::KIND_CONSUMIR,
@@ -76,7 +77,7 @@ class InventoryMovementService
         ?Order $order = null,
         ?Document $document = null,
         int|string|null $createdBy = null,
-    ): InventoryMovement {
+    ): array {
         return $this->createMovement(
             product: $product,
             kind: self::KIND_ENTREGAR,
@@ -96,7 +97,7 @@ class InventoryMovementService
         ?Order $order = null,
         ?Document $document = null,
         int|string|null $createdBy = null,
-    ): InventoryMovement {
+    ): array {
         $normalizedQuantity = (float) $quantity;
 
         if (! in_array($kind, self::kinds(), true)) {
@@ -127,33 +128,40 @@ class InventoryMovementService
                 'created_by' => $createdBy,
             ]);
 
-            $this->notifyOwnerIfStockTurnsNegative(
+            $stockAfter = app(ProductStockCalculator::class)->forProduct($product);
+
+            $ownerAlertTask = $this->notifyOwnerIfStockTurnsNegative(
                 product: $product,
                 movement: $movement,
+                stockAfter: $stockAfter,
                 order: $order,
                 actorUserId: $createdBy,
                 movementQuantity: $normalizedQuantity,
             );
 
-            return $movement;
+            return [
+                'movement' => $movement,
+                'stock_after' => $stockAfter,
+                'negative_stock' => $stockAfter < 0,
+                'owner_alert_task' => $ownerAlertTask,
+            ];
         });
     }
 
     protected function notifyOwnerIfStockTurnsNegative(
         Product $product,
         InventoryMovement $movement,
+        float $stockAfter,
         ?Order $order = null,
         int|string|null $actorUserId = null,
         float $movementQuantity = 0.0,
-    ): void {
+    ): ?Task {
         if (! in_array($movement->kind, [self::KIND_CONSUMIR, self::KIND_ENTREGAR], true)) {
-            return;
+            return null;
         }
 
-        $stockAfter = app(ProductStockCalculator::class)->forProduct($product);
-
         if ($stockAfter >= 0) {
-            return;
+            return null;
         }
 
         $actorUser = $this->resolveActorUser($actorUserId);
@@ -190,7 +198,7 @@ class InventoryMovementService
             $descriptionLines[] = '- Notas del movimiento: '.$movement->notes;
         }
 
-        app(OwnerAlertTaskService::class)->createOnceForTenant(
+        return app(OwnerAlertTaskService::class)->createOnceForTenant(
             tenant: app('tenant'),
             type: 'inventory_negative_stock',
             title: 'Revisar desvío de stock: '.($product->name ?: 'Producto #'.$product->id),

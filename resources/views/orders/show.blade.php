@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V21 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V23 --}}
 
 @extends('layouts.app')
 
@@ -142,7 +142,7 @@
             </x-slot:details>
         </x-show-summary>
 
-        <div class="tabs">
+        <div class="tabs" data-tabs>
             <x-tab-toolbar label="Secciones de la orden">
                 <x-slot:tabs>
                     <x-horizontal-scroll label="Secciones de la orden">
@@ -238,8 +238,8 @@
                                             </div>
 
                                             <div class="form-group">
-                                                <label for="inventory_consumir_note" class="form-label">Nota</label>
-                                                <input id="inventory_consumir_note" name="note" type="text"
+                                                <label for="inventory_consumir_notes" class="form-label">Notas</label>
+                                                <input id="inventory_consumir_notes" name="notes" type="text"
                                                     class="form-control" placeholder="Opcional">
                                             </div>
 
@@ -271,8 +271,8 @@
                                             </div>
 
                                             <div class="form-group">
-                                                <label for="inventory_entregar_note" class="form-label">Nota</label>
-                                                <input id="inventory_entregar_note" name="note" type="text"
+                                                <label for="inventory_entregar_notes" class="form-label">Notas</label>
+                                                <input id="inventory_entregar_notes" name="notes" type="text"
                                                     class="form-control" placeholder="Opcional">
                                             </div>
 

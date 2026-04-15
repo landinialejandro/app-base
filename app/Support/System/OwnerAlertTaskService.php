@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/System/OwnerAlertTaskService.php | V1
+// FILE: app/Support/System/OwnerAlertTaskService.php | V2
 
 namespace App\Support\System;
 
@@ -40,9 +40,7 @@ class OwnerAlertTaskService
                 TaskCatalog::STATUS_PENDING,
                 TaskCatalog::STATUS_IN_PROGRESS,
             ])
-            ->where(function ($query) use ($dedupeKey) {
-                $query->where('description', 'like', '%[system_alert_dedupe_key] '.$dedupeKey.'%');
-            })
+            ->where('metadata->system_alert->dedupe_key', $dedupeKey)
             ->latest('id')
             ->first();
 
@@ -72,9 +70,11 @@ class OwnerAlertTaskService
             $finalDescription .= "\n\n";
         }
 
+        // Se conserva como apoyo legible, pero la deduplicación real ya no depende de description.
         $finalDescription .= '[system_alert_dedupe_key] '.$dedupeKey;
 
         return Task::create([
+            'tenant_id' => $tenant->id,
             'project_id' => null,
             'party_id' => null,
             'assigned_user_id' => $ownerMembership->user_id,

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/products/show.blade.php | V13 --}}
+{{-- FILE: resources/views/products/show.blade.php | V14 --}}
 
 @extends('layouts.app')
 
@@ -164,55 +164,12 @@
 
             <section class="tab-panel is-active" data-tab-panel="inventory">
                 <div class="tab-panel-stack">
-                    <x-card>
-                        @if ($inventoryMovements->count())
-                            <div class="table-wrap">
-                                <table class="table">
-                                    <thead>
-                                        <tr>
-                                            <th>Fecha</th>
-                                            <th>Tipo</th>
-                                            <th>Cantidad</th>
-                                            <th>Orden</th>
-                                            <th>Documento</th>
-                                            <th>Notas</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        @foreach ($inventoryMovements as $movement)
-                                            <tr>
-                                                <td>{{ $movement->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
-                                                <td>{{ ucfirst($movement->kind) }}</td>
-                                                <td>{{ number_format((float) $movement->quantity, 2, ',', '.') }}</td>
-                                                <td>
-                                                    @if ($movement->order)
-                                                        <a
-                                                            href="{{ route('orders.show', ['order' => $movement->order] + $trailQuery) }}">
-                                                            {{ $movement->order->number ?: 'Orden #' . $movement->order->id }}
-                                                        </a>
-                                                    @else
-                                                        —
-                                                    @endif
-                                                </td>
-                                                <td>
-                                                    @if ($movement->document)
-                                                        <a
-                                                            href="{{ route('documents.show', ['document' => $movement->document] + $trailQuery) }}">
-                                                            {{ $movement->document->number ?: 'Documento #' . $movement->document->id }}
-                                                        </a>
-                                                    @else
-                                                        —
-                                                    @endif
-                                                </td>
-                                                <td>{{ $movement->notes ?: '—' }}</td>
-                                            </tr>
-                                        @endforeach
-                                    </tbody>
-                                </table>
-                            </div>
-                        @else
-                            <p class="mb-0">No hay movimientos de stock registrados para este producto.</p>
-                        @endif
+                    <x-card class="list-card">
+                        @include('inventory.partials.movements-table', [
+                            'movements' => $inventoryMovements,
+                            'emptyMessage' => 'No hay movimientos de stock registrados para este producto.',
+                            'trailQuery' => $trailQuery,
+                        ])
                     </x-card>
                 </div>
             </section>

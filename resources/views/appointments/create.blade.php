@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/create.blade.php | V4 --}}
+{{-- FILE: resources/views/appointments/create.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -10,7 +10,13 @@
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
-        $cancelUrl = NavigationTrail::previousUrl($navigationTrail, route('appointments.index'));
+        $cancelUrl = NavigationTrail::previousUrl(
+            $navigationTrail,
+            route('appointments.calendar', [
+                'view' => 'month',
+                'month' => now()->format('Y-m'),
+            ]),
+        );
     @endphp
 
     <x-page>

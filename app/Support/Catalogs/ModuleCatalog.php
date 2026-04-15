@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/ModuleCatalog.php | V2
+// FILE: app/Support/Catalogs/ModuleCatalog.php | V3
 
 namespace App\Support\Catalogs;
 
@@ -55,7 +55,7 @@ class ModuleCatalog
             'label' => 'Turnos',
             'nav' => [
                 'group' => 'main',
-                'route' => 'appointments.index',
+                'route' => 'appointments.calendar',
                 'active' => ['appointments.*'],
                 'order' => 15,
             ],

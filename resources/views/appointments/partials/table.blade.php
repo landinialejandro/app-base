@@ -1,9 +1,8 @@
-{{-- FILE: resources/views/appointments/partials/table.blade.php | V10 --}}
+{{-- FILE: resources/views/appointments/partials/table.blade.php | V11 --}}
 
 @php
     use App\Support\Assets\AssetLinkedAction;
     use App\Support\Catalogs\AppointmentCatalog;
-    use App\Support\Navigation\AppointmentNavigationTrail;
     use App\Support\Navigation\NavigationTrail;
     use App\Support\Orders\OrderLinkedAction;
     use App\Support\Parties\PartyLinkedAction;
@@ -13,6 +12,8 @@
     $supportsPartiesModule = $supportsPartiesModule ?? false;
     $supportsAssetsModule = $supportsAssetsModule ?? false;
     $supportsOrdersModule = $supportsOrdersModule ?? false;
+    $trailQuery = $trailQuery ?? [];
+    $containerTrail = NavigationTrail::decode($trailQuery['trail'] ?? null);
 @endphp
 
 @if ($appointments->count())
@@ -39,26 +40,53 @@
                 @foreach ($appointments as $appointment)
                     @php
                         $rowTitle = AppointmentCatalog::rowTitleFor($appointment->kind, $appointment->work_mode);
-                        $appointmentTrail = AppointmentNavigationTrail::base($appointment);
-                        $appointmentTrailQuery = NavigationTrail::toQuery($appointmentTrail);
 
-                        $orderAction = OrderLinkedAction::forAppointment($appointment, $appointmentTrailQuery, false);
+                        $rowTrail = NavigationTrail::appendOrCollapse(
+                            $containerTrail,
+                            NavigationTrail::makeNode(
+                                'appointments.show',
+                                $appointment->id,
+                                $appointment->title ?: 'Turno #' . $appointment->id,
+                                route('appointments.show', ['appointment' => $appointment]),
+                            ),
+                        );
+
+                        if (empty($rowTrail)) {
+                            $rowTrail = NavigationTrail::base([
+                                NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
+                                NavigationTrail::makeNode(
+                                    'appointments.calendar',
+                                    null,
+                                    'Turnos',
+                                    route('appointments.calendar'),
+                                ),
+                                NavigationTrail::makeNode(
+                                    'appointments.show',
+                                    $appointment->id,
+                                    $appointment->title ?: 'Turno #' . $appointment->id,
+                                    route('appointments.show', ['appointment' => $appointment]),
+                                ),
+                            ]);
+                        }
+
+                        $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
+
+                        $orderAction = OrderLinkedAction::forAppointment($appointment, $rowTrailQuery, false);
                         $partyAction = PartyLinkedAction::forParty(
                             $appointment->party,
-                            $appointmentTrailQuery,
+                            $rowTrailQuery,
                             AppointmentCatalog::contactLabel(),
                         );
                         $assetAction = AssetLinkedAction::forAsset(
                             $appointment->asset,
-                            $appointmentTrailQuery,
+                            $rowTrailQuery,
                             AppointmentCatalog::assetLabel(),
                         );
                     @endphp
 
                     <tr>
                         <td>
-                            <a
-                                href="{{ route('appointments.show', ['appointment' => $appointment] + $appointmentTrailQuery) }}">
+                            <a href="{{ route('appointments.show', ['appointment' => $appointment] + $rowTrailQuery) }}">
                                 {{ $rowTitle }}
                             </a>
                             <div class="text-muted">#{{ $appointment->id }}</div>

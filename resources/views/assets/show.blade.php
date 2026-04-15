@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/assets/show.blade.php | V14 --}}
+{{-- FILE: resources/views/assets/show.blade.php | V15 --}}
 
 @extends('layouts.app')
 
@@ -14,6 +14,7 @@
         use App\Support\Navigation\NavigationTrail;
         use App\Support\Parties\PartyLinkedAction;
 
+        $appointments = $appointments ?? collect();
         $orders = $orders ?? collect();
         $documents = $documents ?? collect();
         $attachments = $asset->attachments ?? collect();
@@ -22,7 +23,8 @@
         $user = auth()->user();
 
         $supportsPartiesModule = TenantModuleAccess::isEnabled(ModuleCatalog::PARTIES, $tenant);
-        $supportsAppointmentsModule = TenantModuleAccess::isEnabled(ModuleCatalog::APPOINTMENTS, $tenant);
+        $supportsAppointmentsModule =
+            $supportsAppointmentsModule ?? TenantModuleAccess::isEnabled(ModuleCatalog::APPOINTMENTS, $tenant);
         $supportsOrdersModule = TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, $tenant);
         $supportsDocumentsModule = TenantModuleAccess::isEnabled(ModuleCatalog::DOCUMENTS, $tenant);
 
@@ -34,7 +36,13 @@
 
         $partyAction = PartyLinkedAction::forParty($asset->party, $trailQuery, 'Contacto');
 
-        $defaultTab = $supportsOrdersModule ? 'orders' : ($supportsDocumentsModule ? 'documents' : 'attachments');
+        $defaultTab = $supportsAppointmentsModule
+            ? 'appointments'
+            : ($supportsOrdersModule
+                ? 'orders'
+                : ($supportsDocumentsModule
+                    ? 'documents'
+                    : 'attachments'));
     @endphp
 
     <x-page>
@@ -125,6 +133,18 @@
             <x-tab-toolbar label="Secciones del activo">
                 <x-slot:tabs>
                     <x-horizontal-scroll label="Secciones del activo">
+                        @if ($supportsAppointmentsModule)
+                            <button type="button"
+                                class="tabs-link {{ $defaultTab === 'appointments' ? 'is-active' : '' }}"
+                                data-tab-link="appointments" role="tab"
+                                aria-selected="{{ $defaultTab === 'appointments' ? 'true' : 'false' }}">
+                                Turnos
+                                @if ($appointments->count())
+                                    ({{ $appointments->count() }})
+                                @endif
+                            </button>
+                        @endif
+
                         @if ($supportsOrdersModule)
                             <button type="button" class="tabs-link {{ $defaultTab === 'orders' ? 'is-active' : '' }}"
                                 data-tab-link="orders" role="tab"
@@ -158,6 +178,27 @@
                     </x-horizontal-scroll>
                 </x-slot:tabs>
             </x-tab-toolbar>
+
+            @if ($supportsAppointmentsModule)
+                <section class="tab-panel {{ $defaultTab === 'appointments' ? 'is-active' : '' }}"
+                    data-tab-panel="appointments" @if ($defaultTab !== 'appointments') hidden @endif>
+                    <div class="tab-panel-stack">
+                        @include('appointments.partials.embedded-tabs', [
+                            'appointments' => $appointments,
+                            'supportsPartiesModule' => $supportsPartiesModule,
+                            'supportsAssetsModule' => false,
+                            'supportsOrdersModule' => $supportsOrdersModule,
+                            'emptyMessage' => 'Este activo no tiene turnos vinculados.',
+                            'tabsId' => 'asset-appointments-tabs',
+                            'createBaseQuery' => [
+                                'asset_id' => $asset->id,
+                                'party_id' => $asset->party_id,
+                            ],
+                            'trailQuery' => $trailQuery,
+                        ])
+                    </div>
+                </section>
+            @endif
 
             @if ($supportsOrdersModule)
                 <section class="tab-panel {{ $defaultTab === 'orders' ? 'is-active' : '' }}" data-tab-panel="orders"

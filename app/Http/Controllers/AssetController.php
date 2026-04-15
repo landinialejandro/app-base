@@ -1,9 +1,10 @@
 <?php
 
-// FILE: app/Http/Controllers/AssetController.php | V7
+// FILE: app/Http/Controllers/AssetController.php | V8
 
 namespace App\Http\Controllers;
 
+use App\Models\Appointment;
 use App\Models\Asset;
 use App\Models\Document;
 use App\Models\Order;
@@ -112,6 +113,7 @@ class AssetController extends Controller
         $security = app(Security::class);
         $user = auth()->user();
 
+        $supportsAppointmentsModule = TenantModuleAccess::isEnabled(ModuleCatalog::APPOINTMENTS, $tenant);
         $supportsOrdersModule = TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, $tenant);
         $supportsDocumentsModule = TenantModuleAccess::isEnabled(ModuleCatalog::DOCUMENTS, $tenant);
 
@@ -119,6 +121,19 @@ class AssetController extends Controller
             'party',
             'attachments' => fn ($query) => $query->ordered(),
         ]);
+
+        $appointments = $supportsAppointmentsModule
+            ? $security
+                ->scope($user, 'appointments.viewAny', Appointment::query())
+                ->with(['party', 'order', 'asset', 'assignedUser'])
+                ->where('asset_id', $asset->id)
+                ->orderBy('scheduled_date')
+                ->orderByDesc('is_all_day')
+                ->orderByRaw('CASE WHEN starts_at IS NULL THEN 1 ELSE 0 END')
+                ->orderBy('starts_at')
+                ->orderBy('created_at')
+                ->get()
+            : collect();
 
         $orders = $supportsOrdersModule
             ? $security
@@ -140,7 +155,14 @@ class AssetController extends Controller
 
         $navigationTrail = AssetNavigationTrail::show($request, $asset);
 
-        return view('assets.show', compact('asset', 'orders', 'documents', 'navigationTrail'));
+        return view('assets.show', compact(
+            'asset',
+            'appointments',
+            'orders',
+            'documents',
+            'navigationTrail',
+            'supportsAppointmentsModule',
+        ));
     }
 
     public function edit(Request $request, Asset $asset): View

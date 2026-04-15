@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V20 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V21 --}}
 
 @extends('layouts.app')
 
@@ -6,6 +6,7 @@
 
 @section('content')
     @php
+        use App\Support\Appointments\AppointmentLinkedAction;
         use App\Support\Assets\AssetLinkedAction;
         use App\Support\Auth\TenantModuleAccess;
         use App\Support\Catalogs\DocumentCatalog;
@@ -40,6 +41,7 @@
 
         $partyAction = PartyLinkedAction::forParty($order->party, $trailQuery, 'Contacto');
         $assetAction = AssetLinkedAction::forAsset($order->asset, $trailQuery, 'Activo');
+        $appointmentAction = AppointmentLinkedAction::forOrder($order, $trailQuery, true);
     @endphp
 
     <x-page>
@@ -96,6 +98,13 @@
 
                 <x-show-summary-item-detail-block label="Fecha">
                     {{ $order->ordered_at?->format('d/m/Y') ?: '—' }}
+                </x-show-summary-item-detail-block>
+
+                <x-show-summary-item-detail-block label="Turno">
+                    @include('appointments.components.linked-appointment-action', [
+                        'action' => $appointmentAction,
+                        'variant' => 'summary',
+                    ])
                 </x-show-summary-item-detail-block>
 
                 @if ($supportsAssetsModule)

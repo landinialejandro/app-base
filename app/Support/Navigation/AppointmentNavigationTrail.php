@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/AppointmentNavigationTrail.php | V5
+// FILE: app/Support/Navigation/AppointmentNavigationTrail.php | V6
 
 namespace App\Support\Navigation;
 
@@ -13,7 +13,7 @@ class AppointmentNavigationTrail
     {
         return NavigationTrail::base([
             NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
-            NavigationTrail::makeNode('appointments.index', null, 'Turnos', route('appointments.index')),
+            NavigationTrail::makeNode('appointments.calendar', null, 'Turnos', route('appointments.calendar')),
         ]);
     }
 

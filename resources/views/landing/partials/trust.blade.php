@@ -1,38 +1,46 @@
-{{-- FILE: resources/views/landing/partials/trust.blade.php | V2 --}}
+{{-- FILE: resources/views/landing/partials/trust.blade.php | V3 --}}
 <section class="landing-section landing-section--soft">
     <div class="landing-container">
         <div class="landing-section__header">
-            <span class="landing-eyebrow">Confianza y control</span>
-            <h2>Una experiencia cuidada para trabajar con seguridad, claridad y decisión.</h2>
+            <span class="landing-eyebrow">Confianza comercial</span>
+            <h2>Una relación basada en valor, no en dependencia forzada.</h2>
             <p>
-                La estructura del sistema está pensada para que tu empresa opere en un entorno propio, con acceso
-                cuidado,
-                funciones claras y una base sólida desde el primer momento.
+                app-base propone una base sólida para trabajar mejor, dentro de un entorno propio y con una relación
+                clara entre servicio, crecimiento y control de la información.
             </p>
         </div>
 
         <div class="landing-grid landing-grid--2">
             <article class="landing-card">
-                <h3>Tu empresa trabaja en un entorno propio</h3>
-                <p>La información permanece separada y organizada dentro de un espacio preparado exclusivamente para tu
-                    operación.</p>
-            </article>
-
-            <article class="landing-card">
-                <h3>Acceso bajo tu decisión</h3>
-                <p>Vos definís quién entra, cuándo entra y qué lugar ocupa dentro de la organización.</p>
-            </article>
-
-            <article class="landing-card">
-                <h3>Funciones claras</h3>
-                <p>Cada persona participa según su rol, manteniendo orden, distribución y control en el trabajo diario.
+                <h3>Tus datos son tuyos</h3>
+                <p>
+                    La información principal del negocio debe poder recuperarse mediante procesos razonables, seguros y
+                    útiles. La permanencia del cliente debe sostenerse por valor entregado, no por bloqueo artificial.
                 </p>
             </article>
 
             <article class="landing-card">
-                <h3>Una base preparada para crecer</h3>
-                <p>El sistema acompaña tanto el trabajo individual como el crecimiento de estructuras más amplias sin
-                    perder consistencia.</p>
+                <h3>Entorno propio para la empresa</h3>
+                <p>
+                    Cada empresa trabaja dentro de su espacio, con acceso cuidado, organización clara y una base
+                    preparada para operar con confianza desde el primer día.
+                </p>
+            </article>
+
+            <article class="landing-card">
+                <h3>Crecimiento sin rehacer todo</h3>
+                <p>
+                    Cuando aumenta la exigencia operativa, la evolución puede darse sobre la misma base. Eso evita
+                    empezar de cero cada vez que la empresa necesita más capacidad.
+                </p>
+            </article>
+
+            <article class="landing-card">
+                <h3>Control claro y continuidad</h3>
+                <p>
+                    Orden, visibilidad y continuidad no dependen de múltiples herramientas aisladas. El sistema busca
+                    acompañar el trabajo dentro de un marco más simple y profesional.
+                </p>
             </article>
         </div>
     </div>

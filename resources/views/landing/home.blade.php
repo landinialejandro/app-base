@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/landing/home.blade.php | V4 --}}
+{{-- FILE: resources/views/landing/home.blade.php | V5 --}}
 @extends('layouts.landing')
 
 @section('title', 'app-base')
@@ -16,6 +16,8 @@
         @include('landing.partials.modules')
         @include('landing.partials.flow')
         @include('landing.partials.trust')
+        @include('landing.partials.ai-agent')
+        @include('landing.partials.modules')
         @include('landing.partials.cta')
     </main>
 

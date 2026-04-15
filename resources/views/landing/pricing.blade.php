@@ -1,7 +1,7 @@
-{{-- FILE: resources/views/landing/pricing.blade.php | V2 --}}
+{{-- FILE: resources/views/landing/pricing.blade.php | V3 --}}
 @extends('layouts.landing')
 
-@section('title', 'Precios | app-base')
+@section('title', 'Planes | app-base')
 
 @section('body')
     @include('landing.partials.header')
@@ -9,13 +9,13 @@
     <main>
         <section class="landing-simple-hero">
             <div class="landing-container">
-                <span class="landing-eyebrow">Planes y acceso</span>
+                <span class="landing-eyebrow">Planes y modalidades</span>
                 <h1 class="landing-title landing-title--md">
                     Elegí la forma de incorporar app-base a tu empresa
                 </h1>
                 <p class="landing-lead landing-lead--narrow">
-                    Una infraestructura premium para organizar, conectar y elevar tu operación diaria. Desde una base sólida
-                    lista para usar hasta una evolución más amplia con asistencia inteligente y nuevas capacidades.
+                    app-base no se presenta como una suma de módulos sueltos. Se presenta como una base de trabajo clara,
+                    sólida y preparada para ordenar la operación, sostener continuidad y acompañar crecimiento real.
                 </p>
 
                 <div class="landing-hero__actions">
@@ -33,38 +33,37 @@
         <section class="landing-section landing-section--soft">
             <div class="landing-container">
                 <div class="landing-section__header">
-                    <span class="landing-eyebrow">Una base que se adapta</span>
-                    <h2>No se trata solo de precio. Se trata del nivel de infraestructura que querés para tu empresa.</h2>
+                    <span class="landing-eyebrow">Cómo se organiza la propuesta</span>
+                    <h2>Una estructura comercial simple, clara y preparada para crecer con la empresa.</h2>
                     <p>
-                        app-base puede acompañarte desde una etapa inicial hasta una operación más amplia, manteniendo una
-                        experiencia clara, ordenada y preparada para crecer.
+                        Los planes estándar se ordenan por capacidad operativa, cantidad de usuarios y nivel de servicio.
+                        Enterprise se trabaja como una modalidad particular para necesidades de mayor exclusividad,
+                        personalización o acompañamiento.
                     </p>
                 </div>
 
                 <div class="landing-grid landing-grid--3">
                     <article class="landing-card">
-                        <h3>Inicio sólido</h3>
+                        <h3>Base para empezar bien</h3>
                         <p>
-                            Ideal para empezar con una base operativa clara, lista para trabajar desde el primer momento y
-                            sin
-                            fricción innecesaria.
+                            Starter permite comenzar con una estructura clara, en un entorno propio y sin cargar a la
+                            empresa con complejidad innecesaria.
                         </p>
                     </article>
 
                     <article class="landing-card">
-                        <h3>Crecimiento organizado</h3>
+                        <h3>Crecimiento con más continuidad</h3>
                         <p>
-                            Pensado para empresas que necesitan más estructura, más continuidad y una base capaz de
-                            acompañar
-                            el crecimiento del equipo y la operación.
+                            Growth y Scale acompañan empresas que necesitan más equipo, más formalización y una operación
+                            cada vez más madura.
                         </p>
                     </article>
 
                     <article class="landing-card">
-                        <h3>Evolución premium</h3>
+                        <h3>Implementación particular</h3>
                         <p>
-                            Preparado para incorporar nuevas capacidades, como asistencia inteligente y marketplace
-                            habilitable, dentro del mismo entorno de trabajo.
+                            Enterprise no se plantea como un simple upgrade. Es una modalidad consultiva para organizaciones
+                            que requieren una solución más exclusiva o personalizada.
                         </p>
                     </article>
                 </div>
@@ -74,90 +73,114 @@
         <section class="landing-section">
             <div class="landing-container">
                 <div class="landing-section__header">
-                    <span class="landing-eyebrow">Tres formas de avanzar</span>
-                    <h2>Una propuesta simple para presentar el sistema con claridad comercial.</h2>
+                    <span class="landing-eyebrow">Planes vigentes</span>
+                    <h2>Cuatro formas de avanzar según el nivel de operación que necesita tu empresa.</h2>
                     <p>
-                        Podés ajustar nombres, condiciones y precios después. Lo importante ahora es dejar una estructura
-                        premium, clara y escalable.
+                        La lectura principal no pasa por pagar módulos por separado. Pasa por contar con una base operativa
+                        acorde al tamaño del equipo, al nivel de formalización y a la exigencia del trabajo diario.
                     </p>
                 </div>
 
                 <div class="landing-grid landing-grid--3">
                     <article class="landing-pricing-card">
                         <div class="landing-pricing-card__header">
-                            <span class="landing-pricing-card__tag">Base</span>
-                            <h3>Esencial</h3>
-                            <p>Para empezar con una operación ordenada sobre una base sólida.</p>
+                            <span class="landing-pricing-card__tag">Starter</span>
+                            <h3>Starter</h3>
+                            <p>Para empresas pequeñas o en etapa inicial que necesitan empezar con orden y claridad.</p>
                         </div>
 
                         <div class="landing-pricing-card__price">
-                            <strong>A definir</strong>
-                            <span>mensual o por implementación</span>
+                            <strong>USD 26</strong>
+                            <span>por mes · hasta 5 usuarios</span>
                         </div>
 
                         <ul class="landing-pricing-list">
                             <li>Entorno propio para la empresa</li>
-                            <li>Base operativa lista para usar</li>
-                            <li>Módulos principales integrados</li>
-                            <li>Ideal para trabajo individual o equipos pequeños</li>
+                            <li>Base operativa lista para trabajar</li>
+                            <li>Agenda, tareas, órdenes, activos, productos y seguimiento</li>
+                            <li>Ideal para comenzar con una estructura sólida</li>
+                            <li>Documents no incluido</li>
                         </ul>
 
                         <div class="landing-pricing-card__actions">
                             <a href="{{ route('public.signup-requests.create') }}" class="landing-btn landing-btn--primary">
-                                Solicitar acceso
+                                Empezar con Starter
                             </a>
                         </div>
                     </article>
 
                     <article class="landing-pricing-card landing-pricing-card--featured">
                         <div class="landing-pricing-card__header">
-                            <span class="landing-pricing-card__tag">Recomendado</span>
-                            <h3>Profesional</h3>
-                            <p>Para empresas que quieren trabajar con más amplitud, continuidad y control.</p>
+                            <span class="landing-pricing-card__tag">Growth</span>
+                            <h3>Growth</h3>
+                            <p>Para empresas en crecimiento que necesitan más estructura, más continuidad y más
+                                formalización.</p>
                         </div>
 
                         <div class="landing-pricing-card__price">
-                            <strong>A definir</strong>
-                            <span>mensual o por implementación</span>
+                            <strong>USD 50</strong>
+                            <span>por mes · hasta 10 usuarios</span>
                         </div>
 
                         <ul class="landing-pricing-list">
-                            <li>Base operativa premium</li>
-                            <li>Escalable para más usuarios y más organización</li>
-                            <li>Preparado para crecimiento modular</li>
-                            <li>Ideal para estructuras más exigentes</li>
+                            <li>Documents incluido</li>
+                            <li>Más capacidad para trabajo en equipo</li>
+                            <li>Mayor continuidad operativa</li>
+                            <li>Base preparada para una operación más madura</li>
+                            <li>Ideal para crecimiento organizado</li>
                         </ul>
 
                         <div class="landing-pricing-card__actions">
                             <a href="{{ route('public.signup-requests.create') }}" class="landing-btn landing-btn--primary">
-                                Solicitar acceso
+                                Elegir Growth
                             </a>
                         </div>
                     </article>
 
                     <article class="landing-pricing-card">
                         <div class="landing-pricing-card__header">
-                            <span class="landing-pricing-card__tag">Expansión</span>
-                            <h3>Evolution</h3>
-                            <p>Para acompañar una visión más amplia del negocio y del crecimiento del sistema.</p>
+                            <span class="landing-pricing-card__tag">Scale</span>
+                            <h3>Scale</h3>
+                            <p>Para operaciones intensivas o equipos consolidados que necesitan más amplitud y más
+                                proyección.</p>
                         </div>
 
                         <div class="landing-pricing-card__price">
-                            <strong>A medida</strong>
-                            <span>según alcance</span>
+                            <strong>USD 99</strong>
+                            <span>por mes · hasta 20 usuarios</span>
                         </div>
 
                         <ul class="landing-pricing-list">
-                            <li>Hoja de ruta de crecimiento sobre la base actual</li>
-                            <li>Agente de IA administrativo</li>
-                            <li>Marketplace habilitable</li>
-                            <li>Implementación consultiva y evolución progresiva</li>
+                            <li>Documents incluido</li>
+                            <li>Mayor capacidad operativa para equipos amplios</li>
+                            <li>Base premium para trabajo más intenso</li>
+                            <li>Más proyección para sostener crecimiento real</li>
+                            <li>Preparado para una operación más exigente</li>
                         </ul>
 
                         <div class="landing-pricing-card__actions">
-                            <a href="{{ route('public.signup-requests.create') }}"
-                                class="landing-btn landing-btn--secondary">
-                                Consultar
+                            <a href="{{ route('public.signup-requests.create') }}" class="landing-btn landing-btn--primary">
+                                Elegir Scale
+                            </a>
+                        </div>
+                    </article>
+                </div>
+
+                <div style="margin-top: 1.35rem;">
+                    <article class="landing-cta">
+                        <div class="landing-cta__content">
+                            <span class="landing-eyebrow">Enterprise</span>
+                            <h2>Una modalidad particular para empresas que necesitan una implementación más exclusiva.</h2>
+                            <p>
+                                Enterprise se resuelve de forma consultiva. Puede incluir instancia dedicada, branding
+                                propio, dominio propio, migración de datos, integraciones, ajustes funcionales, soporte
+                                preferente y una implementación más acompañada.
+                            </p>
+                        </div>
+
+                        <div class="landing-cta__actions">
+                            <a href="{{ route('public.signup-requests.create') }}" class="landing-btn landing-btn--primary">
+                                Consultar Enterprise
                             </a>
                         </div>
                     </article>
@@ -168,28 +191,37 @@
         <section class="landing-section landing-section--dark">
             <div class="landing-container">
                 <div class="landing-section__header landing-section__header--light">
-                    <span class="landing-eyebrow">Qué incluye la propuesta</span>
-                    <h2>Una base actual fuerte, preparada para ampliar su alcance.</h2>
+                    <span class="landing-eyebrow landing-eyebrow--light">Capas de valor</span>
+                    <h2>La propuesta crece con la empresa sin perder claridad comercial.</h2>
                     <p>
-                        Hoy ya contás con una estructura operativa integrada. Y al mismo tiempo, la plataforma está pensada
-                        para seguir sumando valor sin perder coherencia.
+                        app-base combina base operativa actual, capacidades activas en evolución y una proyección clara de
+                        crecimiento dentro del mismo entorno de trabajo.
                     </p>
                 </div>
 
                 <div class="landing-grid landing-grid--3">
                     <article class="landing-module-card">
-                        <h3>Base actual</h3>
-                        <p>Contactos, agenda, tareas, órdenes, documentos, activos, productos, proyectos y adjuntos.</p>
+                        <h3>Documents como capa avanzada</h3>
+                        <p>
+                            Documents se habilita desde Growth porque agrega una capa más exigente de formalización,
+                            mantenimiento y soporte sobre la operación.
+                        </p>
                     </article>
 
                     <article class="landing-module-card">
-                        <h3>Asistencia inteligente</h3>
-                        <p>Preparada para incorporar un agente de IA administrativo dentro del mismo entorno de trabajo.</p>
+                        <h3>Inventario como valor actual</h3>
+                        <p>
+                            Inventario ya debe leerse como capacidad real del producto. Se encuentra en fase beta en
+                            operación y forma parte del valor actual del sistema.
+                        </p>
                     </article>
 
                     <article class="landing-module-card">
-                        <h3>Marketplace habilitable</h3>
-                        <p>Posibilidad de abrir una nueva capa comercial sin salir de la plataforma.</p>
+                        <h3>IA como evolución</h3>
+                        <p>
+                            La asistencia inteligente se incorpora como capa evolutiva de valor para aumentar productividad,
+                            claridad y capacidad operativa dentro del mismo entorno.
+                        </p>
                     </article>
                 </div>
             </div>
@@ -198,23 +230,58 @@
         <section class="landing-section">
             <div class="landing-container">
                 <div class="landing-section__header">
-                    <span class="landing-eyebrow">Una aclaración importante</span>
-                    <h2>Tu empresa trabaja en un entorno propio.</h2>
+                    <span class="landing-eyebrow">Usuarios adicionales y crecimiento</span>
+                    <h2>La empresa puede ampliar capacidad sin romper la lógica natural de los planes.</h2>
                     <p>
-                        No compartís información ni dependés de otras empresas. Todo sucede dentro de un espacio separado,
-                        preparado y bajo tu control.
+                        Los planes estándar admiten usuarios adicionales cuando hace falta absorber una necesidad intermedia
+                        de crecimiento, sin perder una estructura simple y entendible.
                     </p>
                 </div>
 
                 <div class="landing-grid landing-grid--2">
                     <article class="landing-feature">
-                        <h3>Claridad desde el inicio</h3>
-                        <p>Entrás a una base preparada para trabajar con orden, sin configuraciones innecesarias.</p>
+                        <h3>Usuarios adicionales</h3>
+                        <p>
+                            Valor vigente: USD 5,5 por usuario adicional por mes.
+                        </p>
                     </article>
 
                     <article class="landing-feature">
-                        <h3>Una experiencia premium real</h3>
-                        <p>La propuesta apunta a que tu empresa funcione dentro de un entorno cuidado, sólido y profesional.
+                        <h3>Upgrade natural</h3>
+                        <p>
+                            Cuando el crecimiento lo justifique, la propuesta comercial puede sugerir migración al plan
+                            superior para mantener una relación clara entre capacidad operativa y valor entregado.
+                        </p>
+                    </article>
+                </div>
+            </div>
+        </section>
+
+        <section class="landing-section landing-section--soft">
+            <div class="landing-container">
+                <div class="landing-section__header">
+                    <span class="landing-eyebrow">Confianza comercial</span>
+                    <h2>La relación con el cliente debe sostenerse por valor, no por dependencia forzada.</h2>
+                    <p>
+                        app-base trabaja sobre una idea simple: el cliente debe sentirse seguro trabajando en un entorno
+                        propio, con control claro y con una portabilidad razonable de su información principal.
+                    </p>
+                </div>
+
+                <div class="landing-grid landing-grid--2">
+                    <article class="landing-card">
+                        <h3>Tus datos son tuyos</h3>
+                        <p>
+                            La información principal del negocio debe poder exportarse mediante un proceso razonable,
+                            seguro y útil, sin prometer atajos irresponsables ni dependencia artificial.
+                        </p>
+                    </article>
+
+                    <article class="landing-card">
+                        <h3>Entorno propio para crecer</h3>
+                        <p>
+                            La empresa trabaja dentro de un espacio claro, sólido y preparado para crecer con coherencia,
+                            sin tener que rehacer todo cada vez que aumenta la exigencia operativa.
                         </p>
                     </article>
                 </div>
@@ -226,9 +293,10 @@
                 <div class="landing-cta">
                     <div class="landing-cta__content">
                         <span class="landing-eyebrow">Siguiente paso</span>
-                        <h2>Podés empezar con una base sólida hoy y ampliar el alcance mañana.</h2>
+                        <h2>Empezá con una base sólida hoy y ampliá el alcance cuando tu empresa lo necesite.</h2>
                         <p>
-                            Solicitá acceso y evaluemos cuál es la mejor forma de incorporar app-base a tu empresa.
+                            Podemos ayudarte a evaluar si conviene comenzar con un plan estándar o avanzar con una
+                            implementación particular.
                         </p>
                     </div>
 

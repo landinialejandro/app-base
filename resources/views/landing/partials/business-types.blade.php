@@ -1,42 +1,74 @@
-{{-- FILE: resources/views/landing/partials/business-types.blade.php | V2 --}}
+{{-- FILE: resources/views/landing/partials/business-types.blade.php | V4 --}}
 <section class="landing-section">
     <div class="landing-container">
         <div class="landing-section__header">
-            <span class="landing-eyebrow">Adaptable a distintos rubros</span>
-            <h2>Un sistema que puede acompañar negocios muy diferentes sin perder coherencia.</h2>
+            <span class="landing-eyebrow">Adaptable a distintas realidades</span>
+            <h2>Una misma base puede acompañar formas de trabajo muy diferentes.</h2>
             <p>
-                app-base no está pensado para un único rubro. Puede adaptarse a distintas formas de trabajo donde haya
-                actividad diaria, agenda, seguimiento, documentos, atención o necesidad de orden.
+                app-base no nace atado a un único rubro. Está pensado para organizaciones que necesitan ordenar
+                actividad
+                diaria, coordinar personas, sostener seguimiento y trabajar con más claridad.
             </p>
         </div>
 
         <div class="landing-grid landing-grid--3">
-            <article class="landing-card">
-                <h3>Talleres y operación técnica</h3>
+
+            <article class="landing-card landing-card--market">
+                <h3>Operaciones técnicas</h3>
+                <div class="landing-card__arrow">⌄</div>
                 <p>
-                    Desde talleres mecánicos pequeños hasta operaciones más amplias, como concesionarias o talleres de
-                    motos,
-                    donde el seguimiento del trabajo y la continuidad operativa son clave.
+                    Equipos de servicio, talleres, mantenimiento, postventa o trabajo en campo donde coordinar tareas,
+                    órdenes y continuidad operativa hace una diferencia concreta.
                 </p>
             </article>
 
-            <article class="landing-card">
-                <h3>Comercio y venta especializada</h3>
+            <article class="landing-card landing-card--market">
+                <h3>Comercio especializado</h3>
+                <div class="landing-card__arrow">⌄</div>
                 <p>
-                    También puede acompañar librerías, negocios de repuestos y otras actividades donde hace falta
-                    ordenar
-                    productos, contactos, documentos y tareas internas.
+                    Negocios que combinan atención, productos, documentos, seguimiento y organización interna para
+                    sostener una operación más prolija y profesional.
                 </p>
             </article>
 
-            <article class="landing-card">
-                <h3>Servicios y atención profesional</h3>
+            <article class="landing-card landing-card--market">
+                <h3>Servicios profesionales</h3>
+                <div class="landing-card__arrow">⌄</div>
                 <p>
-                    Puede adaptarse a lavaderos, consultorios y espacios con muchos profesionales y muchos pacientes,
-                    donde
-                    la organización y la agenda hacen una diferencia real.
+                    Consultorios, centros, estudios o espacios de atención donde agenda, coordinación y contexto
+                    compartido mejoran la experiencia de trabajo.
                 </p>
             </article>
+
+            <article class="landing-card landing-card--market">
+                <h3>Equipos internos</h3>
+                <div class="landing-card__arrow">⌄</div>
+                <p>
+                    Áreas administrativas, soporte, coordinación interna o sectores que necesitan más orden y
+                    trazabilidad
+                    en sus procesos cotidianos.
+                </p>
+            </article>
+
+            <article class="landing-card landing-card--market">
+                <h3>Negocios en crecimiento</h3>
+                <div class="landing-card__arrow">⌄</div>
+                <p>
+                    Empresas que ya funcionan, pero necesitan una base mejor para no seguir creciendo sobre soluciones
+                    provisorias.
+                </p>
+            </article>
+
+            <article class="landing-card landing-card--market">
+                <h3>Modelos particulares</h3>
+                <div class="landing-card__arrow">⌄</div>
+                <p>
+                    Cuando la operación tiene necesidades especiales, la base puede evolucionar mediante configuraciones
+                    o
+                    implementaciones más específicas.
+                </p>
+            </article>
+
         </div>
     </div>
 </section>

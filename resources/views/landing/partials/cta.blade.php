@@ -1,12 +1,18 @@
-{{-- FILE: resources/views/landing/partials/cta.blade.php | V2 --}}
+{{-- FILE: resources/views/landing/partials/cta.blade.php | V3 --}}
 <section class="landing-section landing-section--cta">
     <div class="landing-container">
         <div class="landing-cta">
             <div class="landing-cta__content">
-                <span class="landing-eyebrow">Empezá con una base superior</span>
-                <h2>Tu empresa puede empezar a trabajar con una infraestructura pensada para destacar.</h2>
+                <span class="landing-eyebrow">Siguiente paso</span>
+
+                <h2>
+                    Empezá con una base sólida hoy y ampliá el alcance cuando tu empresa lo necesite.
+                </h2>
+
                 <p>
-                    Orden, continuidad, control, crecimiento y una experiencia premium en un mismo entorno.
+                    app-base está pensado para empresas que necesitan más orden, más continuidad y una estructura clara
+                    para crecer sin improvisación. Podemos ayudarte a evaluar si conviene comenzar con un plan estándar
+                    o avanzar con una implementación particular.
                 </p>
             </div>
 
@@ -27,7 +33,7 @@
                     </a>
 
                     <a href="{{ route('landing.pricing') }}" class="landing-btn landing-btn--secondary">
-                        Ver precios
+                        Ver planes
                     </a>
                 @endauth
             </div>

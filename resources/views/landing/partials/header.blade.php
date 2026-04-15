@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/landing/partials/header.blade.php | V1 --}}
+{{-- FILE: resources/views/landing/partials/header.blade.php | V2 --}}
 <header class="landing-header">
     <div class="landing-container landing-header__inner">
         <a href="{{ route('landing.home') }}" class="landing-brand" aria-label="app-base">
@@ -20,7 +20,7 @@
                 @endif
 
                 <a href="{{ route('landing.pricing') }}" class="landing-btn landing-btn--ghost">
-                    Precios
+                    Ver planes
                 </a>
 
                 <form method="POST" action="{{ route('logout') }}" class="landing-inline-form">
@@ -31,7 +31,7 @@
                 </form>
             @else
                 <a href="{{ route('landing.pricing') }}" class="landing-btn landing-btn--ghost">
-                    Precios
+                    Ver planes
                 </a>
 
                 <a href="{{ route('login') }}" class="landing-btn landing-btn--ghost">

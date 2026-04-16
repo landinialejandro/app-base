@@ -335,7 +335,7 @@ Su función es sostener la plataforma y su frontera de ingreso.
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 ENTIDADES DEL NEGOCIO
 
@@ -354,6 +354,7 @@ order_items
 documents
 document_items
 document_sequences
+inventory_movements
 attachments
 
 Estas entidades deben leerse como parte del ecosistema operativo de empresa y no como infraestructura global del sistema.
@@ -361,6 +362,12 @@ Estas entidades deben leerse como parte del ecosistema operativo de empresa y no
 No todas cumplen el mismo rol conceptual.
 
 Algunas funcionan como base del dominio, otras como módulos autónomos, otras como agrupadores, derivadas o capacidades transversales.
+
+Aclaración adicional consolidada:
+
+la existencia de inventory como frente operativo en evolución modular propia no reemplaza la persistencia actual de inventory_movements como entidad del negocio ya real dentro del ecosistema del tenant
+
+inventory_movements expresa hoy la base transaccional efectiva del frente inventory mientras su identidad modular continúa consolidándose
 
 <<END SECTION>>
 
@@ -618,7 +625,7 @@ Su crecimiento arquitectónico debe reforzar una experiencia de uso simple y com
 
 
 <<SECTION: RELACIONES MACRO DEL ECOSISTEMA>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 RELACIONES MACRO DEL ECOSISTEMA
 
@@ -632,6 +639,7 @@ orders puede derivar documents
 orders contiene detalle operativo mediante order_items
 products alimenta ítems operativos y documentales
 products sostiene la base operativa actual y validada de inventory V1
+inventory_movements constituye la base transaccional actual del frente inventory
 parties se relaciona transversalmente con múltiples módulos
 attachments puede integrarse sobre múltiples recursos
 
@@ -640,9 +648,10 @@ Relaciones estructuralmente especialmente relevantes dentro del estado actual de
 projects y tasks como agrupador y unidad operativa
 tasks y orders como continuidad posible entre trabajo interno y operación
 appointments y orders como continuidad posible entre agenda y operación
-assets como contexto transversal para operationes, agenda y documentos
+assets como contexto transversal para operaciones, agenda y documentos
 parties como base relacional transversal del dominio
 products como base de catálogo operativo e inventory V1
+inventory_movements como soporte transaccional actual de inventory
 
 Aclaración adicional consolidada:
 

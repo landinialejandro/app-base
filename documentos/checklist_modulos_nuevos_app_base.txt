@@ -579,7 +579,7 @@ también deben revisarse tabs, bloques embebidos, redirects post acción, acceso
 <<END SECTION>>
 
 <<SECTION: ENTIDADES HIJAS Y SUBRECURSOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ENTIDADES HIJAS Y SUBRECURSOS
 
@@ -589,29 +589,37 @@ si el recurso hijo tiene autonomía real o depende funcionalmente del padre
 
 si corresponde delegar autorización en el recurso padre
 
-si evita crear capabilities propias sin necesidad real
+si evita crear un módulo artificial donde alcanza con una entidad hija bien modelada
 
-si evita ownership artificial en el hijo
+si la UI del hijo no compite con la jerarquía del padre sin necesidad
 
-si evita dataset independiente cuando solo es detalle operativo
+si las restricciones reales del hijo provienen del padre o de un frente operativo relacionado ya existente
 
-si no agrega responsabilidades de cabecera por comodidad técnica
+Preguntas obligatorias:
 
-si las policies del hijo, cuando existan, delegan explícitamente en el padre
+este recurso necesita identidad modular propia o sigue siendo detalle del padre
+su seguridad puede delegarse completamente
+su navegación debe ser estructural o contextual
+su edición libre sigue siendo válida cuando ya existe trazabilidad operativa iniciada
+si gana relevancia operativa, esa relevancia exige módulo nuevo o solo endurecer su contrato como hijo delegado
 
-si el ciclo de vida del hijo queda claramente subordinado a la cabecera
+Regla adicional consolidada:
 
-Validar además:
+un subrecurso delegado puede ganar relevancia operativa transversal sin dejar de ser hijo
 
-pertenencia real del hijo al padre antes de operar create, edit, update o delete
+eso ocurre cuando pasa a actuar como ancla explícita de ejecución, trazabilidad o restricciones dentro de otro frente operativo
 
-navegación de cancelar y volver coherente con el padre y con el trail vigente
+caso vigente relevante:
 
-alineación de controllers, vistas embebidas y formularios al mismo criterio de delegación
+order_items respecto de inventory
 
-Caso patrón ya validado:
+En esos casos, validar además:
 
-order_items como subrecurso delegado a orders bajo orders.update
+que no se le inventen permisos autónomos innecesarios
+que la trazabilidad no rompa la delegación doctrinal al padre
+que la UI exprese su nuevo peso operativo sin promoverlo falsamente a módulo
+que edición y borrado dejen de ser libres cuando ya existan movimientos ejecutados o equivalentes
+
 <<END SECTION>>
 
 <<SECTION: DOCUMENTACIÓN OBLIGATORIA>>

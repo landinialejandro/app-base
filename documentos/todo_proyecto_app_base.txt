@@ -61,7 +61,7 @@ priorizar piezas con mayor impacto sistémico
 <<END SECTION>>
 
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00011
 
 MÓDULOS PRIORITARIOS A REVISAR
 
@@ -73,21 +73,13 @@ Estado actual:
 
 frente operativo principal cerrado en este ciclo de trabajo
 
-Cierres alcanzados:
-
-núcleo actual alineado con doctrina modular
-superficie reusable publicada
-order_items delegados al padre
-create contextual unificado
-integración appointments → orders consolidada
-acciones transversales reutilizables activas
-contrato efectivo validado en runtime real con allowed_kinds
-
-Pendiente residual de cierre homogéneo:
+Pendiente residual:
 
 barrer consumidores secundarios y superficies derivadas para asegurar consumo uniforme de la capacidad reusable oficial sin resoluciones locales remanentes
 
-No reabrir en este frente salvo bug real o cambio doctrinal nuevo.
+Regla:
+
+no reabrir este frente salvo bug real o cambio doctrinal nuevo
 
 PARTIES
 
@@ -95,17 +87,17 @@ módulo base del dominio y siguiente frente activo de reconversión contractual
 
 Estado actual:
 
-doctrina cerrada en este ciclo de trabajo
+doctrina cerrada
 implementación pendiente de alineación final
 
-Líneas de cierre inmediato:
+Líneas inmediatas:
 
-alinear contrato de seguridad efectivo al modelo contextual por kind
+alinear contrato efectivo al modelo contextual por kind
 hacer que allowed_kinds arbitre create, view, update y delete
 reservar delete a owner con delegación posible a administrator
-publicar linked-party-action como capacidad reusable oficial del módulo
-reconvertir parties.show en superficie transversal con relaciones operativas relevantes
-barrer consumidores secundarios para eliminar links locales residuales hacia parties
+publicar linked-party-action como capacidad reusable oficial
+reconvertir parties.show en superficie transversal
+barrer consumidores secundarios con links locales residuales hacia parties
 
 ASSETS
 
@@ -113,17 +105,7 @@ módulo operativo compartido del tenant
 
 Estado actual:
 
-contrato simple validado en runtime real
 frente reusable principal cerrado en este ciclo de trabajo
-
-Cierres alcanzados:
-
-lectura doctrinal como módulo autónomo compartido
-sin ownership artificial
-create simple sin contexto obligatorio
-superficie reusable linked-asset-action publicada
-barrido principal de consumidores visibles realizado
-consumo de appointments como relación embebida fuerte ya definido doctrinalmente
 
 Pendiente residual:
 
@@ -138,13 +120,6 @@ Estado actual:
 núcleo doctrinal estable
 inventory V1 ya opera efectivamente apoyado sobre products
 
-Cierres alcanzados:
-
-dataset base alineado para products e inventory V1
-seeder efectivo de inventory integrado en la configuración real
-stock y movimientos validados en runtime real
-distinción operativa validada entre productos físicos con movimientos y servicios no stockeables por defecto
-
 Nueva evolución aprobada:
 
 inventory Fase 2 pasa a ser frente activo independiente sin reabrir el núcleo doctrinal de products
@@ -154,8 +129,7 @@ TASKS
 Revisar:
 
 autonomía plena respecto de projects
-capacidades internas tipo mensajería o seguimiento
-generación futura automática por eventos o desvíos
+capacidades internas de seguimiento
 surface reusable para integraciones
 alineación final de superficies secundarias que consumen integración con orders
 
@@ -181,85 +155,35 @@ Estado actual:
 
 frente doctrinal y estructural principal cerrado en este ciclo de trabajo
 
-Cierres alcanzados:
-
-lectura como módulo autónomo de agenda operativa
-calendar consolidado como superficie principal del módulo
-index relegado a superficie secundaria no promovida
-oferta reusable oficial definida desde el propio módulo
-embebido reusable oficial para relaciones fuertes
-integración compacta definida para vínculo puntual con orders
-trail base reanclado conceptualmente desde calendar
-
 Pendiente residual:
 
 validación runtime final de superficies alineadas y barrido documental restante
 
 INVENTORY
 
-Nuevo frente activo consolidado.
+Nuevo frente activo consolidado
 
 Objetivo inmediato:
 
-reconversión modular de inventory Fase 2.
+reconversión modular de inventory
 
-Alcance inicial:
+Líneas inmediatas:
 
-acceso propio al módulo
-inventory.index
-inventory.show
-tabla principal de saldos
-ficha por producto
-historial de movimientos
-surfaces reutilizables oficiales
-integración limpia con products, orders y documents
-
-Alcance operativo adicional aprobado para inventory nivel 3:
-
-evolucionar inventory desde registro de movimientos hacia motor operativo
-
-publicar contexto reusable oficial para módulos consumidores, especialmente orders, order_items y futuros módulos
-
-incorporar lectura explícita y operativa de:
-
-stock actual
-comprometido
-pendiente de recepción
-faltantes
-quiebres de stock
-
-incorporar surtido y recepción contextual por línea
-
-evaluar acción rápida de surtir línea completa
-
-evaluar acción rápida equivalente para compras o recepción completa
-
-incorporar reglas por estado de orden al comportamiento operativo del frente inventory, especialmente sobre:
-
-draft
-approved
-closed
-
-definir restricciones de edición sobre order_items cuando ya existan movimientos ejecutados
-
-formalizar movimientos manuales con:
-
-motivo obligatorio
-dirección explícita
-task automática al owner
-
-resolver reversiones automáticas mediante contramovimientos con trazabilidad completa
-
-dejar pendiente mejora futura de concurrencia y disputa operativa
-
-evaluar AJAX o UX dinámica solo cuando aporte valor operativo real y sin introducir complejidad innecesaria
-
-incorporar métricas iniciales útiles en inventory.index sin convertir la pantalla en dashboard pesado
+crear acceso propio al módulo
+implementar inventory.index
+implementar inventory.show
+centralizar historial de movimientos en surface propia
+publicar surfaces reutilizables oficiales
+integrar consumo limpio con products, orders y documents
+terminar lectura operativa por línea en orders.show
+endurecer restricciones sobre order_items con movimientos
+formalizar reversión por contramovimientos con trazabilidad
+definir métricas iniciales útiles sin convertir inventory.index en dashboard pesado
 
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -268,7 +192,6 @@ ORDERS
 Se considera cerrado operativamente en este frente de trabajo respecto de:
 
 identidad modular
-contrato de entrada y salida
 create contextual por kind
 integración tasks → orders
 integración appointments → orders
@@ -285,17 +208,9 @@ no implica ausencia total de bugs futuros
 
 implica que el frente doctrinal y estructural principal quedó resuelto
 
-Regla:
-
-los próximos trabajos sobre orders deben priorizar bugs reales, mejoras concretas o nuevos objetivos aprobados
-
-Aclaración operativa:
-
-la homogeneización total del consumo de la capacidad reusable en superficies secundarias todavía debe seguir auditándose antes de considerar completamente agotado ese frente en todo el ecosistema
-
 ASSETS
 
-Se considera avanzado y cerrado en este frente principal respecto de:
+Se considera cerrado en este frente principal respecto de:
 
 identidad modular como módulo compartido
 contrato simple sin create contextual obligatorio
@@ -303,12 +218,6 @@ ausencia de ownership artificial
 validación runtime real del contrato efectivo
 superficie reusable linked-asset-action
 alineación principal de consumidores visibles
-
-Alcance del cierre:
-
-no implica ausencia total de bugs futuros
-
-implica que el frente doctrinal principal quedó resuelto y solo restan verificaciones residuales o evolución futura aprobada
 
 APPOINTMENTS
 
@@ -321,14 +230,10 @@ integración contextual principal hacia orders
 oferta reusable oficial publicada desde el propio módulo
 definición de embebido reusable para relaciones fuertes
 definición de integración compacta para vínculo puntual con orders
-alineación conceptual del consumo desde assets y parties
-reubicación doctrinal del trail base del módulo
 
-Alcance del cierre:
+Regla:
 
-no implica ausencia total de bugs futuros
-
-implica que el rediseño modular principal quedó resuelto y lo restante pertenece a validación runtime final y documentación asociada
+los próximos trabajos sobre estos módulos deben priorizar bugs reales, validaciones residuales o mejoras concretas ya aprobadas
 
 <<END SECTION>>
 
@@ -574,7 +479,7 @@ inventory
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00015
 
 PENDIENTES INMEDIATOS
 
@@ -586,15 +491,13 @@ seguir dividiendo vistas grandes en partials cuando superen complejidad razonabl
 
 seguir unificando sublistados documentales mediante partial reutilizable
 
-extender preservación de contexto UX en tabs, filtros y paginación a otras pantallas
-
 auditar propagación de trail en sublistados, tablas embebidas, filtros, tabs y paginación donde todavía pueda perderse contexto
 
 implementar sistema de auditoría de cambios
 
 implementar visor navegable de documentación técnica dentro de Laravel
 
-Pendientes inmediatos del frente documents y derivados:
+Pendientes inmediatos del frente documents:
 
 terminar de auditar el cierre operativo completo de documents como módulo derivado respecto de orders
 
@@ -602,58 +505,33 @@ revisar create contextual y contrato de seguridad efectivo de documents
 
 alinear items, formularios embebidos y navegación profunda restante en ecosistema documental
 
-Pendiente inmediato adicional del frente reusable:
+Pendiente inmediato del frente reusable:
 
 barrer consumidores secundarios para eliminar resoluciones locales residuales de integraciones ya cerradas por el módulo oferente
 
-Pendiente inmediato adicional parties:
+Pendiente inmediato parties:
 
 alinear implementación real al contrato doctrinal ya cerrado
 implementar linked-party-action
 reconvertir party.show como superficie transversal
 
-Pendiente inmediato inventory Fase 2:
+Pendiente inmediato inventory:
 
 crear acceso principal del módulo
-
 implementar inventory.index como tabla de saldos por producto
-
 implementar inventory.show como ficha por producto
-
 centralizar historial de movimientos en surface propia
-
 migrar UI de stock hoy dispersa en products y orders hacia consumo reusable de inventory
-
 extender trazabilidad con vínculos hacia orders y documents
-
 definir permisos efectivos iniciales del módulo
-
 validar runtime final multi-tenant y navegación contextual
-
-Pendiente inmediato inventory nivel 3:
-
-evolucionar inventory desde registro de movimientos a motor operativo
-
-publicar contexto reusable oficial para consumers del frente inventory
-
-incorporar lectura operativa de stock actual, comprometido, pendiente de recepción, faltantes y quiebres
-
-evaluar surtido contextual por línea y acción rápida de surtir línea completa
-
-evaluar recepción contextual por línea y acción rápida equivalente para compras o recepción completa
-
-definir reglas por estado de orden sobre movimientos y disponibilidad operativa
-
-restringir edición de order_items cuando ya existan movimientos ejecutados
-
+consolidar contexto reusable oficial para consumers del frente
+homogeneizar lectura operativa por línea en orders.show sin arbitraje local residual
+completar lectura operativa de stock actual, comprometido, pendiente de recepción, faltantes y quiebres
+evaluar surtido y recepción contextual por línea
+endurecer reglas por estado de orden sobre movimientos y disponibilidad operativa
 formalizar movimientos manuales con motivo obligatorio, dirección explícita y task automática al owner
-
 implementar reversión por contramovimientos con trazabilidad completa
-
-evaluar mejoras futuras de concurrencia y disputa operativa
-
-evaluar UX dinámica o AJAX solo donde agregue valor operativo real
-
 incorporar métricas iniciales útiles en inventory.index con bajo peso visual
 
 Considerar como ya cerrado y no reabrir en este frente:
@@ -776,7 +654,7 @@ Pendientes cerrados y no reabrir:
 <<END SECTION>>
 
 <<SECTION: FLUJOS FUNCIONALES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 FLUJOS FUNCIONALES
 
@@ -784,26 +662,11 @@ revisar consolidación funcional del vínculo 1 a 1 entre tasks y orders
 
 alinear tasks definitivamente con la regla operativa acordada de ownership por assigned_user_id mediante policy formal consolidada
 
-validar en uso real la consistencia entre:
-
-universo visible de tasks resuelto por backend
-filtros aplicados en UI
-
-validar consistencia entre:
-
-TaskVisibility
-TaskController@index
-filtros por assigned_user_id
+validar en uso real la consistencia entre dataset visible de tasks resuelto por backend y filtros aplicados en UI
 
 asegurar que los filtros de UI operen únicamente sobre el dataset ya resuelto por backend y no alteren el universo visible
 
 evaluar reglas futuras de bloqueo o trazabilidad cuando una tarea ya derivó en orden
-
-consolidar orders como módulo operativo interno principal del tenant
-
-consolidar documents como módulo documental, formal y fiscal derivado de la operación
-
-inhabilitar work_order como tipo documental activo en UI y flujo normal, manteniéndolo solo como legacy
 
 endurecer coherencia entre documents y orders asociadas
 
@@ -811,31 +674,21 @@ validar coincidencia entre document.party_id y order.party_id cuando exista orde
 
 evaluar reglas futuras de bloqueo de edición en documents cuando estén vinculados a orders y/o assets
 
-evaluar bloqueo funcional de alta de tareas en proyectos cerrados
-
 implementar vista semanal de appointments
 
-evaluar vista diaria de appointments
-
-evaluar detalle diario o cuadro de consulta operativa por día para appointments
+evaluar vista diaria o detalle operativo por día para appointments
 
 revisar si la navegación entre vista mensual, semanal y diaria de appointments conviene resolverse dentro de una misma pantalla o con vistas separadas
 
 evaluar si el bloqueo de alta en fechas pasadas en appointments necesita endurecimiento adicional por estado o por rubro
 
-evaluar si appointments necesita contemplar casos multifecha reales
+revisar si appointments necesita contemplar casos multifecha reales
 
 revisar si el calendario semanal de appointments requiere grilla horaria o solo agrupación por día
 
 revisar si conviene desacoplar workstation_name en dos campos futuros: referencia interna y dirección real
 
-extender adaptación por rubro a otras pantallas o módulos cuando realmente aporte valor
-
-evaluar más adelante una máquina de estados simple para orders
-
-evaluar más adelante una máquina de estados simple para documents
-
-terminar de alinear los flujos de alta contextual desde show relacionados, especialmente:
+terminar de alinear flujos de alta contextual desde show relacionados, especialmente:
 
 assets -> crear order
 assets -> crear document
@@ -843,17 +696,11 @@ assets -> agendar appointment
 
 dejar resuelto el precompletado del formulario de appointments cuando se ingresa desde un activo o desde una relación contextual
 
-evaluar más adelante si el botón contextual de creación dentro de subtabs debe reaccionar dinámicamente al tab interno seleccionado o si alcanza con un default operativo estable por contexto
+Pendiente inmediato documents:
 
-mantener reflejada en documentación la decisión de parties como módulo base intrínseco del sistema y no como módulo opcional apagable por tenant
+revisar documents como siguiente caso de create contextual con constraints obligatorias reutilizando el patrón ya validado en orders
 
-mantener como regla estable que los flujos entre módulos (ej. appointments → orders) dependen del estado activo del módulo destino y no deben exponerse si el módulo está deshabilitado
-
-pendiente inmediato derivado de autorización:
-
-revisar documents como siguiente caso de create contextual con constraints obligatorias reutilizando el patrón ya validado en orders y sin reabrir la discusión doctrinal ya cerrada
-
-pendiente inmediato adicional del frente parties:
+Pendiente inmediato parties:
 
 reconvertir party.show desde ficha simple hacia nodo transversal con relaciones operativas relevantes
 
@@ -862,13 +709,11 @@ alinear la navegación y apertura hacia parties desde módulos consumidores bajo
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN Y CONTEXTO UX>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 NAVEGACIÓN Y CONTEXTO UX
 
-revisar y consolidar la implementación de navegación contextual según contexto funcional real, navegación cruzada y profundidad de pantalla
-
-normalizar implementación de navegación contextual ya adoptada en orders, documents, projects, tasks, parties, assets y products
+consolidar implementación de navegación contextual según contexto funcional real
 
 auditar propagación de trail en sublistados, tablas embebidas, tabs, filtros y paginación donde todavía pueda perderse contexto
 
@@ -885,50 +730,20 @@ extender preservación de contexto en redirects, cancelar y volver dentro de flu
 
 auditar y definir una convención estable para navbar y sidebar cuando el usuario recorre flujos contextuales entre módulos relacionados
 
-no avanzar todavía a navegación tipo tabs de ruta o workspace hasta cerrar una convención simple y estable de navegación contextual
-
 mantener como referencias resueltas los tramos contextuales appointments -> orders -> documents, projects -> tasks -> orders y parties -> assets -> orders/documents
 
 incorporar explícitamente a la auditoría los flujos appointments -> parties, appointments -> assets, orders -> parties, orders -> assets, documents -> parties, documents -> assets, documents -> orders
 
-considerar como ya resueltos en la base actual los recorridos:
-
-party -> asset
-party -> order
-party -> document
-asset -> order
-asset -> document
-project -> task
-task -> order
-
-auditar y definir criterio de compactación o corte de breadcrumb contextual para navegaciones profundas
-
-evaluar cuándo conviene conservar simultáneamente:
-
-módulo origen
-entidad fila
-jerarquía natural del destino
-
-definir regla UX para no perder contexto sin generar breadcrumbs excesivos
-
-auditar remanentes de propagación de trail en navegación profunda, especialmente en:
-
-tablas embebidas
-tabs
-acciones secundarias
-rutas cruzadas poco frecuentes
+auditar criterio de compactación o corte de breadcrumb contextual para navegaciones profundas
 
 evitar reaparición de serialización recursiva del trail dentro de URLs internas de nodos
 
-revisar casos donde el breadcrumb contextual del show siga resolviendo una salida incorrecta aunque la pantalla ya haya sido alineada visualmente
-
 auditar includes embebidos para asegurar uso exclusivo de NavigationTrail sin parámetros manuales
-
-mantener el criterio de que en tablas relacionales por fila el link principal construye el contexto de fila y los links relacionados reutilizan ese mismo trail
 
 Pendiente residual de homogeneidad:
 
 verificar que las superficies secundarias que abren o crean orders desde otros módulos consuman la misma capacidad reusable oficial y no reconstruyan localmente el flujo contextual
+
 <<END SECTION>>
 
 <<SECTION: NUMERACIÓN Y CONFIGURACIÓN OPERATIVA>>
@@ -974,38 +789,28 @@ revisar consistencia de tenant_id en fillable de entidades hijas creadas interna
 <<END SECTION>>
 
 <<SECTION: PENDIENTES RELACIONADOS>>
+SECTION_VERSION: 00003
+
 PENDIENTES RELACIONADOS
 
-breadcrumb contextual incorrecto en algunos show ya alineados visualmente, especialmente cuando el origen funcional no coincide con la jerarquía visible actual
-
-prefill real del formulario de appointments cuando se agenda desde assets.show
-
-definir si la acción contextual del subtab debe mantenerse fija por contexto o cambiar según el tab interno seleccionado
-
 extender el patrón consolidado de:
+
 tab-toolbar
 horizontal-scroll reusable
 acciones contextuales fijas a la derecha
 bloques detail reutilizables
+
 a los show y embedded-tabs restantes del core
 
 auditar qué otros grupos horizontales del sistema conviene migrar a horizontal-scroll reusable además de tabs
 
-revisar si la solución de overflow horizontal con chevrons debe aplicarse también en:
-filtros tipo chips
-agrupadores horizontales
-tabs secundarios futuros
-
 seguir unificando el orden de acciones en show:
+
 editar
 eliminar
 acciones secundarias
 volver
 
-evaluar más adelante si conviene agregar comportamiento más rico al horizontal-scroll:
-gradientes laterales
-autoscroll hacia tab activo
-visibilidad refinada de chevrons en cambios de tab oculto/visible
 <<END SECTION>>
 
 <<SECTION: IDEAS FUTURAS>>

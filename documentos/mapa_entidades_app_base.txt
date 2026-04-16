@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -70,6 +70,8 @@ inventory_movements expresa saldo e historial de stock por agregación de movimi
 
 inventory_movements puede registrar trazabilidad contextual hacia orders y documents
 
+inventory_movements puede registrar además trazabilidad operativa explícita hacia order_items cuando una línea actúe como referencia concreta de ejecución
+
 order_items gana además relevancia contractual y operativa dentro del ecosistema al actuar como punto natural de lectura para surtido, recepción, compromiso y restricciones de edición cuando ya existan movimientos ejecutados
 
 la operación de inventory ya no debe leerse solo como stock actual agregado
@@ -81,6 +83,31 @@ stock comprometido de salida
 recepción esperada de entrada
 
 inventory puede relacionarse no solo con product como artículo maestro sino también con order_item como contexto operativo por línea cuando el flujo requiera reservar, surtir, recibir, revertir o auditar ejecución parcial
+
+la relación inventory ↔ order_item ya no es solo lectura futura de diseño
+
+pasa a formar parte del frente operativo real del ecosistema mediante anclaje explícito de ejecución por línea
+
+order_items puede incorporar estado operativo propio persistido y gobernado por código cuando la línea participe del flujo de inventory
+
+ese estado no reemplaza el estado global de orders ni convierte a order_items en módulo autónomo
+
+funciona como capa operativa subordinada para expresar ejecución parcial, pendiente o cierre por línea
+
+orders mantiene su estado general como arbitraje superior del flujo operativo
+
+la normalización vigente de ese estado distingue:
+
+draft
+approved
+closed
+cancelled
+
+approved reemplaza semánticamente a confirmed dentro de la lectura vigente del ecosistema
+
+closed expresa cierre operativo readonly
+
+cancelled exige ausencia de movimientos ejecutados o reversión previa suficiente para no dejar trazabilidad inconsistente
 
 tasks puede recibir alertas automáticas del sistema mediante metadata cuando la operación lo requiera
 
@@ -154,7 +181,7 @@ Aclaración adicional consolidada para inventory:
 
 inventory ya no debe leerse solo como efecto lateral del catálogo de products
 
-su evolución vigente lo proyecta como frente operativo separado para stock y movimientos, conservando a products como maestro del artículo y a orders y documents como consumidores o contextos de trazabilidad
+su evolución vigente lo proyecta como frente operativo separado para stock y movimientos, conservando a products como maestro del artículo y a orders, order_items y documents como consumidores o contextos de trazabilidad
 
 no invalidan otras relaciones técnicas menores ya existentes o futuras
 
@@ -703,7 +730,7 @@ Lo ubica como base maestra estable dentro de una arquitectura más limpia entre 
 <<END SECTION>>
 
 <<SECTION: INVENTORY>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 INVENTORY
 
@@ -779,6 +806,33 @@ debe calcularse por agregación de inventory_movements
 orders y documents pueden contextualizar movimientos sin absorber el frente inventory como núcleo propio
 
 la lectura conceptual del frente debe distinguir entre stock actual, compromiso de salida y recepción esperada de entrada aun cuando su implementación definitiva evolucione por fases
+
+Aclaración operativa consolidada:
+
+cuando el frente opere por línea de orden, el anclaje principal de ejecución debe resolverse desde order_item y no solo desde product u order genérica
+
+inventory_movements.order_item_id expresa ya esa relación operativa explícita y no una intención futura abstracta
+
+Aclaración adicional consolidada:
+
+cuando una línea ya tenga movimientos ejecutados, su operación deja de ser libremente editable como simple detalle administrativo
+
+debe pasar a leerse como detalle transaccional con restricciones operativas y trazabilidad preservada
+
+Aclaración adicional sobre estados:
+
+el frente inventory debe consumir el estado normalizado de orders como marco operativo superior
+
+draft
+approved
+closed
+cancelled
+
+approved habilita lectura de orden validada para ejecución
+
+closed implica readonly operativo
+
+cancelled no debe convivir con movimientos ejecutados sin reversión previa suficiente
 
 <<END SECTION>>
 
@@ -920,7 +974,7 @@ cuando una orden origine, consuma o contextualice movimientos de stock, debe lee
 <<END SECTION>>
 
 <<SECTION: ORDER_ITEMS>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 ORDER_ITEMS
 
@@ -962,6 +1016,18 @@ sin dejar de ser entidad hija delegada, order_items gana peso contractual dentro
 Esa relevancia operativa no lo convierte en módulo autónomo.
 
 Confirma su rol como detalle transaccional principal entre orders, products e inventory.
+
+Aclaración adicional consolidada:
+
+la línea puede incorporar estado operativo propio persistido y gobernado por código cuando participe de ejecución real de inventory
+
+ese estado expresa avance o cierre operativo de la línea y no reemplaza la gobernanza general del estado de la orden
+
+Aclaración adicional sobre restricciones:
+
+cuando ya existan inventory_movements vinculados a una línea, order_items deja de ser un detalle editable libre por inercia
+
+su edición o eliminación debe quedar restringida por trazabilidad y por continuidad operativa del frente inventory
 
 <<END SECTION>>
 

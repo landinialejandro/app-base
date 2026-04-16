@@ -562,7 +562,7 @@ la unidad visual completa debe desaparecer y no solo el contenido interno
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW
 
@@ -643,6 +643,22 @@ acciones rápidas contenidas
 
 sin degradar la jerarquía principal de la pantalla ni transformar el bloque relacionado en una grilla recargada.
 
+Aclaración operativa consolidada para orders.show:
+
+cuando la relación inventory se exprese dentro de la tabla de líneas, la lectura correcta no es una segunda grilla pesada paralela por debajo de la orden
+
+la propia fila puede convertirse en punto de lectura operativa compacta
+
+mostrando por línea:
+
+stock
+ejecutado
+pendiente
+estado
+acción principal contenida
+
+esto mantiene foco en la orden y evita fragmentar el trabajo real en bloques redundantes
+
 <<END SECTION>>
 
 <<SECTION: SUPERFICIES CONDICIONALES POR MÓDULO>>
@@ -708,7 +724,7 @@ el embebido sigue siendo un bloque subordinado al show principal, aunque interna
 <<END SECTION>>
 
 <<SECTION: ACCIONES VISUALES EN INDEX Y SHOW>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 ACCIONES VISUALES EN INDEX Y SHOW
 
@@ -789,6 +805,12 @@ recibir
 revertir
 
 No deben saturar la fila ni reemplazar la lectura del estado operativo principal.
+
+Aclaración operativa consolidada:
+
+cuando una tabla por línea combine lectura de estado y acción rápida, la acción no debe competir con la cantidad, el estado ni el stock como si todos fueran CTAs equivalentes
+
+la fila debe leerse primero como estado operativo y solo después como punto de acción
 
 <<END SECTION>>
 

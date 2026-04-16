@@ -512,7 +512,7 @@ las integraciones entre módulos deben respetar el contrato del módulo oferente
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -641,6 +641,16 @@ el usuario expresa intención y el sistema ejecuta internamente las consecuencia
 
 no corresponde trasladar al frontend la lógica contractual crítica, ni exigir al usuario que reconstruya manualmente secuencias internas que el sistema puede arbitrar de forma segura
 
+Caso operativo adicional consolidado:
+
+cuando un consumidor reciba desde un módulo oferente una lectura operativa reusable por fila, no debe reinterpretar localmente qué estado corresponde, qué acción rápida exponer ni cuándo una línea queda readonly
+
+debe consumir la unidad oficial publicada por el módulo oferente
+
+caso vigente relevante:
+
+orders consumiendo contexto operativo por línea publicado por inventory
+
 CONTRATO DE SEGURIDAD
 
 El contrato de seguridad del módulo no se define en esta sección sino en:
@@ -724,7 +734,7 @@ la clasificación no debe forzar jerarquías falsas de dependencia existencial c
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -821,6 +831,14 @@ la integración correcta no debe exponer al usuario pasos internos, decisiones t
 la UI debe presentar acciones simples y comprensibles
 
 la lógica crítica de arbitraje, estado y consecuencias debe permanecer centralizada en backend o en la capacidad oficial publicada por el módulo oferente
+
+Regla adicional para frentes operativos por línea:
+
+cuando una integración reutilizable se consuma por fila dentro de una tabla operativa, el consumidor no debe rearmar arbitraje local de estados, readonly o acciones rápidas
+
+debe recibir y expresar el contexto oficial publicado por el módulo oferente
+
+esto aplica especialmente cuando la línea sigue siendo recurso delegado del padre pero ya posee trazabilidad operativa iniciada
 
 <<END SECTION>>
 

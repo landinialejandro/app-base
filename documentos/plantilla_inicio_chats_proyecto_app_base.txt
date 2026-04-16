@@ -29,8 +29,8 @@ Documentos base a considerar:
 * mapa_navegacion_relaciones_app_base
 * base_visual_proyecto_app_base
 * todo_proyecto_app_base
-* deploy_compatibilidad_proyecto_app_base
 * seguridad_acceso_proyecto_app_base
+* guia_tinker_proyecto_app_base
 
 Documento operativo adicional cuando el caso involucre permisos, constraints, multi-tenancy, runtime real o validaciones manuales:
 

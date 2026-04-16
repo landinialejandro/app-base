@@ -1,6 +1,6 @@
 <?php
 
-// FILE: routes/web.php | V2
+// FILE: routes/web.php | V4
 
 use App\Http\Controllers\AdminInvitationController;
 use App\Http\Controllers\AdminMetricsController;
@@ -16,7 +16,6 @@ use App\Http\Controllers\DocumentItemController;
 use App\Http\Controllers\InventoryController;
 use App\Http\Controllers\InvitationAcceptanceController;
 use App\Http\Controllers\OrderController;
-use App\Http\Controllers\OrderInventoryController;
 use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\PartyController;
 use App\Http\Controllers\ProductController;
@@ -285,15 +284,13 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::delete('/attachments/{attachment}', [AttachmentController::class, 'destroy'])
         ->name('attachments.destroy');
 
-    // Inventory V1
-    Route::post('/products/{product}/inventory/ingresar', [InventoryController::class, 'ingresar'])
-        ->name('products.inventory.ingresar');
-
-    Route::post('/orders/{order}/inventory/consumir', [OrderInventoryController::class, 'consumir'])
-        ->name('orders.inventory.consumir');
-
-    Route::post('/orders/{order}/inventory/entregar', [OrderInventoryController::class, 'entregar'])
-        ->name('orders.inventory.entregar');
+    // Inventory Fase 2
+    Route::get('/inventory', [InventoryController::class, 'index'])
+        ->name('inventory.index');
+    Route::get('/inventory/{product}', [InventoryController::class, 'show'])
+        ->name('inventory.show');
+    Route::post('/inventory/movements', [InventoryController::class, 'storeMovement'])
+        ->name('inventory.movements.store');
 
     // Print
     Route::get('/appointments/{appointment}/pdf', [AppointmentController::class, 'pdf'])

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V23 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V27 --}}
 
 @extends('layouts.app')
 
@@ -9,9 +9,9 @@
         use App\Support\Appointments\AppointmentLinkedAction;
         use App\Support\Assets\AssetLinkedAction;
         use App\Support\Auth\TenantModuleAccess;
-        use App\Support\Catalogs\DocumentCatalog;
         use App\Support\Catalogs\ModuleCatalog;
         use App\Support\Catalogs\OrderCatalog;
+        use App\Support\Inventory\InventoryMovementService;
         use App\Support\Navigation\NavigationTrail;
         use App\Support\Parties\PartyLinkedAction;
 
@@ -35,9 +35,6 @@
         $backUrl = NavigationTrail::previousUrl($navigationTrail, route('orders.index'));
 
         $canViewLinkedTask = $supportsTasksModule && $order->task && $user && $user->can('view', $order->task);
-
-        $canViewLinkedDocuments = $supportsDocumentsModule;
-        $canViewLinkedProducts = $supportsProductsModule;
 
         $partyAction = PartyLinkedAction::forParty($order->party, $trailQuery, 'Contacto');
         $assetAction = AssetLinkedAction::forAsset($order->asset, $trailQuery, 'Activo');
@@ -202,85 +199,21 @@
                         @can('update', $order)
                             @if ($inventoryProducts->count())
                                 <x-card>
-                                    <div class="detail-grid">
-                                        <div class="detail-block">
-                                            <div class="detail-label">Registrar consumo</div>
-                                            <div class="detail-value">Descuenta stock por uso interno en la orden.</div>
-                                        </div>
-
-                                        <div class="detail-block">
-                                            <div class="detail-label">Registrar entrega</div>
-                                            <div class="detail-value">Descuenta stock por entrega vinculada a la orden.</div>
-                                        </div>
-                                    </div>
-
-                                    <div class="form-grid">
-                                        <form
-                                            action="{{ route('orders.inventory.consumir', ['order' => $order] + $trailQuery) }}"
-                                            method="POST" class="form">
-                                            @csrf
-
-                                            <div class="form-group">
-                                                <label for="inventory_consumir_product_id" class="form-label">Producto</label>
-                                                <select id="inventory_consumir_product_id" name="product_id"
-                                                    class="form-control" required>
-                                                    <option value="">Seleccionar producto</option>
-                                                    @foreach ($inventoryProducts as $product)
-                                                        <option value="{{ $product->id }}">{{ $product->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-
-                                            <div class="form-group">
-                                                <label for="inventory_consumir_quantity" class="form-label">Cantidad</label>
-                                                <input id="inventory_consumir_quantity" name="quantity" type="number"
-                                                    step="0.01" min="0.01" class="form-control" required>
-                                            </div>
-
-                                            <div class="form-group">
-                                                <label for="inventory_consumir_notes" class="form-label">Notas</label>
-                                                <input id="inventory_consumir_notes" name="notes" type="text"
-                                                    class="form-control" placeholder="Opcional">
-                                            </div>
-
-                                            <div class="form-actions">
-                                                <button type="submit" class="btn btn-secondary">Registrar consumo</button>
-                                            </div>
-                                        </form>
-
-                                        <form
-                                            action="{{ route('orders.inventory.entregar', ['order' => $order] + $trailQuery) }}"
-                                            method="POST" class="form">
-                                            @csrf
-
-                                            <div class="form-group">
-                                                <label for="inventory_entregar_product_id" class="form-label">Producto</label>
-                                                <select id="inventory_entregar_product_id" name="product_id"
-                                                    class="form-control" required>
-                                                    <option value="">Seleccionar producto</option>
-                                                    @foreach ($inventoryProducts as $product)
-                                                        <option value="{{ $product->id }}">{{ $product->name }}</option>
-                                                    @endforeach
-                                                </select>
-                                            </div>
-
-                                            <div class="form-group">
-                                                <label for="inventory_entregar_quantity" class="form-label">Cantidad</label>
-                                                <input id="inventory_entregar_quantity" name="quantity" type="number"
-                                                    step="0.01" min="0.01" class="form-control" required>
-                                            </div>
-
-                                            <div class="form-group">
-                                                <label for="inventory_entregar_notes" class="form-label">Notas</label>
-                                                <input id="inventory_entregar_notes" name="notes" type="text"
-                                                    class="form-control" placeholder="Opcional">
-                                            </div>
-
-                                            <div class="form-actions">
-                                                <button type="submit" class="btn btn-secondary">Registrar entrega</button>
-                                            </div>
-                                        </form>
-                                    </div>
+                                    @include('inventory.partials.movement-form', [
+                                        'action' => route('inventory.movements.store', $trailQuery),
+                                        'products' => $inventoryProducts,
+                                        'availableKinds' => [
+                                            InventoryMovementService::KIND_CONSUMIR,
+                                            InventoryMovementService::KIND_ENTREGAR,
+                                        ],
+                                        'orderId' => $order->id,
+                                        'returnContext' => 'orders.show',
+                                        'submitLabel' => 'Registrar movimiento',
+                                        'productFieldId' => 'order_inventory_product_id',
+                                        'kindFieldId' => 'order_inventory_kind',
+                                        'quantityFieldId' => 'order_inventory_quantity',
+                                        'notesFieldId' => 'order_inventory_notes',
+                                    ])
                                 </x-card>
                             @endif
                         @endcan
@@ -289,6 +222,7 @@
                             @include('inventory.partials.movements-table', [
                                 'movements' => $inventoryMovements,
                                 'emptyMessage' => 'No hay movimientos de stock para esta orden.',
+                                'trailQuery' => $trailQuery,
                             ])
                         </x-card>
                     </div>

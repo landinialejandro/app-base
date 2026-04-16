@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/products/show.blade.php | V14 --}}
+{{-- FILE: resources/views/products/show.blade.php | V17 --}}
 
 @extends('layouts.app')
 
@@ -106,37 +106,35 @@
                         @endif
                     </div>
                 </div>
+
+                <div class="detail-block">
+                    <div class="detail-label">Inventario</div>
+                    <div class="detail-value">
+                        @if ($product->kind === ProductCatalog::KIND_PRODUCT)
+                            <a href="{{ route('inventory.show', ['product' => $product] + $trailQuery) }}">
+                                Ver ficha de inventario
+                            </a>
+                        @else
+                            No aplica
+                        @endif
+                    </div>
+                </div>
             </div>
 
-            @can('update', $product)
-                @if ($product->kind === ProductCatalog::KIND_PRODUCT)
-                    <form action="{{ route('products.inventory.ingresar', ['product' => $product] + $trailQuery) }}"
-                        method="POST" class="form">
-                        @csrf
-
-                        <div class="form-group">
-                            <label for="inventory_ingresar_quantity" class="form-label">Ingresar stock</label>
-                            <input type="number" step="0.01" min="0.01" id="inventory_ingresar_quantity" name="quantity"
-                                class="form-control" value="{{ old('quantity') }}" required>
-                            @error('quantity')
-                                <div class="form-help is-error">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label for="inventory_ingresar_notes" class="form-label">Notas</label>
-                            <textarea id="inventory_ingresar_notes" name="notes" rows="2" class="form-control">{{ old('notes') }}</textarea>
-                            @error('notes')
-                                <div class="form-help is-error">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="form-actions">
-                            <button type="submit" class="btn btn-success">Registrar ingreso</button>
-                        </div>
-                    </form>
-                @endif
-            @endcan
+            @if ($product->kind === ProductCatalog::KIND_PRODUCT)
+                @include('inventory.partials.movement-form', [
+                    'action' => route('inventory.movements.store', $trailQuery),
+                    'products' => collect([$product]),
+                    'fixedKind' => 'ingresar',
+                    'selectedProductId' => $product->id,
+                    'returnContext' => 'products.show',
+                    'submitLabel' => 'Registrar ingreso',
+                    'productFieldId' => 'product_inventory_ingresar_product_id',
+                    'kindFieldId' => 'product_inventory_ingresar_kind',
+                    'quantityFieldId' => 'product_inventory_ingresar_quantity',
+                    'notesFieldId' => 'product_inventory_ingresar_notes',
+                ])
+            @endif
         </x-card>
 
         <div class="tabs" data-tabs>

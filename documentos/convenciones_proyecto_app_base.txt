@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 CONVENCIONES GENERALES
 
@@ -105,10 +105,16 @@ representación visual
 consumo homogéneo
 ubicación física consistente con su identidad contractual
 
+Caso vigente adicional:
+
+cuando una capacidad transversal madura y adquiere identidad propia, debe evolucionar hacia módulo explícito sin perder compatibilidad con consumidores existentes.
+
+Inventory entra en esta lectura desde su transición de capacidad operativa validada hacia módulo autónomo proyectado.
+
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA BASE DEL PROYECTO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ESTRUCTURA BASE DEL PROYECTO
 
@@ -162,7 +168,7 @@ app/Support/Documents
 servicios propios del flujo documental
 
 app/Support/Inventory
-servicios y cálculo de inventario
+servicios, cálculo de inventario y evolución modular de stock
 
 app/Support/Orders
 servicios, payloads o arbitrajes propios del flujo de orders y sus integraciones reusables
@@ -226,6 +232,10 @@ partials de impresión reutilizables
 
 resources/views/svg
 fuente Blade de iconografía y marca SVG
+
+Regla adicional vigente:
+
+cuando inventory publique tablas de saldos, historial, formularios de movimientos o fichas propias, esos recursos deben vivir en resources/views/inventory y no dispersos entre products u orders.
 
 ROUTES
 
@@ -496,7 +506,7 @@ las integraciones entre módulos deben respetar el contrato del módulo oferente
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -583,6 +593,7 @@ acciones contextuales
 create contextual compatible
 bloques de relación derivados
 catálogos o adaptadores de integración
+formularios operativos reutilizables cuando pertenezcan al núcleo del módulo oferente
 
 Reglas:
 
@@ -597,6 +608,12 @@ si la capacidad reusable requiere arbitraje operativo complejo, su publicación 
 debe incluir también una capa de resolución o payload backend publicada por el módulo oferente
 
 si la capacidad pertenece contractualmente al módulo oferente, su ubicación física debe mantener esa pertenencia modular y no diluirse en una carpeta global ambigua
+
+Regla adicional consolidada de identidad modular:
+
+cuando un frente operativo evoluciona desde capacidad dispersa hacia módulo con identidad propia, sus surfaces oficiales deben migrar al propio módulo oferente
+
+las vistas, partials, formularios y tablas que expresen ese frente ya no deben quedar repartidos como solución oficial en módulos consumidores
 
 Regla de cierre adicional:
 
@@ -693,7 +710,7 @@ la clasificación no debe forzar jerarquías falsas de dependencia existencial c
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -774,6 +791,10 @@ linked-asset-action como superficie reusable publicada por assets
 Caso adicional consolidado:
 
 appointments puede publicar embebido reusable oficial para relaciones fuertes y acción compacta cuando el vínculo consumidor sea puntual
+
+Caso adicional vigente:
+
+inventory debe publicar sus propias superficies de stock, movimientos e historial desde su módulo y los consumidores deben integrarlas sin duplicar tablas locales de stock o variantes paralelas de historial.
 
 Regla operativa adicional de cierre:
 

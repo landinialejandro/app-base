@@ -406,7 +406,7 @@ appointments puede publicar embebido reusable para assets y parties y una integr
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -486,27 +486,75 @@ Su función de catálogo no lo degrada a dato auxiliar ni lo reduce a un CRUD ai
 
 Cuando participe en flujos operativos o documentales, la visibilidad y operabilidad final deben seguir sometidas al contrato propio de products y al arbitraje central.
 
-Inventory V1 no constituye todavía un módulo autónomo cerrado de seguridad.
+Inventory V1 ya no debe leerse solo como una promesa difusa.
 
-Debe leerse como capacidad operativa transversal apoyada en products.
+Constituye capacidad operativa real validada sobre products.
 
-Por lo tanto:
+A la vez, la evolución doctrinal vigente ya no lo interpreta únicamente como una capacidad apoyada lateralmente en products.
 
-los movimientos de inventario no publican por ahora un universo autónomo de autorización
-las acciones operativas de inventory V1 deben resolverse desde contratos ya existentes del ecosistema
-la operación sobre stock físico debe respetar la distinción entre productos físicos y servicios
+Debe tender a leerse como frente de stock con identidad contractual propia en reconversión.
 
-Regla doctrinal adicional:
+INVENTORY
 
-no debe asumirse que todo registro catalogado en products participa del mismo modo en inventario
+Módulo operativo de stock en reconversión modular.
 
-los servicios pertenecen al módulo products como parte válida del catálogo, pero no deben tratarse como stockeables por defecto
+Su seguridad debe leerse sobre el universo visible de productos del tenant y los movimientos asociados a ese universo.
+
+No debe resolver ownership artificial por movimiento individual salvo decisión doctrinal futura expresa.
+
+Su create relevante no es create de registro maestro, sino create_movement como operación contextual de stock.
+
+Orders y documents pueden actuar como contexto de trazabilidad sin redefinir localmente su contrato.
+
+La publicación de surfaces reutilizables de inventory no crea permisos paralelos en products, orders o documents.
 
 ATTACHMENTS
 
-Capacidad transversal delegada al recurso padre correspondiente.
+Módulo transversal.
 
-Su seguridad no debe construirse como universo autónomo paralelo cuando doctrinalmente depende del recurso principal al que se adjunta.
+Su seguridad depende del recurso padre y no de autonomía plena propia, salvo definición doctrinal futura distinta.
+
+<<END SECTION>>
+
+<<SECTION: INVENTORY>>
+SECTION_VERSION: 00001
+
+INVENTORY
+
+Universo visible:
+
+productos visibles del tenant que participen del frente inventory y los inventory_movements asociados a ese universo autorizado
+
+Capacidades iniciales aprobadas para la reconversión modular:
+
+inventory.view_any
+inventory.view
+inventory.create_movement
+
+Lectura correcta de capacidades:
+
+inventory.view_any
+autoriza acceso al listado principal del módulo y al universo visible de saldos
+
+inventory.view
+autoriza acceso a la ficha de inventario por producto dentro de ese universo
+
+inventory.create_movement
+autoriza registrar movimientos operativos de inventory dentro del universo permitido y según el contexto funcional admitido por la implementación vigente
+
+Reglas doctrinales iniciales:
+
+inventory no debe modelarse como CRUD pleno del catálogo maestro
+
+products conserva la identidad del artículo
+
+inventory opera sobre saldos, historial y movimientos
+
+view_any no debe ser más restrictivo que view
+
+orders y documents pueden contextualizar movimientos sin crear contratos paralelos ni reinterpretar seguridad desde el módulo consumidor
+
+si inventory publica surfaces reutilizables para products, orders o documents, esas surfaces siguen sometidas al contrato del propio módulo inventory y al arbitraje central
 
 <<END SECTION>>
 

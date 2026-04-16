@@ -138,7 +138,7 @@ cuando existan varias rutas posibles, debe priorizarse la más consistente con N
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN PRINCIPAL TENANT>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 NAVEGACIÓN PRINCIPAL TENANT
 
@@ -166,6 +166,10 @@ products
 orders
 documents
 
+Frente operativo adicional en evolución validada:
+
+inventory
+
 Módulos base o transversales visibles según implementación:
 
 parties
@@ -177,10 +181,21 @@ no mostrar módulos no habilitados
 no mostrar acciones no permitidas
 no asumir igualdad de menú entre tenants distintos
 la navegación principal debe reflejar contrato real del sistema y no solo existencia técnica de rutas
+
+Aclaración consolidada para inventory:
+
+la evolución aprobada del módulo proyecta navegación estructural propia
+
+inventory.index como tabla de saldos por producto
+
+inventory.show como ficha de inventario por producto
+
+mientras esa navegación se implemente, pueden convivir consumos contextuales desde products u orders sin negar la lectura objetivo del módulo como entrada principal propia
+
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -211,6 +226,10 @@ parties.show
 → navegar documents relacionados
 → ver appointments relacionadas
 
+products.show
+→ consumir superficies de inventory vinculadas al stock
+→ abrir ficha de inventory del producto cuando corresponda
+
 orders.show
 → crear document derivado
 → ver party relacionada
@@ -218,6 +237,12 @@ orders.show
 → ver appointment relacionada cuando exista
 → gestionar items
 → gestionar attachments si aplica
+→ consumir superficies contextuales de inventory cuando el flujo lo requiera
+
+inventory.show
+→ volver al producto relacionado
+→ abrir orden o documento contextual cuando exista trazabilidad
+→ continuar trabajo desde sus superficies reutilizables consumidas por otros módulos
 
 documents.show
 → volver a order origen cuando exista
@@ -280,6 +305,12 @@ Aclaración consolidada para appointments:
 cuando un módulo consumidor necesite exponer turnos relacionados como relación fuerte, debe tender a consumir la capacidad reusable publicada por appointments y no una tabla local reconstruida
 
 cuando el vínculo con appointments sea puntual o 1 a 1, debe priorizarse una integración compacta y no una pestaña pesada por defecto
+
+Aclaración consolidada para inventory:
+
+inventory debe tender a publicar sus propias superficies reusables de saldos y movimientos desde el propio módulo
+
+products y orders deben consumir esas superficies y no sostener variantes locales dispersas como resolución oficial del frente de stock
 
 <<END SECTION>>
 
@@ -474,7 +505,7 @@ esto aplica también a tabs embebidas, tablas por fila y acciones derivadas inte
 <<END SECTION>>
 
 <<SECTION: MAPA DE NAVEGACIÓN PRINCIPAL>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 MAPA DE NAVEGACIÓN PRINCIPAL
 
@@ -495,6 +526,16 @@ Aclaración estructural consolidada:
 en appointments, la lectura principal del módulo debe anclarse en calendar como superficie promovida de agenda
 
 appointments.index puede mantenerse como superficie secundaria accesible, pero no como base principal promovida del módulo
+
+Aclaración estructural consolidada adicional:
+
+en inventory, la lectura principal aprobada del módulo debe tender a anclarse en:
+
+inventory.index como tabla de saldos por producto
+
+inventory.show como ficha de inventario por producto
+
+Los consumos embebidos desde products u orders no deben degradar esa lectura estructural del módulo cuando la fase 2 quede implementada.
 
 FLUJOS CONTEXTUALES YA VALIDADOS
 
@@ -536,6 +577,10 @@ orders
 ↓
 order_items
 
+orders
+↓
+inventory
+
 documents
 ↓
 parties
@@ -547,6 +592,10 @@ assets
 documents
 ↓
 orders
+
+documents
+↓
+inventory
 
 documents
 ↓
@@ -577,6 +626,14 @@ appointments
 assets
 ↓
 orders / documents
+
+products
+↓
+inventory
+
+inventory
+↓
+products
 
 task
 ↓
@@ -595,6 +652,44 @@ order_items
 documents
 ↓
 document_items
+
+<<END SECTION>>
+
+<<SECTION: INVENTORY>>
+SECTION_VERSION: 00001
+
+INVENTORY
+
+Lectura estructural objetivo aprobada para fase 2:
+
+inventory.index
+tabla de saldos por producto
+
+inventory.show
+ficha de inventario por producto
+
+Relaciones de navegación relevantes:
+
+products.show
+→ inventory.show del producto cuando corresponda
+
+orders.show
+→ surfaces contextuales de inventory sin absorber su navegación principal
+
+documents.show
+→ trazabilidad de movimientos cuando exista relación documental
+
+Reglas:
+
+inventory debe publicar sus propias surfaces oficiales desde el propio módulo
+
+las tablas de movimientos y formularios operativos no deben quedar dispersos como resolución oficial en products u orders
+
+products conserva la navegación del catálogo maestro
+
+inventory asume la navegación del saldo, historial y movimiento
+
+cuando inventory sea consumido de forma embebida desde otros módulos, esa experiencia no debe reemplazar ni borrar su navegación estructural propia
 
 <<END SECTION>>
 

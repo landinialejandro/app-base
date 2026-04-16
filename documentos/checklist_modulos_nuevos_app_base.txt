@@ -110,7 +110,7 @@ Si estas respuestas no están claras, no debe avanzarse a implementación.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 BLOQUE 1 — CONTRATO MODULAR
 
@@ -156,6 +156,7 @@ la capacidad reusable se publica como unidad completa o solo como vista aislada
 cuál es la superficie principal real del módulo
 si existe una superficie secundaria relevante que no debe leerse como base principal
 si la integración reusable requerida es pesada o compacta
+si el módulo nació como capacidad transversal y ahora requiere identidad propia
 
 Regla adicional de cierre:
 
@@ -168,6 +169,10 @@ la definición del contrato modular también debe dejar explícito si el módulo
 embebido reusable oficial para relaciones fuertes
 
 o acción compacta oficial para relaciones puntuales
+
+Regla evolutiva adicional:
+
+si una capacidad operativa madura demuestra identidad funcional propia, puede reconvertirse en módulo explícito manteniendo continuidad con los consumidores existentes.
 
 <<END SECTION>>
 
@@ -351,7 +356,7 @@ Este bloque resume mínimos técnicos, pero no reemplaza el checklist completo.
 <<END SECTION>>
 
 <<SECTION: CRITERIO FINAL DE APROBACIÓN>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CRITERIO FINAL DE APROBACIÓN
 
@@ -362,7 +367,7 @@ Se aprueba cuando:
 su identidad es clara
 su núcleo está delimitado
 sus contratos son coherentes
-su seguridad está cerrada
+sus seguridad está cerrada
 sus integraciones son sanas
 su UI es consistente
 su documentación quedó alineada
@@ -373,8 +378,11 @@ este módulo mejora el ecosistema o agrega ruido
 podrá crecer sin romper otros módulos
 puede integrarse sin refactors innecesarios futuros
 podría usarse como patrón de calidad para el próximo módulo
+sus superficies secundarias también quedaron alineadas
+sus consumers externos dejaron de depender de variantes legacy
 
 Si la respuesta es no o dudosa, el módulo debe seguir en revisión.
+
 <<END SECTION>>
 
 <<SECTION: MODELO Y MIGRACIÓN>>
@@ -477,7 +485,7 @@ si una acción reusable navega hacia otro módulo, la visibilidad final debe seg
 <<END SECTION>>
 
 <<SECTION: CHECKLIST DE INTEGRACIÓN>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 CHECKLIST DE INTEGRACIÓN
 
@@ -498,6 +506,8 @@ ausencia de links locales remanentes hacia relaciones ya cerradas doctrinalmente
 diferenciación explícita entre integración pesada embebida e integración compacta
 
 alineación con el patrón visual ya consolidado en el módulo consumidor cuando exista
+
+si el módulo reemplaza surfaces históricas dispersas, plan de migración claro hacia la nueva surface oficial
 
 Regla de cierre:
 
@@ -532,7 +542,7 @@ no existan rutas operables residuales aunque la UI ya no las muestre
 <<END SECTION>>
 
 <<SECTION: SUPERFICIES SECUNDARIAS Y PARTIALS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 SUPERFICIES SECUNDARIAS Y PARTIALS
 
@@ -561,6 +571,10 @@ si la superficie secundaria es una tabla o partial consumida dentro de un conten
 Regla adicional consolidada:
 
 una integración no debe considerarse cerrada mientras exista хотя sea una superficie secundaria relevante con resolución local residual del mismo flujo o capacidad reusable
+
+Regla adicional de auditoría:
+
+también deben revisarse tabs, bloques embebidos, redirects post acción, accesos por fila y consumers indirectos de la capacidad publicada por el módulo.
 
 <<END SECTION>>
 

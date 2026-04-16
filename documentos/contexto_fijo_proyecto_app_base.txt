@@ -498,7 +498,7 @@ appointments.index puede existir como superficie secundaria, pero no debe leerse
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES
 
@@ -556,9 +556,17 @@ Esa relación ya no debe leerse solo como dirección teórica de crecimiento, si
 
 La distinción entre productos físicos con movimientos y servicios no stockeables por defecto forma parte de esa lectura vigente.
 
-Esa relación no convierte todavía a inventory en un módulo autónomo cerrado.
+A la vez, la evolución conceptual aprobada del sistema ya no lee inventory únicamente como una capacidad difusa apoyada en products.
 
-Inventory V1 debe leerse, por ahora, como capacidad operativa transversal relacionada con products y no como pieza con identidad modular independiente ya consolidada.
+La lectura arquitectónica correcta pasa a ser la siguiente:
+
+products conserva identidad como catálogo maestro compartido del tenant
+
+inventory se proyecta como frente modular propio de operación de stock, saldo e historial de movimientos
+
+Esa proyección no degrada el rol estructural de products.
+
+Lo reafirma como base maestra del artículo dentro de una separación más clara entre catálogo y operación.
 
 ASSETS
 

@@ -61,7 +61,7 @@ priorizar piezas con mayor impacto sistémico
 <<END SECTION>>
 
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 MÓDULOS PRIORITARIOS A REVISAR
 
@@ -135,7 +135,7 @@ módulo autónomo de catálogo operativo compartido del tenant
 
 Estado actual:
 
-núcleo doctrinal no requiere reapertura
+núcleo doctrinal estable
 inventory V1 ya opera efectivamente apoyado sobre products
 
 Cierres alcanzados:
@@ -145,10 +145,9 @@ seeder efectivo de inventory integrado en la configuración real
 stock y movimientos validados en runtime real
 distinción operativa validada entre productos físicos con movimientos y servicios no stockeables por defecto
 
-Pendiente residual:
+Nueva evolución aprobada:
 
-seguir auditando consumidores de stock y superficies UI relacionadas
-evaluar más adelante si inventory requiere superficie propia adicional sin reabrir el núcleo doctrinal de products
+inventory Fase 2 pasa a ser frente activo independiente sin reabrir el núcleo doctrinal de products
 
 TASKS
 
@@ -190,14 +189,30 @@ index relegado a superficie secundaria no promovida
 oferta reusable oficial definida desde el propio módulo
 embebido reusable oficial para relaciones fuertes
 integración compacta definida para vínculo puntual con orders
-consumo doctrinal esperado desde assets y parties sin duplicación local
 trail base reanclado conceptualmente desde calendar
 
 Pendiente residual:
 
 validación runtime final de superficies alineadas y barrido documental restante
 
-No reabrir este frente salvo bug real o divergencia verificable de implementación.
+INVENTORY
+
+Nuevo frente activo consolidado.
+
+Objetivo inmediato:
+
+reconversión modular de inventory Fase 2.
+
+Alcance inicial:
+
+acceso propio al módulo
+inventory.index
+inventory.show
+tabla principal de saldos
+ficha por producto
+historial de movimientos
+surfaces reutilizables oficiales
+integración limpia con products, orders y documents
 
 <<END SECTION>>
 
@@ -276,7 +291,7 @@ implica que el rediseño modular principal quedó resuelto y lo restante pertene
 <<END SECTION>>
 
 <<SECTION: CAPACIDADES REUTILIZABLES A CONSOLIDAR>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 CAPACIDADES REUTILIZABLES A CONSOLIDAR
 
@@ -304,6 +319,7 @@ consumo transversal de linked-order-action en consumidores secundarios del ecosi
 confirmación final de adopción homogénea de linked-asset-action en superficies residuales si aparecieran
 validación final del embebido reusable de appointments en consumidores visibles y secundarios
 confirmación de que la relación orders ↔ appointments permanezca resuelta de forma compacta sin tab pesada residual
+publicación de surfaces oficiales de inventory para stock, historial y movimientos sin tablas paralelas dispersas en otros módulos
 
 <<END SECTION>>
 
@@ -503,17 +519,11 @@ inventory
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 PENDIENTES INMEDIATOS
 
-validar en uso real el sistema visual de analytics implementado en dashboard y project show, especialmente:
-
-consistencia de layout entre summary y details
-lectura de métricas en pantallas operativas reales
-comportamiento responsive de grillas y subgrillas
-
-revisar posibles mejoras en composición de filas del bloque details para evitar saturación visual en casos con múltiples métricas
+validar en uso real el sistema visual de analytics implementado en dashboard y project show
 
 revisar paginación propia del proyecto en todos los index
 
@@ -523,43 +533,11 @@ seguir unificando sublistados documentales mediante partial reutilizable
 
 extender preservación de contexto UX en tabs, filtros y paginación a otras pantallas
 
-revisar normalización final de tablas, acciones compactas y estructura reusable en módulos restantes del core
-
 auditar propagación de trail en sublistados, tablas embebidas, filtros, tabs y paginación donde todavía pueda perderse contexto
-
-revisar etiquetado contextual de botones volver en vistas show relacionadas según nodo previo real
-
-auditar criterio del navbar y sidebar para evitar que el estado activo dependa solo de la pantalla hoja y no del área funcional esperada
-
-revisar densidad visual final del tab-toolbar y del card que lo contiene para asegurar una altura consistente con el resto del sistema
 
 implementar sistema de auditoría de cambios
 
-evaluar automatización de sincronización de roles base en tenants ya existentes cuando el catálogo reservado cambie o se amplíe
-
 implementar visor navegable de documentación técnica dentro de Laravel
-
-resolverlo inicialmente como página pública técnica fuera del flujo tenant
-
-interpretar DOC_SLUG como identificador canónico del documento dentro del visor
-
-renderizar DOC_REF como navegación interna entre documentos
-
-excluir explícitamente del visor las carpetas baks y auditoria
-
-dejar preparada la migración futura del visor documental hacia una capa restringida o superadmin
-
-Nuevo estado consolidado:
-
-la base de documentación funcional por módulos ya se encuentra disponible
-
-queda habilitada la integración de ayuda contextual dentro de los módulos
-
-la evolución pendiente pasa a ser su incorporación en UI y no su generación base
-
-Nuevo insumo operativo consolidado:
-
-la guía de Tinker pasa a formar parte de la base operativa útil para auditorías de permisos, constraints y runtime multi-tenant
 
 Pendientes inmediatos del frente documents y derivados:
 
@@ -573,66 +551,37 @@ Pendiente inmediato adicional del frente reusable:
 
 barrer consumidores secundarios para eliminar resoluciones locales residuales de integraciones ya cerradas por el módulo oferente
 
-Caso concreto vigente:
+Pendiente inmediato adicional parties:
 
-revisar adopción homogénea de linked-order-action en superficies secundarias relacionadas con tasks / orders
+alinear implementación real al contrato doctrinal ya cerrado
+implementar linked-party-action
+reconvertir party.show como superficie transversal
 
-Nuevo frente inmediato consolidado:
+Pendiente inmediato inventory Fase 2:
 
-alinear implementación real de parties al contrato doctrinal ya cerrado
+crear acceso principal del módulo
 
-implementar linked-party-action desde el propio módulo parties
+implementar inventory.index como tabla de saldos por producto
 
-reconvertir party.show como superficie transversal con relaciones operativas relevantes
+implementar inventory.show como ficha por producto
 
-homogeneizar acceso hacia parties desde assets, appointments, orders, documents y tasks evitando links locales residuales cuando corresponda capacidad reusable oficial
+centralizar historial de movimientos en surface propia
 
-Pendiente residual adicional assets:
+migrar UI de stock hoy dispersa en products y orders hacia consumo reusable de inventory
 
-confirmar que no existan consumidores secundarios fuera del barrido principal ya realizado
+extender trazabilidad con vínculos hacia orders y documents
 
-Pendiente inmediato adicional products / inventory V1:
+definir permisos efectivos iniciales del módulo
 
-seguir auditando consumidores de stock y movimientos ya operativos
+validar runtime final multi-tenant y navegación contextual
 
-revisar si las superficies UI actuales de stock alcanzan o si más adelante conviene una superficie propia adicional para inventory
-
-no reabrir el núcleo doctrinal de products por este frente
-
-Pendiente inmediato adicional appointments:
-
-validar runtime final del embebido reusable en assets y parties
-
-confirmar ausencia de tabs, links o tablas locales residuales que reconstruyan appointments fuera de su superficie oficial
-
-mantener la lectura orders ↔ appointments como integración compacta y no reintroducir embebido pesado
-
-Caso operativo separado detectado en sesión:
-
-resolver la incompatibilidad runtime de orders.show por include faltante de inventory.partials.movements-table
-
-considerar como ya cerrado y no reabrir en este frente:
+Considerar como ya cerrado y no reabrir en este frente:
 
 orders como núcleo operativo principal
-task -> order como origen contextual válido
-appointment -> order como origen contextual válido
-consumo reusable de linked-order-action en su núcleo oficial
-delegación doctrinal correcta de order_items
-corrección sin migración adicional del hijo delegado
-validación runtime real de allowed_kinds sobre contrato efectivo de orders
-confirmación de orders.task_id como vínculo estructural con tasks
-confirmación de appointments.order_id como vínculo operativo real con orders
-doctrina base de parties como módulo base transversal del dominio
-create contextual de parties por kind como regla doctrinal
-allowed_kinds de parties arbitrando create, view, update y delete como regla doctrinal
-delete de parties reservado a owner con delegación posible a administrator como regla doctrinal
-doctrina principal de assets como módulo compartido del tenant
-linked-asset-action como capacidad reusable oficial de assets
-núcleo doctrinal de products como módulo autónomo de catálogo operativo compartido
-inventory V1 como capacidad operativa real ya validada sobre products
-appointments como módulo autónomo de agenda operativa
-calendar como superficie principal de appointments
-oferta reusable oficial de appointments para relaciones fuertes y compactas
+assets como módulo compartido principal
+appointments como módulo autónomo de agenda
+products como catálogo maestro operativo
+inventory V1 como capacidad real ya validada sobre products
 
 <<END SECTION>>
 

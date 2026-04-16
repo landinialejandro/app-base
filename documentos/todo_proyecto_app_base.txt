@@ -61,7 +61,7 @@ priorizar piezas con mayor impacto sistémico
 <<END SECTION>>
 
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 MÓDULOS PRIORITARIOS A REVISAR
 
@@ -213,6 +213,48 @@ ficha por producto
 historial de movimientos
 surfaces reutilizables oficiales
 integración limpia con products, orders y documents
+
+Alcance operativo adicional aprobado para inventory nivel 3:
+
+evolucionar inventory desde registro de movimientos hacia motor operativo
+
+publicar contexto reusable oficial para módulos consumidores, especialmente orders, order_items y futuros módulos
+
+incorporar lectura explícita y operativa de:
+
+stock actual
+comprometido
+pendiente de recepción
+faltantes
+quiebres de stock
+
+incorporar surtido y recepción contextual por línea
+
+evaluar acción rápida de surtir línea completa
+
+evaluar acción rápida equivalente para compras o recepción completa
+
+incorporar reglas por estado de orden al comportamiento operativo del frente inventory, especialmente sobre:
+
+draft
+approved
+closed
+
+definir restricciones de edición sobre order_items cuando ya existan movimientos ejecutados
+
+formalizar movimientos manuales con:
+
+motivo obligatorio
+dirección explícita
+task automática al owner
+
+resolver reversiones automáticas mediante contramovimientos con trazabilidad completa
+
+dejar pendiente mejora futura de concurrencia y disputa operativa
+
+evaluar AJAX o UX dinámica solo cuando aporte valor operativo real y sin introducir complejidad innecesaria
+
+incorporar métricas iniciales útiles en inventory.index sin convertir la pantalla en dashboard pesado
 
 <<END SECTION>>
 
@@ -419,7 +461,7 @@ cada paso debe dejar menos excepciones que el anterior
 <<END SECTION>>
 
 <<SECTION: ESTADO ACTUAL DEL SISTEMA>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 ESTADO ACTUAL DEL SISTEMA
 
@@ -476,6 +518,18 @@ stock y movimientos ya fueron validados en runtime real
 
 inventory V1 sigue leyéndose como capacidad operativa apoyada en products y no como módulo autónomo cerrado
 
+Se consolida además una filosofía operativa de producto ya explícita en el proyecto:
+
+la complejidad debe ser absorbida por el sistema
+
+la experiencia del usuario debe tender a simplicidad y bajo roce
+
+seguridad y trazabilidad son pilares obligatorios
+
+la automatización constituye un eje de evolución estructural
+
+en conflictos no críticos debe priorizarse continuidad operativa con registro antes que bloqueo innecesario
+
 Estado documental consolidado:
 
 los documentos técnicos activos ya fueron normalizados por slug y metadatos comunes
@@ -494,6 +548,7 @@ un patrón narrativo homogéneo para onboarding
 una base reutilizable para ayuda contextual dentro del sistema
 
 la siguiente evolución prevista es un visor navegable dentro de Laravel para documentación técnica del proyecto
+
 <<END SECTION>>
 
 <<SECTION: MÓDULOS IMPLEMENTADOS>>
@@ -519,7 +574,7 @@ inventory
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 PENDIENTES INMEDIATOS
 
@@ -574,6 +629,32 @@ extender trazabilidad con vínculos hacia orders y documents
 definir permisos efectivos iniciales del módulo
 
 validar runtime final multi-tenant y navegación contextual
+
+Pendiente inmediato inventory nivel 3:
+
+evolucionar inventory desde registro de movimientos a motor operativo
+
+publicar contexto reusable oficial para consumers del frente inventory
+
+incorporar lectura operativa de stock actual, comprometido, pendiente de recepción, faltantes y quiebres
+
+evaluar surtido contextual por línea y acción rápida de surtir línea completa
+
+evaluar recepción contextual por línea y acción rápida equivalente para compras o recepción completa
+
+definir reglas por estado de orden sobre movimientos y disponibilidad operativa
+
+restringir edición de order_items cuando ya existan movimientos ejecutados
+
+formalizar movimientos manuales con motivo obligatorio, dirección explícita y task automática al owner
+
+implementar reversión por contramovimientos con trazabilidad completa
+
+evaluar mejoras futuras de concurrencia y disputa operativa
+
+evaluar UX dinámica o AJAX solo donde agregue valor operativo real
+
+incorporar métricas iniciales útiles en inventory.index con bajo peso visual
 
 Considerar como ya cerrado y no reabrir en este frente:
 

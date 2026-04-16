@@ -78,7 +78,7 @@ Debe entenderse como una plataforma con gobierno global, contexto por tenant, ba
 <<END SECTION>>
 
 <<SECTION: PROPÓSITO GENERAL DEL PROYECTO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 PROPÓSITO GENERAL DEL PROYECTO
 
@@ -93,6 +93,18 @@ mantener aislamiento por tenant
 centralizar gobierno transversal
 integrar módulos sin pérdida de identidad
 crecer sin rehacer arbitrariamente el sistema
+
+La lectura estructural aprobada del producto incorpora además estos principios estables:
+
+la complejidad operativa debe ser absorbida por el sistema y no trasladada al usuario como burocracia digital innecesaria
+
+la experiencia de uso debe tender a simplicidad, claridad y bajo roce aun cuando por detrás existan procesos, validaciones, documentos o trazabilidad más complejos
+
+la automatización constituye un pilar estructural del proyecto y debe orientar la evolución del sistema cuando permita reducir fricción, errores y carga manual repetitiva
+
+seguridad y trazabilidad forman parte de la base obligatoria del producto y no deben tratarse como extras opcionales
+
+la operación real del cliente tiene prioridad sobre formalismos digitales que no agreguen valor operativo genuino
 
 El proyecto debe poder servir como base duradera para múltiples frentes operativos del negocio sin degradarse en una colección de soluciones puntuales desconectadas.
 
@@ -498,13 +510,15 @@ appointments.index puede existir como superficie secundaria, pero no debe leerse
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES
 
 La lectura conceptual de los módulos actuales permite comprender el rol arquitectónico principal de cada pieza dentro del ecosistema del proyecto.
 
 No reemplaza contratos funcionales, reglas de seguridad ni decisiones de implementación específicas.
+
+La plataforma debe leerse además como una base priorizada para microempresas y PyMEs pequeñas que necesitan ordenar su operación sin incorporar fricción innecesaria ni depender de una cultura tecnológica avanzada para poder trabajar.
 
 PARTIES
 
@@ -590,11 +604,15 @@ ATTACHMENTS
 
 Debe leerse como módulo transversal.
 
-Su función principal es integrarse sobre otros recursos del sistema como capacidad de soporte, evidencia o documentación asociada.
+Su función principal es integrarse sobre otros recursos del sistema sin convertirse en núcleo operativo autónomo del dominio.
 
-Regla final:
+INVENTORY
 
-la posición conceptual de un módulo dentro de esta sección orienta la arquitectura general del proyecto, pero su desarrollo específico pertenece a otros documentos especializados.
+Debe leerse como frente operativo en evolución hacia identidad modular propia.
+
+Representa la operación de stock del tenant sobre una base separada del catálogo maestro de artículos.
+
+Su crecimiento arquitectónico debe reforzar una experiencia de uso simple y comprensible para el usuario, aun cuando internamente concentre mayor complejidad operativa, automatización, control y trazabilidad.
 
 <<END SECTION>>
 

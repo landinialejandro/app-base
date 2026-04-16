@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 CONVENCIONES GENERALES
 
@@ -110,6 +110,12 @@ Caso vigente adicional:
 cuando una capacidad transversal madura y adquiere identidad propia, debe evolucionar hacia módulo explícito sin perder compatibilidad con consumidores existentes.
 
 Inventory entra en esta lectura desde su transición de capacidad operativa validada hacia módulo autónomo proyectado.
+
+Convención operativa adicional consolidada:
+
+la complejidad contractual, técnica u operativa debe resolverse prioritariamente dentro del sistema y no trasladarse al usuario como carga mental, burocracia o secuencia innecesaria de pasos manuales
+
+la UX debe tender a acciones simples, comprensibles y de bajo roce aun cuando el backend deba ejecutar consecuencias múltiples, validaciones, trazabilidad o documentos derivados
 
 <<END SECTION>>
 
@@ -506,7 +512,7 @@ las integraciones entre módulos deben respetar el contrato del módulo oferente
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -627,6 +633,14 @@ linked-order-action como superficie reusable de orders
 linked-party-action como superficie reusable de parties
 linked-asset-action como superficie reusable de assets
 
+Regla adicional de experiencia operativa:
+
+las acciones de alto nivel deben tender a resolver la intención del usuario en un solo paso comprensible
+
+el usuario expresa intención y el sistema ejecuta internamente las consecuencias compatibles con el contrato del módulo
+
+no corresponde trasladar al frontend la lógica contractual crítica, ni exigir al usuario que reconstruya manualmente secuencias internas que el sistema puede arbitrar de forma segura
+
 CONTRATO DE SEGURIDAD
 
 El contrato de seguridad del módulo no se define en esta sección sino en:
@@ -710,7 +724,7 @@ la clasificación no debe forzar jerarquías falsas de dependencia existencial c
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -799,6 +813,14 @@ inventory debe publicar sus propias superficies de stock, movimientos e historia
 Regla operativa adicional de cierre:
 
 si una superficie consumidora todavía resuelve localmente acceso, apertura o visualización de una relación ya cerrada por el módulo oferente, el frente de integración no debe considerarse homogéneo ni cerrado
+
+Regla adicional de simplicidad:
+
+la integración correcta no debe exponer al usuario pasos internos, decisiones técnicas o combinaciones contractuales que el sistema pueda resolver por sí mismo
+
+la UI debe presentar acciones simples y comprensibles
+
+la lógica crítica de arbitraje, estado y consecuencias debe permanecer centralizada en backend o en la capacidad oficial publicada por el módulo oferente
 
 <<END SECTION>>
 

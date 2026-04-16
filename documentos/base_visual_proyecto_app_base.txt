@@ -328,7 +328,7 @@ favicon y logo cumplen roles distintos y no deben confundirse
 <<END SECTION>>
 
 <<SECTION: PATRÓN GENERAL PARA VISTAS INDEX>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 PATRÓN GENERAL PARA VISTAS INDEX
 
@@ -349,6 +349,21 @@ filtros principales visibles en primer plano
 filtros secundarios agrupados en el bloque colapsable de Más filtros cuando corresponda
 
 La alineación visual del módulo consiste en respetar ese patrón y no en expandir sin criterio todos los controles.
+
+Regla adicional para índices operativos:
+
+en módulos como inventory y orders, el index puede asumir una lectura fuertemente operacional y no solo de consulta.
+
+En esos casos, la composición debe priorizar:
+
+claridad de estado
+lectura rápida por fila
+filtros realmente útiles
+stock o cantidades visibles cuando aporten decisión
+acciones rápidas contenidas
+bajo roce visual
+
+Las métricas o indicadores de contexto pueden existir en la pantalla, pero no deben desplazar la tabla principal ni competir con la operación diaria cuando el trabajo real esté centrado en filas, estados y acciones contextuales.
 
 <<END SECTION>>
 
@@ -379,6 +394,8 @@ Para esos casos debe utilizarse un patrón visual específico de analytics separ
 <<END SECTION>>
 
 <<SECTION: SISTEMA VISUAL DE ANALYTICS>>
+SECTION_VERSION: 00002
+
 SISTEMA VISUAL DE ANALYTICS
 
 El sistema define un patrón visual específico para bloques analíticos, separado del summary del registro.
@@ -430,6 +447,20 @@ separar claramente información analítica de la ficha del registro
 evitar reutilización incorrecta de componentes de summary para datos agregados
 
 mantener consistencia visual entre dashboard y vistas show con métricas
+
+Regla adicional para métricas operativas livianas:
+
+cuando una vista index operativa como inventory.index requiera exponer métricas rápidas, estas deben mantener bajo protagonismo visual y no convertirse en un dashboard pesado.
+
+Su función es orientar lectura, no competir con la tabla principal.
+
+Deben priorizar:
+
+tipografía contenida
+peso visual secundario
+lectura rápida
+cantidad reducida de indicadores realmente útiles
+
 <<END SECTION>>
 
 <<SECTION: PATRÓN VISUAL PARA VISTAS SHOW>>
@@ -531,7 +562,7 @@ la unidad visual completa debe desaparecer y no solo el contenido interno
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW
 
@@ -598,6 +629,20 @@ las relaciones fuertes pueden publicarse como embebidos modulares completos dent
 
 las relaciones puntuales o 1 a 1 deben tender a resolverse como acción compacta o summary contextual y no como pestaña pesada por simetría
 
+Regla adicional para frentes operativos por línea:
+
+cuando un show consuma relaciones operativas de inventory u orders con lectura por línea, el embebido debe priorizar claridad operacional por fila.
+
+Puede incorporar:
+
+estado por línea
+badges de pendiente o completo
+stock visible
+cantidades relevantes
+acciones rápidas contenidas
+
+sin degradar la jerarquía principal de la pantalla ni transformar el bloque relacionado en una grilla recargada.
+
 <<END SECTION>>
 
 <<SECTION: SUPERFICIES CONDICIONALES POR MÓDULO>>
@@ -663,7 +708,7 @@ el embebido sigue siendo un bloque subordinado al show principal, aunque interna
 <<END SECTION>>
 
 <<SECTION: ACCIONES VISUALES EN INDEX Y SHOW>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 ACCIONES VISUALES EN INDEX Y SHOW
 
@@ -730,6 +775,20 @@ linked-asset-action
 Regla adicional de composición:
 
 cuando la relación con otro módulo sea puntual o 1 a 1, debe priorizarse una acción compacta reusable antes que un bloque pesado de tabs o tabla
+
+Regla adicional para tablas operativas:
+
+en módulos como inventory y orders, las acciones por fila pueden asumir mayor protagonismo funcional siempre que conserven escala visual contenida, propósito claro y bajo roce.
+
+Son válidas acciones rápidas por fila cuando resuelvan intenciones operativas frecuentes, por ejemplo:
+
+abrir
+ver historial
+surtir
+recibir
+revertir
+
+No deben saturar la fila ni reemplazar la lectura del estado operativo principal.
 
 <<END SECTION>>
 

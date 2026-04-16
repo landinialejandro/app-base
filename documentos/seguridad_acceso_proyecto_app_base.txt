@@ -53,7 +53,7 @@ Comprende quién puede operar, sobre qué universo, bajo qué condiciones y dent
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -78,6 +78,16 @@ Todo módulo relevante debe poder describirse mediante un contrato de seguridad 
 Las integraciones reutilizables continúan sometidas al arbitraje oficial.
 
 Una implementación funcional que contradiga estos principios debe considerarse incorrecta.
+
+Regla operativa adicional consolidada:
+
+el sistema no debe bloquear por inercia toda situación imperfecta o no ideal
+
+cuando el conflicto no sea crítico para seguridad, integridad estructural o trazabilidad mínima exigible, debe priorizarse continuidad operativa con registro suficiente de lo ocurrido
+
+seguridad y continuidad operativa no deben leerse como principios opuestos
+
+la resolución correcta debe tender a proteger ambos planos con el menor roce posible para el usuario
 
 <<END SECTION>>
 
@@ -279,7 +289,7 @@ no saltar el resolver central con lógica local improvisada
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -300,6 +310,18 @@ No usar la UI como única barrera de control.
 No asumir que una simplificación técnica justifica una excepción doctrinal.
 
 Toda implementación debe preferir claridad, centralización y trazabilidad de la decisión autorizadora.
+
+Regla operativa adicional:
+
+cuando la operación exija resolver excepciones, diferencias o ajustes no críticos, la implementación segura debe tender a registrar, contextualizar y escalar cuando corresponda antes que bloquear por defecto una continuidad de trabajo legítima
+
+Los bloqueos duros deben reservarse a razones realmente críticas, por ejemplo:
+
+violación de tenant
+falta de permiso efectivo
+ruptura de integridad estructural no reversible
+ausencia de trazabilidad mínima exigible
+contradicción funcional que vuelva insegura la operación
 
 <<END SECTION>>
 
@@ -325,7 +347,7 @@ Ignorar constraints equivale a ejecutar un contrato incompleto.
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -355,6 +377,16 @@ deben seguir sometidas al universo visible y a las capacidades efectivas del mó
 
 esto aplica tanto a acciones compactas como a embebidos relacionales fuertes
 
+Regla adicional consolidada para frentes operativos con estados:
+
+cuando una operación depende además del estado funcional del recurso padre o del flujo que la contextualiza, ese estado forma parte efectiva del contrato de seguridad consumido
+
+no debe leerse como simple detalle UX ni como validación lateral opcional
+
+caso vigente relevante:
+
+inventory puede requerir arbitraje adicional según estado de la orden o de la línea operativa asociada antes de permitir movimientos, reversiones o ajustes
+
 <<END SECTION>>
 
 <<SECTION: RECURSOS DELEGADOS AL PADRE>>
@@ -381,7 +413,7 @@ la delegación debe ser explícita, estable y consistente
 <<END SECTION>>
 
 <<SECTION: INTEGRACIONES REUSABLES Y AUTORIZACIÓN>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 INTEGRACIONES REUSABLES Y AUTORIZACIÓN
 
@@ -403,10 +435,16 @@ caso consolidado actual:
 
 appointments puede publicar embebido reusable para assets y parties y una integración compacta para orders sin crear permisos nuevos ni redefinir dataset fuera de su contrato propio
 
+Regla adicional consolidada para inventario operativo:
+
+si una capacidad reusable de inventory expone saldo, historial, disponibilidad, surtido, recepción o acciones de reversión, su arbitraje final no debe quedar redefinido por products, orders, documents ni por consumidores futuros
+
+la lectura de permisos, estados operativos y restricciones por ejecución ya iniciada debe seguir perteneciendo al módulo inventory como oferente del frente
+
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -508,11 +546,23 @@ Orders y documents pueden actuar como contexto de trazabilidad sin redefinir loc
 
 La publicación de surfaces reutilizables de inventory no crea permisos paralelos en products, orders o documents.
 
+Su arbitraje operativo puede depender además del estado de la orden o de la línea asociada cuando la operación implique surtido, recepción, reversión o ajuste sobre ejecución ya iniciada.
+
+Los movimientos manuales exigen trazabilidad reforzada.
+
+Como regla doctrinal, deben tender a registrar al menos:
+
+motivo explícito
+dirección de la operación
+contexto suficiente de auditoría
+
+Owner y admin deben conservar capacidad resolutiva superior para cierres con diferencias, excepciones operativas, ajustes y reversiones cuando el flujo requiera continuidad con control reforzado.
+
 ATTACHMENTS
 
 Módulo transversal.
 
-Su seguridad depende del recurso padre y no de autonomía plena propia, salvo definición doctrinal futura distinta.
+Su seguridad depende del recurso padre y no de autonomía plena
 
 <<END SECTION>>
 

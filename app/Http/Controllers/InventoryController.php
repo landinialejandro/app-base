@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/InventoryController.php | V7
+// FILE: app/Http/Controllers/InventoryController.php | V8
 
 namespace App\Http\Controllers;
 
@@ -9,6 +9,7 @@ use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
 use App\Support\Auth\Security;
+use App\Support\Catalogs\OrderCatalog;
 use App\Support\Catalogs\ProductCatalog;
 use App\Support\Inventory\InventoryMovementService;
 use App\Support\Inventory\OrderInventoryOperationService;
@@ -107,49 +108,32 @@ class InventoryController extends Controller
         $orderItem = $this->resolveOrderItemContext($data, $order, $product);
         $document = $this->resolveDocumentContext($data, $product);
 
+        $this->validateMovementContext($data, $order, $orderItem);
+
         if ($order) {
             $this->authorize('update', $order);
             $product = $this->resolveProductFromOrder($order, $product->id);
+            $this->validateOrderOperable($order);
         } else {
             $this->authorize('update', $product);
         }
 
-        if ($order && $orderItem) {
-            $result = app(OrderInventoryOperationService::class)->executeLine(
+        $result = $order
+            ? $this->storeOrderLineMovement(
                 order: $order,
-                item: $orderItem,
+                orderItem: $orderItem,
                 quantity: $data['quantity'],
                 notes: $data['notes'] ?? null,
                 createdBy: auth()->id(),
+            )
+            : $this->storeManualMovement(
+                product: $product,
+                kind: $data['kind'],
+                quantity: $data['quantity'],
+                notes: $data['notes'] ?? null,
+                document: $document,
+                createdBy: auth()->id(),
             );
-        } else {
-            $result = match ($data['kind']) {
-                InventoryMovementService::KIND_INGRESAR => app(InventoryMovementService::class)->ingresar(
-                    product: $product,
-                    quantity: $data['quantity'],
-                    notes: $data['notes'] ?? null,
-                    order: $order,
-                    document: $document,
-                    createdBy: auth()->id(),
-                ),
-                InventoryMovementService::KIND_CONSUMIR => app(InventoryMovementService::class)->consumir(
-                    product: $product,
-                    quantity: $data['quantity'],
-                    notes: $data['notes'] ?? null,
-                    order: $order,
-                    document: $document,
-                    createdBy: auth()->id(),
-                ),
-                InventoryMovementService::KIND_ENTREGAR => app(InventoryMovementService::class)->entregar(
-                    product: $product,
-                    quantity: $data['quantity'],
-                    notes: $data['notes'] ?? null,
-                    order: $order,
-                    document: $document,
-                    createdBy: auth()->id(),
-                ),
-            };
-        }
 
         $redirect = $this->redirectAfterMovement(
             request: $request,
@@ -166,6 +150,87 @@ class InventoryController extends Controller
         }
 
         return $redirect;
+    }
+
+    protected function storeOrderLineMovement(
+        Order $order,
+        OrderItem $orderItem,
+        float|int|string $quantity,
+        ?string $notes = null,
+        int|string|null $createdBy = null,
+    ): array {
+        return app(OrderInventoryOperationService::class)->executeLine(
+            order: $order,
+            item: $orderItem,
+            quantity: $quantity,
+            notes: $notes,
+            createdBy: $createdBy,
+        );
+    }
+
+    protected function storeManualMovement(
+        Product $product,
+        string $kind,
+        float|int|string $quantity,
+        ?string $notes = null,
+        ?Document $document = null,
+        int|string|null $createdBy = null,
+    ): array {
+        return match ($kind) {
+            InventoryMovementService::KIND_INGRESAR => app(InventoryMovementService::class)->ingresar(
+                product: $product,
+                quantity: $quantity,
+                notes: $notes,
+                order: null,
+                document: $document,
+                createdBy: $createdBy,
+            ),
+            InventoryMovementService::KIND_CONSUMIR => app(InventoryMovementService::class)->consumir(
+                product: $product,
+                quantity: $quantity,
+                notes: $notes,
+                order: null,
+                document: $document,
+                createdBy: $createdBy,
+            ),
+            InventoryMovementService::KIND_ENTREGAR => app(InventoryMovementService::class)->entregar(
+                product: $product,
+                quantity: $quantity,
+                notes: $notes,
+                order: null,
+                document: $document,
+                createdBy: $createdBy,
+            ),
+        };
+    }
+
+    protected function validateMovementContext(
+        array $data,
+        ?Order $order,
+        ?OrderItem $orderItem,
+    ): void {
+        $hasOrderId = ! empty($data['order_id']);
+        $hasOrderItemId = ! empty($data['order_item_id']);
+
+        if ($hasOrderId xor $hasOrderItemId) {
+            abort(422, 'Los movimientos operativos de orden requieren orden y línea asociadas.');
+        }
+
+        if (! $hasOrderId && ! $hasOrderItemId) {
+            return;
+        }
+
+        abort_if(! $order, 422, 'La orden indicada no es válida.');
+        abort_if(! $orderItem, 422, 'La línea indicada no es válida.');
+    }
+
+    protected function validateOrderOperable(Order $order): void
+    {
+        abort_if(
+            $order->status !== OrderCatalog::STATUS_APPROVED,
+            422,
+            'La orden no está en estado operable para inventory.'
+        );
     }
 
     protected function resolveProduct(int $productId): Product

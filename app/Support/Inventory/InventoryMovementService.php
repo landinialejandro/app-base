@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Inventory/InventoryMovementService.php | V4
+// FILE: app/Support/Inventory/InventoryMovementService.php | V5
 
 namespace App\Support\Inventory;
 
@@ -11,6 +11,8 @@ use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Task;
 use App\Models\User;
+use App\Support\Catalogs\OrderCatalog;
+use App\Support\Catalogs\ProductCatalog;
 use App\Support\Catalogs\TaskCatalog;
 use App\Support\System\OwnerAlertTaskService;
 use Illuminate\Support\Facades\DB;
@@ -102,18 +104,6 @@ class InventoryMovementService
         ?string $notes = null,
         int|string|null $createdBy = null,
     ): array {
-        if ((int) $item->order_id !== (int) $order->id) {
-            throw new InvalidArgumentException('La línea no pertenece a la orden indicada.');
-        }
-
-        if ($item->tenant_id !== $order->tenant_id || $product->tenant_id !== $order->tenant_id) {
-            throw new InvalidArgumentException('El contexto del movimiento pertenece a otro tenant.');
-        }
-
-        if ((int) $item->product_id !== (int) $product->id) {
-            throw new InvalidArgumentException('La línea no corresponde al producto indicado.');
-        }
-
         return $this->createMovement(
             product: $product,
             kind: $kind,
@@ -138,35 +128,21 @@ class InventoryMovementService
     ): array {
         $normalizedQuantity = (float) $quantity;
 
-        if (! in_array($kind, self::kinds(), true)) {
-            throw new InvalidArgumentException('Tipo de movimiento inválido.');
-        }
+        $this->validateKind($kind);
+        $this->validateQuantity($normalizedQuantity);
+        $this->validateTenantConsistency($product, $order, $orderItem, $document);
+        $this->validateOrderContext($product, $order, $orderItem);
 
-        if ($normalizedQuantity <= 0) {
-            throw new InvalidArgumentException('La cantidad debe ser mayor a cero.');
-        }
-
-        if ($order && $order->tenant_id !== $product->tenant_id) {
-            throw new InvalidArgumentException('La orden pertenece a otro tenant.');
-        }
-
-        if ($orderItem && $orderItem->tenant_id !== $product->tenant_id) {
-            throw new InvalidArgumentException('La línea de la orden pertenece a otro tenant.');
-        }
-
-        if ($order && $orderItem && (int) $orderItem->order_id !== (int) $order->id) {
-            throw new InvalidArgumentException('La línea no pertenece a la orden indicada.');
-        }
-
-        if ($orderItem && (int) $orderItem->product_id !== (int) $product->id) {
-            throw new InvalidArgumentException('La línea no corresponde al producto indicado.');
-        }
-
-        if ($document && $document->tenant_id !== $product->tenant_id) {
-            throw new InvalidArgumentException('El documento pertenece a otro tenant.');
-        }
-
-        return DB::transaction(function () use ($product, $kind, $normalizedQuantity, $notes, $order, $orderItem, $document, $createdBy) {
+        return DB::transaction(function () use (
+            $product,
+            $kind,
+            $normalizedQuantity,
+            $notes,
+            $order,
+            $orderItem,
+            $document,
+            $createdBy
+        ) {
             $movement = InventoryMovement::create([
                 'tenant_id' => $product->tenant_id,
                 'product_id' => $product->id,
@@ -202,6 +178,89 @@ class InventoryMovementService
                 'owner_alert_task' => $ownerAlertTask,
             ];
         });
+    }
+
+    protected function validateKind(string $kind): void
+    {
+        if (! in_array($kind, self::kinds(), true)) {
+            throw new InvalidArgumentException('Tipo de movimiento inválido.');
+        }
+    }
+
+    protected function validateQuantity(float $quantity): void
+    {
+        if ($quantity <= 0) {
+            throw new InvalidArgumentException('La cantidad debe ser mayor a cero.');
+        }
+    }
+
+    protected function validateTenantConsistency(
+        Product $product,
+        ?Order $order = null,
+        ?OrderItem $orderItem = null,
+        ?Document $document = null,
+    ): void {
+        if ($order && $order->tenant_id !== $product->tenant_id) {
+            throw new InvalidArgumentException('La orden pertenece a otro tenant.');
+        }
+
+        if ($orderItem && $orderItem->tenant_id !== $product->tenant_id) {
+            throw new InvalidArgumentException('La línea de la orden pertenece a otro tenant.');
+        }
+
+        if ($document && $document->tenant_id !== $product->tenant_id) {
+            throw new InvalidArgumentException('El documento pertenece a otro tenant.');
+        }
+    }
+
+    protected function validateOrderContext(
+        Product $product,
+        ?Order $order = null,
+        ?OrderItem $orderItem = null,
+    ): void {
+        if (! $order && ! $orderItem) {
+            $this->validateManualMovementProduct($product);
+
+            return;
+        }
+
+        if (! $order && $orderItem) {
+            throw new InvalidArgumentException('La línea requiere una orden asociada.');
+        }
+
+        if ($order && ! $orderItem) {
+            throw new InvalidArgumentException('No se admiten movimientos de orden sin línea asociada.');
+        }
+
+        if (! $order || ! $orderItem) {
+            throw new InvalidArgumentException('Contexto operativo inválido para inventory.');
+        }
+
+        if ((int) $orderItem->order_id !== (int) $order->id) {
+            throw new InvalidArgumentException('La línea no pertenece a la orden indicada.');
+        }
+
+        if ((int) $orderItem->product_id !== (int) $product->id) {
+            throw new InvalidArgumentException('La línea no corresponde al producto indicado.');
+        }
+
+        if ($order->status !== OrderCatalog::STATUS_APPROVED) {
+            throw new InvalidArgumentException('La orden no está en estado operable para inventory.');
+        }
+
+        $this->validatePhysicalProduct($product);
+    }
+
+    protected function validateManualMovementProduct(Product $product): void
+    {
+        $this->validatePhysicalProduct($product);
+    }
+
+    protected function validatePhysicalProduct(Product $product): void
+    {
+        if ($product->kind !== ProductCatalog::KIND_PRODUCT) {
+            throw new InvalidArgumentException('El movimiento solo puede registrarse sobre productos físicos stockeables.');
+        }
     }
 
     protected function notifyOwnerIfStockTurnsNegative(

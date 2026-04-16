@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V28 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V29 --}}
 
 @extends('layouts.app')
 
@@ -11,7 +11,6 @@
         use App\Support\Auth\TenantModuleAccess;
         use App\Support\Catalogs\ModuleCatalog;
         use App\Support\Catalogs\OrderCatalog;
-        use App\Support\Inventory\InventoryMovementService;
         use App\Support\Navigation\NavigationTrail;
         use App\Support\Parties\PartyLinkedAction;
 
@@ -19,7 +18,6 @@
         $documents = $order->documents ?? collect();
         $items = $order->items ?? collect();
         $inventoryMovements = $order->inventoryMovements ?? collect();
-        $inventoryProducts = $inventoryProducts ?? collect();
         $inventoryContext = $inventoryContext ?? null;
 
         $tenant = app('tenant');
@@ -216,27 +214,11 @@
             @if ($supportsProductsModule)
                 <section class="tab-panel" data-tab-panel="inventory" hidden>
                     <div class="tab-panel-stack">
-                        @can('update', $order)
-                            @if ($inventoryProducts->count() && $inventoryIsOperable)
-                                <x-card>
-                                    @include('inventory.partials.movement-form', [
-                                        'action' => route('inventory.movements.store', $trailQuery),
-                                        'products' => $inventoryProducts,
-                                        'availableKinds' => [
-                                            InventoryMovementService::KIND_CONSUMIR,
-                                            InventoryMovementService::KIND_ENTREGAR,
-                                        ],
-                                        'orderId' => $order->id,
-                                        'returnContext' => 'orders.show',
-                                        'submitLabel' => 'Registrar movimiento',
-                                        'productFieldId' => 'order_inventory_product_id',
-                                        'kindFieldId' => 'order_inventory_kind',
-                                        'quantityFieldId' => 'order_inventory_quantity',
-                                        'notesFieldId' => 'order_inventory_notes',
-                                    ])
-                                </x-card>
-                            @endif
-                        @endcan
+                        <x-card>
+                            <p class="mb-0">
+                                Los movimientos operativos de esta orden se registran exclusivamente desde las líneas.
+                            </p>
+                        </x-card>
 
                         <x-card class="list-card">
                             @include('inventory.partials.movements-table', [

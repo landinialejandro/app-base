@@ -1,12 +1,13 @@
 <?php
 
-// FILE: app/Models/InventoryMovement.php | V1
+// FILE: app/Models/InventoryMovement.php | V2
 
 namespace App\Models;
 
 use App\Models\Concerns\ResolvesTenantRouteBinding;
 use App\Models\Concerns\TenantScoped;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class InventoryMovement extends Model
@@ -19,6 +20,7 @@ class InventoryMovement extends Model
         'tenant_id',
         'product_id',
         'order_id',
+        'order_item_id',
         'document_id',
         'kind',
         'quantity',
@@ -30,22 +32,27 @@ class InventoryMovement extends Model
         'quantity' => 'decimal:2',
     ];
 
-    public function product()
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
     }
 
-    public function order()
+    public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class);
     }
 
-    public function document()
+    public function orderItem(): BelongsTo
+    {
+        return $this->belongsTo(OrderItem::class, 'order_item_id');
+    }
+
+    public function document(): BelongsTo
     {
         return $this->belongsTo(Document::class);
     }
 
-    public function creator()
+    public function creator(): BelongsTo
     {
         return $this->belongsTo(User::class, 'created_by');
     }
@@ -64,6 +71,29 @@ class InventoryMovement extends Model
     {
         return $this->kind === 'entregar';
     }
-}
 
-// FILE: app/Models/InventoryMovement.php | V1
+    public function affectsStockAsPositive(): bool
+    {
+        return $this->isIngreso();
+    }
+
+    public function affectsStockAsNegative(): bool
+    {
+        return $this->isConsumo() || $this->isEntrega();
+    }
+
+    public function signedQuantity(): float
+    {
+        $quantity = (float) $this->quantity;
+
+        if ($this->affectsStockAsPositive()) {
+            return $quantity;
+        }
+
+        if ($this->affectsStockAsNegative()) {
+            return -1 * $quantity;
+        }
+
+        return 0.0;
+    }
+}

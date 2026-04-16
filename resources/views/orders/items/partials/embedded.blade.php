@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/items/partials/embedded.blade.php | V2 --}}
+{{-- FILE: resources/views/orders/items/partials/embedded.blade.php | V3 --}}
 
 @php
     $order = $order ?? null;
@@ -6,6 +6,7 @@
     $emptyMessage = $emptyMessage ?? 'No hay ítems cargados en esta orden.';
     $trailQuery = $trailQuery ?? [];
     $supportsProductsModule = $supportsProductsModule ?? true;
+    $inventoryContext = $inventoryContext ?? null;
 @endphp
 
 <div class="tab-panel-stack">
@@ -22,11 +23,13 @@
         <x-slot:actions>
             @if ($order)
                 @can('update', $order)
-                    <a href="{{ route('orders.items.create', ['order' => $order] + $trailQuery) }}"
-                        class="btn btn-success btn-sm">
-                        <x-icons.plus />
-                        <span>Agregar ítem</span>
-                    </a>
+                    @if (!\App\Support\Catalogs\OrderCatalog::isReadonlyStatus($order->status))
+                        <a href="{{ route('orders.items.create', ['order' => $order] + $trailQuery) }}"
+                            class="btn btn-success btn-sm">
+                            <x-icons.plus />
+                            <span>Agregar ítem</span>
+                        </a>
+                    @endif
                 @endcan
             @endif
         </x-slot:actions>
@@ -38,6 +41,7 @@
             'items' => $items,
             'emptyMessage' => $emptyMessage,
             'trailQuery' => $trailQuery,
+            'inventoryContext' => $inventoryContext,
         ])
     </x-card>
 
@@ -54,6 +58,21 @@
                     ${{ number_format((float) ($order?->total ?? 0), 2, ',', '.') }}
                 </div>
             </div>
+
+            @if ($inventoryContext)
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Estado inventory</div>
+                    <div class="summary-inline-value">
+                        @if (($inventoryContext['is_readonly'] ?? false) === true)
+                            Readonly
+                        @elseif (($inventoryContext['is_operable'] ?? false) === true)
+                            Operable
+                        @else
+                            No operable
+                        @endif
+                    </div>
+                </div>
+            @endif
         </div>
 
         @unless ($supportsProductsModule)

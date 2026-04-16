@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/partials/movements-table.blade.php | V1 --}}
+{{-- FILE: resources/views/inventory/partials/movements-table.blade.php | V2 --}}
 
 @php
     $movements = ($movements ?? collect())->values();
@@ -14,6 +14,7 @@
                     <th>Fecha</th>
                     <th>Tipo</th>
                     <th>Producto</th>
+                    <th>Línea</th>
                     <th>Cantidad</th>
                     <th>Orden</th>
                     <th>Documento</th>
@@ -26,6 +27,16 @@
                         <td>{{ $movement->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
                         <td>{{ ucfirst($movement->kind) }}</td>
                         <td>{{ $movement->product?->name ?? '—' }}</td>
+                        <td>
+                            @if ($movement->orderItem)
+                                #{{ $movement->orderItem->id }}
+                                @if ($movement->orderItem->description)
+                                    — {{ $movement->orderItem->description }}
+                                @endif
+                            @else
+                                —
+                            @endif
+                        </td>
                         <td>{{ number_format((float) $movement->quantity, 2, ',', '.') }}</td>
                         <td>
                             @if ($movement->order)

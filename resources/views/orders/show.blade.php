@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V27 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V28 --}}
 
 @extends('layouts.app')
 
@@ -20,6 +20,7 @@
         $items = $order->items ?? collect();
         $inventoryMovements = $order->inventoryMovements ?? collect();
         $inventoryProducts = $inventoryProducts ?? collect();
+        $inventoryContext = $inventoryContext ?? null;
 
         $tenant = app('tenant');
         $user = auth()->user();
@@ -39,6 +40,10 @@
         $partyAction = PartyLinkedAction::forParty($order->party, $trailQuery, 'Contacto');
         $assetAction = AssetLinkedAction::forAsset($order->asset, $trailQuery, 'Activo');
         $appointmentAction = AppointmentLinkedAction::forOrder($order, $trailQuery, true);
+
+        $inventoryIsReadonly = ($inventoryContext['is_readonly'] ?? false) === true;
+        $inventoryIsOperable = ($inventoryContext['is_operable'] ?? false) === true;
+        $inventoryCanCancel = ($inventoryContext['can_cancel'] ?? false) === true;
     @endphp
 
     <x-page>
@@ -125,6 +130,20 @@
                     </x-show-summary-item-detail-block>
                 @endif
 
+                <x-show-summary-item-detail-block label="Inventory">
+                    @if ($inventoryIsReadonly)
+                        Readonly
+                    @elseif ($inventoryIsOperable)
+                        Operable
+                    @else
+                        No operable
+                    @endif
+                </x-show-summary-item-detail-block>
+
+                <x-show-summary-item-detail-block label="Cancelación">
+                    {{ $inventoryCanCancel ? 'Permitida' : 'Restringida' }}
+                </x-show-summary-item-detail-block>
+
                 <x-show-summary-item-detail-block label="Creado">
                     {{ $order->created_at?->format('d/m/Y H:i') ?: '—' }}
                 </x-show-summary-item-detail-block>
@@ -189,6 +208,7 @@
                         'items' => $items,
                         'trailQuery' => $trailQuery,
                         'supportsProductsModule' => $supportsProductsModule,
+                        'inventoryContext' => $inventoryContext,
                     ])
                 </div>
             </section>
@@ -197,7 +217,7 @@
                 <section class="tab-panel" data-tab-panel="inventory" hidden>
                     <div class="tab-panel-stack">
                         @can('update', $order)
-                            @if ($inventoryProducts->count())
+                            @if ($inventoryProducts->count() && $inventoryIsOperable)
                                 <x-card>
                                     @include('inventory.partials.movement-form', [
                                         'action' => route('inventory.movements.store', $trailQuery),

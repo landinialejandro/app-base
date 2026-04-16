@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/_form.blade.php | V6 --}}
+{{-- FILE: resources/views/orders/_form.blade.php | V7 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
@@ -27,6 +27,21 @@
     $lockPartyAndAsset = $fromAsset || $lockedByExistingAsset;
 
     $supportsAssetsModule = $supportsAssetsModule ?? true;
+
+    $currentStatus = old('status', $order->status ?? OrderCatalog::STATUS_DRAFT);
+
+    $statusOptions = OrderCatalog::statusLabels();
+
+    if ($orderExists) {
+        $statusOptions = collect(OrderCatalog::statusLabels())
+            ->filter(fn($label, $value) => OrderCatalog::canTransition($order->status, $value))
+            ->prepend(OrderCatalog::statusLabel($order->status), $order->status)
+            ->all();
+    }
+
+    $statusHelp = $orderExists
+        ? 'El backend validará la transición de estado y bloqueará cambios inválidos.'
+        : 'La orden comienza normalmente en borrador y su transición futura debe validarse desde backend.';
 @endphp
 
 <div class="form" data-action="app-party-asset-sync" data-party-select="#party_id"
@@ -150,16 +165,20 @@
         @endif
     </div>
 
-    {{-- RESTO (SIN CAMBIOS) --}}
+    {{-- ESTADO --}}
     <div class="form-group">
         <label for="status" class="form-label">Estado</label>
         <select name="status" id="status" class="form-control" required>
-            @foreach (OrderCatalog::statusLabels() as $value => $label)
-                <option value="{{ $value }}" @selected(old('status', $order->status ?? OrderCatalog::STATUS_DRAFT) === $value)>
+            @foreach ($statusOptions as $value => $label)
+                <option value="{{ $value }}" @selected($currentStatus === $value)>
                     {{ $label }}
                 </option>
             @endforeach
         </select>
+        <div class="form-help">{{ $statusHelp }}</div>
+        @error('status')
+            <div class="form-help is-error">{{ $message }}</div>
+        @enderror
     </div>
 
     <div class="form-group">

@@ -1,12 +1,13 @@
 <?php
 
-// FILE: app/Support/Inventory/InventoryMovementService.php | V3
+// FILE: app/Support/Inventory/InventoryMovementService.php | V4
 
 namespace App\Support\Inventory;
 
 use App\Models\Document;
 use App\Models\InventoryMovement;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Models\Task;
 use App\Models\User;
@@ -46,6 +47,7 @@ class InventoryMovementService
             quantity: $quantity,
             notes: $notes,
             order: $order,
+            orderItem: null,
             document: $document,
             createdBy: $createdBy,
         );
@@ -65,6 +67,7 @@ class InventoryMovementService
             quantity: $quantity,
             notes: $notes,
             order: $order,
+            orderItem: null,
             document: $document,
             createdBy: $createdBy,
         );
@@ -84,7 +87,41 @@ class InventoryMovementService
             quantity: $quantity,
             notes: $notes,
             order: $order,
+            orderItem: null,
             document: $document,
+            createdBy: $createdBy,
+        );
+    }
+
+    public function createForOrderItem(
+        Order $order,
+        OrderItem $item,
+        Product $product,
+        string $kind,
+        float|int|string $quantity,
+        ?string $notes = null,
+        int|string|null $createdBy = null,
+    ): array {
+        if ((int) $item->order_id !== (int) $order->id) {
+            throw new InvalidArgumentException('La línea no pertenece a la orden indicada.');
+        }
+
+        if ($item->tenant_id !== $order->tenant_id || $product->tenant_id !== $order->tenant_id) {
+            throw new InvalidArgumentException('El contexto del movimiento pertenece a otro tenant.');
+        }
+
+        if ((int) $item->product_id !== (int) $product->id) {
+            throw new InvalidArgumentException('La línea no corresponde al producto indicado.');
+        }
+
+        return $this->createMovement(
+            product: $product,
+            kind: $kind,
+            quantity: $quantity,
+            notes: $notes,
+            order: $order,
+            orderItem: $item,
+            document: null,
             createdBy: $createdBy,
         );
     }
@@ -95,6 +132,7 @@ class InventoryMovementService
         float|int|string $quantity,
         ?string $notes = null,
         ?Order $order = null,
+        ?OrderItem $orderItem = null,
         ?Document $document = null,
         int|string|null $createdBy = null,
     ): array {
@@ -112,15 +150,28 @@ class InventoryMovementService
             throw new InvalidArgumentException('La orden pertenece a otro tenant.');
         }
 
+        if ($orderItem && $orderItem->tenant_id !== $product->tenant_id) {
+            throw new InvalidArgumentException('La línea de la orden pertenece a otro tenant.');
+        }
+
+        if ($order && $orderItem && (int) $orderItem->order_id !== (int) $order->id) {
+            throw new InvalidArgumentException('La línea no pertenece a la orden indicada.');
+        }
+
+        if ($orderItem && (int) $orderItem->product_id !== (int) $product->id) {
+            throw new InvalidArgumentException('La línea no corresponde al producto indicado.');
+        }
+
         if ($document && $document->tenant_id !== $product->tenant_id) {
             throw new InvalidArgumentException('El documento pertenece a otro tenant.');
         }
 
-        return DB::transaction(function () use ($product, $kind, $normalizedQuantity, $notes, $order, $document, $createdBy) {
+        return DB::transaction(function () use ($product, $kind, $normalizedQuantity, $notes, $order, $orderItem, $document, $createdBy) {
             $movement = InventoryMovement::create([
                 'tenant_id' => $product->tenant_id,
                 'product_id' => $product->id,
                 'order_id' => $order?->id,
+                'order_item_id' => $orderItem?->id,
                 'document_id' => $document?->id,
                 'kind' => $kind,
                 'quantity' => $normalizedQuantity,
@@ -129,6 +180,11 @@ class InventoryMovementService
             ]);
 
             $stockAfter = app(ProductStockCalculator::class)->forProduct($product);
+
+            if ($orderItem) {
+                $orderItem->refresh();
+                app(OrderItemStatusService::class)->recalculate($orderItem);
+            }
 
             $ownerAlertTask = $this->notifyOwnerIfStockTurnsNegative(
                 product: $product,
@@ -194,6 +250,10 @@ class InventoryMovementService
             $descriptionLines[] = '- Orden relacionada: '.($order->number ?: 'Orden #'.$order->id);
         }
 
+        if ($movement->orderItem) {
+            $descriptionLines[] = '- Línea relacionada: #'.$movement->orderItem->id.' - '.($movement->orderItem->description ?: 'Sin descripción');
+        }
+
         if ($movement->notes) {
             $descriptionLines[] = '- Notas del movimiento: '.$movement->notes;
         }
@@ -213,6 +273,7 @@ class InventoryMovementService
                 'product_sku' => $product->sku,
                 'order_id' => $order?->id,
                 'order_number' => $order?->number,
+                'order_item_id' => $movement->order_item_id,
                 'inventory_movement_id' => $movement->id,
                 'movement_kind' => $movement->kind,
                 'movement_quantity' => $movementQuantity,

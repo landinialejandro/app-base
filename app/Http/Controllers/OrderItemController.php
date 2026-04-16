@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderItemController.php | V15
+// FILE: app/Http/Controllers/OrderItemController.php | V16
 
 namespace App\Http\Controllers;
 
@@ -10,6 +10,7 @@ use App\Models\Product;
 use App\Support\Auth\Security;
 use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\ModuleCatalog;
+use App\Support\Catalogs\OrderCatalog;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\OrderNavigationTrail;
 use Illuminate\Http\Request;
@@ -20,6 +21,12 @@ class OrderItemController extends Controller
     public function create(Request $request, Order $order)
     {
         $this->authorize('update', $order);
+
+        abort_if(
+            OrderCatalog::isReadonlyStatus($order->status),
+            422,
+            'No se pueden agregar ítems a una orden en estado readonly.'
+        );
 
         $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
         $security = app(Security::class);
@@ -37,6 +44,7 @@ class OrderItemController extends Controller
         $item = new OrderItem([
             'position' => ((int) $order->items()->max('position')) + 1,
             'quantity' => 1,
+            'status' => 'pending',
             'unit_price' => null,
         ]);
 
@@ -54,6 +62,12 @@ class OrderItemController extends Controller
     public function store(Request $request, Order $order)
     {
         $this->authorize('update', $order);
+
+        abort_if(
+            OrderCatalog::isReadonlyStatus($order->status),
+            422,
+            'No se pueden agregar ítems a una orden en estado readonly.'
+        );
 
         $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
         $security = app(Security::class);
@@ -92,6 +106,7 @@ class OrderItemController extends Controller
 
         $data['tenant_id'] = $order->tenant_id;
         $data['order_id'] = $order->id;
+        $data['status'] = 'pending';
 
         OrderItem::create($data);
 
@@ -107,6 +122,18 @@ class OrderItemController extends Controller
         $this->authorize('update', $order);
 
         abort_unless((int) $item->order_id === (int) $order->id, 404);
+
+        abort_if(
+            OrderCatalog::isReadonlyStatus($order->status),
+            422,
+            'No se pueden editar ítems de una orden en estado readonly.'
+        );
+
+        abort_if(
+            $item->hasInventoryMovements(),
+            422,
+            'La línea ya tiene movimientos registrados y no puede editarse.'
+        );
 
         $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
         $security = app(Security::class);
@@ -137,6 +164,18 @@ class OrderItemController extends Controller
         $this->authorize('update', $order);
 
         abort_unless((int) $item->order_id === (int) $order->id, 404);
+
+        abort_if(
+            OrderCatalog::isReadonlyStatus($order->status),
+            422,
+            'No se pueden editar ítems de una orden en estado readonly.'
+        );
+
+        abort_if(
+            $item->hasInventoryMovements(),
+            422,
+            'La línea ya tiene movimientos registrados y no puede editarse.'
+        );
 
         $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
         $security = app(Security::class);
@@ -187,6 +226,18 @@ class OrderItemController extends Controller
         $this->authorize('update', $order);
 
         abort_unless((int) $item->order_id === (int) $order->id, 404);
+
+        abort_if(
+            OrderCatalog::isReadonlyStatus($order->status),
+            422,
+            'No se pueden eliminar ítems de una orden en estado readonly.'
+        );
+
+        abort_if(
+            $item->hasInventoryMovements(),
+            422,
+            'La línea ya tiene movimientos registrados y no puede eliminarse.'
+        );
 
         $item->delete();
 

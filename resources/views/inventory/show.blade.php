@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/show.blade.php | V2 --}}
+{{-- FILE: resources/views/inventory/show.blade.php | V3 --}}
 
 @extends('layouts.app')
 

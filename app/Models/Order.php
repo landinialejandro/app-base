@@ -1,12 +1,13 @@
 <?php
 
-// FILE: app/Models/Order.php | V4
+// FILE: app/Models/Order.php | V5
 
 namespace App\Models;
 
 use App\Models\Concerns\ResolvesTenantRouteBinding;
 use App\Models\Concerns\TenantScoped;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -70,17 +71,17 @@ class Order extends Model
         return $this->belongsTo(Task::class);
     }
 
-    public function items()
+    public function items(): HasMany
     {
         return $this->hasMany(OrderItem::class);
     }
 
-    public function documents()
+    public function documents(): HasMany
     {
         return $this->hasMany(Document::class);
     }
 
-    public function inventoryMovements()
+    public function inventoryMovements(): HasMany
     {
         return $this->hasMany(InventoryMovement::class);
     }
@@ -108,5 +109,28 @@ class Order extends Model
     public function attachments(): MorphMany
     {
         return $this->morphMany(Attachment::class, 'attachable')->orderBy('sort_order')->latest('id');
+    }
+
+    public function hasInventoryMovements(): bool
+    {
+        if ($this->relationLoaded('inventoryMovements')) {
+            return $this->inventoryMovements
+                ->filter(fn ($movement) => ! $movement->trashed())
+                ->isNotEmpty();
+        }
+
+        return $this->inventoryMovements()->exists();
+    }
+
+    public function hasClosedItems(): bool
+    {
+        if ($this->relationLoaded('items')) {
+            return $this->items
+                ->contains(fn ($item) => in_array($item->status, ['completed', 'cancelled'], true));
+        }
+
+        return $this->items()
+            ->whereIn('status', ['completed', 'cancelled'])
+            ->exists();
     }
 }

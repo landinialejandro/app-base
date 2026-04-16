@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/partials/movement-form.blade.php | V2 --}}
+{{-- FILE: resources/views/inventory/partials/movement-form.blade.php | V3 --}}
 
 @php
     use App\Support\Inventory\InventoryMovementService;
@@ -23,6 +23,7 @@
     $notesFieldId = $notesFieldId ?? 'inventory_notes';
 
     $orderId = $orderId ?? null;
+    $orderItemId = $orderItemId ?? null;
     $documentId = $documentId ?? null;
     $returnContext = $returnContext ?? null;
 @endphp
@@ -99,6 +100,10 @@
 
         @if ($orderId)
             <input type="hidden" name="order_id" value="{{ $orderId }}">
+        @endif
+
+        @if ($orderItemId)
+            <input type="hidden" name="order_item_id" value="{{ $orderItemId }}">
         @endif
 
         @if ($documentId)

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderController.php | V24
+// FILE: app/Http/Controllers/OrderController.php | V25
 
 namespace App\Http\Controllers;
 
@@ -15,6 +15,7 @@ use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\OrderCatalog;
 use App\Support\Catalogs\ProductCatalog;
 use App\Support\Documents\DocumentNumberGenerator;
+use App\Support\Inventory\OrderInventoryContextResolver;
 use App\Support\Navigation\AppointmentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\OrderNavigationTrail;
@@ -422,8 +423,10 @@ class OrderController extends Controller
             'creator',
             'updater',
             'items.product',
+            'items.inventoryMovements',
             'documents',
             'inventoryMovements.product',
+            'inventoryMovements.orderItem',
             'attachments' => fn ($query) => $query->ordered(),
         ]);
 
@@ -435,6 +438,10 @@ class OrderController extends Controller
                 ->sortBy('name')
                 ->values()
             : collect();
+
+        $inventoryContext = $supportsProductsModule
+            ? app(OrderInventoryContextResolver::class)->forOrder($order)
+            : null;
 
         $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
         $task = TaskNavigationTrail::resolveFromRequest($request, $order->tenant_id);
@@ -450,6 +457,7 @@ class OrderController extends Controller
             'order',
             'navigationTrail',
             'inventoryProducts',
+            'inventoryContext',
             'supportsAssetsModule',
             'supportsProductsModule',
             'supportsDocumentsModule',
@@ -567,6 +575,38 @@ class OrderController extends Controller
             ['kind' => $order->kind]
         );
 
+        if (! OrderCatalog::canTransition($order->status, $data['status'])) {
+            return back()
+                ->withErrors([
+                    'status' => 'La transición de estado solicitada no es válida.',
+                ])
+                ->withInput();
+        }
+
+        if ($data['status'] === OrderCatalog::STATUS_CANCELLED && $order->hasInventoryMovements()) {
+            return back()
+                ->withErrors([
+                    'status' => 'No se puede cancelar una orden con movimientos registrados. Primero deben revertirse.',
+                ])
+                ->withInput();
+        }
+
+        if ($data['status'] === OrderCatalog::STATUS_CLOSED) {
+            $order->loadMissing('items');
+
+            $hasIncompleteItems = $order->items->contains(function ($item) {
+                return ! in_array($item->status, ['completed', 'cancelled'], true);
+            });
+
+            if ($hasIncompleteItems) {
+                return back()
+                    ->withErrors([
+                        'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
+                    ])
+                    ->withInput();
+            }
+        }
+
         if (! empty($order->asset_id)) {
             if ((int) $data['asset_id'] !== (int) $order->asset_id) {
                 return back()
@@ -646,6 +686,16 @@ class OrderController extends Controller
     public function destroy(Request $request, Order $order)
     {
         $this->authorize('delete', $order);
+
+        if ($order->hasInventoryMovements()) {
+            return redirect()
+                ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery(
+                    OrderNavigationTrail::show($request, $order)
+                ))
+                ->withErrors([
+                    'order' => 'No se puede eliminar una orden con movimientos de inventory registrados.',
+                ]);
+        }
 
         $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
         $task = TaskNavigationTrail::resolveFromRequest($request, $order->tenant_id);

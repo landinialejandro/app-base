@@ -39,7 +39,7 @@ no debe utilizarse como depósito de ideas difusas sin criterio de ejecución
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — RECONVERSIÓN MODULAR>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 LÍNEA ACTIVA — RECONVERSIÓN MODULAR
 
@@ -58,6 +58,23 @@ Criterio:
 no rehacer por rehacer
 
 priorizar piezas con mayor impacto sistémico
+
+Nueva línea doctrinal consolidada a formalizar e implementar:
+
+cada módulo debe tender a disponer de una puerta de enlace oficial hacia el ecosistema además de su núcleo interno
+
+la arquitectura debe distinguir con claridad entre:
+
+núcleo interno
+puerta de enlace modular
+consumo externo por otros módulos
+
+si un módulo consumidor necesita una capacidad ajena, debe expresar intención y consumir la surface oficial del oferente
+
+no debe reconstruir localmente la lógica operativa del módulo dueño de la capacidad
+
+debe consolidarse además la figura de módulo hub visual para los casos donde una pantalla anfitriona aloje interacción de otro módulo sin absorber su lógica
+
 <<END SECTION>>
 
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
@@ -479,7 +496,7 @@ inventory
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 PENDIENTES INMEDIATOS
 
@@ -533,6 +550,13 @@ endurecer reglas por estado de orden sobre movimientos y disponibilidad operativ
 formalizar movimientos manuales con motivo obligatorio, dirección explícita y task automática al owner
 implementar reversión por contramovimientos con trazabilidad completa
 incorporar métricas iniciales útiles en inventory.index con bajo peso visual
+
+Pendientes inmediatos de arquitectura modular:
+
+formalizar doctrinalmente la puerta de enlace modular como patrón general del ecosistema
+revisar surfaces actuales que todavía mezclen lógica del consumidor con capacidades del oferente
+adaptar orders para consumir inventory como capacidad externa sin absorber lógica operativa propia
+validar si documents, tasks u otros módulos requerirán patrón hub visual o publicación futura de surfaces oficiales equivalentes
 
 Considerar como ya cerrado y no reabrir en este frente:
 

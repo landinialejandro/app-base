@@ -110,7 +110,7 @@ Si estas respuestas no están claras, no debe avanzarse a implementación.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 BLOQUE 1 — CONTRATO MODULAR
 
@@ -174,6 +174,25 @@ Regla evolutiva adicional:
 
 si una capacidad operativa madura demuestra identidad funcional propia, puede reconvertirse en módulo explícito manteniendo continuidad con los consumidores existentes.
 
+Regla adicional consolidada:
+
+al diseñar un módulo debe evaluarse explícitamente si publicará una puerta de enlace oficial hacia el ecosistema además de su núcleo interno
+
+debe quedar distinguido:
+
+qué pertenece al núcleo del módulo
+qué forma parte de su puerta de enlace modular
+qué podrán consumir otros módulos desde esa surface oficial
+
+si el módulo actuará como oferente de capacidad, como hub visual, o como ambos, eso debe quedar declarado desde el contrato
+
+si el módulo admite consumo externo, deben definirse de forma explícita:
+
+entradas aceptadas desde otros módulos
+salidas posibles
+reglas de arbitraje
+límites de seguridad
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
@@ -218,7 +237,7 @@ no deben tratarse como metadata decorativa ni como validación parcial
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -253,6 +272,16 @@ Regla adicional de cierre:
 no considerar homogénea una integración mientras existan superficies secundarias del consumidor que sigan resolviendo localmente una relación, acción o flujo ya cerrado por el módulo oferente
 
 si el módulo consumidor ya posee un patrón visual consolidado para relaciones equivalentes, la nueva integración debe tender a reutilizar ese patrón y no introducir gramática visual nueva sin causa real
+
+Regla adicional consolidada:
+
+si un módulo consume otro, debe hacerlo por la surface oficial publicada por el oferente y no por lógica ad hoc
+
+cuando la integración ocurra dentro de la pantalla de un tercer módulo, debe definirse además si ese tercer módulo actúa como simple contenedor visual o como verdadero participante del flujo
+
+si actúa como hub visual, no debe absorber la lógica operativa ni la seguridad del módulo invitado
+
+la integración correcta debe dejar al consumidor expresando intención y al módulo oferente resolviendo la operación completa
 
 <<END SECTION>>
 

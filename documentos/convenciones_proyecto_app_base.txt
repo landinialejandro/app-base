@@ -512,7 +512,7 @@ las integraciones entre módulos deben respetar el contrato del módulo oferente
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -651,6 +651,16 @@ caso vigente relevante:
 
 orders consumiendo contexto operativo por línea publicado por inventory
 
+Aclaración modular adicional:
+
+la lectura contractual del ecosistema debe distinguir entre:
+
+núcleo interno del módulo
+puerta de enlace modular oficial
+consumo externo por otros módulos
+
+cuando un módulo actúe como superficie anfitriona o hub visual de una capacidad ajena, eso no lo convierte en dueño de esa lógica ni habilita naming, estructuras o responsabilidades centradas en el consumidor para piezas que pertenecen al oferente
+
 CONTRATO DE SEGURIDAD
 
 El contrato de seguridad del módulo no se define en esta sección sino en:
@@ -734,7 +744,7 @@ la clasificación no debe forzar jerarquías falsas de dependencia existencial c
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -839,6 +849,20 @@ cuando una integración reutilizable se consuma por fila dentro de una tabla ope
 debe recibir y expresar el contexto oficial publicado por el módulo oferente
 
 esto aplica especialmente cuando la línea sigue siendo recurso delegado del padre pero ya posee trazabilidad operativa iniciada
+
+Regla adicional de naming modular:
+
+no nombrar nuevas piezas desde el módulo consumidor cuando la capacidad pertenece al módulo oferente
+
+el naming debe expresar el dominio dueño de la capacidad y no el punto accidental desde el que se la consume
+
+por lo tanto, deben evitarse superficies, controllers, partials o servicios nombrados desde orders, documents u otros consumidores cuando la capacidad pertenece doctrinalmente a inventory u otro módulo oferente
+
+Regla adicional de organización de responsabilidades:
+
+controller expresa la surface HTTP
+support o service expresa lógica reusable y arbitraje propio del módulo
+consumidor invoca capacidad externa sin absorber su implementación interna
 
 <<END SECTION>>
 

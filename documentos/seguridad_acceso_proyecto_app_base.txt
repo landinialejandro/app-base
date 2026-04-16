@@ -53,7 +53,7 @@ Comprende quién puede operar, sobre qué universo, bajo qué condiciones y dent
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -88,6 +88,18 @@ cuando el conflicto no sea crítico para seguridad, integridad estructural o tra
 seguridad y continuidad operativa no deben leerse como principios opuestos
 
 la resolución correcta debe tender a proteger ambos planos con el menor roce posible para el usuario
+
+Regla adicional consolidada para integraciones entre módulos:
+
+la autorización visible o contextual desde un módulo consumidor no reemplaza la validación efectiva del módulo dueño de la capacidad
+
+mostrar una acción en UI no equivale a quedar autorizado para ejecutarla
+
+ninguna integración válida debe permitir bypass de guards, validaciones, restricciones internas ni arbitrajes propios del módulo oferente
+
+si una capacidad fue publicada como puerta de enlace modular oficial, su ejecución debe seguir respetando seguridad, permisos y reglas internas del módulo que la publica
+
+Los módulos hub que alojen acciones o superficies de terceros no adquieren por eso permisos implícitos sobre la lógica del módulo invitado.
 
 <<END SECTION>>
 
@@ -474,7 +486,7 @@ la decisión final debe arbitrar trazabilidad ya iniciada y continuidad operativ
 <<END SECTION>>
 
 <<SECTION: INTEGRACIONES REUSABLES Y AUTORIZACIÓN>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 INTEGRACIONES REUSABLES Y AUTORIZACIÓN
 
@@ -511,6 +523,23 @@ esa lectura debe consumirse desde el contexto reusable oficial publicado por inv
 caso vigente relevante:
 
 orders.show consumiendo inventory por order_item
+
+Regla adicional consolidada sobre límites de seguridad entre módulos:
+
+el módulo consumidor puede expresar intención, contexto y punto de entrada
+
+la resolución operativa crítica debe seguir perteneciendo al módulo oferente
+
+la existencia de una surface anfitriona o de un hub visual no desplaza el arbitraje de seguridad del módulo dueño de la capacidad
+
+si la integración combina:
+
+permiso
+estado operativo
+validaciones del flujo
+restricciones internas del módulo destino
+
+la decisión final debe seguir centralizada en el módulo oferente y no repartida entre consumidores.
 
 <<END SECTION>>
 

@@ -195,7 +195,7 @@ mientras esa navegación se implemente, pueden convivir consumos contextuales de
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -316,6 +316,16 @@ products y orders deben consumir esas superficies y no sostener variantes locale
 Cuando orders.show consuma inventory por línea, la navegación contextual hacia inventory no debe degradarse a simple historial genérico por producto.
 
 Debe poder conservar lectura operativa por order_item cuando esa línea sea el anclaje real de ejecución.
+
+Aclaración estructural adicional:
+
+en la relación orders ↔ inventory, orders debe leerse como hub visual y contextual de una capacidad operativa perteneciente a inventory
+
+la acción Surtir en una línea de la orden no constituye lógica propia de orders
+
+constituye una puerta de entrada contextual a una capacidad publicada por inventory
+
+ese mismo patrón debe poder reutilizarse desde documents, tasks u otros módulos futuros cuando el ecosistema lo requiera
 
 <<END SECTION>>
 

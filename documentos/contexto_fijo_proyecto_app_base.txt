@@ -221,7 +221,7 @@ Es una pieza estructural del funcionamiento del sistema.
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 CAPAS FUNCIONALES DEL SISTEMA
 
@@ -270,6 +270,26 @@ Expresan trabajo, agenda, activos, documentos, órdenes y demás frentes del neg
 Regla general:
 
 esta lectura por capas debe prevalecer al pensar arquitectura, documentación y evolución general del proyecto.
+
+Aclaración arquitectónica consolidada:
+
+dentro de la lectura modular del sistema debe distinguirse además entre:
+
+núcleo interno del módulo
+puerta de enlace oficial hacia el ecosistema
+consumo externo por otros módulos
+
+El núcleo interno resuelve la identidad y operación propia del módulo.
+
+La puerta de enlace oficial expresa qué capacidades publica el módulo para el ecosistema sin perder gobierno sobre su lógica.
+
+El consumo externo ocurre cuando otro módulo utiliza esa capacidad publicada sin reconstruir localmente la lógica operativa del oferente.
+
+Regla adicional:
+
+las integraciones sanas del ecosistema no deben invadir el núcleo ajeno ni redistribuir arbitrariamente su lógica entre consumidores.
+
+Cuando un módulo publique una capacidad para el ecosistema, los demás módulos deben tender a expresar intención de uso y no a arbitrar por sí mismos la operación completa del módulo oferente.
 
 <<END SECTION>>
 
@@ -458,6 +478,65 @@ documents respecto de orders
 Regla:
 
 esta clasificación debe orientar futuras decisiones arquitectónicas del proyecto.
+
+<<END SECTION>>
+
+<<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
+SECTION_VERSION: 00001
+
+ARQUITECTURA MODULAR DEL ECOSISTEMA
+
+La arquitectura modular del proyecto debe leerse como un ecosistema reusable y desacoplado.
+
+Regla estructural:
+
+los módulos no deben relacionarse como cajas cerradas sin puntos de contacto ni como núcleos invadibles desde cualquier consumidor.
+
+La lectura correcta distingue tres planos:
+
+núcleo interno del módulo
+puerta de enlace modular oficial
+consumo externo desde otros módulos
+
+NÚCLEO INTERNO
+
+Corresponde a la lógica, reglas y operación que pertenecen de forma propia al módulo.
+
+No debe reabrirse desde consumidores salvo cambio real del contrato interno del propio módulo.
+
+PUERTA DE ENLACE MODULAR OFICIAL
+
+Corresponde a la forma publicada por el módulo para integrarse con el ecosistema.
+
+Puede expresarse mediante:
+
+acciones compactas
+embebidos fuertes
+payloads arbitrados
+surfaces oficiales de lectura o ejecución
+
+CONSUMO EXTERNO
+
+Corresponde al uso de esas capacidades publicadas por otros módulos.
+
+Ese consumo debe tender a expresar intención y contexto.
+
+La decisión operativa completa debe seguir perteneciendo al módulo oferente.
+
+Aclaración adicional consolidada:
+
+un módulo puede además actuar como hub visual.
+
+Eso significa que puede alojar interacción de otros módulos dentro de su superficie sin absorber su lógica operativa.
+
+En esa situación:
+
+el módulo hub conserva gobierno de su superficie visual
+el módulo invitado conserva gobierno de su lógica operativa
+
+Regla final:
+
+la evolución modular del sistema debe tender a más reutilización oficial y menos lógica dispersa entre consumidores.
 
 <<END SECTION>>
 

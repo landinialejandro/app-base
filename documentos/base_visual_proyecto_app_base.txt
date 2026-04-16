@@ -255,7 +255,7 @@ Estos bloques ayudan a integrar módulos sin sobrecargar navegación ni multipli
 <<END SECTION>>
 
 <<SECTION: OFERTAS DE INTEGRACIÓN VISUAL>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 OFERTAS DE INTEGRACIÓN VISUAL
 
@@ -300,6 +300,18 @@ cuando la relación reusable sea fuerte o múltiple, debe priorizarse un embebid
 cuando la relación sea compacta o 1 a 1, debe priorizarse una acción contextual compacta del tipo linked-*-action
 
 la decisión entre embebido fuerte y acción compacta debe responder al peso real de la relación y no a simetría estética
+
+Regla adicional consolidada para superficies compartidas:
+
+cuando una capacidad de un módulo opere dentro de la pantalla de otro, debe respetar la gramática visual, el layout y la jerarquía del módulo contenedor
+
+no corresponde colonización visual del módulo invitado sobre la pantalla anfitriona
+
+el módulo contenedor conserva gobierno de la experiencia visual de su superficie
+
+el módulo invitado conserva identidad suficiente para que su capacidad siga leyéndose como oferta publicada del oferente y no como lógica nuclear del contenedor
+
+Las acciones externas integradas dentro de una vista anfitriona deben percibirse como naturales dentro de esa UI y no como injertos visuales extraños.
 
 <<END SECTION>>
 
@@ -562,7 +574,7 @@ la unidad visual completa debe desaparecer y no solo el contenido interno
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW
 
@@ -658,6 +670,18 @@ estado
 acción principal contenida
 
 esto mantiene foco en la orden y evita fragmentar el trabajo real en bloques redundantes
+
+Aclaración adicional para módulos hub:
+
+cuando una pantalla funcione como hub visual de una capacidad ajena, debe mantenerse clara la jerarquía entre:
+
+módulo principal de la pantalla
+relación operativa consumida
+acción externa publicada por el módulo oferente
+
+El contenedor gobierna la composición visual general.
+
+La capacidad invitada no debe romper esa gramática ni absorber el protagonismo estructural de la pantalla anfitriona.
 
 <<END SECTION>>
 

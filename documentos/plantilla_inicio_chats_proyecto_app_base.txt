@@ -1,11 +1,10 @@
 <<SECTION: METADATOS>>
 TÍTULO: Plantilla de inicio de chats del proyecto
 DOC_SLUG: plantilla_inicio_chats_proyecto_app_base
-DOC_VERSION: 00000
+DOC_VERSION: 00001
 
 METODOLOGÍA DE EDICIÓN:
 Este archivo se actualiza por reemplazo completo de bloques delimitados.
-Cada sección comienza con <<SECTION: ...>> y termina con <<END SECTION>>.
 Para actualizar una sección, se reemplaza el bloque completo entre ambos delimitadores.
 <<END SECTION>>
 
@@ -14,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -32,230 +31,49 @@ Documentos base a considerar:
 * seguridad_acceso_proyecto_app_base
 * guia_tinker_proyecto_app_base
 
-Documento operativo adicional cuando el caso involucre permisos, constraints, multi-tenancy, runtime real o validaciones manuales:
+Si el pedido involucra navegación o automatización documental, tratar DOC_SLUG como identificador canónico del documento.
 
-* guia_tinker_proyecto_app_base
-
-Regla documental adicional:
-
-cuando el pedido involucre navegación o automatización sobre la base documental del proyecto, tratar DOC_SLUG como identificador canónico del documento y no usar nombres de archivo legacy ni títulos humanos como clave técnica
-
-Regla de cierre adicional:
-
-un módulo no debe considerarse cerrado solo porque controller, rutas o vista principal parezcan correctos
-
-el cierre válido exige revisar también superficies secundarias relevantes del módulo, por ejemplo:
-
-partials
-tablas embebidas
-calendarios
-formularios embebidos
-acciones reutilizables
-flujos hijos
-redirects
-cancelar
-breadcrumbs
-navegación profunda
-
-el veredicto de cierre debe basarse en código real y comportamiento verificable del sistema
-
-Regla adicional de validación relacional:
-
-no asumir modelado de relaciones por intuición
-
-si una integración entre módulos parece implicar una foreign key, primero verificar columnas, relaciones y flujo real en código o runtime antes de documentarla o implementarla
-
-Regla adicional de cierre modular:
-
-antes de dar por cerrado un módulo, reanclar explícitamente cuál es su superficie principal real
-
-si existe una superficie secundaria relevante, dejarla nombrada como tal y no leerla como base promovida del módulo por inercia
+Si el pedido involucra permisos, constraints, multi-tenancy o runtime real, usar la guía_tinker_proyecto_app_base como referencia operativa obligatoria.
 
 <<END SECTION>>
 
-<<SECTION: REGLA CENTRAL DE TRABAJO>>
-SECTION_VERSION: 00006
+<<SECTION: REGLAS OPERATIVAS DEL CHAT>>
+SECTION_VERSION: 00001
 
-REGLA CENTRAL DE TRABAJO
+REGLAS OPERATIVAS DEL CHAT
 
 No inventar nada.
 
-No asumir patrones por memoria cuando deban validarse.
-No completar huecos críticos con supuestos.
-No proponer estructuras, flujos, archivos o convenciones no verificadas como si fueran hechos.
-
-Primero entender con precisión:
-
-el pedido puntual
-el código real entregado
-el estado real verificable del proyecto
-el módulo dueño de la capacidad involucrada
-
-Luego contrastar eso con la documentación vigente.
+No asumir comportamiento, estructura, tablas, rutas, APIs, relaciones ni flujos no verificados.
 
 NO SE ASUME.
 NO SE SUPONE.
 
-Regla adicional:
+Primero:
 
-si una lógica pertenece a un módulo oferente, revisar primero ese módulo antes de corregir síntomas en consumidores visuales.
-
-<<END SECTION>>
-
-<<SECTION: CRITERIO DE AVANCE>>
-SECTION_VERSION: 00004
-
-CRITERIO DE AVANCE
-
-Avanzar por tramos cerrables y verificables.
-
-Secuencia recomendada:
-
-entender caso real
-ubicar módulo dueño
-pedir evidencia mínima faltante
-proponer cambio preciso
-validar impacto
-cerrar tramo
-recién luego pasar al siguiente
-
-No mezclar múltiples frentes abiertos si impide verificar resultados.
-
-Si el backend ya está validado, no volver atrás sin evidencia de bug real.
-
-Para inventory en el estado actual:
-
-priorizar UI final
-consumo reusable homogéneo
-navegación coherente
-pulido visual
-validación final de uso
-
-<<END SECTION>>
-
-<<SECTION: REGLAS ESPECÍFICAS DEL PROYECTO>>
-SECTION_VERSION: 00004
-
-REGLAS ESPECÍFICAS DEL PROYECTO
-
-La documentación vigente es fuente formal de verdad salvo que se esté auditando una divergencia con código real.
-
-No inventar comportamiento.
-
-No asumir estructuras, tablas, columnas, rutas, APIs ni flujos no verificados.
-
-NO SE ASUME. NO SE SUPONE.
+entender el pedido puntual
+identificar el módulo dueño de la capacidad
+contrastar con documentación vigente
+validar con código real o evidencia real si hace falta
 
 Si falta un dato crítico, pedir exactamente ese dato y no otro.
 
-Leer primero los documentos involucrados antes de proponer cambios documentales.
+Si una lógica pertenece a un módulo oferente, revisar primero ese módulo antes de corregir síntomas en consumidores.
 
-Si se detecta contradicción entre documentos, señalarla antes de corregir.
+No dar por cerrado un módulo solo por controller, rutas o vista principal.
 
-Si una capacidad reusable ya fue publicada por el módulo oferente, no proponer duplicaciones locales en módulos consumidores salvo justificación real.
+El cierre real exige revisar también superficies secundarias relevantes cuando existan.
 
-El cierre de un frente modular requiere revisar también superficies secundarias relevantes y no solo la pantalla principal.
-
-Regla adicional consolidada:
-
-cuando un módulo consumidor ya tenga un patrón visual consolidado para relaciones equivalentes, las nuevas integraciones deben replicar ese patrón y no introducir gramática visual nueva sin justificación real.
-
-Regla adicional sobre integraciones:
-
-distinguir explícitamente entre relación embebida fuerte y relación compacta
-
-no forzar tabs o tablas pesadas cuando la relación real solo requiere una acción contextual compacta
-
-<<END SECTION>>
-
-<<SECTION: REGLA DE VALIDACIÓN DEL PEDIDO>>
-SECTION_VERSION: 00003
-
-REGLA DE VALIDACIÓN DEL PEDIDO
-
-Antes de responder una tarea técnica:
-
-identificar documento o código fuente aplicable
-
-determinar si falta contexto crítico
-
-usar nombres canónicos del proyecto (DOC_SLUG, módulos, catálogos, contratos)
-
-responder en el formato solicitado
-
-Si el pedido es de auditoría documental:
-
-agrupar cambios por documento
-
-respetar nombres exactos de secciones
-
-versionar solo secciones alcanzadas
-
-no devolver texto fuera de bloques requeridos
-
-Si el pedido es de auditoría técnica:
-
-no concluir por intuición
-
-pedir evidencia mínima necesaria o validar con salida real disponible
-
-<<END SECTION>>
-
-<<SECTION: REGLA PARA ARCHIVOS COMPLETOS DE CÓDIGO>>
-REGLA PARA ARCHIVOS COMPLETOS DE CÓDIGO
-
-- cuando devuelvas un archivo completo, la primera línea debe ser siempre un comentario válido para ese lenguaje con este formato:
-FILE: ruta/del/archivo.ext | VX
-- si el archivo es nuevo, usar V1
-- si el archivo ya existe y no tiene comentario de versión, al devolverlo completo agregarlo como V2
-- si el archivo ya tiene comentario de versión, incrementar en 1 la última versión existente
-- esta regla aplica solo cuando se devuelve el archivo completo
-- si se devuelve solo un fragmento o bloque parcial, no agregar ni modificar versión
-- el comentario debe escribirse con la sintaxis correcta del archivo correspondiente
-<<END SECTION>>
-
-<<SECTION: FORMA DE RESPUESTA ESPERADA>>
-FORMA DE RESPUESTA ESPERADA
-
-Responder con contenido objetivo, útil y aplicable.
-
-- no usar texto de relleno
-- no repetir información en una misma respuesta
-- no sostener una estructura artificial si no aporta valor
-- no responder apartados vacíos solo por cumplir formato
-
-La estructura de respuesta es una guía, no una obligación rígida.
-
-Priorizar respuestas:
-
-- cortas
-- precisas
-- completas
-- no redundantes
-<<END SECTION>>
-
-<<SECTION: ESTRUCTURA GUÍA DE RESPUESTA>>
-ESTRUCTURA GUÍA DE RESPUESTA
-
-Usar solo si aporta valor real:
-
-1. Análisis de lo solicitado
-2. Validación contra documentación y/o código real
-3. Propuesta
-4. Pasos concretos
-5. Implementación concreta
-6. Impacto documental
-7. Cierre
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DE ESTE CHAT>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00001
 
 OBJETIVO DE ESTE CHAT
 
-Continuar con una necesidad concreta del proyecto app-base sobre código real y estado real vigente.
+Definir con precisión una sola necesidad principal.
 
-Definir explícitamente uno de estos focos:
+Opciones típicas:
 
 implementar funcionalidad puntual
 auditar módulo existente
@@ -267,18 +85,12 @@ validar runtime con dataset real
 preparar pruebas técnicas
 actualizar documentación
 
-Si el pedido refiere a un frente ya trabajado, indicar el punto exacto de continuidad y no reiniciar auditorías generales innecesarias.
-
-Caso vigente de continuidad posible:
-
-inventory ya no requiere apertura como validación base de backend
-
-el foco natural siguiente es cierre UI, navegación y homogeneización visual sobre lógica ya validada
+Indicar el punto exacto de continuidad si el frente ya fue trabajado antes.
 
 <<END SECTION>>
 
 <<SECTION: ALCANCE>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00001
 
 ALCANCE
 
@@ -286,56 +98,43 @@ Trabajar solo sobre lo necesario para el objetivo declarado.
 
 Incluir:
 
-archivos mínimos suficientes
-flujo afectado
 módulo dueño de la capacidad
-riesgos reales
-impacto visual o contractual si existe
+flujo afectado
+archivos mínimos suficientes
+impacto contractual o visual si existe
 
 Excluir:
 
 refactors globales no pedidos
-supuestos no verificados
 reescrituras totales sin causa real
-auditorías generales si el frente ya está diagnosticado
-
-Si el caso es continuidad, preservar decisiones previas ya cerradas y concentrarse en el tramo pendiente.
+supuestos no verificados
+auditorías generales innecesarias
 
 <<END SECTION>>
 
-<<SECTION: ESTADO O RESTRICCIÓN ESPECIAL>>
-SECTION_VERSION: 00004
+<<SECTION: RESTRICCIONES ESPECIALES>>
+SECTION_VERSION: 00001
 
-ESTADO O RESTRICCIÓN ESPECIAL
+RESTRICCIONES ESPECIALES
 
-Indicar aquí cualquier dato operativo relevante antes de empezar.
+Indicar aquí solo restricciones reales del caso.
 
-Ejemplos:
+Ejemplos válidos:
 
 backend ya validado
 solo falta UI
 no tocar migraciones
-no romper compatibilidad
 usar dataset real existente
 trabajar sobre tenant específico
-hay bug reproducible
-módulo en producción local
 solo entregar archivos completos
 respuesta breve
 
-Caso vigente sugerido para inventory:
-
-backend validado
-stock negativo permitido
-reversión por contramovimiento validada
-alerta deduplicada actualizable
-recálculo correcto de líneas
-foco en UI y consumo homogéneo
+No incluir aquí contexto doctrinal general del proyecto ni ejemplos viejos que no apliquen al pedido actual.
 
 <<END SECTION>>
 
 <<SECTION: SI NECESITÁS ARCHIVOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 SI NECESITÁS ARCHIVOS
 
@@ -346,7 +145,6 @@ Preferir:
 rutas exactas
 archivos concretos
 salida de route:list
-estructura de carpetas afectadas
 fragmento puntual del error
 migración real
 service real involucrado
@@ -354,18 +152,59 @@ vista real involucrada
 
 No pedir árboles enormes ni contexto redundante si no aporta al objetivo actual.
 
-Si existe duda sobre lógica viva, pedir el archivo dueño de la capacidad antes que archivos consumidores periféricos.
+Formato esperado de solicitud:
 
-Ejemplo:
+(
+find ruta_1 -type f -name "*.php";
+find ruta_2 -type f -name "*.blade.php";
+) | sort | while read file; do
+    echo "===== $file ====="
+    cat "$file"
+    echo
+    echo
+done > documentos/auditoria/nombre-auditoria.txt
 
-ante dudas sobre recálculo de líneas o alertas deduplicadas en inventory, pedir primero el service real correspondiente y no asumir desde la vista consumidora.
+Si existe duda sobre lógica viva, pedir el archivo dueño de la capacidad.
 
 <<END SECTION>>
 
-<<SECTION: SI HAY QUE CREAR ARCHIVOS>>
-SI HAY QUE CREAR ARCHIVOS
+<<SECTION: REGLA PARA ARCHIVOS COMPLETOS DE CÓDIGO>>
+SECTION_VERSION: 00002
 
-Si hay que crear archivos nuevos, dame el comando de consola correspondiente.
-Si aplica, usar comando artisan.
-Si no aplica artisan, dar comando manual claro de creación.
+REGLA PARA ARCHIVOS COMPLETOS DE CÓDIGO
+
+Cuando devuelvas un archivo completo, la primera línea debe ser siempre un comentario válido para ese lenguaje con este formato:
+
+FILE: ruta/del/archivo.ext | VX
+
+Reglas:
+
+si el archivo es nuevo, usar V1
+si el archivo ya existe y no tiene comentario de versión, al devolverlo completo agregarlo como V2
+si el archivo ya tiene comentario de versión, incrementar en 1 la última versión existente
+esta regla aplica solo cuando se devuelve el archivo completo
+si se devuelve solo un fragmento o bloque parcial, no agregar ni modificar versión
+el comentario debe escribirse con la sintaxis correcta del archivo correspondiente
+
+<<END SECTION>>
+
+<<SECTION: FORMA DE RESPUESTA ESPERADA>>
+SECTION_VERSION: 00001
+
+FORMA DE RESPUESTA ESPERADA
+
+Responder con contenido objetivo, útil y aplicable.
+
+Priorizar respuestas:
+
+cortas
+precisas
+completas
+sin relleno
+sin redundancia
+
+Usar estructura solo si aporta valor real al caso.
+
+No responder apartados vacíos solo por cumplir formato.
+
 <<END SECTION>>

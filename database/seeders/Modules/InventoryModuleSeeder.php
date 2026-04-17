@@ -98,6 +98,10 @@ class InventoryModuleSeeder extends BaseModuleSeeder
                 continue;
             }
 
+            if ($order->status !== 'approved') {
+                continue;
+            }
+
             $order->loadMissing('items.product');
 
             $physicalItems = $order->items

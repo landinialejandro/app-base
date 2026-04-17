@@ -110,7 +110,7 @@ Si estas respuestas no están claras, no debe avanzarse a implementación.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 BLOQUE 1 — CONTRATO MODULAR
 
@@ -193,10 +193,19 @@ salidas posibles
 reglas de arbitraje
 límites de seguridad
 
+Validación adicional para frentes operativos por línea:
+
+si el módulo ejecuta operaciones sobre líneas hijas o recursos delegados, debe verificarse que el contrato describa también:
+
+semántica de ejecución neta
+reglas de reversión
+efecto sobre pendiente
+distinción entre stock y avance operativo cuando no sean equivalentes
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00004
 
 BLOQUE 2 — SEGURIDAD OBLIGATORIA
 
@@ -234,10 +243,28 @@ Regla adicional consolidada:
 si el módulo utiliza constraints funcionales, validar explícitamente que arbitren no solo create sino también view, update y delete cuando corresponda al contrato del módulo
 
 no deben tratarse como metadata decorativa ni como validación parcial
+
+Validación adicional para flujos operativos con estado:
+
+si una operación depende del estado del recurso padre, de una orden, de una línea o de una etapa del flujo, ese estado debe auditarse como parte real de la seguridad efectiva
+
+no debe quedar como simple bloqueo visual opcional
+
+Validación adicional para administración owner:
+
+si el módulo depende de activación, permisos o configuración tenant, debe existir una vía visible y real para que owner administre ese frente
+
+auditar explícitamente:
+
+si existen permisos del módulo en el catálogo efectivo
+si esos permisos pueden asignarse realmente
+si la habilitación del módulo produce consecuencia visible coherente en UI
+si owner dispone de una surface real para entender y administrar ese comportamiento
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -283,10 +310,14 @@ si actúa como hub visual, no debe absorber la lógica operativa ni la seguridad
 
 la integración correcta debe dejar al consumidor expresando intención y al módulo oferente resolviendo la operación completa
 
+Validación adicional de semántica cruzada:
+
+si la integración mezcla stock, ejecución, reversión o pendiente, debe comprobarse explícitamente que cada indicador use la regla correcta de su dominio y no una equivalencia mecánica entre signos o cantidades
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA
 
@@ -323,6 +354,13 @@ Regla adicional de cierre:
 la UI no debe considerarse alineada solo porque la vista principal consuma la capacidad reusable correcta
 
 también deben auditarse tablas, partials, formularios embebidos y demás superficies secundarias que puedan exponer esa misma integración
+
+Validación adicional para UX operativa:
+
+si el flujo es complejo internamente, la experiencia visible debe seguir siendo simple, clara y de bajo roce para el usuario final
+
+no trasladar burocracia técnica al frontend cuando el sistema puede absorberla
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 5 — DOCUMENTACIÓN Y CIERRE>>
@@ -385,7 +423,7 @@ Este bloque resume mínimos técnicos, pero no reemplaza el checklist completo.
 <<END SECTION>>
 
 <<SECTION: CRITERIO FINAL DE APROBACIÓN>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CRITERIO FINAL DE APROBACIÓN
 
@@ -409,6 +447,14 @@ puede integrarse sin refactors innecesarios futuros
 podría usarse como patrón de calidad para el próximo módulo
 sus superficies secundarias también quedaron alineadas
 sus consumers externos dejaron de depender de variantes legacy
+
+Validaciones finales obligatorias para módulos transaccionales:
+
+la reversión fue probada
+el recálculo neto posterior fue validado
+los estados visibles quedaron consistentes
+las alertas automáticas siguen siendo legibles si hubo deduplicación
+el resultado fue probado con dataset realista y no solo caso ideal
 
 Si la respuesta es no o dudosa, el módulo debe seguir en revisión.
 
@@ -571,7 +617,7 @@ no existan rutas operables residuales aunque la UI ya no las muestre
 <<END SECTION>>
 
 <<SECTION: SUPERFICIES SECUNDARIAS Y PARTIALS>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 SUPERFICIES SECUNDARIAS Y PARTIALS
 
@@ -603,7 +649,11 @@ una integración no debe considerarse cerrada mientras exista хотя sea una s
 
 Regla adicional de auditoría:
 
-también deben revisarse tabs, bloques embebidos, redirects post acción, accesos por fila y consumers indirectos de la capacidad publicada por el módulo.
+también deben revisarse estados vacíos, mensajes, botones secundarios, acciones masivas, modales y variantes móviles cuando formen parte real del flujo visible
+
+Validación adicional para frentes transaccionales:
+
+si una partial muestra ejecución por línea o movimientos reversibles, debe comprobarse también el comportamiento luego del contramovimiento y el recálculo visible posterior
 
 <<END SECTION>>
 

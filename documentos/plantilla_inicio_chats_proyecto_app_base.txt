@@ -74,7 +74,7 @@ si existe una superficie secundaria relevante, dejarla nombrada como tal y no le
 <<END SECTION>>
 
 <<SECTION: REGLA CENTRAL DE TRABAJO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00006
 
 REGLA CENTRAL DE TRABAJO
 
@@ -86,36 +86,20 @@ No proponer estructuras, flujos, archivos o convenciones no verificadas como si 
 
 Primero entender con precisión:
 
-* el pedido puntual
-* el código real entregado
-* el estado real verificable del proyecto
+el pedido puntual
+el código real entregado
+el estado real verificable del proyecto
+el módulo dueño de la capacidad involucrada
 
 Luego contrastar eso con la documentación vigente.
-
-La documentación es contexto obligatorio, pero el pedido puntual y el código real tienen prioridad para determinar el estado efectivo del proyecto.
-
-Si el código o el pedido muestran una actualización todavía no reflejada en la documentación:
-
-* no forzar la documentación por encima del código
-* señalar la diferencia con claridad
-* trabajar sobre el estado real verificable
-* indicar si corresponde o no actualizar documentación
-
-Aplicación operativa explícita de la regla:
 
 NO SE ASUME.
 NO SE SUPONE.
 
-No asumir tenant activo en Tinker.
-No asumir que una prueba abstracta reproduce el runtime real.
-No asumir que Gate o policy abstracta equivalen a autorización válida cuando el contrato exige contexto.
-No asumir relaciones simétricas o foreign keys del lado intuitivo sin verificar código o base real.
+Regla adicional:
 
-Regla operativa adicional:
+si una lógica pertenece a un módulo oferente, revisar primero ese módulo antes de corregir síntomas en consumidores visuales.
 
-no dar por cerrado un módulo por inspección parcial
-
-si el pedido es cerrar, alinear o auditar un módulo, debe revisarse también si quedaron remanentes en superficies secundarias o derivadas antes de emitir veredicto de cierre
 <<END SECTION>>
 
 <<SECTION: CRITERIO DE AVANCE>>
@@ -123,31 +107,29 @@ SECTION_VERSION: 00004
 
 CRITERIO DE AVANCE
 
-Avanzar en pasos pequeños, verificables y reversibles.
+Avanzar por tramos cerrables y verificables.
 
-Priorizar primero:
+Secuencia recomendada:
 
-contrato doctrinal
-alineación real de implementación
-validación runtime cuando aplique
-homogeneidad de superficies consumidoras
-documentación final
+entender caso real
+ubicar módulo dueño
+pedir evidencia mínima faltante
+proponer cambio preciso
+validar impacto
+cerrar tramo
+recién luego pasar al siguiente
 
-No declarar cerrado un frente por inspección parcial.
+No mezclar múltiples frentes abiertos si impide verificar resultados.
 
-Un módulo puede quedar cerrado en su núcleo y mantener pendientes residuales explícitos.
+Si el backend ya está validado, no volver atrás sin evidencia de bug real.
 
-Cuando el cambio toque permisos, constraints, datasets o multi-tenancy, priorizar prueba real antes de declarar cierre.
+Para inventory en el estado actual:
 
-Regla adicional consolidada:
-
-si el frente incluye consumo transversal desde otros módulos, el avance correcto tiende a seguir este orden:
-
-reanclar superficie principal del módulo
-publicar oferta reusable oficial desde el propio módulo
-integrar consumidores respetando el patrón visual ya consolidado
-barrer trail, permisos, dataset y superficies secundarias residuales
-cerrar documentación
+priorizar UI final
+consumo reusable homogéneo
+navegación coherente
+pulido visual
+validación final de uso
 
 <<END SECTION>>
 
@@ -267,54 +249,117 @@ Usar solo si aporta valor real:
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DE ESTE CHAT>>
+SECTION_VERSION: 00005
+
 OBJETIVO DE ESTE CHAT
 
-[describir aquí el objetivo puntual]
+Continuar con una necesidad concreta del proyecto app-base sobre código real y estado real vigente.
+
+Definir explícitamente uno de estos focos:
+
+implementar funcionalidad puntual
+auditar módulo existente
+corregir bug real
+alinear código con documentación
+cerrar UI de un frente ya validado
+homogeneizar consumers visuales
+validar runtime con dataset real
+preparar pruebas técnicas
+actualizar documentación
+
+Si el pedido refiere a un frente ya trabajado, indicar el punto exacto de continuidad y no reiniciar auditorías generales innecesarias.
+
+Caso vigente de continuidad posible:
+
+inventory ya no requiere apertura como validación base de backend
+
+el foco natural siguiente es cierre UI, navegación y homogeneización visual sobre lógica ya validada
+
 <<END SECTION>>
 
 <<SECTION: ALCANCE>>
+SECTION_VERSION: 00004
+
 ALCANCE
 
-[describir módulo/s, vista/s, flujo/s o archivo/s alcanzados]
+Trabajar solo sobre lo necesario para el objetivo declarado.
+
+Incluir:
+
+archivos mínimos suficientes
+flujo afectado
+módulo dueño de la capacidad
+riesgos reales
+impacto visual o contractual si existe
+
+Excluir:
+
+refactors globales no pedidos
+supuestos no verificados
+reescrituras totales sin causa real
+auditorías generales si el frente ya está diagnosticado
+
+Si el caso es continuidad, preservar decisiones previas ya cerradas y concentrarse en el tramo pendiente.
+
 <<END SECTION>>
 
 <<SECTION: ESTADO O RESTRICCIÓN ESPECIAL>>
+SECTION_VERSION: 00004
+
 ESTADO O RESTRICCIÓN ESPECIAL
 
-[opcional: dejar aquí acuerdos puntuales del momento]
+Indicar aquí cualquier dato operativo relevante antes de empezar.
+
+Ejemplos:
+
+backend ya validado
+solo falta UI
+no tocar migraciones
+no romper compatibilidad
+usar dataset real existente
+trabajar sobre tenant específico
+hay bug reproducible
+módulo en producción local
+solo entregar archivos completos
+respuesta breve
+
+Caso vigente sugerido para inventory:
+
+backend validado
+stock negativo permitido
+reversión por contramovimiento validada
+alerta deduplicada actualizable
+recálculo correcto de líneas
+foco en UI y consumo homogéneo
+
 <<END SECTION>>
 
 <<SECTION: SI NECESITÁS ARCHIVOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 SI NECESITÁS ARCHIVOS
 
-Si necesitás archivos, primero determiná exactamente cuáles son necesarios para entender o auditar el caso.
+Pedir primero la menor cantidad suficiente de evidencia real.
 
-* no pedir archivos de más
-* no pedir bloques genéricos si no hacen falta
-* no pedir archivos si el caso ya puede resolverse razonablemente con lo disponible
+Preferir:
 
-Cuando el caso sea de permisos, constraints, Security, policies o multi-tenancy, pedir además lo mínimo necesario para reproducir el runtime real y no una abstracción incompleta.
+rutas exactas
+archivos concretos
+salida de route:list
+estructura de carpetas afectadas
+fragmento puntual del error
+migración real
+service real involucrado
+vista real involucrada
 
-Si el caso requiere Tinker, seguir la guía operativa vigente del proyecto.
+No pedir árboles enormes ni contexto redundante si no aporta al objetivo actual.
 
-Cuando los necesites, generame un único comando de consola con todos los archivos exactos y suficientes.
+Si existe duda sobre lógica viva, pedir el archivo dueño de la capacidad antes que archivos consumidores periféricos.
 
 Ejemplo:
 
-(
-find app/Models -type f -name "Product.php";
-find app/Http/Controllers -type f -name "ProductController.php";
-find resources/views/products -type f -name "*.blade.php";
-) | sort | while read file; do
-echo "===== $file ====="
-cat "$file"
-echo
-echo
-done > documentos/auditoria/auditoria-[nombre-de-referencia].txt
+ante dudas sobre recálculo de líneas o alertas deduplicadas en inventory, pedir primero el service real correspondiente y no asumir desde la vista consumidora.
 
-Indicame todos los archivos necesarios así te los paso en un único bloque.
 <<END SECTION>>
 
 <<SECTION: SI HAY QUE CREAR ARCHIVOS>>

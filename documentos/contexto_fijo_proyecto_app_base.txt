@@ -221,7 +221,7 @@ Es una pieza estructural del funcionamiento del sistema.
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00004
 
 CAPAS FUNCIONALES DEL SISTEMA
 
@@ -291,6 +291,16 @@ las integraciones sanas del ecosistema no deben invadir el núcleo ajeno ni redi
 
 Cuando un módulo publique una capacidad para el ecosistema, los demás módulos deben tender a expresar intención de uso y no a arbitrar por sí mismos la operación completa del módulo oferente.
 
+Aclaración adicional consolidada para inventory:
+
+la evolución actual del proyecto ya no permite leer inventory solo como capacidad lateral indiferenciada apoyada en products
+
+su operación efectiva empieza a consolidarse como frente funcional real dentro de los módulos del negocio
+
+orders puede alojar lectura o entrada contextual a esa capacidad como hub visual sin absorberla como lógica propia
+
+El reconocimiento arquitectónico de inventory como módulo funcional no implica por sí solo que su contrato de seguridad, su configuración tenant ni su exposición visible estén cerrados en todos los tenants.
+
 <<END SECTION>>
 
 <<SECTION: JERARQUÍA GENERAL DEL SISTEMA>>
@@ -355,7 +365,7 @@ Su función es sostener la plataforma y su frontera de ingreso.
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00004
 
 ENTIDADES DEL NEGOCIO
 
@@ -388,6 +398,16 @@ Aclaración adicional consolidada:
 la existencia de inventory como frente operativo en evolución modular propia no reemplaza la persistencia actual de inventory_movements como entidad del negocio ya real dentro del ecosistema del tenant
 
 inventory_movements expresa hoy la base transaccional efectiva del frente inventory mientras su identidad modular continúa consolidándose
+
+Aclaración adicional sobre order_items:
+
+order_items sigue siendo entidad hija del negocio dentro de orders
+
+cuando participa del frente inventory mediante ejecución por línea, puede actuar además como anclaje operativo real dentro del ecosistema
+
+Esa lectura no lo convierte en módulo autónomo.
+
+Confirma una relación operativa más rica entre orders, order_items e inventory dentro del dominio vigente.
 
 <<END SECTION>>
 
@@ -482,7 +502,7 @@ esta clasificación debe orientar futuras decisiones arquitectónicas del proyec
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00003
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
@@ -534,6 +554,20 @@ En esa situación:
 el módulo hub conserva gobierno de su superficie visual
 el módulo invitado conserva gobierno de su lógica operativa
 
+Caso arquitectónico ya reafirmado:
+
+orders puede actuar como hub visual y contextual del frente inventory cuando la operación real se ancle en order_items
+
+esa condición no convierte a orders en dueño del stock, del historial maestro ni de la semántica operativa completa del frente inventory
+
+Aclaración adicional consolidada:
+
+cuando una capacidad publicada por un módulo se consuma desde una línea operativa de otro módulo, pueden coexistir planos funcionales distintos dentro del mismo frente
+
+caso vigente relevante:
+
+inventory puede involucrar lectura de stock y lectura de ejecución operativa sin que ambas deban leerse como equivalentes
+
 Regla final:
 
 la evolución modular del sistema debe tender a más reutilización oficial y menos lógica dispersa entre consumidores.
@@ -564,7 +598,7 @@ Sigue perteneciendo al ecosistema operativo del tenant, pero con un rol conceptu
 <<END SECTION>>
 
 <<SECTION: MÓDULOS FUNCIONALES ACTUALES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00004
 
 MÓDULOS FUNCIONALES ACTUALES
 
@@ -580,6 +614,7 @@ products
 assets
 orders
 documents
+inventory
 
 Estos módulos constituyen la lectura funcional principal del sistema dentro de la empresa activa.
 
@@ -593,10 +628,20 @@ su acceso principal del ecosistema se interpreta desde appointments.calendar
 
 appointments.index puede existir como superficie secundaria, pero no debe leerse como base promovida del módulo
 
+Aclaración adicional consolidada para inventory:
+
+inventory ya debe leerse como frente funcional actual del sistema y no solo como capacidad lateral implícita dentro de products
+
+su consolidación modular sigue en evolución
+
+pero su lectura arquitectónica vigente ya corresponde a un módulo funcional del negocio con surfaces propias de saldo, historial y operación
+
+Ese reconocimiento arquitectónico no reemplaza ni anticipa por sí solo el cierre efectivo de permisos, configuración tenant o exposición visible del módulo en todos los contextos reales.
+
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00008
 
 LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES
 
@@ -680,6 +725,12 @@ Debe leerse como módulo autónomo de operación central.
 
 Representa una pieza relevante de la operación interna del tenant y puede recibir contexto desde otros módulos sin perder identidad propia.
 
+Cuando inventory interviene en ejecución por línea, orders puede alojar esa experiencia como hub visual y contextual de trabajo.
+
+Esa condición no lo transforma en dueño del frente inventory.
+
+Su rol correcto sigue siendo el de contenedor operativo central desde el que pueden consumirse capacidades ajenas sin absorber su lógica.
+
 DOCUMENTS
 
 Debe leerse como módulo derivado respecto de orders.
@@ -698,13 +749,19 @@ Debe leerse como frente operativo en evolución hacia identidad modular propia.
 
 Representa la operación de stock del tenant sobre una base separada del catálogo maestro de artículos.
 
+Su lectura vigente ya no debe reducirse a saldo agregado por producto.
+
+También debe contemplar trazabilidad operativa real, incluida la ejecución por línea cuando order_items actúe como anclaje de trabajo.
+
+Puede involucrar planos funcionales distintos, como stock y ejecución operativa, sin que deban leerse como equivalentes.
+
 Su crecimiento arquitectónico debe reforzar una experiencia de uso simple y comprensible para el usuario, aun cuando internamente concentre mayor complejidad operativa, automatización, control y trazabilidad.
 
 <<END SECTION>>
 
 
 <<SECTION: RELACIONES MACRO DEL ECOSISTEMA>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 RELACIONES MACRO DEL ECOSISTEMA
 

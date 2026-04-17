@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -182,6 +182,19 @@ Aclaración adicional consolidada para inventory:
 inventory ya no debe leerse solo como efecto lateral del catálogo de products
 
 su evolución vigente lo proyecta como frente operativo separado para stock y movimientos, conservando a products como maestro del artículo y a orders, order_items y documents como consumidores o contextos de trazabilidad
+
+Aclaración adicional sobre semántica operativa:
+
+cuando inventory opere sobre order_items, la lectura neta de ejecución de línea no debe derivarse mecánicamente del signo funcional del movimiento de stock
+
+pueden coexistir semánticas distintas entre:
+
+variación de stock
+avance operativo de la línea
+reversión de ejecución
+recuperación de pendiente
+
+cada una pertenece al plano funcional que le corresponde
 
 no invalidan otras relaciones técnicas menores ya existentes o futuras
 
@@ -557,7 +570,7 @@ agrupa tasks pero no absorbe completamente su identidad funcional
 <<END SECTION>>
 
 <<SECTION: TASKS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 TASKS
 
@@ -611,6 +624,14 @@ cuando una necesidad operativa automática del sistema requiera alertar o escala
 caso actual reconocido en el ecosistema:
 
 alertas automáticas por stock negativo registradas a nivel metadata del sistema cuando la lógica operativa lo dispare
+
+Aclaración adicional sobre deduplicación operativa:
+
+si el sistema reutiliza una misma task para deduplicar alertas repetidas, esa reutilización no debe volver invisible el evento nuevo
+
+la task persistida puede mantenerse
+
+su contenido visible y legible debe actualizarse para representar el evento más reciente relevante del sistema
 
 <<END SECTION>>
 
@@ -730,7 +751,7 @@ Lo ubica como base maestra estable dentro de una arquitectura más limpia entre 
 <<END SECTION>>
 
 <<SECTION: INVENTORY>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 INVENTORY
 
@@ -834,6 +855,19 @@ closed implica readonly operativo
 
 cancelled no debe convivir con movimientos ejecutados sin reversión previa suficiente
 
+Aclaración adicional sobre semántica de lectura:
+
+el signo funcional del movimiento de stock no agota la lectura operativa del frente
+
+cuando inventory interactúe con una línea de order_item, debe poder distinguir correctamente entre:
+
+impacto sobre stock
+ejecución neta de la línea
+reversión por contramovimiento
+pendiente recuperado o restante
+
+esa separación forma parte del modelo mental real del módulo y no debe tratarse como ajuste accesorio de implementación
+
 <<END SECTION>>
 
 <<SECTION: ASSETS>>
@@ -893,7 +927,7 @@ assets puede consumir el embebido reusable oficial de appointments para exponer 
 <<END SECTION>>
 
 <<SECTION: ORDERS>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 ORDERS
 
@@ -971,10 +1005,16 @@ orders no debe absorber el núcleo de inventory
 
 cuando una orden origine, consuma o contextualice movimientos de stock, debe leerse como consumidor contextual del frente inventory y no como propietario del saldo ni del historial maestro de stock
 
+Aclaración adicional de hub visual:
+
+cuando la operación de inventory se exprese sobre order_items dentro de orders.show, orders actúa como contenedor visual y contextual del flujo
+
+la lógica operativa, la semántica de ejecución por línea y la reversión siguen perteneciendo al frente inventory
+
 <<END SECTION>>
 
 <<SECTION: ORDER_ITEMS>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 ORDER_ITEMS
 
@@ -1028,6 +1068,12 @@ Aclaración adicional sobre restricciones:
 cuando ya existan inventory_movements vinculados a una línea, order_items deja de ser un detalle editable libre por inercia
 
 su edición o eliminación debe quedar restringida por trazabilidad y por continuidad operativa del frente inventory
+
+Aclaración adicional sobre lectura neta:
+
+cuando existan contramovimientos de reversión, la lectura de ejecución de la línea debe poder disminuir sin que eso implique contradicción con la lógica de stock
+
+la línea debe reflejar ejecución neta real y pendiente real después de la reversión
 
 <<END SECTION>>
 

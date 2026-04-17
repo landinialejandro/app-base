@@ -78,7 +78,7 @@ debe consolidarse además la figura de módulo hub visual para los casos donde u
 <<END SECTION>>
 
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 MÓDULOS PRIORITARIOS A REVISAR
 
@@ -135,11 +135,10 @@ módulo autónomo de catálogo operativo compartido del tenant
 Estado actual:
 
 núcleo doctrinal estable
-inventory V1 ya opera efectivamente apoyado sobre products
 
-Nueva evolución aprobada:
+Regla:
 
-inventory Fase 2 pasa a ser frente activo independiente sin reabrir el núcleo doctrinal de products
+no reabrir núcleo de catálogo salvo necesidad real
 
 TASKS
 
@@ -178,24 +177,20 @@ validación runtime final de superficies alineadas y barrido documental restante
 
 INVENTORY
 
-Nuevo frente activo consolidado
+Frente activo consolidado
 
-Objetivo inmediato:
+Estado actual:
 
-reconversión modular de inventory
+backend operativo validado en runtime
 
 Líneas inmediatas:
 
-crear acceso propio al módulo
-implementar inventory.index
-implementar inventory.show
-centralizar historial de movimientos en surface propia
-publicar surfaces reutilizables oficiales
-integrar consumo limpio con products, orders y documents
-terminar lectura operativa por línea en orders.show
-endurecer restricciones sobre order_items con movimientos
-formalizar reversión por contramovimientos con trazabilidad
-definir métricas iniciales útiles sin convertir inventory.index en dashboard pesado
+cerrar UI principal del módulo
+homogeneizar consumers visuales
+consolidar surfaces oficiales reutilizables
+terminar navegación contextual
+pulir métricas livianas de index
+validar consistencia visual final
 
 <<END SECTION>>
 
@@ -255,7 +250,7 @@ los próximos trabajos sobre estos módulos deben priorizar bugs reales, validac
 <<END SECTION>>
 
 <<SECTION: CAPACIDADES REUTILIZABLES A CONSOLIDAR>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 CAPACIDADES REUTILIZABLES A CONSOLIDAR
 
@@ -283,12 +278,12 @@ consumo transversal de linked-order-action en consumidores secundarios del ecosi
 confirmación final de adopción homogénea de linked-asset-action en superficies residuales si aparecieran
 validación final del embebido reusable de appointments en consumidores visibles y secundarios
 confirmación de que la relación orders ↔ appointments permanezca resuelta de forma compacta sin tab pesada residual
-publicación de surfaces oficiales de inventory para stock, historial y movimientos sin tablas paralelas dispersas en otros módulos
+consolidación visual final de surfaces oficiales de inventory para stock, historial y operación por línea sin variantes paralelas en consumers
 
 <<END SECTION>>
 
 <<SECTION: SEGURIDAD Y CONTRATOS PENDIENTES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 SEGURIDAD Y CONTRATOS PENDIENTES
 
@@ -320,16 +315,28 @@ queda definido doctrinalmente que parties.create requiere contexto kind explíci
 
 queda definido doctrinalmente que constraints.allowed_kinds debe arbitrar create, view, update y delete
 
-queda definido doctrinalmente que delete se reserva a owner con delegación posible a administrator según contrato persistido
+queda definido doctrinalmente que delete se reserva a owner con delegación posible a administrator
 
 queda definido doctrinalmente que parties debe publicar linked-party-action como capacidad reusable oficial del módulo
 
 Trasladar el foco a alineación real de implementación, superficies secundarias y validación técnica del contrato efectivo de parties.
 
+Estado consolidado adicional para inventory:
+
+validado runtime de ejecución por línea en órdenes operables
+
+validada reversión por contramovimiento
+
+validado recálculo neto posterior de línea
+
+validado criterio de continuidad operativa con stock negativo y alerta automática
+
+Trasladar el foco a cierre visual y consumo homogéneo del frente.
+
 <<END SECTION>>
 
 <<SECTION: DEUDA TÉCNICA A REDUCIR>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 DEUDA TÉCNICA A REDUCIR
 
@@ -359,9 +366,12 @@ Nueva deuda técnica localizada:
 
 remanentes de resolución local de integraciones ya cerradas doctrinalmente por su módulo oferente en superficies secundarias o parciales del ecosistema
 
+remanentes visuales donde consumers todavía sostienen variantes de inventory ya superadas por la surface oficial del módulo
+
 Criterio:
 
 eliminar esas variantes residuales antes de dar por homogéneo el consumo reusable entre módulos
+
 <<END SECTION>>
 
 <<SECTION: ORDEN SUGERIDO DE EJECUCIÓN>>
@@ -383,7 +393,7 @@ cada paso debe dejar menos excepciones que el anterior
 <<END SECTION>>
 
 <<SECTION: ESTADO ACTUAL DEL SISTEMA>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 ESTADO ACTUAL DEL SISTEMA
 
@@ -430,15 +440,19 @@ inventory_movements
 
 Estado operativo consolidado adicional:
 
-products ya sostiene inventory V1 en operación real
+inventory posee backend operativo validado en runtime real
 
-el dataset base de inventory V1 quedó alineado
+quedó validado:
 
-el seeder efectivo de inventory quedó integrado en la configuración real
+stock negativo permitido con continuidad operativa
+alerta automática reutilizable y actualizable
+reversión por contramovimiento
+recálculo correcto de líneas luego de revertir
+reejecución posterior consistente
 
-stock y movimientos ya fueron validados en runtime real
+products conserva su rol de catálogo maestro
 
-inventory V1 sigue leyéndose como capacidad operativa apoyada en products y no como módulo autónomo cerrado
+inventory se consolida como frente operativo propio en cierre visual
 
 Se consolida además una filosofía operativa de producto ya explícita en el proyecto:
 
@@ -496,7 +510,7 @@ inventory
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00018
 
 PENDIENTES INMEDIATOS
 
@@ -534,28 +548,25 @@ reconvertir party.show como superficie transversal
 
 Pendiente inmediato inventory:
 
-crear acceso principal del módulo
-implementar inventory.index como tabla de saldos por producto
-implementar inventory.show como ficha por producto
-centralizar historial de movimientos en surface propia
-migrar UI de stock hoy dispersa en products y orders hacia consumo reusable de inventory
+cerrar acceso principal del módulo
+refinar inventory.index como tabla de saldos con métricas livianas
+refinar inventory.show como ficha operativa
+centralizar definitivamente historial de movimientos en surface propia
+migrar restos de UI dispersa en products y orders hacia consumo reusable
 extender trazabilidad con vínculos hacia orders y documents
-definir permisos efectivos iniciales del módulo
-validar runtime final multi-tenant y navegación contextual
-consolidar contexto reusable oficial para consumers del frente
+validar navegación contextual final multi-tenant
+consolidar contexto reusable oficial para consumers
 homogeneizar lectura operativa por línea en orders.show sin arbitraje local residual
-completar lectura operativa de stock actual, comprometido, pendiente de recepción, faltantes y quiebres
-evaluar surtido y recepción contextual por línea
-endurecer reglas por estado de orden sobre movimientos y disponibilidad operativa
-formalizar movimientos manuales con motivo obligatorio, dirección explícita y task automática al owner
-implementar reversión por contramovimientos con trazabilidad completa
-incorporar métricas iniciales útiles en inventory.index con bajo peso visual
+pulir consistencia visual de acciones por línea y estados
+completar catálogo de permisos inventory.*
+asignar permisos a roles efectivos
+exponer vía visible de administración owner para habilitación y permisos del frente
+confirmar consecuencia visual automática coherente en navbar, dashboard y accesos rápidos a partir del contrato efectivo
 
 Pendientes inmediatos de arquitectura modular:
 
 formalizar doctrinalmente la puerta de enlace modular como patrón general del ecosistema
 revisar surfaces actuales que todavía mezclen lógica del consumidor con capacidades del oferente
-adaptar orders para consumir inventory como capacidad externa sin absorber lógica operativa propia
 validar si documents, tasks u otros módulos requerirán patrón hub visual o publicación futura de surfaces oficiales equivalentes
 
 Considerar como ya cerrado y no reabrir en este frente:
@@ -564,7 +575,7 @@ orders como núcleo operativo principal
 assets como módulo compartido principal
 appointments como módulo autónomo de agenda
 products como catálogo maestro operativo
-inventory V1 como capacidad real ya validada sobre products
+inventory backend transaccional ya validado
 
 <<END SECTION>>
 
@@ -623,7 +634,7 @@ indexación de contenido para búsqueda
 <<END SECTION>>
 
 <<SECTION: AUTORIZACIÓN Y PERMISOS>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 AUTORIZACIÓN Y PERMISOS
 
@@ -648,6 +659,8 @@ Pendientes reales actuales:
 * Definir comportamiento cuando no haya módulos habilitados.
 
 * Alinear el contrato efectivo de parties con su nueva doctrina cerrada, especialmente create contextual por kind, constraints.allowed_kinds sobre registros existentes, delete reservado y consumo reusable de linked-party-action.
+
+* Cerrar el contrato efectivo de inventory como módulo visible y administrable, incluyendo catálogo inventory.*, asignación real a roles, surface de administración para owner y consecuencia visual automática según permiso efectivo.
 
 Pendientes cerrados y no reabrir:
 

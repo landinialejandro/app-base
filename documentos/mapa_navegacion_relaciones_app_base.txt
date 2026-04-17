@@ -138,7 +138,7 @@ cuando existan varias rutas posibles, debe priorizarse la más consistente con N
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN PRINCIPAL TENANT>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00006
 
 NAVEGACIÓN PRINCIPAL TENANT
 
@@ -165,9 +165,6 @@ assets
 products
 orders
 documents
-
-Frente operativo adicional en evolución validada:
-
 inventory
 
 Módulos base o transversales visibles según implementación:
@@ -182,20 +179,32 @@ no mostrar acciones no permitidas
 no asumir igualdad de menú entre tenants distintos
 la navegación principal debe reflejar contrato real del sistema y no solo existencia técnica de rutas
 
+Regla adicional consolidada:
+
+la aparición visible de un módulo en navbar, dashboard o accesos rápidos no debe resolverse por enlaces forzados en UI
+
+debe resultar de la combinación real de:
+
+módulo habilitado para el tenant
+permiso efectivo del usuario
+estado de configuración aplicable cuando corresponda
+
 Aclaración consolidada para inventory:
 
-la evolución aprobada del módulo proyecta navegación estructural propia
+inventory ya forma parte de la lectura principal del ecosistema tenant
 
-inventory.index como tabla de saldos por producto
+inventory.index funciona como entrada estructural del frente
 
-inventory.show como ficha de inventario por producto
+inventory.show funciona como ficha operativa por producto
 
-mientras esa navegación se implemente, pueden convivir consumos contextuales desde products u orders sin negar la lectura objetivo del módulo como entrada principal propia
+los accesos contextuales desde products, orders o documents complementan esa navegación y no la reemplazan
+
+si inventory aún no resulta visible para un tenant o usuario concreto, esa ausencia debe leerse primero como efecto de contrato efectivo o configuración pendiente y no como invitación a forzar accesos manuales en UI
 
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -249,6 +258,7 @@ documents.show
 → volver a order origen cuando exista
 → ver party relacionada
 → ver asset relacionado
+→ ver trazabilidad de inventory cuando exista
 
 projects.show
 → navegar tareas relacionadas
@@ -309,19 +319,19 @@ cuando el vínculo con appointments sea puntual o 1 a 1, debe priorizarse una in
 
 Aclaración consolidada para inventory:
 
-inventory debe tender a publicar sus propias superficies reusables de saldos y movimientos desde el propio módulo
+inventory debe publicar sus propias superficies reusables de saldos y movimientos desde el propio módulo
 
 products y orders deben consumir esas superficies y no sostener variantes locales dispersas como resolución oficial del frente de stock
 
-Cuando orders.show consuma inventory por línea, la navegación contextual hacia inventory no debe degradarse a simple historial genérico por producto.
+cuando orders.show consuma inventory por línea, la navegación contextual hacia inventory no debe degradarse a simple historial genérico por producto
 
-Debe poder conservar lectura operativa por order_item cuando esa línea sea el anclaje real de ejecución.
+debe poder conservar lectura operativa por order_item cuando esa línea sea el anclaje real de ejecución
 
 Aclaración estructural adicional:
 
 en la relación orders ↔ inventory, orders debe leerse como hub visual y contextual de una capacidad operativa perteneciente a inventory
 
-la acción Surtir en una línea de la orden no constituye lógica propia de orders
+la acción surtir en una línea de la orden no constituye lógica propia de orders
 
 constituye una puerta de entrada contextual a una capacidad publicada por inventory
 
@@ -330,7 +340,7 @@ ese mismo patrón debe poder reutilizarse desde documents, tasks u otros módulo
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -370,6 +380,7 @@ document.show
 items
 attachments cuando aplique
 relaciones principales
+trazabilidad de inventory cuando corresponda
 
 Reglas:
 
@@ -480,7 +491,7 @@ Pueden abrirse de forma estructural o como continuación de otro flujo operativo
 <<END SECTION>>
 
 <<SECTION: REGLAS DEL TRAIL>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 REGLAS DEL TRAIL
 
@@ -524,10 +535,16 @@ si una tabla reusable se consume dentro de un contenedor contextual, sus links p
 
 esto aplica también a tabs embebidas, tablas por fila y acciones derivadas internas del bloque reusable
 
+Regla adicional para líneas operativas:
+
+si el contexto real nace en una fila operativa específica, el trail puede conservar esa línea como anclaje funcional y no solo la cabecera del recurso padre
+
+esto aplica especialmente en ejecuciones de inventory sobre order_items
+
 <<END SECTION>>
 
 <<SECTION: MAPA DE NAVEGACIÓN PRINCIPAL>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 MAPA DE NAVEGACIÓN PRINCIPAL
 
@@ -551,13 +568,13 @@ appointments.index puede mantenerse como superficie secundaria accesible, pero n
 
 Aclaración estructural consolidada adicional:
 
-en inventory, la lectura principal aprobada del módulo debe tender a anclarse en:
+en inventory, la lectura principal aprobada del módulo se ancla en:
 
 inventory.index como tabla de saldos por producto
 
 inventory.show como ficha de inventario por producto
 
-Los consumos embebidos desde products u orders no deben degradar esa lectura estructural del módulo cuando la fase 2 quede implementada.
+Los consumos embebidos desde products, orders o documents no deben degradar esa lectura estructural del módulo.
 
 FLUJOS CONTEXTUALES YA VALIDADOS
 
@@ -657,6 +674,14 @@ inventory
 ↓
 products
 
+inventory
+↓
+orders
+
+inventory
+↓
+documents
+
 task
 ↓
 order
@@ -678,17 +703,17 @@ document_items
 <<END SECTION>>
 
 <<SECTION: INVENTORY>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 INVENTORY
 
-Lectura estructural objetivo aprobada para fase 2:
+Lectura estructural vigente:
 
 inventory.index
-tabla de saldos por producto
+tabla principal de saldos por producto
 
 inventory.show
-ficha de inventario por producto
+ficha operativa por producto
 
 Relaciones de navegación relevantes:
 
@@ -698,8 +723,16 @@ products.show
 orders.show
 → surfaces contextuales de inventory sin absorber su navegación principal
 
+orders.show por línea
+→ acción contextual de ejecución o reversión cuando corresponda
+
 documents.show
 → trazabilidad de movimientos cuando exista relación documental
+
+inventory.show
+→ orden contextual
+→ documento contextual
+→ producto relacionado
 
 Reglas:
 

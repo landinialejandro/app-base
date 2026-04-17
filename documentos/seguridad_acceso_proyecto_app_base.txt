@@ -53,53 +53,46 @@ Comprende quién puede operar, sobre qué universo, bajo qué condiciones y dent
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00007
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
-La base de datos define el contrato persistido vigente de permisos.
+Toda autorización del sistema debe respetar principios estables y no negociables.
 
-La capa central de seguridad arbitra la autorización efectiva.
+Principios:
 
-Ningún controller, vista, componente visual o módulo consumidor redefine permisos oficiales por fuera del contrato válido.
+backend decide
+frontend representa
+tenant aísla
+permiso explícito prevalece
+scope real limita dataset
+constraint funcional restringe capacidad
+delegación debe ser consciente
+trazabilidad importa
 
-Cuando una acción requiera contexto obligatorio, no debe resolverse mediante evaluación abstracta sin dicho contexto.
+Reglas:
 
-Las constraints funcionales integran el contrato efectivo y deben respetarse.
+ninguna acción crítica se autoriza solo por ocultar botones
 
-La UI expresa resultados autorizados; no sustituye autorización.
+ningún dataset visible debe escapar al scope efectivo
 
-view_any no puede ser más restrictivo que view dentro de un contrato coherente.
+ningún bypass local puede reemplazar el arbitraje central
 
-Los catálogos oficiales del sistema definen vocabulario controlado y deben utilizarse como referencia común.
+ninguna integración entre módulos invalida el contrato de seguridad del módulo oferente
 
-Todo módulo relevante debe poder describirse mediante un contrato de seguridad explícito.
+la comodidad de implementación no justifica romper el contrato de seguridad
 
-Las integraciones reutilizables continúan sometidas al arbitraje oficial.
+Principio adicional consolidado:
 
-Una implementación funcional que contradiga estos principios debe considerarse incorrecta.
+cuando una operación dependa del estado funcional del recurso padre o del flujo actual, ese estado forma parte de la autorización efectiva y no solo de una validación secundaria
 
-Regla operativa adicional consolidada:
+Principio adicional consolidado para continuidad operativa:
 
-el sistema no debe bloquear por inercia toda situación imperfecta o no ideal
+el sistema puede privilegiar continuidad de operación con registro y alerta antes que bloqueo automático, siempre que no comprometa aislamiento tenant, integridad crítica o seguridad del contrato
 
-cuando el conflicto no sea crítico para seguridad, integridad estructural o trazabilidad mínima exigible, debe priorizarse continuidad operativa con registro suficiente de lo ocurrido
+Caso vigente:
 
-seguridad y continuidad operativa no deben leerse como principios opuestos
-
-la resolución correcta debe tender a proteger ambos planos con el menor roce posible para el usuario
-
-Regla adicional consolidada para integraciones entre módulos:
-
-la autorización visible o contextual desde un módulo consumidor no reemplaza la validación efectiva del módulo dueño de la capacidad
-
-mostrar una acción en UI no equivale a quedar autorizado para ejecutarla
-
-ninguna integración válida debe permitir bypass de guards, validaciones, restricciones internas ni arbitrajes propios del módulo oferente
-
-si una capacidad fue publicada como puerta de enlace modular oficial, su ejecución debe seguir respetando seguridad, permisos y reglas internas del módulo que la publica
-
-Los módulos hub que alojen acciones o superficies de terceros no adquieren por eso permisos implícitos sobre la lógica del módulo invitado.
+inventory puede permitir ejecución con stock negativo manteniendo trazabilidad y alerta automática al owner
 
 <<END SECTION>>
 
@@ -359,320 +352,212 @@ Ignorar constraints equivale a ejecutar un contrato incompleto.
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00010
 
 CONTRATO DE SEGURIDAD MODULAR
 
-Todo módulo relevante debe poder expresarse mediante un contrato de seguridad claro, consistente y auditable.
+Todo módulo debe poseer un contrato de seguridad entendible y consistente.
 
-Como mínimo debe explicitar:
+Capas mínimas:
 
-universo visible
-capacidades principales
-si requiere o no contexto obligatorio
-si utiliza constraints
-delegaciones a recursos hijos
-reglas especiales si existieran
-relación con otros módulos cuando impacte autorización
+capacidades válidas
+scope de dataset
+constraints funcionales
+reglas por acción
+reglas contextuales
+delegaciones si existen
 
-Regla:
+Preguntas obligatorias:
 
-un módulo sin contrato entendible no constituye un frente cerrado de seguridad.
+quién puede ver
+quién puede crear
+quién puede editar
+quién puede borrar
+qué depende de contexto
+qué depende de estado
+qué depende de constraint
 
-Los contratos modulares concretos deben ser consistentes con los principios generales de este documento.
+Reglas:
 
-Regla adicional consolidada:
+view_any no puede ser más restrictivo que view
 
-si el módulo publica capacidades reutilizables para otros módulos, esas capacidades no generan contratos paralelos de seguridad
+las constraints reales deben aplicarse en backend
 
-deben seguir sometidas al universo visible y a las capacidades efectivas del módulo oferente
+las reglas contextuales no deben quedar solo en UI
 
-esto aplica tanto a acciones compactas como a embebidos relacionales fuertes
+si un módulo delega seguridad al padre, esa delegación debe ser explícita
 
-Regla adicional consolidada para frentes operativos con estados:
+si el módulo publica capacidades reutilizables, esas capacidades siguen sometidas a su mismo contrato de seguridad
 
-cuando una operación depende además del estado funcional del recurso padre o del flujo que la contextualiza, ese estado forma parte efectiva del contrato de seguridad consumido
+Validación adicional para módulos con estado:
 
-no debe leerse como simple detalle UX ni como validación lateral opcional
+si la operación solo es válida en ciertos estados del recurso, ese estado integra el contrato de seguridad modular efectivo
 
-caso vigente relevante:
+Caso vigente:
 
-inventory puede requerir arbitraje adicional según estado de la orden o de la línea operativa asociada antes de permitir movimientos, reversiones o ajustes
+inventory sobre órdenes solo opera en órdenes operables y debe rechazar closed o cancelled según contrato real
 
-Aclaración operativa consolidada adicional:
+Regla adicional de administrabilidad para owner:
 
-en el frente orders ↔ inventory, el estado de orders ya no actúa solo como contexto descriptivo
+si un módulo depende de habilitación, permisos o configuración tenant para volverse realmente operable, ese contrato no debe quedar implícito ni oculto
 
-forma parte efectiva del arbitraje de operabilidad
+owner debe disponer de una vía visible y real para administrar ese frente dentro del sistema
 
-la normalización vigente del flujo distingue:
+esa administrabilidad puede resolverse desde una surface central de configuración, permisos o activación
 
-draft
-approved
-closed
-cancelled
+no exige necesariamente una pantalla aislada por módulo
 
-approved reemplaza semánticamente a confirmed dentro del contrato vigente
-
-closed implica readonly operativo para ejecución vinculada
-
-cancelled exige ausencia de movimientos ejecutados o reversión previa suficiente antes de consolidarse como estado válido
-
-Aclaración adicional sobre recursos hijos delegados con ejecución iniciada:
-
-cuando un recurso hijo delegado conserve esa condición pero adquiera trazabilidad operativa efectiva por ejecución real, su edición libre puede quedar restringida por el contrato del padre y por el frente operativo relacionado sin por ello transformarse en recurso autónomo
-
-caso vigente relevante:
-
-order_items con inventory_movements asociados
-
-Aclaración adicional sobre capacidades del frente inventory:
-
-las capacidades vigentes del módulo deben leerse dentro de este mismo contrato general y no como régimen doctrinal separado por sección propia de módulo
-
-en su etapa actual, inventory opera doctrinalmente sobre:
-
-universo visible de productos autorizados alcanzados por la lógica operativa vigente del frente inventory
-
-universo derivado de inventory_movements asociado a ese conjunto autorizado
-
-y capacidades vigentes orientadas a:
-
-acceso al listado principal del módulo
-acceso a la ficha de inventario por producto
-registro de movimientos operativos dentro del contexto funcional admitido por la implementación vigente
-
-si la reversión se resuelve mediante contramovimientos dentro de esa misma lógica operativa, no debe leerse como canal informal paralelo ni como excepción fuera del contrato del módulo
+sí exige que el módulo no quede técnicamente existente pero prácticamente inconﬁgurable para owner
 
 <<END SECTION>>
 
 <<SECTION: RECURSOS DELEGADOS AL PADRE>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00006
 
 RECURSOS DELEGADOS AL PADRE
 
-Algunos recursos no constituyen universo autónomo de autorización.
-
-Su seguridad depende doctrinalmente del recurso padre.
+Algunos recursos no poseen contrato autónomo completo y delegan seguridad al recurso padre.
 
 Casos típicos:
 
-order_items respecto de orders
-document_items respecto de documents
-attachments respecto del recurso attachable correspondiente
+attachments
+order_items
+document_items
 
 Reglas:
 
-no inventar permisos paralelos para hijos delegados
-no romper coherencia entre padre e hijo
-la delegación debe ser explícita, estable y consistente
+view, update, delete y create siguen reglas del padre cuando corresponda
 
-Aclaración operativa consolidada:
+no crear políticas paralelas innecesarias
 
-que un recurso delegado gane relevancia operativa dentro de otro frente no implica que deba emanciparse doctrinalmente como módulo o permiso autónomo
+la delegación no elimina validaciones operativas específicas del recurso hijo
 
-puede seguir siendo recurso delegado y, a la vez, quedar sometido a restricciones adicionales por trazabilidad, ejecución iniciada o estado del flujo relacionado
+la delegación no convierte al hijo en módulo autónomo
 
-caso vigente relevante:
+Aclaración consolidada para order_items:
 
-order_items sigue delegado a orders
+aunque delega seguridad principal en orders, puede requerir validaciones operativas adicionales cuando ya exista ejecución real asociada mediante inventory
 
-pero cuando ya existan inventory_movements asociados a la línea:
+ejemplos:
 
-la edición libre deja de ser válida por inercia
-la eliminación libre deja de ser válida por inercia
-la decisión final debe arbitrar trazabilidad ya iniciada y continuidad operativa del frente inventory
+línea readonly por movimientos existentes
+restricción de edición por trazabilidad
+reversión permitida solo bajo condiciones válidas
+
+Estas reglas complementan la delegación y no la reemplazan.
 
 <<END SECTION>>
 
 <<SECTION: INTEGRACIONES REUSABLES Y AUTORIZACIÓN>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00006
 
 INTEGRACIONES REUSABLES Y AUTORIZACIÓN
 
-Una capacidad reusable publicada por un módulo no crea permisos nuevos.
+Toda integración reusable entre módulos debe conservar la seguridad del sistema.
 
-El módulo consumidor no redefine autorización del recurso destino.
+Reglas:
 
-La visibilidad y operabilidad final continúan sometidas al contrato del módulo oferente y al arbitraje central.
+el módulo consumidor no hereda permisos por usar una surface ajena
 
-La reutilización mejora consistencia; no reemplaza seguridad.
+la surface reusable no bypassa policies ni Security
+
+los datasets embebidos siguen scoped según el contrato del módulo oferente
+
+las acciones contextuales siguen autorizadas por backend
+
+los estados visibles deben corresponder a autorización real
+
+si la integración depende de módulo deshabilitado, no debe exponerse como acción residual
 
 Regla adicional consolidada:
 
-si la capacidad reusable expone un dataset embebido, ese dataset debe provenir del universo visible autorizado del módulo oferente y no de composición local del consumidor
+cuando una integración reusable concentre arbitraje complejo, el payload, flags o estados autorizados deben venir resueltos desde el módulo oferente
 
-si la capacidad reusable es compacta, su visibilidad final también debe resolverse bajo el contrato del módulo oferente y no por heurísticas del consumidor
+el consumidor no debe reinterpretar permisos, constraints, readonly ni estados por su cuenta
 
-caso consolidado actual:
+Regla adicional para frentes operativos por línea:
 
-appointments puede publicar embebido reusable para assets y parties y una integración compacta para orders sin crear permisos nuevos ni redefinir dataset fuera de su contrato propio
+cuando una capacidad reusable se consuma por fila dentro de una tabla operativa, el consumidor tampoco debe rearmar localmente qué acción corresponde, qué estado mostrar o si la línea quedó readonly
 
-Regla adicional consolidada para inventario operativo:
+esa lectura debe provenir del contexto oficial publicado por el módulo oferente
 
-si una capacidad reusable de inventory expone saldo, historial, disponibilidad, surtido, recepción, reversión o acciones equivalentes, su arbitraje final no debe quedar redefinido por products, orders, documents ni por consumidores futuros
+Casos vigentes:
 
-la lectura de permisos, estados operativos y restricciones por ejecución ya iniciada debe seguir perteneciendo al módulo inventory como oferente del frente
-
-Aclaración operativa adicional:
-
-cuando el consumidor muestre una relación operativa por línea, tampoco debe rearmar localmente el arbitraje de qué acción corresponde, qué estado se muestra o si la línea quedó readonly
-
-esa lectura debe consumirse desde el contexto reusable oficial publicado por inventory y no desde lógica dispersa por fila del módulo consumidor
-
-caso vigente relevante:
-
-orders.show consumiendo inventory por order_item
-
-Regla adicional consolidada sobre límites de seguridad entre módulos:
-
-el módulo consumidor puede expresar intención, contexto y punto de entrada
-
-la resolución operativa crítica debe seguir perteneciendo al módulo oferente
-
-la existencia de una surface anfitriona o de un hub visual no desplaza el arbitraje de seguridad del módulo dueño de la capacidad
-
-si la integración combina:
-
-permiso
-estado operativo
-validaciones del flujo
-restricciones internas del módulo destino
-
-la decisión final debe seguir centralizada en el módulo oferente y no repartida entre consumidores.
+linked-order-action
+linked-party-action
+linked-asset-action
+surfaces oficiales de inventory consumidas por products u orders
 
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00007
 
 REGLAS OPERATIVAS POR MÓDULO
 
-Esta sección resume la semántica doctrinal general de los módulos más relevantes del sistema.
-
-No reemplaza el contrato específico de cada módulo ni desarrolla por sí sola todas sus reglas operativas.
-
-Su función es fijar cómo debe interpretarse la seguridad de cada tipo de módulo dentro del ecosistema general.
-
-TASKS
-
-Módulo autónomo de trabajo interno.
-
-Su seguridad puede combinar universo visible segmentado con edición más restrictiva que lectura.
-
-No debe interpretarse como módulo puramente libre ni como simple subrecurso de projects.
-
-PROJECTS
-
-Módulo agrupador.
-
-Su seguridad debe respetar su rol agregador sin absorber indebidamente la lógica propia de tasks.
-
-La agrupación no autoriza a trasladar automáticamente al proyecto toda la semántica operativa de la tarea individual.
-
 ORDERS
 
-Módulo operativo central.
+dataset compartido según scope vigente
 
-Su seguridad puede requerir contexto funcional obligatorio y constraints específicas según tipo de operación.
+create exige contexto kind válido
 
-Su posición central no autoriza simplificaciones abstractas de create cuando el contrato exija contexto.
+constraints.allowed_kinds puede limitar create, view, update y delete
 
-La normalización vigente del estado operativo del módulo distingue:
+estado de la orden condiciona acciones operativas
 
-draft
-approved
-closed
-cancelled
+closed implica readonly operativo
 
-approved reemplaza semánticamente a confirmed
-
-closed implica readonly operativo para frentes dependientes como inventory
-
-cancelled no debe consolidarse si existen movimientos ejecutados sin reversión previa suficiente
+cancelled exige consistencia trazable según contrato
 
 PARTIES
 
-Módulo base del dominio.
+dataset según scope y kind permitido
 
-Su seguridad debe contemplar uso transversal, estabilidad relacional y consistencia entre múltiples relaciones del ecosistema.
+create contextual por kind
 
-No debe tratarse doctrinalmente como módulo accesorio ni como módulo opcional ordinario sin definición explícita.
+delete reservado según contrato vigente
 
 ASSETS
 
-Módulo operativo compartido.
+dataset scoped
 
-Puede operar con universo común del tenant y sin ownership artificial por defecto.
+acciones según permiso efectivo y módulo habilitado
 
-Su seguridad no debe degradarlo a simple dato auxiliar cuando participa en múltiples relaciones operativas.
+TASKS
+
+dataset según scope propio del módulo
+
+acciones internas y derivaciones sujetas a permiso efectivo
 
 APPOINTMENTS
 
-Módulo autónomo de agenda operativa.
+dataset según scope del módulo
 
-Puede operar con contrato propio de visibilidad y arbitraje central sin perder identidad al ser consumido desde otros módulos.
-
-La publicación de embebidos reusables o integraciones compactas no altera su contrato de seguridad ni habilita reinterpretaciones locales de dataset desde assets, parties u orders.
-
-Su superficie principal puede resolverse desde calendario sin que eso cambie su universo autorizado.
-
-DOCUMENTS
-
-Módulo derivado.
-
-Su seguridad puede depender parcialmente de operaciones nucleares previas sin perder reglas propias.
-
-Su condición derivada no autoriza a resolverlo como excepción informal alojada dentro de otro módulo.
+acciones de agenda y relaciones sujetas a permiso efectivo
 
 PRODUCTS
 
-Módulo autónomo de catálogo operativo compartido del tenant.
+dataset según scope aplicable
 
-Su seguridad debe cubrir de forma coherente tanto el catálogo maestro de bienes y servicios como su consumo transversal desde otros módulos.
+acciones de catálogo separadas de lógica de inventory
 
-Puede operar con universo común del tenant y sin ownership artificial por defecto.
+DOCUMENTS
 
-Su función de catálogo no lo degrada a dato auxiliar ni lo reduce a un CRUD aislado.
-
-Cuando participe en flujos operativos o documentales, la visibilidad y operabilidad final deben seguir sometidas al contrato propio de products y al arbitraje central.
-
-Inventory V1 ya no debe leerse solo como una promesa difusa.
-
-Constituye capacidad operativa real validada sobre products.
-
-A la vez, la evolución doctrinal vigente ya no lo interpreta únicamente como una capacidad apoyada lateralmente en products.
-
-Debe tender a leerse como frente de stock con identidad contractual propia.
+acciones derivadas y edición según contrato documental vigente
 
 INVENTORY
 
-Frente operativo de stock en reconversión modular.
+dataset según producto visible y contexto permitido
 
-Su seguridad no debe leerse solo como permiso abstracto para registrar movimientos.
+movimientos sujetos a autorización del frente y contexto recibido
 
-Debe arbitrar también:
+órdenes closed o cancelled no deben admitir operación si el contrato vigente las bloquea
 
-estado operativo del flujo que lo contextualiza
-restricciones por ejecución ya iniciada
-reversiones con trazabilidad
-lectura operativa por línea cuando corresponda
+stock negativo puede permitirse con trazabilidad y alerta automática
 
-Su universo visible debe entenderse como el conjunto autorizado de productos alcanzados por la lógica operativa vigente del frente inventory y por los inventory_movements asociados a ese universo.
+reversión debe respetar reglas del frente y dejar recálculo consistente
 
-Sus capacidades vigentes en esta etapa deben leerse como orientadas a:
-
-acceso al listado principal del módulo
-acceso a la ficha de inventario por producto
-registro de movimientos operativos dentro del contexto funcional admitido por la implementación vigente
-
-Cuando una reversión se implemente mediante contramovimiento, debe seguir leyéndose dentro del contrato del propio frente inventory y no como circuito lateral ajeno a su arbitraje.
-
-Cuando inventory opere sobre order_items, la línea sigue delegada a orders, pero puede quedar alcanzada por restricciones adicionales derivadas de movimientos ya ejecutados.
-
-El consumidor no debe redefinir localmente esas reglas.
-
-Debe consumir el arbitraje oficial del frente inventory.
+la ejecución neta por línea debe evaluarse con semántica operativa propia y no solo por signo de stock
 
 <<END SECTION>>
 

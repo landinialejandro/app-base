@@ -259,59 +259,41 @@ SECTION_VERSION: 00005
 
 OFERTAS DE INTEGRACIÓN VISUAL
 
-Cuando un módulo publique capacidades visuales reutilizables para otros módulos, deben seguir patrones comunes del sistema.
+Cuando un módulo publique una capacidad visual reusable para otros módulos, esa pieza debe sentirse nativa del ecosistema.
 
-Ejemplos:
+Objetivos:
 
-selector reusable
-tabla embebida
-summary reusable
-acción contextual
-lookup visual
-panel derivado
+consistencia entre pantallas
+menor duplicación
+aprendizaje visual reutilizable
+menor costo de mantenimiento
 
 Reglas:
 
-la capacidad reusable debe sentirse parte del sistema completo
-no debe depender visualmente del módulo consumidor específico
-debe poder evolucionar sin romper pantallas existentes
-debe respetar tokens visuales globales
-debe evitar estilos ad hoc por integración puntual
+la pieza reusable debe vivir en ubicación coherente con el módulo oferente
 
-Regla estratégica:
+debe mantener misma gramática visual en todos los consumidores
 
-una buena oferta de integración visual reduce refactors futuros dispersos y mejora consistencia entre módulos.
+el consumidor compone contexto, no rediseña la capacidad
 
-Regla adicional consolidada:
+si la capacidad incluye estados, acciones o arbitraje visual, esos estados deben venir resueltos por la surface oficial
 
-si la capacidad reusable además requiere arbitraje operativo complejo, su cierre visual no se agota en que la vista principal la use correctamente
+Casos vigentes:
 
-también deben consumirla de forma homogénea las superficies secundarias relevantes del ecosistema
+linked-order-action
+linked-party-action
+linked-asset-action
 
-Casos consolidados actuales:
+Surfaces vigentes de inventory:
 
-linked-order-action como oferta visual reusable de orders
-linked-asset-action como oferta visual reusable de assets
+bloques de stock
+historial de movimientos
+acciones contextuales por línea
+trazabilidad operativa
 
-Regla adicional consolidada sobre forma visual:
+Aclaración consolidada:
 
-cuando la relación reusable sea fuerte o múltiple, debe priorizarse un embebido modular completo con wrapper propio del módulo oferente y pieza interna reusable de tabla o listado
-
-cuando la relación sea compacta o 1 a 1, debe priorizarse una acción contextual compacta del tipo linked-*-action
-
-la decisión entre embebido fuerte y acción compacta debe responder al peso real de la relación y no a simetría estética
-
-Regla adicional consolidada para superficies compartidas:
-
-cuando una capacidad de un módulo opere dentro de la pantalla de otro, debe respetar la gramática visual, el layout y la jerarquía del módulo contenedor
-
-no corresponde colonización visual del módulo invitado sobre la pantalla anfitriona
-
-el módulo contenedor conserva gobierno de la experiencia visual de su superficie
-
-el módulo invitado conserva identidad suficiente para que su capacidad siga leyéndose como oferta publicada del oferente y no como lógica nuclear del contenedor
-
-Las acciones externas integradas dentro de una vista anfitriona deben percibirse como naturales dentro de esa UI y no como injertos visuales extraños.
+products y orders pueden consumir inventory visualmente, pero no deben sostener variantes paralelas como solución principal del frente
 
 <<END SECTION>>
 
@@ -340,42 +322,42 @@ favicon y logo cumplen roles distintos y no deben confundirse
 <<END SECTION>>
 
 <<SECTION: PATRÓN GENERAL PARA VISTAS INDEX>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00005
 
 PATRÓN GENERAL PARA VISTAS INDEX
 
-Las vistas index deben usar, como criterio general, una estructura de dos bloques principales:
+Toda vista index debe priorizar lectura rápida, foco operativo y consistencia con el sistema.
 
-bloque superior para filtros, búsqueda o acciones secundarias
-bloque principal para listado, tabla o grilla
+Estructura esperada:
 
-Cuando corresponda, debe priorizarse el uso de partials o componentes reutilizables.
+header claro
+acciones principales visibles
+filtros consistentes
+tabla o listado principal dominante
+paginación consistente
+estados vacíos claros
 
-Regla visual consolidada para filtros:
+Reglas:
 
-cuando la vista use x-list-filters-card, no debe asumirse que todos los filtros deban quedar visibles en el bloque principal.
+la tabla principal debe ser el centro visual de la pantalla
 
-La composición correcta debe respetar el patrón reusable ya definido:
+los bloques secundarios no deben competir con el listado principal
 
-filtros principales visibles en primer plano
-filtros secundarios agrupados en el bloque colapsable de Más filtros cuando corresponda
+los indicadores resumidos solo deben existir si agregan valor operativo real
 
-La alineación visual del módulo consiste en respetar ese patrón y no en expandir sin criterio todos los controles.
+no convertir index operativos en dashboards pesados por inercia
 
-Regla adicional para índices operativos:
+mantener jerarquía visual simple y escaneable
 
-en módulos como inventory y orders, el index puede asumir una lectura fuertemente operacional y no solo de consulta.
+Aclaración consolidada para inventory.index:
 
-En esos casos, la composición debe priorizar:
+si incorpora métricas o indicadores rápidos, estos deben tener bajo protagonismo visual
 
-claridad de estado
-lectura rápida por fila
-filtros realmente útiles
-stock o cantidades visibles cuando aporten decisión
-acciones rápidas contenidas
-bajo roce visual
+deben acompañar la tabla principal de saldos y no desplazarla como foco de trabajo
 
-Las métricas o indicadores de contexto pueden existir en la pantalla, pero no deben desplazar la tabla principal ni competir con la operación diaria cuando el trabajo real esté centrado en filas, estados y acciones contextuales.
+tipografía sobria
+bajo peso visual
+lectura rápida
 
 <<END SECTION>>
 
@@ -406,72 +388,36 @@ Para esos casos debe utilizarse un patrón visual específico de analytics separ
 <<END SECTION>>
 
 <<SECTION: SISTEMA VISUAL DE ANALYTICS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 SISTEMA VISUAL DE ANALYTICS
 
-El sistema define un patrón visual específico para bloques analíticos, separado del summary del registro.
-
-Estructura base:
-
-analytics.panel
-header
-summary
-details expandible
+Los indicadores visuales del sistema deben ayudar a decidir, no decorar.
 
 Reglas:
 
-analytics.panel actúa como contenedor principal de análisis
+mostrar solo métricas accionables
 
-summary contiene métricas principales y lectura rápida
+evitar paneles recargados
 
-details contiene bloques secundarios organizados por filas independientes
+priorizar lectura rápida
 
-no debe utilizarse x-show-summary para representar información analítica
+usar jerarquía visual moderada
 
-las tarjetas analíticas deben resolverse mediante:
+mantener consistencia entre módulos
 
-analytics.card
-kpi-card
+Los contadores o KPIs de apoyo deben tener bajo protagonismo salvo que la pantalla sea analítica por naturaleza.
 
-las métricas principales deben presentarse en summary y no dispersarse entre múltiples bloques
+Aplicación vigente:
 
-Composición:
+inventory.index puede incluir métricas livianas de apoyo
 
-máximo 3 columnas por fila
+quiebres
+faltantes
+movimientos recientes
+productos con alerta
 
-cuando se requiera subdivisión interna, se permite subgrilla mediante analytics-grid--2
-
-no anidar grillas analíticas dentro de grillas base del sistema
-
-details no debe tener grilla automática, debe componerse por filas independientes
-
-Visibilidad:
-
-los bloques expandibles deben utilizar [hidden] como estado base
-
-la visibilidad debe controlarse mediante CSS con :not([hidden]) para evitar conflictos visuales
-
-Objetivo:
-
-separar claramente información analítica de la ficha del registro
-
-evitar reutilización incorrecta de componentes de summary para datos agregados
-
-mantener consistencia visual entre dashboard y vistas show con métricas
-
-Regla adicional para métricas operativas livianas:
-
-cuando una vista index operativa como inventory.index requiera exponer métricas rápidas, estas deben mantener bajo protagonismo visual y no convertirse en un dashboard pesado.
-
-Su función es orientar lectura, no competir con la tabla principal.
-
-Deben priorizar:
-
-tipografía contenida
-peso visual secundario
-lectura rápida
-cantidad reducida de indicadores realmente útiles
+Estas métricas no reemplazan la tabla principal ni convierten la pantalla en dashboard pesado.
 
 <<END SECTION>>
 
@@ -480,64 +426,42 @@ SECTION_VERSION: 00005
 
 PATRÓN VISUAL PARA VISTAS SHOW
 
-Las vistas show del core deben tender a una estructura visual consistente.
+Toda vista show debe funcionar como centro de lectura y acción sobre un recurso concreto.
 
-Base esperada:
+Estructura esperada:
 
-x-page
-x-breadcrumb
-x-page-header
-x-show-summary para el resumen principal del registro
-bloques secundarios dentro de tabs o cards según la complejidad del módulo
+header contextual
+datos principales claros
+acciones pertinentes
+relaciones organizadas
+bloques secundarios subordinados
+retorno consistente
 
 Reglas:
 
-el bloque superior de resumen del registro no debe resolverse inline por módulo si ya existe wrapper reusable consolidado
+la identidad del recurso principal debe ser evidente
 
-el summary principal del show resume el registro principal de la pantalla
+las relaciones no deben eclipsar al recurso central
 
-el summary principal debe mantenerse acotado y centrado en la lectura rápida del registro principal
+las acciones deben aparecer cerca del contexto donde tienen sentido
 
-los bloques analíticos no forman parte del summary principal y deben resolverse en contenedores específicos separados
+evitar acumulación de bloques pesados sin jerarquía
 
-cuando exista detalle complementario importante pero no prioritario, debe priorizarse un detalle expandible dentro del mismo bloque superior antes que dispersarlo sin criterio en otras zonas del show
+mantener ritmo visual limpio entre lectura y operación
 
-los summaries operativos internos de tabs o sublistados no deben confundirse con el summary principal del show
+Aclaración consolidada para products.show:
 
-las vistas show deben mantener una separación clara entre:
+products.show debe sentirse ficha del catálogo maestro
 
-acciones del registro principal
-navegación entre secciones relacionadas
-acciones contextuales de subbloques o tabs internos
-resúmenes operativos de subcolecciones
+puede consumir información de inventory, pero no competir con inventory.show mediante historiales completos o formularios principales de movimientos
 
-no mezclar en un mismo bloque visual:
+el acceso hacia inventory debe ser claro y natural
 
-acciones globales del registro
-acciones contextuales del subtab
-resúmenes operativos de subcolecciones
+Aclaración consolidada para inventory.show:
 
-Regla adicional consolidada:
+inventory.show debe sentirse ficha operativa del producto en materia de stock
 
-los bloques de ayuda contextual por módulo pueden integrarse dentro del show como contenido subordinado
-
-deben ubicarse en zonas de baja jerarquía visual
-no deben competir con summary ni acciones
-deben leerse como ayuda complementaria y no como contenido estructural
-
-Regla modular adicional:
-
-la vista show debe dejar visualmente claro qué pertenece al núcleo del módulo principal y qué corresponde a relaciones consumidas o capacidades auxiliares reutilizables
-
-las acciones transversales publicadas por otro módulo deben percibirse como capacidad consumida y no como acción nuclear del módulo contenedor
-
-si una relación visible hacia otro módulo ya fue cerrada mediante una capacidad reusable oficial del módulo oferente, también las tablas y bloques secundarios del show deben consumir esa misma capacidad y no variantes locales crudas
-
-La pantalla debe poder leerse, como criterio general, en este orden:
-
-módulo principal
-relaciones operativas relevantes
-capacidades auxiliares o transversales
+su foco visual principal es saldo, historial, trazabilidad y acciones propias del frente inventory
 
 <<END SECTION>>
 
@@ -574,114 +498,37 @@ la unidad visual completa debe desaparecer y no solo el contenido interno
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00005
 
 ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW
 
-La zona de relaciones de una vista show debe resolverse con una estructura visual simple y predecible.
+Las relaciones dentro de una show page deben ordenarse por relevancia operativa y no por acumulación indiscriminada.
+
+Criterios:
+
+primero relaciones críticas para la tarea actual
+luego relaciones frecuentes
+luego bloques secundarios o informativos
 
 Reglas:
 
-si el show tiene una única relación operativa relevante, debe priorizarse embebido directo dentro de la pantalla, sin introducir tabs del padre innecesarias
+usar tabs, cards o bloques según densidad real del contenido
 
-si el show tiene dos o más relaciones operativas relevantes, debe evaluarse resolverlas mediante tabs del padre para separar zonas sin alargar innecesariamente la pantalla
+evitar repetir la misma relación en múltiples lugares de la pantalla
 
-el embebido relacionado debe comportarse visualmente como un mini index contextual del registro actual
+si existe componente reusable oficial, priorizarlo
 
-ese mini index contextual no debe competir con el summary principal ni con las acciones base del show
+una relación contextual no debe convertirse visualmente en segundo módulo principal dentro de la misma pantalla
 
-si el embebido requiere estructura completa, el orden recomendado es:
+Aclaración consolidada para orders.show:
 
-título opcional
-tabs y acción principal contextual dentro del tab-toolbar
-toolbar secundario opcional
-tabla o listado principal
-summary inferior opcional
+la lectura de inventory por línea vive prioritariamente en la tabla de items
 
-el toolbar secundario solo debe existir cuando agregue una acción o control real y no por simetría visual vacía
+si existe tab o bloque adicional de inventory, debe ser claramente secundario y no competir con la operación principal por fila
 
-si el embebido solo necesita un listado simple, no debe forzarse una estructura más pesada de la necesaria
+Aclaración consolidada para products.show:
 
-Regla adicional consolidada:
-
-los bloques de ayuda contextual deben ubicarse fuera de la zona principal de relaciones
-
-no deben mezclarse con listados operativos
-no deben integrarse dentro de tablas ni tabs funcionales
-deben mantenerse como contenido independiente de apoyo
-
-Regla modular adicional:
-
-las relaciones embebidas deben leerse como consumo de capacidades reutilizables del módulo relacionado y no como excepciones visuales improvisadas del módulo contenedor
-
-si existe tabla embebida reusable, summary reusable o acción contextual reusable ya válida, debe priorizarse su reutilización visual
-
-si una pestaña o bloque embebido depende de un módulo deshabilitado, debe desaparecer de la composición sin dejar una pestaña activa inválida
-
-la pantalla debe resolver automáticamente una pestaña activa disponible y consistente
-
-Regla adicional de superficies completas:
-
-calendarios, formularios embebidos, tablas parciales y vistas derivadas también forman parte de la superficie oficial del módulo
-
-deben respetar los mismos criterios visuales y modulares que index, create, edit y show
-
-Regla adicional de cierre:
-
-si una integración reusable ya fue cerrada por el módulo oferente, no debe persistir en una tabla parcial o superficie secundaria una variante visual local que reconstruya el mismo flujo
-
-Casos vigentes relevantes:
-
-linked-order-action
-linked-asset-action
-
-Regla adicional sobre peso visual de la relación:
-
-las relaciones fuertes pueden publicarse como embebidos modulares completos dentro de tabs o cards
-
-las relaciones puntuales o 1 a 1 deben tender a resolverse como acción compacta o summary contextual y no como pestaña pesada por simetría
-
-Regla adicional para frentes operativos por línea:
-
-cuando un show consuma relaciones operativas de inventory u orders con lectura por línea, el embebido debe priorizar claridad operacional por fila.
-
-Puede incorporar:
-
-estado por línea
-badges de pendiente o completo
-stock visible
-cantidades relevantes
-acciones rápidas contenidas
-
-sin degradar la jerarquía principal de la pantalla ni transformar el bloque relacionado en una grilla recargada.
-
-Aclaración operativa consolidada para orders.show:
-
-cuando la relación inventory se exprese dentro de la tabla de líneas, la lectura correcta no es una segunda grilla pesada paralela por debajo de la orden
-
-la propia fila puede convertirse en punto de lectura operativa compacta
-
-mostrando por línea:
-
-stock
-ejecutado
-pendiente
-estado
-acción principal contenida
-
-esto mantiene foco en la orden y evita fragmentar el trabajo real en bloques redundantes
-
-Aclaración adicional para módulos hub:
-
-cuando una pantalla funcione como hub visual de una capacidad ajena, debe mantenerse clara la jerarquía entre:
-
-módulo principal de la pantalla
-relación operativa consumida
-acción externa publicada por el módulo oferente
-
-El contenedor gobierna la composición visual general.
-
-La capacidad invitada no debe romper esa gramática ni absorber el protagonismo estructural de la pantalla anfitriona.
+los bloques de inventory deben actuar como acceso o resumen contextual y no como surface maestra paralela
 
 <<END SECTION>>
 
@@ -748,93 +595,36 @@ el embebido sigue siendo un bloque subordinado al show principal, aunque interna
 <<END SECTION>>
 
 <<SECTION: ACCIONES VISUALES EN INDEX Y SHOW>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00004
 
 ACCIONES VISUALES EN INDEX Y SHOW
 
-Debe mantenerse una jerarquía visual clara entre acciones de alta, acciones operativas y acciones de retorno.
+Las acciones visibles deben ser claras, previsibles y ubicarse donde el usuario las espera.
 
-Criterios:
+Reglas:
 
-en vistas index, el botón principal de alta puede utilizar semántica success cuando represente creación directa del registro principal
+acciones globales cerca del header
 
-en cards de filtros, filtrar puede mantenerse como acción primary y limpiar como acción secundaria
+acciones por registro dentro de tablas o cards del registro
 
-en vistas show, deben estar presentes como base:
+acciones destructivas con menor protagonismo
 
-editar
-eliminar
-volver
+acciones secundarias sin competir con la principal
 
-si el módulo requiere una acción adicional relevante para el registro principal, debe ubicarse junto a esas acciones y no mezclarse con acciones contextuales de tabs internos
+no saturar una pantalla con botones equivalentes
 
-orden visual recomendado en acciones de header de show:
+si una acción depende de contexto complejo, renderizar resultado ya arbitrado desde backend
 
-editar
-eliminar
-acciones secundarias específicas del módulo
-volver
+Aclaración consolidada para líneas operativas:
 
-volver debe tender a una iconografía homogénea en todas las vistas show y quedar como última acción visible del grupo
+cuando una acción viva dentro de una fila operativa (por ejemplo surtir o revertir), debe aparecer junto a los datos necesarios para decidir
 
-las acciones de alta o agregado dentro de tabs o subpaneles deben utilizar iconografía de suma y una escala visual más contenida que el CTA principal de la pantalla
+stock
+ejecutado
+pendiente
+estado
 
-las acciones contextuales de tabs o subpaneles no deben mezclarse con el grupo principal de acciones del show
-
-Regla crítica validada:
-
-los botones de acción deben renderizarse en función de capacidades efectivas resueltas desde backend
-
-no deben depender de @can abstracto cuando la capacidad requiera contexto
-
-deben contemplar constraints cuando apliquen (por ejemplo allowed_kinds en orders)
-
-las acciones en tablas deben alinearse estrictamente con permisos reales
-
-no deben renderizarse acciones no permitidas
-
-en formularios embebidos o contextuales, la acción cancelar debe respetar el contexto completo del flujo vigente y no volver por defecto al show estructural del módulo padre
-
-Regla visual adicional:
-
-cuando una acción consuma una capacidad publicada por otro módulo, debe percibirse como acción contextual de integración y no competir visualmente con las acciones nucleares del módulo principal
-
-si una acción o link hacia un módulo relacionado no es realmente operable por permiso o por módulo deshabilitado, no debe conservar apariencia de navegación disponible
-
-si un módulo relacionado no está habilitado, también deben desaparecer filtros, campos de selección, columnas, enlaces y referencias visuales asociadas a ese módulo
-
-Regla adicional de homogeneidad:
-
-si una acción contextual reusable ya fue definida por el módulo oferente, también las superficies secundarias y tablas parciales deben consumirla con el mismo criterio visual y contractual
-
-Casos vigentes relevantes:
-
-linked-order-action
-linked-asset-action
-
-Regla adicional de composición:
-
-cuando la relación con otro módulo sea puntual o 1 a 1, debe priorizarse una acción compacta reusable antes que un bloque pesado de tabs o tabla
-
-Regla adicional para tablas operativas:
-
-en módulos como inventory y orders, las acciones por fila pueden asumir mayor protagonismo funcional siempre que conserven escala visual contenida, propósito claro y bajo roce.
-
-Son válidas acciones rápidas por fila cuando resuelvan intenciones operativas frecuentes, por ejemplo:
-
-abrir
-ver historial
-surtir
-recibir
-revertir
-
-No deben saturar la fila ni reemplazar la lectura del estado operativo principal.
-
-Aclaración operativa consolidada:
-
-cuando una tabla por línea combine lectura de estado y acción rápida, la acción no debe competir con la cantidad, el estado ni el stock como si todos fueran CTAs equivalentes
-
-la fila debe leerse primero como estado operativo y solo después como punto de acción
+La acción debe sentirse inmediata y contextual.
 
 <<END SECTION>>
 

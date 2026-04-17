@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00011
 
 CONVENCIONES GENERALES
 
@@ -117,10 +117,54 @@ la complejidad contractual, técnica u operativa debe resolverse prioritariament
 
 la UX debe tender a acciones simples, comprensibles y de bajo roce aun cuando el backend deba ejecutar consecuencias múltiples, validaciones, trazabilidad o documentos derivados
 
+Convención adicional de ownership funcional:
+
+cuando un frente operativo publique una surface oficial reutilizable, los módulos consumidores deben adelgazarse progresivamente y abandonar variantes locales equivalentes
+
+no corresponde sostener formularios, tablas, historiales o arbitrajes paralelos como resolución principal si ya existe una capacidad oficial del módulo oferente
+
+Convención adicional de semántica funcional:
+
+no toda semántica numérica o direccional puede reutilizarse entre dominios distintos por similitud aparente
+
+cuando un flujo combine stock, ejecución operativa, reversión o pendiente, cada lectura debe resolverse con la semántica propia del dominio correspondiente
+
+no debe asumirse equivalencia automática entre signo de stock y avance operativo de línea
+
+Convención adicional de eventos deduplicados:
+
+cuando el sistema reutilice un registro existente para deduplicar alertas, tareas o eventos repetidos, el nuevo hecho no debe quedar invisible
+
+la reutilización de persistencia puede ser válida
+
+la representación visible del evento debe actualizarse para reflejar la ocurrencia más reciente relevante
+
+Convención adicional de configuración visible para owner:
+
+si un módulo depende de habilitación, permisos o configuración operativa por tenant, el sistema debe ofrecer una vía visible, real y consistente para que owner pueda administrarlo
+
+esa vía no exige necesariamente una pantalla propia aislada por módulo
+
+sí exige que la capacidad sea administrable dentro de la experiencia real del owner sin depender de enlaces forzados, supuestos ocultos o intervención técnica externa
+
+Convención adicional de visibilidad modular:
+
+navbar, dashboard y accesos rápidos no deben forzar la aparición de módulos por existencia técnica
+
+la visibilidad correcta debe resultar de:
+
+módulo habilitado
+permiso efectivo
+estado real de configuración cuando corresponda
+
+dashboard no reemplaza las surfaces oficiales de un módulo
+
+puede actuar como acceso o resumen, pero no como sustituto de la navegación estructural ni de la administración real del frente
+
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA BASE DEL PROYECTO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 ESTRUCTURA BASE DEL PROYECTO
 
@@ -129,10 +173,6 @@ Este bloque define la ubicación canónica de código, vistas, assets y document
 No busca inventariar todo el repositorio.
 
 Busca fijar dónde vive cada responsabilidad principal para evitar búsquedas imprecisas, suposiciones técnicas o dispersión de criterios.
-
-Regla general:
-
-cuando una responsabilidad ya tenga ubicación canónica consolidada, no debe duplicarse en otra carpeta sin justificación real.
 
 APP
 
@@ -242,6 +282,10 @@ fuente Blade de iconografía y marca SVG
 Regla adicional vigente:
 
 cuando inventory publique tablas de saldos, historial, formularios de movimientos o fichas propias, esos recursos deben vivir en resources/views/inventory y no dispersos entre products u orders.
+
+Regla adicional de consumidores:
+
+si products, orders u otros módulos solo consumen inventory, deben hacerlo mediante includes o surfaces oficiales del módulo y no mediante copias locales mantenidas en paralelo.
 
 ROUTES
 
@@ -512,7 +556,7 @@ las integraciones entre módulos deben respetar el contrato del módulo oferente
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -661,6 +705,12 @@ consumo externo por otros módulos
 
 cuando un módulo actúe como superficie anfitriona o hub visual de una capacidad ajena, eso no lo convierte en dueño de esa lógica ni habilita naming, estructuras o responsabilidades centradas en el consumidor para piezas que pertenecen al oferente
 
+Regla adicional de semántica cruzada:
+
+cuando una integración exponga métricas o cantidades pertenecientes a planos funcionales distintos, cada valor debe provenir de la semántica oficial de su dominio
+
+no corresponde reutilizar cálculos de stock como sustituto automático de ejecución operativa, ni viceversa
+
 CONTRATO DE SEGURIDAD
 
 El contrato de seguridad del módulo no se define en esta sección sino en:
@@ -744,7 +794,7 @@ la clasificación no debe forzar jerarquías falsas de dependencia existencial c
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -863,6 +913,12 @@ Regla adicional de organización de responsabilidades:
 controller expresa la surface HTTP
 support o service expresa lógica reusable y arbitraje propio del módulo
 consumidor invoca capacidad externa sin absorber su implementación interna
+
+Regla adicional de semántica de datos:
+
+si una integración muestra simultáneamente stock, ejecución, pendiente o reversión, cada indicador debe obtenerse desde la regla oficial de su plano funcional
+
+no deben reciclarse helpers pensados para stock como fuente universal de estados operativos
 
 <<END SECTION>>
 
@@ -1101,7 +1157,7 @@ documents no debe absorber órdenes de trabajo operativas ni duplicar la funció
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE SUPPORT Y HELPERS DE ACCESO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CONVENCIONES DE SUPPORT Y HELPERS DE ACCESO
 
@@ -1124,6 +1180,12 @@ las classes bajo app/Support/Auth deben actuar como acceso técnico y no como fu
 Regla operativa adicional:
 
 si una corrección de autorización afecta create contextual, constraints o semántica general de consumo, debe resolverse en la capa central y no mediante helper ad hoc ni parche por módulo.
+
+Regla adicional para ownership funcional:
+
+si una corrección impacta comportamiento operativo propio de un módulo, debe resolverse en service o support del módulo dueño de la capacidad
+
+no corresponde fijar semánticas de inventory, orders u otros dominios desde helpers genéricos del consumidor
 
 <<END SECTION>>
 
@@ -1216,7 +1278,7 @@ cuando exista navegación contextual entre módulos relacionados, el módulo act
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE BLADE Y FRONTEND LIVIANO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 CONVENCIONES DE BLADE Y FRONTEND LIVIANO
 
@@ -1260,6 +1322,12 @@ filtros principales visibles en primer plano
 filtros secundarios agrupados en bloque colapsable tipo Más filtros cuando corresponda
 
 La consistencia visual del sistema prevalece sobre variantes locales por módulo.
+
+Regla adicional de consumers livianos:
+
+si una vista consume una surface oficial publicada por otro módulo, Blade no debe reconstruir localmente formularios, tablas ni decisiones de estado equivalentes
+
+debe limitarse a componer la experiencia visual usando la salida oficial recibida
 
 <<END SECTION>>
 

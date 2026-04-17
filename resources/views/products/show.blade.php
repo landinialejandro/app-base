@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/products/show.blade.php | V18 --}}
+{{-- FILE: resources/views/products/show.blade.php | V19 --}}
 
 @extends('layouts.app')
 
@@ -91,15 +91,15 @@
 
         @if ($product->kind === ProductCatalog::KIND_PRODUCT)
             <x-card>
-                <div class="detail-grid">
-                    <div class="detail-block">
-                        <div class="detail-label">Stock actual</div>
-                        <div class="detail-value">{{ number_format($currentStock, 2, ',', '.') }}</div>
+                <div class="summary-inline-grid">
+                    <div class="summary-inline-card">
+                        <div class="summary-inline-label">Stock actual</div>
+                        <div class="summary-inline-value">{{ number_format($currentStock, 2, ',', '.') }}</div>
                     </div>
 
-                    <div class="detail-block">
-                        <div class="detail-label">Último movimiento</div>
-                        <div class="detail-value">
+                    <div class="summary-inline-card">
+                        <div class="summary-inline-label">Último movimiento</div>
+                        <div class="summary-inline-value">
                             @if ($inventoryMovements->isNotEmpty())
                                 {{ $inventoryMovements->first()->created_at?->format('d/m/Y H:i') ?? '—' }}
                             @else
@@ -108,14 +108,18 @@
                         </div>
                     </div>
 
-                    <div class="detail-block">
-                        <div class="detail-label">Inventario</div>
-                        <div class="detail-value">
+                    <div class="summary-inline-card">
+                        <div class="summary-inline-label">Inventory</div>
+                        <div class="summary-inline-value">
                             <a href="{{ route('inventory.show', ['product' => $product] + $trailQuery) }}">
-                                Ver ficha de inventario
+                                Abrir ficha
                             </a>
                         </div>
                     </div>
+                </div>
+
+                <div class="form-help mt-3">
+                    El historial y los movimientos manuales de este artículo se gestionan desde la ficha de inventory.
                 </div>
             </x-card>
         @endif

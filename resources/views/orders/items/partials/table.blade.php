@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/items/partials/table.blade.php | V6 --}}
+{{-- FILE: resources/views/orders/items/partials/table.blade.php | V7 --}}
 
 @php
     use App\Support\Catalogs\ProductCatalog;
@@ -18,8 +18,7 @@
             <thead>
                 <tr>
                     <th>Posición</th>
-                    <th>Tipo</th>
-                    <th>Descripción</th>
+                    <th>Ítem</th>
                     <th>Cantidad</th>
                     <th>Stock</th>
                     <th>Ejecutado</th>
@@ -54,14 +53,17 @@
 
                         $lineStatusLabel = $inventoryRow['line_status_label'] ?? 'Pendiente';
                         $lineStatusBadge = $inventoryRow['line_status_badge'] ?? 'status-badge--pending';
+
+                        $itemTypeLabel = ProductCatalog::kindLabel($item->kind);
                     @endphp
 
                     <tr>
                         <td>{{ $item->position }}</td>
 
-                        <td>{{ ProductCatalog::kindLabel($item->kind) }}</td>
-
-                        <td>{{ $item->description }}</td>
+                        <td>
+                            <div>{{ $item->description }}</div>
+                            <div class="text-muted">{{ $itemTypeLabel }}</div>
+                        </td>
 
                         <td>{{ number_format((float) $item->quantity, 2, ',', '.') }}</td>
 
@@ -69,7 +71,7 @@
                             @if ($isPhysicalProduct && $currentStock !== null)
                                 {{ number_format($currentStock, 2, ',', '.') }}
                             @else
-                                —
+                                <span class="text-muted">—</span>
                             @endif
                         </td>
 
@@ -77,7 +79,7 @@
                             @if ($isPhysicalProduct)
                                 {{ number_format($executedQuantity, 2, ',', '.') }}
                             @else
-                                —
+                                <span class="text-muted">—</span>
                             @endif
                         </td>
 
@@ -85,7 +87,7 @@
                             @if ($isPhysicalProduct)
                                 {{ number_format($pendingQuantity, 2, ',', '.') }}
                             @else
-                                —
+                                <span class="text-muted">—</span>
                             @endif
                         </td>
 
@@ -95,7 +97,7 @@
                                     {{ $lineStatusLabel }}
                                 </span>
                             @else
-                                —
+                                <span class="text-muted">—</span>
                             @endif
                         </td>
 
@@ -151,11 +153,11 @@
                                     @endif
 
                                     @if (!$canEdit && !$canDelete && !$canExecute)
-                                        —
+                                        <span class="text-muted">—</span>
                                     @endif
                                 </div>
                             @else
-                                —
+                                <span class="text-muted">—</span>
                             @endcan
                         </td>
                     </tr>

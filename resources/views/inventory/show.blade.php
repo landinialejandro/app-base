@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/show.blade.php | V4 --}}
+{{-- FILE: resources/views/inventory/show.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -59,37 +59,17 @@
             </x-slot:details>
         </x-show-summary>
 
-        <x-card>
-            <div class="detail-grid">
-                <div class="detail-block">
-                    <div class="detail-label">Lectura del frente</div>
-                    <div class="detail-value">Maestra de inventory</div>
-                </div>
-
-                <div class="detail-block">
-                    <div class="detail-label">Operación manual</div>
-                    <div class="detail-value">Ingreso desde inventory</div>
-                </div>
-
-                <div class="detail-block">
-                    <div class="detail-label">Trazabilidad</div>
-                    <div class="detail-value">Órdenes y documentos cuando existan</div>
-                </div>
-            </div>
-        </x-card>
-
         <x-card class="list-card">
             @include('inventory.partials.movement-form', [
                 'action' => route('inventory.movements.store', $trailQuery),
                 'products' => collect([$product]),
-                'fixedKind' => 'ingresar',
                 'selectedProductId' => $product->id,
                 'returnContext' => 'inventory.show',
-                'submitLabel' => 'Registrar ingreso',
-                'productFieldId' => 'inventory_ingresar_product_id',
-                'kindFieldId' => 'inventory_ingresar_kind',
-                'quantityFieldId' => 'inventory_ingresar_quantity',
-                'notesFieldId' => 'inventory_ingresar_notes',
+                'submitLabel' => 'Registrar movimiento manual',
+                'productFieldId' => 'inventory_manual_product_id',
+                'kindFieldId' => 'inventory_manual_kind',
+                'quantityFieldId' => 'inventory_manual_quantity',
+                'notesFieldId' => 'inventory_manual_notes',
             ])
         </x-card>
 

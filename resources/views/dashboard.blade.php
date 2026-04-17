@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/dashboard.blade.php | V4 --}}
+{{-- FILE: resources/views/dashboard.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -45,7 +45,13 @@
             </x-card>
         @endif
 
-        @if ($canAccessOrders || $canAccessTasks || $canAccessProjects || $canAccessProducts || $canAccessDocuments)
+        @if (
+            $canAccessOrders ||
+                $canAccessTasks ||
+                $canAccessProjects ||
+                $canAccessProducts ||
+                $canAccessDocuments ||
+                $canAccessInventory)
             <x-card>
                 <div class="dashboard-section-header">
                     <h2 class="dashboard-section-title">Gestión complementaria</h2>
@@ -82,6 +88,14 @@
                             <span class="dashboard-link-title">Productos</span>
                             <span class="dashboard-link-text">Ver y administrar productos y servicios</span>
                             <span class="dashboard-link-meta">{{ $productsCount }} productos</span>
+                        </a>
+                    @endif
+
+                    @if ($canAccessInventory)
+                        <a href="{{ route('inventory.index') }}" class="dashboard-link-card">
+                            <span class="dashboard-link-title">Inventario</span>
+                            <span class="dashboard-link-text">Ver saldos por producto y abrir fichas operativas</span>
+                            <span class="dashboard-link-meta">Stock y movimientos</span>
                         </a>
                     @endif
 

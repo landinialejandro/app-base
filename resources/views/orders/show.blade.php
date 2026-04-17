@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V30 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V31 --}}
 
 @extends('layouts.app')
 
@@ -215,29 +215,35 @@
                 <section class="tab-panel" data-tab-panel="inventory" hidden>
                     <div class="tab-panel-stack">
                         <x-card>
-                            <div class="detail-grid">
-                                <div class="detail-block">
-                                    <div class="detail-label">Lectura del frente</div>
-                                    <div class="detail-value">Contextual desde la orden</div>
+                            <div class="summary-inline-grid">
+                                <div class="summary-inline-card">
+                                    <div class="summary-inline-label">Estado</div>
+                                    <div class="summary-inline-value">
+                                        @if ($inventoryIsReadonly)
+                                            Readonly
+                                        @elseif ($inventoryIsOperable)
+                                            Operable
+                                        @else
+                                            No operable
+                                        @endif
+                                    </div>
                                 </div>
 
-                                <div class="detail-block">
-                                    <div class="detail-label">Movimientos registrados</div>
-                                    <div class="detail-value">{{ $inventoryMovements->count() }}</div>
+                                <div class="summary-inline-card">
+                                    <div class="summary-inline-label">Movimientos</div>
+                                    <div class="summary-inline-value">{{ $inventoryMovements->count() }}</div>
                                 </div>
 
-                                <div class="detail-block">
-                                    <div class="detail-label">Operación principal</div>
-                                    <div class="detail-value">Por línea en la tab Ítems</div>
+                                <div class="summary-inline-card">
+                                    <div class="summary-inline-label">Ejecución</div>
+                                    <div class="summary-inline-value">Por línea</div>
                                 </div>
                             </div>
-                        </x-card>
 
-                        <x-card>
-                            <p class="mb-0">
-                                Esta orden consume inventory como capacidad contextual. La ejecución operativa se resuelve
-                                desde cada línea y la lectura maestra del producto permanece en la ficha de inventory.
-                            </p>
+                            <div class="form-help mt-3">
+                                Esta orden consume inventory como capacidad contextual. La ejecución real se resuelve en
+                                cada línea de la tab Ítems y la ficha maestra del artículo permanece en inventory.
+                            </div>
                         </x-card>
                     </div>
                 </section>

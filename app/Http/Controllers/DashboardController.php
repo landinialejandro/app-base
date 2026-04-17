@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DashboardController.php | V8
+// FILE: app/Http/Controllers/DashboardController.php | V9
 
 namespace App\Http\Controllers;
 
@@ -131,6 +131,7 @@ class DashboardController extends Controller
         $canAccessProjects = $security->allows($user, ModuleCatalog::PROJECTS.'.viewAny');
         $canAccessProducts = $security->allows($user, ModuleCatalog::PRODUCTS.'.viewAny');
         $canAccessDocuments = $security->allows($user, ModuleCatalog::DOCUMENTS.'.viewAny');
+        $canAccessInventory = $security->allows($user, ModuleCatalog::INVENTORY.'.viewAny');
 
         $canSeeAnalytics = ($membership?->is_owner === true)
             || $security->allows(
@@ -151,6 +152,7 @@ class DashboardController extends Controller
             'canAccessProjects' => $canAccessProjects,
             'canAccessProducts' => $canAccessProducts,
             'canAccessDocuments' => $canAccessDocuments,
+            'canAccessInventory' => $canAccessInventory,
 
             'projectOverview' => [
                 'visible_projects_count' => $visibleProjectsCount,

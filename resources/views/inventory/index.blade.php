@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/index.blade.php | V2 --}}
+{{-- FILE: resources/views/inventory/index.blade.php | V3 --}}
 
 @extends('layouts.app')
 
@@ -24,21 +24,26 @@
         <x-page-header title="Inventario" />
 
         <x-card>
-            <div class="detail-grid">
-                <div class="detail-block">
-                    <div class="detail-label">Productos</div>
-                    <div class="detail-value">{{ $productsCount }}</div>
+            <div class="summary-inline-grid">
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Productos</div>
+                    <div class="summary-inline-value">{{ $productsCount }}</div>
                 </div>
 
-                <div class="detail-block">
-                    <div class="detail-label">Con stock positivo</div>
-                    <div class="detail-value">{{ $productsWithStock }}</div>
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Con stock positivo</div>
+                    <div class="summary-inline-value">{{ $productsWithStock }}</div>
                 </div>
 
-                <div class="detail-block">
-                    <div class="detail-label">Movimientos registrados</div>
-                    <div class="detail-value">{{ $totalMovements }}</div>
+                <div class="summary-inline-card">
+                    <div class="summary-inline-label">Movimientos registrados</div>
+                    <div class="summary-inline-value">{{ $totalMovements }}</div>
                 </div>
+            </div>
+
+            <div class="form-help mt-3">
+                Esta vista concentra el saldo actual por producto. La operación detallada y el historial viven en la ficha
+                de inventario de cada artículo.
             </div>
         </x-card>
 

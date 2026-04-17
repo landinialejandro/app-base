@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/items/partials/embedded.blade.php | V3 --}}
+{{-- FILE: resources/views/orders/items/partials/embedded.blade.php | V4 --}}
 
 @php
     $order = $order ?? null;
@@ -58,21 +58,6 @@
                     ${{ number_format((float) ($order?->total ?? 0), 2, ',', '.') }}
                 </div>
             </div>
-
-            @if ($inventoryContext)
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Estado inventory</div>
-                    <div class="summary-inline-value">
-                        @if (($inventoryContext['is_readonly'] ?? false) === true)
-                            Readonly
-                        @elseif (($inventoryContext['is_operable'] ?? false) === true)
-                            Operable
-                        @else
-                            No operable
-                        @endif
-                    </div>
-                </div>
-            @endif
         </div>
 
         @unless ($supportsProductsModule)

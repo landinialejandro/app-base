@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantProfilePermissionController.php | V12
+// FILE: app/Http/Controllers/TenantProfilePermissionController.php | V13
 
 namespace App\Http\Controllers;
 
@@ -118,6 +118,7 @@ class TenantProfilePermissionController extends Controller
             ModuleCatalog::APPOINTMENTS,
             ModuleCatalog::ASSETS,
             ModuleCatalog::PRODUCTS,
+            ModuleCatalog::INVENTORY,
             ModuleCatalog::DOCUMENTS,
             ModuleCatalog::PROJECTS,
             ModuleCatalog::TASKS,

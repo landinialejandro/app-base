@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantProfileController.php | V13
+// FILE: app/Http/Controllers/TenantProfileController.php | V14
 
 namespace App\Http\Controllers;
 
@@ -226,6 +226,7 @@ class TenantProfileController extends Controller
             ModuleCatalog::APPOINTMENTS,
             ModuleCatalog::ASSETS,
             ModuleCatalog::PRODUCTS,
+            ModuleCatalog::INVENTORY,
             ModuleCatalog::DOCUMENTS,
             ModuleCatalog::PROJECTS,
             ModuleCatalog::TASKS,

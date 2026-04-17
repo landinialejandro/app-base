@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/ProductController.php | V8
+// FILE: app/Http/Controllers/ProductController.php | V9
 
 namespace App\Http\Controllers;
 
@@ -84,21 +84,22 @@ class ProductController extends Controller
             'attachments' => fn ($query) => $query->ordered(),
         ]);
 
-        $inventoryMovements = $product->inventoryMovements()
+        $lastInventoryMovement = $product->inventoryMovements()
             ->with(['order', 'document'])
+            ->latest('created_at')
             ->latest('id')
-            ->get();
+            ->first();
 
         $currentStock = app(ProductStockCalculator::class)->forProduct($product);
 
         $navigationTrail = ProductNavigationTrail::show($request, $product);
 
-        return view('products.show', compact(
-            'product',
-            'navigationTrail',
-            'inventoryMovements',
-            'currentStock',
-        ));
+        return view('products.show', [
+            'product' => $product,
+            'navigationTrail' => $navigationTrail,
+            'inventoryMovements' => collect($lastInventoryMovement ? [$lastInventoryMovement] : []),
+            'currentStock' => $currentStock,
+        ]);
     }
 
     public function edit(Request $request, Product $product): View

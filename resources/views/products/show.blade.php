@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/products/show.blade.php | V17 --}}
+{{-- FILE: resources/views/products/show.blade.php | V18 --}}
 
 @extends('layouts.app')
 
@@ -89,68 +89,43 @@
             </x-slot:details>
         </x-show-summary>
 
-        <x-card>
-            <div class="detail-grid">
-                <div class="detail-block">
-                    <div class="detail-label">Stock actual</div>
-                    <div class="detail-value">{{ number_format($currentStock, 2, ',', '.') }}</div>
-                </div>
-
-                <div class="detail-block">
-                    <div class="detail-label">Último movimiento</div>
-                    <div class="detail-value">
-                        @if ($inventoryMovements->isNotEmpty())
-                            {{ $inventoryMovements->first()->created_at?->format('d/m/Y H:i') ?? '—' }}
-                        @else
-                            —
-                        @endif
+        @if ($product->kind === ProductCatalog::KIND_PRODUCT)
+            <x-card>
+                <div class="detail-grid">
+                    <div class="detail-block">
+                        <div class="detail-label">Stock actual</div>
+                        <div class="detail-value">{{ number_format($currentStock, 2, ',', '.') }}</div>
                     </div>
-                </div>
 
-                <div class="detail-block">
-                    <div class="detail-label">Inventario</div>
-                    <div class="detail-value">
-                        @if ($product->kind === ProductCatalog::KIND_PRODUCT)
+                    <div class="detail-block">
+                        <div class="detail-label">Último movimiento</div>
+                        <div class="detail-value">
+                            @if ($inventoryMovements->isNotEmpty())
+                                {{ $inventoryMovements->first()->created_at?->format('d/m/Y H:i') ?? '—' }}
+                            @else
+                                —
+                            @endif
+                        </div>
+                    </div>
+
+                    <div class="detail-block">
+                        <div class="detail-label">Inventario</div>
+                        <div class="detail-value">
                             <a href="{{ route('inventory.show', ['product' => $product] + $trailQuery) }}">
                                 Ver ficha de inventario
                             </a>
-                        @else
-                            No aplica
-                        @endif
+                        </div>
                     </div>
                 </div>
-            </div>
-
-            @if ($product->kind === ProductCatalog::KIND_PRODUCT)
-                @include('inventory.partials.movement-form', [
-                    'action' => route('inventory.movements.store', $trailQuery),
-                    'products' => collect([$product]),
-                    'fixedKind' => 'ingresar',
-                    'selectedProductId' => $product->id,
-                    'returnContext' => 'products.show',
-                    'submitLabel' => 'Registrar ingreso',
-                    'productFieldId' => 'product_inventory_ingresar_product_id',
-                    'kindFieldId' => 'product_inventory_ingresar_kind',
-                    'quantityFieldId' => 'product_inventory_ingresar_quantity',
-                    'notesFieldId' => 'product_inventory_ingresar_notes',
-                ])
-            @endif
-        </x-card>
+            </x-card>
+        @endif
 
         <div class="tabs" data-tabs>
             <x-tab-toolbar label="Secciones del producto">
                 <x-slot:tabs>
                     <x-horizontal-scroll label="Secciones del producto">
-                        <button type="button" class="tabs-link is-active" data-tab-link="inventory" role="tab"
+                        <button type="button" class="tabs-link is-active" data-tab-link="attachments" role="tab"
                             aria-selected="true">
-                            Movimientos
-                            @if ($inventoryMovements->count())
-                                ({{ $inventoryMovements->count() }})
-                            @endif
-                        </button>
-
-                        <button type="button" class="tabs-link" data-tab-link="attachments" role="tab"
-                            aria-selected="false">
                             Adjuntos
                             @if ($attachments->count())
                                 ({{ $attachments->count() }})
@@ -160,19 +135,7 @@
                 </x-slot:tabs>
             </x-tab-toolbar>
 
-            <section class="tab-panel is-active" data-tab-panel="inventory">
-                <div class="tab-panel-stack">
-                    <x-card class="list-card">
-                        @include('inventory.partials.movements-table', [
-                            'movements' => $inventoryMovements,
-                            'emptyMessage' => 'No hay movimientos de stock registrados para este producto.',
-                            'trailQuery' => $trailQuery,
-                        ])
-                    </x-card>
-                </div>
-            </section>
-
-            <section class="tab-panel" data-tab-panel="attachments" hidden>
+            <section class="tab-panel is-active" data-tab-panel="attachments">
                 <div class="tab-panel-stack">
                     @include('attachments.partials.embedded', [
                         'attachments' => $attachments,

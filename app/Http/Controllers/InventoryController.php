@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/InventoryController.php | V8
+// FILE: app/Http/Controllers/InventoryController.php | V9
 
 namespace App\Http\Controllers;
 
@@ -69,6 +69,7 @@ class InventoryController extends Controller
 
         $inventoryMovements = $product->inventoryMovements()
             ->with(['order', 'orderItem', 'document', 'product'])
+            ->latest('created_at')
             ->latest('id')
             ->get();
 
@@ -94,7 +95,11 @@ class InventoryController extends Controller
             'order_id' => ['nullable', 'integer'],
             'order_item_id' => ['nullable', 'integer'],
             'document_id' => ['nullable', 'integer'],
-            'return_context' => ['nullable', 'string'],
+            'return_context' => ['nullable', 'string', Rule::in([
+                'inventory.show',
+                'orders.show',
+                'products.show',
+            ])],
         ]);
 
         $product = $this->resolveProduct((int) $data['product_id']);
@@ -330,6 +335,10 @@ class InventoryController extends Controller
             ),
             'products.show' => redirect()->route(
                 'products.show',
+                ['product' => $product] + $trailQuery
+            ),
+            'inventory.show', null => redirect()->route(
+                'inventory.show',
                 ['product' => $product] + $trailQuery
             ),
             default => redirect()->route(

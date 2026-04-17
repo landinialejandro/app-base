@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/partials/movement-form.blade.php | V3 --}}
+{{-- FILE: resources/views/inventory/partials/movement-form.blade.php | V4 --}}
 
 @php
     use App\Support\Inventory\InventoryMovementService;
@@ -26,6 +26,14 @@
     $orderItemId = $orderItemId ?? null;
     $documentId = $documentId ?? null;
     $returnContext = $returnContext ?? null;
+
+    $kindLabels = [
+        InventoryMovementService::KIND_INGRESAR => 'Ingresar',
+        InventoryMovementService::KIND_CONSUMIR => 'Consumir',
+        InventoryMovementService::KIND_ENTREGAR => 'Entregar',
+    ];
+
+    $selectedKind = old('kind', $fixedKind);
 @endphp
 
 @if ($action && $products->count() && $availableKinds->count())
@@ -58,19 +66,25 @@
         @if ($fixedKind)
             <div class="form-group">
                 <label class="form-label">Tipo de movimiento</label>
-                <input type="text" class="form-control" value="{{ ucfirst($fixedKind) }}" disabled>
+                <input type="text" class="form-control" value="{{ $kindLabels[$fixedKind] ?? ucfirst($fixedKind) }}"
+                    disabled>
                 <input type="hidden" name="kind" value="{{ $fixedKind }}">
             </div>
         @elseif ($availableKinds->count() === 1)
-            <input type="hidden" name="kind" value="{{ $availableKinds->first() }}">
+            <div class="form-group">
+                <label class="form-label">Tipo de movimiento</label>
+                <input type="text" class="form-control"
+                    value="{{ $kindLabels[$availableKinds->first()] ?? ucfirst($availableKinds->first()) }}" disabled>
+                <input type="hidden" name="kind" value="{{ $availableKinds->first() }}">
+            </div>
         @else
             <div class="form-group">
                 <label for="{{ $kindFieldId }}" class="form-label">Tipo de movimiento</label>
                 <select id="{{ $kindFieldId }}" name="kind" class="form-control" required>
                     <option value="">Seleccionar tipo</option>
                     @foreach ($availableKinds as $kind)
-                        <option value="{{ $kind }}" @selected(old('kind') === $kind)>
-                            {{ ucfirst($kind) }}
+                        <option value="{{ $kind }}" @selected($selectedKind === $kind)>
+                            {{ $kindLabels[$kind] ?? ucfirst($kind) }}
                         </option>
                     @endforeach
                 </select>
@@ -90,7 +104,7 @@
         </div>
 
         <div class="form-group">
-            <label for="{{ $notesFieldId }}" class="form-label">Notas</label>
+            <label for="{{ $notesFieldId }}" class="form-label">Motivo / notas</label>
             <input id="{{ $notesFieldId }}" name="notes" type="text" class="form-control"
                 value="{{ old('notes') }}" placeholder="Opcional">
             @error('notes')

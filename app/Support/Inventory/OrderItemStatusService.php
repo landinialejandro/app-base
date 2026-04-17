@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Inventory/OrderItemStatusService.php | V1
+// FILE: app/Support/Inventory/OrderItemStatusService.php | V3
 
 namespace App\Support\Inventory;
 
@@ -44,13 +44,13 @@ class OrderItemStatusService
     {
         $item->loadMissing('inventoryMovements');
 
-        $executed = $item->inventoryMovements
+        $executedNet = $item->inventoryMovements
             ->filter(fn ($movement) => $movement->trashed() === false)
             ->sum(function ($movement) {
-                return (float) $movement->quantity;
+                return $this->executionSignedQuantity($movement);
             });
 
-        return $this->normalizeQuantity($executed);
+        return max(0, $this->normalizeQuantity($executedNet));
     }
 
     public function pendingQuantity(OrderItem $item): float
@@ -59,6 +59,21 @@ class OrderItemStatusService
         $executedQuantity = $this->executedQuantity($item);
 
         return max(0, $this->normalizeQuantity($orderedQuantity - $executedQuantity));
+    }
+
+    protected function executionSignedQuantity(object $movement): float
+    {
+        $quantity = $this->normalizeQuantity($movement->quantity ?? 0);
+        $kind = (string) ($movement->kind ?? '');
+
+        return match ($kind) {
+            InventoryMovementService::KIND_ENTREGAR,
+            InventoryMovementService::KIND_CONSUMIR => $quantity,
+
+            InventoryMovementService::KIND_INGRESAR => -1 * $quantity,
+
+            default => 0.0,
+        };
     }
 
     protected function persistStatus(OrderItem $item, string $status): string

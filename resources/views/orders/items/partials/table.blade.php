@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/items/partials/table.blade.php | V5 --}}
+{{-- FILE: resources/views/orders/items/partials/table.blade.php | V6 --}}
 
 @php
     use App\Support\Catalogs\ProductCatalog;
@@ -44,19 +44,30 @@
 
                         $executeKind = $inventoryRow['execute_kind'] ?? null;
                         $pendingQuantity = (float) ($inventoryRow['pending_quantity'] ?? 0);
+                        $executedQuantity = (float) ($inventoryRow['executed_quantity'] ?? 0);
+                        $currentStock = array_key_exists('current_stock', $inventoryRow)
+                            ? (float) $inventoryRow['current_stock']
+                            : null;
+
                         $direction = $inventoryRow['direction'] ?? 'out';
                         $executeLabel = $direction === 'in' ? 'Recibir' : 'Surtir';
+
+                        $lineStatusLabel = $inventoryRow['line_status_label'] ?? 'Pendiente';
+                        $lineStatusBadge = $inventoryRow['line_status_badge'] ?? 'status-badge--pending';
                     @endphp
 
                     <tr>
                         <td>{{ $item->position }}</td>
+
                         <td>{{ ProductCatalog::kindLabel($item->kind) }}</td>
+
                         <td>{{ $item->description }}</td>
+
                         <td>{{ number_format((float) $item->quantity, 2, ',', '.') }}</td>
 
                         <td>
-                            @if ($isPhysicalProduct && array_key_exists('current_stock', $inventoryRow))
-                                {{ number_format((float) $inventoryRow['current_stock'], 2, ',', '.') }}
+                            @if ($isPhysicalProduct && $currentStock !== null)
+                                {{ number_format($currentStock, 2, ',', '.') }}
                             @else
                                 —
                             @endif
@@ -64,7 +75,7 @@
 
                         <td>
                             @if ($isPhysicalProduct)
-                                {{ number_format((float) ($inventoryRow['executed_quantity'] ?? 0), 2, ',', '.') }}
+                                {{ number_format($executedQuantity, 2, ',', '.') }}
                             @else
                                 —
                             @endif
@@ -80,9 +91,8 @@
 
                         <td>
                             @if ($isPhysicalProduct)
-                                <span
-                                    class="status-badge {{ $inventoryRow['line_status_badge'] ?? 'status-badge--pending' }}">
-                                    {{ $inventoryRow['line_status_label'] ?? 'Pendiente' }}
+                                <span class="status-badge {{ $lineStatusBadge }}">
+                                    {{ $lineStatusLabel }}
                                 </span>
                             @else
                                 —
@@ -90,6 +100,7 @@
                         </td>
 
                         <td>${{ number_format((float) $item->unit_price, 2, ',', '.') }}</td>
+
                         <td>${{ number_format((float) $item->subtotal, 2, ',', '.') }}</td>
 
                         <td class="compact-actions-cell">

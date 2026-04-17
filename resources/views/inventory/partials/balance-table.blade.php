@@ -1,7 +1,7 @@
-{{-- FILE: resources/views/inventory/partials/balance-table.blade.php | V1 --}}
+{{-- FILE: resources/views/inventory/partials/balance-table.blade.php | V2 --}}
 
 @php
-    $rows = $rows ?? collect();
+    $rows = ($rows ?? collect())->values();
     $trailQuery = $trailQuery ?? [];
 @endphp
 
@@ -15,12 +15,15 @@
                     <th>Unidad</th>
                     <th>Stock actual</th>
                     <th>Movimientos</th>
+                    <th class="compact-actions-cell">Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach ($rows as $row)
                     @php
                         $product = $row['product'];
+                        $stock = (float) ($row['stock'] ?? 0);
+                        $movementCount = (int) ($row['movement_count'] ?? 0);
                     @endphp
                     <tr>
                         <td>
@@ -28,10 +31,24 @@
                                 {{ $product->name }}
                             </a>
                         </td>
+
                         <td>{{ $product->sku ?: '—' }}</td>
+
                         <td>{{ $product->unit_label ?: '—' }}</td>
-                        <td>{{ number_format((float) $row['stock'], 2, ',', '.') }}</td>
-                        <td>{{ $row['movement_count'] }}</td>
+
+                        <td>{{ number_format($stock, 2, ',', '.') }}</td>
+
+                        <td>{{ $movementCount }}</td>
+
+                        <td class="compact-actions-cell">
+                            <div class="compact-actions">
+                                <a href="{{ route('inventory.show', ['product' => $product] + $trailQuery) }}"
+                                    class="btn btn-secondary btn-sm" title="Ver ficha de inventario"
+                                    aria-label="Ver ficha de inventario">
+                                    Ver ficha
+                                </a>
+                            </div>
+                        </td>
                     </tr>
                 @endforeach
             </tbody>

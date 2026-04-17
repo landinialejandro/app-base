@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V29 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V30 --}}
 
 @extends('layouts.app')
 
@@ -171,7 +171,7 @@
                         @if ($supportsProductsModule)
                             <button type="button" class="tabs-link" data-tab-link="inventory" role="tab"
                                 aria-selected="false">
-                                Movimientos de stock
+                                Inventory
                                 @if ($inventoryMovements->count())
                                     ({{ $inventoryMovements->count() }})
                                 @endif
@@ -215,17 +215,29 @@
                 <section class="tab-panel" data-tab-panel="inventory" hidden>
                     <div class="tab-panel-stack">
                         <x-card>
-                            <p class="mb-0">
-                                Los movimientos operativos de esta orden se registran exclusivamente desde las líneas.
-                            </p>
+                            <div class="detail-grid">
+                                <div class="detail-block">
+                                    <div class="detail-label">Lectura del frente</div>
+                                    <div class="detail-value">Contextual desde la orden</div>
+                                </div>
+
+                                <div class="detail-block">
+                                    <div class="detail-label">Movimientos registrados</div>
+                                    <div class="detail-value">{{ $inventoryMovements->count() }}</div>
+                                </div>
+
+                                <div class="detail-block">
+                                    <div class="detail-label">Operación principal</div>
+                                    <div class="detail-value">Por línea en la tab Ítems</div>
+                                </div>
+                            </div>
                         </x-card>
 
-                        <x-card class="list-card">
-                            @include('inventory.partials.movements-table', [
-                                'movements' => $inventoryMovements,
-                                'emptyMessage' => 'No hay movimientos de stock para esta orden.',
-                                'trailQuery' => $trailQuery,
-                            ])
+                        <x-card>
+                            <p class="mb-0">
+                                Esta orden consume inventory como capacidad contextual. La ejecución operativa se resuelve
+                                desde cada línea y la lectura maestra del producto permanece en la ficha de inventory.
+                            </p>
                         </x-card>
                     </div>
                 </section>

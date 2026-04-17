@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/partials/movements-table.blade.php | V2 --}}
+{{-- FILE: resources/views/inventory/partials/movements-table.blade.php | V3 --}}
 
 @php
     $movements = ($movements ?? collect())->values();
@@ -25,19 +25,32 @@
                 @foreach ($movements as $movement)
                     <tr>
                         <td>{{ $movement->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
+
                         <td>{{ ucfirst($movement->kind) }}</td>
-                        <td>{{ $movement->product?->name ?? '—' }}</td>
+
+                        <td>
+                            @if ($movement->product)
+                                <a href="{{ route('inventory.show', ['product' => $movement->product] + $trailQuery) }}">
+                                    {{ $movement->product->name }}
+                                </a>
+                            @else
+                                —
+                            @endif
+                        </td>
+
                         <td>
                             @if ($movement->orderItem)
-                                #{{ $movement->orderItem->id }}
+                                <div>#{{ $movement->orderItem->id }}</div>
                                 @if ($movement->orderItem->description)
-                                    — {{ $movement->orderItem->description }}
+                                    <div class="text-muted">{{ $movement->orderItem->description }}</div>
                                 @endif
                             @else
                                 —
                             @endif
                         </td>
+
                         <td>{{ number_format((float) $movement->quantity, 2, ',', '.') }}</td>
+
                         <td>
                             @if ($movement->order)
                                 <a href="{{ route('orders.show', ['order' => $movement->order] + $trailQuery) }}">
@@ -47,6 +60,7 @@
                                 —
                             @endif
                         </td>
+
                         <td>
                             @if ($movement->document)
                                 <a
@@ -57,6 +71,7 @@
                                 —
                             @endif
                         </td>
+
                         <td>{{ $movement->notes ?: '—' }}</td>
                     </tr>
                 @endforeach

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/show.blade.php | V3 --}}
+{{-- FILE: resources/views/inventory/show.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -47,11 +47,36 @@
                     {{ $inventoryMovements->count() }}
                 </x-show-summary-item-detail-block>
 
+                <x-show-summary-item-detail-block label="Producto maestro">
+                    <a href="{{ route('products.show', ['product' => $product] + $trailQuery) }}">
+                        Ver ficha del producto
+                    </a>
+                </x-show-summary-item-detail-block>
+
                 <x-show-summary-item-detail-block label="Descripción" full>
                     {{ $product->description ?: '—' }}
                 </x-show-summary-item-detail-block>
             </x-slot:details>
         </x-show-summary>
+
+        <x-card>
+            <div class="detail-grid">
+                <div class="detail-block">
+                    <div class="detail-label">Lectura del frente</div>
+                    <div class="detail-value">Maestra de inventory</div>
+                </div>
+
+                <div class="detail-block">
+                    <div class="detail-label">Operación manual</div>
+                    <div class="detail-value">Ingreso desde inventory</div>
+                </div>
+
+                <div class="detail-block">
+                    <div class="detail-label">Trazabilidad</div>
+                    <div class="detail-value">Órdenes y documentos cuando existan</div>
+                </div>
+            </div>
+        </x-card>
 
         <x-card class="list-card">
             @include('inventory.partials.movement-form', [

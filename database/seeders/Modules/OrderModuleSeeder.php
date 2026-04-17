@@ -1,10 +1,11 @@
 <?php
 
-// FILE: database/seeders/Modules/OrderModuleSeeder.php | V2
+// FILE: database/seeders/Modules/OrderModuleSeeder.php | V3
 
 namespace Database\Seeders\Modules;
 
 use App\Models\Order;
+use App\Support\Catalogs\OrderCatalog;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
@@ -56,9 +57,9 @@ class OrderModuleSeeder extends BaseModuleSeeder
             'party_id' => $acme?->id,
             'created_by' => $users['ownerTech']->id,
             'updated_by' => $users['ownerTech']->id,
-            'kind' => 'sale',
+            'kind' => OrderCatalog::KIND_SALE,
             'number' => 'TECH-ORD-0001',
-            'status' => 'draft',
+            'status' => OrderCatalog::STATUS_DRAFT,
             'ordered_at' => now()->subDays(3)->toDateString(),
             'notes' => 'Pedido inicial de cliente estratégico.',
         ]);
@@ -75,11 +76,11 @@ class OrderModuleSeeder extends BaseModuleSeeder
             'party_id' => $laura?->id,
             'created_by' => $users['techUser']->id,
             'updated_by' => $users['techUser']->id,
-            'kind' => 'service',
+            'kind' => OrderCatalog::KIND_SERVICE,
             'number' => 'TECH-ORD-0002',
-            'status' => 'confirmed',
+            'status' => OrderCatalog::STATUS_APPROVED,
             'ordered_at' => now()->subDay()->toDateString(),
-            'notes' => 'Trabajo técnico confirmado.',
+            'notes' => 'Trabajo técnico aprobado.',
         ]);
 
         $this->replaceOrderItems($tenant->id, $order2->id, [
@@ -93,9 +94,9 @@ class OrderModuleSeeder extends BaseModuleSeeder
             'party_id' => $acme?->id,
             'created_by' => $users['shared']->id,
             'updated_by' => $users['shared']->id,
-            'kind' => 'purchase',
+            'kind' => OrderCatalog::KIND_PURCHASE,
             'number' => 'TECH-ORD-0003',
-            'status' => 'cancelled',
+            'status' => OrderCatalog::STATUS_CANCELLED,
             'ordered_at' => now()->subDays(2)->toDateString(),
             'notes' => 'Compra demo cancelada para probar estados.',
         ]);
@@ -121,9 +122,9 @@ class OrderModuleSeeder extends BaseModuleSeeder
             'party_id' => $obrasPatagonicas?->id,
             'created_by' => $users['ownerAndina']->id,
             'updated_by' => $users['ownerAndina']->id,
-            'kind' => 'sale',
+            'kind' => OrderCatalog::KIND_SALE,
             'number' => 'AND-ORD-0001',
-            'status' => 'draft',
+            'status' => OrderCatalog::STATUS_DRAFT,
             'ordered_at' => now()->subDays(4)->toDateString(),
             'notes' => 'Materiales para avance de obra.',
         ]);
@@ -139,11 +140,11 @@ class OrderModuleSeeder extends BaseModuleSeeder
             'party_id' => $marcos?->id,
             'created_by' => $users['andinaUser']->id,
             'updated_by' => $users['andinaUser']->id,
-            'kind' => 'service',
+            'kind' => OrderCatalog::KIND_SERVICE,
             'number' => 'AND-ORD-0002',
-            'status' => 'confirmed',
+            'status' => OrderCatalog::STATUS_APPROVED,
             'ordered_at' => now()->toDateString(),
-            'notes' => 'Servicios técnicos programados.',
+            'notes' => 'Servicios técnicos aprobados.',
         ]);
 
         $this->replaceOrderItems($tenant->id, $order2->id, [
@@ -157,9 +158,9 @@ class OrderModuleSeeder extends BaseModuleSeeder
             'party_id' => $obrasPatagonicas?->id,
             'created_by' => $users['shared']->id,
             'updated_by' => $users['shared']->id,
-            'kind' => 'purchase',
+            'kind' => OrderCatalog::KIND_PURCHASE,
             'number' => 'AND-ORD-0003',
-            'status' => 'cancelled',
+            'status' => OrderCatalog::STATUS_CANCELLED,
             'ordered_at' => now()->subDays(3)->toDateString(),
             'notes' => 'Compra demo cancelada.',
         ]);

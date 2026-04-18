@@ -53,14 +53,10 @@ Comprende quién puede operar, sobre qué universo, bajo qué condiciones y dent
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00007
-
+SECTION_VERSION: 00008
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
-
 Toda autorización del sistema debe respetar principios estables y no negociables.
-
 Principios:
-
 backend decide
 frontend representa
 tenant aísla
@@ -69,31 +65,14 @@ scope real limita dataset
 constraint funcional restringe capacidad
 delegación debe ser consciente
 trazabilidad importa
-
-Reglas:
-
-ninguna acción crítica se autoriza solo por ocultar botones
-
-ningún dataset visible debe escapar al scope efectivo
-
-ningún bypass local puede reemplazar el arbitraje central
-
-ninguna integración entre módulos invalida el contrato de seguridad del módulo oferente
-
-la comodidad de implementación no justifica romper el contrato de seguridad
-
+Estos principios son abstractos y estables. Su aplicación operativa concreta se resuelve en REGLAS DE IMPLEMENTACIÓN SEGURA.
 Principio adicional consolidado:
-
-cuando una operación dependa del estado funcional del recurso padre o del flujo actual, ese estado forma parte de la autorización efectiva y no solo de una validación secundaria
-
-Principio adicional consolidado para continuidad operativa:
-
-el sistema puede privilegiar continuidad de operación con registro y alerta antes que bloqueo automático, siempre que no comprometa aislamiento tenant, integridad crítica o seguridad del contrato
-
+cuando una operación dependa del estado funcional del recurso padre o del flujo actual, ese estado forma parte de la autorización efectiva y no solo de una validación secundaria.
+Principio de continuidad operativa:
+el sistema puede privilegiar continuidad de operación con registro y alerta antes que bloqueo automático, siempre que no comprometa aislamiento tenant, integridad crítica o seguridad del contrato.
+Este principio aplica cuando el riesgo es operativo y reversible. No aplica cuando está en juego aislamiento entre tenants, ausencia de permiso efectivo, ruptura de integridad estructural no reversible, ausencia de trazabilidad mínima exigible o contradicción funcional que vuelva insegura la operación.
 Caso vigente:
-
-inventory puede permitir ejecución con stock negativo manteniendo trazabilidad y alerta automática al owner
-
+inventory puede permitir ejecución con stock negativo manteniendo trazabilidad y alerta automática al owner.
 <<END SECTION>>
 
 <<SECTION: ACCESO PÚBLICO Y ACCESO AUTENTICADO>>
@@ -294,7 +273,7 @@ no saltar el resolver central con lógica local improvisada
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -316,11 +295,7 @@ No asumir que una simplificación técnica justifica una excepción doctrinal.
 
 Toda implementación debe preferir claridad, centralización y trazabilidad de la decisión autorizadora.
 
-Regla operativa adicional:
-
-cuando la operación exija resolver excepciones, diferencias o ajustes no críticos, la implementación segura debe tender a registrar, contextualizar y escalar cuando corresponda antes que bloquear por defecto una continuidad de trabajo legítima
-
-Los bloqueos duros deben reservarse a razones realmente críticas, por ejemplo:
+Los bloqueos duros deben reservarse a razones realmente críticas:
 
 violación de tenant
 falta de permiso efectivo
@@ -328,6 +303,7 @@ ruptura de integridad estructural no reversible
 ausencia de trazabilidad mínima exigible
 contradicción funcional que vuelva insegura la operación
 
+Cuando la operación exija resolver excepciones no críticas, la implementación segura debe tender a registrar, contextualizar y escalar antes que bloquear una continuidad de trabajo legítima.
 <<END SECTION>>
 
 <<SECTION: CONSTRAINTS FUNCIONALES>>
@@ -412,7 +388,7 @@ sí exige que el módulo no quede técnicamente existente pero prácticamente in
 <<END SECTION>>
 
 <<SECTION: RECURSOS DELEGADOS AL PADRE>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 RECURSOS DELEGADOS AL PADRE
 
@@ -434,18 +410,7 @@ la delegación no elimina validaciones operativas específicas del recurso hijo
 
 la delegación no convierte al hijo en módulo autónomo
 
-Aclaración consolidada para order_items:
-
-aunque delega seguridad principal en orders, puede requerir validaciones operativas adicionales cuando ya exista ejecución real asociada mediante inventory
-
-ejemplos:
-
-línea readonly por movimientos existentes
-restricción de edición por trazabilidad
-reversión permitida solo bajo condiciones válidas
-
-Estas reglas complementan la delegación y no la reemplazan.
-
+Cuando un recurso hijo participe de un frente operativo externo con trazabilidad propia, puede requerir restricciones adicionales que complementen la delegación sin reemplazarla. El detalle de esos casos se resuelve en REGLAS OPERATIVAS POR MÓDULO.
 <<END SECTION>>
 
 <<SECTION: INTEGRACIONES REUSABLES Y AUTORIZACIÓN>>
@@ -491,74 +456,71 @@ surfaces oficiales de inventory consumidas por products u orders
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 REGLAS OPERATIVAS POR MÓDULO
 
 ORDERS
 
 dataset compartido según scope vigente
-
 create exige contexto kind válido
-
 constraints.allowed_kinds puede limitar create, view, update y delete
-
 estado de la orden condiciona acciones operativas
-
 closed implica readonly operativo
-
 cancelled exige consistencia trazable según contrato
+
+ORDER_ITEMS
+
+delega autorización principal en orders
+cuando ya existan inventory_movements vinculados a una línea:
+la edición o eliminación libre queda restringida por trazabilidad
+la reversión solo es válida bajo condiciones del frente inventory
+la lectura de ejecución neta debe reflejar contramovimientos aplicados
 
 PARTIES
 
 dataset según scope y kind permitido
-
 create contextual por kind
-
-delete reservado según contrato vigente
+constraints.allowed_kinds arbitra create, view, update y delete
+delete reservado al owner con delegación posible a administrator
 
 ASSETS
 
 dataset scoped
-
 acciones según permiso efectivo y módulo habilitado
+sin ownership artificial ni create contextual obligatorio por kind
 
 TASKS
 
 dataset según scope propio del módulo
-
 acciones internas y derivaciones sujetas a permiso efectivo
+puede recibir alertas automáticas del sistema como destino operativo
 
 APPOINTMENTS
 
 dataset según scope del módulo
-
 acciones de agenda y relaciones sujetas a permiso efectivo
+si orders no está habilitado, no debe exponerse el acceso relacional
 
 PRODUCTS
 
 dataset según scope aplicable
-
 acciones de catálogo separadas de lógica de inventory
 
 DOCUMENTS
 
 acciones derivadas y edición según contrato documental vigente
+create contextual con constraints obligatorias reutilizando patrón de orders
 
 INVENTORY
 
 dataset según producto visible y contexto permitido
-
 movimientos sujetos a autorización del frente y contexto recibido
-
-órdenes closed o cancelled no deben admitir operación si el contrato vigente las bloquea
-
-stock negativo puede permitirse con trazabilidad y alerta automática
-
+órdenes closed o cancelled no admiten operación si el contrato las bloquea
+stock negativo permitido con trazabilidad y alerta automática al owner
 reversión debe respetar reglas del frente y dejar recálculo consistente
-
-la ejecución neta por línea debe evaluarse con semántica operativa propia y no solo por signo de stock
-
+la ejecución neta por línea se evalúa con semántica operativa propia y no solo por signo de stock
+si el módulo no está habilitado para el tenant, no debe exponerse ningún acceso ni surface residual
 <<END SECTION>>
 
 <<SECTION: HARDENING Y AUDITORÍA>>

@@ -221,7 +221,7 @@ Es una pieza estructural del funcionamiento del sistema.
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 CAPAS FUNCIONALES DEL SISTEMA
 
@@ -271,36 +271,7 @@ Regla general:
 
 esta lectura por capas debe prevalecer al pensar arquitectura, documentación y evolución general del proyecto.
 
-Aclaración arquitectónica consolidada:
-
-dentro de la lectura modular del sistema debe distinguirse además entre:
-
-núcleo interno del módulo
-puerta de enlace oficial hacia el ecosistema
-consumo externo por otros módulos
-
-El núcleo interno resuelve la identidad y operación propia del módulo.
-
-La puerta de enlace oficial expresa qué capacidades publica el módulo para el ecosistema sin perder gobierno sobre su lógica.
-
-El consumo externo ocurre cuando otro módulo utiliza esa capacidad publicada sin reconstruir localmente la lógica operativa del oferente.
-
-Regla adicional:
-
-las integraciones sanas del ecosistema no deben invadir el núcleo ajeno ni redistribuir arbitrariamente su lógica entre consumidores.
-
-Cuando un módulo publique una capacidad para el ecosistema, los demás módulos deben tender a expresar intención de uso y no a arbitrar por sí mismos la operación completa del módulo oferente.
-
-Aclaración adicional consolidada para inventory:
-
-la evolución actual del proyecto ya no permite leer inventory solo como capacidad lateral indiferenciada apoyada en products
-
-su operación efectiva empieza a consolidarse como frente funcional real dentro de los módulos del negocio
-
-orders puede alojar lectura o entrada contextual a esa capacidad como hub visual sin absorberla como lógica propia
-
-El reconocimiento arquitectónico de inventory como módulo funcional no implica por sí solo que su contrato de seguridad, su configuración tenant ni su exposición visible estén cerrados en todos los tenants.
-
+El modelo de tres planos que organiza las integraciones entre módulos (núcleo interno / puerta de enlace oficial / consumo externo) se define en la sección ARQUITECTURA MODULAR DEL ECOSISTEMA de este mismo documento.
 <<END SECTION>>
 
 <<SECTION: JERARQUÍA GENERAL DEL SISTEMA>>
@@ -433,7 +404,7 @@ tampoco debe sobredimensionarse el dominio del negocio hasta absorber piezas cuy
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CLASIFICACIÓN CONCEPTUAL DE MÓDULOS
 
@@ -446,6 +417,8 @@ No reemplaza el modelado de entidades ni los contratos específicos de otros doc
 MÓDULO BASE DEL DOMINIO
 
 Es una pieza conceptual fundamental del negocio y actúa como anclaje relacional amplio dentro del ecosistema.
+
+Pertenece al ecosistema operativo del tenant pero con un rol más amplio que el de un módulo operativo puntual.
 
 Caso actual consolidado:
 
@@ -463,6 +436,8 @@ MÓDULO AUTÓNOMO
 
 Es un módulo con identidad operativa propia que puede vivir por sí mismo aunque también participe en relaciones con otros módulos.
 
+Su agrupación o vinculación con otros módulos no debe degradarlo a simple subrecurso si conserva función propia.
+
 Casos relevantes actuales:
 
 tasks
@@ -470,14 +445,6 @@ appointments
 products
 assets
 orders
-
-Aclaración adicional consolidada:
-
-appointments debe leerse además como módulo oferente de integración reutilizable dentro del ecosistema
-
-su publicación de capacidades reusables no lo convierte en subrecurso de assets, parties ni orders
-
-refuerza su autonomía contractual dentro del sistema
 
 MÓDULO AGRUPADOR
 
@@ -499,10 +466,11 @@ Regla:
 
 esta clasificación debe orientar futuras decisiones arquitectónicas del proyecto.
 
+El detalle contractual y operativo de cada módulo se resuelve en la sección LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES.
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
@@ -543,35 +511,19 @@ Ese consumo debe tender a expresar intención y contexto.
 
 La decisión operativa completa debe seguir perteneciendo al módulo oferente.
 
-Aclaración adicional consolidada:
+HUB VISUAL
 
-un módulo puede además actuar como hub visual.
+Un módulo puede además actuar como hub visual: alojar interacción de otro módulo dentro de su superficie sin absorber su lógica operativa.
 
-Eso significa que puede alojar interacción de otros módulos dentro de su superficie sin absorber su lógica operativa.
+En esa situación el módulo hub conserva gobierno de su superficie visual y el módulo invitado conserva gobierno de su lógica operativa.
 
-En esa situación:
+Caso consolidado:
 
-el módulo hub conserva gobierno de su superficie visual
-el módulo invitado conserva gobierno de su lógica operativa
-
-Caso arquitectónico ya reafirmado:
-
-orders puede actuar como hub visual y contextual del frente inventory cuando la operación real se ancle en order_items
-
-esa condición no convierte a orders en dueño del stock, del historial maestro ni de la semántica operativa completa del frente inventory
-
-Aclaración adicional consolidada:
-
-cuando una capacidad publicada por un módulo se consuma desde una línea operativa de otro módulo, pueden coexistir planos funcionales distintos dentro del mismo frente
-
-caso vigente relevante:
-
-inventory puede involucrar lectura de stock y lectura de ejecución operativa sin que ambas deban leerse como equivalentes
+orders actúa como hub visual del frente inventory cuando la operación se ancla en order_items, sin convertirse en dueño del stock ni de la semántica operativa de inventory.
 
 Regla final:
 
 la evolución modular del sistema debe tender a más reutilización oficial y menos lógica dispersa entre consumidores.
-
 <<END SECTION>>
 
 <<SECTION: BASE DEL DOMINIO>>
@@ -598,7 +550,7 @@ Sigue perteneciendo al ecosistema operativo del tenant, pero con un rol conceptu
 <<END SECTION>>
 
 <<SECTION: MÓDULOS FUNCIONALES ACTUALES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 MÓDULOS FUNCIONALES ACTUALES
 
@@ -618,30 +570,17 @@ inventory
 
 Estos módulos constituyen la lectura funcional principal del sistema dentro de la empresa activa.
 
-La correspondencia entre entidad del negocio y módulo visible puede ser directa o predominantemente directa, pero no todas las entidades del negocio deben leerse como módulo nuclear independiente.
+Dos aclaraciones estructurales relevantes:
 
-Aclaración adicional consolidada:
+appointments: su superficie principal es appointments.calendar. El index existe como superficie secundaria accesible pero no como base promovida del módulo.
 
-appointments mantiene identidad de módulo funcional propio con superficie principal de agenda
+inventory: ya debe leerse como frente funcional del sistema con surfaces propias de saldo, historial y operación. Su consolidación modular sigue en evolución. Ese reconocimiento no implica que su contrato de seguridad, configuración tenant o exposición visible estén cerrados en todos los contextos reales.
 
-su acceso principal del ecosistema se interpreta desde appointments.calendar
-
-appointments.index puede existir como superficie secundaria, pero no debe leerse como base promovida del módulo
-
-Aclaración adicional consolidada para inventory:
-
-inventory ya debe leerse como frente funcional actual del sistema y no solo como capacidad lateral implícita dentro de products
-
-su consolidación modular sigue en evolución
-
-pero su lectura arquitectónica vigente ya corresponde a un módulo funcional del negocio con surfaces propias de saldo, historial y operación
-
-Ese reconocimiento arquitectónico no reemplaza ni anticipa por sí solo el cierre efectivo de permisos, configuración tenant o exposición visible del módulo en todos los contextos reales.
-
+El detalle del rol arquitectónico de cada módulo se resuelve en LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES.
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES
 
@@ -649,114 +588,59 @@ La lectura conceptual de los módulos actuales permite comprender el rol arquite
 
 No reemplaza contratos funcionales, reglas de seguridad ni decisiones de implementación específicas.
 
-La plataforma debe leerse además como una base priorizada para microempresas y PyMEs pequeñas que necesitan ordenar su operación sin incorporar fricción innecesaria ni depender de una cultura tecnológica avanzada para poder trabajar.
+La plataforma debe leerse como una base priorizada para microempresas y PyMEs que necesitan ordenar su operación sin incorporar fricción innecesaria ni depender de una cultura tecnológica avanzada para poder trabajar.
 
 PARTIES
 
-Debe leerse como módulo base del dominio.
-
-Representa actores externos relacionados con la operación del tenant y funciona como referencia amplia para múltiples relaciones del ecosistema.
+Módulo base del dominio. Representa actores externos relacionados con la operación del tenant y funciona como referencia amplia para múltiples relaciones del ecosistema. Publica oferta reusable oficial para el ecosistema, cuyo caso inmediato es linked-party-action.
 
 PROJECTS
 
-Debe leerse como módulo agrupador.
-
-Su función principal es ordenar, organizar o brindar lectura consolidada sobre trabajo relacionado, especialmente alrededor de tasks, sin absorber su identidad.
+Módulo agrupador. Su función principal es ordenar y brindar lectura consolidada sobre trabajo relacionado, especialmente alrededor de tasks, sin absorber su identidad.
 
 TASKS
 
-Debe leerse como módulo autónomo.
-
-Representa una unidad operativa interna que conserva identidad propia aunque participe en agrupaciones o relaciones con otros módulos.
+Módulo autónomo. Representa una unidad operativa interna que conserva identidad propia aunque participe en agrupaciones o relaciones con otros módulos. Puede actuar como destino de alertas automáticas del sistema cuando la operación lo requiera.
 
 APPOINTMENTS
 
-Debe leerse como módulo autónomo de agenda operativa.
+Módulo autónomo de agenda operativa. Representa planificación, reserva o coordinación temporal dentro del tenant. Su superficie principal es calendar.
 
-Representa planificación, reserva o coordinación temporal dentro del tenant.
-
-Su superficie principal actual debe leerse desde calendar como expresión primaria del módulo.
-
-Además, appointments ya no debe leerse solo como pantalla navegable aislada.
-
-También publica oferta reusable oficial para consumo desde otros módulos del ecosistema.
-
-Esa oferta puede incluir embebidos relacionales fuertes cuando la relación lo justifique y acciones compactas cuando el vínculo sea puntual o 1 a 1.
-
-Su publicación reusable no degrada su identidad ni lo convierte en subrecurso de módulos consumidores.
+Publica oferta reusable oficial para el ecosistema: embebidos relacionales fuertes cuando la relación lo justifique y acciones compactas cuando el vínculo sea puntual o 1 a 1. Esa publicación no degrada su identidad ni lo convierte en subrecurso de módulos consumidores.
 
 PRODUCTS
 
-Debe leerse como módulo autónomo de catálogo operativo compartido.
+Módulo autónomo de catálogo operativo compartido. Representa bienes y servicios catalogables que alimentan otros flujos del negocio. Actúa como soporte maestro de ítems operativos y documentales dentro del tenant.
 
-Representa bienes y servicios catalogables que alimentan otros flujos del negocio.
+La distinción entre productos físicos con movimientos y servicios no stockeables por defecto forma parte de la lectura vigente.
 
-No debe leerse solo como catálogo comercial ni como simple CRUD.
-
-También actúa como soporte maestro de ítems operativos y documentales dentro del tenant.
-
-En el estado actual del proyecto, además, constituye la base operativa validada sobre la que se apoya inventory V1.
-
-Esa relación ya no debe leerse solo como dirección teórica de crecimiento, sino como capacidad operativa real verificada en runtime.
-
-La distinción entre productos físicos con movimientos y servicios no stockeables por defecto forma parte de esa lectura vigente.
-
-A la vez, la evolución conceptual aprobada del sistema ya no lee inventory únicamente como una capacidad difusa apoyada en products.
-
-La lectura arquitectónica correcta pasa a ser la siguiente:
-
-products conserva identidad como catálogo maestro compartido del tenant
-
-inventory se proyecta como frente modular propio de operación de stock, saldo e historial de movimientos
-
-Esa proyección no degrada el rol estructural de products.
-
-Lo reafirma como base maestra del artículo dentro de una separación más clara entre catálogo y operación.
+Products conserva identidad como catálogo maestro del artículo. Inventory opera como frente separado de stock, saldo e historial. Esa separación no degrada a products: lo reafirma como base maestra dentro de una arquitectura más limpia entre catálogo y operación.
 
 ASSETS
 
-Debe leerse como módulo autónomo de activos operativos.
-
-Representa equipos, unidades o recursos identificables del tenant y aporta contexto operativo a distintos frentes del negocio.
+Módulo autónomo de activos operativos. Representa equipos, unidades o recursos identificables del tenant y aporta contexto operativo a distintos frentes del negocio. Publica linked-asset-action como capacidad reusable oficial.
 
 ORDERS
 
-Debe leerse como módulo autónomo de operación central.
+Módulo autónomo de operación central. Puede recibir contexto desde otros módulos sin perder identidad propia.
 
-Representa una pieza relevante de la operación interna del tenant y puede recibir contexto desde otros módulos sin perder identidad propia.
-
-Cuando inventory interviene en ejecución por línea, orders puede alojar esa experiencia como hub visual y contextual de trabajo.
-
-Esa condición no lo transforma en dueño del frente inventory.
-
-Su rol correcto sigue siendo el de contenedor operativo central desde el que pueden consumirse capacidades ajenas sin absorber su lógica.
+Actúa como hub visual cuando inventory interviene en ejecución por línea: aloja esa experiencia dentro de su superficie sin absorber la lógica operativa ni la semántica de stock de inventory.
 
 DOCUMENTS
 
-Debe leerse como módulo derivado respecto de orders.
-
-Su función principal es formalizar o prolongar documentalmente operaciones más nucleares del sistema.
+Módulo derivado respecto de orders. Su función principal es formalizar o prolongar documentalmente operaciones más nucleares del sistema.
 
 ATTACHMENTS
 
-Debe leerse como módulo transversal.
-
-Su función principal es integrarse sobre otros recursos del sistema sin convertirse en núcleo operativo autónomo del dominio.
+Módulo transversal. Se integra sobre otros recursos del sistema sin convertirse en núcleo operativo autónomo del dominio.
 
 INVENTORY
 
-Debe leerse como frente operativo en evolución hacia identidad modular propia.
+Frente operativo en evolución hacia identidad modular propia. Representa la operación de stock del tenant sobre una base separada del catálogo maestro de artículos.
 
-Representa la operación de stock del tenant sobre una base separada del catálogo maestro de artículos.
+Su lectura vigente contempla trazabilidad operativa real incluida la ejecución por línea cuando order_items actúa como anclaje de trabajo. Stock y ejecución operativa son planos funcionales distintos y no deben leerse como equivalentes.
 
-Su lectura vigente ya no debe reducirse a saldo agregado por producto.
-
-También debe contemplar trazabilidad operativa real, incluida la ejecución por línea cuando order_items actúe como anclaje de trabajo.
-
-Puede involucrar planos funcionales distintos, como stock y ejecución operativa, sin que deban leerse como equivalentes.
-
-Su crecimiento arquitectónico debe reforzar una experiencia de uso simple y comprensible para el usuario, aun cuando internamente concentre mayor complejidad operativa, automatización, control y trazabilidad.
-
+Su crecimiento arquitectónico debe reforzar una experiencia simple y comprensible para el usuario aun cuando internamente concentre mayor complejidad operativa, automatización y trazabilidad.
 <<END SECTION>>
 
 

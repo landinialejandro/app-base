@@ -222,7 +222,7 @@ function parseOperations(string $input): array
 function parseReplaceChunk(string $chunk): ?array
 {
     if (! preg_match(
-        '/^REEMPLAZAR EN:\s*([a-z0-9_]+)\n\n(<<SECTION:\s*.*?>>.*?<<END SECTION>>)\s*$/su',
+        '/^REEMPLAZAR EN:\s*([a-z0-9_]+)\n+(<<SECTION:\s*.*?>>.*?<<END SECTION>>)\s*$/su',
         $chunk,
         $match
     )) {

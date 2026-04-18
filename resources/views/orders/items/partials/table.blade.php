@@ -1,15 +1,15 @@
-{{-- FILE: resources/views/orders/items/partials/table.blade.php | V7 --}}
+{{-- FILE: resources/views/orders/items/partials/table.blade.php | V8 --}}
 
 @php
+    use App\Support\Catalogs\OrderCatalog;
     use App\Support\Catalogs\ProductCatalog;
 
     $order = $order ?? null;
     $items = $items ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay ítems cargados en esta orden.';
     $trailQuery = $trailQuery ?? [];
-    $inventoryContext = $inventoryContext ?? null;
 
-    $inventoryRows = collect($inventoryContext['items'] ?? [])->keyBy('order_item_id');
+    $orderIsReadonly = $order ? OrderCatalog::isReadonlyStatus($order->status) : false;
 @endphp
 
 @if ($items->count())
@@ -20,10 +20,6 @@
                     <th>Posición</th>
                     <th>Ítem</th>
                     <th>Cantidad</th>
-                    <th>Stock</th>
-                    <th>Ejecutado</th>
-                    <th>Pendiente</th>
-                    <th>Estado</th>
                     <th>Precio unitario</th>
                     <th>Total línea</th>
                     <th class="compact-actions-cell">Acciones</th>
@@ -32,28 +28,8 @@
             <tbody>
                 @foreach ($items as $item)
                     @php
-                        $inventoryRow = $inventoryRows->get($item->id, []);
-                        $isPhysicalProduct =
-                            ($inventoryRow['is_physical_product'] ?? false) === true ||
-                            $item->kind === ProductCatalog::KIND_PRODUCT;
-
-                        $canEdit = ($inventoryRow['can_edit'] ?? true) === true;
-                        $canDelete = ($inventoryRow['can_delete'] ?? true) === true;
-                        $canExecute = ($inventoryRow['can_execute'] ?? false) === true;
-
-                        $executeKind = $inventoryRow['execute_kind'] ?? null;
-                        $pendingQuantity = (float) ($inventoryRow['pending_quantity'] ?? 0);
-                        $executedQuantity = (float) ($inventoryRow['executed_quantity'] ?? 0);
-                        $currentStock = array_key_exists('current_stock', $inventoryRow)
-                            ? (float) $inventoryRow['current_stock']
-                            : null;
-
-                        $direction = $inventoryRow['direction'] ?? 'out';
-                        $executeLabel = $direction === 'in' ? 'Recibir' : 'Surtir';
-
-                        $lineStatusLabel = $inventoryRow['line_status_label'] ?? 'Pendiente';
-                        $lineStatusBadge = $inventoryRow['line_status_badge'] ?? 'status-badge--pending';
-
+                        $canEdit = !$orderIsReadonly && !$item->hasInventoryMovements();
+                        $canDelete = !$orderIsReadonly && !$item->hasInventoryMovements();
                         $itemTypeLabel = ProductCatalog::kindLabel($item->kind);
                     @endphp
 
@@ -66,40 +42,6 @@
                         </td>
 
                         <td>{{ number_format((float) $item->quantity, 2, ',', '.') }}</td>
-
-                        <td>
-                            @if ($isPhysicalProduct && $currentStock !== null)
-                                {{ number_format($currentStock, 2, ',', '.') }}
-                            @else
-                                <span class="text-muted">—</span>
-                            @endif
-                        </td>
-
-                        <td>
-                            @if ($isPhysicalProduct)
-                                {{ number_format($executedQuantity, 2, ',', '.') }}
-                            @else
-                                <span class="text-muted">—</span>
-                            @endif
-                        </td>
-
-                        <td>
-                            @if ($isPhysicalProduct)
-                                {{ number_format($pendingQuantity, 2, ',', '.') }}
-                            @else
-                                <span class="text-muted">—</span>
-                            @endif
-                        </td>
-
-                        <td>
-                            @if ($isPhysicalProduct)
-                                <span class="status-badge {{ $lineStatusBadge }}">
-                                    {{ $lineStatusLabel }}
-                                </span>
-                            @else
-                                <span class="text-muted">—</span>
-                            @endif
-                        </td>
 
                         <td>${{ number_format((float) $item->unit_price, 2, ',', '.') }}</td>
 
@@ -130,29 +72,7 @@
                                         </form>
                                     @endif
 
-                                    @if ($canExecute && $executeKind && $pendingQuantity > 0)
-                                        <form method="POST" action="{{ route('inventory.movements.store', $trailQuery) }}"
-                                            class="inline-form" data-action="app-confirm-submit"
-                                            data-confirm-message="¿Deseas {{ strtolower($executeLabel) }} esta línea por {{ number_format($pendingQuantity, 2, ',', '.') }}?">
-                                            @csrf
-
-                                            <input type="hidden" name="product_id"
-                                                value="{{ $inventoryRow['product_id'] }}">
-                                            <input type="hidden" name="order_id" value="{{ $order->id }}">
-                                            <input type="hidden" name="order_item_id" value="{{ $item->id }}">
-                                            <input type="hidden" name="kind" value="{{ $executeKind }}">
-                                            <input type="hidden" name="quantity"
-                                                value="{{ number_format($pendingQuantity, 2, '.', '') }}">
-                                            <input type="hidden" name="return_context" value="orders.show">
-
-                                            <button type="submit" class="btn btn-secondary btn-sm"
-                                                title="{{ $executeLabel }} línea" aria-label="{{ $executeLabel }} línea">
-                                                {{ $executeLabel }}
-                                            </button>
-                                        </form>
-                                    @endif
-
-                                    @if (!$canEdit && !$canDelete && !$canExecute)
+                                    @if (!$canEdit && !$canDelete)
                                         <span class="text-muted">—</span>
                                     @endif
                                 </div>

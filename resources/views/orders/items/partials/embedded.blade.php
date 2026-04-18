@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/items/partials/embedded.blade.php | V4 --}}
+{{-- FILE: resources/views/orders/items/partials/embedded.blade.php | V6 --}}
 
 @php
     $order = $order ?? null;
@@ -6,7 +6,6 @@
     $emptyMessage = $emptyMessage ?? 'No hay ítems cargados en esta orden.';
     $trailQuery = $trailQuery ?? [];
     $supportsProductsModule = $supportsProductsModule ?? true;
-    $inventoryContext = $inventoryContext ?? null;
 @endphp
 
 <div class="tab-panel-stack">
@@ -41,7 +40,6 @@
             'items' => $items,
             'emptyMessage' => $emptyMessage,
             'trailQuery' => $trailQuery,
-            'inventoryContext' => $inventoryContext,
         ])
     </x-card>
 
@@ -53,7 +51,7 @@
             </div>
 
             <div class="summary-inline-card">
-                <div class="summary-inline-label">Total orden</div>
+                <div class="summary-inline-label">Total estructural</div>
                 <div class="summary-inline-value">
                     ${{ number_format((float) ($order?->total ?? 0), 2, ',', '.') }}
                 </div>

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V31 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V36 --}}
 
 @extends('layouts.app')
 
@@ -8,25 +8,17 @@
     @php
         use App\Support\Appointments\AppointmentLinkedAction;
         use App\Support\Assets\AssetLinkedAction;
-        use App\Support\Auth\TenantModuleAccess;
-        use App\Support\Catalogs\ModuleCatalog;
         use App\Support\Catalogs\OrderCatalog;
+        use App\Support\Modules\ModuleSurfaceRegistry;
         use App\Support\Navigation\NavigationTrail;
+        use App\Support\Orders\OrderSurfaceService;
         use App\Support\Parties\PartyLinkedAction;
 
-        $attachments = $order->attachments ?? collect();
-        $documents = $order->documents ?? collect();
         $items = $order->items ?? collect();
-        $inventoryMovements = $order->inventoryMovements ?? collect();
-        $inventoryContext = $inventoryContext ?? null;
 
-        $tenant = app('tenant');
         $user = auth()->user();
 
-        $supportsPartiesModule = TenantModuleAccess::isEnabled(ModuleCatalog::PARTIES, $tenant);
-        $supportsAssetsModule = $supportsAssetsModule ?? true;
         $supportsProductsModule = $supportsProductsModule ?? true;
-        $supportsDocumentsModule = $supportsDocumentsModule ?? true;
         $supportsTasksModule = $supportsTasksModule ?? true;
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
@@ -39,9 +31,11 @@
         $assetAction = AssetLinkedAction::forAsset($order->asset, $trailQuery, 'Activo');
         $appointmentAction = AppointmentLinkedAction::forOrder($order, $trailQuery, true);
 
-        $inventoryIsReadonly = ($inventoryContext['is_readonly'] ?? false) === true;
-        $inventoryIsOperable = ($inventoryContext['is_operable'] ?? false) === true;
-        $inventoryCanCancel = ($inventoryContext['can_cancel'] ?? false) === true;
+        $hostPack = app(OrderSurfaceService::class)->hostPack('orders.show', $order, [
+            'trailQuery' => $trailQuery,
+        ]);
+
+        $embeddedTabs = collect(app(ModuleSurfaceRegistry::class)->embeddedFor('orders.show', $hostPack))->values();
     @endphp
 
     <x-page>
@@ -107,15 +101,6 @@
                     ])
                 </x-show-summary-item-detail-block>
 
-                @if ($supportsAssetsModule)
-                    <x-show-summary-item-detail-block label="Activo">
-                        @include('assets.components.linked-asset-action', [
-                            'action' => $assetAction,
-                            'variant' => 'summary',
-                        ])
-                    </x-show-summary-item-detail-block>
-                @endif
-
                 @if ($supportsTasksModule)
                     <x-show-summary-item-detail-block label="Tarea">
                         @if ($canViewLinkedTask)
@@ -127,20 +112,6 @@
                         @endif
                     </x-show-summary-item-detail-block>
                 @endif
-
-                <x-show-summary-item-detail-block label="Inventory">
-                    @if ($inventoryIsReadonly)
-                        Readonly
-                    @elseif ($inventoryIsOperable)
-                        Operable
-                    @else
-                        No operable
-                    @endif
-                </x-show-summary-item-detail-block>
-
-                <x-show-summary-item-detail-block label="Cancelación">
-                    {{ $inventoryCanCancel ? 'Permitida' : 'Restringida' }}
-                </x-show-summary-item-detail-block>
 
                 <x-show-summary-item-detail-block label="Creado">
                     {{ $order->created_at?->format('d/m/Y H:i') ?: '—' }}
@@ -168,33 +139,15 @@
                             @endif
                         </button>
 
-                        @if ($supportsProductsModule)
-                            <button type="button" class="tabs-link" data-tab-link="inventory" role="tab"
-                                aria-selected="false">
-                                Inventory
-                                @if ($inventoryMovements->count())
-                                    ({{ $inventoryMovements->count() }})
+                        @foreach ($embeddedTabs as $embeddedTab)
+                            <button type="button" class="tabs-link" data-tab-link="{{ $embeddedTab['key'] }}"
+                                role="tab" aria-selected="false">
+                                {{ $embeddedTab['label'] ?? $embeddedTab['key'] }}
+                                @if (array_key_exists('count', $embeddedTab) && (int) $embeddedTab['count'] > 0)
+                                    ({{ $embeddedTab['count'] }})
                                 @endif
                             </button>
-                        @endif
-
-                        @if ($supportsDocumentsModule)
-                            <button type="button" class="tabs-link" data-tab-link="documents" role="tab"
-                                aria-selected="false">
-                                Documentos
-                                @if ($documents->count())
-                                    ({{ $documents->count() }})
-                                @endif
-                            </button>
-                        @endif
-
-                        <button type="button" class="tabs-link" data-tab-link="attachments" role="tab"
-                            aria-selected="false">
-                            Adjuntos
-                            @if ($attachments->count())
-                                ({{ $attachments->count() }})
-                            @endif
-                        </button>
+                        @endforeach
                     </x-horizontal-scroll>
                 </x-slot:tabs>
             </x-tab-toolbar>
@@ -206,79 +159,17 @@
                         'items' => $items,
                         'trailQuery' => $trailQuery,
                         'supportsProductsModule' => $supportsProductsModule,
-                        'inventoryContext' => $inventoryContext,
                     ])
                 </div>
             </section>
 
-            @if ($supportsProductsModule)
-                <section class="tab-panel" data-tab-panel="inventory" hidden>
+            @foreach ($embeddedTabs as $embeddedTab)
+                <section class="tab-panel" data-tab-panel="{{ $embeddedTab['key'] }}" hidden>
                     <div class="tab-panel-stack">
-                        <x-card>
-                            <div class="summary-inline-grid">
-                                <div class="summary-inline-card">
-                                    <div class="summary-inline-label">Estado</div>
-                                    <div class="summary-inline-value">
-                                        @if ($inventoryIsReadonly)
-                                            Readonly
-                                        @elseif ($inventoryIsOperable)
-                                            Operable
-                                        @else
-                                            No operable
-                                        @endif
-                                    </div>
-                                </div>
-
-                                <div class="summary-inline-card">
-                                    <div class="summary-inline-label">Movimientos</div>
-                                    <div class="summary-inline-value">{{ $inventoryMovements->count() }}</div>
-                                </div>
-
-                                <div class="summary-inline-card">
-                                    <div class="summary-inline-label">Ejecución</div>
-                                    <div class="summary-inline-value">Por línea</div>
-                                </div>
-                            </div>
-
-                            <div class="form-help mt-3">
-                                Esta orden consume inventory como capacidad contextual. La ejecución real se resuelve en
-                                cada línea de la tab Ítems y la ficha maestra del artículo permanece en inventory.
-                            </div>
-                        </x-card>
+                        @include($embeddedTab['view'], $embeddedTab['data'] ?? [])
                     </div>
                 </section>
-            @endif
-
-            @if ($supportsDocumentsModule)
-                <section class="tab-panel" data-tab-panel="documents" hidden>
-                    <div class="tab-panel-stack">
-                        @include('documents.partials.embedded-tabs', [
-                            'documents' => $documents,
-                            'showParty' => true,
-                            'showAsset' => false,
-                            'showOrder' => false,
-                            'emptyMessage' => 'Esta orden no tiene documentos vinculados.',
-                            'tabsId' => 'order-documents-tabs',
-                            'trailQuery' => $trailQuery,
-                            'order' => $order,
-                        ])
-                    </div>
-                </section>
-            @endif
-
-            <section class="tab-panel" data-tab-panel="attachments" hidden>
-                <div class="tab-panel-stack">
-                    @include('attachments.partials.embedded', [
-                        'attachments' => $attachments,
-                        'attachable' => $order,
-                        'attachableType' => 'order',
-                        'attachableId' => $order->id,
-                        'trailQuery' => $trailQuery,
-                        'tabsId' => 'order-attachments-tabs',
-                        'createLabel' => 'Agregar adjunto',
-                    ])
-                </div>
-            </section>
+            @endforeach
         </div>
     </x-page>
 @endsection

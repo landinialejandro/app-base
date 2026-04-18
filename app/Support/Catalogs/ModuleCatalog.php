@@ -1,8 +1,19 @@
 <?php
 
-// FILE: app/Support/Catalogs/ModuleCatalog.php | V4
+// FILE: app/Support/Catalogs/ModuleCatalog.php | V5
 
 namespace App\Support\Catalogs;
+
+use App\Support\Appointments\AppointmentSurfaceService;
+use App\Support\Assets\AssetSurfaceService;
+use App\Support\Attachments\AttachmentSurfaceService;
+use App\Support\Documents\DocumentSurfaceService;
+use App\Support\Inventory\InventorySurfaceService;
+use App\Support\Orders\OrderSurfaceService;
+use App\Support\Parties\PartySurfaceService;
+use App\Support\Products\ProductSurfaceService;
+use App\Support\Projects\ProjectSurfaceService;
+use App\Support\Tasks\TaskSurfaceService;
 
 class ModuleCatalog
 {
@@ -35,6 +46,7 @@ class ModuleCatalog
 
         self::PROJECTS => [
             'label' => 'Proyectos',
+            'surface_service' => ProjectSurfaceService::class,
             'nav' => [
                 'group' => 'management',
                 'route' => 'projects.index',
@@ -45,6 +57,7 @@ class ModuleCatalog
 
         self::TASKS => [
             'label' => 'Tareas',
+            'surface_service' => TaskSurfaceService::class,
             'nav' => [
                 'group' => 'main',
                 'route' => 'tasks.index',
@@ -55,6 +68,7 @@ class ModuleCatalog
 
         self::APPOINTMENTS => [
             'label' => 'Turnos',
+            'surface_service' => AppointmentSurfaceService::class,
             'nav' => [
                 'group' => 'main',
                 'route' => 'appointments.calendar',
@@ -65,6 +79,7 @@ class ModuleCatalog
 
         self::PARTIES => [
             'label' => 'Contactos',
+            'surface_service' => PartySurfaceService::class,
             'nav' => [
                 'group' => 'main',
                 'route' => 'parties.index',
@@ -75,6 +90,7 @@ class ModuleCatalog
 
         self::PRODUCTS => [
             'label' => 'Productos',
+            'surface_service' => ProductSurfaceService::class,
             'nav' => [
                 'group' => 'management',
                 'route' => 'products.index',
@@ -85,6 +101,7 @@ class ModuleCatalog
 
         self::INVENTORY => [
             'label' => 'Inventario',
+            'surface_service' => InventorySurfaceService::class,
             'nav' => [
                 'group' => 'management',
                 'route' => 'inventory.index',
@@ -95,6 +112,7 @@ class ModuleCatalog
 
         self::ASSETS => [
             'label' => 'Activos',
+            'surface_service' => AssetSurfaceService::class,
             'nav' => [
                 'group' => 'main',
                 'route' => 'assets.index',
@@ -105,6 +123,7 @@ class ModuleCatalog
 
         self::ORDERS => [
             'label' => 'Órdenes',
+            'surface_service' => OrderSurfaceService::class,
             'nav' => [
                 'group' => 'management',
                 'route' => 'orders.index',
@@ -115,6 +134,7 @@ class ModuleCatalog
 
         self::DOCUMENTS => [
             'label' => 'Documentos',
+            'surface_service' => DocumentSurfaceService::class,
             'nav' => [
                 'group' => 'management',
                 'route' => 'documents.index',
@@ -125,6 +145,7 @@ class ModuleCatalog
 
         self::ATTACHMENTS => [
             'label' => 'Adjuntos',
+            'surface_service' => AttachmentSurfaceService::class,
         ],
     ];
 
@@ -152,6 +173,11 @@ class ModuleCatalog
         }
 
         return static::$definitions[$value]['label'] ?? $default;
+    }
+
+    public static function surfaceService(string $module): ?string
+    {
+        return static::$definitions[$module]['surface_service'] ?? null;
     }
 
     public static function navDefinitions(): array

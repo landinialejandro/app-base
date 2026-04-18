@@ -110,7 +110,7 @@ Si estas respuestas no están claras, no debe avanzarse a implementación.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 BLOQUE 1 — CONTRATO MODULAR
 
@@ -202,6 +202,24 @@ reglas de reversión
 efecto sobre pendiente
 distinción entre stock y avance operativo cuando no sean equivalentes
 
+Validación adicional para surfaces embebidas reusables:
+
+si el módulo publicará una surface reusable embebida, debe dejar explícito al menos:
+
+type
+key
+label
+targets
+priority
+view
+needs
+resolver
+
+y el resolver debe devolver al menos:
+
+count
+data
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
@@ -264,7 +282,7 @@ si owner dispone de una surface real para entender y administrar ese comportamie
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -314,10 +332,14 @@ Validación adicional de semántica cruzada:
 
 si la integración mezcla stock, ejecución, reversión o pendiente, debe comprobarse explícitamente que cada indicador use la regla correcta de su dominio y no una equivalencia mecánica entre signos o cantidades
 
+Validación adicional de cierre reusable:
+
+si una relación fuerte ya fue migrada a surface oficial del oferente, auditar también tabs fijas, includes manuales y demás superficies residuales del host antes de considerar cerrada la integración
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA
 
@@ -360,6 +382,16 @@ Validación adicional para UX operativa:
 si el flujo es complejo internamente, la experiencia visible debe seguir siendo simple, clara y de bajo roce para el usuario final
 
 no trasladar burocracia técnica al frontend cuando el sistema puede absorberla
+
+Validación adicional para hosts visuales:
+
+si una pantalla anfitriona consume capacidades embebidas de otros módulos, debe quedar clara la separación visual entre:
+
+núcleo del host
+relaciones estructurales propias
+capacidades invitadas publicadas por módulos oferentes
+
+la UI del host no debe mezclar en una misma superficie decisiones operativas que pertenecen al módulo invitado
 
 <<END SECTION>>
 
@@ -423,7 +455,7 @@ Este bloque resume mínimos técnicos, pero no reemplaza el checklist completo.
 <<END SECTION>>
 
 <<SECTION: CRITERIO FINAL DE APROBACIÓN>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 CRITERIO FINAL DE APROBACIÓN
 
@@ -447,6 +479,8 @@ puede integrarse sin refactors innecesarios futuros
 podría usarse como patrón de calidad para el próximo módulo
 sus superficies secundarias también quedaron alineadas
 sus consumers externos dejaron de depender de variantes legacy
+si actúa como host visual, mantiene separado su núcleo de las capacidades invitadas
+si las relaciones fuertes ya migraron a surface oficial, desaparecieron las tabs manuales residuales equivalentes
 
 Validaciones finales obligatorias para módulos transaccionales:
 
@@ -560,7 +594,7 @@ si una acción reusable navega hacia otro módulo, la visibilidad final debe seg
 <<END SECTION>>
 
 <<SECTION: CHECKLIST DE INTEGRACIÓN>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 CHECKLIST DE INTEGRACIÓN
 
@@ -583,6 +617,8 @@ diferenciación explícita entre integración pesada embebida e integración com
 alineación con el patrón visual ya consolidado en el módulo consumidor cuando exista
 
 si el módulo reemplaza surfaces históricas dispersas, plan de migración claro hacia la nueva surface oficial
+
+si la relación reusable se apoya en registry o mecanismo equivalente, el host consumidor no recompone localmente payload ni naming ad hoc
 
 Regla de cierre:
 
@@ -617,7 +653,7 @@ no existan rutas operables residuales aunque la UI ya no las muestre
 <<END SECTION>>
 
 <<SECTION: SUPERFICIES SECUNDARIAS Y PARTIALS>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 SUPERFICIES SECUNDARIAS Y PARTIALS
 
@@ -653,7 +689,11 @@ también deben revisarse estados vacíos, mensajes, botones secundarios, accione
 
 Validación adicional para frentes transaccionales:
 
-si una partial muestra ejecución por línea o movimientos reversibles, debe comprobarse también el comportamiento luego del contramovimiento y el recálculo visible posterior
+si una partial muestra ejecución, stock, pendiente, readonly o acción rápida por línea, esa lectura debe provenir del contexto oficial publicado por el módulo oferente y no de cálculo local del consumidor
+
+Validación adicional para hosts modulares:
+
+si una pantalla host ya migró una relación a surface oficial, no deben permanecer tabs manuales o includes relacionales legacy del mismo frente en otras zonas visibles de la misma pantalla
 
 <<END SECTION>>
 

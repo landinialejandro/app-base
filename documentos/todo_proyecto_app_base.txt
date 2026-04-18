@@ -39,7 +39,7 @@ no debe utilizarse como depósito de ideas difusas sin criterio de ejecución
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — RECONVERSIÓN MODULAR>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 LÍNEA ACTIVA — RECONVERSIÓN MODULAR
 
@@ -75,10 +75,14 @@ no debe reconstruir localmente la lógica operativa del módulo dueño de la cap
 
 debe consolidarse además la figura de módulo hub visual para los casos donde una pantalla anfitriona aloje interacción de otro módulo sin absorber su lógica
 
+Caso ya consolidado en runtime:
+
+orders.show opera como host visual modular de capacidades embebidas publicadas por inventory, documents y attachments, manteniendo separado su núcleo estructural de las capacidades invitadas
+
 <<END SECTION>>
 
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 MÓDULOS PRIORITARIOS A REVISAR
 
@@ -89,6 +93,10 @@ módulo piloto natural de reconversión contractual
 Estado actual:
 
 frente operativo principal cerrado en este ciclo de trabajo
+
+avance consolidado adicional:
+
+orders.show ya migró documents al patrón de surface embebida oficial y consolidó mejor la separación entre núcleo estructural propio y capacidades invitadas
 
 Pendiente residual:
 
@@ -163,7 +171,8 @@ Revisar:
 
 rol derivado respecto de orders
 flujos de creación desde órdenes
-superficies reutilizables documentales
+surface embebida reusable ya validada en orders.show
+barrido de consumers secundarios o remanentes manuales del frente documental
 
 APPOINTMENTS
 
@@ -191,11 +200,12 @@ consolidar surfaces oficiales reutilizables
 terminar navegación contextual
 pulir métricas livianas de index
 validar consistencia visual final
+profundizar la publicación reusable de operación por línea separada de la capa estructural de order_items
 
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -213,6 +223,8 @@ superficie reusable linked-order-action
 validación runtime real de constraints.allowed_kinds sobre create, view, update y delete
 confirmación de relación estructural orders.task_id
 confirmación de relación operativa real appointments.order_id
+separación más clara entre capa estructural propia de orders y capacidades embebidas de módulos oferentes en orders.show
+migración principal de documents a surface embebida oficial publicada por su módulo
 
 Alcance del cierre:
 
@@ -250,7 +262,7 @@ los próximos trabajos sobre estos módulos deben priorizar bugs reales, validac
 <<END SECTION>>
 
 <<SECTION: CAPACIDADES REUTILIZABLES A CONSOLIDAR>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 CAPACIDADES REUTILIZABLES A CONSOLIDAR
 
@@ -279,6 +291,7 @@ confirmación final de adopción homogénea de linked-asset-action en superficie
 validación final del embebido reusable de appointments en consumidores visibles y secundarios
 confirmación de que la relación orders ↔ appointments permanezca resuelta de forma compacta sin tab pesada residual
 consolidación visual final de surfaces oficiales de inventory para stock, historial y operación por línea sin variantes paralelas en consumers
+confirmación de barrido completo de tabs manuales o includes residuales del frente documents donde ya exista surface oficial publicada por el módulo oferente
 
 <<END SECTION>>
 
@@ -336,7 +349,7 @@ Trasladar el foco a cierre visual y consumo homogéneo del frente.
 <<END SECTION>>
 
 <<SECTION: DEUDA TÉCNICA A REDUCIR>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 DEUDA TÉCNICA A REDUCIR
 
@@ -367,6 +380,8 @@ Nueva deuda técnica localizada:
 remanentes de resolución local de integraciones ya cerradas doctrinalmente por su módulo oferente en superficies secundarias o parciales del ecosistema
 
 remanentes visuales donde consumers todavía sostienen variantes de inventory ya superadas por la surface oficial del módulo
+
+remanentes documentales o tabs manuales donde hosts todavía dupliquen capacidades ya publicadas por documents u otros módulos oferentes
 
 Criterio:
 
@@ -510,7 +525,7 @@ inventory
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00019
 
 PENDIENTES INMEDIATOS
 
@@ -535,6 +550,8 @@ terminar de auditar el cierre operativo completo de documents como módulo deriv
 revisar create contextual y contrato de seguridad efectivo de documents
 
 alinear items, formularios embebidos y navegación profunda restante en ecosistema documental
+
+confirmar que no queden tabs manuales o renders legacy de documents donde ya exista surface oficial publicada por el módulo
 
 Pendiente inmediato del frente reusable:
 
@@ -576,6 +593,7 @@ assets como módulo compartido principal
 appointments como módulo autónomo de agenda
 products como catálogo maestro operativo
 inventory backend transaccional ya validado
+migración principal de documents a surface embebida oficial en orders.show
 
 <<END SECTION>>
 

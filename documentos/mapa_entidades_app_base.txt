@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -115,6 +115,14 @@ parties se relaciona transversalmente con múltiples módulos
 
 attachments puede integrarse transversalmente sobre múltiples recursos
 
+documents no solo se relaciona estructuralmente con orders como derivación documental
+
+también puede publicar una capacidad reusable embebida oficial consumible desde orders.show u otros hosts del ecosistema
+
+orders no solo ocupa posición central por su entidad principal
+
+también puede actuar como contexto y host visual de capacidades publicadas por otros módulos, especialmente inventory, documents y attachments, sin absorber su lógica operativa
+
 Reglas:
 
 estas relaciones expresan lectura conceptual prioritaria del ecosistema actual
@@ -139,11 +147,9 @@ products como catálogo maestro compartido
 
 inventory como frente operativo de stock, saldo e historial en evolución modular propia
 
-orders no solo ocupa posición central por su entidad principal
+orders como contexto y host visual de operación por línea cuando corresponda
 
-también publica oferta de integración consumible por otros módulos del ecosistema
-
-esa oferta puede incluir arbitraje backend propio y representación visual modular sin dejar de pertenecer contractualmente al módulo orders
+documents como módulo derivado con surface reusable propia cuando el flujo lo requiera
 
 Aclaración relacional consolidada adicional:
 
@@ -751,7 +757,7 @@ Lo ubica como base maestra estable dentro de una arquitectura más limpia entre 
 <<END SECTION>>
 
 <<SECTION: INVENTORY>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 INVENTORY
 
@@ -799,6 +805,7 @@ lectura operativa de stock actual
 lectura operativa de stock comprometido
 lectura operativa de recepción esperada
 contexto reusable para consumers del ecosistema
+operación por línea publicada hacia hosts visuales cuando el flujo lo requiera
 
 Superficie contractual conceptual posible:
 
@@ -807,6 +814,7 @@ ficha de inventario por producto
 tabla de movimientos reusable
 formulario de movimiento reusable
 bloques contextuales de trazabilidad consumibles por products y orders
+surface operativa por línea consumible desde orders.show
 
 Y, como evolución aprobada:
 
@@ -868,6 +876,12 @@ pendiente recuperado o restante
 
 esa separación forma parte del modelo mental real del módulo y no debe tratarse como ajuste accesorio de implementación
 
+Aclaración adicional sobre host visual:
+
+cuando inventory sea consumido desde orders.show, la pantalla orders actúa como host visual y contextual del frente
+
+esa situación no transfiere a orders la propiedad doctrinal de la operación material de inventory
+
 <<END SECTION>>
 
 <<SECTION: ASSETS>>
@@ -927,7 +941,7 @@ assets puede consumir el embebido reusable oficial de appointments para exponer 
 <<END SECTION>>
 
 <<SECTION: ORDERS>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 ORDERS
 
@@ -946,6 +960,7 @@ task opcional mediante orders.task_id
 appointment como origen contextual real mediante appointments.order_id
 products mediante order_items
 inventory como consumidor contextual de movimientos cuando el flujo operativo lo requiera
+documents como módulo derivado relacionado cuando el flujo documental lo requiera
 
 Relaciones ofrecidas:
 
@@ -954,6 +969,7 @@ historial operativo
 seguimiento de trabajo
 referencia central para otros módulos
 contexto de trazabilidad para inventory_movements
+host visual modular para capacidades embebidas del ecosistema cuando corresponda
 
 Superficie contractual conceptual posible:
 
@@ -964,6 +980,7 @@ acción create contextual
 bridge hacia documents
 lookup mínimo
 acción enlazada reusable
+host show capaz de consumir surfaces oficiales de otros módulos
 
 Reglas:
 
@@ -1011,10 +1028,16 @@ cuando la operación de inventory se exprese sobre order_items dentro de orders.
 
 la lógica operativa, la semántica de ejecución por línea y la reversión siguen perteneciendo al frente inventory
 
+Aclaración adicional para documents:
+
+orders puede consumir documents como surface embebida oficial publicada por el propio módulo documents
+
+esa relación no debe leerse como simple tab manual del host sino como consumo de capacidad reusable del módulo derivado
+
 <<END SECTION>>
 
 <<SECTION: ORDER_ITEMS>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 ORDER_ITEMS
 
@@ -1075,10 +1098,14 @@ cuando existan contramovimientos de reversión, la lectura de ejecución de la l
 
 la línea debe reflejar ejecución neta real y pendiente real después de la reversión
 
+Aclaración adicional de frontera doctrinal:
+
+aunque la línea sea anclaje operativo fuerte de inventory, la ejecución material, el cálculo neto y la semántica operativa real pertenecen al frente inventory y no a order_item como recurso autónomo
+
 <<END SECTION>>
 
 <<SECTION: DOCUMENTS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 DOCUMENTS
 
@@ -1101,6 +1128,7 @@ Relaciones ofrecidas:
 comprobantes
 trazabilidad documental
 salida formal de operaciones internas
+surface embebida reusable cuando el ecosistema lo requiera
 
 Superficie contractual conceptual posible:
 
@@ -1108,11 +1136,19 @@ selector documental
 summary de comprobante
 tabla documental
 acciones de emisión o descarga
+embebido reusable de relación documental en hosts compatibles
 
 Reglas:
 
 respecto del flujo orders → documents ocupa rol derivado
 mantiene identidad modular propia
+
+Aclaración adicional consolidada:
+
+su lectura como módulo derivado no impide que documents publique una capacidad embebida oficial consumible desde orders.show
+
+esa publicación sigue perteneciendo doctrinalmente a documents y no al host que la aloja
+
 <<END SECTION>>
 
 <<SECTION: DOCUMENT_ITEMS>>

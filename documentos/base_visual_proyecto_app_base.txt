@@ -153,7 +153,7 @@ debe leerse como capacidad compuesta por payload resuelto + representación visu
 <<END SECTION>>
 
 <<SECTION: JERARQUÍA VISUAL MODULAR>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 JERARQUÍA VISUAL MODULAR
 
@@ -198,6 +198,17 @@ Reglas:
 no todos los bloques deben competir en jerarquía visual
 la pantalla debe dejar claro qué pertenece al módulo actual y qué corresponde a una capacidad consumida
 si todo se presenta con igual peso visual, la pantalla pierde claridad operativa
+
+Aclaración consolidada para hosts visuales:
+
+cuando una show page hospede capacidades embebidas de otros módulos, la UI debe distinguir con claridad entre:
+
+núcleo del host
+capa estructural propia del host
+capacidad operativa o documental invitada del módulo oferente
+
+el usuario debe poder entender qué pertenece al recurso actual y qué está siendo consumido desde otro frente del ecosistema
+
 <<END SECTION>>
 
 <<SECTION: SELECTORES REUTILIZABLES>>
@@ -255,7 +266,7 @@ Estos bloques ayudan a integrar módulos sin sobrecargar navegación ni multipli
 <<END SECTION>>
 
 <<SECTION: OFERTAS DE INTEGRACIÓN VISUAL>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 OFERTAS DE INTEGRACIÓN VISUAL
 
@@ -291,9 +302,17 @@ historial de movimientos
 acciones contextuales por línea
 trazabilidad operativa
 
+Surfaces vigentes adicionales:
+
+documents puede publicar embebidos documentales oficiales consumibles desde hosts como orders.show
+
+attachments publica capacidad embebida transversal dentro de show pages compatibles
+
 Aclaración consolidada:
 
 products y orders pueden consumir inventory visualmente, pero no deben sostener variantes paralelas como solución principal del frente
+
+orders puede consumir visualmente inventory, documents y attachments dentro de su show, pero debe mantener visible su propio núcleo y no rediseñar esas capacidades como si fueran propias
 
 <<END SECTION>>
 
@@ -422,7 +441,7 @@ Estas métricas no reemplazan la tabla principal ni convierten la pantalla en da
 <<END SECTION>>
 
 <<SECTION: PATRÓN VISUAL PARA VISTAS SHOW>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 PATRÓN VISUAL PARA VISTAS SHOW
 
@@ -463,6 +482,14 @@ inventory.show debe sentirse ficha operativa del producto en materia de stock
 
 su foco visual principal es saldo, historial, trazabilidad y acciones propias del frente inventory
 
+Aclaración consolidada para orders.show:
+
+orders.show debe sentirse centro de lectura de la orden y no pantalla absorbida por módulos invitados
+
+la capa estructural propia de la orden debe quedar separada de las capacities embebidas de inventory, documents y attachments
+
+cuando exista una tab o bloque de operación invitada, debe sentirse como capacidad publicada por el módulo oferente y no como prolongación difusa del host
+
 <<END SECTION>>
 
 <<SECTION: REGLAS PARA X-SHOW-SUMMARY Y X-SHOW-SUMMARY-ITEM>>
@@ -498,7 +525,7 @@ la unidad visual completa debe desaparecer y no solo el contenido interno
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW
 
@@ -522,9 +549,9 @@ una relación contextual no debe convertirse visualmente en segundo módulo prin
 
 Aclaración consolidada para orders.show:
 
-la lectura de inventory por línea vive prioritariamente en la tabla de items
+la capa estructural de ítems debe mantenerse separada de la operación material publicada por inventory
 
-si existe tab o bloque adicional de inventory, debe ser claramente secundario y no competir con la operación principal por fila
+documents y attachments deben presentarse como capacidades embebidas de módulos oferentes y no como prolongaciones manuales del host
 
 Aclaración consolidada para products.show:
 
@@ -595,7 +622,7 @@ el embebido sigue siendo un bloque subordinado al show principal, aunque interna
 <<END SECTION>>
 
 <<SECTION: ACCIONES VISUALES EN INDEX Y SHOW>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 ACCIONES VISUALES EN INDEX Y SHOW
 
@@ -625,6 +652,12 @@ pendiente
 estado
 
 La acción debe sentirse inmediata y contextual.
+
+Aclaración adicional para hosts modulares:
+
+las acciones propias del host no deben mezclarse visualmente con acciones operativas publicadas por un módulo invitado dentro de la misma capa estructural
+
+cada acción debe aparecer junto al contexto semántico que le corresponde
 
 <<END SECTION>>
 

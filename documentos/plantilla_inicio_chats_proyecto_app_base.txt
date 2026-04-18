@@ -67,7 +67,7 @@ El cierre real exige revisar también superficies secundarias relevantes cuando 
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DE ESTE CHAT>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 OBJETIVO DE ESTE CHAT
 
@@ -84,13 +84,22 @@ homogeneizar consumers visuales
 validar runtime con dataset real
 preparar pruebas técnicas
 actualizar documentación
+barrer superficies residuales después de una migración reusable
+migrar una pantalla híbrida a host visual modular
 
 Indicar el punto exacto de continuidad si el frente ya fue trabajado antes.
+
+Criterio recomendado para frentes modulares delicados:
+
+primero auditoría doctrinal y técnica del estado real
+luego implementación mínima, de a un cambio por vez
+validación en runtime entre pasos
+y recién después barrido de superficies secundarias residuales
 
 <<END SECTION>>
 
 <<SECTION: ALCANCE>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 ALCANCE
 
@@ -102,6 +111,8 @@ módulo dueño de la capacidad
 flujo afectado
 archivos mínimos suficientes
 impacto contractual o visual si existe
+surface oficial del oferente si el caso es reusable
+host consumidor si la pantalla actúa como contenedor visual
 
 Excluir:
 
@@ -134,7 +145,7 @@ No incluir aquí contexto doctrinal general del proyecto ni ejemplos viejos que 
 <<END SECTION>>
 
 <<SECTION: SI NECESITÁS ARCHIVOS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 SI NECESITÁS ARCHIVOS
 
@@ -152,16 +163,23 @@ vista real involucrada
 
 No pedir árboles enormes ni contexto redundante si no aporta al objetivo actual.
 
+En refactors de surfaces o integraciones modulares, pedir primero los archivos dueños del contrato:
+
+host service o registry del consumidor
+service o surface service del módulo oferente
+partial publicada por el oferente
+host view consumidora
+
 Formato esperado de solicitud:
 
 (
 find ruta_1 -type f -name "*.php";
 find ruta_2 -type f -name "*.blade.php";
 ) | sort | while read file; do
-    echo "===== $file ====="
-    cat "$file"
-    echo
-    echo
+echo "===== $file ====="
+cat "$file"
+echo
+echo
 done > documentos/auditoria/nombre-auditoria.txt
 
 Si existe duda sobre lógica viva, pedir el archivo dueño de la capacidad.
@@ -189,7 +207,7 @@ el comentario debe escribirse con la sintaxis correcta del archivo correspondien
 <<END SECTION>>
 
 <<SECTION: FORMA DE RESPUESTA ESPERADA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 FORMA DE RESPUESTA ESPERADA
 
@@ -206,5 +224,11 @@ sin redundancia
 Usar estructura solo si aporta valor real al caso.
 
 No responder apartados vacíos solo por cumplir formato.
+
+Cuando el frente sea modular o reusable:
+
+primero ubicar el módulo dueño de la capacidad
+luego señalar si el problema está en el oferente, en el host o en una superficie residual
+y después proponer el cambio mínimo necesario
 
 <<END SECTION>>

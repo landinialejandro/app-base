@@ -204,7 +204,7 @@ si inventory aún no resulta visible para un tenant o usuario concreto, esa ause
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -232,7 +232,7 @@ parties.show
 → ver relaciones operativas
 → navegar assets relacionadas
 → navegar orders relacionadas
-→ navegar documents relacionados
+→ navegar documents relacionadas
 → ver appointments relacionadas
 
 products.show
@@ -246,8 +246,9 @@ orders.show
 → ver appointment relacionada cuando exista
 → gestionar items
 → gestionar attachments si aplica
-→ consumir superficies contextuales de inventory cuando el flujo lo requiera
-→ operar inventory por línea cuando la ejecución lo requiera
+→ consumir surface operativa de inventory por línea cuando el flujo lo requiera
+→ consumir surface embebida de documents cuando el flujo lo requiera
+→ consumir surface embebida de attachments cuando aplique
 
 inventory.show
 → volver al producto relacionado
@@ -327,6 +328,12 @@ cuando orders.show consuma inventory por línea, la navegación contextual hacia
 
 debe poder conservar lectura operativa por order_item cuando esa línea sea el anclaje real de ejecución
 
+Aclaración consolidada para documents:
+
+cuando orders.show consuma documents como relación fuerte, debe hacerlo mediante la surface embebida publicada por documents y no mediante tab manual reconstruida por el host
+
+la navegación contextual de creación o apertura documental debe seguir respetando el flujo originado desde orders
+
 Aclaración estructural adicional:
 
 en la relación orders ↔ inventory, orders debe leerse como hub visual y contextual de una capacidad operativa perteneciente a inventory
@@ -340,7 +347,7 @@ ese mismo patrón debe poder reutilizarse desde documents, tasks u otros módulo
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -350,7 +357,7 @@ Casos actuales o consolidados:
 
 asset.show
 orders relacionadas
-documents relacionados
+documents relacionadas
 appointments relacionadas
 attachments
 
@@ -370,11 +377,12 @@ capacidad reusable hacia order relacionada
 
 order.show
 items
+operación por línea de inventory cuando corresponda
+documents embebidos cuando corresponda
 attachments
 acciones derivadas
 relaciones principales
 referencia compacta a appointment cuando exista
-lectura operativa de inventory por línea cuando corresponda
 
 document.show
 items
@@ -410,9 +418,13 @@ también las tablas parciales y superficies secundarias embebidas deben consumir
 
 Aclaración operativa para orders.show:
 
-cuando la relación embebida con inventory se lea por línea, order.show debe priorizar la tabla operativa de order_items como contenedor visible del trabajo
+la capa estructural de orders vive en la tab de ítems
 
-inventory se consume allí como capacidad contextual por fila y no como submódulo que absorba la pantalla completa
+la operación material de inventory debe leerse como capacidad embebida publicada por inventory
+
+documents y attachments deben leerse como capacidades embebidas publicadas por sus propios módulos oferentes
+
+el host no debe mezclar en la tab estructural métricas o acciones operativas que pertenezcan a esas capacidades invitadas
 
 <<END SECTION>>
 
@@ -544,7 +556,7 @@ esto aplica especialmente en ejecuciones de inventory sobre order_items
 <<END SECTION>>
 
 <<SECTION: MAPA DE NAVEGACIÓN PRINCIPAL>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 MAPA DE NAVEGACIÓN PRINCIPAL
 
@@ -575,6 +587,15 @@ inventory.index como tabla de saldos por producto
 inventory.show como ficha de inventario por producto
 
 Los consumos embebidos desde products, orders o documents no deben degradar esa lectura estructural del módulo.
+
+Aclaración estructural adicional para orders.show:
+
+la composición principal aprobada de la pantalla distingue:
+
+tab Ítems como capa estructural propia de orders
+surface Operación como capacidad embebida de inventory
+surface Documentos como capacidad embebida de documents
+surface Adjuntos como capacidad embebida de attachments
 
 FLUJOS CONTEXTUALES YA VALIDADOS
 
@@ -619,6 +640,10 @@ order_items
 orders
 ↓
 inventory
+
+orders
+↓
+documents
 
 documents
 ↓
@@ -703,7 +728,7 @@ document_items
 <<END SECTION>>
 
 <<SECTION: INVENTORY>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 INVENTORY
 
@@ -721,10 +746,7 @@ products.show
 → inventory.show del producto cuando corresponda
 
 orders.show
-→ surfaces contextuales de inventory sin absorber su navegación principal
-
-orders.show por línea
-→ acción contextual de ejecución o reversión cuando corresponda
+→ surface operativa de inventory por línea sin absorber su navegación principal
 
 documents.show
 → trazabilidad de movimientos cuando exista relación documental
@@ -763,6 +785,12 @@ Aclaración adicional:
 la navegación contextual desde una línea hacia inventory no debe leerse como simple apertura genérica del producto
 
 puede requerir preservar el order_item como contexto operativo de origen cuando eso siga siendo útil para continuar el trabajo
+
+Aclaración adicional de naming visual:
+
+cuando inventory se consuma como capacidad embebida en orders.show, la lectura correcta del frente ya no debe reducirse a “movimientos” genéricos
+
+debe expresar operación por línea, diferenciada de la capa estructural de ítems del host
 
 <<END SECTION>>
 
@@ -814,7 +842,7 @@ linked-asset-action
 <<END SECTION>>
 
 <<SECTION: DETALLE DE FLUJOS RELEVANTES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 DETALLE DE FLUJOS RELEVANTES
 
@@ -850,92 +878,65 @@ APPOINTMENTS -> ORDERS
 
 Uso típico:
 
-un turno deriva en una orden operativa o abre la ya existente
+desde un turno se crea o abre una orden vinculada
 
 Contexto esperado:
 
-si la orden se abre desde appointment relacionado, puede conservarse retorno útil al turno o al módulo de agenda
+si ya existe orden relacionada, debe priorizarse su apertura consistente
 
-Observación actual validada:
+si no existe, debe resolverse create contextual desde la capacidad reusable oficial de orders
 
-el acceso al dataset completo de appointments depende de view_any
-
-la navegación desde appointments hacia entidades relacionadas ya no se ve restringida por errores de visibilidad
-
-la coherencia entre listado, acceso y navegación quedó validada en funcionamiento real
-
-el acceso hacia orders debe mantenerse consistente entre show, tablas, formularios embebidos y calendario
-
-la resolución abrir existente / crear nueva / estado no disponible debe priorizar la capacidad reusable publicada por orders
-
-esa capacidad debe consumirse desde el propio módulo orders, tanto en su resolución contextual como en su bloque visual modular
-
-la relación operativa real del flujo se resuelve desde appointments.order_id
-
-si orders no está habilitado para el tenant:
-
-no debe mostrarse el acceso
-no debe renderizarse el bloque asociado
-no debe existir navegación residual hacia ese módulo
-
-ASSETS -> APPOINTMENTS
+ORDERS -> DOCUMENTS
 
 Uso típico:
 
-desde el activo se consultan turnos relacionados dentro de una lectura operativa del recurso
+desde una orden se crea o abre documentación derivada
 
 Contexto esperado:
 
-si el flujo parte de asset.show, los turnos relacionados deben abrirse preservando asset.show como origen contextual útil
+la creación o apertura documental debe conservar el flujo host de la orden cuando siga siendo relevante
 
 Regla adicional consolidada:
 
-la relación debe consumirse mediante la capacidad reusable oficial publicada por appointments y no mediante una tabla local reconstruida
+la lectura embebida de documents en orders.show debe provenir de la surface oficial publicada por documents y no de una tab manual reconstruida por el host
 
-PARTIES -> APPOINTMENTS
+ORDERS -> INVENTORY POR LÍNEA
 
 Uso típico:
 
-desde el contacto se consultan turnos relacionados como parte de la lectura transversal del vínculo operativo
+desde la tabla de ítems se ejecuta operación material sobre una línea
 
 Contexto esperado:
 
-si el flujo parte de party.show, los turnos relacionados deben abrirse preservando party.show como origen contextual útil
+la línea sigue siendo el anclaje funcional del trabajo
+
+la operación visible debe resolver stock, ejecutado, pendiente, estado y acción rápida contextual desde inventory
 
 Regla adicional consolidada:
 
-la relación debe consumirse mediante la capacidad reusable oficial publicada por appointments y no mediante una tabla local reconstruida
+orders actúa como host visual del flujo, pero la lógica operativa y la semántica material pertenecen a inventory
 
-ORDERS -> INVENTORY
+PRODUCTS -> INVENTORY
 
 Uso típico:
 
-desde una orden se consulta o ejecuta trabajo de stock relacionado con sus líneas
+desde un producto se consulta stock, historial o ficha operativa de inventario
 
 Contexto esperado:
 
-si el flujo parte de order.show, la lectura principal debe seguir anclada en la orden y sus order_items
+products conserva la lectura de catálogo maestro
 
-inventory actúa como capacidad operativa consumida por línea y no como pantalla que absorbe el flujo completo del usuario
+inventory concentra saldo, historial y operación
 
-Reglas consolidadas:
+DOCUMENTS -> ORDERS
 
-la lectura por línea debe priorizar contexto explícito de order_item cuando exista ejecución real
+Uso típico:
 
-la UI por fila puede mostrar stock, ejecutado, pendiente, estado y acción rápida contenida
+desde un documento derivado se vuelve a la orden origen cuando exista
 
-la navegación hacia inventory.show del producto sigue siendo válida cuando aporte valor de historial o ficha completa
+Contexto esperado:
 
-la operación por línea no debe reconstruirse localmente en orders si inventory ya publica el contexto reusable oficial correspondiente
-
-el estado de orders condiciona operabilidad del flujo
-
-draft no debe leerse como cierre operativo
-approved habilita lectura validada para ejecución
-closed implica readonly operativo
-cancelled exige ausencia de movimientos o reversión previa suficiente
-
-si una línea ya posee movimientos ejecutados, la edición o eliminación libre de esa línea no debe permanecer operable como si fuera un detalle sin trazabilidad
+el retorno debe preservar la lectura del flujo documental derivado y no romper el contexto operativo útil
 
 <<END SECTION>>
 

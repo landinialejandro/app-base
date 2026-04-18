@@ -328,7 +328,7 @@ Ignorar constraints equivale a ejecutar un contrato incompleto.
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00012
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -388,7 +388,7 @@ sí exige que el módulo no quede técnicamente existente pero prácticamente in
 <<END SECTION>>
 
 <<SECTION: RECURSOS DELEGADOS AL PADRE>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00009
 
 RECURSOS DELEGADOS AL PADRE
 
@@ -404,17 +404,22 @@ Reglas:
 
 view, update, delete y create siguen reglas del padre cuando corresponda
 
-no crear políticas paralelas innecesarias
+no crear policies paralelas innecesarias
 
 la delegación no elimina validaciones operativas específicas del recurso hijo
 
 la delegación no convierte al hijo en módulo autónomo
 
-Cuando un recurso hijo participe de un frente operativo externo con trazabilidad propia, puede requerir restricciones adicionales que complementen la delegación sin reemplazarla. El detalle de esos casos se resuelve en REGLAS OPERATIVAS POR MÓDULO.
+Cuando un recurso hijo participe de un frente operativo externo con trazabilidad propia, puede requerir restricciones adicionales que complementen la delegación sin reemplazarla.
+
+La delegación principal se mantiene.
+
+El detalle de esas restricciones complementarias debe resolverse en REGLAS OPERATIVAS POR MÓDULO y no duplicarse aquí.
+
 <<END SECTION>>
 
 <<SECTION: INTEGRACIONES REUSABLES Y AUTORIZACIÓN>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00008
 
 INTEGRACIONES REUSABLES Y AUTORIZACIÓN
 
@@ -434,17 +439,17 @@ los estados visibles deben corresponder a autorización real
 
 si la integración depende de módulo deshabilitado, no debe exponerse como acción residual
 
-Regla adicional consolidada:
-
 cuando una integración reusable concentre arbitraje complejo, el payload, flags o estados autorizados deben venir resueltos desde el módulo oferente
 
 el consumidor no debe reinterpretar permisos, constraints, readonly ni estados por su cuenta
 
-Regla adicional para frentes operativos por línea:
-
 cuando una capacidad reusable se consuma por fila dentro de una tabla operativa, el consumidor tampoco debe rearmar localmente qué acción corresponde, qué estado mostrar o si la línea quedó readonly
 
 esa lectura debe provenir del contexto oficial publicado por el módulo oferente
+
+si una capacidad reusable se renderiza dentro de un host visual, el contrato de seguridad aplicable sigue siendo el del módulo oferente
+
+el host no adquiere por esa vía autorización sustitutiva ni puede reinterpretar la capacidad invitada como lógica propia
 
 Casos vigentes:
 
@@ -452,11 +457,12 @@ linked-order-action
 linked-party-action
 linked-asset-action
 surfaces oficiales de inventory consumidas por products u orders
+surface embebida de documents consumida por orders.show
 
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00010
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -492,35 +498,35 @@ sin ownership artificial ni create contextual obligatorio por kind
 
 TASKS
 
-dataset según scope propio del módulo
-acciones internas y derivaciones sujetas a permiso efectivo
-puede recibir alertas automáticas del sistema como destino operativo
+dataset según scope propio
+ownership funcional según contrato del módulo
+puede recibir alertas operativas del sistema cuando corresponda
 
 APPOINTMENTS
 
-dataset según scope del módulo
-acciones de agenda y relaciones sujetas a permiso efectivo
-si orders no está habilitado, no debe exponerse el acceso relacional
-
-PRODUCTS
-
-dataset según scope aplicable
-acciones de catálogo separadas de lógica de inventory
+dataset según scope propio
+órdenes relacionadas resueltas mediante capacidad reusable oficial de orders
+calendar como superficie principal del módulo
 
 DOCUMENTS
 
-acciones derivadas y edición según contrato documental vigente
-create contextual con constraints obligatorias reutilizando patrón de orders
+dataset según scope y contrato propio del módulo
+create contextual desde orders debe seguir autorizado por el contrato de documents y no por reinterpretación local del host
+si documents se consume como surface embebida, la autorización sigue perteneciendo al módulo documents
 
 INVENTORY
 
-dataset según producto visible y contexto permitido
-movimientos sujetos a autorización del frente y contexto recibido
-órdenes closed o cancelled no admiten operación si el contrato las bloquea
-stock negativo permitido con trazabilidad y alerta automática al owner
-reversión debe respetar reglas del frente y dejar recálculo consistente
-la ejecución neta por línea se evalúa con semántica operativa propia y no solo por signo de stock
-si el módulo no está habilitado para el tenant, no debe exponerse ningún acceso ni surface residual
+dataset y acciones según contrato propio del frente
+las operaciones embebidas por línea consumidas desde orders.show siguen autorizadas por inventory
+la operación solo es válida sobre órdenes operables según contrato real
+closed y cancelled no deben admitir ejecución material
+la semántica de stock, ejecución, pendiente y reversión debe provenir del frente inventory y no de arbitraje local del host
+
+ATTACHMENTS
+
+delega autorización principal al recurso padre
+su render embebido no crea permiso autónomo distinto del contrato aplicable al padre o al propio flujo del módulo cuando corresponda
+
 <<END SECTION>>
 
 <<SECTION: HARDENING Y AUDITORÍA>>

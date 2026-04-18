@@ -336,7 +336,7 @@ Su función es sostener la plataforma y su frontera de ingreso.
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00006
 
 ENTIDADES DEL NEGOCIO
 
@@ -366,19 +366,23 @@ Algunas funcionan como base del dominio, otras como módulos autónomos, otras c
 
 Aclaración adicional consolidada:
 
-la existencia de inventory como frente operativo en evolución modular propia no reemplaza la persistencia actual de inventory_movements como entidad del negocio ya real dentro del ecosistema del tenant
+la existencia de inventory como frente operativo en evolución modular propia no reemplaza la persistencia actual de inventory_movements como entidad del negocio ya real dentro del ecosistema del tenant.
 
-inventory_movements expresa hoy la base transaccional efectiva del frente inventory mientras su identidad modular continúa consolidándose
+inventory_movements expresa hoy la base transaccional efectiva del frente inventory mientras su identidad modular continúa consolidándose.
 
 Aclaración adicional sobre order_items:
 
-order_items sigue siendo entidad hija del negocio dentro de orders
+order_items sigue siendo entidad hija del negocio dentro de orders.
 
-cuando participa del frente inventory mediante ejecución por línea, puede actuar además como anclaje operativo real dentro del ecosistema
+cuando participa del frente inventory mediante ejecución por línea, puede actuar además como anclaje operativo real dentro del ecosistema.
 
-Esa lectura no lo convierte en módulo autónomo.
+Esa lectura no lo convierte en módulo autónomo ni en dueño de la semántica material de inventory.
 
 Confirma una relación operativa más rica entre orders, order_items e inventory dentro del dominio vigente.
+
+Aclaración adicional sobre documents:
+
+documents mantiene su entidad propia dentro del negocio aunque parte de su lectura operativa pueda consumirse embebidamente desde hosts del ecosistema.
 
 <<END SECTION>>
 
@@ -470,7 +474,7 @@ El detalle contractual y operativo de cada módulo se resuelve en la sección LE
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00006
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
@@ -503,6 +507,15 @@ embebidos fuertes
 payloads arbitrados
 surfaces oficiales de lectura o ejecución
 
+Cuando una capacidad reusable requiera arbitraje operativo real, la puerta de enlace modular oficial no se agota en una vista aislada.
+
+Debe entenderse como publicación del módulo oferente que puede incluir:
+
+contrato mínimo estable
+resolver reusable
+representación oficial
+consumo homogéneo desde módulos externos
+
 CONSUMO EXTERNO
 
 Corresponde al uso de esas capacidades publicadas por otros módulos.
@@ -517,13 +530,20 @@ Un módulo puede además actuar como hub visual: alojar interacción de otro mó
 
 En esa situación el módulo hub conserva gobierno de su superficie visual y el módulo invitado conserva gobierno de su lógica operativa.
 
-Caso consolidado:
+Casos consolidados:
 
-orders actúa como hub visual del frente inventory cuando la operación se ancla en order_items, sin convertirse en dueño del stock ni de la semántica operativa de inventory.
+orders actúa como hub visual del frente inventory cuando la operación se ancla en order_items, sin convertirse en dueño del stock ni de la semántica operativa de inventory
+
+orders también puede consumir surfaces embebidas oficiales publicadas por documents y attachments sin absorber su identidad contractual ni reconstruir localmente sus capacidades
+
+Regla adicional de lectura:
+
+cuando una surface reusable madura dentro del ecosistema, los consumidores deben migrar progresivamente desde relaciones manuales o tabs ad hoc hacia consumo oficial desde la puerta de enlace publicada por el módulo oferente.
 
 Regla final:
 
 la evolución modular del sistema debe tender a más reutilización oficial y menos lógica dispersa entre consumidores.
+
 <<END SECTION>>
 
 <<SECTION: BASE DEL DOMINIO>>
@@ -550,7 +570,7 @@ Sigue perteneciendo al ecosistema operativo del tenant, pero con un rol conceptu
 <<END SECTION>>
 
 <<SECTION: MÓDULOS FUNCIONALES ACTUALES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00007
 
 MÓDULOS FUNCIONALES ACTUALES
 
@@ -570,17 +590,18 @@ inventory
 
 Estos módulos constituyen la lectura funcional principal del sistema dentro de la empresa activa.
 
-Dos aclaraciones estructurales relevantes:
+Aclaraciones estructurales relevantes:
 
 appointments: su superficie principal es appointments.calendar. El index existe como superficie secundaria accesible pero no como base promovida del módulo.
 
-inventory: ya debe leerse como frente funcional del sistema con surfaces propias de saldo, historial y operación. Su consolidación modular sigue en evolución. Ese reconocimiento no implica que su contrato de seguridad, configuración tenant o exposición visible estén cerrados en todos los contextos reales.
+inventory: ya debe leerse como frente funcional del sistema con surfaces propias de saldo, historial y operación. Su consolidación modular sigue en evolución.
 
 El detalle del rol arquitectónico de cada módulo se resuelve en LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES.
+
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00011
 
 LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES
 
@@ -610,42 +631,53 @@ Publica oferta reusable oficial para el ecosistema: embebidos relacionales fuert
 
 PRODUCTS
 
-Módulo autónomo de catálogo operativo compartido. Representa bienes y servicios catalogables que alimentan otros flujos del negocio. Actúa como soporte maestro de ítems operativos y documentales dentro del tenant.
-
-La distinción entre productos físicos con movimientos y servicios no stockeables por defecto forma parte de la lectura vigente.
-
-Products conserva identidad como catálogo maestro del artículo. Inventory opera como frente separado de stock, saldo e historial. Esa separación no degrada a products: lo reafirma como base maestra dentro de una arquitectura más limpia entre catálogo y operación.
-
-ASSETS
-
-Módulo autónomo de activos operativos. Representa equipos, unidades o recursos identificables del tenant y aporta contexto operativo a distintos frentes del negocio. Publica linked-asset-action como capacidad reusable oficial.
-
-ORDERS
-
-Módulo autónomo de operación central. Puede recibir contexto desde otros módulos sin perder identidad propia.
-
-Actúa como hub visual cuando inventory interviene en ejecución por línea: aloja esa experiencia dentro de su superficie sin absorber la lógica operativa ni la semántica de stock de inventory.
-
-DOCUMENTS
-
-Módulo derivado respecto de orders. Su función principal es formalizar o prolongar documentalmente operaciones más nucleares del sistema.
-
-ATTACHMENTS
-
-Módulo transversal. Se integra sobre otros recursos del sistema sin convertirse en núcleo operativo autónomo del dominio.
+Módulo autónomo de catálogo operativo compartido. Representa bienes y servicios catalogables que alimentan otros flujos del negocio. Actúa como soporte maestro de ítems operativos y documentales.
 
 INVENTORY
 
-Frente operativo en evolución hacia identidad modular propia. Representa la operación de stock del tenant sobre una base separada del catálogo maestro de artículos.
+Frente operativo en consolidación modular. Expresa stock, saldos, historial y trazabilidad sobre una base transaccional real ya existente en el sistema.
 
-Su lectura vigente contempla trazabilidad operativa real incluida la ejecución por línea cuando order_items actúa como anclaje de trabajo. Stock y ejecución operativa son planos funcionales distintos y no deben leerse como equivalentes.
+Su lectura arquitectónica aprobada distingue con claridad:
 
-Su crecimiento arquitectónico debe reforzar una experiencia simple y comprensible para el usuario aun cuando internamente concentre mayor complejidad operativa, automatización y trazabilidad.
+products como maestro del artículo
+inventory como dueño del frente operativo material
+consumidores externos como hosts o contextos de uso
+
+Cuando inventory actúa sobre líneas de orders, no se transfiere su semántica operativa a order_items ni a orders.
+
+ORDERS
+
+Módulo autónomo de núcleo operativo fuerte. Representa el centro de operación interna del tenant.
+
+Además de su núcleo interno, puede ocupar un rol arquitectónico de hub visual modular: alojar capacidades embebidas publicadas por otros módulos sin absorber su lógica operativa ni redefinir su contrato.
+
+En esa lectura, orders puede hospedar surfaces de inventory, documents o attachments manteniendo su propio núcleo separado de esas capacidades invitadas.
+
+DOCUMENTS
+
+Módulo derivado. Representa formalización documental, comercial o fiscal de operaciones del tenant.
+
+Su carácter derivado respecto de orders no le impide publicar oferta reusable oficial hacia el ecosistema cuando el flujo lo justifique.
+
+Puede exponerse como capacidad embebida consumible desde hosts del ecosistema sin degradarse a simple relación manual renderizada por el consumidor.
+
+ASSETS
+
+Módulo autónomo. Representa activos, equipos o unidades operativas del tenant. Puede publicar capacidades reutilizables propias sin perder identidad modular.
+
+ATTACHMENTS
+
+Módulo transversal. Representa capacidad reusable de soporte documental o de evidencia sobre recursos del sistema. Su integración principal sigue siendo embebida o contextual, pero esa transversalidad no elimina su identidad contractual como módulo oferente.
+
+Regla de lectura final:
+
+la arquitectura modular del sistema debe seguir distinguiendo, en cada módulo relevante, entre núcleo interno, puerta de enlace oficial y consumo externo.
+
 <<END SECTION>>
 
 
 <<SECTION: RELACIONES MACRO DEL ECOSISTEMA>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 RELACIONES MACRO DEL ECOSISTEMA
 
@@ -658,8 +690,7 @@ assets aporta contexto operativo a múltiples frentes
 orders puede derivar documents
 orders contiene detalle operativo mediante order_items
 products alimenta ítems operativos y documentales
-products sostiene la base operativa actual y validada de inventory V1
-inventory_movements constituye la base transaccional actual del frente inventory
+inventory se apoya en una base transaccional real dentro del dominio vigente
 parties se relaciona transversalmente con múltiples módulos
 attachments puede integrarse sobre múltiples recursos
 
@@ -670,18 +701,16 @@ tasks y orders como continuidad posible entre trabajo interno y operación
 appointments y orders como continuidad posible entre agenda y operación
 assets como contexto transversal para operaciones, agenda y documentos
 parties como base relacional transversal del dominio
-products como base de catálogo operativo e inventory V1
-inventory_movements como soporte transaccional actual de inventory
+products como base de catálogo operativo
+inventory como frente operativo apoyado en base transaccional propia dentro del dominio
 
 Aclaración adicional consolidada:
 
-appointments ya no debe leerse solo como módulo que deriva hacia orders
+appointments ya no debe leerse solo como módulo que deriva hacia orders.
 
-también publica una oferta reusable oficial para el ecosistema
+También publica una oferta reusable oficial para el ecosistema.
 
-esa oferta se consume de forma embebida desde relaciones fuertes como assets y parties
-
-y de forma compacta desde relaciones puntuales como orders
+Esa oferta se consume de forma embebida desde relaciones fuertes y de forma compacta desde relaciones puntuales.
 
 Regla:
 

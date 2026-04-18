@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 CONVENCIONES GENERALES
 
@@ -160,6 +160,16 @@ estado real de configuración cuando corresponda
 dashboard no reemplaza las surfaces oficiales de un módulo
 
 puede actuar como acceso o resumen, pero no como sustituto de la navegación estructural ni de la administración real del frente
+
+Convención adicional de host visual modular:
+
+cuando una pantalla anfitriona consuma capacidades publicadas por otros módulos, debe mantener separadas:
+
+su identidad nuclear propia
+las capacidades embebidas invitadas
+los contratos de los módulos oferentes consumidos
+
+el host puede componer la experiencia, pero no apropiarse de la lógica operativa ni recomponer localmente una surface ya publicada por otro módulo
 
 <<END SECTION>>
 
@@ -556,7 +566,7 @@ las integraciones entre módulos deben respetar el contrato del módulo oferente
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -705,6 +715,38 @@ consumo externo por otros módulos
 
 cuando un módulo actúe como superficie anfitriona o hub visual de una capacidad ajena, eso no lo convierte en dueño de esa lógica ni habilita naming, estructuras o responsabilidades centradas en el consumidor para piezas que pertenecen al oferente
 
+Regla adicional de publicación reusable mínima:
+
+cuando una surface reusable embebida se publique para consumo transversal, debe apoyarse en un contrato mínimo estable que permita arbitraje homogéneo del ecosistema.
+
+Como mínimo, esa publicación debe poder describirse mediante:
+
+type
+key
+label
+targets
+priority
+view
+needs
+resolver
+
+Regla adicional para resolver reusable:
+
+cuando exista resolver como parte del contrato publicado, debe devolver al menos:
+
+count
+data
+
+ese resolver pertenece al módulo oferente y no debe quedar recompuesto por el host consumidor
+
+Regla adicional para hostPack:
+
+cuando una surface embebida reusable madure como patrón transversal, debe priorizarse un hostPack genérico basado en contexto estable del host y no claves ad hoc centradas en un consumidor puntual
+
+caso vigente:
+
+consumo embebido apoyado en record y trailQuery como base genérica del host
+
 Regla adicional de semántica cruzada:
 
 cuando una integración exponga métricas o cantidades pertenecientes a planos funcionales distintos, cada valor debe provenir de la semántica oficial de su dominio
@@ -724,7 +766,7 @@ ningún contrato modular es válido si contradice el contrato de seguridad del m
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CLASIFICACIÓN MODULAR>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 CONVENCIONES DE CLASIFICACIÓN MODULAR
 
@@ -766,9 +808,13 @@ Regla:
 
 su agrupación o vinculación con otros módulos no debe degradarlo a simple subrecurso si conserva función propia.
 
-Caso doctrinal relevante:
+Casos doctrinales relevantes:
 
 tasks
+appointments
+products
+assets
+orders
 
 MÓDULO AGRUPADOR
 
@@ -791,10 +837,19 @@ Reglas generales:
 la clasificación funcional del módulo debe ayudar a definir su contrato y su superficie de integración
 la clasificación no autoriza excepciones de seguridad
 la clasificación no debe forzar jerarquías falsas de dependencia existencial cuando el módulo conserva identidad propia
+
+Aclaración adicional de host visual:
+
+actuar como host visual dentro de una pantalla no constituye una clasificación modular nueva ni altera por sí mismo la identidad del módulo
+
+es una posición de integración dentro del ecosistema
+
+no convierte al host en dueño del contrato del módulo invitado
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -880,6 +935,8 @@ Caso adicional vigente:
 
 inventory debe publicar sus propias superficies de stock, movimientos e historial desde su módulo y los consumidores deben integrarlas sin duplicar tablas locales de stock o variantes paralelas de historial.
 
+documents puede publicar surfaces embebidas oficiales de lectura documental desde su propio módulo para ser consumidas por hosts como orders.show sin volver a tabs relacionales manuales del consumidor.
+
 Regla operativa adicional de cierre:
 
 si una superficie consumidora todavía resuelve localmente acceso, apertura o visualización de una relación ya cerrada por el módulo oferente, el frente de integración no debe considerarse homogéneo ni cerrado
@@ -919,6 +976,14 @@ Regla adicional de semántica de datos:
 si una integración muestra simultáneamente stock, ejecución, pendiente o reversión, cada indicador debe obtenerse desde la regla oficial de su plano funcional
 
 no deben reciclarse helpers pensados para stock como fuente universal de estados operativos
+
+Regla adicional para host visual modular:
+
+cuando una pantalla anfitriona consuma varias capacidades embebidas desde distintos módulos, debe mantener visible la separación entre su núcleo propio y las capacidades invitadas
+
+el host no debe convertirse en superficie paralela dueña de esas integraciones
+
+debe actuar como compositor visual del ecosistema y no como reemplazo contractual del oferente
 
 <<END SECTION>>
 
@@ -1060,7 +1125,7 @@ order_items copiados hacia documentos derivados
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ENTIDADES HIJAS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 CONVENCIONES DE ENTIDADES HIJAS
 
@@ -1107,6 +1172,15 @@ Caso consolidado adicional:
 order_items debe delegar create, update y delete en orders.update incluyendo controllers, vistas embebidas, navegación de cancelar y verificaciones de pertenencia al padre
 
 cualquier excepción a esta regla debe justificarse por necesidad real del dominio y no por comodidad de implementación
+
+Aclaración adicional consolidada:
+
+order_item puede actuar como anclaje operativo fuerte de un frente externo como inventory sin dejar de ser entidad hija delegada del padre
+
+esa relevancia operativa no lo convierte en módulo autónomo
+
+tampoco transfiere a order_item la semántica material, el cálculo neto ni el arbitraje operativo del módulo invitado
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE OWNERSHIP FUNCIONAL Y PERMISOS OPERATIVOS SIMPLES>>
@@ -1278,7 +1352,7 @@ cuando exista navegación contextual entre módulos relacionados, el módulo act
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE BLADE Y FRONTEND LIVIANO>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 CONVENCIONES DE BLADE Y FRONTEND LIVIANO
 
@@ -1328,6 +1402,16 @@ Regla adicional de consumers livianos:
 si una vista consume una surface oficial publicada por otro módulo, Blade no debe reconstruir localmente formularios, tablas ni decisiones de estado equivalentes
 
 debe limitarse a componer la experiencia visual usando la salida oficial recibida
+
+Regla adicional para hosts visuales:
+
+cuando una show page actúe como host de capacidades embebidas publicadas por otros módulos, Blade debe dejar visible la separación entre:
+
+núcleo propio del recurso anfitrión
+relaciones estructurales del host
+capacidades operativas invitadas de módulos oferentes
+
+la composición visual puede organizar tabs, cards o bloques, pero no debe mezclar en una misma superficie del host métricas, estados o acciones que pertenecen semánticamente al módulo invitado
 
 <<END SECTION>>
 

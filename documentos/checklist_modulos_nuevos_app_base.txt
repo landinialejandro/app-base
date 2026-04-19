@@ -110,7 +110,7 @@ Si estas respuestas no están claras, no debe avanzarse a implementación.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 BLOQUE 1 — CONTRATO MODULAR
 
@@ -207,6 +207,7 @@ Validación adicional para surfaces embebidas reusables:
 si el módulo publicará una surface reusable embebida, debe dejar explícito al menos:
 
 type
+slot
 key
 label
 targets
@@ -219,6 +220,19 @@ y el resolver debe devolver al menos:
 
 count
 data
+
+Validación adicional para hosts show surface-driven:
+
+si el módulo será consumido dentro de show pages de otros módulos, no alcanza con declarar target correcto y view publicada.
+
+Debe auditarse también:
+
+qué slot espera el host
+si el host monta por type, por slot o por ambos
+si la relación es compacta o tabular
+si la publicación respeta la gramática real del host consumidor
+
+Una offer puede estar bien orientada al target y seguir siendo invisible si omite slot o si combina type + slot de forma incompatible con el host real.
 
 <<END SECTION>>
 
@@ -282,7 +296,7 @@ si owner dispone de una surface real para entender y administrar ese comportamie
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -336,10 +350,24 @@ Validación adicional de cierre reusable:
 
 si una relación fuerte ya fue migrada a surface oficial del oferente, auditar también tabs fijas, includes manuales y demás superficies residuales del host antes de considerar cerrada la integración
 
+Validación adicional para hosts estructurados:
+
+si la integración aterriza en una show page surface-driven, debe verificarse explícitamente compatibilidad real entre:
+
+type
+slot
+target
+zona de montaje del host
+combinación efectiva consumida por el host
+
+No dar por buena una integración solo porque el target coincide.
+
+Debe comprobarse que el host efectivamente consume esa combinación y que la relación se publica en la zona correcta.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA
 
@@ -392,6 +420,21 @@ relaciones estructurales propias
 capacidades invitadas publicadas por módulos oferentes
 
 la UI del host no debe mezclar en una misma superficie decisiones operativas que pertenecen al módulo invitado
+
+Validación adicional para show pages host:
+
+la show page debe auditarse como host estructurado y no como un único punto genérico de inserción.
+
+Debe verificarse la presencia y coherencia de sus zonas de montaje reales.
+
+Casos vigentes consolidados:
+
+header_actions
+summary_items
+detail_items
+zona tab coordinada
+
+La zona tab no debe evaluarse como dos renders sueltos sin estructura, sino como bloque coordinado del host.
 
 <<END SECTION>>
 
@@ -594,7 +637,7 @@ si una acción reusable navega hacia otro módulo, la visibilidad final debe seg
 <<END SECTION>>
 
 <<SECTION: CHECKLIST DE INTEGRACIÓN>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 CHECKLIST DE INTEGRACIÓN
 
@@ -620,11 +663,19 @@ si el módulo reemplaza surfaces históricas dispersas, plan de migración claro
 
 si la relación reusable se apoya en registry o mecanismo equivalente, el host consumidor no recompone localmente payload ni naming ad hoc
 
+compatibilidad real entre target, type, slot y gramática efectiva del host consumidor
+
 Regla de cierre:
 
 no considerar terminada una integración por haber corregido solo la pantalla principal del consumidor.
 
 Debe revisarse también el ecosistema visible que consume esa relación.
+
+Regla adicional para show pages surface-driven:
+
+si el host monta surfaces por zonas explícitas, el checklist debe verificar que cada offer publique slot correcto y que el host tenga montaje compatible con esa combinación.
+
+Una offer sin slot o con slot incoherente puede quedar invisible aunque el resto del contrato parezca correcto.
 
 <<END SECTION>>
 
@@ -653,7 +704,7 @@ no existan rutas operables residuales aunque la UI ya no las muestre
 <<END SECTION>>
 
 <<SECTION: SUPERFICIES SECUNDARIAS Y PARTIALS>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 SUPERFICIES SECUNDARIAS Y PARTIALS
 
@@ -673,27 +724,24 @@ no existen botones, filtros o enlaces residuales en vistas secundarias
 
 el módulo puede considerarse cerrado también fuera de index/controller/show principal
 
-si una capacidad reusable publicada por un módulo se consume en partials de otros módulos, se consume desde la ubicación modular oficial del oferente y no desde copias o variantes globales ambiguas
+si una capacidad reusable publicada por un módulo ya reemplaza una implementación anterior, no deben quedar superficies secundarias relevantes sosteniendo la variante vieja
 
-si la partial reutilizada depende de payload arbitrado, ese payload proviene del módulo oferente y no de composición local dispersa
+si la integración depende de slots o zonas del host, las partials consumidoras no deben perder esa compatibilidad real
 
-si la superficie secundaria es una tabla o partial consumida dentro de un contenedor contextual, debe heredar trailQuery contextual y no reiniciar navegación desde una base local del módulo oferente
+Regla adicional:
 
-Regla adicional consolidada:
+no considerar cerrada una integración reusable solo porque funciona en la vista principal del host.
 
-una integración no debe considerarse cerrada mientras exista хотя sea una superficie secundaria relevante con resolución local residual del mismo flujo o capacidad reusable
+Debe revisarse también:
 
-Regla adicional de auditoría:
+sublistados
+cards compactas
+partials de summary
+details
+tabs secundarias
+bloques relacionales derivados
 
-también deben revisarse estados vacíos, mensajes, botones secundarios, acciones masivas, modales y variantes móviles cuando formen parte real del flujo visible
-
-Validación adicional para frentes transaccionales:
-
-si una partial muestra ejecución, stock, pendiente, readonly o acción rápida por línea, esa lectura debe provenir del contexto oficial publicado por el módulo oferente y no de cálculo local del consumidor
-
-Validación adicional para hosts modulares:
-
-si una pantalla host ya migró una relación a surface oficial, no deben permanecer tabs manuales o includes relacionales legacy del mismo frente en otras zonas visibles de la misma pantalla
+Si una relación puede aparecer en más de una zona del host, cada una debe auditarse según la gramática real de montaje y no por similitud visual aparente.
 
 <<END SECTION>>
 
@@ -759,8 +807,6 @@ Verificar si corresponde actualizar:
 <DOC_REF slug="base_visual_proyecto_app_base">Base visual del proyecto</DOC_REF>
 
 <DOC_REF slug="todo_proyecto_app_base">Todo del proyecto</DOC_REF>
-
-<DOC_REF slug="deploy_compatibilidad_proyecto_app_base">Deploy y compatibilidad del proyecto</DOC_REF>
 
 <DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
 

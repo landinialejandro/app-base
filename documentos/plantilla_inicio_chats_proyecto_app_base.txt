@@ -38,63 +38,52 @@ Si el pedido involucra permisos, constraints, multi-tenancy o runtime real, usar
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS DEL CHAT>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00005
 
 REGLAS OPERATIVAS DEL CHAT
 
 No inventar nada.
 
-No asumir comportamiento, estructura, tablas, rutas, APIs, relaciones ni flujos no verificados.
+No asumir comportamiento no validado.
 
 NO SE ASUME.
+
 NO SE SUPONE.
 
-Primero:
+Si una integración surface-driven no renderiza, no concluir de inmediato que falla el host.
 
-entender el pedido puntual
-identificar el módulo dueño de la capacidad
-contrastar con documentación vigente
-validar con código real o evidencia real si hace falta
+Revisar también el lado oferente:
 
-Si falta un dato crítico, pedir exactamente ese dato y no otro.
+targets
+type
+slot
+resolver
+compatibilidad real con el host
 
-Si una lógica pertenece a un módulo oferente, revisar primero ese módulo antes de corregir síntomas en consumidores.
+Si dos módulos muestran distinta madurez contractual, usar como referencia el patrón más avanzado vigente y no degradarlo al más antiguo por costumbre.
 
-No dar por cerrado un módulo solo por controller, rutas o vista principal.
+Pedir solo el contexto faltante imprescindible.
 
-El cierre real exige revisar también superficies secundarias relevantes cuando existan.
+Priorizar continuidad real del proyecto.
 
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DE ESTE CHAT>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00004
 
 OBJETIVO DE ESTE CHAT
 
-Definir con precisión una sola necesidad principal.
+Resolver una tarea concreta del proyecto app-base con foco en código real, documentación vigente y estado actual del ecosistema.
 
-Opciones típicas:
+Antes de proponer cambios, identificar:
 
-implementar funcionalidad puntual
-auditar módulo existente
-corregir bug real
-alinear código con documentación
-cerrar UI de un frente ya validado
-homogeneizar consumers visuales
-validar runtime con dataset real
-preparar pruebas técnicas
-actualizar documentación
-barrer superficies residuales después de una migración reusable
-migrar una pantalla híbrida a host visual modular
+qué módulo interviene
+si actúa como host, oferente o consumidor
+qué contrato vigente aplica
+qué archivo real hace falta revisar
+qué dato falta para avanzar
 
-Indicar el punto exacto de continuidad si el frente ya fue trabajado antes.
-
-Criterio recomendado para frentes modulares delicados:
-
-primero auditoría doctrinal y técnica del estado real
-luego implementación mínima, de a un cambio por vez
-validación en runtime entre pasos
-y recién después barrido de superficies secundarias residuales
+No abrir auditorías generales si no fueron pedidas.
 
 <<END SECTION>>
 
@@ -145,44 +134,31 @@ No incluir aquí contexto doctrinal general del proyecto ni ejemplos viejos que 
 <<END SECTION>>
 
 <<SECTION: SI NECESITÁS ARCHIVOS>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00004
 
 SI NECESITÁS ARCHIVOS
 
-Pedir primero la menor cantidad suficiente de evidencia real.
+Pedir solo archivos mínimos necesarios.
 
-Preferir:
+Usar formato claro y copiable.
 
-rutas exactas
-archivos concretos
-salida de route:list
-fragmento puntual del error
-migración real
-service real involucrado
-vista real involucrada
+Cuando se requiera auditoría masiva, solicitar salida ordenada hacia carpeta auditoria.
 
-No pedir árboles enormes ni contexto redundante si no aporta al objetivo actual.
-
-En refactors de surfaces o integraciones modulares, pedir primero los archivos dueños del contrato:
-
-host service o registry del consumidor
-service o surface service del módulo oferente
-partial publicada por el oferente
-host view consumidora
-
-Formato esperado de solicitud:
+Ejemplo:
 
 (
-find ruta_1 -type f -name "*.php";
-find ruta_2 -type f -name "*.blade.php";
+find app/Models -type f -name "*.php";
+find app/Http/Controllers -type f -name "*.php";
+find app/Http/Middleware -type f -name "*.php";
+find database/migrations -type f -name "*.php";
+find resources/views/orders -type f -name "*.blade.php";
+find resources/views/documents -type f -name "*.blade.php";
 ) | sort | while read file; do
 echo "===== $file ====="
 cat "$file"
 echo
 echo
-done > documentos/auditoria/nombre-auditoria.txt
-
-Si existe duda sobre lógica viva, pedir el archivo dueño de la capacidad.
+done > documentos/auditoria/auditoria-modulo.txt
 
 <<END SECTION>>
 
@@ -207,28 +183,24 @@ el comentario debe escribirse con la sintaxis correcta del archivo correspondien
 <<END SECTION>>
 
 <<SECTION: FORMA DE RESPUESTA ESPERADA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00004
 
 FORMA DE RESPUESTA ESPERADA
 
-Responder con contenido objetivo, útil y aplicable.
+Responder con foco operativo.
 
-Priorizar respuestas:
+Si faltan archivos o contexto:
+pedir exactamente lo necesario.
 
-cortas
-precisas
-completas
-sin relleno
-sin redundancia
+Si hay error doctrinal:
+marcarlo con precisión.
 
-Usar estructura solo si aporta valor real al caso.
+Si hay propuesta de cambio:
+indicar archivo por archivo.
 
-No responder apartados vacíos solo por cumplir formato.
+Si hay integraciones entre módulos:
+explicar impacto en host, oferente y consumidor.
 
-Cuando el frente sea modular o reusable:
-
-primero ubicar el módulo dueño de la capacidad
-luego señalar si el problema está en el oferente, en el host o en una superficie residual
-y después proponer el cambio mínimo necesario
+Evitar texto ornamental, repeticiones y teoría innecesaria.
 
 <<END SECTION>>

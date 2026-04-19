@@ -41,34 +41,48 @@ no debe cargarse con teoría arquitectónica general que corresponda a otros doc
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
+SECTION_VERSION: 00007
+
 REGLA GENERAL
 
-El sistema distingue entre:
+La navegación del sistema debe ser coherente con la arquitectura modular vigente.
 
-navegación estructural
-navegación contextual
+Navegar no equivale a integrar.
 
-navegación estructural:
-expresa la ubicación normal de una pantalla dentro de su módulo
+Integrar no equivale a duplicar.
 
-navegación contextual:
-expresa el origen funcional desde el cual se llegó a una pantalla relacionada cuando ese origen sigue siendo útil para continuar el trabajo
+Toda relación entre módulos debe resolverse preguntando primero:
 
-Como regla general:
+es un salto de navegación
+es una capacidad reusable
+es una relación compacta
+es una relación fuerte tabular
+es una acción contextual
+es parte del núcleo del host
 
-toda pantalla debe poder abrirse en modo estructural
+La respuesta correcta define dónde y cómo debe aparecer.
 
-solo ciertos flujos aceptan además trail contextual heredado
+Regla adicional:
 
-Regla adicional validada:
+si una relación ya fue cerrada como capacidad reusable oficial del módulo oferente, no corresponde sostener una variante local equivalente como camino principal.
 
-la navegación hacia módulos relacionados depende del estado activo del módulo destino
+Regla adicional para show pages host:
 
-si el módulo destino está deshabilitado:
+antes de agregar una tab, validar si la necesidad real se resuelve mejor en summary, details o acción compacta.
 
-no deben renderizarse links
-no deben renderizarse accesos
-no debe existir navegación residual hacia ese módulo
+La pestaña debe reservarse para relaciones densas o flujos con entidad propia dentro del show.
+
+Regla adicional de compatibilidad:
+
+si una integración depende de host surface-driven, no basta con definir target narrativo.
+
+Debe existir compatibilidad real entre:
+
+type publicado
+slot publicado
+zona consumida por el host
+estructura efectiva del show
+
 <<END SECTION>>
 
 <<SECTION: REGLAS DE LECTURA>>
@@ -204,227 +218,119 @@ si inventory aún no resulta visible para un tenant o usuario concreto, esa ause
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00009
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
-Las relaciones entre módulos deben priorizar navegación contextual cuando mejora continuidad operativa del usuario.
-
-Flujos relevantes actuales:
-
-tasks.show
-→ crear / abrir order relacionada
-
-appointments.show
-→ crear / abrir order relacionada
-
-appointments.calendar
-→ crear / abrir order relacionada
-
-assets.show
-→ ver órdenes relacionadas
-→ crear order contextual
-→ ver documents relacionados
-→ ver party relacionada
-→ ver appointments relacionadas
-
-parties.show
-→ ver relaciones operativas
-→ navegar assets relacionadas
-→ navegar orders relacionadas
-→ navegar documents relacionadas
-→ ver appointments relacionadas
-
-products.show
-→ consumir superficies de inventory vinculadas al stock
-→ abrir ficha de inventory del producto cuando corresponda
-
-orders.show
-→ crear document derivado
-→ ver party relacionada
-→ ver asset relacionado
-→ ver appointment relacionada cuando exista
-→ gestionar items
-→ gestionar attachments si aplica
-→ consumir surface operativa de inventory por línea cuando el flujo lo requiera
-→ consumir surface embebida de documents cuando el flujo lo requiera
-→ consumir surface embebida de attachments cuando aplique
-
-inventory.show
-→ volver al producto relacionado
-→ abrir orden o documento contextual cuando exista trazabilidad
-→ continuar trabajo desde sus superficies reutilizables consumidas por otros módulos
-
-documents.show
-→ volver a order origen cuando exista
-→ ver party relacionada
-→ ver asset relacionado
-→ ver trazabilidad de inventory cuando exista
-
-projects.show
-→ navegar tareas relacionadas
+La navegación entre módulos debe responder al flujo real de trabajo y no a enlaces arbitrarios entre entidades.
 
 Reglas:
 
-tasks participa ya como origen contextual pleno hacia orders y no solo como antecedente conceptual del flujo
+cada salto debe tener sentido operativo
+el retorno debe preservar contexto cuando corresponda
+no multiplicar accesos equivalentes sin necesidad
+priorizar recorridos frecuentes
+no confundir navegación estructural con integración reusable
 
-appointments participa como origen contextual pleno hacia orders tanto desde show como desde calendario y superficies equivalentes
+Casos vigentes:
 
-debe preservarse NavigationTrail cuando exista contexto válido
+tasks puede abrir orders contextualmente
+appointments puede abrir orders contextualmente
+orders puede abrir documents relacionados
+products puede abrir inventory como frente operativo de stock
+assets puede abrir appointments relacionados
+parties puede abrir appointments relacionados
 
-cancelar o volver debe respetar origen funcional cuando corresponda
+Regla adicional consolidada:
 
-si no existe contexto válido, usar navegación estructural estándar
+cuando una relación reusable ya resuelva apertura, create contextual o navegación contextual completa, debe priorizarse esa surface oficial antes que links locales aislados.
 
-no crear variantes manuales de breadcrumbs por módulo si ya existe motor común
+Regla adicional para hosts show:
 
-cuando un flujo transversal hacia orders deba arbitrar si corresponde abrir una orden existente, crear una nueva, informar requisito faltante o no mostrar capacidad, debe priorizarse el consumo de la capacidad reusable publicada por orders y no lógica duplicada por vista
+una relación contextual visible dentro de un show page puede resolverse por distintas zonas del host:
 
-la capacidad reusable consolidada actual para este frente es linked-order-action
+header
+summary
+details
+tabs
 
-cuando un flujo transversal hacia assets deba arbitrar si corresponde abrir el asset relacionado, mostrar referencia readonly o no exponer acción operable, debe priorizarse el consumo de la capacidad reusable publicada por assets y no links locales dispersos
+La elección debe responder a densidad real, frecuencia de uso y peso operativo de la relación.
 
-la capacidad reusable consolidada actual para este frente es linked-asset-action
+No toda navegación contextual merece una tab.
 
-Aclaración operativa consolidada:
+Las relaciones puntuales o 1 a 1 deben priorizar summary, detail o acción compacta antes que pestañas pesadas.
 
-linked-order-action ya no debe leerse solo como idea doctrinal ni como bloque aislado reutilizado por conveniencia
+Caso consolidado actual:
 
-debe leerse como superficie publicada por orders y consumida desde módulos como appointments y tasks
-
-su consumo válido incluye tanto la resolución contextual proveniente del propio módulo orders como su bloque visual modular correspondiente
-
-linked-asset-action debe leerse con el mismo criterio doctrinal para relaciones visibles hacia assets desde módulos consumidores
-
-la navegación contextual hacia módulos relacionados no debe reconstruirse localmente por cada vista consumidora cuando esa superficie ya fue cerrada por el módulo oferente
-
-Regla adicional de homogeneidad:
-
-mientras exista una superficie secundaria relevante que todavía resuelva localmente el acceso hacia orders o assets, el frente de navegación contextual no debe considerarse homogéneamente cerrado
-
-Aclaración consolidada para parties:
-
-cuando el flujo transversal hacia parties deba arbitrar si corresponde abrir la party relacionada, mostrarla como referencia readonly o no exponer acción operable, debe tender a priorizarse el consumo de la capacidad reusable publicada por parties y no links locales dispersos por vista
-
-la capacidad reusable prevista para este frente es linked-party-action
-
-parties.show no debe leerse solo como ficha aislada
-
-debe tender a operar como pantalla transversal de relaciones operativas relevantes según módulos activos, permisos efectivos y contexto vigente
-
-Aclaración consolidada para appointments:
-
-cuando un módulo consumidor necesite exponer turnos relacionados como relación fuerte, debe tender a consumir la capacidad reusable publicada por appointments y no una tabla local reconstruida
-
-cuando el vínculo con appointments sea puntual o 1 a 1, debe priorizarse una integración compacta y no una pestaña pesada por defecto
-
-Aclaración consolidada para inventory:
-
-inventory debe publicar sus propias superficies reusables de saldos y movimientos desde el propio módulo
-
-products y orders deben consumir esas superficies y no sostener variantes locales dispersas como resolución oficial del frente de stock
-
-cuando orders.show consuma inventory por línea, la navegación contextual hacia inventory no debe degradarse a simple historial genérico por producto
-
-debe poder conservar lectura operativa por order_item cuando esa línea sea el anclaje real de ejecución
-
-Aclaración consolidada para documents:
-
-cuando orders.show consuma documents como relación fuerte, debe hacerlo mediante la surface embebida publicada por documents y no mediante tab manual reconstruida por el host
-
-la navegación contextual de creación o apertura documental debe seguir respetando el flujo originado desde orders
-
-Aclaración estructural adicional:
-
-en la relación orders ↔ inventory, orders debe leerse como hub visual y contextual de una capacidad operativa perteneciente a inventory
-
-la acción surtir en una línea de la orden no constituye lógica propia de orders
-
-constituye una puerta de entrada contextual a una capacidad publicada por inventory
-
-ese mismo patrón debe poder reutilizarse desde documents, tasks u otros módulos futuros cuando el ecosistema lo requiera
+appointments.show consume relaciones compactas publicadas por assets, parties y orders dentro de su zona summary.
 
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00010
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
-Las show pages pueden exponer relaciones mediante bloques embebidos consistentes.
+Las relaciones embebidas dentro de show pages deben organizarse según relevancia operativa y peso real del contenido.
 
-Casos actuales o consolidados:
+Tipos conceptuales:
 
-asset.show
-orders relacionadas
-documents relacionadas
-appointments relacionadas
-attachments
+relación compacta
+relación de detalle
+relación tabular fuerte
+acción contextual
 
-party.show
-relaciones operativas según módulos activos
-appointments relacionadas cuando corresponda
+RELACIÓN COMPACTA
 
-project.show
-tasks relacionadas
-métricas agregadas
+Corresponde a vínculos puntuales, 1 a 1 o de baja densidad.
 
-task.show
-capacidad reusable hacia order relacionada
+Debe priorizarse en:
 
-appointment.show
-capacidad reusable hacia order relacionada
+summary
+details
+acciones contextuales
 
-order.show
-items
-operación por línea de inventory cuando corresponda
-documents embebidos cuando corresponda
-attachments
-acciones derivadas
-relaciones principales
-referencia compacta a appointment cuando exista
+RELACIÓN DE DETALLE
 
-document.show
-items
-attachments cuando aplique
-relaciones principales
-trazabilidad de inventory cuando corresponda
+Corresponde a información complementaria útil pero no dominante.
+
+Debe resolverse en bloques detail o cards secundarias.
+
+RELACIÓN TABULAR FUERTE
+
+Corresponde a datasets densos, historiales, tablas operativas o flujos con navegación interna.
+
+Debe priorizarse en la zona tab del host.
+
+ACCIÓN CONTEXTUAL
+
+Corresponde a navegación, apertura, create o acción rápida dependiente de contexto.
+
+Debe vivir cerca del dato que le da sentido.
 
 Reglas:
 
-priorizar componentes reusables
+no toda relación visible justifica una tab
+no duplicar la misma relación en varias zonas sin causa real
+si existe surface oficial del módulo oferente, priorizarla
+el host compone la experiencia visual, no reemplaza el contrato del oferente
 
-evitar duplicación de tablas equivalentes
+Regla adicional para show pages surface-driven:
 
-si una relación ya posee bloque reusable válido, reutilizarlo
+la zona tab no debe leerse como panel huérfano separado de su navegación.
 
-las relaciones embebidas no deben reemplazar navegación estructural cuando abrir el recurso completo agrega valor
+Debe entenderse como item tabular completo del host que coordina:
 
-los accesos embebidos hacia orders desde tasks o appointments deben consumir la misma lógica reusable del módulo orders
+toolbar
+botones
+estado activo
+panel visible
 
-los accesos embebidos hacia assets desde módulos consumidores deben consumir la misma lógica reusable del módulo assets cuando corresponda
+Caso consolidado actual:
 
-las relaciones embebidas fuertes hacia appointments deben consumir la capacidad reusable oficial publicada por appointments cuando exista
+las relaciones fuertes publicadas en tabs deben entrar como unidad tabular completa.
 
-Regla adicional consolidada:
-
-si una relación embebida depende de un módulo deshabilitado para el tenant, ese bloque no debe permanecer visible como pestaña operativa residual
-
-la pantalla debe resolver fallback limpio hacia una pestaña activa disponible
-
-Regla adicional de cierre:
-
-también las tablas parciales y superficies secundarias embebidas deben consumir esas mismas capacidades reusables oficiales y no resolver localmente el vínculo relacionado
-
-Aclaración operativa para orders.show:
-
-la capa estructural de orders vive en la tab de ítems
-
-la operación material de inventory debe leerse como capacidad embebida publicada por inventory
-
-documents y attachments deben leerse como capacidades embebidas publicadas por sus propios módulos oferentes
-
-el host no debe mezclar en la tab estructural métricas o acciones operativas que pertenezcan a esas capacidades invitadas
+Las relaciones compactas hacia appointments.show deben entrar como summary linked y no como tabs pesadas.
 
 <<END SECTION>>
 
@@ -503,55 +409,39 @@ Pueden abrirse de forma estructural o como continuación de otro flujo operativo
 <<END SECTION>>
 
 <<SECTION: REGLAS DEL TRAIL>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00006
 
 REGLAS DEL TRAIL
 
-Cuando exista trail contextual válido:
+El trail debe preservar orientación del usuario entre módulos relacionados.
 
-el controller resuelve el contexto
+Objetivos:
 
-la vista consume el contexto
+saber dónde está
+entender desde dónde llegó
+poder volver sin fricción
+mantener contexto operativo
 
-el trail se propaga en links, forms y redirects relevantes
+Reglas:
 
-el trail debe colapsar nodos repetidos
+el trail debe construirse desde origen real y no desde rutas genéricas
+los retornos deben respetar contexto cuando exista
+no perder filtros o query útil sin motivo
+las integraciones reusables deben propagar trail cuando corresponda
 
-el breadcrumb visible no debe duplicar nodos ya recorridos
+Regla adicional para hosts embebidos:
 
-los botones volver, cancelar y redirects post acción deben respetar el nodo previo real cuando ese contexto siga siendo útil
+si una relación se consume dentro de un show page sin salir de pantalla, no siempre requiere breadcrumb nuevo.
 
-El trail no debe reconstruirse desde:
+Puede requerir solo contexto interno del host.
 
-url()->previous()
-historial del navegador
-supuestos implícitos del modelo
+Regla adicional para acciones compactas:
 
-El trail no debe serializarse dentro de las URLs internas de sus propios nodos.
+si una relación compacta abre otro módulo o crea contextualmente desde el host, debe conservar trail suficiente para retorno limpio al recurso anfitrión.
 
-Regla adicional consolidada:
+Caso vigente:
 
-si una apertura entre módulos se resuelve mediante una capacidad reusable oficial del módulo oferente, esa capacidad también debe respetar y propagar el trail válido del flujo activo
-
-esto aplica tanto a módulos operativos como a módulos base del dominio
-
-casos relevantes actuales:
-
-linked-order-action
-linked-party-action
-linked-asset-action
-
-Regla adicional para tablas y embebidos reusables:
-
-si una tabla reusable se consume dentro de un contenedor contextual, sus links principales y relacionales deben heredar el trailQuery recibido y no reiniciar navegación desde una base local del módulo oferente
-
-esto aplica también a tabs embebidas, tablas por fila y acciones derivadas internas del bloque reusable
-
-Regla adicional para líneas operativas:
-
-si el contexto real nace en una fila operativa específica, el trail puede conservar esa línea como anclaje funcional y no solo la cabecera del recurso padre
-
-esto aplica especialmente en ejecuciones de inventory sobre order_items
+relaciones compactas desde appointments.show hacia assets, parties y orders deben mantener retorno coherente al appointment anfitrión cuando navegan fuera del host.
 
 <<END SECTION>>
 
@@ -560,170 +450,41 @@ SECTION_VERSION: 00005
 
 MAPA DE NAVEGACIÓN PRINCIPAL
 
-FLUJO ESTRUCTURAL BASE
+La navegación principal del sistema organiza acceso a frentes funcionales y no solo a tablas CRUD.
+
+Entradas vigentes del ecosistema:
 
 dashboard
-↓
-módulo
-↓
-index
-↓
-show / create / edit
-
-Este flujo existe para todos los módulos principales aunque además admitan contexto heredado.
-
-Aclaración estructural consolidada:
-
-en appointments, la lectura principal del módulo debe anclarse en calendar como superficie promovida de agenda
-
-appointments.index puede mantenerse como superficie secundaria accesible, pero no como base principal promovida del módulo
-
-Aclaración estructural consolidada adicional:
-
-en inventory, la lectura principal aprobada del módulo se ancla en:
-
-inventory.index como tabla de saldos por producto
-
-inventory.show como ficha de inventario por producto
-
-Los consumos embebidos desde products, orders o documents no deben degradar esa lectura estructural del módulo.
-
-Aclaración estructural adicional para orders.show:
-
-la composición principal aprobada de la pantalla distingue:
-
-tab Ítems como capa estructural propia de orders
-surface Operación como capacidad embebida de inventory
-surface Documentos como capacidad embebida de documents
-surface Adjuntos como capacidad embebida de attachments
-
-FLUJOS CONTEXTUALES YA VALIDADOS
-
-appointments
-↓
-parties
-
-appointments
-↓
-assets
-
-appointments
-↓
-orders
-↓
-documents
-↓
-document_items
-
 projects
-↓
 tasks
-↓
-orders
-
-orders
-↓
-parties
-
-orders
-↓
-assets
-
-orders
-↓
-appointment
-
-orders
-↓
-order_items
-
-orders
-↓
-inventory
-
-orders
-↓
-documents
-
-documents
-↓
-parties
-
-documents
-↓
-assets
-
-documents
-↓
-orders
-
-documents
-↓
-inventory
-
-documents
-↓
-document_items
-
-parties
-↓
 appointments
-
 parties
-↓
-assets
-↓
-orders / documents
-
-parties
-↓
-orders
-
-parties
-↓
-documents
-
-assets
-↓
-appointments
-
-assets
-↓
-orders / documents
-
 products
-↓
-inventory
-
-inventory
-↓
-products
-
-inventory
-↓
+assets
 orders
-
+documents
 inventory
-↓
-documents
 
-task
-↓
-order
+Reglas:
 
-orders
-↓
-documents
-↓
-document_items
+cada entrada principal debe corresponder a un frente reconocible del negocio
+dashboard resume o deriva, no reemplaza módulos
+los módulos con identidad propia deben tender a tener acceso claro
+la navegación principal no obliga a que toda relación secundaria tenga menú propio
 
-orders
-↓
-order_items
+Aclaración adicional:
 
-documents
-↓
-document_items
+un módulo puede tener navegación principal y además publicar capacidades reutilizables consumidas dentro de otros hosts.
+
+Aclaración sobre hosts avanzados:
+
+la centralidad de un módulo en el menú no lo convierte automáticamente en patrón rector de estructura show.
+
+La madurez contractual de cada host se evalúa por su propia gramática de montaje.
+
+Caso vigente:
+
+appointments.show expresa una estructura host más avanzada que otros shows aún en transición.
 
 <<END SECTION>>
 

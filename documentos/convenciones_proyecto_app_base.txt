@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 CONVENCIONES GENERALES
 
@@ -171,10 +171,35 @@ los contratos de los módulos oferentes consumidos
 
 el host puede componer la experiencia, pero no apropiarse de la lógica operativa ni recomponer localmente una surface ya publicada por otro módulo
 
+Convención adicional de host show estructurado:
+
+las show pages surface-driven deben leerse como hosts con zonas explícitas de montaje y no como contenedores planos definidos solo por type.
+
+La gramática doctrinal vigente distingue al menos:
+
+header_actions
+summary_items
+detail_items
+zona tab coordinada
+
+Cuando el host trabaja con slots, el contrato publicado por la offer debe declararlos de forma explícita.
+
+No debe suponerse inferencia automática del lugar de montaje.
+
+Convención adicional de referencia evolutiva:
+
+si dos hosts equivalentes muestran distinta madurez contractual, no debe degradarse el más avanzado para alinearlo al más viejo.
+
+La convergencia correcta del ecosistema debe tender hacia el patrón más maduro ya validado.
+
+Caso consolidado actual:
+
+appointments.show expresa una estructura host más avanzada que orders.show para show pages surface-driven.
+
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA BASE DEL PROYECTO>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 ESTRUCTURA BASE DEL PROYECTO
 
@@ -253,6 +278,12 @@ acciones del flujo de autenticación y cuenta global
 app/Providers
 providers del sistema y de paquetes integrados
 
+Regla adicional de frontera interna:
+
+tenant pertenece al núcleo interno del sistema, multi-tenancy y seguridad.
+
+No debe tratarse como capacidad surface-driven modular publicada hacia el ecosistema funcional.
+
 RESOURCES
 
 resources/ concentra fuentes editables del frontend Laravel.
@@ -296,6 +327,12 @@ cuando inventory publique tablas de saldos, historial, formularios de movimiento
 Regla adicional de consumidores:
 
 si products, orders u otros módulos solo consumen inventory, deben hacerlo mediante includes o surfaces oficiales del módulo y no mediante copias locales mantenidas en paralelo.
+
+Regla adicional para hosts surface-driven:
+
+cuando un show page funcione como host modular, la estructura anfitriona debe leerse desde la propia vista del módulo anfitrión y no desde parciales ambiguos globales que oculten su gramática real de montaje.
+
+La organización de loops, slots y armado coordinado de tabs pertenece al host y debe conservarse como responsabilidad visible del módulo anfitrión.
 
 ROUTES
 
@@ -566,7 +603,7 @@ las integraciones entre módulos deben respetar el contrato del módulo oferente
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -722,6 +759,7 @@ cuando una surface reusable embebida se publique para consumo transversal, debe 
 Como mínimo, esa publicación debe poder describirse mediante:
 
 type
+slot
 key
 label
 targets
@@ -729,6 +767,10 @@ priority
 view
 needs
 resolver
+
+El campo slot forma parte del contrato explícito de la offer.
+
+No debe tratarse como dato opcional implícito cuando el host consumidor organiza sus zonas de montaje mediante slots.
 
 Regla adicional para resolver reusable:
 
@@ -752,6 +794,16 @@ Regla adicional de semántica cruzada:
 cuando una integración exponga métricas o cantidades pertenecientes a planos funcionales distintos, cada valor debe provenir de la semántica oficial de su dominio
 
 no corresponde reutilizar cálculos de stock como sustituto automático de ejecución operativa, ni viceversa
+
+Regla adicional de compatibilidad host:
+
+si el host consumidor todavía resuelve primero por type y luego por slot, la offer publicada debe respetar esa gramática real.
+
+No alcanza con target correcto ni con view válida si la combinación type + slot no coincide con la estructura efectiva del host.
+
+Caso consolidado actual:
+
+las relaciones compactas hacia appointments.show deben publicarse como linked + summary_items para entrar en la zona correcta del host vigente.
 
 CONTRATO DE SEGURIDAD
 
@@ -849,7 +901,7 @@ no convierte al host en dueño del contrato del módulo invitado
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -984,6 +1036,23 @@ cuando una pantalla anfitriona consuma varias capacidades embebidas desde distin
 el host no debe convertirse en superficie paralela dueña de esas integraciones
 
 debe actuar como compositor visual del ecosistema y no como reemplazo contractual del oferente
+
+Regla adicional de compatibilidad real:
+
+si el host consumidor implementa montaje por zonas, la integración no debe declararse solo en términos abstractos de relación reusable.
+
+Debe verificar compatibilidad real entre:
+
+type
+slot
+estructura del host
+zona efectiva de montaje
+
+Una integración puede estar correctamente orientada al target y seguir siendo invisible si slot no está definido o si la combinación type + slot no coincide con la gramática real del host.
+
+Caso consolidado actual:
+
+las relaciones compactas publicadas hacia appointments.show deben respetar la lectura linked + summary_items del host actual.
 
 <<END SECTION>>
 
@@ -1352,7 +1421,7 @@ cuando exista navegación contextual entre módulos relacionados, el módulo act
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE BLADE Y FRONTEND LIVIANO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 CONVENCIONES DE BLADE Y FRONTEND LIVIANO
 
@@ -1412,6 +1481,35 @@ relaciones estructurales del host
 capacidades operativas invitadas de módulos oferentes
 
 la composición visual puede organizar tabs, cards o bloques, pero no debe mezclar en una misma superficie del host métricas, estados o acciones que pertenecen semánticamente al módulo invitado
+
+Regla adicional para show pages surface-driven:
+
+una show page no debe leerse ni implementarse como punto plano único de inserción.
+
+Debe respetar la estructura anfitriona real y sus zonas explícitas de montaje.
+
+Casos vigentes consolidados:
+
+header_actions
+summary_items
+detail_items
+zona tab coordinada construida desde tabItems
+
+La zona tab no debe implementarse doctrinalmente como dos loops visuales independientes sin composición.
+
+Debe leerse y renderizarse como bloque coordinado del host para navegación, toolbar y paneles.
+
+Cuando Blade consuma surfaces externas en un host con slots, no debe suponer que el target alcanza.
+
+Debe respetar la combinación efectiva de type + slot que el host utiliza para montar la integración.
+
+Regla adicional de preservación del núcleo anfitrión:
+
+la incorporación de surfaces externas no debe hacer desaparecer las cards propias, summaries propios ni bloques estructurales del módulo anfitrión.
+
+El host conserva su núcleo visual.
+
+Las surfaces externas agregan contenido por zonas compatibles; no reemplazan el frente principal del recurso.
 
 <<END SECTION>>
 

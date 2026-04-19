@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -123,6 +123,10 @@ orders no solo ocupa posición central por su entidad principal
 
 también puede actuar como contexto y host visual de capacidades publicadas por otros módulos, especialmente inventory, documents y attachments, sin absorber su lógica operativa
 
+assets, orders y parties pueden publicar relaciones compactas hacia appointments.show como ofertas linked consumidas por el host appointment
+
+esas relaciones deben leerse como surfaces compactas de resumen y no como relaciones pesadas de pestaña dentro de appointment.show
+
 Reglas:
 
 estas relaciones expresan lectura conceptual prioritaria del ecosistema actual
@@ -183,6 +187,8 @@ embebido reusable oficial para relaciones fuertes consumido desde assets y parti
 
 integración compacta para vínculo puntual con orders
 
+host de relaciones compactas publicadas por otros módulos dentro de su show
+
 Aclaración adicional consolidada para inventory:
 
 inventory ya no debe leerse solo como efecto lateral del catálogo de products
@@ -201,6 +207,12 @@ reversión de ejecución
 recuperación de pendiente
 
 cada una pertenece al plano funcional que le corresponde
+
+Aclaración de frontera conceptual:
+
+tenant no forma parte de las relaciones superficiales modulares del ecosistema funcional
+
+su pertenencia corresponde al plano interno de multi-tenancy, contexto y seguridad
 
 no invalidan otras relaciones técnicas menores ya existentes o futuras
 
@@ -420,7 +432,7 @@ SignupRequest
 <<END SECTION>>
 
 <<SECTION: MÓDULOS ACTUALES DEL NEGOCIO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 MÓDULOS ACTUALES DEL NEGOCIO
 
@@ -459,10 +471,17 @@ Aclaración modular adicional consolidada:
 la correspondencia entre módulo y entidad principal no impide que un módulo publique además capacidades reutilizables para el ecosistema
 
 cuando eso ocurra, esas capacidades deben seguir leyéndose como oferta del módulo oferente y no como componentes globales neutrales desligados de su contrato
+
+Aclaración adicional sobre appointments:
+
+appointments no solo corresponde a la entidad agenda del negocio
+
+también debe leerse como host show capaz de consumir relaciones compactas publicadas por otros módulos dentro del ecosistema surface-driven vigente
+
 <<END SECTION>>
 
 <<SECTION: PARTIES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 PARTIES
 
@@ -502,6 +521,7 @@ lookup mínimo
 tabla de relaciones asociadas
 acción enlazada reusable
 embebidos contextuales de relaciones transversales
+relación compacta hacia appointments.show
 
 Reglas:
 
@@ -527,6 +547,8 @@ linked-party-action
 Aclaración adicional consolidada:
 
 parties puede además consumir el embebido reusable oficial de appointments para exponer turnos relacionados dentro de su lectura transversal del ecosistema
+
+y puede publicar relación compacta hacia appointments.show como offer linked de resumen cuando el host appointment lo consuma
 
 Regla adicional de seguridad conceptual:
 
@@ -642,7 +664,7 @@ su contenido visible y legible debe actualizarse para representar el evento más
 <<END SECTION>>
 
 <<SECTION: APPOINTMENTS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 APPOINTMENTS
 
@@ -667,6 +689,7 @@ contexto temporal
 origen posible de orders
 planificación operativa
 embebidos relacionales reutilizables
+host de relaciones compactas consumidas desde otros módulos
 
 Superficie contractual conceptual posible:
 
@@ -675,6 +698,7 @@ agenda embebible
 summary de turno
 acción crear order contextual
 embebido reusable de turnos relacionados
+host show con zonas de montaje explícitas para integraciones compactas o pesadas según el caso
 
 Reglas:
 
@@ -693,6 +717,16 @@ appointments publica oferta reusable oficial para el ecosistema
 esa oferta puede consumirse como embebido fuerte desde assets y parties
 
 y como integración compacta desde orders cuando la relación sea puntual
+
+Aclaración estructural consolidada:
+
+appointments.show debe leerse además como host real de relaciones compactas publicadas por otros módulos.
+
+En particular, assets, orders y parties pueden exponer allí relaciones linked de resumen.
+
+Esas relaciones no deben degradarse a pestañas pesadas por defecto.
+
+Deben leerse como surfaces compactas consumidas por el host appointment dentro de su summary.
 
 <<END SECTION>>
 
@@ -885,7 +919,7 @@ esa situación no transfiere a orders la propiedad doctrinal de la operación ma
 <<END SECTION>>
 
 <<SECTION: ASSETS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 ASSETS
 
@@ -915,6 +949,7 @@ summary técnico
 tabla de historial
 acciones contextuales relacionadas
 acción enlazada reusable
+relación compacta hacia appointments.show
 
 Reglas:
 
@@ -938,10 +973,12 @@ Aclaración relacional adicional:
 
 assets puede consumir el embebido reusable oficial de appointments para exponer turnos relacionados como parte de su lectura operacional contextual
 
+y puede publicar relación compacta hacia appointments.show como offer linked de resumen cuando el host appointment lo consuma
+
 <<END SECTION>>
 
 <<SECTION: ORDERS>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 ORDERS
 
@@ -970,6 +1007,7 @@ seguimiento de trabajo
 referencia central para otros módulos
 contexto de trazabilidad para inventory_movements
 host visual modular para capacidades embebidas del ecosistema cuando corresponda
+relación compacta hacia appointments.show cuando el vínculo sea puntual
 
 Superficie contractual conceptual posible:
 
@@ -981,6 +1019,7 @@ bridge hacia documents
 lookup mínimo
 acción enlazada reusable
 host show capaz de consumir surfaces oficiales de otros módulos
+relación compacta linked consumible por appointments.show
 
 Reglas:
 
@@ -1033,6 +1072,10 @@ Aclaración adicional para documents:
 orders puede consumir documents como surface embebida oficial publicada por el propio módulo documents
 
 esa relación no debe leerse como simple tab manual del host sino como consumo de capacidad reusable del módulo derivado
+
+Aclaración adicional hacia appointments.show:
+
+cuando orders publique una relación puntual hacia appointments.show, esa oferta debe leerse como surface compacta de resumen y no como relación tabular pesada
 
 <<END SECTION>>
 

@@ -273,7 +273,7 @@ no saltar el resolver central con lógica local improvisada
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00006
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -304,6 +304,28 @@ ausencia de trazabilidad mínima exigible
 contradicción funcional que vuelva insegura la operación
 
 Cuando la operación exija resolver excepciones no críticas, la implementación segura debe tender a registrar, contextualizar y escalar antes que bloquear una continuidad de trabajo legítima.
+
+Regla adicional para integraciones visibles no renderizadas:
+
+si una surface reusable no aparece en runtime, no asumir primero un fallo de permisos.
+
+Auditar también:
+
+target
+type
+slot
+compatibilidad con el host
+resolver publicado
+condiciones reales de montaje
+
+La ausencia visual puede ser contractual o estructural sin implicar rechazo autorizador.
+
+Regla de frontera:
+
+esta sección define criterios generales de implementación segura.
+
+No debe absorber detalle contractual específico por módulo ni repetir desarrollo ya concentrado en INTEGRACIONES REUSABLES Y AUTORIZACIÓN o en REGLAS OPERATIVAS POR MÓDULO.
+
 <<END SECTION>>
 
 <<SECTION: CONSTRAINTS FUNCIONALES>>
@@ -328,7 +350,7 @@ Ignorar constraints equivale a ejecutar un contrato incompleto.
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00014
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -385,6 +407,27 @@ no exige necesariamente una pantalla aislada por módulo
 
 sí exige que el módulo no quede técnicamente existente pero prácticamente inconﬁgurable para owner
 
+Regla adicional para publicación reusable:
+
+si una capacidad reusable será consumida dentro de hosts surface-driven, su contrato publicado debe ser compatible con la gramática real del host.
+
+No alcanza con permiso correcto y target correcto si la integración queda invisible por declaración incompleta.
+
+Debe validarse también consistencia entre:
+
+type
+slot
+zona consumida
+forma real de montaje del host
+
+La seguridad efectiva sigue siendo del módulo oferente, pero la publicación debe ser consumible de forma coherente.
+
+Regla de frontera:
+
+esta sección fija exigencias mínimas del contrato de seguridad de cada módulo.
+
+El detalle de consumo reusable y el comportamiento visible de integraciones entre módulos se desarrolla en INTEGRACIONES REUSABLES Y AUTORIZACIÓN.
+
 <<END SECTION>>
 
 <<SECTION: RECURSOS DELEGADOS AL PADRE>>
@@ -419,7 +462,7 @@ El detalle de esas restricciones complementarias debe resolverse en REGLAS OPERA
 <<END SECTION>>
 
 <<SECTION: INTEGRACIONES REUSABLES Y AUTORIZACIÓN>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00010
 
 INTEGRACIONES REUSABLES Y AUTORIZACIÓN
 
@@ -451,6 +494,10 @@ si una capacidad reusable se renderiza dentro de un host visual, el contrato de 
 
 el host no adquiere por esa vía autorización sustitutiva ni puede reinterpretar la capacidad invitada como lógica propia
 
+si el host organiza montaje por type y slot, la ausencia o incoherencia contractual de esos datos puede volver invisible la integración aunque el target sea válido
+
+eso no modifica la doctrina de permisos, pero sí la forma correcta y segura de publicar una capacidad consumible
+
 Casos vigentes:
 
 linked-order-action
@@ -458,11 +505,27 @@ linked-party-action
 linked-asset-action
 surfaces oficiales de inventory consumidas por products u orders
 surface embebida de documents consumida por orders.show
+relaciones compactas hacia appointments.show publicadas como linked + summary_items
+
+Regla de cierre:
+
+las integraciones reusables deben auditarse como unidad completa de autorización consumible.
+
+No alcanza con verificar permiso abstracto ni existencia de target.
+
+Debe verificarse de forma conjunta:
+
+contrato del módulo oferente
+scope efectivo
+constraints efectivas
+payload publicado
+compatibilidad real con el host consumidor
+ausencia de reinterpretación local por parte del consumidor
 
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00012
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -481,51 +544,51 @@ delega autorización principal en orders
 cuando ya existan inventory_movements vinculados a una línea:
 la edición o eliminación libre queda restringida por trazabilidad
 la reversión solo es válida bajo condiciones del frente inventory
-la lectura de ejecución neta debe reflejar contramovimientos aplicados
-
-PARTIES
-
-dataset según scope y kind permitido
-create contextual por kind
-constraints.allowed_kinds arbitra create, view, update y delete
-delete reservado al owner con delegación posible a administrator
-
-ASSETS
-
-dataset scoped
-acciones según permiso efectivo y módulo habilitado
-sin ownership artificial ni create contextual obligatorio por kind
+la lectura de ejecución neta debe reflejar contramovimientos
 
 TASKS
 
-dataset según scope propio
-ownership funcional según contrato del módulo
-puede recibir alertas operativas del sistema cuando corresponda
+dataset según contrato vigente
+limited responde a propias y asignadas con herencia visual por proyecto cuando corresponda
+update restringido según asignación efectiva
+owner mantiene tenant_all
 
 APPOINTMENTS
 
-dataset según scope propio
-órdenes relacionadas resueltas mediante capacidad reusable oficial de orders
-calendar como superficie principal del módulo
+dataset según contrato vigente
+puede utilizar tenant_all u own_assigned según rol efectivo
+create es booleano según permiso efectivo
+view, update y delete pueden depender de asignación
+cuando actúa como host visual de relaciones compactas, no hereda permisos de assets, parties u orders consumidos dentro de su show
 
-DOCUMENTS
+ASSETS
 
-dataset según scope y contrato propio del módulo
-create contextual desde orders debe seguir autorizado por el contrato de documents y no por reinterpretación local del host
-si documents se consume como surface embebida, la autorización sigue perteneciendo al módulo documents
+dataset compartido del tenant según scope vigente
+sin ownership artificial
+relaciones compactas publicadas hacia appointments.show conservan contrato propio del módulo
+
+PARTIES
+
+módulo base siempre habilitado según doctrina vigente
+segmentación funcional mediante constraints cuando corresponda
+relaciones compactas publicadas hacia appointments.show conservan contrato propio del módulo
 
 INVENTORY
 
-dataset y acciones según contrato propio del frente
-las operaciones embebidas por línea consumidas desde orders.show siguen autorizadas por inventory
-la operación solo es válida sobre órdenes operables según contrato real
-closed y cancelled no deben admitir ejecución material
-la semántica de stock, ejecución, pendiente y reversión debe provenir del frente inventory y no de arbitraje local del host
+opera bajo su contrato específico
+puede privilegiar continuidad operativa con trazabilidad y alerta antes que bloqueo en casos no críticos
+sus acciones embebidas consumidas por otros hosts conservan autorización propia del módulo
 
-ATTACHMENTS
+DOCUMENTS
 
-delega autorización principal al recurso padre
-su render embebido no crea permiso autónomo distinto del contrato aplicable al padre o al propio flujo del módulo cuando corresponda
+módulo derivado con contrato propio
+sus surfaces embebidas consumidas por otros hosts conservan seguridad propia del módulo
+
+Regla de frontera:
+
+esta sección describe reglas operativas de seguridad por módulo.
+
+No debe absorber aclaraciones arquitectónicas generales ajenas a contratos de seguridad modulares.
 
 <<END SECTION>>
 

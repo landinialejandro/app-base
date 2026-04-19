@@ -221,7 +221,7 @@ Es una pieza estructural del funcionamiento del sistema.
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00007
 
 CAPAS FUNCIONALES DEL SISTEMA
 
@@ -272,6 +272,13 @@ Regla general:
 esta lectura por capas debe prevalecer al pensar arquitectura, documentación y evolución general del proyecto.
 
 El modelo de tres planos que organiza las integraciones entre módulos (núcleo interno / puerta de enlace oficial / consumo externo) se define en la sección ARQUITECTURA MODULAR DEL ECOSISTEMA de este mismo documento.
+
+Regla de frontera:
+
+tenant pertenece a la capa tenant y al marco interno de operación segura del sistema.
+
+No debe relocalizarse conceptualmente dentro de base del dominio ni de módulos funcionales por aparecer como dato contextual en relaciones del negocio.
+
 <<END SECTION>>
 
 <<SECTION: JERARQUÍA GENERAL DEL SISTEMA>>
@@ -408,7 +415,7 @@ tampoco debe sobredimensionarse el dominio del negocio hasta absorber piezas cuy
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00005
 
 CLASIFICACIÓN CONCEPTUAL DE MÓDULOS
 
@@ -466,15 +473,22 @@ Caso actual relevante:
 
 documents respecto de orders
 
+Regla adicional de lectura estructural:
+
+la clasificación conceptual del módulo no define por sí sola su madurez como host surface-driven dentro del ecosistema.
+
+Dos módulos autónomos pueden compartir tipo conceptual y, aun así, tener distinto grado de evolución en su estructura anfitriona de show page.
+
 Regla:
 
 esta clasificación debe orientar futuras decisiones arquitectónicas del proyecto.
 
 El detalle contractual y operativo de cada módulo se resuelve en la sección LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES.
+
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00008
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
@@ -516,6 +530,23 @@ resolver reusable
 representación oficial
 consumo homogéneo desde módulos externos
 
+En show pages surface-driven, esa puerta de enlace además debe poder montarse sobre zonas explícitas del host.
+
+La lectura aprobada del host show ya no debe reducirse a un punto genérico de inserción por tipo.
+
+Debe entenderse como estructura anfitriona con zonas diferenciadas de montaje.
+
+Casos estructurales actualmente consolidados:
+
+header_actions
+summary_items
+detail_items
+zona tab coordinada construida desde tabItems
+
+La zona tab no debe leerse como dos loops visuales independientes sin estructura.
+
+Debe leerse como una composición coordinada del host para armar navegación, toolbar, botones y paneles como una única capacidad tabular del show.
+
 CONSUMO EXTERNO
 
 Corresponde al uso de esas capacidades publicadas por otros módulos.
@@ -536,9 +567,23 @@ orders actúa como hub visual del frente inventory cuando la operación se ancla
 
 orders también puede consumir surfaces embebidas oficiales publicadas por documents y attachments sin absorber su identidad contractual ni reconstruir localmente sus capacidades
 
-Regla adicional de lectura:
+Regla adicional de madurez estructural:
 
-cuando una surface reusable madura dentro del ecosistema, los consumidores deben migrar progresivamente desde relaciones manuales o tabs ad hoc hacia consumo oficial desde la puerta de enlace publicada por el módulo oferente.
+cuando dos hosts del ecosistema se encuentren en distinto nivel de evolución contractual, el patrón rector debe leerse desde el host más maduro y no degradarse al más antiguo por simetría forzada.
+
+Caso consolidado actual:
+
+appointments.show expresa una lectura host más avanzada que orders.show en materia de montaje surface-driven dentro de show pages.
+
+Por lo tanto, la convergencia futura del ecosistema debe tender hacia esa estructura más nueva cuando corresponda.
+
+Regla adicional de frontera conceptual:
+
+tenant no forma parte de las relaciones superficiales modulares del ecosistema.
+
+Pertenece al plano interno de multi-tenancy, contexto operativo y seguridad.
+
+No debe tratarse como relación reusable publicada o consumida por ModuleSurfaceService.
 
 Regla final:
 
@@ -570,7 +615,7 @@ Sigue perteneciendo al ecosistema operativo del tenant, pero con un rol conceptu
 <<END SECTION>>
 
 <<SECTION: MÓDULOS FUNCIONALES ACTUALES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00009
 
 MÓDULOS FUNCIONALES ACTUALES
 
@@ -596,12 +641,18 @@ appointments: su superficie principal es appointments.calendar. El index existe 
 
 inventory: ya debe leerse como frente funcional del sistema con surfaces propias de saldo, historial y operación. Su consolidación modular sigue en evolución.
 
+Aclaración adicional sobre madurez host surface-driven:
+
+dentro del ecosistema actual, no todos los show pages se encuentran en el mismo nivel de evolución contractual.
+
+appointments.show expresa una lectura anfitriona más avanzada y debe tomarse como referencia positiva de evolución para otros hosts cuando corresponda.
+
 El detalle del rol arquitectónico de cada módulo se resuelve en LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES.
 
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00013
 
 LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES
 
@@ -621,57 +672,47 @@ Módulo agrupador. Su función principal es ordenar y brindar lectura consolidad
 
 TASKS
 
-Módulo autónomo. Representa una unidad operativa interna que conserva identidad propia aunque participe en agrupaciones o relaciones con otros módulos. Puede actuar como destino de alertas automáticas del sistema cuando la operación lo requiera.
+Módulo autónomo. Representa trabajo operativo interno y puede participar en seguimiento, coordinación y derivación hacia otros módulos sin perder identidad propia.
 
 APPOINTMENTS
 
-Módulo autónomo de agenda operativa. Representa planificación, reserva o coordinación temporal dentro del tenant. Su superficie principal es calendar.
+Módulo autónomo de agenda operativa. Su superficie principal promovida es calendar y su show expresa además una madurez estructural relevante dentro del frente surface-driven del ecosistema.
 
-Publica oferta reusable oficial para el ecosistema: embebidos relacionales fuertes cuando la relación lo justifique y acciones compactas cuando el vínculo sea puntual o 1 a 1. Esa publicación no degrada su identidad ni lo convierte en subrecurso de módulos consumidores.
+A nivel conceptual, appointments no debe leerse solo como agenda o vínculo temporal.
+
+Debe leerse también como host capaz de recibir relaciones compactas publicadas por otros módulos dentro de una estructura show más avanzada.
+
+Su lectura anfitriona vigente ya distingue zonas explícitas de montaje para acciones, summary, details y composición tabular coordinada.
 
 PRODUCTS
 
-Módulo autónomo de catálogo operativo compartido. Representa bienes y servicios catalogables que alimentan otros flujos del negocio. Actúa como soporte maestro de ítems operativos y documentales.
-
-INVENTORY
-
-Frente operativo en consolidación modular. Expresa stock, saldos, historial y trazabilidad sobre una base transaccional real ya existente en el sistema.
-
-Su lectura arquitectónica aprobada distingue con claridad:
-
-products como maestro del artículo
-inventory como dueño del frente operativo material
-consumidores externos como hosts o contextos de uso
-
-Cuando inventory actúa sobre líneas de orders, no se transfiere su semántica operativa a order_items ni a orders.
-
-ORDERS
-
-Módulo autónomo de núcleo operativo fuerte. Representa el centro de operación interna del tenant.
-
-Además de su núcleo interno, puede ocupar un rol arquitectónico de hub visual modular: alojar capacidades embebidas publicadas por otros módulos sin absorber su lógica operativa ni redefinir su contrato.
-
-En esa lectura, orders puede hospedar surfaces de inventory, documents o attachments manteniendo su propio núcleo separado de esas capacidades invitadas.
-
-DOCUMENTS
-
-Módulo derivado. Representa formalización documental, comercial o fiscal de operaciones del tenant.
-
-Su carácter derivado respecto de orders no le impide publicar oferta reusable oficial hacia el ecosistema cuando el flujo lo justifique.
-
-Puede exponerse como capacidad embebida consumible desde hosts del ecosistema sin degradarse a simple relación manual renderizada por el consumidor.
+Módulo autónomo de catálogo maestro. Conserva la identidad del artículo compartido dentro del tenant aun cuando inventory evolucione como frente operativo separado.
 
 ASSETS
 
-Módulo autónomo. Representa activos, equipos o unidades operativas del tenant. Puede publicar capacidades reutilizables propias sin perder identidad modular.
+Módulo autónomo. Representa activos, equipos o unidades operativas con identidad propia y capacidad reusable oficial de integración hacia el ecosistema.
 
-ATTACHMENTS
+ORDERS
 
-Módulo transversal. Representa capacidad reusable de soporte documental o de evidencia sobre recursos del sistema. Su integración principal sigue siendo embebida o contextual, pero esa transversalidad no elimina su identidad contractual como módulo oferente.
+Módulo autónomo de núcleo operativo fuerte. Actúa como hub visual relevante dentro del ecosistema y puede consumir capacidades oficiales de otros módulos sin absorber su lógica operativa.
 
-Regla de lectura final:
+Su centralidad operativa no lo convierte automáticamente en patrón arquitectónico rector para todos los hosts del ecosistema.
 
-la arquitectura modular del sistema debe seguir distinguiendo, en cada módulo relevante, entre núcleo interno, puerta de enlace oficial y consumo externo.
+DOCUMENTS
+
+Módulo derivado respecto de orders. Formaliza parte de la operación documental sin perder entidad propia y puede publicar surfaces embebidas oficiales para consumo del ecosistema.
+
+INVENTORY
+
+Frente operativo del stock y la trazabilidad material. Evoluciona hacia identidad modular propia, separando con mayor claridad catálogo maestro, operación de movimientos y consumo contextual desde otros módulos.
+
+ACLARACIÓN ESTRUCTURAL SOBRE TENANT
+
+tenant no forma parte del conjunto de relaciones superficiales modulares del ecosistema funcional.
+
+Su rol pertenece al contexto operativo interno, multi-tenancy y seguridad.
+
+Por lo tanto, no debe confundirse con una relación reusable publicada por módulos del negocio ni con una surface contractual consumible entre módulos funcionales.
 
 <<END SECTION>>
 

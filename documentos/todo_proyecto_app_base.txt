@@ -39,168 +39,68 @@ no debe utilizarse como depósito de ideas difusas sin criterio de ejecución
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — RECONVERSIÓN MODULAR>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00008
 
 LÍNEA ACTIVA — RECONVERSIÓN MODULAR
 
-Convertir la nueva doctrina modular aprobada en implementación real del sistema.
+Objetivo vigente:
 
-Prioridades inmediatas:
+consolidar el ecosistema modular reusable del proyecto bajo doctrina surface-driven estable.
 
-auditar módulos existentes contra contrato modular
-detectar núcleos mezclados con integraciones puntuales
-migrar capacidades repetidas a superficies reutilizables
-reducir cambios dispersos entre módulos ante nuevas relaciones
-alinear documentación restante con arquitectura vigente
+Frentes activos:
 
-Criterio:
+revisión de hosts show pages
+alineación de contracts publicados
+reducción de variantes legacy
+migración hacia surfaces oficiales
+homogeneización visual entre consumidores
+validación runtime con Tinker y pruebas reales
 
-no rehacer por rehacer
+Hallazgo consolidado reciente:
 
-priorizar piezas con mayor impacto sistémico
+no alcanza con evolucionar registry y hosts consumidores.
 
-Nueva línea doctrinal consolidada a formalizar e implementar:
+También deben revisarse las offers ya existentes del lado oferente para asegurar compatibilidad efectiva con la gramática real de cada host.
 
-cada módulo debe tender a disponer de una puerta de enlace oficial hacia el ecosistema además de su núcleo interno
+Caso detectado:
 
-la arquitectura debe distinguir con claridad entre:
+offers correctamente dirigidas a appointments.show permanecían invisibles por ausencia de slot explícito.
 
-núcleo interno
-puerta de enlace modular
-consumo externo por otros módulos
+Lectura vigente:
 
-si un módulo consumidor necesita una capacidad ajena, debe expresar intención y consumir la surface oficial del oferente
+las show pages deben auditarse como hosts estructurados con zonas reales de montaje y no como contenedores planos definidos solo por target o type.
 
-no debe reconstruir localmente la lógica operativa del módulo dueño de la capacidad
+Referencia evolutiva actual:
 
-debe consolidarse además la figura de módulo hub visual para los casos donde una pantalla anfitriona aloje interacción de otro módulo sin absorber su lógica
-
-Caso ya consolidado en runtime:
-
-orders.show opera como host visual modular de capacidades embebidas publicadas por inventory, documents y attachments, manteniendo separado su núcleo estructural de las capacidades invitadas
+appointments.show expresa una madurez host superior dentro de esta línea y sirve como patrón positivo para futuras convergencias cuando corresponda.
 
 <<END SECTION>>
 
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00005
 
 MÓDULOS PRIORITARIOS A REVISAR
 
-ORDERS
+appointments
+por ser referencia actual de host maduro en show pages
 
-módulo piloto natural de reconversión contractual
+orders
+por su centralidad operativa y necesidad de convergencia estructural
 
-Estado actual:
+inventory
+por cierre de identidad modular autónoma
 
-frente operativo principal cerrado en este ciclo de trabajo
+attachments
+por revisión contractual pendiente bajo nueva doctrina
 
-avance consolidado adicional:
+assets
+por surfaces compactas ya detectadas en revisión
 
-orders.show ya migró documents al patrón de surface embebida oficial y consolidó mejor la separación entre núcleo estructural propio y capacidades invitadas
+parties
+por surfaces compactas ya detectadas en revisión
 
-Pendiente residual:
-
-barrer consumidores secundarios y superficies derivadas para asegurar consumo uniforme de la capacidad reusable oficial sin resoluciones locales remanentes
-
-Regla:
-
-no reabrir este frente salvo bug real o cambio doctrinal nuevo
-
-PARTIES
-
-módulo base del dominio y siguiente frente activo de reconversión contractual
-
-Estado actual:
-
-doctrina cerrada
-implementación pendiente de alineación final
-
-Líneas inmediatas:
-
-alinear contrato efectivo al modelo contextual por kind
-hacer que allowed_kinds arbitre create, view, update y delete
-reservar delete a owner con delegación posible a administrator
-publicar linked-party-action como capacidad reusable oficial
-reconvertir parties.show en superficie transversal
-barrer consumidores secundarios con links locales residuales hacia parties
-
-ASSETS
-
-módulo operativo compartido del tenant
-
-Estado actual:
-
-frente reusable principal cerrado en este ciclo de trabajo
-
-Pendiente residual:
-
-confirmar ausencia de consumidores secundarios no auditados y mantener documentación alineada
-
-PRODUCTS
-
-módulo autónomo de catálogo operativo compartido del tenant
-
-Estado actual:
-
-núcleo doctrinal estable
-
-Regla:
-
-no reabrir núcleo de catálogo salvo necesidad real
-
-TASKS
-
-Revisar:
-
-autonomía plena respecto de projects
-capacidades internas de seguimiento
-surface reusable para integraciones
-alineación final de superficies secundarias que consumen integración con orders
-
-PROJECTS
-
-Revisar:
-
-rol agrupador real
-métricas agregadas
-consumo limpio de tasks sin absorber identidad
-
-DOCUMENTS
-
-Revisar:
-
-rol derivado respecto de orders
-flujos de creación desde órdenes
-surface embebida reusable ya validada en orders.show
-barrido de consumers secundarios o remanentes manuales del frente documental
-
-APPOINTMENTS
-
-Estado actual:
-
-frente doctrinal y estructural principal cerrado en este ciclo de trabajo
-
-Pendiente residual:
-
-validación runtime final de superficies alineadas y barrido documental restante
-
-INVENTORY
-
-Frente activo consolidado
-
-Estado actual:
-
-backend operativo validado en runtime
-
-Líneas inmediatas:
-
-cerrar UI principal del módulo
-homogeneizar consumers visuales
-consolidar surfaces oficiales reutilizables
-terminar navegación contextual
-pulir métricas livianas de index
-validar consistencia visual final
-profundizar la publicación reusable de operación por línea separada de la capa estructural de order_items
+documents
+por consolidación como capacidad embebida oficial
 
 <<END SECTION>>
 
@@ -266,32 +166,35 @@ SECTION_VERSION: 00007
 
 CAPACIDADES REUTILIZABLES A CONSOLIDAR
 
-Detectar, unificar o publicar como piezas estándar:
+Prioridades vigentes:
 
-selectores de entidades principales
-tablas embebidas por módulo
-summary blocks
-acciones contextuales create/open related
-payloads mínimos de lookup
-bloques de relación reutilizables
-toolbars contextuales consistentes
+inventory como frente oficial de stock, movimientos e historial
+documents como surface documental reusable
+attachments como capacidad transversal homogénea
+linked actions oficiales entre módulos
+hosts show pages con slots consistentes
 
-Regla:
+Capacidades específicas bajo revisión:
 
-si una capacidad se repite en varios lugares, debe evaluarse moverla al módulo oferente como superficie reusable oficial
+AssetSurfaceService
+OrderSurfaceService
+PartySurfaceService
 
-Regla adicional consolidada:
+Objetivo inmediato:
 
-una capacidad reusable no debe considerarse realmente consolidada mientras alguna superficie secundaria relevante siga reconstruyendo localmente su arbitraje o su decisión UX
+asegurar que sus offers compactas hacia appointments.show publiquen contrato completo y visible:
 
-Casos vigentes a terminar de homogeneizar:
+type correcto
+slot correcto
+target correcto
+resolver consistente
+view alineada
 
-consumo transversal de linked-order-action en consumidores secundarios del ecosistema
-confirmación final de adopción homogénea de linked-asset-action en superficies residuales si aparecieran
-validación final del embebido reusable de appointments en consumidores visibles y secundarios
-confirmación de que la relación orders ↔ appointments permanezca resuelta de forma compacta sin tab pesada residual
-consolidación visual final de surfaces oficiales de inventory para stock, historial y operación por línea sin variantes paralelas en consumers
-confirmación de barrido completo de tabs manuales o includes residuales del frente documents donde ya exista surface oficial publicada por el módulo oferente
+Criterio general:
+
+una capacidad reusable no está consolidada solo por existir código publicado.
+
+Debe ser consumible de forma real, homogénea y visible dentro del ecosistema.
 
 <<END SECTION>>
 
@@ -349,43 +252,23 @@ Trasladar el foco a cierre visual y consumo homogéneo del frente.
 <<END SECTION>>
 
 <<SECTION: DEUDA TÉCNICA A REDUCIR>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 DEUDA TÉCNICA A REDUCIR
 
-Buscar y corregir progresivamente:
+tabs manuales equivalentes a surfaces oficiales ya publicadas
 
-duplicaciones visuales evitables
-selectores paralelos
-queries fuera de scope efectivo
-breadcrumbs manuales innecesarios
-lógica repetida en controllers
-componentes legacy no reutilizados
-JS o CSS muerto
-flujos contextuales inconsistentes
-excepciones por módulo que deberían ser patrón general
+includes locales que duplican capacidades de módulos oferentes
 
-Deuda reducida y cerrada en este ciclo:
+offers sin slot explícito en hosts que lo requieren
 
-intento inválido de autonomía técnica en order_items mediante created_by / updated_by sin soporte real de base de datos
+hosts show con loops planos no alineados a zonas reales de montaje
 
-Criterio consolidado aplicado:
+naming centrado en consumidor para capacidades ajenas
 
-se corrigió simplificando el hijo delegado
+surfaces visibles solo en pantalla principal y no en consumers secundarios
 
-no abriendo migración innecesaria ni responsabilidades nuevas fuera de doctrina
-
-Nueva deuda técnica localizada:
-
-remanentes de resolución local de integraciones ya cerradas doctrinalmente por su módulo oferente en superficies secundarias o parciales del ecosistema
-
-remanentes visuales donde consumers todavía sostienen variantes de inventory ya superadas por la surface oficial del módulo
-
-remanentes documentales o tabs manuales donde hosts todavía dupliquen capacidades ya publicadas por documents u otros módulos oferentes
-
-Criterio:
-
-eliminar esas variantes residuales antes de dar por homogéneo el consumo reusable entre módulos
+mezcla visual entre núcleo del host y capacidades invitadas
 
 <<END SECTION>>
 
@@ -525,75 +408,23 @@ inventory
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00009
 
 PENDIENTES INMEDIATOS
 
-validar en uso real el sistema visual de analytics implementado en dashboard y project show
+revisar surface services restantes del ecosistema bajo gramática type + slot
 
-revisar paginación propia del proyecto en todos los index
+auditar hosts show aún no alineados con patrón estructurado
 
-seguir dividiendo vistas grandes en partials cuando superen complejidad razonable
+continuar reconversión de orders.show hacia modelo host más maduro cuando corresponda
 
-seguir unificando sublistados documentales mediante partial reutilizable
+cerrar frente inventory como módulo autónomo con surfaces propias completas
 
-auditar propagación de trail en sublistados, tablas embebidas, filtros, tabs y paginación donde todavía pueda perderse contexto
+revisar attachments bajo misma doctrina contractual y visual
 
-implementar sistema de auditoría de cambios
+ejecutar baterías de prueba runtime para integraciones compactas en appointments.show
 
-implementar visor navegable de documentación técnica dentro de Laravel
-
-Pendientes inmediatos del frente documents:
-
-terminar de auditar el cierre operativo completo de documents como módulo derivado respecto de orders
-
-revisar create contextual y contrato de seguridad efectivo de documents
-
-alinear items, formularios embebidos y navegación profunda restante en ecosistema documental
-
-confirmar que no queden tabs manuales o renders legacy de documents donde ya exista surface oficial publicada por el módulo
-
-Pendiente inmediato del frente reusable:
-
-barrer consumidores secundarios para eliminar resoluciones locales residuales de integraciones ya cerradas por el módulo oferente
-
-Pendiente inmediato parties:
-
-alinear implementación real al contrato doctrinal ya cerrado
-implementar linked-party-action
-reconvertir party.show como superficie transversal
-
-Pendiente inmediato inventory:
-
-cerrar acceso principal del módulo
-refinar inventory.index como tabla de saldos con métricas livianas
-refinar inventory.show como ficha operativa
-centralizar definitivamente historial de movimientos en surface propia
-migrar restos de UI dispersa en products y orders hacia consumo reusable
-extender trazabilidad con vínculos hacia orders y documents
-validar navegación contextual final multi-tenant
-consolidar contexto reusable oficial para consumers
-homogeneizar lectura operativa por línea en orders.show sin arbitraje local residual
-pulir consistencia visual de acciones por línea y estados
-completar catálogo de permisos inventory.*
-asignar permisos a roles efectivos
-exponer vía visible de administración owner para habilitación y permisos del frente
-confirmar consecuencia visual automática coherente en navbar, dashboard y accesos rápidos a partir del contrato efectivo
-
-Pendientes inmediatos de arquitectura modular:
-
-formalizar doctrinalmente la puerta de enlace modular como patrón general del ecosistema
-revisar surfaces actuales que todavía mezclen lógica del consumidor con capacidades del oferente
-validar si documents, tasks u otros módulos requerirán patrón hub visual o publicación futura de surfaces oficiales equivalentes
-
-Considerar como ya cerrado y no reabrir en este frente:
-
-orders como núcleo operativo principal
-assets como módulo compartido principal
-appointments como módulo autónomo de agenda
-products como catálogo maestro operativo
-inventory backend transaccional ya validado
-migración principal de documents a surface embebida oficial en orders.show
+verificar ausencia de variantes legacy residuales en consumers secundarios
 
 <<END SECTION>>
 

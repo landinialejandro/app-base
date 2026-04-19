@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/show.blade.php | V13 --}}
+{{-- FILE: resources/views/parties/show.blade.php | V14 --}}
 
 @extends('layouts.app')
 
@@ -11,14 +11,15 @@
         use App\Support\Navigation\NavigationTrail;
         use App\Support\Parties\PartySurfaceService;
 
-        $assets = $assets ?? collect();
         $orders = $orders ?? collect();
         $documents = $documents ?? collect();
 
-        $supportsAppointmentsModule = $supportsAppointmentsModule ?? false;
-        $supportsAssetsModule = $supportsAssetsModule ?? false;
         $supportsOrdersModule = $supportsOrdersModule ?? false;
         $supportsDocumentsModule = $supportsDocumentsModule ?? false;
+
+        $pageTitle = 'Detalle del contacto';
+        $detailsId = 'party-detail-panel';
+        $tabsLabel = 'Relaciones del contacto';
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
@@ -28,54 +29,93 @@
             'trailQuery' => $trailQuery,
         ]);
 
-        $embeddedTabs = $supportsAppointmentsModule
-            ? collect(app(ModuleSurfaceRegistry::class)->embeddedFor('parties.show', $hostPack))->values()
-            : collect();
+        $embedded = collect(app(ModuleSurfaceRegistry::class)->embeddedFor('parties.show', $hostPack))->values();
+        $linked = collect(app(ModuleSurfaceRegistry::class)->linkedFor('parties.show', $hostPack))->values();
 
-        $embeddedDefaultTab = $embeddedTabs->first()['key'] ?? null;
+        $headerActions = $linked->where('slot', 'header_actions')->values();
+        $summaryItems = $linked->where('slot', 'summary_items')->values();
+        $detailItems = $embedded->where('slot', 'detail_items')->values();
 
-        $defaultTab =
-            $embeddedDefaultTab ?:
-            ($supportsAssetsModule
-                ? 'assets'
-                : ($supportsOrdersModule
-                    ? 'orders'
-                    : ($supportsDocumentsModule
-                        ? 'documents'
-                        : null)));
+        $hostTabItems = collect();
+
+        if ($supportsOrdersModule) {
+            $hostTabItems->push([
+                'type' => 'embedded',
+                'slot' => 'tab_panels',
+                'key' => 'orders',
+                'label' => 'Órdenes',
+                'priority' => 80,
+                'count' => $orders->count(),
+                'view' => 'orders.partials.embedded-tabs',
+                'data' => [
+                    'orders' => $orders,
+                    'showParty' => false,
+                    'showAsset' => true,
+                    'emptyMessage' => 'Este contacto no tiene órdenes vinculadas.',
+                    'tabsId' => 'party-orders-tabs',
+                    'createBaseQuery' => [
+                        'party_id' => $party->id,
+                    ],
+                    'trailQuery' => $trailQuery,
+                ],
+            ]);
+        }
+
+        if ($supportsDocumentsModule) {
+            $hostTabItems->push([
+                'type' => 'embedded',
+                'slot' => 'tab_panels',
+                'key' => 'documents',
+                'label' => 'Documentos',
+                'priority' => 90,
+                'count' => $documents->count(),
+                'view' => 'documents.partials.embedded-tabs',
+                'data' => [
+                    'documents' => $documents,
+                    'showParty' => false,
+                    'showAsset' => true,
+                    'showOrder' => true,
+                    'emptyMessage' => 'Este contacto no tiene documentos vinculados.',
+                    'tabsId' => 'party-documents-tabs',
+                    'createBaseQuery' => [
+                        'party_id' => $party->id,
+                    ],
+                    'trailQuery' => $trailQuery,
+                ],
+            ]);
+        }
+
+        $surfaceTabItems = $embedded->where(fn($item) => ($item['slot'] ?? 'tab_panels') === 'tab_panels')->values();
+
+        $tabItems = $surfaceTabItems->concat($hostTabItems)->sortBy(fn($item) => $item['priority'] ?? 999)->values();
     @endphp
 
     <x-page>
         <x-breadcrumb :items="$breadcrumbItems" />
 
-        <x-page-header title="Detalle del contacto">
+        <x-page-header :title="$pageTitle">
+            @foreach ($headerActions as $surface)
+                @include($surface['view'], $surface['data'] ?? [])
+            @endforeach
+
             @can('update', $party)
-                <a href="{{ route('parties.edit', ['party' => $party] + $trailQuery) }}" class="btn btn-primary">
-                    <x-icons.pencil />
-                    <span>Editar</span>
-                </a>
+                <x-button-edit :href="route('parties.edit', ['party' => $party] + $trailQuery)" />
             @endcan
 
             @can('delete', $party)
-                <form method="POST" action="{{ route('parties.destroy', ['party' => $party] + $trailQuery) }}" class="inline-form"
-                    data-action="app-confirm-submit" data-confirm-message="¿Eliminar contacto?">
-                    @csrf
-                    @method('DELETE')
-
-                    <button type="submit" class="btn btn-danger">
-                        <x-icons.trash />
-                        <span>Eliminar</span>
-                    </button>
-                </form>
+                <x-button-delete :action="route('parties.destroy', ['party' => $party] + $trailQuery)" message="¿Eliminar contacto?" />
             @endcan
 
-            <a href="{{ $backUrl }}" class="btn btn-secondary">
-                <x-icons.chevron-left />
-                <span>Volver</span>
-            </a>
+            <x-button-back :href="$backUrl" />
         </x-page-header>
 
-        <x-show-summary details-id="party-detail-panel">
+        <x-show-summary details-id="{{ $detailsId }}">
+            @foreach ($summaryItems as $surface)
+                <x-show-summary-item :label="$surface['label'] ?? 'Relacionado'">
+                    @include($surface['view'], $surface['data'] ?? [])
+                </x-show-summary-item>
+            @endforeach
+
             <x-show-summary-item label="Nombre">
                 {{ $party->name }}
             </x-show-summary-item>
@@ -89,6 +129,12 @@
             </x-show-summary-item>
 
             <x-slot:details>
+                @foreach ($detailItems as $detailItem)
+                    <x-show-summary-item-detail-block :label="$detailItem['label'] ?? 'Relacionado'">
+                        @include($detailItem['view'], $detailItem['data'] ?? [])
+                    </x-show-summary-item-detail-block>
+                @endforeach
+
                 <x-show-summary-item-detail-block label="Tipo">
                     {{ PartyCatalog::label($party->kind) }}
                 </x-show-summary-item-detail-block>
@@ -133,127 +179,35 @@
             </x-slot:details>
         </x-show-summary>
 
-        @if ($defaultTab)
+        @if ($tabItems->isNotEmpty())
             <div class="tabs" data-tabs>
-                <x-tab-toolbar label="Relaciones del contacto">
+                <x-tab-toolbar :label="$tabsLabel">
                     <x-slot:tabs>
-                        <x-horizontal-scroll label="Relaciones del contacto">
-                            @foreach ($embeddedTabs as $embeddedTab)
-                                <button type="button"
-                                    class="tabs-link {{ $defaultTab === $embeddedTab['key'] ? 'is-active' : '' }}"
-                                    data-tab-link="{{ $embeddedTab['key'] }}" role="tab"
-                                    aria-selected="{{ $defaultTab === $embeddedTab['key'] ? 'true' : 'false' }}">
-                                    {{ $embeddedTab['label'] ?? $embeddedTab['key'] }}
-                                    @if (array_key_exists('count', $embeddedTab) && (int) $embeddedTab['count'] > 0)
-                                        ({{ $embeddedTab['count'] }})
+                        <x-horizontal-scroll :label="$tabsLabel">
+                            @foreach ($tabItems as $tabItem)
+                                <button type="button" class="tabs-link {{ $loop->first ? 'is-active' : '' }}"
+                                    data-tab-link="{{ $tabItem['key'] }}" role="tab"
+                                    aria-selected="{{ $loop->first ? 'true' : 'false' }}">
+                                    {{ $tabItem['label'] ?? $tabItem['key'] }}
+
+                                    @if (array_key_exists('count', $tabItem) && (int) $tabItem['count'] > 0)
+                                        ({{ $tabItem['count'] }})
                                     @endif
                                 </button>
                             @endforeach
-
-                            @if ($supportsAssetsModule)
-                                <button type="button" class="tabs-link {{ $defaultTab === 'assets' ? 'is-active' : '' }}"
-                                    data-tab-link="assets" role="tab"
-                                    aria-selected="{{ $defaultTab === 'assets' ? 'true' : 'false' }}">
-                                    Activos
-                                    @if ($assets->count())
-                                        ({{ $assets->count() }})
-                                    @endif
-                                </button>
-                            @endif
-
-                            @if ($supportsOrdersModule)
-                                <button type="button" class="tabs-link {{ $defaultTab === 'orders' ? 'is-active' : '' }}"
-                                    data-tab-link="orders" role="tab"
-                                    aria-selected="{{ $defaultTab === 'orders' ? 'true' : 'false' }}">
-                                    Órdenes
-                                    @if ($orders->count())
-                                        ({{ $orders->count() }})
-                                    @endif
-                                </button>
-                            @endif
-
-                            @if ($supportsDocumentsModule)
-                                <button type="button"
-                                    class="tabs-link {{ $defaultTab === 'documents' ? 'is-active' : '' }}"
-                                    data-tab-link="documents" role="tab"
-                                    aria-selected="{{ $defaultTab === 'documents' ? 'true' : 'false' }}">
-                                    Documentos
-                                    @if ($documents->count())
-                                        ({{ $documents->count() }})
-                                    @endif
-                                </button>
-                            @endif
                         </x-horizontal-scroll>
                     </x-slot:tabs>
                 </x-tab-toolbar>
 
-                @foreach ($embeddedTabs as $embeddedTab)
-                    <section class="tab-panel {{ $defaultTab === $embeddedTab['key'] ? 'is-active' : '' }}"
-                        data-tab-panel="{{ $embeddedTab['key'] }}" @if ($defaultTab !== $embeddedTab['key']) hidden @endif>
+                @foreach ($tabItems as $tabItem)
+                    <section class="tab-panel {{ $loop->first ? 'is-active' : '' }}"
+                        data-tab-panel="{{ $tabItem['key'] }}" @unless ($loop->first) hidden @endunless>
                         <div class="tab-panel-stack">
-                            @include($embeddedTab['view'], $embeddedTab['data'] ?? [])
+                            @include($tabItem['view'], $tabItem['data'] ?? [])
                         </div>
                     </section>
                 @endforeach
-
-                @if ($supportsAssetsModule)
-                    <section class="tab-panel {{ $defaultTab === 'assets' ? 'is-active' : '' }}" data-tab-panel="assets"
-                        @if ($defaultTab !== 'assets') hidden @endif>
-                        <div class="tab-panel-stack">
-                            @include('assets.partials.embedded-tabs', [
-                                'assets' => $assets,
-                                'showParty' => false,
-                                'emptyMessage' => 'Este contacto no tiene activos vinculados.',
-                                'tabsId' => 'party-assets-tabs',
-                                'createBaseQuery' => [
-                                    'party_id' => $party->id,
-                                ],
-                                'trailQuery' => $trailQuery,
-                            ])
-                        </div>
-                    </section>
-                @endif
-
-                @if ($supportsOrdersModule)
-                    <section class="tab-panel {{ $defaultTab === 'orders' ? 'is-active' : '' }}" data-tab-panel="orders"
-                        @if ($defaultTab !== 'orders') hidden @endif>
-                        <div class="tab-panel-stack">
-                            @include('orders.partials.embedded-tabs', [
-                                'orders' => $orders,
-                                'showParty' => false,
-                                'showAsset' => true,
-                                'emptyMessage' => 'Este contacto no tiene órdenes vinculadas.',
-                                'tabsId' => 'party-orders-tabs',
-                                'createBaseQuery' => [
-                                    'party_id' => $party->id,
-                                ],
-                                'trailQuery' => $trailQuery,
-                            ])
-                        </div>
-                    </section>
-                @endif
-
-                @if ($supportsDocumentsModule)
-                    <section class="tab-panel {{ $defaultTab === 'documents' ? 'is-active' : '' }}"
-                        data-tab-panel="documents" @if ($defaultTab !== 'documents') hidden @endif>
-                        <div class="tab-panel-stack">
-                            @include('documents.partials.embedded-tabs', [
-                                'documents' => $documents,
-                                'showParty' => false,
-                                'showAsset' => true,
-                                'showOrder' => true,
-                                'emptyMessage' => 'Este contacto no tiene documentos vinculados.',
-                                'tabsId' => 'party-documents-tabs',
-                                'createBaseQuery' => [
-                                    'party_id' => $party->id,
-                                ],
-                                'trailQuery' => $trailQuery,
-                            ])
-                        </div>
-                    </section>
-                @endif
             </div>
         @endif
-
     </x-page>
 @endsection

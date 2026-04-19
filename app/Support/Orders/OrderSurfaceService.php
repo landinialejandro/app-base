@@ -1,12 +1,13 @@
 <?php
 
-// FILE: app/Support/Orders/OrderSurfaceService.php | V8
+// FILE: app/Support/Orders/OrderSurfaceService.php | V9
 
 namespace App\Support\Orders;
 
 use App\Models\Appointment;
 use App\Models\Asset;
 use App\Models\Order;
+use App\Models\Party;
 use App\Support\Auth\Security;
 use App\Support\Catalogs\AppointmentCatalog;
 use App\Support\Catalogs\OrderCatalog;
@@ -39,25 +40,48 @@ class OrderSurfaceService implements ModuleSurfaceService
                 emptyTabsId: 'asset-orders-tabs-empty',
                 priority: 70,
             ),
+            $this->embeddedOffer(
+                key: 'orders.party.embedded',
+                target: 'parties.show',
+                expectedRecordType: 'party',
+                expectedClass: Party::class,
+                tabsId: 'party-orders-tabs',
+                emptyTabsId: 'party-orders-tabs-empty',
+                priority: 80,
+            ),
         ];
     }
 
     public function hostPack(string $host, mixed $record = null, array $context = []): array
     {
-        if ($host !== 'orders.show') {
-            return [];
+        if ($host === 'orders.show' && $record instanceof Order) {
+            return [
+                'host' => $host,
+                'recordType' => 'order',
+                'record' => $record,
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ];
         }
 
-        if (! $record instanceof Order) {
-            return [];
+        if ($host === 'parties.show' && $record instanceof Party) {
+            return [
+                'host' => $host,
+                'recordType' => 'party',
+                'record' => $record,
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ];
         }
 
-        return [
-            'host' => $host,
-            'recordType' => 'order',
-            'record' => $record,
-            'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
-        ];
+        if ($host === 'assets.show' && $record instanceof Asset) {
+            return [
+                'host' => $host,
+                'recordType' => 'asset',
+                'record' => $record,
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ];
+        }
+
+        return [];
     }
 
     private function embeddedOffer(
@@ -200,6 +224,14 @@ class OrderSurfaceService implements ModuleSurfaceService
                     'kind' => OrderCatalog::KIND_SERVICE,
                 ],
             ],
+            'party' => [
+                'showParty' => false,
+                'showAsset' => true,
+                'emptyMessage' => 'Este contacto no tiene órdenes vinculadas.',
+                'createBaseQuery' => [
+                    'party_id' => $record->getKey(),
+                ],
+            ],
             default => [],
         };
     }
@@ -213,6 +245,12 @@ class OrderSurfaceService implements ModuleSurfaceService
                 'emptyMessage' => 'Este activo no tiene órdenes vinculadas.',
                 'createBaseQuery' => [],
             ],
+            'party' => [
+                'showParty' => false,
+                'showAsset' => true,
+                'emptyMessage' => 'Este contacto no tiene órdenes vinculadas.',
+                'createBaseQuery' => [],
+            ],
             default => [],
         };
     }
@@ -224,6 +262,15 @@ class OrderSurfaceService implements ModuleSurfaceService
                 ->scope(auth()->user(), 'orders.viewAny', Order::query())
                 ->with('party')
                 ->where('asset_id', $record->getKey())
+                ->latest()
+                ->get();
+        }
+
+        if ($recordType === 'party' && $record instanceof Party) {
+            return app(Security::class)
+                ->scope(auth()->user(), 'orders.viewAny', Order::query())
+                ->with(['party', 'asset', 'task', 'items'])
+                ->where('party_id', $record->getKey())
                 ->latest()
                 ->get();
         }

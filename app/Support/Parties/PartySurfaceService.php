@@ -1,11 +1,12 @@
 <?php
 
-// FILE: app/Support/Parties/PartySurfaceService.php | V6
+// FILE: app/Support/Parties/PartySurfaceService.php | V7
 
 namespace App\Support\Parties;
 
 use App\Models\Appointment;
 use App\Models\Asset;
+use App\Models\Order;
 use App\Models\Party;
 use App\Support\Catalogs\AppointmentCatalog;
 use App\Support\Modules\Contracts\ModuleSurfaceService;
@@ -32,6 +33,15 @@ class PartySurfaceService implements ModuleSurfaceService
                 priority: 20,
                 view: 'parties.components.linked-party-action',
                 resolver: $this->resolveLinkedForAsset(...),
+            ),
+            $this->linkedOffer(
+                key: 'party.order.linked',
+                label: 'Contacto',
+                targets: ['orders.show'],
+                slot: 'summary_items',
+                priority: 20,
+                view: 'parties.components.linked-party-action',
+                resolver: $this->resolveLinkedForOrder(...),
             ),
         ];
     }
@@ -91,6 +101,17 @@ class PartySurfaceService implements ModuleSurfaceService
             expectedClass: Asset::class,
             label: 'Contacto',
             partyResolver: fn (Asset $record) => $record->party,
+        );
+    }
+
+    private function resolveLinkedForOrder(array $hostPack): array
+    {
+        return $this->resolveLinked(
+            hostPack: $hostPack,
+            expectedRecordType: 'order',
+            expectedClass: Order::class,
+            label: 'Contacto',
+            partyResolver: fn (Order $record) => $record->party,
         );
     }
 

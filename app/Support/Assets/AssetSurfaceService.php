@@ -1,13 +1,17 @@
 <?php
 
-// FILE: app/Support/Assets/AssetSurfaceService.php | V5
+// FILE: app/Support/Assets/AssetSurfaceService.php | V7
 
 namespace App\Support\Assets;
 
 use App\Models\Appointment;
 use App\Models\Asset;
+use App\Models\Party;
+use App\Support\Auth\Security;
 use App\Support\Catalogs\AppointmentCatalog;
 use App\Support\Modules\Contracts\ModuleSurfaceService;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 class AssetSurfaceService implements ModuleSurfaceService
 {
@@ -23,21 +27,39 @@ class AssetSurfaceService implements ModuleSurfaceService
                 view: 'assets.components.linked-asset-action',
                 resolver: $this->resolveLinkedForAppointment(...),
             ),
+            $this->embeddedOffer(
+                key: 'assets.party.embedded',
+                target: 'parties.show',
+                expectedRecordType: 'party',
+                expectedClass: Party::class,
+                tabsId: 'party-assets-tabs',
+                emptyTabsId: 'party-assets-tabs-empty',
+                priority: 70,
+            ),
         ];
     }
 
     public function hostPack(string $host, mixed $record = null, array $context = []): array
     {
-        if ($host !== 'assets.show' || ! $record instanceof Asset) {
-            return [];
+        if ($host === 'assets.show' && $record instanceof Asset) {
+            return [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'asset',
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ];
         }
 
-        return [
-            'host' => $host,
-            'record' => $record,
-            'recordType' => 'asset',
-            'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
-        ];
+        if ($host === 'parties.show' && $record instanceof Party) {
+            return [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'party',
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ];
+        }
+
+        return [];
     }
 
     private function linkedOffer(
@@ -59,6 +81,34 @@ class AssetSurfaceService implements ModuleSurfaceService
             'view' => $view,
             'needs' => ['record', 'recordType', 'trailQuery'],
             'resolver' => $resolver,
+        ];
+    }
+
+    private function embeddedOffer(
+        string $key,
+        string $target,
+        string $expectedRecordType,
+        string $expectedClass,
+        string $tabsId,
+        string $emptyTabsId,
+        int $priority,
+    ): array {
+        return [
+            'type' => 'embedded',
+            'key' => $key,
+            'label' => 'Activos',
+            'targets' => [$target],
+            'slot' => 'tab_panels',
+            'priority' => $priority,
+            'view' => 'assets.partials.embedded-tabs',
+            'needs' => ['record', 'recordType', 'trailQuery'],
+            'resolver' => fn (array $hostPack) => $this->resolveEmbedded(
+                $hostPack,
+                expectedRecordType: $expectedRecordType,
+                expectedClass: $expectedClass,
+                tabsId: $tabsId,
+                emptyTabsId: $emptyTabsId,
+            ),
         ];
     }
 
@@ -94,5 +144,111 @@ class AssetSurfaceService implements ModuleSurfaceService
                 'variant' => 'summary',
             ],
         ];
+    }
+
+    private function resolveEmbedded(
+        array $hostPack,
+        string $expectedRecordType,
+        string $expectedClass,
+        string $tabsId,
+        string $emptyTabsId,
+    ): array {
+        $record = $hostPack['record'] ?? null;
+        $recordType = $hostPack['recordType'] ?? null;
+        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+
+        if ($recordType !== $expectedRecordType || ! $record instanceof $expectedClass) {
+            return $this->emptyEmbeddedPayload(
+                recordType: $expectedRecordType,
+                tabsId: $emptyTabsId,
+                trailQuery: $trailQuery,
+            );
+        }
+
+        return $this->buildEmbeddedPayload(
+            record: $record,
+            recordType: $expectedRecordType,
+            tabsId: $tabsId,
+            trailQuery: $trailQuery,
+        );
+    }
+
+    private function buildEmbeddedPayload(
+        Model $record,
+        string $recordType,
+        string $tabsId,
+        array $trailQuery,
+    ): array {
+        $assets = $this->assetsFor($record, $recordType);
+
+        return [
+            'count' => $assets->count(),
+            'data' => array_merge(
+                [
+                    'assets' => $assets,
+                    'tabsId' => $tabsId,
+                    'trailQuery' => $trailQuery,
+                ],
+                $this->assetViewConfig($record, $recordType),
+            ),
+        ];
+    }
+
+    private function emptyEmbeddedPayload(
+        string $recordType,
+        string $tabsId,
+        array $trailQuery,
+    ): array {
+        return [
+            'count' => 0,
+            'data' => array_merge(
+                [
+                    'assets' => collect(),
+                    'tabsId' => $tabsId,
+                    'trailQuery' => $trailQuery,
+                ],
+                $this->emptyAssetViewConfig($recordType),
+            ),
+        ];
+    }
+
+    private function assetViewConfig(Model $record, string $recordType): array
+    {
+        return match ($recordType) {
+            'party' => [
+                'showParty' => false,
+                'emptyMessage' => 'Este contacto no tiene activos vinculados.',
+                'createBaseQuery' => [
+                    'party_id' => $record->getKey(),
+                ],
+            ],
+            default => [],
+        };
+    }
+
+    private function emptyAssetViewConfig(string $recordType): array
+    {
+        return match ($recordType) {
+            'party' => [
+                'showParty' => false,
+                'emptyMessage' => 'Este contacto no tiene activos vinculados.',
+                'createBaseQuery' => [],
+            ],
+            default => [],
+        };
+    }
+
+    private function assetsFor(Model $record, string $recordType): Collection
+    {
+        if ($recordType === 'party' && $record instanceof Party) {
+            return app(Security::class)
+                ->scope(auth()->user(), 'assets.viewAny', Asset::query())
+                ->with('party')
+                ->where('party_id', $record->getKey())
+                ->orderBy('name')
+                ->get();
+        }
+
+        return collect();
     }
 }

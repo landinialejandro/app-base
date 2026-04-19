@@ -23,28 +23,14 @@
 
         <x-page-header title="Detalle del producto">
             @can('update', $product)
-                <a href="{{ route('products.edit', ['product' => $product] + $trailQuery) }}" class="btn btn-primary">
-                    <x-icons.pencil />
-                    <span>Editar</span>
-                </a>
+                <x-button-edit :href="route('products.edit', ['product' => $product] + $trailQuery)" />
             @endcan
 
             @can('delete', $product)
-                <form method="POST" action="{{ route('products.destroy', ['product' => $product] + $trailQuery) }}"
-                    class="inline-form" data-action="app-confirm-submit" data-confirm-message="¿Eliminar producto?">
-                    @csrf
-                    @method('DELETE')
-
-                    <button type="submit" class="btn btn-danger">
-                        <x-icons.trash />
-                        <span>Eliminar</span>
-                    </button>
-                </form>
+                <x-button-delete :action="route('products.destroy', ['product' => $product] + $trailQuery)" message="¿Eliminar producto?" />
             @endcan
 
-            <a href="{{ $backUrl }}" class="btn btn-secondary" title="Volver" aria-label="Volver">
-                <x-icons.chevron-left />
-            </a>
+            <x-button-back :href="$backUrl" />
         </x-page-header>
 
         <x-show-summary details-id="product-more-detail">

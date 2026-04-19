@@ -20,10 +20,7 @@
 
         <x-page-header title="Órdenes">
             @if ($canCreateOrders)
-                <a href="{{ route('orders.create', array_merge($trailQuery, ['kind' => $defaultCreateKind])) }}"
-                    class="btn btn-success">
-                    Nueva orden
-                </a>
+                <x-button-create :href="route('orders.create', array_merge($trailQuery, ['kind' => $defaultCreateKind]))" label="Nueva orden" />
             @endif
         </x-page-header>
 

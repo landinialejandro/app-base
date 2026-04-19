@@ -26,8 +26,6 @@
     $backUrl = NavigationTrail::previousUrl($navigationTrail, route('documents.index'));
     $previousNode = NavigationTrail::previous($navigationTrail);
 
-    $backLabel = ($previousNode['key'] ?? null) === 'orders.show' ? 'Volver a la orden' : 'Volver';
-
     $partyAction = PartyLinkedAction::forParty($document->party, $trailQuery, 'Contacto');
     $assetAction = AssetLinkedAction::forAsset($document->asset, $trailQuery, 'Activo');
 @endphp
@@ -40,40 +38,24 @@
 
         <x-page-header :title="$documentDetailTitle">
             @can('update', $document)
-                <a href="{{ route('documents.edit', ['document' => $document] + $trailQuery) }}" class="btn btn-primary">
-                    <x-icons.pencil />
-                    <span>Editar</span>
-                </a>
+                <x-button-edit :href="route('documents.edit', ['document' => $document] + $trailQuery)" />
             @endcan
 
             @can('delete', $document)
-                <form method="POST" action="{{ route('documents.destroy', ['document' => $document] + $trailQuery) }}"
-                    class="inline-form" data-action="app-confirm-submit"
-                    data-confirm-message="{{ $items->count()
-                        ? 'Este documento tiene ítems cargados. Si lo eliminas, también se eliminarán sus ítems. ¿Deseas continuar?'
-                        : '¿Deseas eliminar este documento?' }}">
-                    @csrf
-                    @method('DELETE')
-
-                    <button type="submit" class="btn btn-danger">
-                        <x-icons.trash />
-                        <span>Eliminar</span>
-                    </button>
-                </form>
+                <x-button-delete :action="route('documents.destroy', ['document' => $document] + $trailQuery)" :message="$items->count()
+                    ? 'Este documento tiene ítems cargados. Si lo eliminas, también se eliminarán sus ítems. ¿Deseas continuar?'
+                    : '¿Deseas eliminar este documento?'" />
             @endcan
 
-            <a href="{{ route('documents.print', ['document' => $document]) }}" class="btn btn-secondary" target="_blank">
+            <x-button-secondary :href="route('documents.print', ['document' => $document])" target="_blank">
                 Imprimir
-            </a>
+            </x-button-secondary>
 
-            <a href="{{ route('documents.pdf', ['document' => $document]) }}" class="btn btn-secondary">
+            <x-button-secondary :href="route('documents.pdf', ['document' => $document])">
                 Descargar PDF
-            </a>
+            </x-button-secondary>
 
-            <a href="{{ $backUrl }}" class="btn btn-secondary btn-icon" title="{{ $backLabel }}"
-                aria-label="{{ $backLabel }}">
-                <x-icons.chevron-left />
-            </a>
+            <x-button-back :href="$backUrl" />
         </x-page-header>
 
         <x-show-summary details-id="document-more-detail">

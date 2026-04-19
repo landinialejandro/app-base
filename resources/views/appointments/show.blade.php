@@ -50,39 +50,22 @@
             @endforeach
 
             @if ($canEditAppointment)
-                <a href="{{ route('appointments.edit', ['appointment' => $appointment] + $trailQuery) }}"
-                    class="btn btn-primary">
-                    <x-icons.pencil />
-                    <span>Editar</span>
-                </a>
+                <x-button-edit :href="route('appointments.edit', ['appointment' => $appointment] + $trailQuery)" />
             @endif
 
             @if ($canDeleteAppointment)
-                <form method="POST"
-                    action="{{ route('appointments.destroy', ['appointment' => $appointment] + $trailQuery) }}"
-                    class="inline-form" data-action="app-confirm-submit" data-confirm-message="¿Eliminar turno?">
-                    @csrf
-                    @method('DELETE')
-
-                    <button type="submit" class="btn btn-danger">
-                        <x-icons.trash />
-                        <span>Eliminar</span>
-                    </button>
-                </form>
+                <x-button-delete :action="route('appointments.destroy', ['appointment' => $appointment] + $trailQuery)" message="¿Eliminar turno?" />
             @endif
 
-            <a href="{{ route('appointments.print', ['appointment' => $appointment]) }}" class="btn btn-secondary"
-                target="_blank">
+            <x-button-secondary :href="route('appointments.print', ['appointment' => $appointment])" target="_blank">
                 Imprimir
-            </a>
+            </x-button-secondary>
 
-            <a href="{{ route('appointments.pdf', ['appointment' => $appointment]) }}" class="btn btn-secondary">
+            <x-button-secondary :href="route('appointments.pdf', ['appointment' => $appointment])">
                 Descargar PDF
-            </a>
+            </x-button-secondary>
 
-            <a href="{{ $backUrl }}" class="btn btn-secondary btn-icon" title="Volver" aria-label="Volver">
-                <x-icons.chevron-left />
-            </a>
+            <x-button-back :href="$backUrl" />
         </x-page-header>
 
         <x-show-summary details-id="appointment-more-detail">

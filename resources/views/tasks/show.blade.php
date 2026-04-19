@@ -71,23 +71,11 @@
 
         <x-page-header :title="$task->name">
             @can('update', $task)
-                <a href="{{ route('tasks.edit', ['task' => $task] + $trailQuery) }}" class="btn btn-primary">
-                    <x-icons.pencil />
-                    <span>Editar</span>
-                </a>
+                <x-button-edit :href="route('tasks.edit', ['task' => $task] + $trailQuery)" />
             @endcan
 
             @can('delete', $task)
-                <form method="POST" action="{{ route('tasks.destroy', ['task' => $task] + $trailQuery) }}" class="inline-form"
-                    data-action="app-confirm-submit" data-confirm-message="¿Eliminar tarea?">
-                    @csrf
-                    @method('DELETE')
-
-                    <button type="submit" class="btn btn-danger">
-                        <x-icons.trash />
-                        <span>Eliminar</span>
-                    </button>
-                </form>
+                <x-button-delete :action="route('tasks.destroy', ['task' => $task] + $trailQuery)" message="¿Eliminar tarea?" />
             @endcan
 
             @include('orders.components.linked-order-action', [
@@ -95,10 +83,7 @@
                 'variant' => 'button',
             ])
 
-            <a href="{{ $backUrl }}" class="btn btn-secondary btn-icon" title="{{ $backLabel }}"
-                aria-label="{{ $backLabel }}">
-                <x-icons.chevron-left />
-            </a>
+            <x-button-back :href="$backUrl" :title="$backLabel" :label="$backLabel" />
         </x-page-header>
 
         <x-show-summary details-id="task-more-detail">

@@ -40,28 +40,14 @@
             @endforeach
 
             @can('update', $asset)
-                <a href="{{ route('assets.edit', ['asset' => $asset] + $trailQuery) }}" class="btn btn-primary">
-                    <x-icons.pencil />
-                    <span>Editar</span>
-                </a>
+                <x-button-edit :href="route('assets.edit', ['asset' => $asset] + $trailQuery)" />
             @endcan
 
             @can('delete', $asset)
-                <form method="POST" action="{{ route('assets.destroy', ['asset' => $asset] + $trailQuery) }}" class="inline-form"
-                    data-action="app-confirm-submit" data-confirm-message="¿Eliminar activo?">
-                    @csrf
-                    @method('DELETE')
-
-                    <button type="submit" class="btn btn-danger">
-                        <x-icons.trash />
-                        <span>Eliminar</span>
-                    </button>
-                </form>
+                <x-button-delete :action="route('assets.destroy', ['asset' => $asset] + $trailQuery)" message="¿Eliminar activo?" />
             @endcan
 
-            <a href="{{ $backUrl }}" class="btn btn-secondary btn-icon" title="Volver" aria-label="Volver">
-                <x-icons.chevron-left />
-            </a>
+            <x-button-back :href="$backUrl" />
         </x-page-header>
 
         <x-show-summary details-id="asset-detail-panel">

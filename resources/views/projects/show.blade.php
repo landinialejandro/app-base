@@ -35,31 +35,16 @@
 
         <x-page-header title="Detalle del proyecto">
             @can('update', $project)
-                <a href="{{ route('projects.edit', ['project' => $project] + $trailQuery) }}" class="btn btn-primary">
-                    <x-icons.pencil />
-                    <span>Editar</span>
-                </a>
+                <x-button-edit :href="route('projects.edit', ['project' => $project] + $trailQuery)" />
             @endcan
 
             @can('delete', $project)
-                <form method="POST" action="{{ route('projects.destroy', ['project' => $project] + $trailQuery) }}"
-                    class="inline-form" data-action="app-confirm-submit"
-                    data-confirm-message="{{ $tasks->count()
-                        ? 'Este proyecto tiene tareas asociadas. Si lo eliminas, también se eliminarán sus tareas. ¿Deseas continuar?'
-                        : '¿Deseas eliminar este proyecto?' }}">
-                    @csrf
-                    @method('DELETE')
-
-                    <button type="submit" class="btn btn-danger">
-                        <x-icons.trash />
-                        <span>Eliminar</span>
-                    </button>
-                </form>
+                <x-button-delete :action="route('projects.destroy', ['project' => $project] + $trailQuery)" :message="$tasks->count()
+                    ? 'Este proyecto tiene tareas asociadas. Si lo eliminas, también se eliminarán sus tareas. ¿Deseas continuar?'
+                    : '¿Deseas eliminar este proyecto?'" />
             @endcan
 
-            <a href="{{ $backUrl }}" class="btn btn-secondary" title="Volver" aria-label="Volver">
-                <x-icons.chevron-left />
-            </a>
+            <x-button-back :href="$backUrl" />
         </x-page-header>
 
         <x-show-summary details-id="project-more-detail">

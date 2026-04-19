@@ -1,11 +1,14 @@
 <?php
 
-// FILE: app/Support/Documents/DocumentSurfaceService.php | V5
+// FILE: app/Support/Documents/DocumentSurfaceService.php | V6
 
 namespace App\Support\Documents;
 
 use App\Models\Asset;
+use App\Models\Document;
 use App\Models\Order;
+use App\Models\Party;
+use App\Support\Auth\Security;
 use App\Support\Modules\Contracts\ModuleSurfaceService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -33,12 +36,41 @@ class DocumentSurfaceService implements ModuleSurfaceService
                 emptyTabsId: 'asset-documents-tabs-empty',
                 priority: 80,
             ),
+            $this->embeddedOffer(
+                key: 'documents.party.embedded',
+                target: 'parties.show',
+                expectedRecordType: 'party',
+                expectedClass: Party::class,
+                tabsId: 'party-documents-tabs',
+                emptyTabsId: 'party-documents-tabs-empty',
+                priority: 90,
+            ),
         ];
     }
 
     public function hostPack(string $host, mixed $record = null, array $context = []): array
     {
-        return [];
+        return match (true) {
+            $host === 'orders.show' && $record instanceof Order => [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'order',
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ],
+            $host === 'assets.show' && $record instanceof Asset => [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'asset',
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ],
+            $host === 'parties.show' && $record instanceof Party => [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'party',
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ],
+            default => [],
+        };
     }
 
     private function embeddedOffer(
@@ -102,7 +134,7 @@ class DocumentSurfaceService implements ModuleSurfaceService
         string $tabsId,
         array $trailQuery,
     ): array {
-        $documents = $this->documentsFor($record);
+        $documents = $this->documentsFor($record, $recordType);
 
         return [
             'count' => $documents->count(),
@@ -155,6 +187,15 @@ class DocumentSurfaceService implements ModuleSurfaceService
                     'party_id' => $record->party_id,
                 ],
             ],
+            'party' => [
+                'showParty' => false,
+                'showAsset' => true,
+                'showOrder' => true,
+                'emptyMessage' => 'Este contacto no tiene documentos vinculados.',
+                'createBaseQuery' => [
+                    'party_id' => $record->getKey(),
+                ],
+            ],
             default => [],
         };
     }
@@ -176,12 +217,28 @@ class DocumentSurfaceService implements ModuleSurfaceService
                 'emptyMessage' => 'Este activo no tiene documentos vinculados.',
                 'createBaseQuery' => [],
             ],
+            'party' => [
+                'showParty' => false,
+                'showAsset' => true,
+                'showOrder' => true,
+                'emptyMessage' => 'Este contacto no tiene documentos vinculados.',
+                'createBaseQuery' => [],
+            ],
             default => [],
         };
     }
 
-    private function documentsFor(Model $record): Collection
+    private function documentsFor(Model $record, string $recordType): Collection
     {
+        if ($recordType === 'party' && $record instanceof Party) {
+            return app(Security::class)
+                ->scope(auth()->user(), 'documents.viewAny', Document::query())
+                ->with(['party', 'order', 'asset', 'items'])
+                ->where('party_id', $record->getKey())
+                ->latest()
+                ->get();
+        }
+
         if ($record->relationLoaded('documents')) {
             $documents = $record->getRelation('documents');
 

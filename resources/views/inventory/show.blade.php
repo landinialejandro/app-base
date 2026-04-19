@@ -20,9 +20,7 @@
         <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header title="Ficha de inventario">
-            <a href="{{ $backUrl }}" class="btn btn-secondary" title="Volver" aria-label="Volver">
-                <x-icons.chevron-left />
-            </a>
+            <x-button-back :href="$backUrl" />
         </x-page-header>
 
         <x-show-summary details-id="inventory-more-detail">

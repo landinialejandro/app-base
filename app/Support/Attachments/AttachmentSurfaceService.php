@@ -1,27 +1,40 @@
 <?php
 
-// FILE: app/Support/Attachments/AttachmentSurfaceService.php | V6
+// FILE: app/Support/Attachments/AttachmentSurfaceService.php | V8
 
 namespace App\Support\Attachments;
 
+use App\Models\Asset;
 use App\Models\Order;
 use App\Support\Modules\Contracts\ModuleSurfaceService;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Support\Collection;
 
 class AttachmentSurfaceService implements ModuleSurfaceService
 {
     public function offers(): array
     {
         return [
-            [
-                'type' => 'embedded',
-                'key' => 'attachments.order.embedded',
-                'label' => 'Adjuntos',
-                'targets' => ['orders.show'],
-                'priority' => 90,
-                'view' => 'attachments.partials.embedded',
-                'needs' => ['record', 'trailQuery'],
-                'resolver' => $this->resolveForOrder(...),
-            ],
+            $this->embeddedOffer(
+                key: 'attachments.order.embedded',
+                target: 'orders.show',
+                expectedRecordType: 'order',
+                expectedClass: Order::class,
+                attachableType: 'order',
+                tabsId: 'order-attachments-tabs',
+                emptyTabsId: 'order-attachments-tabs-empty',
+                priority: 90,
+            ),
+            $this->embeddedOffer(
+                key: 'attachments.asset.embedded',
+                target: 'assets.show',
+                expectedRecordType: 'asset',
+                expectedClass: Asset::class,
+                attachableType: 'asset',
+                tabsId: 'asset-attachments-tabs',
+                emptyTabsId: 'asset-attachments-tabs-empty',
+                priority: 90,
+            ),
         ];
     }
 
@@ -30,24 +43,117 @@ class AttachmentSurfaceService implements ModuleSurfaceService
         return [];
     }
 
-    private function resolveForOrder(array $hostPack): array
-    {
-        /** @var Order $order */
-        $order = $hostPack['record'];
+    private function embeddedOffer(
+        string $key,
+        string $target,
+        string $expectedRecordType,
+        string $expectedClass,
+        string $attachableType,
+        string $tabsId,
+        string $emptyTabsId,
+        int $priority,
+    ): array {
+        return [
+            'type' => 'embedded',
+            'key' => $key,
+            'label' => 'Adjuntos',
+            'targets' => [$target],
+            'slot' => 'tab_panels',
+            'priority' => $priority,
+            'view' => 'attachments.partials.embedded',
+            'needs' => ['record', 'recordType', 'trailQuery'],
+            'resolver' => fn (array $hostPack) => $this->resolveEmbedded(
+                $hostPack,
+                expectedRecordType: $expectedRecordType,
+                expectedClass: $expectedClass,
+                attachableType: $attachableType,
+                tabsId: $tabsId,
+                emptyTabsId: $emptyTabsId,
+            ),
+        ];
+    }
+
+    private function resolveEmbedded(
+        array $hostPack,
+        string $expectedRecordType,
+        string $expectedClass,
+        string $attachableType,
+        string $tabsId,
+        string $emptyTabsId,
+    ): array {
+        $record = $hostPack['record'] ?? null;
+        $recordType = $hostPack['recordType'] ?? null;
         $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
-        $attachments = $order->attachments ?? collect();
+
+        if ($recordType !== $expectedRecordType || ! $record instanceof $expectedClass) {
+            return $this->emptyEmbeddedPayload(
+                attachableType: $attachableType,
+                tabsId: $emptyTabsId,
+                trailQuery: $trailQuery,
+            );
+        }
+
+        return $this->buildEmbeddedPayload(
+            attachable: $record,
+            attachableType: $attachableType,
+            tabsId: $tabsId,
+            trailQuery: $trailQuery,
+        );
+    }
+
+    private function buildEmbeddedPayload(
+        Model $attachable,
+        string $attachableType,
+        string $tabsId,
+        array $trailQuery,
+    ): array {
+        $attachments = $this->attachmentsFor($attachable);
 
         return [
-            'count' => method_exists($attachments, 'count') ? $attachments->count() : 0,
+            'count' => $attachments->count(),
             'data' => [
                 'attachments' => $attachments,
-                'attachable' => $order,
-                'attachableType' => 'order',
-                'attachableId' => $order->id,
+                'attachable' => $attachable,
+                'attachableType' => $attachableType,
+                'attachableId' => $attachable->getKey(),
                 'trailQuery' => $trailQuery,
-                'tabsId' => 'order-attachments-tabs',
+                'tabsId' => $tabsId,
                 'createLabel' => 'Agregar adjunto',
             ],
         ];
+    }
+
+    private function emptyEmbeddedPayload(
+        string $attachableType,
+        string $tabsId,
+        array $trailQuery,
+    ): array {
+        return [
+            'count' => 0,
+            'data' => [
+                'attachments' => collect(),
+                'attachable' => null,
+                'attachableType' => $attachableType,
+                'attachableId' => null,
+                'trailQuery' => $trailQuery,
+                'tabsId' => $tabsId,
+                'createLabel' => 'Agregar adjunto',
+            ],
+        ];
+    }
+
+    private function attachmentsFor(Model $attachable): Collection
+    {
+        if ($attachable->relationLoaded('attachments')) {
+            $attachments = $attachable->getRelation('attachments');
+
+            return $attachments instanceof Collection ? $attachments : collect($attachments);
+        }
+
+        if (method_exists($attachable, 'attachments')) {
+            return $attachable->attachments()->ordered()->get();
+        }
+
+        return collect();
     }
 }

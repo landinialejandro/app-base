@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Assets/AssetSurfaceService.php | V4
+// FILE: app/Support/Assets/AssetSurfaceService.php | V5
 
 namespace App\Support\Assets;
 
@@ -14,27 +14,21 @@ class AssetSurfaceService implements ModuleSurfaceService
     public function offers(): array
     {
         return [
-            [
-                'type' => 'linked',
-                'key' => 'asset.linked',
-                'label' => AppointmentCatalog::assetLabel(),
-                'targets' => ['appointments.show'],
-                'slot' => 'summary_items',
-                'priority' => 30,
-                'view' => 'assets.components.linked-asset-action',
-                'needs' => ['record', 'recordType', 'trailQuery'],
-                'resolver' => $this->resolveLinkedForAppointment(...),
-            ],
+            $this->linkedOffer(
+                key: 'asset.linked',
+                label: AppointmentCatalog::assetLabel(),
+                targets: ['appointments.show'],
+                slot: 'summary_items',
+                priority: 30,
+                view: 'assets.components.linked-asset-action',
+                resolver: $this->resolveLinkedForAppointment(...),
+            ),
         ];
     }
 
     public function hostPack(string $host, mixed $record = null, array $context = []): array
     {
-        if ($host !== 'assets.show') {
-            return [];
-        }
-
-        if (! $record instanceof Asset) {
+        if ($host !== 'assets.show' || ! $record instanceof Asset) {
             return [];
         }
 
@@ -43,6 +37,28 @@ class AssetSurfaceService implements ModuleSurfaceService
             'record' => $record,
             'recordType' => 'asset',
             'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+        ];
+    }
+
+    private function linkedOffer(
+        string $key,
+        string $label,
+        array $targets,
+        string $slot,
+        int $priority,
+        string $view,
+        callable $resolver,
+    ): array {
+        return [
+            'type' => 'linked',
+            'key' => $key,
+            'label' => $label,
+            'targets' => $targets,
+            'slot' => $slot,
+            'priority' => $priority,
+            'view' => $view,
+            'needs' => ['record', 'recordType', 'trailQuery'],
+            'resolver' => $resolver,
         ];
     }
 

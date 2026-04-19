@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Inventory/InventorySurfaceService.php | V10
+// FILE: app/Support/Inventory/InventorySurfaceService.php | V11
 
 namespace App\Support\Inventory;
 
@@ -12,16 +12,12 @@ class InventorySurfaceService implements ModuleSurfaceService
     public function offers(): array
     {
         return [
-            [
-                'type' => 'embedded',
-                'key' => 'inventory.operations',
-                'label' => 'Operación',
-                'targets' => ['orders.show'],
-                'priority' => 30,
-                'view' => 'inventory.partials.embedded-movements',
-                'needs' => ['record', 'trailQuery'],
-                'resolver' => $this->resolveForOrder(...),
-            ],
+            $this->embeddedOffer(
+                key: 'inventory.operations',
+                target: 'orders.show',
+                label: 'Operación',
+                priority: 30,
+            ),
         ];
     }
 
@@ -30,18 +26,50 @@ class InventorySurfaceService implements ModuleSurfaceService
         return [];
     }
 
+    private function embeddedOffer(
+        string $key,
+        string $target,
+        string $label,
+        int $priority,
+    ): array {
+        return [
+            'type' => 'embedded',
+            'key' => $key,
+            'label' => $label,
+            'targets' => [$target],
+            'slot' => 'tab_panels',
+            'priority' => $priority,
+            'view' => 'inventory.partials.embedded-movements',
+            'needs' => ['record', 'recordType', 'trailQuery'],
+            'resolver' => $this->resolveForOrder(...),
+        ];
+    }
+
     private function resolveForOrder(array $hostPack): array
     {
-        /** @var Order $order */
-        $order = $hostPack['record'];
+        $record = $hostPack['record'] ?? null;
+        $recordType = $hostPack['recordType'] ?? null;
         $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
 
-        $inventoryContext = app(OrderInventoryContextResolver::class)->forOrder($order);
+        if ($recordType !== 'order' || ! $record instanceof Order) {
+            return [
+                'count' => 0,
+                'data' => [
+                    'order' => null,
+                    'inventoryContext' => [
+                        'items' => [],
+                    ],
+                    'trailQuery' => $trailQuery,
+                ],
+            ];
+        }
+
+        $inventoryContext = app(OrderInventoryContextResolver::class)->forOrder($record);
 
         return [
             'count' => collect($inventoryContext['items'] ?? [])->count(),
             'data' => [
-                'order' => $order,
+                'order' => $record,
                 'inventoryContext' => $inventoryContext,
                 'trailQuery' => $trailQuery,
             ],

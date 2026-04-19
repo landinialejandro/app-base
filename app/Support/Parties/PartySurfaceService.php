@@ -1,10 +1,11 @@
 <?php
 
-// FILE: app/Support/Parties/PartySurfaceService.php | V4
+// FILE: app/Support/Parties/PartySurfaceService.php | V6
 
 namespace App\Support\Parties;
 
 use App\Models\Appointment;
+use App\Models\Asset;
 use App\Models\Party;
 use App\Support\Catalogs\AppointmentCatalog;
 use App\Support\Modules\Contracts\ModuleSurfaceService;
@@ -14,27 +15,30 @@ class PartySurfaceService implements ModuleSurfaceService
     public function offers(): array
     {
         return [
-            [
-                'type' => 'linked',
-                'key' => 'party.linked',
-                'label' => AppointmentCatalog::contactLabel(),
-                'targets' => ['appointments.show'],
-                'slot' => 'summary_items',
-                'priority' => 20,
-                'view' => 'parties.components.linked-party-action',
-                'needs' => ['record', 'recordType', 'trailQuery'],
-                'resolver' => $this->resolveLinkedForAppointment(...),
-            ],
+            $this->linkedOffer(
+                key: 'party.linked',
+                label: AppointmentCatalog::contactLabel(),
+                targets: ['appointments.show'],
+                slot: 'summary_items',
+                priority: 20,
+                view: 'parties.components.linked-party-action',
+                resolver: $this->resolveLinkedForAppointment(...),
+            ),
+            $this->linkedOffer(
+                key: 'party.asset.linked',
+                label: 'Contacto',
+                targets: ['assets.show'],
+                slot: 'summary_items',
+                priority: 20,
+                view: 'parties.components.linked-party-action',
+                resolver: $this->resolveLinkedForAsset(...),
+            ),
         ];
     }
 
     public function hostPack(string $host, mixed $record = null, array $context = []): array
     {
-        if ($host !== 'parties.show') {
-            return [];
-        }
-
-        if (! $record instanceof Party) {
+        if ($host !== 'parties.show' || ! $record instanceof Party) {
             return [];
         }
 
@@ -46,13 +50,62 @@ class PartySurfaceService implements ModuleSurfaceService
         ];
     }
 
+    private function linkedOffer(
+        string $key,
+        string $label,
+        array $targets,
+        string $slot,
+        int $priority,
+        string $view,
+        callable $resolver,
+    ): array {
+        return [
+            'type' => 'linked',
+            'key' => $key,
+            'label' => $label,
+            'targets' => $targets,
+            'slot' => $slot,
+            'priority' => $priority,
+            'view' => $view,
+            'needs' => ['record', 'recordType', 'trailQuery'],
+            'resolver' => $resolver,
+        ];
+    }
+
     private function resolveLinkedForAppointment(array $hostPack): array
     {
+        return $this->resolveLinked(
+            hostPack: $hostPack,
+            expectedRecordType: 'appointment',
+            expectedClass: Appointment::class,
+            label: AppointmentCatalog::contactLabel(),
+            partyResolver: fn (Appointment $record) => $record->party,
+        );
+    }
+
+    private function resolveLinkedForAsset(array $hostPack): array
+    {
+        return $this->resolveLinked(
+            hostPack: $hostPack,
+            expectedRecordType: 'asset',
+            expectedClass: Asset::class,
+            label: 'Contacto',
+            partyResolver: fn (Asset $record) => $record->party,
+        );
+    }
+
+    private function resolveLinked(
+        array $hostPack,
+        string $expectedRecordType,
+        string $expectedClass,
+        string $label,
+        callable $partyResolver,
+    ): array {
         $record = $hostPack['record'] ?? null;
         $recordType = $hostPack['recordType'] ?? null;
         $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
 
-        if ($recordType !== 'appointment' || ! $record instanceof Appointment) {
+        if ($recordType !== $expectedRecordType || ! $record instanceof $expectedClass) {
             return [
                 'data' => [
                     'action' => [
@@ -64,9 +117,9 @@ class PartySurfaceService implements ModuleSurfaceService
                         'hidden' => true,
                         'show_url' => null,
                         'create_url' => null,
-                        'label' => AppointmentCatalog::contactLabel(),
+                        'label' => $label,
                         'trail_query' => [],
-                        'linked_text' => AppointmentCatalog::contactLabel(),
+                        'linked_text' => $label,
                     ],
                     'variant' => 'summary',
                 ],
@@ -76,9 +129,9 @@ class PartySurfaceService implements ModuleSurfaceService
         return [
             'data' => [
                 'action' => PartyLinkedAction::forParty(
-                    $record->party,
+                    $partyResolver($record),
                     $trailQuery,
-                    AppointmentCatalog::contactLabel(),
+                    $label,
                 ),
                 'variant' => 'summary',
             ],

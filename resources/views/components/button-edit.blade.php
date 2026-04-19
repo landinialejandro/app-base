@@ -1,4 +1,4 @@
-{{-- resources/views/components/boton-editar.blade.php --}}
+{{-- FILE:resources/views/components/button-edit.blade.php --}}
 @props(['href', 'label' => 'Editar'])
 
 <a href="{{ $href }}" {{ $attributes->merge(['class' => 'btn btn-primary']) }}>

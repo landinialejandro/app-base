@@ -1,4 +1,4 @@
-{{-- resources/views/components/boton-eliminar.blade.php --}}
+{{-- FILE:resources/views/components/button-delete.blade.php --}}
 @props(['action', 'label' => 'Eliminar', 'message' => '¿Eliminar registro?', 'method' => 'DELETE'])
 
 <form method="POST" action="{{ $action }}" class="inline-form" data-action="app-confirm-submit"

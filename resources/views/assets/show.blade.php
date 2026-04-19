@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/assets/show.blade.php | V15 --}}
+{{-- FILE: resources/views/assets/show.blade.php | V17 --}}
 
 @extends('layouts.app')
 
@@ -6,21 +6,20 @@
 
 @section('content')
     @php
-        use App\Models\Appointment;
+        use App\Support\Assets\AssetSurfaceService;
         use App\Support\Auth\TenantModuleAccess;
         use App\Support\Catalogs\AssetCatalog;
         use App\Support\Catalogs\ModuleCatalog;
         use App\Support\Catalogs\OrderCatalog;
+        use App\Support\Modules\ModuleSurfaceRegistry;
         use App\Support\Navigation\NavigationTrail;
         use App\Support\Parties\PartyLinkedAction;
 
-        $appointments = $appointments ?? collect();
         $orders = $orders ?? collect();
         $documents = $documents ?? collect();
         $attachments = $asset->attachments ?? collect();
 
         $tenant = app('tenant');
-        $user = auth()->user();
 
         $supportsPartiesModule = TenantModuleAccess::isEnabled(ModuleCatalog::PARTIES, $tenant);
         $supportsAppointmentsModule =
@@ -32,13 +31,21 @@
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
         $backUrl = NavigationTrail::previousUrl($navigationTrail, route('assets.index'));
 
-        $canCreateAppointment = $supportsAppointmentsModule && $user && $user->can('create', Appointment::class);
-
         $partyAction = PartyLinkedAction::forParty($asset->party, $trailQuery, 'Contacto');
 
-        $defaultTab = $supportsAppointmentsModule
-            ? 'appointments'
-            : ($supportsOrdersModule
+        $hostPack = app(AssetSurfaceService::class)->hostPack('assets.show', $asset, [
+            'trailQuery' => $trailQuery,
+        ]);
+
+        $embeddedTabs = $supportsAppointmentsModule
+            ? collect(app(ModuleSurfaceRegistry::class)->embeddedFor('assets.show', $hostPack))->values()
+            : collect();
+
+        $embeddedDefaultTab = $embeddedTabs->first()['key'] ?? null;
+
+        $defaultTab =
+            $embeddedDefaultTab ?:
+            ($supportsOrdersModule
                 ? 'orders'
                 : ($supportsDocumentsModule
                     ? 'documents'
@@ -69,14 +76,6 @@
                     </button>
                 </form>
             @endcan
-
-            @if ($canCreateAppointment)
-                <a href="{{ route('appointments.create', ['asset_id' => $asset->id, 'party_id' => $asset->party_id] + $trailQuery) }}"
-                    class="btn btn-secondary">
-                    <x-icons.plus />
-                    <span>Agendar turno</span>
-                </a>
-            @endif
 
             <a href="{{ $backUrl }}" class="btn btn-secondary">
                 <x-icons.chevron-left />
@@ -133,17 +132,17 @@
             <x-tab-toolbar label="Secciones del activo">
                 <x-slot:tabs>
                     <x-horizontal-scroll label="Secciones del activo">
-                        @if ($supportsAppointmentsModule)
+                        @foreach ($embeddedTabs as $embeddedTab)
                             <button type="button"
-                                class="tabs-link {{ $defaultTab === 'appointments' ? 'is-active' : '' }}"
-                                data-tab-link="appointments" role="tab"
-                                aria-selected="{{ $defaultTab === 'appointments' ? 'true' : 'false' }}">
-                                Turnos
-                                @if ($appointments->count())
-                                    ({{ $appointments->count() }})
+                                class="tabs-link {{ $defaultTab === $embeddedTab['key'] ? 'is-active' : '' }}"
+                                data-tab-link="{{ $embeddedTab['key'] }}" role="tab"
+                                aria-selected="{{ $defaultTab === $embeddedTab['key'] ? 'true' : 'false' }}">
+                                {{ $embeddedTab['label'] ?? $embeddedTab['key'] }}
+                                @if (array_key_exists('count', $embeddedTab) && (int) $embeddedTab['count'] > 0)
+                                    ({{ $embeddedTab['count'] }})
                                 @endif
                             </button>
-                        @endif
+                        @endforeach
 
                         @if ($supportsOrdersModule)
                             <button type="button" class="tabs-link {{ $defaultTab === 'orders' ? 'is-active' : '' }}"
@@ -179,26 +178,14 @@
                 </x-slot:tabs>
             </x-tab-toolbar>
 
-            @if ($supportsAppointmentsModule)
-                <section class="tab-panel {{ $defaultTab === 'appointments' ? 'is-active' : '' }}"
-                    data-tab-panel="appointments" @if ($defaultTab !== 'appointments') hidden @endif>
+            @foreach ($embeddedTabs as $embeddedTab)
+                <section class="tab-panel {{ $defaultTab === $embeddedTab['key'] ? 'is-active' : '' }}"
+                    data-tab-panel="{{ $embeddedTab['key'] }}" @if ($defaultTab !== $embeddedTab['key']) hidden @endif>
                     <div class="tab-panel-stack">
-                        @include('appointments.partials.embedded-tabs', [
-                            'appointments' => $appointments,
-                            'supportsPartiesModule' => $supportsPartiesModule,
-                            'supportsAssetsModule' => false,
-                            'supportsOrdersModule' => $supportsOrdersModule,
-                            'emptyMessage' => 'Este activo no tiene turnos vinculados.',
-                            'tabsId' => 'asset-appointments-tabs',
-                            'createBaseQuery' => [
-                                'asset_id' => $asset->id,
-                                'party_id' => $asset->party_id,
-                            ],
-                            'trailQuery' => $trailQuery,
-                        ])
+                        @include($embeddedTab['view'], $embeddedTab['data'] ?? [])
                     </div>
                 </section>
-            @endif
+            @endforeach
 
             @if ($supportsOrdersModule)
                 <section class="tab-panel {{ $defaultTab === 'orders' ? 'is-active' : '' }}" data-tab-panel="orders"

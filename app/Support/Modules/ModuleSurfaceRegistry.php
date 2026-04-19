@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Modules/ModuleSurfaceRegistry.php | V3
+// FILE: app/Support/Modules/ModuleSurfaceRegistry.php | V4
 
 namespace App\Support\Modules;
 
@@ -10,6 +10,19 @@ use App\Support\Modules\Contracts\ModuleSurfaceService;
 
 class ModuleSurfaceRegistry
 {
+    /**
+     * Slots válidos del host show.
+     *
+     * @var array<int, string>
+     */
+    protected array $knownSlots = [
+        'header_actions',
+        'summary_items',
+        'detail_items',
+        'tab_nav',
+        'tab_panels',
+    ];
+
     /**
      * Devuelve las surfaces aplicables para un solicitante/host concreto.
      *
@@ -63,6 +76,39 @@ class ModuleSurfaceRegistry
     }
 
     /**
+     * Devuelve solo las surfaces del slot solicitado.
+     *
+     * @param  array<string, mixed>  $context
+     * @return array<int, array<string, mixed>>
+     */
+    public function slotFor(string $host, string $slot, array $context = []): array
+    {
+        return $this->filterBySlot(
+            $this->surfacesFor($host, $context),
+            $slot
+        );
+    }
+
+    /**
+     * Devuelve las surfaces agrupadas por slot del host.
+     *
+     * @param  array<string, mixed>  $context
+     * @return array<string, array<int, array<string, mixed>>>
+     */
+    public function groupedFor(string $host, array $context = []): array
+    {
+        $surfaces = $this->surfacesFor($host, $context);
+
+        $grouped = [];
+
+        foreach ($this->knownSlots as $slot) {
+            $grouped[$slot] = $this->filterBySlot($surfaces, $slot);
+        }
+
+        return $grouped;
+    }
+
+    /**
      * @param  array<int, array<string, mixed>>  $surfaces
      * @return array<int, array<string, mixed>>
      */
@@ -70,6 +116,18 @@ class ModuleSurfaceRegistry
     {
         return collect($surfaces)
             ->where('type', $type)
+            ->values()
+            ->all();
+    }
+
+    /**
+     * @param  array<int, array<string, mixed>>  $surfaces
+     * @return array<int, array<string, mixed>>
+     */
+    protected function filterBySlot(array $surfaces, string $slot): array
+    {
+        return collect($surfaces)
+            ->where('slot', $slot)
             ->values()
             ->all();
     }
@@ -103,6 +161,7 @@ class ModuleSurfaceRegistry
                 'visible' => true,
                 'targets' => [],
                 'needs' => [],
+                'slot' => null,
             ], $offer))
             ->values()
             ->all();
@@ -164,6 +223,7 @@ class ModuleSurfaceRegistry
             'host' => $host,
             'priority' => 999,
             'visible' => true,
+            'slot' => null,
         ];
 
         if ($type === 'embedded') {

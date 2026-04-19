@@ -1,43 +1,54 @@
-{{-- FILE: resources/views/appointments/show.blade.php | V12 --}}
+{{-- FILE: resources/views/appointments/show.blade.php | V20 --}}
 
 @extends('layouts.app')
 
-@php
-    use App\Support\Assets\AssetLinkedAction;
-    use App\Support\Auth\TenantModuleAccess;
-    use App\Support\Catalogs\AppointmentCatalog;
-    use App\Support\Catalogs\ModuleCatalog;
-    use App\Support\Navigation\NavigationTrail;
-    use App\Support\Orders\OrderLinkedAction;
-    use App\Support\Parties\PartyLinkedAction;
-
-    $appointmentTitle = AppointmentCatalog::rowTitleFor($appointment->kind, $appointment->work_mode);
-    $referenceLabel = AppointmentCatalog::referenceLabelForKind($appointment->kind);
-
-    $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
-    $trailQuery = NavigationTrail::toQuery($navigationTrail);
-    $backUrl = NavigationTrail::previousUrl(
-        $navigationTrail,
-        route('appointments.calendar', [
-            'view' => 'month',
-            'month' => now()->format('Y-m'),
-        ]),
-    );
-
-    $supportsPartiesModule = TenantModuleAccess::isEnabled(ModuleCatalog::PARTIES, app('tenant'));
-
-    $orderAction = OrderLinkedAction::forAppointment($appointment, $trailQuery, true);
-    $partyAction = PartyLinkedAction::forParty($appointment->party, $trailQuery, AppointmentCatalog::contactLabel());
-    $assetAction = AssetLinkedAction::forAsset($appointment->asset, $trailQuery, AppointmentCatalog::assetLabel());
-@endphp
-
-@section('title', $appointmentTitle)
+@section('title', 'Detalle del turno')
 
 @section('content')
+    @php
+        use App\Support\Catalogs\AppointmentCatalog;
+        use App\Support\Appointments\AppointmentSurfaceService;
+        use App\Support\Modules\ModuleSurfaceRegistry;
+        use App\Support\Navigation\NavigationTrail;
+
+        $appointmentTitle = AppointmentCatalog::rowTitleFor($appointment->kind, $appointment->work_mode);
+        $referenceLabel = AppointmentCatalog::referenceLabelForKind($appointment->kind);
+
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+
+        $backUrl = NavigationTrail::previousUrl(
+            $navigationTrail,
+            route('appointments.calendar', [
+                'view' => 'month',
+                'month' => now()->format('Y-m'),
+            ]),
+        );
+
+        $hostPack = app(AppointmentSurfaceService::class)->hostPack('appointments.show', $appointment, [
+            'trailQuery' => $trailQuery,
+        ]);
+
+        $embedded = collect(app(ModuleSurfaceRegistry::class)->embeddedFor('appointments.show', $hostPack))->values();
+
+        $linked = collect(app(ModuleSurfaceRegistry::class)->linkedFor('appointments.show', $hostPack))->values();
+
+        $summaryItems = $linked->where('slot', 'summary_items')->values();
+        $headerActions = $linked->where('slot', 'header_actions')->values();
+
+        $detailItems = $embedded->where('slot', 'detail_items')->values();
+
+        $tabItems = $embedded->where(fn($item) => ($item['slot'] ?? 'tab_panels') === 'tab_panels')->values();
+    @endphp
+
     <x-page>
         <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header :title="$appointmentTitle">
+            @foreach ($headerActions as $surface)
+                @include($surface['view'], $surface['data'] ?? [])
+            @endforeach
+
             @if ($canEditAppointment)
                 <a href="{{ route('appointments.edit', ['appointment' => $appointment] + $trailQuery) }}"
                     class="btn btn-primary">
@@ -60,11 +71,6 @@
                 </form>
             @endif
 
-            @include('orders.components.linked-order-action', [
-                'action' => $orderAction,
-                'variant' => 'button',
-            ])
-
             <a href="{{ route('appointments.print', ['appointment' => $appointment]) }}" class="btn btn-secondary"
                 target="_blank">
                 Imprimir
@@ -80,23 +86,11 @@
         </x-page-header>
 
         <x-show-summary details-id="appointment-more-detail">
-            @if ($supportsPartiesModule)
-                <x-show-summary-item :label="AppointmentCatalog::contactLabel()">
-                    @include('parties.components.linked-party-action', [
-                        'action' => $partyAction,
-                        'variant' => 'summary',
-                    ])
+            @foreach ($summaryItems as $surface)
+                <x-show-summary-item :label="$surface['label'] ?? 'Relacionado'">
+                    @include($surface['view'], $surface['data'] ?? [])
                 </x-show-summary-item>
-            @endif
-
-            @if ($supportsAssetsModule)
-                <x-show-summary-item :label="AppointmentCatalog::assetLabel()">
-                    @include('assets.components.linked-asset-action', [
-                        'action' => $assetAction,
-                        'variant' => 'summary',
-                    ])
-                </x-show-summary-item>
-            @endif
+            @endforeach
 
             <x-show-summary-item label="Cuándo">
                 @if ($appointment->is_all_day)
@@ -113,15 +107,6 @@
             <x-show-summary-item :label="AppointmentCatalog::assignedUserLabel()">
                 {{ $appointment->assignedUser?->name ?? '—' }}
             </x-show-summary-item>
-
-            @if ($supportsOrdersModule)
-                <x-show-summary-item :label="AppointmentCatalog::orderLabel()">
-                    @include('orders.components.linked-order-action', [
-                        'action' => $orderAction,
-                        'variant' => 'summary',
-                    ])
-                </x-show-summary-item>
-            @endif
 
             <x-show-summary-item label="Estado operativo">
                 <div class="summary-badge-stack">
@@ -144,26 +129,59 @@
             </x-show-summary-item>
 
             <x-slot:details>
-                <div class="detail-block">
-                    <span class="detail-block-label">ID</span>
-                    <div class="detail-block-value">#{{ $appointment->id }}</div>
-                </div>
+                @foreach ($detailItems as $surface)
+                    <x-show-summary-item-detail-block :label="$surface['label'] ?? 'Relacionado'">
+                        @include($surface['view'], $surface['data'] ?? [])
+                    </x-show-summary-item-detail-block>
+                @endforeach
 
-                <div class="detail-block">
-                    <span class="detail-block-label">Creado por</span>
-                    <div class="detail-block-value">{{ $appointment->creator?->name ?: '—' }}</div>
-                </div>
+                <x-show-summary-item-detail-block label="ID">
+                    #{{ $appointment->id }}
+                </x-show-summary-item-detail-block>
 
-                <div class="detail-block">
-                    <span class="detail-block-label">Actualizado por</span>
-                    <div class="detail-block-value">{{ $appointment->updater?->name ?: '—' }}</div>
-                </div>
+                <x-show-summary-item-detail-block label="Creado por">
+                    {{ $appointment->creator?->name ?: '—' }}
+                </x-show-summary-item-detail-block>
 
-                <div class="detail-block detail-block--full">
-                    <span class="detail-block-label">Notas</span>
-                    <div class="detail-block-value">{{ $appointment->notes ?: '—' }}</div>
-                </div>
+                <x-show-summary-item-detail-block label="Actualizado por">
+                    {{ $appointment->updater?->name ?: '—' }}
+                </x-show-summary-item-detail-block>
+
+                <x-show-summary-item-detail-block label="Notas" full>
+                    {{ $appointment->notes ?: '—' }}
+                </x-show-summary-item-detail-block>
             </x-slot:details>
         </x-show-summary>
+
+        @if ($tabItems->isNotEmpty())
+            <div class="tabs" data-tabs>
+                <x-tab-toolbar label="Secciones del turno">
+                    <x-slot:tabs>
+                        <x-horizontal-scroll label="Secciones del turno">
+                            @foreach ($tabItems as $tabItem)
+                                <button type="button" class="tabs-link {{ $loop->first ? 'is-active' : '' }}"
+                                    data-tab-link="{{ $tabItem['key'] }}" role="tab"
+                                    aria-selected="{{ $loop->first ? 'true' : 'false' }}">
+                                    {{ $tabItem['label'] ?? $tabItem['key'] }}
+
+                                    @if (array_key_exists('count', $tabItem) && (int) $tabItem['count'] > 0)
+                                        ({{ $tabItem['count'] }})
+                                    @endif
+                                </button>
+                            @endforeach
+                        </x-horizontal-scroll>
+                    </x-slot:tabs>
+                </x-tab-toolbar>
+
+                @foreach ($tabItems as $tabItem)
+                    <section class="tab-panel {{ $loop->first ? 'is-active' : '' }}"
+                        data-tab-panel="{{ $tabItem['key'] }}" @unless ($loop->first) hidden @endunless>
+                        <div class="tab-panel-stack">
+                            @include($tabItem['view'], $tabItem['data'] ?? [])
+                        </div>
+                    </section>
+                @endforeach
+            </div>
+        @endif
     </x-page>
 @endsection

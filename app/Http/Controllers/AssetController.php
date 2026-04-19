@@ -1,10 +1,9 @@
 <?php
 
-// FILE: app/Http/Controllers/AssetController.php | V8
+// FILE: app/Http/Controllers/AssetController.php | V9
 
 namespace App\Http\Controllers;
 
-use App\Models\Appointment;
 use App\Models\Asset;
 use App\Models\Document;
 use App\Models\Order;
@@ -122,19 +121,6 @@ class AssetController extends Controller
             'attachments' => fn ($query) => $query->ordered(),
         ]);
 
-        $appointments = $supportsAppointmentsModule
-            ? $security
-                ->scope($user, 'appointments.viewAny', Appointment::query())
-                ->with(['party', 'order', 'asset', 'assignedUser'])
-                ->where('asset_id', $asset->id)
-                ->orderBy('scheduled_date')
-                ->orderByDesc('is_all_day')
-                ->orderByRaw('CASE WHEN starts_at IS NULL THEN 1 ELSE 0 END')
-                ->orderBy('starts_at')
-                ->orderBy('created_at')
-                ->get()
-            : collect();
-
         $orders = $supportsOrdersModule
             ? $security
                 ->scope($user, 'orders.viewAny', Order::query())
@@ -157,7 +143,6 @@ class AssetController extends Controller
 
         return view('assets.show', compact(
             'asset',
-            'appointments',
             'orders',
             'documents',
             'navigationTrail',

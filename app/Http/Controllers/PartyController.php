@@ -1,12 +1,11 @@
 <?php
 
-// FILE: app/Http/Controllers/PartyController.php | V7
+// FILE: app/Http/Controllers/PartyController.php | V8
 
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePartyRequest;
 use App\Http\Requests\UpdatePartyRequest;
-use App\Models\Appointment;
 use App\Models\Asset;
 use App\Models\Document;
 use App\Models\Order;
@@ -141,19 +140,6 @@ class PartyController extends Controller
         $supportsOrdersModule = TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, $tenant);
         $supportsDocumentsModule = TenantModuleAccess::isEnabled(ModuleCatalog::DOCUMENTS, $tenant);
 
-        $appointments = $supportsAppointmentsModule
-            ? $security
-                ->scope($user, 'appointments.viewAny', Appointment::query())
-                ->with(['party', 'order', 'asset', 'assignedUser'])
-                ->where('party_id', $party->id)
-                ->orderBy('scheduled_date')
-                ->orderByDesc('is_all_day')
-                ->orderByRaw('CASE WHEN starts_at IS NULL THEN 1 ELSE 0 END')
-                ->orderBy('starts_at')
-                ->orderBy('created_at')
-                ->get()
-            : collect();
-
         $assets = $supportsAssetsModule
             ? $security
                 ->scope($user, 'assets.viewAny', Asset::query())
@@ -189,7 +175,6 @@ class PartyController extends Controller
             'supportsAssetsModule' => $supportsAssetsModule,
             'supportsOrdersModule' => $supportsOrdersModule,
             'supportsDocumentsModule' => $supportsDocumentsModule,
-            'appointments' => $appointments,
             'assets' => $assets,
             'orders' => $orders,
             'documents' => $documents,

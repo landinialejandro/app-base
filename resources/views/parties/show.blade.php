@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/show.blade.php | V12 --}}
+{{-- FILE: resources/views/parties/show.blade.php | V13 --}}
 
 @extends('layouts.app')
 
@@ -7,13 +7,10 @@
 @section('content')
     @php
         use App\Support\Catalogs\PartyCatalog;
+        use App\Support\Modules\ModuleSurfaceRegistry;
         use App\Support\Navigation\NavigationTrail;
+        use App\Support\Parties\PartySurfaceService;
 
-        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
-        $trailQuery = NavigationTrail::toQuery($navigationTrail);
-        $backUrl = NavigationTrail::previousUrl($navigationTrail, route('parties.index'));
-
-        $appointments = $appointments ?? collect();
         $assets = $assets ?? collect();
         $orders = $orders ?? collect();
         $documents = $documents ?? collect();
@@ -23,16 +20,29 @@
         $supportsOrdersModule = $supportsOrdersModule ?? false;
         $supportsDocumentsModule = $supportsDocumentsModule ?? false;
 
-        $tabs = collect([
-            $supportsAppointmentsModule ? 'appointments' : null,
-            $supportsAssetsModule ? 'assets' : null,
-            $supportsOrdersModule ? 'orders' : null,
-            $supportsDocumentsModule ? 'documents' : null,
-        ])
-            ->filter()
-            ->values();
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+        $backUrl = NavigationTrail::previousUrl($navigationTrail, route('parties.index'));
 
-        $defaultTab = $tabs->first();
+        $hostPack = app(PartySurfaceService::class)->hostPack('parties.show', $party, [
+            'trailQuery' => $trailQuery,
+        ]);
+
+        $embeddedTabs = $supportsAppointmentsModule
+            ? collect(app(ModuleSurfaceRegistry::class)->embeddedFor('parties.show', $hostPack))->values()
+            : collect();
+
+        $embeddedDefaultTab = $embeddedTabs->first()['key'] ?? null;
+
+        $defaultTab =
+            $embeddedDefaultTab ?:
+            ($supportsAssetsModule
+                ? 'assets'
+                : ($supportsOrdersModule
+                    ? 'orders'
+                    : ($supportsDocumentsModule
+                        ? 'documents'
+                        : null)));
     @endphp
 
     <x-page>
@@ -128,17 +138,17 @@
                 <x-tab-toolbar label="Relaciones del contacto">
                     <x-slot:tabs>
                         <x-horizontal-scroll label="Relaciones del contacto">
-                            @if ($supportsAppointmentsModule)
+                            @foreach ($embeddedTabs as $embeddedTab)
                                 <button type="button"
-                                    class="tabs-link {{ $defaultTab === 'appointments' ? 'is-active' : '' }}"
-                                    data-tab-link="appointments" role="tab"
-                                    aria-selected="{{ $defaultTab === 'appointments' ? 'true' : 'false' }}">
-                                    Turnos
-                                    @if ($appointments->count())
-                                        ({{ $appointments->count() }})
+                                    class="tabs-link {{ $defaultTab === $embeddedTab['key'] ? 'is-active' : '' }}"
+                                    data-tab-link="{{ $embeddedTab['key'] }}" role="tab"
+                                    aria-selected="{{ $defaultTab === $embeddedTab['key'] ? 'true' : 'false' }}">
+                                    {{ $embeddedTab['label'] ?? $embeddedTab['key'] }}
+                                    @if (array_key_exists('count', $embeddedTab) && (int) $embeddedTab['count'] > 0)
+                                        ({{ $embeddedTab['count'] }})
                                     @endif
                                 </button>
-                            @endif
+                            @endforeach
 
                             @if ($supportsAssetsModule)
                                 <button type="button" class="tabs-link {{ $defaultTab === 'assets' ? 'is-active' : '' }}"
@@ -177,25 +187,14 @@
                     </x-slot:tabs>
                 </x-tab-toolbar>
 
-                @if ($supportsAppointmentsModule)
-                    <section class="tab-panel {{ $defaultTab === 'appointments' ? 'is-active' : '' }}"
-                        data-tab-panel="appointments" @if ($defaultTab !== 'appointments') hidden @endif>
+                @foreach ($embeddedTabs as $embeddedTab)
+                    <section class="tab-panel {{ $defaultTab === $embeddedTab['key'] ? 'is-active' : '' }}"
+                        data-tab-panel="{{ $embeddedTab['key'] }}" @if ($defaultTab !== $embeddedTab['key']) hidden @endif>
                         <div class="tab-panel-stack">
-                            @include('appointments.partials.embedded-tabs', [
-                                'appointments' => $appointments,
-                                'supportsPartiesModule' => false,
-                                'supportsAssetsModule' => $supportsAssetsModule,
-                                'supportsOrdersModule' => $supportsOrdersModule,
-                                'emptyMessage' => 'Este contacto no tiene turnos vinculados.',
-                                'tabsId' => 'party-appointments-tabs',
-                                'createBaseQuery' => [
-                                    'party_id' => $party->id,
-                                ],
-                                'trailQuery' => $trailQuery,
-                            ])
+                            @include($embeddedTab['view'], $embeddedTab['data'] ?? [])
                         </div>
                     </section>
-                @endif
+                @endforeach
 
                 @if ($supportsAssetsModule)
                     <section class="tab-panel {{ $defaultTab === 'assets' ? 'is-active' : '' }}" data-tab-panel="assets"

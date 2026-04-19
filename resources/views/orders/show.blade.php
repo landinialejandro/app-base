@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V36 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V38 --}}
 
 @extends('layouts.app')
 
@@ -6,8 +6,6 @@
 
 @section('content')
     @php
-        use App\Support\Appointments\AppointmentLinkedAction;
-        use App\Support\Assets\AssetLinkedAction;
         use App\Support\Catalogs\OrderCatalog;
         use App\Support\Modules\ModuleSurfaceRegistry;
         use App\Support\Navigation\NavigationTrail;
@@ -15,7 +13,6 @@
         use App\Support\Parties\PartyLinkedAction;
 
         $items = $order->items ?? collect();
-
         $user = auth()->user();
 
         $supportsProductsModule = $supportsProductsModule ?? true;
@@ -28,14 +25,14 @@
         $canViewLinkedTask = $supportsTasksModule && $order->task && $user && $user->can('view', $order->task);
 
         $partyAction = PartyLinkedAction::forParty($order->party, $trailQuery, 'Contacto');
-        $assetAction = AssetLinkedAction::forAsset($order->asset, $trailQuery, 'Activo');
-        $appointmentAction = AppointmentLinkedAction::forOrder($order, $trailQuery, true);
 
-        $hostPack = app(OrderSurfaceService::class)->hostPack('orders.show', $order, [
-            'trailQuery' => $trailQuery,
-        ]);
+        $hostPack = app(OrderSurfaceService::class)->hostPack('orders.show', $order, ['trailQuery' => $trailQuery]);
 
-        $embeddedTabs = collect(app(ModuleSurfaceRegistry::class)->embeddedFor('orders.show', $hostPack))->values();
+        $surfaces = collect(app(ModuleSurfaceRegistry::class)->embeddedFor('orders.show', $hostPack))->values();
+
+        $detailItems = $surfaces->where('slot', 'detail_items')->values();
+
+        $tabItems = $surfaces->where(fn($item) => ($item['slot'] ?? 'tab_panels') === 'tab_panels')->values();
     @endphp
 
     <x-page>
@@ -94,12 +91,11 @@
                     {{ $order->ordered_at?->format('d/m/Y') ?: '—' }}
                 </x-show-summary-item-detail-block>
 
-                <x-show-summary-item-detail-block label="Turno">
-                    @include('appointments.components.linked-appointment-action', [
-                        'action' => $appointmentAction,
-                        'variant' => 'summary',
-                    ])
-                </x-show-summary-item-detail-block>
+                @foreach ($detailItems as $detailItem)
+                    <x-show-summary-item-detail-block label="{{ $detailItem['label'] }}">
+                        @include($detailItem['view'], $detailItem['data'] ?? [])
+                    </x-show-summary-item-detail-block>
+                @endforeach
 
                 @if ($supportsTasksModule)
                     <x-show-summary-item-detail-block label="Tarea">
@@ -139,12 +135,13 @@
                             @endif
                         </button>
 
-                        @foreach ($embeddedTabs as $embeddedTab)
-                            <button type="button" class="tabs-link" data-tab-link="{{ $embeddedTab['key'] }}"
-                                role="tab" aria-selected="false">
-                                {{ $embeddedTab['label'] ?? $embeddedTab['key'] }}
-                                @if (array_key_exists('count', $embeddedTab) && (int) $embeddedTab['count'] > 0)
-                                    ({{ $embeddedTab['count'] }})
+                        @foreach ($tabItems as $tabItem)
+                            <button type="button" class="tabs-link" data-tab-link="{{ $tabItem['key'] }}" role="tab"
+                                aria-selected="false">
+                                {{ $tabItem['label'] ?? $tabItem['key'] }}
+
+                                @if (array_key_exists('count', $tabItem) && (int) $tabItem['count'] > 0)
+                                    ({{ $tabItem['count'] }})
                                 @endif
                             </button>
                         @endforeach
@@ -163,10 +160,10 @@
                 </div>
             </section>
 
-            @foreach ($embeddedTabs as $embeddedTab)
-                <section class="tab-panel" data-tab-panel="{{ $embeddedTab['key'] }}" hidden>
+            @foreach ($tabItems as $tabItem)
+                <section class="tab-panel" data-tab-panel="{{ $tabItem['key'] }}" hidden>
                     <div class="tab-panel-stack">
-                        @include($embeddedTab['view'], $embeddedTab['data'] ?? [])
+                        @include($tabItem['view'], $tabItem['data'] ?? [])
                     </div>
                 </section>
             @endforeach

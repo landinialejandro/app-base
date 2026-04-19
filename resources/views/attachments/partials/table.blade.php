@@ -96,35 +96,28 @@
                     <td class="compact-actions-cell">
                         <div class="compact-actions">
                             @can('view', $attachment)
-                                <a href="{{ $downloadUrl }}" class="btn btn-secondary btn-icon" title="Descargar"
-                                    aria-label="Descargar">
+                                <x-button-tool :href="$downloadUrl" title="Descargar" label="Descargar">
                                     <x-icons.download />
-                                </a>
+                                </x-button-tool>
                             @endcan
 
                             @can('update', $attachment)
-                                <a href="{{ route('attachments.edit', $editRouteParams) }}"
-                                    class="btn btn-secondary btn-icon" title="Editar" aria-label="Editar">
+                                <x-button-tool :href="route('attachments.edit', $editRouteParams)" title="Editar" label="Editar">
                                     <x-icons.pencil />
-                                </a>
+                                </x-button-tool>
                             @endcan
 
                             @can('delete', $attachment)
-                                <form method="POST" action="{{ route('attachments.destroy', $destroyRouteParams) }}"
-                                    class="inline-form" data-action="app-confirm-submit"
-                                    data-confirm-message="¿Eliminar adjunto?">
-                                    @csrf
-                                    @method('DELETE')
+                                <x-button-tool-submit :action="route('attachments.destroy', $destroyRouteParams)" method="DELETE" variant="danger" title="Eliminar"
+                                    label="Eliminar" message="¿Eliminar adjunto?">
+                                    <x-slot:fields>
+                                        @if ($returnTo)
+                                            <input type="hidden" name="return_to" value="{{ $returnTo }}">
+                                        @endif
+                                    </x-slot:fields>
 
-                                    @if ($returnTo)
-                                        <input type="hidden" name="return_to" value="{{ $returnTo }}">
-                                    @endif
-
-                                    <button type="submit" class="btn btn-danger btn-icon" title="Eliminar"
-                                        aria-label="Eliminar">
-                                        <x-icons.trash />
-                                    </button>
-                                </form>
+                                    <x-icons.trash />
+                                </x-button-tool-submit>
                             @endcan
                         </div>
                     </td>

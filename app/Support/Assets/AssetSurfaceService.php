@@ -1,11 +1,12 @@
 <?php
 
-// FILE: app/Support/Assets/AssetSurfaceService.php | V7
+// FILE: app/Support/Assets/AssetSurfaceService.php | V8
 
 namespace App\Support\Assets;
 
 use App\Models\Appointment;
 use App\Models\Asset;
+use App\Models\Document;
 use App\Models\Party;
 use App\Support\Auth\Security;
 use App\Support\Catalogs\AppointmentCatalog;
@@ -26,6 +27,15 @@ class AssetSurfaceService implements ModuleSurfaceService
                 priority: 30,
                 view: 'assets.components.linked-asset-action',
                 resolver: $this->resolveLinkedForAppointment(...),
+            ),
+            $this->linkedOffer(
+                key: 'asset.document.linked',
+                label: 'Activo',
+                targets: ['documents.show'],
+                slot: 'detail_items',
+                priority: 20,
+                view: 'assets.components.linked-asset-action',
+                resolver: $this->resolveLinkedForDocument(...),
             ),
             $this->embeddedOffer(
                 key: 'assets.party.embedded',
@@ -55,6 +65,15 @@ class AssetSurfaceService implements ModuleSurfaceService
                 'host' => $host,
                 'record' => $record,
                 'recordType' => 'party',
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ];
+        }
+
+        if ($host === 'documents.show' && $record instanceof Document) {
+            return [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'document',
                 'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
             ];
         }
@@ -140,6 +159,40 @@ class AssetSurfaceService implements ModuleSurfaceService
                     $record->asset,
                     $trailQuery,
                     AppointmentCatalog::assetLabel(),
+                ),
+                'variant' => 'summary',
+            ],
+        ];
+    }
+
+    private function resolveLinkedForDocument(array $hostPack): array
+    {
+        $record = $hostPack['record'] ?? null;
+        $recordType = $hostPack['recordType'] ?? null;
+        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+
+        if ($recordType !== 'document' || ! $record instanceof Document) {
+            return [
+                'data' => [
+                    'action' => [
+                        'supported' => false,
+                        'linked' => false,
+                        'can_view' => false,
+                        'show_url' => null,
+                        'label' => 'Activo',
+                        'linked_text' => '—',
+                    ],
+                    'variant' => 'summary',
+                ],
+            ];
+        }
+
+        return [
+            'data' => [
+                'action' => AssetLinkedAction::forAsset(
+                    $record->asset,
+                    $trailQuery,
+                    'Activo',
                 ),
                 'variant' => 'summary',
             ],

@@ -51,25 +51,27 @@
                             @can('update', $order)
                                 <div class="compact-actions">
                                     @if ($canEdit)
-                                        <a href="{{ route('orders.items.edit', ['order' => $order, 'item' => $item] + $trailQuery) }}"
-                                            class="btn btn-secondary btn-icon" title="Editar ítem" aria-label="Editar ítem">
+                                        <x-button-tool :href="route(
+                                            'orders.items.edit',
+                                            ['order' => $order, 'item' => $item] + $trailQuery,
+                                        )" title="Editar ítem" label="Editar ítem">
                                             <x-icons.pencil />
-                                        </a>
+                                        </x-button-tool>
                                     @endif
 
                                     @if ($canDelete)
-                                        <form method="POST"
-                                            action="{{ route('orders.items.destroy', ['order' => $order, 'item' => $item] + $trailQuery) }}"
-                                            class="inline-form" data-action="app-confirm-submit"
-                                            data-confirm-message="¿Deseas eliminar este ítem?">
-                                            @csrf
-                                            @method('DELETE')
+                                        <x-button-tool-submit :action="route(
+                                            'orders.items.destroy',
+                                            ['order' => $order, 'item' => $item] + $trailQuery,
+                                        )" method="DELETE" variant="danger"
+                                            title="Eliminar ítem" label="Eliminar ítem"
+                                            message="¿Deseas eliminar este ítem?">
+                                            <x-icons.trash />
+                                        </x-button-tool-submit>
+                                    @endif
 
-                                            <button type="submit" class="btn btn-danger btn-icon" title="Eliminar ítem"
-                                                aria-label="Eliminar ítem">
-                                                <x-icons.trash />
-                                            </button>
-                                        </form>
+                                    @if (!$canEdit && !$canDelete)
+                                        <span class="text-muted">—</span>
                                     @endif
 
                                     @if (!$canEdit && !$canDelete)

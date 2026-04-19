@@ -1,11 +1,13 @@
 <?php
 
-// FILE: app/Support/Attachments/AttachmentSurfaceService.php | V8
+// FILE: app/Support/Attachments/AttachmentSurfaceService.php | V11
 
 namespace App\Support\Attachments;
 
 use App\Models\Asset;
+use App\Models\Document;
 use App\Models\Order;
+use App\Models\Task;
 use App\Support\Modules\Contracts\ModuleSurfaceService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
@@ -35,12 +37,58 @@ class AttachmentSurfaceService implements ModuleSurfaceService
                 emptyTabsId: 'asset-attachments-tabs-empty',
                 priority: 90,
             ),
+            $this->embeddedOffer(
+                key: 'attachments.task.embedded',
+                target: 'tasks.show',
+                expectedRecordType: 'task',
+                expectedClass: Task::class,
+                attachableType: 'task',
+                tabsId: 'task-attachments-tabs',
+                emptyTabsId: 'task-attachments-tabs-empty',
+                priority: 90,
+            ),
+            $this->embeddedOffer(
+                key: 'attachments.document.embedded',
+                target: 'documents.show',
+                expectedRecordType: 'document',
+                expectedClass: Document::class,
+                attachableType: 'document',
+                tabsId: 'document-attachments-tabs',
+                emptyTabsId: 'document-attachments-tabs-empty',
+                priority: 90,
+            ),
         ];
     }
 
     public function hostPack(string $host, mixed $record = null, array $context = []): array
     {
-        return [];
+        return match (true) {
+            $host === 'orders.show' && $record instanceof Order => [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'order',
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ],
+            $host === 'assets.show' && $record instanceof Asset => [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'asset',
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ],
+            $host === 'tasks.show' && $record instanceof Task => [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'task',
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ],
+            $host === 'documents.show' && $record instanceof Document => [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'document',
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ],
+            default => [],
+        };
     }
 
     private function embeddedOffer(

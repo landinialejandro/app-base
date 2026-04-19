@@ -1005,6 +1005,17 @@ a:hover {
     min-height: 36px;
 }
 
+.btn-tool {
+    min-height: 1.75rem;
+    min-width: 1.75rem;
+    padding: 0.25rem;
+}
+
+.btn-tool svg {
+    width: 0.85rem;
+    height: 0.85rem;
+}
+
 /* =========================================================
    12. Tablas
    Base tabular reutilizable del sistema.

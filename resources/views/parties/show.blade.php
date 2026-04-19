@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/show.blade.php | V14 --}}
+{{-- FILE: resources/views/parties/show.blade.php | V15 --}}
 
 @extends('layouts.app')
 
@@ -10,12 +10,6 @@
         use App\Support\Modules\ModuleSurfaceRegistry;
         use App\Support\Navigation\NavigationTrail;
         use App\Support\Parties\PartySurfaceService;
-
-        $orders = $orders ?? collect();
-        $documents = $documents ?? collect();
-
-        $supportsOrdersModule = $supportsOrdersModule ?? false;
-        $supportsDocumentsModule = $supportsDocumentsModule ?? false;
 
         $pageTitle = 'Detalle del contacto';
         $detailsId = 'party-detail-panel';
@@ -36,58 +30,10 @@
         $summaryItems = $linked->where('slot', 'summary_items')->values();
         $detailItems = $embedded->where('slot', 'detail_items')->values();
 
-        $hostTabItems = collect();
-
-        if ($supportsOrdersModule) {
-            $hostTabItems->push([
-                'type' => 'embedded',
-                'slot' => 'tab_panels',
-                'key' => 'orders',
-                'label' => 'Órdenes',
-                'priority' => 80,
-                'count' => $orders->count(),
-                'view' => 'orders.partials.embedded-tabs',
-                'data' => [
-                    'orders' => $orders,
-                    'showParty' => false,
-                    'showAsset' => true,
-                    'emptyMessage' => 'Este contacto no tiene órdenes vinculadas.',
-                    'tabsId' => 'party-orders-tabs',
-                    'createBaseQuery' => [
-                        'party_id' => $party->id,
-                    ],
-                    'trailQuery' => $trailQuery,
-                ],
-            ]);
-        }
-
-        if ($supportsDocumentsModule) {
-            $hostTabItems->push([
-                'type' => 'embedded',
-                'slot' => 'tab_panels',
-                'key' => 'documents',
-                'label' => 'Documentos',
-                'priority' => 90,
-                'count' => $documents->count(),
-                'view' => 'documents.partials.embedded-tabs',
-                'data' => [
-                    'documents' => $documents,
-                    'showParty' => false,
-                    'showAsset' => true,
-                    'showOrder' => true,
-                    'emptyMessage' => 'Este contacto no tiene documentos vinculados.',
-                    'tabsId' => 'party-documents-tabs',
-                    'createBaseQuery' => [
-                        'party_id' => $party->id,
-                    ],
-                    'trailQuery' => $trailQuery,
-                ],
-            ]);
-        }
-
-        $surfaceTabItems = $embedded->where(fn($item) => ($item['slot'] ?? 'tab_panels') === 'tab_panels')->values();
-
-        $tabItems = $surfaceTabItems->concat($hostTabItems)->sortBy(fn($item) => $item['priority'] ?? 999)->values();
+        $tabItems = $embedded
+            ->where(fn($item) => ($item['slot'] ?? null) === 'tab_panels')
+            ->sortBy(fn(array $item) => $item['priority'] ?? 999)
+            ->values();
     @endphp
 
     <x-page>
@@ -180,7 +126,7 @@
         </x-show-summary>
 
         @if ($tabItems->isNotEmpty())
-            <div class="tabs" data-tabs>
+            <div class="tabs" data-tabs">
                 <x-tab-toolbar :label="$tabsLabel">
                     <x-slot:tabs>
                         <x-horizontal-scroll :label="$tabsLabel">

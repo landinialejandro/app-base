@@ -13,13 +13,9 @@
         ]" />
 
         <x-page-header title="Tenant">
-            <a href="{{ route('admin.tenants.modules.edit', $tenant) }}" class="btn btn-primary">
-                Configurar módulos
-            </a>
+            <x-button-edit :href="route('admin.tenants.modules.edit', $tenant)" label="Configurar módulos" />
 
-            <a href="{{ route('admin.metrics.tenants') }}" class="btn btn-secondary">
-                Volver
-            </a>
+            <x-button-back :href="route('admin.metrics.tenants')" />
         </x-page-header>
 
         @if (session('success'))

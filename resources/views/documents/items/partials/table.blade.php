@@ -35,23 +35,20 @@
                         <td class="compact-actions-cell">
                             @can('update', $document)
                                 <div class="compact-actions">
-                                    <a href="{{ route('documents.items.edit', ['document' => $document, 'item' => $item] + $trailQuery) }}"
-                                        class="btn btn-secondary btn-icon" title="Editar ítem" aria-label="Editar ítem">
+                                    <x-button-tool :href="route(
+                                        'documents.items.edit',
+                                        ['document' => $document, 'item' => $item] + $trailQuery,
+                                    )" title="Editar ítem" label="Editar ítem">
                                         <x-icons.pencil />
-                                    </a>
+                                    </x-button-tool>
 
-                                    <form method="POST"
-                                        action="{{ route('documents.items.destroy', ['document' => $document, 'item' => $item] + $trailQuery) }}"
-                                        class="inline-form" data-action="app-confirm-submit"
-                                        data-confirm-message="¿Deseas eliminar este ítem?">
-                                        @csrf
-                                        @method('DELETE')
-
-                                        <button type="submit" class="btn btn-danger btn-icon" title="Eliminar ítem"
-                                            aria-label="Eliminar ítem">
-                                            <x-icons.trash />
-                                        </button>
-                                    </form>
+                                    <x-button-tool-submit :action="route(
+                                        'documents.items.destroy',
+                                        ['document' => $document, 'item' => $item] + $trailQuery,
+                                    )" method="DELETE" variant="danger"
+                                        title="Eliminar ítem" label="Eliminar ítem" message="¿Deseas eliminar este ítem?">
+                                        <x-icons.trash />
+                                    </x-button-tool-submit>
                                 </div>
                             @else
                                 —

@@ -1,13 +1,15 @@
 <?php
 
-// FILE: app/Support/Orders/OrderSurfaceService.php | V9
+// FILE: app/Support/Orders/OrderSurfaceService.php | V11
 
 namespace App\Support\Orders;
 
 use App\Models\Appointment;
 use App\Models\Asset;
+use App\Models\Document;
 use App\Models\Order;
 use App\Models\Party;
+use App\Models\Task;
 use App\Support\Auth\Security;
 use App\Support\Catalogs\AppointmentCatalog;
 use App\Support\Catalogs\OrderCatalog;
@@ -30,6 +32,39 @@ class OrderSurfaceService implements ModuleSurfaceService
                 'view' => 'orders.components.linked-order-action',
                 'needs' => ['record', 'recordType', 'trailQuery'],
                 'resolver' => $this->resolveLinkedForAppointment(...),
+            ],
+            [
+                'type' => 'linked',
+                'key' => 'order.task.header',
+                'label' => 'Orden',
+                'targets' => ['tasks.show'],
+                'slot' => 'header_actions',
+                'priority' => 35,
+                'view' => 'orders.components.linked-order-action',
+                'needs' => ['record', 'recordType', 'trailQuery'],
+                'resolver' => $this->resolveLinkedForTaskHeader(...),
+            ],
+            [
+                'type' => 'linked',
+                'key' => 'order.task.linked',
+                'label' => 'Orden asociada',
+                'targets' => ['tasks.show'],
+                'slot' => 'detail_items',
+                'priority' => 25,
+                'view' => 'orders.components.linked-order-action',
+                'needs' => ['record', 'recordType', 'trailQuery'],
+                'resolver' => $this->resolveLinkedForTaskDetail(...),
+            ],
+            [
+                'type' => 'linked',
+                'key' => 'order.document.linked',
+                'label' => 'Orden asociada',
+                'targets' => ['documents.show'],
+                'slot' => 'detail_items',
+                'priority' => 25,
+                'view' => 'orders.components.linked-order-action',
+                'needs' => ['record', 'recordType', 'trailQuery'],
+                'resolver' => $this->resolveLinkedForDocument(...),
             ],
             $this->embeddedOffer(
                 key: 'orders.asset.embedded',
@@ -76,6 +111,24 @@ class OrderSurfaceService implements ModuleSurfaceService
             return [
                 'host' => $host,
                 'recordType' => 'asset',
+                'record' => $record,
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ];
+        }
+
+        if ($host === 'tasks.show' && $record instanceof Task) {
+            return [
+                'host' => $host,
+                'recordType' => 'task',
+                'record' => $record,
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ];
+        }
+
+        if ($host === 'documents.show' && $record instanceof Document) {
+            return [
+                'host' => $host,
+                'recordType' => 'document',
                 'record' => $record,
                 'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
             ];
@@ -141,6 +194,131 @@ class OrderSurfaceService implements ModuleSurfaceService
         return [
             'data' => [
                 'action' => OrderLinkedAction::forAppointment($record, $trailQuery, true),
+                'variant' => 'summary',
+            ],
+        ];
+    }
+
+    private function resolveLinkedForTaskHeader(array $hostPack): array
+    {
+        $record = $hostPack['record'] ?? null;
+        $recordType = $hostPack['recordType'] ?? null;
+        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+
+        if ($recordType !== 'task' || ! $record instanceof Task) {
+            return [
+                'data' => [
+                    'action' => [
+                        'supported' => false,
+                        'linked' => false,
+                        'can_view' => false,
+                        'can_create' => false,
+                        'show_url' => null,
+                        'create_url' => null,
+                        'label' => 'Orden',
+                        'contact_label' => 'Contacto',
+                        'has_required_party' => false,
+                        'linked_text' => null,
+                    ],
+                    'variant' => 'button',
+                ],
+            ];
+        }
+
+        return [
+            'data' => [
+                'action' => OrderLinkedAction::forTask(
+                    $record,
+                    $trailQuery,
+                    (bool) (auth()->user() && auth()->user()->can('update', $record)),
+                ),
+                'variant' => 'button',
+            ],
+        ];
+    }
+
+    private function resolveLinkedForTaskDetail(array $hostPack): array
+    {
+        $record = $hostPack['record'] ?? null;
+        $recordType = $hostPack['recordType'] ?? null;
+        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+
+        if ($recordType !== 'task' || ! $record instanceof Task) {
+            return [
+                'data' => [
+                    'action' => [
+                        'supported' => false,
+                        'linked' => false,
+                        'can_view' => false,
+                        'can_create' => false,
+                        'show_url' => null,
+                        'create_url' => null,
+                        'label' => 'Orden asociada',
+                        'contact_label' => 'Contacto',
+                        'has_required_party' => false,
+                        'linked_text' => null,
+                    ],
+                    'variant' => 'summary',
+                ],
+            ];
+        }
+
+        return [
+            'data' => [
+                'action' => OrderLinkedAction::forTask(
+                    $record,
+                    $trailQuery,
+                    (bool) (auth()->user() && auth()->user()->can('update', $record)),
+                ),
+                'variant' => 'summary',
+            ],
+        ];
+    }
+
+    private function resolveLinkedForDocument(array $hostPack): array
+    {
+        $record = $hostPack['record'] ?? null;
+        $recordType = $hostPack['recordType'] ?? null;
+        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+
+        if ($recordType !== 'document' || ! $record instanceof Document) {
+            return [
+                'data' => [
+                    'action' => [
+                        'supported' => false,
+                        'linked' => false,
+                        'can_view' => false,
+                        'can_create' => false,
+                        'show_url' => null,
+                        'create_url' => null,
+                        'label' => 'Orden asociada',
+                        'contact_label' => 'Contacto',
+                        'has_required_party' => false,
+                        'linked_text' => null,
+                    ],
+                    'variant' => 'summary',
+                ],
+            ];
+        }
+
+        $order = $record->order;
+
+        return [
+            'data' => [
+                'action' => [
+                    'supported' => true,
+                    'linked' => (bool) $order,
+                    'can_view' => (bool) ($order && auth()->user()?->can('view', $order)),
+                    'can_create' => false,
+                    'show_url' => $order ? route('orders.show', ['order' => $order] + $trailQuery) : null,
+                    'create_url' => null,
+                    'label' => 'Orden asociada',
+                    'contact_label' => 'Contacto',
+                    'has_required_party' => false,
+                    'linked_text' => $order
+                        ? ($order->number ?: 'Orden #'.$order->id)
+                        : null,
+                ],
                 'variant' => 'summary',
             ],
         ];

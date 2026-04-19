@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Tasks/TaskSurfaceService.php | V5
+// FILE: app/Support/Tasks/TaskSurfaceService.php | V6
 
 namespace App\Support\Tasks;
 
@@ -29,20 +29,21 @@ class TaskSurfaceService implements ModuleSurfaceService
 
     public function hostPack(string $host, mixed $record = null, array $context = []): array
     {
-        if (! is_object($record)) {
-            return [];
-        }
-
-        return [
-            'host' => $host,
-            'record' => $record,
-            'recordType' => match (true) {
-                $record instanceof Task => 'task',
-                $record instanceof Order => 'order',
-                default => null,
-            },
-            'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
-        ];
+        return match (true) {
+            $host === 'tasks.show' && $record instanceof Task => [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'task',
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ],
+            $host === 'orders.show' && $record instanceof Order => [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'order',
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ],
+            default => [],
+        };
     }
 
     private function resolveLinkedForOrder(array $hostPack): array

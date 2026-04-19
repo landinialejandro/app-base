@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Documents/DocumentSurfaceService.php | V6
+// FILE: app/Support/Documents/DocumentSurfaceService.php | V7
 
 namespace App\Support\Documents;
 
@@ -69,6 +69,12 @@ class DocumentSurfaceService implements ModuleSurfaceService
                 'recordType' => 'party',
                 'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
             ],
+            $host === 'documents.show' && $record instanceof Document => [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'document',
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ],
             default => [],
         };
     }
@@ -122,7 +128,7 @@ class DocumentSurfaceService implements ModuleSurfaceService
 
         return $this->buildEmbeddedPayload(
             record: $record,
-            recordType: $expectedRecordType,
+            recordType: $recordType,
             tabsId: $tabsId,
             trailQuery: $trailQuery,
         );

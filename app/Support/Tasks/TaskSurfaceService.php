@@ -1,29 +1,30 @@
 <?php
 
-// FILE: app/Support/Tasks/TaskSurfaceService.php | V6
+// FILE: app/Support/Tasks/TaskSurfaceService.php | V8
 
 namespace App\Support\Tasks;
 
 use App\Models\Order;
 use App\Models\Task;
+use App\Support\Modules\Concerns\BuildsSurfaceOffers;
 use App\Support\Modules\Contracts\ModuleSurfaceService;
 
 class TaskSurfaceService implements ModuleSurfaceService
 {
+    use BuildsSurfaceOffers;
+
     public function offers(): array
     {
         return [
-            [
-                'type' => 'embedded',
-                'key' => 'task.order.linked',
-                'label' => 'Tarea',
-                'targets' => ['orders.show'],
-                'slot' => 'detail_items',
-                'priority' => 20,
-                'view' => 'tasks.components.linked-task-action',
-                'needs' => ['record', 'recordType', 'trailQuery'],
-                'resolver' => $this->resolveLinkedForOrder(...),
-            ],
+            $this->linkedOffer(
+                key: 'task.order.linked',
+                label: 'Tarea',
+                targets: ['orders.show'],
+                slot: 'detail_items',
+                priority: 20,
+                view: 'tasks.components.linked-task-action',
+                resolver: $this->resolveLinkedForOrder(...),
+            ),
         ];
     }
 
@@ -48,9 +49,7 @@ class TaskSurfaceService implements ModuleSurfaceService
 
     private function resolveLinkedForOrder(array $hostPack): array
     {
-        $record = $hostPack['record'] ?? null;
-        $recordType = $hostPack['recordType'] ?? null;
-        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
 
         if ($recordType !== 'order' || ! $record instanceof Order) {
             return [

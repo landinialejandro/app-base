@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Documents/DocumentSurfaceService.php | V7
+// FILE: app/Support/Documents/DocumentSurfaceService.php | V8
 
 namespace App\Support\Documents;
 
@@ -9,41 +9,62 @@ use App\Models\Document;
 use App\Models\Order;
 use App\Models\Party;
 use App\Support\Auth\Security;
+use App\Support\Modules\Concerns\BuildsSurfaceOffers;
 use App\Support\Modules\Contracts\ModuleSurfaceService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
 class DocumentSurfaceService implements ModuleSurfaceService
 {
+    use BuildsSurfaceOffers;
+
     public function offers(): array
     {
         return [
             $this->embeddedOffer(
                 key: 'documents.order.embedded',
-                target: 'orders.show',
-                expectedRecordType: 'order',
-                expectedClass: Order::class,
-                tabsId: 'order-documents-tabs',
-                emptyTabsId: 'order-documents-tabs-empty',
+                label: 'Documentos',
+                targets: ['orders.show'],
+                slot: 'tab_panels',
                 priority: 80,
+                view: 'documents.partials.embedded-tabs',
+                resolver: fn (array $hostPack) => $this->resolveEmbedded(
+                    $hostPack,
+                    expectedRecordType: 'order',
+                    expectedClass: Order::class,
+                    tabsId: 'order-documents-tabs',
+                    emptyTabsId: 'order-documents-tabs-empty',
+                ),
             ),
             $this->embeddedOffer(
                 key: 'documents.asset.embedded',
-                target: 'assets.show',
-                expectedRecordType: 'asset',
-                expectedClass: Asset::class,
-                tabsId: 'asset-documents-tabs',
-                emptyTabsId: 'asset-documents-tabs-empty',
+                label: 'Documentos',
+                targets: ['assets.show'],
+                slot: 'tab_panels',
                 priority: 80,
+                view: 'documents.partials.embedded-tabs',
+                resolver: fn (array $hostPack) => $this->resolveEmbedded(
+                    $hostPack,
+                    expectedRecordType: 'asset',
+                    expectedClass: Asset::class,
+                    tabsId: 'asset-documents-tabs',
+                    emptyTabsId: 'asset-documents-tabs-empty',
+                ),
             ),
             $this->embeddedOffer(
                 key: 'documents.party.embedded',
-                target: 'parties.show',
-                expectedRecordType: 'party',
-                expectedClass: Party::class,
-                tabsId: 'party-documents-tabs',
-                emptyTabsId: 'party-documents-tabs-empty',
+                label: 'Documentos',
+                targets: ['parties.show'],
+                slot: 'tab_panels',
                 priority: 90,
+                view: 'documents.partials.embedded-tabs',
+                resolver: fn (array $hostPack) => $this->resolveEmbedded(
+                    $hostPack,
+                    expectedRecordType: 'party',
+                    expectedClass: Party::class,
+                    tabsId: 'party-documents-tabs',
+                    emptyTabsId: 'party-documents-tabs-empty',
+                ),
             ),
         ];
     }
@@ -79,34 +100,6 @@ class DocumentSurfaceService implements ModuleSurfaceService
         };
     }
 
-    private function embeddedOffer(
-        string $key,
-        string $target,
-        string $expectedRecordType,
-        string $expectedClass,
-        string $tabsId,
-        string $emptyTabsId,
-        int $priority,
-    ): array {
-        return [
-            'type' => 'embedded',
-            'key' => $key,
-            'label' => 'Documentos',
-            'targets' => [$target],
-            'slot' => 'tab_panels',
-            'priority' => $priority,
-            'view' => 'documents.partials.embedded-tabs',
-            'needs' => ['record', 'recordType', 'trailQuery'],
-            'resolver' => fn (array $hostPack) => $this->resolveEmbedded(
-                $hostPack,
-                expectedRecordType: $expectedRecordType,
-                expectedClass: $expectedClass,
-                tabsId: $tabsId,
-                emptyTabsId: $emptyTabsId,
-            ),
-        ];
-    }
-
     private function resolveEmbedded(
         array $hostPack,
         string $expectedRecordType,
@@ -114,9 +107,7 @@ class DocumentSurfaceService implements ModuleSurfaceService
         string $tabsId,
         string $emptyTabsId,
     ): array {
-        $record = $hostPack['record'] ?? null;
-        $recordType = $hostPack['recordType'] ?? null;
-        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
 
         if ($recordType !== $expectedRecordType || ! $record instanceof $expectedClass) {
             return $this->emptyEmbeddedPayload(

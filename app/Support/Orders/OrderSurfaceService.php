@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Orders/OrderSurfaceService.php | V11
+// FILE: app/Support/Orders/OrderSurfaceService.php | V12
 
 namespace App\Support\Orders;
 
@@ -13,76 +13,83 @@ use App\Models\Task;
 use App\Support\Auth\Security;
 use App\Support\Catalogs\AppointmentCatalog;
 use App\Support\Catalogs\OrderCatalog;
+use App\Support\Modules\Concerns\BuildsSurfaceOffers;
 use App\Support\Modules\Contracts\ModuleSurfaceService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
 class OrderSurfaceService implements ModuleSurfaceService
 {
+    use BuildsSurfaceOffers;
+
     public function offers(): array
     {
         return [
-            [
-                'type' => 'linked',
-                'key' => 'order.linked',
-                'label' => AppointmentCatalog::orderLabel(),
-                'targets' => ['appointments.show'],
-                'slot' => 'summary_items',
-                'priority' => 40,
-                'view' => 'orders.components.linked-order-action',
-                'needs' => ['record', 'recordType', 'trailQuery'],
-                'resolver' => $this->resolveLinkedForAppointment(...),
-            ],
-            [
-                'type' => 'linked',
-                'key' => 'order.task.header',
-                'label' => 'Orden',
-                'targets' => ['tasks.show'],
-                'slot' => 'header_actions',
-                'priority' => 35,
-                'view' => 'orders.components.linked-order-action',
-                'needs' => ['record', 'recordType', 'trailQuery'],
-                'resolver' => $this->resolveLinkedForTaskHeader(...),
-            ],
-            [
-                'type' => 'linked',
-                'key' => 'order.task.linked',
-                'label' => 'Orden asociada',
-                'targets' => ['tasks.show'],
-                'slot' => 'detail_items',
-                'priority' => 25,
-                'view' => 'orders.components.linked-order-action',
-                'needs' => ['record', 'recordType', 'trailQuery'],
-                'resolver' => $this->resolveLinkedForTaskDetail(...),
-            ],
-            [
-                'type' => 'linked',
-                'key' => 'order.document.linked',
-                'label' => 'Orden asociada',
-                'targets' => ['documents.show'],
-                'slot' => 'detail_items',
-                'priority' => 25,
-                'view' => 'orders.components.linked-order-action',
-                'needs' => ['record', 'recordType', 'trailQuery'],
-                'resolver' => $this->resolveLinkedForDocument(...),
-            ],
+            $this->linkedOffer(
+                key: 'order.linked',
+                label: AppointmentCatalog::orderLabel(),
+                targets: ['appointments.show'],
+                slot: 'summary_items',
+                priority: 40,
+                view: 'orders.components.linked-order-action',
+                resolver: $this->resolveLinkedForAppointment(...),
+            ),
+            $this->linkedOffer(
+                key: 'order.task.header',
+                label: 'Orden',
+                targets: ['tasks.show'],
+                slot: 'header_actions',
+                priority: 35,
+                view: 'orders.components.linked-order-action',
+                resolver: $this->resolveLinkedForTaskHeader(...),
+            ),
+            $this->linkedOffer(
+                key: 'order.task.linked',
+                label: 'Orden asociada',
+                targets: ['tasks.show'],
+                slot: 'detail_items',
+                priority: 25,
+                view: 'orders.components.linked-order-action',
+                resolver: $this->resolveLinkedForTaskDetail(...),
+            ),
+            $this->linkedOffer(
+                key: 'order.document.linked',
+                label: 'Orden asociada',
+                targets: ['documents.show'],
+                slot: 'detail_items',
+                priority: 25,
+                view: 'orders.components.linked-order-action',
+                resolver: $this->resolveLinkedForDocument(...),
+            ),
             $this->embeddedOffer(
                 key: 'orders.asset.embedded',
-                target: 'assets.show',
-                expectedRecordType: 'asset',
-                expectedClass: Asset::class,
-                tabsId: 'asset-orders-tabs',
-                emptyTabsId: 'asset-orders-tabs-empty',
+                label: 'Órdenes',
+                targets: ['assets.show'],
+                slot: 'tab_panels',
                 priority: 70,
+                view: 'orders.partials.embedded-tabs',
+                resolver: fn (array $hostPack) => $this->resolveEmbedded(
+                    $hostPack,
+                    expectedRecordType: 'asset',
+                    expectedClass: Asset::class,
+                    tabsId: 'asset-orders-tabs',
+                    emptyTabsId: 'asset-orders-tabs-empty',
+                ),
             ),
             $this->embeddedOffer(
                 key: 'orders.party.embedded',
-                target: 'parties.show',
-                expectedRecordType: 'party',
-                expectedClass: Party::class,
-                tabsId: 'party-orders-tabs',
-                emptyTabsId: 'party-orders-tabs-empty',
+                label: 'Órdenes',
+                targets: ['parties.show'],
+                slot: 'tab_panels',
                 priority: 80,
+                view: 'orders.partials.embedded-tabs',
+                resolver: fn (array $hostPack) => $this->resolveEmbedded(
+                    $hostPack,
+                    expectedRecordType: 'party',
+                    expectedClass: Party::class,
+                    tabsId: 'party-orders-tabs',
+                    emptyTabsId: 'party-orders-tabs-empty',
+                ),
             ),
         ];
     }
@@ -137,39 +144,9 @@ class OrderSurfaceService implements ModuleSurfaceService
         return [];
     }
 
-    private function embeddedOffer(
-        string $key,
-        string $target,
-        string $expectedRecordType,
-        string $expectedClass,
-        string $tabsId,
-        string $emptyTabsId,
-        int $priority,
-    ): array {
-        return [
-            'type' => 'embedded',
-            'key' => $key,
-            'label' => 'Órdenes',
-            'targets' => [$target],
-            'slot' => 'tab_panels',
-            'priority' => $priority,
-            'view' => 'orders.partials.embedded-tabs',
-            'needs' => ['record', 'recordType', 'trailQuery'],
-            'resolver' => fn (array $hostPack) => $this->resolveEmbedded(
-                $hostPack,
-                expectedRecordType: $expectedRecordType,
-                expectedClass: $expectedClass,
-                tabsId: $tabsId,
-                emptyTabsId: $emptyTabsId,
-            ),
-        ];
-    }
-
     private function resolveLinkedForAppointment(array $hostPack): array
     {
-        $record = $hostPack['record'] ?? null;
-        $recordType = $hostPack['recordType'] ?? null;
-        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
 
         if ($recordType !== 'appointment' || ! $record instanceof Appointment) {
             return [
@@ -201,9 +178,7 @@ class OrderSurfaceService implements ModuleSurfaceService
 
     private function resolveLinkedForTaskHeader(array $hostPack): array
     {
-        $record = $hostPack['record'] ?? null;
-        $recordType = $hostPack['recordType'] ?? null;
-        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
 
         if ($recordType !== 'task' || ! $record instanceof Task) {
             return [
@@ -239,9 +214,7 @@ class OrderSurfaceService implements ModuleSurfaceService
 
     private function resolveLinkedForTaskDetail(array $hostPack): array
     {
-        $record = $hostPack['record'] ?? null;
-        $recordType = $hostPack['recordType'] ?? null;
-        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
 
         if ($recordType !== 'task' || ! $record instanceof Task) {
             return [
@@ -277,9 +250,7 @@ class OrderSurfaceService implements ModuleSurfaceService
 
     private function resolveLinkedForDocument(array $hostPack): array
     {
-        $record = $hostPack['record'] ?? null;
-        $recordType = $hostPack['recordType'] ?? null;
-        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
 
         if ($recordType !== 'document' || ! $record instanceof Document) {
             return [
@@ -331,9 +302,7 @@ class OrderSurfaceService implements ModuleSurfaceService
         string $tabsId,
         string $emptyTabsId,
     ): array {
-        $record = $hostPack['record'] ?? null;
-        $recordType = $hostPack['recordType'] ?? null;
-        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
 
         if ($recordType !== $expectedRecordType || ! $record instanceof $expectedClass) {
             return $this->emptyEmbeddedPayload(

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Assets/AssetSurfaceService.php | V8
+// FILE: app/Support/Assets/AssetSurfaceService.php | V9
 
 namespace App\Support\Assets;
 
@@ -10,12 +10,15 @@ use App\Models\Document;
 use App\Models\Party;
 use App\Support\Auth\Security;
 use App\Support\Catalogs\AppointmentCatalog;
+use App\Support\Modules\Concerns\BuildsSurfaceOffers;
 use App\Support\Modules\Contracts\ModuleSurfaceService;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
 class AssetSurfaceService implements ModuleSurfaceService
 {
+    use BuildsSurfaceOffers;
+
     public function offers(): array
     {
         return [
@@ -39,12 +42,18 @@ class AssetSurfaceService implements ModuleSurfaceService
             ),
             $this->embeddedOffer(
                 key: 'assets.party.embedded',
-                target: 'parties.show',
-                expectedRecordType: 'party',
-                expectedClass: Party::class,
-                tabsId: 'party-assets-tabs',
-                emptyTabsId: 'party-assets-tabs-empty',
+                label: 'Activos',
+                targets: ['parties.show'],
+                slot: 'tab_panels',
                 priority: 70,
+                view: 'assets.partials.embedded-tabs',
+                resolver: fn (array $hostPack) => $this->resolveEmbedded(
+                    $hostPack,
+                    expectedRecordType: 'party',
+                    expectedClass: Party::class,
+                    tabsId: 'party-assets-tabs',
+                    emptyTabsId: 'party-assets-tabs-empty',
+                ),
             ),
         ];
     }
@@ -81,61 +90,9 @@ class AssetSurfaceService implements ModuleSurfaceService
         return [];
     }
 
-    private function linkedOffer(
-        string $key,
-        string $label,
-        array $targets,
-        string $slot,
-        int $priority,
-        string $view,
-        callable $resolver,
-    ): array {
-        return [
-            'type' => 'linked',
-            'key' => $key,
-            'label' => $label,
-            'targets' => $targets,
-            'slot' => $slot,
-            'priority' => $priority,
-            'view' => $view,
-            'needs' => ['record', 'recordType', 'trailQuery'],
-            'resolver' => $resolver,
-        ];
-    }
-
-    private function embeddedOffer(
-        string $key,
-        string $target,
-        string $expectedRecordType,
-        string $expectedClass,
-        string $tabsId,
-        string $emptyTabsId,
-        int $priority,
-    ): array {
-        return [
-            'type' => 'embedded',
-            'key' => $key,
-            'label' => 'Activos',
-            'targets' => [$target],
-            'slot' => 'tab_panels',
-            'priority' => $priority,
-            'view' => 'assets.partials.embedded-tabs',
-            'needs' => ['record', 'recordType', 'trailQuery'],
-            'resolver' => fn (array $hostPack) => $this->resolveEmbedded(
-                $hostPack,
-                expectedRecordType: $expectedRecordType,
-                expectedClass: $expectedClass,
-                tabsId: $tabsId,
-                emptyTabsId: $emptyTabsId,
-            ),
-        ];
-    }
-
     private function resolveLinkedForAppointment(array $hostPack): array
     {
-        $record = $hostPack['record'] ?? null;
-        $recordType = $hostPack['recordType'] ?? null;
-        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
 
         if ($recordType !== 'appointment' || ! $record instanceof Appointment) {
             return [
@@ -167,9 +124,7 @@ class AssetSurfaceService implements ModuleSurfaceService
 
     private function resolveLinkedForDocument(array $hostPack): array
     {
-        $record = $hostPack['record'] ?? null;
-        $recordType = $hostPack['recordType'] ?? null;
-        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
 
         if ($recordType !== 'document' || ! $record instanceof Document) {
             return [
@@ -206,9 +161,7 @@ class AssetSurfaceService implements ModuleSurfaceService
         string $tabsId,
         string $emptyTabsId,
     ): array {
-        $record = $hostPack['record'] ?? null;
-        $recordType = $hostPack['recordType'] ?? null;
-        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
 
         if ($recordType !== $expectedRecordType || ! $record instanceof $expectedClass) {
             return $this->emptyEmbeddedPayload(

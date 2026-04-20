@@ -1,29 +1,30 @@
 <?php
 
-// FILE: app/Support/Projects/ProjectSurfaceService.php | V5
+// FILE: app/Support/Projects/ProjectSurfaceService.php | V6
 
 namespace App\Support\Projects;
 
 use App\Models\Project;
 use App\Models\Task;
+use App\Support\Modules\Concerns\BuildsSurfaceOffers;
 use App\Support\Modules\Contracts\ModuleSurfaceService;
 
 class ProjectSurfaceService implements ModuleSurfaceService
 {
+    use BuildsSurfaceOffers;
+
     public function offers(): array
     {
         return [
-            [
-                'type' => 'linked',
-                'key' => 'project.task.linked',
-                'label' => 'Proyecto',
-                'targets' => ['tasks.show'],
-                'slot' => 'summary_items',
-                'priority' => 15,
-                'view' => 'projects.components.linked-project-action',
-                'needs' => ['record', 'recordType', 'trailQuery'],
-                'resolver' => $this->resolveLinkedForTask(...),
-            ],
+            $this->linkedOffer(
+                key: 'project.task.linked',
+                label: 'Proyecto',
+                targets: ['tasks.show'],
+                slot: 'summary_items',
+                priority: 15,
+                view: 'projects.components.linked-project-action',
+                resolver: $this->resolveLinkedForTask(...),
+            ),
         ];
     }
 
@@ -43,9 +44,7 @@ class ProjectSurfaceService implements ModuleSurfaceService
 
     private function resolveLinkedForTask(array $hostPack): array
     {
-        $record = $hostPack['record'] ?? null;
-        $recordType = $hostPack['recordType'] ?? null;
-        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
 
         if ($recordType !== 'task' || ! $record instanceof Task) {
             return [

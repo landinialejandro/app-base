@@ -1,34 +1,42 @@
 <?php
 
-// FILE: app/Support/Appointments/AppointmentSurfaceService.php | V8
+// FILE: app/Support/Appointments/AppointmentSurfaceService.php | V7
 
 namespace App\Support\Appointments;
 
 use App\Models\Appointment;
+use App\Models\Asset;
 use App\Models\Order;
+use App\Models\Party;
 use App\Support\Auth\Security;
 use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\ModuleCatalog;
+use App\Support\Modules\Concerns\BuildsSurfaceOffers;
 use App\Support\Modules\Contracts\ModuleSurfaceService;
-use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
 class AppointmentSurfaceService implements ModuleSurfaceService
 {
+    use BuildsSurfaceOffers;
+
     public function offers(): array
     {
         return [
-            $this->embeddedRelatedOffer(
+            $this->embeddedOffer(
                 key: 'appointments.related',
+                label: 'Turnos',
                 targets: ['assets.show', 'parties.show'],
+                slot: 'tab_panels',
                 priority: 40,
+                view: 'appointments.partials.embedded-tabs',
+                resolver: $this->resolveRelated(...),
             ),
             $this->linkedOffer(
                 key: 'appointment.linked',
                 label: 'Turno',
                 targets: ['orders.show'],
                 slot: 'detail_items',
-                priority: 40,
+                priority: 20,
                 view: 'appointments.components.linked-appointment-action',
                 resolver: $this->resolveLinkedForOrder(...),
             ),
@@ -37,98 +45,78 @@ class AppointmentSurfaceService implements ModuleSurfaceService
 
     public function hostPack(string $host, mixed $record = null, array $context = []): array
     {
-        return match ($host) {
-            'appointments.show' => [
+        if ($host === 'appointments.show' && $record instanceof Appointment) {
+            return [
                 'host' => $host,
                 'record' => $record,
                 'recordType' => 'appointment',
                 'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
-            ],
-            default => [],
-        };
+            ];
+        }
+
+        if ($host === 'assets.show' && $record instanceof Asset) {
+            return [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'asset',
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ];
+        }
+
+        if ($host === 'parties.show' && $record instanceof Party) {
+            return [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'party',
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ];
+        }
+
+        if ($host === 'orders.show' && $record instanceof Order) {
+            return [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'order',
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ];
+        }
+
+        return [];
     }
 
-    private function embeddedRelatedOffer(
-        string $key,
-        array $targets,
-        int $priority,
-    ): array {
-        return [
-            'type' => 'embedded',
-            'key' => $key,
-            'label' => 'Turnos',
-            'targets' => $targets,
-            'slot' => 'tab_panels',
-            'priority' => $priority,
-            'view' => 'appointments.partials.embedded-tabs',
-            'needs' => ['record', 'recordType', 'trailQuery'],
-            'resolver' => $this->resolveRelated(...),
-        ];
-    }
-
-    private function linkedOffer(
-        string $key,
-        string $label,
-        array $targets,
-        string $slot,
-        int $priority,
-        string $view,
-        callable $resolver,
-    ): array {
-        return [
-            'type' => 'linked',
-            'key' => $key,
-            'label' => $label,
-            'targets' => $targets,
-            'slot' => $slot,
-            'priority' => $priority,
-            'view' => $view,
-            'needs' => ['record', 'recordType', 'trailQuery'],
-            'resolver' => $resolver,
-        ];
-    }
-
-    /**
-     * @param  array<string, mixed>  $hostPack
-     * @return array<string, mixed>
-     */
-    protected function resolveRelated(array $hostPack): array
+    private function resolveRelated(array $hostPack): array
     {
-        $record = $hostPack['record'] ?? null;
-        $recordType = $hostPack['recordType'] ?? null;
-        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
 
-        if (! $record instanceof Model || ! is_string($recordType)) {
+        if (! in_array($recordType, ['asset', 'party'], true)) {
             return $this->emptyRelatedPayload($trailQuery);
         }
 
-        $appointments = $this->relatedAppointmentsFor($record, $recordType);
-        $createBaseQuery = $this->createBaseQueryFor($record, $recordType);
+        $appointments = match ($recordType) {
+            'asset' => $record instanceof Asset
+                ? $this->appointmentsForAsset($record)
+                : collect(),
+            'party' => $record instanceof Party
+                ? $this->appointmentsForParty($record)
+                : collect(),
+            default => collect(),
+        };
 
         return [
             'count' => $appointments->count(),
             'data' => [
                 'appointments' => $appointments,
-                'supportsPartiesModule' => app(TenantModuleAccess::class)->isEnabled(ModuleCatalog::PARTIES),
-                'supportsAssetsModule' => app(TenantModuleAccess::class)->isEnabled(ModuleCatalog::ASSETS),
-                'supportsOrdersModule' => app(TenantModuleAccess::class)->isEnabled(ModuleCatalog::ORDERS),
-                'emptyMessage' => 'No hay turnos relacionados.',
-                'tabsId' => 'appointments-related-'.$recordType.'-'.$record->getKey(),
-                'createBaseQuery' => $createBaseQuery,
+                'recordType' => $recordType,
+                'tabsId' => $recordType.'-appointments-tabs',
                 'trailQuery' => $trailQuery,
+                'createBaseQuery' => $this->createBaseQuery($record, $recordType),
             ],
         ];
     }
 
-    /**
-     * @param  array<string, mixed>  $hostPack
-     * @return array<string, mixed>
-     */
-    protected function resolveLinkedForOrder(array $hostPack): array
+    private function resolveLinkedForOrder(array $hostPack): array
     {
-        $record = $hostPack['record'] ?? null;
-        $recordType = $hostPack['recordType'] ?? null;
-        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
 
         if ($recordType !== 'order' || ! $record instanceof Order) {
             return [
@@ -147,54 +135,62 @@ class AppointmentSurfaceService implements ModuleSurfaceService
         ];
     }
 
-    /**
-     * @return Collection<int, Appointment>
-     */
-    private function relatedAppointmentsFor(Model $record, string $recordType): Collection
-    {
-        return app(Security::class)
-            ->scope(auth()->user(), 'appointments.viewAny', Appointment::query())
-            ->when($recordType === 'asset', fn ($query) => $query->where('asset_id', $record->getKey()))
-            ->when($recordType === 'party', fn ($query) => $query->where('party_id', $record->getKey()))
-            ->orderByDesc('scheduled_date')
-            ->orderByDesc('starts_at')
-            ->get();
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
-    private function createBaseQueryFor(Model $record, string $recordType): array
-    {
-        return match ($recordType) {
-            'asset' => array_filter([
-                'asset_id' => $record->getKey(),
-                'party_id' => $record->party_id ?? null,
-            ], fn ($value) => $value !== null),
-            'party' => [
-                'party_id' => $record->getKey(),
-            ],
-            default => [],
-        };
-    }
-
-    /**
-     * @return array<string, mixed>
-     */
     private function emptyRelatedPayload(array $trailQuery): array
     {
         return [
             'count' => 0,
             'data' => [
                 'appointments' => collect(),
-                'supportsPartiesModule' => app(TenantModuleAccess::class)->isEnabled(ModuleCatalog::PARTIES),
-                'supportsAssetsModule' => app(TenantModuleAccess::class)->isEnabled(ModuleCatalog::ASSETS),
-                'supportsOrdersModule' => app(TenantModuleAccess::class)->isEnabled(ModuleCatalog::ORDERS),
-                'emptyMessage' => 'No hay turnos relacionados.',
-                'tabsId' => 'appointments-related-empty',
-                'createBaseQuery' => [],
+                'recordType' => null,
+                'tabsId' => 'appointments-tabs-empty',
                 'trailQuery' => $trailQuery,
+                'createBaseQuery' => [],
             ],
         ];
+    }
+
+    private function createBaseQuery(mixed $record, ?string $recordType): array
+    {
+        return match ($recordType) {
+            'asset' => $record instanceof Asset ? array_filter([
+                'asset_id' => $record->getKey(),
+                'party_id' => $record->party_id,
+            ], fn ($value) => $value !== null) : [],
+
+            'party' => $record instanceof Party ? [
+                'party_id' => $record->getKey(),
+            ] : [],
+
+            default => [],
+        };
+    }
+
+    private function appointmentsForAsset(Asset $asset): Collection
+    {
+        return app(Security::class)
+            ->scope(auth()->user(), 'appointments.viewAny', Appointment::query())
+            ->with(['party', 'asset'])
+            ->where('asset_id', $asset->getKey())
+            ->orderByDesc('scheduled_date')
+            ->orderByDesc('starts_at')
+            ->get();
+    }
+
+    private function appointmentsForParty(Party $party): Collection
+    {
+        return app(Security::class)
+            ->scope(auth()->user(), 'appointments.viewAny', Appointment::query())
+            ->with(['party', 'asset'])
+            ->where('party_id', $party->getKey())
+            ->orderByDesc('scheduled_date')
+            ->orderByDesc('starts_at')
+            ->get();
+    }
+
+    public static function canCreate(): bool
+    {
+        return app(TenantModuleAccess::class)->isEnabled(ModuleCatalog::APPOINTMENTS)
+            && auth()->check()
+            && auth()->user()->can('create', Appointment::class);
     }
 }

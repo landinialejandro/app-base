@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Parties/PartySurfaceService.php | V9
+// FILE: app/Support/Parties/PartySurfaceService.php | V10
 
 namespace App\Support\Parties;
 
@@ -11,10 +11,13 @@ use App\Models\Order;
 use App\Models\Party;
 use App\Models\Task;
 use App\Support\Catalogs\AppointmentCatalog;
+use App\Support\Modules\Concerns\BuildsSurfaceOffers;
 use App\Support\Modules\Contracts\ModuleSurfaceService;
 
 class PartySurfaceService implements ModuleSurfaceService
 {
+    use BuildsSurfaceOffers;
+
     public function offers(): array
     {
         return [
@@ -98,28 +101,6 @@ class PartySurfaceService implements ModuleSurfaceService
         return [];
     }
 
-    private function linkedOffer(
-        string $key,
-        string $label,
-        array $targets,
-        string $slot,
-        int $priority,
-        string $view,
-        callable $resolver,
-    ): array {
-        return [
-            'type' => 'linked',
-            'key' => $key,
-            'label' => $label,
-            'targets' => $targets,
-            'slot' => $slot,
-            'priority' => $priority,
-            'view' => $view,
-            'needs' => ['record', 'recordType', 'trailQuery'],
-            'resolver' => $resolver,
-        ];
-    }
-
     private function resolveLinkedForAppointment(array $hostPack): array
     {
         return $this->resolveLinked(
@@ -182,9 +163,7 @@ class PartySurfaceService implements ModuleSurfaceService
         string $label,
         callable $partyResolver,
     ): array {
-        $record = $hostPack['record'] ?? null;
-        $recordType = $hostPack['recordType'] ?? null;
-        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
 
         if ($recordType !== $expectedRecordType || ! $record instanceof $expectedClass) {
             return [

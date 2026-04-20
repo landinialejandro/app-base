@@ -462,7 +462,7 @@ El detalle de esas restricciones complementarias debe resolverse en REGLAS OPERA
 <<END SECTION>>
 
 <<SECTION: INTEGRACIONES REUSABLES Y AUTORIZACIÓN>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 INTEGRACIONES REUSABLES Y AUTORIZACIÓN
 
@@ -497,6 +497,16 @@ el host no adquiere por esa vía autorización sustitutiva ni puede reinterpreta
 si el host organiza montaje por type y slot, la ausencia o incoherencia contractual de esos datos puede volver invisible la integración aunque el target sea válido
 
 eso no modifica la doctrina de permisos, pero sí la forma correcta y segura de publicar una capacidad consumible
+
+La reutilización de infraestructura técnica común entre módulos no altera ownership de permisos ni responsabilidades doctrinales.
+
+Centralizar helpers, factories de arrays o utilidades repetidas no reemplaza:
+
+policies
+resolver central
+Security
+contratos específicos por módulo
+payload funcional publicado por el oferente
 
 Casos vigentes:
 

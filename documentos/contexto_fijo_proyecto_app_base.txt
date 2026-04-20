@@ -488,7 +488,7 @@ El detalle contractual y operativo de cada módulo se resuelve en la sección LE
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
@@ -546,6 +546,18 @@ zona tab coordinada construida desde tabItems
 La zona tab no debe leerse como dos loops visuales independientes sin estructura.
 
 Debe leerse como una composición coordinada del host para armar navegación, toolbar, botones y paneles como una única capacidad tabular del show.
+
+Regla arquitectónica consolidada:
+
+debe centralizarse únicamente la infraestructura repetida y mantenerse local la semántica del módulo.
+
+Por lo tanto:
+
+los contratos comunes pueden absorber helpers, shape repetido y utilidades mínimas de montaje
+
+los resolvers, payloads, decisiones funcionales, flags UX y reglas del dominio permanecen dentro del módulo oferente
+
+Reducir líneas de código no constituye objetivo suficiente si se pierde legibilidad contractual, identidad modular o trazabilidad semántica.
 
 CONSUMO EXTERNO
 

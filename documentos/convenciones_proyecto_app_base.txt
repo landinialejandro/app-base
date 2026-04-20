@@ -603,7 +603,7 @@ las integraciones entre módulos deben respetar el contrato del módulo oferente
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -711,6 +711,32 @@ Regla adicional consolidada de identidad modular:
 cuando un frente operativo evoluciona desde capacidad dispersa hacia módulo con identidad propia, sus surfaces oficiales deben migrar al propio módulo oferente
 
 las vistas, partials, formularios y tablas que expresen ese frente ya no deben quedar repartidos como solución oficial en módulos consumidores
+
+Regla adicional de abstracción sana:
+
+la homogeneización estructural es deseable, pero no debe sobreabstraer semántica real.
+
+Se admite centralizar infraestructura repetida mediante piezas comunes livianas.
+
+Caso vigente validado:
+
+BuildsSurfaceOffers como convención común para *SurfaceService.
+
+Puede concentrar:
+
+linkedOffer(...)
+embeddedOffer(...)
+unpackHostPack(...)
+
+No debe absorber:
+
+reglas del dominio
+payloads funcionales
+resolvers específicos
+decisiones UX del módulo
+semántica propia de cada contrato publicado
+
+Un SurfaceService puede ser extenso si esa extensión expresa semántica real y no simple boilerplate evitable.
 
 Regla de cierre adicional:
 

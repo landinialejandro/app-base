@@ -267,7 +267,7 @@ appointments.show consume relaciones compactas publicadas por assets, parties y 
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -315,6 +315,13 @@ no duplicar la misma relación en varias zonas sin causa real
 si existe surface oficial del módulo oferente, priorizarla
 el host compone la experiencia visual, no reemplaza el contrato del oferente
 
+Gramática vigente de zonas principales en show pages host:
+
+header_actions
+summary_items
+detail_items
+tab_panels
+
 Regla adicional para show pages surface-driven:
 
 la zona tab no debe leerse como panel huérfano separado de su navegación.
@@ -331,6 +338,8 @@ Caso consolidado actual:
 las relaciones fuertes publicadas en tabs deben entrar como unidad tabular completa.
 
 Las relaciones compactas hacia appointments.show deben entrar como summary linked y no como tabs pesadas.
+
+La relación tasks.show hacia orders.show se interpreta como vínculo linked y no como embebido tabular.
 
 <<END SECTION>>
 

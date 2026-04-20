@@ -105,7 +105,7 @@ por consolidación como capacidad embebida oficial
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -154,6 +154,16 @@ integración contextual principal hacia orders
 oferta reusable oficial publicada desde el propio módulo
 definición de embebido reusable para relaciones fuertes
 definición de integración compacta para vínculo puntual con orders
+
+SURFACE SERVICES
+
+Se considera cerrada la homogeneización estructural básica del ecosistema actual respecto de:
+
+creación de infraestructura común liviana BuildsSurfaceOffers
+normalización de helpers linkedOffer, embeddedOffer y unpackHostPack
+migración de SurfaceService vigentes al patrón común
+barrido de residuos de migración y duplicaciones aparentes
+ratificación doctrinal de centralizar infraestructura sin mover semántica modular al núcleo compartido
 
 Regla:
 

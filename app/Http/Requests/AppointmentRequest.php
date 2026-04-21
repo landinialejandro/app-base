@@ -1,14 +1,14 @@
 <?php
 
-// FILE: app/Http/Requests/AppointmentRequest.php | V2
+// FILE: app/Http/Requests/AppointmentRequest.php | V3
 
 namespace App\Http\Requests;
 
 use App\Models\Appointment;
-use App\Models\User;
 use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\AppointmentCatalog;
 use App\Support\Catalogs\ModuleCatalog;
+use App\Support\Tenants\TenantUserDirectory;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Support\Carbon;
 use Illuminate\Validation\Rule;
@@ -63,7 +63,7 @@ class AppointmentRequest extends FormRequest
         $appointment = $this->route('appointment'); // null en store
 
         $this->validateEnabledModules($data);
-        $this->validateAssignedUserBelongsToTenant($data['assigned_user_id'], $tenant->id);
+        $this->validateAssignedUserBelongsToTenant((int) $data['assigned_user_id'], $tenant->id);
         $this->validateChronology($data);
 
         if (! $appointment) {
@@ -100,12 +100,17 @@ class AppointmentRequest extends FormRequest
 
     protected function validateAssignedUserBelongsToTenant(int $userId, string $tenantId): void
     {
-        $exists = User::whereKey($userId)
-            ->whereHas('memberships', fn ($q) => $q->where('tenant_id', $tenantId)->where('status', 'active'))
-            ->exists();
+        $tenant = app('tenant');
+        $tenantUsers = app(TenantUserDirectory::class);
 
-        if (! $exists) {
-            throw ValidationException::withMessages(['assigned_user_id' => 'El colaborador asignado no pertenece a la empresa actual.']);
+        if (
+            ! $tenant
+            || (string) $tenant->id !== (string) $tenantId
+            || ! $tenantUsers->userBelongsToTenant($tenant, $userId)
+        ) {
+            throw ValidationException::withMessages([
+                'assigned_user_id' => 'El colaborador asignado no pertenece a la empresa actual.',
+            ]);
         }
     }
 

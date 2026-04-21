@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Projects/ProjectSurfaceService.php | V6
+// FILE: app/Support/Projects/ProjectSurfaceService.php | V7
 
 namespace App\Support\Projects;
 
@@ -22,7 +22,7 @@ class ProjectSurfaceService implements ModuleSurfaceService
                 targets: ['tasks.show'],
                 slot: 'summary_items',
                 priority: 15,
-                view: 'projects.components.linked-project-action',
+                view: 'projects.components.linked-project',
                 resolver: $this->resolveLinkedForTask(...),
             ),
         ];
@@ -39,6 +39,15 @@ class ProjectSurfaceService implements ModuleSurfaceService
             ];
         }
 
+        if ($host === 'tasks.show' && $record instanceof Task) {
+            return [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'task',
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ];
+        }
+
         return [];
     }
 
@@ -50,13 +59,14 @@ class ProjectSurfaceService implements ModuleSurfaceService
             return [
                 'data' => [
                     'linked' => [
-                        'supported' => false,
-                        'linked' => false,
-                        'can_view' => false,
+                        'supported' => true,
+                        'exists' => false,
                         'hidden' => true,
+                        'readonly' => false,
+                        'state' => 'hidden',
                         'show_url' => null,
                         'label' => 'Proyecto',
-                        'linked_text' => 'Proyecto',
+                        'text' => 'Proyecto',
                     ],
                     'variant' => 'summary',
                 ],
@@ -65,7 +75,7 @@ class ProjectSurfaceService implements ModuleSurfaceService
 
         return [
             'data' => [
-                'linked' => ProjectLinkedAction::forProject(
+                'linked' => ProjectLinked::forProject(
                     $record->project,
                     $trailQuery,
                     'Proyecto',

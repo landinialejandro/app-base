@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Appointments/AppointmentLinkedAction.php | V2
+// FILE: app/Support/Appointments/AppointmentLinked.php | V1
 
 namespace App\Support\Appointments;
 
@@ -10,7 +10,7 @@ use App\Support\Auth\Security;
 use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\ModuleCatalog;
 
-class AppointmentLinkedAction
+class AppointmentLinked
 {
     public static function forOrder(Order $order, array $trailQuery = [], bool $allowCreate = true): array
     {
@@ -22,15 +22,14 @@ class AppointmentLinkedAction
         if (! $supported || ! $user) {
             return [
                 'supported' => $supported,
-                'linked' => false,
-                'can_view' => false,
-                'can_create' => false,
-                'readonly' => false,
+                'exists' => false,
                 'hidden' => true,
+                'readonly' => false,
+                'state' => 'hidden',
                 'show_url' => null,
                 'create_url' => null,
                 'label' => 'Turno',
-                'linked_text' => null,
+                'text' => null,
             ];
         }
 
@@ -45,16 +44,16 @@ class AppointmentLinkedAction
         $canView = $linked && $user->can('view', $appointment);
         $canCreate = ! $linked && $allowCreate && $user->can('create', Appointment::class);
 
-        $readonly = $linked && ! $canView;
-        $hidden = ! $linked && ! $canCreate;
-
         return [
             'supported' => true,
-            'linked' => $linked,
-            'can_view' => (bool) $canView,
-            'can_create' => (bool) $canCreate,
-            'readonly' => $readonly,
-            'hidden' => $hidden,
+            'exists' => $linked,
+            'hidden' => ! $linked && ! $canCreate,
+            'readonly' => $linked && ! $canView,
+            'state' => self::stateFor(
+                linked: $linked,
+                canView: (bool) $canView,
+                canCreate: (bool) $canCreate,
+            ),
             'show_url' => ($linked && $canView)
                 ? route('appointments.show', ['appointment' => $appointment] + $trailQuery)
                 : null,
@@ -66,9 +65,22 @@ class AppointmentLinkedAction
                 ] + $trailQuery)
                 : null,
             'label' => 'Turno',
-            'linked_text' => $linked
+            'text' => $linked
                 ? ($appointment->title ?: 'Turno #'.$appointment->id)
                 : null,
         ];
+    }
+
+    protected static function stateFor(bool $linked, bool $canView, bool $canCreate): string
+    {
+        if ($linked) {
+            return $canView ? 'linked_viewable' : 'linked_readonly';
+        }
+
+        if ($canCreate) {
+            return 'creatable';
+        }
+
+        return 'hidden';
     }
 }

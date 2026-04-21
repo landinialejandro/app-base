@@ -1,10 +1,10 @@
 {{-- FILE: resources/views/appointments/partials/table.blade.php | V11 --}}
 
 @php
-    use App\Support\Assets\AssetLinkedAction;
+    use App\Support\Assets\AssetLinked;
     use App\Support\Catalogs\AppointmentCatalog;
     use App\Support\Navigation\NavigationTrail;
-    use App\Support\Orders\OrderLinkedAction;
+    use App\Support\Orders\OrderLinked;
     use App\Support\Parties\PartyLinked;
 
     $appointments = $appointments ?? collect();
@@ -71,13 +71,13 @@
 
                         $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
 
-                        $orderAction = OrderLinkedAction::forAppointment($appointment, $rowTrailQuery, false);
+                        $orderAction = OrderLinked::forAppointment($appointment, $rowTrailQuery, false);
                         $partyLinked = PartyLinked::forParty(
                             $appointment->party,
                             $rowTrailQuery,
                             AppointmentCatalog::contactLabel(),
                         );
-                        $assetAction = AssetLinkedAction::forAsset(
+                        $assetAction = AssetLinked::forAsset(
                             $appointment->asset,
                             $rowTrailQuery,
                             AppointmentCatalog::assetLabel(),
@@ -101,7 +101,7 @@
 
                         @if ($supportsAssetsModule)
                             <td>
-                                @include('assets.components.linked-asset-action', [
+                                @include('assets.components.linked-asset', [
                                     'action' => $assetAction,
                                     'variant' => 'inline',
                                 ])
@@ -125,7 +125,7 @@
 
                         @if ($supportsOrdersModule)
                             <td>
-                                @include('orders.components.linked-order-action', [
+                                @include('orders.components.linked-order', [
                                     'action' => $orderAction,
                                     'variant' => 'inline',
                                 ])

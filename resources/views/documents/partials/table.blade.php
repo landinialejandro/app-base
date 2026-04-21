@@ -3,7 +3,7 @@
 @php
     use App\Support\Catalogs\DocumentCatalog;
     use App\Support\Navigation\NavigationTrail;
-    use App\Support\Assets\AssetLinkedAction;
+    use App\Support\Assets\AssetLinked;
     use App\Support\Parties\PartyLinked;
 
     $documents = $documents ?? collect();
@@ -74,7 +74,7 @@
                         $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
 
                         $partyLinked = PartyLinked::forParty($document->party, $rowTrailQuery, 'Contacto');
-                        $assetAction = AssetLinkedAction::forAsset($document->asset, $rowTrailQuery, 'Activo');
+                        $assetAction = AssetLinked::forAsset($document->asset, $rowTrailQuery, 'Activo');
                     @endphp
 
                     <tr>
@@ -103,7 +103,7 @@
 
                         @if ($showAsset)
                             <td>
-                                @include('assets.components.linked-asset-action', [
+                                @include('assets.components.linked-asset', [
                                     'action' => $assetAction,
                                     'variant' => 'inline',
                                 ])

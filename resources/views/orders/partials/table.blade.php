@@ -1,7 +1,7 @@
 {{-- FILE: resources/views/orders/partials/table.blade.php | V13 --}}
 
 @php
-    use App\Support\Assets\AssetLinkedAction;
+    use App\Support\Assets\AssetLinked;
     use App\Support\Auth\TenantModuleAccess;
     use App\Support\Catalogs\ModuleCatalog;
     use App\Support\Catalogs\OrderCatalog;
@@ -75,7 +75,7 @@
                         $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
 
                         $partyLinked = PartyLinked::forParty($order->party, $rowTrailQuery, 'Contacto');
-                        $assetAction = AssetLinkedAction::forAsset($order->asset, $rowTrailQuery, 'Activo');
+                        $assetAction = AssetLinked::forAsset($order->asset, $rowTrailQuery, 'Activo');
                     @endphp
 
                     <tr>
@@ -104,7 +104,7 @@
 
                         @if ($renderAssetColumn)
                             <td>
-                                @include('assets.components.linked-asset-action', [
+                                @include('assets.components.linked-asset', [
                                     'action' => $assetAction,
                                     'variant' => 'inline',
                                 ])

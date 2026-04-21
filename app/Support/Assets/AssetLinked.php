@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Assets/AssetLinkedAction.php | V1
+// FILE: app/Support/Assets/AssetLinked.php | V1
 
 namespace App\Support\Assets;
 
@@ -9,7 +9,7 @@ use App\Support\Auth\Security;
 use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\ModuleCatalog;
 
-class AssetLinkedAction
+class AssetLinked
 {
     public static function forAsset(?Asset $asset, array $trailQuery = [], string $label = 'Activo'): array
     {
@@ -21,22 +21,26 @@ class AssetLinkedAction
         if (! $supported) {
             return [
                 'supported' => false,
-                'linked' => false,
-                'can_view' => false,
+                'exists' => false,
+                'hidden' => true,
+                'readonly' => false,
+                'state' => 'hidden',
                 'show_url' => null,
                 'label' => $label,
-                'linked_text' => $label,
+                'text' => $label,
             ];
         }
 
         if (! $asset) {
             return [
                 'supported' => true,
-                'linked' => false,
-                'can_view' => false,
+                'exists' => false,
+                'hidden' => false,
+                'readonly' => false,
+                'state' => 'missing',
                 'show_url' => null,
                 'label' => $label,
-                'linked_text' => '—',
+                'text' => '—',
             ];
         }
 
@@ -46,11 +50,13 @@ class AssetLinkedAction
 
         return [
             'supported' => true,
-            'linked' => true,
-            'can_view' => $canView,
+            'exists' => true,
+            'hidden' => false,
+            'readonly' => ! $canView,
+            'state' => $canView ? 'linked_viewable' : 'linked_readonly',
             'show_url' => $canView ? route('assets.show', ['asset' => $asset] + $trailQuery) : null,
             'label' => $label,
-            'linked_text' => $asset->name ?: $label,
+            'text' => $asset->name ?: $label,
         ];
     }
 }

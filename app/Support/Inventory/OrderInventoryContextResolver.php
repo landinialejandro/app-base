@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Inventory/OrderInventoryContextResolver.php | V1
+// FILE: app/Support/Inventory/OrderInventoryContextResolver.php | V2
 
 namespace App\Support\Inventory;
 
@@ -82,14 +82,18 @@ class OrderInventoryContextResolver
             ->filter(fn ($movement) => $movement->trashed() === false)
             ->isNotEmpty();
 
+        $isLineCompleted = $lineStatus === OrderItemCatalog::STATUS_COMPLETED;
+        $isLineCancelled = $lineStatus === OrderItemCatalog::STATUS_CANCELLED;
+        $isLineLocked = $isReadonly || $isLineCompleted || $isLineCancelled;
+
         $canExecute = $isPhysicalProduct
             && $isOperable
             && ! $isReadonly
             && OrderItemCatalog::isOperable($lineStatus)
             && $pendingQuantity > 0;
 
-        $canEdit = ! $isReadonly && ! $hasMovements;
-        $canDelete = ! $isReadonly && ! $hasMovements;
+        $canEdit = ! $isLineLocked;
+        $canDelete = ! $isLineLocked;
 
         return [
             'order_item_id' => $item->id,
@@ -109,6 +113,7 @@ class OrderInventoryContextResolver
             'direction' => $direction,
             'is_operable' => $isOperable,
             'is_readonly' => $isReadonly,
+            'is_line_locked' => $isLineLocked,
             'has_movements' => $hasMovements,
             'can_execute' => $canExecute,
             'can_edit' => $canEdit,

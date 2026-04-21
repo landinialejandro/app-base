@@ -31,7 +31,7 @@ class OrderSurfaceService implements ModuleSurfaceService
                 targets: ['appointments.show'],
                 slot: 'summary_items',
                 priority: 40,
-                view: 'orders.components.linked-order-action',
+                view: 'orders.components.linked-order',
                 resolver: $this->resolveLinkedForAppointment(...),
             ),
             $this->linkedOffer(
@@ -40,7 +40,7 @@ class OrderSurfaceService implements ModuleSurfaceService
                 targets: ['tasks.show'],
                 slot: 'header_actions',
                 priority: 35,
-                view: 'orders.components.linked-order-action',
+                view: 'orders.components.linked-order',
                 resolver: $this->resolveLinkedForTaskHeader(...),
             ),
             $this->linkedOffer(
@@ -49,7 +49,7 @@ class OrderSurfaceService implements ModuleSurfaceService
                 targets: ['tasks.show'],
                 slot: 'detail_items',
                 priority: 25,
-                view: 'orders.components.linked-order-action',
+                view: 'orders.components.linked-order',
                 resolver: $this->resolveLinkedForTaskDetail(...),
             ),
             $this->linkedOffer(
@@ -58,7 +58,7 @@ class OrderSurfaceService implements ModuleSurfaceService
                 targets: ['documents.show'],
                 slot: 'detail_items',
                 priority: 25,
-                view: 'orders.components.linked-order-action',
+                view: 'orders.components.linked-order',
                 resolver: $this->resolveLinkedForDocument(...),
             ),
             $this->embeddedOffer(
@@ -123,6 +123,15 @@ class OrderSurfaceService implements ModuleSurfaceService
             ];
         }
 
+        if ($host === 'appointments.show' && $record instanceof Appointment) {
+            return [
+                'host' => $host,
+                'recordType' => 'appointment',
+                'record' => $record,
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ];
+        }
+
         if ($host === 'tasks.show' && $record instanceof Task) {
             return [
                 'host' => $host,
@@ -170,7 +179,7 @@ class OrderSurfaceService implements ModuleSurfaceService
 
         return [
             'data' => [
-                'linked' => OrderLinkedAction::forAppointment($record, $trailQuery, true),
+                'linked' => OrderLinked::forAppointment($record, $trailQuery, true),
                 'variant' => 'summary',
             ],
         ];
@@ -202,7 +211,7 @@ class OrderSurfaceService implements ModuleSurfaceService
 
         return [
             'data' => [
-                'linked' => OrderLinkedAction::forTask(
+                'linked' => OrderLinked::forTask(
                     $record,
                     $trailQuery,
                     (bool) (auth()->user() && auth()->user()->can('update', $record)),
@@ -238,7 +247,7 @@ class OrderSurfaceService implements ModuleSurfaceService
 
         return [
             'data' => [
-                'linked' => OrderLinkedAction::forTask(
+                'linked' => OrderLinked::forTask(
                     $record,
                     $trailQuery,
                     (bool) (auth()->user() && auth()->user()->can('update', $record)),

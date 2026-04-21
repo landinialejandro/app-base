@@ -1,24 +1,25 @@
 <?php
 
-// FILE: app/Support/Projects/ProjectLinkedAction.php | V1
+// FILE: app/Support/Projects/ProjectLinked.php | V1
 
 namespace App\Support\Projects;
 
 use App\Models\Project;
 
-class ProjectLinkedAction
+class ProjectLinked
 {
     public static function forProject(?Project $project, array $trailQuery = [], string $label = 'Proyecto'): array
     {
         if (! $project) {
             return [
-                'supported' => false,
-                'linked' => false,
-                'can_view' => false,
-                'hidden' => true,
+                'supported' => true,
+                'exists' => false,
+                'hidden' => false,
+                'readonly' => false,
+                'state' => 'missing',
                 'show_url' => null,
                 'label' => $label,
-                'linked_text' => $label,
+                'text' => '—',
             ];
         }
 
@@ -27,14 +28,15 @@ class ProjectLinkedAction
 
         return [
             'supported' => true,
-            'linked' => true,
-            'can_view' => $canView,
+            'exists' => true,
             'hidden' => false,
+            'readonly' => ! $canView,
+            'state' => $canView ? 'linked_viewable' : 'linked_readonly',
             'show_url' => $canView
                 ? route('projects.show', ['project' => $project] + $trailQuery)
                 : null,
             'label' => $label,
-            'linked_text' => $project->name ?: 'Proyecto #'.$project->getKey(),
+            'text' => $project->name ?: 'Proyecto #'.$project->getKey(),
         ];
     }
 }

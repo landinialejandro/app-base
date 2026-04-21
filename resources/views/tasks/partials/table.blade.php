@@ -5,7 +5,7 @@
     use App\Support\Catalogs\ModuleCatalog;
     use App\Support\Catalogs\TaskCatalog;
     use App\Support\Navigation\NavigationTrail;
-    use App\Support\Orders\OrderLinkedAction;
+    use App\Support\Orders\OrderLinked;
     use Illuminate\Support\Carbon;
 
     $tasks = $tasks ?? collect();
@@ -76,9 +76,7 @@
                             };
                         }
 
-                        $orderAction = $supportsOrdersModule
-                            ? OrderLinkedAction::forTask($task, $rowTrailQuery, false)
-                            : [];
+                        $orderAction = $supportsOrdersModule ? OrderLinked::forTask($task, $rowTrailQuery, false) : [];
                     @endphp
 
                     <tr>
@@ -115,7 +113,7 @@
 
                         @if ($supportsOrdersModule)
                             <td>
-                                @include('orders.components.linked-order-action', [
+                                @include('orders.components.linked-order', [
                                     'action' => $orderAction,
                                     'variant' => 'inline',
                                 ])

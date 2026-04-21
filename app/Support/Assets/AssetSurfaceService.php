@@ -28,7 +28,7 @@ class AssetSurfaceService implements ModuleSurfaceService
                 targets: ['appointments.show'],
                 slot: 'summary_items',
                 priority: 30,
-                view: 'assets.components.linked-asset-action',
+                view: 'assets.components.linked-asset',
                 resolver: $this->resolveLinkedForAppointment(...),
             ),
             $this->linkedOffer(
@@ -37,7 +37,7 @@ class AssetSurfaceService implements ModuleSurfaceService
                 targets: ['documents.show'],
                 slot: 'detail_items',
                 priority: 20,
-                view: 'assets.components.linked-asset-action',
+                view: 'assets.components.linked-asset',
                 resolver: $this->resolveLinkedForDocument(...),
             ),
             $this->embeddedOffer(
@@ -78,6 +78,14 @@ class AssetSurfaceService implements ModuleSurfaceService
             ];
         }
 
+        if ($host === 'appointments.show' && $record instanceof Appointment) {
+            return [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'appointment',
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ];
+        }
         if ($host === 'documents.show' && $record instanceof Document) {
             return [
                 'host' => $host,
@@ -99,11 +107,13 @@ class AssetSurfaceService implements ModuleSurfaceService
                 'data' => [
                     'linked' => [
                         'supported' => false,
-                        'linked' => false,
-                        'can_view' => false,
+                        'exists' => false,
+                        'hidden' => true,
+                        'readonly' => false,
+                        'state' => 'hidden',
                         'show_url' => null,
-                        'label' => AppointmentCatalog::assetLabel(),
-                        'linked_text' => '—',
+                        'label' => AppointmentCatalog::assetLabel(), // o 'Activo'
+                        'text' => '—',
                     ],
                     'variant' => 'summary',
                 ],
@@ -112,11 +122,16 @@ class AssetSurfaceService implements ModuleSurfaceService
 
         return [
             'data' => [
-                'linked' => AssetLinkedAction::forAsset(
-                    $record->asset,
-                    $trailQuery,
-                    AppointmentCatalog::assetLabel(),
-                ),
+                'linked' => [
+                    'supported' => false,
+                    'exists' => false,
+                    'hidden' => true,
+                    'readonly' => false,
+                    'state' => 'hidden',
+                    'show_url' => null,
+                    'label' => 'Activo',
+                    'text' => '—',
+                ],
                 'variant' => 'summary',
             ],
         ];
@@ -131,11 +146,13 @@ class AssetSurfaceService implements ModuleSurfaceService
                 'data' => [
                     'linked' => [
                         'supported' => false,
-                        'linked' => false,
-                        'can_view' => false,
+                        'exists' => false,
+                        'hidden' => true,
+                        'readonly' => false,
+                        'state' => 'hidden',
                         'show_url' => null,
                         'label' => 'Activo',
-                        'linked_text' => '—',
+                        'text' => '—',
                     ],
                     'variant' => 'summary',
                 ],
@@ -144,7 +161,7 @@ class AssetSurfaceService implements ModuleSurfaceService
 
         return [
             'data' => [
-                'linked' => AssetLinkedAction::forAsset(
+                'linked' => AssetLinked::forAsset(
                     $record->asset,
                     $trailQuery,
                     'Activo',

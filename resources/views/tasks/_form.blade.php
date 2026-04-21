@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/_form.blade.php | V2 --}}
+{{-- FILE: resources/views/tasks/_form.blade.php | V3 --}}
 
 @php
     use App\Support\Catalogs\TaskCatalog;
@@ -113,15 +113,16 @@
 
 <div class="form-group">
     <label for="assigned_user_id" class="form-label">Asignado a</label>
-    <select name="assigned_user_id" id="assigned_user_id" class="form-control" required>
-        <option value="">Seleccionar colaborador</option>
+    <select name="assigned_user_id" id="assigned_user_id" class="form-control">
+        <option value="">Asignarme a mí</option>
         @foreach ($users as $user)
             <option value="{{ $user->id }}" @selected((string) old('assigned_user_id', $task->assigned_user_id ?? $defaultAssignedUserId) === (string) $user->id)>
                 {{ $user->name }}
             </option>
         @endforeach
     </select>
-    <div class="form-help">La tarea debe quedar asignada a un colaborador. Por defecto se asigna a quien la crea.</div>
+    <div class="form-help">La tarea debe quedar asignada a un colaborador. Si no elegís uno, se asigna automáticamente a
+        quien la crea o edita.</div>
     @error('assigned_user_id')
         <div class="form-help is-error">{{ $message }}</div>
     @enderror

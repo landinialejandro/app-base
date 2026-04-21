@@ -37,7 +37,7 @@ class AppointmentSurfaceService implements ModuleSurfaceService
                 targets: ['orders.show'],
                 slot: 'detail_items',
                 priority: 20,
-                view: 'appointments.components.linked-appointment-action',
+                view: 'appointments.components.linked-appointment',
                 resolver: $this->resolveLinkedForOrder(...),
             ),
         ];
@@ -129,7 +129,7 @@ class AppointmentSurfaceService implements ModuleSurfaceService
 
         return [
             'data' => [
-                'linked' => AppointmentLinkedAction::forOrder($record, $trailQuery),
+                'linked' => AppointmentLinked::forOrder($record, $trailQuery),
                 'variant' => 'summary',
             ],
         ];

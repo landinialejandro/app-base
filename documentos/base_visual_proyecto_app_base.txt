@@ -81,83 +81,62 @@ SECTION_VERSION: 00009
 
 COMPONENTES DISPONIBLES
 
-Componentes Blade reutilizables utilizados en todas las vistas.
+El sistema utiliza una base visual reusable compuesta por layouts, componentes Blade y patrones UI consistentes.
+
+Componentes estructurales vigentes:
 
 x-page
-Contenedor general de la página.
-
-x-breadcrumb
-Navegación contextual y estructural de la pantalla.
-
 x-page-header
-Título de la pantalla y acciones principales.
-
+x-breadcrumb
 x-card
-Contenedor visual del contenido principal.
+x-modal
+x-empty-state
 
-Componentes globales del layout:
+Componentes de lectura show vigentes:
 
-footer del shell general de la app
-forma parte del layout base en pantallas internas no públicas
+x-show-summary
+x-show-summary-item
+x-show-summary-item-detail-block
 
-brand del sistema en header/navbar
-resuelto exclusivamente mediante iconografía SVG inline
-no debe utilizar texto visible como representación de marca
+Componentes de acción frecuentes:
 
-Nuevo tipo de contenido consolidado:
+botones primarios
+botones secundarios
+botones icon-only
+acciones inline
+toolbars contextuales
 
-bloques de ayuda contextual por módulo
+Componentes modulares reusables vigentes:
 
-Características:
+linked-order-action
+linked-party-action
+linked-asset-action
 
-contenido explicativo orientado a usuario final
-puede integrarse dentro de vistas show o zonas de ayuda
-no forma parte de la estructura operativa principal
+Nueva línea evolutiva consolidada:
 
-Reglas:
+linked-order
+linked-party
+linked-asset
+linked-project
 
-deben tratarse como contenido subordinado
-no deben competir visualmente con summary ni acciones
-no deben alterar jerarquía principal de la pantalla
+Cuando un módulo migra a la nueva generación, el componente visual debe limitarse a representar el payload oficial resuelto por el módulo oferente.
 
-Capacidades visuales reutilizables consolidadas adicionalmente:
+No debe reinterpretar permisos, rutas ni estados internos.
 
-selectores reutilizables
-tablas embebidas
-summary blocks reutilizables
-acciones contextuales de integración
-toolbars de tabs reutilizables
+Componentes de formularios frecuentes:
 
-Casos reusables consolidados:
+inputs de texto
+textareas
+selects
+date pickers
+checkboxes
+radios
+mensajes de error
+help text contextual
 
-linked-order-action como acción transversal compartida para integración hacia orders
-linked-asset-action como acción transversal compartida para integración hacia assets
+Regla adicional consolidada:
 
-Nuevos casos consolidados:
-
-embebidos reusables oficiales publicados por módulos oferentes para relaciones fuertes
-acciones compactas publicadas por módulos oferentes para relaciones puntuales o 1 a 1
-
-Patrón estructural adicional consolidado:
-
-host show con zonas explícitas de montaje:
-
-header_actions
-summary_items
-detail_items
-zona tab coordinada
-
-Regla adicional:
-
-cuando una capacidad visual reusable ya exista como patrón válido del sistema, debe reutilizarse antes de crear una variante específica para un módulo consumidor
-
-si una capacidad reusable pertenece contractualmente a otro módulo, debe conservar identidad visual consistente sin absorber estilos ad hoc del consumidor
-
-Aclaración consolidada para integraciones complejas:
-
-cuando una acción reusable dependa de arbitraje backend del módulo oferente, no debe leerse como simple bloque Blade aislado
-
-debe leerse como capacidad compuesta por payload resuelto + representación visual oficial del módulo oferente
+cuando un selector dependa de dataset interno reusable del tenant, su fuente lógica puede compartirse sin convertir automáticamente esa necesidad en componente global nuevo ni en módulo visual independiente.
 
 <<END SECTION>>
 
@@ -227,31 +206,37 @@ El summary del host conserva su núcleo visual y las integraciones ocupan slots 
 <<END SECTION>>
 
 <<SECTION: SELECTORES REUTILIZABLES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00004
 
 SELECTORES REUTILIZABLES
 
-Los selectores reutilizables son piezas visuales clave para integraciones sanas entre módulos.
-
-Ejemplos típicos:
-
-selector de party
-selector de asset
-selector de product
-selector de order
-selector de task
+Los selectores reutilizables deben resolver necesidades repetidas sin duplicar consultas, copy ni comportamiento visual.
 
 Reglas:
 
-deben mantener comportamiento consistente entre módulos
-deben priorizar búsqueda rápida y lectura simple
-deben mostrar información mínima útil para decidir
-deben evitar variantes visuales innecesarias por consumidor
-deben poder reutilizarse en create y edit cuando el contrato del módulo lo permita
+usar selector reusable cuando la necesidad se repite en múltiples módulos
+mantener naming claro y orientado al dominio
+no convertir datasets internos en módulo visual por inercia
+la fuente de datos reusable no obliga a una única representación visual
 
-Si un selector ya existe de forma válida, debe reutilizarse antes de crear uno nuevo.
+Casos consolidados:
 
-La responsabilidad visual de un selector reusable pertenece al módulo oferente y no a implementaciones aisladas de cada consumidor.
+selector de parties
+selector de assets
+selector de products
+
+Caso adicional consolidado:
+
+selectores de colaboradores internos del tenant pueden consumir una misma fuente lógica reusable basada en pertenencia activa de la empresa.
+
+Eso no exige todavía un componente visual global único.
+
+Cada formulario puede adaptar copy o UX mientras respete la fuente común y la validación central.
+
+Caso UX validado:
+
+en tasks el selector puede ofrecer una opción funcional equivalente a “Asignarme a mí” alineada con fallback backend al usuario actual.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUES SUMMARY REUTILIZABLES>>
@@ -281,53 +266,40 @@ Estos bloques ayudan a integrar módulos sin sobrecargar navegación ni multipli
 <<END SECTION>>
 
 <<SECTION: OFERTAS DE INTEGRACIÓN VISUAL>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 OFERTAS DE INTEGRACIÓN VISUAL
 
-Cuando un módulo publique una capacidad visual reusable para otros módulos, esa pieza debe sentirse nativa del ecosistema.
+Las ofertas visuales de integración son capacidades publicadas por un módulo para ser consumidas por otros módulos.
 
-Objetivos:
+No son simples includes sueltos.
 
-consistencia entre pantallas
-menor duplicación
-aprendizaje visual reutilizable
-menor costo de mantenimiento
+Son piezas contractuales del ecosistema.
+
+Formas vigentes:
+
+acciones compactas linked
+bloques summary
+tablas embebidas
+tabs modulares
+formularios operativos publicados por el módulo dueño de la capacidad
 
 Reglas:
 
-la pieza reusable debe vivir en ubicación coherente con el módulo oferente
+el módulo oferente arbitra datos y estados
+el componente visual representa el payload recibido
+el consumidor monta la capacidad sin reescribir su lógica interna
+la ubicación física debe respetar la identidad del módulo oferente
 
-debe mantener misma gramática visual en todos los consumidores
+Nueva línea consolidada:
 
-el consumidor compone contexto, no rediseña la capacidad
+la familia linked-<modulo> reemplaza progresivamente a linked-<modulo>-action cuando el módulo migra de generación.
 
-si la capacidad incluye estados, acciones o arbitraje visual, esos estados deben venir resueltos por la surface oficial
+No debe mezclarse soporte nuevo con componente viejo como cierre estable.
 
-Casos vigentes:
+Regla adicional:
 
-linked-order-action
-linked-party-action
-linked-asset-action
-
-Surfaces vigentes de inventory:
-
-bloques de stock
-historial de movimientos
-acciones contextuales por línea
-trazabilidad operativa
-
-Surfaces vigentes adicionales:
-
-documents puede publicar embebidos documentales oficiales consumibles desde hosts como orders.show
-
-attachments publica capacidad embebida transversal dentro de show pages compatibles
-
-Aclaración consolidada:
-
-products y orders pueden consumir inventory visualmente, pero no deben sostener variantes paralelas como solución principal del frente
-
-orders puede consumir visualmente inventory, documents y attachments dentro de su show, pero debe mantener visible su propio núcleo y no rediseñar esas capacidades como si fueran propias
+si una relación compacta desaparece visualmente, auditar también compatibilidad contractual entre host, slot, type y shape antes de asumir ausencia real de relación.
 
 <<END SECTION>>
 
@@ -456,85 +428,47 @@ Estas métricas no reemplazan la tabla principal ni convierten la pantalla en da
 <<END SECTION>>
 
 <<SECTION: PATRÓN VISUAL PARA VISTAS SHOW>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 PATRÓN VISUAL PARA VISTAS SHOW
 
-Toda vista show debe funcionar como centro de lectura y acción sobre un recurso concreto.
+Las vistas show deben responder a una gramática común y reconocible.
 
-Estructura esperada:
+Estructura anfitriona vigente:
 
-header contextual
-datos principales claros
-acciones pertinentes
-relaciones organizadas
-bloques secundarios subordinados
-retorno consistente
+x-page
+x-breadcrumb
+x-page-header
+x-show-summary
+zonas adicionales según módulo
+zona tab coordinada cuando corresponda
 
-Reglas:
-
-la identidad del recurso principal debe ser evidente
-
-las relaciones no deben eclipsar al recurso central
-
-las acciones deben aparecer cerca del contexto donde tienen sentido
-
-evitar acumulación de bloques pesados sin jerarquía
-
-mantener ritmo visual limpio entre lectura y operación
-
-Aclaración estructural consolidada para show pages host:
-
-una show page surface-driven debe leerse como host con zonas explícitas de montaje y no como contenedor plano de bloques.
-
-Zonas vigentes del patrón:
+Zonas mínimas consolidadas de montaje:
 
 header_actions
 summary_items
 detail_items
-zona tab coordinada construida desde tabItems
 
-La zona tab no debe entenderse como dos renders conceptualmente aislados.
+Cuando exista navegación tabular, no debe resolverse como renders aislados sin estructura.
 
-Debe expresarse visualmente como una sola unidad compuesta por:
+Debe construirse como una zona tab coordinada del host con:
 
-tabs
-tab-toolbar cuando corresponda
-horizontal-scroll de navegación
-panel activo
-stack de paneles
+navegación
+toolbar contextual
+acciones auxiliares
+paneles de contenido
 
-Aclaración consolidada para products.show:
+Reglas:
 
-products.show debe sentirse ficha del catálogo maestro
-
-puede consumir información de inventory, pero no competir con inventory.show mediante historiales completos o formularios principales de movimientos
-
-el acceso hacia inventory debe ser claro y natural
-
-Aclaración consolidada para inventory.show:
-
-inventory.show debe sentirse ficha operativa del producto en materia de stock
-
-su foco visual principal es saldo, historial, trazabilidad y acciones propias del frente inventory
-
-Aclaración consolidada para orders.show:
-
-orders.show debe sentirse centro de lectura de la orden y no pantalla absorbida por módulos invitados
-
-la capa estructural propia de la orden debe quedar separada de las capacities embebidas de inventory, documents y attachments
-
-cuando exista una tab o bloque de operación invitada, debe sentirse como capacidad publicada por el módulo oferente y no como prolongación difusa del host
-
-Aclaración adicional de referencia evolutiva:
-
-si distintos show pages del ecosistema tienen distinto nivel de madurez contractual, el patrón visual no debe retroceder para igualarlos.
-
-La convergencia correcta debe tender hacia el host más maduro ya validado.
+el host conserva identidad visual propia
+las capacidades invitadas mantienen identidad modular
+las relaciones compactas se muestran en zonas breves
+las relaciones fuertes pueden vivir en tabs o bloques amplios
+el patrón más maduro validado del ecosistema debe servir de referencia evolutiva
 
 Caso vigente:
 
-appointments.show expresa una lectura host más avanzada para integraciones compactas dentro del summary y estructura general del show.
+appointments.show expresa una referencia positiva de madurez host para otras show pages surface-driven.
 
 <<END SECTION>>
 
@@ -691,38 +625,41 @@ SECTION_VERSION: 00005
 
 ACCIONES VISUALES EN INDEX Y SHOW
 
-Las acciones visibles deben ser claras, previsibles y ubicarse donde el usuario las espera.
+Las acciones visibles deben expresar intención clara y estado operable real.
 
 Reglas:
 
-acciones globales cerca del header
+no mostrar acciones imposibles
+no prometer permisos inexistentes
+no duplicar CTAs equivalentes
+priorizar acciones principales sobre ruido secundario
+preservar contexto de navegación cuando corresponda
 
-acciones por registro dentro de tablas o cards del registro
+Acciones frecuentes:
 
-acciones destructivas con menor protagonismo
+crear
+editar
+eliminar
+volver
+abrir relación vinculada
+crear relacionado contextual
+acciones rápidas por fila
 
-acciones secundarias sin competir con la principal
+Regla adicional UX:
 
-no saturar una pantalla con botones equivalentes
+si el sistema puede resolver una intención mediante fallback sano, la UI no debe bloquear innecesariamente al usuario.
 
-si una acción depende de contexto complejo, renderizar resultado ya arbitrado desde backend
+Caso consolidado:
 
-Aclaración consolidada para líneas operativas:
+en tasks, no seleccionar colaborador explícito puede resolverse asignando al usuario actual.
 
-cuando una acción viva dentro de una fila operativa (por ejemplo surtir o revertir), debe aparecer junto a los datos necesarios para decidir
+La interfaz debe acompañar ese comportamiento con copy claro y consistente.
 
-stock
-ejecutado
-pendiente
-estado
+Regla adicional para componentes linked:
 
-La acción debe sentirse inmediata y contextual.
+la decisión de readonly, apertura o visibilidad debe venir resuelta desde el módulo oferente.
 
-Aclaración adicional para hosts modulares:
-
-las acciones propias del host no deben mezclarse visualmente con acciones operativas publicadas por un módulo invitado dentro de la misma capa estructural
-
-cada acción debe aparecer junto al contexto semántico que le corresponde
+El componente visual solo representa el estado contractual recibido.
 
 <<END SECTION>>
 

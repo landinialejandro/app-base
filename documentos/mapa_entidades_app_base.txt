@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -126,6 +126,10 @@ también puede actuar como contexto y host visual de capacidades publicadas por 
 assets, orders y parties pueden publicar relaciones compactas hacia appointments.show como ofertas linked consumidas por el host appointment
 
 esas relaciones deben leerse como surfaces compactas de resumen y no como relaciones pesadas de pestaña dentro de appointment.show
+
+la lectura de colaboradores internos para tasks y appointments no se resuelve desde un módulo users del ecosistema funcional
+
+se resuelve desde users + memberships activas dentro del tenant y, cuando haga falta reutilización, desde una raíz reusable del plano tenant
 
 Reglas:
 
@@ -233,6 +237,8 @@ invitations
 <<END SECTION>>
 
 <<SECTION: FUNCIÓN DE CADA UNA>>
+SECTION_VERSION: 00001
+
 FUNCIÓN DE CADA UNA
 
 users
@@ -242,6 +248,8 @@ Representa la identidad global del usuario en todo el sistema.
 Un user puede pertenecer a múltiples tenants.
 
 No pertenece a un tenant específico.
+
+No debe leerse como módulo funcional autónomo del ecosistema operativo del tenant.
 
 tenants
 
@@ -268,6 +276,10 @@ qué estado tiene dentro de esa empresa
 qué roles tiene dentro de esa empresa
 qué perfil funcional persistido tiene dentro de esa empresa
 
+También constituye la base real para resolver colaboradores internos activos del tenant.
+
+Cuando el sistema necesite reutilizar ese dataset en múltiples frentes operativos, la salida correcta es una raíz reusable del plano tenant y no un módulo users del ecosistema funcional.
+
 signup_requests
 
 Representa solicitudes iniciales de alta o interés desde la landing pública.
@@ -288,6 +300,7 @@ Cuando type = owner_signup puede existir sin tenant asociado.
 Cuando type = member_invite sí se vincula operativamente a un tenant existente.
 
 Por esta razón, no debe tratarse como una entidad tenant-scoped pura del negocio.
+
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
@@ -353,6 +366,8 @@ las relaciones hacia parties desde otros módulos deben respetar el estado activ
 <<END SECTION>>
 
 <<SECTION: MODELO DE ACCESO Y PERTENENCIA>>
+SECTION_VERSION: 00001
+
 MODELO DE ACCESO Y PERTENENCIA
 
 Relación principal:
@@ -369,6 +384,13 @@ users resuelve identidad global
 memberships resuelve acceso real por tenant
 
 No usar user.tenant_id porque rompería el modelo multi-tenant actual.
+
+Regla adicional consolidada:
+
+la pertenencia operativa interna del tenant y la lectura de colaboradores activos deben resolverse desde memberships activas.
+
+Si varios módulos necesitan ese dataset, debe reutilizarse desde una pieza tenant dedicada y no desde un supuesto módulo users del negocio.
+
 <<END SECTION>>
 
 <<SECTION: ROLES Y AUTORIZACIÓN>>
@@ -398,6 +420,8 @@ los scopes y constraints forman parte activa del contrato persistido
 <<END SECTION>>
 
 <<SECTION: ACLARACIÓN SOBRE TENANT-SCOPED>>
+SECTION_VERSION: 00001
+
 ACLARACIÓN SOBRE TENANT-SCOPED
 
 El trait TenantScoped debe usarse en entidades cuyo ciclo de vida pertenece completamente a un tenant.
@@ -429,6 +453,13 @@ User
 Tenant
 Membership
 SignupRequest
+
+Aclaración adicional consolidada:
+
+que un dato reusable sirva para múltiples módulos del tenant no lo convierte automáticamente en entidad del negocio ni en módulo funcional.
+
+Este criterio aplica especialmente a la lectura de usuarios internos activos del tenant, que debe seguir apoyándose en memberships y en raíces del plano tenant.
+
 <<END SECTION>>
 
 <<SECTION: MÓDULOS ACTUALES DEL NEGOCIO>>
@@ -598,7 +629,7 @@ agrupa tasks pero no absorbe completamente su identidad funcional
 <<END SECTION>>
 
 <<SECTION: TASKS>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 TASKS
 
@@ -619,7 +650,7 @@ alertas o tareas automáticas futuras
 Relaciones consumidas:
 
 tenant
-users / memberships
+users internos resueltos por memberships activas del tenant
 project opcional
 party opcional
 asset opcional
@@ -645,6 +676,10 @@ Reglas:
 puede vivir sin projects
 su agrupación por projects no lo convierte en subrecurso dependiente
 
+assigned_user_id debe leerse como colaborador interno del tenant y no como relación hacia un módulo users autónomo del ecosistema funcional
+
+party_id sigue siendo relación opcional con actor externo del negocio y no debe confundirse con asignación interna
+
 Aclaración adicional consolidada:
 
 cuando una necesidad operativa automática del sistema requiera alertar o escalar trabajo interno, tasks puede actuar como destino natural de esas alertas sin perder su identidad modular
@@ -661,10 +696,14 @@ la task persistida puede mantenerse
 
 su contenido visible y legible debe actualizarse para representar el evento más reciente relevante del sistema
 
+Aclaración adicional operativa:
+
+si el flujo no recibe colaborador explícito, puede resolverse asignación al usuario actual como continuidad operativa válida, sin volver inviable el formulario por depender de una fuente externa no formalizada.
+
 <<END SECTION>>
 
 <<SECTION: APPOINTMENTS>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 APPOINTMENTS
 
@@ -679,7 +718,7 @@ Relaciones consumidas:
 tenant
 party opcional
 asset opcional
-users internos cuando corresponda
+users internos resueltos por memberships activas del tenant cuando corresponda
 order opcional mediante appointments.order_id
 
 Relaciones ofrecidas:
@@ -709,6 +748,8 @@ cuando exista vínculo con order, ese vínculo real se persiste desde appointmen
 su superficie principal debe leerse desde calendar como entrada principal del módulo
 
 appointments.index puede existir como superficie secundaria, pero no debe leerse como base principal promovida
+
+assigned_user_id o lecturas equivalentes de colaborador interno deben apoyarse en pertenencia activa al tenant y no en un módulo users del ecosistema funcional
 
 Aclaración contractual consolidada:
 
@@ -967,7 +1008,7 @@ assets puede publicar capacidades reutilizables propias sin perder identidad mod
 
 Caso consolidado actual:
 
-linked-asset-action
+linked-asset
 
 Aclaración relacional adicional:
 

@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 CONVENCIONES GENERALES
 
@@ -196,10 +196,22 @@ Caso consolidado actual:
 
 appointments.show expresa una estructura host más avanzada que orders.show para show pages surface-driven.
 
+Convención adicional de raíces internas del tenant:
+
+cuando varios frentes necesiten usuarios internos activos de la empresa, no debe abrirse por inercia un módulo users ni una ability inexistente para resolverlo.
+
+La salida correcta puede ser una pieza reusable del plano tenant con responsabilidad explícita de directorio interno.
+
+Convención adicional de migración arquitectónica:
+
+si una familia reusable ya evolucionó hacia una nueva generación aprobada, no debe cerrarse el trabajo con soluciones híbridas mezclando generación nueva y vieja.
+
+La migración válida puede ser gradual por módulo, pero cada módulo debe cerrar coherencia interna completa.
+
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA BASE DEL PROYECTO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 ESTRUCTURA BASE DEL PROYECTO
 
@@ -264,7 +276,11 @@ app/Support/Tasks
 lecturas y visibilidad operativa de tasks
 
 app/Support/Tenants
-contexto funcional del tenant
+contexto funcional del tenant y raíces reusables propias de la empresa activa
+
+Caso consolidado actual:
+
+TenantUserDirectory.php como directorio reusable de usuarios internos activos del tenant
 
 app/Services
 servicios operativos específicos cuando no correspondan a Support transversal
@@ -603,7 +619,7 @@ las integraciones entre módulos deben respetar el contrato del módulo oferente
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -831,6 +847,22 @@ Caso consolidado actual:
 
 las relaciones compactas hacia appointments.show deben publicarse como linked + summary_items para entrar en la zona correcta del host vigente.
 
+Regla adicional de raíces internas del tenant:
+
+cuando una necesidad repetida no constituye módulo funcional sino dataset interno reusable de la empresa activa, la salida correcta puede ser una pieza del plano tenant.
+
+No debe forzarse un módulo artificial solo por reutilización de consultas internas.
+
+Caso consolidado:
+
+directorio de usuarios internos activos del tenant.
+
+Regla adicional de migración coherente:
+
+si una capacidad reusable ya migró a una nueva generación aprobada, no debe mezclarse soporte nuevo con componente viejo, payload nuevo con vista vieja ni fallback legacy con cierre declarado como definitivo.
+
+La migración válida exige coherencia contractual completa del módulo afectado.
+
 CONTRATO DE SEGURIDAD
 
 El contrato de seguridad del módulo no se define en esta sección sino en:
@@ -844,7 +876,7 @@ ningún contrato modular es válido si contradice el contrato de seguridad del m
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CLASIFICACIÓN MODULAR>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CONVENCIONES DE CLASIFICACIÓN MODULAR
 
@@ -924,10 +956,16 @@ es una posición de integración dentro del ecosistema
 
 no convierte al host en dueño del contrato del módulo invitado
 
+Aclaración adicional de plano tenant:
+
+no toda pieza reusable del sistema debe clasificarse como módulo funcional.
+
+Cuando la responsabilidad real sea contexto interno de empresa, dataset reusable o directorio operativo del tenant, la clasificación correcta puede pertenecer al plano tenant/transversal y no al catálogo modular del negocio.
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -995,7 +1033,7 @@ si la relación reusable es fuerte, múltiple o de lectura pesada, debe prioriza
 
 ese patrón debe tender a expresarse mediante wrapper modular tipo partials.embedded-tabs y una pieza interna reusable de listado o tabla
 
-si la relación reusable es compacta, puntual o 1 a 1, debe priorizarse una acción contextual compacta del tipo linked-*-action publicada por el propio módulo oferente
+si la relación reusable es compacta, puntual o 1 a 1, debe priorizarse una acción contextual compacta publicada por el propio módulo oferente
 
 no debe forzarse tab pesada cuando la relación no lo necesita
 
@@ -1079,6 +1117,10 @@ Una integración puede estar correctamente orientada al target y seguir siendo i
 Caso consolidado actual:
 
 las relaciones compactas publicadas hacia appointments.show deben respetar la lectura linked + summary_items del host actual.
+
+Regla adicional para datasets internos del tenant:
+
+si un módulo necesita colaboradores internos activos, validación de pertenencia a la empresa o dataset interno reusable, debe consumir primero la pieza tenant correspondiente antes que reconstruir queries sobre memberships o depender de un módulo users no formalizado.
 
 <<END SECTION>>
 
@@ -1326,7 +1368,7 @@ documents no debe absorber órdenes de trabajo operativas ni duplicar la funció
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE SUPPORT Y HELPERS DE ACCESO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 CONVENCIONES DE SUPPORT Y HELPERS DE ACCESO
 
@@ -1355,6 +1397,14 @@ Regla adicional para ownership funcional:
 si una corrección impacta comportamiento operativo propio de un módulo, debe resolverse en service o support del módulo dueño de la capacidad
 
 no corresponde fijar semánticas de inventory, orders u otros dominios desde helpers genéricos del consumidor
+
+Regla adicional de frontera tenant:
+
+las piezas de directorio interno del tenant no reemplazan seguridad, policies ni middleware.
+
+Su función es resolver datasets internos y verificaciones de pertenencia activa a la empresa.
+
+La autorización efectiva continúa perteneciendo a la capa central de acceso.
 
 <<END SECTION>>
 

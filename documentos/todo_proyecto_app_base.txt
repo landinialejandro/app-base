@@ -39,40 +39,37 @@ no debe utilizarse como depósito de ideas difusas sin criterio de ejecución
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — RECONVERSIÓN MODULAR>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00011
 
 LÍNEA ACTIVA — RECONVERSIÓN MODULAR
 
-Objetivo vigente:
+Frente vigente de trabajo:
 
-consolidar el ecosistema modular reusable del proyecto bajo doctrina surface-driven estable.
+convergencia hacia ecosistema surface-driven con contratos modulares explícitos y consumo reusable homogéneo entre módulos.
 
-Frentes activos:
+Cierres parciales consolidados:
 
-revisión de hosts show pages
-alineación de contracts publicados
-reducción de variantes legacy
-migración hacia surfaces oficiales
-homogeneización visual entre consumidores
-validación runtime con Tinker y pruebas reales
+migración de PartyLinkedAction a PartyLinked
+migración de ProjectLinkedAction a ProjectLinked
+migración avanzada de AssetLinkedAction a AssetLinked
+alineación progresiva de show pages como hosts estructurados
+incorporación doctrinal de inventory como frente funcional con surfaces propias
+alineación de tasks y appointments para consumir directorio interno del tenant en lugar de abilities sobre módulo inexistente
 
-Hallazgo consolidado reciente:
+Criterios rectores vigentes:
 
-no alcanza con evolucionar registry y hosts consumidores.
+no backward patching como cierre estable
+migración gradual módulo por módulo
+cada módulo debe cerrar coherencia interna propia
+consumir capacidades oficiales antes de variantes locales nuevas
+no abrir módulo users por necesidades de dataset interno reusable
 
-También deben revisarse las offers ya existentes del lado oferente para asegurar compatibilidad efectiva con la gramática real de cada host.
+Foco de esta línea:
 
-Caso detectado:
-
-offers correctamente dirigidas a appointments.show permanecían invisibles por ausencia de slot explícito.
-
-Lectura vigente:
-
-las show pages deben auditarse como hosts estructurados con zonas reales de montaje y no como contenedores planos definidos solo por target o type.
-
-Referencia evolutiva actual:
-
-appointments.show expresa una madurez host superior dentro de esta línea y sirve como patrón positivo para futuras convergencias cuando corresponda.
+menos lógica dispersa en consumidores
+más capacidades publicadas por módulos oferentes
+más claridad entre núcleo, gateway y consumo externo
+más coherencia entre arquitectura, UI y documentación
 
 <<END SECTION>>
 
@@ -140,7 +137,7 @@ identidad modular como módulo compartido
 contrato simple sin create contextual obligatorio
 ausencia de ownership artificial
 validación runtime real del contrato efectivo
-superficie reusable linked-asset-action
+superficie reusable linked-asset
 alineación principal de consumidores visibles
 
 APPOINTMENTS
@@ -262,23 +259,25 @@ Trasladar el foco a cierre visual y consumo homogéneo del frente.
 <<END SECTION>>
 
 <<SECTION: DEUDA TÉCNICA A REDUCIR>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00008
 
 DEUDA TÉCNICA A REDUCIR
 
-tabs manuales equivalentes a surfaces oficiales ya publicadas
+Pendientes doctrinales o técnicos ya detectados:
 
-includes locales que duplican capacidades de módulos oferentes
+convivencia residual entre familias *LinkedAction y *Linked en módulos no migrados
+fallbacks legacy con shape viejo dentro de migraciones parciales
+hosts show con distinta madurez estructural aún no convergidos
+surfaces secundarias que todavía reconstruyen lógica ya publicada por módulos oferentes
+naming heredado centrado en consumidores donde la capacidad pertenece al oferente
+frentes donde aún se duplican queries internas de memberships en lugar de consumir raíz tenant reusable
+casos donde una falla visual puede confundirse con permisos por falta de auditoría contractual completa
 
-offers sin slot explícito en hosts que lo requieren
+Regla:
 
-hosts show con loops planos no alineados a zonas reales de montaje
+reducir deuda no significa reescribir todo.
 
-naming centrado en consumidor para capacidades ajenas
-
-surfaces visibles solo en pantalla principal y no en consumers secundarios
-
-mezcla visual entre núcleo del host y capacidades invitadas
+Significa cerrar incoherencias reales que rompen el modelo aprobado del sistema.
 
 <<END SECTION>>
 
@@ -418,23 +417,23 @@ inventory
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00007
 
 PENDIENTES INMEDIATOS
 
-revisar surface services restantes del ecosistema bajo gramática type + slot
+Mantener continuidad de los frentes ya abiertos y no perder convergencia doctrinal.
 
-auditar hosts show aún no alineados con patrón estructurado
+Líneas inmediatas vigentes:
 
-continuar reconversión de orders.show hacia modelo host más maduro cuando corresponda
+seguir cierre progresivo de módulos aún no migrados a familia *Linked cuando corresponda
+seguir convergencia de show pages hacia hosts estructurados maduros
+seguir consolidación de inventory como módulo con surfaces oficiales consumidas por otros módulos
+auditar consumers residuales que aún rearman capacidades ya publicadas
+reutilizar TenantUserDirectory en próximos casos reales de dataset interno reusable cuando corresponda
 
-cerrar frente inventory como módulo autónomo con surfaces propias completas
+Regla:
 
-revisar attachments bajo misma doctrina contractual y visual
-
-ejecutar baterías de prueba runtime para integraciones compactas en appointments.show
-
-verificar ausencia de variantes legacy residuales en consumers secundarios
+no abrir frentes nuevos por impulso si existen líneas activas ya identificadas con mayor impacto sistémico.
 
 <<END SECTION>>
 
@@ -493,114 +492,59 @@ indexación de contenido para búsqueda
 <<END SECTION>>
 
 <<SECTION: AUTORIZACIÓN Y PERMISOS>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00006
 
 AUTORIZACIÓN Y PERMISOS
 
-Pendientes reales actuales:
+Doctrina vigente:
 
-* Terminar de consolidar el consumo homogéneo de la capa central de autorización en todos los módulos.
+Security como kernel central
+módulos reconocidos por catálogo
+abilities válidas sobre contratos existentes
+UI alineada con permiso efectivo
+sin bypass en controllers o blades
 
-* Formalizar por implementación completa la delegación al recurso padre en order_items y document_items.
+Hallazgos consolidados:
 
-* Auditar navegación contextual completa en flujos complejos.
+una ability sobre módulo inexistente no constituye permiso válido
+users.viewAny no debe usarse si users no es módulo reconocido
+dataset interno reusable y autorización no son la misma necesidad
 
-* Editar membership_permission_overrides.
+Aplicación vigente:
 
-* Mostrar permiso efectivo final por usuario.
+validaciones de pertenencia interna pueden apoyarse en TenantUserDirectory
+la autorización efectiva continúa en Security, policies y middleware
 
-* Implementar historial o auditoría de cambios de permisos.
+Regla:
 
-* Alinear navbar y dashboard con acceso real por módulo.
-
-* Revisar datos legacy donde existan memberships sin rol.
-
-* Definir comportamiento cuando no haya módulos habilitados.
-
-* Alinear el contrato efectivo de parties con su nueva doctrina cerrada, especialmente create contextual por kind, constraints.allowed_kinds sobre registros existentes, delete reservado y consumo reusable de linked-party-action.
-
-* Cerrar el contrato efectivo de inventory como módulo visible y administrable, incluyendo catálogo inventory.*, asignación real a roles, surface de administración para owner y consecuencia visual automática según permiso efectivo.
-
-Pendientes cerrados y no reabrir:
-
-* cierre contractual completo de permisos V2 en módulo orders (scope + constraints + UI + persistencia)
-
-* eliminación de dependencia de ownership y own_assigned en orders
-
-* validación de segmentación funcional por constraints.allowed_kinds
-
-* soporte de lectura más amplia que escritura en el modelo
-
-* eliminación de visibilidad residual hacia módulos deshabilitados en relaciones desde appointments
-
-* consolidación documental de parties como módulo base intrínseco del sistema y no como módulo opcional común
-
-* corrección estructural de create contextual en la capa central para evitar dependencia indebida de subject class-string al evaluar constraints
-
-* validación de orders.create por module + capability + context con subject nulo y contexto kind obligatorio
-
-* cierre doctrinal de que Gate o policy abstracta no constituyen canal válido para create contextual con constraints obligatorias
-
-* cierre doctrinal de parties.create como create contextual por kind
-
-* cierre doctrinal de allowed_kinds de parties como arbitraje de create, view, update y delete
-
-* cierre doctrinal de delete de parties reservado a owner con delegación posible a administrator
+cuando aparezca un problema de acceso, distinguir primero si falta permiso real o si falta resolver correctamente la capa funcional involucrada.
 
 <<END SECTION>>
 
 <<SECTION: FLUJOS FUNCIONALES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 FLUJOS FUNCIONALES
 
-revisar consolidación funcional del vínculo 1 a 1 entre tasks y orders
+Flujos operativos centrales actualmente consolidados:
 
-alinear tasks definitivamente con la regla operativa acordada de ownership por assigned_user_id mediante policy formal consolidada
+tasks puede originar orders
+appointments puede originar orders
+orders puede derivar documents
+orders puede actuar como host visual de inventory, documents y attachments
+projects agrupa tasks
+assets y parties contextualizan agenda, órdenes y documentos
+inventory aporta stock, movimientos e historial como frente funcional propio
 
-validar en uso real la consistencia entre dataset visible de tasks resuelto por backend y filtros aplicados en UI
+Flujo interno adicional consolidado:
 
-asegurar que los filtros de UI operen únicamente sobre el dataset ya resuelto por backend y no alteren el universo visible
+tasks y appointments requieren colaboradores internos del tenant para asignación y validaciones.
 
-evaluar reglas futuras de bloqueo o trazabilidad cuando una tarea ya derivó en orden
+Ese flujo interno debe resolverse desde pertenencia activa de memberships consumida por raíz reusable tenant, sin crear módulo users adicional.
 
-endurecer coherencia entre documents y orders asociadas
+Regla:
 
-validar coincidencia entre document.party_id y order.party_id cuando exista order asociada
-
-evaluar reglas futuras de bloqueo de edición en documents cuando estén vinculados a orders y/o assets
-
-implementar vista semanal de appointments
-
-evaluar vista diaria o detalle operativo por día para appointments
-
-revisar si la navegación entre vista mensual, semanal y diaria de appointments conviene resolverse dentro de una misma pantalla o con vistas separadas
-
-evaluar si el bloqueo de alta en fechas pasadas en appointments necesita endurecimiento adicional por estado o por rubro
-
-revisar si appointments necesita contemplar casos multifecha reales
-
-revisar si el calendario semanal de appointments requiere grilla horaria o solo agrupación por día
-
-revisar si conviene desacoplar workstation_name en dos campos futuros: referencia interna y dirección real
-
-terminar de alinear flujos de alta contextual desde show relacionados, especialmente:
-
-assets -> crear order
-assets -> crear document
-assets -> agendar appointment
-
-dejar resuelto el precompletado del formulario de appointments cuando se ingresa desde un activo o desde una relación contextual
-
-Pendiente inmediato documents:
-
-revisar documents como siguiente caso de create contextual con constraints obligatorias reutilizando el patrón ya validado en orders
-
-Pendiente inmediato parties:
-
-reconvertir party.show desde ficha simple hacia nodo transversal con relaciones operativas relevantes
-
-alinear la navegación y apertura hacia parties desde módulos consumidores bajo la futura capacidad reusable linked-party-action cuando corresponda
+un flujo funcional puede cruzar varios módulos sin borrar la identidad propia de cada uno.
 
 <<END SECTION>>
 

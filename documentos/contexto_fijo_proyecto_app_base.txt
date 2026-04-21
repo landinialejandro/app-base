@@ -221,7 +221,7 @@ Es una pieza estructural del funcionamiento del sistema.
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00009
 
 CAPAS FUNCIONALES DEL SISTEMA
 
@@ -243,11 +243,19 @@ Corresponde al contexto operativo de una empresa activa.
 
 Incluye el tenant vigente y el marco general dentro del cual opera esa empresa.
 
+Incluye también las piezas reusables que resuelven contexto interno de la empresa cuando esa necesidad no constituye módulo funcional autónomo del negocio.
+
 CAPA DE GOBIERNO INTERNO DEL TENANT
 
 Corresponde a la organización interna de acceso y funcionamiento dentro de la empresa activa.
 
 Incluye la pertenencia por membership y la organización interna de actores operativos.
+
+La lectura estable de usuarios internos del tenant pertenece a esta capa y no debe proyectarse como módulo funcional users dentro del ecosistema actual.
+
+users sigue representando identidad global.
+
+memberships sigue resolviendo pertenencia operativa real por empresa.
 
 CAPA TRANSVERSAL
 
@@ -278,6 +286,10 @@ Regla de frontera:
 tenant pertenece a la capa tenant y al marco interno de operación segura del sistema.
 
 No debe relocalizarse conceptualmente dentro de base del dominio ni de módulos funcionales por aparecer como dato contextual en relaciones del negocio.
+
+Regla adicional consolidada:
+
+cuando la necesidad sea resolver usuarios internos activos del tenant, la salida arquitectónica correcta pertenece al plano tenant y no exige abrir por inercia un módulo funcional users.
 
 <<END SECTION>>
 
@@ -343,7 +355,7 @@ Su función es sostener la plataforma y su frontera de ingreso.
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 ENTIDADES DEL NEGOCIO
 
@@ -370,6 +382,16 @@ Estas entidades deben leerse como parte del ecosistema operativo de empresa y no
 No todas cumplen el mismo rol conceptual.
 
 Algunas funcionan como base del dominio, otras como módulos autónomos, otras como agrupadores, derivadas o capacidades transversales.
+
+Regla adicional consolidada sobre usuarios internos:
+
+la operación interna del tenant no convierte a users en entidad del negocio.
+
+users sigue siendo identidad global del sistema.
+
+La pertenencia operativa real a la empresa se resuelve por memberships.
+
+Cuando el ecosistema necesite un dataset reusable de colaboradores internos activos del tenant, esa necesidad debe leerse como resolución del plano tenant y no como incorporación de una nueva entidad del negocio ni como apertura de un módulo users.
 
 Aclaración adicional consolidada:
 
@@ -488,7 +510,7 @@ El detalle contractual y operativo de cada módulo se resuelve en la sección LE
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00011
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
@@ -530,23 +552,6 @@ resolver reusable
 representación oficial
 consumo homogéneo desde módulos externos
 
-En show pages surface-driven, esa puerta de enlace además debe poder montarse sobre zonas explícitas del host.
-
-La lectura aprobada del host show ya no debe reducirse a un punto genérico de inserción por tipo.
-
-Debe entenderse como estructura anfitriona con zonas diferenciadas de montaje.
-
-Casos estructurales actualmente consolidados:
-
-header_actions
-summary_items
-detail_items
-zona tab coordinada construida desde tabItems
-
-La zona tab no debe leerse como dos loops visuales independientes sin estructura.
-
-Debe leerse como una composición coordinada del host para armar navegación, toolbar, botones y paneles como una única capacidad tabular del show.
-
 Regla arquitectónica consolidada:
 
 debe centralizarse únicamente la infraestructura repetida y mantenerse local la semántica del módulo.
@@ -558,6 +563,25 @@ los contratos comunes pueden absorber helpers, shape repetido y utilidades míni
 los resolvers, payloads, decisiones funcionales, flags UX y reglas del dominio permanecen dentro del módulo oferente
 
 Reducir líneas de código no constituye objetivo suficiente si se pierde legibilidad contractual, identidad modular o trazabilidad semántica.
+
+Aclaración adicional consolidada sobre relaciones compactas:
+
+cuando una relación compacta madura como capacidad reusable oficial del módulo oferente, debe publicarse desde ese módulo como parte explícita de su puerta de enlace oficial.
+
+La secuencia correcta de lectura es:
+
+consumer solicita
+support del módulo oferente resuelve
+componente del módulo oferente representa
+host monta
+
+Aclaración adicional de evolución vigente:
+
+el ecosistema empieza a consolidar una familia más nítida de linked compactos publicados por el propio módulo oferente.
+
+Esa evolución no debe resolverse como mezcla permanente entre generaciones viejas y nuevas.
+
+Si un módulo migra a una nueva familia *Linked, la convergencia correcta es cerrar esa capacidad en la nueva generación y no sostener backward patching estable hacia *LinkedAction como solución final.
 
 CONSUMO EXTERNO
 
@@ -595,7 +619,7 @@ tenant no forma parte de las relaciones superficiales modulares del ecosistema.
 
 Pertenece al plano interno de multi-tenancy, contexto operativo y seguridad.
 
-No debe tratarse como relación reusable publicada o consumida por ModuleSurfaceService.
+No debe tratarse como relación reusable publicada o consumida por módulos funcionales del negocio.
 
 Regla final:
 
@@ -604,7 +628,7 @@ la evolución modular del sistema debe tender a más reutilización oficial y me
 <<END SECTION>>
 
 <<SECTION: BASE DEL DOMINIO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00003
 
 BASE DEL DOMINIO
 
@@ -624,10 +648,18 @@ que una pieza pertenezca a la base del dominio no la convierte en infraestructur
 
 Sigue perteneciendo al ecosistema operativo del tenant, pero con un rol conceptual más amplio que el de un módulo operativo puntual.
 
+Regla adicional consolidada:
+
+los usuarios internos activos del tenant no pertenecen a la base del dominio del negocio.
+
+Su lectura correcta pertenece al plano tenant y a memberships como pertenencia operativa real.
+
+Por lo tanto, esa necesidad no debe reinterpretarse como expansión de parties ni como apertura de un módulo users dentro de la base del dominio.
+
 <<END SECTION>>
 
 <<SECTION: MÓDULOS FUNCIONALES ACTUALES>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00011
 
 MÓDULOS FUNCIONALES ACTUALES
 
@@ -647,6 +679,14 @@ inventory
 
 Estos módulos constituyen la lectura funcional principal del sistema dentro de la empresa activa.
 
+Regla adicional consolidada:
+
+users no forma parte de este conjunto como módulo funcional autónomo del ecosistema tenant actual.
+
+users sigue perteneciendo al plano de identidad global del sistema.
+
+La lectura operativa interna de colaboradores activos de una empresa se resuelve por memberships y no por un módulo users del negocio.
+
 Aclaraciones estructurales relevantes:
 
 appointments: su superficie principal es appointments.calendar. El index existe como superficie secundaria accesible pero no como base promovida del módulo.
@@ -658,6 +698,12 @@ Aclaración adicional sobre madurez host surface-driven:
 dentro del ecosistema actual, no todos los show pages se encuentran en el mismo nivel de evolución contractual.
 
 appointments.show expresa una lectura anfitriona más avanzada y debe tomarse como referencia positiva de evolución para otros hosts cuando corresponda.
+
+Aclaración adicional sobre publicación modular:
+
+la existencia de módulos funcionales no se agota en su navegación estructural.
+
+Cuando una relación compacta madura como capacidad reusable oficial, debe leerse como parte de la puerta de enlace publicada por el propio módulo oferente.
 
 El detalle del rol arquitectónico de cada módulo se resuelve en LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES.
 
@@ -772,7 +818,7 @@ las relaciones macro aquí descritas expresan lectura arquitectónica del ecosis
 <<END SECTION>>
 
 <<SECTION: MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00003
 
 MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO
 
@@ -791,6 +837,20 @@ mantener coherencia entre arquitectura y documentación
 Regla general:
 
 una necesidad nueva no debe reabrir arbitrariamente el núcleo conceptual de otro módulo salvo que cambie realmente su posición dentro del sistema.
+
+Regla adicional consolidada para usuarios internos del tenant:
+
+si varios frentes necesitan resolver colaboradores internos activos de la empresa, primero debe evaluarse si la necesidad pertenece al plano tenant y puede resolverse mediante una pieza reusable interna.
+
+No debe abrirse por inercia un módulo users dentro del ecosistema funcional si la necesidad real es directorio interno reusable y pertenencia activa por membership.
+
+Regla adicional consolidada para relaciones compactas:
+
+cuando una capacidad reusable compacta ya maduró como publicación oficial del módulo oferente, el crecimiento sano del sistema debe converger hacia esa publicación propia y no hacia parches backward permanentes entre generaciones viejas y nuevas.
+
+La migración puede cerrarse módulo por módulo.
+
+Lo que no debe consolidarse como estado estable es la mezcla doctrinal entre una nueva familia *Linked y la generación previa *LinkedAction para la misma capacidad ya decidida.
 
 <<END SECTION>>
 

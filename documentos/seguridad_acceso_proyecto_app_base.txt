@@ -28,51 +28,70 @@ No corresponde definir aquí navegación visual, patrones UI, roadmap, estructur
 <<END SECTION>>
 
 <<SECTION: ALCANCE GENERAL>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00005
 
 ALCANCE GENERAL
 
-La seguridad del proyecto comprende todo el circuito de operación válida del sistema:
+Este documento define la doctrina de seguridad, acceso y autorización del proyecto.
 
-acceso público inicial
-autenticación
-pertenencia a tenants
-tenant activo como contexto legítimo
-aislamiento multi-tenant
-autorización sobre módulos
-autorización sobre registros
-constraints funcionales
-consumo correcto desde backend
-expresión coherente en UI
-auditoría doctrinal y runtime
+Su alcance cubre:
 
-La seguridad no se limita al login ni a esconder botones.
+multi-tenancy operativo
+autenticación y contexto válido de operación
+permisos V2
+scopes y constraints
+policies y middleware
+contrato de seguridad modular
+visibilidad funcional como consecuencia del backend
+consumo seguro entre módulos
+fronteras entre autorización y capas auxiliares reusables
 
-Comprende quién puede operar, sobre qué universo, bajo qué condiciones y dentro de qué contexto válido.
+No reemplaza documentación de dominio, UI, navegación, estructura física ni contexto arquitectónico general.
+
+Las decisiones de seguridad deben integrarse con esos documentos sin contradicción.
+
+Regla de frontera:
+
+cuando una necesidad real sea dataset interno reusable del tenant o verificación de pertenencia activa, no debe forzarse una lectura como ability modular.
+
+Ese problema pertenece a la capa correcta que resuelve datasets o pertenencia.
+
+La autorización efectiva sigue perteneciendo al sistema de seguridad.
 
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
 SECTION_VERSION: 00008
+
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
-Toda autorización del sistema debe respetar principios estables y no negociables.
-Principios:
-backend decide
-frontend representa
-tenant aísla
-permiso explícito prevalece
-scope real limita dataset
-constraint funcional restringe capacidad
-delegación debe ser consciente
-trazabilidad importa
-Estos principios son abstractos y estables. Su aplicación operativa concreta se resuelve en REGLAS DE IMPLEMENTACIÓN SEGURA.
-Principio adicional consolidado:
-cuando una operación dependa del estado funcional del recurso padre o del flujo actual, ese estado forma parte de la autorización efectiva y no solo de una validación secundaria.
-Principio de continuidad operativa:
-el sistema puede privilegiar continuidad de operación con registro y alerta antes que bloqueo automático, siempre que no comprometa aislamiento tenant, integridad crítica o seguridad del contrato.
-Este principio aplica cuando el riesgo es operativo y reversible. No aplica cuando está en juego aislamiento entre tenants, ausencia de permiso efectivo, ruptura de integridad estructural no reversible, ausencia de trazabilidad mínima exigible o contradicción funcional que vuelva insegura la operación.
-Caso vigente:
-inventory puede permitir ejecución con stock negativo manteniendo trazabilidad y alerta automática al owner.
+
+Toda autorización del sistema debe respetar simultáneamente estos principios:
+
+autorización centralizada
+contratos explícitos
+multi-tenancy estricto
+mínimo privilegio
+coherencia visible
+sin bypass laterales
+trazabilidad consistente
+
+Reglas obligatorias:
+
+controllers no redefinen permisos
+blades no arbitran acceso real
+helpers no reemplazan Security
+consumidores no inventan abilities
+módulos inexistentes no generan contrato válido
+la UI no debe mostrar capacidad no operable
+
+Principio adicional de frontera:
+
+resolver dataset interno, pertenencia activa o directorio reusable del tenant no equivale a autorizar una operación.
+
+Esas necesidades no deben disfrazarse como permission V2.
+
+La autorización efectiva debe resolverse en Security, policies o middleware según corresponda al flujo.
+
 <<END SECTION>>
 
 <<SECTION: ACCESO PÚBLICO Y ACCESO AUTENTICADO>>
@@ -273,58 +292,36 @@ no saltar el resolver central con lógica local improvisada
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00010
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
-No duplicar lógica de autorización entre capas.
+Toda implementación nueva debe validar:
 
-No hardcodear permisos por fuera del contrato persistido.
+usa Security como punto central
+respeta tenant actual
+no duplica lógica de permisos
+no expone acciones no operables
+no inventa abilities
+no depende de módulos inexistentes
+mantiene coherencia visible
+distingue dataset, pertenencia y autorización como planos distintos
 
-No exponer acciones no autorizadas como si fueran operables.
+Checklist práctico:
 
-No omitir contexto obligatorio cuando una capacidad lo requiera.
+si falla un acceso, revisar contrato del módulo
+si falla una integración, revisar también host, slot, type y shape
+si falta un dataset interno, revisar la capa tenant correspondiente antes de crear permission nueva
+si la UI muestra una acción, validar permiso real
+si el usuario navega entre módulos, preservar contexto sin bypassar seguridad
 
-No ignorar constraints funcionales vigentes.
+Regla adicional:
 
-No romper aislamiento multi-tenant.
+cuando un flujo requiera verificar que un colaborador pertenece a la empresa actual, esa verificación debe seguir existiendo.
 
-No usar la UI como única barrera de control.
+Puede apoyarse en una raíz reusable del tenant.
 
-No asumir que una simplificación técnica justifica una excepción doctrinal.
-
-Toda implementación debe preferir claridad, centralización y trazabilidad de la decisión autorizadora.
-
-Los bloqueos duros deben reservarse a razones realmente críticas:
-
-violación de tenant
-falta de permiso efectivo
-ruptura de integridad estructural no reversible
-ausencia de trazabilidad mínima exigible
-contradicción funcional que vuelva insegura la operación
-
-Cuando la operación exija resolver excepciones no críticas, la implementación segura debe tender a registrar, contextualizar y escalar antes que bloquear una continuidad de trabajo legítima.
-
-Regla adicional para integraciones visibles no renderizadas:
-
-si una surface reusable no aparece en runtime, no asumir primero un fallo de permisos.
-
-Auditar también:
-
-target
-type
-slot
-compatibilidad con el host
-resolver publicado
-condiciones reales de montaje
-
-La ausencia visual puede ser contractual o estructural sin implicar rechazo autorizador.
-
-Regla de frontera:
-
-esta sección define criterios generales de implementación segura.
-
-No debe absorber detalle contractual específico por módulo ni repetir desarrollo ya concentrado en INTEGRACIONES REUSABLES Y AUTORIZACIÓN o en REGLAS OPERATIVAS POR MÓDULO.
+No debe resolverse inventando un módulo users autorizado ni una ability modular inexistente.
 
 <<END SECTION>>
 
@@ -350,83 +347,42 @@ Ignorar constraints equivale a ejecutar un contrato incompleto.
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00011
 
 CONTRATO DE SEGURIDAD MODULAR
 
-Todo módulo debe poseer un contrato de seguridad entendible y consistente.
+Todo módulo funcional reconocido en el catálogo debe integrarse con el sistema de seguridad vigente.
 
-Capas mínimas:
+El contrato válido se apoya en:
 
-capacidades válidas
-scope de dataset
-constraints funcionales
-reglas por acción
-reglas contextuales
-delegaciones si existen
-
-Preguntas obligatorias:
-
-quién puede ver
-quién puede crear
-quién puede editar
-quién puede borrar
-qué depende de contexto
-qué depende de estado
-qué depende de constraint
+ModuleCatalog
+CapabilityCatalog
+PermissionScopeCatalog
+RolePermissionResolver
+Security
+Policies cuando apliquen
 
 Reglas:
 
+solo módulos reconocidos en ModuleCatalog pueden originar abilities modulares válidas
+toda ability debe respetar formato y capacidad reconocida
 view_any no puede ser más restrictivo que view
+los constraints complementan el contrato pero no lo reemplazan
+la UI visible debe reflejar el permiso efectivo
 
-las constraints reales deben aplicarse en backend
+Hallazgo doctrinal consolidado:
 
-las reglas contextuales no deben quedar solo en UI
+una ability sobre módulo no formalizado puede devolver false no por falta de privilegio del usuario sino por inexistencia contractual del módulo dentro del catálogo y del sistema de scopes.
 
-si un módulo delega seguridad al padre, esa delegación debe ser explícita
-
-si el módulo publica capacidades reutilizables, esas capacidades siguen sometidas a su mismo contrato de seguridad
-
-Validación adicional para módulos con estado:
-
-si la operación solo es válida en ciertos estados del recurso, ese estado integra el contrato de seguridad modular efectivo
-
-Caso vigente:
-
-inventory sobre órdenes solo opera en órdenes operables y debe rechazar closed o cancelled según contrato real
-
-Regla adicional de administrabilidad para owner:
-
-si un módulo depende de habilitación, permisos o configuración tenant para volverse realmente operable, ese contrato no debe quedar implícito ni oculto
-
-owner debe disponer de una vía visible y real para administrar ese frente dentro del sistema
-
-esa administrabilidad puede resolverse desde una surface central de configuración, permisos o activación
-
-no exige necesariamente una pantalla aislada por módulo
-
-sí exige que el módulo no quede técnicamente existente pero prácticamente inconﬁgurable para owner
-
-Regla adicional para publicación reusable:
-
-si una capacidad reusable será consumida dentro de hosts surface-driven, su contrato publicado debe ser compatible con la gramática real del host.
-
-No alcanza con permiso correcto y target correcto si la integración queda invisible por declaración incompleta.
-
-Debe validarse también consistencia entre:
-
-type
-slot
-zona consumida
-forma real de montaje del host
-
-La seguridad efectiva sigue siendo del módulo oferente, pero la publicación debe ser consumible de forma coherente.
+Por lo tanto, no deben consumirse abilities como users.viewAny si users no existe como módulo funcional reconocido.
 
 Regla de frontera:
 
-esta sección fija exigencias mínimas del contrato de seguridad de cada módulo.
+cuando el flujo requiera colaboradores internos del tenant, la solución correcta no es inventar contrato de seguridad modular inexistente.
 
-El detalle de consumo reusable y el comportamiento visible de integraciones entre módulos se desarrolla en INTEGRACIONES REUSABLES Y AUTORIZACIÓN.
+Debe resolverse primero el dataset o la pertenencia en la capa tenant correspondiente.
+
+La autorización efectiva sigue perteneciendo a las piezas centrales del sistema de seguridad.
 
 <<END SECTION>>
 
@@ -462,75 +418,43 @@ El detalle de esas restricciones complementarias debe resolverse en REGLAS OPERA
 <<END SECTION>>
 
 <<SECTION: INTEGRACIONES REUSABLES Y AUTORIZACIÓN>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00009
 
 INTEGRACIONES REUSABLES Y AUTORIZACIÓN
 
-Toda integración reusable entre módulos debe conservar la seguridad del sistema.
+Toda integración reusable entre módulos sigue sujeta a seguridad efectiva.
 
 Reglas:
 
-el módulo consumidor no hereda permisos por usar una surface ajena
+el módulo oferente arbitra permisos y estados operables de la capacidad publicada
+el consumidor no debe reinterpretar permisos localmente
+el componente visual representa el resultado autorizado
+la ausencia visual no implica automáticamente falta de permiso
 
-la surface reusable no bypassa policies ni Security
+Una integración puede fallar visualmente por desalineación contractual entre:
 
-los datasets embebidos siguen scoped según el contrato del módulo oferente
+hostPack
+resolver
+view
+type
+slot
+shape
 
-las acciones contextuales siguen autorizadas por backend
+Eso debe auditarse como problema de integración y no confundirse de inmediato con problema de seguridad.
 
-los estados visibles deben corresponder a autorización real
+Regla adicional:
 
-si la integración depende de módulo deshabilitado, no debe exponerse como acción residual
+las referencias compactas reutilizables y las acciones contextuales no son idénticas.
 
-cuando una integración reusable concentre arbitraje complejo, el payload, flags o estados autorizados deben venir resueltos desde el módulo oferente
+Si una capacidad mezcla navegación, apertura y create contextual, su arbitraje debe quedar claro y centralizado en el módulo oferente.
 
-el consumidor no debe reinterpretar permisos, constraints, readonly ni estados por su cuenta
+Regla de frontera:
 
-cuando una capacidad reusable se consuma por fila dentro de una tabla operativa, el consumidor tampoco debe rearmar localmente qué acción corresponde, qué estado mostrar o si la línea quedó readonly
+la reutilización de una pieza tenant para dataset interno o verificación de pertenencia no reemplaza el contrato de seguridad del módulo que consume ese dato.
 
-esa lectura debe provenir del contexto oficial publicado por el módulo oferente
+Una cosa resuelve base de datos o pertenencia válida.
 
-si una capacidad reusable se renderiza dentro de un host visual, el contrato de seguridad aplicable sigue siendo el del módulo oferente
-
-el host no adquiere por esa vía autorización sustitutiva ni puede reinterpretar la capacidad invitada como lógica propia
-
-si el host organiza montaje por type y slot, la ausencia o incoherencia contractual de esos datos puede volver invisible la integración aunque el target sea válido
-
-eso no modifica la doctrina de permisos, pero sí la forma correcta y segura de publicar una capacidad consumible
-
-La reutilización de infraestructura técnica común entre módulos no altera ownership de permisos ni responsabilidades doctrinales.
-
-Centralizar helpers, factories de arrays o utilidades repetidas no reemplaza:
-
-policies
-resolver central
-Security
-contratos específicos por módulo
-payload funcional publicado por el oferente
-
-Casos vigentes:
-
-linked-order-action
-linked-party-action
-linked-asset-action
-surfaces oficiales de inventory consumidas por products u orders
-surface embebida de documents consumida por orders.show
-relaciones compactas hacia appointments.show publicadas como linked + summary_items
-
-Regla de cierre:
-
-las integraciones reusables deben auditarse como unidad completa de autorización consumible.
-
-No alcanza con verificar permiso abstracto ni existencia de target.
-
-Debe verificarse de forma conjunta:
-
-contrato del módulo oferente
-scope efectivo
-constraints efectivas
-payload publicado
-compatibilidad real con el host consumidor
-ausencia de reinterpretación local por parte del consumidor
+La otra autoriza operación efectiva.
 
 <<END SECTION>>
 

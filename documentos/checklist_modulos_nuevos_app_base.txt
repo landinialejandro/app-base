@@ -110,7 +110,7 @@ Si estas respuestas no están claras, no debe avanzarse a implementación.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 BLOQUE 1 — CONTRATO MODULAR
 
@@ -234,6 +234,10 @@ si la publicación respeta la gramática real del host consumidor
 
 Una offer puede estar bien orientada al target y seguir siendo invisible si omite slot o si combina type + slot de forma incompatible con el host real.
 
+Validación adicional para datasets internos del tenant:
+
+si la necesidad aparente del nuevo módulo es resolver colaboradores internos, pertenencia activa al tenant o dataset reusable de usuarios internos, debe evaluarse primero si corresponde una raíz reusable del plano tenant antes que abrir un módulo artificial del negocio.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
@@ -296,7 +300,7 @@ si owner dispone de una surface real para entender y administrar ese comportamie
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -364,10 +368,16 @@ No dar por buena una integración solo porque el target coincide.
 
 Debe comprobarse que el host efectivamente consume esa combinación y que la relación se publica en la zona correcta.
 
+Validación adicional para usuarios internos del tenant:
+
+si una integración requiere colaboradores internos del tenant, no debe apoyarse en abilities de módulos inexistentes ni asumir que existe un módulo users formalizado.
+
+Debe evaluarse primero si la necesidad corresponde a una raíz reusable del plano tenant y no a la creación de un módulo nuevo.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA
 
@@ -436,6 +446,16 @@ zona tab coordinada
 
 La zona tab no debe evaluarse como dos renders sueltos sin estructura, sino como bloque coordinado del host.
 
+Validación adicional para formularios con datasets internos:
+
+un formulario no debe quedar bloqueado por depender de una fuente de datos no formalizada del catálogo modular.
+
+Si el flujo admite fallback operativo sano, la UI debe expresarlo con claridad y bajo roce.
+
+Caso consolidado:
+
+cuando una tarea no recibe colaborador explícito, el sistema puede asumir asignación al usuario actual en lugar de volver el formulario inviable.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 5 — DOCUMENTACIÓN Y CIERRE>>
@@ -498,7 +518,7 @@ Este bloque resume mínimos técnicos, pero no reemplaza el checklist completo.
 <<END SECTION>>
 
 <<SECTION: CRITERIO FINAL DE APROBACIÓN>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 CRITERIO FINAL DE APROBACIÓN
 
@@ -524,6 +544,7 @@ sus superficies secundarias también quedaron alineadas
 sus consumers externos dejaron de depender de variantes legacy
 si actúa como host visual, mantiene separado su núcleo de las capacidades invitadas
 si las relaciones fuertes ya migraron a surface oficial, desaparecieron las tabs manuales residuales equivalentes
+si la necesidad original realmente justificaba un módulo nuevo y no una raíz reusable del plano tenant
 
 Validaciones finales obligatorias para módulos transaccionales:
 
@@ -637,7 +658,7 @@ si una acción reusable navega hacia otro módulo, la visibilidad final debe seg
 <<END SECTION>>
 
 <<SECTION: CHECKLIST DE INTEGRACIÓN>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 CHECKLIST DE INTEGRACIÓN
 
@@ -676,6 +697,10 @@ Regla adicional para show pages surface-driven:
 si el host monta surfaces por zonas explícitas, el checklist debe verificar que cada offer publique slot correcto y que el host tenga montaje compatible con esa combinación.
 
 Una offer sin slot o con slot incoherente puede quedar invisible aunque el resto del contrato parezca correcto.
+
+Regla adicional para usuarios internos del tenant:
+
+si una integración necesita usuarios internos activos, validar explícitamente que el dataset provenga del plano tenant reusable correspondiente y no de un módulo inexistente ni de una query duplicada reconstruida por cada consumidor.
 
 <<END SECTION>>
 

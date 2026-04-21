@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/InventoryController.php | V9
+// FILE: app/Http/Controllers/InventoryController.php | V10
 
 namespace App\Http\Controllers;
 
@@ -12,8 +12,10 @@ use App\Support\Auth\Security;
 use App\Support\Catalogs\OrderCatalog;
 use App\Support\Catalogs\ProductCatalog;
 use App\Support\Inventory\InventoryMovementService;
+use App\Support\Inventory\InventorySurfaceService;
 use App\Support\Inventory\OrderInventoryOperationService;
 use App\Support\Inventory\ProductStockCalculator;
+use App\Support\Modules\ModuleSurfaceRegistry;
 use App\Support\Navigation\InventoryNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
 use Illuminate\Http\RedirectResponse;
@@ -25,10 +27,31 @@ class InventoryController extends Controller
 {
     public function index(Request $request): View
     {
-        $products = app(Security::class)
+        $navigationTrail = InventoryNavigationTrail::index($request);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+
+        $query = trim((string) $request->string('q'));
+
+        $productsQuery = app(Security::class)
             ->scope(auth()->user(), 'products.viewAny', Product::query())
             ->where('kind', ProductCatalog::KIND_PRODUCT)
-            ->withCount('inventoryMovements')
+            ->with([
+                'inventoryMovements:id,product_id,kind,quantity',
+            ]);
+
+        if ($query !== '') {
+            $productsQuery->where(function ($builder) use ($query) {
+                $builder
+                    ->where('name', 'like', '%'.$query.'%')
+                    ->orWhere('sku', 'like', '%'.$query.'%');
+
+                if (ctype_digit($query)) {
+                    $builder->orWhereKey((int) $query);
+                }
+            });
+        }
+
+        $products = $productsQuery
             ->orderBy('name')
             ->get();
 
@@ -38,19 +61,46 @@ class InventoryController extends Controller
 
         $rows = $products
             ->map(function (Product $product) use ($stocks) {
+                $movements = $product->inventoryMovements ?? collect();
+
+                $totalIn = (float) $movements
+                    ->whereIn('kind', [
+                        InventoryMovementService::KIND_INGRESAR,
+                    ])
+                    ->sum('quantity');
+
+                $totalOut = (float) $movements
+                    ->whereIn('kind', [
+                        InventoryMovementService::KIND_CONSUMIR,
+                        InventoryMovementService::KIND_ENTREGAR,
+                    ])
+                    ->sum('quantity');
+
                 return [
                     'product' => $product,
-                    'stock' => (float) ($stocks[$product->id] ?? 0),
-                    'movement_count' => (int) ($product->inventory_movements_count ?? 0),
+                    'total_in' => $totalIn,
+                    'total_out' => $totalOut,
+                    'balance' => (float) ($stocks[$product->id] ?? 0),
                 ];
             })
             ->values();
 
-        $navigationTrail = InventoryNavigationTrail::index($request);
+        $hostPack = app(InventorySurfaceService::class)->hostPack('inventory.index', null, [
+            'trailQuery' => $trailQuery,
+        ]);
+
+        $linked = collect(
+            app(ModuleSurfaceRegistry::class)->linkedFor('inventory.index', $hostPack)
+        )->values();
+
+        $headerActions = $linked
+            ->where('slot', 'header_actions')
+            ->values();
 
         return view('inventory.index', compact(
             'rows',
             'navigationTrail',
+            'headerActions',
         ));
     }
 
@@ -63,25 +113,100 @@ class InventoryController extends Controller
             404
         );
 
+        $movementKind = trim((string) $request->string('kind'));
+
+        if ($movementKind !== '' && ! in_array($movementKind, InventoryMovementService::kinds(), true)) {
+            abort(404);
+        }
+
+        $navigationTrail = InventoryNavigationTrail::show($request, $product);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+
         $product->load([
             'attachments' => fn ($query) => $query->ordered(),
         ]);
 
-        $inventoryMovements = $product->inventoryMovements()
+        $movementsQuery = $product->inventoryMovements()
             ->with(['order', 'orderItem', 'document', 'product'])
-            ->latest('created_at')
-            ->latest('id')
-            ->get();
+            ->orderBy('created_at')
+            ->orderBy('id');
+
+        if ($movementKind !== '') {
+            $movementsQuery->where('kind', $movementKind);
+        }
+
+        $inventoryMovements = $movementsQuery->get();
+
+        $runningBalance = 0.0;
+
+        $movementRows = $inventoryMovements
+            ->map(function ($movement) use (&$runningBalance) {
+                $quantity = (float) $movement->quantity;
+                $signedQuantity = $this->signedQuantityForMovement($movement->kind, $quantity);
+
+                $runningBalance += $signedQuantity;
+
+                return [
+                    'movement' => $movement,
+                    'signed_quantity' => $signedQuantity,
+                    'running_balance' => $runningBalance,
+                ];
+            })
+            ->values()
+            ->reverse()
+            ->values();
 
         $currentStock = app(ProductStockCalculator::class)->forProduct($product);
 
-        $navigationTrail = InventoryNavigationTrail::show($request, $product);
+        $hostPack = app(InventorySurfaceService::class)->hostPack('inventory.show', $product, [
+            'trailQuery' => $trailQuery,
+        ]);
+
+        $embedded = collect(app(ModuleSurfaceRegistry::class)->embeddedFor('inventory.show', $hostPack))->values();
+        $linked = collect(app(ModuleSurfaceRegistry::class)->linkedFor('inventory.show', $hostPack))->values();
+
+        $summaryItems = $linked->where('slot', 'summary_items')->values();
+        $headerActions = $linked->where('slot', 'header_actions')->values();
+        $detailItems = $embedded->where('slot', 'detail_items')->values();
+        $tabItems = $embedded->where(fn ($item) => ($item['slot'] ?? 'tab_panels') === 'tab_panels')->values();
 
         return view('inventory.show', compact(
             'product',
-            'inventoryMovements',
+            'movementRows',
             'currentStock',
             'navigationTrail',
+            'movementKind',
+            'summaryItems',
+            'headerActions',
+            'detailItems',
+            'tabItems',
+        ));
+    }
+
+    public function createMovement(Request $request, Product $product): View
+    {
+        $this->authorize('update', $product);
+
+        abort_if(
+            $product->kind !== ProductCatalog::KIND_PRODUCT,
+            404
+        );
+
+        $navigationTrail = InventoryNavigationTrail::show($request, $product);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+
+        $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $cancelUrl = NavigationTrail::previousUrl(
+            $navigationTrail,
+            route('inventory.show', ['product' => $product] + $trailQuery)
+        );
+
+        return view('inventory.create-movement', compact(
+            'product',
+            'navigationTrail',
+            'breadcrumbItems',
+            'trailQuery',
+            'cancelUrl',
         ));
     }
 
@@ -345,6 +470,16 @@ class InventoryController extends Controller
                 'inventory.show',
                 ['product' => $product] + $trailQuery
             ),
+        };
+    }
+
+    protected function signedQuantityForMovement(string $kind, float $quantity): float
+    {
+        return match ($kind) {
+            InventoryMovementService::KIND_INGRESAR => $quantity,
+            InventoryMovementService::KIND_CONSUMIR,
+            InventoryMovementService::KIND_ENTREGAR => -1 * $quantity,
+            default => 0.0,
         };
     }
 }

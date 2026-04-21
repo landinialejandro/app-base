@@ -3,7 +3,7 @@
 @php
     use App\Support\Catalogs\AssetCatalog;
     use App\Support\Navigation\NavigationTrail;
-    use App\Support\Parties\PartyLinkedAction;
+    use App\Support\Parties\PartyLinked;
 
     $assets = $assets ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay activos para mostrar.';
@@ -58,7 +58,7 @@
 
                         $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
 
-                        $partyAction = PartyLinkedAction::forParty($asset->party, $rowTrailQuery, 'Contacto');
+                        $partyLinked = PartyLinked::forParty($asset->party, $rowTrailQuery, 'Contacto');
                     @endphp
 
                     <tr>
@@ -72,8 +72,8 @@
 
                         @if ($showParty)
                             <td>
-                                @include('parties.components.linked-party-action', [
-                                    'action' => $partyAction,
+                                @include('parties.components.linked-party', [
+                                    'linked' => $partyLinked,
                                     'variant' => 'inline',
                                 ])
                             </td>

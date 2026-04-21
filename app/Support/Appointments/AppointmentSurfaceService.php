@@ -121,7 +121,7 @@ class AppointmentSurfaceService implements ModuleSurfaceService
         if ($recordType !== 'order' || ! $record instanceof Order) {
             return [
                 'data' => [
-                    'action' => null,
+                    'linked' => null,
                     'variant' => 'summary',
                 ],
             ];
@@ -129,7 +129,7 @@ class AppointmentSurfaceService implements ModuleSurfaceService
 
         return [
             'data' => [
-                'action' => AppointmentLinkedAction::forOrder($record, $trailQuery),
+                'linked' => AppointmentLinkedAction::forOrder($record, $trailQuery),
                 'variant' => 'summary',
             ],
         ];

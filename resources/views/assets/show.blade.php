@@ -6,10 +6,10 @@
 
 @section('content')
     @php
-        use App\Support\Assets\AssetSurfaceService;
-        use App\Support\Catalogs\AssetCatalog;
         use App\Support\Modules\ModuleSurfaceRegistry;
         use App\Support\Navigation\NavigationTrail;
+        use App\Support\Catalogs\AssetCatalog;
+        use App\Support\Assets\AssetSurfaceService;
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);

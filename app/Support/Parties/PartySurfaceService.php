@@ -27,7 +27,7 @@ class PartySurfaceService implements ModuleSurfaceService
                 targets: ['appointments.show'],
                 slot: 'summary_items',
                 priority: 20,
-                view: 'parties.components.linked-party-action',
+                view: 'parties.components.linked-party',
                 resolver: $this->resolveLinkedForAppointment(...),
             ),
             $this->linkedOffer(
@@ -36,7 +36,7 @@ class PartySurfaceService implements ModuleSurfaceService
                 targets: ['assets.show'],
                 slot: 'summary_items',
                 priority: 20,
-                view: 'parties.components.linked-party-action',
+                view: 'parties.components.linked-party',
                 resolver: $this->resolveLinkedForAsset(...),
             ),
             $this->linkedOffer(
@@ -45,7 +45,7 @@ class PartySurfaceService implements ModuleSurfaceService
                 targets: ['orders.show'],
                 slot: 'summary_items',
                 priority: 20,
-                view: 'parties.components.linked-party-action',
+                view: 'parties.components.linked-party',
                 resolver: $this->resolveLinkedForOrder(...),
             ),
             $this->linkedOffer(
@@ -54,7 +54,7 @@ class PartySurfaceService implements ModuleSurfaceService
                 targets: ['tasks.show'],
                 slot: 'detail_items',
                 priority: 20,
-                view: 'parties.components.linked-party-action',
+                view: 'parties.components.linked-party',
                 resolver: $this->resolveLinkedForTask(...),
             ),
             $this->linkedOffer(
@@ -63,7 +63,7 @@ class PartySurfaceService implements ModuleSurfaceService
                 targets: ['documents.show'],
                 slot: 'summary_items',
                 priority: 20,
-                view: 'parties.components.linked-party-action',
+                view: 'parties.components.linked-party',
                 resolver: $this->resolveLinkedForDocument(...),
             ),
         ];
@@ -168,18 +168,16 @@ class PartySurfaceService implements ModuleSurfaceService
         if ($recordType !== $expectedRecordType || ! $record instanceof $expectedClass) {
             return [
                 'data' => [
-                    'action' => [
+                    'linked' => [
                         'supported' => false,
-                        'linked' => false,
-                        'can_view' => false,
-                        'can_create' => false,
-                        'readonly' => false,
+                        'exists' => false,
                         'hidden' => true,
+                        'readonly' => false,
+                        'state' => 'hidden',
                         'show_url' => null,
-                        'create_url' => null,
                         'label' => $label,
                         'trail_query' => [],
-                        'linked_text' => $label,
+                        'text' => $label,
                     ],
                     'variant' => 'summary',
                 ],
@@ -188,7 +186,7 @@ class PartySurfaceService implements ModuleSurfaceService
 
         return [
             'data' => [
-                'action' => PartyLinkedAction::forParty(
+                'linked' => PartyLinked::forParty(
                     $partyResolver($record),
                     $trailQuery,
                     $label,

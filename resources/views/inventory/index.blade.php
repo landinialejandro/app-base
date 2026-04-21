@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/index.blade.php | V3 --}}
+{{-- FILE: resources/views/inventory/index.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -12,40 +12,29 @@
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
 
         $rows = ($rows ?? collect())->values();
-
-        $productsCount = $rows->count();
-        $totalMovements = $rows->sum('movement_count');
-        $productsWithStock = $rows->filter(fn($row) => (float) ($row['stock'] ?? 0) > 0)->count();
+        $headerActions = ($headerActions ?? collect())->values();
     @endphp
 
     <x-page class="list-page">
         <x-breadcrumb :items="$breadcrumbItems" />
 
-        <x-page-header title="Inventario" />
+        <x-page-header title="Inventario">
+            @foreach ($headerActions as $surface)
+                @include($surface['view'], $surface['data'] ?? [])
+            @endforeach
+        </x-page-header>
 
-        <x-card>
-            <div class="summary-inline-grid">
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Productos</div>
-                    <div class="summary-inline-value">{{ $productsCount }}</div>
+        <x-list-filters-card :action="route('inventory.index')" secondary-id="inventory-extra-filters">
+            <x-slot:primary>
+                <div class="list-filters-grid">
+                    <div class="form-group">
+                        <label for="q" class="form-label">Buscar</label>
+                        <input type="text" id="q" name="q" class="form-control" value="{{ request('q') }}"
+                            placeholder="Nombre, SKU o ID">
+                    </div>
                 </div>
-
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Con stock positivo</div>
-                    <div class="summary-inline-value">{{ $productsWithStock }}</div>
-                </div>
-
-                <div class="summary-inline-card">
-                    <div class="summary-inline-label">Movimientos registrados</div>
-                    <div class="summary-inline-value">{{ $totalMovements }}</div>
-                </div>
-            </div>
-
-            <div class="form-help mt-3">
-                Esta vista concentra el saldo actual por producto. La operación detallada y el historial viven en la ficha
-                de inventario de cada artículo.
-            </div>
-        </x-card>
+            </x-slot:primary>
+        </x-list-filters-card>
 
         <x-card class="list-card">
             @include('inventory.partials.balance-table', [

@@ -49,7 +49,7 @@ class ProjectSurfaceService implements ModuleSurfaceService
         if ($recordType !== 'task' || ! $record instanceof Task) {
             return [
                 'data' => [
-                    'action' => [
+                    'linked' => [
                         'supported' => false,
                         'linked' => false,
                         'can_view' => false,
@@ -65,7 +65,7 @@ class ProjectSurfaceService implements ModuleSurfaceService
 
         return [
             'data' => [
-                'action' => ProjectLinkedAction::forProject(
+                'linked' => ProjectLinkedAction::forProject(
                     $record->project,
                     $trailQuery,
                     'Proyecto',

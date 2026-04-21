@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Navigation/InventoryNavigationTrail.php | V3
+// FILE: app/Support/Navigation/InventoryNavigationTrail.php | V4
 
 namespace App\Support\Navigation;
 
@@ -35,13 +35,15 @@ class InventoryNavigationTrail
     {
         $current = NavigationTrail::decode($request->query('trail'));
 
+        $label = 'Movimientos: '.($product->name ?: 'Producto #'.$product->id);
+
         if (! empty($current)) {
             return NavigationTrail::appendOrCollapse(
                 $current,
                 NavigationTrail::makeNode(
                     'inventory.show',
                     $product->id,
-                    $product->name ?: 'Producto #'.$product->id,
+                    $label,
                     route('inventory.show', ['product' => $product]),
                 ),
             );
@@ -53,7 +55,7 @@ class InventoryNavigationTrail
             NavigationTrail::makeNode(
                 'inventory.show',
                 $product->id,
-                $product->name ?: 'Producto #'.$product->id,
+                $label,
                 route('inventory.show', ['product' => $product]),
             ),
         ]);

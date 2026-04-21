@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/products/index.blade.php | V4 --}}
+{{-- FILE: resources/views/products/index.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -8,6 +8,14 @@
 
     @php
         use App\Support\Catalogs\ProductCatalog;
+        use App\Support\Navigation\NavigationTrail;
+
+        $indexTrail = NavigationTrail::base([
+            NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
+            NavigationTrail::makeNode('products.index', null, 'Productos', route('products.index')),
+        ]);
+
+        $trailQuery = NavigationTrail::toQuery($indexTrail);
     @endphp
 
     <x-page class="list-page">
@@ -16,9 +24,7 @@
 
         <x-page-header title="Productos">
             @can('create', App\Models\Product::class)
-                <a href="{{ route('products.create') }}" class="btn btn-success">
-                    Nuevo producto
-                </a>
+                <x-button-create :href="route('products.create', $trailQuery)" label="Nuevo producto" />
             @endcan
         </x-page-header>
 
@@ -63,6 +69,7 @@
             @include('products.partials.table', [
                 'products' => $products,
                 'emptyMessage' => 'No hay productos para esta empresa.',
+                'trailQuery' => $trailQuery,
             ])
 
             @if ($products->count())

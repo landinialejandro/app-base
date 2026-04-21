@@ -4,7 +4,7 @@
     use App\Support\Catalogs\DocumentCatalog;
     use App\Support\Navigation\NavigationTrail;
     use App\Support\Assets\AssetLinkedAction;
-    use App\Support\Parties\PartyLinkedAction;
+    use App\Support\Parties\PartyLinked;
 
     $documents = $documents ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay documentos para mostrar.';
@@ -73,7 +73,7 @@
 
                         $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
 
-                        $partyAction = PartyLinkedAction::forParty($document->party, $rowTrailQuery, 'Contacto');
+                        $partyLinked = PartyLinked::forParty($document->party, $rowTrailQuery, 'Contacto');
                         $assetAction = AssetLinkedAction::forAsset($document->asset, $rowTrailQuery, 'Activo');
                     @endphp
 
@@ -94,8 +94,8 @@
 
                         @if ($showParty)
                             <td>
-                                @include('parties.components.linked-party-action', [
-                                    'action' => $partyAction,
+                                @include('parties.components.linked-party', [
+                                    'linked' => $partyLinked,
                                     'variant' => 'inline',
                                 ])
                             </td>

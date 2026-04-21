@@ -6,9 +6,9 @@
 
 @section('content')
     @php
-        use App\Support\Catalogs\OrderCatalog;
         use App\Support\Modules\ModuleSurfaceRegistry;
         use App\Support\Navigation\NavigationTrail;
+        use App\Support\Catalogs\OrderCatalog;
         use App\Support\Orders\OrderSurfaceService;
 
         $items = $order->items ?? collect();

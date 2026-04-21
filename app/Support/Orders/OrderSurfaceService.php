@@ -151,7 +151,7 @@ class OrderSurfaceService implements ModuleSurfaceService
         if ($recordType !== 'appointment' || ! $record instanceof Appointment) {
             return [
                 'data' => [
-                    'action' => [
+                    'linked' => [
                         'supported' => false,
                         'linked' => false,
                         'can_view' => false,
@@ -170,7 +170,7 @@ class OrderSurfaceService implements ModuleSurfaceService
 
         return [
             'data' => [
-                'action' => OrderLinkedAction::forAppointment($record, $trailQuery, true),
+                'linked' => OrderLinkedAction::forAppointment($record, $trailQuery, true),
                 'variant' => 'summary',
             ],
         ];
@@ -183,7 +183,7 @@ class OrderSurfaceService implements ModuleSurfaceService
         if ($recordType !== 'task' || ! $record instanceof Task) {
             return [
                 'data' => [
-                    'action' => [
+                    'linked' => [
                         'supported' => false,
                         'linked' => false,
                         'can_view' => false,
@@ -202,7 +202,7 @@ class OrderSurfaceService implements ModuleSurfaceService
 
         return [
             'data' => [
-                'action' => OrderLinkedAction::forTask(
+                'linked' => OrderLinkedAction::forTask(
                     $record,
                     $trailQuery,
                     (bool) (auth()->user() && auth()->user()->can('update', $record)),
@@ -219,7 +219,7 @@ class OrderSurfaceService implements ModuleSurfaceService
         if ($recordType !== 'task' || ! $record instanceof Task) {
             return [
                 'data' => [
-                    'action' => [
+                    'linked' => [
                         'supported' => false,
                         'linked' => false,
                         'can_view' => false,
@@ -238,7 +238,7 @@ class OrderSurfaceService implements ModuleSurfaceService
 
         return [
             'data' => [
-                'action' => OrderLinkedAction::forTask(
+                'linked' => OrderLinkedAction::forTask(
                     $record,
                     $trailQuery,
                     (bool) (auth()->user() && auth()->user()->can('update', $record)),
@@ -255,7 +255,7 @@ class OrderSurfaceService implements ModuleSurfaceService
         if ($recordType !== 'document' || ! $record instanceof Document) {
             return [
                 'data' => [
-                    'action' => [
+                    'linked' => [
                         'supported' => false,
                         'linked' => false,
                         'can_view' => false,
@@ -276,7 +276,7 @@ class OrderSurfaceService implements ModuleSurfaceService
 
         return [
             'data' => [
-                'action' => [
+                'linked' => [
                     'supported' => true,
                     'linked' => (bool) $order,
                     'can_view' => (bool) ($order && auth()->user()?->can('view', $order)),

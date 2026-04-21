@@ -6,7 +6,7 @@
     use App\Support\Catalogs\ModuleCatalog;
     use App\Support\Catalogs\OrderCatalog;
     use App\Support\Navigation\NavigationTrail;
-    use App\Support\Parties\PartyLinkedAction;
+    use App\Support\Parties\PartyLinked;
 
     $orders = $orders ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay órdenes para mostrar.';
@@ -74,7 +74,7 @@
 
                         $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
 
-                        $partyAction = PartyLinkedAction::forParty($order->party, $rowTrailQuery, 'Contacto');
+                        $partyLinked = PartyLinked::forParty($order->party, $rowTrailQuery, 'Contacto');
                         $assetAction = AssetLinkedAction::forAsset($order->asset, $rowTrailQuery, 'Activo');
                     @endphp
 
@@ -95,8 +95,8 @@
 
                         @if ($renderPartyColumn)
                             <td>
-                                @include('parties.components.linked-party-action', [
-                                    'action' => $partyAction,
+                                @include('parties.components.linked-party', [
+                                    'linked' => $partyLinked,
                                     'variant' => 'inline',
                                 ])
                             </td>

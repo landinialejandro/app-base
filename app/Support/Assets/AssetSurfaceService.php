@@ -97,7 +97,7 @@ class AssetSurfaceService implements ModuleSurfaceService
         if ($recordType !== 'appointment' || ! $record instanceof Appointment) {
             return [
                 'data' => [
-                    'action' => [
+                    'linked' => [
                         'supported' => false,
                         'linked' => false,
                         'can_view' => false,
@@ -112,7 +112,7 @@ class AssetSurfaceService implements ModuleSurfaceService
 
         return [
             'data' => [
-                'action' => AssetLinkedAction::forAsset(
+                'linked' => AssetLinkedAction::forAsset(
                     $record->asset,
                     $trailQuery,
                     AppointmentCatalog::assetLabel(),
@@ -129,7 +129,7 @@ class AssetSurfaceService implements ModuleSurfaceService
         if ($recordType !== 'document' || ! $record instanceof Document) {
             return [
                 'data' => [
-                    'action' => [
+                    'linked' => [
                         'supported' => false,
                         'linked' => false,
                         'can_view' => false,
@@ -144,7 +144,7 @@ class AssetSurfaceService implements ModuleSurfaceService
 
         return [
             'data' => [
-                'action' => AssetLinkedAction::forAsset(
+                'linked' => AssetLinkedAction::forAsset(
                     $record->asset,
                     $trailQuery,
                     'Activo',

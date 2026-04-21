@@ -5,7 +5,7 @@
     use App\Support\Catalogs\AppointmentCatalog;
     use App\Support\Navigation\NavigationTrail;
     use App\Support\Orders\OrderLinkedAction;
-    use App\Support\Parties\PartyLinkedAction;
+    use App\Support\Parties\PartyLinked;
 
     $appointments = $appointments ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay turnos para mostrar.';
@@ -72,7 +72,7 @@
                         $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
 
                         $orderAction = OrderLinkedAction::forAppointment($appointment, $rowTrailQuery, false);
-                        $partyAction = PartyLinkedAction::forParty(
+                        $partyLinked = PartyLinked::forParty(
                             $appointment->party,
                             $rowTrailQuery,
                             AppointmentCatalog::contactLabel(),
@@ -93,8 +93,8 @@
                         </td>
 
                         <td>
-                            @include('parties.components.linked-party-action', [
-                                'action' => $partyAction,
+                            @include('parties.components.linked-party', [
+                                'linked' => $partyLinked,
                                 'variant' => 'inline',
                             ])
                         </td>

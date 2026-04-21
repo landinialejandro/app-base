@@ -6,10 +6,10 @@
 
 @section('content')
     @php
-        use App\Support\Catalogs\DocumentCatalog;
-        use App\Support\Documents\DocumentSurfaceService;
         use App\Support\Modules\ModuleSurfaceRegistry;
         use App\Support\Navigation\NavigationTrail;
+        use App\Support\Catalogs\DocumentCatalog;
+        use App\Support\Documents\DocumentSurfaceService;
 
         $items = $document->items->sortBy('position')->values();
 

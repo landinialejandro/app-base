@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Modules/ModuleSurfaceRegistry.php | V4
+// FILE: app/Support/Modules/ModuleSurfaceRegistry.php | V5
 
 namespace App\Support\Modules;
 
@@ -31,12 +31,16 @@ class ModuleSurfaceRegistry
      */
     public function surfacesFor(string $host, array $context = []): array
     {
-        $required = ['host', 'recordType', 'record', 'trailQuery'];
+        if ($host === '') {
+            return [];
+        }
 
-        foreach ($required as $key) {
-            if (! array_key_exists($key, $context) || $context[$key] === null) {
-                return [];
-            }
+        if (! array_key_exists('host', $context)) {
+            $context['host'] = $host;
+        }
+
+        if (! array_key_exists('trailQuery', $context)) {
+            $context['trailQuery'] = [];
         }
 
         return collect(ModuleCatalog::all())

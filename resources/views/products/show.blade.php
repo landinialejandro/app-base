@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/products/show.blade.php | V19 --}}
+{{-- FILE: resources/views/products/show.blade.php | V20 --}}
 
 @extends('layouts.app')
 
@@ -6,22 +6,46 @@
 
 @section('content')
     @php
+        use App\Support\Inventory\InventorySurfaceService;
+        use App\Support\Modules\ModuleSurfaceRegistry;
         use App\Support\Catalogs\ProductCatalog;
         use App\Support\Navigation\NavigationTrail;
 
         $attachments = $product->attachments ?? collect();
-        $inventoryMovements = ($inventoryMovements ?? collect())->values();
-        $currentStock = isset($currentStock) ? (float) $currentStock : 0;
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
         $backUrl = NavigationTrail::previousUrl($navigationTrail, route('products.index'));
+
+        $hostPack = app(InventorySurfaceService::class)->hostPack('products.show', $product, [
+            'trailQuery' => $trailQuery,
+        ]);
+
+        $embedded = collect(app(ModuleSurfaceRegistry::class)->embeddedFor('products.show', $hostPack))->values();
+        $linked = collect(app(ModuleSurfaceRegistry::class)->linkedFor('products.show', $hostPack))->values();
+
+        $headerActions = $linked->where('slot', 'header_actions')->values();
+        $summaryItems = $embedded
+            ->where(fn($item) => ($item['slot'] ?? null) === 'summary_items')
+            ->sortBy(fn(array $item) => $item['priority'] ?? 999)
+            ->values();
+
+        $tabItems = $embedded
+            ->where(fn($item) => ($item['slot'] ?? null) === 'tab_panels')
+            ->sortBy(fn(array $item) => $item['priority'] ?? 999)
+            ->values();
+
+        $tabsLabel = 'Secciones del producto';
     @endphp
 
     <x-page>
         <x-breadcrumb :items="$breadcrumbItems" />
 
         <x-page-header title="Detalle del producto">
+            @foreach ($headerActions as $surface)
+                @include($surface['view'], $surface['data'] ?? [])
+            @endforeach
+
             @can('update', $product)
                 <x-button-edit :href="route('products.edit', ['product' => $product] + $trailQuery)" />
             @endcan
@@ -45,6 +69,12 @@
             <x-show-summary-item label="Unidad">
                 {{ $product->unit_label ?? '—' }}
             </x-show-summary-item>
+
+            @foreach ($summaryItems as $surface)
+                <x-show-summary-item :label="$surface['label'] ?? 'Relacionado'">
+                    @include($surface['view'], $surface['data'] ?? [])
+                </x-show-summary-item>
+            @endforeach
 
             <x-slot:details>
                 <x-show-summary-item-detail-block label="Tipo">
@@ -75,47 +105,25 @@
             </x-slot:details>
         </x-show-summary>
 
-        @if ($product->kind === ProductCatalog::KIND_PRODUCT)
-            <x-card>
-                <div class="summary-inline-grid">
-                    <div class="summary-inline-card">
-                        <div class="summary-inline-label">Stock actual</div>
-                        <div class="summary-inline-value">{{ number_format($currentStock, 2, ',', '.') }}</div>
-                    </div>
-
-                    <div class="summary-inline-card">
-                        <div class="summary-inline-label">Último movimiento</div>
-                        <div class="summary-inline-value">
-                            @if ($inventoryMovements->isNotEmpty())
-                                {{ $inventoryMovements->first()->created_at?->format('d/m/Y H:i') ?? '—' }}
-                            @else
-                                —
-                            @endif
-                        </div>
-                    </div>
-
-                    <div class="summary-inline-card">
-                        <div class="summary-inline-label">Inventory</div>
-                        <div class="summary-inline-value">
-                            <a href="{{ route('inventory.show', ['product' => $product] + $trailQuery) }}">
-                                Abrir ficha
-                            </a>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="form-help mt-3">
-                    El historial y los movimientos manuales de este artículo se gestionan desde la ficha de inventory.
-                </div>
-            </x-card>
-        @endif
-
         <div class="tabs" data-tabs>
-            <x-tab-toolbar label="Secciones del producto">
+            <x-tab-toolbar :label="$tabsLabel">
                 <x-slot:tabs>
-                    <x-horizontal-scroll label="Secciones del producto">
-                        <button type="button" class="tabs-link is-active" data-tab-link="attachments" role="tab"
-                            aria-selected="true">
+                    <x-horizontal-scroll :label="$tabsLabel">
+                        @foreach ($tabItems as $tabItem)
+                            <button type="button" class="tabs-link {{ $loop->first ? 'is-active' : '' }}"
+                                data-tab-link="{{ $tabItem['key'] }}" role="tab"
+                                aria-selected="{{ $loop->first ? 'true' : 'false' }}">
+                                {{ $tabItem['label'] ?? $tabItem['key'] }}
+
+                                @if (array_key_exists('count', $tabItem) && (int) $tabItem['count'] > 0)
+                                    ({{ $tabItem['count'] }})
+                                @endif
+                            </button>
+                        @endforeach
+
+                        <button type="button" class="tabs-link {{ $tabItems->isEmpty() ? 'is-active' : '' }}"
+                            data-tab-link="attachments" role="tab"
+                            aria-selected="{{ $tabItems->isEmpty() ? 'true' : 'false' }}">
                             Adjuntos
                             @if ($attachments->count())
                                 ({{ $attachments->count() }})
@@ -125,7 +133,17 @@
                 </x-slot:tabs>
             </x-tab-toolbar>
 
-            <section class="tab-panel is-active" data-tab-panel="attachments">
+            @foreach ($tabItems as $tabItem)
+                <section class="tab-panel {{ $loop->first ? 'is-active' : '' }}" data-tab-panel="{{ $tabItem['key'] }}"
+                    @unless ($loop->first) hidden @endunless>
+                    <div class="tab-panel-stack">
+                        @include($tabItem['view'], $tabItem['data'] ?? [])
+                    </div>
+                </section>
+            @endforeach
+
+            <section class="tab-panel {{ $tabItems->isEmpty() ? 'is-active' : '' }}" data-tab-panel="attachments"
+                @unless ($tabItems->isEmpty()) hidden @endunless>
                 <div class="tab-panel-stack">
                     @include('attachments.partials.embedded', [
                         'attachments' => $attachments,

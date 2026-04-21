@@ -1,19 +1,19 @@
 <?php
 
-// FILE: app/Http/Controllers/TaskController.php | V12
+// FILE: app/Http/Controllers/TaskController.php | V13
 
 namespace App\Http\Controllers;
 
 use App\Models\Party;
 use App\Models\Project;
 use App\Models\Task;
-use App\Models\User;
 use App\Support\Auth\Security;
 use App\Support\Catalogs\PermissionScopeCatalog;
 use App\Support\Catalogs\TaskCatalog;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\TaskNavigationTrail;
 use App\Support\Tasks\TaskVisibility;
+use App\Support\Tenants\TenantUserDirectory;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -23,6 +23,7 @@ class TaskController extends Controller
     {
         $tenant = app('tenant');
         $security = app(Security::class);
+        $tenantUsers = app(TenantUserDirectory::class);
         $user = auth()->user();
 
         $this->authorize('viewAny', Task::class);
@@ -41,14 +42,7 @@ class TaskController extends Controller
             ->orderBy('name')
             ->get();
 
-        $users = $security
-            ->scope($user, 'users.viewAny', User::query())
-            ->whereHas('memberships', function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id)
-                    ->where('status', 'active');
-            })
-            ->orderBy('name')
-            ->get();
+        $users = $tenantUsers->activeUsers($tenant);
 
         $baseQuery = match ($effectiveScope) {
             PermissionScopeCatalog::TENANT_ALL => Task::query(),
@@ -121,6 +115,7 @@ class TaskController extends Controller
     {
         $tenant = app('tenant');
         $security = app(Security::class);
+        $tenantUsers = app(TenantUserDirectory::class);
         $user = auth()->user();
 
         $this->authorize('create', Task::class);
@@ -144,16 +139,13 @@ class TaskController extends Controller
             ->orderBy('name')
             ->get();
 
-        $users = $security
-            ->scope($user, 'users.viewAny', User::query())
-            ->whereHas('memberships', function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id)
-                    ->where('status', 'active');
-            })
-            ->orderBy('name')
-            ->get();
+        $users = $tenantUsers->activeUsers($tenant);
 
-        $defaultAssignedUserId = old('assigned_user_id', (string) auth()->id());
+        $defaultAssignedUserId = old(
+            'assigned_user_id',
+            (string) $tenantUsers->defaultAssignedUserId($tenant, $user)
+        );
+
         $navigationTrail = TaskNavigationTrail::create($request, $forcedProject);
 
         return view('tasks.create', compact(
@@ -170,6 +162,7 @@ class TaskController extends Controller
     public function store(Request $request)
     {
         $tenant = app('tenant');
+        $tenantUsers = app(TenantUserDirectory::class);
 
         $this->authorize('create', Task::class);
 
@@ -188,7 +181,7 @@ class TaskController extends Controller
                     $query->where('tenant_id', $tenant->id)->whereNull('deleted_at');
                 }),
             ],
-            'assigned_user_id' => ['required', 'integer', Rule::exists('users', 'id')],
+            'assigned_user_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'status' => ['required', 'string', Rule::in(TaskCatalog::statuses())],
@@ -196,15 +189,18 @@ class TaskController extends Controller
             'due_date' => ['nullable', 'date'],
         ]);
 
-        $userBelongsToTenant = User::query()
-            ->whereKey($data['assigned_user_id'])
-            ->whereHas('memberships', function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id)
-                    ->where('status', 'active');
-            })
-            ->exists();
+        $data['assigned_user_id'] = $data['assigned_user_id']
+            ?? $tenantUsers->defaultAssignedUserId($tenant, auth()->user());
 
-        if (! $userBelongsToTenant) {
+        if (! $data['assigned_user_id']) {
+            return back()
+                ->withErrors([
+                    'assigned_user_id' => 'No hay colaboradores activos disponibles para asignar la tarea.',
+                ])
+                ->withInput();
+        }
+
+        if (! $tenantUsers->userBelongsToTenant($tenant, (int) $data['assigned_user_id'])) {
             return back()
                 ->withErrors([
                     'assigned_user_id' => 'El colaborador asignado no pertenece a la empresa actual.',
@@ -256,6 +252,7 @@ class TaskController extends Controller
     {
         $tenant = app('tenant');
         $security = app(Security::class);
+        $tenantUsers = app(TenantUserDirectory::class);
         $user = auth()->user();
 
         $this->authorize('update', $task);
@@ -272,17 +269,13 @@ class TaskController extends Controller
             ->orderBy('name')
             ->get();
 
-        $users = $security
-            ->scope($user, 'users.viewAny', User::query())
-            ->whereHas('memberships', function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id)
-                    ->where('status', 'active');
-            })
-            ->orderBy('name')
-            ->get();
+        $users = $tenantUsers->activeUsers($tenant);
 
         $forcedProject = null;
-        $defaultAssignedUserId = old('assigned_user_id', (string) ($task->assigned_user_id ?? auth()->id()));
+        $defaultAssignedUserId = old(
+            'assigned_user_id',
+            (string) ($task->assigned_user_id ?? $tenantUsers->defaultAssignedUserId($tenant, $user))
+        );
         $isForeignTaskForAdmin = $this->canManageForeignTask($task);
 
         $navigationTrail = TaskNavigationTrail::edit($request, $task);
@@ -303,6 +296,7 @@ class TaskController extends Controller
     public function update(Request $request, Task $task)
     {
         $tenant = app('tenant');
+        $tenantUsers = app(TenantUserDirectory::class);
 
         $this->authorize('update', $task);
 
@@ -321,7 +315,7 @@ class TaskController extends Controller
                     $query->where('tenant_id', $tenant->id)->whereNull('deleted_at');
                 }),
             ],
-            'assigned_user_id' => ['required', 'integer', Rule::exists('users', 'id')],
+            'assigned_user_id' => ['nullable', 'integer', Rule::exists('users', 'id')],
             'name' => ['required', 'string', 'max:255'],
             'description' => ['nullable', 'string'],
             'status' => ['required', 'string', Rule::in(TaskCatalog::statuses())],
@@ -330,15 +324,18 @@ class TaskController extends Controller
             'confirm_foreign_task_edit' => ['nullable', 'string'],
         ]);
 
-        $userBelongsToTenant = User::query()
-            ->whereKey($data['assigned_user_id'])
-            ->whereHas('memberships', function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id)
-                    ->where('status', 'active');
-            })
-            ->exists();
+        $data['assigned_user_id'] = $data['assigned_user_id']
+            ?? $tenantUsers->defaultAssignedUserId($tenant, auth()->user());
 
-        if (! $userBelongsToTenant) {
+        if (! $data['assigned_user_id']) {
+            return back()
+                ->withErrors([
+                    'assigned_user_id' => 'No hay colaboradores activos disponibles para asignar la tarea.',
+                ])
+                ->withInput();
+        }
+
+        if (! $tenantUsers->userBelongsToTenant($tenant, (int) $data['assigned_user_id'])) {
             return back()
                 ->withErrors([
                     'assigned_user_id' => 'El colaborador asignado no pertenece a la empresa actual.',

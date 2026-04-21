@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/AppointmentController.php | V17
+// FILE: app/Http/Controllers/AppointmentController.php | V18
 
 namespace App\Http\Controllers;
 
@@ -9,7 +9,6 @@ use App\Models\Appointment;
 use App\Models\Asset;
 use App\Models\Order;
 use App\Models\Party;
-use App\Models\User;
 use App\Support\Auth\Security;
 use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\AppointmentCatalog;
@@ -17,6 +16,7 @@ use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\OrderCatalog;
 use App\Support\Navigation\AppointmentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
+use App\Support\Tenants\TenantUserDirectory;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -28,6 +28,7 @@ class AppointmentController extends Controller
     {
         $tenant = app('tenant');
         $security = app(Security::class);
+        $tenantUsers = app(TenantUserDirectory::class);
         $user = auth()->user();
 
         $this->authorize('viewAny', Appointment::class);
@@ -44,14 +45,7 @@ class AppointmentController extends Controller
         $supportsAssetsModule = $this->supportsModule(ModuleCatalog::ASSETS);
         $supportsOrdersModule = $this->supportsModule(ModuleCatalog::ORDERS);
 
-        $users = $security
-            ->scope($user, 'users.viewAny', User::query())
-            ->whereHas('memberships', function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id)
-                    ->where('status', 'active');
-            })
-            ->orderBy('name')
-            ->get();
+        $users = $tenantUsers->activeUsers($tenant);
 
         $parties = $supportsPartiesModule
             ? $security
@@ -101,6 +95,7 @@ class AppointmentController extends Controller
     {
         $tenant = app('tenant');
         $security = app(Security::class);
+        $tenantUsers = app(TenantUserDirectory::class);
         $user = auth()->user();
 
         $this->authorize('viewAny', Appointment::class);
@@ -121,14 +116,7 @@ class AppointmentController extends Controller
             $weekStart = $baseDate->copy()->startOfWeek(Carbon::MONDAY);
             $weekEnd = $baseDate->copy()->endOfWeek(Carbon::SUNDAY);
 
-            $users = $security
-                ->scope($user, 'users.viewAny', User::query())
-                ->whereHas('memberships', function ($query) use ($tenant) {
-                    $query->where('tenant_id', $tenant->id)
-                        ->where('status', 'active');
-                })
-                ->orderBy('name')
-                ->get();
+            $users = $tenantUsers->activeUsers($tenant);
 
             $appointments = $security
                 ->scope($user, 'appointments.viewAny', Appointment::query())
@@ -191,14 +179,7 @@ class AppointmentController extends Controller
         $gridStart = $monthStart->copy()->startOfWeek(Carbon::MONDAY);
         $gridEnd = $monthEnd->copy()->endOfWeek(Carbon::SUNDAY);
 
-        $users = $security
-            ->scope($user, 'users.viewAny', User::query())
-            ->whereHas('memberships', function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id)
-                    ->where('status', 'active');
-            })
-            ->orderBy('name')
-            ->get();
+        $users = $tenantUsers->activeUsers($tenant);
 
         $appointments = $security
             ->scope($user, 'appointments.viewAny', Appointment::query())
@@ -271,6 +252,7 @@ class AppointmentController extends Controller
     {
         $tenant = app('tenant');
         $security = app(Security::class);
+        $tenantUsers = app(TenantUserDirectory::class);
         $user = auth()->user();
 
         $this->authorize('create', Appointment::class);
@@ -279,14 +261,7 @@ class AppointmentController extends Controller
         $supportsAssetsModule = $this->supportsModule(ModuleCatalog::ASSETS);
         $supportsOrdersModule = $this->supportsModule(ModuleCatalog::ORDERS);
 
-        $users = $security
-            ->scope($user, 'users.viewAny', User::query())
-            ->whereHas('memberships', function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id)
-                    ->where('status', 'active');
-            })
-            ->orderBy('name')
-            ->get();
+        $users = $tenantUsers->activeUsers($tenant);
 
         $parties = $supportsPartiesModule
             ? $security
@@ -405,7 +380,11 @@ class AppointmentController extends Controller
             }
         }
 
-        $defaultAssignedUserId = old('assigned_user_id', (string) auth()->id());
+        $defaultAssignedUserId = old(
+            'assigned_user_id',
+            (string) $tenantUsers->defaultAssignedUserId($tenant, $user)
+        );
+
         $navigationTrail = AppointmentNavigationTrail::create($request);
 
         return view('appointments.create', compact(
@@ -495,6 +474,7 @@ class AppointmentController extends Controller
     {
         $tenant = app('tenant');
         $security = app(Security::class);
+        $tenantUsers = app(TenantUserDirectory::class);
         $user = auth()->user();
 
         $this->authorize('update', $appointment);
@@ -503,14 +483,7 @@ class AppointmentController extends Controller
         $supportsAssetsModule = $this->supportsModule(ModuleCatalog::ASSETS);
         $supportsOrdersModule = $this->supportsModule(ModuleCatalog::ORDERS);
 
-        $users = $security
-            ->scope($user, 'users.viewAny', User::query())
-            ->whereHas('memberships', function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id)
-                    ->where('status', 'active');
-            })
-            ->orderBy('name')
-            ->get();
+        $users = $tenantUsers->activeUsers($tenant);
 
         $parties = $supportsPartiesModule
             ? $security
@@ -536,7 +509,10 @@ class AppointmentController extends Controller
                 ->get()
             : collect();
 
-        $defaultAssignedUserId = old('assigned_user_id', (string) $appointment->assigned_user_id);
+        $defaultAssignedUserId = old(
+            'assigned_user_id',
+            (string) ($appointment->assigned_user_id ?? $tenantUsers->defaultAssignedUserId($tenant, $user))
+        );
         $isForeignAppointmentForAdmin = $this->canManageForeignAppointment($appointment);
         $navigationTrail = AppointmentNavigationTrail::edit($request, $appointment);
 

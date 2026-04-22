@@ -1,6 +1,6 @@
 <?php
 
-// FILE: normalizar_codigo_version.php | V2
+// FILE: aplicar-actualizaciones-codigo.php | V3
 
 declare(strict_types=1);
 
@@ -13,18 +13,22 @@ declare(strict_types=1);
  *   Ctrl+Z + Enter   (Windows)
  *
  * Comportamiento:
- * - Si el archivo es PHP y el encabezado FILE no tiene versión, agrega | V1
- * - Si el archivo es PHP y ya tiene versión, la conserva sin cambios
- * - Si el archivo es Blade y el encabezado FILE no tiene versión, agrega | V1
- * - Si el archivo es Blade y ya tiene versión, la conserva sin cambios
- * - Detecta la ruta desde el encabezado FILE
- * - Si la carpeta no existe, la crea
- * - Escribe el archivo actualizado en disco
- * - Informa por STDERR la ruta detectada y la versión final aplicada
- * - No mezcla mensajes con el contenido del archivo
+ * - Detecta archivo PHP o Blade
+ * - Lee ruta desde encabezado FILE
+ * - Si no tiene versión, agrega | V1
+ * - Si ya tiene versión, la conserva
+ * - Crea carpetas faltantes del archivo destino
+ * - Guarda archivo en disco
+ * - Informa estado por STDERR
+ * - Registra log local en documentos/log/code-updates.log
+ *
+ * Recomendado en .gitignore:
+ * documentos/log/code-updates.log
  */
 final class CodeHeaderNormalizer
 {
+    private const LOG_PATH = 'documentos/log/code-updates.log';
+
     public function run(): int
     {
         $input = stream_get_contents(STDIN);
@@ -41,7 +45,7 @@ final class CodeHeaderNormalizer
             $result = $this->normalizePhp($normalized);
 
             if ($result === null) {
-                fwrite(STDERR, "Error: no se pudo interpretar el encabezado FILE del archivo PHP.\n");
+                fwrite(STDERR, "Error: no se pudo interpretar encabezado FILE para PHP.\n");
 
                 return 1;
             }
@@ -53,7 +57,7 @@ final class CodeHeaderNormalizer
             $result = $this->normalizeBlade($normalized);
 
             if ($result === null) {
-                fwrite(STDERR, "Error: no se pudo interpretar el encabezado FILE del archivo Blade.\n");
+                fwrite(STDERR, "Error: no se pudo interpretar encabezado FILE para Blade.\n");
 
                 return 1;
             }
@@ -61,7 +65,7 @@ final class CodeHeaderNormalizer
             return $this->writeResult($result);
         }
 
-        fwrite(STDERR, "Error: no se detectó un archivo PHP ni Blade compatible.\n");
+        fwrite(STDERR, "Error: no se detectó archivo PHP o Blade compatible.\n");
 
         return 1;
     }
@@ -73,7 +77,7 @@ final class CodeHeaderNormalizer
         $content = $result['content'];
 
         if ($path === '') {
-            fwrite(STDERR, "Error: la ruta FILE está vacía.\n");
+            fwrite(STDERR, "Error: ruta FILE vacía.\n");
 
             return 1;
         }
@@ -82,7 +86,7 @@ final class CodeHeaderNormalizer
 
         if ($directory !== '.' && ! is_dir($directory)) {
             if (! mkdir($directory, 0775, true) && ! is_dir($directory)) {
-                fwrite(STDERR, "Error: no se pudo crear la carpeta: {$directory}\n");
+                fwrite(STDERR, "Error: no se pudo crear carpeta {$directory}\n");
 
                 return 1;
             }
@@ -91,7 +95,7 @@ final class CodeHeaderNormalizer
         $alreadyExists = file_exists($path);
 
         if (file_put_contents($path, $content) === false) {
-            fwrite(STDERR, "Error: no se pudo escribir el archivo: {$path}\n");
+            fwrite(STDERR, "Error: no se pudo escribir {$path}\n");
 
             return 1;
         }
@@ -102,7 +106,34 @@ final class CodeHeaderNormalizer
         fwrite(STDERR, "[OK] Estado: {$status}\n");
         fwrite(STDERR, "[OK] Actualizado a: {$version}\n");
 
+        $this->appendLog($path, $status, $version);
+
         return 0;
+    }
+
+    private function appendLog(string $path, string $status, string $version): void
+    {
+        $logDir = dirname(self::LOG_PATH);
+
+        if (! is_dir($logDir)) {
+            @mkdir($logDir, 0775, true);
+        }
+
+        $isNewFile = ! file_exists(self::LOG_PATH);
+
+        $user = get_current_user();
+        $host = php_uname('n');
+        $date = date('Y-m-d H:i:s');
+
+        $lines = '';
+
+        if ($isNewFile) {
+            $lines .= "ARCHIVO | FECHA | ESTADO | VERSION | USUARIO | HOST\n";
+        }
+
+        $lines .= "{$path} | {$date} | {$status} | {$version} | {$user} | {$host}\n";
+
+        @file_put_contents(self::LOG_PATH, $lines, FILE_APPEND);
     }
 
     private function looksLikePhp(string $content): bool

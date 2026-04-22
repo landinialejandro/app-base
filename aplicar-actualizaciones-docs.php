@@ -1,7 +1,9 @@
 <?php
 
+// FILE: aplicar-actualizaciones-docs.php | V6
 $baseDir = __DIR__.DIRECTORY_SEPARATOR.'documentos';
 $backupDir = $baseDir.DIRECTORY_SEPARATOR.'baks';
+$logPath = $baseDir.DIRECTORY_SEPARATOR.'log'.DIRECTORY_SEPARATOR.'docs-updates.log';
 
 $input = trim(stream_get_contents(STDIN));
 
@@ -123,22 +125,29 @@ foreach ($operationsByDocument as $documentSlug => $operationsForDocument) {
             $anchorCount = count($anchorMatches);
 
             if ($anchorCount === 0) {
-                fwrite(STDERR, "[{$documentSlug}] No se encontró punto de inserción nueva después de la sección: {$anchorSectionName}\n");
+                fwrite(STDERR, "[{$documentSlug}] No se encontró la sección ancla: {$anchorSectionName}\n");
                 writeClosestSectionHint($documentSlug, $anchorSectionName, $availableSections);
 
                 continue;
             }
 
             if ($anchorCount > 1) {
-                fwrite(STDERR, "[{$documentSlug}] La sección ancla aparece múltiples veces y la inserción sería ambigua: {$anchorSectionName}\n");
+                fwrite(STDERR, "[{$documentSlug}] Se encontraron múltiples secciones ancla con el mismo nombre: {$anchorSectionName}\n");
 
                 continue;
             }
 
             $anchorBlock = $anchorMatches[0];
+
             $replacement = $anchorBlock."\n\n".$block;
 
-            $content = str_replace($anchorBlock, $replacement, $content, $count);
+            $content = preg_replace(
+                '/'.preg_quote($anchorBlock, '/').'/su',
+                $replacement,
+                $content,
+                1,
+                $count
+            );
 
             if ($count > 0) {
                 $applied++;
@@ -148,185 +157,104 @@ foreach ($operationsByDocument as $documentSlug => $operationsForDocument) {
         }
     }
 
-    if ($content !== $originalContent) {
-        $backupPath = $backupDir.DIRECTORY_SEPARATOR.$fileName.'.bak';
+    if ($applied === 0) {
+        fwrite(STDERR, "[{$documentSlug}] Sin cambios aplicados.\n");
 
-        file_put_contents($backupPath, $originalContent);
-
-        if (file_put_contents($filePath, $content) === false) {
-            fwrite(STDERR, "No se pudo guardar el archivo: {$filePath}\n");
-
-            continue;
-        }
-
-        echo "[OK] {$documentSlug}: {$applied} operación(es) aplicada(s)\n";
-        echo "     Archivo: {$fileName}\n";
-        echo "     Backup: {$backupPath}\n";
-    } else {
-        echo "[SIN CAMBIOS] {$documentSlug}\n";
+        continue;
     }
+
+    $timestamp = date('Ymd_His');
+    $backupPath = $backupDir.DIRECTORY_SEPARATOR.$timestamp.'_'.$fileName;
+
+    file_put_contents($backupPath, $originalContent);
+
+    if (file_put_contents($filePath, $content) === false) {
+        fwrite(STDERR, "[{$documentSlug}] Error al escribir archivo.\n");
+
+        continue;
+    }
+
+    fwrite(STDERR, "[{$documentSlug}] OK. Secciones aplicadas: {$applied}\n");
+
+    appendDocsLog($logPath, $documentSlug, $applied);
+}
+
+function appendDocsLog(string $logPath, string $documentSlug, int $sections): void
+{
+    $logDir = dirname($logPath);
+
+    if (! is_dir($logDir)) {
+        @mkdir($logDir, 0775, true);
+    }
+
+    $isNewFile = ! file_exists($logPath);
+
+    $user = get_current_user();
+    $host = php_uname('n');
+    $date = date('Y-m-d H:i:s');
+
+    $lines = '';
+
+    if ($isNewFile) {
+        $lines .= "DOCUMENTO | FECHA | SECCIONES | USUARIO | HOST\n";
+    }
+
+    $lines .= "{$documentSlug} | {$date} | {$sections} | {$user} | {$host}\n";
+
+    @file_put_contents($logPath, $lines, FILE_APPEND);
 }
 
 function parseOperations(string $input): array
 {
     $operations = [];
 
-    $input = str_replace("\r\n", "\n", $input);
-    $input = str_replace("\r", "\n", $input);
-
     preg_match_all(
-        '/^(REEMPLAZAR EN:|NUEVA SECCIÓN PROPUESTA EN:)\s*[^\n]*$/mu',
+        '/REEMPLAZAR EN:\s*\[([a-z0-9_]+)\]\s*(<<SECTION:\s*.*?>>.*?<<END SECTION>>)/su',
         $input,
-        $matches,
-        PREG_OFFSET_CAPTURE
+        $replaceMatches,
+        PREG_SET_ORDER
     );
 
-    if (empty($matches[0])) {
-        return [];
-    }
+    foreach ($replaceMatches as $match) {
+        $sectionName = extractSectionNameFromHeader($match[2]);
 
-    $headers = $matches[0];
-    $total = count($headers);
-
-    for ($i = 0; $i < $total; $i++) {
-        $start = $headers[$i][1];
-        $end = ($i + 1 < $total) ? $headers[$i + 1][1] : strlen($input);
-        $chunk = trim(substr($input, $start, $end - $start));
-
-        if (str_starts_with($chunk, 'REEMPLAZAR EN:')) {
-            $operation = parseReplaceChunk($chunk);
-
-            if ($operation === null) {
-                continue;
-            }
-
-            $operations[] = $operation;
-
+        if ($sectionName === null) {
             continue;
         }
 
-        if (str_starts_with($chunk, 'NUEVA SECCIÓN PROPUESTA EN:')) {
-            $operation = parseInsertAfterChunk($chunk);
+        $operations[] = [
+            'type' => 'replace',
+            'document_slug' => trim($match[1]),
+            'section_name' => $sectionName,
+            'block' => trim($match[2]),
+        ];
+    }
 
-            if ($operation === null) {
-                continue;
-            }
+    preg_match_all(
+        '/NUEVA SECCIÓN PROPUESTA EN:\s*\[([a-z0-9_]+)\]\s*UBICAR DESPUÉS DE:\s*(<<SECTION:\s*.*?>>)\s*(<<SECTION:\s*.*?>>.*?<<END SECTION>>)/su',
+        $input,
+        $insertMatches,
+        PREG_SET_ORDER
+    );
 
-            $operations[] = $operation;
+    foreach ($insertMatches as $match) {
+        $anchorName = extractSectionNameFromHeader($match[2]);
+        $newSectionName = extractSectionNameFromHeader($match[3]);
+
+        if ($anchorName === null || $newSectionName === null) {
+            continue;
         }
+
+        $operations[] = [
+            'type' => 'insert_after',
+            'document_slug' => trim($match[1]),
+            'anchor_section_name' => $anchorName,
+            'section_name' => $newSectionName,
+            'block' => trim($match[3]),
+        ];
     }
 
     return $operations;
-}
-
-function parseReplaceChunk(string $chunk): ?array
-{
-    if (! preg_match(
-        '/^REEMPLAZAR EN:\s*([a-z0-9_]+)\n+(<<SECTION:\s*.*?>>.*?<<END SECTION>>)\s*$/su',
-        $chunk,
-        $match
-    )) {
-        fwrite(STDERR, "Bloque de reemplazo inválido: estructura general no reconocida.\n");
-
-        return null;
-    }
-
-    $documentSlug = trim($match[1]);
-    $block = trim($match[2]);
-
-    if (! hasSectionVersionLine($block)) {
-        fwrite(STDERR, "Bloque de reemplazo inválido en {$documentSlug}: falta SECTION_VERSION.\n");
-
-        return null;
-    }
-
-    $sectionName = extractSectionNameFromBlock($block);
-
-    if ($sectionName === null) {
-        fwrite(STDERR, "Bloque de reemplazo sin nombre de sección válido en {$documentSlug}\n");
-
-        return null;
-    }
-
-    return [
-        'type' => 'replace',
-        'document_slug' => $documentSlug,
-        'section_name' => $sectionName,
-        'block' => $block,
-    ];
-}
-
-function parseInsertAfterChunk(string $chunk): ?array
-{
-    if (! preg_match('/^NUEVA SECCIÓN PROPUESTA EN:\s*([a-z0-9_]+)\n/su', $chunk, $documentMatch)) {
-        fwrite(STDERR, "Bloque de inserción inválido: falta DOC_SLUG válido.\n");
-
-        return null;
-    }
-
-    $documentSlug = trim($documentMatch[1]);
-
-    if (! str_contains($chunk, "\n\nUBICAR DESPUÉS DE:\n")) {
-        fwrite(STDERR, "Bloque de inserción inválido en {$documentSlug}: falta 'UBICAR DESPUÉS DE:'.\n");
-
-        return null;
-    }
-
-    if (! preg_match(
-        '/^NUEVA SECCIÓN PROPUESTA EN:\s*([a-z0-9_]+)\n\nUBICAR DESPUÉS DE:\n(<<SECTION:\s*.*?>>)\n\n(<<SECTION:\s*.*?>>.*?<<END SECTION>>)\s*$/su',
-        $chunk,
-        $match
-    )) {
-        fwrite(STDERR, "Bloque de inserción inválido en {$documentSlug}: estructura general no reconocida.\n");
-
-        return null;
-    }
-
-    $anchorHeader = trim($match[2]);
-    $block = trim($match[3]);
-
-    if (! hasSectionVersionLine($block)) {
-        fwrite(STDERR, "Bloque de inserción inválido en {$documentSlug}: falta SECTION_VERSION.\n");
-
-        return null;
-    }
-
-    $anchorSectionName = extractSectionNameFromHeader($anchorHeader);
-    $sectionName = extractSectionNameFromBlock($block);
-
-    if ($anchorSectionName === null) {
-        fwrite(STDERR, "Bloque de inserción sin sección ancla válida en {$documentSlug}\n");
-
-        return null;
-    }
-
-    if ($sectionName === null) {
-        fwrite(STDERR, "Bloque de inserción sin nombre de sección válido en {$documentSlug}\n");
-
-        return null;
-    }
-
-    return [
-        'type' => 'insert_after',
-        'document_slug' => $documentSlug,
-        'anchor_section_name' => $anchorSectionName,
-        'section_name' => $sectionName,
-        'block' => $block,
-    ];
-}
-
-function hasSectionVersionLine(string $block): bool
-{
-    return preg_match('/^SECTION_VERSION:\s*\d{5}\s*$/mu', $block) === 1;
-}
-
-function extractSectionNameFromBlock(string $block): ?string
-{
-    if (! preg_match('/<<SECTION:\s*(.*?)>>/u', $block, $match)) {
-        return null;
-    }
-
-    return trim($match[1]);
 }
 
 function extractSectionNameFromHeader(string $header): ?string

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/partials/embedded-context.blade.php | V5 --}}
+{{-- FILE: resources/views/inventory/partials/embedded-context.blade.php | V6 --}}
 
 @php
     use App\Support\Inventory\InventoryMovementService;
@@ -65,16 +65,14 @@
                             @php
                                 $isPhysical = ($row['is_physical_product'] ?? false) === true;
                                 $canExecute = ($row['can_execute'] ?? false) === true;
-                                $executeKind = $row['execute_kind'] ?? null;
                                 $pendingQuantity = (float) ($row['pending_quantity'] ?? 0);
                                 $executedQuantity = (float) ($row['executed_quantity'] ?? 0);
                                 $currentStock = array_key_exists('current_stock', $row)
                                     ? (float) $row['current_stock']
                                     : null;
-                                $direction = $row['direction'] ?? 'out';
-                                $executeLabel = $direction === 'in' ? 'Recibir' : 'Surtir';
                                 $lineStatusLabel = $row['line_status_label'] ?? 'Pendiente';
                                 $lineStatusBadge = $row['line_status_badge'] ?? 'status-badge--pending';
+                                $modalId = 'inventory-surtir-line-' . ($row['order_item_id'] ?? $loop->index);
                             @endphp
 
                             <tr>
@@ -117,27 +115,19 @@
                                 </td>
 
                                 <td class="compact-actions-cell">
-                                    @if ($canExecute && $executeKind && $pendingQuantity > 0)
-                                        <form method="POST"
-                                            action="{{ route('inventory.movements.store', $trailQuery) }}"
-                                            class="inline-form" data-action="app-confirm-submit"
-                                            data-confirm-message="¿Deseas {{ strtolower($executeLabel) }} esta línea por {{ number_format($pendingQuantity, 2, ',', '.') }}?">
-                                            @csrf
-                                            <input type="hidden" name="product_id" value="{{ $row['product_id'] }}">
-                                            <input type="hidden" name="order_id" value="{{ $order->id }}">
-                                            <input type="hidden" name="order_item_id"
-                                                value="{{ $row['order_item_id'] }}">
-                                            <input type="hidden" name="kind" value="{{ $executeKind }}">
-                                            <input type="hidden" name="quantity"
-                                                value="{{ number_format($pendingQuantity, 2, '.', '') }}">
-                                            <input type="hidden" name="return_context" value="orders.show">
+                                    @if ($canExecute && $pendingQuantity > 0)
+                                        <button type="button" class="btn btn-secondary btn-sm"
+                                            data-action="app-modal-open" data-modal-target="#{{ $modalId }}"
+                                            title="Surtir línea" aria-label="Surtir línea">
+                                            Surtir
+                                        </button>
 
-                                            <button type="submit" class="btn btn-secondary btn-sm"
-                                                title="{{ $executeLabel }} línea"
-                                                aria-label="{{ $executeLabel }} línea">
-                                                {{ $executeLabel }}
-                                            </button>
-                                        </form>
+                                        @include('inventory.partials.order-line-surtir-modal', [
+                                            'order' => $order,
+                                            'row' => $row,
+                                            'trailQuery' => $trailQuery,
+                                            'modalId' => $modalId,
+                                        ])
                                     @else
                                         <span class="text-muted">—</span>
                                     @endif

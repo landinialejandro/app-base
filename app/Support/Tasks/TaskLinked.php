@@ -1,39 +1,41 @@
 <?php
 
-// FILE: app/Support/Tasks/TaskLinkedAction.php | V1
+// FILE: app/Support/Tasks/TaskLinked.php | V1
 
 namespace App\Support\Tasks;
 
 use App\Models\Task;
 
-class TaskLinkedAction
+class TaskLinked
 {
     public static function forTask(?Task $task, array $trailQuery = [], string $label = 'Tarea'): array
     {
         if (! $task) {
             return [
                 'supported' => true,
-                'linked' => false,
-                'can_view' => false,
+                'exists' => false,
                 'hidden' => false,
+                'readonly' => false,
+                'state' => 'missing',
+                'show_url' => null,
                 'label' => $label,
                 'text' => '—',
-                'show_url' => null,
                 'trail_query' => $trailQuery,
             ];
         }
 
         $user = auth()->user();
-        $canView = $user && $user->can('view', $task);
+        $canView = (bool) ($user && $user->can('view', $task));
 
         return [
             'supported' => true,
-            'linked' => true,
-            'can_view' => (bool) $canView,
+            'exists' => true,
             'hidden' => false,
+            'readonly' => ! $canView,
+            'state' => $canView ? 'linked_viewable' : 'linked_readonly',
+            'show_url' => $canView ? route('tasks.show', ['task' => $task] + $trailQuery) : null,
             'label' => $label,
             'text' => $task->name ?: 'Tarea #'.$task->id,
-            'show_url' => $canView ? route('tasks.show', ['task' => $task] + $trailQuery) : null,
             'trail_query' => $trailQuery,
         ];
     }

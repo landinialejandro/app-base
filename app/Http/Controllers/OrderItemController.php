@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderItemController.php | V16
+// FILE: app/Http/Controllers/OrderItemController.php | V22
 
 namespace App\Http\Controllers;
 
@@ -13,6 +13,7 @@ use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\OrderCatalog;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\OrderNavigationTrail;
+use App\Support\Orders\OrdersHooks;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -129,11 +130,7 @@ class OrderItemController extends Controller
             'No se pueden editar ítems de una orden en estado readonly.'
         );
 
-        abort_if(
-            $item->hasInventoryMovements(),
-            422,
-            'La línea ya tiene movimientos registrados y no puede editarse.'
-        );
+        app(OrdersHooks::class)->beforeOrderItemEdit($order, $item);
 
         $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
         $security = app(Security::class);
@@ -171,11 +168,7 @@ class OrderItemController extends Controller
             'No se pueden editar ítems de una orden en estado readonly.'
         );
 
-        abort_if(
-            $item->hasInventoryMovements(),
-            422,
-            'La línea ya tiene movimientos registrados y no puede editarse.'
-        );
+        app(OrdersHooks::class)->beforeOrderItemEdit($order, $item);
 
         $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
         $security = app(Security::class);
@@ -212,7 +205,11 @@ class OrderItemController extends Controller
                 ->firstOrFail();
         }
 
+        $data = app(OrdersHooks::class)->beforeOrderItemUpdate($order, $item, $data);
+
         $item->update($data);
+
+        app(OrdersHooks::class)->afterOrderItemUpdate($order, $item);
 
         $navigationTrail = OrderNavigationTrail::show($request, $order);
 
@@ -233,11 +230,7 @@ class OrderItemController extends Controller
             'No se pueden eliminar ítems de una orden en estado readonly.'
         );
 
-        abort_if(
-            $item->hasInventoryMovements(),
-            422,
-            'La línea ya tiene movimientos registrados y no puede eliminarse.'
-        );
+        app(OrdersHooks::class)->beforeOrderItemDestroy($order, $item);
 
         $item->delete();
 

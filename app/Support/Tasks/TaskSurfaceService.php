@@ -22,7 +22,7 @@ class TaskSurfaceService implements ModuleSurfaceService
                 targets: ['orders.show'],
                 slot: 'detail_items',
                 priority: 20,
-                view: 'tasks.components.linked-task-action',
+                view: 'tasks.components.linked-task',
                 resolver: $this->resolveLinkedForOrder(...),
             ),
         ];
@@ -54,11 +54,12 @@ class TaskSurfaceService implements ModuleSurfaceService
         if ($recordType !== 'order' || ! $record instanceof Order) {
             return [
                 'data' => [
-                    'action' => [
+                    'linked' => [
                         'supported' => false,
-                        'linked' => false,
-                        'can_view' => false,
+                        'exists' => false,
                         'hidden' => true,
+                        'readonly' => false,
+                        'state' => 'hidden',
                         'label' => 'Tarea',
                         'text' => '—',
                         'show_url' => null,
@@ -69,7 +70,7 @@ class TaskSurfaceService implements ModuleSurfaceService
 
         return [
             'data' => [
-                'action' => TaskLinkedAction::forTask(
+                'linked' => TaskLinked::forTask(
                     $record->task,
                     $trailQuery,
                     'Tarea',

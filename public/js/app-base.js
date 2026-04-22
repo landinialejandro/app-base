@@ -1,4 +1,4 @@
-// FILE: public/js/app-base.js | V2
+// FILE: public/js/app-base.js | V3
 (function () {
     const dropdownSelectors = [".app-nav-dropdown", ".app-user-dropdown"];
 
@@ -17,6 +17,179 @@
         getDropdowns().forEach((dropdown) => {
             if (dropdown !== except) {
                 closeDropdown(dropdown);
+            }
+        });
+    };
+
+    const getModalTarget = (value) => {
+        if (!value) {
+            return null;
+        }
+
+        try {
+            return document.querySelector(value);
+        } catch (_) {
+            return null;
+        }
+    };
+
+    const getFirstFocusableInModal = (modal) => {
+        if (!modal) {
+            return null;
+        }
+
+        return modal.querySelector(
+            'input:not([type="hidden"]):not([disabled]), textarea:not([disabled]), select:not([disabled]), button:not([disabled]), a[href], [tabindex]:not([tabindex="-1"])',
+        );
+    };
+
+    const openModal = (modal) => {
+        if (!modal) {
+            return;
+        }
+
+        modal.hidden = false;
+        modal.setAttribute("aria-hidden", "false");
+        document.body.classList.add("app-modal-open");
+
+        const autofocusTarget =
+            modal.querySelector("[data-modal-autofocus]") ||
+            getFirstFocusableInModal(modal);
+
+        if (autofocusTarget instanceof HTMLElement) {
+            window.setTimeout(() => {
+                autofocusTarget.focus();
+
+                if (
+                    typeof autofocusTarget.select === "function" &&
+                    (autofocusTarget.tagName === "INPUT" ||
+                        autofocusTarget.tagName === "TEXTAREA")
+                ) {
+                    autofocusTarget.select();
+                }
+            }, 0);
+        }
+    };
+
+    const closeModal = (modal) => {
+        if (!modal) {
+            return;
+        }
+
+        modal.hidden = true;
+        modal.setAttribute("aria-hidden", "true");
+
+        const hasOpenModal = document.querySelector(
+            "[data-modal-root]:not([hidden])",
+        );
+
+        if (!hasOpenModal) {
+            document.body.classList.remove("app-modal-open");
+        }
+    };
+
+    const bindModals = () => {
+        document
+            .querySelectorAll('[data-action~="app-modal-open"]')
+            .forEach((trigger) => {
+                if (trigger.dataset.appModalOpenBound === "1") {
+                    return;
+                }
+
+                trigger.dataset.appModalOpenBound = "1";
+
+                trigger.addEventListener("click", function () {
+                    const modal = getModalTarget(this.dataset.modalTarget);
+
+                    if (!modal) {
+                        return;
+                    }
+
+                    openModal(modal);
+                });
+            });
+
+        document
+            .querySelectorAll('[data-action~="app-modal-close"]')
+            .forEach((trigger) => {
+                if (trigger.dataset.appModalCloseBound === "1") {
+                    return;
+                }
+
+                trigger.dataset.appModalCloseBound = "1";
+
+                trigger.addEventListener("click", function () {
+                    const modal = getModalTarget(this.dataset.modalTarget);
+
+                    if (!modal) {
+                        return;
+                    }
+
+                    closeModal(modal);
+                });
+            });
+
+        document
+            .querySelectorAll('[data-action~="app-step-number"]')
+            .forEach((button) => {
+                if (button.dataset.appStepNumberBound === "1") {
+                    return;
+                }
+
+                button.dataset.appStepNumberBound = "1";
+
+                button.addEventListener("click", function () {
+                    const input = getModalTarget(this.dataset.stepTarget);
+
+                    if (!(input instanceof HTMLInputElement)) {
+                        return;
+                    }
+
+                    const step = Number(this.dataset.stepAmount || "1");
+                    const direction =
+                        this.dataset.stepDirection === "down" ? -1 : 1;
+                    const min = Number(input.min || "0");
+                    const currentValue = Number(input.value || "0");
+
+                    if (Number.isNaN(step) || step <= 0) {
+                        return;
+                    }
+
+                    const baseValue = Number.isNaN(currentValue)
+                        ? 0
+                        : currentValue;
+                    let nextValue = baseValue + step * direction;
+
+                    if (!Number.isNaN(min)) {
+                        nextValue = Math.max(min, nextValue);
+                    }
+
+                    const decimals = String(step).includes(".")
+                        ? String(step).split(".")[1].length
+                        : 0;
+
+                    input.value = nextValue.toFixed(
+                        decimals > 0 ? decimals : 0,
+                    );
+                    input.dispatchEvent(new Event("input", { bubbles: true }));
+                    input.dispatchEvent(new Event("change", { bubbles: true }));
+                    input.focus();
+                });
+            });
+
+        document.addEventListener("keydown", function (event) {
+            if (event.key !== "Escape") {
+                return;
+            }
+
+            const openModals = Array.from(
+                document.querySelectorAll("[data-modal-root]:not([hidden])"),
+            );
+
+            const lastOpenModal = openModals[openModals.length - 1] || null;
+
+            if (lastOpenModal) {
+                closeModal(lastOpenModal);
             }
         });
     };
@@ -946,6 +1119,7 @@
     };
 
     const initAppBase = () => {
+        bindModals();
         bindConfirmSubmit();
         bindSelectOnClick();
         bindCopyTarget();

@@ -33,7 +33,7 @@
 
         $headerActions = $linked->where('slot', 'header_actions')->values();
         $summaryItems = $linked->where('slot', 'summary_items')->values();
-        $detailItems = $embedded->where('slot', 'detail_items')->values();
+        $detailItems = $linked->where('slot', 'detail_items')->values();
 
         $hostTabItems = collect([
             [

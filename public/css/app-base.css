@@ -514,6 +514,140 @@ a:hover {
     background: var(--color-border);
 }
 
+.app-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4);
+}
+
+.app-modal[hidden] {
+    display: none;
+}
+
+.app-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(15, 23, 42, 0.45);
+}
+
+.app-modal__dialog {
+    position: relative;
+    z-index: 1;
+    width: 100%;
+    background: var(--color-surface, #fff);
+    border: 1px solid var(--color-border, #d9e2ec);
+    border-radius: var(--radius-lg, 16px);
+    box-shadow: 0 24px 60px rgba(15, 23, 42, 0.18);
+    overflow: hidden;
+}
+
+.app-modal__dialog--sm {
+    max-width: 420px;
+}
+
+.app-modal__dialog--md {
+    max-width: 560px;
+}
+
+.app-modal__dialog--lg {
+    max-width: 760px;
+}
+
+.app-modal__dialog--xl {
+    max-width: 960px;
+}
+
+.app-modal__header {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    border-bottom: 1px solid var(--color-border, #d9e2ec);
+    background: var(--color-surface, #fff);
+}
+
+.app-modal__title {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: 600;
+    line-height: 1.2;
+}
+
+.app-modal__header-actions {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    margin-left: auto;
+    flex: 0 0 auto;
+}
+
+.app-modal__header-actions .btn {
+    flex: 0 0 auto;
+}
+
+.app-modal__body {
+    padding: var(--space-4);
+    background: var(--color-surface, #fff);
+}
+
+.app-modal__footer {
+    display: flex;
+    justify-content: flex-end;
+    gap: var(--space-2);
+    padding: var(--space-4);
+    border-top: 1px solid var(--color-border, #d9e2ec);
+    background: var(--color-surface-subtle, #f8fafc);
+}
+
+body.app-modal-open {
+    overflow: hidden;
+}
+
+/* Modal inventory: surtir línea */
+
+.app-stepper {
+    display: grid;
+    grid-template-columns: auto minmax(0, 1fr) auto;
+    align-items: center;
+    gap: var(--space-2);
+    width: 100%;
+}
+
+.app-stepper__button {
+    flex: 0 0 auto;
+    min-width: 2.5rem;
+    min-height: 2.75rem;
+}
+
+.app-stepper__field {
+    min-width: 0;
+    width: 100%;
+}
+
+.app-stepper__input {
+    text-align: center;
+}
+
+.app-stepper__input::-webkit-outer-spin-button,
+.app-stepper__input::-webkit-inner-spin-button {
+    margin: 0;
+}
+
+@media (max-width: 640px) {
+    .app-stepper {
+        grid-template-columns: 1fr;
+    }
+
+    .app-stepper__button {
+        width: 100%;
+    }
+}
+
 /* =========================================================
    7. Footer global
    Pie de aplicación común a todas las pantallas internas.

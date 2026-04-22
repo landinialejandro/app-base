@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/components/modal.blade.php | V2 --}}
+{{-- FILE: resources/views/components/modal.blade.php | V3 --}}
 
 @props(['id', 'title' => null, 'size' => 'md'])
 
@@ -9,6 +9,8 @@
         'xl' => 'app-modal__dialog--xl',
         default => 'app-modal__dialog--md',
     };
+
+    $hasHeaderActions = isset($headerActions) && trim((string) $headerActions) !== '';
 @endphp
 
 <div {{ $attributes->class(['app-modal']) }} id="{{ $id }}" hidden aria-hidden="true" data-modal-root>
@@ -23,10 +25,16 @@
                 <div></div>
             @endif
 
-            <button type="button" class="btn btn-secondary btn-icon" data-action="app-modal-close"
-                data-modal-target="#{{ $id }}" aria-label="Cerrar ventana" title="Cerrar ventana">
-                <x-icons.x />
-            </button>
+            <div class="app-modal__header-actions">
+                @if ($hasHeaderActions)
+                    {{ $headerActions }}
+                @endif
+
+                <button type="button" class="btn btn-secondary btn-icon" data-action="app-modal-close"
+                    data-modal-target="#{{ $id }}" aria-label="Cerrar ventana" title="Cerrar ventana">
+                    <x-icons.x />
+                </button>
+            </div>
         </div>
 
         <div class="app-modal__body">

@@ -25,7 +25,7 @@ class InventorySurfaceService implements ModuleSurfaceService
                 targets: ['inventory.show'],
                 slot: 'header_actions',
                 priority: 20,
-                view: 'inventory.components.linked-movement-action',
+                view: 'inventory.components.movement-action',
                 resolver: $this->resolveManualAdjustmentAction(...),
             ),
 
@@ -111,15 +111,11 @@ class InventorySurfaceService implements ModuleSurfaceService
                 'data' => [
                     'action' => [
                         'supported' => false,
-                        'linked' => false,
-                        'can_view' => false,
-                        'can_create' => false,
-                        'readonly' => false,
                         'hidden' => true,
-                        'show_url' => null,
+                        'state' => 'hidden',
                         'create_url' => null,
                         'label' => 'Movimiento',
-                        'linked_text' => 'Movimiento',
+                        'text' => 'Agregar movimiento',
                     ],
                     'variant' => 'button',
                 ],
@@ -133,17 +129,13 @@ class InventorySurfaceService implements ModuleSurfaceService
             'data' => [
                 'action' => [
                     'supported' => true,
-                    'linked' => false,
-                    'can_view' => false,
-                    'can_create' => $canCreate,
-                    'readonly' => false,
                     'hidden' => ! $canCreate,
-                    'show_url' => null,
+                    'state' => $canCreate ? 'creatable' : 'hidden',
                     'create_url' => $canCreate
                         ? route('inventory.movements.create', ['product' => $record] + $trailQuery)
                         : null,
                     'label' => 'Movimiento',
-                    'linked_text' => 'Movimiento',
+                    'text' => 'Agregar movimiento',
                 ],
                 'variant' => 'button',
             ],

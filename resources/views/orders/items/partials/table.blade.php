@@ -1,7 +1,8 @@
-{{-- FILE: resources/views/orders/items/partials/table.blade.php | V8 --}}
+{{-- FILE: resources/views/orders/items/partials/table.blade.php | V9 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
+    use App\Support\Catalogs\OrderItemCatalog;
     use App\Support\Catalogs\ProductCatalog;
 
     $order = $order ?? null;
@@ -19,6 +20,7 @@
                 <tr>
                     <th>Posición</th>
                     <th>Ítem</th>
+                    <th>Estado</th>
                     <th>Cantidad</th>
                     <th>Precio unitario</th>
                     <th>Total línea</th>
@@ -28,9 +30,27 @@
             <tbody>
                 @foreach ($items as $item)
                     @php
-                        $canEdit = !$orderIsReadonly && !$item->hasInventoryMovements();
-                        $canDelete = !$orderIsReadonly && !$item->hasInventoryMovements();
+                        $canEdit =
+                            !$orderIsReadonly &&
+                            !in_array(
+                                $item->status,
+                                [OrderItemCatalog::STATUS_COMPLETED, OrderItemCatalog::STATUS_CANCELLED],
+                                true,
+                            );
+
+                        $canDelete =
+                            !$orderIsReadonly &&
+                            !in_array(
+                                $item->status,
+                                [OrderItemCatalog::STATUS_COMPLETED, OrderItemCatalog::STATUS_CANCELLED],
+                                true,
+                            );
+
                         $itemTypeLabel = ProductCatalog::kindLabel($item->kind);
+
+                        $lineStatus = $item->status ?: OrderItemCatalog::STATUS_PENDING;
+                        $lineStatusLabel = OrderItemCatalog::statusLabel($lineStatus);
+                        $lineStatusBadge = OrderItemCatalog::badgeClass($lineStatus);
                     @endphp
 
                     <tr>
@@ -39,6 +59,12 @@
                         <td>
                             <div>{{ $item->description }}</div>
                             <div class="text-muted">{{ $itemTypeLabel }}</div>
+                        </td>
+
+                        <td>
+                            <span class="status-badge {{ $lineStatusBadge }}">
+                                {{ $lineStatusLabel }}
+                            </span>
                         </td>
 
                         <td>{{ number_format((float) $item->quantity, 2, ',', '.') }}</td>
@@ -68,10 +94,6 @@
                                             message="¿Deseas eliminar este ítem?">
                                             <x-icons.trash />
                                         </x-button-tool-submit>
-                                    @endif
-
-                                    @if (!$canEdit && !$canDelete)
-                                        <span class="text-muted">—</span>
                                     @endif
 
                                     @if (!$canEdit && !$canDelete)

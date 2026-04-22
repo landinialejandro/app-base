@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Inventory/InventoryMovementService.php | V5
+// FILE: app/Support/Inventory/InventoryMovementService.php | V6
 
 namespace App\Support\Inventory;
 
@@ -151,7 +151,16 @@ class InventoryMovementService
                 'document_id' => $document?->id,
                 'kind' => $kind,
                 'quantity' => $normalizedQuantity,
-                'notes' => $notes,
+                'notes' => $this->buildTraceableNotes(
+                    kind: $kind,
+                    quantity: $normalizedQuantity,
+                    userNotes: $notes,
+                    product: $product,
+                    order: $order,
+                    orderItem: $orderItem,
+                    document: $document,
+                    createdBy: $createdBy,
+                ),
                 'created_by' => $createdBy,
             ]);
 
@@ -261,6 +270,52 @@ class InventoryMovementService
         if ($product->kind !== ProductCatalog::KIND_PRODUCT) {
             throw new InvalidArgumentException('El movimiento solo puede registrarse sobre productos físicos stockeables.');
         }
+    }
+
+    protected function buildTraceableNotes(
+        string $kind,
+        float $quantity,
+        ?string $userNotes = null,
+        ?Product $product = null,
+        ?Order $order = null,
+        ?OrderItem $orderItem = null,
+        ?Document $document = null,
+        int|string|null $createdBy = null,
+    ): string {
+        $trace = [];
+
+        $trace[] = '[inventory] Movimiento registrado por sistema';
+        $trace[] = 'Tipo: '.$kind;
+        $trace[] = 'Cantidad: '.$this->formatQuantity($quantity, $product?->unit_label);
+
+        if ($product) {
+            $trace[] = 'Producto: '.($product->name ?: 'Producto #'.$product->id);
+        }
+
+        if ($order) {
+            $trace[] = 'Orden: '.($order->number ?: 'Orden #'.$order->id);
+        }
+
+        if ($orderItem) {
+            $trace[] = 'Línea: #'.$orderItem->id;
+            $trace[] = 'Posición de línea: '.($orderItem->position ?? '—');
+        }
+
+        if ($document) {
+            $trace[] = 'Documento: '.($document->number ?: 'Documento #'.$document->id);
+        }
+
+        $actor = $this->resolveActorUser($createdBy);
+
+        if ($actor) {
+            $trace[] = 'Usuario: '.($actor->name ?: 'Usuario #'.$actor->id);
+        }
+
+        if ($userNotes && trim($userNotes) !== '') {
+            $trace[] = 'Nota usuario: '.trim($userNotes);
+        }
+
+        return implode(' | ', $trace);
     }
 
     protected function notifyOwnerIfStockTurnsNegative(

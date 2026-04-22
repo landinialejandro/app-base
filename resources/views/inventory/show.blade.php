@@ -88,11 +88,6 @@
         </x-page-header>
 
         <x-show-summary details-id="inventory-more-detail">
-            <x-show-summary-item label="Artículo">
-                <a href="{{ route('products.show', ['product' => $product] + $trailQuery) }}">
-                    {{ $product->name }}
-                </a>
-            </x-show-summary-item>
 
             <x-show-summary-item label="Saldo actual">
                 {{ number_format($currentStock, 2, ',', '.') }}

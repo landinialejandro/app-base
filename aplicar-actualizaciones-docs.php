@@ -1,6 +1,6 @@
 <?php
 
-// FILE: aplicar-actualizaciones-docs.php | V6
+// FILE: aplicar-actualizaciones-docs.php | V7
 $baseDir = __DIR__.DIRECTORY_SEPARATOR.'documentos';
 $backupDir = $baseDir.DIRECTORY_SEPARATOR.'baks';
 $logPath = $baseDir.DIRECTORY_SEPARATOR.'log'.DIRECTORY_SEPARATOR.'docs-updates.log';
@@ -163,8 +163,7 @@ foreach ($operationsByDocument as $documentSlug => $operationsForDocument) {
         continue;
     }
 
-    $timestamp = date('Ymd_His');
-    $backupPath = $backupDir.DIRECTORY_SEPARATOR.$timestamp.'_'.$fileName;
+    $backupPath = $backupDir.DIRECTORY_SEPARATOR.$fileName.'.bak';
 
     file_put_contents($backupPath, $originalContent);
 

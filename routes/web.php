@@ -1,6 +1,6 @@
 <?php
 
-// FILE: routes/web.php | V4
+// FILE: routes/web.php | V5
 
 use App\Http\Controllers\AdminInvitationController;
 use App\Http\Controllers\AdminMetricsController;
@@ -234,6 +234,8 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
     Route::get('/orders/{order}/edit', [OrderController::class, 'edit'])->name('orders.edit');
     Route::put('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
+    Route::post('/orders/{order}/status', [OrderController::class, 'updateStatus'])
+        ->name('orders.status.update');
     Route::delete('/orders/{order}', [OrderController::class, 'destroy'])->name('orders.destroy');
 
     Route::post('/orders/{order}/documents', [DocumentController::class, 'storeFromOrder'])
@@ -293,6 +295,8 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         ->name('inventory.movements.create');
     Route::post('/inventory/movements', [InventoryController::class, 'storeMovement'])
         ->name('inventory.movements.store');
+    Route::post('/inventory/orders/{order}/items/{item}/return', [InventoryController::class, 'returnOrderItemQuantity'])
+        ->name('inventory.order-items.return');
 
     // Print
     Route::get('/appointments/{appointment}/pdf', [AppointmentController::class, 'pdf'])

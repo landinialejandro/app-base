@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/partials/movements-table.blade.php | V7 --}}
+{{-- FILE: resources/views/inventory/partials/movements-table.blade.php | V8 --}}
 
 @php
     use App\Support\Inventory\InventoryMovementService;
@@ -6,6 +6,7 @@
     $movementRows = ($movementRows ?? collect())->values();
     $emptyMessage = $emptyMessage ?? 'No hay movimientos para mostrar.';
     $trailQuery = $trailQuery ?? [];
+    $orderItem = $orderItem ?? null;
 
     $kindLabels = [
         InventoryMovementService::KIND_INGRESAR => 'Ingresar',
@@ -37,14 +38,37 @@
                             $runningBalance = (float) ($row['running_balance'] ?? 0);
 
                             $originLabel = 'Ajuste manual';
+                            $originDetail = null;
                             $originUrl = null;
 
                             if ($movement->order) {
                                 $originLabel = $movement->order->number ?: 'Orden #' . $movement->order->id;
                                 $originUrl = route('orders.show', ['order' => $movement->order] + $trailQuery);
+
+                                if ($movement->orderItem) {
+                                    $originDetail =
+                                        'Línea #' .
+                                        ($movement->orderItem->position ?? $movement->orderItem->id) .
+                                        ' — ' .
+                                        ($movement->orderItem->description ?: 'Sin descripción');
+                                }
                             } elseif ($movement->document) {
                                 $originLabel = $movement->document->number ?: 'Documento #' . $movement->document->id;
                                 $originUrl = route('documents.show', ['document' => $movement->document] + $trailQuery);
+
+                                if ($movement->orderItem) {
+                                    $originDetail =
+                                        'Línea #' .
+                                        ($movement->orderItem->position ?? $movement->orderItem->id) .
+                                        ' — ' .
+                                        ($movement->orderItem->description ?: 'Sin descripción');
+                                }
+                            } elseif ($movement->orderItem) {
+                                $originDetail =
+                                    'Línea #' .
+                                    ($movement->orderItem->position ?? $movement->orderItem->id) .
+                                    ' — ' .
+                                    ($movement->orderItem->description ?: 'Sin descripción');
                             }
                         @endphp
 
@@ -56,10 +80,16 @@
                             <td>{{ $kindLabels[$movement->kind] ?? ucfirst($movement->kind) }}</td>
 
                             <td>
-                                @if ($originUrl)
-                                    <a href="{{ $originUrl }}">{{ $originLabel }}</a>
-                                @else
-                                    {{ $originLabel }}
+                                <div>
+                                    @if ($originUrl)
+                                        <a href="{{ $originUrl }}">{{ $originLabel }}</a>
+                                    @else
+                                        {{ $originLabel }}
+                                    @endif
+                                </div>
+
+                                @if ($originDetail)
+                                    <div class="text-muted">{{ $originDetail }}</div>
                                 @endif
                             </td>
 

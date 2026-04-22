@@ -33,7 +33,6 @@ foreach ($operations as $operation) {
 
     if (! isset($documents[$documentSlug])) {
         fwrite(STDERR, "Documento no reconocido por slug: {$documentSlug}\n");
-
         continue;
     }
 
@@ -55,7 +54,6 @@ foreach ($operationsByDocument as $documentSlug => $operationsForDocument) {
 
     if (! file_exists($filePath)) {
         fwrite(STDERR, "No existe el archivo del documento: {$filePath}\n");
-
         continue;
     }
 
@@ -63,7 +61,6 @@ foreach ($operationsByDocument as $documentSlug => $operationsForDocument) {
 
     if ($content === false) {
         fwrite(STDERR, "No se pudo leer el archivo: {$filePath}\n");
-
         continue;
     }
 
@@ -83,13 +80,11 @@ foreach ($operationsByDocument as $documentSlug => $operationsForDocument) {
             if ($matchCount === 0) {
                 fwrite(STDERR, "[{$documentSlug}] No se encontró la sección: {$sectionName}\n");
                 writeClosestSectionHint($documentSlug, $sectionName, $availableSections);
-
                 continue;
             }
 
             if ($matchCount > 1) {
                 fwrite(STDERR, "[{$documentSlug}] Se encontraron múltiples secciones con el mismo nombre: {$sectionName}\n");
-
                 continue;
             }
 
@@ -117,7 +112,6 @@ foreach ($operationsByDocument as $documentSlug => $operationsForDocument) {
 
             if (count($existingNewSections) > 0) {
                 fwrite(STDERR, "[{$documentSlug}] Ya existe la sección a insertar: {$newSectionName}\n");
-
                 continue;
             }
 
@@ -127,13 +121,11 @@ foreach ($operationsByDocument as $documentSlug => $operationsForDocument) {
             if ($anchorCount === 0) {
                 fwrite(STDERR, "[{$documentSlug}] No se encontró la sección ancla: {$anchorSectionName}\n");
                 writeClosestSectionHint($documentSlug, $anchorSectionName, $availableSections);
-
                 continue;
             }
 
             if ($anchorCount > 1) {
                 fwrite(STDERR, "[{$documentSlug}] Se encontraron múltiples secciones ancla con el mismo nombre: {$anchorSectionName}\n");
-
                 continue;
             }
 
@@ -159,7 +151,6 @@ foreach ($operationsByDocument as $documentSlug => $operationsForDocument) {
 
     if ($applied === 0) {
         fwrite(STDERR, "[{$documentSlug}] Sin cambios aplicados.\n");
-
         continue;
     }
 
@@ -170,7 +161,6 @@ foreach ($operationsByDocument as $documentSlug => $operationsForDocument) {
 
     if (file_put_contents($filePath, $content) === false) {
         fwrite(STDERR, "[{$documentSlug}] Error al escribir archivo.\n");
-
         continue;
     }
 

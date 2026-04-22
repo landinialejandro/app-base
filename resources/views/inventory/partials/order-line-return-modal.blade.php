@@ -1,11 +1,11 @@
-{{-- FILE: resources/views/inventory/partials/order-line-surtir-modal.blade.php | V5 --}}
+{{-- FILE: resources/views/inventory/partials/order-line-return-modal.blade.php | V2 --}}
 
 @php
     $order = $order ?? null;
     $row = $row ?? [];
     $trailQuery = $trailQuery ?? [];
 
-    $modalId = $modalId ?? 'inventory-surtir-line-' . ($row['order_item_id'] ?? uniqid());
+    $modalId = $modalId ?? 'inventory-devolver-line-' . ($row['order_item_id'] ?? uniqid());
     $submitFormId = $submitFormId ?? $modalId . '-form';
 
     $position = $row['position'] ?? '—';
@@ -13,36 +13,32 @@
 
     $pendingQuantity = (float) ($row['pending_quantity'] ?? 0);
     $executedQuantity = (float) ($row['executed_quantity'] ?? 0);
+    $maxReturnQuantity = (float) ($row['max_return_quantity'] ?? 0);
     $currentStock = array_key_exists('current_stock', $row) ? (float) $row['current_stock'] : null;
 
-    $productId = $row['product_id'] ?? null;
     $orderItemId = $row['order_item_id'] ?? null;
-    $executeKind = $row['execute_kind'] ?? null;
 
     $quantityInputId = $modalId . '-quantity';
     $notesInputId = $modalId . '-notes';
 
     $stepAmount = '0.01';
-    $defaultQuantity = number_format($pendingQuantity, 2, '.', '');
+    $defaultQuantity = number_format($maxReturnQuantity, 2, '.', '');
 @endphp
 
-<x-modal :id="$modalId" :title="'Surtir línea #' . $position" size="md">
+<x-modal :id="$modalId" :title="'Devolver línea #' . $position" size="md">
     <x-slot:headerActions>
         <button type="submit" form="{{ $submitFormId }}" class="btn btn-success btn-icon"
-            title="Confirmar surtido de línea #{{ $position }}"
-            aria-label="Confirmar surtido de línea #{{ $position }}">
+            title="Confirmar devolución de línea #{{ $position }}"
+            aria-label="Confirmar devolución de línea #{{ $position }}">
             <x-icons.check />
         </button>
     </x-slot:headerActions>
 
-    <form id="{{ $submitFormId }}" action="{{ route('inventory.movements.store', $trailQuery) }}" method="POST"
-        class="form">
+    <form id="{{ $submitFormId }}"
+        action="{{ route('inventory.order-items.return', ['order' => $order, 'item' => $orderItemId] + $trailQuery) }}"
+        method="POST" class="form">
         @csrf
 
-        <input type="hidden" name="product_id" value="{{ $productId }}">
-        <input type="hidden" name="order_id" value="{{ $order?->id }}">
-        <input type="hidden" name="order_item_id" value="{{ $orderItemId }}">
-        <input type="hidden" name="kind" value="{{ $executeKind }}">
         <input type="hidden" name="return_context" value="orders.show">
         <input type="hidden" name="return_tab" value="inventory.embedded">
 
@@ -53,13 +49,13 @@
 
         <div class="summary-inline-grid">
             <div class="summary-inline-card">
-                <div class="summary-inline-label">Pendiente</div>
-                <div class="summary-inline-value">{{ number_format($pendingQuantity, 2, ',', '.') }}</div>
+                <div class="summary-inline-label">Ejecutado</div>
+                <div class="summary-inline-value">{{ number_format($executedQuantity, 2, ',', '.') }}</div>
             </div>
 
             <div class="summary-inline-card">
-                <div class="summary-inline-label">Ejecutado</div>
-                <div class="summary-inline-value">{{ number_format($executedQuantity, 2, ',', '.') }}</div>
+                <div class="summary-inline-label">Pendiente</div>
+                <div class="summary-inline-value">{{ number_format($pendingQuantity, 2, ',', '.') }}</div>
             </div>
 
             <div class="summary-inline-card">
@@ -71,7 +67,7 @@
         </div>
 
         <div class="form-group">
-            <label for="{{ $quantityInputId }}" class="form-label">Cantidad a surtir</label>
+            <label for="{{ $quantityInputId }}" class="form-label">Cantidad a devolver</label>
 
             <div class="app-stepper">
                 <button type="button" class="app-stepper__button btn btn-secondary btn-icon"
@@ -99,8 +95,9 @@
             @enderror
 
             <div class="form-help">
-                Podés registrar un surtido parcial o total. Si confirmás sin cambiar la cantidad,
-                se tomará el pendiente completo. La línea seguirá editable mientras no quede completada.
+                Podés devolver hasta {{ number_format($maxReturnQuantity, 2, ',', '.') }}, que es lo ejecutado neto
+                actual
+                de la línea. La devolución se registrará como un nuevo movimiento.
             </div>
         </div>
 

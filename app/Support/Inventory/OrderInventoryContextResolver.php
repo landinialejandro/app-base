@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Inventory/OrderInventoryContextResolver.php | V2
+// FILE: app/Support/Inventory/OrderInventoryContextResolver.php | V3
 
 namespace App\Support\Inventory;
 
@@ -92,6 +92,15 @@ class OrderInventoryContextResolver
             && OrderItemCatalog::isOperable($lineStatus)
             && $pendingQuantity > 0;
 
+        $maxReturnQuantity = $isPhysicalProduct
+            ? $executedQuantity
+            : 0.0;
+
+        $canReturn = $isPhysicalProduct
+            && $isOperable
+            && ! $isReadonly
+            && $executedQuantity > 0;
+
         $canEdit = ! $isLineLocked;
         $canDelete = ! $isLineLocked;
 
@@ -116,9 +125,12 @@ class OrderInventoryContextResolver
             'is_line_locked' => $isLineLocked,
             'has_movements' => $hasMovements,
             'can_execute' => $canExecute,
+            'can_return' => $canReturn,
+            'max_return_quantity' => $maxReturnQuantity,
             'can_edit' => $canEdit,
             'can_delete' => $canDelete,
             'execute_kind' => $this->movementKindForDirection($direction),
+            'return_kind' => $this->returnKindForDirection($direction),
             'order_id' => $order->id,
         ];
     }
@@ -138,6 +150,13 @@ class OrderInventoryContextResolver
         return $direction === 'in'
             ? InventoryMovementService::KIND_INGRESAR
             : InventoryMovementService::KIND_ENTREGAR;
+    }
+
+    protected function returnKindForDirection(string $direction): string
+    {
+        return $direction === 'in'
+            ? InventoryMovementService::KIND_ENTREGAR
+            : InventoryMovementService::KIND_INGRESAR;
     }
 
     protected function isOrderOperable(Order $order): bool

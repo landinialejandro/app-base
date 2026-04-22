@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/show.blade.php | V12 --}}
+{{-- FILE: resources/views/inventory/show.blade.php | V13 --}}
 
 @extends('layouts.app')
 
@@ -14,6 +14,7 @@
         $movementRows = ($movementRows ?? collect())->values();
         $currentStock = isset($currentStock) ? (float) $currentStock : 0;
         $movementKind = $movementKind ?? '';
+        $orderItem = $orderItem ?? null;
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
@@ -38,6 +39,12 @@
             InventoryMovementService::KIND_ENTREGAR => 'Entregas',
         ];
 
+        $inventoryShowBaseQuery = ['product' => $product] + $trailQuery;
+
+        if ($orderItem) {
+            $inventoryShowBaseQuery['order_item_id'] = $orderItem->id;
+        }
+
         $hostTabItems = collect([
             [
                 'type' => 'embedded',
@@ -53,19 +60,21 @@
                     'movementRows' => $movementRows,
                     'movementKind' => $movementKind,
                     'kindTabs' => collect($kindLabels)
-                        ->map(function ($label, $value) use ($product, $trailQuery, $movementKind) {
+                        ->map(function ($label, $value) use ($inventoryShowBaseQuery, $movementKind) {
                             return [
                                 'label' => $label,
                                 'url' => route(
                                     'inventory.show',
-                                    ['product' => $product] + $trailQuery + ($value !== '' ? ['kind' => $value] : []),
+                                    $inventoryShowBaseQuery + ($value !== '' ? ['kind' => $value] : []),
                                 ),
                                 'is_active' => $movementKind === $value,
                             ];
                         })
                         ->values()
                         ->all(),
-                    'emptyMessage' => 'No hay movimientos registrados para este artículo.',
+                    'emptyMessage' => $orderItem
+                        ? 'No hay movimientos registrados para esta línea.'
+                        : 'No hay movimientos registrados para este artículo.',
                     'trailQuery' => $trailQuery,
                 ],
             ],
@@ -97,6 +106,12 @@
                 {{ $product->unit_label ?: '—' }}
             </x-show-summary-item>
 
+            @if ($orderItem)
+                <x-show-summary-item label="Línea filtrada">
+                    #{{ $orderItem->position }} — {{ $orderItem->description ?: 'Sin descripción' }}
+                </x-show-summary-item>
+            @endif
+
             @foreach ($summaryItems as $surface)
                 <x-show-summary-item :label="$surface['label'] ?? 'Relacionado'">
                     @include($surface['view'], $surface['data'] ?? [])
@@ -107,6 +122,20 @@
                 <x-show-summary-item-detail-block label="SKU">
                     {{ $product->sku ?: '—' }}
                 </x-show-summary-item-detail-block>
+
+                @if ($orderItem)
+                    <x-show-summary-item-detail-block label="Order item">
+                        #{{ $orderItem->id }}
+                    </x-show-summary-item-detail-block>
+
+                    <x-show-summary-item-detail-block label="Posición">
+                        {{ $orderItem->position ?? '—' }}
+                    </x-show-summary-item-detail-block>
+
+                    <x-show-summary-item-detail-block label="Descripción de línea" full>
+                        {{ $orderItem->description ?: '—' }}
+                    </x-show-summary-item-detail-block>
+                @endif
 
                 <x-show-summary-item-detail-block label="Descripción" full>
                     {{ $product->description ?: '—' }}

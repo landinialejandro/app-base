@@ -1,11 +1,11 @@
 <?php
 
-// FILE: app/Support/Inventory/InventorySurfaceService.php | V17
-
+// FILE: app/Support/Inventory/InventorySurfaceService.php | V18
 namespace App\Support\Inventory;
 
 use App\Models\InventoryMovement;
 use App\Models\Order;
+use App\Models\OrderItem;
 use App\Models\Product;
 use App\Support\Catalogs\ProductCatalog;
 use App\Support\Modules\Concerns\BuildsSurfaceOffers;
@@ -88,11 +88,32 @@ class InventorySurfaceService implements ModuleSurfaceService
                 view: 'inventory.partials.embedded-context',
                 resolver: $this->resolveEmbeddedForOrder(...),
             ),
+
+            $this->linkedOffer(
+                key: 'inventory.order_item.execute',
+                label: 'Surtir',
+                targets: ['orders.items.row'],
+                slot: 'row_actions',
+                priority: 20,
+                view: 'inventory.components.order-item-row-actions',
+                resolver: $this->resolveOrderItemExecuteAction(...),
+                needs: ['record', 'recordType', 'trailQuery', 'order'],
+            ),
         ];
     }
 
     public function hostPack(string $host, mixed $record = null, array $context = []): array
     {
+        if ($host === 'orders.items.row' && $record instanceof OrderItem && ($context['order'] ?? null) instanceof Order) {
+            return [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'order_item',
+                'order' => $context['order'],
+                'trailQuery' => $context['trailQuery'] ?? [],
+            ];
+        }
+
         return [
             'host' => $host,
             'record' => $record,
@@ -288,6 +309,60 @@ class InventorySurfaceService implements ModuleSurfaceService
         ];
     }
 
+    private function resolveOrderItemExecuteAction(array $hostPack): array
+    {
+        $record = $hostPack['record'] ?? null;
+        $recordType = $hostPack['recordType'] ?? null;
+        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+        $order = $hostPack['order'] ?? null;
+
+        if ($recordType !== 'order_item' || ! $record instanceof OrderItem || ! $order instanceof Order) {
+            return [
+                'count' => 0,
+                'data' => [
+                    'actions' => [],
+                ],
+            ];
+        }
+
+        $order->loadMissing([
+            'items.product',
+            'items.inventoryMovements',
+        ]);
+
+        $inventoryContext = app(OrderInventoryContextResolver::class)->forOrder($order);
+
+        $row = collect($inventoryContext['items'] ?? [])
+            ->first(fn (array $candidate) => (int) ($candidate['order_item_id'] ?? 0) === (int) $record->id);
+
+        if (! is_array($row) || (($row['can_execute'] ?? false) !== true)) {
+            return [
+                'count' => 0,
+                'data' => [
+                    'actions' => [],
+                ],
+            ];
+        }
+
+        return [
+            'count' => 1,
+            'data' => [
+                'actions' => [[
+                    'type' => 'modal',
+                    'label' => 'Surtir línea',
+                    'title' => 'Surtir línea',
+                    'button_class' => 'btn btn-success btn-icon',
+                    'icon' => 'truck',
+                    'modal_view' => 'inventory.partials.order-line-surtir-modal',
+                    'modal_id' => 'inventory-row-surtir-line-'.$record->id,
+                    'row' => $row,
+                    'order' => $order,
+                    'trailQuery' => $trailQuery,
+                ]],
+            ],
+        ];
+    }
+
     private function productFromHostPack(array $hostPack): ?Product
     {
         [$record, $recordType] = $this->unpackHostPack($hostPack);
@@ -385,6 +460,7 @@ class InventorySurfaceService implements ModuleSurfaceService
     {
         return match (true) {
             $record instanceof Order => 'order',
+            $record instanceof OrderItem => 'order_item',
             $record instanceof Product => 'product',
             default => null,
         };

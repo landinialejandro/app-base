@@ -1,9 +1,10 @@
-{{-- FILE: resources/views/orders/items/partials/table.blade.php | V9 --}}
+{{-- FILE: resources/views/orders/items/partials/table.blade.php | V10 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
     use App\Support\Catalogs\OrderItemCatalog;
     use App\Support\Catalogs\ProductCatalog;
+    use App\Support\Modules\ModuleSurfaceRegistry;
 
     $order = $order ?? null;
     $items = $items ?? collect();
@@ -51,6 +52,20 @@
                         $lineStatus = $item->status ?: OrderItemCatalog::STATUS_PENDING;
                         $lineStatusLabel = OrderItemCatalog::statusLabel($lineStatus);
                         $lineStatusBadge = OrderItemCatalog::badgeClass($lineStatus);
+
+                        $rowHostPack = [
+                            'host' => 'orders.items.row',
+                            'record' => $item,
+                            'recordType' => 'order_item',
+                            'order' => $order,
+                            'trailQuery' => $trailQuery,
+                        ];
+
+                        $rowLinkedActions = collect(
+                            app(ModuleSurfaceRegistry::class)->linkedFor('orders.items.row', $rowHostPack)
+                        )
+                            ->where('slot', 'row_actions')
+                            ->values();
                     @endphp
 
                     <tr>
@@ -96,12 +111,24 @@
                                         </x-button-tool-submit>
                                     @endif
 
-                                    @if (!$canEdit && !$canDelete)
+                                    @foreach ($rowLinkedActions as $surface)
+                                        @include($surface['view'], $surface['data'] ?? [])
+                                    @endforeach
+
+                                    @if (!$canEdit && !$canDelete && $rowLinkedActions->isEmpty())
                                         <span class="text-muted">—</span>
                                     @endif
                                 </div>
                             @else
-                                <span class="text-muted">—</span>
+                                @if ($rowLinkedActions->isNotEmpty())
+                                    <div class="compact-actions">
+                                        @foreach ($rowLinkedActions as $surface)
+                                            @include($surface['view'], $surface['data'] ?? [])
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
                             @endcan
                         </td>
                     </tr>

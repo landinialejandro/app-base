@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Inventory/OrderInventoryOperationService.php | V1
+// FILE: app/Support/Inventory/OrderInventoryOperationService.php | V2
 
 namespace App\Support\Inventory;
 
@@ -71,37 +71,43 @@ class OrderInventoryOperationService
         });
     }
 
-    public function reverseLineMovement(
+    public function returnLineQuantity(
         Order $order,
         OrderItem $item,
-        int $movementId,
+        float|int|string $quantity,
         ?string $notes = null,
         int|string|null $createdBy = null,
     ): array {
         $this->validateOrderItemRelation($order, $item);
+        $this->validateOrderOperable($order);
 
         $item->loadMissing(['product', 'inventoryMovements']);
+
         $product = $this->resolvePhysicalProduct($item);
+        $normalizedQuantity = $this->normalizeQuantity($quantity);
 
-        $movement = $item->inventoryMovements
-            ->first(fn ($candidate) => (int) $candidate->id === $movementId);
-
-        if (! $movement) {
-            throw new InvalidArgumentException('El movimiento indicado no pertenece a la línea.');
+        if ($normalizedQuantity <= 0) {
+            throw new InvalidArgumentException('La cantidad a devolver debe ser mayor a cero.');
         }
 
-        if ($movement->trashed()) {
-            throw new InvalidArgumentException('No se puede revertir un movimiento eliminado.');
+        $executedQuantity = app(OrderItemStatusService::class)->executedQuantity($item);
+
+        if ($executedQuantity <= 0) {
+            throw new InvalidArgumentException('La línea no tiene cantidad ejecutada para devolver.');
         }
 
-        $reverseKind = $this->reverseKind($movement->kind);
+        if ($normalizedQuantity > $executedQuantity) {
+            throw new InvalidArgumentException('La cantidad a devolver supera lo ejecutado neto de la línea.');
+        }
+
+        $returnKind = $this->returnKindForOrder($order);
 
         return DB::transaction(function () use (
             $order,
             $item,
             $product,
-            $movement,
-            $reverseKind,
+            $returnKind,
+            $normalizedQuantity,
             $notes,
             $createdBy
         ) {
@@ -109,9 +115,9 @@ class OrderInventoryOperationService
                 order: $order,
                 item: $item,
                 product: $product,
-                kind: $reverseKind,
-                quantity: (float) $movement->quantity,
-                notes: $notes ?: 'Contramovimiento automático por reversión.',
+                kind: $returnKind,
+                quantity: $normalizedQuantity,
+                notes: $notes ?: 'Devolución registrada sobre la línea.',
                 createdBy: $createdBy,
             );
 
@@ -165,13 +171,13 @@ class OrderInventoryOperationService
         };
     }
 
-    protected function reverseKind(string $kind): string
+    protected function returnKindForOrder(Order $order): string
     {
-        return match ($kind) {
-            InventoryMovementService::KIND_INGRESAR => InventoryMovementService::KIND_ENTREGAR,
-            InventoryMovementService::KIND_ENTREGAR,
-            InventoryMovementService::KIND_CONSUMIR => InventoryMovementService::KIND_INGRESAR,
-            default => throw new InvalidArgumentException('Tipo de movimiento no reversible.'),
+        return match ($order->kind) {
+            OrderCatalog::KIND_PURCHASE => InventoryMovementService::KIND_ENTREGAR,
+            OrderCatalog::KIND_SALE,
+            OrderCatalog::KIND_SERVICE => InventoryMovementService::KIND_INGRESAR,
+            default => throw new InvalidArgumentException('Tipo de orden no compatible con devoluciones de inventory.'),
         };
     }
 

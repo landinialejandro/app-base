@@ -683,6 +683,65 @@ class OrderController extends Controller
             ->with('success', 'Orden actualizada.');
     }
 
+    public function updateStatus(Request $request, Order $order)
+    {
+        $this->authorize('update', $order);
+
+        $data = $request->validate([
+            'status' => ['required', Rule::in(OrderCatalog::statuses())],
+        ]);
+
+        $newStatus = $data['status'];
+
+        if (! OrderCatalog::canTransition($order->status, $newStatus)) {
+            return back()
+                ->withErrors([
+                    'status' => 'La transición de estado solicitada no es válida.',
+                ]);
+        }
+
+        if ($newStatus === OrderCatalog::STATUS_CANCELLED && $order->hasInventoryMovements()) {
+            return back()
+                ->withErrors([
+                    'status' => 'No se puede cancelar una orden con movimientos registrados. Primero deben revertirse.',
+                ]);
+        }
+
+        if ($newStatus === OrderCatalog::STATUS_CLOSED) {
+            $order->loadMissing('items');
+
+            $hasIncompleteItems = $order->items->contains(function ($item) {
+                return ! in_array($item->status, ['completed', 'cancelled'], true);
+            });
+
+            if ($hasIncompleteItems) {
+                return back()
+                    ->withErrors([
+                        'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
+                    ]);
+            }
+        }
+
+        $order->update([
+            'status' => $newStatus,
+            'updated_by' => auth()->id(),
+        ]);
+
+        $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
+        $task = TaskNavigationTrail::resolveFromRequest($request, $order->tenant_id);
+
+        $navigationTrail = OrderNavigationTrail::show(
+            $request,
+            $order,
+            appointment: $appointment,
+            task: $task,
+        );
+
+        return redirect()
+            ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
+            ->with('success', 'Estado de la orden actualizado.');
+    }
+
     public function destroy(Request $request, Order $order)
     {
         $this->authorize('delete', $order);

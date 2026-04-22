@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V40 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V41 --}}
 
 @extends('layouts.app')
 
@@ -56,6 +56,13 @@
         $surfaceTabItems = $embedded->where(fn($item) => ($item['slot'] ?? 'tab_panels') === 'tab_panels')->values();
 
         $tabItems = $hostTabItems->concat($surfaceTabItems)->sortBy(fn($item) => $item['priority'] ?? 999)->values();
+
+        $requestedTab = (string) request()->query('return_tab', '');
+        $availableTabKeys = $tabItems->pluck('key')->filter()->values()->all();
+
+        $activeTab = in_array($requestedTab, $availableTabKeys, true)
+            ? $requestedTab
+            : $tabItems->first()['key'] ?? null;
     @endphp
 
     <x-page>
@@ -92,6 +99,13 @@
                 <span class="status-badge {{ OrderCatalog::badgeClass($order->status) }}">
                     {{ OrderCatalog::statusLabel($order->status) }}
                 </span>
+
+                @can('update', $order)
+                    @include('orders.partials.status-quick-actions', [
+                        'order' => $order,
+                        'trailQuery' => $trailQuery,
+                    ])
+                @endcan
             </x-show-summary-item>
 
             <x-slot:details>
@@ -129,9 +143,13 @@
                     <x-slot:tabs>
                         <x-horizontal-scroll :label="$tabsLabel">
                             @foreach ($tabItems as $tabItem)
-                                <button type="button" class="tabs-link {{ $loop->first ? 'is-active' : '' }}"
+                                @php
+                                    $isActive = ($tabItem['key'] ?? null) === $activeTab;
+                                @endphp
+
+                                <button type="button" class="tabs-link {{ $isActive ? 'is-active' : '' }}"
                                     data-tab-link="{{ $tabItem['key'] }}" role="tab"
-                                    aria-selected="{{ $loop->first ? 'true' : 'false' }}">
+                                    aria-selected="{{ $isActive ? 'true' : 'false' }}">
                                     {{ $tabItem['label'] ?? $tabItem['key'] }}
 
                                     @if (array_key_exists('count', $tabItem) && (int) $tabItem['count'] > 0)
@@ -144,8 +162,12 @@
                 </x-tab-toolbar>
 
                 @foreach ($tabItems as $tabItem)
-                    <section class="tab-panel {{ $loop->first ? 'is-active' : '' }}"
-                        data-tab-panel="{{ $tabItem['key'] }}" @unless ($loop->first) hidden @endunless>
+                    @php
+                        $isActive = ($tabItem['key'] ?? null) === $activeTab;
+                    @endphp
+
+                    <section class="tab-panel {{ $isActive ? 'is-active' : '' }}" data-tab-panel="{{ $tabItem['key'] }}"
+                        @unless ($isActive) hidden @endunless>
                         <div class="tab-panel-stack">
                             @include($tabItem['view'], $tabItem['data'] ?? [])
                         </div>

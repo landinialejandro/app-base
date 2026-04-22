@@ -1,7 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/InventoryController.php | V10
-
+// FILE: app/Http/Controllers/InventoryController.php | V13
 namespace App\Http\Controllers;
 
 use App\Models\Document;
@@ -114,9 +113,26 @@ class InventoryController extends Controller
         );
 
         $movementKind = trim((string) $request->string('kind'));
+        $orderItemId = $request->integer('order_item_id');
 
         if ($movementKind !== '' && ! in_array($movementKind, InventoryMovementService::kinds(), true)) {
             abort(404);
+        }
+
+        $orderItem = null;
+
+        if ($orderItemId > 0) {
+            $orderItem = OrderItem::query()
+                ->where('tenant_id', $product->tenant_id)
+                ->whereKey($orderItemId)
+                ->whereNull('deleted_at')
+                ->firstOrFail();
+
+            abort_if(
+                (int) $orderItem->product_id !== (int) $product->id,
+                404,
+                'La línea indicada no corresponde al producto actual.'
+            );
         }
 
         $navigationTrail = InventoryNavigationTrail::show($request, $product);
@@ -133,6 +149,10 @@ class InventoryController extends Controller
 
         if ($movementKind !== '') {
             $movementsQuery->where('kind', $movementKind);
+        }
+
+        if ($orderItem) {
+            $movementsQuery->where('order_item_id', $orderItem->id);
         }
 
         $inventoryMovements = $movementsQuery->get();
@@ -176,6 +196,7 @@ class InventoryController extends Controller
             'currentStock',
             'navigationTrail',
             'movementKind',
+            'orderItem',
             'summaryItems',
             'headerActions',
             'detailItems',
@@ -225,6 +246,7 @@ class InventoryController extends Controller
                 'orders.show',
                 'products.show',
             ])],
+            'return_tab' => ['nullable', 'string'],
         ]);
 
         $product = $this->resolveProduct((int) $data['product_id']);
@@ -270,7 +292,62 @@ class InventoryController extends Controller
             product: $product,
             order: $order,
             returnContext: $data['return_context'] ?? null,
+            returnTab: $data['return_tab'] ?? null,
         )->with('success', 'Movimiento registrado correctamente.');
+
+        if (($result['negative_stock'] ?? false) === true) {
+            $redirect->with(
+                'warning',
+                'El producto quedó con stock negativo. Se generó una tarea automática para revisión del owner.'
+            );
+        }
+
+        return $redirect;
+    }
+
+    public function returnOrderItemQuantity(Request $request, Order $order, OrderItem $item): RedirectResponse
+    {
+        abort_unless((int) $item->order_id === (int) $order->id, 404);
+
+        $data = $request->validate([
+            'quantity' => ['required', 'numeric', 'gt:0'],
+            'notes' => ['nullable', 'string'],
+            'return_context' => ['nullable', 'string', Rule::in([
+                'orders.show',
+            ])],
+            'return_tab' => ['nullable', 'string'],
+        ]);
+
+        $this->authorize('update', $order);
+        $this->validateOrderOperable($order);
+
+        $item->loadMissing(['product', 'inventoryMovements']);
+
+        abort_if(
+            ! $item->product || $item->product->kind !== ProductCatalog::KIND_PRODUCT,
+            422,
+            'La línea no corresponde a un producto físico stockeable.'
+        );
+
+        $result = app(OrderInventoryOperationService::class)->returnLineQuantity(
+            order: $order,
+            item: $item,
+            quantity: $data['quantity'],
+            notes: $data['notes'] ?? null,
+            createdBy: auth()->id(),
+        );
+
+        $redirectQuery = NavigationTrail::toQuery(
+            NavigationTrail::decode($request->query('trail'))
+        );
+
+        if (! empty($data['return_tab'])) {
+            $redirectQuery['return_tab'] = $data['return_tab'];
+        }
+
+        $redirect = redirect()
+            ->route('orders.show', ['order' => $order] + $redirectQuery)
+            ->with('success', 'Devolución registrada correctamente.');
 
         if (($result['negative_stock'] ?? false) === true) {
             $redirect->with(
@@ -430,7 +507,7 @@ class InventoryController extends Controller
         $product = $order->items
             ->filter(fn ($item) => $item->product && $item->product->kind === ProductCatalog::KIND_PRODUCT)
             ->map(fn ($item) => $item->product)
-            ->first(fn ($product) => (int) $product->id === $productId);
+            ->first(fn ($product) => (int) $product->id === (int) $productId);
 
         abort_if(! $product, 422, 'El producto seleccionado no pertenece a los ítems físicos de esta orden.');
 
@@ -449,9 +526,14 @@ class InventoryController extends Controller
         Product $product,
         ?Order $order = null,
         ?string $returnContext = null,
+        ?string $returnTab = null,
     ): RedirectResponse {
         $trail = NavigationTrail::decode($request->query('trail'));
         $trailQuery = NavigationTrail::toQuery($trail);
+
+        if (! empty($returnTab)) {
+            $trailQuery['return_tab'] = $returnTab;
+        }
 
         return match ($returnContext) {
             'orders.show' => redirect()->route(

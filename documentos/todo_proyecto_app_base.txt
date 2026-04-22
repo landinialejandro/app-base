@@ -621,35 +621,58 @@ incorporar una estrategia operativa de sincronización de roles base por tenant 
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA Y TRAZABILIDAD>>
+SECTION_VERSION: 00006
+
 ARQUITECTURA Y TRAZABILIDAD
 
-implementar registro de actividad de usuario
+Conservar separación estricta entre:
 
-revisar consistencia de tenant_id en fillable de entidades hijas creadas internamente por el sistema
+núcleo del módulo
+puerta contractual oficial
+consumo externo
+host visual
+
+Evitar que controllers, blades o consumers acumulen lógica que pertenece al módulo oferente o a la estación contractual definida.
+
+Verificar en evoluciones futuras de órdenes y líneas:
+
+que order_item mantenga trazabilidad consistente
+que restricciones operativas no rompan delegación al padre
+que el ejecutado neto siga siendo base correcta para límites de edición
+que estados completed / partial / cancelled permanezcan coherentes entre persistencia y UI
+
+Toda ampliación futura sobre inventory, documents u otros frentes vinculados a orders debe preservar esa frontera arquitectónica.
+
 <<END SECTION>>
 
 <<SECTION: PENDIENTES RELACIONADOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00009
 
 PENDIENTES RELACIONADOS
 
-extender el patrón consolidado de:
+Revisar y completar convergencia final de surfaces legacy restantes hacia contratos vigentes publicados por cada módulo.
 
-tab-toolbar
-horizontal-scroll reusable
-acciones contextuales fijas a la derecha
-bloques detail reutilizables
+Frentes aún sensibles o a validar según evolución real:
 
-a los show y embedded-tabs restantes del core
+inventory como frontera entre acción operativa contextual y surface modular propia
+products en piezas históricas todavía orientadas a CTA contextual
+limpiezas residuales menores de generaciones anteriores
 
-auditar qué otros grupos horizontales del sistema conviene migrar a horizontal-scroll reusable además de tabs
+Revisar consistencia transversal entre show principal y superficies secundarias en módulos con integración reusable intensa.
 
-seguir unificando el orden de acciones en show:
+Esto incluye:
 
-editar
-eliminar
-acciones secundarias
-volver
+modales
+tabs internas
+partials heredadas
+acciones por fila
+formularios contextuales
+
+Pendiente específico vigente:
+
+verificar si existen otros puntos dentro de orders donde aún sobreviva lógica extra-order fuera de la nueva estación contractual propia del módulo.
+
+Si aparecen nuevos casos, decidir migración al mismo patrón antes de sumar soluciones paralelas.
 
 <<END SECTION>>
 

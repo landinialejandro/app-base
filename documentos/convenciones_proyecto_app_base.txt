@@ -619,7 +619,7 @@ las integraciones entre módulos deben respetar el contrato del módulo oferente
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -863,6 +863,18 @@ si una capacidad reusable ya migró a una nueva generación aprobada, no debe me
 
 La migración válida exige coherencia contractual completa del módulo afectado.
 
+Regla adicional de puerta contractual blanda:
+
+cuando un módulo necesite contacto real con lógicas externas pero aún no corresponda abrir una abstracción mayor, puede consolidar una estación contractual propia y explícita como único punto autorizado de acople extra-módulo.
+
+Esa puerta no reemplaza el flujo principal del módulo ni desplaza su núcleo.
+
+Su función es concentrar delegaciones externas necesarias sin contaminar controllers, blades ni servicios internos nucleares.
+
+Caso vigente:
+
+orders mediante OrdersHooks.
+
 CONTRATO DE SEGURIDAD
 
 El contrato de seguridad del módulo no se define en esta sección sino en:
@@ -876,7 +888,7 @@ ningún contrato modular es válido si contradice el contrato de seguridad del m
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CLASIFICACIÓN MODULAR>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CONVENCIONES DE CLASIFICACIÓN MODULAR
 
@@ -962,10 +974,18 @@ no toda pieza reusable del sistema debe clasificarse como módulo funcional.
 
 Cuando la responsabilidad real sea contexto interno de empresa, dataset reusable o directorio operativo del tenant, la clasificación correcta puede pertenecer al plano tenant/transversal y no al catálogo modular del negocio.
 
+Aclaración adicional sobre recursos hijos relevantes:
+
+que un recurso delegado gane peso transversal o trazabilidad fuerte no modifica automáticamente la clasificación modular vigente.
+
+Caso relevante:
+
+order_items continúa siendo entidad hija de orders aunque participe como anclaje operativo frente a inventory.
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00017
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -1122,6 +1142,16 @@ Regla adicional para datasets internos del tenant:
 
 si un módulo necesita colaboradores internos activos, validación de pertenencia a la empresa o dataset interno reusable, debe consumir primero la pieza tenant correspondiente antes que reconstruir queries sobre memberships o depender de un módulo users no formalizado.
 
+Regla adicional para hooks blandos:
+
+si un módulo necesita intervención externa sobre un recurso propio, la integración no debe desparramarse entre controllers, blades y servicios nucleares.
+
+Debe concentrarse en la estación contractual propia del módulo y desde allí delegar a piezas externas especializadas del frente correspondiente.
+
+Caso vigente:
+
+orders puede delegar hacia InventoryOrderItemHooks a través de OrdersHooks.
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE FLAGS DE SOPORTE MODULAR>>
@@ -1262,7 +1292,7 @@ order_items copiados hacia documentos derivados
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ENTIDADES HIJAS>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 CONVENCIONES DE ENTIDADES HIJAS
 
@@ -1317,6 +1347,20 @@ order_item puede actuar como anclaje operativo fuerte de un frente externo como 
 esa relevancia operativa no lo convierte en módulo autónomo
 
 tampoco transfiere a order_item la semántica material, el cálculo neto ni el arbitraje operativo del módulo invitado
+
+Regla adicional de endurecimiento operativo:
+
+cuando una entidad hija ya posea trazabilidad material iniciada, su edición estructural no debe seguir tratándose como CRUD libre por defecto
+
+las restricciones deben responder al estado real del recurso y al impacto operativo existente
+
+Caso vigente relevante para order_items:
+
+mientras la línea no esté completada ni cancelada puede seguir siendo editable dentro de límites compatibles con lo ya ejecutado
+
+la cantidad no puede reducirse por debajo del ejecutado neto vigente
+
+si existe trazabilidad iniciada no deben mutarse atributos de identidad operativa como product_id, kind o description
 
 <<END SECTION>>
 

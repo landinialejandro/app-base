@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 COMPONENTES DISPONIBLES
 
@@ -134,9 +134,67 @@ radios
 mensajes de error
 help text contextual
 
+Componentes de interacción contextual vigentes:
+
+stepper numérico
+acciones por Enter
+micro-superficies operativas en modal
+
 Regla adicional consolidada:
 
 cuando un selector dependa de dataset interno reusable del tenant, su fuente lógica puede compartirse sin convertir automáticamente esa necesidad en componente global nuevo ni en módulo visual independiente.
+
+Aclaración adicional consolidada:
+
+x-modal ya no se limita a diálogos simples.
+
+Forma parte de la base visual para micro-superficies operativas contextualizadas dentro de show pages y tabs embebidas.
+
+Caso vigente:
+
+modal de Surtir línea dentro de orders.show.
+
+<<END SECTION>>
+
+<<SECTION: PATRÓN DE INTERACCIÓN MODAL>>
+SECTION_VERSION: 00001
+
+PATRÓN DE INTERACCIÓN MODAL
+
+El modal se utiliza cuando la tarea requiere foco puntual sin abandonar el contexto principal.
+
+No reemplaza pantallas completas ni formularios extensos.
+
+Casos válidos:
+
+confirmaciones enriquecidas
+captura breve contextual
+acciones rápidas sobre filas
+micro-flujos operativos
+visualización secundaria sin pérdida de contexto
+
+Patrón visual consolidado:
+
+título claro y contextual
+cierre visible
+body con información mínima útil
+acciones accesibles
+escape consistente
+retorno inmediato al host
+
+Patrón adicional consolidado para header-actions:
+
+el header puede alojar acciones a la derecha sin degradar el título ni la jerarquía visual.
+
+Esto habilita confirmaciones rápidas e icon-only actions en operaciones breves.
+
+Caso vigente:
+
+confirmar surtido desde header del modal.
+
+Regla:
+
+si la tarea exige navegación prolongada, múltiples secciones o edición extensa, debe preferirse pantalla dedicada y no modal.
 
 <<END SECTION>>
 
@@ -621,7 +679,7 @@ Las tabs internas segmentan solo el contenido del bloque invitado.
 <<END SECTION>>
 
 <<SECTION: ACCIONES VISUALES EN INDEX Y SHOW>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 ACCIONES VISUALES EN INDEX Y SHOW
 
@@ -644,6 +702,7 @@ volver
 abrir relación vinculada
 crear relacionado contextual
 acciones rápidas por fila
+micro-operaciones locales en modal
 
 Regla adicional UX:
 
@@ -660,6 +719,18 @@ Regla adicional para componentes linked:
 la decisión de readonly, apertura o visibilidad debe venir resuelta desde el módulo oferente.
 
 El componente visual solo representa el estado contractual recibido.
+
+Regla adicional para show pages:
+
+las acciones contextuales dentro de una show page deben aparecer donde nace la intención del usuario y no duplicarse sin necesidad en múltiples zonas.
+
+Caso consolidado:
+
+en orders.show, la acción Surtir nace en la fila operativa de inventory y se resuelve en modal local sin abandonar el contexto de la orden.
+
+Aclaración adicional:
+
+cuando una acción pertenezca a un módulo invitado consumido dentro del host, la UI puede montarla en la pantalla anfitriona, pero la semántica funcional debe seguir perteneciendo al módulo oferente.
 
 <<END SECTION>>
 
@@ -703,6 +774,52 @@ el valor visible debe reflejar el estado actual del modelo
 no debe priorizarse el valor previo del request si ese campo no es editable
 
 esto evita inconsistencias visuales en formularios como órdenes numeradas
+<<END SECTION>>
+
+<<SECTION: MICRO-SUPERFICIES OPERATIVAS>>
+SECTION_VERSION: 00001
+
+MICRO-SUPERFICIES OPERATIVAS
+
+No toda captura de datos requiere create/edit tradicional.
+
+El sistema admite superficies intermedias de operación rápida cuando el flujo real lo justifique.
+
+Casos válidos:
+
+ajustes puntuales
+movimientos operativos
+confirmaciones con datos mínimos
+acciones por línea
+captura contextual breve
+
+Patrón consolidado:
+
+contexto visible del recurso afectado
+campos mínimos necesarios
+fricción baja
+confirmación clara
+retorno al host
+sin burocracia visual innecesaria
+
+Patrón adicional consolidado para captura numérica:
+
+cuando la variable principal sea una cantidad breve y ajustable, puede utilizarse stepper visual:
+
+botón menos
+input central
+botón más
+
+Debe permitir edición manual y ajuste incremental.
+
+Caso vigente:
+
+cantidad a surtir en modal de línea.
+
+Regla:
+
+si la micro-superficie empieza a comportarse como proceso complejo, debe evolucionar a surface dedicada.
+
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE CSS VISUAL>>

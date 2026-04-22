@@ -173,7 +173,7 @@ Su función es dar acceso estructural al ecosistema operativo vigente.
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -194,6 +194,7 @@ assets → documents
 parties → appointments
 parties → orders
 projects → tasks
+orders → inventory (operación por línea)
 
 La navegación contextual puede expresarse mediante:
 
@@ -202,6 +203,7 @@ acciones compactas publicadas por el módulo oferente
 surfaces embebidas
 create contextuales
 trail preservado entre pantallas relacionadas
+micro-superficies operativas locales dentro del mismo host
 
 Regla adicional consolidada:
 
@@ -219,10 +221,16 @@ Regla adicional para hosts visuales:
 
 si una navegación contextual ocurre dentro de la pantalla de un tercer módulo, ese host puede componer la experiencia sin absorber la lógica del flujo enlazado.
 
+Regla adicional para operación local:
+
+cuando la acción contextual se resuelva en modal o micro-superficie dentro del mismo show, existe navegación funcional aunque no haya cambio de ruta.
+
+Debe documentarse como transición válida del usuario dentro del flujo real.
+
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -234,6 +242,7 @@ relaciones compactas de referencia
 relaciones fuertes embebidas
 acciones contextuales del host
 núcleo propio de la pantalla anfitriona
+micro-superficies operativas invitadas
 
 Regla estructural:
 
@@ -259,6 +268,10 @@ appointments.show consume relaciones compactas publicadas por assets, parties y 
 orders.show puede consumir surfaces embebidas oficiales de documents, attachments e inventory dentro de su estructura anfitriona
 
 tasks.show puede consumir relaciones compactas publicadas por projects u otros módulos cuando corresponda
+
+Aclaración adicional consolidada para orders.show:
+
+la operación de inventory por línea puede resolverse dentro del mismo host mediante acción contextual Surtir y modal operativo propio, sin degradar la show page a navegación externa obligatoria.
 
 Regla adicional:
 
@@ -343,7 +356,7 @@ Pueden abrirse de forma estructural o como continuación de otro flujo operativo
 <<END SECTION>>
 
 <<SECTION: REGLAS DEL TRAIL>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 REGLAS DEL TRAIL
 
@@ -376,6 +389,16 @@ si una relación compacta abre otro módulo o crea contextualmente desde el host
 Caso vigente:
 
 relaciones compactas desde appointments.show hacia assets, parties y orders deben mantener retorno coherente al appointment anfitrión cuando navegan fuera del host.
+
+Regla adicional para micro-superficies locales:
+
+si la interacción ocurre en modal dentro de la misma pantalla anfitriona, no corresponde crear nodo nuevo de breadcrumb.
+
+Debe preservarse el contexto del host y resolverse retorno local al mismo recurso.
+
+Caso vigente:
+
+orders.show → modal Surtir línea.
 
 <<END SECTION>>
 
@@ -423,7 +446,7 @@ appointments.show expresa una estructura host más avanzada que otros shows aún
 <<END SECTION>>
 
 <<SECTION: INVENTORY>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 INVENTORY
 
@@ -442,6 +465,9 @@ products.show
 
 orders.show
 → surface operativa de inventory por línea sin absorber su navegación principal
+
+orders.show
+→ modal local de surtido por línea cuando corresponda
 
 documents.show
 → trazabilidad de movimientos cuando exista relación documental
@@ -483,9 +509,15 @@ puede requerir preservar el order_item como contexto operativo de origen cuando 
 
 Aclaración adicional de naming visual:
 
-cuando inventory se consuma como capacidad embebida en orders.show, la lectura correcta del frente ya no debe reducirse a “movimientos” genéricos
+cuando inventory se consuma como capacidad embebida en orders.show, la lectura correcta del frente ya no debe reducirse a movimientos genéricos
 
 debe expresar operación por línea, diferenciada de la capa estructural de ítems del host
+
+Aclaración adicional sobre micro-flujo local:
+
+la acción Surtir constituye una transición operativa contextual dentro de orders.show.
+
+Abre una superficie modal con contexto de línea y retorna al mismo host una vez confirmada o cancelada la operación.
 
 <<END SECTION>>
 
@@ -537,7 +569,7 @@ linked-asset
 <<END SECTION>>
 
 <<SECTION: DETALLE DE FLUJOS RELEVANTES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 DETALLE DE FLUJOS RELEVANTES
 
@@ -575,6 +607,12 @@ PROJECTS → TASKS
 
 El proyecto actúa como agrupador y punto de lectura agregada de tareas.
 
+ORDERS → INVENTORY (OPERACIÓN POR LÍNEA)
+
+La orden puede exponer operación material contextual sobre cada línea sin abandonar el host principal.
+
+La interacción puede abrir modal operativo local para surtido parcial o total según reglas vigentes.
+
 TENANT PROFILE / ACCESOS
 
 Concentra la gestión interna de memberships, roles, permisos e invitaciones.
@@ -583,7 +621,7 @@ Cumple el rol operativo de administración interna de usuarios sin requerir un m
 
 RELACIONES COMPACTAS PUBLICADAS
 
-Cuando un módulo publica una capacidad linked oficial, el flujo relevante deja de ser solo “pantalla A enlaza a pantalla B”.
+Cuando un módulo publica una capacidad linked oficial, el flujo relevante deja de ser solo pantalla A enlaza a pantalla B.
 
 Pasa a ser:
 
@@ -591,13 +629,7 @@ consumer solicita
 módulo oferente arbitra
 componente oficial representa
 host monta
-usuario navega con contexto preservado
-
-DATASETS INTERNOS DEL TENANT
-
-Cuando un flujo necesita colaboradores internos activos, la navegación no cambia.
-
-Cambia únicamente la fuente correcta del dato: pertenencia activa del tenant consumida desde la pieza reusable correspondiente.
+usuario navega con contexto
 
 <<END SECTION>>
 

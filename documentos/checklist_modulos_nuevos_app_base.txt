@@ -110,7 +110,7 @@ Si estas respuestas no están claras, no debe avanzarse a implementación.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 BLOQUE 1 — CONTRATO MODULAR
 
@@ -238,6 +238,17 @@ Validación adicional para datasets internos del tenant:
 
 si la necesidad aparente del nuevo módulo es resolver colaboradores internos, pertenencia activa al tenant o dataset reusable de usuarios internos, debe evaluarse primero si corresponde una raíz reusable del plano tenant antes que abrir un módulo artificial del negocio.
 
+Validación adicional para puertas contractuales blandas:
+
+si el módulo necesita intervención externa real sobre recursos propios pero todavía no justifica una abstracción mayor, debe evaluarse una estación contractual explícita del propio módulo como único punto autorizado de acople hacia lógicas externas.
+
+Debe quedar claro:
+
+qué sigue perteneciendo al núcleo
+qué delegaciones externas pasarán por esa estación
+qué piezas externas especializadas podrán intervenir
+qué responsabilidades continúan prohibidas en controllers o vistas
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
@@ -300,7 +311,7 @@ si owner dispone de una surface real para entender y administrar ese comportamie
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -373,6 +384,23 @@ Validación adicional para usuarios internos del tenant:
 si una integración requiere colaboradores internos del tenant, no debe apoyarse en abilities de módulos inexistentes ni asumir que existe un módulo users formalizado.
 
 Debe evaluarse primero si la necesidad corresponde a una raíz reusable del plano tenant y no a la creación de un módulo nuevo.
+
+Validación adicional para recursos hijos operados:
+
+si la integración interviene líneas hijas o recursos delegados con trazabilidad propia, debe auditarse si el recurso sigue siendo editable libremente o si requiere reglas nuevas de endurecimiento operativo.
+
+Controlar explícitamente:
+
+límites de edición por ejecutado neto
+bloqueo de atributos identitarios
+readonly por completed o cancelled
+reglas de reversión consistentes
+
+Validación adicional para modales y micro-superficies:
+
+si la integración incorpora modales, tabs internas o flujos secundarios, no debe darse por cerrada solo por funcionar el show principal.
+
+Es obligatorio auditar también esas superficies derivadas como parte real del contrato integrado.
 
 <<END SECTION>>
 
@@ -459,7 +487,7 @@ cuando una tarea no recibe colaborador explícito, el sistema puede asumir asign
 <<END SECTION>>
 
 <<SECTION: BLOQUE 5 — DOCUMENTACIÓN Y CIERRE>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 BLOQUE 5 — DOCUMENTACIÓN Y CIERRE
 
@@ -489,6 +517,13 @@ EN REVISIÓN
 Regla:
 
 solo módulos con contrato cerrado deben usarse como patrón para nuevos desarrollos
+
+Regla adicional de cierre real:
+
+no declarar cerrado un frente reusable mientras existan modales, tabs internas, formularios secundarios o acciones contextuales relevantes sin auditar contra la doctrina vigente.
+
+El cierre documental debe contemplar superficie principal y micro-superficies operativas relacionadas.
+
 <<END SECTION>>
 
 <<SECTION: CHECKLIST MÍNIMO EXISTENTE>>

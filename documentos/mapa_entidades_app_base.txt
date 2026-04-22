@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -122,6 +122,8 @@ también puede publicar una capacidad reusable embebida oficial consumible desde
 orders no solo ocupa posición central por su entidad principal
 
 también puede actuar como contexto y host visual de capacidades publicadas por otros módulos, especialmente inventory, documents y attachments, sin absorber su lógica operativa
+
+orders puede además concentrar su contacto extra-módulo en una puerta contractual propia cuando necesite delegar intervención externa sin contaminar controllers ni el núcleo directo del módulo
 
 assets, orders y parties pueden publicar relaciones compactas hacia appointments.show como ofertas linked consumidas por el host appointment
 
@@ -211,6 +213,20 @@ reversión de ejecución
 recuperación de pendiente
 
 cada una pertenece al plano funcional que le corresponde
+
+Aclaración adicional sobre edición estructural de líneas:
+
+que una línea tenga movimientos ya no alcanza por sí solo como criterio bruto para volverla completamente inmutable.
+
+La lectura vigente distingue entre:
+
+línea aún abierta pero con límites de edición compatibles con el ejecutado neto
+
+línea cerrada por completed
+
+línea cerrada por cancelled
+
+Esto refuerza una relación más precisa entre order_items, inventory_movements y estado operativo real de la línea.
 
 Aclaración de frontera conceptual:
 
@@ -832,7 +848,7 @@ Lo ubica como base maestra estable dentro de una arquitectura más limpia entre 
 <<END SECTION>>
 
 <<SECTION: INVENTORY>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 INVENTORY
 
@@ -957,6 +973,12 @@ cuando inventory sea consumido desde orders.show, la pantalla orders actúa como
 
 esa situación no transfiere a orders la propiedad doctrinal de la operación material de inventory
 
+Aclaración adicional sobre continuidad de edición:
+
+que existan movimientos ya no implica automáticamente cierre total de la línea.
+
+Mientras la línea no se encuentre completed ni cancelled, puede seguir admitiendo edición estructural compatible con el ejecutado neto y con la preservación de identidad operativa de la línea.
+
 <<END SECTION>>
 
 <<SECTION: ASSETS>>
@@ -1019,7 +1041,7 @@ y puede publicar relación compacta hacia appointments.show como offer linked de
 <<END SECTION>>
 
 <<SECTION: ORDERS>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 ORDERS
 
@@ -1108,6 +1130,16 @@ cuando la operación de inventory se exprese sobre order_items dentro de orders.
 
 la lógica operativa, la semántica de ejecución por línea y la reversión siguen perteneciendo al frente inventory
 
+Aclaración adicional de frontera contractual:
+
+cuando orders necesite intervención extra-módulo sobre order_items u otros puntos del flujo, ese contacto no debe desparramarse entre controllers ni sobre el núcleo directo de order y order_item
+
+la forma correcta es concentrarlo en una puerta contractual propia del módulo y desde allí delegar a piezas externas especializadas cuando corresponda
+
+caso vigente relevante:
+
+OrdersHooks como estación contractual blanda del módulo
+
 Aclaración adicional para documents:
 
 orders puede consumir documents como surface embebida oficial publicada por el propio módulo documents
@@ -1121,7 +1153,7 @@ cuando orders publique una relación puntual hacia appointments.show, esa oferta
 <<END SECTION>>
 
 <<SECTION: ORDER_ITEMS>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 ORDER_ITEMS
 
@@ -1162,29 +1194,37 @@ sin dejar de ser entidad hija delegada, order_items gana peso contractual dentro
 
 Esa relevancia operativa no lo convierte en módulo autónomo.
 
-Confirma su rol como detalle transaccional principal entre orders, products e inventory.
+Confirma su rol como detalle transaccional principal entre orders, inventory y eventual formalización documental.
 
-Aclaración adicional consolidada:
+Aclaración adicional sobre estado persistido:
 
-la línea puede incorporar estado operativo propio persistido y gobernado por código cuando participe de ejecución real de inventory
+order_item.status sigue viviendo en la línea y no en un dato visual efímero.
 
-ese estado expresa avance o cierre operativo de la línea y no reemplaza la gobernanza general del estado de la orden
+Su gobierno puede provenir del frente operativo material cuando la línea participa del flujo de inventory.
 
-Aclaración adicional sobre restricciones:
+La lectura vigente distingue:
 
-cuando ya existan inventory_movements vinculados a una línea, order_items deja de ser un detalle editable libre por inercia
+cancelled como arbitraje superior de orders
 
-su edición o eliminación debe quedar restringida por trazabilidad y por continuidad operativa del frente inventory
+pending, partial y completed como estados operativos persistidos de la línea cuando exista ejecución material
 
-Aclaración adicional sobre lectura neta:
+Aclaración adicional sobre edición estructural:
 
-cuando existan contramovimientos de reversión, la lectura de ejecución de la línea debe poder disminuir sin que eso implique contradicción con la lógica de stock
+la línea no debe leerse ya como totalmente editable o totalmente bloqueada por el simple hecho de tener movimientos.
 
-la línea debe reflejar ejecución neta real y pendiente real después de la reversión
+La regla conceptual vigente es más fina:
 
-Aclaración adicional de frontera doctrinal:
+puede permanecer editable mientras no esté completed ni cancelled
 
-aunque la línea sea anclaje operativo fuerte de inventory, la ejecución material, el cálculo neto y la semántica operativa real pertenecen al frente inventory y no a order_item como recurso autónomo
+quantity no puede quedar por debajo del ejecutado neto vigente
+
+si la línea ya tiene trazabilidad iniciada no deben mutarse atributos de identidad operativa como product_id, kind o description
+
+Aclaración adicional sobre cierre de línea:
+
+completed expresa cierre operativo material de la línea y debe leerse como estado de bloqueo estructural
+
+cancelled expresa arbitraje superior del flujo y no debe convivir con trazabilidad inconsistente no revertida
 
 <<END SECTION>>
 

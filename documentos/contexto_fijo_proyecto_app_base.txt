@@ -221,7 +221,7 @@ Es una pieza estructural del funcionamiento del sistema.
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00011
 
 CAPAS FUNCIONALES DEL SISTEMA
 
@@ -437,7 +437,7 @@ tampoco debe sobredimensionarse el dominio del negocio hasta absorber piezas cuy
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00007
 
 CLASIFICACIÓN CONCEPTUAL DE MÓDULOS
 
@@ -500,6 +500,14 @@ Regla adicional de lectura estructural:
 la clasificación conceptual del módulo no define por sí sola su madurez como host surface-driven dentro del ecosistema.
 
 Dos módulos autónomos pueden compartir tipo conceptual y, aun así, tener distinto grado de evolución en su estructura anfitriona de show page.
+
+Aclaración adicional consolidada para recursos hijos con peso transversal:
+
+que un recurso delegado gane relevancia operativa dentro del ecosistema no altera por sí solo la clasificación conceptual del módulo padre ni lo promueve automáticamente a módulo autónomo.
+
+Caso vigente relevante:
+
+order_items sigue siendo detalle subordinado de orders aun cuando actúe como anclaje operativo explícito frente a inventory.
 
 Regla:
 
@@ -776,7 +784,7 @@ Por lo tanto, no debe confundirse con una relación reusable publicada por módu
 
 
 <<SECTION: RELACIONES MACRO DEL ECOSISTEMA>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00010
 
 RELACIONES MACRO DEL ECOSISTEMA
 
@@ -802,6 +810,7 @@ assets como contexto transversal para operaciones, agenda y documentos
 parties como base relacional transversal del dominio
 products como base de catálogo operativo
 inventory como frente operativo apoyado en base transaccional propia dentro del dominio
+orders, order_items e inventory como frente relacional de ejecución operativa por línea dentro del ecosistema actual
 
 Aclaración adicional consolidada:
 
@@ -811,6 +820,26 @@ También publica una oferta reusable oficial para el ecosistema.
 
 Esa oferta se consume de forma embebida desde relaciones fuertes y de forma compacta desde relaciones puntuales.
 
+Aclaración adicional consolidada para orders:
+
+orders no solo ocupa una posición central por su operación propia.
+
+También puede concentrar el acople extra-módulo en una puerta contractual propia cuando una integración externa real lo requiera.
+
+Esa lectura no convierte a orders en dueño de la lógica externa consumida.
+
+Confirma un punto oficial de enlace del módulo dentro del ecosistema y preserva una frontera más limpia entre núcleo, integración y consumo externo.
+
+Aclaración adicional consolidada para order_items:
+
+order_items mantiene su pertenencia estructural a orders.
+
+Sin embargo, dentro del estado actual del ecosistema ya debe leerse además como anclaje operativo explícito para ejecución material por línea cuando inventory participa del flujo.
+
+Esa relevancia transversal no lo convierte en módulo autónomo.
+
+Confirma una relación macro más precisa entre orden, detalle de línea y frente operativo material.
+
 Regla:
 
 las relaciones macro aquí descritas expresan lectura arquitectónica del ecosistema y no deben confundirse con detalle de navegación, seguridad o implementación puntual.
@@ -818,7 +847,7 @@ las relaciones macro aquí descritas expresan lectura arquitectónica del ecosis
 <<END SECTION>>
 
 <<SECTION: MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00005
 
 MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO
 
@@ -851,6 +880,28 @@ cuando una capacidad reusable compacta ya maduró como publicación oficial del 
 La migración puede cerrarse módulo por módulo.
 
 Lo que no debe consolidarse como estado estable es la mezcla doctrinal entre una nueva familia *Linked y la generación previa *LinkedAction para la misma capacidad ya decidida.
+
+Regla adicional consolidada para endurecimiento de frontera modular:
+
+cuando un módulo necesite acoplar lógica externa real pero todavía no corresponda abrir una abstracción mayor, el crecimiento sano debe concentrar ese contacto en una puerta contractual propia y explícita del módulo.
+
+Esa puerta debe actuar como estación oficial de acople hacia el ecosistema y no como expansión difusa del núcleo en controllers, servicios internos directos o superficies consumidoras.
+
+La abstracción adicional solo debe evaluarse después, si el crecimiento real del sistema lo exige.
+
+Caso vigente relevante:
+
+orders puede concentrar allí su contacto extra-módulo sin contaminar el núcleo directo de order y order_item.
+
+Regla adicional consolidada para recursos hijos con trazabilidad operativa:
+
+si una entidad hija delegada gana peso transversal por su relación con un frente operativo externo, el crecimiento correcto no es promoverla por inercia a módulo autónomo.
+
+Primero debe endurecerse su contrato como hijo del módulo padre, preservando pertenencia estructural y explicitando su nueva relevancia dentro del ecosistema.
+
+Caso vigente relevante:
+
+order_items respecto de inventory.
 
 <<END SECTION>>
 

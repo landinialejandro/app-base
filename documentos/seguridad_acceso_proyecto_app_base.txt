@@ -28,7 +28,7 @@ No corresponde definir aquí navegación visual, patrones UI, roadmap, estructur
 <<END SECTION>>
 
 <<SECTION: ALCANCE GENERAL>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 ALCANCE GENERAL
 
@@ -61,7 +61,7 @@ La autorización efectiva sigue perteneciendo al sistema de seguridad.
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00010
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -91,6 +91,10 @@ resolver dataset interno, pertenencia activa o directorio reusable del tenant no
 Esas necesidades no deben disfrazarse como permission V2.
 
 La autorización efectiva debe resolverse en Security, policies o middleware según corresponda al flujo.
+
+Principio adicional sobre hooks contractuales:
+
+una estación contractual interna de un módulo puede coordinar restricciones funcionales o delegaciones técnicas, pero no reemplaza el arbitraje central de acceso ni crea abilities nuevas por sí misma.
 
 <<END SECTION>>
 
@@ -347,7 +351,7 @@ Ignorar constraints equivale a ejecutar un contrato incompleto.
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -387,7 +391,7 @@ La autorización efectiva sigue perteneciendo a las piezas centrales del sistema
 <<END SECTION>>
 
 <<SECTION: RECURSOS DELEGADOS AL PADRE>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 RECURSOS DELEGADOS AL PADRE
 
@@ -415,10 +419,16 @@ La delegación principal se mantiene.
 
 El detalle de esas restricciones complementarias debe resolverse en REGLAS OPERATIVAS POR MÓDULO y no duplicarse aquí.
 
+Aclaración adicional vigente para order_items:
+
+bloquear edición estructural por completed, cancelled o por violar límites del ejecutado neto no constituye una policy autónoma del hijo.
+
+Sigue siendo una restricción funcional dentro del ciclo de vida delegado del recurso perteneciente a orders.
+
 <<END SECTION>>
 
 <<SECTION: INTEGRACIONES REUSABLES Y AUTORIZACIÓN>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00011
 
 INTEGRACIONES REUSABLES Y AUTORIZACIÓN
 
@@ -456,10 +466,18 @@ Una cosa resuelve base de datos o pertenencia válida.
 
 La otra autoriza operación efectiva.
 
+Regla adicional sobre estaciones contractuales:
+
+si una integración externa necesita pasar por una puerta contractual del módulo anfitrión, esa estación sigue subordinada al sistema central de seguridad.
+
+Su función es ordenar el acople y aplicar reglas funcionales complementarias, no redefinir permisos ni abrir canales laterales de autorización.
+
+Esta salida es válida y recomendable cuando ayuda a mantener módulos aislados y responsabilidades claras.
+
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00014
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -472,6 +490,8 @@ estado de la orden condiciona acciones operativas
 closed implica readonly operativo
 cancelled exige consistencia trazable según contrato
 
+Las estaciones contractuales internas del módulo pueden coordinar integraciones externas necesarias, pero no reemplazan Security ni la policy del módulo.
+
 ORDER_ITEMS
 
 delega autorización principal en orders
@@ -479,6 +499,13 @@ cuando ya existan inventory_movements vinculados a una línea:
 la edición o eliminación libre queda restringida por trazabilidad
 la reversión solo es válida bajo condiciones del frente inventory
 la lectura de ejecución neta debe reflejar contramovimientos
+
+Reglas adicionales vigentes:
+
+completed bloquea edición estructural
+cancelled bloquea edición estructural
+quantity no puede reducirse por debajo del ejecutado neto
+si existe trazabilidad iniciada no deben mutarse product_id, kind o description
 
 TASKS
 
@@ -491,38 +518,30 @@ APPOINTMENTS
 
 dataset según contrato vigente
 puede utilizar tenant_all u own_assigned según rol efectivo
-create es booleano según permiso efectivo
-view, update y delete pueden depender de asignación
-cuando actúa como host visual de relaciones compactas, no hereda permisos de assets, parties u orders consumidos dentro de su show
+create es booleano según contrato del módulo
+update y delete según scope aplicable
+
+PRODUCTS
+
+dataset según contrato vigente
+opera como catálogo maestro
+su autorización no reemplaza reglas propias de inventory
 
 ASSETS
 
-dataset compartido del tenant según scope vigente
-sin ownership artificial
-relaciones compactas publicadas hacia appointments.show conservan contrato propio del módulo
-
-PARTIES
-
-módulo base siempre habilitado según doctrina vigente
-segmentación funcional mediante constraints cuando corresponda
-relaciones compactas publicadas hacia appointments.show conservan contrato propio del módulo
-
-INVENTORY
-
-opera bajo su contrato específico
-puede privilegiar continuidad operativa con trazabilidad y alerta antes que bloqueo en casos no críticos
-sus acciones embebidas consumidas por otros hosts conservan autorización propia del módulo
+dataset según contrato vigente
+opera como activo del ecosistema
+puede participar en relaciones contextuales sin alterar su contrato de seguridad
 
 DOCUMENTS
 
-módulo derivado con contrato propio
-sus surfaces embebidas consumidas por otros hosts conservan seguridad propia del módulo
+dataset según contrato vigente
+módulo derivado con identidad propia
+sus acciones siguen contrato propio aunque nazcan desde orders
 
-Regla de frontera:
+ATTACHMENTS
 
-esta sección describe reglas operativas de seguridad por módulo.
-
-No debe absorber aclaraciones arquitectónicas generales ajenas a contratos de seguridad modulares.
+delegación principal al recurso attachable correspondiente
 
 <<END SECTION>>
 

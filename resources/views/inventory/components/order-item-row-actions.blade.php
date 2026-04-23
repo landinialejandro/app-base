@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/components/order-item-row-actions.blade.php | V1 --}}
+{{-- FILE: resources/views/inventory/components/order-item-row-actions.blade.php | V3 --}}
 
 @props([
     'actions' => [],
@@ -18,11 +18,34 @@
     @endphp
 
     @if ($type === 'modal' && $modalId)
-        <button type="button" class="{{ $buttonClass }}" data-action="app-modal-open"
-            data-modal-target="#{{ $modalId }}" title="{{ $title }}" aria-label="{{ $title }}">
-            @if ($icon === 'truck')
-                <x-icons.truck />
-            @endif
+        <button
+            type="button"
+            class="{{ $buttonClass }}"
+            data-action="app-modal-open"
+            data-modal-target="#{{ $modalId }}"
+            title="{{ $title }}"
+            aria-label="{{ $title }}"
+        >
+            @switch($icon)
+                @case('truck')
+                    <x-icons.truck />
+                @break
+
+                @case('plus')
+                    <x-icons.plus />
+                @break
+
+                @case('rotate-ccw')
+                    <x-icons.rotate-ccw />
+                @break
+
+                @case('check')
+                    <x-icons.check />
+                @break
+
+                @default
+                    <x-icons.check />
+            @endswitch
         </button>
 
         @include($action['modal_view'], [

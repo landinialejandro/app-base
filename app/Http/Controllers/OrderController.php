@@ -13,9 +13,7 @@ use App\Support\Auth\Security;
 use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\OrderCatalog;
-use App\Support\Catalogs\ProductCatalog;
 use App\Support\Documents\DocumentNumberGenerator;
-use App\Support\Inventory\OrderInventoryContextResolver;
 use App\Support\Navigation\AppointmentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\OrderNavigationTrail;
@@ -430,19 +428,6 @@ class OrderController extends Controller
             'attachments' => fn ($query) => $query->ordered(),
         ]);
 
-        $inventoryProducts = $supportsProductsModule
-            ? $order->items
-                ->filter(fn ($item) => $item->product && $item->product->kind === ProductCatalog::KIND_PRODUCT)
-                ->map(fn ($item) => $item->product)
-                ->unique('id')
-                ->sortBy('name')
-                ->values()
-            : collect();
-
-        $inventoryContext = $supportsProductsModule
-            ? app(OrderInventoryContextResolver::class)->forOrder($order)
-            : null;
-
         $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
         $task = TaskNavigationTrail::resolveFromRequest($request, $order->tenant_id);
 
@@ -456,8 +441,6 @@ class OrderController extends Controller
         return view('orders.show', compact(
             'order',
             'navigationTrail',
-            'inventoryProducts',
-            'inventoryContext',
             'supportsAssetsModule',
             'supportsProductsModule',
             'supportsDocumentsModule',

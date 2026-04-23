@@ -1,7 +1,6 @@
 <?php
 
-// FILE: app/Support/Inventory/OrderInventoryOperationService.php | V2
-
+// FILE: app/Support/Inventory/OrderInventoryOperationService.php | V4
 namespace App\Support\Inventory;
 
 use App\Models\Order;
@@ -21,6 +20,10 @@ class OrderInventoryOperationService
         ?string $notes = null,
         int|string|null $createdBy = null,
     ): array {
+        $statusService = app(OrderItemStatusService::class);
+        $profileResolver = app(InventoryOperationProfileResolver::class);
+        $movementService = app(InventoryMovementService::class);
+
         $this->validateOrderItemRelation($order, $item);
         $this->validateOrderOperable($order);
 
@@ -33,7 +36,7 @@ class OrderInventoryOperationService
             throw new InvalidArgumentException('La cantidad debe ser mayor a cero.');
         }
 
-        $pendingQuantity = app(OrderItemStatusService::class)->pendingQuantity($item);
+        $pendingQuantity = $statusService->pendingQuantity($item);
 
         if ($pendingQuantity <= 0) {
             throw new InvalidArgumentException('La línea ya no tiene cantidad pendiente.');
@@ -43,29 +46,31 @@ class OrderInventoryOperationService
             throw new InvalidArgumentException('La cantidad supera el pendiente de la línea.');
         }
 
-        $movementKind = $this->movementKindForOrder($order);
+        $profile = $profileResolver->forOrder($order);
 
         return DB::transaction(function () use (
             $order,
             $item,
             $product,
-            $movementKind,
+            $profile,
             $normalizedQuantity,
             $notes,
-            $createdBy
+            $createdBy,
+            $movementService,
+            $statusService
         ) {
-            $result = app(InventoryMovementService::class)->createForOrderItem(
+            $result = $movementService->createForOrderItem(
                 order: $order,
                 item: $item,
                 product: $product,
-                kind: $movementKind,
+                kind: $profile['execute_kind'],
                 quantity: $normalizedQuantity,
                 notes: $notes,
                 createdBy: $createdBy,
             );
 
             $item->refresh();
-            app(OrderItemStatusService::class)->recalculate($item);
+            $statusService->recalculate($item);
 
             return $result;
         });
@@ -78,6 +83,10 @@ class OrderInventoryOperationService
         ?string $notes = null,
         int|string|null $createdBy = null,
     ): array {
+        $statusService = app(OrderItemStatusService::class);
+        $profileResolver = app(InventoryOperationProfileResolver::class);
+        $movementService = app(InventoryMovementService::class);
+
         $this->validateOrderItemRelation($order, $item);
         $this->validateOrderOperable($order);
 
@@ -90,7 +99,7 @@ class OrderInventoryOperationService
             throw new InvalidArgumentException('La cantidad a devolver debe ser mayor a cero.');
         }
 
-        $executedQuantity = app(OrderItemStatusService::class)->executedQuantity($item);
+        $executedQuantity = $statusService->executedQuantity($item);
 
         if ($executedQuantity <= 0) {
             throw new InvalidArgumentException('La línea no tiene cantidad ejecutada para devolver.');
@@ -100,29 +109,31 @@ class OrderInventoryOperationService
             throw new InvalidArgumentException('La cantidad a devolver supera lo ejecutado neto de la línea.');
         }
 
-        $returnKind = $this->returnKindForOrder($order);
+        $profile = $profileResolver->forOrder($order);
 
         return DB::transaction(function () use (
             $order,
             $item,
             $product,
-            $returnKind,
+            $profile,
             $normalizedQuantity,
             $notes,
-            $createdBy
+            $createdBy,
+            $movementService,
+            $statusService
         ) {
-            $result = app(InventoryMovementService::class)->createForOrderItem(
+            $result = $movementService->createForOrderItem(
                 order: $order,
                 item: $item,
                 product: $product,
-                kind: $returnKind,
+                kind: $profile['reverse_kind'],
                 quantity: $normalizedQuantity,
-                notes: $notes ?: 'Devolución registrada sobre la línea.',
+                notes: $notes ?: 'Contramovimiento registrado sobre la línea.',
                 createdBy: $createdBy,
             );
 
             $item->refresh();
-            app(OrderItemStatusService::class)->recalculate($item);
+            $statusService->recalculate($item);
 
             return $result;
         });
@@ -141,7 +152,7 @@ class OrderInventoryOperationService
 
     protected function validateOrderOperable(Order $order): void
     {
-        if ($order->status !== OrderCatalog::STATUS_APPROVED) {
+        if (! OrderCatalog::isOperableStatus($order->status)) {
             throw new InvalidArgumentException('La orden no está en estado operable para inventory.');
         }
     }
@@ -159,26 +170,6 @@ class OrderInventoryOperationService
         }
 
         return $product;
-    }
-
-    protected function movementKindForOrder(Order $order): string
-    {
-        return match ($order->kind) {
-            OrderCatalog::KIND_PURCHASE => InventoryMovementService::KIND_INGRESAR,
-            OrderCatalog::KIND_SALE,
-            OrderCatalog::KIND_SERVICE => InventoryMovementService::KIND_ENTREGAR,
-            default => throw new InvalidArgumentException('Tipo de orden no compatible con inventory.'),
-        };
-    }
-
-    protected function returnKindForOrder(Order $order): string
-    {
-        return match ($order->kind) {
-            OrderCatalog::KIND_PURCHASE => InventoryMovementService::KIND_ENTREGAR,
-            OrderCatalog::KIND_SALE,
-            OrderCatalog::KIND_SERVICE => InventoryMovementService::KIND_INGRESAR,
-            default => throw new InvalidArgumentException('Tipo de orden no compatible con devoluciones de inventory.'),
-        };
     }
 
     protected function normalizeQuantity(float|int|string|null $value): float

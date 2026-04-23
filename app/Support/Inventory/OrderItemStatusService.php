@@ -1,7 +1,6 @@
 <?php
 
-// FILE: app/Support/Inventory/OrderItemStatusService.php | V3
-
+// FILE: app/Support/Inventory/OrderItemStatusService.php | V5
 namespace App\Support\Inventory;
 
 use App\Models\OrderItem;
@@ -42,13 +41,18 @@ class OrderItemStatusService
 
     public function executedQuantity(OrderItem $item): float
     {
-        $item->loadMissing('inventoryMovements');
+        $profileResolver = app(InventoryOperationProfileResolver::class);
+
+        $item->loadMissing([
+            'order',
+            'inventoryMovements',
+        ]);
+
+        $profile = $profileResolver->forOrder($item->order);
 
         $executedNet = $item->inventoryMovements
             ->filter(fn ($movement) => $movement->trashed() === false)
-            ->sum(function ($movement) {
-                return $this->executionSignedQuantity($movement);
-            });
+            ->sum(fn ($movement) => $this->executionSignedQuantity($movement, $profile));
 
         return max(0, $this->normalizeQuantity($executedNet));
     }
@@ -61,19 +65,20 @@ class OrderItemStatusService
         return max(0, $this->normalizeQuantity($orderedQuantity - $executedQuantity));
     }
 
-    protected function executionSignedQuantity(object $movement): float
+    protected function executionSignedQuantity(object $movement, array $profile): float
     {
         $quantity = $this->normalizeQuantity($movement->quantity ?? 0);
         $kind = (string) ($movement->kind ?? '');
 
-        return match ($kind) {
-            InventoryMovementService::KIND_ENTREGAR,
-            InventoryMovementService::KIND_CONSUMIR => $quantity,
+        if ($kind === (string) ($profile['execute_kind'] ?? '')) {
+            return $quantity;
+        }
 
-            InventoryMovementService::KIND_INGRESAR => -1 * $quantity,
+        if ($kind === (string) ($profile['reverse_kind'] ?? '')) {
+            return -1 * $quantity;
+        }
 
-            default => 0.0,
-        };
+        return 0.0;
     }
 
     protected function persistStatus(OrderItem $item, string $status): string

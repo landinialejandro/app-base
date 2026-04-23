@@ -1,11 +1,11 @@
-{{-- FILE: resources/views/inventory/partials/order-line-return-modal.blade.php | V2 --}}
+{{-- FILE: resources/views/inventory/partials/order-line-return-modal.blade.php | V4 --}}
 
 @php
     $order = $order ?? null;
     $row = $row ?? [];
     $trailQuery = $trailQuery ?? [];
 
-    $modalId = $modalId ?? 'inventory-devolver-line-' . ($row['order_item_id'] ?? uniqid());
+    $modalId = $modalId ?? 'inventory-return-line-' . ($row['order_item_id'] ?? uniqid());
     $submitFormId = $submitFormId ?? $modalId . '-form';
 
     $position = $row['position'] ?? '—';
@@ -18,6 +18,10 @@
 
     $orderItemId = $row['order_item_id'] ?? null;
 
+    $returnLabel = $row['return_label'] ?? 'Devolver';
+    $returnTitle = $row['return_title'] ?? $returnLabel . ' línea';
+    $returnVerbLower = \Illuminate\Support\Str::lower($returnLabel);
+
     $quantityInputId = $modalId . '-quantity';
     $notesInputId = $modalId . '-notes';
 
@@ -25,11 +29,11 @@
     $defaultQuantity = number_format($maxReturnQuantity, 2, '.', '');
 @endphp
 
-<x-modal :id="$modalId" :title="'Devolver línea #' . $position" size="md">
+<x-modal :id="$modalId" :title="$returnTitle . ' #' . $position" size="md">
     <x-slot:headerActions>
         <button type="submit" form="{{ $submitFormId }}" class="btn btn-success btn-icon"
-            title="Confirmar devolución de línea #{{ $position }}"
-            aria-label="Confirmar devolución de línea #{{ $position }}">
+            title="Confirmar {{ \Illuminate\Support\Str::lower($returnTitle) }} #{{ $position }}"
+            aria-label="Confirmar {{ \Illuminate\Support\Str::lower($returnTitle) }} #{{ $position }}">
             <x-icons.check />
         </button>
     </x-slot:headerActions>
@@ -49,13 +53,13 @@
 
         <div class="summary-inline-grid">
             <div class="summary-inline-card">
-                <div class="summary-inline-label">Ejecutado</div>
-                <div class="summary-inline-value">{{ number_format($executedQuantity, 2, ',', '.') }}</div>
+                <div class="summary-inline-label">Pendiente</div>
+                <div class="summary-inline-value">{{ number_format($pendingQuantity, 2, ',', '.') }}</div>
             </div>
 
             <div class="summary-inline-card">
-                <div class="summary-inline-label">Pendiente</div>
-                <div class="summary-inline-value">{{ number_format($pendingQuantity, 2, ',', '.') }}</div>
+                <div class="summary-inline-label">Ejecutado</div>
+                <div class="summary-inline-value">{{ number_format($executedQuantity, 2, ',', '.') }}</div>
             </div>
 
             <div class="summary-inline-card">
@@ -67,7 +71,7 @@
         </div>
 
         <div class="form-group">
-            <label for="{{ $quantityInputId }}" class="form-label">Cantidad a devolver</label>
+            <label for="{{ $quantityInputId }}" class="form-label">Cantidad</label>
 
             <div class="app-stepper">
                 <button type="button" class="app-stepper__button btn btn-secondary btn-icon"
@@ -95,9 +99,8 @@
             @enderror
 
             <div class="form-help">
-                Podés devolver hasta {{ number_format($maxReturnQuantity, 2, ',', '.') }}, que es lo ejecutado neto
-                actual
-                de la línea. La devolución se registrará como un nuevo movimiento.
+                Podés {{ $returnVerbLower }} hasta {{ number_format($maxReturnQuantity, 2, ',', '.') }},
+                que es lo ejecutado neto actual de la línea. La reversión se registrará como un nuevo movimiento.
             </div>
         </div>
 

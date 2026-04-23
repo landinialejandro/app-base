@@ -1,7 +1,6 @@
 <?php
 
-// FILE: app/Support/Inventory/OrderInventoryContextResolver.php | V3
-
+// FILE: app/Support/Inventory/InventoryOrderContextResolver.php | V2
 namespace App\Support\Inventory;
 
 use App\Models\Order;
@@ -10,7 +9,7 @@ use App\Support\Catalogs\OrderCatalog;
 use App\Support\Catalogs\OrderItemCatalog;
 use App\Support\Catalogs\ProductCatalog;
 
-class OrderInventoryContextResolver
+class InventoryOrderContextResolver
 {
     public function forOrder(Order $order): array
     {
@@ -19,32 +18,38 @@ class OrderInventoryContextResolver
             'items.inventoryMovements',
         ]);
 
-        $direction = $this->directionForOrder($order);
-        $isOperable = $this->isOrderOperable($order);
-        $isReadonly = $this->isOrderReadonly($order);
+        $profile = app(InventoryOperationProfileResolver::class)->forOrder($order);
+        $isOperable = OrderCatalog::isOperableStatus($order->status);
+        $isReadonly = OrderCatalog::isReadonlyStatus($order->status);
 
         $items = $order->items
             ->sortBy('position')
             ->values()
-            ->map(function (OrderItem $item) use ($order, $direction, $isOperable, $isReadonly) {
+            ->map(function (OrderItem $item) use ($order, $profile, $isOperable, $isReadonly) {
                 return $this->resolveItemContext(
                     order: $order,
                     item: $item,
-                    direction: $direction,
+                    profile: $profile,
                     isOperable: $isOperable,
                     isReadonly: $isReadonly,
                 );
             })
             ->values();
 
-        $hasMovements = $items->contains(fn (array $row) => ($row['has_movements'] ?? false) === true);
-        $canCancel = ! $isReadonly && ! $hasMovements && $order->status !== OrderCatalog::STATUS_CANCELLED;
+        $hasMovements = $items->contains(
+            fn (array $row) => ($row['has_movements'] ?? false) === true
+        );
+
+        $canCancel = ! $isReadonly
+            && ! $hasMovements
+            && $order->status !== OrderCatalog::STATUS_CANCELLED;
 
         return [
             'order_id' => $order->id,
             'order_kind' => $order->kind,
             'order_status' => $order->status,
-            'direction' => $direction,
+            'direction' => $profile['direction'],
+            'operation_profile' => $profile,
             'is_operable' => $isOperable,
             'is_readonly' => $isReadonly,
             'has_movements' => $hasMovements,
@@ -56,26 +61,29 @@ class OrderInventoryContextResolver
     protected function resolveItemContext(
         Order $order,
         OrderItem $item,
-        string $direction,
+        array $profile,
         bool $isOperable,
         bool $isReadonly,
     ): array {
+        $statusService = app(OrderItemStatusService::class);
+        $stockCalculator = app(ProductStockCalculator::class);
+
         $product = $item->product;
         $isPhysicalProduct = $product && $product->kind === ProductCatalog::KIND_PRODUCT;
 
         $orderedQuantity = $this->normalizeQuantity($item->quantity);
 
         $executedQuantity = $isPhysicalProduct
-            ? app(OrderItemStatusService::class)->executedQuantity($item)
+            ? $statusService->executedQuantity($item)
             : 0.0;
 
         $pendingQuantity = $isPhysicalProduct
-            ? max(0, $this->normalizeQuantity($orderedQuantity - $executedQuantity))
+            ? $statusService->pendingQuantity($item)
             : 0.0;
 
         $lineStatus = $item->status ?: OrderItemCatalog::STATUS_PENDING;
         $currentStock = $isPhysicalProduct
-            ? app(ProductStockCalculator::class)->forProduct($product)
+            ? $stockCalculator->forProduct($product)
             : null;
 
         $hasMovements = $item->inventoryMovements
@@ -119,7 +127,7 @@ class OrderInventoryContextResolver
             'line_status' => $lineStatus,
             'line_status_label' => OrderItemCatalog::statusLabel($lineStatus),
             'line_status_badge' => OrderItemCatalog::badgeClass($lineStatus),
-            'direction' => $direction,
+            'direction' => $profile['direction'],
             'is_operable' => $isOperable,
             'is_readonly' => $isReadonly,
             'is_line_locked' => $isLineLocked,
@@ -129,47 +137,18 @@ class OrderInventoryContextResolver
             'max_return_quantity' => $maxReturnQuantity,
             'can_edit' => $canEdit,
             'can_delete' => $canDelete,
-            'execute_kind' => $this->movementKindForDirection($direction),
-            'return_kind' => $this->returnKindForDirection($direction),
+            'execute_kind' => $profile['execute_kind'],
+            'return_kind' => $profile['reverse_kind'],
+            'execute_label' => $profile['execute_label'],
+            'return_label' => $profile['reverse_label'],
+            'execute_title' => $profile['execute_title'],
+            'return_title' => $profile['reverse_title'],
+            'execute_icon' => $profile['execute_icon'],
+            'return_icon' => $profile['reverse_icon'],
+            'execute_button_class' => $profile['execute_button_class'],
+            'return_button_class' => $profile['reverse_button_class'],
             'order_id' => $order->id,
         ];
-    }
-
-    protected function directionForOrder(Order $order): string
-    {
-        return match ($order->kind) {
-            OrderCatalog::KIND_PURCHASE => 'in',
-            OrderCatalog::KIND_SALE,
-            OrderCatalog::KIND_SERVICE => 'out',
-            default => 'out',
-        };
-    }
-
-    protected function movementKindForDirection(string $direction): string
-    {
-        return $direction === 'in'
-            ? InventoryMovementService::KIND_INGRESAR
-            : InventoryMovementService::KIND_ENTREGAR;
-    }
-
-    protected function returnKindForDirection(string $direction): string
-    {
-        return $direction === 'in'
-            ? InventoryMovementService::KIND_ENTREGAR
-            : InventoryMovementService::KIND_INGRESAR;
-    }
-
-    protected function isOrderOperable(Order $order): bool
-    {
-        return $order->status === OrderCatalog::STATUS_APPROVED;
-    }
-
-    protected function isOrderReadonly(Order $order): bool
-    {
-        return in_array($order->status, [
-            OrderCatalog::STATUS_CLOSED,
-            OrderCatalog::STATUS_CANCELLED,
-        ], true);
     }
 
     protected function normalizeQuantity(float|int|string|null $value): float

@@ -78,17 +78,21 @@
                                 $lineStatusLabel = $row['line_status_label'] ?? 'Pendiente';
                                 $lineStatusBadge = $row['line_status_badge'] ?? 'status-badge--pending';
 
-                                $executeModalId = 'inventory-surtir-line-' . ($row['order_item_id'] ?? $loop->index);
-                                $returnModalId = 'inventory-devolver-line-' . ($row['order_item_id'] ?? $loop->index);
+                                $executeModalId = 'inventory-execute-line-' . ($row['order_item_id'] ?? $loop->index);
+                                $returnModalId = 'inventory-return-line-' . ($row['order_item_id'] ?? $loop->index);
 
                                 $productId = $row['product_id'] ?? null;
                                 $orderItemId = $row['order_item_id'] ?? null;
 
                                 $lineMovementsUrl =
                                     $productId && $orderItemId
-                                        ? route('inventory.show', ['product' => $productId] + $trailQuery + [
-                                            'order_item_id' => $orderItemId,
-                                        ])
+                                        ? route(
+                                            'inventory.show',
+                                            ['product' => $productId] +
+                                                $trailQuery + [
+                                                    'order_item_id' => $orderItemId,
+                                                ],
+                                        )
                                         : null;
                             @endphp
 
@@ -135,14 +139,21 @@
                                     @if ($isPhysical && ($canExecute || $canReturn || $lineMovementsUrl))
                                         <div class="compact-actions">
                                             @if ($canExecute && $pendingQuantity > 0)
-                                                <button type="button" class="btn btn-success btn-icon"
+                                                <button type="button"
+                                                    class="{{ $row['execute_button_class'] ?? 'btn btn-success btn-icon' }}"
                                                     data-action="app-modal-open"
                                                     data-modal-target="#{{ $executeModalId }}"
-                                                    title="Surtir línea" aria-label="Surtir línea">
-                                                    <x-icons.truck />
+                                                    title="{{ $row['execute_title'] ?? 'Operar línea' }}"
+                                                    aria-label="{{ $row['execute_title'] ?? 'Operar línea' }}">
+
+                                                    @if (($row['execute_icon'] ?? 'truck') === 'plus')
+                                                        <x-icons.plus />
+                                                    @else
+                                                        <x-icons.truck />
+                                                    @endif
                                                 </button>
 
-                                                @include('inventory.partials.order-line-surtir-modal', [
+                                                @include('inventory.partials.order-line-execute-modal', [
                                                     'order' => $order,
                                                     'row' => $row,
                                                     'trailQuery' => $trailQuery,
@@ -151,10 +162,12 @@
                                             @endif
 
                                             @if ($canReturn && $maxReturnQuantity > 0)
-                                                <button type="button" class="btn btn-warning btn-icon"
+                                                <button type="button"
+                                                    class="{{ $row['return_button_class'] ?? 'btn btn-warning btn-icon' }}"
                                                     data-action="app-modal-open"
                                                     data-modal-target="#{{ $returnModalId }}"
-                                                    title="Devolver línea" aria-label="Devolver línea">
+                                                    title="{{ $row['return_title'] ?? 'Revertir línea' }}"
+                                                    aria-label="{{ $row['return_title'] ?? 'Revertir línea' }}">
                                                     <x-icons.rotate-ccw />
                                                 </button>
 

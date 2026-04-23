@@ -1,11 +1,11 @@
-{{-- FILE: resources/views/inventory/partials/order-line-surtir-modal.blade.php | V5 --}}
+{{-- FILE: resources/views/inventory/partials/order-line-execute-modal.blade.php | V2 --}}
 
 @php
     $order = $order ?? null;
     $row = $row ?? [];
     $trailQuery = $trailQuery ?? [];
 
-    $modalId = $modalId ?? 'inventory-surtir-line-' . ($row['order_item_id'] ?? uniqid());
+    $modalId = $modalId ?? 'inventory-execute-line-' . ($row['order_item_id'] ?? uniqid());
     $submitFormId = $submitFormId ?? $modalId . '-form';
 
     $position = $row['position'] ?? '—';
@@ -19,6 +19,10 @@
     $orderItemId = $row['order_item_id'] ?? null;
     $executeKind = $row['execute_kind'] ?? null;
 
+    $executeLabel = $row['execute_label'] ?? 'Operar';
+    $executeTitle = $row['execute_title'] ?? ($executeLabel . ' línea');
+    $executeVerbLower = \Illuminate\Support\Str::lower($executeLabel);
+
     $quantityInputId = $modalId . '-quantity';
     $notesInputId = $modalId . '-notes';
 
@@ -26,17 +30,25 @@
     $defaultQuantity = number_format($pendingQuantity, 2, '.', '');
 @endphp
 
-<x-modal :id="$modalId" :title="'Surtir línea #' . $position" size="md">
+<x-modal :id="$modalId" :title="$executeTitle . ' #' . $position" size="md">
     <x-slot:headerActions>
-        <button type="submit" form="{{ $submitFormId }}" class="btn btn-success btn-icon"
-            title="Confirmar surtido de línea #{{ $position }}"
-            aria-label="Confirmar surtido de línea #{{ $position }}">
+        <button
+            type="submit"
+            form="{{ $submitFormId }}"
+            class="btn btn-success btn-icon"
+            title="Confirmar {{ \Illuminate\Support\Str::lower($executeTitle) }} #{{ $position }}"
+            aria-label="Confirmar {{ \Illuminate\Support\Str::lower($executeTitle) }} #{{ $position }}"
+        >
             <x-icons.check />
         </button>
     </x-slot:headerActions>
 
-    <form id="{{ $submitFormId }}" action="{{ route('inventory.movements.store', $trailQuery) }}" method="POST"
-        class="form">
+    <form
+        id="{{ $submitFormId }}"
+        action="{{ route('inventory.movements.store', $trailQuery) }}"
+        method="POST"
+        class="form"
+    >
         @csrf
 
         <input type="hidden" name="product_id" value="{{ $productId }}">
@@ -71,25 +83,49 @@
         </div>
 
         <div class="form-group">
-            <label for="{{ $quantityInputId }}" class="form-label">Cantidad a surtir</label>
+            <label for="{{ $quantityInputId }}" class="form-label">Cantidad</label>
 
             <div class="app-stepper">
-                <button type="button" class="app-stepper__button btn btn-secondary btn-icon"
-                    data-action="app-step-number" data-step-target="#{{ $quantityInputId }}" data-step-direction="down"
-                    data-step-amount="{{ $stepAmount }}" title="Restar cantidad" aria-label="Restar cantidad">
+                <button
+                    type="button"
+                    class="app-stepper__button btn btn-secondary btn-icon"
+                    data-action="app-step-number"
+                    data-step-target="#{{ $quantityInputId }}"
+                    data-step-direction="down"
+                    data-step-amount="{{ $stepAmount }}"
+                    title="Restar cantidad"
+                    aria-label="Restar cantidad"
+                >
                     <x-icons.minus />
                 </button>
 
                 <div class="app-stepper__field">
-                    <input id="{{ $quantityInputId }}" name="quantity" type="number" step="{{ $stepAmount }}"
-                        min="0.01" max="{{ $defaultQuantity }}" class="form-control app-stepper__input"
-                        value="{{ old('quantity', $defaultQuantity) }}" required inputmode="decimal" autocomplete="off"
-                        data-modal-autofocus>
+                    <input
+                        id="{{ $quantityInputId }}"
+                        name="quantity"
+                        type="number"
+                        step="{{ $stepAmount }}"
+                        min="0.01"
+                        max="{{ $defaultQuantity }}"
+                        class="form-control app-stepper__input"
+                        value="{{ old('quantity', $defaultQuantity) }}"
+                        required
+                        inputmode="decimal"
+                        autocomplete="off"
+                        data-modal-autofocus
+                    >
                 </div>
 
-                <button type="button" class="app-stepper__button btn btn-secondary btn-icon"
-                    data-action="app-step-number" data-step-target="#{{ $quantityInputId }}" data-step-direction="up"
-                    data-step-amount="{{ $stepAmount }}" title="Sumar cantidad" aria-label="Sumar cantidad">
+                <button
+                    type="button"
+                    class="app-stepper__button btn btn-secondary btn-icon"
+                    data-action="app-step-number"
+                    data-step-target="#{{ $quantityInputId }}"
+                    data-step-direction="up"
+                    data-step-amount="{{ $stepAmount }}"
+                    title="Sumar cantidad"
+                    aria-label="Sumar cantidad"
+                >
                     <x-icons.plus />
                 </button>
             </div>
@@ -99,16 +135,22 @@
             @enderror
 
             <div class="form-help">
-                Podés registrar un surtido parcial o total. Si confirmás sin cambiar la cantidad,
-                se tomará el pendiente completo. La línea seguirá editable mientras no quede completada.
+                Podés {{ $executeVerbLower }} hasta {{ number_format($pendingQuantity, 2, ',', '.') }},
+                que es el pendiente actual de la línea. La operación se registrará como un nuevo movimiento.
             </div>
         </div>
 
         <div class="form-group">
             <label for="{{ $notesInputId }}" class="form-label">Notas</label>
 
-            <input id="{{ $notesInputId }}" name="notes" type="text" class="form-control"
-                value="{{ old('notes') }}" placeholder="Opcional">
+            <input
+                id="{{ $notesInputId }}"
+                name="notes"
+                type="text"
+                class="form-control"
+                value="{{ old('notes') }}"
+                placeholder="Opcional"
+            >
 
             @error('notes')
                 <div class="form-help is-error">{{ $message }}</div>

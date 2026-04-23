@@ -1,6 +1,7 @@
 <?php
 
-// FILE: app/Support/Inventory/InventorySurfaceService.php | V18
+// FILE: app/Support/Inventory/InventorySurfaceService.php | V19
+
 namespace App\Support\Inventory;
 
 use App\Models\InventoryMovement;
@@ -91,7 +92,7 @@ class InventorySurfaceService implements ModuleSurfaceService
 
             $this->linkedOffer(
                 key: 'inventory.order_item.execute',
-                label: 'Surtir',
+                label: 'Operar línea',
                 targets: ['orders.items.row'],
                 slot: 'row_actions',
                 priority: 20,
@@ -296,7 +297,7 @@ class InventorySurfaceService implements ModuleSurfaceService
             ];
         }
 
-        $inventoryContext = app(OrderInventoryContextResolver::class)->forOrder($record);
+        $inventoryContext = app(InventoryOrderContextResolver::class)->forOrder($record);
 
         return [
             'count' => collect($inventoryContext['items'] ?? [])->count(),
@@ -325,12 +326,14 @@ class InventorySurfaceService implements ModuleSurfaceService
             ];
         }
 
+        $contextResolver = app(InventoryOrderContextResolver::class);
+
         $order->loadMissing([
             'items.product',
             'items.inventoryMovements',
         ]);
 
-        $inventoryContext = app(OrderInventoryContextResolver::class)->forOrder($order);
+        $inventoryContext = $contextResolver->forOrder($order);
 
         $row = collect($inventoryContext['items'] ?? [])
             ->first(fn (array $candidate) => (int) ($candidate['order_item_id'] ?? 0) === (int) $record->id);
@@ -349,12 +352,12 @@ class InventorySurfaceService implements ModuleSurfaceService
             'data' => [
                 'actions' => [[
                     'type' => 'modal',
-                    'label' => 'Surtir línea',
-                    'title' => 'Surtir línea',
-                    'button_class' => 'btn btn-success btn-icon',
-                    'icon' => 'truck',
-                    'modal_view' => 'inventory.partials.order-line-surtir-modal',
-                    'modal_id' => 'inventory-row-surtir-line-'.$record->id,
+                    'label' => $row['execute_label'] ?? 'Operar línea',
+                    'title' => $row['execute_title'] ?? 'Operar línea',
+                    'button_class' => $row['execute_button_class'] ?? 'btn btn-success btn-icon',
+                    'icon' => $row['execute_icon'] ?? 'truck',
+                    'modal_view' => 'inventory.partials.order-line-execute-modal',
+                    'modal_id' => 'inventory-row-execute-line-'.$record->id,
                     'row' => $row,
                     'order' => $order,
                     'trailQuery' => $trailQuery,

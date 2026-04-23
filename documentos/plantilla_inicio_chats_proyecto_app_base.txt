@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -40,11 +40,14 @@ REGLAS BASE
 * Buscar convergencia hacia el patrón más sólido ya validado.
 * Distinguir dataset interno reusable, autorización y módulo funcional como problemas distintos.
 * No proponer módulo users por inercia cuando la necesidad real sea directorio interno del tenant.
+* Ante problemas de navegación interna o tabs, verificar primero la key técnica real de la tab y no su label visual.
+* Ante flujos embebidos o acciones por fila, distinguir siempre si la acción pertenece al host o al módulo proveedor.
+* Si existe trail, verificar además si el caso requiere return_tab como complemento de retorno interno del host.
 
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS DEL CHAT>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 REGLAS OPERATIVAS DEL CHAT
 
@@ -87,6 +90,21 @@ no dar por terminada una mejora reusable revisando solo controller o vista princ
 
 Auditar también modales, tabs internas, partials, surfaces secundarias y residuos legacy relacionados.
 
+Regla adicional para navegación contextual:
+
+ante problemas de retorno, redirects o pérdida de continuidad, distinguir explícitamente entre:
+
+contexto externo entre recursos
+contexto interno del host
+
+El contexto externo suele resolverse con trail.
+
+El contexto interno del host puede requerir return_tab cuando exista una tab activa relevante que deba restaurarse tras la acción.
+
+Regla adicional para tablas anfitrionas:
+
+si aparecen acciones nuevas en filas de un módulo consumidor, evaluar primero si deben resolverse como surface-driven o row action oficial del módulo oferente antes de hardcodearlas en la vista anfitriona.
+
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DE ESTE CHAT>>
@@ -123,7 +141,7 @@ estación contractual OrdersHooks para concentrar contacto extra-módulo sin sob
 <<END SECTION>>
 
 <<SECTION: ALCANCE>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ALCANCE
 
@@ -142,6 +160,19 @@ Este chat puede utilizarse para:
 Regla:
 
 si una necesidad no requiere módulo nuevo, no forzar lectura modular.
+
+Regla adicional:
+
+en revisiones de integraciones no debe auditarse solo la vista principal.
+
+También puede ser necesario revisar:
+
+* tabs internas
+* acciones por fila
+* modales operativos
+* retornos post-acción
+* navegación contextual desde recursos delegados
+* consumo real de surfaces oficiales ya publicadas
 
 <<END SECTION>>
 
@@ -216,7 +247,7 @@ el comentario debe escribirse con la sintaxis correcta del archivo correspondien
 <<END SECTION>>
 
 <<SECTION: FORMA DE RESPUESTA ESPERADA>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 FORMA DE RESPUESTA ESPERADA
 
@@ -238,5 +269,16 @@ Cuando corresponda:
 * devolver bloques SECTION exactos
 * devolver archivos completos si fueron pedidos
 * indicar riesgos de una solución híbrida o incompleta
+
+Regla adicional:
+
+si el problema toca navegación embebida, tabs o redirects, indicar explícitamente:
+
+* host de origen
+* recurso final esperado
+* si trail está bien o mal resuelto
+* si falta return_tab
+* si la key usada es técnica o visual
+* si la acción pertenece al host o al módulo oferente
 
 <<END SECTION>>

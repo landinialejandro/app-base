@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00017
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -72,7 +72,7 @@ inventory_movements puede registrar trazabilidad contextual hacia orders y docum
 
 inventory_movements puede registrar además trazabilidad operativa explícita hacia order_items cuando una línea actúe como referencia concreta de ejecución
 
-order_items gana además relevancia contractual y operativa dentro del ecosistema al actuar como punto natural de lectura para surtido, recepción, compromiso y restricciones de edición cuando ya existan movimientos ejecutados
+order_items gana además relevancia contractual y operativa dentro del ecosistema al actuar como punto natural de lectura para surtido, recepción, compromiso, devolución y restricciones de edición cuando ya existan movimientos ejecutados
 
 la operación de inventory ya no debe leerse solo como stock actual agregado
 
@@ -82,7 +82,7 @@ stock actual
 stock comprometido de salida
 recepción esperada de entrada
 
-inventory puede relacionarse no solo con product como artículo maestro sino también con order_item como contexto operativo por línea cuando el flujo requiera reservar, surtir, recibir, revertir o auditar ejecución parcial
+inventory puede relacionarse no solo con product como artículo maestro sino también con order_item como contexto operativo por línea cuando el flujo requiera reservar, surtir, recibir, devolver, revertir o auditar ejecución parcial
 
 la relación inventory ↔ order_item ya no es solo lectura futura de diseño
 
@@ -227,6 +227,14 @@ línea cerrada por completed
 línea cerrada por cancelled
 
 Esto refuerza una relación más precisa entre order_items, inventory_movements y estado operativo real de la línea.
+
+Aclaración adicional sobre devoluciones por línea:
+
+una misma línea puede acumular múltiples surtidos y múltiples devoluciones parciales a lo largo del tiempo mientras se respete el ejecutado neto vigente
+
+la devolución opera como movimiento propio de inventory y no redefine la naturaleza estructural de order_items dentro de orders
+
+la lectura filtrada por `order_item_id` se consolida como vista válida de trazabilidad operativa del ecosistema
 
 Aclaración de frontera conceptual:
 
@@ -848,7 +856,7 @@ Lo ubica como base maestra estable dentro de una arquitectura más limpia entre 
 <<END SECTION>>
 
 <<SECTION: INVENTORY>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 INVENTORY
 
@@ -879,7 +887,7 @@ Relaciones consumidas:
 
 products como catálogo maestro del artículo
 orders como contexto operativo cuando exista movimiento vinculado
-order_items como contexto operativo por línea para surtido, recepción, compromiso, reversión o restricción de edición
+order_items como contexto operativo por línea para surtido, recepción, compromiso, devolución, reversión o restricción de edición
 documents como contexto documental cuando exista trazabilidad
 tasks como destino posible de alertas automáticas del sistema cuando la operación lo requiera
 
@@ -911,7 +919,9 @@ Y, como evolución aprobada:
 
 contexto operativo reusable por línea
 acciones contextuales de surtido o recepción
-contramovimientos de reversión con trazabilidad
+contramovimientos de reversión
+acciones de devolución por línea
+lectura filtrada de movimientos por línea reutilizando vista canónica
 
 Reglas:
 
@@ -978,6 +988,12 @@ Aclaración adicional sobre continuidad de edición:
 que existan movimientos ya no implica automáticamente cierre total de la línea.
 
 Mientras la línea no se encuentre completed ni cancelled, puede seguir admitiendo edición estructural compatible con el ejecutado neto y con la preservación de identidad operativa de la línea.
+
+Aclaración adicional sobre devoluciones:
+
+la devolución por línea forma parte del frente operativo real de inventory
+
+debe expresarse como movimiento propio, respetar el máximo devolvible vigente y recalcular la ejecución neta y el pendiente de la línea sin alterar el modelo transaccional base de orders
 
 <<END SECTION>>
 
@@ -1153,78 +1169,42 @@ cuando orders publique una relación puntual hacia appointments.show, esa oferta
 <<END SECTION>>
 
 <<SECTION: ORDER_ITEMS>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00002
 
 ORDER_ITEMS
 
 Tipo conceptual:
 
-entidad hija delegada
+entidad hija operativa de orders
 
-Representa detalle operativo de una orden.
+Representa el detalle de cada orden.
 
 Relaciones consumidas:
 
-order
+order padre obligatorio
 product opcional
+tenant heredado del padre
+inventory como frente operativo externo cuando exista ejecución material por línea
 
 Relaciones ofrecidas:
 
-detalle de operación
-base para derivación a document_items
-contexto operativo para ejecución de stock por línea cuando corresponda
+detalle de cantidad y referencia del padre
+anclaje operativo para inventory
+trazabilidad de ejecución y devolución por línea cuando corresponda
 
 Reglas:
 
-su ciclo de vida depende funcionalmente de orders
+no constituye módulo autónomo
+mantiene delegación principal al padre
+puede ganar relevancia operativa sin alterar su naturaleza de entidad hija
+puede acumular múltiples movimientos relacionados a lo largo del tiempo
+su lectura operativa válida distingue objetivo de línea, ejecutado neto, pendiente y estado
 
-no debe confundirse con módulo autónomo
+Aclaración adicional consolidada:
 
-no requiere autonomía contractual propia dentro del mapa actual
+order_item ya no debe leerse solo como renglón comercial o administrativo
 
-no debe adquirir responsabilidades de cabecera sin decisión doctrinal expresa
-
-la relación con product es opcional y subordinada al detalle operativo del padre
-
-su autorización y operación deben leerse como delegadas al padre y no como circuito independiente
-
-Aclaración operativa consolidada:
-
-sin dejar de ser entidad hija delegada, order_items gana peso contractual dentro del frente inventory cuando una línea de orden actúa como referencia para compromiso, surtido, recepción, reversión o bloqueo de edición por movimientos ya ejecutados
-
-Esa relevancia operativa no lo convierte en módulo autónomo.
-
-Confirma su rol como detalle transaccional principal entre orders, inventory y eventual formalización documental.
-
-Aclaración adicional sobre estado persistido:
-
-order_item.status sigue viviendo en la línea y no en un dato visual efímero.
-
-Su gobierno puede provenir del frente operativo material cuando la línea participa del flujo de inventory.
-
-La lectura vigente distingue:
-
-cancelled como arbitraje superior de orders
-
-pending, partial y completed como estados operativos persistidos de la línea cuando exista ejecución material
-
-Aclaración adicional sobre edición estructural:
-
-la línea no debe leerse ya como totalmente editable o totalmente bloqueada por el simple hecho de tener movimientos.
-
-La regla conceptual vigente es más fina:
-
-puede permanecer editable mientras no esté completed ni cancelled
-
-quantity no puede quedar por debajo del ejecutado neto vigente
-
-si la línea ya tiene trazabilidad iniciada no deben mutarse atributos de identidad operativa como product_id, kind o description
-
-Aclaración adicional sobre cierre de línea:
-
-completed expresa cierre operativo material de la línea y debe leerse como estado de bloqueo estructural
-
-cancelled expresa arbitraje superior del flujo y no debe convivir con trazabilidad inconsistente no revertida
+cuando participa en ejecución material, pasa a ser unidad operativa trazable del ecosistema para surtido, devolución, reversión y lectura histórica vinculada a inventory
 
 <<END SECTION>>
 

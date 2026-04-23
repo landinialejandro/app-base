@@ -102,7 +102,7 @@ por consolidación como capacidad embebida oficial
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -162,6 +162,18 @@ migración de SurfaceService vigentes al patrón común
 barrido de residuos de migración y duplicaciones aparentes
 ratificación doctrinal de centralizar infraestructura sin mover semántica modular al núcleo compartido
 
+INVENTORY / ORDERS
+
+Se consideran logrados cierres operativos relevantes en el frente compartido respecto de:
+
+devolución de surtido por línea sobre ejecutado neto vigente
+múltiples surtidos y múltiples devoluciones parciales por línea
+retorno correcto al host con preservación de tab mediante return_tab
+acciones rápidas por fila dentro del embebido operativo
+navegación a movimientos filtrados por order_item_id reutilizando vista canónica
+eliminación de wrappers visuales redundantes sobre surface oficial embebida
+mejor convergencia entre host orders y capacidad oferente inventory
+
 Regla:
 
 los próximos trabajos sobre estos módulos deben priorizar bugs reales, validaciones residuales o mejoras concretas ya aprobadas
@@ -169,7 +181,7 @@ los próximos trabajos sobre estos módulos deben priorizar bugs reales, validac
 <<END SECTION>>
 
 <<SECTION: CAPACIDADES REUTILIZABLES A CONSOLIDAR>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 CAPACIDADES REUTILIZABLES A CONSOLIDAR
 
@@ -180,6 +192,7 @@ documents como surface documental reusable
 attachments como capacidad transversal homogénea
 linked actions oficiales entre módulos
 hosts show pages con slots consistentes
+row actions oficiales publicadas por módulos oferentes cuando corresponda
 
 Capacidades específicas bajo revisión:
 
@@ -202,6 +215,10 @@ Criterio general:
 una capacidad reusable no está consolidada solo por existir código publicado.
 
 Debe ser consumible de forma real, homogénea y visible dentro del ecosistema.
+
+Regla adicional:
+
+si una capacidad reusable necesita operar dentro de tablas anfitrionas, debe contemplar también variante row action y no solo linked o embedded tradicionales.
 
 <<END SECTION>>
 
@@ -259,7 +276,7 @@ Trasladar el foco a cierre visual y consumo homogéneo del frente.
 <<END SECTION>>
 
 <<SECTION: DEUDA TÉCNICA A REDUCIR>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 DEUDA TÉCNICA A REDUCIR
 
@@ -272,6 +289,7 @@ surfaces secundarias que todavía reconstruyen lógica ya publicada por módulos
 naming heredado centrado en consumidores donde la capacidad pertenece al oferente
 frentes donde aún se duplican queries internas de memberships en lugar de consumir raíz tenant reusable
 casos donde una falla visual puede confundirse con permisos por falta de auditoría contractual completa
+micro-superficies no auditadas que parecen menores pero afectan continuidad real del flujo
 
 Regla:
 
@@ -300,7 +318,7 @@ cada paso debe dejar menos excepciones que el anterior
 <<END SECTION>>
 
 <<SECTION: ESTADO ACTUAL DEL SISTEMA>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 ESTADO ACTUAL DEL SISTEMA
 
@@ -356,6 +374,9 @@ alerta automática reutilizable y actualizable
 reversión por contramovimiento
 recálculo correcto de líneas luego de revertir
 reejecución posterior consistente
+devoluciones parciales por línea sobre ejecutado neto vigente
+retorno correcto al host con tab preservada
+trazabilidad filtrada por línea reutilizando pantalla canónica
 
 products conserva su rol de catálogo maestro
 
@@ -410,14 +431,22 @@ document_items
 <<END SECTION>>
 
 <<SECTION: MÓDULOS POSIBLES A FUTURO>>
+SECTION_VERSION: 00002
+
 MÓDULOS POSIBLES A FUTURO
 
 payments
-inventory
+
+Líneas evolutivas ya identificadas sin abrir módulo nuevo todavía:
+
+productos fraccionables o decimales operativos en inventory
+expansión de row actions surface-driven a documents, attachments, tasks y auditoría
+mejoras móviles de captura rápida para attachments
+
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 PENDIENTES INMEDIATOS
 
@@ -430,6 +459,7 @@ seguir convergencia de show pages hacia hosts estructurados maduros
 seguir consolidación de inventory como módulo con surfaces oficiales consumidas por otros módulos
 auditar consumers residuales que aún rearman capacidades ya publicadas
 reutilizar TenantUserDirectory en próximos casos reales de dataset interno reusable cuando corresponda
+replicar return_tab en otros hosts con tabs cuando el flujo real lo justifique
 
 Regla:
 

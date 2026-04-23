@@ -110,7 +110,7 @@ Si estas respuestas no están claras, no debe avanzarse a implementación.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 BLOQUE 1 — CONTRATO MODULAR
 
@@ -249,6 +249,21 @@ qué delegaciones externas pasarán por esa estación
 qué piezas externas especializadas podrán intervenir
 qué responsabilidades continúan prohibidas en controllers o vistas
 
+Validación adicional para retorno interno del host:
+
+si una acción reusable nace dentro de tabs internas o surfaces embebidas del host, debe evaluarse explícitamente si el contrato necesita preservar también contexto interno del anfitrión además del trail contextual.
+
+Controlar:
+
+si existe tab activa relevante
+si debe usarse `return_tab`
+si la key de retorno es técnica y no visual
+si el redirect final vuelve al host correcto y al panel correcto
+
+Validación adicional para row actions:
+
+si la integración se consumirá dentro de tablas nativas de otro módulo, debe evaluarse si la capacidad corresponde a una row action oficial del módulo oferente y no a un botón hardcodeado del host consumidor.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
@@ -311,7 +326,7 @@ si owner dispone de una surface real para entender y administrar ese comportamie
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -402,10 +417,25 @@ si la integración incorpora modales, tabs internas o flujos secundarios, no deb
 
 Es obligatorio auditar también esas superficies derivadas como parte real del contrato integrado.
 
+Validación adicional para retorno al contexto del host:
+
+si la integración ejecuta acciones desde una tab del anfitrión y luego redirige, debe verificarse que el retorno preserve tanto el recurso host como su contexto interno relevante.
+
+Controlar explícitamente:
+
+trail externo
+return_tab interno
+key técnica correcta de la tab
+ausencia de desvío final a recursos delegados
+
+Validación adicional para tablas anfitrionas:
+
+si el host expone acciones de otro módulo dentro de filas propias, debe auditarse que esas acciones provengan de surfaces oficiales del oferente y no de reconstrucciones locales del consumidor.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA
 
@@ -484,6 +514,14 @@ Caso consolidado:
 
 cuando una tarea no recibe colaborador explícito, el sistema puede asumir asignación al usuario actual en lugar de volver el formulario inviable.
 
+Validación adicional para acciones compactas:
+
+si el espacio operativo lo requiere, deben priorizarse acciones iconográficas compactas consistentes en tablas embebidas o micro-superficies, siempre que la semántica siga siendo clara y el estado operable venga resuelto por el módulo oferente.
+
+Validación adicional para embebidos maduros:
+
+si el módulo consumidor ya invita una surface oficial suficientemente estructurada del oferente, no debe envolverla nuevamente con cards, wrappers o capas visuales redundantes que dupliquen jerarquía o confundan ownership funcional.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 5 — DOCUMENTACIÓN Y CIERRE>>
@@ -553,7 +591,7 @@ Este bloque resume mínimos técnicos, pero no reemplaza el checklist completo.
 <<END SECTION>>
 
 <<SECTION: CRITERIO FINAL DE APROBACIÓN>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 CRITERIO FINAL DE APROBACIÓN
 
@@ -588,6 +626,16 @@ el recálculo neto posterior fue validado
 los estados visibles quedaron consistentes
 las alertas automáticas siguen siendo legibles si hubo deduplicación
 el resultado fue probado con dataset realista y no solo caso ideal
+
+Validaciones finales adicionales para integraciones embebidas:
+
+si la acción nace en una tab o micro-superficie del host, el retorno vuelve al contexto correcto del anfitrión
+
+si la integración publica row actions, el host dejó de hardcodear botones equivalentes
+
+si la vista filtrada secundaria reutiliza pantalla canónica del oferente, no se abrió una vista paralela innecesaria
+
+si el oferente ya publica una surface madura, el consumidor dejó de envolverla con jerarquía visual redundante
 
 Si la respuesta es no o dudosa, el módulo debe seguir en revisión.
 

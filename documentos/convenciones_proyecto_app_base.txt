@@ -619,7 +619,7 @@ las integraciones entre módulos deben respetar el contrato del módulo oferente
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00017
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -707,6 +707,7 @@ create contextual compatible
 bloques de relación derivados
 catálogos o adaptadores de integración
 formularios operativos reutilizables cuando pertenezcan al núcleo del módulo oferente
+acciones por fila cuando el módulo deba intervenir recursos mostrados por un host externo
 
 Reglas:
 
@@ -783,6 +784,14 @@ debe consumir la unidad oficial publicada por el módulo oferente
 caso vigente relevante:
 
 orders consumiendo contexto operativo por línea publicado por inventory
+
+Regla adicional sobre acciones por fila:
+
+si una tabla nativa del host necesita renderizar acciones pertenecientes a otro módulo, la salida correcta es que el módulo oferente publique también esa capacidad como row action oficial dentro de su oferta contractual
+
+el host presta superficie visual de montaje
+
+el módulo oferente conserva arbitraje operativo, validaciones y semántica de la acción
 
 Aclaración modular adicional:
 
@@ -985,7 +994,7 @@ order_items continúa siendo entidad hija de orders aunque participe como anclaj
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -1151,6 +1160,14 @@ Debe concentrarse en la estación contractual propia del módulo y desde allí d
 Caso vigente:
 
 orders puede delegar hacia InventoryOrderItemHooks a través de OrdersHooks.
+
+Regla adicional para tablas anfitrionas:
+
+si una tabla del consumidor muestra filas propias pero necesita montar acciones de otro módulo, debe priorizarse el consumo de row actions oficiales publicadas por el oferente y no la reconstrucción manual de botones, permisos o estados dentro del host.
+
+El host monta.
+
+El oferente decide.
 
 <<END SECTION>>
 
@@ -1733,6 +1750,8 @@ attachments no debe depender en frontend de nombres de clase del backend para re
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE PRESERVACIÓN DE CONTEXTO UX>>
+SECTION_VERSION: 00002
+
 CONVENCIONES DE PRESERVACIÓN DE CONTEXTO UX
 
 En vistas con tabs, filtros o acciones internas, debe preservarse el contexto funcional al refrescar o redirigir cuando eso mejore la UX.
@@ -1746,6 +1765,34 @@ paginación cuando aplique
 Las tabs mencionadas en esta convención refieren a tabs internas de contenido dentro de una pantalla.
 
 No debe asumirse todavía como convención general del sistema una navegación entre rutas dentro de tabs de app o tipo workspace.
+
+Regla adicional consolidada:
+
+cuando una acción POST, PUT, PATCH o DELETE se dispare desde una tab interna relevante del host, puede preservarse explícitamente la tab activa mediante parámetro técnico de retorno.
+
+Caso vigente:
+
+return_tab
+
+Reglas para return_tab:
+
+debe transportar la key técnica real de la tab y no su label visual
+
+debe utilizarse solo para preservar contexto interno del host y no como reemplazo del trail contextual entre recursos
+
+si el flujo nace dentro de una surface embebida consumida por el host, el redirect correcto puede requerir simultáneamente:
+
+trail para retorno externo
+return_tab para retorno interno al panel correcto del host
+
+Ejemplo válido:
+
+inventory.embedded
+
+Ejemplo no válido cuando solo refleja label visual:
+
+inventory
+
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN ESTRUCTURAL Y CONTEXTUAL>>
@@ -2017,6 +2064,8 @@ favicon debe resolverse como asset separado y no como reutilización directa del
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE NAVEGACIÓN CONTEXTUAL>>
+SECTION_VERSION: 00002
+
 CONVENCIONES DE NAVEGACIÓN CONTEXTUAL
 
 Cuando exista navegación cruzada entre entidades relacionadas, no debe resetearse el contexto de origen sin necesidad funcional real.
@@ -2041,7 +2090,17 @@ esa decisión no debe dejarse implícita ni variar accidentalmente entre módulo
 
 en tablas embebidas o relacionales, el link principal de la fila debe consolidar primero el contexto completo de esa fila
 
-los links secundarios o relacionados de esa fila deben reutilizar ese mismo contexto y no reconstruirse desde la pantalla contenedora
+Regla adicional consolidada:
+
+cuando la interacción no abandona el host pero sí requiere redirect posterior a una acción, debe distinguirse entre:
+
+contexto externo de navegación
+contexto interno del host
+
+El contexto externo se preserva con trail.
+
+El contexto interno del host puede preservarse con return_tab cuando exista una tab activa relevante que deba restaurarse luego de la acción.
+
 <<END SECTION>>
 
 <<SECTION: GOBERNANZA DOCUMENTAL>>

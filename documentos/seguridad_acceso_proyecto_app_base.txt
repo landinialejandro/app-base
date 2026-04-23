@@ -28,7 +28,7 @@ No corresponde definir aquí navegación visual, patrones UI, roadmap, estructur
 <<END SECTION>>
 
 <<SECTION: ALCANCE GENERAL>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 ALCANCE GENERAL
 
@@ -52,16 +52,16 @@ Las decisiones de seguridad deben integrarse con esos documentos sin contradicci
 
 Regla de frontera:
 
-cuando una necesidad real sea dataset interno reusable del tenant o verificación de pertenencia activa, no debe forzarse una lectura como ability modular.
+resolver dataset interno reusable del tenant o verificar pertenencia activa no equivale a autorizar una operación.
 
-Ese problema pertenece a la capa correcta que resuelve datasets o pertenencia.
+Esas necesidades deben resolverse en la capa que corresponda.
 
 La autorización efectiva sigue perteneciendo al sistema de seguridad.
 
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -84,7 +84,7 @@ consumidores no inventan abilities
 módulos inexistentes no generan contrato válido
 la UI no debe mostrar capacidad no operable
 
-Principio adicional de frontera:
+Principio de frontera:
 
 resolver dataset interno, pertenencia activa o directorio reusable del tenant no equivale a autorizar una operación.
 
@@ -92,9 +92,9 @@ Esas necesidades no deben disfrazarse como permission V2.
 
 La autorización efectiva debe resolverse en Security, policies o middleware según corresponda al flujo.
 
-Principio adicional sobre hooks contractuales:
+Principio adicional sobre estaciones contractuales:
 
-una estación contractual interna de un módulo puede coordinar restricciones funcionales o delegaciones técnicas, pero no reemplaza el arbitraje central de acceso ni crea abilities nuevas por sí misma.
+una estación contractual interna de un módulo puede coordinar delegaciones técnicas o restricciones funcionales complementarias, pero no reemplaza el arbitraje central de acceso ni crea abilities nuevas por sí misma.
 
 <<END SECTION>>
 
@@ -296,7 +296,7 @@ no saltar el resolver central con lógica local improvisada
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -315,7 +315,7 @@ Checklist práctico:
 
 si falla un acceso, revisar contrato del módulo
 si falla una integración, revisar también host, slot, type y shape
-si falta un dataset interno, revisar la capa tenant correspondiente antes de crear permission nueva
+si falta un dataset interno, revisar la capa correspondiente antes de crear permission nueva
 si la UI muestra una acción, validar permiso real
 si el usuario navega entre módulos, preservar contexto sin bypassar seguridad
 
@@ -323,7 +323,7 @@ Regla adicional:
 
 cuando un flujo requiera verificar que un colaborador pertenece a la empresa actual, esa verificación debe seguir existiendo.
 
-Puede apoyarse en una raíz reusable del tenant.
+Puede apoyarse en una pieza reusable del tenant.
 
 No debe resolverse inventando un módulo users autorizado ni una ability modular inexistente.
 
@@ -351,7 +351,7 @@ Ignorar constraints equivale a ejecutar un contrato incompleto.
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -382,9 +382,9 @@ Por lo tanto, no deben consumirse abilities como users.viewAny si users no exist
 
 Regla de frontera:
 
-cuando el flujo requiera colaboradores internos del tenant, la solución correcta no es inventar contrato de seguridad modular inexistente.
+si el flujo requiere colaboradores internos del tenant, la solución correcta no es inventar contrato de seguridad modular inexistente.
 
-Debe resolverse primero el dataset o la pertenencia en la capa tenant correspondiente.
+Debe resolverse primero el dataset o la pertenencia en la capa correspondiente.
 
 La autorización efectiva sigue perteneciendo a las piezas centrales del sistema de seguridad.
 
@@ -428,7 +428,7 @@ Sigue siendo una restricción funcional dentro del ciclo de vida delegado del re
 <<END SECTION>>
 
 <<SECTION: INTEGRACIONES REUSABLES Y AUTORIZACIÓN>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00013
 
 INTEGRACIONES REUSABLES Y AUTORIZACIÓN
 
@@ -462,7 +462,7 @@ Regla de frontera:
 
 la reutilización de una pieza tenant para dataset interno o verificación de pertenencia no reemplaza el contrato de seguridad del módulo que consume ese dato.
 
-Una cosa resuelve base de datos o pertenencia válida.
+Una cosa resuelve dataset o pertenencia válida.
 
 La otra autoriza operación efectiva.
 
@@ -472,12 +472,24 @@ si una integración externa necesita pasar por una puerta contractual del módul
 
 Su función es ordenar el acople y aplicar reglas funcionales complementarias, no redefinir permisos ni abrir canales laterales de autorización.
 
-Esta salida es válida y recomendable cuando ayuda a mantener módulos aislados y responsabilidades claras.
+Regla adicional para hosts visuales:
+
+cuando un host renderiza capacidades operativas de otro módulo, no hereda su ownership funcional ni su contrato de permisos.
+
+El host presta superficie visual.
+
+El módulo oferente conserva autorización efectiva, validaciones y estados operables.
+
+Regla adicional para surfaces embebidas y row actions:
+
+una surface embebida o una acción por fila publicada por el módulo oferente no constituye zona libre de permisos.
+
+Cada acción mantiene su chequeo propio de lectura o ejecución, aun cuando se renderice dentro de tablas, tabs o bloques del consumidor.
 
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -485,63 +497,41 @@ ORDERS
 
 dataset compartido según scope vigente
 create exige contexto kind válido
-constraints.allowed_kinds puede limitar create, view, update y delete
-estado de la orden condiciona acciones operativas
-closed implica readonly operativo
-cancelled exige consistencia trazable según contrato
+constraints.allowed_kinds puede limitar create, view, update y delete según contrato persistido
+order_items delega seguridad principal al padre
+orders puede actuar como host visual de capacidades invitadas sin absorber su semántica operativa
 
-Las estaciones contractuales internas del módulo pueden coordinar integraciones externas necesarias, pero no reemplazan Security ni la policy del módulo.
+INVENTORY
+
+su operación efectiva pertenece al frente inventory aunque se consuma desde otros hosts
+las acciones de surtido y devolución por línea deben validar:
+orden operable
+línea perteneciente a la orden
+producto consistente
+cantidad positiva
+máximo ejecutable o devolvible vigente
+tenant coherente
+recalculo posterior consistente
+
+la devolución por línea debe registrarse como movimiento propio de inventory y no como mutación paralela del modelo transaccional base de orders
+
+la lectura embebida dentro de hosts puede mostrar stock, ejecutado, pendiente y acciones rápidas, pero cada capacidad sigue dependiendo de chequeo efectivo y no de inferencia visual genérica
+
+la apertura de movimientos filtrados por `order_item_id` debe validar coherencia entre línea, producto y tenant además de la autorización de lectura correspondiente
 
 ORDER_ITEMS
 
-delega autorización principal en orders
-cuando ya existan inventory_movements vinculados a una línea:
-la edición o eliminación libre queda restringida por trazabilidad
-la reversión solo es válida bajo condiciones del frente inventory
-la lectura de ejecución neta debe reflejar contramovimientos
+mantiene delegación principal al padre
+su relevancia operativa no crea módulo autónomo ni policy independiente completa
+las restricciones por ejecutado neto, completed o cancelled complementan la delegación sin reemplazarla
 
-Reglas adicionales vigentes:
+Regla general consolidada:
 
-completed bloquea edición estructural
-cancelled bloquea edición estructural
-quantity no puede reducirse por debajo del ejecutado neto
-si existe trazabilidad iniciada no deben mutarse product_id, kind o description
+ver un contexto no implica poder operarlo.
 
-TASKS
+Una línea visible puede ser readonly.
 
-dataset según contrato vigente
-limited responde a propias y asignadas con herencia visual por proyecto cuando corresponda
-update restringido según asignación efectiva
-owner mantiene tenant_all
-
-APPOINTMENTS
-
-dataset según contrato vigente
-puede utilizar tenant_all u own_assigned según rol efectivo
-create es booleano según contrato del módulo
-update y delete según scope aplicable
-
-PRODUCTS
-
-dataset según contrato vigente
-opera como catálogo maestro
-su autorización no reemplaza reglas propias de inventory
-
-ASSETS
-
-dataset según contrato vigente
-opera como activo del ecosistema
-puede participar en relaciones contextuales sin alterar su contrato de seguridad
-
-DOCUMENTS
-
-dataset según contrato vigente
-módulo derivado con identidad propia
-sus acciones siguen contrato propio aunque nazcan desde orders
-
-ATTACHMENTS
-
-delegación principal al recurso attachable correspondiente
+Una acción visible puede depender además del estado real del recurso y de sus límites cuantitativos vigentes.
 
 <<END SECTION>>
 

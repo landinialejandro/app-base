@@ -221,7 +221,7 @@ Es una pieza estructural del funcionamiento del sistema.
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 CAPAS FUNCIONALES DEL SISTEMA
 
@@ -283,7 +283,7 @@ El modelo de tres planos que organiza las integraciones entre módulos (núcleo 
 
 Regla de frontera:
 
-tenant pertenece a la capa tenant y al marco interno de operación segura del sistema.
+tenant pertenece a la capa tenant y al plano interno de contexto del sistema.
 
 No debe relocalizarse conceptualmente dentro de base del dominio ni de módulos funcionales por aparecer como dato contextual en relaciones del negocio.
 
@@ -355,7 +355,7 @@ Su función es sostener la plataforma y su frontera de ingreso.
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 ENTIDADES DEL NEGOCIO
 
@@ -437,7 +437,7 @@ tampoco debe sobredimensionarse el dominio del negocio hasta absorber piezas cuy
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 CLASIFICACIÓN CONCEPTUAL DE MÓDULOS
 
@@ -518,7 +518,7 @@ El detalle contractual y operativo de cada módulo se resuelve en la sección LE
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
@@ -605,33 +605,11 @@ Un módulo puede además actuar como hub visual: alojar interacción de otro mó
 
 En esa situación el módulo hub conserva gobierno de su superficie visual y el módulo invitado conserva gobierno de su lógica operativa.
 
-Casos consolidados:
+Regla:
 
-orders actúa como hub visual del frente inventory cuando la operación se ancla en order_items, sin convertirse en dueño del stock ni de la semántica operativa de inventory
+la arquitectura modular del ecosistema debe describir posiciones y fronteras estructurales.
 
-orders también puede consumir surfaces embebidas oficiales publicadas por documents y attachments sin absorber su identidad contractual ni reconstruir localmente sus capacidades
-
-Regla adicional de madurez estructural:
-
-cuando dos hosts del ecosistema se encuentren en distinto nivel de evolución contractual, el patrón rector debe leerse desde el host más maduro y no degradarse al más antiguo por simetría forzada.
-
-Caso consolidado actual:
-
-appointments.show expresa una lectura host más avanzada que orders.show en materia de montaje surface-driven dentro de show pages.
-
-Por lo tanto, la convergencia futura del ecosistema debe tender hacia esa estructura más nueva cuando corresponda.
-
-Regla adicional de frontera conceptual:
-
-tenant no forma parte de las relaciones superficiales modulares del ecosistema.
-
-Pertenece al plano interno de multi-tenancy, contexto operativo y seguridad.
-
-No debe tratarse como relación reusable publicada o consumida por módulos funcionales del negocio.
-
-Regla final:
-
-la evolución modular del sistema debe tender a más reutilización oficial y menos lógica dispersa entre consumidores.
+No debe absorber contratos de seguridad específicos, arbitrajes de permiso ni validaciones operativas que correspondan a documentos especializados.
 
 <<END SECTION>>
 

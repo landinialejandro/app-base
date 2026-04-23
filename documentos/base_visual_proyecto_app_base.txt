@@ -157,7 +157,7 @@ modal de Surtir línea dentro de orders.show.
 <<END SECTION>>
 
 <<SECTION: PATRÓN DE INTERACCIÓN MODAL>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 PATRÓN DE INTERACCIÓN MODAL
 
@@ -195,6 +195,10 @@ confirmar surtido desde header del modal.
 Regla:
 
 si la tarea exige navegación prolongada, múltiples secciones o edición extensa, debe preferirse pantalla dedicada y no modal.
+
+Aclaración adicional consolidada:
+
+cuando el modal opera sobre una fila contextual de un embebido, el cierre correcto debe devolver a la misma continuidad visual del host y no provocar salto accidental a otra pantalla del recurso delegado.
 
 <<END SECTION>>
 
@@ -324,7 +328,7 @@ Estos bloques ayudan a integrar módulos sin sobrecargar navegación ni multipli
 <<END SECTION>>
 
 <<SECTION: OFERTAS DE INTEGRACIÓN VISUAL>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 OFERTAS DE INTEGRACIÓN VISUAL
 
@@ -341,6 +345,7 @@ bloques summary
 tablas embebidas
 tabs modulares
 formularios operativos publicados por el módulo dueño de la capacidad
+acciones por fila publicadas por el módulo oferente cuando la operación viva en tablas del host consumidor
 
 Reglas:
 
@@ -358,6 +363,10 @@ No debe mezclarse soporte nuevo con componente viejo como cierre estable.
 Regla adicional:
 
 si una relación compacta desaparece visualmente, auditar también compatibilidad contractual entre host, slot, type y shape antes de asumir ausencia real de relación.
+
+Regla adicional para surfaces maduras embebidas:
+
+cuando el módulo oferente ya publica una surface oficial suficientemente estructurada, el consumidor no debe envolverla con cards adicionales, wrappers redundantes o jerarquía visual paralela que opaque su identidad modular.
 
 <<END SECTION>>
 
@@ -486,7 +495,7 @@ Estas métricas no reemplazan la tabla principal ni convierten la pantalla en da
 <<END SECTION>>
 
 <<SECTION: PATRÓN VISUAL PARA VISTAS SHOW>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 PATRÓN VISUAL PARA VISTAS SHOW
 
@@ -528,6 +537,14 @@ Caso vigente:
 
 appointments.show expresa una referencia positiva de madurez host para otras show pages surface-driven.
 
+Aclaración adicional consolidada:
+
+cuando una show page consuma una surface operativa madura de otro módulo, debe invitarla con limpieza visual y sin reconstrucciones redundantes del consumidor.
+
+Caso vigente:
+
+orders.show consumiendo inventory como frente operativo por línea.
+
 <<END SECTION>>
 
 <<SECTION: REGLAS PARA X-SHOW-SUMMARY Y X-SHOW-SUMMARY-ITEM>>
@@ -563,7 +580,7 @@ la unidad visual completa debe desaparecer y no solo el contenido interno
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW
 
@@ -602,6 +619,12 @@ las relaciones puntuales, 1 a 1 o de baja densidad deben priorizar summary_items
 Caso vigente:
 
 assets, parties y orders hacia appointments.show deben visualizarse como relaciones compactas de summary y no como pestañas por defecto.
+
+Aclaración adicional para embebidos operativos:
+
+si una capacidad invitada ya incluye tabla, tabs internas o toolbar propia, el host no debe volver a encapsularla como si fuera una relación secundaria genérica.
+
+Debe reconocerse su jerarquía como frente invitado del módulo oferente y no como card auxiliar duplicada.
 
 <<END SECTION>>
 
@@ -648,7 +671,7 @@ si además existe una capacidad reusable oficial publicada por el módulo relaci
 <<END SECTION>>
 
 <<SECTION: TABS INTERNAS DEL EMBEBIDO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 TABS INTERNAS DEL EMBEBIDO
 
@@ -676,10 +699,14 @@ La tab del host organiza relaciones de primer nivel de la pantalla.
 
 Las tabs internas segmentan solo el contenido del bloque invitado.
 
+Aclaración adicional de retorno visual:
+
+si una acción se dispara desde una tab interna del embebido y luego redirige, la UX correcta debe restaurar la tab técnica correspondiente del host cuando ese panel siga siendo el punto real de continuidad del trabajo.
+
 <<END SECTION>>
 
 <<SECTION: ACCIONES VISUALES EN INDEX Y SHOW>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 ACCIONES VISUALES EN INDEX Y SHOW
 
@@ -732,6 +759,16 @@ Aclaración adicional:
 
 cuando una acción pertenezca a un módulo invitado consumido dentro del host, la UI puede montarla en la pantalla anfitriona, pero la semántica funcional debe seguir perteneciendo al módulo oferente.
 
+Aclaración adicional para tablas operativas:
+
+cuando el espacio horizontal sea limitado y la frecuencia de uso lo justifique, las micro-acciones por fila deben tender a resolverse con botones iconográficos compactos y consistentes antes que con botones textuales extensos.
+
+Casos vigentes relevantes:
+
+surtir
+devolver
+ver movimientos de línea
+
 <<END SECTION>>
 
 <<SECTION: FRAGMENTACIÓN DE BLADES>>
@@ -777,7 +814,7 @@ esto evita inconsistencias visuales en formularios como órdenes numeradas
 <<END SECTION>>
 
 <<SECTION: MICRO-SUPERFICIES OPERATIVAS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 MICRO-SUPERFICIES OPERATIVAS
 
@@ -795,30 +832,23 @@ captura contextual breve
 
 Patrón consolidado:
 
-contexto visible del recurso afectado
-campos mínimos necesarios
-fricción baja
+contexto visible
+foco breve
+campos mínimos
 confirmación clara
-retorno al host
-sin burocracia visual innecesaria
+retorno inmediato al host
 
-Patrón adicional consolidado para captura numérica:
+Reglas:
 
-cuando la variable principal sea una cantidad breve y ajustable, puede utilizarse stepper visual:
+deben reducir roce y no crear una pseudo-pantalla completa innecesaria
 
-botón menos
-input central
-botón más
+deben vivir cerca del punto donde nace la intención del usuario
 
-Debe permitir edición manual y ajuste incremental.
+si la operación pertenece a un módulo invitado, la micro-superficie puede montarse en el host pero debe conservar la semántica del módulo oferente
 
 Caso vigente:
 
-cantidad a surtir en modal de línea.
-
-Regla:
-
-si la micro-superficie empieza a comportarse como proceso complejo, debe evolucionar a surface dedicada.
+surtido y devolución por línea desde orders.show consumiendo capacidad operativa de inventory.
 
 <<END SECTION>>
 

@@ -173,7 +173,7 @@ Su función es dar acceso estructural al ecosistema operativo vigente.
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -227,10 +227,20 @@ cuando la acción contextual se resuelva en modal o micro-superficie dentro del 
 
 Debe documentarse como transición válida del usuario dentro del flujo real.
 
+Regla adicional para retorno interno del host:
+
+si una acción nace dentro de una tab del anfitrión y luego redirige, debe preservarse no solo el recurso de origen sino también su panel interno relevante cuando eso forme parte del flujo real.
+
+Caso vigente:
+
+orders.show + inventory embebido + acción por línea
+→ redirect
+→ orders.show en la misma tab operativa del host
+
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -272,6 +282,17 @@ tasks.show puede consumir relaciones compactas publicadas por projects u otros m
 Aclaración adicional consolidada para orders.show:
 
 la operación de inventory por línea puede resolverse dentro del mismo host mediante acción contextual Surtir y modal operativo propio, sin degradar la show page a navegación externa obligatoria.
+
+Aclaración adicional consolidada para inventory embebido en orders.show:
+
+el embebido no debe leerse como bloque informativo pasivo.
+
+Constituye un frente operativo real por línea dentro del host, desde el cual pueden coexistir:
+
+acciones rápidas contextuales
+lectura de ejecutado y pendiente
+devoluciones parciales
+apertura de movimientos filtrados por línea
 
 Regla adicional:
 
@@ -356,7 +377,7 @@ Pueden abrirse de forma estructural o como continuación de otro flujo operativo
 <<END SECTION>>
 
 <<SECTION: REGLAS DEL TRAIL>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 REGLAS DEL TRAIL
 
@@ -399,6 +420,18 @@ Debe preservarse el contexto del host y resolverse retorno local al mismo recurs
 Caso vigente:
 
 orders.show → modal Surtir línea.
+
+Regla adicional de frontera:
+
+trail preserva contexto externo entre recursos.
+
+No reemplaza el contexto interno de tabs del host.
+
+Cuando el flujo lo requiera, ese contexto interno puede preservarse además mediante parámetro técnico complementario.
+
+Caso vigente:
+
+return_tab para volver a la tab correcta de orders.show luego de acciones disparadas desde inventory embebido.
 
 <<END SECTION>>
 
@@ -446,7 +479,7 @@ appointments.show expresa una estructura host más avanzada que otros shows aún
 <<END SECTION>>
 
 <<SECTION: INVENTORY>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 INVENTORY
 
@@ -519,10 +552,14 @@ la acción Surtir constituye una transición operativa contextual dentro de orde
 
 Abre una superficie modal con contexto de línea y retorna al mismo host una vez confirmada o cancelada la operación.
 
+Aclaración adicional sobre trazabilidad filtrada:
+
+desde el embebido operativo por línea debe poder abrirse navegación hacia la pantalla canónica de movimientos de inventory filtrada por `order_item_id`, evitando duplicar vistas de lectura histórica específicas del consumidor.
+
 <<END SECTION>>
 
 <<SECTION: REGLA PARA LINKS RELACIONALES DESDE TABLAS CONTEXTUALES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 REGLA PARA LINKS RELACIONALES DESDE TABLAS CONTEXTUALES
 
@@ -566,10 +603,20 @@ linked-order-action
 linked-party-action
 linked-asset
 
+Regla adicional para tablas anfitrionas con row actions:
+
+si la tabla pertenece al host pero expone micro-acciones de otro módulo, los links y acciones secundarios deben respetar al mismo tiempo:
+
+contexto de fila
+trail del host
+retorno interno del panel cuando aplique
+
+Esto evita que la navegación termine desviando al usuario hacia el recurso delegado como destino final de trabajo.
+
 <<END SECTION>>
 
 <<SECTION: DETALLE DE FLUJOS RELEVANTES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 DETALLE DE FLUJOS RELEVANTES
 
@@ -593,43 +640,49 @@ Desde un activo puede abrirse historial operativo o crear nueva orden contextual
 
 ASSETS → DOCUMENTS
 
-Desde un activo puede abrirse documentación relacionada o generar documentación nueva según el flujo habilitado.
+Desde un activo puede abrirse documentación relacionada cuando corresponda.
 
 PARTIES → APPOINTMENTS
 
-Desde un contacto puede consultarse agenda relacionada.
+Desde un contacto puede consultarse agenda asociada.
 
 PARTIES → ORDERS
 
-Desde un contacto puede consultarse historial operativo o iniciar flujo contextual.
+Desde un contacto puede abrirse o crear orden contextual.
 
 PROJECTS → TASKS
 
-El proyecto actúa como agrupador y punto de lectura agregada de tareas.
+El proyecto actúa como agrupador y punto de acceso contextual a tareas relacionadas.
 
-ORDERS → INVENTORY (OPERACIÓN POR LÍNEA)
+ORDERS → INVENTORY POR LÍNEA
 
-La orden puede exponer operación material contextual sobre cada línea sin abandonar el host principal.
+La orden puede consumir inventory como frente operativo embebido sobre sus líneas.
 
-La interacción puede abrir modal operativo local para surtido parcial o total según reglas vigentes.
+Flujos vigentes consolidados:
 
-TENANT PROFILE / ACCESOS
+orders.show
+→ tab operativa de inventory
+→ acción por fila
+→ redirect al mismo host con misma tab
 
-Concentra la gestión interna de memberships, roles, permisos e invitaciones.
+orders.show
+→ embebido de inventory por línea
+→ ver movimientos filtrados
+→ inventory.show con filtro `order_item_id`
 
-Cumple el rol operativo de administración interna de usuarios sin requerir un módulo users separado en la navegación principal.
+orders.show
+→ modal Surtir línea
+→ confirmar o cancelar
+→ retorno local al mismo host
 
-RELACIONES COMPACTAS PUBLICADAS
+orders.show
+→ acción Devolver por línea
+→ registro de contramovimiento
+→ retorno al mismo host con recálculo operativo visible
 
-Cuando un módulo publica una capacidad linked oficial, el flujo relevante deja de ser solo pantalla A enlaza a pantalla B.
+Regla:
 
-Pasa a ser:
-
-consumer solicita
-módulo oferente arbitra
-componente oficial representa
-host monta
-usuario navega con contexto
+cuando el flujo siga anclado en la orden anfitriona, la navegación no debe cerrar accidentalmente en el recurso delegado de línea como si fuera pantalla final de trabajo.
 
 <<END SECTION>>
 

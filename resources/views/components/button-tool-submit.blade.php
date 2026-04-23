@@ -1,12 +1,9 @@
-{{-- FILE:resources/views/components/button-tool-submit.blade.php | V2 --}}
+{{-- FILE: resources/views/components/button-tool-submit.blade.php | V3 --}}
+
 @props(['action', 'title', 'label' => null, 'message' => null, 'method' => 'POST', 'variant' => 'secondary'])
 
 @php
-    $classes = match ($variant) {
-        'danger' => 'btn btn-danger btn-icon btn-tool',
-        'primary' => 'btn btn-primary btn-icon btn-tool',
-        default => 'btn btn-secondary btn-icon btn-tool',
-    };
+    $classes = \App\Support\Ui\ButtonToolStyle::classes($variant);
 @endphp
 
 <form method="POST" action="{{ $action }}" class="inline-form"

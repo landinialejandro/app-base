@@ -1,12 +1,9 @@
-{{-- FILE:resources/views/components/button-tool.blade.php | V1 --}}
+{{-- FILE: resources/views/components/button-tool.blade.php | V2 --}}
+
 @props(['href', 'title', 'label' => null, 'variant' => 'secondary'])
 
 @php
-    $classes = match ($variant) {
-        'danger' => 'btn btn-danger btn-icon btn-tool',
-        'primary' => 'btn btn-primary btn-icon btn-tool',
-        default => 'btn btn-secondary btn-icon btn-tool',
-    };
+    $classes = \App\Support\Ui\ButtonToolStyle::classes($variant);
 @endphp
 
 <a href="{{ $href }}" title="{{ $title }}" aria-label="{{ $label ?? $title }}"

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/components/show-summary.blade.php | V3 --}}
+{{-- FILE: resources/views/components/show-summary.blade.php | V4 --}}
 
 @props([
     'detailsId' => null,
@@ -19,11 +19,15 @@
 
     @if ($hasDetails)
         <div class="show-summary-actions">
-            <button type="button" class="btn btn-secondary" data-action="app-toggle-details"
-                data-toggle-target="#{{ $resolvedDetailsId }}" data-toggle-text-collapsed="{{ $toggleLabel }}"
-                data-toggle-text-expanded="{{ $toggleLabelExpanded }}">
+            <x-button-secondary
+                type="button"
+                data-action="app-toggle-details"
+                data-toggle-target="#{{ $resolvedDetailsId }}"
+                data-toggle-text-collapsed="{{ $toggleLabel }}"
+                data-toggle-text-expanded="{{ $toggleLabelExpanded }}"
+            >
                 {{ $toggleLabel }}
-            </button>
+            </x-button-secondary>
         </div>
 
         <div id="{{ $resolvedDetailsId }}" class="show-summary-details" hidden>

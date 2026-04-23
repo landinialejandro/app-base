@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/components/linked-order.blade.php | V1 --}}
+{{-- FILE: resources/views/orders/components/linked-order.blade.php | V3 --}}
 
 @props([
     'linked' => [],
@@ -21,9 +21,13 @@
 @if ($state !== 'hidden')
     @if ($variant === 'button')
         @if ($state === 'linked_viewable')
-            <a href="{{ $showUrl }}" class="btn btn-secondary">{{ $viewText }}</a>
+            <x-button-secondary :href="$showUrl">
+                {{ $viewText }}
+            </x-button-secondary>
         @elseif ($state === 'creatable')
-            <a href="{{ $createUrl }}" class="btn btn-secondary">{{ $createText }}</a>
+            <x-button-secondary :href="$createUrl">
+                {{ $createText }}
+            </x-button-secondary>
         @elseif ($state === 'missing_requirement')
             <span class="btn btn-secondary disabled" aria-disabled="true" title="{{ $missingText }}">
                 {{ $createText }}

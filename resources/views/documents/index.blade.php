@@ -34,9 +34,7 @@
 
         <x-page-header title="Documentos">
             @if ($canCreateDocuments)
-                <a href="{{ route('documents.create', ['kind' => $defaultCreateKind]) }}" class="btn btn-success">
-                    Nuevo documento
-                </a>
+                <x-button-create :href="route('documents.create', ['kind' => $defaultCreateKind])" label="Nuevo documento" />
             @endif
         </x-page-header>
 

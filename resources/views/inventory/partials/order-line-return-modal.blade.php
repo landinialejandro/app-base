@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/partials/order-line-return-modal.blade.php | V4 --}}
+{{-- FILE: resources/views/inventory/partials/order-line-return-modal.blade.php | V5 --}}
 
 @php
     $order = $order ?? null;
@@ -31,11 +31,15 @@
 
 <x-modal :id="$modalId" :title="$returnTitle . ' #' . $position" size="md">
     <x-slot:headerActions>
-        <button type="submit" form="{{ $submitFormId }}" class="btn btn-success btn-icon"
-            title="Confirmar {{ \Illuminate\Support\Str::lower($returnTitle) }} #{{ $position }}"
-            aria-label="Confirmar {{ \Illuminate\Support\Str::lower($returnTitle) }} #{{ $position }}">
+        <x-button-tool-button
+            type="submit"
+            :form="$submitFormId"
+            variant="danger"
+            :title="'Confirmar ' . \Illuminate\Support\Str::lower($returnTitle) . ' #' . $position"
+            :label="'Confirmar ' . \Illuminate\Support\Str::lower($returnTitle) . ' #' . $position"
+        >
             <x-icons.check />
-        </button>
+        </x-button-tool-button>
     </x-slot:headerActions>
 
     <form id="{{ $submitFormId }}"

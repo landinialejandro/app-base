@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/partials/order-line-execute-modal.blade.php | V2 --}}
+{{-- FILE: resources/views/inventory/partials/order-line-execute-modal.blade.php | V3 --}}
 
 @php
     $order = $order ?? null;
@@ -32,15 +32,15 @@
 
 <x-modal :id="$modalId" :title="$executeTitle . ' #' . $position" size="md">
     <x-slot:headerActions>
-        <button
+        <x-button-tool-button
             type="submit"
-            form="{{ $submitFormId }}"
-            class="btn btn-success btn-icon"
-            title="Confirmar {{ \Illuminate\Support\Str::lower($executeTitle) }} #{{ $position }}"
-            aria-label="Confirmar {{ \Illuminate\Support\Str::lower($executeTitle) }} #{{ $position }}"
+            :form="$submitFormId"
+            variant="primary"
+            :title="'Confirmar ' . \Illuminate\Support\Str::lower($executeTitle) . ' #' . $position"
+            :label="'Confirmar ' . \Illuminate\Support\Str::lower($executeTitle) . ' #' . $position"
         >
             <x-icons.check />
-        </button>
+        </x-button-tool-button>
     </x-slot:headerActions>
 
     <form

@@ -14,20 +14,16 @@
         <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Turnos'], ['label' => 'Listado']]" />
 
         <x-page-header title="Listado de turnos">
-            <a href="{{ route('appointments.calendar', ['view' => 'month', 'month' => now()->format('Y-m')]) }}"
-                class="btn btn-secondary">
+            <x-button-secondary :href="route('appointments.calendar', ['view' => 'month', 'month' => now()->format('Y-m')])">
                 Calendario mensual
-            </a>
+            </x-button-secondary>
 
-            <a href="{{ route('appointments.calendar', ['view' => 'week', 'date' => now()->toDateString()]) }}"
-                class="btn btn-secondary">
+            <x-button-secondary :href="route('appointments.calendar', ['view' => 'week', 'date' => now()->toDateString()])">
                 Calendario semanal
-            </a>
+            </x-button-secondary>
 
             @can('create', App\Models\Appointment::class)
-                <a href="{{ route('appointments.create') }}" class="btn btn-success">
-                    Nuevo turno
-                </a>
+                <x-button-create :href="route('appointments.create')" label="Nuevo turno" />
             @endcan
         </x-page-header>
 

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Inventory/InventoryOperationProfileResolver.php | V2
+// FILE: app/Support/Inventory/InventoryOperationProfileResolver.php | V3
 
 namespace App\Support\Inventory;
 
@@ -29,8 +29,8 @@ class InventoryOperationProfileResolver
                 'reverse_title' => 'Devolver línea',
                 'execute_icon' => 'truck',
                 'reverse_icon' => 'rotate-ccw',
-                'execute_button_class' => 'btn btn-success btn-icon btn-tool',
-                'reverse_button_class' => 'btn btn-warning btn-icon btn-tool',
+                'execute_action_key' => 'execute',
+                'reverse_action_key' => 'return',
             ],
 
             OrderCatalog::KIND_SALE => [
@@ -44,8 +44,8 @@ class InventoryOperationProfileResolver
                 'reverse_title' => 'Devolver línea',
                 'execute_icon' => 'truck',
                 'reverse_icon' => 'rotate-ccw',
-                'execute_button_class' => 'btn btn-success btn-icon btn-tool',
-                'reverse_button_class' => 'btn btn-warning btn-icon btn-tool',
+                'execute_action_key' => 'execute',
+                'reverse_action_key' => 'return',
             ],
 
             OrderCatalog::KIND_PURCHASE => [
@@ -59,8 +59,8 @@ class InventoryOperationProfileResolver
                 'reverse_title' => 'Retirar línea',
                 'execute_icon' => 'plus',
                 'reverse_icon' => 'rotate-ccw',
-                'execute_button_class' => 'btn btn-success btn-icon btn-tool',
-                'reverse_button_class' => 'btn btn-warning btn-icon btn-tool',
+                'execute_action_key' => 'execute',
+                'reverse_action_key' => 'return',
             ],
 
             default => throw new InvalidArgumentException('Tipo de orden no compatible con inventory.'),

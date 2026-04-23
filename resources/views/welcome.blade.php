@@ -15,13 +15,13 @@
 
                     @auth
                         @if (auth()->user()->is_superadmin)
-                            <a href="{{ route('admin.dashboard') }}" class="btn btn-primary">
+                            <x-button-primary :href="route('admin.dashboard')">
                                 Ir a administración
-                            </a>
+                            </x-button-primary>
                         @else
-                            <a href="{{ route('dashboard') }}" class="btn btn-primary">
+                            <x-button-primary :href="route('dashboard')">
                                 Ir al dashboard
-                            </a>
+                            </x-button-primary>
                         @endif
 
                         <form method="POST" action="{{ route('logout') }}">
@@ -33,13 +33,11 @@
                         </form>
                     @else
                         <div class="form-actions">
-                            <a href="{{ route('public.signup-requests.create') }}" class="btn btn-success">
-                                Solicitar una empresa
-                            </a>
+                            <x-button-create :href="route('public.signup-requests.create')" label="Solicitar una empresa" />
 
-                            <a href="{{ route('login') }}" class="btn btn-secondary">
+                            <x-button-secondary :href="route('login')">
                                 Ingresar
-                            </a>
+                            </x-button-secondary>
                         </div>
                     @endauth
                 </x-page-header>

@@ -1,9 +1,10 @@
-{{-- FILE: resources/views/orders/items/partials/table.blade.php | V10 --}}
+{{-- FILE: resources/views/orders/items/partials/table.blade.php | V11 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
     use App\Support\Catalogs\OrderItemCatalog;
     use App\Support\Catalogs\ProductCatalog;
+    use App\Support\Inventory\InventorySurfaceService;
     use App\Support\Modules\ModuleSurfaceRegistry;
 
     $order = $order ?? null;
@@ -12,6 +13,7 @@
     $trailQuery = $trailQuery ?? [];
 
     $orderIsReadonly = $order ? OrderCatalog::isReadonlyStatus($order->status) : false;
+    $modalNamespace = 'order-items';
 @endphp
 
 @if ($items->count())
@@ -53,13 +55,11 @@
                         $lineStatusLabel = OrderItemCatalog::statusLabel($lineStatus);
                         $lineStatusBadge = OrderItemCatalog::badgeClass($lineStatus);
 
-                        $rowHostPack = [
-                            'host' => 'orders.items.row',
-                            'record' => $item,
-                            'recordType' => 'order_item',
+                        $rowHostPack = app(InventorySurfaceService::class)->hostPack('orders.items.row', $item, [
                             'order' => $order,
                             'trailQuery' => $trailQuery,
-                        ];
+                            'modal_namespace' => $modalNamespace,
+                        ]);
 
                         $rowLinkedActions = collect(
                             app(ModuleSurfaceRegistry::class)->linkedFor('orders.items.row', $rowHostPack)

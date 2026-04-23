@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/components/linked-appointment.blade.php | V1 --}}
+{{-- FILE: resources/views/appointments/components/linked-appointment.blade.php | V2 --}}
 
 @props([
     'linked' => [],
@@ -19,13 +19,13 @@
 @if ($state !== 'hidden')
     @if ($variant === 'button')
         @if ($state === 'linked_viewable')
-            <a href="{{ $showUrl }}" class="btn btn-secondary">
+            <x-button-secondary :href="$showUrl">
                 {{ $viewText }}
-            </a>
+            </x-button-secondary>
         @elseif ($state === 'creatable')
-            <a href="{{ $createUrl }}" class="btn btn-secondary">
+            <x-button-secondary :href="$createUrl">
                 {{ $createText }}
-            </a>
+            </x-button-secondary>
         @elseif ($state === 'linked_readonly')
             <span class="btn btn-secondary disabled" aria-disabled="true">
                 {{ $text }}

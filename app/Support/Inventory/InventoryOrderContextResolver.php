@@ -1,6 +1,7 @@
 <?php
 
-// FILE: app/Support/Inventory/InventoryOrderContextResolver.php | V2
+// FILE: app/Support/Inventory/InventoryOrderContextResolver.php | V3
+
 namespace App\Support\Inventory;
 
 use App\Models\Order;
@@ -145,8 +146,8 @@ class InventoryOrderContextResolver
             'return_title' => $profile['reverse_title'],
             'execute_icon' => $profile['execute_icon'],
             'return_icon' => $profile['reverse_icon'],
-            'execute_button_class' => $profile['execute_button_class'],
-            'return_button_class' => $profile['reverse_button_class'],
+            'execute_action_key' => $profile['execute_action_key'],
+            'return_action_key' => $profile['reverse_action_key'],
             'order_id' => $order->id,
         ];
     }

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/components/analytics/panel.blade.php | V2 --}}
+{{-- FILE: resources/views/components/analytics/panel.blade.php | V3 --}}
 
 @props([
     'title',
@@ -33,11 +33,15 @@
 
     @if ($hasDetails)
         <div class="analytics-panel__actions">
-            <button type="button" class="btn btn-secondary" data-action="app-toggle-details"
-                data-toggle-target="#{{ $resolvedDetailsId }}" data-toggle-text-collapsed="{{ $toggleLabel }}"
-                data-toggle-text-expanded="{{ $toggleLabelExpanded }}">
+            <x-button-secondary
+                type="button"
+                data-action="app-toggle-details"
+                data-toggle-target="#{{ $resolvedDetailsId }}"
+                data-toggle-text-collapsed="{{ $toggleLabel }}"
+                data-toggle-text-expanded="{{ $toggleLabelExpanded }}"
+            >
                 {{ $toggleLabel }}
-            </button>
+            </x-button-secondary>
         </div>
 
         <div id="{{ $resolvedDetailsId }}" class="analytics-panel__details" hidden>

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/components/linked-party.blade.php | V3 --}}
+{{-- FILE: resources/views/documents/components/linked-document.blade.php | V3 --}}
 
 @props([
     'linked' => [],
@@ -9,7 +9,7 @@
     $state = $linked['state'] ?? 'hidden';
     $showUrl = $linked['show_url'] ?? null;
     $createUrl = $linked['create_url'] ?? null;
-    $label = $linked['label'] ?? 'Contacto';
+    $label = $linked['label'] ?? 'Documento';
     $text = $linked['text'] ?? $label;
 
     $createText = 'Crear ' . strtolower($label);

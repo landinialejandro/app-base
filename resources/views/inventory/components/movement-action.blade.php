@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/components/movement-action.blade.php | V1 --}}
+{{-- FILE: resources/views/inventory/components/movement-action.blade.php | V2 --}}
 
 @props([
     'action' => [],
@@ -15,9 +15,9 @@
 @if ($state !== 'hidden')
     @if ($variant === 'button')
         @if ($state === 'creatable')
-            <a href="{{ $createUrl }}" class="btn btn-secondary">
+            <x-button-secondary :href="$createUrl">
                 {{ $text }}
-            </a>
+            </x-button-secondary>
         @else
             <span class="btn btn-secondary disabled" aria-disabled="true">
                 {{ $text }}

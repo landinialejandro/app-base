@@ -1,7 +1,6 @@
 <?php
 
-// FILE: app/Support/Products/ProductSurfaceService.php | V4
-
+// FILE: app/Support/Products/ProductSurfaceService.php | V6
 namespace App\Support\Products;
 
 use App\Models\Product;
@@ -27,17 +26,15 @@ class ProductSurfaceService implements ModuleSurfaceService
                 resolver: $this->resolveInventoryLinked(...),
             ),
 
-            [
-                'type' => 'linked',
-                'key' => 'product.inventory.create',
-                'label' => 'Nuevo artículo',
-                'targets' => ['inventory.index'],
-                'slot' => 'header_actions',
-                'priority' => 20,
-                'view' => 'products.components.linked-product-action',
-                'needs' => ['record', 'recordType'],
-                'resolver' => $this->resolveInventoryCreateAction(...),
-            ],
+            $this->linkedOffer(
+                key: 'product.inventory.create',
+                label: 'Nuevo artículo',
+                targets: ['inventory.index'],
+                slot: 'header_actions',
+                priority: 20,
+                view: 'products.components.linked-product',
+                resolver: $this->resolveInventoryCreateAction(...),
+            ),
         ];
     }
 
@@ -79,6 +76,7 @@ class ProductSurfaceService implements ModuleSurfaceService
                         'readonly' => false,
                         'state' => 'hidden',
                         'show_url' => null,
+                        'create_url' => null,
                         'label' => 'Artículo',
                         'text' => 'Artículo',
                     ],
@@ -106,10 +104,18 @@ class ProductSurfaceService implements ModuleSurfaceService
         if ($recordType !== 'inventory_index') {
             return [
                 'data' => [
-                    'action' => [
+                    'linked' => [
                         'supported' => false,
+                        'exists' => false,
                         'hidden' => true,
+                        'readonly' => false,
+                        'state' => 'hidden',
+                        'show_url' => null,
+                        'create_url' => null,
+                        'label' => 'Artículo',
+                        'text' => 'Nuevo artículo',
                     ],
+                    'variant' => 'button',
                 ],
             ];
         }
@@ -119,21 +125,24 @@ class ProductSurfaceService implements ModuleSurfaceService
         $canCreate = $user
             && app(Security::class)->allows(
                 $user,
-                ModuleCatalog::PRODUCTS.'.create',
+                ModuleCatalog::PRODUCTS . '.create',
                 Product::class
             );
 
         return [
             'data' => [
-                'action' => [
+                'linked' => [
                     'supported' => true,
+                    'exists' => false,
                     'hidden' => ! $canCreate,
-                    'can_create' => (bool) $canCreate,
-                    'create_url' => $canCreate
-                        ? route('products.create')
-                        : null,
+                    'readonly' => ! $canCreate,
+                    'state' => $canCreate ? 'creatable' : 'hidden',
+                    'show_url' => null,
+                    'create_url' => $canCreate ? route('products.create') : null,
                     'label' => 'Artículo',
+                    'text' => 'Nuevo artículo',
                 ],
+                'variant' => 'button',
             ],
         ];
     }

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/components/modal.blade.php | V3 --}}
+{{-- FILE: resources/views/components/modal.blade.php | V4 --}}
 
 @props(['id', 'title' => null, 'size' => 'md'])
 
@@ -30,10 +30,16 @@
                     {{ $headerActions }}
                 @endif
 
-                <button type="button" class="btn btn-secondary btn-icon" data-action="app-modal-close"
-                    data-modal-target="#{{ $id }}" aria-label="Cerrar ventana" title="Cerrar ventana">
+                <x-button-secondary
+                    type="button"
+                    class="btn-icon"
+                    data-action="app-modal-close"
+                    data-modal-target="#{{ $id }}"
+                    title="Cerrar ventana"
+                    aria-label="Cerrar ventana"
+                >
                     <x-icons.x />
-                </button>
+                </x-button-secondary>
             </div>
         </div>
 

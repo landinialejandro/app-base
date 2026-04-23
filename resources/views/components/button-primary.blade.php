@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/components/button-secondary.blade.php | V2 --}}
+{{-- FILE: resources/views/components/button-primary.blade.php | V1 --}}
 
 @props([
     'href' => null,
@@ -12,7 +12,7 @@
         type="{{ $type }}"
         @if ($title) title="{{ $title }}" @endif
         @if ($label ?? $title) aria-label="{{ $label ?? $title }}" @endif
-        {{ $attributes->merge(['class' => 'btn btn-secondary']) }}
+        {{ $attributes->merge(['class' => 'btn btn-primary']) }}
     >
         {{ $slot }}
     </button>
@@ -21,7 +21,7 @@
         href="{{ $href }}"
         @if ($title) title="{{ $title }}" @endif
         @if ($label ?? $title) aria-label="{{ $label ?? $title }}" @endif
-        {{ $attributes->merge(['class' => 'btn btn-secondary']) }}
+        {{ $attributes->merge(['class' => 'btn btn-primary']) }}
     >
         {{ $slot }}
     </a>

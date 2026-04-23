@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Inventory/InventorySurfaceService.php | V19
+// FILE: app/Support/Inventory/InventorySurfaceService.php | V22
 
 namespace App\Support\Inventory;
 
@@ -91,13 +91,13 @@ class InventorySurfaceService implements ModuleSurfaceService
             ),
 
             $this->linkedOffer(
-                key: 'inventory.order_item.execute',
-                label: 'Operar línea',
+                key: 'inventory.order_item.actions',
+                label: 'Operación por línea',
                 targets: ['orders.items.row'],
                 slot: 'row_actions',
                 priority: 20,
                 view: 'inventory.components.order-item-row-actions',
-                resolver: $this->resolveOrderItemExecuteAction(...),
+                resolver: $this->resolveOrderItemRowActions(...),
                 needs: ['record', 'recordType', 'trailQuery', 'order'],
             ),
         ];
@@ -112,6 +112,7 @@ class InventorySurfaceService implements ModuleSurfaceService
                 'recordType' => 'order_item',
                 'order' => $context['order'],
                 'trailQuery' => $context['trailQuery'] ?? [],
+                'modal_namespace' => (string) ($context['modal_namespace'] ?? ''),
             ];
         }
 
@@ -120,6 +121,7 @@ class InventorySurfaceService implements ModuleSurfaceService
             'record' => $record,
             'recordType' => $this->resolveRecordType($record),
             'trailQuery' => $context['trailQuery'] ?? [],
+            'modal_namespace' => (string) ($context['modal_namespace'] ?? ''),
         ];
     }
 
@@ -310,12 +312,13 @@ class InventorySurfaceService implements ModuleSurfaceService
         ];
     }
 
-    private function resolveOrderItemExecuteAction(array $hostPack): array
+    private function resolveOrderItemRowActions(array $hostPack): array
     {
         $record = $hostPack['record'] ?? null;
         $recordType = $hostPack['recordType'] ?? null;
         $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
         $order = $hostPack['order'] ?? null;
+        $modalNamespace = trim((string) ($hostPack['modal_namespace'] ?? ''));
 
         if ($recordType !== 'order_item' || ! $record instanceof OrderItem || ! $order instanceof Order) {
             return [
@@ -338,7 +341,7 @@ class InventorySurfaceService implements ModuleSurfaceService
         $row = collect($inventoryContext['items'] ?? [])
             ->first(fn (array $candidate) => (int) ($candidate['order_item_id'] ?? 0) === (int) $record->id);
 
-        if (! is_array($row) || (($row['can_execute'] ?? false) !== true)) {
+        if (! is_array($row)) {
             return [
                 'count' => 0,
                 'data' => [
@@ -347,21 +350,60 @@ class InventorySurfaceService implements ModuleSurfaceService
             ];
         }
 
+        $actions = [];
+        $productId = $row['product_id'] ?? null;
+        $orderItemId = $row['order_item_id'] ?? null;
+        $modalPrefix = $modalNamespace !== '' ? $modalNamespace.'-' : '';
+
+        if (($row['can_execute'] ?? false) === true) {
+            $actions[] = [
+                'type' => 'modal',
+                'action_key' => $row['execute_action_key'] ?? 'execute',
+                'label' => $row['execute_label'] ?? 'Operar línea',
+                'title' => $row['execute_title'] ?? 'Operar línea',
+                'icon' => $row['execute_icon'] ?? 'truck',
+                'modal_view' => 'inventory.partials.order-line-execute-modal',
+                'modal_id' => $modalPrefix.'inventory-row-execute-line-'.$record->id,
+                'row' => $row,
+                'order' => $order,
+                'trailQuery' => $trailQuery,
+            ];
+        }
+
+        if (($row['can_return'] ?? false) === true && (float) ($row['max_return_quantity'] ?? 0) > 0) {
+            $actions[] = [
+                'type' => 'modal',
+                'action_key' => $row['return_action_key'] ?? 'return',
+                'label' => $row['return_label'] ?? 'Devolver línea',
+                'title' => $row['return_title'] ?? 'Devolver línea',
+                'icon' => $row['return_icon'] ?? 'rotate-ccw',
+                'modal_view' => 'inventory.partials.order-line-return-modal',
+                'modal_id' => $modalPrefix.'inventory-row-return-line-'.$record->id,
+                'row' => $row,
+                'order' => $order,
+                'trailQuery' => $trailQuery,
+            ];
+        }
+
+        if ($productId && $orderItemId) {
+            $actions[] = [
+                'type' => 'link',
+                'action_key' => 'view_movements',
+                'label' => 'Ver movimientos',
+                'title' => 'Ver movimientos de la línea',
+                'icon' => 'eye',
+                'href' => route('inventory.show', [
+                    'product' => $productId,
+                ] + $trailQuery + [
+                    'order_item_id' => $orderItemId,
+                ]),
+            ];
+        }
+
         return [
-            'count' => 1,
+            'count' => count($actions),
             'data' => [
-                'actions' => [[
-                    'type' => 'modal',
-                    'label' => $row['execute_label'] ?? 'Operar línea',
-                    'title' => $row['execute_title'] ?? 'Operar línea',
-                    'button_class' => $row['execute_button_class'] ?? 'btn btn-success btn-icon',
-                    'icon' => $row['execute_icon'] ?? 'truck',
-                    'modal_view' => 'inventory.partials.order-line-execute-modal',
-                    'modal_id' => 'inventory-row-execute-line-'.$record->id,
-                    'row' => $row,
-                    'order' => $order,
-                    'trailQuery' => $trailQuery,
-                ]],
+                'actions' => $actions,
             ],
         ];
     }

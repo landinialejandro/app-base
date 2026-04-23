@@ -18,9 +18,7 @@
 
         <x-page-header title="Calendario de turnos">
             @can('create', App\Models\Appointment::class)
-                <a href="{{ route('appointments.create') }}" class="btn btn-success">
-                    Nuevo turno
-                </a>
+                <x-button-create :href="route('appointments.create')" label="Nuevo turno" />
             @endcan
         </x-page-header>
 

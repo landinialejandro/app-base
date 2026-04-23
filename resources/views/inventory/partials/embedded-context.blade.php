@@ -1,7 +1,9 @@
-{{-- FILE: resources/views/inventory/partials/embedded-context.blade.php | V9 --}}
+{{-- FILE: resources/views/inventory/partials/embedded-context.blade.php | V11 --}}
 
 @php
     use App\Support\Inventory\InventoryMovementService;
+    use App\Support\Inventory\InventorySurfaceService;
+    use App\Support\Modules\ModuleSurfaceRegistry;
 
     $contextType = $contextType ?? 'order';
     $trailQuery = $trailQuery ?? [];
@@ -41,8 +43,8 @@
     @php
         $order = $order ?? null;
         $inventoryContext = $inventoryContext ?? [];
-
-        $items = collect($inventoryContext['items'] ?? [])->keyBy('order_item_id');
+        $items = collect($inventoryContext['items'] ?? [])->values();
+        $modalNamespace = 'inventory-embedded';
     @endphp
 
     @if ($items->isNotEmpty())
@@ -64,36 +66,34 @@
                         @foreach ($items as $row)
                             @php
                                 $isPhysical = ($row['is_physical_product'] ?? false) === true;
-                                $canExecute = ($row['can_execute'] ?? false) === true;
-                                $canReturn = ($row['can_return'] ?? false) === true;
-
-                                $pendingQuantity = (float) ($row['pending_quantity'] ?? 0);
-                                $executedQuantity = (float) ($row['executed_quantity'] ?? 0);
-                                $maxReturnQuantity = (float) ($row['max_return_quantity'] ?? 0);
-
                                 $currentStock = array_key_exists('current_stock', $row)
                                     ? (float) $row['current_stock']
                                     : null;
-
+                                $executedQuantity = (float) ($row['executed_quantity'] ?? 0);
+                                $pendingQuantity = (float) ($row['pending_quantity'] ?? 0);
                                 $lineStatusLabel = $row['line_status_label'] ?? 'Pendiente';
                                 $lineStatusBadge = $row['line_status_badge'] ?? 'status-badge--pending';
 
-                                $executeModalId = 'inventory-execute-line-' . ($row['order_item_id'] ?? $loop->index);
-                                $returnModalId = 'inventory-return-line-' . ($row['order_item_id'] ?? $loop->index);
+                                $rowActions = collect();
 
-                                $productId = $row['product_id'] ?? null;
-                                $orderItemId = $row['order_item_id'] ?? null;
+                                if ($order && !empty($row['order_item_id'])) {
+                                    $orderItemModel = $order->items->firstWhere('id', (int) $row['order_item_id']);
 
-                                $lineMovementsUrl =
-                                    $productId && $orderItemId
-                                        ? route(
-                                            'inventory.show',
-                                            ['product' => $productId] +
-                                                $trailQuery + [
-                                                    'order_item_id' => $orderItemId,
-                                                ],
+                                    if ($orderItemModel) {
+                                        $rowHostPack = app(InventorySurfaceService::class)->hostPack('orders.items.row', $orderItemModel, [
+                                            'order' => $order,
+                                            'trailQuery' => $trailQuery,
+                                            'modal_namespace' => $modalNamespace,
+                                        ]);
+
+                                        $rowActions = collect(
+                                            app(ModuleSurfaceRegistry::class)->linkedFor('orders.items.row', $rowHostPack)
                                         )
-                                        : null;
+                                            ->where('slot', 'row_actions')
+                                            ->sortBy(fn ($item) => $item['priority'] ?? 999)
+                                            ->values();
+                                    }
+                                }
                             @endphp
 
                             <tr>
@@ -136,56 +136,11 @@
                                 </td>
 
                                 <td class="compact-actions-cell">
-                                    @if ($isPhysical && ($canExecute || $canReturn || $lineMovementsUrl))
+                                    @if ($isPhysical && $rowActions->isNotEmpty())
                                         <div class="compact-actions">
-                                            @if ($canExecute && $pendingQuantity > 0)
-                                                <button type="button"
-                                                    class="{{ $row['execute_button_class'] ?? 'btn btn-success btn-icon' }}"
-                                                    data-action="app-modal-open"
-                                                    data-modal-target="#{{ $executeModalId }}"
-                                                    title="{{ $row['execute_title'] ?? 'Operar línea' }}"
-                                                    aria-label="{{ $row['execute_title'] ?? 'Operar línea' }}">
-
-                                                    @if (($row['execute_icon'] ?? 'truck') === 'plus')
-                                                        <x-icons.plus />
-                                                    @else
-                                                        <x-icons.truck />
-                                                    @endif
-                                                </button>
-
-                                                @include('inventory.partials.order-line-execute-modal', [
-                                                    'order' => $order,
-                                                    'row' => $row,
-                                                    'trailQuery' => $trailQuery,
-                                                    'modalId' => $executeModalId,
-                                                ])
-                                            @endif
-
-                                            @if ($canReturn && $maxReturnQuantity > 0)
-                                                <button type="button"
-                                                    class="{{ $row['return_button_class'] ?? 'btn btn-warning btn-icon' }}"
-                                                    data-action="app-modal-open"
-                                                    data-modal-target="#{{ $returnModalId }}"
-                                                    title="{{ $row['return_title'] ?? 'Revertir línea' }}"
-                                                    aria-label="{{ $row['return_title'] ?? 'Revertir línea' }}">
-                                                    <x-icons.rotate-ccw />
-                                                </button>
-
-                                                @include('inventory.partials.order-line-return-modal', [
-                                                    'order' => $order,
-                                                    'row' => $row,
-                                                    'trailQuery' => $trailQuery,
-                                                    'modalId' => $returnModalId,
-                                                ])
-                                            @endif
-
-                                            @if ($lineMovementsUrl)
-                                                <a href="{{ $lineMovementsUrl }}" class="btn btn-secondary btn-icon"
-                                                    title="Ver movimientos de la línea"
-                                                    aria-label="Ver movimientos de la línea">
-                                                    <x-icons.eye />
-                                                </a>
-                                            @endif
+                                            @foreach ($rowActions as $surface)
+                                                @include($surface['view'], $surface['data'] ?? [])
+                                            @endforeach
                                         </div>
                                     @else
                                         <span class="text-muted">—</span>

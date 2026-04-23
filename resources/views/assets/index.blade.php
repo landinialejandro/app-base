@@ -20,9 +20,7 @@
 
         <x-page-header title="Activos">
             @can('create', App\Models\Asset::class)
-                <a href="{{ route('assets.create', $trailQuery) }}" class="btn btn-success">
-                    Nuevo activo
-                </a>
+                <x-button-create :href="route('assets.create', $trailQuery)" label="Nuevo activo" />
             @endcan
         </x-page-header>
 

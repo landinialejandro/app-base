@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/components/linked-inventory.blade.php | V1 --}}
+{{-- FILE: resources/views/inventory/components/linked-inventory.blade.php | V2 --}}
 
 @props([
     'linked' => [],
@@ -17,9 +17,9 @@
 @if ($state !== 'hidden')
     @if ($variant === 'button')
         @if ($state === 'linked_viewable')
-            <a href="{{ $showUrl }}" class="btn btn-secondary">
+            <x-button-secondary :href="$showUrl">
                 {{ $viewText }}
-            </a>
+            </x-button-secondary>
         @elseif ($state === 'linked_readonly')
             <span class="btn btn-secondary disabled" aria-disabled="true">
                 {{ $text }}

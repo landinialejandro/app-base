@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/components/list-filters-card.blade.php | V3 --}}
+{{-- FILE: resources/views/components/list-filters-card.blade.php | V4 --}}
 
 @props([
     'action',
@@ -34,14 +34,20 @@
             <div class="list-filters-side">
                 <button type="submit" class="btn btn-primary">Filtrar</button>
 
-                <a href="{{ $clearUrl ?: $action }}" class="btn btn-secondary">Limpiar</a>
+                <x-button-secondary :href="$clearUrl ?: $action">
+                    Limpiar
+                </x-button-secondary>
 
                 @isset($secondary)
-                    <button type="button" class="btn btn-secondary" data-action="app-toggle-details"
-                        data-toggle-target="#{{ $secondaryId }}" data-toggle-text-collapsed="{{ $toggleLabel }}"
-                        data-toggle-text-expanded="{{ $toggleLabelExpanded }}">
+                    <x-button-secondary
+                        type="button"
+                        data-action="app-toggle-details"
+                        data-toggle-target="#{{ $secondaryId }}"
+                        data-toggle-text-collapsed="{{ $toggleLabel }}"
+                        data-toggle-text-expanded="{{ $toggleLabelExpanded }}"
+                    >
                         {{ $toggleLabel }}
-                    </button>
+                    </x-button-secondary>
                 @endisset
             </div>
         </div>

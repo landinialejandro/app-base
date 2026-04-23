@@ -48,18 +48,17 @@
         <x-slot:actions>
             @if ($attachable)
                 @can('update', $attachable)
-                    <a href="{{ route(
+                    <x-button-create :href="route(
                         'attachments.create',
                         [
                             'attachable_type' => $attachableType,
                             'attachable_id' => $attachableId,
                             'return_to' => $resolvedReturnTo,
                         ] + $trailQuery,
-                    ) }}"
-                        class="btn btn-success btn-sm">
+                    )" :label="$createLabel" class="btn-sm">
                         <x-icons.plus />
                         <span>{{ $createLabel }}</span>
-                    </a>
+                    </x-button-create>
                 @endcan
             @endif
         </x-slot:actions>

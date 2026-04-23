@@ -176,6 +176,41 @@ También puede ser necesario revisar:
 
 <<END SECTION>>
 
+<<SECTION: HERRAMIENTAS OPERATIVAS DISPONIBLES>>
+SECTION_VERSION: 00002
+
+HERRAMIENTAS OPERATIVAS DISPONIBLES
+
+El proyecto dispone de automatizadores internos para acelerar tareas repetitivas, mantener formato canónico y reducir errores manuales.
+
+Caso vigente:
+
+normalizador y actualizador de código por STDIN.
+
+Capacidades actuales:
+
+- creación o reemplazo de archivos completos PHP
+- creación o reemplazo de archivos completos Blade
+- normalización automática de encabezado FILE y versión
+- actualización parcial de métodos PHP existentes
+- alta de métodos nuevos dentro de clases PHP
+- mantenimiento de log operativo de cambios
+- salida de consola con estado y trazabilidad
+- validaciones básicas de ruta para evitar escrituras accidentales
+
+Criterio de uso:
+
+si una tarea consiste principalmente en aplicar código ya definido sobre archivos existentes, priorizar formato compatible con automatizador antes que edición manual fragmentada.
+
+Regla:
+
+la existencia de una herramienta no reemplaza auditoría técnica ni criterio arquitectónico.
+
+La herramienta ejecuta cambios.
+La decisión de usarlos sigue siendo del proceso técnico.
+
+<<END SECTION>>
+
 <<SECTION: RESTRICCIONES ESPECIALES>>
 SECTION_VERSION: 00001
 
@@ -227,11 +262,11 @@ done > documentos/auditoria/auditoria-modulo.txt
 <<END SECTION>>
 
 <<SECTION: REGLA PARA ARCHIVOS COMPLETOS DE CÓDIGO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 REGLA PARA ARCHIVOS COMPLETOS DE CÓDIGO
 
-Cuando devuelvas un archivo completo, la primera línea debe ser siempre un comentario válido para ese lenguaje con este formato:
+Cuando devuelvas un archivo completo, la primera referencia del archivo debe usar siempre este formato:
 
 FILE: ruta/del/archivo.ext | VX
 
@@ -244,10 +279,28 @@ esta regla aplica solo cuando se devuelve el archivo completo
 si se devuelve solo un fragmento o bloque parcial, no agregar ni modificar versión
 el comentario debe escribirse con la sintaxis correcta del archivo correspondiente
 
+Formato canónico adicional para PHP completo:
+
+la salida debe respetar esta estructura exacta:
+
+<?php
+
+// FILE: ruta/del/archivo.php | VX
+
+...resto del código...
+
+Es decir:
+
+- apertura PHP en primera línea
+- una línea en blanco
+- comentario FILE con versión
+- una línea en blanco
+- resto del archivo
+
 <<END SECTION>>
 
 <<SECTION: FORMA DE RESPUESTA ESPERADA>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 FORMA DE RESPUESTA ESPERADA
 
@@ -280,5 +333,9 @@ si el problema toca navegación embebida, tabs o redirects, indicar explícitame
 * si falta return_tab
 * si la key usada es técnica o visual
 * si la acción pertenece al host o al módulo oferente
+
+Regla adicional para automatizador:
+
+si el pedido consiste en aplicar un cambio puntual ya definido sobre archivos o métodos existentes, priorizar salida directamente compatible con la herramienta interna del proyecto antes que explicaciones largas o pasos manuales.
 
 <<END SECTION>>

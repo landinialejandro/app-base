@@ -68,10 +68,8 @@
 
         <x-slot:actions>
             @if ($toolbarActions)
-                <a href="{{ $toolbarActions }}" class="btn btn-success btn-sm">
-                    <x-icons.plus />
-                    <span>Nueva orden</span>
-                </a>
+                <x-button-create :href="$toolbarActions" label="Nueva orden" class="btn-sm">
+                </x-button-create>
             @endif
         </x-slot:actions>
     </x-tab-toolbar>

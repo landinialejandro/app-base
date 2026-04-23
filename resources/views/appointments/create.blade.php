@@ -31,8 +31,13 @@
                 @include('appointments._form')
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Guardar</button>
-                    <a href="{{ $cancelUrl }}" class="btn btn-secondary">Cancelar</a>
+                    <x-button-primary type="submit">
+                        Guardar
+                    </x-button-primary>
+
+                    <x-button-secondary :href="$cancelUrl">
+                        Cancelar
+                    </x-button-secondary>
                 </div>
             </form>
         </x-card>

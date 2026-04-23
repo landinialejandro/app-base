@@ -50,10 +50,7 @@
 
         <x-slot:actions>
             @can('create', App\Models\Task::class)
-                <a href="{{ $toolbarAction }}" class="btn btn-success btn-sm">
-                    <x-icons.plus />
-                    <span>Agregar tarea</span>
-                </a>
+                <x-button-create :href="$toolbarAction" label="Agregar tarea" class="btn-sm" />
             @endcan
         </x-slot:actions>
     </x-tab-toolbar>

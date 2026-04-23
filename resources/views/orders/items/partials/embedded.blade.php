@@ -23,11 +23,7 @@
             @if ($order)
                 @can('update', $order)
                     @if (!\App\Support\Catalogs\OrderCatalog::isReadonlyStatus($order->status))
-                        <a href="{{ route('orders.items.create', ['order' => $order] + $trailQuery) }}"
-                            class="btn btn-success btn-sm">
-                            <x-icons.plus />
-                            <span>Agregar ítem</span>
-                        </a>
+                        <x-button-create :href="route('orders.items.create', ['order' => $order] + $trailQuery)" label="Agregar ítem" class="btn-sm" />
                     @endif
                 @endcan
             @endif

@@ -37,9 +37,7 @@
 
         <x-page-header title="Contactos">
             @if ($canCreateAny)
-                <a href="{{ route('parties.create', $trailQuery + ['kind' => $defaultCreateKind]) }}" class="btn btn-success">
-                    Nuevo contacto
-                </a>
+                <x-button-create :href="route('parties.create', $trailQuery + ['kind' => $defaultCreateKind])" label="Nuevo contacto" />
             @endif
         </x-page-header>
 

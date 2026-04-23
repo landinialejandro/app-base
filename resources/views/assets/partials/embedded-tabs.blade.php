@@ -55,10 +55,7 @@
 
         <x-slot:actions>
             @if ($toolbarAction)
-                <a href="{{ $toolbarAction }}" class="btn btn-success btn-sm">
-                    <x-icons.plus />
-                    <span>Nuevo activo</span>
-                </a>
+                <x-button-create :href="$toolbarAction" label="Nuevo activo" class="btn-sm" />
             @endif
         </x-slot:actions>
     </x-tab-toolbar>

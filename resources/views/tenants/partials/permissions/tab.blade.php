@@ -66,14 +66,16 @@
                 </div>
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">
+                    <x-button-primary type="submit">
                         Guardar cambios
-                    </button>
+                    </x-button-primary>
 
-                    <a href="{{ route('tenant.profile.show', ['tab' => 'permissions', 'role' => $selectedPermissionRole]) }}"
-                        class="btn btn-secondary">
+                    <x-button-secondary :href="route('tenant.profile.show', [
+                        'tab' => 'permissions',
+                        'role' => $selectedPermissionRole,
+                    ])">
                         Cancelar
-                    </a>
+                    </x-button-secondary>
                 </div>
             </form>
         </x-card>

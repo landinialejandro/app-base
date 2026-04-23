@@ -118,10 +118,7 @@
                     </button>
                 </form>
             @elseif ($toolbarActions)
-                <a href="{{ $toolbarActions }}" class="btn btn-success btn-sm">
-                    <x-icons.plus />
-                    <span>Nuevo documento</span>
-                </a>
+                <x-button-create :href="$toolbarActions" label="Nuevo documento" class="btn-sm" />
             @endif
         </x-slot:actions>
     </x-tab-toolbar>

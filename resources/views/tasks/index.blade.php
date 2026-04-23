@@ -19,9 +19,7 @@
 
         <x-page-header title="Tareas">
             @can('create', App\Models\Task::class)
-                <a href="{{ route('tasks.create', $trailQuery) }}" class="btn btn-success">
-                    Nueva tarea
-                </a>
+                <x-button-create :href="route('tasks.create', $trailQuery)" label="Nueva tarea" />
             @endcan
         </x-page-header>
 

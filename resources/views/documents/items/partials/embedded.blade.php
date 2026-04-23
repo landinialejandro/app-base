@@ -20,11 +20,7 @@
 
         <x-slot:actions>
             @can('update', $document)
-                <a href="{{ route('documents.items.create', ['document' => $document] + $trailQuery) }}"
-                    class="btn btn-success btn-sm">
-                    <x-icons.plus />
-                    <span>Agregar ítem</span>
-                </a>
+                <x-button-create :href="route('documents.items.create', ['document' => $document] + $trailQuery)" label="Agregar ítem" class="btn-sm" />
             @endcan
         </x-slot:actions>
     </x-tab-toolbar>

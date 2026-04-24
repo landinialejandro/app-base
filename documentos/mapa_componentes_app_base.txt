@@ -1,0 +1,131 @@
+FILE:documentos/mapa_componentes_app_base.txt
+
+1. Núcleo visual global real
+
+Los componentes base globales viven en resources/views/components, y hoy la base reusable efectiva incluye estructura, navegación, cards, modal, summaries, toolbar, botones y analytics. En tu dump aparecen, entre otros: x-page, x-page-header, x-breadcrumb, x-card, x-modal, x-list-filters-card, x-show-summary, x-tab-toolbar, x-button-secondary, x-button-tool, x-button-tool-button y x-button-tool-submit.
+
+Eso además coincide con la doctrina del proyecto: los componentes verdaderamente globales deben vivir en resources/views/components, mientras que resources/views/<modulo>/components queda para capacidades visuales publicadas por el módulo oferente.
+
+2. Familias visuales que ya existen
+Familia estructural
+x-page
+x-page-header
+x-breadcrumb
+x-card
+x-modal
+x-horizontal-scroll
+x-tab-toolbar
+x-show-summary
+x-show-summary-item
+x-show-summary-item-detail-block
+Familia de acciones
+x-button-secondary
+x-button-create
+x-button-edit
+x-button-delete
+x-button-back
+x-button-tool
+x-button-tool-submit
+x-button-tool-button
+Familia analytics
+x-analytics.card
+x-analytics.kpi-card
+x-analytics.panel
+x-analytics.pie-chart
+Familia iconográfica
+
+Hay una base bastante completa de íconos reutilizables (plus, pencil, trash, truck, rotate-ccw, eye, etc.).
+
+3. Componentes modulares publicados por módulos
+
+Hoy los componentes modulares visibles son estos:
+
+appointments/components/linked-appointment
+assets/components/linked-asset
+documents/components/linked-document
+inventory/components/linked-inventory
+inventory/components/movement-action
+inventory/components/order-item-row-actions
+inventory/components/summary-value
+orders/components/linked-order
+parties/components/linked-party
+products/components/linked-product
+projects/components/linked-project
+tasks/components/linked-task
+
+Y además varios SurfaceService apuntan explícitamente a esos componentes como vista contractual del módulo, por ejemplo ProjectSurfaceService, TaskSurfaceService, InventorySurfaceService, OrderSurfaceService, PartySurfaceService, AssetSurfaceService, AppointmentSurfaceService y ProductSurfaceService.
+
+Eso está bien alineado con la regla doctrinal de que el módulo oferente publique su capacidad reusable y Blade consumidor no reconstruya localmente el estado o la decisión visual equivalente.
+
+4. Mapa funcional por capas
+Capa A — shell global
+
+Responsabilidad:
+
+layout
+navegación principal
+footer/navbar
+jerarquía básica de página
+
+Piezas:
+
+layout/navbar
+layout/footer
+x-page
+x-page-header
+x-breadcrumb
+Capa B — lectura y composición de pantallas
+
+Responsabilidad:
+
+cards
+summaries
+tabs
+paneles analíticos
+bloques colapsables
+
+Piezas:
+
+x-card
+x-show-summary*
+x-tab-toolbar
+x-list-filters-card
+x-analytics.*
+Capa C — acciones base
+
+Responsabilidad:
+
+navegación simple
+acciones CRUD visibles
+tool actions
+cierre/acciones rápidas de modal
+
+Piezas:
+
+x-button-secondary
+x-button-create
+x-button-edit
+x-button-delete
+x-button-back
+x-button-tool*
+Capa D — capacidades modulares publicadas
+
+Responsabilidad:
+
+representar payload oficial de un módulo
+no decidir permisos/rutas internamente
+integrarse en hosts
+
+Piezas:
+
+todos los linked-*
+movement-action
+order-item-row-actions
+summary-value
+5. Lo más consolidado hoy
+Muy bien consolidados
+familia button-tool*, ahora con una fuente visual compartida vía ButtonToolStyle y uso real en órdenes, documentos, adjuntos e inventory.
+x-modal como base visual reutilizable para micro-superficies operativas, algo además ya reconocido por la documentación del proyecto.
+x-list-filters-card como patrón oficial de filtros con bloque secundario colapsable, también alineado con la doctrina.
+Aceptablemente consolidados
+familia linked-*, porque ya están agrupados por módulo y varios migraron a x-button-secondary.

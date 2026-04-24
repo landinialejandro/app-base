@@ -46,22 +46,18 @@ class OrderPolicy
         return $this->security()->allows($user, 'orders.update', $order);
     }
 
-    public function changeStatus(User $user, Order $order): bool
-    {
-        if (! $this->security()->allows($user, 'orders.update', $order)) {
-            return false;
-        }
-
-        if ($order->status === OrderCatalog::STATUS_CLOSED) {
-            return TenantAccess::isOwner($order->tenant_id, $user);
-        }
-
-        if ($order->status === OrderCatalog::STATUS_CANCELLED) {
-            return false;
-        }
-
-        return true;
+public function changeStatus(User $user, Order $order): bool
+{
+    if ($order->status === OrderCatalog::STATUS_CLOSED) {
+        return TenantAccess::isOwner($order->tenant_id, $user);
     }
+
+    if ($order->status === OrderCatalog::STATUS_CANCELLED) {
+        return false;
+    }
+
+    return $this->security()->allows($user, 'orders.update', $order);
+}
 
     public function delete(User $user, Order $order): bool
     {

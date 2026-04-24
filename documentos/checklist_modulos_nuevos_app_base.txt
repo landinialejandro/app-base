@@ -267,7 +267,7 @@ si la integración se consumirá dentro de tablas nativas de otro módulo, debe 
 <<END SECTION>>
 
 <<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 BLOQUE 2 — SEGURIDAD OBLIGATORIA
 
@@ -312,6 +312,18 @@ si una operación depende del estado del recurso padre, de una orden, de una lí
 
 no debe quedar como simple bloqueo visual opcional
 
+Validación adicional para módulos transaccionales o con estados operativos:
+
+Security, Gate/Policy, controller y UI deben devolver la misma lectura operativa
+
+los estados readonly deben bloquear actualización y eliminación en la autorización central
+
+el borrado debe considerar trazabilidad operativa real y no solo permiso nominal del rol
+
+las acciones sobre recursos hijos deben respetar primero el estado del padre
+
+las pruebas Tinker deben incluir matriz por estado y no solo permiso nominal
+
 Validación adicional para administración owner:
 
 si el módulo depende de activación, permisos o configuración tenant, debe existir una vía visible y real para que owner administre ese frente
@@ -326,7 +338,7 @@ si owner dispone de una surface real para entender y administrar ese comportamie
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -410,6 +422,7 @@ límites de edición por ejecutado neto
 bloqueo de atributos identitarios
 readonly por completed o cancelled
 reglas de reversión consistentes
+subordinación al estado operativo del padre
 
 Validación adicional para modales y micro-superficies:
 
@@ -565,7 +578,7 @@ El cierre documental debe contemplar superficie principal y micro-superficies op
 <<END SECTION>>
 
 <<SECTION: CHECKLIST MÍNIMO EXISTENTE>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CHECKLIST MÍNIMO EXISTENTE
 
@@ -587,11 +600,21 @@ sin código muerto evidente
 sin duplicaciones evitables
 sin bypasses de seguridad
 
+Para módulos con estados operativos o trazabilidad, verificar además:
+
+estados terminales o readonly bloquean update/delete en Security y Gate/Policy
+delete considera trazabilidad operativa real
+controller no sostiene reglas críticas ausentes en Security
+UI no muestra acciones que la autorización efectiva no permite
+recursos hijos respetan el estado operativo del padre
+pruebas Tinker incluyen matriz por estado, permiso y trazabilidad
+
 Este bloque resume mínimos técnicos, pero no reemplaza el checklist completo.
+
 <<END SECTION>>
 
 <<SECTION: CRITERIO FINAL DE APROBACIÓN>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 CRITERIO FINAL DE APROBACIÓN
 
@@ -626,6 +649,10 @@ el recálculo neto posterior fue validado
 los estados visibles quedaron consistentes
 las alertas automáticas siguen siendo legibles si hubo deduplicación
 el resultado fue probado con dataset realista y no solo caso ideal
+Security y Gate/Policy quedaron alineados
+los estados terminales o readonly bloquean actualización y eliminación
+el borrado respeta trazabilidad operativa real
+los recursos hijos no contradicen el estado operativo del padre
 
 Validaciones finales adicionales para integraciones embebidas:
 

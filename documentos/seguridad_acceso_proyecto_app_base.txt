@@ -330,7 +330,7 @@ No debe resolverse inventando un módulo users autorizado ni una ability modular
 <<END SECTION>>
 
 <<SECTION: CONSTRAINTS FUNCIONALES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00004
 
 CONSTRAINTS FUNCIONALES
 
@@ -348,10 +348,18 @@ si un módulo diferencia tipos operativos relevantes, una constraint puede limit
 
 Ignorar constraints equivale a ejecutar un contrato incompleto.
 
+Regla adicional consolidada:
+
+cuando una acción depende además del estado operativo real del registro, ese estado puede formar parte del contrato efectivo de autorización.
+
+No debe tratarse como bloqueo visual ni como validación secundaria si define si la acción existe realmente.
+
+El detalle por módulo debe resolverse en REGLAS OPERATIVAS POR MÓDULO para evitar duplicación doctrinal.
+
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00015
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -373,6 +381,7 @@ toda ability debe respetar formato y capacidad reconocida
 view_any no puede ser más restrictivo que view
 los constraints complementan el contrato pero no lo reemplazan
 la UI visible debe reflejar el permiso efectivo
+Security y Gate/Policy deben permanecer alineados cuando evalúan la misma acción
 
 Hallazgo doctrinal consolidado:
 
@@ -388,10 +397,18 @@ Debe resolverse primero el dataset o la pertenencia en la capa correspondiente.
 
 La autorización efectiva sigue perteneciendo a las piezas centrales del sistema de seguridad.
 
+Regla adicional para acciones operativas:
+
+una capacidad principal no debe quedar autorizada en Security y bloqueada solo en Gate, Policy, controller o UI.
+
+Si una regla de estado, trazabilidad o ciclo de vida define que la acción no existe operativamente, esa regla debe reflejarse en el contrato efectivo central.
+
+El detalle específico de cada módulo debe concentrarse en REGLAS OPERATIVAS POR MÓDULO.
+
 <<END SECTION>>
 
 <<SECTION: RECURSOS DELEGADOS AL PADRE>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 RECURSOS DELEGADOS AL PADRE
 
@@ -425,10 +442,18 @@ bloquear edición estructural por completed, cancelled o por violar límites del
 
 Sigue siendo una restricción funcional dentro del ciclo de vida delegado del recurso perteneciente a orders.
 
+Regla adicional consolidada:
+
+las acciones sobre recursos hijos quedan subordinadas al estado operativo del padre cuando el padre define la operabilidad superior del flujo.
+
+Caso vigente:
+
+order_items puede tener reglas propias de línea, pero no puede recuperar operabilidad si la orden padre se encuentra en un estado readonly o terminal que bloquea la operación.
+
 <<END SECTION>>
 
 <<SECTION: INTEGRACIONES REUSABLES Y AUTORIZACIÓN>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00015
 
 INTEGRACIONES REUSABLES Y AUTORIZACIÓN
 
@@ -486,10 +511,18 @@ una surface embebida o una acción por fila publicada por el módulo oferente no
 
 Cada acción mantiene su chequeo propio de lectura o ejecución, aun cuando se renderice dentro de tablas, tabs o bloques del consumidor.
 
+Regla adicional para operaciones subordinadas:
+
+cuando una integración opera sobre recursos hijos dentro de un host, debe respetar primero el estado superior del recurso padre.
+
+La autorización reusable no puede habilitar una acción que el estado operativo del host vuelve inexistente.
+
+El detalle específico de estas subordinaciones debe resolverse en REGLAS OPERATIVAS POR MÓDULO.
+
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00017
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -501,10 +534,36 @@ constraints.allowed_kinds puede limitar create, view, update y delete según con
 order_items delega seguridad principal al padre
 orders puede actuar como host visual de capacidades invitadas sin absorber su semántica operativa
 
+Reglas de estado operativo:
+
+orders.update debe devolver false para órdenes closed o cancelled
+
+orders.delete debe devolver false para órdenes closed o cancelled
+
+orders.delete debe devolver false cuando la orden tenga inventory_movements asociados
+
+orders.delete solo puede devolver true para órdenes no terminales y sin movimientos de inventario asociados, sujeto además al permiso efectivo del rol, scope y constraints vigentes
+
+closed expresa readonly operativo para edición y eliminación directa
+
+cancelled expresa estado terminal no operable dentro de la regla validada
+
+closed puede volver a approved únicamente mediante transición explícita de reapertura autorizada
+
+La reapertura no debe tratarse como edición ordinaria.
+
+Regla de alineación:
+
+Security y Gate/Policy deben expresar la misma lectura efectiva para update y delete.
+
+No alcanza con bloquear en UI, controller o Policy si Security::allows() continúa autorizando la acción.
+
 INVENTORY
 
 su operación efectiva pertenece al frente inventory aunque se consuma desde otros hosts
+
 las acciones de surtido y devolución por línea deben validar:
+
 orden operable
 línea perteneciente a la orden
 producto consistente
@@ -524,6 +583,7 @@ ORDER_ITEMS
 mantiene delegación principal al padre
 su relevancia operativa no crea módulo autónomo ni policy independiente completa
 las restricciones por ejecutado neto, completed o cancelled complementan la delegación sin reemplazarla
+sus reglas propias quedan subordinadas al estado operativo de la orden padre
 
 Regla general consolidada:
 

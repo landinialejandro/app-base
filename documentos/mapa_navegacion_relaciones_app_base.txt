@@ -173,132 +173,81 @@ Su función es dar acceso estructural al ecosistema operativo vigente.
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00009
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
-La navegación contextual conecta módulos relacionados dentro de un flujo real de trabajo.
+La navegación entre módulos debe preservar intención, contexto y continuidad de trabajo.
 
-No reemplaza la navegación principal.
+Reglas:
 
-La complementa.
+no saltar de contexto sin necesidad
+no perder breadcrumb útil
+no enviar al usuario a pantallas genéricas cuando existe destino contextual mejor
+no duplicar rutas equivalentes con comportamientos distintos
+las acciones embebidas deben volver al punto correcto del host cuando corresponda
 
-Casos consolidados:
+Cuando una relación nace dentro de otro módulo, debe priorizarse navegación contextual compatible con trail vigente.
 
-tasks → orders
-appointments → orders
-orders → documents
-assets → appointments
-assets → orders
-assets → documents
-parties → appointments
-parties → orders
-projects → tasks
-orders → inventory (operación por línea)
+La navegación contextual puede resolverse mediante:
 
-La navegación contextual puede expresarse mediante:
+trailQuery
+return_url cuando aplique
+return_tab cuando exista contexto interno del host
+acciones compactas enlazadas
+surfaces embebidas con continuidad local
 
-links directos
-acciones compactas publicadas por el módulo oferente
-surfaces embebidas
-create contextuales
-trail preservado entre pantallas relacionadas
-micro-superficies operativas locales dentro del mismo host
+Caso consolidado:
 
-Regla adicional consolidada:
+una acción ejecutada dentro de orders.show debe tender a volver a la misma order y, si aplica, a la tab técnica desde la que nació la intención.
 
-una necesidad de dataset interno no crea por sí sola navegación contextual nueva.
+Regla adicional para estados operativos:
 
-Que tasks o appointments necesiten colaboradores internos del tenant no implica abrir saltos de navegación hacia users.
+la navegación disponible también depende del estado real del recurso.
 
-Eso redefine la fuente de datos del flujo, no el mapa de navegación.
-
-Regla adicional para relaciones compactas:
-
-cuando una relación puntual madure como capacidad reusable del módulo oferente, la navegación contextual debe tender a consumirse desde esa publicación oficial y no desde links locales reconstruidos por cada consumidor.
-
-Regla adicional para hosts visuales:
-
-si una navegación contextual ocurre dentro de la pantalla de un tercer módulo, ese host puede componer la experiencia sin absorber la lógica del flujo enlazado.
-
-Regla adicional para operación local:
-
-cuando la acción contextual se resuelva en modal o micro-superficie dentro del mismo show, existe navegación funcional aunque no haya cambio de ruta.
-
-Debe documentarse como transición válida del usuario dentro del flujo real.
-
-Regla adicional para retorno interno del host:
-
-si una acción nace dentro de una tab del anfitrión y luego redirige, debe preservarse no solo el recurso de origen sino también su panel interno relevante cuando eso forme parte del flujo real.
+No debe ofrecerse como acción navegable una operación inexistente por estado, trazabilidad o autorización efectiva.
 
 Caso vigente:
 
-orders.show + inventory embebido + acción por línea
-→ redirect
-→ orders.show en la misma tab operativa del host
+en orders.show una order closed no debe ofrecer edición ni eliminación directa, pero puede ofrecer reapertura explícita autorizada a approved.
 
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00008
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
-Las show pages pueden consumir relaciones de otros módulos sin perder identidad propia.
+Las relaciones embebidas dentro de show pages deben mejorar continuidad operativa sin confundir ownership funcional.
 
-La lectura correcta distingue entre:
+Reglas:
 
-relaciones compactas de referencia
-relaciones fuertes embebidas
-acciones contextuales del host
-núcleo propio de la pantalla anfitriona
-micro-superficies operativas invitadas
+el host conserva identidad principal
+el módulo invitado conserva su lógica y semántica
+las acciones del invitado no se reinterpretan en el host
+la navegación derivada debe mantener contexto cuando corresponda
+las relaciones compactas y las relaciones fuertes no deben mezclarse sin criterio
 
-Regla estructural:
+Criterios de uso:
 
-una show page no es un contenedor plano.
+summary_items para relaciones puntuales o de baja densidad
+detail_items para bloques breves informativos
+tabs o paneles amplios para relaciones fuertes
+row actions oficiales para operaciones dentro de tablas anfitrionas
 
-Debe leerse como host con zonas explícitas de montaje.
+Caso vigente en orders.show:
 
-Casos vigentes consolidados:
+inventory puede operar por línea dentro del host sin perder identidad modular.
 
-header_actions
-summary_items
-detail_items
-zona tab coordinada
+documents y attachments pueden consumirse como capacidades invitadas.
 
-Las relaciones compactas deben ubicarse en la zona breve correspondiente y no degradarse automáticamente a tabs pesadas.
+Regla adicional para estados del host:
 
-Las relaciones fuertes o de lectura amplia pueden resolverse mediante embebidos tabulares oficiales del módulo oferente.
+si el host entra en estado readonly o terminal, las relaciones embebidas no deben reabrir operabilidad incompatible con ese estado.
 
-Casos consolidados:
+Las capacidades de lectura pueden permanecer.
 
-appointments.show consume relaciones compactas publicadas por assets, parties y orders dentro de summary_items
-
-orders.show puede consumir surfaces embebidas oficiales de documents, attachments e inventory dentro de su estructura anfitriona
-
-tasks.show puede consumir relaciones compactas publicadas por projects u otros módulos cuando corresponda
-
-Aclaración adicional consolidada para orders.show:
-
-la operación de inventory por línea puede resolverse dentro del mismo host mediante acción contextual Surtir y modal operativo propio, sin degradar la show page a navegación externa obligatoria.
-
-Aclaración adicional consolidada para inventory embebido en orders.show:
-
-el embebido no debe leerse como bloque informativo pasivo.
-
-Constituye un frente operativo real por línea dentro del host, desde el cual pueden coexistir:
-
-acciones rápidas contextuales
-lectura de ejecutado y pendiente
-devoluciones parciales
-apertura de movimientos filtrados por línea
-
-Regla adicional:
-
-la ausencia visual de una relación no implica necesariamente problema de permisos.
-
-También puede existir desalineación contractual entre host, slot, type o shape publicado.
+Las capacidades de mutación deben respetar la condición superior del host.
 
 <<END SECTION>>
 
@@ -377,61 +326,44 @@ Pueden abrirse de forma estructural o como continuación de otro flujo operativo
 <<END SECTION>>
 
 <<SECTION: REGLAS DEL TRAIL>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00007
 
 REGLAS DEL TRAIL
 
-El trail debe preservar orientación del usuario entre módulos relacionados.
+El trail representa contexto externo entre recursos y pantallas.
 
-Objetivos:
-
-saber dónde está
-entender desde dónde llegó
-poder volver sin fricción
-mantener contexto operativo
+No reemplaza estados internos del host.
 
 Reglas:
 
-el trail debe construirse desde origen real y no desde rutas genéricas
-los retornos deben respetar contexto cuando exista
-no perder filtros o query útil sin motivo
-las integraciones reusables deben propagar trail cuando corresponda
+cada salto relevante debe poder reconstruir origen útil
+no usar trail como contenedor ambiguo de todo estado UI
+preservar breadcrumb comprensible
+evitar cadenas innecesarias o redundantes
+el destino final debe coincidir con la intención original del usuario
 
-Regla adicional para hosts embebidos:
+Cuando además exista contexto interno del host, debe complementarse con return_tab u otro mecanismo explícito equivalente.
 
-si una relación se consume dentro de un show page sin salir de pantalla, no siempre requiere breadcrumb nuevo.
+Distinción doctrinal:
 
-Puede requerir solo contexto interno del host.
-
-Regla adicional para acciones compactas:
-
-si una relación compacta abre otro módulo o crea contextualmente desde el host, debe conservar trail suficiente para retorno limpio al recurso anfitrión.
+trail = contexto externo entre recursos
+return_tab = contexto interno de una pantalla anfitriona
 
 Caso vigente:
 
-relaciones compactas desde appointments.show hacia assets, parties y orders deben mantener retorno coherente al appointment anfitrión cuando navegan fuera del host.
+acción disparada desde una tab de orders.show puede requerir ambos:
+trail para volver a la order
+return_tab para restaurar el panel correcto
 
-Regla adicional para micro-superficies locales:
+Regla adicional:
 
-si la interacción ocurre en modal dentro de la misma pantalla anfitriona, no corresponde crear nodo nuevo de breadcrumb.
+las transiciones especiales de estado no deben confundirse con edición ordinaria.
 
-Debe preservarse el contexto del host y resolverse retorno local al mismo recurso.
-
-Caso vigente:
-
-orders.show → modal Surtir línea.
-
-Regla adicional de frontera:
-
-trail preserva contexto externo entre recursos.
-
-No reemplaza el contexto interno de tabs del host.
-
-Cuando el flujo lo requiera, ese contexto interno puede preservarse además mediante parámetro técnico complementario.
+Si una acción cambia estado terminal o readonly hacia uno operable, debe tratarse como acción específica del flujo y no como simple navegación a edit.
 
 Caso vigente:
 
-return_tab para volver a la tab correcta de orders.show luego de acciones disparadas desde inventory embebido.
+reapertura closed → approved en orders.
 
 <<END SECTION>>
 
@@ -483,78 +415,38 @@ SECTION_VERSION: 00006
 
 INVENTORY
 
-Lectura estructural vigente:
+La navegación principal del frente inventory debe apoyarse en sus surfaces oficiales y no en accesos residuales dispersos.
+
+Superficies vigentes:
 
 inventory.index
-tabla principal de saldos por producto
-
 inventory.show
-ficha operativa por producto
 
-Relaciones de navegación relevantes:
+Lectura esperada:
 
-products.show
-→ inventory.show del producto cuando corresponda
+inventory.index como tablero operativo de saldos y acceso a productos
 
-orders.show
-→ surface operativa de inventory por línea sin absorber su navegación principal
-
-orders.show
-→ modal local de surtido por línea cuando corresponda
-
-documents.show
-→ trazabilidad de movimientos cuando exista relación documental
-
-inventory.show
-→ orden contextual
-→ documento contextual
-→ producto relacionado
+inventory.show como historial y detalle contextual de movimientos para un producto
 
 Reglas:
 
-inventory debe publicar sus propias surfaces oficiales desde el propio módulo
+los consumidores externos deben enlazar a inventory mediante estas surfaces cuando requieran lectura completa
 
-las tablas de movimientos y formularios operativos no deben quedar dispersos como resolución oficial en products u orders
+si el caso requiere solo contexto breve, debe priorizarse embebido oficial o acción compacta
 
-products conserva la navegación del catálogo maestro
+las vistas filtradas secundarias deben tender a reutilizar surfaces canónicas y no abrir pantallas paralelas innecesarias
 
-inventory asume la navegación del saldo, historial y movimiento
+Cuando inventory opere dentro de orders.show:
 
-cuando inventory sea consumido de forma embebida desde otros módulos, esa experiencia no debe reemplazar ni borrar su navegación estructural propia
+la navegación no debe romper continuidad del host salvo intención explícita del usuario
 
-Aclaración operativa consolidada:
+las acciones por línea deben permanecer en contexto local cuando sea posible
 
-cuando orders.show consuma inventory por línea, esa lectura embebida debe poder resolver por fila:
+la apertura de historial filtrado puede usar surface oficial de inventory conservando trail de retorno
 
-stock
-ejecutado
-pendiente
-estado operativo
-acción rápida contextual
+Regla adicional por estado superior:
 
-sin degradar inventory.show como ficha estructural del producto
-
-Aclaración adicional:
-
-la navegación contextual desde una línea hacia inventory no debe leerse como simple apertura genérica del producto
-
-puede requerir preservar el order_item como contexto operativo de origen cuando eso siga siendo útil para continuar el trabajo
-
-Aclaración adicional de naming visual:
-
-cuando inventory se consuma como capacidad embebida en orders.show, la lectura correcta del frente ya no debe reducirse a movimientos genéricos
-
-debe expresar operación por línea, diferenciada de la capa estructural de ítems del host
-
-Aclaración adicional sobre micro-flujo local:
-
-la acción Surtir constituye una transición operativa contextual dentro de orders.show.
-
-Abre una superficie modal con contexto de línea y retorna al mismo host una vez confirmada o cancelada la operación.
-
-Aclaración adicional sobre trazabilidad filtrada:
-
-desde el embebido operativo por línea debe poder abrirse navegación hacia la pantalla canónica de movimientos de inventory filtrada por `order_item_id`, evitando duplicar vistas de lectura histórica específicas del consumidor.
+si la order anfitriona está closed o cancelled, inventory no debe exponer desde ese host acciones operativas incompatibles con dicho estado.
 
 <<END SECTION>>
 

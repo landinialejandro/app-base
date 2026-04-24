@@ -47,7 +47,7 @@ REGLAS BASE
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS DEL CHAT>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 REGLAS OPERATIVAS DEL CHAT
 
@@ -104,6 +104,12 @@ El contexto interno del host puede requerir return_tab cuando exista una tab act
 Regla adicional para tablas anfitrionas:
 
 si aparecen acciones nuevas en filas de un módulo consumidor, evaluar primero si deben resolverse como surface-driven o row action oficial del módulo oferente antes de hardcodearlas en la vista anfitriona.
+
+Regla adicional para fixes de permisos:
+
+cuando se corrija una regla de autorización o un bug operativo, repetir primero la prueba que expuso el problema y luego ejecutar validación global para detectar regresiones.
+
+Controlar especialmente alineación entre Security y Gate/Policy.
 
 <<END SECTION>>
 
@@ -177,7 +183,7 @@ También puede ser necesario revisar:
 <<END SECTION>>
 
 <<SECTION: HERRAMIENTAS OPERATIVAS DISPONIBLES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 HERRAMIENTAS OPERATIVAS DISPONIBLES
 
@@ -189,18 +195,22 @@ normalizador y actualizador de código por STDIN.
 
 Capacidades actuales:
 
-- creación o reemplazo de archivos completos PHP
-- creación o reemplazo de archivos completos Blade
-- normalización automática de encabezado FILE y versión
-- actualización parcial de métodos PHP existentes
-- alta de métodos nuevos dentro de clases PHP
-- mantenimiento de log operativo de cambios
-- salida de consola con estado y trazabilidad
-- validaciones básicas de ruta para evitar escrituras accidentales
+* creación o reemplazo de archivos completos PHP
+* creación o reemplazo de archivos completos Blade
+* normalización automática de encabezado FILE y versión
+* actualización parcial de métodos PHP existentes
+* alta de métodos nuevos dentro de clases PHP
+* mantenimiento de log operativo de cambios
+* salida de consola con estado y trazabilidad
+* validaciones básicas de ruta para evitar escrituras accidentales
 
 Criterio de uso:
 
-si una tarea consiste principalmente en aplicar código ya definido sobre archivos existentes, priorizar formato compatible con automatizador antes que edición manual fragmentada.
+usar actualización parcial cuando el cambio sea puntual y localizado dentro de un método PHP existente
+
+usar archivo completo cuando existan imports, métodos nuevos, cambios estructurales de clase, Blade completo o riesgo de que el parser parcial no cubra correctamente el caso
+
+si una tarea consiste principalmente en aplicar código ya definido sobre archivos existentes, priorizar formato compatible con automatizador antes que edición manual fragmentada
 
 Regla:
 
@@ -300,7 +310,7 @@ Es decir:
 <<END SECTION>>
 
 <<SECTION: FORMA DE RESPUESTA ESPERADA>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 FORMA DE RESPUESTA ESPERADA
 
@@ -331,11 +341,16 @@ si el problema toca navegación embebida, tabs o redirects, indicar explícitame
 * recurso final esperado
 * si trail está bien o mal resuelto
 * si falta return_tab
-* si la key usada es técnica o visual
-* si la acción pertenece al host o al módulo oferente
+* si la key técnica de tab coincide con la consumida por el host
 
-Regla adicional para automatizador:
+Regla adicional para auditorías de permisos:
 
-si el pedido consiste en aplicar un cambio puntual ya definido sobre archivos o métodos existentes, priorizar salida directamente compatible con la herramienta interna del proyecto antes que explicaciones largas o pasos manuales.
+si se corrige una autorización, informar:
+
+* qué capa fallaba
+* si afecta Security, Gate/Policy, controller o UI
+* cómo quedó alineado el contrato efectivo
+* qué casos fueron revalidados
+* qué caso no pudo validarse por falta de dataset real
 
 <<END SECTION>>

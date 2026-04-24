@@ -102,81 +102,27 @@ por consolidación como capacidad embebida oficial
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00001
 
 CIERRES OPERATIVOS RECIENTES
 
-ORDERS
+Se cerró el frente principal de autorización operativa para orders respecto de update y delete.
 
-Se considera cerrado operativamente en este frente de trabajo respecto de:
+Validaciones confirmadas:
 
-identidad modular
-create contextual por kind
-integración tasks → orders
-integración appointments → orders
-navegación contextual principal
-delegación correcta de order_items
-superficie reusable linked-order-action
-validación runtime real de constraints.allowed_kinds sobre create, view, update y delete
-confirmación de relación estructural orders.task_id
-confirmación de relación operativa real appointments.order_id
-separación más clara entre capa estructural propia de orders y capacidades embebidas de módulos oferentes en orders.show
-migración principal de documents a surface embebida oficial publicada por su módulo
+orders.update bloquea órdenes closed y cancelled
 
-Alcance del cierre:
+orders.delete bloquea órdenes closed y cancelled
 
-no implica ausencia total de bugs futuros
+orders.delete bloquea órdenes con inventory_movements asociados
 
-implica que el frente doctrinal y estructural principal quedó resuelto
+orders.delete permanece disponible solo para órdenes no terminales y sin trazabilidad bloqueante, sujeto al permiso efectivo vigente
 
-ASSETS
+closed → approved quedó validado como reapertura explícita operativa
 
-Se considera cerrado en este frente principal respecto de:
+Security y Gate/Policy deben permanecer alineados para estas acciones
 
-identidad modular como módulo compartido
-contrato simple sin create contextual obligatorio
-ausencia de ownership artificial
-validación runtime real del contrato efectivo
-superficie reusable linked-asset
-alineación principal de consumidores visibles
-
-APPOINTMENTS
-
-Se considera cerrado doctrinal y estructuralmente en este frente respecto de:
-
-identidad modular como agenda operativa autónoma
-calendar como superficie principal del módulo
-index como superficie secundaria no promovida
-integración contextual principal hacia orders
-oferta reusable oficial publicada desde el propio módulo
-definición de embebido reusable para relaciones fuertes
-definición de integración compacta para vínculo puntual con orders
-
-SURFACE SERVICES
-
-Se considera cerrada la homogeneización estructural básica del ecosistema actual respecto de:
-
-creación de infraestructura común liviana BuildsSurfaceOffers
-normalización de helpers linkedOffer, embeddedOffer y unpackHostPack
-migración de SurfaceService vigentes al patrón común
-barrido de residuos de migración y duplicaciones aparentes
-ratificación doctrinal de centralizar infraestructura sin mover semántica modular al núcleo compartido
-
-INVENTORY / ORDERS
-
-Se consideran logrados cierres operativos relevantes en el frente compartido respecto de:
-
-devolución de surtido por línea sobre ejecutado neto vigente
-múltiples surtidos y múltiples devoluciones parciales por línea
-retorno correcto al host con preservación de tab mediante return_tab
-acciones rápidas por fila dentro del embebido operativo
-navegación a movimientos filtrados por order_item_id reutilizando vista canónica
-eliminación de wrappers visuales redundantes sobre surface oficial embebida
-mejor convergencia entre host orders y capacidad oferente inventory
-
-Regla:
-
-los próximos trabajos sobre estos módulos deben priorizar bugs reales, validaciones residuales o mejoras concretas ya aprobadas
+Queda registrado como cierre doctrinal y funcional del frente auditado.
 
 <<END SECTION>>
 
@@ -223,55 +169,19 @@ si una capacidad reusable necesita operar dentro de tablas anfitrionas, debe con
 <<END SECTION>>
 
 <<SECTION: SEGURIDAD Y CONTRATOS PENDIENTES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00001
 
 SEGURIDAD Y CONTRATOS PENDIENTES
 
-Verificar por módulo:
+Pendientes abiertos o de seguimiento posteriores al cierre reciente:
 
-contrato de seguridad explícito
-create contextual correcto
-dataset bajo Security::scope(...)
-delegación correcta en entidades hijas
-ausencia de bypasses entre módulos
-acciones UI alineadas con permisos reales
-constraints documentadas cuando existan
+validar dataset real para caso approved + sin inventory_movements disponible para delete
 
-Priorizar auditorías sobre módulos con mayor integración cruzada.
+mantener auditoría futura ante nuevos estados o nuevas capacidades principales en orders
 
-Estado consolidado adicional para orders:
+replicar criterio de alineación Security + Gate/Policy en módulos transaccionales futuros que incorporen estados terminales, readonly o trazabilidad fuerte
 
-ya quedó validado en runtime real que constraints.allowed_kinds arbitra efectivamente create, view, update y delete
-
-ya quedó validado que orders.create requiere contexto kind explícito y rechaza ausencia de kind o valor fuera de constraints
-
-ya quedó validada la lectura correcta del vínculo estructural con tasks y del vínculo operativo real con appointments
-
-No reabrir la discusión doctrinal de orders en este frente.
-
-Estado consolidado adicional para parties:
-
-queda definido doctrinalmente que parties.create requiere contexto kind explícito
-
-queda definido doctrinalmente que constraints.allowed_kinds debe arbitrar create, view, update y delete
-
-queda definido doctrinalmente que delete se reserva a owner con delegación posible a administrator
-
-queda definido doctrinalmente que parties debe publicar linked-party-action como capacidad reusable oficial del módulo
-
-Trasladar el foco a alineación real de implementación, superficies secundarias y validación técnica del contrato efectivo de parties.
-
-Estado consolidado adicional para inventory:
-
-validado runtime de ejecución por línea en órdenes operables
-
-validada reversión por contramovimiento
-
-validado recálculo neto posterior de línea
-
-validado criterio de continuidad operativa con stock negativo y alerta automática
-
-Trasladar el foco a cierre visual y consumo homogéneo del frente.
+verificar que nuevas integraciones embebidas no reabran bypasses de autorización ya cerrados
 
 <<END SECTION>>
 
@@ -318,100 +228,23 @@ cada paso debe dejar menos excepciones que el anterior
 <<END SECTION>>
 
 <<SECTION: ESTADO ACTUAL DEL SISTEMA>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00001
 
 ESTADO ACTUAL DEL SISTEMA
 
-Arquitectura SaaS multi-tenant implementada.
+El ecosistema mantiene dirección modular coherente con contracts, surfaces y seguridad centralizada.
 
-Características activas del sistema:
+Estado actual destacado:
 
-multi-tenancy mediante tenant_id
-aislamiento automático mediante TenantScoped
-protección de rutas mediante ResolvesTenantRouteBinding
-soft delete obligatorio
+orders consolida lectura de estados operativos con reapertura explícita de closed
 
-Decisiones estructurales ya consolidadas:
+inventory conserva integración por línea subordinada al estado superior de orders
 
-unificación del criterio real de tenant_id
-migraciones multi-tenant normalizadas a char(36)
-módulo clients eliminado en favor de parties
-flujo de onboarding y alta de usuarios resuelto mediante invitations (owner_signup y member_invite)
+Security continúa como kernel central de autorización efectiva
 
-Estado visual consolidado:
+Gate/Policy actúa como capa consumidora alineada y no contradictoria
 
-identidad visual base definida mediante iconografía SVG en header
-favicon implementado como asset público
-footer global del layout operativo integrado al shell de la app
-
-Estado actual de datos base validado:
-
-la batería de seeders base quedó regularizada para pruebas V2
-
-el dataset actual ya permite correr pruebas consistentes sobre:
-
-tenants
-users
-memberships
-roles
-role_permission
-tasks
-orders
-documents
-assets
-appointments
-products
-inventory_movements
-
-Estado operativo consolidado adicional:
-
-inventory posee backend operativo validado en runtime real
-
-quedó validado:
-
-stock negativo permitido con continuidad operativa
-alerta automática reutilizable y actualizable
-reversión por contramovimiento
-recálculo correcto de líneas luego de revertir
-reejecución posterior consistente
-devoluciones parciales por línea sobre ejecutado neto vigente
-retorno correcto al host con tab preservada
-trazabilidad filtrada por línea reutilizando pantalla canónica
-
-products conserva su rol de catálogo maestro
-
-inventory se consolida como frente operativo propio en cierre visual
-
-Se consolida además una filosofía operativa de producto ya explícita en el proyecto:
-
-la complejidad debe ser absorbida por el sistema
-
-la experiencia del usuario debe tender a simplicidad y bajo roce
-
-seguridad y trazabilidad son pilares obligatorios
-
-la automatización constituye un eje de evolución estructural
-
-en conflictos no críticos debe priorizarse continuidad operativa con registro antes que bloqueo innecesario
-
-Estado documental consolidado:
-
-los documentos técnicos activos ya fueron normalizados por slug y metadatos comunes
-
-la base documental ya incorpora:
-
-DOC_SLUG
-DOC_VERSION
-bloque METADATOS
-referencias internas mediante DOC_REF
-
-Se consolida adicionalmente:
-
-la documentación funcional de usuario por módulos
-un patrón narrativo homogéneo para onboarding
-una base reutilizable para ayuda contextual dentro del sistema
-
-la siguiente evolución prevista es un visor navegable dentro de Laravel para documentación técnica del proyecto
+La validación runtime reciente no detectó nuevos hallazgos críticos fuera del frente ya corregido.
 
 <<END SECTION>>
 
@@ -446,24 +279,21 @@ mejoras móviles de captura rápida para attachments
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00001
 
 PENDIENTES INMEDIATOS
 
-Mantener continuidad de los frentes ya abiertos y no perder convergencia doctrinal.
+Continuar auditorías y mejoras con prioridad sobre casos reales de uso y datasets disponibles.
 
-Líneas inmediatas vigentes:
+Prioridades inmediatas derivadas del cierre reciente:
 
-seguir cierre progresivo de módulos aún no migrados a familia *Linked cuando corresponda
-seguir convergencia de show pages hacia hosts estructurados maduros
-seguir consolidación de inventory como módulo con surfaces oficiales consumidas por otros módulos
-auditar consumers residuales que aún rearman capacidades ya publicadas
-reutilizar TenantUserDirectory en próximos casos reales de dataset interno reusable cuando corresponda
-replicar return_tab en otros hosts con tabs cuando el flujo real lo justifique
+completar prueba runtime del escenario approved sin movimientos para delete cuando exista caso real
 
-Regla:
+vigilar regresiones en update/delete de orders ante futuros refactors
 
-no abrir frentes nuevos por impulso si existen líneas activas ya identificadas con mayor impacto sistémico.
+mantener consistencia visual de acciones readonly y reapertura en orders.show
+
+seguir propagando criterio de no asumir contratos: validar siempre contra runtime real y no por lectura teórica
 
 <<END SECTION>>
 

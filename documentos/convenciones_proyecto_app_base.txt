@@ -553,7 +553,7 @@ No debe utilizarse desactivación global de users para resolver bajas, bloqueos 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ACCESO POR MÓDULO Y ROLES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 CONVENCIONES DE ACCESO POR MÓDULO Y ROLES
 
@@ -595,6 +595,16 @@ cuando el contrato persistido incluya constraints funcionales reales, esas const
 
 En orders, constraints.allowed_kinds constituye segmentación efectiva del contrato y no metadata decorativa.
 
+Regla adicional consolidada:
+
+cuando una regla de estado o trazabilidad define si una acción principal existe realmente, esa regla debe reflejarse también en la autorización efectiva central.
+
+No debe quedar únicamente en controller, Blade o Policy si Security es el kernel central del sistema.
+
+Caso vigente:
+
+orders.update y orders.delete deben considerar estado operativo y trazabilidad real además de permisos nominales, scope y constraints.
+
 Regla de dataset:
 
 cuando la visibilidad depende de permisos, el controller debe usar Security::scope(...)
@@ -616,10 +626,11 @@ ese contrato se consume siempre bajo arbitraje de la capa central
 la publicación de capacidades reutilizables por parte de un módulo no crea canales paralelos de autorización
 
 las integraciones entre módulos deben respetar el contrato del módulo oferente y no reinterpretarlo desde el módulo consumidor
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -884,6 +895,18 @@ Caso vigente:
 
 orders mediante OrdersHooks.
 
+Regla adicional para módulos con estados operativos:
+
+si el estado de un registro define su condición real de operación, ese estado forma parte del contrato efectivo del módulo.
+
+No debe tratarse como una validación lateral.
+
+Caso vigente:
+
+orders.closed bloquea edición y eliminación directa, pero admite reapertura explícita autorizada a approved.
+
+orders.cancelled bloquea edición y eliminación directa y permanece como estado terminal no reabrible dentro de la regla validada.
+
 CONTRATO DE SEGURIDAD
 
 El contrato de seguridad del módulo no se define en esta sección sino en:
@@ -994,7 +1017,7 @@ order_items continúa siendo entidad hija de orders aunque participe como anclaj
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00019
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -1169,6 +1192,16 @@ El host monta.
 
 El oferente decide.
 
+Regla adicional para estado superior del host:
+
+cuando una integración actúa sobre recursos hijos dentro de un host operativo, no puede habilitar acciones que contradigan el estado superior del recurso padre.
+
+Caso vigente:
+
+inventory puede publicar operación por línea para order_items, pero esa operación queda subordinada al estado de la order.
+
+Si la order está closed o cancelled, la línea no recupera operabilidad por sí misma.
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE FLAGS DE SOPORTE MODULAR>>
@@ -1309,7 +1342,7 @@ order_items copiados hacia documentos derivados
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ENTIDADES HIJAS>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 CONVENCIONES DE ENTIDADES HIJAS
 
@@ -1378,6 +1411,16 @@ mientras la línea no esté completada ni cancelada puede seguir siendo editable
 la cantidad no puede reducirse por debajo del ejecutado neto vigente
 
 si existe trazabilidad iniciada no deben mutarse atributos de identidad operativa como product_id, kind o description
+
+Regla adicional de subordinación al padre:
+
+las reglas propias de una entidad hija operan únicamente dentro de la condición operativa permitida por su padre.
+
+Si el padre se encuentra en estado readonly o terminal, la entidad hija no puede recuperar operabilidad por sí misma.
+
+Caso vigente:
+
+order_items queda subordinado al estado operativo de orders.
 
 <<END SECTION>>
 

@@ -190,7 +190,7 @@ juan@tech.local
 TENANT VALIDADO
 
 tenant_id:
-ff9c66f4-34b9-43c4-afa7-8a8cc03e10fd
+<hay que buscarlo o que lo proporcione el programdor>
 
 tenant_name:
 Tech Solutions SA
@@ -224,7 +224,7 @@ si una prueba de stock da todo en cero, primero validar que el seeder efectivo e
 <<END SECTION>>
 
 <<SECTION: CASOS PRIORITARIOS DE USO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CASOS PRIORITARIOS DE USO
 
@@ -241,9 +241,12 @@ delegación de entidades hijas
 flujos entre módulos
 auditorías rápidas sobre runtime
 
+Cuando se requiera registrar varias salidas, copiar resultados para el chat o conservar trazabilidad visual de una sesión, puede utilizarse Tinker Lab local.
+
 Regla adicional consolidada:
 
 cuando una integración entre módulos genere dudas, priorizar prueba directa del contrato consumido y del arbitraje efectivo antes de modificar código
+
 <<END SECTION>>
 
 <<SECTION: 🆕 PATRÓN GENERAL DE PRUEBA>>
@@ -345,6 +348,84 @@ Usar:
 $security->scope($user, 'modulo.viewAny', Modelo::query())
 
 y luego aplicar count(), get(), paginate(), etc. según el caso.
+<<END SECTION>>
+
+<<SECTION: TINKER LAB LOCAL>>
+SECTION_VERSION: 00001
+
+TINKER LAB LOCAL
+
+El proyecto dispone de una herramienta local auxiliar para ejecutar pruebas Tinker desde una interfaz visual.
+
+Ubicación:
+
+tools/tinker-lab/index.php
+
+La herramienta permite:
+
+pegar código PHP interno de Tinker
+ejecutar la prueba dentro del proyecto actual
+ver la salida en pantalla
+copiar la salida
+generar log para chat
+mantener un log acumulativo de sesión
+
+La herramienta no forma parte del sistema SaaS productivo.
+
+Es una utilidad local de depuración del proyecto.
+
+No debe publicarse ni exponerse en entornos accesibles desde internet.
+
+Regla crítica:
+
+en Tinker Lab debe pegarse solo el código PHP interno.
+
+No debe pegarse el comando completo:
+
+php artisan tinker --execute
+
+La herramienta ya ejecuta internamente ese comando contra el proyecto actual.
+
+<<END SECTION>>
+
+<<SECTION: USO OPERATIVO DE TINKER LAB>>
+SECTION_VERSION: 00001
+
+USO OPERATIVO DE TINKER LAB
+
+Para levantar la herramienta local desde la raíz del proyecto:
+
+php -S 127.0.0.1:8787 -t tools/tinker-lab
+
+Luego abrir:
+
+http://127.0.0.1:8787
+
+Flujo recomendado:
+
+1. ingresar un nombre de caso
+2. pegar el código Tinker interno
+3. ejecutar la prueba
+4. revisar la salida
+5. copiar la salida o el log para chat
+6. cerrar sesión cuando finalice el bloque de pruebas
+
+Atajo operativo:
+
+Enter ejecuta la prueba
+
+Shift + Enter inserta salto de línea dentro del código
+
+Archivo acumulativo:
+
+documentos/log/tinker-lab.log
+
+Regla:
+
+cerrar sesión no borra el archivo histórico.
+
+Cerrar sesión agrega un cierre y un nuevo encabezado dentro del log acumulativo, y limpia la salida visible y el log para chat.
+
 <<END SECTION>>
 
 <<SECTION: CASO BASE YA VALIDADO: ORDERS.CREATE>>
@@ -474,9 +555,12 @@ si el create necesita un dato previo del negocio, la prueba principal debe hacer
 <<END SECTION>>
 
 <<SECTION: PLANTILLA DE PRUEBA RÁPIDA>>
+SECTION_VERSION: 00002
+
 PLANTILLA DE PRUEBA RÁPIDA
 
-php artisan tinker --execute='
+Código base recomendado para ejecutar una prueba simple en Tinker o en Tinker Lab:
+
 use App\Models\User;
 use App\Support\Auth\Security;
 
@@ -494,11 +578,19 @@ $security = app(Security::class);
 
 echo "tenant_id: {$tenant->id}\n";
 echo "tenant_name: {$tenant->name}\n";
-'
 
 Esta plantilla solo prepara contexto.
 
 A partir de ella deben agregarse las pruebas específicas del caso.
+
+Regla actualizada:
+
+si se utiliza consola manual, envolver este bloque en:
+
+php artisan tinker --execute='...'
+
+si se utiliza Tinker Lab local, pegar únicamente el código interno sin el wrapper del comando.
+
 <<END SECTION>>
 
 <<SECTION: REGLA DE MANTENIMIENTO DEL DOCUMENTO>>

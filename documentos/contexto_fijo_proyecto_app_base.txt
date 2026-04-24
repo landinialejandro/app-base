@@ -355,7 +355,7 @@ Su función es sostener la plataforma y su frontera de ingreso.
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00010
 
 ENTIDADES DEL NEGOCIO
 
@@ -403,11 +403,9 @@ Aclaración adicional sobre order_items:
 
 order_items sigue siendo entidad hija del negocio dentro de orders.
 
-cuando participa del frente inventory mediante ejecución por línea, puede actuar además como anclaje operativo real dentro del ecosistema.
+Cuando participa del frente inventory mediante ejecución por línea, puede actuar además como anclaje operativo real dentro del ecosistema.
 
 Esa lectura no lo convierte en módulo autónomo ni en dueño de la semántica material de inventory.
-
-Confirma una relación operativa más rica entre orders, order_items e inventory dentro del dominio vigente.
 
 Aclaración adicional sobre documents:
 
@@ -645,7 +643,7 @@ Por lo tanto, esa necesidad no debe reinterpretarse como expansión de parties n
 <<END SECTION>>
 
 <<SECTION: MÓDULOS FUNCIONALES ACTUALES>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00013
 
 MÓDULOS FUNCIONALES ACTUALES
 
@@ -679,6 +677,8 @@ appointments: su superficie principal es appointments.calendar. El index existe 
 
 inventory: ya debe leerse como frente funcional del sistema con surfaces propias de saldo, historial y operación. Su consolidación modular sigue en evolución.
 
+orders: debe leerse como módulo operativo fuerte con estados que afectan su condición operativa general.
+
 Aclaración adicional sobre madurez host surface-driven:
 
 dentro del ecosistema actual, no todos los show pages se encuentran en el mismo nivel de evolución contractual.
@@ -696,7 +696,7 @@ El detalle del rol arquitectónico de cada módulo se resuelve en LECTURA CONCEP
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00015
 
 LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES
 
@@ -708,47 +708,75 @@ La plataforma debe leerse como una base priorizada para microempresas y PyMEs qu
 
 PARTIES
 
-Módulo base del dominio. Representa actores externos relacionados con la operación del tenant y funciona como referencia amplia para múltiples relaciones del ecosistema. Publica oferta reusable oficial para el ecosistema, cuyo caso inmediato es linked-party-action.
+Módulo base del dominio.
+
+Representa actores externos relacionados con la operación del tenant y funciona como referencia amplia para múltiples relaciones del ecosistema.
+
+Publica oferta reusable oficial para el ecosistema, cuyo caso inmediato es linked-party-action.
 
 PROJECTS
 
-Módulo agrupador. Su función principal es ordenar y brindar lectura consolidada sobre trabajo relacionado, especialmente alrededor de tasks, sin absorber su identidad.
+Módulo agrupador.
+
+Su función principal es ordenar y brindar lectura consolidada sobre trabajo relacionado, especialmente alrededor de tasks, sin absorber su identidad.
 
 TASKS
 
-Módulo autónomo. Representa trabajo operativo interno y puede participar en seguimiento, coordinación y derivación hacia otros módulos sin perder identidad propia.
+Módulo autónomo.
+
+Representa trabajo operativo interno y puede participar en seguimiento, coordinación y derivación hacia otros módulos sin perder identidad propia.
 
 APPOINTMENTS
 
-Módulo autónomo de agenda operativa. Su superficie principal promovida es calendar y su show expresa además una madurez estructural relevante dentro del frente surface-driven del ecosistema.
+Módulo autónomo de agenda operativa.
 
-A nivel conceptual, appointments no debe leerse solo como agenda o vínculo temporal.
+Su superficie principal promovida es calendar y su show expresa además una madurez estructural relevante dentro del frente surface-driven del ecosistema.
 
 Debe leerse también como host capaz de recibir relaciones compactas publicadas por otros módulos dentro de una estructura show más avanzada.
 
-Su lectura anfitriona vigente ya distingue zonas explícitas de montaje para acciones, summary, details y composición tabular coordinada.
-
 PRODUCTS
 
-Módulo autónomo de catálogo maestro. Conserva la identidad del artículo compartido dentro del tenant aun cuando inventory evolucione como frente operativo separado.
+Módulo autónomo de catálogo maestro.
+
+Conserva la identidad del artículo compartido dentro del tenant aun cuando inventory evolucione como frente operativo separado.
 
 ASSETS
 
-Módulo autónomo. Representa activos, equipos o unidades operativas con identidad propia y capacidad reusable oficial de integración hacia el ecosistema.
+Módulo autónomo.
+
+Representa activos, equipos o unidades operativas con identidad propia y capacidad reusable oficial de integración hacia el ecosistema.
 
 ORDERS
 
-Módulo autónomo de núcleo operativo fuerte. Actúa como hub visual relevante dentro del ecosistema y puede consumir capacidades oficiales de otros módulos sin absorber su lógica operativa.
+Módulo autónomo de núcleo operativo fuerte.
+
+Actúa como hub visual relevante dentro del ecosistema y puede consumir capacidades oficiales de otros módulos sin absorber su lógica operativa.
 
 Su centralidad operativa no lo convierte automáticamente en patrón arquitectónico rector para todos los hosts del ecosistema.
 
+Sus estados operativos forman parte de su lectura conceptual y condicionan la operación real del módulo.
+
+Los order_items pueden poseer reglas propias de línea, pero permanecen subordinados al estado superior de la orden padre.
+
 DOCUMENTS
 
-Módulo derivado respecto de orders. Formaliza parte de la operación documental sin perder entidad propia y puede publicar surfaces embebidas oficiales para consumo del ecosistema.
+Módulo derivado respecto de orders.
+
+Formaliza parte de la operación documental sin perder entidad propia y puede publicar surfaces embebidas oficiales para consumo del ecosistema.
 
 INVENTORY
 
-Frente operativo del stock y la trazabilidad material. Evoluciona hacia identidad modular propia, separando con mayor claridad catálogo maestro, operación de movimientos y consumo contextual desde otros módulos.
+Frente operativo del stock y la trazabilidad material.
+
+Evoluciona hacia identidad modular propia, separando con mayor claridad catálogo maestro, operación de movimientos y consumo contextual desde otros módulos.
+
+Cuando se integra con orders, la ejecución neta depende del tipo de orden.
+
+sale y service operan como salida.
+
+purchase opera como ingreso.
+
+Esa regla conceptual impide auditar inventory + orders con una única fórmula universal de signo.
 
 ACLARACIÓN ESTRUCTURAL SOBRE TENANT
 
@@ -762,7 +790,7 @@ Por lo tanto, no debe confundirse con una relación reusable publicada por módu
 
 
 <<SECTION: RELACIONES MACRO DEL ECOSISTEMA>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00012
 
 RELACIONES MACRO DEL ECOSISTEMA
 
@@ -817,6 +845,16 @@ Sin embargo, dentro del estado actual del ecosistema ya debe leerse además como
 Esa relevancia transversal no lo convierte en módulo autónomo.
 
 Confirma una relación macro más precisa entre orden, detalle de línea y frente operativo material.
+
+Aclaración adicional consolidada para inventory:
+
+la relación inventory + orders debe leerse según el tipo de orden.
+
+sale y service implican salida operativa de stock.
+
+purchase implica ingreso operativo de stock.
+
+Por lo tanto, la lectura neta de ejecución no debe reducirse a una única fórmula universal desligada del tipo de orden.
 
 Regla:
 

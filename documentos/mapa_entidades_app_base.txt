@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -105,9 +105,9 @@ cancelled
 
 approved reemplaza semánticamente a confirmed dentro de la lectura vigente del ecosistema
 
-closed expresa cierre operativo readonly
+closed expresa cierre operativo readonly con posibilidad de reapertura explícita a approved
 
-cancelled exige ausencia de movimientos ejecutados o reversión previa suficiente para no dejar trazabilidad inconsistente
+cancelled exige ausencia de movimientos ejecutados o reversión previa suficiente para no dejar trazabilidad inconsistente y permanece como estado terminal no reabrible dentro de la regla validada
 
 tasks puede recibir alertas automáticas del sistema mediante metadata cuando la operación lo requiera
 
@@ -856,7 +856,7 @@ Lo ubica como base maestra estable dentro de una arquitectura más limpia entre 
 <<END SECTION>>
 
 <<SECTION: INVENTORY>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 INVENTORY
 
@@ -937,18 +937,6 @@ orders y documents pueden contextualizar movimientos sin absorber el frente inve
 
 la lectura conceptual del frente debe distinguir entre stock actual, compromiso de salida y recepción esperada de entrada aun cuando su implementación definitiva evolucione por fases
 
-Aclaración operativa consolidada:
-
-cuando el frente opere por línea de orden, el anclaje principal de ejecución debe resolverse desde order_item y no solo desde product u order genérica
-
-inventory_movements.order_item_id expresa ya esa relación operativa explícita y no una intención futura abstracta
-
-Aclaración adicional consolidada:
-
-cuando una línea ya tenga movimientos ejecutados, su operación deja de ser libremente editable como simple detalle administrativo
-
-debe pasar a leerse como detalle transaccional con restricciones operativas y trazabilidad preservada
-
 Aclaración adicional sobre estados:
 
 el frente inventory debe consumir el estado normalizado de orders como marco operativo superior
@@ -960,40 +948,9 @@ cancelled
 
 approved habilita lectura de orden validada para ejecución
 
-closed implica readonly operativo
+closed implica readonly operativo hasta reapertura válida
 
 cancelled no debe convivir con movimientos ejecutados sin reversión previa suficiente
-
-Aclaración adicional sobre semántica de lectura:
-
-el signo funcional del movimiento de stock no agota la lectura operativa del frente
-
-cuando inventory interactúe con una línea de order_item, debe poder distinguir correctamente entre:
-
-impacto sobre stock
-ejecución neta de la línea
-reversión por contramovimiento
-pendiente recuperado o restante
-
-esa separación forma parte del modelo mental real del módulo y no debe tratarse como ajuste accesorio de implementación
-
-Aclaración adicional sobre host visual:
-
-cuando inventory sea consumido desde orders.show, la pantalla orders actúa como host visual y contextual del frente
-
-esa situación no transfiere a orders la propiedad doctrinal de la operación material de inventory
-
-Aclaración adicional sobre continuidad de edición:
-
-que existan movimientos ya no implica automáticamente cierre total de la línea.
-
-Mientras la línea no se encuentre completed ni cancelled, puede seguir admitiendo edición estructural compatible con el ejecutado neto y con la preservación de identidad operativa de la línea.
-
-Aclaración adicional sobre devoluciones:
-
-la devolución por línea forma parte del frente operativo real de inventory
-
-debe expresarse como movimiento propio, respetar el máximo devolvible vigente y recalcular la ejecución neta y el pendiente de la línea sin alterar el modelo transaccional base de orders
 
 <<END SECTION>>
 
@@ -1057,7 +1014,7 @@ y puede publicar relación compacta hacia appointments.show como offer linked de
 <<END SECTION>>
 
 <<SECTION: ORDERS>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 ORDERS
 
@@ -1083,128 +1040,74 @@ Relaciones ofrecidas:
 documents derivados
 historial operativo
 seguimiento de trabajo
-referencia central para otros módulos
-contexto de trazabilidad para inventory_movements
-host visual modular para capacidades embebidas del ecosistema cuando corresponda
-relación compacta hacia appointments.show cuando el vínculo sea puntual
+contexto para ejecución por línea
+host visual para capacidades invitadas
+trazabilidad transaccional principal
 
-Superficie contractual conceptual posible:
+Estados operativos vigentes:
 
-selector de orden
-tabla embebida reusable
-summary de orden
-acción create contextual
-bridge hacia documents
-lookup mínimo
-acción enlazada reusable
-host show capaz de consumir surfaces oficiales de otros módulos
-relación compacta linked consumible por appointments.show
+draft
+approved
+closed
+cancelled
 
-Reglas:
+Lectura de estados:
 
-orders debe tratarse como entidad central operativa del ecosistema actual
+draft preparación editable
 
-puede recibir contexto desde tasks y appointments sin perder autonomía conceptual
+approved orden operable según permisos y reglas del flujo
 
-tasks y appointments pueden originar orders, pero no la absorben como subrecurso ni redefinen su identidad funcional
+closed cierre operativo readonly con posibilidad de reapertura explícita autorizada a approved
 
-su núcleo no debe reabrirse por cada nueva integración externa
+cancelled estado terminal cancelado no reabrible dentro de la regla validada
 
-actúa como hub operativo relevante dentro del ecosistema actual
+Reglas estructurales:
 
-su create requiere contexto funcional válido mediante kind y no debe interpretarse como create abstracto genérico
+el estado global de orders arbitra por encima de los estados particulares de líneas hijas
 
-Aclaración contractual consolidada:
+una orden con inventory_movements asociados conserva trazabilidad operativa relevante
 
-la oferta de integración de orders ya no debe leerse solo como posibilidad abstracta o futura
+la eliminación requiere compatibilidad entre permiso, estado y ausencia de trazabilidad bloqueante
 
-incluye una capacidad reusable concreta para arbitrar apertura de orden existente, create contextual, estado readonly o requisito faltante según el contexto recibido
-
-esa capacidad pertenece al módulo orders como parte de su oferta de integración
-
-su resolución válida puede combinar backend propio del módulo y bloque visual modular consumible por otros módulos sin perder identidad contractual
-
-Caso consolidado actual:
-
-linked-order-action forma parte de esa oferta reusable oficial
-
-Aclaración adicional consolidada:
-
-la relación con appointments no requiere embebido pesado desde orders
-
-debe resolverse como integración compacta apoyada en el vínculo appointments.order_id y no como tab relacional fuerte del módulo orders
-
-Aclaración adicional para inventory:
-
-orders no debe absorber el núcleo de inventory
-
-cuando una orden origine, consuma o contextualice movimientos de stock, debe leerse como consumidor contextual del frente inventory y no como propietario del saldo ni del historial maestro de stock
-
-Aclaración adicional de hub visual:
-
-cuando la operación de inventory se exprese sobre order_items dentro de orders.show, orders actúa como contenedor visual y contextual del flujo
-
-la lógica operativa, la semántica de ejecución por línea y la reversión siguen perteneciendo al frente inventory
-
-Aclaración adicional de frontera contractual:
-
-cuando orders necesite intervención extra-módulo sobre order_items u otros puntos del flujo, ese contacto no debe desparramarse entre controllers ni sobre el núcleo directo de order y order_item
-
-la forma correcta es concentrarlo en una puerta contractual propia del módulo y desde allí delegar a piezas externas especializadas cuando corresponda
-
-caso vigente relevante:
-
-OrdersHooks como estación contractual blanda del módulo
-
-Aclaración adicional para documents:
-
-orders puede consumir documents como surface embebida oficial publicada por el propio módulo documents
-
-esa relación no debe leerse como simple tab manual del host sino como consumo de capacidad reusable del módulo derivado
-
-Aclaración adicional hacia appointments.show:
-
-cuando orders publique una relación puntual hacia appointments.show, esa oferta debe leerse como surface compacta de resumen y no como relación tabular pesada
+si existe reapertura válida, esta constituye transición de estado y no edición ordinaria
 
 <<END SECTION>>
 
 <<SECTION: ORDER_ITEMS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00001
 
 ORDER_ITEMS
 
 Tipo conceptual:
 
-entidad hija operativa de orders
+entidad hija delegada de orders con relevancia operativa ampliada
 
-Representa el detalle de cada orden.
+Representa el detalle ejecutable o transaccional de una orden.
 
 Relaciones consumidas:
 
-order padre obligatorio
+order padre
 product opcional
-tenant heredado del padre
-inventory como frente operativo externo cuando exista ejecución material por línea
+inventory_movements como trazabilidad operativa iniciada
 
 Relaciones ofrecidas:
 
-detalle de cantidad y referencia del padre
-anclaje operativo para inventory
-trazabilidad de ejecución y devolución por línea cuando corresponda
+anclaje de ejecución por línea
+lectura de pendiente
+lectura de ejecutado neto
+contexto para surtido, recepción y devolución
 
 Reglas:
 
-no constituye módulo autónomo
-mantiene delegación principal al padre
-puede ganar relevancia operativa sin alterar su naturaleza de entidad hija
-puede acumular múltiples movimientos relacionados a lo largo del tiempo
-su lectura operativa válida distingue objetivo de línea, ejecutado neto, pendiente y estado
+mantiene dependencia estructural respecto de orders
 
-Aclaración adicional consolidada:
+puede poseer estado propio de línea sin reemplazar el arbitraje superior de la order
 
-order_item ya no debe leerse solo como renglón comercial o administrativo
+sus reglas específicas solo operan si el estado de la orden padre lo permite
 
-cuando participa en ejecución material, pasa a ser unidad operativa trazable del ecosistema para surtido, devolución, reversión y lectura histórica vinculada a inventory
+si la order está closed o cancelled, la línea no recupera operabilidad por sí misma
+
+al reabrirse la order a approved, vuelven a regir las reglas propias de la línea según su estado y trazabilidad vigente
 
 <<END SECTION>>
 

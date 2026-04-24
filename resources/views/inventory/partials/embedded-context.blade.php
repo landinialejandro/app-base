@@ -1,7 +1,6 @@
-{{-- FILE: resources/views/inventory/partials/embedded-context.blade.php | V11 --}}
+{{-- FILE: resources/views/inventory/partials/embedded-context.blade.php | V12 --}}
 
 @php
-    use App\Support\Inventory\InventoryMovementService;
     use App\Support\Inventory\InventorySurfaceService;
     use App\Support\Modules\ModuleSurfaceRegistry;
 
@@ -33,6 +32,18 @@
             </x-slot:tabs>
         </x-tab-toolbar>
     @endif
+
+    @include('inventory.partials.movements-table', [
+        'movementRows' => $movementRows,
+        'emptyMessage' => $emptyMessage,
+        'trailQuery' => $trailQuery,
+    ])
+@elseif ($contextType === 'document')
+    @php
+        $document = $document ?? null;
+        $movementRows = ($movementRows ?? collect())->values();
+        $emptyMessage = $emptyMessage ?? 'No hay movimientos de inventario asociados a este documento.';
+    @endphp
 
     @include('inventory.partials.movements-table', [
         'movementRows' => $movementRows,

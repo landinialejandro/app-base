@@ -1,8 +1,10 @@
 <?php
 
-// FILE: app/Support/Inventory/OrderItemStatusService.php | V5
+// FILE: app/Support/Inventory/OrderItemStatusService.php | V6
+
 namespace App\Support\Inventory;
 
+use App\Models\InventoryMovement;
 use App\Models\OrderItem;
 use App\Support\Catalogs\OrderItemCatalog;
 
@@ -43,15 +45,11 @@ class OrderItemStatusService
     {
         $profileResolver = app(InventoryOperationProfileResolver::class);
 
-        $item->loadMissing([
-            'order',
-            'inventoryMovements',
-        ]);
+        $item->loadMissing(['order']);
 
         $profile = $profileResolver->forOrder($item->order);
 
-        $executedNet = $item->inventoryMovements
-            ->filter(fn ($movement) => $movement->trashed() === false)
+        $executedNet = $this->movementsForOrderItem($item)
             ->sum(fn ($movement) => $this->executionSignedQuantity($movement, $profile));
 
         return max(0, $this->normalizeQuantity($executedNet));
@@ -63,6 +61,24 @@ class OrderItemStatusService
         $executedQuantity = $this->executedQuantity($item);
 
         return max(0, $this->normalizeQuantity($orderedQuantity - $executedQuantity));
+    }
+
+    public function hasMovements(OrderItem $item): bool
+    {
+        return InventoryMovement::query()
+            ->where('tenant_id', $item->tenant_id)
+            ->where('origin_line_type', InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM)
+            ->where('origin_line_id', $item->id)
+            ->exists();
+    }
+
+    protected function movementsForOrderItem(OrderItem $item)
+    {
+        return InventoryMovement::query()
+            ->where('tenant_id', $item->tenant_id)
+            ->where('origin_line_type', InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM)
+            ->where('origin_line_id', $item->id)
+            ->get();
     }
 
     protected function executionSignedQuantity(object $movement, array $profile): float

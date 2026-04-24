@@ -11,6 +11,7 @@ declare(strict_types=1);
  * Entrada soportada:
  *
  * 1) Archivo completo PHP
+ *
  *    <?php
  *
  *    // FILE: ruta/del/archivo.php | VX
@@ -18,11 +19,13 @@ declare(strict_types=1);
  *    ...código...
  *
  * 2) Archivo completo Blade
+ *
  *    {{-- FILE: ruta/del/archivo.blade.php | VX --}}
  *
  *    ...blade...
  *
- * 3) Actualización parcial de método PHP
+ * 3) Reemplazo parcial de método PHP existente
+ *
  *    // TARGET: ruta/del/archivo.php :: nombreMetodo
  *
  *    public function nombreMetodo(): void
@@ -30,17 +33,42 @@ declare(strict_types=1);
  *        ...
  *    }
  *
- * También acepta FILE en lugar de TARGET para modo parcial:
+ * 4) Alta de método PHP nuevo dentro de una clase existente
+ *
+ *    // TARGET: ruta/del/archivo.php ++ nombreMetodo
+ *
+ *    public function nombreMetodo(): void
+ *    {
+ *        ...
+ *    }
+ *
+ * También acepta FILE en lugar de TARGET para operaciones sobre métodos:
+ *
  *    // FILE: ruta/del/archivo.php :: nombreMetodo
+ *    // FILE: ruta/del/archivo.php ++ nombreMetodo
+ *
+ * Reglas de operación:
+ *
+ * - :: reemplaza un método PHP existente.
+ * - ++ agrega un método PHP nuevo.
+ * - Si se usa :: y el método no existe, la operación falla.
+ * - Si se usa ++ y el método ya existe, la operación falla.
+ * - En operaciones parciales no se modifica la versión del encabezado FILE.
+ * - Para cambios de imports, propiedades, traits, constantes o estructura de clase,
+ *   usar archivo completo.
  *
  * Comportamiento:
- * - Detecta archivo completo PHP o Blade
- * - Detecta actualización parcial de método PHP
- * - Normaliza encabezados y formato
- * - Mantiene log local en ambos casos
- * - Informa estado por STDERR con mensajes más claros
+ *
+ * - Detecta archivo completo PHP o Blade.
+ * - Detecta reemplazo parcial de método PHP.
+ * - Detecta alta de método PHP nuevo.
+ * - Normaliza encabezados y formato en archivos completos.
+ * - Mantiene separación visual entre métodos.
+ * - Mantiene log local en todas las operaciones exitosas.
+ * - Informa estado por STDERR con modo, archivo, estado, objetivo y versión si aplica.
  *
  * Recomendado en .gitignore:
+ *
  * documentos/log/code-updates.log
  */
 final class CodeHeaderNormalizer

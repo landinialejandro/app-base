@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Order.php | V5
+// FILE: app/Models/Order.php | V6
 
 namespace App\Models;
 
@@ -81,11 +81,6 @@ class Order extends Model
         return $this->hasMany(Document::class);
     }
 
-    public function inventoryMovements(): HasMany
-    {
-        return $this->hasMany(InventoryMovement::class);
-    }
-
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');
@@ -109,17 +104,6 @@ class Order extends Model
     public function attachments(): MorphMany
     {
         return $this->morphMany(Attachment::class, 'attachable')->orderBy('sort_order')->latest('id');
-    }
-
-    public function hasInventoryMovements(): bool
-    {
-        if ($this->relationLoaded('inventoryMovements')) {
-            return $this->inventoryMovements
-                ->filter(fn ($movement) => ! $movement->trashed())
-                ->isNotEmpty();
-        }
-
-        return $this->inventoryMovements()->exists();
     }
 
     public function hasClosedItems(): bool

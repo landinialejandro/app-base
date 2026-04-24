@@ -1,9 +1,10 @@
 <?php
 
-// FILE: app/Support/Inventory/InventorySurfaceService.php | V22
+// FILE: app/Support/Inventory/InventorySurfaceService.php | V23
 
 namespace App\Support\Inventory;
 
+use App\Models\Document;
 use App\Models\InventoryMovement;
 use App\Models\Order;
 use App\Models\OrderItem;
@@ -90,6 +91,16 @@ class InventorySurfaceService implements ModuleSurfaceService
                 resolver: $this->resolveEmbeddedForOrder(...),
             ),
 
+            $this->embeddedOffer(
+                key: 'inventory.document.movements',
+                label: 'Inventario',
+                targets: ['documents.show'],
+                slot: 'tab_panels',
+                priority: 30,
+                view: 'inventory.partials.embedded-context',
+                resolver: $this->resolveEmbeddedForDocument(...),
+            ),
+
             $this->linkedOffer(
                 key: 'inventory.order_item.actions',
                 label: 'Operación por línea',
@@ -122,6 +133,108 @@ class InventorySurfaceService implements ModuleSurfaceService
             'recordType' => $this->resolveRecordType($record),
             'trailQuery' => $context['trailQuery'] ?? [],
             'modal_namespace' => (string) ($context['modal_namespace'] ?? ''),
+        ];
+    }
+
+    private function resolveEmbeddedForDocument(array $hostPack): array
+    {
+        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
+
+        if ($recordType !== 'document' || ! $record instanceof Document) {
+            return [
+                'count' => 0,
+                'data' => [
+                    'contextType' => 'document',
+                    'document' => null,
+                    'movementRows' => collect(),
+                    'emptyMessage' => 'No hay movimientos de inventario asociados a este documento.',
+                    'trailQuery' => $trailQuery,
+                ],
+            ];
+        }
+
+        $movementRows = $this->movementRowsForOrigin(
+            originType: InventoryOriginCatalog::TYPE_DOCUMENT,
+            originId: $record->id,
+            tenantId: $record->tenant_id,
+        );
+
+        return [
+            'count' => $movementRows->count(),
+            'data' => [
+                'contextType' => 'document',
+                'document' => $record,
+                'movementRows' => $movementRows,
+                'emptyMessage' => 'No hay movimientos de inventario asociados a este documento.',
+                'trailQuery' => $trailQuery,
+            ],
+        ];
+    }
+
+    private function resolveEmbeddedForProduct(array $hostPack): array
+    {
+        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
+
+        if ($recordType !== 'product' || ! $record instanceof Product || ! $this->supportsInventoryForProduct($record)) {
+            return [
+                'count' => 0,
+                'data' => [
+                    'contextType' => 'product',
+                    'product' => null,
+                    'movementRows' => collect(),
+                    'movementKind' => '',
+                    'kindTabs' => [],
+                    'emptyMessage' => 'No hay movimientos registrados para este artículo.',
+                    'trailQuery' => $trailQuery,
+                ],
+            ];
+        }
+
+        $movementKind = (string) request()->query('kind', '');
+        $movementRows = $this->movementRowsForProduct($record, $movementKind);
+
+        return [
+            'count' => $movementRows->count(),
+            'data' => [
+                'contextType' => 'product',
+                'product' => $record,
+                'movementRows' => $movementRows,
+                'movementKind' => $movementKind,
+                'kindTabs' => $this->kindTabsForHost('products.show', $record, $trailQuery),
+                'emptyMessage' => 'No hay movimientos registrados para este artículo.',
+                'trailQuery' => $trailQuery,
+            ],
+        ];
+    }
+
+    private function resolveEmbeddedForOrder(array $hostPack): array
+    {
+        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
+
+        if ($recordType !== 'order' || ! $record instanceof Order) {
+            return [
+                'count' => 0,
+                'data' => [
+                    'contextType' => 'order',
+                    'order' => null,
+                    'inventoryContext' => [
+                        'items' => [],
+                    ],
+                    'trailQuery' => $trailQuery,
+                ],
+            ];
+        }
+
+        $inventoryContext = app(InventoryOrderContextResolver::class)->forOrder($record);
+
+        return [
+            'count' => collect($inventoryContext['items'] ?? [])->count(),
+            'data' => [
+                'contextType' => 'order',
+                'order' => $record,
+                'inventoryContext' => $inventoryContext,
+                'trailQuery' => $trailQuery,
+            ],
         ];
     }
 
@@ -245,73 +358,6 @@ class InventorySurfaceService implements ModuleSurfaceService
         ];
     }
 
-    private function resolveEmbeddedForProduct(array $hostPack): array
-    {
-        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
-
-        if ($recordType !== 'product' || ! $record instanceof Product || ! $this->supportsInventoryForProduct($record)) {
-            return [
-                'count' => 0,
-                'data' => [
-                    'contextType' => 'product',
-                    'product' => null,
-                    'movementRows' => collect(),
-                    'movementKind' => '',
-                    'kindTabs' => [],
-                    'emptyMessage' => 'No hay movimientos registrados para este artículo.',
-                    'trailQuery' => $trailQuery,
-                ],
-            ];
-        }
-
-        $movementKind = (string) request()->query('kind', '');
-        $movementRows = $this->movementRowsForProduct($record, $movementKind);
-
-        return [
-            'count' => $movementRows->count(),
-            'data' => [
-                'contextType' => 'product',
-                'product' => $record,
-                'movementRows' => $movementRows,
-                'movementKind' => $movementKind,
-                'kindTabs' => $this->kindTabsForHost('products.show', $record, $trailQuery),
-                'emptyMessage' => 'No hay movimientos registrados para este artículo.',
-                'trailQuery' => $trailQuery,
-            ],
-        ];
-    }
-
-    private function resolveEmbeddedForOrder(array $hostPack): array
-    {
-        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
-
-        if ($recordType !== 'order' || ! $record instanceof Order) {
-            return [
-                'count' => 0,
-                'data' => [
-                    'contextType' => 'order',
-                    'order' => null,
-                    'inventoryContext' => [
-                        'items' => [],
-                    ],
-                    'trailQuery' => $trailQuery,
-                ],
-            ];
-        }
-
-        $inventoryContext = app(InventoryOrderContextResolver::class)->forOrder($record);
-
-        return [
-            'count' => collect($inventoryContext['items'] ?? [])->count(),
-            'data' => [
-                'contextType' => 'order',
-                'order' => $record,
-                'inventoryContext' => $inventoryContext,
-                'trailQuery' => $trailQuery,
-            ],
-        ];
-    }
-
     private function resolveOrderItemRowActions(array $hostPack): array
     {
         $record = $hostPack['record'] ?? null;
@@ -333,7 +379,6 @@ class InventorySurfaceService implements ModuleSurfaceService
 
         $order->loadMissing([
             'items.product',
-            'items.inventoryMovements',
         ]);
 
         $inventoryContext = $contextResolver->forOrder($order);
@@ -395,7 +440,8 @@ class InventorySurfaceService implements ModuleSurfaceService
                 'href' => route('inventory.show', [
                     'product' => $productId,
                 ] + $trailQuery + [
-                    'order_item_id' => $orderItemId,
+                    'origin_line_type' => InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM,
+                    'origin_line_id' => $orderItemId,
                 ]),
             ];
         }
@@ -424,20 +470,42 @@ class InventorySurfaceService implements ModuleSurfaceService
 
     private function lastMovementForProduct(Product $product): ?InventoryMovement
     {
-        return $product->inventoryMovements()
+        return InventoryMovement::query()
+            ->where('tenant_id', $product->tenant_id)
+            ->where('product_id', $product->id)
             ->latest('created_at')
             ->latest('id')
             ->first();
     }
 
-    private function movementRowsForProduct(Product $product, string $movementKind = ''): Collection
+    private function movementRowsForOrigin(string $originType, int|string $originId, string $tenantId): Collection
     {
-        $movements = $product->inventoryMovements()
-            ->with(['order', 'document'])
+        $movements = InventoryMovement::query()
+            ->where('tenant_id', $tenantId)
+            ->where('origin_type', $originType)
+            ->where('origin_id', $originId)
+            ->with(['product'])
             ->orderBy('created_at')
             ->orderBy('id')
             ->get();
 
+        return $this->buildMovementRows($movements);
+    }
+
+    private function movementRowsForProduct(Product $product, string $movementKind = ''): Collection
+    {
+        $movements = InventoryMovement::query()
+            ->where('tenant_id', $product->tenant_id)
+            ->where('product_id', $product->id)
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get();
+
+        return $this->buildMovementRows($movements, $movementKind);
+    }
+
+    private function buildMovementRows(Collection $movements, string $movementKind = ''): Collection
+    {
         $runningBalances = [];
         $runningBalance = 0.0;
 
@@ -504,6 +572,7 @@ class InventorySurfaceService implements ModuleSurfaceService
     private function resolveRecordType(mixed $record): ?string
     {
         return match (true) {
+            $record instanceof Document => 'document',
             $record instanceof Order => 'order',
             $record instanceof OrderItem => 'order_item',
             $record instanceof Product => 'product',

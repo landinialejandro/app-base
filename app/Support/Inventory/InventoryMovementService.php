@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Inventory/InventoryMovementService.php | V6
+// FILE: app/Support/Inventory/InventoryMovementService.php | V7
 
 namespace App\Support\Inventory;
 
@@ -132,6 +132,10 @@ class InventoryMovementService
         $this->validateQuantity($normalizedQuantity);
         $this->validateTenantConsistency($product, $order, $orderItem, $document);
         $this->validateOrderContext($product, $order, $orderItem);
+        $this->validateDocumentContext($product, $document);
+
+        $origin = $this->resolveOrigin($order, $document);
+        $originLine = $this->resolveOriginLine($orderItem);
 
         return DB::transaction(function () use (
             $product,
@@ -141,14 +145,17 @@ class InventoryMovementService
             $order,
             $orderItem,
             $document,
-            $createdBy
+            $createdBy,
+            $origin,
+            $originLine,
         ) {
             $movement = InventoryMovement::create([
                 'tenant_id' => $product->tenant_id,
                 'product_id' => $product->id,
-                'order_id' => $order?->id,
-                'order_item_id' => $orderItem?->id,
-                'document_id' => $document?->id,
+                'origin_type' => $origin['type'],
+                'origin_id' => $origin['id'],
+                'origin_line_type' => $originLine['type'],
+                'origin_line_id' => $originLine['id'],
                 'kind' => $kind,
                 'quantity' => $normalizedQuantity,
                 'notes' => $this->buildTraceableNotes(
@@ -167,7 +174,6 @@ class InventoryMovementService
             $stockAfter = app(ProductStockCalculator::class)->forProduct($product);
 
             if ($orderItem) {
-                $orderItem->refresh();
                 app(OrderItemStatusService::class)->recalculate($orderItem);
             }
 
@@ -176,6 +182,7 @@ class InventoryMovementService
                 movement: $movement,
                 stockAfter: $stockAfter,
                 order: $order,
+                orderItem: $orderItem,
                 actorUserId: $createdBy,
                 movementQuantity: $normalizedQuantity,
             );
@@ -187,6 +194,43 @@ class InventoryMovementService
                 'owner_alert_task' => $ownerAlertTask,
             ];
         });
+    }
+
+    protected function resolveOrigin(?Order $order = null, ?Document $document = null): array
+    {
+        if ($order) {
+            return [
+                'type' => InventoryOriginCatalog::TYPE_ORDER,
+                'id' => $order->id,
+            ];
+        }
+
+        if ($document) {
+            return [
+                'type' => InventoryOriginCatalog::TYPE_DOCUMENT,
+                'id' => $document->id,
+            ];
+        }
+
+        return [
+            'type' => InventoryOriginCatalog::TYPE_MANUAL,
+            'id' => null,
+        ];
+    }
+
+    protected function resolveOriginLine(?OrderItem $orderItem = null): array
+    {
+        if ($orderItem) {
+            return [
+                'type' => InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM,
+                'id' => $orderItem->id,
+            ];
+        }
+
+        return [
+            'type' => null,
+            'id' => null,
+        ];
     }
 
     protected function validateKind(string $kind): void
@@ -228,8 +272,6 @@ class InventoryMovementService
         ?OrderItem $orderItem = null,
     ): void {
         if (! $order && ! $orderItem) {
-            $this->validateManualMovementProduct($product);
-
             return;
         }
 
@@ -239,10 +281,6 @@ class InventoryMovementService
 
         if ($order && ! $orderItem) {
             throw new InvalidArgumentException('No se admiten movimientos de orden sin línea asociada.');
-        }
-
-        if (! $order || ! $orderItem) {
-            throw new InvalidArgumentException('Contexto operativo inválido para inventory.');
         }
 
         if ((int) $orderItem->order_id !== (int) $order->id) {
@@ -260,8 +298,14 @@ class InventoryMovementService
         $this->validatePhysicalProduct($product);
     }
 
-    protected function validateManualMovementProduct(Product $product): void
+    protected function validateDocumentContext(Product $product, ?Document $document = null): void
     {
+        if (! $document) {
+            $this->validatePhysicalProduct($product);
+
+            return;
+        }
+
         $this->validatePhysicalProduct($product);
     }
 
@@ -293,16 +337,18 @@ class InventoryMovementService
         }
 
         if ($order) {
+            $trace[] = 'Origen: order #'.$order->id;
             $trace[] = 'Orden: '.($order->number ?: 'Orden #'.$order->id);
+        } elseif ($document) {
+            $trace[] = 'Origen: document #'.$document->id;
+            $trace[] = 'Documento: '.($document->number ?: 'Documento #'.$document->id);
+        } else {
+            $trace[] = 'Origen: manual';
         }
 
         if ($orderItem) {
-            $trace[] = 'Línea: #'.$orderItem->id;
+            $trace[] = 'Línea origen: order_item #'.$orderItem->id;
             $trace[] = 'Posición de línea: '.($orderItem->position ?? '—');
-        }
-
-        if ($document) {
-            $trace[] = 'Documento: '.($document->number ?: 'Documento #'.$document->id);
         }
 
         $actor = $this->resolveActorUser($createdBy);
@@ -323,6 +369,7 @@ class InventoryMovementService
         InventoryMovement $movement,
         float $stockAfter,
         ?Order $order = null,
+        ?OrderItem $orderItem = null,
         int|string|null $actorUserId = null,
         float $movementQuantity = 0.0,
     ): ?Task {
@@ -358,14 +405,15 @@ class InventoryMovementService
             '- Stock resultante: '.$this->formatQuantity($stockAfter, $product->unit_label),
             '- Fecha y hora del evento: '.($movement->created_at?->format('d/m/Y H:i:s') ?: '—'),
             '- Usuario interviniente: '.($actorUser?->name ?: 'Sistema'),
+            '- Origen: '.($movement->origin_type ?: '—').' '.($movement->origin_id ? '#'.$movement->origin_id : ''),
         ];
 
         if ($order) {
             $descriptionLines[] = '- Orden relacionada: '.($order->number ?: 'Orden #'.$order->id);
         }
 
-        if ($movement->orderItem) {
-            $descriptionLines[] = '- Línea relacionada: #'.$movement->orderItem->id.' - '.($movement->orderItem->description ?: 'Sin descripción');
+        if ($orderItem) {
+            $descriptionLines[] = '- Línea relacionada: #'.$orderItem->id.' - '.($orderItem->description ?: 'Sin descripción');
         }
 
         if ($movement->notes) {
@@ -385,9 +433,10 @@ class InventoryMovementService
                 'product_id' => $product->id,
                 'product_name' => $product->name,
                 'product_sku' => $product->sku,
-                'order_id' => $order?->id,
-                'order_number' => $order?->number,
-                'order_item_id' => $movement->order_item_id,
+                'origin_type' => $movement->origin_type,
+                'origin_id' => $movement->origin_id,
+                'origin_line_type' => $movement->origin_line_type,
+                'origin_line_id' => $movement->origin_line_id,
                 'inventory_movement_id' => $movement->id,
                 'movement_kind' => $movement->kind,
                 'movement_quantity' => $movementQuantity,

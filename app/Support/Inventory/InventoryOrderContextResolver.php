@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Inventory/InventoryOrderContextResolver.php | V3
+// FILE: app/Support/Inventory/InventoryOrderContextResolver.php | V4
 
 namespace App\Support\Inventory;
 
@@ -16,7 +16,6 @@ class InventoryOrderContextResolver
     {
         $order->loadMissing([
             'items.product',
-            'items.inventoryMovements',
         ]);
 
         $profile = app(InventoryOperationProfileResolver::class)->forOrder($order);
@@ -83,13 +82,14 @@ class InventoryOrderContextResolver
             : 0.0;
 
         $lineStatus = $item->status ?: OrderItemCatalog::STATUS_PENDING;
+
         $currentStock = $isPhysicalProduct
             ? $stockCalculator->forProduct($product)
             : null;
 
-        $hasMovements = $item->inventoryMovements
-            ->filter(fn ($movement) => $movement->trashed() === false)
-            ->isNotEmpty();
+        $hasMovements = $isPhysicalProduct
+            ? $statusService->hasMovements($item)
+            : false;
 
         $isLineCompleted = $lineStatus === OrderItemCatalog::STATUS_COMPLETED;
         $isLineCancelled = $lineStatus === OrderItemCatalog::STATUS_CANCELLED;

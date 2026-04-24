@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/partials/movement-form.blade.php | V5 --}}
+{{-- FILE: resources/views/inventory/partials/movement-form.blade.php | V6 --}}
 
 @php
     use App\Support\Inventory\InventoryMovementService;
@@ -22,9 +22,10 @@
     $quantityFieldId = $quantityFieldId ?? 'inventory_quantity';
     $notesFieldId = $notesFieldId ?? 'inventory_notes';
 
-    $orderId = $orderId ?? null;
-    $orderItemId = $orderItemId ?? null;
-    $documentId = $documentId ?? null;
+    $originType = $originType ?? null;
+    $originId = $originId ?? null;
+    $originLineType = $originLineType ?? null;
+    $originLineId = $originLineId ?? null;
     $returnContext = $returnContext ?? null;
 
     $kindLabels = [
@@ -114,16 +115,20 @@
                 @enderror
             </div>
 
-            @if ($orderId)
-                <input type="hidden" name="order_id" value="{{ $orderId }}">
+            @if ($originType)
+                <input type="hidden" name="origin_type" value="{{ $originType }}">
             @endif
 
-            @if ($orderItemId)
-                <input type="hidden" name="order_item_id" value="{{ $orderItemId }}">
+            @if ($originId)
+                <input type="hidden" name="origin_id" value="{{ $originId }}">
             @endif
 
-            @if ($documentId)
-                <input type="hidden" name="document_id" value="{{ $documentId }}">
+            @if ($originLineType)
+                <input type="hidden" name="origin_line_type" value="{{ $originLineType }}">
+            @endif
+
+            @if ($originLineId)
+                <input type="hidden" name="origin_line_id" value="{{ $originLineId }}">
             @endif
 
             @if ($returnContext)

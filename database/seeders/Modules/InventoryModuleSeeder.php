@@ -1,6 +1,6 @@
 <?php
 
-// FILE: database/seeders/Modules/InventoryModuleSeeder.php | V1
+// FILE: database/seeders/Modules/InventoryModuleSeeder.php | V2
 
 namespace Database\Seeders\Modules;
 
@@ -10,11 +10,13 @@ use App\Models\Order;
 use App\Models\Product;
 use App\Support\Catalogs\ProductCatalog;
 use App\Support\Inventory\InventoryMovementService;
+use App\Support\Inventory\InventoryOperationProfileResolver;
+use App\Support\Inventory\InventoryOriginCatalog;
 use Illuminate\Support\Collection;
 
 class InventoryModuleSeeder extends BaseModuleSeeder
 {
-    private const SEED_NOTE_PREFIX = '[seed][inventory-v1]';
+    private const SEED_NOTE_PREFIX = '[seed][inventory-v2]';
 
     public function run(): void
     {
@@ -74,14 +76,15 @@ class InventoryModuleSeeder extends BaseModuleSeeder
 
         $created = collect();
 
-        // 1) Ingreso inicial por producto físico
         foreach ($physicalProducts as $index => $product) {
             $created->push(
                 InventoryMovement::create([
                     'tenant_id' => $tenantId,
                     'product_id' => $product->id,
-                    'order_id' => null,
-                    'document_id' => null,
+                    'origin_type' => InventoryOriginCatalog::TYPE_MANUAL,
+                    'origin_id' => null,
+                    'origin_line_type' => null,
+                    'origin_line_id' => null,
                     'kind' => InventoryMovementService::KIND_INGRESAR,
                     'quantity' => $this->initialQuantityForIndex($index),
                     'notes' => $this->seedNote("Ingreso inicial de stock para {$product->sku}"),
@@ -92,13 +95,8 @@ class InventoryModuleSeeder extends BaseModuleSeeder
             );
         }
 
-        // 2) Movimientos operativos derivados de órdenes reales
         foreach ($orders as $order) {
-            if (! $order instanceof Order) {
-                continue;
-            }
-
-            if ($order->status !== 'approved') {
+            if (! $order instanceof Order || $order->status !== 'approved') {
                 continue;
             }
 
@@ -113,79 +111,36 @@ class InventoryModuleSeeder extends BaseModuleSeeder
                 continue;
             }
 
+            $profile = app(InventoryOperationProfileResolver::class)->forOrder($order);
+
             foreach ($physicalItems as $position => $item) {
-                $product = $item->product;
                 $quantity = (float) $item->quantity;
 
                 if ($quantity <= 0) {
                     continue;
                 }
 
-                if ($order->kind === 'purchase') {
-                    $created->push(
-                        InventoryMovement::create([
-                            'tenant_id' => $tenantId,
-                            'product_id' => $product->id,
-                            'order_id' => $order->id,
-                            'document_id' => null,
-                            'kind' => InventoryMovementService::KIND_INGRESAR,
-                            'quantity' => $quantity,
-                            'notes' => $this->seedNote("Ingreso por orden {$order->number}"),
-                            'created_by' => $actorUserId,
-                            'created_at' => now()->subDays(4)->addMinutes($position),
-                            'updated_at' => now()->subDays(4)->addMinutes($position),
-                        ])
-                    );
-
-                    continue;
-                }
-
-                if ($order->kind === 'sale') {
-                    $created->push(
-                        InventoryMovement::create([
-                            'tenant_id' => $tenantId,
-                            'product_id' => $product->id,
-                            'order_id' => $order->id,
-                            'document_id' => null,
-                            'kind' => InventoryMovementService::KIND_ENTREGAR,
-                            'quantity' => $quantity,
-                            'notes' => $this->seedNote("Entrega por orden {$order->number}"),
-                            'created_by' => $actorUserId,
-                            'created_at' => now()->subDays(2)->addMinutes($position),
-                            'updated_at' => now()->subDays(2)->addMinutes($position),
-                        ])
-                    );
-
-                    continue;
-                }
-
-                if ($order->kind === 'service') {
-                    $created->push(
-                        InventoryMovement::create([
-                            'tenant_id' => $tenantId,
-                            'product_id' => $product->id,
-                            'order_id' => $order->id,
-                            'document_id' => null,
-                            'kind' => InventoryMovementService::KIND_CONSUMIR,
-                            'quantity' => $quantity,
-                            'notes' => $this->seedNote("Consumo por orden {$order->number}"),
-                            'created_by' => $actorUserId,
-                            'created_at' => now()->subDay()->addMinutes($position),
-                            'updated_at' => now()->subDay()->addMinutes($position),
-                        ])
-                    );
-                }
+                $created->push(
+                    InventoryMovement::create([
+                        'tenant_id' => $tenantId,
+                        'product_id' => $item->product->id,
+                        'origin_type' => InventoryOriginCatalog::TYPE_ORDER,
+                        'origin_id' => $order->id,
+                        'origin_line_type' => InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM,
+                        'origin_line_id' => $item->id,
+                        'kind' => $profile['execute_kind'],
+                        'quantity' => $quantity,
+                        'notes' => $this->seedNote("Movimiento por orden {$order->number}"),
+                        'created_by' => $actorUserId,
+                        'created_at' => now()->subDays(4)->addMinutes($position),
+                        'updated_at' => now()->subDays(4)->addMinutes($position),
+                    ])
+                );
             }
         }
 
-        // 3) Ingreso documental mínimo cuando exista documento de compra/soporte físico sin duplicar órdenes
-        // Solo toma documentos con ítems físicos y sin order_id para no duplicar movimientos ya representados por órdenes.
         foreach ($documents as $document) {
-            if (! is_object($document) || ! isset($document->id)) {
-                continue;
-            }
-
-            if (! empty($document->order_id)) {
+            if (! is_object($document) || ! isset($document->id) || ! empty($document->order_id)) {
                 continue;
             }
 
@@ -207,8 +162,10 @@ class InventoryModuleSeeder extends BaseModuleSeeder
                     InventoryMovement::create([
                         'tenant_id' => $tenantId,
                         'product_id' => $item->product->id,
-                        'order_id' => null,
-                        'document_id' => $documentModel->id,
+                        'origin_type' => InventoryOriginCatalog::TYPE_DOCUMENT,
+                        'origin_id' => $documentModel->id,
+                        'origin_line_type' => InventoryOriginCatalog::LINE_TYPE_DOCUMENT_ITEM,
+                        'origin_line_id' => $item->id,
                         'kind' => InventoryMovementService::KIND_INGRESAR,
                         'quantity' => (float) $item->quantity,
                         'notes' => $this->seedNote("Ingreso por documento {$documentModel->number}"),
@@ -234,7 +191,7 @@ class InventoryModuleSeeder extends BaseModuleSeeder
         InventoryMovement::query()
             ->where('tenant_id', $tenantId)
             ->whereIn('product_id', $productIds)
-            ->where('notes', 'like', self::SEED_NOTE_PREFIX.'%')
+            ->where('notes', 'like', '[seed][inventory-%')
             ->forceDelete();
     }
 

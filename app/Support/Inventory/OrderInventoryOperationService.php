@@ -13,131 +13,132 @@ use InvalidArgumentException;
 
 class OrderInventoryOperationService
 {
-    public function executeLine(
-        Order $order,
-        OrderItem $item,
-        float|int|string $quantity,
-        ?string $notes = null,
-        int|string|null $createdBy = null,
-    ): array {
-        $statusService = app(OrderItemStatusService::class);
-        $profileResolver = app(InventoryOperationProfileResolver::class);
-        $movementService = app(InventoryMovementService::class);
 
-        $this->validateOrderItemRelation($order, $item);
-        $this->validateOrderOperable($order);
+public function executeLine(
+    Order $order,
+    OrderItem $item,
+    float|int|string $quantity,
+    ?string $notes = null,
+    int|string|null $createdBy = null,
+): array {
+    $statusService = app(OrderItemStatusService::class);
+    $profileResolver = app(InventoryOperationProfileResolver::class);
+    $movementService = app(InventoryMovementService::class);
 
-        $item->loadMissing(['product', 'inventoryMovements']);
+    $this->validateOrderItemRelation($order, $item);
+    $this->validateOrderOperable($order);
 
-        $product = $this->resolvePhysicalProduct($item);
-        $normalizedQuantity = $this->normalizeQuantity($quantity);
+    $item->loadMissing(['product']);
 
-        if ($normalizedQuantity <= 0) {
-            throw new InvalidArgumentException('La cantidad debe ser mayor a cero.');
-        }
+    $product = $this->resolvePhysicalProduct($item);
+    $normalizedQuantity = $this->normalizeQuantity($quantity);
 
-        $pendingQuantity = $statusService->pendingQuantity($item);
-
-        if ($pendingQuantity <= 0) {
-            throw new InvalidArgumentException('La línea ya no tiene cantidad pendiente.');
-        }
-
-        if ($normalizedQuantity > $pendingQuantity) {
-            throw new InvalidArgumentException('La cantidad supera el pendiente de la línea.');
-        }
-
-        $profile = $profileResolver->forOrder($order);
-
-        return DB::transaction(function () use (
-            $order,
-            $item,
-            $product,
-            $profile,
-            $normalizedQuantity,
-            $notes,
-            $createdBy,
-            $movementService,
-            $statusService
-        ) {
-            $result = $movementService->createForOrderItem(
-                order: $order,
-                item: $item,
-                product: $product,
-                kind: $profile['execute_kind'],
-                quantity: $normalizedQuantity,
-                notes: $notes,
-                createdBy: $createdBy,
-            );
-
-            $item->refresh();
-            $statusService->recalculate($item);
-
-            return $result;
-        });
+    if ($normalizedQuantity <= 0) {
+        throw new InvalidArgumentException('La cantidad debe ser mayor a cero.');
     }
 
-    public function returnLineQuantity(
-        Order $order,
-        OrderItem $item,
-        float|int|string $quantity,
-        ?string $notes = null,
-        int|string|null $createdBy = null,
-    ): array {
-        $statusService = app(OrderItemStatusService::class);
-        $profileResolver = app(InventoryOperationProfileResolver::class);
-        $movementService = app(InventoryMovementService::class);
+    $pendingQuantity = $statusService->pendingQuantity($item);
 
-        $this->validateOrderItemRelation($order, $item);
-        $this->validateOrderOperable($order);
-
-        $item->loadMissing(['product', 'inventoryMovements']);
-
-        $product = $this->resolvePhysicalProduct($item);
-        $normalizedQuantity = $this->normalizeQuantity($quantity);
-
-        if ($normalizedQuantity <= 0) {
-            throw new InvalidArgumentException('La cantidad a devolver debe ser mayor a cero.');
-        }
-
-        $executedQuantity = $statusService->executedQuantity($item);
-
-        if ($executedQuantity <= 0) {
-            throw new InvalidArgumentException('La línea no tiene cantidad ejecutada para devolver.');
-        }
-
-        if ($normalizedQuantity > $executedQuantity) {
-            throw new InvalidArgumentException('La cantidad a devolver supera lo ejecutado neto de la línea.');
-        }
-
-        $profile = $profileResolver->forOrder($order);
-
-        return DB::transaction(function () use (
-            $order,
-            $item,
-            $product,
-            $profile,
-            $normalizedQuantity,
-            $notes,
-            $createdBy,
-            $movementService,
-            $statusService
-        ) {
-            $result = $movementService->createForOrderItem(
-                order: $order,
-                item: $item,
-                product: $product,
-                kind: $profile['reverse_kind'],
-                quantity: $normalizedQuantity,
-                notes: $notes ?: 'Contramovimiento registrado sobre la línea.',
-                createdBy: $createdBy,
-            );
-
-            $item->refresh();
-            $statusService->recalculate($item);
-
-            return $result;
-        });
+    if ($pendingQuantity <= 0) {
+        throw new InvalidArgumentException('La línea ya no tiene cantidad pendiente.');
     }
+
+    if ($normalizedQuantity > $pendingQuantity) {
+        throw new InvalidArgumentException('La cantidad supera el pendiente de la línea.');
+    }
+
+    $profile = $profileResolver->forOrder($order);
+
+    return DB::transaction(function () use (
+        $order,
+        $item,
+        $product,
+        $profile,
+        $normalizedQuantity,
+        $notes,
+        $createdBy,
+        $movementService,
+        $statusService
+    ) {
+        $result = $movementService->createForOrderItem(
+            order: $order,
+            item: $item,
+            product: $product,
+            kind: $profile['execute_kind'],
+            quantity: $normalizedQuantity,
+            notes: $notes,
+            createdBy: $createdBy,
+        );
+
+        $item->refresh();
+        $statusService->recalculate($item);
+
+        return $result;
+    });
+}
+
+public function returnLineQuantity(
+    Order $order,
+    OrderItem $item,
+    float|int|string $quantity,
+    ?string $notes = null,
+    int|string|null $createdBy = null,
+): array {
+    $statusService = app(OrderItemStatusService::class);
+    $profileResolver = app(InventoryOperationProfileResolver::class);
+    $movementService = app(InventoryMovementService::class);
+
+    $this->validateOrderItemRelation($order, $item);
+    $this->validateOrderOperable($order);
+
+    $item->loadMissing(['product']);
+
+    $product = $this->resolvePhysicalProduct($item);
+    $normalizedQuantity = $this->normalizeQuantity($quantity);
+
+    if ($normalizedQuantity <= 0) {
+        throw new InvalidArgumentException('La cantidad a devolver debe ser mayor a cero.');
+    }
+
+    $executedQuantity = $statusService->executedQuantity($item);
+
+    if ($executedQuantity <= 0) {
+        throw new InvalidArgumentException('La línea no tiene cantidad ejecutada para devolver.');
+    }
+
+    if ($normalizedQuantity > $executedQuantity) {
+        throw new InvalidArgumentException('La cantidad a devolver supera lo ejecutado neto de la línea.');
+    }
+
+    $profile = $profileResolver->forOrder($order);
+
+    return DB::transaction(function () use (
+        $order,
+        $item,
+        $product,
+        $profile,
+        $normalizedQuantity,
+        $notes,
+        $createdBy,
+        $movementService,
+        $statusService
+    ) {
+        $result = $movementService->createForOrderItem(
+            order: $order,
+            item: $item,
+            product: $product,
+            kind: $profile['reverse_kind'],
+            quantity: $normalizedQuantity,
+            notes: $notes ?: 'Contramovimiento registrado sobre la línea.',
+            createdBy: $createdBy,
+        );
+
+        $item->refresh();
+        $statusService->recalculate($item);
+
+        return $result;
+    });
+}
 
     protected function validateOrderItemRelation(Order $order, OrderItem $item): void
     {

@@ -1,33 +1,21 @@
 <?php
 
-// FILE: database/migrations/database/migrations/2026_04_16_133731_alter_inventory_movements_add_order_item_id.php | V1
+// FILE: database/migrations/2026_04_16_133731_alter_inventory_movements_add_order_item_id.php | V2
 
 use Illuminate\Database\Migrations\Migration;
-use Illuminate\Database\Schema\Blueprint;
-use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
     public function up(): void
     {
-        Schema::table('inventory_movements', function (Blueprint $table) {
-            $table->foreignId('order_item_id')
-                ->nullable()
-                ->after('order_id')
-                ->constrained('order_items')
-                ->nullOnDelete();
-
-            $table->index(['tenant_id', 'order_item_id'], 'inventory_movements_tenant_order_item_index');
-            $table->index(['tenant_id', 'order_id', 'order_item_id'], 'inventory_movements_tenant_order_order_item_index');
-        });
+        // Migración neutralizada.
+        // inventory_movements ya no usa order_item_id.
+        // La trazabilidad operativa se resuelve mediante origin_type/origin_id
+        // y origin_line_type/origin_line_id.
     }
 
     public function down(): void
     {
-        Schema::table('inventory_movements', function (Blueprint $table) {
-            $table->dropIndex('inventory_movements_tenant_order_order_item_index');
-            $table->dropIndex('inventory_movements_tenant_order_item_index');
-            $table->dropConstrainedForeignId('order_item_id');
-        });
+        //
     }
 };

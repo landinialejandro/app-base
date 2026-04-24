@@ -1,6 +1,8 @@
-{{-- FILE: resources/views/inventory/partials/order-line-execute-modal.blade.php | V3 --}}
+{{-- FILE: resources/views/inventory/partials/order-line-execute-modal.blade.php | V4 --}}
 
 @php
+    use App\Support\Inventory\InventoryOriginCatalog;
+
     $order = $order ?? null;
     $row = $row ?? [];
     $trailQuery = $trailQuery ?? [];
@@ -52,8 +54,10 @@
         @csrf
 
         <input type="hidden" name="product_id" value="{{ $productId }}">
-        <input type="hidden" name="order_id" value="{{ $order?->id }}">
-        <input type="hidden" name="order_item_id" value="{{ $orderItemId }}">
+        <input type="hidden" name="origin_type" value="{{ InventoryOriginCatalog::TYPE_ORDER }}">
+        <input type="hidden" name="origin_id" value="{{ $order?->id }}">
+        <input type="hidden" name="origin_line_type" value="{{ InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM }}">
+        <input type="hidden" name="origin_line_id" value="{{ $orderItemId }}">
         <input type="hidden" name="kind" value="{{ $executeKind }}">
         <input type="hidden" name="return_context" value="orders.show">
         <input type="hidden" name="return_tab" value="inventory.embedded">

@@ -1,9 +1,11 @@
 <?php
 
 // FILE: app/Http/Controllers/InventoryController.php | V13
+
 namespace App\Http\Controllers;
 
 use App\Models\Document;
+use App\Models\InventoryMovement;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -11,6 +13,7 @@ use App\Support\Auth\Security;
 use App\Support\Catalogs\OrderCatalog;
 use App\Support\Catalogs\ProductCatalog;
 use App\Support\Inventory\InventoryMovementService;
+use App\Support\Inventory\InventoryOriginCatalog;
 use App\Support\Inventory\InventorySurfaceService;
 use App\Support\Inventory\OrderInventoryOperationService;
 use App\Support\Inventory\ProductStockCalculator;
@@ -33,10 +36,7 @@ class InventoryController extends Controller
 
         $productsQuery = app(Security::class)
             ->scope(auth()->user(), 'products.viewAny', Product::query())
-            ->where('kind', ProductCatalog::KIND_PRODUCT)
-            ->with([
-                'inventoryMovements:id,product_id,kind,quantity',
-            ]);
+            ->where('kind', ProductCatalog::KIND_PRODUCT);
 
         if ($query !== '') {
             $productsQuery->where(function ($builder) use ($query) {
@@ -58,27 +58,29 @@ class InventoryController extends Controller
             $products->pluck('id')->all()
         );
 
+        $movementTotals = InventoryMovement::query()
+            ->whereIn('product_id', $products->pluck('id')->all())
+            ->selectRaw('
+            product_id,
+            COALESCE(SUM(CASE WHEN kind = ? THEN quantity ELSE 0 END), 0) as total_in,
+            COALESCE(SUM(CASE WHEN kind IN (?, ?) THEN quantity ELSE 0 END), 0) as total_out
+        ', [
+                InventoryMovementService::KIND_INGRESAR,
+                InventoryMovementService::KIND_CONSUMIR,
+                InventoryMovementService::KIND_ENTREGAR,
+            ])
+            ->groupBy('product_id')
+            ->get()
+            ->keyBy('product_id');
+
         $rows = $products
-            ->map(function (Product $product) use ($stocks) {
-                $movements = $product->inventoryMovements ?? collect();
-
-                $totalIn = (float) $movements
-                    ->whereIn('kind', [
-                        InventoryMovementService::KIND_INGRESAR,
-                    ])
-                    ->sum('quantity');
-
-                $totalOut = (float) $movements
-                    ->whereIn('kind', [
-                        InventoryMovementService::KIND_CONSUMIR,
-                        InventoryMovementService::KIND_ENTREGAR,
-                    ])
-                    ->sum('quantity');
+            ->map(function (Product $product) use ($stocks, $movementTotals) {
+                $totals = $movementTotals->get($product->id);
 
                 return [
                     'product' => $product,
-                    'total_in' => $totalIn,
-                    'total_out' => $totalOut,
+                    'total_in' => (float) ($totals->total_in ?? 0),
+                    'total_out' => (float) ($totals->total_out ?? 0),
                     'balance' => (float) ($stocks[$product->id] ?? 0),
                 ];
             })
@@ -113,26 +115,26 @@ class InventoryController extends Controller
         );
 
         $movementKind = trim((string) $request->string('kind'));
-        $orderItemId = $request->integer('order_item_id');
+        $originLineType = trim((string) $request->string('origin_line_type'));
+        $originLineId = $request->integer('origin_line_id');
 
         if ($movementKind !== '' && ! in_array($movementKind, InventoryMovementService::kinds(), true)) {
             abort(404);
         }
 
-        $orderItem = null;
+        if (
+            $originLineType !== ''
+            && ! in_array($originLineType, InventoryOriginCatalog::originLineTypes(), true)
+        ) {
+            abort(404);
+        }
 
-        if ($orderItemId > 0) {
-            $orderItem = OrderItem::query()
-                ->where('tenant_id', $product->tenant_id)
-                ->whereKey($orderItemId)
-                ->whereNull('deleted_at')
-                ->firstOrFail();
+        if ($originLineType === '' && $originLineId > 0) {
+            abort(404);
+        }
 
-            abort_if(
-                (int) $orderItem->product_id !== (int) $product->id,
-                404,
-                'La línea indicada no corresponde al producto actual.'
-            );
+        if ($originLineType !== '' && $originLineId <= 0) {
+            abort(404);
         }
 
         $navigationTrail = InventoryNavigationTrail::show($request, $product);
@@ -142,8 +144,10 @@ class InventoryController extends Controller
             'attachments' => fn ($query) => $query->ordered(),
         ]);
 
-        $movementsQuery = $product->inventoryMovements()
-            ->with(['order', 'orderItem', 'document', 'product'])
+        $movementsQuery = InventoryMovement::query()
+            ->where('tenant_id', $product->tenant_id)
+            ->where('product_id', $product->id)
+            ->with(['product'])
             ->orderBy('created_at')
             ->orderBy('id');
 
@@ -151,8 +155,10 @@ class InventoryController extends Controller
             $movementsQuery->where('kind', $movementKind);
         }
 
-        if ($orderItem) {
-            $movementsQuery->where('order_item_id', $orderItem->id);
+        if ($originLineType !== '') {
+            $movementsQuery
+                ->where('origin_line_type', $originLineType)
+                ->where('origin_line_id', $originLineId);
         }
 
         $inventoryMovements = $movementsQuery->get();
@@ -196,7 +202,8 @@ class InventoryController extends Controller
             'currentStock',
             'navigationTrail',
             'movementKind',
-            'orderItem',
+            'originLineType',
+            'originLineId',
             'summaryItems',
             'headerActions',
             'detailItems',
@@ -238,13 +245,15 @@ class InventoryController extends Controller
             'kind' => ['required', 'string', Rule::in(InventoryMovementService::kinds())],
             'quantity' => ['required', 'numeric', 'gt:0'],
             'notes' => ['nullable', 'string'],
-            'order_id' => ['nullable', 'integer'],
-            'order_item_id' => ['nullable', 'integer'],
-            'document_id' => ['nullable', 'integer'],
+            'origin_type' => ['nullable', 'string', Rule::in(InventoryOriginCatalog::originTypes())],
+            'origin_id' => ['nullable', 'integer'],
+            'origin_line_type' => ['nullable', 'string', Rule::in(InventoryOriginCatalog::originLineTypes())],
+            'origin_line_id' => ['nullable', 'integer'],
             'return_context' => ['nullable', 'string', Rule::in([
                 'inventory.show',
                 'orders.show',
                 'products.show',
+                'documents.show',
             ])],
             'return_tab' => ['nullable', 'string'],
         ]);
@@ -260,7 +269,7 @@ class InventoryController extends Controller
         $orderItem = $this->resolveOrderItemContext($data, $order, $product);
         $document = $this->resolveDocumentContext($data, $product);
 
-        $this->validateMovementContext($data, $order, $orderItem);
+        $this->validateMovementContext($data, $order, $orderItem, $document);
 
         if ($order) {
             $this->authorize('update', $order);
@@ -291,6 +300,7 @@ class InventoryController extends Controller
             request: $request,
             product: $product,
             order: $order,
+            document: $document,
             returnContext: $data['return_context'] ?? null,
             returnTab: $data['return_tab'] ?? null,
         )->with('success', 'Movimiento registrado correctamente.');
@@ -321,7 +331,7 @@ class InventoryController extends Controller
         $this->authorize('update', $order);
         $this->validateOrderOperable($order);
 
-        $item->loadMissing(['product', 'inventoryMovements']);
+        $item->loadMissing(['product']);
 
         abort_if(
             ! $item->product || $item->product->kind !== ProductCatalog::KIND_PRODUCT,
@@ -415,20 +425,59 @@ class InventoryController extends Controller
         array $data,
         ?Order $order,
         ?OrderItem $orderItem,
+        ?Document $document = null,
     ): void {
-        $hasOrderId = ! empty($data['order_id']);
-        $hasOrderItemId = ! empty($data['order_item_id']);
+        $originType = $data['origin_type'] ?? null;
+        $originId = $data['origin_id'] ?? null;
+        $originLineType = $data['origin_line_type'] ?? null;
+        $originLineId = $data['origin_line_id'] ?? null;
 
-        if ($hasOrderId xor $hasOrderItemId) {
-            abort(422, 'Los movimientos operativos de orden requieren orden y línea asociadas.');
+        if (($originType === null || $originType === '') && ! empty($originId)) {
+            abort(422, 'El origen del movimiento requiere tipo e ID.');
         }
 
-        if (! $hasOrderId && ! $hasOrderItemId) {
+        if (($originType !== null && $originType !== '') && empty($originId)) {
+            abort(422, 'El origen del movimiento requiere tipo e ID.');
+        }
+
+        if (($originLineType === null || $originLineType === '') && ! empty($originLineId)) {
+            abort(422, 'La línea de origen requiere tipo e ID.');
+        }
+
+        if (($originLineType !== null && $originLineType !== '') && empty($originLineId)) {
+            abort(422, 'La línea de origen requiere tipo e ID.');
+        }
+
+        if ($originType === InventoryOriginCatalog::TYPE_ORDER) {
+            abort_if(! $order, 422, 'La orden indicada no es válida.');
+            abort_if(! $orderItem, 422, 'La línea indicada no es válida.');
+
+            if ($originLineType !== InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM) {
+                abort(422, 'Los movimientos de orden requieren línea de orden como origen.');
+            }
+
             return;
         }
 
-        abort_if(! $order, 422, 'La orden indicada no es válida.');
-        abort_if(! $orderItem, 422, 'La línea indicada no es válida.');
+        if ($originType === InventoryOriginCatalog::TYPE_DOCUMENT) {
+            abort_if(! $document, 422, 'El documento indicado no es válido.');
+
+            if ($originLineType && $originLineType !== InventoryOriginCatalog::LINE_TYPE_DOCUMENT_ITEM) {
+                abort(422, 'La línea de documento debe usar el tipo de línea documental.');
+            }
+
+            return;
+        }
+
+        if ($originType === InventoryOriginCatalog::TYPE_MANUAL || empty($originType)) {
+            if ($originLineType || $originLineId) {
+                abort(422, 'Un movimiento manual no puede tener línea de origen.');
+            }
+
+            return;
+        }
+
+        abort(422, 'Origen de movimiento inválido.');
     }
 
     protected function validateOrderOperable(Order $order): void
@@ -451,19 +500,30 @@ class InventoryController extends Controller
 
     protected function resolveOrderContext(array $data, Product $product): ?Order
     {
-        if (empty($data['order_id'])) {
+        $originType = $data['origin_type'] ?? null;
+        $originId = (int) ($data['origin_id'] ?? 0);
+
+        if (
+            $originType !== InventoryOriginCatalog::TYPE_ORDER
+            || $originId <= 0
+        ) {
             return null;
         }
 
         return Order::query()
             ->where('tenant_id', $product->tenant_id)
-            ->whereKey((int) $data['order_id'])
-            ->firstOrFail();
+            ->findOrFail($originId);
     }
 
     protected function resolveOrderItemContext(array $data, ?Order $order, Product $product): ?OrderItem
     {
-        if (empty($data['order_item_id'])) {
+        $originLineType = $data['origin_line_type'] ?? null;
+        $originLineId = (int) ($data['origin_line_id'] ?? 0);
+
+        if (
+            $originLineType !== InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM
+            || $originLineId <= 0
+        ) {
             return null;
         }
 
@@ -472,7 +532,7 @@ class InventoryController extends Controller
         $item = OrderItem::query()
             ->where('tenant_id', $product->tenant_id)
             ->where('order_id', $order->id)
-            ->whereKey((int) $data['order_item_id'])
+            ->whereKey($originLineId)
             ->firstOrFail();
 
         abort_if(
@@ -486,18 +546,19 @@ class InventoryController extends Controller
 
     protected function resolveDocumentContext(array $data, Product $product): ?Document
     {
-        if (empty($data['document_id'])) {
+        $originType = $data['origin_type'] ?? null;
+        $originId = (int) ($data['origin_id'] ?? 0);
+
+        if (
+            $originType !== InventoryOriginCatalog::TYPE_DOCUMENT
+            || $originId <= 0
+        ) {
             return null;
         }
 
-        $document = Document::query()
+        return Document::query()
             ->where('tenant_id', $product->tenant_id)
-            ->whereKey((int) $data['document_id'])
-            ->firstOrFail();
-
-        $this->authorize('view', $document);
-
-        return $document;
+            ->findOrFail($originId);
     }
 
     protected function resolveProductFromOrder(Order $order, int $productId): Product
@@ -525,6 +586,7 @@ class InventoryController extends Controller
         Request $request,
         Product $product,
         ?Order $order = null,
+        ?Document $document = null,
         ?string $returnContext = null,
         ?string $returnTab = null,
     ): RedirectResponse {
@@ -539,6 +601,10 @@ class InventoryController extends Controller
             'orders.show' => redirect()->route(
                 'orders.show',
                 ['order' => $order] + $trailQuery
+            ),
+            'documents.show' => redirect()->route(
+                'documents.show',
+                ['document' => $document] + $trailQuery
             ),
             'products.show' => redirect()->route(
                 'products.show',
@@ -563,5 +629,60 @@ class InventoryController extends Controller
             InventoryMovementService::KIND_ENTREGAR => -1 * $quantity,
             default => 0.0,
         };
+    }
+
+    public function showMovement(Request $request, InventoryMovement $movement): View
+    {
+        $movement->load([
+            'product',
+            'creator',
+        ]);
+
+        abort_if(! $movement->product, 404);
+
+        $this->authorize('view', $movement->product);
+
+        $originOrder = null;
+        $originDocument = null;
+        $originOrderItem = null;
+
+        if ($movement->origin_type === InventoryOriginCatalog::TYPE_ORDER && $movement->origin_id) {
+            $originOrder = Order::query()
+                ->where('tenant_id', $movement->tenant_id)
+                ->whereKey($movement->origin_id)
+                ->first();
+        }
+
+        if ($movement->origin_type === InventoryOriginCatalog::TYPE_DOCUMENT && $movement->origin_id) {
+            $originDocument = Document::query()
+                ->where('tenant_id', $movement->tenant_id)
+                ->whereKey($movement->origin_id)
+                ->first();
+        }
+
+        if ($movement->origin_line_type === InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM && $movement->origin_line_id) {
+            $originOrderItem = OrderItem::query()
+                ->where('tenant_id', $movement->tenant_id)
+                ->whereKey($movement->origin_line_id)
+                ->first();
+        }
+
+        $navigationTrail = InventoryNavigationTrail::movementShow($request, $movement);
+        $trailQuery = NavigationTrail::toQuery($navigationTrail);
+
+        $backUrl = NavigationTrail::previousUrl(
+            $navigationTrail,
+            route('inventory.show', ['product' => $movement->product] + $trailQuery)
+        );
+
+        return view('inventory.movement-show', compact(
+            'movement',
+            'originOrder',
+            'originDocument',
+            'originOrderItem',
+            'navigationTrail',
+            'trailQuery',
+            'backUrl',
+        ));
     }
 }

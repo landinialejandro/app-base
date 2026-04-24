@@ -289,6 +289,8 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     // Inventory Fase 2
     Route::get('/inventory', [InventoryController::class, 'index'])
         ->name('inventory.index');
+    Route::get('/inventory/movements/{movement}', [InventoryController::class, 'showMovement'])
+        ->name('inventory.movements.show');
     Route::get('/inventory/{product}', [InventoryController::class, 'show'])
         ->name('inventory.show');
     Route::get('/inventory/{product}/movements/create', [InventoryController::class, 'createMovement'])

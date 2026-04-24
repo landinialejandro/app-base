@@ -1,9 +1,10 @@
 <?php
 
-// FILE: app/Support/Navigation/InventoryNavigationTrail.php | V4
+// FILE: app/Support/Navigation/InventoryNavigationTrail.php | V5
 
 namespace App\Support\Navigation;
 
+use App\Models\InventoryMovement;
 use App\Models\Product;
 use Illuminate\Http\Request;
 
@@ -59,6 +60,53 @@ class InventoryNavigationTrail
                 route('inventory.show', ['product' => $product]),
             ),
         ]);
+    }
+
+    public static function movementShow(Request $request, InventoryMovement $movement): array
+    {
+        $current = NavigationTrail::decode($request->query('trail'));
+
+        $product = $movement->product;
+        $productLabel = $product
+            ? 'Movimientos: '.($product->name ?: 'Producto #'.$product->id)
+            : 'Movimientos';
+
+        $label = 'Movimiento #'.$movement->id;
+
+        if (! empty($current)) {
+            return NavigationTrail::appendOrCollapse(
+                $current,
+                NavigationTrail::makeNode(
+                    'inventory.movements.show',
+                    $movement->id,
+                    $label,
+                    route('inventory.movements.show', ['movement' => $movement]),
+                ),
+            );
+        }
+
+        $nodes = [
+            NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
+            NavigationTrail::makeNode('inventory.index', null, 'Inventario', route('inventory.index')),
+        ];
+
+        if ($product) {
+            $nodes[] = NavigationTrail::makeNode(
+                'inventory.show',
+                $product->id,
+                $productLabel,
+                route('inventory.show', ['product' => $product]),
+            );
+        }
+
+        $nodes[] = NavigationTrail::makeNode(
+            'inventory.movements.show',
+            $movement->id,
+            $label,
+            route('inventory.movements.show', ['movement' => $movement]),
+        );
+
+        return NavigationTrail::base($nodes);
     }
 
     public static function productShow(Request $request, Product $product): array

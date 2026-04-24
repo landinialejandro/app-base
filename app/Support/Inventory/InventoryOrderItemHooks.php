@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Inventory/InventoryOrderItemHooks.php | V1
+// FILE: app/Support/Inventory/InventoryOrderItemHooks.php | V2
 
 namespace App\Support\Inventory;
 
@@ -36,7 +36,7 @@ class InventoryOrderItemHooks
      */
     public function beforeOrderItemDestroy(Order $order, OrderItem $item): void
     {
-        if ($item->hasInventoryMovements()) {
+        if (app(OrderItemStatusService::class)->hasMovements($item)) {
             throw new HttpException(
                 422,
                 'La línea ya tiene movimientos registrados y no puede eliminarse.'
@@ -52,13 +52,10 @@ class InventoryOrderItemHooks
      */
     public function beforeOrderItemUpdate(Order $order, OrderItem $item, array $data): array
     {
-        $item->loadMissing(['inventoryMovements']);
+        $statusService = app(OrderItemStatusService::class);
 
-        $hasInventoryMovements = $item->inventoryMovements
-            ->filter(fn ($movement) => $movement->trashed() === false)
-            ->isNotEmpty();
-
-        $executedQuantity = app(OrderItemStatusService::class)->executedQuantity($item);
+        $hasInventoryMovements = $statusService->hasMovements($item);
+        $executedQuantity = $statusService->executedQuantity($item);
         $newQuantity = $this->normalizeQuantity($data['quantity'] ?? null);
 
         if ($newQuantity < $executedQuantity) {
@@ -104,9 +101,7 @@ class InventoryOrderItemHooks
      */
     public function afterOrderItemUpdate(Order $order, OrderItem $item): void
     {
-        app(OrderItemStatusService::class)->recalculate(
-            $item->fresh(['inventoryMovements'])
-        );
+        app(OrderItemStatusService::class)->recalculate($item);
     }
 
     protected function normalizeQuantity(float|int|string|null $value): float

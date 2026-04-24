@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/InventoryMovement.php | V2
+// FILE: app/Models/InventoryMovement.php | V3
 
 namespace App\Models;
 
@@ -19,9 +19,10 @@ class InventoryMovement extends Model
     protected $fillable = [
         'tenant_id',
         'product_id',
-        'order_id',
-        'order_item_id',
-        'document_id',
+        'origin_type',
+        'origin_id',
+        'origin_line_type',
+        'origin_line_id',
         'kind',
         'quantity',
         'notes',
@@ -35,21 +36,6 @@ class InventoryMovement extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
-    }
-
-    public function order(): BelongsTo
-    {
-        return $this->belongsTo(Order::class);
-    }
-
-    public function orderItem(): BelongsTo
-    {
-        return $this->belongsTo(OrderItem::class, 'order_item_id');
-    }
-
-    public function document(): BelongsTo
-    {
-        return $this->belongsTo(Document::class);
     }
 
     public function creator(): BelongsTo
@@ -95,5 +81,17 @@ class InventoryMovement extends Model
         }
 
         return 0.0;
+    }
+
+    public function isFromOrigin(string $originType, int|string|null $originId): bool
+    {
+        return (string) $this->origin_type === $originType
+            && (string) $this->origin_id === (string) $originId;
+    }
+
+    public function isFromOriginLine(string $originLineType, int|string|null $originLineId): bool
+    {
+        return (string) $this->origin_line_type === $originLineType
+            && (string) $this->origin_line_id === (string) $originLineId;
     }
 }

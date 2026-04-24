@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/OrderItem.php | V5
+// FILE: app/Models/OrderItem.php | V6
 
 namespace App\Models;
 
@@ -8,7 +8,6 @@ use App\Models\Concerns\ResolvesTenantRouteBinding;
 use App\Models\Concerns\TenantScoped;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class OrderItem extends Model
@@ -44,24 +43,8 @@ class OrderItem extends Model
         return $this->belongsTo(Product::class);
     }
 
-    public function inventoryMovements(): HasMany
-    {
-        return $this->hasMany(InventoryMovement::class, 'order_item_id');
-    }
-
     public function getSubtotalAttribute(): float
     {
         return (float) $this->quantity * (float) $this->unit_price;
-    }
-
-    public function hasInventoryMovements(): bool
-    {
-        if ($this->relationLoaded('inventoryMovements')) {
-            return $this->inventoryMovements
-                ->filter(fn ($movement) => ! $movement->trashed())
-                ->isNotEmpty();
-        }
-
-        return $this->inventoryMovements()->exists();
     }
 }

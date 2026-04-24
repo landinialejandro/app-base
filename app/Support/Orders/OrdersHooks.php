@@ -1,33 +1,20 @@
 <?php
 
-// FILE: app/Support/Orders/OrdersHooks.php | V7
+// FILE: app/Support/Orders/OrdersHooks.php | V8
 
 namespace App\Support\Orders;
 
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Support\Inventory\InventoryOrderItemHooks;
+use App\Support\Inventory\InventoryOriginCatalog;
+use App\Support\Inventory\InventoryTraceabilityService;
 use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpKernel\Exception\HttpException;
 use Throwable;
 
 class OrdersHooks
 {
-    /**
-     * BEFORE HOOK — ORDER ITEM EDIT
-     *
-     * Estación contractual blanda del módulo orders.
-     *
-     * Este archivo no debe contener lógica grande ni semántica externa.
-     * Solo debe delegar a piezas externas preparadas para intervenir
-     * el flujo del módulo sin contaminar el núcleo de orders.
-     *
-     * Reglas:
-     * - si una pieza externa necesita bloquear por regla funcional,
-     *   debe lanzar HttpException 422
-     * - si la pieza externa falla por error técnico,
-     *   se registra warning y el flujo sigue
-     */
     public function beforeOrderItemEdit(Order $order, OrderItem $item): void
     {
         try {
@@ -43,12 +30,6 @@ class OrdersHooks
         }
     }
 
-    /**
-     * BEFORE HOOK — ORDER ITEM DESTROY
-     *
-     * Estación contractual blanda del módulo orders.
-     * Delegación a pieza externa opcional.
-     */
     public function beforeOrderItemDestroy(Order $order, OrderItem $item): void
     {
         try {
@@ -64,19 +45,6 @@ class OrdersHooks
         }
     }
 
-    /**
-     * BEFORE HOOK — ORDER ITEM UPDATE
-     *
-     * Recibe dataset de orders, delega a pieza externa y devuelve
-     * el dataset resultante.
-     *
-     * Reglas:
-     * - si la pieza externa devuelve array válido, se usa
-     * - si devuelve algo inválido, se hace fallback al dataset original
-     * - si lanza HttpException 422 funcional, se respeta
-     * - si falla por error técnico, se registra warning y se sigue
-     *   con el dataset original
-     */
     public function beforeOrderItemUpdate(Order $order, OrderItem $item, array $data): array
     {
         try {
@@ -96,12 +64,6 @@ class OrdersHooks
         }
     }
 
-    /**
-     * AFTER HOOK — ORDER ITEM UPDATE
-     *
-     * Delegación a pieza externa opcional posterior al update.
-     * Si falla, no rompe el flujo principal.
-     */
     public function afterOrderItemUpdate(Order $order, OrderItem $item): void
     {
         try {
@@ -115,13 +77,25 @@ class OrdersHooks
         }
     }
 
-    /**
-     * Punto único de acceso a la pieza externa de inventory.
-     *
-     * Si mañana inventory cambia de implementación, o se reemplaza
-     * por otra pieza, el ajuste debe hacerse aquí y no en el resto
-     * del módulo orders.
-     */
+    public function hasExternalMovements(Order $order): bool
+    {
+        try {
+            return app(InventoryTraceabilityService::class)
+                ->hasMovementsForOrigin(
+                    tenantId: (string) $order->tenant_id,
+                    originType: InventoryOriginCatalog::TYPE_ORDER,
+                    originId: $order->id,
+                );
+        } catch (Throwable $e) {
+            Log::warning('OrdersHooks.hasExternalMovements falló y se asumió que existen movimientos.', [
+                'order_id' => $order->id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return true;
+        }
+    }
+
     protected function inventoryHooks(): InventoryOrderItemHooks
     {
         return app(InventoryOrderItemHooks::class);

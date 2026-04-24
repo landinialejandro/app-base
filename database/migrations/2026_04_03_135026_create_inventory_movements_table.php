@@ -1,6 +1,6 @@
 <?php
 
-// FILE: database/migrations/2026_04_03_135026_create_inventory_movements_table.php | V1
+// FILE: database/migrations/2026_04_03_135026_create_inventory_movements_table.php | V2
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -23,17 +23,13 @@ return new class extends Migration
                 ->constrained('products')
                 ->cascadeOnDelete();
 
-            $table->foreignId('order_id')
-                ->nullable()
-                ->constrained('orders')
-                ->nullOnDelete();
+            $table->string('origin_type', 40)->nullable();
+            $table->unsignedBigInteger('origin_id')->nullable();
 
-            $table->foreignId('document_id')
-                ->nullable()
-                ->constrained('documents')
-                ->nullOnDelete();
+            $table->string('origin_line_type', 40)->nullable();
+            $table->unsignedBigInteger('origin_line_id')->nullable();
 
-            $table->string('kind', 20); // ingresar | consumir | entregar
+            $table->string('kind', 20);
             $table->decimal('quantity', 12, 2);
             $table->text('notes')->nullable();
 
@@ -47,8 +43,8 @@ return new class extends Migration
 
             $table->index(['tenant_id']);
             $table->index(['tenant_id', 'product_id']);
-            $table->index(['tenant_id', 'order_id']);
-            $table->index(['tenant_id', 'document_id']);
+            $table->index(['tenant_id', 'origin_type', 'origin_id'], 'inventory_movements_tenant_origin_index');
+            $table->index(['tenant_id', 'origin_line_type', 'origin_line_id'], 'inventory_movements_tenant_origin_line_index');
             $table->index(['tenant_id', 'kind']);
             $table->index(['tenant_id', 'created_at']);
         });
@@ -59,5 +55,3 @@ return new class extends Migration
         Schema::dropIfExists('inventory_movements');
     }
 };
-
-// FILE: database/migrations/2026_04_03_000001_create_inventory_movements_table.php | V1

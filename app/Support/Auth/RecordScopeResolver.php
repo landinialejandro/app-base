@@ -9,7 +9,9 @@ use App\Models\Task;
 use App\Models\User;
 use App\Support\Catalogs\CapabilityCatalog;
 use App\Support\Catalogs\ModuleCatalog;
+use App\Support\Catalogs\OrderCatalog;
 use App\Support\Catalogs\PermissionScopeCatalog;
+use App\Support\Orders\OrdersHooks;
 use App\Support\Projects\ProjectVisibility;
 use App\Support\Tasks\TaskVisibility;
 use Illuminate\Database\Eloquent\Builder;
@@ -220,47 +222,46 @@ class RecordScopeResolver
         return $query->whereRaw('1 = 0');
     }
 
-protected function allowsByConstraints(
-    string $module,
-    string $capability,
-    array $constraints,
-    Model $record,
-    array $context = []
-): bool {
-    if (
-        $module === ModuleCatalog::ORDERS
-        && in_array($capability, [
-            CapabilityCatalog::UPDATE,
-            CapabilityCatalog::DELETE,
-        ], true)
-        && \App\Support\Catalogs\OrderCatalog::isReadonlyStatus($record->getAttribute('status'))
-    ) {
-        return false;
-    }
+    protected function allowsByConstraints(
+        string $module,
+        string $capability,
+        array $constraints,
+        Model $record,
+        array $context = []
+    ): bool {
+        if (
+            $module === ModuleCatalog::ORDERS
+            && in_array($capability, [
+                CapabilityCatalog::UPDATE,
+                CapabilityCatalog::DELETE,
+            ], true)
+            && OrderCatalog::isReadonlyStatus($record->getAttribute('status'))
+        ) {
+            return false;
+        }
 
-    if (
-        $module === ModuleCatalog::ORDERS
-        && $capability === CapabilityCatalog::DELETE
-        && method_exists($record, 'hasInventoryMovements')
-        && $record->hasInventoryMovements()
-    ) {
-        return false;
-    }
+        if (
+            $module === ModuleCatalog::ORDERS
+            && $capability === CapabilityCatalog::DELETE
+            && ! $this->canDeleteOrder($record)
+        ) {
+            return false;
+        }
 
-    if ($this->requiresAllowedKinds($module, $capability)) {
-        $allowedKinds = $this->extractAllowedKinds($constraints);
+        if ($this->requiresAllowedKinds($module, $capability)) {
+            $allowedKinds = $this->extractAllowedKinds($constraints);
 
-        if (! empty($allowedKinds)) {
-            $kind = $record->getAttribute('kind');
+            if (! empty($allowedKinds)) {
+                $kind = $record->getAttribute('kind');
 
-            if (! is_string($kind) || ! in_array($kind, $allowedKinds, true)) {
-                return false;
+                if (! is_string($kind) || ! in_array($kind, $allowedKinds, true)) {
+                    return false;
+                }
             }
         }
-    }
 
-    return true;
-}
+        return true;
+    }
 
     protected function applyConstraintsToQuery(
         string $module,
@@ -372,5 +373,18 @@ protected function allowsByConstraints(
     {
         return array_key_exists($column, $model->getAttributes())
             || in_array($column, $model->getFillable(), true);
+    }
+
+    protected function canDeleteOrder(object $record): bool
+    {
+        if (! method_exists($record, 'documents')) {
+            return false;
+        }
+
+        if ($record->documents()->exists()) {
+            return false;
+        }
+
+        return ! app(OrdersHooks::class)->hasExternalMovements($record);
     }
 }

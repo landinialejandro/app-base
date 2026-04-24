@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V41 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V42 --}}
 
 @extends('layouts.app')
 
@@ -100,7 +100,7 @@
                     {{ OrderCatalog::statusLabel($order->status) }}
                 </span>
 
-                @can('update', $order)
+                @can('changeStatus', $order)
                     @include('orders.partials.status-quick-actions', [
                         'order' => $order,
                         'trailQuery' => $trailQuery,

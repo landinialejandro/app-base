@@ -81,24 +81,31 @@ class OrderCatalog extends BaseCatalog
         ], true);
     }
 
-    public static function canTransition(?string $from, string $to): bool
-    {
-        if ($from === $to) {
-            return true;
-        }
-
-        return match ($from) {
-            self::STATUS_DRAFT => in_array($to, [
-                self::STATUS_APPROVED,
-                self::STATUS_CANCELLED,
-            ], true),
-            self::STATUS_APPROVED => in_array($to, [
-                self::STATUS_CLOSED,
-                self::STATUS_CANCELLED,
-            ], true),
-            self::STATUS_CLOSED => false,
-            self::STATUS_CANCELLED => false,
-            default => false,
-        };
+public static function canTransition(?string $from, string $to): bool
+{
+    if ($from === $to) {
+        return true;
     }
+
+    return match ($from) {
+        self::STATUS_DRAFT => in_array($to, [
+            self::STATUS_APPROVED,
+            self::STATUS_CANCELLED,
+        ], true),
+
+        self::STATUS_APPROVED => in_array($to, [
+            self::STATUS_CLOSED,
+            self::STATUS_CANCELLED,
+        ], true),
+
+        self::STATUS_CLOSED => in_array($to, [
+            self::STATUS_APPROVED,
+        ], true),
+
+        self::STATUS_CANCELLED => false,
+
+        default => false,
+    };
+}
+
 }

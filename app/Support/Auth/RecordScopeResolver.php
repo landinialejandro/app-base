@@ -220,27 +220,47 @@ class RecordScopeResolver
         return $query->whereRaw('1 = 0');
     }
 
-    protected function allowsByConstraints(
-        string $module,
-        string $capability,
-        array $constraints,
-        Model $record,
-        array $context = []
-    ): bool {
-        if ($this->requiresAllowedKinds($module, $capability)) {
-            $allowedKinds = $this->extractAllowedKinds($constraints);
+protected function allowsByConstraints(
+    string $module,
+    string $capability,
+    array $constraints,
+    Model $record,
+    array $context = []
+): bool {
+    if (
+        $module === ModuleCatalog::ORDERS
+        && in_array($capability, [
+            CapabilityCatalog::UPDATE,
+            CapabilityCatalog::DELETE,
+        ], true)
+        && \App\Support\Catalogs\OrderCatalog::isReadonlyStatus($record->getAttribute('status'))
+    ) {
+        return false;
+    }
 
-            if (! empty($allowedKinds)) {
-                $kind = $record->getAttribute('kind');
+    if (
+        $module === ModuleCatalog::ORDERS
+        && $capability === CapabilityCatalog::DELETE
+        && method_exists($record, 'hasInventoryMovements')
+        && $record->hasInventoryMovements()
+    ) {
+        return false;
+    }
 
-                if (! is_string($kind) || ! in_array($kind, $allowedKinds, true)) {
-                    return false;
-                }
+    if ($this->requiresAllowedKinds($module, $capability)) {
+        $allowedKinds = $this->extractAllowedKinds($constraints);
+
+        if (! empty($allowedKinds)) {
+            $kind = $record->getAttribute('kind');
+
+            if (! is_string($kind) || ! in_array($kind, $allowedKinds, true)) {
+                return false;
             }
         }
-
-        return true;
     }
+
+    return true;
+}
 
     protected function applyConstraintsToQuery(
         string $module,

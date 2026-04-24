@@ -490,240 +490,246 @@ class OrderController extends Controller
         ));
     }
 
-    public function update(Request $request, Order $order)
-    {
-        $this->authorize('update', $order);
+public function update(Request $request, Order $order)
+{
+    $this->authorize('update', $order);
 
-        $tenant = app('tenant');
-        $security = app(Security::class);
-        $user = auth()->user();
+    abort_if(
+        OrderCatalog::isReadonlyStatus($order->status),
+        422,
+        'No se puede editar una orden en estado readonly.'
+    );
 
-        $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
+    $tenant = app('tenant');
+    $security = app(Security::class);
+    $user = auth()->user();
 
-        $data = $request->validate([
-            'party_id' => [
-                'required',
-                'integer',
-                Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
+    $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
+
+    $data = $request->validate([
+        'party_id' => [
+            'required',
+            'integer',
+            Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
+                $query->where('tenant_id', $tenant->id)
+                    ->whereNull('deleted_at');
+            }),
+        ],
+        'asset_id' => [
+            'nullable',
+            'integer',
+            Rule::exists('assets', 'id')->where(function ($query) use ($tenant) {
+                $query->where('tenant_id', $tenant->id)
+                    ->whereNull('deleted_at');
+            }),
+        ],
+        'task_id' => [
+            'nullable',
+            'integer',
+            Rule::exists('tasks', 'id')->where(function ($query) use ($tenant) {
+                $query->where('tenant_id', $tenant->id)
+                    ->whereNull('deleted_at');
+            }),
+            Rule::unique('orders', 'task_id')
+                ->ignore($order->id)
+                ->where(function ($query) use ($tenant) {
                     $query->where('tenant_id', $tenant->id)
                         ->whereNull('deleted_at');
                 }),
-            ],
-            'asset_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('assets', 'id')->where(function ($query) use ($tenant) {
-                    $query->where('tenant_id', $tenant->id)
-                        ->whereNull('deleted_at');
-                }),
-            ],
-            'task_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('tasks', 'id')->where(function ($query) use ($tenant) {
-                    $query->where('tenant_id', $tenant->id)
-                        ->whereNull('deleted_at');
-                }),
-                Rule::unique('orders', 'task_id')
-                    ->ignore($order->id)
-                    ->where(function ($query) use ($tenant) {
-                        $query->where('tenant_id', $tenant->id)
-                            ->whereNull('deleted_at');
-                    }),
-            ],
-            'kind' => [
-                'required',
-                Rule::in(OrderCatalog::kinds()),
-            ],
-            'status' => [
-                'required',
-                Rule::in(OrderCatalog::statuses()),
-            ],
-            'ordered_at' => ['nullable', 'date'],
-            'notes' => ['nullable', 'string'],
-        ]);
+        ],
+        'kind' => [
+            'required',
+            Rule::in(OrderCatalog::kinds()),
+        ],
+        'status' => [
+            'required',
+            Rule::in(OrderCatalog::statuses()),
+        ],
+        'ordered_at' => ['nullable', 'date'],
+        'notes' => ['nullable', 'string'],
+    ]);
 
-        if ($order->number) {
-            $data['kind'] = $order->kind;
-        }
-
-        if (! $supportsAssetsModule || ! array_key_exists('asset_id', $data)) {
-            $data['asset_id'] = $order->asset_id;
-        }
-
-        $security->authorize(
-            $user,
-            'orders.update',
-            $order,
-            ['kind' => $order->kind]
-        );
-
-        if (! OrderCatalog::canTransition($order->status, $data['status'])) {
-            return back()
-                ->withErrors([
-                    'status' => 'La transición de estado solicitada no es válida.',
-                ])
-                ->withInput();
-        }
-
-        if ($data['status'] === OrderCatalog::STATUS_CANCELLED && $order->hasInventoryMovements()) {
-            return back()
-                ->withErrors([
-                    'status' => 'No se puede cancelar una orden con movimientos registrados. Primero deben revertirse.',
-                ])
-                ->withInput();
-        }
-
-        if ($data['status'] === OrderCatalog::STATUS_CLOSED) {
-            $order->loadMissing('items');
-
-            $hasIncompleteItems = $order->items->contains(function ($item) {
-                return ! in_array($item->status, ['completed', 'cancelled'], true);
-            });
-
-            if ($hasIncompleteItems) {
-                return back()
-                    ->withErrors([
-                        'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
-                    ])
-                    ->withInput();
-            }
-        }
-
-        if (! empty($order->asset_id)) {
-            if ((int) $data['asset_id'] !== (int) $order->asset_id) {
-                return back()
-                    ->withErrors([
-                        'asset_id' => 'No se puede cambiar el activo de una orden ya vinculada.',
-                    ])
-                    ->withInput();
-            }
-
-            if ((int) ($data['party_id'] ?? 0) !== (int) $order->party_id) {
-                return back()
-                    ->withErrors([
-                        'party_id' => 'No se puede cambiar el contacto de una orden ya vinculada a un activo.',
-                    ])
-                    ->withInput();
-            }
-        }
-
-        if (empty($order->asset_id) && ! empty($data['asset_id'])) {
-            $asset = $security
-                ->scope($user, 'assets.viewAny', Asset::query())
-                ->whereKey($data['asset_id'])
-                ->firstOrFail();
-
-            if ((int) $asset->party_id !== (int) $data['party_id']) {
-                return back()
-                    ->withErrors([
-                        'asset_id' => 'El activo seleccionado pertenece a otro contacto.',
-                    ])
-                    ->withInput();
-            }
-        }
-
-        if (! empty($data['task_id'])) {
-            $security
-                ->scope($user, 'tasks.viewAny', Task::query())
-                ->whereKey($data['task_id'])
-                ->firstOrFail();
-        }
-
-        $orderedAt = $data['ordered_at'] ?? $order->ordered_at?->toDateString() ?? now()->toDateString();
-        $orderedAtDate = Carbon::parse($orderedAt)->startOfDay();
-        $maxFutureDate = now()->startOfDay()->addDays(30);
-
-        if ($orderedAtDate->gt($maxFutureDate)) {
-            return back()
-                ->withErrors([
-                    'ordered_at' => 'La fecha de la orden no puede superar los 30 días hacia el futuro.',
-                ])
-                ->withInput();
-        }
-
-        $data['ordered_at'] = $orderedAtDate->toDateString();
-        $data['updated_by'] = auth()->id();
-
-        if (! array_key_exists('task_id', $data)) {
-            $data['task_id'] = $order->task_id;
-        }
-
-        $order->update($data);
-
-        $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
-        $task = TaskNavigationTrail::resolveFromRequest($request, $order->tenant_id);
-
-        $navigationTrail = OrderNavigationTrail::show(
-            $request,
-            $order,
-            appointment: $appointment,
-            task: $task,
-        );
-
-        return redirect()
-            ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
-            ->with('success', 'Orden actualizada.');
+    if ($order->number) {
+        $data['kind'] = $order->kind;
     }
 
-    public function updateStatus(Request $request, Order $order)
-    {
-        $this->authorize('update', $order);
-
-        $data = $request->validate([
-            'status' => ['required', Rule::in(OrderCatalog::statuses())],
-        ]);
-
-        $newStatus = $data['status'];
-
-        if (! OrderCatalog::canTransition($order->status, $newStatus)) {
-            return back()
-                ->withErrors([
-                    'status' => 'La transición de estado solicitada no es válida.',
-                ]);
-        }
-
-        if ($newStatus === OrderCatalog::STATUS_CANCELLED && $order->hasInventoryMovements()) {
-            return back()
-                ->withErrors([
-                    'status' => 'No se puede cancelar una orden con movimientos registrados. Primero deben revertirse.',
-                ]);
-        }
-
-        if ($newStatus === OrderCatalog::STATUS_CLOSED) {
-            $order->loadMissing('items');
-
-            $hasIncompleteItems = $order->items->contains(function ($item) {
-                return ! in_array($item->status, ['completed', 'cancelled'], true);
-            });
-
-            if ($hasIncompleteItems) {
-                return back()
-                    ->withErrors([
-                        'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
-                    ]);
-            }
-        }
-
-        $order->update([
-            'status' => $newStatus,
-            'updated_by' => auth()->id(),
-        ]);
-
-        $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
-        $task = TaskNavigationTrail::resolveFromRequest($request, $order->tenant_id);
-
-        $navigationTrail = OrderNavigationTrail::show(
-            $request,
-            $order,
-            appointment: $appointment,
-            task: $task,
-        );
-
-        return redirect()
-            ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
-            ->with('success', 'Estado de la orden actualizado.');
+    if (! $supportsAssetsModule || ! array_key_exists('asset_id', $data)) {
+        $data['asset_id'] = $order->asset_id;
     }
+
+    $security->authorize(
+        $user,
+        'orders.update',
+        $order,
+        ['kind' => $order->kind]
+    );
+
+    if (! OrderCatalog::canTransition($order->status, $data['status'])) {
+        return back()
+            ->withErrors([
+                'status' => 'La transición de estado solicitada no es válida.',
+            ])
+            ->withInput();
+    }
+
+    if ($data['status'] === OrderCatalog::STATUS_CANCELLED && $order->hasInventoryMovements()) {
+        return back()
+            ->withErrors([
+                'status' => 'No se puede cancelar una orden con movimientos registrados. Primero deben revertirse.',
+            ])
+            ->withInput();
+    }
+
+    if ($data['status'] === OrderCatalog::STATUS_CLOSED) {
+        $order->loadMissing('items');
+
+        $hasIncompleteItems = $order->items->contains(function ($item) {
+            return ! in_array($item->status, ['completed', 'cancelled'], true);
+        });
+
+        if ($hasIncompleteItems) {
+            return back()
+                ->withErrors([
+                    'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
+                ])
+                ->withInput();
+        }
+    }
+
+    if (! empty($order->asset_id)) {
+        if ((int) $data['asset_id'] !== (int) $order->asset_id) {
+            return back()
+                ->withErrors([
+                    'asset_id' => 'No se puede cambiar el activo de una orden ya vinculada.',
+                ])
+                ->withInput();
+        }
+
+        if ((int) ($data['party_id'] ?? 0) !== (int) $order->party_id) {
+            return back()
+                ->withErrors([
+                    'party_id' => 'No se puede cambiar el contacto de una orden ya vinculada a un activo.',
+                ])
+                ->withInput();
+        }
+    }
+
+    if (empty($order->asset_id) && ! empty($data['asset_id'])) {
+        $asset = $security
+            ->scope($user, 'assets.viewAny', Asset::query())
+            ->whereKey($data['asset_id'])
+            ->firstOrFail();
+
+        if ((int) $asset->party_id !== (int) $data['party_id']) {
+            return back()
+                ->withErrors([
+                    'asset_id' => 'El activo seleccionado pertenece a otro contacto.',
+                ])
+                ->withInput();
+        }
+    }
+
+    if (! empty($data['task_id'])) {
+        $security
+            ->scope($user, 'tasks.viewAny', Task::query())
+            ->whereKey($data['task_id'])
+            ->firstOrFail();
+    }
+
+    $orderedAt = $data['ordered_at'] ?? $order->ordered_at?->toDateString() ?? now()->toDateString();
+    $orderedAtDate = Carbon::parse($orderedAt)->startOfDay();
+    $maxFutureDate = now()->startOfDay()->addDays(30);
+
+    if ($orderedAtDate->gt($maxFutureDate)) {
+        return back()
+            ->withErrors([
+                'ordered_at' => 'La fecha de la orden no puede superar los 30 días hacia el futuro.',
+            ])
+            ->withInput();
+    }
+
+    $data['ordered_at'] = $orderedAtDate->toDateString();
+    $data['updated_by'] = auth()->id();
+
+    if (! array_key_exists('task_id', $data)) {
+        $data['task_id'] = $order->task_id;
+    }
+
+    $order->update($data);
+
+    $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
+    $task = TaskNavigationTrail::resolveFromRequest($request, $order->tenant_id);
+
+    $navigationTrail = OrderNavigationTrail::show(
+        $request,
+        $order,
+        appointment: $appointment,
+        task: $task,
+    );
+
+    return redirect()
+        ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
+        ->with('success', 'Orden actualizada.');
+}
+
+public function updateStatus(Request $request, Order $order)
+{
+    $this->authorize('changeStatus', $order);
+
+    $data = $request->validate([
+        'status' => ['required', Rule::in(OrderCatalog::statuses())],
+    ]);
+
+    $newStatus = $data['status'];
+
+    if (! OrderCatalog::canTransition($order->status, $newStatus)) {
+        return back()
+            ->withErrors([
+                'status' => 'La transición de estado solicitada no es válida.',
+            ]);
+    }
+
+    if ($newStatus === OrderCatalog::STATUS_CANCELLED && $order->hasInventoryMovements()) {
+        return back()
+            ->withErrors([
+                'status' => 'No se puede cancelar una orden con movimientos registrados. Primero deben revertirse.',
+            ]);
+    }
+
+    if ($newStatus === OrderCatalog::STATUS_CLOSED) {
+        $order->loadMissing('items');
+
+        $hasIncompleteItems = $order->items->contains(function ($item) {
+            return ! in_array($item->status, ['completed', 'cancelled'], true);
+        });
+
+        if ($hasIncompleteItems) {
+            return back()
+                ->withErrors([
+                    'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
+                ]);
+        }
+    }
+
+    $order->update([
+        'status' => $newStatus,
+        'updated_by' => auth()->id(),
+    ]);
+
+    $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
+    $task = TaskNavigationTrail::resolveFromRequest($request, $order->tenant_id);
+
+    $navigationTrail = OrderNavigationTrail::show(
+        $request,
+        $order,
+        appointment: $appointment,
+        task: $task,
+    );
+
+    return redirect()
+        ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
+        ->with('success', 'Estado de la orden actualizado.');
+}
 
     public function destroy(Request $request, Order $order)
     {

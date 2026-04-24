@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/partials/status-quick-actions.blade.php | V4 --}}
+{{-- FILE: resources/views/orders/partials/status-quick-actions.blade.php | V5 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
@@ -18,10 +18,16 @@
     ) {
         $actions[] = [
             'status' => OrderCatalog::STATUS_APPROVED,
-            'title' => 'Aprobar orden',
-            'aria' => 'Aprobar orden',
+            'title' => $order->status === OrderCatalog::STATUS_CLOSED
+                ? 'Reabrir orden'
+                : 'Aprobar orden',
+            'aria' => $order->status === OrderCatalog::STATUS_CLOSED
+                ? 'Reabrir orden'
+                : 'Aprobar orden',
             'class' => 'btn btn-warning btn-icon',
-            'message' => '¿Cambiar el estado de la orden a Aprobada?',
+            'message' => $order->status === OrderCatalog::STATUS_CLOSED
+                ? '¿Reabrir la orden y volverla al estado Aprobada?'
+                : '¿Cambiar el estado de la orden a Aprobada?',
             'icon' => 'check',
         ];
     }

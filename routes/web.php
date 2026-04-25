@@ -299,6 +299,8 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         ->name('inventory.movements.store');
     Route::post('/inventory/orders/{order}/items/{item}/return', [InventoryController::class, 'returnOrderItemQuantity'])
         ->name('inventory.order-items.return');
+    Route::post('/inventory/documents/{document}/items/{item}/execute', [InventoryController::class, 'executeDocumentItem'])
+        ->name('inventory.document-items.execute');
 
     // Print
     Route::get('/appointments/{appointment}/pdf', [AppointmentController::class, 'pdf'])

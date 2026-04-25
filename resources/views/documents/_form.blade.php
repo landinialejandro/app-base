@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/_form.blade.php | V4 --}}
+{{-- FILE: resources/views/documents/_form.blade.php | V6 --}}
 
 @php
     use App\Support\Catalogs\DocumentCatalog;
@@ -11,10 +11,10 @@
     $currentOrderId = old('order_id', $boundOrder?->id ?? ($document->order_id ?? ''));
     $currentPartyId = old('party_id', $boundOrder?->party_id ?? ($document->party_id ?? ''));
     $currentAssetId = old('asset_id', $boundOrder?->asset_id ?? ($document->asset_id ?? ''));
+    $currentGroup = old('group', $document->group ?? DocumentCatalog::GROUP_SALE);
 
-    $visibleKinds = collect(DocumentCatalog::kindLabels())->reject(
-        fn($label, $value) => $value === DocumentCatalog::KIND_WORK_ORDER,
-    );
+    $visibleKinds = collect(DocumentCatalog::kindLabelsForGroup($currentGroup))
+        ->reject(fn($label, $value) => $value === DocumentCatalog::KIND_WORK_ORDER);
 @endphp
 
 <div class="form" data-action="app-party-asset-sync" data-party-select="#party_id" data-asset-select="#asset_id">
@@ -75,6 +75,36 @@
             se usará el activo de esa orden.
         </div>
         @error('asset_id')
+            <div class="form-help is-error">{{ $message }}</div>
+        @enderror
+    </div>
+
+    <div class="form-group">
+        <label for="group" class="form-label">Grupo</label>
+
+        @if ($documentIsNumbered)
+            <select id="group" class="form-control" disabled>
+                @foreach (DocumentCatalog::groupLabels() as $value => $label)
+                    <option value="{{ $value }}" @selected($currentGroup === $value)>
+                        {{ $label }}
+                    </option>
+                @endforeach
+            </select>
+
+            <input type="hidden" name="group" value="{{ $currentGroup }}">
+
+            <div class="form-help">El grupo no puede cambiarse una vez numerado el documento.</div>
+        @else
+            <select name="group" id="group" class="form-control" required>
+                @foreach (DocumentCatalog::groupLabels() as $value => $label)
+                    <option value="{{ $value }}" @selected($currentGroup === $value)>
+                        {{ $label }}
+                    </option>
+                @endforeach
+            </select>
+        @endif
+
+        @error('group')
             <div class="form-help is-error">{{ $message }}</div>
         @enderror
     </div>

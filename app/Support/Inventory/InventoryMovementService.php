@@ -1,10 +1,11 @@
 <?php
 
-// FILE: app/Support/Inventory/InventoryMovementService.php | V8
+// FILE: app/Support/Inventory/InventoryMovementService.php | V9
 
 namespace App\Support\Inventory;
 
 use App\Models\Document;
+use App\Models\DocumentItem;
 use App\Models\InventoryMovement;
 use App\Models\InventoryOperation;
 use App\Models\Order;
@@ -53,6 +54,7 @@ class InventoryMovementService
             order: $order,
             orderItem: null,
             document: $document,
+            documentItem: null,
             createdBy: $createdBy,
             operation: $operation,
         );
@@ -75,6 +77,7 @@ class InventoryMovementService
             order: $order,
             orderItem: null,
             document: $document,
+            documentItem: null,
             createdBy: $createdBy,
             operation: $operation,
         );
@@ -97,6 +100,7 @@ class InventoryMovementService
             order: $order,
             orderItem: null,
             document: $document,
+            documentItem: null,
             createdBy: $createdBy,
             operation: $operation,
         );
@@ -120,6 +124,31 @@ class InventoryMovementService
             order: $order,
             orderItem: $item,
             document: null,
+            documentItem: null,
+            createdBy: $createdBy,
+            operation: $operation,
+        );
+    }
+
+    public function createForDocumentItem(
+        Document $document,
+        DocumentItem $item,
+        Product $product,
+        string $kind,
+        float|int|string $quantity,
+        ?string $notes = null,
+        int|string|null $createdBy = null,
+        ?InventoryOperation $operation = null,
+    ): array {
+        return $this->createMovement(
+            product: $product,
+            kind: $kind,
+            quantity: $quantity,
+            notes: $notes,
+            order: null,
+            orderItem: null,
+            document: $document,
+            documentItem: $item,
             createdBy: $createdBy,
             operation: $operation,
         );
@@ -133,6 +162,7 @@ class InventoryMovementService
         ?Order $order = null,
         ?OrderItem $orderItem = null,
         ?Document $document = null,
+        ?DocumentItem $documentItem = null,
         int|string|null $createdBy = null,
         ?InventoryOperation $operation = null,
     ): array {
@@ -140,12 +170,12 @@ class InventoryMovementService
 
         $this->validateKind($kind);
         $this->validateQuantity($normalizedQuantity);
-        $this->validateTenantConsistency($product, $order, $orderItem, $document, $operation);
+        $this->validateTenantConsistency($product, $order, $orderItem, $document, $documentItem, $operation);
         $this->validateOrderContext($product, $order, $orderItem);
-        $this->validateDocumentContext($product, $document);
+        $this->validateDocumentContext($product, $document, $documentItem);
 
         $origin = $this->resolveOrigin($order, $document);
-        $originLine = $this->resolveOriginLine($orderItem);
+        $originLine = $this->resolveOriginLine($orderItem, $documentItem);
 
         return DB::transaction(function () use (
             $product,
@@ -155,6 +185,7 @@ class InventoryMovementService
             $order,
             $orderItem,
             $document,
+            $documentItem,
             $createdBy,
             $operation,
             $origin,
@@ -178,6 +209,7 @@ class InventoryMovementService
                     order: $order,
                     orderItem: $orderItem,
                     document: $document,
+                    documentItem: $documentItem,
                     createdBy: $createdBy,
                     operation: $operation,
                 ),
@@ -196,6 +228,8 @@ class InventoryMovementService
                 stockAfter: $stockAfter,
                 order: $order,
                 orderItem: $orderItem,
+                document: $document,
+                documentItem: $documentItem,
                 actorUserId: $createdBy,
                 movementQuantity: $normalizedQuantity,
             );
@@ -232,12 +266,19 @@ class InventoryMovementService
         ];
     }
 
-    protected function resolveOriginLine(?OrderItem $orderItem = null): array
+    protected function resolveOriginLine(?OrderItem $orderItem = null, ?DocumentItem $documentItem = null): array
     {
         if ($orderItem) {
             return [
                 'type' => InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM,
                 'id' => $orderItem->id,
+            ];
+        }
+
+        if ($documentItem) {
+            return [
+                'type' => InventoryOriginCatalog::LINE_TYPE_DOCUMENT_ITEM,
+                'id' => $documentItem->id,
             ];
         }
 
@@ -266,6 +307,7 @@ class InventoryMovementService
         ?Order $order = null,
         ?OrderItem $orderItem = null,
         ?Document $document = null,
+        ?DocumentItem $documentItem = null,
         ?InventoryOperation $operation = null,
     ): void {
         if ($order && $order->tenant_id !== $product->tenant_id) {
@@ -278,6 +320,10 @@ class InventoryMovementService
 
         if ($document && $document->tenant_id !== $product->tenant_id) {
             throw new InvalidArgumentException('El documento pertenece a otro tenant.');
+        }
+
+        if ($documentItem && $documentItem->tenant_id !== $product->tenant_id) {
+            throw new InvalidArgumentException('La línea del documento pertenece a otro tenant.');
         }
 
         if ($operation && $operation->tenant_id !== $product->tenant_id) {
@@ -317,12 +363,31 @@ class InventoryMovementService
         $this->validatePhysicalProduct($product);
     }
 
-    protected function validateDocumentContext(Product $product, ?Document $document = null): void
-    {
-        if (! $document) {
+    protected function validateDocumentContext(
+        Product $product,
+        ?Document $document = null,
+        ?DocumentItem $documentItem = null,
+    ): void {
+        if (! $document && ! $documentItem) {
             $this->validatePhysicalProduct($product);
 
             return;
+        }
+
+        if (! $document && $documentItem) {
+            throw new InvalidArgumentException('La línea requiere un documento asociado.');
+        }
+
+        if ($document && ! $documentItem) {
+            throw new InvalidArgumentException('No se admiten movimientos de documento sin línea asociada.');
+        }
+
+        if ((int) $documentItem->document_id !== (int) $document->id) {
+            throw new InvalidArgumentException('La línea no pertenece al documento indicado.');
+        }
+
+        if ((int) $documentItem->product_id !== (int) $product->id) {
+            throw new InvalidArgumentException('La línea no corresponde al producto indicado.');
         }
 
         $this->validatePhysicalProduct($product);
@@ -343,6 +408,7 @@ class InventoryMovementService
         ?Order $order = null,
         ?OrderItem $orderItem = null,
         ?Document $document = null,
+        ?DocumentItem $documentItem = null,
         int|string|null $createdBy = null,
         ?InventoryOperation $operation = null,
     ): string {
@@ -376,6 +442,11 @@ class InventoryMovementService
             $trace[] = 'Posición de línea: '.($orderItem->position ?? '—');
         }
 
+        if ($documentItem) {
+            $trace[] = 'Línea origen: document_item #'.$documentItem->id;
+            $trace[] = 'Posición de línea: '.($documentItem->position ?? '—');
+        }
+
         $actor = $this->resolveActorUser($createdBy);
 
         if ($actor) {
@@ -395,6 +466,8 @@ class InventoryMovementService
         float $stockAfter,
         ?Order $order = null,
         ?OrderItem $orderItem = null,
+        ?Document $document = null,
+        ?DocumentItem $documentItem = null,
         int|string|null $actorUserId = null,
         float $movementQuantity = 0.0,
     ): ?Task {
@@ -443,6 +516,14 @@ class InventoryMovementService
 
         if ($orderItem) {
             $descriptionLines[] = '- Línea relacionada: #'.$orderItem->id.' - '.($orderItem->description ?: 'Sin descripción');
+        }
+
+        if ($document) {
+            $descriptionLines[] = '- Documento relacionado: '.($document->number ?: 'Documento #'.$document->id);
+        }
+
+        if ($documentItem) {
+            $descriptionLines[] = '- Línea documental relacionada: #'.$documentItem->id.' - '.($documentItem->description ?: 'Sin descripción');
         }
 
         if ($movement->notes) {

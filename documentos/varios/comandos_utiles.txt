@@ -70,4 +70,13 @@ app bootstrap config database public resources routes storage vendor composer.js
 -x ".env.*.example" \
 -x "README.md"
 
+
+
+
+obtener el cambio anterior
+
+(
+git show HEAD~1:resources/views/documents/_form.blade.php 2>/dev/null || true
+) > documentos/auditoria/documents-form-before-group.txt
 <<END SECTION>>
+

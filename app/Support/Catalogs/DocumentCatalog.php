@@ -1,11 +1,17 @@
 <?php
 
-// FILE: app/Support/Catalogs/DocumentCatalog.php
+// FILE: app/Support/Catalogs/DocumentCatalog.php | V2
 
 namespace App\Support\Catalogs;
 
 class DocumentCatalog extends BaseCatalog
 {
+    public const GROUP_SALE = 'sale';
+
+    public const GROUP_PURCHASE = 'purchase';
+
+    public const GROUP_SERVICE = 'service';
+
     public const KIND_QUOTE = 'quote';
 
     public const KIND_INVOICE = 'invoice';
@@ -23,6 +29,12 @@ class DocumentCatalog extends BaseCatalog
     public const STATUS_ISSUED = 'issued';
 
     public const STATUS_CANCELLED = 'cancelled';
+
+    protected static array $groups = [
+        self::GROUP_SALE => 'Venta',
+        self::GROUP_PURCHASE => 'Compra',
+        self::GROUP_SERVICE => 'Servicio',
+    ];
 
     protected static array $kinds = [
         self::KIND_QUOTE => 'Presupuesto',
@@ -45,6 +57,35 @@ class DocumentCatalog extends BaseCatalog
         self::STATUS_CANCELLED => 'status-badge--cancelled',
     ];
 
+    public static function groups(): array
+    {
+        return array_keys(static::$groups);
+    }
+
+    public static function groupLabels(): array
+    {
+        return static::$groups;
+    }
+
+    public static function groupLabel(?string $value, ?string $default = '—'): ?string
+    {
+        if ($value === null) {
+            return $default;
+        }
+
+        return static::$groups[$value] ?? $default;
+    }
+
+    public static function kinds(): array
+    {
+        return array_keys(static::$kinds);
+    }
+
+    public static function kindLabels(): array
+    {
+        return static::$kinds;
+    }
+
     public static function kindLabel(?string $value, ?string $default = '—'): ?string
     {
         if ($value === null) {
@@ -54,6 +95,16 @@ class DocumentCatalog extends BaseCatalog
         return static::$kinds[$value] ?? $default;
     }
 
+    public static function statuses(): array
+    {
+        return array_keys(static::$statuses);
+    }
+
+    public static function statusLabels(): array
+    {
+        return static::$statuses;
+    }
+
     public static function statusLabel(?string $value, ?string $default = '—'): ?string
     {
         if ($value === null) {
@@ -61,5 +112,144 @@ class DocumentCatalog extends BaseCatalog
         }
 
         return static::$statuses[$value] ?? $default;
+    }
+
+    public static function badgeClass(?string $value, ?string $default = 'status-badge--neutral'): string
+    {
+        if ($value === null) {
+            return $default;
+        }
+
+        return static::$badges[$value] ?? $default;
+    }
+
+    public static function isValidGroup(?string $group): bool
+    {
+        return $group !== null && in_array($group, static::groups(), true);
+    }
+
+    public static function isValidKind(?string $kind): bool
+    {
+        return $kind !== null && in_array($kind, static::kinds(), true);
+    }
+
+    public static function isValidStatus(?string $status): bool
+    {
+        return $status !== null && in_array($status, static::statuses(), true);
+    }
+
+    public static function stockAffectingKinds(): array
+    {
+        return [
+            self::KIND_DELIVERY_NOTE,
+            self::KIND_CREDIT_NOTE,
+            self::KIND_WORK_ORDER,
+        ];
+    }
+
+    public static function affectsStock(?string $group, ?string $kind): bool
+    {
+        if (! static::isValidGroup($group) || ! static::isValidKind($kind)) {
+            return false;
+        }
+
+        return in_array($kind, static::stockAffectingKinds(), true);
+    }
+
+    public static function stockDirection(?string $group, ?string $kind): ?string
+    {
+        if (! static::affectsStock($group, $kind)) {
+            return null;
+        }
+
+        if ($kind === self::KIND_CREDIT_NOTE) {
+            return match ($group) {
+                self::GROUP_SALE => 'in',
+                self::GROUP_PURCHASE => 'out',
+                default => null,
+            };
+        }
+
+        if ($kind === self::KIND_DELIVERY_NOTE) {
+            return match ($group) {
+                self::GROUP_SALE, self::GROUP_SERVICE => 'out',
+                self::GROUP_PURCHASE => 'in',
+                default => null,
+            };
+        }
+
+        if ($kind === self::KIND_WORK_ORDER) {
+            return $group === self::GROUP_SERVICE ? 'out' : null;
+        }
+
+        return null;
+    }
+
+    public static function isFiscalKind(?string $kind): bool
+    {
+        return in_array($kind, [
+            self::KIND_INVOICE,
+            self::KIND_RECEIPT,
+            self::KIND_CREDIT_NOTE,
+        ], true);
+    }
+
+    public static function isExecutionKind(?string $kind): bool
+    {
+        return in_array($kind, [
+            self::KIND_DELIVERY_NOTE,
+            self::KIND_WORK_ORDER,
+        ], true);
+    }
+
+    public static function isCommercialKind(?string $kind): bool
+    {
+        return in_array($kind, [
+            self::KIND_QUOTE,
+            self::KIND_INVOICE,
+            self::KIND_DELIVERY_NOTE,
+            self::KIND_WORK_ORDER,
+            self::KIND_RECEIPT,
+            self::KIND_CREDIT_NOTE,
+        ], true);
+    }
+
+    public static function kindsForGroup(?string $group): array
+    {
+        return match ($group) {
+            self::GROUP_SALE => [
+                self::KIND_QUOTE,
+                self::KIND_DELIVERY_NOTE,
+                self::KIND_INVOICE,
+                self::KIND_RECEIPT,
+                self::KIND_CREDIT_NOTE,
+            ],
+            self::GROUP_PURCHASE => [
+                self::KIND_DELIVERY_NOTE,
+                self::KIND_INVOICE,
+                self::KIND_RECEIPT,
+                self::KIND_CREDIT_NOTE,
+            ],
+            self::GROUP_SERVICE => [
+                self::KIND_QUOTE,
+                self::KIND_WORK_ORDER,
+                self::KIND_INVOICE,
+                self::KIND_RECEIPT,
+                self::KIND_CREDIT_NOTE,
+            ],
+            default => [],
+        };
+    }
+
+    public static function kindLabelsForGroup(?string $group): array
+    {
+        return collect(static::kindLabels())
+            ->only(static::kindsForGroup($group))
+            ->all();
+    }
+
+    public static function isValidKindForGroup(?string $group, ?string $kind): bool
+    {
+        return in_array($kind, static::kindsForGroup($group), true);
     }
 }

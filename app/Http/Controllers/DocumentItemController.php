@@ -109,67 +109,87 @@ class DocumentItemController extends Controller
         return view('documents.items.edit', compact('document', 'item', 'products', 'navigationTrail'));
     }
 
-    public function update(Request $request, Document $document, DocumentItem $item)
-    {
-        $this->authorize('update', $document);
+public function update(Request $request, Document $document, DocumentItem $item)
+{
+    $this->authorize('update', $document);
 
-        abort_unless((int) $item->document_id === (int) $document->id, 404);
+    abort_unless((int) $item->document_id === (int) $document->id, 404);
 
-        $security = app(Security::class);
-        $user = auth()->user();
+    $security = app(Security::class);
+    $user = auth()->user();
 
-        $data = $request->validate([
-            'product_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('products', 'id')->where(function ($query) use ($document) {
-                    $query->where('tenant_id', $document->tenant_id)
-                        ->whereNull('deleted_at');
-                }),
-            ],
-            'position' => ['required', 'integer', 'min:1'],
-            'kind' => ['required', 'string', 'max:50'],
-            'description' => ['required', 'string', 'max:255'],
-            'quantity' => ['required', 'numeric', 'gt:0'],
-            'unit_price' => ['required', 'numeric', 'min:0'],
-        ]);
+    $data = $request->validate([
+        'product_id' => [
+            'nullable',
+            'integer',
+            Rule::exists('products', 'id')->where(function ($query) use ($document) {
+                $query->where('tenant_id', $document->tenant_id)
+                    ->whereNull('deleted_at');
+            }),
+        ],
+        'position' => ['required', 'integer', 'min:1'],
+        'kind' => ['required', 'string', 'max:50'],
+        'description' => ['required', 'string', 'max:255'],
+        'quantity' => ['required', 'numeric', 'gt:0'],
+        'unit_price' => ['required', 'numeric', 'min:0'],
+    ]);
 
-        if (! empty($data['product_id'])) {
-            $security
-                ->scope($user, 'products.viewAny', Product::query())
-                ->where('tenant_id', $document->tenant_id)
-                ->whereNull('deleted_at')
-                ->whereKey($data['product_id'])
-                ->firstOrFail();
-        }
-
-        $data['line_total'] = (float) $data['quantity'] * (float) $data['unit_price'];
-
-        $item->update($data);
-
-        DocumentTotalsCalculator::apply($document->fresh());
-
-        $navigationTrail = DocumentNavigationTrail::show($request, $document);
-
-        return redirect()
-            ->route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
-            ->with('success', 'Ítem actualizado correctamente.');
+    if (! empty($data['product_id'])) {
+        $security
+            ->scope($user, 'products.viewAny', Product::query())
+            ->where('tenant_id', $document->tenant_id)
+            ->whereNull('deleted_at')
+            ->whereKey($data['product_id'])
+            ->firstOrFail();
     }
 
-    public function destroy(Request $request, Document $document, DocumentItem $item)
-    {
-        $this->authorize('update', $document);
-
-        abort_unless((int) $item->document_id === (int) $document->id, 404);
-
-        $item->delete();
-
-        DocumentTotalsCalculator::apply($document->fresh());
-
-        $navigationTrail = DocumentNavigationTrail::show($request, $document);
-
-        return redirect()
-            ->route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
-            ->with('success', 'Ítem eliminado correctamente.');
+    try {
+        app(\App\Support\Inventory\InventoryDocumentItemHooks::class)->beforeUpdate($document, $item, $data);
+    } catch (\InvalidArgumentException $exception) {
+        return back()
+            ->withErrors([
+                'quantity' => $exception->getMessage(),
+            ])
+            ->withInput();
     }
+
+    $data['line_total'] = (float) $data['quantity'] * (float) $data['unit_price'];
+
+    $item->update($data);
+
+    DocumentTotalsCalculator::apply($document->fresh());
+
+    $navigationTrail = DocumentNavigationTrail::show($request, $document);
+
+    return redirect()
+        ->route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
+        ->with('success', 'Ítem actualizado correctamente.');
+}
+
+public function destroy(Request $request, Document $document, DocumentItem $item)
+{
+    $this->authorize('update', $document);
+
+    abort_unless((int) $item->document_id === (int) $document->id, 404);
+
+    try {
+        app(\App\Support\Inventory\InventoryDocumentItemHooks::class)->beforeDelete($document, $item);
+    } catch (\InvalidArgumentException $exception) {
+        return back()
+            ->withErrors([
+                'item' => $exception->getMessage(),
+            ]);
+    }
+
+    $item->delete();
+
+    DocumentTotalsCalculator::apply($document->fresh());
+
+    $navigationTrail = DocumentNavigationTrail::show($request, $document);
+
+    return redirect()
+        ->route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
+        ->with('success', 'Ítem eliminado correctamente.');
+}
+
 }

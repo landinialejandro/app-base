@@ -300,6 +300,7 @@ TXT;
                 <textarea name="code" id="code"><?= htmlspecialchars($code) ?></textarea>
 
                 <div class="actions">
+                    <button type="button" onclick="pasteIntoCode()" class="secondary">Pegar</button>
                     <button type="submit" name="run" value="1" id="runButton">Ejecutar Tinker</button>
                     <button type="submit" name="clear_all" value="1" class="danger">Borrar todo</button>
                     <button type="submit" name="close_session" value="1" class="secondary">Cerrar sesión</button>
@@ -369,6 +370,31 @@ TXT;
                 document.getElementById('runButton').click();
             }
         });
-    </script>
+    async function pasteIntoCode() {
+        const field = document.getElementById('code');
+
+        try {
+            const text = await navigator.clipboard.readText();
+            field.value = '';
+            field.value = text;
+            field.focus();
+        } catch (error) {
+            alert('No se pudo leer el portapapeles. Probá pegar manualmente con Ctrl+V.');
+        }
+    }
+
+    function copyField(id) {
+        const field = document.getElementById(id);
+        field.select();
+        document.execCommand('copy');
+    }
+
+    document.getElementById('code').addEventListener('keydown', function (event) {
+        if (event.key === 'Enter' && !event.shiftKey) {
+            event.preventDefault();
+            document.getElementById('runButton').click();
+        }
+    });
+</script>
 </body>
 </html>

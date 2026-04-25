@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Document.php | V4
+// FILE: app/Models/Document.php | V5
 
 namespace App\Models;
 
@@ -20,6 +20,7 @@ class Document extends Model
         'party_id',
         'order_id',
         'asset_id',
+        'group',
         'kind',
         'number',
         'sequence_prefix',

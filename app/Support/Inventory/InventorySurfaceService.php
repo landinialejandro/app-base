@@ -5,10 +5,12 @@
 namespace App\Support\Inventory;
 
 use App\Models\Document;
+use App\Models\DocumentItem;
 use App\Models\InventoryMovement;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Support\Catalogs\DocumentCatalog;
 use App\Support\Catalogs\ProductCatalog;
 use App\Support\Modules\Concerns\BuildsSurfaceOffers;
 use App\Support\Modules\Contracts\ModuleSurfaceService;
@@ -107,9 +109,20 @@ class InventorySurfaceService implements ModuleSurfaceService
                 targets: ['orders.items.row'],
                 slot: 'row_actions',
                 priority: 20,
-                view: 'inventory.components.order-item-row-actions',
+                view: 'inventory.components.row-actions',
                 resolver: $this->resolveOrderItemRowActions(...),
                 needs: ['record', 'recordType', 'trailQuery', 'order'],
+            ),
+
+            $this->linkedOffer(
+                key: 'inventory.document_item.actions',
+                label: 'Operación por línea documental',
+                targets: ['documents.items.row'],
+                slot: 'row_actions',
+                priority: 20,
+                view: 'inventory.components.row-actions',
+                resolver: $this->resolveDocumentItemRowActions(...),
+                needs: ['record', 'recordType', 'trailQuery', 'document'],
             ),
         ];
     }
@@ -122,6 +135,17 @@ class InventorySurfaceService implements ModuleSurfaceService
                 'record' => $record,
                 'recordType' => 'order_item',
                 'order' => $context['order'],
+                'trailQuery' => $context['trailQuery'] ?? [],
+                'modal_namespace' => (string) ($context['modal_namespace'] ?? ''),
+            ];
+        }
+
+        if ($host === 'documents.items.row' && $record instanceof DocumentItem && ($context['document'] ?? null) instanceof Document) {
+            return [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'document_item',
+                'document' => $context['document'],
                 'trailQuery' => $context['trailQuery'] ?? [],
                 'modal_namespace' => (string) ($context['modal_namespace'] ?? ''),
             ];
@@ -407,7 +431,7 @@ class InventorySurfaceService implements ModuleSurfaceService
                 'label' => $row['execute_label'] ?? 'Operar línea',
                 'title' => $row['execute_title'] ?? 'Operar línea',
                 'icon' => $row['execute_icon'] ?? 'truck',
-                'modal_view' => 'inventory.partials.order-line-execute-modal',
+                'modal_view' => 'inventory.partials.line-execute-modal',
                 'modal_id' => $modalPrefix.'inventory-row-execute-line-'.$record->id,
                 'row' => $row,
                 'order' => $order,
@@ -478,38 +502,38 @@ class InventorySurfaceService implements ModuleSurfaceService
             ->first();
     }
 
-private function movementRowsForOrigin(string $originType, int|string $originId, string $tenantId): Collection
-{
-    $movements = InventoryMovement::query()
-        ->where('tenant_id', $tenantId)
-        ->where('origin_type', $originType)
-        ->where('origin_id', $originId)
-        ->with([
-            'product',
-            'operation',
-        ])
-        ->orderBy('created_at')
-        ->orderBy('id')
-        ->get();
+    private function movementRowsForOrigin(string $originType, int|string $originId, string $tenantId): Collection
+    {
+        $movements = InventoryMovement::query()
+            ->where('tenant_id', $tenantId)
+            ->where('origin_type', $originType)
+            ->where('origin_id', $originId)
+            ->with([
+                'product',
+                'operation',
+            ])
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get();
 
-    return $this->buildMovementRows($movements);
-}
+        return $this->buildMovementRows($movements);
+    }
 
-private function movementRowsForProduct(Product $product, string $movementKind = ''): Collection
-{
-    $movements = InventoryMovement::query()
-        ->where('tenant_id', $product->tenant_id)
-        ->where('product_id', $product->id)
-        ->with([
-            'product',
-            'operation',
-        ])
-        ->orderBy('created_at')
-        ->orderBy('id')
-        ->get();
+    private function movementRowsForProduct(Product $product, string $movementKind = ''): Collection
+    {
+        $movements = InventoryMovement::query()
+            ->where('tenant_id', $product->tenant_id)
+            ->where('product_id', $product->id)
+            ->with([
+                'product',
+                'operation',
+            ])
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->get();
 
-    return $this->buildMovementRows($movements, $movementKind);
-}
+        return $this->buildMovementRows($movements, $movementKind);
+    }
 
     private function buildMovementRows(Collection $movements, string $movementKind = ''): Collection
     {
@@ -582,8 +606,99 @@ private function movementRowsForProduct(Product $product, string $movementKind =
             $record instanceof Document => 'document',
             $record instanceof Order => 'order',
             $record instanceof OrderItem => 'order_item',
+            $record instanceof DocumentItem => 'document_item',
             $record instanceof Product => 'product',
             default => null,
         };
     }
+
+private function resolveDocumentItemRowActions(array $hostPack): array
+{
+    $record = $hostPack['record'] ?? null;
+    $recordType = $hostPack['recordType'] ?? null;
+    $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+    $document = $hostPack['document'] ?? null;
+
+    if ($recordType !== 'document_item' || ! $record instanceof \App\Models\DocumentItem || ! $document instanceof Document) {
+        return [
+            'count' => 0,
+            'data' => [
+                'actions' => [],
+            ],
+        ];
+    }
+
+    $record->loadMissing('product');
+
+    $documentAffectsStock = \App\Support\Catalogs\DocumentCatalog::affectsStock($document->group, $document->kind);
+    $isPhysicalProduct = $record->product && $record->product->kind === ProductCatalog::KIND_PRODUCT;
+    $canUpdateDocument = auth()->user()?->can('update', $document) === true;
+
+    $statusService = app(\App\Support\Inventory\DocumentItemStatusService::class);
+
+    $executedQuantity = $isPhysicalProduct
+        ? $statusService->executedQuantity($record)
+        : 0.0;
+
+    $pendingQuantity = $isPhysicalProduct
+        ? $statusService->pendingQuantity($record)
+        : 0.0;
+
+    $actions = [];
+
+    if ($documentAffectsStock && $isPhysicalProduct && $canUpdateDocument && $pendingQuantity > 0) {
+        $actions[] = [
+            'type' => 'modal',
+            'action_key' => 'execute',
+            'label' => 'Surtir',
+            'title' => 'Surtir',
+            'icon' => 'truck',
+            'modal_view' => 'inventory.partials.line-execute-modal',
+            'modal_id' => 'inventory-document-execute-line-'.$record->id,
+            'row' => [
+                'position' => $record->position,
+                'product_name' => $record->description,
+                'quantity' => $record->quantity,
+                'pending_quantity' => $pendingQuantity,
+                'executed_quantity' => $executedQuantity,
+                'current_stock' => $record->product
+                    ? app(ProductStockCalculator::class)->forProduct($record->product)
+                    : null,
+            ],
+            'document' => $document,
+            'action' => route('inventory.document-items.execute', [
+                'document' => $document,
+                'item' => $record,
+            ] + $trailQuery),
+            'hiddenFields' => [
+                'return_context' => 'documents.show',
+                'return_tab' => 'items',
+            ],
+        ];
+    }
+
+    if ($record->product_id) {
+        $actions[] = [
+            'type' => 'link',
+            'action_key' => 'view_movements',
+            'label' => 'Ver movimientos',
+            'title' => 'Ver movimientos de la línea',
+            'icon' => 'eye',
+            'href' => route('inventory.show', [
+                'product' => $record->product_id,
+            ] + $trailQuery + [
+                'origin_line_type' => InventoryOriginCatalog::LINE_TYPE_DOCUMENT_ITEM,
+                'origin_line_id' => $record->id,
+            ]),
+        ];
+    }
+
+    return [
+        'count' => count($actions),
+        'data' => [
+            'actions' => $actions,
+        ],
+    ];
+}
+
 }

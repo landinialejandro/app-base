@@ -1,7 +1,9 @@
-{{-- FILE: resources/views/documents/items/partials/table.blade.php | V3 --}}
+{{-- FILE: resources/views/documents/items/partials/table.blade.php | V5 --}}
 
 @php
     use App\Support\Catalogs\ProductCatalog;
+    use App\Support\Inventory\InventorySurfaceService;
+    use App\Support\Modules\ModuleSurfaceRegistry;
 
     $document = $document ?? null;
     $items = $items ?? collect();
@@ -25,6 +27,24 @@
             </thead>
             <tbody>
                 @foreach ($items as $item)
+                    @php
+                        $rowActions = collect();
+
+                        if ($document) {
+                            $rowHostPack = app(InventorySurfaceService::class)->hostPack('documents.items.row', $item, [
+                                'document' => $document,
+                                'trailQuery' => $trailQuery,
+                            ]);
+
+                            $rowActions = collect(
+                                app(ModuleSurfaceRegistry::class)->linkedFor('documents.items.row', $rowHostPack)
+                            )
+                                ->where('slot', 'row_actions')
+                                ->sortBy(fn ($surface) => $surface['priority'] ?? 999)
+                                ->values();
+                        }
+                    @endphp
+
                     <tr>
                         <td>{{ $item->position }}</td>
                         <td>{{ ProductCatalog::kindLabel($item->kind) }}</td>
@@ -35,6 +55,10 @@
                         <td class="compact-actions-cell">
                             @can('update', $document)
                                 <div class="compact-actions">
+                                    @foreach ($rowActions as $surface)
+                                        @include($surface['view'], $surface['data'] ?? [])
+                                    @endforeach
+
                                     <x-button-tool :href="route(
                                         'documents.items.edit',
                                         ['document' => $document, 'item' => $item] + $trailQuery,
@@ -51,7 +75,15 @@
                                     </x-button-tool-submit>
                                 </div>
                             @else
-                                —
+                                @if ($rowActions->isNotEmpty())
+                                    <div class="compact-actions">
+                                        @foreach ($rowActions as $surface)
+                                            @include($surface['view'], $surface['data'] ?? [])
+                                        @endforeach
+                                    </div>
+                                @else
+                                    —
+                                @endif
                             @endcan
                         </td>
                     </tr>

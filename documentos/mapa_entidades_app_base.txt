@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00019
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -71,6 +71,18 @@ inventory_movements expresa saldo e historial de stock por agregación de movimi
 inventory_movements puede registrar trazabilidad contextual hacia orders y documents
 
 inventory_movements puede registrar además trazabilidad operativa explícita hacia order_items cuando una línea actúe como referencia concreta de ejecución
+
+inventory_operations actúa como capa superior de agrupación operativa contextual dentro del frente inventory
+
+inventory_operations puede reunir uno o múltiples inventory_movements pertenecientes a una misma acción operativa temporal
+
+inventory_movements puede vincularse opcionalmente a inventory_operations sin perder trazabilidad individual
+
+la trazabilidad vigente de inventory puede componerse por:
+
+origen documental o funcional
+agrupación operativa contextual
+movimiento unitario de stock
 
 order_items gana además relevancia contractual y operativa dentro del ecosistema al actuar como punto natural de lectura para surtido, recepción, compromiso, devolución y restricciones de edición cuando ya existan movimientos ejecutados
 
@@ -201,6 +213,8 @@ inventory ya no debe leerse solo como efecto lateral del catálogo de products
 
 su evolución vigente lo proyecta como frente operativo separado para stock y movimientos, conservando a products como maestro del artículo y a orders, order_items y documents como consumidores o contextos de trazabilidad
 
+la incorporación de inventory_operations fortalece esa lectura modular al separar agrupación operativa contextual de movimiento unitario de stock
+
 Aclaración adicional sobre semántica operativa:
 
 cuando inventory opere sobre order_items, la lectura neta de ejecución de línea no debe derivarse mecánicamente del signo funcional del movimiento de stock
@@ -234,7 +248,7 @@ una misma línea puede acumular múltiples surtidos y múltiples devoluciones pa
 
 la devolución opera como movimiento propio de inventory y no redefine la naturaleza estructural de order_items dentro de orders
 
-la lectura filtrada por `order_item_id` se consolida como vista válida de trazabilidad operativa del ecosistema
+la lectura filtrada por order_item_id se consolida como vista válida de trazabilidad operativa del ecosistema
 
 Aclaración de frontera conceptual:
 
@@ -328,7 +342,7 @@ Por esta razón, no debe tratarse como una entidad tenant-scoped pura del negoci
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ENTIDADES DEL NEGOCIO
 
@@ -352,7 +366,9 @@ documents
 document_items
 document_sequences
 inventory_movements
+inventory_operations
 attachments
+
 <<END SECTION>>
 
 <<SECTION: ENTIDAD BASE DEL NEGOCIO>>
@@ -856,7 +872,7 @@ Lo ubica como base maestra estable dentro de una arquitectura más limpia entre 
 <<END SECTION>>
 
 <<SECTION: INVENTORY>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 INVENTORY
 
@@ -906,6 +922,10 @@ lectura operativa de recepción esperada
 contexto reusable para consumers del ecosistema
 operación por línea publicada hacia hosts visuales cuando el flujo lo requiera
 
+Nueva capa interna vigente:
+
+inventory_operations representa una agrupación operativa contextual, resuelta automáticamente por Inventory, que puede reunir uno o múltiples inventory_movements dentro de una misma acción operativa temporal, sin reemplazar la trazabilidad atómica de cada movimiento.
+
 Superficie contractual conceptual posible:
 
 tabla de saldos por producto
@@ -951,6 +971,66 @@ approved habilita lectura de orden validada para ejecución
 closed implica readonly operativo hasta reapertura válida
 
 cancelled no debe convivir con movimientos ejecutados sin reversión previa suficiente
+
+<<END SECTION>>
+
+<<SECTION: INVENTORY_OPERATIONS>>
+SECTION_VERSION: 00001
+
+INVENTORY_OPERATIONS
+
+Tipo conceptual:
+
+entidad interna del frente operativo inventory
+
+Representa una agrupación operativa contextual resuelta automáticamente por Inventory.
+
+No reemplaza a inventory_movements.
+
+Su función es agrupar uno o múltiples movimientos unitarios/atómicos de stock dentro de una misma acción operativa temporal.
+
+Relaciones consumidas:
+
+tenant
+origen funcional o documental cuando corresponda
+línea origen cuando corresponda
+usuario creador
+
+Relaciones ofrecidas:
+
+inventory_movements relacionados
+contexto operativo agrupado para auditoría
+lectura contextual desde detalle de movimiento
+
+Campos conceptuales vigentes:
+
+tenant
+tipo de operación
+origen
+línea origen
+notas
+creador
+timestamps
+
+Reglas:
+
+pertenece al tenant
+
+participa del aislamiento operativo del sistema
+
+no constituye por sí misma una nueva navegación principal obligatoria
+
+no reemplaza la trazabilidad atómica de inventory_movements
+
+puede reunir uno o múltiples inventory_movements dentro de una misma acción operativa temporal
+
+se crea o resuelve internamente desde Inventory como consecuencia de una acción operativa válida
+
+Aclaración:
+
+inventory_operations expresa contexto operativo agrupado.
+
+inventory_movements expresa impacto unitario/atómico de stock.
 
 <<END SECTION>>
 
@@ -1379,7 +1459,7 @@ attachments
 <<END SECTION>>
 
 <<SECTION: ENTIDADES YA IMPLEMENTADAS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ENTIDADES YA IMPLEMENTADAS
 
@@ -1402,8 +1482,10 @@ order_items
 documents
 document_items
 document_sequences
+inventory_operations
 inventory_movements
 attachments
+
 <<END SECTION>>
 
 <<SECTION: ENTIDADES FUTURAS POSIBLES>>

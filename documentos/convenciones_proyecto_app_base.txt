@@ -630,7 +630,7 @@ las integraciones entre módulos deben respetar el contrato del módulo oferente
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00019
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -907,6 +907,32 @@ orders.closed bloquea edición y eliminación directa, pero admite reapertura ex
 
 orders.cancelled bloquea edición y eliminación directa y permanece como estado terminal no reabrible dentro de la regla validada.
 
+Regla adicional para agrupadores operativos internos:
+
+cuando un módulo incorpore una entidad persistente agrupadora de eventos o acciones, esa entidad no se convierte automáticamente en surface pública, módulo autónomo ni dependencia directa de consumidores externos.
+
+Debe definirse si pertenece al núcleo interno, a la puerta de enlace modular o a una oferta explícita de integración.
+
+Caso vigente:
+
+inventory_operations pertenece al núcleo interno de inventory como agrupación operativa contextual.
+
+No reemplaza inventory_movements.
+
+No desplaza la trazabilidad unitaria de stock.
+
+Su exposición hacia otros módulos solo corresponde si inventory publica una capacidad oficial para ello.
+
+Regla terminológica vigente para inventory:
+
+operation refiere a agrupación operativa contextual.
+
+movement refiere a impacto unitario de stock.
+
+Una operation puede reunir uno o múltiples movements.
+
+No deben tratarse como equivalentes ni sustituirse conceptualmente.
+
 CONTRATO DE SEGURIDAD
 
 El contrato de seguridad del módulo no se define en esta sección sino en:
@@ -1017,7 +1043,7 @@ order_items continúa siendo entidad hija de orders aunque participe como anclaj
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00020
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -1201,6 +1227,16 @@ Caso vigente:
 inventory puede publicar operación por línea para order_items, pero esa operación queda subordinada al estado de la order.
 
 Si la order está closed o cancelled, la línea no recupera operabilidad por sí misma.
+
+Regla adicional para agrupaciones internas del módulo oferente:
+
+si una integración dispara una acción que internamente genera o reutiliza una entidad agrupadora propia del módulo oferente, el consumidor no debe reconstruir ni condicionar esa agrupación.
+
+Debe consumir la surface, servicio, hook o contrato publicado por el oferente.
+
+Caso vigente:
+
+orders puede actuar como host visual de acciones de inventory por línea, pero inventory conserva la resolución interna de inventory_operations e inventory_movements.
 
 <<END SECTION>>
 

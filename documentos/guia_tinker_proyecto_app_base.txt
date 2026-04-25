@@ -224,7 +224,7 @@ si una prueba de stock da todo en cero, primero validar que el seeder efectivo e
 <<END SECTION>>
 
 <<SECTION: CASOS PRIORITARIOS DE USO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CASOS PRIORITARIOS DE USO
 
@@ -240,6 +240,7 @@ debug de create contextual
 delegación de entidades hijas
 flujos entre módulos
 auditorías rápidas sobre runtime
+validación de agrupadores operativos internos cuando una acción visible pueda generar uno o múltiples registros relacionados
 
 Cuando se requiera registrar varias salidas, copiar resultados para el chat o conservar trazabilidad visual de una sesión, puede utilizarse Tinker Lab local.
 
@@ -247,10 +248,14 @@ Regla adicional consolidada:
 
 cuando una integración entre módulos genere dudas, priorizar prueba directa del contrato consumido y del arbitraje efectivo antes de modificar código
 
+Caso vigente:
+
+para inventory, las pruebas deben poder distinguir entre inventory_operations como agrupación operativa contextual e inventory_movements como trazabilidad unitaria de stock.
+
 <<END SECTION>>
 
 <<SECTION: 🆕 PATRÓN GENERAL DE PRUEBA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 PATRÓN GENERAL DE PRUEBA
 
@@ -275,6 +280,23 @@ comparar resultado esperado vs real
 anotar hallazgo
 
 Si falta alguno de esos elementos, la conclusión puede quedar incompleta.
+
+Validación adicional para acciones con agrupación interna:
+
+cuando una acción pueda crear o reutilizar una entidad agrupadora y luego generar registros unitarios asociados, la prueba debe verificar ambas capas.
+
+Controlar:
+
+que la agrupación exista cuando corresponda
+que los registros unitarios queden asociados si corresponde
+que cada registro unitario conserve trazabilidad propia
+que el tenant sea consistente en todas las capas
+que la acción visible no dependa de datos inventados ni de supuestos sobre cantidad de registros generados
+
+Caso vigente:
+
+inventory_operations e inventory_movements.
+
 <<END SECTION>>
 
 <<SECTION: BOOTSTRAP BASE RECOMENDADO PARA TINKER>>

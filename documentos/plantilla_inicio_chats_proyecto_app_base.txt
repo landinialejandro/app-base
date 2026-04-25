@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -43,11 +43,12 @@ REGLAS BASE
 * Ante problemas de navegación interna o tabs, verificar primero la key técnica real de la tab y no su label visual.
 * Ante flujos embebidos o acciones por fila, distinguir siempre si la acción pertenece al host o al módulo proveedor.
 * Si existe trail, verificar además si el caso requiere return_tab como complemento de retorno interno del host.
+* Ante trabajos sobre inventory, distinguir entre inventory_operations como agrupación operativa contextual e inventory_movements como movimientos unitarios de stock.
 
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS DEL CHAT>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 REGLAS OPERATIVAS DEL CHAT
 
@@ -111,6 +112,12 @@ cuando se corrija una regla de autorización o un bug operativo, repetir primero
 
 Controlar especialmente alineación entre Security y Gate/Policy.
 
+Regla adicional para inventory:
+
+cuando se trabaje sobre stock, surtido, devolución, recepción, movimientos o auditoría de inventory, considerar que el estado vigente incluye inventory_operations como agrupador operativo contextual e inventory_movements como trazabilidad unitaria de stock.
+
+No debe asumirse que una acción visible equivale siempre a un único movimiento ni que una operación interna de inventory deba transformarse en pantalla, permiso o módulo autónomo.
+
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DE ESTE CHAT>>
@@ -147,7 +154,7 @@ estación contractual OrdersHooks para concentrar contacto extra-módulo sin sob
 <<END SECTION>>
 
 <<SECTION: ALCANCE>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 ALCANCE
 
@@ -179,6 +186,11 @@ También puede ser necesario revisar:
 * retornos post-acción
 * navegación contextual desde recursos delegados
 * consumo real de surfaces oficiales ya publicadas
+* agrupadores operativos internos cuando el módulo oferente los utilice como parte de su núcleo
+
+Caso vigente:
+
+inventory_operations debe contemplarse en trabajos futuros de inventory, sin confundirlo con nueva navegación principal ni con permiso visible independiente.
 
 <<END SECTION>>
 

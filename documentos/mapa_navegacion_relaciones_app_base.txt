@@ -173,48 +173,40 @@ Su función es dar acceso estructural al ecosistema operativo vigente.
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00002
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
-La navegación entre módulos debe preservar intención, contexto y continuidad de trabajo.
+Los recorridos entre módulos deben respetar identidad propia, contexto funcional y contratos vigentes.
 
-Reglas:
+Relaciones vigentes destacadas:
 
-no saltar de contexto sin necesidad
-no perder breadcrumb útil
-no enviar al usuario a pantallas genéricas cuando existe destino contextual mejor
-no duplicar rutas equivalentes con comportamientos distintos
-las acciones embebidas deben volver al punto correcto del host cuando corresponda
+orders consume capacidades oficiales de inventory sin absorber su lógica interna
 
-Cuando una relación nace dentro de otro módulo, debe priorizarse navegación contextual compatible con trail vigente.
+orders puede actuar como host visual para inventory, documents y attachments
 
-La navegación contextual puede resolverse mediante:
+products consume lectura contextual de inventory mediante saldos e historial
 
-trailQuery
-return_url cuando aplique
-return_tab cuando exista contexto interno del host
-acciones compactas enlazadas
-surfaces embebidas con continuidad local
+documents puede contextualizar trazabilidad de inventory cuando exista vínculo documental
 
-Caso consolidado:
+appointments, tasks, assets y parties mantienen sus relaciones propias dentro del ecosistema general
 
-una acción ejecutada dentro de orders.show debe tender a volver a la misma order y, si aplica, a la tab técnica desde la que nació la intención.
+Regla de frontera:
 
-Regla adicional para estados operativos:
+que un módulo hospede visualmente una capacidad ajena no lo convierte en dueño de su lógica operativa.
 
-la navegación disponible también depende del estado real del recurso.
+El módulo oferente conserva reglas, validaciones y evolución interna.
 
-No debe ofrecerse como acción navegable una operación inexistente por estado, trazabilidad o autorización efectiva.
+Aclaración vigente para inventory:
 
-Caso vigente:
+la nueva capa inventory_operations no modifica por sí misma los recorridos principales entre módulos.
 
-en orders.show una order closed no debe ofrecer edición ni eliminación directa, pero puede ofrecer reapertura explícita autorizada a approved.
+Su función es enriquecer el contexto interno y la trazabilidad del frente inventory.
 
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -248,6 +240,12 @@ si el host entra en estado readonly o terminal, las relaciones embebidas no debe
 Las capacidades de lectura pueden permanecer.
 
 Las capacidades de mutación deben respetar la condición superior del host.
+
+Aclaración adicional para inventory:
+
+cuando una acción embebida de inventory genere o reutilice inventory_operations, esa operación sigue perteneciendo al módulo inventory.
+
+El host visual no debe asumir ownership funcional sobre la agrupación operativa contextual ni transformar esa capa interna en flujo propio del módulo anfitrión.
 
 <<END SECTION>>
 
@@ -411,7 +409,7 @@ appointments.show expresa una estructura host más avanzada que otros shows aún
 <<END SECTION>>
 
 <<SECTION: INVENTORY>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 INVENTORY
 
@@ -447,6 +445,18 @@ la apertura de historial filtrado puede usar surface oficial de inventory conser
 Regla adicional por estado superior:
 
 si la order anfitriona está closed o cancelled, inventory no debe exponer desde ese host acciones operativas incompatibles con dicho estado.
+
+Aclaración adicional vigente:
+
+la incorporación de inventory_operations no crea por sí misma una navegación principal nueva ni una pantalla obligatoria separada.
+
+La operación se incorpora como capa contextual interna del frente inventory.
+
+El flujo visible del usuario puede seguir centrado en acciones como surtir, devolver, ingresar o consultar movimientos.
+
+Internamente, Inventory puede resolver o reutilizar una agrupación operativa contextual y luego registrar uno o múltiples movimientos unitarios de stock.
+
+Cuando un movimiento tenga operación asociada, inventory.movements.show puede exponer esa información como lectura contextual adicional sin desplazar la navegación principal hacia la operación.
 
 <<END SECTION>>
 
@@ -508,7 +518,7 @@ Esto evita que la navegación termine desviando al usuario hacia el recurso dele
 <<END SECTION>>
 
 <<SECTION: DETALLE DE FLUJOS RELEVANTES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 DETALLE DE FLUJOS RELEVANTES
 
@@ -550,31 +560,31 @@ ORDERS → INVENTORY POR LÍNEA
 
 La orden puede consumir inventory como frente operativo embebido sobre sus líneas.
 
-Flujos vigentes consolidados:
+El usuario puede ejecutar acciones materiales contextualizadas sin abandonar orders.show cuando el flujo lo permita.
 
-orders.show
-→ tab operativa de inventory
-→ acción por fila
-→ redirect al mismo host con misma tab
+Inventory conserva ownership funcional de la operación, el cálculo de stock, las validaciones materiales y la trazabilidad.
 
-orders.show
-→ embebido de inventory por línea
-→ ver movimientos filtrados
-→ inventory.show con filtro `order_item_id`
+La capa inventory_operations permite agrupar contextualmente uno o múltiples movimientos generados dentro de una misma acción operativa temporal.
 
-orders.show
-→ modal Surtir línea
-→ confirmar o cancelar
-→ retorno local al mismo host
+Esta agrupación no reemplaza la trazabilidad individual de inventory_movements ni modifica la condición de orders como host visual consumidor.
 
-orders.show
-→ acción Devolver por línea
-→ registro de contramovimiento
-→ retorno al mismo host con recálculo operativo visible
+ORDERS → DOCUMENTS
 
-Regla:
+La orden puede derivar documentos cuando corresponda al flujo operativo.
 
-cuando el flujo siga anclado en la orden anfitriona, la navegación no debe cerrar accidentalmente en el recurso delegado de línea como si fuera pantalla final de trabajo.
+DOCUMENTS → ORDERS
+
+El documento puede conservar relación con la orden que le dio origen cuando exista derivación funcional.
+
+PRODUCTS → INVENTORY
+
+El producto actúa como catálogo maestro para la lectura de stock, saldos e historial.
+
+Inventory no debe confundirse con products.
+
+Products ofrece el artículo.
+
+Inventory registra la operación material sobre ese artículo.
 
 <<END SECTION>>
 

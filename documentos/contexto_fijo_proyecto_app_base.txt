@@ -148,7 +148,7 @@ la pertenencia del usuario y el tenant activo forman parte de la lectura correct
 <<END SECTION>>
 
 <<SECTION: MODELO DE AISLAMIENTO OPERATIVO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00003
 
 MODELO DE AISLAMIENTO OPERATIVO
 
@@ -165,9 +165,11 @@ la operación visible y válida del usuario depende del tenant activo
 las entidades globales del sistema no deben leerse como entidades del negocio
 el contexto tenant no es opcional ni decorativo dentro de la operación interna
 
+El aislamiento alcanza también a capas internas de soporte operativo que sostienen trazabilidad, agrupación contextual o ejecución de acciones dentro de módulos funcionales.
+
 Este documento reconoce el aislamiento como principio estructural general.
 
-Su desarrollo técnico y sus reglas operativas concretas se resuelven en otros documentos del proyecto.
+Su desarrollo técnico y sus reglas operativas concretas se resuelven en documentos especializados del proyecto.
 
 <<END SECTION>>
 
@@ -355,7 +357,7 @@ Su función es sostener la plataforma y su frontera de ingreso.
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00012
 
 ENTIDADES DEL NEGOCIO
 
@@ -375,13 +377,14 @@ documents
 document_items
 document_sequences
 inventory_movements
+inventory_operations
 attachments
 
 Estas entidades deben leerse como parte del ecosistema operativo de empresa y no como infraestructura global del sistema.
 
 No todas cumplen el mismo rol conceptual.
 
-Algunas funcionan como base del dominio, otras como módulos autónomos, otras como agrupadores, derivadas o capacidades transversales.
+Algunas funcionan como base del dominio, otras como módulos autónomos, agrupadores, derivadas, transversales o capas internas de soporte operativo.
 
 Regla adicional consolidada sobre usuarios internos:
 
@@ -393,11 +396,15 @@ La pertenencia operativa real a la empresa se resuelve por memberships.
 
 Cuando el ecosistema necesite un dataset reusable de colaboradores internos activos del tenant, esa necesidad debe leerse como resolución del plano tenant y no como incorporación de una nueva entidad del negocio ni como apertura de un módulo users.
 
-Aclaración adicional consolidada:
+Aclaración adicional para inventory:
 
-la existencia de inventory como frente operativo en evolución modular propia no reemplaza la persistencia actual de inventory_movements como entidad del negocio ya real dentro del ecosistema del tenant.
+inventory_movements expresa la base transaccional efectiva del frente inventory.
 
-inventory_movements expresa hoy la base transaccional efectiva del frente inventory mientras su identidad modular continúa consolidándose.
+inventory_operations incorpora una capa persistente de agrupación operativa contextual dentro del mismo frente.
+
+inventory_operations no reemplaza inventory_movements.
+
+Lo organiza cuando una misma acción operativa temporal requiere reunir uno o múltiples movimientos unitarios de stock.
 
 Aclaración adicional sobre order_items:
 
@@ -516,7 +523,7 @@ El detalle contractual y operativo de cada módulo se resuelve en la sección LE
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00014
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
@@ -643,7 +650,7 @@ Por lo tanto, esa necesidad no debe reinterpretarse como expansión de parties n
 <<END SECTION>>
 
 <<SECTION: MÓDULOS FUNCIONALES ACTUALES>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00015
 
 MÓDULOS FUNCIONALES ACTUALES
 
@@ -675,7 +682,7 @@ Aclaraciones estructurales relevantes:
 
 appointments: su superficie principal es appointments.calendar. El index existe como superficie secundaria accesible pero no como base promovida del módulo.
 
-inventory: ya debe leerse como frente funcional del sistema con surfaces propias de saldo, historial y operación. Su consolidación modular sigue en evolución.
+inventory: ya debe leerse como frente funcional del sistema con surfaces propias de saldo, historial y operación. Su consolidación modular sigue en evolución y contempla capas internas propias para agrupar contexto operativo sin exigir nuevas pantallas principales.
 
 orders: debe leerse como módulo operativo fuerte con estados que afectan su condición operativa general.
 
@@ -691,12 +698,12 @@ la existencia de módulos funcionales no se agota en su navegación estructural.
 
 Cuando una relación compacta madura como capacidad reusable oficial, debe leerse como parte de la puerta de enlace publicada por el propio módulo oferente.
 
-El detalle del rol arquitectónico de cada módulo se resuelve en LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES.
+El detalle del contrato efectivo pertenece a documentos especializados del proyecto.
 
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00017
 
 LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES
 
@@ -768,15 +775,33 @@ INVENTORY
 
 Frente operativo del stock y la trazabilidad material.
 
-Evoluciona hacia identidad modular propia, separando con mayor claridad catálogo maestro, operación de movimientos y consumo contextual desde otros módulos.
+Evoluciona hacia identidad modular propia, separando con mayor claridad:
 
-Cuando se integra con orders, la ejecución neta depende del tipo de orden.
+catálogo maestro
+operación logística contextual
+movimientos unitarios/atómicos de stock
+consumo contextual desde otros módulos
+
+Inventory ya no debe leerse solo desde movimientos sueltos.
+
+La lectura vigente distingue:
+
+operación logística contextual / agrupador operativo temporal
+movimientos unitarios/atómicos de stock
+
+inventory_operations representa una agrupación operativa contextual, resuelta automáticamente por Inventory, que puede reunir uno o múltiples inventory_movements dentro de una misma acción operativa temporal, sin reemplazar la trazabilidad atómica de cada movimiento.
+
+inventory_movements conserva la responsabilidad de expresar impacto efectivo de stock.
+
+Cuando inventory se integra con orders, la ejecución neta depende del tipo de orden.
 
 sale y service operan como salida.
 
 purchase opera como ingreso.
 
 Esa regla conceptual impide auditar inventory + orders con una única fórmula universal de signo.
+
+Las líneas no inventariables dentro de órdenes no forman parte del circuito de stock aunque existan dentro del flujo operativo de orders.
 
 ACLARACIÓN ESTRUCTURAL SOBRE TENANT
 
@@ -790,7 +815,7 @@ Por lo tanto, no debe confundirse con una relación reusable publicada por módu
 
 
 <<SECTION: RELACIONES MACRO DEL ECOSISTEMA>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00014
 
 RELACIONES MACRO DEL ECOSISTEMA
 
@@ -815,7 +840,7 @@ appointments y orders como continuidad posible entre agenda y operación
 assets como contexto transversal para operaciones, agenda y documentos
 parties como base relacional transversal del dominio
 products como base de catálogo operativo
-inventory como frente operativo apoyado en base transaccional propia dentro del dominio
+inventory como frente operativo apoyado en operación logística contextual y base transaccional propia dentro del dominio
 orders, order_items e inventory como frente relacional de ejecución operativa por línea dentro del ecosistema actual
 
 Aclaración adicional consolidada:
@@ -856,6 +881,18 @@ purchase implica ingreso operativo de stock.
 
 Por lo tanto, la lectura neta de ejecución no debe reducirse a una única fórmula universal desligada del tipo de orden.
 
+La trazabilidad de inventory queda compuesta por:
+
+origen funcional o documental
+operación logística contextual
+movimiento unitario/atómico de stock
+
+inventory_operations no reemplaza inventory_movements.
+
+inventory_operations agrupa contexto operativo temporal.
+
+inventory_movements conserva la trazabilidad atómica de cada impacto de stock.
+
 Regla:
 
 las relaciones macro aquí descritas expresan lectura arquitectónica del ecosistema y no deben confundirse con detalle de navegación, seguridad o implementación puntual.
@@ -863,7 +900,7 @@ las relaciones macro aquí descritas expresan lectura arquitectónica del ecosis
 <<END SECTION>>
 
 <<SECTION: MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00007
 
 MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO
 
@@ -919,27 +956,40 @@ Caso vigente relevante:
 
 order_items respecto de inventory.
 
+Regla adicional consolidada para frentes operativos transaccionales:
+
+cuando un frente operativo necesite representar acciones del usuario y consecuencias unitarias persistidas, puede evolucionar hacia una estructura de dos niveles:
+
+agrupador operativo contextual
+registros unitarios/atómicos
+
+Esta evolución permite agrupar una o múltiples consecuencias técnicas sin alterar necesariamente la UX existente.
+
 <<END SECTION>>
 
 <<SECTION: CONTRATO MODULAR COMO DIRECCIÓN DE CRECIMIENTO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00003
 
 CONTRATO MODULAR COMO DIRECCIÓN DE CRECIMIENTO
 
-La dirección arquitectónica general del proyecto reconoce el contrato modular como criterio sano de crecimiento.
+El crecimiento correcto del sistema debe priorizar evolución contractual y claridad de fronteras antes que expansión desordenada de código.
 
-Esto significa que cada módulo debe tender a consolidar:
+Cuando una necesidad nueva aparezca en un módulo existente, la primera lectura correcta no es invadir consumidores ni dispersar lógica transversal.
 
-núcleo propio
-entrada compatible con su función
-salida coherente con su identidad
-oferta de integración cuando corresponda
+La salida preferente es fortalecer el contrato propio del módulo y ordenar internamente su dominio.
 
-Este documento no desarrolla esos contratos.
+Caso vigente consolidado:
 
-Solo fija que esa dirección forma parte del marco arquitectónico estable del proyecto.
+orders continúa integrándose con inventory mediante servicios y puertas contractuales explícitas, sin absorber lógica interna del frente stock.
 
-El detalle doctrinal correspondiente se resuelve en otros documentos.
+Reglas:
+
+crecer no implica mezclar responsabilidades
+una mejora interna no debe romper contratos externos estables
+la complejidad nueva debe resolverse primero dentro del módulo dueño del problema
+los consumidores deben depender de capacidades publicadas y no de detalles internos variables
+
+La dirección de crecimiento aprobada del proyecto continúa siendo modular, reusable y con fronteras explícitas.
 
 <<END SECTION>>
 

@@ -62,15 +62,34 @@ La depuración, validación estricta y generación de secciones correctas se rea
 
 
 
-AUDITORÍA Y GENERACIÓN DE SECCIONES
+AUDITORÍA Y GENERACIÓN DE SECCIONES DESDE CIERRES DE SESIÓN
 
 OBJETIVO
 
-Auditar los cambios detectados contra los documentos vigentes del proyecto y devolver las secciones que deben ser actualizadas, listas para reemplazo automático.
+Auditar fragmentos de cierre de sesión provenientes de otros chats, contrastarlos contra los documentos vigentes del proyecto y volcar únicamente la información que corresponda en las secciones exactas de cada documento.
+
+La salida debe quedar lista para reemplazo automático mediante el automatizador documental.
+
+CONTEXTO DOCUMENTAL
+
+Los documentos del proyecto ya están divididos en secciones delimitadas por tags:
+
+<<SECTION: NOMBRE EXACTO>>
+...
+<<END SECTION>>
+
+Estos tags y los DOC_SLUG son críticos porque:
+
+- los documentos se usan también dentro del módulo de documentos del sistema
+- el automatizador depende de nombres exactos
+- no deben modificarse slugs
+- no deben modificarse nombres de secciones existentes
+- no deben alterarse los tags de apertura o cierre
+- no deben usarse títulos humanos como identificadores técnicos
 
 DOCUMENTOS BASE
 
-(ya disponibles en el contexto del chat)
+Usar exclusivamente los documentos vigentes del proyecto:
 
 - contexto_fijo_proyecto_app_base
 - convenciones_proyecto_app_base
@@ -80,31 +99,55 @@ DOCUMENTOS BASE
 - base_visual_proyecto_app_base
 - todo_proyecto_app_base
 - seguridad_acceso_proyecto_app_base
+- guia_tinker_proyecto_app_base
 - plantilla_inicio_chats_proyecto_app_base
 
 REGLAS GENERALES
 
 - no inventar contenido
 - no asumir comportamiento no validado
+- no completar vacíos por inferencia
 - no generar contradicciones
-- respetar la función de cada documento
-- no mezclar decisiones vigentes con ideas futuras
-- no modificar nombres de secciones
+- respetar la función específica de cada documento
+- no mezclar estado vigente con ideas futuras
+- no duplicar información innecesariamente
 - no devolver documentos completos
-- no omitir cambios relevantes
+- no modificar nombres de secciones existentes
+- no modificar DOC_SLUG
+- no alterar tags SECTION
+- no omitir cambios relevantes si impactan realmente en la documentación
 
 REGLA CLAVE
 
-Si un cambio impacta realmente en un documento, debe reflejarse en una sección.
-No omitir cambios por exceso de cautela.
+Los fragmentos de cierre de sesión son insumos a auditar, no texto para copiar automáticamente.
+
+Cada cambio detectado debe evaluarse contra:
+
+- doctrina vigente
+- documento correcto
+- sección correcta
+- estado real de implementación o decisión
+- posible redundancia con otros documentos
+- impacto arquitectónico, funcional, visual, de navegación, seguridad, permisos, UI, modelo de datos o roadmap
+
+Si corresponde documentarlo, debe volcarse en la sección adecuada.
+
+Si no corresponde, no debe incluirse.
 
 CRITERIOS DE AUDITORÍA
 
-- validar si el cambio impacta en el documento
-- ubicar cada cambio en el documento correcto
-- evitar duplicación innecesaria entre documentos
+Para cada cambio detectado:
+
+- validar si impacta realmente en algún documento
+- identificar el documento correcto por DOC_SLUG
+- identificar el nombre exacto de la sección existente
+- evitar crear secciones nuevas si una sección existente corresponde
+- evitar forzar contenido en secciones incorrectas
+- evitar duplicación entre documentos
 - mantener coherencia con la estructura actual
-- si un cambio afecta múltiples documentos, aplicarlo donde corresponda sin redundancia excesiva
+- respetar el estilo del documento original
+- conservar la fuerza doctrinal de los documentos rectores
+- diferenciar estado vigente, pendiente real y línea futura
 
 REGLAS DE VERSIONADO DE SECCIONES
 
@@ -115,15 +158,67 @@ REGLAS DE VERSIONADO DE SECCIONES
 
 REGLA SOBRE SECCIONES NUEVAS
 
-- crear una nueva sección cuando el contenido no encaje correctamente en ninguna existente
-- no forzar contenido en secciones incorrectas
-- si se crea una nueva sección:
-  - devolverla como NUEVA SECCIÓN PROPUESTA
-  - indicar ubicación sugerida
+Crear una nueva sección solo cuando el contenido no encaje correctamente en ninguna sección existente.
+
+Si se propone una nueva sección:
+
+- devolverla como NUEVA SECCIÓN PROPUESTA
+- indicar ubicación sugerida
+- usar nombre claro, estable y coherente con el documento
+- no crear secciones por comodidad si existe una sección adecuada
+
+REGLA CRÍTICA SOBRE NOMBRES DE SECCIONES
+
+Está prohibido inventar, resumir, renombrar, corregir o normalizar nombres de secciones.
+
+Solo se pueden devolver secciones cuyo nombre exista exactamente en el documento vigente.
+
+Antes de devolver una sección, verificar que el nombre usado coincide carácter por carácter con un tag existente:
+
+<<SECTION: NOMBRE EXACTO>>
+
+Si no se conoce con certeza el nombre exacto de la sección existente:
+
+- no devolver esa sección
+- no crear un nombre aproximado
+- no usar títulos conceptuales
+- no usar nombres sintéticos
+- pedir el listado de secciones del documento correspondiente o indicar que falta validar el nombre exacto
+
+Ejemplos inválidos:
+
+<<SECTION: CRITERIOS DE DISEÑO MODULAR>>
+<<SECTION: NOMENCLATURA DE DOMINIO>>
+<<SECTION: EVOLUCIÓN SIN LEGACY>>
+<<SECTION: REGLAS DE IMPLEMENTACIÓN>>
+
+Estos nombres son inválidos si no existen exactamente como tags en el documento.
+
+Si el contenido corresponde conceptualmente a una sección existente, debe usarse el nombre exacto real de esa sección.
+
+Ejemplo:
+
+No usar:
+<<SECTION: CRITERIOS DE DISEÑO MODULAR>>
+
+Usar solo si existe exactamente:
+<<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
+
+REGLA DE BLOQUEO
+
+Si en algún grupo posterior aparece duda sobre el nombre exacto de una sección, detener la generación de ese grupo y pedir:
+
+"Necesito el listado exacto de secciones de [DOC_SLUG] antes de continuar."
+
+No continuar por aproximación.
 
 FORMATO OBLIGATORIO DE SALIDA
 
-Para cada sección modificada:
+Agrupar las secciones por documento.
+
+Pasar los grupos de a uno.
+
+Para cada sección modificada usar exactamente este formato:
 
 REEMPLAZAR EN: [DOC_SLUG]
 
@@ -133,30 +228,81 @@ SECTION_VERSION: XXXXX
 [contenido completo actualizado de la sección]
 <<END SECTION>>
 
-FORMATO PARA SECCIÓN NUEVA (SI APLICA)
+FORMATO PARA SECCIÓN NUEVA
 
 NUEVA SECCIÓN PROPUESTA EN: [DOC_SLUG]
 
 UBICAR DESPUÉS DE:
-<<SECTION: NOMBRE DE SECCIÓN EXISTENTE>>
+<<SECTION: NOMBRE EXACTO DE SECCIÓN EXISTENTE>>
 
 <<SECTION: NOMBRE DE NUEVA SECCIÓN>>
 SECTION_VERSION: 00001
 
-[contenido]
+[contenido completo de la nueva sección]
 <<END SECTION>>
 
 RESTRICCIONES CRÍTICAS
 
-- no agregar texto fuera de los bloques SECTION
+- no agregar texto fuera de los bloques solicitados
+- no agregar explicaciones entre bloques
+- no usar markdown decorativo
+- no usar listas de análisis fuera de SECTION
 - cada bloque debe ser autónomo y completo
-- mantener estilo y estructura del documento original
-- no incluir explicaciones fuera de los bloques
-- usar exclusivamente DOC_SLUG como identificador
-- no usar nombres legacy ni títulos humanos como clave técnica
+- cada sección devuelta debe estar lista para reemplazo automático
+- usar exclusivamente DOC_SLUG como identificador del documento
+- usar nombres exactos de secciones existentes
+- no usar nombres legacy
+- no usar títulos humanos como clave técnica
+- no devolver secciones que no tengan cambios reales
+
+MODO DE ENTREGA
+
+Primero devolver solo el primer grupo de documentos impactados.
+
+Luego esperar la instrucción:
+
+siguiente grupo
+
+No mezclar todos los documentos en una sola respuesta si hay muchas secciones.
+Cada grupo debe tratarse como una actualización independiente.
+
+Antes de generar un nuevo grupo, volver a verificar mentalmente:
+
+- DOC_SLUG exacto
+- nombre exacto de cada sección
+- SECTION_VERSION correspondiente
+- que la sección exista realmente
+- que no se esté creando un título conceptual nuevo
+
+No arrastrar nombres creados en grupos anteriores.
+
+No variar nombres por estilo, síntesis o interpretación.
 
 ENTRADA
 
 CAMBIOS DETECTADOS:
 
-[pegar salida del prompt de cierre de sesión]
+[pegar aquí la salida del cierre de sesión de otro chat]
+
+
+
+
+
+
+----------------------------------
+
+
+dame el siguiente grupo, volver a verificar mentalmente:
+
+- DOC_SLUG exacto
+- nombre exacto de cada sección
+- SECTION_VERSION correspondiente
+- que la sección exista realmente
+- que no se esté creando un título conceptual nuevo
+
+No arrastrar nombres creados en grupos anteriores.
+No variar nombres por estilo, síntesis o interpretación.
+
+-----------------------------
+
+te paso los dos documentos doctrinales del proyecto, el de seguridad acceso del pryecto y contexto fijo, que recien los actualizamos te pido que los audites, que sigan marcando la doctrina, que no sean reduntate, que tenga todoa la informacion necesaria y justa pero que no haya redundancia o sobre explicaciones. ambos documentos son rectores y pilares para avanzar mas rapido sin sobre explicaciones

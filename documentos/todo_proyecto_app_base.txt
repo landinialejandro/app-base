@@ -102,7 +102,7 @@ por consolidación como capacidad embebida oficial
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -123,6 +123,14 @@ closed → approved quedó validado como reapertura explícita operativa
 Security y Gate/Policy deben permanecer alineados para estas acciones
 
 Queda registrado como cierre doctrinal y funcional del frente auditado.
+
+Avance operativo adicional consolidado:
+
+inventory_operations fue incorporado como capa persistente interna de agrupación operativa contextual dentro de inventory.
+
+Esta capa permite reunir uno o múltiples inventory_movements dentro de una misma acción operativa temporal, sin reemplazar la trazabilidad unitaria de cada movimiento de stock.
+
+La incorporación no crea por sí misma nuevas pantallas principales, abilities visibles independientes ni ownership funcional para módulos consumidores.
 
 <<END SECTION>>
 
@@ -228,7 +236,7 @@ cada paso debe dejar menos excepciones que el anterior
 <<END SECTION>>
 
 <<SECTION: ESTADO ACTUAL DEL SISTEMA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 ESTADO ACTUAL DEL SISTEMA
 
@@ -239,6 +247,8 @@ Estado actual destacado:
 orders consolida lectura de estados operativos con reapertura explícita de closed
 
 inventory conserva integración por línea subordinada al estado superior de orders
+
+inventory cuenta con inventory_operations como capa interna de agrupación operativa contextual por encima de inventory_movements
 
 Security continúa como kernel central de autorización efectiva
 
@@ -382,7 +392,7 @@ cuando aparezca un problema de acceso, distinguir primero si falta permiso real 
 <<END SECTION>>
 
 <<SECTION: FLUJOS FUNCIONALES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 FLUJOS FUNCIONALES
 
@@ -395,6 +405,7 @@ orders puede actuar como host visual de inventory, documents y attachments
 projects agrupa tasks
 assets y parties contextualizan agenda, órdenes y documentos
 inventory aporta stock, movimientos e historial como frente funcional propio
+inventory puede agrupar contextualmente movimientos mediante inventory_operations sin perder trazabilidad unitaria de inventory_movements
 
 Flujo interno adicional consolidado:
 
@@ -481,7 +492,7 @@ incorporar una estrategia operativa de sincronización de roles base por tenant 
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA Y TRAZABILIDAD>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 ARQUITECTURA Y TRAZABILIDAD
 
@@ -502,6 +513,14 @@ que el ejecutado neto siga siendo base correcta para límites de edición
 que estados completed / partial / cancelled permanezcan coherentes entre persistencia y UI
 
 Toda ampliación futura sobre inventory, documents u otros frentes vinculados a orders debe preservar esa frontera arquitectónica.
+
+Aclaración vigente para inventory:
+
+inventory_operations pertenece al núcleo interno del frente inventory como agrupación operativa contextual.
+
+inventory_movements mantiene la trazabilidad unitaria de stock.
+
+Los consumidores externos no deben acoplarse a la agrupación interna salvo que inventory publique una capacidad oficial para ello.
 
 <<END SECTION>>
 

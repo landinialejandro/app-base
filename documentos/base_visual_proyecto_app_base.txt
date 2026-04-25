@@ -161,44 +161,23 @@ SECTION_VERSION: 00002
 
 PATRÓN DE INTERACCIÓN MODAL
 
-El modal se utiliza cuando la tarea requiere foco puntual sin abandonar el contexto principal.
+Los modales deben utilizarse para ejecutar acciones puntuales con foco operativo y mínima fricción.
 
-No reemplaza pantallas completas ni formularios extensos.
+Reglas generales:
 
-Casos válidos:
+resolver tareas breves sin abandonar contexto
+mostrar solo datos necesarios
+mantener confirmaciones claras
+evitar sobrecarga visual
+cerrar con retorno natural al flujo origen
 
-confirmaciones enriquecidas
-captura breve contextual
-acciones rápidas sobre filas
-micro-flujos operativos
-visualización secundaria sin pérdida de contexto
+Regla adicional de evolución interna:
 
-Patrón visual consolidado:
-
-título claro y contextual
-cierre visible
-body con información mínima útil
-acciones accesibles
-escape consistente
-retorno inmediato al host
-
-Patrón adicional consolidado para header-actions:
-
-el header puede alojar acciones a la derecha sin degradar el título ni la jerarquía visual.
-
-Esto habilita confirmaciones rápidas e icon-only actions en operaciones breves.
+cuando una mejora funcional pueda resolverse en dominio o servicios sin exigir nueva interacción del usuario, debe priorizarse esa vía antes de agregar nuevas pantallas o pasos visuales.
 
 Caso vigente:
 
-confirmar surtido desde header del modal.
-
-Regla:
-
-si la tarea exige navegación prolongada, múltiples secciones o edición extensa, debe preferirse pantalla dedicada y no modal.
-
-Aclaración adicional consolidada:
-
-cuando el modal opera sobre una fila contextual de un embebido, el cierre correcto debe devolver a la misma continuidad visual del host y no provocar salto accidental a otra pantalla del recurso delegado.
+la agrupación interna de inventory mediante operaciones contextuales se resuelve backend-first y no exige nuevos modales obligatorios para el usuario.
 
 <<END SECTION>>
 
@@ -328,45 +307,31 @@ Estos bloques ayudan a integrar módulos sin sobrecargar navegación ni multipli
 <<END SECTION>>
 
 <<SECTION: OFERTAS DE INTEGRACIÓN VISUAL>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00002
 
 OFERTAS DE INTEGRACIÓN VISUAL
 
-Las ofertas visuales de integración son capacidades publicadas por un módulo para ser consumidas por otros módulos.
+Las ofertas de integración visual permiten que un módulo publique capacidades consumibles por otras pantallas del ecosistema.
 
-No son simples includes sueltos.
+Deben preservar:
 
-Son piezas contractuales del ecosistema.
-
-Formas vigentes:
-
-acciones compactas linked
-bloques summary
-tablas embebidas
-tabs modulares
-formularios operativos publicados por el módulo dueño de la capacidad
-acciones por fila publicadas por el módulo oferente cuando la operación viva en tablas del host consumidor
+ownership funcional del módulo oferente
+baja fricción visual
+coherencia con el host
+jerarquía clara de información
+ausencia de ruido innecesario
 
 Reglas:
 
-el módulo oferente arbitra datos y estados
-el componente visual representa el payload recibido
-el consumidor monta la capacidad sin reescribir su lógica interna
-la ubicación física debe respetar la identidad del módulo oferente
+la información complementaria debe sumar contexto y no competir con el dato principal de la pantalla anfitriona
 
-Nueva línea consolidada:
+no debe requerirse una nueva pantalla si la capacidad puede resolverse en una surface existente
 
-la familia linked-<modulo> reemplaza progresivamente a linked-<modulo>-action cuando el módulo migra de generación.
+las mejoras internas del backend deben reflejarse con mínima complejidad visual posible
 
-No debe mezclarse soporte nuevo con componente viejo como cierre estable.
+Caso vigente:
 
-Regla adicional:
-
-si una relación compacta desaparece visualmente, auditar también compatibilidad contractual entre host, slot, type y shape antes de asumir ausencia real de relación.
-
-Regla adicional para surfaces maduras embebidas:
-
-cuando el módulo oferente ya publica una surface oficial suficientemente estructurada, el consumidor no debe envolverla con cards adicionales, wrappers redundantes o jerarquía visual paralela que opaque su identidad modular.
+en inventory/movements/show, una operación asociada puede mostrarse como contexto adicional del movimiento, manteniendo al movimiento como centro de la lectura.
 
 <<END SECTION>>
 
@@ -495,7 +460,7 @@ Estas métricas no reemplazan la tabla principal ni convierten la pantalla en da
 <<END SECTION>>
 
 <<SECTION: PATRÓN VISUAL PARA VISTAS SHOW>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 PATRÓN VISUAL PARA VISTAS SHOW
 
@@ -545,6 +510,12 @@ Caso vigente:
 
 orders.show consumiendo inventory como frente operativo por línea.
 
+Aclaración adicional para detalle de movimientos:
+
+cuando inventory.movements.show exponga una operación asociada mediante inventory_operations, esa información debe leerse como contexto adicional del movimiento y no como nueva pantalla principal obligatoria.
+
+La vista puede incorporar datos de operación asociada, como identificador, tipo, notas o auditoría técnica, sin desplazar el foco del show principal del movimiento.
+
 <<END SECTION>>
 
 <<SECTION: REGLAS PARA X-SHOW-SUMMARY Y X-SHOW-SUMMARY-ITEM>>
@@ -580,7 +551,7 @@ la unidad visual completa debe desaparecer y no solo el contenido interno
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW
 
@@ -625,6 +596,10 @@ Aclaración adicional para embebidos operativos:
 si una capacidad invitada ya incluye tabla, tabs internas o toolbar propia, el host no debe volver a encapsularla como si fuera una relación secundaria genérica.
 
 Debe reconocerse su jerarquía como frente invitado del módulo oferente y no como card auxiliar duplicada.
+
+Aclaración adicional para capas internas de inventory:
+
+la agrupación inventory_operations puede aportar lectura contextual o auditoría técnica, pero no exige crear jerarquía visual nueva equivalente a módulo principal, tab pesada o pantalla autónoma si el flujo real del usuario continúa centrado en movimientos y acciones operativas.
 
 <<END SECTION>>
 
@@ -706,7 +681,7 @@ si una acción se dispara desde una tab interna del embebido y luego redirige, l
 <<END SECTION>>
 
 <<SECTION: ACCIONES VISUALES EN INDEX Y SHOW>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 ACCIONES VISUALES EN INDEX Y SHOW
 
@@ -768,6 +743,12 @@ Casos vigentes relevantes:
 surtir
 devolver
 ver movimientos de línea
+
+Aclaración adicional para operaciones agrupadas:
+
+si una acción visible genera o reutiliza una agrupación inventory_operations, la UI no necesita exponer esa capa como paso adicional del usuario.
+
+La operación puede resolverse backend-first mientras la acción visible conserve intención clara, bajo roce y retorno contextual correcto.
 
 <<END SECTION>>
 
@@ -974,44 +955,28 @@ No corresponde documentar aquí detalles finos de CSS o ajuste visual puntual de
 <<END SECTION>>
 
 <<SECTION: TABS INTERNAS EN VISTAS SHOW>>
+SECTION_VERSION: 00002
+
 TABS INTERNAS EN VISTAS SHOW
 
-Cuando una vista show concentre demasiada información, se permite organizar el contenido mediante tabs internas dentro del cuerpo principal de la página.
+Las tabs internas ordenan relaciones y capacidades secundarias dentro de una show page sin desplazar la identidad principal del recurso.
 
-Las tabs no son obligatorias.
-Solo deben utilizarse cuando ayudan a reducir altura visual o separar información secundaria real.
+Reglas vigentes:
 
-Clases utilizadas:
+la entidad principal de la pantalla conserva prioridad visual
 
-tabs
-tabs-nav
-tabs-link
-tab-panel
-tab-panel-stack
+las tabs deben agrupar información relacionada y no fragmentar innecesariamente la experiencia
 
-Comportamiento:
+una capacidad nueva no obliga automáticamente a crear una nueva pantalla si puede resolverse dentro de una tab o detalle existente
 
-controlado por JavaScript mínimo global
-una solapa activa visible por vez
-útil para separar detalle, documentos asociados, historial u otros bloques secundarios
+los hosts visuales pueden consumir capacidades de otros módulos sin absorber su ownership funcional
 
-Las tabs internas pueden contener múltiples cards apiladas por sección.
+Caso vigente:
 
-Cuando la UX lo requiera, puede preservarse la tab activa al recargar o luego de acciones POST, PUT o DELETE.
+inventory incorpora una capa interna de operaciones contextuales sin requerir una nueva navegación principal obligatoria.
 
-La persistencia de tab activa no debe asumirse como regla global por query string si existen tabs anidadas o múltiples contenedores de tabs en una misma pantalla.
+El detalle de movement continúa como lectura primaria, enriquecido con contexto adicional cuando exista.
 
-Debe resolverse con criterio por contenedor, o no aplicarse, cuando la preservación complique la UX.
-
-La navegación de tabs debe ser visualmente reconocible como patrón de solapas.
-
-La pestaña activa debe distinguirse con claridad.
-
-El contenedor tabs-nav debe tener jerarquía visual suficiente para que el usuario perciba que puede cambiar de sección.
-
-Las tabs documentadas en esta base visual corresponden a tabs internas de contenido.
-
-No implican todavía un sistema general de navegación entre rutas dentro de tabs de app.
 <<END SECTION>>
 
 <<SECTION: TABS REUTILIZABLES Y TOOLBAR DE TABS>>

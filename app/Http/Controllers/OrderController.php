@@ -520,7 +520,7 @@ class OrderController extends Controller
                     $query->where('tenant_id', $tenant->id)
                         ->whereNull('deleted_at');
                 }),
-        ],
+            ],
             'task_id' => [
                 'nullable',
                 'integer',
@@ -534,15 +534,15 @@ class OrderController extends Controller
                         $query->where('tenant_id', $tenant->id)
                             ->whereNull('deleted_at');
                     }),
-        ],
+            ],
             'kind' => [
-            'required',
-            Rule::in(OrderCatalog::kinds()),
-        ],
+                'required',
+                Rule::in(OrderCatalog::kinds()),
+            ],
             'status' => [
-            'required',
-            Rule::in(OrderCatalog::statuses()),
-        ],
+                'required',
+                Rule::in(OrderCatalog::statuses()),
+            ],
             'ordered_at' => ['nullable', 'date'],
             'notes' => ['nullable', 'string'],
         ]);
@@ -584,11 +584,7 @@ class OrderController extends Controller
         if ($data['status'] === OrderCatalog::STATUS_CLOSED) {
             $order->loadMissing('items');
 
-            $hasIncompleteItems = $order->items->contains(function ($item) {
-                return ! in_array($item->status, ['completed', 'cancelled'], true);
-            });
-
-            if ($hasIncompleteItems) {
+            if ($this->hasIncompleteInventoryItems($order)) {
                 return back()
                     ->withErrors([
                         'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
@@ -703,11 +699,7 @@ class OrderController extends Controller
         if ($newStatus === OrderCatalog::STATUS_CLOSED) {
             $order->loadMissing('items');
 
-            $hasIncompleteItems = $order->items->contains(function ($item) {
-                return ! in_array($item->status, ['completed', 'cancelled'], true);
-            });
-
-            if ($hasIncompleteItems) {
+            if ($this->hasIncompleteInventoryItems($order)) {
                 return back()
                     ->withErrors([
                         'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
@@ -735,52 +727,52 @@ class OrderController extends Controller
             ->with('success', 'Estado de la orden actualizado.');
     }
 
-public function destroy(Request $request, Order $order)
-{
-    $this->authorize('delete', $order);
+    public function destroy(Request $request, Order $order)
+    {
+        $this->authorize('delete', $order);
 
-    if ($order->documents()->exists()) {
-        return back()->withErrors([
-            'delete' => 'No se puede eliminar una orden vinculada a documentos.',
-        ]);
-    }
+        if ($order->documents()->exists()) {
+            return back()->withErrors([
+                'delete' => 'No se puede eliminar una orden vinculada a documentos.',
+            ]);
+        }
 
-    if (app(OrdersHooks::class)->hasExternalMovements($order)) {
-        return back()->withErrors([
-            'delete' => 'No se puede eliminar una orden con movimientos registrados.',
-        ]);
-    }
+        if (app(OrdersHooks::class)->hasExternalMovements($order)) {
+            return back()->withErrors([
+                'delete' => 'No se puede eliminar una orden con movimientos registrados.',
+            ]);
+        }
 
-    $order->delete();
+        $order->delete();
 
-    $appointment = Appointment::query()
-        ->where('tenant_id', $order->tenant_id)
-        ->where('order_id', $order->id)
-        ->first();
+        $appointment = Appointment::query()
+            ->where('tenant_id', $order->tenant_id)
+            ->where('order_id', $order->id)
+            ->first();
 
-    if ($appointment) {
-        $navigationTrail = AppointmentNavigationTrail::show(
-            $request,
-            $appointment
-        );
+        if ($appointment) {
+            $navigationTrail = AppointmentNavigationTrail::show(
+                $request,
+                $appointment
+            );
+
+            return redirect()
+                ->route(
+                    'appointments.show',
+                    ['appointment' => $appointment] + NavigationTrail::toQuery($navigationTrail)
+                )
+                ->with('success', 'Orden eliminada.');
+        }
+
+        $navigationTrail = OrderNavigationTrail::index($request);
 
         return redirect()
             ->route(
-                'appointments.show',
-                ['appointment' => $appointment] + NavigationTrail::toQuery($navigationTrail)
+                'orders.index',
+                NavigationTrail::toQuery($navigationTrail)
             )
             ->with('success', 'Orden eliminada.');
     }
-
-    $navigationTrail = OrderNavigationTrail::index($request);
-
-    return redirect()
-        ->route(
-            'orders.index',
-            NavigationTrail::toQuery($navigationTrail)
-        )
-        ->with('success', 'Orden eliminada.');
-}
 
     public function print(Order $order)
     {
@@ -822,57 +814,67 @@ public function destroy(Request $request, Order $order)
         return $pdf->download($filename);
     }
 
-public function changeStatus(Request $request, Order $order)
-{
-    $this->authorize('changeStatus', $order);
+    public function changeStatus(Request $request, Order $order)
+    {
+        $this->authorize('changeStatus', $order);
 
-    $data = $request->validate([
-        'status' => [
-            'required',
-            Rule::in(OrderCatalog::statuses()),
-        ],
-    ]);
+        $data = $request->validate([
+            'status' => [
+                'required',
+                Rule::in(OrderCatalog::statuses()),
+            ],
+        ]);
 
-    $newStatus = $data['status'];
+        $newStatus = $data['status'];
 
-    if (! OrderCatalog::canTransition($order->status, $newStatus)) {
-        return back()
-            ->withErrors([
-                'status' => 'La transición de estado solicitada no es válida.',
-            ]);
-    }
-
-    if (
-        $newStatus === OrderCatalog::STATUS_CANCELLED
-        && app(OrdersHooks::class)->hasExternalMovements($order)
-    ) {
-        return back()
-            ->withErrors([
-                'status' => 'No se puede cancelar una orden con movimientos registrados. Primero deben revertirse.',
-            ]);
-    }
-
-    if ($newStatus === OrderCatalog::STATUS_CLOSED) {
-        $order->loadMissing('items');
-
-        $hasIncompleteItems = $order->items->contains(function ($item) {
-            return ! in_array($item->status, ['completed', 'cancelled'], true);
-        });
-
-        if ($hasIncompleteItems) {
+        if (! OrderCatalog::canTransition($order->status, $newStatus)) {
             return back()
                 ->withErrors([
-                    'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
+                    'status' => 'La transición de estado solicitada no es válida.',
                 ]);
         }
+
+        if (
+            $newStatus === OrderCatalog::STATUS_CANCELLED
+            && app(OrdersHooks::class)->hasExternalMovements($order)
+        ) {
+            return back()
+                ->withErrors([
+                    'status' => 'No se puede cancelar una orden con movimientos registrados. Primero deben revertirse.',
+                ]);
+        }
+
+        if ($newStatus === OrderCatalog::STATUS_CLOSED) {
+            $order->loadMissing('items');
+
+            if ($this->hasIncompleteInventoryItems($order)) {
+                return back()
+                    ->withErrors([
+                        'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
+                    ]);
+            }
+        }
+
+        $order->update([
+            'status' => $newStatus,
+            'updated_by' => auth()->id(),
+        ]);
+
+        return back()->with('success', 'Estado de la orden actualizado.');
     }
 
-    $order->update([
-        'status' => $newStatus,
-        'updated_by' => auth()->id(),
-    ]);
+    protected function hasIncompleteInventoryItems(Order $order): bool
+    {
+        $order->loadMissing('items.product');
 
-    return back()->with('success', 'Estado de la orden actualizado.');
-}
+        return $order->items->contains(function ($item) {
+            $product = $item->product;
 
+            if (! $product || $product->kind !== 'product') {
+                return false;
+            }
+
+            return ! in_array($item->status, ['completed', 'cancelled'], true);
+        });
+    }
 }

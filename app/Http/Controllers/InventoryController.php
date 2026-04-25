@@ -105,111 +105,114 @@ class InventoryController extends Controller
         ));
     }
 
-    public function show(Request $request, Product $product): View
-    {
-        $this->authorize('view', $product);
+public function show(Request $request, Product $product): View
+{
+    $this->authorize('view', $product);
 
-        abort_if(
-            $product->kind !== ProductCatalog::KIND_PRODUCT,
-            404
-        );
+    abort_if(
+        $product->kind !== ProductCatalog::KIND_PRODUCT,
+        404
+    );
 
-        $movementKind = trim((string) $request->string('kind'));
-        $originLineType = trim((string) $request->string('origin_line_type'));
-        $originLineId = $request->integer('origin_line_id');
+    $movementKind = trim((string) $request->string('kind'));
+    $originLineType = trim((string) $request->string('origin_line_type'));
+    $originLineId = $request->integer('origin_line_id');
 
-        if ($movementKind !== '' && ! in_array($movementKind, InventoryMovementService::kinds(), true)) {
-            abort(404);
-        }
-
-        if (
-            $originLineType !== ''
-            && ! in_array($originLineType, InventoryOriginCatalog::originLineTypes(), true)
-        ) {
-            abort(404);
-        }
-
-        if ($originLineType === '' && $originLineId > 0) {
-            abort(404);
-        }
-
-        if ($originLineType !== '' && $originLineId <= 0) {
-            abort(404);
-        }
-
-        $navigationTrail = InventoryNavigationTrail::show($request, $product);
-        $trailQuery = NavigationTrail::toQuery($navigationTrail);
-
-        $product->load([
-            'attachments' => fn ($query) => $query->ordered(),
-        ]);
-
-        $movementsQuery = InventoryMovement::query()
-            ->where('tenant_id', $product->tenant_id)
-            ->where('product_id', $product->id)
-            ->with(['product'])
-            ->orderBy('created_at')
-            ->orderBy('id');
-
-        if ($movementKind !== '') {
-            $movementsQuery->where('kind', $movementKind);
-        }
-
-        if ($originLineType !== '') {
-            $movementsQuery
-                ->where('origin_line_type', $originLineType)
-                ->where('origin_line_id', $originLineId);
-        }
-
-        $inventoryMovements = $movementsQuery->get();
-
-        $runningBalance = 0.0;
-
-        $movementRows = $inventoryMovements
-            ->map(function ($movement) use (&$runningBalance) {
-                $quantity = (float) $movement->quantity;
-                $signedQuantity = $this->signedQuantityForMovement($movement->kind, $quantity);
-
-                $runningBalance += $signedQuantity;
-
-                return [
-                    'movement' => $movement,
-                    'signed_quantity' => $signedQuantity,
-                    'running_balance' => $runningBalance,
-                ];
-            })
-            ->values()
-            ->reverse()
-            ->values();
-
-        $currentStock = app(ProductStockCalculator::class)->forProduct($product);
-
-        $hostPack = app(InventorySurfaceService::class)->hostPack('inventory.show', $product, [
-            'trailQuery' => $trailQuery,
-        ]);
-
-        $embedded = collect(app(ModuleSurfaceRegistry::class)->embeddedFor('inventory.show', $hostPack))->values();
-        $linked = collect(app(ModuleSurfaceRegistry::class)->linkedFor('inventory.show', $hostPack))->values();
-
-        $summaryItems = $linked->where('slot', 'summary_items')->values();
-        $headerActions = $linked->where('slot', 'header_actions')->values();
-        $detailItems = $embedded->where('slot', 'detail_items')->values();
-        $tabItems = $embedded->where(fn ($item) => ($item['slot'] ?? 'tab_panels') === 'tab_panels')->values();
-
-        return view('inventory.show', compact(
-            'product',
-            'movementRows',
-            'currentStock',
-            'navigationTrail',
-            'movementKind',
-            'originLineType',
-            'originLineId',
-            'summaryItems',
-            'headerActions',
-            'detailItems',
-            'tabItems',
-        ));
+    if ($movementKind !== '' && ! in_array($movementKind, InventoryMovementService::kinds(), true)) {
+        abort(404);
     }
+
+    if (
+        $originLineType !== ''
+        && ! in_array($originLineType, InventoryOriginCatalog::originLineTypes(), true)
+    ) {
+        abort(404);
+    }
+
+    if ($originLineType === '' && $originLineId > 0) {
+        abort(404);
+    }
+
+    if ($originLineType !== '' && $originLineId <= 0) {
+        abort(404);
+    }
+
+    $navigationTrail = InventoryNavigationTrail::show($request, $product);
+    $trailQuery = NavigationTrail::toQuery($navigationTrail);
+
+    $product->load([
+        'attachments' => fn ($query) => $query->ordered(),
+    ]);
+
+    $movementsQuery = InventoryMovement::query()
+        ->where('tenant_id', $product->tenant_id)
+        ->where('product_id', $product->id)
+        ->with([
+            'product',
+            'operation',
+        ])
+        ->orderBy('created_at')
+        ->orderBy('id');
+
+    if ($movementKind !== '') {
+        $movementsQuery->where('kind', $movementKind);
+    }
+
+    if ($originLineType !== '') {
+        $movementsQuery
+            ->where('origin_line_type', $originLineType)
+            ->where('origin_line_id', $originLineId);
+    }
+
+    $inventoryMovements = $movementsQuery->get();
+
+    $runningBalance = 0.0;
+
+    $movementRows = $inventoryMovements
+        ->map(function ($movement) use (&$runningBalance) {
+            $quantity = (float) $movement->quantity;
+            $signedQuantity = $this->signedQuantityForMovement($movement->kind, $quantity);
+
+            $runningBalance += $signedQuantity;
+
+            return [
+                'movement' => $movement,
+                'signed_quantity' => $signedQuantity,
+                'running_balance' => $runningBalance,
+            ];
+        })
+        ->values()
+        ->reverse()
+        ->values();
+
+    $currentStock = app(ProductStockCalculator::class)->forProduct($product);
+
+    $hostPack = app(InventorySurfaceService::class)->hostPack('inventory.show', $product, [
+        'trailQuery' => $trailQuery,
+    ]);
+
+    $embedded = collect(app(ModuleSurfaceRegistry::class)->embeddedFor('inventory.show', $hostPack))->values();
+    $linked = collect(app(ModuleSurfaceRegistry::class)->linkedFor('inventory.show', $hostPack))->values();
+
+    $summaryItems = $linked->where('slot', 'summary_items')->values();
+    $headerActions = $linked->where('slot', 'header_actions')->values();
+    $detailItems = $embedded->where('slot', 'detail_items')->values();
+    $tabItems = $embedded->where(fn ($item) => ($item['slot'] ?? 'tab_panels') === 'tab_panels')->values();
+
+    return view('inventory.show', compact(
+        'product',
+        'movementRows',
+        'currentStock',
+        'navigationTrail',
+        'movementKind',
+        'originLineType',
+        'originLineId',
+        'summaryItems',
+        'headerActions',
+        'detailItems',
+        'tabItems',
+    ));
+}
 
     public function createMovement(Request $request, Product $product): View
     {
@@ -238,82 +241,83 @@ class InventoryController extends Controller
         ));
     }
 
-    public function storeMovement(Request $request): RedirectResponse
-    {
-        $data = $request->validate([
-            'product_id' => ['required', 'integer'],
-            'kind' => ['required', 'string', Rule::in(InventoryMovementService::kinds())],
-            'quantity' => ['required', 'numeric', 'gt:0'],
-            'notes' => ['nullable', 'string'],
-            'origin_type' => ['nullable', 'string', Rule::in(InventoryOriginCatalog::originTypes())],
-            'origin_id' => ['nullable', 'integer'],
-            'origin_line_type' => ['nullable', 'string', Rule::in(InventoryOriginCatalog::originLineTypes())],
-            'origin_line_id' => ['nullable', 'integer'],
-            'return_context' => ['nullable', 'string', Rule::in([
-                'inventory.show',
-                'orders.show',
-                'products.show',
-                'documents.show',
-            ])],
-            'return_tab' => ['nullable', 'string'],
-        ]);
+public function storeMovement(Request $request): RedirectResponse
+{
+    $data = $request->validate([
+        'product_id' => ['required', 'integer'],
+        'kind' => ['required', 'string', Rule::in(InventoryMovementService::kinds())],
+        'quantity' => ['required', 'numeric', 'gt:0'],
+        'notes' => ['nullable', 'string'],
+        'origin_type' => ['nullable', 'string', Rule::in(InventoryOriginCatalog::originTypes())],
+        'origin_id' => ['nullable', 'integer'],
+        'origin_line_type' => ['nullable', 'string', Rule::in(InventoryOriginCatalog::originLineTypes())],
+        'origin_line_id' => ['nullable', 'integer'],
+        'return_context' => ['nullable', 'string', Rule::in([
+            'inventory.show',
+            'orders.show',
+            'products.show',
+            'documents.show',
+        ])],
+        'return_tab' => ['nullable', 'string'],
+    ]);
 
-        $product = $this->resolveProduct((int) $data['product_id']);
+    $product = $this->resolveProduct((int) $data['product_id']);
 
-        abort_if(
-            $product->kind !== ProductCatalog::KIND_PRODUCT,
-            404
+    abort_if(
+        $product->kind !== ProductCatalog::KIND_PRODUCT,
+        404
+    );
+
+    $order = $this->resolveOrderContext($data, $product);
+    $orderItem = $this->resolveOrderItemContext($data, $order, $product);
+    $document = $this->resolveDocumentContext($data, $product);
+
+    $this->validateMovementContext($data, $order, $orderItem, $document);
+
+    if ($order) {
+        $this->authorize('update', $order);
+        $product = $this->resolveProductFromOrder($order, $product->id);
+        $this->validateOrderOperable($order);
+    } else {
+        $this->authorize('update', $product);
+    }
+
+    $result = $order
+        ? $this->storeOrderLineMovement(
+            order: $order,
+            orderItem: $orderItem,
+            kind: $data['kind'],
+            quantity: $data['quantity'],
+            notes: $data['notes'] ?? null,
+            createdBy: auth()->id(),
+        )
+        : $this->storeManualMovement(
+            product: $product,
+            kind: $data['kind'],
+            quantity: $data['quantity'],
+            notes: $data['notes'] ?? null,
+            document: $document,
+            createdBy: auth()->id(),
         );
 
-        $order = $this->resolveOrderContext($data, $product);
-        $orderItem = $this->resolveOrderItemContext($data, $order, $product);
-        $document = $this->resolveDocumentContext($data, $product);
+    $redirect = $this->redirectAfterMovement(
+        request: $request,
+        product: $product,
+        order: $order,
+        document: $document,
+        returnContext: $data['return_context'] ?? null,
+        returnTab: $data['return_tab'] ?? null,
+    )->with('success', 'Movimiento registrado correctamente.');
 
-        $this->validateMovementContext($data, $order, $orderItem, $document);
-
-        if ($order) {
-            $this->authorize('update', $order);
-            $product = $this->resolveProductFromOrder($order, $product->id);
-            $this->validateOrderOperable($order);
-        } else {
-            $this->authorize('update', $product);
-        }
-
-        $result = $order
-            ? $this->storeOrderLineMovement(
-                order: $order,
-                orderItem: $orderItem,
-                quantity: $data['quantity'],
-                notes: $data['notes'] ?? null,
-                createdBy: auth()->id(),
-            )
-            : $this->storeManualMovement(
-                product: $product,
-                kind: $data['kind'],
-                quantity: $data['quantity'],
-                notes: $data['notes'] ?? null,
-                document: $document,
-                createdBy: auth()->id(),
-            );
-
-        $redirect = $this->redirectAfterMovement(
-            request: $request,
-            product: $product,
-            order: $order,
-            document: $document,
-            returnContext: $data['return_context'] ?? null,
-            returnTab: $data['return_tab'] ?? null,
-        )->with('success', 'Movimiento registrado correctamente.');
-
-        if (($result['negative_stock'] ?? false) === true) {
-            $redirect->with(
-                'warning',
-                'El producto quedó con stock negativo. Se generó una tarea automática para revisión del owner.'
-            );
-        }
-
-        return $redirect;
+    if (($result['negative_stock'] ?? false) === true) {
+        $redirect->with(
+            'warning',
+            'El producto quedó con stock negativo. Se generó una tarea automática para revisión del owner.'
+        );
     }
+
+    return $redirect;
+}
 
     public function returnOrderItemQuantity(Request $request, Order $order, OrderItem $item): RedirectResponse
     {
@@ -369,13 +373,18 @@ class InventoryController extends Controller
         return $redirect;
     }
 
-    protected function storeOrderLineMovement(
-        Order $order,
-        OrderItem $orderItem,
-        float|int|string $quantity,
-        ?string $notes = null,
-        int|string|null $createdBy = null,
-    ): array {
+protected function storeOrderLineMovement(
+    Order $order,
+    OrderItem $orderItem,
+    string $kind,
+    float|int|string $quantity,
+    ?string $notes = null,
+    int|string|null $createdBy = null,
+): array {
+    $profile = app(\App\Support\Inventory\InventoryOperationProfileResolver::class)
+        ->forOrder($order);
+
+    if ($kind === $profile['execute_kind']) {
         return app(OrderInventoryOperationService::class)->executeLine(
             order: $order,
             item: $orderItem,
@@ -385,41 +394,79 @@ class InventoryController extends Controller
         );
     }
 
-    protected function storeManualMovement(
-        Product $product,
-        string $kind,
-        float|int|string $quantity,
-        ?string $notes = null,
-        ?Document $document = null,
-        int|string|null $createdBy = null,
-    ): array {
-        return match ($kind) {
-            InventoryMovementService::KIND_INGRESAR => app(InventoryMovementService::class)->ingresar(
-                product: $product,
-                quantity: $quantity,
-                notes: $notes,
-                order: null,
-                document: $document,
-                createdBy: $createdBy,
-            ),
-            InventoryMovementService::KIND_CONSUMIR => app(InventoryMovementService::class)->consumir(
-                product: $product,
-                quantity: $quantity,
-                notes: $notes,
-                order: null,
-                document: $document,
-                createdBy: $createdBy,
-            ),
-            InventoryMovementService::KIND_ENTREGAR => app(InventoryMovementService::class)->entregar(
-                product: $product,
-                quantity: $quantity,
-                notes: $notes,
-                order: null,
-                document: $document,
-                createdBy: $createdBy,
-            ),
-        };
+    if ($kind === $profile['reverse_kind']) {
+        return app(OrderInventoryOperationService::class)->returnLineQuantity(
+            order: $order,
+            item: $orderItem,
+            quantity: $quantity,
+            notes: $notes,
+            createdBy: $createdBy,
+        );
     }
+
+    abort(422, 'El tipo de movimiento no corresponde al perfil operativo de la orden.');
+}
+
+protected function storeManualMovement(
+    Product $product,
+    string $kind,
+    float|int|string $quantity,
+    ?string $notes = null,
+    ?Document $document = null,
+    int|string|null $createdBy = null,
+): array {
+    $operationType = $document
+        ? \App\Support\Inventory\InventoryOperationCatalog::TYPE_DOCUMENT_MOVEMENT
+        : \App\Support\Inventory\InventoryOperationCatalog::TYPE_MANUAL_ADJUSTMENT;
+
+    $originType = $document
+        ? \App\Support\Inventory\InventoryOriginCatalog::TYPE_DOCUMENT
+        : \App\Support\Inventory\InventoryOriginCatalog::TYPE_MANUAL;
+
+    $originId = $document?->id;
+
+    return app(\App\Support\Inventory\InventoryOperationService::class)->run(
+        tenantId: $product->tenant_id,
+        operationType: $operationType,
+        originType: $originType,
+        originId: $originId,
+        originLineType: null,
+        originLineId: null,
+        notes: $notes,
+        createdBy: $createdBy,
+        callback: function ($operation) use ($product, $kind, $quantity, $notes, $document, $createdBy) {
+            return match ($kind) {
+                InventoryMovementService::KIND_INGRESAR => app(InventoryMovementService::class)->ingresar(
+                    product: $product,
+                    quantity: $quantity,
+                    notes: $notes,
+                    order: null,
+                    document: $document,
+                    createdBy: $createdBy,
+                    operation: $operation,
+                ),
+                InventoryMovementService::KIND_CONSUMIR => app(InventoryMovementService::class)->consumir(
+                    product: $product,
+                    quantity: $quantity,
+                    notes: $notes,
+                    order: null,
+                    document: $document,
+                    createdBy: $createdBy,
+                    operation: $operation,
+                ),
+                InventoryMovementService::KIND_ENTREGAR => app(InventoryMovementService::class)->entregar(
+                    product: $product,
+                    quantity: $quantity,
+                    notes: $notes,
+                    order: null,
+                    document: $document,
+                    createdBy: $createdBy,
+                    operation: $operation,
+                ),
+            };
+        },
+    );
+}
 
     protected function validateMovementContext(
         array $data,
@@ -631,58 +678,60 @@ class InventoryController extends Controller
         };
     }
 
-    public function showMovement(Request $request, InventoryMovement $movement): View
-    {
-        $movement->load([
-            'product',
-            'creator',
-        ]);
+public function showMovement(Request $request, InventoryMovement $movement): View
+{
+    $movement->load([
+        'product',
+        'creator',
+        'operation.creator',
+    ]);
 
-        abort_if(! $movement->product, 404);
+    abort_if(! $movement->product, 404);
 
-        $this->authorize('view', $movement->product);
+    $this->authorize('view', $movement->product);
 
-        $originOrder = null;
-        $originDocument = null;
-        $originOrderItem = null;
+    $originOrder = null;
+    $originDocument = null;
+    $originOrderItem = null;
 
-        if ($movement->origin_type === InventoryOriginCatalog::TYPE_ORDER && $movement->origin_id) {
-            $originOrder = Order::query()
-                ->where('tenant_id', $movement->tenant_id)
-                ->whereKey($movement->origin_id)
-                ->first();
-        }
-
-        if ($movement->origin_type === InventoryOriginCatalog::TYPE_DOCUMENT && $movement->origin_id) {
-            $originDocument = Document::query()
-                ->where('tenant_id', $movement->tenant_id)
-                ->whereKey($movement->origin_id)
-                ->first();
-        }
-
-        if ($movement->origin_line_type === InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM && $movement->origin_line_id) {
-            $originOrderItem = OrderItem::query()
-                ->where('tenant_id', $movement->tenant_id)
-                ->whereKey($movement->origin_line_id)
-                ->first();
-        }
-
-        $navigationTrail = InventoryNavigationTrail::movementShow($request, $movement);
-        $trailQuery = NavigationTrail::toQuery($navigationTrail);
-
-        $backUrl = NavigationTrail::previousUrl(
-            $navigationTrail,
-            route('inventory.show', ['product' => $movement->product] + $trailQuery)
-        );
-
-        return view('inventory.movement-show', compact(
-            'movement',
-            'originOrder',
-            'originDocument',
-            'originOrderItem',
-            'navigationTrail',
-            'trailQuery',
-            'backUrl',
-        ));
+    if ($movement->origin_type === InventoryOriginCatalog::TYPE_ORDER && $movement->origin_id) {
+        $originOrder = Order::query()
+            ->where('tenant_id', $movement->tenant_id)
+            ->whereKey($movement->origin_id)
+            ->first();
     }
+
+    if ($movement->origin_type === InventoryOriginCatalog::TYPE_DOCUMENT && $movement->origin_id) {
+        $originDocument = Document::query()
+            ->where('tenant_id', $movement->tenant_id)
+            ->whereKey($movement->origin_id)
+            ->first();
+    }
+
+    if ($movement->origin_line_type === InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM && $movement->origin_line_id) {
+        $originOrderItem = OrderItem::query()
+            ->where('tenant_id', $movement->tenant_id)
+            ->whereKey($movement->origin_line_id)
+            ->first();
+    }
+
+    $navigationTrail = InventoryNavigationTrail::movementShow($request, $movement);
+    $trailQuery = NavigationTrail::toQuery($navigationTrail);
+
+    $backUrl = NavigationTrail::previousUrl(
+        $navigationTrail,
+        route('inventory.show', ['product' => $movement->product] + $trailQuery)
+    );
+
+    return view('inventory.movement-show', compact(
+        'movement',
+        'originOrder',
+        'originDocument',
+        'originOrderItem',
+        'navigationTrail',
+        'trailQuery',
+        'backUrl',
+    ));
+}
+
 }

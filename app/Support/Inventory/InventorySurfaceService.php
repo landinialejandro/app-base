@@ -478,31 +478,38 @@ class InventorySurfaceService implements ModuleSurfaceService
             ->first();
     }
 
-    private function movementRowsForOrigin(string $originType, int|string $originId, string $tenantId): Collection
-    {
-        $movements = InventoryMovement::query()
-            ->where('tenant_id', $tenantId)
-            ->where('origin_type', $originType)
-            ->where('origin_id', $originId)
-            ->with(['product'])
-            ->orderBy('created_at')
-            ->orderBy('id')
-            ->get();
+private function movementRowsForOrigin(string $originType, int|string $originId, string $tenantId): Collection
+{
+    $movements = InventoryMovement::query()
+        ->where('tenant_id', $tenantId)
+        ->where('origin_type', $originType)
+        ->where('origin_id', $originId)
+        ->with([
+            'product',
+            'operation',
+        ])
+        ->orderBy('created_at')
+        ->orderBy('id')
+        ->get();
 
-        return $this->buildMovementRows($movements);
-    }
+    return $this->buildMovementRows($movements);
+}
 
-    private function movementRowsForProduct(Product $product, string $movementKind = ''): Collection
-    {
-        $movements = InventoryMovement::query()
-            ->where('tenant_id', $product->tenant_id)
-            ->where('product_id', $product->id)
-            ->orderBy('created_at')
-            ->orderBy('id')
-            ->get();
+private function movementRowsForProduct(Product $product, string $movementKind = ''): Collection
+{
+    $movements = InventoryMovement::query()
+        ->where('tenant_id', $product->tenant_id)
+        ->where('product_id', $product->id)
+        ->with([
+            'product',
+            'operation',
+        ])
+        ->orderBy('created_at')
+        ->orderBy('id')
+        ->get();
 
-        return $this->buildMovementRows($movements, $movementKind);
-    }
+    return $this->buildMovementRows($movements, $movementKind);
+}
 
     private function buildMovementRows(Collection $movements, string $movementKind = ''): Collection
     {

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/InventoryMovement.php | V3
+// FILE: app/Models/InventoryMovement.php | V4
 
 namespace App\Models;
 
@@ -19,6 +19,7 @@ class InventoryMovement extends Model
     protected $fillable = [
         'tenant_id',
         'product_id',
+        'inventory_operation_id',
         'origin_type',
         'origin_id',
         'origin_line_type',
@@ -36,6 +37,11 @@ class InventoryMovement extends Model
     public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function operation(): BelongsTo
+    {
+        return $this->belongsTo(InventoryOperation::class, 'inventory_operation_id');
     }
 
     public function creator(): BelongsTo

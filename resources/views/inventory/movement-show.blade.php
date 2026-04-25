@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/movement-show.blade.php | V3 --}}
+{{-- FILE: resources/views/inventory/movement-show.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -7,6 +7,7 @@
 @section('content')
     @php
         use App\Support\Inventory\InventoryMovementService;
+        use App\Support\Inventory\InventoryOperationCatalog;
         use App\Support\Inventory\InventoryOriginCatalog;
         use App\Support\Navigation\NavigationTrail;
 
@@ -33,6 +34,7 @@
 
         $product = $movement->product;
         $creator = $movement->creator;
+        $operation = $movement->operation;
 
         $originLabel = $originTypeLabels[$movement->origin_type] ?? ($movement->origin_type ?: '—');
         $originUrl = null;
@@ -93,6 +95,17 @@
                 {{ $creator?->name ?: 'Sistema' }}
             </x-show-summary-item>
 
+            <x-show-summary-item label="Operación">
+                @if ($operation)
+                    #{{ $operation->id }}
+                    <div class="text-muted small">
+                        {{ InventoryOperationCatalog::label($operation->operation_type) }}
+                    </div>
+                @else
+                    —
+                @endif
+            </x-show-summary-item>
+
             <x-slot:details>
                 <x-show-summary-item-detail-block label="Origen">
                     @if ($originUrl)
@@ -121,6 +134,16 @@
                     </x-show-summary-item-detail-block>
                 @endif
 
+                @if ($operation)
+                    <x-show-summary-item-detail-block label="Tipo de operación">
+                        {{ InventoryOperationCatalog::label($operation->operation_type) }}
+                    </x-show-summary-item-detail-block>
+
+                    <x-show-summary-item-detail-block label="Notas de operación" full>
+                        {{ $operation->notes ?: '—' }}
+                    </x-show-summary-item-detail-block>
+                @endif
+
                 @if ($product)
                     <x-show-summary-item-detail-block label="SKU">
                         {{ $product->sku ?: '—' }}
@@ -145,6 +168,10 @@
                     #{{ $movement->id }}
                 </x-show-summary-item>
 
+                <x-show-summary-item label="Operación ID">
+                    {{ $movement->inventory_operation_id ? '#' . $movement->inventory_operation_id : '—' }}
+                </x-show-summary-item>
+
                 <x-show-summary-item label="Producto ID">
                     {{ $movement->product_id ?: '—' }}
                 </x-show-summary-item>
@@ -158,6 +185,10 @@
                 </x-show-summary-item>
 
                 <x-slot:details>
+                    <x-show-summary-item-detail-block label="inventory_operation_id">
+                        {{ $movement->inventory_operation_id ?: '—' }}
+                    </x-show-summary-item-detail-block>
+
                     <x-show-summary-item-detail-block label="origin_type">
                         {{ $movement->origin_type ?: '—' }}
                     </x-show-summary-item-detail-block>

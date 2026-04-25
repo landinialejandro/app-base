@@ -1,10 +1,11 @@
-{{-- FILE: resources/views/inventory/partials/movements-table.blade.php | V12 --}}
+{{-- FILE: resources/views/inventory/partials/movements-table.blade.php | V13 --}}
 
 @php
     use App\Models\Document;
     use App\Models\Order;
     use App\Models\OrderItem;
     use App\Support\Inventory\InventoryMovementService;
+    use App\Support\Inventory\InventoryOperationCatalog;
     use App\Support\Inventory\InventoryOriginCatalog;
 
     $movementRows = ($movementRows ?? collect())->values();
@@ -64,8 +65,15 @@
             }
         }
 
+        if ($movement->origin_type === InventoryOriginCatalog::TYPE_MANUAL || empty($movement->origin_type)) {
+            return [
+                'label' => 'Manual',
+                'url' => null,
+            ];
+        }
+
         return [
-            'label' => 'Ajuste manual',
+            'label' => $movement->origin_type . ($movement->origin_id ? ' #' . $movement->origin_id : ''),
             'url' => null,
         ];
     };
@@ -78,14 +86,14 @@
                 ->first();
 
             if ($item) {
-                return 'Línea #' . ($item->position ?? $item->id);
+                return '#' . ($item->position ?? $item->id) . ' — ' . $item->description;
             }
 
-            return 'Línea de orden #' . $movement->origin_line_id;
+            return 'order_item #' . $movement->origin_line_id;
         }
 
-        if ($movement->origin_line_type === InventoryOriginCatalog::LINE_TYPE_DOCUMENT_ITEM && $movement->origin_line_id) {
-            return 'Línea de documento #' . $movement->origin_line_id;
+        if ($movement->origin_line_type && $movement->origin_line_id) {
+            return $movement->origin_line_type . ' #' . $movement->origin_line_id;
         }
 
         return null;
@@ -101,6 +109,7 @@
                         <th>ID</th>
                         <th>Fecha</th>
                         <th>Tipo</th>
+                        <th>Operación</th>
                         <th>Origen</th>
                         <th>Cantidad</th>
                         <th>Saldo</th>
@@ -112,6 +121,7 @@
                     @foreach ($movementRows as $row)
                         @php
                             $movement = $row['movement'];
+                            $operation = $movement->operation;
                             $signedQuantity = (float) ($row['signed_quantity'] ?? 0);
                             $runningBalance = (float) ($row['running_balance'] ?? 0);
 
@@ -130,6 +140,17 @@
                             <td>{{ $movement->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
 
                             <td>{{ $kindLabels[$movement->kind] ?? ucfirst($movement->kind) }}</td>
+
+                            <td>
+                                @if ($operation)
+                                    #{{ $operation->id }}
+                                    <div class="text-muted small">
+                                        {{ InventoryOperationCatalog::label($operation->operation_type) }}
+                                    </div>
+                                @else
+                                    <span class="text-muted">—</span>
+                                @endif
+                            </td>
 
                             <td>
                                 @if ($origin['url'])

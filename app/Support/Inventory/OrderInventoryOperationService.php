@@ -1,6 +1,7 @@
 <?php
 
-// FILE: app/Support/Inventory/OrderInventoryOperationService.php | V4
+// FILE: app/Support/Inventory/OrderInventoryOperationService.php | V5
+
 namespace App\Support\Inventory;
 
 use App\Models\Order;
@@ -24,6 +25,7 @@ public function executeLine(
     $statusService = app(OrderItemStatusService::class);
     $profileResolver = app(InventoryOperationProfileResolver::class);
     $movementService = app(InventoryMovementService::class);
+    $openOperationResolver = app(InventoryOpenOperationResolver::class);
 
     $this->validateOrderItemRelation($order, $item);
     $this->validateOrderOperable($order);
@@ -58,8 +60,20 @@ public function executeLine(
         $notes,
         $createdBy,
         $movementService,
+        $openOperationResolver,
         $statusService
     ) {
+        $operation = $openOperationResolver->resolve(
+            tenantId: $order->tenant_id,
+            operationType: InventoryOperationCatalog::TYPE_ORDER_LINE_EXECUTE,
+            originType: InventoryOriginCatalog::TYPE_ORDER,
+            originId: $order->id,
+            originLineType: InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM,
+            originLineId: $item->id,
+            notes: $notes,
+            createdBy: $createdBy,
+        );
+
         $result = $movementService->createForOrderItem(
             order: $order,
             item: $item,
@@ -68,6 +82,7 @@ public function executeLine(
             quantity: $normalizedQuantity,
             notes: $notes,
             createdBy: $createdBy,
+            operation: $operation,
         );
 
         $item->refresh();
@@ -87,6 +102,7 @@ public function returnLineQuantity(
     $statusService = app(OrderItemStatusService::class);
     $profileResolver = app(InventoryOperationProfileResolver::class);
     $movementService = app(InventoryMovementService::class);
+    $openOperationResolver = app(InventoryOpenOperationResolver::class);
 
     $this->validateOrderItemRelation($order, $item);
     $this->validateOrderOperable($order);
@@ -111,6 +127,7 @@ public function returnLineQuantity(
     }
 
     $profile = $profileResolver->forOrder($order);
+    $movementNotes = $notes ?: 'Contramovimiento registrado sobre la línea.';
 
     return DB::transaction(function () use (
         $order,
@@ -118,19 +135,32 @@ public function returnLineQuantity(
         $product,
         $profile,
         $normalizedQuantity,
-        $notes,
+        $movementNotes,
         $createdBy,
         $movementService,
+        $openOperationResolver,
         $statusService
     ) {
+        $operation = $openOperationResolver->resolve(
+            tenantId: $order->tenant_id,
+            operationType: InventoryOperationCatalog::TYPE_ORDER_LINE_RETURN,
+            originType: InventoryOriginCatalog::TYPE_ORDER,
+            originId: $order->id,
+            originLineType: InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM,
+            originLineId: $item->id,
+            notes: $movementNotes,
+            createdBy: $createdBy,
+        );
+
         $result = $movementService->createForOrderItem(
             order: $order,
             item: $item,
             product: $product,
             kind: $profile['reverse_kind'],
             quantity: $normalizedQuantity,
-            notes: $notes ?: 'Contramovimiento registrado sobre la línea.',
+            notes: $movementNotes,
             createdBy: $createdBy,
+            operation: $operation,
         );
 
         $item->refresh();

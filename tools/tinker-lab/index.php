@@ -1,6 +1,6 @@
 <?php
 
-// FILE: tools/tinker-lab/index.php | V3
+// FILE: tools/tinker-lab/index.php | V4
 
 $projectRoot = dirname(__DIR__, 2);
 $logDir = $projectRoot.'/documentos/log';
@@ -14,6 +14,13 @@ $case = $_POST['case'] ?? '';
 $code = $_POST['code'] ?? '';
 $output = $_POST['output'] ?? '';
 $log = $_POST['log'] ?? '';
+
+$artisanCommands = [
+    'migrate' => 'php artisan migrate',
+    'migrate_fresh_seed' => 'php artisan migrate:fresh --seed',
+    'optimize_clear' => 'php artisan optimize:clear',
+    'routes_metrics' => 'php artisan route:list',
+];
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['run'])) {
     $command = 'cd '.escapeshellarg($projectRoot)
@@ -31,6 +38,7 @@ TINKER LAB LOG
 ============================================================
 FECHA: {$now}
 CASO: {$safeCase}
+COMANDO: php artisan tinker --execute
 ============================================================
 
 SALIDA:
@@ -47,6 +55,46 @@ TXT;
         $log.PHP_EOL.PHP_EOL,
         FILE_APPEND
     );
+}
+
+if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['artisan'])) {
+    $artisanKey = (string) $_POST['artisan'];
+
+    if (array_key_exists($artisanKey, $artisanCommands)) {
+        $artisanCommand = $artisanCommands[$artisanKey];
+        $command = 'cd '.escapeshellarg($projectRoot).' && '.$artisanCommand.' 2>&1';
+
+        $output = shell_exec($command) ?? '';
+
+        $now = date('Y-m-d H:i:s');
+        $safeCase = preg_replace('/[^a-zA-Z0-9_\-]/', '-', $case ?: 'artisan-'.$artisanKey);
+
+        $log = <<<TXT
+============================================================
+TINKER LAB ARTISAN LOG
+============================================================
+FECHA: {$now}
+CASO: {$safeCase}
+COMANDO: {$artisanCommand}
+============================================================
+
+SALIDA:
+{$output}
+
+============================================================
+FIN TINKER LAB ARTISAN LOG
+============================================================
+
+TXT;
+
+        file_put_contents(
+            $logFile,
+            $log.PHP_EOL.PHP_EOL,
+            FILE_APPEND
+        );
+    } else {
+        $output = 'Comando Artisan no permitido.';
+    }
 }
 
 if ($_SERVER['REQUEST_METHOD'] === 'POST' && isset($_POST['clear_output'])) {
@@ -105,7 +153,35 @@ TXT;
             color: #e5e7eb;
         }
 
-        h1 { margin-top: 0; }
+        .page-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 16px;
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            margin: 0;
+        }
+
+        .tools-box {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            gap: 8px;
+            flex-wrap: wrap;
+            background: #020617;
+            border: 1px solid #334155;
+            border-radius: 12px;
+            padding: 10px;
+        }
+
+        .tools-box-label {
+            color: #9ca3af;
+            font-size: 12px;
+            margin-right: 4px;
+        }
 
         .help {
             background: #020617;
@@ -161,8 +237,16 @@ TXT;
             cursor: pointer;
         }
 
+        .tools-box button {
+            margin-top: 0;
+            padding: 7px 10px;
+            font-size: 12px;
+            background: #1d4ed8;
+        }
+
         button.secondary { background: #475569; }
         button.danger { background: #b91c1c; }
+        button.warning { background: #b45309; }
 
         .actions {
             display: flex;
@@ -177,13 +261,33 @@ TXT;
     </style>
 </head>
 <body>
-    <h1>Tinker Lab</h1>
-
-    
-
     <form method="post" id="tinkerForm">
         <input type="hidden" name="output" value="<?= htmlspecialchars($output) ?>">
         <input type="hidden" name="log" value="<?= htmlspecialchars($log) ?>">
+
+        <div class="page-header">
+            <h1>Tinker Lab</h1>
+
+            <div class="tools-box" aria-label="Herramientas Artisan">
+                <span class="tools-box-label">Artisan</span>
+
+                <button type="submit" name="artisan" value="migrate">
+                    migrate
+                </button>
+
+                <button type="submit" name="artisan" value="migrate_fresh_seed" class="warning">
+                    fresh --seed
+                </button>
+
+                <button type="submit" name="artisan" value="optimize_clear" class="secondary">
+                    optimize:clear
+                </button>
+
+                <button type="submit" name="artisan" value="routes_metrics" class="secondary">
+                    routes
+                </button>
+            </div>
+        </div>
 
         <div class="grid">
             <div class="card full">
@@ -223,8 +327,10 @@ TXT;
             </div>
         </div>
     </form>
+
     <br>
     <br>
+
     <div class="help">
         <strong>Ayuda rápida</strong>
 

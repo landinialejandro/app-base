@@ -1,11 +1,12 @@
 <?php
 
-// FILE: app/Support/Inventory/InventoryMovementService.php | V7
+// FILE: app/Support/Inventory/InventoryMovementService.php | V8
 
 namespace App\Support\Inventory;
 
 use App\Models\Document;
 use App\Models\InventoryMovement;
+use App\Models\InventoryOperation;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
@@ -42,6 +43,7 @@ class InventoryMovementService
         ?Order $order = null,
         ?Document $document = null,
         int|string|null $createdBy = null,
+        ?InventoryOperation $operation = null,
     ): array {
         return $this->createMovement(
             product: $product,
@@ -52,6 +54,7 @@ class InventoryMovementService
             orderItem: null,
             document: $document,
             createdBy: $createdBy,
+            operation: $operation,
         );
     }
 
@@ -62,6 +65,7 @@ class InventoryMovementService
         ?Order $order = null,
         ?Document $document = null,
         int|string|null $createdBy = null,
+        ?InventoryOperation $operation = null,
     ): array {
         return $this->createMovement(
             product: $product,
@@ -72,6 +76,7 @@ class InventoryMovementService
             orderItem: null,
             document: $document,
             createdBy: $createdBy,
+            operation: $operation,
         );
     }
 
@@ -82,6 +87,7 @@ class InventoryMovementService
         ?Order $order = null,
         ?Document $document = null,
         int|string|null $createdBy = null,
+        ?InventoryOperation $operation = null,
     ): array {
         return $this->createMovement(
             product: $product,
@@ -92,6 +98,7 @@ class InventoryMovementService
             orderItem: null,
             document: $document,
             createdBy: $createdBy,
+            operation: $operation,
         );
     }
 
@@ -103,6 +110,7 @@ class InventoryMovementService
         float|int|string $quantity,
         ?string $notes = null,
         int|string|null $createdBy = null,
+        ?InventoryOperation $operation = null,
     ): array {
         return $this->createMovement(
             product: $product,
@@ -113,6 +121,7 @@ class InventoryMovementService
             orderItem: $item,
             document: null,
             createdBy: $createdBy,
+            operation: $operation,
         );
     }
 
@@ -125,12 +134,13 @@ class InventoryMovementService
         ?OrderItem $orderItem = null,
         ?Document $document = null,
         int|string|null $createdBy = null,
+        ?InventoryOperation $operation = null,
     ): array {
         $normalizedQuantity = (float) $quantity;
 
         $this->validateKind($kind);
         $this->validateQuantity($normalizedQuantity);
-        $this->validateTenantConsistency($product, $order, $orderItem, $document);
+        $this->validateTenantConsistency($product, $order, $orderItem, $document, $operation);
         $this->validateOrderContext($product, $order, $orderItem);
         $this->validateDocumentContext($product, $document);
 
@@ -146,12 +156,14 @@ class InventoryMovementService
             $orderItem,
             $document,
             $createdBy,
+            $operation,
             $origin,
             $originLine,
         ) {
             $movement = InventoryMovement::create([
                 'tenant_id' => $product->tenant_id,
                 'product_id' => $product->id,
+                'inventory_operation_id' => $operation?->id,
                 'origin_type' => $origin['type'],
                 'origin_id' => $origin['id'],
                 'origin_line_type' => $originLine['type'],
@@ -167,6 +179,7 @@ class InventoryMovementService
                     orderItem: $orderItem,
                     document: $document,
                     createdBy: $createdBy,
+                    operation: $operation,
                 ),
                 'created_by' => $createdBy,
             ]);
@@ -188,6 +201,7 @@ class InventoryMovementService
             );
 
             return [
+                'operation' => $operation,
                 'movement' => $movement,
                 'stock_after' => $stockAfter,
                 'negative_stock' => $stockAfter < 0,
@@ -252,6 +266,7 @@ class InventoryMovementService
         ?Order $order = null,
         ?OrderItem $orderItem = null,
         ?Document $document = null,
+        ?InventoryOperation $operation = null,
     ): void {
         if ($order && $order->tenant_id !== $product->tenant_id) {
             throw new InvalidArgumentException('La orden pertenece a otro tenant.');
@@ -263,6 +278,10 @@ class InventoryMovementService
 
         if ($document && $document->tenant_id !== $product->tenant_id) {
             throw new InvalidArgumentException('El documento pertenece a otro tenant.');
+        }
+
+        if ($operation && $operation->tenant_id !== $product->tenant_id) {
+            throw new InvalidArgumentException('La operación de inventario pertenece a otro tenant.');
         }
     }
 
@@ -325,12 +344,18 @@ class InventoryMovementService
         ?OrderItem $orderItem = null,
         ?Document $document = null,
         int|string|null $createdBy = null,
+        ?InventoryOperation $operation = null,
     ): string {
         $trace = [];
 
         $trace[] = '[inventory] Movimiento registrado por sistema';
         $trace[] = 'Tipo: '.$kind;
         $trace[] = 'Cantidad: '.$this->formatQuantity($quantity, $product?->unit_label);
+
+        if ($operation) {
+            $trace[] = 'Operación inventory #'.$operation->id;
+            $trace[] = 'Tipo operación: '.$operation->operation_type;
+        }
 
         if ($product) {
             $trace[] = 'Producto: '.($product->name ?: 'Producto #'.$product->id);
@@ -408,6 +433,10 @@ class InventoryMovementService
             '- Origen: '.($movement->origin_type ?: '—').' '.($movement->origin_id ? '#'.$movement->origin_id : ''),
         ];
 
+        if ($movement->inventory_operation_id) {
+            $descriptionLines[] = '- Operación inventory: #'.$movement->inventory_operation_id;
+        }
+
         if ($order) {
             $descriptionLines[] = '- Orden relacionada: '.($order->number ?: 'Orden #'.$order->id);
         }
@@ -433,6 +462,7 @@ class InventoryMovementService
                 'product_id' => $product->id,
                 'product_name' => $product->name,
                 'product_sku' => $product->sku,
+                'inventory_operation_id' => $movement->inventory_operation_id,
                 'origin_type' => $movement->origin_type,
                 'origin_id' => $movement->origin_id,
                 'origin_line_type' => $movement->origin_line_type,

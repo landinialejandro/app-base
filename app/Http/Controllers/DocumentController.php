@@ -658,28 +658,30 @@ public function update(Request $request, Document $document)
             ->with('success', 'Documento eliminado.');
     }
 
-    protected function copyItemsFromOrder(Order $order, Document $document): void
-    {
-        $order->loadMissing('items');
+protected function copyItemsFromOrder(Order $order, Document $document): void
+{
+    $math = app(\App\Support\LineItems\LineItemMath::class);
 
-        foreach ($order->items as $orderItem) {
-            $quantity = (float) $orderItem->quantity;
-            $unitPrice = (float) $orderItem->unit_price;
-            $lineTotal = $quantity * $unitPrice;
+    $order->loadMissing('items');
 
-            DocumentItem::create([
-                'tenant_id' => $document->tenant_id,
-                'document_id' => $document->id,
-                'product_id' => $orderItem->product_id,
-                'position' => $orderItem->position,
-                'kind' => $orderItem->kind,
-                'description' => $orderItem->description,
-                'quantity' => $quantity,
-                'unit_price' => $unitPrice,
-                'line_total' => $lineTotal,
-            ]);
-        }
+    foreach ($order->items as $orderItem) {
+        $quantity = $math->normalizeQuantity($orderItem->quantity);
+        $unitPrice = $math->normalizeMoney($orderItem->unit_price);
+        $lineTotal = $math->lineTotal($quantity, $unitPrice);
+
+        DocumentItem::create([
+            'tenant_id' => $document->tenant_id,
+            'document_id' => $document->id,
+            'product_id' => $orderItem->product_id,
+            'position' => $orderItem->position,
+            'kind' => $orderItem->kind,
+            'description' => $orderItem->description,
+            'quantity' => $quantity,
+            'unit_price' => $unitPrice,
+            'line_total' => $lineTotal,
+        ]);
     }
+}
 
     protected function resolveIssuedAt(?string $issuedAt): Carbon
     {

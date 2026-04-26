@@ -11,6 +11,7 @@ use App\Support\Auth\Security;
 use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\OrderCatalog;
+use App\Support\LineItems\LineItemMath;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\OrderNavigationTrail;
 use App\Support\Orders\OrdersHooks;
@@ -108,6 +109,8 @@ class OrderItemController extends Controller
         $data['tenant_id'] = $order->tenant_id;
         $data['order_id'] = $order->id;
         $data['status'] = 'pending';
+
+        $data = $this->syncDerivedFields($data);
 
         OrderItem::create($data);
 
@@ -207,6 +210,8 @@ class OrderItemController extends Controller
 
         $data = app(OrdersHooks::class)->beforeOrderItemUpdate($order, $item, $data);
 
+        $data = $this->syncDerivedFields($data);
+
         $item->update($data);
 
         app(OrdersHooks::class)->afterOrderItemUpdate($order, $item);
@@ -243,7 +248,7 @@ class OrderItemController extends Controller
 
     protected function syncDerivedFields(array $data): array
     {
-        $math = app(\App\Support\LineItems\LineItemMath::class);
+        $math = app(LineItemMath::class);
 
         $quantity = $math->normalizeQuantity($data['quantity'] ?? 0);
         $unitPrice = $math->normalizeMoney($data['unit_price'] ?? 0);
@@ -254,5 +259,4 @@ class OrderItemController extends Controller
 
         return $data;
     }
-
 }

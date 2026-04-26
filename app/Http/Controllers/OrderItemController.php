@@ -240,4 +240,19 @@ class OrderItemController extends Controller
             ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
             ->with('success', 'Ítem eliminado correctamente.');
     }
+
+    protected function syncDerivedFields(array $data): array
+    {
+        $math = app(\App\Support\LineItems\LineItemMath::class);
+
+        $quantity = $math->normalizeQuantity($data['quantity'] ?? 0);
+        $unitPrice = $math->normalizeMoney($data['unit_price'] ?? 0);
+
+        $data['quantity'] = $quantity;
+        $data['unit_price'] = $unitPrice;
+        $data['subtotal'] = $math->lineTotal($quantity, $unitPrice);
+
+        return $data;
+    }
+
 }

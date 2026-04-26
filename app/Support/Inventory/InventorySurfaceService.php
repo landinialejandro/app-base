@@ -615,7 +615,7 @@ private function resolveDocumentItemRowActions(array $hostPack): array
     $document = $hostPack['document'] ?? null;
     $modalNamespace = trim((string) ($hostPack['modal_namespace'] ?? ''));
 
-    if ($recordType !== 'document_item' || ! $record instanceof \App\Models\DocumentItem || ! $document instanceof Document) {
+    if ($recordType !== 'document_item' || ! $record instanceof DocumentItem || ! $document instanceof Document) {
         return [
             'count' => 0,
             'data' => [
@@ -626,11 +626,11 @@ private function resolveDocumentItemRowActions(array $hostPack): array
 
     $record->loadMissing('product');
 
-    $documentAffectsStock = \App\Support\Catalogs\DocumentCatalog::affectsStock($document->group, $document->kind);
+    $documentAffectsStock = DocumentCatalog::affectsStock($document->group, $document->kind);
     $isPhysicalProduct = $record->product && $record->product->kind === ProductCatalog::KIND_PRODUCT;
     $canUpdateDocument = auth()->user()?->can('update', $document) === true;
 
-    $statusService = app(\App\Support\Inventory\DocumentItemStatusService::class);
+    $statusService = app(DocumentItemStatusService::class);
 
     $executedQuantity = $isPhysicalProduct
         ? $statusService->executedQuantity($record)

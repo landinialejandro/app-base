@@ -1,62 +1,60 @@
-{{-- FILE: resources/views/documents/items/partials/embedded.blade.php | V1 --}}
+{{-- FILE: resources/views/documents/items/partials/embedded.blade.php | V4 --}}
 
 @php
+    use App\Support\Catalogs\DocumentItemCatalog;
+    use App\Support\LineItems\LineItemViewHelper;
+
+    $viewHelper = app(LineItemViewHelper::class);
+
     $document = $document ?? null;
     $items = $items ?? collect();
+    $emptyMessage = $emptyMessage ?? 'No hay ítems cargados en este documento.';
     $trailQuery = $trailQuery ?? [];
+
+    $statuses = [
+        DocumentItemCatalog::STATUS_PENDING => DocumentItemCatalog::statusLabel(DocumentItemCatalog::STATUS_PENDING),
+        DocumentItemCatalog::STATUS_PARTIAL => DocumentItemCatalog::statusLabel(DocumentItemCatalog::STATUS_PARTIAL),
+        DocumentItemCatalog::STATUS_COMPLETED => DocumentItemCatalog::statusLabel(DocumentItemCatalog::STATUS_COMPLETED),
+        DocumentItemCatalog::STATUS_CANCELLED => DocumentItemCatalog::statusLabel(DocumentItemCatalog::STATUS_CANCELLED),
+    ];
+
+    $addUrl = null;
+
+    if ($document && auth()->user()?->can('update', $document)) {
+        $addUrl = route('documents.items.create', ['document' => $document] + $trailQuery);
+    }
+
+    $summaryItems = [
+        [
+            'label' => 'Cantidad de ítems',
+            'value' => $items->count(),
+        ],
+        [
+            'label' => 'Subtotal',
+            'value' => $viewHelper->money($document?->subtotal ?? 0),
+        ],
+        [
+            'label' => 'Impuestos',
+            'value' => $viewHelper->money($document?->tax_total ?? 0),
+        ],
+        [
+            'label' => 'Total',
+            'value' => $viewHelper->money($document?->total ?? 0),
+        ],
+    ];
 @endphp
 
-<div class="tab-panel-stack">
-
-    <x-tab-toolbar label="Ítems del documento">
-        <x-slot:tabs>
-            <span class="tab-toolbar-title">
-                Ítems
-                @if ($items->count())
-                    ({{ $items->count() }})
-                @endif
-            </span>
-        </x-slot:tabs>
-
-        <x-slot:actions>
-            @can('update', $document)
-                <x-button-create :href="route('documents.items.create', ['document' => $document] + $trailQuery)" label="Agregar ítem" class="btn-sm" />
-            @endcan
-        </x-slot:actions>
-    </x-tab-toolbar>
-
-    <x-card class="list-card">
-        @include('documents.items.partials.table', [
-            'document' => $document,
-            'items' => $items,
-            'trailQuery' => $trailQuery,
-        ])
-    </x-card>
-
-    {{-- RESUMEN ECONÓMICO --}}
-    <x-card>
-        <div class="summary-inline-grid">
-            <div class="summary-inline-card">
-                <div class="summary-inline-label">Subtotal</div>
-                <div class="summary-inline-value">
-                    ${{ number_format($document->subtotal, 2, ',', '.') }}
-                </div>
-            </div>
-
-            <div class="summary-inline-card">
-                <div class="summary-inline-label">Impuestos</div>
-                <div class="summary-inline-value">
-                    ${{ number_format($document->tax_total, 2, ',', '.') }}
-                </div>
-            </div>
-
-            <div class="summary-inline-card">
-                <div class="summary-inline-label">Total</div>
-                <div class="summary-inline-value">
-                    ${{ number_format($document->total, 2, ',', '.') }}
-                </div>
-            </div>
-        </div>
-    </x-card>
-
-</div>
+<x-tabs-embedded
+    :items="$items"
+    :statuses="$statuses"
+    toolbar-label="Estados de ítems"
+    table-view="documents.items.partials.table"
+    :table-data="[
+        'document' => $document,
+        'trailQuery' => $trailQuery,
+    ]"
+    :empty-message="$emptyMessage"
+    :add-url="$addUrl"
+    add-label="Agregar ítem"
+    :summary-items="$summaryItems"
+/>

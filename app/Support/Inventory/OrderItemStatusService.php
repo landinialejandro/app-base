@@ -1,33 +1,31 @@
 <?php
 
-// FILE: app/Support/Inventory/OrderItemStatusService.php | V6
+// FILE: app/Support/Inventory/OrderItemStatusService.php | V7
 
 namespace App\Support\Inventory;
 
 use App\Models\InventoryMovement;
 use App\Models\OrderItem;
 use App\Support\Catalogs\OrderItemCatalog;
+use App\Support\LineItems\LineItemMath;
 
 class OrderItemStatusService
 {
     public function recalculate(OrderItem $item): string
     {
-        if ($this->isCancelled($item)) {
-            return $this->persistStatus($item, OrderItemCatalog::STATUS_CANCELLED);
-        }
+        $math = app(LineItemMath::class);
 
-        $orderedQuantity = $this->normalizeQuantity($item->quantity);
-        $executedQuantity = $this->executedQuantity($item);
+        $status = $math->statusFor(
+            quantity: $item->quantity,
+            executedQuantity: $this->executedQuantity($item),
+            pendingStatus: OrderItemCatalog::STATUS_PENDING,
+            partialStatus: OrderItemCatalog::STATUS_PARTIAL,
+            completedStatus: OrderItemCatalog::STATUS_COMPLETED,
+            cancelledStatus: OrderItemCatalog::STATUS_CANCELLED,
+            cancelled: $this->isCancelled($item),
+        );
 
-        if ($executedQuantity <= 0) {
-            return $this->persistStatus($item, OrderItemCatalog::STATUS_PENDING);
-        }
-
-        if ($executedQuantity < $orderedQuantity) {
-            return $this->persistStatus($item, OrderItemCatalog::STATUS_PARTIAL);
-        }
-
-        return $this->persistStatus($item, OrderItemCatalog::STATUS_COMPLETED);
+        return $this->persistStatus($item, $status);
     }
 
     public function recalculateMany(iterable $items): void
@@ -43,6 +41,7 @@ class OrderItemStatusService
 
     public function executedQuantity(OrderItem $item): float
     {
+        $math = app(LineItemMath::class);
         $profileResolver = app(InventoryOperationProfileResolver::class);
 
         $item->loadMissing(['order']);
@@ -52,15 +51,15 @@ class OrderItemStatusService
         $executedNet = $this->movementsForOrderItem($item)
             ->sum(fn ($movement) => $this->executionSignedQuantity($movement, $profile));
 
-        return max(0, $this->normalizeQuantity($executedNet));
+        return max(0, $math->normalizeQuantity($executedNet));
     }
 
     public function pendingQuantity(OrderItem $item): float
     {
-        $orderedQuantity = $this->normalizeQuantity($item->quantity);
-        $executedQuantity = $this->executedQuantity($item);
-
-        return max(0, $this->normalizeQuantity($orderedQuantity - $executedQuantity));
+        return app(LineItemMath::class)->pendingQuantity(
+            $item->quantity,
+            $this->executedQuantity($item),
+        );
     }
 
     public function hasMovements(OrderItem $item): bool
@@ -83,7 +82,9 @@ class OrderItemStatusService
 
     protected function executionSignedQuantity(object $movement, array $profile): float
     {
-        $quantity = $this->normalizeQuantity($movement->quantity ?? 0);
+        $math = app(LineItemMath::class);
+
+        $quantity = $math->normalizeQuantity($movement->quantity ?? 0);
         $kind = (string) ($movement->kind ?? '');
 
         if ($kind === (string) ($profile['execute_kind'] ?? '')) {
@@ -111,10 +112,5 @@ class OrderItemStatusService
     protected function isCancelled(OrderItem $item): bool
     {
         return $item->status === OrderItemCatalog::STATUS_CANCELLED;
-    }
-
-    protected function normalizeQuantity(float|int|string|null $value): float
-    {
-        return round((float) ($value ?? 0), 2);
     }
 }

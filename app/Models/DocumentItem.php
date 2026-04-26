@@ -1,12 +1,13 @@
 <?php
 
-// FILE: app/Models/DocumentItem.php | V2
+// FILE: app/Models/DocumentItem.php | V3
 
 namespace App\Models;
 
 use App\Models\Concerns\ResolvesTenantRouteBinding;
 use App\Models\Concerns\TenantScoped;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
 class DocumentItem extends Model
@@ -23,6 +24,7 @@ class DocumentItem extends Model
         'kind',
         'description',
         'quantity',
+        'status',
         'unit_price',
         'line_total',
     ];
@@ -33,13 +35,18 @@ class DocumentItem extends Model
         'line_total' => 'decimal:2',
     ];
 
-    public function document()
+    public function document(): BelongsTo
     {
         return $this->belongsTo(Document::class);
     }
 
-    public function product()
+    public function product(): BelongsTo
     {
         return $this->belongsTo(Product::class);
+    }
+
+    public function getSubtotalAttribute(): float
+    {
+        return (float) $this->quantity * (float) $this->unit_price;
     }
 }

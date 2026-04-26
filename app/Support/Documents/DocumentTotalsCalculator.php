@@ -1,33 +1,34 @@
 <?php
 
-// FILE: app/Support/Documents/DocumentTotalsCalculator.php
+// FILE: app/Support/Documents/DocumentTotalsCalculator.php | V2
 
 namespace App\Support\Documents;
 
 use App\Models\Document;
+use App\Support\LineItems\LineItemMath;
 
-class DocumentTotalsCalculator
+final class DocumentTotalsCalculator
 {
-    public static function calculate(Document $document): array
+    public function recalculate(Document $document): Document
     {
-        $subtotal = (float) $document->items()->sum('line_total');
+        $math = app(LineItemMath::class);
 
-        // Base mínima actual.
-        // En el futuro acá puede entrar lógica de IVA, percepciones,
-        // recargos, descuentos o reglas por jurisdicción.
-        $taxTotal = 0.0;
+        $document->loadMissing('items');
 
-        $total = $subtotal + $taxTotal;
+        $subtotal = $document->items->sum(
+            fn ($item) => $math->lineTotal($item->quantity, $item->unit_price)
+        );
 
-        return [
+        $subtotal = $math->normalizeMoney($subtotal);
+        $taxTotal = $math->normalizeMoney($subtotal * 0);
+        $total = $math->normalizeMoney($subtotal + $taxTotal);
+
+        $document->forceFill([
             'subtotal' => $subtotal,
             'tax_total' => $taxTotal,
             'total' => $total,
-        ];
-    }
+        ])->saveQuietly();
 
-    public static function apply(Document $document): void
-    {
-        $document->update(static::calculate($document));
+        return $document->fresh();
     }
 }

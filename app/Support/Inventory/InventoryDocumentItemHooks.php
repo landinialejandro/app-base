@@ -1,11 +1,12 @@
 <?php
 
-// FILE: app/Support/Inventory/InventoryDocumentItemHooks.php | V1
+// FILE: app/Support/Inventory/InventoryDocumentItemHooks.php | V2
 
 namespace App\Support\Inventory;
 
 use App\Models\Document;
 use App\Models\DocumentItem;
+use App\Support\Catalogs\DocumentItemCatalog;
 use InvalidArgumentException;
 
 class InventoryDocumentItemHooks
@@ -13,6 +14,12 @@ class InventoryDocumentItemHooks
     public function beforeUpdate(Document $document, DocumentItem $item, array $data): void
     {
         $this->validateBelongsToDocument($document, $item);
+
+        if (DocumentItemCatalog::isFinal($item->status)) {
+            throw new InvalidArgumentException(
+                'No se puede editar una línea documental en estado final.'
+            );
+        }
 
         if (! array_key_exists('quantity', $data)) {
             return;
@@ -31,6 +38,12 @@ class InventoryDocumentItemHooks
     public function beforeDelete(Document $document, DocumentItem $item): void
     {
         $this->validateBelongsToDocument($document, $item);
+
+        if (DocumentItemCatalog::isFinal($item->status)) {
+            throw new InvalidArgumentException(
+                'No se puede eliminar una línea documental en estado final.'
+            );
+        }
 
         if (app(DocumentItemStatusService::class)->hasMovements($item)) {
             throw new InvalidArgumentException(

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/partials/order-line-return-modal.blade.php | V5 --}}
+{{-- FILE: resources/views/inventory/partials/order-line-return-modal.blade.php | V6 --}}
 
 @php
     use App\Support\Inventory\InventoryOriginCatalog;
@@ -6,9 +6,7 @@
     $order = $order ?? null;
     $row = $row ?? [];
     $trailQuery = $trailQuery ?? [];
-
     $modalId = $modalId ?? 'inventory-return-line-' . ($row['order_item_id'] ?? uniqid());
-    $submitFormId = $submitFormId ?? $modalId . '-form';
 
     $position = $row['position'] ?? '—';
     $productName = $row['product_name'] ?? 'Producto';
@@ -21,76 +19,49 @@
     $orderItemId = $row['order_item_id'] ?? null;
     $returnKind = $row['return_kind'] ?? null;
 
-    $returnLabel = $row['return_label'] ?? 'Devolver';
-    $returnTitle = $row['return_title'] ?? $returnLabel . ' línea';
-    $returnVerbLower = \Illuminate\Support\Str::lower($returnLabel);
-
-    $quantityInputId = $modalId . '-quantity';
-    $notesInputId = $modalId . '-notes';
-
-    $stepAmount = '0.01';
+    $returnTitle = $row['return_title'] ?? ($row['return_label'] ?? 'Devolver') . ' línea';
     $defaultQuantity = number_format($maxReturnQuantity, 2, '.', '');
+
+    $summaryItems = [
+        [
+            'label' => 'Ejecutado neto',
+            'value' => number_format($executedQuantity, 2, ',', '.'),
+        ],
+        [
+            'label' => 'Máximo a revertir',
+            'value' => number_format($maxReturnQuantity, 2, ',', '.'),
+        ],
+        [
+            'label' => 'Stock actual',
+            'value' => $currentStock !== null ? number_format($currentStock, 2, ',', '.') : '—',
+        ],
+    ];
+
+    $hiddenFields = [
+        'product_id' => $productId,
+        'origin_type' => InventoryOriginCatalog::TYPE_ORDER,
+        'origin_id' => $order?->id,
+        'origin_line_type' => InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM,
+        'origin_line_id' => $orderItemId,
+        'kind' => $returnKind,
+        'return_context' => 'orders.show',
+        'return_tab' => 'inventory.embedded',
+    ];
 @endphp
 
-<x-modal :id="$modalId" :title="$returnTitle . ' #' . $position" size="md">
-    <x-slot:headerActions>
-        <x-button-tool-button type="submit" :form="$submitFormId" variant="danger" :title="'Confirmar ' . \Illuminate\Support\Str::lower($returnTitle) . ' #' . $position" :label="'Confirmar ' . \Illuminate\Support\Str::lower($returnTitle) . ' #' . $position">
-            <x-icons.check />
-        </x-button-tool-button>
-    </x-slot:headerActions>
-
-    <form id="{{ $submitFormId }}"
-        action="{{ route('inventory.order-items.return', ['order' => $order, 'item' => $orderItemId] + $trailQuery) }}"
-        method="POST">
-        @csrf
-        <input type="hidden" name="product_id" value="{{ $productId }}">
-        <input type="hidden" name="origin_type" value="{{ InventoryOriginCatalog::TYPE_ORDER }}">
-        <input type="hidden" name="origin_id" value="{{ $order?->id }}">
-        <input type="hidden" name="origin_line_type" value="{{ InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM }}">
-        <input type="hidden" name="origin_line_id" value="{{ $orderItemId }}">
-        <input type="hidden" name="kind" value="{{ $returnKind }}">
-        <input type="hidden" name="return_context" value="orders.show">
-        <input type="hidden" name="return_tab" value="inventory.embedded">
-    </form>
-
-    <div class="form">
-        <div class="form-group">
-            <label class="form-label">Producto</label>
-            <input type="text" class="form-control" value="{{ $productName }}" disabled>
-        </div>
-
-        <div class="summary-inline-grid">
-            <div class="summary-inline-card">
-                <div class="summary-inline-label">Ejecutado neto</div>
-                <div class="summary-inline-value">{{ number_format($executedQuantity, 2, ',', '.') }}</div>
-            </div>
-
-            <div class="summary-inline-card">
-                <div class="summary-inline-label">Máximo a revertir</div>
-                <div class="summary-inline-value">{{ number_format($maxReturnQuantity, 2, ',', '.') }}</div>
-            </div>
-
-            <div class="summary-inline-card">
-                <div class="summary-inline-label">Stock actual</div>
-                <div class="summary-inline-value">
-                    {{ $currentStock !== null ? number_format($currentStock, 2, ',', '.') : '—' }}
-                </div>
-            </div>
-        </div>
-
-        <div class="form-group">
-            <label for="{{ $quantityInputId }}" class="form-label">Cantidad</label>
-
-            <input id="{{ $quantityInputId }}" form="{{ $submitFormId }}" name="quantity" type="number"
-                step="{{ $stepAmount }}" min="0.01" max="{{ $defaultQuantity }}" class="form-control"
-                value="{{ old('quantity', $defaultQuantity) }}" required>
-        </div>
-
-        <div class="form-group">
-            <label for="{{ $notesInputId }}" class="form-label">Notas</label>
-
-            <input id="{{ $notesInputId }}" form="{{ $submitFormId }}" name="notes" type="text"
-                class="form-control" value="{{ old('notes') }}" placeholder="Opcional">
-        </div>
-    </div>
-</x-modal>
+<x-line-operation-modal
+    :modal-id="$modalId"
+    :title="$returnTitle"
+    :position="$position"
+    :action="route('inventory.order-items.return', ['order' => $order, 'item' => $orderItemId] + $trailQuery)"
+    method="POST"
+    :hidden-fields="$hiddenFields"
+    :product-name="$productName"
+    :summary-items="$summaryItems"
+    quantity-label="Cantidad"
+    :quantity-default="$defaultQuantity"
+    :quantity-max="$defaultQuantity"
+    submit-variant="danger"
+    :helper-text="'Podés revertir hasta ' . number_format($maxReturnQuantity, 2, ',', '.') . ', que corresponde a lo ejecutado neto actual de la línea.'"
+    :use-stepper="true"
+/>

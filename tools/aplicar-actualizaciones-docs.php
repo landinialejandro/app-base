@@ -1,28 +1,39 @@
 <?php
 
-// FILE: aplicar-actualizaciones-docs.php | V7
-$baseDir = __DIR__.DIRECTORY_SEPARATOR.'documentos';
-$backupDir = $baseDir.DIRECTORY_SEPARATOR.'baks';
-$logPath = $baseDir.DIRECTORY_SEPARATOR.'log'.DIRECTORY_SEPARATOR.'docs-updates.log';
+// FILE: tools/aplicar-actualizaciones-docs.php | V9
+
+declare(strict_types=1);
+
+require_once __DIR__.'/lib/ConsoleOutput.php';
+require_once __DIR__.'/lib/ProjectPaths.php';
+require_once __DIR__.'/lib/ToolLog.php';
+
+ProjectPaths::chdirRoot();
+
+$baseDir = ProjectPaths::documentos();
+$backupDir = ProjectPaths::baks();
+$logPath = ProjectPaths::logPath('docs-updates.log');
+
+$console = new ConsoleOutput;
 
 $input = trim(stream_get_contents(STDIN));
 
 if ($input === '') {
-    fwrite(STDERR, "No se recibió contenido por stdin.\n");
+    $console->error('No se recibió contenido por STDIN.');
     exit(1);
 }
 
 $documents = indexDocumentsBySlug($baseDir);
 
 if (empty($documents)) {
-    fwrite(STDERR, "No se encontraron documentos indexables.\n");
+    $console->error('No se encontraron documentos indexables.');
     exit(1);
 }
 
 $operations = parseOperations($input);
 
 if (empty($operations)) {
-    fwrite(STDERR, "No se encontraron bloques válidos de reemplazo o inserción.\n");
+    $console->error('No se encontraron bloques válidos de reemplazo o inserción.');
     exit(1);
 }
 
@@ -32,7 +43,7 @@ foreach ($operations as $operation) {
     $documentSlug = $operation['document_slug'];
 
     if (! isset($documents[$documentSlug])) {
-        fwrite(STDERR, "Documento no reconocido por slug: {$documentSlug}\n");
+        $console->error("Documento no reconocido por slug: {$documentSlug}");
 
         continue;
     }
@@ -41,20 +52,20 @@ foreach ($operations as $operation) {
 }
 
 if (empty($operationsByDocument)) {
-    fwrite(STDERR, "No hay cambios aplicables.\n");
+    $console->warn('No hay cambios aplicables.');
     exit(1);
 }
 
-if (! is_dir($backupDir)) {
-    mkdir($backupDir, 0777, true);
-}
+ProjectPaths::ensureDirectory($backupDir);
+
+$totalApplied = 0;
 
 foreach ($operationsByDocument as $documentSlug => $operationsForDocument) {
     $fileName = $documents[$documentSlug];
     $filePath = $baseDir.DIRECTORY_SEPARATOR.$fileName;
 
     if (! file_exists($filePath)) {
-        fwrite(STDERR, "No existe el archivo del documento: {$filePath}\n");
+        $console->error("[{$documentSlug}] No existe el archivo del documento: {$filePath}");
 
         continue;
     }
@@ -62,7 +73,7 @@ foreach ($operationsByDocument as $documentSlug => $operationsForDocument) {
     $content = file_get_contents($filePath);
 
     if ($content === false) {
-        fwrite(STDERR, "No se pudo leer el archivo: {$filePath}\n");
+        $console->error("[{$documentSlug}] No se pudo leer el archivo: {$filePath}");
 
         continue;
     }
@@ -81,14 +92,14 @@ foreach ($operationsByDocument as $documentSlug => $operationsForDocument) {
             $matchCount = count($matches);
 
             if ($matchCount === 0) {
-                fwrite(STDERR, "[{$documentSlug}] No se encontró la sección: {$sectionName}\n");
-                writeClosestSectionHint($documentSlug, $sectionName, $availableSections);
+                $console->error("[{$documentSlug}] No se encontró la sección: {$sectionName}");
+                writeClosestSectionHint($console, $documentSlug, $sectionName, $availableSections);
 
                 continue;
             }
 
             if ($matchCount > 1) {
-                fwrite(STDERR, "[{$documentSlug}] Se encontraron múltiples secciones con el mismo nombre: {$sectionName}\n");
+                $console->error("[{$documentSlug}] Se encontraron múltiples secciones con el mismo nombre: {$sectionName}");
 
                 continue;
             }
@@ -103,6 +114,7 @@ foreach ($operationsByDocument as $documentSlug => $operationsForDocument) {
 
             if ($count > 0) {
                 $applied++;
+                $console->ok("[{$documentSlug}] Sección reemplazada: {$sectionName}");
             }
 
             continue;
@@ -116,7 +128,7 @@ foreach ($operationsByDocument as $documentSlug => $operationsForDocument) {
             $existingNewSections = findSectionBlocksByName($content, $newSectionName);
 
             if (count($existingNewSections) > 0) {
-                fwrite(STDERR, "[{$documentSlug}] Ya existe la sección a insertar: {$newSectionName}\n");
+                $console->warn("[{$documentSlug}] Ya existe la sección a insertar: {$newSectionName}");
 
                 continue;
             }
@@ -125,20 +137,19 @@ foreach ($operationsByDocument as $documentSlug => $operationsForDocument) {
             $anchorCount = count($anchorMatches);
 
             if ($anchorCount === 0) {
-                fwrite(STDERR, "[{$documentSlug}] No se encontró la sección ancla: {$anchorSectionName}\n");
-                writeClosestSectionHint($documentSlug, $anchorSectionName, $availableSections);
+                $console->error("[{$documentSlug}] No se encontró la sección ancla: {$anchorSectionName}");
+                writeClosestSectionHint($console, $documentSlug, $anchorSectionName, $availableSections);
 
                 continue;
             }
 
             if ($anchorCount > 1) {
-                fwrite(STDERR, "[{$documentSlug}] Se encontraron múltiples secciones ancla con el mismo nombre: {$anchorSectionName}\n");
+                $console->error("[{$documentSlug}] Se encontraron múltiples secciones ancla con el mismo nombre: {$anchorSectionName}");
 
                 continue;
             }
 
             $anchorBlock = $anchorMatches[0];
-
             $replacement = $anchorBlock."\n\n".$block;
 
             $content = preg_replace(
@@ -151,6 +162,7 @@ foreach ($operationsByDocument as $documentSlug => $operationsForDocument) {
 
             if ($count > 0) {
                 $applied++;
+                $console->ok("[{$documentSlug}] Sección insertada: {$newSectionName}");
             }
 
             continue;
@@ -158,7 +170,7 @@ foreach ($operationsByDocument as $documentSlug => $operationsForDocument) {
     }
 
     if ($applied === 0) {
-        fwrite(STDERR, "[{$documentSlug}] Sin cambios aplicados.\n");
+        $console->warn("[{$documentSlug}] Sin cambios aplicados.");
 
         continue;
     }
@@ -168,39 +180,38 @@ foreach ($operationsByDocument as $documentSlug => $operationsForDocument) {
     file_put_contents($backupPath, $originalContent);
 
     if (file_put_contents($filePath, $content) === false) {
-        fwrite(STDERR, "[{$documentSlug}] Error al escribir archivo.\n");
+        $console->error("[{$documentSlug}] Error al escribir archivo.");
 
         continue;
     }
 
-    fwrite(STDERR, "[{$documentSlug}] OK. Secciones aplicadas: {$applied}\n");
+    $totalApplied += $applied;
 
+    $console->ok("[{$documentSlug}] OK. Secciones aplicadas: {$applied}");
     appendDocsLog($logPath, $documentSlug, $applied);
 }
 
+if ($totalApplied === 0) {
+    $console->warn('Proceso finalizado sin cambios aplicados.');
+    exit(1);
+}
+
+$console->ok("Proceso finalizado. Total de secciones aplicadas: {$totalApplied}");
+exit(0);
+
 function appendDocsLog(string $logPath, string $documentSlug, int $sections): void
 {
-    $logDir = dirname($logPath);
-
-    if (! is_dir($logDir)) {
-        @mkdir($logDir, 0775, true);
-    }
-
-    $isNewFile = ! file_exists($logPath);
-
-    $user = get_current_user();
-    $host = php_uname('n');
-    $date = date('Y-m-d H:i:s');
-
-    $lines = '';
-
-    if ($isNewFile) {
-        $lines .= "DOCUMENTO | FECHA | SECCIONES | USUARIO | HOST\n";
-    }
-
-    $lines .= "{$documentSlug} | {$date} | {$sections} | {$user} | {$host}\n";
-
-    @file_put_contents($logPath, $lines, FILE_APPEND);
+    ToolLog::append(
+        $logPath,
+        ['DOCUMENTO', 'FECHA', 'SECCIONES', 'USUARIO', 'HOST'],
+        [
+            $documentSlug,
+            ToolLog::now(),
+            (string) $sections,
+            ToolLog::currentUser(),
+            ToolLog::currentHost(),
+        ]
+    );
 }
 
 function parseOperations(string $input): array
@@ -287,7 +298,7 @@ function findSectionBlocksByName(string $content, string $sectionName): array
     return $matches[0] ?? [];
 }
 
-function writeClosestSectionHint(string $documentSlug, string $target, array $availableSections): void
+function writeClosestSectionHint(ConsoleOutput $console, string $documentSlug, string $target, array $availableSections): void
 {
     $closest = findClosestSections($target, $availableSections, 3);
 
@@ -295,10 +306,7 @@ function writeClosestSectionHint(string $documentSlug, string $target, array $av
         return;
     }
 
-    fwrite(
-        STDERR,
-        "[{$documentSlug}] Quizás quiso decir: ".implode(' | ', $closest)."\n"
-    );
+    $console->info("[{$documentSlug}] Quizás quiso decir: ".implode(' | ', $closest));
 }
 
 function findClosestSections(string $target, array $sections, int $limit = 3): array

@@ -1,86 +1,43 @@
 <?php
 
-// FILE: aplicar-actualizaciones-codigo.php | V4
+// FILE: tools/aplicar-actualizaciones-codigo.php | V6
 
 declare(strict_types=1);
 
+require_once __DIR__.'/lib/ConsoleOutput.php';
+require_once __DIR__.'/lib/ProjectPaths.php';
+require_once __DIR__.'/lib/ToolLog.php';
+
 /**
  * Uso:
- *   php aplicar-actualizaciones-codigo.php
+ *   php tools/aplicar-actualizaciones-codigo.php
  *
  * Entrada soportada:
  *
  * 1) Archivo completo PHP
- *
- *    <?php
- *
- *    // FILE: ruta/del/archivo.php | VX
- *
- *    ...código...
- *
  * 2) Archivo completo Blade
- *
- *    {{-- FILE: ruta/del/archivo.blade.php | VX --}}
- *
- *    ...blade...
- *
  * 3) Reemplazo parcial de método PHP existente
- *
- *    // TARGET: ruta/del/archivo.php :: nombreMetodo
- *
- *    public function nombreMetodo(): void
- *    {
- *        ...
- *    }
- *
  * 4) Alta de método PHP nuevo dentro de una clase existente
- *
- *    // TARGET: ruta/del/archivo.php ++ nombreMetodo
- *
- *    public function nombreMetodo(): void
- *    {
- *        ...
- *    }
- *
- * También acepta FILE en lugar de TARGET para operaciones sobre métodos:
- *
- *    // FILE: ruta/del/archivo.php :: nombreMetodo
- *    // FILE: ruta/del/archivo.php ++ nombreMetodo
- *
- * Reglas de operación:
- *
- * - :: reemplaza un método PHP existente.
- * - ++ agrega un método PHP nuevo.
- * - Si se usa :: y el método no existe, la operación falla.
- * - Si se usa ++ y el método ya existe, la operación falla.
- * - En operaciones parciales no se modifica la versión del encabezado FILE.
- * - Para cambios de imports, propiedades, traits, constantes o estructura de clase,
- *   usar archivo completo.
- *
- * Comportamiento:
- *
- * - Detecta archivo completo PHP o Blade.
- * - Detecta reemplazo parcial de método PHP.
- * - Detecta alta de método PHP nuevo.
- * - Normaliza encabezados y formato en archivos completos.
- * - Mantiene separación visual entre métodos.
- * - Mantiene log local en todas las operaciones exitosas.
- * - Informa estado por STDERR con modo, archivo, estado, objetivo y versión si aplica.
- *
- * Recomendado en .gitignore:
- *
- * documentos/log/code-updates.log
  */
+ProjectPaths::chdirRoot();
+
 final class CodeHeaderNormalizer
 {
-    private const LOG_PATH = 'documentos/log/code-updates.log';
+    private const LOG_FILE = 'code-updates.log';
+
+    private ConsoleOutput $console;
+
+    public function __construct()
+    {
+        $this->console = new ConsoleOutput;
+    }
 
     public function run(): int
     {
         $input = stream_get_contents(STDIN);
 
         if ($input === false || trim($input) === '') {
-            $this->consoleError('No se recibió contenido por STDIN.');
+            $this->console->error('No se recibió contenido por STDIN.');
 
             return 1;
         }
@@ -98,7 +55,7 @@ final class CodeHeaderNormalizer
                 return $this->applyPhpMethodAdd($methodOperation);
             }
 
-            $this->consoleError('Operación de método no soportada.');
+            $this->console->error('Operación de método no soportada.');
 
             return 1;
         }
@@ -107,7 +64,7 @@ final class CodeHeaderNormalizer
             $result = $this->normalizePhp($normalized);
 
             if ($result === null) {
-                $this->consoleError('No se pudo interpretar encabezado FILE para PHP.');
+                $this->console->error('No se pudo interpretar encabezado FILE para PHP.');
 
                 return 1;
             }
@@ -119,7 +76,7 @@ final class CodeHeaderNormalizer
             $result = $this->normalizeBlade($normalized);
 
             if ($result === null) {
-                $this->consoleError('No se pudo interpretar encabezado FILE para Blade.');
+                $this->console->error('No se pudo interpretar encabezado FILE para Blade.');
 
                 return 1;
             }
@@ -127,22 +84,12 @@ final class CodeHeaderNormalizer
             return $this->writeResult($result);
         }
 
-        $this->consoleError('No se detectó un formato compatible.');
-        $this->consoleError('Formatos válidos: archivo completo PHP, archivo completo Blade, parche parcial de método PHP o alta de método PHP.');
+        $this->console->error('No se detectó un formato compatible.');
+        $this->console->info('Formatos válidos: archivo completo PHP, archivo completo Blade, parche parcial de método PHP o alta de método PHP.');
 
         return 1;
     }
 
-    /**
-     * @param array{
-     *     path:string,
-     *     version:string,
-     *     content:string,
-     *     mode:string,
-     *     status:string,
-     *     target:string
-     * } $result
-     */
     private function writeResult(array $result): int
     {
         $path = $result['path'];
@@ -153,52 +100,50 @@ final class CodeHeaderNormalizer
         $target = $result['target'];
 
         if ($path === '') {
-            $this->consoleError('Ruta vacía.');
+            $this->console->error('Ruta vacía.');
 
             return 1;
         }
 
-        if ($mode !== 'php_method_patch') {
+        if ($mode !== 'php_method_patch' && $mode !== 'php_method_add') {
             $isSuspiciousPath =
                 strlen($path) < 3
                 || (! str_contains($path, '/') && ! str_contains($path, '.'));
 
             if ($isSuspiciousPath) {
-                $this->consoleError("Ruta destino sospechosa: {$path}");
+                $this->console->error("Ruta destino sospechosa: {$path}");
 
                 return 1;
             }
         }
 
-        if ($mode === 'php_method_patch' && ! file_exists($path)) {
-            $this->consoleError("El archivo destino no existe: {$path}");
+        if (($mode === 'php_method_patch' || $mode === 'php_method_add') && ! file_exists($path)) {
+            $this->console->error("El archivo destino no existe: {$path}");
 
             return 1;
         }
 
         $directory = dirname($path);
 
-        if ($mode !== 'php_method_patch' && $directory !== '.' && ! is_dir($directory)) {
-            if (! mkdir($directory, 0775, true) && ! is_dir($directory)) {
-                $this->consoleError("No se pudo crear la carpeta: {$directory}");
-
-                return 1;
-            }
-        }
-
-        if (file_put_contents($path, $content) === false) {
-            $this->consoleError("No se pudo escribir el archivo: {$path}");
+        if ($mode !== 'php_method_patch' && $mode !== 'php_method_add' && $directory !== '.' && ! ProjectPaths::ensureDirectory($directory)) {
+            $this->console->error("No se pudo crear la carpeta: {$directory}");
 
             return 1;
         }
 
-        $this->consoleOk("Modo: {$mode}");
-        $this->consoleOk("Archivo: {$path}");
-        $this->consoleOk("Estado: {$status}");
-        $this->consoleOk("Objetivo: {$target}");
+        if (file_put_contents($path, $content) === false) {
+            $this->console->error("No se pudo escribir el archivo: {$path}");
+
+            return 1;
+        }
+
+        $this->console->ok("Modo: {$mode}");
+        $this->console->ok("Archivo: {$path}");
+        $this->console->ok("Estado: {$status}");
+        $this->console->ok("Objetivo: {$target}");
 
         if ($version !== '-') {
-            $this->consoleOk("Versión: {$version}");
+            $this->console->ok("Versión: {$version}");
         }
 
         $this->appendLog($path, $status, $version, $mode, $target);
@@ -213,37 +158,20 @@ final class CodeHeaderNormalizer
         string $mode,
         string $target
     ): void {
-        $logDir = dirname(self::LOG_PATH);
-
-        if (! is_dir($logDir)) {
-            @mkdir($logDir, 0775, true);
-        }
-
-        $isNewFile = ! file_exists(self::LOG_PATH);
-
-        $user = get_current_user();
-        $host = php_uname('n');
-        $date = date('Y-m-d H:i:s');
-
-        $lines = '';
-
-        if ($isNewFile) {
-            $lines .= "ARCHIVO | FECHA | ESTADO | VERSION | MODO | OBJETIVO | USUARIO | HOST\n";
-        }
-
-        $lines .= "{$path} | {$date} | {$status} | {$version} | {$mode} | {$target} | {$user} | {$host}\n";
-
-        @file_put_contents(self::LOG_PATH, $lines, FILE_APPEND);
-    }
-
-    private function consoleOk(string $message): void
-    {
-        fwrite(STDERR, "[OK] {$message}\n");
-    }
-
-    private function consoleError(string $message): void
-    {
-        fwrite(STDERR, "Error: {$message}\n");
+        ToolLog::append(
+            ProjectPaths::logPath(self::LOG_FILE),
+            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+            [
+                $path,
+                ToolLog::now(),
+                $status,
+                $version,
+                $mode,
+                $target,
+                ToolLog::currentUser(),
+                ToolLog::currentHost(),
+            ]
+        );
     }
 
     private function looksLikePhp(string $content): bool
@@ -261,16 +189,6 @@ final class CodeHeaderNormalizer
             || str_contains($content, '<x-page');
     }
 
-    /**
-     * @return array{
-     *     path:string,
-     *     version:string,
-     *     content:string,
-     *     mode:string,
-     *     status:string,
-     *     target:string
-     * }|null
-     */
     private function normalizePhp(string $content): ?array
     {
         $content = str_replace(["\r\n", "\r"], "\n", $content);
@@ -314,16 +232,6 @@ final class CodeHeaderNormalizer
         ];
     }
 
-    /**
-     * @return array{
-     *     path:string,
-     *     version:string,
-     *     content:string,
-     *     mode:string,
-     *     status:string,
-     *     target:string
-     * }|null
-     */
     private function normalizeBlade(string $content): ?array
     {
         $content = str_replace(["\r\n", "\r"], "\n", $content);
@@ -360,21 +268,6 @@ final class CodeHeaderNormalizer
         ];
     }
 
-    /**
-     * @return array{
-     *     path:string,
-     *     method:string,
-     *     snippet:string
-     * }|null
-     */
-    /**
-     * @return array{
-     *     path:string,
-     *     method:string,
-     *     snippet:string,
-     *     operation:string
-     * }|null
-     */
     private function tryParsePhpMethodOperation(string $content): ?array
     {
         $normalized = ltrim($content);
@@ -433,14 +326,6 @@ final class CodeHeaderNormalizer
         return null;
     }
 
-    /**
-     * @param array{
-     *     path:string,
-     *     method:string,
-     *     snippet:string,
-     *     operation:string
-     * } $patch
-     */
     private function applyPhpMethodPatch(array $patch): int
     {
         $path = $patch['path'];
@@ -448,7 +333,7 @@ final class CodeHeaderNormalizer
         $snippet = $patch['snippet'];
 
         if (! file_exists($path)) {
-            $this->consoleError("No existe el archivo destino para el método parcial: {$path}");
+            $this->console->error("No existe el archivo destino para el método parcial: {$path}");
 
             return 1;
         }
@@ -456,7 +341,7 @@ final class CodeHeaderNormalizer
         $content = file_get_contents($path);
 
         if ($content === false) {
-            $this->consoleError("No se pudo leer el archivo destino: {$path}");
+            $this->console->error("No se pudo leer el archivo destino: {$path}");
 
             return 1;
         }
@@ -464,7 +349,7 @@ final class CodeHeaderNormalizer
         $bounds = $this->findPhpMethodBounds($content, $method);
 
         if ($bounds === null) {
-            $this->consoleError("No se encontró el método {$method} en {$path}");
+            $this->console->error("No se encontró el método {$method} en {$path}");
 
             return 1;
         }
@@ -491,14 +376,6 @@ final class CodeHeaderNormalizer
         ]);
     }
 
-    /**
-     * @param array{
-     *     path:string,
-     *     method:string,
-     *     snippet:string,
-     *     operation:string
-     * } $patch
-     */
     private function applyPhpMethodAdd(array $patch): int
     {
         $path = $patch['path'];
@@ -506,7 +383,7 @@ final class CodeHeaderNormalizer
         $snippet = $patch['snippet'];
 
         if (! file_exists($path)) {
-            $this->consoleError("No existe el archivo destino para agregar método: {$path}");
+            $this->console->error("No existe el archivo destino para agregar método: {$path}");
 
             return 1;
         }
@@ -514,13 +391,13 @@ final class CodeHeaderNormalizer
         $content = file_get_contents($path);
 
         if ($content === false) {
-            $this->consoleError("No se pudo leer el archivo destino: {$path}");
+            $this->console->error("No se pudo leer el archivo destino: {$path}");
 
             return 1;
         }
 
         if ($this->findPhpMethodBounds($content, $method) !== null) {
-            $this->consoleError("El método {$method} ya existe en {$path}");
+            $this->console->error("El método {$method} ya existe en {$path}");
 
             return 1;
         }
@@ -528,7 +405,7 @@ final class CodeHeaderNormalizer
         $classEnd = $this->findPrimaryClassClosingBraceOffset($content);
 
         if ($classEnd === null) {
-            $this->consoleError("No se pudo ubicar el cierre de la clase principal en {$path}");
+            $this->console->error("No se pudo ubicar el cierre de la clase principal en {$path}");
 
             return 1;
         }
@@ -668,9 +545,6 @@ final class CodeHeaderNormalizer
         return implode("\n", $normalized);
     }
 
-    /**
-     * @return array{start:int, end:int}|null
-     */
     private function findPhpMethodBounds(string $content, string $methodName): ?array
     {
         $tokens = token_get_all($content);
@@ -736,9 +610,6 @@ final class CodeHeaderNormalizer
         return null;
     }
 
-    /**
-     * @param  array<int, array{id:int|null, text:string, offset:int}>  $tokens
-     */
     private function findMethodNameTokenIndex(array $tokens, int $functionIndex): ?int
     {
         $count = count($tokens);
@@ -759,9 +630,6 @@ final class CodeHeaderNormalizer
         return null;
     }
 
-    /**
-     * @param  array<int, array{id:int|null, text:string, offset:int}>  $tokens
-     */
     private function findMethodStartOffset(array $tokens, int $functionIndex): int
     {
         $startIndex = $functionIndex;
@@ -788,8 +656,8 @@ final class CodeHeaderNormalizer
             break;
         }
 
-        $offset = $tokens[$startIndex]['offset'];
-        $lineStart = strrpos(substr($content = $this->tokensToContentSlice($tokens, 0, $startIndex), 0), "\n");
+        $content = $this->tokensToContentSlice($tokens, 0, $startIndex);
+        $lineStart = strrpos($content, "\n");
 
         if ($lineStart === false) {
             return 0;
@@ -798,9 +666,6 @@ final class CodeHeaderNormalizer
         return $lineStart + 1;
     }
 
-    /**
-     * @param  array<int, array{id:int|null, text:string, offset:int}>  $tokens
-     */
     private function findMethodBodyStartIndex(array $tokens, int $functionIndex): ?int
     {
         $count = count($tokens);
@@ -861,9 +726,6 @@ final class CodeHeaderNormalizer
         return null;
     }
 
-    /**
-     * @param  array<int, array{id:int|null, text:string, offset:int}>  $tokens
-     */
     private function tokensToContentSlice(array $tokens, int $startIndex, int $endIndex): string
     {
         $buffer = '';

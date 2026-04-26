@@ -618,6 +618,7 @@ private function resolveDocumentItemRowActions(array $hostPack): array
     $recordType = $hostPack['recordType'] ?? null;
     $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
     $document = $hostPack['document'] ?? null;
+    $modalNamespace = trim((string) ($hostPack['modal_namespace'] ?? ''));
 
     if ($recordType !== 'document_item' || ! $record instanceof \App\Models\DocumentItem || ! $document instanceof Document) {
         return [
@@ -645,6 +646,7 @@ private function resolveDocumentItemRowActions(array $hostPack): array
         : 0.0;
 
     $actions = [];
+    $modalPrefix = $modalNamespace !== '' ? $modalNamespace.'-' : '';
 
     if ($documentAffectsStock && $isPhysicalProduct && $canUpdateDocument && $pendingQuantity > 0) {
         $actions[] = [
@@ -654,7 +656,7 @@ private function resolveDocumentItemRowActions(array $hostPack): array
             'title' => 'Surtir',
             'icon' => 'truck',
             'modal_view' => 'inventory.partials.line-execute-modal',
-            'modal_id' => 'inventory-document-execute-line-'.$record->id,
+            'modal_id' => $modalPrefix.'inventory-document-execute-line-'.$record->id,
             'row' => [
                 'position' => $record->position,
                 'product_name' => $record->description,
@@ -667,6 +669,38 @@ private function resolveDocumentItemRowActions(array $hostPack): array
             ],
             'document' => $document,
             'action' => route('inventory.document-items.execute', [
+                'document' => $document,
+                'item' => $record,
+            ] + $trailQuery),
+            'hiddenFields' => [
+                'return_context' => 'documents.show',
+                'return_tab' => 'items',
+            ],
+        ];
+    }
+
+    if ($documentAffectsStock && $isPhysicalProduct && $canUpdateDocument && $executedQuantity > 0) {
+        $actions[] = [
+            'type' => 'modal',
+            'action_key' => 'return',
+            'label' => 'Revertir',
+            'title' => 'Revertir',
+            'icon' => 'rotate-ccw',
+            'modal_view' => 'inventory.partials.document-line-return-modal',
+            'modal_id' => $modalPrefix.'inventory-document-return-line-'.$record->id,
+            'row' => [
+                'position' => $record->position,
+                'product_name' => $record->description,
+                'quantity' => $record->quantity,
+                'pending_quantity' => $pendingQuantity,
+                'executed_quantity' => $executedQuantity,
+                'max_return_quantity' => $executedQuantity,
+                'current_stock' => $record->product
+                    ? app(ProductStockCalculator::class)->forProduct($record->product)
+                    : null,
+            ],
+            'document' => $document,
+            'action' => route('inventory.document-items.return', [
                 'document' => $document,
                 'item' => $record,
             ] + $trailQuery),

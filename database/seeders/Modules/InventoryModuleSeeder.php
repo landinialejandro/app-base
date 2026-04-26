@@ -1,6 +1,6 @@
 <?php
 
-// FILE: database/seeders/Modules/InventoryModuleSeeder.php | V2
+// FILE: database/seeders/Modules/InventoryModuleSeeder.php | V3
 
 namespace Database\Seeders\Modules;
 
@@ -8,6 +8,7 @@ use App\Models\Document;
 use App\Models\InventoryMovement;
 use App\Models\Order;
 use App\Models\Product;
+use App\Support\Catalogs\DocumentCatalog;
 use App\Support\Catalogs\ProductCatalog;
 use App\Support\Inventory\InventoryMovementService;
 use App\Support\Inventory\InventoryOperationProfileResolver;
@@ -140,7 +141,7 @@ class InventoryModuleSeeder extends BaseModuleSeeder
         }
 
         foreach ($documents as $document) {
-            if (! is_object($document) || ! isset($document->id) || ! empty($document->order_id)) {
+            if (! is_object($document) || ! isset($document->id)) {
                 continue;
             }
 
@@ -152,12 +153,30 @@ class InventoryModuleSeeder extends BaseModuleSeeder
                 continue;
             }
 
+            $direction = DocumentCatalog::stockDirection($documentModel->group, $documentModel->kind);
+
+            $movementKind = match ($direction) {
+                'in' => InventoryMovementService::KIND_INGRESAR,
+                'out' => InventoryMovementService::KIND_ENTREGAR,
+                default => null,
+            };
+
+            if ($movementKind === null) {
+                continue;
+            }
+
             $physicalItems = $documentModel->items
                 ->filter(fn ($item) => $item->product instanceof Product)
                 ->filter(fn ($item) => $item->product->kind === ProductCatalog::KIND_PRODUCT)
                 ->values();
 
             foreach ($physicalItems as $position => $item) {
+                $quantity = (float) $item->quantity;
+
+                if ($quantity <= 0) {
+                    continue;
+                }
+
                 $created->push(
                     InventoryMovement::create([
                         'tenant_id' => $tenantId,
@@ -166,9 +185,9 @@ class InventoryModuleSeeder extends BaseModuleSeeder
                         'origin_id' => $documentModel->id,
                         'origin_line_type' => InventoryOriginCatalog::LINE_TYPE_DOCUMENT_ITEM,
                         'origin_line_id' => $item->id,
-                        'kind' => InventoryMovementService::KIND_INGRESAR,
-                        'quantity' => (float) $item->quantity,
-                        'notes' => $this->seedNote("Ingreso por documento {$documentModel->number}"),
+                        'kind' => $movementKind,
+                        'quantity' => $quantity,
+                        'notes' => $this->seedNote("Movimiento por documento {$documentModel->number}"),
                         'created_by' => $actorUserId,
                         'created_at' => now()->subDays(3)->addMinutes($position),
                         'updated_at' => now()->subDays(3)->addMinutes($position),

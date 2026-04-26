@@ -10,37 +10,51 @@ use App\Support\Catalogs\DocumentCatalog;
 
 class DocumentItemStatusService
 {
-    public function executedQuantity(DocumentItem $item): float
-    {
-        $item->loadMissing('document');
 
-        $document = $item->document;
+public function executedQuantity(DocumentItem $item): float
+{
+    $item->loadMissing('document');
 
-        if (! $document) {
-            return 0.0;
-        }
+    $document = $item->document;
 
-        $direction = DocumentCatalog::stockDirection($document->group, $document->kind);
-
-        $executeKind = match ($direction) {
-            'in' => InventoryMovementService::KIND_INGRESAR,
-            'out' => InventoryMovementService::KIND_ENTREGAR,
-            default => null,
-        };
-
-        if ($executeKind === null) {
-            return 0.0;
-        }
-
-        $executed = InventoryMovement::query()
-            ->where('tenant_id', $item->tenant_id)
-            ->where('origin_line_type', InventoryOriginCatalog::LINE_TYPE_DOCUMENT_ITEM)
-            ->where('origin_line_id', $item->id)
-            ->where('kind', $executeKind)
-            ->sum('quantity');
-
-        return max(0, $this->normalizeQuantity($executed));
+    if (! $document) {
+        return 0.0;
     }
+
+    $direction = DocumentCatalog::stockDirection($document->group, $document->kind);
+
+    $executeKind = match ($direction) {
+        'in' => InventoryMovementService::KIND_INGRESAR,
+        'out' => InventoryMovementService::KIND_ENTREGAR,
+        default => null,
+    };
+
+    $reverseKind = match ($direction) {
+        'in' => InventoryMovementService::KIND_ENTREGAR,
+        'out' => InventoryMovementService::KIND_INGRESAR,
+        default => null,
+    };
+
+    if ($executeKind === null || $reverseKind === null) {
+        return 0.0;
+    }
+
+    $executed = InventoryMovement::query()
+        ->where('tenant_id', $item->tenant_id)
+        ->where('origin_line_type', InventoryOriginCatalog::LINE_TYPE_DOCUMENT_ITEM)
+        ->where('origin_line_id', $item->id)
+        ->where('kind', $executeKind)
+        ->sum('quantity');
+
+    $returned = InventoryMovement::query()
+        ->where('tenant_id', $item->tenant_id)
+        ->where('origin_line_type', InventoryOriginCatalog::LINE_TYPE_DOCUMENT_ITEM)
+        ->where('origin_line_id', $item->id)
+        ->where('kind', $reverseKind)
+        ->sum('quantity');
+
+    return max(0, $this->normalizeQuantity($executed - $returned));
+}
 
     public function pendingQuantity(DocumentItem $item): float
     {

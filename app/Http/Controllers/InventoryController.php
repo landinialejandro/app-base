@@ -790,4 +790,60 @@ public function showMovement(Request $request, InventoryMovement $movement): Vie
         return $redirect;
     }
 
+    public function returnDocumentItemQuantity(
+        Request $request,
+        Document $document,
+        \App\Models\DocumentItem $item,
+    ): RedirectResponse {
+        abort_unless((int) $item->document_id === (int) $document->id, 404);
+
+        $data = $request->validate([
+            'quantity' => ['required', 'numeric', 'gt:0'],
+            'notes' => ['nullable', 'string'],
+            'return_context' => ['nullable', 'string', Rule::in([
+                'documents.show',
+            ])],
+            'return_tab' => ['nullable', 'string'],
+        ]);
+
+        $this->authorize('update', $document);
+
+        $item->loadMissing('product');
+
+        abort_if(
+            ! $item->product || $item->product->kind !== ProductCatalog::KIND_PRODUCT,
+            422,
+            'La línea no corresponde a un producto físico stockeable.'
+        );
+
+        $result = app(\App\Support\Inventory\DocumentInventoryOperationService::class)->returnLineQuantity(
+            document: $document,
+            item: $item,
+            quantity: $data['quantity'],
+            notes: $data['notes'] ?? null,
+            createdBy: auth()->id(),
+        );
+
+        $redirectQuery = NavigationTrail::toQuery(
+            NavigationTrail::decode($request->query('trail'))
+        );
+
+        if (! empty($data['return_tab'])) {
+            $redirectQuery['return_tab'] = $data['return_tab'];
+        }
+
+        $redirect = redirect()
+            ->route('documents.show', ['document' => $document] + $redirectQuery)
+            ->with('success', 'Reversión documental registrada correctamente.');
+
+        if (($result['negative_stock'] ?? false) === true) {
+            $redirect->with(
+                'warning',
+                'El producto quedó con stock negativo. Se generó una tarea automática para revisión del owner.'
+            );
+        }
+
+        return $redirect;
+    }
+
 }

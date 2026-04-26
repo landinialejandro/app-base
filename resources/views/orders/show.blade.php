@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V42 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V43 --}}
 
 @extends('layouts.app')
 
@@ -116,7 +116,7 @@
                 @endforeach
 
                 <x-show-summary-item-detail-block label="Tipo">
-                    {{ OrderCatalog::kindLabel($order->kind) }}
+                    {{ OrderCatalog::groupLabel($order->group) }}
                 </x-show-summary-item-detail-block>
 
                 <x-show-summary-item-detail-block label="Fecha">

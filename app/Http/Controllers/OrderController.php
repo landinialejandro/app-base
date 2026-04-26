@@ -27,382 +27,384 @@ use Illuminate\Validation\Rule;
 
 class OrderController extends Controller
 {
-    public function index(Request $request)
-    {
-        $this->authorize('viewAny', Order::class);
 
-        $tenant = app('tenant');
-        $security = app(Security::class);
-        $user = auth()->user();
+public function index(Request $request)
+{
+    $this->authorize('viewAny', Order::class);
 
-        $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
+    $tenant = app('tenant');
+    $security = app(Security::class);
+    $user = auth()->user();
 
-        $q = trim((string) $request->get('q', ''));
-        $partyId = $request->get('party_id');
-        $assetId = $supportsAssetsModule ? $request->get('asset_id') : null;
-        $kind = $request->get('kind');
-        $status = $request->get('status');
-        $orderedAt = $request->get('ordered_at');
+    $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
 
-        $parties = $security
-            ->scope($user, 'parties.viewAny', Party::query())
+    $q = trim((string) $request->get('q', ''));
+    $partyId = $request->get('party_id');
+    $assetId = $supportsAssetsModule ? $request->get('asset_id') : null;
+    $group = $request->get('group');
+    $status = $request->get('status');
+    $orderedAt = $request->get('ordered_at');
+
+    $parties = $security
+        ->scope($user, 'parties.viewAny', Party::query())
+        ->orderBy('name')
+        ->get();
+
+    $assets = $supportsAssetsModule
+        ? $security
+            ->scope($user, 'assets.viewAny', Asset::query())
+            ->with('party')
             ->orderBy('name')
-            ->get();
+            ->get()
+        : collect();
 
-        $assets = $supportsAssetsModule
-            ? $security
-                ->scope($user, 'assets.viewAny', Asset::query())
-                ->with('party')
-                ->orderBy('name')
-                ->get()
-            : collect();
+    $orders = $security
+        ->scope($user, 'orders.viewAny', Order::query())
+        ->with(['party', 'asset', 'task', 'items'])
+        ->when($q !== '', function ($query) use ($q) {
+            $query->where(function ($subquery) use ($q) {
+                $subquery->where('number', 'like', "%{$q}%");
 
-        $orders = $security
-            ->scope($user, 'orders.viewAny', Order::query())
-            ->with(['party', 'asset', 'task', 'items'])
-            ->when($q !== '', function ($query) use ($q) {
-                $query->where(function ($subquery) use ($q) {
-                    $subquery->where('number', 'like', "%{$q}%");
+                if (ctype_digit($q)) {
+                    $subquery->orWhere('id', (int) $q);
+                }
+            });
+        })
+        ->when($partyId, fn ($query) => $query->where('party_id', $partyId))
+        ->when($supportsAssetsModule && $assetId, fn ($query) => $query->where('asset_id', $assetId))
+        ->when($group, fn ($query) => $query->where('group', $group))
+        ->when($status, fn ($query) => $query->where('status', $status))
+        ->when($orderedAt, fn ($query) => $query->whereDate('ordered_at', $orderedAt))
+        ->latest()
+        ->paginate(10)
+        ->withQueryString();
 
-                    if (ctype_digit($q)) {
-                        $subquery->orWhere('id', (int) $q);
-                    }
-                });
-            })
-            ->when($partyId, function ($query) use ($partyId) {
-                $query->where('party_id', $partyId);
-            })
-            ->when($supportsAssetsModule && $assetId, function ($query) use ($assetId) {
-                $query->where('asset_id', $assetId);
-            })
-            ->when($kind, function ($query) use ($kind) {
-                $query->where('kind', $kind);
-            })
-            ->when($status, function ($query) use ($status) {
-                $query->where('status', $status);
-            })
-            ->when($orderedAt, function ($query) use ($orderedAt) {
-                $query->whereDate('ordered_at', $orderedAt);
-            })
-            ->latest()
-            ->paginate(10)
-            ->withQueryString();
+    $allowedCreateGroups = collect(array_keys(OrderCatalog::groups()))
+        ->filter(fn (string $orderGroup) => $security->allows(
+            $user,
+            'orders.create',
+            Order::class,
+            ['kind' => $orderGroup]
+        ))
+        ->values();
 
-        $allowedCreateKinds = collect(OrderCatalog::kinds())
-            ->filter(fn (string $orderKind) => $security->allows(
-                $user,
-                'orders.create',
-                Order::class,
-                ['kind' => $orderKind]
-            ))
-            ->values();
+    $canCreateOrders = $allowedCreateGroups->isNotEmpty();
+    $defaultCreateKind = $allowedCreateGroups->first();
 
-        $canCreateOrders = $allowedCreateKinds->isNotEmpty();
-        $defaultCreateKind = $allowedCreateKinds->first();
+    return view('orders.index', compact(
+        'orders',
+        'parties',
+        'assets',
+        'supportsAssetsModule',
+        'canCreateOrders',
+        'defaultCreateKind',
+    ));
+}
 
-        return view('orders.index', compact(
-            'orders',
-            'parties',
-            'assets',
-            'supportsAssetsModule',
-            'canCreateOrders',
-            'defaultCreateKind',
-        ));
+public function create(Request $request)
+{
+    $tenant = app('tenant');
+    $security = app(Security::class);
+    $user = auth()->user();
+
+    $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
+
+    $parties = $security
+        ->scope($user, 'parties.viewAny', Party::query())
+        ->orderBy('name')
+        ->get();
+
+    $assets = $supportsAssetsModule
+        ? $security
+            ->scope($user, 'assets.viewAny', Asset::query())
+            ->with('party')
+            ->orderBy('name')
+            ->get()
+        : collect();
+
+    $prefilledAsset = null;
+    $prefilledPartyId = null;
+    $fromAsset = false;
+    $prefilledGroup = old('group', OrderCatalog::GROUP_SALE);
+    $prefilledKind = old('kind', OrderCatalog::KIND_STANDARD);
+    $prefilledTask = null;
+    $prefilledAppointment = null;
+
+    $requestedGroup = (string) $request->get('group', '');
+    $requestedKind = (string) $request->get('kind', '');
+
+    if ($requestedGroup !== '' && array_key_exists($requestedGroup, OrderCatalog::groups())) {
+        $prefilledGroup = $requestedGroup;
     }
 
-    public function create(Request $request)
-    {
-        $tenant = app('tenant');
-        $security = app(Security::class);
-        $user = auth()->user();
+    if ($requestedKind !== '' && in_array($requestedKind, array_keys(OrderCatalog::kindLabels()), true)) {
+        $prefilledKind = $requestedKind;
+    }
 
-        $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
+    if ($supportsAssetsModule && $request->filled('asset_id')) {
+        $prefilledAsset = $security
+            ->scope($user, 'assets.viewAny', Asset::query())
+            ->where('id', $request->integer('asset_id'))
+            ->where('tenant_id', $tenant->id)
+            ->whereNull('deleted_at')
+            ->first();
 
-        $parties = $security
-            ->scope($user, 'parties.viewAny', Party::query())
-            ->orderBy('name')
-            ->get();
+        if ($prefilledAsset) {
+            $prefilledPartyId = $prefilledAsset->party_id;
+            $fromAsset = true;
+            $prefilledGroup = OrderCatalog::GROUP_SERVICE;
+        }
+    }
 
-        $assets = $supportsAssetsModule
-            ? $security
-                ->scope($user, 'assets.viewAny', Asset::query())
-                ->with('party')
-                ->orderBy('name')
-                ->get()
-            : collect();
+    if ($request->filled('task_id')) {
+        $prefilledTask = $security
+            ->scope($user, 'tasks.viewAny', Task::query())
+            ->with('order')
+            ->where('id', $request->integer('task_id'))
+            ->where('tenant_id', $tenant->id)
+            ->whereNull('deleted_at')
+            ->firstOrFail();
 
-        $prefilledAsset = null;
-        $prefilledPartyId = null;
-        $fromAsset = false;
-        $prefilledKind = old('kind', OrderCatalog::KIND_SALE);
-        $prefilledTask = null;
-        $prefilledAppointment = null;
+        if ($prefilledTask->order) {
+            $orderTrail = OrderNavigationTrail::show($request, $prefilledTask->order, task: $prefilledTask);
 
-        $requestedKind = (string) $request->get('kind', '');
-
-        if ($requestedKind !== '' && in_array($requestedKind, OrderCatalog::kinds(), true)) {
-            $prefilledKind = $requestedKind;
+            return redirect()
+                ->route('orders.show', ['order' => $prefilledTask->order] + NavigationTrail::toQuery($orderTrail))
+                ->with('success', 'La tarea ya tiene una orden asociada.');
         }
 
-        if ($supportsAssetsModule && $request->filled('asset_id')) {
+        if ($prefilledTask->party_id) {
+            $prefilledPartyId = $prefilledTask->party_id;
+        }
+
+        $prefilledGroup = OrderCatalog::GROUP_SERVICE;
+    }
+
+    if ($request->filled('appointment_id')) {
+        $prefilledAppointment = $security
+            ->scope($user, 'appointments.viewAny', Appointment::query())
+            ->with('order')
+            ->where('id', $request->integer('appointment_id'))
+            ->where('tenant_id', $tenant->id)
+            ->whereNull('deleted_at')
+            ->firstOrFail();
+
+        if ($prefilledAppointment->order) {
+            $orderTrail = OrderNavigationTrail::show($request, $prefilledAppointment->order, appointment: $prefilledAppointment);
+
+            return redirect()
+                ->route('orders.show', ['order' => $prefilledAppointment->order] + NavigationTrail::toQuery($orderTrail))
+                ->with('success', 'El turno ya tiene una orden asociada.');
+        }
+
+        if ($prefilledAppointment->party_id) {
+            $prefilledPartyId = $prefilledAppointment->party_id;
+        }
+
+        if ($supportsAssetsModule && $prefilledAppointment->asset_id) {
             $prefilledAsset = $security
                 ->scope($user, 'assets.viewAny', Asset::query())
-                ->where('id', $request->integer('asset_id'))
+                ->where('id', $prefilledAppointment->asset_id)
                 ->where('tenant_id', $tenant->id)
                 ->whereNull('deleted_at')
                 ->first();
-
-            if ($prefilledAsset) {
-                $prefilledPartyId = $prefilledAsset->party_id;
-                $fromAsset = true;
-                $prefilledKind = OrderCatalog::KIND_SERVICE;
-            }
         }
 
-        if ($request->filled('task_id')) {
-            $prefilledTask = $security
-                ->scope($user, 'tasks.viewAny', Task::query())
-                ->with('order')
-                ->where('id', $request->integer('task_id'))
-                ->where('tenant_id', $tenant->id)
-                ->whereNull('deleted_at')
-                ->firstOrFail();
-
-            if ($prefilledTask->order) {
-                $orderTrail = OrderNavigationTrail::show($request, $prefilledTask->order, task: $prefilledTask);
-
-                return redirect()
-                    ->route('orders.show', ['order' => $prefilledTask->order] + NavigationTrail::toQuery($orderTrail))
-                    ->with('success', 'La tarea ya tiene una orden asociada.');
-            }
-
-            if ($prefilledTask->party_id) {
-                $prefilledPartyId = $prefilledTask->party_id;
-            }
-
-            $prefilledKind = OrderCatalog::KIND_SERVICE;
-        }
-
-        if ($request->filled('appointment_id')) {
-            $prefilledAppointment = $security
-                ->scope($user, 'appointments.viewAny', Appointment::query())
-                ->with('order')
-                ->where('id', $request->integer('appointment_id'))
-                ->where('tenant_id', $tenant->id)
-                ->whereNull('deleted_at')
-                ->firstOrFail();
-
-            if ($prefilledAppointment->order) {
-                $orderTrail = OrderNavigationTrail::show($request, $prefilledAppointment->order, appointment: $prefilledAppointment);
-
-                return redirect()
-                    ->route('orders.show', ['order' => $prefilledAppointment->order] + NavigationTrail::toQuery($orderTrail))
-                    ->with('success', 'El turno ya tiene una orden asociada.');
-            }
-
-            if ($prefilledAppointment->party_id) {
-                $prefilledPartyId = $prefilledAppointment->party_id;
-            }
-
-            if ($supportsAssetsModule && $prefilledAppointment->asset_id) {
-                $prefilledAsset = $security
-                    ->scope($user, 'assets.viewAny', Asset::query())
-                    ->where('id', $prefilledAppointment->asset_id)
-                    ->where('tenant_id', $tenant->id)
-                    ->whereNull('deleted_at')
-                    ->first();
-            }
-
-            $prefilledKind = OrderCatalog::KIND_SERVICE;
-        }
-
-        $security->authorize(
-            $user,
-            'orders.create',
-            Order::class,
-            ['kind' => $prefilledKind]
-        );
-
-        $navigationTrail = OrderNavigationTrail::create(
-            $request,
-            appointment: $prefilledAppointment,
-            task: $prefilledTask,
-        );
-
-        return view('orders.create', compact(
-            'parties',
-            'assets',
-            'prefilledAsset',
-            'prefilledPartyId',
-            'prefilledKind',
-            'fromAsset',
-            'prefilledTask',
-            'prefilledAppointment',
-            'navigationTrail',
-            'supportsAssetsModule',
-        ));
+        $prefilledGroup = OrderCatalog::GROUP_SERVICE;
     }
 
-    public function store(Request $request)
-    {
-        $tenant = app('tenant');
-        $security = app(Security::class);
-        $user = auth()->user();
+    $security->authorize(
+        $user,
+        'orders.create',
+        Order::class,
+        ['kind' => $prefilledGroup]
+    );
 
-        $data = $request->validate([
-            'party_id' => [
-                'required',
-                'integer',
-                Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
-                    $query->where('tenant_id', $tenant->id)
-                        ->whereNull('deleted_at');
-                }),
-            ],
-            'asset_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('assets', 'id')->where(function ($query) use ($tenant) {
-                    $query->where('tenant_id', $tenant->id)
-                        ->whereNull('deleted_at');
-                }),
-            ],
-            'task_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('tasks', 'id')->where(function ($query) use ($tenant) {
-                    $query->where('tenant_id', $tenant->id)
-                        ->whereNull('deleted_at');
-                }),
-                Rule::unique('orders', 'task_id')->where(function ($query) use ($tenant) {
-                    $query->where('tenant_id', $tenant->id)
-                        ->whereNull('deleted_at');
-                }),
-            ],
-            'appointment_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('appointments', 'id')->where(function ($query) use ($tenant) {
-                    $query->where('tenant_id', $tenant->id)
-                        ->whereNull('deleted_at');
-                }),
-            ],
-            'kind' => [
-                'required',
-                Rule::in(OrderCatalog::kinds()),
-            ],
-            'status' => [
-                'required',
-                Rule::in(OrderCatalog::statuses()),
-            ],
-            'ordered_at' => ['nullable', 'date'],
-            'notes' => ['nullable', 'string'],
-        ]);
+    $navigationTrail = OrderNavigationTrail::create(
+        $request,
+        appointment: $prefilledAppointment,
+        task: $prefilledTask,
+    );
 
-        $security->authorize(
-            $user,
-            'orders.create',
-            Order::class,
-            ['kind' => $data['kind']]
-        );
+    return view('orders.create', compact(
+        'parties',
+        'assets',
+        'prefilledAsset',
+        'prefilledPartyId',
+        'prefilledGroup',
+        'prefilledKind',
+        'fromAsset',
+        'prefilledTask',
+        'prefilledAppointment',
+        'navigationTrail',
+        'supportsAssetsModule',
+    ));
+}
 
-        if (! empty($data['asset_id'])) {
-            $asset = $security
-                ->scope($user, 'assets.viewAny', Asset::query())
-                ->whereKey($data['asset_id'])
-                ->firstOrFail();
+public function store(Request $request)
+{
+    $tenant = app('tenant');
+    $security = app(Security::class);
+    $user = auth()->user();
 
-            if ((int) $asset->party_id !== (int) $data['party_id']) {
-                return back()
-                    ->withErrors([
-                        'asset_id' => 'El activo seleccionado pertenece a otro contacto.',
-                    ])
-                    ->withInput();
-            }
-        }
+    $data = $request->validate([
+        'party_id' => [
+            'required',
+            'integer',
+            Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
+                $query->where('tenant_id', $tenant->id)
+                    ->whereNull('deleted_at');
+            }),
+        ],
+        'asset_id' => [
+            'nullable',
+            'integer',
+            Rule::exists('assets', 'id')->where(function ($query) use ($tenant) {
+                $query->where('tenant_id', $tenant->id)
+                    ->whereNull('deleted_at');
+            }),
+        ],
+        'task_id' => [
+            'nullable',
+            'integer',
+            Rule::exists('tasks', 'id')->where(function ($query) use ($tenant) {
+                $query->where('tenant_id', $tenant->id)
+                    ->whereNull('deleted_at');
+            }),
+            Rule::unique('orders', 'task_id')->where(function ($query) use ($tenant) {
+                $query->where('tenant_id', $tenant->id)
+                    ->whereNull('deleted_at');
+            }),
+        ],
+        'appointment_id' => [
+            'nullable',
+            'integer',
+            Rule::exists('appointments', 'id')->where(function ($query) use ($tenant) {
+                $query->where('tenant_id', $tenant->id)
+                    ->whereNull('deleted_at');
+            }),
+        ],
+        'group' => [
+            'required',
+            Rule::in(array_keys(OrderCatalog::groups())),
+        ],
+        'kind' => [
+            'required',
+            Rule::in(array_keys(OrderCatalog::kindLabels())),
+        ],
+        'status' => [
+            'required',
+            Rule::in(OrderCatalog::statuses()),
+        ],
+        'ordered_at' => ['nullable', 'date'],
+        'notes' => ['nullable', 'string'],
+    ]);
 
-        if (! empty($data['task_id'])) {
-            $security
-                ->scope($user, 'tasks.viewAny', Task::query())
-                ->whereKey($data['task_id'])
-                ->firstOrFail();
-        }
+    $security->authorize(
+        $user,
+        'orders.create',
+        Order::class,
+        ['kind' => $data['group']]
+    );
 
-        $orderedAt = $data['ordered_at'] ?? now()->toDateString();
-        $orderedAtDate = Carbon::parse($orderedAt)->startOfDay();
-        $maxFutureDate = now()->startOfDay()->addDays(30);
+    if (! empty($data['asset_id'])) {
+        $asset = $security
+            ->scope($user, 'assets.viewAny', Asset::query())
+            ->whereKey($data['asset_id'])
+            ->firstOrFail();
 
-        if ($orderedAtDate->gt($maxFutureDate)) {
+        if ((int) $asset->party_id !== (int) $data['party_id']) {
             return back()
                 ->withErrors([
-                    'ordered_at' => 'La fecha de la orden no puede superar los 30 días hacia el futuro.',
+                    'asset_id' => 'El activo seleccionado pertenece a otro contacto.',
                 ])
                 ->withInput();
         }
+    }
 
-        $data['ordered_at'] = $orderedAtDate->toDateString();
+    if (! empty($data['task_id'])) {
+        $security
+            ->scope($user, 'tasks.viewAny', Task::query())
+            ->whereKey($data['task_id'])
+            ->firstOrFail();
+    }
 
-        $appointment = null;
-        $task = null;
+    $orderedAt = $data['ordered_at'] ?? now()->toDateString();
+    $orderedAtDate = Carbon::parse($orderedAt)->startOfDay();
+    $maxFutureDate = now()->startOfDay()->addDays(30);
 
-        $appointmentId = $data['appointment_id'] ?? null;
-        unset($data['appointment_id']);
+    if ($orderedAtDate->gt($maxFutureDate)) {
+        return back()
+            ->withErrors([
+                'ordered_at' => 'La fecha de la orden no puede superar los 30 días hacia el futuro.',
+            ])
+            ->withInput();
+    }
 
-        $taskId = $data['task_id'] ?? null;
+    $data['ordered_at'] = $orderedAtDate->toDateString();
 
-        $order = DB::transaction(function () use ($tenant, $data) {
-            $sequence = DocumentNumberGenerator::generate(
-                tenantId: $tenant->id,
-                kind: 'order.'.$data['kind'],
-                pointOfSale: '0001',
-            );
+    $appointment = null;
+    $task = null;
 
-            $payload = array_merge($data, [
-                'number' => $sequence['number'],
-                'sequence_prefix' => $sequence['prefix'],
-                'point_of_sale' => $sequence['point_of_sale'],
-                'sequence_number' => $sequence['sequence_number'],
-                'created_by' => auth()->id(),
-            ]);
+    $appointmentId = $data['appointment_id'] ?? null;
+    unset($data['appointment_id']);
 
-            return Order::create($payload);
-        });
+    $taskId = $data['task_id'] ?? null;
 
-        if (! empty($appointmentId)) {
-            $appointment = $security
-                ->scope($user, 'appointments.viewAny', Appointment::query())
-                ->where('id', $appointmentId)
-                ->where('tenant_id', $tenant->id)
-                ->whereNull('deleted_at')
-                ->firstOrFail();
-
-            if (empty($appointment->order_id)) {
-                $appointment->update([
-                    'order_id' => $order->id,
-                    'updated_by' => auth()->id(),
-                ]);
-            }
-        }
-
-        if (! empty($taskId)) {
-            $task = $security
-                ->scope($user, 'tasks.viewAny', Task::query())
-                ->where('id', $taskId)
-                ->where('tenant_id', $tenant->id)
-                ->whereNull('deleted_at')
-                ->first();
-        }
-
-        $navigationTrail = OrderNavigationTrail::show(
-            $request,
-            $order,
-            appointment: $appointment,
-            task: $task,
+    $order = DB::transaction(function () use ($tenant, $data) {
+        $sequence = DocumentNumberGenerator::generate(
+            tenantId: $tenant->id,
+            kind: 'order.'.$data['group'],
+            pointOfSale: '0001',
         );
 
-        return redirect()
-            ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
-            ->with('success', "Orden creada correctamente con número {$order->number}.");
+        $payload = array_merge($data, [
+            'number' => $sequence['number'],
+            'sequence_prefix' => $sequence['prefix'],
+            'point_of_sale' => $sequence['point_of_sale'],
+            'sequence_number' => $sequence['sequence_number'],
+            'created_by' => auth()->id(),
+        ]);
+
+        return Order::create($payload);
+    });
+
+    if (! empty($appointmentId)) {
+        $appointment = $security
+            ->scope($user, 'appointments.viewAny', Appointment::query())
+            ->where('id', $appointmentId)
+            ->where('tenant_id', $tenant->id)
+            ->whereNull('deleted_at')
+            ->firstOrFail();
+
+        if (empty($appointment->order_id)) {
+            $appointment->update([
+                'order_id' => $order->id,
+                'updated_by' => auth()->id(),
+            ]);
+        }
     }
+
+    if (! empty($taskId)) {
+        $task = $security
+            ->scope($user, 'tasks.viewAny', Task::query())
+            ->where('id', $taskId)
+            ->where('tenant_id', $tenant->id)
+            ->whereNull('deleted_at')
+            ->first();
+    }
+
+    $navigationTrail = OrderNavigationTrail::show(
+        $request,
+        $order,
+        appointment: $appointment,
+        task: $task,
+    );
+
+    return redirect()
+        ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
+        ->with('success', "Orden creada correctamente con número {$order->number}.");
+}
 
     public function show(Request $request, Order $order)
     {
@@ -488,186 +490,191 @@ class OrderController extends Controller
         ));
     }
 
-    public function update(Request $request, Order $order)
-    {
-        $this->authorize('update', $order);
+public function update(Request $request, Order $order)
+{
+    $this->authorize('update', $order);
 
-        abort_if(
-            OrderCatalog::isReadonlyStatus($order->status),
-            422,
-            'No se puede editar una orden en estado readonly.'
-        );
+    abort_if(
+        OrderCatalog::isReadonlyStatus($order->status),
+        422,
+        'No se puede editar una orden en estado readonly.'
+    );
 
-        $tenant = app('tenant');
-        $security = app(Security::class);
-        $user = auth()->user();
+    $tenant = app('tenant');
+    $security = app(Security::class);
+    $user = auth()->user();
 
-        $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
+    $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
 
-        $data = $request->validate([
-            'party_id' => [
-                'required',
-                'integer',
-                Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
+    $data = $request->validate([
+        'party_id' => [
+            'required',
+            'integer',
+            Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
+                $query->where('tenant_id', $tenant->id)
+                    ->whereNull('deleted_at');
+            }),
+        ],
+        'asset_id' => [
+            'nullable',
+            'integer',
+            Rule::exists('assets', 'id')->where(function ($query) use ($tenant) {
+                $query->where('tenant_id', $tenant->id)
+                    ->whereNull('deleted_at');
+            }),
+        ],
+        'task_id' => [
+            'nullable',
+            'integer',
+            Rule::exists('tasks', 'id')->where(function ($query) use ($tenant) {
+                $query->where('tenant_id', $tenant->id)
+                    ->whereNull('deleted_at');
+            }),
+            Rule::unique('orders', 'task_id')
+                ->ignore($order->id)
+                ->where(function ($query) use ($tenant) {
                     $query->where('tenant_id', $tenant->id)
                         ->whereNull('deleted_at');
                 }),
-            ],
-            'asset_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('assets', 'id')->where(function ($query) use ($tenant) {
-                    $query->where('tenant_id', $tenant->id)
-                        ->whereNull('deleted_at');
-                }),
-            ],
-            'task_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('tasks', 'id')->where(function ($query) use ($tenant) {
-                    $query->where('tenant_id', $tenant->id)
-                        ->whereNull('deleted_at');
-                }),
-                Rule::unique('orders', 'task_id')
-                    ->ignore($order->id)
-                    ->where(function ($query) use ($tenant) {
-                        $query->where('tenant_id', $tenant->id)
-                            ->whereNull('deleted_at');
-                    }),
-            ],
-            'kind' => [
-                'required',
-                Rule::in(OrderCatalog::kinds()),
-            ],
-            'status' => [
-                'required',
-                Rule::in(OrderCatalog::statuses()),
-            ],
-            'ordered_at' => ['nullable', 'date'],
-            'notes' => ['nullable', 'string'],
-        ]);
+        ],
+        'group' => [
+            'required',
+            Rule::in(array_keys(OrderCatalog::groups())),
+        ],
+        'kind' => [
+            'required',
+            Rule::in(array_keys(OrderCatalog::kindLabels())),
+        ],
+        'status' => [
+            'required',
+            Rule::in(OrderCatalog::statuses()),
+        ],
+        'ordered_at' => ['nullable', 'date'],
+        'notes' => ['nullable', 'string'],
+    ]);
 
-        if ($order->number) {
-            $data['kind'] = $order->kind;
-        }
-
-        if (! $supportsAssetsModule || ! array_key_exists('asset_id', $data)) {
-            $data['asset_id'] = $order->asset_id;
-        }
-
-        $security->authorize(
-            $user,
-            'orders.update',
-            $order,
-            ['kind' => $order->kind]
-        );
-
-        if (! OrderCatalog::canTransition($order->status, $data['status'])) {
-            return back()
-                ->withErrors([
-                    'status' => 'La transición de estado solicitada no es válida.',
-                ])
-                ->withInput();
-        }
-
-        $hasExternalMovements = app(OrdersHooks::class)
-            ->hasExternalMovements($order);
-
-        if ($data['status'] === OrderCatalog::STATUS_CANCELLED && $hasExternalMovements) {
-            return back()
-                ->withErrors([
-                    'status' => 'No se puede cancelar una orden con movimientos registrados. Primero deben revertirse.',
-                ])
-                ->withInput();
-        }
-
-        if ($data['status'] === OrderCatalog::STATUS_CLOSED) {
-            $order->loadMissing('items');
-
-            if ($this->hasIncompleteInventoryItems($order)) {
-                return back()
-                    ->withErrors([
-                        'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
-                    ])
-                    ->withInput();
-            }
-        }
-
-        if (! empty($order->asset_id)) {
-            if ((int) $data['asset_id'] !== (int) $order->asset_id) {
-                return back()
-                    ->withErrors([
-                        'asset_id' => 'No se puede cambiar el activo de una orden ya vinculada.',
-                    ])
-                    ->withInput();
-            }
-
-            if ((int) ($data['party_id'] ?? 0) !== (int) $order->party_id) {
-                return back()
-                    ->withErrors([
-                        'party_id' => 'No se puede cambiar el contacto de una orden ya vinculada a un activo.',
-                    ])
-                    ->withInput();
-            }
-        }
-
-        if (empty($order->asset_id) && ! empty($data['asset_id'])) {
-            $asset = $security
-                ->scope($user, 'assets.viewAny', Asset::query())
-                ->whereKey($data['asset_id'])
-                ->firstOrFail();
-
-            if ((int) $asset->party_id !== (int) $data['party_id']) {
-                return back()
-                    ->withErrors([
-                        'asset_id' => 'El activo seleccionado pertenece a otro contacto.',
-                    ])
-                    ->withInput();
-            }
-        }
-
-        if (! empty($data['task_id'])) {
-            $security
-                ->scope($user, 'tasks.viewAny', Task::query())
-                ->whereKey($data['task_id'])
-                ->firstOrFail();
-        }
-
-        $orderedAt = $data['ordered_at'] ?? $order->ordered_at?->toDateString() ?? now()->toDateString();
-        $orderedAtDate = Carbon::parse($orderedAt)->startOfDay();
-        $maxFutureDate = now()->startOfDay()->addDays(30);
-
-        if ($orderedAtDate->gt($maxFutureDate)) {
-            return back()
-                ->withErrors([
-                    'ordered_at' => 'La fecha de la orden no puede superar los 30 días hacia el futuro.',
-                ])
-                ->withInput();
-        }
-
-        $data['ordered_at'] = $orderedAtDate->toDateString();
-        $data['updated_by'] = auth()->id();
-
-        if (! array_key_exists('task_id', $data)) {
-            $data['task_id'] = $order->task_id;
-        }
-
-        $order->update($data);
-
-        $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
-        $task = TaskNavigationTrail::resolveFromRequest($request, $order->tenant_id);
-
-        $navigationTrail = OrderNavigationTrail::show(
-            $request,
-            $order,
-            appointment: $appointment,
-            task: $task,
-        );
-
-        return redirect()
-            ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
-            ->with('success', 'Orden actualizada.');
+    if ($order->number) {
+        $data['group'] = $order->group;
+        $data['kind'] = $order->kind;
     }
+
+    if (! $supportsAssetsModule || ! array_key_exists('asset_id', $data)) {
+        $data['asset_id'] = $order->asset_id;
+    }
+
+    $security->authorize(
+        $user,
+        'orders.update',
+        $order,
+        ['kind' => $order->group]
+    );
+
+    if (! OrderCatalog::canTransition($order->status, $data['status'])) {
+        return back()
+            ->withErrors([
+                'status' => 'La transición de estado solicitada no es válida.',
+            ])
+            ->withInput();
+    }
+
+    $hasExternalMovements = app(OrdersHooks::class)
+        ->hasExternalMovements($order);
+
+    if ($data['status'] === OrderCatalog::STATUS_CANCELLED && $hasExternalMovements) {
+        return back()
+            ->withErrors([
+                'status' => 'No se puede cancelar una orden con movimientos registrados. Primero deben revertirse.',
+            ])
+            ->withInput();
+    }
+
+    if ($data['status'] === OrderCatalog::STATUS_CLOSED) {
+        $order->loadMissing('items');
+
+        if ($this->hasIncompleteInventoryItems($order)) {
+            return back()
+                ->withErrors([
+                    'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
+                ])
+                ->withInput();
+        }
+    }
+
+    if (! empty($order->asset_id)) {
+        if ((int) $data['asset_id'] !== (int) $order->asset_id) {
+            return back()
+                ->withErrors([
+                    'asset_id' => 'No se puede cambiar el activo de una orden ya vinculada.',
+                ])
+                ->withInput();
+        }
+
+        if ((int) ($data['party_id'] ?? 0) !== (int) $order->party_id) {
+            return back()
+                ->withErrors([
+                    'party_id' => 'No se puede cambiar el contacto de una orden ya vinculada a un activo.',
+                ])
+                ->withInput();
+        }
+    }
+
+    if (empty($order->asset_id) && ! empty($data['asset_id'])) {
+        $asset = $security
+            ->scope($user, 'assets.viewAny', Asset::query())
+            ->whereKey($data['asset_id'])
+            ->firstOrFail();
+
+        if ((int) $asset->party_id !== (int) $data['party_id']) {
+            return back()
+                ->withErrors([
+                    'asset_id' => 'El activo seleccionado pertenece a otro contacto.',
+                ])
+                ->withInput();
+        }
+    }
+
+    if (! empty($data['task_id'])) {
+        $security
+            ->scope($user, 'tasks.viewAny', Task::query())
+            ->whereKey($data['task_id'])
+            ->firstOrFail();
+    }
+
+    $orderedAt = $data['ordered_at'] ?? $order->ordered_at?->toDateString() ?? now()->toDateString();
+    $orderedAtDate = Carbon::parse($orderedAt)->startOfDay();
+    $maxFutureDate = now()->startOfDay()->addDays(30);
+
+    if ($orderedAtDate->gt($maxFutureDate)) {
+        return back()
+            ->withErrors([
+                'ordered_at' => 'La fecha de la orden no puede superar los 30 días hacia el futuro.',
+            ])
+            ->withInput();
+    }
+
+    $data['ordered_at'] = $orderedAtDate->toDateString();
+    $data['updated_by'] = auth()->id();
+
+    if (! array_key_exists('task_id', $data)) {
+        $data['task_id'] = $order->task_id;
+    }
+
+    $order->update($data);
+
+    $appointment = AppointmentNavigationTrail::resolveFromRequest($request, $order->tenant_id);
+    $task = TaskNavigationTrail::resolveFromRequest($request, $order->tenant_id);
+
+    $navigationTrail = OrderNavigationTrail::show(
+        $request,
+        $order,
+        appointment: $appointment,
+        task: $task,
+    );
+
+    return redirect()
+        ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
+        ->with('success', 'Orden actualizada.');
+}
 
     public function updateStatus(Request $request, Order $order)
     {

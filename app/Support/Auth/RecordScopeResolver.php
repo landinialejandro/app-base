@@ -122,34 +122,37 @@ class RecordScopeResolver
         return $this->allowsByConstraints($module, $capability, $constraints, $record, $context);
     }
 
-    public function allowsCreateContext(
-        string $module,
-        string $capability,
-        mixed $scope,
-        array $constraints,
-        array $context = []
-    ): bool {
-        if ($this->deniesByConfiguration($module, $capability, $scope, $constraints)) {
+public function allowsCreateContext(
+    string $module,
+    string $capability,
+    mixed $scope,
+    array $constraints,
+    array $context = []
+): bool {
+    if ($this->deniesByConfiguration($module, $capability, $scope, $constraints)) {
+        return false;
+    }
+
+    if ($capability !== CapabilityCatalog::CREATE) {
+        return $scope !== false;
+    }
+
+    if ($this->requiresAllowedKinds($module, $capability)) {
+        $allowedKinds = $this->extractAllowedKinds($constraints);
+
+        $kind = $module === ModuleCatalog::ORDERS
+            ? ($context['group'] ?? $context['kind'] ?? null)
+            : ($context['kind'] ?? null);
+
+        if (! is_string($kind) || trim($kind) === '') {
             return false;
         }
 
-        if ($capability !== CapabilityCatalog::CREATE) {
-            return $scope !== false;
-        }
-
-        if ($this->requiresAllowedKinds($module, $capability)) {
-            $allowedKinds = $this->extractAllowedKinds($constraints);
-            $kind = $context['kind'] ?? null;
-
-            if (! is_string($kind) || trim($kind) === '') {
-                return false;
-            }
-
-            return in_array($kind, $allowedKinds, true);
-        }
-
-        return $scope === true;
+        return in_array($kind, $allowedKinds, true);
     }
+
+    return $scope === true;
+}
 
     public function applyToQuery(
         string $module,
@@ -222,66 +225,72 @@ class RecordScopeResolver
         return $query->whereRaw('1 = 0');
     }
 
-    protected function allowsByConstraints(
-        string $module,
-        string $capability,
-        array $constraints,
-        Model $record,
-        array $context = []
-    ): bool {
-        if (
-            $module === ModuleCatalog::ORDERS
-            && in_array($capability, [
-                CapabilityCatalog::UPDATE,
-                CapabilityCatalog::DELETE,
-            ], true)
-            && OrderCatalog::isReadonlyStatus($record->getAttribute('status'))
-        ) {
-            return false;
-        }
-
-        if (
-            $module === ModuleCatalog::ORDERS
-            && $capability === CapabilityCatalog::DELETE
-            && ! $this->canDeleteOrder($record)
-        ) {
-            return false;
-        }
-
-        if ($this->requiresAllowedKinds($module, $capability)) {
-            $allowedKinds = $this->extractAllowedKinds($constraints);
-
-            if (! empty($allowedKinds)) {
-                $kind = $record->getAttribute('kind');
-
-                if (! is_string($kind) || ! in_array($kind, $allowedKinds, true)) {
-                    return false;
-                }
-            }
-        }
-
-        return true;
+protected function allowsByConstraints(
+    string $module,
+    string $capability,
+    array $constraints,
+    Model $record,
+    array $context = []
+): bool {
+    if (
+        $module === ModuleCatalog::ORDERS
+        && in_array($capability, [
+            CapabilityCatalog::UPDATE,
+            CapabilityCatalog::DELETE,
+        ], true)
+        && OrderCatalog::isReadonlyStatus($record->getAttribute('status'))
+    ) {
+        return false;
     }
 
-    protected function applyConstraintsToQuery(
-        string $module,
-        string $capability,
-        Builder $query,
-        array $constraints
-    ): Builder {
-        if ($this->requiresAllowedKinds($module, $capability)) {
-            $allowedKinds = $this->extractAllowedKinds($constraints);
+    if (
+        $module === ModuleCatalog::ORDERS
+        && $capability === CapabilityCatalog::DELETE
+        && ! $this->canDeleteOrder($record)
+    ) {
+        return false;
+    }
 
-            if (! empty($allowedKinds) && $this->modelHasColumn($query->getModel(), 'kind')) {
+    if ($this->requiresAllowedKinds($module, $capability)) {
+        $allowedKinds = $this->extractAllowedKinds($constraints);
+
+        if (! empty($allowedKinds)) {
+            $kind = $module === ModuleCatalog::ORDERS
+                ? $record->getAttribute('group')
+                : $record->getAttribute('kind');
+
+            if (! is_string($kind) || ! in_array($kind, $allowedKinds, true)) {
+                return false;
+            }
+        }
+    }
+
+    return true;
+}
+
+protected function applyConstraintsToQuery(
+    string $module,
+    string $capability,
+    Builder $query,
+    array $constraints
+): Builder {
+    if ($this->requiresAllowedKinds($module, $capability)) {
+        $allowedKinds = $this->extractAllowedKinds($constraints);
+
+        if (! empty($allowedKinds)) {
+            $column = $module === ModuleCatalog::ORDERS ? 'group' : 'kind';
+
+            if ($this->modelHasColumn($query->getModel(), $column)) {
                 $query->whereIn(
-                    $query->getModel()->qualifyColumn('kind'),
+                    $query->getModel()->qualifyColumn($column),
                     $allowedKinds
                 );
             }
         }
-
-        return $query;
     }
+
+    return $query;
+}
 
     protected function allowsLimitedRecord(
         string $module,

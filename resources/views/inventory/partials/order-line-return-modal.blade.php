@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/partials/order-line-return-modal.blade.php | V4 --}}
+{{-- FILE: resources/views/inventory/partials/order-line-return-modal.blade.php | V5 --}}
 
 @php
     use App\Support\Inventory\InventoryOriginCatalog;
@@ -22,7 +22,7 @@
     $returnKind = $row['return_kind'] ?? null;
 
     $returnLabel = $row['return_label'] ?? 'Devolver';
-    $returnTitle = $row['return_title'] ?? ($returnLabel . ' línea');
+    $returnTitle = $row['return_title'] ?? $returnLabel . ' línea';
     $returnVerbLower = \Illuminate\Support\Str::lower($returnLabel);
 
     $quantityInputId = $modalId . '-quantity';
@@ -34,25 +34,15 @@
 
 <x-modal :id="$modalId" :title="$returnTitle . ' #' . $position" size="md">
     <x-slot:headerActions>
-        <x-button-tool-button
-            type="submit"
-            :form="$submitFormId"
-            variant="danger"
-            :title="'Confirmar ' . \Illuminate\Support\Str::lower($returnTitle) . ' #' . $position"
-            :label="'Confirmar ' . \Illuminate\Support\Str::lower($returnTitle) . ' #' . $position"
-        >
+        <x-button-tool-button type="submit" :form="$submitFormId" variant="danger" :title="'Confirmar ' . \Illuminate\Support\Str::lower($returnTitle) . ' #' . $position" :label="'Confirmar ' . \Illuminate\Support\Str::lower($returnTitle) . ' #' . $position">
             <x-icons.check />
         </x-button-tool-button>
     </x-slot:headerActions>
 
-    <form
-        id="{{ $submitFormId }}"
-        action="{{ route('inventory.movements.store', $trailQuery) }}"
-        method="POST"
-        class="form"
-    >
+    <form id="{{ $submitFormId }}"
+        action="{{ route('inventory.order-items.return', ['order' => $order, 'item' => $orderItemId] + $trailQuery) }}"
+        method="POST">
         @csrf
-
         <input type="hidden" name="product_id" value="{{ $productId }}">
         <input type="hidden" name="origin_type" value="{{ InventoryOriginCatalog::TYPE_ORDER }}">
         <input type="hidden" name="origin_id" value="{{ $order?->id }}">
@@ -61,7 +51,9 @@
         <input type="hidden" name="kind" value="{{ $returnKind }}">
         <input type="hidden" name="return_context" value="orders.show">
         <input type="hidden" name="return_tab" value="inventory.embedded">
+    </form>
 
+    <div class="form">
         <div class="form-group">
             <label class="form-label">Producto</label>
             <input type="text" class="form-control" value="{{ $productName }}" disabled>
@@ -89,80 +81,16 @@
         <div class="form-group">
             <label for="{{ $quantityInputId }}" class="form-label">Cantidad</label>
 
-            <div class="app-stepper">
-                <button
-                    type="button"
-                    class="app-stepper__button btn btn-secondary btn-icon"
-                    data-action="app-step-number"
-                    data-step-target="#{{ $quantityInputId }}"
-                    data-step-direction="down"
-                    data-step-amount="{{ $stepAmount }}"
-                    title="Restar cantidad"
-                    aria-label="Restar cantidad"
-                >
-                    <x-icons.minus />
-                </button>
-
-                <div class="app-stepper__field">
-                    <input
-                        id="{{ $quantityInputId }}"
-                        name="quantity"
-                        type="number"
-                        step="{{ $stepAmount }}"
-                        min="0.01"
-                        max="{{ $defaultQuantity }}"
-                        class="form-control app-stepper__input"
-                        value="{{ old('quantity', $defaultQuantity) }}"
-                        required
-                        inputmode="decimal"
-                        autocomplete="off"
-                        data-modal-autofocus
-                    >
-                </div>
-
-                <button
-                    type="button"
-                    class="app-stepper__button btn btn-secondary btn-icon"
-                    data-action="app-step-number"
-                    data-step-target="#{{ $quantityInputId }}"
-                    data-step-direction="up"
-                    data-step-amount="{{ $stepAmount }}"
-                    title="Sumar cantidad"
-                    aria-label="Sumar cantidad"
-                >
-                    <x-icons.plus />
-                </button>
-            </div>
-
-            @error('quantity')
-                <div class="form-help is-error">{{ $message }}</div>
-            @enderror
-
-            <div class="form-help">
-                Podés {{ $returnVerbLower }} hasta {{ number_format($maxReturnQuantity, 2, ',', '.') }},
-                que es lo ejecutado neto actual de la línea. La operación se registrará como contramovimiento.
-            </div>
+            <input id="{{ $quantityInputId }}" form="{{ $submitFormId }}" name="quantity" type="number"
+                step="{{ $stepAmount }}" min="0.01" max="{{ $defaultQuantity }}" class="form-control"
+                value="{{ old('quantity', $defaultQuantity) }}" required>
         </div>
 
         <div class="form-group">
             <label for="{{ $notesInputId }}" class="form-label">Notas</label>
 
-            <input
-                id="{{ $notesInputId }}"
-                name="notes"
-                type="text"
-                class="form-control"
-                value="{{ old('notes') }}"
-                placeholder="Opcional"
-            >
-
-            @error('notes')
-                <div class="form-help is-error">{{ $message }}</div>
-            @enderror
-
-            <div class="form-help">
-                Se agregará trazabilidad automática del sistema junto con las notas ingresadas.
-            </div>
+            <input id="{{ $notesInputId }}" form="{{ $submitFormId }}" name="notes" type="text"
+                class="form-control" value="{{ old('notes') }}" placeholder="Opcional">
         </div>
-    </form>
+    </div>
 </x-modal>

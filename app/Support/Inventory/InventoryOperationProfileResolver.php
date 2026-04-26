@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Inventory/InventoryOperationProfileResolver.php | V3
+// FILE: app/Support/Inventory/InventoryOperationProfileResolver.php | V4
 
 namespace App\Support\Inventory;
 
@@ -12,13 +12,14 @@ class InventoryOperationProfileResolver
 {
     public function forOrder(Order $order): array
     {
-        return $this->forOrderKind($order->kind);
+        return $this->forOrderType($order->group, $order->kind);
     }
 
-    public function forOrderKind(?string $kind): array
+    public function forOrderType(?string $group, ?string $kind): array
     {
-        return match ($kind) {
-            OrderCatalog::KIND_SERVICE => [
+        return match ($group) {
+            OrderCatalog::GROUP_SERVICE => [
+                'source_group' => $group,
                 'source_kind' => $kind,
                 'direction' => 'out',
                 'execute_kind' => InventoryMovementService::KIND_ENTREGAR,
@@ -33,7 +34,8 @@ class InventoryOperationProfileResolver
                 'reverse_action_key' => 'return',
             ],
 
-            OrderCatalog::KIND_SALE => [
+            OrderCatalog::GROUP_SALE => [
+                'source_group' => $group,
                 'source_kind' => $kind,
                 'direction' => 'out',
                 'execute_kind' => InventoryMovementService::KIND_ENTREGAR,
@@ -48,7 +50,8 @@ class InventoryOperationProfileResolver
                 'reverse_action_key' => 'return',
             ],
 
-            OrderCatalog::KIND_PURCHASE => [
+            OrderCatalog::GROUP_PURCHASE => [
+                'source_group' => $group,
                 'source_kind' => $kind,
                 'direction' => 'in',
                 'execute_kind' => InventoryMovementService::KIND_INGRESAR,
@@ -65,5 +68,10 @@ class InventoryOperationProfileResolver
 
             default => throw new InvalidArgumentException('Tipo de orden no compatible con inventory.'),
         };
+    }
+
+    public function forOrderKind(?string $kind): array
+    {
+        return $this->forOrderType($kind, OrderCatalog::KIND_STANDARD);
     }
 }

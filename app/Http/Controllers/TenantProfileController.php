@@ -328,32 +328,32 @@ class TenantProfileController extends Controller
         return $options;
     }
 
-    protected function buildConstraintOptionsFor(string $module, string $capability): array
-    {
-        if (
-            in_array($capability, [
-                CapabilityCatalog::VIEW_ANY,
-                CapabilityCatalog::VIEW,
-                CapabilityCatalog::CREATE,
-                CapabilityCatalog::UPDATE,
-                CapabilityCatalog::DELETE,
-            ], true)
-        ) {
-            if ($module === ModuleCatalog::ORDERS) {
-                return [
-                    'allowed_kinds' => OrderCatalog::kindLabels(),
-                ];
-            }
-
-            if ($module === ModuleCatalog::PARTIES) {
-                return [
-                    'allowed_kinds' => PartyCatalog::kindLabels(),
-                ];
-            }
+protected function buildConstraintOptionsFor(string $module, string $capability): array
+{
+    if (
+        in_array($capability, [
+            CapabilityCatalog::VIEW_ANY,
+            CapabilityCatalog::VIEW,
+            CapabilityCatalog::CREATE,
+            CapabilityCatalog::UPDATE,
+            CapabilityCatalog::DELETE,
+        ], true)
+    ) {
+        if ($module === ModuleCatalog::ORDERS) {
+            return [
+                'allowed_kinds' => OrderCatalog::groupLabels(),
+            ];
         }
 
-        return [];
+        if ($module === ModuleCatalog::PARTIES) {
+            return [
+                'allowed_kinds' => PartyCatalog::kindLabels(),
+            ];
+        }
     }
+
+    return [];
+}
 
     protected function normalizeConstraints(mixed $constraints): array
     {

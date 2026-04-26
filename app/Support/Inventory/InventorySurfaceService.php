@@ -382,101 +382,96 @@ class InventorySurfaceService implements ModuleSurfaceService
         ];
     }
 
-    private function resolveOrderItemRowActions(array $hostPack): array
-    {
-        $record = $hostPack['record'] ?? null;
-        $recordType = $hostPack['recordType'] ?? null;
-        $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
-        $order = $hostPack['order'] ?? null;
-        $modalNamespace = trim((string) ($hostPack['modal_namespace'] ?? ''));
+private function resolveOrderItemRowActions(array $hostPack): array
+{
+    $record = $hostPack['record'] ?? null;
+    $recordType = $hostPack['recordType'] ?? null;
+    $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
+    $order = $hostPack['order'] ?? null;
+    $modalNamespace = trim((string) ($hostPack['modal_namespace'] ?? ''));
 
-        if ($recordType !== 'order_item' || ! $record instanceof OrderItem || ! $order instanceof Order) {
-            return [
-                'count' => 0,
-                'data' => [
-                    'actions' => [],
-                ],
-            ];
-        }
+    if ($recordType !== 'order_item' || ! $record instanceof OrderItem || ! $order instanceof Order) {
+        return ['count' => 0, 'data' => ['actions' => []]];
+    }
 
-        $contextResolver = app(InventoryOrderContextResolver::class);
+    $order->loadMissing(['items.product']);
 
-        $order->loadMissing([
-            'items.product',
-        ]);
+    $inventoryContext = app(InventoryOrderContextResolver::class)->forOrder($order);
 
-        $inventoryContext = $contextResolver->forOrder($order);
+    $row = collect($inventoryContext['items'] ?? [])
+        ->first(fn (array $candidate) => (int) ($candidate['order_item_id'] ?? 0) === (int) $record->id);
 
-        $row = collect($inventoryContext['items'] ?? [])
-            ->first(fn (array $candidate) => (int) ($candidate['order_item_id'] ?? 0) === (int) $record->id);
+    if (! is_array($row)) {
+        return ['count' => 0, 'data' => ['actions' => []]];
+    }
 
-        if (! is_array($row)) {
-            return [
-                'count' => 0,
-                'data' => [
-                    'actions' => [],
-                ],
-            ];
-        }
+    $actions = [];
+    $productId = $row['product_id'] ?? null;
+    $orderItemId = $row['order_item_id'] ?? null;
+    $modalPrefix = $modalNamespace !== '' ? $modalNamespace.'-' : '';
 
-        $actions = [];
-        $productId = $row['product_id'] ?? null;
-        $orderItemId = $row['order_item_id'] ?? null;
-        $modalPrefix = $modalNamespace !== '' ? $modalNamespace.'-' : '';
-
-        if (($row['can_execute'] ?? false) === true) {
-            $actions[] = [
-                'type' => 'modal',
-                'action_key' => $row['execute_action_key'] ?? 'execute',
-                'label' => $row['execute_label'] ?? 'Operar línea',
-                'title' => $row['execute_title'] ?? 'Operar línea',
-                'icon' => $row['execute_icon'] ?? 'truck',
-                'modal_view' => 'inventory.partials.line-execute-modal',
-                'modal_id' => $modalPrefix.'inventory-row-execute-line-'.$record->id,
-                'row' => $row,
-                'order' => $order,
-                'trailQuery' => $trailQuery,
-            ];
-        }
-
-        if (($row['can_return'] ?? false) === true && (float) ($row['max_return_quantity'] ?? 0) > 0) {
-            $actions[] = [
-                'type' => 'modal',
-                'action_key' => $row['return_action_key'] ?? 'return',
-                'label' => $row['return_label'] ?? 'Devolver línea',
-                'title' => $row['return_title'] ?? 'Devolver línea',
-                'icon' => $row['return_icon'] ?? 'rotate-ccw',
-                'modal_view' => 'inventory.partials.order-line-return-modal',
-                'modal_id' => $modalPrefix.'inventory-row-return-line-'.$record->id,
-                'row' => $row,
-                'order' => $order,
-                'trailQuery' => $trailQuery,
-            ];
-        }
-
-        if ($productId && $orderItemId) {
-            $actions[] = [
-                'type' => 'link',
-                'action_key' => 'view_movements',
-                'label' => 'Ver movimientos',
-                'title' => 'Ver movimientos de la línea',
-                'icon' => 'eye',
-                'href' => route('inventory.show', [
-                    'product' => $productId,
-                ] + $trailQuery + [
-                    'origin_line_type' => InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM,
-                    'origin_line_id' => $orderItemId,
-                ]),
-            ];
-        }
-
-        return [
-            'count' => count($actions),
-            'data' => [
-                'actions' => $actions,
+    if (($row['can_execute'] ?? false) === true) {
+        $actions[] = [
+            'type' => 'modal',
+            'action_key' => $row['execute_action_key'] ?? 'execute',
+            'label' => $row['execute_label'] ?? 'Operar línea',
+            'title' => $row['execute_title'] ?? 'Operar línea',
+            'icon' => $row['execute_icon'] ?? 'truck',
+            'modal_view' => 'inventory.partials.line-execute-modal',
+            'modal_id' => $modalPrefix.'inventory-row-execute-line-'.$record->id,
+            'row' => $row,
+            'order' => $order,
+            'action' => route('inventory.movements.store', $trailQuery),
+            'hiddenFields' => [
+                'product_id' => $productId,
+                'origin_type' => InventoryOriginCatalog::TYPE_ORDER,
+                'origin_id' => $order->id,
+                'origin_line_type' => InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM,
+                'origin_line_id' => $orderItemId,
+                'kind' => $row['execute_kind'] ?? null,
+                'return_context' => 'orders.show',
+                'return_tab' => 'inventory.embedded',
             ],
+            'trailQuery' => $trailQuery,
         ];
     }
+
+    if (($row['can_return'] ?? false) === true && (float) ($row['max_return_quantity'] ?? 0) > 0) {
+        $actions[] = [
+            'type' => 'modal',
+            'action_key' => $row['return_action_key'] ?? 'return',
+            'label' => $row['return_label'] ?? 'Devolver línea',
+            'title' => $row['return_title'] ?? 'Devolver línea',
+            'icon' => $row['return_icon'] ?? 'rotate-ccw',
+            'modal_view' => 'inventory.partials.order-line-return-modal',
+            'modal_id' => $modalPrefix.'inventory-row-return-line-'.$record->id,
+            'row' => $row,
+            'order' => $order,
+            'trailQuery' => $trailQuery,
+        ];
+    }
+
+    if ($productId && $orderItemId) {
+        $actions[] = [
+            'type' => 'link',
+            'action_key' => 'view_movements',
+            'label' => 'Ver movimientos',
+            'title' => 'Ver movimientos de la línea',
+            'icon' => 'eye',
+            'href' => route('inventory.show', [
+                'product' => $productId,
+            ] + $trailQuery + [
+                'origin_line_type' => InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM,
+                'origin_line_id' => $orderItemId,
+            ]),
+        ];
+    }
+
+    return [
+        'count' => count($actions),
+        'data' => ['actions' => $actions],
+    ];
+}
 
     private function productFromHostPack(array $hostPack): ?Product
     {

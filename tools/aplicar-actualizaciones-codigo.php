@@ -9,15 +9,25 @@ require_once __DIR__.'/lib/ProjectPaths.php';
 require_once __DIR__.'/lib/ToolLog.php';
 
 /**
- * Uso:
- *   php tools/aplicar-actualizaciones-codigo.php
+ * Automatizador de actualizaciones de código por STDIN.
  *
- * Entrada soportada:
+ * Soporta:
  *
- * 1) Archivo completo PHP
- * 2) Archivo completo Blade
- * 3) Reemplazo parcial de método PHP existente
- * 4) Alta de método PHP nuevo dentro de una clase existente
+ * 1) Archivo PHP completo:
+ *   <?php
+ *   // FILE: app/Support/Ejemplo.php | V1
+ *
+ * 2) Archivo Blade completo:
+ *   {{-- FILE: resources/views/modulo/vista.blade.php | V1 --}}
+ *
+ * 3) Reemplazo de método PHP existente:
+ *   // TARGET: app/Http/Controllers/EjemploController.php :: show
+ *
+ * 4) Alta de método PHP nuevo:
+ *   // TARGET: app/Support/Ejemplo.php ++ nuevoMetodo
+ *
+ * Registra cada cambio en:
+ *   documentos/log/code-updates.log
  */
 ProjectPaths::chdirRoot();
 

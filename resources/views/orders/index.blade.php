@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/index.blade.php | V7 --}}
+{{-- FILE: resources/views/orders/index.blade.php | V8 --}}
 
 @extends('layouts.app')
 
@@ -20,7 +20,7 @@
 
         <x-page-header title="Órdenes">
             @if ($canCreateOrders)
-                <x-button-create :href="route('orders.create', array_merge($trailQuery, ['kind' => $defaultCreateKind]))" label="Nueva orden" />
+                <x-button-create :href="route('orders.create', array_merge($trailQuery, ['group' => $defaultCreateKind]))" label="Nueva orden" />
             @endif
         </x-page-header>
 
@@ -79,11 +79,11 @@
                     @endif
 
                     <div class="form-group">
-                        <label for="kind" class="form-label">Tipo</label>
-                        <select id="kind" name="kind" class="form-control">
+                        <label for="group" class="form-label">Tipo</label>
+                        <select id="group" name="group" class="form-control">
                             <option value="">Todos</option>
-                            @foreach (OrderCatalog::kindLabels() as $value => $label)
-                                <option value="{{ $value }}" @selected(request('kind') === $value)>
+                            @foreach (OrderCatalog::groupLabels() as $value => $label)
+                                <option value="{{ $value }}" @selected(request('group') === $value)>
                                     {{ $label }}
                                 </option>
                             @endforeach

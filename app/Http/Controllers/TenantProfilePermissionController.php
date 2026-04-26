@@ -404,14 +404,14 @@ class TenantProfilePermissionController extends Controller
         ], true);
     }
 
-    protected function validKindsForModule(string $module): array
-    {
-        return match ($module) {
-            ModuleCatalog::ORDERS => array_keys(OrderCatalog::kindLabels()),
-            ModuleCatalog::PARTIES => array_keys(PartyCatalog::kindLabels()),
-            default => [],
-        };
-    }
+protected function validKindsForModule(string $module): array
+{
+    return match ($module) {
+        ModuleCatalog::ORDERS => array_keys(OrderCatalog::groups()),
+        ModuleCatalog::PARTIES => array_keys(PartyCatalog::kindLabels()),
+        default => [],
+    };
+}
 
     protected function permissionIdFor(string $module, string $capability): int
     {

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/partials/embedded-tabs.blade.php | V8 --}}
+{{-- FILE: resources/views/orders/partials/embedded-tabs.blade.php | V9 --}}
 
 @php
     use App\Models\Order;
@@ -13,21 +13,21 @@
     $emptyMessage = $emptyMessage ?? 'No hay órdenes para mostrar.';
     $allLabel = $allLabel ?? 'Todas';
 
-    $kinds = OrderCatalog::kindLabels();
+    $groups = OrderCatalog::groupLabels();
     $tabsId = $tabsId ?? 'orders-tabs-' . uniqid();
     $trailQuery = $trailQuery ?? [];
     $createBaseQuery = $createBaseQuery ?? [];
 
-    $allowedCreateKinds = collect(OrderCatalog::kinds())
+    $allowedCreateGroups = collect(array_keys(OrderCatalog::groups()))
         ->filter(
-            fn(string $kind) => app(Security::class)->allows(auth()->user(), 'orders.create', Order::class, [
-                'kind' => $kind,
+            fn(string $group) => app(Security::class)->allows(auth()->user(), 'orders.create', Order::class, [
+                'kind' => $group,
             ]),
         )
         ->values();
 
-    $canCreateOrders = $allowedCreateKinds->isNotEmpty();
-    $defaultCreateKind = $allowedCreateKinds->first();
+    $canCreateOrders = $allowedCreateGroups->isNotEmpty();
+    $defaultCreateKind = $allowedCreateGroups->first();
 @endphp
 
 <div class="tabs" data-tabs>
@@ -35,7 +35,7 @@
         $toolbarActions = null;
 
         if ($canCreateOrders) {
-            $toolbarActions = route('orders.create', $createBaseQuery + $trailQuery + ['kind' => $defaultCreateKind]);
+            $toolbarActions = route('orders.create', $createBaseQuery + $trailQuery + ['group' => $defaultCreateKind]);
         }
     @endphp
 
@@ -50,16 +50,16 @@
                     @endif
                 </button>
 
-                @foreach ($kinds as $value => $label)
+                @foreach ($groups as $value => $label)
                     @php
-                        $kindOrders = $orders->where('kind', $value)->values();
+                        $groupOrders = $orders->where('group', $value)->values();
                     @endphp
 
                     <button type="button" class="tabs-link" data-tab-link="{{ $tabsId }}-{{ $value }}"
                         role="tab" aria-selected="false">
                         {{ $label }}
-                        @if ($kindOrders->count())
-                            ({{ $kindOrders->count() }})
+                        @if ($groupOrders->count())
+                            ({{ $groupOrders->count() }})
                         @endif
                     </button>
                 @endforeach
@@ -88,16 +88,16 @@
         </div>
     </section>
 
-    @foreach ($kinds as $value => $label)
+    @foreach ($groups as $value => $label)
         @php
-            $kindOrders = $orders->where('kind', $value)->values();
+            $groupOrders = $orders->where('group', $value)->values();
         @endphp
 
         <section class="tab-panel" data-tab-panel="{{ $tabsId }}-{{ $value }}" hidden>
             <div class="tab-panel-stack">
                 <x-card class="list-card">
                     @include('orders.partials.table', [
-                        'orders' => $kindOrders,
+                        'orders' => $groupOrders,
                         'showParty' => $showParty,
                         'showAsset' => $showAsset,
                         'emptyMessage' => "No hay órdenes de tipo {$label} para mostrar.",

@@ -173,34 +173,55 @@ class OrderModuleSeeder extends BaseModuleSeeder
         return $orders;
     }
 
-    private function createOrder(array $data): Order
-    {
-        $order = Order::query()
-            ->where('tenant_id', $data['tenant_id'])
-            ->where('number', $data['number'])
-            ->first();
+private function createOrder(array $data): Order
+{
+    $order = Order::query()
+        ->where('tenant_id', $data['tenant_id'])
+        ->where('number', $data['number'])
+        ->first();
 
-        $payload = [
-            'party_id' => $data['party_id'],
-            'kind' => $data['kind'],
-            'status' => $data['status'],
-            'ordered_at' => $data['ordered_at'],
-            'notes' => $data['notes'],
-            'created_by' => $data['created_by'],
-            'updated_by' => $data['updated_by'],
-        ];
+    $legacyKinds = [
+        OrderCatalog::GROUP_SALE,
+        OrderCatalog::GROUP_PURCHASE,
+        OrderCatalog::GROUP_SERVICE,
+    ];
 
-        if ($order) {
-            $order->update($payload);
+    $incomingKind = $data['kind'] ?? null;
+    $incomingGroup = $data['group'] ?? null;
 
-            return $order;
-        }
+    $resolvedGroup = $incomingGroup;
+    $resolvedKind = $incomingKind;
 
-        return Order::create(array_merge([
-            'tenant_id' => $data['tenant_id'],
-            'number' => $data['number'],
-        ], $payload));
+    if ($resolvedGroup === null && is_string($incomingKind) && in_array($incomingKind, $legacyKinds, true)) {
+        $resolvedGroup = $incomingKind;
+        $resolvedKind = OrderCatalog::KIND_STANDARD;
     }
+
+    $resolvedGroup ??= OrderCatalog::GROUP_SALE;
+    $resolvedKind ??= OrderCatalog::KIND_STANDARD;
+
+    $payload = [
+        'party_id' => $data['party_id'],
+        'group' => $resolvedGroup,
+        'kind' => $resolvedKind,
+        'status' => $data['status'],
+        'ordered_at' => $data['ordered_at'],
+        'notes' => $data['notes'],
+        'created_by' => $data['created_by'],
+        'updated_by' => $data['updated_by'],
+    ];
+
+    if ($order) {
+        $order->update($payload);
+
+        return $order;
+    }
+
+    return Order::create(array_merge([
+        'tenant_id' => $data['tenant_id'],
+        'number' => $data['number'],
+    ], $payload));
+}
 
     private function replaceOrderItems(string $tenantId, int $orderId, array $items): void
     {

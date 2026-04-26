@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Order.php | V6
+// FILE: app/Models/Order.php | V7
 
 namespace App\Models;
 
@@ -22,6 +22,7 @@ class Order extends Model
         'party_id',
         'asset_id',
         'task_id',
+        'group',
         'kind',
         'number',
         'sequence_prefix',
@@ -103,7 +104,9 @@ class Order extends Model
 
     public function attachments(): MorphMany
     {
-        return $this->morphMany(Attachment::class, 'attachable')->orderBy('sort_order')->latest('id');
+        return $this->morphMany(Attachment::class, 'attachable')
+            ->orderBy('sort_order')
+            ->latest('id');
     }
 
     public function hasClosedItems(): bool

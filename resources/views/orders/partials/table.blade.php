@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/partials/table.blade.php | V13 --}}
+{{-- FILE: resources/views/orders/partials/table.blade.php | V14 --}}
 
 @php
     use App\Support\Assets\AssetLinked;
@@ -85,7 +85,7 @@
                             </a>
                         </td>
 
-                        <td>{{ OrderCatalog::label($order->kind) }}</td>
+                        <td>{{ OrderCatalog::groupLabel($order->group) }}</td>
 
                         <td>
                             <span class="status-badge {{ OrderCatalog::badgeClass($order->status) }}">

@@ -1,4 +1,5 @@
-{{-- FILE: resources/views/orders/print.blade.php | V1 --}}
+{{-- FILE: resources/views/orders/print.blade.php | V2 --}}
+
 @extends('layouts.print')
 
 @php
@@ -6,10 +7,10 @@
 
     $items = $order->items->sortBy('position')->values();
 
-    $title = match ($order->kind) {
-        OrderCatalog::KIND_SALE => 'Orden de venta',
-        OrderCatalog::KIND_PURCHASE => 'Orden de compra',
-        OrderCatalog::KIND_SERVICE => 'Orden de servicio',
+    $title = match ($order->group) {
+        OrderCatalog::GROUP_SALE => 'Orden de venta',
+        OrderCatalog::GROUP_PURCHASE => 'Orden de compra',
+        OrderCatalog::GROUP_SERVICE => 'Orden de servicio',
         default => 'Orden',
     };
 @endphp
@@ -50,7 +51,7 @@
                 <td>
                     <div class="print-block">
                         <div class="print-block-label">Tipo</div>
-                        <div class="print-block-value">{{ OrderCatalog::kindLabel($order->kind) }}</div>
+                        <div class="print-block-value">{{ OrderCatalog::groupLabel($order->group) }}</div>
                     </div>
                 </td>
             </tr>

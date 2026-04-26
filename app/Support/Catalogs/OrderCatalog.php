@@ -1,29 +1,34 @@
 <?php
 
-// FILE: app/Support/Catalogs/OrderCatalog.php | V2
+// FILE: app/Support/Catalogs/OrderCatalog.php | V3
 
 namespace App\Support\Catalogs;
 
 class OrderCatalog extends BaseCatalog
 {
-    public const KIND_SALE = 'sale';
+    public const GROUP_SALE = 'sale';
+    public const GROUP_PURCHASE = 'purchase';
+    public const GROUP_SERVICE = 'service';
 
-    public const KIND_PURCHASE = 'purchase';
+    public const KIND_STANDARD = 'standard';
 
-    public const KIND_SERVICE = 'service';
+    public const KIND_SALE = self::GROUP_SALE;
+    public const KIND_PURCHASE = self::GROUP_PURCHASE;
+    public const KIND_SERVICE = self::GROUP_SERVICE;
 
     public const STATUS_DRAFT = 'draft';
-
     public const STATUS_APPROVED = 'approved';
-
     public const STATUS_CLOSED = 'closed';
-
     public const STATUS_CANCELLED = 'cancelled';
 
+    protected static array $groups = [
+        self::GROUP_SALE => 'Venta',
+        self::GROUP_PURCHASE => 'Compra',
+        self::GROUP_SERVICE => 'Servicio',
+    ];
+
     protected static array $kinds = [
-        self::KIND_SALE => 'Venta',
-        self::KIND_PURCHASE => 'Compra',
-        self::KIND_SERVICE => 'Servicio',
+        self::KIND_STANDARD => 'Estándar',
     ];
 
     protected static array $statuses = [
@@ -40,13 +45,59 @@ class OrderCatalog extends BaseCatalog
         self::STATUS_CANCELLED => 'status-badge--cancelled',
     ];
 
+    public static function groups(): array
+    {
+        return static::$groups;
+    }
+
+    public static function groupLabels(): array
+    {
+        return static::$groups;
+    }
+
+    public static function groupLabel(?string $value, ?string $default = '—'): ?string
+    {
+        if ($value === null) {
+            return $default;
+        }
+
+        return static::$groups[$value] ?? $default;
+    }
+
+    public static function kindsByGroup(?string $group): array
+    {
+        return match ($group) {
+            self::GROUP_SALE,
+            self::GROUP_PURCHASE,
+            self::GROUP_SERVICE => static::$kinds,
+            default => static::$kinds,
+        };
+    }
+
+    public static function kindLabels(?string $group = null): array
+    {
+        if ($group === null) {
+            return static::$kinds;
+        }
+
+        return static::kindsByGroup($group);
+    }
+
     public static function kindLabel(?string $value, ?string $default = '—'): ?string
     {
         if ($value === null) {
             return $default;
         }
 
-        return static::$kinds[$value] ?? $default;
+        if (isset(static::$kinds[$value])) {
+            return static::$kinds[$value];
+        }
+
+        if (isset(static::$groups[$value])) {
+            return static::$groups[$value];
+        }
+
+        return $default;
     }
 
     public static function statusLabel(?string $value, ?string $default = '—'): ?string
@@ -58,14 +109,19 @@ class OrderCatalog extends BaseCatalog
         return static::$statuses[$value] ?? $default;
     }
 
-    public static function directionForKind(?string $kind, string $default = 'out'): string
+    public static function directionFor(?string $group, ?string $kind = null, string $default = 'out'): string
     {
-        return match ($kind) {
-            self::KIND_PURCHASE => 'in',
-            self::KIND_SALE,
-            self::KIND_SERVICE => 'out',
+        return match ($group) {
+            self::GROUP_PURCHASE => 'in',
+            self::GROUP_SALE,
+            self::GROUP_SERVICE => 'out',
             default => $default,
         };
+    }
+
+    public static function directionForKind(?string $kind, string $default = 'out'): string
+    {
+        return static::directionFor($kind, null, $default);
     }
 
     public static function isOperableStatus(?string $status): bool
@@ -81,31 +137,30 @@ class OrderCatalog extends BaseCatalog
         ], true);
     }
 
-public static function canTransition(?string $from, string $to): bool
-{
-    if ($from === $to) {
-        return true;
+    public static function canTransition(?string $from, string $to): bool
+    {
+        if ($from === $to) {
+            return true;
+        }
+
+        return match ($from) {
+            self::STATUS_DRAFT => in_array($to, [
+                self::STATUS_APPROVED,
+                self::STATUS_CANCELLED,
+            ], true),
+
+            self::STATUS_APPROVED => in_array($to, [
+                self::STATUS_CLOSED,
+                self::STATUS_CANCELLED,
+            ], true),
+
+            self::STATUS_CLOSED => in_array($to, [
+                self::STATUS_APPROVED,
+            ], true),
+
+            self::STATUS_CANCELLED => false,
+
+            default => false,
+        };
     }
-
-    return match ($from) {
-        self::STATUS_DRAFT => in_array($to, [
-            self::STATUS_APPROVED,
-            self::STATUS_CANCELLED,
-        ], true),
-
-        self::STATUS_APPROVED => in_array($to, [
-            self::STATUS_CLOSED,
-            self::STATUS_CANCELLED,
-        ], true),
-
-        self::STATUS_CLOSED => in_array($to, [
-            self::STATUS_APPROVED,
-        ], true),
-
-        self::STATUS_CANCELLED => false,
-
-        default => false,
-    };
-}
-
 }

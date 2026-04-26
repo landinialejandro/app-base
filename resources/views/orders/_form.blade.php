@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/_form.blade.php | V7 --}}
+{{-- FILE: resources/views/orders/_form.blade.php | V8 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
@@ -12,7 +12,8 @@
     $prefilledTask = $prefilledTask ?? null;
     $prefilledAppointment = $prefilledAppointment ?? null;
 
-    $prefilledKind = $prefilledKind ?? old('kind', $order->kind ?? OrderCatalog::KIND_SALE);
+    $prefilledGroup = $prefilledGroup ?? old('group', $order->group ?? OrderCatalog::GROUP_SALE);
+    $prefilledKind = $prefilledKind ?? old('kind', $order->kind ?? OrderCatalog::KIND_STANDARD);
 
     $currentTaskId = old('task_id', $order->task_id ?? ($prefilledTask?->id ?? ''));
     $currentTaskName = old('task_name', $prefilledTask?->name ?? ($order->task?->name ?? ''));
@@ -47,7 +48,6 @@
 <div class="form" data-action="app-party-asset-sync" data-party-select="#party_id"
     @if ($supportsAssetsModule) data-asset-select="#asset_id" @endif>
 
-    {{-- TAREA --}}
     @if ($currentTaskId)
         <div class="form-group">
             <label class="form-label">Tarea origen</label>
@@ -57,7 +57,6 @@
         </div>
     @endif
 
-    {{-- TURNO --}}
     @if ($currentAppointmentId)
         <div class="form-group">
             <label class="form-label">Turno origen</label>
@@ -66,7 +65,6 @@
         </div>
     @endif
 
-    {{-- CONTACTO --}}
     <div class="form-group">
         <label for="party_id" class="form-label">Contacto</label>
 
@@ -99,7 +97,6 @@
         @endif
     </div>
 
-    {{-- ACTIVO (CONDICIONAL) --}}
     @if ($supportsAssetsModule)
         <div class="form-group">
             <label for="asset_id" class="form-label">Activo</label>
@@ -130,42 +127,41 @@
         </div>
     @endif
 
-    {{-- TIPO --}}
     <div class="form-group">
-        <label for="kind" class="form-label">Tipo</label>
+        <label for="group" class="form-label">Tipo</label>
 
-        @if ($fromAsset || $currentTaskId)
+        @php
+            $forcedGroup = null;
+
+            if ($fromAsset || $currentTaskId || $currentAppointmentId) {
+                $forcedGroup = OrderCatalog::GROUP_SERVICE;
+            } elseif ($orderIsNumbered) {
+                $forcedGroup = $order->group;
+            }
+        @endphp
+
+        @if ($forcedGroup !== null)
             <select class="form-control" disabled>
-                @foreach (OrderCatalog::kindLabels() as $value => $label)
-                    <option @selected(OrderCatalog::KIND_SERVICE === $value)>
-                        {{ $label }}
-                    </option>
+                @foreach (OrderCatalog::groupLabels() as $value => $label)
+                    <option @selected($forcedGroup === $value)>{{ $label }}</option>
                 @endforeach
             </select>
 
-            <input type="hidden" name="kind" value="{{ OrderCatalog::KIND_SERVICE }}">
-        @elseif ($orderIsNumbered)
-            <select class="form-control" disabled>
-                @foreach (OrderCatalog::kindLabels() as $value => $label)
-                    <option @selected($order->kind === $value)>
-                        {{ $label }}
-                    </option>
-                @endforeach
-            </select>
-
-            <input type="hidden" name="kind" value="{{ $order->kind }}">
+            <input type="hidden" name="group" value="{{ $forcedGroup }}">
+            <input type="hidden" name="kind" value="{{ old('kind', $order->kind ?? $prefilledKind) }}">
         @else
-            <select name="kind" id="kind" class="form-control" required>
-                @foreach (OrderCatalog::kindLabels() as $value => $label)
-                    <option value="{{ $value }}" @selected(old('kind', $order->kind ?? $prefilledKind) === $value)>
+            <select name="group" id="group" class="form-control" required>
+                @foreach (OrderCatalog::groupLabels() as $value => $label)
+                    <option value="{{ $value }}" @selected(old('group', $order->group ?? $prefilledGroup) === $value)>
                         {{ $label }}
                     </option>
                 @endforeach
             </select>
+
+            <input type="hidden" name="kind" value="{{ old('kind', $order->kind ?? $prefilledKind) }}">
         @endif
     </div>
 
-    {{-- ESTADO --}}
     <div class="form-group">
         <label for="status" class="form-label">Estado</label>
         <select name="status" id="status" class="form-control" required>

@@ -1,0 +1,71 @@
+<<SECTION: METADATOS>>
+SECTION_VERSION: 00001
+
+TÍTULO: Decisiones vivas del proyecto
+DOC_SLUG: decisiones_vivas_app_base
+DOC_VERSION: 00001
+TIPO: memoria-operativa
+ESTADO: activo
+GESTIÓN: Registro acumulativo de decisiones arquitectónicas y operativas vigentes del proyecto.
+<<END SECTION>>
+
+<<SECTION: OBJETIVO>>
+SECTION_VERSION: 00001
+
+OBJETIVO
+
+Conservar decisiones ya tomadas para evitar rediscutir fundamentos en cada sesión.
+
+Este documento registra:
+
+decisiones aprobadas
+motivos relevantes
+criterio vigente
+impacto arquitectónico
+
+No reemplaza:
+
+documentos doctrinales
+roadmap
+issues técnicos
+commits
+
+Regla:
+
+si una decisión cambia, se actualiza este documento y no se superponen versiones contradictorias.
+<<END SECTION>>
+
+<<SECTION: DECISIONES VIGENTES>>
+SECTION_VERSION: 00001
+
+DECISIONES VIGENTES
+
+No abrir módulo users por necesidades de colaboradores internos.
+
+La resolución vigente es:
+
+users = identidad global
+memberships = pertenencia operativa
+raíces tenant reusables para datasets internos
+
+Inventory debe leerse como frente funcional real y no como efecto lateral de products.
+
+Orders conserva centralidad operativa pero puede hostear capacidades de otros módulos sin absorber su lógica.
+
+La evolución reusable correcta prioriza surfaces oficiales del módulo oferente antes que soluciones locales del consumidor.
+
+Security permanece como kernel central de autorización efectiva.
+
+Las show pages deben converger hacia slots explícitos y montaje coordinado.
+
+NavigationTrail resuelve contexto externo.
+
+return_tab complementa contexto interno del host cuando aplica.
+
+No backward patching como cierre estable de migraciones.
+
+Ante falta de datos reales:
+
+NO SE ASUME
+NO SE SUPONE
+<<END SECTION>>

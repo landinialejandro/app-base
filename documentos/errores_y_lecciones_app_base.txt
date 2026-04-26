@@ -1,0 +1,50 @@
+<<SECTION: METADATOS>>
+SECTION_VERSION: 00001
+
+TÍTULO: Errores y lecciones del proyecto
+DOC_SLUG: errores_y_lecciones_app_base
+DOC_VERSION: 00001
+TIPO: memoria-operativa
+ESTADO: activo
+GESTIÓN: Registro de errores detectados y aprendizaje consolidado para no repetirlos.
+<<END SECTION>>
+
+<<SECTION: OBJETIVO>>
+SECTION_VERSION: 00001
+
+OBJETIVO
+
+Transformar errores reales en aprendizaje reutilizable.
+
+Registrar:
+
+hallazgo
+causa
+corrección
+lección aplicable
+
+<<END SECTION>>
+
+<<SECTION: LECCIONES VIGENTES>>
+SECTION_VERSION: 00001
+
+LECCIONES VIGENTES
+
+Ability sobre módulo inexistente puede fallar por inexistencia contractual y no por falta de permiso.
+
+Dataset interno reusable y autorización efectiva son problemas distintos.
+
+Una falla visual reusable puede deberse a hostPack, slot, type, shape o view desalineados y no a permisos.
+
+Sin tenant activo en Tinker pueden aparecer falsos negativos.
+
+No revisar solo controller principal: también tabs, modales, partials y superficies secundarias.
+
+Un host visual no se convierte en dueño funcional de la capacidad invitada.
+
+No toda necesidad repetida exige módulo nuevo.
+
+Cambiar estados operativos requiere alinear Security, Gate, UI y ciclo de vida real.
+
+Si una decisión importante no queda documentada, reaparece como discusión futura.
+<<END SECTION>>

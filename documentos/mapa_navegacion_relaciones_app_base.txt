@@ -173,7 +173,7 @@ Su función es dar acceso estructural al ecosistema operativo vigente.
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -189,6 +189,8 @@ products consume lectura contextual de inventory mediante saldos e historial
 
 documents puede contextualizar trazabilidad de inventory cuando exista vínculo documental
 
+documents puede actuar como host visual de acciones oficiales de inventory sobre document_items
+
 appointments, tasks, assets y parties mantienen sus relaciones propias dentro del ecosistema general
 
 Regla de frontera:
@@ -203,10 +205,14 @@ la nueva capa inventory_operations no modifica por sí misma los recorridos prin
 
 Su función es enriquecer el contexto interno y la trazabilidad del frente inventory.
 
+Aclaración vigente para documents:
+
+cuando documents hospeda operaciones de inventory por línea documental, la navegación sigue perteneciendo al flujo documental anfitrión salvo que el usuario decida abrir una surface canónica de inventory.
+
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -233,6 +239,12 @@ inventory puede operar por línea dentro del host sin perder identidad modular.
 
 documents y attachments pueden consumirse como capacidades invitadas.
 
+Caso vigente en documents.show:
+
+inventory puede operar por línea documental dentro del host sin perder identidad modular.
+
+Las acciones por fila pertenecen a inventory y documents conserva la tabla documental como superficie anfitriona.
+
 Regla adicional para estados del host:
 
 si el host entra en estado readonly o terminal, las relaciones embebidas no deben reabrir operabilidad incompatible con ese estado.
@@ -250,7 +262,7 @@ El host visual no debe asumir ownership funcional sobre la agrupación operativa
 <<END SECTION>>
 
 <<SECTION: FLUJOS DERIVADOS RELEVANTES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 FLUJOS DERIVADOS RELEVANTES
 
@@ -265,6 +277,9 @@ order
 
 order_items
 → document_items por copia funcional cuando corresponda
+
+document_item
+→ inventory movement por ejecución documental cuando corresponda
 
 signup_request aprobado
 → invitation owner_signup
@@ -288,6 +303,9 @@ Aclaración relacional consolidada:
 en task → order el vínculo estructural persistido se resuelve desde orders.task_id
 
 en appointment → order el vínculo operativo real se resuelve desde appointments.order_id y no requiere orders.appointment_id
+
+en document_item → inventory movement la línea documental actúa como origen trazable sin transferir ownership funcional desde documents hacia inventory
+
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN GENERAL DE MÓDULOS>>
@@ -409,7 +427,7 @@ appointments.show expresa una estructura host más avanzada que otros shows aún
 <<END SECTION>>
 
 <<SECTION: INVENTORY>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 INVENTORY
 
@@ -441,6 +459,14 @@ la navegación no debe romper continuidad del host salvo intención explícita d
 las acciones por línea deben permanecer en contexto local cuando sea posible
 
 la apertura de historial filtrado puede usar surface oficial de inventory conservando trail de retorno
+
+Cuando inventory opere dentro de documents.show:
+
+la navegación no debe romper continuidad del host documental salvo intención explícita del usuario
+
+las acciones por línea documental deben permanecer en contexto local cuando sea posible
+
+la apertura de historial filtrado por document_item puede usar surface oficial de inventory conservando trail de retorno
 
 Regla adicional por estado superior:
 

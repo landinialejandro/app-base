@@ -1,0 +1,88 @@
+<<SECTION: METADATOS>>
+SECTION_VERSION: 00001
+
+TÍTULO: Patrones validados del proyecto
+DOC_SLUG: patrones_validados_app_base
+DOC_VERSION: 00001
+TIPO: memoria-operativa
+ESTADO: activo
+GESTIÓN: Catálogo de patrones técnicos y funcionales ya aprobados en uso real.
+<<END SECTION>>
+
+<<SECTION: OBJETIVO>>
+SECTION_VERSION: 00001
+
+OBJETIVO
+
+Registrar soluciones repetibles ya validadas para acelerar nuevas implementaciones y mantener coherencia.
+
+Incluye:
+
+patrones UI
+patrones navegación
+patrones seguridad
+patrones integración
+patrones runtime
+
+<<END SECTION>>
+
+<<SECTION: PATRONES VIGENTES>>
+SECTION_VERSION: 00001
+
+PATRONES VIGENTES
+
+SHOW PAGE HOST
+
+Zonas explícitas:
+
+header_actions
+summary_items
+detail_items
+tabs
+tab_panels
+
+NAVEGACIÓN CONTEXTUAL
+
+trail = contexto externo
+return_tab = contexto interno
+
+SEGURIDAD
+
+Security central
+Policy/Gate alineadas
+UI refleja resultado autorizado
+
+INTEGRACIÓN MODULAR
+
+consumer solicita
+módulo oferente resuelve
+componente oficial representa
+host monta
+
+TINKER REAL
+
+usuario real
+tenant real
+bind tenant
+Security real
+dataset real
+
+UX OPERATIVA
+
+acciones donde nace la intención
+modales para micro-operaciones
+mínima fricción
+sin pasos innecesarios
+
+INDEX OPERATIVO
+
+tabla principal dominante
+métricas livianas secundarias
+filtros claros
+acciones visibles
+
+MIGRACIÓN REUSABLE
+
+cerrar capacidad completa en nueva familia
+evitar convivencia eterna legacy + nueva
+<<END SECTION>>

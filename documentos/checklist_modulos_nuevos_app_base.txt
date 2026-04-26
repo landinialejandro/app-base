@@ -110,7 +110,7 @@ Si estas respuestas no están claras, no debe avanzarse a implementación.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 BLOQUE 1 — CONTRATO MODULAR
 
@@ -264,6 +264,18 @@ Validación adicional para row actions:
 
 si la integración se consumirá dentro de tablas nativas de otro módulo, debe evaluarse si la capacidad corresponde a una row action oficial del módulo oferente y no a un botón hardcodeado del host consumidor.
 
+Validación adicional para líneas documentales operables:
+
+si un módulo documental posee líneas que pueden disparar operaciones de inventory, debe verificarse que esa capacidad se lea como consumo de una oferta oficial del módulo inventory.
+
+Controlar:
+
+que la línea documental continúe perteneciendo al módulo documents
+que inventory conserve la semántica de stock, ejecución, reversión y trazabilidad
+que el host documental no reconstruya localmente reglas de operación material
+que el contrato contemple origen y línea de origen trazables
+que la lectura de ejecutado y pendiente derive de movimientos reales
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
@@ -338,7 +350,7 @@ si owner dispone de una surface real para entender y administrar ese comportamie
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -444,6 +456,18 @@ ausencia de desvío final a recursos delegados
 Validación adicional para tablas anfitrionas:
 
 si el host expone acciones de otro módulo dentro de filas propias, debe auditarse que esas acciones provengan de surfaces oficiales del oferente y no de reconstrucciones locales del consumidor.
+
+Validación adicional para integración inventory sobre documents:
+
+si documents expone operaciones de inventory sobre document_items, debe auditarse que:
+
+la acción por fila provenga de inventory
+documents no calcule localmente reglas de stock
+la operación registre origen documental y línea documental
+la línea conserve trazabilidad hacia movimientos reales
+el ejecutado y pendiente se calculen desde movimientos persistidos
+las restricciones de edición o eliminación se apliquen sin convertir document_items en módulo autónomo
+la futura reversión conserve la misma frontera contractual
 
 <<END SECTION>>
 
@@ -614,7 +638,7 @@ Este bloque resume mínimos técnicos, pero no reemplaza el checklist completo.
 <<END SECTION>>
 
 <<SECTION: CRITERIO FINAL DE APROBACIÓN>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 CRITERIO FINAL DE APROBACIÓN
 
@@ -660,11 +684,9 @@ si la acción nace en una tab o micro-superficie del host, el retorno vuelve al 
 
 si la integración publica row actions, el host dejó de hardcodear botones equivalentes
 
-si la vista filtrada secundaria reutiliza pantalla canónica del oferente, no se abrió una vista paralela innecesaria
+si la integración opera sobre líneas documentales, la lectura de estado, ejecutado y pendiente deriva de movimientos reales y no de columnas duplicadas o cálculos locales del host
 
-si el oferente ya publica una surface madura, el consumidor dejó de envolverla con jerarquía visual redundante
-
-Si la respuesta es no o dudosa, el módulo debe seguir en revisión.
+si la integración con inventory quedó implementada para ejecución, debe quedar identificado si la reversión correspondiente ya fue probada o si permanece como pendiente real
 
 <<END SECTION>>
 

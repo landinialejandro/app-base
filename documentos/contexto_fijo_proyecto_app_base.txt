@@ -148,7 +148,7 @@ la pertenencia del usuario y el tenant activo forman parte de la lectura correct
 <<END SECTION>>
 
 <<SECTION: MODELO DE AISLAMIENTO OPERATIVO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 MODELO DE AISLAMIENTO OPERATIVO
 
@@ -166,6 +166,8 @@ las entidades globales del sistema no deben leerse como entidades del negocio
 el contexto tenant no es opcional ni decorativo dentro de la operación interna
 
 El aislamiento alcanza también a capas internas de soporte operativo que sostienen trazabilidad, agrupación contextual o ejecución de acciones dentro de módulos funcionales.
+
+Este criterio incluye movimientos, operaciones internas y líneas operativas cuando participan como anclajes de ejecución o trazabilidad dentro del tenant.
 
 Este documento reconoce el aislamiento como principio estructural general.
 
@@ -223,75 +225,51 @@ Es una pieza estructural del funcionamiento del sistema.
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 CAPAS FUNCIONALES DEL SISTEMA
 
 La arquitectura del sistema debe leerse por capas funcionales.
 
-Esta lectura no reemplaza el modelado de entidades ni los contratos específicos de otros documentos.
-
-Ordena el sistema.
+Esta lectura ordena el ecosistema y no reemplaza contratos específicos de otros documentos.
 
 CAPA GLOBAL
 
-Corresponde al gobierno general de la plataforma fuera del flujo operativo tenant.
-
-Incluye la administración general del sistema y los procesos previos al ingreso operativo por empresa.
+Gobierno general de la plataforma fuera del flujo operativo tenant.
 
 CAPA TENANT
 
-Corresponde al contexto operativo de una empresa activa.
+Contexto operativo de la empresa activa.
 
-Incluye el tenant vigente y el marco general dentro del cual opera esa empresa.
-
-Incluye también las piezas reusables que resuelven contexto interno de la empresa cuando esa necesidad no constituye módulo funcional autónomo del negocio.
+Incluye tenant vigente y piezas reusables internas que no justifican módulo funcional autónomo.
 
 CAPA DE GOBIERNO INTERNO DEL TENANT
 
-Corresponde a la organización interna de acceso y funcionamiento dentro de la empresa activa.
+Organiza pertenencia, acceso y actores internos de la empresa.
 
-Incluye la pertenencia por membership y la organización interna de actores operativos.
+users conserva identidad global.
 
-La lectura estable de usuarios internos del tenant pertenece a esta capa y no debe proyectarse como módulo funcional users dentro del ecosistema actual.
-
-users sigue representando identidad global.
-
-memberships sigue resolviendo pertenencia operativa real por empresa.
+memberships resuelve pertenencia operativa real.
 
 CAPA TRANSVERSAL
 
-Corresponde a piezas que arbitran o sostienen funcionamiento compartido entre módulos.
-
-Aquí viven responsabilidades comunes del sistema que no deben confundirse con un módulo aislado del negocio.
+Responsabilidades compartidas entre módulos.
 
 BASE DEL DOMINIO
 
-Corresponde a piezas conceptuales de uso amplio dentro del ecosistema del negocio.
-
-No agotan por sí mismas toda la operación, pero sostienen múltiples relaciones relevantes.
+Piezas conceptuales amplias que sostienen múltiples relaciones del negocio.
 
 MÓDULOS FUNCIONALES
 
-Corresponden a las capacidades operativas concretas del tenant.
+Capacidades operativas concretas visibles dentro del tenant.
 
-Expresan trabajo, agenda, activos, documentos, órdenes y demás frentes del negocio.
+Reglas:
 
-Regla general:
+esta lectura debe prevalecer al pensar arquitectura y evolución general.
 
-esta lectura por capas debe prevalecer al pensar arquitectura, documentación y evolución general del proyecto.
+tenant pertenece al plano contextual del sistema y no debe confundirse con módulo funcional.
 
-El modelo de tres planos que organiza las integraciones entre módulos (núcleo interno / puerta de enlace oficial / consumo externo) se define en la sección ARQUITECTURA MODULAR DEL ECOSISTEMA de este mismo documento.
-
-Regla de frontera:
-
-tenant pertenece a la capa tenant y al plano interno de contexto del sistema.
-
-No debe relocalizarse conceptualmente dentro de base del dominio ni de módulos funcionales por aparecer como dato contextual en relaciones del negocio.
-
-Regla adicional consolidada:
-
-cuando la necesidad sea resolver usuarios internos activos del tenant, la salida arquitectónica correcta pertenece al plano tenant y no exige abrir por inercia un módulo funcional users.
+Las necesidades de colaboradores internos activos deben resolverse primero en la capa tenant antes de crear módulos nuevos por inercia.
 
 <<END SECTION>>
 
@@ -357,7 +335,7 @@ Su función es sostener la plataforma y su frontera de ingreso.
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00014
 
 ENTIDADES DEL NEGOCIO
 
@@ -380,43 +358,31 @@ inventory_movements
 inventory_operations
 attachments
 
-Estas entidades deben leerse como parte del ecosistema operativo de empresa y no como infraestructura global del sistema.
+Estas entidades pertenecen al ecosistema operativo de empresa y no a la infraestructura global del sistema.
 
 No todas cumplen el mismo rol conceptual.
 
-Algunas funcionan como base del dominio, otras como módulos autónomos, agrupadores, derivadas, transversales o capas internas de soporte operativo.
+Pueden actuar como base del dominio, módulos autónomos, entidades hijas, capacidades transversales o soporte operativo interno.
 
-Regla adicional consolidada sobre usuarios internos:
+Reglas de lectura relevantes:
 
-la operación interna del tenant no convierte a users en entidad del negocio.
+users no pasa a ser entidad del negocio por participar en la operación interna de una empresa.
 
-users sigue siendo identidad global del sistema.
+users mantiene identidad global del sistema.
 
-La pertenencia operativa real a la empresa se resuelve por memberships.
+La pertenencia operativa real se resuelve mediante memberships.
 
-Cuando el ecosistema necesite un dataset reusable de colaboradores internos activos del tenant, esa necesidad debe leerse como resolución del plano tenant y no como incorporación de una nueva entidad del negocio ni como apertura de un módulo users.
+Si el ecosistema requiere un dataset reusable de colaboradores internos activos, esa necesidad pertenece al plano tenant y no implica crear una nueva entidad del negocio.
 
-Aclaración adicional para inventory:
+En inventory:
 
-inventory_movements expresa la base transaccional efectiva del frente inventory.
+inventory_movements expresa el impacto unitario real sobre stock.
 
-inventory_operations incorpora una capa persistente de agrupación operativa contextual dentro del mismo frente.
+inventory_operations agrupa contexto operativo cuando una misma acción requiere uno o múltiples movimientos.
 
-inventory_operations no reemplaza inventory_movements.
+Ambas piezas pertenecen al mismo frente funcional y no se sustituyen entre sí.
 
-Lo organiza cuando una misma acción operativa temporal requiere reunir uno o múltiples movimientos unitarios de stock.
-
-Aclaración adicional sobre order_items:
-
-order_items sigue siendo entidad hija del negocio dentro de orders.
-
-Cuando participa del frente inventory mediante ejecución por línea, puede actuar además como anclaje operativo real dentro del ecosistema.
-
-Esa lectura no lo convierte en módulo autónomo ni en dueño de la semántica material de inventory.
-
-Aclaración adicional sobre documents:
-
-documents mantiene su entidad propia dentro del negocio aunque parte de su lectura operativa pueda consumirse embebidamente desde hosts del ecosistema.
+order_items y document_items conservan naturaleza de entidades hijas de sus módulos padre aunque puedan actuar como anclaje de trazabilidad o ejecución dentro de otros flujos.
 
 <<END SECTION>>
 
@@ -523,7 +489,7 @@ El detalle contractual y operativo de cada módulo se resuelve en la sección LE
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
@@ -555,6 +521,7 @@ acciones compactas
 embebidos fuertes
 payloads arbitrados
 surfaces oficiales de lectura o ejecución
+acciones por fila cuando el módulo oferente interviene recursos mostrados por un host externo
 
 Cuando una capacidad reusable requiera arbitraje operativo real, la puerta de enlace modular oficial no se agota en una vista aislada.
 
@@ -595,6 +562,18 @@ el ecosistema empieza a consolidar una familia más nítida de linked compactos 
 Esa evolución no debe resolverse como mezcla permanente entre generaciones viejas y nuevas.
 
 Si un módulo migra a una nueva familia *Linked, la convergencia correcta es cerrar esa capacidad en la nueva generación y no sostener backward patching estable hacia *LinkedAction como solución final.
+
+Aclaración adicional sobre acciones operativas por línea:
+
+cuando un host muestra líneas propias pero la operación pertenece a otro módulo, la arquitectura correcta es que el módulo oferente publique la capacidad oficial correspondiente.
+
+El host aporta contexto y superficie visual.
+
+El módulo oferente conserva reglas, validaciones, semántica operativa y trazabilidad.
+
+Caso vigente:
+
+documents puede alojar acciones de inventory por línea documental sin absorber lógica de stock.
 
 CONSUMO EXTERNO
 
@@ -650,7 +629,7 @@ Por lo tanto, esa necesidad no debe reinterpretarse como expansión de parties n
 <<END SECTION>>
 
 <<SECTION: MÓDULOS FUNCIONALES ACTUALES>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00017
 
 MÓDULOS FUNCIONALES ACTUALES
 
@@ -668,239 +647,140 @@ orders
 documents
 inventory
 
-Estos módulos constituyen la lectura funcional principal del sistema dentro de la empresa activa.
+Estos módulos expresan la lectura funcional principal del sistema dentro de la empresa activa.
 
-Regla adicional consolidada:
+Reglas relevantes:
 
-users no forma parte de este conjunto como módulo funcional autónomo del ecosistema tenant actual.
+users no integra este conjunto como módulo funcional autónomo.
 
-users sigue perteneciendo al plano de identidad global del sistema.
+Su lugar pertenece al plano de identidad global.
 
-La lectura operativa interna de colaboradores activos de una empresa se resuelve por memberships y no por un módulo users del negocio.
+La operación interna de colaboradores activos se resuelve por memberships y piezas del plano tenant.
 
-Aclaraciones estructurales relevantes:
+Aclaraciones estructurales:
 
-appointments: su superficie principal es appointments.calendar. El index existe como superficie secundaria accesible pero no como base promovida del módulo.
+appointments tiene como superficie principal appointments.calendar.
 
-inventory: ya debe leerse como frente funcional del sistema con surfaces propias de saldo, historial y operación. Su consolidación modular sigue en evolución y contempla capas internas propias para agrupar contexto operativo sin exigir nuevas pantallas principales.
+inventory debe leerse como frente funcional de saldo, historial y operación, con capas internas propias cuando el flujo lo requiera.
 
-orders: debe leerse como módulo operativo fuerte con estados que afectan su condición operativa general.
+orders es módulo operativo fuerte con estados que afectan operabilidad general.
 
-Aclaración adicional sobre madurez host surface-driven:
+documents puede hospedar capacidades publicadas por otros módulos sin absorber su lógica.
 
-dentro del ecosistema actual, no todos los show pages se encuentran en el mismo nivel de evolución contractual.
-
-appointments.show expresa una lectura anfitriona más avanzada y debe tomarse como referencia positiva de evolución para otros hosts cuando corresponda.
-
-Aclaración adicional sobre publicación modular:
-
-la existencia de módulos funcionales no se agota en su navegación estructural.
-
-Cuando una relación compacta madura como capacidad reusable oficial, debe leerse como parte de la puerta de enlace publicada por el propio módulo oferente.
-
-El detalle del contrato efectivo pertenece a documentos especializados del proyecto.
+No todos los hosts show pages poseen igual madurez estructural dentro del ecosistema.
 
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES
 
-La lectura conceptual de los módulos actuales permite comprender el rol arquitectónico principal de cada pieza dentro del ecosistema del proyecto.
-
-No reemplaza contratos funcionales, reglas de seguridad ni decisiones de implementación específicas.
-
-La plataforma debe leerse como una base priorizada para microempresas y PyMEs que necesitan ordenar su operación sin incorporar fricción innecesaria ni depender de una cultura tecnológica avanzada para poder trabajar.
+La lectura conceptual permite comprender el rol principal de cada módulo dentro del ecosistema.
 
 PARTIES
 
-Módulo base del dominio.
-
-Representa actores externos relacionados con la operación del tenant y funciona como referencia amplia para múltiples relaciones del ecosistema.
-
-Publica oferta reusable oficial para el ecosistema, cuyo caso inmediato es linked-party-action.
+Módulo base del dominio y referencia amplia para múltiples relaciones.
 
 PROJECTS
 
-Módulo agrupador.
-
-Su función principal es ordenar y brindar lectura consolidada sobre trabajo relacionado, especialmente alrededor de tasks, sin absorber su identidad.
+Módulo agrupador orientado a ordenar trabajo relacionado.
 
 TASKS
 
-Módulo autónomo.
-
-Representa trabajo operativo interno y puede participar en seguimiento, coordinación y derivación hacia otros módulos sin perder identidad propia.
+Módulo autónomo de trabajo operativo interno.
 
 APPOINTMENTS
 
-Módulo autónomo de agenda operativa.
-
-Su superficie principal promovida es calendar y su show expresa además una madurez estructural relevante dentro del frente surface-driven del ecosistema.
-
-Debe leerse también como host capaz de recibir relaciones compactas publicadas por otros módulos dentro de una estructura show más avanzada.
+Módulo autónomo de agenda operativa con calendar como superficie principal.
 
 PRODUCTS
 
 Módulo autónomo de catálogo maestro.
 
-Conserva la identidad del artículo compartido dentro del tenant aun cuando inventory evolucione como frente operativo separado.
-
 ASSETS
 
-Módulo autónomo.
-
-Representa activos, equipos o unidades operativas con identidad propia y capacidad reusable oficial de integración hacia el ecosistema.
+Módulo autónomo de activos o unidades operativas.
 
 ORDERS
 
 Módulo autónomo de núcleo operativo fuerte.
 
-Actúa como hub visual relevante dentro del ecosistema y puede consumir capacidades oficiales de otros módulos sin absorber su lógica operativa.
+Puede actuar como hub visual de capacidades ajenas sin absorber su lógica.
 
-Su centralidad operativa no lo convierte automáticamente en patrón arquitectónico rector para todos los hosts del ecosistema.
-
-Sus estados operativos forman parte de su lectura conceptual y condicionan la operación real del módulo.
-
-Los order_items pueden poseer reglas propias de línea, pero permanecen subordinados al estado superior de la orden padre.
+Sus estados condicionan la operabilidad real del módulo y subordinan a sus líneas hijas.
 
 DOCUMENTS
 
 Módulo derivado respecto de orders.
 
-Formaliza parte de la operación documental sin perder entidad propia y puede publicar surfaces embebidas oficiales para consumo del ecosistema.
+Formaliza operación documental y puede consumir o publicar capacidades oficiales dentro del ecosistema.
 
 INVENTORY
 
 Frente operativo del stock y la trazabilidad material.
 
-Evoluciona hacia identidad modular propia, separando con mayor claridad:
+Distingue:
 
-catálogo maestro
-operación logística contextual
-movimientos unitarios/atómicos de stock
+catálogo maestro en products
+contexto operativo agrupado
+movimientos unitarios de stock
 consumo contextual desde otros módulos
 
-Inventory ya no debe leerse solo desde movimientos sueltos.
+inventory_operations agrupa acciones operativas.
 
-La lectura vigente distingue:
+inventory_movements conserva el impacto efectivo sobre stock.
 
-operación logística contextual / agrupador operativo temporal
-movimientos unitarios/atómicos de stock
+Cuando inventory opera dentro de orders o documents, el host conserva su superficie y inventory conserva la semántica material.
 
-inventory_operations representa una agrupación operativa contextual, resuelta automáticamente por Inventory, que puede reunir uno o múltiples inventory_movements dentro de una misma acción operativa temporal, sin reemplazar la trazabilidad atómica de cada movimiento.
+TENANT
 
-inventory_movements conserva la responsabilidad de expresar impacto efectivo de stock.
-
-Cuando inventory se integra con orders, la ejecución neta depende del tipo de orden.
-
-sale y service operan como salida.
-
-purchase opera como ingreso.
-
-Esa regla conceptual impide auditar inventory + orders con una única fórmula universal de signo.
-
-Las líneas no inventariables dentro de órdenes no forman parte del circuito de stock aunque existan dentro del flujo operativo de orders.
-
-ACLARACIÓN ESTRUCTURAL SOBRE TENANT
-
-tenant no forma parte del conjunto de relaciones superficiales modulares del ecosistema funcional.
-
-Su rol pertenece al contexto operativo interno, multi-tenancy y seguridad.
-
-Por lo tanto, no debe confundirse con una relación reusable publicada por módulos del negocio ni con una surface contractual consumible entre módulos funcionales.
+Forma parte del contexto operativo interno y no de las relaciones modulares superficiales del negocio.
 
 <<END SECTION>>
 
 
 <<SECTION: RELACIONES MACRO DEL ECOSISTEMA>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 RELACIONES MACRO DEL ECOSISTEMA
 
-Las siguientes relaciones expresan la lectura conceptual prioritaria del ecosistema actual:
+Las siguientes relaciones expresan la lectura conceptual prioritaria del ecosistema:
 
-projects agrupa tasks sin absorber su autonomía
-tasks puede originar operaciones relacionadas con orders
-appointments puede originar operaciones relacionadas con orders
-assets aporta contexto operativo a múltiples frentes
+projects agrupa tasks
+tasks puede originar operación relacionada con orders
+appointments puede originar operación relacionada con orders
+assets aporta contexto transversal
 orders puede derivar documents
-orders contiene detalle operativo mediante order_items
-products alimenta ítems operativos y documentales
-inventory se apoya en una base transaccional real dentro del dominio vigente
+orders contiene order_items
+products alimenta líneas operativas y documentales
+inventory sostiene stock y trazabilidad material
 parties se relaciona transversalmente con múltiples módulos
 attachments puede integrarse sobre múltiples recursos
 
-Relaciones estructuralmente especialmente relevantes dentro del estado actual del proyecto:
+Relaciones especialmente relevantes:
 
-projects y tasks como agrupador y unidad operativa
-tasks y orders como continuidad posible entre trabajo interno y operación
-appointments y orders como continuidad posible entre agenda y operación
-assets como contexto transversal para operaciones, agenda y documentos
-parties como base relacional transversal del dominio
-products como base de catálogo operativo
-inventory como frente operativo apoyado en operación logística contextual y base transaccional propia dentro del dominio
-orders, order_items e inventory como frente relacional de ejecución operativa por línea dentro del ecosistema actual
+parties como base relacional amplia
+products como catálogo maestro
+orders como núcleo operativo
+orders + líneas + inventory como frente de ejecución
+documents como prolongación documental
+inventory como frente operativo con agrupación contextual y movimientos unitarios
 
-Aclaración adicional consolidada:
+Reglas:
 
-appointments ya no debe leerse solo como módulo que deriva hacia orders.
+inventory_operations agrupa contexto operativo.
 
-También publica una oferta reusable oficial para el ecosistema.
+inventory_movements conserva trazabilidad unitaria.
 
-Esa oferta se consume de forma embebida desde relaciones fuertes y de forma compacta desde relaciones puntuales.
+order_items y document_items mantienen pertenencia estructural a sus módulos padre aunque participen en flujos externos.
 
-Aclaración adicional consolidada para orders:
-
-orders no solo ocupa una posición central por su operación propia.
-
-También puede concentrar el acople extra-módulo en una puerta contractual propia cuando una integración externa real lo requiera.
-
-Esa lectura no convierte a orders en dueño de la lógica externa consumida.
-
-Confirma un punto oficial de enlace del módulo dentro del ecosistema y preserva una frontera más limpia entre núcleo, integración y consumo externo.
-
-Aclaración adicional consolidada para order_items:
-
-order_items mantiene su pertenencia estructural a orders.
-
-Sin embargo, dentro del estado actual del ecosistema ya debe leerse además como anclaje operativo explícito para ejecución material por línea cuando inventory participa del flujo.
-
-Esa relevancia transversal no lo convierte en módulo autónomo.
-
-Confirma una relación macro más precisa entre orden, detalle de línea y frente operativo material.
-
-Aclaración adicional consolidada para inventory:
-
-la relación inventory + orders debe leerse según el tipo de orden.
-
-sale y service implican salida operativa de stock.
-
-purchase implica ingreso operativo de stock.
-
-Por lo tanto, la lectura neta de ejecución no debe reducirse a una única fórmula universal desligada del tipo de orden.
-
-La trazabilidad de inventory queda compuesta por:
-
-origen funcional o documental
-operación logística contextual
-movimiento unitario/atómico de stock
-
-inventory_operations no reemplaza inventory_movements.
-
-inventory_operations agrupa contexto operativo temporal.
-
-inventory_movements conserva la trazabilidad atómica de cada impacto de stock.
-
-Regla:
-
-las relaciones macro aquí descritas expresan lectura arquitectónica del ecosistema y no deben confundirse con detalle de navegación, seguridad o implementación puntual.
+Estas relaciones describen arquitectura general y no detalle de navegación, seguridad o implementación.
 
 <<END SECTION>>
 
 <<SECTION: MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO
 
@@ -908,62 +788,32 @@ El crecimiento del sistema debe apoyarse en módulos con identidad clara y respo
 
 Toda evolución nueva debe tender a:
 
-respetar el modelo multi-tenant
-preservar la distinción entre sistema y negocio
-mantener identidad conceptual de cada módulo
-evitar duplicaciones estructurales
-apoyarse en relaciones reales del ecosistema
+respetar multi-tenancy
+preservar distinción entre sistema y negocio
+mantener identidad conceptual
+evitar duplicaciones
+apoyarse en relaciones reales
 consumir capacidades existentes antes de crear variantes paralelas
-mantener coherencia entre arquitectura y documentación
+mantener coherencia documental
 
-Regla general:
+Reglas doctrinales:
 
-una necesidad nueva no debe reabrir arbitrariamente el núcleo conceptual de otro módulo salvo que cambie realmente su posición dentro del sistema.
+una necesidad nueva no debe reabrir arbitrariamente el núcleo de otro módulo.
 
-Regla adicional consolidada para usuarios internos del tenant:
+Si varios frentes requieren colaboradores internos activos, primero debe evaluarse una solución reusable del plano tenant.
 
-si varios frentes necesitan resolver colaboradores internos activos de la empresa, primero debe evaluarse si la necesidad pertenece al plano tenant y puede resolverse mediante una pieza reusable interna.
+Las capacidades compactas maduras deben converger hacia la publicación oficial del módulo oferente.
 
-No debe abrirse por inercia un módulo users dentro del ecosistema funcional si la necesidad real es directorio interno reusable y pertenencia activa por membership.
+Si un módulo necesita acople externo real, conviene concentrarlo en una puerta contractual explícita antes de crear abstracciones mayores.
 
-Regla adicional consolidada para relaciones compactas:
+Si una entidad hija gana relevancia transversal, primero debe fortalecerse como hija del módulo padre antes de promoverla a módulo autónomo.
 
-cuando una capacidad reusable compacta ya maduró como publicación oficial del módulo oferente, el crecimiento sano del sistema debe converger hacia esa publicación propia y no hacia parches backward permanentes entre generaciones viejas y nuevas.
-
-La migración puede cerrarse módulo por módulo.
-
-Lo que no debe consolidarse como estado estable es la mezcla doctrinal entre una nueva familia *Linked y la generación previa *LinkedAction para la misma capacidad ya decidida.
-
-Regla adicional consolidada para endurecimiento de frontera modular:
-
-cuando un módulo necesite acoplar lógica externa real pero todavía no corresponda abrir una abstracción mayor, el crecimiento sano debe concentrar ese contacto en una puerta contractual propia y explícita del módulo.
-
-Esa puerta debe actuar como estación oficial de acople hacia el ecosistema y no como expansión difusa del núcleo en controllers, servicios internos directos o superficies consumidoras.
-
-La abstracción adicional solo debe evaluarse después, si el crecimiento real del sistema lo exige.
-
-Caso vigente relevante:
-
-orders puede concentrar allí su contacto extra-módulo sin contaminar el núcleo directo de order y order_item.
-
-Regla adicional consolidada para recursos hijos con trazabilidad operativa:
-
-si una entidad hija delegada gana peso transversal por su relación con un frente operativo externo, el crecimiento correcto no es promoverla por inercia a módulo autónomo.
-
-Primero debe endurecerse su contrato como hijo del módulo padre, preservando pertenencia estructural y explicitando su nueva relevancia dentro del ecosistema.
-
-Caso vigente relevante:
-
-order_items respecto de inventory.
-
-Regla adicional consolidada para frentes operativos transaccionales:
-
-cuando un frente operativo necesite representar acciones del usuario y consecuencias unitarias persistidas, puede evolucionar hacia una estructura de dos niveles:
+Los frentes transaccionales pueden evolucionar hacia dos niveles:
 
 agrupador operativo contextual
-registros unitarios/atómicos
+registros unitarios persistidos
 
-Esta evolución permite agrupar una o múltiples consecuencias técnicas sin alterar necesariamente la UX existente.
+cuando esa estructura mejore trazabilidad y orden interno.
 
 <<END SECTION>>
 

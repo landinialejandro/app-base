@@ -102,6 +102,22 @@ Usar exclusivamente los documentos vigentes del proyecto:
 - guia_tinker_proyecto_app_base
 - plantilla_inicio_chats_proyecto_app_base
 
+DOCUMENTOS DE MEMORIA TÉCNICA
+
+Usar también, si existen como documentos vigentes del proyecto:
+
+- decisiones_vivas_app_base
+- patrones_validados_app_base
+- errores_y_lecciones_app_base
+
+Estos documentos no reemplazan la doctrina.
+
+Solo deben recibir información cuando el cierre detecte:
+
+- decisiones que conviene recordar para no rediscutir
+- patrones ya validados y repetibles
+- errores, hallazgos o aprendizajes que evitan regresiones
+
 REGLAS GENERALES
 
 - no inventar contenido
@@ -134,6 +150,12 @@ Si corresponde documentarlo, debe volcarse en la sección adecuada.
 
 Si no corresponde, no debe incluirse.
 
+Los documentos de memoria técnica no son fuente primaria de doctrina.
+
+Funcionan como capa acumulativa de continuidad operativa.
+
+No deben contradecir documentos rectores ni duplicarlos extensamente.
+
 CRITERIOS DE AUDITORÍA
 
 Para cada cambio detectado:
@@ -148,6 +170,11 @@ Para cada cambio detectado:
 - respetar el estilo del documento original
 - conservar la fuerza doctrinal de los documentos rectores
 - diferenciar estado vigente, pendiente real y línea futura
+- distinguir documentación doctrinal de memoria técnica viva
+- no volcar a memoria técnica información que ya esté suficientemente cubierta por documentos rectores
+- no usar memoria técnica para introducir doctrina nueva no validada
+- no usar memoria técnica como backlog
+- si una decisión afecta doctrina y memoria técnica, priorizar primero el documento doctrinal correspondiente y luego registrar una síntesis mínima en memoria técnica solo si aporta valor operativo
 
 REGLAS DE VERSIONADO DE SECCIONES
 
@@ -264,6 +291,7 @@ Luego esperar la instrucción:
 siguiente grupo
 
 No mezclar todos los documentos en una sola respuesta si hay muchas secciones.
+
 Cada grupo debe tratarse como una actualización independiente.
 
 Antes de generar un nuevo grupo, volver a verificar mentalmente:
@@ -285,10 +313,6 @@ CAMBIOS DETECTADOS:
 [pegar aquí la salida del cierre de sesión de otro chat]
 
 
-
-
-
-
 ----------------------------------
 
 
@@ -302,7 +326,25 @@ dame el siguiente grupo, volver a verificar mentalmente:
 
 No arrastrar nombres creados en grupos anteriores.
 No variar nombres por estilo, síntesis o interpretación.
-
+-------------------------------------
+ok dame las secciones afectadas, agrupalas por documento y 
+demaelos grupo de a uno, sin dejar de varificar 
+- DOC_SLUG exacto
+- nombre exacto de cada sección
+- SECTION_VERSION correspondiente
+- que la sección exista realmente
+- que no se esté creando un título conceptual nuevo
+- No arrastrar nombres creados en grupos anteriores.
+-No variar nombres por estilo, síntesis o interpretación.
+------------------------------
+ok siguiente grupo no dejes de verificar los slug
 -----------------------------
 
-te paso los dos documentos doctrinales del proyecto, el de seguridad acceso del pryecto y contexto fijo, que recien los actualizamos te pido que los audites, que sigan marcando la doctrina, que no sean reduntate, que tenga todoa la informacion necesaria y justa pero que no haya redundancia o sobre explicaciones. ambos documentos son rectores y pilares para avanzar mas rapido sin sobre explicaciones
+te paso los dos documentos doctrinales del proyecto, 
+el seguridad_acceso_proyecto_app_base y contexto_fijo_proyecto_app_base, 
+que recien los actualizamos te pido que los audites, 
+que sigan marcando la doctrina, que no tengan información reduntates, 
+que tenga toda la información necesaria y justa
+pero que no haya redundancia o sobre explicaciones. 
+ambos documentos son rectores y pilares para avanzar mas rapido 
+sin sobre explicaciones

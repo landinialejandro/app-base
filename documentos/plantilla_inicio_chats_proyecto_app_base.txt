@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -44,11 +44,12 @@ REGLAS BASE
 * Ante flujos embebidos o acciones por fila, distinguir siempre si la acción pertenece al host o al módulo proveedor.
 * Si existe trail, verificar además si el caso requiere return_tab como complemento de retorno interno del host.
 * Ante trabajos sobre inventory, distinguir entre inventory_operations como agrupación operativa contextual e inventory_movements como movimientos unitarios de stock.
+* Ante trabajos sobre documents + inventory, distinguir ownership documental del host y ownership operativo de inventory.
 
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS DEL CHAT>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 REGLAS OPERATIVAS DEL CHAT
 
@@ -118,10 +119,18 @@ cuando se trabaje sobre stock, surtido, devolución, recepción, movimientos o a
 
 No debe asumirse que una acción visible equivale siempre a un único movimiento ni que una operación interna de inventory deba transformarse en pantalla, permiso o módulo autónomo.
 
+Regla adicional para documents + inventory:
+
+cuando se trabaje sobre ejecución o reversión documental, no mezclar responsabilidades.
+
+documents define recurso host y líneas documentales.
+
+inventory define operación material, movimientos, límites, recálculo y trazabilidad.
+
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DE ESTE CHAT>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 OBJETIVO DE ESTE CHAT
 
@@ -151,10 +160,14 @@ Caso vigente de referencia:
 
 estación contractual OrdersHooks para concentrar contacto extra-módulo sin sobreabstraer prematuramente.
 
+Caso vigente adicional:
+
+integración documents + inventory como host documental consumiendo capacidades oficiales del módulo inventory sin romper fronteras modulares.
+
 <<END SECTION>>
 
 <<SECTION: ALCANCE>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 ALCANCE
 
@@ -191,6 +204,10 @@ También puede ser necesario revisar:
 Caso vigente:
 
 inventory_operations debe contemplarse en trabajos futuros de inventory, sin confundirlo con nueva navegación principal ni con permiso visible independiente.
+
+Caso vigente adicional:
+
+documents + inventory debe contemplarse como integración modular real, incluyendo ejecución, reversión, estados derivados por línea y consistencia UX entre hosts que compartan patrones operativos.
 
 <<END SECTION>>
 

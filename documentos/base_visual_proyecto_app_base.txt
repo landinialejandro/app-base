@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 COMPONENTES DISPONIBLES
 
@@ -139,6 +139,7 @@ Componentes de interacción contextual vigentes:
 stepper numérico
 acciones por Enter
 micro-superficies operativas en modal
+acciones por fila publicadas por módulos oferentes
 
 Regla adicional consolidada:
 
@@ -154,10 +155,14 @@ Caso vigente:
 
 modal de Surtir línea dentro de orders.show.
 
+Caso vigente adicional:
+
+modal de operación por línea documental dentro de documents.show, consumido como micro-superficie operativa de inventory y no como componente exclusivo de documents.
+
 <<END SECTION>>
 
 <<SECTION: PATRÓN DE INTERACCIÓN MODAL>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 PATRÓN DE INTERACCIÓN MODAL
 
@@ -178,6 +183,28 @@ cuando una mejora funcional pueda resolverse en dominio o servicios sin exigir n
 Caso vigente:
 
 la agrupación interna de inventory mediante operaciones contextuales se resuelve backend-first y no exige nuevos modales obligatorios para el usuario.
+
+Caso vigente adicional:
+
+las operaciones por línea compartidas entre orders y documents deben sostener una experiencia visual homogénea cuando representan la misma intención operativa.
+
+El modal debe actuar como micro-superficie reusable de operación por línea, con payload contextual según host, sin duplicar componentes visuales por módulo cuando la gramática de uso sea equivalente.
+
+Elementos esperados para operaciones por línea:
+
+producto o referencia operativa
+cantidad ejecutada
+cantidad pendiente
+stock actual cuando corresponda
+selector o stepper numérico
+ayuda contextual inline
+confirmación clara desde el header o acción principal del modal
+
+Regla:
+
+la homogeneidad visual no transfiere ownership funcional.
+
+El modal puede ser compartido o reusable, pero la semántica operativa permanece en el módulo oferente correspondiente.
 
 <<END SECTION>>
 
@@ -460,7 +487,7 @@ Estas métricas no reemplazan la tabla principal ni convierten la pantalla en da
 <<END SECTION>>
 
 <<SECTION: PATRÓN VISUAL PARA VISTAS SHOW>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 PATRÓN VISUAL PARA VISTAS SHOW
 
@@ -510,6 +537,12 @@ Caso vigente:
 
 orders.show consumiendo inventory como frente operativo por línea.
 
+Caso vigente adicional:
+
+documents.show consumiendo inventory como frente operativo por línea documental.
+
+En este caso, documents conserva su jerarquía visual como cabecera y líneas documentales, mientras inventory aporta acciones y lectura operativa sin convertirse en núcleo visual del documento.
+
 Aclaración adicional para detalle de movimientos:
 
 cuando inventory.movements.show exponga una operación asociada mediante inventory_operations, esa información debe leerse como contexto adicional del movimiento y no como nueva pantalla principal obligatoria.
@@ -551,7 +584,7 @@ la unidad visual completa debe desaparecer y no solo el contenido interno
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW
 
@@ -582,6 +615,12 @@ documents y attachments deben presentarse como capacidades embebidas de módulos
 Aclaración consolidada para products.show:
 
 los bloques de inventory deben actuar como acceso o resumen contextual y no como surface maestra paralela
+
+Aclaración adicional para documents.show:
+
+la capa estructural de líneas documentales debe mantenerse separada de la operación material publicada por inventory.
+
+Las acciones por línea pueden nacer visualmente en la fila documental, pero no deben presentarse como lógica propia de documents si pertenecen a inventory.
 
 Aclaración adicional para relaciones compactas:
 

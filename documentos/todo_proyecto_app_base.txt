@@ -102,7 +102,7 @@ por consolidación como capacidad embebida oficial
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -132,10 +132,20 @@ Esta capa permite reunir uno o múltiples inventory_movements dentro de una mism
 
 La incorporación no crea por sí misma nuevas pantallas principales, abilities visibles independientes ni ownership funcional para módulos consumidores.
 
+Avance operativo adicional vigente:
+
+documents quedó integrado con inventory mediante surfaces y hooks siguiendo la misma frontera modular aplicada en orders.
+
+documents conserva ownership documental sobre cabecera y líneas.
+
+inventory conserva ownership operativo sobre stock, ejecución, reversión y trazabilidad material.
+
+La ejecución parcial por document_items quedó validada con cálculo derivado de ejecutado y pendiente desde movimientos reales.
+
 <<END SECTION>>
 
 <<SECTION: CAPACIDADES REUTILIZABLES A CONSOLIDAR>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 CAPACIDADES REUTILIZABLES A CONSOLIDAR
 
@@ -173,6 +183,10 @@ Debe ser consumible de forma real, homogénea y visible dentro del ecosistema.
 Regla adicional:
 
 si una capacidad reusable necesita operar dentro de tablas anfitrionas, debe contemplar también variante row action y no solo linked o embedded tradicionales.
+
+Caso adicional vigente:
+
+las micro-superficies operativas por línea compartidas entre orders y documents deben converger hacia piezas reusables comunes cuando la intención funcional sea equivalente, manteniendo ownership operativo en el módulo oferente correspondiente.
 
 <<END SECTION>>
 
@@ -236,7 +250,7 @@ cada paso debe dejar menos excepciones que el anterior
 <<END SECTION>>
 
 <<SECTION: ESTADO ACTUAL DEL SISTEMA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ESTADO ACTUAL DEL SISTEMA
 
@@ -249,6 +263,8 @@ orders consolida lectura de estados operativos con reapertura explícita de clos
 inventory conserva integración por línea subordinada al estado superior de orders
 
 inventory cuenta con inventory_operations como capa interna de agrupación operativa contextual por encima de inventory_movements
+
+documents consume capacidades oficiales de inventory por línea documental sin absorber su lógica operativa
 
 Security continúa como kernel central de autorización efectiva
 
@@ -289,7 +305,7 @@ mejoras móviles de captura rápida para attachments
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 PENDIENTES INMEDIATOS
 
@@ -304,6 +320,10 @@ vigilar regresiones en update/delete de orders ante futuros refactors
 mantener consistencia visual de acciones readonly y reapertura en orders.show
 
 seguir propagando criterio de no asumir contratos: validar siempre contra runtime real y no por lectura teórica
+
+completar reversión documental con la misma frontera contractual aplicada en ejecución documental
+
+revisar consistencia visual entre orders y documents cuando compartan patrones operativos por línea
 
 <<END SECTION>>
 

@@ -630,7 +630,7 @@ las integraciones entre módulos deben respetar el contrato del módulo oferente
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00020
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -774,9 +774,9 @@ el cierre válido exige revisar también tablas, partials, formularios embebidos
 
 Casos doctrinales actuales:
 
-linked-order-action como superficie reusable de orders
-linked-party-action como superficie reusable de parties
-linked-asset-action como superficie reusable de assets
+linked-order como superficie reusable de orders
+linked-party como superficie reusable de parties
+linked-asset como superficie reusable de assets
 
 Regla adicional de experiencia operativa:
 
@@ -1043,7 +1043,7 @@ order_items continúa siendo entidad hija de orders aunque participe como anclaj
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00021
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -1218,6 +1218,12 @@ El host monta.
 
 El oferente decide.
 
+Caso vigente adicional:
+
+documents puede montar acciones de inventory sobre document_items dentro de su propia tabla documental.
+
+Esa integración no autoriza a documents a resolver localmente reglas de stock, cálculo de ejecución, reversión ni trazabilidad material.
+
 Regla adicional para estado superior del host:
 
 cuando una integración actúa sobre recursos hijos dentro de un host operativo, no puede habilitar acciones que contradigan el estado superior del recurso padre.
@@ -1237,6 +1243,10 @@ Debe consumir la surface, servicio, hook o contrato publicado por el oferente.
 Caso vigente:
 
 orders puede actuar como host visual de acciones de inventory por línea, pero inventory conserva la resolución interna de inventory_operations e inventory_movements.
+
+Caso vigente adicional:
+
+documents puede actuar como host visual de acciones de inventory por línea documental, pero inventory conserva la resolución interna de inventory_operations e inventory_movements.
 
 <<END SECTION>>
 
@@ -1378,7 +1388,7 @@ order_items copiados hacia documentos derivados
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ENTIDADES HIJAS>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 CONVENCIONES DE ENTIDADES HIJAS
 
@@ -1434,6 +1444,14 @@ esa relevancia operativa no lo convierte en módulo autónomo
 
 tampoco transfiere a order_item la semántica material, el cálculo neto ni el arbitraje operativo del módulo invitado
 
+Aclaración adicional para document_items:
+
+document_item puede actuar como anclaje operativo fuerte de inventory cuando una línea documental genere movimientos trazables.
+
+Esa participación no lo convierte en módulo autónomo ni transfiere a document_items o documents la semántica material del frente inventory.
+
+El recurso sigue delegado a documents, pero puede requerir restricciones operativas adicionales cuando existan movimientos asociados.
+
 Regla adicional de endurecimiento operativo:
 
 cuando una entidad hija ya posea trazabilidad material iniciada, su edición estructural no debe seguir tratándose como CRUD libre por defecto
@@ -1446,17 +1464,19 @@ mientras la línea no esté completada ni cancelada puede seguir siendo editable
 
 la cantidad no puede reducirse por debajo del ejecutado neto vigente
 
-si existe trazabilidad iniciada no deben mutarse atributos de identidad operativa como product_id, kind o description
+si existe trazabilidad iniciada no deben mutarse atributos identitarios que rompan lectura histórica de los movimientos
 
-Regla adicional de subordinación al padre:
+Caso vigente relevante para document_items:
 
-las reglas propias de una entidad hija operan únicamente dentro de la condición operativa permitida por su padre.
+cuando una línea documental ya posee movimientos de inventory asociados, su edición o eliminación debe respetar la trazabilidad existente.
 
-Si el padre se encuentra en estado readonly o terminal, la entidad hija no puede recuperar operabilidad por sí misma.
+La lectura operativa de ejecutado, pendiente y estado de línea debe derivarse de movimientos reales y no de columnas duplicadas en la tabla base.
 
-Caso vigente:
+Regla:
 
-order_items queda subordinado al estado operativo de orders.
+las restricciones adicionales de una entidad hija no alteran su delegación principal al recurso padre.
+
+Solo endurecen el ciclo de vida cuando la operación real ya generó efectos trazables.
 
 <<END SECTION>>
 
@@ -2183,53 +2203,57 @@ El contexto interno del host puede preservarse con return_tab cuando exista una 
 <<END SECTION>>
 
 <<SECTION: GOBERNANZA DOCUMENTAL>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00002
 
 GOBERNANZA DOCUMENTAL
 
-La base documental activa del proyecto forma parte del sistema de trabajo real.
+La documentación del proyecto se organiza por fronteras claras y funciones distintas.
 
-No es material accesorio.
+Documentos rectores:
 
-Su función es conservar doctrina, decisiones vigentes, patrones operativos y criterios reutilizables.
+contexto_fijo_proyecto_app_base
+seguridad_acceso_proyecto_app_base
 
-Toda modificación documental debe priorizar:
+Definen doctrina principal, criterios estructurales y reglas especializadas de alta precedencia.
 
-claridad
+Documentos especializados:
 
-coherencia entre documentos
+convenciones_proyecto_app_base
+checklist_modulos_nuevos_app_base
+mapa_entidades_app_base
+mapa_navegacion_relaciones_app_base
+base_visual_proyecto_app_base
+guia_tinker_proyecto_app_base
+todo_proyecto_app_base
+plantilla_inicio_chats_proyecto_app_base
 
-facilidad de mantenimiento
+Desarrollan implementación, mapas operativos, UX, pruebas, pendientes y metodología de trabajo.
 
-compatibilidad con automatización
+Memoria técnica operativa:
 
-trazabilidad de cambios
+decisiones_vivas_app_base
+patrones_validados_app_base
+errores_y_lecciones_app_base
 
-compatibilidad con visualización segura de documentos
+Estos documentos conservan continuidad práctica del proyecto:
+
+decisiones ya tomadas
+patrones repetibles validados
+errores y aprendizajes relevantes
+
+No reemplazan doctrina primaria.
+
+No deben contradecir documentos rectores.
+
+Si existe conflicto, prevalece el documento rector o especializado en su propia materia.
 
 Reglas generales:
 
-no crear secciones por conveniencia momentánea
-
-no duplicar contenido ya resuelto en otro documento
-
-no mezclar backlog con doctrina estable
-
-no mezclar reglas técnicas con textos orientados a usuario final
-
-si un tema pertenece a otro documento, debe referenciarse mediante DOC_REF y no duplicarse
-
-los documentos activos deben tender a una estructura homogénea y previsible
-
-la documentación debe evolucionar junto con el sistema y no quedar como registro histórico desconectado
-
-no incluir dentro del cuerpo de documentos activos ejemplos literales que reproduzcan delimitadores estructurales reales del sistema documental si esos ejemplos pueden ser interpretados por el parser o por el visor como bloques válidos
-
-toda automatización documental debe apoyarse en el contrato real soportado por el script vigente y no en variantes informales de salida
-
-si el automatizador exige bloque completo, SECTION_VERSION y sección ancla para inserción, la doctrina documental debe exigir exactamente esos mismos elementos
-
-Toda incorporación, reemplazo o reorganización debe evaluarse también por impacto en el ecosistema documental completo.
+no duplicar contenido extensamente entre documentos
+actualizar en la frontera correcta
+evitar mezclar vigente con futuro
+preservar nombres exactos de secciones y DOC_SLUG cuando aplique
+usar cada documento según su función real
 
 <<END SECTION>>
 

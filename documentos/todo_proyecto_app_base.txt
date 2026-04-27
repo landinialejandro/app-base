@@ -102,7 +102,7 @@ por consolidación como capacidad embebida oficial
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -142,10 +142,37 @@ inventory conserva ownership operativo sobre stock, ejecución, reversión y tra
 
 La ejecución parcial por document_items quedó validada con cálculo derivado de ejecutado y pendiente desde movimientos reales.
 
+Avance operativo adicional consolidado:
+
+Orders y Documents convergieron hacia un lifecycle base común para cabeceras operativas.
+
+Estados persistidos comunes:
+
+draft
+pending_approval
+approved
+closed
+cancelled
+
+La transición automática draft → pending_approval por primera línea quedó implementada y validada.
+
+Avance reusable adicional consolidado:
+
+Orders y Documents avanzaron en convergencia de line items mediante componentes visuales compartidos, tabs embebidas, modales comunes y matemática comercial reutilizable.
+
+La convergencia no transfiere ownership entre módulos ni mezcla semántica de inventory con matemática comercial.
+
+Validaciones recientes informadas:
+
+syntax OK
+routes OK
+optimize:clear OK
+browser OK
+
 <<END SECTION>>
 
 <<SECTION: CAPACIDADES REUTILIZABLES A CONSOLIDAR>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 CAPACIDADES REUTILIZABLES A CONSOLIDAR
 
@@ -188,6 +215,19 @@ Caso adicional vigente:
 
 las micro-superficies operativas por línea compartidas entre orders y documents deben converger hacia piezas reusables comunes cuando la intención funcional sea equivalente, manteniendo ownership operativo en el módulo oferente correspondiente.
 
+Capacidades reusable vigentes para line items:
+
+x-line-item-form
+x-line-item-table
+x-line-operation-modal
+x-tabs-embedded
+x-dev-component-version
+LineItemMath
+
+Siguiente consolidación técnica posible:
+
+helpers comunes livianos orientados a presentación y payload visual de line items, sin absorber dominio, hooks, permisos ni semántica propia de cada módulo.
+
 <<END SECTION>>
 
 <<SECTION: SEGURIDAD Y CONTRATOS PENDIENTES>>
@@ -208,7 +248,7 @@ verificar que nuevas integraciones embebidas no reabran bypasses de autorizació
 <<END SECTION>>
 
 <<SECTION: DEUDA TÉCNICA A REDUCIR>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 DEUDA TÉCNICA A REDUCIR
 
@@ -222,6 +262,8 @@ naming heredado centrado en consumidores donde la capacidad pertenece al oferent
 frentes donde aún se duplican queries internas de memberships en lugar de consumir raíz tenant reusable
 casos donde una falla visual puede confundirse con permisos por falta de auditoría contractual completa
 micro-superficies no auditadas que parecen menores pero afectan continuidad real del flujo
+duplicaciones residuales en validaciones de line items entre Orders y Documents
+selects manuales de estado que deban endurecerse o reemplazarse por transiciones automáticas cuando la regla de negocio sea objetiva
 
 Regla:
 
@@ -250,7 +292,7 @@ cada paso debe dejar menos excepciones que el anterior
 <<END SECTION>>
 
 <<SECTION: ESTADO ACTUAL DEL SISTEMA>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ESTADO ACTUAL DEL SISTEMA
 
@@ -265,6 +307,16 @@ inventory conserva integración por línea subordinada al estado superior de ord
 inventory cuenta con inventory_operations como capa interna de agrupación operativa contextual por encima de inventory_movements
 
 documents consume capacidades oficiales de inventory por línea documental sin absorber su lógica operativa
+
+Orders y Documents comparten lifecycle base de cabecera:
+
+draft
+pending_approval
+approved
+closed
+cancelled
+
+La primera línea válida promueve automáticamente una cabecera desde draft hacia pending_approval.
 
 Security continúa como kernel central de autorización efectiva
 
@@ -305,7 +357,7 @@ mejoras móviles de captura rápida para attachments
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 PENDIENTES INMEDIATOS
 
@@ -321,9 +373,17 @@ mantener consistencia visual de acciones readonly y reapertura en orders.show
 
 seguir propagando criterio de no asumir contratos: validar siempre contra runtime real y no por lectura teórica
 
-completar reversión documental con la misma frontera contractual aplicada en ejecución documental
-
 revisar consistencia visual entre orders y documents cuando compartan patrones operativos por línea
+
+auditar quick actions por transiciones válidas en show pages
+
+revisar duplicaciones residuales en validaciones de line items
+
+auditar migración futura de Orders hacia esquema group + kind compatible, basada en código real
+
+revisar footer global de la aplicación
+
+revisar desplazamiento y layout con contenido extenso o tablas largas
 
 <<END SECTION>>
 

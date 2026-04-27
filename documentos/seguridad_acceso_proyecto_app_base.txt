@@ -53,7 +53,7 @@ los detalles técnicos pueden evolucionar sin alterar estos principios rectores
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -63,7 +63,7 @@ AUTORIDAD CENTRAL
 
 La decisión final de acceso pertenece a la capa central de seguridad vigente.
 
-Ninguna vista, componente o integración externa reemplaza esa decisión.
+Ninguna vista, componente, integración reusable o consumidor externo reemplaza esa decisión.
 
 TENANT OBLIGATORIO
 
@@ -87,13 +87,11 @@ TRAZABILIDAD
 
 Toda acción sensible debe poder auditarse según las capacidades vigentes del sistema.
 
-Reglas:
+Reglas síntesis:
 
 mostrar una acción no equivale a conceder permiso
 
 ocultar una acción no reemplaza validación backend
-
-una integración reusable sigue sujeta a autorización real
 
 los recursos hijos pueden delegar seguridad sin perder validaciones operativas específicas
 
@@ -148,7 +146,7 @@ La pertenencia a múltiples tenants no debilita el modelo: exige resolver correc
 <<END SECTION>>
 
 <<SECTION: MULTI-TENANCY Y AISLAMIENTO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 MULTI-TENANCY Y AISLAMIENTO
 
@@ -187,6 +185,8 @@ toda entidad persistente del negocio que forme parte del frente operativo de un 
 Este criterio alcanza también a líneas operativas, movimientos, operaciones internas y trazabilidad derivada cuando participan de flujos entre módulos.
 
 Cuando inventory opere desde orders o documents, deben validarse de forma consistente tenant activo, recurso padre, línea origen y producto asociado antes de registrar movimientos.
+
+Cuando una acción se ejecute desde una row action o surface embebida, el hecho de nacer dentro de una vista autorizada no reemplaza la validación multi-tenant completa en backend.
 
 <<END SECTION>>
 
@@ -305,7 +305,7 @@ no saltar el resolver central con lógica local improvisada
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -332,6 +332,14 @@ Cuando una acción se ejecute desde surfaces embebidas, modales o row actions, l
 Cuando existan recursos padre e hijos, debe respetarse además la subordinación funcional entre ambos.
 
 Las mejoras visuales o de UX nunca justifican relajar seguridad.
+
+La visibilidad de un botón operativo, como ejecutar, surtir, devolver o revertir, no constituye autorización suficiente.
+
+La UI puede expresar disponibilidad según estado y payload autorizado, pero el servidor debe volver a validar permiso, tenant, recurso padre, línea origen y límites operativos antes de ejecutar la acción.
+
+La reutilización visual mediante componentes comunes no debe centralizar decisiones de permiso.
+
+Las decisiones de acceso deben permanecer en Security, policies, controllers, services o payloads ya autorizados según corresponda.
 
 <<END SECTION>>
 
@@ -365,7 +373,7 @@ El detalle por módulo debe resolverse en REGLAS OPERATIVAS POR MÓDULO para evi
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -392,10 +400,25 @@ los estados operativos que bloquean acciones forman parte real del contrato de s
 
 si una entidad hija delega acceso al padre, esa delegación debe ser explícita y consistente
 
+Las capacidades publicadas como row actions o surfaces embebidas siguen perteneciendo al módulo oferente.
+
+El host puede montar la acción, pero no reemplaza el contrato de seguridad del módulo que la publica.
+
+Cuando inventory opera sobre líneas de orders o documents, su contrato efectivo debe contemplar:
+
+tenant activo
+recurso padre
+línea origen
+producto asociado
+estado del padre
+estado real de la línea
+ejecutado neto vigente
+límites de reversión o ejecución
+
 <<END SECTION>>
 
 <<SECTION: RECURSOS DELEGADOS AL PADRE>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 RECURSOS DELEGADOS AL PADRE
 
@@ -437,22 +460,16 @@ Sigue siendo una restricción funcional dentro del ciclo de vida delegado del re
 
 La existencia de trazabilidad material iniciada puede endurecer la operación permitida sobre la línea sin convertir a document_items en módulo autónomo ni en contrato de seguridad independiente.
 
-Regla adicional consolidada:
+Aclaración adicional sobre lifecycle del padre:
 
-las acciones sobre recursos hijos quedan subordinadas al estado operativo del padre cuando el padre define la operabilidad superior del flujo.
+si una línea hija crea contenido operativo real dentro de una cabecera en draft, la transición automática hacia pending_approval no crea autorización autónoma sobre la línea.
 
-Caso vigente:
-
-order_items puede tener reglas propias de línea, pero no puede recuperar operabilidad si la orden padre se encuentra en un estado readonly o terminal que bloquea la operación.
-
-Caso vigente adicional:
-
-document_items puede tener reglas propias derivadas de trazabilidad inventory, pero no debe operar por fuera de la autorización del documento padre ni de las validaciones de pertenencia al tenant.
+La mutación sigue dependiendo del permiso efectivo sobre el padre y de las validaciones operativas aplicables.
 
 <<END SECTION>>
 
 <<SECTION: INTEGRACIONES REUSABLES Y AUTORIZACIÓN>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00020
 
 INTEGRACIONES REUSABLES Y AUTORIZACIÓN
 
@@ -468,11 +485,7 @@ el componente visual solo representa resultado autorizado
 
 fallas de montaje contractual no equivalen automáticamente a fallas de permiso
 
-Cuando una acción de un módulo aparezca dentro de tablas, tabs o show pages de otro módulo:
-
-el host presta superficie visual
-
-el oferente conserva validación, reglas y consistencia operativa
+el host presta superficie visual pero no absorbe ownership de seguridad
 
 Casos vigentes:
 
@@ -482,7 +495,7 @@ inventory operando dentro de documents
 
 documents embebido dentro de otros hosts
 
-Regla adicional:
+Regla final:
 
 mostrar una surface visible nunca reemplaza validación backend sobre tenant, recurso, relaciones y límites operativos.
 
@@ -553,7 +566,7 @@ La ausencia de error visible no prueba cumplimiento doctrinal.
 <<END SECTION>>
 
 <<SECTION: GOBERNANZA DEL DOCUMENTO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 GOBERNANZA DEL DOCUMENTO
 
@@ -567,7 +580,7 @@ mover detalle funcional excesivo a documentos específicos
 
 evitar ejemplos redundantes
 
-eliminar repeticiones cuando una regla ya esté definida con claridad
+eliminar repeticiones cuando una regla ya esté definida en otra sección
 
 actualizar cuando cambie doctrina real y no por ruido menor de implementación
 

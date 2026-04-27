@@ -46,243 +46,69 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00012
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
-projects agrupa tasks sin absorber su autonomía
+El ecosistema vigente combina relaciones directas de pertenencia, relaciones funcionales entre módulos y relaciones operativas derivadas.
 
-tasks puede originar orders
+Relaciones estructurales principales:
 
-appointments puede originar orders
+tenant → memberships
+tenant → parties
+tenant → projects
+tenant → tasks
+tenant → products
+tenant → assets
+tenant → orders
+tenant → documents
 
-assets contextualiza orders, appointments y documents
+Relaciones de pertenencia:
 
-orders puede derivar documents
+order → order_items
+document → document_items
+project → tasks
 
-orders contiene detalle operativo mediante order_items
+Relaciones funcionales frecuentes:
 
-products alimenta order_items y document_items
+party ↔ orders
+party ↔ documents
+party ↔ assets
+party ↔ appointments
 
-products se relaciona estructuralmente con inventory_movements como catálogo maestro del artículo
+asset ↔ appointments
+asset ↔ documents
 
-inventory_movements expresa saldo e historial de stock por agregación de movimientos y no por persistencia de stock en products
+order ↔ documents
 
-inventory_movements puede registrar trazabilidad contextual hacia orders y documents
+products ↔ inventory_movements
 
-inventory_movements puede registrar además trazabilidad operativa explícita hacia order_items cuando una línea actúe como referencia concreta de ejecución
+Relaciones operativas consolidadas:
 
-inventory_movements puede registrar además trazabilidad operativa explícita hacia document_items cuando una línea documental actúe como referencia concreta de ejecución
+order_item ↔ inventory_movements
+document_item ↔ inventory_movements
 
-inventory_operations actúa como capa superior de agrupación operativa contextual dentro del frente inventory
+Lectura correcta:
 
-inventory_operations puede reunir uno o múltiples inventory_movements pertenecientes a una misma acción operativa temporal
+inventory_movements registra trazabilidad material unitaria.
 
-inventory_movements puede vincularse opcionalmente a inventory_operations sin perder trazabilidad individual
+Una línea de order_items o document_items puede acumular múltiples movimientos a lo largo del tiempo.
 
-la trazabilidad vigente de inventory puede componerse por:
+Esos movimientos pueden combinar ejecuciones y contramovimientos compatibles con el neto vigente de la línea.
 
-origen documental o funcional
-agrupación operativa contextual
-línea origen operativa cuando corresponda
-movimiento unitario de stock
+La existencia de trazabilidad no transforma a las líneas hijas en módulos autónomos.
 
-order_items gana además relevancia contractual y operativa dentro del ecosistema al actuar como punto natural de lectura para surtido, recepción, compromiso, devolución y restricciones de edición cuando ya existan movimientos ejecutados
+Relación de lifecycle consolidada:
 
-document_items gana además relevancia contractual y operativa dentro del ecosistema al actuar como punto natural de lectura para ejecución documental, pendiente documental, reversión y restricciones de edición cuando ya existan movimientos ejecutados
-
-la operación de inventory ya no debe leerse solo como stock actual agregado
-
-también debe contemplar, a nivel conceptual del ecosistema:
-
-stock actual
-stock comprometido de salida
-recepción esperada de entrada
-ejecución operativa por línea cuando corresponda
-
-inventory puede relacionarse no solo con product como artículo maestro sino también con order_item como contexto operativo por línea cuando el flujo requiera reservar, surtir, recibir, devolver, revertir o auditar ejecución parcial
-
-inventory puede relacionarse también con document_item como contexto documental por línea cuando el flujo requiera ejecutar, revertir o auditar ejecución parcial desde documents
-
-la relación inventory ↔ order_item ya no es solo lectura futura de diseño
-
-pasa a formar parte del frente operativo real del ecosistema mediante anclaje explícito de ejecución por línea
-
-la relación inventory ↔ document_item pasa a formar parte del frente operativo real del ecosistema mediante anclaje explícito de ejecución por línea documental
-
-order_items puede incorporar estado operativo propio persistido y gobernado por código cuando la línea participe del flujo de inventory
-
-ese estado no reemplaza el estado global de orders ni convierte a order_items en módulo autónomo
-
-funciona como capa operativa subordinada para expresar ejecución parcial, pendiente o cierre por línea
-
-document_items puede incorporar lectura operativa derivada cuando la línea participe del flujo de inventory
-
-esa lectura no reemplaza el estado global de documents ni convierte a document_items en módulo autónomo
-
-funciona como capa operativa subordinada para expresar ejecución parcial, pendiente o cierre por línea documental
-
-orders mantiene su estado general como arbitraje superior del flujo operativo
-
-la normalización vigente de ese estado distingue:
+orders y documents comparten estados base persistidos para cabeceras operativas:
 
 draft
+pending_approval
 approved
 closed
 cancelled
 
-approved reemplaza semánticamente a confirmed dentro de la lectura vigente del ecosistema
-
-closed expresa cierre operativo readonly con posibilidad de reapertura explícita a approved
-
-cancelled exige ausencia de movimientos ejecutados o reversión previa suficiente para no dejar trazabilidad inconsistente y permanece como estado terminal no reabrible dentro de la regla validada
-
-tasks puede recibir alertas automáticas del sistema mediante metadata cuando la operación lo requiera
-
-parties se relaciona transversalmente con múltiples módulos
-
-attachments puede integrarse transversalmente sobre múltiples recursos
-
-documents no solo se relaciona estructuralmente con orders como derivación documental
-
-también puede publicar una capacidad reusable embebida oficial consumible desde orders.show u otros hosts del ecosistema
-
-documents puede además actuar como host visual de capacidades publicadas por inventory sobre sus propias líneas documentales, sin absorber la lógica operativa de stock
-
-orders no solo ocupa posición central por su entidad principal
-
-también puede actuar como contexto y host visual de capacidades publicadas por otros módulos, especialmente inventory, documents y attachments, sin absorber su lógica operativa
-
-orders puede además concentrar su contacto extra-módulo en una puerta contractual propia cuando necesite delegar intervención externa sin contaminar controllers ni el núcleo directo del módulo
-
-assets, orders y parties pueden publicar relaciones compactas hacia appointments.show como ofertas linked consumidas por el host appointment
-
-esas relaciones deben leerse como surfaces compactas de resumen y no como relaciones pesadas de pestaña dentro de appointment.show
-
-la lectura de colaboradores internos para tasks y appointments no se resuelve desde un módulo users del ecosistema funcional
-
-se resuelve desde users + memberships activas dentro del tenant y, cuando haga falta reutilización, desde una raíz reusable del plano tenant
-
-Reglas:
-
-estas relaciones expresan lectura conceptual prioritaria del ecosistema actual
-
-task y appointment actúan como orígenes funcionales legítimos hacia orders sin degradar la autonomía conceptual del módulo orders
-
-la relación tasks → orders posee además persistencia estructural desde orders.task_id
-
-la relación appointments → orders opera como vínculo contextual y operativo real desde appointments.order_id sin requerir orders.appointment_id
-
-order_items debe leerse como detalle dependiente de orders y no como módulo autónomo paralelo
-
-document_items debe leerse como detalle dependiente de documents y no como módulo autónomo paralelo
-
-la relación entre order_items y product es opcional y forma parte del detalle operativo del padre
-
-la relación entre document_items y product es opcional y forma parte del detalle documental del padre
-
-products ya no debe leerse frente a inventory V1 como promesa futura difusa
-
-la relación products → inventory_movements expresa una capacidad operativa actual, validada y todavía no cerrada como módulo autónomo independiente
-
-la lectura actual aprobada distingue además:
-
-products como catálogo maestro compartido
-
-inventory como frente operativo de stock, saldo e historial en evolución modular propia
-
-orders como contexto y host visual de operación por línea cuando corresponda
-
-documents como módulo derivado con surface reusable propia cuando el flujo lo requiera
-
-documents como contexto y host visual de operación de inventory por línea documental cuando corresponda
-
-Aclaración relacional consolidada adicional:
-
-parties no solo participa como relación transversal pasiva
-
-debe leerse también como módulo base del dominio que puede publicar oferta reusable propia para el ecosistema
-
-caso inmediato previsto:
-
-linked-party-action como capacidad oficial de integración para arbitrar apertura navegable, referencia readonly o ausencia de acción operable según soporte modular, permiso efectivo y existencia de party relacionada
-
-Aclaración adicional consolidada para assets:
-
-assets no solo participa como entidad relacionada consumida por otros módulos
-
-también puede publicar oferta reusable propia para resolver navegación relacional homogénea dentro del ecosistema
-
-Caso consolidado actual:
-
-linked-asset-action como capacidad reusable oficial del módulo assets
-
-Aclaración adicional consolidada para appointments:
-
-appointments no solo participa como origen contextual hacia orders
-
-también publica oferta reusable propia para exponer turnos relacionados dentro del ecosistema
-
-Caso consolidado actual:
-
-embebido reusable oficial para relaciones fuertes consumido desde assets y parties
-
-integración compacta para vínculo puntual con orders
-
-host de relaciones compactas publicadas por otros módulos dentro de su show
-
-Aclaración adicional consolidada para inventory:
-
-inventory ya no debe leerse solo como efecto lateral del catálogo de products
-
-su evolución vigente lo proyecta como frente operativo separado para stock y movimientos, conservando a products como maestro del artículo y a orders, order_items, documents y document_items como consumidores o contextos de trazabilidad
-
-la incorporación de inventory_operations fortalece esa lectura modular al separar agrupación operativa contextual de movimiento unitario de stock
-
-Aclaración adicional sobre semántica operativa:
-
-cuando inventory opere sobre order_items o document_items, la lectura neta de ejecución de línea no debe derivarse mecánicamente del signo funcional del movimiento de stock
-
-pueden coexistir semánticas distintas entre:
-
-variación de stock
-avance operativo de la línea
-reversión de ejecución
-recuperación de pendiente
-
-cada una pertenece al plano funcional que le corresponde
-
-Aclaración adicional sobre edición estructural de líneas:
-
-que una línea tenga movimientos ya no alcanza por sí solo como criterio bruto para volverla completamente inmutable.
-
-La lectura vigente distingue entre:
-
-línea aún abierta pero con límites de edición compatibles con el ejecutado neto
-
-línea cerrada por completed
-
-línea cerrada por cancelled
-
-Esto refuerza una relación más precisa entre líneas operativas, inventory_movements y estado operativo real de la línea.
-
-Aclaración adicional sobre devoluciones o reversión por línea:
-
-una misma línea puede acumular múltiples ejecuciones y múltiples reversiónes parciales a lo largo del tiempo mientras se respete el ejecutado neto vigente
-
-la reversión opera como movimiento propio de inventory y no redefine la naturaleza estructural de order_items dentro de orders ni de document_items dentro de documents
-
-la lectura filtrada por order_item_id se consolida como vista válida de trazabilidad operativa del ecosistema
-
-la lectura filtrada por document_item_id se consolida como vista válida de trazabilidad operativa documental del ecosistema
-
-Aclaración de frontera conceptual:
-
-tenant no forma parte de las relaciones superficiales modulares del ecosistema funcional
-
-su pertenencia corresponde al plano interno de multi-tenancy, contexto y seguridad
-
-no invalidan otras relaciones técnicas menores ya existentes o futuras
+La aparición de la primera línea válida puede modificar el estado operativo del padre según la regla vigente del sistema.
 
 <<END SECTION>>
 
@@ -898,120 +724,30 @@ Lo ubica como base maestra estable dentro de una arquitectura más limpia entre 
 <<END SECTION>>
 
 <<SECTION: INVENTORY>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00009
 
 INVENTORY
 
-Tipo conceptual:
+Inventory expresa el frente funcional de stock, movimientos, ejecución material y trazabilidad operativa.
 
-frente operativo en reconversión modular
+Piezas persistentes relevantes:
 
-Representa la operación de stock del tenant.
+inventory_movements
+inventory_operations
 
-Su lectura vigente ya no debe limitarse a una capacidad abstracta apoyada lateralmente en products.
+Lectura interna:
 
-Debe leerse como una pieza en evolución hacia identidad modular propia, centrada en:
+movement = impacto unitario de stock
+operation = agrupación contextual de uno o múltiples movimientos relacionados
 
-movimientos
-saldos
-historial
-trazabilidad operativa
+Inventory puede operar sobre líneas pertenecientes a otros módulos mediante anclajes válidos como:
 
-Y, como evolución contractual aprobada, también en:
+order_items
+document_items
 
-stock comprometido
-recepción esperada
-faltantes
-quiebres
-ejecución operativa por línea cuando corresponda
+Ese consumo no traslada semántica material al módulo host.
 
-Relaciones consumidas:
-
-products como catálogo maestro del artículo
-orders como contexto operativo cuando exista movimiento vinculado
-order_items como contexto operativo por línea para surtido, recepción, compromiso, devolución, reversión o restricción de edición
-documents como contexto documental cuando exista trazabilidad
-document_items como contexto operativo documental por línea para ejecución, reversión o restricción de edición
-tasks como destino posible de alertas automáticas del sistema cuando la operación lo requiera
-
-Relaciones ofrecidas:
-
-saldo por producto
-historial de movimientos por producto
-trazabilidad operativa y documental
-surfaces reutilizables para módulos consumidores
-
-Y, como evolución aprobada del frente:
-
-lectura operativa de stock actual
-lectura operativa de stock comprometido
-lectura operativa de recepción esperada
-contexto reusable para consumers del ecosistema
-operación por línea publicada hacia hosts visuales cuando el flujo lo requiera
-
-Nueva capa interna vigente:
-
-inventory_operations representa una agrupación operativa contextual, resuelta automáticamente por Inventory, que puede reunir uno o múltiples inventory_movements dentro de una misma acción operativa temporal, sin reemplazar la trazabilidad atómica de cada movimiento.
-
-Superficie contractual conceptual posible:
-
-tabla de saldos por producto
-ficha de inventario por producto
-tabla de movimientos reusable
-formulario de movimiento reusable
-bloques contextuales de trazabilidad consumibles por products, orders y documents
-surface operativa por línea consumible desde orders.show
-surface operativa por línea consumible desde documents.show
-
-Y, como evolución aprobada:
-
-contexto operativo reusable por línea
-acciones contextuales de surtido o recepción
-acciones contextuales de ejecución documental por línea
-contramovimientos de reversión
-acciones de devolución por línea
-lectura filtrada de movimientos por línea reutilizando vista canónica
-
-Reglas:
-
-products conserva la maestría del artículo y no debe degradarse por esta evolución
-
-inventory concentra la operación de stock y no debe confundirse con el catálogo maestro
-
-el stock no debe persistirse como atributo definitivo en products
-
-debe calcularse por agregación de inventory_movements
-
-orders y documents pueden contextualizar movimientos sin absorber el frente inventory como núcleo propio
-
-order_items y document_items pueden actuar como líneas origen de trazabilidad operativa sin convertirse en módulos autónomos
-
-la lectura conceptual del frente debe distinguir entre stock actual, compromiso de salida y recepción esperada de entrada aun cuando su implementación definitiva evolucione por fases
-
-la lectura de ejecutado, pendiente y reversión por línea debe derivarse de movimientos reales y no de columnas duplicadas en las tablas base de líneas
-
-Aclaración adicional sobre estados:
-
-el frente inventory debe consumir el estado normalizado de orders como marco operativo superior cuando opere dentro de orders
-
-draft
-approved
-closed
-cancelled
-
-approved habilita lectura de orden validada para ejecución
-
-closed implica readonly operativo hasta reapertura válida
-
-cancelled no debe convivir con movimientos ejecutados sin reversión previa suficiente
-
-Aclaración adicional sobre documents:
-
-cuando inventory opera dentro de documents, el documento actúa como host y contexto documental.
-
-Inventory conserva la semántica material, la trazabilidad de movimientos, el cálculo de ejecutado y pendiente, y la futura reversión.
-
-Documents conserva la cabecera documental y sus líneas como recursos propios delegados al padre.
+Inventory conserva sus reglas propias de ejecución, reversión, límites netos y trazabilidad.
 
 <<END SECTION>>
 
@@ -1135,62 +871,37 @@ y puede publicar relación compacta hacia appointments.show como offer linked de
 <<END SECTION>>
 
 <<SECTION: ORDERS>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00010
 
 ORDERS
 
-Tipo conceptual:
+orders representa la cabecera operativa principal del flujo comercial u operativo.
 
-módulo autónomo de núcleo operativo fuerte
+Concentra contexto, relación con terceros, lifecycle y agregación de líneas hijas.
 
-Representa operación interna principal del tenant.
+Entidad hija natural:
 
-Relaciones consumidas:
+order_items
 
-tenant
-party opcional
-asset opcional
-task opcional mediante orders.task_id
-appointment como origen contextual real mediante appointments.order_id
-products mediante order_items
-inventory como consumidor contextual de movimientos cuando el flujo operativo lo requiera
-documents como módulo derivado relacionado cuando el flujo documental lo requiera
-
-Relaciones ofrecidas:
-
-documents derivados
-historial operativo
-seguimiento de trabajo
-contexto para ejecución por línea
-host visual para capacidades invitadas
-trazabilidad transaccional principal
-
-Estados operativos vigentes:
+Estados base persistidos vigentes:
 
 draft
+pending_approval
 approved
 closed
 cancelled
 
-Lectura de estados:
+Lectura vigente:
 
-draft preparación editable
+draft = cabecera en preparación
+pending_approval = cabecera con contenido lista para revisión
+approved = habilita operación real
+closed = congela operación
+cancelled = terminal
 
-approved orden operable según permisos y reglas del flujo
+Orders mantiene centralidad doctrinal como patrón más maduro del ecosistema para cabeceras equivalentes.
 
-closed cierre operativo readonly con posibilidad de reapertura explícita autorizada a approved
-
-cancelled estado terminal cancelado no reabrible dentro de la regla validada
-
-Reglas estructurales:
-
-el estado global de orders arbitra por encima de los estados particulares de líneas hijas
-
-una orden con inventory_movements asociados conserva trazabilidad operativa relevante
-
-la eliminación requiere compatibilidad entre permiso, estado y ausencia de trazabilidad bloqueante
-
-si existe reapertura válida, esta constituye transición de estado y no edición ordinaria
+La entidad conserva espacio evolutivo para separar nivel macro y subtipo específico mediante una estructura futura group + kind compatible con contratos existentes.
 
 <<END SECTION>>
 
@@ -1233,90 +944,63 @@ al reabrirse la order a approved, vuelven a regir las reglas propias de la líne
 <<END SECTION>>
 
 <<SECTION: DOCUMENTS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00010
 
 DOCUMENTS
 
-Tipo conceptual:
+documents representa la formalización documental derivada o complementaria de otros flujos operativos del sistema.
 
-módulo derivado
+Puede vincularse con parties, assets, orders u otros contextos válidos según el caso.
 
-Representa formalización documental, comercial o fiscal de operaciones del tenant.
+Entidad hija natural:
 
-Relaciones consumidas:
+document_items
 
-tenant
-order opcional
-party
-asset opcional
-products mediante document_items
+Estados base persistidos vigentes:
 
-Relaciones ofrecidas:
+draft
+pending_approval
+approved
+closed
+cancelled
 
-comprobantes
-trazabilidad documental
-salida formal de operaciones internas
-surface embebida reusable cuando el ecosistema lo requiera
+Lectura vigente:
 
-Superficie contractual conceptual posible:
+draft = cabecera en preparación
+pending_approval = cabecera con contenido lista para revisión
+approved = habilita operación documental real según contrato vigente
+closed = congela operación
+cancelled = terminal
 
-selector documental
-summary de comprobante
-tabla documental
-acciones de emisión o descarga
-embebido reusable de relación documental en hosts compatibles
+Documents converge doctrinalmente hacia la gramática madura de Orders cuando la semántica coincide, sin perder identidad documental propia.
 
-Reglas:
-
-respecto del flujo orders → documents ocupa rol derivado
-mantiene identidad modular propia
-
-Aclaración adicional consolidada:
-
-su lectura como módulo derivado no impide que documents publique una capacidad embebida oficial consumible desde orders.show
-
-esa publicación sigue perteneciendo doctrinalmente a documents y no al host que la aloja
+Las líneas documentales pueden actuar como anclaje de trazabilidad material a través de inventory_movements sin transferir ownership funcional a inventory.
 
 <<END SECTION>>
 
 <<SECTION: DOCUMENT_ITEMS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00008
 
 DOCUMENT_ITEMS
 
-Tipo conceptual:
+document_items es la entidad hija perteneciente a documents.
 
-entidad hija delegada
+Representa líneas documentales con cantidades, importes y estado operativo de línea.
 
-Representa detalle de un documento.
+Estados vigentes de línea:
 
-Relaciones consumidas:
+pending
+partial
+completed
+cancelled
 
-document
-product opcional
-inventory_movements como trazabilidad operativa iniciada cuando corresponda
+Lectura operativa:
 
-Relaciones ofrecidas:
+una línea puede registrar ejecuciones parciales y reversiones parciales siempre que respete el ejecutado neto vigente.
 
-detalle comercial o fiscal
-anclaje documental de ejecución por línea
-lectura de pendiente documental
-lectura de ejecutado neto documental
-contexto para ejecución y reversión desde inventory
+El estado visible surge de la situación real de la línea y no solo de la existencia histórica de movimientos.
 
-Reglas:
-
-su ciclo de vida depende funcionalmente de documents
-
-no debe confundirse con módulo autónomo
-
-puede actuar como línea origen válida para movimientos de inventory sin dejar de ser recurso hijo de documents
-
-la lectura de ejecutado, pendiente y estado operativo de la línea debe derivarse de movimientos reales
-
-no debe duplicarse esa información como stock o ejecución persistida independiente en la tabla base si puede calcularse desde la trazabilidad vigente
-
-si existen movimientos asociados, la edición o eliminación de la línea debe respetar la trazabilidad material ya iniciada
+document_items conserva naturaleza delegada respecto de documents aunque posea relevancia operativa dentro de inventory.
 
 <<END SECTION>>
 

@@ -13,119 +13,83 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00005
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
-Antes de analizar, auditar o proponer cambios, revisar los documentos vigentes del proyecto y tomarlos como contexto:
+Proyecto: app-base (Laravel multi-tenant)
 
-* contexto_fijo_proyecto_app_base
-* convenciones_proyecto_app_base
-* checklist_modulos_nuevos_app_base
-* mapa_entidades_app_base
-* mapa_navegacion_relaciones_app_base
-* base_visual_proyecto_app_base
-* todo_proyecto_app_base
-* seguridad_acceso_proyecto_app_base
-* guia_tinker_proyecto_app_base
+Idioma de trabajo: español
 
-REGLAS BASE
+Regla máxima permanente:
 
-* No inventar nada.
-* No asumir comportamiento no verificado.
-* NO SE ASUME.
-* NO SE SUPONE.
-* Si falta un dato crítico, pedir exactamente ese dato.
-* Respetar la doctrina vigente.
-* Buscar convergencia hacia el patrón más sólido ya validado.
-* Distinguir dataset interno reusable, autorización y módulo funcional como problemas distintos.
-* No proponer módulo users por inercia cuando la necesidad real sea directorio interno del tenant.
-* Ante problemas de navegación interna o tabs, verificar primero la key técnica real de la tab y no su label visual.
-* Ante flujos embebidos o acciones por fila, distinguir siempre si la acción pertenece al host o al módulo proveedor.
-* Si existe trail, verificar además si el caso requiere return_tab como complemento de retorno interno del host.
-* Ante trabajos sobre inventory, distinguir entre inventory_operations como agrupación operativa contextual e inventory_movements como movimientos unitarios de stock.
-* Ante trabajos sobre documents + inventory, distinguir ownership documental del host y ownership operativo de inventory.
+NO SE ASUME
+NO SE SUPONE
+
+Antes de proponer cambios:
+
+leer contexto vigente
+trabajar sobre código real
+pedir evidencia mínima necesaria
+no inventar estructura
+no inferir APIs
+no suponer tablas, rutas o contratos
+
+Estado base reciente a considerar:
+
+Orders y Documents comparten lifecycle persistido:
+
+draft
+pending_approval
+approved
+closed
+cancelled
+
+La primera línea válida promueve automáticamente:
+
+draft → pending_approval
+
+Inventory ya opera integrado con Orders y Documents mediante surfaces oficiales y mantiene ownership funcional propio.
+
+La convergencia reusable de line items quedó avanzada y validada en múltiples capas.
 
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS DEL CHAT>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00005
 
 REGLAS OPERATIVAS DEL CHAT
 
-No inventar nada.
+Trabajar siempre con foco en coherencia doctrinal del sistema.
 
-No asumir comportamiento no verificado.
+Preferencias operativas vigentes:
 
-NO SE ASUME.
+auditar antes de modificar
 
-NO SE SUPONE.
+pedir solo el contexto faltante imprescindible
 
-Si falta un dato crítico, pedir exactamente ese dato.
+no rehacer diagnósticos generales ya cerrados
 
-Usar la documentación vigente como fuente principal de verdad.
+proponer cambios concretos y verificables
 
-Si el código real contradice documentación desactualizada, señalarlo explícitamente y proponer alineación.
+priorizar bajo riesgo y alto impacto
 
-No mezclar ideas futuras con estado vigente.
+mantener seguridad y tenancy como núcleo no negociable
 
-Priorizar patrones reutilizables frente a soluciones aisladas.
+si una capacidad pertenece a un módulo oferente, no mover ownership al consumidor
 
-Detectar deuda técnica visible aunque no haya sido consultada.
+si dos módulos comparten gramática equivalente, evaluar reutilización antes de duplicar
 
-Toda propuesta debe indicar impacto real en arquitectura, seguridad, UI o mantenimiento cuando corresponda.
+validar con evidencia real cuando corresponda:
 
-Regla adicional metodológica:
+syntax
+routes
+runtime
+browser informado por usuario
 
-cuando se analice una integración entre módulos, distinguir explícitamente:
+No declarar cierres por intuición.
 
-núcleo del módulo
-puerta contractual propia
-pieza externa especializada
-host visual consumidor
-
-No colapsar esos planos en una sola capa conceptual.
-
-Regla adicional de cierre técnico:
-
-no dar por terminada una mejora reusable revisando solo controller o vista principal.
-
-Auditar también modales, tabs internas, partials, surfaces secundarias y residuos legacy relacionados.
-
-Regla adicional para navegación contextual:
-
-ante problemas de retorno, redirects o pérdida de continuidad, distinguir explícitamente entre:
-
-contexto externo entre recursos
-contexto interno del host
-
-El contexto externo suele resolverse con trail.
-
-El contexto interno del host puede requerir return_tab cuando exista una tab activa relevante que deba restaurarse tras la acción.
-
-Regla adicional para tablas anfitrionas:
-
-si aparecen acciones nuevas en filas de un módulo consumidor, evaluar primero si deben resolverse como surface-driven o row action oficial del módulo oferente antes de hardcodearlas en la vista anfitriona.
-
-Regla adicional para fixes de permisos:
-
-cuando se corrija una regla de autorización o un bug operativo, repetir primero la prueba que expuso el problema y luego ejecutar validación global para detectar regresiones.
-
-Controlar especialmente alineación entre Security y Gate/Policy.
-
-Regla adicional para inventory:
-
-cuando se trabaje sobre stock, surtido, devolución, recepción, movimientos o auditoría de inventory, considerar que el estado vigente incluye inventory_operations como agrupador operativo contextual e inventory_movements como trazabilidad unitaria de stock.
-
-No debe asumirse que una acción visible equivale siempre a un único movimiento ni que una operación interna de inventory deba transformarse en pantalla, permiso o módulo autónomo.
-
-Regla adicional para documents + inventory:
-
-cuando se trabaje sobre ejecución o reversión documental, no mezclar responsabilidades.
-
-documents define recurso host y líneas documentales.
-
-inventory define operación material, movimientos, límites, recálculo y trazabilidad.
+El cierre debe apoyarse en evidencia técnica suficiente.
 
 <<END SECTION>>
 
@@ -134,80 +98,48 @@ SECTION_VERSION: 00005
 
 OBJETIVO DE ESTE CHAT
 
-Este chat se utiliza para trabajar técnica y estratégicamente sobre app-base manteniendo continuidad real del proyecto.
+Retomar trabajo técnico del proyecto desde el estado vigente real y avanzar sobre el siguiente frente prioritario sin perder continuidad.
 
-La prioridad no es responder genéricamente.
+Prioridades sugeridas actuales:
 
-La prioridad es producir decisiones, auditorías, correcciones, diseños y validaciones alineadas con la doctrina vigente del sistema.
+auditoría de quick actions y transiciones válidas en show pages
 
-Toda intervención debe buscar:
+revisión de duplicaciones residuales en validaciones de line items
 
-coherencia arquitectónica
-consistencia entre módulos
-respeto documental
-detección temprana de deuda técnica
-soluciones mantenibles
-mínima improvisación
-máxima trazabilidad de decisiones
+auditoría de migración futura Orders hacia group + kind compatible
 
-Regla adicional consolidada:
+mejoras pendientes de layout general, footer y vistas extensas
 
-cuando aparezca una tensión entre limpiar fronteras modulares y agregar abstracciones nuevas por anticipación, debe priorizarse primero ordenar el acople real en un punto explícito y mínimo.
+mejoras móviles futuras en attachments para captura rápida de evidencias
 
-La abstracción superior solo se evalúa después si el crecimiento concreto del sistema la vuelve necesaria.
-
-Caso vigente de referencia:
-
-estación contractual OrdersHooks para concentrar contacto extra-módulo sin sobreabstraer prematuramente.
-
-Caso vigente adicional:
-
-integración documents + inventory como host documental consumiendo capacidades oficiales del módulo inventory sin romper fronteras modulares.
+Toda propuesta debe nacer desde el estado actual real del proyecto y no desde supuestos genéricos.
 
 <<END SECTION>>
 
 <<SECTION: ALCANCE>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00004
 
 ALCANCE
 
-Este chat puede utilizarse para:
+Este inicio de chat sirve para retomar continuidad técnica del proyecto sin perder tiempo en reconstrucciones innecesarias.
 
-* auditoría técnica de módulos
-* revisión de controllers, requests, blades y services
-* evolución surface-driven
-* permisos y seguridad V2
-* navegación y trails
-* documentación doctrinal
-* validaciones con Tinker
-* UX operativa alineada al backend
-* definición de raíces reusables del plano tenant cuando corresponda
+Incluye:
 
-Regla:
+doctrina vigente
 
-si una necesidad no requiere módulo nuevo, no forzar lectura modular.
+estado funcional reciente
 
-Regla adicional:
+frentes cerrados relevantes
 
-en revisiones de integraciones no debe auditarse solo la vista principal.
+pendientes inmediatos
 
-También puede ser necesario revisar:
+criterios de trabajo compartidos
 
-* tabs internas
-* acciones por fila
-* modales operativos
-* retornos post-acción
-* navegación contextual desde recursos delegados
-* consumo real de surfaces oficiales ya publicadas
-* agrupadores operativos internos cuando el módulo oferente los utilice como parte de su núcleo
+límites de seguridad y tenancy
 
-Caso vigente:
+No reemplaza auditorías específicas.
 
-inventory_operations debe contemplarse en trabajos futuros de inventory, sin confundirlo con nueva navegación principal ni con permiso visible independiente.
-
-Caso vigente adicional:
-
-documents + inventory debe contemplarse como integración modular real, incluyendo ejecución, reversión, estados derivados por línea y consistencia UX entre hosts que compartan patrones operativos.
+Cuando el frente lo requiera, debe inspeccionarse código real, rutas reales, runtime real o documentación puntual antes de intervenir.
 
 <<END SECTION>>
 

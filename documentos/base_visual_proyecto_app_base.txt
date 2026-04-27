@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 COMPONENTES DISPONIBLES
 
@@ -123,6 +123,18 @@ Cuando un módulo migra a la nueva generación, el componente visual debe limita
 
 No debe reinterpretar permisos, rutas ni estados internos.
 
+Componentes reutilizables vigentes para line items:
+
+x-line-item-form
+x-line-item-table
+x-line-operation-modal
+x-tabs-embedded
+x-dev-component-version
+
+Estos componentes pueden ser consumidos por orders y documents cuando la gramática visual sea equivalente.
+
+Su existencia no transfiere ownership funcional entre módulos.
+
 Componentes de formularios frecuentes:
 
 inputs de texto
@@ -159,10 +171,18 @@ Caso vigente adicional:
 
 modal de operación por línea documental dentro de documents.show, consumido como micro-superficie operativa de inventory y no como componente exclusivo de documents.
 
+Aclaración adicional para métricas embebidas:
+
+x-tabs-embedded puede mostrar valor principal y valor secundario contextual mediante subvalue cuando el bloque requiera lectura económica o métrica dual.
+
+Caso vigente:
+
+monto estructural principal y monto ejecutado o entregado como dato secundario de menor jerarquía visual.
+
 <<END SECTION>>
 
 <<SECTION: PATRÓN DE INTERACCIÓN MODAL>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 PATRÓN DE INTERACCIÓN MODAL
 
@@ -487,7 +507,7 @@ Estas métricas no reemplazan la tabla principal ni convierten la pantalla en da
 <<END SECTION>>
 
 <<SECTION: PATRÓN VISUAL PARA VISTAS SHOW>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 PATRÓN VISUAL PARA VISTAS SHOW
 
@@ -549,6 +569,12 @@ cuando inventory.movements.show exponga una operación asociada mediante invento
 
 La vista puede incorporar datos de operación asociada, como identificador, tipo, notas o auditoría técnica, sin desplazar el foco del show principal del movimiento.
 
+Aclaración adicional para line items:
+
+orders y documents pueden compartir componentes visuales de líneas cuando la estructura de lectura sea equivalente.
+
+La tabla, el formulario, el modal operativo y las tabs embebidas pueden reutilizar una gramática común sin borrar la identidad visual del host ni la semántica propia de cada módulo.
+
 <<END SECTION>>
 
 <<SECTION: REGLAS PARA X-SHOW-SUMMARY Y X-SHOW-SUMMARY-ITEM>>
@@ -584,7 +610,7 @@ la unidad visual completa debe desaparecer y no solo el contenido interno
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW
 
@@ -640,6 +666,12 @@ Aclaración adicional para capas internas de inventory:
 
 la agrupación inventory_operations puede aportar lectura contextual o auditoría técnica, pero no exige crear jerarquía visual nueva equivalente a módulo principal, tab pesada o pantalla autónoma si el flujo real del usuario continúa centrado en movimientos y acciones operativas.
 
+Aclaración adicional sobre acciones por fila:
+
+cuando una tabla anfitriona combine acciones propias y acciones invitadas, la lectura visual debe priorizar primero las acciones nativas del host y luego las acciones externas integradas.
+
+Esto permite sostener una jerarquía clara entre núcleo del recurso actual y capacidades consumidas desde módulos oferentes.
+
 <<END SECTION>>
 
 <<SECTION: SUPERFICIES CONDICIONALES POR MÓDULO>>
@@ -685,7 +717,7 @@ si además existe una capacidad reusable oficial publicada por el módulo relaci
 <<END SECTION>>
 
 <<SECTION: TABS INTERNAS DEL EMBEBIDO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 TABS INTERNAS DEL EMBEBIDO
 
@@ -716,6 +748,12 @@ Las tabs internas segmentan solo el contenido del bloque invitado.
 Aclaración adicional de retorno visual:
 
 si una acción se dispara desde una tab interna del embebido y luego redirige, la UX correcta debe restaurar la tab técnica correspondiente del host cuando ese panel siga siendo el punto real de continuidad del trabajo.
+
+Aclaración adicional sobre x-tabs-embedded:
+
+cuando un bloque embebido comparte gramática entre módulos, puede utilizar x-tabs-embedded como componente transversal.
+
+Este componente puede mostrar métricas principales y métricas secundarias mediante subvalue, siempre que la segunda lectura sea contextual y de menor jerarquía visual.
 
 <<END SECTION>>
 

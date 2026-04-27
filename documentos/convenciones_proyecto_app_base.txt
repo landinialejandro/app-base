@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 CONVENCIONES GENERALES
 
@@ -207,6 +207,16 @@ Convención adicional de migración arquitectónica:
 si una familia reusable ya evolucionó hacia una nueva generación aprobada, no debe cerrarse el trabajo con soluciones híbridas mezclando generación nueva y vieja.
 
 La migración válida puede ser gradual por módulo, pero cada módulo debe cerrar coherencia interna completa.
+
+Convención adicional de lifecycle compartido:
+
+cuando módulos equivalentes operen con cabecera y detalle, debe priorizarse una base común de estados persistidos para la cabecera si la semántica real coincide.
+
+El sistema debe preferir transiciones automáticas por reglas de negocio antes que selects manuales de estado cuando el cambio sea objetivamente deducible.
+
+Caso vigente:
+
+la primera línea creada sobre una cabecera en draft promueve automáticamente a pending_approval.
 
 <<END SECTION>>
 
@@ -1043,7 +1053,7 @@ order_items continúa siendo entidad hija de orders aunque participe como anclaj
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00022
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -1247,6 +1257,12 @@ orders puede actuar como host visual de acciones de inventory por línea, pero i
 Caso vigente adicional:
 
 documents puede actuar como host visual de acciones de inventory por línea documental, pero inventory conserva la resolución interna de inventory_operations e inventory_movements.
+
+Regla adicional de orden visual en tablas anfitrionas:
+
+cuando una fila combine acciones nativas del host y acciones invitadas desde otros módulos, primero deben renderizarse las acciones propias del host y luego las capacidades externas integradas.
+
+Esto mejora lectura de ownership y reduce ambigüedad operativa.
 
 <<END SECTION>>
 

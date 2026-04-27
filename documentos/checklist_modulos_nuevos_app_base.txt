@@ -110,171 +110,33 @@ Si estas respuestas no están claras, no debe avanzarse a implementación.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00004
 
 BLOQUE 1 — CONTRATO MODULAR
 
-Todo módulo debe poder describirse mediante un contrato modular mínimo.
+Antes de aprobar un módulo nuevo debe poder explicarse con claridad:
 
-Validar:
+núcleo propio
+contrato de entrada
+contrato de salida
+contrato de seguridad
+oferta de integración
 
-núcleo definido
-contrato de entrada definido
-contrato de salida definido
-oferta de integración definida o declarada como futura
-límites claros del módulo
+Validar además:
 
-NÚCLEO
+si realmente es módulo y no dataset reusable del tenant
+si resuelve un problema propio del dominio
+si evita invadir núcleos existentes
+si sus integraciones futuras pueden publicarse por contrato
+si el ownership funcional queda claro
 
-Debe quedar claro qué resuelve por sí mismo.
+Criterio adicional validado:
 
-CONTRATO DE ENTRADA
+si una necesidad es solo consulta interna de colaboradores, directorio activo o pertenencia operativa, evaluar primero una raíz reusable del plano tenant antes de abrir módulo nuevo.
 
-Debe quedar claro qué puede recibir desde sistema u otros módulos.
+Criterio adicional validado:
 
-CONTRATO DE SALIDA
-
-Debe quedar claro qué devuelve o expone.
-
-OFERTA DE INTEGRACIÓN
-
-Debe quedar claro qué capacidades reutilizables publica o prevé publicar.
-
-Cuando la capacidad reusable sea compleja, debe quedar claro si el módulo publica además:
-
-payload arbitrado desde backend
-bloque visual consumidor
-ubicación modular coherente con su identidad contractual
-
-Preguntas obligatorias:
-
-qué pertenece realmente al núcleo
-qué integraciones deberían vivir fuera del núcleo
-qué debería consumir otro módulo sin tocar implementación interna
-qué puede publicarse hoy aunque todavía no tenga consumidor real
-la capacidad reusable se publica como unidad completa o solo como vista aislada
-cuál es la superficie principal real del módulo
-si existe una superficie secundaria relevante que no debe leerse como base principal
-si la integración reusable requerida es pesada o compacta
-si el módulo nació como capacidad transversal y ahora requiere identidad propia
-
-Regla adicional de cierre:
-
-si la capacidad reusable ya fue cerrada doctrinalmente por el módulo oferente, no debe quedar ninguna superficie secundaria relevante reconstruyendo localmente sus estados operativos
-
-antes de considerar cerrado el contrato modular, revisar también tablas, partials, formularios embebidos y demás superficies derivadas que consuman esa integración
-
-la definición del contrato modular también debe dejar explícito si el módulo publica:
-
-embebido reusable oficial para relaciones fuertes
-
-o acción compacta oficial para relaciones puntuales
-
-Regla evolutiva adicional:
-
-si una capacidad operativa madura demuestra identidad funcional propia, puede reconvertirse en módulo explícito manteniendo continuidad con los consumidores existentes.
-
-Regla adicional consolidada:
-
-al diseñar un módulo debe evaluarse explícitamente si publicará una puerta de enlace oficial hacia el ecosistema además de su núcleo interno
-
-debe quedar distinguido:
-
-qué pertenece al núcleo del módulo
-qué forma parte de su puerta de enlace modular
-qué podrán consumir otros módulos desde esa surface oficial
-
-si el módulo actuará como oferente de capacidad, como hub visual, o como ambos, eso debe quedar declarado desde el contrato
-
-si el módulo admite consumo externo, deben definirse de forma explícita:
-
-entradas aceptadas desde otros módulos
-salidas posibles
-reglas de arbitraje
-límites de seguridad
-
-Validación adicional para frentes operativos por línea:
-
-si el módulo ejecuta operaciones sobre líneas hijas o recursos delegados, debe verificarse que el contrato describa también:
-
-semántica de ejecución neta
-reglas de reversión
-efecto sobre pendiente
-distinción entre stock y avance operativo cuando no sean equivalentes
-
-Validación adicional para surfaces embebidas reusables:
-
-si el módulo publicará una surface reusable embebida, debe dejar explícito al menos:
-
-type
-slot
-key
-label
-targets
-priority
-view
-needs
-resolver
-
-y el resolver debe devolver al menos:
-
-count
-data
-
-Validación adicional para hosts show surface-driven:
-
-si el módulo será consumido dentro de show pages de otros módulos, no alcanza con declarar target correcto y view publicada.
-
-Debe auditarse también:
-
-qué slot espera el host
-si el host monta por type, por slot o por ambos
-si la relación es compacta o tabular
-si la publicación respeta la gramática real del host consumidor
-
-Una offer puede estar bien orientada al target y seguir siendo invisible si omite slot o si combina type + slot de forma incompatible con el host real.
-
-Validación adicional para datasets internos del tenant:
-
-si la necesidad aparente del nuevo módulo es resolver colaboradores internos, pertenencia activa al tenant o dataset reusable de usuarios internos, debe evaluarse primero si corresponde una raíz reusable del plano tenant antes que abrir un módulo artificial del negocio.
-
-Validación adicional para puertas contractuales blandas:
-
-si el módulo necesita intervención externa real sobre recursos propios pero todavía no justifica una abstracción mayor, debe evaluarse una estación contractual explícita del propio módulo como único punto autorizado de acople hacia lógicas externas.
-
-Debe quedar claro:
-
-qué sigue perteneciendo al núcleo
-qué delegaciones externas pasarán por esa estación
-qué piezas externas especializadas podrán intervenir
-qué responsabilidades continúan prohibidas en controllers o vistas
-
-Validación adicional para retorno interno del host:
-
-si una acción reusable nace dentro de tabs internas o surfaces embebidas del host, debe evaluarse explícitamente si el contrato necesita preservar también contexto interno del anfitrión además del trail contextual.
-
-Controlar:
-
-si existe tab activa relevante
-si debe usarse `return_tab`
-si la key de retorno es técnica y no visual
-si el redirect final vuelve al host correcto y al panel correcto
-
-Validación adicional para row actions:
-
-si la integración se consumirá dentro de tablas nativas de otro módulo, debe evaluarse si la capacidad corresponde a una row action oficial del módulo oferente y no a un botón hardcodeado del host consumidor.
-
-Validación adicional para líneas documentales operables:
-
-si un módulo documental posee líneas que pueden disparar operaciones de inventory, debe verificarse que esa capacidad se lea como consumo de una oferta oficial del módulo inventory.
-
-Controlar:
-
-que la línea documental continúe perteneciendo al módulo documents
-que inventory conserve la semántica de stock, ejecución, reversión y trazabilidad
-que el host documental no reconstruya localmente reglas de operación material
-que el contrato contemple origen y línea de origen trazables
-que la lectura de ejecutado y pendiente derive de movimientos reales
+si la necesidad aparece dentro de tablas anfitrionas de otros módulos, evaluar si corresponde publicar row actions oficiales desde el módulo oferente antes de crear lógica local en el consumidor.
 
 <<END SECTION>>
 
@@ -350,214 +212,71 @@ si owner dispone de una surface real para entender y administrar ese comportamie
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00004
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
-Toda relación con otros módulos debe justificarse por necesidad real del dominio.
+Validar cómo convivirá el módulo con el ecosistema existente.
 
-Validar:
+Revisar:
 
-qué módulos consume
-qué módulos lo consumen
-si la relación depende de módulo habilitado
-si existe ya una capacidad reusable equivalente
-si la integración respeta contratos existentes
-si evita duplicaciones de selectores, tablas o summaries
-si la capacidad reusable ajena se consume como unidad completa y no solo como vista suelta
-si la relación corresponde a embebido fuerte o a integración compacta
-si el consumidor replica el patrón visual ya consolidado del ecosistema
+qué módulos consumirá
+qué módulos podrán consumirlo
+si publicará surfaces oficiales
+si necesita embebidos fuertes o relaciones compactas
+si respeta NavigationTrail y contexto
+si evita duplicaciones ya resueltas por otros módulos
 
 Preguntas obligatorias:
 
-esta relación agrega valor real o solo comodidad técnica
-puede resolverse con una capacidad ya publicada
-si falta una capacidad reusable, pertenece al módulo oferente
-la integración está reabriendo un núcleo ajeno sin necesidad
-el arbitraje de estados sigue centralizado en el módulo oferente o quedó disperso entre consumidores
+¿la integración pertenece realmente al nuevo módulo o al existente?
 
-Regla:
+¿el consumidor está intentando resolver algo que debería publicar el oferente?
 
-ninguna integración válida debe bypassar seguridad ni crear contratos paralelos.
+¿se mantiene separación entre host visual y ownership funcional?
 
-Regla adicional de cierre:
+¿la integración necesita resolver type + slot + estructura real del host?
 
-no considerar homogénea una integración mientras existan superficies secundarias del consumidor que sigan resolviendo localmente una relación, acción o flujo ya cerrado por el módulo oferente
+Criterio adicional validado:
 
-si el módulo consumidor ya posee un patrón visual consolidado para relaciones equivalentes, la nueva integración debe tender a reutilizar ese patrón y no introducir gramática visual nueva sin causa real
-
-Regla adicional consolidada:
-
-si un módulo consume otro, debe hacerlo por la surface oficial publicada por el oferente y no por lógica ad hoc
-
-cuando la integración ocurra dentro de la pantalla de un tercer módulo, debe definirse además si ese tercer módulo actúa como simple contenedor visual o como verdadero participante del flujo
-
-si actúa como hub visual, no debe absorber la lógica operativa ni la seguridad del módulo invitado
-
-la integración correcta debe dejar al consumidor expresando intención y al módulo oferente resolviendo la operación completa
-
-Validación adicional de semántica cruzada:
-
-si la integración mezcla stock, ejecución, reversión o pendiente, debe comprobarse explícitamente que cada indicador use la regla correcta de su dominio y no una equivalencia mecánica entre signos o cantidades
-
-Validación adicional de cierre reusable:
-
-si una relación fuerte ya fue migrada a surface oficial del oferente, auditar también tabs fijas, includes manuales y demás superficies residuales del host antes de considerar cerrada la integración
-
-Validación adicional para hosts estructurados:
-
-si la integración aterriza en una show page surface-driven, debe verificarse explícitamente compatibilidad real entre:
-
-type
-slot
-target
-zona de montaje del host
-combinación efectiva consumida por el host
-
-No dar por buena una integración solo porque el target coincide.
-
-Debe comprobarse que el host efectivamente consume esa combinación y que la relación se publica en la zona correcta.
-
-Validación adicional para usuarios internos del tenant:
-
-si una integración requiere colaboradores internos del tenant, no debe apoyarse en abilities de módulos inexistentes ni asumir que existe un módulo users formalizado.
-
-Debe evaluarse primero si la necesidad corresponde a una raíz reusable del plano tenant y no a la creación de un módulo nuevo.
-
-Validación adicional para recursos hijos operados:
-
-si la integración interviene líneas hijas o recursos delegados con trazabilidad propia, debe auditarse si el recurso sigue siendo editable libremente o si requiere reglas nuevas de endurecimiento operativo.
-
-Controlar explícitamente:
-
-límites de edición por ejecutado neto
-bloqueo de atributos identitarios
-readonly por completed o cancelled
-reglas de reversión consistentes
-subordinación al estado operativo del padre
-
-Validación adicional para modales y micro-superficies:
-
-si la integración incorpora modales, tabs internas o flujos secundarios, no debe darse por cerrada solo por funcionar el show principal.
-
-Es obligatorio auditar también esas superficies derivadas como parte real del contrato integrado.
-
-Validación adicional para retorno al contexto del host:
-
-si la integración ejecuta acciones desde una tab del anfitrión y luego redirige, debe verificarse que el retorno preserve tanto el recurso host como su contexto interno relevante.
-
-Controlar explícitamente:
-
-trail externo
-return_tab interno
-key técnica correcta de la tab
-ausencia de desvío final a recursos delegados
-
-Validación adicional para tablas anfitrionas:
-
-si el host expone acciones de otro módulo dentro de filas propias, debe auditarse que esas acciones provengan de surfaces oficiales del oferente y no de reconstrucciones locales del consumidor.
-
-Validación adicional para integración inventory sobre documents:
-
-si documents expone operaciones de inventory sobre document_items, debe auditarse que:
-
-la acción por fila provenga de inventory
-documents no calcule localmente reglas de stock
-la operación registre origen documental y línea documental
-la línea conserve trazabilidad hacia movimientos reales
-el ejecutado y pendiente se calculen desde movimientos persistidos
-las restricciones de edición o eliminación se apliquen sin convertir document_items en módulo autónomo
-la futura reversión conserve la misma frontera contractual
+si la integración ocurre por fila dentro de una tabla existente, revisar orden visual, ownership de la acción, validación backend y compatibilidad con estados reales del recurso padre y de la línea.
 
 <<END SECTION>>
 
 <<SECTION: BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00004
 
 BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA
 
-El módulo debe integrarse visualmente al sistema de forma coherente.
+Antes de aprobar una nueva UI validar:
 
-Validar:
+si existe componente reusable vigente
+si puede resolverse con patrones actuales
+si agrega claridad real
+si evita ruido visual
+si mantiene jerarquía entre host e integraciones
+si conserva continuidad operativa
 
-index consistente
-show consistente
-formularios consistentes
-acciones visibles correctas
-mensajes claros
-embebidos consistentes
-toolbars alineadas
-componentes reusables aprovechados
+Revisar especialmente:
 
-Si publica oferta de integración visual, validar:
+tablas
+formularios
+modales
+summary blocks
+tabs internas
+acciones rápidas por fila
 
-selector usable
-tabla embebida reusable
-summary legible
-acciones contextuales claras
-consumo visual homogéneo entre módulos
+Criterio adicional validado:
 
-Preguntas obligatorias:
+si dos módulos comparten gramática operativa equivalente, priorizar componentes comunes antes de duplicar vistas paralelas.
 
-la UI refleja el contrato real del módulo
-hay duplicaciones visuales evitables
-el módulo se siente parte del sistema o una excepción aislada
-la capacidad reusable visual vive en una ubicación coherente con el módulo oferente o quedó globalizada sin necesidad
+Criterio adicional validado:
 
-Regla adicional de cierre:
+las acciones propias del host deben leerse primero y las capacidades externas después cuando conviven en una misma fila o bloque operativo.
 
-la UI no debe considerarse alineada solo porque la vista principal consuma la capacidad reusable correcta
+Criterio adicional validado:
 
-también deben auditarse tablas, partials, formularios embebidos y demás superficies secundarias que puedan exponer esa misma integración
-
-Validación adicional para UX operativa:
-
-si el flujo es complejo internamente, la experiencia visible debe seguir siendo simple, clara y de bajo roce para el usuario final
-
-no trasladar burocracia técnica al frontend cuando el sistema puede absorberla
-
-Validación adicional para hosts visuales:
-
-si una pantalla anfitriona consume capacidades embebidas de otros módulos, debe quedar clara la separación visual entre:
-
-núcleo del host
-relaciones estructurales propias
-capacidades invitadas publicadas por módulos oferentes
-
-la UI del host no debe mezclar en una misma superficie decisiones operativas que pertenecen al módulo invitado
-
-Validación adicional para show pages host:
-
-la show page debe auditarse como host estructurado y no como un único punto genérico de inserción.
-
-Debe verificarse la presencia y coherencia de sus zonas de montaje reales.
-
-Casos vigentes consolidados:
-
-header_actions
-summary_items
-detail_items
-zona tab coordinada
-
-La zona tab no debe evaluarse como dos renders sueltos sin estructura, sino como bloque coordinado del host.
-
-Validación adicional para formularios con datasets internos:
-
-un formulario no debe quedar bloqueado por depender de una fuente de datos no formalizada del catálogo modular.
-
-Si el flujo admite fallback operativo sano, la UI debe expresarlo con claridad y bajo roce.
-
-Caso consolidado:
-
-cuando una tarea no recibe colaborador explícito, el sistema puede asumir asignación al usuario actual en lugar de volver el formulario inviable.
-
-Validación adicional para acciones compactas:
-
-si el espacio operativo lo requiere, deben priorizarse acciones iconográficas compactas consistentes en tablas embebidas o micro-superficies, siempre que la semántica siga siendo clara y el estado operable venga resuelto por el módulo oferente.
-
-Validación adicional para embebidos maduros:
-
-si el módulo consumidor ya invita una surface oficial suficientemente estructurada del oferente, no debe envolverla nuevamente con cards, wrappers o capas visuales redundantes que dupliquen jerarquía o confundan ownership funcional.
+las transiciones de estado deducibles por negocio deben tender a resolverse automáticamente sin agregar fricción innecesaria al usuario.
 
 <<END SECTION>>
 
@@ -638,55 +357,30 @@ Este bloque resume mínimos técnicos, pero no reemplaza el checklist completo.
 <<END SECTION>>
 
 <<SECTION: CRITERIO FINAL DE APROBACIÓN>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00004
 
 CRITERIO FINAL DE APROBACIÓN
 
-Un módulo no se aprueba por cantidad de código implementado.
+Una capacidad nueva no se considera madura solo porque renderiza correctamente.
 
-Se aprueba cuando:
+El cierre real exige revisar de forma integral:
 
-su identidad es clara
-su núcleo está delimitado
-sus contratos son coherentes
-sus seguridad está cerrada
-sus integraciones son sanas
-su UI es consistente
-su documentación quedó alineada
+contrato modular
+seguridad efectiva
+multi-tenancy
+persistencia
+controllers
+services
+hooks
+cálculos
+UI real
+rutas
+runtime
+consistencia doctrinal
 
-Preguntas finales obligatorias:
+No alcanza con una vista compartida ni con una refactorización parcial.
 
-este módulo mejora el ecosistema o agrega ruido
-podrá crecer sin romper otros módulos
-puede integrarse sin refactors innecesarios futuros
-podría usarse como patrón de calidad para el próximo módulo
-sus superficies secundarias también quedaron alineadas
-sus consumers externos dejaron de depender de variantes legacy
-si actúa como host visual, mantiene separado su núcleo de las capacidades invitadas
-si las relaciones fuertes ya migraron a surface oficial, desaparecieron las tabs manuales residuales equivalentes
-si la necesidad original realmente justificaba un módulo nuevo y no una raíz reusable del plano tenant
-
-Validaciones finales obligatorias para módulos transaccionales:
-
-la reversión fue probada
-el recálculo neto posterior fue validado
-los estados visibles quedaron consistentes
-las alertas automáticas siguen siendo legibles si hubo deduplicación
-el resultado fue probado con dataset realista y no solo caso ideal
-Security y Gate/Policy quedaron alineados
-los estados terminales o readonly bloquean actualización y eliminación
-el borrado respeta trazabilidad operativa real
-los recursos hijos no contradicen el estado operativo del padre
-
-Validaciones finales adicionales para integraciones embebidas:
-
-si la acción nace en una tab o micro-superficie del host, el retorno vuelve al contexto correcto del anfitrión
-
-si la integración publica row actions, el host dejó de hardcodear botones equivalentes
-
-si la integración opera sobre líneas documentales, la lectura de estado, ejecutado y pendiente deriva de movimientos reales y no de columnas duplicadas o cálculos locales del host
-
-si la integración con inventory quedó implementada para ejecución, debe quedar identificado si la reversión correspondiente ya fue probada o si permanece como pendiente real
+Se considera cierre sólido cuando desaparecen duplicaciones relevantes sin perder claridad, ownership funcional, trazabilidad ni seguridad.
 
 <<END SECTION>>
 

@@ -335,7 +335,7 @@ Su función es sostener la plataforma y su frontera de ingreso.
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 ENTIDADES DEL NEGOCIO
 
@@ -384,6 +384,28 @@ Ambas piezas pertenecen al mismo frente funcional y no se sustituyen entre sí.
 
 order_items y document_items conservan naturaleza de entidades hijas de sus módulos padre aunque puedan actuar como anclaje de trazabilidad o ejecución dentro de otros flujos.
 
+orders y documents comparten una doctrina base de lifecycle para cabeceras operativas.
+
+Estados base persistidos vigentes:
+
+draft
+pending_approval
+approved
+closed
+cancelled
+
+draft representa cabecera en preparación.
+
+pending_approval representa cabecera con contenido operativo lista para revisión.
+
+approved habilita operación real.
+
+closed congela la cabecera.
+
+cancelled expresa estado terminal.
+
+order_items y document_items pueden actuar como disparadores de transición del padre desde draft hacia pending_approval cuando se crea la primera línea.
+
 <<END SECTION>>
 
 <<SECTION: DISTINCIÓN ENTRE SISTEMA Y NEGOCIO>>
@@ -412,84 +434,57 @@ SECTION_VERSION: 00008
 
 CLASIFICACIÓN CONCEPTUAL DE MÓDULOS
 
-La arquitectura actual del proyecto distingue distintos tipos conceptuales de módulos.
+Los módulos del ecosistema no cumplen todos el mismo rol.
 
-Esta clasificación organiza la lectura del sistema y orienta futuras decisiones de crecimiento.
+Clasificación doctrinal vigente:
 
-No reemplaza el modelado de entidades ni los contratos específicos de otros documentos.
+MÓDULOS NUCLEARES
 
-MÓDULO BASE DEL DOMINIO
+Representan frentes funcionales principales del tenant.
 
-Es una pieza conceptual fundamental del negocio y actúa como anclaje relacional amplio dentro del ecosistema.
+Ejemplos actuales:
 
-Pertenece al ecosistema operativo del tenant pero con un rol más amplio que el de un módulo operativo puntual.
-
-Caso actual consolidado:
-
-parties
-
-MÓDULO TRANSVERSAL
-
-Es una capacidad de soporte o integración amplia, consumible desde otros módulos sin constituir necesariamente el núcleo del dominio operativo.
-
-Caso actual consolidado:
-
-attachments
-
-MÓDULO AUTÓNOMO
-
-Es un módulo con identidad operativa propia que puede vivir por sí mismo aunque también participe en relaciones con otros módulos.
-
-Su agrupación o vinculación con otros módulos no debe degradarlo a simple subrecurso si conserva función propia.
-
-Casos relevantes actuales:
-
+orders
+documents
+inventory
+projects
 tasks
-appointments
+parties
 products
 assets
-orders
+appointments
+attachments
 
-MÓDULO AGRUPADOR
+MÓDULOS TRANSVERSALES
 
-Es un módulo cuya función principal es ordenar, agrupar o dar seguimiento agregado sobre otros módulos sin absorber completamente su identidad.
+Aportan capacidades reutilizables consumibles por múltiples frentes sin redefinir el núcleo de cada módulo.
 
-Caso actual relevante:
+Ejemplos actuales:
 
-projects
+attachments
+inventory en su rol de ejecución y trazabilidad
+documents cuando publica lectura documental reusable
 
-MÓDULO DERIVADO
+CAPACIDADES INTERNAS
 
-Es un módulo que se entiende principalmente como formalización o prolongación operativa de otro módulo más nuclear.
+Son piezas de soporte que fortalecen módulos existentes sin constituir nuevo frente autónomo.
 
-Caso actual relevante:
+Ejemplos actuales:
 
-documents respecto de orders
-
-Regla adicional de lectura estructural:
-
-la clasificación conceptual del módulo no define por sí sola su madurez como host surface-driven dentro del ecosistema.
-
-Dos módulos autónomos pueden compartir tipo conceptual y, aun así, tener distinto grado de evolución en su estructura anfitriona de show page.
-
-Aclaración adicional consolidada para recursos hijos con peso transversal:
-
-que un recurso delegado gane relevancia operativa dentro del ecosistema no altera por sí solo la clasificación conceptual del módulo padre ni lo promueve automáticamente a módulo autónomo.
-
-Caso vigente relevante:
-
-order_items sigue siendo detalle subordinado de orders aun cuando actúe como anclaje operativo explícito frente a inventory.
+inventory_operations
+catálogos
+helpers comunes
+surfaces específicas
+datasets internos del tenant
 
 Regla:
 
-esta clasificación debe orientar futuras decisiones arquitectónicas del proyecto.
-
-El detalle contractual y operativo de cada módulo se resuelve en la sección LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES.
+la clasificación describe rol funcional actual y puede evolucionar con la madurez real del sistema.
 
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
@@ -574,6 +569,22 @@ El módulo oferente conserva reglas, validaciones, semántica operativa y trazab
 Caso vigente:
 
 documents puede alojar acciones de inventory por línea documental sin absorber lógica de stock.
+
+Aclaración adicional sobre convergencia de line items:
+
+orders y documents pueden compartir infraestructura de líneas cuando la gramática operativa sea equivalente.
+
+La convergencia válida no fusiona módulos ni traslada ownership.
+
+Orders conserva centralidad operativa.
+
+Documents converge estructuralmente hacia el patrón maduro de orders cuando corresponde.
+
+Inventory conserva semántica propia de stock, movimientos, ejecución, reversión y trazabilidad material.
+
+La infraestructura común puede incluir componentes visuales, helpers livianos y matemática comercial compartida para líneas comerciales.
+
+No debe absorber reglas de dominio, hooks, permisos ni semántica material propia de inventory.
 
 CONSUMO EXTERNO
 
@@ -672,70 +683,33 @@ No todos los hosts show pages poseen igual madurez estructural dentro del ecosis
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00007
 
 LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES
 
-La lectura conceptual permite comprender el rol principal de cada módulo dentro del ecosistema.
+Lectura síntesis del ecosistema vigente:
 
-PARTIES
+orders es referencia madura para cabeceras operativas equivalentes
 
-Módulo base del dominio y referencia amplia para múltiples relaciones.
+documents formaliza flujos documentales y converge hacia patrones sólidos ya validados cuando corresponde
 
-PROJECTS
+inventory gobierna stock, ejecución material y trazabilidad sin absorber ownership ajeno
 
-Módulo agrupador orientado a ordenar trabajo relacionado.
+projects y tasks organizan planificación y seguimiento operativo
 
-TASKS
+parties concentra terceros y relaciones externas
 
-Módulo autónomo de trabajo operativo interno.
+products y assets representan recursos operativos del tenant
 
-APPOINTMENTS
+appointments coordina agenda y vínculos contextuales con otros módulos
 
-Módulo autónomo de agenda operativa con calendar como superficie principal.
+attachments aporta capacidad transversal de evidencias y archivos
 
-PRODUCTS
+Regla:
 
-Módulo autónomo de catálogo maestro.
+ningún módulo debe expandirse invadiendo el núcleo funcional de otro.
 
-ASSETS
-
-Módulo autónomo de activos o unidades operativas.
-
-ORDERS
-
-Módulo autónomo de núcleo operativo fuerte.
-
-Puede actuar como hub visual de capacidades ajenas sin absorber su lógica.
-
-Sus estados condicionan la operabilidad real del módulo y subordinan a sus líneas hijas.
-
-DOCUMENTS
-
-Módulo derivado respecto de orders.
-
-Formaliza operación documental y puede consumir o publicar capacidades oficiales dentro del ecosistema.
-
-INVENTORY
-
-Frente operativo del stock y la trazabilidad material.
-
-Distingue:
-
-catálogo maestro en products
-contexto operativo agrupado
-movimientos unitarios de stock
-consumo contextual desde otros módulos
-
-inventory_operations agrupa acciones operativas.
-
-inventory_movements conserva el impacto efectivo sobre stock.
-
-Cuando inventory opera dentro de orders o documents, el host conserva su superficie y inventory conserva la semántica material.
-
-TENANT
-
-Forma parte del contexto operativo interno y no de las relaciones modulares superficiales del negocio.
+La integración correcta ocurre por contratos publicados y consumo explícito.
 
 <<END SECTION>>
 
@@ -844,22 +818,26 @@ La dirección de crecimiento aprobada del proyecto continúa siendo modular, reu
 <<END SECTION>>
 
 <<SECTION: CRITERIO DE LECTURA DOCUMENTAL>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00004
 
 CRITERIO DE LECTURA DOCUMENTAL
 
-Este documento debe leerse como marco arquitectónico general del proyecto.
+Este documento cumple función rectora y debe leerse como marco estable del proyecto.
 
-Su función no es competir con otros documentos doctrinales, sino dar contexto estable para interpretarlos correctamente.
+Reglas de mantenimiento:
 
-Lectura correcta:
+priorizar principios estructurales sobre detalle menor
 
-este documento fija qué es el sistema y cómo se organiza
-los documentos específicos desarrollan seguridad, navegación, visualidad, convenciones o roadmap
-las decisiones particulares deben leerse a la luz del marco definido aquí, sin duplicarlo ni deformarlo
+evitar repetir reglas desarrolladas en documentos específicos
 
-Regla final:
+mover convenciones técnicas al documento correspondiente
 
-si una definición necesita detalle operativo fino para ser válida, probablemente ese detalle no pertenezca a este documento.
+mover mapas concretos a documentos de navegación, entidades o componentes
+
+actualizar solo cuando cambie la lectura arquitectónica real del sistema
+
+Objetivo de uso:
+
+permitir retomar decisiones con una base breve, clara y consistente.
 
 <<END SECTION>>

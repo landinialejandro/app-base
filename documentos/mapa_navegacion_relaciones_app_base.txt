@@ -173,7 +173,7 @@ Su función es dar acceso estructural al ecosistema operativo vigente.
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -209,10 +209,18 @@ Aclaración vigente para documents:
 
 cuando documents hospeda operaciones de inventory por línea documental, la navegación sigue perteneciendo al flujo documental anfitrión salvo que el usuario decida abrir una surface canónica de inventory.
 
+Aclaración vigente para lifecycle de cabeceras:
+
+la creación de una cabecera en orders o documents no implica por sí sola que el recurso esté listo para operar.
+
+La cabecera nace en draft y puede pasar a pending_approval cuando recibe la primera línea válida.
+
+Este cambio pertenece al flujo natural del recurso y no crea una navegación nueva.
+
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -245,6 +253,14 @@ inventory puede operar por línea documental dentro del host sin perder identida
 
 Las acciones por fila pertenecen a inventory y documents conserva la tabla documental como superficie anfitriona.
 
+Orden visual recomendado para tablas anfitrionas:
+
+primero acciones propias del host
+
+luego acciones invitadas desde módulos oferentes
+
+Esto permite distinguir con mayor claridad qué pertenece al recurso principal y qué capacidad se consume desde otro módulo.
+
 Regla adicional para estados del host:
 
 si el host entra en estado readonly o terminal, las relaciones embebidas no deben reabrir operabilidad incompatible con ese estado.
@@ -262,7 +278,7 @@ El host visual no debe asumir ownership funcional sobre la agrupación operativa
 <<END SECTION>>
 
 <<SECTION: FLUJOS DERIVADOS RELEVANTES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 FLUJOS DERIVADOS RELEVANTES
 
@@ -305,6 +321,12 @@ en task → order el vínculo estructural persistido se resuelve desde orders.ta
 en appointment → order el vínculo operativo real se resuelve desde appointments.order_id y no requiere orders.appointment_id
 
 en document_item → inventory movement la línea documental actúa como origen trazable sin transferir ownership funcional desde documents hacia inventory
+
+Aclaración adicional sobre cabecera y líneas:
+
+en orders y documents, la cabecera puede iniciar en draft y avanzar a pending_approval cuando se incorpora la primera línea válida.
+
+La línea deja de ser solo detalle estructural cuando participa como disparador del lifecycle del padre.
 
 <<END SECTION>>
 

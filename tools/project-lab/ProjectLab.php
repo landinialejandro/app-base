@@ -1,5 +1,7 @@
 <?php
 
+// FILE: tools/project-lab/ProjectLab.php |V1
+
 /**
  * PROJECT LAB - Clase Principal
  * Maneja toda la lógica del dashboard

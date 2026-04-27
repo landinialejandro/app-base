@@ -1,5 +1,7 @@
 <?php
 
+// FILE: tools/project-lab/index.php | V1
+
 /**
  * PROJECT LAB v8 - Dashboard Modular Autodescubrible
  * Estructura: tools/project-lab/

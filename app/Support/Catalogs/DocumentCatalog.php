@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/DocumentCatalog.php | V2
+// FILE: app/Support/Catalogs/DocumentCatalog.php | V3
 
 namespace App\Support\Catalogs;
 
@@ -26,7 +26,11 @@ class DocumentCatalog extends BaseCatalog
 
     public const STATUS_DRAFT = 'draft';
 
-    public const STATUS_ISSUED = 'issued';
+    public const STATUS_PENDING_APPROVAL = 'pending_approval';
+
+    public const STATUS_APPROVED = 'approved';
+
+    public const STATUS_CLOSED = 'closed';
 
     public const STATUS_CANCELLED = 'cancelled';
 
@@ -47,13 +51,17 @@ class DocumentCatalog extends BaseCatalog
 
     protected static array $statuses = [
         self::STATUS_DRAFT => 'Borrador',
-        self::STATUS_ISSUED => 'Emitido',
+        self::STATUS_PENDING_APPROVAL => 'Pendiente de aprobación',
+        self::STATUS_APPROVED => 'Aprobado',
+        self::STATUS_CLOSED => 'Cerrado',
         self::STATUS_CANCELLED => 'Cancelado',
     ];
 
     protected static array $badges = [
         self::STATUS_DRAFT => 'status-badge--pending',
-        self::STATUS_ISSUED => 'status-badge--done',
+        self::STATUS_PENDING_APPROVAL => 'status-badge--warning',
+        self::STATUS_APPROVED => 'status-badge--warning',
+        self::STATUS_CLOSED => 'status-badge--done',
         self::STATUS_CANCELLED => 'status-badge--cancelled',
     ];
 
@@ -136,6 +144,51 @@ class DocumentCatalog extends BaseCatalog
     public static function isValidStatus(?string $status): bool
     {
         return $status !== null && in_array($status, static::statuses(), true);
+    }
+
+    public static function isOperableStatus(?string $status): bool
+    {
+        return $status === self::STATUS_APPROVED;
+    }
+
+    public static function isReadonlyStatus(?string $status): bool
+    {
+        return in_array($status, [
+            self::STATUS_CLOSED,
+            self::STATUS_CANCELLED,
+        ], true);
+    }
+
+    public static function canTransition(?string $from, string $to): bool
+    {
+        if ($from === $to) {
+            return true;
+        }
+
+        return match ($from) {
+            self::STATUS_DRAFT => in_array($to, [
+                self::STATUS_PENDING_APPROVAL,
+                self::STATUS_CANCELLED,
+            ], true),
+
+            self::STATUS_PENDING_APPROVAL => in_array($to, [
+                self::STATUS_APPROVED,
+                self::STATUS_CANCELLED,
+            ], true),
+
+            self::STATUS_APPROVED => in_array($to, [
+                self::STATUS_CLOSED,
+                self::STATUS_CANCELLED,
+            ], true),
+
+            self::STATUS_CLOSED => in_array($to, [
+                self::STATUS_APPROVED,
+            ], true),
+
+            self::STATUS_CANCELLED => false,
+
+            default => false,
+        };
     }
 
     public static function stockAffectingKinds(): array

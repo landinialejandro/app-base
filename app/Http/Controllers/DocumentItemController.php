@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DocumentItemController.php | V11
+// FILE: app/Http/Controllers/DocumentItemController.php | V14
 
 namespace App\Http\Controllers;
 
@@ -8,15 +8,17 @@ use App\Models\Document;
 use App\Models\DocumentItem;
 use App\Models\Product;
 use App\Support\Auth\Security;
+use App\Support\Catalogs\DocumentCatalog;
 use App\Support\Catalogs\DocumentItemCatalog;
 use App\Support\Documents\DocumentTotalsCalculator;
-use App\Support\Inventory\DocumentItemStatusService;
-use App\Support\Inventory\InventoryDocumentItemHooks;
+use App\Support\Documents\DocumentsHooks;
 use App\Support\LineItems\LineItemMath;
+use App\Support\LineItems\LineItemValidationRules;
 use App\Support\Navigation\DocumentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
+use InvalidArgumentException;
 
 class DocumentItemController extends Controller
 {
@@ -67,11 +69,7 @@ class DocumentItemController extends Controller
                         ->whereNull('deleted_at');
                 }),
             ],
-            'position' => ['required', 'integer', 'min:1'],
-            'kind' => ['required', 'string', 'max:50'],
-            'description' => ['required', 'string', 'max:255'],
-            'quantity' => ['required', 'numeric', 'gt:0'],
-            'unit_price' => ['required', 'numeric', 'min:0'],
+            ...app(LineItemValidationRules::class)->baseRules(),
         ]);
 
         if (! empty($data['product_id'])) {
@@ -94,9 +92,16 @@ class DocumentItemController extends Controller
 
         DocumentItem::create($data);
 
+        if ($document->status === DocumentCatalog::STATUS_DRAFT) {
+            $document->update([
+                'status' => DocumentCatalog::STATUS_PENDING_APPROVAL,
+                'updated_by' => auth()->id(),
+            ]);
+        }
+
         app(DocumentTotalsCalculator::class)->recalculate($document->fresh());
 
-        $navigationTrail = DocumentNavigationTrail::show($request, $document);
+        $navigationTrail = DocumentNavigationTrail::show($request, $document->fresh());
 
         return redirect()
             ->route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
@@ -109,13 +114,15 @@ class DocumentItemController extends Controller
 
         abort_unless((int) $item->document_id === (int) $document->id, 404);
 
-        if (DocumentItemCatalog::isFinal($item->status)) {
+        try {
+            app(DocumentsHooks::class)->beforeDocumentItemEdit($document, $item);
+        } catch (InvalidArgumentException $exception) {
             $navigationTrail = DocumentNavigationTrail::show($request, $document);
 
             return redirect()
                 ->route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
                 ->withErrors([
-                    'item' => 'La línea documental está en estado final y no puede editarse.',
+                    'item' => $exception->getMessage(),
                 ]);
         }
 
@@ -157,11 +164,7 @@ class DocumentItemController extends Controller
                         ->whereNull('deleted_at');
                 }),
             ],
-            'position' => ['required', 'integer', 'min:1'],
-            'kind' => ['required', 'string', 'max:50'],
-            'description' => ['required', 'string', 'max:255'],
-            'quantity' => ['required', 'numeric', 'gt:0'],
-            'unit_price' => ['required', 'numeric', 'min:0'],
+            ...app(LineItemValidationRules::class)->baseRules(),
         ]);
 
         if (! empty($data['product_id'])) {
@@ -174,8 +177,8 @@ class DocumentItemController extends Controller
         }
 
         try {
-            app(InventoryDocumentItemHooks::class)->beforeUpdate($document, $item, $data);
-        } catch (\InvalidArgumentException $exception) {
+            $data = app(DocumentsHooks::class)->beforeDocumentItemUpdate($document, $item, $data);
+        } catch (InvalidArgumentException $exception) {
             return back()
                 ->withErrors([
                     'quantity' => $exception->getMessage(),
@@ -190,7 +193,7 @@ class DocumentItemController extends Controller
 
         $item->update($data);
 
-        app(DocumentItemStatusService::class)->recalculate($item->fresh());
+        app(DocumentsHooks::class)->afterDocumentItemUpdate($document, $item);
 
         app(DocumentTotalsCalculator::class)->recalculate($document->fresh());
 
@@ -208,8 +211,8 @@ class DocumentItemController extends Controller
         abort_unless((int) $item->document_id === (int) $document->id, 404);
 
         try {
-            app(InventoryDocumentItemHooks::class)->beforeDelete($document, $item);
-        } catch (\InvalidArgumentException $exception) {
+            app(DocumentsHooks::class)->beforeDocumentItemDestroy($document, $item);
+        } catch (InvalidArgumentException $exception) {
             return back()
                 ->withErrors([
                     'item' => $exception->getMessage(),
@@ -227,18 +230,17 @@ class DocumentItemController extends Controller
             ->with('success', 'Ítem eliminado correctamente.');
     }
 
-protected function syncDerivedFields(array $data): array
-{
-    $math = app(\App\Support\LineItems\LineItemMath::class);
+    protected function syncDerivedFields(array $data): array
+    {
+        $math = app(LineItemMath::class);
 
-    $quantity = $math->normalizeQuantity($data['quantity'] ?? 0);
-    $unitPrice = $math->normalizeMoney($data['unit_price'] ?? 0);
+        $quantity = $math->normalizeQuantity($data['quantity'] ?? 0);
+        $unitPrice = $math->normalizeMoney($data['unit_price'] ?? 0);
 
-    $data['quantity'] = $quantity;
-    $data['unit_price'] = $unitPrice;
-    $data['subtotal'] = $math->lineTotal($quantity, $unitPrice);
+        $data['quantity'] = $quantity;
+        $data['unit_price'] = $unitPrice;
+        $data['subtotal'] = $math->lineTotal($quantity, $unitPrice);
 
-    return $data;
-}
-
+        return $data;
+    }
 }

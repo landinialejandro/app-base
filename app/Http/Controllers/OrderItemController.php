@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderItemController.php | V22
+// FILE: app/Http/Controllers/OrderItemController.php | V24
 
 namespace App\Http\Controllers;
 
@@ -12,6 +12,7 @@ use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\OrderCatalog;
 use App\Support\LineItems\LineItemMath;
+use App\Support\LineItems\LineItemValidationRules;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\OrderNavigationTrail;
 use App\Support\Orders\OrdersHooks;
@@ -86,11 +87,7 @@ class OrderItemController extends Controller
 
         $data = $request->validate([
             'product_id' => $productRules,
-            'position' => ['required', 'integer', 'min:1'],
-            'kind' => ['required', 'string', 'max:50'],
-            'description' => ['required', 'string', 'max:255'],
-            'quantity' => ['required', 'numeric', 'gt:0'],
-            'unit_price' => ['required', 'numeric', 'min:0'],
+            ...app(LineItemValidationRules::class)->baseRules(),
         ]);
 
         if (! $supportsProductsModule) {
@@ -114,7 +111,14 @@ class OrderItemController extends Controller
 
         OrderItem::create($data);
 
-        $navigationTrail = OrderNavigationTrail::show($request, $order);
+        if ($order->status === OrderCatalog::STATUS_DRAFT) {
+            $order->update([
+                'status' => OrderCatalog::STATUS_PENDING_APPROVAL,
+                'updated_by' => auth()->id(),
+            ]);
+        }
+
+        $navigationTrail = OrderNavigationTrail::show($request, $order->fresh());
 
         return redirect()
             ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
@@ -188,11 +192,7 @@ class OrderItemController extends Controller
 
         $data = $request->validate([
             'product_id' => $productRules,
-            'position' => ['required', 'integer', 'min:1'],
-            'kind' => ['required', 'string', 'max:50'],
-            'description' => ['required', 'string', 'max:255'],
-            'quantity' => ['required', 'numeric', 'gt:0'],
-            'unit_price' => ['required', 'numeric', 'min:0'],
+            ...app(LineItemValidationRules::class)->baseRules(),
         ]);
 
         if (! $supportsProductsModule) {

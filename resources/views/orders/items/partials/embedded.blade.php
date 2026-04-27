@@ -1,8 +1,10 @@
-{{-- FILE: resources/views/orders/items/partials/embedded.blade.php | V9 --}}
+{{-- FILE: resources/views/orders/items/partials/embedded.blade.php | V10 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
     use App\Support\Catalogs\OrderItemCatalog;
+    use App\Support\Inventory\OrderItemStatusService;
+    use App\Support\LineItems\LineItemTotals;
     use App\Support\LineItems\LineItemViewHelper;
 
     $viewHelper = app(LineItemViewHelper::class);
@@ -12,6 +14,13 @@
     $emptyMessage = $emptyMessage ?? 'No hay ítems cargados en esta orden.';
     $trailQuery = $trailQuery ?? [];
     $supportsProductsModule = $supportsProductsModule ?? true;
+
+    $executedTotal = $order
+        ? app(LineItemTotals::class)->executedTotal(
+            $items,
+            fn ($item) => app(OrderItemStatusService::class)->executedQuantity($item),
+        )
+        : 0;
 
     $statuses = [
         OrderItemCatalog::STATUS_PENDING => OrderItemCatalog::statusLabel(OrderItemCatalog::STATUS_PENDING),
@@ -34,6 +43,7 @@
         [
             'label' => 'Total estructural',
             'value' => $viewHelper->money($order?->total ?? 0),
+            'subvalue' => 'Entregado: '.$viewHelper->money($executedTotal),
         ],
     ];
 

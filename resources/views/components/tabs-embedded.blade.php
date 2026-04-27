@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/components/tabs-embedded.blade.php | V1 --}}
+{{-- FILE: resources/views/components/tabs-embedded.blade.php | V2 --}}
 
 @props([
     'items' => collect(),
@@ -106,6 +106,12 @@
                             <div class="summary-inline-value">
                                 {{ $summaryItem['value'] ?? '—' }}
                             </div>
+
+                            @if (! empty($summaryItem['subvalue']))
+                                <div class="form-help mt-1">
+                                    {{ $summaryItem['subvalue'] }}
+                                </div>
+                            @endif
                         </div>
                     @endforeach
                 </div>
@@ -120,4 +126,4 @@
     @endif
 </div>
 
-<x-dev-component-version name="tabs-embedded" version="V1" />
+<x-dev-component-version name="tabs-embedded" version="V2" />

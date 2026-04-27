@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/OrderCatalog.php | V3
+// FILE: app/Support/Catalogs/OrderCatalog.php | V4
 
 namespace App\Support\Catalogs;
 
@@ -17,6 +17,7 @@ class OrderCatalog extends BaseCatalog
     public const KIND_SERVICE = self::GROUP_SERVICE;
 
     public const STATUS_DRAFT = 'draft';
+    public const STATUS_PENDING_APPROVAL = 'pending_approval';
     public const STATUS_APPROVED = 'approved';
     public const STATUS_CLOSED = 'closed';
     public const STATUS_CANCELLED = 'cancelled';
@@ -33,6 +34,7 @@ class OrderCatalog extends BaseCatalog
 
     protected static array $statuses = [
         self::STATUS_DRAFT => 'Borrador',
+        self::STATUS_PENDING_APPROVAL => 'Pendiente de aprobación',
         self::STATUS_APPROVED => 'Aprobada',
         self::STATUS_CLOSED => 'Cerrada',
         self::STATUS_CANCELLED => 'Cancelada',
@@ -40,6 +42,7 @@ class OrderCatalog extends BaseCatalog
 
     protected static array $badges = [
         self::STATUS_DRAFT => 'status-badge--pending',
+        self::STATUS_PENDING_APPROVAL => 'status-badge--warning',
         self::STATUS_APPROVED => 'status-badge--warning',
         self::STATUS_CLOSED => 'status-badge--done',
         self::STATUS_CANCELLED => 'status-badge--cancelled',
@@ -100,6 +103,16 @@ class OrderCatalog extends BaseCatalog
         return $default;
     }
 
+    public static function statuses(): array
+    {
+        return array_keys(static::$statuses);
+    }
+
+    public static function statusLabels(): array
+    {
+        return static::$statuses;
+    }
+
     public static function statusLabel(?string $value, ?string $default = '—'): ?string
     {
         if ($value === null) {
@@ -107,6 +120,15 @@ class OrderCatalog extends BaseCatalog
         }
 
         return static::$statuses[$value] ?? $default;
+    }
+
+    public static function badgeClass(?string $value, ?string $default = 'status-badge--neutral'): string
+    {
+        if ($value === null) {
+            return $default;
+        }
+
+        return static::$badges[$value] ?? $default;
     }
 
     public static function directionFor(?string $group, ?string $kind = null, string $default = 'out'): string
@@ -145,6 +167,11 @@ class OrderCatalog extends BaseCatalog
 
         return match ($from) {
             self::STATUS_DRAFT => in_array($to, [
+                self::STATUS_PENDING_APPROVAL,
+                self::STATUS_CANCELLED,
+            ], true),
+
+            self::STATUS_PENDING_APPROVAL => in_array($to, [
                 self::STATUS_APPROVED,
                 self::STATUS_CANCELLED,
             ], true),

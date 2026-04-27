@@ -1,7 +1,9 @@
-{{-- FILE: resources/views/documents/items/partials/embedded.blade.php | V4 --}}
+{{-- FILE: resources/views/documents/items/partials/embedded.blade.php | V5 --}}
 
 @php
     use App\Support\Catalogs\DocumentItemCatalog;
+    use App\Support\Inventory\DocumentItemStatusService;
+    use App\Support\LineItems\LineItemTotals;
     use App\Support\LineItems\LineItemViewHelper;
 
     $viewHelper = app(LineItemViewHelper::class);
@@ -10,6 +12,13 @@
     $items = $items ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay ítems cargados en este documento.';
     $trailQuery = $trailQuery ?? [];
+
+    $executedTotal = $document
+        ? app(LineItemTotals::class)->executedTotal(
+            $items,
+            fn ($item) => app(DocumentItemStatusService::class)->executedQuantity($item),
+        )
+        : 0;
 
     $statuses = [
         DocumentItemCatalog::STATUS_PENDING => DocumentItemCatalog::statusLabel(DocumentItemCatalog::STATUS_PENDING),
@@ -40,6 +49,7 @@
         [
             'label' => 'Total',
             'value' => $viewHelper->money($document?->total ?? 0),
+            'subvalue' => 'Ejecutado: '.$viewHelper->money($executedTotal),
         ],
     ];
 @endphp

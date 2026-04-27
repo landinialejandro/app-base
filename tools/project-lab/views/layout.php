@@ -61,6 +61,7 @@
                 <div class="btn-group">
                     <button onclick="runScript('docs.sh')" class="secondary">📄 Docs.sh</button>
                     <button onclick="runScript('codigos.sh')" class="secondary">💻 Codigos.sh</button>
+                    <button onclick="runScript('auditar.sh')" class="secondary" style="grid-column: 1 / -1;">🔍 Auditar.sh</button>
                 </div>
                 <div id="scriptStatus"></div>
             </div>

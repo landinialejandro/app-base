@@ -236,21 +236,21 @@ class ProjectLab
 
     private function executeScript($script)
     {
-        $allowed = ['docs.sh', 'codigos.sh'];
+        $allowed = ['docs.sh', 'codigos.sh', 'auditar.sh'];
 
         if (! in_array($script, $allowed)) {
             echo 'Error: Script no permitido';
             exit;
         }
 
-        $path = $this->projectRoot.'/'.$script;
+        $path = $this->projectRoot.'/tools/'.$script;
         if (! file_exists($path)) {
             echo "Error: El archivo {$script} no existe";
             exit;
         }
 
         $output = shell_exec('cd '.escapeshellarg($this->projectRoot).
-                            ' && sh '.escapeshellarg($script).' 2>&1');
+                            ' && bash '.escapeshellarg('tools/'.$script).' 2>&1');
 
         echo "--- SALIDA DE $script ---\n".$output;
         $this->log('SCRIPT', $script, $output);

@@ -69,7 +69,8 @@ function clearTinker() {
     if (textarea) {
         textarea.value = "";
     }
-
+    localStorage.removeItem("projectLabTinkerOutput");
+    localStorage.removeItem("projectLabTinkerCode");
     // Eliminar outputs anteriores
     document.querySelectorAll(".output-card").forEach((card) => card.remove());
 }
@@ -390,6 +391,32 @@ function showStatus(message, type = "") {
 // También mejoramos la función para el input
 document.addEventListener("DOMContentLoaded", function () {
     const modelInput = document.getElementById("modelName");
+    const savedTinkerCode = localStorage.getItem("projectLabTinkerCode");
+    const savedTinkerOutput = localStorage.getItem("projectLabTinkerOutput");
+    const savedLabInput = localStorage.getItem("projectLabLabInput");
+    const savedLabOutput = localStorage.getItem("projectLabLabOutput");
+
+    if (savedLabInput !== null) {
+        const labInput = document.getElementById("labInput");
+        if (labInput && labInput.value.trim() === "") {
+            labInput.value = savedLabInput;
+        }
+    }
+
+    if (savedLabOutput) {
+        ensureLabOutput().textContent = savedLabOutput;
+    }
+
+    if (savedTinkerCode !== null) {
+        const textarea = document.getElementById("code");
+        if (textarea && textarea.value.trim() === "") {
+            textarea.value = savedTinkerCode;
+        }
+    }
+
+    if (savedTinkerOutput) {
+        ensureTinkerOutput().textContent = savedTinkerOutput;
+    }
 
     if (modelInput) {
         // Permitir ejecutar con Enter
@@ -495,8 +522,7 @@ document.addEventListener("keydown", function (e) {
     // Ctrl/Cmd + Enter: Ejecutar Tinker
     if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
         e.preventDefault();
-        const runBtn = document.querySelector('button[name="run"]');
-        if (runBtn) runBtn.click();
+        runTinkerAjax();
     }
 
     // Ctrl/Cmd + L: Limpiar
@@ -509,9 +535,10 @@ document.addEventListener("keydown", function (e) {
     if (e.ctrlKey || e.metaKey) {
         const tabs = {
             1: "tinker",
-            2: "database",
-            3: "routes",
-            4: "monitor",
+            2: "tools",
+            3: "database",
+            4: "routes",
+            5: "monitor",
         };
 
         if (tabs[e.key]) {
@@ -654,3 +681,199 @@ console.log(
 console.log(
     "⌨️  Atajos: Ctrl+Enter ejecutar, Ctrl+L limpiar, Ctrl+1-4 pestañas",
 );
+
+// AGREGAR EN: tools/project-lab/assets/js/app.js
+
+function insertLabSnippet(snippet) {
+    const textarea = document.getElementById("labInput");
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+
+    textarea.value = text.substring(0, start) + snippet + text.substring(end);
+    textarea.focus();
+    textarea.setSelectionRange(start + snippet.length, start + snippet.length);
+}
+
+function clearLabTools() {
+    const textarea = document.getElementById("labInput");
+    if (textarea) {
+        textarea.value = "";
+    }
+
+    const output = document.querySelector("#tab-tools .output-card");
+    if (output) {
+        output.remove();
+    }
+    localStorage.removeItem("projectLabLabInput");
+    localStorage.removeItem("projectLabLabOutput");
+    localStorage.removeItem("projectLabLabActive");
+}
+
+function copyLabOutput() {
+    const output = document.getElementById("labOutput");
+
+    if (!output) {
+        showNotification("No hay salida Lab para copiar", "warning");
+        return;
+    }
+
+    copyToClipboard(output.innerText, "Salida Lab copiada al portapapeles");
+}
+function runLabTool(tool, fromClipboard = false) {
+    const input = document.getElementById("labInput");
+    const formData = new FormData();
+
+    formData.append("csrf_token", CONFIG.csrfToken);
+    formData.append("ajax_lab_tool", "1");
+    formData.append("lab_tool", tool);
+    formData.append("lab_input", input ? input.value : "");
+
+    if (fromClipboard) {
+        formData.append("from_clipboard", "1");
+    }
+
+    ensureLabOutput().textContent = "⏳ Ejecutando...";
+
+    fetch(CONFIG.baseUrl, {
+        method: "POST",
+        body: formData,
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            const finalInput =
+                data.input !== undefined
+                    ? data.input
+                    : input
+                      ? input.value
+                      : "";
+
+            const finalOutput = data.output || "Sin salida.";
+
+            if (input) {
+                input.value = finalInput;
+            }
+
+            ensureLabOutput().textContent = finalOutput;
+
+            localStorage.setItem("projectLabLabInput", finalInput);
+            localStorage.setItem("projectLabLabOutput", finalOutput);
+            localStorage.setItem("projectLabLabActive", tool);
+
+            showNotification("Herramienta Lab ejecutada", "success");
+        })
+        .catch((error) => {
+            const errorOutput = "❌ Error AJAX: " + error.message;
+
+            ensureLabOutput().textContent = errorOutput;
+            localStorage.setItem("projectLabLabOutput", errorOutput);
+
+            showNotification("Error al ejecutar herramienta Lab", "error");
+        });
+}
+
+function ensureLabOutput() {
+    let output = document.getElementById("labOutput");
+
+    if (output) {
+        return output;
+    }
+
+    const tab = document.getElementById("tab-tools");
+
+    const card = document.createElement("div");
+    card.className = "card output-card";
+    card.innerHTML = `
+        <div class="output-header">
+            <span>📤 Salida Herramientas Lab</span>
+            <button onclick="copyLabOutput()" class="secondary small">Copiar</button>
+        </div>
+        <pre id="labOutput"></pre>
+    `;
+
+    tab.appendChild(card);
+
+    return document.getElementById("labOutput");
+}
+function runTinkerAjax() {
+    const textarea = document.getElementById("code");
+    const formData = new FormData();
+
+    formData.append("csrf_token", CONFIG.csrfToken);
+    formData.append("ajax_tinker", "1");
+    formData.append("code", textarea ? textarea.value : "");
+
+    ensureTinkerOutput().textContent = "⏳ Ejecutando Tinker...";
+
+    fetch(CONFIG.baseUrl, {
+        method: "POST",
+        body: formData,
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            const finalCode =
+                data.code !== undefined
+                    ? data.code
+                    : textarea
+                      ? textarea.value
+                      : "";
+
+            const finalOutput = data.output || "Sin salida.";
+
+            if (textarea) {
+                textarea.value = finalCode;
+            }
+
+            ensureTinkerOutput().textContent = finalOutput;
+
+            localStorage.setItem("projectLabTinkerCode", finalCode);
+            localStorage.setItem("projectLabTinkerOutput", finalOutput);
+            localStorage.setItem(
+                "projectLabTinkerAt",
+                new Date().toISOString(),
+            );
+
+            showNotification(
+                "Tinker ejecutado",
+                data.ok ? "success" : "warning",
+            );
+        })
+        .catch((error) => {
+            const errorOutput = "❌ Error AJAX: " + error.message;
+
+            ensureTinkerOutput().textContent = errorOutput;
+            localStorage.setItem("projectLabTinkerOutput", errorOutput);
+            localStorage.setItem(
+                "projectLabTinkerAt",
+                new Date().toISOString(),
+            );
+
+            showNotification("Error al ejecutar Tinker", "error");
+        });
+}
+
+function ensureTinkerOutput() {
+    let output = document.getElementById("tinkerOutput");
+
+    if (output) {
+        return output;
+    }
+
+    const tab = document.getElementById("tab-tinker");
+
+    const card = document.createElement("div");
+    card.className = "card output-card";
+    card.innerHTML = `
+        <div class="output-header">
+            <span>📤 Resultado</span>
+            <button onclick="copyOutput()" class="secondary small">Copiar</button>
+        </div>
+        <pre id="tinkerOutput"></pre>
+    `;
+
+    tab.appendChild(card);
+
+    return document.getElementById("tinkerOutput");
+}

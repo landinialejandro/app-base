@@ -36,6 +36,7 @@
                 <button class="tab-btn" onclick="showTab('database')">🗄️ Base de Datos</button>
                 <button class="tab-btn" onclick="showTab('routes')">🔗 Rutas (<?= count($routes) ?>)</button>
                 <button class="tab-btn" onclick="showTab('monitor')">📊 Monitor</button>
+                <button class="tab-btn" onclick="showTab('tools')">🧰 Herramientas Lab</button>
             </div>
 
             <!-- Historial -->
@@ -110,6 +111,7 @@
         <!-- Contenido Principal -->
         <main>
             <?php require 'tinker.php'; ?>
+            <?php require 'tools.php'; ?>
             <?php require 'database.php'; ?>
             <?php require 'routes.php'; ?>
             <?php require 'monitor.php'; ?>

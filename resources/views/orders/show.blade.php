@@ -96,15 +96,12 @@
             </x-show-summary-item>
 
             <x-show-summary-item label="Estado">
-                <span class="status-badge {{ OrderCatalog::badgeClass($order->status) }}">
-                    {{ OrderCatalog::statusLabel($order->status) }}
-                </span>
+                <x-status-badge :catalog="OrderCatalog::class" :status="$order->status" />
 
                 @can('changeStatus', $order)
-                    @include('orders.partials.status-quick-actions', [
-                        'order' => $order,
-                        'trailQuery' => $trailQuery,
-                    ])
+                    <x-status-transition-actions :record="$order" :catalog="OrderCatalog::class" route-name="orders.status.update"
+                        route-param="order" :trail-query="$trailQuery" resource-label="la orden" approved-label="Aprobada"
+                        closed-label="Cerrada" cancelled-label="Cancelada" />
                 @endcan
             </x-show-summary-item>
 

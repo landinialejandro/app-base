@@ -260,6 +260,8 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::get('/documents/{document}', [DocumentController::class, 'show'])->name('documents.show');
     Route::get('/documents/{document}/edit', [DocumentController::class, 'edit'])->name('documents.edit');
     Route::put('/documents/{document}', [DocumentController::class, 'update'])->name('documents.update');
+    Route::post('/documents/{document}/status', [DocumentController::class, 'updateStatus'])
+        ->name('documents.status.update');
     Route::delete('/documents/{document}', [DocumentController::class, 'destroy'])->name('documents.destroy');
 
     Route::prefix('documents/{document}')->name('documents.')->group(function () {

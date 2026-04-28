@@ -56,7 +56,20 @@
         $inventoryContext = $inventoryContext ?? [];
         $items = collect($inventoryContext['items'] ?? [])->values();
         $modalNamespace = 'inventory-embedded';
+        $displayStatusLabel = $inventoryContext['display_status_label'] ?? null;
+        $displayStatusBadge = $inventoryContext['display_status_badge'] ?? 'status-badge--neutral';
     @endphp
+
+    @if ($displayStatusLabel)
+        <x-card>
+            <div class="summary-line">
+                <span class="text-muted">Estado operativo</span>
+                <span class="status-badge {{ $displayStatusBadge }}">
+                    {{ $displayStatusLabel }}
+                </span>
+            </div>
+        </x-card>
+    @endif
 
     @if ($items->isNotEmpty())
         <x-card class="list-card">
@@ -91,17 +104,25 @@
                                     $orderItemModel = $order->items->firstWhere('id', (int) $row['order_item_id']);
 
                                     if ($orderItemModel) {
-                                        $rowHostPack = app(InventorySurfaceService::class)->hostPack('orders.items.row', $orderItemModel, [
-                                            'order' => $order,
-                                            'trailQuery' => $trailQuery,
-                                            'modal_namespace' => $modalNamespace,
-                                        ]);
+                                        $rowHostPack = app(InventorySurfaceService::class)->hostPack(
+                                            'orders.items.row',
+                                            $orderItemModel,
+                                            [
+                                                'order' => $order,
+                                                'trailQuery' => $trailQuery,
+                                                'modal_namespace' => $modalNamespace,
+                                                'return_tab' => 'inventory.embedded',
+                                            ],
+                                        );
 
                                         $rowActions = collect(
-                                            app(ModuleSurfaceRegistry::class)->linkedFor('orders.items.row', $rowHostPack)
+                                            app(ModuleSurfaceRegistry::class)->linkedFor(
+                                                'orders.items.row',
+                                                $rowHostPack,
+                                            ),
                                         )
                                             ->where('slot', 'row_actions')
-                                            ->sortBy(fn ($item) => $item['priority'] ?? 999)
+                                            ->sortBy(fn($item) => $item['priority'] ?? 999)
                                             ->values();
                                     }
                                 }

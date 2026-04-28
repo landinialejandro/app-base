@@ -17,7 +17,7 @@
             </div>
             
             <div class="editor-actions">
-                <button type="submit" name="run" class="run-btn">▶ EJECUTAR</button>
+                <button type="button" onclick="runTinkerAjax()" class="run-btn">▶ EJECUTAR</button>
                 <button type="button" onclick="copyOutput()" class="secondary">📋 Copiar</button>
                 <button type="button" onclick="exportOutput()" class="secondary">💾 Exportar</button>
                 <button type="button" onclick="clearTinker()" class="danger">🗑️ Limpiar</button>
@@ -31,7 +31,7 @@
             <span>📤 Resultado</span>
             <button onclick="copyOutput()" class="secondary small">Copiar</button>
         </div>
-        <pre><?= htmlspecialchars($output) ?></pre>
+        <pre id="tinkerOutput"><?= htmlspecialchars($output) ?></pre>
     </div>
     <?php } ?>
 </div>

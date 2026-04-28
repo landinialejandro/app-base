@@ -7,6 +7,8 @@ namespace App\Policies;
 use App\Models\Document;
 use App\Models\User;
 use App\Support\Auth\Security;
+use App\Support\Auth\TenantAccess;
+use App\Support\Catalogs\DocumentCatalog;
 
 class DocumentPolicy
 {
@@ -32,11 +34,32 @@ class DocumentPolicy
 
     public function update(User $user, Document $document): bool
     {
+        if (DocumentCatalog::isReadonlyStatus($document->status)) {
+            return false;
+        }
+
         return $this->security()->allows($user, 'documents.update', $document);
     }
 
     public function delete(User $user, Document $document): bool
     {
+        if (DocumentCatalog::isReadonlyStatus($document->status)) {
+            return false;
+        }
+
         return $this->security()->allows($user, 'documents.delete', $document);
+    }
+
+    public function changeStatus(User $user, Document $document): bool
+    {
+        if ($document->status === DocumentCatalog::STATUS_CLOSED) {
+            return TenantAccess::isOwner($document->tenant_id, $user);
+        }
+
+        if ($document->status === DocumentCatalog::STATUS_CANCELLED) {
+            return false;
+        }
+
+        return $this->security()->allows($user, 'documents.update', $document);
     }
 }

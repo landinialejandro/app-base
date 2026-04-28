@@ -137,6 +137,7 @@ class InventorySurfaceService implements ModuleSurfaceService
                 'order' => $context['order'],
                 'trailQuery' => $context['trailQuery'] ?? [],
                 'modal_namespace' => (string) ($context['modal_namespace'] ?? ''),
+                'returnTab' => $context['return_tab'] ?? null,
             ];
         }
 
@@ -389,6 +390,7 @@ private function resolveOrderItemRowActions(array $hostPack): array
     $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
     $order = $hostPack['order'] ?? null;
     $modalNamespace = trim((string) ($hostPack['modal_namespace'] ?? ''));
+    $returnTab = $hostPack['returnTab'] ?? request()->query('return_tab', 'items');
 
     if ($recordType !== 'order_item' || ! $record instanceof OrderItem || ! $order instanceof Order) {
         return ['count' => 0, 'data' => ['actions' => []]];
@@ -430,7 +432,7 @@ private function resolveOrderItemRowActions(array $hostPack): array
                 'origin_line_id' => $orderItemId,
                 'kind' => $row['execute_kind'] ?? null,
                 'return_context' => 'orders.show',
-                'return_tab' => 'inventory.embedded',
+                'return_tab' => $returnTab,
             ],
             'trailQuery' => $trailQuery,
         ];
@@ -442,11 +444,25 @@ private function resolveOrderItemRowActions(array $hostPack): array
             'action_key' => $row['return_action_key'] ?? 'return',
             'label' => $row['return_label'] ?? 'Devolver línea',
             'title' => $row['return_title'] ?? 'Devolver línea',
-            'icon' => $row['return_icon'] ?? 'rotate-ccw',
-            'modal_view' => 'inventory.partials.order-line-return-modal',
+            'icon' => 'rotate-ccw',
+            'modal_view' => 'inventory.partials.line-return-modal',
             'modal_id' => $modalPrefix.'inventory-row-return-line-'.$record->id,
             'row' => $row,
             'order' => $order,
+            'action' => route('inventory.order-items.return', [
+                'order' => $order,
+                'item' => $record,
+            ] + $trailQuery),
+            'hiddenFields' => [
+                'product_id' => $productId,
+                'origin_type' => InventoryOriginCatalog::TYPE_ORDER,
+                'origin_id' => $order->id,
+                'origin_line_type' => InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM,
+                'origin_line_id' => $orderItemId,
+                'kind' => $row['return_kind'] ?? null,
+                'return_context' => 'orders.show',
+                'return_tab' => $returnTab,
+            ],
             'trailQuery' => $trailQuery,
         ];
     }
@@ -614,6 +630,7 @@ private function resolveDocumentItemRowActions(array $hostPack): array
     $trailQuery = is_array($hostPack['trailQuery'] ?? null) ? $hostPack['trailQuery'] : [];
     $document = $hostPack['document'] ?? null;
     $modalNamespace = trim((string) ($hostPack['modal_namespace'] ?? ''));
+    $returnTab = $hostPack['returnTab'] ?? request()->query('return_tab', 'items');
 
     if ($recordType !== 'document_item' || ! $record instanceof DocumentItem || ! $document instanceof Document) {
         return [
@@ -669,7 +686,7 @@ private function resolveDocumentItemRowActions(array $hostPack): array
             ] + $trailQuery),
             'hiddenFields' => [
                 'return_context' => 'documents.show',
-                'return_tab' => 'items',
+                'return_tab' => $returnTab,
             ],
         ];
     }
@@ -681,7 +698,7 @@ private function resolveDocumentItemRowActions(array $hostPack): array
             'label' => 'Revertir',
             'title' => 'Revertir',
             'icon' => 'rotate-ccw',
-            'modal_view' => 'inventory.partials.document-line-return-modal',
+            'modal_view' => 'inventory.partials.line-return-modal',
             'modal_id' => $modalPrefix.'inventory-document-return-line-'.$record->id,
             'row' => [
                 'position' => $record->position,
@@ -701,7 +718,7 @@ private function resolveDocumentItemRowActions(array $hostPack): array
             ] + $trailQuery),
             'hiddenFields' => [
                 'return_context' => 'documents.show',
-                'return_tab' => 'items',
+                'return_tab' => $returnTab,
             ],
         ];
     }
@@ -729,5 +746,4 @@ private function resolveDocumentItemRowActions(array $hostPack): array
         ],
     ];
 }
-
 }

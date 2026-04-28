@@ -649,7 +649,21 @@
 
             links.forEach(function (link) {
                 link.addEventListener("click", function () {
-                    activateTab(link.dataset.tabLink);
+                    const tabName = link.dataset.tabLink;
+
+                    activateTab(tabName);
+
+                    if (!tabName) {
+                        return;
+                    }
+
+                    const url = new URL(window.location.href);
+                    url.searchParams.set("return_tab", tabName);
+                    window.history.replaceState(
+                        {},
+                        document.title,
+                        url.toString(),
+                    );
                 });
             });
 

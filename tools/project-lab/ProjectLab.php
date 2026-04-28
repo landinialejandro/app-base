@@ -22,7 +22,7 @@ class ProjectLab
     {
         $this->projectRoot = $projectRoot;
         $this->labRoot = $labRoot;
-        $this->logFile = $projectRoot.'/storage/logs/project-lab.log';
+        $this->logFile = $projectRoot.'/documentos/log/project-lab.log';
         $this->rateLimitFile = sys_get_temp_dir().'/projectlab_ratelimit.json';
 
         $this->ensureDirectories();
@@ -34,6 +34,7 @@ class ProjectLab
         $dirs = [
             dirname($this->logFile),
             $this->projectRoot.'/storage/framework/cache',
+            $this->projectRoot.'/documentos/log',
         ];
 
         foreach ($dirs as $dir) {
@@ -102,32 +103,100 @@ class ProjectLab
         $output = '';
         $code = $_POST['code'] ?? '';
 
-        // Ejecutar Tinker
+        if (isset($_POST['ajax_lab_tool'])) {
+            $labTool = (string) ($_POST['lab_tool'] ?? '');
+            $fromClipboard = isset($_POST['from_clipboard']) && $_POST['from_clipboard'] === '1';
+
+            $labInput = $fromClipboard
+                ? $this->readClipboard()
+                : (string) ($_POST['lab_input'] ?? '');
+
+            if ($labTool === 'code') {
+                $output = $this->runEmbeddedCodeTool($labInput);
+            } elseif ($labTool === 'docs') {
+                $output = $this->runEmbeddedDocsTool($labInput);
+            } elseif ($labTool === 'audit') {
+                $output = $this->runAuditScript($labInput);
+            } else {
+                $output = "[ERROR] Herramienta Lab no reconocida: {$labTool}";
+            }
+
+            $this->jsonResponse([
+                'ok' => true,
+                'tool' => $labTool,
+                'input' => $labInput,
+                'output' => $output,
+            ]);
+        }
+
+        if (isset($_POST['ajax_tinker'])) {
+            $code = (string) ($_POST['code'] ?? '');
+
+            if (trim($code) === '') {
+                $this->jsonResponse([
+                    'ok' => false,
+                    'output' => '[ERROR] No se recibió código Tinker.',
+                ]);
+            }
+
+            $output = $this->executeTinker($code);
+
+            $this->jsonResponse([
+                'ok' => true,
+                'code' => $code,
+                'output' => $output,
+            ]);
+        }
+
         if (isset($_POST['run']) && ! empty($code)) {
             $output = $this->executeTinker($code);
         }
 
-        // Comandos Artisan
         if (isset($_POST['artisan'])) {
             $output = $this->executeArtisan($_POST['artisan']);
         }
 
-        // Generar modelo (AJAX)
+        if (isset($_POST['lab_tool'])) {
+            $labTool = (string) ($_POST['lab_tool'] ?? '');
+            $fromClipboard = isset($_POST['from_clipboard']);
+
+            $labInput = $fromClipboard
+                ? $this->readClipboard()
+                : (string) ($_POST['lab_input'] ?? '');
+
+            if ($labTool === 'code') {
+                $output = $this->runEmbeddedCodeTool($labInput);
+            } elseif ($labTool === 'docs') {
+                $output = $this->runEmbeddedDocsTool($labInput);
+            } else {
+                $output = "[ERROR] Herramienta Lab no reconocida: {$labTool}";
+            }
+
+            $_SESSION['project_lab_tool_input'] = $labInput;
+            $_SESSION['project_lab_tool_output'] = $output;
+            $_SESSION['project_lab_tool_active'] = $labTool;
+        }
+
         if (isset($_POST['generate_model'])) {
             $this->generateModel($_POST['generate_model']);
         }
 
-        // Describir tabla (AJAX)
+        if (isset($_POST['lab_audit_clipboard'])) {
+            $output = $this->runAuditFromClipboard();
+
+            $_SESSION['project_lab_tool_output'] = $output;
+            $_SESSION['project_lab_tool_input'] = '';
+            $_SESSION['project_lab_tool_active'] = 'audit';
+        }
+
         if (isset($_POST['describe_table'])) {
             $this->describeTable($_POST['describe_table']);
         }
 
-        // Tail logs (AJAX)
         if (isset($_POST['tail_logs'])) {
             $this->tailLogs($_POST['lines'] ?? 50);
         }
 
-        // Ejecutar script
         if (isset($_POST['run_script'])) {
             $this->executeScript($_POST['run_script']);
         }
@@ -355,11 +424,13 @@ class ProjectLab
 
     private function render()
     {
-        // Preparar datos para las vistas
         $data = [
             'csrfToken' => $this->csrfToken,
             'output' => $this->output ?? '',
             'code' => $this->code ?? '',
+            'labToolInput' => $_SESSION['project_lab_tool_input'] ?? '',
+            'labToolOutput' => $_SESSION['project_lab_tool_output'] ?? '',
+            'labToolActive' => $_SESSION['project_lab_tool_active'] ?? 'code',
             'tablesInfo' => $this->getTablesInfo(),
             'routes' => $this->getRoutes(),
             'systemInfo' => $this->getSystemInfo(),
@@ -370,7 +441,6 @@ class ProjectLab
                 'count' => 0,
                 'reset' => time() + 3600,
             ],
-            // Datos específicos para el monitor
             'dbInfo' => $this->getDatabaseInfo(),
             'cacheDrivers' => $this->getCacheDrivers(),
             'availableDrivers' => $this->getAvailableDrivers(),
@@ -384,10 +454,8 @@ class ProjectLab
             'labRoot' => $this->labRoot,
         ];
 
-        // Extraer variables para la vista
         extract($data);
 
-        // Cargar layout principal
         require $this->labRoot.'/views/layout.php';
     }
 
@@ -543,5 +611,578 @@ class ProjectLab
         header('Content-Type: application/json');
         echo json_encode($data, JSON_PRETTY_PRINT);
         exit;
+    }
+
+    private function runEmbeddedCodeTool(string $input): string
+    {
+        $input = str_replace(["\r\n", "\r"], "\n", trim($input));
+
+        if ($input === '') {
+            return '[ERROR] No se recibió contenido para actualizar código.';
+        }
+
+        $methodOperation = $this->parseEmbeddedMethodOperation($input);
+
+        if ($methodOperation !== null) {
+            if ($methodOperation['operation'] === 'replace') {
+                return $this->applyEmbeddedMethodReplace($methodOperation);
+            }
+
+            if ($methodOperation['operation'] === 'add') {
+                return $this->applyEmbeddedMethodAdd($methodOperation);
+            }
+
+            return '[ERROR] Operación TARGET no soportada.';
+        }
+
+        if (str_starts_with(ltrim($input), '<?php')) {
+            return $this->applyEmbeddedPhpFile($input);
+        }
+
+        if (preg_match('/^\s*\{\{\-\-\s*FILE:/', $input)) {
+            return $this->applyEmbeddedBladeFile($input);
+        }
+
+        return "[ERROR] Formato no compatible en herramienta de código.\n[INFO] Soporta PHP completo, Blade completo, TARGET :: método y TARGET ++ método.";
+    }
+
+    private function applyEmbeddedBladeFile(string $content): string
+    {
+        $content = str_replace(["\r\n", "\r"], "\n", $content);
+        $lines = explode("\n", ltrim($content));
+        $headerLine = trim($lines[0] ?? '');
+
+        if (! preg_match('/^\{\{\-\-\s*FILE:\s*(.+?)(?:\s*\|\s*(V\d+))?\s*\-\-\}\}$/', $headerLine, $matches)) {
+            return '[ERROR] No se encontró encabezado FILE válido para Blade.';
+        }
+
+        $relativePath = trim($matches[1] ?? '');
+        $version = trim($matches[2] ?? 'V1');
+
+        if ($relativePath === '') {
+            return '[ERROR] Ruta destino vacía.';
+        }
+
+        $targetPath = $this->projectRoot.'/'.$relativePath;
+        $directory = dirname($targetPath);
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0775, true);
+        }
+
+        array_shift($lines);
+        $body = ltrim(implode("\n", $lines), "\n");
+
+        $finalContent = "{{-- FILE: {$relativePath} | {$version} --}}\n\n".$body;
+        $status = file_exists($targetPath) ? 'sobrescrito' : 'creado';
+
+        if (file_put_contents($targetPath, $finalContent) === false) {
+            return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
+        }
+
+        $message = "[OK] Modo: blade_full\n";
+        $message .= "[OK] Archivo: {$relativePath}\n";
+        $message .= "[OK] Estado: {$status}\n";
+        $message .= "[OK] Versión: {$version}";
+
+        $this->log('LAB_CODE', $relativePath, $message);
+
+        $this->appendPipeLog(
+            'documentos/log/code-updates.log',
+            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+            [
+                $relativePath,
+                date('Y-m-d H:i:s'),
+                $status ?? 'actualizado',
+                $version ?? '-',
+                'project_lab',
+                $methodName ?? 'archivo_completo',
+                get_current_user() ?: 'unknown',
+                php_uname('n') ?: 'unknown',
+            ]
+        );
+
+        return $message;
+    }
+
+    private function applyEmbeddedPhpFile(string $content): string
+    {
+        $trimmed = ltrim($content);
+        $afterOpen = substr($trimmed, 5);
+        $afterOpen = ltrim($afterOpen, "\n");
+
+        $lines = explode("\n", $afterOpen);
+        $headerLine = trim($lines[0] ?? '');
+
+        if (! preg_match('/^\/\/\s*FILE:\s*(.+?)(?:\s*\|\s*(V\d+))?\s*$/', $headerLine, $matches)) {
+            return '[ERROR] No se encontró encabezado FILE válido para PHP.';
+        }
+
+        $relativePath = trim($matches[1] ?? '');
+        $version = trim($matches[2] ?? 'V1');
+
+        if ($relativePath === '') {
+            return '[ERROR] Ruta destino vacía.';
+        }
+
+        $targetPath = $this->projectRoot.'/'.$relativePath;
+        $directory = dirname($targetPath);
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0775, true);
+        }
+
+        array_shift($lines);
+        $body = ltrim(implode("\n", $lines), "\n");
+
+        $finalContent = "<?php\n\n// FILE: {$relativePath} | {$version}\n\n".$body;
+
+        $status = file_exists($targetPath) ? 'sobrescrito' : 'creado';
+
+        if (file_put_contents($targetPath, $finalContent) === false) {
+            return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
+        }
+
+        $message = "[OK] Modo: php_full\n";
+        $message .= "[OK] Archivo: {$relativePath}\n";
+        $message .= "[OK] Estado: {$status}\n";
+        $message .= "[OK] Versión: {$version}";
+
+        $this->log('LAB_CODE', $relativePath, $message);
+        $this->appendPipeLog(
+            'documentos/log/code-updates.log',
+            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+            [
+                $relativePath,
+                date('Y-m-d H:i:s'),
+                $status ?? 'actualizado',
+                $version ?? '-',
+                'project_lab',
+                $methodName ?? 'archivo_completo',
+                get_current_user() ?: 'unknown',
+                php_uname('n') ?: 'unknown',
+            ]
+        );
+
+        return $message;
+    }
+
+    private function runEmbeddedDocsTool(string $input): string
+    {
+        $input = str_replace(["\r\n", "\r"], "\n", trim($input));
+
+        if ($input === '') {
+            return '[ERROR] No se recibió contenido para actualizar documentos.';
+        }
+
+        preg_match_all(
+            '/REEMPLAZAR EN:\s*\[?([a-z0-9_]+)\]?\s*(<<SECTION:\s*.*?>>.*?<<END SECTION>>)/su',
+            $input,
+            $matches,
+            PREG_SET_ORDER
+        );
+
+        if (empty($matches)) {
+            return "[ERROR] No se encontraron bloques válidos.\n[INFO] Formato esperado: REEMPLAZAR EN: [doc_slug] + bloque SECTION completo.";
+        }
+
+        $documents = $this->indexEmbeddedDocuments();
+        $total = 0;
+        $output = '';
+
+        foreach ($matches as $match) {
+            $slug = strtolower(trim($match[1]));
+            $block = trim($match[2]);
+
+            if (! isset($documents[$slug])) {
+                $output .= "[ERROR] Documento no reconocido por slug: {$slug}\n";
+
+                continue;
+            }
+
+            if (! preg_match('/<<SECTION:\s*(.*?)\s*>>/su', $block, $sectionMatch)) {
+                $output .= "[ERROR] No se pudo leer el nombre de sección para {$slug}\n";
+
+                continue;
+            }
+
+            $sectionName = trim($sectionMatch[1]);
+            $filePath = $documents[$slug];
+
+            $content = file_get_contents($filePath);
+
+            if ($content === false) {
+                $output .= "[ERROR] No se pudo leer documento: {$slug}\n";
+
+                continue;
+            }
+
+            $pattern = '/<<SECTION:\s*'.preg_quote($sectionName, '/').'\s*>>.*?<<END SECTION>>/su';
+
+            if (! preg_match($pattern, $content)) {
+                $output .= "[ERROR] [{$slug}] No se encontró la sección: {$sectionName}\n";
+
+                continue;
+            }
+
+            $backupDir = $this->projectRoot.'/documentos/baks';
+
+            if (! is_dir($backupDir)) {
+                mkdir($backupDir, 0775, true);
+            }
+
+            file_put_contents($backupDir.'/'.basename($filePath).'.bak', $content);
+
+            $newContent = preg_replace($pattern, $block, $content, 1, $count);
+
+            if ($count < 1 || $newContent === null) {
+                $output .= "[ERROR] [{$slug}] No se pudo reemplazar la sección: {$sectionName}\n";
+
+                continue;
+            }
+
+            if (file_put_contents($filePath, $newContent) === false) {
+                $output .= "[ERROR] [{$slug}] No se pudo escribir el documento.\n";
+
+                continue;
+            }
+
+            $total++;
+            $output .= "[OK] [{$slug}] Sección reemplazada: {$sectionName}\n";
+        }
+
+        $output .= $total > 0
+            ? "[OK] Proceso finalizado. Secciones aplicadas: {$total}"
+            : '[WARN] Proceso finalizado sin cambios aplicados.';
+
+        $this->log('LAB_DOCS', 'embedded-docs', $output);
+
+        $this->appendPipeLog(
+            'documentos/log/docs-updates.log',
+            ['DOCUMENTO', 'FECHA', 'SECCIONES', 'USUARIO', 'HOST', 'ORIGEN'],
+            [
+                $slug,
+                date('Y-m-d H:i:s'),
+                '1',
+                get_current_user() ?: 'unknown',
+                php_uname('n') ?: 'unknown',
+                'project_lab',
+            ]
+        );
+
+        return $output;
+    }
+
+    private function indexEmbeddedDocuments(): array
+    {
+        $baseDir = $this->projectRoot.'/documentos';
+        $documents = [];
+
+        foreach (glob($baseDir.'/*.txt') ?: [] as $filePath) {
+            $content = file_get_contents($filePath);
+
+            if ($content === false) {
+                continue;
+            }
+
+            if (preg_match('/DOC_SLUG:\s*([a-z0-9_]+)/', $content, $match)) {
+                $documents[strtolower(trim($match[1]))] = $filePath;
+            }
+        }
+
+        return $documents;
+    }
+
+    private function parseEmbeddedMethodOperation(string $input): ?array
+    {
+        $lines = explode("\n", $input);
+        $header = trim($lines[0] ?? '');
+
+        if (! preg_match('/^\/\/\s*(?:TARGET|FILE):\s*(.+?)\s*(::|\+\+)\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*$/', $header, $matches)) {
+            return null;
+        }
+
+        array_shift($lines);
+
+        $path = trim($matches[1]);
+        $operator = trim($matches[2]);
+        $methodName = trim($matches[3]);
+        $methodCode = trim(implode("\n", $lines));
+
+        if ($path === '' || $methodName === '' || $methodCode === '') {
+            return null;
+        }
+
+        return [
+            'operation' => $operator === '::' ? 'replace' : 'add',
+            'path' => $path,
+            'method_name' => $methodName,
+            'method_code' => $methodCode,
+        ];
+    }
+
+    private function applyEmbeddedMethodReplace(array $operation): string
+    {
+        $relativePath = $operation['path'];
+        $methodName = $operation['method_name'];
+        $methodCode = $operation['method_code'];
+        $targetPath = $this->projectRoot.'/'.$relativePath;
+
+        if (! file_exists($targetPath)) {
+            return "[ERROR] El archivo destino no existe: {$relativePath}";
+        }
+
+        $content = file_get_contents($targetPath);
+
+        if ($content === false) {
+            return "[ERROR] No se pudo leer el archivo: {$relativePath}";
+        }
+
+        $range = $this->findEmbeddedMethodRange($content, $methodName);
+
+        if ($range === null) {
+            return "[ERROR] No se encontró el método: {$methodName}";
+        }
+
+        [$start, $end] = $range;
+
+        $newContent = substr($content, 0, $start)
+            .rtrim($methodCode)
+            .substr($content, $end);
+
+        if (file_put_contents($targetPath, $newContent) === false) {
+            return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
+        }
+
+        $message = "[OK] Modo: php_method_patch\n";
+        $message .= "[OK] Archivo: {$relativePath}\n";
+        $message .= "[OK] Método reemplazado: {$methodName}";
+
+        $this->log('LAB_CODE_METHOD_REPLACE', "{$relativePath}::{$methodName}", $message);
+        $this->appendPipeLog(
+            'documentos/log/code-updates.log',
+            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+            [
+                $relativePath,
+                date('Y-m-d H:i:s'),
+                $status ?? 'actualizado',
+                $version ?? '-',
+                'project_lab',
+                $methodName ?? 'archivo_completo',
+                get_current_user() ?: 'unknown',
+                php_uname('n') ?: 'unknown',
+            ]
+        );
+
+        return $message;
+    }
+
+    private function applyEmbeddedMethodAdd(array $operation): string
+    {
+        $relativePath = $operation['path'];
+        $methodName = $operation['method_name'];
+        $methodCode = $operation['method_code'];
+        $targetPath = $this->projectRoot.'/'.$relativePath;
+
+        if (! file_exists($targetPath)) {
+            return "[ERROR] El archivo destino no existe: {$relativePath}";
+        }
+
+        $content = file_get_contents($targetPath);
+
+        if ($content === false) {
+            return "[ERROR] No se pudo leer el archivo: {$relativePath}";
+        }
+
+        if ($this->findEmbeddedMethodRange($content, $methodName) !== null) {
+            return "[ERROR] El método ya existe: {$methodName}";
+        }
+
+        $lastBrace = strrpos($content, '}');
+
+        if ($lastBrace === false) {
+            return "[ERROR] No se pudo encontrar cierre de clase en: {$relativePath}";
+        }
+
+        $insert = "\n\n    ".str_replace("\n", "\n    ", trim($methodCode))."\n";
+
+        $newContent = substr($content, 0, $lastBrace)
+            .$insert
+            .substr($content, $lastBrace);
+
+        if (file_put_contents($targetPath, $newContent) === false) {
+            return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
+        }
+
+        $message = "[OK] Modo: php_method_add\n";
+        $message .= "[OK] Archivo: {$relativePath}\n";
+        $message .= "[OK] Método agregado: {$methodName}";
+
+        $this->log('LAB_CODE_METHOD_ADD', "{$relativePath}++{$methodName}", $message);
+        $this->appendPipeLog(
+            'documentos/log/code-updates.log',
+            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+            [
+                $relativePath,
+                date('Y-m-d H:i:s'),
+                $status ?? 'actualizado',
+                $version ?? '-',
+                'project_lab',
+                $methodName ?? 'archivo_completo',
+                get_current_user() ?: 'unknown',
+                php_uname('n') ?: 'unknown',
+            ]
+        );
+
+        return $message;
+    }
+
+    private function findEmbeddedMethodRange(string $content, string $methodName): ?array
+    {
+        $pattern = '/^[ \t]*(?:public|protected|private)\s+function\s+'.preg_quote($methodName, '/').'\s*\(/m';
+
+        if (! preg_match($pattern, $content, $match, PREG_OFFSET_CAPTURE)) {
+            return null;
+        }
+
+        $start = $match[0][1];
+        $openBrace = strpos($content, '{', $start);
+
+        if ($openBrace === false) {
+            return null;
+        }
+
+        $length = strlen($content);
+        $depth = 0;
+
+        for ($i = $openBrace; $i < $length; $i++) {
+            $char = $content[$i];
+
+            if ($char === '{') {
+                $depth++;
+            }
+
+            if ($char === '}') {
+                $depth--;
+
+                if ($depth === 0) {
+                    return [$start, $i + 1];
+                }
+            }
+        }
+
+        return null;
+    }
+
+    private function readClipboard(): string
+    {
+        $commands = [
+            'xclip -selection clipboard -o 2>/dev/null',
+            'wl-paste 2>/dev/null',
+            'pbpaste 2>/dev/null',
+        ];
+
+        foreach ($commands as $command) {
+            $output = shell_exec($command);
+
+            if (is_string($output) && trim($output) !== '') {
+                return $output;
+            }
+        }
+
+        return '';
+    }
+
+    private function runAuditFromClipboard(): string
+    {
+        return $this->runAuditScript($this->readClipboard());
+    }
+
+    private function appendPipeLog(string $relativeLogPath, array $columns, array $row): void
+    {
+        $logPath = $this->projectRoot.'/'.$relativeLogPath;
+        $logDir = dirname($logPath);
+
+        if (! is_dir($logDir)) {
+            mkdir($logDir, 0775, true);
+        }
+
+        $isNewFile = ! file_exists($logPath);
+
+        $content = '';
+
+        if ($isNewFile) {
+            $content .= implode(' | ', $columns)."\n";
+        }
+
+        $content .= implode(' | ', $row)."\n";
+
+        file_put_contents($logPath, $content, FILE_APPEND);
+    }
+
+    private function executeAuditScript(string $script): string
+    {
+        $tmpFile = tempnam(sys_get_temp_dir(), 'project_lab_audit_');
+
+        if ($tmpFile === false) {
+            return '[ERROR] No se pudo crear archivo temporal.';
+        }
+
+        file_put_contents($tmpFile, $script);
+
+        $command = 'cd '.escapeshellarg($this->projectRoot)
+            .' && bash '.escapeshellarg($tmpFile).' 2>&1';
+
+        $output = shell_exec($command);
+
+        @unlink($tmpFile);
+
+        return is_string($output) ? $output : '';
+    }
+
+    private function runAuditScript(string $script): string
+    {
+        $script = trim($script);
+
+        if ($script === '') {
+            return '[ERROR] El contenido de auditoría está vacío.';
+        }
+
+        $auditDir = $this->projectRoot.'/documentos/auditoria';
+
+        if (! is_dir($auditDir)) {
+            mkdir($auditDir, 0775, true);
+        }
+
+        $hasExplicitAuditOutput = str_contains($script, 'documentos/auditoria/');
+
+        if ($hasExplicitAuditOutput) {
+            $result = $this->executeAuditScript($script);
+
+            $message = "[OK] Auditoría ejecutada.\n";
+            $message .= "[OK] Proyecto: {$this->projectRoot}\n\n";
+            $message .= $result ?: '[OK] Sin salida directa. Revisar archivo generado en documentos/auditoria/.';
+
+            $this->log('LAB_AUDIT', 'audit-explicit-output', $message);
+
+            return $message;
+        }
+
+        $timestamp = date('Ymd_His');
+        $relativeOutput = "documentos/auditoria/auditoria_{$timestamp}.txt";
+        $outputPath = $this->projectRoot.'/'.$relativeOutput;
+
+        $result = $this->executeAuditScript($script);
+
+        file_put_contents($outputPath, $result ?? '');
+
+        $message = "[OK] Auditoría simple ejecutada.\n";
+        $message .= "[OK] Archivo generado: {$relativeOutput}\n";
+        $message .= "[OK] Proyecto: {$this->projectRoot}\n\n";
+        $message .= $result ?: '[OK] Comando ejecutado sin salida.';
+
+        $this->log('LAB_AUDIT', $relativeOutput, $message);
+
+        return $message;
     }
 }

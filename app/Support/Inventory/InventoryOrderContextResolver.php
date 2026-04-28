@@ -40,6 +40,8 @@ class InventoryOrderContextResolver
             fn (array $row) => ($row['has_movements'] ?? false) === true
         );
 
+        $displayStatus = $this->resolveDisplayStatus($order, $items, $hasMovements);
+
         $canCancel = ! $isReadonly
             && ! $hasMovements
             && $order->status !== OrderCatalog::STATUS_CANCELLED;
@@ -55,6 +57,9 @@ class InventoryOrderContextResolver
             'has_movements' => $hasMovements,
             'can_cancel' => $canCancel,
             'items' => $items,
+            'display_status' => $displayStatus,
+            'display_status_label' => InventoryFulfillmentDisplayCatalog::label($displayStatus),
+            'display_status_badge' => InventoryFulfillmentDisplayCatalog::badgeClass($displayStatus),
         ];
     }
 
@@ -155,5 +160,46 @@ class InventoryOrderContextResolver
     protected function normalizeQuantity(float|int|string|null $value): float
     {
         return round((float) ($value ?? 0), 2);
+    }
+
+    protected function resolveDisplayStatus(Order $order, $items, bool $hasMovements): string
+    {
+        if ($order->status === OrderCatalog::STATUS_CANCELLED) {
+            return InventoryFulfillmentDisplayCatalog::STATUS_CANCELLED;
+        }
+
+        if ($order->status === OrderCatalog::STATUS_CLOSED) {
+            return InventoryFulfillmentDisplayCatalog::STATUS_CLOSED;
+        }
+
+        if ($order->status === OrderCatalog::STATUS_DRAFT) {
+            return $hasMovements
+                ? InventoryFulfillmentDisplayCatalog::STATUS_PENDING_APPROVAL
+                : InventoryFulfillmentDisplayCatalog::STATUS_DRAFT;
+        }
+
+        if ($order->status === OrderCatalog::STATUS_PENDING_APPROVAL) {
+            return InventoryFulfillmentDisplayCatalog::STATUS_PENDING_APPROVAL;
+        }
+
+        if ($order->status !== OrderCatalog::STATUS_APPROVED) {
+            return $order->status;
+        }
+
+        $physicalItems = collect($items)
+            ->filter(fn (array $row) => ($row['is_physical_product'] ?? false) === true)
+            ->values();
+
+        if ($physicalItems->isEmpty() || ! $hasMovements) {
+            return InventoryFulfillmentDisplayCatalog::STATUS_APPROVED;
+        }
+
+        $allFulfilled = $physicalItems->every(
+            fn (array $row) => (float) ($row['pending_quantity'] ?? 0) <= 0
+        );
+
+        return $allFulfilled
+            ? InventoryFulfillmentDisplayCatalog::STATUS_FULFILLED
+            : InventoryFulfillmentDisplayCatalog::STATUS_PARTIALLY_FULFILLED;
     }
 }

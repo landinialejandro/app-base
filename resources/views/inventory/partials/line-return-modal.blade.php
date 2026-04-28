@@ -1,12 +1,13 @@
-{{-- FILE: resources/views/inventory/partials/order-line-return-modal.blade.php | V6 --}}
+{{-- FILE: resources/views/inventory/partials/line-return-modal.blade.php | V1 --}}
 
 @php
-    use App\Support\Inventory\InventoryOriginCatalog;
-
-    $order = $order ?? null;
     $row = $row ?? [];
-    $trailQuery = $trailQuery ?? [];
-    $modalId = $modalId ?? 'inventory-return-line-' . ($row['order_item_id'] ?? uniqid());
+    $modalId = $modalId ?? ('inventory-line-return-' . uniqid());
+
+    $title = $title ?? ($row['return_title'] ?? 'Revertir línea');
+    $action = $action ?? '#';
+    $method = $method ?? 'POST';
+    $hiddenFields = $hiddenFields ?? [];
 
     $position = $row['position'] ?? '—';
     $productName = $row['product_name'] ?? 'Producto';
@@ -15,11 +16,6 @@
     $maxReturnQuantity = (float) ($row['max_return_quantity'] ?? $executedQuantity);
     $currentStock = array_key_exists('current_stock', $row) ? (float) $row['current_stock'] : null;
 
-    $productId = $row['product_id'] ?? null;
-    $orderItemId = $row['order_item_id'] ?? null;
-    $returnKind = $row['return_kind'] ?? null;
-
-    $returnTitle = $row['return_title'] ?? ($row['return_label'] ?? 'Devolver') . ' línea';
     $defaultQuantity = number_format($maxReturnQuantity, 2, '.', '');
 
     $summaryItems = [
@@ -36,29 +32,18 @@
             'value' => $currentStock !== null ? number_format($currentStock, 2, ',', '.') : '—',
         ],
     ];
-
-    $hiddenFields = [
-        'product_id' => $productId,
-        'origin_type' => InventoryOriginCatalog::TYPE_ORDER,
-        'origin_id' => $order?->id,
-        'origin_line_type' => InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM,
-        'origin_line_id' => $orderItemId,
-        'kind' => $returnKind,
-        'return_context' => 'orders.show',
-        'return_tab' => 'inventory.embedded',
-    ];
 @endphp
 
 <x-line-operation-modal
     :modal-id="$modalId"
-    :title="$returnTitle"
+    :title="$title"
     :position="$position"
-    :action="route('inventory.order-items.return', ['order' => $order, 'item' => $orderItemId] + $trailQuery)"
-    method="POST"
+    :action="$action"
+    :method="$method"
     :hidden-fields="$hiddenFields"
     :product-name="$productName"
     :summary-items="$summaryItems"
-    quantity-label="Cantidad"
+    quantity-label="Cantidad a revertir"
     :quantity-default="$defaultQuantity"
     :quantity-max="$defaultQuantity"
     submit-variant="danger"

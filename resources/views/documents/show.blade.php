@@ -61,6 +61,12 @@
         $surfaceTabItems = $embedded->where(fn($item) => ($item['slot'] ?? null) === 'tab_panels')->values();
 
         $tabItems = $hostTabItems->concat($surfaceTabItems)->sortBy(fn($item) => $item['priority'] ?? 999)->values();
+        $requestedTab = (string) request()->query('return_tab', '');
+        $availableTabKeys = $tabItems->pluck('key')->filter()->values()->all();
+
+        $activeTab = in_array($requestedTab, $availableTabKeys, true)
+            ? $requestedTab
+            : $tabItems->first()['key'] ?? null;
     @endphp
 
     <x-page>
@@ -106,6 +112,15 @@
             <x-show-summary-item label="Número">
                 {{ $document->number ?: 'Sin número' }}
             </x-show-summary-item>
+            <x-show-summary-item label="Estado">
+                <x-status-badge :catalog="DocumentCatalog::class" :status="$document->status" />
+
+                @can('changeStatus', $document)
+                    <x-status-transition-actions :record="$document" :catalog="DocumentCatalog::class" route-name="documents.status.update"
+                        route-param="document" :trail-query="$trailQuery" resource-label="el documento" approved-label="Aprobado"
+                        closed-label="Cerrado" cancelled-label="Cancelado" />
+                @endcan
+            </x-show-summary-item>
 
             <x-slot:details>
                 @foreach ($detailItems as $detailItem)
@@ -116,12 +131,6 @@
 
                 <x-show-summary-item-detail-block label="Tipo">
                     {{ DocumentCatalog::label($document->kind) }}
-                </x-show-summary-item-detail-block>
-
-                <x-show-summary-item-detail-block label="Estado">
-                    <span class="status-badge {{ DocumentCatalog::badgeClass($document->status) }}">
-                        {{ DocumentCatalog::statusLabel($document->status) }}
-                    </span>
                 </x-show-summary-item-detail-block>
 
                 <x-show-summary-item-detail-block label="Fecha de vencimiento">
@@ -149,9 +158,13 @@
                     <x-slot:tabs>
                         <x-horizontal-scroll :label="$tabsLabel">
                             @foreach ($tabItems as $tabItem)
-                                <button type="button" class="tabs-link {{ $loop->first ? 'is-active' : '' }}"
+                                @php
+                                    $isActive = ($tabItem['key'] ?? null) === $activeTab;
+                                @endphp
+
+                                <button type="button" class="tabs-link {{ $isActive ? 'is-active' : '' }}"
                                     data-tab-link="{{ $tabItem['key'] }}" role="tab"
-                                    aria-selected="{{ $loop->first ? 'true' : 'false' }}">
+                                    aria-selected="{{ $isActive ? 'true' : 'false' }}">
                                     {{ $tabItem['label'] ?? $tabItem['key'] }}
 
                                     @if (array_key_exists('count', $tabItem) && (int) $tabItem['count'] > 0)
@@ -164,8 +177,12 @@
                 </x-tab-toolbar>
 
                 @foreach ($tabItems as $tabItem)
-                    <section class="tab-panel {{ $loop->first ? 'is-active' : '' }}"
-                        data-tab-panel="{{ $tabItem['key'] }}" @unless ($loop->first) hidden @endunless>
+                    @php
+                        $isActive = ($tabItem['key'] ?? null) === $activeTab;
+                    @endphp
+
+                    <section class="tab-panel {{ $isActive ? 'is-active' : '' }}" data-tab-panel="{{ $tabItem['key'] }}"
+                        @unless ($isActive) hidden @endunless>
                         <div class="tab-panel-stack">
                             @include($tabItem['view'], $tabItem['data'] ?? [])
                         </div>

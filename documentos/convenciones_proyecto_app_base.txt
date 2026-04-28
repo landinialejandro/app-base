@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 CONVENCIONES GENERALES
 
@@ -185,6 +185,19 @@ zona tab coordinada
 Cuando el host trabaja con slots, el contrato publicado por la offer debe declararlos de forma explícita.
 
 No debe suponerse inferencia automática del lugar de montaje.
+
+Convención adicional de tabs principales en show pages:
+
+cuando una show page utilice tabs principales del host, debe diferenciarse entre:
+
+tabs host
+tabs internas de embebidos
+
+Las tabs host organizan el contexto principal del recurso actual.
+
+Las tabs internas de embebidos segmentan contenido invitado dentro de una capacidad publicada o consumida.
+
+Solo las tabs host deben participar del mecanismo general de return_tab.
 
 Convención adicional de referencia evolutiva:
 
@@ -640,7 +653,7 @@ las integraciones entre módulos deben respetar el contrato del módulo oferente
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00021
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -683,6 +696,7 @@ Puede incluir, según el caso:
 contexto funcional
 ids relacionales válidos
 trail compatible
+return_tab cuando el host lo entregue como contexto interno de navegación
 datos mínimos de precompletado
 origen de creación contextual
 disparadores internos del sistema
@@ -708,6 +722,7 @@ relación enlazable
 dataset embebible
 acción derivada
 compatibilidad con trail contextual
+compatibilidad con return_tab cuando la acción deba preservar el panel host desde el cual nació
 payload arbitrado para integraciones complejas
 
 Regla:
@@ -775,6 +790,24 @@ decisiones UX del módulo
 semántica propia de cada contrato publicado
 
 Un SurfaceService puede ser extenso si esa extensión expresa semántica real y no simple boilerplate evitable.
+
+Caso vigente adicional:
+
+HostTabs como helper de presentación para resolver tab activa de show pages con tabs principales.
+
+Puede concentrar:
+
+lectura de return_tab
+validación contra keys disponibles
+fallback seguro al primer tab disponible
+
+No debe absorber:
+
+contenido de los panels
+semántica del módulo host
+permisos
+surfaces
+decisiones de dominio
 
 Regla de cierre adicional:
 
@@ -1053,7 +1086,7 @@ order_items continúa siendo entidad hija de orders aunque participe como anclaj
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00022
+SECTION_VERSION: 00023
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -1169,6 +1202,10 @@ el naming debe expresar el dominio dueño de la capacidad y no el punto accident
 
 por lo tanto, deben evitarse superficies, controllers, partials o servicios nombrados desde orders, documents u otros consumidores cuando la capacidad pertenece doctrinalmente a inventory u otro módulo oferente
 
+Caso vigente:
+
+el partial unificado de reversión por línea pertenece al frente inventory y no debe sostener variantes legacy nombradas desde orders o documents cuando la intención operativa es la misma.
+
 Regla adicional de organización de responsabilidades:
 
 controller expresa la surface HTTP
@@ -1257,6 +1294,14 @@ orders puede actuar como host visual de acciones de inventory por línea, pero i
 Caso vigente adicional:
 
 documents puede actuar como host visual de acciones de inventory por línea documental, pero inventory conserva la resolución interna de inventory_operations e inventory_movements.
+
+Regla adicional de contexto interno del host:
+
+si una acción integrada nace dentro de una tab principal del host, el módulo oferente puede recibir y reenviar return_tab para preservar la continuidad visual del usuario.
+
+Ese reenvío no autoriza al oferente a decidir qué tab corresponde activar en el host.
+
+El host define sus tabs disponibles y valida la key recibida.
 
 Regla adicional de orden visual en tablas anfitrionas:
 

@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 COMPONENTES DISPONIBLES
 
@@ -97,6 +97,7 @@ Componentes de lectura show vigentes:
 x-show-summary
 x-show-summary-item
 x-show-summary-item-detail-block
+x-host-tabs
 
 Componentes de acción frecuentes:
 
@@ -178,6 +179,16 @@ x-tabs-embedded puede mostrar valor principal y valor secundario contextual medi
 Caso vigente:
 
 monto estructural principal y monto ejecutado o entregado como dato secundario de menor jerarquía visual.
+
+Aclaración adicional sobre tabs host:
+
+x-host-tabs es el componente visual estándar para tabs principales de páginas show.
+
+Su función es centralizar estructura visual, toolbar, scroll horizontal, paneles y estado activo de tabs del host.
+
+No reemplaza x-tabs-embedded.
+
+x-tabs-embedded continúa correspondiendo a segmentaciones internas de bloques embebidos o capacidades invitadas.
 
 <<END SECTION>>
 
@@ -507,7 +518,7 @@ Estas métricas no reemplazan la tabla principal ni convierten la pantalla en da
 <<END SECTION>>
 
 <<SECTION: PATRÓN VISUAL PARA VISTAS SHOW>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 PATRÓN VISUAL PARA VISTAS SHOW
 
@@ -536,6 +547,17 @@ navegación
 toolbar contextual
 acciones auxiliares
 paneles de contenido
+
+Cuando se trate de tabs principales del host, debe priorizarse x-host-tabs como componente estándar.
+
+El host debe entregar:
+
+colección de tabs
+key activa validada
+label contextual del toolbar
+contenido de cada panel
+
+El componente visual no decide semántica de dominio ni ownership funcional.
 
 Reglas:
 
@@ -574,6 +596,14 @@ Aclaración adicional para line items:
 orders y documents pueden compartir componentes visuales de líneas cuando la estructura de lectura sea equivalente.
 
 La tabla, el formulario, el modal operativo y las tabs embebidas pueden reutilizar una gramática común sin borrar la identidad visual del host ni la semántica propia de cada módulo.
+
+Aclaración adicional para tabs persistentes:
+
+las tabs principales del host deben poder conservar el panel activo mediante return_tab cuando el host lo soporte.
+
+La key recibida debe validarse contra las tabs disponibles del recurso actual.
+
+No debe usarse la posición del loop como criterio de tab activa cuando existe estado explícito calculado por el host.
 
 <<END SECTION>>
 
@@ -717,7 +747,7 @@ si además existe una capacidad reusable oficial publicada por el módulo relaci
 <<END SECTION>>
 
 <<SECTION: TABS INTERNAS DEL EMBEBIDO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 TABS INTERNAS DEL EMBEBIDO
 
@@ -745,6 +775,10 @@ La tab del host organiza relaciones de primer nivel de la pantalla.
 
 Las tabs internas segmentan solo el contenido del bloque invitado.
 
+Solo las tabs principales del host deben modificar return_tab.
+
+Las tabs internas de un embebido no deben alterar el contexto host ni apropiarse de la persistencia principal del recurso mostrado.
+
 Aclaración adicional de retorno visual:
 
 si una acción se dispara desde una tab interna del embebido y luego redirige, la UX correcta debe restaurar la tab técnica correspondiente del host cuando ese panel siga siendo el punto real de continuidad del trabajo.
@@ -758,7 +792,7 @@ Este componente puede mostrar métricas principales y métricas secundarias medi
 <<END SECTION>>
 
 <<SECTION: ACCIONES VISUALES EN INDEX Y SHOW>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 ACCIONES VISUALES EN INDEX Y SHOW
 
@@ -821,11 +855,11 @@ surtir
 devolver
 ver movimientos de línea
 
-Aclaración adicional para operaciones agrupadas:
+Aclaración adicional sobre retorno visual:
 
-si una acción visible genera o reutiliza una agrupación inventory_operations, la UI no necesita exponer esa capa como paso adicional del usuario.
+cuando una acción nace dentro de una tab principal del host, el retorno debe poder conservar ese contexto mediante return_tab si la pantalla anfitriona lo soporta.
 
-La operación puede resolverse backend-first mientras la acción visible conserve intención clara, bajo roce y retorno contextual correcto.
+El objetivo es evitar saltos innecesarios al primer panel y preservar continuidad operativa.
 
 <<END SECTION>>
 

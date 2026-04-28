@@ -340,11 +340,10 @@ demaelos grupo de a uno, sin dejar de varificar
 ok siguiente grupo no dejes de verificar los slug
 -----------------------------
 
-te paso los dos documentos doctrinales del proyecto, 
+Auditar los dos documentos doctrinales del proyecto, 
 el seguridad_acceso_proyecto_app_base y contexto_fijo_proyecto_app_base, 
-que recien los actualizamos te pido que los audites, 
-que sigan marcando la doctrina, que no tengan información reduntates, 
+te adjunto los actualizados, 
+Marcan doctrina, que no tengan información reduntates, 
 que tenga toda la información necesaria y justa
-pero que no haya redundancia o sobre explicaciones. 
+sin sobre explicaciones. 
 ambos documentos son rectores y pilares para avanzar mas rapido 
-sin sobre explicaciones

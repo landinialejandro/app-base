@@ -220,7 +220,7 @@ Este cambio pertenece al flujo natural del recurso y no crea una navegación nue
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -274,6 +274,12 @@ Aclaración adicional para inventory:
 cuando una acción embebida de inventory genere o reutilice inventory_operations, esa operación sigue perteneciendo al módulo inventory.
 
 El host visual no debe asumir ownership funcional sobre la agrupación operativa contextual ni transformar esa capa interna en flujo propio del módulo anfitrión.
+
+Aclaración adicional sobre tabs principales:
+
+cuando una relación embebida se aloje dentro de una tab principal del host, las acciones derivadas pueden preservar return_tab para volver al mismo panel.
+
+Ese mecanismo conserva continuidad visual, pero no modifica ownership funcional ni convierte al módulo invitado en dueño de la navegación interna del host.
 
 <<END SECTION>>
 
@@ -364,7 +370,7 @@ Pueden abrirse de forma estructural o como continuación de otro flujo operativo
 <<END SECTION>>
 
 <<SECTION: REGLAS DEL TRAIL>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 REGLAS DEL TRAIL
 
@@ -402,6 +408,14 @@ Si una acción cambia estado terminal o readonly hacia uno operable, debe tratar
 Caso vigente:
 
 reapertura closed → approved en orders.
+
+Regla adicional sobre tabs host:
+
+return_tab debe usarse para conservar el contexto visual interno de una show page cuando el host posea tabs principales.
+
+El host es responsable de validar que la key recibida exista dentro de sus tabs disponibles.
+
+Si la key no existe, debe resolver un fallback seguro sin romper la navegación.
 
 <<END SECTION>>
 
@@ -449,7 +463,7 @@ appointments.show expresa una estructura host más avanzada que otros shows aún
 <<END SECTION>>
 
 <<SECTION: INVENTORY>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 INVENTORY
 
@@ -482,6 +496,8 @@ las acciones por línea deben permanecer en contexto local cuando sea posible
 
 la apertura de historial filtrado puede usar surface oficial de inventory conservando trail de retorno
 
+return_tab puede conservar el panel host correspondiente cuando la operación nació dentro de una tab principal
+
 Cuando inventory opere dentro de documents.show:
 
 la navegación no debe romper continuidad del host documental salvo intención explícita del usuario
@@ -489,6 +505,8 @@ la navegación no debe romper continuidad del host documental salvo intención e
 las acciones por línea documental deben permanecer en contexto local cuando sea posible
 
 la apertura de historial filtrado por document_item puede usar surface oficial de inventory conservando trail de retorno
+
+return_tab puede conservar el panel host correspondiente cuando la operación nació dentro de una tab principal
 
 Regla adicional por estado superior:
 

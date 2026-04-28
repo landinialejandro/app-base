@@ -1,30 +1,22 @@
-/**
- * PROJECT LAB v8 - Dashboard JavaScript
- * Funcionalidades interactivas del dashboard
- */
+// FILE: tools/project-lab/assets/js/app.js | V2
 
-// ==================== CONFIGURACIÓN GLOBAL ====================
 const CONFIG = {
     csrfToken: document.querySelector('input[name="csrf_token"]')?.value || "",
     baseUrl: window.location.href.split("?")[0],
 };
 
-// ==================== NAVEGACIÓN POR PESTAÑAS ====================
 function showTab(tabName) {
-    // Ocultar todas las pestañas
     document.querySelectorAll(".tab-content").forEach((tab) => {
         tab.style.display = "none";
         tab.classList.remove("active");
     });
 
-    // Mostrar la pestaña seleccionada
     const targetTab = document.getElementById("tab-" + tabName);
     if (targetTab) {
         targetTab.style.display = "block";
         targetTab.classList.add("active");
     }
 
-    // Actualizar botones activos
     document.querySelectorAll(".tab-btn").forEach((btn) => {
         btn.classList.remove("active");
     });
@@ -32,17 +24,155 @@ function showTab(tabName) {
     const activeBtn = document.querySelector(
         `.tab-btn[onclick*="showTab('${tabName}')"]`,
     );
+
     if (activeBtn) {
         activeBtn.classList.add("active");
     }
 
-    // Guardar pestaña activa en localStorage
     localStorage.setItem("projectLabActiveTab", tabName);
 }
 
-// ==================== EDITOR TINKER ====================
+// ==================== AJAX RUNNER GENERAL ====================
+
+function runProjectAction(config) {
+    const formData = new FormData();
+
+    formData.append("csrf_token", CONFIG.csrfToken);
+    formData.append(config.action, "1");
+
+    Object.entries(config.payload || {}).forEach(([key, value]) => {
+        formData.append(key, value);
+    });
+
+    const output = config.ensureOutput();
+    output.textContent = config.loading || "⏳ Ejecutando...";
+
+    fetch(CONFIG.baseUrl, {
+        method: "POST",
+        body: formData,
+    })
+        .then((response) => response.json())
+        .then((data) => {
+            const finalOutput = data.output || "Sin salida.";
+
+            output.textContent = finalOutput;
+
+            if (config.persistKey) {
+                localStorage.setItem(config.persistKey + "Output", finalOutput);
+                localStorage.setItem(
+                    config.persistKey + "At",
+                    new Date().toISOString(),
+                );
+            }
+
+            if (config.onSuccess) {
+                config.onSuccess(data, finalOutput);
+            }
+
+            showNotification(
+                config.success || "Acción ejecutada",
+                data.ok ? "success" : "warning",
+            );
+        })
+        .catch((error) => {
+            const errorOutput = "❌ Error AJAX: " + error.message;
+
+            output.textContent = errorOutput;
+
+            if (config.persistKey) {
+                localStorage.setItem(config.persistKey + "Output", errorOutput);
+                localStorage.setItem(
+                    config.persistKey + "At",
+                    new Date().toISOString(),
+                );
+            }
+
+            showNotification(
+                config.error || "Error al ejecutar acción",
+                "error",
+            );
+        });
+}
+
+// ==================== TINKER ====================
+
+function runTinkerAjax() {
+    const textarea = document.getElementById("code");
+
+    runProjectAction({
+        action: "ajax_tinker",
+        payload: {
+            code: textarea ? textarea.value : "",
+        },
+        ensureOutput: ensureTinkerOutput,
+        loading: "⏳ Ejecutando Tinker...",
+        success: "Tinker ejecutado",
+        error: "Error al ejecutar Tinker",
+        persistKey: "projectLabTinker",
+        onSuccess(data) {
+            const finalCode =
+                data.code !== undefined
+                    ? data.code
+                    : textarea
+                      ? textarea.value
+                      : "";
+
+            if (textarea) {
+                textarea.value = finalCode;
+            }
+
+            localStorage.setItem("projectLabTinkerCode", finalCode);
+        },
+    });
+}
+
+function runArtisanAjax(command) {
+    runProjectAction({
+        action: "ajax_artisan",
+        payload: {
+            artisan: command,
+        },
+        ensureOutput: ensureTinkerOutput,
+        loading: "⏳ Ejecutando artisan " + command + "...",
+        success: "Artisan ejecutado: " + command,
+        error: "Error al ejecutar Artisan",
+        persistKey: "projectLabTinker",
+        onSuccess() {
+            localStorage.setItem(
+                "projectLabTinkerCode",
+                "// artisan " + command,
+            );
+        },
+    });
+}
+
+function ensureTinkerOutput() {
+    let output = document.getElementById("tinkerOutput");
+
+    if (output) {
+        return output;
+    }
+
+    const tab = document.getElementById("tab-tinker");
+
+    const card = document.createElement("div");
+    card.className = "card output-card";
+    card.innerHTML = `
+        <div class="output-header">
+            <span>📤 Resultado</span>
+            <button onclick="copyOutput()" class="secondary small">Copiar</button>
+        </div>
+        <pre id="tinkerOutput"></pre>
+    `;
+
+    tab.appendChild(card);
+
+    return document.getElementById("tinkerOutput");
+}
+
 function insertCode(code) {
     const textarea = document.getElementById("code");
+
     if (textarea) {
         textarea.value = code;
         showTab("tinker");
@@ -66,17 +196,25 @@ function insertSnippet(snippet) {
 
 function clearTinker() {
     const textarea = document.getElementById("code");
+
     if (textarea) {
         textarea.value = "";
     }
-    localStorage.removeItem("projectLabTinkerOutput");
+
+    const output = document.querySelector("#tab-tinker .output-card");
+
+    if (output) {
+        output.remove();
+    }
+
     localStorage.removeItem("projectLabTinkerCode");
-    // Eliminar outputs anteriores
-    document.querySelectorAll(".output-card").forEach((card) => card.remove());
+    localStorage.removeItem("projectLabTinkerOutput");
+    localStorage.removeItem("projectLabTinkerAt");
 }
 
 function copyOutput() {
-    const output = document.querySelector(".output-card pre");
+    const output = document.getElementById("tinkerOutput");
+
     if (!output) {
         showNotification("No hay salida para copiar", "warning");
         return;
@@ -86,7 +224,8 @@ function copyOutput() {
 }
 
 function exportOutput() {
-    const output = document.querySelector(".output-card pre")?.innerText;
+    const output = document.getElementById("tinkerOutput")?.innerText;
+
     if (!output) {
         showNotification("No hay salida para exportar", "warning");
         return;
@@ -107,17 +246,124 @@ function exportOutput() {
     showNotification("Archivo exportado correctamente", "success");
 }
 
+// ==================== HERRAMIENTAS LAB ====================
+
+function runLabTool(tool, fromClipboard = false) {
+    const input = document.getElementById("labInput");
+
+    const payload = {
+        lab_tool: tool,
+        lab_input: input ? input.value : "",
+    };
+
+    if (fromClipboard) {
+        payload.from_clipboard = "1";
+    }
+
+    runProjectAction({
+        action: "ajax_lab_tool",
+        payload,
+        ensureOutput: ensureLabOutput,
+        loading: "⏳ Ejecutando herramienta Lab...",
+        success: "Herramienta Lab ejecutada",
+        error: "Error al ejecutar herramienta Lab",
+        persistKey: "projectLabLab",
+        onSuccess(data) {
+            const finalInput =
+                data.input !== undefined
+                    ? data.input
+                    : input
+                      ? input.value
+                      : "";
+
+            if (input) {
+                input.value = finalInput;
+            }
+
+            localStorage.setItem("projectLabLabInput", finalInput);
+            localStorage.setItem("projectLabLabActive", tool);
+        },
+    });
+}
+
+function ensureLabOutput() {
+    let output = document.getElementById("labOutput");
+
+    if (output) {
+        return output;
+    }
+
+    const tab = document.getElementById("tab-tools");
+
+    const card = document.createElement("div");
+    card.className = "card output-card";
+    card.innerHTML = `
+        <div class="output-header">
+            <span>📤 Salida Herramientas Lab</span>
+            <button onclick="copyLabOutput()" class="secondary small">Copiar</button>
+        </div>
+        <pre id="labOutput"></pre>
+    `;
+
+    tab.appendChild(card);
+
+    return document.getElementById("labOutput");
+}
+
+function insertLabSnippet(snippet) {
+    const textarea = document.getElementById("labInput");
+    if (!textarea) return;
+
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+
+    textarea.value = text.substring(0, start) + snippet + text.substring(end);
+    textarea.focus();
+    textarea.setSelectionRange(start + snippet.length, start + snippet.length);
+}
+
+function clearLabTools() {
+    const textarea = document.getElementById("labInput");
+
+    if (textarea) {
+        textarea.value = "";
+    }
+
+    const output = document.querySelector("#tab-tools .output-card");
+
+    if (output) {
+        output.remove();
+    }
+
+    localStorage.removeItem("projectLabLabInput");
+    localStorage.removeItem("projectLabLabOutput");
+    localStorage.removeItem("projectLabLabActive");
+    localStorage.removeItem("projectLabLabAt");
+}
+
+function copyLabOutput() {
+    const output = document.getElementById("labOutput");
+
+    if (!output) {
+        showNotification("No hay salida Lab para copiar", "warning");
+        return;
+    }
+
+    copyToClipboard(output.innerText, "Salida Lab copiada al portapapeles");
+}
+
 // ==================== BASE DE DATOS ====================
+
 function loadTableDetails(tableName, element) {
-    // Verificar si ya está cargada
     const existingDetails = element.querySelector(".table-details");
+
     if (existingDetails) {
         existingDetails.style.display =
             existingDetails.style.display === "none" ? "block" : "none";
         return;
     }
 
-    // Crear contenedor de detalles
     const detailsDiv = document.createElement("div");
     detailsDiv.className = "table-details";
     detailsDiv.style.cssText =
@@ -125,7 +371,6 @@ function loadTableDetails(tableName, element) {
     detailsDiv.innerHTML = "⏳ Cargando estructura...";
     element.appendChild(detailsDiv);
 
-    // Cargar datos
     const formData = new FormData();
     formData.append("describe_table", tableName);
     formData.append("csrf_token", CONFIG.csrfToken);
@@ -145,6 +390,7 @@ function loadTableDetails(tableName, element) {
 }
 
 // ==================== RUTAS ====================
+
 function filterRoutes() {
     const input = document.getElementById("routeSearch");
     const filter = input?.value.toLowerCase() || "";
@@ -154,12 +400,14 @@ function filterRoutes() {
     rows.forEach((row) => {
         const text = row.textContent.toLowerCase();
         const isVisible = text.includes(filter);
+
         row.style.display = isVisible ? "" : "none";
+
         if (isVisible) visibleCount++;
     });
 
-    // Actualizar contador en el botón de pestaña
     const tabBtn = document.querySelector('.tab-btn[onclick*="routes"]');
+
     if (tabBtn) {
         const total = rows.length;
         tabBtn.textContent = `🔗 Rutas (${visibleCount}/${total})`;
@@ -176,6 +424,7 @@ function copyAllRoutes() {
             const method = cols[0]?.innerText.trim() || "";
             const uri = cols[1]?.innerText.trim() || "";
             const name = cols[2]?.innerText.trim() || "";
+
             textToCopy += `${method.padEnd(8)} ${uri.padEnd(50)} ${name}\n`;
         }
     });
@@ -189,6 +438,7 @@ function copyAllRoutes() {
 }
 
 // ==================== MONITOR ====================
+
 function tailLogs(lines = 50) {
     const logViewer = document.getElementById("logViewer");
     if (!logViewer) return;
@@ -212,34 +462,38 @@ function tailLogs(lines = 50) {
         .then((response) => response.text())
         .then((data) => {
             logViewer.innerHTML = `
-            <div class="card" style="margin-top:20px;">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
-                    <h4 style="margin:0;">📝 Últimos ${lines} logs</h4>
-                    <div style="display:flex; gap:5px;">
-                        <button onclick="tailLogs(50)" class="secondary small">50</button>
-                        <button onclick="tailLogs(100)" class="secondary small">100</button>
-                        <button onclick="tailLogs(200)" class="secondary small">200</button>
+                <div class="card" style="margin-top:20px;">
+                    <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:15px;">
+                        <h4 style="margin:0;">📝 Últimos ${lines} logs</h4>
+                        <div style="display:flex; gap:5px;">
+                            <button onclick="tailLogs(50)" class="secondary small">50</button>
+                            <button onclick="tailLogs(100)" class="secondary small">100</button>
+                            <button onclick="tailLogs(200)" class="secondary small">200</button>
+                        </div>
                     </div>
+                    ${data}
                 </div>
-                ${data}
-            </div>
-        `;
+            `;
+
             logViewer.scrollIntoView({ behavior: "smooth" });
         })
         .catch((err) => {
             logViewer.innerHTML = `
-            <div class="card" style="text-align:center; padding:40px;">
-                <div style="font-size:24px; margin-bottom:10px;">❌</div>
-                <div style="color:var(--danger);">Error al cargar logs</div>
-            </div>
-        `;
+                <div class="card" style="text-align:center; padding:40px;">
+                    <div style="font-size:24px; margin-bottom:10px;">❌</div>
+                    <div style="color:var(--danger);">Error al cargar logs</div>
+                </div>
+            `;
+
             console.error("Error:", err);
         });
 }
 
-// ==================== SCRIPTS PERSONALIZADOS ====================
+// ==================== SCRIPTS ====================
+
 function runScript(scriptName) {
     const status = document.getElementById("scriptStatus");
+
     if (status) {
         status.innerHTML = "⏳ Ejecutando " + scriptName + "...";
     }
@@ -254,81 +508,80 @@ function runScript(scriptName) {
     })
         .then((response) => response.text())
         .then((data) => {
-            // Mostrar resultado en pestaña Tinker
-            const tinkerTab = document.getElementById("tab-tinker");
+            const output = ensureTinkerOutput();
 
-            // Eliminar salida anterior
-            const oldOutput = tinkerTab.querySelector(".output-card");
-            if (oldOutput) oldOutput.remove();
+            output.textContent = data;
 
-            // Crear nueva salida
-            const outputCard = document.createElement("div");
-            outputCard.className = "card output-card";
-            outputCard.innerHTML = `
-            <div class="output-header">
-                <span>📤 Salida de ${scriptName}</span>
-                <button onclick="copyOutput()" class="secondary small">Copiar</button>
-            </div>
-            <pre>${escapeHtml(data)}</pre>
-        `;
+            localStorage.setItem("projectLabTinkerOutput", data);
+            localStorage.setItem(
+                "projectLabTinkerCode",
+                "// script " + scriptName,
+            );
+            localStorage.setItem(
+                "projectLabTinkerAt",
+                new Date().toISOString(),
+            );
 
-            tinkerTab.appendChild(outputCard);
             showTab("tinker");
 
             if (status) {
                 status.innerHTML = "✅ " + scriptName + " finalizado.";
             }
 
-            outputCard.scrollIntoView({ behavior: "smooth" });
+            output.scrollIntoView({ behavior: "smooth" });
         })
         .catch((err) => {
             if (status) {
                 status.innerHTML = "❌ Error al ejecutar " + scriptName;
             }
+
             showNotification("Error al ejecutar el script", "error");
             console.error("Error:", err);
         });
 }
 
 // ==================== GENERADOR DE MODELOS ====================
+
 function generateModel() {
     const input = document.getElementById("modelName");
     const btn = document.querySelector(".generator-btn");
-    const status = document.getElementById("genStatus");
 
     if (!input || !btn) return;
 
     const name = input.value.trim();
 
-    // Validación del nombre
     if (!name) {
         input.focus();
         input.style.borderColor = "var(--danger)";
         showStatus("❌ Por favor ingresa un nombre de modelo", "error");
+
         setTimeout(() => {
             input.style.borderColor = "var(--border)";
         }, 2000);
+
         return;
     }
 
-    // Validar formato (solo letras)
     if (!/^[a-zA-Z]+$/.test(name)) {
         showStatus(
             "❌ Solo letras permitidas (sin espacios ni números)",
             "error",
         );
         input.style.borderColor = "var(--danger)";
+
         setTimeout(() => {
             input.style.borderColor = "var(--border)";
         }, 2000);
+
         return;
     }
 
-    // Estado de carga
     const originalText = btn.innerHTML;
+
     btn.disabled = true;
     btn.innerHTML = "⏳ Generando...";
     btn.style.opacity = "0.7";
+
     showStatus("⏳ Creando modelo " + name + "...", "loading");
 
     const formData = new FormData();
@@ -343,27 +596,28 @@ function generateModel() {
             if (!response.ok) {
                 throw new Error("Error del servidor: " + response.status);
             }
+
             return response.text();
         })
         .then((data) => {
-            // Éxito
             btn.innerHTML = "✅ ¡Creado!";
             btn.style.background = "var(--success)";
             btn.style.color = "white";
+
             showStatus("✅ Modelo " + name + " creado exitosamente", "success");
 
-            // Mostrar resultado y recargar
             setTimeout(() => {
                 alert("Resultado:\n\n" + data);
                 location.reload();
             }, 1000);
         })
         .catch((err) => {
-            // Error
             console.error("Error al generar modelo:", err);
+
             btn.innerHTML = originalText;
             btn.disabled = false;
             btn.style.opacity = "1";
+
             showStatus("❌ Error al crear el modelo", "error");
         });
 }
@@ -379,7 +633,6 @@ function showStatus(message, type = "") {
         status.classList.add(type);
     }
 
-    // Auto-limpiar después de 5 segundos (solo mensajes de éxito/error)
     if (type === "success" || type === "error") {
         setTimeout(() => {
             status.textContent = "";
@@ -388,110 +641,9 @@ function showStatus(message, type = "") {
     }
 }
 
-document.addEventListener("DOMContentLoaded", function () {
-    // Botones con confirmación
-    document.querySelectorAll('[data-danger="true"]').forEach((btn) => {
-        btn.addEventListener("click", function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const message = this.dataset.confirm || "¿Estás seguro?";
-            showConfirmDialog(message, () => {
-                const form = document.createElement("form");
-                form.method = "POST";
-                form.style.display = "none";
-
-                const csrfInput = document.createElement("input");
-                csrfInput.type = "hidden";
-                csrfInput.name = "csrf_token";
-                csrfInput.value = CONFIG.csrfToken;
-
-                const actionInput = document.createElement("input");
-                actionInput.type = "hidden";
-                actionInput.name = "artisan";
-                actionInput.value = this.value;
-
-                form.appendChild(csrfInput);
-                form.appendChild(actionInput);
-                document.body.appendChild(form);
-                form.submit();
-            });
-        });
-    });
-
-    // Auto-resize del textarea Tinker
-    const textarea = document.getElementById("code");
-    if (textarea) {
-        textarea.addEventListener("input", function () {
-            this.style.height = "auto";
-            this.style.height =
-                Math.min(Math.max(this.scrollHeight, 200), 600) + "px";
-        });
-    }
-
-    // Restaurar Tinker
-    const savedTinkerCode = localStorage.getItem("projectLabTinkerCode");
-    const savedTinkerOutput = localStorage.getItem("projectLabTinkerOutput");
-
-    if (savedTinkerCode !== null && textarea) {
-        textarea.value = savedTinkerCode;
-    }
-
-    if (savedTinkerOutput !== null && savedTinkerOutput !== "") {
-        ensureTinkerOutput().textContent = savedTinkerOutput;
-    }
-
-    // Restaurar Herramientas Lab
-    const savedLabInput = localStorage.getItem("projectLabLabInput");
-    const savedLabOutput = localStorage.getItem("projectLabLabOutput");
-
-    const labInput = document.getElementById("labInput");
-
-    if (savedLabInput !== null && labInput) {
-        labInput.value = savedLabInput;
-    }
-
-    if (savedLabOutput !== null && savedLabOutput !== "") {
-        ensureLabOutput().textContent = savedLabOutput;
-    }
-
-    // Restaurar última pestaña activa
-    const lastTab = localStorage.getItem("projectLabActiveTab");
-    if (lastTab) {
-        showTab(lastTab);
-    }
-
-    // Tooltips para snippets
-    document.querySelectorAll(".snippet-chip").forEach((chip) => {
-        chip.title = "Click para insertar: " + chip.textContent;
-    });
-
-    // Input generador
-    const modelInput = document.getElementById("modelName");
-
-    if (modelInput) {
-        modelInput.addEventListener("keydown", function (e) {
-            if (e.key === "Enter") {
-                e.preventDefault();
-                generateModel();
-            }
-        });
-
-        modelInput.addEventListener("input", function () {
-            if (this.value.length === 1) {
-                this.value = this.value.toUpperCase();
-            }
-
-            this.value = this.value.replace(/[^a-zA-Z]/g, "");
-        });
-
-        modelInput.title =
-            "Nombre del modelo en singular (ej: Product, User, Category)";
-    }
-});
 // ==================== UTILIDADES ====================
+
 function copyToClipboard(text, successMessage) {
-    // Método moderno
     if (navigator.clipboard && navigator.clipboard.writeText) {
         navigator.clipboard
             .writeText(text)
@@ -504,9 +656,11 @@ function copyToClipboard(text, successMessage) {
 
 function fallbackCopy(text, successMessage) {
     const textarea = document.createElement("textarea");
+
     textarea.value = text;
     textarea.style.position = "fixed";
     textarea.style.opacity = "0";
+
     document.body.appendChild(textarea);
     textarea.select();
 
@@ -523,11 +677,11 @@ function fallbackCopy(text, successMessage) {
 function escapeHtml(text) {
     const div = document.createElement("div");
     div.textContent = text;
+
     return div.innerHTML;
 }
 
 function showNotification(message, type = "info") {
-    // Crear elemento de notificación
     const notification = document.createElement("div");
 
     const colors = {
@@ -557,49 +711,18 @@ function showNotification(message, type = "info") {
     notification.textContent = message;
     document.body.appendChild(notification);
 
-    // Auto-eliminar después de 4 segundos
     setTimeout(() => {
         notification.style.animation = "slideOut 0.3s ease-in";
         setTimeout(() => notification.remove(), 300);
     }, 4000);
 }
 
-// ==================== ATAJOS DE TECLADO ====================
-document.addEventListener("keydown", function (e) {
-    // Ctrl/Cmd + Enter: Ejecutar Tinker
-    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
-        e.preventDefault();
-        runTinkerAjax();
-    }
-
-    // Ctrl/Cmd + L: Limpiar
-    if ((e.ctrlKey || e.metaKey) && e.key === "l") {
-        e.preventDefault();
-        clearTinker();
-    }
-
-    // Ctrl/Cmd + 1-4: Cambiar pestañas
-    if (e.ctrlKey || e.metaKey) {
-        const tabs = {
-            1: "tinker",
-            2: "tools",
-            3: "database",
-            4: "routes",
-            5: "monitor",
-        };
-
-        if (tabs[e.key]) {
-            e.preventDefault();
-            showTab(tabs[e.key]);
-        }
-    }
-});
-
-// ==================== DIÁLOGO DE CONFIRMACIÓN ====================
 function showConfirmDialog(message, callback) {
-    // Eliminar diálogos anteriores
     const oldDialog = document.querySelector(".confirm-overlay");
-    if (oldDialog) oldDialog.remove();
+
+    if (oldDialog) {
+        oldDialog.remove();
+    }
 
     const overlay = document.createElement("div");
     overlay.className = "confirm-overlay";
@@ -639,7 +762,6 @@ function showConfirmDialog(message, callback) {
         }
     });
 
-    // Cerrar al hacer clic fuera
     overlay.addEventListener("click", function (e) {
         if (e.target === overlay) {
             overlay.remove();
@@ -649,14 +771,144 @@ function showConfirmDialog(message, callback) {
     input.focus();
 }
 
-// ==================== ANIMACIONES DE SALIDA ====================
+// ==================== INICIALIZACIÓN ====================
+
+document.addEventListener("DOMContentLoaded", function () {
+    document.querySelectorAll('[data-danger="true"]').forEach((btn) => {
+        btn.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const message = this.dataset.confirm || "¿Estás seguro?";
+
+            showConfirmDialog(message, () => {
+                const form = document.createElement("form");
+                form.method = "POST";
+                form.style.display = "none";
+
+                const csrfInput = document.createElement("input");
+                csrfInput.type = "hidden";
+                csrfInput.name = "csrf_token";
+                csrfInput.value = CONFIG.csrfToken;
+
+                const actionInput = document.createElement("input");
+                actionInput.type = "hidden";
+                actionInput.name = "artisan";
+                actionInput.value = this.value;
+
+                form.appendChild(csrfInput);
+                form.appendChild(actionInput);
+                document.body.appendChild(form);
+                form.submit();
+            });
+        });
+    });
+
+    const textarea = document.getElementById("code");
+
+    if (textarea) {
+        textarea.addEventListener("input", function () {
+            this.style.height = "auto";
+            this.style.height =
+                Math.min(Math.max(this.scrollHeight, 200), 600) + "px";
+        });
+    }
+
+    const savedTinkerCode = localStorage.getItem("projectLabTinkerCode");
+    const savedTinkerOutput = localStorage.getItem("projectLabTinkerOutput");
+
+    if (savedTinkerCode !== null && textarea) {
+        textarea.value = savedTinkerCode;
+    }
+
+    if (savedTinkerOutput !== null && savedTinkerOutput !== "") {
+        ensureTinkerOutput().textContent = savedTinkerOutput;
+    }
+
+    const savedLabInput = localStorage.getItem("projectLabLabInput");
+    const savedLabOutput = localStorage.getItem("projectLabLabOutput");
+
+    const labInput = document.getElementById("labInput");
+
+    if (savedLabInput !== null && labInput) {
+        labInput.value = savedLabInput;
+    }
+
+    if (savedLabOutput !== null && savedLabOutput !== "") {
+        ensureLabOutput().textContent = savedLabOutput;
+    }
+
+    const lastTab = localStorage.getItem("projectLabActiveTab");
+
+    if (lastTab) {
+        showTab(lastTab);
+    }
+
+    document.querySelectorAll(".snippet-chip").forEach((chip) => {
+        chip.title = "Click para insertar: " + chip.textContent;
+    });
+
+    const modelInput = document.getElementById("modelName");
+
+    if (modelInput) {
+        modelInput.addEventListener("keydown", function (e) {
+            if (e.key === "Enter") {
+                e.preventDefault();
+                generateModel();
+            }
+        });
+
+        modelInput.addEventListener("input", function () {
+            if (this.value.length === 1) {
+                this.value = this.value.toUpperCase();
+            }
+
+            this.value = this.value.replace(/[^a-zA-Z]/g, "");
+        });
+
+        modelInput.title =
+            "Nombre del modelo en singular (ej: Product, User, Category)";
+    }
+});
+
+// ==================== ATAJOS ====================
+
+document.addEventListener("keydown", function (e) {
+    if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+        e.preventDefault();
+        runTinkerAjax();
+    }
+
+    if ((e.ctrlKey || e.metaKey) && e.key === "l") {
+        e.preventDefault();
+        clearTinker();
+    }
+
+    if (e.ctrlKey || e.metaKey) {
+        const tabs = {
+            1: "tinker",
+            2: "tools",
+            3: "database",
+            4: "routes",
+            5: "monitor",
+        };
+
+        if (tabs[e.key]) {
+            e.preventDefault();
+            showTab(tabs[e.key]);
+        }
+    }
+});
+
+// ==================== ANIMACIONES ====================
+
 const style = document.createElement("style");
 style.textContent = `
     @keyframes slideIn {
         from { opacity: 0; transform: translateX(100px); }
         to { opacity: 1; transform: translateX(0); }
     }
-    
+
     @keyframes slideOut {
         from { opacity: 1; transform: translateX(0); }
         to { opacity: 0; transform: translateX(100px); }
@@ -664,208 +916,4 @@ style.textContent = `
 `;
 document.head.appendChild(style);
 
-// ==================== INICIALIZACIÓN ====================
-console.log("🧪 Project Lab v8 - Dashboard inicializado");
-console.log(
-    "📍 Raíz del proyecto:",
-    document.querySelector(".header-info")?.textContent || "No detectada",
-);
-console.log(
-    "⌨️  Atajos: Ctrl+Enter ejecutar, Ctrl+L limpiar, Ctrl+1-4 pestañas",
-);
-
-// AGREGAR EN: tools/project-lab/assets/js/app.js
-
-function insertLabSnippet(snippet) {
-    const textarea = document.getElementById("labInput");
-    if (!textarea) return;
-
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = textarea.value;
-
-    textarea.value = text.substring(0, start) + snippet + text.substring(end);
-    textarea.focus();
-    textarea.setSelectionRange(start + snippet.length, start + snippet.length);
-}
-
-function clearLabTools() {
-    const textarea = document.getElementById("labInput");
-    if (textarea) {
-        textarea.value = "";
-    }
-
-    const output = document.querySelector("#tab-tools .output-card");
-    if (output) {
-        output.remove();
-    }
-    localStorage.removeItem("projectLabLabInput");
-    localStorage.removeItem("projectLabLabOutput");
-    localStorage.removeItem("projectLabLabActive");
-}
-
-function copyLabOutput() {
-    const output = document.getElementById("labOutput");
-
-    if (!output) {
-        showNotification("No hay salida Lab para copiar", "warning");
-        return;
-    }
-
-    copyToClipboard(output.innerText, "Salida Lab copiada al portapapeles");
-}
-function runLabTool(tool, fromClipboard = false) {
-    const input = document.getElementById("labInput");
-    const formData = new FormData();
-
-    formData.append("csrf_token", CONFIG.csrfToken);
-    formData.append("ajax_lab_tool", "1");
-    formData.append("lab_tool", tool);
-    formData.append("lab_input", input ? input.value : "");
-
-    if (fromClipboard) {
-        formData.append("from_clipboard", "1");
-    }
-
-    ensureLabOutput().textContent = "⏳ Ejecutando...";
-
-    fetch(CONFIG.baseUrl, {
-        method: "POST",
-        body: formData,
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            const finalInput =
-                data.input !== undefined
-                    ? data.input
-                    : input
-                      ? input.value
-                      : "";
-
-            const finalOutput = data.output || "Sin salida.";
-
-            if (input) {
-                input.value = finalInput;
-            }
-
-            ensureLabOutput().textContent = finalOutput;
-
-            localStorage.setItem("projectLabLabInput", finalInput);
-            localStorage.setItem("projectLabLabOutput", finalOutput);
-            localStorage.setItem("projectLabLabActive", tool);
-
-            showNotification("Herramienta Lab ejecutada", "success");
-        })
-        .catch((error) => {
-            const errorOutput = "❌ Error AJAX: " + error.message;
-
-            ensureLabOutput().textContent = errorOutput;
-            localStorage.setItem("projectLabLabOutput", errorOutput);
-
-            showNotification("Error al ejecutar herramienta Lab", "error");
-        });
-}
-
-function ensureLabOutput() {
-    let output = document.getElementById("labOutput");
-
-    if (output) {
-        return output;
-    }
-
-    const tab = document.getElementById("tab-tools");
-
-    const card = document.createElement("div");
-    card.className = "card output-card";
-    card.innerHTML = `
-        <div class="output-header">
-            <span>📤 Salida Herramientas Lab</span>
-            <button onclick="copyLabOutput()" class="secondary small">Copiar</button>
-        </div>
-        <pre id="labOutput"></pre>
-    `;
-
-    tab.appendChild(card);
-
-    return document.getElementById("labOutput");
-}
-function runTinkerAjax() {
-    const textarea = document.getElementById("code");
-    const formData = new FormData();
-
-    formData.append("csrf_token", CONFIG.csrfToken);
-    formData.append("ajax_tinker", "1");
-    formData.append("code", textarea ? textarea.value : "");
-
-    ensureTinkerOutput().textContent = "⏳ Ejecutando Tinker...";
-
-    fetch(CONFIG.baseUrl, {
-        method: "POST",
-        body: formData,
-    })
-        .then((response) => response.json())
-        .then((data) => {
-            const finalCode =
-                data.code !== undefined
-                    ? data.code
-                    : textarea
-                      ? textarea.value
-                      : "";
-
-            const finalOutput = data.output || "Sin salida.";
-
-            if (textarea) {
-                textarea.value = finalCode;
-            }
-
-            ensureTinkerOutput().textContent = finalOutput;
-
-            localStorage.setItem("projectLabTinkerCode", finalCode);
-            localStorage.setItem("projectLabTinkerOutput", finalOutput);
-            localStorage.setItem(
-                "projectLabTinkerAt",
-                new Date().toISOString(),
-            );
-
-            showNotification(
-                "Tinker ejecutado",
-                data.ok ? "success" : "warning",
-            );
-        })
-        .catch((error) => {
-            const errorOutput = "❌ Error AJAX: " + error.message;
-
-            ensureTinkerOutput().textContent = errorOutput;
-            localStorage.setItem("projectLabTinkerOutput", errorOutput);
-            localStorage.setItem(
-                "projectLabTinkerAt",
-                new Date().toISOString(),
-            );
-
-            showNotification("Error al ejecutar Tinker", "error");
-        });
-}
-
-function ensureTinkerOutput() {
-    let output = document.getElementById("tinkerOutput");
-
-    if (output) {
-        return output;
-    }
-
-    const tab = document.getElementById("tab-tinker");
-
-    const card = document.createElement("div");
-    card.className = "card output-card";
-    card.innerHTML = `
-        <div class="output-header">
-            <span>📤 Resultado</span>
-            <button onclick="copyOutput()" class="secondary small">Copiar</button>
-        </div>
-        <pre id="tinkerOutput"></pre>
-    `;
-
-    tab.appendChild(card);
-
-    return document.getElementById("tinkerOutput");
-}
+console.log("🧪 Project Lab - JS inicializado");

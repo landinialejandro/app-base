@@ -335,7 +335,7 @@ Su función es sostener la plataforma y su frontera de ingreso.
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00017
 
 ENTIDADES DEL NEGOCIO
 
@@ -362,49 +362,37 @@ Estas entidades pertenecen al ecosistema operativo de empresa y no a la infraest
 
 No todas cumplen el mismo rol conceptual.
 
-Pueden actuar como base del dominio, módulos autónomos, entidades hijas, capacidades transversales o soporte operativo interno.
+Pueden actuar como:
+
+base del dominio
+módulos autónomos
+entidades hijas
+capacidades transversales
+soporte operativo interno
 
 Reglas de lectura relevantes:
 
-users no pasa a ser entidad del negocio por participar en la operación interna de una empresa.
+users no pasa a ser entidad del negocio por participar en la operación interna de una empresa
 
-users mantiene identidad global del sistema.
+users mantiene identidad global del sistema
 
-La pertenencia operativa real se resuelve mediante memberships.
+la pertenencia operativa real se resuelve mediante memberships
 
-Si el ecosistema requiere un dataset reusable de colaboradores internos activos, esa necesidad pertenece al plano tenant y no implica crear una nueva entidad del negocio.
+si el ecosistema requiere un dataset reusable de colaboradores internos activos, esa necesidad pertenece al plano tenant y no implica crear una nueva entidad del negocio
 
-En inventory:
+inventory_movements expresa impacto unitario real sobre stock
 
-inventory_movements expresa el impacto unitario real sobre stock.
+inventory_operations agrupa contexto operativo cuando una misma acción requiere uno o múltiples movimientos
 
-inventory_operations agrupa contexto operativo cuando una misma acción requiere uno o múltiples movimientos.
+order_items y document_items conservan naturaleza de entidades hijas de sus módulos padre aunque puedan actuar como anclaje de trazabilidad o ejecución dentro de otros flujos
 
-Ambas piezas pertenecen al mismo frente funcional y no se sustituyen entre sí.
+orders y documents comparten una doctrina base de lifecycle para cabeceras operativas
 
-order_items y document_items conservan naturaleza de entidades hijas de sus módulos padre aunque puedan actuar como anclaje de trazabilidad o ejecución dentro de otros flujos.
+Regla:
 
-orders y documents comparten una doctrina base de lifecycle para cabeceras operativas.
+este documento reconoce la posición estructural de estas entidades.
 
-Estados base persistidos vigentes:
-
-draft
-pending_approval
-approved
-closed
-cancelled
-
-draft representa cabecera en preparación.
-
-pending_approval representa cabecera con contenido operativo lista para revisión.
-
-approved habilita operación real.
-
-closed congela la cabecera.
-
-cancelled expresa estado terminal.
-
-order_items y document_items pueden actuar como disparadores de transición del padre desde draft hacia pending_approval cuando se crea la primera línea.
+El detalle operativo, visual, de navegación o seguridad debe resolverse en los documentos especializados correspondientes.
 
 <<END SECTION>>
 
@@ -484,15 +472,13 @@ la clasificación describe rol funcional actual y puede evolucionar con la madur
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00018
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
 La arquitectura modular del proyecto debe leerse como un ecosistema reusable y desacoplado.
 
-Regla estructural:
-
-los módulos no deben relacionarse como cajas cerradas sin puntos de contacto ni como núcleos invadibles desde cualquier consumidor.
+Los módulos no deben relacionarse como cajas cerradas sin puntos de contacto ni como núcleos invadibles desde cualquier consumidor.
 
 La lectura correcta distingue tres planos:
 
@@ -502,7 +488,7 @@ consumo externo desde otros módulos
 
 NÚCLEO INTERNO
 
-Corresponde a la lógica, reglas y operación que pertenecen de forma propia al módulo.
+Corresponde a la lógica, reglas y operación propia del módulo.
 
 No debe reabrirse desde consumidores salvo cambio real del contrato interno del propio módulo.
 
@@ -515,96 +501,53 @@ Puede expresarse mediante:
 acciones compactas
 embebidos fuertes
 payloads arbitrados
-surfaces oficiales de lectura o ejecución
-acciones por fila cuando el módulo oferente interviene recursos mostrados por un host externo
+surfaces oficiales
+acciones por fila
+resolvers reutilizables
+representaciones visuales oficiales
 
-Cuando una capacidad reusable requiera arbitraje operativo real, la puerta de enlace modular oficial no se agota en una vista aislada.
+Cuando una capacidad reusable requiera arbitraje operativo real, la puerta de enlace no se agota en una vista aislada.
 
-Debe entenderse como publicación del módulo oferente que puede incluir:
+Debe entenderse como publicación completa del módulo oferente.
 
-contrato mínimo estable
-resolver reusable
-representación oficial
-consumo homogéneo desde módulos externos
+Regla arquitectónica:
 
-Regla arquitectónica consolidada:
+debe centralizarse infraestructura repetida y mantenerse local la semántica del módulo.
 
-debe centralizarse únicamente la infraestructura repetida y mantenerse local la semántica del módulo.
+Los contratos comunes pueden absorber helpers, shape repetido y utilidades mínimas de montaje.
 
-Por lo tanto:
-
-los contratos comunes pueden absorber helpers, shape repetido y utilidades mínimas de montaje
-
-los resolvers, payloads, decisiones funcionales, flags UX y reglas del dominio permanecen dentro del módulo oferente
+Los resolvers, payloads, decisiones funcionales, flags UX y reglas del dominio permanecen dentro del módulo oferente.
 
 Reducir líneas de código no constituye objetivo suficiente si se pierde legibilidad contractual, identidad modular o trazabilidad semántica.
 
-Aclaración adicional consolidada sobre relaciones compactas:
+CONSUMO EXTERNO
 
-cuando una relación compacta madura como capacidad reusable oficial del módulo oferente, debe publicarse desde ese módulo como parte explícita de su puerta de enlace oficial.
+Corresponde al uso de capacidades publicadas por otros módulos.
 
-La secuencia correcta de lectura es:
+La secuencia correcta es:
 
 consumer solicita
 support del módulo oferente resuelve
 componente del módulo oferente representa
 host monta
 
-Aclaración adicional de evolución vigente:
-
-el ecosistema empieza a consolidar una familia más nítida de linked compactos publicados por el propio módulo oferente.
-
-Esa evolución no debe resolverse como mezcla permanente entre generaciones viejas y nuevas.
-
-Si un módulo migra a una nueva familia *Linked, la convergencia correcta es cerrar esa capacidad en la nueva generación y no sostener backward patching estable hacia *LinkedAction como solución final.
-
-Aclaración adicional sobre acciones operativas por línea:
-
-cuando un host muestra líneas propias pero la operación pertenece a otro módulo, la arquitectura correcta es que el módulo oferente publique la capacidad oficial correspondiente.
-
-El host aporta contexto y superficie visual.
-
-El módulo oferente conserva reglas, validaciones, semántica operativa y trazabilidad.
-
-Caso vigente:
-
-documents puede alojar acciones de inventory por línea documental sin absorber lógica de stock.
-
-Aclaración adicional sobre convergencia de line items:
-
-orders y documents pueden compartir infraestructura de líneas cuando la gramática operativa sea equivalente.
-
-La convergencia válida no fusiona módulos ni traslada ownership.
-
-Orders conserva centralidad operativa.
-
-Documents converge estructuralmente hacia el patrón maduro de orders cuando corresponde.
-
-Inventory conserva semántica propia de stock, movimientos, ejecución, reversión y trazabilidad material.
-
-La infraestructura común puede incluir componentes visuales, helpers livianos y matemática comercial compartida para líneas comerciales.
-
-No debe absorber reglas de dominio, hooks, permisos ni semántica material propia de inventory.
-
-CONSUMO EXTERNO
-
-Corresponde al uso de esas capacidades publicadas por otros módulos.
-
-Ese consumo debe tender a expresar intención y contexto.
-
-La decisión operativa completa debe seguir perteneciendo al módulo oferente.
+El consumo externo debe expresar intención y contexto, sin absorber la decisión operativa completa del módulo oferente.
 
 HUB VISUAL
 
-Un módulo puede además actuar como hub visual: alojar interacción de otro módulo dentro de su superficie sin absorber su lógica operativa.
+Un módulo puede alojar interacción de otro módulo dentro de su superficie sin absorber su lógica operativa.
 
-En esa situación el módulo hub conserva gobierno de su superficie visual y el módulo invitado conserva gobierno de su lógica operativa.
+En esa situación:
+
+el módulo host conserva gobierno de su superficie visual
+
+el módulo invitado conserva gobierno de su lógica operativa
 
 Regla:
 
-la arquitectura modular del ecosistema debe describir posiciones y fronteras estructurales.
+la arquitectura modular del ecosistema describe posiciones y fronteras estructurales.
 
-No debe absorber contratos de seguridad específicos, arbitrajes de permiso ni validaciones operativas que correspondan a documentos especializados.
+No debe absorber contratos de seguridad específicos, arbitrajes de permiso, validaciones operativas detalladas ni patrones visuales que correspondan a documentos especializados.
 
 <<END SECTION>>
 
@@ -754,11 +697,11 @@ Estas relaciones describen arquitectura general y no detalle de navegación, seg
 <<END SECTION>>
 
 <<SECTION: MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO
 
-El crecimiento del sistema debe apoyarse en módulos con identidad clara y responsabilidades separadas.
+El crecimiento del sistema debe apoyarse en módulos con identidad clara, contratos explícitos y responsabilidades separadas.
 
 Toda evolución nueva debe tender a:
 
@@ -772,27 +715,28 @@ mantener coherencia documental
 
 Reglas doctrinales:
 
-una necesidad nueva no debe reabrir arbitrariamente el núcleo de otro módulo.
+una necesidad nueva no debe reabrir arbitrariamente el núcleo de otro módulo
 
-Si varios frentes requieren colaboradores internos activos, primero debe evaluarse una solución reusable del plano tenant.
+si varios frentes requieren colaboradores internos activos, primero debe evaluarse una solución reusable del plano tenant
 
-Las capacidades compactas maduras deben converger hacia la publicación oficial del módulo oferente.
+las capacidades compactas maduras deben converger hacia publicación oficial del módulo oferente
 
-Si un módulo necesita acople externo real, conviene concentrarlo en una puerta contractual explícita antes de crear abstracciones mayores.
+si un módulo necesita acople externo real, conviene concentrarlo en una puerta contractual explícita
 
-Si una entidad hija gana relevancia transversal, primero debe fortalecerse como hija del módulo padre antes de promoverla a módulo autónomo.
+si una entidad hija gana relevancia transversal, primero debe fortalecerse como hija del módulo padre antes de promoverla a módulo autónomo
 
-Los frentes transaccionales pueden evolucionar hacia dos niveles:
+los frentes transaccionales pueden evolucionar hacia estructuras internas de agrupación contextual y registros unitarios persistidos cuando eso mejore trazabilidad y orden operativo
 
-agrupador operativo contextual
-registros unitarios persistidos
+Regla:
 
-cuando esa estructura mejore trazabilidad y orden interno.
+crecer no significa mezclar responsabilidades.
+
+La dirección aprobada del proyecto continúa siendo modular, reusable y con fronteras explícitas.
 
 <<END SECTION>>
 
 <<SECTION: CONTRATO MODULAR COMO DIRECCIÓN DE CRECIMIENTO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CONTRATO MODULAR COMO DIRECCIÓN DE CRECIMIENTO
 
@@ -802,18 +746,23 @@ Cuando una necesidad nueva aparezca en un módulo existente, la primera lectura 
 
 La salida preferente es fortalecer el contrato propio del módulo y ordenar internamente su dominio.
 
+Reglas:
+
+una mejora interna no debe romper contratos externos estables
+
+la complejidad nueva debe resolverse primero dentro del módulo dueño del problema
+
+los consumidores deben depender de capacidades publicadas y no de detalles internos variables
+
+un contrato modular válido debe permitir integrar sin borrar ownership funcional
+
 Caso vigente consolidado:
 
 orders continúa integrándose con inventory mediante servicios y puertas contractuales explícitas, sin absorber lógica interna del frente stock.
 
-Reglas:
+Regla final:
 
-crecer no implica mezclar responsabilidades
-una mejora interna no debe romper contratos externos estables
-la complejidad nueva debe resolverse primero dentro del módulo dueño del problema
-los consumidores deben depender de capacidades publicadas y no de detalles internos variables
-
-La dirección de crecimiento aprobada del proyecto continúa siendo modular, reusable y con fronteras explícitas.
+la dirección de crecimiento aprobada del proyecto continúa siendo modular, reusable y contractualmente explícita.
 
 <<END SECTION>>
 

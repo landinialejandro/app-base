@@ -102,7 +102,7 @@ por consolidación como capacidad embebida oficial
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -162,6 +162,22 @@ Orders y Documents avanzaron en convergencia de line items mediante componentes 
 
 La convergencia no transfiere ownership entre módulos ni mezcla semántica de inventory con matemática comercial.
 
+Avance UI adicional consolidado:
+
+se unificó la gramática de tabs principales de show pages mediante x-host-tabs y helper HostTabs.
+
+La persistencia del panel activo mediante return_tab quedó alineada para hosts principales validados.
+
+Se completó la alineación de Orders, Documents, Parties, Tasks, Assets, Appointments, Products, Inventory y Projects al patrón común de tabs host.
+
+Avance de limpieza técnica consolidado:
+
+inventory conserva un partial unificado vigente para reversión por línea.
+
+Se eliminaron partials legacy duplicados vinculados a reversión por línea en orders y documents.
+
+La base vigente queda representada por documentación matriz y código actual, no por notas históricas internas.
+
 Validaciones recientes informadas:
 
 syntax OK
@@ -172,7 +188,7 @@ browser OK
 <<END SECTION>>
 
 <<SECTION: CAPACIDADES REUTILIZABLES A CONSOLIDAR>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 CAPACIDADES REUTILIZABLES A CONSOLIDAR
 
@@ -223,6 +239,11 @@ x-line-operation-modal
 x-tabs-embedded
 x-dev-component-version
 LineItemMath
+
+Capacidad reusable vigente para tabs host:
+
+x-host-tabs
+HostTabs
 
 Siguiente consolidación técnica posible:
 
@@ -292,7 +313,7 @@ cada paso debe dejar menos excepciones que el anterior
 <<END SECTION>>
 
 <<SECTION: ESTADO ACTUAL DEL SISTEMA>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 ESTADO ACTUAL DEL SISTEMA
 
@@ -321,6 +342,12 @@ La primera línea válida promueve automáticamente una cabecera desde draft hac
 Security continúa como kernel central de autorización efectiva
 
 Gate/Policy actúa como capa consumidora alineada y no contradictoria
+
+Las show pages principales avanzaron hacia una gramática visual común de tabs host mediante x-host-tabs.
+
+return_tab se consolida como contexto interno del host para preservar el panel activo cuando corresponde.
+
+trail conserva su función de contexto externo entre recursos.
 
 La validación runtime reciente no detectó nuevos hallazgos críticos fuera del frente ya corregido.
 

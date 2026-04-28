@@ -212,7 +212,7 @@ si owner dispone de una surface real para entender y administrar ese comportamie
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -241,10 +241,19 @@ Criterio adicional validado:
 
 si la integración ocurre por fila dentro de una tabla existente, revisar orden visual, ownership de la acción, validación backend y compatibilidad con estados reales del recurso padre y de la línea.
 
+Criterio adicional validado para show pages con tabs:
+
+si el módulo participa en una show page con tabs principales, validar explícitamente:
+
+diferencia entre tabs host y tabs internas embebidas
+uso correcto de return_tab solo para contexto host
+fallback seguro cuando la key recibida no exista
+preservación del panel correcto después de acciones derivadas relevantes
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA
 
@@ -278,10 +287,16 @@ Criterio adicional validado:
 
 las transiciones de estado deducibles por negocio deben tender a resolverse automáticamente sin agregar fricción innecesaria al usuario.
 
+Criterio adicional validado para show pages:
+
+si la pantalla utiliza tabs principales, evaluar uso del patrón visual oficial vigente para tabs host y evitar implementaciones manuales duplicadas.
+
+Validar también que el estado activo provenga de una decisión explícita del host y no de la posición accidental del loop.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 5 — DOCUMENTACIÓN Y CIERRE>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 BLOQUE 5 — DOCUMENTACIÓN Y CIERRE
 
@@ -317,6 +332,10 @@ Regla adicional de cierre real:
 no declarar cerrado un frente reusable mientras existan modales, tabs internas, formularios secundarios o acciones contextuales relevantes sin auditar contra la doctrina vigente.
 
 El cierre documental debe contemplar superficie principal y micro-superficies operativas relacionadas.
+
+Regla adicional de cierre transversal:
+
+si una mejora unifica infraestructura compartida entre varios módulos, el cierre exige revisar también consumidores alcanzados, continuidad visual en browser y documentación base afectada.
 
 <<END SECTION>>
 

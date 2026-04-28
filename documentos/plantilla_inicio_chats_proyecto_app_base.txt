@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -52,6 +52,12 @@ draft → pending_approval
 Inventory ya opera integrado con Orders y Documents mediante surfaces oficiales y mantiene ownership funcional propio.
 
 La convergencia reusable de line items quedó avanzada y validada en múltiples capas.
+
+Las show pages principales ya cuentan con patrón común para tabs host mediante x-host-tabs y helper HostTabs.
+
+return_tab se usa como contexto interno del host para preservar el panel activo cuando corresponde.
+
+trail continúa representando contexto externo entre recursos.
 
 <<END SECTION>>
 
@@ -94,7 +100,7 @@ El cierre debe apoyarse en evidencia técnica suficiente.
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DE ESTE CHAT>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 OBJETIVO DE ESTE CHAT
 
@@ -112,12 +118,14 @@ mejoras pendientes de layout general, footer y vistas extensas
 
 mejoras móviles futuras en attachments para captura rápida de evidencias
 
+auditoría de nuevas mejoras sobre tabs host únicamente si existe evidencia real de necesidad
+
 Toda propuesta debe nacer desde el estado actual real del proyecto y no desde supuestos genéricos.
 
 <<END SECTION>>
 
 <<SECTION: ALCANCE>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 ALCANCE
 
@@ -136,6 +144,10 @@ pendientes inmediatos
 criterios de trabajo compartidos
 
 límites de seguridad y tenancy
+
+patrón vigente de tabs host en show pages
+
+distinción entre trail y return_tab
 
 No reemplaza auditorías específicas.
 
@@ -271,7 +283,7 @@ Es decir:
 <<END SECTION>>
 
 <<SECTION: FORMA DE RESPUESTA ESPERADA>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 FORMA DE RESPUESTA ESPERADA
 
@@ -299,19 +311,16 @@ Regla adicional:
 si el problema toca navegación embebida, tabs o redirects, indicar explícitamente:
 
 * host de origen
-* recurso final esperado
-* si trail está bien o mal resuelto
-* si falta return_tab
-* si la key técnica de tab coincide con la consumida por el host
+* acción disparadora
+* contexto externo esperado
+* contexto interno esperado
+* parámetro trail si corresponde
+* parámetro return_tab si corresponde
+* quién decide el tab activo
+* quién solo reenvía contexto
 
-Regla adicional para auditorías de permisos:
+No usar return_tab para reemplazar trail.
 
-si se corrige una autorización, informar:
-
-* qué capa fallaba
-* si afecta Security, Gate/Policy, controller o UI
-* cómo quedó alineado el contrato efectivo
-* qué casos fueron revalidados
-* qué caso no pudo validarse por falta de dataset real
+No usar trail para persistir estado interno de tabs host.
 
 <<END SECTION>>

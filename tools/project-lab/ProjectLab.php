@@ -129,6 +129,25 @@ class ProjectLab
             ]);
         }
 
+        if (isset($_POST['ajax_artisan'])) {
+            $command = (string) ($_POST['artisan'] ?? '');
+
+            if (trim($command) === '') {
+                $this->jsonResponse([
+                    'ok' => false,
+                    'output' => '[ERROR] No se recibió comando Artisan.',
+                ]);
+            }
+
+            $output = $this->executeArtisan($command);
+
+            $this->jsonResponse([
+                'ok' => true,
+                'command' => $command,
+                'output' => $output,
+            ]);
+        }
+
         if (isset($_POST['ajax_tinker'])) {
             $code = (string) ($_POST['code'] ?? '');
 

@@ -33,10 +33,10 @@
             <div class="card">
                 <h4>💻 Menú</h4>
                 <button class="tab-btn active" onclick="showTab('tinker')">🧪 Editor Tinker</button>
+                <button class="tab-btn" onclick="showTab('tools')">🧰 Herramientas Lab</button>
                 <button class="tab-btn" onclick="showTab('database')">🗄️ Base de Datos</button>
                 <button class="tab-btn" onclick="showTab('routes')">🔗 Rutas (<?= count($routes) ?>)</button>
                 <button class="tab-btn" onclick="showTab('monitor')">📊 Monitor</button>
-                <button class="tab-btn" onclick="showTab('tools')">🧰 Herramientas Lab</button>
             </div>
 
             <!-- Scripts -->
@@ -48,24 +48,6 @@
                     <button onclick="runScript('auditar.sh')" class="secondary" style="grid-column: 1 / -1;">🔍 Auditar.sh</button>
                 </div>
                 <div id="scriptStatus"></div>
-            </div>
-
-            <!-- Artisan -->
-            <div class="card">
-                <h4>⚡ Artisan</h4>
-                <form method="POST" class="artisan-form">
-                    <input type="hidden" name="csrf_token" value="<?= $csrfToken ?>">
-                    <button name="artisan" value="optimize:clear" class="secondary">🧹 Limpiar</button>
-                    <button name="artisan" value="migrate" class="secondary">🗂️ Migrar</button>
-                    <button name="artisan" value="db:seed" class="secondary">🌱 Seed</button>
-                    <hr>
-                    <button name="artisan" value="migrate:fresh --seed" 
-                            class="warning" 
-                            data-danger="true"
-                            data-confirm="⚠️ Escribe 'BORRAR' para confirmar:">
-                        🔥 Fresh + Seed
-                    </button>
-                </form>
             </div>
 
             <!-- Generador de Modelos -->

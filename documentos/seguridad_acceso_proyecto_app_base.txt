@@ -146,7 +146,7 @@ La pertenencia a múltiples tenants no debilita el modelo: exige resolver correc
 <<END SECTION>>
 
 <<SECTION: MULTI-TENANCY Y AISLAMIENTO>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 MULTI-TENANCY Y AISLAMIENTO
 
@@ -163,9 +163,7 @@ no operar sobre registros ajenos al tenant activo
 no asumir contexto tenant por conveniencia técnica
 no relajar filtros multi-tenant por atajos de implementación
 
-Regla doctrinal adicional:
-
-el aislamiento no se agota en la UI ni en la ocultación visual de información.
+El aislamiento no se agota en la UI ni en la ocultación visual de información.
 
 Debe preservarse también en:
 
@@ -176,17 +174,13 @@ autorización sobre recursos vinculados
 datasets visibles
 operaciones derivadas entre módulos
 
-El aislamiento entre tenants es requisito estructural de seguridad operativa.
-
-Aclaración adicional para entidades operativas internas:
-
-toda entidad persistente del negocio que forme parte del frente operativo de un tenant debe quedar alcanzada por el mismo aislamiento multi-tenant, aunque no tenga navegación propia ni permisos visibles independientes.
+Toda entidad persistente del negocio que forme parte del frente operativo de un tenant debe quedar alcanzada por el mismo aislamiento multi-tenant, aunque no tenga navegación propia ni permisos visibles independientes.
 
 Este criterio alcanza también a líneas operativas, movimientos, operaciones internas y trazabilidad derivada cuando participan de flujos entre módulos.
 
-Cuando inventory opere desde orders o documents, deben validarse de forma consistente tenant activo, recurso padre, línea origen y producto asociado antes de registrar movimientos.
+Regla:
 
-Cuando una acción se ejecute desde una row action o surface embebida, el hecho de nacer dentro de una vista autorizada no reemplaza la validación multi-tenant completa en backend.
+cuando una acción se ejecute desde una row action, modal o surface embebida, el hecho de nacer dentro de una vista autorizada no reemplaza la validación multi-tenant completa en backend.
 
 <<END SECTION>>
 
@@ -305,7 +299,7 @@ no saltar el resolver central con lógica local improvisada
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -333,7 +327,7 @@ Cuando existan recursos padre e hijos, debe respetarse además la subordinación
 
 Las mejoras visuales o de UX nunca justifican relajar seguridad.
 
-La visibilidad de un botón operativo, como ejecutar, surtir, devolver o revertir, no constituye autorización suficiente.
+La visibilidad de un botón operativo no constituye autorización suficiente.
 
 La UI puede expresar disponibilidad según estado y payload autorizado, pero el servidor debe volver a validar permiso, tenant, recurso padre, línea origen y límites operativos antes de ejecutar la acción.
 
@@ -373,7 +367,7 @@ El detalle por módulo debe resolverse en REGLAS OPERATIVAS POR MÓDULO para evi
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -404,16 +398,21 @@ Las capacidades publicadas como row actions o surfaces embebidas siguen pertenec
 
 El host puede montar la acción, pero no reemplaza el contrato de seguridad del módulo que la publica.
 
-Cuando inventory opera sobre líneas de orders o documents, su contrato efectivo debe contemplar:
+Cuando un módulo opere sobre recursos hijos de otro host, su contrato efectivo debe contemplar:
 
 tenant activo
 recurso padre
-línea origen
-producto asociado
+línea u origen operativo
+recurso asociado cuando corresponda
 estado del padre
-estado real de la línea
-ejecutado neto vigente
-límites de reversión o ejecución
+estado real del recurso intervenido
+límites operativos vigentes
+
+Regla:
+
+el contrato de seguridad modular debe fijar responsabilidades y fronteras.
+
+No debe transformarse en manual funcional detallado de cada integración.
 
 <<END SECTION>>
 
@@ -469,7 +468,7 @@ La mutación sigue dependiendo del permiso efectivo sobre el padre y de las vali
 <<END SECTION>>
 
 <<SECTION: INTEGRACIONES REUSABLES Y AUTORIZACIÓN>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00021
 
 INTEGRACIONES REUSABLES Y AUTORIZACIÓN
 
@@ -487,6 +486,8 @@ fallas de montaje contractual no equivalen automáticamente a fallas de permiso
 
 el host presta superficie visual pero no absorbe ownership de seguridad
 
+la validación backend debe sostener tenant, recurso, relaciones y límites operativos
+
 Casos vigentes:
 
 inventory operando dentro de orders
@@ -495,9 +496,11 @@ inventory operando dentro de documents
 
 documents embebido dentro de otros hosts
 
-Regla final:
+Regla:
 
-mostrar una surface visible nunca reemplaza validación backend sobre tenant, recurso, relaciones y límites operativos.
+mostrar una surface visible nunca reemplaza validación backend.
+
+La integración reusable reduce duplicación visual o contractual, pero no reduce exigencia de autorización efectiva.
 
 <<END SECTION>>
 

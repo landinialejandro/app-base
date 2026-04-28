@@ -42,10 +42,12 @@ class ModuleCatalog
     protected static array $definitions = [
         self::DASHBOARD => [
             'label' => 'Dashboard',
+            'icon' => 'grid',
         ],
 
         self::PROJECTS => [
             'label' => 'Proyectos',
+            'icon' => 'folder',
             'surface_service' => ProjectSurfaceService::class,
             'nav' => [
                 'group' => 'management',
@@ -57,6 +59,7 @@ class ModuleCatalog
 
         self::TASKS => [
             'label' => 'Tareas',
+            'icon' => 'list-check',
             'surface_service' => TaskSurfaceService::class,
             'nav' => [
                 'group' => 'main',
@@ -68,6 +71,7 @@ class ModuleCatalog
 
         self::APPOINTMENTS => [
             'label' => 'Turnos',
+            'icon' => 'calendar',
             'surface_service' => AppointmentSurfaceService::class,
             'nav' => [
                 'group' => 'main',
@@ -79,6 +83,7 @@ class ModuleCatalog
 
         self::PARTIES => [
             'label' => 'Contactos',
+            'icon' => 'user-group',
             'surface_service' => PartySurfaceService::class,
             'nav' => [
                 'group' => 'main',
@@ -90,6 +95,7 @@ class ModuleCatalog
 
         self::PRODUCTS => [
             'label' => 'Productos',
+            'icon' => 'box',
             'surface_service' => ProductSurfaceService::class,
             'nav' => [
                 'group' => 'management',
@@ -101,6 +107,7 @@ class ModuleCatalog
 
         self::INVENTORY => [
             'label' => 'Inventario',
+            'icon' => 'archive-box',
             'surface_service' => InventorySurfaceService::class,
             'nav' => [
                 'group' => 'management',
@@ -112,6 +119,7 @@ class ModuleCatalog
 
         self::ASSETS => [
             'label' => 'Activos',
+            'icon' => 'screen',
             'surface_service' => AssetSurfaceService::class,
             'nav' => [
                 'group' => 'main',
@@ -123,6 +131,7 @@ class ModuleCatalog
 
         self::ORDERS => [
             'label' => 'Órdenes',
+            'icon' => 'orders',
             'surface_service' => OrderSurfaceService::class,
             'nav' => [
                 'group' => 'management',
@@ -134,6 +143,7 @@ class ModuleCatalog
 
         self::DOCUMENTS => [
             'label' => 'Documentos',
+            'icon' => 'file-text',
             'surface_service' => DocumentSurfaceService::class,
             'nav' => [
                 'group' => 'management',
@@ -145,6 +155,7 @@ class ModuleCatalog
 
         self::ATTACHMENTS => [
             'label' => 'Adjuntos',
+            'icon' => 'paperclip',
             'surface_service' => AttachmentSurfaceService::class,
         ],
     ];
@@ -175,6 +186,15 @@ class ModuleCatalog
         return static::$definitions[$value]['label'] ?? $default;
     }
 
+    public static function icon(?string $module, string $default = 'box'): string
+    {
+        if ($module === null) {
+            return $default;
+        }
+
+        return static::$definitions[$module]['icon'] ?? $default;
+    }
+
     public static function surfaceService(string $module): ?string
     {
         return static::$definitions[$module]['surface_service'] ?? null;
@@ -192,6 +212,7 @@ class ModuleCatalog
                     'active' => $definition['nav']['active'],
                     'group' => $definition['nav']['group'],
                     'order' => $definition['nav']['order'] ?? 999,
+                    'icon' => $definition['icon'] ?? 'box',
                 ];
             })
             ->sortBy('order')

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/components/layout/navbar.blade.php | V4 --}}
+{{-- FILE: resources/views/components/layout/navbar.blade.php | V6 --}}
 
 @php
     $user = auth()->user();
@@ -22,8 +22,11 @@
             @auth
                 @if (count($secondaryLinks))
                     <details class="app-nav-dropdown" @if ($secondaryIsExpanded) open @endif>
-                        <summary class="app-nav-link {{ $secondaryIsActive ? 'is-active' : '' }}">
-                            Gestión
+                        <summary class="app-nav-link app-nav-link--with-icon {{ $secondaryIsActive ? 'is-active' : '' }}">
+                            <span class="app-nav-link__icon" aria-hidden="true">
+                                <x-icons.list-check />
+                            </span>
+                            <span>Gestión</span>
                         </summary>
 
                         <div class="app-nav-dropdown-menu">
@@ -31,12 +34,16 @@
                                 @php
                                     $isActive = $activeModule === $link['module'];
                                     $isCurrent = $currentModule === $link['module'];
+                                    $icon = $link['icon'] ?? 'box';
                                 @endphp
 
                                 <a class="app-nav-dropdown-link {{ $isActive ? 'is-active' : '' }}"
                                     href="{{ route($link['route']) }}"
                                     @if ($isCurrent) aria-current="page" @endif>
-                                    {{ $link['label'] }}
+                                    <span class="app-nav-link__icon" aria-hidden="true">
+                                        <x-dynamic-component :component="'icons.' . $icon" />
+                                    </span>
+                                    <span>{{ $link['label'] }}</span>
                                 </a>
                             @endforeach
                         </div>
@@ -47,11 +54,16 @@
                     @php
                         $isActive = $activeModule === $link['module'];
                         $isCurrent = $currentModule === $link['module'];
+                        $icon = $link['icon'] ?? 'box';
                     @endphp
 
-                    <a class="app-nav-link {{ $isActive ? 'is-active' : '' }}" href="{{ route($link['route']) }}"
+                    <a class="app-nav-link app-nav-link--with-icon {{ $isActive ? 'is-active' : '' }}"
+                        href="{{ route($link['route']) }}"
                         @if ($isCurrent) aria-current="page" @endif>
-                        {{ $link['label'] }}
+                        <span class="app-nav-link__icon" aria-hidden="true">
+                            <x-dynamic-component :component="'icons.' . $icon" />
+                        </span>
+                        <span>{{ $link['label'] }}</span>
                     </a>
                 @endforeach
             @endauth
@@ -68,6 +80,10 @@
 
                 <details class="app-user-dropdown">
                     <summary class="app-user-trigger">
+                        <span class="app-user-trigger-icon" aria-hidden="true">
+                            <x-icons.user-group />
+                        </span>
+
                         <span class="app-user-trigger-text">
                             <span class="app-user-trigger-label">Usuario</span>
                             <span class="app-user-trigger-name">{{ $user->name }}</span>

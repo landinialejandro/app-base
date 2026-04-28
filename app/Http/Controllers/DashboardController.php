@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DashboardController.php | V9
+// FILE: app/Http/Controllers/DashboardController.php | V10
 
 namespace App\Http\Controllers;
 
@@ -30,34 +30,25 @@ class DashboardController extends Controller
             ->where('user_id', $user->id)
             ->first();
 
-        $visibleProjects = ProjectVisibility::visibleQuery(
-            null,
-            $tenant,
-            $user
-        )->get([
-            'projects.id',
-            'projects.status',
-        ]);
+        $visibleProjects = ProjectVisibility::visibleQuery(null, $tenant, $user)
+            ->get(['projects.id', 'projects.status']);
 
-        $visibleTasks = TaskVisibility::visibleQuery(
-            null,
-            $tenant,
-            $user
-        )->get([
-            'tasks.id',
-            'tasks.project_id',
-            'tasks.assigned_user_id',
-            'tasks.status',
-            'tasks.due_date',
-        ]);
+        $visibleTasks = TaskVisibility::visibleQuery(null, $tenant, $user)
+            ->get([
+                'tasks.id',
+                'tasks.project_id',
+                'tasks.assigned_user_id',
+                'tasks.status',
+                'tasks.due_date',
+            ]);
 
         $today = now()->startOfDay();
+
+        $tasksGroupedByProject = $visibleTasks->groupBy('project_id');
 
         $visibleProjectsCount = $visibleProjects->count();
         $activeProjectsCount = $visibleProjects->where('status', ProjectCatalog::STATUS_ACTIVE)->count();
         $closedProjectsCount = $visibleProjects->where('status', ProjectCatalog::STATUS_CLOSED)->count();
-
-        $tasksGroupedByProject = $visibleTasks->groupBy('project_id');
 
         $projectsWithOpenTasksCount = $visibleProjects
             ->filter(function ($project) use ($tasksGroupedByProject) {
@@ -134,10 +125,7 @@ class DashboardController extends Controller
         $canAccessInventory = $security->allows($user, ModuleCatalog::INVENTORY.'.viewAny');
 
         $canSeeAnalytics = ($membership?->is_owner === true)
-            || $security->allows(
-                $user,
-                ModuleCatalog::DASHBOARD.'.viewAny'
-            );
+            || $security->allows($user, ModuleCatalog::DASHBOARD.'.viewAny');
 
         return view('dashboard', [
             'tenant' => $tenant,

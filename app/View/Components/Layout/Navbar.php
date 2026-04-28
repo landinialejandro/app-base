@@ -59,6 +59,7 @@ class Navbar extends Component
                     'label' => $link['label'],
                     'route' => $link['route'],
                     'active' => $link['active'] ?? null,
+                    'icon' => $link['icon'] ?? ModuleCatalog::icon($link['module']),
                 ];
             })
             ->values();

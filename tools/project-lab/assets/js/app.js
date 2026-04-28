@@ -55,7 +55,7 @@ function runProjectAction(config) {
         .then((data) => {
             const finalOutput = data.output || "Sin salida.";
 
-            output.textContent = finalOutput;
+            output.innerHTML = colorizeProjectOutput(finalOutput);
 
             if (config.persistKey) {
                 localStorage.setItem(config.persistKey + "Output", finalOutput);
@@ -77,7 +77,7 @@ function runProjectAction(config) {
         .catch((error) => {
             const errorOutput = "❌ Error AJAX: " + error.message;
 
-            output.textContent = errorOutput;
+            output.innerHTML = colorizeProjectOutput(errorOutput);
 
             if (config.persistKey) {
                 localStorage.setItem(config.persistKey + "Output", errorOutput);
@@ -681,6 +681,16 @@ function escapeHtml(text) {
     return div.innerHTML;
 }
 
+function colorizeProjectOutput(text) {
+    return escapeHtml(text).replace(
+        /^(\[(OK|ERROR|WARN|INFO)\])/gm,
+        (match, full, type) => {
+            const className = "lab-status-" + type.toLowerCase();
+            return `<span class="${className}">${full}</span>`;
+        },
+    );
+}
+
 function showNotification(message, type = "info") {
     const notification = document.createElement("div");
 
@@ -822,7 +832,8 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (savedTinkerOutput !== null && savedTinkerOutput !== "") {
-        ensureTinkerOutput().textContent = savedTinkerOutput;
+        ensureTinkerOutput().innerHTML =
+            colorizeProjectOutput(savedTinkerOutput);
     }
 
     const savedLabInput = localStorage.getItem("projectLabLabInput");
@@ -835,7 +846,7 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     if (savedLabOutput !== null && savedLabOutput !== "") {
-        ensureLabOutput().textContent = savedLabOutput;
+        ensureLabOutput().innerHTML = colorizeProjectOutput(savedLabOutput);
     }
 
     const lastTab = localStorage.getItem("projectLabActiveTab");

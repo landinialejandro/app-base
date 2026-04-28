@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/layouts/app.blade.php | V3 --}}
+{{-- FILE: resources/views/layouts/app.blade.php | V4 --}}
 
 <!DOCTYPE html>
 <html lang="es">
@@ -18,6 +18,8 @@
 
     {{-- Estilos específicos de módulos complejos --}}
     <link rel="stylesheet" href="{{ asset('css/modules/appointments.css') }}">
+
+    @stack('head')
 </head>
 
 <body>

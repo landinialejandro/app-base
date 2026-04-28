@@ -662,7 +662,18 @@ class ProjectLab
             return $this->applyEmbeddedBladeFile($input);
         }
 
-        return "[ERROR] Formato no compatible en herramienta de código.\n[INFO] Soporta PHP completo, Blade completo, TARGET :: método y TARGET ++ método.";
+        if (preg_match('/^\s*\/\*\s*FILE:\s*.+?\.css(?:\s*\|\s*V\d+)?\s*\*\//', $input)) {
+            return $this->applyEmbeddedPlainFile($input, 'css_full');
+        }
+
+        if (
+            preg_match('/^\s*\/\/\s*FILE:\s*.+?\.js(?:\s*\|\s*V\d+)?\s*$/m', $input)
+            || preg_match('/^\s*\/\*\s*FILE:\s*.+?\.js(?:\s*\|\s*V\d+)?\s*\*\//', $input)
+        ) {
+            return $this->applyEmbeddedPlainFile($input, 'js_full');
+        }
+
+        return "[ERROR] Formato no compatible en herramienta de código.\n[INFO] Soporta PHP completo, Blade completo, CSS completo, JS completo, TARGET :: método y TARGET ++ método.";
     }
 
     private function applyEmbeddedBladeFile(string $content): string
@@ -701,6 +712,13 @@ class ProjectLab
 
         $message = "[OK] Modo: blade_full\n";
         $message .= "[OK] Archivo: {$relativePath}\n";
+
+        if ($status === 'sobrescrito') {
+            $message .= "[WARN] Archivo existente reemplazado completamente.\n";
+        } else {
+            $message .= "[INFO] Archivo nuevo creado.\n";
+        }
+
         $message .= "[OK] Estado: {$status}\n";
         $message .= "[OK] Versión: {$version}";
 
@@ -764,9 +782,15 @@ class ProjectLab
 
         $message = "[OK] Modo: php_full\n";
         $message .= "[OK] Archivo: {$relativePath}\n";
+
+        if ($status === 'sobrescrito') {
+            $message .= "[WARN] Archivo existente reemplazado completamente.\n";
+        } else {
+            $message .= "[INFO] Archivo nuevo creado.\n";
+        }
+
         $message .= "[OK] Estado: {$status}\n";
         $message .= "[OK] Versión: {$version}";
-
         $this->log('LAB_CODE', $relativePath, $message);
         $this->appendPipeLog(
             'documentos/log/code-updates.log',
@@ -1065,29 +1089,34 @@ class ProjectLab
         }
 
         $start = $match[0][1];
-        $openBrace = strpos($content, '{', $start);
+        $slice = substr($content, $start);
+        $tokens = token_get_all("<?php\n".$slice);
 
-        if ($openBrace === false) {
-            return null;
-        }
-
-        $length = strlen($content);
+        $offset = $start;
         $depth = 0;
+        $started = false;
 
-        for ($i = $openBrace; $i < $length; $i++) {
-            $char = $content[$i];
+        foreach ($tokens as $token) {
+            $text = is_array($token) ? $token[1] : $token;
 
-            if ($char === '{') {
-                $depth++;
+            if ($text === "<?php\n") {
+                continue;
             }
 
-            if ($char === '}') {
+            $length = strlen($text);
+
+            if ($text === '{') {
+                $depth++;
+                $started = true;
+            } elseif ($text === '}') {
                 $depth--;
 
-                if ($depth === 0) {
-                    return [$start, $i + 1];
+                if ($started && $depth === 0) {
+                    return [$start, $offset + $length];
                 }
             }
+
+            $offset += $length;
         }
 
         return null;
@@ -1201,6 +1230,92 @@ class ProjectLab
         $message .= $result ?: '[OK] Comando ejecutado sin salida.';
 
         $this->log('LAB_AUDIT', $relativeOutput, $message);
+
+        return $message;
+    }
+
+    private function applyEmbeddedPlainFile(string $content, string $mode): string
+    {
+        $content = str_replace(["\r\n", "\r"], "\n", $content);
+        $lines = explode("\n", ltrim($content));
+        $headerLine = trim($lines[0] ?? '');
+
+        $style = null;
+
+        if (preg_match('/^\/\/\s*FILE:\s*(.+?)(?:\s*\|\s*(V\d+))?\s*$/', $headerLine, $matches)) {
+            $style = 'line';
+        } elseif (preg_match('/^\/\*\s*FILE:\s*(.+?)(?:\s*\|\s*(V\d+))?\s*\*\/$/', $headerLine, $matches)) {
+            $style = 'block';
+        } else {
+            return '[ERROR] No se encontró encabezado FILE válido para CSS/JS.';
+        }
+
+        $relativePath = trim($matches[1] ?? '');
+        $version = trim($matches[2] ?? 'V1');
+
+        if ($relativePath === '') {
+            return '[ERROR] Ruta destino vacía.';
+        }
+
+        $extension = strtolower(pathinfo($relativePath, PATHINFO_EXTENSION));
+
+        if ($mode === 'css_full' && $extension !== 'css') {
+            return "[ERROR] El modo CSS requiere archivo .css: {$relativePath}";
+        }
+
+        if ($mode === 'js_full' && $extension !== 'js') {
+            return "[ERROR] El modo JS requiere archivo .js: {$relativePath}";
+        }
+
+        $targetPath = $this->projectRoot.'/'.$relativePath;
+        $directory = dirname($targetPath);
+
+        if (! is_dir($directory)) {
+            mkdir($directory, 0775, true);
+        }
+
+        array_shift($lines);
+        $body = ltrim(implode("\n", $lines), "\n");
+
+        $header = $style === 'line'
+            ? "// FILE: {$relativePath} | {$version}"
+            : "/* FILE: {$relativePath} | {$version} */";
+
+        $finalContent = $header."\n\n".$body;
+        $status = file_exists($targetPath) ? 'sobrescrito' : 'creado';
+
+        if (file_put_contents($targetPath, $finalContent) === false) {
+            return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
+        }
+
+        $message = "[OK] Modo: {$mode}\n";
+        $message .= "[OK] Archivo: {$relativePath}\n";
+
+        if ($status === 'sobrescrito') {
+            $message .= "[WARN] Archivo existente reemplazado completamente.\n";
+        } else {
+            $message .= "[INFO] Archivo nuevo creado.\n";
+        }
+
+        $message .= "[OK] Estado: {$status}\n";
+        $message .= "[OK] Versión: {$version}";
+
+        $this->log('LAB_CODE', $relativePath, $message);
+
+        $this->appendPipeLog(
+            'documentos/log/code-updates.log',
+            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+            [
+                $relativePath,
+                date('Y-m-d H:i:s'),
+                $status,
+                $version,
+                'project_lab',
+                'archivo_completo',
+                get_current_user() ?: 'unknown',
+                php_uname('n') ?: 'unknown',
+            ]
+        );
 
         return $message;
     }

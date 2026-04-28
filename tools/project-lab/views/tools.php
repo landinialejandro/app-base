@@ -1,3 +1,5 @@
+<?php // FILE: tools/project-lab/views/tools.php | V2?>
+
 <div id="tab-tools" class="tab-content" style="display:none;">
     <form method="POST" id="labToolsForm">
         <input type="hidden" name="from_clipboard" value="">
@@ -9,45 +11,75 @@
                 <span class="shortcuts">Actualización embebida de código y documentación</span>
             </div>
 
-            <div style="display:flex; gap:10px; margin-bottom:10px; flex-wrap:wrap;">
-                <button type="button" onclick="runLabTool('code', false)" class="<?= $labToolActive === 'code' ? 'warning' : 'secondary' ?>">
-                    💻 Aplicar código
-                </button>
+            <div class="card lab-tool-card lab-tool-card--direct" data-title="Desde textarea">
+                <div class="lab-tool-actions">
+                    <button type="button" onclick="runLabTool('code', false)" class="<?= $labToolActive === 'code' ? 'warning' : 'secondary' ?>">
+                        💻 Actualizar código
+                    </button>
 
-                <button type="button" onclick="runLabTool('docs', false)" class="<?= $labToolActive === 'docs' ? 'warning' : 'secondary' ?>">
-                    📄 Aplicar docs
-                </button>
+                    <button type="button" onclick="runLabTool('docs', false)" class="<?= $labToolActive === 'docs' ? 'warning' : 'secondary' ?>">
+                        📄 Actualizar docs
+                    </button>
+
+                    <button type="button" onclick="runLabTool('audit', false)" class="<?= $labToolActive === 'audit' ? 'warning' : 'secondary' ?>">
+                        🔍 Ejecutar auditoría
+                    </button>
+                </div>
+
+                <textarea
+                    name="lab_input"
+                    id="labInput"
+                    placeholder="// Pegá aquí un archivo PHP/Blade/CSS/JS completo, métodos TARGET, bloques REEMPLAZAR EN o auditorías bash..."
+                    style="min-height:180px;"
+                ><?= htmlspecialchars($labToolInput) ?></textarea>
+
+                <div class="lab-snippets">
+                    <span class="lab-snippets-label">Formatos:</span>
+
+                    <details>
+                        <summary>Archivos</summary>
+                        <div class="lab-snippets-panel">
+                            <span class="snippet-chip" onclick="insertLabSnippet('<?php\n\n// FILE: app/Support/Ejemplo.php | V1\n\n')">PHP FILE</span>
+                            <span class="snippet-chip" onclick="insertLabSnippet('{{-- FILE: resources/views/ejemplo.blade.php | V1 --}}\n\n')">Blade FILE</span>
+                            <span class="snippet-chip" onclick="insertLabSnippet('/* FILE: documentos/log/project-lab-test.css | V1 */\n\n')">CSS seguro</span>
+                            <span class="snippet-chip" onclick="insertLabSnippet('// FILE: documentos/log/project-lab-test.js | V1\n\n')">JS seguro</span>
+                            <span class="snippet-chip" onclick="insertLabSnippet('/* FILE: documentos/log/project-lab-test.js | V1 */\n\n')">JS block seguro</span>
+                        </div>
+                    </details>
+
+                    <details>
+                        <summary>Métodos</summary>
+                        <div class="lab-snippets-panel">
+                            <span class="snippet-chip" onclick="insertLabSnippet('// TARGET: app/Http/Controllers/EjemploController.php :: show\n\npublic function show(): void\n{\n    // ...\n}')">TARGET replace</span>
+                            <span class="snippet-chip" onclick="insertLabSnippet('// TARGET: app/Support/Ejemplo.php ++ nuevoMetodo\n\nprivate function nuevoMetodo(): void\n{\n    // ...\n}')">TARGET add</span>
+                        </div>
+                    </details>
+
+                    <details>
+                        <summary>Docs</summary>
+                        <div class="lab-snippets-panel">
+                            <span class="snippet-chip" onclick="insertLabSnippet('REEMPLAZAR EN: [contexto_fijo_proyecto_app_base]\n<<SECTION: NOMBRE EXACTO>>\nSECTION_VERSION: 00001\n\nContenido\n<<END SECTION>>')">Docs SECTION</span>
+                        </div>
+                    </details>
+                </div>
             </div>
 
-            <div style="display:flex; gap:10px; margin-bottom:14px; flex-wrap:wrap;">
-                <button type="button" onclick="runLabTool('code', true)" class="secondary">
-                    📋💻 Código desde clipboard
-                </button>
+            <div class="card lab-tool-card lab-tool-card--clipboard" data-title="Desde clipboard">
+                <div class="lab-tool-actions">
+                    <button type="button" onclick="runLabTool('code', true)" class="<?= $labToolActive === 'code' ? 'warning' : 'secondary' ?>">
+                        📋 Código
+                    </button>
 
-                <button type="button" onclick="runLabTool('docs', true)" class="secondary">
-                    📋📄 Docs desde clipboard
-                </button>
+                    <button type="button" onclick="runLabTool('docs', true)" class="<?= $labToolActive === 'docs' ? 'warning' : 'secondary' ?>">
+                        📋 Docs
+                    </button>
 
-                <button type="button" onclick="runLabTool('audit', true)" class="<?= $labToolActive === 'audit' ? 'warning' : 'secondary' ?>">
-                    🔍 Auditoría desde clipboard
-                </button>
+                    <button type="button" onclick="runLabTool('audit', true)" class="<?= $labToolActive === 'audit' ? 'warning' : 'secondary' ?>">
+                        🔍 Auditoría
+                    </button>
+                </div>
             </div>
 
-            <textarea
-                name="lab_input"
-                id="labInput"
-                placeholder="// Pegá aquí un archivo PHP/Blade completo o bloques REEMPLAZAR EN..."
-                style="min-height:180px;"
-            ><?= htmlspecialchars($labToolInput) ?></textarea>
-
-            <div class="snippets-bar">
-                <span>Formatos:</span>
-                <span class="snippet-chip" onclick="insertLabSnippet('<?php\n\n// FILE: app/Support/Ejemplo.php | V1\n\n')">PHP FILE</span>
-                <span class="snippet-chip" onclick="insertLabSnippet('{{-- FILE: resources/views/ejemplo.blade.php | V1 --}}\n\n')">Blade FILE</span>
-                <span class="snippet-chip" onclick="insertLabSnippet('REEMPLAZAR EN: [contexto_fijo_proyecto_app_base]\n<<SECTION: NOMBRE EXACTO>>\nSECTION_VERSION: 00001\n\nContenido\n<<END SECTION>>')">Docs SECTION</span>
-                <span class="snippet-chip" onclick="insertLabSnippet('// TARGET: app/Http/Controllers/EjemploController.php :: show\n\npublic function show(): void\n{\n    // ...\n}')">TARGET replace</span>
-                <span class="snippet-chip" onclick="insertLabSnippet('// TARGET: app/Support/Ejemplo.php ++ nuevoMetodo\n\nprivate function nuevoMetodo(): void\n{\n    // ...\n}')">TARGET add</span>
-            </div>
             <div style="display:flex; justify-content:flex-end; margin-top:12px;">
                 <button type="button" onclick="clearLabTools()" class="danger">
                     🗑️ Limpiar

@@ -10,6 +10,7 @@
         use App\Support\Navigation\NavigationTrail;
         use App\Support\Catalogs\DocumentCatalog;
         use App\Support\Documents\DocumentSurfaceService;
+        use App\Support\Ui\HostTabs;
 
         $items = $document->items->sortBy('position')->values();
 
@@ -59,14 +60,8 @@
         ]);
 
         $surfaceTabItems = $embedded->where(fn($item) => ($item['slot'] ?? null) === 'tab_panels')->values();
-
         $tabItems = $hostTabItems->concat($surfaceTabItems)->sortBy(fn($item) => $item['priority'] ?? 999)->values();
-        $requestedTab = (string) request()->query('return_tab', '');
-        $availableTabKeys = $tabItems->pluck('key')->filter()->values()->all();
-
-        $activeTab = in_array($requestedTab, $availableTabKeys, true)
-            ? $requestedTab
-            : $tabItems->first()['key'] ?? null;
+        $activeTab = HostTabs::activeKey($tabItems, request()->query('return_tab'));
     @endphp
 
     <x-page>

@@ -10,6 +10,7 @@
         use App\Support\Navigation\NavigationTrail;
         use App\Support\Catalogs\OrderCatalog;
         use App\Support\Orders\OrderSurfaceService;
+        use App\Support\Ui\HostTabs;
 
         $items = $order->items ?? collect();
 
@@ -57,12 +58,7 @@
 
         $tabItems = $hostTabItems->concat($surfaceTabItems)->sortBy(fn($item) => $item['priority'] ?? 999)->values();
 
-        $requestedTab = (string) request()->query('return_tab', '');
-        $availableTabKeys = $tabItems->pluck('key')->filter()->values()->all();
-
-        $activeTab = in_array($requestedTab, $availableTabKeys, true)
-            ? $requestedTab
-            : $tabItems->first()['key'] ?? null;
+        $activeTab = HostTabs::activeKey($tabItems, request()->query('return_tab'));
     @endphp
 
     <x-page>

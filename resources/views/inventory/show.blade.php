@@ -7,6 +7,7 @@
 @section('content')
     @php
         use App\Support\Navigation\NavigationTrail;
+        use App\Support\Ui\HostTabs;
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
@@ -19,7 +20,6 @@
         $detailsId = 'inventory-product-detail';
         $surfaceTabItems = ($tabItems ?? collect())->values();
         $tabsLabel = 'Secciones de inventario';
-        $requestedTab = (string) request()->query('return_tab', '');
 
         $inventoryShowBaseQuery = $trailQuery;
 
@@ -46,11 +46,7 @@
 
         $tabItems = $hostTabItems->concat($surfaceTabItems)->sortBy(fn($item) => $item['priority'] ?? 999)->values();
 
-        $availableTabKeys = $tabItems->pluck('key')->filter()->values()->all();
-
-        $activeTab = in_array($requestedTab, $availableTabKeys, true)
-            ? $requestedTab
-            : $tabItems->first()['key'] ?? null;
+        $activeTab = HostTabs::activeKey($tabItems, request()->query('return_tab'));
     @endphp
 
     <x-page>

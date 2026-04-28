@@ -10,6 +10,7 @@
         use App\Support\Navigation\NavigationTrail;
         use App\Support\Catalogs\AssetCatalog;
         use App\Support\Assets\AssetSurfaceService;
+        use App\Support\Ui\HostTabs;
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
@@ -30,12 +31,8 @@
             ->where(fn($item) => ($item['slot'] ?? null) === 'tab_panels')
             ->sortBy(fn(array $item) => $item['priority'] ?? 999)
             ->values();
-        $requestedTab = (string) request()->query('return_tab', '');
-        $availableTabKeys = $tabItems->pluck('key')->filter()->values()->all();
 
-        $activeTab = in_array($requestedTab, $availableTabKeys, true)
-            ? $requestedTab
-            : $tabItems->first()['key'] ?? null;
+        $activeTab = HostTabs::activeKey($tabItems, request()->query('return_tab'));
     @endphp
 
     <x-page>

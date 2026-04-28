@@ -10,6 +10,7 @@
         use App\Support\Appointments\AppointmentSurfaceService;
         use App\Support\Modules\ModuleSurfaceRegistry;
         use App\Support\Navigation\NavigationTrail;
+        use App\Support\Ui\HostTabs;
 
         $appointmentTitle = AppointmentCatalog::rowTitleFor($appointment->kind, $appointment->work_mode);
         $referenceLabel = AppointmentCatalog::referenceLabelForKind($appointment->kind);
@@ -41,12 +42,9 @@
         $detailItems = $embedded->where('slot', 'detail_items')->values();
 
         $tabItems = $embedded->where(fn($item) => ($item['slot'] ?? 'tab_panels') === 'tab_panels')->values();
-        $requestedTab = (string) request()->query('return_tab', '');
-        $availableTabKeys = $tabItems->pluck('key')->filter()->values()->all();
 
-        $activeTab = in_array($requestedTab, $availableTabKeys, true)
-            ? $requestedTab
-            : $tabItems->first()['key'] ?? null;
+        $activeTab = HostTabs::activeKey($tabItems, request()->query('return_tab'));
+
     @endphp
 
     <x-page>

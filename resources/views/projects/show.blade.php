@@ -8,6 +8,7 @@
     @php
         use App\Support\Catalogs\ProjectCatalog;
         use App\Support\Navigation\NavigationTrail;
+        use App\Support\Ui\HostTabs;
 
         $metrics = $metrics ?? [];
 
@@ -29,7 +30,6 @@
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
         $backUrl = NavigationTrail::previousUrl($navigationTrail, route('projects.index'));
         $tabsLabel = 'Secciones del proyecto';
-        $requestedTab = (string) request()->query('return_tab', '');
 
         $tabItems = collect([
             [
@@ -77,11 +77,7 @@
             ->sortBy(fn($item) => $item['priority'] ?? 999)
             ->values();
 
-        $availableTabKeys = $tabItems->pluck('key')->filter()->values()->all();
-
-        $activeTab = in_array($requestedTab, $availableTabKeys, true)
-            ? $requestedTab
-            : $tabItems->first()['key'] ?? null;
+        $activeTab = HostTabs::activeKey($tabItems, request()->query('return_tab'));
     @endphp
 
     <x-page>

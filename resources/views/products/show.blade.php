@@ -10,6 +10,7 @@
         use App\Support\Modules\ModuleSurfaceRegistry;
         use App\Support\Catalogs\ProductCatalog;
         use App\Support\Navigation\NavigationTrail;
+        use App\Support\Ui\HostTabs;
 
         $attachments = $product->attachments ?? collect();
         $tabsLabel = 'Secciones del producto';
@@ -30,8 +31,6 @@
             ->where(fn($item) => ($item['slot'] ?? null) === 'summary_items')
             ->sortBy(fn(array $item) => $item['priority'] ?? 999)
             ->values();
-
-        $requestedTab = (string) request()->query('return_tab', '');
 
         $hostTabItems = collect([
             [
@@ -57,11 +56,7 @@
 
         $surfaceTabItems = $embedded->where(fn($item) => ($item['slot'] ?? null) === 'tab_panels')->values();
         $tabItems = $surfaceTabItems->concat($hostTabItems)->sortBy(fn($item) => $item['priority'] ?? 999)->values();
-        $availableTabKeys = $tabItems->pluck('key')->filter()->values()->all();
-
-        $activeTab = in_array($requestedTab, $availableTabKeys, true)
-            ? $requestedTab
-            : $tabItems->first()['key'] ?? null;
+        $activeTab = HostTabs::activeKey($tabItems, request()->query('return_tab'));
 
     @endphp
 

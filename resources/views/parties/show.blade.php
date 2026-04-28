@@ -10,6 +10,7 @@
         use App\Support\Modules\ModuleSurfaceRegistry;
         use App\Support\Navigation\NavigationTrail;
         use App\Support\Parties\PartySurfaceService;
+        use App\Support\Ui\HostTabs;
 
         $pageTitle = 'Detalle del contacto';
         $detailsId = 'party-detail-panel';
@@ -34,12 +35,7 @@
             ->where(fn($item) => ($item['slot'] ?? null) === 'tab_panels')
             ->sortBy(fn(array $item) => $item['priority'] ?? 999)
             ->values();
-        $requestedTab = (string) request()->query('return_tab', '');
-        $availableTabKeys = $tabItems->pluck('key')->filter()->values()->all();
-
-        $activeTab = in_array($requestedTab, $availableTabKeys, true)
-            ? $requestedTab
-            : $tabItems->first()['key'] ?? null;
+        $activeTab = HostTabs::activeKey($tabItems, request()->query('return_tab'));
     @endphp
 
     <x-page>

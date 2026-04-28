@@ -11,6 +11,7 @@
         use App\Support\Navigation\NavigationTrail;
         use App\Support\Tasks\TaskSurfaceService;
         use Illuminate\Support\Carbon;
+        use App\Support\Ui\HostTabs;
 
         $dueDateText = 'Sin vencimiento';
         $tabsLabel = 'Secciones de la tarea';
@@ -61,12 +62,7 @@
         $tabItems = collect($registry->slotFor('tasks.show', 'tab_panels', $hostPack))
             ->sortBy(fn(array $item) => $item['priority'] ?? 999)
             ->values();
-        $requestedTab = (string) request()->query('return_tab', '');
-        $availableTabKeys = $tabItems->pluck('key')->filter()->values()->all();
-
-        $activeTab = in_array($requestedTab, $availableTabKeys, true)
-            ? $requestedTab
-            : $tabItems->first()['key'] ?? null;
+        $activeTab = HostTabs::activeKey($tabItems, request()->query('return_tab'));
     @endphp
 
     <x-page>

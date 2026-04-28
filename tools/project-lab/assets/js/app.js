@@ -388,38 +388,88 @@ function showStatus(message, type = "") {
     }
 }
 
-// También mejoramos la función para el input
 document.addEventListener("DOMContentLoaded", function () {
-    const modelInput = document.getElementById("modelName");
+    // Botones con confirmación
+    document.querySelectorAll('[data-danger="true"]').forEach((btn) => {
+        btn.addEventListener("click", function (e) {
+            e.preventDefault();
+            e.stopPropagation();
+
+            const message = this.dataset.confirm || "¿Estás seguro?";
+            showConfirmDialog(message, () => {
+                const form = document.createElement("form");
+                form.method = "POST";
+                form.style.display = "none";
+
+                const csrfInput = document.createElement("input");
+                csrfInput.type = "hidden";
+                csrfInput.name = "csrf_token";
+                csrfInput.value = CONFIG.csrfToken;
+
+                const actionInput = document.createElement("input");
+                actionInput.type = "hidden";
+                actionInput.name = "artisan";
+                actionInput.value = this.value;
+
+                form.appendChild(csrfInput);
+                form.appendChild(actionInput);
+                document.body.appendChild(form);
+                form.submit();
+            });
+        });
+    });
+
+    // Auto-resize del textarea Tinker
+    const textarea = document.getElementById("code");
+    if (textarea) {
+        textarea.addEventListener("input", function () {
+            this.style.height = "auto";
+            this.style.height =
+                Math.min(Math.max(this.scrollHeight, 200), 600) + "px";
+        });
+    }
+
+    // Restaurar Tinker
     const savedTinkerCode = localStorage.getItem("projectLabTinkerCode");
     const savedTinkerOutput = localStorage.getItem("projectLabTinkerOutput");
-    const savedLabInput = localStorage.getItem("projectLabLabInput");
-    const savedLabOutput = localStorage.getItem("projectLabLabOutput");
 
-    if (savedLabInput !== null) {
-        const labInput = document.getElementById("labInput");
-        if (labInput && labInput.value.trim() === "") {
-            labInput.value = savedLabInput;
-        }
+    if (savedTinkerCode !== null && textarea) {
+        textarea.value = savedTinkerCode;
     }
 
-    if (savedLabOutput) {
-        ensureLabOutput().textContent = savedLabOutput;
-    }
-
-    if (savedTinkerCode !== null) {
-        const textarea = document.getElementById("code");
-        if (textarea && textarea.value.trim() === "") {
-            textarea.value = savedTinkerCode;
-        }
-    }
-
-    if (savedTinkerOutput) {
+    if (savedTinkerOutput !== null && savedTinkerOutput !== "") {
         ensureTinkerOutput().textContent = savedTinkerOutput;
     }
 
+    // Restaurar Herramientas Lab
+    const savedLabInput = localStorage.getItem("projectLabLabInput");
+    const savedLabOutput = localStorage.getItem("projectLabLabOutput");
+
+    const labInput = document.getElementById("labInput");
+
+    if (savedLabInput !== null && labInput) {
+        labInput.value = savedLabInput;
+    }
+
+    if (savedLabOutput !== null && savedLabOutput !== "") {
+        ensureLabOutput().textContent = savedLabOutput;
+    }
+
+    // Restaurar última pestaña activa
+    const lastTab = localStorage.getItem("projectLabActiveTab");
+    if (lastTab) {
+        showTab(lastTab);
+    }
+
+    // Tooltips para snippets
+    document.querySelectorAll(".snippet-chip").forEach((chip) => {
+        chip.title = "Click para insertar: " + chip.textContent;
+    });
+
+    // Input generador
+    const modelInput = document.getElementById("modelName");
+
     if (modelInput) {
-        // Permitir ejecutar con Enter
         modelInput.addEventListener("keydown", function (e) {
             if (e.key === "Enter") {
                 e.preventDefault();
@@ -427,21 +477,18 @@ document.addEventListener("DOMContentLoaded", function () {
             }
         });
 
-        // Capitalizar primera letra automáticamente
         modelInput.addEventListener("input", function () {
             if (this.value.length === 1) {
                 this.value = this.value.toUpperCase();
             }
-            // Remover caracteres no permitidos en tiempo real
+
             this.value = this.value.replace(/[^a-zA-Z]/g, "");
         });
 
-        // Tooltip informativo
         modelInput.title =
             "Nombre del modelo en singular (ej: Product, User, Category)";
     }
 });
-
 // ==================== UTILIDADES ====================
 function copyToClipboard(text, successMessage) {
     // Método moderno
@@ -546,61 +593,6 @@ document.addEventListener("keydown", function (e) {
             showTab(tabs[e.key]);
         }
     }
-});
-
-// ==================== CONFIRMACIÓN DE COMANDOS PELIGROSOS ====================
-document.addEventListener("DOMContentLoaded", function () {
-    // Botones con confirmación
-    document.querySelectorAll('[data-danger="true"]').forEach((btn) => {
-        btn.addEventListener("click", function (e) {
-            e.preventDefault();
-            e.stopPropagation();
-
-            const message = this.dataset.confirm || "¿Estás seguro?";
-            showConfirmDialog(message, () => {
-                // Crear y enviar el formulario
-                const form = document.createElement("form");
-                form.method = "POST";
-                form.style.display = "none";
-
-                const csrfInput = document.createElement("input");
-                csrfInput.type = "hidden";
-                csrfInput.name = "csrf_token";
-                csrfInput.value = CONFIG.csrfToken;
-
-                const actionInput = document.createElement("input");
-                actionInput.type = "hidden";
-                actionInput.name = "artisan";
-                actionInput.value = this.value;
-
-                form.appendChild(csrfInput);
-                form.appendChild(actionInput);
-                document.body.appendChild(form);
-                form.submit();
-            });
-        });
-    });
-
-    // Auto-resize del textarea
-    const textarea = document.getElementById("code");
-    if (textarea) {
-        textarea.addEventListener("input", function () {
-            this.style.height = "auto";
-            this.style.height =
-                Math.min(Math.max(this.scrollHeight, 200), 600) + "px";
-        });
-    }
-
-    // Restaurar última pestaña activa
-    const lastTab = localStorage.getItem("projectLabActiveTab");
-    if (lastTab) {
-        showTab(lastTab);
-    }
-
-    // Tooltips para snippets
-    document.querySelectorAll(".snippet-chip").forEach((chip) => {
-        chip.title = "Click para insertar: " + chip.textContent;
-    });
 });
 
 // ==================== DIÁLOGO DE CONFIRMACIÓN ====================

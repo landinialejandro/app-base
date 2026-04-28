@@ -657,6 +657,10 @@
                         return;
                     }
 
+                    if (tabsRoot.dataset.persistReturnTab !== "1") {
+                        return;
+                    }
+
                     const url = new URL(window.location.href);
                     url.searchParams.set("return_tab", tabName);
                     window.history.replaceState(

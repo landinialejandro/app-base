@@ -15,9 +15,11 @@
         $summaryItems = ($summaryItems ?? collect())->values();
         $headerActions = ($headerActions ?? collect())->values();
         $detailItems = ($detailItems ?? collect())->values();
-        $tabItems = ($tabItems ?? collect())->values();
 
         $detailsId = 'inventory-product-detail';
+        $surfaceTabItems = ($tabItems ?? collect())->values();
+        $tabsLabel = 'Secciones de inventario';
+        $requestedTab = (string) request()->query('return_tab', '');
 
         $inventoryShowBaseQuery = $trailQuery;
 
@@ -25,6 +27,30 @@
             $inventoryShowBaseQuery['origin_line_type'] = $originLineType;
             $inventoryShowBaseQuery['origin_line_id'] = $originLineId;
         }
+        $hostTabItems = collect([
+            [
+                'type' => 'embedded',
+                'slot' => 'tab_panels',
+                'key' => 'inventory-movements',
+                'label' => 'Movimientos',
+                'priority' => 10,
+                'count' => $movementRows->count(),
+                'view' => 'inventory.partials.movements-table',
+                'data' => [
+                    'movementRows' => $movementRows,
+                    'emptyMessage' => 'No hay movimientos registrados para este artículo.',
+                    'trailQuery' => $inventoryShowBaseQuery,
+                ],
+            ],
+        ]);
+
+        $tabItems = $hostTabItems->concat($surfaceTabItems)->sortBy(fn($item) => $item['priority'] ?? 999)->values();
+
+        $availableTabKeys = $tabItems->pluck('key')->filter()->values()->all();
+
+        $activeTab = in_array($requestedTab, $availableTabKeys, true)
+            ? $requestedTab
+            : $tabItems->first()['key'] ?? null;
     @endphp
 
     <x-page>
@@ -70,49 +96,6 @@
             </x-slot:details>
         </x-show-summary>
 
-        <div class="tabs" data-tabs>
-            <x-tab-toolbar label="Secciones de inventario">
-                <x-slot:tabs>
-                    <x-horizontal-scroll label="Secciones de inventario">
-                        <button type="button" class="tabs-link is-active" data-tab-link="inventory-movements"
-                            role="tab" aria-selected="true">
-                            Movimientos
-                            @if ($movementRows->count())
-                                ({{ $movementRows->count() }})
-                            @endif
-                        </button>
-
-                        @foreach ($tabItems as $tabItem)
-                            <button type="button" class="tabs-link" data-tab-link="{{ $tabItem['key'] }}" role="tab"
-                                aria-selected="false">
-                                {{ $tabItem['label'] ?? $tabItem['key'] }}
-
-                                @if (array_key_exists('count', $tabItem) && (int) $tabItem['count'] > 0)
-                                    ({{ $tabItem['count'] }})
-                                @endif
-                            </button>
-                        @endforeach
-                    </x-horizontal-scroll>
-                </x-slot:tabs>
-            </x-tab-toolbar>
-
-            <section class="tab-panel is-active" data-tab-panel="inventory-movements">
-                <div class="tab-panel-stack">
-                    @include('inventory.partials.movements-table', [
-                        'movementRows' => $movementRows,
-                        'emptyMessage' => 'No hay movimientos registrados para este artículo.',
-                        'trailQuery' => $inventoryShowBaseQuery,
-                    ])
-                </div>
-            </section>
-
-            @foreach ($tabItems as $tabItem)
-                <section class="tab-panel" data-tab-panel="{{ $tabItem['key'] }}" hidden>
-                    <div class="tab-panel-stack">
-                        @include($tabItem['view'], $tabItem['data'] ?? [])
-                    </div>
-                </section>
-            @endforeach
-        </div>
+        <x-host-tabs :items="$tabItems" :active-tab="$activeTab" :label="$tabsLabel" />
     </x-page>
 @endsection

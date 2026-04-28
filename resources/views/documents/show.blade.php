@@ -152,43 +152,6 @@
             </x-slot:details>
         </x-show-summary>
 
-        @if ($tabItems->isNotEmpty())
-            <div class="tabs" data-tabs>
-                <x-tab-toolbar :label="$tabsLabel">
-                    <x-slot:tabs>
-                        <x-horizontal-scroll :label="$tabsLabel">
-                            @foreach ($tabItems as $tabItem)
-                                @php
-                                    $isActive = ($tabItem['key'] ?? null) === $activeTab;
-                                @endphp
-
-                                <button type="button" class="tabs-link {{ $isActive ? 'is-active' : '' }}"
-                                    data-tab-link="{{ $tabItem['key'] }}" role="tab"
-                                    aria-selected="{{ $isActive ? 'true' : 'false' }}">
-                                    {{ $tabItem['label'] ?? $tabItem['key'] }}
-
-                                    @if (array_key_exists('count', $tabItem) && (int) $tabItem['count'] > 0)
-                                        ({{ $tabItem['count'] }})
-                                    @endif
-                                </button>
-                            @endforeach
-                        </x-horizontal-scroll>
-                    </x-slot:tabs>
-                </x-tab-toolbar>
-
-                @foreach ($tabItems as $tabItem)
-                    @php
-                        $isActive = ($tabItem['key'] ?? null) === $activeTab;
-                    @endphp
-
-                    <section class="tab-panel {{ $isActive ? 'is-active' : '' }}" data-tab-panel="{{ $tabItem['key'] }}"
-                        @unless ($isActive) hidden @endunless>
-                        <div class="tab-panel-stack">
-                            @include($tabItem['view'], $tabItem['data'] ?? [])
-                        </div>
-                    </section>
-                @endforeach
-            </div>
-        @endif
+        <x-host-tabs :items="$tabItems" :active-tab="$activeTab" :label="$tabsLabel" />
     </x-page>
 @endsection

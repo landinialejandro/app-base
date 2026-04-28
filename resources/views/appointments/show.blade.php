@@ -17,6 +17,8 @@
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
 
+        $tabsLabel = 'Secciones del turno';
+
         $backUrl = NavigationTrail::previousUrl(
             $navigationTrail,
             route('appointments.calendar', [
@@ -39,6 +41,12 @@
         $detailItems = $embedded->where('slot', 'detail_items')->values();
 
         $tabItems = $embedded->where(fn($item) => ($item['slot'] ?? 'tab_panels') === 'tab_panels')->values();
+        $requestedTab = (string) request()->query('return_tab', '');
+        $availableTabKeys = $tabItems->pluck('key')->filter()->values()->all();
+
+        $activeTab = in_array($requestedTab, $availableTabKeys, true)
+            ? $requestedTab
+            : $tabItems->first()['key'] ?? null;
     @endphp
 
     <x-page>
@@ -136,35 +144,6 @@
             </x-slot:details>
         </x-show-summary>
 
-        @if ($tabItems->isNotEmpty())
-            <div class="tabs" data-tabs>
-                <x-tab-toolbar label="Secciones del turno">
-                    <x-slot:tabs>
-                        <x-horizontal-scroll label="Secciones del turno">
-                            @foreach ($tabItems as $tabItem)
-                                <button type="button" class="tabs-link {{ $loop->first ? 'is-active' : '' }}"
-                                    data-tab-link="{{ $tabItem['key'] }}" role="tab"
-                                    aria-selected="{{ $loop->first ? 'true' : 'false' }}">
-                                    {{ $tabItem['label'] ?? $tabItem['key'] }}
-
-                                    @if (array_key_exists('count', $tabItem) && (int) $tabItem['count'] > 0)
-                                        ({{ $tabItem['count'] }})
-                                    @endif
-                                </button>
-                            @endforeach
-                        </x-horizontal-scroll>
-                    </x-slot:tabs>
-                </x-tab-toolbar>
-
-                @foreach ($tabItems as $tabItem)
-                    <section class="tab-panel {{ $loop->first ? 'is-active' : '' }}"
-                        data-tab-panel="{{ $tabItem['key'] }}" @unless ($loop->first) hidden @endunless>
-                        <div class="tab-panel-stack">
-                            @include($tabItem['view'], $tabItem['data'] ?? [])
-                        </div>
-                    </section>
-                @endforeach
-            </div>
-        @endif
+        <x-host-tabs :items="$tabItems" :active-tab="$activeTab" :label="$tabsLabel" />
     </x-page>
 @endsection

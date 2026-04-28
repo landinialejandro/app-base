@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/products/show.blade.php | V20 --}}
+{{-- FILE: resources/views/products/show.blade.php | V21 --}}
 
 @extends('layouts.app')
 
@@ -12,6 +12,7 @@
         use App\Support\Navigation\NavigationTrail;
 
         $attachments = $product->attachments ?? collect();
+        $tabsLabel = 'Secciones del producto';
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
@@ -30,12 +31,38 @@
             ->sortBy(fn(array $item) => $item['priority'] ?? 999)
             ->values();
 
-        $tabItems = $embedded
-            ->where(fn($item) => ($item['slot'] ?? null) === 'tab_panels')
-            ->sortBy(fn(array $item) => $item['priority'] ?? 999)
-            ->values();
+        $requestedTab = (string) request()->query('return_tab', '');
 
-        $tabsLabel = 'Secciones del producto';
+        $hostTabItems = collect([
+            [
+                'type' => 'embedded',
+                'slot' => 'tab_panels',
+                'key' => 'attachments',
+                'label' => 'Adjuntos',
+                'priority' => 900,
+                'count' => $attachments->count(),
+                'view' => 'attachments.partials.embedded',
+                'data' => [
+                    'attachments' => $attachments,
+                    'attachable' => $product,
+                    'attachableType' => 'product',
+                    'attachableId' => $product->id,
+                    'trailQuery' => $trailQuery,
+                    'navigationTrail' => $navigationTrail,
+                    'tabsId' => 'product-attachments-tabs',
+                    'createLabel' => 'Agregar adjunto',
+                ],
+            ],
+        ]);
+
+        $surfaceTabItems = $embedded->where(fn($item) => ($item['slot'] ?? null) === 'tab_panels')->values();
+        $tabItems = $surfaceTabItems->concat($hostTabItems)->sortBy(fn($item) => $item['priority'] ?? 999)->values();
+        $availableTabKeys = $tabItems->pluck('key')->filter()->values()->all();
+
+        $activeTab = in_array($requestedTab, $availableTabKeys, true)
+            ? $requestedTab
+            : $tabItems->first()['key'] ?? null;
+
     @endphp
 
     <x-page>
@@ -105,58 +132,6 @@
             </x-slot:details>
         </x-show-summary>
 
-        <div class="tabs" data-tabs>
-            <x-tab-toolbar :label="$tabsLabel">
-                <x-slot:tabs>
-                    <x-horizontal-scroll :label="$tabsLabel">
-                        @foreach ($tabItems as $tabItem)
-                            <button type="button" class="tabs-link {{ $loop->first ? 'is-active' : '' }}"
-                                data-tab-link="{{ $tabItem['key'] }}" role="tab"
-                                aria-selected="{{ $loop->first ? 'true' : 'false' }}">
-                                {{ $tabItem['label'] ?? $tabItem['key'] }}
-
-                                @if (array_key_exists('count', $tabItem) && (int) $tabItem['count'] > 0)
-                                    ({{ $tabItem['count'] }})
-                                @endif
-                            </button>
-                        @endforeach
-
-                        <button type="button" class="tabs-link {{ $tabItems->isEmpty() ? 'is-active' : '' }}"
-                            data-tab-link="attachments" role="tab"
-                            aria-selected="{{ $tabItems->isEmpty() ? 'true' : 'false' }}">
-                            Adjuntos
-                            @if ($attachments->count())
-                                ({{ $attachments->count() }})
-                            @endif
-                        </button>
-                    </x-horizontal-scroll>
-                </x-slot:tabs>
-            </x-tab-toolbar>
-
-            @foreach ($tabItems as $tabItem)
-                <section class="tab-panel {{ $loop->first ? 'is-active' : '' }}" data-tab-panel="{{ $tabItem['key'] }}"
-                    @unless ($loop->first) hidden @endunless>
-                    <div class="tab-panel-stack">
-                        @include($tabItem['view'], $tabItem['data'] ?? [])
-                    </div>
-                </section>
-            @endforeach
-
-            <section class="tab-panel {{ $tabItems->isEmpty() ? 'is-active' : '' }}" data-tab-panel="attachments"
-                @unless ($tabItems->isEmpty()) hidden @endunless>
-                <div class="tab-panel-stack">
-                    @include('attachments.partials.embedded', [
-                        'attachments' => $attachments,
-                        'attachable' => $product,
-                        'attachableType' => 'product',
-                        'attachableId' => $product->id,
-                        'trailQuery' => $trailQuery,
-                        'navigationTrail' => $navigationTrail,
-                        'tabsId' => 'product-attachments-tabs',
-                        'createLabel' => 'Agregar adjunto',
-                    ])
-                </div>
-            </section>
-        </div>
+        <x-host-tabs :items="$tabItems" :active-tab="$activeTab" :label="$tabsLabel" />
     </x-page>
 @endsection

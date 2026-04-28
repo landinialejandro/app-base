@@ -39,23 +39,6 @@
                 <button class="tab-btn" onclick="showTab('tools')">🧰 Herramientas Lab</button>
             </div>
 
-            <!-- Historial -->
-            <?php if (! empty($history)) { ?>
-            <div class="card">
-                <h4>📝 Historial</h4>
-                <div class="history-list">
-                    <?php foreach ($history as $item) { ?>
-                    <div class="history-item" 
-                         onclick="insertCode(<?= htmlspecialchars(json_encode($item['code'])) ?>); showTab('tinker');">
-                        <?= $item['success'] ? '✅' : '❌' ?> 
-                        <?= htmlspecialchars($item['preview']) ?>
-                        <small><?= $item['timestamp'] ?></small>
-                    </div>
-                    <?php } ?>
-                </div>
-            </div>
-            <?php } ?>
-
             <!-- Scripts -->
             <div class="card">
                 <h4>📜 Scripts</h4>

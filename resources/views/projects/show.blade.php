@@ -28,6 +28,60 @@
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
         $backUrl = NavigationTrail::previousUrl($navigationTrail, route('projects.index'));
+        $tabsLabel = 'Secciones del proyecto';
+        $requestedTab = (string) request()->query('return_tab', '');
+
+        $tabItems = collect([
+            [
+                'type' => 'embedded',
+                'slot' => 'tab_panels',
+                'key' => 'tasks',
+                'label' => 'Tareas',
+                'priority' => 10,
+                'count' => $tasks->count(),
+                'view' => 'tasks.partials.embedded-tabs',
+                'data' => [
+                    'tasks' => $tasks,
+                    'openTasks' => $openTasks,
+                    'doneTasks' => $doneTasks,
+                    'emptyMessageOpen' => 'No hay tareas abiertas en este proyecto.',
+                    'emptyMessageDone' => 'No hay tareas finalizadas en este proyecto.',
+                    'emptyMessageAll' => 'No hay tareas asociadas a este proyecto.',
+                    'tabsId' => 'project-tasks-tabs',
+                    'createBaseQuery' => [
+                        'project_id' => $project->id,
+                    ],
+                    'trailQuery' => $trailQuery,
+                ],
+            ],
+            [
+                'type' => 'embedded',
+                'slot' => 'tab_panels',
+                'key' => 'attachments',
+                'label' => 'Adjuntos',
+                'priority' => 20,
+                'count' => $attachments->count(),
+                'view' => 'attachments.partials.embedded',
+                'data' => [
+                    'attachments' => $attachments,
+                    'attachable' => $project,
+                    'attachableType' => 'project',
+                    'attachableId' => $project->id,
+                    'trailQuery' => $trailQuery,
+                    'navigationTrail' => $navigationTrail,
+                    'tabsId' => 'project-attachments-tabs',
+                    'createLabel' => 'Agregar adjunto',
+                ],
+            ],
+        ])
+            ->sortBy(fn($item) => $item['priority'] ?? 999)
+            ->values();
+
+        $availableTabKeys = $tabItems->pluck('key')->filter()->values()->all();
+
+        $activeTab = in_array($requestedTab, $availableTabKeys, true)
+            ? $requestedTab
+            : $tabItems->first()['key'] ?? null;
     @endphp
 
     <x-page>
@@ -97,61 +151,6 @@
             'metrics' => $metrics,
         ])
 
-        <div class="tabs" data-tabs>
-            <x-tab-toolbar label="Secciones del proyecto">
-                <x-slot:tabs>
-                    <x-horizontal-scroll label="Secciones del proyecto">
-                        <button type="button" class="tabs-link is-active" data-tab-link="tasks" role="tab"
-                            aria-selected="true">
-                            Tareas
-                            @if ($tasks->count())
-                                ({{ $tasks->count() }})
-                            @endif
-                        </button>
-
-                        <button type="button" class="tabs-link" data-tab-link="attachments" role="tab"
-                            aria-selected="false">
-                            Adjuntos
-                            @if ($attachments->count())
-                                ({{ $attachments->count() }})
-                            @endif
-                        </button>
-                    </x-horizontal-scroll>
-                </x-slot:tabs>
-            </x-tab-toolbar>
-
-            <section class="tab-panel is-active" data-tab-panel="tasks">
-                <div class="tab-panel-stack">
-                    @include('tasks.partials.embedded-tabs', [
-                        'tasks' => $tasks,
-                        'openTasks' => $openTasks,
-                        'doneTasks' => $doneTasks,
-                        'emptyMessageOpen' => 'No hay tareas abiertas en este proyecto.',
-                        'emptyMessageDone' => 'No hay tareas finalizadas en este proyecto.',
-                        'emptyMessageAll' => 'No hay tareas asociadas a este proyecto.',
-                        'tabsId' => 'project-tasks-tabs',
-                        'createBaseQuery' => [
-                            'project_id' => $project->id,
-                        ],
-                        'trailQuery' => $trailQuery,
-                    ])
-                </div>
-            </section>
-
-            <section class="tab-panel" data-tab-panel="attachments" hidden>
-                <div class="tab-panel-stack">
-                    @include('attachments.partials.embedded', [
-                        'attachments' => $attachments,
-                        'attachable' => $project,
-                        'attachableType' => 'project',
-                        'attachableId' => $project->id,
-                        'trailQuery' => $trailQuery,
-                        'navigationTrail' => $navigationTrail,
-                        'tabsId' => 'project-attachments-tabs',
-                        'createLabel' => 'Agregar adjunto',
-                    ])
-                </div>
-            </section>
-        </div>
+        <x-host-tabs :items="$tabItems" :active-tab="$activeTab" :label="$tabsLabel" />
     </x-page>
 @endsection

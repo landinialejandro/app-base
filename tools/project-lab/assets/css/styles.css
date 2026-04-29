@@ -1270,3 +1270,25 @@ tbody tr:hover {
     font-size: 12px;
     margin: 0;
 }
+
+/* <<SECTION: PROJECT_LAB_SECTIONS_CATALOG>> */
+
+.section-file-path {
+    color: var(--success-light);
+    font-size: 11px;
+    word-break: break-all;
+    margin-top: 6px;
+}
+
+.section-chip-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    margin-top: 10px;
+}
+
+.section-chip-list .snippet-chip {
+    margin: 0;
+}
+
+/* <<END SECTION>> */

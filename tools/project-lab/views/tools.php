@@ -60,6 +60,8 @@
                             <span class="snippet-chip" onclick="insertLabSnippet('/* FILE: documentos/log/project-lab-test.css | V1 */\n\n')">CSS seguro</span>
                             <span class="snippet-chip" onclick="insertLabSnippet('// FILE: documentos/log/project-lab-test.js | V1\n\n')">JS seguro</span>
                             <span class="snippet-chip" onclick="insertLabSnippet('/* FILE: documentos/log/project-lab-test.js | V1 */\n\n')">JS block seguro</span>
+                            <span class="snippet-chip" onclick="insertLabSnippet('REEMPLAZAR EN: [documentos/log/test-sections.css]\n<<SECTION: COLORS>>\nbody {\n    color: red;\n}\n<<END SECTION>>')">CSS SECTION</span>
+                            <span class="snippet-chip" onclick="insertLabSnippet('REEMPLAZAR EN: [documentos/log/test-sections.js]\n<<SECTION: INIT>>\nconsole.log(\'section updated\');\n<<END SECTION>>')">JS SECTION</span>
                         </div>
                     </details>
 

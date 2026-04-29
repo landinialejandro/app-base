@@ -8,6 +8,31 @@
  */
 class ProjectLab
 {
+    private const CODE_LOG_FILE = 'documentos/log/code-updates.log';
+
+    private const ASSET_SECTION_EXTENSIONS = [
+        'css',
+        'js',
+    ];
+
+    private const REGEX_TARGET_OPERATION = '/^\/\/\s*(?:TARGET|FILE):\s*(.+?)\s*(::|\+\+)\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*$/';
+
+    private const REGEX_PHP_FILE_HEADER = '/^\/\/\s*FILE:\s*(.+?)(?:\s*\|\s*(V\d+))?\s*$/';
+
+    private const REGEX_BLADE_FILE_HEADER = '/^\{\{\-\-\s*FILE:\s*(.+?)(?:\s*\|\s*(V\d+))?\s*\-\-\}\}$/';
+
+    private const REGEX_PLAIN_FILE_HEADER_LINE = '/^\/\/\s*FILE:\s*(.+?)(?:\s*\|\s*(V\d+))?\s*$/';
+
+    private const REGEX_PLAIN_FILE_HEADER_BLOCK = '/^\/\*\s*FILE:\s*(.+?)(?:\s*\|\s*(V\d+))?\s*\*\/$/';
+
+    private const REGEX_ASSET_SECTION_BLOCK = '/REEMPLAZAR EN:\s*\[?(.+?\.(?:css|js))\]?\s*(<<SECTION:\s*.*?>>.*?<<END SECTION>>)/su';
+
+    private const REGEX_SECTION_NAME = '/<<SECTION:\s*(.*?)\s*>>/su';
+
+    private const REGEX_METHOD_SIGNATURE_TEMPLATE = '/^[ \t]*(?:public|protected|private)\s+function\s+%s\s*\(/m';
+
+    private const REGEX_JS_FUNCTION_SIGNATURE_TEMPLATE = '/(?:^|\n)(?:export\s+)?(?:async\s+)?function\s+%s\s*\(/';
+
     private $projectRoot;
 
     private $labRoot;
@@ -441,42 +466,43 @@ class ProjectLab
         ];
     }
 
-    private function render()
-    {
-        $data = [
-            'csrfToken' => $this->csrfToken,
-            'output' => $this->output ?? '',
-            'code' => $this->code ?? '',
-            'labToolInput' => $_SESSION['project_lab_tool_input'] ?? '',
-            'labToolOutput' => $_SESSION['project_lab_tool_output'] ?? '',
-            'labToolActive' => $_SESSION['project_lab_tool_active'] ?? 'code',
-            'tablesInfo' => $this->getTablesInfo(),
-            'routes' => $this->getRoutes(),
-            'systemInfo' => $this->getSystemInfo(),
-            'history' => json_decode(@file_get_contents(
-                $this->projectRoot.'/storage/logs/tinker_history.json'
-            ), true) ?? [],
-            'rateLimitData' => json_decode(@file_get_contents($this->rateLimitFile), true) ?? [
-                'count' => 0,
-                'reset' => time() + 3600,
-            ],
-            'dbInfo' => $this->getDatabaseInfo(),
-            'cacheDrivers' => $this->getCacheDrivers(),
-            'availableDrivers' => $this->getAvailableDrivers(),
-            'folderSizes' => $this->getFolderSizes(),
-            'installedFeatured' => $this->getInstalledFeatured(),
-            'vendorCounts' => $this->getVendorCounts(),
-            'topVendors' => $this->getTopVendors(),
-            'totalPackages' => $this->getPackagesCount(),
-            'totalVendors' => $this->getVendorsCount(),
-            'projectRoot' => $this->projectRoot,
-            'labRoot' => $this->labRoot,
-        ];
+private function render()
+{
+    $data = [
+        'csrfToken' => $this->csrfToken,
+        'output' => $this->output ?? '',
+        'code' => $this->code ?? '',
+        'labToolInput' => $_SESSION['project_lab_tool_input'] ?? '',
+        'labToolOutput' => $_SESSION['project_lab_tool_output'] ?? '',
+        'labToolActive' => $_SESSION['project_lab_tool_active'] ?? 'code',
+        'tablesInfo' => $this->getTablesInfo(),
+        'routes' => $this->getRoutes(),
+        'systemInfo' => $this->getSystemInfo(),
+        'history' => json_decode(@file_get_contents(
+            $this->projectRoot.'/storage/logs/tinker_history.json'
+        ), true) ?? [],
+        'rateLimitData' => json_decode(@file_get_contents($this->rateLimitFile), true) ?? [
+            'count' => 0,
+            'reset' => time() + 3600,
+        ],
+        'dbInfo' => $this->getDatabaseInfo(),
+        'cacheDrivers' => $this->getCacheDrivers(),
+        'availableDrivers' => $this->getAvailableDrivers(),
+        'folderSizes' => $this->getFolderSizes(),
+        'installedFeatured' => $this->getInstalledFeatured(),
+        'vendorCounts' => $this->getVendorCounts(),
+        'topVendors' => $this->getTopVendors(),
+        'totalPackages' => $this->getPackagesCount(),
+        'totalVendors' => $this->getVendorsCount(),
+        'assetSectionsCatalog' => $this->getAssetSectionsCatalog(),
+        'projectRoot' => $this->projectRoot,
+        'labRoot' => $this->labRoot,
+    ];
 
-        extract($data);
+    extract($data);
 
-        require $this->labRoot.'/views/layout.php';
-    }
+    require $this->labRoot.'/views/layout.php';
+}
 
     // Métodos adicionales necesarios
     private function getDatabaseInfo()
@@ -632,49 +658,63 @@ class ProjectLab
         exit;
     }
 
-    private function runEmbeddedCodeTool(string $input): string
-    {
-        $input = str_replace(["\r\n", "\r"], "\n", trim($input));
+private function runEmbeddedCodeTool(string $input): string
+{
+    $input = str_replace(["\r\n", "\r"], "\n", trim($input));
 
-        if ($input === '') {
-            return '[ERROR] No se recibió contenido para actualizar código.';
-        }
-
-        $methodOperation = $this->parseEmbeddedMethodOperation($input);
-
-        if ($methodOperation !== null) {
-            if ($methodOperation['operation'] === 'replace') {
-                return $this->applyEmbeddedMethodReplace($methodOperation);
-            }
-
-            if ($methodOperation['operation'] === 'add') {
-                return $this->applyEmbeddedMethodAdd($methodOperation);
-            }
-
-            return '[ERROR] Operación TARGET no soportada.';
-        }
-
-        if (str_starts_with(ltrim($input), '<?php')) {
-            return $this->applyEmbeddedPhpFile($input);
-        }
-
-        if (preg_match('/^\s*\{\{\-\-\s*FILE:/', $input)) {
-            return $this->applyEmbeddedBladeFile($input);
-        }
-
-        if (preg_match('/^\s*\/\*\s*FILE:\s*.+?\.css(?:\s*\|\s*V\d+)?\s*\*\//', $input)) {
-            return $this->applyEmbeddedPlainFile($input, 'css_full');
-        }
-
-        if (
-            preg_match('/^\s*\/\/\s*FILE:\s*.+?\.js(?:\s*\|\s*V\d+)?\s*$/m', $input)
-            || preg_match('/^\s*\/\*\s*FILE:\s*.+?\.js(?:\s*\|\s*V\d+)?\s*\*\//', $input)
-        ) {
-            return $this->applyEmbeddedPlainFile($input, 'js_full');
-        }
-
-        return "[ERROR] Formato no compatible en herramienta de código.\n[INFO] Soporta PHP completo, Blade completo, CSS completo, JS completo, TARGET :: método y TARGET ++ método.";
+    if ($input === '') {
+        return '[ERROR] No se recibió contenido para actualizar código.';
     }
+
+    if (preg_match(self::REGEX_ASSET_SECTION_BLOCK, $input)) {
+        return $this->runEmbeddedAssetSectionsTool($input);
+    }
+
+    $methodOperation = $this->parseEmbeddedMethodOperation($input);
+
+    if ($methodOperation !== null) {
+        $extension = strtolower(pathinfo($methodOperation['path'], PATHINFO_EXTENSION));
+
+        if ($extension === 'js') {
+            if ($methodOperation['operation'] !== 'replace') {
+                return '[ERROR] En JS solo está soportado TARGET :: función. Use secciones JS para agregar bloques nuevos.';
+            }
+
+            return $this->applyEmbeddedJsFunctionReplace($methodOperation);
+        }
+
+        if ($methodOperation['operation'] === 'replace') {
+            return $this->applyEmbeddedMethodReplace($methodOperation);
+        }
+
+        if ($methodOperation['operation'] === 'add') {
+            return $this->applyEmbeddedMethodAdd($methodOperation);
+        }
+
+        return '[ERROR] Operación TARGET no soportada.';
+    }
+
+    if (str_starts_with(ltrim($input), '<?php')) {
+        return $this->applyEmbeddedPhpFile($input);
+    }
+
+    if (preg_match('/^\s*\{\{\-\-\s*FILE:/', $input)) {
+        return $this->applyEmbeddedBladeFile($input);
+    }
+
+    if (preg_match('/^\s*\/\*\s*FILE:\s*.+?\.css(?:\s*\|\s*V\d+)?\s*\*\//', $input)) {
+        return $this->applyEmbeddedPlainFile($input, 'css_full');
+    }
+
+    if (
+        preg_match('/^\s*\/\/\s*FILE:\s*.+?\.js(?:\s*\|\s*V\d+)?\s*$/m', $input)
+        || preg_match('/^\s*\/\*\s*FILE:\s*.+?\.js(?:\s*\|\s*V\d+)?\s*\*\//', $input)
+    ) {
+        return $this->applyEmbeddedPlainFile($input, 'js_full');
+    }
+
+    return "[ERROR] Formato no compatible en herramienta de código.\n[INFO] Soporta PHP completo, Blade completo, CSS completo, JS completo, secciones CSS/JS, TARGET :: método PHP, TARGET ++ método PHP y TARGET :: función JS.";
+}
 
     private function applyEmbeddedBladeFile(string $content): string
     {
@@ -682,7 +722,7 @@ class ProjectLab
         $lines = explode("\n", ltrim($content));
         $headerLine = trim($lines[0] ?? '');
 
-        if (! preg_match('/^\{\{\-\-\s*FILE:\s*(.+?)(?:\s*\|\s*(V\d+))?\s*\-\-\}\}$/', $headerLine, $matches)) {
+        if (! preg_match(self::REGEX_BLADE_FILE_HEADER, $headerLine, $matches)) {
             return '[ERROR] No se encontró encabezado FILE válido para Blade.';
         }
 
@@ -725,15 +765,15 @@ class ProjectLab
         $this->log('LAB_CODE', $relativePath, $message);
 
         $this->appendPipeLog(
-            'documentos/log/code-updates.log',
+            self::CODE_LOG_FILE,
             ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
             [
                 $relativePath,
                 date('Y-m-d H:i:s'),
-                $status ?? 'actualizado',
-                $version ?? '-',
+                $status,
+                $version,
                 'project_lab',
-                $methodName ?? 'archivo_completo',
+                'archivo_completo',
                 get_current_user() ?: 'unknown',
                 php_uname('n') ?: 'unknown',
             ]
@@ -742,73 +782,84 @@ class ProjectLab
         return $message;
     }
 
-    private function applyEmbeddedPhpFile(string $content): string
-    {
-        $trimmed = ltrim($content);
-        $afterOpen = substr($trimmed, 5);
-        $afterOpen = ltrim($afterOpen, "\n");
+private function applyEmbeddedPhpFile(string $content): string
+{
+    $content = str_replace(["\r\n", "\r"], "\n", $content);
 
-        $lines = explode("\n", $afterOpen);
-        $headerLine = trim($lines[0] ?? '');
+    $lines = explode("\n", ltrim($content));
 
-        if (! preg_match('/^\/\/\s*FILE:\s*(.+?)(?:\s*\|\s*(V\d+))?\s*$/', $headerLine, $matches)) {
-            return '[ERROR] No se encontró encabezado FILE válido para PHP.';
-        }
+    if (trim($lines[0] ?? '') !== '<?php') {
+        return '[ERROR] El archivo PHP completo debe comenzar con <?php.';
+    }
 
-        $relativePath = trim($matches[1] ?? '');
-        $version = trim($matches[2] ?? 'V1');
+    array_shift($lines);
 
-        if ($relativePath === '') {
-            return '[ERROR] Ruta destino vacía.';
-        }
-
-        $targetPath = $this->projectRoot.'/'.$relativePath;
-        $directory = dirname($targetPath);
-
-        if (! is_dir($directory)) {
-            mkdir($directory, 0775, true);
-        }
-
+    while (! empty($lines) && trim($lines[0]) === '') {
         array_shift($lines);
-        $body = ltrim(implode("\n", $lines), "\n");
-
-        $finalContent = "<?php\n\n// FILE: {$relativePath} | {$version}\n\n".$body;
-
-        $status = file_exists($targetPath) ? 'sobrescrito' : 'creado';
-
-        if (file_put_contents($targetPath, $finalContent) === false) {
-            return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
-        }
-
-        $message = "[OK] Modo: php_full\n";
-        $message .= "[OK] Archivo: {$relativePath}\n";
-
-        if ($status === 'sobrescrito') {
-            $message .= "[WARN] Archivo existente reemplazado completamente.\n";
-        } else {
-            $message .= "[INFO] Archivo nuevo creado.\n";
-        }
-
-        $message .= "[OK] Estado: {$status}\n";
-        $message .= "[OK] Versión: {$version}";
-        $this->log('LAB_CODE', $relativePath, $message);
-        $this->appendPipeLog(
-            'documentos/log/code-updates.log',
-            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
-            [
-                $relativePath,
-                date('Y-m-d H:i:s'),
-                $status ?? 'actualizado',
-                $version ?? '-',
-                'project_lab',
-                $methodName ?? 'archivo_completo',
-                get_current_user() ?: 'unknown',
-                php_uname('n') ?: 'unknown',
-            ]
-        );
-
-        return $message;
     }
+
+    $headerLine = trim($lines[0] ?? '');
+
+    if (! preg_match(self::REGEX_PHP_FILE_HEADER, $headerLine, $matches)) {
+        return '[ERROR] No se encontró encabezado FILE válido para PHP.';
+    }
+
+    $relativePath = trim($matches[1] ?? '');
+    $version = trim($matches[2] ?? 'V1');
+
+    if ($relativePath === '') {
+        return '[ERROR] Ruta destino vacía.';
+    }
+
+    $targetPath = $this->projectRoot.'/'.$relativePath;
+    $directory = dirname($targetPath);
+
+    if (! is_dir($directory)) {
+        mkdir($directory, 0775, true);
+    }
+
+    array_shift($lines);
+
+    $body = ltrim(implode("\n", $lines), "\n");
+
+    $finalContent = "<?php\n\n// FILE: {$relativePath} | {$version}\n\n".$body;
+    $status = file_exists($targetPath) ? 'sobrescrito' : 'creado';
+
+    if (file_put_contents($targetPath, $finalContent) === false) {
+        return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
+    }
+
+    $message = "[OK] Modo: php_full\n";
+    $message .= "[OK] Archivo: {$relativePath}\n";
+
+    if ($status === 'sobrescrito') {
+        $message .= "[WARN] Archivo existente reemplazado completamente.\n";
+    } else {
+        $message .= "[INFO] Archivo nuevo creado.\n";
+    }
+
+    $message .= "[OK] Estado: {$status}\n";
+    $message .= "[OK] Versión: {$version}";
+
+    $this->log('LAB_CODE', $relativePath, $message);
+
+    $this->appendPipeLog(
+        self::CODE_LOG_FILE,
+        ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+        [
+            $relativePath,
+            date('Y-m-d H:i:s'),
+            $status,
+            $version,
+            'project_lab',
+            'archivo_completo',
+            get_current_user() ?: 'unknown',
+            php_uname('n') ?: 'unknown',
+        ]
+    );
+
+    return $message;
+}
 
     private function runEmbeddedDocsTool(string $input): string
     {
@@ -941,7 +992,7 @@ class ProjectLab
         $lines = explode("\n", $input);
         $header = trim($lines[0] ?? '');
 
-        if (! preg_match('/^\/\/\s*(?:TARGET|FILE):\s*(.+?)\s*(::|\+\+)\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*$/', $header, $matches)) {
+        if (! preg_match(self::REGEX_TARGET_OPERATION, $header, $matches)) {
             return null;
         }
 
@@ -1082,7 +1133,10 @@ class ProjectLab
 
     private function findEmbeddedMethodRange(string $content, string $methodName): ?array
     {
-        $pattern = '/^[ \t]*(?:public|protected|private)\s+function\s+'.preg_quote($methodName, '/').'\s*\(/m';
+        $pattern = sprintf(
+            self::REGEX_METHOD_SIGNATURE_TEMPLATE,
+            preg_quote($methodName, '/')
+        );
 
         if (! preg_match($pattern, $content, $match, PREG_OFFSET_CAPTURE)) {
             return null;
@@ -1242,9 +1296,9 @@ class ProjectLab
 
         $style = null;
 
-        if (preg_match('/^\/\/\s*FILE:\s*(.+?)(?:\s*\|\s*(V\d+))?\s*$/', $headerLine, $matches)) {
+        if (preg_match(self::REGEX_PLAIN_FILE_HEADER_LINE, $headerLine, $matches)) {
             $style = 'line';
-        } elseif (preg_match('/^\/\*\s*FILE:\s*(.+?)(?:\s*\|\s*(V\d+))?\s*\*\/$/', $headerLine, $matches)) {
+        } elseif (preg_match(self::REGEX_PLAIN_FILE_HEADER_BLOCK, $headerLine, $matches)) {
             $style = 'block';
         } else {
             return '[ERROR] No se encontró encabezado FILE válido para CSS/JS.';
@@ -1303,7 +1357,7 @@ class ProjectLab
         $this->log('LAB_CODE', $relativePath, $message);
 
         $this->appendPipeLog(
-            'documentos/log/code-updates.log',
+            self::CODE_LOG_FILE,
             ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
             [
                 $relativePath,
@@ -1318,5 +1372,349 @@ class ProjectLab
         );
 
         return $message;
+    }
+
+    private function runEmbeddedAssetSectionsTool(string $input): string
+    {
+        preg_match(self::REGEX_ASSET_SECTION_BLOCK, $input, $matches);
+
+        $relativePath = trim($matches[1] ?? '');
+
+        if ($relativePath === '') {
+            return '[ERROR] Ruta destino vacía.';
+        }
+
+        $extension = strtolower(pathinfo($relativePath, PATHINFO_EXTENSION));
+
+        if (! in_array($extension, self::ASSET_SECTION_EXTENSIONS, true)) {
+            return "[ERROR] Extensión no permitida para secciones: {$extension}";
+        }
+
+        $targetPath = $this->projectRoot.'/'.$relativePath;
+
+        if (! file_exists($targetPath)) {
+            return "[ERROR] Archivo no encontrado: {$relativePath}";
+        }
+
+        $content = file_get_contents($targetPath);
+
+        if ($content === false) {
+            return "[ERROR] No se pudo leer el archivo: {$relativePath}";
+        }
+
+        preg_match_all('/<<SECTION:\s*(.*?)\s*>>(.*?)<<END SECTION>>/su', $input, $sections, PREG_SET_ORDER);
+
+        if (empty($sections)) {
+            return '[ERROR] No se encontraron secciones para aplicar.';
+        }
+
+        $applied = 0;
+
+        foreach ($sections as $section) {
+            $sectionName = trim($section[1] ?? '');
+            $sectionBody = trim($section[2] ?? '');
+
+            if ($sectionName === '') {
+                continue;
+            }
+
+            $escaped = preg_quote($sectionName, '/');
+
+            if ($extension === 'css') {
+                $pattern = '/\/\*\s*<<SECTION:\s*'.$escaped.'\s*>>\s*\*\/.*?\/\*\s*<<END SECTION>>\s*\*\//su';
+                $replacement =
+                    "/* <<SECTION: {$sectionName}>> */\n\n".
+                    $sectionBody."\n\n".
+                    '/* <<END SECTION>> */';
+            } else {
+                $pattern = '/\/\/\s*<<SECTION:\s*'.$escaped.'\s*>>.*?\/\/\s*<<END SECTION>>/su';
+                $replacement =
+                    "// <<SECTION: {$sectionName}>>\n\n".
+                    $sectionBody."\n\n".
+                    '// <<END SECTION>>';
+            }
+
+            $newContent = preg_replace($pattern, $replacement, $content, 1, $count);
+
+            if ($newContent === null || $count === 0) {
+                continue;
+            }
+
+            $content = $newContent;
+            $applied++;
+        }
+
+        if ($applied === 0) {
+            return '[ERROR] No se encontró ninguna sección destino en el archivo.';
+        }
+
+        if (file_put_contents($targetPath, $content) === false) {
+            return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
+        }
+
+        $message = "[OK] Modo: asset_sections\n";
+        $message .= "[OK] Archivo: {$relativePath}\n";
+        $message .= "[OK] Secciones aplicadas: {$applied}";
+
+        $this->log('LAB_CODE', $relativePath, $message);
+
+        $this->appendPipeLog(
+            self::CODE_LOG_FILE,
+            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+            [
+                $relativePath,
+                date('Y-m-d H:i:s'),
+                'actualizado',
+                '-',
+                'project_lab',
+                'asset_sections',
+                get_current_user() ?: 'unknown',
+                php_uname('n') ?: 'unknown',
+            ]
+        );
+
+        return $message;
+    }
+
+
+    private function findEmbeddedJsFunctionRange(string $content, string $functionName): ?array
+    {
+        $pattern = sprintf(
+            self::REGEX_JS_FUNCTION_SIGNATURE_TEMPLATE,
+            preg_quote($functionName, '/')
+        );
+    
+        if (! preg_match($pattern, $content, $match, PREG_OFFSET_CAPTURE)) {
+            return null;
+        }
+    
+        $start = $match[0][1];
+    
+        if (str_starts_with($match[0][0], "\n")) {
+            $start++;
+        }
+    
+        $openBrace = strpos($content, '{', $start);
+    
+        if ($openBrace === false) {
+            return null;
+        }
+    
+        $length = strlen($content);
+        $depth = 0;
+        $inString = null;
+        $inTemplate = false;
+        $inLineComment = false;
+        $inBlockComment = false;
+        $escaped = false;
+    
+        for ($i = $openBrace; $i < $length; $i++) {
+            $char = $content[$i];
+            $next = $content[$i + 1] ?? '';
+    
+            if ($inLineComment) {
+                if ($char === "\n") {
+                    $inLineComment = false;
+                }
+    
+                continue;
+            }
+    
+            if ($inBlockComment) {
+                if ($char === '*' && $next === '/') {
+                    $inBlockComment = false;
+                    $i++;
+                }
+    
+                continue;
+            }
+    
+            if ($inString !== null) {
+                if ($escaped) {
+                    $escaped = false;
+                    continue;
+                }
+    
+                if ($char === '\\') {
+                    $escaped = true;
+                    continue;
+                }
+    
+                if ($char === $inString) {
+                    $inString = null;
+                }
+    
+                continue;
+            }
+    
+            if ($inTemplate) {
+                if ($escaped) {
+                    $escaped = false;
+                    continue;
+                }
+    
+                if ($char === '\\') {
+                    $escaped = true;
+                    continue;
+                }
+    
+                if ($char === '`') {
+                    $inTemplate = false;
+                    continue;
+                }
+    
+                continue;
+            }
+    
+            if ($char === '/' && $next === '/') {
+                $inLineComment = true;
+                $i++;
+                continue;
+            }
+    
+            if ($char === '/' && $next === '*') {
+                $inBlockComment = true;
+                $i++;
+                continue;
+            }
+    
+            if ($char === '"' || $char === "'") {
+                $inString = $char;
+                continue;
+            }
+    
+            if ($char === '`') {
+                $inTemplate = true;
+                continue;
+            }
+    
+            if ($char === '{') {
+                $depth++;
+            } elseif ($char === '}') {
+                $depth--;
+    
+                if ($depth === 0) {
+                    return [$start, $i + 1];
+                }
+            }
+        }
+    
+        return null;
+    }
+
+
+    private function applyEmbeddedJsFunctionReplace(array $operation): string
+    {
+        $relativePath = $operation['path'];
+        $functionName = $operation['method_name'];
+        $functionCode = $operation['method_code'];
+        $targetPath = $this->projectRoot.'/'.$relativePath;
+    
+        if (strtolower(pathinfo($relativePath, PATHINFO_EXTENSION)) !== 'js') {
+            return "[ERROR] El reemplazo de función JS requiere archivo .js: {$relativePath}";
+        }
+    
+        if (! file_exists($targetPath)) {
+            return "[ERROR] El archivo destino no existe: {$relativePath}";
+        }
+    
+        $content = file_get_contents($targetPath);
+    
+        if ($content === false) {
+            return "[ERROR] No se pudo leer el archivo: {$relativePath}";
+        }
+    
+        $range = $this->findEmbeddedJsFunctionRange($content, $functionName);
+    
+        if ($range === null) {
+            return "[ERROR] No se encontró la función JS: {$functionName}";
+        }
+    
+        [$start, $end] = $range;
+    
+        $newContent = substr($content, 0, $start)
+            .rtrim($functionCode)
+            .substr($content, $end);
+    
+        if (file_put_contents($targetPath, $newContent) === false) {
+            return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
+        }
+    
+        $message = "[OK] Modo: js_function_patch\n";
+        $message .= "[OK] Archivo: {$relativePath}\n";
+        $message .= "[OK] Función JS reemplazada: {$functionName}";
+    
+        $this->log('LAB_CODE_JS_FUNCTION_REPLACE', "{$relativePath}::{$functionName}", $message);
+    
+        $this->appendPipeLog(
+            self::CODE_LOG_FILE,
+            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+            [
+                $relativePath,
+                date('Y-m-d H:i:s'),
+                'actualizado',
+                '-',
+                'project_lab',
+                $functionName,
+                get_current_user() ?: 'unknown',
+                php_uname('n') ?: 'unknown',
+            ]
+        );
+    
+        return $message;
+    }
+
+
+    private function getAssetSectionsCatalog(): array
+    {
+        $catalog = [];
+    
+        $files = array_merge(
+            glob($this->projectRoot.'/public/css/*.css') ?: [],
+            glob($this->projectRoot.'/public/css/modules/*.css') ?: [],
+            glob($this->projectRoot.'/public/js/*.js') ?: [],
+            glob($this->projectRoot.'/tools/project-lab/assets/css/*.css') ?: [],
+            glob($this->projectRoot.'/tools/project-lab/assets/js/*.js') ?: []
+        );
+    
+        foreach ($files as $filePath) {
+            if (! is_file($filePath)) {
+                continue;
+            }
+    
+            $relativePath = ltrim(str_replace($this->projectRoot, '', $filePath), '/');
+            $extension = strtolower(pathinfo($relativePath, PATHINFO_EXTENSION));
+    
+            if (! in_array($extension, self::ASSET_SECTION_EXTENSIONS, true)) {
+                continue;
+            }
+    
+            $content = file_get_contents($filePath);
+    
+            if ($content === false) {
+                continue;
+            }
+    
+            preg_match_all(self::REGEX_SECTION_NAME, $content, $matches);
+    
+            $sections = array_values(array_unique(array_map('trim', $matches[1] ?? [])));
+    
+            if (empty($sections)) {
+                continue;
+            }
+    
+            $catalog[] = [
+                'path' => $relativePath,
+                'extension' => $extension,
+                'sections' => $sections,
+                'count' => count($sections),
+            ];
+        }
+    
+        usort($catalog, function (array $a, array $b): int {
+            return strcmp($a['path'], $b['path']);
+        });
+    
+        return $catalog;
     }
 }

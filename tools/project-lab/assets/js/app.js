@@ -147,27 +147,7 @@ function runArtisanAjax(command) {
 }
 
 function ensureTinkerOutput() {
-    let output = document.getElementById("tinkerOutput");
-
-    if (output) {
-        return output;
-    }
-
-    const tab = document.getElementById("tab-tinker");
-
-    const card = document.createElement("div");
-    card.className = "card output-card";
-    card.innerHTML = `
-        <div class="output-header">
-            <span>📤 Resultado</span>
-            <button onclick="copyOutput()" class="secondary small">Copiar</button>
-        </div>
-        <pre id="tinkerOutput"></pre>
-    `;
-
-    tab.appendChild(card);
-
-    return document.getElementById("tinkerOutput");
+    return ensureProjectConsoleOutput();
 }
 
 function insertCode(code) {
@@ -287,27 +267,7 @@ function runLabTool(tool, fromClipboard = false) {
 }
 
 function ensureLabOutput() {
-    let output = document.getElementById("labOutput");
-
-    if (output) {
-        return output;
-    }
-
-    const tab = document.getElementById("tab-tools");
-
-    const card = document.createElement("div");
-    card.className = "card output-card";
-    card.innerHTML = `
-        <div class="output-header">
-            <span>📤 Salida Herramientas Lab</span>
-            <button onclick="copyLabOutput()" class="secondary small">Copiar</button>
-        </div>
-        <pre id="labOutput"></pre>
-    `;
-
-    tab.appendChild(card);
-
-    return document.getElementById("labOutput");
+    return ensureProjectConsoleOutput();
 }
 
 function insertLabSnippet(snippet) {
@@ -911,6 +871,14 @@ document.addEventListener("keydown", function (e) {
     }
 });
 
+// <<SECTION: SECTION_TEMPLATE_COPY >>
+
+function copySectionTemplate(template) {
+    copyToClipboard(template, "Plantilla de sección copiada al portapapeles");
+}
+
+// <<END SECTION>>
+
 // ==================== ANIMACIONES ====================
 
 const style = document.createElement("style");
@@ -928,3 +896,57 @@ style.textContent = `
 document.head.appendChild(style);
 
 console.log("🧪 Project Lab - JS inicializado");
+
+function ensureProjectConsoleOutput() {
+    let output = document.getElementById("projectConsoleOutput");
+
+    if (output) {
+        return output;
+    }
+
+    const main = document.querySelector("main");
+
+    const card = document.createElement("div");
+    card.className = "card output-card";
+    card.id = "projectConsoleCard";
+    card.innerHTML = `
+        <div class="output-header">
+            <span>📤 Consola Project Lab</span>
+            <div style="display:flex; gap:6px;">
+                <button onclick="copyProjectConsoleOutput()" class="secondary small">Copiar</button>
+                <button onclick="clearProjectConsoleOutput()" class="danger small">Borrar</button>
+            </div>
+        </div>
+        <pre id="projectConsoleOutput"></pre>
+    `;
+
+    main.appendChild(card);
+
+    return document.getElementById("projectConsoleOutput");
+}
+
+function copyProjectConsoleOutput() {
+    const output = document.getElementById("projectConsoleOutput");
+
+    if (!output) {
+        showNotification("No hay salida para copiar", "warning");
+        return;
+    }
+
+    copyToClipboard(output.innerText, "Salida copiada al portapapeles");
+}
+
+function clearProjectConsoleOutput() {
+    const output = document.getElementById("projectConsoleOutput");
+
+    if (output) {
+        output.innerHTML = "";
+    }
+
+    localStorage.removeItem("projectLabTinkerOutput");
+    localStorage.removeItem("projectLabTinkerAt");
+    localStorage.removeItem("projectLabLabOutput");
+    localStorage.removeItem("projectLabLabAt");
+
+    showNotification("Consola borrada", "success");
+}

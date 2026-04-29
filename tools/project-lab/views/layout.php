@@ -40,6 +40,7 @@
                 <button class="tab-btn" onclick="showTab('help')">❓ Ayuda</button>
                 <button class="tab-btn" onclick="showTab('icons')">🎨 Íconos</button>
                 <button class="tab-btn" onclick="showTab('components')">🧩 Componentes</button>
+                <button class="tab-btn" onclick="showTab('sections')">🧱 Secciones</button>
             </div>
 
             <!-- Scripts -->
@@ -86,6 +87,7 @@
             <?php require 'help.php'; ?>
             <?php require 'icons.php'; ?>
             <?php require 'components.php'; ?>
+            <?php require 'sections.php'; ?>
         </main>
     </div>
 

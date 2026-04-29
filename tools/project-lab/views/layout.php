@@ -37,6 +37,7 @@
                 <button class="tab-btn" onclick="showTab('database')">🗄️ Base de Datos</button>
                 <button class="tab-btn" onclick="showTab('routes')">🔗 Rutas (<?= count($routes) ?>)</button>
                 <button class="tab-btn" onclick="showTab('monitor')">📊 Monitor</button>
+                <button class="tab-btn" onclick="showTab('help')">❓ Ayuda</button>
             </div>
 
             <!-- Scripts -->
@@ -80,6 +81,7 @@
             <?php require 'database.php'; ?>
             <?php require 'routes.php'; ?>
             <?php require 'monitor.php'; ?>
+            <?php require 'help.php'; ?>
         </main>
     </div>
 

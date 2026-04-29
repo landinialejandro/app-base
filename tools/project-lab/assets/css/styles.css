@@ -1091,3 +1091,85 @@ tbody tr:hover {
     display: block;
     white-space: nowrap;
 }
+
+/* ==================== PROJECT LAB HELP ==================== */
+
+.help-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 16px;
+    margin-bottom: 18px;
+}
+
+.help-card {
+    background: var(--card-hover);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px;
+}
+
+.help-card h4 {
+    margin-bottom: 8px;
+}
+
+.help-card p,
+.help-card li,
+.help-section p,
+.help-section li {
+    color: var(--text-secondary);
+    font-size: 13px;
+}
+
+.help-card ul,
+.help-section ul {
+    margin-left: 18px;
+    margin-top: 8px;
+}
+
+.help-card pre,
+.help-section pre {
+    margin-top: 10px;
+    padding: 12px;
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--success);
+    font-size: 11px;
+    overflow-x: auto;
+}
+
+.help-card--green {
+    border-color: rgba(57, 255, 136, 0.45);
+}
+
+.help-card--blue {
+    border-color: rgba(56, 189, 248, 0.45);
+}
+
+.help-card--orange {
+    border-color: rgba(255, 212, 59, 0.45);
+}
+
+.help-card--red {
+    border-color: rgba(255, 59, 107, 0.45);
+}
+
+.help-section {
+    margin-top: 18px;
+}
+
+.help-section h5 {
+    margin-top: 18px;
+    margin-bottom: 6px;
+    color: var(--accent-light);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.6px;
+}
+
+.help-section code {
+    color: var(--success-light);
+    background: rgba(255, 255, 255, 0.05);
+    padding: 2px 5px;
+    border-radius: var(--radius-sm);
+}

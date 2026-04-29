@@ -161,6 +161,8 @@ class ModuleSurfaceRegistry
             ->filter(fn ($offer) => is_array($offer))
             ->map(fn (array $offer) => array_merge([
                 'module' => $module,
+                'module_label' => ModuleCatalog::label($module),
+                'module_icon' => ModuleCatalog::icon($module),
                 'priority' => 999,
                 'visible' => true,
                 'targets' => [],

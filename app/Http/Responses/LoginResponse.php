@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Responses/LoginResponse.php
+// FILE: app/Http/Responses/LoginResponse.php | V2
 
 namespace App\Http\Responses;
 
@@ -27,16 +27,17 @@ class LoginResponse implements LoginResponseContract
             return redirect()->route('admin.dashboard');
         }
 
-        $tenantsCount = $user->tenants()->count();
+        $activeTenants = $user->tenants()
+            ->wherePivot('status', 'active')
+            ->select('tenants.id')
+            ->get();
 
-        if ($tenantsCount > 1) {
+        if ($activeTenants->count() > 1) {
             return redirect()->route('tenants.select');
         }
 
-        if ($tenantsCount === 1) {
-            $tenantId = $user->tenants()->value('tenants.id');
-
-            $request->session()->put('tenant_id', $tenantId);
+        if ($activeTenants->count() === 1) {
+            $request->session()->put('tenant_id', $activeTenants->first()->id);
 
             return redirect()->route('dashboard');
         }

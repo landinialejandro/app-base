@@ -376,18 +376,19 @@ class InvitationAcceptanceController extends Controller
             default => 'Operación completada correctamente.',
         };
 
-        $tenantsCount = $user->tenants()->count();
+        $activeTenants = $user->tenants()
+            ->wherePivot('status', 'active')
+            ->select('tenants.id')
+            ->get();
 
-        if ($tenantsCount > 1) {
+        if ($activeTenants->count() > 1) {
             return redirect()
                 ->route('tenants.select')
                 ->with('success', $message);
         }
 
-        if ($tenantsCount === 1) {
-            $tenantId = $user->tenants()->value('tenants.id');
-
-            $request->session()->put('tenant_id', $tenantId);
+        if ($activeTenants->count() === 1) {
+            $request->session()->put('tenant_id', $activeTenants->first()->id);
 
             return redirect()
                 ->route('dashboard')

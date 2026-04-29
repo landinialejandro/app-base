@@ -176,12 +176,14 @@ a:hover {
 }
 
 .app-main>.container {
-    height: 100%;
-    min-height: 0;
+    min-height: 100%;
     min-width: 0;
     display: flex;
     flex-direction: column;
-    padding-bottom: var(--space-6);
+}
+
+.app-main>.container>.page:last-child {
+    margin-bottom: var(--space-6);
 }
 
 .app-brand {

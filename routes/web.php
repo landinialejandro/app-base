@@ -56,16 +56,6 @@ Route::get('/docs/{slug}', [TechnicalDocController::class, 'show'])->name('docs.
 Route::put('/docs/{slug}/sections/{section}', [TechnicalDocController::class, 'updateSection'])
     ->name('docs.sections.update');
 
-// Debug API: tenant por header X-Tenant
-Route::middleware('tenant')->get('/whoami', function () {
-    $tenant = app('tenant');
-
-    return [
-        'tenant_id' => $tenant->id,
-        'tenant_slug' => $tenant->slug,
-    ];
-});
-
 // Selector de empresa
 Route::middleware('auth')->get('/tenants/select', function () {
     $tenants = Auth::user()->tenants()

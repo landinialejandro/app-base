@@ -102,7 +102,7 @@ por consolidación como capacidad embebida oficial
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00007
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -178,12 +178,34 @@ Se eliminaron partials legacy duplicados vinculados a reversión por línea en o
 
 La base vigente queda representada por documentación matriz y código actual, no por notas históricas internas.
 
+Cierre operativo adicional de seguridad/auth:
+
+se eliminó la ruta debug /whoami.
+
+LoginResponse quedó alineado con memberships activas para resolver redirección post-login.
+
+User::is_superadmin dejó de ser asignable mediante fillable.
+
+2FA permanece cableado para futura habilitación, pero inactivo en el estado actual del desarrollo.
+
+LogoutResponse limpia tenant_id e invitation_accept_url al cerrar sesión.
+
+El flujo de invitaciones internas quedó validado end-to-end para member_invite.
+
+Las invitaciones pendientes no crean usuarios ni memberships anticipadas.
+
+La membership se materializa recién al aceptar la invitación.
+
+La redirección post-aceptación quedó alineada con memberships activas.
+
 Validaciones recientes informadas:
 
 syntax OK
 routes OK
 optimize:clear OK
 browser OK
+route:list sin /whoami
+route:list sin two-factor
 
 <<END SECTION>>
 

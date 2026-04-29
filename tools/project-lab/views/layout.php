@@ -38,6 +38,8 @@
                 <button class="tab-btn" onclick="showTab('routes')">🔗 Rutas (<?= count($routes) ?>)</button>
                 <button class="tab-btn" onclick="showTab('monitor')">📊 Monitor</button>
                 <button class="tab-btn" onclick="showTab('help')">❓ Ayuda</button>
+                <button class="tab-btn" onclick="showTab('icons')">🎨 Íconos</button>
+                <button class="tab-btn" onclick="showTab('components')">🧩 Componentes</button>
             </div>
 
             <!-- Scripts -->
@@ -82,6 +84,8 @@
             <?php require 'routes.php'; ?>
             <?php require 'monitor.php'; ?>
             <?php require 'help.php'; ?>
+            <?php require 'icons.php'; ?>
+            <?php require 'components.php'; ?>
         </main>
     </div>
 

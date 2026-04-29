@@ -11,6 +11,22 @@
                 <span class="shortcuts">Actualización embebida de código y documentación</span>
             </div>
 
+            <div class="card lab-tool-card lab-tool-card--clipboard" data-title="Desde clipboard">
+                <div class="lab-tool-actions">
+                    <button type="button" onclick="runLabTool('code', true)" class="<?= $labToolActive === 'code' ? 'warning' : 'secondary' ?>">
+                        📋 Código
+                    </button>
+
+                    <button type="button" onclick="runLabTool('docs', true)" class="<?= $labToolActive === 'docs' ? 'warning' : 'secondary' ?>">
+                        📋 Docs
+                    </button>
+
+                    <button type="button" onclick="runLabTool('audit', true)" class="<?= $labToolActive === 'audit' ? 'warning' : 'secondary' ?>">
+                        🔍 Auditoría
+                    </button>
+                </div>
+            </div>
+
             <div class="card lab-tool-card lab-tool-card--direct" data-title="Desde textarea">
                 <div class="lab-tool-actions">
                     <button type="button" onclick="runLabTool('code', false)" class="<?= $labToolActive === 'code' ? 'warning' : 'secondary' ?>">
@@ -61,22 +77,6 @@
                             <span class="snippet-chip" onclick="insertLabSnippet('REEMPLAZAR EN: [contexto_fijo_proyecto_app_base]\n<<SECTION: NOMBRE EXACTO>>\nSECTION_VERSION: 00001\n\nContenido\n<<END SECTION>>')">Docs SECTION</span>
                         </div>
                     </details>
-                </div>
-            </div>
-
-            <div class="card lab-tool-card lab-tool-card--clipboard" data-title="Desde clipboard">
-                <div class="lab-tool-actions">
-                    <button type="button" onclick="runLabTool('code', true)" class="<?= $labToolActive === 'code' ? 'warning' : 'secondary' ?>">
-                        📋 Código
-                    </button>
-
-                    <button type="button" onclick="runLabTool('docs', true)" class="<?= $labToolActive === 'docs' ? 'warning' : 'secondary' ?>">
-                        📋 Docs
-                    </button>
-
-                    <button type="button" onclick="runLabTool('audit', true)" class="<?= $labToolActive === 'audit' ? 'warning' : 'secondary' ?>">
-                        🔍 Auditoría
-                    </button>
                 </div>
             </div>
 

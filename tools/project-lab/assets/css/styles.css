@@ -1173,3 +1173,100 @@ tbody tr:hover {
     padding: 2px 5px;
     border-radius: var(--radius-sm);
 }
+
+/* ==================== PROJECT LAB CATALOGS ==================== */
+
+.catalog-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 14px;
+}
+
+.catalog-grid--wide {
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+}
+
+.catalog-card {
+    background: var(--card-hover);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 14px;
+    display: grid;
+    gap: 10px;
+}
+
+.catalog-card:hover {
+    border-color: var(--accent);
+}
+
+.catalog-preview {
+    width: 42px;
+    height: 42px;
+    display: grid;
+    place-items: center;
+    color: #39ff88;
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+}
+
+.catalog-preview svg {
+    width: 24px;
+    height: 24px;
+}
+
+.catalog-title {
+    color: var(--text);
+    font-weight: 800;
+    font-size: 13px;
+}
+
+.catalog-card code {
+    color: var(--muted);
+    font-size: 10px;
+    word-break: break-all;
+}
+
+.catalog-card pre {
+    margin: 0;
+    padding: 10px;
+    background: #000;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    color: var(--success);
+    font-size: 11px;
+    overflow-x: auto;
+}
+
+.component-depth-map {
+    display: grid;
+    gap: 10px;
+}
+
+.component-depth-map>div {
+    padding: 12px;
+    background: var(--card-hover);
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-md);
+}
+
+.component-depth-map strong {
+    display: block;
+    color: var(--text);
+    margin-bottom: 6px;
+    font-size: 13px;
+}
+
+.component-depth-map code {
+    display: block;
+    color: var(--success-light);
+    font-size: 11px;
+    margin-bottom: 6px;
+}
+
+.component-depth-map p {
+    color: var(--muted);
+    font-size: 12px;
+    margin: 0;
+}

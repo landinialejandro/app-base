@@ -15,33 +15,45 @@ use App\Support\Catalogs\RoleCatalog;
 
 class RolePermissionResolver
 {
+    protected array $resolvedCache = [];
+
     public function resolve(string $module, ?Tenant $tenant = null, ?User $user = null): array
     {
         $tenant = $tenant ?: (app()->bound('tenant') ? app('tenant') : null);
         $user = $user ?: auth()->user();
 
+        $cacheKey = implode('|', [
+            $module,
+            $tenant?->id ?? 'no-tenant',
+            $user?->id ?? 'no-user',
+        ]);
+
+        if (array_key_exists($cacheKey, $this->resolvedCache)) {
+            return $this->resolvedCache[$cacheKey];
+        }
+
         if (! $tenant || ! $user) {
-            return $this->emptyRule();
+            return $this->resolvedCache[$cacheKey] = $this->emptyRule();
         }
 
         if (! in_array($module, ModuleCatalog::all(), true)) {
-            return $this->emptyRule();
+            return $this->resolvedCache[$cacheKey] = $this->emptyRule();
         }
 
         if (! TenantModuleAccess::isEnabled($module, $tenant)) {
-            return $this->emptyRule();
+            return $this->resolvedCache[$cacheKey] = $this->emptyRule();
         }
 
         $membership = $this->resolveMembership($tenant, $user);
 
         if (! $membership) {
-            return $this->emptyRule();
+            return $this->resolvedCache[$cacheKey] = $this->emptyRule();
         }
 
         $roleSlugs = $this->resolveRoleSlugs($membership);
 
         if (empty($roleSlugs)) {
-            return $this->emptyRule();
+            return $this->resolvedCache[$cacheKey] = $this->emptyRule();
         }
 
         $roles = Role::query()
@@ -76,7 +88,7 @@ class RolePermissionResolver
         $resolved['module_access'] = ! empty($resolved['actions']);
         $resolved['record_visibility'] = $this->resolveRecordVisibility($resolved['actions']);
 
-        return $resolved;
+        return $this->resolvedCache[$cacheKey] = $resolved;
     }
 
     public function canUseModule(string $module, ?Tenant $tenant = null, ?User $user = null): bool

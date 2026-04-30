@@ -1,14 +1,11 @@
 <?php
 
-// FILE: app/Http/Controllers/PartyController.php | V8
+// FILE: app/Http/Controllers/PartyController.php | V9
 
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StorePartyRequest;
 use App\Http\Requests\UpdatePartyRequest;
-use App\Models\Asset;
-use App\Models\Document;
-use App\Models\Order;
 use App\Models\Party;
 use App\Support\Auth\Security;
 use App\Support\Auth\TenantModuleAccess;
@@ -130,42 +127,12 @@ class PartyController extends Controller
         $this->authorize('view', $party);
 
         $tenant = app('tenant');
-        $security = app(Security::class);
-        $user = $request->user();
-
         $navigationTrail = PartyNavigationTrail::show($request, $party);
 
         $supportsAppointmentsModule = TenantModuleAccess::isEnabled(ModuleCatalog::APPOINTMENTS, $tenant);
         $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
         $supportsOrdersModule = TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, $tenant);
         $supportsDocumentsModule = TenantModuleAccess::isEnabled(ModuleCatalog::DOCUMENTS, $tenant);
-
-        $assets = $supportsAssetsModule
-            ? $security
-                ->scope($user, 'assets.viewAny', Asset::query())
-                ->with('party')
-                ->where('party_id', $party->id)
-                ->orderBy('name')
-                ->get()
-            : collect();
-
-        $orders = $supportsOrdersModule
-            ? $security
-                ->scope($user, 'orders.viewAny', Order::query())
-                ->with(['party', 'asset', 'task', 'items'])
-                ->where('party_id', $party->id)
-                ->latest()
-                ->get()
-            : collect();
-
-        $documents = $supportsDocumentsModule
-            ? $security
-                ->scope($user, 'documents.viewAny', Document::query())
-                ->with(['party', 'order', 'asset', 'items'])
-                ->where('party_id', $party->id)
-                ->latest()
-                ->get()
-            : collect();
 
         return view('parties.show', [
             'tenant' => $tenant,
@@ -175,9 +142,6 @@ class PartyController extends Controller
             'supportsAssetsModule' => $supportsAssetsModule,
             'supportsOrdersModule' => $supportsOrdersModule,
             'supportsDocumentsModule' => $supportsDocumentsModule,
-            'assets' => $assets,
-            'orders' => $orders,
-            'documents' => $documents,
         ]);
     }
 
@@ -197,39 +161,39 @@ class PartyController extends Controller
         ]);
     }
 
-public function update(UpdatePartyRequest $request, Party $party)
-{
-    $this->authorize('update', $party);
+    public function update(UpdatePartyRequest $request, Party $party)
+    {
+        $this->authorize('update', $party);
 
-    $data = $request->validated();
+        $data = $request->validated();
 
-    if ($party->memberships()->exists()) {
-        $data['kind'] = PartyCatalog::KIND_EMPLOYEE;
+        if ($party->memberships()->exists()) {
+            $data['kind'] = PartyCatalog::KIND_EMPLOYEE;
 
-        $linkedMembership = $party->memberships()
-            ->with('user')
-            ->first();
+            $linkedMembership = $party->memberships()
+                ->with('user')
+                ->first();
 
-        if ($linkedMembership?->user?->email) {
-            $data['email'] = $linkedMembership->user->email;
+            if ($linkedMembership?->user?->email) {
+                $data['email'] = $linkedMembership->user->email;
+            }
         }
+
+        $kind = $data['kind'] ?? null;
+        $allowedKinds = $this->resolvedAllowedKindsFor('update', $party);
+
+        abort_unless(
+            is_string($kind) && in_array($kind, $allowedKinds, true),
+            403
+        );
+
+        $party->update($data);
+        $navigationTrail = PartyNavigationTrail::show($request, $party);
+
+        return redirect()
+            ->route('parties.show', ['party' => $party] + NavigationTrail::toQuery($navigationTrail))
+            ->with('success', 'Contacto actualizado correctamente.');
     }
-
-    $kind = $data['kind'] ?? null;
-    $allowedKinds = $this->resolvedAllowedKindsFor('update', $party);
-
-    abort_unless(
-        is_string($kind) && in_array($kind, $allowedKinds, true),
-        403
-    );
-
-    $party->update($data);
-    $navigationTrail = PartyNavigationTrail::show($request, $party);
-
-    return redirect()
-        ->route('parties.show', ['party' => $party] + NavigationTrail::toQuery($navigationTrail))
-        ->with('success', 'Contacto actualizado correctamente.');
-}
 
     public function destroy(Request $request, Party $party)
     {

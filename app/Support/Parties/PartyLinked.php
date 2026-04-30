@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Parties/PartyLinked.php | V1
+// FILE: app/Support/Parties/PartyLinked.php | V2
 
 namespace App\Support\Parties;
 
@@ -23,22 +23,20 @@ class PartyLinked
 
         $exists = $supported && $party instanceof Party;
         $canView = $exists && $user && $user->can('view', $party);
-        $readonly = $exists && ! $canView;
-        $hidden = ! $supported || ! $exists;
 
-        $state = 'hidden';
-
-        if (! $hidden) {
-            $state = $canView ? 'linked_viewable' : 'linked_readonly';
-        }
+        $state = match (true) {
+            ! $supported || ! $exists => 'hidden',
+            $canView => 'linked_viewable',
+            default => 'linked_readonly',
+        };
 
         return [
             'supported' => $supported,
             'exists' => $exists,
-            'hidden' => $hidden,
-            'readonly' => $readonly,
+            'hidden' => $state === 'hidden',
+            'readonly' => $state === 'linked_readonly',
             'state' => $state,
-            'show_url' => ($exists && $canView)
+            'show_url' => $canView
                 ? route('parties.show', ['party' => $party] + $normalizedTrailQuery)
                 : null,
             'label' => $label,

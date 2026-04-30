@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Parties/PartySurfaceService.php | V10
+// FILE: app/Support/Parties/PartySurfaceService.php | V11
 
 namespace App\Support\Parties;
 
@@ -71,34 +71,55 @@ class PartySurfaceService implements ModuleSurfaceService
 
     public function hostPack(string $host, mixed $record = null, array $context = []): array
     {
-        if ($host === 'parties.show' && $record instanceof Party) {
-            return [
+        $trailQuery = is_array($context['trailQuery'] ?? null)
+            ? $context['trailQuery']
+            : [];
+
+        return match (true) {
+            $host === 'parties.show' && $record instanceof Party => [
                 'host' => $host,
                 'record' => $record,
                 'recordType' => 'party',
-                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
-            ];
-        }
+                'trailQuery' => $trailQuery,
+            ],
 
-        if ($host === 'tasks.show' && $record instanceof Task) {
-            return [
+            $host === 'appointments.show' && $record instanceof Appointment => [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'appointment',
+                'trailQuery' => $trailQuery,
+            ],
+
+            $host === 'assets.show' && $record instanceof Asset => [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'asset',
+                'trailQuery' => $trailQuery,
+            ],
+
+            $host === 'orders.show' && $record instanceof Order => [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'order',
+                'trailQuery' => $trailQuery,
+            ],
+
+            $host === 'tasks.show' && $record instanceof Task => [
                 'host' => $host,
                 'record' => $record,
                 'recordType' => 'task',
-                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
-            ];
-        }
+                'trailQuery' => $trailQuery,
+            ],
 
-        if ($host === 'documents.show' && $record instanceof Document) {
-            return [
+            $host === 'documents.show' && $record instanceof Document => [
                 'host' => $host,
                 'record' => $record,
                 'recordType' => 'document',
-                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
-            ];
-        }
+                'trailQuery' => $trailQuery,
+            ],
 
-        return [];
+            default => [],
+        };
     }
 
     private function resolveLinkedForAppointment(array $hostPack): array
@@ -156,43 +177,43 @@ class PartySurfaceService implements ModuleSurfaceService
         );
     }
 
-    private function resolveLinked(
-        array $hostPack,
-        string $expectedRecordType,
-        string $expectedClass,
-        string $label,
-        callable $partyResolver,
-    ): array {
-        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
+private function resolveLinked(
+    array $hostPack,
+    string $expectedRecordType,
+    string $expectedClass,
+    string $label,
+    callable $partyResolver,
+): array {
+    [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
 
-        if ($recordType !== $expectedRecordType || ! $record instanceof $expectedClass) {
-            return [
-                'data' => [
-                    'linked' => [
-                        'supported' => false,
-                        'exists' => false,
-                        'hidden' => true,
-                        'readonly' => false,
-                        'state' => 'hidden',
-                        'show_url' => null,
-                        'label' => $label,
-                        'trail_query' => [],
-                        'text' => $label,
-                    ],
-                    'variant' => 'summary',
-                ],
-            ];
-        }
-
+    if ($recordType !== $expectedRecordType || ! $record instanceof $expectedClass) {
         return [
             'data' => [
-                'linked' => PartyLinked::forParty(
-                    $partyResolver($record),
-                    $trailQuery,
-                    $label,
-                ),
-                'variant' => 'summary',
+                'linked' => [
+                    'supported' => false,
+                    'exists' => false,
+                    'hidden' => true,
+                    'readonly' => false,
+                    'state' => 'hidden',
+                    'show_url' => null,
+                    'label' => $label,
+                    'trail_query' => [],
+                    'text' => $label,
+                ],
+                'variant' => 'inline',
             ],
         ];
     }
+
+    return [
+        'data' => [
+            'linked' => PartyLinked::forParty(
+                $partyResolver($record),
+                $trailQuery,
+                $label,
+            ),
+            'variant' => 'inline',
+        ],
+    ];
+}
 }

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/show.blade.php | V15 --}}
+{{-- FILE: resources/views/parties/show.blade.php | V16 --}}
 
 @extends('layouts.app')
 
@@ -24,17 +24,20 @@
             'trailQuery' => $trailQuery,
         ]);
 
-        $embedded = collect(app(ModuleSurfaceRegistry::class)->embeddedFor('parties.show', $hostPack))->values();
-        $linked = collect(app(ModuleSurfaceRegistry::class)->linkedFor('parties.show', $hostPack))->values();
+        $surfaces = collect(app(ModuleSurfaceRegistry::class)->surfacesFor('parties.show', $hostPack))->values();
+
+        $embedded = $surfaces->where('type', 'embedded')->values();
+        $linked = $surfaces->where('type', 'linked')->values();
 
         $headerActions = $linked->where('slot', 'header_actions')->values();
         $summaryItems = $linked->where('slot', 'summary_items')->values();
         $detailItems = $embedded->where('slot', 'detail_items')->values();
 
         $tabItems = $embedded
-            ->where(fn($item) => ($item['slot'] ?? null) === 'tab_panels')
-            ->sortBy(fn(array $item) => $item['priority'] ?? 999)
+            ->where(fn ($item) => ($item['slot'] ?? null) === 'tab_panels')
+            ->sortBy(fn (array $item) => $item['priority'] ?? 999)
             ->values();
+
         $activeTab = HostTabs::activeKey($tabItems, request()->query('return_tab'));
     @endphp
 

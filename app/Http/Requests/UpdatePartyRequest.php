@@ -63,7 +63,7 @@ public function withValidator($validator): void
 
         $submittedKind = trim((string) $this->input('kind', ''));
 
-        if ($submittedKind !== \App\Support\Catalogs\PartyCatalog::KIND_EMPLOYEE) {
+        if ($submittedKind !== PartyCatalog::KIND_EMPLOYEE) {
             $validator->errors()->add(
                 'kind',
                 'El tipo de un contacto vinculado a un usuario del tenant debe permanecer como colaborador.'

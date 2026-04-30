@@ -278,7 +278,7 @@ La implementación concreta puede evolucionar siempre que preserve esta doctrina
 <<END SECTION>>
 
 <<SECTION: FLUJO OFICIAL DE AUTORIZACIÓN>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 FLUJO OFICIAL DE AUTORIZACIÓN
 
@@ -303,6 +303,10 @@ el resolver transforma contrato en decisión usable
 las capas consumidoras aplican esa decisión
 la UI refleja disponibilidad real
 
+El resolver central puede incorporar optimizaciones internas de resolución siempre que no alteren permisos, scopes, constraints, tenancy, policies ni flujo oficial de autorización.
+
+Una optimización interna del resolver no constituye bypass si permanece dentro del kernel de autorización y no traslada lógica a controllers, Blade, surfaces o consumidores externos.
+
 Prohibiciones:
 
 no invertir el flujo
@@ -313,7 +317,7 @@ no saltar el resolver central con lógica local improvisada
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -344,6 +348,10 @@ Las mejoras visuales o de UX nunca justifican relajar seguridad.
 La reutilización visual mediante componentes comunes no debe centralizar decisiones de permiso.
 
 Las decisiones de acceso deben permanecer en Security, policies, controllers, services o payloads ya autorizados según corresponda.
+
+Las optimizaciones de rendimiento sobre autorización deben permanecer dentro de la capa central correspondiente.
+
+No deben crear rutas paralelas de decisión ni evitar la evaluación del contrato efectivo.
 
 Regla:
 

@@ -1,7 +1,7 @@
 <<SECTION: METADATOS>>
 TÍTULO: Guía operativa de pruebas con Tinker
 DOC_SLUG: guia_tinker_proyecto_app_base
-DOC_VERSION: 00001
+DOC_VERSION: 00002
 
 METODOLOGÍA DE EDICIÓN:
 Este archivo se actualiza por reemplazo completo de bloques delimitados.
@@ -224,7 +224,7 @@ si una prueba de stock da todo en cero, primero validar que el seeder efectivo e
 <<END SECTION>>
 
 <<SECTION: CASOS PRIORITARIOS DE USO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 CASOS PRIORITARIOS DE USO
 
@@ -242,7 +242,9 @@ flujos entre módulos
 auditorías rápidas sobre runtime
 validación de agrupadores operativos internos cuando una acción visible pueda generar uno o múltiples registros relacionados
 
-Cuando se requiera registrar varias salidas, copiar resultados para el chat o conservar trazabilidad visual de una sesión, puede utilizarse Tinker Lab local.
+Cuando se requiera registrar varias salidas, copiar resultados para el chat, ejecutar comandos rápidos o conservar trazabilidad visual de una sesión, debe utilizarse Project Lab local.
+
+Project Lab permite ejecutar Tinker, comandos Artisan, herramientas de actualización de código, actualización documental y auditorías desde una misma interfaz operativa.
 
 Regla adicional consolidada:
 
@@ -373,80 +375,116 @@ y luego aplicar count(), get(), paginate(), etc. según el caso.
 <<END SECTION>>
 
 <<SECTION: TINKER LAB LOCAL>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 TINKER LAB LOCAL
 
-El proyecto dispone de una herramienta local auxiliar para ejecutar pruebas Tinker desde una interfaz visual.
+El proyecto dispone actualmente de Project Lab como herramienta local auxiliar para ejecutar pruebas Tinker y tareas técnicas vinculadas.
 
-Ubicación:
+Ubicación vigente:
 
-tools/tinker-lab/index.php
+tools/project-lab
 
 La herramienta permite:
 
 pegar código PHP interno de Tinker
-ejecutar la prueba dentro del proyecto actual
-ver la salida en pantalla
-copiar la salida
-generar log para chat
-mantener un log acumulativo de sesión
+ejecutar pruebas dentro del proyecto actual
+ejecutar Tinker desde textarea
+ejecutar Tinker desde clipboard del sistema mediante backend
+ver salida unificada en consola
+copiar salida para chat
+persistir salida visible en localStorage
+ejecutar comandos Artisan rápidos
+ejecutar herramientas Lab de código, documentación y auditoría
+utilizar snippets rápidos para pruebas frecuentes
 
 La herramienta no forma parte del sistema SaaS productivo.
 
-Es una utilidad local de depuración del proyecto.
+Es una utilidad local de depuración, auditoría y mantenimiento del proyecto.
 
 No debe publicarse ni exponerse en entornos accesibles desde internet.
 
 Regla crítica:
 
-en Tinker Lab debe pegarse solo el código PHP interno.
+en el editor Tinker de Project Lab debe pegarse solo el código PHP interno.
 
 No debe pegarse el comando completo:
 
 php artisan tinker --execute
 
-La herramienta ya ejecuta internamente ese comando contra el proyecto actual.
+La herramienta ya ejecuta internamente el proceso correspondiente contra el proyecto actual.
+
+Regla adicional:
+
+si se quiere visualizar el resultado de una expresión en comandos rápidos o snippets, debe utilizarse return o una salida explícita mediante echo, dump o equivalente.
+
+Ejemplo conceptual:
+
+return User::all();
 
 <<END SECTION>>
 
 <<SECTION: USO OPERATIVO DE TINKER LAB>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 USO OPERATIVO DE TINKER LAB
 
-Para levantar la herramienta local desde la raíz del proyecto:
+Para levantar Project Lab local desde la raíz del proyecto:
 
-php -S 127.0.0.1:8787 -t tools/tinker-lab
+php -S 127.0.0.1:8787 -t tools/project-lab
 
 Luego abrir:
 
 http://127.0.0.1:8787
 
-Flujo recomendado:
+Flujo recomendado para Tinker:
 
-1. ingresar un nombre de caso
-2. pegar el código Tinker interno
-3. ejecutar la prueba
-4. revisar la salida
-5. copiar la salida o el log para chat
-6. cerrar sesión cuando finalice el bloque de pruebas
+1. abrir la pestaña Editor Tinker
+2. pegar código PHP interno o insertar un snippet rápido
+3. ejecutar desde textarea o desde clipboard backend
+4. revisar la salida en la consola unificada
+5. copiar la salida si debe compartirse en el chat
+6. conservar o limpiar la consola según necesidad
 
-Atajo operativo:
+Flujo recomendado para automatizador:
 
-Enter ejecuta la prueba
+1. abrir la pestaña Herramientas Lab
+2. pegar el bloque a aplicar en textarea o copiarlo al clipboard del sistema
+3. elegir la herramienta correspondiente:
 
-Shift + Enter inserta salto de línea dentro del código
+code
+docs
+audit
 
-Archivo acumulativo:
+4. revisar la salida en la consola unificada
+5. validar que el resultado informe OK o ERROR de forma explícita
 
-documentos/log/tinker-lab.log
+Herramientas disponibles:
+
+code:
+aplica actualizaciones de código compatibles con el automatizador vigente
+
+docs:
+aplica actualizaciones documentales por bloques completos de sección
+
+audit:
+ejecuta auditorías simples o comandos de inspección definidos para el proyecto
+
+Regla para clipboard:
+
+el clipboard operativo de Project Lab se resuelve desde backend mediante herramientas del sistema cuando corresponde.
+
+No depende del permiso de lectura del portapapeles del navegador para ejecutar Tinker desde clipboard ni herramientas Lab desde clipboard.
+
+Regla para snippets rápidos:
+
+si el snippet debe mostrar resultado visible, debe insertar return o producir salida explícita.
+
+Una expresión sin return puede ejecutarse correctamente y aun así no mostrar resultado propio, dejando visible solo la depuración SQL.
 
 Regla:
 
-cerrar sesión no borra el archivo histórico.
-
-Cerrar sesión agrega un cierre y un nuevo encabezado dentro del log acumulativo, y limpia la salida visible y el log para chat.
+la consola unificada de Project Lab es la salida operativa principal para compartir resultados, errores y auditorías durante el trabajo técnico.
 
 <<END SECTION>>
 

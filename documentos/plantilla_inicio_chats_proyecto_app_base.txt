@@ -186,41 +186,77 @@ Cuando el frente lo requiera, debe inspeccionarse código real, rutas reales, ru
 <<END SECTION>>
 
 <<SECTION: HERRAMIENTAS OPERATIVAS DISPONIBLES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 HERRAMIENTAS OPERATIVAS DISPONIBLES
 
-El proyecto dispone de automatizadores internos para acelerar tareas repetitivas, mantener formato canónico y reducir errores manuales.
+El proyecto dispone de Project Lab como herramienta operativa local unificada para ejecutar pruebas, auditorías y actualizaciones técnicas.
 
-Caso vigente:
+Ubicación vigente:
 
-normalizador y actualizador de código por STDIN.
+tools/project-lab
 
-Capacidades actuales:
+Project Lab permite:
 
-* creación o reemplazo de archivos completos PHP
-* creación o reemplazo de archivos completos Blade
-* normalización automática de encabezado FILE y versión
-* actualización parcial de métodos PHP existentes
-* alta de métodos nuevos dentro de clases PHP
-* mantenimiento de log operativo de cambios
-* salida de consola con estado y trazabilidad
-* validaciones básicas de ruta para evitar escrituras accidentales
+ejecutar Tinker sobre runtime real
+ejecutar Tinker desde textarea
+ejecutar Tinker desde clipboard del sistema mediante backend
+ejecutar comandos Artisan rápidos
+aplicar actualizaciones de código
+aplicar actualizaciones documentales
+ejecutar auditorías simples
+usar snippets rápidos
+ver salida en consola unificada
+copiar resultados para compartir en el chat
 
-Criterio de uso:
+Herramientas Lab disponibles:
 
-usar actualización parcial cuando el cambio sea puntual y localizado dentro de un método PHP existente
+code
+docs
+audit
 
-usar archivo completo cuando existan imports, métodos nuevos, cambios estructurales de clase, Blade completo o riesgo de que el parser parcial no cubra correctamente el caso
+Criterios de uso:
 
-si una tarea consiste principalmente en aplicar código ya definido sobre archivos existentes, priorizar formato compatible con automatizador antes que edición manual fragmentada
+usar code para aplicar actualizaciones de código compatibles con el automatizador vigente
+usar docs para aplicar actualizaciones documentales por bloques completos de sección
+usar audit para ejecutar auditorías simples o comandos de inspección del proyecto
 
-Regla:
+Capacidades actuales del automatizador de código:
 
-la existencia de una herramienta no reemplaza auditoría técnica ni criterio arquitectónico.
+creación o reemplazo de archivos completos PHP
+creación o reemplazo de archivos completos Blade
+creación o reemplazo de archivos completos CSS
+creación o reemplazo de archivos completos JS
+actualización parcial de métodos PHP existentes
+alta de métodos nuevos dentro de clases PHP
+actualización parcial de funciones JS
+actualización de secciones CSS/JS mediante bloques SECTION
+normalización automática de encabezado FILE y versión
+mantenimiento de log operativo de cambios
+salida de consola con estado y trazabilidad
+validaciones básicas de ruta para evitar escrituras accidentales
 
-La herramienta ejecuta cambios.
-La decisión de usarlos sigue siendo del proceso técnico.
+Capacidades actuales del automatizador documental:
+
+actualización por DOC_SLUG
+reemplazo completo de secciones delimitadas
+validación de nombre exacto de sección
+rechazo de secciones inexistentes
+salida explícita OK o ERROR
+
+Reglas:
+
+la existencia de Project Lab no reemplaza auditoría técnica ni criterio arquitectónico
+
+la herramienta ejecuta cambios
+
+la decisión de usarlos sigue perteneciendo al proceso técnico
+
+si una tarea consiste principalmente en aplicar código ya definido sobre archivos existentes, priorizar formato compatible con Project Lab antes que edición manual fragmentada
+
+si una prueba requiere runtime real, tenant activo, Security o contexto funcional, debe respetarse la guía operativa vigente de Tinker
+
+la consola unificada de Project Lab es la salida operativa principal para compartir resultados, errores y auditorías durante el trabajo técnico
 
 <<END SECTION>>
 

@@ -102,7 +102,7 @@ por consolidación como capacidad embebida oficial
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -197,6 +197,22 @@ Las invitaciones pendientes no crean usuarios ni memberships anticipadas.
 La membership se materializa recién al aceptar la invitación.
 
 La redirección post-aceptación quedó alineada con memberships activas.
+
+Cierre visual adicional:
+
+x-modal quedó redefinido como shell de overlay, backdrop, centrado, tamaño y scroll.
+
+x-card conserva la responsabilidad de contenedor visual interno del modal.
+
+x-line-operation-modal quedó como único consumidor directo actual de x-modal.
+
+El modal responsive quedó ajustado para mobile con ancho completo, scroll controlado y mejor uso táctil.
+
+Footer global quedó auditado como parte del shell interno mediante x-layout.footer.
+
+El footer no se renderiza en páginas públicas ni en superadmin según condición vigente del layout.
+
+El layout con contenido extenso y tablas largas quedó auditado con base visual general de scroll vertical, scroll horizontal, min-width controlado y horizontal-scroll reusable.
 
 Validaciones recientes informadas:
 
@@ -406,13 +422,13 @@ mejoras móviles de captura rápida para attachments
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 PENDIENTES INMEDIATOS
 
 Continuar auditorías y mejoras con prioridad sobre casos reales de uso y datasets disponibles.
 
-Prioridades inmediatas derivadas del cierre reciente:
+Prioridades inmediatas vigentes:
 
 completar prueba runtime del escenario approved sin movimientos para delete cuando exista caso real
 
@@ -429,10 +445,6 @@ auditar quick actions por transiciones válidas en show pages
 revisar duplicaciones residuales en validaciones de line items
 
 auditar migración futura de Orders hacia esquema group + kind compatible, basada en código real
-
-revisar footer global de la aplicación
-
-revisar desplazamiento y layout con contenido extenso o tablas largas
 
 <<END SECTION>>
 
@@ -731,6 +743,8 @@ Si un pendiente no mejora el sistema o no responde a una necesidad validada, deb
 <<END SECTION>>
 
 <<SECTION: AUTENTICACIÓN Y SEGURIDAD>>
+SECTION_VERSION: 00001
+
 AUTENTICACIÓN Y SEGURIDAD
 
 Este bloque debe registrar únicamente pendientes reales de seguridad.
@@ -739,20 +753,28 @@ La doctrina general, el flujo de acceso y las reglas de implementación segura d
 
 <DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
 
-Pendientes reales actuales:
+Estado actual:
 
-* Auditar LoginResponse para garantizar que el autoingreso post-login resuelva únicamente memberships activas y no permita acceso automático a tenants con membership bloqueada.
+el frente inicial de autenticación y seguridad quedó auditado y cerrado para el estado actual del desarrollo.
 
-* Revisar el alta interna de usuarios para asegurar que cualquier flujo que cree User fuera del registro público genere también la Membership correspondiente y no deje usuarios sin acceso operativo a ningún tenant.
+Cierres validados:
 
-* Revisar endurecimiento del modelo User respecto de atributos sensibles, en particular is_superadmin, para evitar riesgos de mass assignment o escalamiento accidental de privilegios.
+LoginResponse resuelve autoingreso post-login únicamente con memberships activas.
 
-* Definir formalmente la estrategia de Two-Factor Authentication en Fortify:
+El alta interna por member_invite no crea usuarios ni memberships anticipadas.
 
-  * o se soporta completamente en modelo, columnas y flujo;
-  * o se desactiva explícitamente hasta implementarlo de forma consistente.
+La membership se crea al aceptar la invitación.
 
-* Verificar que rutas o utilidades de debug de identidad o tenant, por ejemplo whoami, no queden expuestas en producción.
+User::is_superadmin no es asignable mediante fillable.
 
-* Revisar el flujo de logout para confirmar que no queden residuos de contexto tenant en sesión cuando existan respuestas custom de cierre de sesión.
-  <<END SECTION>>
+Two-Factor Authentication queda reservado para futura habilitación y permanece inactivo hasta contar con flujo completo.
+
+La ruta debug /whoami fue eliminada.
+
+LogoutResponse limpia tenant_id e invitation_accept_url al cerrar sesión.
+
+Regla:
+
+si aparece un nuevo flujo de autenticación, invitación, cierre de sesión o cambio de tenant, debe auditarse contra membership activa, tenant activo y ausencia de residuos de sesión.
+
+<<END SECTION>>

@@ -342,7 +342,7 @@ ok siguiente grupo no dejes de verificar los slug
 
 Auditar los dos documentos doctrinales del proyecto, 
 el seguridad_acceso_proyecto_app_base y contexto_fijo_proyecto_app_base, 
-te adjunto los actualizados, 
+te adjunto las versiones actualizadas recientemente, 
 Marcan doctrina, que no tengan información reduntates, 
 que tenga toda la información necesaria y justa
 sin sobre explicaciones. 

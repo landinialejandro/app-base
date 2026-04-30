@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -34,6 +34,22 @@ pedir evidencia mínima necesaria
 no inventar estructura
 no inferir APIs
 no suponer tablas, rutas o contratos
+
+Regla adicional consolidada:
+
+ante integraciones entre users, memberships y parties, separar siempre:
+
+identidad global
+pertenencia operativa
+ficha ampliada opcional
+
+users mantiene identidad global.
+
+memberships resuelve pertenencia operativa al tenant.
+
+party puede funcionar como ficha ampliada tenant-scoped solo cuando exista vínculo explícito.
+
+No debe asumirse creación automática ni edición libre de datos identitarios.
 
 Estado base reciente a considerar:
 
@@ -62,7 +78,7 @@ trail continúa representando contexto externo entre recursos.
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS DEL CHAT>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 REGLAS OPERATIVAS DEL CHAT
 
@@ -92,6 +108,20 @@ syntax
 routes
 runtime
 browser informado por usuario
+
+Regla operativa adicional:
+
+ante mejoras UI o refactors visuales, no asumir estructura de archivos.
+
+Primero deben ubicarse archivos reales mediante CLI o evidencia equivalente.
+
+Regla operativa adicional:
+
+si un dato ya existe en un catálogo estructural, debe consumirse desde allí y no duplicarse localmente.
+
+Antes de modificar múltiples módulos, services o views por una misma necesidad, debe buscarse el punto común de normalización.
+
+Esto aplica especialmente cuando la necesidad pueda repetirse en el futuro.
 
 No declarar cierres por intuición.
 
@@ -283,7 +313,7 @@ Es decir:
 <<END SECTION>>
 
 <<SECTION: FORMA DE RESPUESTA ESPERADA>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 FORMA DE RESPUESTA ESPERADA
 
@@ -299,28 +329,18 @@ Preferencias:
 * señalar si el problema es doctrinal, contractual, visual o de datos
 * priorizar soluciones que cierren el sistema y no solo el síntoma
 
-Cuando corresponda:
-
-* devolver CLI listo para usar
-* devolver bloques SECTION exactos
-* devolver archivos completos si fueron pedidos
-* indicar riesgos de una solución híbrida o incompleta
-
 Regla adicional:
 
-si el problema toca navegación embebida, tabs o redirects, indicar explícitamente:
+cuando exista ambigüedad entre identidad global, pertenencia operativa y ficha ampliada tenant-scoped, detener el avance y separar los planos antes de proponer código.
 
-* host de origen
-* acción disparadora
-* contexto externo esperado
-* contexto interno esperado
-* parámetro trail si corresponde
-* parámetro return_tab si corresponde
-* quién decide el tab activo
-* quién solo reenvía contexto
+No asumir que party absorbe users.
 
-No usar return_tab para reemplazar trail.
+No asumir creación automática de party desde membership.
 
-No usar trail para persistir estado interno de tabs host.
+No asumir edición libre de users.email, party.email o party.kind.
+
+Cuando corresponda, devolver código compatible con automatizador.
+
+Cuando falte evidencia mínima, pedir exactamente esa evidencia y no más.
 
 <<END SECTION>>

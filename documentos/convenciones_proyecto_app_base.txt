@@ -234,7 +234,7 @@ la primera línea creada sobre una cabecera en draft promueve automáticamente a
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA BASE DEL PROYECTO>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 ESTRUCTURA BASE DEL PROYECTO
 
@@ -254,13 +254,13 @@ app/Models
 modelos del sistema y del negocio
 
 app/Models/Concerns
-traits estructurales del dominio, por ejemplo TenantScoped y ResolvesTenantRouteBinding
+traits estructurales del dominio
 
 app/Http/Controllers
 controladores del flujo web
 
 app/Http/Middleware
-middleware operativo transversal, por ejemplo ResolveTenant
+middleware operativo transversal
 
 app/Http/Requests
 validaciones por formulario o acción
@@ -269,129 +269,78 @@ app/Policies
 wrappers mínimos de autorización
 
 app/Support/Auth
-capa técnica de acceso y arbitraje, incluyendo Security, resolvers y acceso por tenant o módulo
+capa técnica de acceso y arbitraje
 
 app/Support/Catalogs
 catálogos cerrados del sistema
 
 app/Support/Navigation
-motor y builders de navegación contextual y estructural
+motor de navegación
 
 app/Support/Docs
-lectura y escritura técnica de la base documental del proyecto
+base documental
 
 app/Support/Documents
-servicios propios del flujo documental
+servicios del flujo documental
 
 app/Support/Inventory
-servicios, cálculo de inventario y evolución modular de stock
+servicios y lógica de stock
 
 app/Support/Orders
-servicios, payloads o arbitrajes propios del flujo de orders y sus integraciones reusables
+servicios del flujo de orders
 
 app/Support/Parties
-servicios, payloads o arbitrajes propios del flujo de parties y sus integraciones reusables
-
-app/Support/Projects
-lecturas agregadas o utilidades propias de projects
-
-app/Support/Tasks
-lecturas y visibilidad operativa de tasks
+servicios del flujo de parties
 
 app/Support/Tenants
-contexto funcional del tenant y raíces reusables propias de la empresa activa
+contexto tenant y piezas reusables internas
 
-Caso consolidado actual:
+Caso consolidado:
 
-TenantUserDirectory.php como directorio reusable de usuarios internos activos del tenant
-
-app/Services
-servicios operativos específicos cuando no correspondan a Support transversal
-
-app/View/Components
-componentes Blade con backing class cuando aplique
-
-app/Actions/Fortify
-acciones del flujo de autenticación y cuenta global
-
-app/Providers
-providers del sistema y de paquetes integrados
-
-Regla adicional de frontera interna:
-
-tenant pertenece al núcleo interno del sistema, multi-tenancy y seguridad.
-
-No debe tratarse como capacidad surface-driven modular publicada hacia el ecosistema funcional.
+TenantUserDirectory.php como raíz reusable de usuarios internos activos del tenant
 
 RESOURCES
 
-resources/ concentra fuentes editables del frontend Laravel.
+resources/ concentra vistas y componentes Blade.
 
 Ubicaciones relevantes:
 
 resources/views
-vistas Blade del sistema
+vistas Blade
 
 resources/views/components
-componentes visuales reutilizables verdaderamente globales
+componentes globales reutilizables
+
+resources/views/components/icons
+ubicación canónica para iconografía SVG reutilizable
 
 resources/views/layouts
-layouts base del sistema
+layouts base
 
 resources/views/<modulo>
-vistas por módulo operativo
+vistas por módulo
 
 resources/views/<modulo>/components
-capacidades visuales reutilizables publicadas por un módulo oferente cuando su pertenencia contractual sea propia del módulo y no global del sistema
+componentes visuales propios del módulo
 
 resources/views/tenants
-vistas del contexto tenant, memberships, perfil y permisos
+vistas del contexto tenant
 
 resources/views/docs
-visor técnico documental
-
-resources/views/landing
-flujo público y marketing
-
-resources/views/print
-partials de impresión reutilizables
+visor documental
 
 resources/views/svg
-fuente Blade de iconografía y marca SVG
+fuente de iconografía base
 
-Regla adicional vigente:
+Regla adicional consolidada:
 
-cuando inventory publique tablas de saldos, historial, formularios de movimientos o fichas propias, esos recursos deben vivir en resources/views/inventory y no dispersos entre products u orders.
+los SVG reutilizables no deben permanecer inline en blades complejos cuando su uso sea transversal
 
-Regla adicional de consumidores:
-
-si products, orders u otros módulos solo consumen inventory, deben hacerlo mediante includes o surfaces oficiales del módulo y no mediante copias locales mantenidas en paralelo.
-
-Regla adicional para hosts surface-driven:
-
-cuando un show page funcione como host modular, la estructura anfitriona debe leerse desde la propia vista del módulo anfitrión y no desde parciales ambiguos globales que oculten su gramática real de montaje.
-
-La organización de loops, slots y armado coordinado de tabs pertenece al host y debe conservarse como responsabilidad visible del módulo anfitrión.
-
-ROUTES
-
-routes/ concentra las rutas del sistema.
-
-Ubicaciones relevantes:
-
-routes/web.php
-declaración explícita de rutas del core web
-
-routes/console.php
-registro de comandos de consola
-
-Regla:
-
-mientras siga vigente la convención actual del proyecto, las rutas CRUD del core deben declararse explícitamente en web.php.
+deben moverse a componentes Blade dentro de components/icons
 
 PUBLIC
 
-public/ concentra assets públicos y archivos servidos directamente.
+public/ concentra assets públicos.
 
 Ubicaciones relevantes:
 
@@ -399,85 +348,39 @@ public/css/app-base.css
 base visual global obligatoria
 
 public/css/app-patterns.css
-patrones visuales reutilizables y neutrales
+patrones visuales globales
 
 public/css/modules/
-estilos específicos por módulo cuando todavía no corresponda promoverlos a patrón global
+estilos específicos por módulo o pantalla
 
-public/css/landing.css
-estilos propios del flujo público
+Regla adicional consolidada:
+
+los estilos específicos de pantalla (ej: dashboard) deben vivir en public/css/modules/
+
+no deben reemplazar ni desactivar app-base.css ni app-patterns.css
 
 public/js/app-base.js
-comportamiento global reutilizable del sistema
+comportamiento global
 
-public/js/landing.js
-comportamiento del flujo público
+Regla adicional:
 
-public/js/print.js
-comportamiento específico de impresión
-
-public/brand/
-assets públicos de marca
-
-Regla:
-
-los assets públicos consolidados del sistema deben tender a vivir aquí y no dispersarse en ubicaciones paralelas ad hoc.
-
-DATABASE
-
-database/ concentra persistencia estructural y datos base del proyecto.
-
-Ubicaciones relevantes:
-
-database/migrations
-estructura persistida del sistema
-
-database/seeders
-datos base, módulos y escenarios de demo
-
-database/seeders/Modules
-seeders organizados por módulo
-
-database/factories
-factories para pruebas y generación de datos
-
-Regla:
-
-toda decisión estructural persistida debe validarse contra migrations reales y no por memoria del modelo.
+los assets deben tender a centralizarse en estas ubicaciones y no dispersarse
 
 DOCUMENTOS
 
-documentos/ forma parte activa del proyecto y no debe tratarse como material externo.
-
-Ubicaciones relevantes:
-
-documentos/*.txt
-base documental activa del proyecto
-
-documentos/varios
-material auxiliar no doctrinal principal
+documentos/ forma parte activa del sistema
 
 Regla:
 
-la base documental activa del proyecto está compuesta por los documentos canónicos identificados por DOC_SLUG.
+la base documental se compone de documentos identificados por DOC_SLUG
 
-Las carpetas auxiliares no deben confundirse con la base doctrinal principal ni con el visor documental canónico.
-
-ALCANCE OPERATIVO DE ESTA SECCIÓN
-
-Esta sección fija ubicaciones canónicas relevantes.
-
-No obliga a documentar cada archivo puntual del repositorio.
-
-No reemplaza auditorías específicas por módulo.
-
-No reemplaza lectura de árbol real cuando el caso requiera precisión de implementación.
+no confundir con carpetas auxiliares
 
 REGLA FINAL
 
-Cuando un pedido técnico requiera archivos del proyecto, debe pedirse primero la menor cantidad suficiente de rutas reales dentro de esta estructura canónica.
+Cuando un pedido técnico requiera archivos del proyecto, debe pedirse primero la menor cantidad suficiente de rutas reales dentro de esta estructura.
 
-No asumir ubicaciones por costumbre si el árbol real entregado muestra otra organización vigente.
+No asumir ubicaciones.
 
 <<END SECTION>>
 

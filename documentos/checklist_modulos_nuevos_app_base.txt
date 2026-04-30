@@ -216,39 +216,50 @@ SECTION_VERSION: 00005
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
-Validar cómo convivirá el módulo con el ecosistema existente.
+Todo módulo debe definir claramente sus relaciones e integraciones dentro del ecosistema.
 
-Revisar:
+Validaciones obligatorias:
 
-qué módulos consumirá
-qué módulos podrán consumirlo
-si publicará surfaces oficiales
-si necesita embebidos fuertes o relaciones compactas
-si respeta NavigationTrail y contexto
-si evita duplicaciones ya resueltas por otros módulos
+no reabrir núcleos de otros módulos
+consumir capacidades oficiales antes de crear variantes locales
+publicar capacidades reutilizables cuando correspondan
+respetar ownership del módulo oferente
 
-Preguntas obligatorias:
+Regla adicional consolidada:
 
-¿la integración pertenece realmente al nuevo módulo o al existente?
+si el módulo participa en navegación, dashboard o surfaces visuales, debe declarar metadata visual mínima en ModuleCatalog.
 
-¿el consumidor está intentando resolver algo que debería publicar el oferente?
+Como mínimo:
 
-¿se mantiene separación entre host visual y ownership funcional?
+icon lógico del módulo
 
-¿la integración necesita resolver type + slot + estructura real del host?
+Reglas:
 
-Criterio adicional validado:
+la metadata visual no debe duplicarse en SurfaceService
+no debe hardcodearse en vistas consumidoras
+debe derivarse desde el catálogo modular
 
-si la integración ocurre por fila dentro de una tabla existente, revisar orden visual, ownership de la acción, validación backend y compatibilidad con estados reales del recurso padre y de la línea.
+Regla adicional:
 
-Criterio adicional validado para show pages con tabs:
+las surfaces publicadas no deben duplicar metadata que pueda resolverse desde ModuleCatalog
 
-si el módulo participa en una show page con tabs principales, validar explícitamente:
+la metadata debe viajar enriquecida a través de ModuleSurfaceRegistry
 
-diferencia entre tabs host y tabs internas embebidas
-uso correcto de return_tab solo para contexto host
-fallback seguro cuando la key recibida no exista
-preservación del panel correcto después de acciones derivadas relevantes
+Regla adicional:
+
+las integraciones surface-driven deben permitir que el host consuma metadata ya resuelta
+
+incluyendo iconografía cuando corresponda
+
+sin reconstrucción local en el host
+
+Caso consolidado:
+
+tabs principales del host pueden renderizar icon mediante metadata de tab enriquecida desde surfaces
+
+Regla:
+
+toda integración debe poder describirse contractualmente y mantenerse reusable sin acoples innecesarios
 
 <<END SECTION>>
 
@@ -257,85 +268,88 @@ SECTION_VERSION: 00005
 
 BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA
 
-Antes de aprobar una nueva UI validar:
+Todo módulo debe cumplir criterios mínimos de experiencia operativa consistente.
 
-si existe componente reusable vigente
-si puede resolverse con patrones actuales
-si agrega claridad real
-si evita ruido visual
-si mantiene jerarquía entre host e integraciones
-si conserva continuidad operativa
+Validaciones obligatorias:
 
-Revisar especialmente:
+usar componentes base del sistema
+no duplicar patrones visuales existentes
+mantener coherencia con show pages host
+no generar UI paralela para capacidades ya resueltas
 
-tablas
-formularios
-modales
-summary blocks
-tabs internas
-acciones rápidas por fila
+Regla adicional consolidada:
 
-Criterio adicional validado:
+los estilos específicos de módulo o pantalla deben ubicarse en:
 
-si dos módulos comparten gramática operativa equivalente, priorizar componentes comunes antes de duplicar vistas paralelas.
+public/css/modules/
 
-Criterio adicional validado:
+no deben reemplazar app-base.css ni app-patterns.css
 
-las acciones propias del host deben leerse primero y las capacidades externas después cuando conviven en una misma fila o bloque operativo.
+Regla adicional:
 
-Criterio adicional validado:
+los íconos deben existir como componentes Blade reutilizables
 
-las transiciones de estado deducibles por negocio deben tender a resolverse automáticamente sin agregar fricción innecesaria al usuario.
+ubicados en:
 
-Criterio adicional validado para show pages:
+resources/views/components/icons
 
-si la pantalla utiliza tabs principales, evaluar uso del patrón visual oficial vigente para tabs host y evitar implementaciones manuales duplicadas.
+Reglas:
 
-Validar también que el estado activo provenga de una decisión explícita del host y no de la posición accidental del loop.
+los nombres deben ser genéricos
+no deben nombrarse por módulo
+deben permitir reutilización transversal
+
+Regla adicional:
+
+las vistas deben consumir metadata visual ya resuelta
+
+no deben decidir localmente iconografía ni atributos visuales de módulos
+
+Regla adicional:
+
+las tabs principales deben poder consumir metadata visual enriquecida
+
+incluyendo iconografía desde surfaces o catálogo modular
+
+Regla:
+
+la experiencia operativa debe mantenerse homogénea en todo el sistema
 
 <<END SECTION>>
 
 <<SECTION: BLOQUE 5 — DOCUMENTACIÓN Y CIERRE>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00005
 
 BLOQUE 5 — DOCUMENTACIÓN Y CIERRE
 
-Ningún módulo debe cerrarse sin impacto documental revisado.
+Todo módulo debe cerrar con documentación alineada a la doctrina vigente del sistema.
 
-Validar:
+Validaciones obligatorias:
 
-contexto_fijo actualizado si cambia arquitectura
-convenciones actualizadas si cambia doctrina
-seguridad actualizada si cambia contrato de acceso
-mapa_entidades actualizado si cambia ecosistema
-mapa_navegacion actualizado si cambia recorridos reales
-base_visual actualizada si cambia patrón visual
-todo actualizado con pendientes reales
+actualizar documentos doctrinales si corresponde
+no dejar decisiones implícitas sin registrar
+no duplicar información entre documentos
+respetar estructura documental vigente
 
-Validar además:
+Regla adicional consolidada:
 
-tests manuales o técnicos realizados
-contradicciones documentales inexistentes
-estado del módulo declarado
+las decisiones sobre metadata modular (como iconografía u otros atributos visuales) deben documentarse en:
 
-Estados posibles:
+convenciones
+contexto arquitectónico
+mapas de componentes
 
-CONTRATO CERRADO
-EN REVISIÓN
+no deben quedar únicamente reflejadas en código
+
+Regla adicional:
+
+si una capacidad puede derivarse de un catálogo estructural, no debe documentarse como dato manual duplicado en múltiples capas
 
 Regla:
 
-solo módulos con contrato cerrado deben usarse como patrón para nuevos desarrollos
+el cierre de un módulo no es solo código funcionando
 
-Regla adicional de cierre real:
-
-no declarar cerrado un frente reusable mientras existan modales, tabs internas, formularios secundarios o acciones contextuales relevantes sin auditar contra la doctrina vigente.
-
-El cierre documental debe contemplar superficie principal y micro-superficies operativas relacionadas.
-
-Regla adicional de cierre transversal:
-
-si una mejora unifica infraestructura compartida entre varios módulos, el cierre exige revisar también consumidores alcanzados, continuidad visual en browser y documentación base afectada.
+implica coherencia entre arquitectura, UI, navegación y documentación
 
 <<END SECTION>>
 

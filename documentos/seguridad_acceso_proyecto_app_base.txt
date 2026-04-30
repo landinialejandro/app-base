@@ -53,7 +53,7 @@ los detalles técnicos pueden evolucionar sin alterar estos principios rectores
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -89,9 +89,9 @@ Toda acción sensible debe poder auditarse según las capacidades vigentes del s
 
 Reglas síntesis:
 
-mostrar una acción no equivale a conceder permiso
+la visibilidad en UI no constituye autorización
 
-ocultar una acción no reemplaza validación backend
+la autorización efectiva debe resolverse siempre en backend
 
 los recursos hijos pueden delegar seguridad sin perder validaciones operativas específicas
 
@@ -123,7 +123,7 @@ Autenticado no equivale automáticamente a autorizado.
 <<END SECTION>>
 
 <<SECTION: IDENTIDAD, MEMBERSHIP Y TENANT ACTIVO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 IDENTIDAD, MEMBERSHIP Y TENANT ACTIVO
 
@@ -143,16 +143,28 @@ Sin esa tríada no existe operación interna legítima.
 
 La pertenencia a múltiples tenants no debilita el modelo: exige resolver correctamente el contexto activo.
 
+Aclaración consolidada:
+
+una membership puede vincular opcionalmente una ficha ampliada en parties.
+
+Esa ficha no reemplaza la identidad global del usuario ni modifica la pertenencia operativa.
+
+La vinculación membership → party debe leerse como extensión tenant-scoped de datos de contacto o perfil ampliado, no como base de autorización.
+
+Regla:
+
+la autorización se resuelve por identidad autenticada, membership vigente, tenant activo y contrato efectivo.
+
+party no reemplaza ninguno de esos elementos.
+
 <<END SECTION>>
 
 <<SECTION: MULTI-TENANCY Y AISLAMIENTO>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 MULTI-TENANCY Y AISLAMIENTO
 
 El modelo multi-tenant forma parte de la seguridad efectiva del sistema.
-
-No es solo una decisión de arquitectura o almacenamiento.
 
 Toda autorización debe ocurrir dentro del tenant correspondiente y sin mezclar universos de datos entre empresas.
 
@@ -163,24 +175,26 @@ no operar sobre registros ajenos al tenant activo
 no asumir contexto tenant por conveniencia técnica
 no relajar filtros multi-tenant por atajos de implementación
 
-El aislamiento no se agota en la UI ni en la ocultación visual de información.
+El aislamiento no se agota en la UI.
 
-Debe preservarse también en:
+Debe preservarse en:
 
 consultas
 resolución de registros
-consumo de relaciones
-autorización sobre recursos vinculados
+relaciones
 datasets visibles
-operaciones derivadas entre módulos
+operaciones entre módulos
 
-Toda entidad persistente del negocio que forme parte del frente operativo de un tenant debe quedar alcanzada por el mismo aislamiento multi-tenant, aunque no tenga navegación propia ni permisos visibles independientes.
+Este criterio alcanza también a:
 
-Este criterio alcanza también a líneas operativas, movimientos, operaciones internas y trazabilidad derivada cuando participan de flujos entre módulos.
+líneas operativas
+movimientos
+operaciones internas
+trazabilidad derivada
 
 Regla:
 
-cuando una acción se ejecute desde una row action, modal o surface embebida, el hecho de nacer dentro de una vista autorizada no reemplaza la validación multi-tenant completa en backend.
+una acción ejecutada desde UI autorizada no reemplaza la validación multi-tenant completa en backend.
 
 <<END SECTION>>
 
@@ -299,7 +313,7 @@ no saltar el resolver central con lógica local improvisada
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00013
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -327,53 +341,47 @@ Cuando existan recursos padre e hijos, debe respetarse además la subordinación
 
 Las mejoras visuales o de UX nunca justifican relajar seguridad.
 
-La visibilidad de un botón operativo no constituye autorización suficiente.
-
-La UI puede expresar disponibilidad según estado y payload autorizado, pero el servidor debe volver a validar permiso, tenant, recurso padre, línea origen y límites operativos antes de ejecutar la acción.
-
 La reutilización visual mediante componentes comunes no debe centralizar decisiones de permiso.
 
 Las decisiones de acceso deben permanecer en Security, policies, controllers, services o payloads ya autorizados según corresponda.
 
+Regla:
+
+la validación efectiva siempre debe contemplar tenant, recurso, relaciones y estado operativo cuando corresponda.
+
 <<END SECTION>>
 
 <<SECTION: CONSTRAINTS FUNCIONALES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 CONSTRAINTS FUNCIONALES
 
 Las constraints complementan scopes y capacidades cuando una regla requiere mayor precisión funcional.
 
-No son accesorias ni decorativas.
-
 Forman parte del contrato persistido efectivo.
 
-Pueden arbitrar create, view, update o delete según la semántica del módulo correspondiente.
+Pueden intervenir en create, view, update o delete según la semántica del módulo.
 
-Ejemplo doctrinal general:
+Reglas:
 
-si un módulo diferencia tipos operativos relevantes, una constraint puede limitar qué tipos resultan autorizables sin romper la estructura general del permiso.
+ignorar constraints equivale a ejecutar un contrato incompleto
 
-Ignorar constraints equivale a ejecutar un contrato incompleto.
+cuando una acción depende del estado operativo del registro, ese estado forma parte del contrato efectivo
 
-Regla adicional consolidada:
-
-cuando una acción depende además del estado operativo real del registro, ese estado puede formar parte del contrato efectivo de autorización.
-
-No debe tratarse como bloqueo visual ni como validación secundaria si define si la acción existe realmente.
+no debe tratarse como bloqueo visual ni validación secundaria
 
 El detalle por módulo debe resolverse en REGLAS OPERATIVAS POR MÓDULO para evitar duplicación doctrinal.
 
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00013
 
 CONTRATO DE SEGURIDAD MODULAR
 
 Todo módulo funcional debe poseer lectura clara de seguridad.
 
-Como mínimo debe poder responder:
+Debe poder responder:
 
 qué recursos protege
 qué acciones expone
@@ -384,40 +392,38 @@ qué estados alteran operabilidad
 
 Reglas:
 
-un contrato modular válido no contradice la seguridad central
+no contradecir seguridad central
 
-las integraciones entre módulos no trasladan ownership de permisos
+no trasladar ownership de permisos entre módulos
 
-un host visual no se convierte en owner de la capacidad invitada
+el host visual no absorbe seguridad de capacidades invitadas
 
-los estados operativos que bloquean acciones forman parte real del contrato de seguridad
+los estados operativos forman parte real del contrato
 
-si una entidad hija delega acceso al padre, esa delegación debe ser explícita y consistente
+la delegación de seguridad debe ser explícita y consistente
 
-Las capacidades publicadas como row actions o surfaces embebidas siguen perteneciendo al módulo oferente.
+Las capacidades publicadas (row actions, surfaces) pertenecen al módulo oferente.
 
-El host puede montar la acción, pero no reemplaza el contrato de seguridad del módulo que la publica.
+El host monta, pero no redefine seguridad.
 
-Cuando un módulo opere sobre recursos hijos de otro host, su contrato efectivo debe contemplar:
+Cuando un módulo opera sobre recursos externos, debe validar:
 
 tenant activo
 recurso padre
-línea u origen operativo
-recurso asociado cuando corresponda
-estado del padre
-estado real del recurso intervenido
-límites operativos vigentes
+línea u origen
+estado del recurso
+límites operativos
 
 Regla:
 
-el contrato de seguridad modular debe fijar responsabilidades y fronteras.
+el contrato modular define fronteras y responsabilidades.
 
-No debe transformarse en manual funcional detallado de cada integración.
+No debe transformarse en detalle funcional del módulo.
 
 <<END SECTION>>
 
 <<SECTION: RECURSOS DELEGADOS AL PADRE>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 RECURSOS DELEGADOS AL PADRE
 
@@ -457,18 +463,22 @@ bloquear edición o eliminación estructural por movimientos asociados no consti
 
 Sigue siendo una restricción funcional dentro del ciclo de vida delegado del recurso perteneciente a documents.
 
-La existencia de trazabilidad material iniciada puede endurecer la operación permitida sobre la línea sin convertir a document_items en módulo autónomo ni en contrato de seguridad independiente.
+Aclaración adicional sobre membership → party:
 
-Aclaración adicional sobre lifecycle del padre:
+la ficha party vinculada a una membership no debe leerse como recurso delegado puro equivalente a una entidad hija.
 
-si una línea hija crea contenido operativo real dentro de una cabecera en draft, la transición automática hacia pending_approval no crea autorización autónoma sobre la línea.
+party conserva naturaleza de entidad del negocio tenant-scoped.
 
-La mutación sigue dependiendo del permiso efectivo sobre el padre y de las validaciones operativas aplicables.
+Sin embargo, cuando representa ficha ampliada de colaborador interno, su operación debe quedar condicionada por la membership vinculada y por el tenant activo.
+
+Regla:
+
+la vinculación no convierte a party en identidad global ni en fuente primaria de acceso.
 
 <<END SECTION>>
 
 <<SECTION: INTEGRACIONES REUSABLES Y AUTORIZACIÓN>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00022
 
 INTEGRACIONES REUSABLES Y AUTORIZACIÓN
 
@@ -482,30 +492,18 @@ el consumidor no debe reconstruir permisos locales paralelos
 
 el componente visual solo representa resultado autorizado
 
-fallas de montaje contractual no equivalen automáticamente a fallas de permiso
-
 el host presta superficie visual pero no absorbe ownership de seguridad
 
 la validación backend debe sostener tenant, recurso, relaciones y límites operativos
 
-Casos vigentes:
-
-inventory operando dentro de orders
-
-inventory operando dentro de documents
-
-documents embebido dentro de otros hosts
-
 Regla:
 
-mostrar una surface visible nunca reemplaza validación backend.
-
-La integración reusable reduce duplicación visual o contractual, pero no reduce exigencia de autorización efectiva.
+la integración reusable reduce duplicación visual o contractual, pero no reduce exigencia de autorización efectiva.
 
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -515,31 +513,13 @@ ORDERS
 
 Los estados operativos condicionan update y delete.
 
-closed bloquea mutación directa y admite reapertura explícita autorizada.
-
-cancelled se considera terminal dentro de la regla vigente.
-
-ORDER_ITEMS
-
-Delegan seguridad principal en orders.
-
-Las restricciones por ejecutado neto o trazabilidad complementan esa delegación.
-
 DOCUMENTS
 
 Conserva ownership documental sobre cabecera y líneas.
 
-Puede hospedar capacidades de otros módulos sin absorber su seguridad interna.
-
-DOCUMENT_ITEMS
-
-Delegan seguridad principal en documents.
-
-La trazabilidad material iniciada puede endurecer edición o eliminación.
-
 INVENTORY
 
-Conserva ownership sobre stock, movimientos, reversión y reglas materiales aunque opere dentro de otros hosts.
+Conserva ownership sobre stock, movimientos y trazabilidad.
 
 Regla:
 

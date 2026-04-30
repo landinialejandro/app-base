@@ -131,7 +131,7 @@ cuando existan varias rutas posibles, debe priorizarse la más consistente con N
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN PRINCIPAL TENANT>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 NAVEGACIÓN PRINCIPAL TENANT
 
@@ -160,15 +160,21 @@ estado operativo cuando corresponda
 
 Regla adicional consolidada:
 
-users no debe aparecer por esta necesidad como módulo navegable autónomo dentro del tenant.
+users no debe aparecer por esta necesidad como módulo navegable autónomo dentro del tenant
 
-La gestión interna de usuarios, pertenencias, roles y permisos continúa anclada al frente tenant/profile/accesses y no a una navegación principal users separada.
+La gestión interna de usuarios, pertenencias, roles y permisos continúa anclada al frente tenant/profile/accesses y no a una navegación principal users separada
+
+Regla adicional consolidada:
+
+la navegación principal puede incorporar iconografía por módulo para mejorar lectura visual
+
+esa iconografía debe provenir de metadata modular (ModuleCatalog) y no definirse localmente en la vista
 
 Regla:
 
-la navegación principal no reemplaza flujos contextuales ni relaciones entre módulos.
+la navegación principal no reemplaza flujos contextuales ni relaciones entre módulos
 
-Su función es dar acceso estructural al ecosistema operativo vigente.
+Su función es dar acceso estructural al ecosistema operativo vigente
 
 <<END SECTION>>
 
@@ -220,7 +226,7 @@ Este cambio pertenece al flujo natural del recurso y no crea una navegación nue
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -243,15 +249,15 @@ row actions oficiales para operaciones dentro de tablas anfitrionas
 
 Caso vigente en orders.show:
 
-inventory puede operar por línea dentro del host sin perder identidad modular.
+inventory puede operar por línea dentro del host sin perder identidad modular
 
-documents y attachments pueden consumirse como capacidades invitadas.
+documents y attachments pueden consumirse como capacidades invitadas
 
 Caso vigente en documents.show:
 
-inventory puede operar por línea documental dentro del host sin perder identidad modular.
+inventory puede operar por línea documental dentro del host sin perder identidad modular
 
-Las acciones por fila pertenecen a inventory y documents conserva la tabla documental como superficie anfitriona.
+Las acciones por fila pertenecen a inventory y documents conserva la tabla documental como superficie anfitriona
 
 Orden visual recomendado para tablas anfitrionas:
 
@@ -259,27 +265,31 @@ primero acciones propias del host
 
 luego acciones invitadas desde módulos oferentes
 
-Esto permite distinguir con mayor claridad qué pertenece al recurso principal y qué capacidad se consume desde otro módulo.
+Esto permite distinguir con mayor claridad qué pertenece al recurso principal y qué capacidad se consume desde otro módulo
 
 Regla adicional para estados del host:
 
-si el host entra en estado readonly o terminal, las relaciones embebidas no deben reabrir operabilidad incompatible con ese estado.
+si el host entra en estado readonly o terminal, las relaciones embebidas no deben reabrir operabilidad incompatible con ese estado
 
-Las capacidades de lectura pueden permanecer.
+Las capacidades de lectura pueden permanecer
 
-Las capacidades de mutación deben respetar la condición superior del host.
-
-Aclaración adicional para inventory:
-
-cuando una acción embebida de inventory genere o reutilice inventory_operations, esa operación sigue perteneciendo al módulo inventory.
-
-El host visual no debe asumir ownership funcional sobre la agrupación operativa contextual ni transformar esa capa interna en flujo propio del módulo anfitrión.
+Las capacidades de mutación deben respetar la condición superior del host
 
 Aclaración adicional sobre tabs principales:
 
-cuando una relación embebida se aloje dentro de una tab principal del host, las acciones derivadas pueden preservar return_tab para volver al mismo panel.
+cuando una relación embebida se aloje dentro de una tab principal del host, las acciones derivadas pueden preservar return_tab para volver al mismo panel
 
-Ese mecanismo conserva continuidad visual, pero no modifica ownership funcional ni convierte al módulo invitado en dueño de la navegación interna del host.
+ese mecanismo conserva continuidad visual, pero no modifica ownership funcional
+
+Aclaración adicional consolidada:
+
+las tabs principales del host deben recibir metadata completa desde los objetos tabItems
+
+incluyendo iconografía cuando corresponda
+
+el host no debe reconstruir localmente metadata visual de módulos integrados
+
+las surfaces embebidas deben viajar enriquecidas desde registry para permitir render homogéneo en el host
 
 <<END SECTION>>
 

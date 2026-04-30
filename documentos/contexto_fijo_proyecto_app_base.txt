@@ -78,35 +78,33 @@ Debe entenderse como una plataforma con gobierno global, contexto por tenant, ba
 <<END SECTION>>
 
 <<SECTION: PROPÓSITO GENERAL DEL PROYECTO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00004
 
 PROPÓSITO GENERAL DEL PROYECTO
 
-El propósito general de app-base es ofrecer una base estable para construir operaciones empresariales dentro de un entorno SaaS multi-tenant.
+app-base busca proveer una base estable para operar empresas dentro de un entorno SaaS multi-tenant.
 
-La meta no es solo disponer de entidades persistidas.
-
-La meta es contar con una arquitectura común que permita:
+No se trata solo de persistir entidades, sino de sostener una arquitectura común que permita:
 
 ordenar operación
 mantener aislamiento por tenant
 centralizar gobierno transversal
 integrar módulos sin pérdida de identidad
-crecer sin rehacer arbitrariamente el sistema
+crecer sin rehacer el sistema
 
-La lectura estructural aprobada del producto incorpora además estos principios estables:
+Principios asociados:
 
-la complejidad operativa debe ser absorbida por el sistema y no trasladada al usuario como burocracia digital innecesaria
+la complejidad operativa debe ser absorbida por el sistema
 
-la experiencia de uso debe tender a simplicidad, claridad y bajo roce aun cuando por detrás existan procesos, validaciones, documentos o trazabilidad más complejos
+la experiencia debe tender a claridad
 
-la automatización constituye un pilar estructural del proyecto y debe orientar la evolución del sistema cuando permita reducir fricción, errores y carga manual repetitiva
+la automatización debe reducir fricción cuando corresponda
 
-seguridad y trazabilidad forman parte de la base obligatoria del producto y no deben tratarse como extras opcionales
+seguridad y trazabilidad son parte estructural
 
-la operación real del cliente tiene prioridad sobre formalismos digitales que no agreguen valor operativo genuino
+la operación real del negocio tiene prioridad sobre formalismos innecesarios
 
-El proyecto debe poder servir como base duradera para múltiples frentes operativos del negocio sin degradarse en una colección de soluciones puntuales desconectadas.
+El sistema debe poder sostener múltiples frentes operativos sin degradarse en soluciones aisladas.
 
 <<END SECTION>>
 
@@ -225,51 +223,40 @@ Es una pieza estructural del funcionamiento del sistema.
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 CAPAS FUNCIONALES DEL SISTEMA
 
-La arquitectura del sistema debe leerse por capas funcionales.
-
-Esta lectura ordena el ecosistema y no reemplaza contratos específicos de otros documentos.
+La arquitectura debe leerse por capas funcionales.
 
 CAPA GLOBAL
-
-Gobierno general de la plataforma fuera del flujo operativo tenant.
+Gobierno general de la plataforma.
 
 CAPA TENANT
-
 Contexto operativo de la empresa activa.
 
-Incluye tenant vigente y piezas reusables internas que no justifican módulo funcional autónomo.
-
 CAPA DE GOBIERNO INTERNO DEL TENANT
+Organiza pertenencia y actores internos.
 
-Organiza pertenencia, acceso y actores internos de la empresa.
-
-users conserva identidad global.
-
-memberships resuelve pertenencia operativa real.
+users mantiene identidad global
+memberships resuelve pertenencia operativa
 
 CAPA TRANSVERSAL
-
-Responsabilidades compartidas entre módulos.
+Responsabilidades compartidas.
 
 BASE DEL DOMINIO
-
-Piezas conceptuales amplias que sostienen múltiples relaciones del negocio.
+Anclajes conceptuales amplios del negocio.
 
 MÓDULOS FUNCIONALES
-
-Capacidades operativas concretas visibles dentro del tenant.
+Capacidades operativas visibles.
 
 Reglas:
 
-esta lectura debe prevalecer al pensar arquitectura y evolución general.
+esta lectura debe prevalecer en decisiones arquitectónicas
 
-tenant pertenece al plano contextual del sistema y no debe confundirse con módulo funcional.
+tenant es contexto, no módulo funcional
 
-Las necesidades de colaboradores internos activos deben resolverse primero en la capa tenant antes de crear módulos nuevos por inercia.
+las necesidades de colaboradores internos deben resolverse primero en la capa tenant antes de crear módulos nuevos
 
 <<END SECTION>>
 
@@ -335,7 +322,7 @@ Su función es sostener la plataforma y su frontera de ingreso.
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 ENTIDADES DEL NEGOCIO
 
@@ -387,6 +374,31 @@ inventory_operations agrupa contexto operativo cuando una misma acción requiere
 order_items y document_items conservan naturaleza de entidades hijas de sus módulos padre aunque puedan actuar como anclaje de trazabilidad o ejecución dentro de otros flujos
 
 orders y documents comparten una doctrina base de lifecycle para cabeceras operativas
+
+Aclaración adicional consolidada:
+
+membership puede vincular opcionalmente una ficha ampliada en parties sin alterar la estructura base del sistema.
+
+La relación conceptual es:
+
+membership → party
+
+Esta relación no modifica la regla principal:
+
+users → memberships → tenants
+
+La ficha ampliada:
+
+no se crea automáticamente
+no reemplaza la identidad global del usuario
+no convierte a todos los usuarios internos en entidades del negocio
+
+Cuando exista vínculo:
+
+party debe mantenerse como entidad del negocio tenant-scoped
+su tipo debe corresponder a colaborador interno (employee)
+
+La creación o vinculación de esta ficha debe realizarse de forma explícita y controlada.
 
 Regla:
 
@@ -472,82 +484,78 @@ la clasificación describe rol funcional actual y puede evolucionar con la madur
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00020
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
 La arquitectura modular del proyecto debe leerse como un ecosistema reusable y desacoplado.
 
-Los módulos no deben relacionarse como cajas cerradas sin puntos de contacto ni como núcleos invadibles desde cualquier consumidor.
+Los módulos no deben relacionarse como cajas cerradas ni como núcleos invadibles.
 
 La lectura correcta distingue tres planos:
 
 núcleo interno del módulo
 puerta de enlace modular oficial
-consumo externo desde otros módulos
+consumo externo
 
 NÚCLEO INTERNO
 
-Corresponde a la lógica, reglas y operación propia del módulo.
+Corresponde a la lógica y operación propia del módulo.
 
-No debe reabrirse desde consumidores salvo cambio real del contrato interno del propio módulo.
+No debe reabrirse desde consumidores.
 
 PUERTA DE ENLACE MODULAR OFICIAL
 
-Corresponde a la forma publicada por el módulo para integrarse con el ecosistema.
+Corresponde a la forma publicada para integrarse con el ecosistema.
 
 Puede expresarse mediante:
 
-acciones compactas
-embebidos fuertes
-payloads arbitrados
-surfaces oficiales
-acciones por fila
-resolvers reutilizables
-representaciones visuales oficiales
+acciones
+embebidos
+payloads
+surfaces
+row actions
+resolvers
 
-Cuando una capacidad reusable requiera arbitraje operativo real, la puerta de enlace no se agota en una vista aislada.
-
-Debe entenderse como publicación completa del módulo oferente.
-
-Regla arquitectónica:
-
-debe centralizarse infraestructura repetida y mantenerse local la semántica del módulo.
-
-Los contratos comunes pueden absorber helpers, shape repetido y utilidades mínimas de montaje.
-
-Los resolvers, payloads, decisiones funcionales, flags UX y reglas del dominio permanecen dentro del módulo oferente.
-
-Reducir líneas de código no constituye objetivo suficiente si se pierde legibilidad contractual, identidad modular o trazabilidad semántica.
+Debe representar la capacidad completa del módulo oferente.
 
 CONSUMO EXTERNO
 
-Corresponde al uso de capacidades publicadas por otros módulos.
-
-La secuencia correcta es:
+El consumo sigue la secuencia:
 
 consumer solicita
-support del módulo oferente resuelve
-componente del módulo oferente representa
+módulo oferente resuelve
+componente representa
 host monta
 
-El consumo externo debe expresar intención y contexto, sin absorber la decisión operativa completa del módulo oferente.
+El consumidor no debe absorber decisiones del módulo oferente.
 
 HUB VISUAL
 
-Un módulo puede alojar interacción de otro módulo dentro de su superficie sin absorber su lógica operativa.
-
-En esa situación:
-
-el módulo host conserva gobierno de su superficie visual
-
-el módulo invitado conserva gobierno de su lógica operativa
+Un módulo puede alojar interacción de otro sin absorber su lógica.
 
 Regla:
 
-la arquitectura modular del ecosistema describe posiciones y fronteras estructurales.
+el host conserva superficie visual
 
-No debe absorber contratos de seguridad específicos, arbitrajes de permiso, validaciones operativas detalladas ni patrones visuales que correspondan a documentos especializados.
+el módulo invitado conserva lógica operativa
+
+Aclaración consolidada:
+
+los módulos pueden publicar metadata estructural propia.
+
+El flujo correcto es:
+
+módulo define
+ModuleCatalog provee metadata
+ModuleSurfaceRegistry normaliza
+host consume sin reinterpretar
+
+Regla:
+
+la arquitectura modular define fronteras estructurales.
+
+No debe absorber reglas de seguridad ni detalles de implementación.
 
 <<END SECTION>>
 
@@ -697,41 +705,39 @@ Estas relaciones describen arquitectura general y no detalle de navegación, seg
 <<END SECTION>>
 
 <<SECTION: MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO
 
-El crecimiento del sistema debe apoyarse en módulos con identidad clara, contratos explícitos y responsabilidades separadas.
+El sistema debe crecer mediante módulos con identidad clara, contratos explícitos y responsabilidades separadas.
 
-Toda evolución nueva debe tender a:
+Toda evolución debe:
 
 respetar multi-tenancy
-preservar distinción entre sistema y negocio
+preservar distinción sistema/negocio
 mantener identidad conceptual
 evitar duplicaciones
-apoyarse en relaciones reales
-consumir capacidades existentes antes de crear variantes paralelas
-mantener coherencia documental
+consumir capacidades existentes antes de crear variantes
 
-Reglas doctrinales:
+Reglas:
 
-una necesidad nueva no debe reabrir arbitrariamente el núcleo de otro módulo
+no reabrir el núcleo de otro módulo arbitrariamente
 
-si varios frentes requieren colaboradores internos activos, primero debe evaluarse una solución reusable del plano tenant
+las necesidades de colaboradores internos deben resolverse en la capa tenant
 
-las capacidades compactas maduras deben converger hacia publicación oficial del módulo oferente
+las capacidades maduras deben converger hacia contratos oficiales
 
-si un módulo necesita acople externo real, conviene concentrarlo en una puerta contractual explícita
+los acoples externos deben canalizarse mediante puertas contractuales
 
-si una entidad hija gana relevancia transversal, primero debe fortalecerse como hija del módulo padre antes de promoverla a módulo autónomo
+si una entidad hija crece, debe fortalecerse antes de promoverse a módulo
 
-los frentes transaccionales pueden evolucionar hacia estructuras internas de agrupación contextual y registros unitarios persistidos cuando eso mejore trazabilidad y orden operativo
+los frentes transaccionales pueden incorporar agrupación contextual cuando mejore trazabilidad
 
 Regla:
 
-crecer no significa mezclar responsabilidades.
+crecer no implica mezclar responsabilidades.
 
-La dirección aprobada del proyecto continúa siendo modular, reusable y con fronteras explícitas.
+La dirección sigue siendo modular y con fronteras explícitas.
 
 <<END SECTION>>
 

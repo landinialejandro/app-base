@@ -102,7 +102,7 @@ por consolidación como capacidad embebida oficial
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -111,42 +111,31 @@ Se cerró el frente principal de autorización operativa para orders respecto de
 Validaciones confirmadas:
 
 orders.update bloquea órdenes closed y cancelled
-
 orders.delete bloquea órdenes closed y cancelled
-
 orders.delete bloquea órdenes con inventory_movements asociados
-
-orders.delete permanece disponible solo para órdenes no terminales y sin trazabilidad bloqueante, sujeto al permiso efectivo vigente
+orders.delete permanece disponible solo para órdenes no terminales y sin trazabilidad bloqueante
 
 closed → approved quedó validado como reapertura explícita operativa
 
 Security y Gate/Policy deben permanecer alineados para estas acciones
 
-Queda registrado como cierre doctrinal y funcional del frente auditado.
-
 Avance operativo adicional consolidado:
 
-inventory_operations fue incorporado como capa persistente interna de agrupación operativa contextual dentro de inventory.
+inventory_operations fue incorporado como capa persistente interna de agrupación operativa contextual dentro de inventory
 
-Esta capa permite reunir uno o múltiples inventory_movements dentro de una misma acción operativa temporal, sin reemplazar la trazabilidad unitaria de cada movimiento de stock.
-
-La incorporación no crea por sí misma nuevas pantallas principales, abilities visibles independientes ni ownership funcional para módulos consumidores.
+Esta capa permite reunir uno o múltiples inventory_movements dentro de una misma acción operativa temporal, sin reemplazar la trazabilidad unitaria de cada movimiento de stock
 
 Avance operativo adicional vigente:
 
-documents quedó integrado con inventory mediante surfaces y hooks siguiendo la misma frontera modular aplicada en orders.
+documents quedó integrado con inventory mediante surfaces y hooks
 
-documents conserva ownership documental sobre cabecera y líneas.
+documents conserva ownership documental
 
-inventory conserva ownership operativo sobre stock, ejecución, reversión y trazabilidad material.
-
-La ejecución parcial por document_items quedó validada con cálculo derivado de ejecutado y pendiente desde movimientos reales.
+inventory conserva ownership operativo
 
 Avance operativo adicional consolidado:
 
-Orders y Documents convergieron hacia un lifecycle base común para cabeceras operativas.
-
-Estados persistidos comunes:
+Orders y Documents convergieron hacia lifecycle base común:
 
 draft
 pending_approval
@@ -154,65 +143,31 @@ approved
 closed
 cancelled
 
-La transición automática draft → pending_approval por primera línea quedó implementada y validada.
-
-Avance reusable adicional consolidado:
-
-Orders y Documents avanzaron en convergencia de line items mediante componentes visuales compartidos, tabs embebidas, modales comunes y matemática comercial reutilizable.
-
-La convergencia no transfiere ownership entre módulos ni mezcla semántica de inventory con matemática comercial.
+La transición automática draft → pending_approval por primera línea quedó validada
 
 Avance UI adicional consolidado:
 
-se unificó la gramática de tabs principales de show pages mediante x-host-tabs y helper HostTabs.
+se unificó la gramática de tabs principales mediante x-host-tabs
 
-La persistencia del panel activo mediante return_tab quedó alineada para hosts principales validados.
+return_tab quedó alineado
 
-Se completó la alineación de Orders, Documents, Parties, Tasks, Assets, Appointments, Products, Inventory y Projects al patrón común de tabs host.
+Cierre visual adicional consolidado:
 
-Avance de limpieza técnica consolidado:
+se rediseñó dashboard, navbar, footer, botones y tabs manteniendo base visual global
 
-inventory conserva un partial unificado vigente para reversión por línea.
+el dashboard adoptó cards por módulo con acento de color, degradado sutil y marca de agua SVG
 
-Se eliminaron partials legacy duplicados vinculados a reversión por línea en orders y documents.
+se incorporó iconografía modular consistente en navegación y tabs
 
-La base vigente queda representada por documentación matriz y código actual, no por notas históricas internas.
+se ajustó navbar con mejor alineación, iconos por módulo y dropdown de usuario coherente
 
-Cierre operativo adicional de seguridad/auth:
+el brand/logo mantiene solo microanimación sutil sin efectos adicionales
 
-se eliminó la ruta debug /whoami.
+se ajustó footer para coherencia con navbar y dashboard
 
-LoginResponse quedó alineado con memberships activas para resolver redirección post-login.
+se consolidó uso de iconografía reusable mediante components/icons
 
-User::is_superadmin dejó de ser asignable mediante fillable.
-
-2FA permanece cableado para futura habilitación, pero inactivo en el estado actual del desarrollo.
-
-LogoutResponse limpia tenant_id e invitation_accept_url al cerrar sesión.
-
-El flujo de invitaciones internas quedó validado end-to-end para member_invite.
-
-Las invitaciones pendientes no crean usuarios ni memberships anticipadas.
-
-La membership se materializa recién al aceptar la invitación.
-
-La redirección post-aceptación quedó alineada con memberships activas.
-
-Cierre visual adicional:
-
-x-modal quedó redefinido como shell de overlay, backdrop, centrado, tamaño y scroll.
-
-x-card conserva la responsabilidad de contenedor visual interno del modal.
-
-x-line-operation-modal quedó como único consumidor directo actual de x-modal.
-
-El modal responsive quedó ajustado para mobile con ancho completo, scroll controlado y mejor uso táctil.
-
-Footer global quedó auditado como parte del shell interno mediante x-layout.footer.
-
-El footer no se renderiza en páginas públicas ni en superadmin según condición vigente del layout.
-
-El layout con contenido extenso y tablas largas quedó auditado con base visual general de scroll vertical, scroll horizontal, min-width controlado y horizontal-scroll reusable.
+se resolvió separación inferior del layout mediante margen en la última page y no padding interno
 
 Validaciones recientes informadas:
 
@@ -220,8 +175,6 @@ syntax OK
 routes OK
 optimize:clear OK
 browser OK
-route:list sin /whoami
-route:list sin two-factor
 
 <<END SECTION>>
 
@@ -307,28 +260,37 @@ verificar que nuevas integraciones embebidas no reabran bypasses de autorizació
 <<END SECTION>>
 
 <<SECTION: DEUDA TÉCNICA A REDUCIR>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 DEUDA TÉCNICA A REDUCIR
 
 Pendientes doctrinales o técnicos ya detectados:
 
-convivencia residual entre familias *LinkedAction y *Linked en módulos no migrados
-fallbacks legacy con shape viejo dentro de migraciones parciales
-hosts show con distinta madurez estructural aún no convergidos
-surfaces secundarias que todavía reconstruyen lógica ya publicada por módulos oferentes
-naming heredado centrado en consumidores donde la capacidad pertenece al oferente
-frentes donde aún se duplican queries internas de memberships en lugar de consumir raíz tenant reusable
-casos donde una falla visual puede confundirse con permisos por falta de auditoría contractual completa
-micro-superficies no auditadas que parecen menores pero afectan continuidad real del flujo
-duplicaciones residuales en validaciones de line items entre Orders y Documents
-selects manuales de estado que deban endurecerse o reemplazarse por transiciones automáticas cuando la regla de negocio sea objetiva
+convivencia residual entre familias *LinkedAction y *Linked
+fallbacks legacy con shape viejo
+hosts show con distinta madurez estructural
+surfaces secundarias que reconstruyen lógica ya publicada
+naming heredado centrado en consumidores
+duplicaciones en queries internas de memberships
+micro-superficies no auditadas
+duplicaciones residuales en validaciones de line items
+selects manuales de estado a endurecer
+
+Nueva línea detectada:
+
+normalización completa de iconografía modular reusable
+
+centralización definitiva de metadata visual en ModuleCatalog
+
+eliminación de decisiones visuales locales en vistas consumidoras
+
+Pendiente adicional:
+
+revisión completa de tablas largas, scroll horizontal y densidad visual en pantallas con alto volumen de datos
 
 Regla:
 
-reducir deuda no significa reescribir todo.
-
-Significa cerrar incoherencias reales que rompen el modelo aprobado del sistema.
+reducir deuda implica cerrar incoherencias reales que afectan el modelo del sistema
 
 <<END SECTION>>
 

@@ -46,69 +46,58 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00006
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
-El ecosistema vigente combina relaciones directas de pertenencia, relaciones funcionales entre módulos y relaciones operativas derivadas.
+Relaciones estructurales principales del sistema:
 
-Relaciones estructurales principales:
+users → memberships → tenants
 
-tenant → memberships
-tenant → parties
-tenant → projects
-tenant → tasks
-tenant → products
-tenant → assets
-tenant → orders
-tenant → documents
+Relaciones operativas del negocio:
 
-Relaciones de pertenencia:
+orders → order_items
+documents → document_items
+inventory_operations → inventory_movements
 
-order → order_items
-document → document_items
-project → tasks
+Relaciones transversales relevantes:
 
-Relaciones funcionales frecuentes:
+orders → inventory
+documents → inventory
+projects → tasks
 
-party ↔ orders
-party ↔ documents
-party ↔ assets
-party ↔ appointments
+Relaciones de contexto interno del tenant:
 
-asset ↔ appointments
-asset ↔ documents
+memberships → users
+tenants → memberships
 
-order ↔ documents
+Relación conceptual adicional consolidada:
 
-products ↔ inventory_movements
+membership → party
 
-Relaciones operativas consolidadas:
+Esta relación permite extender la pertenencia operativa con una ficha ampliada del negocio.
 
-order_item ↔ inventory_movements
-document_item ↔ inventory_movements
+Reglas:
+
+no es obligatoria
+no altera relaciones estructurales principales
+no convierte a party en entidad del sistema
 
 Lectura correcta:
 
-inventory_movements registra trazabilidad material unitaria.
+el plano de identidad y acceso permanece en users y memberships
 
-Una línea de order_items o document_items puede acumular múltiples movimientos a lo largo del tiempo.
+el plano del negocio permanece en parties y demás entidades
 
-Esos movimientos pueden combinar ejecuciones y contramovimientos compatibles con el neto vigente de la línea.
+Regla:
 
-La existencia de trazabilidad no transforma a las líneas hijas en módulos autónomos.
+las relaciones del ecosistema deben leerse respetando los planos conceptuales:
 
-Relación de lifecycle consolidada:
+identidad global
+pertenencia operativa
+operación del negocio
 
-orders y documents comparten estados base persistidos para cabeceras operativas:
-
-draft
-pending_approval
-approved
-closed
-cancelled
-
-La aparición de la primera línea válida puede modificar el estado operativo del padre según la regla vigente del sistema.
+No deben mezclarse por conveniencia de implementación.
 
 <<END SECTION>>
 
@@ -258,30 +247,61 @@ las relaciones hacia parties desde otros módulos deben respetar el estado activ
 <<END SECTION>>
 
 <<SECTION: MODELO DE ACCESO Y PERTENENCIA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00005
 
 MODELO DE ACCESO Y PERTENENCIA
 
-Relación principal:
+La pertenencia y acceso dentro del sistema se estructuran mediante:
 
 users
-↓
 memberships
-↓
 tenants
+
+Relación base:
+
+users → memberships → tenants
+
+Lectura:
+
+users define identidad global
+memberships define pertenencia operativa
+tenants define contexto de empresa
+
+Aclaración consolidada:
+
+membership puede vincular opcionalmente una ficha ampliada en parties:
+
+membership → party
+
+Esta relación:
+
+no altera el modelo de acceso
+no convierte a party en entidad de acceso
+no reemplaza la identidad del usuario
+
+Reglas:
+
+la operación válida requiere:
+
+usuario autenticado
+membership activo
+tenant activo
+
+la vinculación a party no interviene en autorización
+
+la ficha ampliada pertenece al plano del negocio
+
+Regla adicional:
+
+la creación o vinculación de party desde membership debe ser explícita
+
+no debe generarse automáticamente por acceso o navegación
 
 Regla:
 
-users resuelve identidad global
-memberships resuelve acceso real por tenant
+el modelo de acceso y pertenencia no debe mezclarse con el modelo de entidades del negocio
 
-No usar user.tenant_id porque rompería el modelo multi-tenant actual.
-
-Regla adicional consolidada:
-
-la pertenencia operativa interna del tenant y la lectura de colaboradores activos deben resolverse desde memberships activas.
-
-Si varios módulos necesitan ese dataset, debe reutilizarse desde una pieza tenant dedicada y no desde un supuesto módulo users del negocio.
+cada plano conserva su responsabilidad
 
 <<END SECTION>>
 
@@ -408,80 +428,67 @@ SECTION_VERSION: 00006
 
 PARTIES
 
-Tipo conceptual:
+Party representa una entidad del negocio dentro del tenant.
 
-módulo base del dominio
-
-Representa actores externos relacionados con la operación del tenant.
+Su función principal es actuar como ficha ampliada de contacto o actor relevante dentro del ecosistema operativo.
 
 Puede representar:
 
 clientes
 proveedores
-contactos
-terceros
-contratistas
+colaboradores internos (cuando corresponda)
+otros actores del negocio
 
-Relaciones consumidas:
+Reglas estructurales:
 
-tenant
-users para trazabilidad operativa cuando corresponda
+party es tenant-scoped
+no pertenece al plano global del sistema
+no reemplaza la identidad global de users
 
-Relaciones ofrecidas:
+Relación consolidada:
 
-projects
-tasks
-appointments
-assets
-orders
-documents
+membership → party
 
-Superficie contractual conceptual posible:
-
-selector de contacto
-summary de contacto
-lookup mínimo
-tabla de relaciones asociadas
-acción enlazada reusable
-embebidos contextuales de relaciones transversales
-relación compacta hacia appointments.show
+Esta relación es opcional y permite vincular una pertenencia operativa del tenant con una ficha ampliada de datos.
 
 Reglas:
 
-no reemplaza users internos del sistema
-no debe tratarse como módulo opcional ordinario si el sistema lo reconoce como base intrínseca del dominio
+no toda membership debe tener party
+no todo usuario interno del tenant debe convertirse en party
+la relación no modifica la estructura base:
 
-Aclaración estructural consolidada:
+users → memberships → tenants
 
-parties no se agota en la alta o edición del contacto
+Lectura correcta:
 
-también debe leerse como punto estable de referencia relacional para múltiples módulos operativos del tenant
+users conserva identidad global
+membership representa pertenencia operativa
+party representa ficha ampliada del negocio
 
-Aclaración contractual consolidada:
+Cuando exista vínculo:
 
-su oferta reusable no debe quedar dispersa como links ad hoc locales en cada consumidor
+party debe representar al colaborador interno
+party.kind debe corresponder a employee o equivalente
 
-debe tender a publicarse desde el propio módulo parties como capacidad reusable oficial
+Regla operativa consolidada:
 
-caso inmediato previsto:
+la ficha ampliada no se crea automáticamente
 
-linked-party-action
+debe crearse o vincularse de forma explícita
 
-Aclaración adicional consolidada:
+la existencia del vínculo no habilita edición libre de atributos críticos sin validación backend
 
-parties puede además consumir el embebido reusable oficial de appointments para exponer turnos relacionados dentro de su lectura transversal del ecosistema
+Regla adicional:
 
-y puede publicar relación compacta hacia appointments.show como offer linked de resumen cuando el host appointment lo consuma
+party.email no debe tratarse como campo libre cuando represente una ficha vinculada a un usuario interno
 
-Regla adicional de seguridad conceptual:
+no debe asumirse sincronización automática sin criterio definido
 
-su segmentación funcional se resuelve mediante constraints.allowed_kinds
+Regla:
 
-y esa segmentación debe arbitrar create, view, update y delete según el contrato del módulo
+party mantiene su rol como entidad del negocio
 
-Regla adicional sobre delete:
-
-delete debe reservarse al owner con delegación posible al rol administrator según contrato persistido
+no absorbe conceptualmente a users ni a memberships
 
 <<END SECTION>>
 

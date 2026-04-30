@@ -1,131 +1,401 @@
-FILE:documentos/mapa_componentes_app_base.txt
+<<SECTION: METADATOS>>
+SECTION_VERSION: 00001
 
-1. Núcleo visual global real
+TÍTULO: Mapa de componentes del sistema
+DOC_SLUG: mapa_componentes_app_base
+DOC_VERSION: 00001
+TIPO: estructural
+ESTADO: activo
+GESTIÓN: Este documento define la estructura de componentes visuales y su organización dentro del sistema. No define reglas de negocio ni contratos de seguridad.
+<<END SECTION>>
 
-Los componentes base globales viven en resources/views/components, y hoy la base reusable efectiva incluye estructura, navegación, cards, modal, summaries, toolbar, botones y analytics. En tu dump aparecen, entre otros: x-page, x-page-header, x-breadcrumb, x-card, x-modal, x-list-filters-card, x-show-summary, x-tab-toolbar, x-button-secondary, x-button-tool, x-button-tool-button y x-button-tool-submit.
 
-Eso además coincide con la doctrina del proyecto: los componentes verdaderamente globales deben vivir en resources/views/components, mientras que resources/views/<modulo>/components queda para capacidades visuales publicadas por el módulo oferente.
+<<SECTION: OBJETIVO DEL DOCUMENTO>>
+SECTION_VERSION: 00001
 
-2. Familias visuales que ya existen
-Familia estructural
-x-page
-x-page-header
-x-breadcrumb
-x-card
-x-modal
-x-horizontal-scroll
-x-tab-toolbar
-x-show-summary
-x-show-summary-item
-x-show-summary-item-detail-block
-Familia de acciones
-x-button-secondary
-x-button-create
-x-button-edit
-x-button-delete
-x-button-back
-x-button-tool
-x-button-tool-submit
-x-button-tool-button
-Familia analytics
-x-analytics.card
-x-analytics.kpi-card
-x-analytics.panel
-x-analytics.pie-chart
-Familia iconográfica
+OBJETIVO DEL DOCUMENTO
 
-Hay una base bastante completa de íconos reutilizables (plus, pencil, trash, truck, rotate-ccw, eye, etc.).
+Este documento describe la organización de los componentes visuales del sistema app-base.
 
-3. Componentes modulares publicados por módulos
+Su función es:
 
-Hoy los componentes modulares visibles son estos:
+identificar componentes reutilizables  
+definir su ubicación canónica  
+diferenciar responsabilidades visuales  
+evitar duplicación de UI  
+servir como referencia para desarrollo y refactor  
 
-appointments/components/linked-appointment
-assets/components/linked-asset
-documents/components/linked-document
-inventory/components/linked-inventory
-inventory/components/movement-action
-inventory/components/order-item-row-actions
-inventory/components/summary-value
-orders/components/linked-order
-parties/components/linked-party
-products/components/linked-product
-projects/components/linked-project
-tasks/components/linked-task
+NO CORRESPONDE DEFINIR AQUÍ
 
-Y además varios SurfaceService apuntan explícitamente a esos componentes como vista contractual del módulo, por ejemplo ProjectSurfaceService, TaskSurfaceService, InventorySurfaceService, OrderSurfaceService, PartySurfaceService, AssetSurfaceService, AppointmentSurfaceService y ProductSurfaceService.
+reglas de negocio  
+contratos de seguridad  
+arquitectura modular  
+navegación funcional  
+decisiones de permisos  
 
-Eso está bien alineado con la regla doctrinal de que el módulo oferente publique su capacidad reusable y Blade consumidor no reconstruya localmente el estado o la decisión visual equivalente.
+Este documento se limita a la capa visual y estructural de componentes.
+<<END SECTION>>
 
-4. Mapa funcional por capas
-Capa A — shell global
+
+<<SECTION: COMPONENTES BLADE GLOBALES>>
+SECTION_VERSION: 00001
+
+COMPONENTES BLADE GLOBALES
+
+Ubicación:
+
+resources/views/components/
 
 Responsabilidad:
 
-layout
-navegación principal
-footer/navbar
-jerarquía básica de página
+componentes reutilizables en todo el sistema sin pertenencia a un módulo específico.
 
-Piezas:
+Ejemplos:
 
-layout/navbar
-layout/footer
-x-page
-x-page-header
-x-breadcrumb
-Capa B — lectura y composición de pantallas
+x-page  
+x-page-header  
+x-breadcrumb  
+x-card  
+x-modal  
+x-empty-state  
 
-Responsabilidad:
+Reglas:
 
-cards
-summaries
-tabs
-paneles analíticos
-bloques colapsables
+deben ser genéricos  
+no deben contener lógica de negocio  
+no deben depender de un módulo específico  
+deben ser reutilizables en cualquier contexto  
 
-Piezas:
+Regla adicional:
 
-x-card
-x-show-summary*
-x-tab-toolbar
-x-list-filters-card
-x-analytics.*
-Capa C — acciones base
+si un componente comienza a depender de un módulo específico, debe migrarse al módulo correspondiente.
+<<END SECTION>>
 
-Responsabilidad:
 
-navegación simple
-acciones CRUD visibles
-tool actions
-cierre/acciones rápidas de modal
+<<SECTION: COMPONENTES DE LAYOUT>>
+SECTION_VERSION: 00001
 
-Piezas:
+COMPONENTES DE LAYOUT
 
-x-button-secondary
-x-button-create
-x-button-edit
-x-button-delete
-x-button-back
-x-button-tool*
-Capa D — capacidades modulares publicadas
+Ubicación:
+
+resources/views/components/layout/
 
 Responsabilidad:
 
-representar payload oficial de un módulo
-no decidir permisos/rutas internamente
-integrarse en hosts
+estructura global de la aplicación.
 
-Piezas:
+Incluye:
 
-todos los linked-*
-movement-action
-order-item-row-actions
-summary-value
-5. Lo más consolidado hoy
-Muy bien consolidados
-familia button-tool*, ahora con una fuente visual compartida vía ButtonToolStyle y uso real en órdenes, documentos, adjuntos e inventory.
-x-modal como base visual reutilizable para micro-superficies operativas, algo además ya reconocido por la documentación del proyecto.
-x-list-filters-card como patrón oficial de filtros con bloque secundario colapsable, también alineado con la doctrina.
-Aceptablemente consolidados
-familia linked-*, porque ya están agrupados por módulo y varios migraron a x-button-secondary.
+navbar  
+footer  
+contenedores principales  
+estructura de página  
+
+Archivos relevantes trabajados:
+
+layout/navbar.blade.php  
+layout/footer.blade.php  
+
+Reglas:
+
+definen estructura visual global  
+no deben contener lógica de negocio  
+pueden consumir metadata ya resuelta  
+
+Regla adicional consolidada:
+
+la navegación puede incluir iconografía por módulo, pero esta debe provenir de metadata modular y no definirse localmente.
+<<END SECTION>>
+
+
+<<SECTION: COMPONENTES DE ÍCONOS>>
+SECTION_VERSION: 00001
+
+COMPONENTES DE ÍCONOS
+
+Ubicación canónica:
+
+resources/views/components/icons/
+
+Responsabilidad:
+
+centralizar iconografía SVG reutilizable del sistema.
+
+Reglas:
+
+los íconos reutilizables no deben permanecer inline en blades complejos  
+deben definirse como componentes Blade  
+los nombres deben ser genéricos por forma visual  
+no deben nombrarse por módulo  
+
+Ejemplos válidos:
+
+calendar  
+user-group  
+screen  
+list-check  
+folder  
+archive-box  
+file-text  
+paperclip  
+grid  
+
+Regla crítica:
+
+las vistas no deben decidir qué ícono usar  
+la iconografía debe venir resuelta desde metadata modular  
+
+Aclaración:
+
+no existe `<x-icons.user />`  
+debe utilizarse `<x-icons.user-group />` u otro ícono existente  
+
+Objetivo:
+
+evitar duplicación de SVG  
+permitir consistencia visual  
+facilitar mantenimiento y evolución visual
+<<END SECTION>>
+
+
+<<SECTION: COMPONENTES DE TABS>>
+SECTION_VERSION: 00001
+
+COMPONENTES DE TABS
+
+El sistema distingue dos tipos de tabs con roles diferentes.
+
+TABS PRINCIPALES DEL HOST
+
+Componente:
+
+x-host-tabs
+
+Responsabilidad:
+
+organizar tabs principales de páginas show.
+
+Incluye:
+
+estructura de navegación  
+toolbar  
+scroll horizontal  
+paneles de contenido  
+estado activo  
+
+Reglas:
+
+representa navegación principal del recurso  
+puede renderizar icon si viene en metadata  
+puede usar module_icon como fallback  
+no define lógica de negocio  
+
+TABS INTERNAS EMBEBIDAS
+
+Componente:
+
+x-tabs-embedded
+
+Responsabilidad:
+
+organizar contenido interno dentro de una capacidad embebida.
+
+Casos:
+
+segmentación por estado  
+segmentación interna de datasets  
+lectura agrupada  
+
+Reglas:
+
+no participan de navegación principal  
+no usan return_tab  
+no representan cambio de recurso  
+
+Distinción obligatoria:
+
+x-host-tabs → navegación del recurso  
+x-tabs-embedded → organización interna de contenido  
+
+No deben mezclarse.
+<<END SECTION>>
+
+
+<<SECTION: COMPONENTES MODULARES>>
+SECTION_VERSION: 00001
+
+COMPONENTES MODULARES
+
+Ubicación:
+
+resources/views/<modulo>/components/
+
+Responsabilidad:
+
+componentes reutilizables propios de un módulo específico.
+
+Ejemplos:
+
+tablas embebidas  
+formularios específicos  
+partials operativos  
+componentes de integración  
+
+Reglas:
+
+pertenecen al módulo oferente  
+no deben moverse a global si contienen semántica del módulo  
+deben ser consumidos por otros módulos sin duplicación  
+
+Regla adicional:
+
+si una capacidad reusable pertenece a un módulo, su componente debe vivir en ese módulo.
+
+El consumidor no debe copiar ni recrear ese componente.
+
+Caso vigente:
+
+inventory publica componentes propios para operaciones por línea  
+orders y documents los consumen sin duplicar lógica
+<<END SECTION>>
+
+
+<<SECTION: COMPONENTES DE SHOW PAGES>>
+SECTION_VERSION: 00001
+
+COMPONENTES DE SHOW PAGES
+
+Responsabilidad:
+
+estructurar la lectura visual de una entidad.
+
+Componentes principales:
+
+x-show-summary  
+x-show-summary-item  
+x-show-summary-item-detail-block  
+
+Integración con tabs:
+
+x-host-tabs  
+
+Reglas:
+
+la show page actúa como host visual  
+los componentes definen zonas de lectura  
+las capacidades externas se montan como invitadas  
+
+Zonas principales:
+
+header_actions  
+summary_items  
+detail_items  
+zona tab coordinada  
+
+Regla:
+
+el host organiza  
+los módulos invitados ejecutan  
+
+No debe mezclarse ownership.
+<<END SECTION>>
+
+
+<<SECTION: COMPONENTES DE ACCIÓN>>
+SECTION_VERSION: 00001
+
+COMPONENTES DE ACCIÓN
+
+Responsabilidad:
+
+representar acciones disponibles para el usuario.
+
+Incluye:
+
+botones primarios  
+botones secundarios  
+acciones icon-only  
+acciones por fila  
+acciones contextuales  
+
+Reglas:
+
+las acciones deben reflejar estado real  
+no deben mostrar acciones inválidas  
+no deben decidir permisos  
+
+Regla crítica:
+
+el estado de la acción debe venir resuelto desde backend o surface  
+
+el componente solo representa  
+
+No debe haber lógica de autorización en el componente.
+<<END SECTION>>
+
+
+<<SECTION: COMPONENTES REUTILIZABLES TRANSVERSALES>>
+SECTION_VERSION: 00001
+
+COMPONENTES REUTILIZABLES TRANSVERSALES
+
+Componentes utilizados por múltiples módulos con gramática común.
+
+Ejemplos:
+
+x-line-item-form  
+x-line-item-table  
+x-line-operation-modal  
+x-tabs-embedded  
+x-dev-component-version  
+
+Reglas:
+
+pueden ser compartidos  
+no deben absorber lógica de dominio  
+no deben romper ownership modular  
+
+Regla adicional:
+
+si la semántica cambia por módulo, no debe forzarse reutilización artificial  
+
+Objetivo:
+
+maximizar reutilización sin perder claridad funcional.
+<<END SECTION>>
+
+
+<<SECTION: REGLAS GENERALES DE COMPONENTES>>
+SECTION_VERSION: 00001
+
+REGLAS GENERALES DE COMPONENTES
+
+Reglas obligatorias:
+
+no duplicar componentes existentes  
+no mezclar lógica de negocio en componentes visuales  
+no decidir permisos en frontend  
+no reconstruir metadata ya resuelta  
+no acoplar componentes a módulos incorrectos  
+
+Reglas de diseño:
+
+priorizar simplicidad  
+priorizar reutilización real  
+mantener consistencia visual  
+evitar sobre abstracción  
+
+Regla crítica:
+
+si un componente necesita múltiples condiciones complejas, probablemente la lógica debe resolverse antes en backend o surface  
+
+y no dentro del componente  
+
+Objetivo final:
+
+componentes simples  
+ecosistema consistente  
+bajo acoplamiento  
+alta reutilización real
+<<END SECTION>>

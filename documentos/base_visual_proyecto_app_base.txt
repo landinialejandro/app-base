@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 COMPONENTES DISPONIBLES
 
@@ -107,6 +107,26 @@ botones icon-only
 acciones inline
 toolbars contextuales
 
+Componentes de iconografía reutilizable:
+
+resources/views/components/icons
+
+Los íconos SVG reutilizables deben vivir como componentes Blade dentro de esta familia cuando su uso sea transversal.
+
+Los nombres de íconos deben ser genéricos por figura o representación visual, no por módulo, para permitir reutilización entre pantallas.
+
+Ejemplos de nombres válidos:
+
+calendar
+user-group
+screen
+list-check
+folder
+archive-box
+file-text
+paperclip
+grid
+
 Componentes modulares reusables vigentes:
 
 linked-order-action
@@ -131,6 +151,18 @@ x-line-item-table
 x-line-operation-modal
 x-tabs-embedded
 x-dev-component-version
+
+x-dev-component-version puede utilizarse como ayuda visual de versionado en Blades intervenidos.
+
+Props vigentes:
+
+name
+version
+align
+
+No debe usarse la prop file.
+
+Debe ubicarse al final visible del componente o card cuando corresponda, sin insertarlo dentro de tablas ni formularios.
 
 Estos componentes pueden ser consumidos por orders y documents cuando la gramática visual sea equivalente.
 
@@ -185,6 +217,10 @@ Aclaración adicional sobre tabs host:
 x-host-tabs es el componente visual estándar para tabs principales de páginas show.
 
 Su función es centralizar estructura visual, toolbar, scroll horizontal, paneles y estado activo de tabs del host.
+
+Puede representar icon cuando venga explícito en la tab.
+
+Cuando la tab provenga de una surface modular enriquecida, puede utilizar module_icon como fallback.
 
 No reemplaza x-tabs-embedded.
 
@@ -394,6 +430,8 @@ en inventory/movements/show, una operación asociada puede mostrarse como contex
 <<END SECTION>>
 
 <<SECTION: IDENTIDAD VISUAL Y BRANDING DEL HEADER>>
+SECTION_VERSION: 00002
+
 IDENTIDAD VISUAL Y BRANDING DEL HEADER
 
 El sistema utiliza una identidad visual basada en iconografía SVG en el header/navbar.
@@ -406,15 +444,20 @@ no debe utilizarse texto visible como representación de marca en el header
 
 el SVG debe utilizar currentColor para integrarse con el color del layout
 
-la composición visual del logo responde a una grilla simple (por ejemplo 2x2) para mantener consistencia geométrica
+la composición visual del logo responde a una grilla simple para mantener consistencia geométrica
 
 el bloque activo del logo puede diferenciarse mediante tamaño, peso visual o sombra sutil
 
-puede incorporarse interacción visual leve (hover) siempre que no genere distracción ni complejidad innecesaria
+puede incorporarse interacción visual leve siempre que no genere distracción ni complejidad innecesaria
+
+el comportamiento visual vigente del brand/logo debe mantener únicamente la microanimación sutil del cuadradito negro en hover
+
+no deben agregarse efectos visuales adicionales sobre el contenedor del brand
 
 la identidad visual debe mantenerse simple, reconocible y consistente en todas las pantallas internas del sistema
 
 favicon y logo cumplen roles distintos y no deben confundirse
+
 <<END SECTION>>
 
 <<SECTION: PATRÓN GENERAL PARA VISTAS INDEX>>
@@ -518,7 +561,7 @@ Estas métricas no reemplazan la tabla principal ni convierten la pantalla en da
 <<END SECTION>>
 
 <<SECTION: PATRÓN VISUAL PARA VISTAS SHOW>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 PATRÓN VISUAL PARA VISTAS SHOW
 
@@ -604,6 +647,14 @@ las tabs principales del host deben poder conservar el panel activo mediante ret
 La key recibida debe validarse contra las tabs disponibles del recurso actual.
 
 No debe usarse la posición del loop como criterio de tab activa cuando existe estado explícito calculado por el host.
+
+Aclaración adicional sobre iconografía en tabs host:
+
+las tabs principales pueden incorporar iconografía para mejorar lectura visual sin modificar la lógica de activación ni la persistencia por return_tab.
+
+La metadata visual de una tab debe llegar resuelta al componente mediante el objeto de tab correspondiente.
+
+El host no debe reconstruir localmente qué ícono corresponde a una surface modular cuando esa metadata ya fue enriquecida por el flujo modular.
 
 <<END SECTION>>
 
@@ -792,7 +843,7 @@ Este componente puede mostrar métricas principales y métricas secundarias medi
 <<END SECTION>>
 
 <<SECTION: ACCIONES VISUALES EN INDEX Y SHOW>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 ACCIONES VISUALES EN INDEX Y SHOW
 
@@ -835,31 +886,19 @@ El componente visual solo representa el estado contractual recibido.
 
 Regla adicional para show pages:
 
-las acciones contextuales dentro de una show page deben aparecer donde nace la intención del usuario y no duplicarse sin necesidad en múltiples zonas.
+las acciones contextuales dentro de una show page deben aparecer donde nace la intención del usuario.
 
-Caso consolidado:
+Regla adicional para ficha ampliada:
 
-en orders.show, la acción Surtir nace en la fila operativa de inventory y se resuelve en modal local sin abandonar el contexto de la orden.
+la acción Más datos debe leerse como acción contextual de apertura de información ampliada.
 
-Aclaración adicional:
+Si existe ficha vinculada, debe abrir lectura mediante parties.show.
 
-cuando una acción pertenezca a un módulo invitado consumido dentro del host, la UI puede montarla en la pantalla anfitriona, pero la semántica funcional debe seguir perteneciendo al módulo oferente.
+No debe llevar directamente a edición.
 
-Aclaración adicional para tablas operativas:
+Si no existe ficha vinculada, no debe crearla silenciosamente.
 
-cuando el espacio horizontal sea limitado y la frecuencia de uso lo justifique, las micro-acciones por fila deben tender a resolverse con botones iconográficos compactos y consistentes antes que con botones textuales extensos.
-
-Casos vigentes relevantes:
-
-surtir
-devolver
-ver movimientos de línea
-
-Aclaración adicional sobre retorno visual:
-
-cuando una acción nace dentro de una tab principal del host, el retorno debe poder conservar ese contexto mediante return_tab si la pantalla anfitriona lo soporta.
-
-El objetivo es evitar saltos innecesarios al primer panel y preservar continuidad operativa.
+Debe existir confirmación explícita antes de crear o vincular la ficha ampliada.
 
 <<END SECTION>>
 

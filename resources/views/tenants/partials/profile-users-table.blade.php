@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/partials/profile-users-table.blade.php | V1 --}}
+{{-- FILE: resources/views/tenants/partials/profile-users-table.blade.php | V2 --}}
 
 <x-card>
     <div class="dashboard-section-header">
@@ -18,6 +18,7 @@
                         <th>Owner</th>
                         <th>Estado</th>
                         <th>Alta</th>
+                        <th class="compact-actions-cell"></th>
                     </tr>
                 </thead>
                 <tbody>
@@ -43,6 +44,17 @@
                             </td>
 
                             <td>{{ $membership->joined_at?->format('d/m/Y H:i') ?? '—' }}</td>
+
+                            <td class="compact-actions-cell">
+                                <form method="POST" action="{{ route('tenant.memberships.party', $membership) }}">
+                                    @csrf
+
+                                    <button type="submit" class="btn btn-secondary btn-icon" title="Más datos"
+                                        aria-label="Más datos">
+                                        <x-icons.user-group />
+                                    </button>
+                                </form>
+                            </td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -51,4 +63,5 @@
     @else
         <p class="mb-0">No hay usuarios asociados a esta empresa.</p>
     @endif
+    <x-dev-component-version name="tenants.partials.profile-users-table" version="V2" />
 </x-card>

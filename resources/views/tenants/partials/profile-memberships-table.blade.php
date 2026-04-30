@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/partials/profile-memberships-table.blade.php | V5 --}}
+{{-- FILE: resources/views/tenants/partials/profile-memberships-table.blade.php | V6 --}}
 
 <x-card>
     <div class="dashboard-section-header">
@@ -38,12 +38,10 @@
                                     $assignedRoleIds,
                                     $assignedRoleSlugs,
                                 ) {
-                                    // evitar duplicados
                                     if (in_array($role->id, $assignedRoleIds, true)) {
                                         return false;
                                     }
 
-                                    // admin exclusivo
                                     if (
                                         $assignedRoleSlugs->contains(\App\Support\Catalogs\RoleCatalog::ADMIN) &&
                                         $role->slug === \App\Support\Catalogs\RoleCatalog::ADMIN
@@ -147,33 +145,48 @@
                             <td>{{ $membership->joined_at?->format('d/m/Y H:i') ?? '—' }}</td>
 
                             <td class="compact-actions-cell">
-                                @if ($membership->is_owner)
-                                    <span class="helper-inline">Owner</span>
-                                @elseif ($membership->status === 'blocked')
-                                    @can('unblock', $membership)
-                                        <form method="POST" action="{{ route('tenant.memberships.unblock', $membership) }}"
-                                            data-action="app-confirm-submit"
-                                            data-confirm-message="¿Rehabilitar el acceso de este usuario para esta empresa?">
-                                            @csrf
-                                            <button type="submit" class="btn btn-secondary btn-icon"
-                                                title="Desbloquear acceso" aria-label="Desbloquear acceso">
-                                                <x-icons.unlock />
-                                            </button>
-                                        </form>
-                                    @endcan
-                                @else
-                                    @can('block', $membership)
-                                        <form method="POST" action="{{ route('tenant.memberships.block', $membership) }}"
-                                            data-action="app-confirm-submit"
-                                            data-confirm-message="¿Bloquear el acceso de este usuario para esta empresa?">
-                                            @csrf
-                                            <button type="submit" class="btn btn-secondary btn-icon"
-                                                title="Bloquear acceso" aria-label="Bloquear acceso">
-                                                <x-icons.lock />
-                                            </button>
-                                        </form>
-                                    @endcan
-                                @endif
+                                <div class="compact-actions">
+                                    <form method="POST" action="{{ route('tenant.memberships.party', $membership) }}">
+                                        @csrf
+
+                                        <button type="submit" class="btn btn-secondary btn-icon" title="Más datos"
+                                            aria-label="Más datos">
+                                            <x-icons.user-group />
+                                        </button>
+                                    </form>
+
+                                    @if ($membership->is_owner)
+                                        <span class="helper-inline">Owner</span>
+                                    @elseif ($membership->status === 'blocked')
+                                        @can('unblock', $membership)
+                                            <form method="POST"
+                                                action="{{ route('tenant.memberships.unblock', $membership) }}"
+                                                data-action="app-confirm-submit"
+                                                data-confirm-message="¿Rehabilitar el acceso de este usuario para esta empresa?">
+                                                @csrf
+
+                                                <button type="submit" class="btn btn-secondary btn-icon"
+                                                    title="Desbloquear acceso" aria-label="Desbloquear acceso">
+                                                    <x-icons.unlock />
+                                                </button>
+                                            </form>
+                                        @endcan
+                                    @else
+                                        @can('block', $membership)
+                                            <form method="POST"
+                                                action="{{ route('tenant.memberships.block', $membership) }}"
+                                                data-action="app-confirm-submit"
+                                                data-confirm-message="¿Bloquear el acceso de este usuario para esta empresa?">
+                                                @csrf
+
+                                                <button type="submit" class="btn btn-secondary btn-icon"
+                                                    title="Bloquear acceso" aria-label="Bloquear acceso">
+                                                    <x-icons.lock />
+                                                </button>
+                                            </form>
+                                        @endcan
+                                    @endif
+                                </div>
                             </td>
                         </tr>
                     @endforeach
@@ -183,4 +196,5 @@
     @else
         <p class="mb-0">No hay usuarios asociados a esta empresa.</p>
     @endif
+    <x-dev-component-version name="tenants.partials.profile-memberships-table" version="V6" />
 </x-card>

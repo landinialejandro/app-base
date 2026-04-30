@@ -27,6 +27,7 @@ use App\Http\Controllers\TaskController;
 use App\Http\Controllers\TechnicalDocController;
 use App\Http\Controllers\TenantInvitationController;
 use App\Http\Controllers\TenantMembershipController;
+use App\Http\Controllers\TenantMembershipPartyController;
 use App\Http\Controllers\TenantMembershipRoleController;
 use App\Http\Controllers\TenantProfileController;
 use App\Http\Controllers\TenantProfilePermissionController;
@@ -162,6 +163,15 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::delete('/tenant/invitations/{invitation}', [TenantInvitationController::class, 'destroy'])
         ->name('tenant.invitations.destroy');
 
+    Route::post('/profile/party', [TenantMembershipPartyController::class, 'current'])
+        ->name('profile.party');
+    Route::post('/tenant/memberships/{membership}/party', [TenantMembershipPartyController::class, 'show'])
+        ->name('tenant.memberships.party');
+    Route::get('/tenant/memberships/{membership}/party/confirm', [TenantMembershipPartyController::class, 'confirm'])
+        ->name('tenant.memberships.party.confirm');
+
+    Route::post('/tenant/memberships/{membership}/party/store', [TenantMembershipPartyController::class, 'store'])
+        ->name('tenant.memberships.party.store');
     // Projects
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
     Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');

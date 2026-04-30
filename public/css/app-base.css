@@ -727,6 +727,96 @@ a:hover {
     margin-top: var(--space-3);
 }
 
+.app-modal[hidden] {
+    display: none !important;
+}
+
+.app-modal {
+    position: fixed;
+    inset: 0;
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: var(--space-4);
+}
+
+.app-modal__backdrop {
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.45);
+}
+
+.app-modal__dialog {
+    position: relative;
+    width: min(100%, 640px);
+    max-height: calc(100dvh - 2rem);
+    overflow: auto;
+    z-index: 1;
+}
+
+.app-modal__dialog--sm {
+    max-width: 420px;
+}
+
+.app-modal__dialog--md {
+    max-width: 640px;
+}
+
+.app-modal__dialog--lg {
+    max-width: 860px;
+}
+
+.app-modal__dialog--xl {
+    max-width: 1100px;
+}
+
+.app-modal__card {
+    margin: 0;
+}
+
+.app-modal__body {
+    max-height: calc(100dvh - 10rem);
+    overflow: auto;
+}
+
+.app-modal__footer {
+    margin-top: var(--space-4);
+}
+
+body.app-modal-open {
+    overflow: hidden;
+}
+
+@media (max-width: 640px) {
+    .app-modal {
+        align-items: flex-end;
+        padding: var(--space-2);
+    }
+
+    .app-modal__dialog {
+        width: 100%;
+        max-width: none;
+        max-height: calc(100dvh - var(--space-4));
+    }
+
+    .app-modal__body {
+        max-height: calc(100dvh - 9rem);
+    }
+
+    .app-modal__card .card-header {
+        padding: var(--space-3) var(--space-4);
+    }
+
+    .app-modal__card .card-body {
+        padding: var(--space-4);
+    }
+
+    .app-modal__card .card-toolbox {
+        flex-shrink: 0;
+    }
+}
+
 /* =========================================================
    9. Cards
    Bloques principales de contenido.

@@ -126,4 +126,24 @@ class MembershipPolicy
 
         return true;
     }
+
+
+    public function resolveParty(User $user, Membership $membership): bool
+    {
+        $tenant = app('tenant');
+    
+        if (! $tenant) {
+            return false;
+        }
+    
+        if ($membership->tenant_id !== $tenant->id) {
+            return false;
+        }
+    
+        if ($membership->user_id === $user->id && $membership->status === 'active') {
+            return true;
+        }
+    
+        return $this->currentUserIsOwner($user);
+    }
 }

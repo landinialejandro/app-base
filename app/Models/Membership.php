@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Membership.php | V3
+// FILE: app/Models/Membership.php | V4
 
 namespace App\Models;
 
@@ -14,6 +14,7 @@ class Membership extends Model
     protected $fillable = [
         'tenant_id',
         'user_id',
+        'party_id',
         'status',
         'is_owner',
         'profile_slug',
@@ -37,6 +38,11 @@ class Membership extends Model
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class);
+    }
+
+    public function party(): BelongsTo
+    {
+        return $this->belongsTo(Party::class);
     }
 
     public function roles(): BelongsToMany

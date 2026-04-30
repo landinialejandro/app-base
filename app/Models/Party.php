@@ -4,22 +4,22 @@
 
 namespace App\Models;
 
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Database\Eloquent\Factories\HasFactory;
-
 // IMPORTANTE:
 // usar exactamente los mismos namespaces de traits
 // que ya utiliza el modelo Project en este proyecto.
-use App\Models\Concerns\TenantScoped;
 use App\Models\Concerns\ResolvesTenantRouteBinding;
+use App\Models\Concerns\TenantScoped;
+use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Party extends Model
 {
     use HasFactory;
-    use TenantScoped;
-    use SoftDeletes;
     use ResolvesTenantRouteBinding;
+    use SoftDeletes;
+    use TenantScoped;
 
     protected $fillable = [
         'tenant_id',
@@ -43,5 +43,10 @@ class Party extends Model
     public function tenant()
     {
         return $this->belongsTo(Tenant::class);
+    }
+
+    public function memberships(): HasMany
+    {
+        return $this->hasMany(Membership::class);
     }
 }

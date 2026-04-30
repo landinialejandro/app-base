@@ -197,26 +197,39 @@ class PartyController extends Controller
         ]);
     }
 
-    public function update(UpdatePartyRequest $request, Party $party)
-    {
-        $this->authorize('update', $party);
+public function update(UpdatePartyRequest $request, Party $party)
+{
+    $this->authorize('update', $party);
 
-        $data = $request->validated();
-        $kind = $data['kind'] ?? null;
-        $allowedKinds = $this->resolvedAllowedKindsFor('update', $party);
+    $data = $request->validated();
 
-        abort_unless(
-            is_string($kind) && in_array($kind, $allowedKinds, true),
-            403
-        );
+    if ($party->memberships()->exists()) {
+        $data['kind'] = PartyCatalog::KIND_EMPLOYEE;
 
-        $party->update($data);
-        $navigationTrail = PartyNavigationTrail::show($request, $party);
+        $linkedMembership = $party->memberships()
+            ->with('user')
+            ->first();
 
-        return redirect()
-            ->route('parties.show', ['party' => $party] + NavigationTrail::toQuery($navigationTrail))
-            ->with('success', 'Contacto actualizado correctamente.');
+        if ($linkedMembership?->user?->email) {
+            $data['email'] = $linkedMembership->user->email;
+        }
     }
+
+    $kind = $data['kind'] ?? null;
+    $allowedKinds = $this->resolvedAllowedKindsFor('update', $party);
+
+    abort_unless(
+        is_string($kind) && in_array($kind, $allowedKinds, true),
+        403
+    );
+
+    $party->update($data);
+    $navigationTrail = PartyNavigationTrail::show($request, $party);
+
+    return redirect()
+        ->route('parties.show', ['party' => $party] + NavigationTrail::toQuery($navigationTrail))
+        ->with('success', 'Contacto actualizado correctamente.');
+}
 
     public function destroy(Request $request, Party $party)
     {

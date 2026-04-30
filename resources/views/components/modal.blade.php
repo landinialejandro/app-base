@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/components/modal.blade.php | V4 --}}
+{{-- FILE: resources/views/components/modal.blade.php | V5 --}}
 
 @props(['id', 'title' => null, 'size' => 'md'])
 
@@ -18,14 +18,16 @@
 
     <div class="app-modal__dialog {{ $sizeClass }}" role="dialog" aria-modal="true"
         @if ($title) aria-label="{{ $title }}" @endif>
-        <div class="app-modal__header">
-            @if ($title)
-                <h3 class="app-modal__title">{{ $title }}</h3>
-            @else
-                <div></div>
-            @endif
+        <x-card class="app-modal__card" body-class="app-modal__body">
+            <x-slot:header>
+                @if ($title)
+                    <h3 class="card-title app-modal__title">{{ $title }}</h3>
+                @else
+                    <span></span>
+                @endif
+            </x-slot:header>
 
-            <div class="app-modal__header-actions">
+            <x-slot:toolbox>
                 @if ($hasHeaderActions)
                     {{ $headerActions }}
                 @endif
@@ -40,17 +42,15 @@
                 >
                     <x-icons.x />
                 </x-button-secondary>
-            </div>
-        </div>
+            </x-slot:toolbox>
 
-        <div class="app-modal__body">
             {{ $slot }}
-        </div>
 
-        @if (isset($footer) && trim((string) $footer) !== '')
-            <div class="app-modal__footer">
-                {{ $footer }}
-            </div>
-        @endif
+            @if (isset($footer) && trim((string) $footer) !== '')
+                <div class="app-modal__footer">
+                    {{ $footer }}
+                </div>
+            @endif
+        </x-card>
     </div>
 </div>

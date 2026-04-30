@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/_form.blade.php | V3 --}}
+{{-- FILE: resources/views/parties/_form.blade.php | V4 --}}
 
 @php
     use App\Support\Catalogs\PartyCatalog;
@@ -15,19 +15,37 @@
                     ? PartyCatalog::KIND_CUSTOMER
                     : $allowedKinds[0] ?? null)),
     );
+
+    $emailLocked = $party ? $party->memberships()->exists() : false;
 @endphp
 
 <div class="form-group">
     <label for="kind" class="form-label">Tipo</label>
-    <select name="kind" id="kind" class="form-control" required>
-        @foreach (PartyCatalog::kindLabels() as $value => $label)
-            @continue(!in_array($value, $allowedKinds, true))
 
-            <option value="{{ $value }}" @selected($currentKind === $value)>
-                {{ $label }}
+    @if ($emailLocked)
+        <select id="kind" class="form-control" disabled>
+            <option value="{{ PartyCatalog::KIND_EMPLOYEE }}" selected>
+                {{ PartyCatalog::kindLabels()[PartyCatalog::KIND_EMPLOYEE] ?? 'Colaborador' }}
             </option>
-        @endforeach
-    </select>
+        </select>
+
+        <input type="hidden" name="kind" value="{{ PartyCatalog::KIND_EMPLOYEE }}">
+
+        <div class="form-help">
+            Este contacto está vinculado a un usuario del tenant y debe permanecer como colaborador.
+        </div>
+    @else
+        <select name="kind" id="kind" class="form-control" required>
+            @foreach (PartyCatalog::kindLabels() as $value => $label)
+                @continue(!in_array($value, $allowedKinds, true))
+
+                <option value="{{ $value }}" @selected($currentKind === $value)>
+                    {{ $label }}
+                </option>
+            @endforeach
+        </select>
+    @endif
+
     @error('kind')
         <div class="form-help is-error">{{ $message }}</div>
     @enderror
@@ -81,7 +99,15 @@
 <div class="form-group">
     <label for="email" class="form-label">Email</label>
     <input type="email" id="email" name="email" class="form-control"
-        value="{{ old('email', $party->email ?? '') }}">
+        value="{{ old('email', $party->email ?? '') }}" @readonly($emailLocked)>
+
+    @if ($emailLocked)
+        <div class="form-help">
+            Este email está vinculado a un usuario del tenant. Si hay diferencia, se corregirá desde el email del
+            usuario.
+        </div>
+    @endif
+
     @error('email')
         <div class="form-help is-error">{{ $message }}</div>
     @enderror
@@ -123,3 +149,5 @@
         <div class="form-help is-error">{{ $message }}</div>
     @enderror
 </div>
+
+<x-dev-component-version name="parties._form" version="V4" />

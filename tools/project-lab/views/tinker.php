@@ -12,16 +12,19 @@
 
             <div class="snippets-bar" style="margin-top:14px;">
                 <span>Comandos rápidos:</span>
-                <span class="snippet-chip" onclick="insertSnippet('User::all();')">Users</span>
-                <span class="snippet-chip" onclick="insertSnippet('DB::table(\'users\')->get();')">DB users</span>
-                <span class="snippet-chip" onclick="insertSnippet('DB::table(\'tenants\')->get();')">Tenants</span>
-                <span class="snippet-chip" onclick="insertSnippet('config(\'app.name\');')">Config app</span>
-                <span class="snippet-chip" onclick="insertSnippet('app()->version();')">Laravel version</span>
+                <span class="snippet-chip" onclick="insertSnippet('return User::all();')">Users</span>
+                <span class="snippet-chip" onclick="insertSnippet('return DB::table(\'users\')->get();')">DB users</span>
+                <span class="snippet-chip" onclick="insertSnippet('return DB::table(\'tenants\')->get();')">Tenants</span>
+                <span class="snippet-chip" onclick="insertSnippet('return config(\'app.name\');')">Config app</span>
+                <span class="snippet-chip" onclick="insertSnippet('return app()->version();')">Laravel version</span>
                 <span class="snippet-chip" onclick="insertSnippet('App\\\\Models\\\\')">App\Models\</span>
             </div>
 
             <div class="editor-actions" style="margin-top:12px;">
                 <button type="button" onclick="runTinkerAjax()" class="run-btn">▶ Ejecutar</button>
+                <button type="button" onclick="runTinkerFromClipboard()" class="primary">
+                    📋 Ejecutar clipboard
+                </button>
                 <button type="button" onclick="copyOutput()" class="secondary">📋 Copiar</button>
                 <button type="button" onclick="exportOutput()" class="secondary">💾 Exportar</button>
                 <button type="button" onclick="clearTinker()" class="danger">🗑️ Limpiar</button>

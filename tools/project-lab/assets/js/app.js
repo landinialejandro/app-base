@@ -1,4 +1,4 @@
-// FILE: tools/project-lab/assets/js/app.js | V3
+// FILE: tools/project-lab/assets/js/app.js | V4
 
 const CONFIG = {
     csrfToken: document.querySelector('input[name="csrf_token"]')?.value || "",
@@ -74,6 +74,28 @@ function setProjectConsoleOutput(text) {
     output.innerHTML = colorizeProjectOutput(text);
 
     localStorage.setItem(PROJECT_CONSOLE_STORAGE_KEY, text);
+    localStorage.setItem(
+        PROJECT_CONSOLE_STORAGE_AT_KEY,
+        new Date().toISOString(),
+    );
+
+    return output;
+}
+
+function appendProjectConsoleOutput(text) {
+    const previous = localStorage.getItem(PROJECT_CONSOLE_STORAGE_KEY) || "";
+    const separator = previous.trim() === "" ? "" : "\n\n";
+
+    const next = previous + separator + text;
+
+    const output = ensureProjectConsoleOutput();
+    output.innerHTML = colorizeProjectOutput(next);
+
+    requestAnimationFrame(() => {
+        output.scrollTop = output.scrollHeight;
+    });
+
+    localStorage.setItem(PROJECT_CONSOLE_STORAGE_KEY, next);
     localStorage.setItem(
         PROJECT_CONSOLE_STORAGE_AT_KEY,
         new Date().toISOString(),
@@ -199,6 +221,24 @@ function runTinkerAjax() {
     });
 }
 
+function runTinkerFromClipboard() {
+    runProjectAction({
+        action: "ajax_tinker_from_clipboard",
+        payload: {},
+        loading: "⏳ Ejecutando Tinker desde clipboard...",
+        success: "Tinker ejecutado desde clipboard",
+        error: "Error al ejecutar Tinker desde clipboard",
+        onSuccess(data) {
+            const textarea = document.getElementById("code");
+
+            if (textarea && data.code !== undefined) {
+                textarea.value = data.code;
+                localStorage.setItem("projectLabTinkerCode", data.code);
+            }
+        },
+    });
+}
+
 function runArtisanAjax(command) {
     runProjectAction({
         action: "ajax_artisan",
@@ -246,6 +286,36 @@ function insertSnippet(snippet) {
     if (!textarea) return;
 
     insertIntoTextarea(textarea, snippet);
+}
+
+function bindArtisanAjaxButtons() {
+    document
+        .querySelectorAll('.artisan-form button[name="artisan"]')
+        .forEach((btn) => {
+            btn.addEventListener("click", function (e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+
+                const command = this.value || "";
+
+                if (!command) {
+                    showNotification("Comando Artisan vacío", "warning");
+                    return;
+                }
+
+                if (this.dataset.danger === "true") {
+                    const message = this.dataset.confirm || "¿Estás seguro?";
+
+                    showConfirmDialog(message, () => {
+                        runArtisanAjax(command);
+                    });
+
+                    return;
+                }
+
+                runArtisanAjax(command);
+            });
+        });
 }
 
 function exportOutput() {
@@ -783,6 +853,7 @@ function copySectionTemplate(template) {
 
 document.addEventListener("DOMContentLoaded", function () {
     bindArtisanAjaxButtons();
+
     document.querySelectorAll('[data-danger="true"]').forEach((btn) => {
         btn.addEventListener("click", function (e) {
             e.preventDefault();
@@ -921,58 +992,6 @@ style.textContent = `
         to { opacity: 0; transform: translateX(100px); }
     }
 `;
-
-function bindArtisanAjaxButtons() {
-    document
-        .querySelectorAll('.artisan-form button[name="artisan"]')
-        .forEach((btn) => {
-            btn.addEventListener("click", function (e) {
-                e.preventDefault();
-                e.stopImmediatePropagation();
-
-                const command = this.value || "";
-
-                if (!command) {
-                    showNotification("Comando Artisan vacío", "warning");
-                    return;
-                }
-
-                if (this.dataset.danger === "true") {
-                    const message = this.dataset.confirm || "¿Estás seguro?";
-
-                    showConfirmDialog(message, () => {
-                        runArtisanAjax(command);
-                    });
-
-                    return;
-                }
-
-                runArtisanAjax(command);
-            });
-        });
-}
-
-function appendProjectConsoleOutput(text) {
-    const previous = localStorage.getItem(PROJECT_CONSOLE_STORAGE_KEY) || "";
-    const separator = previous.trim() === "" ? "" : "\n\n";
-
-    const next = previous + separator + text;
-
-    const output = ensureProjectConsoleOutput();
-    output.innerHTML = colorizeProjectOutput(next);
-
-    requestAnimationFrame(() => {
-        output.scrollTop = output.scrollHeight;
-    });
-
-    localStorage.setItem(PROJECT_CONSOLE_STORAGE_KEY, next);
-    localStorage.setItem(
-        PROJECT_CONSOLE_STORAGE_AT_KEY,
-        new Date().toISOString(),
-    );
-
-    return output;
-}
 
 document.head.appendChild(style);
 

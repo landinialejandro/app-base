@@ -1,12 +1,13 @@
 /* ============================================================
-    FILE: tools/project-lab/assets/css/styles.css | V2
-    PROJECT LAB v8 - Dashboard Styles
-    Tema Oscuro Profesional - Diseño Modular
+    FILE: tools/project-lab/assets/css/app.css | V1
+    PROJECT LAB - App Styles
+    Archivo seccionado para actualización parcial por Project Lab
    ============================================================ */
 
-/* ==================== VARIABLES Y RESET ==================== */
+/* <<SECTION: BASE_TOKENS_RESET>> */
+/* SECTION_VERSION: 00002 */
+
 :root {
-    /* Colores principales */
     --bg: #020617;
     --bg-secondary: #0a0f1e;
     --card: #0f172a;
@@ -14,13 +15,11 @@
     --border: #1e293b;
     --border-light: #334155;
 
-    /* Texto */
     --text: #f1f5f9;
     --text-secondary: #cbd5e1;
     --muted: #94a3b8;
     --muted-dark: #64748b;
 
-    /* Acentos */
     --accent: #3b82f6;
     --accent-light: #60a5fa;
     --accent-dark: #2563eb;
@@ -33,19 +32,16 @@
     --purple: #8b5cf6;
     --pink: #ec4899;
 
-    /* Sombras */
     --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.3);
     --shadow-md: 0 4px 6px rgba(0, 0, 0, 0.4);
     --shadow-lg: 0 10px 15px rgba(0, 0, 0, 0.5);
     --shadow-glow: 0 0 15px rgba(59, 130, 246, 0.1);
 
-    /* Bordes redondeados */
     --radius-sm: 6px;
     --radius-md: 8px;
     --radius-lg: 12px;
     --radius-xl: 16px;
 
-    /* Transiciones */
     --transition: all 0.2s ease;
     --transition-slow: all 0.3s ease;
 }
@@ -65,7 +61,11 @@ body {
     min-height: 100vh;
 }
 
-/* ==================== SCROLLBAR ==================== */
+/* <<END SECTION>> */
+
+/* <<SECTION: SHELL_SCROLL_HEADER_LAYOUT>> */
+/* SECTION_VERSION: 00001 */
+
 ::-webkit-scrollbar {
     width: 8px;
     height: 8px;
@@ -84,7 +84,6 @@ body {
     background: var(--border-light);
 }
 
-/* ==================== HEADER ==================== */
 .project-header {
     display: flex;
     justify-content: space-between;
@@ -136,21 +135,6 @@ body {
     animation: pulse 2s infinite;
 }
 
-@keyframes pulse {
-
-    0%,
-    100% {
-        opacity: 1;
-        transform: scale(1);
-    }
-
-    50% {
-        opacity: 0.5;
-        transform: scale(1.2);
-    }
-}
-
-/* ==================== LAYOUT PRINCIPAL ==================== */
 .dashboard-grid {
     display: grid;
     grid-template-columns: 300px 1fr;
@@ -169,7 +153,11 @@ main {
     overflow: hidden;
 }
 
-/* ==================== CARDS ==================== */
+/* <<END SECTION>> */
+
+/* <<SECTION: BASE_COMPONENTS_FORMS>> */
+/* SECTION_VERSION: 00001 */
+
 .card {
     background: var(--card);
     border: 1px solid var(--border);
@@ -181,18 +169,6 @@ main {
 
 .card:hover {
     border-color: var(--border-light);
-}
-
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-        transform: translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
 }
 
 .card h3 {
@@ -208,7 +184,6 @@ main {
     font-weight: 600;
 }
 
-/* ==================== BOTONES ==================== */
 button {
     background: var(--accent);
     color: white;
@@ -240,6 +215,15 @@ button:disabled {
     transform: none;
 }
 
+button.primary {
+    background: var(--accent);
+    color: white;
+}
+
+button.primary:hover {
+    background: var(--accent-light);
+}
+
 button.secondary {
     background: var(--border-light);
     color: var(--text);
@@ -247,6 +231,15 @@ button.secondary {
 
 button.secondary:hover {
     background: var(--muted-dark);
+}
+
+button.success {
+    background: var(--success);
+    color: #000;
+}
+
+button.success:hover {
+    background: var(--success-light);
 }
 
 button.warning {
@@ -272,7 +265,6 @@ button.small {
     letter-spacing: 0;
 }
 
-/* ==================== TAB BUTTONS ==================== */
 .tab-btn {
     width: 100%;
     text-align: left;
@@ -300,7 +292,6 @@ button.small {
     font-weight: 600;
 }
 
-/* ==================== FORMULARIOS ==================== */
 input,
 textarea {
     background: var(--bg);
@@ -329,7 +320,11 @@ textarea {
     color: var(--success);
 }
 
-/* ==================== EDITOR TINKER ==================== */
+/* <<END SECTION>> */
+
+/* <<SECTION: EDITOR_SNIPPETS_CONSOLE>> */
+/* SECTION_VERSION: 00001 */
+
 .editor-header {
     display: flex;
     justify-content: space-between;
@@ -401,7 +396,6 @@ textarea {
     box-shadow: 0 0 20px rgba(59, 130, 246, 0.3);
 }
 
-/* ==================== OUTPUT CARD ==================== */
 .output-card {
     margin-top: 20px;
     background: #000 !important;
@@ -436,7 +430,31 @@ textarea {
     overflow-y: auto;
 }
 
-/* ==================== TABLAS ==================== */
+.lab-status-ok {
+    color: #39ff88;
+    font-weight: 800;
+}
+
+.lab-status-error {
+    color: #ff3b6b;
+    font-weight: 800;
+}
+
+.lab-status-warn {
+    color: #ffd43b;
+    font-weight: 800;
+}
+
+.lab-status-info {
+    color: #38bdf8;
+    font-weight: 800;
+}
+
+/* <<END SECTION>> */
+
+/* <<SECTION: TABLES_SIDEBAR_GENERATOR>> */
+/* SECTION_VERSION: 00001 */
+
 table {
     width: 100%;
     border-collapse: collapse;
@@ -464,7 +482,6 @@ tbody tr:hover {
     background: rgba(255, 255, 255, 0.02);
 }
 
-/* ==================== TABLE ITEMS ==================== */
 .table-item {
     display: flex;
     justify-content: space-between;
@@ -497,7 +514,6 @@ tbody tr:hover {
     gap: 5px;
 }
 
-/* ==================== SIDEBAR ELEMENTS ==================== */
 .history-list {
     max-height: 200px;
     overflow-y: auto;
@@ -548,7 +564,6 @@ tbody tr:hover {
     min-height: 20px;
 }
 
-/* ==================== GENERADOR DE MODELOS ==================== */
 .generator-container {
     display: flex;
     flex-direction: column;
@@ -631,7 +646,11 @@ tbody tr:hover {
     background: rgba(59, 130, 246, 0.1);
 }
 
-/* ==================== MONITOR ==================== */
+/* <<END SECTION>> */
+
+/* <<SECTION: MONITOR_BADGES_ROUTES_EMPTY>> */
+/* SECTION_VERSION: 00001 */
+
 .metrics-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
@@ -715,7 +734,6 @@ tbody tr:hover {
     margin-top: 20px;
 }
 
-/* ==================== BADGES ==================== */
 .badge {
     display: inline-block;
     padding: 3px 10px;
@@ -744,7 +762,6 @@ tbody tr:hover {
     border: 1px solid rgba(245, 158, 11, 0.3);
 }
 
-/* ==================== ROUTE CONTROLS ==================== */
 .route-controls {
     display: flex;
     gap: 10px;
@@ -757,7 +774,6 @@ tbody tr:hover {
     min-width: 200px;
 }
 
-/* ==================== EMPTY STATES ==================== */
 .empty-state {
     text-align: center;
     padding: 40px 20px;
@@ -765,7 +781,6 @@ tbody tr:hover {
     font-size: 14px;
 }
 
-/* ==================== SECTION HEADERS ==================== */
 .section-header {
     display: flex;
     justify-content: space-between;
@@ -778,7 +793,11 @@ tbody tr:hover {
     color: var(--muted);
 }
 
-/* ==================== CONFIRMATION DIALOG ==================== */
+/* <<END SECTION>> */
+
+/* <<SECTION: MODALS_UTILITIES_ANIMATIONS>> */
+/* SECTION_VERSION: 00001 */
+
 .confirm-overlay {
     position: fixed;
     top: 0;
@@ -817,101 +836,6 @@ tbody tr:hover {
     gap: 10px;
 }
 
-/* ==================== RESPONSIVE ==================== */
-@media (max-width: 1024px) {
-    .dashboard-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .sidebar {
-        order: -1;
-    }
-
-    .info-grid {
-        grid-template-columns: 1fr;
-    }
-}
-
-@media (max-width: 768px) {
-    body {
-        padding: 10px;
-    }
-
-    .project-header {
-        flex-direction: column;
-        align-items: flex-start;
-    }
-
-    .project-header h1 {
-        font-size: 20px;
-    }
-
-    .header-status {
-        font-size: 11px;
-        gap: 5px;
-    }
-
-    .metrics-grid {
-        grid-template-columns: repeat(2, 1fr);
-    }
-
-    .metric-value {
-        font-size: 20px;
-    }
-
-    textarea {
-        font-size: 12px;
-        min-height: 150px;
-    }
-
-    .editor-actions {
-        flex-wrap: wrap;
-    }
-
-    .editor-actions button {
-        flex: 1 1 calc(50% - 5px);
-    }
-
-    table {
-        font-size: 11px;
-    }
-
-    thead th,
-    tbody td {
-        padding: 8px;
-    }
-}
-
-@media (max-width: 480px) {
-    .metrics-grid {
-        grid-template-columns: 1fr;
-    }
-
-    .btn-group {
-        grid-template-columns: 1fr;
-    }
-
-    .route-controls {
-        flex-direction: column;
-    }
-
-    button {
-        padding: 8px 12px;
-        font-size: 11px;
-    }
-
-    .generator-btn {
-        padding: 14px !important;
-        font-size: 14px !important;
-    }
-
-    .generator-input {
-        padding: 12px !important;
-        font-size: 14px !important;
-    }
-}
-
-/* ==================== UTILIDADES ==================== */
 .hidden {
     display: none !important;
 }
@@ -940,7 +864,32 @@ tbody tr:hover {
     margin-bottom: 20px;
 }
 
-/* ==================== ANIMACIONES ==================== */
+@keyframes pulse {
+
+    0%,
+    100% {
+        opacity: 1;
+        transform: scale(1);
+    }
+
+    50% {
+        opacity: 0.5;
+        transform: scale(1.2);
+    }
+}
+
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+        transform: translateY(10px);
+    }
+
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
 @keyframes slideIn {
     from {
         opacity: 0;
@@ -969,59 +918,61 @@ tbody tr:hover {
     animation: slideUp 0.3s ease-out;
 }
 
-.lab-status-ok {
-    color: #39ff88;
-    font-weight: 800;
-}
+/* <<END SECTION>> */
 
-.lab-status-error {
-    color: #ff3b6b;
-    font-weight: 800;
-}
-
-.lab-status-warn {
-    color: #ffd43b;
-    font-weight: 800;
-}
-
-.lab-status-info {
-    color: #38bdf8;
-    font-weight: 800;
-}
-
-
-/* ==================== PROJECT LAB TOOLS ==================== */
+/* <<SECTION: PROJECT_LAB_TOOLS_SNIPPETS>> */
+/* SECTION_VERSION: 00004 */
 
 .lab-tool-card {
     position: relative;
     margin-bottom: 18px;
     overflow: visible;
+    padding: 0;
 }
 
-.lab-tool-card::before {
-    content: attr(data-title);
+.lab-tool-card > summary {
     display: flex;
     align-items: center;
-    height: 22px;
-    margin: -20px -20px 18px;
-    padding: 0 14px;
-    font-size: 10px;
+    gap: 8px;
+    height: 34px;
+    padding: 0 16px;
+    cursor: pointer;
+    list-style: none;
+    font-size: 15px;
     font-weight: 800;
-    letter-spacing: 0.8px;
-    text-transform: uppercase;
     background: rgba(255, 255, 255, 0.03);
+    border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
-.lab-tool-card--direct::before {
+.lab-tool-card > summary::-webkit-details-marker {
+    display: none;
+}
+
+.lab-tool-card--clipboard > summary {
+    color: #ff3b6b;
+    border-bottom: 1px solid #ff3b6b;
+    box-shadow: 0 6px 14px rgba(255, 59, 107, 0.12);
+}
+
+.lab-tool-card--direct > summary {
     color: #39ff88;
     border-bottom: 1px solid #39ff88;
     box-shadow: 0 6px 14px rgba(57, 255, 136, 0.12);
 }
 
-.lab-tool-card--clipboard::before {
-    color: #ff3b6b;
-    border-bottom: 1px solid #ff3b6b;
-    box-shadow: 0 6px 14px rgba(255, 59, 107, 0.12);
+.lab-tool-card-body {
+    padding: 16px 20px 20px;
+}
+
+.lab-tool-card-title {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.lab-tool-card-arrow {
+    font-size: 11px;
+    opacity: 0.9;
 }
 
 .lab-tool-actions {
@@ -1039,43 +990,26 @@ tbody tr:hover {
     white-space: nowrap;
 }
 
-.lab-snippets {
-    display: flex;
-    gap: 8px;
-    flex-wrap: wrap;
-    margin-top: 12px;
-    align-items: center;
-}
-
-.lab-snippets-label {
-    color: var(--muted);
-    font-size: 11px;
-}
-
-.lab-snippets details {
+.lab-snippets-details {
+    margin-top: 10px;
     position: relative;
 }
 
-.lab-snippets summary {
-    list-style: none;
+.lab-snippets-details > summary {
     cursor: pointer;
-    background: var(--card-hover);
-    color: var(--success);
-    border: 1px solid var(--border);
-    border-radius: var(--radius-sm);
-    padding: 4px 10px;
-    font-size: 11px;
-    font-family: 'Fira Code', monospace;
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 700;
 }
 
-.lab-snippets summary::-webkit-details-marker {
+.lab-snippets-details > summary::-webkit-details-marker {
     display: none;
 }
 
 .lab-snippets-panel {
     position: absolute;
     z-index: 100;
-    bottom: 30px;
+    top: 28px;
     left: 0;
     min-width: 220px;
     display: grid;
@@ -1092,7 +1026,10 @@ tbody tr:hover {
     white-space: nowrap;
 }
 
-/* ==================== PROJECT LAB HELP ==================== */
+/* <<END SECTION>> */
+
+/* <<SECTION: HELP_CATALOGS_COMPONENTS>> */
+/* SECTION_VERSION: 00001 */
 
 .help-grid {
     display: grid;
@@ -1173,8 +1110,6 @@ tbody tr:hover {
     padding: 2px 5px;
     border-radius: var(--radius-sm);
 }
-
-/* ==================== PROJECT LAB CATALOGS ==================== */
 
 .catalog-grid {
     display: grid;
@@ -1271,7 +1206,10 @@ tbody tr:hover {
     margin: 0;
 }
 
-/* <<SECTION: PROJECT_LAB_SECTIONS_CATALOG>> */
+/* <<END SECTION>> */
+
+/* <<SECTION: SECTIONS_CATALOG_RESPONSIVE>> */
+/* SECTION_VERSION: 00001 */
 
 .section-file-path {
     color: var(--success-light);
@@ -1289,6 +1227,99 @@ tbody tr:hover {
 
 .section-chip-list .snippet-chip {
     margin: 0;
+}
+
+@media (max-width: 1024px) {
+    .dashboard-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .sidebar {
+        order: -1;
+    }
+
+    .info-grid {
+        grid-template-columns: 1fr;
+    }
+}
+
+@media (max-width: 768px) {
+    body {
+        padding: 10px;
+    }
+
+    .project-header {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .project-header h1 {
+        font-size: 20px;
+    }
+
+    .header-status {
+        font-size: 11px;
+        gap: 5px;
+    }
+
+    .metrics-grid {
+        grid-template-columns: repeat(2, 1fr);
+    }
+
+    .metric-value {
+        font-size: 20px;
+    }
+
+    textarea {
+        font-size: 12px;
+        min-height: 150px;
+    }
+
+    .editor-actions {
+        flex-wrap: wrap;
+    }
+
+    .editor-actions button {
+        flex: 1 1 calc(50% - 5px);
+    }
+
+    table {
+        font-size: 11px;
+    }
+
+    thead th,
+    tbody td {
+        padding: 8px;
+    }
+}
+
+@media (max-width: 480px) {
+    .metrics-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .btn-group {
+        grid-template-columns: 1fr;
+    }
+
+    .route-controls {
+        flex-direction: column;
+    }
+
+    button {
+        padding: 8px 12px;
+        font-size: 11px;
+    }
+
+    .generator-btn {
+        padding: 14px !important;
+        font-size: 14px !important;
+    }
+
+    .generator-input {
+        padding: 12px !important;
+        font-size: 14px !important;
+    }
 }
 
 /* <<END SECTION>> */

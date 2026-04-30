@@ -11,24 +11,25 @@
                 <span class="shortcuts">Actualización embebida de código y documentación</span>
             </div>
 
-            <div class="card lab-tool-card lab-tool-card--clipboard" data-title="Desde clipboard">
-                <div class="lab-tool-actions">
+            <div  class="card lab-tool-card lab-tool-card--clipboard" data-title="Desde clipboard">
+                <div style="display:flex; justify-content:space-evenly; margin-top:12px;" class="lab-tool-actions">
                     <button type="button" onclick="runLabTool('code', true)" class="<?= $labToolActive === 'code' ? 'warning' : 'secondary' ?>">
                         📋 Código
                     </button>
-
                     <button type="button" onclick="runLabTool('docs', true)" class="<?= $labToolActive === 'docs' ? 'warning' : 'secondary' ?>">
                         📋 Docs
                     </button>
-
                     <button type="button" onclick="runLabTool('audit', true)" class="<?= $labToolActive === 'audit' ? 'warning' : 'secondary' ?>">
                         🔍 Auditoría
+                    </button>
+                    <button type="button" onclick="clearLabTools()" class="danger">
+                        🗑️ Limpiar
                     </button>
                 </div>
             </div>
 
             <div class="card lab-tool-card lab-tool-card--direct" data-title="Desde textarea">
-                <div class="lab-tool-actions">
+                <div style="display:flex; justify-content:space-evenly; margin-top:12px;" class="lab-tool-actions">
                     <button type="button" onclick="runLabTool('code', false)" class="<?= $labToolActive === 'code' ? 'warning' : 'secondary' ?>">
                         💻 Actualizar código
                     </button>
@@ -82,11 +83,6 @@
                 </div>
             </div>
 
-            <div style="display:flex; justify-content:flex-end; margin-top:12px;">
-                <button type="button" onclick="clearLabTools()" class="danger">
-                    🗑️ Limpiar
-                </button>
-            </div>
         </div>
     </form>
 

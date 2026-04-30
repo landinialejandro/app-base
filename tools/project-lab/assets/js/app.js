@@ -1,9 +1,14 @@
-// FILE: tools/project-lab/assets/js/app.js | V2
+// FILE: tools/project-lab/assets/js/app.js | V3
 
 const CONFIG = {
     csrfToken: document.querySelector('input[name="csrf_token"]')?.value || "",
     baseUrl: window.location.href.split("?")[0],
 };
+
+const PROJECT_CONSOLE_STORAGE_KEY = "projectLabConsoleOutput";
+const PROJECT_CONSOLE_STORAGE_AT_KEY = "projectLabConsoleAt";
+
+// ==================== TABS ====================
 
 function showTab(tabName) {
     document.querySelectorAll(".tab-content").forEach((tab) => {
@@ -12,6 +17,7 @@ function showTab(tabName) {
     });
 
     const targetTab = document.getElementById("tab-" + tabName);
+
     if (targetTab) {
         targetTab.style.display = "block";
         targetTab.classList.add("active");
@@ -32,6 +38,91 @@ function showTab(tabName) {
     localStorage.setItem("projectLabActiveTab", tabName);
 }
 
+// ==================== CONSOLA GLOBAL ====================
+
+function ensureProjectConsoleOutput() {
+    let output = document.getElementById("projectConsoleOutput");
+
+    if (output) {
+        return output;
+    }
+
+    const main = document.querySelector("main");
+
+    const card = document.createElement("div");
+    card.className = "card output-card";
+    card.id = "projectConsoleCard";
+    card.innerHTML = `
+        <div class="output-header">
+            <span>📤 Consola Project Lab</span>
+            <div style="display:flex; gap:6px;">
+                <button onclick="copyProjectConsoleOutput()" class="secondary small">Copiar</button>
+                <button onclick="clearProjectConsoleOutput()" class="danger small">Borrar</button>
+            </div>
+        </div>
+        <pre id="projectConsoleOutput"></pre>
+    `;
+
+    main.appendChild(card);
+
+    return document.getElementById("projectConsoleOutput");
+}
+
+function setProjectConsoleOutput(text) {
+    const output = ensureProjectConsoleOutput();
+
+    output.innerHTML = colorizeProjectOutput(text);
+
+    localStorage.setItem(PROJECT_CONSOLE_STORAGE_KEY, text);
+    localStorage.setItem(
+        PROJECT_CONSOLE_STORAGE_AT_KEY,
+        new Date().toISOString(),
+    );
+
+    return output;
+}
+
+function copyProjectConsoleOutput() {
+    const output = document.getElementById("projectConsoleOutput");
+
+    if (!output || output.innerText.trim() === "") {
+        showNotification("No hay salida para copiar", "warning");
+        return;
+    }
+
+    copyToClipboard(output.innerText, "Salida copiada al portapapeles");
+}
+
+function clearProjectConsoleOutput() {
+    const output = document.getElementById("projectConsoleOutput");
+
+    if (output) {
+        output.innerHTML = "";
+    }
+
+    localStorage.removeItem(PROJECT_CONSOLE_STORAGE_KEY);
+    localStorage.removeItem(PROJECT_CONSOLE_STORAGE_AT_KEY);
+
+    showNotification("Consola borrada", "success");
+}
+
+// Compatibilidad con botones viejos
+function ensureTinkerOutput() {
+    return ensureProjectConsoleOutput();
+}
+
+function ensureLabOutput() {
+    return ensureProjectConsoleOutput();
+}
+
+function copyOutput() {
+    copyProjectConsoleOutput();
+}
+
+function copyLabOutput() {
+    copyProjectConsoleOutput();
+}
+
 // ==================== AJAX RUNNER GENERAL ====================
 
 function runProjectAction(config) {
@@ -44,7 +135,7 @@ function runProjectAction(config) {
         formData.append(key, value);
     });
 
-    const output = config.ensureOutput();
+    const output = ensureProjectConsoleOutput();
     output.textContent = config.loading || "⏳ Ejecutando...";
 
     fetch(CONFIG.baseUrl, {
@@ -55,15 +146,7 @@ function runProjectAction(config) {
         .then((data) => {
             const finalOutput = data.output || "Sin salida.";
 
-            output.innerHTML = colorizeProjectOutput(finalOutput);
-
-            if (config.persistKey) {
-                localStorage.setItem(config.persistKey + "Output", finalOutput);
-                localStorage.setItem(
-                    config.persistKey + "At",
-                    new Date().toISOString(),
-                );
-            }
+            appendProjectConsoleOutput(finalOutput);
 
             if (config.onSuccess) {
                 config.onSuccess(data, finalOutput);
@@ -77,15 +160,7 @@ function runProjectAction(config) {
         .catch((error) => {
             const errorOutput = "❌ Error AJAX: " + error.message;
 
-            output.innerHTML = colorizeProjectOutput(errorOutput);
-
-            if (config.persistKey) {
-                localStorage.setItem(config.persistKey + "Output", errorOutput);
-                localStorage.setItem(
-                    config.persistKey + "At",
-                    new Date().toISOString(),
-                );
-            }
+            appendProjectConsoleOutput(errorOutput);
 
             showNotification(
                 config.error || "Error al ejecutar acción",
@@ -94,7 +169,7 @@ function runProjectAction(config) {
         });
 }
 
-// ==================== TINKER ====================
+// ==================== TINKER / ARTISAN ====================
 
 function runTinkerAjax() {
     const textarea = document.getElementById("code");
@@ -104,11 +179,9 @@ function runTinkerAjax() {
         payload: {
             code: textarea ? textarea.value : "",
         },
-        ensureOutput: ensureTinkerOutput,
         loading: "⏳ Ejecutando Tinker...",
         success: "Tinker ejecutado",
         error: "Error al ejecutar Tinker",
-        persistKey: "projectLabTinker",
         onSuccess(data) {
             const finalCode =
                 data.code !== undefined
@@ -132,11 +205,9 @@ function runArtisanAjax(command) {
         payload: {
             artisan: command,
         },
-        ensureOutput: ensureTinkerOutput,
         loading: "⏳ Ejecutando artisan " + command + "...",
         success: "Artisan ejecutado: " + command,
         error: "Error al ejecutar Artisan",
-        persistKey: "projectLabTinker",
         onSuccess() {
             localStorage.setItem(
                 "projectLabTinkerCode",
@@ -146,8 +217,16 @@ function runArtisanAjax(command) {
     });
 }
 
-function ensureTinkerOutput() {
-    return ensureProjectConsoleOutput();
+function clearTinker() {
+    const textarea = document.getElementById("code");
+
+    if (textarea) {
+        textarea.value = "";
+    }
+
+    localStorage.removeItem("projectLabTinkerCode");
+
+    showNotification("Editor Tinker borrado", "success");
 }
 
 function insertCode(code) {
@@ -163,48 +242,14 @@ function insertCode(code) {
 
 function insertSnippet(snippet) {
     const textarea = document.getElementById("code");
+
     if (!textarea) return;
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = textarea.value;
-
-    textarea.value = text.substring(0, start) + snippet + text.substring(end);
-    textarea.focus();
-    textarea.setSelectionRange(start + snippet.length, start + snippet.length);
-}
-
-function clearTinker() {
-    const textarea = document.getElementById("code");
-
-    if (textarea) {
-        textarea.value = "";
-    }
-
-    const output = document.querySelector("#tab-tinker .output-card");
-
-    if (output) {
-        output.remove();
-    }
-
-    localStorage.removeItem("projectLabTinkerCode");
-    localStorage.removeItem("projectLabTinkerOutput");
-    localStorage.removeItem("projectLabTinkerAt");
-}
-
-function copyOutput() {
-    const output = document.getElementById("tinkerOutput");
-
-    if (!output) {
-        showNotification("No hay salida para copiar", "warning");
-        return;
-    }
-
-    copyToClipboard(output.innerText, "Salida copiada al portapapeles");
+    insertIntoTextarea(textarea, snippet);
 }
 
 function exportOutput() {
-    const output = document.getElementById("tinkerOutput")?.innerText;
+    const output = document.getElementById("projectConsoleOutput")?.innerText;
 
     if (!output) {
         showNotification("No hay salida para exportar", "warning");
@@ -217,7 +262,7 @@ function exportOutput() {
     const timestamp = new Date().toISOString().slice(0, 19).replace(/:/g, "-");
 
     a.href = url;
-    a.download = `tinker-output-${timestamp}.txt`;
+    a.download = `project-lab-output-${timestamp}.txt`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
@@ -243,11 +288,9 @@ function runLabTool(tool, fromClipboard = false) {
     runProjectAction({
         action: "ajax_lab_tool",
         payload,
-        ensureOutput: ensureLabOutput,
         loading: "⏳ Ejecutando herramienta Lab...",
         success: "Herramienta Lab ejecutada",
         error: "Error al ejecutar herramienta Lab",
-        persistKey: "projectLabLab",
         onSuccess(data) {
             const finalInput =
                 data.input !== undefined
@@ -266,21 +309,12 @@ function runLabTool(tool, fromClipboard = false) {
     });
 }
 
-function ensureLabOutput() {
-    return ensureProjectConsoleOutput();
-}
-
 function insertLabSnippet(snippet) {
     const textarea = document.getElementById("labInput");
+
     if (!textarea) return;
 
-    const start = textarea.selectionStart;
-    const end = textarea.selectionEnd;
-    const text = textarea.value;
-
-    textarea.value = text.substring(0, start) + snippet + text.substring(end);
-    textarea.focus();
-    textarea.setSelectionRange(start + snippet.length, start + snippet.length);
+    insertIntoTextarea(textarea, snippet);
 }
 
 function clearLabTools() {
@@ -290,27 +324,10 @@ function clearLabTools() {
         textarea.value = "";
     }
 
-    const output = document.querySelector("#tab-tools .output-card");
-
-    if (output) {
-        output.remove();
-    }
-
     localStorage.removeItem("projectLabLabInput");
-    localStorage.removeItem("projectLabLabOutput");
     localStorage.removeItem("projectLabLabActive");
-    localStorage.removeItem("projectLabLabAt");
-}
 
-function copyLabOutput() {
-    const output = document.getElementById("labOutput");
-
-    if (!output) {
-        showNotification("No hay salida Lab para copiar", "warning");
-        return;
-    }
-
-    copyToClipboard(output.innerText, "Salida Lab copiada al portapapeles");
+    showNotification("Herramientas Lab borradas", "success");
 }
 
 // ==================== BASE DE DATOS ====================
@@ -332,6 +349,7 @@ function loadTableDetails(tableName, element) {
     element.appendChild(detailsDiv);
 
     const formData = new FormData();
+
     formData.append("describe_table", tableName);
     formData.append("csrf_token", CONFIG.csrfToken);
 
@@ -401,6 +419,7 @@ function copyAllRoutes() {
 
 function tailLogs(lines = 50) {
     const logViewer = document.getElementById("logViewer");
+
     if (!logViewer) return;
 
     logViewer.innerHTML = `
@@ -411,6 +430,7 @@ function tailLogs(lines = 50) {
     `;
 
     const formData = new FormData();
+
     formData.append("tail_logs", "1");
     formData.append("lines", lines);
     formData.append("csrf_token", CONFIG.csrfToken);
@@ -458,7 +478,11 @@ function runScript(scriptName) {
         status.innerHTML = "⏳ Ejecutando " + scriptName + "...";
     }
 
+    const output = ensureProjectConsoleOutput();
+    output.textContent = "⏳ Ejecutando " + scriptName + "...";
+
     const formData = new FormData();
+
     formData.append("run_script", scriptName);
     formData.append("csrf_token", CONFIG.csrfToken);
 
@@ -468,18 +492,11 @@ function runScript(scriptName) {
     })
         .then((response) => response.text())
         .then((data) => {
-            const output = ensureTinkerOutput();
+            appendProjectConsoleOutput(data);
 
-            output.textContent = data;
-
-            localStorage.setItem("projectLabTinkerOutput", data);
             localStorage.setItem(
                 "projectLabTinkerCode",
                 "// script " + scriptName,
-            );
-            localStorage.setItem(
-                "projectLabTinkerAt",
-                new Date().toISOString(),
             );
 
             showTab("tinker");
@@ -488,11 +505,15 @@ function runScript(scriptName) {
                 status.innerHTML = "✅ " + scriptName + " finalizado.";
             }
 
-            output.scrollIntoView({ behavior: "smooth" });
+            ensureProjectConsoleOutput().scrollIntoView({ behavior: "smooth" });
         })
         .catch((err) => {
+            const errorOutput = "❌ Error al ejecutar " + scriptName;
+
+            appendProjectConsoleOutput(errorOutput);
+
             if (status) {
-                status.innerHTML = "❌ Error al ejecutar " + scriptName;
+                status.innerHTML = errorOutput;
             }
 
             showNotification("Error al ejecutar el script", "error");
@@ -545,6 +566,7 @@ function generateModel() {
     showStatus("⏳ Creando modelo " + name + "...", "loading");
 
     const formData = new FormData();
+
     formData.append("generate_model", name);
     formData.append("csrf_token", CONFIG.csrfToken);
 
@@ -564,12 +586,8 @@ function generateModel() {
             btn.style.background = "var(--success)";
             btn.style.color = "white";
 
+            appendProjectConsoleOutput(data);
             showStatus("✅ Modelo " + name + " creado exitosamente", "success");
-
-            setTimeout(() => {
-                alert("Resultado:\n\n" + data);
-                location.reload();
-            }, 1000);
         })
         .catch((err) => {
             console.error("Error al generar modelo:", err);
@@ -584,6 +602,7 @@ function generateModel() {
 
 function showStatus(message, type = "") {
     const status = document.getElementById("genStatus");
+
     if (!status) return;
 
     status.textContent = message;
@@ -602,6 +621,16 @@ function showStatus(message, type = "") {
 }
 
 // ==================== UTILIDADES ====================
+
+function insertIntoTextarea(textarea, snippet) {
+    const start = textarea.selectionStart;
+    const end = textarea.selectionEnd;
+    const text = textarea.value;
+
+    textarea.value = text.substring(0, start) + snippet + text.substring(end);
+    textarea.focus();
+    textarea.setSelectionRange(start + snippet.length, start + snippet.length);
+}
 
 function copyToClipboard(text, successMessage) {
     if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -646,6 +675,7 @@ function colorizeProjectOutput(text) {
         /^(\[(OK|ERROR|WARN|INFO)\])/gm,
         (match, full, type) => {
             const className = "lab-status-" + type.toLowerCase();
+
             return `<span class="${className}">${full}</span>`;
         },
     );
@@ -741,9 +771,18 @@ function showConfirmDialog(message, callback) {
     input.focus();
 }
 
+// <<SECTION: SECTION_TEMPLATE_COPY>>
+
+function copySectionTemplate(template) {
+    copyToClipboard(template, "Plantilla de sección copiada al portapapeles");
+}
+
+// <<END SECTION>>
+
 // ==================== INICIALIZACIÓN ====================
 
 document.addEventListener("DOMContentLoaded", function () {
+    bindArtisanAjaxButtons();
     document.querySelectorAll('[data-danger="true"]').forEach((btn) => {
         btn.addEventListener("click", function (e) {
             e.preventDefault();
@@ -785,28 +824,24 @@ document.addEventListener("DOMContentLoaded", function () {
     }
 
     const savedTinkerCode = localStorage.getItem("projectLabTinkerCode");
-    const savedTinkerOutput = localStorage.getItem("projectLabTinkerOutput");
 
     if (savedTinkerCode !== null && textarea) {
         textarea.value = savedTinkerCode;
     }
 
-    if (savedTinkerOutput !== null && savedTinkerOutput !== "") {
-        ensureTinkerOutput().innerHTML =
-            colorizeProjectOutput(savedTinkerOutput);
-    }
-
-    const savedLabInput = localStorage.getItem("projectLabLabInput");
-    const savedLabOutput = localStorage.getItem("projectLabLabOutput");
-
     const labInput = document.getElementById("labInput");
+    const savedLabInput = localStorage.getItem("projectLabLabInput");
 
     if (savedLabInput !== null && labInput) {
         labInput.value = savedLabInput;
     }
 
-    if (savedLabOutput !== null && savedLabOutput !== "") {
-        ensureLabOutput().innerHTML = colorizeProjectOutput(savedLabOutput);
+    const savedConsoleOutput = localStorage.getItem(
+        PROJECT_CONSOLE_STORAGE_KEY,
+    );
+
+    if (savedConsoleOutput !== null && savedConsoleOutput !== "") {
+        setProjectConsoleOutput(savedConsoleOutput);
     }
 
     const lastTab = localStorage.getItem("projectLabActiveTab");
@@ -871,17 +906,10 @@ document.addEventListener("keydown", function (e) {
     }
 });
 
-// <<SECTION: SECTION_TEMPLATE_COPY >>
-
-function copySectionTemplate(template) {
-    copyToClipboard(template, "Plantilla de sección copiada al portapapeles");
-}
-
-// <<END SECTION>>
-
 // ==================== ANIMACIONES ====================
 
 const style = document.createElement("style");
+
 style.textContent = `
     @keyframes slideIn {
         from { opacity: 0; transform: translateX(100px); }
@@ -893,60 +921,59 @@ style.textContent = `
         to { opacity: 0; transform: translateX(100px); }
     }
 `;
+
+function bindArtisanAjaxButtons() {
+    document
+        .querySelectorAll('.artisan-form button[name="artisan"]')
+        .forEach((btn) => {
+            btn.addEventListener("click", function (e) {
+                e.preventDefault();
+                e.stopImmediatePropagation();
+
+                const command = this.value || "";
+
+                if (!command) {
+                    showNotification("Comando Artisan vacío", "warning");
+                    return;
+                }
+
+                if (this.dataset.danger === "true") {
+                    const message = this.dataset.confirm || "¿Estás seguro?";
+
+                    showConfirmDialog(message, () => {
+                        runArtisanAjax(command);
+                    });
+
+                    return;
+                }
+
+                runArtisanAjax(command);
+            });
+        });
+}
+
+function appendProjectConsoleOutput(text) {
+    const previous = localStorage.getItem(PROJECT_CONSOLE_STORAGE_KEY) || "";
+    const separator = previous.trim() === "" ? "" : "\n\n";
+
+    const next = previous + separator + text;
+
+    const output = ensureProjectConsoleOutput();
+    output.innerHTML = colorizeProjectOutput(next);
+
+    requestAnimationFrame(() => {
+        output.scrollTop = output.scrollHeight;
+    });
+
+    localStorage.setItem(PROJECT_CONSOLE_STORAGE_KEY, next);
+    localStorage.setItem(
+        PROJECT_CONSOLE_STORAGE_AT_KEY,
+        new Date().toISOString(),
+    );
+
+    return output;
+}
+
 document.head.appendChild(style);
 
 console.log("🧪 Project Lab - JS inicializado");
-
-function ensureProjectConsoleOutput() {
-    let output = document.getElementById("projectConsoleOutput");
-
-    if (output) {
-        return output;
-    }
-
-    const main = document.querySelector("main");
-
-    const card = document.createElement("div");
-    card.className = "card output-card";
-    card.id = "projectConsoleCard";
-    card.innerHTML = `
-        <div class="output-header">
-            <span>📤 Consola Project Lab</span>
-            <div style="display:flex; gap:6px;">
-                <button onclick="copyProjectConsoleOutput()" class="secondary small">Copiar</button>
-                <button onclick="clearProjectConsoleOutput()" class="danger small">Borrar</button>
-            </div>
-        </div>
-        <pre id="projectConsoleOutput"></pre>
-    `;
-
-    main.appendChild(card);
-
-    return document.getElementById("projectConsoleOutput");
-}
-
-function copyProjectConsoleOutput() {
-    const output = document.getElementById("projectConsoleOutput");
-
-    if (!output) {
-        showNotification("No hay salida para copiar", "warning");
-        return;
-    }
-
-    copyToClipboard(output.innerText, "Salida copiada al portapapeles");
-}
-
-function clearProjectConsoleOutput() {
-    const output = document.getElementById("projectConsoleOutput");
-
-    if (output) {
-        output.innerHTML = "";
-    }
-
-    localStorage.removeItem("projectLabTinkerOutput");
-    localStorage.removeItem("projectLabTinkerAt");
-    localStorage.removeItem("projectLabLabOutput");
-    localStorage.removeItem("projectLabLabAt");
-
-    showNotification("Consola borrada", "success");
-}

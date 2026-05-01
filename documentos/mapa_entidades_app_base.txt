@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -59,6 +59,7 @@ Relaciones operativas del negocio:
 orders → order_items
 documents → document_items
 inventory_operations → inventory_movements
+parties → party_roles
 
 Relaciones transversales relevantes:
 
@@ -82,12 +83,21 @@ Reglas:
 no es obligatoria
 no altera relaciones estructurales principales
 no convierte a party en entidad del sistema
+no convierte a party en entidad de acceso
 
 Lectura correcta:
 
 el plano de identidad y acceso permanece en users y memberships
 
 el plano del negocio permanece en parties y demás entidades
+
+Aclaración vigente:
+
+si la membership vinculada está activa, la party funciona como ficha ampliada tenant-scoped del colaborador interno.
+
+Esa lectura no altera la relación principal:
+
+users → memberships → tenants
 
 Regla:
 
@@ -183,7 +193,7 @@ Por esta razón, no debe tratarse como una entidad tenant-scoped pura del negoci
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ENTIDADES DEL NEGOCIO
 
@@ -196,6 +206,7 @@ tenant_id
 Actualmente incluyen:
 
 parties
+party_roles
 projects
 tasks
 appointments
@@ -210,9 +221,17 @@ inventory_movements
 inventory_operations
 attachments
 
+Aclaración vigente:
+
+party_roles es entidad hija o complementaria de parties.
+
+Permite expresar la relación de un contacto con la empresa sin sobrecargar parties.kind.
+
 <<END SECTION>>
 
 <<SECTION: ENTIDAD BASE DEL NEGOCIO>>
+SECTION_VERSION: 00002
+
 ENTIDAD BASE DEL NEGOCIO
 
 parties
@@ -226,10 +245,11 @@ proveedores
 contactos
 contratistas
 terceros
+colaboradores internos cuando corresponda
 
 Regla actual:
 
-no crear entidades nuevas si el caso puede resolverse extendiendo parties
+no crear entidades nuevas si el caso puede resolverse extendiendo parties mediante su contrato vigente o entidades hijas correspondientes
 
 parties no debe tratarse como un módulo opcional común, sino como entidad base transversal del dominio y módulo base intrínseco del sistema
 
@@ -244,10 +264,22 @@ Contacto
 Regla adicional:
 
 las relaciones hacia parties desde otros módulos deben respetar el estado activo del módulo destino y no deben exponerse en UI si el módulo parties no estuviera disponible
+
+Aclaración estructural vigente:
+
+parties.kind representa únicamente el tipo de contacto:
+
+person
+company
+
+La relación del contacto con la empresa no debe comprimirse en parties.kind.
+
+Debe expresarse mediante party_roles.
+
 <<END SECTION>>
 
 <<SECTION: MODELO DE ACCESO Y PERTENENCIA>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 MODELO DE ACCESO Y PERTENENCIA
 
@@ -296,6 +328,14 @@ Regla adicional:
 la creación o vinculación de party desde membership debe ser explícita
 
 no debe generarse automáticamente por acceso o navegación
+
+Cuando exista membership activa vinculada:
+
+la party debe leerse como ficha ampliada tenant-scoped del colaborador interno
+
+esa ficha puede quedar parcialmente protegida para mantener coherencia con la identidad global y la pertenencia activa
+
+si la membership deja de estar activa o se desvincula, la party deja de estar bloqueada por esa relación activa y vuelve a leerse como contacto común según su contrato vigente
 
 Regla:
 
@@ -424,7 +464,7 @@ también debe leerse como host show capaz de consumir relaciones compactas publi
 <<END SECTION>>
 
 <<SECTION: PARTIES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 PARTIES
 
@@ -436,7 +476,7 @@ Puede representar:
 
 clientes
 proveedores
-colaboradores internos (cuando corresponda)
+colaboradores internos cuando corresponda
 otros actores del negocio
 
 Reglas estructurales:
@@ -444,6 +484,39 @@ Reglas estructurales:
 party es tenant-scoped
 no pertenece al plano global del sistema
 no reemplaza la identidad global de users
+no reemplaza la pertenencia operativa de memberships
+
+Clasificación vigente:
+
+parties.kind representa únicamente el tipo de contacto.
+
+Valores vigentes:
+
+person
+company
+
+Regla:
+
+parties.kind no debe representar customer, supplier ni employee.
+
+Relación hija consolidada:
+
+party → party_roles
+
+party_roles expresa la relación del contacto con la empresa.
+
+Valores vigentes:
+
+customer
+supplier
+employee
+other
+
+Regla:
+
+employee no es tipo de contacto ni naturaleza de party.
+
+Employee es una relación operativa dentro de party_roles.
 
 Relación consolidada:
 
@@ -465,10 +538,13 @@ users conserva identidad global
 membership representa pertenencia operativa
 party representa ficha ampliada del negocio
 
-Cuando exista vínculo:
+Cuando exista vínculo con membership activa:
 
 party debe representar al colaborador interno
-party.kind debe corresponder a employee o equivalente
+party.kind debe ser person
+party_roles debe contener employee
+email queda protegido respecto de edición libre desde parties
+la ficha queda parcialmente bloqueada por la pertenencia activa
 
 Regla operativa consolidada:
 
@@ -480,15 +556,36 @@ la existencia del vínculo no habilita edición libre de atributos críticos sin
 
 Regla adicional:
 
-party.email no debe tratarse como campo libre cuando represente una ficha vinculada a un usuario interno
+party.email no debe tratarse como campo libre cuando represente una ficha vinculada a un usuario interno con membership activa
 
 no debe asumirse sincronización automática sin criterio definido
+
+Distinción vigente:
+
+employee con membership activa
+
+employee manual sin user del sistema
+
+El primer caso representa una ficha ampliada vinculada a pertenencia activa.
+
+El segundo caso representa un contacto común con relación employee, cargable solo por usuarios autorizados.
 
 Regla:
 
 party mantiene su rol como entidad del negocio
 
 no absorbe conceptualmente a users ni a memberships
+
+La complejidad futura de parties debe crecer hacia entidades hijas o complementarias antes que sobrecargar el núcleo.
+
+Líneas conceptuales futuras posibles:
+
+party_relationships
+party_emails
+party_phones
+party_addresses
+
+Estas líneas no deben documentarse como implementación vigente mientras no existan en código real.
 
 <<END SECTION>>
 

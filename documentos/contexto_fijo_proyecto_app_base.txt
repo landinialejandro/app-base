@@ -174,7 +174,7 @@ Su desarrollo técnico y sus reglas operativas concretas se resuelven en documen
 <<END SECTION>>
 
 <<SECTION: IDENTIDAD GLOBAL Y PERTENENCIA POR EMPRESA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 IDENTIDAD GLOBAL Y PERTENENCIA POR EMPRESA
 
@@ -197,6 +197,18 @@ Un usuario puede pertenecer a múltiples tenants.
 La pertenencia a una empresa no se resuelve desde user como atributo directo único, sino mediante la capa intermedia de memberships.
 
 Esto forma parte estable del modelo del sistema.
+
+Aclaración consolidada:
+
+membership puede vincular opcionalmente una ficha ampliada en parties.
+
+Esa ficha ampliada pertenece al plano del negocio y no reemplaza la identidad global ni la pertenencia operativa.
+
+Cuando la membership activa esté vinculada a una party, esa party debe leerse como representación operativa ampliada del colaborador dentro del tenant.
+
+Regla:
+
+la relación membership → party no convierte a party en identidad del sistema ni en entidad de acceso.
 
 <<END SECTION>>
 
@@ -223,7 +235,7 @@ Es una pieza estructural del funcionamiento del sistema.
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00016
 
 CAPAS FUNCIONALES DEL SISTEMA
 
@@ -238,8 +250,11 @@ Contexto operativo de la empresa activa.
 CAPA DE GOBIERNO INTERNO DEL TENANT
 Organiza pertenencia y actores internos.
 
-users mantiene identidad global
-memberships resuelve pertenencia operativa
+users mantiene identidad global.
+
+memberships resuelve pertenencia operativa.
+
+Una membership puede vincularse opcionalmente con una ficha ampliada tenant-scoped en parties, sin reemplazar identidad ni acceso.
 
 CAPA TRANSVERSAL
 Responsabilidades compartidas.
@@ -257,6 +272,8 @@ esta lectura debe prevalecer en decisiones arquitectónicas
 tenant es contexto, no módulo funcional
 
 las necesidades de colaboradores internos deben resolverse primero en la capa tenant antes de crear módulos nuevos
+
+la ficha ampliada en parties no altera el plano de identidad global ni el modelo de pertenencia operativa
 
 <<END SECTION>>
 
@@ -322,7 +339,7 @@ Su función es sostener la plataforma y su frontera de ingreso.
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00021
 
 ENTIDADES DEL NEGOCIO
 
@@ -331,6 +348,7 @@ Las entidades del negocio representan la operación propia de cada tenant.
 Casos actuales del proyecto:
 
 parties
+party_roles
 projects
 tasks
 appointments
@@ -356,6 +374,7 @@ módulos autónomos
 entidades hijas
 capacidades transversales
 soporte operativo interno
+entidades complementarias de una base del dominio
 
 Reglas de lectura relevantes:
 
@@ -375,40 +394,45 @@ order_items y document_items conservan naturaleza de entidades hijas de sus mód
 
 orders y documents comparten una doctrina base de lifecycle para cabeceras operativas
 
-Aclaración adicional consolidada:
+Aclaración estructural para parties:
+
+parties representa contactos o actores del negocio dentro del tenant.
+
+parties.kind representa únicamente tipo de contacto.
+
+Valores vigentes:
+
+person
+company
+
+party_roles expresa la relación del contacto con la empresa.
+
+Relaciones vigentes:
+
+customer
+supplier
+employee
+other
+
+Regla:
+
+employee no es tipo de contacto ni naturaleza de party.
+
+Employee es una relación operativa dentro de party_roles.
+
+Aclaración sobre membership → party:
 
 membership puede vincular opcionalmente una ficha ampliada en parties.
 
-La relación conceptual es:
-
-membership → party
-
-Características de esta relación:
+Esta relación:
 
 es opcional
 es tenant-scoped
 no modifica la estructura base del sistema
-
-No altera la regla principal:
-
-users → memberships → tenants
-
-La ficha ampliada:
-
-no se crea automáticamente
 no reemplaza la identidad global del usuario
 no convierte a party en entidad de acceso
-no convierte a party en identidad del sistema
 
-Cuando exista vínculo:
-
-party debe mantenerse como entidad del negocio
-party representa al colaborador interno en el plano operativo
-su tipo debe corresponder a colaborador (employee) cuando aplique
-
-Regla:
-
-esta relación extiende información del usuario en el plano del negocio, sin modificar los planos de identidad ni de acceso.
+Cuando exista vínculo con membership activa, party representa al colaborador interno en el plano operativo del negocio.
 
 Este documento reconoce la posición estructural de estas entidades.
 
@@ -438,7 +462,7 @@ tampoco debe sobredimensionarse el dominio del negocio hasta absorber piezas cuy
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 CLASIFICACIÓN CONCEPTUAL DE MÓDULOS
 
@@ -461,7 +485,6 @@ parties
 products
 assets
 appointments
-attachments
 
 MÓDULOS TRANSVERSALES
 
@@ -485,6 +508,10 @@ helpers comunes
 surfaces específicas
 datasets internos del tenant
 
+Aclaración sobre attachments:
+
+attachments puede tener gestión y superficies propias, pero su lectura doctrinal principal es transversal porque aporta evidencias y archivos a múltiples recursos del sistema.
+
 Regla:
 
 la clasificación describe rol funcional actual y puede evolucionar con la madurez real del sistema.
@@ -492,7 +519,7 @@ la clasificación describe rol funcional actual y puede evolucionar con la madur
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00022
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
@@ -565,6 +592,14 @@ parties actúa como módulo oferente de relaciones compactas y embebidas.
 
 Cuando parties.show consume relaciones hacia otros módulos, debe hacerlo mediante surfaces oficiales y no mediante cargas manuales reconstruidas en controller.
 
+Aclaración estructural vigente para parties:
+
+el núcleo de parties no debe comprimir dimensiones distintas en un único campo.
+
+La clasificación principal del contacto vive en parties.kind.
+
+La relación del contacto con la empresa vive en party_roles.
+
 Regla:
 
 la arquitectura modular define fronteras estructurales.
@@ -574,7 +609,7 @@ No debe absorber reglas de seguridad ni detalles de implementación.
 <<END SECTION>>
 
 <<SECTION: BASE DEL DOMINIO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00006
 
 BASE DEL DOMINIO
 
@@ -596,11 +631,38 @@ que una pieza pertenezca a la base del dominio no la convierte en infraestructur
 
 Sigue perteneciendo al ecosistema operativo del tenant, pero con un rol conceptual más amplio que el de un módulo operativo puntual.
 
-Regla adicional consolidada:
+Regla vigente para parties:
 
-los usuarios internos activos del tenant no pertenecen a la base del dominio del negocio.
+parties debe mantenerse como núcleo mínimo del actor o contacto del negocio.
 
-Su lectura correcta pertenece al plano tenant y a memberships como pertenencia operativa real.
+La expansión de su complejidad debe tender a entidades hijas o complementarias y no a sobrecargar el núcleo.
+
+Separación consolidada:
+
+parties.kind = tipo de contacto
+party_roles.role = relación con la empresa
+
+Valores vigentes de parties.kind:
+
+person
+company
+
+Relaciones vigentes de party_roles.role:
+
+customer
+supplier
+employee
+other
+
+Regla:
+
+employee no pertenece a parties.kind.
+
+Employee expresa relación operativa con la empresa dentro de party_roles.
+
+Aclaración sobre colaboradores internos:
+
+los usuarios internos activos del tenant pertenecen al plano tenant y a memberships como pertenencia operativa real.
 
 membership puede vincularse opcionalmente con party como ficha ampliada tenant-scoped, pero esa relación no convierte a party en identidad global ni en entidad de acceso.
 
@@ -652,7 +714,7 @@ No todos los hosts show pages poseen igual madurez estructural dentro del ecosis
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES
 
@@ -666,7 +728,7 @@ inventory gobierna stock, ejecución material y trazabilidad sin absorber owners
 
 projects y tasks organizan planificación y seguimiento operativo
 
-parties concentra terceros y relaciones externas
+parties concentra contactos y actores del negocio, internos o externos según su relación con la empresa
 
 products y assets representan recursos operativos del tenant
 

@@ -123,7 +123,7 @@ Autenticado no equivale automáticamente a autorizado.
 <<END SECTION>>
 
 <<SECTION: IDENTIDAD, MEMBERSHIP Y TENANT ACTIVO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 IDENTIDAD, MEMBERSHIP Y TENANT ACTIVO
 
@@ -156,6 +156,20 @@ Regla:
 la autorización se resuelve por identidad autenticada, membership vigente, tenant activo y contrato efectivo.
 
 party no reemplaza ninguno de esos elementos.
+
+Aclaración adicional:
+
+si una party está vinculada a una membership activa, su operación queda condicionada por esa pertenencia activa.
+
+Esa condición no convierte a party en entidad de acceso.
+
+Solo protege la coherencia entre identidad global, pertenencia operativa y ficha ampliada del negocio.
+
+Regla:
+
+la condición relevante para bloquear atributos críticos de la ficha ampliada es la existencia de una membership activa vinculada.
+
+Una membership histórica, inactiva o desvinculada no debe producir por sí misma el mismo bloqueo operativo.
 
 <<END SECTION>>
 
@@ -317,7 +331,7 @@ no saltar el resolver central con lógica local improvisada
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -357,10 +371,22 @@ Regla:
 
 la validación efectiva siempre debe contemplar tenant, recurso, relaciones y estado operativo cuando corresponda.
 
+Regla adicional para parties:
+
+la UI no constituye autorización para asignar relaciones sensibles del contacto.
+
+Si una opción visual se oculta, bloquea o simplifica en el formulario, el backend debe validar igualmente el intento manipulado.
+
+Caso vigente:
+
+la relación employee dentro de party_roles no debe poder asignarse manualmente desde alta o edición común de parties salvo por usuarios autorizados.
+
+La protección efectiva debe vivir en backend.
+
 <<END SECTION>>
 
 <<SECTION: CONSTRAINTS FUNCIONALES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00007
 
 CONSTRAINTS FUNCIONALES
 
@@ -376,6 +402,8 @@ ignorar constraints equivale a ejecutar un contrato incompleto
 
 cuando una acción depende del estado operativo del registro, ese estado forma parte del contrato efectivo
 
+cuando una acción depende de una relación activa entre entidades, esa relación activa debe evaluarse como condición funcional real
+
 no debe tratarse como bloqueo visual ni validación secundaria
 
 El detalle por módulo debe resolverse en REGLAS OPERATIVAS POR MÓDULO para evitar duplicación doctrinal.
@@ -383,7 +411,7 @@ El detalle por módulo debe resolverse en REGLAS OPERATIVAS POR MÓDULO para evi
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00015
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -410,7 +438,7 @@ los estados operativos forman parte real del contrato
 
 la delegación de seguridad debe ser explícita y consistente
 
-Las capacidades publicadas (row actions, surfaces) pertenecen al módulo oferente.
+Las capacidades publicadas, incluyendo row actions y surfaces, pertenecen al módulo oferente.
 
 El host monta, pero no redefine seguridad.
 
@@ -428,10 +456,24 @@ el contrato modular define fronteras y responsabilidades.
 
 No debe transformarse en detalle funcional del módulo.
 
+Aclaración para parties:
+
+el contrato de seguridad de parties debe distinguir entre:
+
+contacto común
+contacto con relación employee
+party vinculada a membership activa
+
+Estas lecturas no son equivalentes.
+
+La relación employee puede existir como relación operativa de contacto, pero su asignación manual debe quedar restringida.
+
+Cuando la party esté vinculada a membership activa, sus atributos críticos no deben tratarse como edición libre de contacto común.
+
 <<END SECTION>>
 
 <<SECTION: RECURSOS DELEGADOS AL PADRE>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00016
 
 RECURSOS DELEGADOS AL PADRE
 
@@ -471,17 +513,11 @@ bloquear edición o eliminación estructural por movimientos asociados no consti
 
 Sigue siendo una restricción funcional dentro del ciclo de vida delegado del recurso perteneciente a documents.
 
-Aclaración adicional sobre membership → party:
-
-la ficha party vinculada a una membership no debe leerse como recurso delegado puro equivalente a una entidad hija.
-
-party conserva naturaleza de entidad del negocio tenant-scoped.
-
-Sin embargo, cuando representa ficha ampliada de colaborador interno, su operación debe quedar condicionada por la membership vinculada y por el tenant activo.
-
 Regla:
 
-la vinculación no convierte a party en identidad global ni en fuente primaria de acceso.
+esta sección no debe absorber casos que no sean recursos delegados al padre.
+
+Las relaciones entre entidades autónomas o fichas ampliadas deben documentarse en la sección de identidad, contrato modular o reglas operativas por módulo según corresponda.
 
 <<END SECTION>>
 
@@ -511,7 +547,7 @@ la integración reusable reduce duplicación visual o contractual, pero no reduc
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00013
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -528,6 +564,40 @@ Conserva ownership documental sobre cabecera y líneas.
 INVENTORY
 
 Conserva ownership sobre stock, movimientos y trazabilidad.
+
+PARTIES
+
+parties.kind no representa relación comercial ni vínculo interno.
+
+Representa únicamente tipo de contacto:
+
+person
+company
+
+La relación del contacto con la empresa se expresa mediante party_roles.
+
+Relaciones vigentes:
+
+customer
+supplier
+employee
+other
+
+Reglas operativas de seguridad:
+
+employee no debe estar disponible para asignación manual por cualquier usuario desde alta o edición común de contactos
+
+la UI puede ocultar o bloquear opciones, pero la autorización efectiva debe resolverse en backend
+
+StorePartyRequest y UpdatePartyRequest deben bloquear intentos manipulados de asignar employee cuando el usuario no esté autorizado
+
+si la party tiene membership activa vinculada, quedan protegidos:
+
+kind como person
+employee
+email respecto de edición libre desde parties
+
+si la membership deja de estar activa o se desvincula, la party deja de estar bloqueada por esa relación activa
 
 Regla:
 

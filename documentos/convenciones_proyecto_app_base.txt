@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00017
 
 CONVENCIONES GENERALES
 
@@ -231,10 +231,33 @@ Caso vigente:
 
 la primera línea creada sobre una cabecera en draft promueve automáticamente a pending_approval.
 
+Convención adicional de modelado de clasificaciones:
+
+una entidad no debe comprimir en un único campo conceptos que pertenecen a dimensiones distintas.
+
+Cuando una clasificación mezcle naturaleza, tipo, relación operativa o vínculo comercial, debe separarse el núcleo de la entidad de sus relaciones o tablas hijas.
+
+Caso vigente:
+
+parties.kind representa únicamente tipo de contacto.
+
+party_roles.role representa relación del contacto con la empresa.
+
+No deben volver a usarse customer, supplier ni employee como valores de parties.kind.
+
+Convención adicional de lenguaje de UI para parties:
+
+en la interfaz de parties debe evitarse la palabra rol para no confundir relación del contacto con roles de permisos o memberships.
+
+La lectura visible correcta debe priorizar:
+
+Tipo de contacto
+Relación con la empresa
+
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA BASE DEL PROYECTO>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 ESTRUCTURA BASE DEL PROYECTO
 
@@ -355,16 +378,18 @@ estilos específicos por módulo o pantalla
 
 Regla adicional consolidada:
 
-los estilos específicos de pantalla (ej: dashboard) deben vivir en public/css/modules/
+los estilos específicos de pantalla deben vivir en public/css/modules/
 
 no deben reemplazar ni desactivar app-base.css ni app-patterns.css
 
 public/js/app-base.js
 comportamiento global
 
-Regla adicional:
+Caso vigente:
 
-los assets deben tender a centralizarse en estas ubicaciones y no dispersarse
+el comportamiento reusable de formularios progresivos vive en public/js/app-base.js
+
+Puede ser utilizado por formularios que requieran revelar secciones en pasos dentro de una misma pantalla sin convertirlo en lógica de negocio.
 
 DOCUMENTOS
 
@@ -479,7 +504,7 @@ No debe utilizarse desactivación global de users para resolver bajas, bloqueos 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ACCESO POR MÓDULO Y ROLES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 CONVENCIONES DE ACCESO POR MÓDULO Y ROLES
 
@@ -552,6 +577,14 @@ ese contrato se consume siempre bajo arbitraje de la capa central
 la publicación de capacidades reutilizables por parte de un módulo no crea canales paralelos de autorización
 
 las integraciones entre módulos deben respetar el contrato del módulo oferente y no reinterpretarlo desde el módulo consumidor
+
+Regla adicional para parties:
+
+las relaciones sensibles del contacto no deben quedar protegidas únicamente por la UI.
+
+Si una relación como employee se oculta o bloquea visualmente, el backend debe impedir igualmente su asignación manipulada por usuarios no autorizados.
+
+La relación employee pertenece a party_roles y no debe confundirse con roles de permisos.
 
 <<END SECTION>>
 
@@ -892,7 +925,7 @@ ningún contrato modular es válido si contradice el contrato de seguridad del m
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CLASIFICACIÓN MODULAR>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 CONVENCIONES DE CLASIFICACIÓN MODULAR
 
@@ -917,6 +950,18 @@ Es una pieza conceptual fundamental del negocio y no debe tratarse como módulo 
 Caso actual consolidado:
 
 parties
+
+Regla adicional para módulos base del dominio:
+
+su núcleo debe mantenerse mínimo y estable.
+
+Cuando una nueva dimensión conceptual no sea equivalente al tipo básico de la entidad, debe crecer hacia relación o entidad hija antes que sobrecargar el campo principal.
+
+Caso vigente:
+
+parties.kind define tipo de contacto.
+
+party_roles define relación del contacto con la empresa.
 
 MÓDULO TRANSVERSAL
 

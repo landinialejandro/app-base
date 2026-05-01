@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 COMPONENTES DISPONIBLES
 
@@ -185,6 +185,18 @@ stepper numérico
 acciones por Enter
 micro-superficies operativas en modal
 acciones por fila publicadas por módulos oferentes
+
+Comportamientos frontend reutilizables vigentes:
+
+formularios progresivos activados mediante data-action="app-progressive-form"
+
+Este comportamiento no reemplaza componentes Blade ni valida reglas de negocio.
+
+Solo organiza visualmente la aparición progresiva de secciones de un formulario cuando la carga guiada reduce error operativo.
+
+Caso vigente:
+
+parties._form utiliza formulario progresivo para guiar tipo de contacto, relación con la empresa y datos del contacto.
 
 Regla adicional consolidada:
 
@@ -843,7 +855,7 @@ Este componente puede mostrar métricas principales y métricas secundarias medi
 <<END SECTION>>
 
 <<SECTION: ACCIONES VISUALES EN INDEX Y SHOW>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 ACCIONES VISUALES EN INDEX Y SHOW
 
@@ -900,9 +912,25 @@ Si no existe ficha vinculada, no debe crearla silenciosamente.
 
 Debe existir confirmación explícita antes de crear o vincular la ficha ampliada.
 
+Regla adicional para parties:
+
+la acción visual o el campo que permite marcar relación Colaborador debe mostrarse solo cuando corresponda al estado autorizado o bloqueado del recurso.
+
+Si la party está bloqueada por membership activa, la opción puede mostrarse como lectura protegida con ayuda contextual.
+
+Si el usuario no está autorizado para asignar employee, la opción no debe presentarse como acción disponible.
+
+Regla:
+
+la ocultación o bloqueo visual no constituye autorización.
+
+El backend debe seguir validando la operación.
+
 <<END SECTION>>
 
 <<SECTION: FRAGMENTACIÓN DE BLADES>>
+SECTION_VERSION: 00002
+
 FRAGMENTACIÓN DE BLADES
 
 Las vistas grandes deben dividirse en partials cuando superen complejidad razonable.
@@ -942,6 +970,31 @@ el valor visible debe reflejar el estado actual del modelo
 no debe priorizarse el valor previo del request si ese campo no es editable
 
 esto evita inconsistencias visuales en formularios como órdenes numeradas
+
+Criterio adicional para formularios progresivos:
+
+un _form puede organizar campos en secciones progresivas cuando eso mejore la carga guiada sin convertir el formulario en un wizard externo ni dispersar la responsabilidad del formulario principal.
+
+El formulario progresivo debe:
+
+mantener create y edit como contenedores del formulario completo
+mantener _form como bloque interno de campos
+mostrar las secciones necesarias según valores existentes en edición
+no trasladar reglas de negocio ni autorización al frontend
+acompañar la carga con copy claro y no técnico
+
+Caso vigente:
+
+parties._form guía la carga en tres momentos visuales:
+
+¿Qué tipo de contacto vas a agregar?
+¿Qué relación tiene con tu empresa?
+Datos del contacto
+
+Regla:
+
+la progresión visual ayuda a reducir error de carga, pero no reemplaza validaciones backend ni autorización efectiva.
+
 <<END SECTION>>
 
 <<SECTION: MICRO-SUPERFICIES OPERATIVAS>>

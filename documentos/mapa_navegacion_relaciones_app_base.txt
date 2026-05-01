@@ -131,7 +131,7 @@ cuando existan varias rutas posibles, debe priorizarse la más consistente con N
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN PRINCIPAL TENANT>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 NAVEGACIÓN PRINCIPAL TENANT
 
@@ -170,6 +170,12 @@ la navegación principal puede incorporar iconografía por módulo para mejorar 
 
 esa iconografía debe provenir de metadata modular (ModuleCatalog) y no definirse localmente en la vista
 
+Aclaración vigente para parties:
+
+parties mantiene su lugar como módulo visible de contactos.
+
+El alta de contacto puede resolverse mediante experiencia progresiva dentro de la misma pantalla, sin crear una navegación nueva.
+
 Regla:
 
 la navegación principal no reemplaza flujos contextuales ni relaciones entre módulos
@@ -179,7 +185,7 @@ Su función es dar acceso estructural al ecosistema operativo vigente
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -223,10 +229,26 @@ La cabecera nace en draft y puede pasar a pending_approval cuando recibe la prim
 
 Este cambio pertenece al flujo natural del recurso y no crea una navegación nueva.
 
+Aclaración vigente para membership → party:
+
+la ficha ampliada de colaborador puede abrir recorrido contextual hacia parties cuando exista vínculo explícito.
+
+El flujo desde perfil o membership hacia party debe preservar la distinción entre:
+
+identidad global
+pertenencia operativa
+ficha ampliada tenant-scoped
+
+Regla:
+
+crear o vincular una ficha ampliada no debe ocurrir de forma silenciosa por navegación.
+
+Debe existir acción o confirmación explícita.
+
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -258,6 +280,15 @@ Caso vigente en documents.show:
 inventory puede operar por línea documental dentro del host sin perder identidad modular
 
 Las acciones por fila pertenecen a inventory y documents conserva la tabla documental como superficie anfitriona
+
+Caso vigente en parties.show:
+
+parties puede hospedar relaciones embebidas o compactas publicadas por otros módulos mediante surfaces oficiales.
+
+La lectura de parties.show debe respetar la nueva semántica de parties:
+
+tipo de contacto
+relación con la empresa
 
 Orden visual recomendado para tablas anfitrionas:
 
@@ -294,7 +325,7 @@ las surfaces embebidas deben viajar enriquecidas desde registry para permitir re
 <<END SECTION>>
 
 <<SECTION: FLUJOS DERIVADOS RELEVANTES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 FLUJOS DERIVADOS RELEVANTES
 
@@ -317,6 +348,9 @@ signup_request aprobado
 → invitation owner_signup
 → tenant inicializado
 → owner onboarding
+
+membership o perfil tenant
+→ party como ficha ampliada explícita cuando corresponda
 
 Reglas:
 
@@ -344,9 +378,22 @@ en orders y documents, la cabecera puede iniciar en draft y avanzar a pending_ap
 
 La línea deja de ser solo detalle estructural cuando participa como disparador del lifecycle del padre.
 
+Aclaración vigente sobre ficha ampliada:
+
+el flujo membership o perfil tenant → party debe crear o vincular una ficha ampliada de forma explícita.
+
+Cuando corresponda a colaborador interno:
+
+party.kind debe ser person
+party_roles debe contener employee
+
+La navegación no debe convertir automáticamente todo usuario interno en party.
+
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN GENERAL DE MÓDULOS>>
+SECTION_VERSION: 00002
+
 CLASIFICACIÓN GENERAL DE MÓDULOS
 
 MÓDULOS PRINCIPALMENTE ESTRUCTURALES
@@ -377,6 +424,15 @@ tasks
 assets
 
 Pueden abrirse de forma estructural o como continuación de otro flujo operativo.
+
+Aclaración vigente para parties:
+
+parties es módulo estructural y base del dominio.
+
+party_roles no constituye navegación principal propia.
+
+Su función es expresar relaciones del contacto con la empresa dentro del módulo parties.
+
 <<END SECTION>>
 
 <<SECTION: REGLAS DEL TRAIL>>

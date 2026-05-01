@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -75,10 +75,53 @@ return_tab se usa como contexto interno del host para preservar el panel activo 
 
 trail continúa representando contexto externo entre recursos.
 
+Parties fue reconvertido conceptualmente.
+
+Lectura vigente:
+
+party.kind = tipo de contacto
+
+Valores:
+
+person
+company
+
+party_roles.role = relación con la empresa
+
+Valores:
+
+customer
+supplier
+employee
+other
+
+Reglas de continuidad para parties:
+
+no usar customer, supplier ni employee como parties.kind
+
+no reintroducir KIND_CUSTOMER, KIND_SUPPLIER ni KIND_EMPLOYEE como valores de kind
+
+no usar rol en UI de parties si puede confundirse con roles de permisos o memberships
+
+usar preferentemente:
+
+Tipo de contacto
+Relación con la empresa
+
+Lectura vigente de employee:
+
+colaborador con membership activa → ficha bloqueada parcialmente
+
+colaborador manual sin user → contacto común con relación employee, solo gestionable por usuarios autorizados
+
+El formulario progresivo de parties ya está implementado y funcionando.
+
+No debe revertirse a formulario plano sin justificación basada en código real y necesidad validada.
+
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS DEL CHAT>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 REGLAS OPERATIVAS DEL CHAT
 
@@ -127,10 +170,27 @@ No declarar cierres por intuición.
 
 El cierre debe apoyarse en evidencia técnica suficiente.
 
+Regla operativa adicional para parties:
+
+no asumir la semántica anterior de kind.
+
+Antes de tocar parties, verificar la lectura vigente:
+
+parties.kind = person/company
+
+party_roles.role = customer/supplier/employee/other
+
+Si la tarea involucra employee, membership o ficha ampliada, distinguir siempre:
+
+employee con membership activa
+employee manual sin user del sistema
+
+No mezclar esa distinción con roles de permisos.
+
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DE ESTE CHAT>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 OBJETIVO DE ESTE CHAT
 
@@ -149,6 +209,20 @@ mejoras pendientes de layout general, footer y vistas extensas
 mejoras móviles futuras en attachments para captura rápida de evidencias
 
 auditoría de nuevas mejoras sobre tabs host únicamente si existe evidencia real de necesidad
+
+seguimiento del frente parties posterior a la reconversión conceptual
+
+Pendientes específicos vigentes de parties:
+
+extraer canManageEmployeeContacts
+
+validar admin runtime si se crea o existe dataset activo
+
+validar visualmente formulario de parties con usuario no owner
+
+validar visualmente party con membership activa
+
+revisar documentación restante del frente parties si corresponde
 
 Toda propuesta debe nacer desde el estado actual real del proyecto y no desde supuestos genéricos.
 

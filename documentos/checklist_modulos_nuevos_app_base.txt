@@ -10,7 +10,7 @@ Para actualizar una sección, se reemplaza el bloque completo entre ambos delimi
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 OBJETIVO
 
@@ -30,7 +30,8 @@ Es un control mínimo obligatorio antes de considerar un módulo como integrado 
 
 Aclaración doctrinal consolidada:
 
-este checklist aplica tanto a módulos nuevos como a reconversiones profundas de módulos existentes cuando cambie su contrato funcional, contractual o de seguridad
+este checklist aplica tanto a módulos nuevos como a reconversiones profundas de módulos existentes cuando cambie su contrato funcional, contractual, de modelado o de seguridad
+
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA GENERAL>>
@@ -110,7 +111,7 @@ Si estas respuestas no están claras, no debe avanzarse a implementación.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 BLOQUE 1 — CONTRATO MODULAR
 
@@ -138,10 +139,24 @@ Criterio adicional validado:
 
 si la necesidad aparece dentro de tablas anfitrionas de otros módulos, evaluar si corresponde publicar row actions oficiales desde el módulo oferente antes de crear lógica local en el consumidor.
 
+Criterio adicional para reconversiones:
+
+si una clasificación mezcla dimensiones conceptuales distintas, debe revisarse el contrato funcional del módulo antes de seguir agregando excepciones.
+
+La salida correcta puede requerir separar:
+
+núcleo de la entidad
+relaciones operativas
+entidades hijas o complementarias
+
+Caso validado:
+
+parties.kind no debe mezclar tipo de contacto con relación comercial o vínculo interno.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 BLOQUE 2 — SEGURIDAD OBLIGATORIA
 
@@ -209,10 +224,22 @@ si esos permisos pueden asignarse realmente
 si la habilitación del módulo produce consecuencia visible coherente en UI
 si owner dispone de una surface real para entender y administrar ese comportamiento
 
+Validación adicional para campos ocultos o relaciones sensibles:
+
+si una opción se oculta en UI por permisos, estado o relación activa, debe existir validación backend equivalente.
+
+No alcanza con no mostrar el campo.
+
+Debe probarse intento manipulado desde request o runtime real.
+
+Caso validado:
+
+parties bloquea asignación manipulada de relación employee desde StorePartyRequest y UpdatePartyRequest para usuarios no autorizados.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -261,10 +288,22 @@ Regla:
 
 toda integración debe poder describirse contractualmente y mantenerse reusable sin acoples innecesarios
 
+Regla adicional para entidades base con relaciones hijas:
+
+cuando una entidad base requiere expresar múltiples relaciones con la empresa, esas relaciones deben documentarse y modelarse como dimensión separada del tipo base.
+
+Caso vigente:
+
+parties → party_roles
+
+parties.kind expresa tipo de contacto.
+
+party_roles.role expresa relación con la empresa.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA
 
@@ -315,10 +354,37 @@ Regla:
 
 la experiencia operativa debe mantenerse homogénea en todo el sistema
 
+Validación adicional para formularios de módulos base:
+
+si una entidad base concentra decisiones iniciales relevantes, puede usarse un formulario progresivo para guiar la carga sin exponer complejidad técnica.
+
+El formulario progresivo debe:
+
+reducir error de carga
+mantener copy comprensible
+no reemplazar autorización backend
+no trasladar reglas de negocio al frontend
+
+Caso vigente:
+
+parties guía la carga mediante:
+
+tipo de contacto
+relación con la empresa
+datos del contacto
+
+Regla de lenguaje:
+
+evitar términos que generen confusión con seguridad o permisos.
+
+Caso vigente:
+
+en parties debe preferirse Relación con la empresa antes que rol.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 5 — DOCUMENTACIÓN Y CIERRE>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 BLOQUE 5 — DOCUMENTACIÓN Y CIERRE
 
@@ -351,10 +417,24 @@ el cierre de un módulo no es solo código funcionando
 
 implica coherencia entre arquitectura, UI, navegación y documentación
 
+Validación adicional para reconversiones profundas:
+
+cuando se eliminen constantes, valores de catálogo o lecturas anteriores del modelo, debe auditarse que no queden residuos en:
+
+app
+resources
+database
+
+Caso vigente:
+
+la reconversión de parties elimina la lectura de customer, supplier y employee como valores de parties.kind.
+
+El cierre debe verificar que esos valores no reaparezcan como constantes, migraciones, seeders, requests, controller o vistas bajo la semántica anterior.
+
 <<END SECTION>>
 
 <<SECTION: CHECKLIST MÍNIMO EXISTENTE>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CHECKLIST MÍNIMO EXISTENTE
 
@@ -385,12 +465,22 @@ UI no muestra acciones que la autorización efectiva no permite
 recursos hijos respetan el estado operativo del padre
 pruebas Tinker incluyen matriz por estado, permiso y trazabilidad
 
+Para reconversiones de clasificación o catálogo, verificar además:
+
+que los valores anteriores no sigan vivos como constantes
+que migraciones y seeders expresen la semántica nueva
+que requests validen contra el contrato vigente
+que controllers no reconstruyan lógica legacy
+que vistas y copy no usen términos anteriores de forma ambigua
+que se haya probado intento manipulado cuando exista relación sensible
+que se haya ejecutado grep de residuos sobre app, resources y database
+
 Este bloque resume mínimos técnicos, pero no reemplaza el checklist completo.
 
 <<END SECTION>>
 
 <<SECTION: CRITERIO FINAL DE APROBACIÓN>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 CRITERIO FINAL DE APROBACIÓN
 
@@ -414,6 +504,25 @@ consistencia doctrinal
 No alcanza con una vista compartida ni con una refactorización parcial.
 
 Se considera cierre sólido cuando desaparecen duplicaciones relevantes sin perder claridad, ownership funcional, trazabilidad ni seguridad.
+
+Criterio adicional para reconversiones profundas:
+
+una reconversión se considera cerrada solo cuando la semántica anterior deja de operar en todas las capas relevantes.
+
+Validaciones mínimas esperadas:
+
+código aplicado
+migraciones o migrate:fresh --seed según corresponda
+Tinker backend para restricciones críticas
+validación en navegador informada
+grep de residuos
+copy UX coherente con la nueva lectura
+
+Caso vigente de referencia:
+
+parties.kind debe quedar limitado a tipo de contacto.
+
+party_roles.role debe expresar relación con la empresa.
 
 <<END SECTION>>
 
@@ -564,7 +673,7 @@ si una integración necesita usuarios internos activos, validar explícitamente 
 <<END SECTION>>
 
 <<SECTION: VALIDACIONES BACKEND VS UI>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 VALIDACIONES BACKEND VS UI
 
@@ -585,6 +694,17 @@ si un módulo relacionado está deshabilitado, el backend rechace referencias ha
 tabs, tablas parciales, calendarios y formularios embebidos respeten la misma lógica que la pantalla principal
 
 no existan rutas operables residuales aunque la UI ya no las muestre
+
+Regla adicional:
+
+cuando una opción visual se oculte por rol, permiso, estado operativo o relación activa, debe probarse que el backend bloquee el mismo caso ante manipulación del request.
+
+Caso vigente:
+
+el checkbox o selección visual de Colaborador en parties no es fuente de autorización.
+
+La restricción efectiva para asignar employee debe vivir en StorePartyRequest, UpdatePartyRequest o capa backend equivalente.
+
 <<END SECTION>>
 
 <<SECTION: SUPERFICIES SECUNDARIAS Y PARTIALS>>

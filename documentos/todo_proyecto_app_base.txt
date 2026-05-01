@@ -39,7 +39,7 @@ no debe utilizarse como depósito de ideas difusas sin criterio de ejecución
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — RECONVERSIÓN MODULAR>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 LÍNEA ACTIVA — RECONVERSIÓN MODULAR
 
@@ -55,6 +55,7 @@ migración avanzada de AssetLinkedAction a AssetLinked
 alineación progresiva de show pages como hosts estructurados
 incorporación doctrinal de inventory como frente funcional con surfaces propias
 alineación de tasks y appointments para consumir directorio interno del tenant en lugar de abilities sobre módulo inexistente
+reconversión conceptual de parties separando tipo de contacto y relación con la empresa
 
 Criterios rectores vigentes:
 
@@ -63,6 +64,7 @@ migración gradual módulo por módulo
 cada módulo debe cerrar coherencia interna propia
 consumir capacidades oficiales antes de variantes locales nuevas
 no abrir módulo users por necesidades de dataset interno reusable
+no comprimir en parties.kind relaciones que pertenecen a party_roles
 
 Foco de esta línea:
 
@@ -70,11 +72,17 @@ menos lógica dispersa en consumidores
 más capacidades publicadas por módulos oferentes
 más claridad entre núcleo, gateway y consumo externo
 más coherencia entre arquitectura, UI y documentación
+más separación entre tipo base de entidad y relaciones operativas
+
+Caso vigente consolidado:
+
+parties.kind = person/company
+party_roles.role = customer/supplier/employee/other
 
 <<END SECTION>>
 
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 MÓDULOS PRIORITARIOS A REVISAR
 
@@ -93,16 +101,16 @@ por revisión contractual pendiente bajo nueva doctrina
 assets
 por surfaces compactas ya detectadas en revisión
 
-parties
-por surfaces compactas ya detectadas en revisión
-
 documents
 por consolidación como capacidad embebida oficial
+
+parties
+seguimiento posterior a la reconversión conceptual ya aplicada, especialmente documentación, validaciones visuales finales y extracción de lógica reusable pendiente
 
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -169,6 +177,35 @@ se consolidó uso de iconografía reusable mediante components/icons
 
 se resolvió separación inferior del layout mediante margen en la última page y no padding interno
 
+Cierre operativo reciente de parties:
+
+se reconvirtió parties para separar tipo de contacto y relación con la empresa
+
+Estado consolidado:
+
+parties.kind = person/company
+party_roles.role = customer/supplier/employee/other
+
+Se incorporó party_roles como relación hija/complementaria de parties.
+
+Se actualizó migración, modelo, seeders y UI según la nueva lectura.
+
+Validaciones informadas para parties:
+
+migrate:fresh --seed OK
+StorePartyRequest employee restriction OK por Tinker
+UpdatePartyRequest employee restriction OK por Tinker
+owner OK
+sales/operator/administrator bloqueados
+grep de constantes viejas OK
+formulario progresivo funcionando
+
+Constantes legacy eliminadas como lectura vigente de kind:
+
+KIND_CUSTOMER
+KIND_SUPPLIER
+KIND_EMPLOYEE
+
 Validaciones recientes informadas:
 
 syntax OK
@@ -179,7 +216,7 @@ browser OK
 <<END SECTION>>
 
 <<SECTION: CAPACIDADES REUTILIZABLES A CONSOLIDAR>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 CAPACIDADES REUTILIZABLES A CONSOLIDAR
 
@@ -236,9 +273,21 @@ Capacidad reusable vigente para tabs host:
 x-host-tabs
 HostTabs
 
+Capacidad frontend reusable vigente:
+
+data-action="app-progressive-form"
+
+Caso vigente:
+
+parties._form utiliza formulario progresivo para guiar tipo de contacto, relación con la empresa y datos del contacto.
+
 Siguiente consolidación técnica posible:
 
 helpers comunes livianos orientados a presentación y payload visual de line items, sin absorber dominio, hooks, permisos ni semántica propia de cada módulo.
+
+Pendiente específico de parties:
+
+extraer canManageEmployeeContacts a una pieza reusable del dominio parties o tenant para evitar duplicación entre requests y controller.
 
 <<END SECTION>>
 
@@ -260,7 +309,7 @@ verificar que nuevas integraciones embebidas no reabran bypasses de autorizació
 <<END SECTION>>
 
 <<SECTION: DEUDA TÉCNICA A REDUCIR>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 DEUDA TÉCNICA A REDUCIR
 
@@ -288,6 +337,25 @@ Pendiente adicional:
 
 revisión completa de tablas largas, scroll horizontal y densidad visual en pantallas con alto volumen de datos
 
+Deuda reducida:
+
+la mezcla previa de parties.kind como tipo de contacto, relación comercial y vínculo interno quedó reconvertida.
+
+Lectura vigente:
+
+parties.kind = person/company
+party_roles.role = customer/supplier/employee/other
+
+Deuda técnica pendiente derivada de parties:
+
+extraer canManageEmployeeContacts de StorePartyRequest, UpdatePartyRequest y PartyController hacia una pieza reusable
+
+validar runtime de admin cuando exista dataset seed activo
+
+validar visualmente party con membership activa
+
+validar visualmente usuario no owner en formulario de parties
+
 Regla:
 
 reducir deuda implica cerrar incoherencias reales que afectan el modelo del sistema
@@ -295,11 +363,10 @@ reducir deuda implica cerrar incoherencias reales que afectan el modelo del sist
 <<END SECTION>>
 
 <<SECTION: ORDEN SUGERIDO DE EJECUCIÓN>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 ORDEN SUGERIDO DE EJECUCIÓN
 
-cerrar documentación restante
 auditar orders como módulo piloto
 normalizar capacidades reutilizables visibles
 revisar seguridad e integraciones de módulos críticos
@@ -310,10 +377,11 @@ documentar patrones finales consolidados
 Regla:
 
 cada paso debe dejar menos excepciones que el anterior
+
 <<END SECTION>>
 
 <<SECTION: ESTADO ACTUAL DEL SISTEMA>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 ESTADO ACTUAL DEL SISTEMA
 
@@ -349,7 +417,27 @@ return_tab se consolida como contexto interno del host para preservar el panel a
 
 trail conserva su función de contexto externo entre recursos.
 
-La validación runtime reciente no detectó nuevos hallazgos críticos fuera del frente ya corregido.
+Parties quedó reconvertido conceptualmente:
+
+parties.kind representa tipo de contacto:
+
+person
+company
+
+party_roles.role representa relación con la empresa:
+
+customer
+supplier
+employee
+other
+
+La relación employee ya no pertenece a parties.kind.
+
+La relación membership → party continúa como ficha ampliada tenant-scoped del colaborador interno cuando exista vínculo explícito.
+
+Si la membership vinculada está activa, la party queda parcialmente protegida según la regla vigente.
+
+La validación runtime reciente no detectó nuevos hallazgos críticos fuera de los frentes ya corregidos.
 
 <<END SECTION>>
 
@@ -369,7 +457,7 @@ document_items
 <<END SECTION>>
 
 <<SECTION: MÓDULOS POSIBLES A FUTURO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 MÓDULOS POSIBLES A FUTURO
 
@@ -381,10 +469,26 @@ productos fraccionables o decimales operativos en inventory
 expansión de row actions surface-driven a documents, attachments, tasks y auditoría
 mejoras móviles de captura rápida para attachments
 
+Líneas evolutivas conceptuales para parties, no implementadas todavía:
+
+party_relationships
+party_emails
+party_phones
+party_addresses
+actividad interna del empleado en parties.show
+
+Línea evolutiva posible para seguridad de parties:
+
+revisión futura de Security para allowed_party_roles o allowed_relationships si el contrato persistido lo requiere
+
+Regla:
+
+estas líneas no deben tratarse como implementación vigente ni incorporarse como obligación inmediata sin auditoría previa de necesidad real.
+
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 PENDIENTES INMEDIATOS
 
@@ -407,6 +511,18 @@ auditar quick actions por transiciones válidas en show pages
 revisar duplicaciones residuales en validaciones de line items
 
 auditar migración futura de Orders hacia esquema group + kind compatible, basada en código real
+
+Pendientes inmediatos derivados de parties:
+
+validar admin runtime si se crea o existe dataset activo correspondiente
+
+validar visualmente formulario de parties con usuario no owner
+
+validar visualmente party con membership activa
+
+extraer canManageEmployeeContacts a pieza reusable
+
+revisar documentación restante del frente parties si queda algún documento activo no alineado
 
 <<END SECTION>>
 

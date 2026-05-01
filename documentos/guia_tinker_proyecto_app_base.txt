@@ -176,7 +176,7 @@ consistencia entre subject nulo y class-string si ambas formas están soportadas
 <<END SECTION>>
 
 <<SECTION: DATOS VERIFICADOS ACTUALES PARA PRUEBAS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 DATOS VERIFICADOS ACTUALES PARA PRUEBAS
 
@@ -185,12 +185,11 @@ Los siguientes datos fueron validados en sesión y pueden utilizarse como refere
 USUARIO VALIDADO
 
 email:
-juan@tech.local
+[juan@tech.local](mailto:juan@tech.local)
 
 TENANT VALIDADO
 
-tenant_id:
-<hay que buscarlo o que lo proporcione el programdor>
+tenant_id: <hay que buscarlo o que lo proporcione el programdor>
 
 tenant_name:
 Tech Solutions SA
@@ -212,6 +211,41 @@ servicios:
 inventory_movements_count:
 13
 
+Datos adicionales observados en validaciones de parties:
+
+Tenants observados:
+
+Tech Solutions SA
+Constructora Andina SRL
+
+Usuarios observados:
+
+[juan@tech.local](mailto:juan@tech.local)
+owner en Tech
+resultado observado para employee en parties: OK
+
+[maria@andina.local](mailto:maria@andina.local)
+owner en Andina
+resultado observado para employee en parties: OK
+
+[carlos@demo.local](mailto:carlos@demo.local)
+operator/administrator según tenant observado
+resultado observado para employee en parties: BLOQUEADO
+
+[ana@demo.local](mailto:ana@demo.local)
+sales
+resultado observado para employee en parties: BLOQUEADO
+
+[pedro@demo.local](mailto:pedro@demo.local)
+operator
+resultado observado para employee en parties: BLOQUEADO
+
+Limitación vigente:
+
+no existe caso seed activo validado con rol admin.
+
+Por lo tanto, admin queda contemplado por código, pero pendiente de validación runtime con dataset real.
+
 Regla:
 
 estos datos pueden usarse como contexto base de ejemplo mientras no cambien.
@@ -221,10 +255,11 @@ No extender esta sección con otros usuarios, tenants o ids no validados explíc
 Regla operativa adicional aprendida:
 
 si una prueba de stock da todo en cero, primero validar que el seeder efectivo esté incluido en config/seeders.php y no solo en DemoSeeder.
+
 <<END SECTION>>
 
 <<SECTION: CASOS PRIORITARIOS DE USO>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 CASOS PRIORITARIOS DE USO
 
@@ -241,6 +276,7 @@ delegación de entidades hijas
 flujos entre módulos
 auditorías rápidas sobre runtime
 validación de agrupadores operativos internos cuando una acción visible pueda generar uno o múltiples registros relacionados
+validación backend de campos ocultos o relaciones sensibles que la UI no muestra a todos los usuarios
 
 Cuando se requiera registrar varias salidas, copiar resultados para el chat, ejecutar comandos rápidos o conservar trazabilidad visual de una sesión, debe utilizarse Project Lab local.
 
@@ -254,10 +290,14 @@ Caso vigente:
 
 para inventory, las pruebas deben poder distinguir entre inventory_operations como agrupación operativa contextual e inventory_movements como trazabilidad unitaria de stock.
 
+Caso vigente adicional:
+
+para parties, las pruebas deben validar que StorePartyRequest y UpdatePartyRequest bloqueen la asignación manipulada de employee cuando el usuario no esté autorizado, aunque la UI oculte la opción.
+
 <<END SECTION>>
 
 <<SECTION: 🆕 PATRÓN GENERAL DE PRUEBA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 PATRÓN GENERAL DE PRUEBA
 
@@ -298,6 +338,24 @@ que la acción visible no dependa de datos inventados ni de supuestos sobre cant
 Caso vigente:
 
 inventory_operations e inventory_movements.
+
+Validación adicional para relaciones sensibles ocultas en UI:
+
+cuando una opción no sea visible para ciertos usuarios, no alcanza con validar navegador.
+
+Debe probarse intento manipulado contra la validación backend correspondiente.
+
+Controlar:
+
+usuario real
+tenant real
+request o servicio real cuando corresponda
+resultado esperado permitido o bloqueado
+mensaje o error de validación cuando aplique
+
+Caso vigente:
+
+asignación de employee en parties mediante StorePartyRequest y UpdatePartyRequest.
 
 <<END SECTION>>
 

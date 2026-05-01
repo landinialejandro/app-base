@@ -336,7 +336,7 @@ No debe haber lógica de autorización en el componente.
 
 
 <<SECTION: COMPONENTES REUTILIZABLES TRANSVERSALES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 COMPONENTES REUTILIZABLES TRANSVERSALES
 
@@ -344,58 +344,100 @@ Componentes utilizados por múltiples módulos con gramática común.
 
 Ejemplos:
 
-x-line-item-form  
-x-line-item-table  
-x-line-operation-modal  
-x-tabs-embedded  
-x-dev-component-version  
+x-line-item-form
+x-line-item-table
+x-line-operation-modal
+x-tabs-embedded
+x-dev-component-version
 
 Reglas:
 
-pueden ser compartidos  
-no deben absorber lógica de dominio  
-no deben romper ownership modular  
+pueden ser compartidos
+no deben absorber lógica de dominio
+no deben romper ownership modular
 
 Regla adicional:
 
-si la semántica cambia por módulo, no debe forzarse reutilización artificial  
+si la semántica cambia por módulo, no debe forzarse reutilización artificial
 
 Objetivo:
 
 maximizar reutilización sin perder claridad funcional.
+
+Comportamientos frontend reutilizables asociados a formularios:
+
+data-action="app-progressive-form"
+
+Este comportamiento pertenece a la capa visual/interactiva general.
+
+No es un componente Blade nuevo.
+
+Su función es permitir formularios progresivos dentro de una misma pantalla cuando la carga guiada sea útil.
+
+Atributos vigentes del patrón:
+
+data-action="app-progressive-form"
+data-progressive-section="kind"
+data-progressive-section="relationship"
+data-progressive-section="details"
+
+Caso vigente:
+
+parties._form
+
+Regla:
+
+un comportamiento frontend reusable no debe contener reglas de negocio, permisos ni decisiones de seguridad.
+
+Debe limitarse a representar o revelar secciones según estado visual y valores existentes.
+
 <<END SECTION>>
 
 
 <<SECTION: REGLAS GENERALES DE COMPONENTES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 REGLAS GENERALES DE COMPONENTES
 
 Reglas obligatorias:
 
-no duplicar componentes existentes  
-no mezclar lógica de negocio en componentes visuales  
-no decidir permisos en frontend  
-no reconstruir metadata ya resuelta  
-no acoplar componentes a módulos incorrectos  
+no duplicar componentes existentes
+no mezclar lógica de negocio en componentes visuales
+no decidir permisos en frontend
+no reconstruir metadata ya resuelta
+no acoplar componentes a módulos incorrectos
 
 Reglas de diseño:
 
-priorizar simplicidad  
-priorizar reutilización real  
-mantener consistencia visual  
-evitar sobre abstracción  
+priorizar simplicidad
+priorizar reutilización real
+mantener consistencia visual
+evitar sobre abstracción
 
 Regla crítica:
 
-si un componente necesita múltiples condiciones complejas, probablemente la lógica debe resolverse antes en backend o surface  
+si un componente necesita múltiples condiciones complejas, probablemente la lógica debe resolverse antes en backend o surface
 
-y no dentro del componente  
+y no dentro del componente
+
+Regla adicional para comportamientos JS reutilizables:
+
+si una interacción visual se reutiliza entre formularios o pantallas, puede activarse mediante atributos data-* y resolverse desde el JS global correspondiente.
+
+Regla:
+
+el comportamiento frontend solo debe resolver interacción visual.
+
+No debe decidir permisos, relaciones sensibles, reglas de negocio ni persistencia.
+
+Caso vigente:
+
+data-action="app-progressive-form" organiza visualmente secciones progresivas de formulario.
 
 Objetivo final:
 
-componentes simples  
-ecosistema consistente  
-bajo acoplamiento  
+componentes simples
+ecosistema consistente
+bajo acoplamiento
 alta reutilización real
 <<END SECTION>>

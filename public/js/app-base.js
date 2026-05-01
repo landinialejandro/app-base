@@ -1136,6 +1136,83 @@
             });
     };
 
+    const bindProgressiveForms = () => {
+        document
+            .querySelectorAll('[data-action~="app-progressive-form"]')
+            .forEach((root) => {
+                if (root.dataset.appProgressiveFormBound === "1") {
+                    return;
+                }
+
+                root.dataset.appProgressiveFormBound = "1";
+
+                const kindName = root.dataset.progressiveKindName || "kind";
+                const roleName = root.dataset.progressiveRoleName || "roles[]";
+
+                const relationshipSection = root.querySelector(
+                    '[data-progressive-section="relationship"]',
+                );
+                const detailsSection = root.querySelector(
+                    '[data-progressive-section="details"]',
+                );
+
+                const kindFields = Array.from(
+                    root.querySelectorAll(`[name="${kindName}"]`),
+                );
+
+                const roleFields = Array.from(
+                    root.querySelectorAll(`[name="${roleName}"]`),
+                );
+
+                const isCheckedField = (field) =>
+                    field instanceof HTMLInputElement &&
+                    (field.type === "radio" || field.type === "checkbox");
+
+                const hasSelectedKind = () =>
+                    kindFields.some((field) => {
+                        if (isCheckedField(field)) {
+                            return field.checked;
+                        }
+
+                        return Boolean(field.value);
+                    });
+
+                const hasSelectedRelationship = () =>
+                    roleFields.some((field) => {
+                        if (isCheckedField(field)) {
+                            return field.checked;
+                        }
+
+                        return Boolean(field.value);
+                    });
+
+                const applyProgressiveState = () => {
+                    const kindSelected = hasSelectedKind();
+                    const relationshipSelected = hasSelectedRelationship();
+
+                    if (relationshipSection) {
+                        relationshipSection.hidden = !kindSelected;
+                    }
+
+                    if (detailsSection) {
+                        detailsSection.hidden = !(
+                            kindSelected && relationshipSelected
+                        );
+                    }
+                };
+
+                kindFields.forEach((field) => {
+                    field.addEventListener("change", applyProgressiveState);
+                });
+
+                roleFields.forEach((field) => {
+                    field.addEventListener("change", applyProgressiveState);
+                });
+
+                applyProgressiveState();
+            });
+    };
+
     const initAppBase = () => {
         bindModals();
         bindConfirmSubmit();
@@ -1153,6 +1230,7 @@
         bindHorizontalScroll();
         bindCardToggle();
         bindPermissionScopeHelp();
+        bindProgressiveForms();
         focusTabIfRequested();
     };
 

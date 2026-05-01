@@ -1,7 +1,9 @@
-{{-- FILE: resources/views/assets/partials/table.blade.php | V5 --}}
+{{-- FILE: resources/views/assets/partials/table.blade.php | V6 --}}
 
 @php
+    use App\Support\Auth\TenantModuleAccess;
     use App\Support\Catalogs\AssetCatalog;
+    use App\Support\Catalogs\ModuleCatalog;
     use App\Support\Navigation\NavigationTrail;
     use App\Support\Parties\PartyLinked;
 
@@ -10,6 +12,12 @@
     $showParty = $showParty ?? false;
     $trailQuery = $trailQuery ?? [];
     $containerTrail = NavigationTrail::decode($trailQuery['trail'] ?? null);
+
+    $tenant = app('tenant');
+
+    $supportsPartiesModule = TenantModuleAccess::isEnabled(ModuleCatalog::PARTIES, $tenant);
+
+    $renderPartyColumn = $showParty && $supportsPartiesModule;
 @endphp
 
 @if ($assets->count())
@@ -20,7 +28,7 @@
                     <th>ID</th>
                     <th>Nombre</th>
 
-                    @if ($showParty)
+                    @if ($renderPartyColumn)
                         <th>Contacto</th>
                     @endif
 
@@ -70,7 +78,7 @@
                             </a>
                         </td>
 
-                        @if ($showParty)
+                        @if ($renderPartyColumn)
                             <td>
                                 @include('parties.components.linked-party', [
                                     'linked' => $partyLinked,

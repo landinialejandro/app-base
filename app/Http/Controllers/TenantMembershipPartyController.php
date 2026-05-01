@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/TenantMembershipPartyController.php | V2
+// FILE: app/Http/Controllers/TenantMembershipPartyController.php | V3
 
 namespace App\Http\Controllers;
 
@@ -58,7 +58,8 @@ class TenantMembershipPartyController extends Controller
         return view('tenants.memberships.party-confirm', [
             'membership' => $membership,
             'matchingParty' => $matchingParty,
-            'suggestedKind' => PartyCatalog::KIND_EMPLOYEE,
+            'suggestedKind' => PartyCatalog::KIND_PERSON,
+            'suggestedRole' => PartyCatalog::ROLE_EMPLOYEE,
         ]);
     }
 
@@ -74,8 +75,8 @@ class TenantMembershipPartyController extends Controller
 
         if ($membership->party) {
             return redirect()
-                ->route('parties.show', $party)
-                ->with('success', 'Ficha ampliada disponible para edición.');
+                ->route('parties.show', $membership->party)
+                ->with('success', 'Ficha ampliada disponible.');
         }
 
         $data = $request->validate([
@@ -91,13 +92,15 @@ class TenantMembershipPartyController extends Controller
 
             $party = Party::create([
                 'tenant_id' => $membership->tenant_id,
-                'kind' => PartyCatalog::KIND_EMPLOYEE,
+                'kind' => PartyCatalog::KIND_PERSON,
                 'name' => $membership->user?->name ?? 'Colaborador',
                 'display_name' => $membership->user?->name,
                 'email' => $this->normalizedUserEmail($membership) ?: null,
                 'is_active' => true,
             ]);
         }
+
+        $this->ensureEmployeeRole($party);
 
         $membership->forceFill([
             'party_id' => $party->id,
@@ -148,7 +151,15 @@ class TenantMembershipPartyController extends Controller
             $request->user(),
             ModuleCatalog::PARTIES.'.create',
             Party::class,
-            ['kind' => PartyCatalog::KIND_EMPLOYEE]
+            ['kind' => PartyCatalog::KIND_PERSON]
         );
+    }
+
+    protected function ensureEmployeeRole(Party $party): void
+    {
+        $party->roles()->firstOrCreate([
+            'tenant_id' => $party->tenant_id,
+            'role' => PartyCatalog::ROLE_EMPLOYEE,
+        ]);
     }
 }

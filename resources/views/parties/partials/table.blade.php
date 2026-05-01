@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/partials/table.blade.php | V1 --}}
+{{-- FILE: resources/views/parties/partials/table.blade.php | V2 --}}
 
 @php
     use App\Support\Catalogs\PartyCatalog;
@@ -19,8 +19,9 @@
                     <th>Nombre</th>
                     <th>Email</th>
                     <th>Teléfono</th>
-                    <th>Activo</th>
                     <th>Tipo</th>
+                    <th>Relación</th>
+                    <th>Activo</th>
                 </tr>
             </thead>
             <tbody>
@@ -50,6 +51,12 @@
                         }
 
                         $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
+
+                        $roleLabels = $party->roles
+                            ->pluck('role')
+                            ->map(fn($role) => PartyCatalog::roleLabel($role))
+                            ->filter(fn($label) => $label !== '—')
+                            ->values();
                     @endphp
 
                     <tr>
@@ -61,13 +68,14 @@
                         </td>
                         <td>{{ $party->email ?? '—' }}</td>
                         <td>{{ $party->phone ?? '—' }}</td>
+                        <td>{{ $party->kind ? PartyCatalog::label($party->kind) : '—' }}</td>
+                        <td>{{ $roleLabels->isNotEmpty() ? $roleLabels->implode(', ') : '—' }}</td>
                         <td>
                             <span
                                 class="status-badge {{ $party->is_active ? 'status-badge--done' : 'status-badge--cancelled' }}">
                                 {{ $party->is_active ? 'Sí' : 'No' }}
                             </span>
                         </td>
-                        <td>{{ $party->kind ? PartyCatalog::label($party->kind) : '—' }}</td>
                     </tr>
                 @endforeach
             </tbody>

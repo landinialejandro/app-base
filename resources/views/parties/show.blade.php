@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/show.blade.php | V16 --}}
+{{-- FILE: resources/views/parties/show.blade.php | V17 --}}
 
 @extends('layouts.app')
 
@@ -34,11 +34,17 @@
         $detailItems = $embedded->where('slot', 'detail_items')->values();
 
         $tabItems = $embedded
-            ->where(fn ($item) => ($item['slot'] ?? null) === 'tab_panels')
-            ->sortBy(fn (array $item) => $item['priority'] ?? 999)
+            ->where(fn($item) => ($item['slot'] ?? null) === 'tab_panels')
+            ->sortBy(fn(array $item) => $item['priority'] ?? 999)
             ->values();
 
         $activeTab = HostTabs::activeKey($tabItems, request()->query('return_tab'));
+
+        $roleLabels = $party->roles
+            ->pluck('role')
+            ->map(fn($role) => PartyCatalog::roleLabel($role))
+            ->filter(fn($label) => $label !== '—')
+            ->values();
     @endphp
 
     <x-page>
@@ -79,6 +85,10 @@
                 {{ $party->email ?: '—' }}
             </x-show-summary-item>
 
+            <x-show-summary-item label="Relación con la empresa">
+                {{ $roleLabels->isNotEmpty() ? $roleLabels->implode(', ') : '—' }}
+            </x-show-summary-item>
+
             <x-slot:details>
                 @foreach ($detailItems as $detailItem)
                     <x-show-summary-item-detail-block :label="$detailItem['label'] ?? 'Relacionado'">
@@ -86,7 +96,7 @@
                     </x-show-summary-item-detail-block>
                 @endforeach
 
-                <x-show-summary-item-detail-block label="Tipo">
+                <x-show-summary-item-detail-block label="Tipo de contacto">
                     {{ PartyCatalog::label($party->kind) }}
                 </x-show-summary-item-detail-block>
 

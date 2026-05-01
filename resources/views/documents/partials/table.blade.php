@@ -1,9 +1,11 @@
-{{-- FILE: resources/views/documents/partials/table.blade.php | V10 --}}
+{{-- FILE: resources/views/documents/partials/table.blade.php | V11 --}}
 
 @php
-    use App\Support\Catalogs\DocumentCatalog;
-    use App\Support\Navigation\NavigationTrail;
     use App\Support\Assets\AssetLinked;
+    use App\Support\Auth\TenantModuleAccess;
+    use App\Support\Catalogs\DocumentCatalog;
+    use App\Support\Catalogs\ModuleCatalog;
+    use App\Support\Navigation\NavigationTrail;
     use App\Support\Parties\PartyLinked;
 
     $documents = $documents ?? collect();
@@ -13,6 +15,16 @@
     $showOrder = $showOrder ?? true;
     $trailQuery = $trailQuery ?? [];
     $containerTrail = NavigationTrail::decode($trailQuery['trail'] ?? null);
+
+    $tenant = app('tenant');
+
+    $supportsPartiesModule = TenantModuleAccess::isEnabled(ModuleCatalog::PARTIES, $tenant);
+    $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
+    $supportsOrdersModule = TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, $tenant);
+
+    $renderPartyColumn = $showParty && $supportsPartiesModule;
+    $renderAssetColumn = $showAsset && $supportsAssetsModule;
+    $renderOrderColumn = $showOrder && $supportsOrdersModule;
 @endphp
 
 @if ($documents->count())
@@ -24,15 +36,15 @@
                     <th>Tipo</th>
                     <th>Estado</th>
 
-                    @if ($showParty)
+                    @if ($renderPartyColumn)
                         <th>Contacto</th>
                     @endif
 
-                    @if ($showAsset)
+                    @if ($renderAssetColumn)
                         <th>Activo</th>
                     @endif
 
-                    @if ($showOrder)
+                    @if ($renderOrderColumn)
                         <th>Orden</th>
                     @endif
 
@@ -92,7 +104,7 @@
                             </span>
                         </td>
 
-                        @if ($showParty)
+                        @if ($renderPartyColumn)
                             <td>
                                 @include('parties.components.linked-party', [
                                     'linked' => $partyLinked,
@@ -101,7 +113,7 @@
                             </td>
                         @endif
 
-                        @if ($showAsset)
+                        @if ($renderAssetColumn)
                             <td>
                                 @include('assets.components.linked-asset', [
                                     'action' => $assetAction,
@@ -110,7 +122,7 @@
                             </td>
                         @endif
 
-                        @if ($showOrder)
+                        @if ($renderOrderColumn)
                             <td>
                                 @if ($document->order)
                                     <a href="{{ route('orders.show', ['order' => $document->order] + $rowTrailQuery) }}">

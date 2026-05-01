@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/index.blade.php | V11 --}}
+{{-- FILE: resources/views/parties/index.blade.php | V12 --}}
 
 @extends('layouts.app')
 
@@ -51,13 +51,25 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="kind" class="form-label">Tipo</label>
+                        <label for="kind" class="form-label">Tipo de contacto</label>
                         <select id="kind" name="kind" class="form-control">
-                            <option value="">Todos</option>
+                            <option value="">Todas</option>
                             @foreach (PartyCatalog::kindLabels() as $value => $label)
                                 @continue(!in_array($value, $allowedKinds, true))
 
                                 <option value="{{ $value }}" @selected(request('kind') === $value)>
+                                    {{ $label }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="role" class="form-label">Relación con la empresa</label>
+                        <select id="role" name="role" class="form-control">
+                            <option value="">Todos</option>
+                            @foreach (PartyCatalog::roleLabels() as $value => $label)
+                                <option value="{{ $value }}" @selected(request('role') === $value)>
                                     {{ $label }}
                                 </option>
                             @endforeach

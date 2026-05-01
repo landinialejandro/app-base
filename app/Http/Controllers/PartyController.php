@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/PartyController.php | V9
+// FILE: app/Http/Controllers/PartyController.php | V11
 
 namespace App\Http\Controllers;
 
@@ -11,6 +11,7 @@ use App\Support\Auth\Security;
 use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\PartyCatalog;
+use App\Support\Catalogs\RoleCatalog;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\PartyNavigationTrail;
 use Illuminate\Http\Request;
@@ -27,12 +28,13 @@ class PartyController extends Controller
 
         $q = trim((string) $request->get('q', ''));
         $kind = $request->get('kind');
+        $role = $request->get('role');
         $isActive = $request->get('is_active');
 
         $partiesQuery = $security->scope(
             $user,
             ModuleCatalog::PARTIES.'.viewAny',
-            Party::query()
+            Party::query()->with('roles')
         );
 
         $parties = $partiesQuery
@@ -52,6 +54,9 @@ class PartyController extends Controller
             })
             ->when($kind, function ($query) use ($kind) {
                 $query->where('kind', $kind);
+            })
+            ->when($role, function ($query) use ($role) {
+                $query->whereHas('roles', fn ($rolesQuery) => $rolesQuery->where('role', $role));
             })
             ->when($isActive !== null && $isActive !== '', function ($query) use ($isActive) {
                 $query->where('is_active', (bool) $isActive);
@@ -96,6 +101,7 @@ class PartyController extends Controller
             'navigationTrail' => $navigationTrail,
             'allowedKinds' => $createKinds,
             'defaultKind' => $defaultKind,
+            'canManageEmployeeContacts' => $this->canManageEmployeeContacts($request),
         ]);
     }
 
@@ -103,6 +109,9 @@ class PartyController extends Controller
     {
         $security = app(Security::class);
         $data = $request->validated();
+        $roles = $data['roles'] ?? [];
+        unset($data['roles']);
+
         $kind = $data['kind'] ?? null;
 
         abort_unless(is_string($kind) && $kind !== '', 403);
@@ -115,6 +124,8 @@ class PartyController extends Controller
         );
 
         $party = Party::create($data);
+        $this->syncRoles($party, $roles);
+
         $navigationTrail = PartyNavigationTrail::show($request, $party);
 
         return redirect()
@@ -127,6 +138,7 @@ class PartyController extends Controller
         $this->authorize('view', $party);
 
         $tenant = app('tenant');
+        $party->load('roles');
         $navigationTrail = PartyNavigationTrail::show($request, $party);
 
         $supportsAppointmentsModule = TenantModuleAccess::isEnabled(ModuleCatalog::APPOINTMENTS, $tenant);
@@ -150,6 +162,7 @@ class PartyController extends Controller
         $this->authorize('update', $party);
 
         $tenant = app('tenant');
+        $party->load('roles');
         $navigationTrail = PartyNavigationTrail::edit($request, $party);
         $allowedKinds = $this->resolvedAllowedKindsFor('update', $party);
 
@@ -158,6 +171,7 @@ class PartyController extends Controller
             'party' => $party,
             'navigationTrail' => $navigationTrail,
             'allowedKinds' => $allowedKinds,
+            'canManageEmployeeContacts' => $this->canManageEmployeeContacts($request),
         ]);
     }
 
@@ -166,11 +180,17 @@ class PartyController extends Controller
         $this->authorize('update', $party);
 
         $data = $request->validated();
+        $roles = $data['roles'] ?? [];
+        unset($data['roles']);
 
-        if ($party->memberships()->exists()) {
-            $data['kind'] = PartyCatalog::KIND_EMPLOYEE;
+        if ($party->hasActiveMembership()) {
+            $data['kind'] = PartyCatalog::KIND_PERSON;
 
-            $linkedMembership = $party->memberships()
+            if (! in_array(PartyCatalog::ROLE_EMPLOYEE, $roles, true)) {
+                $roles[] = PartyCatalog::ROLE_EMPLOYEE;
+            }
+
+            $linkedMembership = $party->activeMemberships()
                 ->with('user')
                 ->first();
 
@@ -188,6 +208,8 @@ class PartyController extends Controller
         );
 
         $party->update($data);
+        $this->syncRoles($party, $roles);
+
         $navigationTrail = PartyNavigationTrail::show($request, $party);
 
         return redirect()
@@ -276,5 +298,54 @@ class PartyController extends Controller
         }
 
         return null;
+    }
+
+    protected function syncRoles(Party $party, array $roles): void
+    {
+        $normalizedRoles = array_values(array_unique(array_filter(
+            $roles,
+            fn ($role) => is_string($role) && in_array($role, PartyCatalog::roles(), true)
+        )));
+
+        if (empty($normalizedRoles)) {
+            $normalizedRoles = [PartyCatalog::ROLE_OTHER];
+        }
+
+        $party->roles()->delete();
+
+        foreach ($normalizedRoles as $role) {
+            $party->roles()->create([
+                'tenant_id' => $party->tenant_id,
+                'role' => $role,
+            ]);
+        }
+    }
+
+    protected function canManageEmployeeContacts(Request $request): bool
+    {
+        $tenant = app('tenant');
+        $user = $request->user();
+
+        if (! $tenant || ! $user) {
+            return false;
+        }
+
+        $membership = $user->memberships()
+            ->where('tenant_id', $tenant->id)
+            ->where('status', 'active')
+            ->with('roles')
+            ->first();
+
+        if (! $membership) {
+            return false;
+        }
+
+        if ($membership->is_owner) {
+            return true;
+        }
+
+        return $membership->roles->contains(
+            fn ($role) => $role->slug === RoleCatalog::ADMIN
+        );
     }
 }

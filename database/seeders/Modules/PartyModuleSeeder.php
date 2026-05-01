@@ -1,10 +1,11 @@
 <?php
 
-// FILE: database/seeders/Modules/PartyModuleSeeder.php | V2
+// FILE: database/seeders/Modules/PartyModuleSeeder.php | V3
 
 namespace Database\Seeders\Modules;
 
 use App\Models\Party;
+use App\Support\Catalogs\PartyCatalog;
 use Illuminate\Support\Collection;
 
 class PartyModuleSeeder extends BaseModuleSeeder
@@ -19,24 +20,36 @@ class PartyModuleSeeder extends BaseModuleSeeder
         $parties = [];
 
         $parties['techFixed'] = collect([
-            Party::firstOrCreate(
-                ['tenant_id' => $tenants['tech']->id, 'email' => 'contacto@acme.local'],
-                $this->getTechAcmeData()
+            $this->registerParty(
+                Party::firstOrCreate(
+                    ['tenant_id' => $tenants['tech']->id, 'email' => 'contacto@acme.local'],
+                    $this->getTechAcmeData()
+                ),
+                [PartyCatalog::ROLE_CUSTOMER]
             ),
-            Party::firstOrCreate(
-                ['tenant_id' => $tenants['tech']->id, 'email' => 'laura@cliente.local'],
-                $this->getTechLauraData()
+            $this->registerParty(
+                Party::firstOrCreate(
+                    ['tenant_id' => $tenants['tech']->id, 'email' => 'laura@cliente.local'],
+                    $this->getTechLauraData()
+                ),
+                [PartyCatalog::ROLE_CUSTOMER]
             ),
         ]);
 
         $parties['andinaFixed'] = collect([
-            Party::firstOrCreate(
-                ['tenant_id' => $tenants['andina']->id, 'email' => 'info@obraspat.local'],
-                $this->getAndinaObrasData()
+            $this->registerParty(
+                Party::firstOrCreate(
+                    ['tenant_id' => $tenants['andina']->id, 'email' => 'info@obraspat.local'],
+                    $this->getAndinaObrasData()
+                ),
+                [PartyCatalog::ROLE_CUSTOMER]
             ),
-            Party::firstOrCreate(
-                ['tenant_id' => $tenants['andina']->id, 'email' => 'marcos@obra.local'],
-                $this->getAndinaMarcosData()
+            $this->registerParty(
+                Party::firstOrCreate(
+                    ['tenant_id' => $tenants['andina']->id, 'email' => 'marcos@obra.local'],
+                    $this->getAndinaMarcosData()
+                ),
+                [PartyCatalog::ROLE_SUPPLIER]
             ),
         ]);
 
@@ -61,15 +74,33 @@ class PartyModuleSeeder extends BaseModuleSeeder
 
         $neededCount = max(0, $targetCount - $existingCount);
 
-        return $neededCount > 0
+        $created = $neededCount > 0
             ? Party::factory()->count($neededCount)->create(['tenant_id' => $tenant->id])
             : collect();
+
+        return $created->map(fn (Party $party) => $this->registerParty($party, [PartyCatalog::ROLE_OTHER]));
+    }
+
+    private function registerParty(Party $party, array $roles): Party
+    {
+        foreach (array_values(array_unique($roles)) as $role) {
+            if (! in_array($role, PartyCatalog::roles(), true)) {
+                continue;
+            }
+
+            $party->roles()->firstOrCreate([
+                'tenant_id' => $party->tenant_id,
+                'role' => $role,
+            ]);
+        }
+
+        return $party;
     }
 
     private function getTechAcmeData(): array
     {
         return [
-            'kind' => 'company',
+            'kind' => PartyCatalog::KIND_COMPANY,
             'name' => 'Empresa ACME',
             'display_name' => 'ACME',
             'document_type' => 'CUIT',
@@ -85,7 +116,7 @@ class PartyModuleSeeder extends BaseModuleSeeder
     private function getTechLauraData(): array
     {
         return [
-            'kind' => 'person',
+            'kind' => PartyCatalog::KIND_PERSON,
             'name' => 'Laura Fernández',
             'display_name' => 'Laura Fernández',
             'document_type' => 'DNI',
@@ -100,7 +131,7 @@ class PartyModuleSeeder extends BaseModuleSeeder
     private function getAndinaObrasData(): array
     {
         return [
-            'kind' => 'company',
+            'kind' => PartyCatalog::KIND_COMPANY,
             'name' => 'Obras Patagónicas',
             'display_name' => 'Obras Patagónicas',
             'document_type' => 'CUIT',
@@ -116,7 +147,7 @@ class PartyModuleSeeder extends BaseModuleSeeder
     private function getAndinaMarcosData(): array
     {
         return [
-            'kind' => 'person',
+            'kind' => PartyCatalog::KIND_PERSON,
             'name' => 'Marcos Quiroga',
             'display_name' => 'Marcos Quiroga',
             'document_type' => 'DNI',

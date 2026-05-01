@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/partials/table.blade.php | V11 --}}
+{{-- FILE: resources/views/appointments/partials/table.blade.php | V12 --}}
 
 @php
     use App\Support\Assets\AssetLinked;
@@ -14,6 +14,8 @@
     $supportsOrdersModule = $supportsOrdersModule ?? false;
     $trailQuery = $trailQuery ?? [];
     $containerTrail = NavigationTrail::decode($trailQuery['trail'] ?? null);
+
+    $renderPartyColumn = $supportsPartiesModule;
 @endphp
 
 @if ($appointments->count())
@@ -22,7 +24,9 @@
             <thead>
                 <tr>
                     <th>Turno</th>
-                    <th>{{ AppointmentCatalog::contactLabel() }}</th>
+                    @if ($renderPartyColumn)
+                        <th>{{ AppointmentCatalog::contactLabel() }}</th>
+                    @endif
                     @if ($supportsAssetsModule)
                         <th>{{ AppointmentCatalog::assetLabel() }}</th>
                     @endif
@@ -92,12 +96,14 @@
                             <div class="text-muted">#{{ $appointment->id }}</div>
                         </td>
 
-                        <td>
-                            @include('parties.components.linked-party', [
-                                'linked' => $partyLinked,
-                                'variant' => 'inline',
-                            ])
-                        </td>
+                        @if ($renderPartyColumn)
+                            <td>
+                                @include('parties.components.linked-party', [
+                                    'linked' => $partyLinked,
+                                    'variant' => 'inline',
+                                ])
+                            </td>
+                        @endif
 
                         @if ($supportsAssetsModule)
                             <td>

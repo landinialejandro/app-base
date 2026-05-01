@@ -1,12 +1,9 @@
 <?php
 
-// FILE: app/Models/Party.php
+// FILE: app/Models/Party.php | V3
 
 namespace App\Models;
 
-// IMPORTANTE:
-// usar exactamente los mismos namespaces de traits
-// que ya utiliza el modelo Project en este proyecto.
 use App\Models\Concerns\ResolvesTenantRouteBinding;
 use App\Models\Concerns\TenantScoped;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
@@ -48,5 +45,20 @@ class Party extends Model
     public function memberships(): HasMany
     {
         return $this->hasMany(Membership::class);
+    }
+
+    public function activeMemberships(): HasMany
+    {
+        return $this->memberships()->where('status', 'active');
+    }
+
+    public function roles(): HasMany
+    {
+        return $this->hasMany(PartyRole::class);
+    }
+
+    public function hasActiveMembership(): bool
+    {
+        return $this->activeMemberships()->exists();
     }
 }

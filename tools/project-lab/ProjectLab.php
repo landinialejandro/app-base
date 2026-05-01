@@ -810,84 +810,87 @@ class ProjectLab
         return $message;
     }
 
-    private function applyEmbeddedPhpFile(string $content): string
-    {
-        $content = str_replace(["\r\n", "\r"], "\n", $content);
+private function applyEmbeddedPhpFile(string $content): string
+{
+    $content = str_replace(["\r\n", "\r"], "\n", $content);
 
-        $lines = explode("\n", ltrim($content));
+    $lines = explode("\n", ltrim($content));
 
-        if (trim($lines[0] ?? '') !== '<?php') {
-            return '[ERROR] El archivo PHP completo debe comenzar con <?php.';
-        }
-
-        array_shift($lines);
-
-        while (! empty($lines) && trim($lines[0]) === '') {
-            array_shift($lines);
-        }
-
-        $headerLine = trim($lines[0] ?? '');
-
-        if (! preg_match(self::REGEX_PHP_FILE_HEADER, $headerLine, $matches)) {
-            return '[ERROR] No se encontró encabezado FILE válido para PHP.';
-        }
-
-        $relativePath = trim($matches[1] ?? '');
-        $version = trim($matches[2] ?? 'V1');
-
-        if ($relativePath === '') {
-            return '[ERROR] Ruta destino vacía.';
-        }
-
-        $targetPath = $this->projectRoot.'/'.$relativePath;
-        $directory = dirname($targetPath);
-
-        if (! is_dir($directory)) {
-            mkdir($directory, 0775, true);
-        }
-
-        array_shift($lines);
-
-        $body = ltrim(implode("\n", $lines), "\n");
-
-        $finalContent = "<?php\n\n// FILE: {$relativePath} | {$version}\n\n".$body;
-        $status = file_exists($targetPath) ? 'sobrescrito' : 'creado';
-
-        if (file_put_contents($targetPath, $finalContent) === false) {
-            return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
-        }
-
-        $message = "[OK] Modo: php_full\n";
-        $message .= "[OK] Archivo: {$relativePath}\n";
-
-        if ($status === 'sobrescrito') {
-            $message .= "[WARN] Archivo existente reemplazado completamente.\n";
-        } else {
-            $message .= "[INFO] Archivo nuevo creado.\n";
-        }
-
-        $message .= "[OK] Estado: {$status}\n";
-        $message .= "[OK] Versión: {$version}";
-
-        $this->log('LAB_CODE', $relativePath, $message);
-
-        $this->appendPipeLog(
-            self::CODE_LOG_FILE,
-            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
-            [
-                $relativePath,
-                date('Y-m-d H:i:s'),
-                $status,
-                $version,
-                'project_lab',
-                'archivo_completo',
-                get_current_user() ?: 'unknown',
-                php_uname('n') ?: 'unknown',
-            ]
-        );
-
-        return $message;
+    if (trim($lines[0] ?? '') !== '<?php') {
+        return '[ERROR] El archivo PHP completo debe comenzar con <?php.';
     }
+
+    array_shift($lines);
+
+    while (! empty($lines) && trim($lines[0]) === '') {
+        array_shift($lines);
+    }
+
+    $headerLine = trim($lines[0] ?? '');
+
+    if (! preg_match(self::REGEX_PHP_FILE_HEADER, $headerLine, $matches)) {
+        return '[ERROR] No se encontró encabezado FILE válido para PHP.';
+    }
+
+    $relativePath = trim($matches[1] ?? '');
+    $version = trim($matches[2] ?? 'V1');
+
+    if ($relativePath === '') {
+        return '[ERROR] Ruta destino vacía.';
+    }
+
+    $targetPath = $this->projectRoot.'/'.$relativePath;
+    $directory = dirname($targetPath);
+
+    if (! is_dir($directory)) {
+        mkdir($directory, 0775, true);
+    }
+
+    array_shift($lines);
+
+    $body = ltrim(implode("\n", $lines), "\n");
+
+    $finalContent = "<?php\n\n// FILE: {$relativePath} | {$version}\n\n".$body;
+    $status = file_exists($targetPath) ? 'sobrescrito' : 'creado';
+
+    if (file_put_contents($targetPath, $finalContent) === false) {
+        return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
+    }
+
+    $lintResult = $this->runPhpLint($relativePath);
+
+    $message = "[OK] Modo: php_full\n";
+    $message .= "[OK] Archivo: {$relativePath}\n";
+
+    if ($status === 'sobrescrito') {
+        $message .= "[WARN] Archivo existente reemplazado completamente.\n";
+    } else {
+        $message .= "[INFO] Archivo nuevo creado.\n";
+    }
+
+    $message .= "[OK] Estado: {$status}\n";
+    $message .= "[OK] Versión: {$version}\n";
+    $message .= $lintResult;
+
+    $this->log('LAB_CODE', $relativePath, $message);
+
+    $this->appendPipeLog(
+        self::CODE_LOG_FILE,
+        ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+        [
+            $relativePath,
+            date('Y-m-d H:i:s'),
+            $status,
+            $version,
+            'project_lab',
+            'archivo_completo',
+            get_current_user() ?: 'unknown',
+            php_uname('n') ?: 'unknown',
+        ]
+    );
+
+    return $message;
+}
 
     private function runEmbeddedDocsTool(string $input): string
     {
@@ -1043,121 +1046,127 @@ class ProjectLab
         ];
     }
 
-    private function applyEmbeddedMethodReplace(array $operation): string
-    {
-        $relativePath = $operation['path'];
-        $methodName = $operation['method_name'];
-        $methodCode = $operation['method_code'];
-        $targetPath = $this->projectRoot.'/'.$relativePath;
+private function applyEmbeddedMethodReplace(array $operation): string
+{
+    $relativePath = $operation['path'];
+    $methodName = $operation['method_name'];
+    $methodCode = $operation['method_code'];
+    $targetPath = $this->projectRoot.'/'.$relativePath;
 
-        if (! file_exists($targetPath)) {
-            return "[ERROR] El archivo destino no existe: {$relativePath}";
-        }
-
-        $content = file_get_contents($targetPath);
-
-        if ($content === false) {
-            return "[ERROR] No se pudo leer el archivo: {$relativePath}";
-        }
-
-        $range = $this->findEmbeddedMethodRange($content, $methodName);
-
-        if ($range === null) {
-            return "[ERROR] No se encontró el método: {$methodName}";
-        }
-
-        [$start, $end] = $range;
-
-        $newContent = substr($content, 0, $start)
-            .rtrim($methodCode)
-            .substr($content, $end);
-
-        if (file_put_contents($targetPath, $newContent) === false) {
-            return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
-        }
-
-        $message = "[OK] Modo: php_method_patch\n";
-        $message .= "[OK] Archivo: {$relativePath}\n";
-        $message .= "[OK] Método reemplazado: {$methodName}";
-
-        $this->log('LAB_CODE_METHOD_REPLACE', "{$relativePath}::{$methodName}", $message);
-        $this->appendPipeLog(
-            'documentos/log/code-updates.log',
-            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
-            [
-                $relativePath,
-                date('Y-m-d H:i:s'),
-                $status ?? 'actualizado',
-                $version ?? '-',
-                'project_lab',
-                $methodName ?? 'archivo_completo',
-                get_current_user() ?: 'unknown',
-                php_uname('n') ?: 'unknown',
-            ]
-        );
-
-        return $message;
+    if (! file_exists($targetPath)) {
+        return "[ERROR] El archivo destino no existe: {$relativePath}";
     }
 
-    private function applyEmbeddedMethodAdd(array $operation): string
-    {
-        $relativePath = $operation['path'];
-        $methodName = $operation['method_name'];
-        $methodCode = $operation['method_code'];
-        $targetPath = $this->projectRoot.'/'.$relativePath;
+    $content = file_get_contents($targetPath);
 
-        if (! file_exists($targetPath)) {
-            return "[ERROR] El archivo destino no existe: {$relativePath}";
-        }
-
-        $content = file_get_contents($targetPath);
-
-        if ($content === false) {
-            return "[ERROR] No se pudo leer el archivo: {$relativePath}";
-        }
-
-        if ($this->findEmbeddedMethodRange($content, $methodName) !== null) {
-            return "[ERROR] El método ya existe: {$methodName}";
-        }
-
-        $lastBrace = strrpos($content, '}');
-
-        if ($lastBrace === false) {
-            return "[ERROR] No se pudo encontrar cierre de clase en: {$relativePath}";
-        }
-
-        $insert = "\n\n    ".str_replace("\n", "\n    ", trim($methodCode))."\n";
-
-        $newContent = substr($content, 0, $lastBrace)
-            .$insert
-            .substr($content, $lastBrace);
-
-        if (file_put_contents($targetPath, $newContent) === false) {
-            return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
-        }
-
-        $message = "[OK] Modo: php_method_add\n";
-        $message .= "[OK] Archivo: {$relativePath}\n";
-        $message .= "[OK] Método agregado: {$methodName}";
-
-        $this->log('LAB_CODE_METHOD_ADD', "{$relativePath}++{$methodName}", $message);
-        $this->appendPipeLog(
-            'documentos/log/code-updates.log',
-            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
-            [
-                $relativePath,
-                date('Y-m-d H:i:s'),
-                $status ?? 'actualizado',
-                $version ?? '-',
-                'project_lab',
-                $methodName ?? 'archivo_completo',
-                get_current_user() ?: 'unknown',
-                php_uname('n') ?: 'unknown',
-            ]
-        );
-
-        return $message;
+    if ($content === false) {
+        return "[ERROR] No se pudo leer el archivo: {$relativePath}";
     }
+
+    $range = $this->findEmbeddedMethodRange($content, $methodName);
+
+    if ($range === null) {
+        return "[ERROR] No se encontró el método: {$methodName}";
+    }
+
+    [$start, $end] = $range;
+
+    $newContent = substr($content, 0, $start)
+        .rtrim($methodCode)
+        .substr($content, $end);
+
+    if (file_put_contents($targetPath, $newContent) === false) {
+        return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
+    }
+
+    $lintResult = $this->runPhpLint($relativePath);
+
+    $message = "[OK] Modo: php_method_patch\n";
+    $message .= "[OK] Archivo: {$relativePath}\n";
+    $message .= "[OK] Método reemplazado: {$methodName}\n";
+    $message .= $lintResult;
+
+    $this->log('LAB_CODE_METHOD_REPLACE', "{$relativePath}::{$methodName}", $message);
+    $this->appendPipeLog(
+        'documentos/log/code-updates.log',
+        ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+        [
+            $relativePath,
+            date('Y-m-d H:i:s'),
+            $status ?? 'actualizado',
+            $version ?? '-',
+            'project_lab',
+            $methodName ?? 'archivo_completo',
+            get_current_user() ?: 'unknown',
+            php_uname('n') ?: 'unknown',
+        ]
+    );
+
+    return $message;
+}
+
+private function applyEmbeddedMethodAdd(array $operation): string
+{
+    $relativePath = $operation['path'];
+    $methodName = $operation['method_name'];
+    $methodCode = $operation['method_code'];
+    $targetPath = $this->projectRoot.'/'.$relativePath;
+
+    if (! file_exists($targetPath)) {
+        return "[ERROR] El archivo destino no existe: {$relativePath}";
+    }
+
+    $content = file_get_contents($targetPath);
+
+    if ($content === false) {
+        return "[ERROR] No se pudo leer el archivo: {$relativePath}";
+    }
+
+    if ($this->findEmbeddedMethodRange($content, $methodName) !== null) {
+        return "[ERROR] El método ya existe: {$methodName}";
+    }
+
+    $lastBrace = strrpos($content, '}');
+
+    if ($lastBrace === false) {
+        return "[ERROR] No se pudo encontrar cierre de clase en: {$relativePath}";
+    }
+
+    $insert = "\n\n    ".str_replace("\n", "\n    ", trim($methodCode))."\n";
+
+    $newContent = substr($content, 0, $lastBrace)
+        .$insert
+        .substr($content, $lastBrace);
+
+    if (file_put_contents($targetPath, $newContent) === false) {
+        return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
+    }
+
+    $lintResult = $this->runPhpLint($relativePath);
+
+    $message = "[OK] Modo: php_method_add\n";
+    $message .= "[OK] Archivo: {$relativePath}\n";
+    $message .= "[OK] Método agregado: {$methodName}\n";
+    $message .= $lintResult;
+
+    $this->log('LAB_CODE_METHOD_ADD', "{$relativePath}++{$methodName}", $message);
+    $this->appendPipeLog(
+        'documentos/log/code-updates.log',
+        ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+        [
+            $relativePath,
+            date('Y-m-d H:i:s'),
+            $status ?? 'actualizado',
+            $version ?? '-',
+            'project_lab',
+            $methodName ?? 'archivo_completo',
+            get_current_user() ?: 'unknown',
+            php_uname('n') ?: 'unknown',
+        ]
+    );
+
+    return $message;
+}
 
     private function findEmbeddedMethodRange(string $content, string $methodName): ?array
     {
@@ -1796,5 +1805,31 @@ class ProjectLab
         }
 
         return '00001';
+    }
+
+
+    private function runPhpLint(string $relativePath): string
+    {
+        if (strtolower(pathinfo($relativePath, PATHINFO_EXTENSION)) !== 'php') {
+            return '';
+        }
+    
+        $targetPath = $this->projectRoot.'/'.$relativePath;
+    
+        if (! file_exists($targetPath)) {
+            return "[ERROR] Sintaxis PHP no verificada. Archivo no encontrado: {$relativePath}";
+        }
+    
+        $command = 'cd '.escapeshellarg($this->projectRoot)
+            .' && php -l '.escapeshellarg($relativePath).' 2>&1';
+    
+        $output = shell_exec($command);
+        $output = trim((string) $output);
+    
+        if (str_contains($output, 'No syntax errors detected')) {
+            return "[OK] Sintaxis PHP válida: {$relativePath}";
+        }
+    
+        return "[ERROR] Sintaxis PHP inválida: {$relativePath}\n".$output;
     }
 }

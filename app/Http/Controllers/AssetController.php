@@ -87,22 +87,28 @@ class AssetController extends Controller
         return view('assets.create', compact('parties', 'prefilledParty', 'navigationTrail'));
     }
 
-    public function store(Request $request): RedirectResponse
-    {
-        $this->authorize('create', Asset::class);
+public function store(Request $request): RedirectResponse
+{
+    $this->authorize('create', Asset::class);
 
-        $validated = validator($request->all(), $this->rules())->validate();
+    $validated = validator($request->all(), $this->rules())->validate();
 
-        $asset = new Asset($validated);
-        $asset->save();
-        $asset->load('party');
+    $asset = new Asset($validated);
+    $asset->save();
 
-        $navigationTrail = AssetNavigationTrail::show($request, $asset);
+    event(new \App\Events\OperationalRecordCreated(
+        record: $asset,
+        actorUserId: auth()->id(),
+    ));
 
-        return redirect()
-            ->route('assets.show', ['asset' => $asset] + NavigationTrail::toQuery($navigationTrail))
-            ->with('success', 'Activo creado correctamente.');
-    }
+    $asset->load('party');
+
+    $navigationTrail = AssetNavigationTrail::show($request, $asset);
+
+    return redirect()
+        ->route('assets.show', ['asset' => $asset] + NavigationTrail::toQuery($navigationTrail))
+        ->with('success', 'Activo creado correctamente.');
+}
 
     public function show(Request $request, Asset $asset): View
     {
@@ -164,21 +170,30 @@ class AssetController extends Controller
         return view('assets.edit', compact('asset', 'parties', 'navigationTrail'));
     }
 
-    public function update(Request $request, Asset $asset): RedirectResponse
-    {
-        $this->authorize('update', $asset);
+public function update(Request $request, Asset $asset): RedirectResponse
+{
+    $this->authorize('update', $asset);
 
-        $validated = validator($request->all(), $this->rules())->validate();
+    $validated = validator($request->all(), $this->rules())->validate();
 
-        $asset->update($validated);
-        $asset->load('party');
+    $beforeAttributes = $asset->getAttributes();
 
-        $navigationTrail = AssetNavigationTrail::show($request, $asset);
+    $asset->update($validated);
 
-        return redirect()
-            ->route('assets.show', ['asset' => $asset] + NavigationTrail::toQuery($navigationTrail))
-            ->with('success', 'Activo actualizado correctamente.');
-    }
+    event(new \App\Events\OperationalRecordUpdated(
+        record: $asset,
+        beforeAttributes: $beforeAttributes,
+        actorUserId: auth()->id(),
+    ));
+
+    $asset->load('party');
+
+    $navigationTrail = AssetNavigationTrail::show($request, $asset);
+
+    return redirect()
+        ->route('assets.show', ['asset' => $asset] + NavigationTrail::toQuery($navigationTrail))
+        ->with('success', 'Activo actualizado correctamente.');
+}
 
     public function destroy(Request $request, Asset $asset): RedirectResponse
     {

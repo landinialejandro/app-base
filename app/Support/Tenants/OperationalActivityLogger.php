@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Tenants/OperationalActivityLogger.php | V1
+// FILE: app/Support/Tenants/OperationalActivityLogger.php | V2
 
 namespace App\Support\Tenants;
 
@@ -26,42 +26,48 @@ class OperationalActivityLogger
             activityType: OperationalActivityCatalog::TYPE_CREATED,
             actorUserId: $event->actorUserId,
             subjectUserId: $this->subjectUserIdForCreated($record, $event->actorUserId),
-            metadata: [
+            metadata: array_merge([
                 'changed_fields' => [],
-            ],
+            ], $event->metadata),
         );
     }
 
-    public function recordUpdated(OperationalRecordUpdated $event): ?OperationalActivity
-    {
-        $record = $event->record;
-        $module = $this->moduleFor($record);
+public function recordUpdated(OperationalRecordUpdated $event): ?OperationalActivity
+{
+    $record = $event->record;
+    $module = $this->moduleFor($record);
 
-        if ($module === null) {
-            return null;
-        }
-
-        $changes = $this->relevantChanges($record, $event->beforeAttributes, $module);
-
-        if ($changes === []) {
-            return null;
-        }
-
-        $activityType = $this->activityTypeForChanges($changes);
-        $subjectUserId = $this->subjectUserIdForChanges($record, $changes, $event->actorUserId);
-
-        return $this->createActivity(
-            record: $record,
-            module: $module,
-            activityType: $activityType,
-            actorUserId: $event->actorUserId,
-            subjectUserId: $subjectUserId,
-            metadata: [
-                'changed_fields' => array_keys($changes),
-                'changes' => $changes,
-            ],
-        );
+    if ($module === null) {
+        return null;
     }
+
+    $changes = array_merge(
+        $this->relevantChanges($record, $event->beforeAttributes, $module),
+        $this->metadataChanges($event->metadata)
+    );
+
+    if ($changes === []) {
+        return null;
+    }
+
+    $activityType = $this->activityTypeForChanges($changes);
+    $subjectUserId = $this->subjectUserIdForChanges($record, $changes, $event->actorUserId);
+
+    $eventMetadata = $event->metadata;
+    unset($eventMetadata['extra_changes']);
+
+    return $this->createActivity(
+        record: $record,
+        module: $module,
+        activityType: $activityType,
+        actorUserId: $event->actorUserId,
+        subjectUserId: $subjectUserId,
+        metadata: array_merge([
+            'changed_fields' => array_keys($changes),
+            'changes' => $changes,
+        ], $eventMetadata),
+    );
+}
 
     protected function createActivity(
         Model $record,
@@ -89,16 +95,16 @@ class OperationalActivityLogger
         return OperationalActivityCatalog::moduleForRecordClass($record::class);
     }
 
-protected function tenantIdFor(Model $record): string
-{
-    $tenantId = $record->getAttribute('tenant_id');
+    protected function tenantIdFor(Model $record): string
+    {
+        $tenantId = $record->getAttribute('tenant_id');
 
-    if ($tenantId) {
-        return (string) $tenantId;
+        if ($tenantId) {
+            return (string) $tenantId;
+        }
+
+        return (string) app('tenant')->id;
     }
-
-    return (string) app('tenant')->id;
-}
 
     protected function subjectUserIdForCreated(Model $record, ?int $actorUserId): ?int
     {
@@ -152,6 +158,13 @@ protected function tenantIdFor(Model $record): string
         }
 
         return $changes;
+    }
+
+    protected function metadataChanges(array $metadata): array
+    {
+        $changes = $metadata['extra_changes'] ?? [];
+
+        return is_array($changes) ? $changes : [];
     }
 
     protected function observableFields(Model $record, string $module): array

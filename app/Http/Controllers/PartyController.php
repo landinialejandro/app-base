@@ -111,33 +111,46 @@ class PartyController extends Controller
         ]);
     }
 
-    public function store(StorePartyRequest $request)
-    {
-        $security = app(Security::class);
-        $data = $request->validated();
-        $roles = $this->normalizePartyRoles($data['roles'] ?? []);
-        unset($data['roles']);
+public function store(StorePartyRequest $request)
+{
+    $security = app(Security::class);
+    $data = $request->validated();
+    $roles = $this->normalizePartyRoles($data['roles'] ?? []);
+    unset($data['roles']);
 
-        $kind = $data['kind'] ?? null;
+    $kind = $data['kind'] ?? null;
 
-        abort_unless($this->isValidPartyKind($kind), 403);
+    abort_unless($this->isValidPartyKind($kind), 403);
 
-        $security->authorize(
-            $request->user(),
-            ModuleCatalog::PARTIES.'.create',
-            Party::class,
-            ['roles' => $roles]
-        );
+    $security->authorize(
+        $request->user(),
+        ModuleCatalog::PARTIES.'.create',
+        Party::class,
+        ['roles' => $roles]
+    );
 
-        $party = Party::create($data);
-        $this->syncRoles($party, $roles);
+    $party = Party::create($data);
+    $this->syncRoles($party, $roles);
 
-        $navigationTrail = PartyNavigationTrail::show($request, $party);
+    $createdRoles = $roles;
+    sort($createdRoles);
 
-        return redirect()
-            ->route('parties.show', ['party' => $party] + NavigationTrail::toQuery($navigationTrail))
-            ->with('success', "Contacto #{$party->id} creado correctamente.");
-    }
+    event(new \App\Events\OperationalRecordCreated(
+        record: $party,
+        actorUserId: auth()->id(),
+        metadata: [
+            'party_roles' => [
+                'to' => $createdRoles,
+            ],
+        ],
+    ));
+
+    $navigationTrail = PartyNavigationTrail::show($request, $party);
+
+    return redirect()
+        ->route('parties.show', ['party' => $party] + NavigationTrail::toQuery($navigationTrail))
+        ->with('success', "Contacto #{$party->id} creado correctamente.");
+}
 
     public function show(Request $request, Party $party)
     {
@@ -182,51 +195,81 @@ class PartyController extends Controller
         ]);
     }
 
-    public function update(UpdatePartyRequest $request, Party $party)
-    {
-        $this->authorize('update', $party);
+public function update(UpdatePartyRequest $request, Party $party)
+{
+    $this->authorize('update', $party);
 
-        $security = app(Security::class);
-        $data = $request->validated();
-        $roles = $this->normalizePartyRoles($data['roles'] ?? []);
-        unset($data['roles']);
+    $security = app(Security::class);
+    $data = $request->validated();
+    $roles = $this->normalizePartyRoles($data['roles'] ?? []);
+    unset($data['roles']);
 
-        if ($party->hasActiveMembership()) {
-            $data['kind'] = PartyCatalog::KIND_PERSON;
+    if ($party->hasActiveMembership()) {
+        $data['kind'] = PartyCatalog::KIND_PERSON;
 
-            if (! in_array(PartyCatalog::ROLE_EMPLOYEE, $roles, true)) {
-                $roles[] = PartyCatalog::ROLE_EMPLOYEE;
-            }
-
-            $linkedMembership = $party->activeMemberships()
-                ->with('user')
-                ->first();
-
-            if ($linkedMembership?->user?->email) {
-                $data['email'] = $linkedMembership->user->email;
-            }
+        if (! in_array(PartyCatalog::ROLE_EMPLOYEE, $roles, true)) {
+            $roles[] = PartyCatalog::ROLE_EMPLOYEE;
         }
 
-        $kind = $data['kind'] ?? null;
+        $linkedMembership = $party->activeMemberships()
+            ->with('user')
+            ->first();
 
-        abort_unless($this->isValidPartyKind($kind), 403);
-
-        $security->authorize(
-            $request->user(),
-            ModuleCatalog::PARTIES.'.update',
-            $party,
-            ['roles' => $roles]
-        );
-
-        $party->update($data);
-        $this->syncRoles($party, $roles);
-
-        $navigationTrail = PartyNavigationTrail::show($request, $party);
-
-        return redirect()
-            ->route('parties.show', ['party' => $party] + NavigationTrail::toQuery($navigationTrail))
-            ->with('success', 'Contacto actualizado correctamente.');
+        if ($linkedMembership?->user?->email) {
+            $data['email'] = $linkedMembership->user->email;
+        }
     }
+
+    $kind = $data['kind'] ?? null;
+
+    abort_unless($this->isValidPartyKind($kind), 403);
+
+    $security->authorize(
+        $request->user(),
+        ModuleCatalog::PARTIES.'.update',
+        $party,
+        ['roles' => $roles]
+    );
+
+    $beforeAttributes = $party->getAttributes();
+
+    $beforeRoles = $party->roles()
+        ->pluck('role')
+        ->values()
+        ->all();
+
+    sort($beforeRoles);
+
+    $party->update($data);
+    $this->syncRoles($party, $roles);
+
+    $afterRoles = $this->normalizePartyRoles($roles);
+    sort($afterRoles);
+
+    $extraChanges = [];
+
+    if ($beforeRoles !== $afterRoles) {
+        $extraChanges['party_roles'] = [
+            'from' => $beforeRoles,
+            'to' => $afterRoles,
+        ];
+    }
+
+    event(new \App\Events\OperationalRecordUpdated(
+        record: $party,
+        beforeAttributes: $beforeAttributes,
+        actorUserId: auth()->id(),
+        metadata: [
+            'extra_changes' => $extraChanges,
+        ],
+    ));
+
+    $navigationTrail = PartyNavigationTrail::show($request, $party);
+
+    return redirect()
+        ->route('parties.show', ['party' => $party] + NavigationTrail::toQuery($navigationTrail))
+        ->with('success', 'Contacto actualizado correctamente.');
+}
 
     public function destroy(Request $request, Party $party)
     {

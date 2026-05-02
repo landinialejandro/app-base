@@ -58,22 +58,28 @@ class ProductController extends Controller
         return view('products.create', compact('navigationTrail'));
     }
 
-    public function store(Request $request): RedirectResponse
-    {
-        $this->authorize('create', Product::class);
+public function store(Request $request): RedirectResponse
+{
+    $this->authorize('create', Product::class);
 
-        $data = $request->all();
-        $data['is_active'] = $request->boolean('is_active');
+    $data = $request->all();
+    $data['is_active'] = $request->boolean('is_active');
 
-        $validated = validator($data, $this->rules())->validate();
+    $validated = validator($data, $this->rules())->validate();
 
-        $product = Product::create($validated);
-        $navigationTrail = ProductNavigationTrail::show($request, $product);
+    $product = Product::create($validated);
 
-        return redirect()
-            ->route('products.show', ['product' => $product] + NavigationTrail::toQuery($navigationTrail))
-            ->with('success', 'Producto creado correctamente.');
-    }
+    event(new \App\Events\OperationalRecordCreated(
+        record: $product,
+        actorUserId: auth()->id(),
+    ));
+
+    $navigationTrail = ProductNavigationTrail::show($request, $product);
+
+    return redirect()
+        ->route('products.show', ['product' => $product] + NavigationTrail::toQuery($navigationTrail))
+        ->with('success', 'Producto creado correctamente.');
+}
 
     public function show(Request $request, Product $product): View
     {
@@ -100,22 +106,31 @@ class ProductController extends Controller
         return view('products.edit', compact('product', 'navigationTrail'));
     }
 
-    public function update(Request $request, Product $product): RedirectResponse
-    {
-        $this->authorize('update', $product);
+public function update(Request $request, Product $product): RedirectResponse
+{
+    $this->authorize('update', $product);
 
-        $data = $request->all();
-        $data['is_active'] = $request->boolean('is_active');
+    $data = $request->all();
+    $data['is_active'] = $request->boolean('is_active');
 
-        $validated = validator($data, $this->rules())->validate();
+    $validated = validator($data, $this->rules())->validate();
 
-        $product->update($validated);
-        $navigationTrail = ProductNavigationTrail::show($request, $product);
+    $beforeAttributes = $product->getAttributes();
 
-        return redirect()
-            ->route('products.show', ['product' => $product] + NavigationTrail::toQuery($navigationTrail))
-            ->with('success', 'Producto actualizado correctamente.');
-    }
+    $product->update($validated);
+
+    event(new \App\Events\OperationalRecordUpdated(
+        record: $product,
+        beforeAttributes: $beforeAttributes,
+        actorUserId: auth()->id(),
+    ));
+
+    $navigationTrail = ProductNavigationTrail::show($request, $product);
+
+    return redirect()
+        ->route('products.show', ['product' => $product] + NavigationTrail::toQuery($navigationTrail))
+        ->with('success', 'Producto actualizado correctamente.');
+}
 
     public function destroy(Request $request, Product $product): RedirectResponse
     {

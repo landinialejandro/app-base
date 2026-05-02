@@ -32,4 +32,17 @@ class ProductCatalog extends BaseCatalog
 
         return static::$statuses[$value] ?? $default;
     }
+
+
+    public static function activityTrackedFields(): array
+    {
+        return [
+            'name',
+            'sku',
+            'price',
+            'kind',
+            'unit_label',
+            'is_active',
+        ];
+    }
 }

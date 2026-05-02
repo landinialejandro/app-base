@@ -24,4 +24,14 @@ class ProjectCatalog extends BaseCatalog
     {
         return array_keys(static::$statuses);
     }
+
+
+    public static function activityTrackedFields(): array
+    {
+        return [
+            'name',
+            'description',
+            'status',
+        ];
+    }
 }

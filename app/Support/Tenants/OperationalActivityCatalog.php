@@ -1,18 +1,30 @@
 <?php
 
-// FILE: app/Support/Tenants/OperationalActivityCatalog.php | V1
+// FILE: app/Support/Tenants/OperationalActivityCatalog.php | V5
 
 namespace App\Support\Tenants;
 
 use App\Models\Appointment;
+use App\Models\Asset;
+use App\Models\Attachment;
 use App\Models\Document;
+use App\Models\InventoryOperation;
 use App\Models\Order;
+use App\Models\Party;
+use App\Models\Product;
+use App\Models\Project;
 use App\Models\Task;
 use App\Support\Catalogs\AppointmentCatalog;
+use App\Support\Catalogs\AssetCatalog;
+use App\Support\Catalogs\AttachmentCatalog;
 use App\Support\Catalogs\DocumentCatalog;
 use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\OrderCatalog;
+use App\Support\Catalogs\PartyCatalog;
+use App\Support\Catalogs\ProductCatalog;
+use App\Support\Catalogs\ProjectCatalog;
 use App\Support\Catalogs\TaskCatalog;
+use App\Support\Inventory\InventoryOperationCatalog;
 
 class OperationalActivityCatalog
 {
@@ -52,8 +64,14 @@ class OperationalActivityCatalog
     {
         return match ($recordClass) {
             Appointment::class => ModuleCatalog::APPOINTMENTS,
-            Order::class => ModuleCatalog::ORDERS,
+            Asset::class => ModuleCatalog::ASSETS,
+            Attachment::class => ModuleCatalog::ATTACHMENTS,
             Document::class => ModuleCatalog::DOCUMENTS,
+            InventoryOperation::class => ModuleCatalog::INVENTORY,
+            Order::class => ModuleCatalog::ORDERS,
+            Party::class => ModuleCatalog::PARTIES,
+            Product::class => ModuleCatalog::PRODUCTS,
+            Project::class => ModuleCatalog::PROJECTS,
             Task::class => ModuleCatalog::TASKS,
             default => null,
         };
@@ -63,8 +81,14 @@ class OperationalActivityCatalog
     {
         return match ($module) {
             ModuleCatalog::APPOINTMENTS => AppointmentCatalog::class,
-            ModuleCatalog::ORDERS => OrderCatalog::class,
+            ModuleCatalog::ASSETS => AssetCatalog::class,
+            ModuleCatalog::ATTACHMENTS => AttachmentCatalog::class,
             ModuleCatalog::DOCUMENTS => DocumentCatalog::class,
+            ModuleCatalog::INVENTORY => InventoryOperationCatalog::class,
+            ModuleCatalog::ORDERS => OrderCatalog::class,
+            ModuleCatalog::PARTIES => PartyCatalog::class,
+            ModuleCatalog::PRODUCTS => ProductCatalog::class,
+            ModuleCatalog::PROJECTS => ProjectCatalog::class,
             ModuleCatalog::TASKS => TaskCatalog::class,
             default => null,
         };

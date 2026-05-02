@@ -44,4 +44,22 @@ class PartyCatalog extends BaseCatalog
     {
         return static::$roles[$role] ?? '—';
     }
+
+
+    public static function activityTrackedFields(): array
+    {
+        return [
+            'kind',
+            'name',
+            'display_name',
+            'document_type',
+            'document_number',
+            'tax_id',
+            'email',
+            'phone',
+            'address',
+            'notes',
+            'is_active',
+        ];
+    }
 }

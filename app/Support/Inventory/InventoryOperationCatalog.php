@@ -38,4 +38,17 @@ class InventoryOperationCatalog
     {
         return self::labels()[$type] ?? 'Operación';
     }
+
+
+    public static function activityTrackedFields(): array
+    {
+        return [
+            'operation_type',
+            'origin_type',
+            'origin_id',
+            'origin_line_type',
+            'origin_line_id',
+            'notes',
+        ];
+    }
 }

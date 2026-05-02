@@ -88,4 +88,18 @@ class AssetCatalog extends BaseCatalog
 
     return static::$kinds[$value] ?? $default;
 }
+
+
+    public static function activityTrackedFields(): array
+    {
+        return [
+            'party_id',
+            'kind',
+            'relationship_type',
+            'name',
+            'internal_code',
+            'status',
+            'notes',
+        ];
+    }
 }

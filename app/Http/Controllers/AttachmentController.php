@@ -61,44 +61,49 @@ class AttachmentController extends Controller
         ]);
     }
 
-    public function store(StoreAttachmentRequest $request)
-    {
-        $attachableType = (string) $request->validated('attachable_type');
-        $attachableId = (string) $request->validated('attachable_id');
+public function store(StoreAttachmentRequest $request)
+{
+    $attachableType = (string) $request->validated('attachable_type');
+    $attachableId = (string) $request->validated('attachable_id');
 
-        $attachable = $this->resolveAttachable($attachableType, $attachableId);
+    $attachable = $this->resolveAttachable($attachableType, $attachableId);
 
-        $this->authorize('update', $attachable);
+    $this->authorize('update', $attachable);
 
-        $file = $request->file('file');
-        $disk = 'local';
-        $directory = 'attachments';
+    $file = $request->file('file');
+    $disk = 'local';
+    $directory = 'attachments';
 
-        $path = $file->store($directory, $disk);
-        $storedName = basename($path);
+    $path = $file->store($directory, $disk);
+    $storedName = basename($path);
 
-        Attachment::create([
-            'tenant_id' => app('tenant')->id,
-            'attachable_type' => $attachable::class,
-            'attachable_id' => $attachable->id,
-            'uploaded_by_user_id' => auth()->id(),
-            'disk' => $disk,
-            'directory' => $directory,
-            'stored_name' => $storedName,
-            'original_name' => $file->getClientOriginalName(),
-            'extension' => $file->getClientOriginalExtension(),
-            'mime_type' => $file->getMimeType(),
-            'size_bytes' => $file->getSize(),
-            'kind' => $request->validated('kind'),
-            'is_image' => str_starts_with((string) $file->getMimeType(), 'image/'),
-            'description' => $request->validated('description'),
-        ]);
+    $attachment = Attachment::create([
+        'tenant_id' => app('tenant')->id,
+        'attachable_type' => $attachable::class,
+        'attachable_id' => $attachable->id,
+        'uploaded_by_user_id' => auth()->id(),
+        'disk' => $disk,
+        'directory' => $directory,
+        'stored_name' => $storedName,
+        'original_name' => $file->getClientOriginalName(),
+        'extension' => $file->getClientOriginalExtension(),
+        'mime_type' => $file->getMimeType(),
+        'size_bytes' => $file->getSize(),
+        'kind' => $request->validated('kind'),
+        'is_image' => str_starts_with((string) $file->getMimeType(), 'image/'),
+        'description' => $request->validated('description'),
+    ]);
 
-        $parentTrail = $this->parentTrailFromRequest($request, $attachableType, $attachable);
+    event(new \App\Events\OperationalRecordCreated(
+        record: $attachment,
+        actorUserId: auth()->id(),
+    ));
 
-        return redirect($request->validated('return_to') ?: $this->parentShowUrlWithTrail($attachableType, $attachable, $parentTrail))
-            ->with('success', 'Archivo adjuntado correctamente.');
-    }
+    $parentTrail = $this->parentTrailFromRequest($request, $attachableType, $attachable);
+
+    return redirect($request->validated('return_to') ?: $this->parentShowUrlWithTrail($attachableType, $attachable, $parentTrail))
+        ->with('success', 'Archivo adjuntado correctamente.');
+}
 
     public function edit(Request $request, Attachment $attachment)
     {
@@ -130,21 +135,29 @@ class AttachmentController extends Controller
         ]);
     }
 
-    public function update(UpdateAttachmentRequest $request, Attachment $attachment)
-    {
-        $this->authorize('update', $attachment);
+public function update(UpdateAttachmentRequest $request, Attachment $attachment)
+{
+    $this->authorize('update', $attachment);
 
-        $attachment->update([
-            'kind' => $request->validated('kind'),
-            'description' => $request->validated('description'),
-        ]);
+    $beforeAttributes = $attachment->getAttributes();
 
-        $attachableType = $this->typeAliasFromStoredType($attachment->attachable_type);
-        $parentTrail = $this->parentTrailFromRequest($request, $attachableType, $attachment->attachable);
+    $attachment->update([
+        'kind' => $request->validated('kind'),
+        'description' => $request->validated('description'),
+    ]);
 
-        return redirect($request->validated('return_to') ?: $this->parentShowUrlWithTrail($attachableType, $attachment->attachable, $parentTrail))
-            ->with('success', 'Adjunto actualizado.');
-    }
+    event(new \App\Events\OperationalRecordUpdated(
+        record: $attachment,
+        beforeAttributes: $beforeAttributes,
+        actorUserId: auth()->id(),
+    ));
+
+    $attachableType = $this->typeAliasFromStoredType($attachment->attachable_type);
+    $parentTrail = $this->parentTrailFromRequest($request, $attachableType, $attachment->attachable);
+
+    return redirect($request->validated('return_to') ?: $this->parentShowUrlWithTrail($attachableType, $attachment->attachable, $parentTrail))
+        ->with('success', 'Adjunto actualizado.');
+}
 
     public function destroy(Request $request, Attachment $attachment)
     {

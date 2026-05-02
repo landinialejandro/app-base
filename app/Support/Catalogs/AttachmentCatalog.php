@@ -35,4 +35,13 @@ class AttachmentCatalog extends BaseCatalog
 
         return static::$kinds[$value] ?? $default;
     }
+
+
+    public static function activityTrackedFields(): array
+    {
+        return [
+            'kind',
+            'description',
+        ];
+    }
 }

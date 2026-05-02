@@ -11,29 +11,36 @@ use Throwable;
 
 class InventoryOperationService
 {
-    public function create(
-        string $tenantId,
-        string $operationType,
-        ?string $originType = null,
-        int|string|null $originId = null,
-        ?string $originLineType = null,
-        int|string|null $originLineId = null,
-        ?string $notes = null,
-        int|string|null $createdBy = null,
-    ): InventoryOperation {
-        $this->validateOperationType($operationType);
+public function create(
+    string $tenantId,
+    string $operationType,
+    ?string $originType = null,
+    int|string|null $originId = null,
+    ?string $originLineType = null,
+    int|string|null $originLineId = null,
+    ?string $notes = null,
+    int|string|null $createdBy = null,
+): InventoryOperation {
+    $this->validateOperationType($operationType);
 
-        return InventoryOperation::create([
-            'tenant_id' => $tenantId,
-            'operation_type' => $operationType,
-            'origin_type' => $originType,
-            'origin_id' => $originId,
-            'origin_line_type' => $originLineType,
-            'origin_line_id' => $originLineId,
-            'notes' => $notes,
-            'created_by' => $createdBy,
-        ]);
-    }
+    $operation = InventoryOperation::create([
+        'tenant_id' => $tenantId,
+        'operation_type' => $operationType,
+        'origin_type' => $originType,
+        'origin_id' => $originId,
+        'origin_line_type' => $originLineType,
+        'origin_line_id' => $originLineId,
+        'notes' => $notes,
+        'created_by' => $createdBy,
+    ]);
+
+    event(new \App\Events\OperationalRecordCreated(
+        record: $operation,
+        actorUserId: $createdBy !== null ? (int) $createdBy : null,
+    ));
+
+    return $operation;
+}
 
     /**
      * Ejecuta un callback dentro de una operación logística.

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Events/OperationalRecordCreated.php | V1
+// FILE: app/Events/OperationalRecordCreated.php | V2
 
 namespace App\Events;
 
@@ -16,6 +16,7 @@ class OperationalRecordCreated
     public function __construct(
         public Model $record,
         public ?int $actorUserId = null,
+        public array $metadata = [],
     ) {
     }
 }

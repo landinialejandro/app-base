@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Events/OperationalRecordUpdated.php | V1
+// FILE: app/Events/OperationalRecordUpdated.php | V2
 
 namespace App\Events;
 
@@ -17,6 +17,7 @@ class OperationalRecordUpdated
         public Model $record,
         public array $beforeAttributes,
         public ?int $actorUserId = null,
+        public array $metadata = [],
     ) {
     }
 }

@@ -153,7 +153,7 @@ function runProjectAction(config) {
     formData.append("csrf_token", CONFIG.csrfToken);
     formData.append(config.action, "1");
 
-    Object.entries(config.data || {}).forEach(([key, value]) => {
+    Object.entries(config.data || config.payload || {}).forEach(([key, value]) => {
         formData.append(key, value);
     });
 
@@ -191,8 +191,13 @@ function runProjectAction(config) {
                 return;
             }
 
+            if (typeof config.onSuccess === "function") {
+                config.onSuccess(data || {});
+            }
+
             const hasOutput =
                 data && Object.prototype.hasOwnProperty.call(data, "output");
+
             const finalOutput =
                 hasOutput && typeof data.output === "string"
                     ? data.output.trim()
@@ -212,6 +217,9 @@ function runProjectAction(config) {
                 data && data.command ? "[INFO] Comando: " + data.command : null,
                 data && data.code
                     ? "[INFO] Código recibido: " + data.code.substring(0, 200)
+                    : null,
+                data && data.input
+                    ? "[INFO] Input recibido: " + data.input.substring(0, 200)
                     : null,
                 "[INFO] Respuesta cruda:",
                 raw || "(vacía)",
@@ -399,6 +407,23 @@ function runLabTool(tool, fromClipboard = false) {
             lab_tool: tool,
             from_clipboard: fromClipboard ? "1" : "0",
             lab_input: labInput,
+        },
+        onSuccess(data) {
+            const textarea = document.getElementById("labInput");
+
+            if (!textarea) {
+                return;
+            }
+
+            const finalInput =
+                data.input !== undefined
+                    ? data.input
+                    : labInput;
+
+            textarea.value = finalInput;
+
+            localStorage.setItem("projectLabLabInput", finalInput);
+            localStorage.setItem("projectLabLabActive", tool);
         },
     });
 }

@@ -15,15 +15,15 @@ class ProjectLab
         'js',
     ];
 
-    private const REGEX_TARGET_OPERATION = '/^\/\/\s*(?:TARGET|FILE):\s*(.+?)\s*(::|\+\+)\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*$/';
+    private const REGEX_TARGET_OPERATION = '/^\/\/\s*(?:TARGET|FILE):\s*(.+?)\s*(::|\+\+)\s*([a-zA-Z_][a-zA-Z0-9_]*)(?:\s*\|\s*V\d+)?\s*$/';
 
-    private const REGEX_PHP_FILE_HEADER = '/^\/\/\s*FILE:\s*(.+?)(?:\s*\|\s*(V\d+))?\s*$/';
+    private const REGEX_PHP_FILE_HEADER = '/^\/\/\s*FILE:\s*((?!.*(?:\s::\s|\s\+\+\s)).+?\.php)(?:\s*\|\s*(V\d+))?\s*$/';
 
-    private const REGEX_BLADE_FILE_HEADER = '/^\{\{\-\-\s*FILE:\s*(.+?)(?:\s*\|\s*(V\d+))?\s*\-\-\}\}$/';
+    private const REGEX_BLADE_FILE_HEADER = '/^\{\{\-\-\s*FILE:\s*((?!.*(?:\s::\s|\s\+\+\s)).+?\.blade\.php)(?:\s*\|\s*(V\d+))?\s*\-\-\}\}$/';
 
-    private const REGEX_PLAIN_FILE_HEADER_LINE = '/^\/\/\s*FILE:\s*(.+?)(?:\s*\|\s*(V\d+))?\s*$/';
+    private const REGEX_PLAIN_FILE_HEADER_LINE = '/^\/\/\s*FILE:\s*((?!.*(?:\s::\s|\s\+\+\s)).+?\.(?:css|js))(?:\s*\|\s*(V\d+))?\s*$/';
 
-    private const REGEX_PLAIN_FILE_HEADER_BLOCK = '/^\/\*\s*FILE:\s*(.+?)(?:\s*\|\s*(V\d+))?\s*\*\/$/';
+    private const REGEX_PLAIN_FILE_HEADER_BLOCK = '/^\/\*\s*FILE:\s*((?!.*(?:\s::\s|\s\+\+\s)).+?\.(?:css|js))(?:\s*\|\s*(V\d+))?\s*\*\/$/';
 
     private const REGEX_ASSET_SECTION_BLOCK = '/REEMPLAZAR EN:\s*\[?(.+?\.(?:css|js))\]?\s*(<<SECTION:\s*.*?>>.*?<<END SECTION>>)/su';
 

@@ -1,11 +1,11 @@
 <?php
 
-// FILE: app/Http/Requests/UpdatePartyRequest.php | V6
+// FILE: app/Http/Requests/UpdatePartyRequest.php | V7
 
 namespace App\Http\Requests;
 
 use App\Support\Catalogs\PartyCatalog;
-use App\Support\Catalogs\RoleCatalog;
+use App\Support\Parties\PartyEmployeeContactAuthorization;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -47,7 +47,7 @@ class UpdatePartyRequest extends FormRequest
 
             if (
                 in_array(PartyCatalog::ROLE_EMPLOYEE, $roles, true)
-                && ! $this->currentUserCanManageEmployeeContacts()
+                && ! app(PartyEmployeeContactAuthorization::class)->allows($this->user())
                 && ! ($party && $party->hasActiveMembership())
             ) {
                 $validator->errors()->add(
@@ -105,33 +105,5 @@ class UpdatePartyRequest extends FormRequest
             )))),
             'is_active' => $this->boolean('is_active'),
         ]);
-    }
-
-    protected function currentUserCanManageEmployeeContacts(): bool
-    {
-        $tenant = app('tenant');
-        $user = $this->user();
-
-        if (! $tenant || ! $user) {
-            return false;
-        }
-
-        $membership = $user->memberships()
-            ->where('tenant_id', $tenant->id)
-            ->where('status', 'active')
-            ->with('roles')
-            ->first();
-
-        if (! $membership) {
-            return false;
-        }
-
-        if ($membership->is_owner) {
-            return true;
-        }
-
-        return $membership->roles->contains(
-            fn ($role) => $role->slug === RoleCatalog::ADMIN
-        );
     }
 }

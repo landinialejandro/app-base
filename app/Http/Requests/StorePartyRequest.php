@@ -1,11 +1,11 @@
 <?php
 
-// FILE: app/Http/Requests/StorePartyRequest.php | V4
+// FILE: app/Http/Requests/StorePartyRequest.php | V5
 
 namespace App\Http\Requests;
 
 use App\Support\Catalogs\PartyCatalog;
-use App\Support\Catalogs\RoleCatalog;
+use App\Support\Parties\PartyEmployeeContactAuthorization;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 
@@ -48,7 +48,7 @@ class StorePartyRequest extends FormRequest
                 return;
             }
 
-            if ($this->currentUserCanManageEmployeeContacts()) {
+            if (app(PartyEmployeeContactAuthorization::class)->allows($this->user())) {
                 return;
             }
 
@@ -75,33 +75,5 @@ class StorePartyRequest extends FormRequest
             )))),
             'is_active' => $this->boolean('is_active'),
         ]);
-    }
-
-    protected function currentUserCanManageEmployeeContacts(): bool
-    {
-        $tenant = app('tenant');
-        $user = $this->user();
-
-        if (! $tenant || ! $user) {
-            return false;
-        }
-
-        $membership = $user->memberships()
-            ->where('tenant_id', $tenant->id)
-            ->where('status', 'active')
-            ->with('roles')
-            ->first();
-
-        if (! $membership) {
-            return false;
-        }
-
-        if ($membership->is_owner) {
-            return true;
-        }
-
-        return $membership->roles->contains(
-            fn ($role) => $role->slug === RoleCatalog::ADMIN
-        );
     }
 }

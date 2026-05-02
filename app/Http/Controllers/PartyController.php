@@ -11,9 +11,9 @@ use App\Support\Auth\Security;
 use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\PartyCatalog;
-use App\Support\Catalogs\RoleCatalog;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\PartyNavigationTrail;
+use App\Support\Parties\PartyEmployeeContactAuthorization;
 use Illuminate\Http\Request;
 
 class PartyController extends Controller
@@ -348,30 +348,8 @@ class PartyController extends Controller
 
     protected function canManageEmployeeContacts(Request $request): bool
     {
-        $tenant = app('tenant');
-        $user = $request->user();
-
-        if (! $tenant || ! $user) {
-            return false;
-        }
-
-        $membership = $user->memberships()
-            ->where('tenant_id', $tenant->id)
-            ->where('status', 'active')
-            ->with('roles')
-            ->first();
-
-        if (! $membership) {
-            return false;
-        }
-
-        if ($membership->is_owner) {
-            return true;
-        }
-
-        return $membership->roles->contains(
-            fn ($role) => $role->slug === RoleCatalog::ADMIN
-        );
+        return app(PartyEmployeeContactAuthorization::class)
+            ->allows($request->user());
     }
 
     protected function partyKindOptions(): array

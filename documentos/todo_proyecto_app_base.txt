@@ -39,7 +39,7 @@ no debe utilizarse como depósito de ideas difusas sin criterio de ejecución
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — RECONVERSIÓN MODULAR>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 LÍNEA ACTIVA — RECONVERSIÓN MODULAR
 
@@ -58,6 +58,7 @@ alineación de tasks y appointments para consumir directorio interno del tenant 
 reconversión conceptual de parties separando tipo de contacto y relación con la empresa
 reconversión de seguridad de parties desde allowed_kinds hacia allowed_party_roles
 implementación base de OperationalActivity como capacidad transversal tenant-scoped de trazabilidad operativa
+extensión validada de OperationalActivity hacia módulos operativos principales adicionales
 
 Criterios rectores vigentes:
 
@@ -69,6 +70,7 @@ no abrir módulo users por necesidades de dataset interno reusable
 no comprimir en parties.kind relaciones que pertenecen a party_roles
 no usar allowed_kinds como constraint funcional de parties
 no convertir OperationalActivity en CRUD ordinario ni navegación principal por mera existencia técnica
+no integrar módulos a OperationalActivity por default solo por tener CRUD
 
 Foco de esta línea:
 
@@ -79,6 +81,7 @@ más coherencia entre arquitectura, UI y documentación
 más separación entre tipo base de entidad y relaciones operativas
 más alineación entre constraints funcionales y dimensión real del módulo
 más trazabilidad operativa real sin invadir ownership funcional de los módulos
+más validación runtime real antes de declarar cierres de trazabilidad transversal
 
 Caso vigente consolidado:
 
@@ -87,6 +90,8 @@ party_roles.role = customer/supplier/employee/other
 parties.allowed_party_roles se evalúa contra party_roles.role
 orders.allowed_kinds conserva su lectura propia para orders
 OperationalActivity registra eventos operativos livianos emitidos por módulos dueños luego de acciones propias autorizadas y ejecutadas
+inventory se registra en OperationalActivity mediante InventoryOperation
+party_roles puede registrarse como metadata operativa dentro de la actividad de Party
 
 <<END SECTION>>
 
@@ -119,7 +124,7 @@ seguimiento posterior al cierre de reconversión conceptual y de seguridad, espe
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -310,17 +315,82 @@ operational_activities persistidas
 jobs procesados
 failed_jobs sin errores
 
-Módulos actualmente integrados con OperationalActivity:
+Módulos integrados inicialmente con OperationalActivity:
 
 appointments
 tasks
 orders
 documents
 
+Cierre operativo adicional de extensión de OperationalActivity:
+
+se extendió y validó OperationalActivity hacia nuevos módulos operativos principales.
+
+Módulos adicionales validados:
+
+projects
+assets
+products
+attachments
+parties
+inventory
+
+Estado vigente de módulos integrados con OperationalActivity:
+
+appointments
+tasks
+orders
+documents
+projects
+assets
+products
+attachments
+parties
+inventory
+
+Cierre doctrinal de inventory frente a OperationalActivity:
+
+OperationalActivity registra InventoryOperation como ancla operativa agrupada.
+
+InventoryMovement conserva la trazabilidad fina y atómica de stock.
+
+InventoryMovement no se registra como actividad principal cuando InventoryOperation representa la acción operativa del usuario.
+
+Cierre doctrinal de parties frente a OperationalActivity:
+
+OperationalActivity registra actividad sobre Party.
+
+Los cambios de party_roles pueden registrarse como metadata operativa compuesta dentro de la actividad de Party.
+
+party_roles no se convierte en módulo propio ni abre navegación propia.
+
+Cierre doctrinal de attachments frente a OperationalActivity:
+
+attachments registra creación y actualización de metadata operativa cuando corresponde.
+
+No se registran como actividad operativa vigente:
+
+download
+preview
+vista
+print
+PDF
+destroy
+
+Cierre de alcance visual y navegación:
+
+no se implementó vista general del log
+
+no se implementó tab Actividad en parties.show
+
+no se agregó acceso desde tenant/profile
+
+no se agregó navegación principal para OperationalActivity
+
 <<END SECTION>>
 
 <<SECTION: CAPACIDADES REUTILIZABLES A CONSOLIDAR>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 CAPACIDADES REUTILIZABLES A CONSOLIDAR
 
@@ -410,10 +480,26 @@ definir autorización de lectura del log
 evitar navegación principal mientras no exista decisión validada
 evitar consumo visual por inferencias desde created_by, updated_by, assigned_user_id o party_id
 
+Criterio vigente de consumo futuro de OperationalActivity:
+
+la lectura visual futura debe consumir operational_activities persistidas y autorizadas.
+
+No debe reconstruir historia operativa desde campos actuales del modelo.
+
+No debe inferir actividad de parties desde party_id, created_by, updated_by ni assigned_user_id.
+
+No debe abrir surface visual sin contrato de autorización de lectura.
+
+Casos de anclaje validados:
+
+inventory debe exponer actividad transversal a partir de InventoryOperation cuando corresponda.
+
+parties puede representar cambios de party_roles como metadata operativa de Party.
+
 <<END SECTION>>
 
 <<SECTION: SEGURIDAD Y CONTRATOS PENDIENTES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 SEGURIDAD Y CONTRATOS PENDIENTES
 
@@ -462,6 +548,19 @@ Frente OperationalActivity:
 
 la escritura ya quedó system-owned y append-only.
 
+Módulos integrados actualmente:
+
+appointments
+tasks
+orders
+documents
+projects
+assets
+products
+attachments
+parties
+inventory
+
 Pendiente real:
 
 definir autorización de lectura del log operativo.
@@ -480,14 +579,28 @@ Lecturas futuras que requieren autorización explícita:
 vista general del log desde perfil de empresa
 actividad por colaborador desde parties.show
 
-Regla:
+Pendientes específicos derivados de OperationalActivity:
+
+definir si tenant/profile o memberships deben emitir actividad operativa
+
+definir si corresponde limpiar persistencia duplicada de extra_changes en metadata
+
+definir si se requiere limpieza o conservación de registros temporales de prueba
+
+definir contrato de lectura antes de crear vistas, tabs, menú o surfaces visuales
+
+Reglas:
 
 OperationalActivity no reemplaza Security, policies ni validaciones del módulo dueño.
+
+OperationalActivity no registra intentos no autorizados, bloqueos ni fallos de autorización en el estado vigente.
+
+OperationalActivity registra actividad operativa efectivamente ejecutada.
 
 <<END SECTION>>
 
 <<SECTION: DEUDA TÉCNICA A REDUCIR>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 DEUDA TÉCNICA A REDUCIR
 
@@ -548,15 +661,40 @@ la idea de actividad interna del empleado dejó de ser solo línea conceptual.
 
 Ya existe base persistida mediante OperationalActivity.
 
+OperationalActivity ya fue extendido y validado hacia:
+
+appointments
+tasks
+orders
+documents
+projects
+assets
+products
+attachments
+parties
+inventory
+
 Deuda técnica pendiente derivada de OperationalActivity:
 
 definir lectura autorizada
 definir surface o consumo visual
-integrar módulos no cubiertos solo tras auditoría
 evitar duplicación de listeners
 evitar inferencias visuales desde campos actuales cuando exista actividad persistida
 evitar navegación principal sin decisión validada
 mantener append-only y escritura system-owned
+limpiar o evitar persistencia duplicada de extra_changes si genera redundancia
+definir criterio sobre registros temporales de prueba
+definir si tenant/profile o memberships deben emitir actividad operativa
+
+Deuda reducida derivada de inventory:
+
+se cerró el ancla de actividad operativa transversal en InventoryOperation.
+
+InventoryMovement conserva la trazabilidad fina de stock y no debe duplicarse como actividad principal transversal.
+
+Deuda reducida derivada de parties:
+
+se validó registro de cambios de party_roles como metadata operativa de Party sin convertir party_roles en módulo propio.
 
 Regla:
 
@@ -583,7 +721,7 @@ cada paso debe dejar menos excepciones que el anterior
 <<END SECTION>>
 
 <<SECTION: ESTADO ACTUAL DEL SISTEMA>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 ESTADO ACTUAL DEL SISTEMA
 
@@ -663,10 +801,36 @@ appointments
 tasks
 orders
 documents
+projects
+assets
+products
+attachments
+parties
+inventory
 
 OperationalActivity no tiene navegación principal vigente, no tiene CRUD manual y no autoriza operaciones.
 
 La lectura futura del log todavía requiere definición explícita de autorización.
+
+Estado vigente para inventory:
+
+OperationalActivity registra InventoryOperation como acción operativa agrupada.
+
+InventoryMovement conserva trazabilidad fina y atómica de stock.
+
+Estado vigente para parties:
+
+OperationalActivity registra Party como record principal.
+
+Los cambios de party_roles pueden persistirse como metadata operativa de Party.
+
+party_roles no se convierte en módulo propio.
+
+Estado vigente para attachments:
+
+OperationalActivity puede registrar creación y actualización de metadata operativa.
+
+No registra download, preview, vista, print, PDF ni destroy en el estado vigente.
 
 La validación runtime reciente no detectó nuevos hallazgos críticos fuera de los frentes ya corregidos.
 
@@ -740,7 +904,7 @@ Lo futuro son sus superficies de lectura autorizada.
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 PENDIENTES INMEDIATOS
 
@@ -776,6 +940,24 @@ no agregar embebidos manuales
 consumir surfaces oficiales
 detectar brechas si un módulo oferente no publica una surface necesaria
 distinguir lectura para customer, supplier, employee y other
+
+Pendientes inmediatos derivados de OperationalActivity:
+
+definir autorización de lectura del log operativo
+
+definir si corresponde vista general desde perfil de empresa
+
+definir si corresponde lectura filtrada desde parties.show para employee con membership activa vinculada
+
+definir si tenant/profile o memberships deben emitir actividad operativa
+
+revisar la posible duplicación de extra_changes en metadata final
+
+definir criterio sobre limpieza o conservación de registros temporales de prueba
+
+Regla:
+
+no implementar UI, tab, menú ni surface visual para OperationalActivity sin contrato de lectura explícito.
 
 <<END SECTION>>
 

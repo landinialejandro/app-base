@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -66,6 +66,12 @@ La primera línea válida promueve automáticamente:
 draft → pending_approval
 
 Inventory ya opera integrado con Orders y Documents mediante surfaces oficiales y mantiene ownership funcional propio.
+
+Inventory cuenta con inventory_operations como capa interna de agrupación operativa contextual.
+
+InventoryOperation representa la acción operativa agrupada.
+
+InventoryMovement conserva la trazabilidad fina y atómica de stock.
 
 La convergencia reusable de line items quedó avanzada y validada en múltiples capas.
 
@@ -170,6 +176,38 @@ appointments
 tasks
 orders
 documents
+projects
+assets
+products
+attachments
+parties
+inventory
+
+Regla vigente para inventory:
+
+OperationalActivity registra InventoryOperation.
+
+InventoryMovement no se registra como actividad principal cuando InventoryOperation representa la acción operativa agrupada.
+
+Regla vigente para parties:
+
+OperationalActivity registra Party.
+
+Los cambios de party_roles pueden registrarse como metadata operativa de Party.
+
+party_roles no se convierte en módulo propio ni abre navegación propia.
+
+Regla vigente para attachments:
+
+OperationalActivity puede registrar creación y actualización de metadata operativa.
+
+No registra download, preview, vista, print, PDF ni destroy en el estado vigente.
+
+No se implementó vista general del log.
+
+No se implementó tab Actividad en parties.show.
+
+No se agregó acceso desde tenant/profile.
 
 Cuando una tarea involucre Project Lab, automatizador, Tinker, runtime real, colas, eventos, permisos, constraints, multi-tenancy, actualización de código o actualización documental, se debe respetar la guía operativa vigente de Project Lab.
 
@@ -186,7 +224,7 @@ no entregar formatos ambiguos.
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS DEL CHAT>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 REGLAS OPERATIVAS DEL CHAT
 
@@ -264,10 +302,46 @@ No duplicar esa regla en controller, requests o vistas.
 
 La UI de parties expresa permisos resueltos, pero no autoriza.
 
+Regla operativa adicional para OperationalActivity:
+
+no asumir integración automática de módulos por existir CRUD.
+
+no llamar directamente al logger desde controllers o services del módulo dueño.
+
+no registrar actividad técnica sin valor operativo.
+
+no registrar deletes, vistas, downloads, previews, prints ni PDFs salvo decisión explícita posterior.
+
+no implementar lectura visual del log sin contrato de autorización.
+
+validar siempre tenant activo, evento emitido, queue procesada, jobs vaciados, failed_jobs sin errores y persistencia final cuando corresponda.
+
+si hay jobs procesados sin failed_jobs pero no hay operational_activities persistidas, revisar primero el mapeo modelo → módulo y módulo → catálogo.
+
+Regla operativa adicional para inventory:
+
+si la actividad operativa corresponde a inventory, no asumir InventoryMovement como ancla transversal principal.
+
+La lectura vigente es:
+
+InventoryOperation = acción operativa agrupada
+
+InventoryMovement = trazabilidad fina y atómica de stock
+
+Regla operativa adicional para metadata operativa:
+
+si un cambio relevante vive en una relación hija, puede requerir metadata operativa explícita.
+
+Caso vigente:
+
+party_roles dentro de actividad de Party.
+
+La metadata no debe convertir la relación hija en módulo propio ni generar duplicación innecesaria como extra_changes persistido si ya queda representada en changes.
+
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DE ESTE CHAT>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 OBJETIVO DE ESTE CHAT
 
@@ -342,6 +416,46 @@ appointments
 tasks
 orders
 documents
+projects
+assets
+products
+attachments
+parties
+inventory
+
+Criterios consolidados de OperationalActivity:
+
+el módulo dueño autoriza, valida y ejecuta antes de emitir el evento operativo
+
+OperationalActivity no autoriza, no valida y no reemplaza Security ni policies
+
+no debe registrarse actividad solo por existir CRUD
+
+los campos observables deben declararse en el catálogo dueño
+
+la validación requiere runtime real, tenant activo, evento, cola, jobs, failed_jobs y persistencia final cuando corresponda
+
+Estado reciente consolidado de inventory frente a OperationalActivity:
+
+OperationalActivity registra InventoryOperation como acción operativa agrupada
+
+InventoryMovement conserva trazabilidad fina de stock
+
+InventoryMovement no se registra como actividad principal cuando InventoryOperation representa la acción del usuario
+
+Estado reciente consolidado de parties frente a OperationalActivity:
+
+OperationalActivity registra Party como record principal
+
+los cambios de party_roles pueden persistirse como metadata operativa de Party
+
+party_roles no se convierte en módulo propio
+
+Estado reciente consolidado de attachments frente a OperationalActivity:
+
+attachments puede registrar creación y actualización de metadata operativa
+
+no se registra download, preview, vista, print, PDF ni destroy
 
 Próximos frentes posibles de OperationalActivity:
 
@@ -351,7 +465,17 @@ definir vista general desde perfil de empresa
 
 definir lectura filtrada desde parties.show para employee con membership activa vinculada
 
+definir si tenant/profile o memberships deben emitir actividad operativa
+
+revisar posible duplicación de extra_changes en metadata final
+
+definir criterio sobre limpieza o conservación de registros temporales de prueba
+
 evaluar otros módulos sin asumir integración automática
+
+Regla:
+
+no implementar UI, tab, menú ni surface visual de OperationalActivity sin contrato de lectura explícito.
 
 Toda propuesta debe nacer desde el estado actual real del proyecto y no desde supuestos genéricos.
 

@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00021
 
 CONVENCIONES GENERALES
 
@@ -161,10 +161,36 @@ parties no debe usar allowed_kinds porque parties.kind representa únicamente ti
 
 parties debe usar allowed_party_roles porque la relación con la empresa vive en party_roles.role.
 
+Convención de actividad operativa transversal:
+
+la integración con OperationalActivity debe realizarse mediante eventos operativos livianos emitidos por el módulo dueño después de autorizar, validar y ejecutar su operación.
+
+No corresponde llamar directamente al logger desde controllers o services del módulo dueño.
+
+No corresponde registrar actividad solo por existir CRUD.
+
+No corresponde registrar cambios técnicos sin valor operativo.
+
+No corresponde registrar deletes, vistas, descargas, previews, prints o PDFs salvo decisión explícita posterior.
+
+Los campos observables deben declararse en el catálogo del módulo dueño mediante activityTrackedFields() o contrato equivalente vigente.
+
+El listener de actividad operativa debe mantenerse queued cuando corresponda al patrón vigente.
+
+OperationalActivity puede recibir metadata operativa adicional cuando un cambio compuesto no viva directamente como atributo simple del modelo principal.
+
+Caso validado:
+
+parties puede registrar cambios de party_roles como metadata operativa de Party.
+
+Regla:
+
+la metadata operativa no convierte una entidad hija en módulo propio.
+
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA BASE DEL PROYECTO>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 ESTRUCTURA BASE DEL PROYECTO
 
@@ -328,6 +354,12 @@ tools/project-lab
 Project Lab es herramienta local de depuración, auditoría y mantenimiento.
 
 No forma parte del sistema SaaS productivo.
+
+Regla adicional vigente:
+
+Project Lab puede aplicar actualizaciones de código, aplicar actualizaciones documentales, ejecutar auditorías simples y validar runtime real según el contrato vigente de la herramienta.
+
+Toda intervención mediante Project Lab debe respetar los formatos estrictos documentados en la guía operativa.
 
 REGLA FINAL
 
@@ -529,7 +561,7 @@ Esa pieza debe evitar duplicación de la regla entre controller y requests.
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00022
+SECTION_VERSION: 00023
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -862,6 +894,16 @@ El módulo dueño debe completar primero su operación propia.
 
 La capacidad transversal puede registrar, normalizar o descartar el evento según sanidad operativa.
 
+Los eventos operativos livianos pueden admitir metadata opcional cuando un cambio operativo relevante no esté expresado como atributo directo simple del modelo principal.
+
+Caso validado:
+
+parties puede enviar metadata adicional para representar cambios de party_roles dentro de la actividad operativa de Party.
+
+Regla:
+
+la metadata adicional debe servir para representar cambios operativos significativos sin convertir relaciones hijas en módulos propios ni acoplar el prestador transversal a la semántica interna completa del módulo dueño.
+
 CONTRATO DE SEGURIDAD
 
 El contrato de seguridad del módulo no se define en esta sección sino en:
@@ -875,7 +917,7 @@ ningún contrato modular es válido si contradice el contrato de seguridad del m
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CLASIFICACIÓN MODULAR>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 CONVENCIONES DE CLASIFICACIÓN MODULAR
 
@@ -979,6 +1021,39 @@ no absorbe ownership funcional de los módulos que producen la actividad
 no autoriza ni valida operaciones originales
 
 no debe abrir navegación principal por mera existencia técnica
+
+no debe registrarse actividad por default solo por existir CRUD
+
+la participación de un módulo debe justificarse por valor operativo real
+
+Módulos con integración validada a OperationalActivity:
+
+appointments
+tasks
+orders
+documents
+projects
+assets
+products
+attachments
+parties
+inventory
+
+Aclaración vigente para inventory:
+
+inventory mantiene identidad de módulo nuclear funcional.
+
+Su integración con OperationalActivity se ancla en InventoryOperation como agrupación operativa contextual.
+
+InventoryMovement conserva la trazabilidad atómica de stock y no se convierte por eso en actividad transversal principal.
+
+Aclaración vigente para parties:
+
+parties mantiene identidad de módulo base del dominio.
+
+party_roles sigue siendo entidad hija o complementaria.
+
+El registro operativo de cambios de party_roles como metadata de Party no convierte party_roles en módulo autónomo ni navegación propia.
 
 Reglas generales:
 

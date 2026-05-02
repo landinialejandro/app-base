@@ -26,7 +26,7 @@ lección aplicable
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 LECCIONES VIGENTES
 
@@ -160,5 +160,70 @@ OperationalActivity no debe bloquear la operación principal.
 Lección:
 
 la trazabilidad operativa queued debe registrar si corresponde, pero un fallo del log no debe romper el flujo principal ya autorizado y ejecutado por el módulo dueño.
+
+Jobs procesados sin failed_jobs no garantizan persistencia de OperationalActivity.
+
+Error detectado:
+
+los jobs de OperationalActivity se procesaban correctamente, sin failed_jobs, pero no se persistía actividad.
+
+Causa:
+
+OperationalActivityCatalog no reconocía todavía nuevos modelos en el mapeo modelo → módulo y módulo → catálogo.
+
+Lección:
+
+si hay jobs procesados sin errores pero no hay registros en operational_activities, revisar primero:
+
+moduleForRecordClass()
+catalogForModule()
+catálogo dueño del módulo
+activityTrackedFields()
+
+antes de tocar controllers, eventos o listener.
+
+Project Lab audit debe recibir comandos ejecutables, no prompts.
+
+Error detectado:
+
+una auditoría de Project Lab intentó ejecutar texto de prompt como Bash y generó errores de comandos inexistentes.
+
+Lección:
+
+en la herramienta audit debe pegarse solo comando ejecutable o bloque compatible con auditoría, no texto documental ni prompts de chat.
+
+Las relaciones hijas pueden requerir metadata operativa explícita.
+
+Caso detectado:
+
+en parties no alcanza con registrar solo atributos de Party, porque los roles operativos viven en party_roles.
+
+Lección:
+
+cuando una relación hija expresa un cambio operativo relevante, debe representarse explícitamente mediante metadata operativa o patrón equivalente.
+
+Esto no convierte la relación hija en módulo propio.
+
+extra_changes no debería persistirse como duplicación innecesaria.
+
+Caso detectado:
+
+en parties.updated la información de party_roles quedó duplicada dentro de changes y extra_changes.
+
+Lección:
+
+extra_changes puede funcionar como insumo interno para construir changes, pero no necesariamente debe persistirse como metadata final si genera duplicación.
+
+InventoryMovement no debe duplicar la trazabilidad operativa agrupada.
+
+Caso validado:
+
+inventory debe registrar InventoryOperation como actividad transversal cuando representa la acción operativa agrupada.
+
+Lección:
+
+InventoryMovement conserva trazabilidad fina de stock.
+
+No todo movimiento atómico debe duplicarse como OperationalActivity si existe una operación agrupada que representa mejor la acción del usuario.
 
 <<END SECTION>>

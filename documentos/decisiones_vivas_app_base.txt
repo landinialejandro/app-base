@@ -36,7 +36,7 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 DECISIONES VIGENTES
 
@@ -101,7 +101,7 @@ Lectura vigente:
 
 no es CRUD ordinario
 no es navegación principal
-no pertenece a parties, tasks, orders, documents ni appointments
+no pertenece a parties, tasks, orders, documents, appointments, projects, assets, products, attachments ni inventory
 no autoriza operaciones
 no reemplaza Security
 no reemplaza policies
@@ -129,6 +129,52 @@ No se implementa delete.
 No se implementa destroy.
 
 No se implementa carga manual por formularios.
+
+Módulos con integración validada a OperationalActivity:
+
+appointments
+tasks
+orders
+documents
+projects
+assets
+products
+attachments
+parties
+inventory
+
+Decisión vigente sobre inventory:
+
+OperationalActivity registra InventoryOperation como ancla operativa agrupada.
+
+InventoryMovement no se registra como actividad principal cuando la operación agrupada representa la acción del usuario.
+
+InventoryMovement conserva la trazabilidad fina y atómica de stock dentro de inventory.
+
+Decisión vigente sobre parties:
+
+OperationalActivity registra actividad sobre Party.
+
+Los cambios de party_roles pueden registrarse como metadata operativa dentro de la actividad de Party.
+
+party_roles no se convierte en módulo propio.
+
+party_roles no abre navegación propia.
+
+Decisión vigente sobre attachments:
+
+attachments puede registrar creación y actualización de metadata operativa.
+
+No se registra como actividad operativa vigente:
+
+download
+preview
+vista
+print
+PDF
+destroy
+
+salvo decisión explícita posterior.
 
 Decisión vigente sobre lectura:
 

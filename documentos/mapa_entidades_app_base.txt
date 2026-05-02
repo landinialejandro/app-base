@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -127,11 +127,36 @@ OperationalActivity registra eventos operativos persistidos sobre registros de m
 record_type
 record_id
 
-No es entidad hija de parties, tasks, orders, documents ni appointments.
+No es entidad hija de parties, tasks, orders, documents, appointments, projects, assets, products, attachments ni inventory.
 
 No reemplaza relaciones propias de esos módulos.
 
 No debe utilizarse para inferir autorización ni para reconstruir la operación original como fuente primaria.
+
+Módulos con integración validada a OperationalActivity:
+
+appointments
+tasks
+orders
+documents
+projects
+assets
+products
+attachments
+parties
+inventory
+
+Aclaración vigente para inventory:
+
+frente a OperationalActivity, inventory se representa mediante InventoryOperation cuando la acción operativa agrupada expresa mejor el evento del usuario.
+
+InventoryMovement conserva la trazabilidad fina y atómica de stock dentro del módulo inventory.
+
+Aclaración vigente para parties:
+
+OperationalActivity puede registrar actividad sobre Party y representar cambios de party_roles como metadata operativa compuesta.
+
+Ese criterio no convierte party_roles en módulo propio ni altera su pertenencia como entidad hija o complementaria de parties.
 
 Regla:
 
@@ -228,7 +253,7 @@ Por esta razón, no debe tratarse como una entidad tenant-scoped pura del negoci
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 ENTIDADES DEL NEGOCIO
 
@@ -279,7 +304,7 @@ No constituye entidad hija de un módulo funcional particular.
 
 No debe mapearse bajo parties aunque su lectura futura pueda consumirse desde parties.show para colaboradores.
 
-No debe mapearse bajo tasks, orders, documents ni appointments aunque registre eventos originados allí.
+No debe mapearse bajo tasks, orders, documents, appointments, projects, assets, products, attachments ni inventory aunque registre eventos originados allí.
 
 Su relación conceptual es transversal:
 
@@ -288,6 +313,43 @@ OperationalActivity
 registra eventos sobre records de módulos operativos
 ↓
 record_type + record_id
+
+Modelos operativos con integración validada:
+
+Appointment
+Task
+Order
+Document
+Project
+Asset
+Product
+Attachment
+Party
+InventoryOperation
+
+Aclaración vigente sobre inventory:
+
+InventoryOperation es la entidad que representa la acción operativa agrupada de inventory frente a OperationalActivity.
+
+InventoryMovement conserva la trazabilidad fina y atómica de stock.
+
+Regla:
+
+InventoryMovement no debe registrarse como actividad operativa transversal principal cuando InventoryOperation representa la acción agrupada.
+
+Aclaración vigente sobre parties:
+
+Party es el record principal registrado en OperationalActivity.
+
+PartyRole permanece como entidad hija o complementaria que expresa la relación con la empresa.
+
+Los cambios de party_roles pueden quedar representados como metadata operativa dentro de la actividad de Party.
+
+Aclaración vigente sobre attachments:
+
+Attachment puede registrarse en OperationalActivity para creación y actualización de metadata operativa.
+
+No se consideran actividad operativa transversal vigente las descargas, previews, vistas, prints, PDFs ni eliminación, salvo decisión explícita posterior.
 
 <<END SECTION>>
 
@@ -508,7 +570,7 @@ Este criterio aplica especialmente a la lectura de usuarios internos activos del
 <<END SECTION>>
 
 <<SECTION: MÓDULOS ACTUALES DEL NEGOCIO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 MÓDULOS ACTUALES DEL NEGOCIO
 
@@ -560,12 +622,29 @@ OperationalActivity no se incorpora a este listado como módulo actual del negoc
 
 Su lectura vigente es capacidad transversal de soporte para trazabilidad operativa tenant-scoped.
 
+Puede registrar actividad operativa emitida por módulos dueños luego de operaciones autorizadas, validadas y ejecutadas.
+
+Módulos con integración validada:
+
+appointments
+tasks
+orders
+documents
+projects
+assets
+products
+attachments
+parties
+inventory
+
 Puede ofrecer futuras superficies de lectura, pero eso no lo convierte automáticamente en módulo funcional principal ni en CRUD ordinario.
+
+La lectura visual del log requiere autorización explícita todavía no definida.
 
 <<END SECTION>>
 
 <<SECTION: PARTIES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 PARTIES
 
@@ -628,6 +707,16 @@ Regla:
 parties.kind no debe utilizarse como dimensión funcional de permisos de parties.
 
 allowed_kinds no aplica a parties.
+
+Aclaración operativa para OperationalActivity:
+
+Party es el record principal cuando parties emite actividad operativa transversal.
+
+Los cambios de party_roles pueden registrarse como metadata operativa compuesta dentro de la actividad de Party.
+
+Regla:
+
+registrar cambios de party_roles como metadata de Party no convierte party_roles en módulo propio ni en navegación autónoma.
 
 Relación consolidada:
 

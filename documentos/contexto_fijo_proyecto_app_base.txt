@@ -247,7 +247,7 @@ Es una pieza estructural del funcionamiento del sistema.
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00021
 
 CAPAS FUNCIONALES DEL SISTEMA
 
@@ -273,7 +273,11 @@ Responsabilidades compartidas que sostienen funcionamiento común entre módulos
 
 OperationalActivity pertenece a esta capa como capacidad transversal tenant-scoped de trazabilidad operativa.
 
-No debe leerse como CRUD ordinario, módulo navegable principal ni responsabilidad propia de parties, tasks, orders, documents o appointments.
+No debe leerse como CRUD ordinario, módulo navegable principal ni responsabilidad propia de los módulos funcionales que producen actividad.
+
+OperationalActivity registra actividad operativa emitida por módulos dueños luego de que estos autorizan, validan y ejecutan su operación propia.
+
+No absorbe ownership funcional, no autoriza, no valida y no ejecuta la operación original.
 
 BASE DEL DOMINIO
 Anclajes conceptuales amplios del negocio.
@@ -365,7 +369,7 @@ Su función es sostener la plataforma y su frontera de ingreso.
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00024
+SECTION_VERSION: 00026
 
 ENTIDADES DEL NEGOCIO
 
@@ -419,13 +423,29 @@ inventory_operations agrupa contexto operativo cuando una misma acción requiere
 
 operational_activities registra actividad operativa real del sistema dentro del tenant activo
 
-operational_activities no representa una entidad hija de parties, tasks, orders, documents ni appointments
+operational_activities no representa una entidad hija de módulos funcionales particulares
 
 operational_activities no reemplaza la lógica interna, autorización ni validación de los módulos funcionales
 
 order_items y document_items conservan naturaleza de entidades hijas de sus módulos padre aunque puedan actuar como anclaje de trazabilidad o ejecución dentro de otros flujos
 
 orders y documents comparten una doctrina base de lifecycle para cabeceras operativas
+
+Aclaración estructural para OperationalActivity:
+
+OperationalActivity puede registrar actividad operativa sobre registros de módulos funcionales cuando el módulo dueño emite eventos operativos livianos luego de una operación autorizada, validada y ejecutada.
+
+La integración con OperationalActivity no convierte a esos módulos en dependientes del log ni altera su ownership funcional.
+
+Aclaración estructural para inventory:
+
+inventory_operations representa la acción operativa agrupada frente a OperationalActivity.
+
+inventory_movements conserva la trazabilidad fina, unitaria y atómica del stock.
+
+Regla:
+
+OperationalActivity no debe duplicar como actividad principal cada inventory_movement cuando el evento operativo relevante está representado por InventoryOperation.
 
 Aclaración estructural para parties:
 
@@ -503,7 +523,7 @@ tampoco debe sobredimensionarse el dominio del negocio hasta absorber piezas cuy
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00012
 
 CLASIFICACIÓN CONCEPTUAL DE MÓDULOS
 
@@ -531,56 +551,68 @@ MÓDULOS TRANSVERSALES
 
 Aportan capacidades reutilizables consumibles por múltiples frentes sin redefinir el núcleo de cada módulo.
 
-Ejemplos actuales:
+Ejemplo actual:
 
 attachments
-inventory en su rol de ejecución y trazabilidad
-documents cuando publica lectura documental reusable
 
 CAPACIDADES TRANSVERSALES DE SOPORTE
 
-Sostienen lectura, trazabilidad o funcionamiento común del ecosistema sin constituir por sí mismas navegación principal ni CRUD ordinario.
+Registran, acompañan o sostienen funcionamiento común del ecosistema sin constituir necesariamente módulo navegable principal ni CRUD ordinario.
 
-Ejemplo actual:
+Caso vigente:
 
 OperationalActivity
 
-OperationalActivity registra eventos operativos livianos producidos por módulos funcionales luego de acciones propias autorizadas y ejecutadas.
+OperationalActivity se clasifica como capacidad transversal tenant-scoped de trazabilidad operativa.
 
-Su función conceptual es trazabilidad operativa tenant-scoped.
+Reglas:
 
-No autoriza.
+no abre navegación principal por mera existencia técnica
 
-No valida la operación original.
+no es CRUD ordinario
 
-No muta el recurso original.
+no autoriza operaciones
 
-No convierte el log en módulo funcional principal.
+no valida operaciones originales
 
-CAPACIDADES INTERNAS
+no reemplaza policies ni Security
 
-Son piezas de soporte que fortalecen módulos existentes sin constituir nuevo frente autónomo.
+no bloquea el flujo principal si falla el registro del log
 
-Ejemplos actuales:
+no absorbe ownership funcional de los módulos que emiten eventos
 
-inventory_operations
-catálogos
-helpers comunes
-surfaces específicas
-datasets internos del tenant
+no debe registrar actividad solo por existir CRUD
 
-Aclaración sobre attachments:
+La participación de un módulo en OperationalActivity debe definirse explícitamente y justificarse por valor operativo real.
 
-attachments puede tener gestión y superficies propias, pero su lectura doctrinal principal es transversal porque aporta evidencias y archivos a múltiples recursos del sistema.
+Aclaración para inventory:
+
+inventory es módulo nuclear funcional.
+
+inventory_operations pertenece al núcleo interno de inventory como agrupación operativa contextual.
+
+inventory_movements conserva la trazabilidad atómica de stock.
+
+Frente a OperationalActivity, el ancla operativa vigente es InventoryOperation.
+
+Aclaración para parties:
+
+parties es módulo base del dominio.
+
+party_roles no constituye módulo funcional independiente.
+
+Los cambios de party_roles pueden registrarse como metadata operativa de Party cuando correspondan, sin convertir party_roles en módulo propio.
 
 Regla:
 
-la clasificación describe rol funcional actual y puede evolucionar con la madurez real del sistema.
+la clasificación funcional de un módulo no autoriza excepciones de seguridad ni navegación automática.
+
+La navegación, visualización y lectura autorizada se resuelven en los documentos especializados correspondientes.
 
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00024
+SECTION_VERSION: 00025
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
@@ -683,7 +715,7 @@ La segmentación funcional de permisos de parties se resuelve por party_roles.ro
 <<END SECTION>>
 
 <<SECTION: BASE DEL DOMINIO>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 BASE DEL DOMINIO
 

@@ -53,7 +53,7 @@ los detalles técnicos pueden evolucionar sin alterar estos principios rectores
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00013
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -76,6 +76,8 @@ SEPARACIÓN DE PLANOS
 Dataset disponible, visibilidad UI, permiso efectivo y trazabilidad son planos distintos.
 
 Uno no implica automáticamente al otro.
+
+La existencia de actividad operativa persistida no habilita por sí sola lectura, navegación, consulta general ni acceso visual al log.
 
 MÍNIMO ACOPLE
 
@@ -100,6 +102,8 @@ la autorización efectiva debe resolverse siempre en backend
 los recursos hijos pueden delegar seguridad sin perder validaciones operativas específicas
 
 el registro de actividad operativa no modifica el permiso efectivo de la acción original
+
+la lectura del log operativo requiere autorización explícita propia todavía no definida
 
 <<END SECTION>>
 
@@ -356,7 +360,7 @@ no saltar el resolver central con lógica local improvisada
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00020
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -418,11 +422,21 @@ OperationalActivity no reemplaza policies
 
 OperationalActivity no reemplaza validaciones del módulo dueño
 
+OperationalActivity no aplica constraints funcionales de permisos
+
+OperationalActivity no debe usarse como fuente de autorización
+
 OperationalActivity no debe bloquear el flujo principal si falla el registro del log
+
+OperationalActivity no debe registrar como actividad operativa principal acciones bloqueadas, intentos no autorizados o fallos de autorización salvo decisión específica posterior
 
 La escritura del log operativo debe ser system-owned.
 
 No debe existir create manual desde UI, edit, update, delete, destroy ni carga manual por formularios para OperationalActivity.
+
+La lectura del log operativo no queda autorizada por existir escritura append-only.
+
+Toda vista general, tab, surface o consulta visual de operational_activities requiere contrato de lectura explícito.
 
 Regla adicional para parties:
 
@@ -447,7 +461,7 @@ El controller puede consumir esa autorización para expresar opciones disponible
 <<END SECTION>>
 
 <<SECTION: CONSTRAINTS FUNCIONALES>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00011
 
 CONSTRAINTS FUNCIONALES
 
@@ -506,12 +520,20 @@ si un usuario no tiene una relación permitida por allowed_party_roles, no debe 
 
 Security::scope(...) debe filtrar el dataset visible de parties mediante party_roles.role cuando corresponda.
 
-El detalle aplicado por módulo debe resolverse en REGLAS OPERATIVAS POR MÓDULO para evitar duplicación doctrinal.
+Regla:
+
+OperationalActivity no evalúa allowed_party_roles ni allowed_kinds.
+
+La autorización de parties debe resolverse antes de la mutación y antes de la emisión del evento operativo correspondiente.
+
+La autorización de lectura futura de operational_activities sigue pendiente de contrato explícito y no debe inferirse desde constraints de los módulos originantes.
+
+El detalle aplicado por módulo debe resolverse en las secciones especializadas de reglas operativas.
 
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00019
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -675,7 +697,7 @@ la integración reusable reduce duplicación visual o contractual, pero no reduc
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00017
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -696,6 +718,10 @@ Conserva ownership documental sobre cabecera y líneas.
 INVENTORY
 
 Conserva ownership sobre stock, movimientos y trazabilidad.
+
+Si una acción de inventory se registra como actividad operativa transversal, el ancla vigente debe ser InventoryOperation cuando representa la acción operativa agrupada.
+
+InventoryMovement conserva trazabilidad fina de stock y no debe duplicarse como actividad principal cuando la operación agrupada ya representa el evento operativo.
 
 PARTIES
 

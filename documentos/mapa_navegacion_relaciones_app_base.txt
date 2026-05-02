@@ -41,7 +41,7 @@ no debe cargarse con teoría arquitectónica general que corresponda a otros doc
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 REGLA GENERAL
 
@@ -69,6 +69,12 @@ la existencia de operational_activities no habilita por sí sola navegación pri
 OperationalActivity debe leerse primero como capacidad transversal de soporte.
 
 Cualquier lectura visual futura debe responder a una necesidad funcional real, autorización explícita y superficie definida.
+
+La integración backend de nuevos módulos con OperationalActivity no modifica por sí misma la navegación principal, las show pages, las tabs ni los recorridos visibles.
+
+Regla:
+
+no crear tab, vista general, menú ni acceso de actividad sin contrato de lectura autorizado y decisión visual específica.
 
 <<END SECTION>>
 
@@ -139,7 +145,7 @@ cuando existan varias rutas posibles, debe priorizarse la más consistente con N
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN PRINCIPAL TENANT>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 NAVEGACIÓN PRINCIPAL TENANT
 
@@ -190,6 +196,8 @@ OperationalActivity no se agrega como entrada de navegación principal tenant po
 
 Su lectura vigente es capacidad transversal de trazabilidad operativa.
 
+La integración de OperationalActivity con appointments, tasks, orders, documents, projects, assets, products, attachments, parties e inventory no crea navegación principal propia.
+
 La navegación principal no debe abrir un menú propio de actividad salvo decisión futura validada, autorizada y documentada.
 
 Regla:
@@ -201,7 +209,7 @@ Su función es dar acceso estructural al ecosistema operativo vigente
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -229,9 +237,13 @@ El módulo oferente conserva reglas, validaciones y evolución interna.
 
 Aclaración vigente para inventory:
 
-la nueva capa inventory_operations no modifica por sí misma los recorridos principales entre módulos.
+la capa inventory_operations no modifica por sí misma los recorridos principales entre módulos.
 
 Su función es enriquecer el contexto interno y la trazabilidad del frente inventory.
+
+Frente a OperationalActivity, InventoryOperation actúa como ancla operativa agrupada.
+
+InventoryMovement conserva la trazabilidad fina de stock y no genera por sí mismo navegación contextual adicional en el log transversal.
 
 Aclaración vigente para documents:
 
@@ -271,10 +283,12 @@ La navegación hacia el registro relacionado debe resolverse desde la propia fil
 
 No debe agregarse una columna adicional solo para link.
 
+No se implementó vista general del log, tab Actividad en parties.show ni acceso desde tenant/profile en esta sesión.
+
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00017
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -350,6 +364,8 @@ Debe consumir OperationalActivity persistido y autorizado.
 
 La actividad debe filtrarse por el sujeto operativo correspondiente, probablemente subject_user_id vinculado a la membership activa del empleado, si ese contrato queda validado.
 
+La integración backend de parties con OperationalActivity no habilita por sí sola una tab visual ni una relación embebida nueva.
+
 Orden visual recomendado para tablas anfitrionas:
 
 primero acciones propias del host
@@ -385,7 +401,7 @@ las surfaces embebidas deben viajar enriquecidas desde registry para permitir re
 <<END SECTION>>
 
 <<SECTION: FLUJOS DERIVADOS RELEVANTES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 FLUJOS DERIVADOS RELEVANTES
 
@@ -457,6 +473,12 @@ Aclaración para actividad operativa:
 OperationalActivity no crea por sí mismo un flujo derivado de mutación.
 
 Solo puede ofrecer lectura y navegación hacia registros ya existentes cuando la autorización de lectura esté definida.
+
+La integración backend de módulos con OperationalActivity no genera por sí misma flujos visibles nuevos.
+
+En inventory, la referencia operativa relevante para el log transversal es InventoryOperation.
+
+En parties, la actividad puede representar cambios de Party y de party_roles como metadata operativa, sin abrir navegación propia para party_roles.
 
 <<END SECTION>>
 

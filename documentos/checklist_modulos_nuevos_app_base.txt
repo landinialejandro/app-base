@@ -52,7 +52,7 @@ documentación actualizada
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 REGLA GENERAL
 
@@ -84,6 +84,23 @@ no todo módulo debe registrar actividad por defecto.
 La participación en OperationalActivity debe justificarse por valor operativo real.
 
 No debe registrarse actividad solo por existir CRUD, eventos técnicos o cambios persistidos sin significancia operativa.
+
+La integración con OperationalActivity debe definirse como parte del contrato del módulo dueño.
+
+Debe quedar claro:
+
+qué operaciones emiten eventos
+qué campos son observables
+qué campos quedan excluidos por ruido técnico
+qué cambios tienen valor operativo real
+si existen relaciones hijas que deban expresarse como metadata operativa
+si existe entidad agrupadora que deba actuar como ancla operativa
+
+Casos validados:
+
+parties puede registrar cambios de party_roles como metadata operativa de Party.
+
+inventory debe registrar InventoryOperation como ancla operativa agrupada, no InventoryMovement como actividad principal.
 
 <<END SECTION>>
 
@@ -132,7 +149,7 @@ No se lee como CRUD ordinario ni como módulo navegable principal.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 BLOQUE 1 — CONTRATO MODULAR
 
@@ -201,15 +218,33 @@ qué cambios tienen significancia operativa real
 qué catálogo del módulo dueño declara esos campos
 qué datos mínimos necesita el registro transversal
 qué no debe delegarse al prestador transversal
+si la operación debe registrar el modelo principal o una entidad agrupadora
+si existen relaciones hijas relevantes que deban representarse como metadata operativa
 
-Regla:
+Reglas:
 
-el prestador transversal no debe conocer en exceso la semántica interna del módulo dueño.
+el prestador transversal no debe conocer en exceso la semántica interna del módulo dueño
+
+el módulo dueño no debe llamar directamente al logger desde controllers o services
+
+el módulo dueño debe autorizar, validar y mutar antes de emitir el evento operativo
+
+no se debe registrar actividad técnica sin valor operativo
+
+no se debe duplicar trazabilidad propia de otro módulo
+
+Casos validados:
+
+parties registra cambios de party_roles como metadata operativa de Party.
+
+inventory registra InventoryOperation como acción operativa agrupada.
+
+InventoryMovement conserva trazabilidad fina interna de stock.
 
 <<END SECTION>>
 
 <<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 BLOQUE 2 — SEGURIDAD OBLIGATORIA
 
@@ -319,10 +354,22 @@ Regla:
 
 PARTIES + allowed_kinds no debe quedar como combinación activa cuando la doctrina vigente exige allowed_party_roles.
 
+Validación adicional para actividad operativa transversal:
+
+si el módulo emite eventos hacia OperationalActivity, verificar que la autorización ocurra antes de la mutación y antes de emitir el evento.
+
+OperationalActivity no debe ser usado para decidir permisos.
+
+OperationalActivity no debe reemplazar Security, Gate, Policy, requests ni validaciones del módulo dueño.
+
+La lectura futura de operational_activities requiere autorización explícita.
+
+No debe asumirse acceso de lectura solo porque exista escritura append-only.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -398,6 +445,32 @@ El futuro consumidor visual lee actividad persistida bajo autorización definida
 Regla:
 
 no inferir historia operativa desde campos actuales si existe actividad persistida específica.
+
+Validación adicional para relaciones hijas:
+
+si una relación hija expresa un cambio operativo relevante, debe definirse si ese cambio se registra como metadata operativa del registro principal.
+
+Caso validado:
+
+party_roles puede registrarse como metadata operativa de Party.
+
+Regla:
+
+la relación hija no se convierte por eso en módulo propio ni en navegación autónoma.
+
+Validación adicional para entidades agrupadoras:
+
+si el módulo tiene una capa agrupadora y movimientos atómicos, debe elegirse el ancla correcta para OperationalActivity.
+
+Caso validado:
+
+inventory registra InventoryOperation.
+
+InventoryMovement conserva trazabilidad atómica interna de stock.
+
+Regla:
+
+no duplicar en OperationalActivity la trazabilidad fina que ya pertenece al módulo dueño si existe una operación agrupada que representa mejor la acción del usuario.
 
 <<END SECTION>>
 
@@ -483,7 +556,7 @@ en parties debe preferirse Relación con la empresa antes que rol.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 5 — DOCUMENTACIÓN Y CIERRE>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 BLOQUE 5 — DOCUMENTACIÓN Y CIERRE
 
@@ -563,12 +636,25 @@ validación de queue si corresponde
 validación de jobs y failed_jobs si corresponde
 validación de operational_activities persistidas
 ausencia de duplicación de listeners si event discovery ya resuelve la asociación
+si se registró el modelo principal o una entidad agrupadora
+si se utilizó metadata operativa adicional
+si quedaron pendientes de lectura visual o autorización del log
 
 Regla:
 
 no cerrar trazabilidad operativa solo por crear tabla o listener.
 
 Debe validarse runtime real.
+
+Casos validados:
+
+OperationalActivity registra InventoryOperation para inventory.
+
+OperationalActivity registra Party y puede representar cambios de party_roles como metadata operativa.
+
+Regla adicional:
+
+si no se implementaron vistas, tabs, navegación, lectura del log, deletes, downloads, previews, prints, PDFs o vistas, debe quedar explícito en el cierre para evitar inferencias futuras.
 
 <<END SECTION>>
 

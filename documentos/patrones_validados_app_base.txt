@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 PATRONES VIGENTES
 
@@ -163,6 +163,19 @@ Caso vigente:
 
 OperationalActivity
 
+Módulos con integración validada a OperationalActivity:
+
+appointments
+tasks
+orders
+documents
+projects
+assets
+products
+attachments
+parties
+inventory
+
 CAMPOS OBSERVABLES POR CATÁLOGO DEL MÓDULO DUEÑO
 
 Cuando una capacidad transversal registra actividad operativa, los campos observables deben pertenecer al catálogo del módulo dueño.
@@ -177,6 +190,8 @@ DocumentCatalog::activityTrackedFields()
 Regla:
 
 el prestador transversal no debe conocer en exceso la semántica interna de cada módulo.
+
+Cuando se integre un nuevo módulo, el catálogo dueño debe declarar explícitamente los campos observables antes de considerar cerrada la trazabilidad operativa.
 
 SANIDAD DE CAMBIOS OPERATIVOS
 
@@ -201,6 +216,49 @@ updated
 Regla:
 
 la clasificación no debe dispersarse en controllers.
+
+METADATA OPERATIVA OPCIONAL
+
+Los eventos operativos livianos pueden admitir metadata opcional cuando un cambio operativo relevante no vive directamente como atributo simple del modelo principal.
+
+Reglas:
+
+la metadata debe complementar el cambio operativo
+no debe trasladar autorización al evento
+no debe convertir entidades hijas en módulos propios
+no debe acoplar en exceso OperationalActivity a la semántica interna del módulo dueño
+
+Caso validado:
+
+parties registra cambios de party_roles como metadata operativa de Party.
+
+RELACIONES HIJAS CON SIGNIFICANCIA OPERATIVA
+
+Cuando una relación hija expresa un cambio operativo relevante, puede representarse como metadata operativa del record principal si esa lectura respeta ownership y evita crear un módulo artificial.
+
+Caso validado:
+
+party_roles expresa relación del contacto con la empresa.
+
+Sus cambios pueden registrarse dentro de la actividad operativa de Party.
+
+Regla:
+
+party_roles no se convierte en módulo propio ni en navegación propia.
+
+ENTIDADES AGRUPADORAS Y MOVIMIENTOS ATÓMICOS
+
+Cuando un módulo posee una entidad agrupadora de acción y entidades atómicas de trazabilidad fina, la actividad transversal debe anclarse en la pieza que represente mejor la acción operativa del usuario.
+
+Caso validado:
+
+inventory registra InventoryOperation.
+
+InventoryMovement conserva trazabilidad fina interna de stock.
+
+Regla:
+
+no duplicar en OperationalActivity la trazabilidad atómica que ya pertenece al módulo dueño cuando una operación agrupada expresa mejor el evento operativo.
 
 EVENT DISCOVERY SIN DUPLICACIÓN MANUAL
 
@@ -230,5 +288,30 @@ Regla:
 una trazabilidad queued no se considera cerrada solo por disparar el evento.
 
 Debe validarse procesamiento real de cola y persistencia final.
+
+VALIDACIÓN RUNTIME DE OPERATIONALACTIVITY
+
+Para cerrar una integración con OperationalActivity debe validarse:
+
+usuario real
+membership activa
+tenant activo bindeado
+evento operativo emitido
+job generado cuando corresponda
+listener queued procesado
+jobs vaciados
+failed_jobs sin errores
+operational_activities persistidas
+record_type correcto
+record_id correcto
+módulo correcto
+tipo de actividad correcto
+metadata esperada cuando corresponda
+
+Regla:
+
+no alcanza con sintaxis correcta ni con job generado.
+
+El cierre requiere persistencia final coherente.
 
 <<END SECTION>>

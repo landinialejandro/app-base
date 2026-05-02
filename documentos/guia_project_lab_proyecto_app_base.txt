@@ -10,7 +10,7 @@ GESTIÓN: Guía rectora para uso local de Project Lab como herramienta operativa
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 OBJETIVO
 
@@ -54,6 +54,20 @@ Debe interpretarse la salida completa y confirmar las evidencias necesarias para
 Caso vigente:
 
 OperationalActivity requiere validar runtime real, tenant activo, evento, cola, jobs, failed_jobs y persistencia final cuando corresponda.
+
+Para validar OperationalActivity no alcanza con que el patch tenga sintaxis correcta ni que el evento genere un job.
+
+El cierre requiere confirmar:
+
+evento emitido
+job creado cuando corresponda
+listener queued procesado
+jobs = 0
+failed_jobs = 0
+actividad persistida
+módulo correcto
+tipo correcto
+metadata esperada cuando corresponda
 
 <<END SECTION>>
 
@@ -480,7 +494,7 @@ Debe corregirse o revertirse antes de avanzar.
 <<END SECTION>>
 
 <<SECTION: SALIDA OPERATIVA ESPERADA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 SALIDA OPERATIVA ESPERADA
 
@@ -552,6 +566,32 @@ Caso vigente:
 
 para OperationalActivity, la salida relevante debe permitir confirmar que el evento no solo fue disparado, sino que la cola procesó el listener y persistió el registro esperado sin failed_jobs.
 
+Validación esperada para cierre de OperationalActivity:
+
+evento emitido
+jobs generados cuando corresponda
+queue:work --stop-when-empty --tries=1 ejecutado
+jobs = 0
+failed_jobs = 0
+operational_activities persistidas
+record_type correcto
+record_id correcto
+módulo correcto
+tipo de actividad correcto
+metadata esperada cuando corresponda
+
+Regla:
+
+si hay jobs procesados y failed_jobs = 0 pero no hay operational_activities persistidas, no debe cerrarse como éxito.
+
+Debe revisarse primero el mapeo modelo → módulo y módulo → catálogo antes de modificar controllers, eventos o listener.
+
+Aclaración vigente sobre sintaxis PHP:
+
+Project Lab valida sintaxis PHP automáticamente en operaciones compatibles como reemplazo de método PHP, alta de método PHP y archivo PHP completo.
+
+No hace falta pedir php -l redundante si la salida ya informa sintaxis PHP válida, salvo duda puntual o auditoría específica.
+
 <<END SECTION>>
 
 <<SECTION: USO OPERATIVO LOCAL>>
@@ -592,7 +632,7 @@ documentar evidencia
 <<END SECTION>>
 
 <<SECTION: USO DE TINKER DENTRO DE PROJECT LAB>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 USO DE TINKER DENTRO DE PROJECT LAB
 
@@ -651,6 +691,31 @@ queue procesada
 operational_activities persistidas cuando corresponda
 jobs vaciados
 failed_jobs sin errores
+
+Regla adicional para OperationalActivity:
+
+cuando se valide trazabilidad operativa transversal, Tinker debe reproducir runtime real con tenant activo.
+
+La validación debe cubrir:
+
+registro creado o actualizado por el módulo dueño
+evento operativo emitido después de autorización y validación
+job generado cuando corresponda
+procesamiento con queue:work --stop-when-empty --tries=1
+persistencia final en operational_activities
+metadata esperada cuando corresponda
+
+Casos validados:
+
+parties puede emitir actividad de Party con cambios de party_roles como metadata operativa.
+
+inventory debe registrar actividad sobre InventoryOperation cuando represente la acción operativa agrupada.
+
+Regla:
+
+no debe inferirse cierre por simple ejecución del evento.
+
+El cierre requiere comprobar persistencia final y ausencia de failed_jobs.
 
 <<END SECTION>>
 

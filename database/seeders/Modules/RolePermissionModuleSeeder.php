@@ -71,468 +71,429 @@ class RolePermissionModuleSeeder extends BaseModuleSeeder
         }
     }
 
-    protected function matrix(): array
-    {
-        $allPartyKinds = array_keys(PartyCatalog::kindLabels());
+protected function matrix(): array
+{
+    $allPartyRoles = PartyCatalog::roles();
 
-        return [
-            ModuleCatalog::DASHBOARD => [
-                RoleCatalog::OWNER => [
-                    CapabilityCatalog::VIEW_ANY => [
-                        'scope' => PermissionScopeCatalog::TENANT_ALL,
-                    ],
-                ],
-                RoleCatalog::ADMIN => [
-                    CapabilityCatalog::VIEW_ANY => [
-                        'scope' => PermissionScopeCatalog::TENANT_ALL,
-                    ],
+    return [
+        ModuleCatalog::DASHBOARD => [
+            RoleCatalog::OWNER => [
+                CapabilityCatalog::VIEW_ANY => [
+                    'scope' => PermissionScopeCatalog::TENANT_ALL,
                 ],
             ],
-
-            ModuleCatalog::PROJECTS => [
-                RoleCatalog::OWNER => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::ADMIN => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::SALES => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::LIMITED],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::LIMITED],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::LIMITED],
-                ],
-                RoleCatalog::OPERATOR => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::LIMITED],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::LIMITED],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::LIMITED],
-                ],
-                RoleCatalog::ADMINISTRATOR => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::LIMITED],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::LIMITED],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::LIMITED],
+            RoleCatalog::ADMIN => [
+                CapabilityCatalog::VIEW_ANY => [
+                    'scope' => PermissionScopeCatalog::TENANT_ALL,
                 ],
             ],
+        ],
 
-            ModuleCatalog::TASKS => [
-                RoleCatalog::OWNER => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::ADMIN => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::SALES => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::LIMITED],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::LIMITED],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
-                ],
-                RoleCatalog::OPERATOR => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::LIMITED],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::LIMITED],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
-                ],
-                RoleCatalog::ADMINISTRATOR => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::LIMITED],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::LIMITED],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
-                ],
+        ModuleCatalog::PROJECTS => [
+            RoleCatalog::OWNER => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
             ],
+            RoleCatalog::ADMIN => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+            RoleCatalog::SALES => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::LIMITED],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::LIMITED],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::LIMITED],
+            ],
+            RoleCatalog::OPERATOR => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::LIMITED],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::LIMITED],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::LIMITED],
+            ],
+            RoleCatalog::ADMINISTRATOR => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::LIMITED],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::LIMITED],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::LIMITED],
+            ],
+        ],
 
-            ModuleCatalog::APPOINTMENTS => [
-                RoleCatalog::OWNER => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::ADMIN => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::SALES => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
-                ],
-                RoleCatalog::OPERATOR => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
-                ],
-                RoleCatalog::ADMINISTRATOR => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
-                ],
+        ModuleCatalog::TASKS => [
+            RoleCatalog::OWNER => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
             ],
+            RoleCatalog::ADMIN => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+            RoleCatalog::SALES => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::LIMITED],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::LIMITED],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
+            ],
+            RoleCatalog::OPERATOR => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::LIMITED],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::LIMITED],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
+            ],
+            RoleCatalog::ADMINISTRATOR => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::LIMITED],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::LIMITED],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
+            ],
+        ],
 
-            ModuleCatalog::PARTIES => [
-                RoleCatalog::OWNER => [
-                    CapabilityCatalog::VIEW_ANY => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, $allPartyKinds),
-                    CapabilityCatalog::VIEW => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, $allPartyKinds),
-                    CapabilityCatalog::CREATE => $this->partyMeta(null, $allPartyKinds),
-                    CapabilityCatalog::UPDATE => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, $allPartyKinds),
-                    CapabilityCatalog::DELETE => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, $allPartyKinds),
-                ],
-                RoleCatalog::ADMIN => [
-                    CapabilityCatalog::VIEW_ANY => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, $allPartyKinds),
-                    CapabilityCatalog::VIEW => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, $allPartyKinds),
-                    CapabilityCatalog::CREATE => $this->partyMeta(null, $allPartyKinds),
-                    CapabilityCatalog::UPDATE => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, $allPartyKinds),
-                ],
-                RoleCatalog::SALES => [
-                    CapabilityCatalog::VIEW_ANY => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        $allPartyKinds,
-                        PartyCatalog::KIND_PERSON,
-                        PartyCatalog::KIND_COMPANY,
-                    ]),
-                    CapabilityCatalog::VIEW => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        $allPartyKinds,
-                        PartyCatalog::KIND_PERSON,
-                        PartyCatalog::KIND_COMPANY,
-                    ]),
-                    CapabilityCatalog::CREATE => $this->partyMeta(null, [
-                        $allPartyKinds,
-                        PartyCatalog::KIND_PERSON,
-                        PartyCatalog::KIND_COMPANY,
-                    ]),
-                    CapabilityCatalog::UPDATE => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        $allPartyKinds,
-                        PartyCatalog::KIND_PERSON,
-                        PartyCatalog::KIND_COMPANY,
-                    ]),
-                ],
-                RoleCatalog::OPERATOR => [
-                    CapabilityCatalog::VIEW_ANY => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        $allPartyKinds,
-                        PartyCatalog::KIND_PERSON,
-                        PartyCatalog::KIND_COMPANY,
-                    ]),
-                    CapabilityCatalog::VIEW => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        $allPartyKinds,
-                        PartyCatalog::KIND_PERSON,
-                        PartyCatalog::KIND_COMPANY,
-                    ]),
-                    CapabilityCatalog::CREATE => $this->partyMeta(null, [
-                        $allPartyKinds,
-                        PartyCatalog::KIND_PERSON,
-                        PartyCatalog::KIND_COMPANY,
-                    ]),
-                    CapabilityCatalog::UPDATE => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        $allPartyKinds,
-                        PartyCatalog::KIND_PERSON,
-                        PartyCatalog::KIND_COMPANY,
-                    ]),
-                ],
-                RoleCatalog::ADMINISTRATOR => [
-                    CapabilityCatalog::VIEW_ANY => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        $allPartyKinds,
-                        PartyCatalog::KIND_PERSON,
-                        PartyCatalog::KIND_COMPANY,
-                    ]),
-                    CapabilityCatalog::VIEW => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        $allPartyKinds,
-                        PartyCatalog::KIND_PERSON,
-                        PartyCatalog::KIND_COMPANY,
-                    ]),
-                    CapabilityCatalog::CREATE => $this->partyMeta(null, [
-                        $allPartyKinds,
-                        PartyCatalog::KIND_PERSON,
-                        PartyCatalog::KIND_COMPANY,
-                    ]),
-                    CapabilityCatalog::UPDATE => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        $allPartyKinds,
-                        PartyCatalog::KIND_PERSON,
-                        PartyCatalog::KIND_COMPANY,
-                    ]),
-                    CapabilityCatalog::DELETE => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        $allPartyKinds,
-                        PartyCatalog::KIND_PERSON,
-                        PartyCatalog::KIND_COMPANY,
-                    ]),
-                ],
+        ModuleCatalog::APPOINTMENTS => [
+            RoleCatalog::OWNER => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
             ],
+            RoleCatalog::ADMIN => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+            RoleCatalog::SALES => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
+            ],
+            RoleCatalog::OPERATOR => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
+            ],
+            RoleCatalog::ADMINISTRATOR => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::OWN_ASSIGNED],
+            ],
+        ],
 
-            ModuleCatalog::PRODUCTS => [
-                RoleCatalog::OWNER => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::ADMIN => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::SALES => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::OPERATOR => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::ADMINISTRATOR => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
+        ModuleCatalog::PARTIES => [
+            RoleCatalog::OWNER => [
+                CapabilityCatalog::VIEW_ANY => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, $allPartyRoles),
+                CapabilityCatalog::VIEW => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, $allPartyRoles),
+                CapabilityCatalog::CREATE => $this->partyMeta(null, $allPartyRoles),
+                CapabilityCatalog::UPDATE => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, $allPartyRoles),
+                CapabilityCatalog::DELETE => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, $allPartyRoles),
             ],
+            RoleCatalog::ADMIN => [
+                CapabilityCatalog::VIEW_ANY => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, $allPartyRoles),
+                CapabilityCatalog::VIEW => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, $allPartyRoles),
+                CapabilityCatalog::CREATE => $this->partyMeta(null, $allPartyRoles),
+                CapabilityCatalog::UPDATE => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, $allPartyRoles),
+            ],
+            RoleCatalog::SALES => [
+                CapabilityCatalog::VIEW_ANY => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, [PartyCatalog::ROLE_CUSTOMER]),
+                CapabilityCatalog::VIEW => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, [PartyCatalog::ROLE_CUSTOMER]),
+                CapabilityCatalog::CREATE => $this->partyMeta(null, [PartyCatalog::ROLE_CUSTOMER]),
+                CapabilityCatalog::UPDATE => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, [PartyCatalog::ROLE_CUSTOMER]),
+            ],
+            RoleCatalog::OPERATOR => [
+                CapabilityCatalog::VIEW_ANY => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, [PartyCatalog::ROLE_CUSTOMER]),
+                CapabilityCatalog::VIEW => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, [PartyCatalog::ROLE_CUSTOMER]),
+            ],
+            RoleCatalog::ADMINISTRATOR => [
+                CapabilityCatalog::VIEW_ANY => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    PartyCatalog::ROLE_CUSTOMER,
+                    PartyCatalog::ROLE_SUPPLIER,
+                ]),
+                CapabilityCatalog::VIEW => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    PartyCatalog::ROLE_CUSTOMER,
+                    PartyCatalog::ROLE_SUPPLIER,
+                ]),
+                CapabilityCatalog::CREATE => $this->partyMeta(null, [
+                    PartyCatalog::ROLE_CUSTOMER,
+                    PartyCatalog::ROLE_SUPPLIER,
+                ]),
+                CapabilityCatalog::UPDATE => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    PartyCatalog::ROLE_CUSTOMER,
+                    PartyCatalog::ROLE_SUPPLIER,
+                ]),
+                CapabilityCatalog::DELETE => $this->partyMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    PartyCatalog::ROLE_CUSTOMER,
+                    PartyCatalog::ROLE_SUPPLIER,
+                ]),
+            ],
+        ],
 
-            ModuleCatalog::INVENTORY => [
-                RoleCatalog::OWNER => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::ADMIN => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::OPERATOR => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::ADMINISTRATOR => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
+        ModuleCatalog::PRODUCTS => [
+            RoleCatalog::OWNER => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
             ],
+            RoleCatalog::ADMIN => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+            RoleCatalog::SALES => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+            RoleCatalog::OPERATOR => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+            RoleCatalog::ADMINISTRATOR => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+        ],
 
-            ModuleCatalog::ASSETS => [
-                RoleCatalog::OWNER => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::ADMIN => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::SALES => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::OPERATOR => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::ADMINISTRATOR => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
+        ModuleCatalog::INVENTORY => [
+            RoleCatalog::OWNER => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
             ],
+            RoleCatalog::ADMIN => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+            RoleCatalog::OPERATOR => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+            RoleCatalog::ADMINISTRATOR => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+        ],
 
-            ModuleCatalog::ORDERS => [
-                RoleCatalog::OWNER => [
-                    CapabilityCatalog::VIEW_ANY => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        OrderCatalog::KIND_SALE,
-                        OrderCatalog::KIND_PURCHASE,
-                        OrderCatalog::KIND_SERVICE,
-                    ]),
-                    CapabilityCatalog::VIEW => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        OrderCatalog::KIND_SALE,
-                        OrderCatalog::KIND_PURCHASE,
-                        OrderCatalog::KIND_SERVICE,
-                    ]),
-                    CapabilityCatalog::CREATE => $this->orderMeta(null, [
-                        OrderCatalog::KIND_SALE,
-                        OrderCatalog::KIND_PURCHASE,
-                        OrderCatalog::KIND_SERVICE,
-                    ]),
-                    CapabilityCatalog::UPDATE => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        OrderCatalog::KIND_SALE,
-                        OrderCatalog::KIND_PURCHASE,
-                        OrderCatalog::KIND_SERVICE,
-                    ]),
-                    CapabilityCatalog::DELETE => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        OrderCatalog::KIND_SALE,
-                        OrderCatalog::KIND_PURCHASE,
-                        OrderCatalog::KIND_SERVICE,
-                    ]),
-                ],
-                RoleCatalog::ADMIN => [
-                    CapabilityCatalog::VIEW_ANY => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        OrderCatalog::KIND_SALE,
-                        OrderCatalog::KIND_PURCHASE,
-                        OrderCatalog::KIND_SERVICE,
-                    ]),
-                    CapabilityCatalog::VIEW => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        OrderCatalog::KIND_SALE,
-                        OrderCatalog::KIND_PURCHASE,
-                        OrderCatalog::KIND_SERVICE,
-                    ]),
-                    CapabilityCatalog::CREATE => $this->orderMeta(null, [
-                        OrderCatalog::KIND_SALE,
-                        OrderCatalog::KIND_PURCHASE,
-                        OrderCatalog::KIND_SERVICE,
-                    ]),
-                    CapabilityCatalog::UPDATE => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        OrderCatalog::KIND_SALE,
-                        OrderCatalog::KIND_PURCHASE,
-                        OrderCatalog::KIND_SERVICE,
-                    ]),
-                    CapabilityCatalog::DELETE => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        OrderCatalog::KIND_SALE,
-                        OrderCatalog::KIND_PURCHASE,
-                        OrderCatalog::KIND_SERVICE,
-                    ]),
-                ],
-                RoleCatalog::SALES => [
-                    CapabilityCatalog::VIEW_ANY => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        OrderCatalog::KIND_SALE,
-                    ]),
-                    CapabilityCatalog::VIEW => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        OrderCatalog::KIND_SALE,
-                    ]),
-                    CapabilityCatalog::CREATE => $this->orderMeta(null, [
-                        OrderCatalog::KIND_SALE,
-                    ]),
-                    CapabilityCatalog::UPDATE => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        OrderCatalog::KIND_SALE,
-                    ]),
-                ],
-                RoleCatalog::OPERATOR => [
-                    CapabilityCatalog::VIEW_ANY => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        OrderCatalog::KIND_SERVICE,
-                    ]),
-                    CapabilityCatalog::VIEW => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        OrderCatalog::KIND_SERVICE,
-                    ]),
-                    CapabilityCatalog::CREATE => $this->orderMeta(null, [
-                        OrderCatalog::KIND_SERVICE,
-                    ]),
-                    CapabilityCatalog::UPDATE => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        OrderCatalog::KIND_SERVICE,
-                    ]),
-                ],
-                RoleCatalog::ADMINISTRATOR => [
-                    CapabilityCatalog::VIEW_ANY => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        OrderCatalog::KIND_SALE,
-                        OrderCatalog::KIND_PURCHASE,
-                    ]),
-                    CapabilityCatalog::VIEW => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        OrderCatalog::KIND_SALE,
-                        OrderCatalog::KIND_PURCHASE,
-                    ]),
-                    CapabilityCatalog::CREATE => $this->orderMeta(null, [
-                        OrderCatalog::KIND_SALE,
-                        OrderCatalog::KIND_PURCHASE,
-                    ]),
-                    CapabilityCatalog::UPDATE => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        OrderCatalog::KIND_SALE,
-                        OrderCatalog::KIND_PURCHASE,
-                    ]),
-                    CapabilityCatalog::DELETE => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
-                        OrderCatalog::KIND_SALE,
-                        OrderCatalog::KIND_PURCHASE,
-                    ]),
-                ],
+        ModuleCatalog::ASSETS => [
+            RoleCatalog::OWNER => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
             ],
+            RoleCatalog::ADMIN => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+            RoleCatalog::SALES => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+            RoleCatalog::OPERATOR => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+            RoleCatalog::ADMINISTRATOR => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+        ],
 
-            ModuleCatalog::DOCUMENTS => [
-                RoleCatalog::OWNER => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::ADMIN => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::SALES => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::OPERATOR => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
-                RoleCatalog::ADMINISTRATOR => [
-                    CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::CREATE => ['scope' => null],
-                    CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                    CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
-                ],
+        ModuleCatalog::ORDERS => [
+            RoleCatalog::OWNER => [
+                CapabilityCatalog::VIEW_ANY => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    OrderCatalog::KIND_SALE,
+                    OrderCatalog::KIND_PURCHASE,
+                    OrderCatalog::KIND_SERVICE,
+                ]),
+                CapabilityCatalog::VIEW => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    OrderCatalog::KIND_SALE,
+                    OrderCatalog::KIND_PURCHASE,
+                    OrderCatalog::KIND_SERVICE,
+                ]),
+                CapabilityCatalog::CREATE => $this->orderMeta(null, [
+                    OrderCatalog::KIND_SALE,
+                    OrderCatalog::KIND_PURCHASE,
+                    OrderCatalog::KIND_SERVICE,
+                ]),
+                CapabilityCatalog::UPDATE => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    OrderCatalog::KIND_SALE,
+                    OrderCatalog::KIND_PURCHASE,
+                    OrderCatalog::KIND_SERVICE,
+                ]),
+                CapabilityCatalog::DELETE => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    OrderCatalog::KIND_SALE,
+                    OrderCatalog::KIND_PURCHASE,
+                    OrderCatalog::KIND_SERVICE,
+                ]),
             ],
-        ];
-    }
+            RoleCatalog::ADMIN => [
+                CapabilityCatalog::VIEW_ANY => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    OrderCatalog::KIND_SALE,
+                    OrderCatalog::KIND_PURCHASE,
+                    OrderCatalog::KIND_SERVICE,
+                ]),
+                CapabilityCatalog::VIEW => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    OrderCatalog::KIND_SALE,
+                    OrderCatalog::KIND_PURCHASE,
+                    OrderCatalog::KIND_SERVICE,
+                ]),
+                CapabilityCatalog::CREATE => $this->orderMeta(null, [
+                    OrderCatalog::KIND_SALE,
+                    OrderCatalog::KIND_PURCHASE,
+                    OrderCatalog::KIND_SERVICE,
+                ]),
+                CapabilityCatalog::UPDATE => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    OrderCatalog::KIND_SALE,
+                    OrderCatalog::KIND_PURCHASE,
+                    OrderCatalog::KIND_SERVICE,
+                ]),
+                CapabilityCatalog::DELETE => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    OrderCatalog::KIND_SALE,
+                    OrderCatalog::KIND_PURCHASE,
+                    OrderCatalog::KIND_SERVICE,
+                ]),
+            ],
+            RoleCatalog::SALES => [
+                CapabilityCatalog::VIEW_ANY => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    OrderCatalog::KIND_SALE,
+                ]),
+                CapabilityCatalog::VIEW => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    OrderCatalog::KIND_SALE,
+                ]),
+                CapabilityCatalog::CREATE => $this->orderMeta(null, [
+                    OrderCatalog::KIND_SALE,
+                ]),
+                CapabilityCatalog::UPDATE => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    OrderCatalog::KIND_SALE,
+                ]),
+            ],
+            RoleCatalog::OPERATOR => [
+                CapabilityCatalog::VIEW_ANY => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    OrderCatalog::KIND_SERVICE,
+                ]),
+                CapabilityCatalog::VIEW => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    OrderCatalog::KIND_SERVICE,
+                ]),
+                CapabilityCatalog::CREATE => $this->orderMeta(null, [
+                    OrderCatalog::KIND_SERVICE,
+                ]),
+                CapabilityCatalog::UPDATE => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    OrderCatalog::KIND_SERVICE,
+                ]),
+            ],
+            RoleCatalog::ADMINISTRATOR => [
+                CapabilityCatalog::VIEW_ANY => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    OrderCatalog::KIND_SALE,
+                    OrderCatalog::KIND_PURCHASE,
+                ]),
+                CapabilityCatalog::VIEW => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    OrderCatalog::KIND_SALE,
+                    OrderCatalog::KIND_PURCHASE,
+                ]),
+                CapabilityCatalog::CREATE => $this->orderMeta(null, [
+                    OrderCatalog::KIND_SALE,
+                    OrderCatalog::KIND_PURCHASE,
+                ]),
+                CapabilityCatalog::UPDATE => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    OrderCatalog::KIND_SALE,
+                    OrderCatalog::KIND_PURCHASE,
+                ]),
+                CapabilityCatalog::DELETE => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
+                    OrderCatalog::KIND_SALE,
+                    OrderCatalog::KIND_PURCHASE,
+                ]),
+            ],
+        ],
+
+        ModuleCatalog::DOCUMENTS => [
+            RoleCatalog::OWNER => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+            RoleCatalog::ADMIN => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+            RoleCatalog::SALES => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+            RoleCatalog::OPERATOR => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+            RoleCatalog::ADMINISTRATOR => [
+                CapabilityCatalog::VIEW_ANY => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::VIEW => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::CREATE => ['scope' => null],
+                CapabilityCatalog::UPDATE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+                CapabilityCatalog::DELETE => ['scope' => PermissionScopeCatalog::TENANT_ALL],
+            ],
+        ],
+    ];
+}
 
     protected function orderMeta(?string $scope, array $allowedKinds): array
     {
@@ -544,13 +505,16 @@ class RolePermissionModuleSeeder extends BaseModuleSeeder
         ];
     }
 
-    protected function partyMeta(?string $scope, array $allowedKinds): array
-    {
-        return [
-            'scope' => $scope,
-            'constraints' => [
-                'allowed_kinds' => $allowedKinds,
-            ],
-        ];
-    }
+protected function partyMeta(?string $scope, array $allowedPartyRoles): array
+{
+    return [
+        'scope' => $scope,
+        'constraints' => [
+            'allowed_party_roles' => array_values(array_unique(array_filter(
+                $allowedPartyRoles,
+                fn ($role) => is_string($role) && trim($role) !== ''
+            ))),
+        ],
+    ];
+}
 }

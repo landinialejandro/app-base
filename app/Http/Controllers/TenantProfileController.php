@@ -347,7 +347,7 @@ protected function buildConstraintOptionsFor(string $module, string $capability)
 
         if ($module === ModuleCatalog::PARTIES) {
             return [
-                'allowed_kinds' => PartyCatalog::kindLabels(),
+                'allowed_party_roles' => PartyCatalog::roleLabels(),
             ];
         }
     }

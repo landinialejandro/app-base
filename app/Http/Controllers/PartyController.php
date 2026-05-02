@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/PartyController.php | V11
+// FILE: app/Http/Controllers/PartyController.php | V12
 
 namespace App\Http\Controllers;
 
@@ -52,10 +52,10 @@ class PartyController extends Controller
                     }
                 });
             })
-            ->when($kind, function ($query) use ($kind) {
+            ->when($this->isValidPartyKind($kind), function ($query) use ($kind) {
                 $query->where('kind', $kind);
             })
-            ->when($role, function ($query) use ($role) {
+            ->when($this->isValidPartyRole($role), function ($query) use ($role) {
                 $query->whereHas('roles', fn ($rolesQuery) => $rolesQuery->where('role', $role));
             })
             ->when($isActive !== null && $isActive !== '', function ($query) use ($isActive) {
@@ -65,15 +65,16 @@ class PartyController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        $visibleKinds = $this->resolvedAllowedKindsFor('viewAny');
-        $createKinds = $this->resolvedAllowedKindsFor('create');
-        $canCreateByKind = $this->resolveCreateAvailabilityByKind($createKinds);
+        $allowedPartyRoles = $this->resolvedAllowedPartyRolesFor('viewAny');
+        $createPartyRoles = $this->resolvedAllowedPartyRolesFor('create');
+        $canCreateByPartyRole = $this->resolveCreateAvailabilityByPartyRole($createPartyRoles);
 
         return view('parties.index', [
             'tenant' => $tenant,
             'parties' => $parties,
-            'allowedKinds' => $visibleKinds,
-            'canCreateByKind' => $canCreateByKind,
+            'allowedKinds' => $this->partyKindOptions(),
+            'allowedPartyRoles' => $allowedPartyRoles,
+            'canCreateByPartyRole' => $canCreateByPartyRole,
         ]);
     }
 
@@ -83,24 +84,29 @@ class PartyController extends Controller
         $security = app(Security::class);
         $navigationTrail = PartyNavigationTrail::create($request);
 
-        $createKinds = $this->resolvedAllowedKindsFor('create');
-        $requestedKind = $request->get('kind');
-        $defaultKind = $this->resolveDefaultCreatableKind($createKinds, $requestedKind);
+        $createPartyRoles = $this->resolvedAllowedPartyRolesFor('create');
+        $requestedRole = $request->get('role');
+        $defaultRole = $this->resolveDefaultCreatablePartyRole($createPartyRoles, $requestedRole);
 
-        abort_unless($defaultKind !== null, 403);
+        abort_unless($defaultRole !== null, 403);
 
         $security->authorize(
             $request->user(),
             ModuleCatalog::PARTIES.'.create',
             Party::class,
-            ['kind' => $defaultKind]
+            ['roles' => [$defaultRole]]
         );
+
+        $requestedKind = $request->get('kind');
+        $defaultKind = $this->resolveDefaultPartyKind($requestedKind);
 
         return view('parties.create', [
             'tenant' => $tenant,
             'navigationTrail' => $navigationTrail,
-            'allowedKinds' => $createKinds,
+            'allowedKinds' => $this->partyKindOptions(),
+            'allowedPartyRoles' => $createPartyRoles,
             'defaultKind' => $defaultKind,
+            'defaultRole' => $defaultRole,
             'canManageEmployeeContacts' => $this->canManageEmployeeContacts($request),
         ]);
     }
@@ -109,18 +115,18 @@ class PartyController extends Controller
     {
         $security = app(Security::class);
         $data = $request->validated();
-        $roles = $data['roles'] ?? [];
+        $roles = $this->normalizePartyRoles($data['roles'] ?? []);
         unset($data['roles']);
 
         $kind = $data['kind'] ?? null;
 
-        abort_unless(is_string($kind) && $kind !== '', 403);
+        abort_unless($this->isValidPartyKind($kind), 403);
 
         $security->authorize(
             $request->user(),
             ModuleCatalog::PARTIES.'.create',
             Party::class,
-            ['kind' => $kind]
+            ['roles' => $roles]
         );
 
         $party = Party::create($data);
@@ -164,13 +170,14 @@ class PartyController extends Controller
         $tenant = app('tenant');
         $party->load('roles');
         $navigationTrail = PartyNavigationTrail::edit($request, $party);
-        $allowedKinds = $this->resolvedAllowedKindsFor('update', $party);
+        $allowedPartyRoles = $this->resolvedAllowedPartyRolesFor('update', $party);
 
         return view('parties.edit', [
             'tenant' => $tenant,
             'party' => $party,
             'navigationTrail' => $navigationTrail,
-            'allowedKinds' => $allowedKinds,
+            'allowedKinds' => $this->partyKindOptions(),
+            'allowedPartyRoles' => $allowedPartyRoles,
             'canManageEmployeeContacts' => $this->canManageEmployeeContacts($request),
         ]);
     }
@@ -179,8 +186,9 @@ class PartyController extends Controller
     {
         $this->authorize('update', $party);
 
+        $security = app(Security::class);
         $data = $request->validated();
-        $roles = $data['roles'] ?? [];
+        $roles = $this->normalizePartyRoles($data['roles'] ?? []);
         unset($data['roles']);
 
         if ($party->hasActiveMembership()) {
@@ -200,11 +208,14 @@ class PartyController extends Controller
         }
 
         $kind = $data['kind'] ?? null;
-        $allowedKinds = $this->resolvedAllowedKindsFor('update', $party);
 
-        abort_unless(
-            is_string($kind) && in_array($kind, $allowedKinds, true),
-            403
+        abort_unless($this->isValidPartyKind($kind), 403);
+
+        $security->authorize(
+            $request->user(),
+            ModuleCatalog::PARTIES.'.update',
+            $party,
+            ['roles' => $roles]
         );
 
         $party->update($data);
@@ -231,7 +242,7 @@ class PartyController extends Controller
             ->with('success', 'Contacto eliminado correctamente.');
     }
 
-    protected function resolvedAllowedKindsFor(string $capability, ?Party $party = null): array
+    protected function resolvedAllowedPartyRolesFor(string $capability, ?Party $party = null): array
     {
         $user = auth()->user();
         $security = app(Security::class);
@@ -252,64 +263,78 @@ class PartyController extends Controller
         );
 
         $constraints = $inspection['constraints'] ?? [];
-        $allowedKinds = $constraints['allowed_kinds'] ?? [];
+        $allowedPartyRoles = $constraints['allowed_party_roles'] ?? [];
 
-        if (! is_array($allowedKinds) || empty($allowedKinds)) {
-            return array_keys(PartyCatalog::kindLabels());
+        if (! is_array($allowedPartyRoles) || empty($allowedPartyRoles)) {
+            return [];
         }
 
         return array_values(array_filter(
-            array_keys(PartyCatalog::kindLabels()),
-            fn ($kind) => in_array($kind, $allowedKinds, true)
+            PartyCatalog::roles(),
+            fn ($role) => in_array($role, $allowedPartyRoles, true)
         ));
     }
 
-    protected function resolveCreateAvailabilityByKind(array $allowedKinds): array
+    protected function resolveCreateAvailabilityByPartyRole(array $allowedPartyRoles): array
     {
         $security = app(Security::class);
         $user = auth()->user();
 
         $result = [];
 
-        foreach ($allowedKinds as $kind) {
-            $result[$kind] = $security->allows(
+        foreach ($allowedPartyRoles as $role) {
+            $result[$role] = $security->allows(
                 $user,
                 ModuleCatalog::PARTIES.'.create',
                 Party::class,
-                ['kind' => $kind]
+                ['roles' => [$role]]
             );
         }
 
         return $result;
     }
 
-    protected function resolveDefaultCreatableKind(array $allowedKinds, mixed $requestedKind): ?string
+    protected function resolveDefaultCreatablePartyRole(array $allowedPartyRoles, mixed $requestedRole): ?string
     {
-        $creatableByKind = $this->resolveCreateAvailabilityByKind($allowedKinds);
+        $creatableByRole = $this->resolveCreateAvailabilityByPartyRole($allowedPartyRoles);
 
-        if (is_string($requestedKind) && ($creatableByKind[$requestedKind] ?? false) === true) {
-            return $requestedKind;
+        if (is_string($requestedRole) && ($creatableByRole[$requestedRole] ?? false) === true) {
+            return $requestedRole;
         }
 
-        foreach ($creatableByKind as $kind => $allowed) {
+        foreach ($creatableByRole as $role => $allowed) {
             if ($allowed) {
-                return $kind;
+                return $role;
             }
         }
 
         return null;
     }
 
-    protected function syncRoles(Party $party, array $roles): void
+    protected function resolveDefaultPartyKind(mixed $requestedKind): string
+    {
+        if ($this->isValidPartyKind($requestedKind)) {
+            return $requestedKind;
+        }
+
+        return PartyCatalog::KIND_PERSON;
+    }
+
+    protected function normalizePartyRoles(array $roles): array
     {
         $normalizedRoles = array_values(array_unique(array_filter(
             $roles,
-            fn ($role) => is_string($role) && in_array($role, PartyCatalog::roles(), true)
+            fn ($role) => $this->isValidPartyRole($role)
         )));
 
-        if (empty($normalizedRoles)) {
-            $normalizedRoles = [PartyCatalog::ROLE_OTHER];
-        }
+        return empty($normalizedRoles)
+            ? [PartyCatalog::ROLE_OTHER]
+            : $normalizedRoles;
+    }
+
+    protected function syncRoles(Party $party, array $roles): void
+    {
+        $normalizedRoles = $this->normalizePartyRoles($roles);
 
         $party->roles()->delete();
 
@@ -347,5 +372,22 @@ class PartyController extends Controller
         return $membership->roles->contains(
             fn ($role) => $role->slug === RoleCatalog::ADMIN
         );
+    }
+
+    protected function partyKindOptions(): array
+    {
+        return array_keys(PartyCatalog::kindLabels());
+    }
+
+    protected function isValidPartyKind(mixed $kind): bool
+    {
+        return is_string($kind)
+            && in_array($kind, $this->partyKindOptions(), true);
+    }
+
+    protected function isValidPartyRole(mixed $role): bool
+    {
+        return is_string($role)
+            && in_array($role, PartyCatalog::roles(), true);
     }
 }

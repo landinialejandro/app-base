@@ -65,42 +65,54 @@ class RecordScopeResolver
             ->exists();
     }
 
-    public function deniesByConfiguration(
-        string $module,
-        string $capability,
-        mixed $scope,
-        array $constraints = []
-    ): bool {
-        if ($capability === CapabilityCatalog::CREATE) {
-            if ($scope !== true) {
-                return true;
-            }
-
-            if ($this->requiresAllowedKinds($module, $capability) && empty($this->extractAllowedKinds($constraints))) {
-                return true;
-            }
-
-            return false;
-        }
-
-        if ($scope === false || $scope === null || $scope === '') {
+public function deniesByConfiguration(
+    string $module,
+    string $capability,
+    mixed $scope,
+    array $constraints = []
+): bool {
+    if ($capability === CapabilityCatalog::CREATE) {
+        if ($scope !== true) {
             return true;
         }
 
-        if ($scope === PermissionScopeCatalog::LIMITED && ! $this->supportsLimitedModule($module)) {
+        if ($this->requiresAllowedKinds($module, $capability) && empty($this->extractAllowedKinds($constraints))) {
             return true;
         }
 
-        if ($this->requiresAllowedKinds($module, $capability)) {
-            $allowedKinds = $this->extractAllowedKinds($constraints);
-
-            if (empty($allowedKinds)) {
-                return true;
-            }
+        if ($this->requiresAllowedPartyRoles($module, $capability) && empty($this->extractAllowedPartyRoles($constraints))) {
+            return true;
         }
 
         return false;
     }
+
+    if ($scope === false || $scope === null || $scope === '') {
+        return true;
+    }
+
+    if ($scope === PermissionScopeCatalog::LIMITED && ! $this->supportsLimitedModule($module)) {
+        return true;
+    }
+
+    if ($this->requiresAllowedKinds($module, $capability)) {
+        $allowedKinds = $this->extractAllowedKinds($constraints);
+
+        if (empty($allowedKinds)) {
+            return true;
+        }
+    }
+
+    if ($this->requiresAllowedPartyRoles($module, $capability)) {
+        $allowedPartyRoles = $this->extractAllowedPartyRoles($constraints);
+
+        if (empty($allowedPartyRoles)) {
+            return true;
+        }
+    }
+
+    return false;
+}
 
     public function allows(
         string $module,
@@ -149,6 +161,17 @@ public function allowsCreateContext(
         }
 
         return in_array($kind, $allowedKinds, true);
+    }
+
+    if ($this->requiresAllowedPartyRoles($module, $capability)) {
+        $allowedPartyRoles = $this->extractAllowedPartyRoles($constraints);
+        $requestedPartyRoles = $this->extractRequestedPartyRoles($context);
+
+        if (empty($requestedPartyRoles)) {
+            return false;
+        }
+
+        return $this->allPartyRolesAreAllowed($requestedPartyRoles, $allowedPartyRoles);
     }
 
     return $scope === true;
@@ -265,6 +288,30 @@ protected function allowsByConstraints(
         }
     }
 
+    if ($this->requiresAllowedPartyRoles($module, $capability)) {
+        $allowedPartyRoles = $this->extractAllowedPartyRoles($constraints);
+
+        if (empty($allowedPartyRoles)) {
+            return false;
+        }
+
+        $recordPartyRoles = $this->extractPartyRolesFromRecord($record);
+
+        if (empty($recordPartyRoles)) {
+            return false;
+        }
+
+        if (! $this->allPartyRolesAreAllowed($recordPartyRoles, $allowedPartyRoles)) {
+            return false;
+        }
+
+        $requestedPartyRoles = $this->extractRequestedPartyRoles($context);
+
+        if (! empty($requestedPartyRoles) && ! $this->allPartyRolesAreAllowed($requestedPartyRoles, $allowedPartyRoles)) {
+            return false;
+        }
+    }
+
     return true;
 }
 
@@ -286,6 +333,24 @@ protected function applyConstraintsToQuery(
                     $allowedKinds
                 );
             }
+        }
+    }
+
+    if ($this->requiresAllowedPartyRoles($module, $capability)) {
+        $allowedPartyRoles = $this->extractAllowedPartyRoles($constraints);
+
+        if (empty($allowedPartyRoles)) {
+            return $query->whereRaw('1 = 0');
+        }
+
+        if (method_exists($query->getModel(), 'roles')) {
+            $query
+                ->whereHas('roles', function ($rolesQuery) use ($allowedPartyRoles) {
+                    $rolesQuery->whereIn('role', $allowedPartyRoles);
+                })
+                ->whereDoesntHave('roles', function ($rolesQuery) use ($allowedPartyRoles) {
+                    $rolesQuery->whereNotIn('role', $allowedPartyRoles);
+                });
         }
     }
 
@@ -338,23 +403,20 @@ protected function applyConstraintsToQuery(
         return $query->whereRaw('1 = 0');
     }
 
-    protected function requiresAllowedKinds(string $module, string $capability): bool
-    {
-        if (! in_array($capability, [
-            CapabilityCatalog::VIEW_ANY,
-            CapabilityCatalog::VIEW,
-            CapabilityCatalog::CREATE,
-            CapabilityCatalog::UPDATE,
-            CapabilityCatalog::DELETE,
-        ], true)) {
-            return false;
-        }
-
-        return in_array($module, [
-            ModuleCatalog::ORDERS,
-            ModuleCatalog::PARTIES,
-        ], true);
+protected function requiresAllowedKinds(string $module, string $capability): bool
+{
+    if (! in_array($capability, [
+        CapabilityCatalog::VIEW_ANY,
+        CapabilityCatalog::VIEW,
+        CapabilityCatalog::CREATE,
+        CapabilityCatalog::UPDATE,
+        CapabilityCatalog::DELETE,
+    ], true)) {
+        return false;
     }
+
+    return $module === ModuleCatalog::ORDERS;
+}
 
     public function extractAllowedKinds(array $constraints): array
     {
@@ -395,5 +457,90 @@ protected function applyConstraintsToQuery(
         }
 
         return ! app(OrdersHooks::class)->hasExternalMovements($record);
+    }
+
+
+    protected function requiresAllowedPartyRoles(string $module, string $capability): bool
+    {
+        if (! in_array($capability, [
+            CapabilityCatalog::VIEW_ANY,
+            CapabilityCatalog::VIEW,
+            CapabilityCatalog::CREATE,
+            CapabilityCatalog::UPDATE,
+            CapabilityCatalog::DELETE,
+        ], true)) {
+            return false;
+        }
+    
+        return $module === ModuleCatalog::PARTIES;
+    }
+
+
+    public function extractAllowedPartyRoles(array $constraints): array
+    {
+        $allowedPartyRoles = $constraints['allowed_party_roles'] ?? null;
+    
+        if (! is_array($allowedPartyRoles)) {
+            return [];
+        }
+    
+        return array_values(array_unique(array_filter(
+            $allowedPartyRoles,
+            fn ($value) => is_string($value) && trim($value) !== ''
+        )));
+    }
+
+
+    protected function extractRequestedPartyRoles(array $context): array
+    {
+        $roles = $context['roles'] ?? $context['party_roles'] ?? $context['role'] ?? null;
+    
+        if (is_string($roles)) {
+            $roles = [$roles];
+        }
+    
+        if (! is_array($roles)) {
+            return [];
+        }
+    
+        return array_values(array_unique(array_filter(
+            $roles,
+            fn ($role) => is_string($role) && trim($role) !== ''
+        )));
+    }
+
+
+    protected function extractPartyRolesFromRecord(Model $record): array
+    {
+        if (! method_exists($record, 'roles')) {
+            return [];
+        }
+    
+        $roles = $record->relationLoaded('roles')
+            ? $record->roles
+            : $record->roles()->get();
+    
+        return $roles
+            ->pluck('role')
+            ->filter(fn ($role) => is_string($role) && trim($role) !== '')
+            ->unique()
+            ->values()
+            ->all();
+    }
+
+
+    protected function allPartyRolesAreAllowed(array $partyRoles, array $allowedPartyRoles): bool
+    {
+        if (empty($partyRoles) || empty($allowedPartyRoles)) {
+            return false;
+        }
+    
+        foreach ($partyRoles as $role) {
+            if (! in_array($role, $allowedPartyRoles, true)) {
+                return false;
+            }
+        }
+    
+        return true;
     }
 }

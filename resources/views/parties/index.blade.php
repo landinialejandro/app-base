@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/index.blade.php | V12 --}}
+{{-- FILE: resources/views/parties/index.blade.php | V13 --}}
 
 @extends('layouts.app')
 
@@ -18,17 +18,19 @@
         );
 
         $allowedKinds = $allowedKinds ?? array_keys(PartyCatalog::kindLabels());
-        $canCreateByKind = $canCreateByKind ?? [];
-        $defaultCreateKind = null;
+        $allowedPartyRoles = $allowedPartyRoles ?? [];
+        $canCreateByPartyRole = $canCreateByPartyRole ?? [];
 
-        foreach ($allowedKinds as $allowedKind) {
-            if (($canCreateByKind[$allowedKind] ?? false) === true) {
-                $defaultCreateKind = $allowedKind;
+        $defaultCreateRole = null;
+
+        foreach ($allowedPartyRoles as $allowedPartyRole) {
+            if (($canCreateByPartyRole[$allowedPartyRole] ?? false) === true) {
+                $defaultCreateRole = $allowedPartyRole;
                 break;
             }
         }
 
-        $canCreateAny = $defaultCreateKind !== null;
+        $canCreateAny = $defaultCreateRole !== null;
     @endphp
 
     <x-page class="list-page">
@@ -37,7 +39,7 @@
 
         <x-page-header title="Contactos">
             @if ($canCreateAny)
-                <x-button-create :href="route('parties.create', $trailQuery + ['kind' => $defaultCreateKind])" label="Nuevo contacto" />
+                <x-button-create :href="route('parties.create', $trailQuery + ['role' => $defaultCreateRole])" label="Nuevo contacto" />
             @endif
         </x-page-header>
 
@@ -55,8 +57,6 @@
                         <select id="kind" name="kind" class="form-control">
                             <option value="">Todas</option>
                             @foreach (PartyCatalog::kindLabels() as $value => $label)
-                                @continue(!in_array($value, $allowedKinds, true))
-
                                 <option value="{{ $value }}" @selected(request('kind') === $value)>
                                     {{ $label }}
                                 </option>
@@ -69,6 +69,8 @@
                         <select id="role" name="role" class="form-control">
                             <option value="">Todos</option>
                             @foreach (PartyCatalog::roleLabels() as $value => $label)
+                                @continue(! in_array($value, $allowedPartyRoles, true))
+
                                 <option value="{{ $value }}" @selected(request('role') === $value)>
                                     {{ $label }}
                                 </option>

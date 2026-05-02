@@ -219,29 +219,42 @@ class TenantProfilePermissionController extends Controller
         return $matrix;
     }
 
-    protected function normalizeConstraintsInput(
-        Request $request,
-        string $module,
-        string $capability,
-        array $existingConstraints = []
-    ): array {
-        $constraints = $existingConstraints;
+protected function normalizeConstraintsInput(
+    Request $request,
+    string $module,
+    string $capability,
+    array $existingConstraints = []
+): array {
+    $constraints = [];
 
-        if ($this->supportsAllowedKindsConstraint($module, $capability)) {
-            $allowedKinds = $request->input("permissions.$module.$capability.constraints.allowed_kinds", []);
+    if ($this->supportsAllowedKindsConstraint($module, $capability)) {
+        $allowedKinds = $request->input("permissions.$module.$capability.constraints.allowed_kinds", []);
 
-            if (! is_array($allowedKinds)) {
-                $allowedKinds = [];
-            }
-
-            $constraints['allowed_kinds'] = array_values(array_unique(array_filter(
-                $allowedKinds,
-                fn ($value) => is_string($value) && trim($value) !== ''
-            )));
+        if (! is_array($allowedKinds)) {
+            $allowedKinds = [];
         }
 
-        return $constraints;
+        $constraints['allowed_kinds'] = array_values(array_unique(array_filter(
+            $allowedKinds,
+            fn ($value) => is_string($value) && trim($value) !== ''
+        )));
     }
+
+    if ($this->supportsAllowedPartyRolesConstraint($module, $capability)) {
+        $allowedPartyRoles = $request->input("permissions.$module.$capability.constraints.allowed_party_roles", []);
+
+        if (! is_array($allowedPartyRoles)) {
+            $allowedPartyRoles = [];
+        }
+
+        $constraints['allowed_party_roles'] = array_values(array_unique(array_filter(
+            $allowedPartyRoles,
+            fn ($value) => is_string($value) && trim($value) !== ''
+        )));
+    }
+
+    return $constraints;
+}
 
     protected function normalizeNullableString(mixed $value): ?string
     {
@@ -353,62 +366,80 @@ class TenantProfilePermissionController extends Controller
         }
     }
 
-    protected function validateConstraints(array $matrix): void
-    {
-        foreach ($matrix as $module => $capabilities) {
-            foreach ($capabilities as $capability => $meta) {
-                if (! $meta['enabled']) {
-                    continue;
+protected function validateConstraints(array $matrix): void
+{
+    foreach ($matrix as $module => $capabilities) {
+        foreach ($capabilities as $capability => $meta) {
+            if (! $meta['enabled']) {
+                continue;
+            }
+
+            if ($this->supportsAllowedKindsConstraint($module, $capability)) {
+                $allowedKinds = $meta['constraints']['allowed_kinds'] ?? [];
+
+                if (empty($allowedKinds)) {
+                    $this->failValidation(
+                        "permissions.$module.$capability.constraints.allowed_kinds",
+                        "Debes seleccionar al menos un tipo permitido para [$module][$capability]."
+                    );
                 }
 
-                if ($this->supportsAllowedKindsConstraint($module, $capability)) {
-                    $allowedKinds = $meta['constraints']['allowed_kinds'] ?? [];
+                $validKinds = $this->validKindsForModule($module);
 
-                    if (empty($allowedKinds)) {
+                foreach ($allowedKinds as $kind) {
+                    if (! in_array($kind, $validKinds, true)) {
                         $this->failValidation(
                             "permissions.$module.$capability.constraints.allowed_kinds",
-                            "Debes seleccionar al menos un tipo permitido para [$module][$capability]."
+                            "Se detectó un tipo inválido en [$module][$capability]."
                         );
                     }
+                }
+            }
 
-                    $validKinds = $this->validKindsForModule($module);
+            if ($this->supportsAllowedPartyRolesConstraint($module, $capability)) {
+                $allowedPartyRoles = $meta['constraints']['allowed_party_roles'] ?? [];
 
-                    foreach ($allowedKinds as $kind) {
-                        if (! in_array($kind, $validKinds, true)) {
-                            $this->failValidation(
-                                "permissions.$module.$capability.constraints.allowed_kinds",
-                                "Se detectó un tipo inválido en [$module][$capability]."
-                            );
-                        }
+                if (empty($allowedPartyRoles)) {
+                    $this->failValidation(
+                        "permissions.$module.$capability.constraints.allowed_party_roles",
+                        "Debes seleccionar al menos una relación con la empresa para [$module][$capability]."
+                    );
+                }
+
+                $validPartyRoles = PartyCatalog::roles();
+
+                foreach ($allowedPartyRoles as $role) {
+                    if (! in_array($role, $validPartyRoles, true)) {
+                        $this->failValidation(
+                            "permissions.$module.$capability.constraints.allowed_party_roles",
+                            "Se detectó una relación con la empresa inválida en [$module][$capability]."
+                        );
                     }
                 }
             }
         }
     }
+}
 
-    protected function supportsAllowedKindsConstraint(string $module, string $capability): bool
-    {
-        if (! in_array($capability, [
-            CapabilityCatalog::VIEW_ANY,
-            CapabilityCatalog::VIEW,
-            CapabilityCatalog::CREATE,
-            CapabilityCatalog::UPDATE,
-            CapabilityCatalog::DELETE,
-        ], true)) {
-            return false;
-        }
-
-        return in_array($module, [
-            ModuleCatalog::ORDERS,
-            ModuleCatalog::PARTIES,
-        ], true);
+protected function supportsAllowedKindsConstraint(string $module, string $capability): bool
+{
+    if (! in_array($capability, [
+        CapabilityCatalog::VIEW_ANY,
+        CapabilityCatalog::VIEW,
+        CapabilityCatalog::CREATE,
+        CapabilityCatalog::UPDATE,
+        CapabilityCatalog::DELETE,
+    ], true)) {
+        return false;
     }
+
+    return $module === ModuleCatalog::ORDERS;
+}
 
 protected function validKindsForModule(string $module): array
 {
     return match ($module) {
         ModuleCatalog::ORDERS => array_keys(OrderCatalog::groups()),
-        ModuleCatalog::PARTIES => array_keys(PartyCatalog::kindLabels()),
         default => [],
     };
 }
@@ -425,5 +456,21 @@ protected function validKindsForModule(string $module): array
         throw ValidationException::withMessages([
             $key => $message,
         ]);
+    }
+
+
+    protected function supportsAllowedPartyRolesConstraint(string $module, string $capability): bool
+    {
+        if (! in_array($capability, [
+            CapabilityCatalog::VIEW_ANY,
+            CapabilityCatalog::VIEW,
+            CapabilityCatalog::CREATE,
+            CapabilityCatalog::UPDATE,
+            CapabilityCatalog::DELETE,
+        ], true)) {
+            return false;
+        }
+    
+        return $module === ModuleCatalog::PARTIES;
     }
 }

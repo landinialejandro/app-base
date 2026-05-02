@@ -1,36 +1,44 @@
-{{-- FILE: resources/views/parties/_form.blade.php | V7 --}}
+{{-- FILE: resources/views/parties/_form.blade.php | V8 --}}
 
 @php
     use App\Support\Catalogs\PartyCatalog;
 
     $party = $party ?? null;
     $allowedKinds = $allowedKinds ?? array_keys(PartyCatalog::kindLabels());
+    $allowedPartyRoles = $allowedPartyRoles ?? PartyCatalog::roles();
+    $defaultKind = $defaultKind ?? PartyCatalog::KIND_PERSON;
+    $defaultRole = $defaultRole ?? PartyCatalog::ROLE_CUSTOMER;
     $canManageEmployeeContacts = $canManageEmployeeContacts ?? false;
 
     $currentKind = old(
         'kind',
-        $party->kind ?? null,
+        $party->kind ?? $defaultKind,
     );
 
     $currentRoles = old(
         'roles',
-        $party ? $party->roles->pluck('role')->all() : [PartyCatalog::ROLE_CUSTOMER],
+        $party ? $party->roles->pluck('role')->all() : [$defaultRole],
     );
 
     $employeeLocked = $party ? $party->hasActiveMembership() : false;
-    $showEmployeeRelationship = $canManageEmployeeContacts || $employeeLocked;
 
     if ($employeeLocked && ! in_array(PartyCatalog::ROLE_EMPLOYEE, $currentRoles, true)) {
         $currentRoles[] = PartyCatalog::ROLE_EMPLOYEE;
     }
 
+    $showEmployeeRelationship = $employeeLocked
+        || (
+            $canManageEmployeeContacts
+            && in_array(PartyCatalog::ROLE_EMPLOYEE, $allowedPartyRoles, true)
+        );
+
     $commonRoleLabels = collect(PartyCatalog::roleLabels())
-        ->filter(function ($label, $value) use ($showEmployeeRelationship) {
+        ->filter(function ($label, $value) use ($allowedPartyRoles, $showEmployeeRelationship) {
             if ($value === PartyCatalog::ROLE_EMPLOYEE) {
                 return $showEmployeeRelationship;
             }
 
-            return true;
+            return in_array($value, $allowedPartyRoles, true);
         });
 @endphp
 
@@ -62,8 +70,6 @@
             </div>
         @else
             @foreach (PartyCatalog::kindLabels() as $value => $label)
-                @continue(! in_array($value, $allowedKinds, true))
-
                 <label class="form-label" style="display:block; margin-top:6px;">
                     <input
                         class="form-checkbox"
@@ -227,4 +233,4 @@
     </div>
 </div>
 
-<x-dev-component-version name="parties._form" version="V7" />
+<x-dev-component-version name="parties._form" version="V8" />

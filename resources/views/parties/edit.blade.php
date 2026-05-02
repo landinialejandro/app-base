@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/edit.blade.php | V3 --}}
+{{-- FILE: resources/views/parties/edit.blade.php | V4 --}}
 
 @extends('layouts.app')
 
@@ -26,6 +26,8 @@
                 @include('parties._form', [
                     'party' => $party,
                     'allowedKinds' => $allowedKinds,
+                    'allowedPartyRoles' => $allowedPartyRoles,
+                    'canManageEmployeeContacts' => $canManageEmployeeContacts,
                 ])
 
                 <div class="form-actions">

@@ -153,7 +153,7 @@ function runProjectAction(config) {
     formData.append("csrf_token", CONFIG.csrfToken);
     formData.append(config.action, "1");
 
-    Object.entries(config.payload || {}).forEach(([key, value]) => {
+    Object.entries(config.data || {}).forEach(([key, value]) => {
         formData.append(key, value);
     });
 
@@ -163,31 +163,67 @@ function runProjectAction(config) {
     fetch(CONFIG.baseUrl, {
         method: "POST",
         body: formData,
+        headers: {
+            "X-Requested-With": "XMLHttpRequest",
+        },
     })
-        .then((response) => response.json())
-        .then((data) => {
-            const finalOutput = data.output || "Sin salida.";
+        .then(async (response) => {
+            const raw = await response.text();
 
-            appendProjectConsoleOutput(finalOutput);
+            let data = null;
 
-            if (config.onSuccess) {
-                config.onSuccess(data, finalOutput);
+            try {
+                data = raw ? JSON.parse(raw) : null;
+            } catch (error) {
+                appendProjectConsoleOutput(
+                    "[ERROR] La respuesta no es JSON válido.\n\n" + raw,
+                );
+                return;
             }
 
-            showNotification(
-                config.success || "Acción ejecutada",
-                data.ok ? "success" : "warning",
-            );
+            if (!response.ok) {
+                appendProjectConsoleOutput(
+                    "[ERROR] HTTP " +
+                        response.status +
+                        "\n\n" +
+                        (data?.output || raw || ""),
+                );
+                return;
+            }
+
+            const hasOutput =
+                data && Object.prototype.hasOwnProperty.call(data, "output");
+            const finalOutput =
+                hasOutput && typeof data.output === "string"
+                    ? data.output.trim()
+                    : "";
+
+            if (finalOutput !== "") {
+                appendProjectConsoleOutput(finalOutput);
+                return;
+            }
+
+            const diagnostic = [
+                "[WARN] Acción ejecutada sin salida visible.",
+                "[INFO] Acción: " + config.action,
+                data && data.ok === false
+                    ? "[INFO] Estado: ok=false"
+                    : "[INFO] Estado: ok=" + String(data?.ok ?? "sin dato"),
+                data && data.command ? "[INFO] Comando: " + data.command : null,
+                data && data.code
+                    ? "[INFO] Código recibido: " + data.code.substring(0, 200)
+                    : null,
+                "[INFO] Respuesta cruda:",
+                raw || "(vacía)",
+            ]
+                .filter(Boolean)
+                .join("\n");
+
+            appendProjectConsoleOutput(diagnostic);
         })
         .catch((error) => {
-            const errorOutput = "❌ Error AJAX: " + error.message;
-
+            const errorOutput = "[ERROR] Falló la comunicación AJAX.\n" + error;
             appendProjectConsoleOutput(errorOutput);
-
-            showNotification(
-                config.error || "Error al ejecutar acción",
-                "error",
-            );
         });
 }
 
@@ -344,37 +380,25 @@ function exportOutput() {
 // ==================== HERRAMIENTAS LAB ====================
 
 function runLabTool(tool, fromClipboard = false) {
-    const input = document.getElementById("labInput");
+    const allowedTools = ["code", "docs", "audit"];
 
-    const payload = {
-        lab_tool: tool,
-        lab_input: input ? input.value : "",
-    };
-
-    if (fromClipboard) {
-        payload.from_clipboard = "1";
+    if (!allowedTools.includes(tool)) {
+        appendProjectConsoleOutput(
+            "[ERROR] Herramienta Lab inválida en frontend: " + String(tool),
+        );
+        return;
     }
+
+    const input = document.querySelector('[name="lab_input"]');
+    const labInput = input ? input.value : "";
 
     runProjectAction({
         action: "ajax_lab_tool",
-        payload,
-        loading: "⏳ Ejecutando herramienta Lab...",
-        success: "Herramienta Lab ejecutada",
-        error: "Error al ejecutar herramienta Lab",
-        onSuccess(data) {
-            const finalInput =
-                data.input !== undefined
-                    ? data.input
-                    : input
-                      ? input.value
-                      : "";
-
-            if (input) {
-                input.value = finalInput;
-            }
-
-            localStorage.setItem("projectLabLabInput", finalInput);
-            localStorage.setItem("projectLabLabActive", tool);
+        loading: "⏳ Ejecutando herramienta Lab: " + tool + "...",
+        data: {
+            lab_tool: tool,
+            from_clipboard: fromClipboard ? "1" : "0",
+            lab_input: labInput,
         },
     });
 }
@@ -978,6 +1002,13 @@ document.addEventListener("keydown", function (e) {
 });
 
 // ==================== ANIMACIONES ====================
+
+function resetProjectRateLimit() {
+    runProjectAction({
+        action: "ajax_rate_limit_reset",
+        loading: "⏳ Reiniciando rate limit...",
+    });
+}
 
 const style = document.createElement("style");
 

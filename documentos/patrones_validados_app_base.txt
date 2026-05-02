@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 PATRONES VIGENTES
 
@@ -85,4 +85,53 @@ MIGRACIÓN REUSABLE
 
 cerrar capacidad completa en nueva familia
 evitar convivencia eterna legacy + nueva
+
+RECONVERSIÓN LIMPIA DE CONSTRAINTS
+
+Cuando cambia la dimensión real de autorización, la constraint funcional debe migrar a esa dimensión y eliminar la convivencia legacy.
+
+Caso validado:
+
+parties:
+antes → allowed_kinds sobre parties.kind
+ahora → allowed_party_roles sobre party_roles.role
+
+Regla:
+
+la constraint anterior no debe quedar como fallback operativo si ya no representa la semántica vigente del módulo.
+
+AUTORIZACIÓN SENSIBLE CENTRALIZADA
+
+Cuando una regla sensible aparece duplicada en controller y requests, debe extraerse a una pieza reusable del dominio correspondiente.
+
+Caso validado:
+
+PartyEmployeeContactAuthorization
+
+Ubicación vigente:
+
+app/Support/Parties/PartyEmployeeContactAuthorization.php
+
+Regla:
+
+la UI puede expresar disponibilidad, pero la autorización sensible debe resolverse y bloquearse en backend.
+
+VALIDACIÓN RUNTIME DE SEGURIDAD
+
+Una validación sensible debe combinar:
+
+UI correcta
+Security runtime
+request validation
+intento manipulado
+verificación final de persistencia
+
+Caso validado:
+
+protección de party vinculada a membership activa.
+
+La validación no se considera cerrada solo por ocultar campos en UI.
+
+Debe probarse que el backend bloquea intentos manipulados y que el registro persiste intacto.
+
 <<END SECTION>>

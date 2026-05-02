@@ -39,7 +39,7 @@ no debe utilizarse como depósito de ideas difusas sin criterio de ejecución
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — RECONVERSIÓN MODULAR>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 LÍNEA ACTIVA — RECONVERSIÓN MODULAR
 
@@ -56,6 +56,7 @@ alineación progresiva de show pages como hosts estructurados
 incorporación doctrinal de inventory como frente funcional con surfaces propias
 alineación de tasks y appointments para consumir directorio interno del tenant en lugar de abilities sobre módulo inexistente
 reconversión conceptual de parties separando tipo de contacto y relación con la empresa
+reconversión de seguridad de parties desde allowed_kinds hacia allowed_party_roles
 
 Criterios rectores vigentes:
 
@@ -65,6 +66,7 @@ cada módulo debe cerrar coherencia interna propia
 consumir capacidades oficiales antes de variantes locales nuevas
 no abrir módulo users por necesidades de dataset interno reusable
 no comprimir en parties.kind relaciones que pertenecen a party_roles
+no usar allowed_kinds como constraint funcional de parties
 
 Foco de esta línea:
 
@@ -73,16 +75,19 @@ más capacidades publicadas por módulos oferentes
 más claridad entre núcleo, gateway y consumo externo
 más coherencia entre arquitectura, UI y documentación
 más separación entre tipo base de entidad y relaciones operativas
+más alineación entre constraints funcionales y dimensión real del módulo
 
 Caso vigente consolidado:
 
 parties.kind = person/company
 party_roles.role = customer/supplier/employee/other
+parties.allowed_party_roles se evalúa contra party_roles.role
+orders.allowed_kinds conserva su lectura propia para orders
 
 <<END SECTION>>
 
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 MÓDULOS PRIORITARIOS A REVISAR
 
@@ -105,12 +110,12 @@ documents
 por consolidación como capacidad embebida oficial
 
 parties
-seguimiento posterior a la reconversión conceptual ya aplicada, especialmente documentación, validaciones visuales finales y extracción de lógica reusable pendiente
+seguimiento posterior al cierre de reconversión conceptual y de seguridad, especialmente análisis de embebidos de parties.show según party_roles.role
 
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -206,6 +211,66 @@ KIND_CUSTOMER
 KIND_SUPPLIER
 KIND_EMPLOYEE
 
+Cierre operativo adicional de seguridad de parties:
+
+se implementó allowed_party_roles como constraint funcional de parties
+
+allowed_party_roles se evalúa contra party_roles.role
+
+allowed_kinds dejó de operar para parties
+
+RolePermissionModuleSeeder siembra parties con allowed_party_roles
+
+RecordScopeResolver aplica allowed_party_roles para parties
+
+Security::scope(...) filtra parties por party_roles.role
+
+TenantProfileController expone allowed_party_roles
+
+TenantProfilePermissionController normaliza y valida allowed_party_roles
+
+capability-row.blade.php renderiza relaciones con la empresa permitidas
+
+PartyController eliminó helpers legacy basados en allowed_kinds como permiso
+
+parties.index usa canCreateByPartyRole
+
+parties._form usa allowedPartyRoles para mostrar relaciones disponibles
+
+PartyEmployeeContactAuthorization centraliza autorización sensible de employee
+
+StorePartyRequest y UpdatePartyRequest consumen PartyEmployeeContactAuthorization
+
+Validaciones confirmadas:
+
+sales con contrato limitado a customer solo ve customer
+
+sales no puede crear supplier, employee ni other
+
+sales no puede ver, editar ni eliminar una party con relación other
+
+administrator puede crear contactos comunes según contrato
+
+administrator no puede crear employee
+
+usuario no owner validado visualmente en formulario
+
+party vinculada a membership activa validada
+
+manipulación por curl sobre party vinculada a membership activa bloqueada
+
+registro vinculado quedó intacto tras intento manipulado
+
+caso temporal de prueba limpiado
+
+grep sin residuos activos para helpers legacy:
+
+resolvedAllowedKindsFor
+resolveCreateAvailabilityByKind
+resolveDefaultCreatableKind
+PARTIES + allowed_kinds
+allowed_kinds + PARTIES
+
 Validaciones recientes informadas:
 
 syntax OK
@@ -216,7 +281,7 @@ browser OK
 <<END SECTION>>
 
 <<SECTION: CAPACIDADES REUTILIZABLES A CONSOLIDAR>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 CAPACIDADES REUTILIZABLES A CONSOLIDAR
 
@@ -281,18 +346,26 @@ Caso vigente:
 
 parties._form utiliza formulario progresivo para guiar tipo de contacto, relación con la empresa y datos del contacto.
 
+Cierre específico de parties:
+
+PartyEmployeeContactAuthorization quedó extraído como pieza reusable de autorización sensible de employee.
+
+Ubicación vigente:
+
+app/Support/Parties/PartyEmployeeContactAuthorization.php
+
+Regla:
+
+la autorización sensible de employee no debe duplicarse entre controller y requests.
+
 Siguiente consolidación técnica posible:
 
 helpers comunes livianos orientados a presentación y payload visual de line items, sin absorber dominio, hooks, permisos ni semántica propia de cada módulo.
 
-Pendiente específico de parties:
-
-extraer canManageEmployeeContacts a una pieza reusable del dominio parties o tenant para evitar duplicación entre requests y controller.
-
 <<END SECTION>>
 
 <<SECTION: SEGURIDAD Y CONTRATOS PENDIENTES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 SEGURIDAD Y CONTRATOS PENDIENTES
 
@@ -306,10 +379,41 @@ replicar criterio de alineación Security + Gate/Policy en módulos transacciona
 
 verificar que nuevas integraciones embebidas no reabran bypasses de autorización ya cerrados
 
+Frente parties:
+
+allowed_party_roles ya no queda como revisión futura pendiente para parties.
+
+Estado vigente:
+
+parties usa allowed_party_roles como constraint funcional
+
+allowed_party_roles se evalúa contra party_roles.role
+
+allowed_kinds no aplica a parties
+
+Seguimiento futuro posible, no implementado:
+
+auditoría interna de eventos sensibles bloqueados
+
+Casos sugeridos para esa futura auditoría:
+
+intento de cambiar email de party vinculada a membership activa
+intento de cambiar kind de party vinculada a membership activa
+intento de quitar employee de party vinculada
+intento de asignar employee sin autorización
+
+Criterio acordado:
+
+bloqueo backend primero
+registro de auditoría después
+notificación solo ante patrón, reiteración o severidad
+
+No se decidió notificar al owner por cada intento individual.
+
 <<END SECTION>>
 
 <<SECTION: DEUDA TÉCNICA A REDUCIR>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 DEUDA TÉCNICA A REDUCIR
 
@@ -346,15 +450,23 @@ Lectura vigente:
 parties.kind = person/company
 party_roles.role = customer/supplier/employee/other
 
+Deuda reducida adicional:
+
+allowed_kinds dejó de operar como constraint funcional de parties.
+
+allowed_party_roles quedó consolidado como constraint funcional de parties.
+
+La autorización sensible de employee dejó de estar duplicada entre controller y requests.
+
+Pieza vigente:
+
+PartyEmployeeContactAuthorization
+
 Deuda técnica pendiente derivada de parties:
 
-extraer canManageEmployeeContacts de StorePartyRequest, UpdatePartyRequest y PartyController hacia una pieza reusable
+validar runtime de admin cuando exista dataset seed activo si aplica a nuevos escenarios no cubiertos
 
-validar runtime de admin cuando exista dataset seed activo
-
-validar visualmente party con membership activa
-
-validar visualmente usuario no owner en formulario de parties
+analizar parties.show y sus embebidos según party_roles.role
 
 Regla:
 
@@ -381,7 +493,7 @@ cada paso debe dejar menos excepciones que el anterior
 <<END SECTION>>
 
 <<SECTION: ESTADO ACTUAL DEL SISTEMA>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 ESTADO ACTUAL DEL SISTEMA
 
@@ -433,9 +545,21 @@ other
 
 La relación employee ya no pertenece a parties.kind.
 
+La seguridad de parties quedó reconvertida:
+
+parties usa allowed_party_roles como constraint funcional
+
+allowed_party_roles se evalúa contra party_roles.role
+
+orders conserva allowed_kinds
+
+allowed_kinds no aplica a parties
+
 La relación membership → party continúa como ficha ampliada tenant-scoped del colaborador interno cuando exista vínculo explícito.
 
 Si la membership vinculada está activa, la party queda parcialmente protegida según la regla vigente.
+
+La autorización sensible de employee está centralizada en PartyEmployeeContactAuthorization.
 
 La validación runtime reciente no detectó nuevos hallazgos críticos fuera de los frentes ya corregidos.
 
@@ -457,7 +581,7 @@ document_items
 <<END SECTION>>
 
 <<SECTION: MÓDULOS POSIBLES A FUTURO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 MÓDULOS POSIBLES A FUTURO
 
@@ -477,18 +601,24 @@ party_phones
 party_addresses
 actividad interna del empleado en parties.show
 
-Línea evolutiva posible para seguridad de parties:
+Línea evolutiva posible para parties:
 
-revisión futura de Security para allowed_party_roles o allowed_relationships si el contrato persistido lo requiere
+analizar embebidos de parties.show según party_roles.role
 
 Regla:
 
 estas líneas no deben tratarse como implementación vigente ni incorporarse como obligación inmediata sin auditoría previa de necesidad real.
 
+Aclaración:
+
+la revisión futura de Security para allowed_party_roles en parties ya no queda como línea evolutiva abierta.
+
+allowed_party_roles fue implementado y validado como constraint funcional vigente de parties.
+
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 PENDIENTES INMEDIATOS
 
@@ -512,17 +642,18 @@ revisar duplicaciones residuales en validaciones de line items
 
 auditar migración futura de Orders hacia esquema group + kind compatible, basada en código real
 
-Pendientes inmediatos derivados de parties:
+Pendiente inmediato derivado de parties:
 
-validar admin runtime si se crea o existe dataset activo correspondiente
+analizar parties.show y sus embebidos según party_roles.role
 
-validar visualmente formulario de parties con usuario no owner
+Criterios para ese análisis:
 
-validar visualmente party con membership activa
-
-extraer canManageEmployeeContacts a pieza reusable
-
-revisar documentación restante del frente parties si queda algún documento activo no alineado
+no decidir embebidos por parties.kind
+no inventar relaciones
+no agregar embebidos manuales
+consumir surfaces oficiales
+detectar brechas si un módulo oferente no publica una surface necesaria
+distinguir lectura para customer, supplier, employee y other
 
 <<END SECTION>>
 

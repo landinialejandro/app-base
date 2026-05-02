@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 COMPONENTES DISPONIBLES
 
@@ -197,6 +197,20 @@ Solo organiza visualmente la aparición progresiva de secciones de un formulario
 Caso vigente:
 
 parties._form utiliza formulario progresivo para guiar tipo de contacto, relación con la empresa y datos del contacto.
+
+Lectura vigente en parties._form:
+
+Tipo de contacto expresa parties.kind.
+
+Relación con la empresa expresa party_roles.role.
+
+Regla:
+
+el formulario puede mostrar relaciones disponibles según allowedPartyRoles, pero no decide autorización.
+
+La UI expresa permisos ya resueltos.
+
+El backend autoriza y bloquea.
 
 Regla adicional consolidada:
 
@@ -473,7 +487,7 @@ favicon y logo cumplen roles distintos y no deben confundirse
 <<END SECTION>>
 
 <<SECTION: PATRÓN GENERAL PARA VISTAS INDEX>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 PATRÓN GENERAL PARA VISTAS INDEX
 
@@ -509,6 +523,22 @@ deben acompañar la tabla principal de saldos y no desplazarla como foco de trab
 tipografía sobria
 bajo peso visual
 lectura rápida
+
+Aclaración vigente para parties.index:
+
+el filtro visual de parties debe respetar la separación conceptual vigente.
+
+Tipo de contacto corresponde a parties.kind.
+
+Relación con la empresa corresponde a party_roles.role.
+
+Cuando la visibilidad dependa de allowed_party_roles, la UI debe expresar la relación con la empresa permitida para el usuario sin reconstruir seguridad localmente.
+
+Regla:
+
+parties.index no debe decidir creación u operación por allowed_kinds.
+
+Debe expresar la disponibilidad ya resuelta por el backend y por el contrato vigente de allowed_party_roles.
 
 <<END SECTION>>
 
@@ -573,7 +603,7 @@ Estas métricas no reemplazan la tabla principal ni convierten la pantalla en da
 <<END SECTION>>
 
 <<SECTION: PATRÓN VISUAL PARA VISTAS SHOW>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 PATRÓN VISUAL PARA VISTAS SHOW
 
@@ -640,6 +670,21 @@ documents.show consumiendo inventory como frente operativo por línea documental
 
 En este caso, documents conserva su jerarquía visual como cabecera y líneas documentales, mientras inventory aporta acciones y lectura operativa sin convertirse en núcleo visual del documento.
 
+Aclaración vigente para parties.show:
+
+parties.show debe mantener la lectura separada entre:
+
+tipo de contacto
+relación con la empresa
+
+La decisión visual sobre relaciones embebidas o compactas debe revisarse según party_roles.role y no según parties.kind.
+
+Regla:
+
+no agregar embebidos manuales en parties.show.
+
+Si falta una relación visible, debe detectarse si existe surface oficial del módulo oferente o si corresponde evolucionar la oferta del módulo dueño.
+
 Aclaración adicional para detalle de movimientos:
 
 cuando inventory.movements.show exponga una operación asociada mediante inventory_operations, esa información debe leerse como contexto adicional del movimiento y no como nueva pantalla principal obligatoria.
@@ -703,7 +748,7 @@ la unidad visual completa debe desaparecer y no solo el contenido interno
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW
 
@@ -740,6 +785,26 @@ Aclaración adicional para documents.show:
 la capa estructural de líneas documentales debe mantenerse separada de la operación material publicada por inventory.
 
 Las acciones por línea pueden nacer visualmente en la fila documental, pero no deben presentarse como lógica propia de documents si pertenecen a inventory.
+
+Aclaración adicional para parties.show:
+
+las relaciones embebidas o compactas de parties.show deben responder a relaciones reales publicadas por surfaces oficiales.
+
+La lectura semántica debe considerar party_roles.role:
+
+customer
+supplier
+employee
+other
+
+Regla:
+
+parties.kind no debe utilizarse para decidir embebidos.
+
+parties.kind solo expresa tipo de contacto:
+
+person
+company
 
 Aclaración adicional para relaciones compactas:
 

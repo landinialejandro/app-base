@@ -174,7 +174,7 @@ Su desarrollo técnico y sus reglas operativas concretas se resuelven en documen
 <<END SECTION>>
 
 <<SECTION: IDENTIDAD GLOBAL Y PERTENENCIA POR EMPRESA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00004
 
 IDENTIDAD GLOBAL Y PERTENENCIA POR EMPRESA
 
@@ -210,6 +210,18 @@ Regla:
 
 la relación membership → party no convierte a party en identidad del sistema ni en entidad de acceso.
 
+Cuando exista membership activa vinculada a party, la ficha ampliada debe mantener coherencia estructural con esa pertenencia activa.
+
+Esta protección no convierte a parties en fuente de identidad ni de acceso.
+
+Refuerza únicamente la separación entre:
+
+identidad global
+pertenencia operativa
+ficha ampliada tenant-scoped
+
+El detalle operativo y de seguridad de esa ficha ampliada se define en los documentos especializados correspondientes.
+
 <<END SECTION>>
 
 <<SECTION: TENANT ACTIVO COMO CONTEXTO OPERATIVO>>
@@ -235,7 +247,7 @@ Es una pieza estructural del funcionamiento del sistema.
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00018
 
 CAPAS FUNCIONALES DEL SISTEMA
 
@@ -274,6 +286,14 @@ tenant es contexto, no módulo funcional
 las necesidades de colaboradores internos deben resolverse primero en la capa tenant antes de crear módulos nuevos
 
 la ficha ampliada en parties no altera el plano de identidad global ni el modelo de pertenencia operativa
+
+La separación interna de parties refuerza esta lectura por capas:
+
+parties.kind pertenece al núcleo estructural del contacto
+
+party_roles.role expresa la relación del contacto con la empresa
+
+Las reglas de autorización derivadas de esa relación pertenecen al documento especializado de seguridad.
 
 <<END SECTION>>
 
@@ -339,7 +359,7 @@ Su función es sostener la plataforma y su frontera de ingreso.
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00023
 
 ENTIDADES DEL NEGOCIO
 
@@ -419,6 +439,14 @@ Regla:
 employee no es tipo de contacto ni naturaleza de party.
 
 Employee es una relación operativa dentro de party_roles.
+
+party_roles es la entidad hija o complementaria que expresa la relación operativa del contacto con la empresa.
+
+Regla:
+
+la relación operativa vive en party_roles.role y no en parties.kind.
+
+La incidencia de party_roles.role en seguridad se define en el documento especializado de seguridad.
 
 Aclaración sobre membership → party:
 
@@ -519,7 +547,7 @@ la clasificación describe rol funcional actual y puede evolucionar con la madur
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00022
+SECTION_VERSION: 00023
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
@@ -609,7 +637,7 @@ No debe absorber reglas de seguridad ni detalles de implementación.
 <<END SECTION>>
 
 <<SECTION: BASE DEL DOMINIO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 BASE DEL DOMINIO
 

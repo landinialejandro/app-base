@@ -111,7 +111,7 @@ Si estas respuestas no están claras, no debe avanzarse a implementación.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 BLOQUE 1 — CONTRATO MODULAR
 
@@ -153,10 +153,22 @@ Caso validado:
 
 parties.kind no debe mezclar tipo de contacto con relación comercial o vínculo interno.
 
+Criterio adicional para constraints funcionales:
+
+si una reconversión cambia la dimensión real de autorización, la constraint funcional debe migrar hacia esa dimensión.
+
+No debe conservarse la constraint anterior como compatibilidad operativa si ya no representa el dominio vigente.
+
+Caso validado:
+
+parties dejó de usar allowed_kinds como constraint funcional.
+
+parties usa allowed_party_roles sobre party_roles.role.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 BLOQUE 2 — SEGURIDAD OBLIGATORIA
 
@@ -235,6 +247,36 @@ Debe probarse intento manipulado desde request o runtime real.
 Caso validado:
 
 parties bloquea asignación manipulada de relación employee desde StorePartyRequest y UpdatePartyRequest para usuarios no autorizados.
+
+Validación adicional para reconversión de constraints:
+
+cuando un módulo migra una constraint funcional hacia una nueva dimensión, debe validarse el contrato completo y no solo la UI o el formulario.
+
+Controlar:
+
+resolver central
+contrato persistido
+seeder
+UI de permisos
+controller
+requests
+vistas
+Security::scope(...)
+create
+view
+update
+delete
+usuarios reales del seed
+grep de residuos legacy
+prueba de manipulación cuando exista relación sensible
+
+Caso validado:
+
+parties migró desde allowed_kinds hacia allowed_party_roles.
+
+Regla:
+
+PARTIES + allowed_kinds no debe quedar como combinación activa cuando la doctrina vigente exige allowed_party_roles.
 
 <<END SECTION>>
 
@@ -384,7 +426,7 @@ en parties debe preferirse Relación con la empresa antes que rol.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 5 — DOCUMENTACIÓN Y CIERRE>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 BLOQUE 5 — DOCUMENTACIÓN Y CIERRE
 
@@ -399,7 +441,7 @@ respetar estructura documental vigente
 
 Regla adicional consolidada:
 
-las decisiones sobre metadata modular (como iconografía u otros atributos visuales) deben documentarse en:
+las decisiones sobre metadata modular como iconografía u otros atributos visuales deben documentarse en:
 
 convenciones
 contexto arquitectónico
@@ -431,10 +473,28 @@ la reconversión de parties elimina la lectura de customer, supplier y employee 
 
 El cierre debe verificar que esos valores no reaparezcan como constantes, migraciones, seeders, requests, controller o vistas bajo la semántica anterior.
 
+Validación adicional para reconversión de constraints:
+
+cuando se reemplaza una constraint funcional anterior por una nueva, el cierre documental debe registrar:
+
+dimensión anterior eliminada
+dimensión nueva vigente
+módulo afectado
+capabilities alcanzadas
+capa central que resuelve el contrato
+validaciones runtime realizadas
+residuos legacy eliminados
+
+Caso validado:
+
+parties dejó de usar allowed_kinds y consolidó allowed_party_roles.
+
+La documentación no debe dejar como línea futura una revisión ya implementada y validada.
+
 <<END SECTION>>
 
 <<SECTION: CHECKLIST MÍNIMO EXISTENTE>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 CHECKLIST MÍNIMO EXISTENTE
 
@@ -475,12 +535,30 @@ que vistas y copy no usen términos anteriores de forma ambigua
 que se haya probado intento manipulado cuando exista relación sensible
 que se haya ejecutado grep de residuos sobre app, resources y database
 
+Para reconversiones de constraints funcionales, verificar además:
+
+que la constraint anterior no siga operando para el módulo reconvertido
+que la nueva constraint exista en el contrato persistido
+que el resolver central la consuma
+que Security::scope(...) devuelva dataset coherente
+que create, view, update y delete respeten la constraint cuando corresponda
+que la UI de permisos muestre la dimensión correcta
+que los formularios operativos expresen permisos ya resueltos
+que no queden helpers legacy activos en controller
+que no queden combinaciones residuales entre módulo y constraint anterior
+
+Caso validado:
+
+parties debe usar allowed_party_roles.
+
+parties no debe usar allowed_kinds.
+
 Este bloque resume mínimos técnicos, pero no reemplaza el checklist completo.
 
 <<END SECTION>>
 
 <<SECTION: CRITERIO FINAL DE APROBACIÓN>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 CRITERIO FINAL DE APROBACIÓN
 
@@ -523,6 +601,22 @@ Caso vigente de referencia:
 parties.kind debe quedar limitado a tipo de contacto.
 
 party_roles.role debe expresar relación con la empresa.
+
+Criterio adicional para reconversión de constraints funcionales:
+
+una reconversión de permisos no se considera cerrada si la constraint anterior sigue operando como fallback legacy.
+
+Debe validarse que la nueva constraint gobierne el contrato efectivo completo.
+
+Caso validado:
+
+parties consolidó allowed_party_roles como constraint funcional.
+
+allowed_party_roles se evalúa contra party_roles.role.
+
+allowed_kinds no aplica a parties.
+
+El cierre incluyó validación de Security::scope(...), create, view, update, delete, UI de permisos, requests, controller, migrate:fresh --seed, Tinker, navegador y grep de residuos legacy.
 
 <<END SECTION>>
 

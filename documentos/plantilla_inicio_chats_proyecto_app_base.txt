@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -75,7 +75,7 @@ return_tab se usa como contexto interno del host para preservar el panel activo 
 
 trail continúa representando contexto externo entre recursos.
 
-Parties fue reconvertido conceptualmente.
+Parties fue reconvertido conceptualmente y en seguridad.
 
 Lectura vigente:
 
@@ -95,11 +95,25 @@ supplier
 employee
 other
 
+Seguridad vigente de parties:
+
+parties usa allowed_party_roles como constraint funcional.
+
+allowed_party_roles se evalúa contra party_roles.role.
+
+orders conserva allowed_kinds.
+
+allowed_kinds no aplica a parties.
+
 Reglas de continuidad para parties:
 
 no usar customer, supplier ni employee como parties.kind
 
 no reintroducir KIND_CUSTOMER, KIND_SUPPLIER ni KIND_EMPLOYEE como valores de kind
+
+no usar allowed_kinds como permiso o constraint funcional de parties
+
+no usar helpers legacy basados en kind como permiso de parties
 
 no usar rol en UI de parties si puede confundirse con roles de permisos o memberships
 
@@ -114,6 +128,10 @@ colaborador con membership activa → ficha bloqueada parcialmente
 
 colaborador manual sin user → contacto común con relación employee, solo gestionable por usuarios autorizados
 
+La autorización sensible de employee está centralizada en:
+
+app/Support/Parties/PartyEmployeeContactAuthorization.php
+
 El formulario progresivo de parties ya está implementado y funcionando.
 
 No debe revertirse a formulario plano sin justificación basada en código real y necesidad validada.
@@ -121,7 +139,7 @@ No debe revertirse a formulario plano sin justificación basada en código real 
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS DEL CHAT>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 REGLAS OPERATIVAS DEL CHAT
 
@@ -180,6 +198,10 @@ parties.kind = person/company
 
 party_roles.role = customer/supplier/employee/other
 
+allowed_party_roles = constraint funcional de parties sobre party_roles.role
+
+allowed_kinds no aplica a parties
+
 Si la tarea involucra employee, membership o ficha ampliada, distinguir siempre:
 
 employee con membership activa
@@ -187,10 +209,18 @@ employee manual sin user del sistema
 
 No mezclar esa distinción con roles de permisos.
 
+Si la tarea involucra employee, consumir o preservar la autorización sensible desde:
+
+PartyEmployeeContactAuthorization
+
+No duplicar esa regla en controller, requests o vistas.
+
+La UI de parties expresa permisos resueltos, pero no autoriza.
+
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DE ESTE CHAT>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 OBJETIVO DE ESTE CHAT
 
@@ -210,19 +240,38 @@ mejoras móviles futuras en attachments para captura rápida de evidencias
 
 auditoría de nuevas mejoras sobre tabs host únicamente si existe evidencia real de necesidad
 
-seguimiento del frente parties posterior a la reconversión conceptual
+análisis de parties.show y sus embebidos según party_roles.role
 
-Pendientes específicos vigentes de parties:
+Estado reciente consolidado de parties:
 
-extraer canManageEmployeeContacts
+seguridad de parties reconvertida
 
-validar admin runtime si se crea o existe dataset activo
+parties usa allowed_party_roles
 
-validar visualmente formulario de parties con usuario no owner
+orders conserva allowed_kinds
 
-validar visualmente party con membership activa
+allowed_kinds no aplica a parties
 
-revisar documentación restante del frente parties si corresponde
+PartyEmployeeContactAuthorization centraliza autorización sensible de employee
+
+party vinculada a membership activa queda protegida parcialmente:
+
+kind person
+employee obligatorio
+email protegido respecto de edición libre desde parties
+
+Próximo frente sugerido de parties:
+
+analizar parties.show y sus embebidos según party_roles.role.
+
+Criterios para ese análisis:
+
+no decidir embebidos por parties.kind
+no inventar relaciones
+no agregar embebidos manuales
+consumir surfaces oficiales
+detectar brechas si un módulo oferente no publica una surface necesaria
+distinguir lectura para customer, supplier, employee y other
 
 Toda propuesta debe nacer desde el estado actual real del proyecto y no desde supuestos genéricos.
 

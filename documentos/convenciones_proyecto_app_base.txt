@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00019
 
 CONVENCIONES GENERALES
 
@@ -39,6 +39,28 @@ coherencia entre módulos
 previsibilidad del comportamiento del sistema
 
 Cuando existan varias alternativas técnicas, se debe priorizar siempre la opción más simple y consistente con el resto del proyecto.
+
+Reglas generales:
+
+no asumir estructura, rutas, APIs, tablas ni contratos sin evidencia real
+
+trabajar sobre código vigente y documentación activa
+
+pedir solo la evidencia mínima necesaria antes de intervenir
+
+evitar soluciones híbridas que mezclen patrones nuevos con patrones legacy
+
+no cerrar una migración, refactor o reconversión con convivencia indefinida entre generaciones
+
+mantener ownership funcional claro entre módulos
+
+consumir capacidades oficiales del módulo oferente antes de crear variantes locales
+
+no trasladar complejidad contractual, técnica u operativa al usuario cuando el sistema pueda resolverla internamente
+
+la UI debe tender a acciones simples, comprensibles y de bajo roce
+
+las validaciones críticas deben sostenerse en backend, servicios, policies, Security o contratos oficiales, no en Blade ni frontend
 
 Convención documental consolidada:
 
@@ -96,142 +118,13 @@ esta convención no obliga a que todos los módulos publiquen desde el inicio to
 
 sí obliga a que, cuando las publiquen o consuman, lo hagan bajo contrato claro y sin reabrir arbitrariamente el núcleo de otros módulos
 
-cuando una capacidad reusable pertenezca contractualmente a un módulo oferente, su implementación no debe quedar en una ubicación global ambigua que borre esa pertenencia modular
+Regla de convergencia:
 
-si la capacidad además requiere arbitraje operativo complejo, el módulo oferente debe publicar la unidad completa de integración:
-
-resolución backend
-representación visual
-consumo homogéneo
-ubicación física consistente con su identidad contractual
-
-Caso vigente adicional:
-
-cuando una capacidad transversal madura y adquiere identidad propia, debe evolucionar hacia módulo explícito sin perder compatibilidad con consumidores existentes.
-
-Inventory entra en esta lectura desde su transición de capacidad operativa validada hacia módulo autónomo proyectado.
-
-Convención operativa adicional consolidada:
-
-la complejidad contractual, técnica u operativa debe resolverse prioritariamente dentro del sistema y no trasladarse al usuario como carga mental, burocracia o secuencia innecesaria de pasos manuales
-
-la UX debe tender a acciones simples, comprensibles y de bajo roce aun cuando el backend deba ejecutar consecuencias múltiples, validaciones, trazabilidad o documentos derivados
-
-Convención adicional de ownership funcional:
-
-cuando un frente operativo publique una surface oficial reutilizable, los módulos consumidores deben adelgazarse progresivamente y abandonar variantes locales equivalentes
-
-no corresponde sostener formularios, tablas, historiales o arbitrajes paralelos como resolución principal si ya existe una capacidad oficial del módulo oferente
-
-Convención adicional de semántica funcional:
-
-no toda semántica numérica o direccional puede reutilizarse entre dominios distintos por similitud aparente
-
-cuando un flujo combine stock, ejecución operativa, reversión o pendiente, cada lectura debe resolverse con la semántica propia del dominio correspondiente
-
-no debe asumirse equivalencia automática entre signo de stock y avance operativo de línea
-
-Convención adicional de eventos deduplicados:
-
-cuando el sistema reutilice un registro existente para deduplicar alertas, tareas o eventos repetidos, el nuevo hecho no debe quedar invisible
-
-la reutilización de persistencia puede ser válida
-
-la representación visible del evento debe actualizarse para reflejar la ocurrencia más reciente relevante
-
-Convención adicional de configuración visible para owner:
-
-si un módulo depende de habilitación, permisos o configuración operativa por tenant, el sistema debe ofrecer una vía visible, real y consistente para que owner pueda administrarlo
-
-esa vía no exige necesariamente una pantalla propia aislada por módulo
-
-sí exige que la capacidad sea administrable dentro de la experiencia real del owner sin depender de enlaces forzados, supuestos ocultos o intervención técnica externa
-
-Convención adicional de visibilidad modular:
-
-navbar, dashboard y accesos rápidos no deben forzar la aparición de módulos por existencia técnica
-
-la visibilidad correcta debe resultar de:
-
-módulo habilitado
-permiso efectivo
-estado real de configuración cuando corresponda
-
-dashboard no reemplaza las surfaces oficiales de un módulo
-
-puede actuar como acceso o resumen, pero no como sustituto de la navegación estructural ni de la administración real del frente
-
-Convención adicional de host visual modular:
-
-cuando una pantalla anfitriona consuma capacidades publicadas por otros módulos, debe mantener separadas:
-
-su identidad nuclear propia
-las capacidades embebidas invitadas
-los contratos de los módulos oferentes consumidos
-
-el host puede componer la experiencia, pero no apropiarse de la lógica operativa ni recomponer localmente una surface ya publicada por otro módulo
-
-Convención adicional de host show estructurado:
-
-las show pages surface-driven deben leerse como hosts con zonas explícitas de montaje y no como contenedores planos definidos solo por type.
-
-La gramática doctrinal vigente distingue al menos:
-
-header_actions
-summary_items
-detail_items
-zona tab coordinada
-
-Cuando el host trabaja con slots, el contrato publicado por la offer debe declararlos de forma explícita.
-
-No debe suponerse inferencia automática del lugar de montaje.
-
-Convención adicional de tabs principales en show pages:
-
-cuando una show page utilice tabs principales del host, debe diferenciarse entre:
-
-tabs host
-tabs internas de embebidos
-
-Las tabs host organizan el contexto principal del recurso actual.
-
-Las tabs internas de embebidos segmentan contenido invitado dentro de una capacidad publicada o consumida.
-
-Solo las tabs host deben participar del mecanismo general de return_tab.
-
-Convención adicional de referencia evolutiva:
-
-si dos hosts equivalentes muestran distinta madurez contractual, no debe degradarse el más avanzado para alinearlo al más viejo.
+si dos módulos o hosts equivalentes muestran distinta madurez contractual, no debe degradarse el más avanzado para alinearlo al más viejo.
 
 La convergencia correcta del ecosistema debe tender hacia el patrón más maduro ya validado.
 
-Caso consolidado actual:
-
-appointments.show expresa una estructura host más avanzada que orders.show para show pages surface-driven.
-
-Convención adicional de raíces internas del tenant:
-
-cuando varios frentes necesiten usuarios internos activos de la empresa, no debe abrirse por inercia un módulo users ni una ability inexistente para resolverlo.
-
-La salida correcta puede ser una pieza reusable del plano tenant con responsabilidad explícita de directorio interno.
-
-Convención adicional de migración arquitectónica:
-
-si una familia reusable ya evolucionó hacia una nueva generación aprobada, no debe cerrarse el trabajo con soluciones híbridas mezclando generación nueva y vieja.
-
-La migración válida puede ser gradual por módulo, pero cada módulo debe cerrar coherencia interna completa.
-
-Convención adicional de lifecycle compartido:
-
-cuando módulos equivalentes operen con cabecera y detalle, debe priorizarse una base común de estados persistidos para la cabecera si la semántica real coincide.
-
-El sistema debe preferir transiciones automáticas por reglas de negocio antes que selects manuales de estado cuando el cambio sea objetivamente deducible.
-
-Caso vigente:
-
-la primera línea creada sobre una cabecera en draft promueve automáticamente a pending_approval.
-
-Convención adicional de modelado de clasificaciones:
+Regla de modelado:
 
 una entidad no debe comprimir en un único campo conceptos que pertenecen a dimensiones distintas.
 
@@ -253,6 +146,20 @@ La lectura visible correcta debe priorizar:
 
 Tipo de contacto
 Relación con la empresa
+
+Regla de constraints funcionales:
+
+las constraints funcionales deben operar sobre la dimensión real del dominio del módulo.
+
+No deben sostenerse por compatibilidad si la dimensión conceptual fue reconvertida.
+
+Caso vigente:
+
+orders conserva allowed_kinds porque kind representa una segmentación operativa válida del módulo.
+
+parties no debe usar allowed_kinds porque parties.kind representa únicamente tipo de contacto.
+
+parties debe usar allowed_party_roles porque la relación con la empresa vive en party_roles.role.
 
 <<END SECTION>>
 
@@ -504,7 +411,7 @@ No debe utilizarse desactivación global de users para resolver bajas, bloqueos 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ACCESO POR MÓDULO Y ROLES>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00011
 
 CONVENCIONES DE ACCESO POR MÓDULO Y ROLES
 
@@ -546,6 +453,14 @@ cuando el contrato persistido incluya constraints funcionales reales, esas const
 
 En orders, constraints.allowed_kinds constituye segmentación efectiva del contrato y no metadata decorativa.
 
+En parties, constraints.allowed_party_roles constituye segmentación efectiva del contrato y no metadata decorativa.
+
+Regla:
+
+allowed_kinds no debe utilizarse para parties.
+
+allowed_party_roles debe utilizarse para parties y evaluarse contra party_roles.role.
+
 Regla adicional consolidada:
 
 cuando una regla de estado o trazabilidad define si una acción principal existe realmente, esa regla debe reflejarse también en la autorización efectiva central.
@@ -585,6 +500,10 @@ las relaciones sensibles del contacto no deben quedar protegidas únicamente por
 Si una relación como employee se oculta o bloquea visualmente, el backend debe impedir igualmente su asignación manipulada por usuarios no autorizados.
 
 La relación employee pertenece a party_roles y no debe confundirse con roles de permisos.
+
+La autorización sensible de employee debe centralizarse en una pieza reusable del dominio parties.
+
+Esa pieza debe evitar duplicación de la regla entre controller y requests.
 
 <<END SECTION>>
 
@@ -925,7 +844,7 @@ ningún contrato modular es válido si contradice el contrato de seguridad del m
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CLASIFICACIÓN MODULAR>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 CONVENCIONES DE CLASIFICACIÓN MODULAR
 
@@ -962,6 +881,14 @@ Caso vigente:
 parties.kind define tipo de contacto.
 
 party_roles define relación del contacto con la empresa.
+
+La autorización funcional de parties debe apoyarse en la dimensión relacional correcta.
+
+Regla:
+
+parties.kind no debe usarse para segmentar permisos operativos de parties.
+
+party_roles.role sí puede usarse como dimensión funcional de autorización mediante allowed_party_roles.
 
 MÓDULO TRANSVERSAL
 
@@ -1335,6 +1262,8 @@ a futuro el tenant podrá ajustar capacidades dentro de la arquitectura vigente,
 <<END SECTION>>
 
 <<SECTION: EVOLUCIÓN PREVISTA DE PERMISOS>>
+SECTION_VERSION: 00002
+
 EVOLUCIÓN PREVISTA DE PERMISOS
 
 La implementación de permisos del sistema debe apoyarse en una capa centralizada compuesta por resolvers y catálogos del dominio.
@@ -1352,6 +1281,16 @@ los resolvers no definen el contrato de permisos
 los resolvers deben resolver y consumir el contrato persistido, incluyendo scopes, constraints y visibilidad de dataset según lo definido en base de datos
 
 la evolución del sistema de permisos debe respetar la arquitectura vigente sin introducir variantes incompatibles
+
+Las constraints funcionales nuevas o reconvertidas deben incorporarse al contrato persistido y a la resolución central sin mantener convivencias legacy innecesarias.
+
+Caso vigente:
+
+parties reconvirtió su segmentación funcional desde allowed_kinds hacia allowed_party_roles.
+
+Regla:
+
+una vez cerrada la reconversión, no debe reintroducirse allowed_kinds como compatibilidad para parties.
 
 La doctrina completa de permisos y su modelo operativo se define en:
 

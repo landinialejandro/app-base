@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -98,6 +98,26 @@ si la membership vinculada está activa, la party funciona como ficha ampliada t
 Esa lectura no altera la relación principal:
 
 users → memberships → tenants
+
+Cuando una membership activa está vinculada a party, la ficha ampliada queda condicionada por esa relación activa.
+
+Lectura validada:
+
+party.kind = person
+party_roles contiene employee
+party.email se mantiene coherente con el usuario vinculado cuando corresponda
+
+Aclaración operativa de parties:
+
+parties → party_roles no es solo una relación descriptiva.
+
+party_roles expresa la relación del contacto con la empresa y puede ser utilizada por el contrato de seguridad especializado de parties como dimensión efectiva de segmentación.
+
+Regla:
+
+party_roles no se convierte por eso en módulo autónomo ni en navegación propia.
+
+Sigue siendo entidad hija o complementaria de parties.
 
 Regla:
 
@@ -193,7 +213,7 @@ Por esta razón, no debe tratarse como una entidad tenant-scoped pura del negoci
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 ENTIDADES DEL NEGOCIO
 
@@ -227,10 +247,18 @@ party_roles es entidad hija o complementaria de parties.
 
 Permite expresar la relación de un contacto con la empresa sin sobrecargar parties.kind.
 
+Aclaración adicional:
+
+party_roles.role tiene incidencia operativa dentro del contrato de parties.
+
+Puede utilizarse para segmentar visibilidad y acciones de parties mediante allowed_party_roles.
+
+Esto no cambia su naturaleza de entidad hija o complementaria de parties.
+
 <<END SECTION>>
 
 <<SECTION: ENTIDAD BASE DEL NEGOCIO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ENTIDAD BASE DEL NEGOCIO
 
@@ -276,10 +304,25 @@ La relación del contacto con la empresa no debe comprimirse en parties.kind.
 
 Debe expresarse mediante party_roles.
 
+Aclaración operativa vigente:
+
+party_roles.role expresa la relación con la empresa.
+
+Valores vigentes:
+
+customer
+supplier
+employee
+other
+
+Regla:
+
+la segmentación funcional de seguridad de parties debe apoyarse en party_roles.role mediante allowed_party_roles y no en parties.kind.
+
 <<END SECTION>>
 
 <<SECTION: MODELO DE ACCESO Y PERTENENCIA>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 MODELO DE ACCESO Y PERTENENCIA
 
@@ -337,6 +380,12 @@ esa ficha puede quedar parcialmente protegida para mantener coherencia con la id
 
 si la membership deja de estar activa o se desvincula, la party deja de estar bloqueada por esa relación activa y vuelve a leerse como contacto común según su contrato vigente
 
+Condiciones estructurales validadas para party vinculada a membership activa:
+
+party.kind = person
+party_roles contiene employee
+party.email queda protegido respecto de edición libre desde parties cuando corresponde al usuario vinculado
+
 Regla:
 
 el modelo de acceso y pertenencia no debe mezclarse con el modelo de entidades del negocio
@@ -346,7 +395,7 @@ cada plano conserva su responsabilidad
 <<END SECTION>>
 
 <<SECTION: ROLES Y AUTORIZACIÓN>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ROLES Y AUTORIZACIÓN
 
@@ -368,6 +417,16 @@ el owner puede no tener roles explícitos en la relación many-to-many
 el rol owner se resuelve implícitamente mediante lógica del resolver
 
 los scopes y constraints forman parte activa del contrato persistido
+
+Aclaración vigente para parties:
+
+allowed_party_roles es la constraint funcional vigente para segmentar permisos sobre parties.
+
+Se evalúa contra party_roles.role.
+
+Regla:
+
+allowed_kinds no aplica a parties.
 
 <<END SECTION>>
 
@@ -464,7 +523,7 @@ también debe leerse como host show capaz de consumir relaciones compactas publi
 <<END SECTION>>
 
 <<SECTION: PARTIES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 PARTIES
 
@@ -517,6 +576,16 @@ Regla:
 employee no es tipo de contacto ni naturaleza de party.
 
 Employee es una relación operativa dentro de party_roles.
+
+Aclaración operativa:
+
+party_roles.role también es la dimensión efectiva utilizada por el contrato de seguridad de parties para segmentar visibilidad y acciones mediante allowed_party_roles.
+
+Regla:
+
+parties.kind no debe utilizarse como dimensión funcional de permisos de parties.
+
+allowed_kinds no aplica a parties.
 
 Relación consolidada:
 

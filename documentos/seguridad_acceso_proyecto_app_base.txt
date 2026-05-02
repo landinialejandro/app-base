@@ -244,7 +244,7 @@ No reemplazan la singularidad estructural del owner.
 <<END SECTION>>
 
 <<SECTION: MODELO V2 DE PERMISOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00004
 
 MODELO V2 DE PERMISOS
 
@@ -286,6 +286,14 @@ adaptador de consumo integrado al framework
 
 UI:
 expresión del resultado autorizado ya resuelto
+
+Las constraints funcionales deben corresponder a la dimensión real del módulo.
+
+Regla:
+
+una constraint funcional no debe sostenerse por compatibilidad si ya no representa la dimensión vigente del dominio.
+
+El detalle aplicado por módulo debe resolverse en las secciones especializadas de constraints y reglas operativas.
 
 La implementación concreta puede evolucionar siempre que preserve esta doctrina.
 
@@ -331,7 +339,7 @@ no saltar el resolver central con lógica local improvisada
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00017
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -383,10 +391,18 @@ la relación employee dentro de party_roles no debe poder asignarse manualmente 
 
 La protección efectiva debe vivir en backend.
 
+Regla:
+
+la autorización sensible de employee debe resolverse desde una pieza centralizada del dominio parties.
+
+Esa pieza debe evitar duplicación de la regla entre controller y requests.
+
+El controller puede consumir esa autorización para expresar opciones disponibles en UI, pero la UI no se convierte en fuente de autorización.
+
 <<END SECTION>>
 
 <<SECTION: CONSTRAINTS FUNCIONALES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00009
 
 CONSTRAINTS FUNCIONALES
 
@@ -406,12 +422,51 @@ cuando una acción depende de una relación activa entre entidades, esa relació
 
 no debe tratarse como bloqueo visual ni validación secundaria
 
-El detalle por módulo debe resolverse en REGLAS OPERATIVAS POR MÓDULO para evitar duplicación doctrinal.
+Las constraints funcionales no deben usarse como metadata decorativa.
+
+Deben corresponder a la dimensión real del módulo.
+
+Casos vigentes:
+
+orders:
+allowed_kinds
+
+parties:
+allowed_party_roles
+
+Regla:
+
+allowed_kinds no debe operar para parties.
+
+En parties, la segmentación efectiva se resuelve mediante allowed_party_roles contra party_roles.role.
+
+Valores vigentes para party_roles.role:
+
+customer
+supplier
+employee
+other
+
+allowed_party_roles puede arbitrar, según contrato efectivo:
+
+viewAny
+view
+create
+update
+delete
+
+Regla:
+
+si un usuario no tiene una relación permitida por allowed_party_roles, no debe poder operar sobre parties fuera de esa relación cuando la capability evaluada dependa de esa constraint.
+
+Security::scope(...) debe filtrar el dataset visible de parties mediante party_roles.role cuando corresponda.
+
+El detalle aplicado por módulo debe resolverse en REGLAS OPERATIVAS POR MÓDULO para evitar duplicación doctrinal.
 
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00017
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -469,6 +524,20 @@ Estas lecturas no son equivalentes.
 La relación employee puede existir como relación operativa de contacto, pero su asignación manual debe quedar restringida.
 
 Cuando la party esté vinculada a membership activa, sus atributos críticos no deben tratarse como edición libre de contacto común.
+
+La segmentación funcional de parties se resuelve por party_roles.role mediante allowed_party_roles.
+
+Regla:
+
+parties.kind no debe utilizarse como constraint funcional de seguridad para parties.
+
+parties.kind representa únicamente tipo de contacto.
+
+party_roles.role representa relación con la empresa.
+
+Regla:
+
+el detalle de valores, constraints aplicadas y excepciones operativas debe concentrarse en CONSTRAINTS FUNCIONALES y REGLAS OPERATIVAS POR MÓDULO.
 
 <<END SECTION>>
 
@@ -547,7 +616,7 @@ la integración reusable reduce duplicación visual o contractual, pero no reduc
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00015
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -556,6 +625,10 @@ Esta sección resume únicamente restricciones operativas de alto impacto ya con
 ORDERS
 
 Los estados operativos condicionan update y delete.
+
+La constraint funcional vigente para segmentación operativa de orders es:
+
+allowed_kinds
 
 DOCUMENTS
 
@@ -583,13 +656,30 @@ supplier
 employee
 other
 
+La constraint funcional vigente para parties es:
+
+allowed_party_roles
+
+Regla:
+
+allowed_party_roles se evalúa contra party_roles.role.
+
+allowed_kinds no aplica a parties.
+
+Separación vigente:
+
+orders → allowed_kinds
+parties → allowed_party_roles
+
 Reglas operativas de seguridad:
 
 employee no debe estar disponible para asignación manual por cualquier usuario desde alta o edición común de contactos
 
 la UI puede ocultar o bloquear opciones, pero la autorización efectiva debe resolverse en backend
 
-StorePartyRequest y UpdatePartyRequest deben bloquear intentos manipulados de asignar employee cuando el usuario no esté autorizado
+alta y edición deben bloquear intentos manipulados de asignar employee cuando el usuario no esté autorizado
+
+la autorización sensible de employee debe centralizarse en una pieza reusable del dominio parties
 
 si la party tiene membership activa vinculada, quedan protegidos:
 
@@ -598,6 +688,16 @@ employee
 email respecto de edición libre desde parties
 
 si la membership deja de estar activa o se desvincula, la party deja de estar bloqueada por esa relación activa
+
+Validaciones consolidadas para parties:
+
+Security::scope(...) filtra parties por party_roles.role
+
+allowed_party_roles arbitra viewAny, view, create, update y delete según contrato efectivo
+
+un usuario limitado a customer no debe poder operar sobre una party fuera de esa relación permitida
+
+employee queda protegido por backend aunque no aparezca como opción visible en UI
 
 Regla:
 

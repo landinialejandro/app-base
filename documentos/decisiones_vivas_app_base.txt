@@ -36,7 +36,7 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 DECISIONES VIGENTES
 
@@ -64,8 +64,40 @@ return_tab complementa contexto interno del host cuando aplica.
 
 No backward patching como cierre estable de migraciones.
 
+Para parties, la constraint funcional de seguridad es allowed_party_roles.
+
+Lectura vigente:
+
+allowed_party_roles se evalúa contra party_roles.role.
+
+allowed_kinds no aplica a parties.
+
+Motivo:
+
+parties.kind representa únicamente tipo de contacto y no relación comercial ni vínculo interno.
+
+La gestión de contactos con relación employee se autoriza mediante PartyEmployeeContactAuthorization.
+
+Regla vigente:
+
+employee es relación sensible.
+
+No se protege solo en UI.
+
+Debe bloquearse en backend.
+
+No se notifica al owner por cada intento individual de manipulación.
+
+Criterio acordado:
+
+primero registrar o auditar eventos sensibles
+notificar solo ante patrón, reiteración o severidad
+
+Este criterio no implica implementación vigente de auditoría o notificación.
+
 Ante falta de datos reales:
 
 NO SE ASUME
 NO SE SUPONE
+
 <<END SECTION>>

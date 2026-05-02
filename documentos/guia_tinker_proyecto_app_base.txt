@@ -259,7 +259,7 @@ si una prueba de stock da todo en cero, primero validar que el seeder efectivo e
 <<END SECTION>>
 
 <<SECTION: CASOS PRIORITARIOS DE USO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 CASOS PRIORITARIOS DE USO
 
@@ -267,6 +267,7 @@ Usar Tinker especialmente para:
 
 permisos V2 efectivos
 constraints y allowed_kinds
+allowed_party_roles en parties
 módulos habilitados por tenant
 dataset real bajo scope
 bindings multi-tenant
@@ -294,10 +295,30 @@ Caso vigente adicional:
 
 para parties, las pruebas deben validar que StorePartyRequest y UpdatePartyRequest bloqueen la asignación manipulada de employee cuando el usuario no esté autorizado, aunque la UI oculte la opción.
 
+Caso vigente adicional:
+
+para parties, las pruebas de permisos deben validar allowed_party_roles como constraint funcional vigente.
+
+Debe verificarse:
+
+Security::scope(...) sobre parties
+create según party_roles.role
+view según party_roles.role
+update según party_roles.role
+delete según party_roles.role
+bloqueo de relaciones no permitidas
+ausencia de uso efectivo de allowed_kinds para parties
+
+Regla:
+
+en parties no probar permisos reconstruyendo lógica por parties.kind.
+
+La dimensión correcta para permisos funcionales es party_roles.role mediante allowed_party_roles.
+
 <<END SECTION>>
 
 <<SECTION: 🆕 PATRÓN GENERAL DE PRUEBA>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 PATRÓN GENERAL DE PRUEBA
 
@@ -352,10 +373,37 @@ tenant real
 request o servicio real cuando corresponda
 resultado esperado permitido o bloqueado
 mensaje o error de validación cuando aplique
+persistencia final del registro sensible
 
 Caso vigente:
 
 asignación de employee en parties mediante StorePartyRequest y UpdatePartyRequest.
+
+Validación adicional para constraints funcionales reconvertidas:
+
+cuando un módulo haya cambiado la dimensión real de autorización, la prueba debe validar que la constraint anterior ya no opere como fallback.
+
+Controlar:
+
+contrato persistido
+Security::scope(...)
+Security::inspect(...) o Security::allows(...)
+create
+view
+update
+delete
+dataset visible
+residuos legacy detectables por grep cuando corresponda
+
+Caso vigente:
+
+parties usa allowed_party_roles sobre party_roles.role.
+
+allowed_kinds no aplica a parties.
+
+Regla:
+
+si una prueba de parties usa parties.kind para simular permisos, la prueba no representa el contrato vigente.
 
 <<END SECTION>>
 

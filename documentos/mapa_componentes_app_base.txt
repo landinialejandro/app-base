@@ -303,7 +303,7 @@ No debe mezclarse ownership.
 
 
 <<SECTION: COMPONENTES DE ACCIÓN>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 COMPONENTES DE ACCIÓN
 
@@ -313,30 +313,43 @@ representar acciones disponibles para el usuario.
 
 Incluye:
 
-botones primarios  
-botones secundarios  
-acciones icon-only  
-acciones por fila  
-acciones contextuales  
+botones primarios
+botones secundarios
+acciones icon-only
+acciones por fila
+acciones contextuales
 
 Reglas:
 
-las acciones deben reflejar estado real  
-no deben mostrar acciones inválidas  
-no deben decidir permisos  
+las acciones deben reflejar estado real
+no deben mostrar acciones inválidas
+no deben decidir permisos
 
 Regla crítica:
 
-el estado de la acción debe venir resuelto desde backend o surface  
+el estado de la acción debe venir resuelto desde backend o surface
 
-el componente solo representa  
+el componente solo representa
 
 No debe haber lógica de autorización en el componente.
+
+Aclaración vigente para parties:
+
+las acciones visibles en parties deben expresar la autorización ya resuelta por el contrato efectivo.
+
+Cuando la creación o gestión dependa de allowed_party_roles, el componente o vista solo debe representar disponibilidad ya calculada.
+
+Regla:
+
+no decidir acciones de parties por allowed_kinds.
+
+No reconstruir permisos desde parties.kind.
+
 <<END SECTION>>
 
 
 <<SECTION: COMPONENTES REUTILIZABLES TRANSVERSALES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 COMPONENTES REUTILIZABLES TRANSVERSALES
 
@@ -391,11 +404,27 @@ un comportamiento frontend reusable no debe contener reglas de negocio, permisos
 
 Debe limitarse a representar o revelar secciones según estado visual y valores existentes.
 
+Aclaración vigente para parties._form:
+
+parties._form expresa estado y permisos ya resueltos por backend.
+
+Puede mostrar relaciones disponibles según allowedPartyRoles.
+
+Puede ocultar employee cuando el usuario no puede gestionarlo.
+
+Puede respetar bloqueo visual para party vinculada a membership activa.
+
+No define autorización por sí mismo.
+
+Regla:
+
+la autorización sensible de employee pertenece al backend y a la pieza reusable correspondiente, no al componente visual ni al comportamiento progresivo.
+
 <<END SECTION>>
 
 
 <<SECTION: REGLAS GENERALES DE COMPONENTES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 REGLAS GENERALES DE COMPONENTES
 
@@ -404,40 +433,26 @@ Reglas obligatorias:
 no duplicar componentes existentes
 no mezclar lógica de negocio en componentes visuales
 no decidir permisos en frontend
-no reconstruir metadata ya resuelta
-no acoplar componentes a módulos incorrectos
+no reconstruir autorización en componentes
+no trasladar ownership funcional al componente
+no convertir comportamiento visual en regla de seguridad
 
-Reglas de diseño:
+Los componentes deben representar información ya resuelta por backend, services, payloads o surfaces oficiales.
 
-priorizar simplicidad
-priorizar reutilización real
-mantener consistencia visual
-evitar sobre abstracción
+Si un componente necesita saber si una acción o relación está disponible, debe recibir esa lectura ya calculada.
 
-Regla crítica:
+Regla adicional:
 
-si un componente necesita múltiples condiciones complejas, probablemente la lógica debe resolverse antes en backend o surface
-
-y no dentro del componente
-
-Regla adicional para comportamientos JS reutilizables:
-
-si una interacción visual se reutiliza entre formularios o pantallas, puede activarse mediante atributos data-* y resolverse desde el JS global correspondiente.
-
-Regla:
-
-el comportamiento frontend solo debe resolver interacción visual.
-
-No debe decidir permisos, relaciones sensibles, reglas de negocio ni persistencia.
+la ocultación visual no reemplaza autorización backend.
 
 Caso vigente:
 
-data-action="app-progressive-form" organiza visualmente secciones progresivas de formulario.
+parties._form puede ocultar employee cuando el usuario no puede gestionarlo, pero el bloqueo real debe permanecer en StorePartyRequest, UpdatePartyRequest y PartyEmployeeContactAuthorization.
 
-Objetivo final:
+Regla:
 
-componentes simples
-ecosistema consistente
-bajo acoplamiento
-alta reutilización real
+los componentes pueden mejorar claridad, progresividad y lectura operativa.
+
+No pueden convertirse en fuente final de autorización, validación sensible o seguridad efectiva.
+
 <<END SECTION>>

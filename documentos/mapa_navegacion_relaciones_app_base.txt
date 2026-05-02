@@ -248,7 +248,7 @@ Debe existir acción o confirmación explícita.
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -289,6 +289,28 @@ La lectura de parties.show debe respetar la nueva semántica de parties:
 
 tipo de contacto
 relación con la empresa
+
+La definición de qué relaciones embebidas resultan coherentes en parties.show debe analizarse desde party_roles.role y no desde parties.kind.
+
+Criterio vigente para ese análisis:
+
+customer
+supplier
+employee
+other
+
+Reglas para parties.show:
+
+no decidir embebidos por parties.kind
+no inventar relaciones
+no agregar embebidos manuales
+consumir surfaces oficiales de los módulos oferentes
+detectar brechas cuando una relación necesaria no tenga surface oficial publicada
+mantener el ownership funcional en el módulo oferente
+
+No se abre navegación nueva para party_roles.
+
+party_roles sigue siendo entidad hija o complementaria de parties y no módulo navegable propio.
 
 Orden visual recomendado para tablas anfitrionas:
 
@@ -392,7 +414,7 @@ La navegación no debe convertir automáticamente todo usuario interno en party.
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN GENERAL DE MÓDULOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CLASIFICACIÓN GENERAL DE MÓDULOS
 
@@ -432,6 +454,8 @@ parties es módulo estructural y base del dominio.
 party_roles no constituye navegación principal propia.
 
 Su función es expresar relaciones del contacto con la empresa dentro del módulo parties.
+
+La visibilidad efectiva de parties puede variar según allowed_party_roles, pero esa variación no crea navegación independiente para party_roles.
 
 <<END SECTION>>
 

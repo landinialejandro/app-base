@@ -26,7 +26,7 @@ lección aplicable
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 LECCIONES VIGENTES
 
@@ -47,4 +47,30 @@ No toda necesidad repetida exige módulo nuevo.
 Cambiar estados operativos requiere alinear Security, Gate, UI y ciclo de vida real.
 
 Si una decisión importante no queda documentada, reaparece como discusión futura.
+
+Si una entidad separa tipo base y relación operativa, la seguridad no debe seguir usando la dimensión anterior por compatibilidad.
+
+Caso vigente:
+
+parties.kind no debe arbitrar permisos.
+
+party_roles.role debe arbitrar permisos mediante allowed_party_roles.
+
+Si una opción sensible no aparece en UI, eso no alcanza como protección.
+
+Caso vigente:
+
+aunque el formulario de una party vinculada a membership activa no exponga de forma simple campos manipulables, debe probarse intento manipulado y bloqueo backend.
+
+Las validaciones sensibles deben verificarse por persistencia final, no solo por mensaje visual.
+
+Caso vigente:
+
+tras intentar manipular kind, email y roles de una party vinculada a membership activa, debe verificarse que el registro siga intacto.
+
+Lectura esperada:
+
+kind: person
+roles: employee
+
 <<END SECTION>>

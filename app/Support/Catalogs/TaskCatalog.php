@@ -72,4 +72,19 @@ class TaskCatalog extends BaseCatalog
 
         return static::$priorityBadges[$value] ?? $default;
     }
+
+
+    public static function activityTrackedFields(): array
+    {
+        return [
+            'project_id',
+            'party_id',
+            'assigned_user_id',
+            'name',
+            'description',
+            'status',
+            'priority',
+            'due_date',
+        ];
+    }
 }

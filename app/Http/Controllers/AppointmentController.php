@@ -404,20 +404,26 @@ class AppointmentController extends Controller
         ));
     }
 
-    public function store(AppointmentRequest $request)
-    {
-        $this->authorize('create', Appointment::class);
+public function store(AppointmentRequest $request)
+{
+    $this->authorize('create', Appointment::class);
 
-        $data = $request->validated();
-        $data['created_by'] = auth()->id();
+    $data = $request->validated();
+    $data['created_by'] = auth()->id();
 
-        $appointment = Appointment::create($data);
-        $navigationTrail = AppointmentNavigationTrail::show($request, $appointment);
+    $appointment = Appointment::create($data);
 
-        return redirect()
-            ->route('appointments.show', ['appointment' => $appointment] + NavigationTrail::toQuery($navigationTrail))
-            ->with('success', 'Turno creado correctamente.');
-    }
+    event(new \App\Events\OperationalRecordCreated(
+        record: $appointment,
+        actorUserId: auth()->id(),
+    ));
+
+    $navigationTrail = AppointmentNavigationTrail::show($request, $appointment);
+
+    return redirect()
+        ->route('appointments.show', ['appointment' => $appointment] + NavigationTrail::toQuery($navigationTrail))
+        ->with('success', 'Turno creado correctamente.');
+}
 
     public function show(Request $request, Appointment $appointment)
     {
@@ -531,32 +537,40 @@ class AppointmentController extends Controller
         ));
     }
 
-    public function update(AppointmentRequest $request, Appointment $appointment)
-    {
-        $this->authorize('update', $appointment);
+public function update(AppointmentRequest $request, Appointment $appointment)
+{
+    $this->authorize('update', $appointment);
 
-        $data = $request->validated();
+    $data = $request->validated();
 
-        $isAdminEditingForeignAppointment = $this->canManageForeignAppointment($appointment);
+    $isAdminEditingForeignAppointment = $this->canManageForeignAppointment($appointment);
 
-        if ($isAdminEditingForeignAppointment && $request->input('confirm_foreign_appointment_edit') !== '1') {
-            throw ValidationException::withMessages([
-                'confirm_foreign_appointment_edit' => 'Estás editando un turno asignado a otro colaborador. Confirmá la modificación antes de guardar.',
-            ]);
-        }
-
-        unset($data['confirm_foreign_appointment_edit']);
-
-        $data['updated_by'] = auth()->id();
-
-        $appointment->update($data);
-
-        $navigationTrail = AppointmentNavigationTrail::show($request, $appointment);
-
-        return redirect()
-            ->route('appointments.show', ['appointment' => $appointment] + NavigationTrail::toQuery($navigationTrail))
-            ->with('success', 'Turno actualizado correctamente.');
+    if ($isAdminEditingForeignAppointment && $request->input('confirm_foreign_appointment_edit') !== '1') {
+        throw ValidationException::withMessages([
+            'confirm_foreign_appointment_edit' => 'Estás editando un turno asignado a otro colaborador. Confirmá la modificación antes de guardar.',
+        ]);
     }
+
+    unset($data['confirm_foreign_appointment_edit']);
+
+    $beforeAttributes = $appointment->getAttributes();
+
+    $data['updated_by'] = auth()->id();
+
+    $appointment->update($data);
+
+    event(new \App\Events\OperationalRecordUpdated(
+        record: $appointment,
+        beforeAttributes: $beforeAttributes,
+        actorUserId: auth()->id(),
+    ));
+
+    $navigationTrail = AppointmentNavigationTrail::show($request, $appointment);
+
+    return redirect()
+        ->route('appointments.show', ['appointment' => $appointment] + NavigationTrail::toQuery($navigationTrail))
+        ->with('success', 'Turno actualizado correctamente.');
+}
 
     public function destroy(Request $request, Appointment $appointment)
     {

@@ -305,4 +305,24 @@ class DocumentCatalog extends BaseCatalog
     {
         return in_array($kind, static::kindsForGroup($group), true);
     }
+
+
+    public static function activityTrackedFields(): array
+    {
+        return [
+            'party_id',
+            'order_id',
+            'asset_id',
+            'group',
+            'kind',
+            'status',
+            'issued_at',
+            'due_at',
+            'currency_code',
+            'subtotal',
+            'tax_total',
+            'total',
+            'notes',
+        ];
+    }
 }

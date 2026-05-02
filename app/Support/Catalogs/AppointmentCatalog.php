@@ -216,4 +216,25 @@ class AppointmentCatalog extends BaseCatalog
             },
         };
     }
+
+
+    public static function activityTrackedFields(): array
+    {
+        return [
+            'party_id',
+            'order_id',
+            'asset_id',
+            'assigned_user_id',
+            'kind',
+            'status',
+            'work_mode',
+            'title',
+            'notes',
+            'workstation_name',
+            'scheduled_date',
+            'starts_at',
+            'ends_at',
+            'is_all_day',
+        ];
+    }
 }

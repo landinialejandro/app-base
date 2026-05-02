@@ -190,4 +190,19 @@ class OrderCatalog extends BaseCatalog
             default => false,
         };
     }
+
+
+    public static function activityTrackedFields(): array
+    {
+        return [
+            'party_id',
+            'asset_id',
+            'task_id',
+            'group',
+            'kind',
+            'status',
+            'ordered_at',
+            'notes',
+        ];
+    }
 }

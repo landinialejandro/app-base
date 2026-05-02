@@ -35,25 +35,25 @@ class AppServiceProvider extends ServiceProvider
     /**
      * Bootstrap any application services.
      */
-    public function boot(): void
-    {
-        Carbon::setLocale(App::getLocale());
+public function boot(): void
+{
+    Carbon::setLocale(App::getLocale());
 
-        RateLimiter::for('login', function (Request $request) {
-            $email = (string) $request->input('email');
+    RateLimiter::for('login', function (Request $request) {
+        $email = (string) $request->input('email');
 
-            return Limit::perMinute(5)->by($email.$request->ip());
-        });
+        return Limit::perMinute(5)->by($email.$request->ip());
+    });
 
-        RateLimiter::for('two-factor', function (Request $request) {
-            return Limit::perMinute(5)->by($request->session()->get('login.id'));
-        });
+    RateLimiter::for('two-factor', function (Request $request) {
+        return Limit::perMinute(5)->by($request->session()->get('login.id'));
+    });
 
-        Paginator::defaultView('vendor.pagination.default');
-        Paginator::defaultSimpleView('vendor.pagination.simple-default');
+    Paginator::defaultView('vendor.pagination.default');
+    Paginator::defaultSimpleView('vendor.pagination.simple-default');
 
-        View::share('appFooterVersionLabel', $this->resolveAppFooterVersionLabel());
-    }
+    View::share('appFooterVersionLabel', $this->resolveAppFooterVersionLabel());
+}
 
     protected function resolveAppFooterVersionLabel(): string
     {

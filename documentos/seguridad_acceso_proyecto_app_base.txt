@@ -53,7 +53,7 @@ los detalles técnicos pueden evolucionar sin alterar estos principios rectores
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -63,7 +63,7 @@ AUTORIDAD CENTRAL
 
 La decisión final de acceso pertenece a la capa central de seguridad vigente.
 
-Ninguna vista, componente, integración reusable o consumidor externo reemplaza esa decisión.
+Ninguna vista, componente, integración reusable, consumidor externo o registro de actividad reemplaza esa decisión.
 
 TENANT OBLIGATORIO
 
@@ -73,7 +73,7 @@ No debe operarse sobre registros ajenos al tenant activo.
 
 SEPARACIÓN DE PLANOS
 
-Dataset disponible, visibilidad UI y permiso efectivo son planos distintos.
+Dataset disponible, visibilidad UI, permiso efectivo y trazabilidad son planos distintos.
 
 Uno no implica automáticamente al otro.
 
@@ -87,6 +87,10 @@ TRAZABILIDAD
 
 Toda acción sensible debe poder auditarse según las capacidades vigentes del sistema.
 
+La trazabilidad no autoriza operaciones.
+
+La trazabilidad registra actividad cuando corresponde, pero no reemplaza Security, policies, validaciones ni contratos modulares.
+
 Reglas síntesis:
 
 la visibilidad en UI no constituye autorización
@@ -94,6 +98,8 @@ la visibilidad en UI no constituye autorización
 la autorización efectiva debe resolverse siempre en backend
 
 los recursos hijos pueden delegar seguridad sin perder validaciones operativas específicas
+
+el registro de actividad operativa no modifica el permiso efectivo de la acción original
 
 <<END SECTION>>
 
@@ -174,7 +180,7 @@ Una membership histórica, inactiva o desvinculada no debe producir por sí mism
 <<END SECTION>>
 
 <<SECTION: MULTI-TENANCY Y AISLAMIENTO>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 MULTI-TENANCY Y AISLAMIENTO
 
@@ -205,10 +211,21 @@ líneas operativas
 movimientos
 operaciones internas
 trazabilidad derivada
+registros de actividad operativa
 
 Regla:
 
 una acción ejecutada desde UI autorizada no reemplaza la validación multi-tenant completa en backend.
+
+Regla adicional:
+
+si una capacidad transversal registra actividad operativa, debe persistir el tenant correspondiente de forma compatible con el identificador real de tenants.
+
+Caso vigente:
+
+OperationalActivity debe conservar tenant_id como UUID string compatible con tenants.id.
+
+No debe tratarse tenant_id como entero.
 
 <<END SECTION>>
 
@@ -339,7 +356,7 @@ no saltar el resolver central con lógica local improvisada
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -378,6 +395,34 @@ No deben crear rutas paralelas de decisión ni evitar la evaluación del contrat
 Regla:
 
 la validación efectiva siempre debe contemplar tenant, recurso, relaciones y estado operativo cuando corresponda.
+
+Regla adicional para actividad operativa:
+
+el registro de actividad debe ocurrir después de que el módulo dueño haya autorizado, validado y ejecutado su operación.
+
+Secuencia correcta:
+
+el módulo dueño autoriza
+el módulo dueño valida
+el módulo dueño ejecuta la operación
+el módulo emite un evento operativo liviano
+la capacidad transversal registra si corresponde
+
+Reglas:
+
+OperationalActivity no autoriza operaciones
+
+OperationalActivity no reemplaza Security
+
+OperationalActivity no reemplaza policies
+
+OperationalActivity no reemplaza validaciones del módulo dueño
+
+OperationalActivity no debe bloquear el flujo principal si falla el registro del log
+
+La escritura del log operativo debe ser system-owned.
+
+No debe existir create manual desde UI, edit, update, delete, destroy ni carga manual por formularios para OperationalActivity.
 
 Regla adicional para parties:
 
@@ -466,7 +511,7 @@ El detalle aplicado por módulo debe resolverse en REGLAS OPERATIVAS POR MÓDULO
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -510,6 +555,20 @@ Regla:
 el contrato modular define fronteras y responsabilidades.
 
 No debe transformarse en detalle funcional del módulo.
+
+Aclaración para actividad operativa:
+
+la emisión de eventos operativos livianos no altera el contrato de seguridad del módulo dueño.
+
+El módulo dueño conserva la autorización, validación y ejecución de su propia operación.
+
+OperationalActivity actúa como capacidad transversal de trazabilidad.
+
+No debe usarse como canal paralelo de autorización, validación o mutación.
+
+La lectura futura del log operativo requiere definición explícita de autorización.
+
+No debe asumirse acceso de lectura solo por existir la tabla o por tratarse de trazabilidad interna.
 
 Aclaración para parties:
 
@@ -616,7 +675,7 @@ la integración reusable reduce duplicación visual o contractual, pero no reduc
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -698,6 +757,50 @@ allowed_party_roles arbitra viewAny, view, create, update y delete según contra
 un usuario limitado a customer no debe poder operar sobre una party fuera de esa relación permitida
 
 employee queda protegido por backend aunque no aparezca como opción visible en UI
+
+OPERATIONAL ACTIVITY
+
+OperationalActivity registra actividad operativa real dentro del tenant activo.
+
+Reglas:
+
+no autoriza operaciones
+
+no reemplaza Security
+
+no reemplaza policies
+
+no decide permisos
+
+no valida la operación original
+
+no modifica el contrato de seguridad de los módulos
+
+no tiene create manual desde UI
+
+no tiene edit
+
+no tiene update
+
+no tiene delete
+
+no tiene destroy
+
+no admite carga manual por formularios
+
+Su escritura es system-owned y ocurre como consecuencia de eventos operativos livianos emitidos por módulos dueños después de completar acciones propias autorizadas.
+
+Regla de lectura pendiente:
+
+la autorización para consultar actividad operativa todavía debe definirse explícitamente.
+
+No se debe asumir acceso de lectura a:
+
+vista general del perfil de empresa
+
+actividad por colaborador desde parties.show
+
+por el solo hecho de existir OperationalActivity persistido.
 
 Regla:
 

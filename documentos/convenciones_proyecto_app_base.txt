@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00020
 
 CONVENCIONES GENERALES
 
@@ -96,11 +96,11 @@ contenidos UX embebidos
 
 Convención operativa adicional:
 
-las pruebas manuales con Tinker forman parte del proceso real de validación técnica del proyecto
+Project Lab forma parte del proceso real de validación técnica, auditoría, actualización de código y actualización documental del proyecto.
 
-cuando el caso toque permisos, constraints, multi-tenancy o runtime real, debe utilizarse la guía operativa vigente y no una prueba abstracta improvisada
+Cuando el caso toque permisos, constraints, multi-tenancy, runtime real, snippets, auditorías, actualización de código o actualización documental, debe utilizarse la guía operativa vigente y no una prueba abstracta improvisada.
 
-<DOC_REF slug="guia_tinker_proyecto_app_base">Guía operativa de pruebas con Tinker</DOC_REF>
+<DOC_REF slug="guia_project_lab_proyecto_app_base">Guía operativa de Project Lab</DOC_REF>
 
 Convención modular consolidada:
 
@@ -164,7 +164,7 @@ parties debe usar allowed_party_roles porque la relación con la empresa vive en
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA BASE DEL PROYECTO>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 ESTRUCTURA BASE DEL PROYECTO
 
@@ -185,6 +185,12 @@ modelos del sistema y del negocio
 
 app/Models/Concerns
 traits estructurales del dominio
+
+app/Events
+eventos del sistema y eventos operativos livianos cuando correspondan
+
+app/Listeners
+listeners del sistema, incluyendo listeners queued cuando correspondan
 
 app/Http/Controllers
 controladores del flujo web
@@ -221,6 +227,9 @@ servicios del flujo de orders
 
 app/Support/Parties
 servicios del flujo de parties
+
+app/Support/OperationalActivity
+servicios de registro, sanidad y persistencia de actividad operativa transversal cuando existan en código vigente
 
 app/Support/Tenants
 contexto tenant y piezas reusables internas
@@ -307,6 +316,18 @@ Regla:
 la base documental se compone de documentos identificados por DOC_SLUG
 
 no confundir con carpetas auxiliares
+
+TOOLS
+
+tools/ concentra herramientas locales de soporte técnico del proyecto.
+
+Ubicación vigente relevante:
+
+tools/project-lab
+
+Project Lab es herramienta local de depuración, auditoría y mantenimiento.
+
+No forma parte del sistema SaaS productivo.
 
 REGLA FINAL
 
@@ -508,7 +529,7 @@ Esa pieza debe evitar duplicación de la regla entre controller y requests.
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00022
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -555,6 +576,7 @@ return_tab cuando el host lo entregue como contexto interno de navegación
 datos mínimos de precompletado
 origen de creación contextual
 disparadores internos del sistema
+eventos operativos livianos emitidos después de acciones propias autorizadas
 
 Reglas:
 
@@ -579,6 +601,7 @@ acción derivada
 compatibilidad con trail contextual
 compatibilidad con return_tab cuando la acción deba preservar el panel host desde el cual nació
 payload arbitrado para integraciones complejas
+evento operativo liviano para trazabilidad transversal
 
 Regla:
 
@@ -831,6 +854,14 @@ Una operation puede reunir uno o múltiples movements.
 
 No deben tratarse como equivalentes ni sustituirse conceptualmente.
 
+Regla adicional para eventos operativos livianos:
+
+cuando un módulo emite eventos para trazabilidad transversal, esos eventos no deben trasladar autorización, validación ni lógica de dominio hacia el prestador transversal.
+
+El módulo dueño debe completar primero su operación propia.
+
+La capacidad transversal puede registrar, normalizar o descartar el evento según sanidad operativa.
+
 CONTRATO DE SEGURIDAD
 
 El contrato de seguridad del módulo no se define en esta sección sino en:
@@ -844,7 +875,7 @@ ningún contrato modular es válido si contradice el contrato de seguridad del m
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CLASIFICACIÓN MODULAR>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 CONVENCIONES DE CLASIFICACIÓN MODULAR
 
@@ -861,6 +892,7 @@ módulo transversal
 módulo autónomo
 módulo agrupador
 módulo derivado
+capacidad transversal de soporte
 
 MÓDULO BASE DEL DOMINIO
 
@@ -930,6 +962,24 @@ Caso doctrinal relevante:
 
 documents respecto de orders
 
+CAPACIDAD TRANSVERSAL DE SOPORTE
+
+Es una pieza que registra, acompaña o sostiene funcionamiento común del ecosistema sin constituir necesariamente módulo navegable principal ni CRUD ordinario.
+
+Caso vigente:
+
+OperationalActivity
+
+Reglas:
+
+puede ser indispensable para trazabilidad o lectura operativa
+
+no absorbe ownership funcional de los módulos que producen la actividad
+
+no autoriza ni valida operaciones originales
+
+no debe abrir navegación principal por mera existencia técnica
+
 Reglas generales:
 
 la clasificación funcional del módulo debe ayudar a definir su contrato y su superficie de integración
@@ -961,7 +1011,7 @@ order_items continúa siendo entidad hija de orders aunque participe como anclaj
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00023
+SECTION_VERSION: 00024
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -1183,6 +1233,26 @@ Regla adicional de orden visual en tablas anfitrionas:
 cuando una fila combine acciones nativas del host y acciones invitadas desde otros módulos, primero deben renderizarse las acciones propias del host y luego las capacidades externas integradas.
 
 Esto mejora lectura de ownership y reduce ambigüedad operativa.
+
+Regla adicional para actividad operativa transversal:
+
+los módulos funcionales pueden integrarse con una capacidad transversal de actividad mediante eventos operativos livianos.
+
+Esa integración debe ocurrir después de la operación propia del módulo.
+
+Reglas:
+
+el módulo dueño conserva autorización, validación y ejecución
+
+el módulo dueño emite solo el evento operativo correspondiente
+
+la capacidad transversal resuelve sanidad, normalización, clasificación y persistencia
+
+el módulo consumidor del log futuro no debe inferir actividad desde campos actuales como created_by, updated_by o assigned_user_id si existe actividad persistida específica
+
+Regla:
+
+la trazabilidad transversal no debe invadir núcleos funcionales ni convertir al log en fuente de verdad de la operación original.
 
 <<END SECTION>>
 
@@ -2151,7 +2221,7 @@ El contexto interno del host puede preservarse con return_tab cuando exista una 
 <<END SECTION>>
 
 <<SECTION: GOBERNANZA DOCUMENTAL>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 GOBERNANZA DOCUMENTAL
 
@@ -2171,11 +2241,11 @@ checklist_modulos_nuevos_app_base
 mapa_entidades_app_base
 mapa_navegacion_relaciones_app_base
 base_visual_proyecto_app_base
-guia_tinker_proyecto_app_base
+guia_project_lab_proyecto_app_base
 todo_proyecto_app_base
 plantilla_inicio_chats_proyecto_app_base
 
-Desarrollan implementación, mapas operativos, UX, pruebas, pendientes y metodología de trabajo.
+Desarrollan implementación, mapas operativos, UX, operación técnica local, pendientes y metodología de trabajo.
 
 Memoria técnica operativa:
 

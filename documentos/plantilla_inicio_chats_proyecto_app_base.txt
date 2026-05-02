@@ -309,7 +309,7 @@ Cuando el frente lo requiera, debe inspeccionarse código real, rutas reales, ru
 <<END SECTION>>
 
 <<SECTION: HERRAMIENTAS OPERATIVAS DISPONIBLES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 HERRAMIENTAS OPERATIVAS DISPONIBLES
 
@@ -377,9 +377,11 @@ la decisión de usarlos sigue perteneciendo al proceso técnico
 
 si una tarea consiste principalmente en aplicar código ya definido sobre archivos existentes, priorizar formato compatible con Project Lab antes que edición manual fragmentada
 
-si una prueba requiere runtime real, tenant activo, Security o contexto funcional, debe respetarse la guía operativa vigente de Tinker
+si una prueba requiere runtime real, tenant activo, Security o contexto funcional, debe respetarse la guía operativa vigente de Project Lab
 
 la consola unificada de Project Lab es la salida operativa principal para compartir resultados, errores y auditorías durante el trabajo técnico
+
+<DOC_REF slug="guia_project_lab_proyecto_app_base">Guía operativa de Project Lab</DOC_REF>
 
 <<END SECTION>>
 

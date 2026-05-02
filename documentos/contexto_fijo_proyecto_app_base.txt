@@ -247,7 +247,7 @@ Es una pieza estructural del funcionamiento del sistema.
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00019
 
 CAPAS FUNCIONALES DEL SISTEMA
 
@@ -269,7 +269,11 @@ memberships resuelve pertenencia operativa.
 Una membership puede vincularse opcionalmente con una ficha ampliada tenant-scoped en parties, sin reemplazar identidad ni acceso.
 
 CAPA TRANSVERSAL
-Responsabilidades compartidas.
+Responsabilidades compartidas que sostienen funcionamiento común entre módulos.
+
+OperationalActivity pertenece a esta capa como capacidad transversal tenant-scoped de trazabilidad operativa.
+
+No debe leerse como CRUD ordinario, módulo navegable principal ni responsabilidad propia de parties, tasks, orders, documents o appointments.
 
 BASE DEL DOMINIO
 Anclajes conceptuales amplios del negocio.
@@ -286,6 +290,8 @@ tenant es contexto, no módulo funcional
 las necesidades de colaboradores internos deben resolverse primero en la capa tenant antes de crear módulos nuevos
 
 la ficha ampliada en parties no altera el plano de identidad global ni el modelo de pertenencia operativa
+
+las capacidades transversales pueden registrar, acompañar o sostener actividad operativa sin absorber ownership funcional de los módulos que producen esa actividad
 
 La separación interna de parties refuerza esta lectura por capas:
 
@@ -359,7 +365,7 @@ Su función es sostener la plataforma y su frontera de ingreso.
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00023
+SECTION_VERSION: 00024
 
 ENTIDADES DEL NEGOCIO
 
@@ -381,6 +387,7 @@ document_items
 document_sequences
 inventory_movements
 inventory_operations
+operational_activities
 attachments
 
 Estas entidades pertenecen al ecosistema operativo de empresa y no a la infraestructura global del sistema.
@@ -409,6 +416,12 @@ si el ecosistema requiere un dataset reusable de colaboradores internos activos,
 inventory_movements expresa impacto unitario real sobre stock
 
 inventory_operations agrupa contexto operativo cuando una misma acción requiere uno o múltiples movimientos
+
+operational_activities registra actividad operativa real del sistema dentro del tenant activo
+
+operational_activities no representa una entidad hija de parties, tasks, orders, documents ni appointments
+
+operational_activities no reemplaza la lógica interna, autorización ni validación de los módulos funcionales
 
 order_items y document_items conservan naturaleza de entidades hijas de sus módulos padre aunque puedan actuar como anclaje de trazabilidad o ejecución dentro de otros flujos
 
@@ -490,7 +503,7 @@ tampoco debe sobredimensionarse el dominio del negocio hasta absorber piezas cuy
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 CLASIFICACIÓN CONCEPTUAL DE MÓDULOS
 
@@ -524,6 +537,26 @@ attachments
 inventory en su rol de ejecución y trazabilidad
 documents cuando publica lectura documental reusable
 
+CAPACIDADES TRANSVERSALES DE SOPORTE
+
+Sostienen lectura, trazabilidad o funcionamiento común del ecosistema sin constituir por sí mismas navegación principal ni CRUD ordinario.
+
+Ejemplo actual:
+
+OperationalActivity
+
+OperationalActivity registra eventos operativos livianos producidos por módulos funcionales luego de acciones propias autorizadas y ejecutadas.
+
+Su función conceptual es trazabilidad operativa tenant-scoped.
+
+No autoriza.
+
+No valida la operación original.
+
+No muta el recurso original.
+
+No convierte el log en módulo funcional principal.
+
 CAPACIDADES INTERNAS
 
 Son piezas de soporte que fortalecen módulos existentes sin constituir nuevo frente autónomo.
@@ -547,7 +580,7 @@ la clasificación describe rol funcional actual y puede evolucionar con la madur
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00023
+SECTION_VERSION: 00024
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
@@ -579,6 +612,7 @@ payloads
 surfaces
 row actions
 resolvers
+eventos operativos livianos cuando corresponda
 
 Debe representar la capacidad completa del módulo oferente.
 
@@ -603,6 +637,24 @@ el host conserva superficie visual
 
 el módulo invitado conserva lógica operativa
 
+TRAZABILIDAD TRANSVERSAL
+
+Cuando un módulo funcional completa una acción propia autorizada, puede emitir un evento operativo liviano para trazabilidad.
+
+La lectura arquitectónica correcta es:
+
+módulo dueño autoriza
+módulo dueño valida
+módulo dueño ejecuta
+módulo emite evento operativo liviano
+OperationalActivity registra si corresponde
+
+OperationalActivity no reemplaza el núcleo del módulo dueño ni se convierte en intérprete principal de su dominio.
+
+La lógica de sanidad, normalización y persistencia del registro operativo pertenece a la capacidad transversal.
+
+El significado operativo primario de la acción sigue perteneciendo al módulo dueño.
+
 Aclaración consolidada:
 
 los módulos pueden publicar metadata estructural propia.
@@ -622,17 +674,11 @@ Cuando parties.show consume relaciones hacia otros módulos, debe hacerlo median
 
 Aclaración estructural vigente para parties:
 
-el núcleo de parties no debe comprimir dimensiones distintas en un único campo.
+parties.kind pertenece al núcleo estructural del contacto.
 
-La clasificación principal del contacto vive en parties.kind.
+party_roles.role expresa relación operativa con la empresa.
 
-La relación del contacto con la empresa vive en party_roles.
-
-Regla:
-
-la arquitectura modular define fronteras estructurales.
-
-No debe absorber reglas de seguridad ni detalles de implementación.
+La segmentación funcional de permisos de parties se resuelve por party_roles.role mediante allowed_party_roles y no por parties.kind.
 
 <<END SECTION>>
 

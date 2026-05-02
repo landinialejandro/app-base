@@ -52,7 +52,7 @@ documentación actualizada
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 REGLA GENERAL
 
@@ -66,6 +66,7 @@ definir contrato conceptual
 definir contrato de seguridad
 definir relaciones reales necesarias
 definir superficie de integración
+definir si participa en trazabilidad operativa transversal
 implementar
 auditar
 ajustar documentación afectada
@@ -75,10 +76,19 @@ Nunca al revés.
 Regla adicional consolidada:
 
 si una integración nueva requiere reabrir arbitrariamente el núcleo de otro módulo, primero debe revisarse si la necesidad puede resolverse consumiendo una capacidad ya publicada por ese módulo o evolucionando su superficie contractual propia
+
+Regla adicional para actividad operativa:
+
+no todo módulo debe registrar actividad por defecto.
+
+La participación en OperationalActivity debe justificarse por valor operativo real.
+
+No debe registrarse actividad solo por existir CRUD, eventos técnicos o cambios persistidos sin significancia operativa.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 0 — IDENTIDAD DEL MÓDULO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 BLOQUE 0 — IDENTIDAD DEL MÓDULO
 
@@ -91,6 +101,7 @@ problema real que resuelve
 naturaleza principal del módulo
 posición conceptual en el ecosistema
 si es módulo nuevo o reconversión de uno existente
+si es módulo funcional, entidad hija, capacidad transversal de soporte o pieza interna del tenant
 
 Clasificación conceptual posible:
 
@@ -99,6 +110,7 @@ módulo transversal
 módulo autónomo
 módulo agrupador
 módulo derivado
+capacidad transversal de soporte
 
 Preguntas obligatorias:
 
@@ -106,12 +118,21 @@ este módulo tiene identidad propia o es solo una entidad hija
 es realmente un módulo o una evolución de otro ya existente
 debe vivir por sí mismo o principalmente embebido
 qué rol ocupa dentro del ecosistema general
+registra, acompaña o sostiene actividad de otros módulos sin absorber su ownership
+debe tener navegación principal o solo consumo interno/transversal
 
 Si estas respuestas no están claras, no debe avanzarse a implementación.
+
+Caso vigente:
+
+OperationalActivity se lee como capacidad transversal de soporte tenant-scoped para trazabilidad operativa.
+
+No se lee como CRUD ordinario ni como módulo navegable principal.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 BLOQUE 1 — CONTRATO MODULAR
 
@@ -122,6 +143,7 @@ contrato de entrada
 contrato de salida
 contrato de seguridad
 oferta de integración
+participación o no en trazabilidad operativa transversal
 
 Validar además:
 
@@ -130,6 +152,8 @@ si resuelve un problema propio del dominio
 si evita invadir núcleos existentes
 si sus integraciones futuras pueden publicarse por contrato
 si el ownership funcional queda claro
+si debe emitir eventos operativos livianos después de acciones propias autorizadas
+si debe ser consumido por una capacidad transversal sin trasladarle lógica del dominio
 
 Criterio adicional validado:
 
@@ -165,10 +189,27 @@ parties dejó de usar allowed_kinds como constraint funcional.
 
 parties usa allowed_party_roles sobre party_roles.role.
 
+Criterio adicional para OperationalActivity:
+
+si un módulo participa en actividad operativa transversal, debe quedar definido:
+
+qué eventos operativos livianos emite
+en qué momento los emite
+qué campos son observables
+qué campos deben excluirse por ruido técnico
+qué cambios tienen significancia operativa real
+qué catálogo del módulo dueño declara esos campos
+qué datos mínimos necesita el registro transversal
+qué no debe delegarse al prestador transversal
+
+Regla:
+
+el prestador transversal no debe conocer en exceso la semántica interna del módulo dueño.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 BLOQUE 2 — SEGURIDAD OBLIGATORIA
 
@@ -223,7 +264,7 @@ el borrado debe considerar trazabilidad operativa real y no solo permiso nominal
 
 las acciones sobre recursos hijos deben respetar primero el estado del padre
 
-las pruebas Tinker deben incluir matriz por estado y no solo permiso nominal
+las validaciones con Project Lab deben incluir matriz por estado, permiso y trazabilidad cuando corresponda
 
 Validación adicional para administración owner:
 
@@ -281,7 +322,7 @@ PARTIES + allowed_kinds no debe quedar como combinación activa cuando la doctri
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -293,6 +334,8 @@ no reabrir núcleos de otros módulos
 consumir capacidades oficiales antes de crear variantes locales
 publicar capacidades reutilizables cuando correspondan
 respetar ownership del módulo oferente
+definir si emite eventos operativos livianos hacia una capacidad transversal
+definir si consume actividad operativa persistida como lectura y bajo qué autorización
 
 Regla adicional consolidada:
 
@@ -341,6 +384,20 @@ parties → party_roles
 parties.kind expresa tipo de contacto.
 
 party_roles.role expresa relación con la empresa.
+
+Regla adicional para trazabilidad operativa:
+
+la integración con OperationalActivity debe realizarse mediante eventos operativos livianos y no mediante acoples directos de controllers consumidores al log.
+
+El módulo dueño emite.
+
+La capacidad transversal registra si corresponde.
+
+El futuro consumidor visual lee actividad persistida bajo autorización definida.
+
+Regla:
+
+no inferir historia operativa desde campos actuales si existe actividad persistida específica.
 
 <<END SECTION>>
 
@@ -426,7 +483,7 @@ en parties debe preferirse Relación con la empresa antes que rol.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 5 — DOCUMENTACIÓN Y CIERRE>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 BLOQUE 5 — DOCUMENTACIÓN Y CIERRE
 
@@ -438,6 +495,7 @@ actualizar documentos doctrinales si corresponde
 no dejar decisiones implícitas sin registrar
 no duplicar información entre documentos
 respetar estructura documental vigente
+registrar si participa o no en trazabilidad operativa transversal cuando corresponda
 
 Regla adicional consolidada:
 
@@ -491,10 +549,31 @@ parties dejó de usar allowed_kinds y consolidó allowed_party_roles.
 
 La documentación no debe dejar como línea futura una revisión ya implementada y validada.
 
+Validación adicional para actividad operativa transversal:
+
+cuando un módulo emita eventos hacia OperationalActivity, el cierre debe registrar:
+
+módulo dueño
+eventos emitidos
+momento de emisión
+campos observables definidos por catálogo del módulo
+campos excluidos por ruido técnico
+validación de tenant activo
+validación de queue si corresponde
+validación de jobs y failed_jobs si corresponde
+validación de operational_activities persistidas
+ausencia de duplicación de listeners si event discovery ya resuelve la asociación
+
+Regla:
+
+no cerrar trazabilidad operativa solo por crear tabla o listener.
+
+Debe validarse runtime real.
+
 <<END SECTION>>
 
 <<SECTION: CHECKLIST MÍNIMO EXISTENTE>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 CHECKLIST MÍNIMO EXISTENTE
 
@@ -523,7 +602,7 @@ delete considera trazabilidad operativa real
 controller no sostiene reglas críticas ausentes en Security
 UI no muestra acciones que la autorización efectiva no permite
 recursos hijos respetan el estado operativo del padre
-pruebas Tinker incluyen matriz por estado, permiso y trazabilidad
+validaciones con Project Lab incluyen matriz por estado, permiso y trazabilidad cuando corresponda
 
 Para reconversiones de clasificación o catálogo, verificar además:
 
@@ -558,7 +637,7 @@ Este bloque resume mínimos técnicos, pero no reemplaza el checklist completo.
 <<END SECTION>>
 
 <<SECTION: CRITERIO FINAL DE APROBACIÓN>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 CRITERIO FINAL DE APROBACIÓN
 
@@ -573,6 +652,9 @@ persistencia
 controllers
 services
 hooks
+eventos
+listeners
+colas cuando correspondan
 cálculos
 UI real
 rutas
@@ -617,6 +699,29 @@ allowed_party_roles se evalúa contra party_roles.role.
 allowed_kinds no aplica a parties.
 
 El cierre incluyó validación de Security::scope(...), create, view, update, delete, UI de permisos, requests, controller, migrate:fresh --seed, Tinker, navegador y grep de residuos legacy.
+
+Criterio adicional para trazabilidad operativa transversal:
+
+una capacidad como OperationalActivity no se considera cerrada solo por existir tabla, modelo, evento o listener.
+
+Debe validarse:
+
+tenant activo real
+usuario real
+membership activa real
+evento emitido después de operación autorizada
+queue ejecutada cuando corresponda
+jobs procesados
+failed_jobs sin errores
+operational_activities persistidas
+sin duplicación de listeners
+sin escritura manual desde UI
+sin bloqueo del flujo principal ante falla de log
+sin asumir autorización de lectura futura
+
+Regla:
+
+la trazabilidad transversal debe reforzar lectura operativa sin convertirse en autorización, CRUD ordinario ni módulo navegable principal por defecto.
 
 <<END SECTION>>
 
@@ -888,7 +993,7 @@ que edición y borrado dejen de ser libres cuando ya existan movimientos ejecuta
 <<END SECTION>>
 
 <<SECTION: DOCUMENTACIÓN OBLIGATORIA>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 DOCUMENTACIÓN OBLIGATORIA
 
@@ -908,9 +1013,9 @@ Verificar si corresponde actualizar:
 
 <DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
 
-Cuando el trabajo involucre validaciones manuales, permisos, constraints, multi-tenancy o reproducción de runtime, verificar además si corresponde considerar:
+Cuando el trabajo involucre validaciones manuales, permisos, constraints, multi-tenancy, reproducción de runtime, auditorías operativas, actualización de código o actualización documental, verificar además si corresponde considerar:
 
-<DOC_REF slug="guia_tinker_proyecto_app_base">Guía operativa de pruebas con Tinker</DOC_REF>
+<DOC_REF slug="guia_project_lab_proyecto_app_base">Guía operativa de Project Lab</DOC_REF>
 
 No actualizar documentos por inercia.
 
@@ -973,7 +1078,7 @@ cuando una capacidad reusable oficial del módulo oferente se consuma dentro de 
 <<END SECTION>>
 
 <<SECTION: CIERRE>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CIERRE
 
@@ -997,6 +1102,6 @@ si las entidades hijas o embebidas se autorizan por delegación al padre
 
 si un create contextual requiere contexto obligatorio y cuál es su canal válido de autorización
 
-si la validación manual del módulo puede reproducirse de forma canónica con Tinker sin ambigüedad operativa
+si la validación manual del módulo puede reproducirse de forma canónica con Project Lab sin ambigüedad operativa
 
 <<END SECTION>>

@@ -302,7 +302,7 @@ El modal puede ser compartido o reusable, pero la semántica operativa permanece
 <<END SECTION>>
 
 <<SECTION: JERARQUÍA VISUAL MODULAR>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 JERARQUÍA VISUAL MODULAR
 
@@ -341,6 +341,7 @@ bloques de ayuda
 lookups
 acciones contextuales
 capacidades embebidas reutilizables
+lecturas de actividad operativa cuando correspondan
 
 Reglas:
 
@@ -363,6 +364,14 @@ Aclaración adicional para summary del host:
 las cards o bloques summary propios del módulo anfitrión no deben desaparecer por incorporar surfaces externas.
 
 El summary del host conserva su núcleo visual y las integraciones ocupan slots adicionales compatibles.
+
+Aclaración adicional para actividad operativa:
+
+una lectura de actividad no debe competir visualmente con el núcleo del recurso actual.
+
+Debe presentarse como capacidad transversal de lectura, no como segundo módulo principal dentro de la pantalla.
+
+Si se incorpora en una show page, debe mantener jerarquía secundaria y lectura escaneable.
 
 <<END SECTION>>
 
@@ -603,7 +612,7 @@ Estas métricas no reemplazan la tabla principal ni convierten la pantalla en da
 <<END SECTION>>
 
 <<SECTION: PATRÓN VISUAL PARA VISTAS SHOW>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 PATRÓN VISUAL PARA VISTAS SHOW
 
@@ -685,6 +694,23 @@ no agregar embebidos manuales en parties.show.
 
 Si falta una relación visible, debe detectarse si existe surface oficial del módulo oferente o si corresponde evolucionar la oferta del módulo dueño.
 
+Aclaración adicional para actividad en parties.show:
+
+la futura tab Actividad no debe construirse como embebido manual ni como inferencia visual desde campos actuales del contacto.
+
+Debe consumir actividad operativa persistida cuando exista surface o lectura autorizada definida.
+
+La lectura mínima esperada para filas de actividad debe poder representar:
+
+fecha
+módulo
+registro enlazado
+tipo de actividad
+
+La columna Registro debe contener el enlace al registro relacionado.
+
+No debe agregarse una columna adicional solo para el link.
+
 Aclaración adicional para detalle de movimientos:
 
 cuando inventory.movements.show exponga una operación asociada mediante inventory_operations, esa información debe leerse como contexto adicional del movimiento y no como nueva pantalla principal obligatoria.
@@ -748,7 +774,7 @@ la unidad visual completa debe desaparecer y no solo el contenido interno
 <<END SECTION>>
 
 <<SECTION: ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 ORGANIZACIÓN DE RELACIONES EN VISTAS SHOW
 
@@ -805,6 +831,25 @@ parties.kind solo expresa tipo de contacto:
 
 person
 company
+
+Aclaración adicional para actividad operativa en parties.show:
+
+si se incorpora una lectura de actividad para contactos con relación employee y membership activa vinculada, esa lectura debe consumir OperationalActivity persistido y autorizado.
+
+No debe inferirse desde party_id.
+
+No debe inferirse desde created_by, updated_by ni assigned_user_id actuales.
+
+No debe agregarse como relación manual reconstruida en el controller del host.
+
+La fila de actividad debe permitir lectura compacta de:
+
+fecha
+módulo
+registro
+tipo de actividad
+
+El enlace al recurso debe estar integrado en Registro.
 
 Aclaración adicional para relaciones compactas:
 

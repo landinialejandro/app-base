@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 PATRONES VIGENTES
 
@@ -133,5 +133,102 @@ protección de party vinculada a membership activa.
 La validación no se considera cerrada solo por ocultar campos en UI.
 
 Debe probarse que el backend bloquea intentos manipulados y que el registro persiste intacto.
+
+EVENTOS OPERATIVOS TRANSVERSALES
+
+Patrón validado:
+
+módulo dueño
+↓
+autoriza, valida y muta
+↓
+emite evento operativo liviano
+↓
+listener queued con ShouldQueue y afterCommit
+↓
+prestador transversal aplica sanidad
+↓
+persistencia append-only
+
+Reglas:
+
+el evento operativo no autoriza
+el evento operativo no valida la operación original
+el evento operativo no reemplaza Security ni policies
+el módulo dueño conserva ownership funcional
+la capacidad transversal registra solo si corresponde
+el listener queued no debe bloquear el flujo principal
+
+Caso vigente:
+
+OperationalActivity
+
+CAMPOS OBSERVABLES POR CATÁLOGO DEL MÓDULO DUEÑO
+
+Cuando una capacidad transversal registra actividad operativa, los campos observables deben pertenecer al catálogo del módulo dueño.
+
+Casos vigentes:
+
+AppointmentCatalog::activityTrackedFields()
+TaskCatalog::activityTrackedFields()
+OrderCatalog::activityTrackedFields()
+DocumentCatalog::activityTrackedFields()
+
+Regla:
+
+el prestador transversal no debe conocer en exceso la semántica interna de cada módulo.
+
+SANIDAD DE CAMBIOS OPERATIVOS
+
+La trazabilidad operativa debe aplicar sanidad antes de persistir.
+
+Reglas:
+
+no registrar cambios vacíos
+ignorar campos técnicos
+no registrar por registrar
+registrar solo cambios operativamente significativos
+clasificar actividad desde el prestador transversal cuando corresponda
+
+Clasificaciones vigentes posibles:
+
+assigned
+reassigned
+unassigned
+status_changed
+updated
+
+Regla:
+
+la clasificación no debe dispersarse en controllers.
+
+EVENT DISCOVERY SIN DUPLICACIÓN MANUAL
+
+Cuando Laravel event discovery ya registra un listener, no debe duplicarse el registro manual mediante Event::listen().
+
+Validación requerida:
+
+event:list debe mostrar la asociación esperada.
+
+Regla:
+
+si event discovery ya resuelve la asociación, duplicar el listener genera jobs y registros repetidos.
+
+VALIDACIÓN QUEUED DE ACTIVIDAD OPERATIVA
+
+Secuencia validada para probar eventos queued y OperationalActivity:
+
+disparar evento
+verificar jobs > 0
+ejecutar queue:work --stop-when-empty --tries=1
+verificar operational_activities
+verificar jobs = 0
+verificar failed_jobs = 0
+
+Regla:
+
+una trazabilidad queued no se considera cerrada solo por disparar el evento.
+
+Debe validarse procesamiento real de cola y persistencia final.
 
 <<END SECTION>>

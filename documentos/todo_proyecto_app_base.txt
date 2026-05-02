@@ -39,7 +39,7 @@ no debe utilizarse como depósito de ideas difusas sin criterio de ejecución
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — RECONVERSIÓN MODULAR>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 LÍNEA ACTIVA — RECONVERSIÓN MODULAR
 
@@ -57,6 +57,7 @@ incorporación doctrinal de inventory como frente funcional con surfaces propias
 alineación de tasks y appointments para consumir directorio interno del tenant en lugar de abilities sobre módulo inexistente
 reconversión conceptual de parties separando tipo de contacto y relación con la empresa
 reconversión de seguridad de parties desde allowed_kinds hacia allowed_party_roles
+implementación base de OperationalActivity como capacidad transversal tenant-scoped de trazabilidad operativa
 
 Criterios rectores vigentes:
 
@@ -67,6 +68,7 @@ consumir capacidades oficiales antes de variantes locales nuevas
 no abrir módulo users por necesidades de dataset interno reusable
 no comprimir en parties.kind relaciones que pertenecen a party_roles
 no usar allowed_kinds como constraint funcional de parties
+no convertir OperationalActivity en CRUD ordinario ni navegación principal por mera existencia técnica
 
 Foco de esta línea:
 
@@ -76,6 +78,7 @@ más claridad entre núcleo, gateway y consumo externo
 más coherencia entre arquitectura, UI y documentación
 más separación entre tipo base de entidad y relaciones operativas
 más alineación entre constraints funcionales y dimensión real del módulo
+más trazabilidad operativa real sin invadir ownership funcional de los módulos
 
 Caso vigente consolidado:
 
@@ -83,6 +86,7 @@ parties.kind = person/company
 party_roles.role = customer/supplier/employee/other
 parties.allowed_party_roles se evalúa contra party_roles.role
 orders.allowed_kinds conserva su lectura propia para orders
+OperationalActivity registra eventos operativos livianos emitidos por módulos dueños luego de acciones propias autorizadas y ejecutadas
 
 <<END SECTION>>
 
@@ -115,7 +119,7 @@ seguimiento posterior al cierre de reconversión conceptual y de seguridad, espe
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -278,10 +282,45 @@ routes OK
 optimize:clear OK
 browser OK
 
+Cierre operativo reciente de OperationalActivity:
+
+se implementó y validó base técnica de OperationalActivity como capacidad transversal tenant-scoped, append-only y system-owned.
+
+La escritura ocurre desde el sistema como consecuencia de eventos operativos livianos.
+
+No se implementó create manual, edit, update, delete, destroy ni carga manual desde UI.
+
+Se validó que OperationalActivity no autoriza, no valida y no ejecuta la operación original.
+
+Se corrigió el tratamiento de tenant_id para conservar UUID string compatible con tenants.id.
+
+Se corrigió duplicación de listeners al eliminar registro manual cuando event discovery ya resolvía la asociación.
+
+Se validó que el listener queued no debe bloquear el flujo principal si falla el registro del log.
+
+Validaciones operativas informadas para OperationalActivity:
+
+usuario real
+membership activa
+tenant activo bindeado
+evento disparado
+jobs generados
+queue:work ejecutado
+operational_activities persistidas
+jobs procesados
+failed_jobs sin errores
+
+Módulos actualmente integrados con OperationalActivity:
+
+appointments
+tasks
+orders
+documents
+
 <<END SECTION>>
 
 <<SECTION: CAPACIDADES REUTILIZABLES A CONSOLIDAR>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 CAPACIDADES REUTILIZABLES A CONSOLIDAR
 
@@ -293,6 +332,7 @@ attachments como capacidad transversal homogénea
 linked actions oficiales entre módulos
 hosts show pages con slots consistentes
 row actions oficiales publicadas por módulos oferentes cuando corresponda
+OperationalActivity como capacidad transversal de trazabilidad operativa con futuras superficies de lectura autorizadas
 
 Capacidades específicas bajo revisión:
 
@@ -362,10 +402,18 @@ Siguiente consolidación técnica posible:
 
 helpers comunes livianos orientados a presentación y payload visual de line items, sin absorber dominio, hooks, permisos ni semántica propia de cada módulo.
 
+Capacidades pendientes derivadas de OperationalActivity:
+
+definir surface o lectura autorizada para vista general desde perfil de empresa
+definir lectura filtrada desde parties.show para employee con membership activa vinculada
+definir autorización de lectura del log
+evitar navegación principal mientras no exista decisión validada
+evitar consumo visual por inferencias desde created_by, updated_by, assigned_user_id o party_id
+
 <<END SECTION>>
 
 <<SECTION: SEGURIDAD Y CONTRATOS PENDIENTES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 SEGURIDAD Y CONTRATOS PENDIENTES
 
@@ -410,10 +458,36 @@ notificación solo ante patrón, reiteración o severidad
 
 No se decidió notificar al owner por cada intento individual.
 
+Frente OperationalActivity:
+
+la escritura ya quedó system-owned y append-only.
+
+Pendiente real:
+
+definir autorización de lectura del log operativo.
+
+No está definido todavía si la lectura se resolverá mediante:
+
+capability propia
+permisos del perfil tenant
+regla especial del plano tenant
+otro contrato específico validado
+
+No se debe asumir acceso de lectura solo por existir operational_activities.
+
+Lecturas futuras que requieren autorización explícita:
+
+vista general del log desde perfil de empresa
+actividad por colaborador desde parties.show
+
+Regla:
+
+OperationalActivity no reemplaza Security, policies ni validaciones del módulo dueño.
+
 <<END SECTION>>
 
 <<SECTION: DEUDA TÉCNICA A REDUCIR>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 DEUDA TÉCNICA A REDUCIR
 
@@ -468,6 +542,22 @@ validar runtime de admin cuando exista dataset seed activo si aplica a nuevos es
 
 analizar parties.show y sus embebidos según party_roles.role
 
+Deuda reducida adicional:
+
+la idea de actividad interna del empleado dejó de ser solo línea conceptual.
+
+Ya existe base persistida mediante OperationalActivity.
+
+Deuda técnica pendiente derivada de OperationalActivity:
+
+definir lectura autorizada
+definir surface o consumo visual
+integrar módulos no cubiertos solo tras auditoría
+evitar duplicación de listeners
+evitar inferencias visuales desde campos actuales cuando exista actividad persistida
+evitar navegación principal sin decisión validada
+mantener append-only y escritura system-owned
+
 Regla:
 
 reducir deuda implica cerrar incoherencias reales que afectan el modelo del sistema
@@ -493,7 +583,7 @@ cada paso debe dejar menos excepciones que el anterior
 <<END SECTION>>
 
 <<SECTION: ESTADO ACTUAL DEL SISTEMA>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 ESTADO ACTUAL DEL SISTEMA
 
@@ -561,6 +651,23 @@ Si la membership vinculada está activa, la party queda parcialmente protegida s
 
 La autorización sensible de employee está centralizada en PartyEmployeeContactAuthorization.
 
+OperationalActivity quedó implementado como capacidad transversal tenant-scoped de trazabilidad operativa.
+
+Su escritura es system-owned y append-only.
+
+Registra eventos operativos livianos emitidos por módulos dueños luego de acciones propias autorizadas y ejecutadas.
+
+Módulos actualmente integrados:
+
+appointments
+tasks
+orders
+documents
+
+OperationalActivity no tiene navegación principal vigente, no tiene CRUD manual y no autoriza operaciones.
+
+La lectura futura del log todavía requiere definición explícita de autorización.
+
 La validación runtime reciente no detectó nuevos hallazgos críticos fuera de los frentes ya corregidos.
 
 <<END SECTION>>
@@ -581,7 +688,7 @@ document_items
 <<END SECTION>>
 
 <<SECTION: MÓDULOS POSIBLES A FUTURO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 MÓDULOS POSIBLES A FUTURO
 
@@ -599,11 +706,18 @@ party_relationships
 party_emails
 party_phones
 party_addresses
-actividad interna del empleado en parties.show
 
 Línea evolutiva posible para parties:
 
 analizar embebidos de parties.show según party_roles.role
+
+Actividad interna del empleado en parties.show:
+
+ya no debe tratarse como idea sin base persistida.
+
+Existe base técnica mediante OperationalActivity.
+
+Lo pendiente es definir lectura autorizada, surface o tab visual y filtro correcto para employee con membership activa vinculada.
 
 Regla:
 
@@ -614,6 +728,14 @@ Aclaración:
 la revisión futura de Security para allowed_party_roles en parties ya no queda como línea evolutiva abierta.
 
 allowed_party_roles fue implementado y validado como constraint funcional vigente de parties.
+
+Aclaración adicional:
+
+OperationalActivity no debe listarse como módulo posible a futuro.
+
+Su lectura vigente es capacidad transversal ya implementada en base técnica.
+
+Lo futuro son sus superficies de lectura autorizada.
 
 <<END SECTION>>
 

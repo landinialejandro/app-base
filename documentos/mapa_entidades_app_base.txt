@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -66,6 +66,7 @@ Relaciones transversales relevantes:
 orders → inventory
 documents → inventory
 projects → tasks
+módulos operativos → operational_activities
 
 Relaciones de contexto interno del tenant:
 
@@ -119,6 +120,19 @@ party_roles no se convierte por eso en módulo autónomo ni en navegación propi
 
 Sigue siendo entidad hija o complementaria de parties.
 
+Aclaración operativa de OperationalActivity:
+
+OperationalActivity registra eventos operativos persistidos sobre registros de módulos operativos mediante referencia polimórfica conceptual:
+
+record_type
+record_id
+
+No es entidad hija de parties, tasks, orders, documents ni appointments.
+
+No reemplaza relaciones propias de esos módulos.
+
+No debe utilizarse para inferir autorización ni para reconstruir la operación original como fuente primaria.
+
 Regla:
 
 las relaciones del ecosistema deben leerse respetando los planos conceptuales:
@@ -126,6 +140,7 @@ las relaciones del ecosistema deben leerse respetando los planos conceptuales:
 identidad global
 pertenencia operativa
 operación del negocio
+trazabilidad transversal
 
 No deben mezclarse por conveniencia de implementación.
 
@@ -213,7 +228,7 @@ Por esta razón, no debe tratarse como una entidad tenant-scoped pura del negoci
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 ENTIDADES DEL NEGOCIO
 
@@ -239,6 +254,7 @@ document_items
 document_sequences
 inventory_movements
 inventory_operations
+operational_activities
 attachments
 
 Aclaración vigente:
@@ -254,6 +270,24 @@ party_roles.role tiene incidencia operativa dentro del contrato de parties.
 Puede utilizarse para segmentar visibilidad y acciones de parties mediante allowed_party_roles.
 
 Esto no cambia su naturaleza de entidad hija o complementaria de parties.
+
+Aclaración vigente sobre OperationalActivity:
+
+operational_activities pertenece al plano operativo tenant-scoped como capacidad transversal de trazabilidad.
+
+No constituye entidad hija de un módulo funcional particular.
+
+No debe mapearse bajo parties aunque su lectura futura pueda consumirse desde parties.show para colaboradores.
+
+No debe mapearse bajo tasks, orders, documents ni appointments aunque registre eventos originados allí.
+
+Su relación conceptual es transversal:
+
+OperationalActivity
+↓
+registra eventos sobre records de módulos operativos
+↓
+record_type + record_id
 
 <<END SECTION>>
 
@@ -474,7 +508,7 @@ Este criterio aplica especialmente a la lectura de usuarios internos activos del
 <<END SECTION>>
 
 <<SECTION: MÓDULOS ACTUALES DEL NEGOCIO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 MÓDULOS ACTUALES DEL NEGOCIO
 
@@ -519,6 +553,14 @@ Aclaración adicional sobre appointments:
 appointments no solo corresponde a la entidad agenda del negocio
 
 también debe leerse como host show capaz de consumir relaciones compactas publicadas por otros módulos dentro del ecosistema surface-driven vigente
+
+Aclaración adicional sobre OperationalActivity:
+
+OperationalActivity no se incorpora a este listado como módulo actual del negocio con navegación propia.
+
+Su lectura vigente es capacidad transversal de soporte para trazabilidad operativa tenant-scoped.
+
+Puede ofrecer futuras superficies de lectura, pero eso no lo convierte automáticamente en módulo funcional principal ni en CRUD ordinario.
 
 <<END SECTION>>
 

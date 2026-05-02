@@ -36,7 +36,7 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 DECISIONES VIGENTES
 
@@ -94,6 +94,66 @@ primero registrar o auditar eventos sensibles
 notificar solo ante patrón, reiteración o severidad
 
 Este criterio no implica implementación vigente de auditoría o notificación.
+
+OperationalActivity queda decidido como capacidad transversal tenant-scoped de trazabilidad operativa.
+
+Lectura vigente:
+
+no es CRUD ordinario
+no es navegación principal
+no pertenece a parties, tasks, orders, documents ni appointments
+no autoriza operaciones
+no reemplaza Security
+no reemplaza policies
+no valida la operación original
+no debe bloquear el flujo principal si falla el registro
+
+Regla vigente:
+
+el módulo dueño autoriza, valida y ejecuta su operación.
+
+Luego emite un evento operativo liviano.
+
+OperationalActivity registra si corresponde.
+
+La escritura de OperationalActivity es system-owned y append-only.
+
+No se implementa create manual desde UI.
+
+No se implementa edit.
+
+No se implementa update.
+
+No se implementa delete.
+
+No se implementa destroy.
+
+No se implementa carga manual por formularios.
+
+Decisión vigente sobre lectura:
+
+la autorización de lectura del log todavía no está definida.
+
+No se debe asumir acceso de lectura por existir operational_activities.
+
+Lecturas futuras posibles:
+
+vista general desde perfil de empresa
+actividad por colaborador desde parties.show para employee con membership activa vinculada
+
+Project Lab es la herramienta operativa local vigente para aplicar, auditar y validar intervenciones técnicas.
+
+Regla vigente:
+
+todo snippet destinado a Project Lab debe respetar el contrato real de la herramienta.
+
+FILE corresponde a archivo completo.
+
+TARGET corresponde a operación parcial.
+
+No se deben mezclar FILE y TARGET.
+
+No se deben entregar encabezados ambiguos que obliguen al usuario a corregir el formato.
 
 Ante falta de datos reales:
 

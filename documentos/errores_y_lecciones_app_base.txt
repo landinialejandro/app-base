@@ -26,7 +26,7 @@ lección aplicable
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 LECCIONES VIGENTES
 
@@ -72,5 +72,93 @@ Lectura esperada:
 
 kind: person
 roles: employee
+
+Los snippets para Project Lab deben respetar estrictamente el contrato del automatizador.
+
+Error detectado:
+
+usar encabezados no compatibles o mezclar FILE con TARGET puede hacer que el automatizador interprete incorrectamente el bloque como archivo completo.
+
+Regla:
+
+no mezclar formatos.
+
+Usar FILE solo para archivo completo.
+
+Usar TARGET solo para operación parcial.
+
+Formatos correctos:
+
+// FILE: ruta | Vn
+// TARGET: ruta :: metodoExistente
+// TARGET: ruta ++ metodoNuevo
+
+No usar:
+
+// FILE: ruta :: metodo
+
+<?php // FILE: ruta | V1
+
+Lección:
+
+un formato ambiguo no debe tratarse como éxito operativo.
+
+Debe corregirse el snippet antes de aplicar.
+
+tenant_id debe respetar el tipo real de tenants.id.
+
+Error detectado:
+
+OperationalActivityLogger trató tenant_id como entero, pero tenants.id es UUID char(36).
+
+Corrección:
+
+conservar tenant_id como string.
+
+Lección:
+
+no asumir tipos de claves.
+
+Validar esquema real antes de persistir datos transversales.
+
+Event discovery puede registrar listeners automáticamente.
+
+Error detectado:
+
+RegisterOperationalActivity@handle ya estaba registrado por event discovery y además se registró manualmente en AppServiceProvider.
+
+Resultado:
+
+dos jobs
+dos registros idénticos
+
+Corrección:
+
+eliminar el registro manual.
+
+Lección:
+
+si event:list ya muestra la asociación, no duplicar con Event::listen() manual.
+
+php artisan tinker --execute puede fallar con use según el wrapper.
+
+Error detectado:
+
+bloques con use ... pueden parsearse mal dentro del wrapper de ejecución.
+
+Alternativas:
+
+usar clases con namespace completo
+ejecutar el bloque en Project Lab según corresponda
+
+Lección:
+
+si el problema es el wrapper y no la lógica probada, ajustar la forma de ejecución antes de cambiar código funcional.
+
+OperationalActivity no debe bloquear la operación principal.
+
+Lección:
+
+la trazabilidad operativa queued debe registrar si corresponde, pero un fallo del log no debe romper el flujo principal ya autorizado y ejecutado por el módulo dueño.
 
 <<END SECTION>>

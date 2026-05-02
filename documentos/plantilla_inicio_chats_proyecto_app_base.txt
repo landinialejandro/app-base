@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -136,6 +136,53 @@ El formulario progresivo de parties ya está implementado y funcionando.
 
 No debe revertirse a formulario plano sin justificación basada en código real y necesidad validada.
 
+OperationalActivity quedó incorporado como capacidad transversal tenant-scoped de trazabilidad operativa.
+
+Lectura vigente:
+
+no es CRUD ordinario
+no es navegación principal
+no autoriza operaciones
+no reemplaza Security
+no reemplaza policies
+no valida la operación original
+no debe bloquear el flujo principal si falla el registro del log
+
+La secuencia correcta es:
+
+módulo dueño autoriza
+módulo dueño valida
+módulo dueño ejecuta
+módulo dueño emite evento operativo liviano
+OperationalActivity registra si corresponde
+
+La escritura del log es system-owned y append-only.
+
+No debe proponerse create manual, edit, update, delete, destroy ni carga manual desde UI para OperationalActivity.
+
+La lectura futura del log todavía requiere autorización explícita.
+
+No asumir acceso de lectura por existir operational_activities.
+
+Módulos actualmente integrados con OperationalActivity:
+
+appointments
+tasks
+orders
+documents
+
+Cuando una tarea involucre Project Lab, automatizador, Tinker, runtime real, colas, eventos, permisos, constraints, multi-tenancy, actualización de código o actualización documental, se debe respetar la guía operativa vigente de Project Lab.
+
+Regla crítica para snippets:
+
+usar FILE solo para archivos completos.
+
+usar TARGET solo para operaciones parciales.
+
+no mezclar FILE con operadores de método.
+
+no entregar formatos ambiguos.
+
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS DEL CHAT>>
@@ -220,7 +267,7 @@ La UI de parties expresa permisos resueltos, pero no autoriza.
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DE ESTE CHAT>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 OBJETIVO DE ESTE CHAT
 
@@ -241,6 +288,8 @@ mejoras móviles futuras en attachments para captura rápida de evidencias
 auditoría de nuevas mejoras sobre tabs host únicamente si existe evidencia real de necesidad
 
 análisis de parties.show y sus embebidos según party_roles.role
+
+definición futura de lectura autorizada para OperationalActivity
 
 Estado reciente consolidado de parties:
 
@@ -272,6 +321,37 @@ no agregar embebidos manuales
 consumir surfaces oficiales
 detectar brechas si un módulo oferente no publica una surface necesaria
 distinguir lectura para customer, supplier, employee y other
+
+Estado reciente consolidado de OperationalActivity:
+
+base técnica implementada y validada
+
+capacidad transversal tenant-scoped
+
+append-only
+
+system-owned
+
+listener queued
+
+eventos operativos livianos
+
+módulos actualmente integrados:
+
+appointments
+tasks
+orders
+documents
+
+Próximos frentes posibles de OperationalActivity:
+
+definir autorización de lectura del log
+
+definir vista general desde perfil de empresa
+
+definir lectura filtrada desde parties.show para employee con membership activa vinculada
+
+evaluar otros módulos sin asumir integración automática
 
 Toda propuesta debe nacer desde el estado actual real del proyecto y no desde supuestos genéricos.
 
@@ -309,7 +389,7 @@ Cuando el frente lo requiera, debe inspeccionarse código real, rutas reales, ru
 <<END SECTION>>
 
 <<SECTION: HERRAMIENTAS OPERATIVAS DISPONIBLES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 HERRAMIENTAS OPERATIVAS DISPONIBLES
 
@@ -379,7 +459,52 @@ si una tarea consiste principalmente en aplicar código ya definido sobre archiv
 
 si una prueba requiere runtime real, tenant activo, Security o contexto funcional, debe respetarse la guía operativa vigente de Project Lab
 
+si una prueba requiere eventos queued, debe validarse también cola, jobs, failed_jobs y persistencia final cuando corresponda
+
+si una intervención involucra OperationalActivity, no alcanza con disparar el evento: debe validarse procesamiento real y ausencia de duplicación de listeners
+
 la consola unificada de Project Lab es la salida operativa principal para compartir resultados, errores y auditorías durante el trabajo técnico
+
+Regla crítica de formatos:
+
+FILE identifica archivo completo
+
+TARGET identifica operación parcial
+
+No deben mezclarse.
+
+Formatos correctos principales:
+
+PHP completo:
+
+<?php
+
+// FILE: app/Support/Ejemplo.php | V1
+
+Blade completo:
+
+{{-- FILE: resources/views/ejemplo.blade.php | V1 --}}
+
+CSS completo:
+
+/* FILE: public/css/modules/ejemplo.css | V1 */
+
+JS completo:
+
+// FILE: public/js/ejemplo.js | V1
+
+Reemplazar método PHP:
+
+// TARGET: app/Support/Ejemplo.php :: metodoExistente
+
+Agregar método PHP:
+
+// TARGET: app/Support/Ejemplo.php ++ metodoNuevo
+
+No usar formatos mixtos o ambiguos como:
+
+// FILE: ruta :: metodo
+<?php // FILE: ruta | V1
 
 <DOC_REF slug="guia_project_lab_proyecto_app_base">Guía operativa de Project Lab</DOC_REF>
 

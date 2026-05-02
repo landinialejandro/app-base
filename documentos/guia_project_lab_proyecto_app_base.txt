@@ -10,7 +10,7 @@ GESTIÓN: Guía rectora para uso local de Project Lab como herramienta operativa
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 OBJETIVO
 
@@ -30,6 +30,7 @@ centralizar salidas operativas en consola
 reducir errores por formatos ambiguos
 evitar cambios manuales dispersos
 mantener trazabilidad local de las intervenciones
+validar eventos, colas y persistencia cuando el frente técnico lo requiera
 
 Project Lab no reemplaza:
 
@@ -44,10 +45,20 @@ Project Lab ejecuta tareas.
 
 La decisión de qué ejecutar, cuándo ejecutar y cómo interpretar el resultado sigue perteneciendo al proceso técnico del proyecto.
 
+Regla:
+
+una validación no queda cerrada solo porque Project Lab ejecute sin error inicial.
+
+Debe interpretarse la salida completa y confirmar las evidencias necesarias para el frente intervenido.
+
+Caso vigente:
+
+OperationalActivity requiere validar runtime real, tenant activo, evento, cola, jobs, failed_jobs y persistencia final cuando corresponda.
+
 <<END SECTION>>
 
 <<SECTION: PRINCIPIO RECTOR>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 PRINCIPIO RECTOR
 
@@ -74,6 +85,18 @@ Regla operativa:
 si falta información mínima para intervenir con seguridad, primero debe obtenerse esa información.
 
 No se debe completar por memoria, suposición o conveniencia.
+
+Regla adicional:
+
+no asumir tipos de columnas, claves o identificadores.
+
+Cuando una capacidad transversal persista referencias críticas como tenant_id, debe validarse el tipo real del esquema antes de escribir o corregir código.
+
+Caso vigente:
+
+tenants.id es UUID char(36).
+
+Por lo tanto, tenant_id en OperationalActivity debe conservarse como string compatible.
 
 <<END SECTION>>
 
@@ -122,7 +145,7 @@ Por lo tanto, toda salida destinada a Project Lab debe respetar el contrato real
 <<END SECTION>>
 
 <<SECTION: HERRAMIENTAS DISPONIBLES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 HERRAMIENTAS DISPONIBLES
 
@@ -400,7 +423,7 @@ public function boot(): void
 <<END SECTION>>
 
 <<SECTION: ERRORES OBLIGATORIOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ERRORES OBLIGATORIOS
 
@@ -423,6 +446,8 @@ sección CSS o JS inexistente
 intento de usar formato de archivo completo para operación parcial ambigua
 bloque documental sin encabezado REEMPLAZAR EN cuando la herramienta vigente lo requiere
 bloque documental con DOC_SLUG como encabezado operativo si Project Lab Docs espera REEMPLAZAR EN
+header FILE que combine operadores de método como :: o ++
+snippet que mezcle FILE y TARGET de forma ambigua
 
 Regla:
 
@@ -446,10 +471,16 @@ Debe corregirse o revertirse según corresponda.
 
 La salida OK inicial de aplicación no alcanza para cierre si la validación posterior informa error.
 
+Regla adicional sobre errores posteriores a la aplicación:
+
+si la herramienta aplicó un cambio pero una validación posterior falla, el resultado no debe tratarse como cierre exitoso.
+
+Debe corregirse o revertirse antes de avanzar.
+
 <<END SECTION>>
 
 <<SECTION: SALIDA OPERATIVA ESPERADA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 SALIDA OPERATIVA ESPERADA
 
@@ -502,6 +533,25 @@ no debe considerarse cierre técnico una salida sin OK verificable.
 
 No debe considerarse seguro un cambio aplicado con errores no resueltos.
 
+Regla adicional:
+
+una salida OK de aplicación no reemplaza validaciones posteriores necesarias para el frente trabajado.
+
+Ejemplos de validaciones posteriores según caso:
+
+php -l
+route:list
+optimize:clear
+event:list
+jobs
+failed_jobs
+operational_activities
+navegador informado por usuario
+
+Caso vigente:
+
+para OperationalActivity, la salida relevante debe permitir confirmar que el evento no solo fue disparado, sino que la cola procesó el listener y persistió el registro esperado sin failed_jobs.
+
 <<END SECTION>>
 
 <<SECTION: USO OPERATIVO LOCAL>>
@@ -542,7 +592,7 @@ documentar evidencia
 <<END SECTION>>
 
 <<SECTION: USO DE TINKER DENTRO DE PROJECT LAB>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 USO DE TINKER DENTRO DE PROJECT LAB
 
@@ -559,6 +609,8 @@ relaciones activas
 validaciones backend
 flujos controlados
 auditoría de runtime
+eventos operativos
+validación de persistencia derivada
 
 Regla crítica:
 
@@ -578,10 +630,32 @@ Ejemplo conceptual:
 
 return User::all();
 
+Regla adicional para bloques con namespaces:
+
+si un bloque ejecutado mediante wrapper falla por el uso de use ..., no debe asumirse automáticamente que falló la lógica funcional.
+
+Alternativas válidas:
+
+usar clases con namespace completo
+ejecutar el bloque dentro de Project Lab según corresponda
+ajustar la forma de ejecución antes de modificar código funcional
+
+Regla adicional para eventos queued:
+
+si la prueba dispara un evento que debe procesarse en cola, Tinker solo valida el disparo inicial.
+
+El cierre requiere validar también:
+
+jobs generados
+queue procesada
+operational_activities persistidas cuando corresponda
+jobs vaciados
+failed_jobs sin errores
+
 <<END SECTION>>
 
 <<SECTION: REGLA DE TENANT ACTIVO EN TINKER>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 REGLA DE TENANT ACTIVO EN TINKER
 
@@ -609,6 +683,22 @@ Sin ese paso, la prueba puede:
 fallar artificialmente
 devolver falsos negativos
 no representar el comportamiento real del sistema
+
+Regla adicional:
+
+no fijar tenant_id como número ni como dato estable copiado desde otra sesión.
+
+Debe obtenerse desde runtime real.
+
+Caso vigente:
+
+si la prueba involucra OperationalActivity, tenant_id debe persistirse como UUID string compatible con tenants.id.
+
+Regla:
+
+tenant activo bindeado no es solo comodidad de prueba.
+
+Es condición necesaria para reproducir el comportamiento real de capacidades tenant-scoped.
 
 <<END SECTION>>
 
@@ -787,7 +877,7 @@ si una prueba de stock da todo en cero, primero validar que el seeder efectivo e
 <<END SECTION>>
 
 <<SECTION: USO DE ARTISAN>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 USO DE ARTISAN
 
@@ -799,6 +889,8 @@ optimize:clear
 route:list
 about
 migrate:status
+event:list
+queue:work --stop-when-empty --tries=1
 comandos de inspección compatibles con el entorno local
 
 Regla:
@@ -809,10 +901,33 @@ Comandos como migrate:fresh --seed solo deben usarse cuando el frente de trabajo
 
 Toda salida Artisan relevante debe copiarse completa cuando sea necesaria para diagnóstico.
 
+Regla adicional para colas:
+
+cuando se valide un listener queued, no alcanza con confirmar que el evento se disparó.
+
+Secuencia mínima esperada:
+
+disparar evento
+verificar jobs > 0
+ejecutar queue:work --stop-when-empty --tries=1
+verificar persistencia esperada
+verificar jobs = 0
+verificar failed_jobs = 0
+
+Caso vigente:
+
+OperationalActivity debe validarse revisando operational_activities luego de procesar la cola.
+
+Regla adicional para event discovery:
+
+antes de registrar listeners manualmente, usar event:list o auditoría equivalente para verificar si Laravel ya resolvió la asociación.
+
+Si event discovery ya registra el listener, no debe duplicarse con Event::listen() manual.
+
 <<END SECTION>>
 
 <<SECTION: USO DE AUDITORÍA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 USO DE AUDITORÍA
 
@@ -827,6 +942,8 @@ revisar grep de residuos
 verificar existencia de clases
 listar referencias
 generar archivos de auditoría local
+validar listeners registrados
+detectar duplicaciones entre event discovery y registro manual
 
 Regla:
 
@@ -847,6 +964,14 @@ archivo generado
 residuo real
 
 No se debe corregir sin distinguir el tipo de hallazgo.
+
+Regla adicional para listeners:
+
+si event:list muestra una asociación entre evento y listener, no debe proponerse registro manual adicional sin justificarlo con evidencia real.
+
+Caso vigente:
+
+RegisterOperationalActivity@handle no debe duplicarse manualmente si event discovery ya lo registra.
 
 <<END SECTION>>
 

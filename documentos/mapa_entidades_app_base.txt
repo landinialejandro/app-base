@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -67,6 +67,7 @@ orders → inventory
 documents → inventory
 projects → tasks
 módulos operativos → operational_activities
+capacidades tenant/transversales → surfaces publicadas hacia hosts autorizados
 
 Relaciones de contexto interno del tenant:
 
@@ -158,6 +159,42 @@ attachments
 parties
 inventory
 
+Aclaración vigente para lectura contextual de OperationalActivity:
+
+OperationalActivity puede exponer lectura contextual asociada a records host mediante referencia estable:
+
+record_type
+record_id
+
+Esta lectura se resuelve desde una surface tenant/transversal y no convierte OperationalActivity en entidad hija del host.
+
+Flujo validado:
+
+OperationalActivity
+↓
+registra actividad sobre records de módulos operativos
+↓
+OperationalActivityContextReader
+↓
+OperationalActivitySurfaceService
+↓
+TenantSurfaceRegistry
+↓
+hosts funcionales autorizados
+
+Hosts validados:
+
+tasks.show
+parties.show
+
+Reglas:
+
+la lectura contextual heredada no convierte al host en dueño de la lógica de actividad
+
+la lectura contextual heredada no convierte OperationalActivity en módulo funcional ordinario
+
+la lectura contextual heredada no altera la relación conceptual transversal de operational_activities
+
 Aclaración vigente para inventory:
 
 frente a OperationalActivity, inventory se representa mediante InventoryOperation cuando la acción operativa agrupada expresa mejor el evento del usuario.
@@ -188,6 +225,7 @@ identidad global
 pertenencia operativa
 operación del negocio
 trazabilidad transversal
+surfaces tenant/transversales no modulares
 
 No deben mezclarse por conveniencia de implementación.
 
@@ -275,7 +313,7 @@ Por esta razón, no debe tratarse como una entidad tenant-scoped pura del negoci
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 ENTIDADES DEL NEGOCIO
 
@@ -324,7 +362,7 @@ operational_activities pertenece al plano operativo tenant-scoped como capacidad
 
 No constituye entidad hija de un módulo funcional particular.
 
-No debe mapearse bajo parties aunque su lectura futura pueda consumirse desde parties.show para colaboradores.
+No debe mapearse bajo parties aunque su lectura contextual pueda consumirse desde parties.show.
 
 No debe mapearse bajo tasks, orders, documents, appointments, projects, assets, products, attachments ni inventory aunque registre eventos originados allí.
 
@@ -367,6 +405,22 @@ resolver label del registro asociado
 resolver URL canónica cuando exista show seguro
 devolver fallback textual cuando no exista ruta segura
 agregar trail contextual al link
+
+Aclaración vigente sobre lectura contextual:
+
+OperationalActivity puede ofrecer lectura contextual sobre un record host autorizado mediante:
+
+OperationalActivityContextReader
+OperationalActivitySurfaceService
+TenantSurfaceRegistry
+
+Esta lectura se apoya en record_type y record_id.
+
+No convierte operational_activities en entidad hija del host.
+
+No convierte OperationalActivity en módulo actual del negocio.
+
+No traslada ownership de actividad a tasks, parties ni otros hosts consumidores.
 
 Aclaración vigente sobre inventory:
 
@@ -615,7 +669,7 @@ Este criterio aplica especialmente a la lectura de usuarios internos activos del
 <<END SECTION>>
 
 <<SECTION: MÓDULOS ACTUALES DEL NEGOCIO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 MÓDULOS ACTUALES DEL NEGOCIO
 
@@ -690,7 +744,14 @@ operational_activity.view_any
 
 La primera lectura visual general existe desde tenant/profile, tab Actividad.
 
-Esta tab no convierte OperationalActivity en módulo navegable principal ni en surface reutilizable cerrada.
+La lectura contextual heredada puede publicarse mediante TenantSurfaceRegistry hacia hosts autorizados.
+
+Hosts validados:
+
+tasks.show
+parties.show
+
+Esta lectura contextual no incorpora OperationalActivity a ModuleCatalog, no crea navegación principal y no lo convierte en surface modular ordinaria.
 
 <<END SECTION>>
 

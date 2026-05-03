@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 PATRONES VIGENTES
 
@@ -280,7 +280,7 @@ OperationalActivity no se agrega a ModuleCatalog por este patrón
 
 la vista general inicial no crea navegación principal propia
 
-la tab Actividad en tenant/profile es primera lectura visual concreta, no surface reutilizable todavía
+la tab Actividad en tenant/profile es lectura visual general
 
 Patrón de resolución de lectura:
 
@@ -310,11 +310,91 @@ Debe resolverse dinámicamente desde una pieza de lectura.
 
 Si no existe ruta show canónica segura, se muestra texto plano.
 
-Trail validado desde actividad operativa:
+Trail validado desde actividad general:
 
 Inicio
 Perfil de empresa · Actividad
 Registro destino
+
+LECTURA CONTEXTUAL HEREDADA DE ACTIVIDAD OPERATIVA
+
+Patrón validado:
+
+host autoriza view del record
+↓
+surface tenant/transversal recibe record autorizado
+↓
+OperationalActivityContextReader lee actividad asociada
+↓
+OperationalActivitySurfaceService prepara tab
+↓
+x-host-tabs representa Actividad
+
+Regla:
+
+si el usuario puede ver el registro host,
+puede ver la actividad operativa asociada a ese registro.
+
+Esta lectura no equivale a lectura general del log del tenant.
+
+Reglas:
+
+no utiliza operational_activity.view_any
+no habilita acceso general al log
+no muestra actividad de otros registros
+no convierte OperationalActivity en módulo funcional
+no crea navegación principal
+no reconstruye historia desde campos actuales del modelo
+no traslada autorización al prestador transversal
+
+Hosts validados:
+
+tasks.show
+parties.show
+
+Tab validada:
+
+key = activity
+
+SURFACE TENANT/TRANSVERSAL NO MODULAR
+
+Patrón validado:
+
+capacidad tenant/transversal
+↓
+TenantSurfaceRegistry
+↓
+surface service compatible con ModuleSurfaceService
+↓
+ModuleSurfaceRegistry
+↓
+host show
+↓
+x-host-tabs
+
+Caso validado:
+
+OperationalActivitySurfaceService
+
+Reglas:
+
+no incorporar la capacidad transversal a ModuleCatalog si no es módulo funcional
+no pasarla por TenantModuleAccess
+no crear navegación principal
+no crear CRUD
+no duplicar tabs manualmente en hosts
+publicar la surface con la misma gramática que las surfaces modulares
+usar key compatible con return_tab
+consumir autorización ya resuelta por el host
+mantener ownership de la capacidad transversal en el plano tenant/transversal
+
+Caso corregido:
+
+no usar $tabItems->push manual como cierre estable cuando existe registry reusable.
+
+Caso corregido:
+
+no usar operational_activity.contextual como key de tab si impacta en return_tab.
 
 VALIDACIÓN QUEUED DE ACTIVIDAD OPERATIVA
 
@@ -323,46 +403,13 @@ Secuencia validada para probar eventos queued y OperationalActivity:
 disparar evento
 verificar jobs > 0
 ejecutar queue:work --stop-when-empty --tries=1
-verificar operational_activities
 verificar jobs = 0
 verificar failed_jobs = 0
+verificar operational_activities persistidas
+verificar módulo, tipo, record y metadata esperada
 
 Regla:
 
-una trazabilidad queued no se considera cerrada solo por disparar el evento.
-
-Debe validarse procesamiento real de cola y persistencia final.
-
-Si la cola no se procesa, la tab puede no mostrar actividades aunque las acciones ya hayan emitido eventos.
-
-Este comportamiento debe leerse como esperado dentro del modelo queued.
-
-VALIDACIÓN RUNTIME DE OPERATIONALACTIVITY
-
-Para cerrar una integración con OperationalActivity debe validarse:
-
-usuario real
-membership activa
-tenant activo bindeado
-evento operativo emitido
-job generado cuando corresponda
-queue procesada
-failed_jobs sin errores
-operational_activities persistidas
-módulo correcto
-tipo correcto
-metadata esperada cuando corresponda
-
-EVENT DISCOVERY SIN DUPLICACIÓN MANUAL
-
-Cuando Laravel event discovery ya registra un listener, no debe duplicarse el registro manual mediante Event::listen().
-
-Validación requerida:
-
-event:list debe mostrar la asociación esperada.
-
-Regla:
-
-si event discovery ya resuelve la asociación, duplicar el listener genera jobs y registros repetidos.
+si la cola procesa sin failed_jobs pero no hay actividad persistida, revisar primero mapeos y catálogos antes de tocar controllers o listeners.
 
 <<END SECTION>>

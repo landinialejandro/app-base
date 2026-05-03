@@ -36,7 +36,7 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 DECISIONES VIGENTES
 
@@ -205,8 +205,6 @@ No se agrega navegación principal para OperationalActivity.
 
 No se implementa vista general independiente del log.
 
-No se considera todavía surface reutilizable.
-
 Decisión vigente sobre acceso a tenant/profile:
 
 tenant/profile sigue restringido a owner en el estado actual.
@@ -214,6 +212,81 @@ tenant/profile sigue restringido a owner en el estado actual.
 admin tiene permiso sembrado para operational_activity.view_any, pero no accede todavía a tenant/profile por la restricción vigente del controlador.
 
 El acceso futuro de admin a tenant/profile queda pendiente explícito y debe distinguir visualización permitida de edición restringida.
+
+Decisión vigente sobre lectura contextual heredada de OperationalActivity:
+
+OperationalActivity puede exponer lectura contextual asociada a un registro host autorizado.
+
+Regla vigente:
+
+si el usuario puede ver el registro host,
+puede ver la actividad operativa asociada a ese registro.
+
+Esta lectura no equivale a lectura general del log del tenant.
+
+No utiliza:
+
+operational_activity.view_any
+
+No habilita acceso general al log.
+
+No habilita acceso a otros registros.
+
+No convierte OperationalActivity en módulo funcional ordinario.
+
+No crea navegación principal.
+
+No autoriza la operación original.
+
+La autorización sigue perteneciendo al módulo host mediante su permiso view sobre el registro correspondiente.
+
+Hosts validados:
+
+tasks.show
+parties.show
+
+Infraestructura vigente:
+
+OperationalActivityContextReader
+TenantSurfaceRegistry
+OperationalActivitySurfaceService
+
+La tab contextual utiliza:
+
+key = activity
+
+No debe utilizarse:
+
+operational_activity.contextual
+
+Decisión vigente sobre surfaces tenant/transversales no modulares:
+
+una capacidad tenant-scoped o transversal no modular puede publicar surfaces controladas hacia hosts funcionales mediante TenantSurfaceRegistry.
+
+Esta vía corresponde cuando la capacidad:
+
+no es módulo funcional ordinario
+no posee navegación principal
+no posee CRUD ordinario
+no debe incorporarse a ModuleCatalog
+no pasa por TenantModuleAccess
+necesita publicar información controlada hacia hosts autorizados
+
+Caso validado:
+
+OperationalActivitySurfaceService publica la tab contextual Actividad mediante TenantSurfaceRegistry.
+
+ModuleSurfaceRegistry puede fusionar surfaces modulares desde ModuleCatalog y surfaces tenant/transversales desde TenantSurfaceRegistry.
+
+Reglas:
+
+no incorporar capacidades transversales a ModuleCatalog solo para publicar UI
+
+no resolver con pushes manuales permanentes en vistas host
+
+no crear navegación principal por el solo hecho de publicar una surface
+
+no alterar ownership de la capacidad transversal
 
 Decisión vigente sobre navegación desde actividad:
 

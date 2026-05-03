@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 COMPONENTES DISPONIBLES
 
@@ -247,9 +247,52 @@ Puede representar icon cuando venga explícito en la tab.
 
 Cuando la tab provenga de una surface modular enriquecida, puede utilizar module_icon como fallback.
 
+También puede representar tabs provenientes de surfaces tenant/transversales no modulares cuando estas respeten la gramática esperada por el host.
+
+Caso validado:
+
+tab Actividad contextual publicada desde OperationalActivity mediante TenantSurfaceRegistry.
+
+Regla:
+
+si la tab participa de return_tab, su key debe ser estable y compatible con navegación del host.
+
+Caso validado:
+
+key = activity
+
 No reemplaza x-tabs-embedded.
 
 x-tabs-embedded continúa correspondiendo a segmentaciones internas de bloques embebidos o capacidades invitadas.
+
+Partial visual reusable vigente para actividad operativa:
+
+resources/views/tenants/partials/operational-activity-table.blade.php
+
+Responsabilidad:
+
+representar filas de actividad operativa ya resueltas por la capa correspondiente.
+
+Columnas vigentes:
+
+Fecha
+Módulo
+Actividad
+Registro
+Actor
+Sujeto
+
+Reglas:
+
+el partial no decide autorización
+
+el partial no resuelve permisos
+
+el partial no reconstruye historia operativa
+
+el partial representa datos ya resueltos por la lectura general o contextual de OperationalActivity
+
+puede utilizarse para lectura general tenant-scoped y lectura contextual asociada a un record host autorizado cuando el payload recibido sea compatible
 
 Regla de validación de componentes:
 
@@ -313,7 +356,7 @@ El modal puede ser compartido o reusable, pero la semántica operativa permanece
 <<END SECTION>>
 
 <<SECTION: JERARQUÍA VISUAL MODULAR>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 JERARQUÍA VISUAL MODULAR
 
@@ -386,11 +429,21 @@ Si se incorpora en una show page, debe mantener jerarquía secundaria y lectura 
 
 Caso vigente:
 
-tenant/profile incorpora tab Actividad como primera lectura visual general de OperationalActivity.
+tenant/profile incorpora tab Actividad como lectura visual general de OperationalActivity.
 
 Esta tab debe leerse como lectura transversal de soporte dentro del perfil de empresa.
 
-No convierte OperationalActivity en módulo principal, navegación principal ni surface reutilizable cerrada.
+No convierte OperationalActivity en módulo principal ni navegación principal.
+
+Caso vigente adicional:
+
+tasks.show y parties.show pueden incorporar tab Actividad como lectura contextual heredada del record host autorizado.
+
+Esta tab debe leerse como capacidad transversal tenant-scoped publicada hacia el host.
+
+No convierte OperationalActivity en módulo principal de la pantalla.
+
+No convierte al host en dueño de la lógica de actividad.
 
 La tabla de actividad debe mantener lectura operativa simple.
 
@@ -470,7 +523,7 @@ Estos bloques ayudan a integrar módulos sin sobrecargar navegación ni multipli
 <<END SECTION>>
 
 <<SECTION: OFERTAS DE INTEGRACIÓN VISUAL>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 OFERTAS DE INTEGRACIÓN VISUAL
 
@@ -495,6 +548,30 @@ las mejoras internas del backend deben reflejarse con mínima complejidad visual
 Caso vigente:
 
 en inventory/movements/show, una operación asociada puede mostrarse como contexto adicional del movimiento, manteniendo al movimiento como centro de la lectura.
+
+Aclaración para surfaces tenant/transversales:
+
+una capacidad tenant-scoped o transversal no modular puede publicar integración visual hacia hosts funcionales si existe canal validado para ello.
+
+Caso validado:
+
+OperationalActivity publica tab Actividad contextual mediante TenantSurfaceRegistry.
+
+Reglas:
+
+la surface tenant/transversal no convierte la capacidad en módulo funcional ordinario
+
+no debe agregarse a ModuleCatalog solo para publicar UI
+
+no debe resolverse con inserciones manuales permanentes en vistas host
+
+debe entrar al host por el mecanismo reusable correspondiente
+
+si la surface se monta como tab principal, debe respetar x-host-tabs y key compatible con return_tab
+
+Caso validado:
+
+key = activity
 
 <<END SECTION>>
 
@@ -646,7 +723,7 @@ Estas métricas no reemplazan la tabla principal ni convierten la pantalla en da
 <<END SECTION>>
 
 <<SECTION: PATRÓN VISUAL PARA VISTAS SHOW>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 PATRÓN VISUAL PARA VISTAS SHOW
 
@@ -720,69 +797,42 @@ parties.show debe mantener la lectura separada entre:
 tipo de contacto
 relación con la empresa
 
-La decisión visual sobre relaciones embebidas o compactas debe revisarse según party_roles.role y no según parties.kind.
+Las relaciones embebidas deben evaluarse desde party_roles.role y no desde parties.kind.
 
-Regla:
+Aclaración vigente para actividad contextual:
 
-no agregar embebidos manuales en parties.show.
+una show page autorizada puede consumir tab Actividad como lectura contextual heredada cuando exista surface tenant/transversal publicada.
 
-Si falta una relación visible, debe detectarse si existe surface oficial del módulo oferente o si corresponde evolucionar la oferta del módulo dueño.
+Caso validado:
 
-Aclaración adicional para actividad en parties.show:
+tasks.show
+parties.show
 
-la futura tab Actividad no debe construirse como embebido manual ni como inferencia visual desde campos actuales del contacto.
+La tab Actividad debe entrar por x-host-tabs como tab principal del host.
 
-Debe consumir actividad operativa persistida cuando exista surface o lectura autorizada definida.
+Debe utilizar:
 
-La lectura mínima esperada para filas de actividad debe poder representar:
+key = activity
 
-fecha
-módulo
-registro enlazado
-tipo de actividad
+para compatibilidad con return_tab.
 
-La columna Registro debe contener el enlace al registro relacionado.
+Reglas:
 
-No debe agregarse una columna adicional solo para el link.
+no agregar la tab mediante push manual permanente en cada host cuando exista registry reusable
 
-Aclaración adicional para actividad en tenant/profile:
+no presentar OperationalActivity como módulo principal de la show page
 
-tenant/profile incorpora una primera lectura visual general de OperationalActivity mediante tab Actividad.
+no crear navegación propia de OperationalActivity
 
-Esta tab no debe leerse como show page de OperationalActivity ni como surface reusable cerrada.
+no abrir acceso general al log del tenant
 
-Debe mantener lectura operativa simple y escaneable.
+no reconstruir historia operativa desde campos actuales del modelo
 
-Columnas vigentes:
+El host debe consumir filas ya resueltas por la capa de lectura correspondiente.
 
-Fecha
-Módulo
-Actividad
-Registro
-Actor
-Sujeto
+Partial reusable vigente:
 
-La columna Registro puede enlazar al show canónico del registro asociado cuando exista URL resuelta y segura.
-
-Si no existe ruta canónica segura, debe mostrarse texto plano.
-
-Aclaración adicional para detalle de movimientos:
-
-cuando inventory.movements.show exponga una operación asociada mediante inventory_operations, esa información debe leerse como contexto adicional del movimiento y no como nueva pantalla principal obligatoria.
-
-La vista puede incorporar datos de operación asociada, como identificador, tipo, notas o auditoría técnica, sin desplazar el foco del show principal del movimiento.
-
-Aclaración adicional para line items:
-
-orders y documents pueden compartir componentes visuales de líneas cuando la estructura de lectura sea equivalente.
-
-La tabla, el formulario, el modal operativo y las tabs embebidas pueden reutilizar una gramática común sin borrar la identidad visual del host ni la semántica propia de cada módulo.
-
-Aclaración adicional para tabs persistentes:
-
-las tabs principales del host deben poder conservar el panel activo mediante return_tab cuando el host lo soporte.
-
-La key recibida debe validarse contra las tabs disponibles del recurso actual.
+resources/views/tenants/partials/operational-activity-table.blade.php
 
 <<END SECTION>>
 

@@ -247,7 +247,7 @@ Es una pieza estructural del funcionamiento del sistema.
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00022
+SECTION_VERSION: 00024
 
 CAPAS FUNCIONALES DEL SISTEMA
 
@@ -281,11 +281,11 @@ No debe leerse como CRUD ordinario, módulo navegable principal ni responsabilid
 
 OperationalActivity registra actividad operativa emitida por módulos dueños luego de que estos autorizan, validan y ejecutan su operación propia.
 
-No absorbe ownership funcional, no autoriza, no valida y no ejecuta la operación original.
+No absorbe ownership funcional ni ejecuta la operación original.
 
-La lectura general inicial de OperationalActivity se resuelve como capacidad tenant no modular.
+La lectura general de OperationalActivity se resuelve como capacidad tenant no modular.
 
-Esto no convierte OperationalActivity en módulo funcional ordinario ni en navegación principal.
+La lectura contextual de OperationalActivity puede publicarse desde el plano tenant/transversal hacia hosts funcionales autorizados sin convertir OperationalActivity en módulo funcional.
 
 BASE DEL DOMINIO
 Anclajes conceptuales amplios del negocio.
@@ -302,6 +302,10 @@ tenant es contexto, no módulo funcional
 no toda capacidad tenant-scoped debe incorporarse a ModuleCatalog
 
 las capacidades tenant no modulares pueden existir cuando la responsabilidad no sea módulo funcional, no tenga CRUD ordinario, no requiera navegación propia y no deba habilitarse o deshabilitarse como módulo del negocio
+
+las capacidades tenant/transversales no modulares pueden publicar surfaces controladas hacia hosts funcionales cuando exista contrato validado para ello
+
+esa publicación no altera su naturaleza arquitectónica ni las convierte en módulos funcionales ordinarios
 
 las necesidades de colaboradores internos deben resolverse primero en la capa tenant antes de crear módulos nuevos
 
@@ -381,7 +385,7 @@ Su función es sostener la plataforma y su frontera de ingreso.
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00026
+SECTION_VERSION: 00027
 
 ENTIDADES DEL NEGOCIO
 
@@ -437,7 +441,7 @@ operational_activities registra actividad operativa real del sistema dentro del 
 
 operational_activities no representa una entidad hija de módulos funcionales particulares
 
-operational_activities no reemplaza la lógica interna, autorización ni validación de los módulos funcionales
+operational_activities no reemplaza la lógica interna de los módulos funcionales
 
 order_items y document_items conservan naturaleza de entidades hijas de sus módulos padre aunque puedan actuar como anclaje de trazabilidad o ejecución dentro de otros flujos
 
@@ -448,6 +452,10 @@ Aclaración estructural para OperationalActivity:
 OperationalActivity puede registrar actividad operativa sobre registros de módulos funcionales cuando el módulo dueño emite eventos operativos livianos luego de una operación autorizada, validada y ejecutada.
 
 La integración con OperationalActivity no convierte a esos módulos en dependientes del log ni altera su ownership funcional.
+
+OperationalActivity puede exponer lectura contextual sobre registros host autorizados mediante surface tenant/transversal.
+
+Esa lectura no convierte operational_activities en entidad hija del host ni convierte OperationalActivity en módulo funcional ordinario.
 
 Aclaración estructural para inventory:
 
@@ -535,7 +543,7 @@ tampoco debe sobredimensionarse el dominio del negocio hasta absorber piezas cuy
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 CLASIFICACIÓN CONCEPTUAL DE MÓDULOS
 
@@ -583,14 +591,6 @@ no abre navegación principal por mera existencia técnica
 
 no es CRUD ordinario
 
-no autoriza operaciones
-
-no valida operaciones originales
-
-no reemplaza policies ni Security
-
-no bloquea el flujo principal si falla el registro del log
-
 no absorbe ownership funcional de los módulos que emiten eventos
 
 no debe registrar actividad solo por existir CRUD
@@ -619,6 +619,26 @@ pueden ser evaluadas por la capa central de seguridad
 
 pueden tener permisos asignables cuando exista contrato explícito
 
+CAPACIDADES TENANT/TRANSVERSALES NO MODULARES CON SURFACE PUBLICADA
+
+Representan capacidades tenant-scoped o transversales que publican lectura o información controlada hacia hosts funcionales sin convertirse en módulos ordinarios.
+
+Caso vigente:
+
+OperationalActivity publica lectura contextual mediante TenantSurfaceRegistry y OperationalActivitySurfaceService.
+
+Reglas:
+
+no se incorporan a ModuleCatalog por publicar una surface
+
+no generan navegación principal
+
+no poseen CRUD ordinario
+
+no pasan por TenantModuleAccess como módulo funcional
+
+conservan ownership en el plano tenant/transversal
+
 Aclaración para inventory:
 
 inventory es módulo nuclear funcional.
@@ -646,7 +666,7 @@ La navegación, visualización y lectura autorizada se resuelven en los document
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00025
+SECTION_VERSION: 00027
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
@@ -721,6 +741,36 @@ La lógica de sanidad, normalización y persistencia del registro operativo pert
 
 El significado operativo primario de la acción sigue perteneciendo al módulo dueño.
 
+SURFACES TENANT O TRANSVERSALES NO MODULARES
+
+Una capacidad tenant-scoped o transversal no modular puede publicar surfaces controladas hacia hosts funcionales sin incorporarse a ModuleCatalog.
+
+Esta vía corresponde cuando la capacidad:
+
+no es módulo funcional ordinario
+no posee CRUD ordinario
+no requiere navegación principal
+no se habilita o deshabilita como módulo del negocio
+debe ofrecer lectura o información controlada a hosts autorizados
+
+Caso validado:
+
+OperationalActivity puede publicar lectura contextual mediante una surface tenant/transversal.
+
+Lectura estructural validada:
+
+OperationalActivity
+↓
+TenantSurfaceRegistry
+↓
+OperationalActivitySurfaceService
+↓
+ModuleSurfaceRegistry
+↓
+host show autorizado
+
+Esta publicación no convierte OperationalActivity en módulo funcional, no lo incorpora a ModuleCatalog y no crea navegación principal.
+
 Aclaración consolidada:
 
 los módulos pueden publicar metadata estructural propia.
@@ -731,6 +781,8 @@ módulo define
 ModuleCatalog provee metadata
 ModuleSurfaceRegistry normaliza
 host consume sin reinterpretar
+
+Cuando existan surfaces tenant/transversales no modulares, ModuleSurfaceRegistry puede integrar ese origen sin degradar la frontera entre módulos funcionales ordinarios y capacidades transversales.
 
 Caso vigente consolidado:
 
@@ -743,8 +795,6 @@ Aclaración estructural vigente para parties:
 parties.kind pertenece al núcleo estructural del contacto.
 
 party_roles.role expresa relación operativa con la empresa.
-
-La segmentación funcional de permisos de parties se resuelve por party_roles.role mediante allowed_party_roles y no por parties.kind.
 
 <<END SECTION>>
 

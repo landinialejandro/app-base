@@ -41,7 +41,7 @@ no debe cargarse con teoría arquitectónica general que corresponda a otros doc
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 REGLA GENERAL
 
@@ -68,13 +68,21 @@ la existencia de operational_activities no habilita por sí sola navegación pri
 
 OperationalActivity debe leerse primero como capacidad transversal de soporte.
 
-Cualquier lectura visual futura debe responder a una necesidad funcional real, autorización explícita y superficie definida.
+Cualquier lectura visual debe responder a una necesidad funcional real, autorización explícita y superficie definida.
 
 La integración backend de nuevos módulos con OperationalActivity no modifica por sí misma la navegación principal, las show pages, las tabs ni los recorridos visibles.
 
 Regla:
 
 no crear tab, vista general, menú ni acceso de actividad sin contrato de lectura autorizado y decisión visual específica.
+
+Regla adicional para lectura contextual:
+
+una tab Actividad dentro de un host autorizado no crea navegación principal de OperationalActivity.
+
+La navegación visible permanece dentro del show del host.
+
+La lectura contextual debe limitarse a la actividad asociada al registro host autorizado.
 
 <<END SECTION>>
 
@@ -211,7 +219,7 @@ Su función es dar acceso estructural al ecosistema operativo vigente
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -279,7 +287,7 @@ Debe existir acción o confirmación explícita.
 
 Aclaración vigente para OperationalActivity:
 
-OperationalActivity puede ofrecer lectura como actividad general del tenant o como actividad filtrada por colaborador.
+OperationalActivity puede ofrecer lectura como actividad general del tenant o como actividad contextual asociada a un registro host autorizado.
 
 Esa lectura no modifica por sí misma los recorridos principales de los módulos que originaron la actividad.
 
@@ -287,7 +295,7 @@ La navegación hacia el registro relacionado debe resolverse desde la propia fil
 
 No debe agregarse una columna adicional solo para link.
 
-Primera lectura visual vigente:
+Lectura visual general vigente:
 
 tenant/profile
 tab Actividad
@@ -298,11 +306,34 @@ la tab Actividad muestra los últimos 50 registros de actividad operativa del te
 
 tenant/profile sigue restringido a owner
 
-la tab Actividad no se considera todavía surface reutilizable
+Lectura contextual validada:
+
+show del host autorizado
+tab Actividad
+tabla de actividad contextual del record
+
+Hosts validados:
+
+tasks.show
+parties.show
+
+La tab se accede mediante:
+
+return_tab=activity
+
+Reglas:
+
+esta tab no representa navegación principal de OperationalActivity
+
+no crea ruta propia nueva de OperationalActivity
+
+no habilita lectura general del tenant
+
+no habilita acceso a otros registros
 
 La navegación desde una actividad hacia el registro destino debe existir solo cuando haya ruta show canónica segura.
 
-Trail validado:
+Trail validado para lectura general:
 
 Inicio
 Perfil de empresa · Actividad
@@ -320,7 +351,7 @@ no se inventan links para records sin ruta canónica segura.
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00019
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -384,31 +415,44 @@ No se abre navegación nueva para party_roles.
 
 party_roles sigue siendo entidad hija o complementaria de parties y no módulo navegable propio.
 
-Aclaración futura para actividad en parties.show:
+Aclaración vigente para actividad en show pages:
 
-la tab Actividad queda como lectura futura posible para contactos con relación employee y membership activa vinculada.
+la tab Actividad puede publicarse como lectura contextual heredada cuando el host ya autorizó el registro actual.
 
-No fue implementada en esta sesión.
-
-Si se implementa, no debe leer actividad desde party_id ni inferir historia desde created_by, updated_by o assigned_user_id actuales.
+No debe leer actividad desde campos actuales ni inferir historia desde created_by, updated_by, assigned_user_id o party_id.
 
 Debe consumir OperationalActivity persistido y autorizado.
 
-La actividad debe filtrarse por el sujeto operativo correspondiente, probablemente subject_user_id vinculado a la membership activa del empleado, si ese contrato queda validado.
+La lectura contextual se resuelve mediante:
 
-La integración backend de parties con OperationalActivity no habilita por sí sola una tab visual ni una relación embebida nueva.
+OperationalActivityContextReader
+OperationalActivitySurfaceService
+TenantSurfaceRegistry
+ModuleSurfaceRegistry
+x-host-tabs
+
+Hosts validados:
+
+tasks.show
+parties.show
+
+Reglas:
+
+la tab Actividad contextual no habilita lectura general del tenant
+
+no usa operational_activity.view_any
+
+no convierte OperationalActivity en módulo navegable
+
+no convierte al host en dueño de la lógica de actividad
+
+no debe agregarse manualmente con push local si ya puede publicarse desde registry reusable
 
 Aclaración vigente para tenant/profile:
 
-tenant/profile incorpora tab Actividad como primera lectura visual general de OperationalActivity.
+tenant/profile incorpora tab Actividad como lectura visual general de OperationalActivity.
 
-Esta lectura no convierte OperationalActivity en relación embebida reusable para show pages.
-
-No debe tomarse como autorización automática para agregar tabs de actividad en otros hosts.
-
-Regla:
-
-toda nueva lectura visual de actividad debe tener contrato de autorización y decisión visual específica.
+Esta lectura general se diferencia de la lectura contextual por registro.
 
 Orden visual recomendado para tablas anfitrionas:
 
@@ -445,7 +489,7 @@ las surfaces embebidas deben viajar enriquecidas desde registry para permitir re
 <<END SECTION>>
 
 <<SECTION: FLUJOS DERIVADOS RELEVANTES>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 FLUJOS DERIVADOS RELEVANTES
 
@@ -474,6 +518,9 @@ membership o perfil tenant
 
 tenant/profile
 → lectura general de OperationalActivity mediante tab Actividad
+
+host show autorizado
+→ lectura contextual de OperationalActivity mediante tab Actividad
 
 OperationalActivity
 → registro relacionado mediante enlace integrado en la fila de actividad cuando exista lectura visual autorizada y ruta canónica segura
@@ -513,27 +560,18 @@ Cuando corresponda a colaborador interno:
 party.kind debe ser person
 party_roles debe contener employee
 
-La navegación no debe convertir automáticamente todo usuario interno en party.
+Aclaración vigente sobre actividad contextual:
 
-Aclaración para actividad operativa:
+la tab Actividad de un host show no crea una ruta nueva de OperationalActivity.
 
-OperationalActivity no crea por sí mismo un flujo derivado de mutación.
+La lectura permanece dentro del recurso host autorizado y se accede con:
 
-Solo puede ofrecer lectura y navegación hacia registros ya existentes cuando la autorización de lectura esté definida.
+return_tab=activity
 
-La lectura general tenant-scoped vigente se autoriza mediante:
+Casos validados:
 
-operational_activity.view_any
-
-La integración backend de módulos con OperationalActivity no genera por sí misma flujos visibles nuevos.
-
-En inventory, la referencia operativa relevante para el log transversal es InventoryOperation.
-
-En parties, la actividad puede representar cambios de Party y de party_roles como metadata operativa, sin abrir navegación propia para party_roles.
-
-Regla:
-
-si no existe ruta show canónica segura para el record asociado, la fila de actividad debe mostrar fallback textual y no inventar navegación.
+tasks.show
+parties.show
 
 <<END SECTION>>
 

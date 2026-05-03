@@ -26,7 +26,7 @@ lección aplicable
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 LECCIONES VIGENTES
 
@@ -267,19 +267,48 @@ persistencia final
 
 antes de tocar vista, logger, resolver o Blade.
 
-El trail debe incluir explícitamente Inicio si se quiere que el breadcrumb destino lo muestre.
+El primer piloto funcional no siempre es cierre arquitectónico.
 
-Corrección aplicada:
+Caso detectado:
 
-trail desde Actividad incluye:
+se agregó tab Actividad mediante $tabItems->push directamente en tasks.show y parties.show.
 
-Inicio
-Perfil de empresa · Actividad
+Aunque funcionó, duplicaba montaje local y evitaba el sistema surface-driven.
+
+Corrección:
+
+crear TenantSurfaceRegistry
+crear OperationalActivitySurfaceService
+fusionar surfaces tenant/transversales desde ModuleSurfaceRegistry
+eliminar pushes manuales
+dejar que los hosts consuman la tab Actividad desde registry
 
 Lección:
 
-la navegación contextual no debe asumirse por el destino.
+si una capacidad transversal no debe estar en ModuleCatalog, no se debe resolver el problema con inserciones manuales permanentes en vistas host.
 
-El origen debe entregar trail completo cuando se necesita preservar breadcrumb.
+Debe existir una vía de publicación controlada, equivalente al sistema de surfaces, pero separada de los módulos funcionales ordinarios.
+
+El key de una tab impacta en la navegación visible.
+
+Caso detectado:
+
+el key técnico operational_activity.contextual funcionaba, pero generaba URLs poco adecuadas:
+
+?return_tab=operational_activity.contextual
+
+Corrección:
+
+usar:
+
+key = activity
+
+Lección:
+
+en tabs host, key no es solo identificador técnico interno.
+
+También forma parte de la experiencia de navegación mediante return_tab.
+
+Debe ser estable, legible y compatible con la gramática visual del host.
 
 <<END SECTION>>

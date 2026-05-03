@@ -52,7 +52,7 @@ documentación actualizada
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 REGLA GENERAL
 
@@ -123,10 +123,39 @@ Regla:
 
 las capacidades tenant no modulares pueden ser evaluadas por Security sin convertirse en módulos funcionales ordinarios.
 
+Regla adicional para surfaces tenant/transversales no modulares:
+
+una capacidad tenant-scoped o transversal puede publicar una surface hacia hosts funcionales sin convertirse en módulo funcional.
+
+Esta integración no representa un módulo nuevo si la capacidad:
+
+no posee navegación principal
+no posee CRUD ordinario
+no se incorpora a ModuleCatalog
+no pasa por TenantModuleAccess
+no se habilita ni deshabilita como módulo ordinario
+
+Caso validado:
+
+OperationalActivitySurfaceService publica una tab contextual Actividad para hosts autorizados mediante TenantSurfaceRegistry.
+
+Antes de crear una surface para una capacidad tenant/transversal se debe verificar:
+
+si la capacidad es módulo funcional o no
+si corresponde ModuleCatalog o TenantSurfaceRegistry
+si necesita navegación propia o solo consumo embebido
+si la autorización proviene de permiso propio o del host
+si la surface representa lectura general o contextual
+si el host ya autorizó el registro antes de consumir la surface
+
+Regla:
+
+no debe quedar como cierre estable un push manual de tabs en vistas host si la capacidad ya puede publicarse mediante registry reusable.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 0 — IDENTIDAD DEL MÓDULO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 BLOQUE 0 — IDENTIDAD DEL MÓDULO
 
@@ -150,6 +179,7 @@ módulo agrupador
 módulo derivado
 capacidad transversal de soporte
 capacidad tenant no modular
+capacidad tenant/transversal no modular con surface publicada
 pieza interna del tenant
 
 Preguntas obligatorias:
@@ -161,6 +191,8 @@ qué rol ocupa dentro del ecosistema general
 registra, acompaña o sostiene actividad de otros módulos sin absorber su ownership
 debe tener navegación principal o solo consumo interno/transversal
 la necesidad requiere ModuleCatalog o puede resolverse como capacidad tenant no modular
+si necesita publicar UI reusable, corresponde ModuleCatalog o TenantSurfaceRegistry
+la surface representa un módulo funcional o una capacidad tenant/transversal no modular
 
 Si estas respuestas no están claras, no debe avanzarse a implementación.
 
@@ -176,10 +208,16 @@ operational_activity.view_any se lee como capacidad tenant no modular para lectu
 
 No se incorpora a ModuleCatalog.
 
+Caso vigente adicional:
+
+OperationalActivitySurfaceService se lee como surface tenant/transversal no modular publicada mediante TenantSurfaceRegistry.
+
+No convierte OperationalActivity en módulo funcional ordinario.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 BLOQUE 1 — CONTRATO MODULAR
 
@@ -287,10 +325,32 @@ Caso validado:
 
 operational_activity.view_any
 
+Criterio adicional para surfaces tenant/transversales no modulares:
+
+si una capacidad tenant o transversal no modular necesita publicar UI reusable hacia hosts funcionales, debe definirse una vía de publicación distinta de ModuleCatalog.
+
+Validar:
+
+si la capacidad conserva naturaleza no modular
+si la surface representa lectura general o lectura contextual
+si el host consumidor ya autorizó el registro cuando la lectura sea contextual
+si corresponde TenantSurfaceRegistry
+si ModuleSurfaceRegistry puede fusionar esa surface con las modulares sin alterar ownership
+si la key de la tab es compatible con return_tab
+si se evita duplicación por pushes manuales en cada host
+
+Caso validado:
+
+OperationalActivitySurfaceService publica tab Actividad mediante TenantSurfaceRegistry.
+
+Regla:
+
+la surface tenant/transversal no convierte la capacidad en módulo funcional ordinario.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 BLOQUE 2 — SEGURIDAD OBLIGATORIA
 
@@ -430,10 +490,30 @@ Si se crea una lectura general, debe diferenciarse de lectura contextual por reg
 
 La lectura general del log del tenant no debe confundirse con la lectura de actividad asociada a un registro que el usuario ya puede ver.
 
+Validación adicional para lectura contextual heredada:
+
+si una surface muestra actividad operativa asociada a un registro host, debe validarse que el host ya autorizó view sobre ese registro.
+
+La lectura contextual no debe usar operational_activity.view_any.
+
+operational_activity.view_any queda reservado para lectura general tenant-scoped.
+
+Reglas:
+
+la surface contextual no abre acceso general al log del tenant
+la surface contextual no autoriza el registro host
+la surface contextual no reconstruye permisos del host
+la surface contextual no debe mostrar actividad de otros registros
+el reader contextual debe recibir o trabajar sobre el record ya autorizado
+
+Caso validado:
+
+OperationalActivityContextReader lee actividad asociada al record host autorizado.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -556,10 +636,29 @@ Casos actuales sin link seguro:
 InventoryOperation
 Attachment
 
+Validación adicional para surfaces tenant/transversales no modulares:
+
+cuando una capacidad tenant/transversal no modular publique una surface hacia hosts funcionales:
+
+debe hacerlo mediante registry específico del plano tenant/transversal
+no debe incorporarse a ModuleCatalog si no es módulo funcional ordinario
+no debe resolverse con pushes manuales permanentes en cada host
+no debe crear navegación principal por el solo hecho de publicar UI
+no debe pasar por TenantModuleAccess
+debe respetar la gramática esperada por ModuleSurfaceRegistry y x-host-tabs cuando corresponda
+
+Caso validado:
+
+OperationalActivitySurfaceService se publica mediante TenantSurfaceRegistry.
+
+Regla:
+
+ModuleSurfaceRegistry puede fusionar surfaces modulares y tenant/transversales, pero cada origen debe conservar su ownership y frontera conceptual.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA
 
@@ -649,37 +748,27 @@ x-empty-state no existe actualmente como componente disponible.
 
 Regla:
 
-si no existe componente específico, resolver el estado vacío con componentes disponibles o markup inline consistente, sin crear componentes globales como parche.
+si no existe componente específico, resolver el estado vacío con componentes disponibles o markup inline consistente.
 
-Validación adicional para actividad operativa:
+Validación adicional para tabs contextuales tenant/transversales:
 
-si se incorpora lectura visual de actividad, debe mantener jerarquía secundaria y lectura escaneable.
+si una capacidad tenant/transversal no modular publica una tab en una show page, debe mantener jerarquía secundaria respecto del recurso host.
 
-Caso vigente:
+La tab debe:
 
-tenant/profile incorpora tab Actividad.
+usar x-host-tabs cuando sea tab principal del host
+respetar key compatible con return_tab
+no competir visualmente con el núcleo del recurso
+no presentar la capacidad transversal como módulo principal
+no crear navegación propia innecesaria
 
-La vista utiliza estructura visual existente:
+Caso validado:
 
-tabs
-tab-panel
-tab-panel-stack
-x-card
-dashboard-section-header
-table-responsive
-table
-detail-block para estado vacío
+tab Actividad con key activity en hosts autorizados.
 
-Columnas vigentes:
+Regla:
 
-Fecha
-Módulo
-Actividad
-Registro
-Actor
-Sujeto
-
-La columna Registro debe contener enlace solo cuando exista URL resuelta.
+si una tab puede publicarse mediante registry reusable, no debe quedar insertada manualmente por push local en cada vista host como cierre estable.
 
 <<END SECTION>>
 

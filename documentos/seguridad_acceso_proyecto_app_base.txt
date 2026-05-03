@@ -53,7 +53,7 @@ los detalles técnicos pueden evolucionar sin alterar estos principios rectores
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -93,6 +93,29 @@ La trazabilidad no autoriza operaciones.
 
 La trazabilidad registra actividad cuando corresponde, pero no reemplaza Security, policies, validaciones ni contratos modulares.
 
+LECTURA CONTEXTUAL HEREDADA
+
+La lectura contextual de actividad operativa asociada a un registro puede habilitarse cuando el host ya autorizó la visualización de ese registro.
+
+Regla validada:
+
+si el usuario puede ver el registro host,
+puede ver la actividad operativa asociada a ese registro.
+
+Esta regla no equivale a lectura general del log del tenant.
+
+No habilita acceso a otros registros.
+
+No habilita navegación principal de OperationalActivity.
+
+No utiliza operational_activity.view_any.
+
+No reemplaza permisos del módulo host.
+
+No autoriza la operación original.
+
+La autorización sigue perteneciendo al módulo host mediante su permiso view sobre el registro correspondiente.
+
 Reglas síntesis:
 
 la visibilidad en UI no constituye autorización
@@ -105,6 +128,8 @@ el registro de actividad operativa no modifica el permiso efectivo de la acción
 
 la lectura del log operativo requiere autorización explícita propia
 
+la lectura contextual heredada solo alcanza la actividad asociada al registro host ya autorizado
+
 Caso vigente:
 
 la lectura general tenant-scoped de OperationalActivity se autoriza mediante:
@@ -113,7 +138,7 @@ operational_activity.view_any
 
 Esta autorización no habilita por sí sola operaciones originales ni reemplaza permisos sobre los registros originantes.
 
-La lectura contextual futura de actividad asociada a un registro requiere contrato explícito propio o herencia autorizada claramente definida.
+La lectura contextual heredada de actividad asociada a un registro debe mantenerse separada de esa lectura general.
 
 <<END SECTION>>
 
@@ -275,7 +300,7 @@ No reemplazan la singularidad estructural del owner.
 <<END SECTION>>
 
 <<SECTION: MODELO V2 DE PERMISOS>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 MODELO V2 DE PERMISOS
 
@@ -348,6 +373,18 @@ sí pueden tener permisos asignables cuando exista contrato explícito
 
 sí deben respetar tenant activo, membership vigente y autorización efectiva
 
+Lectura contextual heredada:
+
+cuando una surface tenant/transversal muestra actividad asociada a un registro host ya autorizado, la autorización de lectura contextual proviene del view efectivo sobre ese registro host.
+
+Esta lectura contextual no utiliza operational_activity.view_any.
+
+operational_activity.view_any queda reservado para lectura general tenant-scoped del log operativo.
+
+Regla:
+
+la lectura contextual de actividad no debe confundirse con acceso general al log ni con permiso propio para navegar OperationalActivity como módulo.
+
 El detalle aplicado por módulo o capacidad debe resolverse en las secciones especializadas de constraints y reglas operativas.
 
 La implementación concreta puede evolucionar siempre que preserve esta doctrina.
@@ -394,7 +431,7 @@ no saltar el resolver central con lógica local improvisada
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00022
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -482,25 +519,38 @@ Esta capability se evalúa desde la capa central de seguridad sin convertir Oper
 
 La existencia de esa lectura general no habilita por sí sola lectura contextual en cualquier show page ni acceso a registros originantes no autorizados.
 
+Regla adicional para lectura contextual heredada:
+
+cuando una surface tenant/transversal de OperationalActivity se monta dentro de un host funcional, el host debe haber autorizado previamente view sobre el registro actual.
+
+Secuencia validada:
+
+host autoriza view del registro
+surface transversal recibe el record ya autorizado
+OperationalActivityContextReader lee solo actividad asociada a ese record
+la tab Actividad muestra lectura contextual
+
+Reglas:
+
+no usar operational_activity.view_any para lectura contextual de un registro host
+
+no abrir acceso al log general del tenant desde una surface contextual
+
+no leer actividad de registros no autorizados
+
+no convertir la surface contextual en navegación principal
+
+no usar OperationalActivity como fuente para decidir permisos del host
+
+no reconstruir la autorización del host dentro de OperationalActivity
+
 Regla adicional para parties:
 
 la UI no constituye autorización para asignar relaciones sensibles del contacto.
 
 Si una opción visual se oculta, bloquea o simplifica en el formulario, el backend debe validar igualmente el intento manipulado.
 
-Caso vigente:
-
-la relación employee dentro de party_roles no debe poder asignarse manualmente desde alta o edición común de parties salvo por usuarios autorizados.
-
-La protección efectiva debe vivir en backend.
-
-Regla:
-
-la autorización sensible de employee debe resolverse desde una pieza centralizada del dominio parties.
-
-Esa pieza debe evitar duplicación de la regla entre controller y requests.
-
-El controller puede consumir esa autorización para expresar opciones disponibles en UI, pero la UI no se convierte en fuente de autorización.
+La relación employee dentro de party_roles debe mantenerse protegida por backend cuando corresponda.
 
 <<END SECTION>>
 
@@ -583,7 +633,7 @@ El detalle aplicado por módulo debe resolverse en las secciones especializadas 
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00021
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -640,9 +690,9 @@ No debe usarse como canal paralelo de autorización, validación o mutación.
 
 La lectura del log operativo requiere definición explícita de autorización.
 
-Caso vigente:
+Lectura general tenant-scoped:
 
-la lectura general tenant-scoped se autoriza mediante:
+la lectura general del log se autoriza mediante:
 
 operational_activity.view_any
 
@@ -650,15 +700,22 @@ Esta capability no incorpora OperationalActivity a ModuleCatalog como módulo fu
 
 La lectura general del log no autoriza la operación original ni reemplaza el permiso efectivo sobre el registro originante.
 
-Criterio futuro pendiente:
+Lectura contextual heredada:
 
-la lectura contextual de actividad asociada a un registro deberá resolverse por contrato explícito.
+la lectura contextual de actividad asociada a un registro host se autoriza por el view efectivo sobre ese registro.
 
-Criterio conceptual acordado:
+Regla vigente:
 
-si el usuario puede ver el registro host, podrá evaluarse que vea la actividad asociada a ese registro.
+si el usuario puede ver el registro host,
+puede ver la actividad operativa asociada a ese registro.
 
 Esto no implica acceso general al log del tenant.
+
+No utiliza operational_activity.view_any.
+
+No habilita lectura de otros registros.
+
+No crea navegación principal de OperationalActivity.
 
 Aclaración para parties:
 
@@ -765,7 +822,7 @@ la integración reusable reduce duplicación visual o contractual, pero no reduc
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00019
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -884,19 +941,17 @@ no admite carga manual por formularios
 
 Su escritura es system-owned y ocurre como consecuencia de eventos operativos livianos emitidos por módulos dueños después de completar acciones propias autorizadas.
 
-La lectura general tenant-scoped del log operativo ya tiene contrato inicial definido:
+La lectura general tenant-scoped del log operativo se autoriza mediante:
 
 operational_activity.view_any
 
-Esta capability autoriza lectura general del log operativo del tenant.
-
 Reglas:
+
+autoriza lectura general del log operativo del tenant
 
 no autoriza operaciones originales
 
 no reemplaza permisos sobre los registros originantes
-
-no habilita lectura contextual automática en show pages
 
 no convierte OperationalActivity en módulo funcional ordinario
 
@@ -904,11 +959,31 @@ no incorpora OperationalActivity a ModuleCatalog
 
 no crea navegación principal
 
-La lectura contextual de actividad asociada a registros, módulos o show pages específicas queda como contrato distinto.
+La lectura contextual heredada de actividad asociada a un registro host autorizado se resuelve por el permiso view efectivo sobre ese registro.
 
-Criterio pendiente:
+Regla vigente:
 
-definir lectura contextual de actividad asociada a registros o módulos específicos.
+si el usuario puede ver el registro host,
+puede ver la actividad operativa asociada a ese registro.
+
+Reglas:
+
+no utiliza operational_activity.view_any
+
+no habilita lectura general del tenant
+
+no habilita acceso a otros registros
+
+no convierte OperationalActivity en módulo funcional ordinario
+
+no crea navegación principal
+
+no autoriza la operación original
+
+Hosts validados:
+
+tasks.show
+parties.show
 
 Regla:
 

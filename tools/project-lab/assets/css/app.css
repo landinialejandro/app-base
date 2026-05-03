@@ -426,7 +426,7 @@ textarea {
     font-family: 'Fira Code', monospace;
     line-height: 1.6;
     overflow-x: auto;
-    max-height: 500px;
+    max-height: 275px;
     overflow-y: auto;
 }
 

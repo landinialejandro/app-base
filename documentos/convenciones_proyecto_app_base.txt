@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00022
+SECTION_VERSION: 00023
 
 CONVENCIONES GENERALES
 
@@ -198,6 +198,56 @@ Caso validado:
 operational_activity.view_any
 
 Esta capability autoriza lectura general tenant-scoped de OperationalActivity desde Security sin convertir OperationalActivity en módulo funcional ordinario.
+
+Convención para surfaces tenant/transversales no modulares:
+
+una capacidad tenant-scoped o transversal no modular puede publicar surfaces reutilizables mediante una vía específica distinta de ModuleCatalog.
+
+Caso validado:
+
+TenantSurfaceRegistry
+
+Este canal permite que una capacidad no modular publique información controlada hacia hosts funcionales sin convertirse en módulo ordinario.
+
+Caso vigente:
+
+OperationalActivity
+TenantSurfaceRegistry
+OperationalActivitySurfaceService
+ModuleSurfaceRegistry
+hosts show
+
+Reglas:
+
+no incorporar una capacidad transversal a ModuleCatalog solo para publicar UI
+
+no insertar tabs manualmente en cada host consumidor si la capacidad puede publicarse por registry reusable
+
+no pasar una capacidad tenant/transversal no modular por TenantModuleAccess como si fuera módulo funcional ordinario
+
+no crear navegación principal ni CRUD por el solo hecho de publicar una surface
+
+ModuleSurfaceRegistry puede fusionar surfaces modulares desde ModuleCatalog y surfaces tenant/transversales desde TenantSurfaceRegistry.
+
+La surface tenant/transversal debe respetar la misma gramática esperada por los hosts.
+
+Si la surface se monta como tab principal del host, su key debe ser compatible con return_tab.
+
+Caso validado:
+
+key = activity
+
+No debe usarse un identificador técnico largo como key visible cuando genere navegación poco legible o inadecuada.
+
+Caso corregido:
+
+operational_activity.contextual
+
+Regla:
+
+el identificador técnico conceptual de una capacidad transversal puede estar dado por la clase oferente, el registry tenant y el contexto.
+
+No necesariamente debe trasladarse como key visible de tab.
 
 Convención de navegación para actividad operativa:
 
@@ -648,7 +698,7 @@ Esa pieza debe evitar duplicación de la regla entre controller y requests.
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00024
+SECTION_VERSION: 00025
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -1011,9 +1061,67 @@ si no existe show canónico seguro, no debe inventarse link.
 
 Caso vigente:
 
-la tab Actividad de tenant/profile es primera lectura visual concreta de OperationalActivity.
+la tab Actividad de tenant/profile es primera lectura visual general de OperationalActivity.
 
-No debe considerarse todavía surface reutilizable.
+Regla adicional para surfaces tenant/transversales no modulares:
+
+una capacidad tenant-scoped o transversal no modular puede publicar una surface de lectura o integración hacia hosts funcionales mediante un registry propio del plano tenant/transversal.
+
+Caso validado:
+
+TenantSurfaceRegistry
+
+Esta vía debe usarse cuando la capacidad:
+
+no es módulo funcional ordinario
+no corresponde a ModuleCatalog
+no posee CRUD ordinario
+no requiere navegación principal
+no pasa por TenantModuleAccess
+necesita publicar información controlada hacia hosts autorizados
+
+Caso vigente:
+
+OperationalActivitySurfaceService publica la tab contextual Actividad para hosts autorizados.
+
+Flujo validado:
+
+OperationalActivity
+TenantSurfaceRegistry
+OperationalActivitySurfaceService
+ModuleSurfaceRegistry
+host show
+x-host-tabs
+
+Reglas:
+
+no agregar capacidades transversales a ModuleCatalog solo para publicar UI
+
+no resolver el cierre con pushes manuales permanentes en vistas host
+
+no duplicar tabs manualmente si la surface puede publicarse por registry
+
+no convertir la publicación de una surface en navegación principal ni CRUD
+
+el host consume la surface
+
+la capacidad tenant/transversal conserva ownership de su lectura
+
+ModuleSurfaceRegistry puede fusionar surfaces modulares y tenant/transversales siempre que cada origen conserve su frontera conceptual.
+
+Regla adicional para key de tabs host:
+
+cuando una surface se monte como tab principal de host, el key debe ser compatible con return_tab.
+
+Caso validado:
+
+key = activity
+
+No debe usarse un key técnico largo cuando impacte negativamente la navegación visible.
+
+Caso corregido:
+
+operational_activity.contextual
 
 CONTRATO DE SEGURIDAD
 
@@ -1028,7 +1136,7 @@ ningún contrato modular es válido si contradice el contrato de seguridad del m
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CLASIFICACIÓN MODULAR>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 CONVENCIONES DE CLASIFICACIÓN MODULAR
 
@@ -1046,6 +1154,8 @@ módulo autónomo
 módulo agrupador
 módulo derivado
 capacidad transversal de soporte
+capacidad tenant no modular
+capacidad tenant/transversal no modular con surface publicada
 
 MÓDULO BASE DEL DOMINIO
 
@@ -1156,57 +1266,68 @@ inventory mantiene identidad de módulo nuclear funcional.
 
 Su integración con OperationalActivity se ancla en InventoryOperation como agrupación operativa contextual.
 
-InventoryMovement conserva la trazabilidad atómica de stock y no se convierte por eso en actividad transversal principal.
+InventoryMovement conserva trazabilidad fina y atómica de stock.
 
-Aclaración vigente para parties:
+CAPACIDAD TENANT NO MODULAR
 
-parties mantiene identidad de módulo base del dominio.
-
-party_roles sigue siendo entidad hija o complementaria.
-
-El registro operativo de cambios de party_roles como metadata de Party no convierte party_roles en módulo autónomo ni navegación propia.
-
-Aclaración vigente para lectura general de OperationalActivity:
-
-la existencia de una lectura visual general autorizada no convierte OperationalActivity en módulo funcional ordinario.
+Es una capacidad propia del plano tenant o transversal que puede ser evaluable por seguridad sin convertirse en módulo funcional ordinario.
 
 Caso vigente:
 
-tenant/profile incorpora tab Actividad como primera lectura visual general.
+operational_activity.view_any
 
-Esta tab se autoriza mediante capability tenant no modular y no implica incorporación a ModuleCatalog.
+Reglas:
 
-Reglas generales:
+no posee navegación principal propia
 
-la clasificación funcional del módulo debe ayudar a definir su contrato y su superficie de integración
-la clasificación no autoriza excepciones de seguridad
-la clasificación no debe forzar jerarquías falsas de dependencia existencial cuando el módulo conserva identidad propia
+no implica CRUD ordinario
 
-Aclaración adicional de host visual:
+no se incorpora automáticamente a ModuleCatalog
 
-actuar como host visual dentro de una pantalla no constituye una clasificación modular nueva ni altera por sí mismo la identidad del módulo
+no pasa por TenantModuleAccess como módulo funcional
 
-es una posición de integración dentro del ecosistema
+puede ser evaluada desde Security si existe contrato explícito
 
-no convierte al host en dueño del contrato del módulo invitado
+puede autorizar una lectura general tenant-scoped sin convertir la capacidad en módulo navegable
 
-Aclaración adicional de plano tenant:
+CAPACIDAD TENANT/TRANSVERSAL NO MODULAR CON SURFACE PUBLICADA
 
-no toda pieza reusable del sistema debe clasificarse como módulo funcional.
-
-Cuando la responsabilidad real sea contexto interno de empresa, dataset reusable, directorio operativo del tenant o capacidad tenant no modular, la clasificación correcta puede pertenecer al plano tenant/transversal y no al catálogo modular del negocio.
+Es una capacidad tenant-scoped o transversal que, sin ser módulo funcional ordinario, publica una surface controlada hacia hosts funcionales.
 
 Caso vigente:
 
-operational_activity.view_any como capability tenant no modular para lectura general del log operativo.
+OperationalActivity mediante TenantSurfaceRegistry y OperationalActivitySurfaceService.
 
-Aclaración adicional sobre recursos hijos relevantes:
+Reglas:
 
-que un recurso delegado gane peso transversal o trazabilidad fuerte no modifica automáticamente la clasificación modular vigente.
+no se incorpora a ModuleCatalog por publicar una surface
 
-Caso relevante:
+no se habilita ni deshabilita como módulo ordinario
 
-order_items continúa siendo entidad hija de orders aunque participe como anclaje operativo frente a inventory.
+no crea navegación principal
+
+no crea CRUD
+
+no pasa por TenantModuleAccess
+
+puede ser consumida por hosts funcionales autorizados
+
+debe mantener ownership en el plano tenant/transversal
+
+debe publicar la surface mediante canal específico y no mediante inserciones manuales permanentes en vistas host
+
+Flujo validado:
+
+capacidad tenant/transversal
+TenantSurfaceRegistry
+surface service
+ModuleSurfaceRegistry
+host show
+x-host-tabs
+
+Regla:
+
+la publicación de una surface no cambia la clasificación conceptual de la capacidad.
 
 <<END SECTION>>
 

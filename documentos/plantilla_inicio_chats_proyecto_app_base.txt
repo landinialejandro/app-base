@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -221,9 +221,7 @@ tenant/profile sigue restringido a owner
 
 admin tiene permiso sembrado para operational_activity.view_any, pero no accede todavía a tenant/profile
 
-la tab Actividad no es todavía surface reutilizable
-
-La tab Actividad usa OperationalActivityLinkResolver.
+La tab Actividad general usa OperationalActivityLinkResolver.
 
 OperationalActivityLinkResolver resuelve:
 
@@ -232,7 +230,7 @@ URL canónica cuando existe show seguro
 fallback textual cuando no existe ruta segura
 trail contextual
 
-Trail vigente desde actividad:
+Trail vigente desde actividad general:
 
 Inicio
 Perfil de empresa · Actividad
@@ -242,6 +240,53 @@ Casos actuales sin link seguro:
 
 InventoryOperation
 Attachment
+
+Lectura contextual heredada vigente de OperationalActivity:
+
+si el usuario puede ver el registro host,
+puede ver la actividad asociada a ese registro.
+
+Esta lectura no equivale a lectura general del log del tenant.
+
+No utiliza:
+
+operational_activity.view_any
+
+No habilita acceso general al log.
+
+No habilita acceso a otros registros.
+
+No convierte OperationalActivity en módulo funcional ordinario.
+
+Infraestructura vigente:
+
+OperationalActivityContextReader
+TenantSurfaceRegistry
+OperationalActivitySurfaceService
+resources/views/tenants/partials/operational-activity-table.blade.php
+
+Hosts validados:
+
+tasks.show
+parties.show
+
+La tab contextual se publica como surface tenant/transversal mediante TenantSurfaceRegistry y entra al host por ModuleSurfaceRegistry.
+
+Debe usar:
+
+key = activity
+
+para compatibilidad con return_tab.
+
+No debe usarse:
+
+operational_activity.contextual
+
+Regla vigente para surfaces tenant/transversales:
+
+si una capacidad no es módulo funcional ordinario, no debe agregarse a ModuleCatalog solo para publicar UI.
+
+Cuando una capacidad transversal necesite publicar UI reusable, primero debe evaluarse TenantSurfaceRegistry, no ModuleCatalog ni pushes manuales en vistas.
 
 Cuando una tarea involucre Project Lab, automatizador, Tinker, runtime real, colas, eventos, permisos, constraints, multi-tenancy, actualización de código o actualización documental, se debe respetar la guía operativa vigente de Project Lab.
 
@@ -266,7 +311,7 @@ No agregar botón de queue al producto SaaS.
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS DEL CHAT>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 REGLAS OPERATIVAS DEL CHAT
 
@@ -372,6 +417,49 @@ No debe agregarse a ModuleCatalog por este motivo.
 
 No debe abrir navegación principal por mera existencia de la capability.
 
+Regla vigente de lectura contextual heredada:
+
+si el usuario puede ver el registro host, puede ver la actividad asociada a ese registro.
+
+Esta lectura no utiliza operational_activity.view_any.
+
+No habilita lectura general del tenant.
+
+No habilita acceso a otros registros.
+
+No convierte OperationalActivity en módulo funcional ordinario.
+
+La lectura contextual debe consumir OperationalActivity persistido mediante reader contextual y surface tenant/transversal validada.
+
+Infraestructura vigente:
+
+OperationalActivityContextReader
+TenantSurfaceRegistry
+OperationalActivitySurfaceService
+
+Hosts validados:
+
+tasks.show
+parties.show
+
+Regla vigente para surfaces tenant/transversales:
+
+no agregar a ModuleCatalog una capacidad transversal solo para publicar UI.
+
+no resolver tabs transversales con pushes manuales permanentes en vistas host.
+
+usar TenantSurfaceRegistry cuando la capacidad sea tenant/transversal no modular.
+
+usar key compatible con return_tab.
+
+Caso vigente:
+
+key = activity
+
+No usar:
+
+operational_activity.contextual
+
 Regla vigente de tenant/profile:
 
 tenant/profile sigue restringido a owner.
@@ -433,7 +521,7 @@ No implementar botón de queue dentro del producto SaaS.
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DE ESTE CHAT>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 OBJETIVO DE ESTE CHAT
 
@@ -455,9 +543,7 @@ auditoría de nuevas mejoras sobre tabs host únicamente si existe evidencia rea
 
 análisis de parties.show y sus embebidos según party_roles.role
 
-lectura contextual heredada de OperationalActivity por módulo o registro
-
-evaluar si OperationalActivity debe publicar surface reutilizable
+evaluar extensión de la surface contextual de OperationalActivity a otros hosts
 
 revisar acceso futuro de admin a tenant/profile con visualización permitida y edición restringida
 
@@ -512,7 +598,7 @@ listener queued
 
 eventos operativos livianos
 
-módulos actualmente integrados:
+módulos integrados:
 
 appointments
 tasks
@@ -525,102 +611,37 @@ attachments
 parties
 inventory
 
-Criterios consolidados de OperationalActivity:
+lectura general tenant-scoped desde tenant/profile mediante operational_activity.view_any
 
-el módulo dueño autoriza, valida y ejecuta antes de emitir el evento operativo
+lectura contextual heredada validada en tasks.show y parties.show
 
-OperationalActivity no autoriza, no valida y no reemplaza Security ni policies
+surface contextual publicada mediante TenantSurfaceRegistry
 
-no debe registrarse actividad solo por existir CRUD
+tab Actividad contextual con key activity
 
-los campos observables deben declararse en el catálogo dueño
+Estado reciente consolidado de surfaces tenant/transversales:
 
-la validación requiere runtime real, tenant activo, evento, cola, jobs, failed_jobs y persistencia final cuando corresponda
+TenantSurfaceRegistry quedó validado como canal para publicar surfaces de capacidades tenant/transversales no modulares.
 
-Estado reciente consolidado de lectura general de OperationalActivity:
+ModuleSurfaceRegistry puede fusionar surfaces modulares y tenant/transversales.
 
-contrato inicial de lectura general definido:
+Regla vigente:
 
-operational_activity.view_any
+no agregar capacidades transversales a ModuleCatalog solo para publicar UI.
 
-capability tenant no modular
+no usar pushes manuales permanentes en vistas host como cierre estable.
 
-resuelta desde Security
+Pendientes reales derivados de OperationalActivity:
 
-sin incorporar OperationalActivity a ModuleCatalog
+definir links para InventoryOperation y Attachment
 
-permiso sembrado para owner y admin
+evaluar extensión de la surface contextual a otros hosts
 
-lectura visual inicial implementada en tenant/profile mediante tab Actividad
+revisar extra_changes duplicado
 
-la tab muestra últimos 50 registros del tenant
+revisar acceso futuro de admin a tenant/profile
 
-tenant/profile sigue restringido a owner
-
-admin tiene permiso sembrado pero no accede todavía a tenant/profile
-
-la tab Actividad no es todavía surface reutilizable
-
-OperationalActivityLinkResolver resuelve label, URL canónica segura, fallback textual y trail contextual
-
-trail vigente:
-
-Inicio
-Perfil de empresa · Actividad
-Registro destino
-
-Casos actuales sin link seguro:
-
-InventoryOperation
-Attachment
-
-Estado reciente consolidado de inventory frente a OperationalActivity:
-
-OperationalActivity registra InventoryOperation como acción operativa agrupada
-
-InventoryMovement conserva trazabilidad fina de stock
-
-InventoryMovement no se registra como actividad principal cuando InventoryOperation representa la acción del usuario
-
-Estado reciente consolidado de parties frente a OperationalActivity:
-
-OperationalActivity registra Party como record principal
-
-los cambios de party_roles pueden persistirse como metadata operativa de Party
-
-party_roles no se convierte en módulo propio
-
-Estado reciente consolidado de attachments frente a OperationalActivity:
-
-attachments puede registrar creación y actualización de metadata operativa
-
-no se registra download, preview, vista, print, PDF ni destroy
-
-Pendientes vigentes de OperationalActivity:
-
-lectura contextual heredada por módulo o registro
-
-evaluar surface reutilizable
-
-resolver InventoryOperation y Attachment
-
-revisar extra_changes duplicado en parties
-
-revisar acceso admin a tenant/profile
-
-definir worker de cola para producción
-
-Regla operativa de colas:
-
-en local, Project Lab puede procesar cola manualmente fuera del producto
-
-en producción, definir worker supervisado
-
-no agregar botón de queue al producto SaaS
-
-Criterio de limpieza de datos temporales:
-
-al ejecutar migrate:fresh --seed, operational_activities debe quedar en blanco salvo decisión explícita posterior de sembrar actividad demo
+definir worker supervisado para producción
 
 <<END SECTION>>
 

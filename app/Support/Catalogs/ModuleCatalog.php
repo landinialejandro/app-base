@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/ModuleCatalog.php | V5
+// FILE: app/Support/Catalogs/ModuleCatalog.php | V6
 
 namespace App\Support\Catalogs;
 
@@ -10,6 +10,7 @@ use App\Support\Attachments\AttachmentSurfaceService;
 use App\Support\Documents\DocumentSurfaceService;
 use App\Support\Inventory\InventorySurfaceService;
 use App\Support\Orders\OrderSurfaceService;
+use App\Support\Parties\PartyEmployeeActivityContext;
 use App\Support\Parties\PartySurfaceService;
 use App\Support\Products\ProductSurfaceService;
 use App\Support\Projects\ProjectActivityRecordSet;
@@ -86,6 +87,7 @@ class ModuleCatalog
             'label' => 'Contactos',
             'icon' => 'user-group',
             'surface_service' => PartySurfaceService::class,
+            'activity_context' => PartyEmployeeActivityContext::class,
             'nav' => [
                 'group' => 'main',
                 'route' => 'parties.index',
@@ -232,5 +234,10 @@ class ModuleCatalog
     public static function activityRecordSetService(string $module): ?string
     {
         return static::$definitions[$module]['activity_record_set'] ?? null;
+    }
+
+    public static function activityContextService(string $module): ?string
+    {
+        return static::$definitions[$module]['activity_context'] ?? null;
     }
 }

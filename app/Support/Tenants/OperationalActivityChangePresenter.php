@@ -64,33 +64,34 @@ class OperationalActivityChangePresenter
             ->values();
     }
 
-    protected function fieldLabel(string $field): string
-    {
-        return [
-            'status' => 'Estado',
-            'priority' => 'Prioridad',
-            'description' => 'Descripción',
-            'notes' => 'Notas',
-            'name' => 'Nombre',
-            'title' => 'Título',
-            'display_name' => 'Nombre visible',
-            'email' => 'Email',
-            'phone' => 'Teléfono',
-            'address' => 'Dirección',
-            'assigned_user_id' => 'Asignación',
-            'subject_user_id' => 'Sujeto',
-            'party_roles' => 'Relación con la empresa',
-            'is_active' => 'Activo',
-            'kind' => 'Tipo',
-            'document_type' => 'Tipo de documento',
-            'document_number' => 'Número de documento',
-            'tax_id' => 'CUIT / Tax ID',
-            'due_date' => 'Fecha de vencimiento',
-        ][$field] ?? str($field)
-            ->replace('_', ' ')
-            ->ucfirst()
-            ->toString();
-    }
+protected function fieldLabel(string $field): string
+{
+    return [
+        'status' => 'Estado',
+        'priority' => 'Prioridad',
+        'description' => 'Descripción',
+        'notes' => 'Notas',
+        'name' => 'Nombre',
+        'title' => 'Título',
+        'display_name' => 'Nombre visible',
+        'email' => 'Email',
+        'phone' => 'Teléfono',
+        'address' => 'Dirección',
+        'assigned_user_id' => 'Asignación',
+        'subject_user_id' => 'Sujeto',
+        'party_roles' => 'Relación con la empresa',
+        'membership_linked' => 'Ficha ampliada vinculada',
+        'is_active' => 'Activo',
+        'kind' => 'Tipo',
+        'document_type' => 'Tipo de documento',
+        'document_number' => 'Número de documento',
+        'tax_id' => 'CUIT / Tax ID',
+        'due_date' => 'Fecha de vencimiento',
+    ][$field] ?? str($field)
+        ->replace('_', ' ')
+        ->ucfirst()
+        ->toString();
+}
 
     protected function stringValue(mixed $value): string
     {

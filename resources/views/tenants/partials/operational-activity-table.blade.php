@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/partials/operational-activity-table.blade.php | V2 --}}
+{{-- FILE: resources/views/tenants/partials/operational-activity-table.blade.php | V4 --}}
 
 @php
     use App\Support\Catalogs\ModuleCatalog;
@@ -89,10 +89,13 @@
                                     <div style="margin-top: .35rem;">
                                         <x-button-secondary
                                             type="button"
+                                            class="btn-icon"
+                                            title="Ver cambios"
+                                            label="Ver cambios"
                                             data-action="app-modal-open"
                                             data-modal-target="#{{ $changeModalId }}"
                                         >
-                                            Ver cambios
+                                            <x-icons.changes />
                                         </x-button-secondary>
                                     </div>
                                 @endif

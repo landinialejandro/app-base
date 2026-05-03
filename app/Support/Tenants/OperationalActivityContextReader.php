@@ -111,4 +111,73 @@ public function forRecordSet(iterable $records, Model $trailRecord, array $trail
             ];
         });
 }
+
+
+    public function forRecordAndUsers(Model $record, iterable $userIds, array $trail = [], int $limit = 20): Collection
+    {
+        $tenant = app('tenant');
+    
+        $safeLimit = max(1, min($limit, 100));
+    
+        $activityTrail = $this->trailForRecord($record, $trail);
+        $changePresenter = app(OperationalActivityChangePresenter::class);
+    
+        $recordType = $record->getMorphClass();
+        $recordId = $record->getKey();
+    
+        $safeUserIds = collect($userIds)
+            ->filter(fn ($userId) => $userId !== null && (int) $userId > 0)
+            ->map(fn ($userId) => (int) $userId)
+            ->unique()
+            ->values();
+    
+        if ($recordId === null && $safeUserIds->isEmpty()) {
+            return collect();
+        }
+    
+        return OperationalActivity::query()
+            ->where('tenant_id', $tenant->id)
+            ->where(function ($query) use ($recordType, $recordId, $safeUserIds) {
+                if ($recordId !== null) {
+                    $query->where(function ($subquery) use ($recordType, $recordId) {
+                        $subquery
+                            ->where('record_type', $recordType)
+                            ->where('record_id', $recordId);
+                    });
+                }
+    
+                if ($safeUserIds->isNotEmpty()) {
+                    $query
+                        ->orWhereIn('actor_user_id', $safeUserIds->all())
+                        ->orWhereIn('subject_user_id', $safeUserIds->all());
+                }
+            })
+            ->with(['actorUser', 'subjectUser', 'record'])
+            ->orderByDesc('occurred_at')
+            ->orderByDesc('id')
+            ->limit($safeLimit)
+            ->get()
+            ->map(function (OperationalActivity $activity) use ($activityTrail, $changePresenter) {
+                $recordLink = $this->linkResolver->resolve($activity, $activityTrail);
+                $metadata = $activity->metadata ?? [];
+    
+                return [
+                    'id' => $activity->id,
+                    'occurred_at' => $activity->occurred_at,
+                    'module' => $activity->module,
+                    'activity_type' => $activity->activity_type,
+                    'record_label' => $recordLink['label'],
+                    'record_url' => $recordLink['url'],
+                    'actor_label' => $activity->actorUser?->name
+                        ?? $activity->actorUser?->email
+                        ?? 'Sistema',
+                    'subject_label' => $activity->subjectUser?->name
+                        ?? $activity->subjectUser?->email
+                        ?? '—',
+                    'metadata' => $metadata,
+                    'change_summary' => $changePresenter->summary($metadata),
+                    'change_details' => $changePresenter->details($metadata)->all(),
+                ];
+            });
+    }
 }

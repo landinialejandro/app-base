@@ -16,6 +16,7 @@ public function offers(): array
             'type' => 'embedded',
             'key' => 'activity',
             'label' => 'Actividad',
+            'icon' => 'activity',
             'targets' => [
                 'tasks.show',
                 'parties.show',
@@ -56,6 +57,12 @@ protected function resolveContextualActivity(array $hostPack): array
     $trail = is_array($hostPack['navigationTrail'] ?? null)
         ? $hostPack['navigationTrail']
         : [];
+
+    $contextPayload = $this->activityContextPayloadFor($record, $trail, 20);
+
+    if ($contextPayload !== null) {
+        return $contextPayload;
+    }
 
     $records = $this->activityRecordsFor($record);
 
@@ -123,5 +130,29 @@ protected function resolveContextualActivity(array $hostPack): array
             ->filter(fn ($item) => $item instanceof Model)
             ->values()
             ->all();
+    }
+
+
+    protected function activityContextPayloadFor(Model $record, array $trail = [], int $limit = 20): ?array
+    {
+        $module = OperationalActivityCatalog::moduleForRecordClass($record::class);
+    
+        if ($module === null) {
+            return null;
+        }
+    
+        $providerClass = \App\Support\Catalogs\ModuleCatalog::activityContextService($module);
+    
+        if ($providerClass === null || ! class_exists($providerClass)) {
+            return null;
+        }
+    
+        $provider = app($providerClass);
+    
+        if (! $provider instanceof \App\Support\Modules\Contracts\ActivityContextProvider) {
+            return null;
+        }
+    
+        return $provider->forRecord($record, $trail, $limit);
     }
 }

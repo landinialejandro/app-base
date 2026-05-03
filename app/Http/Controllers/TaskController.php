@@ -224,35 +224,35 @@ public function store(Request $request)
         ->with('success', 'Tarea creada correctamente.');
 }
 
-    public function show(Request $request, Task $task)
-    {
-        $tenant = app('tenant');
+public function show(Request $request, Task $task)
+{
+    $tenant = app('tenant');
 
-        $this->authorize('view', $task);
+    $this->authorize('view', $task);
 
-        $task->load([
-            'project',
-            'party',
-            'assignedUser',
-            'order',
-            'attachments' => fn ($query) => $query->ordered(),
-        ]);
+    $task->load([
+        'project',
+        'party',
+        'assignedUser',
+        'order',
+        'attachments' => fn ($query) => $query->ordered(),
+    ]);
 
-        $canEditTask = auth()->user()->can('update', $task);
-        $canDeleteTask = auth()->user()->can('delete', $task);
-        $isForeignTaskForAdmin = $this->canManageForeignTask($task);
+    $canEditTask = auth()->user()->can('update', $task);
+    $canDeleteTask = auth()->user()->can('delete', $task);
+    $isForeignTaskForAdmin = $this->canManageForeignTask($task);
 
-        $navigationTrail = TaskNavigationTrail::show($request, $task);
+    $navigationTrail = TaskNavigationTrail::show($request, $task);
 
-        return view('tasks.show', compact(
-            'tenant',
-            'task',
-            'navigationTrail',
-            'canEditTask',
-            'canDeleteTask',
-            'isForeignTaskForAdmin'
-        ));
-    }
+    return view('tasks.show', compact(
+        'tenant',
+        'task',
+        'navigationTrail',
+        'canEditTask',
+        'canDeleteTask',
+        'isForeignTaskForAdmin'
+    ));
+}
 
     public function edit(Request $request, Task $task)
     {

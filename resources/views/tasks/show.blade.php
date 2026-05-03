@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/show.blade.php | V17 --}}
+{{-- FILE: resources/views/tasks/show.blade.php | V19 --}}
 
 @extends('layouts.app')
 
@@ -45,6 +45,8 @@
             'trailQuery' => $trailQuery,
         ]);
 
+        $hostPack['navigationTrail'] = $navigationTrail;
+
         $registry = app(ModuleSurfaceRegistry::class);
 
         $headerActions = collect($registry->slotFor('tasks.show', 'header_actions', $hostPack))
@@ -62,6 +64,7 @@
         $tabItems = collect($registry->slotFor('tasks.show', 'tab_panels', $hostPack))
             ->sortBy(fn(array $item) => $item['priority'] ?? 999)
             ->values();
+
         $activeTab = HostTabs::activeKey($tabItems, request()->query('return_tab'));
     @endphp
 

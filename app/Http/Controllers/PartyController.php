@@ -152,29 +152,29 @@ public function store(StorePartyRequest $request)
         ->with('success', "Contacto #{$party->id} creado correctamente.");
 }
 
-    public function show(Request $request, Party $party)
-    {
-        $this->authorize('view', $party);
+public function show(Request $request, Party $party)
+{
+    $this->authorize('view', $party);
 
-        $tenant = app('tenant');
-        $party->load('roles');
-        $navigationTrail = PartyNavigationTrail::show($request, $party);
+    $tenant = app('tenant');
+    $party->load('roles');
+    $navigationTrail = PartyNavigationTrail::show($request, $party);
 
-        $supportsAppointmentsModule = TenantModuleAccess::isEnabled(ModuleCatalog::APPOINTMENTS, $tenant);
-        $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
-        $supportsOrdersModule = TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, $tenant);
-        $supportsDocumentsModule = TenantModuleAccess::isEnabled(ModuleCatalog::DOCUMENTS, $tenant);
+    $supportsAppointmentsModule = TenantModuleAccess::isEnabled(ModuleCatalog::APPOINTMENTS, $tenant);
+    $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
+    $supportsOrdersModule = TenantModuleAccess::isEnabled(ModuleCatalog::ORDERS, $tenant);
+    $supportsDocumentsModule = TenantModuleAccess::isEnabled(ModuleCatalog::DOCUMENTS, $tenant);
 
-        return view('parties.show', [
-            'tenant' => $tenant,
-            'party' => $party,
-            'navigationTrail' => $navigationTrail,
-            'supportsAppointmentsModule' => $supportsAppointmentsModule,
-            'supportsAssetsModule' => $supportsAssetsModule,
-            'supportsOrdersModule' => $supportsOrdersModule,
-            'supportsDocumentsModule' => $supportsDocumentsModule,
-        ]);
-    }
+    return view('parties.show', [
+        'tenant' => $tenant,
+        'party' => $party,
+        'navigationTrail' => $navigationTrail,
+        'supportsAppointmentsModule' => $supportsAppointmentsModule,
+        'supportsAssetsModule' => $supportsAssetsModule,
+        'supportsOrdersModule' => $supportsOrdersModule,
+        'supportsDocumentsModule' => $supportsDocumentsModule,
+    ]);
+}
 
     public function edit(Request $request, Party $party)
     {

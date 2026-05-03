@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/show.blade.php | V17 --}}
+{{-- FILE: resources/views/parties/show.blade.php | V19 --}}
 
 @extends('layouts.app')
 
@@ -23,6 +23,8 @@
         $hostPack = app(PartySurfaceService::class)->hostPack('parties.show', $party, [
             'trailQuery' => $trailQuery,
         ]);
+
+        $hostPack['navigationTrail'] = $navigationTrail;
 
         $surfaces = collect(app(ModuleSurfaceRegistry::class)->surfacesFor('parties.show', $hostPack))->values();
 

@@ -29,31 +29,36 @@ class ModuleSurfaceRegistry
      * @param  array<string, mixed>  $context
      * @return array<int, array<string, mixed>>
      */
-    public function surfacesFor(string $host, array $context = []): array
-    {
-        if ($host === '') {
-            return [];
-        }
-
-        if (! array_key_exists('host', $context)) {
-            $context['host'] = $host;
-        }
-
-        if (! array_key_exists('trailQuery', $context)) {
-            $context['trailQuery'] = [];
-        }
-
-        return collect(ModuleCatalog::all())
-            ->map(fn (string $module) => $this->offersFromModule($module))
-            ->flatten(1)
-            ->filter(fn ($offer) => is_array($offer))
-            ->filter(fn (array $offer) => $this->matchesHost($offer, $host))
-            ->filter(fn (array $offer) => $this->hasRequiredContext($offer, $context))
-            ->map(fn (array $offer) => $this->normalizeOffer($offer, $host, $context))
-            ->sortBy(fn (array $surface) => $surface['priority'] ?? 999)
-            ->values()
-            ->all();
+public function surfacesFor(string $host, array $context = []): array
+{
+    if ($host === '') {
+        return [];
     }
+
+    if (! array_key_exists('host', $context)) {
+        $context['host'] = $host;
+    }
+
+    if (! array_key_exists('trailQuery', $context)) {
+        $context['trailQuery'] = [];
+    }
+
+    $moduleOffers = collect(ModuleCatalog::all())
+        ->map(fn (string $module) => $this->offersFromModule($module))
+        ->flatten(1);
+
+    $tenantOffers = collect(app(\App\Support\Tenants\TenantSurfaceRegistry::class)->offers());
+
+    return $moduleOffers
+        ->merge($tenantOffers)
+        ->filter(fn ($offer) => is_array($offer))
+        ->filter(fn (array $offer) => $this->matchesHost($offer, $host))
+        ->filter(fn (array $offer) => $this->hasRequiredContext($offer, $context))
+        ->map(fn (array $offer) => $this->normalizeOffer($offer, $host, $context))
+        ->sortBy(fn (array $surface) => $surface['priority'] ?? 999)
+        ->values()
+        ->all();
+}
 
     /**
      * @param  array<string, mixed>  $context

@@ -6,7 +6,9 @@ namespace App\Http\Controllers;
 
 use App\Models\Invitation;
 use App\Models\Membership;
+use App\Models\OperationalActivity;
 use App\Models\Role;
+use App\Support\Auth\Security;
 use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\BusinessTypeCatalog;
 use App\Support\Catalogs\CapabilityCatalog;
@@ -15,6 +17,8 @@ use App\Support\Catalogs\OrderCatalog;
 use App\Support\Catalogs\PartyCatalog;
 use App\Support\Catalogs\PermissionScopeCatalog;
 use App\Support\Catalogs\RoleCatalog;
+use App\Support\Navigation\NavigationTrail;
+use App\Support\Tenants\OperationalActivityLinkResolver;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
@@ -30,6 +34,9 @@ class TenantProfileController extends Controller
             ->first();
 
         abort_unless($membership?->is_owner, 403);
+
+        $canViewOperationalActivity = app(Security::class)
+            ->allows(auth()->user(), 'operational_activity.viewAny');
 
         $memberships = Membership::query()
             ->where('tenant_id', $tenant->id)
@@ -48,14 +55,14 @@ class TenantProfileController extends Controller
             ->where('tenant_id', $tenant->id)
             ->whereIn('slug', RoleCatalog::assignable())
             ->orderByRaw('
-                CASE slug
-                    WHEN ? THEN 1
-                    WHEN ? THEN 2
-                    WHEN ? THEN 3
-                    WHEN ? THEN 4
-                    ELSE 99
-                END
-            ', [
+            CASE slug
+                WHEN ? THEN 1
+                WHEN ? THEN 2
+                WHEN ? THEN 3
+                WHEN ? THEN 4
+                ELSE 99
+            END
+        ', [
                 RoleCatalog::ADMIN,
                 RoleCatalog::SALES,
                 RoleCatalog::OPERATOR,
@@ -64,9 +71,15 @@ class TenantProfileController extends Controller
             ->orderBy('name')
             ->get();
 
+        $allowedTabs = ['general', 'users', 'accesses', 'permissions'];
+
+        if ($canViewOperationalActivity) {
+            $allowedTabs[] = 'activity';
+        }
+
         $activeTab = $request->query('tab', 'general');
 
-        if (! in_array($activeTab, ['general', 'users', 'accesses', 'permissions'], true)) {
+        if (! in_array($activeTab, $allowedTabs, true)) {
             $activeTab = 'general';
         }
 
@@ -132,6 +145,53 @@ class TenantProfileController extends Controller
         $scopeOptionsByModuleCapability = $this->buildScopeOptionsByModuleCapability($moduleCapabilityMap);
         $constraintOptionsByModuleCapability = $this->buildConstraintOptionsByModuleCapability($moduleCapabilityMap);
 
+        $operationalActivityRows = collect();
+
+        if ($canViewOperationalActivity) {
+            $linkResolver = app(OperationalActivityLinkResolver::class);
+
+            $activityTrail = NavigationTrail::base([
+                NavigationTrail::makeNode(
+                    'dashboard',
+                    'dashboard',
+                    'Inicio',
+                    route('dashboard')
+                ),
+                NavigationTrail::makeNode(
+                    'tenant-profile-activity',
+                    $tenant->id,
+                    'Perfil de empresa · Actividad',
+                    route('tenant.profile.show', ['tab' => 'activity'])
+                ),
+            ]);
+
+            $operationalActivityRows = OperationalActivity::query()
+                ->where('tenant_id', $tenant->id)
+                ->with(['actorUser', 'subjectUser', 'record'])
+                ->orderByDesc('occurred_at')
+                ->orderByDesc('id')
+                ->limit(50)
+                ->get()
+                ->map(function ($activity) use ($linkResolver, $activityTrail) {
+                    $recordLink = $linkResolver->resolve($activity, $activityTrail);
+
+                    return [
+                        'id' => $activity->id,
+                        'occurred_at' => $activity->occurred_at,
+                        'module' => $activity->module,
+                        'activity_type' => $activity->activity_type,
+                        'record_label' => $recordLink['label'],
+                        'record_url' => $recordLink['url'],
+                        'actor_label' => $activity->actorUser?->name
+                            ?? $activity->actorUser?->email
+                            ?? 'Sistema',
+                        'subject_label' => $activity->subjectUser?->name
+                            ?? $activity->subjectUser?->email
+                            ?? '—',
+                    ];
+                });
+        }
+
         return view('tenants.profile', [
             'tenant' => $tenant,
             'memberships' => $memberships,
@@ -150,6 +210,9 @@ class TenantProfileController extends Controller
             'permissionMatrix' => $permissionMatrix,
             'scopeOptionsByModuleCapability' => $scopeOptionsByModuleCapability,
             'constraintOptionsByModuleCapability' => $constraintOptionsByModuleCapability,
+
+            'canViewOperationalActivity' => $canViewOperationalActivity,
+            'operationalActivityRows' => $operationalActivityRows,
         ]);
     }
 
@@ -328,32 +391,32 @@ class TenantProfileController extends Controller
         return $options;
     }
 
-protected function buildConstraintOptionsFor(string $module, string $capability): array
-{
-    if (
-        in_array($capability, [
-            CapabilityCatalog::VIEW_ANY,
-            CapabilityCatalog::VIEW,
-            CapabilityCatalog::CREATE,
-            CapabilityCatalog::UPDATE,
-            CapabilityCatalog::DELETE,
-        ], true)
-    ) {
-        if ($module === ModuleCatalog::ORDERS) {
-            return [
-                'allowed_kinds' => OrderCatalog::groupLabels(),
-            ];
+    protected function buildConstraintOptionsFor(string $module, string $capability): array
+    {
+        if (
+            in_array($capability, [
+                CapabilityCatalog::VIEW_ANY,
+                CapabilityCatalog::VIEW,
+                CapabilityCatalog::CREATE,
+                CapabilityCatalog::UPDATE,
+                CapabilityCatalog::DELETE,
+            ], true)
+        ) {
+            if ($module === ModuleCatalog::ORDERS) {
+                return [
+                    'allowed_kinds' => OrderCatalog::groupLabels(),
+                ];
+            }
+
+            if ($module === ModuleCatalog::PARTIES) {
+                return [
+                    'allowed_party_roles' => PartyCatalog::roleLabels(),
+                ];
+            }
         }
 
-        if ($module === ModuleCatalog::PARTIES) {
-            return [
-                'allowed_party_roles' => PartyCatalog::roleLabels(),
-            ];
-        }
+        return [];
     }
-
-    return [];
-}
 
     protected function normalizeConstraints(mixed $constraints): array
     {

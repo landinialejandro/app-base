@@ -15,61 +15,61 @@ use Illuminate\Support\Facades\DB;
 
 class RolePermissionModuleSeeder extends BaseModuleSeeder
 {
-    public function run(): void
-    {
-        if (! $this->hasDependency('tenants')) {
-            throw new \RuntimeException('RolePermissionModuleSeeder requires tenants');
-        }
+public function run(): void
+{
+    if (! $this->hasDependency('tenants')) {
+        throw new \RuntimeException('RolePermissionModuleSeeder requires tenants');
+    }
 
-        $now = now();
+    $now = now();
 
-        $permissionsBySlug = Permission::query()
-            ->get()
-            ->keyBy('slug');
+    $permissionsBySlug = Permission::query()
+        ->get()
+        ->keyBy('slug');
 
-        $rolesByTenant = DB::table('roles')
-            ->select('id', 'tenant_id', 'slug')
-            ->get()
-            ->groupBy('tenant_id')
-            ->map(fn ($rows) => $rows->keyBy('slug'));
+    $rolesByTenant = DB::table('roles')
+        ->select('id', 'tenant_id', 'slug')
+        ->get()
+        ->groupBy('tenant_id')
+        ->map(fn ($rows) => $rows->keyBy('slug'));
 
-        DB::table('role_permission')->delete();
+    DB::table('role_permission')->delete();
 
-        foreach ($this->getDependency('tenants') as $tenant) {
-            $tenantRoles = $rolesByTenant[$tenant->id] ?? collect();
+    foreach ($this->getDependency('tenants') as $tenant) {
+        $tenantRoles = $rolesByTenant[$tenant->id] ?? collect();
 
-            foreach ($this->matrix() as $module => $roles) {
-                foreach ($roles as $roleSlug => $capabilities) {
-                    $role = $tenantRoles[$roleSlug] ?? null;
+        foreach ($this->effectiveMatrix() as $module => $roles) {
+            foreach ($roles as $roleSlug => $capabilities) {
+                $role = $tenantRoles[$roleSlug] ?? null;
 
-                    if (! $role) {
+                if (! $role) {
+                    continue;
+                }
+
+                foreach ($capabilities as $capability => $meta) {
+                    $permissionSlug = CapabilityCatalog::permissionSlug($module, $capability);
+                    $permission = $permissionsBySlug->get($permissionSlug);
+
+                    if (! $permission) {
                         continue;
                     }
 
-                    foreach ($capabilities as $capability => $meta) {
-                        $permissionSlug = CapabilityCatalog::permissionSlug($module, $capability);
-                        $permission = $permissionsBySlug->get($permissionSlug);
-
-                        if (! $permission) {
-                            continue;
-                        }
-
-                        DB::table('role_permission')->insert([
-                            'role_id' => $role->id,
-                            'permission_id' => $permission->id,
-                            'scope' => $meta['scope'],
-                            'execution_mode' => 'manual',
-                            'constraints' => empty($meta['constraints'])
-                                ? null
-                                : json_encode($meta['constraints'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-                            'created_at' => $now,
-                            'updated_at' => $now,
-                        ]);
-                    }
+                    DB::table('role_permission')->insert([
+                        'role_id' => $role->id,
+                        'permission_id' => $permission->id,
+                        'scope' => $meta['scope'],
+                        'execution_mode' => 'manual',
+                        'constraints' => empty($meta['constraints'])
+                            ? null
+                            : json_encode($meta['constraints'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                        'created_at' => $now,
+                        'updated_at' => $now,
+                    ]);
                 }
             }
         }
     }
+}
 
 protected function matrix(): array
 {
@@ -517,4 +517,32 @@ protected function partyMeta(?string $scope, array $allowedPartyRoles): array
         ],
     ];
 }
+
+
+    protected function effectiveMatrix(): array
+    {
+        return array_replace(
+            $this->matrix(),
+            $this->tenantCapabilityMatrix()
+        );
+    }
+
+
+    protected function tenantCapabilityMatrix(): array
+    {
+        return [
+            \App\Support\Catalogs\TenantCapabilityCatalog::OPERATIONAL_ACTIVITY => [
+                RoleCatalog::OWNER => [
+                    CapabilityCatalog::VIEW_ANY => [
+                        'scope' => PermissionScopeCatalog::TENANT_ALL,
+                    ],
+                ],
+                RoleCatalog::ADMIN => [
+                    CapabilityCatalog::VIEW_ANY => [
+                        'scope' => PermissionScopeCatalog::TENANT_ALL,
+                    ],
+                ],
+            ],
+        ];
+    }
 }

@@ -17,79 +17,82 @@ class RolePermissionResolver
 {
     protected array $resolvedCache = [];
 
-    public function resolve(string $module, ?Tenant $tenant = null, ?User $user = null): array
-    {
-        $tenant = $tenant ?: (app()->bound('tenant') ? app('tenant') : null);
-        $user = $user ?: auth()->user();
+public function resolve(string $module, ?Tenant $tenant = null, ?User $user = null): array
+{
+    $tenant = $tenant ?: (app()->bound('tenant') ? app('tenant') : null);
+    $user = $user ?: auth()->user();
 
-        $cacheKey = implode('|', [
-            $module,
-            $tenant?->id ?? 'no-tenant',
-            $user?->id ?? 'no-user',
-        ]);
+    $cacheKey = implode('|', [
+        $module,
+        $tenant?->id ?? 'no-tenant',
+        $user?->id ?? 'no-user',
+    ]);
 
-        if (array_key_exists($cacheKey, $this->resolvedCache)) {
-            return $this->resolvedCache[$cacheKey];
-        }
-
-        if (! $tenant || ! $user) {
-            return $this->resolvedCache[$cacheKey] = $this->emptyRule();
-        }
-
-        if (! in_array($module, ModuleCatalog::all(), true)) {
-            return $this->resolvedCache[$cacheKey] = $this->emptyRule();
-        }
-
-        if (! TenantModuleAccess::isEnabled($module, $tenant)) {
-            return $this->resolvedCache[$cacheKey] = $this->emptyRule();
-        }
-
-        $membership = $this->resolveMembership($tenant, $user);
-
-        if (! $membership) {
-            return $this->resolvedCache[$cacheKey] = $this->emptyRule();
-        }
-
-        $roleSlugs = $this->resolveRoleSlugs($membership);
-
-        if (empty($roleSlugs)) {
-            return $this->resolvedCache[$cacheKey] = $this->emptyRule();
-        }
-
-        $roles = Role::query()
-            ->where('tenant_id', $tenant->id)
-            ->whereIn('slug', $roleSlugs)
-            ->with(['permissions' => function ($query) use ($module) {
-                $query->where('group', $module);
-            }])
-            ->get();
-
-        $resolved = $this->emptyRule();
-
-        foreach ($roles as $role) {
-            foreach ($role->permissions as $permission) {
-                $parsed = CapabilityCatalog::parsePermissionSlug((string) $permission->slug);
-
-                if (! $parsed || $parsed['module'] !== $module) {
-                    continue;
-                }
-
-                $capability = $parsed['capability'];
-
-                $resolved = $this->mergeCapability($resolved, $module, $capability, [
-                    'scope' => $permission->pivot->scope ?? null,
-                    'execution_mode' => $permission->pivot->execution_mode ?? null,
-                    'constraints' => $this->normalizeConstraints($permission->pivot->constraints ?? null),
-                ]);
-            }
-        }
-
-        $resolved = $this->applyMembershipOverrides($resolved, $membership, $module);
-        $resolved['module_access'] = ! empty($resolved['actions']);
-        $resolved['record_visibility'] = $this->resolveRecordVisibility($resolved['actions']);
-
-        return $this->resolvedCache[$cacheKey] = $resolved;
+    if (array_key_exists($cacheKey, $this->resolvedCache)) {
+        return $this->resolvedCache[$cacheKey];
     }
+
+    if (! $tenant || ! $user) {
+        return $this->resolvedCache[$cacheKey] = $this->emptyRule();
+    }
+
+    $isModule = in_array($module, ModuleCatalog::all(), true);
+    $isTenantCapability = \App\Support\Catalogs\TenantCapabilityCatalog::contains($module);
+
+    if (! $isModule && ! $isTenantCapability) {
+        return $this->resolvedCache[$cacheKey] = $this->emptyRule();
+    }
+
+    if ($isModule && ! TenantModuleAccess::isEnabled($module, $tenant)) {
+        return $this->resolvedCache[$cacheKey] = $this->emptyRule();
+    }
+
+    $membership = $this->resolveMembership($tenant, $user);
+
+    if (! $membership) {
+        return $this->resolvedCache[$cacheKey] = $this->emptyRule();
+    }
+
+    $roleSlugs = $this->resolveRoleSlugs($membership);
+
+    if (empty($roleSlugs)) {
+        return $this->resolvedCache[$cacheKey] = $this->emptyRule();
+    }
+
+    $roles = Role::query()
+        ->where('tenant_id', $tenant->id)
+        ->whereIn('slug', $roleSlugs)
+        ->with(['permissions' => function ($query) use ($module) {
+            $query->where('group', $module);
+        }])
+        ->get();
+
+    $resolved = $this->emptyRule();
+
+    foreach ($roles as $role) {
+        foreach ($role->permissions as $permission) {
+            $parsed = CapabilityCatalog::parsePermissionSlug((string) $permission->slug);
+
+            if (! $parsed || $parsed['module'] !== $module) {
+                continue;
+            }
+
+            $capability = $parsed['capability'];
+
+            $resolved = $this->mergeCapability($resolved, $module, $capability, [
+                'scope' => $permission->pivot->scope ?? null,
+                'execution_mode' => $permission->pivot->execution_mode ?? null,
+                'constraints' => $this->normalizeConstraints($permission->pivot->constraints ?? null),
+            ]);
+        }
+    }
+
+    $resolved = $this->applyMembershipOverrides($resolved, $membership, $module);
+    $resolved['module_access'] = $isModule && ! empty($resolved['actions']);
+    $resolved['record_visibility'] = $this->resolveRecordVisibility($resolved['actions']);
+
+    return $this->resolvedCache[$cacheKey] = $resolved;
+}
 
     public function canUseModule(string $module, ?Tenant $tenant = null, ?User $user = null): bool
     {

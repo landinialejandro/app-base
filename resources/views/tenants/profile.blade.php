@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/profile.blade.php | V4 --}}
+{{-- FILE: resources/views/tenants/profile.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -8,6 +8,7 @@
     @php
         $settings = $tenant->settings ?? [];
         $activeTab = $activeTab ?? 'general';
+        $canViewOperationalActivity = $canViewOperationalActivity ?? false;
     @endphp
 
     <x-page>
@@ -42,6 +43,14 @@
                     aria-selected="{{ $activeTab === 'permissions' ? 'true' : 'false' }}">
                     Permisos
                 </button>
+
+                @if ($canViewOperationalActivity)
+                    <button type="button" class="tabs-link {{ $activeTab === 'activity' ? 'is-active' : '' }}"
+                        data-tab-link="activity" role="tab"
+                        aria-selected="{{ $activeTab === 'activity' ? 'true' : 'false' }}">
+                        Actividad
+                    </button>
+                @endif
             </div>
 
             @include('tenants.partials.profile-general-tab', [
@@ -75,6 +84,11 @@
                 'capabilityLabels' => $capabilityLabels,
                 'scopeOptionsByModuleCapability' => $scopeOptionsByModuleCapability,
                 'constraintOptionsByModuleCapability' => $constraintOptionsByModuleCapability,
+            ])
+
+            @include('tenants.partials.profile-activity-tab', [
+                'activeTab' => $activeTab,
+                'operationalActivityRows' => $operationalActivityRows ?? collect(),
             ])
         </div>
     </x-page>

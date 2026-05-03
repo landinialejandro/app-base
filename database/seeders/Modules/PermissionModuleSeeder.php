@@ -28,23 +28,37 @@ class PermissionModuleSeeder extends BaseModuleSeeder
         }
     }
 
-    protected function getPermissionDefinitions(): array
-    {
-        $definitions = [];
+protected function getPermissionDefinitions(): array
+{
+    $definitions = [];
 
-        foreach (ModuleCatalog::all() as $module) {
-            foreach ($this->capabilitiesForModule($module) as $capability) {
-                $definitions[] = [
-                    'slug' => CapabilityCatalog::permissionSlug($module, $capability),
-                    'name' => $this->buildPermissionName($module, $capability),
-                    'group' => $module,
-                    'description' => $this->buildPermissionDescription($module, $capability),
-                ];
-            }
+    foreach (ModuleCatalog::all() as $module) {
+        foreach ($this->capabilitiesForModule($module) as $capability) {
+            $definitions[] = [
+                'slug' => CapabilityCatalog::permissionSlug($module, $capability),
+                'name' => $this->buildPermissionName($module, $capability),
+                'group' => $module,
+                'description' => $this->buildPermissionDescription($module, $capability),
+            ];
         }
-
-        return $definitions;
     }
+
+    foreach (\App\Support\Catalogs\TenantCapabilityCatalog::all() as $group) {
+        foreach (\App\Support\Catalogs\TenantCapabilityCatalog::capabilitiesFor($group) as $capability) {
+            $groupLabel = mb_strtolower((string) \App\Support\Catalogs\TenantCapabilityCatalog::label($group, $group));
+            $capabilityLabel = CapabilityCatalog::label($capability, $capability);
+
+            $definitions[] = [
+                'slug' => CapabilityCatalog::permissionSlug($group, $capability),
+                'name' => sprintf('%s %s', $capabilityLabel, $groupLabel),
+                'group' => $group,
+                'description' => sprintf('%s sobre %s.', $capabilityLabel, $groupLabel),
+            ];
+        }
+    }
+
+    return $definitions;
+}
 
     protected function capabilitiesForModule(string $module): array
     {

@@ -40,6 +40,8 @@ class PermissionScopeCatalog
     public static function optionsFor(string $module, string $capability): array
     {
         return match ($module) {
+            TenantCapabilityCatalog::OPERATIONAL_ACTIVITY => static::operationalActivityOptionsFor($capability),
+
             ModuleCatalog::DASHBOARD => static::dashboardOptionsFor($capability),
 
             ModuleCatalog::TASKS => static::taskOptionsFor($capability),
@@ -134,6 +136,18 @@ class PermissionScopeCatalog
                 self::TENANT_ALL => static::label(self::TENANT_ALL),
             ],
 
+            default => [],
+        };
+    }
+
+
+    protected static function operationalActivityOptionsFor(string $capability): array
+    {
+        return match ($capability) {
+            CapabilityCatalog::VIEW_ANY => [
+                self::TENANT_ALL => static::label(self::TENANT_ALL),
+            ],
+    
             default => [],
         };
     }

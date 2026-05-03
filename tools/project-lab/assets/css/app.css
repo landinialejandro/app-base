@@ -930,7 +930,7 @@ tbody tr:hover {
     padding: 0;
 }
 
-.lab-tool-card > summary {
+.lab-tool-card>summary {
     display: flex;
     align-items: center;
     gap: 8px;
@@ -944,24 +944,24 @@ tbody tr:hover {
     border-radius: var(--radius-lg) var(--radius-lg) 0 0;
 }
 
-.lab-tool-card > summary::-webkit-details-marker {
+.lab-tool-card>summary::-webkit-details-marker {
     display: none;
 }
 
-.lab-tool-card--clipboard > summary {
+.lab-tool-card--clipboard>summary {
     color: #ff3b6b;
     border-bottom: 1px solid #ff3b6b;
     box-shadow: 0 6px 14px rgba(255, 59, 107, 0.12);
 }
 
-.lab-tool-card--direct > summary {
+.lab-tool-card--direct>summary {
     color: #39ff88;
     border-bottom: 1px solid #39ff88;
     box-shadow: 0 6px 14px rgba(57, 255, 136, 0.12);
 }
 
 .lab-tool-card-body {
-    padding: 16px 20px 20px;
+    padding: 16px 20px 5px;
 }
 
 .lab-tool-card-title {
@@ -995,14 +995,14 @@ tbody tr:hover {
     position: relative;
 }
 
-.lab-snippets-details > summary {
+.lab-snippets-details>summary {
     cursor: pointer;
     color: var(--muted);
     font-size: 12px;
     font-weight: 700;
 }
 
-.lab-snippets-details > summary::-webkit-details-marker {
+.lab-snippets-details>summary::-webkit-details-marker {
     display: none;
 }
 

@@ -29,7 +29,7 @@ class ProjectLab
 
     private const REGEX_SECTION_NAME = '/<<SECTION:\s*(.*?)\s*>>/su';
 
-    private const REGEX_METHOD_SIGNATURE_TEMPLATE = '/^[ \t]*(?:public|protected|private)\s+function\s+%s\s*\(/m';
+    private const REGEX_METHOD_SIGNATURE_TEMPLATE = '/^[ \t]*(?:public|protected|private)\s+(?:static\s+)?function\s+%s\s*\(/m';
 
     private const REGEX_JS_FUNCTION_SIGNATURE_TEMPLATE = '/(?:^|\n)(?:export\s+)?(?:async\s+)?function\s+%s\s*\(/';
 

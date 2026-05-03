@@ -32,8 +32,7 @@
             <!-- Menú -->
             <div class="card">
                 <h4>💻 Menú</h4>
-                <button class="tab-btn active" onclick="showTab('tinker')">🧪 Editor Tinker</button>
-                <button class="tab-btn" onclick="showTab('tools')">🧰 Herramientas Lab</button>
+                <button class="tab-btn active" onclick="showTab('tools')">🧰 Project Lab</button>
                 <button class="tab-btn" onclick="showTab('database')">🗄️ Base de Datos</button>
                 <button class="tab-btn" onclick="showTab('routes')">🔗 Rutas (<?= count($routes) ?>)</button>
                 <button class="tab-btn" onclick="showTab('monitor')">📊 Monitor</button>
@@ -82,7 +81,6 @@
 
         <!-- Contenido Principal -->
         <main>
-            <?php require 'tinker.php'; ?>
             <?php require 'tools.php'; ?>
             <?php require 'database.php'; ?>
             <?php require 'routes.php'; ?>

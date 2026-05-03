@@ -153,9 +153,11 @@ function runProjectAction(config) {
     formData.append("csrf_token", CONFIG.csrfToken);
     formData.append(config.action, "1");
 
-    Object.entries(config.data || config.payload || {}).forEach(([key, value]) => {
-        formData.append(key, value);
-    });
+    Object.entries(config.data || config.payload || {}).forEach(
+        ([key, value]) => {
+            formData.append(key, value);
+        },
+    );
 
     const output = ensureProjectConsoleOutput();
     output.textContent = config.loading || "⏳ Ejecutando...";
@@ -238,7 +240,7 @@ function runProjectAction(config) {
 // ==================== TINKER / ARTISAN ====================
 
 function runTinkerAjax() {
-    const textarea = document.getElementById("code");
+    const textarea = document.getElementById("labInput");
 
     runProjectAction({
         action: "ajax_tinker",
@@ -260,7 +262,8 @@ function runTinkerAjax() {
                 textarea.value = finalCode;
             }
 
-            localStorage.setItem("projectLabTinkerCode", finalCode);
+            localStorage.setItem("projectLabLabInput", finalCode);
+            localStorage.setItem("projectLabLabActive", "tinker");
         },
     });
 }
@@ -273,11 +276,12 @@ function runTinkerFromClipboard() {
         success: "Tinker ejecutado desde clipboard",
         error: "Error al ejecutar Tinker desde clipboard",
         onSuccess(data) {
-            const textarea = document.getElementById("code");
+            const textarea = document.getElementById("labInput");
 
             if (textarea && data.code !== undefined) {
                 textarea.value = data.code;
-                localStorage.setItem("projectLabTinkerCode", data.code);
+                localStorage.setItem("projectLabLabInput", data.code);
+                localStorage.setItem("projectLabLabActive", "tinker");
             }
         },
     });
@@ -293,43 +297,36 @@ function runArtisanAjax(command) {
         success: "Artisan ejecutado: " + command,
         error: "Error al ejecutar Artisan",
         onSuccess() {
-            localStorage.setItem(
-                "projectLabTinkerCode",
-                "// artisan " + command,
-            );
+            const textarea = document.getElementById("labInput");
+
+            if (textarea) {
+                textarea.value = "// artisan " + command;
+            }
+
+            localStorage.setItem("projectLabLabInput", "// artisan " + command);
+            localStorage.setItem("projectLabLabActive", "artisan");
         },
     });
 }
 
 function clearTinker() {
-    const textarea = document.getElementById("code");
-
-    if (textarea) {
-        textarea.value = "";
-    }
-
-    localStorage.removeItem("projectLabTinkerCode");
-
-    showNotification("Editor Tinker borrado", "success");
+    clearLabTools();
 }
 
 function insertCode(code) {
-    const textarea = document.getElementById("code");
+    const textarea = document.getElementById("labInput");
 
     if (textarea) {
         textarea.value = code;
-        showTab("tinker");
+        showTab("tools");
         textarea.focus();
         textarea.setSelectionRange(code.length, code.length);
+        localStorage.setItem("projectLabLabInput", code);
     }
 }
 
 function insertSnippet(snippet) {
-    const textarea = document.getElementById("code");
-
-    if (!textarea) return;
-
-    insertIntoTextarea(textarea, snippet);
+    insertLabSnippet(snippet);
 }
 
 function bindArtisanAjaxButtons() {
@@ -415,10 +412,7 @@ function runLabTool(tool, fromClipboard = false) {
                 return;
             }
 
-            const finalInput =
-                data.input !== undefined
-                    ? data.input
-                    : labInput;
+            const finalInput = data.input !== undefined ? data.input : labInput;
 
             textarea.value = finalInput;
 
@@ -614,11 +608,17 @@ function runScript(scriptName) {
             appendProjectConsoleOutput(data);
 
             localStorage.setItem(
-                "projectLabTinkerCode",
+                "projectLabLabInput",
                 "// script " + scriptName,
             );
 
-            showTab("tinker");
+            showTab("tools");
+
+            const textarea = document.getElementById("labInput");
+
+            if (textarea) {
+                textarea.value = "// script " + scriptName;
+            }
 
             if (status) {
                 status.innerHTML = "✅ " + scriptName + " finalizado.";
@@ -933,7 +933,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     });
 
-    const textarea = document.getElementById("code");
+    const textarea = document.getElementById("labInput");
 
     if (textarea) {
         textarea.addEventListener("input", function () {
@@ -943,18 +943,13 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    const savedTinkerCode = localStorage.getItem("projectLabTinkerCode");
+    const savedLabInput = localStorage.getItem("projectLabLabInput");
 
-    if (savedTinkerCode !== null && textarea) {
-        textarea.value = savedTinkerCode;
+    if (savedLabInput !== null && textarea) {
+        textarea.value = savedLabInput;
     }
 
     const labInput = document.getElementById("labInput");
-    const savedLabInput = localStorage.getItem("projectLabLabInput");
-
-    if (savedLabInput !== null && labInput) {
-        labInput.value = savedLabInput;
-    }
 
     const savedConsoleOutput = localStorage.getItem(
         PROJECT_CONSOLE_STORAGE_KEY,

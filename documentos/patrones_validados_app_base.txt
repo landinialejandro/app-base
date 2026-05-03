@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 PATRONES VIGENTES
 
@@ -260,17 +260,61 @@ Regla:
 
 no duplicar en OperationalActivity la trazabilidad atómica que ya pertenece al módulo dueño cuando una operación agrupada expresa mejor el evento operativo.
 
-EVENT DISCOVERY SIN DUPLICACIÓN MANUAL
+LECTURA GENERAL DE ACTIVIDAD OPERATIVA
 
-Cuando Laravel event discovery ya registra un listener, no debe duplicarse el registro manual mediante Event::listen().
+Patrón validado:
 
-Validación requerida:
+capacidad tenant no modular
+↓
+Security::allows('operational_activity.viewAny')
+↓
+lectura tenant-scoped desde tenant/profile
+↓
+tab visual Actividad
 
-event:list debe mostrar la asociación esperada.
+Reglas:
+
+la lectura general del log puede existir sin convertir OperationalActivity en módulo funcional ordinario
+
+OperationalActivity no se agrega a ModuleCatalog por este patrón
+
+la vista general inicial no crea navegación principal propia
+
+la tab Actividad en tenant/profile es primera lectura visual concreta, no surface reutilizable todavía
+
+Patrón de resolución de lectura:
+
+operational_activities guarda trazabilidad estable
+OperationalActivityLinkResolver resuelve presentación y navegación
+Blade consume filas ya resueltas
+
+Campos persistidos usados como base:
+
+module
+record_type
+record_id
+
+Datos derivados en lectura:
+
+record_label
+record_url
+actor_label
+subject_label
+trail
 
 Regla:
 
-si event discovery ya resuelve la asociación, duplicar el listener genera jobs y registros repetidos.
+el link visual al registro asociado no debe persistirse como URL final.
+
+Debe resolverse dinámicamente desde una pieza de lectura.
+
+Si no existe ruta show canónica segura, se muestra texto plano.
+
+Trail validado desde actividad operativa:
+
+Inicio
+Perfil de empresa · Actividad
+Registro destino
 
 VALIDACIÓN QUEUED DE ACTIVIDAD OPERATIVA
 
@@ -289,6 +333,10 @@ una trazabilidad queued no se considera cerrada solo por disparar el evento.
 
 Debe validarse procesamiento real de cola y persistencia final.
 
+Si la cola no se procesa, la tab puede no mostrar actividades aunque las acciones ya hayan emitido eventos.
+
+Este comportamiento debe leerse como esperado dentro del modelo queued.
+
 VALIDACIÓN RUNTIME DE OPERATIONALACTIVITY
 
 Para cerrar una integración con OperationalActivity debe validarse:
@@ -298,20 +346,23 @@ membership activa
 tenant activo bindeado
 evento operativo emitido
 job generado cuando corresponda
-listener queued procesado
-jobs vaciados
+queue procesada
 failed_jobs sin errores
 operational_activities persistidas
-record_type correcto
-record_id correcto
 módulo correcto
-tipo de actividad correcto
+tipo correcto
 metadata esperada cuando corresponda
+
+EVENT DISCOVERY SIN DUPLICACIÓN MANUAL
+
+Cuando Laravel event discovery ya registra un listener, no debe duplicarse el registro manual mediante Event::listen().
+
+Validación requerida:
+
+event:list debe mostrar la asociación esperada.
 
 Regla:
 
-no alcanza con sintaxis correcta ni con job generado.
-
-El cierre requiere persistencia final coherente.
+si event discovery ya resuelve la asociación, duplicar el listener genera jobs y registros repetidos.
 
 <<END SECTION>>

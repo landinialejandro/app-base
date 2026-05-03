@@ -10,7 +10,7 @@ GESTIÓN: Guía rectora para uso local de Project Lab como herramienta operativa
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 OBJETIVO
 
@@ -31,6 +31,7 @@ reducir errores por formatos ambiguos
 evitar cambios manuales dispersos
 mantener trazabilidad local de las intervenciones
 validar eventos, colas y persistencia cuando el frente técnico lo requiera
+ejecutar acciones operativas locales fuera del producto cuando correspondan al entorno de desarrollo
 
 Project Lab no reemplaza:
 
@@ -68,6 +69,14 @@ actividad persistida
 módulo correcto
 tipo correcto
 metadata esperada cuando corresponda
+
+Aclaración vigente para colas:
+
+en local, Project Lab puede ofrecer una acción externa al producto para procesar cola pendiente.
+
+Eso no convierte queue:work en funcionalidad del SaaS productivo.
+
+En producción debe definirse un worker persistente supervisado por infraestructura.
 
 <<END SECTION>>
 
@@ -115,7 +124,7 @@ Por lo tanto, tenant_id en OperationalActivity debe conservarse como string comp
 <<END SECTION>>
 
 <<SECTION: NATURALEZA DE PROJECT LAB>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 NATURALEZA DE PROJECT LAB
 
@@ -143,6 +152,7 @@ snippets rápidos
 consola unificada
 copiado de salida para compartir en chat
 persistencia auxiliar de salida local cuando corresponda
+acciones operativas locales de soporte, como procesar cola pendiente en entorno de desarrollo
 
 Project Lab debe leerse como estación operativa local del proyecto.
 
@@ -156,10 +166,16 @@ Pero sí define el contrato operativo local para aplicar, auditar y validar inte
 
 Por lo tanto, toda salida destinada a Project Lab debe respetar el contrato real vigente de la herramienta.
 
+Regla específica para colas:
+
+Project Lab puede facilitar el procesamiento manual de colas en local cuando sea necesario validar eventos queued, jobs y persistencia final.
+
+Esta capacidad no debe trasladarse como botón, acción o pantalla dentro del producto SaaS.
+
 <<END SECTION>>
 
 <<SECTION: HERRAMIENTAS DISPONIBLES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 HERRAMIENTAS DISPONIBLES
 
@@ -494,7 +510,7 @@ Debe corregirse o revertirse antes de avanzar.
 <<END SECTION>>
 
 <<SECTION: SALIDA OPERATIVA ESPERADA>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 SALIDA OPERATIVA ESPERADA
 
@@ -592,10 +608,21 @@ Project Lab valida sintaxis PHP automáticamente en operaciones compatibles como
 
 No hace falta pedir php -l redundante si la salida ya informa sintaxis PHP válida, salvo duda puntual o auditoría específica.
 
+Aclaración vigente sobre cola local:
+
+si Project Lab procesa cola pendiente en entorno local, la salida debe permitir distinguir:
+
+procesamiento ejecutado
+jobs restantes
+failed_jobs
+persistencia final esperada
+
+No alcanza con informar que se ejecutó queue:work si el frente validado exige persistencia final.
+
 <<END SECTION>>
 
 <<SECTION: USO OPERATIVO LOCAL>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 USO OPERATIVO LOCAL
 
@@ -628,6 +655,30 @@ auditar
 aplicar
 verificar
 documentar evidencia
+
+Aclaración sobre acciones locales de soporte:
+
+Project Lab puede facilitar acciones operativas propias del entorno local de desarrollo.
+
+Caso vigente:
+
+procesar cola pendiente para validar OperationalActivity queued.
+
+Reglas:
+
+debe usarse solo como soporte local
+no debe confundirse con funcionalidad del producto final
+no debe trasladarse a UI SaaS
+no debe reemplazar la definición de worker supervisado para producción
+
+Cuando se procese cola localmente para validar OperationalActivity, debe confirmarse además:
+
+jobs restantes
+failed_jobs
+operational_activities persistidas
+módulo correcto
+tipo correcto
+metadata esperada cuando corresponda
 
 <<END SECTION>>
 
@@ -942,7 +993,7 @@ si una prueba de stock da todo en cero, primero validar que el seeder efectivo e
 <<END SECTION>>
 
 <<SECTION: USO DE ARTISAN>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 USO DE ARTISAN
 
@@ -988,6 +1039,20 @@ Regla adicional para event discovery:
 antes de registrar listeners manualmente, usar event:list o auditoría equivalente para verificar si Laravel ya resolvió la asociación.
 
 Si event discovery ya registra el listener, no debe duplicarse con Event::listen() manual.
+
+Aclaración operativa local:
+
+Project Lab puede ofrecer una acción local para procesar cola pendiente durante desarrollo y validación.
+
+Esta acción debe entenderse como soporte del entorno local.
+
+No debe trasladarse como funcionalidad del SaaS productivo.
+
+Regla:
+
+no implementar queue:work como botón, menú o acción dentro del producto final.
+
+En producción, el procesamiento de colas debe resolverse mediante worker persistente supervisado por infraestructura.
 
 <<END SECTION>>
 

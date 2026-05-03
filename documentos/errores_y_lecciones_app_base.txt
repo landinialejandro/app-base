@@ -26,7 +26,7 @@ lección aplicable
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 LECCIONES VIGENTES
 
@@ -225,5 +225,61 @@ Lección:
 InventoryMovement conserva trazabilidad fina de stock.
 
 No todo movimiento atómico debe duplicarse como OperationalActivity si existe una operación agrupada que representa mejor la acción del usuario.
+
+No usar componentes Blade no validados.
+
+Error detectado:
+
+se usó x-empty-state en una vista, pero el componente no existía.
+
+Resultado:
+
+Unable to locate a class or view for component [empty-state]
+
+Corrección:
+
+reemplazar por estado vacío inline con detail-block.
+
+No crear componente global como parche si no corresponde cerrar esa abstracción.
+
+Lección:
+
+la documentación visual no alcanza para asumir existencia runtime de un componente.
+
+Antes de usar un componente Blade en código real debe validarse su existencia en resources/views/components o clase correspondiente.
+
+OperationalActivity queued no aparece en vistas hasta procesar la cola.
+
+Caso validado:
+
+antes de procesar cola: operational_activities = 0
+queue:work ejecutó RegisterOperationalActivity
+después: jobs = 0, failed_jobs = 0, operational_activities = 2
+
+Lección:
+
+si la tab de actividad no muestra registros, revisar primero:
+
+jobs
+failed_jobs
+procesamiento de cola
+persistencia final
+
+antes de tocar vista, logger, resolver o Blade.
+
+El trail debe incluir explícitamente Inicio si se quiere que el breadcrumb destino lo muestre.
+
+Corrección aplicada:
+
+trail desde Actividad incluye:
+
+Inicio
+Perfil de empresa · Actividad
+
+Lección:
+
+la navegación contextual no debe asumirse por el destino.
+
+El origen debe entregar trail completo cuando se necesita preservar breadcrumb.
 
 <<END SECTION>>

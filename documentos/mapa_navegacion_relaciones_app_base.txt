@@ -145,7 +145,7 @@ cuando existan varias rutas posibles, debe priorizarse la más consistente con N
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN PRINCIPAL TENANT>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 NAVEGACIÓN PRINCIPAL TENANT
 
@@ -198,6 +198,8 @@ Su lectura vigente es capacidad transversal de trazabilidad operativa.
 
 La integración de OperationalActivity con appointments, tasks, orders, documents, projects, assets, products, attachments, parties e inventory no crea navegación principal propia.
 
+La lectura general inicial desde tenant/profile mediante tab Actividad tampoco crea navegación principal nueva.
+
 La navegación principal no debe abrir un menú propio de actividad salvo decisión futura validada, autorizada y documentada.
 
 Regla:
@@ -209,7 +211,7 @@ Su función es dar acceso estructural al ecosistema operativo vigente
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -245,6 +247,8 @@ Frente a OperationalActivity, InventoryOperation actúa como ancla operativa agr
 
 InventoryMovement conserva la trazabilidad fina de stock y no genera por sí mismo navegación contextual adicional en el log transversal.
 
+InventoryOperation no tiene todavía show canónico confirmado para navegación desde el log.
+
 Aclaración vigente para documents:
 
 cuando documents hospeda operaciones de inventory por línea documental, la navegación sigue perteneciendo al flujo documental anfitrión salvo que el usuario decida abrir una surface canónica de inventory.
@@ -275,7 +279,7 @@ Debe existir acción o confirmación explícita.
 
 Aclaración vigente para OperationalActivity:
 
-OperationalActivity puede ofrecer lectura futura como actividad general del tenant o como actividad filtrada por colaborador.
+OperationalActivity puede ofrecer lectura como actividad general del tenant o como actividad filtrada por colaborador.
 
 Esa lectura no modifica por sí misma los recorridos principales de los módulos que originaron la actividad.
 
@@ -283,12 +287,40 @@ La navegación hacia el registro relacionado debe resolverse desde la propia fil
 
 No debe agregarse una columna adicional solo para link.
 
-No se implementó vista general del log, tab Actividad en parties.show ni acceso desde tenant/profile en esta sesión.
+Primera lectura visual vigente:
+
+tenant/profile
+tab Actividad
+
+Estado actual:
+
+la tab Actividad muestra los últimos 50 registros de actividad operativa del tenant
+
+tenant/profile sigue restringido a owner
+
+la tab Actividad no se considera todavía surface reutilizable
+
+La navegación desde una actividad hacia el registro destino debe existir solo cuando haya ruta show canónica segura.
+
+Trail validado:
+
+Inicio
+Perfil de empresa · Actividad
+Registro destino
+
+Casos actuales sin link seguro:
+
+InventoryOperation
+Attachment
+
+Regla:
+
+no se inventan links para records sin ruta canónica segura.
 
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -366,6 +398,18 @@ La actividad debe filtrarse por el sujeto operativo correspondiente, probablemen
 
 La integración backend de parties con OperationalActivity no habilita por sí sola una tab visual ni una relación embebida nueva.
 
+Aclaración vigente para tenant/profile:
+
+tenant/profile incorpora tab Actividad como primera lectura visual general de OperationalActivity.
+
+Esta lectura no convierte OperationalActivity en relación embebida reusable para show pages.
+
+No debe tomarse como autorización automática para agregar tabs de actividad en otros hosts.
+
+Regla:
+
+toda nueva lectura visual de actividad debe tener contrato de autorización y decisión visual específica.
+
 Orden visual recomendado para tablas anfitrionas:
 
 primero acciones propias del host
@@ -401,7 +445,7 @@ las surfaces embebidas deben viajar enriquecidas desde registry para permitir re
 <<END SECTION>>
 
 <<SECTION: FLUJOS DERIVADOS RELEVANTES>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 FLUJOS DERIVADOS RELEVANTES
 
@@ -428,8 +472,11 @@ signup_request aprobado
 membership o perfil tenant
 → party como ficha ampliada explícita cuando corresponda
 
+tenant/profile
+→ lectura general de OperationalActivity mediante tab Actividad
+
 OperationalActivity
-→ registro relacionado mediante enlace integrado en la fila de actividad cuando exista lectura visual autorizada
+→ registro relacionado mediante enlace integrado en la fila de actividad cuando exista lectura visual autorizada y ruta canónica segura
 
 Reglas:
 
@@ -474,16 +521,24 @@ OperationalActivity no crea por sí mismo un flujo derivado de mutación.
 
 Solo puede ofrecer lectura y navegación hacia registros ya existentes cuando la autorización de lectura esté definida.
 
+La lectura general tenant-scoped vigente se autoriza mediante:
+
+operational_activity.view_any
+
 La integración backend de módulos con OperationalActivity no genera por sí misma flujos visibles nuevos.
 
 En inventory, la referencia operativa relevante para el log transversal es InventoryOperation.
 
 En parties, la actividad puede representar cambios de Party y de party_roles como metadata operativa, sin abrir navegación propia para party_roles.
 
+Regla:
+
+si no existe ruta show canónica segura para el record asociado, la fila de actividad debe mostrar fallback textual y no inventar navegación.
+
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN GENERAL DE MÓDULOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CLASIFICACIÓN GENERAL DE MÓDULOS
 
@@ -505,26 +560,44 @@ tasks
 order_items
 document_items
 
-Estos módulos suelen vivir enlazados a una entidad padre o a un flujo relacionado, aunque también pueden requerir resolución estructural según el caso.
+Estos módulos pueden participar de navegación propia o contextual, pero su lectura suele depender de un flujo operativo o de un recurso relacionado.
 
-MÓDULOS MIXTOS
+MÓDULOS O CAPACIDADES TRANSVERSALES
 
-orders
-documents
-tasks
-assets
+attachments
+inventory
+OperationalActivity
 
-Pueden abrirse de forma estructural o como continuación de otro flujo operativo.
+attachments funciona como capacidad transversal de soporte documental o evidencia asociada a otros registros.
 
-Aclaración vigente para parties:
+inventory funciona como frente funcional de stock con identidad propia y capacidades embebibles en otros módulos.
 
-parties es módulo estructural y base del dominio.
+OperationalActivity funciona como capacidad transversal tenant-scoped de trazabilidad operativa.
 
-party_roles no constituye navegación principal propia.
+Reglas para OperationalActivity:
 
-Su función es expresar relaciones del contacto con la empresa dentro del módulo parties.
+no es navegación principal
+no es CRUD ordinario
+no se incorpora al menú principal tenant por mera existencia técnica
+su lectura requiere autorización explícita
+su primera lectura visual general existe en tenant/profile mediante tab Actividad
+esa tab no constituye todavía surface reutilizable
 
-La visibilidad efectiva de parties puede variar según allowed_party_roles, pero esa variación no crea navegación independiente para party_roles.
+CAPACIDADES TENANT NO MODULARES
+
+Son capacidades evaluables dentro del plano tenant que no constituyen módulo funcional ordinario.
+
+Caso vigente:
+
+operational_activity.view_any
+
+Reglas:
+
+pueden ser evaluadas por Security
+no implican navegación propia
+no implican ModuleCatalog
+no generan create, update ni delete
+no convierten una capacidad transversal en módulo funcional
 
 <<END SECTION>>
 

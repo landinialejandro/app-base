@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -127,11 +127,23 @@ OperationalActivity registra eventos operativos persistidos sobre registros de m
 record_type
 record_id
 
+También conserva module como lectura transversal del frente originante.
+
 No es entidad hija de parties, tasks, orders, documents, appointments, projects, assets, products, attachments ni inventory.
 
 No reemplaza relaciones propias de esos módulos.
 
 No debe utilizarse para inferir autorización ni para reconstruir la operación original como fuente primaria.
+
+No debe persistir URL final hacia el registro asociado.
+
+La navegación visual hacia el registro asociado se resuelve dinámicamente en capa de lectura.
+
+Distinción vigente:
+
+OperationalActivity registra la referencia estable.
+
+OperationalActivityLinkResolver resuelve lectura visual, label y link canónico cuando exista ruta segura.
 
 Módulos con integración validada a OperationalActivity:
 
@@ -152,11 +164,21 @@ frente a OperationalActivity, inventory se representa mediante InventoryOperatio
 
 InventoryMovement conserva la trazabilidad fina y atómica de stock dentro del módulo inventory.
 
+InventoryOperation no tiene todavía show canónico confirmado para navegación desde el log.
+
+Por lo tanto, no debe inventarse link visual hacia InventoryOperation mientras no exista ruta segura validada.
+
 Aclaración vigente para parties:
 
 OperationalActivity puede registrar actividad sobre Party y representar cambios de party_roles como metadata operativa compuesta.
 
 Ese criterio no convierte party_roles en módulo propio ni altera su pertenencia como entidad hija o complementaria de parties.
+
+Aclaración vigente para attachments:
+
+Attachment puede registrarse en OperationalActivity cuando corresponda.
+
+No tiene link propio definido desde actividad mientras no se decida si debe enlazar a show propio o al attachable padre.
 
 Regla:
 
@@ -253,7 +275,7 @@ Por esta razón, no debe tratarse como una entidad tenant-scoped pura del negoci
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 ENTIDADES DEL NEGOCIO
 
@@ -312,7 +334,7 @@ OperationalActivity
 ↓
 registra eventos sobre records de módulos operativos
 ↓
-record_type + record_id
+module + record_type + record_id
 
 Modelos operativos con integración validada:
 
@@ -327,6 +349,25 @@ Attachment
 Party
 InventoryOperation
 
+Regla:
+
+OperationalActivity persiste referencia estable.
+
+No persiste URL final de navegación.
+
+La lectura visual y navegación se resuelve mediante capa de lectura.
+
+Pieza vigente:
+
+OperationalActivityLinkResolver
+
+Responsabilidad:
+
+resolver label del registro asociado
+resolver URL canónica cuando exista show seguro
+devolver fallback textual cuando no exista ruta segura
+agregar trail contextual al link
+
 Aclaración vigente sobre inventory:
 
 InventoryOperation es la entidad que representa la acción operativa agrupada de inventory frente a OperationalActivity.
@@ -336,6 +377,8 @@ InventoryMovement conserva la trazabilidad fina y atómica de stock.
 Regla:
 
 InventoryMovement no debe registrarse como actividad operativa transversal principal cuando InventoryOperation representa la acción agrupada.
+
+InventoryOperation no tiene todavía show canónico confirmado para navegación desde actividad.
 
 Aclaración vigente sobre parties:
 
@@ -350,6 +393,8 @@ Aclaración vigente sobre attachments:
 Attachment puede registrarse en OperationalActivity para creación y actualización de metadata operativa.
 
 No se consideran actividad operativa transversal vigente las descargas, previews, vistas, prints, PDFs ni eliminación, salvo decisión explícita posterior.
+
+Attachment no tiene link propio definido desde actividad mientras no se decida si debe enlazar a show propio o al attachable padre.
 
 <<END SECTION>>
 
@@ -570,7 +615,7 @@ Este criterio aplica especialmente a la lectura de usuarios internos activos del
 <<END SECTION>>
 
 <<SECTION: MÓDULOS ACTUALES DEL NEGOCIO>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 MÓDULOS ACTUALES DEL NEGOCIO
 
@@ -637,9 +682,15 @@ attachments
 parties
 inventory
 
-Puede ofrecer futuras superficies de lectura, pero eso no lo convierte automáticamente en módulo funcional principal ni en CRUD ordinario.
+Puede ofrecer superficies de lectura, pero eso no lo convierte automáticamente en módulo funcional principal ni en CRUD ordinario.
 
-La lectura visual del log requiere autorización explícita todavía no definida.
+La lectura general tenant-scoped del log ya tiene contrato inicial:
+
+operational_activity.view_any
+
+La primera lectura visual general existe desde tenant/profile, tab Actividad.
+
+Esta tab no convierte OperationalActivity en módulo navegable principal ni en surface reutilizable cerrada.
 
 <<END SECTION>>
 

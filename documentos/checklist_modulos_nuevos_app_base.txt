@@ -52,7 +52,7 @@ documentación actualizada
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 REGLA GENERAL
 
@@ -102,10 +102,31 @@ parties puede registrar cambios de party_roles como metadata operativa de Party.
 
 inventory debe registrar InventoryOperation como ancla operativa agrupada, no InventoryMovement como actividad principal.
 
+Regla adicional para capacidades tenant no modulares:
+
+no toda capacidad tenant-scoped debe incorporarse a ModuleCatalog.
+
+Si una capacidad:
+
+no es módulo funcional
+no tiene navegación propia
+no tiene CRUD completo
+no se habilita ni deshabilita como módulo ordinario
+
+debe evaluarse como capacidad tenant no modular.
+
+Caso validado:
+
+operational_activity.view_any
+
+Regla:
+
+las capacidades tenant no modulares pueden ser evaluadas por Security sin convertirse en módulos funcionales ordinarios.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 0 — IDENTIDAD DEL MÓDULO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 BLOQUE 0 — IDENTIDAD DEL MÓDULO
 
@@ -118,7 +139,7 @@ problema real que resuelve
 naturaleza principal del módulo
 posición conceptual en el ecosistema
 si es módulo nuevo o reconversión de uno existente
-si es módulo funcional, entidad hija, capacidad transversal de soporte o pieza interna del tenant
+si es módulo funcional, entidad hija, capacidad transversal de soporte, capacidad tenant no modular o pieza interna del tenant
 
 Clasificación conceptual posible:
 
@@ -128,6 +149,8 @@ módulo autónomo
 módulo agrupador
 módulo derivado
 capacidad transversal de soporte
+capacidad tenant no modular
+pieza interna del tenant
 
 Preguntas obligatorias:
 
@@ -137,6 +160,7 @@ debe vivir por sí mismo o principalmente embebido
 qué rol ocupa dentro del ecosistema general
 registra, acompaña o sostiene actividad de otros módulos sin absorber su ownership
 debe tener navegación principal o solo consumo interno/transversal
+la necesidad requiere ModuleCatalog o puede resolverse como capacidad tenant no modular
 
 Si estas respuestas no están claras, no debe avanzarse a implementación.
 
@@ -146,10 +170,16 @@ OperationalActivity se lee como capacidad transversal de soporte tenant-scoped p
 
 No se lee como CRUD ordinario ni como módulo navegable principal.
 
+Caso vigente adicional:
+
+operational_activity.view_any se lee como capacidad tenant no modular para lectura general tenant-scoped del log operativo.
+
+No se incorpora a ModuleCatalog.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 BLOQUE 1 — CONTRATO MODULAR
 
@@ -241,10 +271,26 @@ inventory registra InventoryOperation como acción operativa agrupada.
 
 InventoryMovement conserva trazabilidad fina interna de stock.
 
+Criterio adicional para capacidades tenant no modulares:
+
+si la capacidad pertenece al plano tenant o transversal, pero no constituye módulo funcional ordinario, debe definirse fuera de ModuleCatalog.
+
+Validar:
+
+si no tiene navegación propia
+si no tiene CRUD completo
+si no se habilita o deshabilita como módulo
+si no debe generar create, update ni delete
+si puede ser evaluada por Security como capability específica
+
+Caso validado:
+
+operational_activity.view_any
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 BLOQUE 2 — SEGURIDAD OBLIGATORIA
 
@@ -362,14 +408,32 @@ OperationalActivity no debe ser usado para decidir permisos.
 
 OperationalActivity no debe reemplazar Security, Gate, Policy, requests ni validaciones del módulo dueño.
 
-La lectura futura de operational_activities requiere autorización explícita.
+La lectura de operational_activities requiere autorización explícita.
 
 No debe asumirse acceso de lectura solo porque exista escritura append-only.
+
+Caso vigente:
+
+la lectura general tenant-scoped se autoriza mediante capability específica:
+
+operational_activity.view_any
+
+Regla:
+
+esta capability no convierte OperationalActivity en módulo funcional ordinario ni habilita operaciones originales.
+
+Validación adicional para lectura de logs:
+
+definir autorización explícita antes de crear vista, tab, menú o surface.
+
+Si se crea una lectura general, debe diferenciarse de lectura contextual por registro.
+
+La lectura general del log del tenant no debe confundirse con la lectura de actividad asociada a un registro que el usuario ya puede ver.
 
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -472,10 +536,30 @@ Regla:
 
 no duplicar en OperationalActivity la trazabilidad fina que ya pertenece al módulo dueño si existe una operación agrupada que representa mejor la acción del usuario.
 
+Validación adicional para lectura visual de actividad operativa:
+
+cuando se cree una lectura visual de OperationalActivity:
+
+no se deben persistir URLs finales
+los links deben resolverse desde capa de lectura
+si no hay ruta canónica segura, mostrar texto plano
+el enlace al registro debe integrarse en la columna Registro
+no debe agregarse una columna adicional solo para link
+debe preservarse trail contextual cuando exista navegación
+
+Caso vigente:
+
+OperationalActivityLinkResolver resuelve label, URL, fallback y trail.
+
+Casos actuales sin link seguro:
+
+InventoryOperation
+Attachment
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA
 
@@ -553,10 +637,54 @@ Caso vigente:
 
 en parties debe preferirse Relación con la empresa antes que rol.
 
+Validación adicional de componentes Blade:
+
+no usar componentes no existentes aunque parezcan patrón documentado.
+
+Antes de usar un componente Blade, debe validarse existencia real en resources/views/components o como clase correspondiente.
+
+Caso detectado:
+
+x-empty-state no existe actualmente como componente disponible.
+
+Regla:
+
+si no existe componente específico, resolver el estado vacío con componentes disponibles o markup inline consistente, sin crear componentes globales como parche.
+
+Validación adicional para actividad operativa:
+
+si se incorpora lectura visual de actividad, debe mantener jerarquía secundaria y lectura escaneable.
+
+Caso vigente:
+
+tenant/profile incorpora tab Actividad.
+
+La vista utiliza estructura visual existente:
+
+tabs
+tab-panel
+tab-panel-stack
+x-card
+dashboard-section-header
+table-responsive
+table
+detail-block para estado vacío
+
+Columnas vigentes:
+
+Fecha
+Módulo
+Actividad
+Registro
+Actor
+Sujeto
+
+La columna Registro debe contener enlace solo cuando exista URL resuelta.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 5 — DOCUMENTACIÓN Y CIERRE>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 BLOQUE 5 — DOCUMENTACIÓN Y CIERRE
 
@@ -633,33 +761,62 @@ campos observables definidos por catálogo del módulo
 campos excluidos por ruido técnico
 validación de tenant activo
 validación de queue si corresponde
-validación de jobs y failed_jobs si corresponde
-validación de operational_activities persistidas
-ausencia de duplicación de listeners si event discovery ya resuelve la asociación
-si se registró el modelo principal o una entidad agrupadora
-si se utilizó metadata operativa adicional
-si quedaron pendientes de lectura visual o autorización del log
+validación de persistencia final
+metadata esperada cuando corresponda
+ancla operativa correcta cuando existan entidades agrupadoras
+
+Validación adicional para lectura visual de actividad operativa:
+
+cuando se implemente una lectura de OperationalActivity, el cierre debe registrar:
+
+contrato de autorización
+ubicación visual
+alcance de lectura
+si es lectura general o contextual
+si crea o no navegación principal
+si crea o no surface reutilizable
+cómo se resuelven links
+cómo se resuelve trail
+qué records quedan sin link seguro
+
+Caso vigente:
+
+lectura general tenant-scoped desde tenant/profile mediante tab Actividad.
+
+Autorización:
+
+operational_activity.view_any
+
+Estado:
+
+no crea navegación principal
+
+no es todavía surface reutilizable
+
+usa OperationalActivityLinkResolver
+
+linkea solo cuando existe show canónico seguro
+
+Validation adicional para colas:
+
+el cierre de actividad queued requiere validar cola procesada y persistencia final.
+
+Debe comprobarse:
+
+jobs generados cuando corresponda
+queue procesada
+jobs = 0
+failed_jobs = 0
+operational_activities persistidas
 
 Regla:
 
-no cerrar trazabilidad operativa solo por crear tabla o listener.
-
-Debe validarse runtime real.
-
-Casos validados:
-
-OperationalActivity registra InventoryOperation para inventory.
-
-OperationalActivity registra Party y puede representar cambios de party_roles como metadata operativa.
-
-Regla adicional:
-
-si no se implementaron vistas, tabs, navegación, lectura del log, deletes, downloads, previews, prints, PDFs o vistas, debe quedar explícito en el cierre para evitar inferencias futuras.
+no cerrar trazabilidad queued solo por emisión del evento.
 
 <<END SECTION>>
 
 <<SECTION: CHECKLIST MÍNIMO EXISTENTE>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 CHECKLIST MÍNIMO EXISTENTE
 
@@ -683,42 +840,69 @@ sin bypasses de seguridad
 
 Para módulos con estados operativos o trazabilidad, verificar además:
 
-estados terminales o readonly bloquean update/delete en Security y Gate/Policy
-delete considera trazabilidad operativa real
-controller no sostiene reglas críticas ausentes en Security
-UI no muestra acciones que la autorización efectiva no permite
-recursos hijos respetan el estado operativo del padre
-validaciones con Project Lab incluyen matriz por estado, permiso y trazabilidad cuando corresponda
+estado del padre
+estado de la línea o recurso hijo cuando corresponda
+permisos efectivos
+constraints reales
+trazabilidad existente
+acciones readonly
+bloqueos backend
+UI coherente con autorización real
 
-Para reconversiones de clasificación o catálogo, verificar además:
+Para capacidades transversales como OperationalActivity, verificar además:
 
-que los valores anteriores no sigan vivos como constantes
-que migraciones y seeders expresen la semántica nueva
-que requests validen contra el contrato vigente
-que controllers no reconstruyan lógica legacy
-que vistas y copy no usen términos anteriores de forma ambigua
-que se haya probado intento manipulado cuando exista relación sensible
-que se haya ejecutado grep de residuos sobre app, resources y database
+tenant activo real
+usuario real
+membership activa real
+evento emitido después de operación autorizada
+queue ejecutada cuando corresponda
+jobs procesados
+failed_jobs sin errores
+operational_activities persistidas
+sin duplicación de listeners
+sin escritura manual desde UI
+sin bloqueo del flujo principal ante falla de log
+sin asumir autorización de lectura futura
 
-Para reconversiones de constraints funcionales, verificar además:
+Para lecturas visuales de OperationalActivity, verificar además:
 
-que la constraint anterior no siga operando para el módulo reconvertido
-que la nueva constraint exista en el contrato persistido
-que el resolver central la consuma
-que Security::scope(...) devuelva dataset coherente
-que create, view, update y delete respeten la constraint cuando corresponda
-que la UI de permisos muestre la dimensión correcta
-que los formularios operativos expresen permisos ya resueltos
-que no queden helpers legacy activos en controller
-que no queden combinaciones residuales entre módulo y constraint anterior
+contrato explícito de autorización
+si es lectura general o contextual
+alcance del dataset leído
+ubicación visual real
+si crea o no navegación principal
+si crea o no surface reutilizable
+resolución segura de links
+fallback textual para records sin ruta segura
+trail contextual cuando exista navegación
+ausencia de URLs finales persistidas en operational_activities
 
-Caso validado:
+Caso vigente:
 
-parties debe usar allowed_party_roles.
+lectura general tenant-scoped desde tenant/profile mediante tab Actividad.
 
-parties no debe usar allowed_kinds.
+Autorización:
 
-Este bloque resume mínimos técnicos, pero no reemplaza el checklist completo.
+operational_activity.view_any
+
+Estado:
+
+no crea navegación principal
+
+no es todavía surface reutilizable
+
+usa OperationalActivityLinkResolver
+
+linkea solo cuando existe show canónico seguro
+
+Casos actuales sin link seguro:
+
+InventoryOperation
+Attachment
+
+Regla:
+
+la trazabilidad transversal debe reforzar lectura operativa sin convertirse en autorización, CRUD ordinario ni módulo navegable principal por defecto.
 
 <<END SECTION>>
 

@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00022
 
 CONVENCIONES GENERALES
 
@@ -187,10 +187,58 @@ Regla:
 
 la metadata operativa no convierte una entidad hija en módulo propio.
 
+Convención para capacidades tenant no modulares:
+
+no toda capacidad tenant-scoped debe incorporarse a ModuleCatalog.
+
+Si una capacidad no es módulo funcional, no posee navegación propia, no tiene CRUD completo y no se habilita o deshabilita como módulo ordinario, debe evaluarse como capacidad tenant no modular.
+
+Caso validado:
+
+operational_activity.view_any
+
+Esta capability autoriza lectura general tenant-scoped de OperationalActivity desde Security sin convertir OperationalActivity en módulo funcional ordinario.
+
+Convención de navegación para actividad operativa:
+
+no persistir URLs finales en registros de actividad operativa.
+
+La navegación hacia registros asociados debe resolverse desde una pieza de lectura.
+
+Caso vigente:
+
+OperationalActivityLinkResolver resuelve label, URL canónica cuando existe show seguro, fallback textual y trail contextual.
+
+Regla:
+
+si no existe ruta canónica segura, se muestra texto plano y no se inventa link.
+
+Convención de componentes Blade:
+
+no usar componentes Blade no existentes.
+
+Si el componente no está en resources/views/components ni tiene clase correspondiente, no debe usarse.
+
+Caso detectado:
+
+x-empty-state no existe actualmente como componente runtime disponible.
+
+Convención de Project Lab y colas:
+
+Project Lab puede tener acciones operativas locales fuera del producto, como procesar cola pendiente en entorno local.
+
+Esto no implica funcionalidad SaaS productiva.
+
+Regla:
+
+no ejecutar queue:work desde UI del producto.
+
+En producción debe definirse worker supervisado por infraestructura, no botón operativo dentro del SaaS.
+
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA BASE DEL PROYECTO>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 ESTRUCTURA BASE DEL PROYECTO
 
@@ -260,9 +308,22 @@ servicios de registro, sanidad y persistencia de actividad operativa transversal
 app/Support/Tenants
 contexto tenant y piezas reusables internas
 
-Caso consolidado:
+Casos consolidados:
 
 TenantUserDirectory.php como raíz reusable de usuarios internos activos del tenant
+
+OperationalActivityLinkResolver.php como pieza reusable de lectura para actividad operativa desde el plano tenant
+
+Responsabilidad vigente de OperationalActivityLinkResolver:
+
+resolver label del registro asociado a una actividad
+resolver URL canónica cuando exista show seguro
+agregar trail contextual al link
+devolver null o fallback textual cuando no exista navegación segura
+
+Regla:
+
+OperationalActivityLinkResolver no es componente Blade, no es surface y no convierte OperationalActivity en módulo funcional ordinario.
 
 RESOURCES
 
@@ -464,7 +525,7 @@ No debe utilizarse desactivación global de users para resolver bajas, bloqueos 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ACCESO POR MÓDULO Y ROLES>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 CONVENCIONES DE ACCESO POR MÓDULO Y ROLES
 
@@ -546,6 +607,32 @@ la publicación de capacidades reutilizables por parte de un módulo no crea can
 
 las integraciones entre módulos deben respetar el contrato del módulo oferente y no reinterpretarlo desde el módulo consumidor
 
+Regla adicional para capacidades tenant no modulares:
+
+una capacidad evaluable por Security no necesita incorporarse a ModuleCatalog si no representa un módulo funcional ordinario.
+
+Caso vigente:
+
+operational_activity.view_any
+
+Esta capability autoriza lectura general tenant-scoped de OperationalActivity.
+
+Reglas:
+
+no crea navegación principal
+
+no genera CRUD ordinario
+
+no habilita create, update ni delete
+
+no pasa por TenantModuleAccess como módulo funcional
+
+no reemplaza permisos de los registros originantes
+
+no autoriza operaciones originales
+
+La lectura contextual futura de actividad asociada a registros debe distinguirse del acceso general al log del tenant.
+
 Regla adicional para parties:
 
 las relaciones sensibles del contacto no deben quedar protegidas únicamente por la UI.
@@ -561,7 +648,7 @@ Esa pieza debe evitar duplicación de la regla entre controller y requests.
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00023
+SECTION_VERSION: 00024
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -904,6 +991,30 @@ Regla:
 
 la metadata adicional debe servir para representar cambios operativos significativos sin convertir relaciones hijas en módulos propios ni acoplar el prestador transversal a la semántica interna completa del módulo dueño.
 
+Regla adicional para lectura de actividad operativa:
+
+la lectura visual de OperationalActivity debe consumir operational_activities persistidas y autorizadas.
+
+No debe reconstruir historia operativa desde campos actuales de los modelos.
+
+No debe persistir URLs finales dentro del log.
+
+La navegación al registro asociado debe resolverse mediante pieza de lectura.
+
+Caso vigente:
+
+OperationalActivityLinkResolver resuelve label, URL canónica segura, fallback textual y trail contextual.
+
+Regla:
+
+si no existe show canónico seguro, no debe inventarse link.
+
+Caso vigente:
+
+la tab Actividad de tenant/profile es primera lectura visual concreta de OperationalActivity.
+
+No debe considerarse todavía surface reutilizable.
+
 CONTRATO DE SEGURIDAD
 
 El contrato de seguridad del módulo no se define en esta sección sino en:
@@ -917,7 +1028,7 @@ ningún contrato modular es válido si contradice el contrato de seguridad del m
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CLASIFICACIÓN MODULAR>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 CONVENCIONES DE CLASIFICACIÓN MODULAR
 
@@ -1055,6 +1166,16 @@ party_roles sigue siendo entidad hija o complementaria.
 
 El registro operativo de cambios de party_roles como metadata de Party no convierte party_roles en módulo autónomo ni navegación propia.
 
+Aclaración vigente para lectura general de OperationalActivity:
+
+la existencia de una lectura visual general autorizada no convierte OperationalActivity en módulo funcional ordinario.
+
+Caso vigente:
+
+tenant/profile incorpora tab Actividad como primera lectura visual general.
+
+Esta tab se autoriza mediante capability tenant no modular y no implica incorporación a ModuleCatalog.
+
 Reglas generales:
 
 la clasificación funcional del módulo debe ayudar a definir su contrato y su superficie de integración
@@ -1073,7 +1194,11 @@ Aclaración adicional de plano tenant:
 
 no toda pieza reusable del sistema debe clasificarse como módulo funcional.
 
-Cuando la responsabilidad real sea contexto interno de empresa, dataset reusable o directorio operativo del tenant, la clasificación correcta puede pertenecer al plano tenant/transversal y no al catálogo modular del negocio.
+Cuando la responsabilidad real sea contexto interno de empresa, dataset reusable, directorio operativo del tenant o capacidad tenant no modular, la clasificación correcta puede pertenecer al plano tenant/transversal y no al catálogo modular del negocio.
+
+Caso vigente:
+
+operational_activity.view_any como capability tenant no modular para lectura general del log operativo.
 
 Aclaración adicional sobre recursos hijos relevantes:
 
@@ -1086,7 +1211,7 @@ order_items continúa siendo entidad hija de orders aunque participe como anclaj
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00024
+SECTION_VERSION: 00025
 
 CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
 
@@ -1198,136 +1323,45 @@ Regla adicional de naming modular:
 
 no nombrar nuevas piezas desde el módulo consumidor cuando la capacidad pertenece al módulo oferente
 
-el naming debe expresar el dominio dueño de la capacidad y no el punto accidental desde el que se la consume
+el naming debe expresar ownership funcional real
 
-por lo tanto, deben evitarse superficies, controllers, partials o servicios nombrados desde orders, documents u otros consumidores cuando la capacidad pertenece doctrinalmente a inventory u otro módulo oferente
+Regla adicional para actividad operativa:
 
-Caso vigente:
+OperationalActivity puede ser consumido visualmente solo como lectura persistida y autorizada.
 
-el partial unificado de reversión por línea pertenece al frente inventory y no debe sostener variantes legacy nombradas desde orders o documents cuando la intención operativa es la misma.
+No debe reconstruirse historia operativa desde campos actuales de otros modelos.
 
-Regla adicional de organización de responsabilidades:
+No debe inferirse actividad desde:
 
-controller expresa la surface HTTP
-support o service expresa lógica reusable y arbitraje propio del módulo
-consumidor invoca capacidad externa sin absorber su implementación interna
+created_by
+updated_by
+assigned_user_id
+party_id
 
-Regla adicional de semántica de datos:
+si existe actividad persistida específica.
 
-si una integración muestra simultáneamente stock, ejecución, pendiente o reversión, cada indicador debe obtenerse desde la regla oficial de su plano funcional
+La lectura general vigente se resuelve desde tenant/profile mediante tab Actividad.
 
-no deben reciclarse helpers pensados para stock como fuente universal de estados operativos
+Esa tab no convierte OperationalActivity en surface reusable cerrada.
 
-Regla adicional para host visual modular:
-
-cuando una pantalla anfitriona consuma varias capacidades embebidas desde distintos módulos, debe mantener visible la separación entre su núcleo propio y las capacidades invitadas
-
-el host no debe convertirse en superficie paralela dueña de esas integraciones
-
-debe actuar como compositor visual del ecosistema y no como reemplazo contractual del oferente
-
-Regla adicional de compatibilidad real:
-
-si el host consumidor implementa montaje por zonas, la integración no debe declararse solo en términos abstractos de relación reusable.
-
-Debe verificar compatibilidad real entre:
-
-type
-slot
-estructura del host
-zona efectiva de montaje
-
-Una integración puede estar correctamente orientada al target y seguir siendo invisible si slot no está definido o si la combinación type + slot no coincide con la gramática real del host.
-
-Caso consolidado actual:
-
-las relaciones compactas publicadas hacia appointments.show deben respetar la lectura linked + summary_items del host actual.
-
-Regla adicional para datasets internos del tenant:
-
-si un módulo necesita colaboradores internos activos, validación de pertenencia a la empresa o dataset interno reusable, debe consumir primero la pieza tenant correspondiente antes que reconstruir queries sobre memberships o depender de un módulo users no formalizado.
-
-Regla adicional para hooks blandos:
-
-si un módulo necesita intervención externa sobre un recurso propio, la integración no debe desparramarse entre controllers, blades y servicios nucleares.
-
-Debe concentrarse en la estación contractual propia del módulo y desde allí delegar a piezas externas especializadas del frente correspondiente.
-
-Caso vigente:
-
-orders puede delegar hacia InventoryOrderItemHooks a través de OrdersHooks.
-
-Regla adicional para tablas anfitrionas:
-
-si una tabla del consumidor muestra filas propias pero necesita montar acciones de otro módulo, debe priorizarse el consumo de row actions oficiales publicadas por el oferente y no la reconstrucción manual de botones, permisos o estados dentro del host.
-
-El host monta.
-
-El oferente decide.
-
-Caso vigente adicional:
-
-documents puede montar acciones de inventory sobre document_items dentro de su propia tabla documental.
-
-Esa integración no autoriza a documents a resolver localmente reglas de stock, cálculo de ejecución, reversión ni trazabilidad material.
-
-Regla adicional para estado superior del host:
-
-cuando una integración actúa sobre recursos hijos dentro de un host operativo, no puede habilitar acciones que contradigan el estado superior del recurso padre.
-
-Caso vigente:
-
-inventory puede publicar operación por línea para order_items, pero esa operación queda subordinada al estado de la order.
-
-Si la order está closed o cancelled, la línea no recupera operabilidad por sí misma.
-
-Regla adicional para agrupaciones internas del módulo oferente:
-
-si una integración dispara una acción que internamente genera o reutiliza una entidad agrupadora propia del módulo oferente, el consumidor no debe reconstruir ni condicionar esa agrupación.
-
-Debe consumir la surface, servicio, hook o contrato publicado por el oferente.
-
-Caso vigente:
-
-orders puede actuar como host visual de acciones de inventory por línea, pero inventory conserva la resolución interna de inventory_operations e inventory_movements.
-
-Caso vigente adicional:
-
-documents puede actuar como host visual de acciones de inventory por línea documental, pero inventory conserva la resolución interna de inventory_operations e inventory_movements.
-
-Regla adicional de contexto interno del host:
-
-si una acción integrada nace dentro de una tab principal del host, el módulo oferente puede recibir y reenviar return_tab para preservar la continuidad visual del usuario.
-
-Ese reenvío no autoriza al oferente a decidir qué tab corresponde activar en el host.
-
-El host define sus tabs disponibles y valida la key recibida.
-
-Regla adicional de orden visual en tablas anfitrionas:
-
-cuando una fila combine acciones nativas del host y acciones invitadas desde otros módulos, primero deben renderizarse las acciones propias del host y luego las capacidades externas integradas.
-
-Esto mejora lectura de ownership y reduce ambigüedad operativa.
-
-Regla adicional para actividad operativa transversal:
-
-los módulos funcionales pueden integrarse con una capacidad transversal de actividad mediante eventos operativos livianos.
-
-Esa integración debe ocurrir después de la operación propia del módulo.
-
-Reglas:
-
-el módulo dueño conserva autorización, validación y ejecución
-
-el módulo dueño emite solo el evento operativo correspondiente
-
-la capacidad transversal resuelve sanidad, normalización, clasificación y persistencia
-
-el módulo consumidor del log futuro no debe inferir actividad desde campos actuales como created_by, updated_by o assigned_user_id si existe actividad persistida específica
+OperationalActivityLinkResolver queda como pieza reusable de lectura.
 
 Regla:
 
-la trazabilidad transversal no debe invadir núcleos funcionales ni convertir al log en fuente de verdad de la operación original.
+no persistir URLs finales dentro de operational_activities.
+
+La navegación hacia el registro asociado debe resolverse dinámicamente y solo cuando exista ruta show canónica segura.
+
+Casos actuales sin link seguro:
+
+InventoryOperation
+Attachment
+
+Regla:
+
+la falta de link seguro no debe resolverse inventando rutas ni columnas auxiliares.
+
+Debe mostrarse fallback textual.
 
 <<END SECTION>>
 

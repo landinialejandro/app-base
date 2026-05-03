@@ -247,7 +247,7 @@ Es una pieza estructural del funcionamiento del sistema.
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00022
 
 CAPAS FUNCIONALES DEL SISTEMA
 
@@ -258,6 +258,10 @@ Gobierno general de la plataforma.
 
 CAPA TENANT
 Contexto operativo de la empresa activa.
+
+La capa tenant puede incluir capacidades propias del plano empresa que no constituyen módulos funcionales ordinarios.
+
+Estas capacidades pueden ser tenant-scoped, evaluables por seguridad y visibles dentro de frentes del tenant sin incorporarse automáticamente a ModuleCatalog.
 
 CAPA DE GOBIERNO INTERNO DEL TENANT
 Organiza pertenencia y actores internos.
@@ -279,6 +283,10 @@ OperationalActivity registra actividad operativa emitida por módulos dueños lu
 
 No absorbe ownership funcional, no autoriza, no valida y no ejecuta la operación original.
 
+La lectura general inicial de OperationalActivity se resuelve como capacidad tenant no modular.
+
+Esto no convierte OperationalActivity en módulo funcional ordinario ni en navegación principal.
+
 BASE DEL DOMINIO
 Anclajes conceptuales amplios del negocio.
 
@@ -290,6 +298,10 @@ Reglas:
 esta lectura debe prevalecer en decisiones arquitectónicas
 
 tenant es contexto, no módulo funcional
+
+no toda capacidad tenant-scoped debe incorporarse a ModuleCatalog
+
+las capacidades tenant no modulares pueden existir cuando la responsabilidad no sea módulo funcional, no tenga CRUD ordinario, no requiera navegación propia y no deba habilitarse o deshabilitarse como módulo del negocio
 
 las necesidades de colaboradores internos deben resolverse primero en la capa tenant antes de crear módulos nuevos
 
@@ -523,7 +535,7 @@ tampoco debe sobredimensionarse el dominio del negocio hasta absorber piezas cuy
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 CLASIFICACIÓN CONCEPTUAL DE MÓDULOS
 
@@ -584,6 +596,28 @@ no absorbe ownership funcional de los módulos que emiten eventos
 no debe registrar actividad solo por existir CRUD
 
 La participación de un módulo en OperationalActivity debe definirse explícitamente y justificarse por valor operativo real.
+
+CAPACIDADES TENANT NO MODULARES
+
+Representan capacidades del plano tenant que pueden ser evaluadas por seguridad sin constituir módulos funcionales ordinarios.
+
+Caso vigente:
+
+lectura general de OperationalActivity mediante capability específica.
+
+Reglas:
+
+no se incorporan automáticamente a ModuleCatalog
+
+no se leen como módulos navegables
+
+no poseen CRUD completo
+
+no pasan por habilitación modular ordinaria
+
+pueden ser evaluadas por la capa central de seguridad
+
+pueden tener permisos asignables cuando exista contrato explícito
 
 Aclaración para inventory:
 

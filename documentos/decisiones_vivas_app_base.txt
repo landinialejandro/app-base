@@ -36,7 +36,7 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 DECISIONES VIGENTES
 
@@ -176,16 +176,65 @@ destroy
 
 salvo decisión explícita posterior.
 
-Decisión vigente sobre lectura:
+Decisión vigente sobre lectura general de OperationalActivity:
 
-la autorización de lectura del log todavía no está definida.
+la lectura general tenant-scoped del log operativo se autoriza mediante:
 
-No se debe asumir acceso de lectura por existir operational_activities.
+operational_activity.view_any
 
-Lecturas futuras posibles:
+Esta capability se resuelve desde Security sin incorporar OperationalActivity a ModuleCatalog.
 
-vista general desde perfil de empresa
-actividad por colaborador desde parties.show para employee con membership activa vinculada
+Motivo:
+
+ModuleCatalog gobierna módulos habilitados, navegación, seeders, surfaces y permisos funcionales.
+
+Agregar OperationalActivity allí lo convertiría en módulo funcional ordinario.
+
+Por eso, OperationalActivity se mantiene como capacidad transversal tenant-scoped y su lectura general se resuelve mediante capacidad tenant no modular.
+
+Estado de asignación inicial:
+
+owner
+admin
+
+Decisión vigente sobre ubicación visual inicial:
+
+la primera lectura visual general de OperationalActivity se ubica en tenant/profile mediante tab Actividad.
+
+No se agrega navegación principal para OperationalActivity.
+
+No se implementa vista general independiente del log.
+
+No se considera todavía surface reutilizable.
+
+Decisión vigente sobre acceso a tenant/profile:
+
+tenant/profile sigue restringido a owner en el estado actual.
+
+admin tiene permiso sembrado para operational_activity.view_any, pero no accede todavía a tenant/profile por la restricción vigente del controlador.
+
+El acceso futuro de admin a tenant/profile queda pendiente explícito y debe distinguir visualización permitida de edición restringida.
+
+Decisión vigente sobre navegación desde actividad:
+
+no se persisten URLs finales en operational_activities.
+
+La navegación al registro asociado se resuelve en capa de lectura mediante OperationalActivityLinkResolver.
+
+OperationalActivityLinkResolver puede resolver links solo cuando exista ruta show canónica segura.
+
+Casos sin link por ahora:
+
+InventoryOperation
+Attachment
+
+Decisión vigente sobre Project Lab y colas:
+
+Project Lab puede tener acción externa al producto para procesar cola localmente.
+
+Esto no debe trasladarse al SaaS productivo.
+
+No debe implementarse botón de queue dentro del producto SaaS.
 
 Project Lab es la herramienta operativa local vigente para aplicar, auditar y validar intervenciones técnicas.
 

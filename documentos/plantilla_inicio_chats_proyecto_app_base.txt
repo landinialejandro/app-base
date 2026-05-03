@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -166,10 +166,6 @@ La escritura del log es system-owned y append-only.
 
 No debe proponerse create manual, edit, update, delete, destroy ni carga manual desde UI para OperationalActivity.
 
-La lectura futura del log todavía requiere autorización explícita.
-
-No asumir acceso de lectura por existir operational_activities.
-
 Módulos actualmente integrados con OperationalActivity:
 
 appointments
@@ -203,11 +199,49 @@ OperationalActivity puede registrar creación y actualización de metadata opera
 
 No registra download, preview, vista, print, PDF ni destroy en el estado vigente.
 
-No se implementó vista general del log.
+Lectura general vigente de OperationalActivity:
 
-No se implementó tab Actividad en parties.show.
+OperationalActivity ya tiene contrato inicial de lectura general:
 
-No se agregó acceso desde tenant/profile.
+operational_activity.view_any
+
+Esta capability es tenant no modular.
+
+Se resuelve desde Security sin incorporar OperationalActivity a ModuleCatalog.
+
+Lectura visual general inicial:
+
+tenant/profile
+tab Actividad
+últimos 50 registros del tenant
+
+Estado actual:
+
+tenant/profile sigue restringido a owner
+
+admin tiene permiso sembrado para operational_activity.view_any, pero no accede todavía a tenant/profile
+
+la tab Actividad no es todavía surface reutilizable
+
+La tab Actividad usa OperationalActivityLinkResolver.
+
+OperationalActivityLinkResolver resuelve:
+
+label del registro asociado
+URL canónica cuando existe show seguro
+fallback textual cuando no existe ruta segura
+trail contextual
+
+Trail vigente desde actividad:
+
+Inicio
+Perfil de empresa · Actividad
+Registro destino
+
+Casos actuales sin link seguro:
+
+InventoryOperation
+Attachment
 
 Cuando una tarea involucre Project Lab, automatizador, Tinker, runtime real, colas, eventos, permisos, constraints, multi-tenancy, actualización de código o actualización documental, se debe respetar la guía operativa vigente de Project Lab.
 
@@ -221,10 +255,18 @@ no mezclar FILE con operadores de método.
 
 no entregar formatos ambiguos.
 
+Regla vigente para colas:
+
+en local, Project Lab puede procesar cola manualmente fuera del producto.
+
+En producción debe definirse worker supervisado.
+
+No agregar botón de queue al producto SaaS.
+
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS DEL CHAT>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 REGLAS OPERATIVAS DEL CHAT
 
@@ -312,11 +354,41 @@ no registrar actividad técnica sin valor operativo.
 
 no registrar deletes, vistas, downloads, previews, prints ni PDFs salvo decisión explícita posterior.
 
-no implementar lectura visual del log sin contrato de autorización.
+no implementar nuevas lecturas visuales del log sin contrato de autorización.
 
 validar siempre tenant activo, evento emitido, queue procesada, jobs vaciados, failed_jobs sin errores y persistencia final cuando corresponda.
 
 si hay jobs procesados sin failed_jobs pero no hay operational_activities persistidas, revisar primero el mapeo modelo → módulo y módulo → catálogo.
+
+Regla vigente de lectura general:
+
+la lectura general tenant-scoped de OperationalActivity se autoriza mediante:
+
+operational_activity.view_any
+
+Esta capability no convierte OperationalActivity en módulo funcional ordinario.
+
+No debe agregarse a ModuleCatalog por este motivo.
+
+No debe abrir navegación principal por mera existencia de la capability.
+
+Regla vigente de tenant/profile:
+
+tenant/profile sigue restringido a owner.
+
+admin tiene permiso sembrado para operational_activity.view_any, pero no accede todavía a tenant/profile.
+
+No asumir acceso admin hasta revisar y definir visualización permitida y edición restringida.
+
+Regla operativa adicional para links de actividad:
+
+no persistir URLs finales en operational_activities.
+
+usar OperationalActivityLinkResolver para lectura visual.
+
+si no hay ruta show canónica segura, mostrar fallback textual.
+
+no inventar links para InventoryOperation ni Attachment mientras no exista ruta segura validada.
 
 Regla operativa adicional para inventory:
 
@@ -338,10 +410,30 @@ party_roles dentro de actividad de Party.
 
 La metadata no debe convertir la relación hija en módulo propio ni generar duplicación innecesaria como extra_changes persistido si ya queda representada en changes.
 
+Regla operativa adicional para componentes Blade:
+
+no usar componentes no existentes.
+
+Antes de usar un componente Blade, validar existencia real en resources/views/components o clase correspondiente.
+
+Caso vigente:
+
+x-empty-state no existe actualmente.
+
+Usar componentes existentes o estado vacío inline consistente.
+
+Regla operativa adicional para colas:
+
+en local, Project Lab puede procesar cola manualmente fuera del producto.
+
+En producción, definir worker persistente supervisado.
+
+No implementar botón de queue dentro del producto SaaS.
+
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DE ESTE CHAT>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 OBJETIVO DE ESTE CHAT
 
@@ -363,7 +455,17 @@ auditoría de nuevas mejoras sobre tabs host únicamente si existe evidencia rea
 
 análisis de parties.show y sus embebidos según party_roles.role
 
-definición futura de lectura autorizada para OperationalActivity
+lectura contextual heredada de OperationalActivity por módulo o registro
+
+evaluar si OperationalActivity debe publicar surface reutilizable
+
+revisar acceso futuro de admin a tenant/profile con visualización permitida y edición restringida
+
+definir links para InventoryOperation y Attachment desde actividad operativa
+
+revisar duplicación de extra_changes en metadata final, especialmente en parties
+
+definir estrategia de worker de cola para producción
 
 Estado reciente consolidado de parties:
 
@@ -435,6 +537,43 @@ los campos observables deben declararse en el catálogo dueño
 
 la validación requiere runtime real, tenant activo, evento, cola, jobs, failed_jobs y persistencia final cuando corresponda
 
+Estado reciente consolidado de lectura general de OperationalActivity:
+
+contrato inicial de lectura general definido:
+
+operational_activity.view_any
+
+capability tenant no modular
+
+resuelta desde Security
+
+sin incorporar OperationalActivity a ModuleCatalog
+
+permiso sembrado para owner y admin
+
+lectura visual inicial implementada en tenant/profile mediante tab Actividad
+
+la tab muestra últimos 50 registros del tenant
+
+tenant/profile sigue restringido a owner
+
+admin tiene permiso sembrado pero no accede todavía a tenant/profile
+
+la tab Actividad no es todavía surface reutilizable
+
+OperationalActivityLinkResolver resuelve label, URL canónica segura, fallback textual y trail contextual
+
+trail vigente:
+
+Inicio
+Perfil de empresa · Actividad
+Registro destino
+
+Casos actuales sin link seguro:
+
+InventoryOperation
+Attachment
+
 Estado reciente consolidado de inventory frente a OperationalActivity:
 
 OperationalActivity registra InventoryOperation como acción operativa agrupada
@@ -457,27 +596,31 @@ attachments puede registrar creación y actualización de metadata operativa
 
 no se registra download, preview, vista, print, PDF ni destroy
 
-Próximos frentes posibles de OperationalActivity:
+Pendientes vigentes de OperationalActivity:
 
-definir autorización de lectura del log
+lectura contextual heredada por módulo o registro
 
-definir vista general desde perfil de empresa
+evaluar surface reutilizable
 
-definir lectura filtrada desde parties.show para employee con membership activa vinculada
+resolver InventoryOperation y Attachment
 
-definir si tenant/profile o memberships deben emitir actividad operativa
+revisar extra_changes duplicado en parties
 
-revisar posible duplicación de extra_changes en metadata final
+revisar acceso admin a tenant/profile
 
-definir criterio sobre limpieza o conservación de registros temporales de prueba
+definir worker de cola para producción
 
-evaluar otros módulos sin asumir integración automática
+Regla operativa de colas:
 
-Regla:
+en local, Project Lab puede procesar cola manualmente fuera del producto
 
-no implementar UI, tab, menú ni surface visual de OperationalActivity sin contrato de lectura explícito.
+en producción, definir worker supervisado
 
-Toda propuesta debe nacer desde el estado actual real del proyecto y no desde supuestos genéricos.
+no agregar botón de queue al producto SaaS
+
+Criterio de limpieza de datos temporales:
+
+al ejecutar migrate:fresh --seed, operational_activities debe quedar en blanco salvo decisión explícita posterior de sembrar actividad demo
 
 <<END SECTION>>
 
@@ -513,7 +656,7 @@ Cuando el frente lo requiera, debe inspeccionarse código real, rutas reales, ru
 <<END SECTION>>
 
 <<SECTION: HERRAMIENTAS OPERATIVAS DISPONIBLES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 HERRAMIENTAS OPERATIVAS DISPONIBLES
 
@@ -535,6 +678,7 @@ ejecutar auditorías simples
 usar snippets rápidos
 ver salida en consola unificada
 copiar resultados para compartir en el chat
+ejecutar acciones operativas locales de soporte cuando correspondan al entorno de desarrollo
 
 Herramientas Lab disponibles:
 
@@ -585,9 +729,21 @@ si una prueba requiere runtime real, tenant activo, Security o contexto funciona
 
 si una prueba requiere eventos queued, debe validarse también cola, jobs, failed_jobs y persistencia final cuando corresponda
 
-si una intervención involucra OperationalActivity, no alcanza con disparar el evento: debe validarse procesamiento real y ausencia de duplicación de listeners
+si una intervención involucra OperationalActivity, no alcanza con disparar el evento: debe validarse procesamiento real, ausencia de duplicación de listeners y persistencia final
 
 la consola unificada de Project Lab es la salida operativa principal para compartir resultados, errores y auditorías durante el trabajo técnico
+
+Aclaración vigente sobre colas:
+
+en local, Project Lab puede procesar cola pendiente como acción externa al producto para validar eventos queued y persistencia final.
+
+Esto no forma parte del SaaS productivo.
+
+En producción debe definirse worker persistente supervisado por infraestructura.
+
+Regla:
+
+no implementar queue:work como botón, menú ni acción dentro del producto SaaS.
 
 Regla crítica de formatos:
 

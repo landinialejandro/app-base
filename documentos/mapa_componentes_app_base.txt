@@ -38,7 +38,7 @@ Este documento se limita a la capa visual y estructural de componentes.
 
 
 <<SECTION: COMPONENTES BLADE GLOBALES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 COMPONENTES BLADE GLOBALES
 
@@ -50,25 +50,41 @@ Responsabilidad:
 
 componentes reutilizables en todo el sistema sin pertenencia a un módulo específico.
 
-Ejemplos:
+Ejemplos vigentes:
 
-x-page  
-x-page-header  
-x-breadcrumb  
-x-card  
-x-modal  
-x-empty-state  
+x-page
+x-page-header
+x-breadcrumb
+x-card
+x-modal
 
 Reglas:
 
-deben ser genéricos  
-no deben contener lógica de negocio  
-no deben depender de un módulo específico  
-deben ser reutilizables en cualquier contexto  
+deben ser genéricos
+no deben contener lógica de negocio
+no deben depender de un módulo específico
+deben ser reutilizables en cualquier contexto
 
 Regla adicional:
 
 si un componente comienza a depender de un módulo específico, debe migrarse al módulo correspondiente.
+
+Regla de validación runtime:
+
+no debe utilizarse un componente Blade si no existe realmente en resources/views/components o como clase correspondiente.
+
+Caso detectado:
+
+x-empty-state no existe actualmente como componente disponible.
+
+Por lo tanto, no debe listarse ni usarse como componente global vigente.
+
+Si una vista requiere estado vacío y no existe componente específico, debe resolverlo con componentes disponibles o markup inline consistente.
+
+Caso vigente:
+
+la tab Actividad de tenant/profile resolvió su estado vacío inline con detail-block.
+
 <<END SECTION>>
 
 
@@ -349,7 +365,7 @@ No reconstruir permisos desde parties.kind.
 
 
 <<SECTION: COMPONENTES REUTILIZABLES TRANSVERSALES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 COMPONENTES REUTILIZABLES TRANSVERSALES
 
@@ -400,25 +416,38 @@ parties._form
 
 Regla:
 
-un comportamiento frontend reusable no debe contener reglas de negocio, permisos ni decisiones de seguridad.
+un comportamiento frontend reusable no debe reemplazar validaciones backend ni reglas de autorización.
 
-Debe limitarse a representar o revelar secciones según estado visual y valores existentes.
+Piezas de soporte no Blade asociadas a lectura visual:
 
-Aclaración vigente para parties._form:
+app/Support/Tenants/OperationalActivityLinkResolver.php
 
-parties._form expresa estado y permisos ya resueltos por backend.
+Responsabilidad:
 
-Puede mostrar relaciones disponibles según allowedPartyRoles.
+resolver label del registro asociado a una actividad
+resolver URL canónica cuando exista show seguro
+agregar trail contextual al link
+devolver null o fallback textual cuando no exista navegación segura
 
-Puede ocultar employee cuando el usuario no puede gestionarlo.
+Reglas:
 
-Puede respetar bloqueo visual para party vinculada a membership activa.
+no es componente Blade
 
-No define autorización por sí mismo.
+no es surface
 
-Regla:
+no es módulo funcional
 
-la autorización sensible de employee pertenece al backend y a la pieza reusable correspondiente, no al componente visual ni al comportamiento progresivo.
+no pertenece a ModuleCatalog
+
+no persiste URLs finales
+
+no autoriza acceso por sí mismo
+
+solo prepara lectura visual y navegación segura a partir de actividad ya autorizada
+
+Caso vigente:
+
+tab Actividad de tenant/profile consume filas resueltas para mostrar actividad operativa del tenant.
 
 <<END SECTION>>
 

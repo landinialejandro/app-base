@@ -247,7 +247,7 @@ Es una pieza estructural del funcionamiento del sistema.
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00024
+SECTION_VERSION: 00025
 
 CAPAS FUNCIONALES DEL SISTEMA
 
@@ -286,6 +286,40 @@ No absorbe ownership funcional ni ejecuta la operación original.
 La lectura general de OperationalActivity se resuelve como capacidad tenant no modular.
 
 La lectura contextual de OperationalActivity puede publicarse desde el plano tenant/transversal hacia hosts funcionales autorizados sin convertir OperationalActivity en módulo funcional.
+
+La lectura contextual puede operar en dos modalidades:
+
+lectura directa del record host autorizado
+
+lectura agregada mediante un conjunto explícito de records definido por el módulo dueño
+
+El conjunto explícito de records se declara como activity_record_set.
+
+Regla estructural:
+
+OperationalActivity lee y presenta actividad persistida, pero no decide la frontera funcional de actividad agregada de cada módulo.
+
+Esa frontera pertenece al módulo dueño.
+
+Caso validado:
+
+projects define que la actividad contextual de un Project puede incluir el propio Project y sus Tasks.
+
+Esa definición no queda hardcodeada dentro de OperationalActivity.
+
+Debe ser publicada por el módulo funcional dueño mediante su contrato correspondiente.
+
+Lectura de responsabilidades:
+
+OperationalActivity registra y lee actividad.
+
+Project define su dataset contextual agregado cuando corresponde.
+
+ModuleCatalog declara la capacidad publicada.
+
+OperationalActivityContextReader consume records ya definidos.
+
+La show page consume la surface correspondiente.
 
 BASE DEL DOMINIO
 Anclajes conceptuales amplios del negocio.
@@ -385,7 +419,7 @@ Su función es sostener la plataforma y su frontera de ingreso.
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00027
+SECTION_VERSION: 00029
 
 ENTIDADES DEL NEGOCIO
 
@@ -437,7 +471,7 @@ inventory_movements expresa impacto unitario real sobre stock
 
 inventory_operations agrupa contexto operativo cuando una misma acción requiere uno o múltiples movimientos
 
-operational_activities registra actividad operativa real del sistema dentro del tenant activo
+operational_activities registra actividad operativa real del sistema dentro del tenant activo como capacidad transversal de trazabilidad
 
 operational_activities no representa una entidad hija de módulos funcionales particulares
 
@@ -449,13 +483,21 @@ orders y documents comparten una doctrina base de lifecycle para cabeceras opera
 
 Aclaración estructural para OperationalActivity:
 
-OperationalActivity puede registrar actividad operativa sobre registros de módulos funcionales cuando el módulo dueño emite eventos operativos livianos luego de una operación autorizada, validada y ejecutada.
+OperationalActivity registra actividad operativa sobre registros de módulos funcionales cuando el módulo dueño emite eventos operativos livianos luego de una operación autorizada, validada y ejecutada.
 
 La integración con OperationalActivity no convierte a esos módulos en dependientes del log ni altera su ownership funcional.
 
-OperationalActivity puede exponer lectura contextual sobre registros host autorizados mediante surface tenant/transversal.
+OperationalActivity puede exponer lectura contextual directa sobre un record host autorizado o lectura contextual agregada sobre un conjunto explícito de records declarado por el módulo dueño.
 
-Esa lectura no convierte operational_activities en entidad hija del host ni convierte OperationalActivity en módulo funcional ordinario.
+Regla:
+
+la frontera funcional de una lectura agregada pertenece al módulo dueño.
+
+Caso validado:
+
+Projects puede declarar Project + Tasks como dataset de actividad contextual agregada del proyecto.
+
+Esto no convierte a Task en entidad hija de OperationalActivity ni altera su ownership funcional.
 
 Aclaración estructural para inventory:
 
@@ -492,12 +534,6 @@ Regla:
 employee no es tipo de contacto ni naturaleza de party.
 
 Employee es una relación operativa dentro de party_roles.
-
-party_roles es la entidad hija o complementaria que expresa la relación operativa del contacto con la empresa.
-
-Regla:
-
-la relación operativa vive en party_roles.role y no en parties.kind.
 
 La incidencia de party_roles.role en seguridad se define en el documento especializado de seguridad.
 
@@ -543,11 +579,11 @@ tampoco debe sobredimensionarse el dominio del negocio hasta absorber piezas cuy
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00016
 
 CLASIFICACIÓN CONCEPTUAL DE MÓDULOS
 
-Los módulos del ecosistema no cumplen todos el mismo rol.
+Los módulos y capacidades del ecosistema no cumplen todos el mismo rol.
 
 Clasificación doctrinal vigente:
 
@@ -595,6 +631,12 @@ no absorbe ownership funcional de los módulos que emiten eventos
 
 no debe registrar actividad solo por existir CRUD
 
+puede ofrecer lectura contextual directa o agregada cuando exista contrato válido
+
+Regla:
+
+OperationalActivity no define por sí mismo qué records componen la actividad agregada de un módulo.
+
 La participación de un módulo en OperationalActivity debe definirse explícitamente y justificarse por valor operativo real.
 
 CAPACIDADES TENANT NO MODULARES
@@ -639,23 +681,13 @@ no pasan por TenantModuleAccess como módulo funcional
 
 conservan ownership en el plano tenant/transversal
 
-Aclaración para inventory:
+Aclaraciones vigentes:
 
-inventory es módulo nuclear funcional.
+projects puede declarar lectura contextual agregada de actividad sobre Project + Tasks mediante activity_record_set
 
-inventory_operations pertenece al núcleo interno de inventory como agrupación operativa contextual.
+inventory es módulo nuclear funcional y, frente a OperationalActivity, el ancla operativa vigente es InventoryOperation
 
-inventory_movements conserva la trazabilidad atómica de stock.
-
-Frente a OperationalActivity, el ancla operativa vigente es InventoryOperation.
-
-Aclaración para parties:
-
-parties es módulo base del dominio.
-
-party_roles no constituye módulo funcional independiente.
-
-Los cambios de party_roles pueden registrarse como metadata operativa de Party cuando correspondan, sin convertir party_roles en módulo propio.
+parties es módulo base del dominio y party_roles no constituye módulo funcional independiente
 
 Regla:
 
@@ -666,7 +698,7 @@ La navegación, visualización y lectura autorizada se resuelven en los document
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00027
+SECTION_VERSION: 00029
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
@@ -699,6 +731,7 @@ surfaces
 row actions
 resolvers
 eventos operativos livianos cuando corresponda
+record sets explícitos cuando corresponda lectura contextual agregada
 
 Debe representar la capacidad completa del módulo oferente.
 
@@ -741,6 +774,40 @@ La lógica de sanidad, normalización y persistencia del registro operativo pert
 
 El significado operativo primario de la acción sigue perteneciendo al módulo dueño.
 
+LECTURA CONTEXTUAL DE ACTIVIDAD
+
+OperationalActivity puede leer actividad contextual directa o agregada.
+
+Lectura directa:
+
+record host autorizado
+↓
+OperationalActivityContextReader
+↓
+surface de actividad
+
+Lectura agregada:
+
+módulo dueño
+↓
+activity_record_set explícito
+↓
+OperationalActivityContextReader
+↓
+surface de actividad
+
+Regla:
+
+OperationalActivity no decide la frontera funcional agregada.
+
+No debe conocer internamente relaciones propias de módulos concretos para ampliar el dataset.
+
+Caso validado:
+
+Projects declara ProjectActivityRecordSet para incluir Project + Tasks en la actividad contextual del proyecto.
+
+Esta decisión pertenece al módulo Projects y no a OperationalActivity.
+
 SURFACES TENANT O TRANSVERSALES NO MODULARES
 
 Una capacidad tenant-scoped o transversal no modular puede publicar surfaces controladas hacia hosts funcionales sin incorporarse a ModuleCatalog.
@@ -755,7 +822,7 @@ debe ofrecer lectura o información controlada a hosts autorizados
 
 Caso validado:
 
-OperationalActivity puede publicar lectura contextual mediante una surface tenant/transversal.
+OperationalActivity publica lectura contextual mediante una surface tenant/transversal.
 
 Lectura estructural validada:
 
@@ -784,17 +851,9 @@ host consume sin reinterpretar
 
 Cuando existan surfaces tenant/transversales no modulares, ModuleSurfaceRegistry puede integrar ese origen sin degradar la frontera entre módulos funcionales ordinarios y capacidades transversales.
 
-Caso vigente consolidado:
+Regla:
 
-parties actúa como módulo oferente de relaciones compactas y embebidas.
-
-Cuando parties.show consume relaciones hacia otros módulos, debe hacerlo mediante surfaces oficiales y no mediante cargas manuales reconstruidas en controller.
-
-Aclaración estructural vigente para parties:
-
-parties.kind pertenece al núcleo estructural del contacto.
-
-party_roles.role expresa relación operativa con la empresa.
+la arquitectura modular debe permitir integración sin pérdida de ownership funcional.
 
 <<END SECTION>>
 
@@ -861,7 +920,7 @@ Por lo tanto, esa necesidad no debe reinterpretarse como expansión de users ni 
 <<END SECTION>>
 
 <<SECTION: MÓDULOS FUNCIONALES ACTUALES>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 MÓDULOS FUNCIONALES ACTUALES
 
@@ -898,6 +957,8 @@ inventory debe leerse como frente funcional de saldo, historial y operación, co
 orders es módulo operativo fuerte con estados que afectan operabilidad general.
 
 documents puede hospedar capacidades publicadas por otros módulos sin absorber su lógica.
+
+projects puede actuar como agrupador funcional de tasks y declarar lectura contextual agregada de actividad cuando corresponda.
 
 No todos los hosts show pages poseen igual madurez estructural dentro del ecosistema.
 
@@ -936,7 +997,7 @@ La integración correcta ocurre por contratos publicados y consumo explícito.
 
 
 <<SECTION: RELACIONES MACRO DEL ECOSISTEMA>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00017
 
 RELACIONES MACRO DEL ECOSISTEMA
 
@@ -952,6 +1013,8 @@ products alimenta líneas operativas y documentales
 inventory sostiene stock y trazabilidad material
 parties se relaciona transversalmente con múltiples módulos
 attachments puede integrarse sobre múltiples recursos
+módulos funcionales pueden emitir actividad operativa hacia OperationalActivity
+módulos funcionales pueden declarar activity_record_set cuando necesiten lectura contextual agregada de actividad
 
 Relaciones especialmente relevantes:
 
@@ -961,6 +1024,8 @@ orders como núcleo operativo
 orders + líneas + inventory como frente de ejecución
 documents como prolongación documental
 inventory como frente operativo con agrupación contextual y movimientos unitarios
+projects como agrupador operativo de tasks
+OperationalActivity como capacidad transversal de trazabilidad operativa
 
 Reglas:
 
@@ -969,6 +1034,18 @@ inventory_operations agrupa contexto operativo.
 inventory_movements conserva trazabilidad unitaria.
 
 order_items y document_items mantienen pertenencia estructural a sus módulos padre aunque participen en flujos externos.
+
+OperationalActivity persiste actividad sobre module + record_type + record_id.
+
+OperationalActivity no persiste URLs finales.
+
+OperationalActivity no reconstruye relaciones funcionales por sí mismo.
+
+Cuando exista lectura agregada de actividad, la frontera debe ser declarada por el módulo dueño.
+
+Caso validado:
+
+projects puede declarar Project + Tasks como conjunto de actividad contextual visible desde projects.show.
 
 Estas relaciones describen arquitectura general y no detalle de navegación, seguridad o implementación.
 

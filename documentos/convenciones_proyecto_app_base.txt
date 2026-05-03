@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00023
+SECTION_VERSION: 00024
 
 CONVENCIONES GENERALES
 
@@ -186,6 +186,58 @@ parties puede registrar cambios de party_roles como metadata operativa de Party.
 Regla:
 
 la metadata operativa no convierte una entidad hija en módulo propio.
+
+Convención de lectura contextual agregada de actividad:
+
+un módulo puede declarar opcionalmente un activity_record_set para indicar qué records deben formar parte de una lectura contextual agregada de actividad.
+
+Esta declaración pertenece al módulo dueño.
+
+No pertenece a OperationalActivity.
+
+El provider debe implementar el contrato común:
+
+ActivityRecordSetProvider
+
+La convención vigente es:
+
+si el módulo declara activity_record_set
+OperationalActivity usa ese conjunto de records
+
+si el módulo no declara activity_record_set
+OperationalActivity usa lectura directa del record host autorizado
+
+Caso validado:
+
+projects declara ProjectActivityRecordSet.
+
+ProjectActivityRecordSet define Project + Tasks como dataset de actividad visible del proyecto.
+
+Regla:
+
+OperationalActivity no debe conocer internamente relaciones propias de módulos como Project → Tasks, Order → Items o Document → Items.
+
+Cada módulo debe publicar esa frontera si corresponde.
+
+No deben agregarse condiciones específicas dentro de OperationalActivity como if Project, if Order o if Document para decidir lectura agregada.
+
+Convención de presentación de cambios operativos:
+
+la vista no debe interpretar directamente metadata.changes.
+
+La transformación de cambios persistidos a lectura visual debe resolverse mediante una pieza de presentación.
+
+Caso validado:
+
+OperationalActivityChangePresenter
+
+Responsabilidad:
+
+transformar metadata.changes en change_summary y change_details.
+
+Regla:
+
+la tabla de actividad puede mostrar una síntesis compacta de cambios y ofrecer detalle bajo demanda, pero no debe incorporar reglas de campos ni lógica de interpretación del JSON.
 
 Convención para capacidades tenant no modulares:
 

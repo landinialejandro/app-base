@@ -53,7 +53,7 @@ los detalles técnicos pueden evolucionar sin alterar estos principios rectores
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00017
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -116,6 +116,32 @@ No autoriza la operación original.
 
 La autorización sigue perteneciendo al módulo host mediante su permiso view sobre el registro correspondiente.
 
+La lectura contextual puede ser directa o agregada.
+
+La lectura directa alcanza la actividad asociada al record host autorizado.
+
+La lectura agregada alcanza el conjunto explícito de records definido por el módulo dueño mediante activity_record_set.
+
+Reglas para lectura agregada:
+
+el host principal debe estar autorizado previamente
+
+activity_record_set no autoriza records por sí mismo
+
+activity_record_set no habilita lectura general del tenant
+
+activity_record_set no reemplaza Security
+
+activity_record_set no puede exponer datos ajenos al tenant activo
+
+activity_record_set debe estar definido por el módulo dueño
+
+OperationalActivity no debe decidir internamente la frontera funcional agregada
+
+Caso validado:
+
+projects.show puede mostrar actividad del Project y de sus Tasks porque Projects declara ProjectActivityRecordSet.
+
 Reglas síntesis:
 
 la visibilidad en UI no constituye autorización
@@ -128,7 +154,7 @@ el registro de actividad operativa no modifica el permiso efectivo de la acción
 
 la lectura del log operativo requiere autorización explícita propia
 
-la lectura contextual heredada solo alcanza la actividad asociada al registro host ya autorizado
+la lectura contextual heredada solo alcanza la actividad asociada al registro host ya autorizado o al record set explícito declarado por el módulo dueño
 
 Caso vigente:
 
@@ -219,7 +245,7 @@ Una membership histórica, inactiva o desvinculada no debe producir por sí mism
 <<END SECTION>>
 
 <<SECTION: MULTI-TENANCY Y AISLAMIENTO>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 MULTI-TENANCY Y AISLAMIENTO
 
@@ -243,6 +269,8 @@ resolución de registros
 relaciones
 datasets visibles
 operaciones entre módulos
+lecturas contextuales directas
+lecturas contextuales agregadas
 
 Este criterio alcanza también a:
 
@@ -251,6 +279,7 @@ movimientos
 operaciones internas
 trazabilidad derivada
 registros de actividad operativa
+activity_record_set declarados por módulos dueños
 
 Regla:
 
@@ -265,6 +294,12 @@ Caso vigente:
 OperationalActivity debe conservar tenant_id como UUID string compatible con tenants.id.
 
 No debe tratarse tenant_id como entero.
+
+Regla adicional para lectura agregada:
+
+si un módulo declara activity_record_set, todos los records incluidos deben pertenecer al tenant activo o estar resueltos dentro del aislamiento vigente del sistema.
+
+No debe utilizarse activity_record_set para mezclar datos entre tenants ni para exponer relaciones no autorizadas.
 
 <<END SECTION>>
 
@@ -300,7 +335,7 @@ No reemplazan la singularidad estructural del owner.
 <<END SECTION>>
 
 <<SECTION: MODELO V2 DE PERMISOS>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00008
 
 MODELO V2 DE PERMISOS
 
@@ -381,6 +416,22 @@ Esta lectura contextual no utiliza operational_activity.view_any.
 
 operational_activity.view_any queda reservado para lectura general tenant-scoped del log operativo.
 
+La lectura contextual puede operar como lectura directa del record host o como lectura agregada de un record set explícito.
+
+Reglas:
+
+la lectura directa no requiere permiso general del log
+
+la lectura agregada no requiere permiso general del log
+
+la lectura agregada requiere activity_record_set declarado por el módulo dueño
+
+activity_record_set no autoriza records por sí mismo
+
+activity_record_set no debe utilizarse como mecanismo para ampliar acceso general al tenant
+
+activity_record_set no debe exponer registros fuera del tenant activo
+
 Regla:
 
 la lectura contextual de actividad no debe confundirse con acceso general al log ni con permiso propio para navegar OperationalActivity como módulo.
@@ -431,7 +482,7 @@ no saltar el resolver central con lógica local improvisada
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00022
+SECTION_VERSION: 00023
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -527,7 +578,7 @@ Secuencia validada:
 
 host autoriza view del registro
 surface transversal recibe el record ya autorizado
-OperationalActivityContextReader lee solo actividad asociada a ese record
+OperationalActivityContextReader lee actividad asociada
 la tab Actividad muestra lectura contextual
 
 Reglas:
@@ -543,6 +594,12 @@ no convertir la surface contextual en navegación principal
 no usar OperationalActivity como fuente para decidir permisos del host
 
 no reconstruir la autorización del host dentro de OperationalActivity
+
+Regla adicional para lectura agregada:
+
+si la lectura contextual usa activity_record_set, el conjunto debe estar declarado por el módulo dueño y respetar el tenant activo.
+
+El activity_record_set no autoriza records por sí mismo.
 
 Regla adicional para parties:
 
@@ -633,7 +690,7 @@ El detalle aplicado por módulo debe resolverse en las secciones especializadas 
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00022
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -713,9 +770,19 @@ Esto no implica acceso general al log del tenant.
 
 No utiliza operational_activity.view_any.
 
-No habilita lectura de otros registros.
+No habilita lectura de otros registros, salvo los incluidos en un activity_record_set explícito declarado por el módulo dueño.
 
 No crea navegación principal de OperationalActivity.
+
+Aclaración para activity_record_set:
+
+activity_record_set no autoriza records por sí mismo.
+
+activity_record_set no reemplaza Security.
+
+activity_record_set no habilita lectura general del tenant.
+
+activity_record_set debe respetar tenant activo.
 
 Aclaración para parties:
 
@@ -822,7 +889,7 @@ la integración reusable reduce duplicación visual o contractual, pero no reduc
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00020
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -972,18 +1039,34 @@ no utiliza operational_activity.view_any
 
 no habilita lectura general del tenant
 
-no habilita acceso a otros registros
-
 no convierte OperationalActivity en módulo funcional ordinario
 
 no crea navegación principal
 
 no autoriza la operación original
 
+Si existe activity_record_set declarado por el módulo dueño, la lectura contextual puede incluir ese conjunto explícito de records.
+
+Reglas:
+
+activity_record_set no autoriza records por sí mismo
+
+activity_record_set no habilita lectura general del tenant
+
+activity_record_set debe respetar tenant activo
+
+activity_record_set no debe definirse dentro de OperationalActivity
+
 Hosts validados:
 
 tasks.show
 parties.show
+projects.show
+assets.show
+products.show
+appointments.show
+orders.show
+documents.show
 
 Regla:
 

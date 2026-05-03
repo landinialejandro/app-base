@@ -39,7 +39,7 @@ no debe utilizarse como depósito de ideas difusas sin criterio de ejecución
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — RECONVERSIÓN MODULAR>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 LÍNEA ACTIVA — RECONVERSIÓN MODULAR
 
@@ -61,6 +61,9 @@ implementación base de OperationalActivity como capacidad transversal tenant-sc
 extensión validada de OperationalActivity hacia módulos operativos principales adicionales
 lectura general inicial de OperationalActivity desde tenant/profile mediante tab Actividad
 lectura contextual heredada de OperationalActivity en hosts validados mediante surface tenant/transversal
+lectura agregada de OperationalActivity mediante activity_record_set declarado por módulo dueño
+unificación visual de tabla de actividad general y contextual
+presentación compacta de cambios operativos con detalle en modal
 
 Criterios rectores vigentes:
 
@@ -75,6 +78,9 @@ no convertir OperationalActivity en CRUD ordinario ni navegación principal por 
 no integrar módulos a OperationalActivity por default solo por tener CRUD
 no convertir una lectura visual puntual de OperationalActivity en módulo funcional ordinario
 no resolver surfaces transversales con pushes manuales permanentes en vistas host
+no hardcodear conocimiento interno de módulos dentro de OperationalActivity
+no resolver lectura agregada por recursividad automática
+no duplicar tablas visuales de actividad si existe partial reusable común
 
 Foco de esta línea:
 
@@ -88,6 +94,7 @@ más trazabilidad operativa real sin invadir ownership funcional de los módulos
 más validación runtime real antes de declarar cierres de trazabilidad transversal
 más distinción entre módulos funcionales y capacidades tenant no modulares
 más distinción entre surfaces modulares y surfaces tenant/transversales no modulares
+más definición explícita de fronteras de lectura agregada cuando correspondan
 
 Caso vigente consolidado:
 
@@ -100,7 +107,10 @@ inventory se registra en OperationalActivity mediante InventoryOperation
 party_roles puede registrarse como metadata operativa dentro de la actividad de Party
 operational_activity.view_any autoriza lectura general tenant-scoped del log operativo
 tenant/profile incorpora tab Actividad como lectura visual general de OperationalActivity
-tasks.show y parties.show incorporan tab Actividad como lectura contextual heredada mediante TenantSurfaceRegistry
+tasks.show, parties.show, projects.show, assets.show, products.show, appointments.show, orders.show y documents.show incorporan tab Actividad como lectura contextual heredada mediante TenantSurfaceRegistry
+projects.show usa ProjectActivityRecordSet para lectura agregada Project + Tasks
+profile-activity-tab delega en operational-activity-table
+operational-activity-table puede mostrar resumen compacto y detalle de cambios mediante x-modal
 
 <<END SECTION>>
 
@@ -133,7 +143,7 @@ seguimiento posterior al cierre de reconversión conceptual y de seguridad, espe
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -443,10 +453,19 @@ Se actualizó ModuleSurfaceRegistry para fusionar:
 surfaces modulares desde ModuleCatalog
 surfaces tenant/transversales desde TenantSurfaceRegistry
 
-Hosts validados:
+Hosts validados inicialmente:
 
 tasks.show
 parties.show
+
+Hosts validados adicionalmente:
+
+projects.show
+assets.show
+products.show
+appointments.show
+orders.show
+documents.show
 
 La tab contextual utiliza:
 
@@ -470,10 +489,68 @@ auditoría confirmó ausencia de operational_activity.contextual
 auditoría confirmó key = activity
 navegador OK para tasks.show y parties.show
 
+Cierre operativo reciente de lectura agregada de OperationalActivity:
+
+se implementó y validó la lectura contextual agregada mediante activity_record_set declarado por módulo dueño.
+
+Piezas validadas:
+
+ActivityRecordSetProvider
+ModuleCatalog::activityRecordSetService()
+OperationalActivityContextReader::forRecordSet()
+ProjectActivityRecordSet
+
+Caso validado:
+
+projects.show
+ProjectActivityRecordSet
+Project + Tasks
+
+Validaciones informadas:
+
+Project #7 devuelve Project #7 + Task #11 + Task #18
+actividad de Task #11 aparece dentro de la tab Actividad de Project #7
+
+Regla consolidada:
+
+OperationalActivity no decide la frontera funcional agregada.
+
+El módulo dueño declara el record set cuando corresponde.
+
+Cierre operativo reciente de links de actividad:
+
+Attachment no linkea a attachments.show porque no existe ruta canónica propia.
+
+Attachment puede resolver navegación hacia el host padre mediante attachable cuando ese host tiene show seguro soportado.
+
+InventoryOperation mantiene fallback textual explícito, sin link, porque no existe show canónico seguro confirmado.
+
+Cierre operativo reciente de metadata de actividad:
+
+extra_changes funciona como insumo interno.
+
+El logger lo transforma en metadata.changes.
+
+No se persiste duplicado como metadata.extra_changes.
+
+Se validó con runtime real usando cambio de party_roles.
+
+Cierre visual reciente de actividad operativa:
+
+se creó OperationalActivityChangePresenter.
+
+Se agregó resumen compacto de cambios.
+
+Se agregó modal Ver cambios.
+
+Se unificó tabla general y contextual mediante operational-activity-table.
+
+profile-activity-tab delega en el partial reusable común.
+
 <<END SECTION>>
 
 <<SECTION: CAPACIDADES REUTILIZABLES A CONSOLIDAR>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 CAPACIDADES REUTILIZABLES A CONSOLIDAR
 
@@ -562,7 +639,13 @@ OperationalActivityLinkResolver como pieza reusable de lectura
 OperationalActivityContextReader como pieza reusable de lectura contextual por record host
 TenantSurfaceRegistry como canal de publicación para surfaces tenant/transversales no modulares
 OperationalActivitySurfaceService como surface contextual validada
-definir links para InventoryOperation y Attachment
+ActivityRecordSetProvider como contrato para record sets explícitos
+ModuleCatalog::activityRecordSetService() como declaración modular opcional
+OperationalActivityContextReader::forRecordSet() como lectura contextual agregada
+ProjectActivityRecordSet como primer provider validado
+OperationalActivityChangePresenter como pieza de presentación de cambios
+operational-activity-table como tabla reusable común para lectura general y contextual
+definir links para InventoryOperation y Attachment cuando exista ruta segura validada
 evitar navegación principal mientras no exista decisión validada
 evitar consumo visual por inferencias desde created_by, updated_by, assigned_user_id o party_id
 
@@ -580,11 +663,15 @@ Estado actual:
 
 la tab Actividad en tenant/profile es lectura visual general.
 
-La tab Actividad en tasks.show y parties.show es lectura contextual heredada validada.
+La tab Actividad en tasks.show, parties.show, projects.show, assets.show, products.show, appointments.show, orders.show y documents.show es lectura contextual heredada validada.
+
+projects.show utiliza lectura agregada Project + Tasks mediante ProjectActivityRecordSet.
+
+Los demás hosts validados utilizan lectura directa salvo que el módulo declare activity_record_set.
 
 OperationalActivityLinkResolver queda como pieza reusable de lectura.
 
-OperationalActivityContextReader queda como pieza reusable de lectura contextual por record.
+OperationalActivityContextReader queda como pieza reusable de lectura contextual por record y por record set.
 
 Casos de anclaje validados:
 
@@ -595,7 +682,7 @@ parties puede representar cambios de party_roles como metadata operativa de Part
 <<END SECTION>>
 
 <<SECTION: SEGURIDAD Y CONTRATOS PENDIENTES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 SEGURIDAD Y CONTRATOS PENDIENTES
 
@@ -640,6 +727,22 @@ notificación solo ante patrón, reiteración o severidad
 
 No se decidió notificar al owner por cada intento individual.
 
+Pendiente nuevo del frente parties / employee:
+
+analizar dataset o record set de actividad para employee dentro de parties.
+
+Este frente no está implementado todavía.
+
+Debe analizarse conceptualmente antes de código.
+
+El análisis debe distinguir:
+
+employee manual sin user
+employee con membership activa
+party como ficha ampliada
+membership como pertenencia operativa
+user como identidad global
+
 Frente OperationalActivity:
 
 la escritura ya quedó system-owned y append-only.
@@ -657,82 +760,42 @@ attachments
 parties
 inventory
 
-La lectura general tenant-scoped del log operativo ya tiene contrato inicial definido:
+La lectura general tenant-scoped existe desde tenant/profile mediante operational_activity.view_any.
 
-operational_activity.view_any
-
-Estado vigente:
-
-capability tenant no modular
-resuelta desde Security
-sin incorporación de OperationalActivity a ModuleCatalog
-permiso sembrado para owner y admin
-lectura visual inicial desde tenant/profile
-tab Actividad implementada para los últimos 50 registros del tenant
-
-La lectura contextual heredada por registro ya tiene primer cierre implementado.
-
-Estado vigente:
-
-si el usuario puede ver el registro host, puede ver la actividad asociada a ese registro
-
-no utiliza operational_activity.view_any
-
-no habilita lectura general del tenant
-
-no crea navegación principal
-
-no convierte OperationalActivity en módulo funcional
+La lectura contextual heredada existe para hosts show autorizados.
 
 Hosts validados:
 
 tasks.show
 parties.show
+projects.show
+assets.show
+products.show
+appointments.show
+orders.show
+documents.show
 
-Infraestructura vigente:
+La lectura agregada por record set quedó validada para projects.show mediante ProjectActivityRecordSet.
 
-OperationalActivityContextReader
-TenantSurfaceRegistry
-OperationalActivitySurfaceService
-operational-activity-table.blade.php
+Regla vigente:
 
-Pendiente real inmediato:
+orders.show y documents.show quedan con actividad directa en el estado actual.
 
-revisar acceso futuro de admin a tenant/profile con visualización permitida y edición restringida.
+Si más adelante requieren actividad agregada, deben declarar su propio activity_record_set.
 
-Estado actual:
+No se amplía por simetría automática.
 
-tenant/profile sigue restringido a owner.
+Seguimientos pendientes:
 
-admin tiene permiso operational_activity.view_any sembrado, pero no accede todavía a tenant/profile por la restricción vigente del controlador.
+definir acceso futuro de admin a tenant/profile si corresponde, separando visualización permitida y edición restringida
 
-Criterio pendiente acordado:
+definir show canónico seguro para InventoryOperation solo si el flujo funcional lo justifica
 
-admin podría visualizar información general del tenant y actividad operativa si posee operational_activity.view_any, pero no debería poder editar datos sensibles, usuarios, roles ni permisos sin una regla explícita.
+definir navegación de Attachment desde actividad hacia attachable padre solo en hosts seguros soportados
 
-Pendientes específicos derivados de OperationalActivity:
+mantener prohibición de navegación principal de OperationalActivity salvo decisión futura validada
 
-definir links para InventoryOperation y Attachment
-
-definir si tenant/profile o memberships deben emitir actividad operativa
-
-definir si corresponde limpiar persistencia duplicada de extra_changes en metadata
-
-evaluar extensión de la surface contextual a otros hosts
-
-definir contrato de lectura antes de crear nuevas vistas, tabs, menú o surfaces visuales no cubiertas por el patrón ya validado
-
-Reglas:
-
-OperationalActivity no reemplaza Security, policies ni validaciones del módulo dueño.
-
-OperationalActivity no registra intentos no autorizados, bloqueos ni fallos de autorización en el estado vigente.
-
-OperationalActivity registra actividad operativa efectivamente ejecutada.
-
-La lectura general del log no implica acceso contextual automático a cualquier registro.
-
-La lectura contextual heredada debe diferenciarse del acceso general al log del tenant.
+mantener revisión de que nuevos activity_record_set no amplíen acceso general del tenant ni mezclen tenants
 
 <<END SECTION>>
 

@@ -38,7 +38,7 @@ Este documento se limita a la capa visual y estructural de componentes.
 
 
 <<SECTION: COMPONENTES BLADE GLOBALES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 COMPONENTES BLADE GLOBALES
 
@@ -68,6 +68,20 @@ deben ser reutilizables en cualquier contexto
 Regla adicional:
 
 si un componente comienza a depender de un módulo específico, debe migrarse al módulo correspondiente.
+
+Aclaración vigente sobre x-modal:
+
+x-modal es componente global válido para modales operativos e informativos cuando el contenido ya llega preparado por la capa correspondiente.
+
+Caso vigente:
+
+detalle de cambios en actividad operativa.
+
+Regla:
+
+x-modal no decide autorización, no consulta datos y no interpreta reglas de dominio.
+
+Solo representa una interacción visual reutilizable.
 
 Regla de validación runtime:
 
@@ -176,7 +190,7 @@ facilitar mantenimiento y evolución visual
 
 
 <<SECTION: COMPONENTES DE TABS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 COMPONENTES DE TABS
 
@@ -231,6 +245,23 @@ cuando la tab participe de return_tab, key debe ser estable y compatible con nav
 Caso vigente:
 
 activity
+
+Hosts validados con tab Actividad:
+
+tasks.show
+parties.show
+projects.show
+assets.show
+products.show
+appointments.show
+orders.show
+documents.show
+
+Regla:
+
+la presencia de una tab Actividad no define por sí misma si la lectura es directa o agregada.
+
+La modalidad depende del contrato de lectura preparado por la capa correspondiente.
 
 TABS INTERNAS EMBEBIDAS
 
@@ -304,7 +335,7 @@ orders y documents los consumen sin duplicar lógica
 
 
 <<SECTION: COMPONENTES DE SHOW PAGES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 COMPONENTES DE SHOW PAGES
 
@@ -351,6 +382,10 @@ Caso validado:
 
 tab Actividad en tasks.show y parties.show.
 
+Caso vigente adicional:
+
+tab Actividad en projects.show, assets.show, products.show, appointments.show, orders.show y documents.show.
+
 Reglas:
 
 la tab no convierte OperationalActivity en módulo principal del host
@@ -364,6 +399,16 @@ la tab debe mantener key compatible con return_tab
 Caso vigente:
 
 key = activity
+
+Aclaración vigente para lectura agregada:
+
+si una show page consume actividad agregada, esa agregación debe venir definida por el módulo dueño mediante activity_record_set.
+
+La show page no debe reconstruir por sí misma el conjunto de records.
+
+Caso validado:
+
+projects.show consume actividad agregada Project + Tasks mediante ProjectActivityRecordSet.
 
 <<END SECTION>>
 

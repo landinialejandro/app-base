@@ -26,7 +26,7 @@ lección aplicable
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 LECCIONES VIGENTES
 
@@ -280,35 +280,71 @@ Corrección:
 crear TenantSurfaceRegistry
 crear OperationalActivitySurfaceService
 fusionar surfaces tenant/transversales desde ModuleSurfaceRegistry
-eliminar pushes manuales
-dejar que los hosts consuman la tab Actividad desde registry
 
 Lección:
 
-si una capacidad transversal no debe estar en ModuleCatalog, no se debe resolver el problema con inserciones manuales permanentes en vistas host.
+si una capacidad transversal puede publicarse mediante registry reusable, no debe quedar como cierre estable una inserción manual por vista host.
 
-Debe existir una vía de publicación controlada, equivalente al sistema de surfaces, pero separada de los módulos funcionales ordinarios.
-
-El key de una tab impacta en la navegación visible.
+No conviene hardcodear conocimiento interno de un módulo dentro de una capacidad transversal.
 
 Caso detectado:
 
-el key técnico operational_activity.contextual funcionaba, pero generaba URLs poco adecuadas:
+no debe implementarse dentro de OperationalActivitySurfaceService una condición como:
 
-?return_tab=operational_activity.contextual
+si record es Project, traer Tasks
 
 Corrección:
 
-usar:
-
-key = activity
+el módulo dueño debe publicar el dataset mediante un provider propio declarado en ModuleCatalog.
 
 Lección:
 
-en tabs host, key no es solo identificador técnico interno.
+OperationalActivity no debe decidir la frontera funcional de actividad agregada.
 
-También forma parte de la experiencia de navegación mediante return_tab.
+Cada módulo debe declarar esa frontera cuando corresponda.
 
-Debe ser estable, legible y compatible con la gramática visual del host.
+La lectura agregada de actividad no debe resolverse con recursividad automática.
+
+Riesgo evitado:
+
+Project → Tasks → Orders → Documents → Inventory → Attachments
+
+sin límite claro.
+
+Lección:
+
+la lectura agregada debe definirse mediante una frontera explícita de records.
+
+Una lectura visual reutilizable puede quedar duplicada si la lectura general y la contextual usan partials distintos.
+
+Caso detectado:
+
+tenant/profile usaba profile-activity-tab con tabla propia, mientras los hosts usaban operational-activity-table.
+
+Corrección:
+
+profile-activity-tab delega en el partial reusable común.
+
+Lección:
+
+si dos lecturas consumen el mismo payload visual compatible, debe priorizarse un partial común antes que duplicar tablas.
+
+Para mostrar detalles de cambios en actividad operativa, no se debe sobrecargar la tabla ni interpretar metadata directamente en Blade.
+
+Corrección:
+
+preparar un payload legible desde una pieza de presentación.
+
+Caso validado:
+
+OperationalActivityChangePresenter prepara change_summary y change_details.
+
+operational-activity-table muestra resumen compacto y detalle bajo demanda mediante x-modal.
+
+Lección:
+
+la vista representa datos preparados.
+
+No interpreta reglas de campos ni JSON operativo.
 
 <<END SECTION>>

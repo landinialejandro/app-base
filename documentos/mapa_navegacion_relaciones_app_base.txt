@@ -41,7 +41,7 @@ no debe cargarse con teoría arquitectónica general que corresponda a otros doc
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 REGLA GENERAL
 
@@ -82,7 +82,17 @@ una tab Actividad dentro de un host autorizado no crea navegación principal de 
 
 La navegación visible permanece dentro del show del host.
 
-La lectura contextual debe limitarse a la actividad asociada al registro host autorizado.
+La lectura contextual debe limitarse a la actividad asociada al registro host autorizado o al conjunto explícito de records definido por el módulo dueño cuando exista activity_record_set.
+
+Si no existe activity_record_set, la lectura contextual es directa sobre el record host.
+
+Si existe activity_record_set, la lectura contextual es agregada sobre el conjunto definido por el módulo dueño.
+
+Regla:
+
+la existencia de una tab Actividad no implica por sí misma lectura agregada.
+
+La lectura agregada debe estar declarada explícitamente por el módulo dueño.
 
 <<END SECTION>>
 
@@ -153,7 +163,7 @@ cuando existan varias rutas posibles, debe priorizarse la más consistente con N
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN PRINCIPAL TENANT>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 NAVEGACIÓN PRINCIPAL TENANT
 
@@ -208,6 +218,10 @@ La integración de OperationalActivity con appointments, tasks, orders, document
 
 La lectura general inicial desde tenant/profile mediante tab Actividad tampoco crea navegación principal nueva.
 
+La lectura contextual desde show pages autorizadas mediante tab Actividad tampoco crea navegación principal nueva.
+
+La lectura agregada mediante activity_record_set tampoco crea navegación principal nueva de OperationalActivity.
+
 La navegación principal no debe abrir un menú propio de actividad salvo decisión futura validada, autorizada y documentada.
 
 Regla:
@@ -219,7 +233,7 @@ Su función es dar acceso estructural al ecosistema operativo vigente
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -310,12 +324,18 @@ Lectura contextual validada:
 
 show del host autorizado
 tab Actividad
-tabla de actividad contextual del record
+tabla de actividad contextual del record o del record set declarado
 
 Hosts validados:
 
 tasks.show
 parties.show
+projects.show
+assets.show
+products.show
+appointments.show
+orders.show
+documents.show
 
 La tab se accede mediante:
 
@@ -329,9 +349,29 @@ no crea ruta propia nueva de OperationalActivity
 
 no habilita lectura general del tenant
 
-no habilita acceso a otros registros
+no habilita acceso a otros registros fuera del host autorizado o del record set declarado por el módulo dueño
+
+La lectura directa por defecto aplica cuando el host tiene view autorizado y consume la surface de actividad.
+
+La lectura agregada aplica solo cuando el módulo declara activity_record_set.
+
+Caso validado:
+
+projects.show muestra actividad del Project y de sus Tasks mediante ProjectActivityRecordSet.
+
+Aclaración vigente:
+
+orders.show y documents.show quedan con actividad directa en el estado actual.
+
+Si más adelante requieren actividad agregada, deberán definir su propio activity_record_set.
+
+No se amplía por simetría automática.
 
 La navegación desde una actividad hacia el registro destino debe existir solo cuando haya ruta show canónica segura.
+
+Caso validado:
+
+una actividad de Task visible desde Project enlaza a tasks.show mediante OperationalActivityLinkResolver.
 
 Trail validado para lectura general:
 
@@ -351,7 +391,7 @@ no se inventan links para records sin ruta canónica segura.
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00020
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -435,6 +475,12 @@ Hosts validados:
 
 tasks.show
 parties.show
+projects.show
+assets.show
+products.show
+appointments.show
+orders.show
+documents.show
 
 Reglas:
 
@@ -447,6 +493,20 @@ no convierte OperationalActivity en módulo navegable
 no convierte al host en dueño de la lógica de actividad
 
 no debe agregarse manualmente con push local si ya puede publicarse desde registry reusable
+
+La lectura contextual directa se limita al record host autorizado.
+
+La lectura contextual agregada requiere activity_record_set declarado por el módulo dueño.
+
+Caso validado:
+
+projects.show utiliza lectura agregada Project + Tasks mediante ProjectActivityRecordSet.
+
+Regla:
+
+la lectura agregada no debe resolverse con inferencias internas de OperationalActivity.
+
+El módulo dueño define la frontera funcional.
 
 Aclaración vigente para tenant/profile:
 
@@ -489,7 +549,7 @@ las surfaces embebidas deben viajar enriquecidas desde registry para permitir re
 <<END SECTION>>
 
 <<SECTION: FLUJOS DERIVADOS RELEVANTES>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 FLUJOS DERIVADOS RELEVANTES
 
@@ -520,7 +580,16 @@ tenant/profile
 → lectura general de OperationalActivity mediante tab Actividad
 
 host show autorizado
-→ lectura contextual de OperationalActivity mediante tab Actividad
+→ lectura contextual directa de OperationalActivity mediante tab Actividad
+
+host show autorizado
+→ activity_record_set del módulo dueño
+→ lectura contextual agregada de OperationalActivity mediante tab Actividad
+
+projects.show
+→ ProjectActivityRecordSet
+→ Project + Tasks
+→ actividad agregada visible del proyecto
 
 OperationalActivity
 → registro relacionado mediante enlace integrado en la fila de actividad cuando exista lectura visual autorizada y ruta canónica segura
@@ -533,45 +602,11 @@ no implica subordinación conceptual absoluta del módulo destino respecto del o
 
 task → order y appointment → order representan derivación hacia un módulo autónomo ya consolidado
 
-si el flujo derivado requiere contexto, debe preservar seguridad y trail correspondiente
+si el flujo derivado requiere contexto, debe preservar trail o return_tab según corresponda
 
-si existe una order ya vinculada al origen funcional, debe priorizarse apertura consistente de esa order antes de ofrecer alta duplicada
+la lectura contextual de OperationalActivity no crea un flujo derivado operativo nuevo sobre el recurso original
 
-Aclaración relacional consolidada:
-
-en task → order el vínculo estructural persistido se resuelve desde orders.task_id
-
-en appointment → order el vínculo operativo real se resuelve desde appointments.order_id y no requiere orders.appointment_id
-
-en document_item → inventory movement la línea documental actúa como origen trazable sin transferir ownership funcional desde documents hacia inventory
-
-Aclaración adicional sobre cabecera y líneas:
-
-en orders y documents, la cabecera puede iniciar en draft y avanzar a pending_approval cuando se incorpora la primera línea válida.
-
-La línea deja de ser solo detalle estructural cuando participa como disparador del lifecycle del padre.
-
-Aclaración vigente sobre ficha ampliada:
-
-el flujo membership o perfil tenant → party debe crear o vincular una ficha ampliada de forma explícita.
-
-Cuando corresponda a colaborador interno:
-
-party.kind debe ser person
-party_roles debe contener employee
-
-Aclaración vigente sobre actividad contextual:
-
-la tab Actividad de un host show no crea una ruta nueva de OperationalActivity.
-
-La lectura permanece dentro del recurso host autorizado y se accede con:
-
-return_tab=activity
-
-Casos validados:
-
-tasks.show
-parties.show
+la lectura agregada por activity_record_set tampoco crea navegación principal nueva ni altera ownership funcional de los records incluidos
 
 <<END SECTION>>
 

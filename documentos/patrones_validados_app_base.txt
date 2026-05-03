@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 PATRONES VIGENTES
 
@@ -341,7 +341,6 @@ Reglas:
 
 no utiliza operational_activity.view_any
 no habilita acceso general al log
-no muestra actividad de otros registros
 no convierte OperationalActivity en módulo funcional
 no crea navegación principal
 no reconstruye historia desde campos actuales del modelo
@@ -351,10 +350,70 @@ Hosts validados:
 
 tasks.show
 parties.show
+projects.show
+assets.show
+products.show
+appointments.show
+orders.show
+documents.show
 
 Tab validada:
 
 key = activity
+
+Regla:
+
+si no hay activity_record_set declarado, la lectura contextual no muestra actividad de otros registros.
+
+ACTIVITY RECORD SET MODULAR
+
+Patrón validado:
+
+módulo dueño
+↓
+declara activity_record_set en ModuleCatalog
+↓
+provider implementa ActivityRecordSetProvider
+↓
+OperationalActivitySurfaceService consulta el catálogo
+↓
+OperationalActivityContextReader::forRecordSet()
+↓
+tabla reusable de actividad
+
+Caso validado:
+
+Projects
+↓
+ProjectActivityRecordSet
+↓
+Project + Tasks
+
+Reglas:
+
+el módulo dueño define la frontera funcional del conjunto
+
+OperationalActivity no hardcodea relaciones internas de módulos
+
+OperationalActivity no decide qué hijos pertenecen al host
+
+forRecord() queda como caso simple de lectura directa
+
+forRecordSet() queda como caso reusable para conjuntos explícitos
+
+activity_record_set no autoriza records por sí mismo
+
+activity_record_set no habilita lectura general del tenant
+
+activity_record_set no altera ownership funcional de los records incluidos
+
+activity_record_set no debe resolverse por recursividad automática
+
+Riesgo evitado:
+
+Project → Tasks → Orders → Documents → Inventory → Attachments
+
+sin límite claro.
 
 SURFACE TENANT/TRANSVERSAL NO MODULAR
 
@@ -395,6 +454,70 @@ no usar $tabItems->push manual como cierre estable cuando existe registry reusab
 Caso corregido:
 
 no usar operational_activity.contextual como key de tab si impacta en return_tab.
+
+TABLA REUSABLE DE ACTIVIDAD OPERATIVA
+
+Patrón validado:
+
+lectura general o contextual autorizada
+↓
+filas de actividad ya resueltas
+↓
+operational-activity-table
+↓
+representación común
+
+Partial vigente:
+
+resources/views/tenants/partials/operational-activity-table.blade.php
+
+Uso vigente:
+
+tenant/profile
+show pages con tab Actividad
+
+Reglas:
+
+el partial no decide autorización
+el partial no consulta actividad
+el partial no resuelve permisos
+el partial no reconstruye historia operativa
+el partial no interpreta metadata.changes
+el partial representa payload ya preparado
+
+Caso validado:
+
+profile-activity-tab delega en operational-activity-table.
+
+DETALLE DE CAMBIOS EN MODAL
+
+Patrón validado:
+
+metadata.changes
+↓
+OperationalActivityChangePresenter
+↓
+change_summary + change_details
+↓
+operational-activity-table
+↓
+Ver cambios
+↓
+x-modal
+
+Reglas:
+
+la tabla muestra resumen compacto
+
+el detalle amplio se muestra bajo demanda
+
+no se agregan columnas extra solo para detalle de cambios
+
+Blade no interpreta metadata.changes directamente
+
+la pieza de presentación prepara el payload visual
+
+el modal no decide permisos ni reglas de dominio
 
 VALIDACIÓN QUEUED DE ACTIVIDAD OPERATIVA
 

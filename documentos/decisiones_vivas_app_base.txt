@@ -36,7 +36,7 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 DECISIONES VIGENTES
 
@@ -244,6 +244,12 @@ Hosts validados:
 
 tasks.show
 parties.show
+projects.show
+assets.show
+products.show
+appointments.show
+orders.show
+documents.show
 
 Infraestructura vigente:
 
@@ -258,6 +264,56 @@ key = activity
 No debe utilizarse:
 
 operational_activity.contextual
+
+Decisión vigente sobre lectura contextual agregada de OperationalActivity:
+
+OperationalActivity no decide la frontera funcional de actividad agregada.
+
+Cada módulo puede declarar opcionalmente un activity_record_set.
+
+Si no hay activity_record_set, la lectura contextual es directa sobre el record host autorizado.
+
+Si hay activity_record_set, la lectura contextual usa el conjunto definido por el módulo dueño.
+
+Caso validado:
+
+Projects declara ProjectActivityRecordSet.
+
+ProjectActivityRecordSet define Project + Tasks como dataset de actividad visible del proyecto.
+
+Motivo:
+
+esto permite construir una lectura tipo camino operativo del proyecto sin contaminar la capa transversal.
+
+Reglas:
+
+OperationalActivity no debe hardcodear relaciones internas de módulos
+
+no debe implementarse una condición como si record es Project, traer Tasks
+
+no debe aplicarse recursividad automática para ampliar la actividad contextual
+
+el módulo dueño define la frontera funcional cuando corresponde
+
+activity_record_set no autoriza records por sí mismo
+
+activity_record_set no habilita lectura general del tenant
+
+activity_record_set no altera ownership funcional de los records incluidos
+
+Decisión vigente sobre hosts show con tab Actividad:
+
+los hosts show autorizados pueden recibir tab Actividad con lectura directa por defecto.
+
+La existencia de tab no obliga a definir record set agregado.
+
+Decisión vigente:
+
+si no hay activity_record_set
+→ lectura directa del record host
+
+si hay activity_record_set
+→ lectura del conjunto definido por el módulo
 
 Decisión vigente sobre surfaces tenant/transversales no modulares:
 
@@ -300,6 +356,42 @@ Casos sin link por ahora:
 
 InventoryOperation
 Attachment
+
+Decisión vigente sobre visualización de cambios de actividad:
+
+la visualización de cambios debe estar disponible sin sobrecargar la tabla.
+
+La tabla puede mostrar resumen compacto.
+
+El detalle debe abrirse bajo demanda mediante modal.
+
+Pieza vigente:
+
+OperationalActivityChangePresenter
+
+Responsabilidad:
+
+preparar change_summary y change_details desde metadata.changes.
+
+Regla:
+
+la vista no debe interpretar directamente metadata.changes.
+
+Decisión vigente sobre partial visual de actividad:
+
+la lectura general y la lectura contextual de actividad deben compartir el mismo partial visual cuando el payload sea compatible.
+
+Partial vigente:
+
+resources/views/tenants/partials/operational-activity-table.blade.php
+
+Caso vigente:
+
+profile-activity-tab delega en operational-activity-table.
+
+Regla:
+
+no duplicar tabla general y tabla contextual si una misma pieza reusable puede representar ambas lecturas.
 
 Decisión vigente sobre Project Lab y colas:
 

@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -269,6 +269,13 @@ Hosts validados:
 
 tasks.show
 parties.show
+projects.show
+assets.show
+products.show
+appointments.show
+orders.show
+documents.show
+tenant/profile
 
 La tab contextual se publica como surface tenant/transversal mediante TenantSurfaceRegistry y entra al host por ModuleSurfaceRegistry.
 
@@ -281,6 +288,48 @@ para compatibilidad con return_tab.
 No debe usarse:
 
 operational_activity.contextual
+
+Evolución vigente de lectura contextual:
+
+OperationalActivityContextReader puede leer actividad por record host directo o por record set explícito.
+
+ModuleCatalog puede declarar activity_record_set mediante servicio compatible.
+
+Piezas vigentes:
+
+ActivityRecordSetProvider
+ModuleCatalog::activityRecordSetService()
+OperationalActivityContextReader::forRecordSet()
+ProjectActivityRecordSet
+OperationalActivityChangePresenter
+
+Caso vigente:
+
+projects.show usa lectura agregada Project + Tasks.
+
+Los demás hosts usan lectura directa salvo que el módulo declare activity_record_set.
+
+La tabla reusable de actividad puede mostrar resumen compacto de cambios y modal Ver cambios.
+
+profile-activity-tab reutiliza operational-activity-table.
+
+Regla vigente:
+
+OperationalActivity no decide la frontera funcional de actividad agregada.
+
+Cada módulo puede declarar opcionalmente su activity_record_set.
+
+Frente conceptual pendiente inmediato:
+
+analizar dataset de actividad para employee dentro de parties.
+
+Separar en ese análisis:
+
+employee manual sin user
+employee con membership activa
+party como ficha ampliada
+membership como pertenencia operativa
+user como identidad global
 
 Regla vigente para surfaces tenant/transversales:
 
@@ -311,7 +360,7 @@ No agregar botón de queue al producto SaaS.
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS DEL CHAT>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 REGLAS OPERATIVAS DEL CHAT
 
@@ -441,6 +490,30 @@ Hosts validados:
 
 tasks.show
 parties.show
+projects.show
+assets.show
+products.show
+appointments.show
+orders.show
+documents.show
+
+Regla vigente para lectura directa y agregada:
+
+si el host no tiene activity_record_set declarado, la lectura contextual debe ser directa sobre el record host autorizado.
+
+si el módulo declara activity_record_set, la lectura contextual puede ser agregada sobre el conjunto explícito definido por el módulo dueño.
+
+activity_record_set no autoriza records por sí mismo.
+
+activity_record_set no reemplaza operational_activity.view_any.
+
+activity_record_set no habilita lectura general del tenant.
+
+activity_record_set no debe definirse dentro de OperationalActivity.
+
+Caso vigente:
+
+projects.show usa ProjectActivityRecordSet para mostrar actividad de Project + Tasks.
 
 Regla vigente para surfaces tenant/transversales:
 
@@ -498,6 +571,18 @@ party_roles dentro de actividad de Party.
 
 La metadata no debe convertir la relación hija en módulo propio ni generar duplicación innecesaria como extra_changes persistido si ya queda representada en changes.
 
+Regla operativa adicional para presentación de cambios de actividad:
+
+la vista no debe interpretar metadata.changes directamente.
+
+Debe consumir payload preparado por la capa correspondiente.
+
+Caso vigente:
+
+OperationalActivityChangePresenter prepara change_summary y change_details.
+
+operational-activity-table representa resumen compacto y detalle bajo demanda mediante modal.
+
 Regla operativa adicional para componentes Blade:
 
 no usar componentes no existentes.
@@ -516,7 +601,7 @@ en local, Project Lab puede procesar cola manualmente fuera del producto.
 
 En producción, definir worker persistente supervisado.
 
-No implementar botón de queue dentro del producto SaaS.
+No trasladar queue:work a UI del SaaS.
 
 <<END SECTION>>
 

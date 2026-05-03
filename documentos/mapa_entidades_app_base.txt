@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -60,13 +60,14 @@ orders → order_items
 documents → document_items
 inventory_operations → inventory_movements
 parties → party_roles
+projects → tasks
 
 Relaciones transversales relevantes:
 
 orders → inventory
 documents → inventory
-projects → tasks
 módulos operativos → operational_activities
+módulo funcional → activity_record_set opcional → OperationalActivityContextReader
 capacidades tenant/transversales → surfaces publicadas hacia hosts autorizados
 
 Relaciones de contexto interno del tenant:
@@ -168,7 +169,9 @@ record_id
 
 Esta lectura se resuelve desde una surface tenant/transversal y no convierte OperationalActivity en entidad hija del host.
 
-Flujo validado:
+La lectura contextual puede ser directa o agregada.
+
+Flujo validado para lectura directa:
 
 OperationalActivity
 ↓
@@ -182,10 +185,23 @@ TenantSurfaceRegistry
 ↓
 hosts funcionales autorizados
 
-Hosts validados:
+Flujo validado para lectura agregada:
 
-tasks.show
-parties.show
+módulo funcional dueño
+↓
+activity_record_set opcional
+↓
+OperationalActivityContextReader
+↓
+actividad contextual directa o agregada
+
+Caso validado:
+
+Project
+↓
+Tasks
+↓
+actividad agregada visible desde projects.show
 
 Reglas:
 
@@ -194,6 +210,14 @@ la lectura contextual heredada no convierte al host en dueño de la lógica de a
 la lectura contextual heredada no convierte OperationalActivity en módulo funcional ordinario
 
 la lectura contextual heredada no altera la relación conceptual transversal de operational_activities
+
+los conjuntos explícitos de records no son inferidos por OperationalActivity
+
+los conjuntos explícitos de records son definidos por el módulo dueño
+
+Task sigue siendo entidad y módulo propio aunque su actividad pueda formar parte del dataset visible de Project cuando Projects así lo define
+
+OperationalActivity puede leer actividad sobre conjuntos explícitos de records, pero no reconstruye relaciones funcionales por sí mismo
 
 Aclaración vigente para inventory:
 
@@ -226,6 +250,7 @@ pertenencia operativa
 operación del negocio
 trazabilidad transversal
 surfaces tenant/transversales no modulares
+fronteras explícitas publicadas por módulos dueños
 
 No deben mezclarse por conveniencia de implementación.
 
@@ -313,7 +338,7 @@ Por esta razón, no debe tratarse como una entidad tenant-scoped pura del negoci
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 ENTIDADES DEL NEGOCIO
 
@@ -421,6 +446,24 @@ No convierte operational_activities en entidad hija del host.
 No convierte OperationalActivity en módulo actual del negocio.
 
 No traslada ownership de actividad a tasks, parties ni otros hosts consumidores.
+
+Aclaración vigente sobre lectura agregada por record set:
+
+OperationalActivity puede leer actividad sobre un conjunto explícito de records cuando el módulo dueño lo declara mediante activity_record_set.
+
+Ese conjunto no es inferido por OperationalActivity.
+
+El módulo dueño define la frontera funcional.
+
+Caso validado:
+
+Projects define Project + Tasks como dataset de actividad contextual agregada para projects.show.
+
+Regla:
+
+Task no pierde su identidad propia por quedar incluida en la actividad agregada de Project.
+
+OperationalActivity tampoco se convierte en dueño de esa relación.
 
 Aclaración vigente sobre inventory:
 

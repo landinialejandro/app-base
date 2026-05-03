@@ -52,7 +52,7 @@ documentación actualizada
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 REGLA GENERAL
 
@@ -67,6 +67,7 @@ definir contrato de seguridad
 definir relaciones reales necesarias
 definir superficie de integración
 definir si participa en trazabilidad operativa transversal
+definir si consume lectura contextual de actividad operativa, directa o agregada, cuando corresponda
 implementar
 auditar
 ajustar documentación afectada
@@ -95,12 +96,51 @@ qué campos quedan excluidos por ruido técnico
 qué cambios tienen valor operativo real
 si existen relaciones hijas que deban expresarse como metadata operativa
 si existe entidad agrupadora que deba actuar como ancla operativa
+si el módulo consume actividad operativa contextual
+si la lectura contextual será directa o agregada
 
 Casos validados:
 
 parties puede registrar cambios de party_roles como metadata operativa de Party.
 
 inventory debe registrar InventoryOperation como ancla operativa agrupada, no InventoryMovement como actividad principal.
+
+projects puede declarar un activity_record_set para lectura agregada de actividad contextual de Project + Tasks.
+
+Regla adicional para lectura contextual de actividad operativa:
+
+la lectura directa no requiere provider adicional.
+
+Se limita al record host autorizado.
+
+La lectura agregada requiere que el módulo dueño declare explícitamente su frontera mediante un provider compatible con ActivityRecordSetProvider.
+
+Antes de declarar un activity_record_set debe quedar claro:
+
+qué records forman parte de la actividad contextual del host
+por qué esos records pertenecen funcionalmente al host
+si esa agregación altera o no ownership
+si el host ya autorizó el record principal
+si la lectura agregada no equivale a lectura general del tenant
+si no se está reconstruyendo historia desde campos actuales en lugar de leer OperationalActivity persistido
+
+Regla:
+
+OperationalActivity no debe modificarse con condiciones específicas por módulo.
+
+No corresponde agregar lógica como:
+
+if Project
+if Order
+if Document
+
+La frontera debe vivir en el módulo dueño o en su contrato publicado.
+
+Caso validado:
+
+projects.show
+ProjectActivityRecordSet
+Project + Tasks
 
 Regla adicional para capacidades tenant no modulares:
 
@@ -217,7 +257,7 @@ No convierte OperationalActivity en módulo funcional ordinario.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 BLOQUE 1 — CONTRATO MODULAR
 
@@ -229,6 +269,7 @@ contrato de salida
 contrato de seguridad
 oferta de integración
 participación o no en trazabilidad operativa transversal
+participación o no en lectura contextual de actividad operativa
 
 Validar además:
 
@@ -239,6 +280,7 @@ si sus integraciones futuras pueden publicarse por contrato
 si el ownership funcional queda claro
 si debe emitir eventos operativos livianos después de acciones propias autorizadas
 si debe ser consumido por una capacidad transversal sin trasladarle lógica del dominio
+si necesita publicar una frontera explícita para lectura contextual agregada de actividad
 
 Criterio adicional validado:
 
@@ -308,6 +350,36 @@ parties registra cambios de party_roles como metadata operativa de Party.
 inventory registra InventoryOperation como acción operativa agrupada.
 
 InventoryMovement conserva trazabilidad fina interna de stock.
+
+Criterio adicional para lectura contextual agregada de OperationalActivity:
+
+si un módulo necesita que la tab Actividad muestre más que el record host directo, debe publicar un activity_record_set propio.
+
+Ese activity_record_set debe ser definido por el módulo dueño.
+
+No debe ser definido dentro de OperationalActivity.
+
+Validar:
+
+si la lectura será directa o agregada
+qué records integran el conjunto
+si esos records pertenecen funcionalmente al host
+si el conjunto respeta tenant activo
+si el conjunto no amplía acceso general al log
+si el conjunto no altera ownership de los records incluidos
+si el host principal ya fue autorizado antes de leer actividad
+si corresponde declarar provider compatible con ActivityRecordSetProvider
+si corresponde registrar el provider en ModuleCatalog
+
+Caso validado:
+
+Projects declara ProjectActivityRecordSet.
+
+ProjectActivityRecordSet define Project + Tasks como dataset de actividad visible del proyecto.
+
+Regla:
+
+si no existe activity_record_set, la lectura contextual debe permanecer directa sobre el record host.
 
 Criterio adicional para capacidades tenant no modulares:
 
@@ -513,7 +585,7 @@ OperationalActivityContextReader lee actividad asociada al record host autorizad
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -527,6 +599,7 @@ publicar capacidades reutilizables cuando correspondan
 respetar ownership del módulo oferente
 definir si emite eventos operativos livianos hacia una capacidad transversal
 definir si consume actividad operativa persistida como lectura y bajo qué autorización
+definir si su lectura contextual de actividad es directa o agregada
 
 Regla adicional consolidada:
 
@@ -616,6 +689,41 @@ Regla:
 
 no duplicar en OperationalActivity la trazabilidad fina que ya pertenece al módulo dueño si existe una operación agrupada que representa mejor la acción del usuario.
 
+Validación adicional para lectura contextual agregada de actividad operativa:
+
+si un host necesita mostrar actividad de un conjunto de records y no solo del record host autorizado, el módulo dueño debe publicar explícitamente ese conjunto.
+
+La publicación debe realizarse mediante activity_record_set y provider compatible con ActivityRecordSetProvider.
+
+Validar:
+
+que el conjunto sea finito y explícito
+que la frontera esté definida por el módulo dueño
+que la frontera no sea inferida por OperationalActivity
+que no exista recursividad automática
+que no se amplíe acceso general al tenant
+que no se altere ownership funcional de los records incluidos
+que el host principal haya sido autorizado antes de consumir la lectura
+que el reader consuma records ya definidos y no reconstruya relaciones funcionales por su cuenta
+
+Caso validado:
+
+projects.show
+ProjectActivityRecordSet
+Project + Tasks
+
+Regla:
+
+OperationalActivity no debe contener condiciones específicas por módulo para decidir activity_record_set.
+
+No corresponde incorporar lógica como:
+
+if Project
+if Order
+if Document
+
+Si un módulo requiere lectura agregada, debe declararla desde su propio contrato publicado.
+
 Validación adicional para lectura visual de actividad operativa:
 
 cuando se cree una lectura visual de OperationalActivity:
@@ -658,7 +766,7 @@ ModuleSurfaceRegistry puede fusionar surfaces modulares y tenant/transversales, 
 <<END SECTION>>
 
 <<SECTION: BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 BLOQUE 4 — UI Y EXPERIENCIA OPERATIVA
 
@@ -770,10 +878,38 @@ Regla:
 
 si una tab puede publicarse mediante registry reusable, no debe quedar insertada manualmente por push local en cada vista host como cierre estable.
 
+Validación adicional para tablas reusables de actividad:
+
+si una lectura general y una lectura contextual de OperationalActivity comparten payload compatible, debe priorizarse un partial reusable común.
+
+Caso vigente:
+
+operational-activity-table representa lectura general y contextual.
+
+profile-activity-tab delega en operational-activity-table.
+
+Reglas:
+
+no duplicar tablas visuales para actividad general y contextual
+
+no interpretar metadata.changes directamente en Blade
+
+no agregar columnas innecesarias para detalle de cambios
+
+mostrar síntesis compacta cuando exista payload preparado
+
+abrir detalle bajo demanda mediante modal cuando corresponda
+
+Caso vigente:
+
+OperationalActivityChangePresenter prepara change_summary y change_details.
+
+operational-activity-table muestra resumen compacto y modal Ver cambios.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 5 — DOCUMENTACIÓN Y CIERRE>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 BLOQUE 5 — DOCUMENTACIÓN Y CIERRE
 
@@ -862,11 +998,14 @@ contrato de autorización
 ubicación visual
 alcance de lectura
 si es lectura general o contextual
+si es lectura directa o agregada
 si crea o no navegación principal
 si crea o no surface reutilizable
 cómo se resuelven links
 cómo se resuelve trail
 qué records quedan sin link seguro
+qué partial visual representa la actividad
+si existe presentación de cambios y dónde se prepara
 
 Caso vigente:
 
@@ -880,13 +1019,38 @@ Estado:
 
 no crea navegación principal
 
-no es todavía surface reutilizable
-
 usa OperationalActivityLinkResolver
 
 linkea solo cuando existe show canónico seguro
 
-Validation adicional para colas:
+usa operational-activity-table como partial visual reusable
+
+Caso vigente adicional:
+
+lectura contextual heredada desde hosts show autorizados mediante tab Actividad.
+
+Hosts validados:
+
+tasks.show
+parties.show
+projects.show
+assets.show
+products.show
+appointments.show
+orders.show
+documents.show
+
+Caso vigente adicional:
+
+projects.show utiliza lectura agregada Project + Tasks mediante ProjectActivityRecordSet.
+
+Regla:
+
+si la lectura es agregada, debe documentarse el activity_record_set definido por el módulo dueño.
+
+No debe documentarse como comportamiento interno de OperationalActivity.
+
+Validación adicional para colas:
 
 el cierre de actividad queued requiere validar cola procesada y persistencia final.
 
@@ -905,7 +1069,7 @@ no cerrar trazabilidad queued solo por emisión del evento.
 <<END SECTION>>
 
 <<SECTION: CHECKLIST MÍNIMO EXISTENTE>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 CHECKLIST MÍNIMO EXISTENTE
 
@@ -916,7 +1080,7 @@ migraciones correctas
 tenant scope correcto
 rutas coherentes
 controllers limpios
-requests correctos
+requests correctas
 policies alineadas
 Security correctamente consumido
 vistas consistentes
@@ -957,6 +1121,7 @@ Para lecturas visuales de OperationalActivity, verificar además:
 
 contrato explícito de autorización
 si es lectura general o contextual
+si es lectura directa o agregada
 alcance del dataset leído
 ubicación visual real
 si crea o no navegación principal
@@ -965,6 +1130,9 @@ resolución segura de links
 fallback textual para records sin ruta segura
 trail contextual cuando exista navegación
 ausencia de URLs finales persistidas en operational_activities
+partial visual utilizado
+ausencia de duplicación de tabla si existe partial reusable
+presentación de cambios preparada fuera de Blade cuando corresponda
 
 Caso vigente:
 
@@ -978,16 +1146,32 @@ Estado:
 
 no crea navegación principal
 
-no es todavía surface reutilizable
-
 usa OperationalActivityLinkResolver
 
 linkea solo cuando existe show canónico seguro
+
+usa operational-activity-table como partial visual reusable
 
 Casos actuales sin link seguro:
 
 InventoryOperation
 Attachment
+
+Para lecturas agregadas mediante activity_record_set, verificar además:
+
+provider declarado por módulo dueño
+contrato compatible con ActivityRecordSetProvider
+records esperados incluidos
+records no esperados excluidos
+tenant activo respetado
+sin lectura general del tenant
+sin ownership trasladado a OperationalActivity
+sin recursividad automática
+sin condiciones hardcodeadas por módulo dentro de OperationalActivity
+
+Caso vigente:
+
+projects.show utiliza ProjectActivityRecordSet para leer actividad de Project + Tasks.
 
 Regla:
 
@@ -996,7 +1180,7 @@ la trazabilidad transversal debe reforzar lectura operativa sin convertirse en a
 <<END SECTION>>
 
 <<SECTION: CRITERIO FINAL DE APROBACIÓN>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 CRITERIO FINAL DE APROBACIÓN
 
@@ -1077,6 +1261,35 @@ sin duplicación de listeners
 sin escritura manual desde UI
 sin bloqueo del flujo principal ante falla de log
 sin asumir autorización de lectura futura
+
+Criterio adicional para lectura visual de OperationalActivity:
+
+la lectura visual no se considera cerrada solo porque la tab renderiza.
+
+Debe validarse:
+
+contrato de autorización correcto
+diferencia entre lectura general y contextual
+diferencia entre lectura directa y agregada
+dataset visible esperado
+surface reusable cuando corresponda
+key compatible con return_tab
+links resueltos por OperationalActivityLinkResolver
+fallback para records sin ruta segura
+sin URLs finales persistidas
+sin navegación principal creada por inercia
+sin duplicación visual innecesaria
+payload de cambios preparado fuera de Blade cuando corresponda
+
+Caso vigente:
+
+OperationalActivityChangePresenter prepara change_summary y change_details.
+
+operational-activity-table representa resumen compacto y detalle bajo demanda en modal.
+
+Caso vigente adicional:
+
+projects.show usa ProjectActivityRecordSet para lectura agregada Project + Tasks.
 
 Regla:
 

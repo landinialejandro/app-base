@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/projects/show.blade.php | V17 --}}
+{{-- FILE: resources/views/projects/show.blade.php | V18 --}}
 
 @extends('layouts.app')
 
@@ -7,6 +7,7 @@
 @section('content')
     @php
         use App\Support\Catalogs\ProjectCatalog;
+        use App\Support\Modules\ModuleSurfaceRegistry;
         use App\Support\Navigation\NavigationTrail;
         use App\Support\Ui\HostTabs;
 
@@ -30,6 +31,15 @@
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
         $backUrl = NavigationTrail::previousUrl($navigationTrail, route('projects.index'));
         $tabsLabel = 'Secciones del proyecto';
+
+        $hostPack = [
+            'host' => 'projects.show',
+            'record' => $project,
+            'trailQuery' => $trailQuery,
+            'navigationTrail' => $navigationTrail,
+        ];
+
+        $registryTabItems = collect(app(ModuleSurfaceRegistry::class)->slotFor('projects.show', 'tab_panels', $hostPack));
 
         $tabItems = collect([
             [
@@ -74,6 +84,7 @@
                 ],
             ],
         ])
+            ->merge($registryTabItems)
             ->sortBy(fn($item) => $item['priority'] ?? 999)
             ->values();
 

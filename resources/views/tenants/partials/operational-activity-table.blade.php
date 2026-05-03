@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/partials/operational-activity-table.blade.php | V1 --}}
+{{-- FILE: resources/views/tenants/partials/operational-activity-table.blade.php | V2 --}}
 
 @php
     use App\Support\Catalogs\ModuleCatalog;
@@ -61,6 +61,8 @@
                         @php
                             $moduleLabel = ModuleCatalog::label($row['module'], $row['module']);
                             $typeLabel = $activityTypeLabels[$row['activity_type']] ?? $row['activity_type'];
+                            $changeDetails = collect($row['change_details'] ?? []);
+                            $changeModalId = 'operational-activity-changes-' . $row['id'];
                         @endphp
 
                         <tr>
@@ -73,7 +75,27 @@
                             </td>
 
                             <td>
-                                {{ $typeLabel }}
+                                <div>
+                                    {{ $typeLabel }}
+                                </div>
+
+                                @if (filled($row['change_summary'] ?? null))
+                                    <div class="form-help" style="margin-top: .25rem;">
+                                        {{ $row['change_summary'] }}
+                                    </div>
+                                @endif
+
+                                @if ($changeDetails->isNotEmpty())
+                                    <div style="margin-top: .35rem;">
+                                        <x-button-secondary
+                                            type="button"
+                                            data-action="app-modal-open"
+                                            data-modal-target="#{{ $changeModalId }}"
+                                        >
+                                            Ver cambios
+                                        </x-button-secondary>
+                                    </div>
+                                @endif
                             </td>
 
                             <td>
@@ -98,5 +120,54 @@
                 </tbody>
             </table>
         </div>
+
+        @foreach ($operationalActivityRows as $row)
+            @php
+                $changeDetails = collect($row['change_details'] ?? []);
+                $changeModalId = 'operational-activity-changes-' . $row['id'];
+            @endphp
+
+            @if ($changeDetails->isNotEmpty())
+                <x-modal :id="$changeModalId" title="Detalle de cambios" size="lg">
+                    <div class="dashboard-section-header">
+                        <h3 class="dashboard-section-title">
+                            {{ $row['record_label'] }}
+                        </h3>
+
+                        <p class="dashboard-section-text">
+                            {{ $row['occurred_at']?->format('d/m/Y H:i') ?? '—' }}
+                        </p>
+                    </div>
+
+                    @foreach ($changeDetails as $change)
+                        <div class="detail-block" style="margin-bottom: .75rem;">
+                            <span class="detail-block-label">
+                                {{ $change['label'] }}
+                            </span>
+
+                            <div class="detail-block-value">
+                                <strong>Antes</strong>
+                                <div style="white-space: pre-wrap;">{{ $change['from'] }}</div>
+                            </div>
+
+                            <div class="detail-block-value" style="margin-top: .5rem;">
+                                <strong>Después</strong>
+                                <div style="white-space: pre-wrap;">{{ $change['to'] }}</div>
+                            </div>
+                        </div>
+                    @endforeach
+
+                    <x-slot:footer>
+                        <x-button-secondary
+                            type="button"
+                            data-action="app-modal-close"
+                            data-modal-target="#{{ $changeModalId }}"
+                        >
+                            Cerrar
+                        </x-button-secondary>
+                    </x-slot:footer>
+                </x-modal>
+            @endif
+        @endforeach
     @endif
 </x-card>

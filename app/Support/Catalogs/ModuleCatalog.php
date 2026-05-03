@@ -12,6 +12,7 @@ use App\Support\Inventory\InventorySurfaceService;
 use App\Support\Orders\OrderSurfaceService;
 use App\Support\Parties\PartySurfaceService;
 use App\Support\Products\ProductSurfaceService;
+use App\Support\Projects\ProjectActivityRecordSet;
 use App\Support\Projects\ProjectSurfaceService;
 use App\Support\Tasks\TaskSurfaceService;
 
@@ -49,6 +50,7 @@ class ModuleCatalog
             'label' => 'Proyectos',
             'icon' => 'folder',
             'surface_service' => ProjectSurfaceService::class,
+            'activity_record_set' => ProjectActivityRecordSet::class,
             'nav' => [
                 'group' => 'management',
                 'route' => 'projects.index',
@@ -56,7 +58,6 @@ class ModuleCatalog
                 'order' => 10,
             ],
         ],
-
         self::TASKS => [
             'label' => 'Tareas',
             'icon' => 'list-check',
@@ -226,5 +227,10 @@ class ModuleCatalog
             ->where('group', $group)
             ->values()
             ->all();
+    }
+
+    public static function activityRecordSetService(string $module): ?string
+    {
+        return static::$definitions[$module]['activity_record_set'] ?? null;
     }
 }

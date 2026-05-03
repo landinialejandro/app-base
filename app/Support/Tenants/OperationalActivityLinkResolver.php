@@ -28,61 +28,70 @@ class OperationalActivityLinkResolver
         ];
     }
 
-    protected function recordLabel(OperationalActivity $activity, ?Model $record): string
-    {
-        if ($record instanceof Task && filled($record->title ?? null)) {
-            return 'Tarea: '.$record->title;
-        }
-
-        if ($record instanceof Task && filled($record->name ?? null)) {
-            return 'Tarea: '.$record->name;
-        }
-
-        if ($record instanceof Appointment && filled($record->title ?? null)) {
-            return 'Turno: '.$record->title;
-        }
-
-        if ($record instanceof Project && filled($record->name ?? null)) {
-            return 'Proyecto: '.$record->name;
-        }
-
-        if ($record instanceof Party && filled($record->name ?? null)) {
-            return 'Contacto: '.$record->name;
-        }
-
-        if ($record instanceof Product && filled($record->name ?? null)) {
-            return 'Producto: '.$record->name;
-        }
-
-        if ($record instanceof Asset && filled($record->name ?? null)) {
-            return 'Activo: '.$record->name;
-        }
-
-        if ($record instanceof Order && filled($record->number ?? null)) {
-            return 'Orden: '.$record->number;
-        }
-
-        if ($record instanceof Document && filled($record->number ?? null)) {
-            return 'Documento: '.$record->number;
-        }
-
-        return class_basename((string) $activity->record_type).' #'.$activity->record_id;
+protected function recordLabel(OperationalActivity $activity, ?Model $record): string
+{
+    if ($record instanceof Task && filled($record->title ?? null)) {
+        return 'Tarea: '.$record->title;
     }
 
-    protected function recordUrl(?Model $record, array $trail = []): ?string
-    {
-        $trailQuery = NavigationTrail::toQuery($trail);
-
-        return match (true) {
-            $record instanceof Appointment => route('appointments.show', ['appointment' => $record] + $trailQuery),
-            $record instanceof Asset => route('assets.show', ['asset' => $record] + $trailQuery),
-            $record instanceof Document => route('documents.show', ['document' => $record] + $trailQuery),
-            $record instanceof Order => route('orders.show', ['order' => $record] + $trailQuery),
-            $record instanceof Party => route('parties.show', ['party' => $record] + $trailQuery),
-            $record instanceof Product => route('products.show', ['product' => $record] + $trailQuery),
-            $record instanceof Project => route('projects.show', ['project' => $record] + $trailQuery),
-            $record instanceof Task => route('tasks.show', ['task' => $record] + $trailQuery),
-            default => null,
-        };
+    if ($record instanceof Task && filled($record->name ?? null)) {
+        return 'Tarea: '.$record->name;
     }
+
+    if ($record instanceof Appointment && filled($record->title ?? null)) {
+        return 'Turno: '.$record->title;
+    }
+
+    if ($record instanceof Project && filled($record->name ?? null)) {
+        return 'Proyecto: '.$record->name;
+    }
+
+    if ($record instanceof Party && filled($record->name ?? null)) {
+        return 'Contacto: '.$record->name;
+    }
+
+    if ($record instanceof Product && filled($record->name ?? null)) {
+        return 'Producto: '.$record->name;
+    }
+
+    if ($record instanceof Asset && filled($record->name ?? null)) {
+        return 'Activo: '.$record->name;
+    }
+
+    if ($record instanceof Order && filled($record->number ?? null)) {
+        return 'Orden: '.$record->number;
+    }
+
+    if ($record instanceof Document && filled($record->number ?? null)) {
+        return 'Documento: '.$record->number;
+    }
+
+    if ($record instanceof \App\Models\Attachment && filled($record->file_name ?? null)) {
+        return 'Adjunto: '.$record->file_name;
+    }
+
+    if ($record instanceof \App\Models\InventoryOperation) {
+        return 'Operación de inventario #'.$record->id;
+    }
+
+    return class_basename((string) $activity->record_type).' #'.$activity->record_id;
+}
+
+protected function recordUrl(?Model $record, array $trail = []): ?string
+{
+    $trailQuery = NavigationTrail::toQuery($trail);
+
+    return match (true) {
+        $record instanceof \App\Models\Attachment => $this->recordUrl($record->attachable, $trail),
+        $record instanceof Appointment => route('appointments.show', ['appointment' => $record] + $trailQuery),
+        $record instanceof Asset => route('assets.show', ['asset' => $record] + $trailQuery),
+        $record instanceof Document => route('documents.show', ['document' => $record] + $trailQuery),
+        $record instanceof Order => route('orders.show', ['order' => $record] + $trailQuery),
+        $record instanceof Party => route('parties.show', ['party' => $record] + $trailQuery),
+        $record instanceof Product => route('products.show', ['product' => $record] + $trailQuery),
+        $record instanceof Project => route('projects.show', ['project' => $record] + $trailQuery),
+        $record instanceof Task => route('tasks.show', ['task' => $record] + $trailQuery),
+        default => null,
+    };
+}
 }

@@ -53,7 +53,7 @@ los detalles técnicos pueden evolucionar sin alterar estos principios rectores
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -116,11 +116,13 @@ No autoriza la operación original.
 
 La autorización sigue perteneciendo al módulo host mediante su permiso view sobre el registro correspondiente.
 
-La lectura contextual puede ser directa o agregada.
+La lectura contextual puede ser directa, agregada o contextual especial.
 
 La lectura directa alcanza la actividad asociada al record host autorizado.
 
 La lectura agregada alcanza el conjunto explícito de records definido por el módulo dueño mediante activity_record_set.
+
+La lectura contextual especial alcanza un dataset definido por el módulo dueño mediante activity_context cuando la frontera no pueda expresarse solo como conjunto explícito de records.
 
 Reglas para lectura agregada:
 
@@ -138,9 +140,43 @@ activity_record_set debe estar definido por el módulo dueño
 
 OperationalActivity no debe decidir internamente la frontera funcional agregada
 
-Caso validado:
+Reglas para activity_context:
+
+el host principal debe estar autorizado previamente
+
+activity_context no autoriza records por sí mismo
+
+activity_context no habilita lectura general del tenant
+
+activity_context no reemplaza Security
+
+activity_context no puede exponer datos ajenos al tenant activo
+
+activity_context debe estar definido por el módulo dueño
+
+OperationalActivity no debe decidir internamente la frontera funcional contextual especial
+
+Caso validado de lectura agregada:
 
 projects.show puede mostrar actividad del Project y de sus Tasks porque Projects declara ProjectActivityRecordSet.
+
+Caso validado de lectura contextual especial:
+
+parties.show puede mostrar actividad contextual ampliada de una Party con relación employee y membership activa vinculada.
+
+Esta lectura puede incluir:
+
+actividad directa de Party
+actividad donde el user vinculado sea actor_user_id
+actividad donde el user vinculado sea subject_user_id
+
+Esta lectura no utiliza operational_activity.view_any.
+
+No equivale a lectura general del tenant.
+
+No habilita acceso a records arbitrarios.
+
+No convierte users, memberships ni party_roles en módulos funcionales.
 
 Reglas síntesis:
 
@@ -154,7 +190,7 @@ el registro de actividad operativa no modifica el permiso efectivo de la acción
 
 la lectura del log operativo requiere autorización explícita propia
 
-la lectura contextual heredada solo alcanza la actividad asociada al registro host ya autorizado o al record set explícito declarado por el módulo dueño
+la lectura contextual heredada solo alcanza la actividad asociada al registro host ya autorizado, al record set explícito declarado por el módulo dueño o al activity_context declarado por el módulo dueño
 
 Caso vigente:
 
@@ -194,7 +230,7 @@ Autenticado no equivale automáticamente a autorizado.
 <<END SECTION>>
 
 <<SECTION: IDENTIDAD, MEMBERSHIP Y TENANT ACTIVO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 IDENTIDAD, MEMBERSHIP Y TENANT ACTIVO
 
@@ -242,10 +278,30 @@ la condición relevante para bloquear atributos críticos de la ficha ampliada e
 
 Una membership histórica, inactiva o desvinculada no debe producir por sí misma el mismo bloqueo operativo.
 
+Aclaración adicional para lectura contextual de actividad:
+
+cuando una party tenga relación employee y membership activa vinculada, puede funcionar como centro contextual de lectura de actividad del colaborador.
+
+Esta lectura puede considerar el user vinculado por la membership como actor o sujeto de actividad operativa.
+
+Reglas:
+
+esta lectura no convierte a party en identidad del sistema
+
+esta lectura no convierte a membership en módulo funcional
+
+esta lectura no convierte a user en entidad del negocio
+
+esta lectura no convierte a party en base de autorización
+
+esta lectura no reemplaza operational_activity.view_any para lectura general del tenant
+
+esta lectura solo puede operar cuando el host ya autorizó la visualización de la Party correspondiente
+
 <<END SECTION>>
 
 <<SECTION: MULTI-TENANCY Y AISLAMIENTO>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 MULTI-TENANCY Y AISLAMIENTO
 
@@ -271,6 +327,7 @@ datasets visibles
 operaciones entre módulos
 lecturas contextuales directas
 lecturas contextuales agregadas
+lecturas contextuales especiales
 
 Este criterio alcanza también a:
 
@@ -280,6 +337,7 @@ operaciones internas
 trazabilidad derivada
 registros de actividad operativa
 activity_record_set declarados por módulos dueños
+activity_context declarados por módulos dueños
 
 Regla:
 
@@ -300,6 +358,12 @@ Regla adicional para lectura agregada:
 si un módulo declara activity_record_set, todos los records incluidos deben pertenecer al tenant activo o estar resueltos dentro del aislamiento vigente del sistema.
 
 No debe utilizarse activity_record_set para mezclar datos entre tenants ni para exponer relaciones no autorizadas.
+
+Regla adicional para lectura contextual especial:
+
+si un módulo declara activity_context, el criterio contextual aplicado debe respetar tenant activo y aislamiento vigente.
+
+No debe utilizarse activity_context para mezclar datos entre tenants, exponer relaciones no autorizadas ni habilitar lectura general del tenant.
 
 <<END SECTION>>
 
@@ -335,7 +399,7 @@ No reemplazan la singularidad estructural del owner.
 <<END SECTION>>
 
 <<SECTION: MODELO V2 DE PERMISOS>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 MODELO V2 DE PERMISOS
 
@@ -416,7 +480,7 @@ Esta lectura contextual no utiliza operational_activity.view_any.
 
 operational_activity.view_any queda reservado para lectura general tenant-scoped del log operativo.
 
-La lectura contextual puede operar como lectura directa del record host o como lectura agregada de un record set explícito.
+La lectura contextual puede operar como lectura directa del record host, lectura agregada de un record set explícito o lectura contextual especial declarada por el módulo dueño.
 
 Reglas:
 
@@ -424,17 +488,35 @@ la lectura directa no requiere permiso general del log
 
 la lectura agregada no requiere permiso general del log
 
+la lectura contextual especial no requiere permiso general del log
+
 la lectura agregada requiere activity_record_set declarado por el módulo dueño
+
+la lectura contextual especial requiere activity_context declarado por el módulo dueño
 
 activity_record_set no autoriza records por sí mismo
 
+activity_context no autoriza records por sí mismo
+
 activity_record_set no debe utilizarse como mecanismo para ampliar acceso general al tenant
 
+activity_context no debe utilizarse como mecanismo para ampliar acceso general al tenant
+
 activity_record_set no debe exponer registros fuera del tenant activo
+
+activity_context no debe exponer datos fuera del tenant activo
 
 Regla:
 
 la lectura contextual de actividad no debe confundirse con acceso general al log ni con permiso propio para navegar OperationalActivity como módulo.
+
+Caso validado:
+
+parties puede declarar un activity_context para Party employee con membership activa vinculada.
+
+Ese contexto puede incluir actividad directa de Party y actividad del user vinculado como actor o sujeto.
+
+Esta lectura no utiliza operational_activity.view_any y no habilita lectura general del tenant.
 
 El detalle aplicado por módulo o capacidad debe resolverse en las secciones especializadas de constraints y reglas operativas.
 
@@ -482,7 +564,7 @@ no saltar el resolver central con lógica local improvisada
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00023
+SECTION_VERSION: 00024
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -601,6 +683,20 @@ si la lectura contextual usa activity_record_set, el conjunto debe estar declara
 
 El activity_record_set no autoriza records por sí mismo.
 
+Regla adicional para lectura contextual especial:
+
+si la lectura contextual usa activity_context, el criterio debe estar declarado por el módulo dueño y respetar el tenant activo.
+
+El activity_context no autoriza records por sí mismo.
+
+OperationalActivity no debe contener condiciones internas específicas como employee, parties, memberships o users para definir esa frontera.
+
+Caso validado:
+
+parties puede declarar activity_context para Party employee con membership activa vinculada.
+
+La lectura puede incluir actividad directa de Party y actividad donde el user vinculado sea actor o sujeto.
+
 Regla adicional para parties:
 
 la UI no constituye autorización para asignar relaciones sensibles del contacto.
@@ -609,10 +705,22 @@ Si una opción visual se oculta, bloquea o simplifica en el formulario, el backe
 
 La relación employee dentro de party_roles debe mantenerse protegida por backend cuando corresponda.
 
+Cuando se cree una Party employee desde un flujo de membership, la autorización de parties.create debe recibir la relación employee como contexto funcional.
+
+No alcanza con informar únicamente kind = person, porque en parties la dimensión funcional de autorización es party_roles.role.
+
+Regla:
+
+parties.kind = person/company
+
+party_roles.role = employee/customer/supplier/other
+
+Por lo tanto, la autorización de parties debe orientarse por allowed_party_roles cuando corresponda.
+
 <<END SECTION>>
 
 <<SECTION: CONSTRAINTS FUNCIONALES>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 CONSTRAINTS FUNCIONALES
 
@@ -671,6 +779,26 @@ si un usuario no tiene una relación permitida por allowed_party_roles, no debe 
 
 Security::scope(...) debe filtrar el dataset visible de parties mediante party_roles.role cuando corresponda.
 
+Regla adicional para create contextual de parties:
+
+cuando la acción de creación dependa de una relación con la empresa, el contexto funcional debe informar esa relación.
+
+No alcanza con informar únicamente parties.kind.
+
+Caso vigente:
+
+crear una Party employee desde TenantMembershipPartyController debe evaluarse como creación de contacto con relación employee.
+
+La autorización debe recibir la relación employee para que allowed_party_roles pueda arbitrar correctamente.
+
+Regla:
+
+kind define tipo de contacto.
+
+party_roles.role define relación con la empresa.
+
+La relación employee no debe inferirse desde kind = person.
+
 Regla:
 
 OperationalActivity no evalúa allowed_party_roles ni allowed_kinds.
@@ -690,7 +818,7 @@ El detalle aplicado por módulo debe resolverse en las secciones especializadas 
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00022
+SECTION_VERSION: 00023
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -733,7 +861,7 @@ Regla:
 
 el contrato modular define fronteras y responsabilidades.
 
-No debe transformarse en detalle funcional del módulo.
+No debe transformarse en detalle funcional completo del módulo.
 
 Aclaración para actividad operativa:
 
@@ -770,19 +898,29 @@ Esto no implica acceso general al log del tenant.
 
 No utiliza operational_activity.view_any.
 
-No habilita lectura de otros registros, salvo los incluidos en un activity_record_set explícito declarado por el módulo dueño.
-
 No crea navegación principal de OperationalActivity.
 
-Aclaración para activity_record_set:
+La lectura contextual puede operar como:
 
-activity_record_set no autoriza records por sí mismo.
+lectura directa del record host autorizado
+lectura agregada mediante activity_record_set declarado por el módulo dueño
+lectura contextual especial mediante activity_context declarado por el módulo dueño
 
-activity_record_set no reemplaza Security.
+Reglas:
 
-activity_record_set no habilita lectura general del tenant.
+activity_record_set no autoriza records por sí mismo
 
-activity_record_set debe respetar tenant activo.
+activity_context no autoriza records por sí mismo
+
+activity_record_set no reemplaza Security
+
+activity_context no reemplaza Security
+
+activity_record_set no habilita lectura general del tenant
+
+activity_context no habilita lectura general del tenant
+
+ambos deben respetar tenant activo y host previamente autorizado
 
 Aclaración para parties:
 
@@ -889,7 +1027,7 @@ la integración reusable reduce duplicación visual o contractual, pero no reduc
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00021
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -1045,17 +1183,31 @@ no crea navegación principal
 
 no autoriza la operación original
 
+La lectura contextual puede ser directa, agregada o contextual especial.
+
+Si no hay activity_record_set ni activity_context, la lectura contextual se limita al record host autorizado.
+
 Si existe activity_record_set declarado por el módulo dueño, la lectura contextual puede incluir ese conjunto explícito de records.
+
+Si existe activity_context declarado por el módulo dueño, la lectura contextual puede aplicar ese criterio especial.
 
 Reglas:
 
 activity_record_set no autoriza records por sí mismo
 
+activity_context no autoriza records por sí mismo
+
 activity_record_set no habilita lectura general del tenant
+
+activity_context no habilita lectura general del tenant
 
 activity_record_set debe respetar tenant activo
 
+activity_context debe respetar tenant activo
+
 activity_record_set no debe definirse dentro de OperationalActivity
+
+activity_context no debe definirse dentro de OperationalActivity
 
 Hosts validados:
 
@@ -1067,6 +1219,12 @@ products.show
 appointments.show
 orders.show
 documents.show
+
+Caso vigente:
+
+projects.show puede usar ProjectActivityRecordSet para lectura agregada Project + Tasks.
+
+parties.show puede usar PartyEmployeeActivityContext para lectura contextual especial de Party employee con membership activa vinculada.
 
 Regla:
 

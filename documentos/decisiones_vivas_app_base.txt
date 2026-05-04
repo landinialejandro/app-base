@@ -36,7 +36,7 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 DECISIONES VIGENTES
 
@@ -301,19 +301,66 @@ activity_record_set no habilita lectura general del tenant
 
 activity_record_set no altera ownership funcional de los records incluidos
 
+Decisión vigente sobre lectura contextual especial de OperationalActivity:
+
+OperationalActivity no decide la frontera funcional de actividad contextual especial.
+
+Cada módulo puede declarar opcionalmente un activity_context.
+
+Si no hay activity_context ni activity_record_set, la lectura contextual es directa sobre el record host autorizado.
+
+Si hay activity_context, la lectura contextual usa el criterio definido por el módulo dueño.
+
+Caso validado:
+
+Parties declara PartyEmployeeActivityContext.
+
+PartyEmployeeActivityContext define la lectura contextual de Party employee con membership activa vinculada.
+
+Esa lectura puede incluir:
+
+actividad directa de Party
+actividad donde el user vinculado sea actor_user_id
+actividad donde el user vinculado sea subject_user_id
+
+Motivo:
+
+esto permite que la ficha ampliada employee funcione como centro contextual de actividad del colaborador sin crear módulo users, sin convertir membership en módulo funcional y sin contaminar OperationalActivity con lógica propia de parties.
+
+Reglas:
+
+activity_context no reemplaza activity_record_set
+
+activity_record_set expresa conjunto explícito de records
+
+activity_context expresa criterio contextual especial
+
+OperationalActivity no debe hardcodear employee, parties, memberships ni users
+
+el módulo dueño define la frontera funcional cuando corresponde
+
+activity_context no autoriza records por sí mismo
+
+activity_context no habilita lectura general del tenant
+
+activity_context no altera ownership funcional de los records incluidos ni de los users vinculados
+
 Decisión vigente sobre hosts show con tab Actividad:
 
 los hosts show autorizados pueden recibir tab Actividad con lectura directa por defecto.
 
-La existencia de tab no obliga a definir record set agregado.
+La existencia de tab no obliga a definir record set agregado ni context especial.
 
 Decisión vigente:
 
-si no hay activity_record_set
+si no hay activity_record_set ni activity_context
 → lectura directa del record host
 
 si hay activity_record_set
 → lectura del conjunto definido por el módulo
+
+si hay activity_context
+→ lectura del criterio contextual especial definido por el módulo
 
 Decisión vigente sobre surfaces tenant/transversales no modulares:
 
@@ -330,94 +377,30 @@ necesita publicar información controlada hacia hosts autorizados
 
 Caso validado:
 
-OperationalActivitySurfaceService publica la tab contextual Actividad mediante TenantSurfaceRegistry.
+OperationalActivitySurfaceService publica la tab contextual Actividad.
 
-ModuleSurfaceRegistry puede fusionar surfaces modulares desde ModuleCatalog y surfaces tenant/transversales desde TenantSurfaceRegistry.
+Decisión vigente sobre presentación visual de actividad:
 
-Reglas:
+la tabla general y contextual de actividad debe reutilizar operational-activity-table.
 
-no incorporar capacidades transversales a ModuleCatalog solo para publicar UI
+El detalle de cambios se muestra bajo demanda mediante modal.
 
-no resolver con pushes manuales permanentes en vistas host
+La vista no interpreta metadata.changes directamente.
 
-no crear navegación principal por el solo hecho de publicar una surface
+OperationalActivityChangePresenter prepara change_summary y change_details.
 
-no alterar ownership de la capacidad transversal
+Decisión vigente sobre iconografía de actividad:
 
-Decisión vigente sobre navegación desde actividad:
+la tab Actividad puede usar icon = activity declarado por la surface.
 
-no se persisten URLs finales en operational_activities.
+El botón Ver cambios usa x-icons.changes.
 
-La navegación al registro asociado se resuelve en capa de lectura mediante OperationalActivityLinkResolver.
+El botón Ver cambios debe mantenerse como acción secundaria icon-only cuando esté dentro de la tabla.
 
-OperationalActivityLinkResolver puede resolver links solo cuando exista ruta show canónica segura.
+Variante visual validada:
 
-Casos sin link por ahora:
+btn btn-secondary btn-icon
 
-InventoryOperation
-Attachment
-
-Decisión vigente sobre visualización de cambios de actividad:
-
-la visualización de cambios debe estar disponible sin sobrecargar la tabla.
-
-La tabla puede mostrar resumen compacto.
-
-El detalle debe abrirse bajo demanda mediante modal.
-
-Pieza vigente:
-
-OperationalActivityChangePresenter
-
-Responsabilidad:
-
-preparar change_summary y change_details desde metadata.changes.
-
-Regla:
-
-la vista no debe interpretar directamente metadata.changes.
-
-Decisión vigente sobre partial visual de actividad:
-
-la lectura general y la lectura contextual de actividad deben compartir el mismo partial visual cuando el payload sea compatible.
-
-Partial vigente:
-
-resources/views/tenants/partials/operational-activity-table.blade.php
-
-Caso vigente:
-
-profile-activity-tab delega en operational-activity-table.
-
-Regla:
-
-no duplicar tabla general y tabla contextual si una misma pieza reusable puede representar ambas lecturas.
-
-Decisión vigente sobre Project Lab y colas:
-
-Project Lab puede tener acción externa al producto para procesar cola localmente.
-
-Esto no debe trasladarse al SaaS productivo.
-
-No debe implementarse botón de queue dentro del producto SaaS.
-
-Project Lab es la herramienta operativa local vigente para aplicar, auditar y validar intervenciones técnicas.
-
-Regla vigente:
-
-todo snippet destinado a Project Lab debe respetar el contrato real de la herramienta.
-
-FILE corresponde a archivo completo.
-
-TARGET corresponde a operación parcial.
-
-No se deben mezclar FILE y TARGET.
-
-No se deben entregar encabezados ambiguos que obliguen al usuario a corregir el formato.
-
-Ante falta de datos reales:
-
-NO SE ASUME
-NO SE SUPONE
+No se crea clase nueva para este caso.
 
 <<END SECTION>>

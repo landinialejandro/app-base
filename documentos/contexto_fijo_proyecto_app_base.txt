@@ -174,7 +174,7 @@ Su desarrollo técnico y sus reglas operativas concretas se resuelven en documen
 <<END SECTION>>
 
 <<SECTION: IDENTIDAD GLOBAL Y PERTENENCIA POR EMPRESA>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 IDENTIDAD GLOBAL Y PERTENENCIA POR EMPRESA
 
@@ -220,7 +220,28 @@ identidad global
 pertenencia operativa
 ficha ampliada tenant-scoped
 
-El detalle operativo y de seguridad de esa ficha ampliada se define en los documentos especializados correspondientes.
+Aclaración estructural adicional:
+
+cuando una party con relación employee tenga membership activa vinculada, esa ficha ampliada puede funcionar como centro contextual de lectura de actividad del colaborador dentro del tenant.
+
+Esa lectura no altera el modelo de identidad.
+
+No convierte a user en entidad del negocio.
+
+No convierte a membership en módulo funcional.
+
+No convierte a party en entidad de acceso.
+
+No convierte a OperationalActivity en módulo funcional ordinario.
+
+Separación vigente:
+
+User = identidad global
+Membership = pertenencia operativa
+Party = ficha ampliada tenant-scoped cuando existe vínculo explícito
+OperationalActivity = trazabilidad transversal tenant-scoped
+
+El detalle operativo, visual y de seguridad de esa ficha ampliada se define en los documentos especializados correspondientes.
 
 <<END SECTION>>
 
@@ -247,7 +268,7 @@ Es una pieza estructural del funcionamiento del sistema.
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00025
+SECTION_VERSION: 00027
 
 CAPAS FUNCIONALES DEL SISTEMA
 
@@ -261,7 +282,7 @@ Contexto operativo de la empresa activa.
 
 La capa tenant puede incluir capacidades propias del plano empresa que no constituyen módulos funcionales ordinarios.
 
-Estas capacidades pueden ser tenant-scoped, evaluables por seguridad y visibles dentro de frentes del tenant sin incorporarse automáticamente a ModuleCatalog.
+Estas capacidades pueden ser tenant-scoped, evaluables por seguridad y visibles dentro de frentes del tenant sin incorporarse automáticamente al conjunto de módulos funcionales ordinarios.
 
 CAPA DE GOBIERNO INTERNO DEL TENANT
 Organiza pertenencia y actores internos.
@@ -285,41 +306,41 @@ No absorbe ownership funcional ni ejecuta la operación original.
 
 La lectura general de OperationalActivity se resuelve como capacidad tenant no modular.
 
-La lectura contextual de OperationalActivity puede publicarse desde el plano tenant/transversal hacia hosts funcionales autorizados sin convertir OperationalActivity en módulo funcional.
+La lectura contextual de OperationalActivity puede publicarse hacia hosts funcionales autorizados sin convertir OperationalActivity en módulo funcional.
 
-La lectura contextual puede operar en dos modalidades:
+La lectura contextual puede operar en tres modalidades:
 
 lectura directa del record host autorizado
 
 lectura agregada mediante un conjunto explícito de records definido por el módulo dueño
 
-El conjunto explícito de records se declara como activity_record_set.
+lectura contextual especial mediante un criterio definido por el módulo dueño
 
 Regla estructural:
 
-OperationalActivity lee y presenta actividad persistida, pero no decide la frontera funcional de actividad agregada de cada módulo.
+OperationalActivity lee y presenta actividad persistida, pero no decide la frontera funcional de actividad agregada o contextual especial de cada módulo.
 
 Esa frontera pertenece al módulo dueño.
 
-Caso validado:
+Caso validado de lectura agregada:
 
 projects define que la actividad contextual de un Project puede incluir el propio Project y sus Tasks.
 
 Esa definición no queda hardcodeada dentro de OperationalActivity.
 
-Debe ser publicada por el módulo funcional dueño mediante su contrato correspondiente.
+Caso validado de lectura contextual especial:
 
-Lectura de responsabilidades:
+parties puede definir una lectura contextual especial para Party con relación employee y membership activa vinculada.
 
-OperationalActivity registra y lee actividad.
+En ese caso, la actividad contextual puede incluir:
 
-Project define su dataset contextual agregado cuando corresponde.
+actividad directa de Party
+actividad donde el user vinculado sea actor
+actividad donde el user vinculado sea sujeto
 
-ModuleCatalog declara la capacidad publicada.
+Esta modalidad no convierte users, memberships ni party_roles en módulos funcionales nuevos.
 
-OperationalActivityContextReader consume records ya definidos.
-
-La show page consume la surface correspondiente.
+Tampoco traslada ownership funcional hacia OperationalActivity.
 
 BASE DEL DOMINIO
 Anclajes conceptuales amplios del negocio.
@@ -333,11 +354,11 @@ esta lectura debe prevalecer en decisiones arquitectónicas
 
 tenant es contexto, no módulo funcional
 
-no toda capacidad tenant-scoped debe incorporarse a ModuleCatalog
+no toda capacidad tenant-scoped debe incorporarse como módulo funcional ordinario
 
 las capacidades tenant no modulares pueden existir cuando la responsabilidad no sea módulo funcional, no tenga CRUD ordinario, no requiera navegación propia y no deba habilitarse o deshabilitarse como módulo del negocio
 
-las capacidades tenant/transversales no modulares pueden publicar surfaces controladas hacia hosts funcionales cuando exista contrato validado para ello
+las capacidades tenant/transversales no modulares pueden publicar superficies controladas hacia hosts funcionales cuando exista contrato validado para ello
 
 esa publicación no altera su naturaleza arquitectónica ni las convierte en módulos funcionales ordinarios
 
@@ -419,7 +440,7 @@ Su función es sostener la plataforma y su frontera de ingreso.
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00029
+SECTION_VERSION: 00031
 
 ENTIDADES DEL NEGOCIO
 
@@ -487,17 +508,29 @@ OperationalActivity registra actividad operativa sobre registros de módulos fun
 
 La integración con OperationalActivity no convierte a esos módulos en dependientes del log ni altera su ownership funcional.
 
-OperationalActivity puede exponer lectura contextual directa sobre un record host autorizado o lectura contextual agregada sobre un conjunto explícito de records declarado por el módulo dueño.
+OperationalActivity puede exponer lectura contextual directa sobre un record host autorizado, lectura contextual agregada sobre un conjunto explícito de records declarado por el módulo dueño o lectura contextual especial mediante un criterio definido por el módulo dueño.
 
 Regla:
 
-la frontera funcional de una lectura agregada pertenece al módulo dueño.
+la frontera funcional de una lectura agregada o contextual especial pertenece al módulo dueño.
 
-Caso validado:
+Caso validado de lectura agregada:
 
 Projects puede declarar Project + Tasks como dataset de actividad contextual agregada del proyecto.
 
-Esto no convierte a Task en entidad hija de OperationalActivity ni altera su ownership funcional.
+Caso validado de lectura contextual especial:
+
+Parties puede declarar un criterio contextual especial para Party employee con membership activa vinculada.
+
+Ese contexto puede permitir leer actividad directa de Party y actividad asociada al user vinculado como actor o sujeto.
+
+Esto no convierte User en entidad del negocio.
+
+No convierte Membership en módulo funcional.
+
+No convierte party_roles en módulo funcional propio.
+
+No convierte OperationalActivity en dueño de esa relación.
 
 Aclaración estructural para inventory:
 
@@ -551,6 +584,8 @@ no convierte a party en entidad de acceso
 
 Cuando exista vínculo con membership activa, party representa al colaborador interno en el plano operativo del negocio.
 
+Cuando esa party tenga relación employee y membership activa vinculada, puede funcionar además como centro contextual de lectura de actividad del colaborador, siempre mediante contrato específico del módulo dueño.
+
 Este documento reconoce la posición estructural de estas entidades.
 
 El detalle operativo, visual, de navegación o seguridad debe resolverse en los documentos especializados correspondientes.
@@ -579,7 +614,7 @@ tampoco debe sobredimensionarse el dominio del negocio hasta absorber piezas cuy
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00017
 
 CLASIFICACIÓN CONCEPTUAL DE MÓDULOS
 
@@ -631,11 +666,11 @@ no absorbe ownership funcional de los módulos que emiten eventos
 
 no debe registrar actividad solo por existir CRUD
 
-puede ofrecer lectura contextual directa o agregada cuando exista contrato válido
+puede ofrecer lectura contextual directa, agregada o contextual especial cuando exista contrato válido
 
 Regla:
 
-OperationalActivity no define por sí mismo qué records componen la actividad agregada de un módulo.
+OperationalActivity no define por sí mismo qué records componen la actividad agregada de un módulo ni qué criterio contextual especial corresponde aplicar.
 
 La participación de un módulo en OperationalActivity debe definirse explícitamente y justificarse por valor operativo real.
 
@@ -649,7 +684,7 @@ lectura general de OperationalActivity mediante capability específica.
 
 Reglas:
 
-no se incorporan automáticamente a ModuleCatalog
+no se incorporan automáticamente como módulos funcionales ordinarios
 
 no se leen como módulos navegables
 
@@ -667,11 +702,11 @@ Representan capacidades tenant-scoped o transversales que publican lectura o inf
 
 Caso vigente:
 
-OperationalActivity publica lectura contextual mediante TenantSurfaceRegistry y OperationalActivitySurfaceService.
+OperationalActivity publica lectura contextual mediante surface tenant/transversal.
 
 Reglas:
 
-no se incorporan a ModuleCatalog por publicar una surface
+no se incorporan como módulos funcionales por publicar una surface
 
 no generan navegación principal
 
@@ -684,6 +719,8 @@ conservan ownership en el plano tenant/transversal
 Aclaraciones vigentes:
 
 projects puede declarar lectura contextual agregada de actividad sobre Project + Tasks mediante activity_record_set
+
+parties puede declarar lectura contextual especial de actividad para Party employee con membership activa vinculada mediante activity_context
 
 inventory es módulo nuclear funcional y, frente a OperationalActivity, el ancla operativa vigente es InventoryOperation
 
@@ -698,7 +735,7 @@ La navegación, visualización y lectura autorizada se resuelven en los document
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00029
+SECTION_VERSION: 00030
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
@@ -732,6 +769,7 @@ row actions
 resolvers
 eventos operativos livianos cuando corresponda
 record sets explícitos cuando corresponda lectura contextual agregada
+criterios contextuales especiales cuando corresponda lectura contextual especial
 
 Debe representar la capacidad completa del módulo oferente.
 
@@ -776,41 +814,51 @@ El significado operativo primario de la acción sigue perteneciendo al módulo d
 
 LECTURA CONTEXTUAL DE ACTIVIDAD
 
-OperationalActivity puede leer actividad contextual directa o agregada.
+OperationalActivity puede leer actividad contextual directa, agregada o contextual especial.
 
 Lectura directa:
 
 record host autorizado
 ↓
-OperationalActivityContextReader
-↓
-surface de actividad
+lectura de actividad asociada al host
 
 Lectura agregada:
 
 módulo dueño
 ↓
-activity_record_set explícito
+conjunto explícito de records
 ↓
-OperationalActivityContextReader
+lectura contextual agregada
+
+Lectura contextual especial:
+
+módulo dueño
 ↓
-surface de actividad
+criterio contextual especial
+↓
+lectura contextual ampliada
 
 Regla:
 
-OperationalActivity no decide la frontera funcional agregada.
+OperationalActivity no decide la frontera funcional agregada ni contextual especial.
 
 No debe conocer internamente relaciones propias de módulos concretos para ampliar el dataset.
 
-Caso validado:
+Caso validado de lectura agregada:
 
-Projects declara ProjectActivityRecordSet para incluir Project + Tasks en la actividad contextual del proyecto.
+Projects declara Project + Tasks como conjunto de actividad contextual visible desde projects.show.
 
 Esta decisión pertenece al módulo Projects y no a OperationalActivity.
 
+Caso validado de lectura contextual especial:
+
+Parties declara el criterio de Party employee con membership activa vinculada.
+
+Esta decisión pertenece al módulo Parties y no a OperationalActivity.
+
 SURFACES TENANT O TRANSVERSALES NO MODULARES
 
-Una capacidad tenant-scoped o transversal no modular puede publicar surfaces controladas hacia hosts funcionales sin incorporarse a ModuleCatalog.
+Una capacidad tenant-scoped o transversal no modular puede publicar surfaces controladas hacia hosts funcionales sin incorporarse como módulo funcional ordinario.
 
 Esta vía corresponde cuando la capacidad:
 
@@ -824,19 +872,7 @@ Caso validado:
 
 OperationalActivity publica lectura contextual mediante una surface tenant/transversal.
 
-Lectura estructural validada:
-
-OperationalActivity
-↓
-TenantSurfaceRegistry
-↓
-OperationalActivitySurfaceService
-↓
-ModuleSurfaceRegistry
-↓
-host show autorizado
-
-Esta publicación no convierte OperationalActivity en módulo funcional, no lo incorpora a ModuleCatalog y no crea navegación principal.
+Esta publicación no convierte OperationalActivity en módulo funcional, no lo incorpora al conjunto de módulos ordinarios y no crea navegación principal.
 
 Aclaración consolidada:
 
@@ -845,11 +881,11 @@ los módulos pueden publicar metadata estructural propia.
 El flujo correcto es:
 
 módulo define
-ModuleCatalog provee metadata
-ModuleSurfaceRegistry normaliza
+catálogo o contrato provee metadata
+registry normaliza
 host consume sin reinterpretar
 
-Cuando existan surfaces tenant/transversales no modulares, ModuleSurfaceRegistry puede integrar ese origen sin degradar la frontera entre módulos funcionales ordinarios y capacidades transversales.
+Cuando existan surfaces tenant/transversales no modulares, el sistema puede integrar ese origen sin degradar la frontera entre módulos funcionales ordinarios y capacidades transversales.
 
 Regla:
 
@@ -997,7 +1033,7 @@ La integración correcta ocurre por contratos publicados y consumo explícito.
 
 
 <<SECTION: RELACIONES MACRO DEL ECOSISTEMA>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 RELACIONES MACRO DEL ECOSISTEMA
 
@@ -1015,6 +1051,7 @@ parties se relaciona transversalmente con múltiples módulos
 attachments puede integrarse sobre múltiples recursos
 módulos funcionales pueden emitir actividad operativa hacia OperationalActivity
 módulos funcionales pueden declarar activity_record_set cuando necesiten lectura contextual agregada de actividad
+módulos funcionales pueden declarar activity_context cuando necesiten lectura contextual especial de actividad
 
 Relaciones especialmente relevantes:
 
@@ -1043,9 +1080,15 @@ OperationalActivity no reconstruye relaciones funcionales por sí mismo.
 
 Cuando exista lectura agregada de actividad, la frontera debe ser declarada por el módulo dueño.
 
-Caso validado:
+Cuando exista lectura contextual especial de actividad, el criterio debe ser declarado por el módulo dueño.
+
+Caso validado de lectura agregada:
 
 projects puede declarar Project + Tasks como conjunto de actividad contextual visible desde projects.show.
+
+Caso validado de lectura contextual especial:
+
+parties puede declarar Party employee con membership activa vinculada como criterio contextual especial para mostrar actividad directa de Party y actividad del user vinculado como actor o sujeto.
 
 Estas relaciones describen arquitectura general y no detalle de navegación, seguridad o implementación.
 

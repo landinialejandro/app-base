@@ -140,7 +140,7 @@ la navegación puede incluir iconografía por módulo, pero esta debe provenir d
 
 
 <<SECTION: COMPONENTES DE ÍCONOS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 COMPONENTES DE ÍCONOS
 
@@ -154,43 +154,58 @@ centralizar iconografía SVG reutilizable del sistema.
 
 Reglas:
 
-los íconos reutilizables no deben permanecer inline en blades complejos  
-deben definirse como componentes Blade  
-los nombres deben ser genéricos por forma visual  
-no deben nombrarse por módulo  
+los íconos reutilizables no deben permanecer inline en blades complejos
+deben definirse como componentes Blade
+los nombres deben ser genéricos por forma visual
+no deben nombrarse por módulo
 
 Ejemplos válidos:
 
-calendar  
-user-group  
-screen  
-list-check  
-folder  
-archive-box  
-file-text  
-paperclip  
-grid  
+calendar
+user-group
+screen
+list-check
+folder
+archive-box
+file-text
+paperclip
+grid
+activity
+changes
+
+Uso vigente adicional:
+
+activity
+tab Actividad
+
+changes
+botón Ver cambios
 
 Regla crítica:
 
-las vistas no deben decidir qué ícono usar  
-la iconografía debe venir resuelta desde metadata modular  
+las vistas no deben decidir qué ícono usar cuando la iconografía corresponda a metadata ya resuelta.
+
+La iconografía debe venir resuelta desde metadata modular o desde la surface correspondiente.
+
+Caso vigente:
+
+OperationalActivitySurfaceService declara icon = activity para la tab Actividad.
 
 Aclaración:
 
-no existe `<x-icons.user />`  
-debe utilizarse `<x-icons.user-group />` u otro ícono existente  
+no existe `<x-icons.user />`
+debe utilizarse `<x-icons.user-group />` u otro ícono existente
 
 Objetivo:
 
-evitar duplicación de SVG  
-permitir consistencia visual  
+evitar duplicación de SVG
+permitir consistencia visual
 facilitar mantenimiento y evolución visual
 <<END SECTION>>
 
 
 <<SECTION: COMPONENTES DE TABS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 COMPONENTES DE TABS
 
@@ -259,9 +274,23 @@ documents.show
 
 Regla:
 
-la presencia de una tab Actividad no define por sí misma si la lectura es directa o agregada.
+la presencia de una tab Actividad no define por sí misma si la lectura es directa, agregada o contextual especial.
 
 La modalidad depende del contrato de lectura preparado por la capa correspondiente.
+
+Caso validado de lectura agregada:
+
+projects.show usa ProjectActivityRecordSet para mostrar actividad de Project + Tasks.
+
+Caso validado de lectura contextual especial:
+
+parties.show usa PartyEmployeeActivityContext para mostrar actividad directa de Party employee con membership activa vinculada y actividad del user vinculado como actor o sujeto.
+
+La tab Actividad puede usar:
+
+icon = activity
+
+declarado por la surface correspondiente.
 
 TABS INTERNAS EMBEBIDAS
 
@@ -335,7 +364,7 @@ orders y documents los consumen sin duplicar lógica
 
 
 <<SECTION: COMPONENTES DE SHOW PAGES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 COMPONENTES DE SHOW PAGES
 
@@ -410,6 +439,18 @@ Caso validado:
 
 projects.show consume actividad agregada Project + Tasks mediante ProjectActivityRecordSet.
 
+Aclaración vigente para lectura contextual especial:
+
+si una show page consume actividad por criterio contextual especial, ese criterio debe venir definido por el módulo dueño mediante activity_context.
+
+La show page no debe reconstruir por sí misma el criterio contextual.
+
+Caso validado:
+
+parties.show consume actividad contextual especial de Party employee con membership activa vinculada mediante PartyEmployeeActivityContext.
+
+La lectura puede incluir actividad directa de Party y actividad donde el user vinculado sea actor o sujeto.
+
 <<END SECTION>>
 
 
@@ -420,41 +461,53 @@ COMPONENTES DE ACCIÓN
 
 Responsabilidad:
 
-representar acciones disponibles para el usuario.
+representar acciones disponibles dentro de pantallas, tablas, cards, toolbars o superficies embebidas.
 
-Incluye:
+Tipos vigentes:
 
 botones primarios
 botones secundarios
-acciones icon-only
+botones icon-only
+acciones inline
 acciones por fila
-acciones contextuales
+acciones contextuales en modales
 
 Reglas:
 
-las acciones deben reflejar estado real
-no deben mostrar acciones inválidas
-no deben decidir permisos
+la acción visual no decide autorización
+la acción visual debe recibir disponibilidad ya resuelta
+las acciones deben mantener jerarquía visual coherente con su importancia
+las acciones secundarias no deben competir con la acción principal del recurso
+las acciones por fila deben ser compactas y escaneables
 
-Regla crítica:
+Aclaración vigente sobre botones icon-only:
 
-el estado de la acción debe venir resuelto desde backend o surface
+los botones icon-only deben utilizarse cuando la acción es secundaria, repetida o informativa, especialmente dentro de tablas.
 
-el componente solo representa
+Deben evitar sobrecargar visualmente la fila.
 
-No debe haber lógica de autorización en el componente.
+Caso vigente:
 
-Aclaración vigente para parties:
+botón Ver cambios dentro de la tabla reusable de actividad operativa.
 
-las acciones visibles en parties deben expresar la autorización ya resuelta por el contrato efectivo.
+Implementación visual validada:
 
-Cuando la creación o gestión dependa de allowed_party_roles, el componente o vista solo debe representar disponibilidad ya calculada.
+x-icons.changes
+btn-icon
+
+Variante visual validada:
+
+btn btn-secondary btn-icon
 
 Regla:
 
-no decidir acciones de parties por allowed_kinds.
+no crear clases nuevas si una variante existente cubre la necesidad visual.
 
-No reconstruir permisos desde parties.kind.
+Aclaración vigente para actividad operativa:
+
+Ver cambios es una acción informativa secundaria.
+
+Debe abrir detalle bajo demanda mediante modal y no expandir la tabla con columnas adicionales.
 
 <<END SECTION>>
 

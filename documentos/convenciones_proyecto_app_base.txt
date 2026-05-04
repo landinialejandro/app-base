@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00024
+SECTION_VERSION: 00025
 
 CONVENCIONES GENERALES
 
@@ -221,6 +221,50 @@ Cada módulo debe publicar esa frontera si corresponde.
 
 No deben agregarse condiciones específicas dentro de OperationalActivity como if Project, if Order o if Document para decidir lectura agregada.
 
+Convención de lectura contextual especial de actividad:
+
+un módulo puede declarar opcionalmente un activity_context para indicar un criterio contextual especial de lectura de actividad cuando la frontera no pueda representarse correctamente como simple conjunto de records.
+
+Esta declaración pertenece al módulo dueño.
+
+No pertenece a OperationalActivity.
+
+El provider debe implementar el contrato común vigente:
+
+ActivityContextProvider
+
+La convención vigente es:
+
+si el módulo declara activity_context
+OperationalActivity usa el criterio contextual publicado por el módulo dueño
+
+si el módulo no declara activity_context ni activity_record_set
+OperationalActivity usa lectura directa del record host autorizado
+
+Caso validado:
+
+parties declara PartyEmployeeActivityContext para Party con relación employee y membership activa vinculada.
+
+PartyEmployeeActivityContext permite incluir:
+
+actividad directa de Party
+actividad donde el user vinculado sea actor_user_id
+actividad donde el user vinculado sea subject_user_id
+
+Reglas:
+
+activity_context no reemplaza activity_record_set
+
+activity_context no autoriza records por sí mismo
+
+activity_context no habilita lectura general del tenant
+
+activity_context no debe definirse dentro de OperationalActivity
+
+activity_context no debe hardcodearse como condición interna de OperationalActivity
+
+activity_context debe respetar tenant activo y host autorizado
+
 Convención de presentación de cambios operativos:
 
 la vista no debe interpretar directamente metadata.changes.
@@ -340,7 +384,7 @@ En producción debe definirse worker supervisado por infraestructura, no botón 
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA BASE DEL PROYECTO>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 ESTRUCTURA BASE DEL PROYECTO
 
@@ -405,7 +449,7 @@ app/Support/Parties
 servicios del flujo de parties
 
 app/Support/OperationalActivity
-servicios de registro, sanidad y persistencia de actividad operativa transversal cuando existan en código vigente
+servicios de registro, sanidad, lectura, presentación y persistencia de actividad operativa transversal cuando existan en código vigente
 
 app/Support/Tenants
 contexto tenant y piezas reusables internas
@@ -415,6 +459,14 @@ Casos consolidados:
 TenantUserDirectory.php como raíz reusable de usuarios internos activos del tenant
 
 OperationalActivityLinkResolver.php como pieza reusable de lectura para actividad operativa desde el plano tenant
+
+OperationalActivityChangePresenter.php como pieza de presentación para transformar cambios persistidos en payload visual legible
+
+ActivityRecordSetProvider como contrato para lectura contextual agregada basada en conjuntos explícitos de records
+
+ActivityContextProvider como contrato para lectura contextual especial definida por el módulo dueño
+
+PartyEmployeeActivityContext como contexto especial de parties para Party employee con membership activa vinculada
 
 Responsabilidad vigente de OperationalActivityLinkResolver:
 
@@ -465,6 +517,19 @@ Regla adicional consolidada:
 los SVG reutilizables no deben permanecer inline en blades complejos cuando su uso sea transversal
 
 deben moverse a componentes Blade dentro de components/icons
+
+Íconos reutilizables vigentes adicionales:
+
+activity
+changes
+
+Uso vigente:
+
+activity
+tab Actividad
+
+changes
+botón Ver cambios
 
 PUBLIC
 
@@ -627,7 +692,7 @@ No debe utilizarse desactivación global de users para resolver bajas, bloqueos 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ACCESO POR MÓDULO Y ROLES>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 CONVENCIONES DE ACCESO POR MÓDULO Y ROLES
 
@@ -676,6 +741,24 @@ Regla:
 allowed_kinds no debe utilizarse para parties.
 
 allowed_party_roles debe utilizarse para parties y evaluarse contra party_roles.role.
+
+Regla adicional para create contextual de parties:
+
+cuando se crea una Party desde un flujo donde la relación con la empresa ya está determinada, la autorización debe recibir esa relación como contexto funcional.
+
+Caso vigente:
+
+crear una Party employee desde TenantMembershipPartyController debe informar employee como relación funcional.
+
+No alcanza con informar únicamente kind = person.
+
+Motivo:
+
+parties.kind expresa tipo de contacto.
+
+party_roles.role expresa relación con la empresa.
+
+La autorización efectiva de parties se orienta por allowed_party_roles cuando corresponde.
 
 Regla adicional consolidada:
 
@@ -733,7 +816,27 @@ no reemplaza permisos de los registros originantes
 
 no autoriza operaciones originales
 
-La lectura contextual futura de actividad asociada a registros debe distinguirse del acceso general al log del tenant.
+La lectura contextual de actividad asociada a registros debe distinguirse del acceso general al log del tenant.
+
+Regla adicional para lectura contextual directa, agregada o especial:
+
+si el usuario puede ver el registro host, puede ver la actividad contextual autorizada para ese host.
+
+Esta lectura no utiliza operational_activity.view_any.
+
+No habilita lectura general del tenant.
+
+No habilita acceso a otros registros por fuera del contrato contextual declarado.
+
+Cuando la lectura sea agregada, debe provenir de activity_record_set declarado por el módulo dueño.
+
+Cuando la lectura sea contextual especial, debe provenir de activity_context declarado por el módulo dueño.
+
+Caso vigente:
+
+parties puede declarar activity_context para Party employee con membership activa vinculada.
+
+Este contexto permite incluir actividad directa de Party y actividad asociada al user vinculado como actor o sujeto.
 
 Regla adicional para parties:
 
@@ -750,7 +853,7 @@ Esa pieza debe evitar duplicación de la regla entre controller y requests.
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00025
+SECTION_VERSION: 00026
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -807,6 +910,10 @@ no resolver create contextuales con patrones distintos si el mismo contrato ya p
 
 si un create requiere contexto funcional obligatorio, no debe documentarse ni implementarse como create abstracto genérico
 
+Caso vigente:
+
+crear una Party employee desde un flujo de membership requiere contexto funcional employee porque la autorización de parties se orienta por party_roles.role mediante allowed_party_roles.
+
 CONTRATO DE SALIDA
 
 El contrato de salida define qué devuelve o expone el módulo hacia otros módulos o hacia capas consumidoras del sistema.
@@ -823,6 +930,8 @@ compatibilidad con trail contextual
 compatibilidad con return_tab cuando la acción deba preservar el panel host desde el cual nació
 payload arbitrado para integraciones complejas
 evento operativo liviano para trazabilidad transversal
+activity_record_set para lectura contextual agregada de actividad
+activity_context para lectura contextual especial de actividad
 
 Regla:
 
@@ -843,6 +952,8 @@ bloques de relación derivados
 catálogos o adaptadores de integración
 formularios operativos reutilizables cuando pertenezcan al núcleo del módulo oferente
 acciones por fila cuando el módulo deba intervenir recursos mostrados por un host externo
+lectura contextual agregada de actividad mediante activity_record_set
+lectura contextual especial de actividad mediante activity_context
 
 Reglas:
 
@@ -1077,113 +1188,47 @@ No deben tratarse como equivalentes ni sustituirse conceptualmente.
 
 Regla adicional para eventos operativos livianos:
 
-cuando un módulo emite eventos para trazabilidad transversal, esos eventos no deben trasladar autorización, validación ni lógica de dominio hacia el prestador transversal.
+cuando un módulo emite eventos para trazabilidad transversal, esos eventos no deben trasladar autorización, validación ni ejecución de la operación original.
 
-El módulo dueño debe completar primero su operación propia.
+El evento expresa que una operación ya ocurrió bajo responsabilidad del módulo dueño.
 
-La capacidad transversal puede registrar, normalizar o descartar el evento según sanidad operativa.
+Regla adicional para lectura contextual de actividad:
 
-Los eventos operativos livianos pueden admitir metadata opcional cuando un cambio operativo relevante no esté expresado como atributo directo simple del modelo principal.
+la lectura contextual directa alcanza solamente el record host autorizado.
 
-Caso validado:
+La lectura contextual agregada requiere activity_record_set declarado por el módulo dueño.
 
-parties puede enviar metadata adicional para representar cambios de party_roles dentro de la actividad operativa de Party.
-
-Regla:
-
-la metadata adicional debe servir para representar cambios operativos significativos sin convertir relaciones hijas en módulos propios ni acoplar el prestador transversal a la semántica interna completa del módulo dueño.
-
-Regla adicional para lectura de actividad operativa:
-
-la lectura visual de OperationalActivity debe consumir operational_activities persistidas y autorizadas.
-
-No debe reconstruir historia operativa desde campos actuales de los modelos.
-
-No debe persistir URLs finales dentro del log.
-
-La navegación al registro asociado debe resolverse mediante pieza de lectura.
-
-Caso vigente:
-
-OperationalActivityLinkResolver resuelve label, URL canónica segura, fallback textual y trail contextual.
+La lectura contextual especial requiere activity_context declarado por el módulo dueño.
 
 Regla:
 
-si no existe show canónico seguro, no debe inventarse link.
+OperationalActivity no define por sí mismo fronteras de lectura contextual agregada ni especial.
 
-Caso vigente:
+Caso validado de activity_record_set:
 
-la tab Actividad de tenant/profile es primera lectura visual general de OperationalActivity.
+Projects declara ProjectActivityRecordSet.
 
-Regla adicional para surfaces tenant/transversales no modulares:
+ProjectActivityRecordSet define Project + Tasks como dataset de actividad visible del proyecto.
 
-una capacidad tenant-scoped o transversal no modular puede publicar una surface de lectura o integración hacia hosts funcionales mediante un registry propio del plano tenant/transversal.
+Caso validado de activity_context:
 
-Caso validado:
+Parties declara PartyEmployeeActivityContext.
 
-TenantSurfaceRegistry
+PartyEmployeeActivityContext define la lectura contextual de una Party employee con membership activa vinculada.
 
-Esta vía debe usarse cuando la capacidad:
-
-no es módulo funcional ordinario
-no corresponde a ModuleCatalog
-no posee CRUD ordinario
-no requiere navegación principal
-no pasa por TenantModuleAccess
-necesita publicar información controlada hacia hosts autorizados
-
-Caso vigente:
-
-OperationalActivitySurfaceService publica la tab contextual Actividad para hosts autorizados.
-
-Flujo validado:
-
-OperationalActivity
-TenantSurfaceRegistry
-OperationalActivitySurfaceService
-ModuleSurfaceRegistry
-host show
-x-host-tabs
+Esa lectura puede incluir la actividad directa de Party y la actividad donde el user vinculado sea actor o sujeto.
 
 Reglas:
 
-no agregar capacidades transversales a ModuleCatalog solo para publicar UI
+activity_context no reemplaza activity_record_set
 
-no resolver el cierre con pushes manuales permanentes en vistas host
+activity_record_set representa conjunto explícito de records
 
-no duplicar tabs manualmente si la surface puede publicarse por registry
+activity_context representa criterio contextual especial del módulo dueño
 
-no convertir la publicación de una surface en navegación principal ni CRUD
+ambos deben respetar host autorizado, tenant activo y ausencia de lectura general del tenant
 
-el host consume la surface
-
-la capacidad tenant/transversal conserva ownership de su lectura
-
-ModuleSurfaceRegistry puede fusionar surfaces modulares y tenant/transversales siempre que cada origen conserve su frontera conceptual.
-
-Regla adicional para key de tabs host:
-
-cuando una surface se monte como tab principal de host, el key debe ser compatible con return_tab.
-
-Caso validado:
-
-key = activity
-
-No debe usarse un key técnico largo cuando impacte negativamente la navegación visible.
-
-Caso corregido:
-
-operational_activity.contextual
-
-CONTRATO DE SEGURIDAD
-
-El contrato de seguridad del módulo no se define en esta sección sino en:
-
-<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
-
-Regla obligatoria:
-
-ningún contrato modular es válido si contradice el contrato de seguridad del módulo o el arbitraje central del sistema
+OperationalActivity no debe hardcodear conocimiento interno de employee, parties, memberships ni users para resolver esa frontera
 
 <<END SECTION>>
 

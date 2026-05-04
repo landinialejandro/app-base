@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00020
 
 COMPONENTES DISPONIBLES
 
@@ -125,6 +125,16 @@ archive-box
 file-text
 paperclip
 grid
+activity
+changes
+
+Uso vigente de íconos de actividad:
+
+activity
+tab Actividad
+
+changes
+botón Ver cambios
 
 Componentes modulares reusables vigentes:
 
@@ -265,6 +275,12 @@ Caso validado:
 
 key = activity
 
+La tab Actividad puede recibir ícono propio desde la metadata de la surface.
+
+Caso vigente:
+
+OperationalActivitySurfaceService declara icon = activity.
+
 No reemplaza x-tabs-embedded.
 
 x-tabs-embedded continúa correspondiendo a segmentaciones internas de bloques embebidos o capacidades invitadas.
@@ -289,6 +305,16 @@ Sujeto
 La columna Actividad puede mostrar una síntesis compacta de cambios cuando el payload recibido incluya change_summary.
 
 El detalle de cambios puede abrirse bajo demanda mediante botón Ver cambios y modal global x-modal.
+
+El botón Ver cambios debe mantener bajo protagonismo visual.
+
+Variante visual validada:
+
+btn btn-secondary btn-icon
+
+Regla:
+
+no crear una clase nueva si la variante existente resuelve la necesidad visual.
 
 Reglas:
 
@@ -333,7 +359,7 @@ La tab Actividad de tenant/profile resolvió su estado vacío inline con detail-
 <<END SECTION>>
 
 <<SECTION: PATRÓN DE INTERACCIÓN MODAL>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 PATRÓN DE INTERACCIÓN MODAL
 
@@ -404,10 +430,30 @@ el modal de detalle informativo no debe decidir permisos ni interpretar metadata
 
 Debe recibir contenido ya preparado por la capa de lectura o presentación correspondiente.
 
+Caso vigente:
+
+el botón Ver cambios abre modal de detalle de cambios desde la tabla reusable de actividad operativa.
+
+El botón puede ser icon-only para reducir impacto visual en la tabla.
+
+Variante visual validada:
+
+btn btn-secondary btn-icon
+
+Ícono vigente:
+
+x-icons.changes
+
+Regla:
+
+el detalle amplio pertenece al modal.
+
+La tabla mantiene solo síntesis compacta y acción secundaria.
+
 <<END SECTION>>
 
 <<SECTION: JERARQUÍA VISUAL MODULAR>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 JERARQUÍA VISUAL MODULAR
 
@@ -505,6 +551,14 @@ No convierte OperationalActivity en módulo principal de la pantalla.
 
 No convierte al host en dueño de la lógica de actividad.
 
+Caso vigente adicional:
+
+parties.show puede mostrar actividad contextual ampliada cuando la Party tiene relación employee y membership activa vinculada.
+
+Esta lectura sigue siendo capacidad transversal secundaria.
+
+No debe competir visualmente con los datos principales de la Party ni con la ficha ampliada.
+
 La tabla de actividad debe mantener lectura operativa simple.
 
 Columnas vigentes:
@@ -523,6 +577,12 @@ El detalle amplio de cambios debe mostrarse bajo demanda en modal.
 La columna Registro puede contener enlace cuando exista URL resuelta.
 
 No debe agregarse una columna adicional solo para link.
+
+El botón Ver cambios puede resolverse como acción icon-only para reducir ruido visual.
+
+Variante validada:
+
+btn btn-secondary btn-icon
 
 Regla:
 
@@ -591,7 +651,7 @@ Estos bloques ayudan a integrar módulos sin sobrecargar navegación ni multipli
 <<END SECTION>>
 
 <<SECTION: OFERTAS DE INTEGRACIÓN VISUAL>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 OFERTAS DE INTEGRACIÓN VISUAL
 
@@ -643,9 +703,17 @@ key = activity
 
 Aclaración para actividad operativa contextual:
 
-la tab Actividad puede representar lectura directa del record host o lectura agregada de un record set declarado por el módulo dueño.
+la tab Actividad puede representar lectura directa del record host, lectura agregada de un record set declarado por el módulo dueño o lectura contextual especial declarada por el módulo dueño.
 
-La diferencia entre lectura directa y agregada no debe generar componentes visuales distintos si el payload final es compatible.
+La diferencia entre lectura directa, agregada y contextual especial no debe generar componentes visuales distintos si el payload final es compatible.
+
+Caso validado de activity_record_set:
+
+projects.show muestra actividad de Project + Tasks mediante ProjectActivityRecordSet.
+
+Caso validado de activity_context:
+
+parties.show puede mostrar actividad directa de Party y actividad del user vinculado como actor o sujeto mediante PartyEmployeeActivityContext.
 
 Regla:
 
@@ -656,6 +724,18 @@ No debe duplicarse una tabla distinta para tenant/profile y otra para show pages
 Caso vigente:
 
 profile-activity-tab delega en operational-activity-table.
+
+Aclaración para iconografía de surfaces tenant/transversales:
+
+una surface puede declarar icon propio para mejorar lectura visual sin convertir la capacidad en módulo funcional.
+
+Caso vigente:
+
+OperationalActivitySurfaceService declara icon = activity para la tab Actividad.
+
+Regla:
+
+la iconografía mejora la lectura de la surface, pero no modifica ownership, seguridad ni navegación.
 
 <<END SECTION>>
 

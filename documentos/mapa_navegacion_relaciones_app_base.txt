@@ -41,7 +41,7 @@ no debe cargarse con teoría arquitectónica general que corresponda a otros doc
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 REGLA GENERAL
 
@@ -82,17 +82,21 @@ una tab Actividad dentro de un host autorizado no crea navegación principal de 
 
 La navegación visible permanece dentro del show del host.
 
-La lectura contextual debe limitarse a la actividad asociada al registro host autorizado o al conjunto explícito de records definido por el módulo dueño cuando exista activity_record_set.
+La lectura contextual debe limitarse a la actividad asociada al registro host autorizado, al conjunto explícito de records definido por el módulo dueño cuando exista activity_record_set o al criterio contextual especial definido por el módulo dueño cuando exista activity_context.
 
-Si no existe activity_record_set, la lectura contextual es directa sobre el record host.
+Si no existe activity_record_set ni activity_context, la lectura contextual es directa sobre el record host.
 
 Si existe activity_record_set, la lectura contextual es agregada sobre el conjunto definido por el módulo dueño.
 
+Si existe activity_context, la lectura contextual se adapta al criterio especial definido por el módulo dueño.
+
 Regla:
 
-la existencia de una tab Actividad no implica por sí misma lectura agregada.
+la existencia de una tab Actividad no implica por sí misma lectura agregada ni lectura contextual especial.
 
-La lectura agregada debe estar declarada explícitamente por el módulo dueño.
+La lectura agregada debe estar declarada explícitamente por el módulo dueño mediante activity_record_set.
+
+La lectura contextual especial debe estar declarada explícitamente por el módulo dueño mediante activity_context.
 
 <<END SECTION>>
 
@@ -233,7 +237,7 @@ Su función es dar acceso estructural al ecosistema operativo vigente
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -324,7 +328,7 @@ Lectura contextual validada:
 
 show del host autorizado
 tab Actividad
-tabla de actividad contextual del record o del record set declarado
+tabla de actividad contextual del record, del record set declarado o del activity_context declarado
 
 Hosts validados:
 
@@ -349,21 +353,42 @@ no crea ruta propia nueva de OperationalActivity
 
 no habilita lectura general del tenant
 
-no habilita acceso a otros registros fuera del host autorizado o del record set declarado por el módulo dueño
+no habilita acceso a otros registros fuera del host autorizado, del record set declarado por el módulo dueño o del activity_context declarado por el módulo dueño
 
 La lectura directa por defecto aplica cuando el host tiene view autorizado y consume la surface de actividad.
 
 La lectura agregada aplica solo cuando el módulo declara activity_record_set.
 
-Caso validado:
+La lectura contextual especial aplica solo cuando el módulo declara activity_context.
+
+Caso validado de activity_record_set:
 
 projects.show muestra actividad del Project y de sus Tasks mediante ProjectActivityRecordSet.
+
+Caso validado de activity_context:
+
+parties.show puede mostrar actividad ampliada de una Party employee con membership activa vinculada mediante PartyEmployeeActivityContext.
+
+Lectura validada para parties.show:
+
+Party común
+→ actividad directa del registro Party
+
+Party employee manual sin user o sin membership activa
+→ actividad directa del registro Party
+
+Party employee con membership activa vinculada
+→ actividad del colaborador:
+
+* actividad directa de Party
+* actividad donde el user vinculado sea actor
+* actividad donde el user vinculado sea sujeto
 
 Aclaración vigente:
 
 orders.show y documents.show quedan con actividad directa en el estado actual.
 
-Si más adelante requieren actividad agregada, deberán definir su propio activity_record_set.
+Si más adelante requieren actividad agregada o contextual especial, deberán definir su propio contrato.
 
 No se amplía por simetría automática.
 
@@ -391,7 +416,7 @@ no se inventan links para records sin ruta canónica segura.
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00021
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -502,11 +527,36 @@ Caso validado:
 
 projects.show utiliza lectura agregada Project + Tasks mediante ProjectActivityRecordSet.
 
+La lectura contextual especial requiere activity_context declarado por el módulo dueño.
+
+Caso validado:
+
+parties.show utiliza PartyEmployeeActivityContext para Party employee con membership activa vinculada.
+
 Regla:
 
-la lectura agregada no debe resolverse con inferencias internas de OperationalActivity.
+la lectura agregada y la lectura contextual especial no deben resolverse con inferencias internas de OperationalActivity.
 
 El módulo dueño define la frontera funcional.
+
+Aclaración vigente para parties.show y employee:
+
+Party común
+→ actividad directa del registro Party
+
+Party employee manual sin user o sin membership activa
+→ actividad directa del registro Party
+
+Party employee con membership activa vinculada
+→ actividad directa de Party y actividad donde el user vinculado sea actor o sujeto
+
+Esta lectura no crea módulo users.
+
+No crea módulo memberships.
+
+No crea módulo party_roles.
+
+No crea navegación propia de OperationalActivity.
 
 Aclaración vigente para tenant/profile:
 
@@ -516,35 +566,11 @@ Esta lectura general se diferencia de la lectura contextual por registro.
 
 Orden visual recomendado para tablas anfitrionas:
 
-primero acciones propias del host
+primero debe mantenerse el núcleo del recurso actual
 
-luego acciones invitadas desde módulos oferentes
+las capacidades transversales o invitadas deben conservar jerarquía secundaria
 
-Esto permite distinguir con mayor claridad qué pertenece al recurso principal y qué capacidad se consume desde otro módulo
-
-Regla adicional para estados del host:
-
-si el host entra en estado readonly o terminal, las relaciones embebidas no deben reabrir operabilidad incompatible con ese estado
-
-Las capacidades de lectura pueden permanecer
-
-Las capacidades de mutación deben respetar la condición superior del host
-
-Aclaración adicional sobre tabs principales:
-
-cuando una relación embebida se aloje dentro de una tab principal del host, las acciones derivadas pueden preservar return_tab para volver al mismo panel
-
-ese mecanismo conserva continuidad visual, pero no modifica ownership funcional
-
-Aclaración adicional consolidada:
-
-las tabs principales del host deben recibir metadata completa desde los objetos tabItems
-
-incluyendo iconografía cuando corresponda
-
-el host no debe reconstruir localmente metadata visual de módulos integrados
-
-las surfaces embebidas deben viajar enriquecidas desde registry para permitir render homogéneo en el host
+la actividad operativa debe mantener lectura compacta y no competir con el recurso principal
 
 <<END SECTION>>
 

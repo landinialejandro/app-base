@@ -26,7 +26,7 @@ lección aplicable
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 LECCIONES VIGENTES
 
@@ -289,62 +289,108 @@ No conviene hardcodear conocimiento interno de un módulo dentro de una capacida
 
 Caso detectado:
 
-no debe implementarse dentro de OperationalActivitySurfaceService una condición como:
-
-si record es Project, traer Tasks
+la lectura agregada de actividad de Project no debía resolverse con una condición interna dentro de OperationalActivity.
 
 Corrección:
 
-el módulo dueño debe publicar el dataset mediante un provider propio declarado en ModuleCatalog.
+Projects declara ProjectActivityRecordSet.
+
+OperationalActivity consume el record set publicado.
 
 Lección:
 
-OperationalActivity no debe decidir la frontera funcional de actividad agregada.
+si la frontera funcional pertenece al módulo dueño, no debe vivir en OperationalActivity.
 
-Cada módulo debe declarar esa frontera cuando corresponda.
-
-La lectura agregada de actividad no debe resolverse con recursividad automática.
-
-Riesgo evitado:
-
-Project → Tasks → Orders → Documents → Inventory → Attachments
-
-sin límite claro.
-
-Lección:
-
-la lectura agregada debe definirse mediante una frontera explícita de records.
-
-Una lectura visual reutilizable puede quedar duplicada si la lectura general y la contextual usan partials distintos.
-
-Caso detectado:
-
-tenant/profile usaba profile-activity-tab con tabla propia, mientras los hosts usaban operational-activity-table.
-
-Corrección:
-
-profile-activity-tab delega en el partial reusable común.
-
-Lección:
-
-si dos lecturas consumen el mismo payload visual compatible, debe priorizarse un partial común antes que duplicar tablas.
-
-Para mostrar detalles de cambios en actividad operativa, no se debe sobrecargar la tabla ni interpretar metadata directamente en Blade.
-
-Corrección:
-
-preparar un payload legible desde una pieza de presentación.
+activity_record_set y activity_context resuelven problemas distintos.
 
 Caso validado:
 
-OperationalActivityChangePresenter prepara change_summary y change_details.
+Project + Tasks se resolvió con activity_record_set porque es un conjunto explícito de records.
 
-operational-activity-table muestra resumen compacto y detalle bajo demanda mediante x-modal.
+Party employee con membership activa vinculada se resolvió con activity_context porque es un criterio contextual especial basado en el user vinculado como actor o sujeto.
 
 Lección:
 
-la vista representa datos preparados.
+no forzar activity_record_set cuando la frontera no es un conjunto simple de records.
 
-No interpreta reglas de campos ni JSON operativo.
+No hardcodear esa excepción dentro de OperationalActivity.
+
+El módulo dueño debe declarar el criterio mediante provider compatible.
+
+La actividad histórica no aparece retroactivamente si el evento no existía o no se emitió.
+
+Caso detectado:
+
+Party #25 Carlos Demo ya existía antes de emitir actividad operativa para ciertos flujos.
+
+Se emitió evento manual posterior para generar actividad de prueba.
+
+Lección:
+
+ese registro debe leerse como backfill manual de entorno de desarrollo, no como acción real del flujo original.
+
+Si una acción ocurrió antes de que el flujo emitiera evento operativo, la actividad no aparece retroactivamente.
+
+Ver actividad de un user en lectura general no implica que aparezca automáticamente en una Party vinculada.
+
+Caso detectado:
+
+actividad donde Carlos actuaba como user no aparecía en Party #25 mientras parties.show solo tenía lectura directa de Party.
+
+Corrección:
+
+PartyEmployeeActivityContext habilita lectura contextual especial para employee con membership activa vinculada.
+
+Lección:
+
+si la actividad pertenece a records donde el colaborador actúa como user, la ficha Party necesita contrato contextual especial para incluirla.
+
+No alcanza con tener membership vinculada ni actividad persistida.
+
+jobs = 0 y failed_jobs = 0 son condición necesaria pero no suficiente.
+
+Lección:
+
+también hay que validar persistencia y dataset esperado.
+
+Caso vigente:
+
+en activity_context de Party employee debe validarse que aparezcan las filas esperadas para:
+
+actividad directa de Party
+actividad donde el user vinculado sea actor
+actividad donde el user vinculado sea sujeto
+
+Crear una Party employee desde membership requiere contexto funcional employee.
+
+Caso detectado:
+
+autorizar creación de Party employee desde TenantMembershipPartyController informando solo kind = person no alcanza para el contrato vigente.
+
+Motivo:
+
+en parties, kind expresa tipo de contacto.
+
+La relación funcional sensible vive en party_roles.role.
+
+Lección:
+
+si la autorización depende de allowed_party_roles, el contexto funcional debe informar employee cuando esa es la relación que se intenta crear.
+
+No crear clases visuales nuevas si ya existe variante equivalente.
+
+Caso detectado:
+
+el botón Ver cambios necesitaba reducir impacto visual dentro de la tabla.
+
+Corrección:
+
+usar variante existente:
+
+btn btn-secondary btn-icon
+
+Lección:
+
+las mejoras visuales deben priorizar patrones existentes antes de crear clases nuevas.
 
 <<END SECTION>>

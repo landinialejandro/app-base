@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -291,23 +291,52 @@ operational_activity.contextual
 
 Evolución vigente de lectura contextual:
 
-OperationalActivityContextReader puede leer actividad por record host directo o por record set explícito.
+OperationalActivityContextReader puede leer actividad por record host directo, por record set explícito o por contexto especial declarado por el módulo dueño.
 
 ModuleCatalog puede declarar activity_record_set mediante servicio compatible.
 
-Piezas vigentes:
+ModuleCatalog puede declarar activity_context mediante servicio compatible.
+
+Piezas vigentes para lectura agregada:
 
 ActivityRecordSetProvider
 ModuleCatalog::activityRecordSetService()
 OperationalActivityContextReader::forRecordSet()
 ProjectActivityRecordSet
+
+Piezas vigentes para lectura contextual especial:
+
+ActivityContextProvider
+ModuleCatalog::activityContextService()
+OperationalActivitySurfaceService::activityContextPayloadFor()
+OperationalActivityContextReader::forRecordAndUsers()
+PartyEmployeeActivityContext
+
+Pieza vigente de presentación:
+
 OperationalActivityChangePresenter
 
-Caso vigente:
+Caso vigente de lectura agregada:
 
 projects.show usa lectura agregada Project + Tasks.
 
-Los demás hosts usan lectura directa salvo que el módulo declare activity_record_set.
+Caso vigente de lectura contextual especial:
+
+parties.show mantiene lectura directa de actividad por defecto.
+
+Excepción:
+
+si la Party tiene relación employee y membership activa vinculada, usa activity_context para mostrar actividad directa de Party más actividad del user vinculado como actor o sujeto.
+
+Lectura vigente:
+
+activity_record_set
+→ records relacionados explícitos
+
+activity_context
+→ criterio contextual especial definido por módulo dueño
+
+Los demás hosts usan lectura directa salvo que el módulo declare activity_record_set o activity_context.
 
 La tabla reusable de actividad puede mostrar resumen compacto de cambios y modal Ver cambios.
 
@@ -315,27 +344,25 @@ profile-activity-tab reutiliza operational-activity-table.
 
 Regla vigente:
 
-OperationalActivity no decide la frontera funcional de actividad agregada.
+OperationalActivity no decide la frontera funcional de actividad agregada ni contextual especial.
 
-Cada módulo puede declarar opcionalmente su activity_record_set.
-
-Frente conceptual pendiente inmediato:
-
-analizar dataset de actividad para employee dentro de parties.
-
-Separar en ese análisis:
-
-employee manual sin user
-employee con membership activa
-party como ficha ampliada
-membership como pertenencia operativa
-user como identidad global
+Cada módulo puede declarar opcionalmente su activity_record_set o activity_context.
 
 Regla vigente para surfaces tenant/transversales:
 
 si una capacidad no es módulo funcional ordinario, no debe agregarse a ModuleCatalog solo para publicar UI.
 
 Cuando una capacidad transversal necesite publicar UI reusable, primero debe evaluarse TenantSurfaceRegistry, no ModuleCatalog ni pushes manuales en vistas.
+
+Regla visual vigente para actividad:
+
+la tab Actividad puede usar icon = activity declarado por la surface.
+
+El botón Ver cambios usa icono changes y variante visual:
+
+btn btn-secondary btn-icon
+
+No crear clase nueva si la variante existente resuelve la necesidad.
 
 Cuando una tarea involucre Project Lab, automatizador, Tinker, runtime real, colas, eventos, permisos, constraints, multi-tenancy, actualización de código o actualización documental, se debe respetar la guía operativa vigente de Project Lab.
 
@@ -360,7 +387,7 @@ No agregar botón de queue al producto SaaS.
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS DEL CHAT>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 REGLAS OPERATIVAS DEL CHAT
 
@@ -438,6 +465,18 @@ No duplicar esa regla en controller, requests o vistas.
 
 La UI de parties expresa permisos resueltos, pero no autoriza.
 
+Regla operativa adicional para creación contextual de Party employee:
+
+si el flujo nace desde membership y crea una Party employee, la autorización de parties.create debe recibir employee como contexto funcional.
+
+No alcanza con informar solamente kind = person.
+
+Motivo:
+
+en parties, kind expresa tipo de contacto y party_roles.role expresa relación con la empresa.
+
+La autorización debe orientarse por allowed_party_roles cuando corresponda.
+
 Regla operativa adicional para OperationalActivity:
 
 no asumir integración automática de módulos por existir CRUD.
@@ -497,23 +536,43 @@ appointments.show
 orders.show
 documents.show
 
-Regla vigente para lectura directa y agregada:
+Regla vigente para lectura directa, agregada y contextual especial:
 
-si el host no tiene activity_record_set declarado, la lectura contextual debe ser directa sobre el record host autorizado.
+si el host no tiene activity_record_set ni activity_context declarado, la lectura contextual debe ser directa sobre el record host autorizado.
 
 si el módulo declara activity_record_set, la lectura contextual puede ser agregada sobre el conjunto explícito definido por el módulo dueño.
 
+si el módulo declara activity_context, la lectura contextual puede adaptarse al criterio especial definido por el módulo dueño.
+
 activity_record_set no autoriza records por sí mismo.
+
+activity_context no autoriza records por sí mismo.
 
 activity_record_set no reemplaza operational_activity.view_any.
 
+activity_context no reemplaza operational_activity.view_any.
+
 activity_record_set no habilita lectura general del tenant.
+
+activity_context no habilita lectura general del tenant.
 
 activity_record_set no debe definirse dentro de OperationalActivity.
 
-Caso vigente:
+activity_context no debe definirse dentro de OperationalActivity.
+
+Caso vigente de activity_record_set:
 
 projects.show usa ProjectActivityRecordSet para mostrar actividad de Project + Tasks.
+
+Caso vigente de activity_context:
+
+parties.show usa PartyEmployeeActivityContext para Party employee con membership activa vinculada.
+
+Lectura esperada:
+
+actividad directa de Party
+actividad donde el user vinculado sea actor_user_id
+actividad donde el user vinculado sea subject_user_id
 
 Regla vigente para surfaces tenant/transversales:
 
@@ -533,75 +592,30 @@ No usar:
 
 operational_activity.contextual
 
-Regla vigente de tenant/profile:
+Regla visual vigente para actividad:
 
-tenant/profile sigue restringido a owner.
+los íconos reutilizables deben vivir en:
 
-admin tiene permiso sembrado para operational_activity.view_any, pero no accede todavía a tenant/profile.
+resources/views/components/icons/
 
-No asumir acceso admin hasta revisar y definir visualización permitida y edición restringida.
+Íconos vigentes:
 
-Regla operativa adicional para links de actividad:
+activity
+changes
 
-no persistir URLs finales en operational_activities.
+Uso:
 
-usar OperationalActivityLinkResolver para lectura visual.
+activity para tab Actividad
 
-si no hay ruta show canónica segura, mostrar fallback textual.
+changes para botón Ver cambios
 
-no inventar links para InventoryOperation ni Attachment mientras no exista ruta segura validada.
+El botón Ver cambios debe conservar bajo protagonismo visual dentro de tablas.
 
-Regla operativa adicional para inventory:
+Variante validada:
 
-si la actividad operativa corresponde a inventory, no asumir InventoryMovement como ancla transversal principal.
+btn btn-secondary btn-icon
 
-La lectura vigente es:
-
-InventoryOperation = acción operativa agrupada
-
-InventoryMovement = trazabilidad fina y atómica de stock
-
-Regla operativa adicional para metadata operativa:
-
-si un cambio relevante vive en una relación hija, puede requerir metadata operativa explícita.
-
-Caso vigente:
-
-party_roles dentro de actividad de Party.
-
-La metadata no debe convertir la relación hija en módulo propio ni generar duplicación innecesaria como extra_changes persistido si ya queda representada en changes.
-
-Regla operativa adicional para presentación de cambios de actividad:
-
-la vista no debe interpretar metadata.changes directamente.
-
-Debe consumir payload preparado por la capa correspondiente.
-
-Caso vigente:
-
-OperationalActivityChangePresenter prepara change_summary y change_details.
-
-operational-activity-table representa resumen compacto y detalle bajo demanda mediante modal.
-
-Regla operativa adicional para componentes Blade:
-
-no usar componentes no existentes.
-
-Antes de usar un componente Blade, validar existencia real en resources/views/components o clase correspondiente.
-
-Caso vigente:
-
-x-empty-state no existe actualmente.
-
-Usar componentes existentes o estado vacío inline consistente.
-
-Regla operativa adicional para colas:
-
-en local, Project Lab puede procesar cola manualmente fuera del producto.
-
-En producción, definir worker persistente supervisado.
-
-No trasladar queue:work a UI del SaaS.
+No crear clase visual nueva si la existente resuelve el caso.
 
 <<END SECTION>>
 

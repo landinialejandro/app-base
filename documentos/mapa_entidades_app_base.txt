@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -68,6 +68,7 @@ orders → inventory
 documents → inventory
 módulos operativos → operational_activities
 módulo funcional → activity_record_set opcional → OperationalActivityContextReader
+módulo funcional → activity_context opcional → OperationalActivityContextReader
 capacidades tenant/transversales → surfaces publicadas hacia hosts autorizados
 
 Relaciones de contexto interno del tenant:
@@ -169,7 +170,7 @@ record_id
 
 Esta lectura se resuelve desde una surface tenant/transversal y no convierte OperationalActivity en entidad hija del host.
 
-La lectura contextual puede ser directa o agregada.
+La lectura contextual puede ser directa, agregada o contextual especial.
 
 Flujo validado para lectura directa:
 
@@ -203,6 +204,26 @@ Tasks
 ↓
 actividad agregada visible desde projects.show
 
+Flujo validado para lectura contextual especial:
+
+módulo funcional dueño
+↓
+activity_context opcional
+↓
+OperationalActivityContextReader
+↓
+actividad contextual directa o ampliada por criterio especial
+
+Caso validado:
+
+Party employee con membership activa
+↓
+user vinculado
+↓
+operational_activities donde user sea actor o sujeto
+↓
+actividad contextual visible desde parties.show
+
 Reglas:
 
 la lectura contextual heredada no convierte al host en dueño de la lógica de actividad
@@ -215,9 +236,17 @@ los conjuntos explícitos de records no son inferidos por OperationalActivity
 
 los conjuntos explícitos de records son definidos por el módulo dueño
 
+los criterios contextuales especiales no son inferidos por OperationalActivity
+
+los criterios contextuales especiales son definidos por el módulo dueño
+
 Task sigue siendo entidad y módulo propio aunque su actividad pueda formar parte del dataset visible de Project cuando Projects así lo define
 
-OperationalActivity puede leer actividad sobre conjuntos explícitos de records, pero no reconstruye relaciones funcionales por sí mismo
+User sigue siendo identidad global aunque su actividad pueda leerse contextualmente desde una Party employee con membership activa vinculada
+
+Membership sigue siendo pertenencia operativa aunque habilite el vínculo para lectura contextual de la ficha ampliada
+
+OperationalActivity puede leer actividad sobre conjuntos explícitos de records o criterios contextuales especiales, pero no reconstruye relaciones funcionales por sí mismo
 
 Aclaración vigente para inventory:
 
@@ -234,6 +263,10 @@ Aclaración vigente para parties:
 OperationalActivity puede registrar actividad sobre Party y representar cambios de party_roles como metadata operativa compuesta.
 
 Ese criterio no convierte party_roles en módulo propio ni altera su pertenencia como entidad hija o complementaria de parties.
+
+Cuando una Party con relación employee tiene membership activa vinculada, puede actuar como centro contextual de lectura de actividad del colaborador.
+
+Esa lectura es una relación de lectura contextual, no una relación estructural nueva de dominio.
 
 Aclaración vigente para attachments:
 
@@ -338,7 +371,7 @@ Por esta razón, no debe tratarse como una entidad tenant-scoped pura del negoci
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 ENTIDADES DEL NEGOCIO
 
@@ -465,6 +498,34 @@ Task no pierde su identidad propia por quedar incluida en la actividad agregada 
 
 OperationalActivity tampoco se convierte en dueño de esa relación.
 
+Aclaración vigente sobre lectura contextual especial:
+
+OperationalActivity puede leer actividad sobre un criterio contextual especial cuando el módulo dueño lo declara mediante activity_context.
+
+Ese criterio no es inferido por OperationalActivity.
+
+El módulo dueño define la frontera funcional especial.
+
+Caso validado:
+
+Parties define Party employee con membership activa vinculada como centro contextual de actividad del colaborador.
+
+Ese contexto puede incluir:
+
+actividad directa de Party
+actividad donde el user vinculado sea actor_user_id
+actividad donde el user vinculado sea subject_user_id
+
+Regla:
+
+User no se convierte en entidad del negocio por quedar incluido como actor o sujeto en una lectura contextual.
+
+Membership no se convierte en módulo funcional por habilitar el vínculo.
+
+PartyRole no se convierte en módulo funcional por expresar employee.
+
+OperationalActivity no se convierte en dueño de esa relación.
+
 Aclaración vigente sobre inventory:
 
 InventoryOperation es la entidad que representa la acción operativa agrupada de inventory frente a OperationalActivity.
@@ -485,6 +546,8 @@ PartyRole permanece como entidad hija o complementaria que expresa la relación 
 
 Los cambios de party_roles pueden quedar representados como metadata operativa dentro de la actividad de Party.
 
+Cuando Party actúa como ficha ampliada employee con membership activa vinculada, puede además funcionar como centro contextual de actividad del colaborador.
+
 Aclaración vigente sobre attachments:
 
 Attachment puede registrarse en OperationalActivity para creación y actualización de metadata operativa.
@@ -496,7 +559,7 @@ Attachment no tiene link propio definido desde actividad mientras no se decida s
 <<END SECTION>>
 
 <<SECTION: ENTIDAD BASE DEL NEGOCIO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ENTIDAD BASE DEL NEGOCIO
 
@@ -557,10 +620,30 @@ Regla:
 
 la segmentación funcional de seguridad de parties debe apoyarse en party_roles.role mediante allowed_party_roles y no en parties.kind.
 
+Aclaración vigente para ficha ampliada employee:
+
+cuando una Party con relación employee tiene membership activa vinculada, puede funcionar como ficha ampliada tenant-scoped del colaborador interno.
+
+Esta condición no convierte a Party en identidad global ni en entidad de acceso.
+
+La identidad global sigue perteneciendo a users.
+
+La pertenencia operativa sigue perteneciendo a memberships.
+
+La ficha ampliada pertenece al plano del negocio.
+
+Aclaración adicional:
+
+esa ficha ampliada employee con membership activa vinculada puede actuar como centro contextual de lectura de actividad del colaborador.
+
+La lectura contextual puede incluir actividad directa de Party y actividad donde el user vinculado sea actor o sujeto.
+
+Esta capacidad no modifica la naturaleza base de parties.
+
 <<END SECTION>>
 
 <<SECTION: MODELO DE ACCESO Y PERTENENCIA>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 MODELO DE ACCESO Y PERTENENCIA
 
@@ -623,6 +706,30 @@ Condiciones estructurales validadas para party vinculada a membership activa:
 party.kind = person
 party_roles contiene employee
 party.email queda protegido respecto de edición libre desde parties cuando corresponde al usuario vinculado
+
+Aclaración vigente para lectura contextual:
+
+cuando exista Party con relación employee y membership activa vinculada, esa ficha puede actuar como centro contextual de actividad del colaborador.
+
+La lectura contextual puede alcanzar:
+
+actividad directa de Party
+actividad donde el user vinculado sea actor_user_id
+actividad donde el user vinculado sea subject_user_id
+
+Esta lectura no cambia el modelo de acceso y pertenencia.
+
+Reglas:
+
+user sigue siendo identidad global
+
+membership sigue siendo pertenencia operativa
+
+party sigue siendo ficha ampliada del negocio
+
+OperationalActivity sigue siendo trazabilidad transversal
+
+la lectura contextual no equivale a autorización general sobre el log del tenant
 
 Regla:
 

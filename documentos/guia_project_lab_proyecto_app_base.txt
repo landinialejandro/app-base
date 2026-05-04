@@ -10,7 +10,7 @@ GESTIÓN: Guía rectora para uso local de Project Lab como herramienta operativa
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 OBJETIVO
 
@@ -83,6 +83,24 @@ actividad visible en navegador cuando corresponda
 Caso vigente:
 
 projects.show requiere validar que el record set devuelva Project + Tasks cuando ProjectActivityRecordSet esté declarado.
+
+Cuando se valide lectura contextual especial de OperationalActivity mediante activity_context, además debe confirmarse:
+
+host autorizado
+surface publicada
+provider declarado por módulo dueño
+activity_context resuelto
+reader correcto
+payload esperado
+criterio contextual aplicado
+actividad visible en navegador cuando corresponda
+ausencia de lectura general del tenant
+jobs = 0
+failed_jobs = 0 cuando corresponda
+
+Caso vigente:
+
+parties.show requiere validar que PartyEmployeeActivityContext devuelva actividad directa de Party y actividad donde el user vinculado sea actor o sujeto cuando la Party tenga relación employee y membership activa vinculada.
 
 Aclaración vigente para colas:
 
@@ -532,7 +550,7 @@ Debe corregirse o revertirse antes de avanzar.
 <<END SECTION>>
 
 <<SECTION: SALIDA OPERATIVA ESPERADA>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 SALIDA OPERATIVA ESPERADA
 
@@ -647,6 +665,42 @@ Caso vigente:
 
 projects.show debe validar que ProjectActivityRecordSet devuelva Project + Tasks y que la actividad de una Task incluida sea visible dentro de la tab Actividad del Project.
 
+Validación esperada para lectura contextual especial de OperationalActivity:
+
+provider declarado por módulo dueño
+activity_context resuelto
+criterio contextual esperado aplicado
+host autorizado
+tenant activo respetado
+dataset esperado visible
+actividad directa del record host incluida cuando corresponda
+actividad contextual ampliada incluida cuando corresponda
+sin ampliación general del tenant
+sin failed_jobs cuando corresponda
+navegador OK cuando corresponda
+
+Caso vigente:
+
+parties.show debe validar que PartyEmployeeActivityContext aplique solo cuando la Party tenga relación employee y membership activa vinculada.
+
+Lectura esperada:
+
+actividad directa de Party
+actividad donde el user vinculado sea actor_user_id
+actividad donde el user vinculado sea subject_user_id
+
+Validación adicional esperada:
+
+employee manual sin user o sin membership activa debe conservar lectura directa de Party.
+
+Party común debe conservar lectura directa de Party.
+
+Regla:
+
+activity_context no debe validarse solo por existencia del provider.
+
+Debe confirmarse que el dataset resultante coincide con el criterio esperado.
+
 Validación esperada para presentación de cambios:
 
 OperationalActivityChangePresenter prepara change_summary
@@ -654,6 +708,13 @@ OperationalActivityChangePresenter prepara change_details
 operational-activity-table muestra resumen compacto
 Ver cambios abre modal
 Blade no interpreta metadata.changes directamente
+
+Validación esperada para presentación visual de actividad:
+
+tab Actividad puede recibir icon = activity desde la surface
+botón Ver cambios puede usar x-icons.changes
+botón Ver cambios puede usar btn btn-secondary btn-icon
+no se crea clase visual nueva si la variante existente resuelve el caso
 
 Aclaración vigente sobre sintaxis PHP:
 

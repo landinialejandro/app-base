@@ -52,7 +52,7 @@ documentación actualizada
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 REGLA GENERAL
 
@@ -67,7 +67,7 @@ definir contrato de seguridad
 definir relaciones reales necesarias
 definir superficie de integración
 definir si participa en trazabilidad operativa transversal
-definir si consume lectura contextual de actividad operativa, directa o agregada, cuando corresponda
+definir si consume lectura contextual de actividad operativa, directa, agregada o contextual especial cuando corresponda
 implementar
 auditar
 ajustar documentación afectada
@@ -97,7 +97,7 @@ qué cambios tienen valor operativo real
 si existen relaciones hijas que deban expresarse como metadata operativa
 si existe entidad agrupadora que deba actuar como ancla operativa
 si el módulo consume actividad operativa contextual
-si la lectura contextual será directa o agregada
+si la lectura contextual será directa, agregada o contextual especial
 
 Casos validados:
 
@@ -107,6 +107,8 @@ inventory debe registrar InventoryOperation como ancla operativa agrupada, no In
 
 projects puede declarar un activity_record_set para lectura agregada de actividad contextual de Project + Tasks.
 
+parties puede declarar un activity_context para lectura contextual especial de Party employee con membership activa vinculada.
+
 Regla adicional para lectura contextual de actividad operativa:
 
 la lectura directa no requiere provider adicional.
@@ -114,6 +116,8 @@ la lectura directa no requiere provider adicional.
 Se limita al record host autorizado.
 
 La lectura agregada requiere que el módulo dueño declare explícitamente su frontera mediante un provider compatible con ActivityRecordSetProvider.
+
+La lectura contextual especial requiere que el módulo dueño declare explícitamente su criterio mediante un provider compatible con ActivityContextProvider.
 
 Antes de declarar un activity_record_set debe quedar claro:
 
@@ -124,6 +128,16 @@ si el host ya autorizó el record principal
 si la lectura agregada no equivale a lectura general del tenant
 si no se está reconstruyendo historia desde campos actuales en lugar de leer OperationalActivity persistido
 
+Antes de declarar un activity_context debe quedar claro:
+
+qué criterio amplía el dataset
+qué módulo dueño define la frontera
+qué condición habilita esa lectura especial
+si respeta tenant activo
+si no habilita lectura general del tenant
+si no reemplaza permisos del host
+si no contamina OperationalActivity con lógica del módulo
+
 Regla:
 
 OperationalActivity no debe modificarse con condiciones específicas por módulo.
@@ -133,14 +147,23 @@ No corresponde agregar lógica como:
 if Project
 if Order
 if Document
+if Party employee
 
 La frontera debe vivir en el módulo dueño o en su contrato publicado.
 
-Caso validado:
+Caso validado de activity_record_set:
 
 projects.show
 ProjectActivityRecordSet
 Project + Tasks
+
+Caso validado de activity_context:
+
+parties.show
+PartyEmployeeActivityContext
+Party employee con membership activa vinculada
+actividad directa de Party
+actividad donde el user vinculado sea actor o sujeto
 
 Regla adicional para capacidades tenant no modulares:
 
@@ -257,7 +280,7 @@ No convierte OperationalActivity en módulo funcional ordinario.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 BLOQUE 1 — CONTRATO MODULAR
 
@@ -281,6 +304,7 @@ si el ownership funcional queda claro
 si debe emitir eventos operativos livianos después de acciones propias autorizadas
 si debe ser consumido por una capacidad transversal sin trasladarle lógica del dominio
 si necesita publicar una frontera explícita para lectura contextual agregada de actividad
+si necesita publicar un criterio contextual especial para lectura contextual de actividad
 
 Criterio adicional validado:
 
@@ -381,6 +405,43 @@ Regla:
 
 si no existe activity_record_set, la lectura contextual debe permanecer directa sobre el record host.
 
+Criterio adicional para lectura contextual especial de OperationalActivity:
+
+si un módulo necesita que la tab Actividad muestre actividad por un criterio especial que no se expresa como simple conjunto de records, debe publicar un activity_context propio.
+
+Ese activity_context debe ser definido por el módulo dueño.
+
+No debe ser definido dentro de OperationalActivity.
+
+Validar:
+
+qué criterio amplía el dataset
+qué condición habilita la lectura especial
+si la condición pertenece realmente al módulo dueño
+si el criterio respeta tenant activo
+si el criterio no amplía acceso general al log
+si el criterio no reemplaza permisos del host
+si el host principal ya fue autorizado antes de leer actividad
+si corresponde declarar provider compatible con ActivityContextProvider
+si corresponde registrar el provider en ModuleCatalog
+si la lectura no contamina OperationalActivity con lógica interna del módulo
+
+Caso validado:
+
+Parties declara PartyEmployeeActivityContext.
+
+PartyEmployeeActivityContext define la lectura de actividad contextual para Party employee con membership activa vinculada.
+
+Incluye actividad directa de Party y actividad donde el user vinculado sea actor o sujeto.
+
+Regla:
+
+activity_context no reemplaza activity_record_set.
+
+activity_record_set corresponde a conjuntos explícitos de records.
+
+activity_context corresponde a criterios contextuales especiales definidos por el módulo dueño.
+
 Criterio adicional para capacidades tenant no modulares:
 
 si la capacidad pertenece al plano tenant o transversal, pero no constituye módulo funcional ordinario, debe definirse fuera de ModuleCatalog.
@@ -422,7 +483,7 @@ la surface tenant/transversal no convierte la capacidad en módulo funcional ord
 <<END SECTION>>
 
 <<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 BLOQUE 2 — SEGURIDAD OBLIGATORIA
 
@@ -532,6 +593,24 @@ Regla:
 
 PARTIES + allowed_kinds no debe quedar como combinación activa cuando la doctrina vigente exige allowed_party_roles.
 
+Validación adicional para create contextual de parties:
+
+si el flujo define una relación con la empresa, esa relación debe enviarse como contexto funcional de autorización.
+
+Caso vigente:
+
+TenantMembershipPartyController al crear una Party employee debe autorizar con employee como relación funcional.
+
+No alcanza con autorizar solo kind = person.
+
+Regla:
+
+parties.kind = person/company
+
+party_roles.role = customer/supplier/employee/other
+
+allowed_party_roles se evalúa contra party_roles.role.
+
 Validación adicional para actividad operativa transversal:
 
 si el módulo emite eventos hacia OperationalActivity, verificar que la autorización ocurra antes de la mutación y antes de emitir el evento.
@@ -575,17 +654,51 @@ Reglas:
 la surface contextual no abre acceso general al log del tenant
 la surface contextual no autoriza el registro host
 la surface contextual no reconstruye permisos del host
-la surface contextual no debe mostrar actividad de otros registros
 el reader contextual debe recibir o trabajar sobre el record ya autorizado
 
 Caso validado:
 
 OperationalActivityContextReader lee actividad asociada al record host autorizado.
 
+Validación adicional para lectura contextual agregada:
+
+si se utiliza activity_record_set, debe validarse que:
+
+el host principal ya fue autorizado
+el provider pertenece al módulo dueño
+los records incluidos respetan tenant activo
+el conjunto no habilita lectura general del tenant
+el conjunto no altera ownership funcional
+OperationalActivity no hardcodea relaciones internas del módulo
+
+Caso validado:
+
+ProjectActivityRecordSet permite Project + Tasks en projects.show.
+
+Validación adicional para lectura contextual especial:
+
+si se utiliza activity_context, debe validarse que:
+
+el host principal ya fue autorizado
+el provider pertenece al módulo dueño
+el criterio especial respeta tenant activo
+la condición habilitante está probada
+la lectura no habilita acceso general al tenant
+la lectura no reemplaza permisos del host
+OperationalActivity no hardcodea lógica interna del módulo
+
+Caso validado:
+
+PartyEmployeeActivityContext permite que Party employee con membership activa vinculada muestre actividad directa de Party y actividad donde el user vinculado sea actor o sujeto.
+
+Regla:
+
+activity_context no debe usarse para saltar autorización ni para convertir un vínculo interno en acceso general al log.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -599,7 +712,7 @@ publicar capacidades reutilizables cuando correspondan
 respetar ownership del módulo oferente
 definir si emite eventos operativos livianos hacia una capacidad transversal
 definir si consume actividad operativa persistida como lectura y bajo qué autorización
-definir si su lectura contextual de actividad es directa o agregada
+definir si su lectura contextual de actividad es directa, agregada o contextual especial
 
 Regla adicional consolidada:
 
@@ -661,107 +774,95 @@ El futuro consumidor visual lee actividad persistida bajo autorización definida
 
 Regla:
 
-no inferir historia operativa desde campos actuales si existe actividad persistida específica.
+no inferir historia operativa desde campos actuales si existe actividad persistida.
 
-Validación adicional para relaciones hijas:
+No reconstruir actividad desde created_by, updated_by, assigned_user_id o relaciones actuales del modelo.
 
-si una relación hija expresa un cambio operativo relevante, debe definirse si ese cambio se registra como metadata operativa del registro principal.
+La lectura debe apoyarse en operational_activities persistidas y en readers o presenters correspondientes.
 
-Caso validado:
+Regla adicional para lectura contextual directa:
 
-party_roles puede registrarse como metadata operativa de Party.
+si un host consume la tab Actividad sin provider adicional, la lectura debe limitarse al record host autorizado.
 
-Regla:
+Regla adicional para lectura contextual agregada:
 
-la relación hija no se convierte por eso en módulo propio ni en navegación autónoma.
+si un host necesita mostrar actividad de más de un record, debe declarar activity_record_set desde el módulo dueño.
 
-Validación adicional para entidades agrupadoras:
-
-si el módulo tiene una capa agrupadora y movimientos atómicos, debe elegirse el ancla correcta para OperationalActivity.
+El conjunto de records debe ser explícito, justificado y tenant-safe.
 
 Caso validado:
 
-inventory registra InventoryOperation.
+projects.show consume actividad de Project + Tasks mediante ProjectActivityRecordSet.
 
-InventoryMovement conserva trazabilidad atómica interna de stock.
+Regla adicional para lectura contextual especial:
 
-Regla:
+si un host necesita mostrar actividad por un criterio contextual que no corresponde a un simple conjunto de records, debe declarar activity_context desde el módulo dueño.
 
-no duplicar en OperationalActivity la trazabilidad fina que ya pertenece al módulo dueño si existe una operación agrupada que representa mejor la acción del usuario.
-
-Validación adicional para lectura contextual agregada de actividad operativa:
-
-si un host necesita mostrar actividad de un conjunto de records y no solo del record host autorizado, el módulo dueño debe publicar explícitamente ese conjunto.
-
-La publicación debe realizarse mediante activity_record_set y provider compatible con ActivityRecordSetProvider.
-
-Validar:
-
-que el conjunto sea finito y explícito
-que la frontera esté definida por el módulo dueño
-que la frontera no sea inferida por OperationalActivity
-que no exista recursividad automática
-que no se amplíe acceso general al tenant
-que no se altere ownership funcional de los records incluidos
-que el host principal haya sido autorizado antes de consumir la lectura
-que el reader consuma records ya definidos y no reconstruya relaciones funcionales por su cuenta
+El criterio debe ser explícito, justificado, tenant-safe y no debe habilitar lectura general del tenant.
 
 Caso validado:
 
-projects.show
-ProjectActivityRecordSet
-Project + Tasks
+parties.show puede usar PartyEmployeeActivityContext cuando la Party tiene relación employee y membership activa vinculada.
 
-Regla:
+La lectura puede incluir:
 
-OperationalActivity no debe contener condiciones específicas por módulo para decidir activity_record_set.
+actividad directa de Party
+actividad donde el user vinculado sea actor_user_id
+actividad donde el user vinculado sea subject_user_id
 
-No corresponde incorporar lógica como:
+Reglas:
 
-if Project
-if Order
-if Document
+activity_context no reemplaza activity_record_set
 
-Si un módulo requiere lectura agregada, debe declararla desde su propio contrato publicado.
+activity_context no debe declararse por comodidad si alcanza lectura directa o activity_record_set
 
-Validación adicional para lectura visual de actividad operativa:
+activity_context no debe quedar hardcodeado dentro de OperationalActivity
 
-cuando se cree una lectura visual de OperationalActivity:
+el módulo dueño define la frontera contextual especial
 
-no se deben persistir URLs finales
-los links deben resolverse desde capa de lectura
-si no hay ruta canónica segura, mostrar texto plano
-el enlace al registro debe integrarse en la columna Registro
-no debe agregarse una columna adicional solo para link
-debe preservarse trail contextual cuando exista navegación
+la capacidad transversal consume el payload compatible
+
+Regla adicional para integraciones visuales de actividad:
+
+una tab Actividad puede necesitar iconografía propia de surface sin convertir OperationalActivity en módulo funcional ordinario.
+
+Si la iconografía es transversal, debe vivir en:
+
+resources/views/components/icons/
 
 Caso vigente:
 
-OperationalActivityLinkResolver resuelve label, URL, fallback y trail.
-
-Casos actuales sin link seguro:
-
-InventoryOperation
-Attachment
-
-Validación adicional para surfaces tenant/transversales no modulares:
-
-cuando una capacidad tenant/transversal no modular publique una surface hacia hosts funcionales:
-
-debe hacerlo mediante registry específico del plano tenant/transversal
-no debe incorporarse a ModuleCatalog si no es módulo funcional ordinario
-no debe resolverse con pushes manuales permanentes en cada host
-no debe crear navegación principal por el solo hecho de publicar UI
-no debe pasar por TenantModuleAccess
-debe respetar la gramática esperada por ModuleSurfaceRegistry y x-host-tabs cuando corresponda
-
-Caso validado:
-
-OperationalActivitySurfaceService se publica mediante TenantSurfaceRegistry.
+activity
+changes
 
 Regla:
 
-ModuleSurfaceRegistry puede fusionar surfaces modulares y tenant/transversales, pero cada origen debe conservar su ownership y frontera conceptual.
+la existencia de íconos para actividad operativa no modifica ownership ni navegación.
+
+Solo mejora la lectura visual de una capacidad ya autorizada y publicada.
+
+Regla adicional para surfaces tenant/transversales:
+
+si una capacidad transversal publica UI hacia hosts autorizados, debe hacerlo mediante TenantSurfaceRegistry cuando no corresponda ModuleCatalog.
+
+Caso validado:
+
+OperationalActivitySurfaceService publica tab Actividad mediante TenantSurfaceRegistry.
+
+Regla:
+
+no crear pushes manuales permanentes en cada vista host si existe registry reusable.
+
+Regla final:
+
+toda relación o integración debe preservar la distinción entre:
+
+módulo dueño
+capacidad transversal
+host consumidor
+surface publicada
+payload ya autorizado
+representación visual
 
 <<END SECTION>>
 

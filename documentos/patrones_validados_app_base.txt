@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 PATRONES VIGENTES
 
@@ -363,7 +363,7 @@ key = activity
 
 Regla:
 
-si no hay activity_record_set declarado, la lectura contextual no muestra actividad de otros registros.
+si no hay activity_record_set ni activity_context declarado, la lectura contextual no muestra actividad de otros registros.
 
 ACTIVITY RECORD SET MODULAR
 
@@ -377,162 +377,137 @@ provider implementa ActivityRecordSetProvider
 ↓
 OperationalActivitySurfaceService consulta el catálogo
 ↓
-OperationalActivityContextReader::forRecordSet()
+OperationalActivityContextReader lee actividad del conjunto
 ↓
-tabla reusable de actividad
+tabla reusable representa filas ya resueltas
+
+Regla:
+
+usar activity_record_set cuando la ampliación del dataset pueda representarse como conjunto explícito de records relacionados.
 
 Caso validado:
 
-Projects
-↓
 ProjectActivityRecordSet
-↓
+
+Lectura validada:
+
 Project + Tasks
 
 Reglas:
 
-el módulo dueño define la frontera funcional del conjunto
+OperationalActivity no decide la frontera agregada
+el módulo dueño define el conjunto
+el conjunto no autoriza records por sí mismo
+el conjunto no habilita lectura general del tenant
+el conjunto no altera ownership funcional de los records incluidos
 
-OperationalActivity no hardcodea relaciones internas de módulos
-
-OperationalActivity no decide qué hijos pertenecen al host
-
-forRecord() queda como caso simple de lectura directa
-
-forRecordSet() queda como caso reusable para conjuntos explícitos
-
-activity_record_set no autoriza records por sí mismo
-
-activity_record_set no habilita lectura general del tenant
-
-activity_record_set no altera ownership funcional de los records incluidos
-
-activity_record_set no debe resolverse por recursividad automática
-
-Riesgo evitado:
-
-Project → Tasks → Orders → Documents → Inventory → Attachments
-
-sin límite claro.
-
-SURFACE TENANT/TRANSVERSAL NO MODULAR
+ACTIVITY CONTEXT MODULAR
 
 Patrón validado:
 
-capacidad tenant/transversal
+módulo dueño
 ↓
-TenantSurfaceRegistry
+declara activity_context en ModuleCatalog
 ↓
-surface service compatible con ModuleSurfaceService
+provider implementa ActivityContextProvider
 ↓
-ModuleSurfaceRegistry
+OperationalActivitySurfaceService consulta el catálogo
 ↓
-host show
+provider devuelve payload contextual compatible
 ↓
-x-host-tabs
-
-Caso validado:
-
-OperationalActivitySurfaceService
-
-Reglas:
-
-no incorporar la capacidad transversal a ModuleCatalog si no es módulo funcional
-no pasarla por TenantModuleAccess
-no crear navegación principal
-no crear CRUD
-no duplicar tabs manualmente en hosts
-publicar la surface con la misma gramática que las surfaces modulares
-usar key compatible con return_tab
-consumir autorización ya resuelta por el host
-mantener ownership de la capacidad transversal en el plano tenant/transversal
-
-Caso corregido:
-
-no usar $tabItems->push manual como cierre estable cuando existe registry reusable.
-
-Caso corregido:
-
-no usar operational_activity.contextual como key de tab si impacta en return_tab.
-
-TABLA REUSABLE DE ACTIVIDAD OPERATIVA
-
-Patrón validado:
-
-lectura general o contextual autorizada
+OperationalActivityContextReader lee actividad según criterio definido
 ↓
-filas de actividad ya resueltas
-↓
-operational-activity-table
-↓
-representación común
-
-Partial vigente:
-
-resources/views/tenants/partials/operational-activity-table.blade.php
-
-Uso vigente:
-
-tenant/profile
-show pages con tab Actividad
-
-Reglas:
-
-el partial no decide autorización
-el partial no consulta actividad
-el partial no resuelve permisos
-el partial no reconstruye historia operativa
-el partial no interpreta metadata.changes
-el partial representa payload ya preparado
-
-Caso validado:
-
-profile-activity-tab delega en operational-activity-table.
-
-DETALLE DE CAMBIOS EN MODAL
-
-Patrón validado:
-
-metadata.changes
-↓
-OperationalActivityChangePresenter
-↓
-change_summary + change_details
-↓
-operational-activity-table
-↓
-Ver cambios
-↓
-x-modal
-
-Reglas:
-
-la tabla muestra resumen compacto
-
-el detalle amplio se muestra bajo demanda
-
-no se agregan columnas extra solo para detalle de cambios
-
-Blade no interpreta metadata.changes directamente
-
-la pieza de presentación prepara el payload visual
-
-el modal no decide permisos ni reglas de dominio
-
-VALIDACIÓN QUEUED DE ACTIVIDAD OPERATIVA
-
-Secuencia validada para probar eventos queued y OperationalActivity:
-
-disparar evento
-verificar jobs > 0
-ejecutar queue:work --stop-when-empty --tries=1
-verificar jobs = 0
-verificar failed_jobs = 0
-verificar operational_activities persistidas
-verificar módulo, tipo, record y metadata esperada
+tabla reusable representa filas ya resueltas
 
 Regla:
 
-si la cola procesa sin failed_jobs pero no hay actividad persistida, revisar primero mapeos y catálogos antes de tocar controllers o listeners.
+usar activity_context cuando la ampliación del dataset no pueda representarse como simple conjunto explícito de records relacionados.
+
+Caso validado:
+
+PartyEmployeeActivityContext
+
+Lectura validada:
+
+Party employee con membership activa vinculada
+actividad directa de Party
+actividad donde el user vinculado sea actor_user_id
+actividad donde el user vinculado sea subject_user_id
+
+Reglas:
+
+activity_context no reemplaza activity_record_set
+activity_context no autoriza records por sí mismo
+activity_context no habilita lectura general del tenant
+activity_context no traslada lógica interna del módulo a OperationalActivity
+activity_context pertenece al módulo dueño
+
+LECTURA VISUAL DE CAMBIOS OPERATIVOS
+
+Patrón validado:
+
+metadata.changes persistido
+↓
+OperationalActivityChangePresenter
+↓
+change_summary
+↓
+change_details
+↓
+operational-activity-table
+↓
+modal Ver cambios
+
+Reglas:
+
+Blade no interpreta metadata.changes directamente
+la tabla muestra síntesis compacta
+el detalle amplio se abre bajo demanda
+el modal no decide autorización
+el modal recibe contenido preparado
+
+Caso validado:
+
+Ver cambios dentro de tabla reusable de actividad.
+
+ACCIONES SECUNDARIAS INFORMATIVAS EN TABLAS
+
+Patrón validado:
+
+acción secundaria informativa
+↓
+botón icon-only
+↓
+modal o detalle bajo demanda
+
+Caso validado:
+
+Ver cambios
+x-icons.changes
+btn btn-secondary btn-icon
+
+Reglas:
+
+no crear clase nueva si existe variante visual suficiente
+no agregar columnas nuevas si la tabla pierde compacidad
+mantener bajo protagonismo visual para acciones informativas repetidas
+
+ICONOGRAFÍA DE SURFACES TENANT/TRANSVERSALES
+
+Patrón validado:
+
+surface no modular declara icon
+↓
+x-host-tabs representa icon
+↓
+la capacidad conserva naturaleza no modular
+
+Caso validado:
+
+OperationalActivitySurfaceService declara icon = activity para tab Actividad.
+
+Regla:
+
+la iconografía de una surface no convierte la capacidad en módulo funcional ni navegación principal.
 
 <<END SECTION>>

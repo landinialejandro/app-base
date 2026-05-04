@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/profile.blade.php | V6 --}}
+{{-- FILE: resources/views/tenants/profile.blade.php | V7 --}}
 
 @extends('layouts.app')
 
@@ -12,6 +12,71 @@
         $canEditTenantGeneral = $canEditTenantGeneral ?? false;
         $canEditSelectedPermissionRole = $canEditSelectedPermissionRole ?? false;
         $actorMembership = $actorMembership ?? null;
+
+        $tabsLabel = 'Secciones del perfil de empresa';
+
+        $tabItems = collect([
+            [
+                'key' => 'general',
+                'label' => 'General',
+                'view' => 'tenants.partials.profile-general-tab',
+                'data' => [
+                    'tenant' => $tenant,
+                    'settings' => $settings,
+                    'businessTypeLabels' => $businessTypeLabels ?? [],
+                    'canEditTenantGeneral' => $canEditTenantGeneral,
+                ],
+            ],
+            [
+                'key' => 'users',
+                'label' => 'Invitaciones y usuarios',
+                'view' => 'tenants.partials.profile-users-tab',
+                'data' => [
+                    'tenant' => $tenant,
+                    'memberships' => $memberships,
+                    'generatedInvitation' => $generatedInvitation ?? null,
+                    'pendingInvitations' => $pendingInvitations ?? collect(),
+                ],
+            ],
+            [
+                'key' => 'accesses',
+                'label' => 'Roles y acceso',
+                'view' => 'tenants.partials.profile-accesses-tab',
+                'data' => [
+                    'tenant' => $tenant,
+                    'memberships' => $memberships,
+                    'availableRoles' => $availableRoles,
+                    'actorMembership' => $actorMembership,
+                ],
+            ],
+            [
+                'key' => 'permissions',
+                'label' => 'Permisos',
+                'view' => 'tenants.partials.permissions.tab',
+                'data' => [
+                    'selectedPermissionRole' => $selectedPermissionRole,
+                    'permissionRoles' => $permissionRoles,
+                    'permissionMatrix' => $permissionMatrix,
+                    'moduleLabels' => $moduleLabels,
+                    'capabilityLabels' => $capabilityLabels,
+                    'scopeOptionsByModuleCapability' => $scopeOptionsByModuleCapability,
+                    'constraintOptionsByModuleCapability' => $constraintOptionsByModuleCapability,
+                    'canEditSelectedPermissionRole' => $canEditSelectedPermissionRole,
+                ],
+            ],
+        ]);
+
+        if ($canViewOperationalActivity) {
+            $tabItems->push([
+                'key' => 'activity',
+                'label' => 'Actividad',
+                'icon' => 'activity',
+                'view' => 'tenants.partials.profile-activity-tab',
+                'data' => [
+                    'operationalActivityRows' => $operationalActivityRows ?? collect(),
+                ],
+            ]);
+        }
     @endphp
 
     <x-page>
@@ -33,79 +98,8 @@
             'tenant' => $tenant,
         ])
 
-        <div class="tabs" data-tabs>
-            <div class="tabs-nav" role="tablist" aria-label="Perfil de empresa">
-                <button type="button" class="tabs-link {{ $activeTab === 'general' ? 'is-active' : '' }}"
-                    data-tab-link="general" role="tab" aria-selected="{{ $activeTab === 'general' ? 'true' : 'false' }}">
-                    General
-                </button>
+        <x-host-tabs :items="$tabItems" :active-tab="$activeTab" :label="$tabsLabel" />
 
-                <button type="button" class="tabs-link {{ $activeTab === 'users' ? 'is-active' : '' }}"
-                    data-tab-link="users" role="tab" aria-selected="{{ $activeTab === 'users' ? 'true' : 'false' }}">
-                    Invitaciones y usuarios
-                </button>
-
-                <button type="button" class="tabs-link {{ $activeTab === 'accesses' ? 'is-active' : '' }}"
-                    data-tab-link="accesses" role="tab"
-                    aria-selected="{{ $activeTab === 'accesses' ? 'true' : 'false' }}">
-                    Roles y acceso
-                </button>
-
-                <button type="button" class="tabs-link {{ $activeTab === 'permissions' ? 'is-active' : '' }}"
-                    data-tab-link="permissions" role="tab"
-                    aria-selected="{{ $activeTab === 'permissions' ? 'true' : 'false' }}">
-                    Permisos
-                </button>
-
-                @if ($canViewOperationalActivity)
-                    <button type="button" class="tabs-link {{ $activeTab === 'activity' ? 'is-active' : '' }}"
-                        data-tab-link="activity" role="tab"
-                        aria-selected="{{ $activeTab === 'activity' ? 'true' : 'false' }}">
-                        Actividad
-                    </button>
-                @endif
-            </div>
-
-            @include('tenants.partials.profile-general-tab', [
-                'tenant' => $tenant,
-                'settings' => $settings,
-                'activeTab' => $activeTab,
-                'businessTypeLabels' => $businessTypeLabels ?? [],
-                'canEditTenantGeneral' => $canEditTenantGeneral,
-            ])
-
-            @include('tenants.partials.profile-users-tab', [
-                'tenant' => $tenant,
-                'memberships' => $memberships,
-                'generatedInvitation' => $generatedInvitation ?? null,
-                'pendingInvitations' => $pendingInvitations ?? collect(),
-                'activeTab' => $activeTab,
-            ])
-
-            @include('tenants.partials.profile-accesses-tab', [
-                'tenant' => $tenant,
-                'memberships' => $memberships,
-                'availableRoles' => $availableRoles,
-                'activeTab' => $activeTab,
-                'actorMembership' => $actorMembership,
-            ])
-
-            @include('tenants.partials.permissions.tab', [
-                'activeTab' => $activeTab,
-                'selectedPermissionRole' => $selectedPermissionRole,
-                'permissionRoles' => $permissionRoles,
-                'permissionMatrix' => $permissionMatrix,
-                'moduleLabels' => $moduleLabels,
-                'capabilityLabels' => $capabilityLabels,
-                'scopeOptionsByModuleCapability' => $scopeOptionsByModuleCapability,
-                'constraintOptionsByModuleCapability' => $constraintOptionsByModuleCapability,
-                'canEditSelectedPermissionRole' => $canEditSelectedPermissionRole,
-            ])
-
-            @include('tenants.partials.profile-activity-tab', [
-                'activeTab' => $activeTab,
-                'operationalActivityRows' => $operationalActivityRows ?? collect(),
-            ])
-        </div>
+        <x-dev-component-version name="tenants.profile" version="V7" />
     </x-page>
 @endsection

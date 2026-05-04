@@ -18,51 +18,53 @@ use App\Support\Catalogs\PartyCatalog;
 use App\Support\Catalogs\PermissionScopeCatalog;
 use App\Support\Catalogs\RoleCatalog;
 use App\Support\Navigation\NavigationTrail;
+use App\Support\Tenants\OperationalActivityChangePresenter;
 use App\Support\Tenants\OperationalActivityLinkResolver;
+use App\Support\Tenants\TenantProfileAccess;
 use Illuminate\Http\Request;
 use Illuminate\Validation\Rule;
 
 class TenantProfileController extends Controller
 {
-public function show(Request $request)
-{
-    $tenant = app('tenant');
+    public function show(Request $request)
+    {
+        $tenant = app('tenant');
 
-    $membership = auth()->user()
-        ->memberships()
-        ->where('tenant_id', $tenant->id)
-        ->with('roles')
-        ->first();
+        $membership = auth()->user()
+            ->memberships()
+            ->where('tenant_id', $tenant->id)
+            ->with('roles')
+            ->first();
 
-    $tenantProfileAccess = app(\App\Support\Tenants\TenantProfileAccess::class);
+        $tenantProfileAccess = app(TenantProfileAccess::class);
 
-    abort_unless($tenantProfileAccess->canViewProfile($membership), 403);
+        abort_unless($tenantProfileAccess->canViewProfile($membership), 403);
 
-    $isTenantOwner = $tenantProfileAccess->isOwner($membership);
-    $isTenantAdmin = $tenantProfileAccess->isAdmin($membership);
-    $canEditTenantGeneral = $tenantProfileAccess->canEditGeneral($membership);
-    $canManageAdminRole = $tenantProfileAccess->canManagePermissionsForRole($membership, RoleCatalog::ADMIN);
+        $isTenantOwner = $tenantProfileAccess->isOwner($membership);
+        $isTenantAdmin = $tenantProfileAccess->isAdmin($membership);
+        $canEditTenantGeneral = $tenantProfileAccess->canEditGeneral($membership);
+        $canManageAdminRole = $tenantProfileAccess->canManagePermissionsForRole($membership, RoleCatalog::ADMIN);
 
-    $canViewOperationalActivity = app(Security::class)
-        ->allows(auth()->user(), 'operational_activity.viewAny');
+        $canViewOperationalActivity = app(Security::class)
+            ->allows(auth()->user(), 'operational_activity.viewAny');
 
-    $memberships = Membership::query()
-        ->where('tenant_id', $tenant->id)
-        ->with([
-            'user',
-            'roles' => function ($query) {
-                $query->orderBy('name');
-            },
-        ])
-        ->orderByDesc('is_owner')
-        ->orderBy('status')
-        ->orderBy('id')
-        ->get();
+        $memberships = Membership::query()
+            ->where('tenant_id', $tenant->id)
+            ->with([
+                'user',
+                'roles' => function ($query) {
+                    $query->orderBy('name');
+                },
+            ])
+            ->orderByDesc('is_owner')
+            ->orderBy('status')
+            ->orderBy('id')
+            ->get();
 
-    $availableRoles = Role::query()
-        ->where('tenant_id', $tenant->id)
-        ->whereIn('slug', RoleCatalog::assignable())
-        ->orderByRaw('
+        $availableRoles = Role::query()
+            ->where('tenant_id', $tenant->id)
+            ->whereIn('slug', RoleCatalog::assignable())
+            ->orderByRaw('
         CASE slug
             WHEN ? THEN 1
             WHEN ? THEN 2
@@ -71,222 +73,225 @@ public function show(Request $request)
             ELSE 99
         END
     ', [
-            RoleCatalog::ADMIN,
-            RoleCatalog::SALES,
-            RoleCatalog::OPERATOR,
-            RoleCatalog::ADMINISTRATOR,
-        ])
-        ->orderBy('name')
-        ->get();
+                RoleCatalog::ADMIN,
+                RoleCatalog::SALES,
+                RoleCatalog::OPERATOR,
+                RoleCatalog::ADMINISTRATOR,
+            ])
+            ->orderBy('name')
+            ->get();
 
-    $allowedTabs = ['general', 'users', 'accesses', 'permissions'];
+        $allowedTabs = ['general', 'users', 'accesses', 'permissions'];
 
-    if ($canViewOperationalActivity) {
-        $allowedTabs[] = 'activity';
-    }
+        if ($canViewOperationalActivity) {
+            $allowedTabs[] = 'activity';
+        }
 
-    $activeTab = $request->query('tab', 'general');
+        $activeTab = (string) $request->query(
+            'return_tab',
+            $request->query('tab', 'general')
+        );
 
-    if (! in_array($activeTab, $allowedTabs, true)) {
-        $activeTab = 'general';
-    }
+        if (! in_array($activeTab, $allowedTabs, true)) {
+            $activeTab = 'general';
+        }
 
-    $generatedInvitation = null;
-    $generatedInvitationId = session('generated_invitation_id');
+        $generatedInvitation = null;
+        $generatedInvitationId = session('generated_invitation_id');
 
-    if ($generatedInvitationId) {
-        $generatedInvitation = Invitation::query()
+        if ($generatedInvitationId) {
+            $generatedInvitation = Invitation::query()
+                ->where('tenant_id', $tenant->id)
+                ->where('type', 'member_invite')
+                ->where('id', $generatedInvitationId)
+                ->first();
+        }
+
+        $pendingInvitations = Invitation::query()
             ->where('tenant_id', $tenant->id)
             ->where('type', 'member_invite')
-            ->where('id', $generatedInvitationId)
+            ->whereNull('accepted_at')
+            ->orderByDesc('created_at')
+            ->get();
+
+        $permissionRoles = [
+            RoleCatalog::ADMIN => RoleCatalog::label(RoleCatalog::ADMIN),
+            RoleCatalog::SALES => RoleCatalog::label(RoleCatalog::SALES),
+            RoleCatalog::OPERATOR => RoleCatalog::label(RoleCatalog::OPERATOR),
+            RoleCatalog::ADMINISTRATOR => RoleCatalog::label(RoleCatalog::ADMINISTRATOR),
+        ];
+
+        $selectedPermissionRole = (string) $request->query('role', RoleCatalog::ADMIN);
+
+        if (! array_key_exists($selectedPermissionRole, $permissionRoles)) {
+            $selectedPermissionRole = RoleCatalog::ADMIN;
+        }
+
+        $canEditSelectedPermissionRole = $tenantProfileAccess->canManagePermissionsForRole(
+            $membership,
+            $selectedPermissionRole
+        );
+
+        $enabledModules = collect(TenantModuleAccess::enabledModules($tenant))
+            ->filter(fn ($enabled) => $enabled === true)
+            ->keys()
+            ->values()
+            ->all();
+
+        $moduleCapabilityMap = $this->buildModuleCapabilityMap($enabledModules);
+
+        $moduleLabels = collect(array_keys($moduleCapabilityMap))
+            ->mapWithKeys(fn ($module) => [$module => ModuleCatalog::label($module, $module)])
+            ->all();
+
+        $capabilityLabels = [
+            CapabilityCatalog::VIEW_ANY => 'Ver lista',
+            CapabilityCatalog::VIEW => 'Ver detalle',
+            CapabilityCatalog::CREATE => 'Crear',
+            CapabilityCatalog::UPDATE => 'Editar',
+            CapabilityCatalog::DELETE => 'Eliminar',
+        ];
+
+        $scopeLabels = PermissionScopeCatalog::labels();
+
+        $permissionMatrix = $this->buildPermissionMatrix(
+            $tenant->id,
+            $selectedPermissionRole,
+            $moduleCapabilityMap
+        );
+
+        $scopeOptionsByModuleCapability = $this->buildScopeOptionsByModuleCapability($moduleCapabilityMap);
+        $constraintOptionsByModuleCapability = $this->buildConstraintOptionsByModuleCapability($moduleCapabilityMap);
+
+        $operationalActivityRows = collect();
+
+        if ($canViewOperationalActivity) {
+            $linkResolver = app(OperationalActivityLinkResolver::class);
+            $changePresenter = app(OperationalActivityChangePresenter::class);
+
+            $activityTrail = NavigationTrail::base([
+                NavigationTrail::makeNode(
+                    'dashboard',
+                    'dashboard',
+                    'Inicio',
+                    route('dashboard')
+                ),
+                NavigationTrail::makeNode(
+                    'tenant-profile-activity',
+                    $tenant->id,
+                    'Perfil de empresa · Actividad',
+                    route('tenant.profile.show', ['tab' => 'activity'])
+                ),
+            ]);
+
+            $operationalActivityRows = OperationalActivity::query()
+                ->where('tenant_id', $tenant->id)
+                ->with(['actorUser', 'subjectUser', 'record'])
+                ->orderByDesc('occurred_at')
+                ->orderByDesc('id')
+                ->limit(50)
+                ->get()
+                ->map(function ($activity) use ($linkResolver, $changePresenter, $activityTrail) {
+                    $recordLink = $linkResolver->resolve($activity, $activityTrail);
+                    $metadata = $activity->metadata ?? [];
+
+                    return [
+                        'id' => $activity->id,
+                        'occurred_at' => $activity->occurred_at,
+                        'module' => $activity->module,
+                        'activity_type' => $activity->activity_type,
+                        'record_label' => $recordLink['label'],
+                        'record_url' => $recordLink['url'],
+                        'actor_label' => $activity->actorUser?->name
+                            ?? $activity->actorUser?->email
+                            ?? 'Sistema',
+                        'subject_label' => $activity->subjectUser?->name
+                            ?? $activity->subjectUser?->email
+                            ?? '—',
+                        'metadata' => $metadata,
+                        'change_summary' => $changePresenter->summary($metadata),
+                        'change_details' => $changePresenter->details($metadata)->all(),
+                    ];
+                });
+        }
+
+        return view('tenants.profile', [
+            'tenant' => $tenant,
+            'memberships' => $memberships,
+            'availableRoles' => $availableRoles,
+            'activeTab' => $activeTab,
+            'generatedInvitation' => $generatedInvitation,
+            'pendingInvitations' => $pendingInvitations,
+            'businessTypeLabels' => BusinessTypeCatalog::labels(),
+
+            'permissionRoles' => $permissionRoles,
+            'selectedPermissionRole' => $selectedPermissionRole,
+            'moduleLabels' => $moduleLabels,
+            'capabilityLabels' => $capabilityLabels,
+            'scopeLabels' => $scopeLabels,
+            'moduleCapabilityMap' => $moduleCapabilityMap,
+            'permissionMatrix' => $permissionMatrix,
+            'scopeOptionsByModuleCapability' => $scopeOptionsByModuleCapability,
+            'constraintOptionsByModuleCapability' => $constraintOptionsByModuleCapability,
+
+            'isTenantOwner' => $isTenantOwner,
+            'isTenantAdmin' => $isTenantAdmin,
+            'canEditTenantGeneral' => $canEditTenantGeneral,
+            'canManageAdminRole' => $canManageAdminRole,
+            'canEditSelectedPermissionRole' => $canEditSelectedPermissionRole,
+            'actorMembership' => $membership,
+
+            'canViewOperationalActivity' => $canViewOperationalActivity,
+            'operationalActivityRows' => $operationalActivityRows,
+        ]);
+    }
+
+    public function update(Request $request)
+    {
+        $tenant = app('tenant');
+
+        $membership = auth()->user()
+            ->memberships()
+            ->where('tenant_id', $tenant->id)
+            ->with('roles')
             ->first();
-    }
 
-    $pendingInvitations = Invitation::query()
-        ->where('tenant_id', $tenant->id)
-        ->where('type', 'member_invite')
-        ->whereNull('accepted_at')
-        ->orderByDesc('created_at')
-        ->get();
+        $tenantProfileAccess = app(TenantProfileAccess::class);
 
-    $permissionRoles = [
-        RoleCatalog::ADMIN => RoleCatalog::label(RoleCatalog::ADMIN),
-        RoleCatalog::SALES => RoleCatalog::label(RoleCatalog::SALES),
-        RoleCatalog::OPERATOR => RoleCatalog::label(RoleCatalog::OPERATOR),
-        RoleCatalog::ADMINISTRATOR => RoleCatalog::label(RoleCatalog::ADMINISTRATOR),
-    ];
+        abort_unless($tenantProfileAccess->canEditGeneral($membership), 403);
 
-    $selectedPermissionRole = (string) $request->query('role', RoleCatalog::ADMIN);
+        $data = $request->validate([
+            'name' => ['required', 'string', 'max:255'],
 
-    if (! array_key_exists($selectedPermissionRole, $permissionRoles)) {
-        $selectedPermissionRole = RoleCatalog::ADMIN;
-    }
+            'settings.legal_name' => ['nullable', 'string', 'max:255'],
+            'settings.tax_id' => ['nullable', 'string', 'max:50'],
+            'settings.email' => ['nullable', 'email', 'max:255'],
+            'settings.phone' => ['nullable', 'string', 'max:100'],
 
-    $canEditSelectedPermissionRole = $tenantProfileAccess->canManagePermissionsForRole(
-        $membership,
-        $selectedPermissionRole
-    );
+            'settings.address' => ['nullable', 'string', 'max:255'],
+            'settings.city' => ['nullable', 'string', 'max:150'],
+            'settings.state' => ['nullable', 'string', 'max:150'],
+            'settings.country' => ['nullable', 'string', 'max:150'],
 
-    $enabledModules = collect(TenantModuleAccess::enabledModules($tenant))
-        ->filter(fn ($enabled) => $enabled === true)
-        ->keys()
-        ->values()
-        ->all();
+            'settings.business_profile.type' => [
+                'nullable',
+                'string',
+                Rule::in(BusinessTypeCatalog::all()),
+            ],
+        ]);
 
-    $moduleCapabilityMap = $this->buildModuleCapabilityMap($enabledModules);
-
-    $moduleLabels = collect(array_keys($moduleCapabilityMap))
-        ->mapWithKeys(fn ($module) => [$module => ModuleCatalog::label($module, $module)])
-        ->all();
-
-    $capabilityLabels = [
-        CapabilityCatalog::VIEW_ANY => 'Ver lista',
-        CapabilityCatalog::VIEW => 'Ver detalle',
-        CapabilityCatalog::CREATE => 'Crear',
-        CapabilityCatalog::UPDATE => 'Editar',
-        CapabilityCatalog::DELETE => 'Eliminar',
-    ];
-
-    $scopeLabels = PermissionScopeCatalog::labels();
-
-    $permissionMatrix = $this->buildPermissionMatrix(
-        $tenant->id,
-        $selectedPermissionRole,
-        $moduleCapabilityMap
-    );
-
-    $scopeOptionsByModuleCapability = $this->buildScopeOptionsByModuleCapability($moduleCapabilityMap);
-    $constraintOptionsByModuleCapability = $this->buildConstraintOptionsByModuleCapability($moduleCapabilityMap);
-
-    $operationalActivityRows = collect();
-
-    if ($canViewOperationalActivity) {
-        $linkResolver = app(OperationalActivityLinkResolver::class);
-        $changePresenter = app(\App\Support\Tenants\OperationalActivityChangePresenter::class);
-
-        $activityTrail = NavigationTrail::base([
-            NavigationTrail::makeNode(
-                'dashboard',
-                'dashboard',
-                'Inicio',
-                route('dashboard')
-            ),
-            NavigationTrail::makeNode(
-                'tenant-profile-activity',
-                $tenant->id,
-                'Perfil de empresa · Actividad',
-                route('tenant.profile.show', ['tab' => 'activity'])
+        $tenant->update([
+            'name' => $data['name'],
+            'settings' => array_replace_recursive(
+                $tenant->settings ?? [],
+                $data['settings'] ?? []
             ),
         ]);
 
-        $operationalActivityRows = OperationalActivity::query()
-            ->where('tenant_id', $tenant->id)
-            ->with(['actorUser', 'subjectUser', 'record'])
-            ->orderByDesc('occurred_at')
-            ->orderByDesc('id')
-            ->limit(50)
-            ->get()
-            ->map(function ($activity) use ($linkResolver, $changePresenter, $activityTrail) {
-                $recordLink = $linkResolver->resolve($activity, $activityTrail);
-                $metadata = $activity->metadata ?? [];
-
-                return [
-                    'id' => $activity->id,
-                    'occurred_at' => $activity->occurred_at,
-                    'module' => $activity->module,
-                    'activity_type' => $activity->activity_type,
-                    'record_label' => $recordLink['label'],
-                    'record_url' => $recordLink['url'],
-                    'actor_label' => $activity->actorUser?->name
-                        ?? $activity->actorUser?->email
-                        ?? 'Sistema',
-                    'subject_label' => $activity->subjectUser?->name
-                        ?? $activity->subjectUser?->email
-                        ?? '—',
-                    'metadata' => $metadata,
-                    'change_summary' => $changePresenter->summary($metadata),
-                    'change_details' => $changePresenter->details($metadata)->all(),
-                ];
-            });
+        return redirect()
+            ->route('tenant.profile.show', ['tab' => 'general'])
+            ->with('success', 'Perfil de empresa actualizado correctamente.');
     }
-
-    return view('tenants.profile', [
-        'tenant' => $tenant,
-        'memberships' => $memberships,
-        'availableRoles' => $availableRoles,
-        'activeTab' => $activeTab,
-        'generatedInvitation' => $generatedInvitation,
-        'pendingInvitations' => $pendingInvitations,
-        'businessTypeLabels' => BusinessTypeCatalog::labels(),
-
-        'permissionRoles' => $permissionRoles,
-        'selectedPermissionRole' => $selectedPermissionRole,
-        'moduleLabels' => $moduleLabels,
-        'capabilityLabels' => $capabilityLabels,
-        'scopeLabels' => $scopeLabels,
-        'moduleCapabilityMap' => $moduleCapabilityMap,
-        'permissionMatrix' => $permissionMatrix,
-        'scopeOptionsByModuleCapability' => $scopeOptionsByModuleCapability,
-        'constraintOptionsByModuleCapability' => $constraintOptionsByModuleCapability,
-
-        'isTenantOwner' => $isTenantOwner,
-        'isTenantAdmin' => $isTenantAdmin,
-        'canEditTenantGeneral' => $canEditTenantGeneral,
-        'canManageAdminRole' => $canManageAdminRole,
-        'canEditSelectedPermissionRole' => $canEditSelectedPermissionRole,
-        'actorMembership' => $membership,
-
-        'canViewOperationalActivity' => $canViewOperationalActivity,
-        'operationalActivityRows' => $operationalActivityRows,
-    ]);
-}
-
-public function update(Request $request)
-{
-    $tenant = app('tenant');
-
-    $membership = auth()->user()
-        ->memberships()
-        ->where('tenant_id', $tenant->id)
-        ->with('roles')
-        ->first();
-
-    $tenantProfileAccess = app(\App\Support\Tenants\TenantProfileAccess::class);
-
-    abort_unless($tenantProfileAccess->canEditGeneral($membership), 403);
-
-    $data = $request->validate([
-        'name' => ['required', 'string', 'max:255'],
-
-        'settings.legal_name' => ['nullable', 'string', 'max:255'],
-        'settings.tax_id' => ['nullable', 'string', 'max:50'],
-        'settings.email' => ['nullable', 'email', 'max:255'],
-        'settings.phone' => ['nullable', 'string', 'max:100'],
-
-        'settings.address' => ['nullable', 'string', 'max:255'],
-        'settings.city' => ['nullable', 'string', 'max:150'],
-        'settings.state' => ['nullable', 'string', 'max:150'],
-        'settings.country' => ['nullable', 'string', 'max:150'],
-
-        'settings.business_profile.type' => [
-            'nullable',
-            'string',
-            Rule::in(BusinessTypeCatalog::all()),
-        ],
-    ]);
-
-    $tenant->update([
-        'name' => $data['name'],
-        'settings' => array_replace_recursive(
-            $tenant->settings ?? [],
-            $data['settings'] ?? []
-        ),
-    ]);
-
-    return redirect()
-        ->route('tenant.profile.show', ['tab' => 'general'])
-        ->with('success', 'Perfil de empresa actualizado correctamente.');
-}
 
     protected function buildModuleCapabilityMap(array $enabledModules): array
     {

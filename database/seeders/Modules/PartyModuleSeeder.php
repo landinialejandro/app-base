@@ -1,9 +1,10 @@
 <?php
 
-// FILE: database/seeders/Modules/PartyModuleSeeder.php | V3
+// FILE: database/seeders/Modules/PartyModuleSeeder.php | V4
 
 namespace Database\Seeders\Modules;
 
+use App\Events\OperationalRecordCreated;
 use App\Models\Party;
 use App\Support\Catalogs\PartyCatalog;
 use Illuminate\Support\Collection;
@@ -83,6 +84,8 @@ class PartyModuleSeeder extends BaseModuleSeeder
 
     private function registerParty(Party $party, array $roles): Party
     {
+        $validRoles = [];
+
         foreach (array_values(array_unique($roles)) as $role) {
             if (! in_array($role, PartyCatalog::roles(), true)) {
                 continue;
@@ -92,9 +95,35 @@ class PartyModuleSeeder extends BaseModuleSeeder
                 'tenant_id' => $party->tenant_id,
                 'role' => $role,
             ]);
+
+            $validRoles[] = $role;
+        }
+
+        if ($party->wasRecentlyCreated) {
+            $this->emitPartyCreatedActivity($party, $validRoles);
         }
 
         return $party;
+    }
+
+    private function emitPartyCreatedActivity(Party $party, array $roles): void
+    {
+        $createdRoles = array_values(array_unique(array_filter(
+            $roles,
+            fn ($role) => is_string($role) && trim($role) !== ''
+        )));
+
+        sort($createdRoles);
+
+        event(new OperationalRecordCreated(
+            record: $party,
+            actorUserId: null,
+            metadata: [
+                'party_roles' => [
+                    'to' => $createdRoles,
+                ],
+            ],
+        ));
     }
 
     private function getTechAcmeData(): array

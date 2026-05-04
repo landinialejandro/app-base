@@ -142,6 +142,7 @@ Route::get('/profile/tenant', [ProfileController::class, 'showTenant'])
 
 Route::middleware(['auth', 'tenant'])->group(function () {
 
+    // Tenant
     Route::get('/tenant/profile', [TenantProfileController::class, 'show'])
         ->name('tenant.profile.show');
     Route::put('/tenant/profile', [TenantProfileController::class, 'update'])
@@ -155,6 +156,8 @@ Route::middleware(['auth', 'tenant'])->group(function () {
         ->name('tenant.memberships.unblock');
     Route::post('/tenant/memberships/{membership}/roles', [TenantMembershipRoleController::class, 'attach'])
         ->name('tenant.memberships.roles.attach');
+    Route::put('/tenant/memberships/{membership}/roles', [TenantMembershipRoleController::class, 'sync'])
+        ->name('tenant.memberships.roles.sync');
     Route::delete('/tenant/memberships/{membership}/roles/{role}', [TenantMembershipRoleController::class, 'detach'])
         ->name('tenant.memberships.roles.detach');
 
@@ -172,6 +175,7 @@ Route::middleware(['auth', 'tenant'])->group(function () {
 
     Route::post('/tenant/memberships/{membership}/party/store', [TenantMembershipPartyController::class, 'store'])
         ->name('tenant.memberships.party.store');
+
     // Projects
     Route::get('/projects', [ProjectController::class, 'index'])->name('projects.index');
     Route::get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/profile.blade.php | V5 --}}
+{{-- FILE: resources/views/tenants/profile.blade.php | V6 --}}
 
 @extends('layouts.app')
 
@@ -9,12 +9,25 @@
         $settings = $tenant->settings ?? [];
         $activeTab = $activeTab ?? 'general';
         $canViewOperationalActivity = $canViewOperationalActivity ?? false;
+        $canEditTenantGeneral = $canEditTenantGeneral ?? false;
+        $canEditSelectedPermissionRole = $canEditSelectedPermissionRole ?? false;
+        $actorMembership = $actorMembership ?? null;
     @endphp
 
     <x-page>
         <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Perfil de empresa']]" />
 
         <x-page-header title="Perfil de empresa" />
+
+        <x-card>
+            <div class="dashboard-section-header">
+                <h2 class="dashboard-section-title">Gestión de empresa</h2>
+                <p class="dashboard-section-text">
+                    Desde este espacio se visualizan los datos de la empresa, usuarios, accesos, permisos y actividad.
+                    Algunas acciones pueden mostrarse en modo lectura según tu nivel de autorización.
+                </p>
+            </div>
+        </x-card>
 
         @include('tenants.partials.profile-summary', [
             'tenant' => $tenant,
@@ -58,6 +71,7 @@
                 'settings' => $settings,
                 'activeTab' => $activeTab,
                 'businessTypeLabels' => $businessTypeLabels ?? [],
+                'canEditTenantGeneral' => $canEditTenantGeneral,
             ])
 
             @include('tenants.partials.profile-users-tab', [
@@ -73,6 +87,7 @@
                 'memberships' => $memberships,
                 'availableRoles' => $availableRoles,
                 'activeTab' => $activeTab,
+                'actorMembership' => $actorMembership,
             ])
 
             @include('tenants.partials.permissions.tab', [
@@ -84,6 +99,7 @@
                 'capabilityLabels' => $capabilityLabels,
                 'scopeOptionsByModuleCapability' => $scopeOptionsByModuleCapability,
                 'constraintOptionsByModuleCapability' => $constraintOptionsByModuleCapability,
+                'canEditSelectedPermissionRole' => $canEditSelectedPermissionRole,
             ])
 
             @include('tenants.partials.profile-activity-tab', [

@@ -1,84 +1,39 @@
 <?php
 
-// FILE: app/Policies/MembershipPolicy.php | V1
+// FILE: app/Policies/MembershipPolicy.php | V2
 
 namespace App\Policies;
 
 use App\Models\Membership;
 use App\Models\User;
+use App\Support\Tenants\TenantProfileAccess;
 
 class MembershipPolicy
 {
-    protected function ownerMembershipForCurrentTenant(User $user): ?Membership
+    protected function access(): TenantProfileAccess
     {
-        $tenant = app('tenant');
-
-        if (! $tenant) {
-            return null;
-        }
-
-        return $user->memberships()
-            ->where('tenant_id', $tenant->id)
-            ->first();
+        return app(TenantProfileAccess::class);
     }
 
-    protected function currentUserIsOwner(User $user): bool
+    protected function actorMembershipForCurrentTenant(User $user): ?Membership
     {
-        return (bool) $this->ownerMembershipForCurrentTenant($user)?->is_owner;
+        return $this->access()->actorMembershipFor($user);
     }
 
     public function block(User $user, Membership $membership): bool
     {
-        $tenant = app('tenant');
-
-        if (! $tenant) {
-            return false;
-        }
-
-        if (! $this->currentUserIsOwner($user)) {
-            return false;
-        }
-
-        if ($membership->tenant_id !== $tenant->id) {
-            return false;
-        }
-
-        if ($membership->is_owner) {
-            return false;
-        }
-
-        if ($membership->user_id === $user->id) {
-            return false;
-        }
-
-        return true;
+        return $this->access()->canManageMembershipStatus(
+            $this->actorMembershipForCurrentTenant($user),
+            $membership
+        );
     }
 
     public function unblock(User $user, Membership $membership): bool
     {
-        $tenant = app('tenant');
-
-        if (! $tenant) {
-            return false;
-        }
-
-        if (! $this->currentUserIsOwner($user)) {
-            return false;
-        }
-
-        if ($membership->tenant_id !== $tenant->id) {
-            return false;
-        }
-
-        if ($membership->is_owner) {
-            return false;
-        }
-
-        if ($membership->user_id === $user->id) {
-            return false;
-        }
-
-        return true;
+        return $this->access()->canManageMembershipStatus(
+            $this->actorMembershipForCurrentTenant($user),
+            $membership
+        );
     }
 
     public function attachRole(User $user, Membership $membership): bool
@@ -89,10 +44,6 @@ class MembershipPolicy
             return false;
         }
 
-        if (! $this->currentUserIsOwner($user)) {
-            return false;
-        }
-
         if ($membership->tenant_id !== $tenant->id) {
             return false;
         }
@@ -101,7 +52,10 @@ class MembershipPolicy
             return false;
         }
 
-        return true;
+        $actor = $this->actorMembershipForCurrentTenant($user);
+
+        return $this->access()->isOwner($actor)
+            || $this->access()->isAdmin($actor);
     }
 
     public function detachRole(User $user, Membership $membership): bool
@@ -112,10 +66,6 @@ class MembershipPolicy
             return false;
         }
 
-        if (! $this->currentUserIsOwner($user)) {
-            return false;
-        }
-
         if ($membership->tenant_id !== $tenant->id) {
             return false;
         }
@@ -124,26 +74,30 @@ class MembershipPolicy
             return false;
         }
 
-        return true;
-    }
+        $actor = $this->actorMembershipForCurrentTenant($user);
 
+        return $this->access()->isOwner($actor)
+            || $this->access()->isAdmin($actor);
+    }
 
     public function resolveParty(User $user, Membership $membership): bool
     {
         $tenant = app('tenant');
-    
+
         if (! $tenant) {
             return false;
         }
-    
+
         if ($membership->tenant_id !== $tenant->id) {
             return false;
         }
-    
+
         if ($membership->user_id === $user->id && $membership->status === 'active') {
             return true;
         }
-    
-        return $this->currentUserIsOwner($user);
+
+        return $this->access()->isOwner(
+            $this->actorMembershipForCurrentTenant($user)
+        );
     }
 }

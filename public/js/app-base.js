@@ -1213,10 +1213,151 @@
             });
     };
 
+    // TARGET: public/js/app-base.js ++ bindTenantRoleSyncForms
+
+    const bindTenantRoleSyncForms = () => {
+        document
+            .querySelectorAll('[data-action~="tenant-role-sync-form"]')
+            .forEach((form) => {
+                if (form.dataset.tenantRoleSyncBound === "1") {
+                    return;
+                }
+
+                form.dataset.tenantRoleSyncBound = "1";
+
+                const checkboxes = Array.from(
+                    form.querySelectorAll("[data-role-checkbox]"),
+                );
+
+                const message = form.querySelector("[data-role-sync-message]");
+
+                const enabledCheckboxes = () =>
+                    checkboxes.filter((checkbox) => !checkbox.disabled);
+
+                const adminCheckbox = checkboxes.find(
+                    (checkbox) => checkbox.dataset.roleAdmin === "1",
+                );
+
+                const operativeCheckboxes = checkboxes.filter(
+                    (checkbox) => checkbox.dataset.roleAdmin !== "1",
+                );
+
+                const checkedEnabled = () =>
+                    enabledCheckboxes().filter((checkbox) => checkbox.checked);
+
+                const setMessage = (text, variant = "default") => {
+                    if (!message) {
+                        return;
+                    }
+
+                    message.textContent = text;
+                    message.dataset.messageVariant = variant;
+                };
+
+                const refreshState = (changedCheckbox = null) => {
+                    const adminIsChecked = Boolean(adminCheckbox?.checked);
+
+                    if (
+                        changedCheckbox &&
+                        changedCheckbox.dataset.roleAdmin === "1" &&
+                        changedCheckbox.checked
+                    ) {
+                        operativeCheckboxes.forEach((checkbox) => {
+                            if (!checkbox.disabled) {
+                                checkbox.checked = false;
+                            }
+                        });
+                    }
+
+                    if (
+                        changedCheckbox &&
+                        changedCheckbox.dataset.roleAdmin !== "1" &&
+                        changedCheckbox.checked &&
+                        adminCheckbox &&
+                        !adminCheckbox.disabled
+                    ) {
+                        adminCheckbox.checked = false;
+                    }
+
+                    const currentAdminIsChecked = Boolean(
+                        adminCheckbox?.checked,
+                    );
+                    const hasAnyChecked = checkboxes.some(
+                        (checkbox) => checkbox.checked,
+                    );
+
+                    operativeCheckboxes.forEach((checkbox) => {
+                        if (checkbox.dataset.originalDisabled === "1") {
+                            checkbox.disabled = true;
+                            return;
+                        }
+
+                        if (currentAdminIsChecked) {
+                            checkbox.disabled = true;
+                            return;
+                        }
+
+                        checkbox.disabled = false;
+                    });
+
+                    if (currentAdminIsChecked) {
+                        setMessage(
+                            "Administrador es una función exclusiva. Al seleccionarla, las demás funciones operativas quedan desactivadas.",
+                            "info",
+                        );
+
+                        return;
+                    }
+
+                    if (!hasAnyChecked) {
+                        setMessage(
+                            "La membership activa debe conservar al menos una función.",
+                            "warning",
+                        );
+
+                        return;
+                    }
+
+                    setMessage(
+                        "Podés combinar funciones operativas compatibles. Administrador es una función exclusiva.",
+                        "default",
+                    );
+                };
+
+                checkboxes.forEach((checkbox) => {
+                    checkbox.dataset.originalDisabled = checkbox.disabled
+                        ? "1"
+                        : "0";
+
+                    checkbox.addEventListener("change", function () {
+                        refreshState(this);
+                    });
+                });
+
+                form.addEventListener("submit", function (event) {
+                    const hasAnyChecked = checkboxes.some(
+                        (checkbox) => checkbox.checked,
+                    );
+
+                    if (!hasAnyChecked) {
+                        event.preventDefault();
+
+                        setMessage(
+                            "Seleccioná al menos una función antes de guardar.",
+                            "warning",
+                        );
+                    }
+                });
+
+                refreshState();
+            });
+    };
+
     const initAppBase = () => {
         bindModals();
         bindConfirmSubmit();
         bindSelectOnClick();
+        bindTenantRoleSyncForms();
         bindCopyTarget();
         bindCopyValue();
         bindPartyAssetSync();

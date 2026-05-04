@@ -1207,6 +1207,12 @@
     flex-wrap: wrap;
 }
 
+[data-action~="tenant-role-sync-form"] .inline-form-wrap {
+    max-width: 100%;
+    white-space: normal;
+    flex-wrap: wrap;
+}
+
 .form-control--role-select {
     min-width: 180px;
 }

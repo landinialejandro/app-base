@@ -31,9 +31,17 @@ public function show(Request $request)
     $membership = auth()->user()
         ->memberships()
         ->where('tenant_id', $tenant->id)
+        ->with('roles')
         ->first();
 
-    abort_unless($membership?->is_owner, 403);
+    $tenantProfileAccess = app(\App\Support\Tenants\TenantProfileAccess::class);
+
+    abort_unless($tenantProfileAccess->canViewProfile($membership), 403);
+
+    $isTenantOwner = $tenantProfileAccess->isOwner($membership);
+    $isTenantAdmin = $tenantProfileAccess->isAdmin($membership);
+    $canEditTenantGeneral = $tenantProfileAccess->canEditGeneral($membership);
+    $canManageAdminRole = $tenantProfileAccess->canManagePermissionsForRole($membership, RoleCatalog::ADMIN);
 
     $canViewOperationalActivity = app(Security::class)
         ->allows(auth()->user(), 'operational_activity.viewAny');
@@ -113,6 +121,11 @@ public function show(Request $request)
     if (! array_key_exists($selectedPermissionRole, $permissionRoles)) {
         $selectedPermissionRole = RoleCatalog::ADMIN;
     }
+
+    $canEditSelectedPermissionRole = $tenantProfileAccess->canManagePermissionsForRole(
+        $membership,
+        $selectedPermissionRole
+    );
 
     $enabledModules = collect(TenantModuleAccess::enabledModules($tenant))
         ->filter(fn ($enabled) => $enabled === true)
@@ -216,54 +229,64 @@ public function show(Request $request)
         'scopeOptionsByModuleCapability' => $scopeOptionsByModuleCapability,
         'constraintOptionsByModuleCapability' => $constraintOptionsByModuleCapability,
 
+        'isTenantOwner' => $isTenantOwner,
+        'isTenantAdmin' => $isTenantAdmin,
+        'canEditTenantGeneral' => $canEditTenantGeneral,
+        'canManageAdminRole' => $canManageAdminRole,
+        'canEditSelectedPermissionRole' => $canEditSelectedPermissionRole,
+        'actorMembership' => $membership,
+
         'canViewOperationalActivity' => $canViewOperationalActivity,
         'operationalActivityRows' => $operationalActivityRows,
     ]);
 }
 
-    public function update(Request $request)
-    {
-        $tenant = app('tenant');
+public function update(Request $request)
+{
+    $tenant = app('tenant');
 
-        $membership = auth()->user()
-            ->memberships()
-            ->where('tenant_id', $tenant->id)
-            ->first();
+    $membership = auth()->user()
+        ->memberships()
+        ->where('tenant_id', $tenant->id)
+        ->with('roles')
+        ->first();
 
-        abort_unless($membership?->is_owner, 403);
+    $tenantProfileAccess = app(\App\Support\Tenants\TenantProfileAccess::class);
 
-        $data = $request->validate([
-            'name' => ['required', 'string', 'max:255'],
+    abort_unless($tenantProfileAccess->canEditGeneral($membership), 403);
 
-            'settings.legal_name' => ['nullable', 'string', 'max:255'],
-            'settings.tax_id' => ['nullable', 'string', 'max:50'],
-            'settings.email' => ['nullable', 'email', 'max:255'],
-            'settings.phone' => ['nullable', 'string', 'max:100'],
+    $data = $request->validate([
+        'name' => ['required', 'string', 'max:255'],
 
-            'settings.address' => ['nullable', 'string', 'max:255'],
-            'settings.city' => ['nullable', 'string', 'max:150'],
-            'settings.state' => ['nullable', 'string', 'max:150'],
-            'settings.country' => ['nullable', 'string', 'max:150'],
+        'settings.legal_name' => ['nullable', 'string', 'max:255'],
+        'settings.tax_id' => ['nullable', 'string', 'max:50'],
+        'settings.email' => ['nullable', 'email', 'max:255'],
+        'settings.phone' => ['nullable', 'string', 'max:100'],
 
-            'settings.business_profile.type' => [
-                'nullable',
-                'string',
-                Rule::in(BusinessTypeCatalog::all()),
-            ],
-        ]);
+        'settings.address' => ['nullable', 'string', 'max:255'],
+        'settings.city' => ['nullable', 'string', 'max:150'],
+        'settings.state' => ['nullable', 'string', 'max:150'],
+        'settings.country' => ['nullable', 'string', 'max:150'],
 
-        $tenant->update([
-            'name' => $data['name'],
-            'settings' => array_replace_recursive(
-                $tenant->settings ?? [],
-                $data['settings'] ?? []
-            ),
-        ]);
+        'settings.business_profile.type' => [
+            'nullable',
+            'string',
+            Rule::in(BusinessTypeCatalog::all()),
+        ],
+    ]);
 
-        return redirect()
-            ->route('tenant.profile.show', ['tab' => 'general'])
-            ->with('success', 'Perfil de empresa actualizado correctamente.');
-    }
+    $tenant->update([
+        'name' => $data['name'],
+        'settings' => array_replace_recursive(
+            $tenant->settings ?? [],
+            $data['settings'] ?? []
+        ),
+    ]);
+
+    return redirect()
+        ->route('tenant.profile.show', ['tab' => 'general'])
+        ->with('success', 'Perfil de empresa actualizado correctamente.');
+}
 
     protected function buildModuleCapabilityMap(array $enabledModules): array
     {

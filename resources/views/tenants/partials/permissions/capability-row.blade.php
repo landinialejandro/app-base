@@ -1,8 +1,10 @@
-{{-- FILE: resources/views/tenants/partials/permissions/capability-row.blade.php | V13 --}}
+{{-- FILE: resources/views/tenants/partials/permissions/capability-row.blade.php | V14 --}}
 
 @php
     use App\Support\Catalogs\ModuleCatalog;
     use App\Support\Catalogs\PermissionScopeCatalog;
+
+    $isReadonly = $isReadonly ?? false;
 
     $oldEnabled = old("permissions.$module.$capability.enabled");
     $enabled = $oldEnabled !== null ? (bool) $oldEnabled : (bool) ($meta['enabled'] ?? false);
@@ -73,28 +75,38 @@
     </td>
 
     <td>
-        <label class="inline-form">
-            <input type="checkbox" name="permissions[{{ $module }}][{{ $capability }}][enabled]" value="1"
-                {{ $enabled ? 'checked' : '' }}>
-            <span>Permitir</span>
-        </label>
+        @if ($isReadonly)
+            <span class="helper-inline">{{ $enabled ? 'Permitido' : 'No permitido' }}</span>
+        @else
+            <label class="inline-form">
+                <input type="checkbox" name="permissions[{{ $module }}][{{ $capability }}][enabled]" value="1"
+                    {{ $enabled ? 'checked' : '' }}>
+                <span>Permitir</span>
+            </label>
 
-        @error("permissions.$module.$capability.enabled")
-            <div class="form-help is-error">{{ $message }}</div>
-        @enderror
+            @error("permissions.$module.$capability.enabled")
+                <div class="form-help is-error">{{ $message }}</div>
+            @enderror
+        @endif
     </td>
 
     <td>
         @if ($showScope && count($scopeOptions) > 1)
-            <select name="permissions[{{ $module }}][{{ $capability }}][scope]" class="form-control">
-                <option value="">Seleccionar alcance</option>
+            @if ($isReadonly)
+                <span class="helper-inline">
+                    {{ $scopeOptions[$scope] ?? '—' }}
+                </span>
+            @else
+                <select name="permissions[{{ $module }}][{{ $capability }}][scope]" class="form-control">
+                    <option value="">Seleccionar alcance</option>
 
-                @foreach ($scopeOptions as $scopeValue => $scopeLabel)
-                    <option value="{{ $scopeValue }}" @selected($scope === $scopeValue)>
-                        {{ $scopeLabel }}
-                    </option>
-                @endforeach
-            </select>
+                    @foreach ($scopeOptions as $scopeValue => $scopeLabel)
+                        <option value="{{ $scopeValue }}" @selected($scope === $scopeValue)>
+                            {{ $scopeLabel }}
+                        </option>
+                    @endforeach
+                </select>
+            @endif
 
             <div class="form-help" data-permission-scope-help
                 data-scope-help-default="Define sobre qué información podrá usar esta acción."
@@ -116,8 +128,10 @@
                 {{ $scopeOptions[$onlyScope] }}
             </span>
 
-            <input type="hidden" name="permissions[{{ $module }}][{{ $capability }}][scope]"
-                value="{{ $onlyScope }}">
+            @if (! $isReadonly)
+                <input type="hidden" name="permissions[{{ $module }}][{{ $capability }}][scope]"
+                    value="{{ $onlyScope }}">
+            @endif
 
             @error("permissions.$module.$capability.scope")
                 <div class="form-help is-error">{{ $message }}</div>
@@ -132,13 +146,23 @@
 
                 <div class="inline-form inline-form-wrap">
                     @foreach ($allowedKindOptions as $kindValue => $kindLabel)
-                        <label class="inline-form">
-                            <input type="checkbox"
-                                name="permissions[{{ $module }}][{{ $capability }}][constraints][allowed_kinds][]"
-                                value="{{ $kindValue }}" @checked(in_array($kindValue, $selectedAllowedKinds, true))>
-                            <span>{{ $kindLabel }}</span>
-                        </label>
+                        @if ($isReadonly)
+                            @if (in_array($kindValue, $selectedAllowedKinds, true))
+                                <span class="status-badge status-badge--done">{{ $kindLabel }}</span>
+                            @endif
+                        @else
+                            <label class="inline-form">
+                                <input type="checkbox"
+                                    name="permissions[{{ $module }}][{{ $capability }}][constraints][allowed_kinds][]"
+                                    value="{{ $kindValue }}" @checked(in_array($kindValue, $selectedAllowedKinds, true))>
+                                <span>{{ $kindLabel }}</span>
+                            </label>
+                        @endif
                     @endforeach
+
+                    @if ($isReadonly && empty($selectedAllowedKinds))
+                        <span class="helper-inline">Sin tipos restringidos</span>
+                    @endif
                 </div>
 
                 <div class="form-help">
@@ -159,13 +183,23 @@
 
                 <div class="inline-form inline-form-wrap">
                     @foreach ($allowedPartyRoleOptions as $roleValue => $roleLabel)
-                        <label class="inline-form">
-                            <input type="checkbox"
-                                name="permissions[{{ $module }}][{{ $capability }}][constraints][allowed_party_roles][]"
-                                value="{{ $roleValue }}" @checked(in_array($roleValue, $selectedAllowedPartyRoles, true))>
-                            <span>{{ $roleLabel }}</span>
-                        </label>
+                        @if ($isReadonly)
+                            @if (in_array($roleValue, $selectedAllowedPartyRoles, true))
+                                <span class="status-badge status-badge--done">{{ $roleLabel }}</span>
+                            @endif
+                        @else
+                            <label class="inline-form">
+                                <input type="checkbox"
+                                    name="permissions[{{ $module }}][{{ $capability }}][constraints][allowed_party_roles][]"
+                                    value="{{ $roleValue }}" @checked(in_array($roleValue, $selectedAllowedPartyRoles, true))>
+                                <span>{{ $roleLabel }}</span>
+                            </label>
+                        @endif
                     @endforeach
+
+                    @if ($isReadonly && empty($selectedAllowedPartyRoles))
+                        <span class="helper-inline">Sin relaciones restringidas</span>
+                    @endif
                 </div>
 
                 <div class="form-help">
@@ -186,7 +220,9 @@
             <span class="helper-inline">No aplica</span>
         @endif
 
-        <input type="hidden" name="permissions[{{ $module }}][{{ $capability }}][execution_mode]"
-            value="{{ $executionMode }}">
+        @if (! $isReadonly)
+            <input type="hidden" name="permissions[{{ $module }}][{{ $capability }}][execution_mode]"
+                value="{{ $executionMode }}">
+        @endif
     </td>
 </tr>

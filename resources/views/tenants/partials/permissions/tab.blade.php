@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/partials/permissions/tab.blade.php | V4 --}}
+{{-- FILE: resources/views/tenants/partials/permissions/tab.blade.php | V5 --}}
 
 <section class="tab-panel {{ $activeTab === 'permissions' ? 'is-active' : '' }}" data-tab-panel="permissions"
     {{ $activeTab === 'permissions' ? '' : 'hidden' }}>
@@ -18,9 +18,7 @@
                 </p>
             </div>
 
-            {{-- CONTEXTO DEL TIPO DE ACCESO --}}
             <div class="access-context">
-
                 <div class="access-context-header">
                     <span class="access-dot access-dot--{{ $selectedPermissionRole }}"></span>
 
@@ -40,12 +38,17 @@
                 <div class="access-security-note">
                     🔒 Las configuraciones importantes y los datos sensibles están protegidos.
                 </div>
-
             </div>
 
-            <div class="form-help" style="margin-bottom: 1rem;">
-                Si tienes dudas, conviene dar un acceso más cuidado y ampliarlo después.
-            </div>
+            @if (!($canEditSelectedPermissionRole ?? false))
+                <div class="form-help" style="margin-bottom: 1rem;">
+                    Este rol se muestra en modo lectura. No tenés autorización para modificar sus permisos.
+                </div>
+            @else
+                <div class="form-help" style="margin-bottom: 1rem;">
+                    Si tienes dudas, conviene dar un acceso más cuidado y ampliarlo después.
+                </div>
+            @endif
 
             <form method="POST" action="{{ route('tenant.profile.permissions.update') }}" class="form">
                 @csrf
@@ -61,20 +64,23 @@
                             'capabilities' => $capabilities,
                             'capabilityLabels' => $capabilityLabels,
                             'collapsed' => !$loop->first,
+                            'isReadonly' => !($canEditSelectedPermissionRole ?? false),
                         ])
                     @endforeach
                 </div>
 
                 <div class="form-actions">
-                    <x-button-primary type="submit">
-                        Guardar cambios
-                    </x-button-primary>
+                    @if ($canEditSelectedPermissionRole ?? false)
+                        <x-button-primary type="submit">
+                            Guardar cambios
+                        </x-button-primary>
+                    @endif
 
                     <x-button-secondary :href="route('tenant.profile.show', [
                         'tab' => 'permissions',
                         'role' => $selectedPermissionRole,
                     ])">
-                        Cancelar
+                        {{ ($canEditSelectedPermissionRole ?? false) ? 'Cancelar' : 'Volver' }}
                     </x-button-secondary>
                 </div>
             </form>

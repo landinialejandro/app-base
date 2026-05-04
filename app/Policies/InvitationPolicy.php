@@ -1,32 +1,25 @@
 <?php
 
-// FILE: app/Policies/InvitationPolicy.php | V1
+// FILE: app/Policies/InvitationPolicy.php | V2
 
 namespace App\Policies;
 
 use App\Models\Invitation;
 use App\Models\User;
+use App\Support\Tenants\TenantProfileAccess;
 
 class InvitationPolicy
 {
-    protected function currentUserIsOwner(User $user): bool
+    protected function access(): TenantProfileAccess
     {
-        $tenant = app('tenant');
-
-        if (! $tenant) {
-            return false;
-        }
-
-        $membership = $user->memberships()
-            ->where('tenant_id', $tenant->id)
-            ->first();
-
-        return (bool) $membership?->is_owner;
+        return app(TenantProfileAccess::class);
     }
 
     public function createTenantInvite(User $user): bool
     {
-        return $this->currentUserIsOwner($user);
+        return $this->access()->canCreateTenantInvite(
+            $this->access()->actorMembershipFor($user)
+        );
     }
 
     public function delete(User $user, Invitation $invitation): bool
@@ -34,10 +27,6 @@ class InvitationPolicy
         $tenant = app('tenant');
 
         if (! $tenant) {
-            return false;
-        }
-
-        if (! $this->currentUserIsOwner($user)) {
             return false;
         }
 
@@ -53,6 +42,8 @@ class InvitationPolicy
             return false;
         }
 
-        return true;
+        return $this->access()->canCreateTenantInvite(
+            $this->access()->actorMembershipFor($user)
+        );
     }
 }

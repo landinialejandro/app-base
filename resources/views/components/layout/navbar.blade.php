@@ -1,10 +1,21 @@
-{{-- FILE: resources/views/components/layout/navbar.blade.php | V6 --}}
+{{-- FILE: resources/views/components/layout/navbar.blade.php | V7 --}}
 
 @php
+    use App\Support\Tenants\TenantProfileAccess;
+
     $user = auth()->user();
     $tenant = app()->bound('tenant') ? app('tenant') : null;
 
-    $currentMembership = $user && $tenant ? $user->memberships()->where('tenant_id', $tenant->id)->first() : null;
+    $currentMembership = $user && $tenant
+        ? $user->memberships()
+            ->where('tenant_id', $tenant->id)
+            ->with('roles')
+            ->first()
+        : null;
+
+    $canViewTenantProfile = $user && $tenant
+        ? app(TenantProfileAccess::class)->canViewProfile($currentMembership)
+        : false;
 @endphp
 
 <header class="app-header">
@@ -58,8 +69,7 @@
                     @endphp
 
                     <a class="app-nav-link app-nav-link--with-icon {{ $isActive ? 'is-active' : '' }}"
-                        href="{{ route($link['route']) }}"
-                        @if ($isCurrent) aria-current="page" @endif>
+                        href="{{ route($link['route']) }}" @if ($isCurrent) aria-current="page" @endif>
                         <span class="app-nav-link__icon" aria-hidden="true">
                             <x-dynamic-component :component="'icons.' . $icon" />
                         </span>
@@ -96,7 +106,7 @@
                             Perfil
                         </a>
 
-                        @if ($tenant && $currentMembership?->is_owner)
+                        @if ($canViewTenantProfile)
                             <a href="{{ route('tenant.profile.show') }}"
                                 class="app-user-dropdown-link {{ request()->routeIs('tenant.profile.show') ? 'is-active' : '' }}">
                                 Perfil de empresa

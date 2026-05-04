@@ -19,75 +19,81 @@ use Illuminate\Validation\ValidationException;
 
 class TenantProfilePermissionController extends Controller
 {
-    public function update(Request $request)
-    {
-        $tenant = app('tenant');
+public function update(Request $request)
+{
+    $tenant = app('tenant');
 
-        $membership = $request->user()
-            ->memberships()
-            ->where('tenant_id', $tenant->id)
-            ->first();
+    $membership = $request->user()
+        ->memberships()
+        ->where('tenant_id', $tenant->id)
+        ->with('roles')
+        ->first();
 
-        abort_unless($membership?->is_owner, 403);
+    $data = $request->validate([
+        'role' => ['required', 'string', Rule::in(RoleCatalog::assignable())],
+        'permissions' => ['nullable', 'array'],
+    ]);
 
-        $data = $request->validate([
-            'role' => ['required', 'string', Rule::in(RoleCatalog::assignable())],
-            'permissions' => ['nullable', 'array'],
-        ]);
+    $tenantProfileAccess = app(\App\Support\Tenants\TenantProfileAccess::class);
 
-        $role = Role::query()
-            ->where('tenant_id', $tenant->id)
-            ->where('slug', $data['role'])
-            ->with('permissions')
-            ->firstOrFail();
+    abort_unless(
+        $tenantProfileAccess->canManagePermissionsForRole($membership, $data['role']),
+        403
+    );
 
-        $enabledModules = collect(TenantModuleAccess::enabledModules($tenant))
-            ->filter(fn ($enabled) => $enabled === true)
-            ->keys()
-            ->values()
-            ->all();
+    $role = Role::query()
+        ->where('tenant_id', $tenant->id)
+        ->where('slug', $data['role'])
+        ->with('permissions')
+        ->firstOrFail();
 
-        $moduleCapabilityMap = $this->buildModuleCapabilityMap($enabledModules);
-        $existingMatrix = $this->buildExistingPermissionMatrix($role, $moduleCapabilityMap);
+    $enabledModules = collect(TenantModuleAccess::enabledModules($tenant))
+        ->filter(fn ($enabled) => $enabled === true)
+        ->keys()
+        ->values()
+        ->all();
 
-        $matrix = $this->normalizePermissionMatrix($request, $moduleCapabilityMap, $existingMatrix);
+    $moduleCapabilityMap = $this->buildModuleCapabilityMap($enabledModules);
+    $existingMatrix = $this->buildExistingPermissionMatrix($role, $moduleCapabilityMap);
 
-        $this->validateLogicalConsistency($matrix);
-        $this->validateScopes($matrix);
-        $this->validateConstraints($matrix);
+    $matrix = $this->normalizePermissionMatrix($request, $moduleCapabilityMap, $existingMatrix);
 
-        DB::transaction(function () use ($role, $matrix) {
-            $role->permissions()->detach();
+    $this->validateLogicalConsistency($matrix);
+    $this->validateScopes($matrix);
+    $this->validateConstraints($matrix);
 
-            foreach ($matrix as $module => $capabilities) {
-                foreach ($capabilities as $capability => $meta) {
-                    if (! $meta['enabled']) {
-                        continue;
-                    }
+    DB::transaction(function () use ($role, $matrix) {
+        $role->permissions()->detach();
 
-                    $role->permissions()->attach(
-                        $this->permissionIdFor($module, $capability),
-                        [
-                            'scope' => $meta['scope'],
-                            'execution_mode' => $meta['execution_mode'],
-                            'constraints' => empty($meta['constraints'])
-                                ? null
-                                : json_encode($meta['constraints'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
-                            'created_at' => now(),
-                            'updated_at' => now(),
-                        ]
-                    );
+        foreach ($matrix as $module => $capabilities) {
+            foreach ($capabilities as $capability => $meta) {
+                if (! $meta['enabled']) {
+                    continue;
                 }
-            }
-        });
 
-        return redirect()
-            ->route('tenant.profile.show', [
-                'tab' => 'permissions',
-                'role' => $data['role'],
-            ])
-            ->with('success', 'Permisos actualizados correctamente.');
-    }
+                $role->permissions()->attach(
+                    $this->permissionIdFor($module, $capability),
+                    [
+                        'scope' => $meta['scope'],
+                        'execution_mode' => $meta['execution_mode'],
+                        'constraints' => empty($meta['constraints'])
+                            ? null
+                            : json_encode($meta['constraints'], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES),
+                        'created_at' => now(),
+                        'updated_at' => now(),
+                    ]
+                );
+            }
+        }
+    });
+
+    return redirect()
+        ->route('tenant.profile.show', [
+            'tab' => 'permissions',
+            'role' => $data['role'],
+        ])
+        ->with('success', 'Permisos actualizados correctamente.');
+}
 
     protected function buildModuleCapabilityMap(array $enabledModules): array
     {

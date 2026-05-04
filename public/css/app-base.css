@@ -1482,6 +1482,15 @@ textarea.form-control {
     font-size: 0.9rem;
 }
 
+.tenant-role-sync-message,
+[data-role-sync-message] {
+    display: block;
+    max-width: 100%;
+    white-space: normal;
+    overflow-wrap: anywhere;
+    word-break: normal;
+}
+
 .tenant-settings-json {
     margin: 0;
     padding: var(--space-3);

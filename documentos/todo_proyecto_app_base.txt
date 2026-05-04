@@ -39,7 +39,7 @@ no debe utilizarse como depósito de ideas difusas sin criterio de ejecución
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — RECONVERSIÓN MODULAR>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00020
 
 LÍNEA ACTIVA — RECONVERSIÓN MODULAR
 
@@ -67,6 +67,11 @@ unificación visual de tabla de actividad general y contextual
 presentación compacta de cambios operativos con detalle en modal
 mejora visual de tab Actividad con ícono propio
 mejora visual del botón Ver cambios como acción icon-only
+reconversión de tenant/profile/accesses bajo contrato owner/admin
+apertura de tenant/profile para admin con gobierno restringido
+centralización de reglas owner/admin mediante TenantProfileAccess
+edición de funciones de memberships mediante modal y sync backend
+validación runtime de seguridad owner/admin con requests manipulados y rollback
 
 Criterios rectores vigentes:
 
@@ -85,6 +90,9 @@ no hardcodear conocimiento interno de módulos dentro de OperationalActivity
 no resolver lectura agregada por recursividad automática
 no resolver lectura contextual especial con condiciones internas dentro de OperationalActivity
 no duplicar tablas visuales de actividad si existe partial reusable común
+no tratar tenant/profile como módulo funcional ordinario
+no equiparar admin con owner
+no proteger reglas owner/admin solo desde UI o JS
 
 Foco de esta línea:
 
@@ -100,6 +108,8 @@ más distinción entre módulos funcionales y capacidades tenant no modulares
 más distinción entre surfaces modulares y surfaces tenant/transversales no modulares
 más definición explícita de fronteras de lectura agregada cuando correspondan
 más definición explícita de criterios contextuales especiales cuando correspondan
+más centralización de reglas sensibles del plano tenant
+más claridad entre gobierno estructural owner y gestión operativa admin
 
 Caso vigente consolidado:
 
@@ -112,6 +122,15 @@ inventory se registra en OperationalActivity mediante InventoryOperation
 party_roles puede registrarse como metadata operativa dentro de la actividad de Party
 operational_activity.view_any autoriza lectura general tenant-scoped del log operativo
 tenant/profile incorpora tab Actividad como lectura visual general de OperationalActivity
+tenant/profile es accesible por owner y admin según contrato vigente
+owner gobierna
+admin opera fuerte con restricciones
+admin no edita General
+admin no modifica rol admin
+admin no delega admin
+admin no autogestiona su autoridad
+TenantProfileAccess centraliza la autoridad del frente tenant/profile
+la edición de funciones de memberships se realiza mediante modal y roles.sync
 tasks.show, parties.show, projects.show, assets.show, products.show, appointments.show, orders.show y documents.show incorporan tab Actividad como lectura contextual heredada mediante TenantSurfaceRegistry
 projects.show usa ProjectActivityRecordSet para lectura agregada Project + Tasks
 parties.show puede usar PartyEmployeeActivityContext para lectura contextual especial de Party employee con membership activa vinculada
@@ -151,7 +170,7 @@ seguimiento posterior al cierre de reconversión conceptual y de seguridad, espe
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -428,11 +447,11 @@ Se validó que los registros aparecen luego de procesar la cola.
 
 Se implementó OperationalActivityLinkResolver para resolver lectura visual y navegación al registro asociado cuando exista ruta show canónica segura.
 
-Estado actual de lectura general:
+Estado vigente de lectura general:
 
-tenant/profile sigue restringido a owner
+tenant/profile es accesible por owner y admin según contrato vigente
 
-admin tiene permiso sembrado pero no accede todavía a tenant/profile
+admin accede con restricciones de gobierno
 
 OperationalActivity no tiene navegación principal propia
 
@@ -625,10 +644,114 @@ btn btn-secondary btn-icon
 
 No se creó clase nueva.
 
+Cierre operativo reciente de tenant/profile/accesses:
+
+se consolidó el contrato owner/admin bajo la doctrina:
+
+admin opera fuerte
+owner gobierna
+
+Se creó autoridad central del frente tenant/profile:
+
+TenantProfileAccess
+
+Ubicación vigente:
+
+app/Support/Tenants/TenantProfileAccess.php
+
+Esta pieza centraliza reglas para:
+
+ver tenant/profile
+editar General
+crear invitaciones tenant
+gestionar permisos por rol
+asignar roles
+quitar roles
+gestionar estado de memberships
+distinguir owner, admin y membership activa
+
+Se alinearon MembershipPolicy e InvitationPolicy para consumir esa autoridad central.
+
+Estado vigente:
+
+owner puede ver y editar tenant/profile
+admin puede ver tenant/profile
+admin no puede editar General
+admin no puede modificar permisos del rol admin
+admin sí puede gestionar permisos de roles operativos cuando corresponde
+admin no puede asignar admin a otro usuario
+admin sí puede asignar roles operativos cuando corresponde
+admin no puede autogestionar su rol admin
+admin no puede vaciar sus propios roles
+
+Se incorporó acción backend:
+
+TenantMembershipRoleController::sync
+
+Función:
+
+sincronizar el conjunto de roles de una membership con validación backend.
+
+Validaciones runtime informadas:
+
+admin intentando asignar admin → 403
+admin intentando combinar admin con otro rol → 403
+admin intentando vaciar sus propios roles → 403
+admin gestionando roles operativos permitidos → OK
+membership activa sin roles → error funcional controlado
+
+Cierre visual reciente de tenant/profile/accesses:
+
+se simplificó la tabla de usuarios del tenant.
+
+Antes:
+
+columna roles
+columna agregar rol
+botón agregar
+botón borrar por rol
+
+Después:
+
+columna Funciones
+badges de funciones actuales
+acciones compactas a la derecha
+botón Editar funciones
+formulario de edición dentro de modal
+
+Se incorporó modal con:
+
+nombre del usuario
+explicación breve
+checkboxes de funciones disponibles
+mensaje de ayuda dinámico
+acciones Cancelar / Guardar funciones
+
+Se validó que el botón Guardar funciones puede ubicarse en el footer del modal usando atributo form cuando corresponde.
+
+Se agregó JS mínimo en public/js/app-base.js mediante:
+
+data-action="tenant-role-sync-form"
+
+Alcance del JS:
+
+guiar exclusividad visual de Administrador
+destildar opciones incompatibles
+mostrar advertencia si no queda ninguna función
+actualizar mensaje dinámico
+
+Regla vigente:
+
+el JS no decide autorización.
+
+El backend conserva la autoridad final.
+
+Se corrigió wrap del mensaje de ayuda del modal para evitar scroll horizontal.
+
 <<END SECTION>>
 
 <<SECTION: CAPACIDADES REUTILIZABLES A CONSOLIDAR>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00020
 
 CAPACIDADES REUTILIZABLES A CONSOLIDAR
 
@@ -637,119 +760,55 @@ Prioridades vigentes:
 inventory como frente oficial de stock, movimientos e historial
 documents como surface documental reusable
 attachments como capacidad transversal homogénea
-linked actions oficiales entre módulos
-hosts show pages con slots consistentes
-row actions oficiales publicadas por módulos oferentes cuando corresponda
-OperationalActivity como capacidad transversal de trazabilidad operativa con superficies de lectura autorizadas
+linked-order
+linked-party
+linked-asset
+linked-project
+lectura contextual de OperationalActivity mediante TenantSurfaceRegistry
+tabla reusable de actividad operativa
+presentación reusable de cambios operativos
+TenantProfileAccess como autoridad reusable del frente tenant/profile
+edición sincronizada de funciones de membership mediante roles.sync
 
-Capacidades específicas bajo revisión:
+Criterios:
 
-AssetSurfaceService
-OrderSurfaceService
-PartySurfaceService
+consolidar capacidades por ownership real
 
-Objetivo inmediato:
+no duplicar lógica en consumidores
 
-asegurar que sus offers compactas hacia appointments.show publiquen contrato completo y visible:
+no crear componentes globales por comodidad si la semántica pertenece a un módulo
 
-type correcto
-slot correcto
-target correcto
-resolver consistente
-view alineada
+no convertir capacidades tenant no modulares en módulos funcionales ordinarios
 
-Criterio general:
+no introducir navegación principal por mera existencia técnica
 
-una capacidad reusable no está consolidada solo por existir código publicado.
+no duplicar tablas, partials o modales si ya existe una pieza reusable compatible
 
-Debe ser consumible de forma real, homogénea y visible dentro del ecosistema.
+no duplicar reglas owner/admin entre controllers, policies y Blades
 
-Regla adicional:
+Estado vigente:
 
-si una capacidad reusable necesita operar dentro de tablas anfitrionas, debe contemplar también variante row action y no solo linked o embedded tradicionales.
+OperationalActivity ya cuenta con surface tenant/transversal para lectura contextual
 
-Caso adicional vigente:
+OperationalActivity ya cuenta con tabla reusable común para lectura general y contextual
 
-las micro-superficies operativas por línea compartidas entre orders y documents deben converger hacia piezas reusables comunes cuando la intención funcional sea equivalente, manteniendo ownership operativo en el módulo oferente correspondiente.
+OperationalActivity ya cuenta con presentador de cambios operativos
 
-Capacidades reusable vigentes para line items:
+tenant/profile/accesses ya cuenta con autoridad central para reglas owner/admin
 
-x-line-item-form
-x-line-item-table
-x-line-operation-modal
-x-tabs-embedded
-x-dev-component-version
-LineItemMath
+tenant/profile/accesses ya cuenta con patrón visual de edición de funciones mediante modal
 
-Capacidad reusable vigente para tabs host:
+Pendientes reales de consolidación:
 
-x-host-tabs
-HostTabs
+mantener TenantProfileAccess como punto común ante nuevas reglas del frente tenant/profile
 
-Capacidad frontend reusable vigente:
+evitar reintroducir reglas owner/admin locales en nuevas policies o vistas
 
-data-action="app-progressive-form"
+revisar futuras necesidades de gestión tenant antes de abrir piezas paralelas
 
-Caso vigente:
+definir links seguros para records de actividad que aún no poseen ruta canónica confirmada
 
-parties._form utiliza formulario progresivo para guiar tipo de contacto, relación con la empresa y datos del contacto.
-
-Cierre específico de parties:
-
-PartyEmployeeContactAuthorization quedó extraído como pieza reusable de autorización sensible de employee.
-
-Ubicación vigente:
-
-app/Support/Parties/PartyEmployeeContactAuthorization.php
-
-Regla:
-
-la autorización sensible de employee no debe duplicarse entre controller y requests.
-
-Siguiente consolidación técnica posible:
-
-helpers comunes livianos orientados a presentación y payload visual de line items, sin absorber dominio, hooks, permisos ni semántica propia de cada módulo.
-
-Capacidades derivadas de OperationalActivity:
-
-lectura general desde tenant/profile mediante tab Actividad
-OperationalActivityLinkResolver como pieza reusable de lectura
-OperationalActivityContextReader como pieza reusable de lectura contextual por record host
-TenantSurfaceRegistry como canal de publicación para surfaces tenant/transversales no modulares
-OperationalActivitySurfaceService como surface contextual validada
-ActivityRecordSetProvider como contrato de lectura contextual agregada
-ProjectActivityRecordSet como provider validado para Project + Tasks
-ActivityContextProvider como contrato de lectura contextual especial
-PartyEmployeeActivityContext como provider validado para Party employee con membership activa vinculada
-OperationalActivityChangePresenter como pieza de presentación de cambios
-operational-activity-table como partial visual reusable común
-profile-activity-tab como consumidor de operational-activity-table
-
-Regla:
-
-activity_record_set y activity_context no son equivalentes.
-
-activity_record_set expresa un conjunto explícito de records relacionados.
-
-activity_context expresa un criterio contextual especial definido por el módulo dueño.
-
-Ambos deben preservar:
-
-tenant activo
-host autorizado
-ausencia de lectura general del tenant
-ownership funcional del módulo dueño
-OperationalActivity sin hardcode de relaciones internas
-
-Capacidades visuales derivadas de actividad operativa:
-
-iconografía reusable activity para tab Actividad
-iconografía reusable changes para Ver cambios
-botón Ver cambios icon-only con btn btn-secondary btn-icon
-
-Regla:
-
-la mejora visual de actividad operativa no debe convertir OperationalActivity en módulo funcional ni navegación principal.
+definir estrategia de worker de cola para producción
 
 <<END SECTION>>
 

@@ -38,7 +38,7 @@ Este documento se limita a la capa visual y estructural de componentes.
 
 
 <<SECTION: COMPONENTES BLADE GLOBALES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 COMPONENTES BLADE GLOBALES
 
@@ -73,15 +73,21 @@ Aclaración vigente sobre x-modal:
 
 x-modal es componente global válido para modales operativos e informativos cuando el contenido ya llega preparado por la capa correspondiente.
 
-Caso vigente:
+Casos vigentes:
 
-detalle de cambios en actividad operativa.
+detalle de cambios en actividad operativa
+
+edición de funciones de una membership desde tenant/profile
 
 Regla:
 
 x-modal no decide autorización, no consulta datos y no interpreta reglas de dominio.
 
 Solo representa una interacción visual reutilizable.
+
+En el caso de edición de funciones tenant, el modal representa la micro-interacción visual con datos y permisos ya preparados por backend.
+
+No decide reglas owner/admin ni resuelve autoridad.
 
 Regla de validación runtime:
 
@@ -140,7 +146,7 @@ la navegación puede incluir iconografía por módulo, pero esta debe provenir d
 
 
 <<SECTION: COMPONENTES DE ÍCONOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 COMPONENTES DE ÍCONOS
 
@@ -172,6 +178,8 @@ paperclip
 grid
 activity
 changes
+lock
+unlock
 
 Uso vigente adicional:
 
@@ -180,6 +188,15 @@ tab Actividad
 
 changes
 botón Ver cambios
+
+user-group
+Más datos
+
+list-check
+Editar funciones
+
+lock / unlock
+acciones o estados de bloqueo y desbloqueo
 
 Regla crítica:
 

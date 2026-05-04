@@ -36,7 +36,7 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 DECISIONES VIGENTES
 
@@ -94,6 +94,82 @@ primero registrar o auditar eventos sensibles
 notificar solo ante patrón, reiteración o severidad
 
 Este criterio no implica implementación vigente de auditoría o notificación.
+
+Decisión vigente sobre gobierno owner/admin:
+
+admin opera fuerte
+
+owner gobierna
+
+Lectura vigente:
+
+owner es condición estructural de gobierno del tenant
+
+owner se resuelve por memberships.is_owner
+
+admin es rol delegable de gestión operativa fuerte
+
+admin no equivale a owner
+
+admin puede tener capacidades operativas amplias
+
+owner conserva gobierno estructural del tenant
+
+Reglas vigentes:
+
+admin puede acceder a tenant/profile con restricciones
+
+owner puede editar General
+
+admin no puede editar General
+
+admin no puede modificar permisos del rol admin
+
+admin no puede asignar, delegar, quitar ni autogestionar admin
+
+admin no puede modificar su propia autoridad
+
+admin no puede vaciar sus propios roles
+
+admin puede gestionar roles operativos según contrato
+
+owner puede administrar el rol admin
+
+Pieza vigente:
+
+TenantProfileAccess
+
+Responsabilidad:
+
+centralizar reglas del frente tenant/profile y evitar duplicación entre controllers, policies y Blades.
+
+Estado:
+
+decisión implementada y validada por runtime real.
+
+Decisión vigente sobre edición de funciones de memberships:
+
+cuando la intención sea editar el conjunto completo de funciones de una membership, la salida vigente es usar sincronización de conjunto.
+
+Caso vigente:
+
+TenantMembershipRoleController::sync
+
+Reglas:
+
+sync valida agregados y remociones
+
+sync bloquea combinaciones sensibles
+
+sync bloquea autogestión indebida
+
+sync bloquea admin intentando asignar o combinar admin
+
+sync bloquea admin intentando vaciar sus propios roles
+
+sync permite gestionar roles operativos cuando el contrato lo autoriza
+
+La UI puede usar modal y checkboxes para reducir ruido visual, pero la autoridad final es backend.
 
 OperationalActivity queda decidido como capacidad transversal tenant-scoped de trazabilidad operativa.
 
@@ -207,11 +283,29 @@ No se implementa vista general independiente del log.
 
 Decisión vigente sobre acceso a tenant/profile:
 
-tenant/profile sigue restringido a owner en el estado actual.
+tenant/profile es accesible por owner y admin según contrato vigente.
 
-admin tiene permiso sembrado para operational_activity.view_any, pero no accede todavía a tenant/profile por la restricción vigente del controlador.
+owner conserva gobierno estructural.
 
-El acceso futuro de admin a tenant/profile queda pendiente explícito y debe distinguir visualización permitida de edición restringida.
+admin accede con restricciones.
+
+Esta decisión reemplaza la lectura anterior donde tenant/profile seguía restringido solo a owner y el acceso futuro de admin estaba pendiente.
+
+Reglas:
+
+owner puede ver y editar según contrato
+
+admin puede ver tenant/profile
+
+admin no puede editar General
+
+admin no puede modificar rol admin
+
+admin no puede delegar admin
+
+admin no puede autogestionar su autoridad
+
+la UI debe expresar restricciones, pero el backend autoriza o bloquea
 
 Decisión vigente sobre lectura contextual heredada de OperationalActivity:
 
@@ -325,82 +419,24 @@ actividad donde el user vinculado sea subject_user_id
 
 Motivo:
 
-esto permite que la ficha ampliada employee funcione como centro contextual de actividad del colaborador sin crear módulo users, sin convertir membership en módulo funcional y sin contaminar OperationalActivity con lógica propia de parties.
+esto permite que la ficha ampliada employee funcione como centro contextual de actividad del colaborador sin convertir users, memberships ni party_roles en módulos funcionales.
 
 Reglas:
 
-activity_context no reemplaza activity_record_set
+OperationalActivity no debe hardcodear employee
 
-activity_record_set expresa conjunto explícito de records
+OperationalActivity no debe hardcodear parties
 
-activity_context expresa criterio contextual especial
+OperationalActivity no debe hardcodear memberships
 
-OperationalActivity no debe hardcodear employee, parties, memberships ni users
+OperationalActivity no debe hardcodear users
 
-el módulo dueño define la frontera funcional cuando corresponde
+el módulo dueño define la frontera contextual especial
 
 activity_context no autoriza records por sí mismo
 
 activity_context no habilita lectura general del tenant
 
-activity_context no altera ownership funcional de los records incluidos ni de los users vinculados
-
-Decisión vigente sobre hosts show con tab Actividad:
-
-los hosts show autorizados pueden recibir tab Actividad con lectura directa por defecto.
-
-La existencia de tab no obliga a definir record set agregado ni context especial.
-
-Decisión vigente:
-
-si no hay activity_record_set ni activity_context
-→ lectura directa del record host
-
-si hay activity_record_set
-→ lectura del conjunto definido por el módulo
-
-si hay activity_context
-→ lectura del criterio contextual especial definido por el módulo
-
-Decisión vigente sobre surfaces tenant/transversales no modulares:
-
-una capacidad tenant-scoped o transversal no modular puede publicar surfaces controladas hacia hosts funcionales mediante TenantSurfaceRegistry.
-
-Esta vía corresponde cuando la capacidad:
-
-no es módulo funcional ordinario
-no posee navegación principal
-no posee CRUD ordinario
-no debe incorporarse a ModuleCatalog
-no pasa por TenantModuleAccess
-necesita publicar información controlada hacia hosts autorizados
-
-Caso validado:
-
-OperationalActivitySurfaceService publica la tab contextual Actividad.
-
-Decisión vigente sobre presentación visual de actividad:
-
-la tabla general y contextual de actividad debe reutilizar operational-activity-table.
-
-El detalle de cambios se muestra bajo demanda mediante modal.
-
-La vista no interpreta metadata.changes directamente.
-
-OperationalActivityChangePresenter prepara change_summary y change_details.
-
-Decisión vigente sobre iconografía de actividad:
-
-la tab Actividad puede usar icon = activity declarado por la surface.
-
-El botón Ver cambios usa x-icons.changes.
-
-El botón Ver cambios debe mantenerse como acción secundaria icon-only cuando esté dentro de la tabla.
-
-Variante visual validada:
-
-btn btn-secondary btn-icon
-
-No se crea clase nueva para este caso.
+activity_context no reemplaza activity_record_set
 
 <<END SECTION>>

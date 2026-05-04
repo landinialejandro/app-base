@@ -26,7 +26,7 @@ lección aplicable
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 LECCIONES VIGENTES
 
@@ -392,5 +392,107 @@ btn btn-secondary btn-icon
 Lección:
 
 las mejoras visuales deben priorizar patrones existentes antes de crear clases nuevas.
+
+Request::create no garantiza usuario disponible en controller.
+
+Caso detectado:
+
+en pruebas Tinker de controllers que usan $request->user(), un Request::create(...) manual devuelve user null si no se define user resolver.
+
+Corrección:
+
+usar:
+
+$request->setUserResolver(fn () => $user)
+
+Lección:
+
+si el controller depende de $request->user(), la prueba debe reproducir esa condición explícitamente.
+
+setUserResolver no reemplaza Auth::login cuando se usa authorize.
+
+Caso detectado:
+
+cuando el controller usa $this->authorize(...), no alcanza con setUserResolver.
+
+Corrección:
+
+autenticar también con:
+
+Auth::login($user)
+
+Lección:
+
+si se prueba un controller con authorize, debe existir usuario autenticado real en el guard además de resolver user en el request cuando corresponda.
+
+Tenant::first no es confiable para pruebas sensibles.
+
+Caso detectado:
+
+si existen múltiples tenants, Tenant::first() puede seleccionar un tenant sin los actores necesarios.
+
+Lección:
+
+para validar seguridad debe detectarse o fijarse un tenant que tenga el dataset real requerido.
+
+No se debe interpretar una prueba sin actor real como validación del contrato.
+
+Caso detectado:
+
+una prueba sensible que devuelve null por falta de actor real no valida ni invalida la regla.
+
+Lección:
+
+si falta actor real, tenant real o dataset real, la prueba debe detenerse o corregirse antes de interpretar resultados.
+
+El orden de validación dentro de un método sensible importa.
+
+Caso detectado:
+
+en sync, si primero se valida una regla funcional con redirect, puede ocultarse un intento sensible que debería responder 403.
+
+Lección:
+
+primero deben evaluarse agregados y remociones sensibles con autoridad backend.
+
+Luego deben evaluarse reglas funcionales no sensibles.
+
+Un botón submit en footer de x-modal puede quedar fuera del form.
+
+Caso detectado:
+
+si el componente renderiza slot y footer por separado, el botón Guardar puede quedar fuera del formulario.
+
+Corrección:
+
+usar atributo:
+
+form="id-del-form"
+
+o ubicar el botón dentro del formulario.
+
+Lección:
+
+cuando se usa footer de modal para acciones submit, debe verificarse que el botón esté asociado al form real.
+
+El CSS debe apuntar al atributo o clase realmente renderizada.
+
+Caso detectado:
+
+el JS de ayuda visual modificaba texto y atributos, pero el CSS apuntaba a una clase no garantizada.
+
+Lección:
+
+si JS no modifica clases, el CSS debe apuntar al atributo real renderizado o el Blade debe incluir la clase desde el inicio.
+
+Una captura de pantalla usada como evidencia visual no requiere generación de imagen.
+
+Error detectado:
+
+se activó por error una herramienta de imagen ante una captura utilizada para discutir UI existente.
+
+Lección:
+
+cuando la captura se usa como evidencia visual para analizar una interfaz real, no corresponde generar imagen.
 
 <<END SECTION>>

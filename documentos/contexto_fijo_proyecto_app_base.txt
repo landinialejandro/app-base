@@ -174,7 +174,7 @@ Su desarrollo técnico y sus reglas operativas concretas se resuelven en documen
 <<END SECTION>>
 
 <<SECTION: IDENTIDAD GLOBAL Y PERTENENCIA POR EMPRESA>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 IDENTIDAD GLOBAL Y PERTENENCIA POR EMPRESA
 
@@ -241,12 +241,27 @@ Membership = pertenencia operativa
 Party = ficha ampliada tenant-scoped cuando existe vínculo explícito
 OperationalActivity = trazabilidad transversal tenant-scoped
 
-El detalle operativo, visual y de seguridad de esa ficha ampliada se define en los documentos especializados correspondientes.
+Aclaración estructural sobre owner/admin:
+
+owner es una condición estructural de gobierno del tenant resuelta desde membership.
+
+admin es un rol delegable de gestión operativa fuerte dentro del tenant.
+
+admin no equivale a owner.
+
+Esta distinción refuerza la separación entre:
+
+condición estructural de gobierno
+rol delegable operativo
+pertenencia activa al tenant
+ficha ampliada opcional del negocio
+
+El detalle operativo, visual y de seguridad de esa ficha ampliada y del gobierno owner/admin se define en los documentos especializados correspondientes.
 
 <<END SECTION>>
 
 <<SECTION: TENANT ACTIVO COMO CONTEXTO OPERATIVO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 TENANT ACTIVO COMO CONTEXTO OPERATIVO
 
@@ -260,15 +275,24 @@ contexto de empresa vigente
 marco operativo de los módulos del negocio
 lectura correcta de las relaciones del ecosistema
 ámbito de operación del usuario dentro del sistema
+marco de gobierno interno del tenant
 
 El tenant activo no debe interpretarse como un dato accesorio de sesión sin relevancia arquitectónica.
 
 Es una pieza estructural del funcionamiento del sistema.
 
+El frente tenant/profile pertenece a este plano de contexto y gobierno interno.
+
+No debe leerse como módulo funcional ordinario del negocio.
+
+Regla estructural:
+
+el tenant activo organiza tanto operación como gobierno interno de la empresa activa, pero el detalle de autorización, permisos y restricciones owner/admin pertenece al documento especializado de seguridad.
+
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00027
+SECTION_VERSION: 00028
 
 CAPAS FUNCIONALES DEL SISTEMA
 
@@ -285,13 +309,31 @@ La capa tenant puede incluir capacidades propias del plano empresa que no consti
 Estas capacidades pueden ser tenant-scoped, evaluables por seguridad y visibles dentro de frentes del tenant sin incorporarse automáticamente al conjunto de módulos funcionales ordinarios.
 
 CAPA DE GOBIERNO INTERNO DEL TENANT
-Organiza pertenencia y actores internos.
+Organiza pertenencia, actores internos y autoridad estructural dentro de la empresa activa.
 
 users mantiene identidad global.
 
 memberships resuelve pertenencia operativa.
 
+owner se resuelve como condición estructural de gobierno mediante memberships.is_owner.
+
+admin se resuelve como rol delegable de gestión operativa fuerte.
+
+Lectura vigente:
+
+owner gobierna estructuralmente el tenant
+
+admin opera con autoridad amplia pero no reemplaza al owner
+
+admin no gobierna la estructura superior del tenant
+
+El frente tenant/profile pertenece a esta capa de gobierno interno.
+
+No es módulo funcional ordinario del negocio.
+
 Una membership puede vincularse opcionalmente con una ficha ampliada tenant-scoped en parties, sin reemplazar identidad ni acceso.
+
+La complejidad del gobierno interno debe ser absorbida por el sistema mediante reglas backend centralizadas, sin trasladar lógica contractual crítica al usuario.
 
 CAPA TRANSVERSAL
 Responsabilidades compartidas que sostienen funcionamiento común entre módulos.
@@ -353,6 +395,8 @@ Reglas:
 esta lectura debe prevalecer en decisiones arquitectónicas
 
 tenant es contexto, no módulo funcional
+
+tenant/profile es frente de gobierno interno, no módulo funcional ordinario
 
 no toda capacidad tenant-scoped debe incorporarse como módulo funcional ordinario
 
@@ -419,7 +463,7 @@ no interpretar el sistema como una primera línea plana de módulos al mismo niv
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL SISTEMA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 ENTIDADES DEL SISTEMA
 
@@ -436,6 +480,22 @@ invitations
 Estas entidades no deben confundirse con el dominio operativo del negocio del tenant.
 
 Su función es sostener la plataforma y su frontera de ingreso.
+
+Aclaración vigente:
+
+memberships expresa la pertenencia operativa del usuario al tenant.
+
+Desde memberships también se resuelve la condición estructural de owner mediante is_owner.
+
+Los roles delegables asociados a la pertenencia organizan funciones operativas dentro del tenant, pero no reemplazan la condición estructural owner.
+
+Lectura vigente:
+
+owner = condición estructural de gobierno del tenant
+
+admin = rol delegable de gestión operativa fuerte
+
+membership = pertenencia operativa al tenant
 
 <<END SECTION>>
 

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: database/seeders/Modules/OrderModuleSeeder.php | V4
+// FILE: database/seeders/Modules/OrderModuleSeeder.php | V5
 
 namespace Database\Seeders\Modules;
 
@@ -61,7 +61,8 @@ class OrderModuleSeeder extends BaseModuleSeeder
             'party_id' => $acme?->id,
             'created_by' => $users['ownerTech']->id,
             'updated_by' => $users['ownerTech']->id,
-            'kind' => OrderCatalog::KIND_SALE,
+            'group' => OrderCatalog::GROUP_SALE,
+            'kind' => OrderCatalog::KIND_STANDARD,
             'number' => 'TECH-ORD-0001',
             'status' => OrderCatalog::STATUS_PENDING_APPROVAL,
             'ordered_at' => now()->subDays(3)->toDateString(),
@@ -80,7 +81,8 @@ class OrderModuleSeeder extends BaseModuleSeeder
             'party_id' => $laura?->id,
             'created_by' => $users['techUser']->id,
             'updated_by' => $users['techUser']->id,
-            'kind' => OrderCatalog::KIND_SERVICE,
+            'group' => OrderCatalog::GROUP_SERVICE,
+            'kind' => OrderCatalog::KIND_STANDARD,
             'number' => 'TECH-ORD-0002',
             'status' => OrderCatalog::STATUS_APPROVED,
             'ordered_at' => now()->subDay()->toDateString(),
@@ -98,7 +100,8 @@ class OrderModuleSeeder extends BaseModuleSeeder
             'party_id' => $acme?->id,
             'created_by' => $users['shared']->id,
             'updated_by' => $users['shared']->id,
-            'kind' => OrderCatalog::KIND_PURCHASE,
+            'group' => OrderCatalog::GROUP_PURCHASE,
+            'kind' => OrderCatalog::KIND_STANDARD,
             'number' => 'TECH-ORD-0003',
             'status' => OrderCatalog::STATUS_CANCELLED,
             'ordered_at' => now()->subDays(2)->toDateString(),
@@ -133,7 +136,8 @@ class OrderModuleSeeder extends BaseModuleSeeder
             'party_id' => $obrasPatagonicas?->id,
             'created_by' => $users['ownerAndina']->id,
             'updated_by' => $users['ownerAndina']->id,
-            'kind' => OrderCatalog::KIND_SALE,
+            'group' => OrderCatalog::GROUP_SALE,
+            'kind' => OrderCatalog::KIND_STANDARD,
             'number' => 'AND-ORD-0001',
             'status' => OrderCatalog::STATUS_PENDING_APPROVAL,
             'ordered_at' => now()->subDays(4)->toDateString(),
@@ -151,7 +155,8 @@ class OrderModuleSeeder extends BaseModuleSeeder
             'party_id' => $marcos?->id,
             'created_by' => $users['andinaUser']->id,
             'updated_by' => $users['andinaUser']->id,
-            'kind' => OrderCatalog::KIND_SERVICE,
+            'group' => OrderCatalog::GROUP_SERVICE,
+            'kind' => OrderCatalog::KIND_STANDARD,
             'number' => 'AND-ORD-0002',
             'status' => OrderCatalog::STATUS_APPROVED,
             'ordered_at' => now()->toDateString(),
@@ -169,7 +174,8 @@ class OrderModuleSeeder extends BaseModuleSeeder
             'party_id' => $obrasPatagonicas?->id,
             'created_by' => $users['shared']->id,
             'updated_by' => $users['shared']->id,
-            'kind' => OrderCatalog::KIND_PURCHASE,
+            'group' => OrderCatalog::GROUP_PURCHASE,
+            'kind' => OrderCatalog::KIND_STANDARD,
             'number' => 'AND-ORD-0003',
             'status' => OrderCatalog::STATUS_CANCELLED,
             'ordered_at' => now()->subDays(3)->toDateString(),
@@ -197,94 +203,90 @@ class OrderModuleSeeder extends BaseModuleSeeder
             return $existing;
         }
 
-        $actorUserId = $users['ownerTech']->id;
-        $acme = $parties[0] ?? null;
-        $product = $this->resolveFirstPhysicalProduct($products);
+        $hadTenantBinding = app()->bound('tenant');
+        $previousTenant = $hadTenantBinding ? app('tenant') : null;
 
-        $order = $this->createOrder([
-            'tenant_id' => $tenant->id,
-            'party_id' => $acme?->id,
-            'created_by' => $actorUserId,
-            'updated_by' => $actorUserId,
-            'kind' => OrderCatalog::KIND_SALE,
-            'number' => $number,
-            'status' => OrderCatalog::STATUS_DRAFT,
-            'ordered_at' => now()->subDays(1)->toDateString(),
-            'notes' => 'Orden testigo creada por seed operativo para validar ciclo completo.',
-        ]);
+        app()->instance('tenant', $tenant);
 
-        $item = OrderItem::create([
-            'tenant_id' => $tenant->id,
-            'order_id' => $order->id,
-            'product_id' => $product->id,
-            'position' => 1,
-            'kind' => $product->kind,
-            'description' => $product->name,
-            'quantity' => 1,
-            'status' => 'pending',
-            'unit_price' => $product->price ?? 0,
-        ]);
+        try {
+            $actorUserId = $users['ownerTech']->id;
+            $acme = $parties[0] ?? null;
+            $product = $this->resolveFirstPhysicalProduct($products);
 
-        $this->transitionOrderStatus(
-            order: $order,
-            status: OrderCatalog::STATUS_PENDING_APPROVAL,
-            actorUserId: $actorUserId
-        );
+            $order = $this->createOrder([
+                'tenant_id' => $tenant->id,
+                'party_id' => $acme?->id,
+                'created_by' => $actorUserId,
+                'updated_by' => $actorUserId,
+                'group' => OrderCatalog::GROUP_SALE,
+                'kind' => OrderCatalog::KIND_STANDARD,
+                'number' => $number,
+                'status' => OrderCatalog::STATUS_DRAFT,
+                'ordered_at' => now()->subDays(1)->toDateString(),
+                'notes' => 'Orden testigo creada por seed operativo para validar ciclo completo.',
+            ]);
 
-        $this->transitionOrderStatus(
-            order: $order,
-            status: OrderCatalog::STATUS_APPROVED,
-            actorUserId: $actorUserId
-        );
+            $item = OrderItem::create([
+                'tenant_id' => $tenant->id,
+                'order_id' => $order->id,
+                'product_id' => $product->id,
+                'position' => 1,
+                'kind' => $product->kind,
+                'description' => $product->name,
+                'quantity' => 1,
+                'status' => 'pending',
+                'unit_price' => $product->price ?? 0,
+            ]);
 
-        app(OrderInventoryOperationService::class)->executeLine(
-            order: $order->fresh(),
-            item: $item->fresh(),
-            quantity: $item->quantity,
-            notes: 'Surtido completo de línea por seed operativo.',
-            createdBy: $actorUserId
-        );
+            $this->transitionOrderStatus(
+                order: $order,
+                status: OrderCatalog::STATUS_PENDING_APPROVAL,
+                actorUserId: $actorUserId
+            );
 
-        $this->transitionOrderStatus(
-            order: $order->fresh('items.product'),
-            status: OrderCatalog::STATUS_CLOSED,
-            actorUserId: $actorUserId
-        );
+            $this->transitionOrderStatus(
+                order: $order,
+                status: OrderCatalog::STATUS_APPROVED,
+                actorUserId: $actorUserId
+            );
 
-        return $order->fresh();
+            app(OrderInventoryOperationService::class)->executeLine(
+                order: $order->fresh(),
+                item: $item->fresh(),
+                quantity: $item->quantity,
+                notes: 'Surtido completo de línea por seed operativo.',
+                createdBy: $actorUserId
+            );
+
+            $this->transitionOrderStatus(
+                order: $order->fresh('items.product'),
+                status: OrderCatalog::STATUS_CLOSED,
+                actorUserId: $actorUserId
+            );
+
+            return $order->fresh();
+        } finally {
+            if ($hadTenantBinding) {
+                app()->instance('tenant', $previousTenant);
+            } else {
+                app()->forgetInstance('tenant');
+            }
+        }
     }
 
     private function createOrder(array $data): Order
     {
+        $this->assertValidOrderPayload($data);
+
         $order = Order::query()
             ->where('tenant_id', $data['tenant_id'])
             ->where('number', $data['number'])
             ->first();
 
-        $legacyKinds = [
-            OrderCatalog::GROUP_SALE,
-            OrderCatalog::GROUP_PURCHASE,
-            OrderCatalog::GROUP_SERVICE,
-        ];
-
-        $incomingKind = $data['kind'] ?? null;
-        $incomingGroup = $data['group'] ?? null;
-
-        $resolvedGroup = $incomingGroup;
-        $resolvedKind = $incomingKind;
-
-        if ($resolvedGroup === null && is_string($incomingKind) && in_array($incomingKind, $legacyKinds, true)) {
-            $resolvedGroup = $incomingKind;
-            $resolvedKind = OrderCatalog::KIND_STANDARD;
-        }
-
-        $resolvedGroup ??= OrderCatalog::GROUP_SALE;
-        $resolvedKind ??= OrderCatalog::KIND_STANDARD;
-
         $payload = [
             'party_id' => $data['party_id'],
-            'group' => $resolvedGroup,
-            'kind' => $resolvedKind,
+            'group' => $data['group'],
+            'kind' => $data['kind'],
             'status' => $data['status'],
             'ordered_at' => $data['ordered_at'],
             'notes' => $data['notes'],
@@ -358,6 +360,27 @@ class OrderModuleSeeder extends BaseModuleSeeder
         ));
 
         return $order->fresh();
+    }
+
+    private function assertValidOrderPayload(array $data): void
+    {
+        foreach (['tenant_id', 'number', 'group', 'kind', 'status'] as $requiredField) {
+            if (! array_key_exists($requiredField, $data) || $data[$requiredField] === null || $data[$requiredField] === '') {
+                throw new \RuntimeException("Missing required order seed field [{$requiredField}].");
+            }
+        }
+
+        if (! array_key_exists($data['group'], OrderCatalog::groups())) {
+            throw new \RuntimeException("Invalid order group [{$data['group']}] for seed order [{$data['number']}].");
+        }
+
+        if (! array_key_exists($data['kind'], OrderCatalog::kindLabels($data['group']))) {
+            throw new \RuntimeException("Invalid order kind [{$data['kind']}] for seed order [{$data['number']}].");
+        }
+
+        if (! in_array($data['status'], OrderCatalog::statuses(), true)) {
+            throw new \RuntimeException("Invalid order status [{$data['status']}] for seed order [{$data['number']}].");
+        }
     }
 
     private function resolveFirstPhysicalProduct($products)

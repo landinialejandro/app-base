@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -75,6 +75,8 @@ Relaciones de contexto interno del tenant:
 
 memberships → users
 tenants → memberships
+memberships → roles internos del tenant
+tenant/profile → gobierno interno del tenant
 
 Relación conceptual adicional consolidada:
 
@@ -110,6 +112,30 @@ Lectura validada:
 party.kind = person
 party_roles contiene employee
 party.email se mantiene coherente con el usuario vinculado cuando corresponda
+
+Aclaración vigente sobre roles internos del tenant:
+
+los roles asociados a memberships expresan funciones delegadas dentro de la empresa.
+
+No reemplazan la condición estructural owner.
+
+Lectura vigente:
+
+users = identidad global
+
+memberships = pertenencia operativa al tenant
+
+roles asociados a membership = funciones delegadas dentro de la empresa
+
+owner = condición estructural de gobierno del tenant
+
+admin = rol delegable de gestión operativa fuerte
+
+Aclaración vigente:
+
+admin puede operar con autoridad amplia dentro del tenant, pero no equivale a owner.
+
+admin no puede modificar su propia autoridad ni administrar la autoridad admin.
 
 Aclaración operativa de parties:
 
@@ -281,6 +307,7 @@ las relaciones del ecosistema deben leerse respetando los planos conceptuales:
 identidad global
 pertenencia operativa
 operación del negocio
+gobierno interno del tenant
 trazabilidad transversal
 surfaces tenant/transversales no modulares
 fronteras explícitas publicadas por módulos dueños
@@ -304,7 +331,7 @@ invitations
 <<END SECTION>>
 
 <<SECTION: FUNCIÓN DE CADA UNA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 FUNCIÓN DE CADA UNA
 
@@ -342,10 +369,23 @@ a qué empresa pertenece un usuario
 qué estado tiene dentro de esa empresa
 qué roles tiene dentro de esa empresa
 qué perfil funcional persistido tiene dentro de esa empresa
+si posee condición estructural owner dentro de ese tenant
 
 También constituye la base real para resolver colaboradores internos activos del tenant.
 
 Cuando el sistema necesite reutilizar ese dataset en múltiples frentes operativos, la salida correcta es una raíz reusable del plano tenant y no un módulo users del ecosistema funcional.
+
+Aclaración vigente:
+
+owner no es un rol ordinario.
+
+owner se resuelve como condición estructural de gobierno del tenant.
+
+admin es un rol delegable de gestión operativa fuerte.
+
+admin no equivale a owner.
+
+Los roles asociados a membership expresan funciones internas delegadas dentro de la empresa.
 
 signup_requests
 
@@ -643,7 +683,7 @@ Esta capacidad no modifica la naturaleza base de parties.
 <<END SECTION>>
 
 <<SECTION: MODELO DE ACCESO Y PERTENENCIA>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 MODELO DE ACCESO Y PERTENENCIA
 
@@ -707,6 +747,32 @@ party.kind = person
 party_roles contiene employee
 party.email queda protegido respecto de edición libre desde parties cuando corresponde al usuario vinculado
 
+Aclaración vigente para roles internos:
+
+la pertenencia operativa puede tener roles asociados que expresan funciones delegadas dentro del tenant.
+
+Estos roles no reemplazan la condición owner.
+
+Lectura vigente:
+
+owner = condición estructural de gobierno del tenant
+
+admin = rol delegable de gestión operativa fuerte
+
+roles operativos = funciones internas delegadas
+
+Reglas:
+
+owner no es rol ordinario
+
+admin no equivale a owner
+
+admin puede operar, pero no gobernar estructuralmente el tenant
+
+admin no puede modificar su propia autoridad ni administrar la autoridad admin
+
+la edición de funciones de una membership puede tratarse como sincronización del conjunto de roles, con validaciones diferenciadas para agregados y remociones
+
 Aclaración vigente para lectura contextual:
 
 cuando exista Party con relación employee y membership activa vinculada, esa ficha puede actuar como centro contextual de actividad del colaborador.
@@ -740,7 +806,7 @@ cada plano conserva su responsabilidad
 <<END SECTION>>
 
 <<SECTION: ROLES Y AUTORIZACIÓN>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ROLES Y AUTORIZACIÓN
 
@@ -762,6 +828,30 @@ el owner puede no tener roles explícitos en la relación many-to-many
 el rol owner se resuelve implícitamente mediante lógica del resolver
 
 los scopes y constraints forman parte activa del contrato persistido
+
+Aclaración vigente sobre owner/admin:
+
+owner es condición estructural de gobierno del tenant.
+
+Se resuelve mediante memberships.is_owner.
+
+admin es rol delegable de gestión operativa fuerte.
+
+admin no equivale a owner.
+
+Reglas:
+
+admin puede gestionar aspectos operativos amplios cuando el contrato lo autorice
+
+admin no puede modificar permisos del rol admin
+
+admin no puede asignar, delegar, quitar ni autogestionar admin
+
+admin no puede modificar su propia autoridad
+
+admin no puede vaciar sus propios roles
+
+admin puede gestionar roles operativos no estructurales sobre otros usuarios cuando backend lo autorice
 
 Aclaración vigente para parties:
 

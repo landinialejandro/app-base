@@ -167,7 +167,7 @@ cuando existan varias rutas posibles, debe priorizarse la más consistente con N
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN PRINCIPAL TENANT>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 NAVEGACIÓN PRINCIPAL TENANT
 
@@ -199,6 +199,28 @@ Regla adicional consolidada:
 users no debe aparecer por esta necesidad como módulo navegable autónomo dentro del tenant
 
 La gestión interna de usuarios, pertenencias, roles y permisos continúa anclada al frente tenant/profile/accesses y no a una navegación principal users separada
+
+Regla adicional consolidada:
+
+tenant/profile es frente de gobierno interno del tenant.
+
+No es módulo funcional ordinario del negocio.
+
+Su acceso visible puede estar disponible para owner y admin según autorización central.
+
+Lectura vigente:
+
+owner puede acceder a tenant/profile como autoridad estructural de gobierno
+
+admin puede acceder a tenant/profile con restricciones de gobierno
+
+sales/operator no deben ver ni acceder a ese frente si no poseen autorización efectiva
+
+La autorización de acceso debe resolverse por la pieza central correspondiente y no por condición visual local.
+
+Caso vigente:
+
+TenantProfileAccess::canViewProfile
 
 Regla adicional consolidada:
 
@@ -237,7 +259,7 @@ Su función es dar acceso estructural al ecosistema operativo vigente
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -257,11 +279,43 @@ documents puede actuar como host visual de acciones oficiales de inventory sobre
 
 appointments, tasks, assets y parties mantienen sus relaciones propias dentro del ecosistema general
 
+tenant/profile actúa como frente de gobierno interno del tenant para usuarios, memberships, roles y permisos
+
 Regla de frontera:
 
 que un módulo hospede visualmente una capacidad ajena no lo convierte en dueño de su lógica operativa.
 
 El módulo oferente conserva reglas, validaciones y evolución interna.
+
+Aclaración vigente para tenant/profile:
+
+tenant/profile no abre un módulo users.
+
+La gestión de usuarios, memberships, roles y permisos continúa anclada al frente tenant/profile/accesses.
+
+Owner y admin pueden visualizar ese frente cuando la autorización central lo permita.
+
+La diferencia entre ambos no se resuelve creando navegaciones separadas, sino aplicando restricciones dentro del mismo frente.
+
+Lectura vigente:
+
+owner gobierna
+
+admin opera fuerte con restricciones
+
+Aclaración vigente para edición de funciones:
+
+la edición de funciones de una membership puede resolverse como micro-interacción modal dentro de la pantalla de roles/accesos.
+
+Patrón visible:
+
+acción por fila
+apertura de modal
+edición del conjunto de funciones
+cancelar o guardar
+recarga natural tras submit cuando corresponda
+
+Esta interacción no constituye navegación nueva ni cambio de recurso.
 
 Aclaración vigente para inventory:
 
@@ -322,7 +376,7 @@ Estado actual:
 
 la tab Actividad muestra los últimos 50 registros de actividad operativa del tenant
 
-tenant/profile sigue restringido a owner
+tenant/profile puede ser accesible por owner y admin según contrato vigente, con restricciones diferenciadas de gobierno
 
 Lectura contextual validada:
 

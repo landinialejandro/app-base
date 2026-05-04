@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00021
 
 COMPONENTES DISPONIBLES
 
@@ -127,6 +127,8 @@ paperclip
 grid
 activity
 changes
+lock
+unlock
 
 Uso vigente de íconos de actividad:
 
@@ -135,6 +137,17 @@ tab Actividad
 
 changes
 botón Ver cambios
+
+Uso vigente en tenant/profile:
+
+user-group
+Más datos
+
+list-check
+Editar funciones
+
+lock / unlock
+bloqueo o desbloqueo visual
 
 Componentes modulares reusables vigentes:
 
@@ -199,9 +212,11 @@ Comportamientos frontend reutilizables vigentes:
 
 formularios progresivos activados mediante data-action="app-progressive-form"
 
-Este comportamiento no reemplaza componentes Blade ni valida reglas de negocio.
+formularios visuales de sincronización de funciones tenant activados mediante data-action="tenant-role-sync-form"
 
-Solo organiza visualmente la aparición progresiva de secciones de un formulario cuando la carga guiada reduce error operativo.
+Estos comportamientos no reemplazan componentes Blade ni validan reglas de negocio.
+
+Solo organizan visualmente la aparición progresiva o selección guiada cuando la carga reduce error operativo.
 
 Caso vigente:
 
@@ -221,6 +236,14 @@ La UI expresa permisos ya resueltos.
 
 El backend autoriza y bloquea.
 
+Caso vigente adicional:
+
+tenant/profile usa edición de funciones de membership mediante modal y formulario de sincronización de roles.
+
+La UI puede destildar opciones, deshabilitar combinaciones y mostrar advertencias para mejorar comprensión.
+
+La autoridad final permanece en backend.
+
 Regla adicional consolidada:
 
 cuando un selector dependa de dataset interno reusable del tenant, su fuente lógica puede compartirse sin convertir automáticamente esa necesidad en componente global nuevo ni en módulo visual independiente.
@@ -229,7 +252,7 @@ Aclaración adicional consolidada:
 
 x-modal ya no se limita a diálogos simples.
 
-Forma parte de la base visual para micro-superficies operativas contextualizadas dentro de show pages y tabs embebidas.
+Forma parte de la base visual para micro-superficies operativas contextualizadas dentro de show pages, tabs embebidas y frentes tenant.
 
 Caso vigente:
 
@@ -242,6 +265,10 @@ modal de operación por línea documental dentro de documents.show, consumido co
 Caso vigente adicional:
 
 modal de detalle de cambios dentro de la tabla reusable de actividad operativa.
+
+Caso vigente adicional:
+
+modal de edición de funciones de una membership dentro de tenant/profile.
 
 Aclaración adicional para métricas embebidas:
 
@@ -359,7 +386,7 @@ La tab Actividad de tenant/profile resolvió su estado vacío inline con detail-
 <<END SECTION>>
 
 <<SECTION: PATRÓN DE INTERACCIÓN MODAL>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 PATRÓN DE INTERACCIÓN MODAL
 
@@ -415,6 +442,34 @@ La tabla debe conservar lectura compacta y escaneable.
 
 El modal debe mostrar el detalle bajo demanda.
 
+Caso vigente adicional:
+
+tenant/profile puede usar x-modal para editar funciones de una membership.
+
+Patrón validado:
+
+tabla limpia con funciones actuales
+badges de funciones
+acción contextual por fila
+modal de edición breve
+checkboxes de funciones disponibles
+mensaje de ayuda dinámico
+acciones Cancelar / Guardar funciones
+
+Reglas:
+
+el modal no decide autorización
+
+el modal no interpreta reglas owner/admin
+
+el modal no reemplaza validación backend
+
+el modal debe representar opciones ya preparadas por backend
+
+el backend debe bloquear cualquier intento manipulado
+
+el botón de guardar puede ubicarse en el footer del modal si queda correctamente asociado al formulario mediante atributo form
+
 Apertura esperada:
 
 data-action="app-modal-open"
@@ -453,7 +508,7 @@ La tabla mantiene solo síntesis compacta y acción secundaria.
 <<END SECTION>>
 
 <<SECTION: JERARQUÍA VISUAL MODULAR>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 JERARQUÍA VISUAL MODULAR
 
@@ -587,6 +642,24 @@ btn btn-secondary btn-icon
 Regla:
 
 la mejora expresiva de la actividad operativa no debe romper la compacidad de la tabla.
+
+Aclaración adicional para tenant/profile/accesses:
+
+la gestión de funciones de usuarios del tenant debe mantener lectura clara y de bajo ruido.
+
+Patrón vigente:
+
+una única columna Funciones
+badges de funciones actuales
+acciones compactas a la derecha
+acción contextual Editar funciones
+edición dentro de modal
+
+Regla:
+
+la edición de funciones debe mantener el contexto de la fila y evitar columnas operativas redundantes cuando la acción contextual resuelve mejor la intención.
+
+La simplificación visual no reemplaza la seguridad backend.
 
 <<END SECTION>>
 

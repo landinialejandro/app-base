@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -215,11 +215,39 @@ tenant/profile
 tab Actividad
 últimos 50 registros del tenant
 
-Estado actual:
+Estado vigente de tenant/profile:
 
-tenant/profile sigue restringido a owner
+tenant/profile es accesible por owner y admin según contrato vigente.
 
-admin tiene permiso sembrado para operational_activity.view_any, pero no accede todavía a tenant/profile
+owner gobierna.
+
+admin opera fuerte con restricciones.
+
+admin no edita General.
+
+admin no modifica rol admin.
+
+admin no asigna ni delega admin.
+
+admin no autogestiona su autoridad.
+
+admin no puede vaciar sus propios roles.
+
+La autoridad del frente tenant/profile está centralizada en:
+
+app/Support/Tenants/TenantProfileAccess.php
+
+La edición de funciones de memberships se realiza mediante modal y roles.sync.
+
+Caso vigente:
+
+TenantMembershipRoleController::sync
+
+Regla:
+
+la UI expresa disponibilidad, readonly o bloqueo.
+
+El backend autoriza o bloquea.
 
 La tab Actividad general usa OperationalActivityLinkResolver.
 
@@ -387,7 +415,7 @@ No agregar botón de queue al producto SaaS.
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS DEL CHAT>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 REGLAS OPERATIVAS DEL CHAT
 
@@ -435,6 +463,70 @@ Esto aplica especialmente cuando la necesidad pueda repetirse en el futuro.
 No declarar cierres por intuición.
 
 El cierre debe apoyarse en evidencia técnica suficiente.
+
+Regla operativa adicional para tenant/profile:
+
+no asumir que tenant/profile es owner-only.
+
+Lectura vigente:
+
+owner puede acceder como autoridad estructural de gobierno.
+
+admin puede acceder con restricciones.
+
+sales/operator no deben acceder si no poseen autorización efectiva.
+
+Regla vigente:
+
+admin opera fuerte
+
+owner gobierna
+
+La autoridad owner/admin del frente tenant/profile está centralizada en:
+
+TenantProfileAccess
+
+No duplicar reglas owner/admin en controllers, policies ni Blades si esa pieza aplica.
+
+Reglas vigentes:
+
+admin no edita General
+
+admin no modifica permisos del rol admin
+
+admin no asigna ni delega admin
+
+admin no autogestiona su autoridad
+
+admin no puede vaciar sus propios roles
+
+admin puede gestionar roles operativos cuando backend lo autorice
+
+La UI puede mostrar readonly, ocultar botones o abrir modal.
+
+La autorización final debe resolverse en backend.
+
+Regla operativa adicional para edición de funciones de membership:
+
+cuando se edite el conjunto completo de funciones, usar el patrón sync si corresponde al código vigente.
+
+Caso vigente:
+
+TenantMembershipRoleController::sync
+
+Validar siempre:
+
+agregados
+
+remociones
+
+combinaciones sensibles
+
+autogestión indebida
+
+persistencia final
+
+rollback o limpieza de prueba cuando corresponda
 
 Regla operativa adicional para parties:
 
@@ -511,111 +603,51 @@ si el usuario puede ver el registro host, puede ver la actividad asociada a ese 
 
 Esta lectura no utiliza operational_activity.view_any.
 
-No habilita lectura general del tenant.
+No habilita lectura general del log.
 
 No habilita acceso a otros registros.
 
-No convierte OperationalActivity en módulo funcional ordinario.
+Regla vigente de lectura agregada:
 
-La lectura contextual debe consumir OperationalActivity persistido mediante reader contextual y surface tenant/transversal validada.
+si la tab Actividad necesita mostrar actividad de más de un record explícito, el módulo dueño debe declarar activity_record_set.
 
-Infraestructura vigente:
-
-OperationalActivityContextReader
-TenantSurfaceRegistry
-OperationalActivitySurfaceService
-
-Hosts validados:
-
-tasks.show
-parties.show
-projects.show
-assets.show
-products.show
-appointments.show
-orders.show
-documents.show
-
-Regla vigente para lectura directa, agregada y contextual especial:
-
-si el host no tiene activity_record_set ni activity_context declarado, la lectura contextual debe ser directa sobre el record host autorizado.
-
-si el módulo declara activity_record_set, la lectura contextual puede ser agregada sobre el conjunto explícito definido por el módulo dueño.
-
-si el módulo declara activity_context, la lectura contextual puede adaptarse al criterio especial definido por el módulo dueño.
-
-activity_record_set no autoriza records por sí mismo.
-
-activity_context no autoriza records por sí mismo.
-
-activity_record_set no reemplaza operational_activity.view_any.
-
-activity_context no reemplaza operational_activity.view_any.
-
-activity_record_set no habilita lectura general del tenant.
-
-activity_context no habilita lectura general del tenant.
-
-activity_record_set no debe definirse dentro de OperationalActivity.
-
-activity_context no debe definirse dentro de OperationalActivity.
-
-Caso vigente de activity_record_set:
-
-projects.show usa ProjectActivityRecordSet para mostrar actividad de Project + Tasks.
-
-Caso vigente de activity_context:
-
-parties.show usa PartyEmployeeActivityContext para Party employee con membership activa vinculada.
-
-Lectura esperada:
-
-actividad directa de Party
-actividad donde el user vinculado sea actor_user_id
-actividad donde el user vinculado sea subject_user_id
-
-Regla vigente para surfaces tenant/transversales:
-
-no agregar a ModuleCatalog una capacidad transversal solo para publicar UI.
-
-no resolver tabs transversales con pushes manuales permanentes en vistas host.
-
-usar TenantSurfaceRegistry cuando la capacidad sea tenant/transversal no modular.
-
-usar key compatible con return_tab.
+No hardcodear esa frontera en OperationalActivity.
 
 Caso vigente:
 
-key = activity
+ProjectActivityRecordSet.
 
-No usar:
+Regla vigente de lectura contextual especial:
 
-operational_activity.contextual
+si la tab Actividad necesita ampliar dataset por un criterio contextual especial, el módulo dueño debe declarar activity_context.
 
-Regla visual vigente para actividad:
+No hardcodear esa frontera en OperationalActivity.
 
-los íconos reutilizables deben vivir en:
+Caso vigente:
 
-resources/views/components/icons/
+PartyEmployeeActivityContext.
 
-Íconos vigentes:
+Regla operativa adicional para Project Lab/Tinker:
 
-activity
-changes
+si se prueba un controller con Request::create(...) y el controller usa $request->user(), definir:
 
-Uso:
+$request->setUserResolver(fn () => $user)
 
-activity para tab Actividad
+si además usa $this->authorize(...), autenticar también con:
 
-changes para botón Ver cambios
+Auth::login($user)
 
-El botón Ver cambios debe conservar bajo protagonismo visual dentro de tablas.
+No usar Tenant::first() para pruebas sensibles si existen múltiples tenants.
 
-Variante validada:
+Debe ubicarse tenant, actor y dataset reales.
 
-btn btn-secondary btn-icon
+Si una prueba devuelve null por falta de actor real, no debe interpretarse como validación del contrato.
 
-No crear clase visual nueva si la existente resuelve el caso.
+Regla operativa adicional sobre capturas:
+
+si una captura se usa como evidencia visual para analizar UI existente, no corresponde generar imagen.
+
+Debe analizarse la captura como evidencia de interfaz real.
 
 <<END SECTION>>
 

@@ -550,7 +550,7 @@ Debe corregirse o revertirse antes de avanzar.
 <<END SECTION>>
 
 <<SECTION: SALIDA OPERATIVA ESPERADA>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 SALIDA OPERATIVA ESPERADA
 
@@ -617,6 +617,9 @@ jobs
 failed_jobs
 operational_activities
 navegador informado por usuario
+request manipulado
+persistencia final
+rollback o limpieza de prueba
 
 Caso vigente:
 
@@ -716,6 +719,31 @@ botón Ver cambios puede usar x-icons.changes
 botón Ver cambios puede usar btn btn-secondary btn-icon
 no se crea clase visual nueva si la variante existente resuelve el caso
 
+Validación esperada para owner/admin en tenant/profile/accesses:
+
+owner puede ver tenant/profile
+owner puede editar General
+admin puede ver tenant/profile
+admin no puede editar General
+admin no puede modificar permisos del rol admin
+admin puede modificar permisos de roles operativos cuando corresponda
+admin no puede asignar admin
+admin puede asignar roles operativos cuando corresponda
+admin no puede autogestionar su rol admin
+admin no puede vaciar sus propios roles
+admin no puede combinar admin con rol operativo vía sync
+membership activa sin roles devuelve error funcional controlado
+
+Validación esperada para requests fabricados sobre controllers:
+
+tenant real bindeado
+usuario real autenticado con Auth::login(...)
+request creado con datos manipulados
+setUserResolver definido si se usa $request->user()
+excepciones capturadas
+persistencia final verificada
+rollback o limpieza confirmada
+
 Aclaración vigente sobre sintaxis PHP:
 
 Project Lab valida sintaxis PHP automáticamente en operaciones compatibles como reemplazo de método PHP, alta de método PHP y archivo PHP completo.
@@ -797,7 +825,7 @@ metadata esperada cuando corresponda
 <<END SECTION>>
 
 <<SECTION: USO DE TINKER DENTRO DE PROJECT LAB>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 USO DE TINKER DENTRO DE PROJECT LAB
 
@@ -818,6 +846,10 @@ eventos operativos
 validación de persistencia derivada
 record sets contextuales
 payloads de lectura transversal
+requests fabricados
+controllers con autorización
+validaciones backend manipuladas
+rollback de pruebas sensibles
 
 Regla crítica:
 
@@ -836,6 +868,12 @@ si se quiere visualizar el resultado de una expresión, debe utilizarse return o
 Ejemplo conceptual:
 
 return User::all();
+
+Regla adicional:
+
+cuando una salida Project Lab no muestre el array final esperado, puede requerirse salida explícita mediante echo json_encode(...) u otra forma clara.
+
+El SQL debug puede aparecer aunque el retorno no sea visible.
 
 Regla adicional para bloques con namespaces:
 
@@ -887,6 +925,51 @@ ProjectActivityRecordSet debe devolver el Project y sus Tasks vinculadas.
 Regla:
 
 Tinker puede confirmar el record set, pero la validación visual requiere navegador cuando el cierre dependa de la tab visible.
+
+Regla adicional para requests fabricados:
+
+si se prueba un controller con Request::create(...) y el controller usa $request->user(), debe asignarse user resolver.
+
+Forma esperada:
+
+$request->setUserResolver(fn () => $user)
+
+Regla adicional para controllers con authorize:
+
+si el controller usa $this->authorize(...), además de setUserResolver debe existir usuario autenticado en el guard.
+
+Forma esperada:
+
+Auth::login($user)
+
+Regla adicional para pruebas sensibles:
+
+si la prueba busca validar owner/admin, roles, permisos, memberships o tenant/profile, no debe usarse Tenant::first() por comodidad.
+
+Debe localizarse un tenant con actores reales suficientes para el contrato que se valida.
+
+Regla:
+
+si no aparece actor real o el dataset esperado es null, la prueba no debe interpretarse como validación del contrato.
+
+Debe corregirse el dataset o declarar que falta evidencia.
+
+Patrón recomendado para pruebas de controller con request manipulado:
+
+bindear tenant real
+detectar actor real
+autenticar con Auth::login(...)
+crear request con Request::create(...)
+asignar setUserResolver(...)
+ejecutar controller o método objetivo
+capturar HttpException y AuthorizationException
+usar transacción cuando corresponda
+hacer rollback
+verificar persistencia final
+
+Caso vigente:
+
+validación runtime de tenant/profile/accesses y TenantMembershipRoleController::sync.
 
 <<END SECTION>>
 

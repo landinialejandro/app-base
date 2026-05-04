@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00025
+SECTION_VERSION: 00026
 
 CONVENCIONES GENERALES
 
@@ -61,6 +61,16 @@ no trasladar complejidad contractual, técnica u operativa al usuario cuando el 
 la UI debe tender a acciones simples, comprensibles y de bajo roce
 
 las validaciones críticas deben sostenerse en backend, servicios, policies, Security o contratos oficiales, no en Blade ni frontend
+
+las reglas owner/admin del frente tenant/profile deben centralizarse en una pieza reusable del plano tenant y no repetirse en controllers, policies ni Blades
+
+Pieza vigente:
+
+app/Support/Tenants/TenantProfileAccess.php
+
+Regla:
+
+las vistas pueden expresar disponibilidad, readonly, botones visibles o estados bloqueados, pero no decidir autorización final
 
 Convención documental consolidada:
 
@@ -384,7 +394,7 @@ En producción debe definirse worker supervisado por infraestructura, no botón 
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA BASE DEL PROYECTO>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 ESTRUCTURA BASE DEL PROYECTO
 
@@ -457,6 +467,8 @@ contexto tenant y piezas reusables internas
 Casos consolidados:
 
 TenantUserDirectory.php como raíz reusable de usuarios internos activos del tenant
+
+TenantProfileAccess.php como autoridad reusable del frente tenant/profile y gobierno owner/admin
 
 OperationalActivityLinkResolver.php como pieza reusable de lectura para actividad operativa desde el plano tenant
 
@@ -531,6 +543,20 @@ tab Actividad
 changes
 botón Ver cambios
 
+Uso vigente adicional:
+
+user-group
+Más datos
+
+list-check
+Editar funciones
+
+lock
+bloqueo
+
+unlock
+desbloqueo
+
 PUBLIC
 
 public/ concentra assets públicos.
@@ -555,11 +581,15 @@ no deben reemplazar ni desactivar app-base.css ni app-patterns.css
 public/js/app-base.js
 comportamiento global
 
-Caso vigente:
+Casos vigentes:
 
 el comportamiento reusable de formularios progresivos vive en public/js/app-base.js
 
-Puede ser utilizado por formularios que requieran revelar secciones en pasos dentro de una misma pantalla sin convertirlo en lógica de negocio.
+el comportamiento visual para edición sincronizada de funciones tenant puede vivir en public/js/app-base.js mediante data-action="tenant-role-sync-form"
+
+Estos comportamientos no reemplazan componentes Blade ni validan reglas de negocio.
+
+Solo organizan visualmente la interacción cuando la carga guiada reduce error operativo.
 
 DOCUMENTOS
 
@@ -692,7 +722,7 @@ No debe utilizarse desactivación global de users para resolver bajas, bloqueos 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ACCESO POR MÓDULO Y ROLES>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 CONVENCIONES DE ACCESO POR MÓDULO Y ROLES
 
@@ -759,6 +789,68 @@ parties.kind expresa tipo de contacto.
 party_roles.role expresa relación con la empresa.
 
 La autorización efectiva de parties se orienta por allowed_party_roles cuando corresponde.
+
+Regla adicional para gobierno owner/admin:
+
+las reglas de acceso, edición y delegación del frente tenant/profile deben centralizarse en una pieza reusable del plano tenant.
+
+Pieza vigente:
+
+TenantProfileAccess
+
+Responsabilidad:
+
+resolver si una membership puede ver tenant/profile
+
+resolver si puede editar General
+
+resolver si puede crear invitaciones tenant
+
+resolver si puede gestionar permisos por rol
+
+resolver si puede asignar o quitar roles
+
+resolver si puede gestionar estado de memberships
+
+distinguir owner, admin y membership activa
+
+Reglas:
+
+owner conserva gobierno estructural del tenant
+
+admin puede operar con autoridad fuerte pero no equivale a owner
+
+admin no puede modificar permisos del rol admin
+
+admin no puede asignar, delegar ni autogestionar admin
+
+admin no puede vaciar sus propios roles
+
+admin puede gestionar roles operativos no estructurales cuando el backend lo autorice
+
+la UI puede expresar readonly o disponibilidad, pero no decidir autorización final
+
+Regla adicional para sincronización de roles de membership:
+
+cuando la intención del usuario sea editar el conjunto completo de funciones de una membership, puede usarse una acción sync.
+
+Caso vigente:
+
+TenantMembershipRoleController::sync
+
+Reglas:
+
+la UI puede usar checkboxes y modal para mejorar comprensión
+
+el backend debe recibir el set completo deseado y validar agregados y remociones
+
+cualquier intento manipulado debe evaluarse con la misma autoridad central
+
+no debe quedar una combinación sensible protegida solo por JS
+
+sync es más claro que acciones unitarias attach/detach cuando la intención del usuario es editar el conjunto completo de funciones de una membership
+
+attach/detach pueden mantenerse por compatibilidad si existen, pero la nueva UI puede usar sync como patrón preferente para esta intención
 
 Regla adicional consolidada:
 

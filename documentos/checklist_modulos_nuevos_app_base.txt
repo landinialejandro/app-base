@@ -52,7 +52,7 @@ documentación actualizada
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 REGLA GENERAL
 
@@ -77,6 +77,20 @@ Nunca al revés.
 Regla adicional consolidada:
 
 si una integración nueva requiere reabrir arbitrariamente el núcleo de otro módulo, primero debe revisarse si la necesidad puede resolverse consumiendo una capacidad ya publicada por ese módulo o evolucionando su superficie contractual propia
+
+Regla adicional para reconversiones profundas:
+
+este checklist también aplica cuando no se crea un módulo nuevo, pero se reconvierte un frente funcional, visual, contractual o de seguridad ya existente.
+
+Caso vigente:
+
+tenant/profile/accesses fue reconvertido en relación con owner/admin y edición de funciones de memberships.
+
+Regla:
+
+una reconversión de acceso o gobierno interno debe validarse con el mismo rigor que un módulo sensible.
+
+Debe incluir UI correcta, backend centralizado, requests manipulados, persistencia final y rollback o limpieza de pruebas.
 
 Regla adicional para actividad operativa:
 
@@ -483,7 +497,7 @@ la surface tenant/transversal no convierte la capacidad en módulo funcional ord
 <<END SECTION>>
 
 <<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 BLOQUE 2 — SEGURIDAD OBLIGATORIA
 
@@ -550,6 +564,52 @@ si existen permisos del módulo en el catálogo efectivo
 si esos permisos pueden asignarse realmente
 si la habilitación del módulo produce consecuencia visible coherente en UI
 si owner dispone de una surface real para entender y administrar ese comportamiento
+
+Validación adicional para gobierno owner/admin:
+
+si un frente pertenece al gobierno interno del tenant, debe diferenciarse condición estructural owner de rol delegable admin.
+
+Regla vigente:
+
+owner gobierna
+
+admin opera fuerte
+
+Validar:
+
+si owner conserva gobierno estructural
+si admin solo accede a lo permitido
+si admin no puede modificar General cuando está restringido
+si admin no puede modificar permisos del rol admin
+si admin no puede asignar ni delegar admin
+si admin no puede autogestionar su autoridad
+si admin no puede vaciar sus propios roles
+si admin puede gestionar roles operativos solo cuando backend lo autoriza
+si la UI expresa readonly o bloqueo sin reemplazar backend
+
+Caso vigente:
+
+tenant/profile/accesses
+
+Validaciones runtime informadas:
+
+admin intentando editar General → 403
+
+admin intentando modificar permisos del rol admin → 403
+
+admin modificando permisos de rol operativo → OK
+
+admin intentando asignar admin → 403
+
+admin asignando rol operativo → OK
+
+admin intentando autogestionarse o vaciar sus roles → 403
+
+admin intentando combinar admin con rol operativo vía sync → 403
+
+membership activa sin roles → error funcional controlado
+
+rollback confirmado luego de pruebas positivas
 
 Validación adicional para campos ocultos o relaciones sensibles:
 
@@ -658,42 +718,45 @@ el reader contextual debe recibir o trabajar sobre el record ya autorizado
 
 Caso validado:
 
-OperationalActivityContextReader lee actividad asociada al record host autorizado.
+show pages con tab Actividad contextual heredada.
 
-Validación adicional para lectura contextual agregada:
+Validación adicional para lectura agregada:
 
-si se utiliza activity_record_set, debe validarse que:
+si la lectura contextual usa activity_record_set, debe validarse:
 
-el host principal ya fue autorizado
-el provider pertenece al módulo dueño
-los records incluidos respetan tenant activo
-el conjunto no habilita lectura general del tenant
-el conjunto no altera ownership funcional
-OperationalActivity no hardcodea relaciones internas del módulo
+provider declarado por módulo dueño
+records esperados incluidos
+records no esperados excluidos
+tenant activo respetado
+host autorizado previamente
+sin ampliación general del tenant
+sin lógica específica hardcodeada en OperationalActivity
 
 Caso validado:
 
-ProjectActivityRecordSet permite Project + Tasks en projects.show.
+ProjectActivityRecordSet
 
 Validación adicional para lectura contextual especial:
 
-si se utiliza activity_context, debe validarse que:
+si la lectura contextual usa activity_context, debe validarse:
 
-el host principal ya fue autorizado
-el provider pertenece al módulo dueño
-el criterio especial respeta tenant activo
-la condición habilitante está probada
-la lectura no habilita acceso general al tenant
-la lectura no reemplaza permisos del host
-OperationalActivity no hardcodea lógica interna del módulo
+provider declarado por módulo dueño
+condición habilitante real
+criterio contextual aplicado
+tenant activo respetado
+host autorizado previamente
+sin ampliación general del tenant
+sin lógica específica hardcodeada en OperationalActivity
 
 Caso validado:
 
-PartyEmployeeActivityContext permite que Party employee con membership activa vinculada muestre actividad directa de Party y actividad donde el user vinculado sea actor o sujeto.
+PartyEmployeeActivityContext
 
-Regla:
+Validación final obligatoria:
 
-activity_context no debe usarse para saltar autorización ni para convertir un vínculo interno en acceso general al log.
+la UI correcta no alcanza.
+
+Toda regla sensible debe probarse con runtime real, request manipulado o mecanismo equivalente, y verificación final de persistencia cuando corresponda.
 
 <<END SECTION>>
 

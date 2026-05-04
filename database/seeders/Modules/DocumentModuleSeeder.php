@@ -1,9 +1,14 @@
 <?php
 
-// FILE: database/seeders/Modules/DocumentModuleSeeder.php | V2
+// FILE: database/seeders/Modules/DocumentModuleSeeder.php | V3
 
 namespace Database\Seeders\Modules;
 
+use App\Events\OperationalRecordCreated;
+use App\Events\OperationalRecordUpdated;
+use App\Models\Document;
+use App\Models\DocumentItem;
+use App\Support\Catalogs\DocumentCatalog;
 use Illuminate\Support\Facades\DB;
 
 class DocumentModuleSeeder extends BaseModuleSeeder
@@ -96,9 +101,10 @@ class DocumentModuleSeeder extends BaseModuleSeeder
             'order_id' => $orders[0]?->id,
             'created_by' => $ownerTech->id,
             'updated_by' => $ownerTech->id,
-            'kind' => 'quote',
+            'group' => DocumentCatalog::GROUP_SALE,
+            'kind' => DocumentCatalog::KIND_QUOTE,
             'number' => 'PRE-00000001',
-            'status' => 'draft',
+            'status' => DocumentCatalog::STATUS_PENDING_APPROVAL,
             'issued_at' => now()->subDays(2)->toDateString(),
             'due_at' => now()->addDays(10)->toDateString(),
             'currency_code' => 'ARS',
@@ -115,9 +121,10 @@ class DocumentModuleSeeder extends BaseModuleSeeder
             'order_id' => $orders[1]?->id,
             'created_by' => $techUser->id,
             'updated_by' => $techUser->id,
-            'kind' => 'delivery_note',
+            'group' => DocumentCatalog::GROUP_SERVICE,
+            'kind' => DocumentCatalog::KIND_DELIVERY_NOTE,
             'number' => 'REM-00000001',
-            'status' => 'issued',
+            'status' => DocumentCatalog::STATUS_APPROVED,
             'issued_at' => now()->subDay()->toDateString(),
             'due_at' => null,
             'currency_code' => 'ARS',
@@ -146,9 +153,10 @@ class DocumentModuleSeeder extends BaseModuleSeeder
             'order_id' => $orders[0]?->id,
             'created_by' => $ownerAndina->id,
             'updated_by' => $ownerAndina->id,
-            'kind' => 'quote',
+            'group' => DocumentCatalog::GROUP_SALE,
+            'kind' => DocumentCatalog::KIND_QUOTE,
             'number' => 'PRE-00000002',
-            'status' => 'draft',
+            'status' => DocumentCatalog::STATUS_PENDING_APPROVAL,
             'issued_at' => now()->subDays(3)->toDateString(),
             'due_at' => now()->addDays(12)->toDateString(),
             'currency_code' => 'ARS',
@@ -165,9 +173,10 @@ class DocumentModuleSeeder extends BaseModuleSeeder
             'order_id' => $orders[1]?->id,
             'created_by' => $andinaUser->id,
             'updated_by' => $andinaUser->id,
-            'kind' => 'invoice',
+            'group' => DocumentCatalog::GROUP_SERVICE,
+            'kind' => DocumentCatalog::KIND_INVOICE,
             'number' => 'FAC-00000001',
-            'status' => 'issued',
+            'status' => DocumentCatalog::STATUS_APPROVED,
             'issued_at' => now()->toDateString(),
             'due_at' => now()->addDays(15)->toDateString(),
             'currency_code' => 'ARS',
@@ -181,12 +190,15 @@ class DocumentModuleSeeder extends BaseModuleSeeder
         return $documents;
     }
 
-    private function createDocumentWithItems(array $data)
+    private function createDocumentWithItems(array $data): Document
     {
         $subtotal = 0;
 
         $normalizedItems = collect($data['items'])->map(function ($item, $index) use (&$subtotal) {
-            $lineTotal = round(((float) $item['quantity']) * ((float) $item['unit_price']), 2);
+            $quantity = (float) $item['quantity'];
+            $unitPrice = (float) $item['unit_price'];
+            $lineTotal = round($quantity * $unitPrice, 2);
+
             $subtotal += $lineTotal;
 
             return [
@@ -194,8 +206,8 @@ class DocumentModuleSeeder extends BaseModuleSeeder
                 'position' => $index + 1,
                 'kind' => $item['kind'],
                 'description' => $item['description'],
-                'quantity' => $item['quantity'],
-                'unit_price' => $item['unit_price'],
+                'quantity' => $quantity,
+                'unit_price' => $unitPrice,
                 'line_total' => $lineTotal,
             ];
         });
@@ -203,7 +215,13 @@ class DocumentModuleSeeder extends BaseModuleSeeder
         $taxTotal = 0;
         $total = $subtotal + $taxTotal;
 
-        $document = DB::table('documents')
+        $targetStatus = $data['status'];
+
+        if (! DocumentCatalog::isValidStatus($targetStatus)) {
+            throw new \RuntimeException("Invalid document status [{$targetStatus}] for document seed [{$data['number']}].");
+        }
+
+        $document = Document::query()
             ->where('tenant_id', $data['tenant_id'])
             ->where('number', $data['number'])
             ->first();
@@ -212,9 +230,10 @@ class DocumentModuleSeeder extends BaseModuleSeeder
             'tenant_id' => $data['tenant_id'],
             'party_id' => $data['party_id'],
             'order_id' => $data['order_id'],
+            'group' => $data['group'],
             'kind' => $data['kind'],
             'number' => $data['number'],
-            'status' => $data['status'],
+            'status' => DocumentCatalog::STATUS_DRAFT,
             'issued_at' => $data['issued_at'],
             'due_at' => $data['due_at'],
             'currency_code' => $data['currency_code'],
@@ -224,44 +243,86 @@ class DocumentModuleSeeder extends BaseModuleSeeder
             'notes' => $data['notes'],
             'created_by' => $data['created_by'],
             'updated_by' => $data['updated_by'],
-            'updated_at' => now(),
         ];
 
-        if (! $document) {
-            $documentId = DB::table('documents')->insertGetId(array_merge($payload, [
-                'created_at' => now(),
-                'deleted_at' => null,
-            ]));
+        if ($document) {
+            $beforeAttributes = $document->getAttributes();
+
+            $document->update($payload);
+
+            event(new OperationalRecordUpdated(
+                record: $document,
+                beforeAttributes: $beforeAttributes,
+                actorUserId: $data['updated_by'] ?? null,
+            ));
+
+            $document->items()->delete();
         } else {
-            DB::table('documents')
-                ->where('id', $document->id)
-                ->update($payload);
+            $document = Document::create($payload);
 
-            $documentId = $document->id;
-
-            DB::table('document_items')
-                ->where('tenant_id', $data['tenant_id'])
-                ->where('document_id', $documentId)
-                ->delete();
+            event(new OperationalRecordCreated(
+                record: $document,
+                actorUserId: $data['created_by'] ?? null,
+            ));
         }
 
         foreach ($normalizedItems as $item) {
-            DB::table('document_items')->insert([
+            DocumentItem::create([
                 'tenant_id' => $data['tenant_id'],
-                'document_id' => $documentId,
+                'document_id' => $document->id,
                 'product_id' => $item['product_id'],
                 'position' => $item['position'],
                 'kind' => $item['kind'],
                 'description' => $item['description'],
                 'quantity' => $item['quantity'],
+                'status' => 'pending',
                 'unit_price' => $item['unit_price'],
                 'line_total' => $item['line_total'],
-                'created_at' => now(),
-                'updated_at' => now(),
-                'deleted_at' => null,
             ]);
         }
 
-        return DB::table('documents')->where('id', $documentId)->first();
+        $document = $document->fresh('items');
+
+        if ($targetStatus !== DocumentCatalog::STATUS_DRAFT) {
+            $this->transitionDocumentStatus(
+                document: $document,
+                status: DocumentCatalog::STATUS_PENDING_APPROVAL,
+                actorUserId: $data['updated_by'] ?? null
+            );
+
+            if ($targetStatus === DocumentCatalog::STATUS_APPROVED) {
+                $this->transitionDocumentStatus(
+                    document: $document->fresh(),
+                    status: DocumentCatalog::STATUS_APPROVED,
+                    actorUserId: $data['updated_by'] ?? null
+                );
+            }
+        }
+
+        return $document->fresh('items');
+    }
+
+    private function transitionDocumentStatus(Document $document, string $status, int|string|null $actorUserId = null): Document
+    {
+        $document->refresh();
+
+        if (! DocumentCatalog::canTransition($document->status, $status)) {
+            throw new \RuntimeException("Invalid document status transition [{$document->status}] -> [{$status}] for document [{$document->number}].");
+        }
+
+        $beforeAttributes = $document->getAttributes();
+
+        $document->update([
+            'status' => $status,
+            'updated_by' => $actorUserId,
+        ]);
+
+        event(new OperationalRecordUpdated(
+            record: $document,
+            beforeAttributes: $beforeAttributes,
+            actorUserId: $actorUserId !== null ? (int) $actorUserId : null,
+        ));
+
+        return $document->fresh();
     }
 }

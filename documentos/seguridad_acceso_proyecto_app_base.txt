@@ -53,7 +53,7 @@ los detalles técnicos pueden evolucionar sin alterar estos principios rectores
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00019
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -70,6 +70,20 @@ TENANT OBLIGATORIO
 Toda autorización ocurre dentro del tenant correspondiente.
 
 No debe operarse sobre registros ajenos al tenant activo.
+
+GOBIERNO ESTRUCTURAL DEL TENANT
+
+La autoridad estructural del tenant pertenece al owner.
+
+El owner se resuelve por memberships.is_owner y no equivale a un rol delegable ordinario.
+
+El rol admin puede operar con autoridad amplia dentro del tenant, pero no reemplaza al owner ni puede modificar la estructura superior de gobierno del tenant.
+
+Regla doctrinal:
+
+admin opera fuerte
+
+owner gobierna
 
 SEPARACIÓN DE PLANOS
 
@@ -368,7 +382,7 @@ No debe utilizarse activity_context para mezclar datos entre tenants, exponer re
 <<END SECTION>>
 
 <<SECTION: OWNER Y ROLES BASE>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 OWNER Y ROLES BASE
 
@@ -377,6 +391,36 @@ owner es una condición especial de gobierno interno del tenant.
 No equivale a un rol delegable ordinario.
 
 Su determinación oficial se resuelve por memberships.is_owner.
+
+Regla doctrinal vigente:
+
+admin opera fuerte
+
+owner gobierna
+
+El owner conserva el gobierno estructural del tenant.
+
+Esto incluye las decisiones superiores sobre datos generales del tenant, autoridad admin, delegación admin y estructura de gobierno interno.
+
+El rol admin es un rol delegable de gestión operativa fuerte.
+
+Puede operar módulos y acompañar la administración cotidiana del tenant, pero no equivale a owner.
+
+Reglas obligatorias:
+
+admin no puede reemplazar al owner
+
+admin no puede modificar su propio nivel de autoridad
+
+admin no puede vaciar sus propios roles
+
+admin no puede asignar, delegar, quitar ni autogestionar el rol admin
+
+admin no puede modificar los permisos del rol admin
+
+admin puede gestionar roles operativos no estructurales sobre otros usuarios cuando el contrato backend lo autorice
+
+owner puede administrar el rol admin y la estructura superior del tenant
 
 Los roles base operativos organizan responsabilidades internas según el contrato persistido vigente.
 
@@ -399,7 +443,7 @@ No reemplazan la singularidad estructural del owner.
 <<END SECTION>>
 
 <<SECTION: MODELO V2 DE PERMISOS>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 MODELO V2 DE PERMISOS
 
@@ -472,6 +516,38 @@ sí pueden tener permisos asignables cuando exista contrato explícito
 
 sí deben respetar tenant activo, membership vigente y autorización efectiva
 
+El frente tenant/profile pertenece al plano tenant y al gobierno interno del tenant.
+
+No debe tratarse como módulo funcional ordinario del negocio.
+
+Su acceso y operaciones sensibles pueden resolverse mediante pieza central específica del plano tenant.
+
+Pieza vigente:
+
+App\Support\Tenants\TenantProfileAccess
+
+Responsabilidad:
+
+centralizar reglas de acceso y gobierno interno del tenant/profile
+
+distinguir owner, admin y membership activa
+
+autorizar visualización del perfil de empresa
+
+autorizar edición de datos generales
+
+autorizar creación de invitaciones tenant
+
+autorizar gestión de permisos por rol
+
+autorizar asignación y remoción de roles
+
+autorizar gestión de estado de memberships
+
+Regla:
+
+las policies y controllers vinculados a tenant/profile, memberships e invitations no deben replicar reglas owner/admin aisladas si existe TenantProfileAccess como autoridad reusable.
+
 Lectura contextual heredada:
 
 cuando una surface tenant/transversal muestra actividad asociada a un registro host ya autorizado, la autorización de lectura contextual proviene del view efectivo sobre ese registro host.
@@ -525,7 +601,7 @@ La implementación concreta puede evolucionar siempre que preserve esta doctrina
 <<END SECTION>>
 
 <<SECTION: FLUJO OFICIAL DE AUTORIZACIÓN>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 FLUJO OFICIAL DE AUTORIZACIÓN
 
@@ -554,17 +630,58 @@ El resolver central puede incorporar optimizaciones internas de resolución siem
 
 Una optimización interna del resolver no constituye bypass si permanece dentro del kernel de autorización y no traslada lógica a controllers, Blade, surfaces o consumidores externos.
 
+Para el frente tenant/profile, la autoridad reusable vigente es:
+
+App\Support\Tenants\TenantProfileAccess
+
+Flujo esperado para ese frente:
+
+membership activa y tenant activo
+↓
+TenantProfileAccess
+↓
+policy o controller consumidor
+↓
+acción autorizada o bloqueo backend
+↓
+UI que expresa lectura, readonly o acción disponible
+
+Regla:
+
+MembershipPolicy e InvitationPolicy deben consumir esta pieza central cuando la operación pertenezca al gobierno interno del tenant.
+
+No deben reconstruir localmente reglas owner/admin.
+
+Lectura vigente:
+
+owner puede ver y editar tenant/profile según contrato
+
+admin puede ver tenant/profile con restricciones
+
+admin no puede editar General
+
+admin no puede modificar permisos del rol admin
+
+admin no puede asignar, delegar ni autogestionar admin
+
+admin puede gestionar roles operativos no estructurales cuando la validación backend lo autorice
+
 Prohibiciones:
 
 no invertir el flujo
+
 no decidir desde la UI lo que backend no autorizó
+
 no consultar universos más amplios para luego ocultarlos visualmente
+
 no saltar el resolver central con lógica local improvisada
+
+no reemplazar TenantProfileAccess por condiciones duplicadas en Blades, controllers o policies
 
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00024
+SECTION_VERSION: 00025
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -603,6 +720,54 @@ No deben crear rutas paralelas de decisión ni evitar la evaluación del contrat
 Regla:
 
 la validación efectiva siempre debe contemplar tenant, recurso, relaciones y estado operativo cuando corresponda.
+
+Regla adicional para tenant/profile:
+
+las reglas owner/admin del frente tenant/profile deben centralizarse en TenantProfileAccess.
+
+La vista puede mostrar modo readonly, ocultar controles o expresar acciones disponibles, pero no decide autorización final.
+
+Todo intento manipulado debe evaluarse en backend.
+
+Reglas vigentes:
+
+admin puede ingresar a tenant/profile cuando TenantProfileAccess lo autorice
+
+la solapa General es editable solo por owner
+
+para admin, General debe quedar readonly
+
+cualquier intento manipulado de admin para actualizar General debe bloquearse en backend
+
+admin no puede gestionar permisos del rol admin
+
+admin no puede asignar admin a otro usuario
+
+admin no puede combinar admin con roles operativos mediante manipulación de request
+
+admin no puede vaciar sus propios roles
+
+admin puede gestionar roles operativos no estructurales cuando la validación backend lo autorice
+
+Regla adicional para sincronización de roles de membership:
+
+cuando la intención del usuario sea editar el conjunto completo de funciones de una membership, el backend puede recibir el set completo deseado y sincronizarlo mediante acción específica.
+
+Caso vigente:
+
+TenantMembershipRoleController::sync
+
+Reglas:
+
+sync debe validar agregados y remociones con autoridad backend
+
+sync debe bloquear combinaciones sensibles antes de aplicar cambios
+
+sync debe impedir autogestión indebida de autoridad
+
+sync debe impedir que una membership activa no owner quede sin roles
+
+sync no debe depender de JS ni de campos ocultos como protección final
 
 Regla adicional para actividad operativa:
 
@@ -1027,11 +1192,65 @@ la integración reusable reduce duplicación visual o contractual, pero no reduc
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00022
 
 REGLAS OPERATIVAS POR MÓDULO
 
 Esta sección resume únicamente restricciones operativas de alto impacto ya consolidadas.
+
+TENANT PROFILE
+
+tenant/profile pertenece al frente de gobierno interno del tenant.
+
+No es módulo funcional ordinario del negocio.
+
+Regla doctrinal vigente:
+
+admin opera fuerte
+
+owner gobierna
+
+Pieza central vigente:
+
+App\Support\Tenants\TenantProfileAccess
+
+Reglas operativas:
+
+owner puede ver y editar tenant/profile según contrato
+
+admin puede acceder a tenant/profile con restricciones
+
+la solapa General es editable solo por owner
+
+admin debe ver General en modo readonly
+
+admin no puede modificar permisos del rol admin
+
+admin no puede asignar, delegar, quitar ni autogestionar el rol admin
+
+admin no puede modificar su propio nivel de autoridad
+
+admin no puede vaciar sus propios roles
+
+admin puede gestionar roles operativos no estructurales cuando la validación backend lo autorice
+
+MembershipPolicy e InvitationPolicy deben consumir la autoridad central del frente tenant/profile y no duplicar reglas aisladas.
+
+Caso vigente:
+
+TenantMembershipRoleController::sync permite sincronizar el conjunto de roles de una membership con validación backend.
+
+Reglas de sync:
+
+debe bloquear admin intentando asignar admin
+
+debe bloquear admin intentando combinar admin con roles operativos
+
+debe bloquear admin intentando vaciar sus propios roles
+
+debe permitir gestión de roles operativos cuando el contrato lo autorice
+
+debe devolver error funcional controlado si una membership activa no owner queda sin roles
 
 ORDERS
 
@@ -1235,7 +1454,7 @@ Solo resume impactos de seguridad relevantes y estables.
 <<END SECTION>>
 
 <<SECTION: HARDENING Y AUDITORÍA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 HARDENING Y AUDITORÍA
 
@@ -1250,6 +1469,42 @@ Una implementación funcional pero contraria a esta doctrina no debe considerars
 Auditar seguridad implica revisar tanto backend como superficies visibles consumidoras.
 
 La ausencia de error visible no prueba cumplimiento doctrinal.
+
+Regla adicional vigente:
+
+las validaciones sensibles del frente tenant/profile/accesses deben comprobar UI, backend, request manipulado, persistencia final y rollback o limpieza de pruebas.
+
+Caso validado:
+
+contrato owner/admin del frente tenant/profile.
+
+Validaciones runtime informadas:
+
+owner puede ver y editar tenant/profile
+
+admin puede ver tenant/profile
+
+admin no puede editar General
+
+admin no puede gestionar permisos del rol admin
+
+admin puede gestionar permisos de roles operativos
+
+admin no puede asignar admin a otro usuario
+
+admin puede asignar roles operativos
+
+admin no puede autogestionar su rol admin
+
+admin no puede vaciar sus propios roles
+
+admin no puede combinar admin con rol operativo mediante sync
+
+membership activa sin roles devuelve error funcional controlado
+
+Regla:
+
+una prueba sensible que no ubica actor real, tenant real o dataset real no debe interpretarse como validación del contrato.
 
 <<END SECTION>>
 

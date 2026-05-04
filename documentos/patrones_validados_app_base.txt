@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 PATRONES VIGENTES
 
@@ -112,9 +112,21 @@ Ubicación vigente:
 
 app/Support/Parties/PartyEmployeeContactAuthorization.php
 
+Caso validado adicional:
+
+TenantProfileAccess
+
+Ubicación vigente:
+
+app/Support/Tenants/TenantProfileAccess.php
+
 Regla:
 
 la UI puede expresar disponibilidad, pero la autorización sensible debe resolverse y bloquearse en backend.
+
+Regla adicional:
+
+cuando un frente tenant concentra reglas owner/admin, esa autoridad debe centralizarse en una pieza reusable del plano tenant y no repetirse en policies, controllers o Blades.
 
 VALIDACIÓN RUNTIME DE SEGURIDAD
 
@@ -129,6 +141,30 @@ verificación final de persistencia
 Caso validado:
 
 protección de party vinculada a membership activa.
+
+Caso validado adicional:
+
+contrato owner/admin en tenant/profile/accesses.
+
+Validaciones realizadas:
+
+admin intentando editar General bloqueado
+
+admin intentando modificar permisos del rol admin bloqueado
+
+admin modificando permisos de rol operativo permitido
+
+admin intentando asignar admin bloqueado
+
+admin asignando rol operativo permitido
+
+admin intentando autogestionarse o vaciar sus roles bloqueado
+
+admin intentando combinar admin con rol operativo vía sync bloqueado
+
+membership activa sin roles con error funcional controlado
+
+rollback confirmado luego de pruebas positivas
 
 La validación no se considera cerrada solo por ocultar campos en UI.
 
@@ -509,5 +545,60 @@ OperationalActivitySurfaceService declara icon = activity para tab Actividad.
 Regla:
 
 la iconografía de una surface no convierte la capacidad en módulo funcional ni navegación principal.
+
+EDICIÓN DE FUNCIONES DE MEMBERSHIP
+
+Patrón validado:
+
+tabla limpia
+↓
+badges de funciones actuales
+↓
+acción contextual por fila
+↓
+modal de edición
+↓
+JS guía selección
+↓
+backend sincroniza y autoriza
+↓
+validación runtime confirma bloqueo de manipulación
+
+Caso validado:
+
+tenant/profile/accesses
+
+Elementos visuales:
+
+columna Funciones
+badges de funciones actuales
+botón Editar funciones
+modal con checkboxes
+mensaje de ayuda dinámico
+acciones Cancelar / Guardar funciones
+
+Reglas:
+
+la acción debe nacer donde está la intención
+
+el modal reduce ruido visual cuando la operación es breve y contextual
+
+JS puede guiar exclusividad visual de admin y advertencias básicas
+
+JS no decide autoridad
+
+backend debe recibir el conjunto deseado y validar agregados y remociones
+
+backend debe bloquear combinaciones sensibles y autogestión indebida
+
+no debe quedar protección sensible solo en Blade ni JS
+
+Caso vigente:
+
+TenantMembershipRoleController::sync
+
+Regla:
+
+sync es patrón válido cuando el usuario edita el conjunto completo de funciones de una membership.
 
 <<END SECTION>>

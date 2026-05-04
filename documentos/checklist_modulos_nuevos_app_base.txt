@@ -1504,7 +1504,7 @@ debe consumirse Security con el contexto real requerido por el contrato
 <<END SECTION>>
 
 <<SECTION: VISTAS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 VISTAS
 
@@ -1530,6 +1530,44 @@ si una capacidad reusable pertenece al módulo, su bloque visual debe vivir dent
 si el módulo publica una relación navegable reusable, no alcanza con implementarla en su show principal
 
 también deben contemplarse tablas, sublistados y superficies secundarias consumidoras relevantes
+
+Validación adicional de versionado visual Blade:
+
+todo Blade nuevo o modificado debe revisar si corresponde incorporar o actualizar:
+
+x-dev-component-version
+
+Aplicar cuando:
+
+la vista tenga entidad visual propia
+
+el partial represente una card, bloque, tab, tabla, summary, toolbar o componente visible estable
+
+la modificación altere estructura visual, composición, jerarquía, integración de componentes o comportamiento visible
+
+el Blade ya tenga x-dev-component-version y se realice una modificación relevante
+
+No aplicar cuando:
+
+el fragmento sea puramente interno y no tenga entidad visual propia
+
+la ubicación natural caiga dentro de tablas, tbody, formularios, loops o estructuras repetitivas donde pueda romper HTML o generar ruido visual
+
+el cambio sea mínimo y sin impacto real en la vista
+
+Reglas:
+
+si se incorpora x-dev-component-version, usar props vigentes:
+
+name
+version
+align
+
+no usar prop file
+
+si ya existe, revisar e incrementar version cuando corresponda
+
+si no se incorpora, debe ser porque no corresponde por estructura, ubicación o entidad visual
 
 <<END SECTION>>
 

@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00022
 
 COMPONENTES DISPONIBLES
 
@@ -174,7 +174,11 @@ x-line-operation-modal
 x-tabs-embedded
 x-dev-component-version
 
-x-dev-component-version puede utilizarse como ayuda visual de versionado en Blades intervenidos.
+x-dev-component-version es el componente vigente para identificar y versionar Blades intervenidos.
+
+Debe utilizarse en Blades nuevos y en Blades modificados cuando la vista, partial, componente o card intervenida tenga entidad visual propia dentro del sistema.
+
+Su función es dejar evidencia visual y técnica del componente intervenido, facilitar auditorías posteriores y sostener continuidad de versiones en la evolución de la UI.
 
 Props vigentes:
 
@@ -184,7 +188,31 @@ align
 
 No debe usarse la prop file.
 
-Debe ubicarse al final visible del componente o card cuando corresponda, sin insertarlo dentro de tablas ni formularios.
+Reglas:
+
+debe agregarse al crear un Blade nuevo con entidad visual propia
+
+debe agregarse o actualizarse al modificar un Blade existente que ya lo tenga
+
+debe evaluarse su incorporación cuando se modifique un Blade existente que todavía no lo tenga
+
+la versión debe incrementarse cuando el cambio afecte estructura visual, composición, comportamiento visible, organización del contenido o integración con componentes
+
+no debe incrementarse por cambios menores sin impacto real en la vista
+
+debe ubicarse al final visible del componente, partial, card o bloque intervenido cuando corresponda
+
+no debe insertarse dentro de tablas, tbody, formularios, listas repetitivas, loops ni estructuras donde pueda romper HTML o generar ruido visual
+
+no reemplaza SECTION_VERSION documental ni versionado de archivos
+
+no decide permisos, lógica de negocio ni comportamiento funcional
+
+Regla de auditoría visual:
+
+todo Blade nuevo o modificado debe revisar si corresponde incorporar o actualizar x-dev-component-version antes de cerrar la intervención.
+
+Si no se incorpora por no corresponder, la razón debe ser evidente por tratarse de un fragmento mínimo, estructura interna sin entidad visual propia o bloque repetitivo donde el componente generaría ruido o HTML incorrecto.
 
 Estos componentes pueden ser consumidos por orders y documents cuando la gramática visual sea equivalente.
 

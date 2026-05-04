@@ -38,7 +38,7 @@ Este documento se limita a la capa visual y estructural de componentes.
 
 
 <<SECTION: COMPONENTES BLADE GLOBALES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 COMPONENTES BLADE GLOBALES
 
@@ -57,6 +57,7 @@ x-page-header
 x-breadcrumb
 x-card
 x-modal
+x-dev-component-version
 
 Reglas:
 
@@ -88,6 +89,39 @@ Solo representa una interacción visual reutilizable.
 En el caso de edición de funciones tenant, el modal representa la micro-interacción visual con datos y permisos ya preparados por backend.
 
 No decide reglas owner/admin ni resuelve autoridad.
+
+Aclaración vigente sobre x-dev-component-version:
+
+x-dev-component-version es un componente global de ayuda visual y control interno de versiones de Blades.
+
+Responsabilidad:
+
+identificar Blades intervenidos
+mostrar versión visual del componente, partial, card o vista
+facilitar auditorías posteriores
+favorecer continuidad entre cambios visuales sucesivos
+
+Props vigentes:
+
+name
+version
+align
+
+Reglas:
+
+debe usarse en Blades nuevos con entidad visual propia
+
+debe actualizarse en Blades modificados que ya lo tengan
+
+debe evaluarse su incorporación en Blades existentes intervenidos que todavía no lo tengan
+
+no debe usarse con prop file
+
+no debe ubicarse dentro de tablas, tbody, formularios, loops ni estructuras repetitivas
+
+no reemplaza versionado documental ni control de código
+
+no define reglas de negocio, permisos ni navegación
 
 Regla de validación runtime:
 

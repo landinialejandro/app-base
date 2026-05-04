@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 PATRONES VIGENTES
 
@@ -600,5 +600,139 @@ TenantMembershipRoleController::sync
 Regla:
 
 sync es patrón válido cuando el usuario edita el conjunto completo de funciones de una membership.
+
+SEED DEMO OPERATIVO CON TRAZABILIDAD REAL
+
+Patrón validado:
+
+seeder demo que representa carga operativa real
+↓
+crea registros válidos según catálogos vigentes
+↓
+respeta lifecycle real del módulo
+↓
+emite eventos operativos livianos cuando corresponde
+↓
+genera jobs queued
+↓
+procesa la cola
+↓
+confirma jobs = 0
+↓
+confirma failed_jobs = 0
+↓
+confirma persistencia en operational_activities
+↓
+confirma ausencia de estados inválidos y residuos legacy reales
+
+Reglas:
+
+no todo seeder debe emitir actividad operativa
+
+solo corresponde cuando la carga demo representa una operación real del sistema
+
+no reemplaza eventos operativos transversales
+
+consume el patrón vigente de OperationalActivity
+
+no simula UI completa
+
+no depende de controllers, requests web, navegador ni sesión HTTP
+
+usa código interno del sistema, modelos, servicios y eventos reales
+
+no debe sostener compatibilidad legacy silenciosa
+
+no debe corregir payloads antiguos por dentro
+
+no debe crear datos que el sistema vigente ya no reconoce
+
+debe fallar fuerte si el payload no cumple catálogos o lifecycle vigentes
+
+Casos validados:
+
+PartyModuleSeeder
+
+Crea parties demo como carga operativa real.
+
+Emite OperationalRecordCreated por cada Party nueva creada por seeder.
+
+Incluye metadata operativa de party_roles.
+
+Validación final informada:
+
+22 actividades parties
+jobs = 0
+failed = 0
+
+OrderModuleSeeder
+
+Crea órdenes demo listas para operar.
+
+Elimina compatibilidad legacy interna basada en legacyKinds.
+
+Declara explícitamente group y kind.
+
+Usa:
+
+group = sale|purchase|service
+kind = standard
+
+Incluye orden testigo:
+
+TECH-ORD-CYCLE-0001
+
+La orden testigo recorre ciclo completo:
+
+creación
+ítem
+transición a pending_approval
+aprobación
+ejecución de línea por inventario
+cierre
+
+La ejecución de línea usa OrderInventoryOperationService y respeta InventoryOperation como ancla operativa de inventario.
+
+Validación final informada:
+
+estado final closed
+ítem final completed
+orders = 10
+inventory = 1
+jobs = 0
+failed = 0
+
+DocumentModuleSeeder
+
+Crea documentos listos para operar mediante modelos Document y DocumentItem.
+
+Deja de usar DB::table como carga dura para documentos e ítems.
+
+Elimina estado legacy issued.
+
+Usa estados vigentes de DocumentCatalog.
+
+Deja documentos en pending_approval o approved.
+
+Deja ítems documentales en pending.
+
+Emite actividad operativa por creación y transición.
+
+Validación final informada:
+
+documents = 10
+jobs = 0
+failed = 0
+
+Validación complementaria informada:
+
+orders_invalid = []
+documents_invalid = []
+
+Regla:
+
+un seeder demo operativo no debe considerarse cerrado solo por migrate:fresh --seed OK.
+
+Debe validarse también cola, actividad persistida, catálogos, lifecycle y ausencia de legacy real.
 
 <<END SECTION>>

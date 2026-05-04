@@ -36,7 +36,7 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 DECISIONES VIGENTES
 
@@ -438,5 +438,52 @@ activity_context no autoriza records por sí mismo
 activity_context no habilita lectura general del tenant
 
 activity_context no reemplaza activity_record_set
+
+Decisión vigente sobre seeders demo operativos:
+
+los seeders demo que representan carga operativa real no deben funcionar como simples pobladores silenciosos de tablas cuando el sistema ya posee eventos operativos y trazabilidad transversal.
+
+La carga demo debe tender a simular una operación real del sistema respetando:
+
+catálogos vigentes
+lifecycle real
+eventos operativos livianos cuando corresponda
+cola
+persistencia en OperationalActivity cuando corresponda
+
+Esta decisión no convierte todos los seeders en simuladores completos de UI ni en flujos HTTP.
+
+La decisión vigente es usar código interno del sistema, modelos, servicios y eventos reales, sin depender de controllers, requests web, navegador o sesión HTTP.
+
+Reglas:
+
+los seeders demo no deben sostener compatibilidades legacy internas indefinidas
+
+los seeders demo no deben corregir silenciosamente payloads antiguos
+
+los seeders demo no deben aceptar entradas legacy para reinterpretarlas al contrato nuevo
+
+los seeders demo deben hablar directamente el contrato vigente del módulo
+
+los seeders demo deben fallar fuerte si el payload no cumple el contrato vigente
+
+Caso vigente de Orders:
+
+OrderModuleSeeder no debe conservar adaptadores silenciosos como conversión de kind = sale/purchase/service hacia el modelo nuevo.
+
+El contrato vigente para seeders de orders debe expresarse directamente como:
+
+group = sale|purchase|service
+kind = standard
+
+Decisiones de alcance:
+
+InventoryModuleSeeder se mantiene por ahora con movimientos, sin reconversión completa a simulación operativa agrupada.
+
+AttachmentDemoSeeder no se simula dentro de este frente.
+
+Estado:
+
+decisión implementada parcialmente y validada en seeders demo operativos de parties, orders y documents.
 
 <<END SECTION>>

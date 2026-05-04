@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00017
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -392,6 +392,128 @@ btn btn-secondary btn-icon
 
 No crear clase nueva si la variante existente resuelve la necesidad.
 
+Seeders demo operativos:
+
+los seeders demo que representan carga operativa real fueron reconvertidos parcialmente para respetar contratos vigentes, catálogos, lifecycle real, eventos operativos livianos, cola y OperationalActivity cuando corresponda.
+
+Regla vigente:
+
+un seeder demo operativo no queda cerrado solo por migrate:fresh --seed OK.
+
+Si emite eventos queued, debe validarse:
+
+eventos emitidos
+jobs generados
+queue procesada
+jobs = 0
+failed_jobs = 0
+operational_activities persistidas
+módulo correcto
+cantidades finales esperadas
+estados válidos contra catálogos
+ausencia de estados inválidos en DB
+ausencia de residuos legacy reales por grep preciso
+
+Cierre vigente de PartyModuleSeeder:
+
+dejó de ser carga silenciosa para parties nuevas
+
+emite OperationalRecordCreated por cada Party nueva creada
+
+incluye metadata operativa de party_roles
+
+validación final informada:
+
+22 actividades parties
+jobs = 0
+failed = 0
+
+Cierre vigente de OrderModuleSeeder:
+
+se limpió de compatibilidad legacy interna
+
+eliminó lógica tipo legacyKinds
+
+no acepta implícitamente kind = sale/purchase/service como entrada conceptual
+
+declara explícitamente:
+
+group = sale|purchase|service
+kind = standard
+
+valida payload de seed con fallo fuerte si falta un dato o si el dato no pertenece al catálogo vigente
+
+crea órdenes demo en estados útiles
+
+crea una orden testigo:
+
+TECH-ORD-CYCLE-0001
+
+la orden testigo recorre ciclo completo:
+
+creación
+ítem
+transición a pending_approval
+aprobación
+ejecución de línea por inventario
+cierre
+
+usa OrderInventoryOperationService para ejecutar línea
+
+respeta InventoryOperation como ancla operativa de inventario
+
+validación final informada:
+
+estado final closed
+ítem final completed
+orders = 10
+inventory = 1
+jobs = 0
+failed = 0
+
+Cierre vigente de DocumentModuleSeeder:
+
+dejó de usar DB::table como carga dura para documentos e ítems
+
+usa modelos Document y DocumentItem
+
+elimina estados legacy como issued
+
+usa estados vigentes de DocumentCatalog
+
+deja documentos en pending_approval o approved
+
+deja ítems documentales en pending
+
+emite actividad operativa por creación y transición
+
+validación final informada:
+
+documents = 10
+jobs = 0
+failed = 0
+
+Verificación final informada:
+
+orders_invalid = []
+documents_invalid = []
+
+Alcance explícito vigente:
+
+InventoryModuleSeeder se mantiene por ahora con movimientos, sin reconversión completa a simulación operativa agrupada.
+
+AttachmentDemoSeeder no se simula dentro de este frente.
+
+Regla adicional para auditorías de seeders:
+
+un grep amplio puede generar falsos positivos.
+
+Caso detectado:
+
+buscar issued de forma amplia detectó issued_at, que es un campo válido y no el estado legacy issued.
+
+Debe usarse grep preciso que discrimine campo, valor y contexto, por ejemplo status => issued cuando corresponda.
+
 Cuando una tarea involucre Project Lab, automatizador, Tinker, runtime real, colas, eventos, permisos, constraints, multi-tenancy, actualización de código o actualización documental, se debe respetar la guía operativa vigente de Project Lab.
 
 Regla crítica para snippets:
@@ -415,7 +537,7 @@ No agregar botón de queue al producto SaaS.
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS DEL CHAT>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 REGLAS OPERATIVAS DEL CHAT
 
@@ -626,6 +748,67 @@ No hardcodear esa frontera en OperationalActivity.
 Caso vigente:
 
 PartyEmployeeActivityContext.
+
+Regla operativa adicional para seeders demo operativos:
+
+no asumir que migrate:fresh --seed OK alcanza como cierre cuando el seeder representa carga operativa real.
+
+Si el seeder emite eventos hacia OperationalActivity, validar también:
+
+eventos emitidos
+
+jobs generados
+
+queue:work --stop-when-empty --tries=1 ejecutado
+
+jobs = 0
+
+failed_jobs = 0
+
+operational_activities persistidas
+
+módulo correcto
+
+cantidades finales esperadas
+
+estados válidos contra catálogos vigentes
+
+ausencia de estados inválidos en DB
+
+ausencia de residuos legacy reales
+
+ciclo operativo testigo cuando exista
+
+Regla:
+
+los seeders demo no deben sostener compatibilidad legacy silenciosa.
+
+Si el contrato vigente exige otra estructura, debe corregirse el seeder.
+
+No debe agregarse un adaptador interno para que payloads viejos sigan pasando.
+
+Caso vigente:
+
+OrderModuleSeeder debe hablar directamente:
+
+group = sale|purchase|service
+kind = standard
+
+No debe reinterpretar kind = sale/purchase/service como entrada conceptual antigua.
+
+Regla:
+
+si un seeder usa servicios operativos que dependen de app('tenant'), debe preparar el contexto tenant de forma explícita en entorno CLI y restaurar o limpiar el binding al finalizar cuando corresponda.
+
+Regla:
+
+un grep de auditoría debe ser preciso.
+
+No declarar residuo legacy por coincidencia textual si el patrón no discrimina campo, valor o contexto.
+
+Caso detectado:
+
+issued_at no equivale al estado legacy issued.
 
 Regla operativa adicional para Project Lab/Tinker:
 

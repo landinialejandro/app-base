@@ -26,7 +26,7 @@ lección aplicable
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 LECCIONES VIGENTES
 
@@ -494,5 +494,82 @@ se activó por error una herramienta de imagen ante una captura utilizada para d
 Lección:
 
 cuando la captura se usa como evidencia visual para analizar una interfaz real, no corresponde generar imagen.
+
+Un grep de auditoría debe discriminar campo, valor y contexto.
+
+Caso detectado:
+
+se buscó issued para detectar estado legacy.
+
+El grep devolvió coincidencias en issued_at.
+
+issued_at era un campo válido, no el estado legacy issued.
+
+Corrección:
+
+usar grep preciso sobre el patrón real del valor legacy, por ejemplo status => issued cuando corresponda.
+
+Lección:
+
+no declarar residuo legacy solo por coincidencia textual si el patrón no discrimina campo, valor o contexto.
+
+Un seeder demo operativo no queda validado solo por migrate:fresh --seed OK.
+
+Caso detectado:
+
+los seeders demo fueron reconvertidos para emitir eventos operativos y persistir actividad en OperationalActivity cuando representaban carga operativa real.
+
+Lección:
+
+cuando un seeder representa operación real con eventos queued, el cierre debe incluir:
+
+eventos emitidos
+jobs generados
+queue procesada
+jobs = 0
+failed_jobs = 0
+actividad persistida
+cantidades finales esperadas
+estados válidos contra catálogos
+ausencia de residuos legacy reales
+
+Los seeders no deben sostener compatibilidad legacy silenciosa.
+
+Caso detectado:
+
+OrderModuleSeeder conservaba lógica tipo legacyKinds para aceptar entradas conceptuales anteriores.
+
+Corrección:
+
+el seeder debe hablar directamente el contrato vigente:
+
+group = sale|purchase|service
+kind = standard
+
+Lección:
+
+si el contrato del módulo cambió, el seeder debe actualizarse al contrato vigente y fallar fuerte ante payloads viejos o inválidos.
+
+No debe reinterpretar datos legacy de forma silenciosa.
+
+Los seeders demo operativos no deben simular UI completa ni flujos HTTP.
+
+Caso validado:
+
+PartyModuleSeeder, OrderModuleSeeder y DocumentModuleSeeder usan código interno, modelos, servicios y eventos reales cuando representan carga operativa.
+
+Lección:
+
+la carga demo operativa debe sostener la lógica interna vigente sin depender de controllers, requests web, navegador o sesión HTTP.
+
+Si un seeder usa servicios que dependen de app('tenant'), debe preparar contexto tenant explícito.
+
+Caso detectado:
+
+servicios operativos pueden depender del tenant activo bindeado en el contenedor.
+
+Lección:
+
+en entorno CLI, el seeder debe bindear temporalmente el tenant cuando el servicio operativo lo requiera y restaurar o limpiar ese binding al finalizar cuando corresponda.
 
 <<END SECTION>>

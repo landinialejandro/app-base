@@ -39,7 +39,7 @@ no debe utilizarse como depósito de ideas difusas sin criterio de ejecución
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — RECONVERSIÓN MODULAR>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00021
 
 LÍNEA ACTIVA — RECONVERSIÓN MODULAR
 
@@ -72,6 +72,8 @@ apertura de tenant/profile para admin con gobierno restringido
 centralización de reglas owner/admin mediante TenantProfileAccess
 edición de funciones de memberships mediante modal y sync backend
 validación runtime de seguridad owner/admin con requests manipulados y rollback
+reconversión parcial de seeders demo hacia carga operativa real con trazabilidad
+validación de seeders demo operativos en parties, orders y documents
 
 Criterios rectores vigentes:
 
@@ -93,6 +95,9 @@ no duplicar tablas visuales de actividad si existe partial reusable común
 no tratar tenant/profile como módulo funcional ordinario
 no equiparar admin con owner
 no proteger reglas owner/admin solo desde UI o JS
+no cerrar seeders demo con compatibilidad legacy silenciosa
+no aceptar payloads legacy en seeders para reinterpretarlos internamente hacia contratos nuevos
+no considerar migrate:fresh --seed como cierre suficiente si el seeder representa operación real con eventos queued
 
 Foco de esta línea:
 
@@ -110,6 +115,7 @@ más definición explícita de fronteras de lectura agregada cuando correspondan
 más definición explícita de criterios contextuales especiales cuando correspondan
 más centralización de reglas sensibles del plano tenant
 más claridad entre gobierno estructural owner y gestión operativa admin
+más coherencia entre seeders demo, catálogos vigentes, lifecycle real y trazabilidad operativa
 
 Caso vigente consolidado:
 
@@ -138,11 +144,16 @@ profile-activity-tab delega en operational-activity-table
 operational-activity-table puede mostrar resumen compacto y detalle de cambios mediante x-modal
 OperationalActivitySurfaceService puede declarar icon = activity
 Ver cambios usa x-icons.changes con variante visual btn btn-secondary btn-icon
+PartyModuleSeeder emite actividad operativa para parties demo nuevas cuando corresponde
+OrderModuleSeeder usa group = sale|purchase|service y kind = standard como contrato vigente
+OrderModuleSeeder no conserva compatibilidad legacy interna tipo legacyKinds
+DocumentModuleSeeder usa modelos Document y DocumentItem y estados vigentes de DocumentCatalog
+DocumentModuleSeeder no usa issued como estado vigente
 
 <<END SECTION>>
 
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 MÓDULOS PRIORITARIOS A REVISAR
 
@@ -150,27 +161,27 @@ appointments
 por ser referencia actual de host maduro en show pages
 
 orders
-por su centralidad operativa y necesidad de convergencia estructural
+por su centralidad operativa, necesidad de convergencia estructural y validación reciente de seed demo operativo con ciclo completo
 
 inventory
-por cierre de identidad modular autónoma
+por cierre de identidad modular autónoma y por mantener InventoryModuleSeeder con movimientos en el estado vigente, sin reconversión completa a simulación operativa agrupada
 
 attachments
-por revisión contractual pendiente bajo nueva doctrina
+por revisión contractual pendiente bajo nueva doctrina y porque AttachmentDemoSeeder no se simula dentro del frente actual de seeders demo operativos
 
 assets
 por surfaces compactas ya detectadas en revisión
 
 documents
-por consolidación como capacidad embebida oficial
+por consolidación como capacidad embebida oficial y validación reciente de seed demo operativo con estados vigentes y actividad registrada
 
 parties
-seguimiento posterior al cierre de reconversión conceptual y de seguridad, especialmente análisis de embebidos de parties.show según party_roles.role
+seguimiento posterior al cierre de reconversión conceptual y de seguridad, especialmente análisis de embebidos de parties.show según party_roles.role y validación reciente de seed demo operativo con actividad de parties
 
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00019
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -747,6 +758,81 @@ el JS no decide autorización.
 El backend conserva la autoridad final.
 
 Se corrigió wrap del mensaje de ayuda del modal para evitar scroll horizontal.
+
+Cierre operativo reciente de seeders demo operativos:
+
+se reconvirtió parcialmente la carga demo hacia operaciones reales con trazabilidad cuando corresponde.
+
+PartyModuleSeeder:
+
+dejó de ser carga silenciosa para parties nuevas
+emite OperationalRecordCreated por cada Party nueva creada
+incluye metadata operativa de party_roles
+genera jobs
+procesa cola
+persiste actividad en operational_activities
+
+Validación final informada:
+
+22 actividades parties
+jobs = 0
+failed = 0
+
+OrderModuleSeeder:
+
+se limpió de compatibilidad legacy
+eliminó lógica interna tipo legacyKinds
+dejó de aceptar implícitamente kind = sale/purchase/service como entrada conceptual
+pasó a declarar explícitamente group y kind
+usa group = sale|purchase|service
+usa kind = standard
+valida payload de seed con fallo fuerte si falta un dato o si el dato no pertenece al catálogo vigente
+crea órdenes demo en estados útiles
+crea una orden testigo TECH-ORD-CYCLE-0001
+la orden testigo recorre ciclo completo
+ejecuta línea mediante OrderInventoryOperationService
+respeta InventoryOperation como ancla operativa de inventario
+valida estado final closed
+valida ítem final completed
+
+Validación final informada:
+
+orders = 10
+inventory = 1
+jobs = 0
+failed = 0
+
+DocumentModuleSeeder:
+
+dejó de usar DB::table como carga dura para documentos e ítems
+usa modelos Document y DocumentItem
+elimina estados legacy como issued
+usa estados vigentes de DocumentCatalog
+deja documentos en pending_approval o approved
+deja ítems documentales en pending
+emite actividad operativa por creación y transición
+
+Validación final informada:
+
+documents = 10
+jobs = 0
+failed = 0
+
+Verificación final informada:
+
+ausencia de residuos legacy reales en OrderModuleSeeder y DocumentModuleSeeder
+ausencia de estados inválidos en base
+
+Resultados informados:
+
+orders_invalid = []
+documents_invalid = []
+
+Alcance explícito:
+
+InventoryModuleSeeder se mantiene por ahora con movimientos, sin reconversión completa a simulación operativa agrupada.
+
+AttachmentDemoSeeder no se simula dentro de este frente.
 
 <<END SECTION>>
 

@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00026
+SECTION_VERSION: 00027
 
 CONVENCIONES GENERALES
 
@@ -196,6 +196,51 @@ parties puede registrar cambios de party_roles como metadata operativa de Party.
 Regla:
 
 la metadata operativa no convierte una entidad hija en módulo propio.
+
+Convención de seeders demo operativos:
+
+los seeders demo que representan carga operativa real no deben funcionar como simples pobladores silenciosos de tablas si el sistema ya posee eventos operativos y trazabilidad transversal.
+
+Cuando un seeder demo represente una operación real del sistema, debe tender a utilizar código interno vigente, modelos, servicios y eventos reales.
+
+No debe depender de controllers, requests web, navegador ni sesión HTTP.
+
+Reglas:
+
+no sostener soluciones híbridas con compatibilidad legacy indefinida
+
+no conservar adaptadores silenciosos para datos antiguos
+
+no reinterpretar internamente payloads legacy hacia contratos nuevos
+
+no crear datos que el sistema vigente ya no reconoce
+
+no corregir silenciosamente datos mal formados
+
+fallar fuerte si el payload no cumple contrato vigente
+
+validar estados contra catálogos vigentes
+
+emitir eventos operativos cuando la carga demo represente actividad operativa real
+
+procesar cola y validar persistencia si participa OperationalActivity
+
+Caso vigente:
+
+si el contrato de Orders exige group y kind, el seeder debe cargar group y kind explícitamente.
+
+No debe aceptar entradas antiguas para reinterpretarlas internamente.
+
+Contrato vigente para orders demo:
+
+group = sale|purchase|service
+kind = standard
+
+Regla:
+
+la carga demo debe hablar el contrato vigente del módulo.
+
+No debe simular una compatibilidad que el sistema ya no debe sostener.
 
 Convención de lectura contextual agregada de actividad:
 
@@ -394,7 +439,7 @@ En producción debe definirse worker supervisado por infraestructura, no botón 
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA BASE DEL PROYECTO>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 ESTRUCTURA BASE DEL PROYECTO
 
@@ -490,6 +535,34 @@ devolver null o fallback textual cuando no exista navegación segura
 Regla:
 
 OperationalActivityLinkResolver no es componente Blade, no es surface y no convierte OperationalActivity en módulo funcional ordinario.
+
+DATABASE
+
+database/ concentra migraciones, seeders y factories cuando correspondan al proyecto.
+
+Ubicaciones relevantes:
+
+database/migrations
+estructura persistente del sistema
+
+database/seeders
+carga inicial, carga demo y configuración base del sistema
+
+Regla vigente para seeders demo:
+
+los seeders demo que representan carga operativa real deben respetar contratos vigentes, catálogos, lifecycle y eventos operativos cuando corresponda.
+
+No deben sostener compatibilidad legacy silenciosa.
+
+No deben reinterpretar datos antiguos internamente.
+
+No deben crear datos no reconocidos por el contrato actual.
+
+Cuando usen servicios operativos que dependen de app('tenant'), deben preparar el contexto tenant de forma explícita y temporal en entorno CLI.
+
+Regla:
+
+si se modifica un binding temporal de tenant para ejecutar un seeder o servicio operativo en CLI, debe restaurarse o limpiarse al finalizar cuando corresponda.
 
 RESOURCES
 
@@ -722,7 +795,7 @@ No debe utilizarse desactivación global de users para resolver bajas, bloqueos 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ACCESO POR MÓDULO Y ROLES>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 CONVENCIONES DE ACCESO POR MÓDULO Y ROLES
 
@@ -884,6 +957,26 @@ la publicación de capacidades reutilizables por parte de un módulo no crea can
 
 las integraciones entre módulos deben respetar el contrato del módulo oferente y no reinterpretarlo desde el módulo consumidor
 
+Regla adicional para seeders demo operativos:
+
+un seeder demo no reemplaza autorización real del sistema ni valida por sí mismo permisos de usuario.
+
+Cuando un seeder use servicios operativos, debe respetar el contexto tenant requerido por esos servicios.
+
+Si el servicio depende de app('tenant'), el seeder debe preparar ese contexto de forma explícita en entorno CLI y restaurarlo o limpiarlo al finalizar cuando corresponda.
+
+Reglas:
+
+el seeder no debe debilitar contratos de seguridad
+
+el seeder no debe usar atajos que generen datos imposibles para el contrato vigente
+
+el seeder no debe omitir catálogos, estados o lifecycle por comodidad
+
+el seeder no debe simular permisos desde UI ni depender de sesión HTTP
+
+el seeder puede usar código interno, modelos, servicios y eventos reales cuando represente carga operativa
+
 Regla adicional para capacidades tenant no modulares:
 
 una capacidad evaluable por Security no necesita incorporarse a ModuleCatalog si no representa un módulo funcional ordinario.
@@ -945,7 +1038,7 @@ Esa pieza debe evitar duplicación de la regla entre controller y requests.
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00026
+SECTION_VERSION: 00027
 
 CONVENCIONES DE CONTRATO MODULAR
 
@@ -993,18 +1086,27 @@ datos mínimos de precompletado
 origen de creación contextual
 disparadores internos del sistema
 eventos operativos livianos emitidos después de acciones propias autorizadas
+payloads demo cuando el seeder represente carga operativa real
 
 Reglas:
 
 no asumir entradas implícitas no declaradas
 no abrir canales paralelos de entrada por conveniencia de implementación
 no resolver create contextuales con patrones distintos si el mismo contrato ya puede absorberlos
+no aceptar payloads legacy si el contrato vigente ya exige otra estructura
+no reinterpretar internamente entradas antiguas hacia el contrato nuevo
 
 si un create requiere contexto funcional obligatorio, no debe documentarse ni implementarse como create abstracto genérico
 
 Caso vigente:
 
 crear una Party employee desde un flujo de membership requiere contexto funcional employee porque la autorización de parties se orienta por party_roles.role mediante allowed_party_roles.
+
+Caso vigente adicional:
+
+OrderModuleSeeder debe declarar directamente group y kind según contrato vigente.
+
+No debe aceptar kind = sale/purchase/service como entrada conceptual legacy para convertirlo internamente.
 
 CONTRATO DE SALIDA
 
@@ -1035,292 +1137,100 @@ La oferta de integración expresa qué capacidades reutilizables publica el mód
 
 Puede incluir, según el caso:
 
-selector reusable
-tabla embebida reusable
-summary enlazable
-acciones contextuales
-create contextual compatible
-bloques de relación derivados
-catálogos o adaptadores de integración
-formularios operativos reutilizables cuando pertenezcan al núcleo del módulo oferente
-acciones por fila cuando el módulo deba intervenir recursos mostrados por un host externo
-lectura contextual agregada de actividad mediante activity_record_set
-lectura contextual especial de actividad mediante activity_context
+surfaces
+row actions
+componentes embebibles
+lookup providers
+summary providers
+servicios operativos
+events
+activity_record_set
+activity_context
 
 Reglas:
 
-un módulo puede publicar oferta de integración aunque todavía no exista un consumidor actual
-la ausencia temporal de consumidor no invalida la oferta
-la publicación de la oferta pertenece al módulo oferente y no debe imponerse desde afuera como excepción ad hoc
+la oferta de integración pertenece al módulo oferente
 
-si una capacidad reusable ya fue publicada por el módulo oferente, el consumidor debe priorizar su consumo antes de crear una variante local
+el consumidor no debe duplicarla localmente
 
-si la capacidad reusable requiere arbitraje operativo complejo, su publicación válida no se agota en la vista Blade
+si la integración exige lógica interna del módulo oferente, debe evolucionarse la oferta del oferente y no crear bypass en el consumidor
 
-debe incluir también una capa de resolución o payload backend publicada por el módulo oferente
+CONTRATO DE SEGURIDAD
 
-si la capacidad pertenece contractualmente al módulo oferente, su ubicación física debe mantener esa pertenencia modular y no diluirse en una carpeta global ambigua
+El contrato de seguridad describe cómo se autoriza el módulo y sus capacidades.
 
-Regla adicional consolidada de identidad modular:
+Debe contemplar:
 
-cuando un frente operativo evoluciona desde capacidad dispersa hacia módulo con identidad propia, sus surfaces oficiales deben migrar al propio módulo oferente
-
-las vistas, partials, formularios y tablas que expresen ese frente ya no deben quedar repartidos como solución oficial en módulos consumidores
-
-Regla adicional de abstracción sana:
-
-la homogeneización estructural es deseable, pero no debe sobreabstraer semántica real.
-
-Se admite centralizar infraestructura repetida mediante piezas comunes livianas.
-
-Caso vigente validado:
-
-BuildsSurfaceOffers como convención común para *SurfaceService.
-
-Puede concentrar:
-
-linkedOffer(...)
-embeddedOffer(...)
-unpackHostPack(...)
-
-No debe absorber:
-
-reglas del dominio
-payloads funcionales
-resolvers específicos
-decisiones UX del módulo
-semántica propia de cada contrato publicado
-
-Un SurfaceService puede ser extenso si esa extensión expresa semántica real y no simple boilerplate evitable.
-
-Caso vigente adicional:
-
-HostTabs como helper de presentación para resolver tab activa de show pages con tabs principales.
-
-Puede concentrar:
-
-lectura de return_tab
-validación contra keys disponibles
-fallback seguro al primer tab disponible
-
-No debe absorber:
-
-contenido de los panels
-semántica del módulo host
 permisos
-surfaces
-decisiones de dominio
+scopes
+constraints
+estado operativo
+relaciones sensibles
+tenancy
+lectura directa
+lectura contextual
+lectura agregada
+lectura contextual especial
 
-Regla de cierre adicional:
+Reglas:
 
-una capacidad reusable no debe considerarse realmente cerrada mientras existan superficies secundarias relevantes que todavía reconstruyan localmente su arbitraje o sus estados operativos
+el contrato de seguridad no debe resolverse desde UI
 
-el cierre válido exige revisar también tablas, partials, formularios embebidos y demás superficies derivadas que consuman esa integración
+las constraints deben operar sobre la dimensión real del dominio
 
-Casos doctrinales actuales:
+si una regla sensible aparece en múltiples capas, debe centralizarse
 
-linked-order como superficie reusable de orders
-linked-party como superficie reusable de parties
-linked-asset como superficie reusable de assets
+la lectura contextual de OperationalActivity no reemplaza permisos del módulo host
 
-Regla adicional de experiencia operativa:
+la lectura agregada debe ser declarada por el módulo dueño mediante activity_record_set
 
-las acciones de alto nivel deben tender a resolver la intención del usuario en un solo paso comprensible
+la lectura contextual especial debe ser declarada por el módulo dueño mediante activity_context
 
-el usuario expresa intención y el sistema ejecuta internamente las consecuencias compatibles con el contrato del módulo
+CONTRATO DE SEEDERS DEMO OPERATIVOS
 
-no corresponde trasladar al frontend la lógica contractual crítica, ni exigir al usuario que reconstruya manualmente secuencias internas que el sistema puede arbitrar de forma segura
+Cuando un módulo tenga seeders demo que representen operaciones reales del sistema, esos seeders deben respetar el contrato modular vigente.
 
-Caso operativo adicional consolidado:
+Reglas:
 
-cuando un consumidor reciba desde un módulo oferente una lectura operativa reusable por fila, no debe reinterpretar localmente qué estado corresponde, qué acción rápida exponer ni cuándo una línea queda readonly
+el seeder no debe ser una vía paralela para cargar estados inválidos
 
-debe consumir la unidad oficial publicada por el módulo oferente
+el seeder no debe usar payloads legacy por comodidad
 
-caso vigente relevante:
+el seeder no debe sostener adaptadores silenciosos hacia versiones anteriores del contrato
 
-orders consumiendo contexto operativo por línea publicado por inventory
+el seeder debe validar contra catálogos vigentes cuando corresponda
 
-Regla adicional sobre acciones por fila:
+el seeder debe respetar lifecycle real del módulo
 
-si una tabla nativa del host necesita renderizar acciones pertenecientes a otro módulo, la salida correcta es que el módulo oferente publique también esa capacidad como row action oficial dentro de su oferta contractual
+el seeder debe utilizar modelos, servicios y eventos internos cuando represente actividad operativa real
 
-el host presta superficie visual de montaje
+el seeder puede preparar contexto tenant explícito en CLI cuando un servicio operativo dependa de app('tenant')
 
-el módulo oferente conserva arbitraje operativo, validaciones y semántica de la acción
+el seeder debe restaurar o limpiar bindings temporales cuando corresponda
 
-Aclaración modular adicional:
+el seeder debe fallar fuerte ante datos incompletos, inválidos o fuera de catálogo
 
-la lectura contractual del ecosistema debe distinguir entre:
+el seeder debe emitir eventos operativos cuando la carga demo represente actividad operativa real y el módulo participe en OperationalActivity
 
-núcleo interno del módulo
-puerta de enlace modular oficial
-consumo externo por otros módulos
+el cierre de un seeder demo operativo debe validar cola y persistencia cuando emita eventos queued
 
-cuando un módulo actúe como superficie anfitriona o hub visual de una capacidad ajena, eso no lo convierte en dueño de esa lógica ni habilita naming, estructuras o responsabilidades centradas en el consumidor para piezas que pertenecen al oferente
+Caso validado:
 
-Regla adicional de publicación reusable mínima:
+PartyModuleSeeder emite actividad para parties demo nuevas y registra metadata operativa de party_roles.
 
-cuando una surface reusable embebida se publique para consumo transversal, debe apoyarse en un contrato mínimo estable que permita arbitraje homogéneo del ecosistema.
+Caso validado:
 
-Como mínimo, esa publicación debe poder describirse mediante:
+OrderModuleSeeder crea órdenes demo con contrato vigente group/kind, incluye una orden testigo de ciclo completo y utiliza OrderInventoryOperationService para ejecutar inventario.
 
-type
-slot
-key
-label
-targets
-priority
-view
-needs
-resolver
+Caso validado:
 
-El campo slot forma parte del contrato explícito de la offer.
-
-No debe tratarse como dato opcional implícito cuando el host consumidor organiza sus zonas de montaje mediante slots.
-
-Regla adicional para resolver reusable:
-
-cuando exista resolver como parte del contrato publicado, debe devolver al menos:
-
-count
-data
-
-ese resolver pertenece al módulo oferente y no debe quedar recompuesto por el host consumidor
-
-Regla adicional para hostPack:
-
-cuando una surface embebida reusable madure como patrón transversal, debe priorizarse un hostPack genérico basado en contexto estable del host y no claves ad hoc centradas en un consumidor puntual
-
-caso vigente:
-
-consumo embebido apoyado en record y trailQuery como base genérica del host
-
-Regla adicional de semántica cruzada:
-
-cuando una integración exponga métricas o cantidades pertenecientes a planos funcionales distintos, cada valor debe provenir de la semántica oficial de su dominio
-
-no corresponde reutilizar cálculos de stock como sustituto automático de ejecución operativa, ni viceversa
-
-Regla adicional de compatibilidad host:
-
-si el host consumidor todavía resuelve primero por type y luego por slot, la offer publicada debe respetar esa gramática real.
-
-No alcanza con target correcto ni con view válida si la combinación type + slot no coincide con la estructura efectiva del host.
-
-Caso consolidado actual:
-
-las relaciones compactas hacia appointments.show deben publicarse como linked + summary_items para entrar en la zona correcta del host vigente.
-
-Regla adicional de raíces internas del tenant:
-
-cuando una necesidad repetida no constituye módulo funcional sino dataset interno reusable de la empresa activa, la salida correcta puede ser una pieza del plano tenant.
-
-No debe forzarse un módulo artificial solo por reutilización de consultas internas.
-
-Caso consolidado:
-
-directorio de usuarios internos activos del tenant.
-
-Regla adicional de migración coherente:
-
-si una capacidad reusable ya migró a una nueva generación aprobada, no debe mezclarse soporte nuevo con componente viejo, payload nuevo con vista vieja ni fallback legacy con cierre declarado como definitivo.
-
-La migración válida exige coherencia contractual completa del módulo afectado.
-
-Regla adicional de puerta contractual blanda:
-
-cuando un módulo necesite contacto real con lógicas externas pero aún no corresponda abrir una abstracción mayor, puede consolidar una estación contractual propia y explícita como único punto autorizado de acople extra-módulo.
-
-Esa puerta no reemplaza el flujo principal del módulo ni desplaza su núcleo.
-
-Su función es concentrar delegaciones externas necesarias sin contaminar controllers, blades ni servicios internos nucleares.
-
-Caso vigente:
-
-orders mediante OrdersHooks.
-
-Regla adicional para módulos con estados operativos:
-
-si el estado de un registro define su condición real de operación, ese estado forma parte del contrato efectivo del módulo.
-
-No debe tratarse como una validación lateral.
-
-Caso vigente:
-
-orders.closed bloquea edición y eliminación directa, pero admite reapertura explícita autorizada a approved.
-
-orders.cancelled bloquea edición y eliminación directa y permanece como estado terminal no reabrible dentro de la regla validada.
-
-Regla adicional para agrupadores operativos internos:
-
-cuando un módulo incorpore una entidad persistente agrupadora de eventos o acciones, esa entidad no se convierte automáticamente en surface pública, módulo autónomo ni dependencia directa de consumidores externos.
-
-Debe definirse si pertenece al núcleo interno, a la puerta de enlace modular o a una oferta explícita de integración.
-
-Caso vigente:
-
-inventory_operations pertenece al núcleo interno de inventory como agrupación operativa contextual.
-
-No reemplaza inventory_movements.
-
-No desplaza la trazabilidad unitaria de stock.
-
-Su exposición hacia otros módulos solo corresponde si inventory publica una capacidad oficial para ello.
-
-Regla terminológica vigente para inventory:
-
-operation refiere a agrupación operativa contextual.
-
-movement refiere a impacto unitario de stock.
-
-Una operation puede reunir uno o múltiples movements.
-
-No deben tratarse como equivalentes ni sustituirse conceptualmente.
-
-Regla adicional para eventos operativos livianos:
-
-cuando un módulo emite eventos para trazabilidad transversal, esos eventos no deben trasladar autorización, validación ni ejecución de la operación original.
-
-El evento expresa que una operación ya ocurrió bajo responsabilidad del módulo dueño.
-
-Regla adicional para lectura contextual de actividad:
-
-la lectura contextual directa alcanza solamente el record host autorizado.
-
-La lectura contextual agregada requiere activity_record_set declarado por el módulo dueño.
-
-La lectura contextual especial requiere activity_context declarado por el módulo dueño.
+DocumentModuleSeeder utiliza modelos Document y DocumentItem, estados vigentes de DocumentCatalog e ítems documentales en estado pending.
 
 Regla:
 
-OperationalActivity no define por sí mismo fronteras de lectura contextual agregada ni especial.
+un seeder demo operativo no reemplaza UI ni requests web.
 
-Caso validado de activity_record_set:
-
-Projects declara ProjectActivityRecordSet.
-
-ProjectActivityRecordSet define Project + Tasks como dataset de actividad visible del proyecto.
-
-Caso validado de activity_context:
-
-Parties declara PartyEmployeeActivityContext.
-
-PartyEmployeeActivityContext define la lectura contextual de una Party employee con membership activa vinculada.
-
-Esa lectura puede incluir la actividad directa de Party y la actividad donde el user vinculado sea actor o sujeto.
-
-Reglas:
-
-activity_context no reemplaza activity_record_set
-
-activity_record_set representa conjunto explícito de records
-
-activity_context representa criterio contextual especial del módulo dueño
-
-ambos deben respetar host autorizado, tenant activo y ausencia de lectura general del tenant
-
-OperationalActivity no debe hardcodear conocimiento interno de employee, parties, memberships ni users para resolver esa frontera
+Tampoco debe degradarse a carga dura silenciosa si representa una operación real que el sistema ya puede trazar.
 
 <<END SECTION>>
 

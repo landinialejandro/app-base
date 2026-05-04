@@ -10,7 +10,7 @@ GESTIÓN: Guía rectora para uso local de Project Lab como herramienta operativa
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 OBJETIVO
 
@@ -102,6 +102,27 @@ Caso vigente:
 
 parties.show requiere validar que PartyEmployeeActivityContext devuelva actividad directa de Party y actividad donde el user vinculado sea actor o sujeto cuando la Party tenga relación employee y membership activa vinculada.
 
+Cuando se valide un seeder demo operativo que emite eventos hacia OperationalActivity, debe aplicarse la misma disciplina de validación que en cualquier flujo con eventos queued.
+
+No alcanza con:
+
+sintaxis PHP válida
+migrate:fresh --seed exitoso
+jobs generados
+
+El cierre exige confirmar:
+
+evento emitido
+jobs creados
+queue:work --stop-when-empty --tries=1 ejecutado
+jobs = 0
+failed_jobs = 0
+actividad persistida
+módulo correcto
+ausencia de estados inválidos
+ausencia de residuos legacy reales mediante grep preciso cuando corresponda
+validación de ciclo operativo testigo cuando exista
+
 Aclaración vigente para colas:
 
 en local, Project Lab puede ofrecer una acción externa al producto para procesar cola pendiente.
@@ -113,7 +134,7 @@ En producción debe definirse un worker persistente supervisado por infraestruct
 <<END SECTION>>
 
 <<SECTION: PRINCIPIO RECTOR>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 PRINCIPIO RECTOR
 
@@ -152,6 +173,20 @@ Caso vigente:
 tenants.id es UUID char(36).
 
 Por lo tanto, tenant_id en OperationalActivity debe conservarse como string compatible.
+
+Regla adicional para seeders demo operativos:
+
+no asumir que un seeder correcto es aquel que solo inserta datos sin error.
+
+Si el seeder representa carga operativa real, debe validarse contra el contrato vigente del módulo, sus catálogos, su lifecycle y su trazabilidad operativa cuando corresponda.
+
+No se deben aceptar adaptadores silenciosos, payloads legacy ni correcciones internas por conveniencia.
+
+Regla:
+
+si el seeder habla un contrato viejo, debe corregirse el seeder.
+
+No debe agregarse compatibilidad silenciosa para que el contrato viejo siga pasando.
 
 <<END SECTION>>
 
@@ -550,7 +585,7 @@ Debe corregirse o revertirse antes de avanzar.
 <<END SECTION>>
 
 <<SECTION: SALIDA OPERATIVA ESPERADA>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 SALIDA OPERATIVA ESPERADA
 
@@ -620,6 +655,10 @@ navegador informado por usuario
 request manipulado
 persistencia final
 rollback o limpieza de prueba
+migrate:fresh --seed
+grep preciso de residuos legacy
+control de estados inválidos en DB contra catálogos vigentes
+validación de ciclo operativo testigo
 
 Caso vigente:
 
@@ -743,6 +782,48 @@ setUserResolver definido si se usa $request->user()
 excepciones capturadas
 persistencia final verificada
 rollback o limpieza confirmada
+
+Validación esperada para seeders demo operativos con OperationalActivity:
+
+migrate:fresh --seed ejecutado cuando corresponda
+eventos emitidos por la carga demo operativa
+jobs generados
+queue:work --stop-when-empty --tries=1 ejecutado
+jobs = 0
+failed_jobs = 0
+operational_activities persistidas
+módulo correcto
+cantidades finales esperadas verificadas
+estados finales verificados contra catálogos vigentes
+ausencia de estados inválidos en DB
+ausencia de residuos legacy reales por grep preciso
+ciclo operativo testigo validado cuando exista
+
+Casos vigentes:
+
+PartyModuleSeeder debe validar actividad parties persistida cuando crea parties demo nuevas con evento operativo.
+
+OrderModuleSeeder debe validar contrato vigente group/kind, orden testigo TECH-ORD-CYCLE-0001, actividad orders, actividad inventory y estado final del ciclo.
+
+DocumentModuleSeeder debe validar uso de estados vigentes de DocumentCatalog, actividad documents y ausencia de estado legacy issued como valor de status.
+
+Regla:
+
+migrate:fresh --seed OK no alcanza como cierre si el seeder representa operación real con eventos queued.
+
+Debe confirmarse persistencia final y ausencia de legacy real.
+
+Regla adicional para auditorías grep:
+
+el grep debe ser lo bastante preciso para evitar falsos positivos.
+
+No debe confundirse un campo válido con un valor legacy.
+
+Caso detectado:
+
+buscar issued de forma amplia puede detectar issued_at aunque issued_at no sea el estado legacy issued.
+
+La auditoría correcta debe buscar el patrón que discrimine campo, valor o contexto, por ejemplo status => issued cuando corresponda.
 
 Aclaración vigente sobre sintaxis PHP:
 

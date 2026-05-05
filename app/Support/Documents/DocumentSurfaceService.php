@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Documents/DocumentSurfaceService.php | V8
+// FILE: app/Support/Documents/DocumentSurfaceService.php | V9
 
 namespace App\Support\Documents;
 
@@ -168,14 +168,14 @@ class DocumentSurfaceService implements ModuleSurfaceService
     {
         return match ($recordType) {
             'order' => [
-                'showParty' => true,
+                'showCounterparty' => true,
                 'showAsset' => false,
                 'showOrder' => false,
                 'emptyMessage' => 'Esta orden no tiene documentos vinculados.',
                 'order' => $record,
             ],
             'asset' => [
-                'showParty' => true,
+                'showCounterparty' => true,
                 'showAsset' => false,
                 'showOrder' => true,
                 'emptyMessage' => 'Este activo no tiene documentos vinculados.',
@@ -185,7 +185,7 @@ class DocumentSurfaceService implements ModuleSurfaceService
                 ],
             ],
             'party' => [
-                'showParty' => false,
+                'showCounterparty' => false,
                 'showAsset' => true,
                 'showOrder' => true,
                 'emptyMessage' => 'Este contacto no tiene documentos vinculados.',
@@ -201,21 +201,21 @@ class DocumentSurfaceService implements ModuleSurfaceService
     {
         return match ($recordType) {
             'order' => [
-                'showParty' => true,
+                'showCounterparty' => true,
                 'showAsset' => false,
                 'showOrder' => false,
                 'emptyMessage' => 'Esta orden no tiene documentos vinculados.',
                 'order' => null,
             ],
             'asset' => [
-                'showParty' => true,
+                'showCounterparty' => true,
                 'showAsset' => false,
                 'showOrder' => true,
                 'emptyMessage' => 'Este activo no tiene documentos vinculados.',
                 'createBaseQuery' => [],
             ],
             'party' => [
-                'showParty' => false,
+                'showCounterparty' => false,
                 'showAsset' => true,
                 'showOrder' => true,
                 'emptyMessage' => 'Este contacto no tiene documentos vinculados.',

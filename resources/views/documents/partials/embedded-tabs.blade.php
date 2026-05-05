@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/partials/embedded-tabs.blade.php | V10 --}}
+{{-- FILE: resources/views/documents/partials/embedded-tabs.blade.php | V11 --}}
 
 @php
     use App\Models\Document;
@@ -7,7 +7,7 @@
 
     $documents = $documents ?? collect();
 
-    $showParty = $showParty ?? true;
+    $showCounterparty = $showCounterparty ?? ($showParty ?? true);
     $showAsset = $showAsset ?? true;
     $showOrder = $showOrder ?? true;
 
@@ -128,7 +128,7 @@
             <x-card class="list-card">
                 @include('documents.partials.table', [
                     'documents' => $documents,
-                    'showParty' => $showParty,
+                    'showCounterparty' => $showCounterparty,
                     'showAsset' => $showAsset,
                     'showOrder' => $showOrder,
                     'emptyMessage' => $emptyMessage,
@@ -148,7 +148,7 @@
                 <x-card class="list-card">
                     @include('documents.partials.table', [
                         'documents' => $kindDocuments,
-                        'showParty' => $showParty,
+                        'showCounterparty' => $showCounterparty,
                         'showAsset' => $showAsset,
                         'showOrder' => $showOrder,
                         'emptyMessage' => "No hay documentos de tipo {$label} para mostrar.",
@@ -159,3 +159,5 @@
         </section>
     @endforeach
 </div>
+
+<x-dev-component-version name="documents.partials.embedded-tabs" version="V11" align="right" />

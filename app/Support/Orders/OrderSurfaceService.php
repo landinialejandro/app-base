@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Orders/OrderSurfaceService.php | V12
+// FILE: app/Support/Orders/OrderSurfaceService.php | V14
 
 namespace App\Support\Orders;
 
@@ -162,15 +162,14 @@ class OrderSurfaceService implements ModuleSurfaceService
                 'data' => [
                     'linked' => [
                         'supported' => false,
-                        'linked' => false,
-                        'can_view' => false,
-                        'can_create' => false,
+                        'exists' => false,
+                        'hidden' => true,
+                        'readonly' => false,
+                        'state' => 'hidden',
                         'show_url' => null,
                         'create_url' => null,
                         'label' => AppointmentCatalog::orderLabel(),
-                        'contact_label' => AppointmentCatalog::contactLabel(),
-                        'has_required_party' => false,
-                        'linked_text' => null,
+                        'text' => null,
                     ],
                     'variant' => 'summary',
                 ],
@@ -194,15 +193,14 @@ class OrderSurfaceService implements ModuleSurfaceService
                 'data' => [
                     'linked' => [
                         'supported' => false,
-                        'linked' => false,
-                        'can_view' => false,
-                        'can_create' => false,
+                        'exists' => false,
+                        'hidden' => true,
+                        'readonly' => false,
+                        'state' => 'hidden',
                         'show_url' => null,
                         'create_url' => null,
                         'label' => 'Orden',
-                        'contact_label' => 'Contacto',
-                        'has_required_party' => false,
-                        'linked_text' => null,
+                        'text' => null,
                     ],
                     'variant' => 'button',
                 ],
@@ -230,15 +228,14 @@ class OrderSurfaceService implements ModuleSurfaceService
                 'data' => [
                     'linked' => [
                         'supported' => false,
-                        'linked' => false,
-                        'can_view' => false,
-                        'can_create' => false,
+                        'exists' => false,
+                        'hidden' => true,
+                        'readonly' => false,
+                        'state' => 'hidden',
                         'show_url' => null,
                         'create_url' => null,
                         'label' => 'Orden asociada',
-                        'contact_label' => 'Contacto',
-                        'has_required_party' => false,
-                        'linked_text' => null,
+                        'text' => null,
                     ],
                     'variant' => 'summary',
                 ],
@@ -266,39 +263,23 @@ class OrderSurfaceService implements ModuleSurfaceService
                 'data' => [
                     'linked' => [
                         'supported' => false,
-                        'linked' => false,
-                        'can_view' => false,
-                        'can_create' => false,
+                        'exists' => false,
+                        'hidden' => true,
+                        'readonly' => false,
+                        'state' => 'hidden',
                         'show_url' => null,
                         'create_url' => null,
                         'label' => 'Orden asociada',
-                        'contact_label' => 'Contacto',
-                        'has_required_party' => false,
-                        'linked_text' => null,
+                        'text' => null,
                     ],
                     'variant' => 'summary',
                 ],
             ];
         }
 
-        $order = $record->order;
-
         return [
             'data' => [
-                'linked' => [
-                    'supported' => true,
-                    'linked' => (bool) $order,
-                    'can_view' => (bool) ($order && auth()->user()?->can('view', $order)),
-                    'can_create' => false,
-                    'show_url' => $order ? route('orders.show', ['order' => $order] + $trailQuery) : null,
-                    'create_url' => null,
-                    'label' => 'Orden asociada',
-                    'contact_label' => 'Contacto',
-                    'has_required_party' => false,
-                    'linked_text' => $order
-                        ? ($order->number ?: 'Orden #'.$order->id)
-                        : null,
-                ],
+                'linked' => OrderLinked::forOrder($record->order, $trailQuery, 'Orden asociada'),
                 'variant' => 'summary',
             ],
         ];
@@ -372,7 +353,7 @@ class OrderSurfaceService implements ModuleSurfaceService
     {
         return match ($recordType) {
             'asset' => [
-                'showParty' => true,
+                'showCounterparty' => true,
                 'showAsset' => false,
                 'emptyMessage' => 'Este activo no tiene órdenes vinculadas.',
                 'createBaseQuery' => [
@@ -381,7 +362,7 @@ class OrderSurfaceService implements ModuleSurfaceService
                 ],
             ],
             'party' => [
-                'showParty' => false,
+                'showCounterparty' => false,
                 'showAsset' => true,
                 'emptyMessage' => 'Este contacto no tiene órdenes vinculadas.',
                 'createBaseQuery' => [
@@ -396,13 +377,13 @@ class OrderSurfaceService implements ModuleSurfaceService
     {
         return match ($recordType) {
             'asset' => [
-                'showParty' => true,
+                'showCounterparty' => true,
                 'showAsset' => false,
                 'emptyMessage' => 'Este activo no tiene órdenes vinculadas.',
                 'createBaseQuery' => [],
             ],
             'party' => [
-                'showParty' => false,
+                'showCounterparty' => false,
                 'showAsset' => true,
                 'emptyMessage' => 'Este contacto no tiene órdenes vinculadas.',
                 'createBaseQuery' => [],

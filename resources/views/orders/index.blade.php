@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/index.blade.php | V8 --}}
+{{-- FILE: resources/views/orders/index.blade.php | V9 --}}
 
 @extends('layouts.app')
 
@@ -102,7 +102,7 @@
         <x-card class="list-card">
             @include('orders.partials.table', [
                 'orders' => $orders,
-                'showParty' => true,
+                'showCounterparty' => true,
                 'showAsset' => $supportsAssetsModule,
                 'emptyMessage' => 'No hay órdenes cargadas.',
                 'trailQuery' => $trailQuery,

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/index.blade.php | V7 --}}
+{{-- FILE: resources/views/documents/index.blade.php | V8 --}}
 
 @extends('layouts.app')
 
@@ -126,7 +126,7 @@
         <x-card class="list-card">
             @include('documents.partials.table', [
                 'documents' => $documents,
-                'showParty' => true,
+                'showCounterparty' => true,
                 'showAsset' => true,
                 'showOrder' => true,
                 'emptyMessage' => 'No hay documentos cargados.',

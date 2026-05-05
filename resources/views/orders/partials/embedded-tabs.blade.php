@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/partials/embedded-tabs.blade.php | V9 --}}
+{{-- FILE: resources/views/orders/partials/embedded-tabs.blade.php | V10 --}}
 
 @php
     use App\Models\Order;
@@ -7,7 +7,7 @@
 
     $orders = $orders ?? collect();
 
-    $showParty = $showParty ?? false;
+    $showCounterparty = $showCounterparty ?? ($showParty ?? false);
     $showAsset = $showAsset ?? true;
 
     $emptyMessage = $emptyMessage ?? 'No hay órdenes para mostrar.';
@@ -79,7 +79,7 @@
             <x-card class="list-card">
                 @include('orders.partials.table', [
                     'orders' => $orders,
-                    'showParty' => $showParty,
+                    'showCounterparty' => $showCounterparty,
                     'showAsset' => $showAsset,
                     'emptyMessage' => $emptyMessage,
                     'trailQuery' => $trailQuery,
@@ -98,7 +98,7 @@
                 <x-card class="list-card">
                     @include('orders.partials.table', [
                         'orders' => $groupOrders,
-                        'showParty' => $showParty,
+                        'showCounterparty' => $showCounterparty,
                         'showAsset' => $showAsset,
                         'emptyMessage' => "No hay órdenes de tipo {$label} para mostrar.",
                         'trailQuery' => $trailQuery,
@@ -108,3 +108,5 @@
         </section>
     @endforeach
 </div>
+
+<x-dev-component-version name="orders.partials.embedded-tabs" version="V10" align="right" />

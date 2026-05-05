@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/components/linked-order.blade.php | V3 --}}
+{{-- FILE: resources/views/orders/components/linked-order.blade.php | V4 --}}
 
 @props([
     'linked' => [],
@@ -10,12 +10,10 @@
     $showUrl = $linked['show_url'] ?? null;
     $createUrl = $linked['create_url'] ?? null;
     $label = $linked['label'] ?? 'Orden';
-    $contactLabel = $linked['contact_label'] ?? 'Contacto';
     $text = $linked['text'] ?? $label;
 
     $createText = 'Crear ' . strtolower($label);
     $viewText = 'Ver ' . strtolower($label);
-    $missingText = 'Asociá un ' . strtolower($contactLabel) . ' para poder crear una ' . strtolower($label) . '.';
 @endphp
 
 @if ($state !== 'hidden')
@@ -28,10 +26,6 @@
             <x-button-secondary :href="$createUrl">
                 {{ $createText }}
             </x-button-secondary>
-        @elseif ($state === 'missing_requirement')
-            <span class="btn btn-secondary disabled" aria-disabled="true" title="{{ $missingText }}">
-                {{ $createText }}
-            </span>
         @endif
     @elseif ($variant === 'summary')
         @if ($state === 'linked_viewable')
@@ -40,8 +34,6 @@
             {{ $text }}
         @elseif ($state === 'creatable')
             <a href="{{ $createUrl }}">{{ $createText }}</a>
-        @elseif ($state === 'missing_requirement')
-            {{ $missingText }}
         @endif
     @else
         @if ($state === 'linked_viewable')
@@ -50,8 +42,8 @@
             {{ $text }}
         @elseif ($state === 'creatable')
             <a href="{{ $createUrl }}">{{ $createText }}</a>
-        @elseif ($state === 'missing_requirement')
-            <span class="text-muted">{{ $missingText }}</span>
         @endif
     @endif
 @endif
+
+<x-dev-component-version name="orders.components.linked-order" version="V4" align="right" />

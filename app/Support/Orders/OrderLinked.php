@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Orders/OrderLinked.php | V2
+// FILE: app/Support/Orders/OrderLinked.php | V3
 
 namespace App\Support\Orders;
 
@@ -34,7 +34,6 @@ class OrderLinked
                 linked: $linked,
                 canView: (bool) $canView,
                 canCreate: $canCreate,
-                hasRequiredParty: (bool) $appointment->party_id,
             ),
             'show_url' => $linked && $canView
                 ? route('orders.show', ['order' => $appointment->order] + $trailQuery)
@@ -47,8 +46,6 @@ class OrderLinked
                 ] + $trailQuery)
                 : null,
             'label' => AppointmentCatalog::orderLabel(),
-            'contact_label' => AppointmentCatalog::contactLabel(),
-            'has_required_party' => (bool) $appointment->party_id,
             'text' => $linked
                 ? ($appointment->order->number ?: 'Orden #'.$appointment->order->id)
                 : null,
@@ -74,7 +71,6 @@ class OrderLinked
                 linked: $linked,
                 canView: (bool) $canView,
                 canCreate: $canCreate,
-                hasRequiredParty: (bool) $task->party_id,
             ),
             'show_url' => $linked && $canView
                 ? route('orders.show', ['order' => $task->order] + $trailQuery)
@@ -83,8 +79,6 @@ class OrderLinked
                 ? route('orders.create', ['task_id' => $task->id] + $trailQuery)
                 : null,
             'label' => 'Orden',
-            'contact_label' => 'Contacto',
-            'has_required_party' => (bool) $task->party_id,
             'text' => $linked
                 ? ($task->order->number ?: 'Ver orden')
                 : null,
@@ -103,8 +97,6 @@ class OrderLinked
                 'show_url' => null,
                 'create_url' => null,
                 'label' => $label,
-                'contact_label' => 'Contacto',
-                'has_required_party' => false,
                 'text' => '—',
             ];
         }
@@ -123,8 +115,6 @@ class OrderLinked
                 : null,
             'create_url' => null,
             'label' => $label,
-            'contact_label' => 'Contacto',
-            'has_required_party' => false,
             'text' => $order->number ?: 'Orden #'.$order->id,
         ];
     }
@@ -134,7 +124,6 @@ class OrderLinked
         bool $linked,
         bool $canView,
         bool $canCreate,
-        bool $hasRequiredParty,
     ): string {
         if (! $supported) {
             return 'hidden';
@@ -144,12 +133,8 @@ class OrderLinked
             return $canView ? 'linked_viewable' : 'linked_readonly';
         }
 
-        if ($hasRequiredParty && $canCreate) {
+        if ($canCreate) {
             return 'creatable';
-        }
-
-        if (! $hasRequiredParty) {
-            return 'missing_requirement';
         }
 
         return 'hidden';

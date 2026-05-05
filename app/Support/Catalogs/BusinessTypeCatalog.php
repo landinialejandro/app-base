@@ -1,5 +1,7 @@
 <?php
 
+// FILE: app/Support/Catalogs/BusinessTypeCatalog.php | V1
+
 namespace App\Support\Catalogs;
 
 class BusinessTypeCatalog

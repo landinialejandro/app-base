@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/ProductController.php | V10
+// FILE: app/Http/Controllers/ProductController.php | V13
 
 namespace App\Http\Controllers;
 
@@ -58,28 +58,28 @@ class ProductController extends Controller
         return view('products.create', compact('navigationTrail'));
     }
 
-public function store(Request $request): RedirectResponse
-{
-    $this->authorize('create', Product::class);
+    public function store(Request $request): RedirectResponse
+    {
+        $this->authorize('create', Product::class);
 
-    $data = $request->all();
-    $data['is_active'] = $request->boolean('is_active');
+        $data = $request->all();
+        $data['is_active'] = $request->boolean('is_active');
 
-    $validated = validator($data, $this->rules())->validate();
+        $validated = validator($data, $this->rules())->validate();
 
-    $product = Product::create($validated);
+        $product = Product::create($validated);
 
-    event(new \App\Events\OperationalRecordCreated(
-        record: $product,
-        actorUserId: auth()->id(),
-    ));
+        event(new \App\Events\OperationalRecordCreated(
+            record: $product,
+            actorUserId: auth()->id(),
+        ));
 
-    $navigationTrail = ProductNavigationTrail::show($request, $product);
+        $navigationTrail = ProductNavigationTrail::show($request, $product);
 
-    return redirect()
-        ->route('products.show', ['product' => $product] + NavigationTrail::toQuery($navigationTrail))
-        ->with('success', 'Producto creado correctamente.');
-}
+        return redirect()
+            ->route('products.show', ['product' => $product] + NavigationTrail::toQuery($navigationTrail))
+            ->with('success', 'Producto creado correctamente.');
+    }
 
     public function show(Request $request, Product $product): View
     {
@@ -106,31 +106,31 @@ public function store(Request $request): RedirectResponse
         return view('products.edit', compact('product', 'navigationTrail'));
     }
 
-public function update(Request $request, Product $product): RedirectResponse
-{
-    $this->authorize('update', $product);
+    public function update(Request $request, Product $product): RedirectResponse
+    {
+        $this->authorize('update', $product);
 
-    $data = $request->all();
-    $data['is_active'] = $request->boolean('is_active');
+        $data = $request->all();
+        $data['is_active'] = $request->boolean('is_active');
 
-    $validated = validator($data, $this->rules())->validate();
+        $validated = validator($data, $this->rules())->validate();
 
-    $beforeAttributes = $product->getAttributes();
+        $beforeAttributes = $product->getAttributes();
 
-    $product->update($validated);
+        $product->update($validated);
 
-    event(new \App\Events\OperationalRecordUpdated(
-        record: $product,
-        beforeAttributes: $beforeAttributes,
-        actorUserId: auth()->id(),
-    ));
+        event(new \App\Events\OperationalRecordUpdated(
+            record: $product,
+            beforeAttributes: $beforeAttributes,
+            actorUserId: auth()->id(),
+        ));
 
-    $navigationTrail = ProductNavigationTrail::show($request, $product);
+        $navigationTrail = ProductNavigationTrail::show($request, $product);
 
-    return redirect()
-        ->route('products.show', ['product' => $product] + NavigationTrail::toQuery($navigationTrail))
-        ->with('success', 'Producto actualizado correctamente.');
-}
+        return redirect()
+            ->route('products.show', ['product' => $product] + NavigationTrail::toQuery($navigationTrail))
+            ->with('success', 'Producto actualizado correctamente.');
+    }
 
     public function destroy(Request $request, Product $product): RedirectResponse
     {

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/products/show.blade.php | V21 --}}
+{{-- FILE: resources/views/products/show.blade.php | V24 --}}
 
 @extends('layouts.app')
 
@@ -29,6 +29,7 @@
         $headerActions = $linked->where('slot', 'header_actions')->values();
         $summaryItems = $embedded
             ->where(fn($item) => ($item['slot'] ?? null) === 'summary_items')
+            ->where(fn($item) => ($item['visible'] ?? true) !== false)
             ->sortBy(fn(array $item) => $item['priority'] ?? 999)
             ->values();
 
@@ -54,10 +55,13 @@
             ],
         ]);
 
-        $surfaceTabItems = $embedded->where(fn($item) => ($item['slot'] ?? null) === 'tab_panels')->values();
+        $surfaceTabItems = $embedded
+            ->where(fn($item) => ($item['slot'] ?? null) === 'tab_panels')
+            ->where(fn($item) => ($item['visible'] ?? true) !== false)
+            ->values();
+
         $tabItems = $surfaceTabItems->concat($hostTabItems)->sortBy(fn($item) => $item['priority'] ?? 999)->values();
         $activeTab = HostTabs::activeKey($tabItems, request()->query('return_tab'));
-
     @endphp
 
     <x-page>
@@ -128,5 +132,7 @@
         </x-show-summary>
 
         <x-host-tabs :items="$tabItems" :active-tab="$activeTab" :label="$tabsLabel" />
+
+        <x-dev-component-version name="products.show" version="V24" />
     </x-page>
 @endsection

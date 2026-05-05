@@ -315,7 +315,7 @@ Su función es dar acceso estructural al ecosistema operativo vigente.
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -425,6 +425,10 @@ Orders conserva ownership de la intervención operativa
 
 una Order puede tener múltiples Tasks asociadas
 
+Tasks puede originar navegación contextual hacia creación de Orders aunque no posea party_id
+
+la ausencia de contacto gestionado en Task no debe bloquear la intención de crear Order si el formulario de Orders permite completar counterparty_name
+
 Aclaración vigente para Appointments → Orders:
 
 Appointments puede originar o acompañar una Order.
@@ -444,6 +448,34 @@ appointment_id en request no debe convertirse automáticamente en campo persiste
 Appointments conserva ownership de agenda y planificación temporal
 
 Orders conserva ownership de la intervención operativa
+
+Appointments puede originar navegación contextual hacia creación de Orders aunque no posea party_id
+
+la ausencia de contacto gestionado en Appointment no debe bloquear la intención de crear Order si el formulario de Orders permite completar counterparty_name
+
+Aclaración vigente para OrderLinked:
+
+OrderLinked no debe bloquear creación contextual de Orders por ausencia de party_id.
+
+Tasks y Appointments pueden originar una Order contextual aunque no tengan contacto gestionado.
+
+La Order resultante debe resolver contraparte desde el formulario mediante counterparty_name si no hay party_id.
+
+Reglas:
+
+OrderLinked expresa intención contextual hacia Orders
+
+OrderLinked no convierte Task ni Appointment en Order encubierta
+
+OrderLinked no reemplaza autorización de Orders
+
+OrderLinked no debe exigir Party como dependencia rígida si el contrato de Orders permite contraparte textual
+
+Validación vigente:
+
+Task sin party_id y sin order_id puede devolver state = creatable.
+
+Appointment sin party_id y sin order_id puede devolver state = creatable.
 
 Aclaración vigente para Orders → Documents:
 
@@ -465,6 +497,10 @@ la derivación no crea navegación nueva de Orders
 
 la derivación no convierte Documents en entidad hija estricta sin identidad propia
 
+crear documento desde una Order no debe exigir party_id
+
+el documento derivado debe tomar contraparte desde la Order mediante order.displayCounterpartyName()
+
 Aclaración vigente para contraparte textual:
 
 Orders y Documents pueden mostrar y transportar contraparte textual propia mediante counterparty_name.
@@ -478,6 +514,26 @@ la ausencia de party_id no debe romper navegación ni derivación si existe cont
 los enlaces hacia Parties solo deben renderizarse cuando exista Party vinculada y módulo/permiso efectivo
 
 si no existe Party vinculada, la UI debe mostrar la contraparte como texto propio del registro
+
+la columna visible debe llamarse Contraparte cuando representa el dato operativo visible del registro
+
+Contacto debe reservarse para filtros, selectores o vínculos explícitos por party_id
+
+PartyLinked representa únicamente el vínculo gestionado cuando existe party_id y corresponde mostrar enlace
+
+PartyLinked no debe utilizarse como fuente principal del texto visible de contraparte cuando el módulo dueño ofrece helper oficial
+
+Aclaración vigente sobre showCounterparty:
+
+showCounterparty es el contrato visual vigente para indicar si una tabla o surface de Orders/Documents debe mostrar la columna Contraparte.
+
+showParty queda solo como fallback transitorio en Blades auditados.
+
+Reglas:
+
+los surface services deben publicar showCounterparty cuando la tabla invitada de Orders/Documents deba mostrar contraparte visible
+
+showParty no debe ser el contrato principal cuando el dato esperado sea la contraparte operativa del registro
 
 Aclaración vigente para membership → party:
 
@@ -640,7 +696,7 @@ Debe mostrar solo la información necesaria para la intervención y conservar na
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00022
+SECTION_VERSION: 00023
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -675,6 +731,12 @@ party_id debe mostrarse como contacto gestionado solo cuando exista Party vincul
 
 counterparty_name debe permitir mostrar contraparte textual propia cuando no exista Party vinculada
 
+Order::displayCounterpartyName() debe resolver la contraparte visible del registro
+
+las tablas embebidas de Orders deben mostrar Contraparte cuando representan el dato operativo visible
+
+showCounterparty es el contrato visual vigente para habilitar esa columna
+
 Caso vigente en documents.show:
 
 inventory puede operar por línea documental dentro del host sin perder identidad modular
@@ -684,6 +746,12 @@ Las acciones por fila pertenecen a inventory y documents conserva la tabla docum
 party_id debe mostrarse como contacto gestionado solo cuando exista Party vinculada
 
 counterparty_name debe permitir mostrar contraparte textual propia cuando no exista Party vinculada
+
+Document::displayCounterpartyName() debe resolver la contraparte visible del registro
+
+las tablas embebidas de Documents deben mostrar Contraparte cuando representan el dato operativo visible
+
+showCounterparty es el contrato visual vigente para habilitar esa columna
 
 Caso vigente en parties.show:
 
@@ -734,15 +802,39 @@ Estas relaciones deben leerse como resumen contextual del turno o planificación
 
 No deben degradarse a pestañas pesadas por defecto si la relación es puntual.
 
+Appointments puede originar creación contextual de Orders aunque no posea party_id.
+
+La ausencia de contacto gestionado no debe bloquear la intención de crear Order si Orders permite completar counterparty_name.
+
 Caso vigente en tasks.show:
 
 tasks.show puede vincularse con orders mediante tasks.order_id.
 
 Si una Task origina o acompaña una Order, el recorrido debe preservar contexto sin convertir Tasks en dueño de Orders.
 
+Tasks puede originar creación contextual de Orders aunque no posea party_id.
+
+La ausencia de contacto gestionado no debe bloquear la intención de crear Order si Orders permite completar counterparty_name.
+
 Regla:
 
 una show page puede actuar como host visual, pero no debe ocultar qué módulo conserva ownership de cada relación.
+
+Aclaración vigente para PartyLinked:
+
+PartyLinked debe representar solo el vínculo gestionado con Party cuando exista party_id.
+
+No debe ser la fuente principal del texto visible de contraparte en tablas o embebidos de Orders/Documents si el módulo dueño ofrece helper oficial.
+
+Aclaración vigente para Contacto y Contraparte:
+
+Contacto debe reservarse para filtros, selectores o vínculos explícitos hacia Party.
+
+Contraparte debe utilizarse para el dato operativo visible propio del registro cuando Orders o Documents representan su contraparte.
+
+Regla:
+
+las relaciones embebidas deben mostrar el dato que el usuario necesita leer operativamente, sin forzar la existencia de un contacto gestionado cuando el contrato del módulo permite snapshot propio.
 
 <<END SECTION>>
 

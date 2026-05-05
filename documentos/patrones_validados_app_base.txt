@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 PATRONES VIGENTES
 
@@ -162,13 +162,116 @@ el snapshot permite lectura autónoma del registro
 
 la salida visual debe usar método de presentación propio cuando exista
 
-Caso vigente:
+Casos vigentes:
 
-displayCounterpartyName()
+Order::displayCounterpartyName()
+
+Document::displayCounterpartyName()
 
 Regla visual:
 
 no mostrar solo party->name si el módulo posee snapshot propio y fallback controlado.
+
+CONTRAPARTE SNAPSHOT CON VÍNCULO GESTIONADO OPCIONAL
+
+Patrón validado:
+
+módulo dueño conserva snapshot propio
+↓
+party_id funciona como vínculo gestionado opcional
+↓
+displayCounterpartyName() resuelve texto visible
+↓
+PartyLinked solo representa enlace a Party cuando existe y está autorizado
+
+Casos validados:
+
+Orders
+Documents
+
+Reglas:
+
+la visualización de contraparte no debe depender rígidamente de party_id
+
+los listados deben mostrar Contraparte cuando representan el dato operativo visible
+
+los filtros por party_id pueden seguir usando Contacto
+
+las surfaces deben publicar showCounterparty cuando corresponda mostrar la columna de contraparte
+
+los módulos externos no deben reconstruir el texto visible desde Party si el módulo dueño ofrece helper oficial
+
+PartyLinked no debe usarse como fuente principal de contraparte cuando existe snapshot propio
+
+si no existe party_id, la contraparte debe mostrarse como texto propio sin inventar link
+
+SHOWCOUNTERPARTY COMO CONTRATO VISUAL DE TABLAS Y SURFACES
+
+Patrón validado:
+
+showCounterparty indica que una tabla o surface de Orders/Documents debe mostrar la columna Contraparte.
+
+Casos vigentes:
+
+OrderSurfaceService publica showCounterparty.
+
+DocumentSurfaceService publica showCounterparty.
+
+Blades alineados:
+
+resources/views/orders/partials/table.blade.php
+
+resources/views/documents/partials/table.blade.php
+
+resources/views/orders/partials/embedded-tabs.blade.php
+
+resources/views/documents/partials/embedded-tabs.blade.php
+
+resources/views/orders/index.blade.php
+
+resources/views/documents/index.blade.php
+
+Reglas:
+
+showCounterparty es el contrato principal cuando el dato visible esperado es la contraparte operativa
+
+showParty queda solo como fallback transitorio interno en Blades auditados
+
+no publicar showParty como contrato principal cuando la columna no representa vínculo gestionado sino contraparte visible
+
+Contacto debe reservarse para filtros, selectores o vínculos gestionados hacia Party
+
+Contraparte debe usarse cuando la tabla representa el dato operativo visible del registro
+
+ORDERLINKED SIN DEPENDENCIA RÍGIDA DE PARTY_ID
+
+Patrón validado:
+
+OrderLinked puede ofrecer creación contextual de Order aunque el registro origen no tenga party_id.
+
+Casos validados:
+
+Task sin party_id y sin order_id → state = creatable
+
+Appointment sin party_id y sin order_id → state = creatable
+
+Lectura:
+
+Tasks y Appointments pueden originar intención contextual hacia Orders.
+
+La Order resultante resuelve su contraparte en el formulario mediante counterparty_name cuando no exista party_id.
+
+Reglas:
+
+OrderLinked no debe bloquear creación por ausencia de party_id
+
+OrderLinked no reemplaza autorización de Orders
+
+OrderLinked no convierte Task ni Appointment en Order encubierta
+
+Task y Appointment conservan ownership propio
+
+Orders conserva ownership de la intervención operativa
 
 RELACIÓN EXTERNA HACIA ORDERS
 
@@ -867,5 +970,21 @@ migrate:fresh --seed no alcanza para cerrar flujos que pueden fallar en runtime 
 Caso vigente:
 
 Order → Document permitió detectar una dependencia inválida hacia DocumentTotalsCalculator::apply().
+
+Validaciones recientes de Fase 0 visual/contractual:
+
+php artisan migrate:fresh --seed OK
+
+php artisan optimize:clear OK
+
+orders_without_counterparty = 0
+
+documents_without_counterparty = 0
+
+php -l OK sobre services PHP modificados
+
+Task sin party_id y sin order_id → state = creatable
+
+Appointment sin party_id y sin order_id → state = creatable
 
 <<END SECTION>>

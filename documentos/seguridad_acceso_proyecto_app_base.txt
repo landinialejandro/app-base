@@ -91,7 +91,7 @@ los detalles técnicos pueden evolucionar sin alterar estos principios rectores
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00023
+SECTION_VERSION: 00024
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -131,13 +131,23 @@ Uno no implica automáticamente al otro.
 
 Reglas:
 
+la visibilidad en UI no constituye autorización
+
+la autorización efectiva debe resolverse siempre en backend
+
 la existencia de actividad operativa persistida no habilita por sí sola lectura, navegación ni acceso visual al log
+
+la trazabilidad no autoriza operaciones
 
 la existencia de una sugerencia IA no habilita ejecución
 
+la IA no amplía privilegios
+
+las automatizaciones no reemplazan autorización
+
 la existencia de un dashboard operativo no habilita operación fuera del contrato del módulo dueño
 
-la existencia de una pieza satélite no habilita bypass del lifecycle base
+la existencia de una pieza satélite no habilita bypass del lifecycle base ni acciones sobre módulos participantes
 
 la existencia de una subcapa contextual interna no habilita acceso automático a todos los datos del módulo host ni de módulos relacionados
 
@@ -157,15 +167,27 @@ Las subcapas contextuales internas deben consumir datos autorizados y no absorbe
 
 Los vínculos gestionados entre módulos no reemplazan la autorización central.
 
-TRAZABILIDAD
+AUTONOMÍA MODULAR Y SEGURIDAD
 
-Toda acción sensible debe poder auditarse según las capacidades vigentes del sistema.
+La autonomía funcional de un módulo no elimina Security.
 
-La trazabilidad no autoriza operaciones.
+Que Orders o Documents puedan existir sin party_id no significa acceso libre ni operación fuera del tenant activo.
 
-La trazabilidad registra actividad cuando corresponde, pero no reemplaza Security, policies, validaciones ni contratos modulares.
+Toda creación, lectura, actualización, vinculación o derivación debe pasar por autorización efectiva, tenant activo, usuario autenticado, membership vigente, módulos habilitados y validaciones backend.
 
-OperationalActivity no debe usarse como fuente principal de métricas cuando existan módulos dueños de datos transaccionales u operativos específicos.
+Reglas:
+
+party_id no debe utilizarse como condición universal de existencia ni autorización para Orders o Documents
+
+counterparty_name no reemplaza autorización
+
+un vínculo opcional con Party, Asset, Task, Appointment o Document no autoriza acciones por sí mismo
+
+crear un Document desde una Order requiere autorización efectiva sobre Documents
+
+crear una Order desde un contexto de Task o Appointment requiere autorización efectiva sobre Orders
+
+el parámetro contextual de request no equivale a permiso concedido
 
 LECTURA GENERAL Y LECTURA CONTEXTUAL DE ACTIVIDAD
 
@@ -195,18 +217,6 @@ No reemplaza permisos del módulo host.
 No autoriza la operación original.
 
 La lectura contextual puede ser directa, agregada o contextual especial, siempre dentro del contrato definido por el módulo dueño y con host previamente autorizado.
-
-SUBCAPAS CONTEXTUALES INTERNAS
-
-Una subcapa contextual interna puede tener condiciones propias de acceso y visibilidad, aunque el usuario pueda ver el módulo host.
-
-Regla:
-
-ver el módulo host no implica ver automáticamente todas sus subcapas contextuales.
-
-Caso vigente:
-
-ver Products no implica ver ProductOperationalSummary.
 
 ACCIONES CRÍTICAS
 
@@ -256,49 +266,17 @@ acción IA ejecutiva
 
 La reapertura de una orden cerrada debe ser acción restringida y autorizada según reglas vigentes.
 
-Los estados operativos satélite no deben saltarse el lifecycle base ni habilitar operación cuando Orders.status no sea approved.
-
-AUTONOMÍA MODULAR Y SEGURIDAD
-
-La autonomía funcional de un módulo no elimina Security.
-
-Que Orders o Documents puedan existir sin party_id no significa acceso libre ni operación fuera del tenant activo.
-
-Toda creación, lectura, actualización, vinculación o derivación debe pasar por autorización efectiva, tenant activo, usuario autenticado, membership vigente, módulos habilitados y validaciones backend.
-
-Reglas:
-
-party_id no debe utilizarse como condición universal de existencia ni autorización para Orders o Documents
-
-counterparty_name no reemplaza autorización
-
-un vínculo opcional con Party, Asset, Task, Appointment o Document no autoriza acciones por sí mismo
-
-crear un Document desde una Order requiere autorización efectiva sobre Documents
-
-crear una Order desde un contexto de Task o Appointment requiere autorización efectiva sobre Orders
-
-el parámetro contextual de request no equivale a permiso concedido
+Los estados operativos satélite no deben saltarse el lifecycle base ni habilitar operación cuando Orders.status no lo permita.
 
 Reglas síntesis:
-
-la visibilidad en UI no constituye autorización
-
-la autorización efectiva debe resolverse siempre en backend
 
 los recursos hijos pueden delegar seguridad sin perder validaciones operativas específicas
 
 el registro de actividad operativa no modifica el permiso efectivo de la acción original
 
-la lectura del log operativo requiere autorización explícita propia
-
 la lectura contextual heredada solo alcanza actividad asociada al registro host ya autorizado o al criterio contextual declarado por el módulo dueño
 
 la subcapa contextual interna solo puede mostrar datos autorizados según su contrato y condiciones propias
-
-la IA no amplía privilegios
-
-las automatizaciones no reemplazan autorización
 
 los dashboards operativos no habilitan acciones fuera del contrato del módulo dueño
 
@@ -531,7 +509,7 @@ No reemplazan la singularidad estructural del owner.
 <<END SECTION>>
 
 <<SECTION: MODELO V2 DE PERMISOS>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 MODELO V2 DE PERMISOS
 
@@ -628,6 +606,12 @@ no debe crearse capability persistida por reflejo automático cuando una capacid
 
 Esto no impide evolucionar a permisos persistidos propios si luego se justifica.
 
+Regla adicional para capas satélite:
+
+una capa satélite no concede permisos propios sobre todos los módulos participantes por el solo hecho de existir como frente operativo.
+
+Cada operación debe volver al contrato del módulo dueño o capacidad central correspondiente.
+
 Regla adicional para mantenimiento:
 
 los estados operativos satélite de una orden no reemplazan el lifecycle base ni autorizan operación si Orders.status no lo permite.
@@ -708,7 +692,7 @@ la UI puede expresar lectura, readonly o acción disponible, pero el backend deb
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00026
+SECTION_VERSION: 00027
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -896,6 +880,16 @@ parties.kind = person/company
 party_roles.role = employee/customer/supplier/other
 
 Por lo tanto, la autorización de parties debe orientarse por allowed_party_roles cuando corresponda.
+
+Regla adicional para vínculos opcionales:
+
+la ausencia de un vínculo opcional no debe bloquear una acción si el contrato del módulo permite autonomía.
+
+La presencia de un vínculo opcional tampoco autoriza la acción por sí misma.
+
+Caso vigente:
+
+Orders y Documents pueden operar sin party_id cuando su contrato funcional permite dato propio de contraparte.
 
 Regla adicional para subcapas contextuales internas:
 

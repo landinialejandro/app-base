@@ -299,7 +299,7 @@ la capa de Servicios y Mantenimiento puede tener entrada visual, dashboard espec
 <<END SECTION>>
 
 <<SECTION: ROL DE ORDERS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 ROL DE ORDERS
 
@@ -368,6 +368,22 @@ Orders no debe exigir appointment_id para existir
 
 Orders no debe absorber seguimiento, planificación ni pendientes como campos propios si esos conceptos pertenecen a otros módulos
 
+La orden debe conservar al menos un dato de contraparte:
+
+party_id
+
+o
+
+counterparty_name
+
+Si existe party_id, counterparty_name puede completarse desde Party::name según el flujo vigente.
+
+Si no existe party_id, counterparty_name debe escribirse manualmente según el contrato vigente de creación.
+
+La visualización de contraparte debe resolverse desde el registro dueño mediante:
+
+Order::displayCounterpartyName()
+
 Regla consolidada sobre lifecycle:
 
 Orders conserva su lifecycle base actual.
@@ -420,6 +436,22 @@ Products solo presenta la lectura contextual cuando corresponde.
 Regla:
 
 si Orders no está habilitado o el usuario no posee dataset visible, no deben mostrarse métricas transaccionales de compra o venta dentro de ProductOperationalSummary.
+
+Aclaración vigente para Servicios y Mantenimiento:
+
+Orders debe poder operar como núcleo de intervención aunque no exista contacto gestionado en Parties.
+
+party_id es vínculo opcional de enriquecimiento.
+
+counterparty_name conserva la contraparte operativa de la orden.
+
+Esto permite iniciar intervenciones desde Tasks, Appointments o flujos simples sin forzar alta previa de Party cuando la operación solo requiere contraparte textual.
+
+Regla:
+
+la autonomía de Orders respecto de party_id no elimina la posibilidad de vincular Party.
+
+Solo evita que Party sea dependencia rígida para crear o visualizar la orden.
 
 Regla:
 
@@ -629,7 +661,7 @@ Products puede llegar a representar servicios, mano de obra, fletes o costos dir
 <<END SECTION>>
 
 <<SECTION: ROL DE APPOINTMENTS Y TASKS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ROL DE APPOINTMENTS Y TASKS
 
@@ -715,6 +747,16 @@ Lectura para mantenimiento:
 
 una orden puede estar relacionada con planificación, visita o turno sin que Orders se convierta en dueño de agenda.
 
+Aclaración vigente para Tasks y Appointments:
+
+Tasks y Appointments pueden originar una orden contextual aunque no posean party_id.
+
+La contraparte se completa en la orden cuando corresponda.
+
+Tasks y Appointments no se convierten por eso en Orders ni absorben su lifecycle.
+
+OrderLinked no debe bloquear creación contextual de Orders por ausencia de party_id.
+
 Reglas:
 
 task_id puede viajar como contexto transitorio de request o navegación al crear una Order desde una Task
@@ -732,7 +774,7 @@ Cuando la intervención técnica real deba ejecutarse, el núcleo operativo debe
 <<END SECTION>>
 
 <<SECTION: ROL DE DOCUMENTS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ROL DE DOCUMENTS
 
@@ -805,6 +847,18 @@ Document conserva ownership documental
 Document conserva sus propios ítems, totales, lifecycle y contraparte textual
 
 La creación derivada Order → Document debe respetar autorización efectiva sobre Documents.
+
+La visualización de contraparte debe resolverse desde el registro dueño mediante:
+
+Document::displayCounterpartyName()
+
+Si el documento deriva de una Order, debe tomar la contraparte desde la Order mediante su lectura oficial.
+
+Aclaración vigente para Servicios y Mantenimiento:
+
+Documents puede formalizar una operación aunque el documento no tenga party_id.
+
+counterparty_name conserva la contraparte documental.
 
 En servicios y mantenimiento, esta autonomía permite formalizar presupuestos, informes o cierres con contraparte textual inicial, sin exigir que todo cliente, proveedor o tercero esté formalizado como Party desde el primer paso.
 

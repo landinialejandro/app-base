@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/print.blade.php | V4 --}}
+{{-- FILE: resources/views/orders/print.blade.php | V6 --}}
 
 @extends('layouts.print')
 
@@ -57,7 +57,7 @@
             </tr>
 
             <tr>
-                <td>
+                <td colspan="2">
                     <div class="print-block">
                         <div class="print-block-label">Contraparte</div>
                         <div class="print-block-value">{{ $order->displayCounterpartyName() }}</div>
@@ -65,14 +65,8 @@
                 </td>
                 <td>
                     <div class="print-block">
-                        <div class="print-block-label">Activo</div>
-                        <div class="print-block-value">{{ $order->asset?->name ?: '—' }}</div>
-                    </div>
-                </td>
-                <td>
-                    <div class="print-block">
-                        <div class="print-block-label">Tareas asociadas</div>
-                        <div class="print-block-value">{{ $order->tasks?->count() ?: '—' }}</div>
+                        <div class="print-block-label">Total</div>
+                        <div class="print-block-value">{{ number_format((float) $order->total, 2, ',', '.') }}</div>
                     </div>
                 </td>
             </tr>

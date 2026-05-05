@@ -1,27 +1,17 @@
-{{-- FILE: resources/views/orders/partials/table.blade.php | V16 --}}
+{{-- FILE: resources/views/orders/partials/table.blade.php | V17 --}}
 
 @php
-    use App\Support\Assets\AssetLinked;
-    use App\Support\Auth\TenantModuleAccess;
-    use App\Support\Catalogs\ModuleCatalog;
     use App\Support\Catalogs\OrderCatalog;
     use App\Support\Navigation\NavigationTrail;
-    use App\Support\Parties\PartyLinked;
 
     $orders = $orders ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay órdenes para mostrar.';
     $showCounterparty = $showCounterparty ?? ($showParty ?? false);
-    $showAsset = $showAsset ?? true;
+    $showAsset = $showAsset ?? false;
     $trailQuery = $trailQuery ?? [];
     $containerTrail = NavigationTrail::decode($trailQuery['trail'] ?? null);
 
-    $tenant = app('tenant');
-
-    $supportsPartiesModule = TenantModuleAccess::isEnabled(ModuleCatalog::PARTIES, $tenant);
-    $supportsAssetsModule = TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant);
-
     $renderCounterpartyColumn = $showCounterparty;
-    $renderAssetColumn = $showAsset && $supportsAssetsModule;
 @endphp
 
 @if ($orders->count())
@@ -35,10 +25,6 @@
 
                     @if ($renderCounterpartyColumn)
                         <th>Contraparte</th>
-                    @endif
-
-                    @if ($renderAssetColumn)
-                        <th>Activo</th>
                     @endif
 
                     <th>Fecha</th>
@@ -74,14 +60,6 @@
                         $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
 
                         $counterpartyName = $order->displayCounterpartyName();
-                        $partyLinked = null;
-
-                        if ($supportsPartiesModule && $order->party) {
-                            $partyLinked = PartyLinked::forParty($order->party, $rowTrailQuery, 'Contacto');
-                            $partyLinked['text'] = $counterpartyName;
-                        }
-
-                        $assetAction = AssetLinked::forAsset($order->asset, $rowTrailQuery, 'Activo');
                     @endphp
 
                     <tr>
@@ -100,25 +78,7 @@
                         </td>
 
                         @if ($renderCounterpartyColumn)
-                            <td>
-                                @if ($partyLinked && (($partyLinked['state'] ?? 'hidden') !== 'hidden'))
-                                    @include('parties.components.linked-party', [
-                                        'linked' => $partyLinked,
-                                        'variant' => 'inline',
-                                    ])
-                                @else
-                                    {{ $counterpartyName }}
-                                @endif
-                            </td>
-                        @endif
-
-                        @if ($renderAssetColumn)
-                            <td>
-                                @include('assets.components.linked-asset', [
-                                    'action' => $assetAction,
-                                    'variant' => 'inline',
-                                ])
-                            </td>
+                            <td>{{ $counterpartyName }}</td>
                         @endif
 
                         <td>{{ $order->ordered_at?->format('d/m/Y') ?: '—' }}</td>
@@ -132,4 +92,4 @@
     <p class="mb-0">{{ $emptyMessage }}</p>
 @endif
 
-<x-dev-component-version name="orders.partials.table" version="V16" align="right" />
+<x-dev-component-version name="orders.partials.table" version="V17" align="right" />

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/index.blade.php | V9 --}}
+{{-- FILE: resources/views/orders/index.blade.php | V11 --}}
 
 @extends('layouts.app')
 
@@ -30,7 +30,7 @@
                     <div class="form-group">
                         <label for="q" class="form-label">Buscar</label>
                         <input type="text" id="q" name="q" class="form-control" value="{{ request('q') }}"
-                            placeholder="Número de orden">
+                            placeholder="Número o contraparte">
                     </div>
 
                     <div class="form-group">
@@ -49,35 +49,6 @@
 
             <x-slot:secondary>
                 <div class="list-filters-grid">
-                    <div class="form-group">
-                        <label for="party_id" class="form-label">Contacto</label>
-                        <select id="party_id" name="party_id" class="form-control">
-                            <option value="">Todos</option>
-                            @foreach ($parties as $party)
-                                <option value="{{ $party->id }}" @selected((string) request('party_id') === (string) $party->id)>
-                                    {{ $party->name }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
-
-                    @if ($supportsAssetsModule)
-                        <div class="form-group">
-                            <label for="asset_id" class="form-label">Activo</label>
-                            <select id="asset_id" name="asset_id" class="form-control">
-                                <option value="">Todos</option>
-                                @foreach ($assets as $asset)
-                                    <option value="{{ $asset->id }}" @selected((string) request('asset_id') === (string) $asset->id)>
-                                        {{ $asset->name }}
-                                        @if ($asset->internal_code)
-                                            — {{ $asset->internal_code }}
-                                        @endif
-                                    </option>
-                                @endforeach
-                            </select>
-                        </div>
-                    @endif
-
                     <div class="form-group">
                         <label for="group" class="form-label">Tipo</label>
                         <select id="group" name="group" class="form-control">
@@ -103,7 +74,7 @@
             @include('orders.partials.table', [
                 'orders' => $orders,
                 'showCounterparty' => true,
-                'showAsset' => $supportsAssetsModule,
+                'showAsset' => false,
                 'emptyMessage' => 'No hay órdenes cargadas.',
                 'trailQuery' => $trailQuery,
             ])
@@ -115,4 +86,5 @@
 
     </x-page>
 
+    <x-dev-component-version name="orders.index" version="V11" align="right" />
 @endsection

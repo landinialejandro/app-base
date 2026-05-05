@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V43 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V44 --}}
 
 @extends('layouts.app')
 
@@ -15,7 +15,6 @@
         $items = $order->items ?? collect();
 
         $supportsProductsModule = $supportsProductsModule ?? true;
-        $supportsTasksModule = $supportsTasksModule ?? true;
 
         $pageTitle = 'Detalle de la orden';
         $detailsId = 'order-more-detail';
@@ -132,4 +131,6 @@
 
         <x-host-tabs :items="$tabItems" :active-tab="$activeTab" :label="$tabsLabel" />
     </x-page>
+
+    <x-dev-component-version name="orders.show" version="V44" align="right" />
 @endsection

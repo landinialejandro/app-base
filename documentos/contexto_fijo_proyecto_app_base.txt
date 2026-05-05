@@ -310,7 +310,7 @@ el tenant activo organiza tanto operación como gobierno interno de la empresa a
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00032
+SECTION_VERSION: 00033
 
 CAPAS FUNCIONALES DEL SISTEMA
 
@@ -404,7 +404,7 @@ Servicios y Mantenimiento puede leerse como capa satélite productiva ERP/CMMS l
 
 Regla:
 
-una capa satélite puede orquestar módulos existentes, pero no duplicar ni absorber su ownership.
+una capa satélite puede orquestar módulos existentes, pero no duplicar ni absorber ownership funcional.
 
 SUBCAPAS CONTEXTUALES INTERNAS
 
@@ -428,17 +428,15 @@ no tiene ModuleCatalog propio
 
 no entra al dashboard general
 
-Regla adicional consolidada:
+AUTONOMÍA MODULAR
 
-Orders debe poder vivir como módulo autónomo.
-
-Esto significa que su existencia funcional no depende obligatoriamente de Parties, Tasks, Appointments, Documents ni Assets.
-
-Los vínculos con esos módulos deben leerse como relaciones opcionales de contexto, enriquecimiento, origen, planificación, seguimiento, formalización o evidencia, según corresponda.
+Un módulo funcional puede vincularse con otros módulos sin perder autonomía ni absorber ownership ajeno.
 
 Regla:
 
-un módulo puede vincularse con otros sin perder autonomía ni absorber ownership ajeno.
+los vínculos con otros módulos pueden representar contexto, enriquecimiento, origen, planificación, seguimiento, formalización o evidencia, según corresponda.
+
+No deben convertirse automáticamente en dependencias obligatorias de existencia.
 
 <<END SECTION>>
 
@@ -520,7 +518,7 @@ membership = pertenencia operativa al tenant
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00032
+SECTION_VERSION: 00033
 
 ENTIDADES DEL NEGOCIO
 
@@ -623,6 +621,16 @@ no modifica la estructura base del sistema
 no reemplaza la identidad global del usuario
 
 no convierte a party en entidad de acceso
+
+Aclaración estructural sobre Orders y Documents:
+
+Orders y Documents pueden conservar vínculos opcionales con Parties sin depender rígidamente de ese vínculo para existir cuando su contrato funcional permita dato propio suficiente de contraparte.
+
+Regla:
+
+la entidad dueña debe conservar la lectura propia de su operación.
+
+Los detalles de campos, helpers, salidas visuales y relaciones concretas corresponden a los documentos especializados de entidades, navegación, visual y convenciones.
 
 Este documento reconoce la posición estructural de estas entidades.
 
@@ -1132,7 +1140,7 @@ los módulos actuales deben conservar ownership propio aun cuando participen en 
 
 
 <<SECTION: RELACIONES MACRO DEL ECOSISTEMA>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00022
 
 RELACIONES MACRO DEL ECOSISTEMA
 
@@ -1196,24 +1204,26 @@ OperationalActivity persiste actividad operativa transversal.
 
 OperationalActivity no reemplaza relaciones funcionales propias de los módulos.
 
-Orders puede vincularse opcionalmente con Parties, Assets, Tasks, Appointments y Documents sin que esos vínculos se conviertan en dependencias obligatorias de existencia.
+Orders puede vincularse opcionalmente con otros módulos sin que esos vínculos se conviertan en dependencias obligatorias de existencia.
+
+Orders no debe absorber como núcleo propio relaciones que expresan origen, planificación o seguimiento de otros módulos.
 
 Tasks y Appointments pueden asociarse a Orders desde su propio lado de la relación.
 
-Orders no debe absorber como núcleo propio las relaciones que expresan origen, planificación o seguimiento.
-
 Documents puede derivarse desde Orders y conservar su identidad documental propia.
+
+Orders y Documents pueden conservar dato propio de contraparte cuando el vínculo gestionado con Parties sea opcional.
 
 Cuando exista lectura contextual ampliada de actividad, la frontera debe ser declarada por el módulo dueño y no inferida por OperationalActivity.
 
 Estas relaciones describen arquitectura general.
 
-No reemplazan detalle de navegación, seguridad, UI ni implementación.
+No reemplazan detalle de navegación, seguridad, UI, campos, helpers ni implementación.
 
 <<END SECTION>>
 
 <<SECTION: MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00016
 
 MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO
 
@@ -1263,17 +1273,19 @@ los campos o relaciones `*_id` deben interpretarse según contrato funcional rea
 
 cuando un módulo necesite conservar dato propio aunque exista vínculo opcional con otro módulo, debe sostener una lectura autónoma del registro
 
-Caso vigente:
+cuando un módulo publique lecturas oficiales, los módulos externos no deben reconstruir esa lectura desde relaciones internas opcionales
+
+Casos vigentes:
 
 ProductOperationalSummary se implementa como subcapa contextual de Products.
-
-Caso vigente adicional:
 
 Orders conserva autonomía operativa y puede relacionarse opcionalmente con otros módulos sin absorber su ownership.
 
 Tasks y Appointments pueden vincularse a Orders desde su propio contrato.
 
 Documents puede derivarse desde Orders y conservar su propia identidad documental.
+
+Orders y Documents pueden conservar dato propio de contraparte aunque el vínculo gestionado con Parties sea opcional.
 
 Regla:
 
@@ -1284,7 +1296,7 @@ La dirección sigue siendo modular, con fronteras explícitas, operación simple
 <<END SECTION>>
 
 <<SECTION: CONTRATO MODULAR COMO DIRECCIÓN DE CRECIMIENTO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 CONTRATO MODULAR COMO DIRECCIÓN DE CRECIMIENTO
 
@@ -1312,15 +1324,23 @@ las automatizaciones futuras deben operar sobre contratos explícitos y no sobre
 
 la IA futura debe respetar los contratos modulares del sistema y no crear canales paralelos de operación
 
-Caso vigente consolidado:
+Reglas de frontera:
+
+el contrato modular define cómo integrarse
+
+no debe absorber detalle visual
+
+no debe duplicar seguridad
+
+no debe convertirse en inventario de implementación
+
+no debe registrar cada archivo, helper, validación o salida puntual
+
+Casos vigentes:
 
 orders continúa integrándose con inventory mediante servicios y puertas contractuales explícitas, sin absorber lógica interna del frente stock.
 
-Caso doctrinal adicional:
-
 Servicios y Mantenimiento debe avanzar como capa satélite productiva y no como sobrecarga directa de Orders.
-
-Caso vigente adicional:
 
 ProductOperationalSummary debe permanecer como subcapa contextual interna de Products mientras no exista justificación real para promoverla a módulo, ruta o frente independiente.
 

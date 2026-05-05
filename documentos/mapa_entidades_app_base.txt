@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00019
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -162,11 +162,37 @@ party_id en Orders representa vínculo gestionado opcional con Parties.
 
 counterparty_name representa snapshot textual propio de la orden.
 
+La orden debe conservar al menos un dato de contraparte:
+
+party_id
+
+o
+
+counterparty_name
+
+Si existe party_id, counterparty_name puede completarse desde Party::name según el flujo vigente.
+
+Si no existe party_id, counterparty_name debe escribirse manualmente según el contrato vigente de creación.
+
+La visualización de contraparte debe resolverse desde el registro dueño mediante:
+
+Order::displayCounterpartyName()
+
 asset_id representa vínculo opcional con Assets.
 
 La relación persistente con Tasks no vive en orders.task_id.
 
 La relación se resuelve desde Tasks mediante tasks.order_id.
+
+Lectura relacional vigente:
+
+Task belongsTo Order.
+
+Order hasMany Tasks.
+
+Una Order puede tener múltiples Tasks vinculadas.
+
+task_id solo puede existir como parámetro transitorio de creación contextual.
 
 La relación persistente con Appointments no vive en orders.appointment_id.
 
@@ -191,6 +217,31 @@ party_id en Documents representa vínculo gestionado opcional con Parties.
 counterparty_name representa snapshot textual propio del documento.
 
 Documents puede existir o derivarse desde Orders sin depender rígidamente de una Party vinculada.
+
+Si el documento se crea desde Order, puede tomar:
+
+document.party_id = order.party_id nullable
+
+document.counterparty_name = order.displayCounterpartyName()
+
+Si el documento se crea con Party, document.counterparty_name puede completarse desde Party::name según el flujo vigente.
+
+Si no hay Party, counterparty_name debe venir escrito manualmente según el contrato vigente.
+
+La visualización de contraparte debe resolverse desde el registro dueño mediante:
+
+Document::displayCounterpartyName()
+
+Aclaración sobre PartyLinked:
+
+PartyLinked representa únicamente el vínculo gestionado cuando existe Party vinculada y corresponde mostrar enlace.
+
+No debe utilizarse como fuente principal del texto visible de contraparte cuando el módulo dueño ofrece snapshot propio y helper oficial de lectura.
+
+Casos vigentes:
+
+Orders
+Documents
 
 Aclaración operativa de OperationalActivity:
 
@@ -559,7 +610,7 @@ Por esta razón, no debe tratarse como una entidad tenant-scoped pura del negoci
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 ENTIDADES DEL NEGOCIO
 
@@ -616,11 +667,33 @@ asset_id nullable como vínculo opcional con Assets
 lifecycle base propio
 order_items como entidad hija natural
 
+La orden debe conservar al menos un dato de contraparte:
+
+party_id
+
+o
+
+counterparty_name
+
+Si existe party_id, counterparty_name puede completarse desde Party::name según el flujo vigente.
+
+Si no existe party_id, counterparty_name debe escribirse manualmente según el contrato vigente.
+
+La lectura visible de contraparte debe resolverse mediante:
+
+Order::displayCounterpartyName()
+
 Regla:
 
 orders no debe contener task_id como relación persistente de su núcleo.
 
 La relación persistente con Tasks se resuelve desde tasks.order_id.
+
+Relación vigente:
+
+Task belongsTo Order.
+
+Order hasMany Tasks.
 
 Regla adicional:
 
@@ -658,9 +731,31 @@ order_id nullable como vínculo de derivación desde Orders
 asset_id nullable como vínculo opcional con Assets
 document_items como entidad hija natural
 
-Regla:
+La lectura visible de contraparte debe resolverse mediante:
+
+Document::displayCounterpartyName()
+
+Reglas:
 
 Documents puede derivarse desde Orders autónomas sin depender rígidamente de party_id.
+
+Si el documento se crea desde Order, document.party_id puede tomar order.party_id nullable y document.counterparty_name debe tomar la lectura oficial de contraparte de la orden.
+
+Si el documento se crea con Party, counterparty_name puede completarse desde Party::name según el flujo vigente.
+
+Si no hay Party, counterparty_name debe venir escrito manualmente según el contrato vigente.
+
+Documents conserva ownership documental aunque derive desde Orders.
+
+Aclaración vigente sobre PartyLinked:
+
+PartyLinked representa el vínculo gestionado con Parties cuando existe party_id y corresponde mostrar enlace.
+
+No debe utilizarse como fuente principal del texto visible de contraparte cuando Orders o Documents poseen snapshot propio.
+
+Regla:
+
+el texto visible de contraparte debe provenir del módulo dueño mediante su helper oficial o payload preparado por su capa correspondiente.
 
 Aclaración vigente sobre OperationalActivity:
 

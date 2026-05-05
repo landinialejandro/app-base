@@ -36,7 +36,7 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 DECISIONES VIGENTES
 
@@ -182,6 +182,18 @@ Orders conserva lifecycle base propio
 
 Orders no debe absorber seguimiento, planificación ni pendientes que pertenecen a otros módulos
 
+La orden debe conservar al menos un dato de contraparte:
+
+party_id
+
+o
+
+counterparty_name
+
+La visualización de contraparte debe resolverse mediante:
+
+Order::displayCounterpartyName()
+
 TASKS COMO OWNER DE LA RELACIÓN DE SEGUIMIENTO HACIA ORDERS
 
 Decisión vigente:
@@ -268,6 +280,10 @@ Order → Document debe recalcular totales desde document_items
 
 Order → Document no debe depender de métodos inexistentes
 
+La visualización de contraparte debe resolverse mediante:
+
+Document::displayCounterpartyName()
+
 Caso detectado:
 
 DocumentTotalsCalculator::apply() no existía como método disponible para ese flujo.
@@ -307,9 +323,83 @@ la UI debe diferenciar Contacto gestionado y Contraparte
 
 listados, show summaries, prints y surfaces deben usar método de presentación propio cuando exista
 
+Casos vigentes:
+
+Order::displayCounterpartyName()
+
+Document::displayCounterpartyName()
+
+CONTRAPARTE COMO DATO VISIBLE Y CONTACTO COMO VÍNCULO GESTIONADO
+
+Decisión vigente:
+
+en Orders y Documents, la columna visible debe llamarse Contraparte cuando representa el dato operativo propio del registro.
+
+Contacto debe reservarse para filtros, selectores o vínculos gestionados hacia Parties.
+
+Lectura vigente:
+
+Contraparte = dato operativo visible propio del registro
+
+Contacto gestionado = vínculo opcional con Party
+
+Reglas:
+
+los filtros por party_id pueden seguir llamándose Contacto porque filtran contacto gestionado
+
+las columnas de listados y embebidos deben mostrar Contraparte cuando representan el dato operativo del registro
+
+PartyLinked solo debe representar vínculo gestionado cuando existe party_id
+
+PartyLinked no debe usarse como fuente principal de texto visible cuando el módulo dueño posee snapshot propio
+
+si no existe party_id pero existe counterparty_name, debe mostrarse texto propio sin inventar link
+
+SHOWCOUNTERPARTY COMO CONTRATO VISUAL
+
+Decisión vigente:
+
+showCounterparty es el contrato visual correcto para indicar si una tabla o surface de Orders/Documents debe mostrar la columna Contraparte.
+
+showParty queda solo como fallback transitorio interno en Blades auditados.
+
+Reglas:
+
+los surface services deben publicar showCounterparty cuando el dato visible esperado sea Contraparte
+
+showParty no debe ser contrato principal si el contenido esperado no es vínculo gestionado sino contraparte operativa
+
 Caso vigente:
 
-displayCounterpartyName()
+OrderSurfaceService publica showCounterparty.
+
+DocumentSurfaceService publica showCounterparty.
+
+ORDERLINKED SIN DEPENDENCIA RÍGIDA DE PARTY_ID
+
+Decisión vigente:
+
+OrderLinked no debe bloquear la creación contextual de Orders por ausencia de party_id.
+
+Tasks y Appointments pueden originar una Order contextual aunque no tengan contacto gestionado.
+
+La Order resultante debe resolver contraparte desde el formulario mediante counterparty_name cuando no exista party_id.
+
+Reglas:
+
+OrderLinked expresa intención contextual hacia Orders
+
+OrderLinked no convierte Task ni Appointment en orden encubierta
+
+OrderLinked no reemplaza autorización de Orders
+
+OrderLinked no debe exigir Party como dependencia rígida si el contrato de Orders permite contraparte textual
+
+Validación vigente:
+
+Task sin party_id y sin order_id puede devolver state = creatable.
+
+Appointment sin party_id y sin order_id puede devolver state = creatable.
 
 ORDEN REAL DE MIGRACIONES PARA VÍNCULOS OPCIONALES
 

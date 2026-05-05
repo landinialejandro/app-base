@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/_form.blade.php | V10 --}}
+{{-- FILE: resources/views/orders/_form.blade.php | V13 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
@@ -6,28 +6,8 @@
     $orderExists = isset($order) && $order->exists;
     $orderIsNumbered = $orderExists && !empty($order->number);
 
-    $prefilledAsset = $prefilledAsset ?? null;
-    $prefilledPartyId = $prefilledPartyId ?? null;
-    $fromAsset = $fromAsset ?? false;
-    $prefilledTask = $prefilledTask ?? null;
-    $prefilledAppointment = $prefilledAppointment ?? null;
-
     $prefilledGroup = $prefilledGroup ?? old('group', $order->group ?? OrderCatalog::GROUP_SALE);
     $prefilledKind = $prefilledKind ?? old('kind', $order->kind ?? OrderCatalog::KIND_STANDARD);
-
-    $currentTaskId = $orderExists ? '' : old('task_id', $prefilledTask?->id ?? '');
-    $currentTaskName = $orderExists ? '' : old('task_name', $prefilledTask?->name ?? '');
-
-    $currentAppointmentId = old('appointment_id', $prefilledAppointment?->id ?? '');
-    $currentAppointmentLabel = old(
-        'appointment_label',
-        $prefilledAppointment?->title ?? ($currentAppointmentId ? 'Turno #' . $currentAppointmentId : ''),
-    );
-
-    $lockedByExistingAsset = $orderExists && !empty($order->asset_id);
-    $lockPartyAndAsset = $fromAsset || $lockedByExistingAsset;
-
-    $supportsAssetsModule = $supportsAssetsModule ?? true;
 
     $currentStatus = old('status', $order->status ?? OrderCatalog::STATUS_DRAFT);
 
@@ -44,131 +24,31 @@
         ? 'El backend validará la transición de estado y bloqueará cambios inválidos.'
         : 'La orden comienza normalmente en borrador y su transición futura debe validarse desde backend.';
 
-    $currentPartyId = old('party_id', $order->party_id ?? ($prefilledPartyId ?? ''));
-    $currentCounterpartyName = old(
-        'counterparty_name',
-        $order->counterparty_name ?? ($order->party?->name ?? ''),
-    );
+    $currentCounterpartyName = old('counterparty_name', $order->counterparty_name ?? '');
 @endphp
 
-<div class="form" data-action="app-party-asset-sync" data-party-select="#party_id"
-    @if ($supportsAssetsModule) data-asset-select="#asset_id" @endif>
-
-    @if ($currentTaskId)
-        <div class="form-group">
-            <label class="form-label">Tarea origen</label>
-            <input type="text" class="form-control" value="{{ $currentTaskName }}" disabled>
-            <input type="hidden" name="task_id" value="{{ $currentTaskId }}">
-            <div class="form-help">La tarea quedará vinculada a la orden creada.</div>
-        </div>
-    @endif
-
-    @if ($currentAppointmentId)
-        <div class="form-group">
-            <label class="form-label">Turno origen</label>
-            <input type="text" class="form-control" value="{{ $currentAppointmentLabel }}" disabled>
-            <input type="hidden" name="appointment_id" value="{{ $currentAppointmentId }}">
-        </div>
-    @endif
-
-    <div class="form-group">
-        <label for="party_id" class="form-label">Contacto gestionado</label>
-
-        @if ($lockPartyAndAsset)
-            <select class="form-control" disabled>
-                <option value="">Sin contacto gestionado</option>
-                @foreach ($parties as $party)
-                    <option value="{{ $party->id }}" @selected((string) $currentPartyId === (string) $party->id)>
-                        {{ $party->name }}
-                    </option>
-                @endforeach
-            </select>
-
-            <input type="hidden" name="party_id" value="{{ $currentPartyId }}">
-
-            <div class="form-help">
-                {{ $fromAsset
-                    ? 'El contacto gestionado se toma automáticamente del activo.'
-                    : 'No puede modificarse porque la orden está vinculada a un activo.' }}
-            </div>
-        @else
-            <select name="party_id" id="party_id" class="form-control">
-                <option value="">Sin contacto gestionado</option>
-                @foreach ($parties as $party)
-                    <option value="{{ $party->id }}" @selected((string) $currentPartyId === (string) $party->id)>
-                        {{ $party->name }}
-                    </option>
-                @endforeach
-            </select>
-            <div class="form-help">Opcional. Si se selecciona, la orden guardará el nombre del contacto como snapshot.</div>
-        @endif
-
-        @error('party_id')
-            <div class="form-help is-error">{{ $message }}</div>
-        @enderror
-    </div>
-
+<div class="form">
     <div class="form-group">
         <label for="counterparty_name" class="form-label">Contraparte</label>
         <input type="text" name="counterparty_name" id="counterparty_name" class="form-control"
-            value="{{ $currentCounterpartyName }}" maxlength="255">
-        <div class="form-help">Requerido si no se selecciona un contacto gestionado. La orden conserva este dato propio.</div>
+            value="{{ $currentCounterpartyName }}" maxlength="255" required>
+        <div class="form-help">Requerido. La orden conserva este dato propio.</div>
         @error('counterparty_name')
             <div class="form-help is-error">{{ $message }}</div>
         @enderror
     </div>
 
-    @if ($supportsAssetsModule)
-        <div class="form-group">
-            <label for="asset_id" class="form-label">Activo</label>
-
-            @if ($lockPartyAndAsset)
-                <select class="form-control" disabled>
-                    <option value="">Sin activo asociado</option>
-                    @foreach ($assets as $asset)
-                        <option value="{{ $asset->id }}" @selected(old('asset_id', $order->asset_id ?? ($prefilledAsset->id ?? '')) == $asset->id)>
-                            {{ $asset->name }}
-                        </option>
-                    @endforeach
-                </select>
-
-                <input type="hidden" name="asset_id"
-                    value="{{ old('asset_id', $order->asset_id ?? ($prefilledAsset->id ?? '')) }}">
-            @else
-                <select name="asset_id" id="asset_id" class="form-control">
-                    <option value="">Sin activo asociado</option>
-                    @foreach ($assets as $asset)
-                        <option value="{{ $asset->id }}" data-party-id="{{ $asset->party_id }}"
-                            @selected(old('asset_id', $order->asset_id ?? ($prefilledAsset->id ?? '')) == $asset->id)>
-                            {{ $asset->name }}
-                        </option>
-                    @endforeach
-                </select>
-            @endif
-        </div>
-    @endif
-
     <div class="form-group">
         <label for="group" class="form-label">Tipo</label>
 
-        @php
-            $forcedGroup = null;
-
-            if ($fromAsset || $currentTaskId || $currentAppointmentId) {
-                $forcedGroup = OrderCatalog::GROUP_SERVICE;
-            } elseif ($orderIsNumbered) {
-                $forcedGroup = $order->group;
-            }
-        @endphp
-
-        @if ($forcedGroup !== null)
+        @if ($orderIsNumbered)
             <select class="form-control" disabled>
                 @foreach (OrderCatalog::groupLabels() as $value => $label)
-                    <option @selected($forcedGroup === $value)>{{ $label }}</option>
+                    <option @selected($order->group === $value)>{{ $label }}</option>
                 @endforeach
             </select>
 
-            <input type="hidden" name="group" value="{{ $forcedGroup }}">
+            <input type="hidden" name="group" value="{{ $order->group }}">
             <input type="hidden" name="kind" value="{{ old('kind', $order->kind ?? $prefilledKind) }}">
         @else
             <select name="group" id="group" class="form-control" required>
@@ -209,5 +89,6 @@
         <label for="notes" class="form-label">Notas</label>
         <textarea name="notes" id="notes" class="form-control" rows="4">{{ old('notes', $order->notes ?? '') }}</textarea>
     </div>
-
 </div>
+
+<x-dev-component-version name="orders._form" version="V13" align="right" />

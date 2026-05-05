@@ -38,7 +38,7 @@ Este documento se limita a la capa visual y estructural de componentes.
 
 
 <<SECTION: COMPONENTES BLADE GLOBALES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 COMPONENTES BLADE GLOBALES
 
@@ -170,6 +170,16 @@ si no existe ni vínculo ni snapshot, recién corresponde estado vacío o fallba
 un componente linked no debe inventar enlace hacia Party
 
 un componente linked no debe ocultar el snapshot propio del registro
+
+PartyLinked representa únicamente el vínculo gestionado cuando existe Party vinculada y corresponde mostrar enlace.
+
+No debe usarse como fuente principal del texto visible de contraparte cuando Orders o Documents ofrecen helper oficial de lectura.
+
+Casos vigentes:
+
+Order::displayCounterpartyName()
+
+Document::displayCounterpartyName()
 
 Regla:
 
@@ -414,7 +424,7 @@ No deben mezclarse.
 
 
 <<SECTION: COMPONENTES MODULARES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 COMPONENTES MODULARES
 
@@ -510,9 +520,11 @@ no deben hacer parecer obligatorio un vínculo que el contrato del módulo defin
 
 si existe método de presentación propio, el partial debe consumirlo o recibir su resultado ya preparado por la capa correspondiente
 
-Caso vigente:
+Casos vigentes:
 
-displayCounterpartyName()
+Order::displayCounterpartyName()
+
+Document::displayCounterpartyName()
 
 Regla:
 
@@ -520,11 +532,77 @@ el componente o partial representa el payload correcto.
 
 No reconstruye el contrato de dominio.
 
+Regla adicional para tablas modulares de Orders y Documents:
+
+cuando una tabla de Orders o Documents representa el dato operativo visible del registro, la columna debe llamarse Contraparte.
+
+Cuando la tabla filtra por party_id o representa vínculo gestionado, puede usar Contacto.
+
+Contrato visual vigente:
+
+showCounterparty
+
+Uso:
+
+indica que la tabla o surface debe mostrar la columna Contraparte.
+
+showParty queda solo como fallback transitorio interno en Blades auditados.
+
+Blades alineados:
+
+resources/views/orders/partials/table.blade.php
+
+resources/views/documents/partials/table.blade.php
+
+resources/views/orders/partials/embedded-tabs.blade.php
+
+resources/views/documents/partials/embedded-tabs.blade.php
+
+resources/views/orders/index.blade.php
+
+resources/views/documents/index.blade.php
+
+Reglas:
+
+los partials de Orders y Documents no deben usar showParty como contrato principal si el dato visible esperado es Contraparte
+
+showCounterparty debe ser el contrato publicado por surfaces cuando corresponda mostrar contraparte
+
+el fallback showParty no debe convertirse en nuevo contrato estable
+
+Regla adicional para OrderLinked:
+
+OrderLinked pertenece al módulo Orders y representa acceso contextual hacia Orders.
+
+No debe exigir party_id como condición rígida para permitir creación contextual si Orders puede resolver counterparty_name en el formulario.
+
+Archivos vigentes relacionados:
+
+app/Support/Orders/OrderLinked.php
+
+resources/views/orders/components/linked-order.blade.php
+
+Reglas:
+
+OrderLinked no reemplaza autorización de Orders
+
+OrderLinked no convierte Task ni Appointment en Order encubierta
+
+OrderLinked no debe bloquear creación contextual por ausencia de party_id
+
+si el origen no tiene party_id, la Order resultante debe completar contraparte según contrato vigente del módulo Orders
+
+Validación vigente:
+
+Task sin party_id y sin order_id puede devolver state = creatable.
+
+Appointment sin party_id y sin order_id puede devolver state = creatable.
+
 <<END SECTION>>
 
 
 <<SECTION: COMPONENTES DE SHOW PAGES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 COMPONENTES DE SHOW PAGES
 
@@ -633,9 +711,11 @@ no debe presentarse party_id como dato obligatorio cuando el contrato permite op
 
 si la capa prepara displayCounterpartyName(), la show page debe consumir esa lectura en lugar de reconstruirla
 
-Caso vigente:
+Casos vigentes:
 
-displayCounterpartyName()
+Order::displayCounterpartyName()
+
+Document::displayCounterpartyName()
 
 Aclaración vigente para Orders:
 
@@ -654,6 +734,32 @@ documents.show puede alojar operaciones o lecturas relacionadas con Inventory cu
 Documents conserva ownership documental.
 
 Inventory conserva ownership material.
+
+Regla adicional para tablas embebidas:
+
+cuando Orders o Documents se representen como tabla invitada dentro de una show page host, el contrato visual debe diferenciar qué dato se muestra.
+
+Si el dato mostrado es la contraparte operativa del registro, corresponde:
+
+showCounterparty
+
+Si el dato mostrado o filtrado es el vínculo gestionado con Parties, corresponde lectura de Contacto o contacto gestionado.
+
+Reglas:
+
+las tablas embebidas no deben hacer parecer obligatorio party_id
+
+no deben ocultar counterparty_name por ausencia de Party vinculada
+
+no deben usar PartyLinked como fuente principal si el módulo dueño ofrece helper oficial
+
+no deben inventar link hacia Party cuando solo existe contraparte textual
+
+Caso vigente:
+
+OrderSurfaceService publica showCounterparty.
+
+DocumentSurfaceService publica showCounterparty.
 
 Regla final:
 

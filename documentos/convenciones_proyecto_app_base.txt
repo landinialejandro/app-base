@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00030
+SECTION_VERSION: 00031
 
 CONVENCIONES GENERALES
 
@@ -184,13 +184,67 @@ el snapshot permite que el registro conserve lectura autónoma aunque no exista 
 
 los listados, show summaries, prints, surfaces y salidas visuales deben priorizar el método de presentación propio cuando exista
 
-Caso vigente:
+Casos vigentes:
 
-displayCounterpartyName()
+Order::displayCounterpartyName()
+
+Document::displayCounterpartyName()
 
 Regla:
 
 no debe mostrarse únicamente party->name si el módulo posee snapshot propio de contraparte y fallback controlado.
+
+Convención de contraparte en módulos transaccionales:
+
+cuando un módulo transaccional conserve un vínculo opcional con Party y además requiera preservar el dato visible de contraparte, debe diferenciarse:
+
+party_id
+
+vínculo gestionado opcional con Party
+
+counterparty_name
+
+snapshot operativo propio del registro
+
+La UI debe distinguir:
+
+Contacto gestionado
+
+para el vínculo con Party
+
+Contraparte
+
+para el dato visible propio del registro
+
+Reglas:
+
+no usar PartyLinked como fuente principal de texto visible cuando el módulo dueño posee snapshot propio
+
+PartyLinked debe representar solo el vínculo gestionado cuando exista party_id
+
+los filtros por party_id pueden seguir usando Contacto porque filtran contacto gestionado
+
+las columnas de listados y embebidos deben mostrar Contraparte cuando representan el dato operativo visible del registro
+
+Convención visual para tablas y surfaces de Orders/Documents:
+
+showCounterparty es el contrato visual vigente para indicar si una tabla de Orders o Documents debe mostrar la columna Contraparte.
+
+showParty queda solo como fallback transitorio interno en Blades auditados, cuando exista compatibilidad heredada necesaria.
+
+Reglas:
+
+los surface services deben publicar showCounterparty cuando el dato visible esperado sea Contraparte
+
+no deben publicar showParty como contrato principal si el contenido visual esperado no es el vínculo gestionado sino la contraparte operativa
+
+el Blade puede tolerar showParty solo como fallback transitorio mientras se completa la convergencia
+
+Caso vigente:
+
+OrderSurfaceService publica showCounterparty.
+
+DocumentSurfaceService publica showCounterparty.
 
 Convención de relaciones externas hacia Orders:
 
@@ -211,6 +265,30 @@ Orders no debe conservar task_id ni appointment_id como parte de su núcleo pers
 task_id o appointment_id pueden viajar como contexto transitorio de request o navegación cuando la creación se origine desde Task o Appointment.
 
 Ese contexto no debe convertirse automáticamente en campo persistente del módulo receptor.
+
+Convención para OrderLinked:
+
+OrderLinked no debe bloquear la creación contextual de Orders por ausencia de party_id.
+
+Tasks y Appointments pueden originar una Order contextual aunque no tengan contacto gestionado.
+
+La Order resultante debe resolver contraparte desde el formulario mediante counterparty_name cuando no exista party_id.
+
+Reglas:
+
+OrderLinked expresa intención contextual hacia Orders
+
+no convierte Task ni Appointment en orden encubierta
+
+no reemplaza autorización de Orders
+
+no debe exigir Party como dependencia rígida si el contrato de Orders permite contraparte textual
+
+Validación vigente:
+
+Task sin party_id y sin order_id puede devolver state = creatable.
+
+Appointment sin party_id y sin order_id puede devolver state = creatable.
 
 Convención de derivación entre módulos:
 

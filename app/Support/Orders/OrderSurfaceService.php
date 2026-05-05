@@ -1,17 +1,14 @@
 <?php
 
-// FILE: app/Support/Orders/OrderSurfaceService.php | V14
+// FILE: app/Support/Orders/OrderSurfaceService.php | V15
 
 namespace App\Support\Orders;
 
-use App\Models\Appointment;
 use App\Models\Asset;
 use App\Models\Document;
 use App\Models\Order;
 use App\Models\Party;
-use App\Models\Task;
 use App\Support\Auth\Security;
-use App\Support\Catalogs\AppointmentCatalog;
 use App\Support\Catalogs\OrderCatalog;
 use App\Support\Modules\Concerns\BuildsSurfaceOffers;
 use App\Support\Modules\Contracts\ModuleSurfaceService;
@@ -25,33 +22,6 @@ class OrderSurfaceService implements ModuleSurfaceService
     public function offers(): array
     {
         return [
-            $this->linkedOffer(
-                key: 'order.linked',
-                label: AppointmentCatalog::orderLabel(),
-                targets: ['appointments.show'],
-                slot: 'summary_items',
-                priority: 40,
-                view: 'orders.components.linked-order',
-                resolver: $this->resolveLinkedForAppointment(...),
-            ),
-            $this->linkedOffer(
-                key: 'order.task.header',
-                label: 'Orden',
-                targets: ['tasks.show'],
-                slot: 'header_actions',
-                priority: 35,
-                view: 'orders.components.linked-order',
-                resolver: $this->resolveLinkedForTaskHeader(...),
-            ),
-            $this->linkedOffer(
-                key: 'order.task.linked',
-                label: 'Orden asociada',
-                targets: ['tasks.show'],
-                slot: 'detail_items',
-                priority: 25,
-                view: 'orders.components.linked-order',
-                resolver: $this->resolveLinkedForTaskDetail(...),
-            ),
             $this->linkedOffer(
                 key: 'order.document.linked',
                 label: 'Orden asociada',
@@ -123,24 +93,6 @@ class OrderSurfaceService implements ModuleSurfaceService
             ];
         }
 
-        if ($host === 'appointments.show' && $record instanceof Appointment) {
-            return [
-                'host' => $host,
-                'recordType' => 'appointment',
-                'record' => $record,
-                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
-            ];
-        }
-
-        if ($host === 'tasks.show' && $record instanceof Task) {
-            return [
-                'host' => $host,
-                'recordType' => 'task',
-                'record' => $record,
-                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
-            ];
-        }
-
         if ($host === 'documents.show' && $record instanceof Document) {
             return [
                 'host' => $host,
@@ -151,107 +103,6 @@ class OrderSurfaceService implements ModuleSurfaceService
         }
 
         return [];
-    }
-
-    private function resolveLinkedForAppointment(array $hostPack): array
-    {
-        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
-
-        if ($recordType !== 'appointment' || ! $record instanceof Appointment) {
-            return [
-                'data' => [
-                    'linked' => [
-                        'supported' => false,
-                        'exists' => false,
-                        'hidden' => true,
-                        'readonly' => false,
-                        'state' => 'hidden',
-                        'show_url' => null,
-                        'create_url' => null,
-                        'label' => AppointmentCatalog::orderLabel(),
-                        'text' => null,
-                    ],
-                    'variant' => 'summary',
-                ],
-            ];
-        }
-
-        return [
-            'data' => [
-                'linked' => OrderLinked::forAppointment($record, $trailQuery, true),
-                'variant' => 'summary',
-            ],
-        ];
-    }
-
-    private function resolveLinkedForTaskHeader(array $hostPack): array
-    {
-        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
-
-        if ($recordType !== 'task' || ! $record instanceof Task) {
-            return [
-                'data' => [
-                    'linked' => [
-                        'supported' => false,
-                        'exists' => false,
-                        'hidden' => true,
-                        'readonly' => false,
-                        'state' => 'hidden',
-                        'show_url' => null,
-                        'create_url' => null,
-                        'label' => 'Orden',
-                        'text' => null,
-                    ],
-                    'variant' => 'button',
-                ],
-            ];
-        }
-
-        return [
-            'data' => [
-                'linked' => OrderLinked::forTask(
-                    $record,
-                    $trailQuery,
-                    (bool) (auth()->user() && auth()->user()->can('update', $record)),
-                ),
-                'variant' => 'button',
-            ],
-        ];
-    }
-
-    private function resolveLinkedForTaskDetail(array $hostPack): array
-    {
-        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
-
-        if ($recordType !== 'task' || ! $record instanceof Task) {
-            return [
-                'data' => [
-                    'linked' => [
-                        'supported' => false,
-                        'exists' => false,
-                        'hidden' => true,
-                        'readonly' => false,
-                        'state' => 'hidden',
-                        'show_url' => null,
-                        'create_url' => null,
-                        'label' => 'Orden asociada',
-                        'text' => null,
-                    ],
-                    'variant' => 'summary',
-                ],
-            ];
-        }
-
-        return [
-            'data' => [
-                'linked' => OrderLinked::forTask(
-                    $record,
-                    $trailQuery,
-                    (bool) (auth()->user() && auth()->user()->can('update', $record)),
-                ),
-                'variant' => 'summary',
-            ],
-        ];
     }
 
     private function resolveLinkedForDocument(array $hostPack): array
@@ -406,7 +257,7 @@ class OrderSurfaceService implements ModuleSurfaceService
         if ($recordType === 'party' && $record instanceof Party) {
             return app(Security::class)
                 ->scope(auth()->user(), 'orders.viewAny', Order::query())
-                ->with(['party', 'asset', 'task', 'items'])
+                ->with(['party', 'asset', 'items'])
                 ->where('party_id', $record->getKey())
                 ->latest()
                 ->get();

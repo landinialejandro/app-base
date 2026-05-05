@@ -39,7 +39,7 @@ no debe utilizarse como depósito de ideas difusas sin criterio de ejecución
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — RECONVERSIÓN MODULAR>>
-SECTION_VERSION: 00023
+SECTION_VERSION: 00024
 
 LÍNEA ACTIVA — RECONVERSIÓN MODULAR
 
@@ -78,6 +78,7 @@ creación doctrinal de capa IA operativa como capacidad transversal futura o pro
 creación doctrinal del paquete de servicios y mantenimiento como capa satélite productiva ERP/CMMS liviana
 implementación inicial de ProductOperationalSummary como subcapa contextual interna de Products
 corrección arquitectónica de ProductOperationalSummary desde include directo hacia integración surface-driven mediante ProductSurfaceService
+cierre visual y contractual de Fase 0 Orders/Documents para preparar Servicios y Mantenimiento
 
 Criterios rectores vigentes:
 
@@ -113,6 +114,9 @@ no convertir una subcapa contextual interna en módulo nuevo por el solo hecho d
 no resolver una subcapa contextual con include directo si puede integrarse mediante surface del módulo host
 no calcular métricas operativas en Blade
 no usar OperationalActivity como fuente principal de métricas cuando existen módulos dueños de datos transaccionales u operativos
+no usar PartyLinked como fuente principal de texto visible cuando el módulo dueño posee snapshot propio de contraparte
+no bloquear creación contextual de Orders desde Tasks o Appointments por ausencia de party_id
+no publicar showParty como contrato visual principal cuando la tabla debe mostrar Contraparte
 
 Foco de esta línea:
 
@@ -136,6 +140,8 @@ más datos estructurados para reportes, trazabilidad, automatización e IA futur
 más automatización progresiva sin saltar autorización ni supervisión humana
 más subcapas contextuales internas correctamente alojadas bajo su módulo host
 más integración surface-driven para lecturas compactas dentro de show pages
+más claridad entre Contacto gestionado y Contraparte
+más autonomía visual y contractual de Orders y Documents frente a party_id
 
 Caso vigente consolidado:
 
@@ -212,6 +218,47 @@ operator no accede a esta capa
 Las métricas de compras y ventas deben respetar Security::scope() sobre Orders.
 
 OperationalActivity no se usa como fuente principal de métricas.
+
+Caso vigente consolidado de Fase 0 Orders/Documents:
+
+Orders ya no conserva task_id como relación estructural.
+
+Tasks conserva order_id.
+
+Order hasMany Tasks.
+
+Task belongsTo Order.
+
+task_id solo puede operar como parámetro transitorio de request para crear Order desde Task.
+
+Orders conserva:
+
+party_id opcional
+counterparty_name como snapshot propio de contraparte
+
+Documents conserva:
+
+party_id opcional
+counterparty_name como snapshot propio documental
+
+Crear documento desde Order no debe exigir party_id.
+
+La contraparte visual se resuelve mediante:
+
+Order::displayCounterpartyName()
+Document::displayCounterpartyName()
+
+Las tablas de Orders/Documents muestran Contraparte.
+
+Los filtros por party_id siguen usando Contacto.
+
+PartyLinked solo representa vínculo gestionado cuando existe party_id.
+
+showCounterparty es el contrato visual vigente para tablas y surfaces de Orders/Documents.
+
+OrderLinked no debe bloquear creación de Order desde Task o Appointment por ausencia de party_id.
+
+Task y Appointment sin party_id pueden iniciar creación contextual de Order.
 
 Criterio doctrinal vigente para Servicios y Mantenimiento:
 
@@ -301,7 +348,7 @@ por ser subcapa contextual interna de Products recientemente implementada, con i
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00022
+SECTION_VERSION: 00023
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -742,6 +789,10 @@ Orders ya no conserva task_id como vínculo persistente de su núcleo
 
 Tasks incorpora order_id nullable como vínculo opcional hacia Orders
 
+Task belongsTo Order
+
+Order hasMany Tasks
+
 una Order puede tener múltiples Tasks asociadas
 
 task_id puede viajar solo como contexto transitorio de request o navegación
@@ -752,11 +803,15 @@ Orders incorpora counterparty_name como snapshot textual propio
 
 Orders puede crearse sin party_id usando counterparty_name
 
+la visualización de contraparte en Orders se resuelve mediante Order::displayCounterpartyName()
+
 Documents conserva party_id como vínculo gestionado opcional
 
 Documents incorpora counterparty_name como snapshot textual propio
 
 Documents puede derivarse desde Orders autónomas sin depender rígidamente de Party
+
+la visualización de contraparte en Documents se resuelve mediante Document::displayCounterpartyName()
 
 Order → Document copia contexto de contraparte, ítems y recalcula totales desde document_items
 
@@ -764,19 +819,65 @@ se eliminó la dependencia inválida hacia DocumentTotalsCalculator::apply() en 
 
 asset_id se mantiene como vínculo opcional, pero no debe ubicarse en create_orders_table si assets se crea después
 
+Cierre operativo visual/contractual adicional de Fase 0 Orders / Documents:
+
+las tablas de Orders y Documents muestran Contraparte como dato visible operativo
+
+los filtros por party_id conservan Contacto porque filtran contacto gestionado
+
+PartyLinked representa únicamente el vínculo gestionado cuando existe party_id
+
+PartyLinked no debe usarse como fuente principal de texto visible cuando el módulo dueño posee snapshot propio
+
+showCounterparty es el contrato visual vigente para tablas y surfaces de Orders/Documents
+
+showParty queda solo como fallback transitorio interno en Blades auditados
+
+OrderSurfaceService publica showCounterparty
+
+DocumentSurfaceService publica showCounterparty
+
+OrderLinked ya no bloquea creación contextual por ausencia de party_id
+
+Task sin party_id y Appointment sin party_id pueden devolver state = creatable para crear Order
+
 Validaciones informadas:
 
-php artisan optimize:clear
+php artisan optimize:clear OK
 
-php -l sobre archivos modificados
+php artisan migrate:fresh --seed OK
 
-php artisan migrate:fresh --seed
+orders: 7
 
-validaciones Tinker
+orders_without_party: 0
 
-prueba runtime web real de creación de Order sin Party
+orders_without_counterparty: 0
 
-prueba runtime web real de creación de Document desde Order
+documents: 4
+
+documents_without_party: 0
+
+documents_without_counterparty: 0
+
+php -l OK:
+
+app/Support/Orders/OrderLinked.php
+
+app/Support/Orders/OrderSurfaceService.php
+
+app/Support/Documents/DocumentSurfaceService.php
+
+Validaciones runtime informadas:
+
+crear documento desde Order funciona
+
+documents sin counterparty_name = 0
+
+totales demo correctos
+
+Task sin party_id y sin order_id → state = creatable
+
+Appointment sin party_id y sin order_id → state = creatable
 
 Regla consolidada:
 

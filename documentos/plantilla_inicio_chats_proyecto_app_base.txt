@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00021
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -144,11 +144,17 @@ No debe revertirse a formulario plano sin justificación basada en código real 
 
 Estado reciente de Fase 0 Orders / Documents:
 
+Fase 0 Orders/Documents quedó visual y contractualmente cerrada para preparar Servicios y Mantenimiento.
+
 Orders debe vivir como módulo autónomo.
 
 Orders ya no contiene task_id como relación persistente del núcleo.
 
 Tasks contiene order_id nullable como vínculo opcional hacia Orders.
+
+Order hasMany Tasks.
+
+Task belongsTo Order.
 
 Una Order puede tener múltiples Tasks asociadas.
 
@@ -160,13 +166,36 @@ party_id en Orders es vínculo gestionado opcional.
 
 Orders incorpora counterparty_name como snapshot textual propio.
 
+La orden debe tener contraparte por:
+
+party_id
+
+o
+
+counterparty_name
+
+Si existe party_id, counterparty_name puede completarse desde Party::name según el flujo vigente.
+
+Si no existe party_id, counterparty_name debe escribirse manualmente según el contrato vigente.
+
 Orders puede crearse sin Party usando counterparty_name.
 
 party_id en Documents es vínculo gestionado opcional.
 
-Documents incorpora counterparty_name como snapshot textual propio.
+Documents incorpora counterparty_name como snapshot textual propio documental.
 
 Documents puede crearse desde Orders autónomas.
+
+Documents no debe depender rígidamente de party_id.
+
+Crear documento desde Order no debe exigir party_id.
+
+Si el documento deriva de una Order, debe tomar la contraparte desde la Order mediante su lectura oficial.
+
+La contraparte visual se resuelve mediante:
+
+Order::displayCounterpartyName()
+Document::displayCounterpartyName()
 
 Order → Document funciona en runtime web y debe:
 
@@ -188,26 +217,95 @@ task_id puede existir solo como parámetro transitorio de request o navegación
 
 task_id no debe volver como campo persistente de Orders
 
+appointment_id puede existir solo como parámetro transitorio de request o navegación
+
+appointment_id no debe volver como campo persistente de Orders
+
 si falta Party vinculada pero existe counterparty_name, no mostrar vacío como si faltara contraparte
 
 usar displayCounterpartyName() o método equivalente de presentación cuando corresponda
 
+Contraparte y Contacto gestionado:
+
+Contraparte representa el dato operativo visible propio del registro.
+
+Contacto gestionado representa el vínculo opcional con Party.
+
+En Orders y Documents:
+
+la columna visible debe llamarse Contraparte cuando representa el dato operativo del registro
+
+los filtros por party_id pueden seguir usando Contacto porque filtran contacto gestionado
+
+PartyLinked solo representa vínculo gestionado cuando existe party_id
+
+PartyLinked no debe usarse como fuente principal de texto visible cuando el módulo dueño posee snapshot propio
+
+si no existe party_id pero existe counterparty_name, debe mostrarse texto propio sin inventar link
+
+showCounterparty es el contrato visual vigente para tablas y surfaces de Orders/Documents.
+
+showParty queda solo como fallback transitorio interno en Blades auditados.
+
+Surface services vigentes:
+
+OrderSurfaceService publica showCounterparty.
+
+DocumentSurfaceService publica showCounterparty.
+
+OrderLinked:
+
+no debe bloquear creación de Order desde Task o Appointment por ausencia de party_id.
+
+Task y Appointment sin party_id pueden iniciar creación contextual de Order.
+
+La Order resultante debe resolver contraparte desde el formulario mediante counterparty_name cuando no exista party_id.
+
+OrderLinked no reemplaza autorización de Orders.
+
+OrderLinked no convierte Task ni Appointment en Order encubierta.
+
+Validaciones recientes de Fase 0 Orders/Documents:
+
+php artisan migrate:fresh --seed OK
+
+php artisan optimize:clear OK
+
+orders: 7
+
+orders_without_party: 0
+
+orders_without_counterparty: 0
+
+documents: 4
+
+documents_without_party: 0
+
+documents_without_counterparty: 0
+
+php -l OK:
+
+app/Support/Orders/OrderLinked.php
+app/Support/Orders/OrderSurfaceService.php
+app/Support/Documents/DocumentSurfaceService.php
+
+Validaciones runtime informadas:
+
+crear documento desde Order funciona
+
+documents sin counterparty_name = 0
+
+totales demo correctos
+
+Task sin party_id y sin order_id → state = creatable
+
+Appointment sin party_id y sin order_id → state = creatable
+
 Próximo frente sugerido:
 
-revisar salidas visuales, listados, show summaries, prints y surfaces para usar la lectura propia de contraparte.
+no avanzar todavía a mantenimiento funcional sin conservar este cierre documental aplicado.
 
-Piezas a revisar:
-
-orders/partials/table
-documents/partials/table
-orders/show
-documents/show
-prints de Orders
-prints de Documents
-surfaces de Orders
-surfaces de Documents
-componentes linked relacionados
-ProductOperationalSummaryService
+La próxima etapa de mantenimiento debe partir de auditoría fuerte de Orders y módulos participantes sobre código real, esquema real, rutas reales, UI real, seguridad real y runtime real.
 
 OperationalActivity quedó incorporado como capacidad transversal tenant-scoped de trazabilidad operativa.
 
@@ -648,6 +746,8 @@ Orders no usa status como estado técnico de ejecución
 Orders no absorbe task_id
 
 Orders no absorbe appointment_id
+
+Orders puede operar con contraparte textual propia sin Party gestionada obligatoria
 
 Tasks puede sostener múltiples pendientes, seguimientos o acciones asociadas a una Order mediante tasks.order_id
 

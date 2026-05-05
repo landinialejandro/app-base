@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00024
+SECTION_VERSION: 00025
 
 COMPONENTES DISPONIBLES
 
@@ -165,6 +165,57 @@ linked-project
 Cuando un módulo migra a la nueva generación, el componente visual debe limitarse a representar el payload oficial resuelto por el módulo oferente.
 
 No debe reinterpretar permisos, rutas ni estados internos.
+
+Regla visual para PartyLinked y componentes equivalentes:
+
+PartyLinked representa el vínculo gestionado con Party cuando existe party_id y el módulo destino está disponible o autorizado.
+
+No debe usarse como fuente principal de texto visible cuando el módulo dueño posee snapshot propio de contraparte.
+
+Casos vigentes:
+
+Orders
+Documents
+
+Reglas:
+
+si existe party_id y corresponde mostrar vínculo gestionado, puede representarse PartyLinked
+
+si no existe party_id pero existe counterparty_name, debe mostrarse la contraparte textual propia
+
+si no existe ni vínculo ni snapshot, recién corresponde estado vacío o fallback visual
+
+no inventar link hacia Party
+
+no ocultar counterparty_name por ausencia de party_id
+
+Criterio visual para contraparte en tablas:
+
+En tablas de Orders y Documents, la columna visible debe llamarse Contraparte cuando representa el dato operativo propio del registro.
+
+Cuando exista party_id y el módulo Parties esté disponible y autorizado, el texto de contraparte puede representarse como link mediante PartyLinked.
+
+Si no existe party_id, debe mostrarse el texto resuelto por displayCounterpartyName() sin inventar link.
+
+Contacto debe reservarse para selectores, filtros o vínculos gestionados hacia Party.
+
+Contrato visual vigente:
+
+showCounterparty
+
+Uso:
+
+indica si una tabla de Orders o Documents debe mostrar la columna Contraparte.
+
+showParty queda solo como fallback transitorio en Blades legacy auditados.
+
+Reglas:
+
+las tablas invitadas de Orders y Documents deben usar showCounterparty cuando muestran el dato operativo visible del registro
+
+los filtros por party_id pueden seguir usando Contacto porque filtran contacto gestionado
+
+los surface services deben publicar showCounterparty cuando corresponda mostrar Contraparte
 
 Componentes reutilizables vigentes para line items:
 

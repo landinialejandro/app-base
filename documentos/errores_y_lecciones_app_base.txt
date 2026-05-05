@@ -26,7 +26,7 @@ lección aplicable
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 LECCIONES VIGENTES
 
@@ -238,9 +238,81 @@ Regla:
 
 cuando exista método de presentación propio, debe usarse en listados, show summaries, prints, surfaces y salidas contextuales.
 
+Casos vigentes:
+
+Order::displayCounterpartyName()
+
+Document::displayCounterpartyName()
+
+PARTYLINKED NO ES FUENTE PRINCIPAL DE CONTRAPARTE
+
+PartyLinked representa vínculo gestionado con Parties.
+
+No debe usarse como fuente principal de texto visible cuando el módulo dueño posee snapshot propio de contraparte.
+
 Caso vigente:
 
-displayCounterpartyName()
+Orders y Documents pueden tener counterparty_name aunque party_id sea null.
+
+Lección:
+
+un componente linked no debe ocultar la autonomía visual del módulo dueño.
+
+Reglas:
+
+PartyLinked se usa cuando existe party_id y corresponde mostrar vínculo gestionado
+
+si no existe party_id pero existe counterparty_name, debe mostrarse texto propio
+
+no inventar link hacia Party
+
+no mostrar vacío si el módulo dueño posee snapshot
+
+SHOWPARTY NO DEBE SEGUIR COMO CONTRATO PRINCIPAL SI EL DATO ES CONTRAPARTE
+
+Un nombre de contrato visual puede arrastrar semántica incorrecta si el dato que se muestra cambió.
+
+Caso detectado:
+
+showParty expresa una lectura centrada en Party.
+
+Pero en tablas de Orders/Documents el dato visible esperado pasó a ser Contraparte.
+
+Corrección vigente:
+
+showCounterparty es el contrato visual principal.
+
+showParty queda solo como fallback transitorio interno en Blades auditados.
+
+Lección:
+
+el contrato visual debe nombrar el dato real que representa.
+
+Regla:
+
+si la columna muestra contraparte operativa del registro, el contrato debe ser showCounterparty.
+
+ORDERLINKED NO DEBE BLOQUEAR CREACIÓN POR AUSENCIA DE PARTY_ID
+
+Un acceso contextual hacia Orders no debe exigir contacto gestionado si Orders puede operar con contraparte textual propia.
+
+Caso vigente:
+
+Task sin party_id y sin order_id puede devolver state = creatable.
+
+Appointment sin party_id y sin order_id puede devolver state = creatable.
+
+Lección:
+
+la intención contextual de crear una Order no debe bloquearse por falta de Party cuando el contrato de Orders permite counterparty_name.
+
+Reglas:
+
+OrderLinked no reemplaza autorización de Orders
+
+OrderLinked no convierte Task ni Appointment en Order encubierta
+
+la contraparte debe completarse en la Order cuando corresponda
 
 NO GENERAR BLOQUES DOCUMENTALES CON NOMBRES DE SECCIÓN NO CONFIRMADOS
 

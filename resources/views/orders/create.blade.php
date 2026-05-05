@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/create.blade.php | V6 --}}
+{{-- FILE: resources/views/orders/create.blade.php | V8 --}}
 
 @extends('layouts.app')
 
@@ -10,27 +10,37 @@
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
-        $cancelUrl = NavigationTrail::previousUrl($navigationTrail, route('orders.index'));
+        $backUrl = NavigationTrail::previousUrl($navigationTrail, route('orders.index'));
     @endphp
 
     <x-page>
         <x-breadcrumb :items="$breadcrumbItems" />
 
-        <x-page-header title="Nueva orden" />
+        <x-page-header title="Nueva orden">
+            <x-button-back :href="$backUrl" />
+        </x-page-header>
 
         <x-card>
-            <form method="POST" action="{{ route('orders.store', $trailQuery) }}" class="form">
+            <form method="POST" action="{{ route('orders.store', $trailQuery) }}">
                 @csrf
 
                 @include('orders._form', [
-                    'supportsAssetsModule' => $supportsAssetsModule,
+                    'prefilledGroup' => $prefilledGroup,
+                    'prefilledKind' => $prefilledKind,
                 ])
 
                 <div class="form-actions">
-                    <button type="submit" class="btn btn-primary">Guardar</button>
-                    <a href="{{ $cancelUrl }}" class="btn btn-secondary">Cancelar</a>
+                    <x-button-primary type="submit">
+                        Crear orden
+                    </x-button-primary>
+
+                    <x-button-secondary :href="$backUrl">
+                        Cancelar
+                    </x-button-secondary>
                 </div>
             </form>
         </x-card>
     </x-page>
+
+    <x-dev-component-version name="orders.create" version="V8" align="right" />
 @endsection

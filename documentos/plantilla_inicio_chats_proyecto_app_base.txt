@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00020
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -141,6 +141,73 @@ app/Support/Parties/PartyEmployeeContactAuthorization.php
 El formulario progresivo de parties ya está implementado y funcionando.
 
 No debe revertirse a formulario plano sin justificación basada en código real y necesidad validada.
+
+Estado reciente de Fase 0 Orders / Documents:
+
+Orders debe vivir como módulo autónomo.
+
+Orders ya no contiene task_id como relación persistente del núcleo.
+
+Tasks contiene order_id nullable como vínculo opcional hacia Orders.
+
+Una Order puede tener múltiples Tasks asociadas.
+
+Appointments mantiene relación hacia Orders desde appointments.order_id.
+
+Orders no debe absorber appointment_id como parte de su núcleo.
+
+party_id en Orders es vínculo gestionado opcional.
+
+Orders incorpora counterparty_name como snapshot textual propio.
+
+Orders puede crearse sin Party usando counterparty_name.
+
+party_id en Documents es vínculo gestionado opcional.
+
+Documents incorpora counterparty_name como snapshot textual propio.
+
+Documents puede crearse desde Orders autónomas.
+
+Order → Document funciona en runtime web y debe:
+
+respetar documents.create
+copiar contexto de contraparte
+copiar ítems cuando corresponda
+recalcular totales desde document_items
+no depender de métodos inexistentes
+
+Reglas de continuidad para Fase 0:
+
+no volver a proponer eliminar party_id, asset_id u otros `*_id` por defecto
+
+los `*_id` pueden representar vínculos opcionales de enriquecimiento
+
+no convertir vínculos opcionales en required sin evidencia y decisión doctrinal nueva
+
+task_id puede existir solo como parámetro transitorio de request o navegación
+
+task_id no debe volver como campo persistente de Orders
+
+si falta Party vinculada pero existe counterparty_name, no mostrar vacío como si faltara contraparte
+
+usar displayCounterpartyName() o método equivalente de presentación cuando corresponda
+
+Próximo frente sugerido:
+
+revisar salidas visuales, listados, show summaries, prints y surfaces para usar la lectura propia de contraparte.
+
+Piezas a revisar:
+
+orders/partials/table
+documents/partials/table
+orders/show
+documents/show
+prints de Orders
+prints de Documents
+surfaces de Orders
+surfaces de Documents
+componentes linked relacionados
+ProductOperationalSummaryService
 
 OperationalActivity quedó incorporado como capacidad transversal tenant-scoped de trazabilidad operativa.
 
@@ -530,145 +597,36 @@ Regla vigente:
 
 un seeder demo operativo no queda cerrado solo por migrate:fresh --seed OK.
 
-Si emite eventos queued, debe validarse:
+Debe validarse también:
 
 eventos emitidos
-jobs generados
+jobs creados
 queue procesada
 jobs = 0
 failed_jobs = 0
-operational_activities persistidas
+actividad persistida
 módulo correcto
-cantidades finales esperadas
-estados válidos contra catálogos
-ausencia de estados inválidos en DB
-ausencia de residuos legacy reales por grep preciso
+ausencia de estados inválidos
+ausencia de residuos legacy reales cuando corresponda
+ciclo operativo testigo cuando exista
 
-Cierre vigente de PartyModuleSeeder:
+Regla adicional para snapshots:
 
-dejó de ser carga silenciosa para parties nuevas
+los seeders que crean Orders o Documents directamente deben poblar counterparty_name cuando el registro lo requiera.
 
-emite OperationalRecordCreated por cada Party nueva creada
-
-incluye metadata operativa de party_roles
-
-validación final informada:
-
-22 actividades parties
-jobs = 0
-failed = 0
-
-Cierre vigente de OrderModuleSeeder:
-
-se limpió de compatibilidad legacy interna
-
-eliminó lógica tipo legacyKinds
-
-no acepta implícitamente kind = sale/purchase/service como entrada conceptual
-
-declara explícitamente:
-
-group = sale|purchase|service
-kind = standard
-
-valida payload de seed con fallo fuerte si falta un dato o si el dato no pertenece al catálogo vigente
-
-crea órdenes demo en estados útiles
-
-crea una orden testigo:
-
-TECH-ORD-CYCLE-0001
-
-la orden testigo recorre ciclo completo:
-
-creación
-ítem
-transición a pending_approval
-aprobación
-ejecución de línea por inventario
-cierre
-
-usa OrderInventoryOperationService para ejecutar línea
-
-respeta InventoryOperation como ancla operativa de inventario
-
-validación final informada:
-
-estado final closed
-ítem final completed
-orders = 10
-inventory = 1
-jobs = 0
-failed = 0
-
-Cierre vigente de DocumentModuleSeeder:
-
-dejó de usar DB::table como carga dura para documentos e ítems
-
-usa modelos Document y DocumentItem
-
-elimina estados legacy como issued
-
-usa estados vigentes de DocumentCatalog
-
-deja documentos en pending_approval o approved
-
-deja ítems documentales en pending
-
-emite actividad operativa por creación y transición
-
-validación final informada:
-
-documents = 10
-jobs = 0
-failed = 0
-
-Verificación final informada:
-
-orders_invalid = []
-documents_invalid = []
-
-Capa IA operativa:
-
-la IA se lee como capa transversal del sistema.
-
-No se lee como módulo ordinario, CRUD, chat decorativo ni función exclusiva de mantenimiento.
-
-Debe respetar:
-
-Security
-tenant activo
-membership activa
-módulos habilitados
-permisos efectivos
-constraints funcionales
-lifecycle
-ownership modular
-validaciones backend
-trazabilidad relevante
-supervisión humana en acciones críticas
-
-La IA puede asistir, resumir, ordenar, sugerir, preparar borradores y reducir fricción.
-
-No debe ampliar privilegios, inventar datos faltantes, consumir stock sin autorización, cerrar procesos críticos sin confirmación ni operar fuera del contrato del módulo dueño.
-
-Premisa económica vigente:
-
-no asumir API key paga
-no asumir suscripción activa
-no depender tempranamente de un proveedor externo
-separar intención IA de proveedor IA
-permitir etapa inicial con documentación, datos estructurados, prompts manuales, herramientas locales, procesos semiautomáticos y supervisión humana
+No deben depender de controllers para completar snapshots propios.
 
 Servicios y Mantenimiento:
 
 Servicios y Mantenimiento se lee como capa satélite productiva ERP/CMMS liviana.
 
-No debe implementarse como CRUD ordinario aislado.
+No se lee como módulo CRUD ordinario por defecto.
 
 No debe resolverse solo modificando Orders.
 
-Debe orquestar módulos existentes sin duplicar ownership:
+No debe implementarse sin auditoría fuerte previa.
+
+Módulos participantes:
 
 Orders
 Assets
@@ -681,75 +639,167 @@ Attachments
 Parties
 OperationalActivity
 
-Reglas clave:
+Reglas vigentes:
 
-Orders conserva lifecycle base:
+Orders conserva lifecycle base
 
-draft
-pending_approval
-approved
-closed
-cancelled
+Orders no usa status como estado técnico de ejecución
 
-Orders.status no debe usarse como estado técnico de ejecución.
+Orders no absorbe task_id
 
-Una orden solo puede operar técnicamente cuando está approved.
+Orders no absorbe appointment_id
 
-Una orden closed no debe permitir operación ordinaria, surtido, consumo, edición técnica ni automatización ejecutiva sin reapertura autorizada.
+Tasks puede sostener múltiples pendientes, seguimientos o acciones asociadas a una Order mediante tasks.order_id
 
-El estado operativo de ejecución debe vivir como dimensión satélite.
+Appointments puede sostener planificación temporal asociada a una Order mediante appointments.order_id
 
-Estados operativos esperados:
+Documents puede formalizar operaciones derivadas de Orders autónomas
 
-not_started
-in_progress
-waiting_parts
-waiting_labor
-waiting_customer
-waiting_external
-on_hold
-ready_for_review
+Inventory conserva ownership de stock, consumos, devoluciones y custodia material
 
-La próxima etapa debe comenzar con auditoría fuerte de Orders.
+Assets puede funcionar como base del objeto técnico mantenible cuando corresponda
 
-No codificar de inmediato.
+Attachments sostiene evidencia y documentación técnica sin absorber lógica de mantenimiento
 
-La auditoría debe responder:
+Parties enriquece clientes, proveedores, terceros y colaboradores internos sin ser condición rígida de existencia para toda orden o documento
 
-qué soporta hoy Orders
-qué no soporta
-qué puede resolverse con contrato actual
-qué requiere extensión mínima
-qué no debe meterse dentro de Orders
-qué debería vivir como pieza satélite
+OperationalActivity sostiene trazabilidad transversal sin convertirse en timeline específico por sí mismo
 
-Documentos obligatorios adicionales para chats orientados a IA o mantenimiento:
+IA operativa:
 
-<DOC_REF slug="capa_ia_operativa_app_base">Capa IA operativa</DOC_REF>
+IA se lee como capa transversal de asistencia y reducción de fricción.
 
-<DOC_REF slug="paquete_servicios_mantenimiento_app_base">Paquete de servicios y mantenimiento</DOC_REF>
+No se lee como módulo ordinario.
 
-Regla para próximos chats de Servicios y Mantenimiento:
+No reemplaza Security.
 
-iniciar auditando Orders con evidencia real
+No reemplaza backend.
 
-no proponer código sin auditar contrato real
+No reemplaza lifecycle.
 
-no romper lifecycle actual de Orders
+No reemplaza ownership modular.
 
-no usar Orders.status para estados técnicos
+No reemplaza supervisión humana en acciones críticas.
 
-no convertir mantenimiento en CRUD aislado
+Debe diseñarse con presupuesto inicial potencialmente cero, proveedor reemplazable, datos autorizados, trazabilidad relevante y fallback sin integración paga inmediata.
 
-no crear tablas por reflejo automático
+Project Lab:
 
-no asumir que Products ya soporta servicios, mano de obra, repuestos, alternativos o paquetes
+Project Lab es la estación operativa local para aplicar, auditar y validar cambios.
 
-no asumir que Assets ya cubre todo objeto técnico mantenible
+Herramientas Lab disponibles:
 
-no asumir que Inventory ya cubre custodia material sin auditoría real
+code
+docs
+audit
 
-respetar Security, tenant activo, ownership modular, surfaces, OperationalActivity y documentación vigente
+Criterios de uso:
+
+usar code para aplicar actualizaciones de código compatibles con el automatizador vigente
+usar docs para aplicar actualizaciones documentales por bloques completos de sección
+usar audit para ejecutar auditorías simples o comandos de inspección del proyecto
+
+Capacidades actuales del automatizador de código:
+
+creación o reemplazo de archivos completos PHP
+creación o reemplazo de archivos completos Blade
+creación o reemplazo de archivos completos CSS
+creación o reemplazo de archivos completos JS
+actualización parcial de métodos PHP existentes
+alta de métodos nuevos dentro de clases PHP
+actualización parcial de funciones JS
+actualización de secciones CSS/JS mediante bloques SECTION
+normalización automática de encabezado FILE y versión
+mantenimiento de log operativo de cambios
+salida de consola con estado y trazabilidad
+validaciones básicas de ruta para evitar escrituras accidentales
+
+Capacidades actuales del automatizador documental:
+
+actualización por DOC_SLUG
+reemplazo completo de secciones delimitadas
+validación de nombre exacto de sección
+rechazo de secciones inexistentes
+salida explícita OK o ERROR
+
+Reglas:
+
+la existencia de Project Lab no reemplaza auditoría técnica ni criterio arquitectónico
+
+la herramienta ejecuta cambios
+
+la decisión de usarlos sigue perteneciendo al proceso técnico
+
+si una tarea consiste principalmente en aplicar código ya definido sobre archivos existentes, priorizar formato compatible con Project Lab antes que edición manual fragmentada
+
+si una prueba requiere runtime real, tenant activo, Security o contexto funcional, debe respetarse la guía operativa vigente de Project Lab
+
+si una prueba requiere eventos queued, debe validarse también cola, jobs, failed_jobs y persistencia final cuando corresponda
+
+si una intervención involucra OperationalActivity, no alcanza con disparar el evento: debe validarse procesamiento real, ausencia de duplicación de listeners y persistencia final
+
+si una intervención sanea Orders, Documents, Tasks o Appointments, no alcanza con migrate:fresh --seed: debe validarse runtime web real de los flujos principales
+
+si una respuesta entrega bloques documentales para Project Lab, debe usar DOC_SLUG exacto y nombre exacto de sección existente
+
+si una sección no existe, Project Lab debe devolver ERROR y no debe insistirse con nombres aproximados
+
+la consola unificada de Project Lab es la salida operativa principal para compartir resultados, errores y auditorías durante el trabajo técnico
+
+Aclaración vigente sobre colas:
+
+en local, Project Lab puede procesar cola pendiente como acción externa al producto para validar eventos queued y persistencia final.
+
+Esto no forma parte del SaaS productivo.
+
+En producción debe definirse worker persistente supervisado por infraestructura.
+
+Regla:
+
+no implementar queue:work como botón, menú ni acción dentro del producto SaaS.
+
+Regla crítica de formatos:
+
+FILE identifica archivo completo
+
+TARGET identifica operación parcial
+
+No deben mezclarse.
+
+Formatos correctos principales:
+
+PHP completo:
+
+<?php
+
+// FILE: app/Support/Ejemplo.php | V1
+
+Blade completo:
+
+{{-- FILE: resources/views/ejemplo.blade.php | V1 --}}
+
+CSS completo:
+
+/* FILE: public/css/modules/ejemplo.css | V1 */
+
+JS completo:
+
+// FILE: public/js/ejemplo.js | V1
+
+Reemplazar método PHP:
+
+// TARGET: app/Support/Ejemplo.php :: metodoExistente
+
+Agregar método PHP:
+
+// TARGET: app/Support/Ejemplo.php ++ metodoNuevo
+
+No usar formatos mixtos o ambiguos como:
+
+// FILE: ruta :: metodo
+<?php // FILE: ruta | V1
+
+<DOC_REF slug="guia_project_lab_proyecto_app_base">Guía operativa de Project Lab</DOC_REF>
 
 <<END SECTION>>
 

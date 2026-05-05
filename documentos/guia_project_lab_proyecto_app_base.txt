@@ -10,7 +10,7 @@ GESTIÓN: Guía rectora para uso local de Project Lab como herramienta operativa
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 OBJETIVO
 
@@ -126,6 +126,43 @@ ausencia de estados inválidos
 ausencia de residuos legacy reales mediante grep preciso cuando corresponda
 validación de ciclo operativo testigo cuando exista
 
+Cuando se valide un saneamiento estructural de Orders, Documents, Tasks o Appointments, no alcanza con que las migraciones y seeders pasen.
+
+Debe validarse además:
+
+contrato real de campos obligatorios y nullable
+requests alineadas con el contrato vigente
+controllers sin required indebido sobre vínculos opcionales
+seeders poblando snapshots propios cuando no pasan por controllers
+relaciones persistentes ubicadas en el módulo dueño
+ausencia de campos legacy persistentes cuando la doctrina los eliminó
+vistas, prints y surfaces representando snapshots propios cuando corresponda
+prueba runtime web real de los flujos principales
+
+Caso vigente:
+
+Orders puede crearse sin party_id usando counterparty_name.
+
+Documents puede crearse desde Orders autónomas usando counterparty_name.
+
+Tasks se vincula con Orders desde tasks.order_id.
+
+Orders no conserva task_id persistente.
+
+Caso vigente adicional:
+
+Order → Document debe validarse en runtime web real.
+
+No alcanza con migrate:fresh --seed.
+
+Debe verificarse que el flujo:
+
+autorice documents.create
+copie contexto válido de contraparte
+copie ítems cuando corresponda
+recalcule totales desde document_items
+no dependa de métodos inexistentes
+
 Aclaración vigente para colas:
 
 en local, Project Lab puede ofrecer una acción externa al producto para procesar cola pendiente.
@@ -145,7 +182,7 @@ No debe ejecutarse un prompt de chat como si fuera comando.
 <<END SECTION>>
 
 <<SECTION: PRINCIPIO RECTOR>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 PRINCIPIO RECTOR
 
@@ -198,6 +235,54 @@ Regla:
 si el seeder habla un contrato viejo, debe corregirse el seeder.
 
 No debe agregarse compatibilidad silenciosa para que el contrato viejo siga pasando.
+
+Regla adicional para vínculos opcionales:
+
+no asumir que un campo `*_id` es obligatorio por existir.
+
+Debe validarse:
+
+esquema real
+request real
+controller real
+modelo real
+contrato doctrinal vigente
+uso en vistas
+uso en seeders
+uso en surfaces
+uso en prints
+
+Caso vigente:
+
+party_id en Orders y Documents es vínculo gestionado opcional.
+
+No debe reintroducirse como required sin evidencia y decisión doctrinal nueva.
+
+Regla adicional para snapshots:
+
+no asumir que una relación nula implica ausencia de dato operativo.
+
+Si el módulo posee snapshot propio, debe revisarse el método de presentación correspondiente.
+
+Caso vigente:
+
+counterparty_name en Orders y Documents.
+
+displayCounterpartyName() como lectura de salida cuando corresponda.
+
+Regla adicional para relaciones externas:
+
+no asumir que una relación con Orders debe vivir dentro de Orders.
+
+Debe validarse qué módulo conserva ownership del origen, planificación o seguimiento.
+
+Casos vigentes:
+
+tasks.order_id
+
+appointments.order_id
+
+Orders no debe conservar task_id ni appointment_id como núcleo persistente.
 
 Regla adicional para Servicios y Mantenimiento:
 
@@ -1523,7 +1608,7 @@ para documento nuevo, debe usarse el mecanismo compatible vigente para crear el 
 <<END SECTION>>
 
 <<SECTION: VALIDEZ DE RESPUESTAS DESTINADAS A PROJECT LAB>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 VALIDEZ DE RESPUESTAS DESTINADAS A PROJECT LAB
 
@@ -1561,7 +1646,39 @@ Regla crítica:
 
 una respuesta no debe obligar al usuario a corregir el formato para que la herramienta lo acepte.
 
-El contenido entregado debe estar listo para copiar y ejecutar, o debe aclararse expresamente que es solo contenido conceptual y no bloque aplicable.
+Regla crítica para documentación:
+
+antes de entregar bloques documentales destinados a Project Lab, debe verificarse que:
+
+DOC_SLUG sea exacto
+
+el nombre de sección exista exactamente si se trata de reemplazo
+
+SECTION_VERSION corresponda al incremento correcto
+
+el bloque sea completo
+
+no se usen nombres conceptuales o aproximados
+
+no se creen secciones nuevas salvo propuesta explícita con ancla existente
+
+Si el nombre exacto de sección no está confirmado, no debe generarse el bloque final.
+
+Debe solicitarse el listado de secciones o auditarse el documento vigente.
+
+Regla:
+
+una sección con buen contenido pero nombre incorrecto es inválida para Project Lab.
+
+No debe considerarse entrega útil.
+
+Regla adicional:
+
+los errores de aplicación devueltos por Project Lab deben incorporarse al análisis posterior.
+
+Si una sección no se encontró, no debe insistirse con el mismo nombre ni normalizarlo por intuición.
+
+Debe buscarse el tag real vigente del documento y entregar nuevamente el bloque con nombre exacto.
 
 <<END SECTION>>
 

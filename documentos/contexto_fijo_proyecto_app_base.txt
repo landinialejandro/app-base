@@ -310,7 +310,7 @@ el tenant activo organiza tanto operación como gobierno interno de la empresa a
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00031
+SECTION_VERSION: 00032
 
 CAPAS FUNCIONALES DEL SISTEMA
 
@@ -418,31 +418,27 @@ Lectura:
 
 subcapa contextual interna
 
-sin CRUD propio
+no es módulo nuevo
 
-sin navegación propia
+no tiene CRUD
 
-sin dashboard general
+no tiene navegación propia
 
-sin ModuleCatalog propio
+no tiene ModuleCatalog propio
 
-sin rutas propias
+no entra al dashboard general
 
-Reglas generales:
+Regla adicional consolidada:
 
-tenant es contexto, no módulo funcional
+Orders debe poder vivir como módulo autónomo.
 
-tenant/profile es frente de gobierno interno, no módulo funcional ordinario
+Esto significa que su existencia funcional no depende obligatoriamente de Parties, Tasks, Appointments, Documents ni Assets.
 
-no toda capacidad tenant-scoped debe incorporarse como módulo funcional ordinario
+Los vínculos con esos módulos deben leerse como relaciones opcionales de contexto, enriquecimiento, origen, planificación, seguimiento, formalización o evidencia, según corresponda.
 
-las capacidades transversales pueden registrar, acompañar o sostener actividad operativa sin absorber ownership funcional
+Regla:
 
-las capas productivas satélite pueden orquestar módulos existentes sin duplicarlos
-
-las subcapas contextuales internas pueden ampliar lectura dentro de un módulo host sin convertirse en módulo nuevo
-
-las reglas de autorización pertenecen al documento especializado de seguridad
+un módulo puede vincularse con otros sin perder autonomía ni absorber ownership ajeno.
 
 <<END SECTION>>
 
@@ -969,7 +965,7 @@ Por lo tanto, esa necesidad no debe reinterpretarse como expansión de users ni 
 <<END SECTION>>
 
 <<SECTION: MÓDULOS FUNCIONALES ACTUALES>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00021
 
 MÓDULOS FUNCIONALES ACTUALES
 
@@ -1005,9 +1001,21 @@ inventory debe leerse como frente funcional de saldo, historial y operación, co
 
 orders es módulo operativo fuerte con estados que afectan operabilidad general.
 
+orders debe conservar autonomía funcional.
+
+orders puede operar sin contacto gestionado obligatorio cuando conserve dato propio suficiente de contraparte.
+
+orders no debe absorber relaciones de origen, planificación o seguimiento que pertenecen a otros módulos.
+
 documents puede hospedar capacidades publicadas por otros módulos sin absorber su lógica.
 
+documents puede funcionar como formalización derivada de orders sin depender rígidamente de parties.
+
 projects puede actuar como agrupador funcional de tasks.
+
+tasks conserva identidad propia como módulo de pendientes, seguimiento y acciones auxiliares.
+
+appointments conserva identidad propia como módulo de agenda y planificación temporal.
 
 products conserva el rol de catálogo maestro del producto y puede alojar subcapas contextuales internas cuando amplíen la lectura operativa del producto sin crear módulo nuevo.
 
@@ -1032,7 +1040,7 @@ La convergencia debe tender hacia patrones maduros ya validados, no hacia soluci
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES
 
@@ -1062,6 +1070,32 @@ ningún módulo debe expandirse invadiendo el núcleo funcional de otro.
 
 La integración correcta ocurre por contratos publicados y consumo explícito.
 
+Lectura adicional para Orders:
+
+Orders funciona como núcleo operativo autónomo.
+
+Puede recibir contexto desde tasks o appointments, vincularse opcionalmente con parties o assets, derivar documents y consumir capacidades de inventory cuando corresponda.
+
+Esa integración no convierte a Orders en dueño de Tasks, Appointments, Parties, Assets, Documents ni Inventory.
+
+Regla:
+
+Orders no debe almacenar como núcleo propio relaciones persistentes que expresan origen, planificación o seguimiento externo.
+
+Tasks y Appointments pueden vincularse a Orders desde su propio ownership.
+
+Orders conserva su lifecycle base y su identidad operativa.
+
+Lectura adicional para Documents:
+
+Documents formaliza, comunica o registra documentalmente operaciones estructuradas.
+
+Puede derivarse desde Orders.
+
+Puede conservar dato propio de contraparte aunque el vínculo gestionado con Parties sea opcional.
+
+Documents no reemplaza Orders ni absorbe la operación técnica o material.
+
 Lectura adicional para Products:
 
 Products funciona como catálogo maestro del producto.
@@ -1082,6 +1116,8 @@ Orders no debe absorber Inventory.
 
 Orders no debe absorber Documents.
 
+Orders no debe absorber Tasks ni Appointments.
+
 Attachments no debe absorber lógica técnica de mantenimiento.
 
 OperationalActivity no debe convertirse en timeline específico por sí mismo.
@@ -1096,7 +1132,7 @@ los módulos actuales deben conservar ownership propio aun cuando participen en 
 
 
 <<SECTION: RELACIONES MACRO DEL ECOSISTEMA>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00020
 
 RELACIONES MACRO DEL ECOSISTEMA
 
@@ -1104,9 +1140,9 @@ Las siguientes relaciones expresan la lectura conceptual prioritaria del ecosist
 
 projects agrupa tasks
 
-tasks puede originar operación relacionada con orders
+tasks puede relacionarse con orders desde su propio ownership
 
-appointments puede originar operación relacionada con orders
+appointments puede relacionarse con orders desde su propio ownership
 
 assets aporta contexto transversal
 
@@ -1132,7 +1168,7 @@ parties como base relacional amplia
 
 products como catálogo maestro
 
-orders como núcleo operativo
+orders como núcleo operativo autónomo
 
 orders + líneas + inventory como frente de ejecución
 
@@ -1141,6 +1177,10 @@ documents como prolongación documental
 inventory como frente operativo con agrupación contextual y movimientos unitarios
 
 projects como agrupador operativo de tasks
+
+tasks como módulo propio de pendientes, seguimiento y acciones auxiliares que puede vincularse con orders
+
+appointments como módulo propio de planificación temporal que puede vincularse con orders
 
 OperationalActivity como capacidad transversal de trazabilidad operativa
 
@@ -1156,6 +1196,14 @@ OperationalActivity persiste actividad operativa transversal.
 
 OperationalActivity no reemplaza relaciones funcionales propias de los módulos.
 
+Orders puede vincularse opcionalmente con Parties, Assets, Tasks, Appointments y Documents sin que esos vínculos se conviertan en dependencias obligatorias de existencia.
+
+Tasks y Appointments pueden asociarse a Orders desde su propio lado de la relación.
+
+Orders no debe absorber como núcleo propio las relaciones que expresan origen, planificación o seguimiento.
+
+Documents puede derivarse desde Orders y conservar su identidad documental propia.
+
 Cuando exista lectura contextual ampliada de actividad, la frontera debe ser declarada por el módulo dueño y no inferida por OperationalActivity.
 
 Estas relaciones describen arquitectura general.
@@ -1165,7 +1213,7 @@ No reemplazan detalle de navegación, seguridad, UI ni implementación.
 <<END SECTION>>
 
 <<SECTION: MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO
 
@@ -1182,6 +1230,8 @@ distinguir módulos ordinarios de capacidades transversales
 distinguir módulos ordinarios de capas productivas satélite
 distinguir módulos ordinarios de subcapas contextuales internas
 distinguir automatización asistida de ejecución crítica
+distinguir dato propio necesario para operar de vínculo opcional de enriquecimiento
+distinguir relación de origen, planificación o seguimiento de dependencia estructural del módulo receptor
 
 Reglas:
 
@@ -1207,9 +1257,23 @@ las subcapas contextuales internas deben consumir ownership de módulos relacion
 
 la IA futura debe apoyarse en datos estructurados, reglas explícitas y documentación consistente
 
+los vínculos opcionales entre módulos no deben transformarse automáticamente en dependencias obligatorias
+
+los campos o relaciones `*_id` deben interpretarse según contrato funcional real y no por reflejo técnico
+
+cuando un módulo necesite conservar dato propio aunque exista vínculo opcional con otro módulo, debe sostener una lectura autónoma del registro
+
 Caso vigente:
 
 ProductOperationalSummary se implementa como subcapa contextual de Products.
+
+Caso vigente adicional:
+
+Orders conserva autonomía operativa y puede relacionarse opcionalmente con otros módulos sin absorber su ownership.
+
+Tasks y Appointments pueden vincularse a Orders desde su propio contrato.
+
+Documents puede derivarse desde Orders y conservar su propia identidad documental.
 
 Regla:
 

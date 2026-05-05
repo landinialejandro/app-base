@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -61,6 +61,9 @@ documents → document_items
 inventory_operations → inventory_movements
 parties → party_roles
 projects → tasks
+tasks → orders mediante tasks.order_id cuando exista vínculo operativo
+appointments → orders mediante appointments.order_id cuando exista vínculo operativo
+orders → documents mediante documents.order_id cuando exista derivación documental
 
 Relaciones transversales relevantes:
 
@@ -148,6 +151,46 @@ Regla:
 party_roles no se convierte por eso en módulo autónomo ni en navegación propia.
 
 Sigue siendo entidad hija o complementaria de parties.
+
+Aclaración operativa de Orders:
+
+Orders debe leerse como módulo autónomo.
+
+Puede vincularse opcionalmente con Parties, Assets, Tasks, Appointments y Documents sin que esos vínculos sean condición obligatoria de existencia.
+
+party_id en Orders representa vínculo gestionado opcional con Parties.
+
+counterparty_name representa snapshot textual propio de la orden.
+
+asset_id representa vínculo opcional con Assets.
+
+La relación persistente con Tasks no vive en orders.task_id.
+
+La relación se resuelve desde Tasks mediante tasks.order_id.
+
+La relación persistente con Appointments no vive en orders.appointment_id.
+
+La relación se resuelve desde Appointments mediante appointments.order_id.
+
+Aclaración operativa de Tasks:
+
+Tasks conserva identidad propia como módulo de pendientes, seguimiento y acciones auxiliares.
+
+Puede vincularse opcionalmente con Orders mediante tasks.order_id.
+
+Una Order puede tener múltiples Tasks asociadas.
+
+Aclaración operativa de Documents:
+
+Documents conserva identidad documental propia.
+
+Puede derivarse desde Orders mediante documents.order_id.
+
+party_id en Documents representa vínculo gestionado opcional con Parties.
+
+counterparty_name representa snapshot textual propio del documento.
+
+Documents puede existir o derivarse desde Orders sin depender rígidamente de una Party vinculada.
 
 Aclaración operativa de OperationalActivity:
 
@@ -267,6 +310,8 @@ los criterios contextuales especiales no son inferidos por OperationalActivity
 los criterios contextuales especiales son definidos por el módulo dueño
 
 Task sigue siendo entidad y módulo propio aunque su actividad pueda formar parte del dataset visible de Project cuando Projects así lo define
+
+Task sigue siendo entidad y módulo propio aunque pueda vincularse con Orders mediante tasks.order_id
 
 User sigue siendo identidad global aunque su actividad pueda leerse contextualmente desde una Party employee con membership activa vinculada
 
@@ -514,7 +559,7 @@ Por esta razón, no debe tratarse como una entidad tenant-scoped pura del negoci
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 ENTIDADES DEL NEGOCIO
 
@@ -556,6 +601,66 @@ party_roles.role tiene incidencia operativa dentro del contrato de parties.
 Puede utilizarse para segmentar visibilidad y acciones de parties mediante allowed_party_roles.
 
 Esto no cambia su naturaleza de entidad hija o complementaria de parties.
+
+Aclaración vigente sobre Orders:
+
+orders es entidad operativa autónoma del tenant.
+
+Puede existir sin Party vinculada cuando conserve contraparte textual propia.
+
+Campos conceptuales relevantes:
+
+party_id nullable como vínculo gestionado opcional con Parties
+counterparty_name como snapshot textual propio de contraparte
+asset_id nullable como vínculo opcional con Assets
+lifecycle base propio
+order_items como entidad hija natural
+
+Regla:
+
+orders no debe contener task_id como relación persistente de su núcleo.
+
+La relación persistente con Tasks se resuelve desde tasks.order_id.
+
+Regla adicional:
+
+orders no debe contener appointment_id como relación persistente de su núcleo.
+
+La relación persistente con Appointments se resuelve desde appointments.order_id.
+
+Aclaración vigente sobre Tasks:
+
+tasks es entidad operativa propia del tenant.
+
+Puede actuar como pendiente, seguimiento, acción auxiliar o tarea derivada.
+
+Puede vincularse opcionalmente con Orders mediante:
+
+order_id nullable
+
+Regla:
+
+una Order puede tener múltiples Tasks asociadas.
+
+Tasks conserva ownership de pendientes y seguimiento.
+
+Aclaración vigente sobre Documents:
+
+documents es entidad operativa documental propia del tenant.
+
+Puede formalizar o prolongar operaciones derivadas de Orders u otros contextos válidos.
+
+Campos conceptuales relevantes:
+
+party_id nullable como vínculo gestionado opcional con Parties
+counterparty_name como snapshot textual propio de contraparte
+order_id nullable como vínculo de derivación desde Orders
+asset_id nullable como vínculo opcional con Assets
+document_items como entidad hija natural
+
+Regla:
+
+Documents puede derivarse desde Orders autónomas sin depender rígidamente de party_id.
 
 Aclaración vigente sobre OperationalActivity:
 
@@ -1757,7 +1862,7 @@ al reabrirse la order a approved, vuelven a regir las reglas propias de la líne
 <<END SECTION>>
 
 <<SECTION: DOCUMENTS>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 DOCUMENTS
 
@@ -1768,6 +1873,16 @@ Puede vincularse con parties, assets, orders u otros contextos válidos según e
 Entidad hija natural:
 
 document_items
+
+Campos conceptuales relevantes:
+
+party_id nullable como vínculo gestionado opcional con Parties
+
+counterparty_name como snapshot textual propio de contraparte
+
+order_id nullable como vínculo de derivación desde Orders cuando corresponda
+
+asset_id nullable como vínculo opcional con Assets
 
 Estados base persistidos vigentes:
 
@@ -1788,6 +1903,22 @@ cancelled = terminal
 Documents converge doctrinalmente hacia la gramática madura de Orders cuando la semántica coincide, sin perder identidad documental propia.
 
 Las líneas documentales pueden actuar como anclaje de trazabilidad material a través de inventory_movements sin transferir ownership funcional a inventory.
+
+Reglas:
+
+Documents conserva ownership documental.
+
+Documents puede derivarse desde Orders mediante documents.order_id.
+
+Documents puede operar con contraparte textual propia sin depender rígidamente de Party vinculada.
+
+party_id no es condición estructural obligatoria de existencia cuando el registro conserva counterparty_name.
+
+counterparty_name no reemplaza Party ni autorización.
+
+Order aporta contexto operativo cuando existe derivación.
+
+Documents conserva sus propios ítems, totales, lifecycle y salida documental.
 
 <<END SECTION>>
 
@@ -1889,7 +2020,7 @@ Debe resolverse a partir de un catálogo cerrado de rubros y servir como context
 <<END SECTION>>
 
 <<SECTION: FLUJOS PRINCIPALES DEL SISTEMA>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 FLUJOS PRINCIPALES DEL SISTEMA
 
@@ -1903,11 +2034,15 @@ tenants
 
 FLUJO OPERATIVO BASE
 
-parties
+parties como vínculo gestionado opcional cuando exista
 ↓
-orders
+orders como núcleo operativo autónomo
 ↓
 order_items
+
+Aclaración:
+
+Orders puede operar sin Party vinculada cuando conserva counterparty_name como dato propio de contraparte.
 
 FLUJO DOCUMENTAL
 
@@ -1917,19 +2052,41 @@ documents
 ↓
 document_items
 
+Aclaración:
+
+Documents puede derivarse desde Orders y conservar counterparty_name propio.
+
+Documents no depende rígidamente de party_id para existir cuando su contrato permite contraparte textual.
+
 FLUJO INTERNO DE TRABAJO
 
 projects
 ↓
 tasks
 ↓
-orders
+orders mediante tasks.order_id cuando corresponda
+
+Aclaración:
+
+Tasks conserva ownership de pendientes y seguimiento.
+
+La relación persistente vive en tasks.order_id.
+
+Orders no conserva task_id como núcleo persistente.
 
 FLUJO DE AGENDA OPERATIVA
 
 appointments
 ↓
-orders
+orders mediante appointments.order_id cuando corresponda
+
+Aclaración:
+
+Appointments conserva ownership de agenda y planificación temporal.
+
+La relación persistente vive en appointments.order_id.
+
+Orders no conserva appointment_id como núcleo persistente.
 
 FLUJO DE ACTIVOS OPERATIVOS
 
@@ -1961,9 +2118,9 @@ tasks y appointments constituyen orígenes funcionales válidos hacia orders den
 
 la transición tasks → orders y appointments → orders expresa derivación operativa hacia un módulo autónomo y no subordinación conceptual del destino
 
-la relación estructural persistida con tasks se resuelve desde orders.task_id
+la relación persistida con tasks se resuelve desde tasks.order_id
 
-la relación operativa real con appointments se resuelve desde appointments.order_id
+la relación persistida con appointments se resuelve desde appointments.order_id
 
 order_items forma parte del flujo operativo base como detalle dependiente de orders
 
@@ -1985,21 +2142,23 @@ order_items y document_items pueden participar como líneas origen de ejecución
 
 Aclaración transversal consolidada:
 
-parties no solo inicia el flujo operativo base hacia orders
+parties no solo inicia el flujo operativo base hacia orders.
 
-también actúa como nodo transversal desde el cual pueden leerse otras relaciones operativas relevantes del ecosistema, por ejemplo assets, appointments y documents, según módulos activos y contrato vigente
+También actúa como nodo transversal desde el cual pueden leerse otras relaciones operativas relevantes del ecosistema, por ejemplo assets, appointments y documents, según módulos activos y contrato vigente.
+
+En Orders y Documents, party_id debe leerse como vínculo gestionado opcional cuando exista.
 
 Aclaración adicional para assets:
 
-assets no solo aporta contexto de datos a otros flujos
+assets no solo aporta contexto de datos a otros flujos.
 
-también puede actuar como punto de navegación reutilizable mediante capacidades oficiales publicadas por el propio módulo
+También puede actuar como punto de navegación reutilizable mediante capacidades oficiales publicadas por el propio módulo.
 
 Aclaración adicional para appointments:
 
-appointments no solo participa en el flujo appointments → orders
+appointments no solo participa en el flujo appointments → orders.
 
-también publica una capacidad reusable que permite ser consumido embebidamente desde assets y parties sin perder identidad modular propia
+También publica una capacidad reusable que permite ser consumido embebidamente desde assets y parties sin perder identidad modular propia.
 
 FLUJO DE ONBOARDING
 

@@ -315,7 +315,7 @@ Su función es dar acceso estructural al ecosistema operativo vigente.
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -325,7 +325,7 @@ Relaciones vigentes destacadas:
 
 orders consume capacidades oficiales de inventory sin absorber su lógica interna
 
-orders puede actuar como host visual para inventory, documents y attachments
+orders puede actuar como host visual para inventory, documents, attachments, tasks y appointments cuando existan relaciones o surfaces válidas
 
 products consume lectura contextual de inventory mediante saldos e historial
 
@@ -333,7 +333,13 @@ documents puede contextualizar trazabilidad de inventory cuando exista vínculo 
 
 documents puede actuar como host visual de acciones oficiales de inventory sobre document_items
 
-appointments, tasks, assets y parties mantienen sus relaciones propias dentro del ecosistema general
+tasks puede crear o vincular orders mediante contexto transitorio de navegación y persistencia real en tasks.order_id
+
+appointments puede crear o vincular orders mediante contexto transitorio de navegación y persistencia real en appointments.order_id
+
+orders puede derivar documents mediante documents.order_id
+
+assets y parties mantienen sus relaciones propias dentro del ecosistema general
 
 tenant/profile actúa como frente de gobierno interno del tenant para usuarios, memberships, roles y permisos
 
@@ -396,6 +402,82 @@ la creación de una cabecera en orders o documents no implica por sí sola que e
 La cabecera nace en draft y puede pasar a pending_approval cuando recibe la primera línea válida.
 
 Este cambio pertenece al flujo natural del recurso y no crea una navegación nueva.
+
+Aclaración vigente para Tasks → Orders:
+
+Tasks puede originar o acompañar una Order.
+
+task_id puede viajar por request como contexto transitorio para crear una Order desde una Task.
+
+La relación persistente no vive en Orders.
+
+La relación persistente vive en Tasks mediante tasks.order_id.
+
+Reglas:
+
+task_id en request no equivale a permiso concedido
+
+task_id en request no debe convertirse automáticamente en campo persistente de Orders
+
+Tasks conserva ownership de pendientes y seguimiento
+
+Orders conserva ownership de la intervención operativa
+
+una Order puede tener múltiples Tasks asociadas
+
+Aclaración vigente para Appointments → Orders:
+
+Appointments puede originar o acompañar una Order.
+
+appointment_id puede viajar por request como contexto transitorio para crear una Order desde un Appointment.
+
+La relación persistente no vive en Orders.
+
+La relación persistente vive en Appointments mediante appointments.order_id.
+
+Reglas:
+
+appointment_id en request no equivale a permiso concedido
+
+appointment_id en request no debe convertirse automáticamente en campo persistente de Orders
+
+Appointments conserva ownership de agenda y planificación temporal
+
+Orders conserva ownership de la intervención operativa
+
+Aclaración vigente para Orders → Documents:
+
+Orders puede derivar Documents.
+
+La derivación documental debe conservar contexto de origen sin transferir ownership.
+
+Documents conserva ownership documental.
+
+El vínculo persistente se resuelve mediante documents.order_id cuando corresponda.
+
+Reglas:
+
+Order aporta contexto operativo
+
+Document conserva sus propios ítems, totales, lifecycle y contraparte
+
+la derivación no crea navegación nueva de Orders
+
+la derivación no convierte Documents en entidad hija estricta sin identidad propia
+
+Aclaración vigente para contraparte textual:
+
+Orders y Documents pueden mostrar y transportar contraparte textual propia mediante counterparty_name.
+
+party_id debe leerse como vínculo gestionado opcional.
+
+Reglas:
+
+la ausencia de party_id no debe romper navegación ni derivación si existe contraparte textual propia
+
+los enlaces hacia Parties solo deben renderizarse cuando exista Party vinculada y módulo/permiso efectivo
+
+si no existe Party vinculada, la UI debe mostrar la contraparte como texto propio del registro
 
 Aclaración vigente para membership → party:
 
@@ -558,7 +640,7 @@ Debe mostrar solo la información necesaria para la intervención y conservar na
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00022
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -571,6 +653,8 @@ el módulo invitado conserva su lógica y semántica
 las acciones del invitado no se reinterpretan en el host
 la navegación derivada debe mantener contexto cuando corresponda
 las relaciones compactas y las relaciones fuertes no deben mezclarse sin criterio
+los snapshots propios deben representarse como dato del host cuando no exista vínculo gestionado
+los vínculos opcionales no deben mostrarse como obligatorios por la UI embebida
 
 Criterios de uso:
 
@@ -585,11 +669,21 @@ inventory puede operar por línea dentro del host sin perder identidad modular
 
 documents y attachments pueden consumirse como capacidades invitadas
 
+tasks y appointments pueden aparecer como relaciones asociadas cuando exista vínculo desde su propio ownership
+
+party_id debe mostrarse como contacto gestionado solo cuando exista Party vinculada
+
+counterparty_name debe permitir mostrar contraparte textual propia cuando no exista Party vinculada
+
 Caso vigente en documents.show:
 
 inventory puede operar por línea documental dentro del host sin perder identidad modular
 
 Las acciones por fila pertenecen a inventory y documents conserva la tabla documental como superficie anfitriona
+
+party_id debe mostrarse como contacto gestionado solo cuando exista Party vinculada
+
+counterparty_name debe permitir mostrar contraparte textual propia cuando no exista Party vinculada
 
 Caso vigente en parties.show:
 
@@ -620,99 +714,35 @@ mantener el ownership funcional en el módulo oferente
 
 No se abre navegación nueva para party_roles.
 
-party_roles sigue siendo entidad hija o complementaria de parties y no módulo navegable propio.
+Caso vigente en products.show:
 
-Aclaración vigente para actividad en show pages:
+ProductOperationalSummary se integra como summary_items dentro del show-summary del producto.
 
-la tab Actividad puede publicarse como lectura contextual heredada cuando el host ya autorizó el registro actual.
+No crea tab propia.
 
-No debe leer actividad desde campos actuales ni inferir historia desde created_by, updated_by, assigned_user_id o party_id.
+No crea card local aislada.
 
-Debe consumir OperationalActivity persistido y autorizado.
+No crea navegación nueva.
 
-La lectura contextual se resuelve mediante:
+Las tabs existentes como Movimientos, Actividad y Adjuntos conservan su identidad.
 
-OperationalActivityContextReader
-OperationalActivitySurfaceService
-TenantSurfaceRegistry
-ModuleSurfaceRegistry
-x-host-tabs
+Caso vigente en appointments.show:
 
-Hosts validados:
+appointments.show puede consumir relaciones compactas publicadas por otros módulos, como assets, orders y parties.
 
-tasks.show
-parties.show
-projects.show
-assets.show
-products.show
-appointments.show
-orders.show
-documents.show
+Estas relaciones deben leerse como resumen contextual del turno o planificación.
 
-Reglas:
+No deben degradarse a pestañas pesadas por defecto si la relación es puntual.
 
-la tab Actividad contextual no habilita lectura general del tenant
+Caso vigente en tasks.show:
 
-no usa operational_activity.view_any
+tasks.show puede vincularse con orders mediante tasks.order_id.
 
-no convierte OperationalActivity en módulo navegable
-
-no convierte al host en dueño de la lógica de actividad
-
-no debe agregarse manualmente con push local si ya puede publicarse desde registry reusable
-
-La lectura contextual directa se limita al record host autorizado.
-
-La lectura contextual agregada requiere activity_record_set declarado por el módulo dueño.
-
-Caso validado:
-
-projects.show utiliza lectura agregada Project + Tasks mediante ProjectActivityRecordSet.
-
-La lectura contextual especial requiere activity_context declarado por el módulo dueño.
-
-Caso validado:
-
-parties.show utiliza PartyEmployeeActivityContext para Party employee con membership activa vinculada.
+Si una Task origina o acompaña una Order, el recorrido debe preservar contexto sin convertir Tasks en dueño de Orders.
 
 Regla:
 
-la lectura agregada y la lectura contextual especial no deben resolverse con inferencias internas de OperationalActivity.
-
-El módulo dueño define la frontera funcional.
-
-Aclaración vigente para parties.show y employee:
-
-Party común
-→ actividad directa del registro Party
-
-Party employee manual sin user o sin membership activa
-→ actividad directa del registro Party
-
-Party employee con membership activa vinculada
-→ actividad directa de Party y actividad donde el user vinculado sea actor o sujeto
-
-Esta lectura no crea módulo users.
-
-No crea módulo memberships.
-
-No crea módulo party_roles.
-
-No crea navegación propia de OperationalActivity.
-
-Aclaración vigente para tenant/profile:
-
-tenant/profile incorpora tab Actividad como lectura visual general de OperationalActivity.
-
-Esta lectura general se diferencia de la lectura contextual por registro.
-
-Orden visual recomendado para tablas anfitrionas:
-
-primero debe mantenerse el núcleo del recurso actual
-
-las capacidades transversales o invitadas deben conservar jerarquía secundaria
-
-la actividad operativa debe mantener lectura compacta y no competir con el recurso principal
+una show page puede actuar como host visual, pero no debe ocultar qué módulo conserva ownership de cada relación.
 
 <<END SECTION>>
 
@@ -1167,6 +1197,8 @@ paginación en listados con contexto activo
 <<END SECTION>>
 
 <<SECTION: CRITERIOS DE AUDITORÍA FUTURA>>
+SECTION_VERSION: 00001
+
 CRITERIOS DE AUDITORÍA FUTURA
 
 Al auditar breadcrumb, trail o navegación entre módulos, verificar:
@@ -1198,6 +1230,41 @@ bloques visuales
 referencias indirectas
 
 especialmente en flujos desde appointments hacia orders y assets
+
+Verificaciones adicionales para autonomía de Orders y Documents:
+
+si task_id se usa solo como contexto transitorio de request o navegación y no como campo persistente de Orders
+
+si la relación real Task → Order se expresa desde tasks.order_id
+
+si appointment_id se usa solo como contexto transitorio de request o navegación y no como campo persistente de Orders
+
+si la relación real Appointment → Order se expresa desde appointments.order_id
+
+si Order → Document conserva documents.order_id como vínculo de derivación documental
+
+si los recorridos Order → Document funcionan aunque la Order no tenga party_id
+
+si los enlaces hacia Party no se renderizan cuando solo existe contraparte textual
+
+si los listados, show pages, prints y surfaces muestran la contraparte mediante lectura propia cuando exista counterparty_name
+
+si PartyLinked o componentes equivalentes no reemplazan el snapshot textual propio cuando no exista Party vinculada
+
+Pantallas específicas a revisar por snapshots y vínculos opcionales:
+
+orders/partials/table
+documents/partials/table
+orders/show
+documents/show
+surfaces de Orders
+surfaces de Documents
+componentes linked relacionados
+
+Regla:
+
+la auditoría de navegación debe verificar continuidad de uso sin convertir vínculos opcionales en dependencias visuales obligatorias.
+
 <<END SECTION>>
 
 <<SECTION: CRITERIO FINAL>>

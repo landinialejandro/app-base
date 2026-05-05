@@ -68,7 +68,7 @@ SECTION_VERSION: 00003
 
 PREMISA FUNCIONAL
 
-La evolución de servicios y mantenimiento debe llevar app-base hacia una lógica ERP real, sin perder simplicidad, claridad ni automatización.
+La evolución de servicios y mantenimiento debe llevar app-base hacia una lógica ERP real, pero sin perder simplicidad, claridad ni automatización.
 
 La orientación esperada es:
 
@@ -108,17 +108,41 @@ la complejidad debe activarse por necesidad operativa.
 
 No debe imponerse desde el inicio.
 
-El sistema debe servir tanto a operaciones simples, con baja tolerancia a complejidad, como a organizaciones que requieran mayor formalidad, trazabilidad, proveedores, documentos, costos, facturas, pagos e imputaciones.
+El sistema debe poder servir tanto a operaciones simples, con baja tolerancia a complejidad, como a organizaciones que requieran mayor formalidad, trazabilidad, proveedores, documentos, costos, facturas, pagos e imputaciones.
+
+Fase previa obligatoria:
+
+antes de implementar mantenimiento debe cerrarse el saneamiento de base de los módulos que funcionarán como soporte.
+
+Criterios ya consolidados para esa Fase 0:
+
+Orders debe poder vivir como módulo autónomo
+
+Documents debe poder formalizar operaciones sin depender rígidamente de Parties
+
+Tasks debe poder asociarse a Orders desde su propio ownership
+
+Appointments debe poder asociarse a Orders desde su propio ownership
+
+los vínculos opcionales no deben convertirse en dependencias obligatorias
+
+los snapshots textuales propios permiten operar de modo simple antes de formalizar vínculos gestionados
+
+Regla:
+
+la capa de mantenimiento no debe construirse sobre relaciones rígidas o mal ubicadas.
+
+La base correcta es formalidad progresiva:
+
+primero registrar la operación con datos mínimos propios
+
+luego enriquecer con Party, Asset, Tasks, Appointments, Documents, Inventory, Attachments y trazabilidad cuando corresponda
 
 Regla central:
 
 el usuario debe operar con claridad.
 
 El sistema debe sostener la estructura técnica necesaria.
-
-Regla de avance:
-
-no codificar mantenimiento antes de auditar el contrato real de Orders y su relación vigente con Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties y OperationalActivity.
 
 <<END SECTION>>
 
@@ -193,7 +217,7 @@ Assets representa o sostiene la lectura del objeto técnico mantenible cuando co
 
 Inventory gestiona repuestos, insumos, consumos, devoluciones, custodia material y trazabilidad material.
 
-Products funciona como catálogo maestro de artículos, repuestos, insumos, servicios, mano de obra o paquetes cuando el contrato real lo permita.
+Products funciona como catálogo maestro de artículos, repuestos, insumos, servicios, mano de obra o paquetes cuando corresponda.
 
 Appointments organiza planificación temporal, turnos, visitas o programación.
 
@@ -234,17 +258,43 @@ Regla de ownership:
 
 ningún módulo debe absorber la lógica propia de otro.
 
-La integración debe ocurrir mediante capacidades oficiales, relaciones contextuales, surfaces, servicios, contratos explícitos o piezas satélite propias del paquete cuando la lógica pertenezca específicamente al universo de mantenimiento.
+La integración debe ocurrir mediante capacidades oficiales, relaciones contextuales, surfaces, servicios, contratos explícitos o piezas satélite propias del paquete cuando la lógica pertenezca específicamente al universo mantenimiento.
+
+Regla específica sobre Orders:
+
+Orders conserva centralidad operativa, pero no debe absorber relaciones de seguimiento técnico como task_id.
+
+Mantenimiento puede requerir múltiples tareas técnicas, administrativas, de preparación, seguimiento o cierre asociadas a una misma orden.
+
+Esa relación debe sostenerse desde Tasks mediante tasks.order_id.
+
+Regla específica sobre Appointments:
+
+la planificación temporal debe conservar ownership en Appointments.
+
+Appointments puede vincularse con Orders mediante appointments.order_id.
+
+Orders no debe absorber appointment_id como parte de su núcleo.
+
+Regla específica sobre Documents:
+
+Documents debe poder formalizar operaciones derivadas de Orders autónomas.
+
+party_id es vínculo gestionado opcional.
+
+counterparty_name permite conservar contraparte textual propia.
+
+Esto permite iniciar flujos simples de mantenimiento sin obligar a formalizar inmediatamente un contacto gestionado.
+
+Regla específica sobre Parties:
+
+Parties debe enriquecer la operación cuando exista contacto gestionado, proveedor, cliente, tercero o colaborador interno.
+
+No debe ser condición rígida de existencia para toda orden o documento.
 
 Regla:
 
 la capa de Servicios y Mantenimiento puede tener entrada visual, dashboard especializado o experiencia operativa propia sin convertirse automáticamente en un módulo CRUD ordinario ni duplicar Orders.
-
-Regla de auditoría:
-
-la existencia de esta capa no autoriza crear tablas, campos, rutas, estados, pantallas ni permisos por reflejo automático.
-
-Primero debe auditarse qué puede sostenerse con el contrato real vigente de los módulos participantes.
 
 <<END SECTION>>
 
@@ -273,7 +323,7 @@ servicio sobre equipo propio o de cliente
 
 Orders no debe convertirse en dueño de todos los datos técnicos del ecosistema.
 
-Debe registrar la intervención y consumir capacidades oficiales de otros módulos cuando corresponda.
+Debe registrar la intervención y consumir capacidades de otros módulos cuando corresponda.
 
 Responsabilidades esperadas de Orders dentro del paquete:
 
@@ -282,11 +332,41 @@ vincular la operación con un activo cuando corresponda
 registrar origen de la orden
 registrar diagnóstico, ejecución y resultado
 organizar líneas operativas
-consumir Inventory por línea para repuestos e insumos
+consumir inventory por línea para repuestos e insumos
 vincular documentos derivados
 vincular adjuntos y evidencias
 registrar o exponer actividad operativa contextual
 mantener lifecycle administrativo/base coherente
+
+Regla consolidada sobre autonomía:
+
+Orders debe poder vivir y operar como módulo autónomo.
+
+Esto no implica eliminar vínculos opcionales.
+
+Implica que esos vínculos no deben convertirse en dependencias obligatorias de existencia.
+
+Lectura vigente:
+
+party_id es vínculo gestionado opcional con Parties
+
+counterparty_name es snapshot textual propio de contraparte
+
+asset_id es vínculo opcional con Assets
+
+task_id no pertenece al núcleo persistente de Orders
+
+appointment_id no pertenece al núcleo persistente de Orders
+
+Reglas:
+
+Orders puede crearse sin Party cuando conserva counterparty_name
+
+Orders no debe exigir task_id para existir
+
+Orders no debe exigir appointment_id para existir
+
+Orders no debe absorber seguimiento, planificación ni pendientes como campos propios si esos conceptos pertenecen a otros módulos
 
 Regla consolidada sobre lifecycle:
 
@@ -341,9 +421,9 @@ Regla:
 
 si Orders no está habilitado o el usuario no posee dataset visible, no deben mostrarse métricas transaccionales de compra o venta dentro de ProductOperationalSummary.
 
-Regla final:
+Regla:
 
-Orders conserva centralidad operativa, pero no absorbe la identidad técnica de Assets, la lógica material de Inventory, la formalización de Documents ni la evidencia de Attachments.
+Orders conserva su centralidad operativa, pero no debe absorber la identidad técnica completa de Assets, la lógica material de Inventory, la formalización de Documents, la evidencia de Attachments, la planificación de Appointments ni el seguimiento de Tasks.
 
 <<END SECTION>>
 
@@ -605,19 +685,49 @@ Orders representa la intervención técnica.
 
 Tasks es candidato natural para pendientes y seguimiento.
 
+Appointments es candidato natural para planificación temporal.
+
 Los planes de mantenimiento son una futura pieza satélite para generar o sugerir intervenciones.
 
-Regla:
+Regla consolidada para Tasks:
+
+Tasks puede asociarse a Orders mediante tasks.order_id.
+
+La relación persistente vive en Tasks.
+
+Orders no debe absorber task_id como parte de su núcleo.
+
+Una Order puede tener múltiples Tasks asociadas.
+
+Lectura para mantenimiento:
+
+una orden puede requerir múltiples tareas técnicas, administrativas, de preparación, seguimiento o cierre.
+
+Regla consolidada para Appointments:
+
+Appointments puede asociarse a Orders mediante appointments.order_id.
+
+La relación persistente vive en Appointments.
+
+Orders no debe absorber appointment_id como parte de su núcleo.
+
+Lectura para mantenimiento:
+
+una orden puede estar relacionada con planificación, visita o turno sin que Orders se convierta en dueño de agenda.
+
+Reglas:
+
+task_id puede viajar como contexto transitorio de request o navegación al crear una Order desde una Task
+
+appointment_id puede viajar como contexto transitorio de request o navegación al crear una Order desde un Appointment
+
+ese contexto no equivale a autorización
+
+ese contexto no debe convertirse automáticamente en campo persistente de Orders
 
 no convertir Appointments ni Tasks en órdenes de mantenimiento encubiertas.
 
 Cuando la intervención técnica real deba ejecutarse, el núcleo operativo debe ser Orders.
-
-Regla de auditoría:
-
-no asumir que Appointments o Tasks ya poseen todas las relaciones, orígenes contextuales, estados o automatizaciones necesarias para mantenimiento.
-
-Antes de implementar generación, programación, recordatorios o seguimiento técnico, debe auditarse el contrato real de Appointments, Tasks, sus relaciones con Orders, seguridad, UI, surfaces y runtime.
 
 <<END SECTION>>
 
@@ -670,11 +780,33 @@ Documents es prolongación documental o formalización.
 
 No reemplaza la orden técnica ni el registro operativo del mantenimiento.
 
-Regla de auditoría:
+Regla consolidada sobre autonomía documental:
 
-no asumir que Documents ya cubre todo cierre administrativo ampliado, certificación, informe técnico, documento de proveedor, factura, pago o comprobante asociado.
+Documents puede operar sin depender rígidamente de Parties.
 
-Antes de implementar estas capacidades, debe auditarse el contrato real de Documents, sus estados, líneas, integración con Inventory, relación con Orders, seguridad, UI, surfaces y runtime.
+Lectura vigente:
+
+party_id es vínculo gestionado opcional con Parties
+
+counterparty_name es snapshot textual propio del documento
+
+order_id es vínculo opcional o derivado hacia Orders cuando corresponda
+
+asset_id es vínculo opcional hacia Assets cuando corresponda
+
+Reglas:
+
+Documents puede derivarse desde Orders autónomas
+
+Order aporta contexto operativo
+
+Document conserva ownership documental
+
+Document conserva sus propios ítems, totales, lifecycle y contraparte textual
+
+La creación derivada Order → Document debe respetar autorización efectiva sobre Documents.
+
+En servicios y mantenimiento, esta autonomía permite formalizar presupuestos, informes o cierres con contraparte textual inicial, sin exigir que todo cliente, proveedor o tercero esté formalizado como Party desde el primer paso.
 
 <<END SECTION>>
 

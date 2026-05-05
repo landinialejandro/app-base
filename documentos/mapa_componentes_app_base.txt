@@ -38,7 +38,7 @@ Este documento se limita a la capa visual y estructural de componentes.
 
 
 <<SECTION: COMPONENTES BLADE GLOBALES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 COMPONENTES BLADE GLOBALES
 
@@ -150,6 +150,32 @@ no deben promoverse partials modulares a componentes globales si la necesidad no
 Caso vigente:
 
 los partials de ProductOperationalSummary permanecen dentro de resources/views/products/operational-summary/ y no se convierten en componentes globales.
+
+Regla adicional para componentes linked:
+
+un componente global o reusable de vínculo no debe reemplazar el dato textual propio de un módulo cuando el vínculo gestionado no existe.
+
+Caso vigente:
+
+Orders y Documents pueden conservar counterparty_name aunque party_id sea null.
+
+Reglas:
+
+si existe Party vinculada, puede representarse el vínculo gestionado cuando corresponda
+
+si no existe Party vinculada pero existe counterparty_name, debe representarse la contraparte textual propia
+
+si no existe ni vínculo ni snapshot, recién corresponde estado vacío o fallback visual
+
+un componente linked no debe inventar enlace hacia Party
+
+un componente linked no debe ocultar el snapshot propio del registro
+
+Regla:
+
+los componentes globales representan payload recibido.
+
+No deben decidir ni inferir relaciones de dominio.
 
 <<END SECTION>>
 
@@ -388,7 +414,7 @@ No deben mezclarse.
 
 
 <<SECTION: COMPONENTES MODULARES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 COMPONENTES MODULARES
 
@@ -456,11 +482,49 @@ Regla adicional:
 
 no debe crearse un componente global nuevo si la necesidad visual es propia de un módulo y se resuelve correctamente con partials internos.
 
+Regla adicional para snapshots propios:
+
+cuando un módulo posee un snapshot textual propio y un vínculo gestionado opcional, sus componentes, partials y fragmentos visuales deben representar esa distinción.
+
+Lectura vigente:
+
+party_id = vínculo gestionado opcional con Parties
+
+counterparty_name = dato textual propio del registro
+
+Casos vigentes:
+
+Orders
+
+Documents
+
+Reglas:
+
+los partials propios del módulo no deben depender exclusivamente de party->name si existe método de presentación propio
+
+no deben mostrar vacío o guion cuando exista counterparty_name
+
+no deben usar un componente linked de Party como única representación si el vínculo gestionado no existe
+
+no deben hacer parecer obligatorio un vínculo que el contrato del módulo define como opcional
+
+si existe método de presentación propio, el partial debe consumirlo o recibir su resultado ya preparado por la capa correspondiente
+
+Caso vigente:
+
+displayCounterpartyName()
+
+Regla:
+
+el componente o partial representa el payload correcto.
+
+No reconstruye el contrato de dominio.
+
 <<END SECTION>>
 
 
 <<SECTION: COMPONENTES DE SHOW PAGES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 COMPONENTES DE SHOW PAGES
 
@@ -517,35 +581,83 @@ la tab no convierte OperationalActivity en módulo principal del host
 
 la tab no crea navegación principal propia
 
-la tab no debe insertarse manualmente como cierre estable si puede publicarse mediante registry
+la tab no redefine ownership del recurso mostrado
 
-la tab debe mantener key compatible con return_tab
+la tab representa payload ya autorizado y preparado por la capa correspondiente
+
+Aclaración vigente para summary_items:
+
+summary_items permite incorporar lecturas compactas ya preparadas sin abrir navegación nueva.
 
 Caso vigente:
 
-key = activity
+ProductOperationalSummary publica summary_items en products.show mediante ProductSurfaceService.
 
-Aclaración vigente para lectura agregada:
+Ítems vigentes:
 
-si una show page consume actividad agregada, esa agregación debe venir definida por el módulo dueño mediante activity_record_set.
+Compras
+Ventas
+Entradas / salidas
 
-La show page no debe reconstruir por sí misma el conjunto de records.
+Reglas:
 
-Caso validado:
+el summary_item representa payload preparado
 
-projects.show consume actividad agregada Project + Tasks mediante ProjectActivityRecordSet.
+no calcula métricas
 
-Aclaración vigente para lectura contextual especial:
+no consulta permisos
 
-si una show page consume actividad por criterio contextual especial, ese criterio debe venir definido por el módulo dueño mediante activity_context.
+no reconstruye relaciones
 
-La show page no debe reconstruir por sí misma el criterio contextual.
+no reemplaza tabs cuando la relación requiere navegación o detalle amplio
 
-Caso validado:
+Aclaración vigente para contraparte en show pages:
 
-parties.show consume actividad contextual especial de Party employee con membership activa vinculada mediante PartyEmployeeActivityContext.
+Orders y Documents pueden mostrar contraparte propia aunque no exista Party vinculada.
 
-La lectura puede incluir actividad directa de Party y actividad donde el user vinculado sea actor o sujeto.
+Lectura vigente:
+
+Contacto gestionado = Party vinculada mediante party_id
+
+Contraparte = snapshot textual propio mediante counterparty_name
+
+Reglas:
+
+x-show-summary y detail_items deben poder expresar la contraparte textual propia del registro
+
+no debe mostrarse guion o vacío si existe counterparty_name
+
+no debe forzarse PartyLinked si no existe party_id
+
+no debe presentarse party_id como dato obligatorio cuando el contrato permite operar con counterparty_name
+
+si la capa prepara displayCounterpartyName(), la show page debe consumir esa lectura en lugar de reconstruirla
+
+Caso vigente:
+
+displayCounterpartyName()
+
+Aclaración vigente para Orders:
+
+orders.show puede alojar relaciones invitadas como Documents, Attachments, Inventory, Tasks y Appointments cuando existan surfaces, relaciones o capacidades válidas.
+
+Eso no convierte a Orders en dueño de Documents, Attachments, Inventory, Tasks ni Appointments.
+
+Regla:
+
+la show page puede actuar como host visual sin absorber ownership funcional.
+
+Aclaración vigente para Documents:
+
+documents.show puede alojar operaciones o lecturas relacionadas con Inventory cuando exista vínculo documental o línea operativa compatible.
+
+Documents conserva ownership documental.
+
+Inventory conserva ownership material.
+
+Regla final:
+
+los componentes de show pages deben expresar autonomía del host, relaciones invitadas y snapshots propios sin mezclar responsabilidades.
 
 <<END SECTION>>
 

@@ -206,7 +206,7 @@ El usuario debe conservar control, decisión y visibilidad.
 <<END SECTION>>
 
 <<SECTION: IA Y BASE OPERATIVA DEL SISTEMA>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 IA Y BASE OPERATIVA DEL SISTEMA
 
@@ -232,6 +232,9 @@ taxonomías mínimas y no ambiguas
 diferenciación entre lifecycle y estado operativo
 separación entre texto libre y datos explotables
 fronteras claras entre módulos, piezas satélite, subcapas contextuales internas y capacidades transversales
+distinción entre dato propio del registro y vínculo gestionado opcional
+distinción entre contexto transitorio de navegación y relación persistente
+distinción entre origen, planificación, seguimiento, formalización y ownership
 
 Regla:
 
@@ -254,6 +257,10 @@ permisos claros evitan acciones indebidas.
 lenguaje por rubro permite comunicación humana adecuada.
 
 documentación vigente evita reconstruir doctrina desde conversaciones dispersas.
+
+snapshots propios permiten conservar contexto operativo aunque falten vínculos gestionados.
+
+relaciones persistentes bien ubicadas permiten reconstruir procesos sin forzar dependencias incorrectas.
 
 Regla adicional:
 
@@ -293,6 +300,54 @@ ownership de Inventory
 ownership de Parties
 visibilidad contextual de la subcapa
 
+Regla adicional para Orders y Documents:
+
+la existencia de counterparty_name en Orders y Documents mejora la base futura para IA porque conserva contexto textual propio del registro aunque no exista Party vinculada.
+
+Lectura vigente:
+
+party_id = vínculo gestionado opcional
+
+counterparty_name = snapshot textual propio del registro
+
+Reglas:
+
+la IA no debe inferir que no existe contraparte solo porque party_id sea null
+
+la IA no debe tratar counterparty_name como Party gestionada
+
+la IA no debe usar el snapshot como autorización
+
+la IA puede considerar el snapshot como contexto textual autorizado cuando el usuario pueda ver el registro
+
+Regla adicional para Tasks, Appointments y Orders:
+
+la relación persistente hacia Orders debe vivir en el módulo que conserva ownership de origen, planificación o seguimiento.
+
+Casos vigentes:
+
+tasks.order_id
+
+appointments.order_id
+
+Lectura para IA futura:
+
+una Order puede tener múltiples Tasks asociadas
+
+una Order puede estar asociada a planificación temporal mediante Appointments
+
+Orders conserva ownership de la intervención operativa
+
+Tasks conserva ownership de pendientes y seguimiento
+
+Appointments conserva ownership de agenda y planificación
+
+Regla:
+
+la IA no debe reconstruir seguimiento o planificación desde campos inexistentes en Orders.
+
+Debe consumir las relaciones reales del ecosistema.
+
 Regla final:
 
 la base operativa debe preparar al sistema para IA futura sin implementar automatización antes de tener contratos, datos y seguridad suficientes.
@@ -300,7 +355,7 @@ la base operativa debe preparar al sistema para IA futura sin implementar automa
 <<END SECTION>>
 
 <<SECTION: IA Y OWNERSHIP MODULAR>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 IA Y OWNERSHIP MODULAR
 
@@ -345,7 +400,67 @@ Si una acción pertenece a Products, la ejecución final pertenece a Products.
 
 Si una acción pertenece a Parties, la ejecución final pertenece a Parties.
 
+Si una acción pertenece a Tasks, la ejecución final pertenece a Tasks.
+
+Si una acción pertenece a Appointments, la ejecución final pertenece a Appointments.
+
 La IA puede preparar, pero el módulo dueño ejecuta bajo su contrato.
+
+Regla adicional para vínculos opcionales:
+
+la IA no debe interpretar un vínculo opcional como dependencia obligatoria.
+
+Caso vigente:
+
+Orders puede existir sin party_id cuando conserva counterparty_name.
+
+Documents puede existir o derivarse sin party_id cuando conserva counterparty_name.
+
+Reglas:
+
+Party conserva ownership del contacto gestionado
+
+Orders conserva ownership de la orden
+
+Documents conserva ownership del documento
+
+counterparty_name conserva contexto textual propio del registro
+
+el snapshot no transfiere ownership a Parties
+
+Regla adicional para relaciones externas hacia Orders:
+
+la IA debe respetar que seguimiento y planificación pueden vivir fuera de Orders.
+
+Casos vigentes:
+
+Tasks usa tasks.order_id
+
+Appointments usa appointments.order_id
+
+Orders no conserva task_id ni appointment_id como núcleo persistente.
+
+Reglas:
+
+Tasks conserva ownership de pendientes y seguimiento
+
+Appointments conserva ownership de agenda y planificación temporal
+
+Orders conserva ownership de intervención operativa
+
+la IA no debe proponer agregar relaciones persistentes a Orders si la relación pertenece al módulo originante
+
+Regla adicional para derivación documental:
+
+Order → Document es una derivación entre módulos, no una transferencia de ownership.
+
+Lectura:
+
+Orders aporta contexto operativo
+
+Documents formaliza y conserva ownership documental
+
+Documents debe conservar sus propios ítems, totales, lifecycle y contraparte cuando corresponda
 
 Regla adicional para subcapas contextuales:
 
@@ -1269,7 +1384,7 @@ La primera etapa puede ser doctrinal, documental y de preparación estructural.
 <<END SECTION>>
 
 <<SECTION: PRIMERA LÍNEA DE TRABAJO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 PRIMERA LÍNEA DE TRABAJO
 
@@ -1291,24 +1406,58 @@ distinguir sugerencia de acción crítica
 preparar prompts manuales reutilizables
 pensar exportaciones controladas de contexto autorizado
 mantener compatibilidad con presupuesto cero
+consolidar snapshots propios cuando el registro necesite conservar contexto textual
+mantener vínculos opcionales bien diferenciados de datos obligatorios
+ubicar relaciones persistentes en el módulo dueño real
+validar flujos derivados en runtime web real antes de considerarlos base para automatización
 
 Primeros casos posibles sin integración directa:
 
 prompts manuales para resumir auditorías
 prompts manuales para analizar historial técnico
 prompts manuales para preparar documentación
-prompts manuales para revisar consistencia de módulos
-prompts manuales para sugerir estructura de órdenes
-prompts manuales para generar borradores documentales
-prompts manuales para interpretar actividad operativa exportada
+prompts manuales para interpretar actividad operativa
+prompts manuales para detectar inconsistencias entre contratos y vistas
+prompts manuales para preparar cierre documental de sesión
+prompts manuales para revisar Orders, Documents, Tasks y Appointments antes de mantenimiento
 
-Regla:
+Preparación estructural reciente útil para IA futura:
 
-primero claridad.
+Orders conserva counterparty_name como dato propio de contraparte
 
-Después automatización.
+Documents conserva counterparty_name como dato propio de contraparte
 
-Después integración.
+Tasks puede asociarse a Orders mediante tasks.order_id
+
+Appointments puede asociarse a Orders mediante appointments.order_id
+
+Documents puede derivarse desde Orders mediante documents.order_id
+
+Orders no depende rígidamente de Parties para existir
+
+Documents no depende rígidamente de Parties para formalizarse
+
+Lectura esperada:
+
+estos cambios no implementan IA.
+
+Preparan datos y relaciones más claras para que una futura IA pueda leer contexto operativo sin inventar vínculos, depender de pantallas o asumir formalidad inexistente.
+
+Reglas:
+
+no usar IA para completar party_id si solo existe counterparty_name
+
+no usar IA para convertir snapshots en contactos gestionados sin acción humana y autorización
+
+no usar IA para ejecutar derivaciones entre módulos sin pasar por el contrato del módulo receptor
+
+no usar IA para cerrar brechas de modelo con inferencias
+
+no usar IA para proponer parches legacy
+
+Regla final:
+
+la primera línea de trabajo IA sigue siendo documental, estructural y de preparación operativa.
 
 <<END SECTION>>
 

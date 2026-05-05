@@ -255,15 +255,15 @@ Debe diseñarse con presupuesto inicial potencialmente cero, proveedor reemplaza
 <<END SECTION>>
 
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 MÓDULOS PRIORITARIOS A REVISAR
 
 orders
-por su centralidad operativa, necesidad de auditoría fuerte para implementación de Servicios y Mantenimiento, necesidad de preservar lifecycle base, validación reciente de seed demo operativo con ciclo completo y participación en métricas transaccionales de ProductOperationalSummary cuando está habilitado y autorizado
+por su centralidad operativa, necesidad de auditoría fuerte para implementación de Servicios y Mantenimiento, necesidad de preservar lifecycle base, saneamiento reciente de autonomía frente a Parties y Tasks, incorporación de counterparty_name como snapshot propio, eliminación de task_id como vínculo persistente del núcleo, validación runtime de creación sin Party y participación en métricas transaccionales de ProductOperationalSummary cuando está habilitado y autorizado
 
 assets
-por su rol potencial como base del objeto técnico mantenible, historial técnico, documentación técnica, consumos, costos, pendientes y relaciones contextuales de mantenimiento
+por su rol potencial como base del objeto técnico mantenible, historial técnico, documentación técnica, consumos, costos, pendientes y relaciones contextuales de mantenimiento; y por su vínculo opcional con Orders que debe respetar el orden real de migraciones si assets se crea después de orders
 
 inventory
 por cierre de identidad modular autónoma, por mantener InventoryModuleSeeder con movimientos en el estado vigente, sin reconversión completa a simulación operativa agrupada, por futuras necesidades de consumos, custodia, devoluciones, faltantes y operaciones materiales vinculadas a mantenimiento, y por su participación base en ProductOperationalSummary mediante entradas, salidas y movimientos
@@ -272,36 +272,36 @@ products
 por necesidad de auditar si puede representar repuestos, insumos, servicios, mano de obra, paquetes, alternativos y servicios precargados sin asumir clasificaciones no validadas; y por la incorporación inicial de ProductOperationalSummary como subcapa contextual interna que puede requerir revisión futura de permisos persistidos, costos directos operativos y ampliación de métricas
 
 tasks
-por su función como soporte natural de pendientes técnicos, seguimientos, acciones auxiliares, tareas derivadas de checklist, alertas y acciones administrativas derivadas
+por su función como soporte natural de pendientes técnicos, seguimientos, acciones auxiliares, tareas derivadas de checklist, alertas y acciones administrativas derivadas; y por la incorporación de tasks.order_id como vínculo opcional hacia Orders desde su propio ownership, permitiendo múltiples Tasks asociadas a una Order
 
 appointments
-por ser referencia actual de host maduro en show pages y por su posible rol en programación temporal, visitas técnicas, agenda de taller y origen contextual de órdenes
+por ser referencia actual de host maduro en show pages, por su posible rol en programación temporal, visitas técnicas, agenda de taller y origen contextual de órdenes, y por mantener la relación con Orders desde appointments.order_id sin trasladarla al núcleo de Orders
 
 documents
-por consolidación como capacidad embebida oficial, validación reciente de seed demo operativo con estados vigentes y actividad registrada, y por su rol en formalización, servicios externos, compras, informes, certificados y cierres administrativos
+por consolidación como capacidad embebida oficial, validación reciente de seed demo operativo con estados vigentes y actividad registrada, incorporación de counterparty_name como snapshot propio, autonomía frente a Parties, reparación del flujo Order → Document y por su rol en formalización, servicios externos, compras, informes, certificados y cierres administrativos
 
 attachments
 por revisión contractual pendiente bajo nueva doctrina, porque AttachmentDemoSeeder no se simula dentro del frente actual de seeders demo operativos y por su rol en evidencia y documentación técnica del asset
 
 parties
-seguimiento posterior al cierre de reconversión conceptual y de seguridad, especialmente análisis de embebidos de parties.show según party_roles.role, validación reciente de seed demo operativo con actividad de parties y futura relación con proveedores, clientes, terceros, colaboradores internos y servicios externos; además de su participación como proveedor o cliente en lecturas contextuales de ProductOperationalSummary cuando exista relación real
+seguimiento posterior al cierre de reconversión conceptual y de seguridad, especialmente análisis de embebidos de parties.show según party_roles.role, validación reciente de seed demo operativo con actividad de parties y futura relación con proveedores, clientes, terceros, colaboradores internos y servicios externos; además de su participación como proveedor o cliente en lecturas contextuales de ProductOperationalSummary cuando exista relación real y como vínculo gestionado opcional en Orders y Documents
 
 OperationalActivity
 por su rol como base transversal de trazabilidad, lectura contextual, línea de tiempo operativa y posible soporte de lectura para automatizaciones e IA futura sin convertirse en módulo funcional ordinario; y por la regla de no usarlo como fuente principal de métricas cuando existan módulos dueños de datos transaccionales u operativos
 
 capa IA operativa
-por su impacto transversal futuro en datos estructurados, prompts manuales, proveedores reemplazables, seguridad, trazabilidad, supervisión humana y presupuesto cero
+por su impacto transversal futuro en datos estructurados, prompts manuales, proveedores reemplazables, seguridad, trazabilidad, supervisión humana y presupuesto cero; y por la disponibilidad futura de snapshots textuales propios en Orders y Documents como contexto operativo explotable sin depender exclusivamente de relaciones normalizadas
 
 paquete de servicios y mantenimiento
-por ser nueva capa satélite productiva que debe avanzar mediante auditoría fuerte, no por codificación inmediata ni por sobrecarga directa de Orders
+por ser nueva capa satélite productiva que debe avanzar mediante auditoría fuerte, no por codificación inmediata ni por sobrecarga directa de Orders; y porque la Fase 0 de autonomía de Orders, Documents y relación externa de Tasks prepara una base más adecuada para múltiples pendientes, seguimientos y formalizaciones por orden
 
 ProductOperationalSummary
-por ser subcapa contextual interna de Products recientemente implementada, con integración surface-driven, visibilidad contextual propia, dependencia base de Products + Inventory, uso condicional de Orders y exclusión inicial de costos accesorios
+por ser subcapa contextual interna de Products recientemente implementada, con integración surface-driven, visibilidad contextual propia, dependencia base de Products + Inventory, uso condicional de Orders, exclusión inicial de costos accesorios y necesidad de revisar ProductOperationalSummaryService ante cambios de lectura de contraparte en Orders
 
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00022
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -728,6 +728,60 @@ Regla de avance:
 
 la próxima etapa debe iniciar con auditoría fuerte de Orders, no con codificación inmediata.
 
+Cierre operativo reciente de Fase 0 Orders / Documents:
+
+se consolidó la autonomía funcional de Orders.
+
+Orders puede vivir y operar como módulo autónomo.
+
+Esto no implica eliminar vínculos opcionales, sino reinterpretarlos según contrato real.
+
+Cierres alcanzados:
+
+Orders ya no conserva task_id como vínculo persistente de su núcleo
+
+Tasks incorpora order_id nullable como vínculo opcional hacia Orders
+
+una Order puede tener múltiples Tasks asociadas
+
+task_id puede viajar solo como contexto transitorio de request o navegación
+
+Orders conserva party_id como vínculo gestionado opcional
+
+Orders incorpora counterparty_name como snapshot textual propio
+
+Orders puede crearse sin party_id usando counterparty_name
+
+Documents conserva party_id como vínculo gestionado opcional
+
+Documents incorpora counterparty_name como snapshot textual propio
+
+Documents puede derivarse desde Orders autónomas sin depender rígidamente de Party
+
+Order → Document copia contexto de contraparte, ítems y recalcula totales desde document_items
+
+se eliminó la dependencia inválida hacia DocumentTotalsCalculator::apply() en ese flujo
+
+asset_id se mantiene como vínculo opcional, pero no debe ubicarse en create_orders_table si assets se crea después
+
+Validaciones informadas:
+
+php artisan optimize:clear
+
+php -l sobre archivos modificados
+
+php artisan migrate:fresh --seed
+
+validaciones Tinker
+
+prueba runtime web real de creación de Order sin Party
+
+prueba runtime web real de creación de Document desde Order
+
+Regla consolidada:
+
+los vínculos opcionales no deben reintroducirse como dependencias obligatorias desde controllers, requests, seeders, vistas, surfaces o prints.
+
 <<END SECTION>>
 
 <<SECTION: CAPACIDADES REUTILIZABLES A CONSOLIDAR>>
@@ -1152,7 +1206,7 @@ Lo futuro son sus superficies de lectura autorizada.
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 PENDIENTES INMEDIATOS
 
@@ -1175,6 +1229,32 @@ auditar quick actions por transiciones válidas en show pages
 revisar duplicaciones residuales en validaciones de line items
 
 auditar migración futura de Orders hacia esquema group + kind compatible, basada en código real
+
+Pendiente inmediato derivado de Fase 0 Orders / Documents:
+
+revisar salidas visuales que todavía puedan depender exclusivamente de party->name o PartyLinked sin contemplar counterparty_name y displayCounterpartyName()
+
+Pantallas y piezas a revisar:
+
+orders/partials/table
+documents/partials/table
+orders/show
+documents/show
+prints de Orders
+prints de Documents
+surfaces de Orders
+surfaces de Documents
+componentes linked relacionados
+
+Criterio de revisión:
+
+no mostrar guion o vacío cuando exista counterparty_name
+
+no hacer parecer obligatorio party_id cuando el módulo opera con contraparte textual
+
+no reemplazar snapshot propio por vínculo gestionado inexistente
+
+revisar ProductOperationalSummaryService porque usa order->party_id y party_name
 
 Pendiente inmediato derivado de parties:
 
@@ -1221,23 +1301,11 @@ no volver a registrar como pendiente abierto la definición general de autorizac
 
 no tratar la tab Actividad de tenant/profile como surface reutilizable cerrada
 
-no implementar nuevas tabs, menús ni surfaces visuales para OperationalActivity sin contrato de lectura explícito
+Pendiente inmediato de Servicios y Mantenimiento:
 
-no inventar links para records sin ruta canónica segura
+no iniciar implementación de mantenimiento hasta cerrar revisión visual y documental de Fase 0.
 
-Criterio de colas:
-
-en local, Project Lab puede procesar cola manualmente fuera del producto.
-
-En producción debe definirse worker persistente supervisado.
-
-No implementar botón de queue dentro del producto SaaS.
-
-Criterio de limpieza de datos temporales:
-
-no queda como pendiente funcional la limpieza manual de registros temporales de prueba si se ejecuta migrate:fresh --seed.
-
-Al ejecutar migrate:fresh --seed, operational_activities debe quedar en blanco, salvo decisión explícita posterior de sembrar actividad demo.
+La próxima etapa técnica debe continuar con auditoría fuerte de Orders sobre código real, esquema real, rutas reales, UI real, seguridad real y runtime real.
 
 <<END SECTION>>
 

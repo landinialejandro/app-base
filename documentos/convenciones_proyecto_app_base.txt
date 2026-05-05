@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00029
+SECTION_VERSION: 00030
 
 CONVENCIONES GENERALES
 
@@ -133,6 +133,126 @@ Regla de convergencia:
 si dos módulos o hosts equivalentes muestran distinta madurez contractual, no debe degradarse el más avanzado para alinearlo al más viejo.
 
 La convergencia correcta del ecosistema debe tender hacia el patrón más maduro ya validado.
+
+Regla de autonomía modular:
+
+un módulo debe poder distinguir entre:
+
+dato propio necesario para existir
+vínculo gestionado opcional
+contexto transitorio de navegación o request
+relación de origen, planificación o seguimiento
+formalización derivada
+enriquecimiento futuro
+
+Regla:
+
+un campo `*_id` no debe interpretarse automáticamente como dependencia obligatoria.
+
+Su sentido debe definirse por contrato funcional real, esquema vigente, validación backend y doctrina del módulo.
+
+Caso vigente:
+
+party_id en Orders y Documents es vínculo gestionado opcional.
+
+No es condición obligatoria de existencia funcional cuando el registro conserva dato propio suficiente de contraparte.
+
+Convención de snapshots propios:
+
+cuando un módulo puede vincularse opcionalmente a Parties pero necesita conservar dato propio de contraparte, debe utilizar un snapshot textual propio.
+
+Patrón vigente:
+
+party_id = vínculo gestionado opcional
+
+counterparty_name = snapshot textual propio del registro
+
+Casos vigentes:
+
+orders.counterparty_name
+documents.counterparty_name
+
+Reglas:
+
+el snapshot no reemplaza autorización
+
+el snapshot no reemplaza Party
+
+el snapshot no convierte el vínculo gestionado en obligatorio
+
+el snapshot permite que el registro conserve lectura autónoma aunque no exista Party vinculada
+
+los listados, show summaries, prints, surfaces y salidas visuales deben priorizar el método de presentación propio cuando exista
+
+Caso vigente:
+
+displayCounterpartyName()
+
+Regla:
+
+no debe mostrarse únicamente party->name si el módulo posee snapshot propio de contraparte y fallback controlado.
+
+Convención de relaciones externas hacia Orders:
+
+Orders debe conservar autonomía funcional.
+
+Las relaciones de seguimiento, planificación u origen pueden vivir en el módulo que las origina o acompaña.
+
+Casos vigentes:
+
+tasks.order_id
+
+appointments.order_id
+
+Regla:
+
+Orders no debe conservar task_id ni appointment_id como parte de su núcleo persistente.
+
+task_id o appointment_id pueden viajar como contexto transitorio de request o navegación cuando la creación se origine desde Task o Appointment.
+
+Ese contexto no debe convertirse automáticamente en campo persistente del módulo receptor.
+
+Convención de derivación entre módulos:
+
+un módulo puede derivar otro registro sin transferir ownership ni autorización.
+
+Caso vigente:
+
+Order → Document
+
+Reglas:
+
+Orders aporta contexto operativo
+
+Documents conserva ownership documental
+
+la creación derivada debe pasar por autorización efectiva del módulo receptor
+
+el documento derivado debe conservar sus propios datos, líneas, totales, lifecycle y snapshot cuando corresponda
+
+Convención de migraciones:
+
+las migraciones deben respetar el orden real de creación de tablas.
+
+No debe agregarse una foreign key hacia una tabla que todavía no existe en la secuencia real de migraciones.
+
+Caso vigente:
+
+asset_id no debe quedar directamente dentro de create_orders_table si assets se crea después.
+
+Regla:
+
+si el vínculo es válido pero la tabla destino aparece después, debe resolverse en una migración posterior compatible con el orden real.
+
+Convención de seeders:
+
+los seeders que crean registros directamente deben respetar el contrato vigente del módulo.
+
+No deben depender de controllers para completar datos obligatorios o snapshots.
+
+Caso vigente:
+
+si Orders o Documents usan counterparty_name como snapshot propio, los seeders correspondientes deben poblar ese dato cuando generen registros que lo requieran.
 
 Regla de subcapas contextuales internas:
 
@@ -251,6 +371,25 @@ La lectura visible correcta debe priorizar:
 
 Tipo de contacto
 Relación con la empresa
+
+Convención adicional de lenguaje de UI para contraparte:
+
+cuando un módulo distinga entre vínculo gestionado y dato textual propio, la interfaz debe reflejar esa diferencia.
+
+Lectura vigente:
+
+Contacto gestionado = party_id opcional
+
+Contraparte = snapshot textual propio del registro
+
+Casos vigentes:
+
+Orders
+Documents
+
+Regla:
+
+la UI no debe presentar party_id como si fuera obligatorio cuando el contrato del módulo permite operar con contraparte textual propia.
 
 Regla de constraints funcionales:
 
@@ -411,6 +550,8 @@ validar estados contra catálogos vigentes
 emitir eventos operativos cuando la carga demo represente actividad operativa real
 
 procesar cola y validar persistencia si participa OperationalActivity
+
+poblar snapshots propios cuando el módulo los requiera y el seeder no pase por controller
 
 Caso vigente:
 

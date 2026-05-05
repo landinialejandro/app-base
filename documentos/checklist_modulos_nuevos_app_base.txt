@@ -989,7 +989,7 @@ si la IA prepara una acción, la acción final debe volver a pasar por el contra
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -1004,6 +1004,11 @@ respetar ownership del módulo oferente
 definir si emite eventos operativos livianos hacia una capacidad transversal
 definir si consume actividad operativa persistida como lectura y bajo qué autorización
 definir si su lectura contextual de actividad es directa, agregada o contextual especial
+distinguir dato propio necesario para existir de vínculo opcional hacia otro módulo
+distinguir vínculo gestionado opcional de dependencia obligatoria
+distinguir relación de origen, planificación o seguimiento de relación persistente del núcleo receptor
+distinguir contexto transitorio de request o navegación de campo persistente del módulo
+validar si los campos `*_id` son obligatorios por contrato real o solo vínculos opcionales de enriquecimiento
 
 Regla adicional consolidada:
 
@@ -1015,145 +1020,67 @@ icon lógico del módulo
 
 Reglas:
 
-la metadata visual no debe duplicarse en SurfaceService
-no debe hardcodearse en vistas consumidoras
-debe derivarse desde el catálogo modular
+los vínculos entre módulos no deben interpretarse por simetría técnica
 
-Regla adicional:
+una foreign key nullable no debe convertirse por defecto en dependencia obligatoria
 
-las surfaces publicadas no deben duplicar metadata que pueda resolverse desde ModuleCatalog
+un campo requerido en controller o request debe coincidir con el contrato funcional y con el esquema real
 
-la metadata debe viajar enriquecida a través de ModuleSurfaceRegistry
+si el esquema permite null y la doctrina define vínculo opcional, el controller no debe exigirlo como required sin justificación vigente
 
-Regla adicional:
-
-las integraciones surface-driven deben permitir que el host consuma metadata ya resuelta
-
-incluyendo iconografía cuando corresponda
-
-sin reconstrucción local en el host
-
-Caso consolidado:
-
-tabs principales del host pueden renderizar icon mediante metadata de tab enriquecida desde surfaces
-
-Regla:
-
-toda integración debe poder describirse contractualmente y mantenerse reusable sin acoples innecesarios
-
-Regla adicional para entidades base con relaciones hijas:
-
-cuando una entidad base requiere expresar múltiples relaciones con la empresa, esas relaciones deben documentarse y modelarse como dimensión separada del tipo base.
+si un módulo necesita conservar lectura propia aunque el vínculo gestionado no exista, debe evaluarse un snapshot propio
 
 Caso vigente:
 
-parties → party_roles
+Orders y Documents pueden vincularse opcionalmente con Parties mediante party_id y conservar contraparte textual propia mediante counterparty_name.
 
-parties.kind expresa tipo de contacto.
+Caso vigente adicional:
 
-party_roles.role expresa relación con la empresa.
+Tasks puede vincularse con Orders desde tasks.order_id.
 
-Regla adicional para trazabilidad operativa:
+Appointments puede vincularse con Orders desde appointments.order_id.
 
-la integración con OperationalActivity debe realizarse mediante eventos operativos livianos y no mediante acoples directos de controllers consumidores al log.
+Orders no debe conservar task_id ni appointment_id como núcleo persistente.
 
-El módulo dueño emite.
+Caso vigente adicional:
 
-La capacidad transversal registra si corresponde.
+task_id o appointment_id pueden viajar como contexto transitorio para crear una Order desde Task o Appointment, pero no deben persistirse automáticamente en Orders.
 
-El futuro consumidor visual lee actividad persistida bajo autorización definida.
+Caso vigente adicional:
 
-Regla:
+Documents puede derivarse desde Orders mediante order_id, copiar contexto y líneas cuando corresponda, pero conserva contrato documental propio.
 
-no inferir historia operativa desde campos actuales si existe actividad persistida.
+Regla adicional para surfaces modulares:
 
-No reconstruir actividad desde created_by, updated_by, assigned_user_id o relaciones actuales del modelo.
-
-La lectura debe apoyarse en operational_activities persistidas y en readers o presenters correspondientes.
-
-Regla adicional para lectura contextual directa:
-
-si un host consume la tab Actividad sin provider adicional, la lectura debe limitarse al record host autorizado.
-
-Regla adicional para lectura contextual agregada:
-
-si un host necesita mostrar actividad de más de un record, debe declarar activity_record_set desde el módulo dueño.
-
-El conjunto de records debe ser explícito, justificado y tenant-safe.
-
-Caso validado:
-
-projects.show consume actividad de Project + Tasks mediante ProjectActivityRecordSet.
-
-Regla adicional para lectura contextual especial:
-
-si un host necesita mostrar actividad por un criterio contextual que no corresponde a un simple conjunto de records, debe declarar activity_context desde el módulo dueño.
-
-El criterio debe ser explícito, justificado, tenant-safe y no debe habilitar lectura general del tenant.
-
-Caso validado:
-
-parties.show puede usar PartyEmployeeActivityContext cuando la Party tiene relación employee y membership activa vinculada.
-
-La lectura puede incluir:
-
-actividad directa de Party
-actividad donde el user vinculado sea actor_user_id
-actividad donde el user vinculado sea subject_user_id
-
-Reglas:
-
-activity_context no reemplaza activity_record_set
-
-activity_context no debe declararse por comodidad si alcanza lectura directa o activity_record_set
-
-activity_context no debe quedar hardcodeado dentro de OperationalActivity
-
-el módulo dueño define la frontera contextual especial
-
-la capacidad transversal consume el payload compatible
-
-Regla adicional para integraciones visuales de actividad:
-
-una tab Actividad puede necesitar iconografía propia de surface sin convertir OperationalActivity en módulo funcional ordinario.
-
-Si la iconografía es transversal, debe vivir en:
-
-resources/views/components/icons/
+una capacidad interna de un módulo host puede publicarse mediante el surface service del módulo cuando deba integrarse de forma natural al show del host.
 
 Caso vigente:
 
-activity
-changes
+ProductOperationalSummary se publica mediante ProductSurfaceService.
+
+Publica tres summary_items:
+
+Compras
+Ventas
+Entradas / salidas
 
 Regla:
 
-la existencia de íconos para actividad operativa no modifica ownership ni navegación.
+si la infraestructura surface-driven vigente puede publicar la capacidad, no debe dejarse como cierre estable un include directo en el Blade del host.
 
-Solo mejora la lectura visual de una capacidad ya autorizada y publicada.
+Regla adicional para IA:
 
-Regla adicional para surfaces tenant/transversales:
+si una capacidad produce información relevante para IA futura, debe exponerla mediante contratos claros, datos estructurados, catálogos, surfaces o lecturas autorizadas.
 
-si una capacidad transversal publica UI hacia hosts autorizados, debe hacerlo mediante TenantSurfaceRegistry cuando no corresponda ModuleCatalog.
+No debe depender de scraping visual, labels dispersos, texto libre inevitable ni inferencia frágil.
 
-Caso validado:
+La IA no debe ejecutar acciones críticas sin autorización, confirmación humana o regla explícita previamente aprobada.
 
-OperationalActivitySurfaceService publica tab Actividad mediante TenantSurfaceRegistry.
+Regla adicional para estado cerrado:
 
-Regla:
+una orden cerrada no debe quedar operable por interfaces satélite, dashboards, automatizaciones ni IA.
 
-no crear pushes manuales permanentes en cada vista host si existe registry reusable.
-
-Regla final:
-
-toda relación o integración debe preservar la distinción entre:
-
-módulo dueño
-capacidad transversal
-host consumidor
-surface publicada
-payload ya autorizado
-representación visual
+Toda reapertura debe respetar autorización vigente.
 
 <<END SECTION>>
 
@@ -1572,7 +1499,7 @@ la trazabilidad transversal debe reforzar lectura operativa sin convertirse en a
 <<END SECTION>>
 
 <<SECTION: CRITERIO FINAL DE APROBACIÓN>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 CRITERIO FINAL DE APROBACIÓN
 
@@ -1623,69 +1550,58 @@ Criterio adicional para reconversión de constraints funcionales:
 
 una reconversión de permisos no se considera cerrada si la constraint anterior sigue operando como fallback legacy.
 
-Debe validarse que la nueva constraint gobierne el contrato efectivo completo.
+Criterio adicional para autonomía modular:
 
-Caso validado:
+una reconversión estructural no se considera cerrada si el módulo todavía depende en controller, request, vista, seeder, print, surface o servicio de un vínculo que fue definido como opcional por doctrina y esquema.
 
-parties consolidó allowed_party_roles como constraint funcional.
+Validaciones mínimas esperadas:
 
-allowed_party_roles se evalúa contra party_roles.role.
-
-allowed_kinds no aplica a parties.
-
-El cierre incluyó validación de Security::scope(...), create, view, update, delete, UI de permisos, requests, controller, migrate:fresh --seed, Tinker, navegador y grep de residuos legacy.
-
-Criterio adicional para trazabilidad operativa transversal:
-
-una capacidad como OperationalActivity no se considera cerrada solo por existir tabla, modelo, evento o listener.
-
-Debe validarse:
-
-tenant activo real
-usuario real
-membership activa real
-evento emitido después de operación autorizada
-queue ejecutada cuando corresponda
-jobs procesados
-failed_jobs sin errores
-operational_activities persistidas
-sin duplicación de listeners
-sin escritura manual desde UI
-sin bloqueo del flujo principal ante falla de log
-sin asumir autorización de lectura futura
-
-Criterio adicional para lectura visual de OperationalActivity:
-
-la lectura visual no se considera cerrada solo porque la tab renderiza.
-
-Debe validarse:
-
-contrato de autorización correcto
-diferencia entre lectura general y contextual
-diferencia entre lectura directa y agregada
-dataset visible esperado
-surface reusable cuando corresponda
-key compatible con return_tab
-links resueltos por OperationalActivityLinkResolver
-fallback para records sin ruta segura
-sin URLs finales persistidas
-sin navegación principal creada por inercia
-sin duplicación visual innecesaria
-payload de cambios preparado fuera de Blade cuando corresponda
+modelo coherente con el contrato
+migraciones en orden real de dependencias
+requests alineadas con campos nullable y obligatorios reales
+controllers sin required indebido sobre vínculos opcionales
+seeders cargando snapshots propios cuando no pasan por controllers
+vistas usando método de presentación propio cuando exista snapshot
+surfaces sin dependencia exclusiva de relaciones opcionales
+prints mostrando dato propio correcto
+prueba runtime web del flujo principal
+prueba Tinker cuando corresponda
+php -l sobre archivos modificados
+php artisan optimize:clear
+php artisan migrate:fresh --seed cuando el saneamiento sea estructural
 
 Caso vigente:
 
-OperationalActivityChangePresenter prepara change_summary y change_details.
+Orders puede existir sin party_id usando counterparty_name.
 
-operational-activity-table representa resumen compacto y detalle bajo demanda en modal.
+Documents puede derivarse desde Orders autónomas usando counterparty_name propio.
 
-Caso vigente adicional:
+Tasks puede asociarse a Orders desde tasks.order_id.
 
-projects.show usa ProjectActivityRecordSet para lectura agregada Project + Tasks.
+Orders no debe conservar task_id persistente.
 
-Regla:
+Criterio adicional para flujos derivados:
 
-la trazabilidad transversal debe reforzar lectura operativa sin convertirse en autorización, CRUD ordinario ni módulo navegable principal por defecto.
+un flujo derivado no se considera cerrado solo porque crea el registro destino.
+
+Debe validar además:
+
+autorización del módulo receptor
+datos propios del registro destino
+líneas copiadas cuando corresponda
+cálculos o totales reales
+lifecycle inicial correcto
+salida visual posterior
+ausencia de dependencia a métodos inexistentes
+prueba runtime web real
+
+Caso vigente:
+
+Order → Document debe respetar documents.create, copiar contraparte, copiar ítems y recalcular totales desde document_items sin depender de métodos inexistentes.
+
+Regla final:
+
+cerrar una intervención significa que el sistema queda más coherente, autónomo, seguro y alineado con su doctrina vigente.
 
 <<END SECTION>>
 
@@ -1909,7 +1825,7 @@ La restricción efectiva para asignar employee debe vivir en StorePartyRequest, 
 <<END SECTION>>
 
 <<SECTION: SUPERFICIES SECUNDARIAS Y PARTIALS>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 SUPERFICIES SECUNDARIAS Y PARTIALS
 
@@ -1933,6 +1849,8 @@ si una capacidad reusable publicada por un módulo ya reemplaza una implementaci
 
 si la integración depende de slots o zonas del host, las partials consumidoras no deben perder esa compatibilidad real
 
+si el módulo posee snapshots propios, las superficies visuales deben usar el método de presentación correcto y no depender solo del vínculo gestionado
+
 Regla adicional:
 
 no considerar cerrada una integración reusable solo porque funciona en la vista principal del host.
@@ -1945,8 +1863,39 @@ partials de summary
 details
 tabs secundarias
 bloques relacionales derivados
+listados
+prints
+show summaries
+surfaces
+componentes linked o equivalentes
 
 Si una relación puede aparecer en más de una zona del host, cada una debe auditarse según la gramática real de montaje y no por similitud visual aparente.
+
+Validación específica para snapshots:
+
+si un módulo conserva un snapshot propio como counterparty_name, revisar que las superficies visuales no muestren incorrectamente vacío, guion o solo party->name cuando no exista Party vinculada.
+
+Caso vigente:
+
+Orders y Documents deben mostrar contraparte mediante lectura propia compatible con displayCounterpartyName() cuando corresponda.
+
+Revisar especialmente:
+
+orders/partials/table
+documents/partials/table
+orders/show
+documents/show
+surfaces de Orders
+surfaces de Documents
+componentes linked relacionados
+prints de Orders
+prints de Documents
+
+Regla:
+
+la salida visual debe expresar la autonomía real del módulo.
+
+No debe hacer parecer obligatorio un vínculo que doctrinalmente es opcional.
 
 <<END SECTION>>
 

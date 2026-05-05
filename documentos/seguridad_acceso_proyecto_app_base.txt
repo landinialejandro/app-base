@@ -91,7 +91,7 @@ los detalles técnicos pueden evolucionar sin alterar estos principios rectores
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00022
+SECTION_VERSION: 00023
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -141,6 +141,10 @@ la existencia de una pieza satélite no habilita bypass del lifecycle base
 
 la existencia de una subcapa contextual interna no habilita acceso automático a todos los datos del módulo host ni de módulos relacionados
 
+la existencia de un vínculo opcional con otro módulo no habilita operación fuera del contrato del módulo dueño
+
+la existencia o ausencia de party_id no define por sí sola la autorización de Orders o Documents
+
 MÍNIMO ACOPLE
 
 Los módulos consumidores no deben reinterpretar reglas internas de otro módulo.
@@ -150,6 +154,8 @@ Deben consumir capacidades oficiales y someterse al arbitraje central.
 Las capas satélite productivas deben consumir contratos oficiales de módulos dueños y no duplicar autorización.
 
 Las subcapas contextuales internas deben consumir datos autorizados y no absorber permisos ni ownership de módulos relacionados.
+
+Los vínculos gestionados entre módulos no reemplazan la autorización central.
 
 TRAZABILIDAD
 
@@ -252,6 +258,28 @@ La reapertura de una orden cerrada debe ser acción restringida y autorizada seg
 
 Los estados operativos satélite no deben saltarse el lifecycle base ni habilitar operación cuando Orders.status no sea approved.
 
+AUTONOMÍA MODULAR Y SEGURIDAD
+
+La autonomía funcional de un módulo no elimina Security.
+
+Que Orders o Documents puedan existir sin party_id no significa acceso libre ni operación fuera del tenant activo.
+
+Toda creación, lectura, actualización, vinculación o derivación debe pasar por autorización efectiva, tenant activo, usuario autenticado, membership vigente, módulos habilitados y validaciones backend.
+
+Reglas:
+
+party_id no debe utilizarse como condición universal de existencia ni autorización para Orders o Documents
+
+counterparty_name no reemplaza autorización
+
+un vínculo opcional con Party, Asset, Task, Appointment o Document no autoriza acciones por sí mismo
+
+crear un Document desde una Order requiere autorización efectiva sobre Documents
+
+crear una Order desde un contexto de Task o Appointment requiere autorización efectiva sobre Orders
+
+el parámetro contextual de request no equivale a permiso concedido
+
 Reglas síntesis:
 
 la visibilidad en UI no constituye autorización
@@ -273,6 +301,8 @@ la IA no amplía privilegios
 las automatizaciones no reemplazan autorización
 
 los dashboards operativos no habilitan acciones fuera del contrato del módulo dueño
+
+los vínculos opcionales entre módulos no reemplazan Security
 
 <<END SECTION>>
 
@@ -888,109 +918,90 @@ No decide acceso.
 <<END SECTION>>
 
 <<SECTION: CONSTRAINTS FUNCIONALES>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00013
 
 CONSTRAINTS FUNCIONALES
 
-Las constraints complementan scopes y capacidades cuando una regla requiere mayor precisión funcional.
+Las constraints funcionales limitan el alcance real de permisos dentro de un módulo.
 
-Forman parte del contrato persistido efectivo.
+No reemplazan permisos.
 
-Pueden intervenir en create, view, update o delete según la semántica del módulo.
+No reemplazan Security.
+
+No reemplazan validaciones backend.
+
+No reemplazan ownership modular.
+
+Deben operar sobre la dimensión real del dominio.
+
+Regla:
+
+una constraint funcional solo es válida si representa una dimensión vigente del módulo.
+
+No debe mantenerse una constraint legacy si la dimensión conceptual cambió.
+
+Caso vigente:
+
+parties no debe usar allowed_kinds como constraint funcional.
+
+parties debe usar allowed_party_roles porque la relación operativa con la empresa vive en party_roles.role.
+
+Caso vigente:
+
+orders puede conservar allowed_kinds porque kind representa una dimensión funcional propia del módulo Orders.
+
+Regla:
+
+no extrapolar allowed_kinds a módulos donde kind no exprese la dimensión de autorización.
+
+No toda columna kind debe convertirse en constraint de seguridad.
+
+Regla para vínculos opcionales:
+
+la existencia de una relación nullable no debe transformarse en constraint implícita de acceso si el contrato del módulo la define como vínculo opcional.
+
+Caso vigente:
+
+party_id en Orders y Documents no debe operar como condición obligatoria de existencia ni autorización.
+
+La visibilidad y operación de Orders o Documents debe resolverse por Security, permisos, constraints del módulo, tenant activo, estado del recurso y contrato vigente.
+
+Regla para snapshots:
+
+un snapshot textual como counterparty_name no otorga permisos ni reemplaza relaciones gestionadas.
+
+Solo permite conservar dato propio del registro.
+
+Regla para relaciones transitorias:
+
+un parámetro contextual recibido por request, como task_id o appointment_id, no debe interpretarse como constraint de seguridad ni autorización por sí mismo.
+
+Aporta contexto de creación o navegación.
+
+La autorización corresponde al módulo receptor y a la capa central de seguridad.
 
 Reglas:
 
-ignorar constraints equivale a ejecutar un contrato incompleto
+las constraints deben ser explícitas
 
-cuando una acción depende del estado operativo del registro, ese estado forma parte del contrato efectivo
+deben ser evaluables por Security
 
-cuando una acción depende de una relación activa entre entidades, esa relación activa debe evaluarse como condición funcional real
+deben respetar tenant activo
 
-no deben tratarse como bloqueo visual ni validación secundaria
+deben alinearse con la semántica vigente del módulo
 
-Las constraints funcionales no deben usarse como metadata decorativa.
+no deben reconstruirse localmente en controllers
 
-Deben corresponder a la dimensión real del módulo.
+no deben resolverse en Blade
 
-Casos vigentes:
+no deben confundirse con labels visuales
 
-orders:
-allowed_kinds
-
-parties:
-allowed_party_roles
-
-Regla:
-
-allowed_kinds no debe operar para parties.
-
-En parties, la segmentación efectiva se resuelve mediante allowed_party_roles contra party_roles.role.
-
-Valores vigentes para party_roles.role:
-
-customer
-supplier
-employee
-other
-
-allowed_party_roles puede arbitrar, según contrato efectivo:
-
-viewAny
-view
-create
-update
-delete
-
-Regla:
-
-si un usuario no tiene una relación permitida por allowed_party_roles, no debe poder operar sobre parties fuera de esa relación cuando la capability evaluada dependa de esa constraint.
-
-Security::scope(...) debe filtrar el dataset visible de parties mediante party_roles.role cuando corresponda.
-
-Regla adicional para create contextual de parties:
-
-cuando la acción de creación dependa de una relación con la empresa, el contexto funcional debe informar esa relación.
-
-No alcanza con informar únicamente parties.kind.
-
-Caso vigente:
-
-crear una Party employee desde un flujo de membership debe evaluarse como creación de contacto con relación employee.
-
-La autorización debe recibir la relación employee para que allowed_party_roles pueda arbitrar correctamente.
-
-Regla:
-
-kind define tipo de contacto.
-
-party_roles.role define relación con la empresa.
-
-La relación employee no debe inferirse desde kind = person.
-
-Regla:
-
-OperationalActivity no evalúa allowed_party_roles ni allowed_kinds.
-
-La autorización del módulo dueño debe resolverse antes de la mutación y antes de la emisión del evento operativo correspondiente.
-
-Regla adicional para subcapas contextuales internas:
-
-una subcapa contextual no debe crear constraints paralelas si ya existen scopes o constraints oficiales del módulo dueño.
-
-Si la subcapa lee datos de otro módulo, debe respetar el contrato de ese módulo.
-
-Caso vigente:
-
-ProductOperationalSummary puede tener compuerta contextual propia de visibilidad, pero las métricas de Orders deben respetar Security::scope() sobre Orders.
-
-Regla final:
-
-las constraints funcionales deben resolver dimensiones reales del dominio, no conveniencias visuales ni etiquetas circunstanciales.
+no deben confundirse con vínculos opcionales de enriquecimiento
 
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00024
+SECTION_VERSION: 00025
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -1007,6 +1018,7 @@ qué estados alteran operabilidad
 qué constraints funcionales aplica
 qué superficies consume o publica
 qué capacidades transversales registra o consulta
+qué vínculos son obligatorios y cuáles son opcionales
 
 Reglas:
 
@@ -1019,6 +1031,10 @@ el host visual no absorbe seguridad de capacidades invitadas
 los estados operativos forman parte real del contrato
 
 la delegación de seguridad debe ser explícita y consistente
+
+un vínculo opcional con otro módulo no concede autorización por sí mismo
+
+la ausencia de un vínculo opcional no debe bloquear la operación si el contrato del módulo permite autonomía
 
 Las capacidades publicadas, incluyendo row actions, surfaces, subcapas contextuales y lecturas embebidas, pertenecen al módulo oferente o a la capacidad que las define.
 
@@ -1038,6 +1054,54 @@ Regla:
 el contrato modular define fronteras y responsabilidades.
 
 No debe transformarse en detalle funcional completo del módulo.
+
+Aclaración para vínculos opcionales:
+
+un campo `*_id` hacia otro módulo no debe interpretarse automáticamente como dependencia obligatoria ni como permiso delegado.
+
+Debe definirse por contrato si el vínculo es:
+
+dato obligatorio del núcleo
+vínculo gestionado opcional
+contexto de navegación
+origen transitorio
+relación de seguimiento
+relación de planificación
+formalización derivada
+evidencia asociada
+enriquecimiento futuro
+
+Caso vigente:
+
+party_id en Orders y Documents es vínculo gestionado opcional.
+
+Su ausencia no invalida por sí sola la autorización ni la existencia funcional del registro.
+
+Caso vigente adicional:
+
+task_id no pertenece al núcleo persistente de Orders.
+
+Puede existir como contexto transitorio de request o navegación para crear una Order desde una Task, pero la relación persistente vive del lado de Tasks mediante tasks.order_id.
+
+Caso vigente adicional:
+
+Appointments puede vincularse con Orders desde appointments.order_id.
+
+Orders no debe absorber appointment_id como dependencia de su núcleo.
+
+Caso vigente adicional:
+
+Documents puede derivarse desde Orders mediante documents.order_id, pero conserva contrato propio de seguridad documental.
+
+Regla:
+
+la derivación entre módulos exige autorización del módulo receptor.
+
+Crear un Document desde una Order requiere autorización efectiva para documents.create.
+
+Crear una Order desde una Task o Appointment requiere autorización efectiva para orders.create.
+
+El registro origen aporta contexto, no permiso automático.
 
 Aclaración para actividad operativa:
 
@@ -1218,7 +1282,7 @@ OperationalActivity puede publicar lectura contextual, pero no autoriza la opera
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00023
+SECTION_VERSION: 00024
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -1268,11 +1332,31 @@ TenantMembershipRoleController::sync permite sincronizar el conjunto de roles de
 
 ORDERS
 
-Los estados operativos condicionan update y delete.
+Orders conserva contrato propio de seguridad.
 
 La constraint funcional vigente para segmentación operativa de orders es:
 
 allowed_kinds
+
+Reglas:
+
+Orders puede operar como módulo autónomo sin party_id obligatorio
+
+party_id es vínculo gestionado opcional
+
+counterparty_name es dato propio textual de la orden
+
+la ausencia de party_id no implica ausencia de autorización
+
+la presencia de party_id no otorga autorización por sí misma
+
+Orders no debe conservar task_id ni appointment_id como relaciones persistentes de su núcleo
+
+si una Order se crea desde Task o Appointment, esos datos pueden viajar como contexto transitorio de request o navegación
+
+la autorización real corresponde a Orders y a Security
+
+Los estados operativos condicionan update y delete.
 
 Reglas:
 
@@ -1283,6 +1367,22 @@ una orden cancelled no debe permitir operación ordinaria posterior
 una orden closed solo puede volver a operar mediante reapertura autorizada
 
 los estados operativos satélite no deben habilitar operación si Orders.status no lo permite
+
+TASKS Y APPOINTMENTS
+
+Tasks y Appointments conservan contrato propio.
+
+Reglas:
+
+Tasks puede vincularse opcionalmente a Orders desde tasks.order_id
+
+Appointments puede vincularse opcionalmente a Orders desde appointments.order_id
+
+esa relación no convierte a Tasks ni Appointments en dueños de Orders
+
+esa relación no convierte a Orders en dueño de Tasks o Appointments
+
+un parámetro contextual de request no equivale a permiso concedido
 
 PRODUCTS
 
@@ -1310,15 +1410,35 @@ ProductOperationalSummary no reemplaza Security ni crea módulo funcional propio
 
 DOCUMENTS
 
-Conserva ownership documental sobre cabecera y líneas.
+Documents conserva ownership documental sobre cabecera y líneas.
+
+Reglas:
+
+Documents puede crearse desde Orders cuando el usuario tenga autorización efectiva sobre Documents
+
+party_id es vínculo gestionado opcional
+
+counterparty_name es dato propio textual del documento
+
+order_id vincula el documento con la orden origen cuando corresponda
+
+la derivación Order → Document no omite documents.create
+
+Documents puede operar sin depender rígidamente de party_id cuando conserve dato propio suficiente de contraparte
 
 INVENTORY
 
-Conserva ownership sobre stock, movimientos y trazabilidad.
+Inventory conserva ownership sobre stock, movimientos y trazabilidad.
 
 Si una acción de inventory se registra como actividad operativa transversal, el ancla vigente debe ser InventoryOperation cuando representa la acción operativa agrupada.
 
 InventoryMovement conserva trazabilidad fina de stock y no debe duplicarse como actividad principal cuando la operación agrupada ya representa el evento operativo.
+
+Reglas:
+
+Orders y Documents pueden consumir capacidades oficiales de Inventory sin absorber su autorización
+
+Inventory conserva ownership de la operación material
 
 PARTIES
 
@@ -1409,64 +1529,49 @@ no tiene delete
 
 no tiene destroy
 
-no admite carga manual por formularios
+no debe usarse como fuente principal de métricas cuando existen módulos dueños de datos transaccionales u operativos
 
-Su escritura es system-owned y ocurre como consecuencia de eventos operativos livianos emitidos por módulos dueños después de completar acciones propias autorizadas.
+Lectura general:
 
-La lectura general tenant-scoped del log operativo se autoriza mediante:
+requiere operational_activity.view_any
 
-operational_activity.view_any
+Lectura contextual:
 
-Reglas:
+puede mostrarse dentro de un host autorizado sin operational_activity.view_any cuando el usuario ya puede ver el registro host.
 
-autoriza lectura general del log operativo del tenant
+SERVICIOS Y MANTENIMIENTO
 
-no autoriza operaciones originales
+Servicios y Mantenimiento se lee como capa satélite productiva.
 
-no reemplaza permisos sobre los registros originantes
-
-no convierte OperationalActivity en módulo funcional ordinario
-
-no incorpora OperationalActivity a ModuleCatalog
-
-no crea navegación principal
-
-La lectura contextual heredada de actividad asociada a un registro host autorizado se resuelve por el permiso view efectivo sobre ese registro.
-
-Regla vigente:
-
-si el usuario puede ver el registro host,
-puede ver la actividad operativa asociada a ese registro.
+No concede permisos propios sobre todos los módulos participantes por el solo hecho de existir como frente operativo.
 
 Reglas:
 
-no utiliza operational_activity.view_any
+no habilita acciones sobre Orders, Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity por sí mismo
 
-no habilita lectura general del tenant
+cada operación debe volver al contrato del módulo dueño o capacidad central correspondiente
 
-no convierte OperationalActivity en módulo funcional ordinario
+no debe usar Orders.status como estado técnico de ejecución
 
-no crea navegación principal
+no debe permitir operación ordinaria sobre órdenes closed sin reapertura autorizada
 
-no autoriza la operación original
+no debe crear bypass del lifecycle base
 
-Si la lectura contextual se amplía, la frontera debe estar declarada por el módulo dueño.
+IA Y AUTOMATIZACIONES
+
+La IA y las automatizaciones son consumidoras sujetas a seguridad.
 
 Reglas:
 
-la ampliación contextual no autoriza records por sí misma
+no autorizan operaciones por sí mismas
 
-la ampliación contextual no habilita lectura general del tenant
+no reemplazan validaciones backend
 
-la ampliación contextual debe respetar tenant activo
+no amplían privilegios
 
-la ampliación contextual no debe definirse dentro de OperationalActivity
+no ejecutan acciones críticas sin autorización, confirmación humana o regla explícita previamente aprobada
 
-Regla:
-
-esta sección no debe transformarse en manual funcional completo del sistema.
-
-Solo resume impactos de seguridad relevantes y estables.
+si preparan una acción sobre un módulo, la ejecución final debe volver al contrato oficial del módulo dueño
 
 <<END SECTION>>
 

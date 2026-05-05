@@ -36,7 +36,7 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 DECISIONES VIGENTES
 
@@ -132,5 +132,201 @@ evaluar posteriormente si ProductOperationalSummary amerita permisos persistidos
 Decisión pendiente asociada:
 
 evaluar línea futura separada de costos directos operativos para flete, mano de obra, viajes, kilómetros, prorrateos y costos accesorios.
+
+ORDERS COMO MÓDULO AUTÓNOMO EN FASE 0
+
+Decisión vigente:
+
+Orders debe poder vivir y operar como módulo autónomo.
+
+Esta autonomía no implica eliminar todos los campos `*_id`.
+
+Implica distinguir entre:
+
+dato propio necesario para existir
+vínculo gestionado opcional
+contexto transitorio de navegación o request
+relación de origen
+relación de planificación
+relación de seguimiento
+formalización derivada
+enriquecimiento futuro
+
+Lectura vigente:
+
+party_id en Orders es vínculo gestionado opcional con Parties
+
+counterparty_name en Orders es snapshot textual propio de contraparte
+
+asset_id en Orders es vínculo opcional con Assets
+
+task_id no pertenece al núcleo persistente de Orders
+
+appointment_id no pertenece al núcleo persistente de Orders
+
+Reglas:
+
+Orders puede crearse sin Party cuando conserva counterparty_name
+
+party_id no debe reintroducirse como required sin decisión doctrinal nueva y evidencia real
+
+task_id puede viajar como contexto transitorio de request o navegación
+
+task_id no debe volver como campo persistente en Orders
+
+appointment_id puede viajar como contexto transitorio de request o navegación
+
+appointment_id no debe incorporarse al núcleo persistente de Orders
+
+Orders conserva lifecycle base propio
+
+Orders no debe absorber seguimiento, planificación ni pendientes que pertenecen a otros módulos
+
+TASKS COMO OWNER DE LA RELACIÓN DE SEGUIMIENTO HACIA ORDERS
+
+Decisión vigente:
+
+Tasks puede asociarse a Orders desde su propio ownership mediante tasks.order_id.
+
+Lectura vigente:
+
+Tasks organiza pendientes, seguimientos y acciones auxiliares.
+
+Orders ejecuta la intervención operativa.
+
+Una Order puede tener múltiples Tasks asociadas.
+
+Reglas:
+
+la relación persistente vive en Tasks
+
+Orders no conserva task_id
+
+task_id en request es contexto transitorio
+
+task_id en request no autoriza por sí mismo
+
+task_id en request no debe convertirse automáticamente en persistencia del módulo receptor
+
+Esta decisión prepara mantenimiento para múltiples pendientes técnicos, administrativos, de preparación, seguimiento o cierre por orden.
+
+APPOINTMENTS COMO OWNER DE LA PLANIFICACIÓN HACIA ORDERS
+
+Decisión vigente:
+
+Appointments puede asociarse a Orders desde su propio ownership mediante appointments.order_id.
+
+Lectura vigente:
+
+Appointments organiza agenda, visitas, turnos y planificación temporal.
+
+Orders ejecuta la intervención operativa.
+
+Reglas:
+
+la relación persistente vive en Appointments
+
+Orders no conserva appointment_id
+
+appointment_id en request es contexto transitorio
+
+appointment_id en request no autoriza por sí mismo
+
+appointment_id en request no debe convertirse automáticamente en persistencia del módulo receptor
+
+DOCUMENTS COMO FORMALIZACIÓN AUTÓNOMA DERIVABLE DESDE ORDERS
+
+Decisión vigente:
+
+Documents debe poder formalizar operaciones derivadas de Orders sin depender rígidamente de Parties.
+
+Lectura vigente:
+
+party_id en Documents es vínculo gestionado opcional con Parties
+
+counterparty_name en Documents es snapshot textual propio de contraparte
+
+order_id en Documents conserva vínculo de derivación desde Orders cuando corresponda
+
+asset_id en Documents es vínculo opcional con Assets
+
+Reglas:
+
+Documents conserva ownership documental
+
+Orders aporta contexto operativo
+
+Documents conserva sus propios ítems, totales, lifecycle y contraparte
+
+Order → Document debe respetar autorización efectiva sobre Documents
+
+Order → Document debe copiar contexto válido de contraparte
+
+Order → Document debe copiar ítems cuando corresponda
+
+Order → Document debe recalcular totales desde document_items
+
+Order → Document no debe depender de métodos inexistentes
+
+Caso detectado:
+
+DocumentTotalsCalculator::apply() no existía como método disponible para ese flujo.
+
+Corrección vigente:
+
+el cálculo de totales del documento derivado se resolvió desde los ítems copiados.
+
+SNAPSHOT TEXTUAL PROPIO DE CONTRAPARTE
+
+Decisión vigente:
+
+cuando un módulo puede vincularse opcionalmente a Parties pero necesita conservar dato propio de contraparte, debe separar vínculo gestionado y snapshot textual.
+
+Patrón vigente:
+
+party_id = vínculo gestionado opcional
+
+counterparty_name = snapshot textual propio del registro
+
+Casos vigentes:
+
+Orders
+Documents
+
+Reglas:
+
+counterparty_name no reemplaza Party
+
+counterparty_name no reemplaza Security
+
+counterparty_name no crea permisos
+
+counterparty_name permite lectura autónoma del registro
+
+la UI debe diferenciar Contacto gestionado y Contraparte
+
+listados, show summaries, prints y surfaces deben usar método de presentación propio cuando exista
+
+Caso vigente:
+
+displayCounterpartyName()
+
+ORDEN REAL DE MIGRACIONES PARA VÍNCULOS OPCIONALES
+
+Decisión vigente:
+
+las migraciones deben respetar el orden real de creación de tablas.
+
+Caso vigente:
+
+asset_id no debe estar directamente en create_orders_table si assets se crea después.
+
+Regla:
+
+si el vínculo es válido pero la tabla destino aparece después, debe resolverse en una migración posterior compatible con el orden real.
+
+Esta decisión no elimina asset_id como vínculo opcional.
+
+Solo ordena su ubicación estructural correcta.
 
 <<END SECTION>>

@@ -26,7 +26,7 @@ lección aplicable
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 LECCIONES VIGENTES
 
@@ -139,5 +139,141 @@ OperationalActivity conserva trazabilidad, pero no aporta la métrica principal.
 Lección:
 
 trazabilidad no reemplaza datos operativos del módulo dueño.
+
+MIGRATE FRESH SEED NO CIERRA FLUJOS RUNTIME
+
+Un flujo puede pasar lint, migrate:fresh y seeders, pero fallar en runtime web real.
+
+Caso detectado:
+
+Order → Document falló por dependencia a DocumentTotalsCalculator::apply(), método inexistente para ese flujo.
+
+El error apareció en prueba web real.
+
+Corrección aplicada:
+
+el flujo Order → Document recalcula totales desde document_items luego de copiar ítems.
+
+Lección:
+
+migrate:fresh --seed no alcanza para cerrar flujos derivados con controllers, requests, autorización, copia de líneas, cálculos y redirecciones.
+
+Regla:
+
+todo flujo derivado relevante debe validarse en runtime web real antes de considerarse cerrado.
+
+UN VÍNCULO NULLABLE NO DEBE REINTRODUCIRSE COMO REQUIRED SIN DOCTRINA
+
+Un campo relacional nullable puede ser vínculo opcional y no dependencia obligatoria.
+
+Caso detectado:
+
+Orders necesitaba poder crearse sin party_id usando counterparty_name.
+
+Documents necesitaba poder formalizarse desde Orders autónomas sin depender rígidamente de party_id.
+
+Corrección aplicada:
+
+se separó vínculo gestionado opcional y snapshot textual propio.
+
+Patrón vigente:
+
+party_id = vínculo gestionado opcional
+
+counterparty_name = snapshot textual propio
+
+Lección:
+
+un `*_id` no debe tratarse automáticamente como required por existir en el modelo o por conveniencia visual.
+
+Regla:
+
+antes de exigir un vínculo en controller o request, validar esquema, contrato funcional, doctrina y autonomía del módulo.
+
+NO UBICAR RELACIONES DE ORIGEN O SEGUIMIENTO EN EL MÓDULO RECEPTOR POR COMODIDAD
+
+La relación persistente debe vivir en el módulo que conserva ownership real del concepto.
+
+Caso detectado:
+
+orders.task_id ubicaba en Orders una relación de seguimiento que pertenece funcionalmente a Tasks.
+
+Corrección aplicada:
+
+la relación se movió a tasks.order_id.
+
+Lectura vigente:
+
+Tasks organiza pendientes y seguimiento.
+
+Orders ejecuta intervención operativa.
+
+Una Order puede tener múltiples Tasks asociadas.
+
+Lección:
+
+si una relación expresa origen, planificación o seguimiento, no debe ubicarse automáticamente en el módulo receptor.
+
+Regla:
+
+validar siempre qué módulo conserva ownership conceptual antes de persistir el vínculo.
+
+LOS SNAPSHOTS DEBEN LLEGAR A SEEDERS, PRINTS, LISTADOS Y SURFACES
+
+Agregar un snapshot al modelo no cierra el saneamiento si las demás salidas siguen dependiendo solo del vínculo gestionado.
+
+Caso vigente:
+
+Orders y Documents incorporan counterparty_name.
+
+Riesgo detectado:
+
+listados, prints, show summaries, surfaces o componentes linked pueden seguir mostrando solo party->name y dejar vacío cuando party_id sea null.
+
+Lección:
+
+la autonomía del módulo debe verse en todas sus salidas.
+
+Regla:
+
+cuando exista método de presentación propio, debe usarse en listados, show summaries, prints, surfaces y salidas contextuales.
+
+Caso vigente:
+
+displayCounterpartyName()
+
+NO GENERAR BLOQUES DOCUMENTALES CON NOMBRES DE SECCIÓN NO CONFIRMADOS
+
+Una sección documental con contenido correcto pero nombre técnico incorrecto no sirve para Project Lab.
+
+Caso detectado:
+
+se intentó reemplazar secciones inexistentes en seguridad_acceso_proyecto_app_base.
+
+Errores devueltos:
+
+CONTRATOS DE SEGURIDAD MODULARES no existía
+
+SEGURIDAD EN MÓDULOS OPERATIVOS no existía
+
+Corrección aplicada:
+
+se buscó el tag real vigente y se reemplazó por secciones existentes:
+
+CONTRATO DE SEGURIDAD MODULAR
+
+REGLAS OPERATIVAS POR MÓDULO
+
+Lección:
+
+los títulos conceptuales no son identificadores válidos.
+
+Regla:
+
+antes de entregar bloques documentales para automatizador, confirmar el tag exacto:
+
+<<SECTION: NOMBRE EXACTO>>
+
+Si no se conoce con certeza, pedir listado de secciones o auditar el documento vigente antes de generar el bloque.
 
 <<END SECTION>>

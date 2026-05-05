@@ -1346,7 +1346,7 @@ Esto permite sostener una jerarquía clara entre núcleo del recurso actual y ca
 <<END SECTION>>
 
 <<SECTION: SUPERFICIES CONDICIONALES POR MÓDULO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 SUPERFICIES CONDICIONALES POR MÓDULO
 
@@ -1365,6 +1365,9 @@ formularios embebidos
 tablas embebidas
 componentes reutilizables
 modales si existieran
+prints
+summaries
+surfaces
 
 Reglas:
 
@@ -1385,6 +1388,59 @@ la UI debe recomponerse de forma limpia con lo disponible
 Regla adicional consolidada:
 
 si además existe una capacidad reusable oficial publicada por el módulo relacionado, la superficie derivada no debe sustituirla por una resolución local improvisada
+
+Regla adicional para vínculos gestionados opcionales:
+
+cuando una superficie visual muestre una relación hacia otro módulo, debe distinguir entre:
+
+vínculo gestionado existente
+dato textual propio del registro
+ausencia real de dato visible
+
+Caso vigente:
+
+Orders y Documents pueden tener party_id como vínculo gestionado opcional y counterparty_name como snapshot textual propio.
+
+Lectura visual vigente:
+
+Contacto gestionado = Party vinculada mediante party_id
+
+Contraparte = dato textual propio del registro mediante counterparty_name
+
+Reglas:
+
+no mostrar guion o vacío cuando exista counterparty_name aunque no exista party_id
+
+no mostrar PartyLinked o equivalente como única salida si el módulo posee snapshot propio de contraparte
+
+no presentar party_id como obligatorio si el contrato visual y funcional permite contraparte textual
+
+no convertir la ausencia de Party vinculada en error visual
+
+si existe método de presentación propio, debe usarse en listados, show summaries, prints y surfaces
+
+Caso vigente:
+
+displayCounterpartyName()
+
+Superficies a revisar especialmente:
+
+orders/partials/table
+documents/partials/table
+orders/show
+documents/show
+prints de Orders
+prints de Documents
+surfaces de Orders
+surfaces de Documents
+componentes linked relacionados
+
+Regla:
+
+la superficie visual debe expresar la autonomía real del módulo.
+
+No debe hacer parecer obligatorio un vínculo que doctrinalmente es opcional.
+
 <<END SECTION>>
 
 <<SECTION: TABS INTERNAS DEL EMBEBIDO>>

@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00019
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -392,6 +392,136 @@ btn btn-secondary btn-icon
 
 No crear clase nueva si la variante existente resuelve la necesidad.
 
+Products / ProductOperationalSummary:
+
+Products incorpora una subcapa contextual interna denominada:
+
+ProductOperationalSummary
+
+Lectura vigente:
+
+no es módulo nuevo
+no tiene CRUD
+no tiene navegación propia
+no tiene ModuleCatalog propio
+no entra al dashboard general
+no tiene rutas propias
+se aloja bajo Products
+se monta por ProductSurfaceService
+entra como summary_items en products.show
+
+Ubicación vigente:
+
+app/Support/Products/OperationalSummary/
+resources/views/products/operational-summary/
+
+Vistas compactas vigentes:
+
+resources/views/products/operational-summary/purchases-summary.blade.php
+resources/views/products/operational-summary/sales-summary.blade.php
+resources/views/products/operational-summary/flow-summary.blade.php
+
+Summary items vigentes:
+
+Compras
+Ventas
+Entradas / salidas
+
+Frontera vigente:
+
+Products presenta el resumen contextual.
+
+Orders aporta compras y ventas reales cuando está habilitado y autorizado.
+
+Inventory aporta entradas, salidas y movimientos.
+
+Parties aporta proveedor o cliente cuando existe relación real.
+
+OperationalActivity conserva trazabilidad, pero no se usa como fuente principal de métricas.
+
+Condiciones vigentes:
+
+ProductOperationalSummary requiere Products + Inventory habilitados.
+
+Si Inventory no está habilitado, la capa no debe mostrarse aunque Products esté disponible.
+
+Orders no es condición base de existencia de la capa.
+
+Si Orders no está habilitado, no deben mostrarse métricas transaccionales de compra/venta.
+
+La visibilidad inicial se centraliza en:
+
+ProductOperationalSummaryAccess
+
+Matriz inicial vigente:
+
+owner: compras, ventas, inventory
+admin: compras, ventas, inventory
+administrator: compras e inventory
+sales: ventas
+operator: sin acceso
+
+Regla:
+
+ver Products no implica ver ProductOperationalSummary.
+
+Las métricas de compras y ventas deben usar Security::scope() sobre Orders para no leer órdenes fuera del dataset visible del usuario.
+
+Los Blades compactos solo representan payload ya resuelto.
+
+No calculan métricas.
+
+No consultan permisos.
+
+No reconstruyen Orders, Inventory ni Parties.
+
+Regla de continuidad:
+
+no volver a resolver ProductOperationalSummary mediante include directo en products.show salvo justificación explícita basada en código real.
+
+Debe mantenerse surface-driven mediante ProductSurfaceService.
+
+Regla visual:
+
+no duplicar Precio vigente ni Último movimiento dentro de ProductOperationalSummary.
+
+Precio vigente permanece como dato propio del producto en summary principal.
+
+Último movimiento pertenece a Inventory y detalle está disponible en tab Movimientos.
+
+Por eso el tercer summary_item vigente es Entradas / salidas.
+
+Regla de alcance:
+
+ProductOperationalSummary no incluye en su primera versión:
+
+flete
+mano de obra
+kilómetros
+viajes
+prorrateos
+costos accesorios
+costos indirectos
+rentabilidad contable completa
+
+Estos elementos pueden requerir una futura línea separada de costos directos operativos, no forman parte del resumen operativo inicial del producto.
+
+Regla de componentes:
+
+los partials compactos de ProductOperationalSummary no requieren x-dev-component-version porque funcionan como fragmentos internos de summary_items, sin entidad visual independiente mayor.
+
+Regla visual adicional:
+
+no asumir utilities CSS no validadas.
+
+Caso detectado:
+
+d-block no produjo salto de línea esperado.
+
+Corrección vigente:
+
+usar div para asegurar salto de línea por estructura HTML simple.
+
 Seeders demo operativos:
 
 los seeders demo que representan carga operativa real fueron reconvertidos parcialmente para respetar contratos vigentes, catálogos, lifecycle real, eventos operativos livianos, cola y OperationalActivity cuando corresponda.
@@ -498,41 +628,128 @@ Verificación final informada:
 orders_invalid = []
 documents_invalid = []
 
-Alcance explícito vigente:
+Capa IA operativa:
 
-InventoryModuleSeeder se mantiene por ahora con movimientos, sin reconversión completa a simulación operativa agrupada.
+la IA se lee como capa transversal del sistema.
 
-AttachmentDemoSeeder no se simula dentro de este frente.
+No se lee como módulo ordinario, CRUD, chat decorativo ni función exclusiva de mantenimiento.
 
-Regla adicional para auditorías de seeders:
+Debe respetar:
 
-un grep amplio puede generar falsos positivos.
+Security
+tenant activo
+membership activa
+módulos habilitados
+permisos efectivos
+constraints funcionales
+lifecycle
+ownership modular
+validaciones backend
+trazabilidad relevante
+supervisión humana en acciones críticas
 
-Caso detectado:
+La IA puede asistir, resumir, ordenar, sugerir, preparar borradores y reducir fricción.
 
-buscar issued de forma amplia detectó issued_at, que es un campo válido y no el estado legacy issued.
+No debe ampliar privilegios, inventar datos faltantes, consumir stock sin autorización, cerrar procesos críticos sin confirmación ni operar fuera del contrato del módulo dueño.
 
-Debe usarse grep preciso que discrimine campo, valor y contexto, por ejemplo status => issued cuando corresponda.
+Premisa económica vigente:
 
-Cuando una tarea involucre Project Lab, automatizador, Tinker, runtime real, colas, eventos, permisos, constraints, multi-tenancy, actualización de código o actualización documental, se debe respetar la guía operativa vigente de Project Lab.
+no asumir API key paga
+no asumir suscripción activa
+no depender tempranamente de un proveedor externo
+separar intención IA de proveedor IA
+permitir etapa inicial con documentación, datos estructurados, prompts manuales, herramientas locales, procesos semiautomáticos y supervisión humana
 
-Regla crítica para snippets:
+Servicios y Mantenimiento:
 
-usar FILE solo para archivos completos.
+Servicios y Mantenimiento se lee como capa satélite productiva ERP/CMMS liviana.
 
-usar TARGET solo para operaciones parciales.
+No debe implementarse como CRUD ordinario aislado.
 
-no mezclar FILE con operadores de método.
+No debe resolverse solo modificando Orders.
 
-no entregar formatos ambiguos.
+Debe orquestar módulos existentes sin duplicar ownership:
 
-Regla vigente para colas:
+Orders
+Assets
+Inventory
+Products
+Appointments
+Tasks
+Documents
+Attachments
+Parties
+OperationalActivity
 
-en local, Project Lab puede procesar cola manualmente fuera del producto.
+Reglas clave:
 
-En producción debe definirse worker supervisado.
+Orders conserva lifecycle base:
 
-No agregar botón de queue al producto SaaS.
+draft
+pending_approval
+approved
+closed
+cancelled
+
+Orders.status no debe usarse como estado técnico de ejecución.
+
+Una orden solo puede operar técnicamente cuando está approved.
+
+Una orden closed no debe permitir operación ordinaria, surtido, consumo, edición técnica ni automatización ejecutiva sin reapertura autorizada.
+
+El estado operativo de ejecución debe vivir como dimensión satélite.
+
+Estados operativos esperados:
+
+not_started
+in_progress
+waiting_parts
+waiting_labor
+waiting_customer
+waiting_external
+on_hold
+ready_for_review
+
+La próxima etapa debe comenzar con auditoría fuerte de Orders.
+
+No codificar de inmediato.
+
+La auditoría debe responder:
+
+qué soporta hoy Orders
+qué no soporta
+qué puede resolverse con contrato actual
+qué requiere extensión mínima
+qué no debe meterse dentro de Orders
+qué debería vivir como pieza satélite
+
+Documentos obligatorios adicionales para chats orientados a IA o mantenimiento:
+
+<DOC_REF slug="capa_ia_operativa_app_base">Capa IA operativa</DOC_REF>
+
+<DOC_REF slug="paquete_servicios_mantenimiento_app_base">Paquete de servicios y mantenimiento</DOC_REF>
+
+Regla para próximos chats de Servicios y Mantenimiento:
+
+iniciar auditando Orders con evidencia real
+
+no proponer código sin auditar contrato real
+
+no romper lifecycle actual de Orders
+
+no usar Orders.status para estados técnicos
+
+no convertir mantenimiento en CRUD aislado
+
+no crear tablas por reflejo automático
+
+no asumir que Products ya soporta servicios, mano de obra, repuestos, alternativos o paquetes
+
+no asumir que Assets ya cubre todo objeto técnico mantenible
+
+no asumir que Inventory ya cubre custodia material sin auditoría real
+
+respetar Security, tenant activo, ownership modular, surfaces, OperationalActivity y documentación vigente
 
 <<END SECTION>>
 

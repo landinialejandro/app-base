@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00017
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -300,6 +300,106 @@ Attachment puede registrarse en OperationalActivity cuando corresponda.
 
 No tiene link propio definido desde actividad mientras no se decida si debe enlazar a show propio o al attachable padre.
 
+Relación conceptual vigente de ProductOperationalSummary:
+
+Product
+↓
+ProductOperationalSummary
+↓
+Orders / OrderItems
+↓
+InventoryMovements
+↓
+Parties
+
+Lectura:
+
+ProductOperationalSummary no es tabla.
+
+No es entidad persistente propia del negocio.
+
+No es módulo funcional ordinario.
+
+No abre navegación propia.
+
+No entra al dashboard general.
+
+Es una capa de lectura contextual alojada por Products.
+
+Frontera vigente:
+
+Products presenta el resumen contextual.
+
+Orders aporta compras y ventas reales.
+
+Inventory aporta entradas, salidas y movimientos.
+
+Parties aporta proveedor o cliente cuando existe relación real.
+
+OperationalActivity no se usa como fuente principal de métricas.
+
+Reglas:
+
+ProductOperationalSummary no redefine ownership de Orders, Inventory, Parties ni OperationalActivity
+
+Products no pasa a ser dueño de compras, ventas, proveedores ni movimientos
+
+InventoryMovement puede usarse como fuente de lectura resumida de entradas y salidas sin convertirse por eso en actividad operativa transversal principal
+
+InventoryOperation conserva su rol como ancla agrupada frente a OperationalActivity
+
+proveedor actual o anterior se lee desde órdenes de compra y su party_id cuando exista relación real
+
+no debe inferirse proveedor propio desde Products si no existe relación transaccional real
+
+fletes, mano de obra, kilómetros, viajes, costos accesorios, costos indirectos, prorrateos y rentabilidad contable completa quedan fuera de la primera lectura de ProductOperationalSummary
+
+Relaciones conceptuales futuras del paquete Servicios y Mantenimiento:
+
+Orders → estado operativo de ejecución satélite
+
+Orders → paquete de trabajo
+
+Orders → servicios externos o tercerizaciones
+
+Orders → cierres técnico, administrativo y final
+
+Orders → custodia operativa de materiales mediante capacidades oficiales de Inventory
+
+Orders → centro de costo operativo de la intervención
+
+Assets → objeto técnico mantenible cuando corresponda
+
+Assets → historial técnico acumulado
+
+Assets → documentación técnica aplicable
+
+Assets → centro de costo acumulado cuando corresponda
+
+Inventory → materiales previstos, reservados, entregados, consumidos, devueltos, faltantes, dañados o cancelados
+
+Products → repuestos, insumos, servicios, mano de obra, paquetes o alternativos cuando el contrato real lo permita
+
+Tasks → pendientes técnicos o administrativos derivados
+
+Appointments → programación temporal de intervenciones
+
+Documents → formalización técnica, administrativa, económica o externa
+
+Attachments → evidencias y documentación técnica asociada
+
+OperationalActivity → trazabilidad transversal y base de lectura de línea de tiempo operativa cuando corresponda
+
+Reglas:
+
+estas relaciones no implican tablas nuevas por defecto
+
+estas relaciones no deben forzar CRUD ordinario
+
+estas relaciones deben auditarse contra código real antes de implementarse
+
+estas relaciones no alteran ownership de los módulos existentes
+
 Regla:
 
 las relaciones del ecosistema deben leerse respetando los planos conceptuales:
@@ -311,6 +411,9 @@ gobierno interno del tenant
 trazabilidad transversal
 surfaces tenant/transversales no modulares
 fronteras explícitas publicadas por módulos dueños
+capas satélite productivas
+subcapas contextuales internas
+asistencia IA transversal
 
 No deben mezclarse por conveniencia de implementación.
 
@@ -411,7 +514,7 @@ Por esta razón, no debe tratarse como una entidad tenant-scoped pura del negoci
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00013
 
 ENTIDADES DEL NEGOCIO
 
@@ -596,10 +699,105 @@ No se consideran actividad operativa transversal vigente las descargas, previews
 
 Attachment no tiene link propio definido desde actividad mientras no se decida si debe enlazar a show propio o al attachable padre.
 
+Aclaración vigente sobre ProductOperationalSummary:
+
+ProductOperationalSummary no se incorpora al listado de entidades del negocio.
+
+No es tabla.
+
+No es modelo persistente propio.
+
+No es módulo funcional ordinario.
+
+No abre navegación propia.
+
+No tiene CRUD.
+
+No tiene rutas propias.
+
+Debe leerse como subcapa contextual interna de Products.
+
+Su función es presentar una lectura operativa resumida del producto a partir de relaciones reales existentes.
+
+Fuentes conceptuales:
+
+Product
+Order
+OrderItem
+InventoryMovement
+Party
+
+Métricas de compras y ventas:
+
+orders.group = purchase
+orders.group = sale
+order_items.product_id
+order_items.quantity
+order_items.unit_price
+orders.party_id
+orders.ordered_at
+
+Métricas de entradas y salidas:
+
+inventory_movements vinculados al producto según el contrato real vigente de Inventory
+
+Reglas:
+
+InventoryMovement conserva trazabilidad fina interna de stock
+
+InventoryOperation conserva el rol de ancla agrupada para actividad operativa transversal
+
+ProductOperationalSummary usa movimientos para lectura resumida, no para redefinir la doctrina de OperationalActivity
+
+Products no pasa a ser dueño de proveedores, compras, ventas ni movimientos
+
+proveedor actual o anterior se lee desde órdenes de compra y su party_id cuando exista relación real
+
+OperationalActivity conserva trazabilidad transversal, pero no se usa como fuente principal de métricas del resumen operativo
+
+Conceptos funcionales futuros identificados para Servicios y Mantenimiento:
+
+objeto técnico mantenible
+estado operativo de ejecución
+paquete de trabajo
+orden electrónica liviana
+cierre técnico
+cierre administrativo
+cierre final o supervisión
+servicio externo o tercerización
+dependencia externa de orden
+custodia operativa de materiales
+material_flow_status
+documentación técnica aplicable
+recurso asignable
+capacidad operativa de taller
+centro de costo por orden
+centro de costo por asset
+línea de tiempo operativa
+agente IA planificador
+
+Regla:
+
+estos conceptos no se consideran tablas nuevas por defecto.
+
+Primero debe auditarse si pueden resolverse mediante:
+
+entidades existentes
+relaciones existentes
+surfaces
+lecturas consolidadas
+contratos de módulos dueños
+piezas satélite mínimas
+capacidades transversales
+
+Regla adicional:
+
+si una futura entidad o pieza satélite se justifica, debe definirse sin duplicar ownership de Orders, Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity.
+
 <<END SECTION>>
 
 <<SECTION: ENTIDAD BASE DEL NEGOCIO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 ENTIDAD BASE DEL NEGOCIO
 
@@ -620,65 +818,24 @@ Regla actual:
 
 no crear entidades nuevas si el caso puede resolverse extendiendo parties mediante su contrato vigente o entidades hijas correspondientes
 
-parties no debe tratarse como un módulo opcional común, sino como entidad base transversal del dominio y módulo base intrínseco del sistema
+parties no debe tratarse como un módulo opcional común, sino como base conceptual de vínculos del negocio
 
-Nombre técnico:
+Dentro de Servicios y Mantenimiento, parties debe sostener actores operativos como:
 
-Party
-
-Nombre visible sugerido en la interfaz:
-
-Contacto
-
-Regla adicional:
-
-las relaciones hacia parties desde otros módulos deben respetar el estado activo del módulo destino y no deben exponerse en UI si el módulo parties no estuviera disponible
-
-Aclaración estructural vigente:
-
-parties.kind representa únicamente el tipo de contacto:
-
-person
-company
-
-La relación del contacto con la empresa no debe comprimirse en parties.kind.
-
-Debe expresarse mediante party_roles.
-
-Aclaración operativa vigente:
-
-party_roles.role expresa la relación con la empresa.
-
-Valores vigentes:
-
-customer
-supplier
-employee
-other
+clientes
+proveedores
+terceros
+contratistas
+servicios externos
+colaboradores internos cuando corresponda
 
 Regla:
 
-la segmentación funcional de seguridad de parties debe apoyarse en party_roles.role mediante allowed_party_roles y no en parties.kind.
+no crear actores paralelos específicos de mantenimiento si parties puede representar correctamente esa relación mediante su contrato vigente.
 
-Aclaración vigente para ficha ampliada employee:
+Servicios externos y tercerizaciones deben vincularse con proveedores o terceros cuando corresponda, sin crear una base paralela de actores.
 
-cuando una Party con relación employee tiene membership activa vinculada, puede funcionar como ficha ampliada tenant-scoped del colaborador interno.
-
-Esta condición no convierte a Party en identidad global ni en entidad de acceso.
-
-La identidad global sigue perteneciendo a users.
-
-La pertenencia operativa sigue perteneciendo a memberships.
-
-La ficha ampliada pertenece al plano del negocio.
-
-Aclaración adicional:
-
-esa ficha ampliada employee con membership activa vinculada puede actuar como centro contextual de lectura de actividad del colaborador.
-
-La lectura contextual puede incluir actividad directa de Party y actividad donde el user vinculado sea actor o sujeto.
-
-Esta capacidad no modifica la naturaleza base de parties.
+La especialización operativa del vínculo debe resolverse mediante relaciones, documentos, órdenes, piezas satélite o contratos futuros según corresponda, no duplicando la entidad base del negocio.
 
 <<END SECTION>>
 
@@ -2042,11 +2199,11 @@ esta capa conceptual complementa el detalle de entidades y relaciones puntuales
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00003
 
 CLASIFICACIÓN CONCEPTUAL DE MÓDULOS
 
-No todos los módulos del sistema cumplen el mismo rol conceptual.
+No todos los módulos, capacidades o frentes del sistema cumplen el mismo rol conceptual.
 
 Tipos principales:
 
@@ -2055,6 +2212,12 @@ módulo transversal
 módulo autónomo
 módulo agrupador
 módulo derivado
+capacidad transversal de soporte
+capacidad tenant no modular
+surface tenant/transversal no modular
+capa satélite productiva
+subcapa contextual interna de módulo existente
+frente operativo especializado
 
 MÓDULO BASE DEL DOMINIO
 
@@ -2100,13 +2263,98 @@ documents respecto de orders
 
 Formaliza o prolonga documentalmente una operación más nuclear.
 
+CAPACIDAD TRANSVERSAL DE SOPORTE
+
+Caso actual:
+
+OperationalActivity
+
+Registra trazabilidad operativa transversal sin convertirse en CRUD ordinario, navegación principal ni entidad hija de los módulos que originan actividad.
+
+CAPACIDAD TENANT NO MODULAR
+
+Caso actual:
+
+operational_activity.view_any
+
+Autoriza lectura general tenant-scoped del log operativo sin convertir OperationalActivity en módulo funcional ordinario.
+
+SURFACE TENANT/TRANSVERSAL NO MODULAR
+
+Caso actual:
+
+OperationalActivitySurfaceService mediante TenantSurfaceRegistry.
+
+Publica lectura contextual de actividad hacia hosts funcionales autorizados sin incorporar OperationalActivity a ModuleCatalog como módulo funcional.
+
+CAPA SATÉLITE PRODUCTIVA
+
+Caso doctrinal vigente:
+
+Servicios y Mantenimiento
+
+Orquesta módulos existentes para resolver un frente operativo amplio ERP/CMMS liviano, sin convertirse automáticamente en CRUD ordinario ni duplicar ownership de Orders, Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity.
+
+SUBCAPA CONTEXTUAL INTERNA DE MÓDULO EXISTENTE
+
+Caso vigente:
+
+ProductOperationalSummary
+
+Se aloja dentro de Products.
+
+No es módulo funcional nuevo.
+
+No posee CRUD.
+
+No posee navegación propia.
+
+No posee ModuleCatalog propio.
+
+No entra al dashboard general.
+
+No posee rutas propias.
+
+Se publica mediante ProductSurfaceService como summary_items dentro de products.show.
+
+Lectura:
+
+Products actúa como host visual y catálogo maestro.
+
+ProductOperationalSummary amplía la lectura contextual operativa del producto.
+
+Orders, Inventory y Parties aportan datos según relación real y permisos.
+
+OperationalActivity no se usa como fuente principal de métricas.
+
+FRENTE OPERATIVO ESPECIALIZADO
+
+Casos doctrinales posibles dentro de Servicios y Mantenimiento:
+
+dashboard operativo
+paquete de trabajo
+orden electrónica liviana
+historial técnico del asset
+línea de tiempo operativa
+
 Regla:
 
-esta clasificación debe utilizarse para decidir integraciones y evitar jerarquías falsas
+esta clasificación debe utilizarse para decidir integraciones y evitar jerarquías falsas.
+
+No toda capacidad visible es módulo.
+
+No toda pieza con UI necesita CRUD.
+
+No toda necesidad transversal debe entrar a ModuleCatalog.
+
+No toda capa satélite debe modificar el núcleo de un módulo existente.
+
+No toda lectura contextual interna debe convertirse en módulo nuevo.
+
 <<END SECTION>>
 
 <<SECTION: CONTRATO MODULAR CONCEPTUAL>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00003
 
 CONTRATO MODULAR CONCEPTUAL
 
@@ -2138,17 +2386,75 @@ Ejemplos:
 selector
 tabla embebida
 summary reusable
+summary_items
 acción contextual
 lookup mínimo
+surface contextual
+lectura agregada
+lectura contextual especial
+subcapa contextual interna
+paquete de datos preparado
+frente operativo especializado
 
 Regla:
 
-esta sección no define implementación técnica obligatoria
+esta sección no define implementación técnica obligatoria.
 
-define cómo pensar el crecimiento del ecosistema modular
+Define cómo pensar el crecimiento del ecosistema modular.
+
+Criterios vigentes:
+
+un módulo dueño conserva su núcleo funcional
+
+un consumidor no debe reinterpretar reglas internas del módulo oferente
+
+una capacidad transversal no debe absorber ownership del módulo que produce la operación
+
+una capa satélite productiva no debe duplicar módulos existentes
+
+una subcapa contextual interna no debe transformarse en módulo nuevo si no posee CRUD, rutas, navegación ni identidad funcional independiente
+
+una surface no convierte por sí misma una capacidad en módulo funcional ordinario
+
+una lectura consolidada no implica tabla nueva por defecto
+
+una automatización o asistencia IA no reemplaza contrato modular
+
+Caso vigente:
+
+OperationalActivity registra trazabilidad transversal, pero no decide la frontera funcional de lectura agregada o contextual especial.
+
+El módulo dueño declara activity_record_set o activity_context cuando corresponde.
+
+Caso vigente adicional:
+
+ProductOperationalSummary se define como subcapa contextual interna de Products.
+
+Products presenta la lectura.
+
+Orders aporta compras y ventas reales.
+
+Inventory aporta movimientos y flujo material.
+
+Parties aporta proveedor o cliente cuando existe relación real.
+
+OperationalActivity conserva trazabilidad transversal, pero no es fuente principal de métricas.
+
+Caso doctrinal vigente:
+
+Servicios y Mantenimiento debe consumir contratos de Orders, Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties y OperationalActivity.
+
+Si una necesidad pertenece específicamente al universo mantenimiento y no corresponde al núcleo de esos módulos, debe evaluarse como pieza satélite.
+
+Regla final:
+
+el contrato modular conceptual debe proteger ownership, evitar duplicación y permitir crecimiento por integración clara.
+
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL DE CRECIMIENTO>>
+SECTION_VERSION: 00003
+
 REGLA GENERAL DE CRECIMIENTO
 
 Antes de crear una nueva entidad, verificar:
@@ -2157,6 +2463,80 @@ si el caso puede resolverse con una entidad ya existente
 si parties puede absorber el nuevo caso
 si la relación puede modelarse como extensión y no como nueva tabla
 si la necesidad corresponde realmente al dominio o solo a una vista específica
+si una lectura consolidada alcanza antes que persistir duplicación
+si una surface puede resolver el consumo visual
+si un contrato del módulo dueño puede publicarse sin abrir un módulo nuevo
+si una capacidad tenant no modular resuelve mejor que un módulo funcional ordinario
+si una pieza satélite corresponde más que modificar el núcleo de un módulo cerrado
+si una subcapa contextual interna del módulo host corresponde más que crear módulo, tabla, ruta o navegación nueva
+
+Reglas:
+
+no crear entidades por reflejo automático
+
+no crear módulos por simetría visual
+
+no crear tablas solo porque exista un nuevo concepto funcional
+
+no crear navegación nueva solo porque exista una lectura contextual
+
+no duplicar actores si parties puede representarlos correctamente
+
+no duplicar archivos si attachments conserva ownership
+
+no duplicar operación material si Inventory conserva ownership
+
+no duplicar formalización si Documents conserva ownership
+
+no duplicar intervención si Orders conserva ownership
+
+no duplicar trazabilidad si OperationalActivity conserva ownership transversal
+
+no convertir una lectura contextual de Products en módulo nuevo si puede resolverse como subcapa interna
+
+Criterio para ProductOperationalSummary:
+
+ProductOperationalSummary no debe promoverse a entidad persistente ni módulo funcional por la sola existencia de métricas operativas.
+
+Primero debe conservarse como subcapa contextual de Products.
+
+Cualquier evolución futura debe auditar si requiere:
+
+capability persistida propia
+nuevas métricas
+lectura ampliada
+nuevas relaciones
+costos directos operativos
+surface adicional
+tab adicional
+ruta nueva
+
+Mientras no exista esa justificación, permanece como lectura contextual interna.
+
+Criterio para Servicios y Mantenimiento:
+
+los conceptos funcionales identificados para mantenimiento deben auditarse contra entidades y relaciones existentes antes de promoverse a tablas o módulos propios.
+
+Conceptos que requieren auditoría previa:
+
+objeto técnico mantenible
+estado operativo de ejecución
+paquete de trabajo
+orden electrónica liviana
+servicio externo
+custodia operativa de materiales
+cierre técnico
+cierre administrativo
+cierre final
+historial técnico del asset
+línea de tiempo operativa
+centro de costo por orden
+centro de costo por asset
+
+Regla final:
+
+crecer significa fortalecer el ecosistema sin mezclar planos conceptuales ni degradar ownership modular.
+
 <<END SECTION>>
 
 <<SECTION: REGLA FINAL>>

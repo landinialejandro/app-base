@@ -11,32 +11,64 @@ GESTIÓN: Documento rector de acceso, autorización, aislamiento operativo y con
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DEL DOCUMENTO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 OBJETIVO DEL DOCUMENTO
 
 Este documento define la doctrina oficial de seguridad, acceso y autorización del proyecto app-base.
 
-Su función es establecer las reglas obligatorias para controlar ingreso, pertenencia, tenant activo, visibilidad, capacidades operativas, constraints funcionales y contratos de seguridad modulares dentro de la plataforma.
+Su función es establecer reglas obligatorias para controlar:
+
+ingreso
+pertenencia
+tenant activo
+visibilidad
+capacidades operativas
+constraints funcionales
+contratos de seguridad modulares
+acciones críticas
 
 Este documento es la fuente especializada de verdad para toda materia relativa a acceso y autorización.
 
 Si existiera contradicción con un documento no especializado, prevalece este documento en su materia.
 
-No corresponde definir aquí navegación visual, patrones UI, roadmap, estructura física del código ni contexto arquitectónico general ajeno a seguridad.
+No corresponde definir aquí:
+
+navegación visual
+patrones UI
+roadmap
+estructura física del código
+detalle funcional completo de cada módulo
+historial de implementación
+contexto arquitectónico general ajeno a seguridad
+
+Regla:
+
+este documento debe permanecer breve, fuerte y operativo.
+
+Debe contener doctrina de seguridad, no inventario completo de casos implementados.
 
 <<END SECTION>>
 
 <<SECTION: ALCANCE GENERAL>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 ALCANCE GENERAL
 
 Este documento define la doctrina oficial de seguridad y acceso del proyecto.
 
-Su función es establecer principios estables para autorización, aislamiento tenant, contratos modulares y reglas de implementación segura.
+Su función es establecer principios estables para:
 
-No reemplaza documentación funcional ni detalle operativo de cada módulo.
+autorización
+aislamiento tenant
+contratos modulares de seguridad
+permisos efectivos
+constraints funcionales
+acciones críticas
+visibilidad segura
+automatizaciones e IA como consumidores sujetos a seguridad
+
+No reemplaza documentación funcional ni detalle operativo completo de cada módulo.
 
 Debe utilizarse como referencia rectora al diseñar, auditar o corregir acceso dentro del sistema.
 
@@ -48,12 +80,18 @@ si otro documento contradice estas reglas, debe auditarse y alinearse
 
 la UI visible no constituye por sí sola una fuente válida de autorización
 
+la trazabilidad no autoriza operaciones
+
+las automatizaciones no autorizan operaciones por sí mismas
+
+la IA no amplía privilegios
+
 los detalles técnicos pueden evolucionar sin alterar estos principios rectores
 
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00022
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -63,7 +101,7 @@ AUTORIDAD CENTRAL
 
 La decisión final de acceso pertenece a la capa central de seguridad vigente.
 
-Ninguna vista, componente, integración reusable, consumidor externo o registro de actividad reemplaza esa decisión.
+Ninguna vista, componente, integración reusable, consumidor externo, registro de actividad, automatización, dashboard operativo, pieza satélite, subcapa contextual interna o asistencia IA reemplaza esa decisión.
 
 TENANT OBLIGATORIO
 
@@ -87,17 +125,31 @@ owner gobierna
 
 SEPARACIÓN DE PLANOS
 
-Dataset disponible, visibilidad UI, permiso efectivo y trazabilidad son planos distintos.
+Dataset disponible, visibilidad UI, permiso efectivo, trazabilidad, automatización, subcapa contextual e intervención IA son planos distintos.
 
 Uno no implica automáticamente al otro.
 
-La existencia de actividad operativa persistida no habilita por sí sola lectura, navegación, consulta general ni acceso visual al log.
+Reglas:
+
+la existencia de actividad operativa persistida no habilita por sí sola lectura, navegación ni acceso visual al log
+
+la existencia de una sugerencia IA no habilita ejecución
+
+la existencia de un dashboard operativo no habilita operación fuera del contrato del módulo dueño
+
+la existencia de una pieza satélite no habilita bypass del lifecycle base
+
+la existencia de una subcapa contextual interna no habilita acceso automático a todos los datos del módulo host ni de módulos relacionados
 
 MÍNIMO ACOPLE
 
 Los módulos consumidores no deben reinterpretar reglas internas de otro módulo.
 
 Deben consumir capacidades oficiales y someterse al arbitraje central.
+
+Las capas satélite productivas deben consumir contratos oficiales de módulos dueños y no duplicar autorización.
+
+Las subcapas contextuales internas deben consumir datos autorizados y no absorber permisos ni ownership de módulos relacionados.
 
 TRAZABILIDAD
 
@@ -107,7 +159,15 @@ La trazabilidad no autoriza operaciones.
 
 La trazabilidad registra actividad cuando corresponde, pero no reemplaza Security, policies, validaciones ni contratos modulares.
 
-LECTURA CONTEXTUAL HEREDADA
+OperationalActivity no debe usarse como fuente principal de métricas cuando existan módulos dueños de datos transaccionales u operativos específicos.
+
+LECTURA GENERAL Y LECTURA CONTEXTUAL DE ACTIVIDAD
+
+La lectura general del log operativo tenant-scoped requiere autorización explícita propia.
+
+Caso vigente:
+
+operational_activity.view_any
 
 La lectura contextual de actividad operativa asociada a un registro puede habilitarse cuando el host ya autorizó la visualización de ese registro.
 
@@ -128,69 +188,69 @@ No reemplaza permisos del módulo host.
 
 No autoriza la operación original.
 
-La autorización sigue perteneciendo al módulo host mediante su permiso view sobre el registro correspondiente.
+La lectura contextual puede ser directa, agregada o contextual especial, siempre dentro del contrato definido por el módulo dueño y con host previamente autorizado.
 
-La lectura contextual puede ser directa, agregada o contextual especial.
+SUBCAPAS CONTEXTUALES INTERNAS
 
-La lectura directa alcanza la actividad asociada al record host autorizado.
+Una subcapa contextual interna puede tener condiciones propias de acceso y visibilidad, aunque el usuario pueda ver el módulo host.
 
-La lectura agregada alcanza el conjunto explícito de records definido por el módulo dueño mediante activity_record_set.
+Regla:
 
-La lectura contextual especial alcanza un dataset definido por el módulo dueño mediante activity_context cuando la frontera no pueda expresarse solo como conjunto explícito de records.
+ver el módulo host no implica ver automáticamente todas sus subcapas contextuales.
 
-Reglas para lectura agregada:
+Caso vigente:
 
-el host principal debe estar autorizado previamente
+ver Products no implica ver ProductOperationalSummary.
 
-activity_record_set no autoriza records por sí mismo
+ACCIONES CRÍTICAS
 
-activity_record_set no habilita lectura general del tenant
+Las acciones críticas requieren autorización efectiva, validación backend y, cuando corresponda, confirmación humana o regla explícita previamente aprobada.
 
-activity_record_set no reemplaza Security
+Acciones críticas posibles:
 
-activity_record_set no puede exponer datos ajenos al tenant activo
+crear orden real
+cerrar orden
+cancelar orden
+reabrir orden cerrada
+aprobar documento
+cerrar documento
+consumir stock
+revertir consumos
+programar visita
+asignar técnico o responsable
+registrar certificación
+confirmar cumplimiento de checklist
+resolver pendiente técnico
+modificar permisos
+habilitar módulos
+enviar comunicaciones externas
+emitir informes finales
+eliminar registros
+modificar datos sensibles
 
-activity_record_set debe estar definido por el módulo dueño
+Regla:
 
-OperationalActivity no debe decidir internamente la frontera funcional agregada
+la IA puede preparar, resumir o sugerir.
 
-Reglas para activity_context:
+No puede ejecutar acciones críticas sin autorización, confirmación humana o regla explícita previamente aprobada.
 
-el host principal debe estar autorizado previamente
+ESTADOS TERMINALES Y REAPERTURA
 
-activity_context no autoriza records por sí mismo
+Una orden cerrada no debe permitir operación ordinaria posterior.
 
-activity_context no habilita lectura general del tenant
+No debe permitir:
 
-activity_context no reemplaza Security
+edición técnica
+surtido
+consumo
+modificación ordinaria
+cambio operativo satélite
+automatización ejecutiva
+acción IA ejecutiva
 
-activity_context no puede exponer datos ajenos al tenant activo
+La reapertura de una orden cerrada debe ser acción restringida y autorizada según reglas vigentes.
 
-activity_context debe estar definido por el módulo dueño
-
-OperationalActivity no debe decidir internamente la frontera funcional contextual especial
-
-Caso validado de lectura agregada:
-
-projects.show puede mostrar actividad del Project y de sus Tasks porque Projects declara ProjectActivityRecordSet.
-
-Caso validado de lectura contextual especial:
-
-parties.show puede mostrar actividad contextual ampliada de una Party con relación employee y membership activa vinculada.
-
-Esta lectura puede incluir:
-
-actividad directa de Party
-actividad donde el user vinculado sea actor_user_id
-actividad donde el user vinculado sea subject_user_id
-
-Esta lectura no utiliza operational_activity.view_any.
-
-No equivale a lectura general del tenant.
-
-No habilita acceso a records arbitrarios.
-
-No convierte users, memberships ni party_roles en módulos funcionales.
+Los estados operativos satélite no deben saltarse el lifecycle base ni habilitar operación cuando Orders.status no sea approved.
 
 Reglas síntesis:
 
@@ -204,17 +264,15 @@ el registro de actividad operativa no modifica el permiso efectivo de la acción
 
 la lectura del log operativo requiere autorización explícita propia
 
-la lectura contextual heredada solo alcanza la actividad asociada al registro host ya autorizado, al record set explícito declarado por el módulo dueño o al activity_context declarado por el módulo dueño
+la lectura contextual heredada solo alcanza actividad asociada al registro host ya autorizado o al criterio contextual declarado por el módulo dueño
 
-Caso vigente:
+la subcapa contextual interna solo puede mostrar datos autorizados según su contrato y condiciones propias
 
-la lectura general tenant-scoped de OperationalActivity se autoriza mediante:
+la IA no amplía privilegios
 
-operational_activity.view_any
+las automatizaciones no reemplazan autorización
 
-Esta autorización no habilita por sí sola operaciones originales ni reemplaza permisos sobre los registros originantes.
-
-La lectura contextual heredada de actividad asociada a un registro debe mantenerse separada de esa lectura general.
+los dashboards operativos no habilitan acciones fuera del contrato del módulo dueño
 
 <<END SECTION>>
 
@@ -244,7 +302,7 @@ Autenticado no equivale automáticamente a autorizado.
 <<END SECTION>>
 
 <<SECTION: IDENTIDAD, MEMBERSHIP Y TENANT ACTIVO>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 IDENTIDAD, MEMBERSHIP Y TENANT ACTIVO
 
@@ -262,15 +320,21 @@ tenant activo correctamente resuelto
 
 Sin esa tríada no existe operación interna legítima.
 
-La pertenencia a múltiples tenants no debilita el modelo: exige resolver correctamente el contexto activo.
+La pertenencia a múltiples tenants no debilita el modelo.
+
+Exige resolver correctamente el contexto activo.
 
 Aclaración consolidada:
 
 una membership puede vincular opcionalmente una ficha ampliada en parties.
 
-Esa ficha no reemplaza la identidad global del usuario ni modifica la pertenencia operativa.
+Esa ficha no reemplaza la identidad global del usuario.
 
-La vinculación membership → party debe leerse como extensión tenant-scoped de datos de contacto o perfil ampliado, no como base de autorización.
+No modifica la pertenencia operativa.
+
+No constituye base de autorización.
+
+La vinculación membership → party debe leerse como extensión tenant-scoped de datos de contacto o perfil ampliado.
 
 Regla:
 
@@ -296,26 +360,22 @@ Aclaración adicional para lectura contextual de actividad:
 
 cuando una party tenga relación employee y membership activa vinculada, puede funcionar como centro contextual de lectura de actividad del colaborador.
 
-Esta lectura puede considerar el user vinculado por la membership como actor o sujeto de actividad operativa.
+Esta lectura no convierte a party en identidad del sistema.
 
-Reglas:
+No convierte a membership en módulo funcional.
 
-esta lectura no convierte a party en identidad del sistema
+No convierte a user en entidad del negocio.
 
-esta lectura no convierte a membership en módulo funcional
+No convierte a party en base de autorización.
 
-esta lectura no convierte a user en entidad del negocio
+No reemplaza operational_activity.view_any para lectura general del tenant.
 
-esta lectura no convierte a party en base de autorización
-
-esta lectura no reemplaza operational_activity.view_any para lectura general del tenant
-
-esta lectura solo puede operar cuando el host ya autorizó la visualización de la Party correspondiente
+Solo puede operar cuando el host ya autorizó la visualización de la Party correspondiente.
 
 <<END SECTION>>
 
 <<SECTION: MULTI-TENANCY Y AISLAMIENTO>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00014
 
 MULTI-TENANCY Y AISLAMIENTO
 
@@ -326,9 +386,14 @@ Toda autorización debe ocurrir dentro del tenant correspondiente y sin mezclar 
 Principios obligatorios:
 
 no exponer datos de otro tenant
+
 no operar sobre registros ajenos al tenant activo
+
 no asumir contexto tenant por conveniencia técnica
+
 no relajar filtros multi-tenant por atajos de implementación
+
+no usar IA, automatizaciones, dashboards, piezas satélite ni subcapas contextuales para ampliar datasets fuera del tenant activo
 
 El aislamiento no se agota en la UI.
 
@@ -339,19 +404,14 @@ resolución de registros
 relaciones
 datasets visibles
 operaciones entre módulos
-lecturas contextuales directas
-lecturas contextuales agregadas
-lecturas contextuales especiales
-
-Este criterio alcanza también a:
-
-líneas operativas
-movimientos
-operaciones internas
-trazabilidad derivada
+lecturas contextuales
+surfaces tenant/transversales
+dashboards operativos
+automatizaciones
+acciones asistidas por IA
+piezas satélite productivas
+subcapas contextuales internas
 registros de actividad operativa
-activity_record_set declarados por módulos dueños
-activity_context declarados por módulos dueños
 
 Regla:
 
@@ -367,22 +427,24 @@ OperationalActivity debe conservar tenant_id como UUID string compatible con ten
 
 No debe tratarse tenant_id como entero.
 
-Regla adicional para lectura agregada:
+Regla adicional para lecturas contextuales:
 
-si un módulo declara activity_record_set, todos los records incluidos deben pertenecer al tenant activo o estar resueltos dentro del aislamiento vigente del sistema.
+toda lectura contextual, agregada o especial debe respetar tenant activo y aislamiento vigente.
 
-No debe utilizarse activity_record_set para mezclar datos entre tenants ni para exponer relaciones no autorizadas.
+No debe utilizarse para mezclar datos entre tenants, exponer relaciones no autorizadas ni habilitar lectura general del tenant.
 
-Regla adicional para lectura contextual especial:
+Regla adicional para IA:
 
-si un módulo declara activity_context, el criterio contextual aplicado debe respetar tenant activo y aislamiento vigente.
+la IA solo puede recibir contexto autorizado para el usuario, tenant y acción en curso.
 
-No debe utilizarse activity_context para mezclar datos entre tenants, exponer relaciones no autorizadas ni habilitar lectura general del tenant.
+No debe recibir información de otros tenants ni datasets globales por conveniencia de análisis.
+
+Si se prepara un contexto exportable o prompt manual, debe limitarse al alcance autorizado y necesario.
 
 <<END SECTION>>
 
 <<SECTION: OWNER Y ROLES BASE>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 OWNER Y ROLES BASE
 
@@ -400,7 +462,7 @@ owner gobierna
 
 El owner conserva el gobierno estructural del tenant.
 
-Esto incluye las decisiones superiores sobre datos generales del tenant, autoridad admin, delegación admin y estructura de gobierno interno.
+Esto incluye decisiones superiores sobre datos generales del tenant, autoridad admin, delegación admin y estructura de gobierno interno.
 
 El rol admin es un rol delegable de gestión operativa fuerte.
 
@@ -430,11 +492,7 @@ Regla doctrinal:
 
 la autoridad excepcional del owner no debe modelarse como simple permiso aislado si conceptualmente responde a una condición estructural del tenant.
 
-Regla adicional:
-
 owner no debe degradarse doctrinalmente a una variante equivalente de un rol base común.
-
-Su posición dentro del sistema responde a una condición estructural de gobierno interno y no a una combinación arbitraria de permisos delegables ordinarios.
 
 Los roles base complementan la organización operativa del tenant.
 
@@ -443,7 +501,7 @@ No reemplazan la singularidad estructural del owner.
 <<END SECTION>>
 
 <<SECTION: MODELO V2 DE PERMISOS>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00013
 
 MODELO V2 DE PERMISOS
 
@@ -459,6 +517,10 @@ constraint
 resolver central
 policy consumidora
 UI consumidora
+surface consumidora
+subcapa contextual consumidora
+automatización consumidora
+IA consumidora cuando corresponda
 
 Lectura correcta de cada pieza:
 
@@ -484,124 +546,76 @@ policy:
 adaptador de consumo integrado al framework
 
 UI:
-expresión del resultado autorizado ya resuelto
+representación visual de disponibilidad, bloqueo o acción autorizada
 
-Las constraints funcionales deben corresponder a la dimensión real del módulo.
+surface:
+consumo visual embebido que debe respetar autorización del host o capacidad propia según corresponda
 
-Regla:
+subcapa contextual:
+lectura interna de un módulo host que puede requerir condiciones propias de visibilidad y datos autorizados de módulos relacionados
 
-una constraint funcional no debe sostenerse por compatibilidad si ya no representa la dimensión vigente del dominio.
+automatización:
+consumidor operativo que debe pasar por el contrato oficial antes de ejecutar o preparar acciones
 
-El modelo de permisos puede contemplar capacidades tenant no modulares cuando la capacidad pertenece al plano tenant o transversal y no constituye módulo funcional ordinario.
-
-Caso vigente:
-
-operational_activity.view_any
-
-Esta capability permite autorizar lectura general tenant-scoped de OperationalActivity sin registrar OperationalActivity como módulo funcional en ModuleCatalog.
-
-Reglas para capacidades tenant no modulares:
-
-no son módulos navegables
-
-no poseen CRUD completo
-
-no pasan por TenantModuleAccess como módulo funcional ordinario
-
-no generan automáticamente create, update ni delete
-
-sí pueden ser evaluadas por Security
-
-sí pueden tener permisos asignables cuando exista contrato explícito
-
-sí deben respetar tenant activo, membership vigente y autorización efectiva
-
-El frente tenant/profile pertenece al plano tenant y al gobierno interno del tenant.
-
-No debe tratarse como módulo funcional ordinario del negocio.
-
-Su acceso y operaciones sensibles pueden resolverse mediante pieza central específica del plano tenant.
-
-Pieza vigente:
-
-App\Support\Tenants\TenantProfileAccess
-
-Responsabilidad:
-
-centralizar reglas de acceso y gobierno interno del tenant/profile
-
-distinguir owner, admin y membership activa
-
-autorizar visualización del perfil de empresa
-
-autorizar edición de datos generales
-
-autorizar creación de invitaciones tenant
-
-autorizar gestión de permisos por rol
-
-autorizar asignación y remoción de roles
-
-autorizar gestión de estado de memberships
-
-Regla:
-
-las policies y controllers vinculados a tenant/profile, memberships e invitations no deben replicar reglas owner/admin aisladas si existe TenantProfileAccess como autoridad reusable.
-
-Lectura contextual heredada:
-
-cuando una surface tenant/transversal muestra actividad asociada a un registro host ya autorizado, la autorización de lectura contextual proviene del view efectivo sobre ese registro host.
-
-Esta lectura contextual no utiliza operational_activity.view_any.
-
-operational_activity.view_any queda reservado para lectura general tenant-scoped del log operativo.
-
-La lectura contextual puede operar como lectura directa del record host, lectura agregada de un record set explícito o lectura contextual especial declarada por el módulo dueño.
+IA:
+consumidor asistivo que puede sugerir, resumir o preparar, pero no ampliar privilegios ni ejecutar fuera del contrato oficial
 
 Reglas:
 
-la lectura directa no requiere permiso general del log
+un permiso no existe por estar dibujado en la UI
 
-la lectura agregada no requiere permiso general del log
+una acción no queda autorizada por estar sugerida por IA
 
-la lectura contextual especial no requiere permiso general del log
+una automatización no queda autorizada por estar programada
 
-la lectura agregada requiere activity_record_set declarado por el módulo dueño
+un dashboard no queda autorizado para operar si el módulo dueño no autoriza la acción
 
-la lectura contextual especial requiere activity_context declarado por el módulo dueño
+una pieza satélite no puede crear permisos paralelos que eviten el contrato del módulo dueño
 
-activity_record_set no autoriza records por sí mismo
+una subcapa contextual no puede leer datos relacionados si no se cumplen sus condiciones de visibilidad y los scopes correspondientes
 
-activity_context no autoriza records por sí mismo
+los permisos efectivos deben resolverse en backend
 
-activity_record_set no debe utilizarse como mecanismo para ampliar acceso general al tenant
+las constraints funcionales deben aplicarse sobre la dimensión real del dominio
 
-activity_context no debe utilizarse como mecanismo para ampliar acceso general al tenant
+las acciones críticas requieren autorización específica, validación backend y confirmación humana o regla explícita previamente aprobada cuando corresponda
 
-activity_record_set no debe exponer registros fuera del tenant activo
+Casos vigentes:
 
-activity_context no debe exponer datos fuera del tenant activo
+operational_activity.view_any autoriza lectura general tenant-scoped de OperationalActivity sin convertirlo en módulo funcional ordinario
+
+parties usa allowed_party_roles como constraint funcional sobre party_roles.role
+
+allowed_kinds no aplica a parties
+
+orders conserva allowed_kinds cuando kind expresa segmentación operativa válida del módulo
+
+ProductOperationalSummary no creó capabilities persistidas nuevas en su primera versión y se resuelve mediante compuerta contextual interna y scopes existentes
 
 Regla:
 
-la lectura contextual de actividad no debe confundirse con acceso general al log ni con permiso propio para navegar OperationalActivity como módulo.
+no debe crearse capability persistida por reflejo automático cuando una capacidad o subcapa contextual puede resolverse correctamente con el contrato vigente.
 
-Caso validado:
+Esto no impide evolucionar a permisos persistidos propios si luego se justifica.
 
-parties puede declarar un activity_context para Party employee con membership activa vinculada.
+Regla adicional para mantenimiento:
 
-Ese contexto puede incluir actividad directa de Party y actividad del user vinculado como actor o sujeto.
+los estados operativos satélite de una orden no reemplazan el lifecycle base ni autorizan operación si Orders.status no lo permite.
 
-Esta lectura no utiliza operational_activity.view_any y no habilita lectura general del tenant.
+Una orden debe estar approved para operar técnicamente.
 
-El detalle aplicado por módulo o capacidad debe resolverse en las secciones especializadas de constraints y reglas operativas.
+Una orden closed no puede operar ordinariamente sin reapertura autorizada.
 
-La implementación concreta puede evolucionar siempre que preserve esta doctrina.
+Regla adicional para Inventory:
+
+custodia, consumo, devolución, faltante, daño o cancelación de materiales debe autorizarse desde el contrato vigente de Inventory y sus capacidades oficiales.
+
+Entregar material en custodia no equivale a consumirlo.
 
 <<END SECTION>>
 
 <<SECTION: FLUJO OFICIAL DE AUTORIZACIÓN>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 FLUJO OFICIAL DE AUTORIZACIÓN
 
@@ -622,51 +636,18 @@ UI que expresa el resultado permitido
 Lectura operativa:
 
 el contrato define qué puede ocurrir
+
 el resolver transforma contrato en decisión usable
+
 las capas consumidoras aplican esa decisión
+
 la UI refleja disponibilidad real
 
-El resolver central puede incorporar optimizaciones internas de resolución siempre que no alteren permisos, scopes, constraints, tenancy, policies ni flujo oficial de autorización.
+El resolver central puede incorporar optimizaciones internas siempre que no alteren permisos, scopes, constraints, tenancy, policies ni flujo oficial de autorización.
 
 Una optimización interna del resolver no constituye bypass si permanece dentro del kernel de autorización y no traslada lógica a controllers, Blade, surfaces o consumidores externos.
 
-Para el frente tenant/profile, la autoridad reusable vigente es:
-
-App\Support\Tenants\TenantProfileAccess
-
-Flujo esperado para ese frente:
-
-membership activa y tenant activo
-↓
-TenantProfileAccess
-↓
-policy o controller consumidor
-↓
-acción autorizada o bloqueo backend
-↓
-UI que expresa lectura, readonly o acción disponible
-
-Regla:
-
-MembershipPolicy e InvitationPolicy deben consumir esta pieza central cuando la operación pertenezca al gobierno interno del tenant.
-
-No deben reconstruir localmente reglas owner/admin.
-
-Lectura vigente:
-
-owner puede ver y editar tenant/profile según contrato
-
-admin puede ver tenant/profile con restricciones
-
-admin no puede editar General
-
-admin no puede modificar permisos del rol admin
-
-admin no puede asignar, delegar ni autogestionar admin
-
-admin puede gestionar roles operativos no estructurales cuando la validación backend lo autorice
-
-Prohibiciones:
+Reglas:
 
 no invertir el flujo
 
@@ -676,12 +657,28 @@ no consultar universos más amplios para luego ocultarlos visualmente
 
 no saltar el resolver central con lógica local improvisada
 
-no reemplazar TenantProfileAccess por condiciones duplicadas en Blades, controllers o policies
+no duplicar reglas sensibles en Blades, controllers o policies si existe una pieza central vigente
+
+Caso vigente para tenant/profile:
+
+la autoridad reusable del frente tenant/profile es:
+
+App\Support\Tenants\TenantProfileAccess
+
+Lectura:
+
+TenantProfileAccess centraliza reglas owner/admin del frente tenant/profile.
+
+MembershipPolicy e InvitationPolicy deben consumir esta pieza cuando la operación pertenezca al gobierno interno del tenant.
+
+Regla:
+
+la UI puede expresar lectura, readonly o acción disponible, pero el backend debe autorizar o bloquear.
 
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00025
+SECTION_VERSION: 00026
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -702,6 +699,8 @@ ejecutar autorización real antes de mutaciones sensibles
 evitar duplicar reglas dispersas en múltiples capas
 
 preferir capacidades oficiales del módulo oferente antes que bypass técnicos
+
+no usar trazabilidad, dashboards, piezas satélite, subcapas contextuales, automatizaciones ni IA como atajos de autorización
 
 Cuando una acción se ejecute desde surfaces embebidas, modales o row actions, la validación backend sigue siendo obligatoria.
 
@@ -813,10 +812,6 @@ la lectura general tenant-scoped de OperationalActivity se autoriza mediante:
 
 operational_activity.view_any
 
-Esta capability se evalúa desde la capa central de seguridad sin convertir OperationalActivity en módulo funcional ordinario.
-
-La existencia de esa lectura general no habilita por sí sola lectura contextual en cualquier show page ni acceso a registros originantes no autorizados.
-
 Regla adicional para lectura contextual heredada:
 
 cuando una surface tenant/transversal de OperationalActivity se monta dentro de un host funcional, el host debe haber autorizado previamente view sobre el registro actual.
@@ -842,25 +837,15 @@ no usar OperationalActivity como fuente para decidir permisos del host
 
 no reconstruir la autorización del host dentro de OperationalActivity
 
-Regla adicional para lectura agregada:
+Regla adicional para lectura ampliada:
 
-si la lectura contextual usa activity_record_set, el conjunto debe estar declarado por el módulo dueño y respetar el tenant activo.
+si la lectura contextual usa activity_record_set o activity_context, la frontera debe estar declarada por el módulo dueño y respetar tenant activo.
 
-El activity_record_set no autoriza records por sí mismo.
+activity_record_set no autoriza records por sí mismo.
 
-Regla adicional para lectura contextual especial:
+activity_context no autoriza records por sí mismo.
 
-si la lectura contextual usa activity_context, el criterio debe estar declarado por el módulo dueño y respetar el tenant activo.
-
-El activity_context no autoriza records por sí mismo.
-
-OperationalActivity no debe contener condiciones internas específicas como employee, parties, memberships o users para definir esa frontera.
-
-Caso validado:
-
-parties puede declarar activity_context para Party employee con membership activa vinculada.
-
-La lectura puede incluir actividad directa de Party y actividad donde el user vinculado sea actor o sujeto.
+OperationalActivity no debe contener condiciones internas específicas de módulos para definir esa frontera.
 
 Regla adicional para parties:
 
@@ -882,10 +867,28 @@ party_roles.role = employee/customer/supplier/other
 
 Por lo tanto, la autorización de parties debe orientarse por allowed_party_roles cuando corresponda.
 
+Regla adicional para subcapas contextuales internas:
+
+una subcapa contextual interna puede tener compuerta propia de visibilidad, pero no debe reemplazar Security ni leer datos relacionados fuera del dataset autorizado.
+
+Caso vigente:
+
+ProductOperationalSummary puede resolver visibilidad contextual propia, pero las métricas de compras y ventas deben respetar Security::scope() sobre Orders.
+
+Regla:
+
+la vista de una subcapa contextual solo representa payload ya autorizado y preparado.
+
+No calcula permisos.
+
+No reconstruye scopes.
+
+No decide acceso.
+
 <<END SECTION>>
 
 <<SECTION: CONSTRAINTS FUNCIONALES>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 CONSTRAINTS FUNCIONALES
 
@@ -903,7 +906,7 @@ cuando una acción depende del estado operativo del registro, ese estado forma p
 
 cuando una acción depende de una relación activa entre entidades, esa relación activa debe evaluarse como condición funcional real
 
-no debe tratarse como bloqueo visual ni validación secundaria
+no deben tratarse como bloqueo visual ni validación secundaria
 
 Las constraints funcionales no deben usarse como metadata decorativa.
 
@@ -952,7 +955,7 @@ No alcanza con informar únicamente parties.kind.
 
 Caso vigente:
 
-crear una Party employee desde TenantMembershipPartyController debe evaluarse como creación de contacto con relación employee.
+crear una Party employee desde un flujo de membership debe evaluarse como creación de contacto con relación employee.
 
 La autorización debe recibir la relación employee para que allowed_party_roles pueda arbitrar correctamente.
 
@@ -968,22 +971,26 @@ Regla:
 
 OperationalActivity no evalúa allowed_party_roles ni allowed_kinds.
 
-La autorización de parties debe resolverse antes de la mutación y antes de la emisión del evento operativo correspondiente.
+La autorización del módulo dueño debe resolverse antes de la mutación y antes de la emisión del evento operativo correspondiente.
 
-La lectura general tenant-scoped de OperationalActivity se autoriza mediante capability propia:
+Regla adicional para subcapas contextuales internas:
 
-operational_activity.view_any
+una subcapa contextual no debe crear constraints paralelas si ya existen scopes o constraints oficiales del módulo dueño.
 
-Esta capability no es una constraint funcional de los módulos originantes.
+Si la subcapa lee datos de otro módulo, debe respetar el contrato de ese módulo.
 
-No debe inferirse desde allowed_kinds, allowed_party_roles ni desde la existencia de operational_activities.
+Caso vigente:
 
-El detalle aplicado por módulo debe resolverse en las secciones especializadas de reglas operativas.
+ProductOperationalSummary puede tener compuerta contextual propia de visibilidad, pero las métricas de Orders deben respetar Security::scope() sobre Orders.
+
+Regla final:
+
+las constraints funcionales deben resolver dimensiones reales del dominio, no conveniencias visuales ni etiquetas circunstanciales.
 
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00023
+SECTION_VERSION: 00024
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -997,6 +1004,9 @@ qué dependencia tiene del tenant activo
 qué integra desde otros módulos
 qué recursos delegan seguridad al padre
 qué estados alteran operabilidad
+qué constraints funcionales aplica
+qué superficies consume o publica
+qué capacidades transversales registra o consulta
 
 Reglas:
 
@@ -1010,7 +1020,7 @@ los estados operativos forman parte real del contrato
 
 la delegación de seguridad debe ser explícita y consistente
 
-Las capacidades publicadas, incluyendo row actions y surfaces, pertenecen al módulo oferente.
+Las capacidades publicadas, incluyendo row actions, surfaces, subcapas contextuales y lecturas embebidas, pertenecen al módulo oferente o a la capacidad que las define.
 
 El host monta, pero no redefine seguridad.
 
@@ -1021,6 +1031,7 @@ recurso padre
 línea u origen
 estado del recurso
 límites operativos
+dataset autorizado
 
 Regla:
 
@@ -1037,8 +1048,6 @@ El módulo dueño conserva la autorización, validación y ejecución de su prop
 OperationalActivity actúa como capacidad transversal de trazabilidad.
 
 No debe usarse como canal paralelo de autorización, validación o mutación.
-
-La lectura del log operativo requiere definición explícita de autorización.
 
 Lectura general tenant-scoped:
 
@@ -1068,24 +1077,15 @@ No crea navegación principal de OperationalActivity.
 La lectura contextual puede operar como:
 
 lectura directa del record host autorizado
-lectura agregada mediante activity_record_set declarado por el módulo dueño
-lectura contextual especial mediante activity_context declarado por el módulo dueño
+lectura ampliada mediante frontera declarada por el módulo dueño
 
 Reglas:
 
-activity_record_set no autoriza records por sí mismo
+la lectura contextual no reemplaza Security
 
-activity_context no autoriza records por sí mismo
+la lectura contextual no habilita lectura general del tenant
 
-activity_record_set no reemplaza Security
-
-activity_context no reemplaza Security
-
-activity_record_set no habilita lectura general del tenant
-
-activity_context no habilita lectura general del tenant
-
-ambos deben respetar tenant activo y host previamente autorizado
+la lectura contextual debe respetar tenant activo y host previamente autorizado
 
 Aclaración para parties:
 
@@ -1111,14 +1111,28 @@ parties.kind representa únicamente tipo de contacto.
 
 party_roles.role representa relación con la empresa.
 
+Aclaración para subcapas contextuales internas:
+
+una subcapa contextual interna puede tener condiciones propias de visibilidad sin convertirse en módulo funcional ordinario ni reemplazar Security.
+
+Caso vigente:
+
+ProductOperationalSummary depende de Products, Inventory, Orders cuando corresponda, roles compatibles y scopes autorizados.
+
 Regla:
+
+ver el módulo host no implica acceso automático a la subcapa.
+
+La subcapa no debe leer datasets relacionados fuera del contrato autorizado.
+
+Regla final:
 
 el detalle de valores, constraints aplicadas y excepciones operativas debe concentrarse en CONSTRAINTS FUNCIONALES y REGLAS OPERATIVAS POR MÓDULO.
 
 <<END SECTION>>
 
 <<SECTION: RECURSOS DELEGADOS AL PADRE>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00017
 
 RECURSOS DELEGADOS AL PADRE
 
@@ -1144,8 +1158,6 @@ Cuando un recurso hijo participe de un frente operativo externo con trazabilidad
 
 La delegación principal se mantiene.
 
-El detalle de esas restricciones complementarias debe resolverse en REGLAS OPERATIVAS POR MÓDULO y no duplicarse aquí.
-
 Aclaración adicional vigente para order_items:
 
 bloquear edición estructural por completed, cancelled o por violar límites del ejecutado neto no constituye una policy autónoma del hijo.
@@ -1162,12 +1174,12 @@ Regla:
 
 esta sección no debe absorber casos que no sean recursos delegados al padre.
 
-Las relaciones entre entidades autónomas o fichas ampliadas deben documentarse en la sección de identidad, contrato modular o reglas operativas por módulo según corresponda.
+Las relaciones entre entidades autónomas, fichas ampliadas, subcapas contextuales, surfaces transversales o capacidades tenant no modulares deben documentarse en la sección que corresponda.
 
 <<END SECTION>>
 
 <<SECTION: INTEGRACIONES REUSABLES Y AUTORIZACIÓN>>
-SECTION_VERSION: 00022
+SECTION_VERSION: 00023
 
 INTEGRACIONES REUSABLES Y AUTORIZACIÓN
 
@@ -1185,14 +1197,28 @@ el host presta superficie visual pero no absorbe ownership de seguridad
 
 la validación backend debe sostener tenant, recurso, relaciones y límites operativos
 
+una surface no convierte al host en dueño de la capacidad invitada
+
+una subcapa contextual no habilita lectura de datos relacionados por fuera del contrato autorizado
+
+una capacidad transversal no reemplaza permisos del módulo dueño
+
 Regla:
 
 la integración reusable reduce duplicación visual o contractual, pero no reduce exigencia de autorización efectiva.
 
+Caso vigente:
+
+ProductOperationalSummary se publica dentro de Products, pero debe respetar los contratos de Products, Inventory y Orders cuando corresponda.
+
+Caso vigente:
+
+OperationalActivity puede publicar lectura contextual, pero no autoriza la operación original ni reemplaza permisos del host.
+
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00022
+SECTION_VERSION: 00023
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -1240,18 +1266,6 @@ Caso vigente:
 
 TenantMembershipRoleController::sync permite sincronizar el conjunto de roles de una membership con validación backend.
 
-Reglas de sync:
-
-debe bloquear admin intentando asignar admin
-
-debe bloquear admin intentando combinar admin con roles operativos
-
-debe bloquear admin intentando vaciar sus propios roles
-
-debe permitir gestión de roles operativos cuando el contrato lo autorice
-
-debe devolver error funcional controlado si una membership activa no owner queda sin roles
-
 ORDERS
 
 Los estados operativos condicionan update y delete.
@@ -1259,6 +1273,40 @@ Los estados operativos condicionan update y delete.
 La constraint funcional vigente para segmentación operativa de orders es:
 
 allowed_kinds
+
+Reglas:
+
+una orden closed no debe permitir operación ordinaria posterior
+
+una orden cancelled no debe permitir operación ordinaria posterior
+
+una orden closed solo puede volver a operar mediante reapertura autorizada
+
+los estados operativos satélite no deben habilitar operación si Orders.status no lo permite
+
+PRODUCTS
+
+Products puede alojar subcapas contextuales internas sin que eso implique acceso automático a todos los datos relacionados.
+
+Caso vigente:
+
+ProductOperationalSummary
+
+Reglas:
+
+ver Products no implica ver ProductOperationalSummary
+
+ProductOperationalSummary debe respetar tenant activo, membership activa, módulos habilitados, roles compatibles y scopes autorizados
+
+Products + Inventory habilitados son condición base de visibilidad
+
+Orders habilitado permite métricas transaccionales solo cuando el usuario posee dataset visible según Security
+
+operator no accede a la capa según matriz inicial vigente
+
+ProductOperationalSummary no usa OperationalActivity como fuente principal de métricas
+
+ProductOperationalSummary no reemplaza Security ni crea módulo funcional propio
 
 DOCUMENTS
 
@@ -1402,48 +1450,17 @@ no crea navegación principal
 
 no autoriza la operación original
 
-La lectura contextual puede ser directa, agregada o contextual especial.
-
-Si no hay activity_record_set ni activity_context, la lectura contextual se limita al record host autorizado.
-
-Si existe activity_record_set declarado por el módulo dueño, la lectura contextual puede incluir ese conjunto explícito de records.
-
-Si existe activity_context declarado por el módulo dueño, la lectura contextual puede aplicar ese criterio especial.
+Si la lectura contextual se amplía, la frontera debe estar declarada por el módulo dueño.
 
 Reglas:
 
-activity_record_set no autoriza records por sí mismo
+la ampliación contextual no autoriza records por sí misma
 
-activity_context no autoriza records por sí mismo
+la ampliación contextual no habilita lectura general del tenant
 
-activity_record_set no habilita lectura general del tenant
+la ampliación contextual debe respetar tenant activo
 
-activity_context no habilita lectura general del tenant
-
-activity_record_set debe respetar tenant activo
-
-activity_context debe respetar tenant activo
-
-activity_record_set no debe definirse dentro de OperationalActivity
-
-activity_context no debe definirse dentro de OperationalActivity
-
-Hosts validados:
-
-tasks.show
-parties.show
-projects.show
-assets.show
-products.show
-appointments.show
-orders.show
-documents.show
-
-Caso vigente:
-
-projects.show puede usar ProjectActivityRecordSet para lectura agregada Project + Tasks.
-
-parties.show puede usar PartyEmployeeActivityContext para lectura contextual especial de Party employee con membership activa vinculada.
+la ampliación contextual no debe definirse dentro de OperationalActivity
 
 Regla:
 
@@ -1454,7 +1471,7 @@ Solo resume impactos de seguridad relevantes y estables.
 <<END SECTION>>
 
 <<SECTION: HARDENING Y AUDITORÍA>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 HARDENING Y AUDITORÍA
 
@@ -1470,6 +1487,32 @@ Auditar seguridad implica revisar tanto backend como superficies visibles consum
 
 La ausencia de error visible no prueba cumplimiento doctrinal.
 
+Regla:
+
+una prueba sensible que no ubica actor real, tenant real, membership real o dataset real no debe interpretarse como validación del contrato.
+
+Regla adicional:
+
+toda nueva subcapa contextual, surface transversal, pieza satélite, automatización o asistencia IA que consuma datos protegidos debe auditar:
+
+tenant activo
+
+membership activa
+
+módulos habilitados
+
+permiso efectivo
+
+scope aplicado
+
+constraints funcionales
+
+estado del recurso
+
+dataset visible
+
+backend ante request manipulado cuando corresponda
+
 Regla adicional vigente:
 
 las validaciones sensibles del frente tenant/profile/accesses deben comprobar UI, backend, request manipulado, persistencia final y rollback o limpieza de pruebas.
@@ -1478,38 +1521,10 @@ Caso validado:
 
 contrato owner/admin del frente tenant/profile.
 
-Validaciones runtime informadas:
-
-owner puede ver y editar tenant/profile
-
-admin puede ver tenant/profile
-
-admin no puede editar General
-
-admin no puede gestionar permisos del rol admin
-
-admin puede gestionar permisos de roles operativos
-
-admin no puede asignar admin a otro usuario
-
-admin puede asignar roles operativos
-
-admin no puede autogestionar su rol admin
-
-admin no puede vaciar sus propios roles
-
-admin no puede combinar admin con rol operativo mediante sync
-
-membership activa sin roles devuelve error funcional controlado
-
-Regla:
-
-una prueba sensible que no ubica actor real, tenant real o dataset real no debe interpretarse como validación del contrato.
-
 <<END SECTION>>
 
 <<SECTION: GOBERNANZA DEL DOCUMENTO>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 GOBERNANZA DEL DOCUMENTO
 
@@ -1519,7 +1534,11 @@ Criterios de mantenimiento:
 
 agregar solo principios duraderos
 
+mantener reglas de autorización que afecten doctrina general
+
 mover detalle funcional excesivo a documentos específicos
+
+mover matrices, casos puntuales o decisiones vivas a documentos correspondientes cuando no sean doctrina estable
 
 evitar ejemplos redundantes
 
@@ -1530,6 +1549,12 @@ actualizar cuando cambie doctrina real y no por ruido menor de implementación
 Objetivo:
 
 servir como referencia rápida y confiable para futuras decisiones de acceso del proyecto.
+
+Regla:
+
+este documento no debe convertirse en inventario de cada implementación.
+
+Debe conservar doctrina de seguridad y acceso.
 
 <<END SECTION>>
 

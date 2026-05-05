@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00012
 
 PATRONES VIGENTES
 
@@ -366,373 +366,520 @@ OperationalActivitySurfaceService prepara tab
 ↓
 x-host-tabs representa Actividad
 
-Regla:
-
-si el usuario puede ver el registro host,
-puede ver la actividad operativa asociada a ese registro.
-
-Esta lectura no equivale a lectura general del log del tenant.
-
 Reglas:
 
-no utiliza operational_activity.view_any
-no habilita acceso general al log
-no convierte OperationalActivity en módulo funcional
-no crea navegación principal
-no reconstruye historia desde campos actuales del modelo
-no traslada autorización al prestador transversal
+la lectura contextual heredada no usa operational_activity.view_any
 
-Hosts validados:
+la lectura contextual heredada no habilita lectura general del tenant
 
-tasks.show
-parties.show
-projects.show
-assets.show
-products.show
-appointments.show
-orders.show
-documents.show
+la lectura contextual heredada no convierte OperationalActivity en módulo funcional ordinario
 
-Tab validada:
+la lectura contextual heredada no autoriza la operación original
 
-key = activity
+la autorización corresponde al módulo host
 
-Regla:
-
-si no hay activity_record_set ni activity_context declarado, la lectura contextual no muestra actividad de otros registros.
-
-ACTIVITY RECORD SET MODULAR
-
-Patrón validado:
-
-módulo dueño
-↓
-declara activity_record_set en ModuleCatalog
-↓
-provider implementa ActivityRecordSetProvider
-↓
-OperationalActivitySurfaceService consulta el catálogo
-↓
-OperationalActivityContextReader lee actividad del conjunto
-↓
-tabla reusable representa filas ya resueltas
-
-Regla:
-
-usar activity_record_set cuando la ampliación del dataset pueda representarse como conjunto explícito de records relacionados.
+la surface debe publicarse mediante TenantSurfaceRegistry cuando la capacidad no sea módulo funcional ordinario
 
 Caso validado:
 
+OperationalActivity publica tab Actividad hacia hosts funcionales autorizados mediante TenantSurfaceRegistry.
+
+LECTURA CONTEXTUAL AGREGADA DE ACTIVIDAD OPERATIVA
+
+Patrón validado:
+
+módulo dueño declara activity_record_set
+↓
+OperationalActivityContextReader lee conjunto explícito de records
+↓
+host muestra actividad contextual agregada
+
+Caso validado:
+
+projects.show
 ProjectActivityRecordSet
-
-Lectura validada:
-
 Project + Tasks
 
 Reglas:
 
-OperationalActivity no decide la frontera agregada
-el módulo dueño define el conjunto
-el conjunto no autoriza records por sí mismo
-el conjunto no habilita lectura general del tenant
-el conjunto no altera ownership funcional de los records incluidos
+el conjunto de records lo define el módulo dueño
 
-ACTIVITY CONTEXT MODULAR
+OperationalActivity no infiere relaciones funcionales
+
+OperationalActivity no hardcodea Project → Tasks
+
+activity_record_set no autoriza records por sí mismo
+
+activity_record_set no habilita lectura general del tenant
+
+LECTURA CONTEXTUAL ESPECIAL DE ACTIVIDAD OPERATIVA
 
 Patrón validado:
 
-módulo dueño
+módulo dueño declara activity_context
 ↓
-declara activity_context en ModuleCatalog
+OperationalActivityContextReader aplica criterio contextual especial
 ↓
-provider implementa ActivityContextProvider
-↓
-OperationalActivitySurfaceService consulta el catálogo
-↓
-provider devuelve payload contextual compatible
-↓
-OperationalActivityContextReader lee actividad según criterio definido
-↓
-tabla reusable representa filas ya resueltas
-
-Regla:
-
-usar activity_context cuando la ampliación del dataset no pueda representarse como simple conjunto explícito de records relacionados.
+host muestra actividad contextual ampliada
 
 Caso validado:
 
+parties.show
 PartyEmployeeActivityContext
-
-Lectura validada:
-
 Party employee con membership activa vinculada
 actividad directa de Party
-actividad donde el user vinculado sea actor_user_id
-actividad donde el user vinculado sea subject_user_id
+actividad donde el user vinculado sea actor o sujeto
 
 Reglas:
+
+activity_context resuelve criterios especiales que no son simples conjuntos explícitos de records
+
+activity_context lo define el módulo dueño
+
+OperationalActivity no hardcodea condiciones del módulo
 
 activity_context no reemplaza activity_record_set
+
 activity_context no autoriza records por sí mismo
+
 activity_context no habilita lectura general del tenant
-activity_context no traslada lógica interna del módulo a OperationalActivity
-activity_context pertenece al módulo dueño
 
-LECTURA VISUAL DE CAMBIOS OPERATIVOS
+SUBCAPA INTERNA DE MÓDULO CON SURFACE DEL HOST
 
 Patrón validado:
 
-metadata.changes persistido
+subcapa interna de un módulo
 ↓
-OperationalActivityChangePresenter
+servicio de acceso propio
 ↓
-change_summary
+servicio lector propio
 ↓
-change_details
+surface del módulo host
 ↓
-operational-activity-table
-↓
-modal Ver cambios
+summary_items del show
+
+Caso validado:
+
+ProductOperationalSummary
+
+Ubicación vigente:
+
+app/Support/Products/OperationalSummary/
+resources/views/products/operational-summary/
+
+Lectura:
+
+subcapa contextual de Products
+sin CRUD
+sin navegación propia
+sin ModuleCatalog propio
+sin dashboard general
+sin rutas propias
+
+Servicios vigentes asociados:
+
+ProductOperationalSummaryAccess
+ProductOperationalSummaryService
+ProductSurfaceService
+
+Salida visual vigente:
+
+products.show
+show-summary
+summary_items
+
+Summary items vigentes:
+
+Compras
+Ventas
+Entradas / salidas
 
 Reglas:
 
-Blade no interpreta metadata.changes directamente
-la tabla muestra síntesis compacta
-el detalle amplio se abre bajo demanda
-el modal no decide autorización
-el modal recibe contenido preparado
+no resolver como include directo si puede publicarse por surface del módulo oferente
 
-Caso validado:
+no calcular métricas en Blade
 
-Ver cambios dentro de tabla reusable de actividad.
+no consultar permisos en Blade
 
-ACCIONES SECUNDARIAS INFORMATIVAS EN TABLAS
+no convertir la subcapa en módulo nuevo por tener métricas
+
+no crear navegación nueva por tener resumen
+
+no usar OperationalActivity como fuente principal de métricas
+
+no duplicar datos que ya pertenecen al summary principal o a una surface existente
+
+Caso aplicado:
+
+Precio vigente permanece como dato propio del producto en el summary principal.
+
+Último movimiento permanece como lectura de Inventory y detalle disponible en tab Movimientos.
+
+Por eso ProductOperationalSummary usa Entradas / salidas en lugar de Último movimiento.
+
+SEGURIDAD CONTEXTUAL DE SUBCAPAS INTERNAS
 
 Patrón validado:
 
-acción secundaria informativa
-↓
-botón icon-only
-↓
-modal o detalle bajo demanda
+una subcapa contextual interna puede tener visibilidad más restrictiva que el módulo host.
 
 Caso validado:
 
-Ver cambios
-x-icons.changes
-btn btn-secondary btn-icon
+ver Products no implica ver ProductOperationalSummary.
+
+Condiciones vigentes:
+
+tenant activo
+membership activa
+Products habilitado
+Inventory habilitado
+rol compatible
+Orders habilitado para compras y ventas cuando corresponda
+
+Matriz inicial vigente:
+
+owner: compras, ventas, inventory
+admin: compras, ventas, inventory
+administrator: compras e inventory
+sales: ventas
+operator: sin acceso
 
 Reglas:
 
-no crear clase nueva si existe variante visual suficiente
-no agregar columnas nuevas si la tabla pierde compacidad
-mantener bajo protagonismo visual para acciones informativas repetidas
+la compuerta contextual no reemplaza Security
 
-ICONOGRAFÍA DE SURFACES TENANT/TRANSVERSALES
+las métricas de compras y ventas usan Security::scope() sobre Orders
+
+la UI representa datos ya preparados
+
+el Blade no decide autorización
+
+ProductOperationalSummary no creó capabilities persistidas nuevas en su primera versión
+
+VISUAL COMPACTO CON MARKUP ESTRUCTURAL
 
 Patrón validado:
 
-surface no modular declara icon
-↓
-x-host-tabs representa icon
-↓
-la capacidad conserva naturaleza no modular
+cuando una lectura compacta requiere saltos de línea seguros, preferir estructura HTML simple antes que depender de utilities CSS no confirmadas.
 
 Caso validado:
 
-OperationalActivitySurfaceService declara icon = activity para tab Actividad.
+ProductOperationalSummary reemplazó span + d-block por div.
 
 Regla:
 
-la iconografía de una surface no convierte la capacidad en módulo funcional ni navegación principal.
+no asumir que una utility CSS existe o produce efecto si no fue validada en la base visual real.
 
-EDICIÓN DE FUNCIONES DE MEMBERSHIP
+Si el comportamiento requerido es estructural, usar markup semántico simple.
 
-Patrón validado:
+CAPA SATÉLITE PRODUCTIVA
 
-tabla limpia
-↓
-badges de funciones actuales
-↓
-acción contextual por fila
-↓
-modal de edición
-↓
-JS guía selección
-↓
-backend sincroniza y autoriza
-↓
-validación runtime confirma bloqueo de manipulación
+Patrón conceptual validado:
 
-Caso validado:
+una capacidad especializada puede orquestar módulos existentes para resolver un frente operativo amplio sin convertirse automáticamente en módulo CRUD ordinario.
 
-tenant/profile/accesses
+Caso doctrinal vigente:
 
-Elementos visuales:
+Servicios y Mantenimiento se lee como capa satélite productiva ERP/CMMS liviana.
 
-columna Funciones
-badges de funciones actuales
-botón Editar funciones
-modal con checkboxes
-mensaje de ayuda dinámico
-acciones Cancelar / Guardar funciones
+Módulos participantes:
+
+Orders
+Assets
+Inventory
+Products
+Appointments
+Tasks
+Documents
+Attachments
+Parties
+OperationalActivity
 
 Reglas:
 
-la acción debe nacer donde está la intención
+no duplicar ownership de módulos existentes
 
-el modal reduce ruido visual cuando la operación es breve y contextual
+no absorber el núcleo de Orders
 
-JS puede guiar exclusividad visual de admin y advertencias básicas
+no resolver mantenimiento solo modificando Orders
 
-JS no decide autoridad
+no crear tablas o módulos por reflejo automático
 
-backend debe recibir el conjunto deseado y validar agregados y remociones
+auditar primero contratos reales, relaciones existentes, surfaces y lecturas consolidadas
 
-backend debe bloquear combinaciones sensibles y autogestión indebida
+usar piezas satélite solo cuando la lógica pertenezca específicamente al universo de mantenimiento
 
-no debe quedar protección sensible solo en Blade ni JS
+FRENTE OPERATIVO ESPECIALIZADO SIN CRUD ORDINARIO
 
-Caso vigente:
+Patrón conceptual validado:
 
-TenantMembershipRoleController::sync
+un frente operativo puede actuar como pantalla de planificación, ejecución o lectura consolidada sin implicar CRUD propio ordinario.
 
-Regla:
+Casos doctrinales posibles en Servicios y Mantenimiento:
 
-sync es patrón válido cuando el usuario edita el conjunto completo de funciones de una membership.
-
-SEED DEMO OPERATIVO CON TRAZABILIDAD REAL
-
-Patrón validado:
-
-seeder demo que representa carga operativa real
-↓
-crea registros válidos según catálogos vigentes
-↓
-respeta lifecycle real del módulo
-↓
-emite eventos operativos livianos cuando corresponde
-↓
-genera jobs queued
-↓
-procesa la cola
-↓
-confirma jobs = 0
-↓
-confirma failed_jobs = 0
-↓
-confirma persistencia en operational_activities
-↓
-confirma ausencia de estados inválidos y residuos legacy reales
+dashboard operativo
+paquete de trabajo
+orden electrónica liviana
+historial técnico del asset
+línea de tiempo operativa
 
 Reglas:
 
-no todo seeder debe emitir actividad operativa
+el frente especializado no debe duplicar navegación estructural de módulos participantes
 
-solo corresponde cuando la carga demo representa una operación real del sistema
+el frente especializado no autoriza por sí mismo acciones sobre módulos dueños
 
-no reemplaza eventos operativos transversales
+el frente especializado debe consumir información autorizada
 
-consume el patrón vigente de OperationalActivity
+la ejecución final debe pasar por los contratos oficiales del módulo dueño
 
-no simula UI completa
+SEPARACIÓN LIFECYCLE / ESTADO OPERATIVO
 
-no depende de controllers, requests web, navegador ni sesión HTTP
+Patrón conceptual validado:
 
-usa código interno del sistema, modelos, servicios y eventos reales
+el lifecycle administrativo/base de un recurso no debe mezclarse con estados técnicos satélite.
 
-no debe sostener compatibilidad legacy silenciosa
+Caso doctrinal vigente:
 
-no debe corregir payloads antiguos por dentro
+Orders conserva lifecycle base:
 
-no debe crear datos que el sistema vigente ya no reconoce
+draft
+pending_approval
+approved
+closed
+cancelled
 
-debe fallar fuerte si el payload no cumple catálogos o lifecycle vigentes
+La ejecución técnica de mantenimiento debe vivir en dimensión satélite.
 
-Casos validados:
+Estados operativos esperados:
 
-PartyModuleSeeder
+not_started
+in_progress
+waiting_parts
+waiting_labor
+waiting_customer
+waiting_external
+on_hold
+ready_for_review
 
-Crea parties demo como carga operativa real.
+Reglas:
 
-Emite OperationalRecordCreated por cada Party nueva creada por seeder.
+Orders.status no debe usarse para estados técnicos de ejecución
 
-Incluye metadata operativa de party_roles.
+una orden solo puede operar técnicamente cuando está approved
 
-Validación final informada:
+una orden closed no debe permitir operación ordinaria sin reapertura autorizada
 
-22 actividades parties
-jobs = 0
-failed = 0
+los estados operativos satélite no pueden habilitar bypass del lifecycle base
 
-OrderModuleSeeder
+TAXONOMÍAS MÍNIMAS Y OBJETIVAS
 
-Crea órdenes demo listas para operar.
+Patrón conceptual validado:
 
-Elimina compatibilidad legacy interna basada en legacyKinds.
+las taxonomías operativas deben tener pocos valores, ser objetivas y no mezclar dimensiones.
 
-Declara explícitamente group y kind.
+Reglas:
 
-Usa:
+la cantidad de valores no es el diferencial
 
-group = sale|purchase|service
-kind = standard
+el diferencial es claridad, utilidad estadística, trazabilidad, filtrabilidad e interpretación futura por IA
 
-Incluye orden testigo:
+no mezclar ubicación, propiedad, estado, lifecycle, custodia, consumo, prioridad, tipo técnico ni cierre en un mismo campo
 
-TECH-ORD-CYCLE-0001
+Caso doctrinal vigente para ubicación de ejecución:
 
-La orden testigo recorre ciclo completo:
+interno
+externo
+remoto
+indefinido
 
-creación
-ítem
-transición a pending_approval
-aprobación
-ejecución de línea por inventario
-cierre
+Valores como taller, box, base, planta, obra, cliente, predio o locación deben tratarse primero como ubicaciones específicas, configuración o labels visibles, no necesariamente como tags estructurales universales.
 
-La ejecución de línea usa OrderInventoryOperationService y respeta InventoryOperation como ancla operativa de inventario.
+PAQUETE DE TRABAJO
 
-Validación final informada:
+Patrón conceptual validado:
 
-estado final closed
-ítem final completed
-orders = 10
-inventory = 1
-jobs = 0
-failed = 0
+el paquete de trabajo organiza el conjunto mínimo y suficiente de información, recursos, materiales, documentación, checklist, contexto técnico y campos de cierre necesarios para ejecutar una intervención.
 
-DocumentModuleSeeder
+Reglas:
 
-Crea documentos listos para operar mediante modelos Document y DocumentItem.
+no reemplaza Orders
 
-Deja de usar DB::table como carga dura para documentos e ítems.
+no duplica módulos participantes
 
-Elimina estado legacy issued.
+actúa como puente entre planificación, ejecución y cierre
 
-Usa estados vigentes de DocumentCatalog.
+debe consumir contratos oficiales
 
-Deja documentos en pending_approval o approved.
+no debe habilitar operación sobre órdenes cerradas
 
-Deja ítems documentales en pending.
+ORDEN ELECTRÓNICA LIVIANA
 
-Emite actividad operativa por creación y transición.
+Patrón conceptual validado:
 
-Validación final informada:
+la orden electrónica liviana es una experiencia enfocada de ejecución técnica.
 
-documents = 10
-jobs = 0
-failed = 0
+Debe mostrar solo lo necesario para trabajar:
 
-Validación complementaria informada:
+orden
+objeto técnico mantenible
+ubicación
+problema
+checklist
+materiales
+documentación técnica relevante
+evidencias requeridas
+pendientes
+campos mínimos de cierre
 
-orders_invalid = []
-documents_invalid = []
+Reglas:
+
+no expone el sistema completo
+
+no reemplaza Orders
+
+no habilita acciones fuera del lifecycle y permisos vigentes
+
+debe reducir fricción operativa del técnico
+
+CIERRES ESCALONADOS
+
+Patrón conceptual validado:
+
+una intervención puede requerir cierres diferenciados.
+
+Niveles:
+
+cierre técnico
+cierre administrativo
+cierre final o supervisión
+
+Lectura:
+
+el cierre técnico registra resultado de la intervención
+
+el cierre administrativo verifica consistencia material, documental, económica y operativa
+
+el cierre final valida si la orden puede pasar al estado closed del lifecycle base
 
 Regla:
 
-un seeder demo operativo no debe considerarse cerrado solo por migrate:fresh --seed OK.
+la orden no debe cerrarse administrativamente solo por terminar una tarea técnica si quedan validaciones materiales, documentales, económicas u operativas pendientes.
 
-Debe validarse también cola, actividad persistida, catálogos, lifecycle y ausencia de legacy real.
+MODO SIMPLE Y MODO FORMAL
+
+Patrón conceptual validado:
+
+el sistema debe permitir baja fricción inicial y formalidad progresiva.
+
+Modo simple:
+
+operación mínima
+pocos campos
+pocas decisiones
+seguimiento claro
+
+Modo formal:
+
+trazabilidad ampliada
+proveedores
+servicios externos
+documentos
+costos
+facturas
+pagos
+certificaciones
+cierres administrativos
+imputaciones
+
+Regla:
+
+la complejidad debe activarse por necesidad operativa, no imponerse desde el inicio.
+
+IA TRANSVERSAL ASISTIVA
+
+Patrón conceptual validado:
+
+la IA debe leerse como capa transversal de asistencia y reducción de fricción.
+
+No se lee como:
+
+módulo ordinario
+CRUD
+chat decorativo
+función exclusiva de mantenimiento
+canal paralelo de operación
+
+Lectura correcta:
+
+asistente transversal
+preparador operativo
+resumidor
+organizador de información
+copiloto del usuario
+soporte progresivo para automatización
+
+Reglas:
+
+la IA no reemplaza Security
+
+la IA no reemplaza backend
+
+la IA no reemplaza lifecycle
+
+la IA no reemplaza ownership modular
+
+la IA no ejecuta acciones críticas sin autorización, confirmación humana o regla explícita
+
+la IA debe operar con datos autorizados
+
+la IA debe tener fallback sin proveedor pago obligatorio
+
+la arquitectura debe separar intención IA de proveedor IA
+
+SERVICIOS EXTERNOS VINCULADOS A ORDEN
+
+Patrón conceptual validado:
+
+los servicios externos y tercerizaciones deben quedar vinculados a la orden cuando condicionan el cumplimiento del trabajo.
+
+Casos posibles:
+
+reparación externa
+análisis
+calibración
+fabricación
+tornería
+soldadura
+bobinado
+rectificación
+certificación externa
+
+Reglas:
+
+no esconder servicios externos críticos solo como nota libre
+
+no crear proveedor paralelo si parties puede representar correctamente al actor
+
+no absorber la lógica documental, económica o de proveedor dentro de Orders si corresponde a Documents, Parties u otra pieza específica
+
+ORDEN Y ASSET COMO CENTROS DE COSTO
+
+Patrón conceptual validado:
+
+la orden puede funcionar como centro de costo operativo de una intervención puntual.
+
+El asset puede funcionar como centro de costo acumulado de su vida técnica.
+
+Reglas:
+
+la orden concentra costos de una intervención
+
+el asset acumula costos históricos asociados a su vida técnica
+
+esta lectura no implica implementación automática ni tablas nuevas por defecto
+
+debe auditarse contra contratos reales antes de implementar
 
 <<END SECTION>>

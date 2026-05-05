@@ -38,7 +38,7 @@ Este documento se limita a la capa visual y estructural de componentes.
 
 
 <<SECTION: COMPONENTES BLADE GLOBALES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 COMPONENTES BLADE GLOBALES
 
@@ -123,6 +123,10 @@ no reemplaza versionado documental ni control de código
 
 no define reglas de negocio, permisos ni navegación
 
+Caso vigente:
+
+los partials compactos de ProductOperationalSummary no requieren x-dev-component-version porque funcionan como fragmentos internos de summary_items, sin entidad visual independiente mayor.
+
 Regla de validación runtime:
 
 no debe utilizarse un componente Blade si no existe realmente en resources/views/components o como clase correspondiente.
@@ -138,6 +142,14 @@ Si una vista requiere estado vacío y no existe componente específico, debe res
 Caso vigente:
 
 la tab Actividad de tenant/profile resolvió su estado vacío inline con detail-block.
+
+Regla adicional:
+
+no deben promoverse partials modulares a componentes globales si la necesidad no es transversal.
+
+Caso vigente:
+
+los partials de ProductOperationalSummary permanecen dentro de resources/views/products/operational-summary/ y no se convierten en componentes globales.
 
 <<END SECTION>>
 
@@ -376,41 +388,74 @@ No deben mezclarse.
 
 
 <<SECTION: COMPONENTES MODULARES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 COMPONENTES MODULARES
 
-Ubicación:
+Ubicación general:
 
-resources/views/<modulo>/components/
+resources/views/<modulo>/
 
 Responsabilidad:
 
-componentes reutilizables propios de un módulo específico.
-
-Ejemplos:
-
-tablas embebidas  
-formularios específicos  
-partials operativos  
-componentes de integración  
+componentes, partials o fragmentos visuales propios de un módulo funcional.
 
 Reglas:
 
-pertenecen al módulo oferente  
-no deben moverse a global si contienen semántica del módulo  
-deben ser consumidos por otros módulos sin duplicación  
-
-Regla adicional:
-
-si una capacidad reusable pertenece a un módulo, su componente debe vivir en ese módulo.
-
-El consumidor no debe copiar ni recrear ese componente.
+pertenecen al módulo que los aloja
+no son componentes globales
+no deben ubicarse en resources/views/components si no son reutilizables transversalmente
+no deben contener lógica de negocio
+no deben decidir autorización final
+deben representar payload ya preparado por la capa correspondiente
+deben respetar ownership funcional del módulo oferente
 
 Caso vigente:
 
-inventory publica componentes propios para operaciones por línea  
-orders y documents los consumen sin duplicar lógica
+Products puede alojar una subcapa contextual interna llamada ProductOperationalSummary.
+
+Ubicación visual vigente:
+
+resources/views/products/operational-summary/
+
+Partials vigentes:
+
+resources/views/products/operational-summary/purchases-summary.blade.php
+resources/views/products/operational-summary/sales-summary.blade.php
+resources/views/products/operational-summary/flow-summary.blade.php
+
+Lectura:
+
+estos partials son propios de Products
+
+no son componentes Blade globales
+
+no deben documentarse como resources/views/components
+
+no constituyen componentes reutilizables transversales
+
+no representan un módulo nuevo
+
+no tienen navegación propia
+
+no contienen autorización final
+
+no calculan métricas
+
+representan payload ya resuelto por ProductOperationalSummaryService y publicado por ProductSurfaceService
+
+Regla:
+
+cuando una subcapa interna de un módulo tenga identidad funcional propia, puede alojarse en carpeta específica dentro del módulo para evitar confundirla con partials comunes.
+
+Caso vigente:
+
+products/operational-summary
+
+Regla adicional:
+
+no debe crearse un componente global nuevo si la necesidad visual es propia de un módulo y se resuelve correctamente con partials internos.
+
 <<END SECTION>>
 
 

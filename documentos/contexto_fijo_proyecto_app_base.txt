@@ -10,15 +10,22 @@ GESTIÓN: Este documento define el marco arquitectónico estable del sistema. No
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DEL DOCUMENTO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 OBJETIVO DEL DOCUMENTO
 
 Este documento define el contexto arquitectónico estable del proyecto app-base.
 
-Su función es fijar, sin ambigüedades, el marco general desde el cual debe leerse, diseñarse y evolucionarse el sistema.
+Su función es fijar el marco general desde el cual debe leerse, diseñarse y evolucionarse el sistema.
 
-Debe responder, de forma estable, qué es el sistema, cómo se organiza conceptualmente, cuáles son sus capas principales, qué piezas estructurales lo componen y cómo debe interpretarse su ecosistema modular.
+Debe responder, de forma estable:
+
+qué es el sistema
+cómo se organiza conceptualmente
+cuáles son sus capas principales
+qué piezas estructurales lo componen
+cómo debe interpretarse su ecosistema modular
+qué criterios arquitectónicos orientan su crecimiento
 
 ALCANCE OBLIGATORIO DE ESTE DOCUMENTO
 
@@ -28,8 +35,8 @@ arquitectura SaaS multi-tenant
 modelo de identidad y pertenencia
 tenant activo como contexto operativo
 capas funcionales del sistema
-entidades del sistema y entidades del negocio
-clasificación conceptual de módulos
+distinción entre sistema y negocio
+clasificación conceptual de módulos y capacidades
 relaciones macro del ecosistema
 criterios arquitectónicos estables de crecimiento
 
@@ -44,24 +51,28 @@ dataset visible por permiso
 navegación específica
 breadcrumbs o trail
 patrones visuales
-ubicación de archivos
+ubicación física de archivos
 decisiones de implementación puntual
-pendientes, backlog o roadmap
+pendientes
+backlog
+roadmap
 
 REGLA DE FRONTERA DOCUMENTAL
 
-Cuando un tema pertenezca de forma propia a otro documento doctrinal del proyecto, este documento solo debe enunciar su existencia estructural o referenciarlo, pero no duplicar su desarrollo operativo.
+Cuando un tema pertenezca de forma propia a otro documento doctrinal del proyecto, este documento solo debe enunciar su existencia estructural o referenciarlo.
+
+No debe duplicar su desarrollo operativo.
 
 REGLA DE PRECEDENCIA DOCUMENTAL
 
 Si existiera una contradicción entre este documento y un documento especializado del proyecto, prevalece el documento especializado en su propia materia.
 
-Este documento debe tender a estabilidad alta y baja rotación.
+Este documento debe tender a estabilidad alta, baja rotación y lectura rápida.
 
 <<END SECTION>>
 
 <<SECTION: TIPO DE SISTEMA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 TIPO DE SISTEMA
 
@@ -69,28 +80,39 @@ app-base es una plataforma SaaS multi-tenant desarrollada sobre Laravel.
 
 Permite que múltiples empresas utilicen una misma aplicación manteniendo aislamiento lógico de datos y contexto operativo independiente para cada tenant.
 
-El proyecto busca constituir una base ERP modular reutilizable, capaz de crecer por módulos sin perder coherencia estructural.
+El proyecto busca constituir una base ERP modular reutilizable, capaz de crecer por módulos, capacidades transversales y capas productivas satélite sin perder coherencia estructural.
 
 El sistema no debe entenderse como una suma de CRUDs aislados.
 
-Debe entenderse como una plataforma con gobierno global, contexto por tenant, base de dominio, capa transversal y módulos funcionales integrados.
+Debe entenderse como una plataforma con gobierno global, contexto por tenant, base de dominio, capa transversal, módulos funcionales integrados y capacidades productivas especializadas que pueden orquestar módulos existentes sin duplicar su ownership.
+
+Regla estructural:
+
+app-base no busca copiar un ERP enterprise pesado ni competir por sobredimensionamiento funcional.
+
+Debe adoptar principios robustos de ERP, CMMS y gestión operativa cuando correspondan, pero con una experiencia liviana, automatizable y accesible.
 
 <<END SECTION>>
 
 <<SECTION: PROPÓSITO GENERAL DEL PROYECTO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00006
 
 PROPÓSITO GENERAL DEL PROYECTO
 
 app-base busca proveer una base estable para operar empresas dentro de un entorno SaaS multi-tenant.
 
-No se trata solo de persistir entidades, sino de sostener una arquitectura común que permita:
+No se trata solo de persistir entidades.
+
+El sistema debe sostener una arquitectura común que permita:
 
 ordenar operación
 mantener aislamiento por tenant
 centralizar gobierno transversal
 integrar módulos sin pérdida de identidad
 crecer sin rehacer el sistema
+habilitar capacidades transversales cuando aporten valor real
+habilitar capas productivas satélite cuando correspondan
+preparar asistencia IA futura sobre reglas claras y datos estructurados
 
 Principios asociados:
 
@@ -104,7 +126,17 @@ seguridad y trazabilidad son parte estructural
 
 la operación real del negocio tiene prioridad sobre formalismos innecesarios
 
-El sistema debe poder sostener múltiples frentes operativos sin degradarse en soluciones aisladas.
+la complejidad debe activarse por necesidad operativa y no imponerse desde el inicio
+
+Criterio general de evolución:
+
+app-base debe servir tanto a operaciones simples con baja tolerancia a complejidad como a organizaciones que necesiten formalidad progresiva, trazabilidad, documentación, costos, proveedores, cierres y automatización.
+
+Regla:
+
+app-base no debe entenderse como una suma de CRUDs aislados ni como copia de un ERP enterprise pesado.
+
+Debe adoptar principios robustos de gestión operativa, ERP y CMMS cuando correspondan, manteniendo una experiencia liviana, modular, automatizable y accesible.
 
 <<END SECTION>>
 
@@ -174,7 +206,7 @@ Su desarrollo técnico y sus reglas operativas concretas se resuelven en documen
 <<END SECTION>>
 
 <<SECTION: IDENTIDAD GLOBAL Y PERTENENCIA POR EMPRESA>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 IDENTIDAD GLOBAL Y PERTENENCIA POR EMPRESA
 
@@ -189,12 +221,14 @@ tenants
 Lectura correcta:
 
 users representa identidad global
-memberships representa pertenencia y acceso por empresa
+
+memberships representa pertenencia operativa por empresa
+
 tenants representa el contexto operativo de cada empresa
 
 Un usuario puede pertenecer a múltiples tenants.
 
-La pertenencia a una empresa no se resuelve desde user como atributo directo único, sino mediante la capa intermedia de memberships.
+La pertenencia a una empresa no se resuelve desde user como atributo directo único, sino mediante memberships.
 
 Esto forma parte estable del modelo del sistema.
 
@@ -202,43 +236,24 @@ Aclaración consolidada:
 
 membership puede vincular opcionalmente una ficha ampliada en parties.
 
-Esa ficha ampliada pertenece al plano del negocio y no reemplaza la identidad global ni la pertenencia operativa.
+Esa ficha ampliada pertenece al plano del negocio.
 
-Cuando la membership activa esté vinculada a una party, esa party debe leerse como representación operativa ampliada del colaborador dentro del tenant.
+No reemplaza la identidad global.
 
-Regla:
-
-la relación membership → party no convierte a party en identidad del sistema ni en entidad de acceso.
-
-Cuando exista membership activa vinculada a party, la ficha ampliada debe mantener coherencia estructural con esa pertenencia activa.
-
-Esta protección no convierte a parties en fuente de identidad ni de acceso.
-
-Refuerza únicamente la separación entre:
-
-identidad global
-pertenencia operativa
-ficha ampliada tenant-scoped
-
-Aclaración estructural adicional:
-
-cuando una party con relación employee tenga membership activa vinculada, esa ficha ampliada puede funcionar como centro contextual de lectura de actividad del colaborador dentro del tenant.
-
-Esa lectura no altera el modelo de identidad.
-
-No convierte a user en entidad del negocio.
-
-No convierte a membership en módulo funcional.
+No reemplaza la pertenencia operativa.
 
 No convierte a party en entidad de acceso.
 
-No convierte a OperationalActivity en módulo funcional ordinario.
+Cuando exista membership activa vinculada a party, esa party debe leerse como representación operativa ampliada del colaborador dentro del tenant.
 
 Separación vigente:
 
 User = identidad global
+
 Membership = pertenencia operativa
+
 Party = ficha ampliada tenant-scoped cuando existe vínculo explícito
+
 OperationalActivity = trazabilidad transversal tenant-scoped
 
 Aclaración estructural sobre owner/admin:
@@ -252,11 +267,14 @@ admin no equivale a owner.
 Esta distinción refuerza la separación entre:
 
 condición estructural de gobierno
+
 rol delegable operativo
+
 pertenencia activa al tenant
+
 ficha ampliada opcional del negocio
 
-El detalle operativo, visual y de seguridad de esa ficha ampliada y del gobierno owner/admin se define en los documentos especializados correspondientes.
+El detalle operativo, visual y de seguridad de esta distinción se define en documentos especializados.
 
 <<END SECTION>>
 
@@ -292,107 +310,125 @@ el tenant activo organiza tanto operación como gobierno interno de la empresa a
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00028
+SECTION_VERSION: 00031
 
 CAPAS FUNCIONALES DEL SISTEMA
 
 La arquitectura debe leerse por capas funcionales.
 
 CAPA GLOBAL
+
 Gobierno general de la plataforma.
 
 CAPA TENANT
+
 Contexto operativo de la empresa activa.
 
-La capa tenant puede incluir capacidades propias del plano empresa que no constituyen módulos funcionales ordinarios.
-
-Estas capacidades pueden ser tenant-scoped, evaluables por seguridad y visibles dentro de frentes del tenant sin incorporarse automáticamente al conjunto de módulos funcionales ordinarios.
+Puede incluir capacidades propias del plano empresa que no constituyen módulos funcionales ordinarios.
 
 CAPA DE GOBIERNO INTERNO DEL TENANT
+
 Organiza pertenencia, actores internos y autoridad estructural dentro de la empresa activa.
-
-users mantiene identidad global.
-
-memberships resuelve pertenencia operativa.
-
-owner se resuelve como condición estructural de gobierno mediante memberships.is_owner.
-
-admin se resuelve como rol delegable de gestión operativa fuerte.
 
 Lectura vigente:
 
-owner gobierna estructuralmente el tenant
+users mantiene identidad global
 
-admin opera con autoridad amplia pero no reemplaza al owner
+memberships resuelve pertenencia operativa
 
-admin no gobierna la estructura superior del tenant
+owner es condición estructural de gobierno
 
-El frente tenant/profile pertenece a esta capa de gobierno interno.
+admin es rol delegable de gestión operativa fuerte
+
+tenant/profile pertenece a esta capa.
 
 No es módulo funcional ordinario del negocio.
 
-Una membership puede vincularse opcionalmente con una ficha ampliada tenant-scoped en parties, sin reemplazar identidad ni acceso.
-
-La complejidad del gobierno interno debe ser absorbida por el sistema mediante reglas backend centralizadas, sin trasladar lógica contractual crítica al usuario.
-
 CAPA TRANSVERSAL
+
 Responsabilidades compartidas que sostienen funcionamiento común entre módulos.
 
-OperationalActivity pertenece a esta capa como capacidad transversal tenant-scoped de trazabilidad operativa.
+Caso vigente:
 
-No debe leerse como CRUD ordinario, módulo navegable principal ni responsabilidad propia de los módulos funcionales que producen actividad.
+OperationalActivity
 
-OperationalActivity registra actividad operativa emitida por módulos dueños luego de que estos autorizan, validan y ejecutan su operación propia.
+Lectura:
 
-No absorbe ownership funcional ni ejecuta la operación original.
+capacidad transversal tenant-scoped de trazabilidad operativa
 
-La lectura general de OperationalActivity se resuelve como capacidad tenant no modular.
+no es CRUD ordinario
 
-La lectura contextual de OperationalActivity puede publicarse hacia hosts funcionales autorizados sin convertir OperationalActivity en módulo funcional.
+no es módulo funcional ordinario
 
-La lectura contextual puede operar en tres modalidades:
+no es navegación principal por mera existencia técnica
 
-lectura directa del record host autorizado
+no absorbe ownership funcional de los módulos que producen actividad
 
-lectura agregada mediante un conjunto explícito de records definido por el módulo dueño
+CAPA IA OPERATIVA
 
-lectura contextual especial mediante un criterio definido por el módulo dueño
+Capa transversal futura o progresiva de asistencia, reducción de fricción, análisis contextual, preparación operativa y soporte a la automatización.
 
-Regla estructural:
+Lectura:
 
-OperationalActivity lee y presenta actividad persistida, pero no decide la frontera funcional de actividad agregada o contextual especial de cada módulo.
+la IA no es módulo funcional ordinario
 
-Esa frontera pertenece al módulo dueño.
+no reemplaza seguridad
 
-Caso validado de lectura agregada:
+no reemplaza backend
 
-projects define que la actividad contextual de un Project puede incluir el propio Project y sus Tasks.
+no reemplaza validaciones
 
-Esa definición no queda hardcodeada dentro de OperationalActivity.
+no reemplaza control humano en acciones críticas
 
-Caso validado de lectura contextual especial:
-
-parties puede definir una lectura contextual especial para Party con relación employee y membership activa vinculada.
-
-En ese caso, la actividad contextual puede incluir:
-
-actividad directa de Party
-actividad donde el user vinculado sea actor
-actividad donde el user vinculado sea sujeto
-
-Esta modalidad no convierte users, memberships ni party_roles en módulos funcionales nuevos.
-
-Tampoco traslada ownership funcional hacia OperationalActivity.
+debe consumir contratos claros, datos autorizados y reglas explícitas
 
 BASE DEL DOMINIO
+
 Anclajes conceptuales amplios del negocio.
 
+Caso principal vigente:
+
+parties
+
 MÓDULOS FUNCIONALES
-Capacidades operativas visibles.
 
-Reglas:
+Capacidades operativas visibles del tenant.
 
-esta lectura debe prevalecer en decisiones arquitectónicas
+CAPAS PRODUCTIVAS SATÉLITE
+
+Capacidades especializadas que orquestan módulos existentes para resolver un frente operativo amplio sin convertirse automáticamente en módulos CRUD ordinarios.
+
+Caso vigente:
+
+Servicios y Mantenimiento puede leerse como capa satélite productiva ERP/CMMS liviana.
+
+Regla:
+
+una capa satélite puede orquestar módulos existentes, pero no duplicar ni absorber su ownership.
+
+SUBCAPAS CONTEXTUALES INTERNAS
+
+Capacidades alojadas dentro de un módulo funcional existente que amplían su lectura contextual sin constituir módulo nuevo, navegación propia ni entrada independiente del ecosistema.
+
+Caso vigente:
+
+ProductOperationalSummary bajo Products.
+
+Lectura:
+
+subcapa contextual interna
+
+sin CRUD propio
+
+sin navegación propia
+
+sin dashboard general
+
+sin ModuleCatalog propio
+
+sin rutas propias
+
+Reglas generales:
 
 tenant es contexto, no módulo funcional
 
@@ -400,25 +436,13 @@ tenant/profile es frente de gobierno interno, no módulo funcional ordinario
 
 no toda capacidad tenant-scoped debe incorporarse como módulo funcional ordinario
 
-las capacidades tenant no modulares pueden existir cuando la responsabilidad no sea módulo funcional, no tenga CRUD ordinario, no requiera navegación propia y no deba habilitarse o deshabilitarse como módulo del negocio
+las capacidades transversales pueden registrar, acompañar o sostener actividad operativa sin absorber ownership funcional
 
-las capacidades tenant/transversales no modulares pueden publicar superficies controladas hacia hosts funcionales cuando exista contrato validado para ello
+las capas productivas satélite pueden orquestar módulos existentes sin duplicarlos
 
-esa publicación no altera su naturaleza arquitectónica ni las convierte en módulos funcionales ordinarios
+las subcapas contextuales internas pueden ampliar lectura dentro de un módulo host sin convertirse en módulo nuevo
 
-las necesidades de colaboradores internos deben resolverse primero en la capa tenant antes de crear módulos nuevos
-
-la ficha ampliada en parties no altera el plano de identidad global ni el modelo de pertenencia operativa
-
-las capacidades transversales pueden registrar, acompañar o sostener actividad operativa sin absorber ownership funcional de los módulos que producen esa actividad
-
-La separación interna de parties refuerza esta lectura por capas:
-
-parties.kind pertenece al núcleo estructural del contacto
-
-party_roles.role expresa la relación del contacto con la empresa
-
-Las reglas de autorización derivadas de esa relación pertenecen al documento especializado de seguridad.
+las reglas de autorización pertenecen al documento especializado de seguridad
 
 <<END SECTION>>
 
@@ -500,7 +524,7 @@ membership = pertenencia operativa al tenant
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00031
+SECTION_VERSION: 00032
 
 ENTIDADES DEL NEGOCIO
 
@@ -532,13 +556,13 @@ No todas cumplen el mismo rol conceptual.
 Pueden actuar como:
 
 base del dominio
-módulos autónomos
+módulos funcionales
 entidades hijas
 capacidades transversales
 soporte operativo interno
-entidades complementarias de una base del dominio
+entidades complementarias
 
-Reglas de lectura relevantes:
+Reglas de lectura:
 
 users no pasa a ser entidad del negocio por participar en la operación interna de una empresa
 
@@ -546,61 +570,21 @@ users mantiene identidad global del sistema
 
 la pertenencia operativa real se resuelve mediante memberships
 
-si el ecosistema requiere un dataset reusable de colaboradores internos activos, esa necesidad pertenece al plano tenant y no implica crear una nueva entidad del negocio
+si el ecosistema requiere un dataset reusable de colaboradores internos activos, esa necesidad pertenece al plano tenant
 
 inventory_movements expresa impacto unitario real sobre stock
 
 inventory_operations agrupa contexto operativo cuando una misma acción requiere uno o múltiples movimientos
 
-operational_activities registra actividad operativa real del sistema dentro del tenant activo como capacidad transversal de trazabilidad
+operational_activities registra actividad operativa real dentro del tenant activo como capacidad transversal de trazabilidad
 
 operational_activities no representa una entidad hija de módulos funcionales particulares
 
 operational_activities no reemplaza la lógica interna de los módulos funcionales
 
-order_items y document_items conservan naturaleza de entidades hijas de sus módulos padre aunque puedan actuar como anclaje de trazabilidad o ejecución dentro de otros flujos
+order_items y document_items conservan naturaleza de entidades hijas de sus módulos padre
 
 orders y documents comparten una doctrina base de lifecycle para cabeceras operativas
-
-Aclaración estructural para OperationalActivity:
-
-OperationalActivity registra actividad operativa sobre registros de módulos funcionales cuando el módulo dueño emite eventos operativos livianos luego de una operación autorizada, validada y ejecutada.
-
-La integración con OperationalActivity no convierte a esos módulos en dependientes del log ni altera su ownership funcional.
-
-OperationalActivity puede exponer lectura contextual directa sobre un record host autorizado, lectura contextual agregada sobre un conjunto explícito de records declarado por el módulo dueño o lectura contextual especial mediante un criterio definido por el módulo dueño.
-
-Regla:
-
-la frontera funcional de una lectura agregada o contextual especial pertenece al módulo dueño.
-
-Caso validado de lectura agregada:
-
-Projects puede declarar Project + Tasks como dataset de actividad contextual agregada del proyecto.
-
-Caso validado de lectura contextual especial:
-
-Parties puede declarar un criterio contextual especial para Party employee con membership activa vinculada.
-
-Ese contexto puede permitir leer actividad directa de Party y actividad asociada al user vinculado como actor o sujeto.
-
-Esto no convierte User en entidad del negocio.
-
-No convierte Membership en módulo funcional.
-
-No convierte party_roles en módulo funcional propio.
-
-No convierte OperationalActivity en dueño de esa relación.
-
-Aclaración estructural para inventory:
-
-inventory_operations representa la acción operativa agrupada frente a OperationalActivity.
-
-inventory_movements conserva la trazabilidad fina, unitaria y atómica del stock.
-
-Regla:
-
-OperationalActivity no debe duplicar como actividad principal cada inventory_movement cuando el evento operativo relevante está representado por InventoryOperation.
 
 Aclaración estructural para parties:
 
@@ -628,8 +612,6 @@ employee no es tipo de contacto ni naturaleza de party.
 
 Employee es una relación operativa dentro de party_roles.
 
-La incidencia de party_roles.role en seguridad se define en el documento especializado de seguridad.
-
 Aclaración sobre membership → party:
 
 membership puede vincular opcionalmente una ficha ampliada en parties.
@@ -637,14 +619,14 @@ membership puede vincular opcionalmente una ficha ampliada en parties.
 Esta relación:
 
 es opcional
+
 es tenant-scoped
+
 no modifica la estructura base del sistema
+
 no reemplaza la identidad global del usuario
+
 no convierte a party en entidad de acceso
-
-Cuando exista vínculo con membership activa, party representa al colaborador interno en el plano operativo del negocio.
-
-Cuando esa party tenga relación employee y membership activa vinculada, puede funcionar además como centro contextual de lectura de actividad del colaborador, siempre mediante contrato específico del módulo dueño.
 
 Este documento reconoce la posición estructural de estas entidades.
 
@@ -674,7 +656,7 @@ tampoco debe sobredimensionarse el dominio del negocio hasta absorber piezas cuy
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 CLASIFICACIÓN CONCEPTUAL DE MÓDULOS
 
@@ -714,9 +696,9 @@ Caso vigente:
 
 OperationalActivity
 
-OperationalActivity se clasifica como capacidad transversal tenant-scoped de trazabilidad operativa.
+Lectura:
 
-Reglas:
+capacidad transversal tenant-scoped de trazabilidad operativa
 
 no abre navegación principal por mera existencia técnica
 
@@ -724,23 +706,9 @@ no es CRUD ordinario
 
 no absorbe ownership funcional de los módulos que emiten eventos
 
-no debe registrar actividad solo por existir CRUD
-
-puede ofrecer lectura contextual directa, agregada o contextual especial cuando exista contrato válido
-
-Regla:
-
-OperationalActivity no define por sí mismo qué records componen la actividad agregada de un módulo ni qué criterio contextual especial corresponde aplicar.
-
-La participación de un módulo en OperationalActivity debe definirse explícitamente y justificarse por valor operativo real.
-
 CAPACIDADES TENANT NO MODULARES
 
 Representan capacidades del plano tenant que pueden ser evaluadas por seguridad sin constituir módulos funcionales ordinarios.
-
-Caso vigente:
-
-lectura general de OperationalActivity mediante capability específica.
 
 Reglas:
 
@@ -752,17 +720,11 @@ no poseen CRUD completo
 
 no pasan por habilitación modular ordinaria
 
-pueden ser evaluadas por la capa central de seguridad
-
-pueden tener permisos asignables cuando exista contrato explícito
+pueden ser evaluadas por la capa central de seguridad cuando exista contrato explícito
 
 CAPACIDADES TENANT/TRANSVERSALES NO MODULARES CON SURFACE PUBLICADA
 
 Representan capacidades tenant-scoped o transversales que publican lectura o información controlada hacia hosts funcionales sin convertirse en módulos ordinarios.
-
-Caso vigente:
-
-OperationalActivity publica lectura contextual mediante surface tenant/transversal.
 
 Reglas:
 
@@ -772,30 +734,58 @@ no generan navegación principal
 
 no poseen CRUD ordinario
 
-no pasan por TenantModuleAccess como módulo funcional
-
 conservan ownership en el plano tenant/transversal
 
-Aclaraciones vigentes:
+CAPAS PRODUCTIVAS SATÉLITE
 
-projects puede declarar lectura contextual agregada de actividad sobre Project + Tasks mediante activity_record_set
+Representan frentes productivos especializados que orquestan módulos existentes sin convertirse automáticamente en CRUD ordinario.
 
-parties puede declarar lectura contextual especial de actividad para Party employee con membership activa vinculada mediante activity_context
+Caso vigente:
 
-inventory es módulo nuclear funcional y, frente a OperationalActivity, el ancla operativa vigente es InventoryOperation
+Servicios y Mantenimiento
 
-parties es módulo base del dominio y party_roles no constituye módulo funcional independiente
+Lectura:
+
+capa satélite productiva ERP/CMMS liviana
+
+orquesta módulos existentes
+
+no duplica ownership funcional
+
+no reabre núcleos cerrados por reflejo automático
+
+SUBCAPAS CONTEXTUALES INTERNAS
+
+Representan capacidades alojadas dentro de un módulo funcional existente que amplían su lectura contextual sin convertirse en módulo nuevo.
+
+Caso vigente:
+
+ProductOperationalSummary bajo Products.
+
+Lectura:
+
+subcapa contextual interna
+
+sin CRUD
+
+sin navegación propia
+
+sin dashboard general
+
+sin ModuleCatalog propio
+
+sin rutas propias
 
 Regla:
 
-la clasificación funcional de un módulo no autoriza excepciones de seguridad ni navegación automática.
+la clasificación funcional de un módulo o capacidad no autoriza excepciones de seguridad, navegación automática ni duplicación de ownership.
 
-La navegación, visualización y lectura autorizada se resuelven en los documentos especializados correspondientes.
+La navegación, visualización, seguridad y detalle operativo se resuelven en los documentos especializados correspondientes.
 
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00030
+SECTION_VERSION: 00031
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
@@ -806,7 +796,9 @@ Los módulos no deben relacionarse como cajas cerradas ni como núcleos invadibl
 La lectura correcta distingue tres planos:
 
 núcleo interno del módulo
+
 puerta de enlace modular oficial
+
 consumo externo
 
 NÚCLEO INTERNO
@@ -827,11 +819,12 @@ payloads
 surfaces
 row actions
 resolvers
-eventos operativos livianos cuando corresponda
-record sets explícitos cuando corresponda lectura contextual agregada
-criterios contextuales especiales cuando corresponda lectura contextual especial
+eventos operativos livianos
+record sets explícitos cuando corresponda
+criterios contextuales especiales cuando corresponda
+summary_items cuando correspondan al host
 
-Debe representar la capacidad completa del módulo oferente.
+Debe representar la capacidad del módulo oferente sin trasladar su lógica interna al consumidor.
 
 CONSUMO EXTERNO
 
@@ -846,7 +839,7 @@ El consumidor no debe absorber decisiones del módulo oferente.
 
 HUB VISUAL
 
-Un módulo puede alojar interacción de otro sin absorber su lógica.
+Un módulo puede alojar interacción o lectura de otro sin absorber su lógica.
 
 Regla:
 
@@ -858,63 +851,15 @@ TRAZABILIDAD TRANSVERSAL
 
 Cuando un módulo funcional completa una acción propia autorizada, puede emitir un evento operativo liviano para trazabilidad.
 
-La lectura arquitectónica correcta es:
+Lectura arquitectónica:
 
 módulo dueño autoriza
 módulo dueño valida
 módulo dueño ejecuta
 módulo emite evento operativo liviano
-OperationalActivity registra si corresponde
+capacidad transversal registra si corresponde
 
 OperationalActivity no reemplaza el núcleo del módulo dueño ni se convierte en intérprete principal de su dominio.
-
-La lógica de sanidad, normalización y persistencia del registro operativo pertenece a la capacidad transversal.
-
-El significado operativo primario de la acción sigue perteneciendo al módulo dueño.
-
-LECTURA CONTEXTUAL DE ACTIVIDAD
-
-OperationalActivity puede leer actividad contextual directa, agregada o contextual especial.
-
-Lectura directa:
-
-record host autorizado
-↓
-lectura de actividad asociada al host
-
-Lectura agregada:
-
-módulo dueño
-↓
-conjunto explícito de records
-↓
-lectura contextual agregada
-
-Lectura contextual especial:
-
-módulo dueño
-↓
-criterio contextual especial
-↓
-lectura contextual ampliada
-
-Regla:
-
-OperationalActivity no decide la frontera funcional agregada ni contextual especial.
-
-No debe conocer internamente relaciones propias de módulos concretos para ampliar el dataset.
-
-Caso validado de lectura agregada:
-
-Projects declara Project + Tasks como conjunto de actividad contextual visible desde projects.show.
-
-Esta decisión pertenece al módulo Projects y no a OperationalActivity.
-
-Caso validado de lectura contextual especial:
-
-Parties declara el criterio de Party employee con membership activa vinculada.
-
-Esta decisión pertenece al módulo Parties y no a OperationalActivity.
 
 SURFACES TENANT O TRANSVERSALES NO MODULARES
 
@@ -923,16 +868,26 @@ Una capacidad tenant-scoped o transversal no modular puede publicar surfaces con
 Esta vía corresponde cuando la capacidad:
 
 no es módulo funcional ordinario
+
 no posee CRUD ordinario
+
 no requiere navegación principal
+
 no se habilita o deshabilita como módulo del negocio
+
 debe ofrecer lectura o información controlada a hosts autorizados
 
-Caso validado:
+SUBCAPAS CONTEXTUALES INTERNAS
 
-OperationalActivity publica lectura contextual mediante una surface tenant/transversal.
+Un módulo puede alojar una subcapa contextual interna cuando la capacidad amplía la lectura del host sin constituir módulo propio.
 
-Esta publicación no convierte OperationalActivity en módulo funcional, no lo incorpora al conjunto de módulos ordinarios y no crea navegación principal.
+Caso vigente:
+
+ProductOperationalSummary amplía la lectura operativa de Products.
+
+Regla:
+
+una subcapa contextual interna debe mantenerse bajo ownership del módulo host y consumir datos relacionados sin absorber el ownership de los módulos que los aportan.
 
 Aclaración consolidada:
 
@@ -942,12 +897,10 @@ El flujo correcto es:
 
 módulo define
 catálogo o contrato provee metadata
-registry normaliza
+registry o surface normaliza
 host consume sin reinterpretar
 
-Cuando existan surfaces tenant/transversales no modulares, el sistema puede integrar ese origen sin degradar la frontera entre módulos funcionales ordinarios y capacidades transversales.
-
-Regla:
+Regla final:
 
 la arquitectura modular debe permitir integración sin pérdida de ownership funcional.
 
@@ -1016,7 +969,7 @@ Por lo tanto, esa necesidad no debe reinterpretarse como expansión de users ni 
 <<END SECTION>>
 
 <<SECTION: MÓDULOS FUNCIONALES ACTUALES>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00020
 
 MÓDULOS FUNCIONALES ACTUALES
 
@@ -1054,14 +1007,32 @@ orders es módulo operativo fuerte con estados que afectan operabilidad general.
 
 documents puede hospedar capacidades publicadas por otros módulos sin absorber su lógica.
 
-projects puede actuar como agrupador funcional de tasks y declarar lectura contextual agregada de actividad cuando corresponda.
+projects puede actuar como agrupador funcional de tasks.
 
-No todos los hosts show pages poseen igual madurez estructural dentro del ecosistema.
+products conserva el rol de catálogo maestro del producto y puede alojar subcapas contextuales internas cuando amplíen la lectura operativa del producto sin crear módulo nuevo.
+
+Caso vigente:
+
+ProductOperationalSummary se aloja bajo Products como subcapa contextual.
+
+No altera el conjunto de módulos funcionales actuales.
+
+No crea módulo funcional propio.
+
+No crea navegación propia.
+
+No entra al dashboard general.
+
+Regla:
+
+no todos los hosts show pages poseen igual madurez estructural dentro del ecosistema.
+
+La convergencia debe tender hacia patrones maduros ya validados, no hacia soluciones locales dispersas.
 
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00011
 
 LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES
 
@@ -1069,7 +1040,7 @@ Lectura síntesis del ecosistema vigente:
 
 orders es referencia madura para cabeceras operativas equivalentes
 
-documents formaliza flujos documentales y converge hacia patrones sólidos ya validados cuando corresponde
+documents formaliza flujos documentales y converge hacia patrones sólidos cuando corresponde
 
 inventory gobierna stock, ejecución material y trazabilidad sin absorber ownership ajeno
 
@@ -1083,45 +1054,94 @@ appointments coordina agenda y vínculos contextuales con otros módulos
 
 attachments aporta capacidad transversal de evidencias y archivos
 
+OperationalActivity sostiene trazabilidad operativa transversal sin reemplazar la operación original
+
 Regla:
 
 ningún módulo debe expandirse invadiendo el núcleo funcional de otro.
 
 La integración correcta ocurre por contratos publicados y consumo explícito.
 
+Lectura adicional para Products:
+
+Products funciona como catálogo maestro del producto.
+
+Puede alojar lecturas contextuales propias cuando no impliquen absorción de ownership de módulos relacionados.
+
+Caso vigente:
+
+ProductOperationalSummary bajo Products.
+
+Lectura adicional para capas satélite:
+
+un frente especializado como Servicios y Mantenimiento puede orquestar módulos actuales, pero no debe modificar la identidad conceptual de cada uno.
+
+Orders no debe absorber Assets.
+
+Orders no debe absorber Inventory.
+
+Orders no debe absorber Documents.
+
+Attachments no debe absorber lógica técnica de mantenimiento.
+
+OperationalActivity no debe convertirse en timeline específico por sí mismo.
+
+La IA no debe convertirse en canal paralelo de operación fuera de contratos oficiales.
+
+Regla final:
+
+los módulos actuales deben conservar ownership propio aun cuando participen en frentes productivos satélite, subcapas contextuales internas, capacidades transversales o automatizaciones futuras.
+
 <<END SECTION>>
 
 
 <<SECTION: RELACIONES MACRO DEL ECOSISTEMA>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00019
 
 RELACIONES MACRO DEL ECOSISTEMA
 
 Las siguientes relaciones expresan la lectura conceptual prioritaria del ecosistema:
 
 projects agrupa tasks
+
 tasks puede originar operación relacionada con orders
+
 appointments puede originar operación relacionada con orders
+
 assets aporta contexto transversal
+
 orders puede derivar documents
+
 orders contiene order_items
+
 products alimenta líneas operativas y documentales
+
 inventory sostiene stock y trazabilidad material
+
 parties se relaciona transversalmente con múltiples módulos
+
 attachments puede integrarse sobre múltiples recursos
+
 módulos funcionales pueden emitir actividad operativa hacia OperationalActivity
-módulos funcionales pueden declarar activity_record_set cuando necesiten lectura contextual agregada de actividad
-módulos funcionales pueden declarar activity_context cuando necesiten lectura contextual especial de actividad
+
+módulos funcionales pueden publicar fronteras explícitas para lecturas contextuales cuando corresponda
 
 Relaciones especialmente relevantes:
 
 parties como base relacional amplia
+
 products como catálogo maestro
+
 orders como núcleo operativo
+
 orders + líneas + inventory como frente de ejecución
+
 documents como prolongación documental
+
 inventory como frente operativo con agrupación contextual y movimientos unitarios
+
 projects como agrupador operativo de tasks
+
 OperationalActivity como capacidad transversal de trazabilidad operativa
 
 Reglas:
@@ -1132,30 +1152,20 @@ inventory_movements conserva trazabilidad unitaria.
 
 order_items y document_items mantienen pertenencia estructural a sus módulos padre aunque participen en flujos externos.
 
-OperationalActivity persiste actividad sobre module + record_type + record_id.
+OperationalActivity persiste actividad operativa transversal.
 
-OperationalActivity no persiste URLs finales.
+OperationalActivity no reemplaza relaciones funcionales propias de los módulos.
 
-OperationalActivity no reconstruye relaciones funcionales por sí mismo.
+Cuando exista lectura contextual ampliada de actividad, la frontera debe ser declarada por el módulo dueño y no inferida por OperationalActivity.
 
-Cuando exista lectura agregada de actividad, la frontera debe ser declarada por el módulo dueño.
+Estas relaciones describen arquitectura general.
 
-Cuando exista lectura contextual especial de actividad, el criterio debe ser declarado por el módulo dueño.
-
-Caso validado de lectura agregada:
-
-projects puede declarar Project + Tasks como conjunto de actividad contextual visible desde projects.show.
-
-Caso validado de lectura contextual especial:
-
-parties puede declarar Party employee con membership activa vinculada como criterio contextual especial para mostrar actividad directa de Party y actividad del user vinculado como actor o sujeto.
-
-Estas relaciones describen arquitectura general y no detalle de navegación, seguridad o implementación.
+No reemplazan detalle de navegación, seguridad, UI ni implementación.
 
 <<END SECTION>>
 
 <<SECTION: MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00013
 
 MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO
 
@@ -1168,6 +1178,10 @@ preservar distinción sistema/negocio
 mantener identidad conceptual
 evitar duplicaciones
 consumir capacidades existentes antes de crear variantes
+distinguir módulos ordinarios de capacidades transversales
+distinguir módulos ordinarios de capas productivas satélite
+distinguir módulos ordinarios de subcapas contextuales internas
+distinguir automatización asistida de ejecución crítica
 
 Reglas:
 
@@ -1183,16 +1197,30 @@ si una entidad hija crece, debe fortalecerse antes de promoverse a módulo
 
 los frentes transaccionales pueden incorporar agrupación contextual cuando mejore trazabilidad
 
+las capas satélite deben auditar primero qué pueden sostener los módulos actuales antes de proponer piezas nuevas
+
+las piezas satélite no deben crearse por reflejo automático
+
+las subcapas contextuales internas deben alojarse dentro del módulo host cuando no correspondan a módulo, ruta ni CRUD propio
+
+las subcapas contextuales internas deben consumir ownership de módulos relacionados sin absorberlo
+
+la IA futura debe apoyarse en datos estructurados, reglas explícitas y documentación consistente
+
+Caso vigente:
+
+ProductOperationalSummary se implementa como subcapa contextual de Products.
+
 Regla:
 
 crecer no implica mezclar responsabilidades.
 
-La dirección sigue siendo modular y con fronteras explícitas.
+La dirección sigue siendo modular, con fronteras explícitas, operación simple y formalidad progresiva cuando corresponda.
 
 <<END SECTION>>
 
 <<SECTION: CONTRATO MODULAR COMO DIRECCIÓN DE CRECIMIENTO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00006
 
 CONTRATO MODULAR COMO DIRECCIÓN DE CRECIMIENTO
 
@@ -1212,18 +1240,34 @@ los consumidores deben depender de capacidades publicadas y no de detalles inter
 
 un contrato modular válido debe permitir integrar sin borrar ownership funcional
 
+las capas satélite deben consumir contratos oficiales antes de pedir modificaciones internas
+
+las subcapas contextuales internas deben integrarse al módulo host sin convertirse automáticamente en módulos nuevos
+
+las automatizaciones futuras deben operar sobre contratos explícitos y no sobre scraping visual, inferencias frágiles o labels dispersos
+
+la IA futura debe respetar los contratos modulares del sistema y no crear canales paralelos de operación
+
 Caso vigente consolidado:
 
 orders continúa integrándose con inventory mediante servicios y puertas contractuales explícitas, sin absorber lógica interna del frente stock.
 
+Caso doctrinal adicional:
+
+Servicios y Mantenimiento debe avanzar como capa satélite productiva y no como sobrecarga directa de Orders.
+
+Caso vigente adicional:
+
+ProductOperationalSummary debe permanecer como subcapa contextual interna de Products mientras no exista justificación real para promoverla a módulo, ruta o frente independiente.
+
 Regla final:
 
-la dirección de crecimiento aprobada del proyecto continúa siendo modular, reusable y contractualmente explícita.
+la dirección de crecimiento aprobada del proyecto continúa siendo modular, reusable, contractualmente explícita y preparada para asistencia operativa progresiva.
 
 <<END SECTION>>
 
 <<SECTION: CRITERIO DE LECTURA DOCUMENTAL>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 CRITERIO DE LECTURA DOCUMENTAL
 
@@ -1239,10 +1283,20 @@ mover convenciones técnicas al documento correspondiente
 
 mover mapas concretos a documentos de navegación, entidades o componentes
 
+mover reglas de seguridad al documento especializado de seguridad
+
+mover decisiones vivas o casos puntuales al documento correspondiente
+
 actualizar solo cuando cambie la lectura arquitectónica real del sistema
 
 Objetivo de uso:
 
 permitir retomar decisiones con una base breve, clara y consistente.
+
+Regla:
+
+este documento no debe convertirse en historial de implementación.
+
+Debe sostener doctrina arquitectónica estable.
 
 <<END SECTION>>

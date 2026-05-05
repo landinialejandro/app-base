@@ -36,454 +36,101 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00002
 
 DECISIONES VIGENTES
 
-No abrir módulo users por necesidades de colaboradores internos.
+Este documento registra decisiones vivas del proyecto que todavía condicionan implementación, auditoría, continuidad o próximos pasos.
 
-La resolución vigente es:
+PRODUCTOPERATIONALSUMMARY COMO SUBCAPA CONTEXTUAL DE PRODUCTS
 
-users = identidad global
-memberships = pertenencia operativa
-raíces tenant reusables para datasets internos
+Decisión vigente:
 
-Inventory debe leerse como frente funcional real y no como efecto lateral de products.
-
-Orders conserva centralidad operativa pero puede hostear capacidades de otros módulos sin absorber su lógica.
-
-La evolución reusable correcta prioriza surfaces oficiales del módulo oferente antes que soluciones locales del consumidor.
-
-Security permanece como kernel central de autorización efectiva.
-
-Las show pages deben converger hacia slots explícitos y montaje coordinado.
-
-NavigationTrail resuelve contexto externo.
-
-return_tab complementa contexto interno del host cuando aplica.
-
-No backward patching como cierre estable de migraciones.
-
-Para parties, la constraint funcional de seguridad es allowed_party_roles.
+Products incorpora una subcapa contextual de resumen operativo denominada ProductOperationalSummary.
 
 Lectura vigente:
 
-allowed_party_roles se evalúa contra party_roles.role.
+no es módulo nuevo
+no tiene CRUD
+no tiene navegación propia
+no entra al dashboard general
+no tiene ModuleCatalog propio
+no tiene rutas propias
+se aloja bajo Products
+se monta como surface de Products
+se visualiza como summary_items en products.show
 
-allowed_kinds no aplica a parties.
+Ubicación vigente:
 
-Motivo:
+app/Support/Products/OperationalSummary/
+resources/views/products/operational-summary/
 
-parties.kind representa únicamente tipo de contacto y no relación comercial ni vínculo interno.
+Surface vigente:
 
-La gestión de contactos con relación employee se autoriza mediante PartyEmployeeContactAuthorization.
+ProductSurfaceService
 
-Regla vigente:
+Contenido de la primera versión:
 
-employee es relación sensible.
+Compras
+Ventas
+Entradas / salidas
 
-No se protege solo en UI.
+Condiciones:
 
-Debe bloquearse en backend.
+requiere Products + Inventory habilitados
+usa Orders para compras y ventas solo si Orders está habilitado
+respeta roles base
+no reemplaza permisos ni Security
+las métricas de compras y ventas usan Security::scope() sobre Orders
 
-No se notifica al owner por cada intento individual de manipulación.
+Matriz inicial vigente:
 
-Criterio acordado:
+owner: compras, ventas, inventory
+admin: compras, ventas, inventory
+administrator: compras e inventory
+sales: ventas
+operator: sin acceso
 
-primero registrar o auditar eventos sensibles
-notificar solo ante patrón, reiteración o severidad
+Ownership:
 
-Este criterio no implica implementación vigente de auditoría o notificación.
+Products presenta
+Orders aporta transacciones
+Inventory aporta movimientos y flujo material
+Parties aporta proveedor o cliente cuando corresponde
+OperationalActivity conserva trazabilidad, no métricas principales
 
-Decisión vigente sobre gobierno owner/admin:
+Exclusiones decididas:
 
-admin opera fuerte
-
-owner gobierna
-
-Lectura vigente:
-
-owner es condición estructural de gobierno del tenant
-
-owner se resuelve por memberships.is_owner
-
-admin es rol delegable de gestión operativa fuerte
-
-admin no equivale a owner
-
-admin puede tener capacidades operativas amplias
-
-owner conserva gobierno estructural del tenant
-
-Reglas vigentes:
-
-admin puede acceder a tenant/profile con restricciones
-
-owner puede editar General
-
-admin no puede editar General
-
-admin no puede modificar permisos del rol admin
-
-admin no puede asignar, delegar, quitar ni autogestionar admin
-
-admin no puede modificar su propia autoridad
-
-admin no puede vaciar sus propios roles
-
-admin puede gestionar roles operativos según contrato
-
-owner puede administrar el rol admin
-
-Pieza vigente:
-
-TenantProfileAccess
-
-Responsabilidad:
-
-centralizar reglas del frente tenant/profile y evitar duplicación entre controllers, policies y Blades.
-
-Estado:
-
-decisión implementada y validada por runtime real.
-
-Decisión vigente sobre edición de funciones de memberships:
-
-cuando la intención sea editar el conjunto completo de funciones de una membership, la salida vigente es usar sincronización de conjunto.
-
-Caso vigente:
-
-TenantMembershipRoleController::sync
+precio vigente
+último movimiento
+flete
+mano de obra
+kilómetros
+viajes
+costos accesorios
+costos indirectos
+prorrateos
+rentabilidad contable completa
+OperationalActivity como métrica principal
 
 Reglas:
 
-sync valida agregados y remociones
+no volver a include directo en products.show salvo justificación explícita basada en código real
 
-sync bloquea combinaciones sensibles
+no calcular métricas en Blade
 
-sync bloquea autogestión indebida
+no crear componente global para los partials compactos
 
-sync bloquea admin intentando asignar o combinar admin
+no crear permisos persistidos propios en esta primera versión
 
-sync bloquea admin intentando vaciar sus propios roles
+no convertir ProductOperationalSummary en módulo nuevo por tener métricas o salida visual
 
-sync permite gestionar roles operativos cuando el contrato lo autoriza
+Decisión pendiente asociada:
 
-La UI puede usar modal y checkboxes para reducir ruido visual, pero la autoridad final es backend.
+evaluar posteriormente si ProductOperationalSummary amerita permisos persistidos propios.
 
-OperationalActivity queda decidido como capacidad transversal tenant-scoped de trazabilidad operativa.
+Decisión pendiente asociada:
 
-Lectura vigente:
-
-no es CRUD ordinario
-no es navegación principal
-no pertenece a parties, tasks, orders, documents, appointments, projects, assets, products, attachments ni inventory
-no autoriza operaciones
-no reemplaza Security
-no reemplaza policies
-no valida la operación original
-no debe bloquear el flujo principal si falla el registro
-
-Regla vigente:
-
-el módulo dueño autoriza, valida y ejecuta su operación.
-
-Luego emite un evento operativo liviano.
-
-OperationalActivity registra si corresponde.
-
-La escritura de OperationalActivity es system-owned y append-only.
-
-No se implementa create manual desde UI.
-
-No se implementa edit.
-
-No se implementa update.
-
-No se implementa delete.
-
-No se implementa destroy.
-
-No se implementa carga manual por formularios.
-
-Módulos con integración validada a OperationalActivity:
-
-appointments
-tasks
-orders
-documents
-projects
-assets
-products
-attachments
-parties
-inventory
-
-Decisión vigente sobre inventory:
-
-OperationalActivity registra InventoryOperation como ancla operativa agrupada.
-
-InventoryMovement no se registra como actividad principal cuando la operación agrupada representa la acción del usuario.
-
-InventoryMovement conserva la trazabilidad fina y atómica de stock dentro de inventory.
-
-Decisión vigente sobre parties:
-
-OperationalActivity registra actividad sobre Party.
-
-Los cambios de party_roles pueden registrarse como metadata operativa dentro de la actividad de Party.
-
-party_roles no se convierte en módulo propio.
-
-party_roles no abre navegación propia.
-
-Decisión vigente sobre attachments:
-
-attachments puede registrar creación y actualización de metadata operativa.
-
-No se registra como actividad operativa vigente:
-
-download
-preview
-vista
-print
-PDF
-destroy
-
-salvo decisión explícita posterior.
-
-Decisión vigente sobre lectura general de OperationalActivity:
-
-la lectura general tenant-scoped del log operativo se autoriza mediante:
-
-operational_activity.view_any
-
-Esta capability se resuelve desde Security sin incorporar OperationalActivity a ModuleCatalog.
-
-Motivo:
-
-ModuleCatalog gobierna módulos habilitados, navegación, seeders, surfaces y permisos funcionales.
-
-Agregar OperationalActivity allí lo convertiría en módulo funcional ordinario.
-
-Por eso, OperationalActivity se mantiene como capacidad transversal tenant-scoped y su lectura general se resuelve mediante capacidad tenant no modular.
-
-Estado de asignación inicial:
-
-owner
-admin
-
-Decisión vigente sobre ubicación visual inicial:
-
-la primera lectura visual general de OperationalActivity se ubica en tenant/profile mediante tab Actividad.
-
-No se agrega navegación principal para OperationalActivity.
-
-No se implementa vista general independiente del log.
-
-Decisión vigente sobre acceso a tenant/profile:
-
-tenant/profile es accesible por owner y admin según contrato vigente.
-
-owner conserva gobierno estructural.
-
-admin accede con restricciones.
-
-Esta decisión reemplaza la lectura anterior donde tenant/profile seguía restringido solo a owner y el acceso futuro de admin estaba pendiente.
-
-Reglas:
-
-owner puede ver y editar según contrato
-
-admin puede ver tenant/profile
-
-admin no puede editar General
-
-admin no puede modificar rol admin
-
-admin no puede delegar admin
-
-admin no puede autogestionar su autoridad
-
-la UI debe expresar restricciones, pero el backend autoriza o bloquea
-
-Decisión vigente sobre lectura contextual heredada de OperationalActivity:
-
-OperationalActivity puede exponer lectura contextual asociada a un registro host autorizado.
-
-Regla vigente:
-
-si el usuario puede ver el registro host,
-puede ver la actividad operativa asociada a ese registro.
-
-Esta lectura no equivale a lectura general del log del tenant.
-
-No utiliza:
-
-operational_activity.view_any
-
-No habilita acceso general al log.
-
-No habilita acceso a otros registros.
-
-No convierte OperationalActivity en módulo funcional ordinario.
-
-No crea navegación principal.
-
-No autoriza la operación original.
-
-La autorización sigue perteneciendo al módulo host mediante su permiso view sobre el registro correspondiente.
-
-Hosts validados:
-
-tasks.show
-parties.show
-projects.show
-assets.show
-products.show
-appointments.show
-orders.show
-documents.show
-
-Infraestructura vigente:
-
-OperationalActivityContextReader
-TenantSurfaceRegistry
-OperationalActivitySurfaceService
-
-La tab contextual utiliza:
-
-key = activity
-
-No debe utilizarse:
-
-operational_activity.contextual
-
-Decisión vigente sobre lectura contextual agregada de OperationalActivity:
-
-OperationalActivity no decide la frontera funcional de actividad agregada.
-
-Cada módulo puede declarar opcionalmente un activity_record_set.
-
-Si no hay activity_record_set, la lectura contextual es directa sobre el record host autorizado.
-
-Si hay activity_record_set, la lectura contextual usa el conjunto definido por el módulo dueño.
-
-Caso validado:
-
-Projects declara ProjectActivityRecordSet.
-
-ProjectActivityRecordSet define Project + Tasks como dataset de actividad visible del proyecto.
-
-Motivo:
-
-esto permite construir una lectura tipo camino operativo del proyecto sin contaminar la capa transversal.
-
-Reglas:
-
-OperationalActivity no debe hardcodear relaciones internas de módulos
-
-no debe implementarse una condición como si record es Project, traer Tasks
-
-no debe aplicarse recursividad automática para ampliar la actividad contextual
-
-el módulo dueño define la frontera funcional cuando corresponde
-
-activity_record_set no autoriza records por sí mismo
-
-activity_record_set no habilita lectura general del tenant
-
-activity_record_set no altera ownership funcional de los records incluidos
-
-Decisión vigente sobre lectura contextual especial de OperationalActivity:
-
-OperationalActivity no decide la frontera funcional de actividad contextual especial.
-
-Cada módulo puede declarar opcionalmente un activity_context.
-
-Si no hay activity_context ni activity_record_set, la lectura contextual es directa sobre el record host autorizado.
-
-Si hay activity_context, la lectura contextual usa el criterio definido por el módulo dueño.
-
-Caso validado:
-
-Parties declara PartyEmployeeActivityContext.
-
-PartyEmployeeActivityContext define la lectura contextual de Party employee con membership activa vinculada.
-
-Esa lectura puede incluir:
-
-actividad directa de Party
-actividad donde el user vinculado sea actor_user_id
-actividad donde el user vinculado sea subject_user_id
-
-Motivo:
-
-esto permite que la ficha ampliada employee funcione como centro contextual de actividad del colaborador sin convertir users, memberships ni party_roles en módulos funcionales.
-
-Reglas:
-
-OperationalActivity no debe hardcodear employee
-
-OperationalActivity no debe hardcodear parties
-
-OperationalActivity no debe hardcodear memberships
-
-OperationalActivity no debe hardcodear users
-
-el módulo dueño define la frontera contextual especial
-
-activity_context no autoriza records por sí mismo
-
-activity_context no habilita lectura general del tenant
-
-activity_context no reemplaza activity_record_set
-
-Decisión vigente sobre seeders demo operativos:
-
-los seeders demo que representan carga operativa real no deben funcionar como simples pobladores silenciosos de tablas cuando el sistema ya posee eventos operativos y trazabilidad transversal.
-
-La carga demo debe tender a simular una operación real del sistema respetando:
-
-catálogos vigentes
-lifecycle real
-eventos operativos livianos cuando corresponda
-cola
-persistencia en OperationalActivity cuando corresponda
-
-Esta decisión no convierte todos los seeders en simuladores completos de UI ni en flujos HTTP.
-
-La decisión vigente es usar código interno del sistema, modelos, servicios y eventos reales, sin depender de controllers, requests web, navegador o sesión HTTP.
-
-Reglas:
-
-los seeders demo no deben sostener compatibilidades legacy internas indefinidas
-
-los seeders demo no deben corregir silenciosamente payloads antiguos
-
-los seeders demo no deben aceptar entradas legacy para reinterpretarlas al contrato nuevo
-
-los seeders demo deben hablar directamente el contrato vigente del módulo
-
-los seeders demo deben fallar fuerte si el payload no cumple el contrato vigente
-
-Caso vigente de Orders:
-
-OrderModuleSeeder no debe conservar adaptadores silenciosos como conversión de kind = sale/purchase/service hacia el modelo nuevo.
-
-El contrato vigente para seeders de orders debe expresarse directamente como:
-
-group = sale|purchase|service
-kind = standard
-
-Decisiones de alcance:
-
-InventoryModuleSeeder se mantiene por ahora con movimientos, sin reconversión completa a simulación operativa agrupada.
-
-AttachmentDemoSeeder no se simula dentro de este frente.
-
-Estado:
-
-decisión implementada parcialmente y validada en seeders demo operativos de parties, orders y documents.
+evaluar línea futura separada de costos directos operativos para flete, mano de obra, viajes, kilómetros, prorrateos y costos accesorios.
 
 <<END SECTION>>

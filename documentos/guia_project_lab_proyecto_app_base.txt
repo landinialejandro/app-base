@@ -10,7 +10,7 @@ GESTIÓN: Guía rectora para uso local de Project Lab como herramienta operativa
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 OBJETIVO
 
@@ -32,6 +32,7 @@ evitar cambios manuales dispersos
 mantener trazabilidad local de las intervenciones
 validar eventos, colas y persistencia cuando el frente técnico lo requiera
 ejecutar acciones operativas locales fuera del producto cuando correspondan al entorno de desarrollo
+asistir auditorías fuertes de código real antes de implementar capas productivas o cambios sensibles
 
 Project Lab no reemplaza:
 
@@ -41,6 +42,8 @@ validación de seguridad
 revisión de código real
 pruebas funcionales en navegador
 auditorías específicas cuando correspondan
+runtime real
+evidencia de esquema, rutas, contratos o relaciones existentes
 
 Project Lab ejecuta tareas.
 
@@ -131,10 +134,18 @@ Eso no convierte queue:work en funcionalidad del SaaS productivo.
 
 En producción debe definirse un worker persistente supervisado por infraestructura.
 
+Regla para auditorías fuertes:
+
+cuando el frente de trabajo sea Servicios y Mantenimiento, IA operativa, seguridad, Orders, Inventory, Documents, OperationalActivity o cualquier reconversión sensible, Project Lab debe usarse para obtener evidencia real antes de proponer implementación.
+
+La auditoría fuerte debe trabajar con comandos ejecutables, salidas verificables, rutas reales y runtime real.
+
+No debe ejecutarse un prompt de chat como si fuera comando.
+
 <<END SECTION>>
 
 <<SECTION: PRINCIPIO RECTOR>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 PRINCIPIO RECTOR
 
@@ -188,10 +199,40 @@ si el seeder habla un contrato viejo, debe corregirse el seeder.
 
 No debe agregarse compatibilidad silenciosa para que el contrato viejo siga pasando.
 
+Regla adicional para Servicios y Mantenimiento:
+
+no asumir que Orders ya soporta la implementación requerida.
+
+No asumir que Products ya soporta servicios, mano de obra, repuestos, alternativos o paquetes.
+
+No asumir que Assets ya cubre todo objeto técnico mantenible.
+
+No asumir que Inventory ya cubre custodia operativa de materiales.
+
+No asumir que Documents ya cubre cierre administrativo ampliado.
+
+No asumir que OperationalActivity ya cubre línea de tiempo operativa específica de mantenimiento.
+
+Todo debe auditarse contra código real, esquema real, catálogos reales, rutas reales, UI real, seguridad real y runtime real antes de implementar.
+
+Regla adicional para IA:
+
+no asumir proveedor IA pago.
+
+No asumir API key disponible.
+
+No asumir integración inmediata.
+
+No asumir que la IA puede ejecutar acciones si el contrato oficial del módulo dueño no lo permite.
+
+La asistencia IA puede preparar auditorías, interpretar salidas, organizar evidencia, proponer bloques documentales o ayudar a diseñar pruebas.
+
+No reemplaza validación runtime.
+
 <<END SECTION>>
 
 <<SECTION: NATURALEZA DE PROJECT LAB>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 NATURALEZA DE PROJECT LAB
 
@@ -220,6 +261,7 @@ consola unificada
 copiado de salida para compartir en chat
 persistencia auxiliar de salida local cuando corresponda
 acciones operativas locales de soporte, como procesar cola pendiente en entorno de desarrollo
+auditorías fuertes sobre código real antes de cambios sensibles
 
 Project Lab debe leerse como estación operativa local del proyecto.
 
@@ -239,10 +281,20 @@ Project Lab puede facilitar el procesamiento manual de colas en local cuando sea
 
 Esta capacidad no debe trasladarse como botón, acción o pantalla dentro del producto SaaS.
 
+Regla específica para IA:
+
+la IA puede asistir el trabajo con Project Lab preparando snippets, auditorías conceptuales, interpretación de errores, lectura de salidas runtime, generación de bloques documentales y planificación de pruebas.
+
+La IA no reemplaza Project Lab.
+
+La IA no valida runtime por sí misma.
+
+La IA no debe dar por implementado, probado o cerrado un cambio sin evidencia producida por herramientas reales, navegador, runtime o auditoría correspondiente.
+
 <<END SECTION>>
 
 <<SECTION: HERRAMIENTAS DISPONIBLES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 HERRAMIENTAS DISPONIBLES
 

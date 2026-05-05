@@ -1,0 +1,1420 @@
+<<SECTION: METADATOS>>
+SECTION_VERSION: 00001
+
+TÍTULO: Capa IA operativa
+DOC_SLUG: capa_ia_operativa_app_base
+DOC_VERSION: 00001
+TIPO: doctrinal-operativo
+ESTADO: activo
+GESTIÓN: Documento rector para definir la inteligencia artificial como capa transversal, flexible y progresiva dentro del sistema app-base.
+<<END SECTION>>
+
+<<SECTION: OBJETIVO DEL DOCUMENTO>>
+SECTION_VERSION: 00001
+
+OBJETIVO DEL DOCUMENTO
+
+Este documento define la lectura doctrinal y operativa de la inteligencia artificial dentro del sistema app-base.
+
+Su función es establecer que la IA debe ser concebida como una capa transversal del sistema y no como una funcionalidad aislada, un módulo ordinario o una integración rígida con un proveedor específico.
+
+Este documento busca:
+
+definir la IA como agente transversal del sistema
+establecer principios para diseñar datos, reglas y módulos compatibles con asistencia IA
+evitar dependencias tempranas con servicios pagos
+permitir una implementación inicial flexible, gratuita o local
+mantener abierta la migración futura a proveedores externos
+definir límites de seguridad, autorización y supervisión humana
+orientar la automatización progresiva del sistema
+evitar fantasías técnicas o promesas no implementables
+preservar la arquitectura modular vigente de app-base
+
+No define:
+
+proveedor final de IA
+modelo final a utilizar
+API key obligatoria
+implementación técnica inmediata
+costos futuros
+pantallas específicas
+prompts finales
+flujo cerrado de agentes
+automatizaciones definitivas
+
+Regla:
+
+este documento marca doctrina y dirección operativa.
+
+Toda implementación futura de IA debe validarse contra código real, documentación activa, seguridad, permisos, tenant activo, módulos habilitados, trazabilidad, runtime y presupuesto disponible.
+
+<<END SECTION>>
+
+<<SECTION: NATURALEZA TRANSVERSAL DE LA IA>>
+SECTION_VERSION: 00001
+
+NATURALEZA TRANSVERSAL DE LA IA
+
+La inteligencia artificial en app-base debe entenderse como una capa transversal del sistema.
+
+No debe leerse como:
+
+módulo funcional ordinario
+CRUD independiente
+chat lateral decorativo
+función exclusiva de mantenimiento
+dependencia rígida de un proveedor externo
+automatización opaca
+reemplazo de la arquitectura del sistema
+
+Debe leerse como:
+
+agente transversal de asistencia
+capa de reducción de fricción
+capacidad de análisis contextual
+motor de preparación operativa
+asistente para toma de decisiones
+organizador de información
+copiloto del usuario
+facilitador del trabajo diario
+soporte progresivo para automatización
+
+La IA puede actuar sobre distintos frentes del sistema:
+
+dashboard
+orders
+documents
+products
+inventory
+assets
+appointments
+tasks
+parties
+attachments
+operational activity
+tenant profile
+permisos y configuración
+servicios y mantenimiento
+indicadores operativos
+documentación técnica
+procesos internos
+
+Regla:
+
+ningún módulo debe crear una IA propia aislada si la necesidad puede resolverse desde una capa IA transversal.
+
+La IA debe consumir contratos claros del sistema y no invadir ownership funcional de los módulos.
+
+<<END SECTION>>
+
+<<SECTION: PREMISA ECONÓMICA Y FLEXIBILIDAD>>
+SECTION_VERSION: 00001
+
+PREMISA ECONÓMICA Y FLEXIBILIDAD
+
+La capa IA de app-base debe diseñarse considerando que el presupuesto inicial disponible para servicios pagos de inteligencia artificial puede ser cero.
+
+Premisa vigente:
+
+no asumir disponibilidad de API key paga
+no asumir suscripción activa a OpenAI u otro proveedor
+no diseñar la arquitectura inicial como dependiente de costos externos
+no bloquear la evolución del sistema por falta de presupuesto
+permitir pruebas locales, gratuitas o de bajo costo
+mantener abstracción suficiente para migrar de proveedor en el futuro
+
+La primera etapa de la capa IA debe poder avanzar con:
+
+diseño doctrinal
+estructuración de datos
+preparación de contratos
+documentación clara
+prompts manuales
+uso asistido desde ChatGPT externo cuando corresponda
+herramientas locales
+modelos locales o gratuitos si resultan técnicamente viables
+procesos semiautomáticos
+intervención humana controlada
+
+Regla:
+
+la arquitectura debe separar la intención IA del proveedor IA.
+
+El sistema no debe quedar acoplado de forma temprana a una API específica.
+
+Lectura esperada:
+
+app-base define qué necesita pedir, leer, preparar, resumir o sugerir.
+
+El proveedor IA concreto se decide después, según viabilidad técnica, costo, rendimiento y seguridad.
+
+Regla final:
+
+la falta de presupuesto no debe impedir diseñar correctamente la capa IA.
+
+Debe impedir, únicamente, asumir una implementación paga obligatoria.
+
+<<END SECTION>>
+
+<<SECTION: IA COMO CAPA DE REDUCCIÓN DE FRICCIÓN>>
+SECTION_VERSION: 00001
+
+IA COMO CAPA DE REDUCCIÓN DE FRICCIÓN
+
+La función principal de la IA en app-base es reducir fricción operativa.
+
+La IA debe ayudar a que el usuario trabaje menos manualmente, comprenda mejor la información disponible y ejecute acciones con menor carga cognitiva.
+
+La IA puede asistir en:
+
+resumir información extensa
+ordenar datos dispersos
+detectar pendientes
+sugerir próximos pasos
+preparar borradores
+proponer acciones
+identificar inconsistencias
+clasificar información
+explicar estados
+seleccionar documentación relevante
+sugerir vínculos entre registros
+preparar reportes
+ayudar a interpretar actividad operativa
+ayudar a crear órdenes, tareas o documentos en borrador
+ayudar a planificar mantenimiento
+ayudar a preparar decisiones del owner o usuario responsable
+
+La IA no debe aumentar complejidad.
+
+No debe obligar al usuario a:
+
+comprender prompts técnicos
+recorrer más pantallas
+resolver parámetros internos
+conocer estructura de tablas
+entender contratos modulares
+interpretar JSON
+distinguir manualmente reglas de seguridad
+operar como técnico del sistema
+
+Regla:
+
+la IA debe absorber complejidad y devolver opciones comprensibles.
+
+El usuario debe conservar control, decisión y visibilidad.
+
+<<END SECTION>>
+
+<<SECTION: IA Y BASE OPERATIVA DEL SISTEMA>>
+SECTION_VERSION: 00003
+
+IA Y BASE OPERATIVA DEL SISTEMA
+
+La IA solo puede operar correctamente si el sistema posee una base operativa clara.
+
+La base operativa requerida incluye:
+
+módulos con ownership funcional definido
+catálogos explícitos
+contratos de entrada y salida
+validaciones backend
+permisos efectivos
+constraints funcionales
+tenant activo
+módulos habilitados
+lifecycle claro
+datos estructurados
+relaciones explícitas
+surfaces reutilizables
+trazabilidad operativa
+documentación técnica actualizada
+taxonomías mínimas y no ambiguas
+diferenciación entre lifecycle y estado operativo
+separación entre texto libre y datos explotables
+fronteras claras entre módulos, piezas satélite, subcapas contextuales internas y capacidades transversales
+
+Regla:
+
+la IA no debe depender de inferencias frágiles sobre pantallas, textos dispersos o decisiones no documentadas.
+
+El sistema debe construirse con abstracciones claras para que una futura IA pueda comprender qué existe, qué puede hacer, qué no puede hacer y qué reglas debe respetar.
+
+Principio:
+
+reglas claras permiten asistencia IA confiable.
+
+datos estructurados permiten análisis IA útil.
+
+trazabilidad permite reconstrucción IA del proceso.
+
+ownership modular evita invasión funcional.
+
+permisos claros evitan acciones indebidas.
+
+lenguaje por rubro permite comunicación humana adecuada.
+
+documentación vigente evita reconstruir doctrina desde conversaciones dispersas.
+
+Regla adicional:
+
+si una capacidad futura pretende ser asistida por IA, debe exponer información mediante contratos claros, datos estructurados, catálogos, surfaces o lecturas autorizadas.
+
+No debe depender de scraping visual ni labels dispersos.
+
+Caso vigente:
+
+ProductOperationalSummary genera una base estructurada futura potencialmente consumible por IA.
+
+La capa provee lectura estructurada del producto sobre:
+
+compras
+ventas
+entradas
+salidas
+proveedor actual o anterior cuando exista relación real
+promedios
+cantidades
+
+Esta lectura no implica implementación IA actual.
+
+Regla:
+
+una futura IA debe consumir ProductOperationalSummary como contrato o lectura estructurada autorizada, no inferir métricas desde la pantalla.
+
+Todo uso futuro por IA debe respetar:
+
+tenant activo
+módulos habilitados
+roles
+Security
+ownership de Products
+ownership de Orders
+ownership de Inventory
+ownership de Parties
+visibilidad contextual de la subcapa
+
+Regla final:
+
+la base operativa debe preparar al sistema para IA futura sin implementar automatización antes de tener contratos, datos y seguridad suficientes.
+
+<<END SECTION>>
+
+<<SECTION: IA Y OWNERSHIP MODULAR>>
+SECTION_VERSION: 00003
+
+IA Y OWNERSHIP MODULAR
+
+La IA debe respetar el ownership modular del sistema.
+
+Cada módulo conserva su responsabilidad funcional.
+
+La IA puede:
+
+leer contexto autorizado
+resumir información
+sugerir acciones
+preparar borradores
+ordenar datos
+detectar inconsistencias
+proponer próximos pasos
+asistir clasificación
+ayudar a interpretar actividad
+preparar contexto para decisión humana
+
+La IA no debe:
+
+duplicar lógica propia de módulos
+crear canales paralelos de operación
+saltar contratos oficiales
+mezclar ownership de módulos distintos
+interpretar pantallas como fuente primaria
+inferir reglas no documentadas
+crear datos fuera del módulo dueño
+resolver permisos por sí misma
+convertirse en módulo dueño de procesos operativos
+
+Regla:
+
+si una acción pertenece a Orders, la ejecución final pertenece a Orders.
+
+Si una acción pertenece a Inventory, la ejecución final pertenece a Inventory.
+
+Si una acción pertenece a Documents, la ejecución final pertenece a Documents.
+
+Si una acción pertenece a Products, la ejecución final pertenece a Products.
+
+Si una acción pertenece a Parties, la ejecución final pertenece a Parties.
+
+La IA puede preparar, pero el módulo dueño ejecuta bajo su contrato.
+
+Regla adicional para subcapas contextuales:
+
+una subcapa contextual interna no modifica ownership modular.
+
+Caso vigente:
+
+ProductOperationalSummary se aloja bajo Products y presenta resumen contextual del producto.
+
+Pero:
+
+Orders conserva ownership de compras y ventas reales.
+
+Inventory conserva ownership de entradas, salidas y movimientos.
+
+Parties conserva ownership de proveedor o cliente cuando existe relación real.
+
+OperationalActivity conserva trazabilidad transversal.
+
+Products conserva ownership de catálogo y presentación contextual.
+
+Regla IA:
+
+una futura IA que consuma ProductOperationalSummary debe respetar esa frontera.
+
+No debe interpretar que Products es dueño de compras, ventas, proveedores, movimientos o trazabilidad.
+
+Regla final:
+
+la IA debe operar como capa de asistencia sobre contratos modulares claros, no como reemplazo del modelo modular.
+
+<<END SECTION>>
+
+<<SECTION: IA Y SEGURIDAD>>
+SECTION_VERSION: 00003
+
+IA Y SEGURIDAD
+
+La IA no reemplaza la seguridad del sistema.
+
+Toda acción asistida por IA debe respetar:
+
+tenant activo
+membership activa
+módulos habilitados
+permisos efectivos
+roles y capacidades
+constraints funcionales
+estado del registro
+lifecycle
+policies
+Security
+validaciones backend
+contratos del módulo dueño
+ownership modular
+scopes visibles
+estado terminal de los recursos
+confirmación humana cuando corresponda
+
+La IA no debe:
+
+ver información no autorizada
+sugerir acciones imposibles para el usuario
+ejecutar acciones sin permiso
+saltar scopes
+ignorar constraints
+crear registros fuera del tenant
+modificar estados bloqueados
+operar sobre órdenes cerradas sin reapertura autorizada
+consumir stock sin autorización
+cerrar procesos críticos sin confirmación
+generar documentos finales sin validación
+inventar datos faltantes
+usar contexto de otro tenant
+inferir permisos desde la UI
+actuar como superusuario
+
+Regla:
+
+la IA puede asistir dentro del marco autorizado del usuario.
+
+No debe ampliar privilegios.
+
+No debe convertirse en superusuario.
+
+No debe operar por fuera de Security.
+
+Regla adicional:
+
+si la IA prepara una acción, la ejecución final debe volver a pasar por el contrato oficial del módulo dueño.
+
+La sugerencia IA no es autorización.
+
+El borrador IA no es operación ejecutada.
+
+La automatización IA no reemplaza validación backend.
+
+Regla adicional para subcapas contextuales:
+
+la IA no debe consumir una subcapa contextual si el usuario no puede verla o si no se cumplen sus condiciones de visibilidad.
+
+Caso vigente:
+
+ProductOperationalSummary requiere Products + Inventory habilitados.
+
+Orders habilitado permite compras y ventas solo cuando el usuario posee dataset visible según Security.
+
+Si Orders no está habilitado o el usuario no tiene dataset visible, la IA no debe inferir ni reconstruir métricas transaccionales desde otras fuentes.
+
+Matriz inicial vigente de la subcapa:
+
+owner: compras, ventas, inventory
+admin: compras, ventas, inventory
+administrator: compras e inventory
+sales: ventas
+operator: sin acceso
+
+Regla:
+
+operator no debe recibir asistencia IA basada en ProductOperationalSummary si la capa no es visible para ese rol.
+
+Regla final:
+
+la IA debe consumir únicamente datos autorizados, preparados y compatibles con el contrato vigente de seguridad.
+
+<<END SECTION>>
+
+<<SECTION: IA Y SUPERVISIÓN HUMANA>>
+SECTION_VERSION: 00001
+
+IA Y SUPERVISIÓN HUMANA
+
+La IA puede proponer, preparar, resumir, completar borradores y sugerir acciones.
+
+La persona responsable conserva supervisión, criterio, validación y aprobación cuando corresponda.
+
+La supervisión humana es especialmente necesaria en acciones críticas.
+
+Acciones críticas posibles:
+
+crear una orden real
+cerrar una orden
+cancelar una orden
+aprobar un documento
+cerrar un documento
+consumir stock
+revertir consumos
+programar una visita
+asignar técnico o responsable
+registrar certificación
+confirmar cumplimiento de checklist
+resolver pendiente técnico
+modificar permisos
+habilitar módulos
+enviar comunicaciones externas
+emitir informes finales
+eliminar registros
+modificar datos sensibles
+
+Regla:
+
+la IA puede preparar borradores para revisión humana.
+
+Las acciones críticas deben requerir confirmación humana o una regla explícita de automatización previamente aprobada.
+
+Regla de experiencia:
+
+la confirmación humana no debe convertirse en fricción innecesaria.
+
+Debe aparecer donde exista riesgo real, impacto operativo, trazabilidad relevante o consecuencia irreversible.
+
+<<END SECTION>>
+
+<<SECTION: IA Y TRAZABILIDAD>>
+SECTION_VERSION: 00001
+
+IA Y TRAZABILIDAD
+
+La participación de la IA debe ser trazable cuando tenga impacto operativo relevante.
+
+No toda interacción con IA debe generar actividad operativa.
+
+Sí debe evaluarse trazabilidad cuando la IA:
+
+prepara una acción crítica
+genera un borrador operativo importante
+sugiere una decisión que luego se aplica
+modifica datos mediante confirmación humana
+participa en cierre de procesos
+resume información para una decisión
+propone transformación de pendientes
+sugiere consumo de materiales
+interviene en generación documental
+ayuda a resolver una alerta
+
+Regla:
+
+la trazabilidad no debe registrar ruido.
+
+Debe registrar actividad con valor operativo real.
+
+Cuando corresponda, debe poder quedar claro:
+
+qué sugirió la IA
+qué aceptó o modificó la persona
+qué acción final se ejecutó
+quién confirmó
+cuándo ocurrió
+sobre qué registros impactó
+qué módulo fue dueño de la operación
+
+Regla:
+
+OperationalActivity puede registrar efectos operativos autorizados, pero no debe transformarse en repositorio bruto de conversaciones IA.
+
+Si se requiere historial de interacción IA, debe evaluarse una pieza específica futura.
+
+<<END SECTION>>
+
+<<SECTION: IA Y DOCUMENTACIÓN>>
+SECTION_VERSION: 00001
+
+IA Y DOCUMENTACIÓN
+
+La documentación del proyecto debe facilitar el trabajo futuro de la IA.
+
+Esto implica:
+
+documentos con DOC_SLUG claro
+secciones versionadas
+reglas explícitas
+contratos definidos
+nombres consistentes
+referencias internas por DOC_REF
+baja redundancia
+evitar decisiones implícitas
+mantener doctrina actualizada
+
+La IA futura debe poder consultar o recibir contexto documental sin tener que reconstruir reglas desde conversaciones dispersas.
+
+Regla:
+
+las decisiones estructurales que afecten al sistema deben documentarse.
+
+Las reglas críticas no deben quedar solo en memoria, chat o código disperso.
+
+La documentación debe permitir que una IA pueda responder:
+
+qué módulo es dueño de qué
+qué capacidad debe consumir
+qué regla no puede violar
+qué flujo está vigente
+qué está pendiente
+qué no debe asumirse
+qué documento debe revisar
+
+Regla final:
+
+la documentación no es solo soporte humano.
+
+También es infraestructura conceptual para una futura capa IA confiable.
+
+<<END SECTION>>
+
+<<SECTION: IA Y LENGUAJE POR RUBRO>>
+SECTION_VERSION: 00001
+
+IA Y LENGUAJE POR RUBRO
+
+La IA debe poder adaptarse progresivamente al lenguaje del rubro del tenant.
+
+El sistema ya contempla una base inicial de rubro del tenant mediante configuración en el perfil de empresa.
+
+La IA debe respetar la diferencia entre:
+
+semántica interna estable
+lenguaje visible adaptado al rubro
+
+Ejemplos de semántica interna:
+
+asset
+order
+task
+document
+appointment
+checklist
+certificate
+service
+maintenance_plan
+inventory_operation
+
+Ejemplos de lenguaje visible posible:
+
+activo
+equipo
+vehículo
+máquina
+instrumento
+unidad
+moto
+ficha
+tratamiento
+orden
+trabajo
+servicio
+intervención
+prestación
+certificado
+informe
+constancia
+protocolo
+revisión
+
+Regla:
+
+la IA debe razonar sobre conceptos internos estables, pero comunicarse con el usuario usando lenguaje comprensible y adecuado al rubro.
+
+La IA no debe encerrar al sistema en el vocabulario de un único sector.
+
+Debe poder asistir a distintos rubros usando la misma base funcional.
+
+Ejemplos:
+
+taller de motos
+taller de autos
+maquinaria
+alquiler de equipos
+calibración eléctrica
+calibración mecánica
+herrería
+tornería
+lavadero
+odontología
+servicio técnico
+mantenimiento industrial
+facility management
+
+Regla final:
+
+el lenguaje por rubro es una condición para que la IA reduzca fricción real y no obligue al usuario a hablar como el sistema.
+
+<<END SECTION>>
+
+<<SECTION: IA Y DATOS ESTRUCTURADOS>>
+SECTION_VERSION: 00001
+
+IA Y DATOS ESTRUCTURADOS
+
+La IA necesita datos estructurados para operar con confiabilidad.
+
+El sistema debe evitar, cuando el objetivo futuro sea automatización, que la información crítica quede únicamente como texto libre.
+
+Ejemplos de información que debería tender a estructura progresiva:
+
+tipo de orden
+tipo de servicio
+ámbito de servicio
+modalidad de ejecución
+asset vinculado
+party vinculada
+estado operativo
+pendientes
+checklists
+materiales previstos
+materiales usados
+consumos
+certificaciones
+vencimientos
+próximas visitas
+documentación técnica aplicable
+evidencias requeridas
+resultado de intervención
+
+El texto libre puede existir.
+
+Pero no debe ser el único soporte para datos que luego deban ser:
+
+filtrados
+auditados
+resumidos
+automatizados
+medidos
+sugeridos
+convertidos en tareas
+convertidos en órdenes
+usados para alertas
+leídos por IA
+
+Regla:
+
+cuando una información tenga valor operativo futuro, debe evaluarse si corresponde estructura, catálogo, relación, entidad hija, metadata controlada o pieza satélite.
+
+No debe resolverse todo como notas.
+
+<<END SECTION>>
+
+<<SECTION: IA Y AUTOMATIZACIÓN PROGRESIVA>>
+SECTION_VERSION: 00001
+
+IA Y AUTOMATIZACIÓN PROGRESIVA
+
+La automatización con IA debe incorporarse de forma progresiva.
+
+No debe empezar ejecutando acciones críticas sin base suficiente.
+
+Orden evolutivo esperado:
+
+lectura asistida
+resumen
+clasificación
+sugerencia
+borrador
+preparación de acción
+confirmación humana
+ejecución controlada
+automatización bajo regla explícita
+
+Ejemplos de evolución:
+
+primero resumir historial
+luego sugerir pendiente
+luego preparar tarea en borrador
+luego permitir crear tarea con confirmación
+luego sugerir automatización si el patrón se repite
+
+Regla:
+
+no automatizar lo que todavía no está modelado.
+
+No automatizar lo que no tiene seguridad clara.
+
+No automatizar lo que no tiene trazabilidad suficiente.
+
+No automatizar lo que exige criterio humano no formalizado.
+
+Regla final:
+
+la IA debe avanzar por capas, igual que el resto del sistema.
+
+<<END SECTION>>
+
+<<SECTION: IA Y PRESUPUESTO CERO>>
+SECTION_VERSION: 00001
+
+IA Y PRESUPUESTO CERO
+
+La etapa inicial de app-base debe contemplar que el desarrollo se realiza con recursos limitados.
+
+Condiciones de partida posibles:
+
+sin capital para API paga
+sin infraestructura dedicada
+notebook local antiguo
+trabajo manual asistido por ChatGPT externo
+herramientas gratuitas
+validaciones locales
+implementaciones mínimas
+pruebas de concepto graduales
+
+Regla:
+
+no diseñar la capa IA como si existiera desde el inicio infraestructura enterprise.
+
+La primera etapa debe priorizar:
+
+doctrina clara
+interfaces limpias
+datos estructurados
+separación de proveedores
+contratos internos
+preparación documental
+procesos manuales asistidos
+posibilidad de prueba local
+posibilidad de reemplazo futuro
+
+Alternativas conceptuales iniciales:
+
+uso manual de prompts desde fuera del sistema
+exportación controlada de contexto autorizado
+plantillas de prompts por módulo
+resúmenes generados manualmente y luego cargados
+modelos locales si el hardware lo permite
+servicios gratuitos o free tier si existieran y fueran viables
+adaptador abstracto para proveedor futuro
+
+Regla:
+
+no incorporar dependencia obligatoria de OpenAI, Anthropic, Google u otro proveedor en la arquitectura central sin una capa de abstracción.
+
+Regla final:
+
+el presupuesto cero obliga a diseñar mejor, no a renunciar a la capa IA.
+
+<<END SECTION>>
+
+<<SECTION: IA Y PROVEEDORES REEMPLAZABLES>>
+SECTION_VERSION: 00001
+
+IA Y PROVEEDORES REEMPLAZABLES
+
+La capa IA debe diseñarse para que el proveedor sea reemplazable.
+
+El sistema debe distinguir:
+
+intención operativa
+contexto autorizado
+prompt o instrucción
+modelo/proveedor
+respuesta
+validación
+acción final
+
+El proveedor puede cambiar en el futuro.
+
+Opciones posibles:
+
+sin proveedor integrado
+uso manual externo
+modelo local
+servicio gratuito
+API paga
+proveedor cloud
+agente propio
+servicio híbrido
+
+Regla:
+
+el sistema no debe mezclar reglas de negocio con llamadas directas a un proveedor específico.
+
+Si se implementa una integración IA, debe existir una abstracción intermedia.
+
+Esa abstracción debería permitir definir:
+
+provider
+modelo
+capacidad
+límite de tokens o tamaño
+modo de uso
+costo estimado si corresponde
+timeout
+fallback
+registro de errores
+nivel de confianza
+modo manual o automático
+
+Regla final:
+
+app-base debe preparar una capa IA flexible, no una dependencia rígida.
+
+<<END SECTION>>
+
+<<SECTION: IA Y ACCIONES CRÍTICAS>>
+SECTION_VERSION: 00001
+
+IA Y ACCIONES CRÍTICAS
+
+Las acciones críticas requieren especial control cuando participa IA.
+
+Una acción crítica es toda acción que puede afectar:
+
+datos persistentes
+estado operativo
+stock
+documentación formal
+permisos
+agenda
+responsabilidades
+historial técnico
+trazabilidad relevante
+comunicaciones externas
+costos
+cierre de procesos
+
+Ejemplos:
+
+crear orden
+aprobar orden
+cerrar orden
+cancelar orden
+crear documento final
+aprobar documento
+cerrar documento
+consumir inventario
+revertir inventario
+crear tarea crítica
+marcar pendiente como resuelto
+programar visita
+confirmar certificación
+modificar permisos
+habilitar módulo
+eliminar registro
+
+Reglas:
+
+la IA no debe ejecutar acciones críticas sin autorización y validación.
+
+la IA no debe omitir confirmación humana salvo regla explícita aprobada.
+
+la IA no debe ocultar el impacto de la acción.
+
+la IA no debe presentar como certeza una inferencia débil.
+
+la IA no debe inventar información faltante.
+
+la IA no debe completar datos críticos sin indicar origen o incertidumbre.
+
+Regla final:
+
+la IA puede preparar acciones críticas, pero la ejecución debe permanecer controlada.
+
+<<END SECTION>>
+
+<<SECTION: IA Y SERVICIOS DE MANTENIMIENTO>>
+SECTION_VERSION: 00001
+
+IA Y SERVICIOS DE MANTENIMIENTO
+
+En el paquete de Servicios y Mantenimiento, la IA puede asumir el rol de agente planificador asistente.
+
+Esta es una aplicación específica de la capa IA transversal.
+
+La IA puede ayudar a:
+
+analizar historial técnico del asset
+resumir intervenciones previas
+identificar pendientes abiertos
+sugerir checklist aplicable
+sugerir documentación técnica relevante
+sugerir materiales previstos
+detectar repuestos frecuentes
+advertir faltantes
+sugerir productos alternativos cuando exista contrato válido
+preparar orden electrónica de trabajo
+redactar borrador de informe técnico
+proponer próxima visita
+detectar vencimientos
+clasificar evidencias
+preparar cierre técnico para revisión
+
+Regla:
+
+esta capacidad no convierte a la IA en módulo exclusivo de mantenimiento.
+
+Servicios y Mantenimiento es un frente donde la IA se pone el gorro de planificador.
+
+La misma capa IA transversal puede adoptar otros roles operativos en otros frentes del sistema.
+
+Regla final:
+
+el agente IA planificador debe reducir fricción sin reemplazar seguridad, trazabilidad ni control humano.
+
+<<END SECTION>>
+
+<<SECTION: IA Y DASHBOARD OPERATIVO>>
+SECTION_VERSION: 00001
+
+IA Y DASHBOARD OPERATIVO
+
+La IA puede funcionar como asistente del dashboard operativo.
+
+Puede ayudar a:
+
+resumir situación general
+destacar pendientes relevantes
+detectar registros que requieren atención
+identificar cambios recientes
+resumir actividad operativa
+sugerir próximos pasos
+ordenar prioridades
+anticipar riesgos
+explicar indicadores
+comparar períodos
+detectar anomalías
+
+Regla:
+
+el dashboard no debe saturarse con métricas ni mensajes IA sin valor operativo.
+
+La IA debe aportar síntesis útil y accionable.
+
+No debe competir visualmente con la estructura principal del sistema.
+
+Regla final:
+
+la IA en dashboard debe funcionar como lectura inteligente de situación, no como ruido adicional.
+
+<<END SECTION>>
+
+<<SECTION: IA Y DOCUMENTOS>>
+SECTION_VERSION: 00001
+
+IA Y DOCUMENTOS
+
+La IA puede asistir en el módulo Documents y en flujos documentales.
+
+Puede ayudar a:
+
+redactar borradores
+resumir documentos
+preparar informes
+sugerir texto inicial
+explicar diferencias entre documentos
+detectar documentos faltantes
+generar notas internas
+preparar certificados en borrador
+resumir trazabilidad asociada
+sugerir próximos documentos según flujo
+
+Regla:
+
+la IA no debe emitir documentos finales sin autorización ni validación humana cuando el documento tenga impacto formal, comercial, técnico o legal.
+
+La IA puede preparar borradores.
+
+El usuario responsable valida.
+
+Regla final:
+
+Documents conserva ownership documental.
+
+La IA asiste, pero no reemplaza el contrato documental.
+
+<<END SECTION>>
+
+<<SECTION: IA E INVENTORY>>
+SECTION_VERSION: 00001
+
+IA E INVENTORY
+
+La IA puede asistir sobre Inventory sin reemplazar su lógica de stock.
+
+Puede ayudar a:
+
+resumir movimientos
+detectar consumos frecuentes
+advertir posibles faltantes
+sugerir revisión de stock
+identificar productos críticos
+comparar consumo estimado y real
+preparar explicación de movimientos
+relacionar consumos con órdenes o assets
+sugerir compras futuras cuando exista información suficiente
+
+Regla:
+
+la IA no debe modificar stock directamente sin pasar por operaciones oficiales de Inventory.
+
+La IA no debe inventar stock disponible.
+
+La IA no debe sugerir consumos si no existe contrato claro para ejecutarlos.
+
+Regla final:
+
+Inventory conserva ownership material.
+
+La IA puede asistir lectura, análisis y preparación.
+
+<<END SECTION>>
+
+<<SECTION: IA Y PRODUCTS>>
+SECTION_VERSION: 00001
+
+IA Y PRODUCTS
+
+La IA puede asistir sobre Products y catálogo maestro.
+
+Puede ayudar a:
+
+clasificar productos
+detectar duplicados posibles
+sugerir normalización de nombres
+identificar unidad de medida dudosa
+analizar productos frecuentes
+sugerir categorías futuras
+relacionar productos con consumos
+sugerir productos alternativos cuando exista estructura válida
+preparar descripciones
+asistir carga inicial
+
+Regla:
+
+la IA no debe crear relaciones de equivalencia técnica sin estructura, validación o aprobación.
+
+Los productos alternativos requieren contrato claro.
+
+Regla final:
+
+Products conserva ownership de catálogo.
+
+La IA puede asistir organización y análisis.
+
+<<END SECTION>>
+
+<<SECTION: IA Y TASKS>>
+SECTION_VERSION: 00001
+
+IA Y TASKS
+
+La IA puede asistir sobre Tasks como frente de pendientes y seguimiento.
+
+Puede ayudar a:
+
+detectar tareas pendientes
+sugerir prioridad
+resumir tareas abiertas
+convertir notas operativas en borradores de tareas
+agrupar pendientes similares
+identificar tareas vencidas
+sugerir responsables cuando exista base válida
+proponer cierre o seguimiento
+vincular tareas con órdenes, assets, parties o projects cuando corresponda
+
+Regla:
+
+la IA no debe cerrar tareas ni cambiar prioridades críticas sin autorización y validación.
+
+Tasks conserva ownership de pendientes y seguimiento.
+
+Regla final:
+
+la IA puede convertir información dispersa en seguimiento accionable, pero no debe ocultar la decisión humana.
+
+<<END SECTION>>
+
+<<SECTION: IA Y OPERATIONAL ACTIVITY>>
+SECTION_VERSION: 00001
+
+IA Y OPERATIONAL ACTIVITY
+
+La IA puede asistir en la lectura de OperationalActivity.
+
+Puede ayudar a:
+
+resumir actividad reciente
+explicar cambios relevantes
+detectar secuencias de eventos
+preparar narrativas operativas
+identificar registros con mucha actividad
+resumir historial de un asset, orden, party o proyecto
+ayudar a responder qué ocurrió y cuándo
+
+Regla:
+
+OperationalActivity no debe convertirse en almacén bruto de conversaciones IA.
+
+La IA puede leer actividad autorizada y resumirla.
+
+La persistencia de actividad debe seguir registrando eventos operativos reales, no ruido conversacional.
+
+Regla final:
+
+OperationalActivity ofrece trazabilidad.
+
+La IA puede convertir esa trazabilidad en comprensión.
+
+<<END SECTION>>
+
+<<SECTION: IA Y PROJECT LAB>>
+SECTION_VERSION: 00001
+
+IA Y PROJECT LAB
+
+Project Lab forma parte del proceso técnico local de app-base.
+
+La IA puede asistir el trabajo con Project Lab mediante:
+
+preparación de snippets válidos
+auditorías conceptuales
+interpretación de errores
+lectura de salidas runtime
+generación de bloques documentales
+revisión de consistencia
+planificación de pruebas
+validación de contratos
+
+Regla:
+
+la IA no reemplaza validación runtime.
+
+Todo cambio técnico debe pasar por evidencia real, auditoría, ejecución o validación según corresponda.
+
+Regla:
+
+Project Lab no forma parte del sistema SaaS productivo.
+
+La IA puede asistir al desarrollo, pero no debe confundir herramientas locales con funcionalidad final del producto.
+
+<<END SECTION>>
+
+<<SECTION: ALCANCE NO INMEDIATO>>
+SECTION_VERSION: 00001
+
+ALCANCE NO INMEDIATO
+
+Este documento no obliga a implementar de inmediato una integración IA.
+
+Quedan fuera del alcance inmediato:
+
+API key paga obligatoria
+agente autónomo completo
+ejecución automática de acciones críticas
+chat embebido productivo
+modelo local integrado
+entrenamiento propio
+RAG documental completo
+lectura automática de PDFs técnicos
+clasificación automática de todos los archivos
+automatización completa de mantenimiento
+generación automática de documentos finales
+decisiones sin supervisión humana
+sistema multiagente complejo
+
+Estas capacidades pueden formar parte del horizonte futuro.
+
+Regla:
+
+no avanzar hacia integración IA compleja si antes no existen datos, contratos, seguridad y casos de uso claros.
+
+La primera etapa puede ser doctrinal, documental y de preparación estructural.
+
+<<END SECTION>>
+
+<<SECTION: PRIMERA LÍNEA DE TRABAJO>>
+SECTION_VERSION: 00001
+
+PRIMERA LÍNEA DE TRABAJO
+
+La primera línea de trabajo de la capa IA no debe ser integrar una API paga.
+
+Debe ser preparar el sistema para que la IA pueda operar correctamente en el futuro.
+
+Prioridades iniciales:
+
+mantener documentación clara
+evitar reglas implícitas
+estructurar datos relevantes
+consolidar catálogos
+respetar ownership modular
+mejorar surfaces oficiales
+evitar labels dispersos cuando sean relevantes
+identificar casos de uso IA concretos
+distinguir sugerencia de acción crítica
+preparar prompts manuales reutilizables
+pensar exportaciones controladas de contexto autorizado
+mantener compatibilidad con presupuesto cero
+
+Primeros casos posibles sin integración directa:
+
+prompts manuales para resumir auditorías
+prompts manuales para analizar historial técnico
+prompts manuales para preparar documentación
+prompts manuales para revisar consistencia de módulos
+prompts manuales para sugerir estructura de órdenes
+prompts manuales para generar borradores documentales
+prompts manuales para interpretar actividad operativa exportada
+
+Regla:
+
+primero claridad.
+
+Después automatización.
+
+Después integración.
+
+<<END SECTION>>
+
+<<SECTION: CRITERIOS DE IMPLEMENTACIÓN FUTURA>>
+SECTION_VERSION: 00001
+
+CRITERIOS DE IMPLEMENTACIÓN FUTURA
+
+Toda implementación futura de IA debe respetar los criterios del proyecto.
+
+Reglas:
+
+NO SE ASUME
+NO SE SUPONE
+
+No implementar IA sin caso de uso claro.
+
+No implementar IA sin revisar seguridad.
+
+No implementar IA sin definir qué datos puede ver.
+
+No implementar IA sin definir qué acciones puede preparar.
+
+No implementar IA sin separar sugerencia de ejecución.
+
+No implementar IA sin control de errores.
+
+No implementar IA sin fallback.
+
+No implementar IA con proveedor rígido si puede abstraerse.
+
+No implementar IA paga como dependencia obligatoria inicial.
+
+No implementar IA que duplique lógica modular.
+
+No implementar IA que opere por scraping visual.
+
+No implementar IA que infiera permisos.
+
+No implementar IA que cierre procesos críticos sin confirmación.
+
+No implementar IA que invente información faltante.
+
+Toda implementación futura debe definir:
+
+caso de uso
+usuario destinatario
+datos de entrada
+contexto autorizado
+módulos involucrados
+acción esperada
+nivel de riesgo
+necesidad de confirmación humana
+registro o no de trazabilidad
+proveedor o modo de ejecución
+costo estimado si corresponde
+fallback si falla la IA
+validación backend posterior
+
+Regla final:
+
+la IA debe fortalecer app-base, no volverlo frágil, caro, opaco o dependiente.
+
+<<END SECTION>>
+
+<<SECTION: RELACIÓN CON OTROS DOCUMENTOS>>
+SECTION_VERSION: 00001
+
+RELACIÓN CON OTROS DOCUMENTOS
+
+Este documento debe leerse junto con:
+
+<DOC_REF slug="contexto_fijo_proyecto_app_base">Contexto fijo del proyecto</DOC_REF>
+
+Define el marco arquitectónico estable del sistema, su orientación modular y las reglas rectoras generales.
+
+<DOC_REF slug="convenciones_proyecto_app_base">Convenciones del proyecto</DOC_REF>
+
+Define convenciones técnicas, desarrollo, ownership, Project Lab, trazabilidad y reglas de implementación.
+
+<DOC_REF slug="checklist_modulos_nuevos_app_base">Checklist oficial para crear módulos nuevos</DOC_REF>
+
+Define controles obligatorios para módulos, reconversiones profundas, capacidades transversales y superficies de integración.
+
+<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
+
+Define reglas de autorización, tenant activo, permisos, constraints, roles y control de acceso.
+
+<DOC_REF slug="paquete_servicios_mantenimiento_app_base">Paquete de servicios y mantenimiento</DOC_REF>
+
+Define la aplicación específica de la capa IA en el universo de servicios, mantenimiento, historial técnico, órdenes electrónicas, documentación técnica y agente planificador.
+
+<DOC_REF slug="guia_project_lab_proyecto_app_base">Guía operativa de Project Lab</DOC_REF>
+
+Define el uso de Project Lab como herramienta local de auditoría, validación, actualización de código y documentación.
+
+<DOC_REF slug="todo_proyecto_app_base">Todo del proyecto</DOC_REF>
+
+Debe registrar pendientes concretos derivados de esta capa cuando se transformen en tareas reales.
+
+Regla:
+
+este documento es rector de la capa IA transversal.
+
+Los demás documentos pueden referenciarlo sin duplicar su contenido completo.
+
+Cuando un módulo o paquete aplique IA a un caso específico, debe documentar solo la aplicación concreta y remitir a este documento para doctrina general.
+
+<<END SECTION>>

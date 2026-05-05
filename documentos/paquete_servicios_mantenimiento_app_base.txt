@@ -1,0 +1,3457 @@
+<<SECTION: METADATOS>>
+SECTION_VERSION: 00001
+
+TÍTULO: Paquete de servicios y mantenimiento
+DOC_SLUG: paquete_servicios_mantenimiento_app_base
+DOC_VERSION: 00001
+TIPO: funcional-estratégico
+ESTADO: activo
+GESTIÓN: Documento rector inicial para la evolución de app-base hacia una capacidad ERP/CMMS liviana de servicios, mantenimiento y gestión técnica de activos.
+<<END SECTION>>
+
+<<SECTION: OBJETIVO DEL DOCUMENTO>>
+SECTION_VERSION: 00001
+
+OBJETIVO DEL DOCUMENTO
+
+Este documento define la primera lectura funcional del paquete de servicios y mantenimiento de app-base.
+
+Su función es ordenar la evolución del sistema hacia una capacidad de gestión técnica de servicios y mantenimiento con orientación ERP/CMMS, manteniendo simplicidad operativa, automatización progresiva y coherencia modular.
+
+Este documento busca:
+
+definir la visión funcional del paquete
+establecer el rol de cada módulo participante
+evitar que mantenimiento se resuelva mediante parches aislados en Orders
+ordenar la evolución por capas operativas
+distinguir visión objetivo de implementación inmediata
+guiar futuras auditorías de código real
+mantener ownership funcional claro entre módulos
+
+No define:
+
+implementación técnica concreta
+migraciones
+rutas
+controllers
+pantallas específicas
+contratos finales de seguridad
+campos definitivos
+nombres finales de clases o tablas
+roadmap cerrado con fechas
+
+Regla:
+
+este documento marca dirección funcional.
+
+Toda implementación futura debe validarse contra documentación vigente, código real, esquema real, seguridad, navegación, UI y runtime.
+
+<<END SECTION>>
+
+<<SECTION: PREMISA FUNCIONAL>>
+SECTION_VERSION: 00002
+
+PREMISA FUNCIONAL
+
+La evolución de servicios y mantenimiento debe llevar app-base hacia una lógica ERP real, pero sin perder simplicidad, claridad ni automatización.
+
+La orientación esperada es:
+
+ERP serio
+operación simple
+automatización progresiva
+mínima fricción para el usuario
+máxima coherencia entre módulos
+datos reutilizables
+trazabilidad operativa
+crecimiento por capas
+
+Servicios y mantenimiento no debe implementarse como un CRUD ordinario aislado.
+
+Debe leerse como una capa satélite productiva sobre módulos existentes, con piezas propias solo cuando la lógica pertenezca específicamente al universo de mantenimiento y no pueda resolverse correctamente desde el contrato vigente de un módulo dueño.
+
+La complejidad propia de mantenimiento no debe trasladarse al usuario como pantallas excesivas, formularios largos o decisiones técnicas innecesarias.
+
+El sistema debe absorber esa complejidad mediante:
+
+catálogos
+plantillas
+órdenes modelo
+checklists
+servicios precargados
+contadores
+reglas de generación
+automatizaciones
+relaciones contextuales
+trazabilidad transversal
+lecturas consolidadas
+datos estructurados
+
+Criterio general:
+
+la complejidad debe activarse por necesidad operativa.
+
+No debe imponerse desde el inicio.
+
+El sistema debe poder servir tanto a operaciones simples, con baja tolerancia a complejidad, como a organizaciones que requieran mayor formalidad, trazabilidad, proveedores, documentos, costos, facturas, pagos e imputaciones.
+
+Regla central:
+
+el usuario debe operar con claridad.
+
+El sistema debe sostener la estructura técnica necesaria.
+
+<<END SECTION>>
+
+<<SECTION: LECTURA ERP CMMS EAM>>
+SECTION_VERSION: 00001
+
+LECTURA ERP CMMS EAM
+
+El paquete de servicios y mantenimiento debe tomar como referencia conceptual los sistemas orientados a mantenimiento conocidos como CMMS y, en una lectura más amplia, EAM.
+
+Lectura funcional adoptada:
+
+CMMS
+gestión informatizada de mantenimiento, órdenes técnicas, activos, checklists, planes, servicios, repuestos, registros y seguimiento operativo.
+
+EAM
+gestión ampliada del ciclo de vida de activos dentro de una lógica empresarial integrada, conectando mantenimiento con operación, inventario, documentación, costos, planificación y trazabilidad.
+
+Para app-base, esta referencia no implica copiar complejidad enterprise de forma directa.
+
+Implica tomar sus principios operativos centrales y adaptarlos a una plataforma modular, simple y automatizable.
+
+Principios adoptados:
+
+el activo mantenible debe tener identidad operativa
+la orden debe registrar la intervención
+los servicios repetibles deben poder precargarse
+los checklists deben estructurar controles
+los repuestos deben integrarse con inventario
+las horas, kilómetros, fechas o lecturas deben alimentar mantenimiento preventivo
+la documentación debe formalizar resultados
+la trazabilidad debe permitir reconstruir actividad
+la automatización debe reducir carga manual progresivamente
+
+Regla:
+
+app-base debe avanzar hacia una capacidad CMMS liviana integrada al ERP general del sistema.
+
+No debe convertirse en una copia rígida, sobredimensionada o aislada de un software de mantenimiento externo.
+
+<<END SECTION>>
+
+<<SECTION: PAQUETE DE SERVICIOS Y MANTENIMIENTO>>
+SECTION_VERSION: 00003
+
+PAQUETE DE SERVICIOS Y MANTENIMIENTO
+
+El paquete de servicios y mantenimiento no se define inicialmente como un módulo único nuevo.
+
+Se define como una capa satélite productiva compuesta por módulos existentes y piezas propias específicas cuando sean necesarias.
+
+Su función es orquestar servicios, mantenimiento, activos, repuestos, planificación, documentación, evidencias, certificaciones, avisos, estados operativos, cierres, costos y trazabilidad dentro de una lógica ERP/CMMS liviana.
+
+Módulos y capacidades participantes:
+
+Orders
+Assets
+Inventory
+Products
+Appointments
+Tasks
+Documents
+Attachments
+Parties
+OperationalActivity
+
+Lectura general:
+
+Orders ejecuta la intervención técnica.
+
+Assets representa o sostiene la lectura del objeto técnico mantenible cuando corresponda.
+
+Inventory gestiona repuestos, insumos, consumos, devoluciones, custodia material y trazabilidad material.
+
+Products funciona como catálogo maestro de artículos, repuestos, insumos, servicios, mano de obra o paquetes cuando corresponda.
+
+Appointments organiza planificación temporal, turnos, visitas o programación.
+
+Tasks sostiene pendientes, seguimientos o acciones auxiliares.
+
+Documents formaliza presupuestos, informes, remitos, comprobantes, certificaciones o cierres administrativos.
+
+Attachments conserva evidencias, fotos, archivos técnicos y documentación asociada.
+
+Parties representa clientes, proveedores, contactos, terceros y colaboradores internos cuando corresponda.
+
+OperationalActivity registra trazabilidad operativa transversal.
+
+Piezas satélite propias posibles:
+
+tipos técnicos de servicio
+ámbitos del servicio
+modalidades de ejecución
+estado operativo de ejecución
+órdenes modelo
+servicios precargados
+checklists
+planes de mantenimiento
+lecturas o mediciones
+certificaciones
+vencimientos
+avisos
+reglas de próxima visita
+reglas de automatización
+paquete de trabajo
+servicios externos y tercerizaciones
+cierres técnicos, administrativos y finales
+custodia operativa de materiales
+línea de tiempo operativa
+dashboard operativo especializado
+
+Regla de ownership:
+
+ningún módulo debe absorber la lógica propia de otro.
+
+La integración debe ocurrir mediante capacidades oficiales, relaciones contextuales, surfaces, servicios, contratos explícitos o piezas satélite propias del paquete cuando la lógica pertenezca específicamente al universo mantenimiento.
+
+Regla:
+
+la capa de Servicios y Mantenimiento puede tener entrada visual, dashboard especializado o experiencia operativa propia sin convertirse automáticamente en un módulo CRUD ordinario ni duplicar Orders.
+
+<<END SECTION>>
+
+<<SECTION: ROL DE ORDERS>>
+SECTION_VERSION: 00003
+
+ROL DE ORDERS
+
+Orders debe funcionar como núcleo transaccional de la ejecución operativa de servicios y mantenimiento.
+
+En este paquete, una orden puede representar:
+
+servicio técnico
+mantenimiento preventivo
+mantenimiento correctivo
+reparación
+diagnóstico
+inspección
+instalación
+puesta en marcha
+servicio en taller
+servicio en campo
+servicio sobre maquinaria
+servicio sobre vehículo
+servicio sobre equipo propio o de cliente
+
+Orders no debe convertirse en dueño de todos los datos técnicos del ecosistema.
+
+Debe registrar la intervención y consumir capacidades de otros módulos cuando corresponda.
+
+Responsabilidades esperadas de Orders dentro del paquete:
+
+identificar el tipo de orden técnica
+vincular la operación con un activo cuando corresponda
+registrar origen de la orden
+registrar diagnóstico, ejecución y resultado
+organizar líneas operativas
+consumir inventory por línea para repuestos e insumos
+vincular documentos derivados
+vincular adjuntos y evidencias
+registrar o exponer actividad operativa contextual
+mantener lifecycle administrativo/base coherente
+
+Regla consolidada sobre lifecycle:
+
+Orders conserva su lifecycle base actual.
+
+Estados base vigentes:
+
+draft
+pending_approval
+approved
+closed
+cancelled
+
+Estos estados no deben sobrecargarse con estados técnicos de ejecución.
+
+La ejecución técnica debe vivir en una dimensión satélite independiente.
+
+Reglas:
+
+una orden solo puede operar técnicamente cuando está approved
+
+una orden closed no debe permitir surtido, consumo, edición técnica ni modificaciones ordinarias
+
+una orden closed solo puede volver a operar mediante reapertura autorizada según las reglas vigentes de seguridad
+
+los estados operativos satélite no deben permitir bypass del lifecycle base
+
+Estado operativo de ejecución esperado para una orden aprobada:
+
+not_started
+in_progress
+waiting_parts
+waiting_labor
+waiting_customer
+waiting_external
+on_hold
+ready_for_review
+
+Estos estados pueden avanzar o retroceder mientras la orden siga aprobada y activa.
+
+Aclaración vigente por ProductOperationalSummary:
+
+Orders puede aportar compras y ventas reales a una lectura contextual del producto cuando Orders esté habilitado y el usuario posea dataset visible según Security.
+
+Esto no convierte Products en dueño de compras ni ventas.
+
+Orders conserva ownership de transacciones reales.
+
+Products solo presenta la lectura contextual cuando corresponde.
+
+Regla:
+
+si Orders no está habilitado o el usuario no posee dataset visible, no deben mostrarse métricas transaccionales de compra o venta dentro de ProductOperationalSummary.
+
+Regla:
+
+Orders conserva su centralidad operativa, pero no debe absorber la identidad técnica completa de Assets, la lógica material de Inventory, la formalización de Documents ni la evidencia de Attachments.
+
+<<END SECTION>>
+
+<<SECTION: ROL DE ASSETS>>
+SECTION_VERSION: 00002
+
+ROL DE ASSETS
+
+Assets debe evolucionar conceptualmente hacia la base del objeto técnico mantenible dentro del paquete de servicios y mantenimiento cuando corresponda.
+
+Un asset puede representar:
+
+maquinaria
+vehículo
+equipo
+herramienta crítica
+unidad operativa
+activo propio
+activo de cliente
+activo alquilado
+activo bajo seguimiento técnico
+
+La noción de objeto técnico mantenible es más amplia que equipo o maquinaria.
+
+Puede incluir:
+
+activos muebles
+activos inmuebles
+instalaciones
+edificios
+calles internas
+predios
+sectores de planta
+sistemas eléctricos
+sistemas mecánicos
+vehículos
+herramientas críticas
+instrumentos
+equipos propios
+equipos de clientes
+equipos alquilados
+
+Regla:
+
+no todo asset es necesariamente mantenible.
+
+Pero todo objeto técnico mantenible debe poder sostener historial técnico.
+
+Responsabilidades esperadas de Assets dentro del paquete:
+
+conservar identidad técnica del equipo, unidad o activo
+ofrecer contexto para crear órdenes
+mostrar historial operativo asociado
+conservar o vincular lecturas operativas
+permitir lectura de próximos mantenimientos cuando exista soporte
+funcionar como punto de acceso contextual a órdenes, documentos, agenda, adjuntos y actividad
+sostener documentación técnica aplicable cuando corresponda
+permitir lectura acumulativa de costos, consumos, pendientes, evidencias y servicios externos asociados
+
+La evolución de mantenimiento no debe convertir a Orders en dueño del activo.
+
+La orden interviene sobre un activo.
+
+El activo conserva su identidad y su historia.
+
+Regla:
+
+Assets debe ser la base natural para mantenimiento técnico cuando la operación tenga equipo, máquina, vehículo, instalación, unidad o activo identificable.
+
+<<END SECTION>>
+
+<<SECTION: ROL DE INVENTORY>>
+SECTION_VERSION: 00003
+
+ROL DE INVENTORY
+
+Inventory debe conservar ownership funcional sobre stock, movimientos, operaciones materiales, saldos e historial.
+
+Dentro del paquete de servicios y mantenimiento, Inventory debe sostener:
+
+repuestos usados
+insumos consumidos
+materiales previstos
+materiales reservados
+materiales entregados en custodia
+materiales transportados
+materiales efectivamente utilizados
+devoluciones
+faltantes
+material dañado
+material cancelado
+piezas reemplazadas cuando corresponda
+diferencias entre previsto y real
+costo material de la intervención
+trazabilidad de consumo por orden o línea
+
+Orders puede consumir capacidades oficiales de Inventory, especialmente desde líneas operativas.
+
+Inventory conserva:
+
+cálculo de stock
+validaciones materiales
+operaciones de entrada y salida
+agrupación operativa
+trazabilidad fina de movimientos
+
+Regla sobre custodia:
+
+entregar material a un técnico, vehículo, cuadrilla, orden de trabajo, sitio externo o ubicación temporal no equivale a consumirlo.
+
+La custodia operativa de materiales debe distinguirse del consumo efectivo.
+
+Posibles custodios operativos:
+
+depósito formal
+vehículo
+persona o técnico
+cuadrilla
+orden de trabajo
+sitio externo
+ubicación temporal
+
+Regla:
+
+mantenimiento no debe crear inventario paralelo.
+
+Inventory conserva ownership del stock, sus movimientos y sus operaciones materiales.
+
+Orders puede ser host visual y contexto operativo.
+
+Inventory sigue siendo dueño de la operación material.
+
+Aclaración vigente por ProductOperationalSummary:
+
+Inventory puede aportar movimientos, entradas y salidas a lecturas contextuales de Products cuando exista contrato y autorización válidos.
+
+Esto no transfiere ownership a Products.
+
+InventoryMovement puede usarse como fuente de lectura resumida de flujo material.
+
+InventoryOperation conserva su rol como ancla agrupada para actividad operativa transversal.
+
+Regla:
+
+usar inventory_movements para una lectura contextual resumida no redefine la doctrina de OperationalActivity ni convierte InventoryMovement en actividad operativa transversal principal.
+
+<<END SECTION>>
+
+<<SECTION: ROL DE PRODUCTS>>
+SECTION_VERSION: 00003
+
+ROL DE PRODUCTS
+
+Products debe leerse como catálogo maestro de artículos, repuestos, insumos y servicios cuando corresponda.
+
+Dentro del paquete de servicios y mantenimiento, Products puede aportar:
+
+repuestos
+insumos
+materiales
+servicios vendibles
+servicios ejecutables
+mano de obra parametrizada
+paquetes de servicio
+ítems sugeridos para órdenes modelo
+ítems sugeridos para checklists o planes
+productos alternativos
+
+La evolución de servicios y mantenimiento requiere auditar si el contrato vigente de Products distingue suficientemente entre:
+
+producto físico
+repuesto
+insumo
+servicio
+mano de obra
+paquete operativo
+alternativo funcional
+flete
+viaje
+kilómetro
+costo directo operativo no stockeable
+
+Regla:
+
+no asumir que Products ya soporta toda esta clasificación.
+
+Antes de implementar servicios precargados, productos alternativos, paquetes de mantenimiento, fletes, mano de obra, viajes, kilómetros o costos directos operativos, debe auditarse el contrato real de Products, sus campos, catálogos, seguridad, UI e integración con Orders, Documents e Inventory.
+
+Regla adicional:
+
+los productos alternativos no deben resolverse como texto libre disperso si a futuro se espera automatización, sugerencia IA, reportes, filtros o trazabilidad operativa.
+
+Aclaración vigente por ProductOperationalSummary:
+
+la primera lectura contextual operativa de Products no incluye flete, mano de obra, kilómetros, viajes, prorrateos, costos accesorios, costos indirectos ni rentabilidad contable completa.
+
+Estos elementos pueden tener proveedor distinto, orden distinta, criterio de imputación distinto o tratamiento como servicio, logística o costo directo operativo.
+
+Por lo tanto, no deben mezclarse con el resumen operativo inicial del producto.
+
+Regla final:
+
+Products puede llegar a representar servicios, mano de obra, fletes o costos directos operativos como catálogo si el contrato real lo permite, pero no debe asumirse esa capacidad sin auditoría previa.
+
+<<END SECTION>>
+
+<<SECTION: ROL DE APPOINTMENTS Y TASKS>>
+SECTION_VERSION: 00002
+
+ROL DE APPOINTMENTS Y TASKS
+
+Appointments y Tasks deben acompañar planificación, seguimiento y organización operativa sin reemplazar a Orders.
+
+Appointments puede participar como:
+
+turno de servicio
+visita técnica
+agenda de taller
+planificación de intervención
+origen contextual de una orden
+recordatorio temporal de mantenimiento
+
+Tasks puede participar como:
+
+pendiente operativo
+pendiente técnico
+acción auxiliar
+seguimiento posterior
+tarea interna de preparación
+tarea derivada de checklist
+tarea derivada de diagnóstico
+tarea previa o posterior a una orden
+solicitud de material
+alerta operativa
+acción administrativa derivada
+
+Lectura correcta:
+
+Appointments organiza tiempo.
+
+Tasks organiza pendientes.
+
+Orders ejecuta la intervención.
+
+Una necesidad técnica no siempre debe convertirse directamente en orden.
+
+Puede iniciar como:
+
+task
+appointment
+alerta
+pendiente
+observación
+sugerencia
+solicitud
+acción administrativa
+
+Separación consolidada:
+
+Orders representa la intervención técnica.
+
+Tasks es candidato natural para pendientes y seguimiento.
+
+Los planes de mantenimiento son una futura pieza satélite para generar o sugerir intervenciones.
+
+Regla:
+
+no convertir Appointments ni Tasks en órdenes de mantenimiento encubiertas.
+
+Cuando la intervención técnica real deba ejecutarse, el núcleo operativo debe ser Orders.
+
+<<END SECTION>>
+
+<<SECTION: ROL DE DOCUMENTS>>
+SECTION_VERSION: 00002
+
+ROL DE DOCUMENTS
+
+Documents debe formalizar resultados, compromisos, comprobantes o comunicación externa derivados de la operación de mantenimiento.
+
+Dentro del paquete, Documents puede representar:
+
+presupuesto de reparación
+informe técnico
+remito de entrega
+comprobante de servicio
+certificado de mantenimiento
+orden firmada
+informe de diagnóstico
+documento de proveedor
+factura
+pago
+certificación externa
+informe externo
+comprobante interno o externo asociado
+
+Documents no debe absorber la función interna de Orders.
+
+El dato técnico primario de la intervención debe vivir en la orden, en el activo, en el checklist o en la pieza funcional que corresponda.
+
+Documents formaliza, comunica o registra documentalmente una operación ya estructurada.
+
+Dentro del cierre administrativo ampliado, Documents puede participar en la verificación de:
+
+consumos
+devoluciones
+faltantes
+servicios externos
+compras específicas
+documentos de proveedor
+facturas
+pagos
+certificaciones
+informes externos
+pendientes administrativos derivados
+
+Regla:
+
+Documents es prolongación documental o formalización.
+
+No reemplaza la orden técnica ni el registro operativo del mantenimiento.
+
+<<END SECTION>>
+
+<<SECTION: ROL DE ATTACHMENTS>>
+SECTION_VERSION: 00002
+
+ROL DE ATTACHMENTS
+
+Attachments debe sostener evidencia y documentación asociada a la operación de mantenimiento.
+
+Dentro del paquete, Attachments puede conservar:
+
+fotos antes del servicio
+fotos después del servicio
+fotos de falla
+comprobantes
+manuales técnicos
+planos
+diagramas
+procedimientos
+instructivos
+hojas de seguridad
+certificados previos
+tablas de mantenimiento
+documentación del fabricante
+archivos de diagnóstico
+informes externos
+documentación del equipo
+evidencia de repuestos reemplazados
+archivos aportados por cliente o proveedor
+
+Attachments debe seguir siendo capacidad transversal.
+
+No debe convertirse en lógica interna propia de Orders, Assets o Documents.
+
+Regla:
+
+la evidencia pertenece al flujo operativo, pero el ownership de adjuntos debe mantenerse en la capacidad correspondiente.
+
+Regla adicional:
+
+la documentación técnica del asset no debe quedar perdida como adjunto genérico si debe ser recuperada luego por asset, tipo de servicio, checklist, orden modelo, intervención u orden electrónica.
+
+Debe poder vincularse al contexto operativo correspondiente mediante el contrato vigente o mediante una pieza futura explícita si hiciera falta.
+
+<<END SECTION>>
+
+<<SECTION: ÓRDENES MODELO>>
+SECTION_VERSION: 00001
+
+ÓRDENES MODELO
+
+Las órdenes modelo representan una capacidad futura del paquete.
+
+Una orden modelo no es una orden operativa real.
+
+Es una plantilla o configuración reutilizable para generar órdenes reales con datos precargados.
+
+Puede servir para:
+
+mantenimiento preventivo 250 horas
+mantenimiento preventivo 500 horas
+inspección pre-entrega
+servicio postventa
+diagnóstico técnico
+revisión general
+servicio de taller
+servicio de campo
+puesta en marcha
+reparación estándar
+
+Una orden modelo podría incluir:
+
+tipo de orden
+tipo de activo aplicable
+servicios sugeridos
+checklist asociado
+repuestos sugeridos
+duración estimada
+mano de obra estimada
+documentación esperada
+adjuntos esperados
+reglas de generación
+observaciones estándar
+
+Regla:
+
+las órdenes modelo deben reducir carga manual y aumentar consistencia.
+
+No deben generar complejidad adicional para crear una orden simple.
+
+<<END SECTION>>
+
+<<SECTION: CHECKLISTS DE EQUIPOS>>
+SECTION_VERSION: 00001
+
+CHECKLISTS DE EQUIPOS
+
+Los checklists de equipos representan una capacidad futura central del paquete.
+
+Su función es ordenar controles técnicos repetibles sobre activos o tipos de activos.
+
+Un checklist puede depender de:
+
+tipo de equipo
+familia de activo
+modelo de activo
+tipo de mantenimiento
+orden modelo
+servicio precargado
+horas de uso
+kilómetros
+fecha
+condición operativa
+
+Un checklist puede incluir ítems como:
+
+revisar nivel de aceite
+controlar filtros
+verificar fugas
+inspeccionar sistema hidráulico
+controlar presión
+revisar batería
+medir desgaste
+verificar seguridad
+registrar lectura de horómetro
+registrar kilometraje
+tomar evidencia fotográfica
+indicar observación técnica
+
+Cada ítem debería poder registrar, cuando corresponda:
+
+OK
+no OK
+no aplica
+valor medido
+observación
+evidencia adjunta
+acción requerida
+derivación a tarea u orden posterior
+
+Regla:
+
+el checklist no debe ser solo texto libre si la intención es automatizar mantenimiento.
+
+Debe producir datos reutilizables para seguimiento, alertas, historial y trazabilidad.
+
+<<END SECTION>>
+
+<<SECTION: SERVICIOS PRECARGADOS>>
+SECTION_VERSION: 00001
+
+SERVICIOS PRECARGADOS
+
+Los servicios precargados representan una biblioteca técnica reutilizable.
+
+Pueden servir para cargar rápidamente trabajos repetibles dentro de órdenes de mantenimiento o servicio.
+
+Ejemplos:
+
+cambio de aceite
+cambio de filtro
+diagnóstico eléctrico
+calibración
+inspección visual
+limpieza técnica
+prueba funcional
+reparación de fuga
+control de seguridad
+revisión hidráulica
+revisión mecánica
+
+Un servicio precargado podría incluir:
+
+nombre
+descripción
+duración estimada
+costo interno estimado
+valor sugerido
+repuestos sugeridos
+insumos sugeridos
+checklist sugerido
+tipo de técnico requerido
+si impacta inventory
+si requiere evidencia
+si requiere documento final
+
+Regla:
+
+los servicios precargados deben funcionar como aceleradores operativos.
+
+No deben obligar al usuario a parametrizar todo antes de poder registrar una orden común.
+
+<<END SECTION>>
+
+<<SECTION: CONTADORES Y MEDICIONES>>
+SECTION_VERSION: 00001
+
+CONTADORES Y MEDICIONES
+
+El paquete debe contemplar mantenimiento basado en lecturas operativas.
+
+Lecturas posibles:
+
+horas de uso
+kilómetros recorridos
+ciclos
+fecha de última intervención
+fecha de próxima intervención
+contador manual
+lectura técnica
+condición medida
+estado operativo
+
+Estas lecturas pertenecen conceptualmente al activo o a una entidad de medición asociada al activo.
+
+Orders puede registrar una intervención que use, actualice o deje constancia de esas lecturas.
+
+Regla:
+
+la lectura operativa del activo no debe quedar como dato suelto aislado dentro de una orden si debe servir para mantenimiento preventivo futuro.
+
+El dato debe poder alimentar historial, vencimientos, planes y automatización.
+
+<<END SECTION>>
+
+<<SECTION: PLANES DE MANTENIMIENTO>>
+SECTION_VERSION: 00001
+
+PLANES DE MANTENIMIENTO
+
+Los planes de mantenimiento representan una capacidad futura avanzada del paquete.
+
+Permiten definir cuándo corresponde ejecutar una intervención.
+
+Criterios posibles:
+
+cada cierta cantidad de días
+cada cierta cantidad de meses
+cada cierta cantidad de horas
+cada cierta cantidad de kilómetros
+por fecha fija
+por condición operativa
+por lectura de checklist
+por retorno de alquiler
+por entrega previa a cliente
+por combinación de reglas
+
+Ejemplos:
+
+cada 30 días
+cada 250 horas
+cada 10.000 kilómetros
+cada 6 meses o 500 horas, lo que ocurra primero
+al detectar condición crítica
+antes de entregar un equipo alquilado
+al regresar un equipo de alquiler
+
+Un plan de mantenimiento podría generar o sugerir:
+
+nueva orden
+tarea pendiente
+appointment
+alerta visual
+checklist a ejecutar
+repuestos estimados
+documento posterior
+actividad operativa trazable
+
+Regla:
+
+el plan no debe ejecutarse de forma opaca.
+
+La automatización debe ser visible, controlable y comprensible para el usuario.
+
+<<END SECTION>>
+
+<<SECTION: AUTOMATIZACIÓN ESPERADA>>
+SECTION_VERSION: 00001
+
+AUTOMATIZACIÓN ESPERADA
+
+La automatización es parte central del paquete.
+
+Debe incorporarse por capas y solo cuando exista base operativa suficiente.
+
+Automatizaciones esperadas:
+
+crear orden desde activo
+crear orden desde appointment
+crear orden desde tarea
+crear orden desde orden modelo
+precargar servicios en una orden
+precargar checklist según tipo de activo
+sugerir repuestos según servicio
+calcular próximo mantenimiento por fecha
+calcular próximo mantenimiento por horas o kilómetros
+generar tarea por checklist no conforme
+generar alerta por vencimiento
+actualizar lectura de activo desde orden cerrada
+generar documento final desde orden cerrada
+registrar actividad operativa relevante
+mostrar historial técnico contextual
+
+Reglas:
+
+la automatización no debe reemplazar autorización
+
+la automatización no debe ocultar decisiones críticas
+
+la automatización no debe crear datos imposibles para el contrato vigente
+
+la automatización debe respetar tenant activo, módulos habilitados, permisos efectivos, lifecycle, ownership funcional y trazabilidad
+
+la automatización debe reducir carga manual, no aumentar confusión
+
+<<END SECTION>>
+
+<<SECTION: CAPAS OPERATIVAS DE EVOLUCIÓN>>
+SECTION_VERSION: 00003
+
+CAPAS OPERATIVAS DE EVOLUCIÓN
+
+La evolución del paquete debe realizarse por capas.
+
+No debe intentarse implementar todo el universo de mantenimiento en una única intervención.
+
+CAPA 0 — DEFINICIÓN FUNCIONAL
+
+Objetivo:
+
+dejar documentada la visión ERP/CMMS liviana, los módulos participantes, las fronteras de ownership, la naturaleza satélite del paquete y la estrategia por capas.
+
+Resultado esperado:
+
+documento rector inicial creado
+criterios de avance definidos
+sin cambios de código obligatorios
+
+CAPA 1 — AUDITORÍA FUERTE DE ORDERS
+
+Objetivo:
+
+auditar Orders como núcleo de intervención técnica antes de codificar.
+
+Debe responder:
+
+qué soporta hoy Orders
+qué no soporta
+qué puede resolverse con contrato actual
+qué requiere extensión mínima
+qué no debe meterse dentro de Orders
+qué debería vivir como pieza satélite
+
+Debe auditarse:
+
+OrderCatalog
+group
+kind
+status
+lifecycle
+constraints
+allowed_kinds
+líneas
+servicios
+inventory
+documents
+attachments
+activity
+security
+UI
+rutas
+surfaces
+seeders
+runtime
+
+Resultado esperado:
+
+criterio técnico real para avanzar sin romper el lifecycle base.
+
+CAPA 2 — TIPOS DE ÓRDENES DE SERVICIO
+
+Objetivo:
+
+definir la clasificación mínima necesaria para que Orders distinga correctamente operaciones de servicio y mantenimiento.
+
+Debe auditarse:
+
+OrderCatalog
+group
+kind
+estados
+constraints
+allowed_kinds
+UI de creación
+filtros
+seeders
+security
+rutas y navegación contextual
+
+Resultado esperado:
+
+Orders puede diferenciar tipos técnicos mínimos sin romper lifecycle base.
+
+CAPA 3 — ESTADO OPERATIVO DE EJECUCIÓN
+
+Objetivo:
+
+incorporar una dimensión satélite de ejecución técnica para órdenes aprobadas.
+
+Estados esperados:
+
+not_started
+in_progress
+waiting_parts
+waiting_labor
+waiting_customer
+waiting_external
+on_hold
+ready_for_review
+
+Reglas:
+
+no usar Orders.status para estos estados
+no operar órdenes no aprobadas
+no operar órdenes cerradas sin reapertura autorizada
+permitir avance o retroceso mientras la orden esté approved y activa
+mantener separación entre lifecycle base y ejecución técnica
+
+Resultado esperado:
+
+la ejecución técnica puede seguirse sin romper el lifecycle administrativo/base de Orders.
+
+CAPA 4 — ACTIVO MANTENIBLE
+
+Objetivo:
+
+fortalecer la relación entre Orders y Assets para que una orden de mantenimiento pueda operar sobre un objeto técnico mantenible.
+
+Debe auditarse:
+
+relación real orders/assets
+create contextual desde assets
+historial de órdenes por asset
+show de asset
+show de order
+trail
+return_tab
+módulos habilitados
+permisos
+documentación técnica
+lectura acumulativa de consumos, costos y pendientes
+
+Resultado esperado:
+
+Assets funciona como punto natural de lectura y generación de órdenes técnicas cuando corresponda.
+
+CAPA 5 — SERVICIOS PRECARGADOS
+
+Objetivo:
+
+definir una biblioteca mínima de servicios técnicos reutilizables.
+
+Debe auditarse:
+
+si Products puede representar servicios
+si OrderItems puede contener servicios no stockeables
+si Documents consume la misma gramática
+si Inventory debe ignorar servicios no materiales
+si se requiere entidad hija o catálogo específico
+
+Resultado esperado:
+
+una orden puede incorporar servicios repetibles sin cargar todo manualmente.
+
+CAPA 6 — COSTOS DIRECTOS OPERATIVOS NO STOCKEABLES
+
+Objetivo:
+
+evaluar si conceptos como flete, mano de obra, viajes, kilómetros, prorrateos o costos accesorios deben representarse como ítems catalogables no stockeables, servicios, costos directos operativos o piezas específicas.
+
+Debe auditarse:
+
+Products
+Orders
+OrderItems
+Documents
+DocumentItems
+Inventory
+Parties
+costos disponibles
+proveedores
+criterios de imputación
+diferencia entre costo del producto y costo operativo accesorio
+
+Resultado esperado:
+
+los costos directos operativos se tratan en una línea separada y no se mezclan por reflejo con el resumen operativo inicial del producto.
+
+CAPA 7 — CHECKLISTS
+
+Objetivo:
+
+incorporar estructura de checklist técnico para equipos o tipos de mantenimiento.
+
+Debe definirse:
+
+si el checklist pertenece a order
+si pertenece a asset
+si existe plantilla
+si existe ejecución de checklist
+si puede generar tareas u observaciones
+si requiere adjuntos por ítem
+
+Resultado esperado:
+
+la inspección técnica deja datos reutilizables y no solo texto libre.
+
+CAPA 8 — CONTADORES Y MEDICIONES
+
+Objetivo:
+
+registrar lecturas operativas de activos para mantenimiento preventivo.
+
+Debe definirse:
+
+horas
+kilómetros
+ciclos
+fechas
+lecturas manuales
+historial
+vínculo con órdenes
+responsabilidad de actualización
+
+Resultado esperado:
+
+el sistema puede calcular o sugerir próximas intervenciones.
+
+CAPA 9 — PLANES DE MANTENIMIENTO
+
+Objetivo:
+
+definir reglas de mantenimiento preventivo basadas en fecha, horas, kilómetros, ciclos o condición.
+
+Debe definirse:
+
+plantilla o plan
+activo aplicable
+servicio aplicable
+checklist aplicable
+reglas de vencimiento
+generación de orden, tarea o appointment
+
+Resultado esperado:
+
+el mantenimiento preventivo puede programarse y sugerirse con lógica controlada.
+
+CAPA 10 — PAQUETE DE TRABAJO Y ORDEN ELECTRÓNICA LIVIANA
+
+Objetivo:
+
+definir una experiencia enfocada de ejecución técnica.
+
+Debe incluir solo la información necesaria para ejecutar:
+
+orden
+asset
+ubicación
+problema
+checklist
+materiales
+documentación técnica
+evidencias requeridas
+pendientes
+campos mínimos de cierre
+
+Resultado esperado:
+
+el técnico puede trabajar en taller, campo, planta o sitio externo sin acceder al sistema completo ni duplicar Orders.
+
+CAPA 11 — CIERRES TÉCNICO, ADMINISTRATIVO Y FINAL
+
+Objetivo:
+
+distinguir niveles de cierre de una intervención.
+
+Niveles:
+
+cierre técnico
+cierre administrativo
+cierre final o supervisión
+
+Reglas:
+
+el cierre técnico registra resultado de la intervención
+el cierre administrativo verifica consistencia material, documental, económica y operativa
+el cierre final valida si la orden puede pasar al estado closed del lifecycle base
+
+Resultado esperado:
+
+la orden no se cierra administrativamente solo por terminar una tarea técnica.
+
+CAPA 12 — SERVICIOS EXTERNOS Y TERCERIZACIONES
+
+Objetivo:
+
+registrar trabajos de proveedor que condicionan una orden.
+
+Puede incluir:
+
+reparación externa
+análisis
+calibración
+fabricación
+tornería
+soldadura
+bobinado
+rectificación
+certificación externa
+otros trabajos de proveedor
+
+Resultado esperado:
+
+los servicios externos quedan vinculados a la orden y no escondidos solo como nota libre cuando condicionan el cumplimiento del trabajo.
+
+CAPA 13 — CUSTODIA OPERATIVA DE MATERIALES
+
+Objetivo:
+
+distinguir material previsto, reservado, entregado, transportado, consumido, devuelto, faltante, dañado o cancelado.
+
+Resultado esperado:
+
+el sistema diferencia custodia de consumo y mantiene ownership de Inventory.
+
+CAPA 14 — DASHBOARD OPERATIVO Y CAPACIDAD DE TALLER
+
+Objetivo:
+
+crear una lectura operativa para planificar trabajos internos y externos, estados de ejecución, bloqueos, disponibilidad, pendientes, capacidad y tiempos muertos.
+
+Debe considerar:
+
+boxes
+técnicos disponibles
+especialidades
+jornada
+vehículos
+herramientas
+órdenes activas
+órdenes detenidas
+órdenes listas para revisión
+tiempos promedio
+bloqueos frecuentes
+
+Resultado esperado:
+
+la capa satélite tiene un frente operativo útil sin reemplazar Orders, Tasks, Appointments, Assets ni Inventory.
+
+CAPA 15 — AUTOMATIZACIÓN OPERATIVA
+
+Objetivo:
+
+automatizar generación, precarga, alertas y seguimiento sin ocultar decisiones críticas.
+
+Debe incluir:
+
+orden desde plan
+appointment sugerido
+task generada
+checklist precargado
+repuestos sugeridos
+documento final
+actividad operativa trazada
+sugerencias IA cuando corresponda
+
+Reglas:
+
+la automatización no debe reemplazar autorización
+la automatización no debe ocultar decisiones críticas
+la automatización no debe crear datos imposibles para el contrato vigente
+la automatización debe respetar tenant activo, módulos habilitados, permisos efectivos, lifecycle, ownership funcional y trazabilidad
+la automatización debe reducir carga manual, no aumentar confusión
+
+Resultado esperado:
+
+mantenimiento puede evolucionar hacia asistencia progresiva sin romper seguridad ni ownership modular.
+
+<<END SECTION>>
+
+<<SECTION: ALCANCE NO INMEDIATO>>
+SECTION_VERSION: 00001
+
+ALCANCE NO INMEDIATO
+
+Este documento no obliga a implementar inmediatamente todas las capacidades descriptas.
+
+Quedan fuera del alcance inmediato:
+
+órdenes modelo completas
+planes automáticos complejos
+checklists parametrizables avanzados
+cálculo automático por múltiples contadores
+alertas automáticas completas
+costeo integral de mantenimiento
+reportes gerenciales avanzados
+integración externa con telemetría
+gestión completa de flotas
+firma digital
+portal de cliente para seguimiento de mantenimiento
+
+Estas capacidades forman parte de la visión objetivo, pero deben avanzar solo cuando las capas previas estén definidas, implementadas y validadas.
+
+Regla:
+
+no avanzar hacia automatización avanzada si todavía no está firme la estructura mínima de órdenes de servicio, activos mantenibles, servicios, checklists y lecturas.
+
+<<END SECTION>>
+
+<<SECTION: CRITERIOS DE IMPLEMENTACIÓN FUTURA>>
+SECTION_VERSION: 00001
+
+CRITERIOS DE IMPLEMENTACIÓN FUTURA
+
+Toda implementación futura del paquete debe respetar los criterios vigentes del proyecto.
+
+Reglas:
+
+NO SE ASUME
+NO SE SUPONE
+
+Antes de implementar debe auditarse código real.
+
+Antes de crear una tabla nueva debe verificarse si la necesidad puede resolverse dentro del contrato vigente de un módulo existente.
+
+Antes de crear un módulo nuevo debe evaluarse si corresponde entidad hija, catálogo, surface, capacidad tenant, capacidad transversal o fortalecimiento del módulo dueño.
+
+No crear navegación nueva por simetría visual.
+
+No duplicar lógica de Inventory dentro de Orders.
+
+No duplicar lógica de Documents dentro de Orders.
+
+No convertir Attachments en submódulo propio de Orders.
+
+No convertir técnicos internos en módulo users.
+
+No romper el lifecycle base de Orders si puede agregarse una capa técnica específica.
+
+No hardcodear reglas de mantenimiento dentro de OperationalActivity.
+
+No registrar actividad operativa por default si no tiene valor real.
+
+No crear automatización que genere datos sin autorización, sin tenant activo o sin contrato válido.
+
+Toda capa debe revisar:
+
+modelo conceptual
+migraciones
+catálogos
+security
+constraints
+policies
+controllers
+requests
+UI
+navegación
+surfaces
+OperationalActivity si corresponde
+seeders demo si corresponde
+runtime real
+
+Regla final:
+
+el paquete de servicios y mantenimiento debe crecer como capacidad ERP/CMMS integrada, simple y automatizable, preservando la arquitectura modular de app-base.
+
+<<END SECTION>>
+
+<<SECTION: PRIMERA LÍNEA DE TRABAJO>>
+SECTION_VERSION: 00001
+
+PRIMERA LÍNEA DE TRABAJO
+
+La primera línea operativa recomendada es auditar y definir tipos de órdenes de servicio dentro de Orders.
+
+Objetivo:
+
+establecer la clasificación mínima que permita distinguir órdenes de mantenimiento y servicios sin crear todavía todo el universo CMMS.
+
+Preguntas iniciales:
+
+qué valores reales existen hoy en group y kind
+si group = service ya alcanza como agrupador general
+si kind = standard debe mantenerse único por ahora
+si se necesitan nuevos kind para maintenance, repair, inspection o diagnosis
+si esos valores impactan allowed_kinds
+si la UI de creación puede mostrar tipos simples sin complejidad excesiva
+si los seeders hablan el contrato vigente
+si filtros, index, show y documents derivados soportan esa clasificación
+si OperationalActivity debe distinguir cambios de tipo técnico como campo observable
+
+Criterio:
+
+cerrar primero la gramática mínima de Orders para servicio.
+
+Luego avanzar hacia activo mantenible.
+
+Después avanzar hacia servicios precargados.
+
+Después avanzar hacia checklists.
+
+Después avanzar hacia contadores y planes.
+
+Regla:
+
+no implementar capas superiores antes de que la clasificación mínima de Orders esté clara y validada.
+
+<<END SECTION>>
+
+<<SECTION: CONSUMOS Y PRODUCTOS ALTERNATIVOS>>
+SECTION_VERSION: 00002
+
+CONSUMOS Y PRODUCTOS ALTERNATIVOS
+
+El paquete de servicios y mantenimiento debe contemplar la lectura de consumos por asset y la futura identificación de productos alternativos o equivalentes.
+
+La lectura de consumos permite saber qué repuestos, insumos, materiales o servicios fueron utilizados sobre un asset a lo largo del tiempo.
+
+Esta información puede servir para:
+
+historial técnico
+costos de mantenimiento
+frecuencia de consumo
+previsión de stock
+recomendación de artículos habituales
+detección de materiales críticos
+sugerencia de productos alternativos
+mejor planificación de compras
+preparación de materiales para intervenciones futuras
+asistencia IA en planificación técnica
+
+La identificación de productos alternativos no debe asumirse como capacidad vigente.
+
+Debe considerarse una evolución futura del contrato de Products o de una pieza satélite específica.
+
+Antes de implementarla debe auditarse si Products permite representar:
+
+producto original
+repuesto equivalente
+producto alternativo
+compatibilidad con asset
+compatibilidad con tipo de servicio
+sustitución permitida
+restricciones técnicas
+prioridad de uso
+historial de sustituciones
+restricciones por proveedor o marca
+
+Regla:
+
+no resolver productos alternativos con texto libre disperso si el objetivo futuro es automatización, sugerencia IA, reportes, filtros o trazabilidad operativa.
+
+Regla final:
+
+la lectura de consumos por asset debe construirse primero desde órdenes, líneas e inventario.
+
+La lógica de alternativas debe diseñarse después, sobre evidencia real del contrato de Products y necesidades operativas validadas.
+
+<<END SECTION>>
+
+<<SECTION: PENDIENTES TÉCNICOS>>
+SECTION_VERSION: 00002
+
+PENDIENTES TÉCNICOS
+
+El paquete de servicios y mantenimiento debe contemplar la gestión de pendientes técnicos derivados de una intervención.
+
+Un pendiente técnico puede surgir durante diagnóstico, ejecución, inspección, checklist, visita, mantenimiento preventivo, mantenimiento correctivo o cierre de una orden.
+
+Ejemplos:
+
+repuesto faltante
+material pendiente
+trabajo no ejecutado
+nueva visita requerida
+aprobación pendiente
+diagnóstico adicional
+seguimiento posterior
+revisión futura
+certificación pendiente
+documentación pendiente
+servicio externo pendiente
+devolución pendiente
+faltante material
+acción administrativa derivada
+
+Regla:
+
+un pendiente técnico no debe quedar limitado a una nota libre si requiere seguimiento operativo.
+
+Puede comenzar como descripción textual, pero debe poder evolucionar hacia una tarea, una nueva orden, una visita, un documento, una solicitud de material, una alerta o una acción administrativa.
+
+Lectura funcional esperada:
+
+una orden detecta un pendiente
+el pendiente puede generar una tarea
+la tarea puede requerir materiales
+la tarea puede derivar en una nueva orden
+la nueva orden puede resolver el pendiente
+el asset conserva la trazabilidad completa
+
+El sistema debe poder responder progresivamente:
+
+qué quedó pendiente
+quién lo tomó
+cuándo se resolvió
+en qué orden se resolvió
+qué materiales requirió
+si generó nueva visita
+si generó documento
+si generó servicio externo
+si sigue abierto o fue cerrado
+
+Regla de diseño:
+
+Tasks debe evaluarse como primera capacidad disponible para representar pendientes técnicos antes de crear una entidad nueva.
+
+Si Tasks no alcanza, deberá definirse una pieza satélite propia del paquete.
+
+No debe crearse una entidad nueva sin auditar primero el contrato real de Tasks, Orders, Assets e Inventory.
+
+Regla final:
+
+los pendientes técnicos deben permitir continuidad operativa y trazabilidad sin convertir cada observación menor en flujo pesado obligatorio.
+
+<<END SECTION>>
+
+<<SECTION: HISTORIAL TÉCNICO DEL ASSET>>
+SECTION_VERSION: 00002
+
+HISTORIAL TÉCNICO DEL ASSET
+
+El paquete de servicios y mantenimiento debe contemplar el historial técnico del asset como una capacidad central.
+
+Un asset no debe leerse solo como dato asociado a una orden.
+
+Debe poder leerse como sujeto técnico acumulativo de intervenciones, consumos, pendientes, evidencias, documentos, servicios externos, costos, cierres y actividad operativa.
+
+El historial técnico puede componerse progresivamente a partir de información ya existente en módulos del sistema.
+
+Fuentes posibles:
+
+orders vinculadas al asset
+order_items
+inventory_operations
+inventory_movements
+products
+tasks
+documents
+attachments
+operational_activities
+servicios externos vinculados
+cierres técnicos, administrativos y finales
+costos asociados cuando exista soporte
+
+Lecturas esperadas:
+
+intervenciones realizadas
+diagnósticos registrados
+trabajos ejecutados
+trabajos pendientes
+órdenes que resolvieron pendientes previos
+repuestos consumidos
+insumos utilizados
+materiales previstos
+materiales efectivamente usados
+materiales faltantes
+materiales devueltos
+servicios externos requeridos
+proveedores intervinientes
+documentos emitidos
+certificaciones recibidas
+evidencias adjuntas
+actividad operativa asociada
+costos operativos de intervenciones
+patrones de falla o reparación
+
+Regla:
+
+no crear una tabla de historial técnico por reflejo automático.
+
+Primero debe evaluarse si el historial puede construirse como lectura consolidada desde relaciones existentes y surfaces oficiales.
+
+El historial técnico debe priorizar lectura operativa clara antes que duplicación de datos.
+
+Regla de ownership:
+
+Assets debe conservar la lectura acumulativa del equipo, unidad u objeto mantenible.
+
+Orders registra la intervención.
+
+Inventory registra la operación material.
+
+Products conserva el catálogo de artículos, repuestos, insumos, servicios y posibles alternativos cuando corresponda.
+
+Tasks registra pendientes o seguimientos.
+
+Documents formaliza resultados.
+
+Attachments conserva evidencia.
+
+OperationalActivity conserva trazabilidad transversal.
+
+Regla final:
+
+el historial técnico debe permitir reconstruir la vida operativa del asset sin convertir a Orders en dueño absoluto de toda la información técnica.
+
+<<END SECTION>>
+
+<<SECTION: RUBRO DEL TENANT Y LÉXICO OPERATIVO>>
+SECTION_VERSION: 00002
+
+RUBRO DEL TENANT Y LÉXICO OPERATIVO
+
+El sistema ya cuenta con una base inicial para registrar el rubro del tenant desde el perfil de empresa.
+
+Ubicación conceptual vigente:
+
+tenant/profile
+pestaña General
+campo Rubro
+
+Persistencia vigente:
+
+tenant.settings.business_profile.type
+
+Catálogo vigente:
+
+BusinessTypeCatalog
+
+El rubro del tenant puede permitir que la capa de Servicios y Mantenimiento adapte lenguaje visible sin romper la semántica interna del sistema.
+
+Ejemplos:
+
+taller mecánico puede hablar de taller, box, repuesto, orden de trabajo, reparación
+
+servicio técnico puede hablar de visita, diagnóstico, equipo, informe
+
+empresa de alquiler puede hablar de retorno, pre-entrega, disponibilidad, activo alquilado
+
+mantenimiento edilicio puede hablar de instalación, sector, edificio, predio, sistema eléctrico
+
+municipio puede hablar de calle, predio, vehículo, instalación, intervención
+
+Regla:
+
+el lenguaje visible puede adaptarse al rubro.
+
+La semántica interna debe mantenerse estable, estructurada y no ambigua.
+
+No deben crearse taxonomías distintas por rubro si la dimensión estructural es la misma.
+
+Ejemplo:
+
+interno
+externo
+remoto
+indefinido
+
+puede mostrarse con labels distintos según el rubro, pero debe conservar una lectura estructural común si representa ubicación o alcance de ejecución.
+
+Regla IA:
+
+la IA puede utilizar el rubro del tenant para adaptar lenguaje, ejemplos, resúmenes y sugerencias.
+
+No debe cambiar reglas internas, permisos, lifecycle, ownership ni taxonomías estructurales por usar lenguaje de rubro.
+
+Regla final:
+
+la capa de Servicios y Mantenimiento debe apoyarse en abstracciones funcionales comunes y permitir lenguaje visible adaptable, sin quedar encerrada en el vocabulario de un único rubro.
+
+<<END SECTION>>
+
+<<SECTION: NATURALEZA SATÉLITE DEL PAQUETE>>
+SECTION_VERSION: 00002
+
+NATURALEZA SATÉLITE DEL PAQUETE
+
+El paquete de servicios y mantenimiento debe leerse como una capa satélite productiva del sistema app-base.
+
+No se define inicialmente como módulo funcional ordinario ni como CRUD independiente.
+
+Tampoco debe resolverse como simples campos agregados de forma dispersa dentro de Orders, Assets, Inventory, Documents o Appointments.
+
+Su naturaleza correcta es:
+
+capacidad productiva especializada
+frente operativo adicional
+orquestador funcional de módulos existentes
+capa de automatización progresiva
+extensión ERP/CMMS liviana sobre el ecosistema vigente
+
+Esta capa puede tener piezas propias cuando la lógica de mantenimiento lo requiera.
+
+Ejemplos de piezas propias posibles:
+
+tipos técnicos de servicio
+ámbitos de servicio
+modalidades de ejecución
+estado operativo de ejecución
+planes de mantenimiento
+checklists
+lecturas o mediciones
+certificaciones
+vencimientos
+avisos
+órdenes modelo
+servicios precargados
+paquete de trabajo
+orden electrónica liviana
+cierres técnicos, administrativos y finales
+servicios externos y tercerizaciones
+custodia operativa de materiales
+línea de tiempo operativa
+reglas de próxima visita
+reglas de generación o sugerencia de órdenes
+
+Regla:
+
+la existencia de piezas propias del paquete no convierte automáticamente a Servicios y Mantenimiento en un módulo funcional ordinario.
+
+La capa satélite debe apoyarse en módulos ya existentes y respetar su ownership.
+
+Orders conserva su núcleo como orden operativa.
+
+Assets conserva la identidad técnica del activo, equipo u objeto mantenible cuando corresponda.
+
+Inventory conserva stock, movimientos, operaciones materiales, consumos, devoluciones y custodia material.
+
+Products conserva catálogo maestro.
+
+Appointments conserva planificación temporal.
+
+Tasks conserva pendientes y seguimiento.
+
+Documents conserva formalización documental.
+
+Attachments conserva evidencias y archivos.
+
+Parties conserva contactos y relaciones del negocio.
+
+OperationalActivity conserva trazabilidad transversal.
+
+La capa de servicios y mantenimiento puede orquestar estos módulos, pero no debe duplicarlos ni absorber su lógica.
+
+Regla de diseño:
+
+no reabrir arbitrariamente módulos ya cerrados para introducir complejidad propia de mantenimiento.
+
+Cuando una necesidad pertenezca específicamente al universo mantenimiento, debe evaluarse primero si corresponde resolverla como pieza satélite propia del paquete.
+
+Cuando una necesidad pertenezca claramente a un módulo existente, debe consumirse la capacidad oficial del módulo oferente.
+
+Regla final:
+
+Servicios y Mantenimiento debe crecer como capa productiva satélite, integrada, simple y automatizable, sin degradar la arquitectura modular ya consolidada de app-base.
+
+<<END SECTION>>
+
+<<SECTION: RELACIÓN CON OTROS DOCUMENTOS>>
+SECTION_VERSION: 00001
+
+RELACIÓN CON OTROS DOCUMENTOS
+
+Este documento debe leerse junto con:
+
+<DOC_REF slug="contexto_fijo_proyecto_app_base">Contexto fijo del proyecto</DOC_REF>
+
+Define el marco arquitectónico estable y la regla de crecimiento modular con fronteras explícitas.
+
+<DOC_REF slug="convenciones_proyecto_app_base">Convenciones del proyecto</DOC_REF>
+
+Define convenciones de desarrollo, ownership funcional, integración modular, Project Lab, seguridad y trazabilidad.
+
+<DOC_REF slug="mapa_entidades_app_base">Mapa de entidades</DOC_REF>
+
+Define entidades, relaciones conceptuales y posición de módulos como Orders, Assets, Products, Inventory, Documents y OperationalActivity.
+
+<DOC_REF slug="mapa_navegacion_relaciones_app_base">Mapa de navegación y relaciones</DOC_REF>
+
+Define recorridos, navegación contextual y relaciones visibles entre módulos.
+
+<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
+
+Define reglas rectoras de autorización, tenant activo, constraints, ownership de acceso y contratos de seguridad.
+
+<DOC_REF slug="base_visual_proyecto_app_base">Base visual del proyecto</DOC_REF>
+
+Define cómo deben expresarse visualmente las relaciones, tabs, surfaces, actividad y jerarquía de pantallas.
+
+<DOC_REF slug="todo_proyecto_app_base">Todo del proyecto</DOC_REF>
+
+Debe registrar pendientes concretos derivados de esta línea cuando se transformen en tareas reales de evolución.
+
+Regla:
+
+este documento no reemplaza ninguno de esos documentos.
+
+Ordena la línea funcional específica de servicios y mantenimiento.
+
+<<END SECTION>>
+
+<<SECTION: DOCUMENTACIÓN TÉCNICA DEL ASSET>>
+SECTION_VERSION: 00002
+
+DOCUMENTACIÓN TÉCNICA DEL ASSET
+
+El paquete de servicios y mantenimiento debe contemplar documentación técnica asociada al asset, al tipo de servicio, al checklist, a la orden modelo, a la intervención o a la orden electrónica.
+
+La documentación técnica puede incluir:
+
+manuales
+planos
+diagramas
+procedimientos
+instructivos
+hojas de seguridad
+certificados previos
+tablas de mantenimiento
+documentación del fabricante
+fichas técnicas
+informes externos
+protocolos de inspección
+registros de calibración
+documentación de garantía
+documentación aportada por cliente o proveedor
+
+Regla:
+
+la documentación técnica no debe quedar perdida como adjunto genérico si necesita reutilizarse durante futuras intervenciones.
+
+Attachments puede conservar archivos.
+
+Pero la lectura funcional de documentación técnica debe permitir ubicar qué archivo corresponde a:
+
+asset
+familia de asset
+tipo de servicio
+orden modelo
+checklist
+intervención
+servicio externo
+certificación
+orden electrónica
+paquete de trabajo
+
+Regla de ownership:
+
+Attachments conserva ownership de archivos y evidencias.
+
+Assets conserva identidad técnica y lectura acumulativa.
+
+Orders registra intervención.
+
+Documents formaliza resultados o comunicaciones.
+
+La documentación técnica debe vincularse sin trasladar ownership de archivos, activos u órdenes.
+
+Regla final:
+
+la documentación técnica del asset debe reducir fricción durante diagnóstico, ejecución, cierre y futuras intervenciones.
+
+No debe convertirse en repositorio desordenado de archivos sin contexto operativo.
+
+<<END SECTION>>
+
+<<SECTION: ORDEN DE TRABAJO ELECTRÓNICA LIVIANA>>
+SECTION_VERSION: 00002
+
+ORDEN DE TRABAJO ELECTRÓNICA LIVIANA
+
+El paquete de servicios y mantenimiento debe contemplar una orden de trabajo electrónica liviana como experiencia futura de ejecución técnica enfocada.
+
+No debe entenderse como duplicación de Orders ni como acceso completo al sistema.
+
+Su función es permitir que el técnico o responsable de intervención trabaje con la información mínima y suficiente para ejecutar, registrar avances y cerrar técnicamente una intervención.
+
+Contextos posibles de uso:
+
+taller
+campo
+planta
+sitio externo
+cliente
+base propia
+obra
+ubicación remota cuando corresponda
+
+Información mínima esperada:
+
+orden
+objeto técnico mantenible
+ubicación de ejecución
+problema o necesidad técnica
+diagnóstico inicial cuando exista
+checklist aplicable
+materiales previstos
+materiales entregados en custodia
+materiales consumidos
+documentación técnica relevante
+evidencias requeridas
+pendientes detectados
+observaciones técnicas
+campos mínimos de cierre técnico
+
+Reglas:
+
+la orden electrónica liviana no reemplaza Orders
+
+no debe duplicar lifecycle de Orders
+
+no debe habilitar operación sobre órdenes no aprobadas
+
+no debe habilitar operación ordinaria sobre órdenes closed
+
+no debe exponer al técnico toda la administración del sistema si no corresponde
+
+no debe resolver permisos en frontend
+
+debe consumir datos autorizados y preparados por backend
+
+debe mantener claridad entre ejecución técnica y cierre administrativo
+
+Regla de experiencia:
+
+la orden electrónica liviana debe reducir fricción operativa.
+
+Debe permitir trabajar rápido, con foco y sin exigir navegación innecesaria por múltiples módulos.
+
+Regla final:
+
+la orden electrónica liviana es una experiencia enfocada de ejecución, no un nuevo sistema paralelo.
+
+<<END SECTION>>
+
+<<SECTION: ROL OPERATIVO DEL PLANIFICADOR>>
+SECTION_VERSION: 00002
+
+ROL OPERATIVO DEL PLANIFICADOR
+
+El paquete de servicios y mantenimiento debe contemplar la función operativa de planificación.
+
+Esta función puede ser ejercida por una persona, asistida por una inteligencia artificial o parcialmente preparada por un agente IA bajo supervisión humana.
+
+El planificador humano no debe quedar obligado a recorrer manualmente múltiples pantallas para preparar una intervención común.
+
+La IA debe actuar como capa de reducción de fricción, preparando información, sugiriendo acciones y organizando el paquete de trabajo.
+
+Responsabilidades posibles de la función de planificación:
+
+definir órdenes modelo
+seleccionar servicios precargados
+asociar checklists
+vincular documentación técnica
+preparar materiales previstos
+asignar técnico o equipo de trabajo
+programar visitas
+revisar pendientes técnicos
+convertir pendientes en tareas u órdenes
+controlar vencimientos
+preparar orden electrónica
+revisar cierre técnico
+gestionar próxima intervención
+
+Responsabilidades esperadas del agente IA planificador:
+
+analizar contexto del asset
+leer historial técnico
+detectar pendientes
+sugerir checklist
+sugerir documentación técnica relevante
+sugerir repuestos o insumos habituales
+advertir faltantes o riesgos
+preparar borrador de orden electrónica
+proponer próximas acciones
+resumir información para revisión humana
+
+Responsabilidades esperadas de la persona supervisora:
+
+validar propuestas
+aprobar acciones críticas
+corregir criterio técnico
+decidir excepciones
+asumir responsabilidad operativa cuando corresponda
+controlar que la intervención preparada sea adecuada
+
+Regla:
+
+la IA debe facilitar la planificación, no ocultar decisiones críticas.
+
+El sistema debe permitir automatización progresiva, pero siempre dentro de contratos claros, trazabilidad y límites operativos definidos.
+
+Regla final:
+
+la planificación debe evolucionar hacia un modelo asistido por IA, donde app-base reduzca pasos, organice información y ayude a tomar decisiones sin reproducir la rigidez de un ERP enterprise tradicional.
+
+<<END SECTION>>
+
+<<SECTION: AGENTE IA PLANIFICADOR>>
+SECTION_VERSION: 00002
+
+AGENTE IA PLANIFICADOR
+
+El paquete de servicios y mantenimiento debe contemplar que la función de planificación operativa pueda ser asistida o parcialmente preparada por un agente de inteligencia artificial.
+
+La figura del planificador no debe entenderse únicamente como una persona que recorre manualmente pantallas, documentos, activos, órdenes, tareas, inventario y adjuntos.
+
+Debe entenderse como una función operativa que puede apoyarse en IA para reducir fricción, preparar información, sugerir decisiones y organizar trabajo técnico.
+
+Lectura funcional:
+
+la IA actúa como agente planificador asistente.
+
+la persona responsable conserva supervisión, criterio, validación y aprobación cuando corresponda.
+
+Regla doctrinal:
+
+el agente IA planificador no es una IA propia del paquete.
+
+Es un rol especializado de la capa IA transversal aplicada al universo de Servicios y Mantenimiento.
+
+Objetivo:
+
+preparar intervenciones técnicas con menor carga manual, mayor consistencia y mejor uso de la información disponible en el sistema.
+
+El agente IA puede asistir progresivamente en:
+
+analizar historial técnico del asset
+resumir intervenciones previas
+identificar pendientes abiertos
+sugerir checklist aplicable
+sugerir servicios precargados
+sugerir documentación técnica relevante
+sugerir materiales previstos
+detectar repuestos frecuentes
+advertir posibles faltantes
+sugerir productos alternativos cuando exista contrato válido
+preparar una orden electrónica de trabajo
+preparar paquete de trabajo
+redactar borradores de informes técnicos
+proponer próximas visitas
+detectar vencimientos
+ordenar evidencias
+preparar síntesis para revisión humana
+resumir bloqueos operativos
+sugerir prioridad operativa
+detectar necesidad de servicio externo
+preparar contexto para cierre administrativo
+resumir línea de tiempo operativa
+
+Regla:
+
+la IA no reemplaza autorización, validación, ownership funcional ni lifecycle del sistema.
+
+Toda acción sugerida o preparada por IA debe respetar:
+
+tenant activo
+módulos habilitados
+permisos efectivos
+constraints funcionales
+estado de los registros
+contratos de los módulos
+ownership funcional
+trazabilidad operativa
+validaciones backend
+
+Regla de supervisión:
+
+la IA puede proponer, preparar o completar borradores operativos.
+
+Las acciones críticas deben quedar sujetas a confirmación humana o a reglas explícitas de automatización aprobadas previamente.
+
+Acciones críticas posibles:
+
+crear una orden real
+cerrar una orden
+reabrir una orden cerrada
+consumir stock
+revertir consumos
+generar documento final
+programar visita
+asignar técnico o responsable
+modificar estado técnico
+registrar certificación
+confirmar pendiente resuelto
+confirmar cierre técnico
+confirmar cierre administrativo
+confirmar cierre final
+
+Regla de diseño:
+
+el sistema debe construirse con abstracciones claras, datos estructurados, catálogos, surfaces, contratos y documentación suficiente para que una IA pueda operar sin depender de inferencias frágiles.
+
+No deben esconderse reglas relevantes en textos dispersos, Blades, convenciones implícitas o decisiones manuales no documentadas.
+
+Regla final:
+
+la planificación debe evolucionar hacia un modelo asistido por IA, donde app-base reduzca pasos, organice información y ayude a tomar decisiones sin reproducir la rigidez de un ERP enterprise tradicional.
+
+<<END SECTION>>
+
+<<SECTION: OBJETO TÉCNICO MANTENIBLE>>
+SECTION_VERSION: 00002
+
+OBJETO TÉCNICO MANTENIBLE
+
+El paquete de servicios y mantenimiento debe usar la noción de objeto técnico mantenible como abstracción amplia.
+
+No debe limitarse a equipo, maquinaria o vehículo.
+
+Un objeto técnico mantenible puede ser:
+
+activo mueble
+activo inmueble
+maquinaria
+vehículo
+herramienta crítica
+instrumento
+equipo propio
+equipo de cliente
+equipo alquilado
+instalación
+edificio
+calle interna
+predio
+sector de planta
+sistema eléctrico
+sistema mecánico
+sistema hidráulico
+sistema edilicio
+unidad operativa
+componente técnico identificable
+
+Regla:
+
+no todo asset es necesariamente mantenible.
+
+Pero todo objeto técnico mantenible debe poder sostener historial técnico si forma parte de la operación de mantenimiento.
+
+Assets debe evaluarse como base natural del objeto técnico mantenible cuando exista identidad técnica persistible.
+
+Sin embargo, no debe asumirse que el contrato vigente de Assets ya cubre todos los casos posibles.
+
+Antes de implementar, debe auditarse:
+
+modelo Asset
+migraciones
+catálogos
+relaciones con Orders
+relaciones con Documents
+relaciones con Attachments
+relaciones con Parties
+show de assets
+surfaces disponibles
+seguridad
+navegación contextual
+historial operativo existente
+
+Responsabilidades conceptuales del objeto técnico mantenible:
+
+identificar qué se mantiene
+conservar contexto técnico
+recibir intervenciones
+sostener historial
+vincular documentación técnica
+vincular evidencias
+vincular consumos
+vincular pendientes
+vincular servicios externos cuando corresponda
+sostener lectura de costos cuando corresponda
+
+Regla de separación:
+
+el objeto mantenible no debe confundirse con la orden.
+
+La orden registra una intervención.
+
+El objeto mantenible conserva identidad e historia.
+
+Regla final:
+
+el concepto de objeto técnico mantenible debe mantener la abstracción suficiente para servir a múltiples rubros sin encerrar el sistema en una única lectura de taller, maquinaria o vehículo.
+
+<<END SECTION>>
+
+<<SECTION: CLASIFICACIONES OPERATIVAS NO AMBIGUAS>>
+SECTION_VERSION: 00002
+
+CLASIFICACIONES OPERATIVAS NO AMBIGUAS
+
+El paquete de servicios y mantenimiento debe evitar clasificaciones ambiguas o superpuestas.
+
+Toda clasificación operativa debe tener significado único, definición explícita y utilidad para filtros, reportes, estadísticas, IA, trazabilidad e historial técnico.
+
+Regla:
+
+no deben mezclarse dimensiones conceptuales distintas dentro de una misma clasificación.
+
+Ejemplos de dimensiones que deben mantenerse separadas:
+
+propiedad o relación del objeto mantenible
+ubicación física de ejecución
+modalidad de trabajo
+tipo técnico de intervención
+origen de la necesidad
+estado técnico del objeto
+estado operativo de la orden
+estado de materiales
+custodia de materiales
+consumo material
+prioridad
+cierre técnico
+cierre administrativo
+cierre final
+
+No debe usarse una clasificación cuando dos valores pueden significar lo mismo para distintos usuarios.
+
+Ejemplo:
+
+campo y sitio del cliente pueden resultar ambiguos o superpuestos.
+
+Para evitar ambigüedad, debe preferirse una clasificación más objetiva como alcance de ejecución.
+
+Dimensión conceptual sugerida:
+
+execution_site_scope
+
+Valores conceptuales mínimos:
+
+internal
+external
+remote
+undefined
+
+Definiciones:
+
+internal
+La intervención se ejecuta en una ubicación propia, controlada o interna del tenant.
+
+external
+La intervención se ejecuta fuera de una ubicación propia o controlada por el tenant.
+
+remote
+La intervención se ejecuta sin presencia física.
+
+undefined
+La ubicación o alcance de ejecución todavía no fue definida.
+
+Labels visibles posibles según rubro:
+
+taller
+box
+base
+planta
+obra
+cliente
+predio
+locación
+campo
+remoto
+
+Regla:
+
+estos labels no deben confundirse con valores estructurales universales.
+
+Pueden representar ubicación concreta, configuración del tenant o lenguaje visible adaptado al rubro.
+
+Regla adicional:
+
+la propiedad o relación del objeto mantenible no debe confundirse con la ubicación de ejecución.
+
+Ejemplo:
+
+un equipo de cliente intervenido en taller del tenant debe clasificarse como objeto de cliente y ejecución interna.
+
+un equipo propio alquilado intervenido en planta del cliente debe clasificarse como objeto propio alquilado y ejecución externa.
+
+Regla final:
+
+toda clasificación futura del paquete debe diseñarse para evitar ambigüedad, permitir explotación estadística y facilitar lectura por IA.
+
+<<END SECTION>>
+
+<<SECTION: CUSTODIA OPERATIVA DE MATERIALES>>
+SECTION_VERSION: 00001
+
+CUSTODIA OPERATIVA DE MATERIALES
+
+El paquete de servicios y mantenimiento debe contemplar la custodia operativa de materiales, repuestos e insumos asociados a una intervención.
+
+En mantenimiento real, el material no solo se consume.
+
+Antes de consumirse puede ser previsto, reservado, preparado, entregado, transportado, custodiado, usado, devuelto o informado como faltante.
+
+Flujo conceptual posible:
+
+material previsto
+material reservado o preparado
+material entregado en custodia
+material transportado
+material consumido
+material devuelto
+material faltante
+material dañado
+cierre de custodia
+
+Custodios posibles:
+
+warehouse
+vehicle
+technician
+crew
+work_order
+customer_site
+temporary_location
+
+Definiciones conceptuales:
+
+warehouse
+Depósito formal o ubicación de stock controlada.
+
+vehicle
+Vehículo de servicio que puede transportar o custodiar materiales.
+
+technician
+Persona responsable directa de materiales asignados.
+
+crew
+Equipo o cuadrilla responsable de materiales asignados.
+
+work_order
+Material asignado o reservado a una orden de trabajo específica.
+
+customer_site
+Material entregado o dejado temporalmente en sitio del cliente.
+
+temporary_location
+Ubicación transitoria controlada.
+
+Regla:
+
+la custodia no debe confundirse con consumo.
+
+Entregar un material a un técnico, vehículo o cuadrilla no equivale necesariamente a consumirlo.
+
+El consumo debe registrarse cuando el material se utiliza efectivamente en la intervención.
+
+La devolución debe registrarse cuando el material no utilizado retorna a stock o a una ubicación controlada.
+
+Regla de ownership:
+
+Inventory conserva ownership sobre stock, movimientos, operaciones materiales y saldos.
+
+Servicios y Mantenimiento puede requerir custodia operativa como capa de proceso, pero no debe duplicar stock ni crear inventario paralelo.
+
+Toda operación material real debe integrarse con Inventory o con una futura pieza oficial de custodia integrada a Inventory.
+
+Regla de responsabilidad:
+
+el sistema debe poder distinguir progresivamente:
+
+quién preparó el material
+quién lo recibió en custodia
+qué vehículo o ubicación lo transportó
+quién confirmó consumo
+quién registró devolución
+quién cerró diferencias
+en qué orden o intervención se utilizó
+
+Regla final:
+
+la custodia operativa de materiales debe permitir trazabilidad clara sin obligar a implementar desde el inicio una logística compleja completa.
+
+<<END SECTION>>
+
+<<SECTION: TAXONOMÍAS OPERATIVAS MÍNIMAS>>
+SECTION_VERSION: 00002
+
+TAXONOMÍAS OPERATIVAS MÍNIMAS
+
+El paquete de servicios y mantenimiento debe utilizar taxonomías mínimas, objetivas y explotables.
+
+La cantidad de valores no debe ser el diferencial.
+
+El diferencial debe ser:
+
+claridad
+ausencia de ambigüedad
+utilidad operativa
+utilidad estadística
+capacidad de filtrado
+trazabilidad
+compatibilidad con IA futura
+adaptabilidad por rubro mediante labels visibles
+
+Dimensiones mínimas sugeridas:
+
+execution_site_scope
+maintainable_relation_scope
+service_need_type
+material_custody_holder_type
+material_flow_status
+
+Estas dimensiones no deben mezclarse entre sí.
+
+execution_site_scope describe dónde o bajo qué alcance se ejecuta la intervención.
+
+Valores conceptuales mínimos:
+
+internal
+external
+remote
+undefined
+
+maintainable_relation_scope describe la relación del objeto técnico mantenible con el tenant.
+
+Valores conceptuales posibles:
+
+owned
+customer_owned
+rented_out
+third_party
+undefined
+
+service_need_type describe el tipo de necesidad técnica.
+
+Valores conceptuales posibles:
+
+preventive
+corrective
+predictive
+customer_request
+technical_finding
+inspection
+certification
+incident
+internal_decision
+ai_suggestion
+undefined
+
+material_custody_holder_type describe quién o qué custodia material antes de su consumo o devolución.
+
+Valores conceptuales posibles:
+
+warehouse
+vehicle
+person
+crew
+work_order
+external_site
+temporary_location
+undefined
+
+material_flow_status describe el estado operativo del material dentro de la intervención.
+
+Valores conceptuales posibles:
+
+planned
+reserved
+in_custody
+transported
+consumed
+returned
+missing
+damaged
+cancelled
+
+Regla:
+
+estas taxonomías son conceptuales y deben auditarse contra código real antes de implementarse.
+
+No deben introducirse como campos nuevos por reflejo automático.
+
+Regla final:
+
+cada taxonomía debe responder una sola pregunta operativa.
+
+Si una clasificación responde varias preguntas a la vez, debe separarse.
+
+<<END SECTION>>
+
+<<SECTION: ESTADO OPERATIVO DE EJECUCIÓN>>
+SECTION_VERSION: 00002
+
+ESTADO OPERATIVO DE EJECUCIÓN
+
+El paquete de servicios y mantenimiento debe distinguir el lifecycle base de Orders del estado operativo de ejecución técnica.
+
+Orders conserva su lifecycle administrativo/base vigente:
+
+draft
+pending_approval
+approved
+closed
+cancelled
+
+Ese lifecycle no debe sobrecargarse con estados técnicos.
+
+La ejecución técnica debe vivir en una dimensión satélite independiente.
+
+Estado operativo de ejecución esperado para una orden aprobada:
+
+not_started
+in_progress
+waiting_parts
+waiting_labor
+waiting_customer
+waiting_external
+on_hold
+ready_for_review
+
+Definiciones:
+
+not_started
+La orden aprobada todavía no inició ejecución técnica.
+
+in_progress
+La intervención técnica se encuentra en ejecución.
+
+waiting_parts
+La intervención está detenida por falta de repuestos, insumos o materiales.
+
+waiting_labor
+La intervención está detenida por falta de técnico, cuadrilla, especialidad o mano de obra disponible.
+
+waiting_customer
+La intervención está detenida por respuesta, aprobación, disponibilidad o acción requerida del cliente.
+
+waiting_external
+La intervención está detenida por proveedor, tercero, servicio externo, certificación, reparación externa o dependencia ajena al tenant.
+
+on_hold
+La intervención está pausada por decisión interna u otra causa operativa.
+
+ready_for_review
+La intervención está lista para revisión, control, cierre técnico, cierre administrativo o supervisión según corresponda.
+
+Reglas:
+
+solo debe operar sobre órdenes approved
+
+no debe habilitar operación sobre órdenes draft
+
+no debe habilitar operación sobre órdenes pending_approval
+
+no debe habilitar operación ordinaria sobre órdenes closed
+
+no debe habilitar operación sobre órdenes cancelled
+
+puede avanzar o retroceder mientras la orden siga approved y activa
+
+no reemplaza el cierre técnico
+
+no reemplaza el cierre administrativo
+
+no reemplaza el cierre final
+
+no reemplaza Orders.status
+
+Regla de seguridad:
+
+los cambios de estado operativo deben respetar permisos, tenant activo, módulos habilitados, constraints, validaciones backend y trazabilidad cuando corresponda.
+
+Regla IA:
+
+la IA puede sugerir estado operativo o detectar bloqueos, pero no debe cambiarlo sin autorización, validación backend y confirmación humana o regla explícita aprobada.
+
+Regla final:
+
+el estado operativo de ejecución debe permitir seguimiento técnico real sin romper el lifecycle base de Orders.
+
+<<END SECTION>>
+
+<<SECTION: DASHBOARD OPERATIVO Y PROGRAMACIÓN DE TRABAJOS>>
+SECTION_VERSION: 00002
+
+DASHBOARD OPERATIVO Y PROGRAMACIÓN DE TRABAJOS
+
+El paquete de servicios y mantenimiento debe contemplar un dashboard operativo para planificar, programar y seguir trabajos técnicos.
+
+Este dashboard no debe reemplazar Orders, Appointments, Tasks, Projects, Assets, Inventory ni OperationalActivity.
+
+Debe funcionar como frente operativo de la capa satélite de Servicios y Mantenimiento.
+
+Su función es ayudar a visualizar y organizar:
+
+trabajos internos
+trabajos externos
+trabajos remotos
+trabajos programados
+trabajos no programados
+trabajos en espera
+trabajos en ejecución
+trabajos listos para revisión
+trabajos detenidos por repuestos
+trabajos detenidos por mano de obra
+trabajos detenidos por cliente o tercero
+trabajos detenidos por servicio externo
+trabajos cerrados
+prioridades
+recursos asignables
+capacidad operativa disponible
+tiempos muertos
+bloqueos frecuentes
+
+La separación estructural mínima recomendada es:
+
+internal
+external
+remote
+undefined
+
+internal representa intervenciones ejecutadas dentro de una ubicación propia o controlada por el tenant.
+
+external representa intervenciones ejecutadas fuera de una ubicación propia o controlada por el tenant.
+
+remote representa intervenciones sin presencia física.
+
+undefined representa intervenciones cuya ubicación de ejecución todavía no fue definida.
+
+Regla:
+
+el dashboard puede mostrar labels adaptados al rubro, como taller, base, campo, cliente o remoto, pero la clasificación estructural debe mantenerse objetiva y no ambigua.
+
+Valores como taller, box, base, planta, obra, cliente, predio o locación deben tratarse primero como ubicaciones específicas, configuración o labels visibles, no necesariamente como valores estructurales universales.
+
+En operaciones internas, especialmente de taller, el dashboard debe permitir planificar la secuencia de trabajo para reducir tiempos muertos, ordenar recursos y acelerar la resolución de objetos técnicos ingresados.
+
+Flujo conceptual de taller:
+
+recepción o ingreso
+inspección inicial
+diagnóstico
+planificación del trabajo
+preparación de materiales
+asignación de técnico o recurso
+ejecución
+espera si corresponde
+revisión o control
+cierre técnico
+cierre formal de la orden
+
+Regla:
+
+no todos los rubros deben estar obligados a usar todos los pasos.
+
+La estructura debe permitir simplicidad operativa y activación progresiva.
+
+El dashboard operativo debe poder apoyarse en:
+
+Orders
+Assets
+Tasks
+Appointments
+Inventory
+Products
+Documents
+Attachments
+OperationalActivity
+capa IA operativa
+
+Regla IA:
+
+la IA puede asistir en la planificación operativa mediante sugerencias de agenda, priorización, detección de bloqueos, lectura de pendientes, preparación de materiales, resumen de historial y propuesta de próximos pasos.
+
+La IA no debe confirmar acciones críticas sin autorización, confirmación humana o regla explícita.
+
+Regla final:
+
+el dashboard operativo debe ayudar a que un objeto técnico ingresado o asignado a servicio pueda ser inspeccionado, planificado, ejecutado y cerrado en el menor tiempo operativo razonable, sin reproducir la rigidez de un ERP enterprise tradicional.
+
+<<END SECTION>>
+
+<<SECTION: LÍNEA DE TIEMPO OPERATIVA Y LOG DE AUTOMATIZACIÓN>>
+SECTION_VERSION: 00002
+
+LÍNEA DE TIEMPO OPERATIVA Y LOG DE AUTOMATIZACIÓN
+
+El paquete de servicios y mantenimiento debe contemplar una línea de tiempo operativa para reconstruir el desarrollo de una intervención técnica.
+
+La línea de tiempo debe permitir comprender:
+
+qué ocurrió
+cuándo ocurrió
+quién lo hizo
+qué lo disparó
+si fue manual o automático
+qué cambió
+qué registros participaron
+cuánto tiempo permaneció una orden en una condición determinada
+qué bloqueos aparecieron
+qué decisiones relevantes se tomaron
+qué acciones fueron sugeridas por IA cuando corresponda
+qué acciones fueron confirmadas por una persona
+qué acciones pertenecen al módulo dueño
+
+OperationalActivity puede funcionar como base transversal de trazabilidad.
+
+Pero la capa de mantenimiento puede requerir una lectura específica de línea de tiempo operativa.
+
+Regla:
+
+la línea de tiempo operativa no debe convertir a OperationalActivity en módulo funcional ordinario.
+
+Tampoco debe usar OperationalActivity para inferir autorización, reconstruir la operación original o duplicar ownership.
+
+OperationalActivity registra eventos operativos autorizados.
+
+La línea de tiempo de mantenimiento puede leer, organizar y presentar esos eventos junto con otros datos autorizados cuando exista contrato válido.
+
+Eventos relevantes posibles:
+
+creación de orden
+aprobación de orden
+inicio de ejecución
+cambio de estado operativo satélite
+material previsto
+material reservado
+material entregado en custodia
+material consumido
+material devuelto
+faltante detectado
+espera por repuestos
+espera por mano de obra
+espera por cliente
+espera por tercero
+servicio externo solicitado
+servicio externo recibido
+checklist ejecutado
+evidencia adjuntada
+documento generado
+cierre técnico
+cierre administrativo
+cierre final
+reapertura autorizada
+sugerencia IA aplicada
+automatización ejecutada bajo regla válida
+
+Regla:
+
+la trazabilidad debe registrar actividad con valor operativo real.
+
+No debe registrar ruido ni conversaciones IA brutas.
+
+Regla final:
+
+la línea de tiempo operativa debe permitir reconstruir la intervención con claridad, sin convertir el sistema en una bitácora excesiva e impracticable.
+
+<<END SECTION>>
+
+<<SECTION: PAQUETE DE TRABAJO>>
+SECTION_VERSION: 00002
+
+PAQUETE DE TRABAJO
+
+El paquete de trabajo representa el conjunto mínimo y suficiente de información, recursos, materiales, documentación, checklist, contexto técnico y campos de cierre necesarios para ejecutar una intervención.
+
+No reemplaza a Orders.
+
+Organiza lo necesario para que una orden aprobada pueda ejecutarse con menor fricción.
+
+Puede incluir:
+
+orden aprobada
+asset u objeto técnico mantenible
+ubicación de ejecución
+problema o necesidad técnica
+prioridad operativa
+estado operativo de ejecución
+técnicos asignados
+supervisor o responsable
+vehículo o recurso móvil
+herramientas especiales
+materiales previstos
+materiales reservados
+materiales entregados en custodia
+productos alternativos cuando exista contrato válido
+checklist aplicable
+documentación técnica relevante
+evidencias requeridas
+servicios externos pendientes
+pendientes técnicos abiertos
+historial técnico resumido
+observaciones relevantes
+campos de cierre técnico
+
+Regla:
+
+el paquete de trabajo actúa como puente entre planificación, ejecución y cierre.
+
+No debe duplicar módulos participantes.
+
+Debe consumir contratos oficiales de:
+
+Orders
+Assets
+Inventory
+Products
+Appointments
+Tasks
+Documents
+Attachments
+Parties
+OperationalActivity
+capa IA operativa cuando corresponda
+
+Reglas:
+
+no debe habilitar operación sobre órdenes no aprobadas
+
+no debe habilitar operación ordinaria sobre órdenes closed
+
+no debe consumir stock por sí mismo
+
+no debe crear documentos finales sin validación
+
+no debe decidir autorización
+
+no debe ocultar acciones críticas
+
+Regla IA:
+
+la IA puede asistir en la preparación del paquete de trabajo sugiriendo materiales, documentación, pendientes, checklist o próximos pasos.
+
+La persona responsable debe validar la preparación cuando corresponda.
+
+Regla final:
+
+el paquete de trabajo debe ordenar la ejecución técnica sin convertir mantenimiento en un sistema paralelo ni sobrecargar Orders con responsabilidades ajenas.
+
+<<END SECTION>>
+
+<<SECTION: CIERRES DE LA ORDEN DE SERVICIO>>
+SECTION_VERSION: 00002
+
+CIERRES DE LA ORDEN DE SERVICIO
+
+El paquete de servicios y mantenimiento debe distinguir distintos niveles de cierre.
+
+No toda intervención terminada técnicamente está lista para cerrar administrativamente la orden.
+
+Niveles de cierre:
+
+cierre técnico
+cierre administrativo
+cierre final o supervisión
+
+CIERRE TÉCNICO
+
+Lo realiza el técnico o responsable de la intervención.
+
+Puede incluir:
+
+trabajo realizado
+diagnóstico final
+resultado técnico
+checklist ejecutado
+materiales utilizados
+materiales no utilizados
+evidencias adjuntas
+pendientes detectados
+observaciones técnicas
+recomendaciones
+servicios externos requeridos
+lecturas finales
+estado del objeto técnico
+
+CIERRE ADMINISTRATIVO
+
+Verifica consistencia material, documental, económica y operativa.
+
+Puede incluir:
+
+consumos confirmados
+devoluciones
+faltantes
+servicios externos
+compras específicas
+documentos de proveedor
+facturas
+pagos
+certificaciones
+informes externos
+documentos emitidos
+pendientes administrativos derivados
+
+CIERRE FINAL O SUPERVISIÓN
+
+Valida si la orden puede pasar al estado closed del lifecycle base.
+
+Puede incluir:
+
+revisión del cierre técnico
+revisión del cierre administrativo
+validación de pendientes
+validación de evidencias
+validación documental
+aprobación de responsable
+bloqueo de operación ordinaria posterior
+
+Regla:
+
+Orders.status closed debe representar cierre final del lifecycle base.
+
+No debe usarse closed para indicar solo que el técnico terminó una tarea si faltan verificaciones administrativas, materiales, documentales o de supervisión.
+
+Regla adicional:
+
+una orden closed no debe permitir surtido, consumo, edición técnica ni modificaciones ordinarias salvo reapertura autorizada.
+
+Regla final:
+
+los cierres escalonados deben aportar control y trazabilidad sin imponer complejidad innecesaria a operaciones simples.
+
+<<END SECTION>>
+
+<<SECTION: RECURSOS ASIGNABLES A INTERVENCIONES>>
+SECTION_VERSION: 00002
+
+RECURSOS ASIGNABLES A INTERVENCIONES
+
+Una intervención técnica no debe limitarse conceptualmente a un único usuario asignado.
+
+El paquete de servicios y mantenimiento debe contemplar recursos asignables múltiples cuando la operación lo requiera.
+
+Recursos posibles:
+
+técnico
+ayudante
+cuadrilla
+supervisor
+responsable interno
+vehículo
+herramienta especial
+equipo auxiliar
+box
+sector interno
+ubicación de trabajo
+recurso externo
+proveedor
+tercero especializado
+
+Regla:
+
+la asignación de recursos no debe confundirse con propiedad del objeto mantenible ni con ubicación de ejecución.
+
+Son dimensiones distintas.
+
+Dimensiones separadas:
+
+quién ejecuta
+qué recurso se usa
+dónde se ejecuta
+sobre qué objeto se trabaja
+quién custodia materiales
+qué estado operativo tiene la orden
+qué lifecycle administrativo tiene la orden
+
+Regla:
+
+no debe asumirse que el contrato vigente ya soporta todos estos recursos.
+
+Antes de implementar, debe auditarse:
+
+users
+memberships
+parties
+appointments
+tasks
+assets
+orders
+inventory
+ubicaciones o configuraciones vigentes
+seguridad y permisos
+
+Regla final:
+
+la asignación de recursos debe mejorar planificación y ejecución sin convertir cada intervención simple en una carga administrativa pesada.
+
+<<END SECTION>>
+
+<<SECTION: PRIORIDAD OPERATIVA>>
+SECTION_VERSION: 00002
+
+PRIORIDAD OPERATIVA
+
+El paquete de servicios y mantenimiento debe contemplar una prioridad operativa simple para ordenar planificación, atención y seguimiento.
+
+Taxonomía mínima recomendada:
+
+low
+medium
+high
+
+Labels visibles:
+
+Baja
+Media
+Alta
+
+Regla:
+
+no abrir múltiples niveles adicionales sin necesidad real y no ambigua.
+
+La prioridad debe servir para:
+
+ordenar trabajo
+destacar urgencias
+filtrar dashboard operativo
+asistir planificación
+ayudar a detectar bloqueos críticos
+apoyar sugerencias IA cuando corresponda
+
+Regla:
+
+prioridad operativa no debe mezclarse con estado operativo, lifecycle, ubicación, tipo técnico ni relación del objeto mantenible.
+
+Debe ser una dimensión separada.
+
+Regla final:
+
+la prioridad debe aportar claridad operativa, no complejidad clasificatoria.
+
+<<END SECTION>>
+
+<<SECTION: CAPACIDAD OPERATIVA DE TALLER>>
+SECTION_VERSION: 00002
+
+CAPACIDAD OPERATIVA DE TALLER
+
+El paquete de servicios y mantenimiento debe contemplar la capacidad operativa de taller como una lectura progresiva, no necesariamente como implementación inmediata completa.
+
+La capacidad operativa puede estimarse a partir de:
+
+cantidad de boxes
+técnicos disponibles
+especialidades
+jornada
+vehículos
+herramientas especiales
+órdenes activas
+órdenes detenidas por repuestos
+órdenes detenidas por mano de obra
+órdenes detenidas por cliente
+órdenes detenidas por tercero
+órdenes listas para revisión
+servicios externos pendientes
+tiempos promedio
+bloqueos frecuentes
+prioridades
+
+Objetivo:
+
+ayudar a programar trabajos y reducir tiempos muertos.
+
+La lectura de capacidad debe servir para responder:
+
+qué se puede ejecutar hoy
+qué está bloqueado
+qué necesita materiales
+qué necesita técnico específico
+qué espera revisión
+qué requiere servicio externo
+qué puede cerrarse
+qué debería priorizarse
+
+Regla:
+
+no debe inventarse una lógica de capacidad si faltan datos reales.
+
+La capacidad puede comenzar como lectura simple y evolucionar por capas.
+
+Regla IA:
+
+la IA puede asistir resumiendo bloqueos, sugiriendo prioridades y preparando contexto.
+
+No debe confirmar asignaciones ni cambios críticos sin autorización y validación.
+
+Regla final:
+
+la capacidad operativa de taller debe ayudar a planificar mejor, no imponer una planificación rígida o sobredimensionada.
+
+<<END SECTION>>
+
+<<SECTION: SERVICIOS EXTERNOS Y TERCERIZACIONES>>
+SECTION_VERSION: 00002
+
+SERVICIOS EXTERNOS Y TERCERIZACIONES
+
+El paquete de servicios y mantenimiento debe contemplar intervenciones, reparaciones, análisis, calibraciones o trabajos realizados por proveedores o terceros durante el desarrollo de una orden.
+
+Una orden de trabajo puede requerir acciones externas para poder completarse.
+
+Ejemplos:
+
+fabricación de manguera
+reparación de bomba inyectora
+análisis de aceite
+calibración externa
+reparación de motor de arranque
+tornería externa
+soldadura especializada
+bobinado
+rectificación
+ensayo técnico
+certificación externa
+diagnóstico de proveedor
+reparación de componente desmontado
+
+Regla:
+
+la orden de trabajo conserva el centro operativo de la intervención.
+
+El servicio externo debe quedar vinculado a la orden que lo originó.
+
+El proveedor o tercero no debe convertirse en un módulo paralelo si puede representarse mediante Parties con relación supplier.
+
+Lectura funcional:
+
+Order representa la intervención principal.
+
+Party supplier representa el proveedor o tercero.
+
+Documents puede formalizar presupuestos, informes, certificados, facturas o comprobantes vinculados.
+
+Attachments puede conservar evidencia o documentación asociada.
+
+OperationalActivity puede registrar eventos relevantes.
+
+Un servicio externo no debe quedar escondido solo como nota libre si bloquea, condiciona o forma parte del cumplimiento de la orden.
+
+Debe poder ser visible como dependencia operativa de la orden.
+
+Estados conceptuales posibles de una dependencia externa:
+
+requested
+quoted
+approved
+sent
+in_progress
+received
+rejected
+cancelled
+closed
+
+Estos estados no obligan a implementación inmediata.
+
+Sirven como referencia conceptual para futuras piezas satélite o contratos operativos.
+
+Regla adicional:
+
+los servicios externos deben poder participar del cierre administrativo ampliado cuando tengan impacto en costos, proveedores, documentos, certificaciones, facturas, pagos o pendientes administrativos.
+
+Regla IA:
+
+la IA puede sugerir que una orden requiere servicio externo, resumir antecedentes, preparar contexto para proveedor o advertir bloqueos.
+
+No debe aprobar, cerrar ni confirmar servicios externos con impacto operativo, económico o documental sin autorización, validación backend y confirmación humana o regla explícita aprobada.
+
+Regla final:
+
+los servicios externos deben permitir trazabilidad técnica, administrativa y económica sin convertir el flujo simple de un taller chico en un proceso enterprise pesado.
+
+<<END SECTION>>
+
+<<SECTION: ORDEN Y ASSET COMO CENTROS DE COSTO>>
+SECTION_VERSION: 00002
+
+ORDEN Y ASSET COMO CENTROS DE COSTO
+
+El paquete de servicios y mantenimiento debe contemplar que una orden de trabajo puede funcionar como centro de costo operativo.
+
+También un asset u objeto técnico mantenible puede funcionar como centro de costo acumulado.
+
+Lectura:
+
+la orden concentra costos de una intervención puntual.
+
+el asset concentra costos históricos asociados a su vida técnica.
+
+Costos posibles asociados a una orden:
+
+repuestos consumidos
+insumos utilizados
+servicios externos
+mano de obra interna
+mano de obra externa
+herramientas o recursos especiales
+traslados
+certificaciones
+análisis técnicos
+compras específicas
+documentación externa
+retrabajos
+faltantes materiales
+daños materiales
+costos administrativos asociados
+
+La orden debe poder responder progresivamente:
+
+cuánto costó esta intervención
+qué productos consumió
+qué servicios externos requirió
+qué proveedores participaron
+qué documentos de compra o facturación se asociaron
+qué pagos o pendientes administrativos quedaron vinculados
+qué costo debe acumularse al asset
+qué diferencias existieron entre previsto y real
+
+El asset debe poder responder progresivamente:
+
+cuánto costó mantenerlo
+qué órdenes concentraron más costo
+qué repuestos consume con mayor frecuencia
+qué proveedores intervinieron
+qué servicios externos se repiten
+qué patrones de falla o reparación aparecen
+qué costos históricos justifican reemplazo, reparación mayor o cambio de estrategia
+
+Regla:
+
+no implementar contabilidad compleja desde el inicio.
+
+La primera lectura puede ser operativa y estimada.
+
+La evolución futura puede vincular documentos, compras, facturas, pagos o imputaciones más formales.
+
+Regla de ownership:
+
+Orders concentra la intervención.
+
+Assets acumula lectura histórica cuando corresponda.
+
+Inventory sostiene consumos y movimientos materiales.
+
+Products sostiene catálogo y costos de referencia cuando existan.
+
+Documents formaliza compras, facturas, certificados o comprobantes.
+
+Parties representa proveedores o terceros.
+
+Regla IA:
+
+la IA puede asistir en resúmenes de costos, comparación de intervenciones, detección de consumos frecuentes o preparación de análisis.
+
+No debe inventar costos ni imputaciones faltantes.
+
+Regla final:
+
+el diseño debe permitir una experiencia simple para talleres chicos y una lectura formal para organizaciones que requieran control de costos más robusto.
+
+<<END SECTION>>
+
+<<SECTION: CIERRE ADMINISTRATIVO AMPLIADO>>
+SECTION_VERSION: 00002
+
+CIERRE ADMINISTRATIVO AMPLIADO
+
+El cierre administrativo ampliado contempla verificaciones posteriores o paralelas a la ejecución técnica.
+
+Su función es asegurar que la orden pueda cerrarse con consistencia material, documental, económica y operativa.
+
+Puede incluir:
+
+consumos confirmados
+materiales devueltos
+materiales faltantes
+materiales dañados
+materiales cancelados
+servicios externos realizados
+compras específicas asociadas
+documentos de proveedor
+facturas
+pagos
+certificaciones
+informes externos
+documentos emitidos al cliente
+documentos internos
+pendientes administrativos derivados
+imputaciones cuando corresponda
+costos asociados a la intervención
+
+Regla:
+
+el cierre administrativo no debe mezclarse con el cierre técnico si representan responsabilidades distintas.
+
+Una intervención puede estar técnicamente terminada y administrativamente pendiente.
+
+Regla de ownership:
+
+Inventory conserva la validación material.
+
+Documents conserva formalización documental.
+
+Parties representa proveedores, clientes o terceros cuando corresponda.
+
+Orders concentra la intervención.
+
+Attachments conserva evidencias y archivos.
+
+OperationalActivity conserva trazabilidad transversal.
+
+Regla:
+
+no esconder información administrativa relevante solo como nota libre cuando condiciona el cierre final de la orden.
+
+Regla final:
+
+el cierre administrativo ampliado debe permitir mayor formalidad cuando la operación lo requiera, sin obligar a todos los tenants a usar complejidad enterprise desde el inicio.
+
+<<END SECTION>>
+
+<<SECTION: MODO SIMPLE Y MODO FORMAL>>
+SECTION_VERSION: 00002
+
+MODO SIMPLE Y MODO FORMAL
+
+El paquete de servicios y mantenimiento debe poder servir tanto a talleres pequeños como a organizaciones que requieren mayor formalidad operativa.
+
+El sistema debe evitar dos extremos:
+
+exigir procesos enterprise pesados a un usuario pequeño
+
+impedir control formal a una organización que lo necesita
+
+Lectura esperada:
+
+modo simple
+registro operativo ágil, bajo nivel de fricción y campos mínimos para trabajar.
+
+modo formal
+mayor trazabilidad, documentos, costos, proveedores, cierres, recursos y controles administrativos.
+
+Ejemplo de servicio externo en modo simple:
+
+descripción del servicio externo
+proveedor
+costo estimado
+costo final
+fecha esperada
+estado
+resultado
+notas
+
+Ejemplo de servicio externo en modo formal:
+
+proveedor vinculado
+documento de compra
+presupuesto recibido
+factura de proveedor
+pago o pendiente de pago
+costo imputado a la orden
+costo acumulado al asset
+certificado o informe externo
+cierre administrativo
+
+Ejemplo de orden en modo simple:
+
+orden aprobada
+asset o referencia técnica
+problema
+técnico asignado
+materiales usados
+observación final
+evidencia mínima
+cierre técnico
+
+Ejemplo de orden en modo formal:
+
+orden aprobada
+estado operativo satélite
+paquete de trabajo
+recursos asignados
+materiales previstos
+materiales reservados
+custodia operativa
+checklist
+documentación técnica
+servicio externo
+costos
+cierre técnico
+cierre administrativo
+cierre final o supervisión
+trazabilidad operativa
+
+Regla:
+
+la complejidad debe activarse por necesidad operativa, no imponerse desde el inicio.
+
+El sistema debe permitir comenzar simple y crecer hacia formalidad sin rehacer el flujo.
+
+Regla UI:
+
+la interfaz debe acompañar esta diferencia mediante detalle bajo demanda, micro-superficies, tabs, modales, dashboards claros y campos progresivos cuando corresponda.
+
+Regla IA:
+
+la IA puede ayudar a sugerir cuándo conviene pasar de un registro simple a uno más formal, según costo, proveedor, criticidad, repetición, documentación requerida o impacto en la orden.
+
+Regla final:
+
+app-base debe ofrecer robustez de core y simplicidad de uso, especialmente para talleres chicos con necesidad de ordenamiento formal pero baja tolerancia a sistemas pesados.
+
+<<END SECTION>>

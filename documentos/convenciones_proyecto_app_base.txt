@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00027
+SECTION_VERSION: 00029
 
 CONVENCIONES GENERALES
 
@@ -134,6 +134,63 @@ si dos módulos o hosts equivalentes muestran distinta madurez contractual, no d
 
 La convergencia correcta del ecosistema debe tender hacia el patrón más maduro ya validado.
 
+Regla de subcapas contextuales internas:
+
+cuando una capacidad contextual pertenece a un módulo host pero no constituye CRUD, navegación propia ni módulo independiente, puede organizarse como subcapa interna del módulo.
+
+Caso vigente:
+
+ProductOperationalSummary
+
+Lectura:
+
+subcapa contextual de Products
+sin CRUD
+sin navegación propia
+sin ModuleCatalog propio
+sin dashboard general
+sin rutas propias
+
+Ubicación vigente:
+
+app/Support/Products/OperationalSummary/
+resources/views/products/operational-summary/
+
+Regla:
+
+una subcapa interna debe mantenerse bajo el módulo host, pero separada de partials comunes si posee identidad funcional propia.
+
+No debe degradarse a include local disperso si puede publicarse mediante la infraestructura surface-driven vigente.
+
+Caso corregido:
+
+ProductOperationalSummary dejó de resolverse como include directo o partial común dentro de products/partials.
+
+La salida estable se resolvió mediante ProductSurfaceService.
+
+Patrón aplicado:
+
+consumer solicita
+módulo oferente resuelve
+surface publica
+host monta
+
+Caso vigente:
+
+ProductOperationalSummary publica summary_items en products.show mediante ProductSurfaceService.
+
+Summary items vigentes:
+
+Compras
+Ventas
+Entradas / salidas
+
+Regla:
+
+los hosts deben consumir información mediante surfaces oficiales cuando el sistema ya posee infraestructura surface-driven.
+
+No debe usarse include directo en el host como cierre estable si existe una surface adecuada del módulo oferente.
+
 Regla de modelado:
 
 una entidad no debe comprimir en un único campo conceptos que pertenecen a dimensiones distintas.
@@ -147,6 +204,44 @@ parties.kind representa únicamente tipo de contacto.
 party_roles.role representa relación del contacto con la empresa.
 
 No deben volver a usarse customer, supplier ni employee como valores de parties.kind.
+
+Regla adicional de clasificación:
+
+las taxonomías operativas deben ser mínimas, objetivas, no ambiguas y útiles para filtros, reportes, trazabilidad, historial técnico e interpretación futura por IA.
+
+La cantidad de valores no debe ser el diferencial.
+
+El diferencial debe ser claridad, explotabilidad estadística, utilidad operativa y ausencia de ambigüedad.
+
+Regla:
+
+no deben mezclarse dimensiones conceptuales distintas en un mismo campo o taxonomía.
+
+Deben mantenerse separadas, cuando correspondan:
+
+propiedad o relación del objeto
+ubicación de ejecución
+lifecycle administrativo/base
+estado operativo de ejecución
+custodia material
+consumo material
+prioridad
+tipo técnico
+origen de necesidad
+cierre técnico
+cierre administrativo
+cierre final
+
+Caso doctrinal vigente para mantenimiento:
+
+interno
+externo
+remoto
+indefinido
+
+puede funcionar como clasificación estructural mínima de ubicación de ejecución.
+
+Valores como taller, box, base, planta, obra, cliente, predio o locación deben tratarse primero como ubicaciones específicas, configuración o labels visibles, no necesariamente como tags estructurales universales.
 
 Convención adicional de lenguaje de UI para parties:
 
@@ -196,6 +291,98 @@ parties puede registrar cambios de party_roles como metadata operativa de Party.
 Regla:
 
 la metadata operativa no convierte una entidad hija en módulo propio.
+
+Convención de métricas contextuales:
+
+una subcapa contextual puede leer datos operativos de otros módulos cuando esa lectura respete ownership, permisos, módulos habilitados y contratos de los módulos dueños.
+
+Caso vigente:
+
+ProductOperationalSummary lee compras y ventas desde Orders cuando corresponde, y entradas/salidas desde Inventory.
+
+Reglas:
+
+Products presenta el resumen contextual
+
+Orders aporta transacciones reales cuando está habilitado y autorizado
+
+Inventory aporta movimientos y flujo material cuando está habilitado
+
+Parties aporta proveedor o cliente cuando existe relación real
+
+OperationalActivity no debe usarse como fuente principal de métricas
+
+los cálculos no deben hacerse en Blade
+
+las vistas deben representar payload ya resuelto
+
+Convención de exclusión de costos accesorios:
+
+fletes, mano de obra, kilómetros, viajes, prorrateos, costos accesorios, costos indirectos y rentabilidad contable completa no deben incorporarse dentro de una primera lectura contextual de producto si requieren criterios de imputación, proveedor u orden distinta.
+
+Deben tratarse como posible línea futura de costos directos operativos, no como parte automática del resumen operativo inicial del producto.
+
+Convención de automatización:
+
+toda automatización relevante debe respetar tenant activo, módulos habilitados, permisos efectivos, lifecycle, ownership funcional, validaciones backend y trazabilidad.
+
+La automatización no debe crear datos imposibles para el contrato vigente.
+
+La automatización no debe ocultar decisiones críticas.
+
+La automatización debe reducir carga manual, no aumentar confusión.
+
+Cuando una automatización impacte operación real, debe dejar rastro suficiente para auditoría, revisión humana, línea de tiempo, análisis posterior e interpretación por IA cuando corresponda.
+
+Convención de IA operativa:
+
+la IA debe leerse como capa transversal de asistencia y reducción de fricción, no como módulo funcional ordinario ni como canal paralelo de operación.
+
+No debe implementarse IA sin:
+
+caso de uso claro
+datos autorizados
+separación entre sugerencia y ejecución
+fallback
+validación backend posterior
+respeto por Security
+respeto por tenant activo
+respeto por lifecycle
+respeto por ownership modular
+
+La IA no debe operar por scraping visual, inferir permisos, inventar datos faltantes ni cerrar procesos críticos sin confirmación humana o regla explícita previamente aprobada.
+
+La arquitectura debe separar intención IA de proveedor IA.
+
+No debe asumirse API paga, proveedor único ni dependencia temprana con OpenAI u otro servicio externo.
+
+Regla:
+
+las nuevas capacidades deben evitar reglas implícitas, labels dispersos, textos especializados quemados en Blades y decisiones no documentadas cuando esas reglas deban ser interpretables por una futura capa IA.
+
+Convención de capas satélite productivas:
+
+una capacidad especializada puede organizar un frente operativo amplio sobre módulos existentes sin convertirse automáticamente en módulo CRUD ordinario.
+
+Caso vigente:
+
+Servicios y Mantenimiento debe leerse como capa satélite productiva ERP/CMMS liviana.
+
+Reglas:
+
+no duplicar ownership de módulos existentes
+
+no absorber Orders, Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity
+
+auditar primero si la necesidad puede resolverse mediante lectura consolidada, surfaces, contratos existentes o pieza satélite
+
+no abrir módulos o campos por reflejo automático
+
+no reabrir arbitrariamente módulos ya cerrados para introducir complejidad propia de una capa satélite
+
+cuando una necesidad pertenezca claramente a un módulo existente, debe consumirse la capacidad oficial del módulo oferente
+
+cuando una necesidad pertenezca específicamente al universo de la capa satélite, debe evaluarse como pieza satélite antes de modificar el núcleo de módulos cerrados
 
 Convención de seeders demo operativos:
 
@@ -400,6 +587,24 @@ el identificador técnico conceptual de una capacidad transversal puede estar da
 
 No necesariamente debe trasladarse como key visible de tab.
 
+Convención de surfaces modulares:
+
+cuando una capacidad contextual pertenece al mismo módulo host y puede integrarse mediante la infraestructura surface-driven, debe publicarse desde el surface service del módulo correspondiente.
+
+Caso vigente:
+
+ProductOperationalSummary se publica mediante ProductSurfaceService.
+
+La salida entra a products.show como summary_items y no mediante include directo.
+
+Regla:
+
+una surface modular puede publicar summary_items, tabs u otros bloques compatibles con la gramática del host cuando el módulo oferente conserva ownership de la lectura.
+
+El host monta payload ya resuelto.
+
+El Blade no calcula métricas ni reconstruye contratos.
+
 Convención de navegación para actividad operativa:
 
 no persistir URLs finales en registros de actividad operativa.
@@ -424,6 +629,20 @@ Caso detectado:
 
 x-empty-state no existe actualmente como componente runtime disponible.
 
+Regla adicional:
+
+no asumir utilities CSS no validadas como parte de la base visual real.
+
+Si se necesita un comportamiento estructural seguro, como salto de línea, debe preferirse markup HTML simple antes que depender de una utility no confirmada.
+
+Caso detectado:
+
+d-block no produjo el salto de línea esperado en Blades compactos de ProductOperationalSummary.
+
+Corrección aplicada:
+
+usar div para garantizar estructura visual en líneas separadas.
+
 Convención de Project Lab y colas:
 
 Project Lab puede tener acciones operativas locales fuera del producto, como procesar cola pendiente en entorno local.
@@ -439,7 +658,7 @@ En producción debe definirse worker supervisado por infraestructura, no botón 
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA BASE DEL PROYECTO>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 ESTRUCTURA BASE DEL PROYECTO
 
@@ -503,6 +722,17 @@ servicios del flujo de orders
 app/Support/Parties
 servicios del flujo de parties
 
+app/Support/Products
+servicios del flujo de products y subcapas contextuales internas del módulo cuando correspondan
+
+Caso vigente:
+
+app/Support/Products/OperationalSummary/
+
+Responsabilidad:
+
+contener la subcapa contextual ProductOperationalSummary como lectura operativa interna de Products, sin convertirla en módulo nuevo ni ubicarla como lógica dispersa del host visual
+
 app/Support/OperationalActivity
 servicios de registro, sanidad, lectura, presentación y persistencia de actividad operativa transversal cuando existan en código vigente
 
@@ -524,6 +754,10 @@ ActivityRecordSetProvider como contrato para lectura contextual agregada basada 
 ActivityContextProvider como contrato para lectura contextual especial definida por el módulo dueño
 
 PartyEmployeeActivityContext como contexto especial de parties para Party employee con membership activa vinculada
+
+ProductOperationalSummaryAccess como compuerta contextual interna de la subcapa ProductOperationalSummary
+
+ProductOperationalSummaryService como servicio lector propio de la subcapa ProductOperationalSummary cuando corresponda al código vigente
 
 Responsabilidad vigente de OperationalActivityLinkResolver:
 
@@ -596,6 +830,28 @@ visor documental
 
 resources/views/svg
 fuente de iconografía base
+
+Ubicación vigente para subcapas visuales internas de Products:
+
+resources/views/products/operational-summary/
+
+Partials vigentes:
+
+resources/views/products/operational-summary/purchases-summary.blade.php
+resources/views/products/operational-summary/sales-summary.blade.php
+resources/views/products/operational-summary/flow-summary.blade.php
+
+Reglas:
+
+estos partials no son componentes globales
+
+no deben documentarse como resources/views/components
+
+no deben contener lógica de negocio ni autorización final
+
+deben representar payload ya resuelto por la capa correspondiente
+
+su ubicación separada evita confundirlos con partials comunes del módulo cuando la subcapa posee identidad funcional propia
 
 Regla adicional consolidada:
 
@@ -795,7 +1051,7 @@ No debe utilizarse desactivación global de users para resolver bajas, bloqueos 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ACCESO POR MÓDULO Y ROLES>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 CONVENCIONES DE ACCESO POR MÓDULO Y ROLES
 
@@ -845,195 +1101,63 @@ allowed_kinds no debe utilizarse para parties.
 
 allowed_party_roles debe utilizarse para parties y evaluarse contra party_roles.role.
 
-Regla adicional para create contextual de parties:
+Regla adicional para capacidades contextuales internas:
 
-cuando se crea una Party desde un flujo donde la relación con la empresa ya está determinada, la autorización debe recibir esa relación como contexto funcional.
-
-Caso vigente:
-
-crear una Party employee desde TenantMembershipPartyController debe informar employee como relación funcional.
-
-No alcanza con informar únicamente kind = person.
-
-Motivo:
-
-parties.kind expresa tipo de contacto.
-
-party_roles.role expresa relación con la empresa.
-
-La autorización efectiva de parties se orienta por allowed_party_roles cuando corresponde.
-
-Regla adicional para gobierno owner/admin:
-
-las reglas de acceso, edición y delegación del frente tenant/profile deben centralizarse en una pieza reusable del plano tenant.
-
-Pieza vigente:
-
-TenantProfileAccess
-
-Responsabilidad:
-
-resolver si una membership puede ver tenant/profile
-
-resolver si puede editar General
-
-resolver si puede crear invitaciones tenant
-
-resolver si puede gestionar permisos por rol
-
-resolver si puede asignar o quitar roles
-
-resolver si puede gestionar estado de memberships
-
-distinguir owner, admin y membership activa
-
-Reglas:
-
-owner conserva gobierno estructural del tenant
-
-admin puede operar con autoridad fuerte pero no equivale a owner
-
-admin no puede modificar permisos del rol admin
-
-admin no puede asignar, delegar ni autogestionar admin
-
-admin no puede vaciar sus propios roles
-
-admin puede gestionar roles operativos no estructurales cuando el backend lo autorice
-
-la UI puede expresar readonly o disponibilidad, pero no decidir autorización final
-
-Regla adicional para sincronización de roles de membership:
-
-cuando la intención del usuario sea editar el conjunto completo de funciones de una membership, puede usarse una acción sync.
+ver el módulo host no implica automáticamente ver todas sus subcapas contextuales.
 
 Caso vigente:
 
-TenantMembershipRoleController::sync
+ver Products no implica ver ProductOperationalSummary.
 
-Reglas:
+ProductOperationalSummary posee condiciones propias de acceso y visibilidad sin convertirse por eso en módulo funcional ordinario ni requerir permisos persistidos nuevos en su primera versión.
 
-la UI puede usar checkboxes y modal para mejorar comprensión
+Condiciones base vigentes:
 
-el backend debe recibir el set completo deseado y validar agregados y remociones
+tenant activo
+membership activa
+Products habilitado
+Inventory habilitado
+rol compatible
 
-cualquier intento manipulado debe evaluarse con la misma autoridad central
+Condición adicional:
 
-no debe quedar una combinación sensible protegida solo por JS
+Orders habilitado permite métricas transaccionales de compras y ventas cuando el usuario posee dataset visible según Security.
 
-sync es más claro que acciones unitarias attach/detach cuando la intención del usuario es editar el conjunto completo de funciones de una membership
+Si Orders no está habilitado, no deben mostrarse métricas transaccionales de compra/venta.
 
-attach/detach pueden mantenerse por compatibilidad si existen, pero la nueva UI puede usar sync como patrón preferente para esta intención
+Regla:
 
-Regla adicional consolidada:
-
-cuando una regla de estado o trazabilidad define si una acción principal existe realmente, esa regla debe reflejarse también en la autorización efectiva central.
-
-No debe quedar únicamente en controller, Blade o Policy si Security es el kernel central del sistema.
-
-Caso vigente:
-
-orders.update y orders.delete deben considerar estado operativo y trazabilidad real además de permisos nominales, scope y constraints.
-
-Regla de dataset:
-
-cuando la visibilidad depende de permisos, el controller debe usar Security::scope(...)
-
-no deben utilizarse queries paralelas ni filtros manuales
-
-Regla de consistencia obligatoria:
-
-view_any debe ser igual o más amplio que view
-
-no debe existir un contrato donde view_any quede más restringido que view para el mismo módulo
-
-Regla modular adicional:
-
-todo módulo debe poseer su propio contrato de seguridad
-
-ese contrato se consume siempre bajo arbitraje de la capa central
-
-la publicación de capacidades reutilizables por parte de un módulo no crea canales paralelos de autorización
-
-las integraciones entre módulos deben respetar el contrato del módulo oferente y no reinterpretarlo desde el módulo consumidor
-
-Regla adicional para seeders demo operativos:
-
-un seeder demo no reemplaza autorización real del sistema ni valida por sí mismo permisos de usuario.
-
-Cuando un seeder use servicios operativos, debe respetar el contexto tenant requerido por esos servicios.
-
-Si el servicio depende de app('tenant'), el seeder debe preparar ese contexto de forma explícita en entorno CLI y restaurarlo o limpiarlo al finalizar cuando corresponda.
-
-Reglas:
-
-el seeder no debe debilitar contratos de seguridad
-
-el seeder no debe usar atajos que generen datos imposibles para el contrato vigente
-
-el seeder no debe omitir catálogos, estados o lifecycle por comodidad
-
-el seeder no debe simular permisos desde UI ni depender de sesión HTTP
-
-el seeder puede usar código interno, modelos, servicios y eventos reales cuando represente carga operativa
-
-Regla adicional para capacidades tenant no modulares:
-
-una capacidad evaluable por Security no necesita incorporarse a ModuleCatalog si no representa un módulo funcional ordinario.
+una subcapa contextual interna puede tener una compuerta de acceso propia, siempre que no reemplace Security ni duplique permisos persistidos innecesarios.
 
 Caso vigente:
 
-operational_activity.view_any
+ProductOperationalSummaryAccess actúa como compuerta contextual interna de la subcapa.
 
-Esta capability autoriza lectura general tenant-scoped de OperationalActivity.
+No reemplaza Security.
 
-Reglas:
+No convierte ProductOperationalSummary en módulo.
 
-no crea navegación principal
+No introduce capabilities persistidas nuevas en esta primera versión.
 
-no genera CRUD ordinario
+Regla adicional:
 
-no habilita create, update ni delete
+las métricas de compras y ventas deben usar Security::scope() sobre Orders para no leer órdenes fuera del dataset visible del usuario.
 
-no pasa por TenantModuleAccess como módulo funcional
+Las vistas compactas solo representan datos ya preparados.
 
-no reemplaza permisos de los registros originantes
+La UI no decide autorización.
 
-no autoriza operaciones originales
+Matriz inicial vigente de acceso para ProductOperationalSummary:
 
-La lectura contextual de actividad asociada a registros debe distinguirse del acceso general al log del tenant.
+owner: compras, ventas, inventory
+admin: compras, ventas, inventory
+administrator: compras e inventory
+sales: ventas
+operator: sin acceso
 
-Regla adicional para lectura contextual directa, agregada o especial:
+Regla final:
 
-si el usuario puede ver el registro host, puede ver la actividad contextual autorizada para ese host.
-
-Esta lectura no utiliza operational_activity.view_any.
-
-No habilita lectura general del tenant.
-
-No habilita acceso a otros registros por fuera del contrato contextual declarado.
-
-Cuando la lectura sea agregada, debe provenir de activity_record_set declarado por el módulo dueño.
-
-Cuando la lectura sea contextual especial, debe provenir de activity_context declarado por el módulo dueño.
-
-Caso vigente:
-
-parties puede declarar activity_context para Party employee con membership activa vinculada.
-
-Este contexto permite incluir actividad directa de Party y actividad asociada al user vinculado como actor o sujeto.
-
-Regla adicional para parties:
-
-las relaciones sensibles del contacto no deben quedar protegidas únicamente por la UI.
-
-Si una relación como employee se oculta o bloquea visualmente, el backend debe impedir igualmente su asignación manipulada por usuarios no autorizados.
-
-La relación employee pertenece a party_roles y no debe confundirse con roles de permisos.
-
-La autorización sensible de employee debe centralizarse en una pieza reusable del dominio parties.
-
-Esa pieza debe evitar duplicación de la regla entre controller y requests.
+una capacidad contextual interna puede tener visibilidad más restrictiva que el módulo host cuando sus datos dependen de otros módulos, datasets o roles.
 
 <<END SECTION>>
 

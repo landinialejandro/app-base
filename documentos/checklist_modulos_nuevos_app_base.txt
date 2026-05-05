@@ -10,7 +10,7 @@ Para actualizar una sección, se reemplaza el bloque completo entre ambos delimi
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 OBJETIVO
 
@@ -26,11 +26,27 @@ mantener coherencia entre implementaciones nuevas y existentes
 
 No es una guía opcional.
 
-Es un control mínimo obligatorio antes de considerar un módulo como integrado al sistema.
+Es un control mínimo obligatorio antes de considerar un módulo, reconversión profunda, capacidad transversal o capa satélite como integrada al sistema.
 
 Aclaración doctrinal consolidada:
 
-este checklist aplica tanto a módulos nuevos como a reconversiones profundas de módulos existentes cuando cambie su contrato funcional, contractual, de modelado o de seguridad
+este checklist aplica tanto a módulos nuevos como a reconversiones profundas de módulos existentes cuando cambie su contrato funcional, contractual, de modelado o de seguridad.
+
+También aplica, con la adaptación correspondiente, a:
+
+capacidades transversales
+capacidades tenant no modulares
+surfaces tenant/transversales no modulares
+piezas satélite productivas
+frentes operativos especializados
+automatizaciones relevantes
+integraciones futuras con IA
+
+Regla:
+
+si una capacidad no es módulo ordinario, el checklist no debe forzarla a convertirse en módulo.
+
+Debe ayudar a clasificarla correctamente antes de implementar.
 
 <<END SECTION>>
 
@@ -52,7 +68,7 @@ documentación actualizada
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00011
 
 REGLA GENERAL
 
@@ -68,6 +84,7 @@ definir relaciones reales necesarias
 definir superficie de integración
 definir si participa en trazabilidad operativa transversal
 definir si consume lectura contextual de actividad operativa, directa, agregada o contextual especial cuando corresponda
+definir si la necesidad corresponde a módulo funcional ordinario, capacidad transversal, pieza satélite, entidad hija, subcapa interna de módulo existente, surface tenant/transversal o frente operativo especializado
 implementar
 auditar
 ajustar documentación afectada
@@ -76,7 +93,7 @@ Nunca al revés.
 
 Regla adicional consolidada:
 
-si una integración nueva requiere reabrir arbitrariamente el núcleo de otro módulo, primero debe revisarse si la necesidad puede resolverse consumiendo una capacidad ya publicada por ese módulo o evolucionando su superficie contractual propia
+si una integración nueva requiere reabrir arbitrariamente el núcleo de otro módulo, primero debe revisarse si la necesidad puede resolverse consumiendo una capacidad ya publicada por ese módulo o evolucionando su superficie contractual propia.
 
 Regla adicional para reconversiones profundas:
 
@@ -91,6 +108,91 @@ Regla:
 una reconversión de acceso o gobierno interno debe validarse con el mismo rigor que un módulo sensible.
 
 Debe incluir UI correcta, backend centralizado, requests manipulados, persistencia final y rollback o limpieza de pruebas.
+
+Regla adicional para subcapas internas de módulos existentes:
+
+si una capacidad contextual pertenece a un módulo host, no posee CRUD, no tiene navegación propia, no requiere ModuleCatalog propio, no entra al dashboard general y no posee rutas propias, debe evaluarse como subcapa interna del módulo antes de tratarla como módulo nuevo.
+
+Caso vigente:
+
+ProductOperationalSummary se define como subcapa contextual de Products.
+
+No debe tratarse como módulo nuevo.
+
+No posee CRUD.
+
+No posee navegación propia.
+
+No posee ModuleCatalog propio.
+
+No entra al dashboard general.
+
+No posee rutas propias.
+
+Se publica mediante ProductSurfaceService como summary_items dentro de products.show.
+
+Regla:
+
+una subcapa interna puede tener contrato propio de acceso y visibilidad sin convertirse en módulo funcional ordinario.
+
+Debe quedar claro:
+
+qué módulo host la aloja
+qué módulos aporta datos
+qué módulo conserva ownership de cada dato
+qué condiciones de visibilidad aplican
+qué surfaces la publican
+qué vistas representan el payload
+qué queda fuera de su alcance inicial
+
+Regla adicional para capas satélite productivas:
+
+si una necesidad organiza un frente operativo amplio sobre módulos existentes, no debe asumirse que corresponde crear un módulo CRUD ordinario.
+
+Debe evaluarse si corresponde:
+
+módulo funcional
+pieza satélite
+capacidad transversal
+surface tenant/transversal
+dashboard operativo especializado
+experiencia enfocada
+lectura consolidada
+contrato nuevo del módulo dueño
+subcapa contextual interna de un módulo existente
+
+Caso vigente:
+
+Servicios y Mantenimiento debe leerse como capa satélite productiva ERP/CMMS liviana y no como CRUD aislado.
+
+Reglas:
+
+no duplicar ownership de módulos existentes
+
+no absorber Orders, Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity
+
+si una necesidad es propia de mantenimiento pero no corresponde al núcleo de un módulo existente, debe evaluarse como pieza satélite antes de reabrir módulos cerrados
+
+si una necesidad puede resolverse mediante lectura consolidada, surfaces, contratos existentes o capacidades oficiales, no debe abrirse una pieza nueva por reflejo automático
+
+Regla adicional para clasificaciones:
+
+si una clasificación mezcla dimensiones conceptuales distintas, debe frenarse la implementación hasta revisar el contrato funcional.
+
+No deben mezclarse en un mismo campo:
+
+propiedad o relación del objeto
+ubicación de ejecución
+estado operativo
+lifecycle
+custodia material
+consumo material
+prioridad
+tipo técnico
+origen de necesidad
+cierre técnico
+cierre administrativo
+cierre final
 
 Regla adicional para actividad operativa:
 
@@ -229,23 +331,55 @@ Regla:
 
 no debe quedar como cierre estable un push manual de tabs en vistas host si la capacidad ya puede publicarse mediante registry reusable.
 
+Regla adicional para surfaces modulares:
+
+una capacidad interna de un módulo host puede publicarse mediante el surface service del módulo cuando deba integrarse de forma natural al show del host.
+
+Caso vigente:
+
+ProductOperationalSummary se publica mediante ProductSurfaceService.
+
+Publica tres summary_items:
+
+Compras
+Ventas
+Entradas / salidas
+
+Regla:
+
+si la infraestructura surface-driven vigente puede publicar la capacidad, no debe dejarse como cierre estable un include directo en el Blade del host.
+
+Regla adicional para IA:
+
+si una capacidad produce información relevante para IA futura, debe exponerla mediante contratos claros, datos estructurados, catálogos, surfaces o lecturas autorizadas.
+
+No debe depender de scraping visual, labels dispersos, texto libre inevitable ni inferencia frágil.
+
+La IA no debe ejecutar acciones críticas sin autorización, confirmación humana o regla explícita previamente aprobada.
+
+Regla adicional para estado cerrado:
+
+una orden cerrada no debe quedar operable por interfaces satélite, dashboards, automatizaciones ni IA.
+
+Toda reapertura debe respetar autorización vigente.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 0 — IDENTIDAD DEL MÓDULO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00006
 
 BLOQUE 0 — IDENTIDAD DEL MÓDULO
 
-Antes de cualquier decisión técnica debe quedar definida la identidad del módulo.
+Antes de cualquier decisión técnica debe quedar definida la identidad del módulo o capacidad.
 
 Validar:
 
-nombre del módulo
+nombre del módulo o capacidad
 problema real que resuelve
-naturaleza principal del módulo
+naturaleza principal
 posición conceptual en el ecosistema
 si es módulo nuevo o reconversión de uno existente
-si es módulo funcional, entidad hija, capacidad transversal de soporte, capacidad tenant no modular o pieza interna del tenant
+si es módulo funcional, entidad hija, capacidad transversal de soporte, capacidad tenant no modular, pieza interna del tenant, pieza satélite productiva, subcapa interna de módulo existente, frente operativo especializado o surface tenant/transversal no modular
 
 Clasificación conceptual posible:
 
@@ -258,6 +392,11 @@ capacidad transversal de soporte
 capacidad tenant no modular
 capacidad tenant/transversal no modular con surface publicada
 pieza interna del tenant
+pieza satélite productiva
+subcapa interna de módulo existente
+frente operativo especializado
+experiencia enfocada de ejecución
+lectura consolidada
 
 Preguntas obligatorias:
 
@@ -268,8 +407,13 @@ qué rol ocupa dentro del ecosistema general
 registra, acompaña o sostiene actividad de otros módulos sin absorber su ownership
 debe tener navegación principal o solo consumo interno/transversal
 la necesidad requiere ModuleCatalog o puede resolverse como capacidad tenant no modular
-si necesita publicar UI reusable, corresponde ModuleCatalog o TenantSurfaceRegistry
+si necesita publicar UI reusable, corresponde ModuleCatalog, TenantSurfaceRegistry o surface service del módulo host
 la surface representa un módulo funcional o una capacidad tenant/transversal no modular
+la necesidad corresponde a una capa satélite productiva o a un módulo CRUD ordinario
+la necesidad corresponde a una subcapa contextual interna de un módulo existente
+si pertenece a una subcapa interna, qué módulo host la aloja
+si pertenece a una capa satélite, qué módulo conserva ownership funcional de cada parte
+si la necesidad puede resolverse con contrato actual, lectura consolidada o surface antes de crear tabla, campo o módulo nuevo
 
 Si estas respuestas no están claras, no debe avanzarse a implementación.
 
@@ -291,14 +435,40 @@ OperationalActivitySurfaceService se lee como surface tenant/transversal no modu
 
 No convierte OperationalActivity en módulo funcional ordinario.
 
+Caso doctrinal vigente:
+
+Servicios y Mantenimiento se lee como capa satélite productiva ERP/CMMS liviana sobre módulos existentes.
+
+No se lee como módulo CRUD ordinario por defecto.
+
+Puede tener dashboard operativo, orden electrónica liviana, paquete de trabajo o piezas satélite específicas sin duplicar Orders ni absorber ownership de módulos existentes.
+
+Caso vigente de subcapa interna:
+
+ProductOperationalSummary se lee como subcapa contextual de Products.
+
+No es módulo nuevo.
+
+No tiene CRUD.
+
+No tiene navegación propia.
+
+No tiene ModuleCatalog propio.
+
+No entra al dashboard general.
+
+No tiene rutas propias.
+
+Se monta mediante ProductSurfaceService como summary_items dentro de products.show.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 1 — CONTRATO MODULAR>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00014
 
 BLOQUE 1 — CONTRATO MODULAR
 
-Antes de aprobar un módulo nuevo debe poder explicarse con claridad:
+Antes de aprobar un módulo nuevo, reconversión profunda, capacidad transversal, pieza satélite o subcapa interna debe poder explicarse con claridad:
 
 núcleo propio
 contrato de entrada
@@ -307,6 +477,9 @@ contrato de seguridad
 oferta de integración
 participación o no en trazabilidad operativa transversal
 participación o no en lectura contextual de actividad operativa
+relación con módulos dueños existentes
+límite de ownership funcional
+si requiere datos estructurados para reportes, trazabilidad, automatización o IA futura
 
 Validar además:
 
@@ -319,6 +492,10 @@ si debe emitir eventos operativos livianos después de acciones propias autoriza
 si debe ser consumido por una capacidad transversal sin trasladarle lógica del dominio
 si necesita publicar una frontera explícita para lectura contextual agregada de actividad
 si necesita publicar un criterio contextual especial para lectura contextual de actividad
+si corresponde una pieza satélite en lugar de modificar el núcleo de un módulo existente
+si corresponde una subcapa interna en lugar de crear un módulo nuevo
+si corresponde una lectura consolidada antes que una tabla nueva
+si corresponde un dashboard o experiencia especializada sin CRUD ordinario
 
 Criterio adicional validado:
 
@@ -327,6 +504,71 @@ si una necesidad es solo consulta interna de colaboradores, directorio activo o 
 Criterio adicional validado:
 
 si la necesidad aparece dentro de tablas anfitrionas de otros módulos, evaluar si corresponde publicar row actions oficiales desde el módulo oferente antes de crear lógica local en el consumidor.
+
+Criterio adicional para subcapas internas:
+
+si la capacidad contextual pertenece al módulo host y no posee identidad suficiente para módulo nuevo, puede organizarse como subcapa interna con carpeta propia y servicios propios.
+
+Debe definirse:
+
+módulo host
+servicio de acceso
+servicio lector
+surface de publicación
+vistas internas
+módulos que aportan datos
+condiciones de visibilidad
+exclusiones de alcance
+ausencia de rutas propias
+ausencia de navegación propia
+ausencia de CRUD
+
+Caso vigente:
+
+ProductOperationalSummary
+
+Módulo host:
+
+Products
+
+Ubicación vigente:
+
+app/Support/Products/OperationalSummary/
+resources/views/products/operational-summary/
+
+Surface de publicación:
+
+ProductSurfaceService
+
+Salida visual:
+
+summary_items en products.show
+
+Ítems vigentes:
+
+Compras
+Ventas
+Entradas / salidas
+
+Módulos que aportan datos:
+
+Orders para compras y ventas reales cuando corresponde
+
+Inventory para entradas, salidas y movimientos
+
+Parties para proveedor o cliente cuando existe relación real
+
+OperationalActivity no se usa como fuente principal de métricas
+
+Regla:
+
+una subcapa interna no debe calcular datos en Blade.
+
+El Blade debe representar payload ya preparado por servicios.
+
+Regla adicional:
+
+si la subcapa puede publicarse mediante surface del módulo host, no debe quedar como include directo en el show como cierre estable.
 
 Criterio adicional para reconversiones:
 
@@ -337,6 +579,10 @@ La salida correcta puede requerir separar:
 núcleo de la entidad
 relaciones operativas
 entidades hijas o complementarias
+dimensiones satélite
+catálogos mínimos
+labels visibles
+ubicaciones configurables
 
 Caso validado:
 
@@ -353,6 +599,61 @@ Caso validado:
 parties dejó de usar allowed_kinds como constraint funcional.
 
 parties usa allowed_party_roles sobre party_roles.role.
+
+Criterio adicional para capas satélite productivas:
+
+si una necesidad pertenece a una capa satélite, debe quedar definido:
+
+qué módulo conserva ownership funcional
+qué módulo actúa como host visual si corresponde
+qué datos se leen desde relaciones existentes
+qué pieza satélite se justifica realmente
+qué no debe duplicarse
+qué no debe resolverse con nota libre si luego se espera automatización
+qué parte corresponde a dashboard, experiencia enfocada o lectura consolidada
+qué parte requiere seguridad específica
+qué parte requiere trazabilidad operativa
+qué parte requiere supervisión humana
+
+Caso doctrinal vigente:
+
+Servicios y Mantenimiento no debe resolverse solo modificando Orders.
+
+Debe auditarse qué puede sostenerse con Orders, Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties y OperationalActivity antes de crear piezas nuevas.
+
+Criterio adicional para Orders dentro de mantenimiento:
+
+Orders conserva lifecycle base:
+
+draft
+pending_approval
+approved
+closed
+cancelled
+
+No debe usarse Orders.status para estados técnicos de ejecución.
+
+El estado operativo de ejecución debe vivir en dimensión satélite.
+
+Una orden closed no debe quedar operable por interfaces satélite, automatizaciones ni IA sin reapertura autorizada.
+
+Criterio adicional para costos operativos:
+
+fletes, mano de obra, kilómetros, viajes, prorrateos, costos accesorios, costos indirectos y rentabilidad contable completa no deben incorporarse automáticamente dentro de una lectura contextual inicial de producto.
+
+Pueden requerir:
+
+proveedor distinto
+orden distinta
+criterio de imputación distinto
+prorrateo
+tratamiento como servicio
+tratamiento como costo directo operativo
+formalización documental específica
+
+Regla:
+
+si estos conceptos se vuelven necesarios, deben auditarse como línea futura separada y no mezclarse por reflejo con ProductOperationalSummary.
 
 Criterio adicional para OperationalActivity:
 
@@ -494,10 +795,28 @@ Regla:
 
 la surface tenant/transversal no convierte la capacidad en módulo funcional ordinario.
 
+Criterio adicional para IA:
+
+si una capacidad será asistida por IA o producirá información para IA futura, debe quedar definido:
+
+qué datos autorizados puede leer
+qué acción puede sugerir
+qué acción puede preparar
+qué acción no puede ejecutar
+qué requiere confirmación humana
+qué validación backend se aplica
+qué fallback existe sin proveedor IA
+qué trazabilidad corresponde si impacta operación real
+qué proveedor IA podría reemplazarse sin cambiar la intención operativa
+
+Regla:
+
+la IA no debe reemplazar contrato modular, seguridad ni validaciones backend.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 2 — SEGURIDAD OBLIGATORIA>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00015
 
 BLOQUE 2 — SEGURIDAD OBLIGATORIA
 
@@ -522,6 +841,12 @@ consumo correcto mediante Security
 ausencia de lógica paralela en controller
 ausencia de inferencias en Blade
 coherencia entre view_any y view
+respeto del tenant activo
+respeto de módulos habilitados
+respeto del lifecycle vigente
+bloqueo de estados terminales cuando corresponda
+trazabilidad de acciones sensibles cuando corresponda
+separación entre sugerencia, preparación y ejecución cuando intervenga IA o automatización
 
 Preguntas obligatorias:
 
@@ -529,234 +854,137 @@ cómo autoriza realmente este módulo
 qué rompe si falta contexto
 qué acciones dependen de constraints
 qué dataset debe devolver Security::scope(...)
+qué acciones son críticas
+qué acciones requieren confirmación humana o regla explícita
+qué acciones quedan bloqueadas por estado
+qué acciones no debe poder ejecutar una automatización
+qué acciones no debe poder ejecutar la IA
 
 Regla adicional consolidada:
 
-si el módulo utiliza constraints funcionales, validar explícitamente que arbitren no solo create sino también view, update y delete cuando corresponda al contrato del módulo
+la UI no constituye autorización.
 
-no deben tratarse como metadata decorativa ni como validación parcial
+La UI puede ocultar, deshabilitar o explicar.
 
-Validación adicional para flujos operativos con estado:
+El backend debe autorizar o bloquear.
 
-si una operación depende del estado del recurso padre, de una orden, de una línea o de una etapa del flujo, ese estado debe auditarse como parte real de la seguridad efectiva
+Regla adicional para subcapas internas:
 
-no debe quedar como simple bloqueo visual opcional
-
-Validación adicional para módulos transaccionales o con estados operativos:
-
-Security, Gate/Policy, controller y UI deben devolver la misma lectura operativa
-
-los estados readonly deben bloquear actualización y eliminación en la autorización central
-
-el borrado debe considerar trazabilidad operativa real y no solo permiso nominal del rol
-
-las acciones sobre recursos hijos deben respetar primero el estado del padre
-
-las validaciones con Project Lab deben incluir matriz por estado, permiso y trazabilidad cuando corresponda
-
-Validación adicional para administración owner:
-
-si el módulo depende de activación, permisos o configuración tenant, debe existir una vía visible y real para que owner administre ese frente
-
-auditar explícitamente:
-
-si existen permisos del módulo en el catálogo efectivo
-si esos permisos pueden asignarse realmente
-si la habilitación del módulo produce consecuencia visible coherente en UI
-si owner dispone de una surface real para entender y administrar ese comportamiento
-
-Validación adicional para gobierno owner/admin:
-
-si un frente pertenece al gobierno interno del tenant, debe diferenciarse condición estructural owner de rol delegable admin.
-
-Regla vigente:
-
-owner gobierna
-
-admin opera fuerte
-
-Validar:
-
-si owner conserva gobierno estructural
-si admin solo accede a lo permitido
-si admin no puede modificar General cuando está restringido
-si admin no puede modificar permisos del rol admin
-si admin no puede asignar ni delegar admin
-si admin no puede autogestionar su autoridad
-si admin no puede vaciar sus propios roles
-si admin puede gestionar roles operativos solo cuando backend lo autoriza
-si la UI expresa readonly o bloqueo sin reemplazar backend
+una subcapa contextual interna puede tener condiciones de visibilidad propias aunque el usuario pueda ver el módulo host.
 
 Caso vigente:
 
-tenant/profile/accesses
+ver Products no implica ver ProductOperationalSummary.
 
-Validaciones runtime informadas:
+ProductOperationalSummary requiere:
 
-admin intentando editar General → 403
+tenant activo
+membership activa
+Products habilitado
+Inventory habilitado
+rol compatible
 
-admin intentando modificar permisos del rol admin → 403
+Orders habilitado permite métricas transaccionales de compras y ventas cuando el usuario posee dataset visible según Security.
 
-admin modificando permisos de rol operativo → OK
+Si Orders no está habilitado, no deben mostrarse métricas transaccionales de compra/venta.
 
-admin intentando asignar admin → 403
+Matriz inicial vigente:
 
-admin asignando rol operativo → OK
-
-admin intentando autogestionarse o vaciar sus roles → 403
-
-admin intentando combinar admin con rol operativo vía sync → 403
-
-membership activa sin roles → error funcional controlado
-
-rollback confirmado luego de pruebas positivas
-
-Validación adicional para campos ocultos o relaciones sensibles:
-
-si una opción se oculta en UI por permisos, estado o relación activa, debe existir validación backend equivalente.
-
-No alcanza con no mostrar el campo.
-
-Debe probarse intento manipulado desde request o runtime real.
-
-Caso validado:
-
-parties bloquea asignación manipulada de relación employee desde StorePartyRequest y UpdatePartyRequest para usuarios no autorizados.
-
-Validación adicional para reconversión de constraints:
-
-cuando un módulo migra una constraint funcional hacia una nueva dimensión, debe validarse el contrato completo y no solo la UI o el formulario.
-
-Controlar:
-
-resolver central
-contrato persistido
-seeder
-UI de permisos
-controller
-requests
-vistas
-Security::scope(...)
-create
-view
-update
-delete
-usuarios reales del seed
-grep de residuos legacy
-prueba de manipulación cuando exista relación sensible
-
-Caso validado:
-
-parties migró desde allowed_kinds hacia allowed_party_roles.
+owner: compras, ventas, inventory
+admin: compras, ventas, inventory
+administrator: compras e inventory
+sales: ventas
+operator: sin acceso
 
 Regla:
 
-PARTIES + allowed_kinds no debe quedar como combinación activa cuando la doctrina vigente exige allowed_party_roles.
+una compuerta contextual interna no reemplaza Security.
 
-Validación adicional para create contextual de parties:
-
-si el flujo define una relación con la empresa, esa relación debe enviarse como contexto funcional de autorización.
+Puede organizar condiciones específicas de visibilidad de la subcapa, pero las lecturas de módulos relacionados deben seguir usando contratos oficiales y Security::scope() cuando corresponda.
 
 Caso vigente:
 
-TenantMembershipPartyController al crear una Party employee debe autorizar con employee como relación funcional.
+ProductOperationalSummaryAccess centraliza la visibilidad contextual inicial.
 
-No alcanza con autorizar solo kind = person.
+Las métricas de compras y ventas usan Security::scope() sobre Orders.
+
+Regla adicional para acciones críticas:
+
+toda acción crítica debe pasar por autorización efectiva, validación backend y, cuando corresponda, confirmación humana o regla explícita previamente aprobada.
+
+Acciones críticas posibles:
+
+crear orden real
+cerrar orden
+cancelar orden
+reabrir orden cerrada
+aprobar documento
+cerrar documento
+consumir stock
+revertir consumos
+programar visita
+asignar técnico o responsable
+registrar certificación
+confirmar cumplimiento de checklist
+resolver pendiente técnico
+modificar permisos
+habilitar módulos
+enviar comunicaciones externas
+emitir informes finales
+eliminar registros
+modificar datos sensibles
+
+Regla adicional para órdenes cerradas:
+
+una orden closed no debe permitir operación ordinaria posterior.
+
+No debe permitir:
+
+edición técnica
+surtido
+consumo
+devolución no autorizada
+cambio operativo ordinario
+cierre alternativo
+automatización operativa
+acción IA ejecutiva
+
+La reapertura debe ser acción restringida y autorizada según reglas vigentes.
+
+Regla adicional para estados operativos satélite:
+
+los estados operativos satélite no deben saltarse el lifecycle base.
+
+No deben habilitar operación cuando Orders.status no sea approved.
+
+No deben operar sobre órdenes closed salvo reapertura autorizada.
+
+Regla adicional para Inventory:
+
+custodia, consumo, devolución, faltante, daño o cancelación de materiales debe respetar permisos, ownership y validaciones de Inventory.
+
+Entregar material en custodia no equivale a consumirlo.
+
+Regla adicional para IA:
+
+la IA no puede operar fuera de Security ni ampliar privilegios.
+
+La IA no puede:
+
+ver información no autorizada
+sugerir acciones imposibles para el usuario
+ejecutar acciones sin permiso
+saltar scopes
+ignorar constraints
+crear registros fuera del tenant
+modificar estados bloqueados
+consumir stock sin autorización
+cerrar procesos críticos sin confirmación
+inventar datos faltantes
 
 Regla:
 
-parties.kind = person/company
-
-party_roles.role = customer/supplier/employee/other
-
-allowed_party_roles se evalúa contra party_roles.role.
-
-Validación adicional para actividad operativa transversal:
-
-si el módulo emite eventos hacia OperationalActivity, verificar que la autorización ocurra antes de la mutación y antes de emitir el evento.
-
-OperationalActivity no debe ser usado para decidir permisos.
-
-OperationalActivity no debe reemplazar Security, Gate, Policy, requests ni validaciones del módulo dueño.
-
-La lectura de operational_activities requiere autorización explícita.
-
-No debe asumirse acceso de lectura solo porque exista escritura append-only.
-
-Caso vigente:
-
-la lectura general tenant-scoped se autoriza mediante capability específica:
-
-operational_activity.view_any
-
-Regla:
-
-esta capability no convierte OperationalActivity en módulo funcional ordinario ni habilita operaciones originales.
-
-Validación adicional para lectura de logs:
-
-definir autorización explícita antes de crear vista, tab, menú o surface.
-
-Si se crea una lectura general, debe diferenciarse de lectura contextual por registro.
-
-La lectura general del log del tenant no debe confundirse con la lectura de actividad asociada a un registro que el usuario ya puede ver.
-
-Validación adicional para lectura contextual heredada:
-
-si una surface muestra actividad operativa asociada a un registro host, debe validarse que el host ya autorizó view sobre ese registro.
-
-La lectura contextual no debe usar operational_activity.view_any.
-
-operational_activity.view_any queda reservado para lectura general tenant-scoped.
-
-Reglas:
-
-la surface contextual no abre acceso general al log del tenant
-la surface contextual no autoriza el registro host
-la surface contextual no reconstruye permisos del host
-el reader contextual debe recibir o trabajar sobre el record ya autorizado
-
-Caso validado:
-
-show pages con tab Actividad contextual heredada.
-
-Validación adicional para lectura agregada:
-
-si la lectura contextual usa activity_record_set, debe validarse:
-
-provider declarado por módulo dueño
-records esperados incluidos
-records no esperados excluidos
-tenant activo respetado
-host autorizado previamente
-sin ampliación general del tenant
-sin lógica específica hardcodeada en OperationalActivity
-
-Caso validado:
-
-ProjectActivityRecordSet
-
-Validación adicional para lectura contextual especial:
-
-si la lectura contextual usa activity_context, debe validarse:
-
-provider declarado por módulo dueño
-condición habilitante real
-criterio contextual aplicado
-tenant activo respetado
-host autorizado previamente
-sin ampliación general del tenant
-sin lógica específica hardcodeada en OperationalActivity
-
-Caso validado:
-
-PartyEmployeeActivityContext
-
-Validación final obligatoria:
-
-la UI correcta no alcanza.
-
-Toda regla sensible debe probarse con runtime real, request manipulado o mecanismo equivalente, y verificación final de persistencia cuando corresponda.
+si la IA prepara una acción, la acción final debe volver a pasar por el contrato oficial del módulo dueño.
 
 <<END SECTION>>
 

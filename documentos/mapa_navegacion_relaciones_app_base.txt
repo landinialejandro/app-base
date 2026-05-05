@@ -41,7 +41,7 @@ no debe cargarse con teoría arquitectónica general que corresponda a otros doc
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00012
 
 REGLA GENERAL
 
@@ -97,6 +97,46 @@ la existencia de una tab Actividad no implica por sí misma lectura agregada ni 
 La lectura agregada debe estar declarada explícitamente por el módulo dueño mediante activity_record_set.
 
 La lectura contextual especial debe estar declarada explícitamente por el módulo dueño mediante activity_context.
+
+Regla adicional para capas satélite productivas:
+
+una capa satélite productiva puede tener entrada visual propia, dashboard operativo especializado o experiencia enfocada sin convertirse automáticamente en navegación CRUD ordinaria.
+
+Caso doctrinal vigente:
+
+Servicios y Mantenimiento puede requerir dashboard operativo, orden electrónica liviana o paquete de trabajo como frentes especializados.
+
+Estos frentes no deben crear navegación por simetría ni duplicar módulos existentes.
+
+Deben orquestar recorridos reales entre Orders, Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties y OperationalActivity respetando ownership funcional.
+
+Regla:
+
+un frente especializado no autoriza por sí mismo acciones sobre módulos participantes.
+
+La autorización debe seguir perteneciendo al módulo dueño o a la capacidad central correspondiente.
+
+Regla adicional para subcapas contextuales internas:
+
+una subcapa contextual alojada dentro de un módulo host no crea navegación nueva por sí misma.
+
+Caso vigente:
+
+ProductOperationalSummary se visualiza dentro de products.show como Resumen operativo mediante summary_items publicados por ProductSurfaceService.
+
+No crea ruta nueva.
+
+No crea tab nueva.
+
+No crea entrada de navegación.
+
+No entra al dashboard general.
+
+No modifica la navegación principal de Products, Orders ni Inventory.
+
+Regla:
+
+si una lectura contextual puede integrarse naturalmente al host mediante surface, no debe resolverse como navegación nueva ni como card local desconectada del patrón del host.
 
 <<END SECTION>>
 
@@ -167,7 +207,7 @@ cuando existan varias rutas posibles, debe priorizarse la más consistente con N
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN PRINCIPAL TENANT>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 NAVEGACIÓN PRINCIPAL TENANT
 
@@ -226,7 +266,7 @@ Regla adicional consolidada:
 
 la navegación principal puede incorporar iconografía por módulo para mejorar lectura visual
 
-esa iconografía debe provenir de metadata modular (ModuleCatalog) y no definirse localmente en la vista
+esa iconografía debe provenir de metadata modular y no definirse localmente en la vista
 
 Aclaración vigente para parties:
 
@@ -250,16 +290,32 @@ La lectura agregada mediante activity_record_set tampoco crea navegación princi
 
 La navegación principal no debe abrir un menú propio de actividad salvo decisión futura validada, autorizada y documentada.
 
+Aclaración vigente para Servicios y Mantenimiento:
+
+Servicios y Mantenimiento no debe agregarse automáticamente como módulo funcional ordinario por el hecho de existir como capa satélite productiva.
+
+Si en el futuro posee entrada visual, dashboard operativo o acceso especializado, esa entrada debe documentarse como frente operativo de capa satélite y no como CRUD ordinario por defecto.
+
+La entrada visual, si corresponde, debe responder a una necesidad funcional real:
+
+planificar trabajos
+separar trabajos internos y externos
+ver bloqueos
+ver capacidad operativa
+ver estados de ejecución
+organizar recursos
+acceder a órdenes electrónicas livianas o paquetes de trabajo
+
 Regla:
 
-la navegación principal no reemplaza flujos contextuales ni relaciones entre módulos
+la navegación principal no reemplaza flujos contextuales ni relaciones entre módulos.
 
-Su función es dar acceso estructural al ecosistema operativo vigente
+Su función es dar acceso estructural al ecosistema operativo vigente.
 
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00014
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -409,63 +465,95 @@ no habilita lectura general del tenant
 
 no habilita acceso a otros registros fuera del host autorizado, del record set declarado por el módulo dueño o del activity_context declarado por el módulo dueño
 
-La lectura directa por defecto aplica cuando el host tiene view autorizado y consume la surface de actividad.
+Aclaración vigente para Products:
 
-La lectura agregada aplica solo cuando el módulo declara activity_record_set.
+products.show puede alojar lecturas contextuales internas del producto sin crear navegación nueva.
 
-La lectura contextual especial aplica solo cuando el módulo declara activity_context.
+Caso vigente:
 
-Caso validado de activity_record_set:
+ProductOperationalSummary se integra como Resumen operativo en el show-summary de products.show.
 
-projects.show muestra actividad del Project y de sus Tasks mediante ProjectActivityRecordSet.
+La publicación visual ocurre mediante:
 
-Caso validado de activity_context:
+ProductSurfaceService
+↓
+summary_items
+↓
+products.show
 
-parties.show puede mostrar actividad ampliada de una Party employee con membership activa vinculada mediante PartyEmployeeActivityContext.
+Summary items vigentes:
 
-Lectura validada para parties.show:
+Compras
+Ventas
+Entradas / salidas
 
-Party común
-→ actividad directa del registro Party
+Reglas:
 
-Party employee manual sin user o sin membership activa
-→ actividad directa del registro Party
+ProductOperationalSummary no crea ruta nueva
 
-Party employee con membership activa vinculada
-→ actividad del colaborador:
+no crea tab nueva
 
-* actividad directa de Party
-* actividad donde el user vinculado sea actor
-* actividad donde el user vinculado sea sujeto
+no crea card independiente debajo del summary como cierre estable
 
-Aclaración vigente:
+no crea navegación propia
 
-orders.show y documents.show quedan con actividad directa en el estado actual.
+no convierte Products en dueño de Orders ni Inventory
 
-Si más adelante requieren actividad agregada o contextual especial, deberán definir su propio contrato.
+no convierte InventoryMovement en actividad operativa transversal principal
 
-No se amplía por simetría automática.
+Orders conserva compras y ventas reales
 
-La navegación desde una actividad hacia el registro destino debe existir solo cuando haya ruta show canónica segura.
+Inventory conserva movimientos y flujo material
 
-Caso validado:
+Parties conserva proveedor o cliente cuando existe relación real
 
-una actividad de Task visible desde Project enlaza a tasks.show mediante OperationalActivityLinkResolver.
+OperationalActivity conserva trazabilidad, pero no se usa como fuente principal de métricas
 
-Trail validado para lectura general:
+Regla visual de navegación:
 
-Inicio
-Perfil de empresa · Actividad
-Registro destino
+la lectura debe aparecer integrada naturalmente al host mediante summary_items y no como agregado local desconectado del patrón surface-driven.
 
-Casos actuales sin link seguro:
+Aclaración vigente para tabs de products.show:
 
-InventoryOperation
-Attachment
+las tabs existentes, como Movimientos, Actividad y Adjuntos, permanecen separadas.
+
+ProductOperationalSummary no reemplaza la tab Movimientos.
+
+La tercera pieza visual del resumen debe ser Entradas / salidas y no Último movimiento, porque el último movimiento ya pertenece a la lectura de Inventory y el detalle está disponible en la tab Movimientos.
+
+Aclaración vigente para Servicios y Mantenimiento:
+
+la capa de servicios y mantenimiento puede requerir recorridos contextuales entre:
+
+assets → orders
+orders → inventory
+orders → documents
+orders → attachments
+orders → tasks
+orders → appointments
+orders → parties
+orders → operational activity
+assets → documentación técnica
+assets → historial técnico
+orders → servicios externos
+orders → paquete de trabajo
+orders → cierres técnico, administrativo y final
+
+Estos recorridos no convierten a mantenimiento en dueño de los módulos participantes.
+
+El dashboard operativo, la orden electrónica liviana y el paquete de trabajo deben leerse como frentes especializados o experiencias operativas.
+
+No deben duplicar la navegación estructural de Orders, Assets, Inventory, Products, Documents, Tasks, Appointments, Parties ni Attachments.
 
 Regla:
 
-no se inventan links para records sin ruta canónica segura.
+el paquete de trabajo puede actuar como puente entre planificación, ejecución y cierre, pero no reemplaza a Orders ni habilita operación fuera del lifecycle y permisos vigentes.
+
+Regla adicional:
+
+la orden electrónica liviana debe ser una experiencia enfocada de ejecución, no un acceso completo al sistema.
+
+Debe mostrar solo la información necesaria para la intervención y conservar navegación contextual hacia los módulos dueños cuando corresponda y esté autorizado.
 
 <<END SECTION>>
 

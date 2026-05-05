@@ -39,7 +39,7 @@ no debe utilizarse como depósito de ideas difusas sin criterio de ejecución
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — RECONVERSIÓN MODULAR>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00023
 
 LÍNEA ACTIVA — RECONVERSIÓN MODULAR
 
@@ -74,6 +74,10 @@ edición de funciones de memberships mediante modal y sync backend
 validación runtime de seguridad owner/admin con requests manipulados y rollback
 reconversión parcial de seeders demo hacia carga operativa real con trazabilidad
 validación de seeders demo operativos en parties, orders y documents
+creación doctrinal de capa IA operativa como capacidad transversal futura o progresiva
+creación doctrinal del paquete de servicios y mantenimiento como capa satélite productiva ERP/CMMS liviana
+implementación inicial de ProductOperationalSummary como subcapa contextual interna de Products
+corrección arquitectónica de ProductOperationalSummary desde include directo hacia integración surface-driven mediante ProductSurfaceService
 
 Criterios rectores vigentes:
 
@@ -98,6 +102,17 @@ no proteger reglas owner/admin solo desde UI o JS
 no cerrar seeders demo con compatibilidad legacy silenciosa
 no aceptar payloads legacy en seeders para reinterpretarlos internamente hacia contratos nuevos
 no considerar migrate:fresh --seed como cierre suficiente si el seeder representa operación real con eventos queued
+no convertir Servicios y Mantenimiento en CRUD ordinario aislado
+no resolver mantenimiento solo modificando Orders
+no usar Orders.status como estado técnico de ejecución
+no permitir operación ordinaria sobre órdenes closed sin reapertura autorizada
+no implementar IA como módulo ordinario, chat decorativo ni canal paralelo de operación
+no asumir proveedor IA pago, API key disponible ni dependencia temprana con un servicio externo
+no permitir que IA o automatizaciones reemplacen Security, lifecycle, validaciones backend ni confirmación humana en acciones críticas
+no convertir una subcapa contextual interna en módulo nuevo por el solo hecho de tener salida visual o métricas
+no resolver una subcapa contextual con include directo si puede integrarse mediante surface del módulo host
+no calcular métricas operativas en Blade
+no usar OperationalActivity como fuente principal de métricas cuando existen módulos dueños de datos transaccionales u operativos
 
 Foco de esta línea:
 
@@ -116,6 +131,11 @@ más definición explícita de criterios contextuales especiales cuando correspo
 más centralización de reglas sensibles del plano tenant
 más claridad entre gobierno estructural owner y gestión operativa admin
 más coherencia entre seeders demo, catálogos vigentes, lifecycle real y trazabilidad operativa
+más preparación para capas satélite productivas sin degradar ownership modular
+más datos estructurados para reportes, trazabilidad, automatización e IA futura
+más automatización progresiva sin saltar autorización ni supervisión humana
+más subcapas contextuales internas correctamente alojadas bajo su módulo host
+más integración surface-driven para lecturas compactas dentro de show pages
 
 Caso vigente consolidado:
 
@@ -150,38 +170,138 @@ OrderModuleSeeder no conserva compatibilidad legacy interna tipo legacyKinds
 DocumentModuleSeeder usa modelos Document y DocumentItem y estados vigentes de DocumentCatalog
 DocumentModuleSeeder no usa issued como estado vigente
 
+Caso vigente consolidado de ProductOperationalSummary:
+
+ProductOperationalSummary es subcapa contextual interna de Products.
+
+No es módulo nuevo.
+
+No tiene CRUD.
+
+No tiene navegación propia.
+
+No tiene ModuleCatalog propio.
+
+No entra al dashboard general.
+
+No tiene rutas propias.
+
+Se aloja en:
+
+app/Support/Products/OperationalSummary/
+resources/views/products/operational-summary/
+
+Se publica mediante:
+
+ProductSurfaceService
+
+Se visualiza en products.show como summary_items:
+
+Compras
+Ventas
+Entradas / salidas
+
+Condiciones vigentes:
+
+requiere Products + Inventory habilitados
+
+usa Orders para compras y ventas solo si Orders está habilitado
+
+operator no accede a esta capa
+
+Las métricas de compras y ventas deben respetar Security::scope() sobre Orders.
+
+OperationalActivity no se usa como fuente principal de métricas.
+
+Criterio doctrinal vigente para Servicios y Mantenimiento:
+
+Servicios y Mantenimiento se lee como capa satélite productiva ERP/CMMS liviana sobre módulos existentes.
+
+No se lee como módulo CRUD ordinario por defecto.
+
+Puede requerir dashboard operativo, paquete de trabajo, orden electrónica liviana, estados operativos satélite, cierres escalonados, custodia operativa de materiales, servicios externos, historial técnico y línea de tiempo operativa.
+
+Estas piezas no deben asumirse como tablas nuevas por defecto.
+
+Primero debe auditarse qué puede sostenerse con:
+
+Orders
+Assets
+Inventory
+Products
+Appointments
+Tasks
+Documents
+Attachments
+Parties
+OperationalActivity
+
+Criterio doctrinal vigente para IA:
+
+IA se lee como capa transversal operativa de asistencia y reducción de fricción.
+
+No reemplaza Security.
+
+No reemplaza backend.
+
+No reemplaza lifecycle.
+
+No reemplaza ownership modular.
+
+No reemplaza supervisión humana en acciones críticas.
+
+Debe diseñarse con presupuesto inicial potencialmente cero, proveedor reemplazable, datos autorizados, trazabilidad relevante y fallback sin integración paga inmediata.
+
 <<END SECTION>>
 
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00010
 
 MÓDULOS PRIORITARIOS A REVISAR
 
-appointments
-por ser referencia actual de host maduro en show pages
-
 orders
-por su centralidad operativa, necesidad de convergencia estructural y validación reciente de seed demo operativo con ciclo completo
-
-inventory
-por cierre de identidad modular autónoma y por mantener InventoryModuleSeeder con movimientos en el estado vigente, sin reconversión completa a simulación operativa agrupada
-
-attachments
-por revisión contractual pendiente bajo nueva doctrina y porque AttachmentDemoSeeder no se simula dentro del frente actual de seeders demo operativos
+por su centralidad operativa, necesidad de auditoría fuerte para implementación de Servicios y Mantenimiento, necesidad de preservar lifecycle base, validación reciente de seed demo operativo con ciclo completo y participación en métricas transaccionales de ProductOperationalSummary cuando está habilitado y autorizado
 
 assets
-por surfaces compactas ya detectadas en revisión
+por su rol potencial como base del objeto técnico mantenible, historial técnico, documentación técnica, consumos, costos, pendientes y relaciones contextuales de mantenimiento
+
+inventory
+por cierre de identidad modular autónoma, por mantener InventoryModuleSeeder con movimientos en el estado vigente, sin reconversión completa a simulación operativa agrupada, por futuras necesidades de consumos, custodia, devoluciones, faltantes y operaciones materiales vinculadas a mantenimiento, y por su participación base en ProductOperationalSummary mediante entradas, salidas y movimientos
+
+products
+por necesidad de auditar si puede representar repuestos, insumos, servicios, mano de obra, paquetes, alternativos y servicios precargados sin asumir clasificaciones no validadas; y por la incorporación inicial de ProductOperationalSummary como subcapa contextual interna que puede requerir revisión futura de permisos persistidos, costos directos operativos y ampliación de métricas
+
+tasks
+por su función como soporte natural de pendientes técnicos, seguimientos, acciones auxiliares, tareas derivadas de checklist, alertas y acciones administrativas derivadas
+
+appointments
+por ser referencia actual de host maduro en show pages y por su posible rol en programación temporal, visitas técnicas, agenda de taller y origen contextual de órdenes
 
 documents
-por consolidación como capacidad embebida oficial y validación reciente de seed demo operativo con estados vigentes y actividad registrada
+por consolidación como capacidad embebida oficial, validación reciente de seed demo operativo con estados vigentes y actividad registrada, y por su rol en formalización, servicios externos, compras, informes, certificados y cierres administrativos
+
+attachments
+por revisión contractual pendiente bajo nueva doctrina, porque AttachmentDemoSeeder no se simula dentro del frente actual de seeders demo operativos y por su rol en evidencia y documentación técnica del asset
 
 parties
-seguimiento posterior al cierre de reconversión conceptual y de seguridad, especialmente análisis de embebidos de parties.show según party_roles.role y validación reciente de seed demo operativo con actividad de parties
+seguimiento posterior al cierre de reconversión conceptual y de seguridad, especialmente análisis de embebidos de parties.show según party_roles.role, validación reciente de seed demo operativo con actividad de parties y futura relación con proveedores, clientes, terceros, colaboradores internos y servicios externos; además de su participación como proveedor o cliente en lecturas contextuales de ProductOperationalSummary cuando exista relación real
+
+OperationalActivity
+por su rol como base transversal de trazabilidad, lectura contextual, línea de tiempo operativa y posible soporte de lectura para automatizaciones e IA futura sin convertirse en módulo funcional ordinario; y por la regla de no usarlo como fuente principal de métricas cuando existan módulos dueños de datos transaccionales u operativos
+
+capa IA operativa
+por su impacto transversal futuro en datos estructurados, prompts manuales, proveedores reemplazables, seguridad, trazabilidad, supervisión humana y presupuesto cero
+
+paquete de servicios y mantenimiento
+por ser nueva capa satélite productiva que debe avanzar mediante auditoría fuerte, no por codificación inmediata ni por sobrecarga directa de Orders
+
+ProductOperationalSummary
+por ser subcapa contextual interna de Products recientemente implementada, con integración surface-driven, visibilidad contextual propia, dependencia base de Products + Inventory, uso condicional de Orders y exclusión inicial de costos accesorios
 
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00021
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -460,379 +580,153 @@ Se implementó OperationalActivityLinkResolver para resolver lectura visual y na
 
 Estado vigente de lectura general:
 
-tenant/profile es accesible por owner y admin según contrato vigente
+tenant/profile es accesible por owner y admin según contrato vigente, con restricciones diferenciadas de gobierno
 
-admin accede con restricciones de gobierno
+Cierre operativo reciente de ProductOperationalSummary:
 
-OperationalActivity no tiene navegación principal propia
+se implementó la primera versión de ProductOperationalSummary como subcapa contextual interna de Products.
 
-Cierre operativo reciente de lectura contextual heredada de OperationalActivity:
+Cierre alcanzado:
 
-se implementó y validó lectura contextual de actividad operativa asociada a records host autorizados.
+subcapa contextual de Products implementada
+integración mediante ProductSurfaceService
+summary_items en products.show
+lectura compacta de compras, ventas y entradas/salidas
+visibilidad según rol
+condición base Products + Inventory habilitados
+Orders habilitado para métricas transaccionales de compras y ventas
+operator sin acceso
 
-Regla consolidada:
+Se corrigió la primera ubicación arquitectónica.
 
-si el usuario puede ver el registro host,
-puede ver la actividad operativa asociada a ese registro.
+Cambio aplicado:
 
-Esta lectura contextual no equivale a lectura general del log del tenant.
-
-No utiliza operational_activity.view_any.
-
-Se creó infraestructura específica:
-
-OperationalActivityContextReader
-TenantSurfaceRegistry
-OperationalActivitySurfaceService
-resources/views/tenants/partials/operational-activity-table.blade.php
-
-Se actualizó ModuleSurfaceRegistry para fusionar:
-
-surfaces modulares desde ModuleCatalog
-surfaces tenant/transversales desde TenantSurfaceRegistry
-
-Hosts validados inicialmente:
-
-tasks.show
-parties.show
-
-Hosts validados adicionalmente:
-
-projects.show
-assets.show
-products.show
-appointments.show
-orders.show
-documents.show
-
-La tab contextual utiliza:
-
-key = activity
-
-para compatibilidad con return_tab.
-
-Se corrigió el patrón inicial de piloto:
-
-ya no queda push manual de tab Actividad en tasks.show
-ya no queda push manual de tab Actividad en parties.show
-OperationalActivityContextReader no queda llamado directamente desde controllers host
-la lectura contextual queda ofrecida como surface tenant/transversal
-
-Validaciones informadas:
-
-Project Lab aplicó archivos y métodos correctamente
-sintaxis PHP válida
-optimize:clear OK
-auditoría confirmó ausencia de operational_activity.contextual
-auditoría confirmó key = activity
-navegador OK para tasks.show y parties.show
-
-Cierre operativo reciente de lectura agregada de OperationalActivity:
-
-se implementó y validó la lectura contextual agregada mediante activity_record_set declarado por módulo dueño.
-
-Piezas validadas:
-
-ActivityRecordSetProvider
-ModuleCatalog::activityRecordSetService()
-OperationalActivityContextReader::forRecordSet()
-ProjectActivityRecordSet
-
-Caso validado:
-
-projects.show
-ProjectActivityRecordSet
-Project + Tasks
-
-Validaciones informadas:
-
-Project #7 devuelve Project #7 + Task #11 + Task #18
-actividad de Task #11 aparece dentro de la tab Actividad de Project #7
-
-Regla consolidada:
-
-OperationalActivity no decide la frontera funcional agregada.
-
-El módulo dueño declara el record set cuando corresponde.
-
-Cierre operativo reciente de lectura contextual especial de OperationalActivity:
-
-se implementó y validó activity_context como modalidad distinta de lectura directa y activity_record_set.
-
-Piezas validadas:
-
-ActivityContextProvider
-ModuleCatalog::activityContextService()
-OperationalActivitySurfaceService::activityContextPayloadFor()
-OperationalActivityContextReader::forRecordAndUsers()
-PartyEmployeeActivityContext
-
-Caso validado:
-
-parties.show
-Party employee con membership activa vinculada
-actividad directa de Party
-actividad donde el user vinculado es actor
-actividad donde el user vinculado es sujeto
-
-Validaciones informadas:
-
-Party #25 Carlos Demo
-membership activa
-user_id vinculado
-actividad directa de Party
-actividad donde Carlos fue actor
-actividad donde Carlos fue sujeto
-browser OK
-jobs = 0
-failed_jobs = 0
-
-Se validó el pasaje de:
-
-rows = 4
-
-a:
-
-rows = 6
-
-luego de generar actividad donde Carlos actuó como actor y donde Carlos fue sujeto de asignación.
-
-Regla consolidada:
-
-activity_context se utiliza cuando la ampliación del dataset no puede representarse como simple conjunto de records.
-
-OperationalActivity no hardcodea employee, parties, memberships ni users.
-
-El módulo dueño define la frontera contextual especial.
-
-Cierre operativo reciente de links de actividad:
-
-Attachment no linkea a attachments.show porque no existe ruta canónica propia.
-
-Attachment puede resolver navegación hacia el host padre mediante attachable cuando ese host tiene show seguro soportado.
-
-InventoryOperation mantiene fallback textual explícito, sin link, porque no existe show canónico seguro confirmado.
-
-Cierre operativo reciente de metadata de actividad:
-
-extra_changes funciona como insumo interno.
-
-El logger lo transforma en metadata.changes.
-
-No se persiste duplicado como metadata.extra_changes.
-
-Se validó con runtime real usando cambio de party_roles.
-
-Cierre visual reciente de actividad operativa:
-
-se creó OperationalActivityChangePresenter.
-
-Se agregó resumen compacto de cambios.
-
-Se agregó modal Ver cambios.
-
-Se unificó tabla general y contextual mediante operational-activity-table.
-
-profile-activity-tab delega en el partial reusable común.
-
-Cierre visual reciente adicional de actividad operativa:
-
-la tab Actividad puede mostrar ícono propio desde la surface.
-
-Icono vigente:
-
-activity
-
-El botón Ver cambios se redujo a acción icon-only para bajar impacto visual en la tabla.
-
-Icono vigente:
-
-changes
-
-Variante visual validada:
-
-btn btn-secondary btn-icon
-
-No se creó clase nueva.
-
-Cierre operativo reciente de tenant/profile/accesses:
-
-se consolidó el contrato owner/admin bajo la doctrina:
-
-admin opera fuerte
-owner gobierna
-
-Se creó autoridad central del frente tenant/profile:
-
-TenantProfileAccess
+de include directo o partial común
+a integración surface-driven mediante ProductSurfaceService
 
 Ubicación vigente:
 
-app/Support/Tenants/TenantProfileAccess.php
+app/Support/Products/OperationalSummary/
+resources/views/products/operational-summary/
 
-Esta pieza centraliza reglas para:
+Partials vigentes:
 
-ver tenant/profile
-editar General
-crear invitaciones tenant
-gestionar permisos por rol
-asignar roles
-quitar roles
-gestionar estado de memberships
-distinguir owner, admin y membership activa
+resources/views/products/operational-summary/purchases-summary.blade.php
+resources/views/products/operational-summary/sales-summary.blade.php
+resources/views/products/operational-summary/flow-summary.blade.php
 
-Se alinearon MembershipPolicy e InvitationPolicy para consumir esa autoridad central.
+Ajuste visual validado:
 
-Estado vigente:
+los datos de cada summary item se muestran en líneas separadas mediante estructura HTML simple.
 
-owner puede ver y editar tenant/profile
-admin puede ver tenant/profile
-admin no puede editar General
-admin no puede modificar permisos del rol admin
-admin sí puede gestionar permisos de roles operativos cuando corresponde
-admin no puede asignar admin a otro usuario
-admin sí puede asignar roles operativos cuando corresponde
-admin no puede autogestionar su rol admin
-admin no puede vaciar sus propios roles
+Se evitó depender de d-block porque no produjo el efecto esperado en la base CSS actual.
 
-Se incorporó acción backend:
+Exclusiones vigentes de la primera versión:
 
-TenantMembershipRoleController::sync
+flete
+mano de obra
+kilómetros
+viajes
+prorrateos
+costos accesorios
+costos indirectos
+rentabilidad contable completa
+OperationalActivity como fuente principal de métricas
 
-Función:
+Pendiente asociado:
 
-sincronizar el conjunto de roles de una membership con validación backend.
+evaluar posteriormente si ProductOperationalSummary amerita permisos persistidos propios.
 
-Validaciones runtime informadas:
+No se implementó en esta sesión.
 
-admin intentando asignar admin → 403
-admin intentando combinar admin con otro rol → 403
-admin intentando vaciar sus propios roles → 403
-admin gestionando roles operativos permitidos → OK
-membership activa sin roles → error funcional controlado
+Pendiente asociado:
 
-Cierre visual reciente de tenant/profile/accesses:
+evaluar línea futura separada de costos directos operativos para flete, mano de obra, viajes, kilómetros, prorrateos y costos accesorios.
 
-se simplificó la tabla de usuarios del tenant.
+No forma parte de esta implementación.
 
-Antes:
+Cierre doctrinal reciente de IA operativa:
 
-columna roles
-columna agregar rol
-botón agregar
-botón borrar por rol
+se creó y consolidó la lectura de IA como capa transversal operativa del sistema.
 
-Después:
+La IA no se define como módulo ordinario, CRUD, chat decorativo ni función exclusiva de mantenimiento.
 
-columna Funciones
-badges de funciones actuales
-acciones compactas a la derecha
-botón Editar funciones
-formulario de edición dentro de modal
+Lectura vigente:
 
-Se incorporó modal con:
+IA como asistencia transversal
+IA como reducción de fricción
+IA como análisis contextual
+IA como preparación operativa
+IA como soporte progresivo para automatización
 
-nombre del usuario
-explicación breve
-checkboxes de funciones disponibles
-mensaje de ayuda dinámico
-acciones Cancelar / Guardar funciones
+Reglas consolidadas:
 
-Se validó que el botón Guardar funciones puede ubicarse en el footer del modal usando atributo form cuando corresponde.
+la IA no reemplaza Security
+la IA no reemplaza backend
+la IA no reemplaza lifecycle
+la IA no reemplaza ownership modular
+la IA no ejecuta acciones críticas sin autorización, confirmación humana o regla explícita
+la IA debe operar con datos autorizados
+la IA debe poder iniciar con presupuesto cero
+la arquitectura debe separar intención IA de proveedor IA
+los proveedores IA deben ser reemplazables
+la primera etapa puede avanzar con documentación, datos estructurados, prompts manuales, procesos semiautomáticos y supervisión humana
 
-Se agregó JS mínimo en public/js/app-base.js mediante:
+Cierre doctrinal reciente de Servicios y Mantenimiento:
 
-data-action="tenant-role-sync-form"
+se creó y consolidó la lectura de Servicios y Mantenimiento como capa satélite productiva ERP/CMMS liviana.
 
-Alcance del JS:
+No se define como módulo CRUD ordinario.
 
-guiar exclusividad visual de Administrador
-destildar opciones incompatibles
-mostrar advertencia si no queda ninguna función
-actualizar mensaje dinámico
+No debe resolverse solo modificando Orders.
 
-Regla vigente:
+Módulos participantes:
 
-el JS no decide autorización.
+Orders
+Assets
+Inventory
+Products
+Appointments
+Tasks
+Documents
+Attachments
+Parties
+OperationalActivity
 
-El backend conserva la autoridad final.
+Reglas consolidadas:
 
-Se corrigió wrap del mensaje de ayuda del modal para evitar scroll horizontal.
+Orders conserva lifecycle base
+Orders.status no debe usarse para estados técnicos
+una orden solo puede operar técnicamente cuando está approved
+una orden closed no debe permitir operación ordinaria sin reapertura autorizada
+el estado operativo de ejecución debe vivir en dimensión satélite
+Inventory conserva ownership de stock, consumos, devoluciones y custodia material
+Assets puede funcionar como base del objeto técnico mantenible cuando corresponda
+Documents formaliza resultados, certificaciones, informes y cierres administrativos
+Attachments sostiene evidencia y documentación técnica sin absorber lógica de mantenimiento
+Parties sostiene clientes, proveedores, terceros y colaboradores internos sin crear actores paralelos
+OperationalActivity sostiene trazabilidad transversal sin convertirse en timeline específico por sí mismo
 
-Cierre operativo reciente de seeders demo operativos:
+Conceptos funcionales identificados:
 
-se reconvirtió parcialmente la carga demo hacia operaciones reales con trazabilidad cuando corresponde.
+objeto técnico mantenible
+estado operativo de ejecución
+paquete de trabajo
+orden electrónica liviana
+cierre técnico
+cierre administrativo
+cierre final o supervisión
+servicios externos y tercerizaciones
+custodia operativa de materiales
+capacidad operativa de taller
+historial técnico del asset
+línea de tiempo operativa
+dashboard operativo especializado
+agente IA planificador como rol especializado de la IA transversal
 
-PartyModuleSeeder:
+Regla de avance:
 
-dejó de ser carga silenciosa para parties nuevas
-emite OperationalRecordCreated por cada Party nueva creada
-incluye metadata operativa de party_roles
-genera jobs
-procesa cola
-persiste actividad en operational_activities
-
-Validación final informada:
-
-22 actividades parties
-jobs = 0
-failed = 0
-
-OrderModuleSeeder:
-
-se limpió de compatibilidad legacy
-eliminó lógica interna tipo legacyKinds
-dejó de aceptar implícitamente kind = sale/purchase/service como entrada conceptual
-pasó a declarar explícitamente group y kind
-usa group = sale|purchase|service
-usa kind = standard
-valida payload de seed con fallo fuerte si falta un dato o si el dato no pertenece al catálogo vigente
-crea órdenes demo en estados útiles
-crea una orden testigo TECH-ORD-CYCLE-0001
-la orden testigo recorre ciclo completo
-ejecuta línea mediante OrderInventoryOperationService
-respeta InventoryOperation como ancla operativa de inventario
-valida estado final closed
-valida ítem final completed
-
-Validación final informada:
-
-orders = 10
-inventory = 1
-jobs = 0
-failed = 0
-
-DocumentModuleSeeder:
-
-dejó de usar DB::table como carga dura para documentos e ítems
-usa modelos Document y DocumentItem
-elimina estados legacy como issued
-usa estados vigentes de DocumentCatalog
-deja documentos en pending_approval o approved
-deja ítems documentales en pending
-emite actividad operativa por creación y transición
-
-Validación final informada:
-
-documents = 10
-jobs = 0
-failed = 0
-
-Verificación final informada:
-
-ausencia de residuos legacy reales en OrderModuleSeeder y DocumentModuleSeeder
-ausencia de estados inválidos en base
-
-Resultados informados:
-
-orders_invalid = []
-documents_invalid = []
-
-Alcance explícito:
-
-InventoryModuleSeeder se mantiene por ahora con movimientos, sin reconversión completa a simulación operativa agrupada.
-
-AttachmentDemoSeeder no se simula dentro de este frente.
+la próxima etapa debe iniciar con auditoría fuerte de Orders, no con codificación inmediata.
 
 <<END SECTION>>
 

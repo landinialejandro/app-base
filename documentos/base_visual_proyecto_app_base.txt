@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00022
+SECTION_VERSION: 00024
 
 COMPONENTES DISPONIBLES
 
@@ -213,6 +213,10 @@ Regla de auditoría visual:
 todo Blade nuevo o modificado debe revisar si corresponde incorporar o actualizar x-dev-component-version antes de cerrar la intervención.
 
 Si no se incorpora por no corresponder, la razón debe ser evidente por tratarse de un fragmento mínimo, estructura interna sin entidad visual propia o bloque repetitivo donde el componente generaría ruido o HTML incorrecto.
+
+Caso vigente:
+
+los partials compactos de ProductOperationalSummary no requieren x-dev-component-version porque funcionan como fragmentos internos de summary_items y no como entidad visual independiente mayor.
 
 Estos componentes pueden ser consumidos por orders y documents cuando la gramática visual sea equivalente.
 
@@ -399,6 +403,95 @@ transformar cambios persistidos en payload visual legible para la tabla.
 
 La vista no debe interpretar reglas de campos ni JSON operativo.
 
+Criterio visual para ProductOperationalSummary:
+
+ProductOperationalSummary debe representarse como métricas compactas contextuales dentro del show-summary de products.show.
+
+La salida visual vigente se organiza en tres summary_items:
+
+Compras
+Ventas
+Entradas / salidas
+
+Regla:
+
+estos summary_items representan payload ya preparado.
+
+No deben calcular métricas.
+
+No deben consultar permisos.
+
+No deben reconstruir Orders, Inventory ni Parties desde Blade.
+
+No deben usar OperationalActivity como fuente principal de métricas.
+
+No deben duplicar datos que ya pertenecen al summary principal o a surfaces existentes.
+
+Precio vigente permanece como dato propio del producto en el summary principal.
+
+Último movimiento permanece como lectura de Inventory y detalle disponible en tab Movimientos.
+
+Por eso el tercer summary_item vigente debe ser Entradas / salidas, no Último movimiento.
+
+Vistas compactas vigentes de la subcapa:
+
+resources/views/products/operational-summary/purchases-summary.blade.php
+resources/views/products/operational-summary/sales-summary.blade.php
+resources/views/products/operational-summary/flow-summary.blade.php
+
+Reglas:
+
+no son componentes globales
+
+no deben moverse a resources/views/components
+
+no deben contener lógica de negocio
+
+no deben contener autorización final
+
+representan información ya resuelta por ProductOperationalSummaryService y publicada por ProductSurfaceService
+
+Criterio visual:
+
+cada summary item debe mostrar información compacta, pero legible.
+
+Cuando existan números, fechas, promedios, proveedores o nombres largos, cada dato debe mostrarse en línea separada para evitar pérdida de lectura.
+
+Regla:
+
+si se necesita salto de línea seguro, usar estructura HTML simple con div.
+
+No asumir utilities CSS no validadas como d-block.
+
+No crear clase CSS nueva si el problema se resuelve con markup HTML simple.
+
+Criterio visual para Servicios y Mantenimiento:
+
+cualquier futura UI de mantenimiento debe respetar la jerarquía visual modular del sistema.
+
+El dashboard operativo, la orden electrónica liviana, el paquete de trabajo, el historial técnico, los cierres y la línea de tiempo operativa deben usar componentes existentes o patrones coherentes antes de crear componentes nuevos.
+
+El dashboard operativo debe ser una vista de planificación clara y no una pantalla saturada.
+
+Debe poder separar, cuando corresponda:
+
+trabajos internos
+trabajos externos
+estados de ejecución
+bloqueos
+capacidad operativa
+prioridades
+pendientes
+tiempos muertos
+
+La orden electrónica liviana debe mostrar solo la información necesaria para la ejecución técnica.
+
+No debe exponer el sistema completo ni trasladar complejidad administrativa al técnico si no corresponde.
+
+El modo simple y el modo formal también aplican a UI.
+
+La interfaz debe permitir iniciar con baja fricción y activar formalidad solo cuando la operación lo requiera.
+
 Regla de validación de componentes:
 
 no usar componentes Blade no existentes aunque parezcan patrón documentado.
@@ -414,7 +507,7 @@ La tab Actividad de tenant/profile resolvió su estado vacío inline con detail-
 <<END SECTION>>
 
 <<SECTION: PATRÓN DE INTERACCIÓN MODAL>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 PATRÓN DE INTERACCIÓN MODAL
 
@@ -533,10 +626,40 @@ el detalle amplio pertenece al modal.
 
 La tabla mantiene solo síntesis compacta y acción secundaria.
 
+Criterio para Servicios y Mantenimiento:
+
+las micro-superficies operativas pueden usarse para acciones puntuales de mantenimiento cuando permitan ejecutar o revisar una operación breve sin abandonar el contexto.
+
+Posibles usos futuros:
+
+ver detalle de bloqueo
+registrar observación breve
+revisar consumo previsto
+confirmar entrega en custodia
+ver detalle de cambios
+ver documentación técnica asociada
+revisar pendiente técnico
+consultar detalle de servicio externo
+ver cierre técnico o administrativo
+
+Reglas:
+
+el modal no debe convertir una acción compleja en flujo oculto
+
+el modal no debe reemplazar una experiencia enfocada cuando la ejecución técnica requiera orden electrónica liviana
+
+el modal no debe decidir autorización
+
+el modal no debe resolver ownership
+
+el modal no debe habilitar acciones sobre órdenes cerradas
+
+el modal debe recibir payload autorizado y preparado por backend
+
 <<END SECTION>>
 
 <<SECTION: JERARQUÍA VISUAL MODULAR>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00011
 
 JERARQUÍA VISUAL MODULAR
 
@@ -563,6 +686,7 @@ tabs
 cards secundarias
 tablas embebidas
 bloques relacionados
+summary_items contextuales cuando la lectura sea compacta y propia del host
 
 NIVEL 3 — CAPACIDADES AUXILIARES O TRANSVERSALES
 
@@ -593,101 +717,85 @@ capacidad operativa o documental invitada del módulo oferente
 
 el usuario debe poder entender qué pertenece al recurso actual y qué está siendo consumido desde otro frente del ecosistema
 
-Aclaración adicional para summary del host:
+Criterio para subcapas contextuales internas:
 
-las cards o bloques summary propios del módulo anfitrión no deben desaparecer por incorporar surfaces externas.
-
-El summary del host conserva su núcleo visual y las integraciones ocupan slots adicionales compatibles.
-
-Aclaración adicional para actividad operativa:
-
-una lectura de actividad no debe competir visualmente con el núcleo del recurso actual.
-
-Debe presentarse como capacidad transversal de lectura, no como segundo módulo principal dentro de la pantalla.
-
-Si se incorpora en una show page, debe mantener jerarquía secundaria y lectura escaneable.
+una subcapa contextual interna debe integrarse visualmente como parte natural del módulo host sin parecer módulo independiente.
 
 Caso vigente:
 
-tenant/profile incorpora tab Actividad como lectura visual general de OperationalActivity.
+ProductOperationalSummary se integra en products.show dentro del show-summary mediante summary_items publicados por ProductSurfaceService.
 
-Esta tab debe leerse como lectura transversal de soporte dentro del perfil de empresa.
+No debe presentarse como card grande independiente debajo del summary si eso la hace aparecer como agregado local desconectado del host.
 
-No convierte OperationalActivity en módulo principal ni navegación principal.
+No debe crear tab nueva si la lectura compacta alcanza.
 
-Caso vigente adicional:
-
-tasks.show
-parties.show
-projects.show
-assets.show
-products.show
-appointments.show
-orders.show
-documents.show
-
-pueden incorporar tab Actividad como lectura contextual heredada del record host autorizado.
-
-Esta tab debe leerse como capacidad transversal tenant-scoped publicada hacia el host.
-
-No convierte OperationalActivity en módulo principal de la pantalla.
-
-No convierte al host en dueño de la lógica de actividad.
-
-Caso vigente adicional:
-
-parties.show puede mostrar actividad contextual ampliada cuando la Party tiene relación employee y membership activa vinculada.
-
-Esta lectura sigue siendo capacidad transversal secundaria.
-
-No debe competir visualmente con los datos principales de la Party ni con la ficha ampliada.
-
-La tabla de actividad debe mantener lectura operativa simple.
-
-Columnas vigentes:
-
-Fecha
-Módulo
-Actividad
-Registro
-Actor
-Sujeto
-
-La columna Actividad puede incorporar una síntesis compacta de cambios cuando exista payload preparado.
-
-El detalle amplio de cambios debe mostrarse bajo demanda en modal.
-
-La columna Registro puede contener enlace cuando exista URL resuelta.
-
-No debe agregarse una columna adicional solo para link.
-
-El botón Ver cambios puede resolverse como acción icon-only para reducir ruido visual.
-
-Variante validada:
-
-btn btn-secondary btn-icon
+No debe competir visualmente con tabs existentes como Movimientos, Actividad o Adjuntos.
 
 Regla:
 
-la mejora expresiva de la actividad operativa no debe romper la compacidad de la tabla.
+la jerarquía visual debe mostrar que Products hospeda la lectura, pero Orders e Inventory conservan ownership funcional de las transacciones y movimientos.
 
-Aclaración adicional para tenant/profile/accesses:
+Criterio para capas satélite productivas:
 
-la gestión de funciones de usuarios del tenant debe mantener lectura clara y de bajo ruido.
+una capa satélite puede tener frente operativo especializado sin alterar la jerarquía visual modular.
 
-Patrón vigente:
+Caso doctrinal vigente:
 
-una única columna Funciones
-badges de funciones actuales
-acciones compactas a la derecha
-acción contextual Editar funciones
-edición dentro de modal
+Servicios y Mantenimiento puede requerir dashboard operativo, paquete de trabajo, orden electrónica liviana, historial técnico, línea de tiempo operativa o cierres escalonados.
+
+Estos frentes deben expresar visualmente:
+
+qué registro es el núcleo operativo
+qué módulos están siendo consumidos
+qué datos son relaciones operativas
+qué información es transversal
+qué acciones pertenecen al módulo dueño
+qué acciones son solo asistencia, lectura o preparación
 
 Regla:
 
-la edición de funciones debe mantener el contexto de la fila y evitar columnas operativas redundantes cuando la acción contextual resuelve mejor la intención.
+un dashboard operativo no debe competir visualmente con los módulos existentes como si fuera dueño de todos los datos.
 
-La simplificación visual no reemplaza la seguridad backend.
+Debe orquestar información autorizada y dejar clara la frontera funcional.
+
+Criterio visual para orden electrónica liviana:
+
+la orden electrónica liviana debe priorizar ejecución técnica.
+
+Debe mostrar solo lo necesario para trabajar:
+
+orden
+objeto técnico mantenible
+ubicación
+problema
+checklist
+materiales
+documentación técnica relevante
+evidencias requeridas
+pendientes
+campos mínimos de cierre
+
+No debe exponer, por defecto, toda la administración del sistema.
+
+Criterio visual para modo simple y modo formal:
+
+la UI debe permitir baja fricción inicial.
+
+La formalidad ampliada debe aparecer cuando exista necesidad operativa concreta, por ejemplo:
+
+servicios externos
+facturas
+pagos
+certificaciones
+costos
+cierres administrativos
+imputaciones
+documentación obligatoria
+trazabilidad ampliada
+
+Regla:
+
+los detalles amplios, como cambios, historial, línea de tiempo, documentación técnica, cierres, costos y servicios externos, pueden mostrarse bajo demanda para evitar sobrecarga.
 
 <<END SECTION>>
 

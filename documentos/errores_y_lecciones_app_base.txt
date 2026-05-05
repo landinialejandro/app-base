@@ -26,550 +26,118 @@ lección aplicable
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00002
 
 LECCIONES VIGENTES
 
-Ability sobre módulo inexistente puede fallar por inexistencia contractual y no por falta de permiso.
+Las lecciones vigentes del proyecto deben orientar decisiones futuras para evitar repetir errores ya detectados.
 
-Dataset interno reusable y autorización efectiva son problemas distintos.
+NO ASUMIR UTILITIES CSS NO VALIDADAS
 
-Una falla visual reusable puede deberse a hostPack, slot, type, shape o view desalineados y no a permisos.
+Una clase visual tipo utility no debe asumirse disponible si no está validada en la base CSS real.
 
-Sin tenant activo en Tinker pueden aparecer falsos negativos.
+Caso detectado:
 
-No revisar solo controller principal: también tabs, modales, partials y superficies secundarias.
+class="d-block"
 
-Un host visual no se convierte en dueño funcional de la capacidad invitada.
+No produjo el salto de línea esperado en los Blades compactos de ProductOperationalSummary.
 
-No toda necesidad repetida exige módulo nuevo.
+Corrección aplicada:
 
-Cambiar estados operativos requiere alinear Security, Gate, UI y ciclo de vida real.
+reemplazar span + d-block por div
 
-Si una decisión importante no queda documentada, reaparece como discusión futura.
+Lección:
 
-Si una entidad separa tipo base y relación operativa, la seguridad no debe seguir usando la dimensión anterior por compatibilidad.
-
-Caso vigente:
-
-parties.kind no debe arbitrar permisos.
-
-party_roles.role debe arbitrar permisos mediante allowed_party_roles.
-
-Si una opción sensible no aparece en UI, eso no alcanza como protección.
-
-Caso vigente:
-
-aunque el formulario de una party vinculada a membership activa no exponga de forma simple campos manipulables, debe probarse intento manipulado y bloqueo backend.
-
-Las validaciones sensibles deben verificarse por persistencia final, no solo por mensaje visual.
-
-Caso vigente:
-
-tras intentar manipular kind, email y roles de una party vinculada a membership activa, debe verificarse que el registro siga intacto.
-
-Lectura esperada:
-
-kind: person
-roles: employee
-
-Los snippets para Project Lab deben respetar estrictamente el contrato del automatizador.
-
-Error detectado:
-
-usar encabezados no compatibles o mezclar FILE con TARGET puede hacer que el automatizador interprete incorrectamente el bloque como archivo completo.
+cuando se necesita comportamiento estructural HTML seguro, preferir markup semántico simple antes que depender de una utility CSS no validada.
 
 Regla:
 
-no mezclar formatos.
+si una clase CSS no está confirmada en la base visual real, no debe usarse como solución estructural obligatoria.
 
-Usar FILE solo para archivo completo.
+PRIMER PILOTO FUNCIONAL NO SIEMPRE ES CIERRE ARQUITECTÓNICO
 
-Usar TARGET solo para operación parcial.
-
-Formatos correctos:
-
-// FILE: ruta | Vn
-// TARGET: ruta :: metodoExistente
-// TARGET: ruta ++ metodoNuevo
-
-No usar:
-
-// FILE: ruta :: metodo
-
-<?php // FILE: ruta | V1
-
-Lección:
-
-un formato ambiguo no debe tratarse como éxito operativo.
-
-Debe corregirse el snippet antes de aplicar.
-
-tenant_id debe respetar el tipo real de tenants.id.
-
-Error detectado:
-
-OperationalActivityLogger trató tenant_id como entero, pero tenants.id es UUID char(36).
-
-Corrección:
-
-conservar tenant_id como string.
-
-Lección:
-
-no asumir tipos de claves.
-
-Validar esquema real antes de persistir datos transversales.
-
-Event discovery puede registrar listeners automáticamente.
-
-Error detectado:
-
-RegisterOperationalActivity@handle ya estaba registrado por event discovery y además se registró manualmente en AppServiceProvider.
-
-Resultado:
-
-dos jobs
-dos registros idénticos
-
-Corrección:
-
-eliminar el registro manual.
-
-Lección:
-
-si event:list ya muestra la asociación, no duplicar con Event::listen() manual.
-
-php artisan tinker --execute puede fallar con use según el wrapper.
-
-Error detectado:
-
-bloques con use ... pueden parsearse mal dentro del wrapper de ejecución.
-
-Alternativas:
-
-usar clases con namespace completo
-ejecutar el bloque en Project Lab según corresponda
-
-Lección:
-
-si el problema es el wrapper y no la lógica probada, ajustar la forma de ejecución antes de cambiar código funcional.
-
-OperationalActivity no debe bloquear la operación principal.
-
-Lección:
-
-la trazabilidad operativa queued debe registrar si corresponde, pero un fallo del log no debe romper el flujo principal ya autorizado y ejecutado por el módulo dueño.
-
-Jobs procesados sin failed_jobs no garantizan persistencia de OperationalActivity.
-
-Error detectado:
-
-los jobs de OperationalActivity se procesaban correctamente, sin failed_jobs, pero no se persistía actividad.
-
-Causa:
-
-OperationalActivityCatalog no reconocía todavía nuevos modelos en el mapeo modelo → módulo y módulo → catálogo.
-
-Lección:
-
-si hay jobs procesados sin errores pero no hay registros en operational_activities, revisar primero:
-
-moduleForRecordClass()
-catalogForModule()
-catálogo dueño del módulo
-activityTrackedFields()
-
-antes de tocar controllers, eventos o listener.
-
-Project Lab audit debe recibir comandos ejecutables, no prompts.
-
-Error detectado:
-
-una auditoría de Project Lab intentó ejecutar texto de prompt como Bash y generó errores de comandos inexistentes.
-
-Lección:
-
-en la herramienta audit debe pegarse solo comando ejecutable o bloque compatible con auditoría, no texto documental ni prompts de chat.
-
-Las relaciones hijas pueden requerir metadata operativa explícita.
+Una primera implementación puede funcionar visual o técnicamente y, aun así, no representar el cierre arquitectónico correcto.
 
 Caso detectado:
 
-en parties no alcanza con registrar solo atributos de Party, porque los roles operativos viven en party_roles.
+la primera implementación de ProductOperationalSummary como include directo funcionaba, pero no respetaba plenamente el patrón surface-driven ni la identidad de subcapa contextual.
+
+Corrección aplicada:
+
+mover salida visual a ProductSurfaceService
+eliminar include directo
+organizar archivos en carpeta propia
+
+Ubicaciones finales:
+
+app/Support/Products/OperationalSummary/
+resources/views/products/operational-summary/
 
 Lección:
 
-cuando una relación hija expresa un cambio operativo relevante, debe representarse explícitamente mediante metadata operativa o patrón equivalente.
+si existe infraestructura surface-driven para el host, la salida estable debe integrarse mediante surface del módulo oferente y no quedar como include local disperso.
 
-Esto no convierte la relación hija en módulo propio.
+Regla:
 
-extra_changes no debería persistirse como duplicación innecesaria.
+funcionar no alcanza.
 
-Caso detectado:
+Debe respetar arquitectura, ownership, superficie de integración, seguridad y documentación vigente.
 
-en parties.updated la información de party_roles quedó duplicada dentro de changes y extra_changes.
+NO CALCULAR MÉTRICAS EN BLADE
 
-Lección:
-
-extra_changes puede funcionar como insumo interno para construir changes, pero no necesariamente debe persistirse como metadata final si genera duplicación.
-
-InventoryMovement no debe duplicar la trazabilidad operativa agrupada.
-
-Caso validado:
-
-inventory debe registrar InventoryOperation como actividad transversal cuando representa la acción operativa agrupada.
-
-Lección:
-
-InventoryMovement conserva trazabilidad fina de stock.
-
-No todo movimiento atómico debe duplicarse como OperationalActivity si existe una operación agrupada que representa mejor la acción del usuario.
-
-No usar componentes Blade no validados.
-
-Error detectado:
-
-se usó x-empty-state en una vista, pero el componente no existía.
-
-Resultado:
-
-Unable to locate a class or view for component [empty-state]
-
-Corrección:
-
-reemplazar por estado vacío inline con detail-block.
-
-No crear componente global como parche si no corresponde cerrar esa abstracción.
-
-Lección:
-
-la documentación visual no alcanza para asumir existencia runtime de un componente.
-
-Antes de usar un componente Blade en código real debe validarse su existencia en resources/views/components o clase correspondiente.
-
-OperationalActivity queued no aparece en vistas hasta procesar la cola.
-
-Caso validado:
-
-antes de procesar cola: operational_activities = 0
-queue:work ejecutó RegisterOperationalActivity
-después: jobs = 0, failed_jobs = 0, operational_activities = 2
-
-Lección:
-
-si la tab de actividad no muestra registros, revisar primero:
-
-jobs
-failed_jobs
-procesamiento de cola
-persistencia final
-
-antes de tocar vista, logger, resolver o Blade.
-
-El primer piloto funcional no siempre es cierre arquitectónico.
-
-Caso detectado:
-
-se agregó tab Actividad mediante $tabItems->push directamente en tasks.show y parties.show.
-
-Aunque funcionó, duplicaba montaje local y evitaba el sistema surface-driven.
-
-Corrección:
-
-crear TenantSurfaceRegistry
-crear OperationalActivitySurfaceService
-fusionar surfaces tenant/transversales desde ModuleSurfaceRegistry
-
-Lección:
-
-si una capacidad transversal puede publicarse mediante registry reusable, no debe quedar como cierre estable una inserción manual por vista host.
-
-No conviene hardcodear conocimiento interno de un módulo dentro de una capacidad transversal.
-
-Caso detectado:
-
-la lectura agregada de actividad de Project no debía resolverse con una condición interna dentro de OperationalActivity.
-
-Corrección:
-
-Projects declara ProjectActivityRecordSet.
-
-OperationalActivity consume el record set publicado.
-
-Lección:
-
-si la frontera funcional pertenece al módulo dueño, no debe vivir en OperationalActivity.
-
-activity_record_set y activity_context resuelven problemas distintos.
-
-Caso validado:
-
-Project + Tasks se resolvió con activity_record_set porque es un conjunto explícito de records.
-
-Party employee con membership activa vinculada se resolvió con activity_context porque es un criterio contextual especial basado en el user vinculado como actor o sujeto.
-
-Lección:
-
-no forzar activity_record_set cuando la frontera no es un conjunto simple de records.
-
-No hardcodear esa excepción dentro de OperationalActivity.
-
-El módulo dueño debe declarar el criterio mediante provider compatible.
-
-La actividad histórica no aparece retroactivamente si el evento no existía o no se emitió.
-
-Caso detectado:
-
-Party #25 Carlos Demo ya existía antes de emitir actividad operativa para ciertos flujos.
-
-Se emitió evento manual posterior para generar actividad de prueba.
-
-Lección:
-
-ese registro debe leerse como backfill manual de entorno de desarrollo, no como acción real del flujo original.
-
-Si una acción ocurrió antes de que el flujo emitiera evento operativo, la actividad no aparece retroactivamente.
-
-Ver actividad de un user en lectura general no implica que aparezca automáticamente en una Party vinculada.
-
-Caso detectado:
-
-actividad donde Carlos actuaba como user no aparecía en Party #25 mientras parties.show solo tenía lectura directa de Party.
-
-Corrección:
-
-PartyEmployeeActivityContext habilita lectura contextual especial para employee con membership activa vinculada.
-
-Lección:
-
-si la actividad pertenece a records donde el colaborador actúa como user, la ficha Party necesita contrato contextual especial para incluirla.
-
-No alcanza con tener membership vinculada ni actividad persistida.
-
-jobs = 0 y failed_jobs = 0 son condición necesaria pero no suficiente.
-
-Lección:
-
-también hay que validar persistencia y dataset esperado.
+Las vistas deben representar payload ya preparado por servicios o capas de lectura.
 
 Caso vigente:
 
-en activity_context de Party employee debe validarse que aparezcan las filas esperadas para:
+ProductOperationalSummary publica vistas compactas para summary_items.
 
-actividad directa de Party
-actividad donde el user vinculado sea actor
-actividad donde el user vinculado sea sujeto
+Regla:
 
-Crear una Party employee desde membership requiere contexto funcional employee.
+los Blades compactos no deben calcular compras, ventas, entradas, salidas, proveedor actual, proveedor anterior ni promedios.
 
-Caso detectado:
-
-autorizar creación de Party employee desde TenantMembershipPartyController informando solo kind = person no alcanza para el contrato vigente.
-
-Motivo:
-
-en parties, kind expresa tipo de contacto.
-
-La relación funcional sensible vive en party_roles.role.
+Deben recibir datos ya resueltos.
 
 Lección:
 
-si la autorización depende de allowed_party_roles, el contexto funcional debe informar employee cuando esa es la relación que se intenta crear.
+cuando una vista necesita métricas operativas, debe existir una capa de lectura previa.
 
-No crear clases visuales nuevas si ya existe variante equivalente.
+El Blade no debe transformarse en servicio, query builder ni autorizador.
 
-Caso detectado:
+NO CONFUNDIR SUBCAPA CONTEXTUAL CON MÓDULO NUEVO
 
-el botón Ver cambios necesitaba reducir impacto visual dentro de la tabla.
+Una capacidad visual o analítica alojada dentro de un módulo host no debe convertirse automáticamente en módulo nuevo.
 
-Corrección:
+Caso vigente:
 
-usar variante existente:
+ProductOperationalSummary
 
-btn btn-secondary btn-icon
+Lectura correcta:
 
-Lección:
-
-las mejoras visuales deben priorizar patrones existentes antes de crear clases nuevas.
-
-Request::create no garantiza usuario disponible en controller.
-
-Caso detectado:
-
-en pruebas Tinker de controllers que usan $request->user(), un Request::create(...) manual devuelve user null si no se define user resolver.
-
-Corrección:
-
-usar:
-
-$request->setUserResolver(fn () => $user)
+subcapa contextual interna de Products
+sin CRUD
+sin navegación propia
+sin ModuleCatalog propio
+sin dashboard general
+sin rutas propias
 
 Lección:
 
-si el controller depende de $request->user(), la prueba debe reproducir esa condición explícitamente.
+antes de abrir módulo, tabla, ruta o dashboard, debe revisarse si la necesidad puede vivir como subcapa interna del módulo host y publicarse por surface.
 
-setUserResolver no reemplaza Auth::login cuando se usa authorize.
+NO USAR OPERATIONALACTIVITY COMO FUENTE DE MÉTRICAS CUANDO EXISTE MÓDULO DUEÑO
 
-Caso detectado:
+OperationalActivity registra trazabilidad transversal.
 
-cuando el controller usa $this->authorize(...), no alcanza con setUserResolver.
+No debe usarse como fuente principal de métricas si existen módulos dueños de los datos transaccionales u operativos.
 
-Corrección:
+Caso vigente:
 
-autenticar también con:
+ProductOperationalSummary debe usar Orders e Inventory como fuentes principales.
 
-Auth::login($user)
-
-Lección:
-
-si se prueba un controller con authorize, debe existir usuario autenticado real en el guard además de resolver user en el request cuando corresponda.
-
-Tenant::first no es confiable para pruebas sensibles.
-
-Caso detectado:
-
-si existen múltiples tenants, Tenant::first() puede seleccionar un tenant sin los actores necesarios.
+OperationalActivity conserva trazabilidad, pero no aporta la métrica principal.
 
 Lección:
 
-para validar seguridad debe detectarse o fijarse un tenant que tenga el dataset real requerido.
-
-No se debe interpretar una prueba sin actor real como validación del contrato.
-
-Caso detectado:
-
-una prueba sensible que devuelve null por falta de actor real no valida ni invalida la regla.
-
-Lección:
-
-si falta actor real, tenant real o dataset real, la prueba debe detenerse o corregirse antes de interpretar resultados.
-
-El orden de validación dentro de un método sensible importa.
-
-Caso detectado:
-
-en sync, si primero se valida una regla funcional con redirect, puede ocultarse un intento sensible que debería responder 403.
-
-Lección:
-
-primero deben evaluarse agregados y remociones sensibles con autoridad backend.
-
-Luego deben evaluarse reglas funcionales no sensibles.
-
-Un botón submit en footer de x-modal puede quedar fuera del form.
-
-Caso detectado:
-
-si el componente renderiza slot y footer por separado, el botón Guardar puede quedar fuera del formulario.
-
-Corrección:
-
-usar atributo:
-
-form="id-del-form"
-
-o ubicar el botón dentro del formulario.
-
-Lección:
-
-cuando se usa footer de modal para acciones submit, debe verificarse que el botón esté asociado al form real.
-
-El CSS debe apuntar al atributo o clase realmente renderizada.
-
-Caso detectado:
-
-el JS de ayuda visual modificaba texto y atributos, pero el CSS apuntaba a una clase no garantizada.
-
-Lección:
-
-si JS no modifica clases, el CSS debe apuntar al atributo real renderizado o el Blade debe incluir la clase desde el inicio.
-
-Una captura de pantalla usada como evidencia visual no requiere generación de imagen.
-
-Error detectado:
-
-se activó por error una herramienta de imagen ante una captura utilizada para discutir UI existente.
-
-Lección:
-
-cuando la captura se usa como evidencia visual para analizar una interfaz real, no corresponde generar imagen.
-
-Un grep de auditoría debe discriminar campo, valor y contexto.
-
-Caso detectado:
-
-se buscó issued para detectar estado legacy.
-
-El grep devolvió coincidencias en issued_at.
-
-issued_at era un campo válido, no el estado legacy issued.
-
-Corrección:
-
-usar grep preciso sobre el patrón real del valor legacy, por ejemplo status => issued cuando corresponda.
-
-Lección:
-
-no declarar residuo legacy solo por coincidencia textual si el patrón no discrimina campo, valor o contexto.
-
-Un seeder demo operativo no queda validado solo por migrate:fresh --seed OK.
-
-Caso detectado:
-
-los seeders demo fueron reconvertidos para emitir eventos operativos y persistir actividad en OperationalActivity cuando representaban carga operativa real.
-
-Lección:
-
-cuando un seeder representa operación real con eventos queued, el cierre debe incluir:
-
-eventos emitidos
-jobs generados
-queue procesada
-jobs = 0
-failed_jobs = 0
-actividad persistida
-cantidades finales esperadas
-estados válidos contra catálogos
-ausencia de residuos legacy reales
-
-Los seeders no deben sostener compatibilidad legacy silenciosa.
-
-Caso detectado:
-
-OrderModuleSeeder conservaba lógica tipo legacyKinds para aceptar entradas conceptuales anteriores.
-
-Corrección:
-
-el seeder debe hablar directamente el contrato vigente:
-
-group = sale|purchase|service
-kind = standard
-
-Lección:
-
-si el contrato del módulo cambió, el seeder debe actualizarse al contrato vigente y fallar fuerte ante payloads viejos o inválidos.
-
-No debe reinterpretar datos legacy de forma silenciosa.
-
-Los seeders demo operativos no deben simular UI completa ni flujos HTTP.
-
-Caso validado:
-
-PartyModuleSeeder, OrderModuleSeeder y DocumentModuleSeeder usan código interno, modelos, servicios y eventos reales cuando representan carga operativa.
-
-Lección:
-
-la carga demo operativa debe sostener la lógica interna vigente sin depender de controllers, requests web, navegador o sesión HTTP.
-
-Si un seeder usa servicios que dependen de app('tenant'), debe preparar contexto tenant explícito.
-
-Caso detectado:
-
-servicios operativos pueden depender del tenant activo bindeado en el contenedor.
-
-Lección:
-
-en entorno CLI, el seeder debe bindear temporalmente el tenant cuando el servicio operativo lo requiera y restaurar o limpiar ese binding al finalizar cuando corresponda.
+trazabilidad no reemplaza datos operativos del módulo dueño.
 
 <<END SECTION>>

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Orders/OrderLinked.php | V1
+// FILE: app/Support/Orders/OrderLinked.php | V2
 
 namespace App\Support\Orders;
 
@@ -168,12 +168,12 @@ class OrderLinked
             return false;
         }
 
-        return collect(OrderCatalog::kinds())->contains(
-            fn (string $kind) => app(Security::class)->allows(
+        return collect(array_keys(OrderCatalog::groups()))->contains(
+            fn (string $group) => app(Security::class)->allows(
                 $user,
                 'orders.create',
                 Order::class,
-                ['kind' => $kind]
+                ['kind' => $group]
             )
         );
     }

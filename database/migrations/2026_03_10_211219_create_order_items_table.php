@@ -1,6 +1,6 @@
 <?php
 
-// FILE: database/migrations/2026_03_10_211219_create_order_items_table.php
+// FILE: database/migrations/2026_03_10_211219_create_order_items_table.php | V2
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -32,6 +32,7 @@ return new class extends Migration
             $table->string('kind', 20)->default('product');
             $table->string('description');
             $table->decimal('quantity', 12, 2)->default(1);
+            $table->string('status', 20)->default('pending');
             $table->decimal('unit_price', 12, 2)->default(0);
 
             $table->timestamps();
@@ -39,6 +40,8 @@ return new class extends Migration
 
             $table->index(['tenant_id', 'order_id']);
             $table->index(['tenant_id', 'product_id']);
+            $table->index(['tenant_id', 'status'], 'order_items_tenant_status_index');
+            $table->index(['tenant_id', 'order_id', 'status'], 'order_items_tenant_order_status_index');
         });
     }
 

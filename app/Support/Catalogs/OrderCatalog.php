@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/OrderCatalog.php | V4
+// FILE: app/Support/Catalogs/OrderCatalog.php | V5
 
 namespace App\Support\Catalogs;
 
@@ -191,18 +191,17 @@ class OrderCatalog extends BaseCatalog
         };
     }
 
-
-    public static function activityTrackedFields(): array
-    {
-        return [
-            'party_id',
-            'asset_id',
-            'task_id',
-            'group',
-            'kind',
-            'status',
-            'ordered_at',
-            'notes',
-        ];
-    }
+public static function activityTrackedFields(): array
+{
+    return [
+        'party_id',
+        'counterparty_name',
+        'asset_id',
+        'group',
+        'kind',
+        'status',
+        'ordered_at',
+        'notes',
+    ];
+}
 }

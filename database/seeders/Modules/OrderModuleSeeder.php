@@ -274,44 +274,59 @@ class OrderModuleSeeder extends BaseModuleSeeder
         }
     }
 
-    private function createOrder(array $data): Order
-    {
-        $this->assertValidOrderPayload($data);
+private function createOrder(array $data): Order
+{
+    $this->assertValidOrderPayload($data);
 
-        $order = Order::query()
+    $order = Order::query()
+        ->where('tenant_id', $data['tenant_id'])
+        ->where('number', $data['number'])
+        ->first();
+
+    $counterpartyName = trim((string) ($data['counterparty_name'] ?? ''));
+
+    if ($counterpartyName === '' && ! empty($data['party_id'])) {
+        $counterpartyName = (string) DB::table('parties')
             ->where('tenant_id', $data['tenant_id'])
-            ->where('number', $data['number'])
-            ->first();
+            ->where('id', $data['party_id'])
+            ->whereNull('deleted_at')
+            ->value('name');
+    }
 
-        $payload = [
-            'party_id' => $data['party_id'],
-            'group' => $data['group'],
-            'kind' => $data['kind'],
-            'status' => $data['status'],
-            'ordered_at' => $data['ordered_at'],
-            'notes' => $data['notes'],
-            'created_by' => $data['created_by'],
-            'updated_by' => $data['updated_by'],
-        ];
+    if ($counterpartyName === '') {
+        throw new \RuntimeException("Missing counterparty snapshot for seed order [{$data['number']}].");
+    }
 
-        if ($order) {
-            $order->update($payload);
+    $payload = [
+        'party_id' => $data['party_id'] ?? null,
+        'counterparty_name' => $counterpartyName,
+        'group' => $data['group'],
+        'kind' => $data['kind'],
+        'status' => $data['status'],
+        'ordered_at' => $data['ordered_at'],
+        'notes' => $data['notes'],
+        'created_by' => $data['created_by'],
+        'updated_by' => $data['updated_by'],
+    ];
 
-            return $order;
-        }
-
-        $order = Order::create(array_merge([
-            'tenant_id' => $data['tenant_id'],
-            'number' => $data['number'],
-        ], $payload));
-
-        event(new OperationalRecordCreated(
-            record: $order,
-            actorUserId: $data['created_by'] ?? null,
-        ));
+    if ($order) {
+        $order->update($payload);
 
         return $order;
     }
+
+    $order = Order::create(array_merge([
+        'tenant_id' => $data['tenant_id'],
+        'number' => $data['number'],
+    ], $payload));
+
+    event(new OperationalRecordCreated(
+        record: $order,
+        actorUserId: $data['created_by'] ?? null,
+    ));
+
+    return $order;
+}
 
     private function replaceOrderItems(string $tenantId, int $orderId, array $items): void
     {

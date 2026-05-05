@@ -213,8 +213,8 @@ class CrossRelationsSeeder extends BaseModuleSeeder
         $task = $this->firstOrFailBy($tasks, 'name', $taskName, 'task');
         $order = $this->firstOrFailBy($orders, 'number', $orderNumber, 'order');
 
-        $order->update([
-            'task_id' => $task->id,
+        $task->update([
+            'order_id' => $order->id,
         ]);
 
         $this->command?->info("Linked task '{$task->name}' to order '{$order->number}'");

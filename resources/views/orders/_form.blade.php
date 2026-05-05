@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/_form.blade.php | V8 --}}
+{{-- FILE: resources/views/orders/_form.blade.php | V10 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
@@ -15,8 +15,8 @@
     $prefilledGroup = $prefilledGroup ?? old('group', $order->group ?? OrderCatalog::GROUP_SALE);
     $prefilledKind = $prefilledKind ?? old('kind', $order->kind ?? OrderCatalog::KIND_STANDARD);
 
-    $currentTaskId = old('task_id', $order->task_id ?? ($prefilledTask?->id ?? ''));
-    $currentTaskName = old('task_name', $prefilledTask?->name ?? ($order->task?->name ?? ''));
+    $currentTaskId = $orderExists ? '' : old('task_id', $prefilledTask?->id ?? '');
+    $currentTaskName = $orderExists ? '' : old('task_name', $prefilledTask?->name ?? '');
 
     $currentAppointmentId = old('appointment_id', $prefilledAppointment?->id ?? '');
     $currentAppointmentLabel = old(
@@ -43,6 +43,12 @@
     $statusHelp = $orderExists
         ? 'El backend validará la transición de estado y bloqueará cambios inválidos.'
         : 'La orden comienza normalmente en borrador y su transición futura debe validarse desde backend.';
+
+    $currentPartyId = old('party_id', $order->party_id ?? ($prefilledPartyId ?? ''));
+    $currentCounterpartyName = old(
+        'counterparty_name',
+        $order->counterparty_name ?? ($order->party?->name ?? ''),
+    );
 @endphp
 
 <div class="form" data-action="app-party-asset-sync" data-party-select="#party_id"
@@ -53,7 +59,7 @@
             <label class="form-label">Tarea origen</label>
             <input type="text" class="form-control" value="{{ $currentTaskName }}" disabled>
             <input type="hidden" name="task_id" value="{{ $currentTaskId }}">
-            <div class="form-help">Cada tarea puede tener una sola orden asociada.</div>
+            <div class="form-help">La tarea quedará vinculada a la orden creada.</div>
         </div>
     @endif
 
@@ -66,35 +72,50 @@
     @endif
 
     <div class="form-group">
-        <label for="party_id" class="form-label">Contacto</label>
+        <label for="party_id" class="form-label">Contacto gestionado</label>
 
         @if ($lockPartyAndAsset)
             <select class="form-control" disabled>
+                <option value="">Sin contacto gestionado</option>
                 @foreach ($parties as $party)
-                    <option value="{{ $party->id }}" @selected(old('party_id', $order->party_id ?? ($prefilledPartyId ?? '')) == $party->id)>
+                    <option value="{{ $party->id }}" @selected((string) $currentPartyId === (string) $party->id)>
                         {{ $party->name }}
                     </option>
                 @endforeach
             </select>
 
-            <input type="hidden" name="party_id"
-                value="{{ old('party_id', $order->party_id ?? ($prefilledPartyId ?? '')) }}">
+            <input type="hidden" name="party_id" value="{{ $currentPartyId }}">
 
             <div class="form-help">
                 {{ $fromAsset
-                    ? 'El contacto se toma automáticamente del activo.'
+                    ? 'El contacto gestionado se toma automáticamente del activo.'
                     : 'No puede modificarse porque la orden está vinculada a un activo.' }}
             </div>
         @else
-            <select name="party_id" id="party_id" class="form-control" required>
-                <option value="">Seleccionar contacto</option>
+            <select name="party_id" id="party_id" class="form-control">
+                <option value="">Sin contacto gestionado</option>
                 @foreach ($parties as $party)
-                    <option value="{{ $party->id }}" @selected(old('party_id', $order->party_id ?? ($prefilledPartyId ?? '')) == $party->id)>
+                    <option value="{{ $party->id }}" @selected((string) $currentPartyId === (string) $party->id)>
                         {{ $party->name }}
                     </option>
                 @endforeach
             </select>
+            <div class="form-help">Opcional. Si se selecciona, la orden guardará el nombre del contacto como snapshot.</div>
         @endif
+
+        @error('party_id')
+            <div class="form-help is-error">{{ $message }}</div>
+        @enderror
+    </div>
+
+    <div class="form-group">
+        <label for="counterparty_name" class="form-label">Contraparte</label>
+        <input type="text" name="counterparty_name" id="counterparty_name" class="form-control"
+            value="{{ $currentCounterpartyName }}" maxlength="255">
+        <div class="form-help">Requerido si no se selecciona un contacto gestionado. La orden conserva este dato propio.</div>
+        @error('counterparty_name')
+            <div class="form-help is-error">{{ $message }}</div>
+        @enderror
     </div>
 
     @if ($supportsAssetsModule)

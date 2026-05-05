@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Task.php | V3
+// FILE: app/Models/Task.php | V4
 
 namespace App\Models;
 
@@ -9,7 +9,6 @@ use App\Models\Concerns\TenantScoped;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\HasOne;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -24,6 +23,7 @@ class Task extends Model
         'tenant_id',
         'project_id',
         'party_id',
+        'order_id',
         'assigned_user_id',
         'name',
         'description',
@@ -48,14 +48,14 @@ class Task extends Model
         return $this->belongsTo(Party::class);
     }
 
+    public function order(): BelongsTo
+    {
+        return $this->belongsTo(Order::class);
+    }
+
     public function assignedUser(): BelongsTo
     {
         return $this->belongsTo(User::class, 'assigned_user_id');
-    }
-
-    public function order(): HasOne
-    {
-        return $this->hasOne(Order::class);
     }
 
     public function attachments(): MorphMany

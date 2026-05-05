@@ -190,117 +190,140 @@ class DocumentModuleSeeder extends BaseModuleSeeder
         return $documents;
     }
 
-    private function createDocumentWithItems(array $data): Document
-    {
-        $subtotal = 0;
+private function createDocumentWithItems(array $data): Document
+{
+    $subtotal = 0;
 
-        $normalizedItems = collect($data['items'])->map(function ($item, $index) use (&$subtotal) {
-            $quantity = (float) $item['quantity'];
-            $unitPrice = (float) $item['unit_price'];
-            $lineTotal = round($quantity * $unitPrice, 2);
+    $normalizedItems = collect($data['items'])->map(function ($item, $index) use (&$subtotal) {
+        $quantity = (float) $item['quantity'];
+        $unitPrice = (float) $item['unit_price'];
+        $lineTotal = round($quantity * $unitPrice, 2);
 
-            $subtotal += $lineTotal;
+        $subtotal += $lineTotal;
 
-            return [
-                'product_id' => $item['product']?->id,
-                'position' => $index + 1,
-                'kind' => $item['kind'],
-                'description' => $item['description'],
-                'quantity' => $quantity,
-                'unit_price' => $unitPrice,
-                'line_total' => $lineTotal,
-            ];
-        });
-
-        $taxTotal = 0;
-        $total = $subtotal + $taxTotal;
-
-        $targetStatus = $data['status'];
-
-        if (! DocumentCatalog::isValidStatus($targetStatus)) {
-            throw new \RuntimeException("Invalid document status [{$targetStatus}] for document seed [{$data['number']}].");
-        }
-
-        $document = Document::query()
-            ->where('tenant_id', $data['tenant_id'])
-            ->where('number', $data['number'])
-            ->first();
-
-        $payload = [
-            'tenant_id' => $data['tenant_id'],
-            'party_id' => $data['party_id'],
-            'order_id' => $data['order_id'],
-            'group' => $data['group'],
-            'kind' => $data['kind'],
-            'number' => $data['number'],
-            'status' => DocumentCatalog::STATUS_DRAFT,
-            'issued_at' => $data['issued_at'],
-            'due_at' => $data['due_at'],
-            'currency_code' => $data['currency_code'],
-            'subtotal' => $subtotal,
-            'tax_total' => $taxTotal,
-            'total' => $total,
-            'notes' => $data['notes'],
-            'created_by' => $data['created_by'],
-            'updated_by' => $data['updated_by'],
+        return [
+            'product_id' => $item['product']?->id,
+            'position' => $index + 1,
+            'kind' => $item['kind'],
+            'description' => $item['description'],
+            'quantity' => $quantity,
+            'unit_price' => $unitPrice,
+            'line_total' => $lineTotal,
         ];
+    });
 
-        if ($document) {
-            $beforeAttributes = $document->getAttributes();
+    $taxTotal = 0;
+    $total = $subtotal + $taxTotal;
 
-            $document->update($payload);
+    $targetStatus = $data['status'];
 
-            event(new OperationalRecordUpdated(
-                record: $document,
-                beforeAttributes: $beforeAttributes,
-                actorUserId: $data['updated_by'] ?? null,
-            ));
+    if (! DocumentCatalog::isValidStatus($targetStatus)) {
+        throw new \RuntimeException("Invalid document status [{$targetStatus}] for document seed [{$data['number']}].");
+    }
 
-            $document->items()->delete();
-        } else {
-            $document = Document::create($payload);
+    $counterpartyName = trim((string) ($data['counterparty_name'] ?? ''));
 
-            event(new OperationalRecordCreated(
-                record: $document,
-                actorUserId: $data['created_by'] ?? null,
-            ));
-        }
+    if ($counterpartyName === '' && ! empty($data['order_id'])) {
+        $counterpartyName = (string) DB::table('orders')
+            ->where('tenant_id', $data['tenant_id'])
+            ->where('id', $data['order_id'])
+            ->whereNull('deleted_at')
+            ->value('counterparty_name');
+    }
 
-        foreach ($normalizedItems as $item) {
-            DocumentItem::create([
-                'tenant_id' => $data['tenant_id'],
-                'document_id' => $document->id,
-                'product_id' => $item['product_id'],
-                'position' => $item['position'],
-                'kind' => $item['kind'],
-                'description' => $item['description'],
-                'quantity' => $item['quantity'],
-                'status' => 'pending',
-                'unit_price' => $item['unit_price'],
-                'line_total' => $item['line_total'],
-            ]);
-        }
+    if ($counterpartyName === '' && ! empty($data['party_id'])) {
+        $counterpartyName = (string) DB::table('parties')
+            ->where('tenant_id', $data['tenant_id'])
+            ->where('id', $data['party_id'])
+            ->whereNull('deleted_at')
+            ->value('name');
+    }
 
-        $document = $document->fresh('items');
+    if ($counterpartyName === '') {
+        throw new \RuntimeException("Missing counterparty snapshot for seed document [{$data['number']}].");
+    }
 
-        if ($targetStatus !== DocumentCatalog::STATUS_DRAFT) {
+    $document = Document::query()
+        ->where('tenant_id', $data['tenant_id'])
+        ->where('number', $data['number'])
+        ->first();
+
+    $payload = [
+        'tenant_id' => $data['tenant_id'],
+        'party_id' => $data['party_id'],
+        'counterparty_name' => $counterpartyName,
+        'order_id' => $data['order_id'],
+        'group' => $data['group'],
+        'kind' => $data['kind'],
+        'number' => $data['number'],
+        'status' => DocumentCatalog::STATUS_DRAFT,
+        'issued_at' => $data['issued_at'],
+        'due_at' => $data['due_at'],
+        'currency_code' => $data['currency_code'],
+        'subtotal' => $subtotal,
+        'tax_total' => $taxTotal,
+        'total' => $total,
+        'notes' => $data['notes'],
+        'created_by' => $data['created_by'],
+        'updated_by' => $data['updated_by'],
+    ];
+
+    if ($document) {
+        $beforeAttributes = $document->getAttributes();
+
+        $document->update($payload);
+
+        event(new OperationalRecordUpdated(
+            record: $document,
+            beforeAttributes: $beforeAttributes,
+            actorUserId: $data['updated_by'] ?? null,
+        ));
+
+        $document->items()->delete();
+    } else {
+        $document = Document::create($payload);
+
+        event(new OperationalRecordCreated(
+            record: $document,
+            actorUserId: $data['created_by'] ?? null,
+        ));
+    }
+
+    foreach ($normalizedItems as $item) {
+        DocumentItem::create([
+            'tenant_id' => $data['tenant_id'],
+            'document_id' => $document->id,
+            'product_id' => $item['product_id'],
+            'position' => $item['position'],
+            'kind' => $item['kind'],
+            'description' => $item['description'],
+            'quantity' => $item['quantity'],
+            'status' => 'pending',
+            'unit_price' => $item['unit_price'],
+            'line_total' => $item['line_total'],
+        ]);
+    }
+
+    $document = $document->fresh('items');
+
+    if ($targetStatus !== DocumentCatalog::STATUS_DRAFT) {
+        $this->transitionDocumentStatus(
+            document: $document,
+            status: DocumentCatalog::STATUS_PENDING_APPROVAL,
+            actorUserId: $data['updated_by'] ?? null
+        );
+
+        if ($targetStatus === DocumentCatalog::STATUS_APPROVED) {
             $this->transitionDocumentStatus(
-                document: $document,
-                status: DocumentCatalog::STATUS_PENDING_APPROVAL,
+                document: $document->fresh(),
+                status: DocumentCatalog::STATUS_APPROVED,
                 actorUserId: $data['updated_by'] ?? null
             );
-
-            if ($targetStatus === DocumentCatalog::STATUS_APPROVED) {
-                $this->transitionDocumentStatus(
-                    document: $document->fresh(),
-                    status: DocumentCatalog::STATUS_APPROVED,
-                    actorUserId: $data['updated_by'] ?? null
-                );
-            }
         }
-
-        return $document->fresh('items');
     }
+
+    return $document->fresh('items');
+}
 
     private function transitionDocumentStatus(Document $document, string $status, int|string|null $actorUserId = null): Document
     {

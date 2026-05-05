@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Document.php | V5
+// FILE: app/Models/Document.php | V6
 
 namespace App\Models;
 
@@ -18,6 +18,7 @@ class Document extends Model
     protected $fillable = [
         'tenant_id',
         'party_id',
+        'counterparty_name',
         'order_id',
         'asset_id',
         'group',
@@ -80,5 +81,10 @@ class Document extends Model
     public function updater()
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function displayCounterpartyName(): string
+    {
+        return (string) ($this->counterparty_name ?: $this->party?->name ?: $this->order?->displayCounterpartyName() ?: '—');
     }
 }

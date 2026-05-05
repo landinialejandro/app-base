@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/_form.blade.php | V6 --}}
+{{-- FILE: resources/views/documents/_form.blade.php | V7 --}}
 
 @php
     use App\Support\Catalogs\DocumentCatalog;
@@ -10,6 +10,10 @@
 
     $currentOrderId = old('order_id', $boundOrder?->id ?? ($document->order_id ?? ''));
     $currentPartyId = old('party_id', $boundOrder?->party_id ?? ($document->party_id ?? ''));
+    $currentCounterpartyName = old(
+        'counterparty_name',
+        $document->counterparty_name ?? ($boundOrder?->displayCounterpartyName() ?? ($document->party?->name ?? ''))
+    );
     $currentAssetId = old('asset_id', $boundOrder?->asset_id ?? ($document->asset_id ?? ''));
     $currentGroup = old('group', $document->group ?? DocumentCatalog::GROUP_SALE);
 
@@ -19,16 +23,27 @@
 
 <div class="form" data-action="app-party-asset-sync" data-party-select="#party_id" data-asset-select="#asset_id">
     <div class="form-group">
-        <label for="party_id" class="form-label">Contacto</label>
-        <select name="party_id" id="party_id" class="form-control" required>
-            <option value="">Seleccionar contacto</option>
+        <label for="party_id" class="form-label">Contacto gestionado</label>
+        <select name="party_id" id="party_id" class="form-control">
+            <option value="">Sin contacto gestionado</option>
             @foreach ($parties as $party)
                 <option value="{{ $party->id }}" @selected($currentPartyId == $party->id)>
                     {{ $party->name }}
                 </option>
             @endforeach
         </select>
+        <div class="form-help">Opcional. Si se selecciona, el documento guardará el nombre del contacto como snapshot.</div>
         @error('party_id')
+            <div class="form-help is-error">{{ $message }}</div>
+        @enderror
+    </div>
+
+    <div class="form-group">
+        <label for="counterparty_name" class="form-label">Contraparte</label>
+        <input type="text" name="counterparty_name" id="counterparty_name" class="form-control"
+            value="{{ $currentCounterpartyName }}" maxlength="255">
+        <div class="form-help">Requerido si no se selecciona un contacto gestionado. El documento conserva este dato propio.</div>
+        @error('counterparty_name')
             <div class="form-help is-error">{{ $message }}</div>
         @enderror
     </div>
@@ -40,14 +55,12 @@
             @foreach ($orders as $orderOption)
                 <option value="{{ $orderOption->id }}" @selected($currentOrderId == $orderOption->id)>
                     {{ $orderOption->number ?: 'Orden #' . $orderOption->id }}
-                    @if ($orderOption->party)
-                        — {{ $orderOption->party->name }}
-                    @endif
+                    — {{ $orderOption->displayCounterpartyName() }}
                 </option>
             @endforeach
         </select>
         <div class="form-help">
-            Si seleccionas una orden, el contacto y el activo deben corresponder a esa orden.
+            Si seleccionas una orden, la contraparte y el activo se tomarán de esa orden.
         </div>
         @error('order_id')
             <div class="form-help is-error">{{ $message }}</div>
@@ -71,8 +84,7 @@
             @endforeach
         </select>
         <div class="form-help">
-            Si seleccionas un activo, debe corresponder al contacto elegido. Si el documento está asociado a una orden,
-            se usará el activo de esa orden.
+            Si seleccionas un activo gestionado, debe corresponder al contacto gestionado elegido cuando exista.
         </div>
         @error('asset_id')
             <div class="form-help is-error">{{ $message }}</div>

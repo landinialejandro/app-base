@@ -1,4 +1,5 @@
-{{-- FILE: resources/views/documents/print.blade.php | V1 --}}
+{{-- FILE: resources/views/documents/print.blade.php | V2 --}}
+
 @extends('layouts.print')
 
 @php
@@ -51,8 +52,8 @@
             </div>
 
             <div class="print-block">
-                <div class="print-block-label">Contacto</div>
-                <div class="print-block-value">{{ $document->party?->name ?: '—' }}</div>
+                <div class="print-block-label">Contraparte</div>
+                <div class="print-block-value">{{ $document->displayCounterpartyName() }}</div>
             </div>
 
             <div class="print-block">

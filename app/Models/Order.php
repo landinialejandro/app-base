@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Order.php | V7
+// FILE: app/Models/Order.php | V9
 
 namespace App\Models;
 
@@ -20,8 +20,8 @@ class Order extends Model
     protected $fillable = [
         'tenant_id',
         'party_id',
+        'counterparty_name',
         'asset_id',
-        'task_id',
         'group',
         'kind',
         'number',
@@ -40,23 +40,6 @@ class Order extends Model
         'sequence_number' => 'integer',
     ];
 
-    protected static function booted(): void
-    {
-        static::deleting(function (Order $order): void {
-            if ($order->isForceDeleting()) {
-                return;
-            }
-
-            if ($order->task_id === null) {
-                return;
-            }
-
-            $order->forceFill([
-                'task_id' => null,
-            ])->saveQuietly();
-        });
-    }
-
     public function party()
     {
         return $this->belongsTo(Party::class);
@@ -67,9 +50,9 @@ class Order extends Model
         return $this->belongsTo(Asset::class);
     }
 
-    public function task()
+    public function tasks(): HasMany
     {
-        return $this->belongsTo(Task::class);
+        return $this->hasMany(Task::class);
     }
 
     public function items(): HasMany
@@ -90,6 +73,11 @@ class Order extends Model
     public function updater()
     {
         return $this->belongsTo(User::class, 'updated_by');
+    }
+
+    public function displayCounterpartyName(): string
+    {
+        return (string) ($this->counterparty_name ?: $this->party?->name ?: '—');
     }
 
     public function calculateTotal(): float

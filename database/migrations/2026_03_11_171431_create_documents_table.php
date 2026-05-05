@@ -1,6 +1,6 @@
 <?php
 
-//FILE:database/migrations/2026_03_11_171431_create_documents_table.php
+// FILE: database/migrations/2026_03_11_171431_create_documents_table.php | V2
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -23,6 +23,8 @@ return new class extends Migration
                 ->nullable()
                 ->constrained('parties')
                 ->nullOnDelete();
+
+            $table->string('counterparty_name')->nullable();
 
             $table->foreignId('order_id')
                 ->nullable()
@@ -62,6 +64,7 @@ return new class extends Migration
             $table->index(['tenant_id', 'issued_at']);
             $table->index(['tenant_id', 'number']);
             $table->index(['tenant_id', 'party_id']);
+            $table->index(['tenant_id', 'counterparty_name'], 'documents_tenant_counterparty_name_index');
             $table->index(['tenant_id', 'order_id']);
         });
     }

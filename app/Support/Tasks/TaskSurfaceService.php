@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Tasks/TaskSurfaceService.php | V8
+// FILE: app/Support/Tasks/TaskSurfaceService.php | V9
 
 namespace App\Support\Tasks;
 
@@ -68,10 +68,14 @@ class TaskSurfaceService implements ModuleSurfaceService
             ];
         }
 
+        $task = $record->relationLoaded('tasks')
+            ? $record->tasks->sortBy('due_date')->sortBy('name')->first()
+            : $record->tasks()->orderBy('due_date')->orderBy('name')->first();
+
         return [
             'data' => [
                 'linked' => TaskLinked::forTask(
-                    $record->task,
+                    $task,
                     $trailQuery,
                     'Tarea',
                 ),

@@ -81,110 +81,119 @@ class DocumentController extends Controller
         return view('documents.index', compact('documents', 'parties', 'assets', 'orders'));
     }
 
-    public function create(Request $request)
-    {
-        $tenant = app('tenant');
-        $security = app(Security::class);
-        $user = auth()->user();
+public function create(Request $request)
+{
+    $tenant = app('tenant');
+    $security = app(Security::class);
+    $user = auth()->user();
 
-        $parties = $security
-            ->scope($user, 'parties.viewAny', Party::query())
-            ->orderBy('name')
-            ->get();
+    $parties = $security
+        ->scope($user, 'parties.viewAny', Party::query())
+        ->orderBy('name')
+        ->get();
 
-        $orders = $security
+    $orders = $security
+        ->scope($user, 'orders.viewAny', Order::query())
+        ->with(['party', 'asset'])
+        ->latest()
+        ->get();
+
+    $assets = $security
+        ->scope($user, 'assets.viewAny', Asset::query())
+        ->with('party')
+        ->orderBy('name')
+        ->get();
+
+    $order = null;
+    $asset = null;
+    $prefilledCounterpartyName = '';
+
+    if ($request->filled('order_id')) {
+        $order = $security
             ->scope($user, 'orders.viewAny', Order::query())
             ->with(['party', 'asset'])
-            ->latest()
-            ->get();
+            ->where('id', $request->integer('order_id'))
+            ->where('tenant_id', $tenant->id)
+            ->firstOrFail();
 
-        $assets = $security
+        $prefilledCounterpartyName = $order->displayCounterpartyName();
+    }
+
+    if ($request->filled('asset_id')) {
+        $asset = $security
             ->scope($user, 'assets.viewAny', Asset::query())
             ->with('party')
-            ->orderBy('name')
-            ->get();
+            ->where('id', $request->integer('asset_id'))
+            ->where('tenant_id', $tenant->id)
+            ->whereNull('deleted_at')
+            ->first();
 
-        $order = null;
-        $asset = null;
-
-        if ($request->filled('order_id')) {
-            $order = $security
-                ->scope($user, 'orders.viewAny', Order::query())
-                ->with(['party', 'asset'])
-                ->where('id', $request->integer('order_id'))
-                ->where('tenant_id', $tenant->id)
-                ->firstOrFail();
+        if (! $order && $asset?->party) {
+            $prefilledCounterpartyName = $asset->party->name;
         }
-
-        if ($request->filled('asset_id')) {
-            $asset = $security
-                ->scope($user, 'assets.viewAny', Asset::query())
-                ->with('party')
-                ->where('id', $request->integer('asset_id'))
-                ->where('tenant_id', $tenant->id)
-                ->whereNull('deleted_at')
-                ->first();
-        }
-
-        $requestedGroup = (string) $request->get('group', '');
-        $prefilledGroup = in_array($requestedGroup, DocumentCatalog::groups(), true)
-            ? $requestedGroup
-            : DocumentCatalog::GROUP_SALE;
-
-        $requestedKind = (string) $request->get('kind', '');
-        $prefilledKind = in_array($requestedKind, DocumentCatalog::kinds(), true)
-            ? $requestedKind
-            : DocumentCatalog::KIND_QUOTE;
-
-        $security->authorize(
-            $user,
-            'documents.create',
-            Document::class,
-            ['kind' => $prefilledKind]
-        );
-
-        $prefilledPartyId = $order?->party_id;
-        $prefilledAssetId = $order?->asset_id;
-
-        if (! $order && $asset) {
-            $prefilledAssetId = $asset->id;
-            $prefilledPartyId = $asset->party_id;
-        }
-
-        if (! $order && ! $asset && $request->filled('party_id')) {
-            $party = $security
-                ->scope($user, 'parties.viewAny', Party::query())
-                ->where('id', $request->integer('party_id'))
-                ->where('tenant_id', $tenant->id)
-                ->whereNull('deleted_at')
-                ->first();
-
-            if ($party) {
-                $prefilledPartyId = $party->id;
-            }
-        }
-
-        $document = new Document([
-            'party_id' => $prefilledPartyId,
-            'order_id' => $order?->id,
-            'asset_id' => $prefilledAssetId,
-            'group' => $prefilledGroup,
-            'kind' => $prefilledKind,
-            'status' => DocumentCatalog::STATUS_DRAFT,
-            'issued_at' => now(),
-        ]);
-
-        $navigationTrail = DocumentNavigationTrail::create($request, $order);
-
-        return view('documents.create', compact(
-            'document',
-            'order',
-            'parties',
-            'orders',
-            'assets',
-            'navigationTrail',
-        ));
     }
+
+    $requestedGroup = (string) $request->get('group', '');
+    $prefilledGroup = in_array($requestedGroup, DocumentCatalog::groups(), true)
+        ? $requestedGroup
+        : DocumentCatalog::GROUP_SALE;
+
+    $requestedKind = (string) $request->get('kind', '');
+    $prefilledKind = in_array($requestedKind, DocumentCatalog::kinds(), true)
+        ? $requestedKind
+        : DocumentCatalog::KIND_QUOTE;
+
+    $security->authorize(
+        $user,
+        'documents.create',
+        Document::class,
+        ['kind' => $prefilledKind]
+    );
+
+    $prefilledPartyId = $order?->party_id;
+    $prefilledAssetId = $order?->asset_id;
+
+    if (! $order && $asset) {
+        $prefilledAssetId = $asset->id;
+        $prefilledPartyId = $asset->party_id;
+    }
+
+    if (! $order && ! $asset && $request->filled('party_id')) {
+        $party = $security
+            ->scope($user, 'parties.viewAny', Party::query())
+            ->where('id', $request->integer('party_id'))
+            ->where('tenant_id', $tenant->id)
+            ->whereNull('deleted_at')
+            ->first();
+
+        if ($party) {
+            $prefilledPartyId = $party->id;
+            $prefilledCounterpartyName = $party->name;
+        }
+    }
+
+    $document = new Document([
+        'party_id' => $prefilledPartyId,
+        'counterparty_name' => $prefilledCounterpartyName,
+        'order_id' => $order?->id,
+        'asset_id' => $prefilledAssetId,
+        'group' => $prefilledGroup,
+        'kind' => $prefilledKind,
+        'status' => DocumentCatalog::STATUS_DRAFT,
+        'issued_at' => now(),
+    ]);
+
+    $navigationTrail = DocumentNavigationTrail::create($request, $order);
+
+    return view('documents.create', compact(
+        'document',
+        'order',
+        'parties',
+        'orders',
+        'assets',
+        'navigationTrail',
+    ));
+}
 
 public function store(Request $request)
 {
@@ -194,13 +203,14 @@ public function store(Request $request)
 
     $data = $request->validate([
         'party_id' => [
-            'required',
+            'nullable',
             'integer',
             Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
                 $query->where('tenant_id', $tenant->id)
                     ->whereNull('deleted_at');
             }),
         ],
+        'counterparty_name' => ['nullable', 'string', 'max:255'],
         'order_id' => [
             'nullable',
             'integer',
@@ -249,38 +259,64 @@ public function store(Request $request)
 
     $issuedAt = $this->resolveIssuedAt($data['issued_at'] ?? null);
     $order = null;
+    $party = null;
+    $asset = null;
 
     if (! empty($data['order_id'])) {
         $order = $security
             ->scope($user, 'orders.viewAny', Order::query())
+            ->with(['party', 'asset'])
             ->where('id', $data['order_id'])
             ->where('tenant_id', $tenant->id)
             ->firstOrFail();
 
         $data['party_id'] = $order->party_id;
         $data['asset_id'] = $order->asset_id;
+        $data['counterparty_name'] = $order->displayCounterpartyName();
+    }
+
+    if (! empty($data['party_id'])) {
+        $party = $security
+            ->scope($user, 'parties.viewAny', Party::query())
+            ->whereKey($data['party_id'])
+            ->where('tenant_id', $tenant->id)
+            ->whereNull('deleted_at')
+            ->firstOrFail();
     }
 
     if (! empty($data['asset_id'])) {
         $asset = $security
             ->scope($user, 'assets.viewAny', Asset::query())
+            ->with('party')
             ->whereKey($data['asset_id'])
+            ->where('tenant_id', $tenant->id)
+            ->whereNull('deleted_at')
             ->firstOrFail();
 
-        if ((int) $asset->party_id !== (int) $data['party_id']) {
+        if ($party && $asset->party_id && (int) $asset->party_id !== (int) $party->id) {
             return back()
                 ->withErrors([
                     'asset_id' => 'El activo seleccionado pertenece a otro contacto.',
                 ])
                 ->withInput();
         }
+
+        if (! $party && $asset->party) {
+            $party = $asset->party;
+            $data['party_id'] = $party->id;
+        }
     }
 
-    if (! empty($data['party_id'])) {
-        $security
-            ->scope($user, 'parties.viewAny', Party::query())
-            ->whereKey($data['party_id'])
-            ->firstOrFail();
+    $data['counterparty_name'] = $party
+        ? $party->name
+        : trim((string) ($data['counterparty_name'] ?? ''));
+
+    if ($data['counterparty_name'] === '') {
+        return back()
+            ->withErrors([
+                'counterparty_name' => 'Debes seleccionar un contacto o escribir una contraparte.',
+            ])
+            ->withInput();
     }
 
     $issuedAtError = $this->validateIssuedAtForDocument(
@@ -337,7 +373,7 @@ public function storeFromOrder(Request $request, Order $order)
         ->whereKey($order->id)
         ->firstOrFail();
 
-    $defaultGroup = match ($order->kind) {
+    $defaultGroup = match ($order->group) {
         'purchase' => DocumentCatalog::GROUP_PURCHASE,
         'service' => DocumentCatalog::GROUP_SERVICE,
         default => DocumentCatalog::GROUP_SALE,
@@ -370,8 +406,6 @@ public function storeFromOrder(Request $request, Order $order)
         ['kind' => $data['kind']]
     );
 
-    abort_unless($order->party_id, 422, 'La orden debe tener un contacto asociado para generar documentos.');
-
     $existingDocumentsCount = $order->documents()->count();
     $existingSameKindCount = $order->documents()
         ->where('kind', $data['kind'])
@@ -400,6 +434,7 @@ public function storeFromOrder(Request $request, Order $order)
         $document = Document::create([
             'tenant_id' => $order->tenant_id,
             'party_id' => $order->party_id,
+            'counterparty_name' => $order->displayCounterpartyName(),
             'order_id' => $order->id,
             'asset_id' => $order->asset_id,
             'group' => $data['group'],
@@ -417,10 +452,9 @@ public function storeFromOrder(Request $request, Order $order)
         ]);
 
         $this->copyItemsFromOrder($order, $document);
+        $this->recalculateDocumentTotalsFromItems($document);
 
-        DocumentTotalsCalculator::apply($document);
-
-        return $document;
+        return $document->fresh('items');
     });
 
     event(new \App\Events\OperationalRecordCreated(
@@ -504,13 +538,14 @@ public function update(Request $request, Document $document)
 
     $data = $request->validate([
         'party_id' => [
-            'required',
+            'nullable',
             'integer',
             Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
                 $query->where('tenant_id', $tenant->id)
                     ->whereNull('deleted_at');
             }),
         ],
+        'counterparty_name' => ['nullable', 'string', 'max:255'],
         'order_id' => [
             'nullable',
             'integer',
@@ -590,16 +625,20 @@ public function update(Request $request, Document $document)
     );
 
     $order = null;
+    $party = null;
+    $asset = null;
 
     if ($incomingOrderId !== null) {
         $order = $security
             ->scope($user, 'orders.viewAny', Order::query())
+            ->with(['party', 'asset'])
             ->where('id', $incomingOrderId)
             ->where('tenant_id', $tenant->id)
             ->firstOrFail();
 
         $data['party_id'] = $order->party_id;
         $data['asset_id'] = $order->asset_id;
+        $data['counterparty_name'] = $order->displayCounterpartyName();
     }
 
     $security->authorize(
@@ -609,26 +648,48 @@ public function update(Request $request, Document $document)
         ['kind' => $data['kind']]
     );
 
+    if (! empty($data['party_id'])) {
+        $party = $security
+            ->scope($user, 'parties.viewAny', Party::query())
+            ->whereKey($data['party_id'])
+            ->where('tenant_id', $tenant->id)
+            ->whereNull('deleted_at')
+            ->firstOrFail();
+    }
+
     if (! empty($data['asset_id'])) {
         $asset = $security
             ->scope($user, 'assets.viewAny', Asset::query())
+            ->with('party')
             ->whereKey($data['asset_id'])
+            ->where('tenant_id', $tenant->id)
+            ->whereNull('deleted_at')
             ->firstOrFail();
 
-        if ((int) $asset->party_id !== (int) $data['party_id']) {
+        if ($party && $asset->party_id && (int) $asset->party_id !== (int) $party->id) {
             return back()
                 ->withErrors([
                     'asset_id' => 'El activo seleccionado pertenece a otro contacto.',
                 ])
                 ->withInput();
         }
+
+        if (! $party && $asset->party) {
+            $party = $asset->party;
+            $data['party_id'] = $party->id;
+        }
     }
 
-    if (! empty($data['party_id'])) {
-        $security
-            ->scope($user, 'parties.viewAny', Party::query())
-            ->whereKey($data['party_id'])
-            ->firstOrFail();
+    $data['counterparty_name'] = $party
+        ? $party->name
+        : trim((string) ($data['counterparty_name'] ?? ''));
+
+    if ($data['counterparty_name'] === '') {
+        return back()
+            ->withErrors([
+                'counterparty_name' => 'Debes seleccionar un contacto o escribir una contraparte.',
+            ])
+            ->withInput();
     }
 
     $issuedAtError = $this->validateIssuedAtForDocument(
@@ -811,5 +872,21 @@ public function updateStatus(Request $request, Document $document)
         ]);
 
         return $pdf->download($filename);
+    }
+
+
+    protected function recalculateDocumentTotalsFromItems(Document $document): void
+    {
+        $subtotal = (float) $document->items()
+            ->whereNull('deleted_at')
+            ->sum('line_total');
+    
+        $taxTotal = 0.0;
+    
+        $document->update([
+            'subtotal' => $subtotal,
+            'tax_total' => $taxTotal,
+            'total' => $subtotal + $taxTotal,
+        ]);
     }
 }

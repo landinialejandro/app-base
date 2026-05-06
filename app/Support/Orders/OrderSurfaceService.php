@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Orders/OrderSurfaceService.php | V15
+// FILE: app/Support/Orders/OrderSurfaceService.php | V18
 
 namespace App\Support\Orders;
 
@@ -9,7 +9,6 @@ use App\Models\Document;
 use App\Models\Order;
 use App\Models\Party;
 use App\Support\Auth\Security;
-use App\Support\Catalogs\OrderCatalog;
 use App\Support\Modules\Concerns\BuildsSurfaceOffers;
 use App\Support\Modules\Contracts\ModuleSurfaceService;
 use Illuminate\Database\Eloquent\Model;
@@ -23,246 +22,189 @@ class OrderSurfaceService implements ModuleSurfaceService
     {
         return [
             $this->linkedOffer(
-                key: 'order.document.linked',
+                key: 'orders.associated.linked',
                 label: 'Orden asociada',
                 targets: ['documents.show'],
                 slot: 'detail_items',
                 priority: 25,
                 view: 'orders.components.linked-order',
-                resolver: $this->resolveLinkedForDocument(...),
+                resolver: $this->resolveAssociatedLinked(...),
             ),
             $this->embeddedOffer(
-                key: 'orders.asset.embedded',
+                key: 'orders.related.embedded',
                 label: 'Órdenes',
-                targets: ['assets.show'],
-                slot: 'tab_panels',
-                priority: 70,
-                view: 'orders.partials.embedded-tabs',
-                resolver: fn (array $hostPack) => $this->resolveEmbedded(
-                    $hostPack,
-                    expectedRecordType: 'asset',
-                    expectedClass: Asset::class,
-                    tabsId: 'asset-orders-tabs',
-                    emptyTabsId: 'asset-orders-tabs-empty',
-                ),
-            ),
-            $this->embeddedOffer(
-                key: 'orders.party.embedded',
-                label: 'Órdenes',
-                targets: ['parties.show'],
+                targets: ['assets.show', 'parties.show'],
                 slot: 'tab_panels',
                 priority: 80,
                 view: 'orders.partials.embedded-tabs',
-                resolver: fn (array $hostPack) => $this->resolveEmbedded(
-                    $hostPack,
-                    expectedRecordType: 'party',
-                    expectedClass: Party::class,
-                    tabsId: 'party-orders-tabs',
-                    emptyTabsId: 'party-orders-tabs-empty',
-                ),
+                resolver: $this->resolveRelatedEmbedded(...),
             ),
         ];
     }
 
     public function hostPack(string $host, mixed $record = null, array $context = []): array
     {
-        if ($host === 'orders.show' && $record instanceof Order) {
-            return [
-                'host' => $host,
-                'recordType' => 'order',
-                'record' => $record,
-                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
-            ];
+        $supportedHost = $this->supportedHosts()[$host] ?? null;
+
+        if (! is_array($supportedHost)) {
+            return [];
         }
 
-        if ($host === 'parties.show' && $record instanceof Party) {
-            return [
-                'host' => $host,
-                'recordType' => 'party',
-                'record' => $record,
-                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
-            ];
-        }
+        $expectedClass = $supportedHost['class'] ?? null;
 
-        if ($host === 'assets.show' && $record instanceof Asset) {
-            return [
-                'host' => $host,
-                'recordType' => 'asset',
-                'record' => $record,
-                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
-            ];
-        }
-
-        if ($host === 'documents.show' && $record instanceof Document) {
-            return [
-                'host' => $host,
-                'recordType' => 'document',
-                'record' => $record,
-                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
-            ];
-        }
-
-        return [];
-    }
-
-    private function resolveLinkedForDocument(array $hostPack): array
-    {
-        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
-
-        if ($recordType !== 'document' || ! $record instanceof Document) {
-            return [
-                'data' => [
-                    'linked' => [
-                        'supported' => false,
-                        'exists' => false,
-                        'hidden' => true,
-                        'readonly' => false,
-                        'state' => 'hidden',
-                        'show_url' => null,
-                        'create_url' => null,
-                        'label' => 'Orden asociada',
-                        'text' => null,
-                    ],
-                    'variant' => 'summary',
-                ],
-            ];
+        if (! is_string($expectedClass) || ! $record instanceof $expectedClass) {
+            return [];
         }
 
         return [
+            'host' => $host,
+            'recordType' => $supportedHost['recordType'],
+            'record' => $record,
+            'trailQuery' => is_array($context['trailQuery'] ?? null)
+                ? $context['trailQuery']
+                : [],
+        ];
+    }
+
+    private function resolveAssociatedLinked(array $hostPack): array
+    {
+        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
+
+        $order = match ($recordType) {
+            'document' => $record instanceof Document ? $record->order : null,
+            default => null,
+        };
+
+        return [
             'data' => [
-                'linked' => OrderLinked::forOrder($record->order, $trailQuery, 'Orden asociada'),
+                'linked' => OrderLinked::forOrder(
+                    $order,
+                    $trailQuery,
+                    'Orden asociada',
+                ),
                 'variant' => 'summary',
             ],
         ];
     }
 
-    private function resolveEmbedded(
-        array $hostPack,
-        string $expectedRecordType,
-        string $expectedClass,
-        string $tabsId,
-        string $emptyTabsId,
-    ): array {
+    private function resolveRelatedEmbedded(array $hostPack): array
+    {
         [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
 
-        if ($recordType !== $expectedRecordType || ! $record instanceof $expectedClass) {
-            return $this->emptyEmbeddedPayload(
-                recordType: $expectedRecordType,
-                tabsId: $emptyTabsId,
+        $config = is_string($recordType)
+            ? ($this->relatedHosts()[$recordType] ?? null)
+            : null;
+
+        if (! $this->matchesRelatedHost($record, $config)) {
+            return $this->relatedEmbeddedPayload(
+                orders: collect(),
+                config: $this->emptyRelatedConfig(),
                 trailQuery: $trailQuery,
             );
         }
 
-        return $this->buildEmbeddedPayload(
-            record: $record,
-            recordType: $expectedRecordType,
-            tabsId: $tabsId,
+        return $this->relatedEmbeddedPayload(
+            orders: $this->ordersForRelatedHost($record, $config),
+            config: $config,
             trailQuery: $trailQuery,
         );
     }
 
-    private function buildEmbeddedPayload(
-        Model $record,
-        string $recordType,
-        string $tabsId,
+    private function relatedEmbeddedPayload(
+        Collection $orders,
+        array $config,
         array $trailQuery,
     ): array {
-        $orders = $this->ordersFor($record, $recordType);
-
         return [
             'count' => $orders->count(),
-            'data' => array_merge(
-                [
-                    'orders' => $orders,
-                    'tabsId' => $tabsId,
-                    'trailQuery' => $trailQuery,
-                ],
-                $this->orderViewConfig($record, $recordType),
-            ),
+            'data' => [
+                'orders' => $orders,
+                'tabsId' => $config['tabsId'],
+                'trailQuery' => $trailQuery,
+                'showCounterparty' => (bool) $config['showCounterparty'],
+                'showAsset' => (bool) $config['showAsset'],
+                'emptyMessage' => $config['emptyMessage'],
+            ],
         ];
     }
 
-    private function emptyEmbeddedPayload(
-        string $recordType,
-        string $tabsId,
-        array $trailQuery,
-    ): array {
+    private function matchesRelatedHost(mixed $record, mixed $config): bool
+    {
+        if (! is_array($config)) {
+            return false;
+        }
+
+        $expectedClass = $config['class'] ?? null;
+
+        return is_string($expectedClass) && $record instanceof $expectedClass;
+    }
+
+    private function ordersForRelatedHost(Model $record, array $config): Collection
+    {
+        $filterColumn = $config['filterColumn'] ?? null;
+
+        if (! is_string($filterColumn) || $filterColumn === '') {
+            return collect();
+        }
+
+        return app(Security::class)
+            ->scope(auth()->user(), 'orders.viewAny', Order::query())
+            ->where($filterColumn, $record->getKey())
+            ->latest()
+            ->get();
+    }
+
+    private function supportedHosts(): array
+    {
         return [
-            'count' => 0,
-            'data' => array_merge(
-                [
-                    'orders' => collect(),
-                    'tabsId' => $tabsId,
-                    'trailQuery' => $trailQuery,
-                ],
-                $this->emptyOrderViewConfig($recordType),
-            ),
+            'orders.show' => [
+                'recordType' => 'order',
+                'class' => Order::class,
+            ],
+            'parties.show' => [
+                'recordType' => 'party',
+                'class' => Party::class,
+            ],
+            'assets.show' => [
+                'recordType' => 'asset',
+                'class' => Asset::class,
+            ],
+            'documents.show' => [
+                'recordType' => 'document',
+                'class' => Document::class,
+            ],
         ];
     }
 
-    private function orderViewConfig(Model $record, string $recordType): array
+    private function relatedHosts(): array
     {
-        return match ($recordType) {
+        return [
             'asset' => [
+                'class' => Asset::class,
+                'filterColumn' => 'asset_id',
+                'tabsId' => 'asset-orders-tabs',
                 'showCounterparty' => true,
                 'showAsset' => false,
                 'emptyMessage' => 'Este activo no tiene órdenes vinculadas.',
-                'createBaseQuery' => [
-                    'asset_id' => $record->getKey(),
-                    'kind' => OrderCatalog::KIND_SERVICE,
-                ],
             ],
             'party' => [
+                'class' => Party::class,
+                'filterColumn' => 'party_id',
+                'tabsId' => 'party-orders-tabs',
                 'showCounterparty' => false,
-                'showAsset' => true,
-                'emptyMessage' => 'Este contacto no tiene órdenes vinculadas.',
-                'createBaseQuery' => [
-                    'party_id' => $record->getKey(),
-                ],
-            ],
-            default => [],
-        };
-    }
-
-    private function emptyOrderViewConfig(string $recordType): array
-    {
-        return match ($recordType) {
-            'asset' => [
-                'showCounterparty' => true,
                 'showAsset' => false,
-                'emptyMessage' => 'Este activo no tiene órdenes vinculadas.',
-                'createBaseQuery' => [],
-            ],
-            'party' => [
-                'showCounterparty' => false,
-                'showAsset' => true,
                 'emptyMessage' => 'Este contacto no tiene órdenes vinculadas.',
-                'createBaseQuery' => [],
             ],
-            default => [],
-        };
+        ];
     }
 
-    private function ordersFor(Model $record, string $recordType): Collection
+    private function emptyRelatedConfig(): array
     {
-        if ($recordType === 'asset' && $record instanceof Asset) {
-            return app(Security::class)
-                ->scope(auth()->user(), 'orders.viewAny', Order::query())
-                ->with('party')
-                ->where('asset_id', $record->getKey())
-                ->latest()
-                ->get();
-        }
-
-        if ($recordType === 'party' && $record instanceof Party) {
-            return app(Security::class)
-                ->scope(auth()->user(), 'orders.viewAny', Order::query())
-                ->with(['party', 'asset', 'items'])
-                ->where('party_id', $record->getKey())
-                ->latest()
-                ->get();
-        }
-
-        return collect();
+        return [
+            'tabsId' => 'orders-tabs-empty',
+            'showCounterparty' => false,
+            'showAsset' => false,
+            'emptyMessage' => 'No hay órdenes para mostrar.',
+        ];
     }
 }

@@ -1,13 +1,11 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderItemController.php | V24
+// FILE: app/Http/Controllers/OrderItemController.php | V25
 
 namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\OrderItem;
-use App\Models\Product;
-use App\Support\Auth\Security;
 use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\OrderCatalog;
@@ -16,8 +14,8 @@ use App\Support\LineItems\LineItemValidationRules;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\OrderNavigationTrail;
 use App\Support\Orders\OrdersHooks;
+use App\Support\Products\ProductLineItemSelector;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 
 class OrderItemController extends Controller
 {
@@ -31,18 +29,12 @@ class OrderItemController extends Controller
             'No se pueden agregar ítems a una orden en estado readonly.'
         );
 
-        $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
-        $security = app(Security::class);
-        $user = auth()->user();
-
-        $products = $supportsProductsModule
-            ? $security
-                ->scope($user, 'products.viewAny', Product::query())
-                ->where('tenant_id', $order->tenant_id)
-                ->whereNull('deleted_at')
-                ->orderBy('name')
-                ->get()
-            : collect();
+        $supportsProductsModule = $this->supportsProductsModule();
+        $products = app(ProductLineItemSelector::class)->optionsFor(
+            user: auth()->user(),
+            tenantId: (string) $order->tenant_id,
+            enabled: $supportsProductsModule,
+        );
 
         $item = new OrderItem([
             'position' => ((int) $order->items()->max('position')) + 1,
@@ -72,36 +64,28 @@ class OrderItemController extends Controller
             'No se pueden agregar ítems a una orden en estado readonly.'
         );
 
-        $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
-        $security = app(Security::class);
-        $user = auth()->user();
-
-        $productRules = ['nullable', 'integer'];
-
-        if ($supportsProductsModule) {
-            $productRules[] = Rule::exists('products', 'id')->where(function ($query) use ($order) {
-                $query->where('tenant_id', $order->tenant_id)
-                    ->whereNull('deleted_at');
-            });
-        }
+        $supportsProductsModule = $this->supportsProductsModule();
+        $productSelector = app(ProductLineItemSelector::class);
 
         $data = $request->validate([
-            'product_id' => $productRules,
+            'product_id' => $productSelector->nullableRulesFor(
+                tenantId: (string) $order->tenant_id,
+                enabled: $supportsProductsModule,
+            ),
             ...app(LineItemValidationRules::class)->baseRules(),
         ]);
 
-        if (! $supportsProductsModule) {
-            $data['product_id'] = null;
-        }
+        $data['product_id'] = $productSelector->normalizeProductId(
+            productId: $data['product_id'] ?? null,
+            enabled: $supportsProductsModule,
+        );
 
-        if (! empty($data['product_id'])) {
-            $security
-                ->scope($user, 'products.viewAny', Product::query())
-                ->where('tenant_id', $order->tenant_id)
-                ->whereNull('deleted_at')
-                ->whereKey($data['product_id'])
-                ->firstOrFail();
-        }
+        $productSelector->assertViewable(
+            user: auth()->user(),
+            tenantId: (string) $order->tenant_id,
+            productId: $data['product_id'],
+            enabled: $supportsProductsModule,
+        );
 
         $data['tenant_id'] = $order->tenant_id;
         $data['order_id'] = $order->id;
@@ -139,18 +123,12 @@ class OrderItemController extends Controller
 
         app(OrdersHooks::class)->beforeOrderItemEdit($order, $item);
 
-        $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
-        $security = app(Security::class);
-        $user = auth()->user();
-
-        $products = $supportsProductsModule
-            ? $security
-                ->scope($user, 'products.viewAny', Product::query())
-                ->where('tenant_id', $order->tenant_id)
-                ->whereNull('deleted_at')
-                ->orderBy('name')
-                ->get()
-            : collect();
+        $supportsProductsModule = $this->supportsProductsModule();
+        $products = app(ProductLineItemSelector::class)->optionsFor(
+            user: auth()->user(),
+            tenantId: (string) $order->tenant_id,
+            enabled: $supportsProductsModule,
+        );
 
         $navigationTrail = OrderNavigationTrail::itemEdit($request, $order, $item);
 
@@ -177,36 +155,28 @@ class OrderItemController extends Controller
 
         app(OrdersHooks::class)->beforeOrderItemEdit($order, $item);
 
-        $supportsProductsModule = TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
-        $security = app(Security::class);
-        $user = auth()->user();
-
-        $productRules = ['nullable', 'integer'];
-
-        if ($supportsProductsModule) {
-            $productRules[] = Rule::exists('products', 'id')->where(function ($query) use ($order) {
-                $query->where('tenant_id', $order->tenant_id)
-                    ->whereNull('deleted_at');
-            });
-        }
+        $supportsProductsModule = $this->supportsProductsModule();
+        $productSelector = app(ProductLineItemSelector::class);
 
         $data = $request->validate([
-            'product_id' => $productRules,
+            'product_id' => $productSelector->nullableRulesFor(
+                tenantId: (string) $order->tenant_id,
+                enabled: $supportsProductsModule,
+            ),
             ...app(LineItemValidationRules::class)->baseRules(),
         ]);
 
-        if (! $supportsProductsModule) {
-            $data['product_id'] = null;
-        }
+        $data['product_id'] = $productSelector->normalizeProductId(
+            productId: $data['product_id'] ?? null,
+            enabled: $supportsProductsModule,
+        );
 
-        if (! empty($data['product_id'])) {
-            $security
-                ->scope($user, 'products.viewAny', Product::query())
-                ->where('tenant_id', $order->tenant_id)
-                ->whereNull('deleted_at')
-                ->whereKey($data['product_id'])
-                ->firstOrFail();
-        }
+        $productSelector->assertViewable(
+            user: auth()->user(),
+            tenantId: (string) $order->tenant_id,
+            productId: $data['product_id'],
+            enabled: $supportsProductsModule,
+        );
 
         $data = app(OrdersHooks::class)->beforeOrderItemUpdate($order, $item, $data);
 
@@ -258,5 +228,10 @@ class OrderItemController extends Controller
         $data['subtotal'] = $math->lineTotal($quantity, $unitPrice);
 
         return $data;
+    }
+
+    private function supportsProductsModule(): bool
+    {
+        return TenantModuleAccess::isEnabled(ModuleCatalog::PRODUCTS, app('tenant'));
     }
 }

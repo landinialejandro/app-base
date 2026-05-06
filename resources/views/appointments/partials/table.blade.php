@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/appointments/partials/table.blade.php | V12 --}}
+{{-- FILE: resources/views/appointments/partials/table.blade.php | V13 --}}
 
 @php
     use App\Support\Assets\AssetLinked;
@@ -75,12 +75,18 @@
 
                         $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
 
-                        $orderAction = OrderLinked::forAppointment($appointment, $rowTrailQuery, false);
+                        $orderAction = OrderLinked::forOrder(
+                            $appointment->order,
+                            $rowTrailQuery,
+                            AppointmentCatalog::orderLabel(),
+                        );
+
                         $partyLinked = PartyLinked::forParty(
                             $appointment->party,
                             $rowTrailQuery,
                             AppointmentCatalog::contactLabel(),
                         );
+
                         $assetAction = AssetLinked::forAsset(
                             $appointment->asset,
                             $rowTrailQuery,
@@ -154,3 +160,5 @@
 @else
     <p class="mb-0">{{ $emptyMessage }}</p>
 @endif
+
+<x-dev-component-version name="appointments.partials.table" version="V13" align="right" />

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tasks/partials/table.blade.php | V7 --}}
+{{-- FILE: resources/views/tasks/partials/table.blade.php | V8 --}}
 
 @php
     use App\Support\Auth\TenantModuleAccess;
@@ -76,7 +76,9 @@
                             };
                         }
 
-                        $orderAction = $supportsOrdersModule ? OrderLinked::forTask($task, $rowTrailQuery, false) : [];
+                        $orderAction = $supportsOrdersModule
+                            ? OrderLinked::forOrder($task->order, $rowTrailQuery, 'Orden')
+                            : [];
                     @endphp
 
                     <tr>
@@ -127,3 +129,5 @@
 @else
     <p class="mb-0">{{ $emptyMessage }}</p>
 @endif
+
+<x-dev-component-version name="tasks.partials.table" version="V8" align="right" />

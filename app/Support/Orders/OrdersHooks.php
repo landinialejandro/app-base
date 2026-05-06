@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Orders/OrdersHooks.php | V8
+// FILE: app/Support/Orders/OrdersHooks.php | V9
 
 namespace App\Support\Orders;
 
@@ -88,6 +88,20 @@ class OrdersHooks
                 );
         } catch (Throwable $e) {
             Log::warning('OrdersHooks.hasExternalMovements falló y se asumió que existen movimientos.', [
+                'order_id' => $order->id,
+                'message' => $e->getMessage(),
+            ]);
+
+            return true;
+        }
+    }
+
+    public function hasCloseBlockers(Order $order): bool
+    {
+        try {
+            return $this->inventoryHooks()->hasCloseBlockers($order);
+        } catch (Throwable $e) {
+            Log::warning('OrdersHooks.hasCloseBlockers falló y se asumió que existen bloqueos.', [
                 'order_id' => $order->id,
                 'message' => $e->getMessage(),
             ]);

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Inventory/InventoryOrderItemHooks.php | V2
+// FILE: app/Support/Inventory/InventoryOrderItemHooks.php | V3
 
 namespace App\Support\Inventory;
 
@@ -102,6 +102,29 @@ class InventoryOrderItemHooks
     public function afterOrderItemUpdate(Order $order, OrderItem $item): void
     {
         app(OrderItemStatusService::class)->recalculate($item);
+    }
+
+    /**
+     * Regla funcional de cierre de orden.
+     *
+     * Inventory informa si existen líneas físicas pendientes o parciales que impiden cerrar.
+     */
+    public function hasCloseBlockers(Order $order): bool
+    {
+        $order->loadMissing('items.product');
+
+        return $order->items->contains(function ($item) {
+            $product = $item->product;
+
+            if (! $product || $product->kind !== 'product') {
+                return false;
+            }
+
+            return ! in_array($item->status, [
+                OrderItemCatalog::STATUS_COMPLETED,
+                OrderItemCatalog::STATUS_CANCELLED,
+            ], true);
+        });
     }
 
     protected function normalizeQuantity(float|int|string|null $value): float

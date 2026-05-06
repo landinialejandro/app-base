@@ -141,7 +141,7 @@ Debe adoptar principios robustos de gestión operativa, ERP y CMMS cuando corres
 <<END SECTION>>
 
 <<SECTION: ENTORNO TÉCNICO BASE>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 ENTORNO TÉCNICO BASE
 
@@ -149,11 +149,48 @@ Stack general validado del proyecto:
 
 OS: Linux
 Web: Apache
-PHP: 8.4
-Laravel: 12.x
+PHP: 8.5
+Laravel: 13.x
 DB: MariaDB
 
 Este bloque describe contexto técnico general del proyecto y no reemplaza validaciones específicas de runtime, deploy o compatibilidad.
+
+Validación vigente:
+
+Laravel Framework 13.8.0
+laravel/tinker 3.0.2
+phpunit/phpunit 12.5.24
+laravel/fortify 1.37.0
+
+Validaciones post-upgrade confirmadas:
+
+composer update sin vulnerabilidades reportadas
+package:discover correcto
+optimize:clear correcto
+migraciones sin pendientes
+route:list correcto
+queue sin trabajos pendientes
+failed_jobs = 0
+DOMPDF disponible
+tests base correctos
+
+Regla:
+
+un upgrade mayor de framework no se considera cerrado solo por resolver Composer.
+
+Debe validarse, como mínimo:
+
+versiones efectivas
+autoload y package discovery
+cache limpia
+migraciones
+rutas
+colas
+failed_jobs
+runtime Tinker
+PDF si corresponde
+tests disponibles
+pruebas funcionales en navegador
 
 <<END SECTION>>
 

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/OrderCatalog.php | V5
+// FILE: app/Support/Catalogs/OrderCatalog.php | V6
 
 namespace App\Support\Catalogs;
 
@@ -46,6 +46,21 @@ class OrderCatalog extends BaseCatalog
         self::STATUS_APPROVED => 'status-badge--warning',
         self::STATUS_CLOSED => 'status-badge--done',
         self::STATUS_CANCELLED => 'status-badge--cancelled',
+    ];
+
+    protected static array $sequenceDefinitions = [
+        self::GROUP_SALE => [
+            'kind' => 'order.sale',
+            'prefix' => 'ORD',
+        ],
+        self::GROUP_PURCHASE => [
+            'kind' => 'order.purchase',
+            'prefix' => 'OCO',
+        ],
+        self::GROUP_SERVICE => [
+            'kind' => 'order.service',
+            'prefix' => 'OSE',
+        ],
     ];
 
     public static function groups(): array
@@ -146,6 +161,20 @@ class OrderCatalog extends BaseCatalog
         return static::directionFor($kind, null, $default);
     }
 
+    public static function sequenceDefinitions(): array
+    {
+        return static::$sequenceDefinitions;
+    }
+
+    public static function sequenceDefinitionForGroup(string $group): array
+    {
+        if (! isset(static::$sequenceDefinitions[$group])) {
+            throw new \InvalidArgumentException("No existe definición de numeración para el grupo de orden [{$group}].");
+        }
+
+        return static::$sequenceDefinitions[$group];
+    }
+
     public static function isOperableStatus(?string $status): bool
     {
         return $status === self::STATUS_APPROVED;
@@ -191,17 +220,17 @@ class OrderCatalog extends BaseCatalog
         };
     }
 
-public static function activityTrackedFields(): array
-{
-    return [
-        'party_id',
-        'counterparty_name',
-        'asset_id',
-        'group',
-        'kind',
-        'status',
-        'ordered_at',
-        'notes',
-    ];
-}
+    public static function activityTrackedFields(): array
+    {
+        return [
+            'party_id',
+            'counterparty_name',
+            'asset_id',
+            'group',
+            'kind',
+            'status',
+            'ordered_at',
+            'notes',
+        ];
+    }
 }

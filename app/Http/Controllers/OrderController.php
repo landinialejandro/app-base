@@ -11,9 +11,9 @@ use App\Support\Auth\Security;
 use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\OrderCatalog;
-use App\Support\Documents\DocumentNumberGenerator;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\OrderNavigationTrail;
+use App\Support\Numbering\RecordNumberGenerator;
 use App\Support\Orders\OrdersHooks;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
@@ -165,9 +165,12 @@ class OrderController extends Controller
         $data['ordered_at'] = $orderedAtDate->toDateString();
 
         $order = DB::transaction(function () use ($tenant, $data) {
-            $sequence = DocumentNumberGenerator::generate(
+            $sequenceDefinition = OrderCatalog::sequenceDefinitionForGroup($data['group']);
+
+            $sequence = RecordNumberGenerator::generate(
                 tenantId: $tenant->id,
-                kind: 'order.'.$data['group'],
+                kind: $sequenceDefinition['kind'],
+                defaultPrefix: $sequenceDefinition['prefix'],
                 pointOfSale: '0001',
             );
 
@@ -296,9 +299,7 @@ class OrderController extends Controller
         }
 
         if ($data['status'] === OrderCatalog::STATUS_CLOSED) {
-            $order->loadMissing('items');
-
-            if ($this->hasIncompleteInventoryItems($order)) {
+            if (app(OrdersHooks::class)->hasCloseBlockers($order)) {
                 return back()
                     ->withErrors([
                         'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
@@ -377,9 +378,7 @@ class OrderController extends Controller
         }
 
         if ($newStatus === OrderCatalog::STATUS_CLOSED) {
-            $order->loadMissing('items');
-
-            if ($this->hasIncompleteInventoryItems($order)) {
+            if (app(OrdersHooks::class)->hasCloseBlockers($order)) {
                 return back()
                     ->withErrors([
                         'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
@@ -500,9 +499,7 @@ class OrderController extends Controller
         }
 
         if ($newStatus === OrderCatalog::STATUS_CLOSED) {
-            $order->loadMissing('items');
-
-            if ($this->hasIncompleteInventoryItems($order)) {
+            if (app(OrdersHooks::class)->hasCloseBlockers($order)) {
                 return back()
                     ->withErrors([
                         'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
@@ -524,20 +521,5 @@ class OrderController extends Controller
         ));
 
         return back()->with('success', 'Estado de la orden actualizado.');
-    }
-
-    protected function hasIncompleteInventoryItems(Order $order): bool
-    {
-        $order->loadMissing('items.product');
-
-        return $order->items->contains(function ($item) {
-            $product = $item->product;
-
-            if (! $product || $product->kind !== 'product') {
-                return false;
-            }
-
-            return ! in_array($item->status, ['completed', 'cancelled'], true);
-        });
     }
 }

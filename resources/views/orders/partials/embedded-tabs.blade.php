@@ -1,14 +1,12 @@
-{{-- FILE: resources/views/orders/partials/embedded-tabs.blade.php | V10 --}}
+{{-- FILE: resources/views/orders/partials/embedded-tabs.blade.php | V11 --}}
 
 @php
-    use App\Models\Order;
-    use App\Support\Auth\Security;
     use App\Support\Catalogs\OrderCatalog;
 
     $orders = $orders ?? collect();
 
     $showCounterparty = $showCounterparty ?? ($showParty ?? false);
-    $showAsset = $showAsset ?? true;
+    $showAsset = $showAsset ?? false;
 
     $emptyMessage = $emptyMessage ?? 'No hay órdenes para mostrar.';
     $allLabel = $allLabel ?? 'Todas';
@@ -16,29 +14,9 @@
     $groups = OrderCatalog::groupLabels();
     $tabsId = $tabsId ?? 'orders-tabs-' . uniqid();
     $trailQuery = $trailQuery ?? [];
-    $createBaseQuery = $createBaseQuery ?? [];
-
-    $allowedCreateGroups = collect(array_keys(OrderCatalog::groups()))
-        ->filter(
-            fn(string $group) => app(Security::class)->allows(auth()->user(), 'orders.create', Order::class, [
-                'kind' => $group,
-            ]),
-        )
-        ->values();
-
-    $canCreateOrders = $allowedCreateGroups->isNotEmpty();
-    $defaultCreateKind = $allowedCreateGroups->first();
 @endphp
 
 <div class="tabs" data-tabs>
-    @php
-        $toolbarActions = null;
-
-        if ($canCreateOrders) {
-            $toolbarActions = route('orders.create', $createBaseQuery + $trailQuery + ['group' => $defaultCreateKind]);
-        }
-    @endphp
-
     <x-tab-toolbar label="Tipos de órdenes">
         <x-slot:tabs>
             <x-horizontal-scroll label="Tipos de órdenes">
@@ -65,13 +43,6 @@
                 @endforeach
             </x-horizontal-scroll>
         </x-slot:tabs>
-
-        <x-slot:actions>
-            @if ($toolbarActions)
-                <x-button-create :href="$toolbarActions" label="Nueva orden" class="btn-sm">
-                </x-button-create>
-            @endif
-        </x-slot:actions>
     </x-tab-toolbar>
 
     <section class="tab-panel is-active" data-tab-panel="{{ $tabsId }}-all">
@@ -109,4 +80,4 @@
     @endforeach
 </div>
 
-<x-dev-component-version name="orders.partials.embedded-tabs" version="V10" align="right" />
+<x-dev-component-version name="orders.partials.embedded-tabs" version="V11" align="right" />

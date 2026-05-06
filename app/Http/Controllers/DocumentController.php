@@ -4,6 +4,8 @@
 
 namespace App\Http\Controllers;
 
+use App\Events\OperationalRecordCreated;
+use App\Events\OperationalRecordUpdated;
 use App\Models\Asset;
 use App\Models\Document;
 use App\Models\DocumentItem;
@@ -11,11 +13,10 @@ use App\Models\Order;
 use App\Models\Party;
 use App\Support\Auth\Security;
 use App\Support\Catalogs\DocumentCatalog;
-use App\Support\Documents\DocumentNumberGenerator;
-use App\Support\Documents\DocumentTotalsCalculator;
 use App\Support\LineItems\LineItemMath;
 use App\Support\Navigation\DocumentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
+use App\Support\Numbering\RecordNumberGenerator;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -81,404 +82,410 @@ class DocumentController extends Controller
         return view('documents.index', compact('documents', 'parties', 'assets', 'orders'));
     }
 
-public function create(Request $request)
-{
-    $tenant = app('tenant');
-    $security = app(Security::class);
-    $user = auth()->user();
+    public function create(Request $request)
+    {
+        $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
 
-    $parties = $security
-        ->scope($user, 'parties.viewAny', Party::query())
-        ->orderBy('name')
-        ->get();
+        $parties = $security
+            ->scope($user, 'parties.viewAny', Party::query())
+            ->orderBy('name')
+            ->get();
 
-    $orders = $security
-        ->scope($user, 'orders.viewAny', Order::query())
-        ->with(['party', 'asset'])
-        ->latest()
-        ->get();
-
-    $assets = $security
-        ->scope($user, 'assets.viewAny', Asset::query())
-        ->with('party')
-        ->orderBy('name')
-        ->get();
-
-    $order = null;
-    $asset = null;
-    $prefilledCounterpartyName = '';
-
-    if ($request->filled('order_id')) {
-        $order = $security
+        $orders = $security
             ->scope($user, 'orders.viewAny', Order::query())
             ->with(['party', 'asset'])
-            ->where('id', $request->integer('order_id'))
-            ->where('tenant_id', $tenant->id)
-            ->firstOrFail();
+            ->latest()
+            ->get();
 
-        $prefilledCounterpartyName = $order->displayCounterpartyName();
-    }
-
-    if ($request->filled('asset_id')) {
-        $asset = $security
+        $assets = $security
             ->scope($user, 'assets.viewAny', Asset::query())
             ->with('party')
-            ->where('id', $request->integer('asset_id'))
-            ->where('tenant_id', $tenant->id)
-            ->whereNull('deleted_at')
-            ->first();
+            ->orderBy('name')
+            ->get();
 
-        if (! $order && $asset?->party) {
-            $prefilledCounterpartyName = $asset->party->name;
+        $order = null;
+        $asset = null;
+        $prefilledCounterpartyName = '';
+
+        if ($request->filled('order_id')) {
+            $order = $security
+                ->scope($user, 'orders.viewAny', Order::query())
+                ->with(['party', 'asset'])
+                ->where('id', $request->integer('order_id'))
+                ->where('tenant_id', $tenant->id)
+                ->firstOrFail();
+
+            $prefilledCounterpartyName = $order->displayCounterpartyName();
         }
-    }
 
-    $requestedGroup = (string) $request->get('group', '');
-    $prefilledGroup = in_array($requestedGroup, DocumentCatalog::groups(), true)
-        ? $requestedGroup
-        : DocumentCatalog::GROUP_SALE;
+        if ($request->filled('asset_id')) {
+            $asset = $security
+                ->scope($user, 'assets.viewAny', Asset::query())
+                ->with('party')
+                ->where('id', $request->integer('asset_id'))
+                ->where('tenant_id', $tenant->id)
+                ->whereNull('deleted_at')
+                ->first();
 
-    $requestedKind = (string) $request->get('kind', '');
-    $prefilledKind = in_array($requestedKind, DocumentCatalog::kinds(), true)
-        ? $requestedKind
-        : DocumentCatalog::KIND_QUOTE;
-
-    $security->authorize(
-        $user,
-        'documents.create',
-        Document::class,
-        ['kind' => $prefilledKind]
-    );
-
-    $prefilledPartyId = $order?->party_id;
-    $prefilledAssetId = $order?->asset_id;
-
-    if (! $order && $asset) {
-        $prefilledAssetId = $asset->id;
-        $prefilledPartyId = $asset->party_id;
-    }
-
-    if (! $order && ! $asset && $request->filled('party_id')) {
-        $party = $security
-            ->scope($user, 'parties.viewAny', Party::query())
-            ->where('id', $request->integer('party_id'))
-            ->where('tenant_id', $tenant->id)
-            ->whereNull('deleted_at')
-            ->first();
-
-        if ($party) {
-            $prefilledPartyId = $party->id;
-            $prefilledCounterpartyName = $party->name;
+            if (! $order && $asset?->party) {
+                $prefilledCounterpartyName = $asset->party->name;
+            }
         }
+
+        $requestedGroup = (string) $request->get('group', '');
+        $prefilledGroup = in_array($requestedGroup, DocumentCatalog::groups(), true)
+            ? $requestedGroup
+            : DocumentCatalog::GROUP_SALE;
+
+        $requestedKind = (string) $request->get('kind', '');
+        $prefilledKind = in_array($requestedKind, DocumentCatalog::kinds(), true)
+            ? $requestedKind
+            : DocumentCatalog::KIND_QUOTE;
+
+        $security->authorize(
+            $user,
+            'documents.create',
+            Document::class,
+            ['kind' => $prefilledKind]
+        );
+
+        $prefilledPartyId = $order?->party_id;
+        $prefilledAssetId = $order?->asset_id;
+
+        if (! $order && $asset) {
+            $prefilledAssetId = $asset->id;
+            $prefilledPartyId = $asset->party_id;
+        }
+
+        if (! $order && ! $asset && $request->filled('party_id')) {
+            $party = $security
+                ->scope($user, 'parties.viewAny', Party::query())
+                ->where('id', $request->integer('party_id'))
+                ->where('tenant_id', $tenant->id)
+                ->whereNull('deleted_at')
+                ->first();
+
+            if ($party) {
+                $prefilledPartyId = $party->id;
+                $prefilledCounterpartyName = $party->name;
+            }
+        }
+
+        $document = new Document([
+            'party_id' => $prefilledPartyId,
+            'counterparty_name' => $prefilledCounterpartyName,
+            'order_id' => $order?->id,
+            'asset_id' => $prefilledAssetId,
+            'group' => $prefilledGroup,
+            'kind' => $prefilledKind,
+            'status' => DocumentCatalog::STATUS_DRAFT,
+            'issued_at' => now(),
+        ]);
+
+        $navigationTrail = DocumentNavigationTrail::create($request, $order);
+
+        return view('documents.create', compact(
+            'document',
+            'order',
+            'parties',
+            'orders',
+            'assets',
+            'navigationTrail',
+        ));
     }
 
-    $document = new Document([
-        'party_id' => $prefilledPartyId,
-        'counterparty_name' => $prefilledCounterpartyName,
-        'order_id' => $order?->id,
-        'asset_id' => $prefilledAssetId,
-        'group' => $prefilledGroup,
-        'kind' => $prefilledKind,
-        'status' => DocumentCatalog::STATUS_DRAFT,
-        'issued_at' => now(),
-    ]);
+    public function store(Request $request)
+    {
+        $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
 
-    $navigationTrail = DocumentNavigationTrail::create($request, $order);
+        $data = $request->validate([
+            'party_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)
+                        ->whereNull('deleted_at');
+                }),
+            ],
+            'counterparty_name' => ['nullable', 'string', 'max:255'],
+            'order_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('orders', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id);
+                }),
+            ],
+            'asset_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('assets', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)
+                        ->whereNull('deleted_at');
+                }),
+            ],
+            'group' => [
+                'required',
+                Rule::in(DocumentCatalog::groups()),
+            ],
+            'kind' => [
+                'required',
+                Rule::in(DocumentCatalog::kinds()),
+            ],
+            'status' => [
+                'required',
+                Rule::in(DocumentCatalog::statuses()),
+            ],
+            'issued_at' => ['nullable', 'date'],
+            'notes' => ['nullable', 'string'],
+        ]);
 
-    return view('documents.create', compact(
-        'document',
-        'order',
-        'parties',
-        'orders',
-        'assets',
-        'navigationTrail',
-    ));
-}
-
-public function store(Request $request)
-{
-    $tenant = app('tenant');
-    $security = app(Security::class);
-    $user = auth()->user();
-
-    $data = $request->validate([
-        'party_id' => [
-            'nullable',
-            'integer',
-            Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id)
-                    ->whereNull('deleted_at');
-            }),
-        ],
-        'counterparty_name' => ['nullable', 'string', 'max:255'],
-        'order_id' => [
-            'nullable',
-            'integer',
-            Rule::exists('orders', 'id')->where(function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id);
-            }),
-        ],
-        'asset_id' => [
-            'nullable',
-            'integer',
-            Rule::exists('assets', 'id')->where(function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id)
-                    ->whereNull('deleted_at');
-            }),
-        ],
-        'group' => [
-            'required',
-            Rule::in(DocumentCatalog::groups()),
-        ],
-        'kind' => [
-            'required',
-            Rule::in(DocumentCatalog::kinds()),
-        ],
-        'status' => [
-            'required',
-            Rule::in(DocumentCatalog::statuses()),
-        ],
-        'issued_at' => ['nullable', 'date'],
-        'notes' => ['nullable', 'string'],
-    ]);
-
-    if (! DocumentCatalog::isValidKindForGroup($data['group'], $data['kind'])) {
-        return back()
-            ->withErrors([
-                'kind' => 'El tipo seleccionado no corresponde al grupo del documento.',
-            ])
-            ->withInput();
-    }
-
-    $security->authorize(
-        $user,
-        'documents.create',
-        Document::class,
-        ['kind' => $data['kind']]
-    );
-
-    $issuedAt = $this->resolveIssuedAt($data['issued_at'] ?? null);
-    $order = null;
-    $party = null;
-    $asset = null;
-
-    if (! empty($data['order_id'])) {
-        $order = $security
-            ->scope($user, 'orders.viewAny', Order::query())
-            ->with(['party', 'asset'])
-            ->where('id', $data['order_id'])
-            ->where('tenant_id', $tenant->id)
-            ->firstOrFail();
-
-        $data['party_id'] = $order->party_id;
-        $data['asset_id'] = $order->asset_id;
-        $data['counterparty_name'] = $order->displayCounterpartyName();
-    }
-
-    if (! empty($data['party_id'])) {
-        $party = $security
-            ->scope($user, 'parties.viewAny', Party::query())
-            ->whereKey($data['party_id'])
-            ->where('tenant_id', $tenant->id)
-            ->whereNull('deleted_at')
-            ->firstOrFail();
-    }
-
-    if (! empty($data['asset_id'])) {
-        $asset = $security
-            ->scope($user, 'assets.viewAny', Asset::query())
-            ->with('party')
-            ->whereKey($data['asset_id'])
-            ->where('tenant_id', $tenant->id)
-            ->whereNull('deleted_at')
-            ->firstOrFail();
-
-        if ($party && $asset->party_id && (int) $asset->party_id !== (int) $party->id) {
+        if (! DocumentCatalog::isValidKindForGroup($data['group'], $data['kind'])) {
             return back()
                 ->withErrors([
-                    'asset_id' => 'El activo seleccionado pertenece a otro contacto.',
+                    'kind' => 'El tipo seleccionado no corresponde al grupo del documento.',
                 ])
                 ->withInput();
         }
 
-        if (! $party && $asset->party) {
-            $party = $asset->party;
-            $data['party_id'] = $party->id;
+        $security->authorize(
+            $user,
+            'documents.create',
+            Document::class,
+            ['kind' => $data['kind']]
+        );
+
+        $issuedAt = $this->resolveIssuedAt($data['issued_at'] ?? null);
+        $order = null;
+        $party = null;
+        $asset = null;
+
+        if (! empty($data['order_id'])) {
+            $order = $security
+                ->scope($user, 'orders.viewAny', Order::query())
+                ->with(['party', 'asset'])
+                ->where('id', $data['order_id'])
+                ->where('tenant_id', $tenant->id)
+                ->firstOrFail();
+
+            $data['party_id'] = $order->party_id;
+            $data['asset_id'] = $order->asset_id;
+            $data['counterparty_name'] = $order->displayCounterpartyName();
         }
-    }
 
-    $data['counterparty_name'] = $party
-        ? $party->name
-        : trim((string) ($data['counterparty_name'] ?? ''));
+        if (! empty($data['party_id'])) {
+            $party = $security
+                ->scope($user, 'parties.viewAny', Party::query())
+                ->whereKey($data['party_id'])
+                ->where('tenant_id', $tenant->id)
+                ->whereNull('deleted_at')
+                ->firstOrFail();
+        }
 
-    if ($data['counterparty_name'] === '') {
-        return back()
-            ->withErrors([
-                'counterparty_name' => 'Debes seleccionar un contacto o escribir una contraparte.',
-            ])
-            ->withInput();
-    }
+        if (! empty($data['asset_id'])) {
+            $asset = $security
+                ->scope($user, 'assets.viewAny', Asset::query())
+                ->with('party')
+                ->whereKey($data['asset_id'])
+                ->where('tenant_id', $tenant->id)
+                ->whereNull('deleted_at')
+                ->firstOrFail();
 
-    $issuedAtError = $this->validateIssuedAtForDocument(
-        issuedAt: $issuedAt,
-        kind: $data['kind'],
-        order: $order,
-    );
+            if ($party && $asset->party_id && (int) $asset->party_id !== (int) $party->id) {
+                return back()
+                    ->withErrors([
+                        'asset_id' => 'El activo seleccionado pertenece a otro contacto.',
+                    ])
+                    ->withInput();
+            }
 
-    if ($issuedAtError) {
-        return back()
-            ->withErrors(['issued_at' => $issuedAtError])
-            ->withInput();
-    }
+            if (! $party && $asset->party) {
+                $party = $asset->party;
+                $data['party_id'] = $party->id;
+            }
+        }
 
-    $data['issued_at'] = $issuedAt->toDateString();
+        $data['counterparty_name'] = $party
+            ? $party->name
+            : trim((string) ($data['counterparty_name'] ?? ''));
 
-    $document = DB::transaction(function () use ($tenant, $data) {
-        $sequence = DocumentNumberGenerator::generate(
-            tenantId: $tenant->id,
+        if ($data['counterparty_name'] === '') {
+            return back()
+                ->withErrors([
+                    'counterparty_name' => 'Debes seleccionar un contacto o escribir una contraparte.',
+                ])
+                ->withInput();
+        }
+
+        $issuedAtError = $this->validateIssuedAtForDocument(
+            issuedAt: $issuedAt,
             kind: $data['kind'],
-            pointOfSale: '0001',
+            order: $order,
         );
 
-        $payload = array_merge($data, [
-            'number' => $sequence['number'],
-            'sequence_prefix' => $sequence['prefix'],
-            'point_of_sale' => $sequence['point_of_sale'],
-            'sequence_number' => $sequence['sequence_number'],
-            'created_by' => auth()->id(),
-        ]);
+        if ($issuedAtError) {
+            return back()
+                ->withErrors(['issued_at' => $issuedAtError])
+                ->withInput();
+        }
 
-        return Document::create($payload);
-    });
+        $data['issued_at'] = $issuedAt->toDateString();
 
-    event(new \App\Events\OperationalRecordCreated(
-        record: $document,
-        actorUserId: auth()->id(),
-    ));
+        $document = DB::transaction(function () use ($tenant, $data) {
+            $sequenceDefinition = DocumentCatalog::sequenceDefinitionForKind($data['kind']);
 
-    $navigationTrail = DocumentNavigationTrail::show($request, $document);
+            $sequence = RecordNumberGenerator::generate(
+                tenantId: $tenant->id,
+                kind: $sequenceDefinition['kind'],
+                defaultPrefix: $sequenceDefinition['prefix'],
+                pointOfSale: '0001',
+            );
 
-    return redirect()
-        ->route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
-        ->with('success', "Documento creado correctamente con número {$document->number}.");
-}
-
-public function storeFromOrder(Request $request, Order $order)
-{
-    $security = app(Security::class);
-    $user = auth()->user();
-
-    $order = $security
-        ->scope($user, 'orders.viewAny', Order::query())
-        ->whereKey($order->id)
-        ->firstOrFail();
-
-    $defaultGroup = match ($order->group) {
-        'purchase' => DocumentCatalog::GROUP_PURCHASE,
-        'service' => DocumentCatalog::GROUP_SERVICE,
-        default => DocumentCatalog::GROUP_SALE,
-    };
-
-    $data = $request->validate([
-        'group' => [
-            'nullable',
-            Rule::in(DocumentCatalog::groups()),
-        ],
-        'kind' => [
-            'required',
-            Rule::in(DocumentCatalog::kinds()),
-        ],
-    ]);
-
-    $data['group'] = $data['group'] ?? $defaultGroup;
-
-    if (! DocumentCatalog::isValidKindForGroup($data['group'], $data['kind'])) {
-        return back()
-            ->withErrors([
-                'kind' => 'El tipo seleccionado no corresponde al grupo del documento.',
+            $payload = array_merge($data, [
+                'number' => $sequence['number'],
+                'sequence_prefix' => $sequence['prefix'],
+                'point_of_sale' => $sequence['point_of_sale'],
+                'sequence_number' => $sequence['sequence_number'],
+                'created_by' => auth()->id(),
             ]);
+
+            return Document::create($payload);
+        });
+
+        event(new OperationalRecordCreated(
+            record: $document,
+            actorUserId: auth()->id(),
+        ));
+
+        $navigationTrail = DocumentNavigationTrail::show($request, $document);
+
+        return redirect()
+            ->route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
+            ->with('success', "Documento creado correctamente con número {$document->number}.");
     }
 
-    $security->authorize(
-        $user,
-        'documents.create',
-        Document::class,
-        ['kind' => $data['kind']]
-    );
+    public function storeFromOrder(Request $request, Order $order)
+    {
+        $security = app(Security::class);
+        $user = auth()->user();
 
-    $existingDocumentsCount = $order->documents()->count();
-    $existingSameKindCount = $order->documents()
-        ->where('kind', $data['kind'])
-        ->count();
+        $order = $security
+            ->scope($user, 'orders.viewAny', Order::query())
+            ->whereKey($order->id)
+            ->firstOrFail();
 
-    $issuedAt = now()->startOfDay();
+        $defaultGroup = match ($order->group) {
+            'purchase' => DocumentCatalog::GROUP_PURCHASE,
+            'service' => DocumentCatalog::GROUP_SERVICE,
+            default => DocumentCatalog::GROUP_SALE,
+        };
 
-    $issuedAtError = $this->validateIssuedAtForDocument(
-        issuedAt: $issuedAt,
-        kind: $data['kind'],
-        order: $order,
-    );
-
-    if ($issuedAtError) {
-        return back()
-            ->withErrors(['issued_at' => $issuedAtError]);
-    }
-
-    $document = DB::transaction(function () use ($order, $data, $issuedAt) {
-        $sequence = DocumentNumberGenerator::generate(
-            tenantId: $order->tenant_id,
-            kind: $data['kind'],
-            pointOfSale: '0001',
-        );
-
-        $document = Document::create([
-            'tenant_id' => $order->tenant_id,
-            'party_id' => $order->party_id,
-            'counterparty_name' => $order->displayCounterpartyName(),
-            'order_id' => $order->id,
-            'asset_id' => $order->asset_id,
-            'group' => $data['group'],
-            'kind' => $data['kind'],
-            'number' => $sequence['number'],
-            'sequence_prefix' => $sequence['prefix'],
-            'point_of_sale' => $sequence['point_of_sale'],
-            'sequence_number' => $sequence['sequence_number'],
-            'status' => DocumentCatalog::STATUS_DRAFT,
-            'issued_at' => $issuedAt->toDateString(),
-            'subtotal' => 0,
-            'tax_total' => 0,
-            'total' => 0,
-            'created_by' => auth()->id(),
+        $data = $request->validate([
+            'group' => [
+                'nullable',
+                Rule::in(DocumentCatalog::groups()),
+            ],
+            'kind' => [
+                'required',
+                Rule::in(DocumentCatalog::kinds()),
+            ],
         ]);
 
-        $this->copyItemsFromOrder($order, $document);
-        $this->recalculateDocumentTotalsFromItems($document);
+        $data['group'] = $data['group'] ?? $defaultGroup;
 
-        return $document->fresh('items');
-    });
+        if (! DocumentCatalog::isValidKindForGroup($data['group'], $data['kind'])) {
+            return back()
+                ->withErrors([
+                    'kind' => 'El tipo seleccionado no corresponde al grupo del documento.',
+                ]);
+        }
 
-    event(new \App\Events\OperationalRecordCreated(
-        record: $document,
-        actorUserId: auth()->id(),
-    ));
+        $security->authorize(
+            $user,
+            'documents.create',
+            Document::class,
+            ['kind' => $data['kind']]
+        );
 
-    $kindLabel = DocumentCatalog::label($data['kind']);
-    $message = "Documento {$kindLabel} creado correctamente desde la orden con número {$document->number}.";
+        $existingDocumentsCount = $order->documents()->count();
+        $existingSameKindCount = $order->documents()
+            ->where('kind', $data['kind'])
+            ->count();
 
-    if ($existingDocumentsCount > 0) {
-        $message .= " Esta orden ya tenía {$existingDocumentsCount} documento(s) asociado(s).";
+        $issuedAt = now()->startOfDay();
+
+        $issuedAtError = $this->validateIssuedAtForDocument(
+            issuedAt: $issuedAt,
+            kind: $data['kind'],
+            order: $order,
+        );
+
+        if ($issuedAtError) {
+            return back()
+                ->withErrors(['issued_at' => $issuedAtError]);
+        }
+
+        $document = DB::transaction(function () use ($order, $data, $issuedAt) {
+            $sequenceDefinition = DocumentCatalog::sequenceDefinitionForKind($data['kind']);
+
+            $sequence = RecordNumberGenerator::generate(
+                tenantId: $order->tenant_id,
+                kind: $sequenceDefinition['kind'],
+                defaultPrefix: $sequenceDefinition['prefix'],
+                pointOfSale: '0001',
+            );
+
+            $document = Document::create([
+                'tenant_id' => $order->tenant_id,
+                'party_id' => $order->party_id,
+                'counterparty_name' => $order->displayCounterpartyName(),
+                'order_id' => $order->id,
+                'asset_id' => $order->asset_id,
+                'group' => $data['group'],
+                'kind' => $data['kind'],
+                'number' => $sequence['number'],
+                'sequence_prefix' => $sequence['prefix'],
+                'point_of_sale' => $sequence['point_of_sale'],
+                'sequence_number' => $sequence['sequence_number'],
+                'status' => DocumentCatalog::STATUS_DRAFT,
+                'issued_at' => $issuedAt->toDateString(),
+                'subtotal' => 0,
+                'tax_total' => 0,
+                'total' => 0,
+                'created_by' => auth()->id(),
+            ]);
+
+            $this->copyItemsFromOrder($order, $document);
+            $this->recalculateDocumentTotalsFromItems($document);
+
+            return $document->fresh('items');
+        });
+
+        event(new OperationalRecordCreated(
+            record: $document,
+            actorUserId: auth()->id(),
+        ));
+
+        $kindLabel = DocumentCatalog::label($data['kind']);
+        $message = "Documento {$kindLabel} creado correctamente desde la orden con número {$document->number}.";
+
+        if ($existingDocumentsCount > 0) {
+            $message .= " Esta orden ya tenía {$existingDocumentsCount} documento(s) asociado(s).";
+        }
+
+        if ($existingSameKindCount > 0) {
+            $message .= " Ya existía(n) {$existingSameKindCount} documento(s) del tipo {$kindLabel}.";
+        }
+
+        $navigationTrail = DocumentNavigationTrail::show($request, $document);
+
+        return redirect()
+            ->route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
+            ->with('success', $message);
     }
-
-    if ($existingSameKindCount > 0) {
-        $message .= " Ya existía(n) {$existingSameKindCount} documento(s) del tipo {$kindLabel}.";
-    }
-
-    $navigationTrail = DocumentNavigationTrail::show($request, $document);
-
-    return redirect()
-        ->route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
-        ->with('success', $message);
-}
 
     public function show(Request $request, Document $document)
     {
@@ -528,201 +535,201 @@ public function storeFromOrder(Request $request, Order $order)
         return view('documents.edit', compact('document', 'parties', 'orders', 'assets', 'navigationTrail'));
     }
 
-public function update(Request $request, Document $document)
-{
-    $this->authorize('update', $document);
+    public function update(Request $request, Document $document)
+    {
+        $this->authorize('update', $document);
 
-    $tenant = app('tenant');
-    $security = app(Security::class);
-    $user = auth()->user();
+        $tenant = app('tenant');
+        $security = app(Security::class);
+        $user = auth()->user();
 
-    $data = $request->validate([
-        'party_id' => [
-            'nullable',
-            'integer',
-            Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id)
-                    ->whereNull('deleted_at');
-            }),
-        ],
-        'counterparty_name' => ['nullable', 'string', 'max:255'],
-        'order_id' => [
-            'nullable',
-            'integer',
-            Rule::exists('orders', 'id')->where(function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id);
-            }),
-        ],
-        'asset_id' => [
-            'nullable',
-            'integer',
-            Rule::exists('assets', 'id')->where(function ($query) use ($tenant) {
-                $query->where('tenant_id', $tenant->id)
-                    ->whereNull('deleted_at');
-            }),
-        ],
-        'group' => [
-            'required',
-            Rule::in(DocumentCatalog::groups()),
-        ],
-        'kind' => [
-            'required',
-            Rule::in(DocumentCatalog::kinds()),
-        ],
-        'status' => [
-            'required',
-            Rule::in(DocumentCatalog::statuses()),
-        ],
-        'issued_at' => ['nullable', 'date'],
-        'notes' => ['nullable', 'string'],
-    ]);
+        $data = $request->validate([
+            'party_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('parties', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)
+                        ->whereNull('deleted_at');
+                }),
+            ],
+            'counterparty_name' => ['nullable', 'string', 'max:255'],
+            'order_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('orders', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id);
+                }),
+            ],
+            'asset_id' => [
+                'nullable',
+                'integer',
+                Rule::exists('assets', 'id')->where(function ($query) use ($tenant) {
+                    $query->where('tenant_id', $tenant->id)
+                        ->whereNull('deleted_at');
+                }),
+            ],
+            'group' => [
+                'required',
+                Rule::in(DocumentCatalog::groups()),
+            ],
+            'kind' => [
+                'required',
+                Rule::in(DocumentCatalog::kinds()),
+            ],
+            'status' => [
+                'required',
+                Rule::in(DocumentCatalog::statuses()),
+            ],
+            'issued_at' => ['nullable', 'date'],
+            'notes' => ['nullable', 'string'],
+        ]);
 
-    if (! DocumentCatalog::isValidKindForGroup($data['group'], $data['kind'])) {
-        return back()
-            ->withErrors([
-                'kind' => 'El tipo seleccionado no corresponde al grupo del documento.',
-            ])
-            ->withInput();
-    }
-
-    if ($document->number && $data['kind'] !== $document->kind) {
-        return back()
-            ->withErrors([
-                'kind' => 'No se puede cambiar el tipo de un documento que ya fue numerado.',
-            ])
-            ->withInput();
-    }
-
-    if ($document->number && $data['group'] !== $document->group) {
-        return back()
-            ->withErrors([
-                'group' => 'No se puede cambiar el grupo de un documento que ya fue numerado.',
-            ])
-            ->withInput();
-    }
-
-    $currentOrderId = $document->order_id !== null ? (int) $document->order_id : null;
-    $incomingOrderId = ! empty($data['order_id']) ? (int) $data['order_id'] : null;
-
-    if ($currentOrderId !== null && $incomingOrderId === null) {
-        return back()
-            ->withErrors([
-                'order_id' => 'No se puede quitar la orden asociada de un documento ya vinculado.',
-            ])
-            ->withInput();
-    }
-
-    if ($currentOrderId !== null && $incomingOrderId !== null && $currentOrderId !== $incomingOrderId) {
-        return back()
-            ->withErrors([
-                'order_id' => 'No se puede cambiar la orden asociada de un documento ya vinculado.',
-            ])
-            ->withInput();
-    }
-
-    $issuedAt = $this->resolveIssuedAt(
-        $data['issued_at'] ?? ($document->issued_at?->toDateString() ?? null)
-    );
-
-    $order = null;
-    $party = null;
-    $asset = null;
-
-    if ($incomingOrderId !== null) {
-        $order = $security
-            ->scope($user, 'orders.viewAny', Order::query())
-            ->with(['party', 'asset'])
-            ->where('id', $incomingOrderId)
-            ->where('tenant_id', $tenant->id)
-            ->firstOrFail();
-
-        $data['party_id'] = $order->party_id;
-        $data['asset_id'] = $order->asset_id;
-        $data['counterparty_name'] = $order->displayCounterpartyName();
-    }
-
-    $security->authorize(
-        $user,
-        'documents.update',
-        $document,
-        ['kind' => $data['kind']]
-    );
-
-    if (! empty($data['party_id'])) {
-        $party = $security
-            ->scope($user, 'parties.viewAny', Party::query())
-            ->whereKey($data['party_id'])
-            ->where('tenant_id', $tenant->id)
-            ->whereNull('deleted_at')
-            ->firstOrFail();
-    }
-
-    if (! empty($data['asset_id'])) {
-        $asset = $security
-            ->scope($user, 'assets.viewAny', Asset::query())
-            ->with('party')
-            ->whereKey($data['asset_id'])
-            ->where('tenant_id', $tenant->id)
-            ->whereNull('deleted_at')
-            ->firstOrFail();
-
-        if ($party && $asset->party_id && (int) $asset->party_id !== (int) $party->id) {
+        if (! DocumentCatalog::isValidKindForGroup($data['group'], $data['kind'])) {
             return back()
                 ->withErrors([
-                    'asset_id' => 'El activo seleccionado pertenece a otro contacto.',
+                    'kind' => 'El tipo seleccionado no corresponde al grupo del documento.',
                 ])
                 ->withInput();
         }
 
-        if (! $party && $asset->party) {
-            $party = $asset->party;
-            $data['party_id'] = $party->id;
+        if ($document->number && $data['kind'] !== $document->kind) {
+            return back()
+                ->withErrors([
+                    'kind' => 'No se puede cambiar el tipo de un documento que ya fue numerado.',
+                ])
+                ->withInput();
         }
+
+        if ($document->number && $data['group'] !== $document->group) {
+            return back()
+                ->withErrors([
+                    'group' => 'No se puede cambiar el grupo de un documento que ya fue numerado.',
+                ])
+                ->withInput();
+        }
+
+        $currentOrderId = $document->order_id !== null ? (int) $document->order_id : null;
+        $incomingOrderId = ! empty($data['order_id']) ? (int) $data['order_id'] : null;
+
+        if ($currentOrderId !== null && $incomingOrderId === null) {
+            return back()
+                ->withErrors([
+                    'order_id' => 'No se puede quitar la orden asociada de un documento ya vinculado.',
+                ])
+                ->withInput();
+        }
+
+        if ($currentOrderId !== null && $incomingOrderId !== null && $currentOrderId !== $incomingOrderId) {
+            return back()
+                ->withErrors([
+                    'order_id' => 'No se puede cambiar la orden asociada de un documento ya vinculado.',
+                ])
+                ->withInput();
+        }
+
+        $issuedAt = $this->resolveIssuedAt(
+            $data['issued_at'] ?? ($document->issued_at?->toDateString() ?? null)
+        );
+
+        $order = null;
+        $party = null;
+        $asset = null;
+
+        if ($incomingOrderId !== null) {
+            $order = $security
+                ->scope($user, 'orders.viewAny', Order::query())
+                ->with(['party', 'asset'])
+                ->where('id', $incomingOrderId)
+                ->where('tenant_id', $tenant->id)
+                ->firstOrFail();
+
+            $data['party_id'] = $order->party_id;
+            $data['asset_id'] = $order->asset_id;
+            $data['counterparty_name'] = $order->displayCounterpartyName();
+        }
+
+        $security->authorize(
+            $user,
+            'documents.update',
+            $document,
+            ['kind' => $data['kind']]
+        );
+
+        if (! empty($data['party_id'])) {
+            $party = $security
+                ->scope($user, 'parties.viewAny', Party::query())
+                ->whereKey($data['party_id'])
+                ->where('tenant_id', $tenant->id)
+                ->whereNull('deleted_at')
+                ->firstOrFail();
+        }
+
+        if (! empty($data['asset_id'])) {
+            $asset = $security
+                ->scope($user, 'assets.viewAny', Asset::query())
+                ->with('party')
+                ->whereKey($data['asset_id'])
+                ->where('tenant_id', $tenant->id)
+                ->whereNull('deleted_at')
+                ->firstOrFail();
+
+            if ($party && $asset->party_id && (int) $asset->party_id !== (int) $party->id) {
+                return back()
+                    ->withErrors([
+                        'asset_id' => 'El activo seleccionado pertenece a otro contacto.',
+                    ])
+                    ->withInput();
+            }
+
+            if (! $party && $asset->party) {
+                $party = $asset->party;
+                $data['party_id'] = $party->id;
+            }
+        }
+
+        $data['counterparty_name'] = $party
+            ? $party->name
+            : trim((string) ($data['counterparty_name'] ?? ''));
+
+        if ($data['counterparty_name'] === '') {
+            return back()
+                ->withErrors([
+                    'counterparty_name' => 'Debes seleccionar un contacto o escribir una contraparte.',
+                ])
+                ->withInput();
+        }
+
+        $issuedAtError = $this->validateIssuedAtForDocument(
+            issuedAt: $issuedAt,
+            kind: $data['kind'],
+            order: $order,
+        );
+
+        if ($issuedAtError) {
+            return back()
+                ->withErrors(['issued_at' => $issuedAtError])
+                ->withInput();
+        }
+
+        $data['issued_at'] = $issuedAt->toDateString();
+        $data['updated_by'] = auth()->id();
+
+        $beforeAttributes = $document->getAttributes();
+
+        $document->update($data);
+
+        event(new OperationalRecordUpdated(
+            record: $document,
+            beforeAttributes: $beforeAttributes,
+            actorUserId: auth()->id(),
+        ));
+
+        $navigationTrail = DocumentNavigationTrail::show($request, $document);
+
+        return redirect()
+            ->route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
+            ->with('success', 'Documento actualizado.');
     }
-
-    $data['counterparty_name'] = $party
-        ? $party->name
-        : trim((string) ($data['counterparty_name'] ?? ''));
-
-    if ($data['counterparty_name'] === '') {
-        return back()
-            ->withErrors([
-                'counterparty_name' => 'Debes seleccionar un contacto o escribir una contraparte.',
-            ])
-            ->withInput();
-    }
-
-    $issuedAtError = $this->validateIssuedAtForDocument(
-        issuedAt: $issuedAt,
-        kind: $data['kind'],
-        order: $order,
-    );
-
-    if ($issuedAtError) {
-        return back()
-            ->withErrors(['issued_at' => $issuedAtError])
-            ->withInput();
-    }
-
-    $data['issued_at'] = $issuedAt->toDateString();
-    $data['updated_by'] = auth()->id();
-
-    $beforeAttributes = $document->getAttributes();
-
-    $document->update($data);
-
-    event(new \App\Events\OperationalRecordUpdated(
-        record: $document,
-        beforeAttributes: $beforeAttributes,
-        actorUserId: auth()->id(),
-    ));
-
-    $navigationTrail = DocumentNavigationTrail::show($request, $document);
-
-    return redirect()
-        ->route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
-        ->with('success', 'Documento actualizado.');
-}
 
     public function destroy(Request $request, Document $document)
     {
@@ -797,42 +804,42 @@ public function update(Request $request, Document $document)
         return null;
     }
 
-public function updateStatus(Request $request, Document $document)
-{
-    $this->authorize('changeStatus', $document);
+    public function updateStatus(Request $request, Document $document)
+    {
+        $this->authorize('changeStatus', $document);
 
-    $data = $request->validate([
-        'status' => ['required', Rule::in(DocumentCatalog::statuses())],
-    ]);
+        $data = $request->validate([
+            'status' => ['required', Rule::in(DocumentCatalog::statuses())],
+        ]);
 
-    $newStatus = $data['status'];
+        $newStatus = $data['status'];
 
-    if (! DocumentCatalog::canTransition($document->status, $newStatus)) {
-        return back()
-            ->withErrors([
-                'status' => 'La transición de estado solicitada no es válida.',
-            ]);
+        if (! DocumentCatalog::canTransition($document->status, $newStatus)) {
+            return back()
+                ->withErrors([
+                    'status' => 'La transición de estado solicitada no es válida.',
+                ]);
+        }
+
+        $beforeAttributes = $document->getAttributes();
+
+        $document->update([
+            'status' => $newStatus,
+            'updated_by' => auth()->id(),
+        ]);
+
+        event(new OperationalRecordUpdated(
+            record: $document,
+            beforeAttributes: $beforeAttributes,
+            actorUserId: auth()->id(),
+        ));
+
+        $navigationTrail = DocumentNavigationTrail::show($request, $document);
+
+        return redirect()
+            ->route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
+            ->with('success', 'Estado del documento actualizado.');
     }
-
-    $beforeAttributes = $document->getAttributes();
-
-    $document->update([
-        'status' => $newStatus,
-        'updated_by' => auth()->id(),
-    ]);
-
-    event(new \App\Events\OperationalRecordUpdated(
-        record: $document,
-        beforeAttributes: $beforeAttributes,
-        actorUserId: auth()->id(),
-    ));
-
-    $navigationTrail = DocumentNavigationTrail::show($request, $document);
-
-    return redirect()
-        ->route('documents.show', ['document' => $document] + NavigationTrail::toQuery($navigationTrail))
-        ->with('success', 'Estado del documento actualizado.');
-}
 
     public function print(Document $document)
     {
@@ -874,15 +881,14 @@ public function updateStatus(Request $request, Document $document)
         return $pdf->download($filename);
     }
 
-
     protected function recalculateDocumentTotalsFromItems(Document $document): void
     {
         $subtotal = (float) $document->items()
             ->whereNull('deleted_at')
             ->sum('line_total');
-    
+
         $taxTotal = 0.0;
-    
+
         $document->update([
             'subtotal' => $subtotal,
             'tax_total' => $taxTotal,

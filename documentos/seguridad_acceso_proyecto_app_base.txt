@@ -995,7 +995,7 @@ no deben confundirse con vínculos opcionales de enriquecimiento
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00025
+SECTION_VERSION: 00026
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -1049,7 +1049,7 @@ el contrato modular define fronteras y responsabilidades.
 
 No debe transformarse en detalle funcional completo del módulo.
 
-Aclaración para vínculos opcionales:
+Regla para vínculos opcionales:
 
 un campo `*_id` hacia otro módulo no debe interpretarse automáticamente como dependencia obligatoria ni como permiso delegado.
 
@@ -1065,87 +1065,45 @@ formalización derivada
 evidencia asociada
 enriquecimiento futuro
 
-Caso vigente:
-
-party_id en Orders y Documents es vínculo gestionado opcional.
-
-Su ausencia no invalida por sí sola la autorización ni la existencia funcional del registro.
-
-Caso vigente adicional:
-
-task_id no pertenece al núcleo persistente de Orders.
-
-Puede existir como contexto transitorio de request o navegación para crear una Order desde una Task, pero la relación persistente vive del lado de Tasks mediante tasks.order_id.
-
-Caso vigente adicional:
-
-Appointments puede vincularse con Orders desde appointments.order_id.
-
-Orders no debe absorber appointment_id como dependencia de su núcleo.
-
-Caso vigente adicional:
-
-Documents puede derivarse desde Orders mediante documents.order_id, pero conserva contrato propio de seguridad documental.
-
-Regla:
+Regla para derivaciones entre módulos:
 
 la derivación entre módulos exige autorización del módulo receptor.
 
-Crear un Document desde una Order requiere autorización efectiva para documents.create.
-
-Crear una Order desde una Task o Appointment requiere autorización efectiva para orders.create.
-
 El registro origen aporta contexto, no permiso automático.
 
-Aclaración para actividad operativa:
+Casos vigentes:
+
+crear un Document desde una Order requiere autorización efectiva para documents.create
+
+crear una Order desde una Task o Appointment requiere autorización efectiva para orders.create
+
+Regla para actividad operativa:
 
 la emisión de eventos operativos livianos no altera el contrato de seguridad del módulo dueño.
 
-El módulo dueño conserva la autorización, validación y ejecución de su propia operación.
+El módulo dueño conserva autorización, validación y ejecución de su propia operación.
 
 OperationalActivity actúa como capacidad transversal de trazabilidad.
 
 No debe usarse como canal paralelo de autorización, validación o mutación.
 
-Lectura general tenant-scoped:
+Regla para lectura de actividad:
 
-la lectura general del log se autoriza mediante:
+la lectura general tenant-scoped del log requiere capability explícita.
+
+Caso vigente:
 
 operational_activity.view_any
 
-Esta capability no incorpora OperationalActivity a ModuleCatalog como módulo funcional ordinario.
+La lectura contextual de actividad asociada a un registro host se autoriza por el view efectivo sobre ese registro.
 
-La lectura general del log no autoriza la operación original ni reemplaza el permiso efectivo sobre el registro originante.
-
-Lectura contextual heredada:
-
-la lectura contextual de actividad asociada a un registro host se autoriza por el view efectivo sobre ese registro.
-
-Regla vigente:
-
-si el usuario puede ver el registro host,
-puede ver la actividad operativa asociada a ese registro.
-
-Esto no implica acceso general al log del tenant.
-
-No utiliza operational_activity.view_any.
+No equivale a lectura general del tenant.
 
 No crea navegación principal de OperationalActivity.
 
-La lectura contextual puede operar como:
+No reemplaza permisos del módulo host.
 
-lectura directa del record host autorizado
-lectura ampliada mediante frontera declarada por el módulo dueño
-
-Reglas:
-
-la lectura contextual no reemplaza Security
-
-la lectura contextual no habilita lectura general del tenant
-
-la lectura contextual debe respetar tenant activo y host previamente autorizado
-
-Aclaración para parties:
+Regla para parties:
 
 el contrato de seguridad de parties debe distinguir entre:
 
@@ -1155,27 +1113,19 @@ party vinculada a membership activa
 
 Estas lecturas no son equivalentes.
 
-La relación employee puede existir como relación operativa de contacto, pero su asignación manual debe quedar restringida.
-
-Cuando la party esté vinculada a membership activa, sus atributos críticos no deben tratarse como edición libre de contacto común.
-
 La segmentación funcional de parties se resuelve por party_roles.role mediante allowed_party_roles.
 
 Regla:
 
 parties.kind no debe utilizarse como constraint funcional de seguridad para parties.
 
-parties.kind representa únicamente tipo de contacto.
-
-party_roles.role representa relación con la empresa.
-
-Aclaración para subcapas contextuales internas:
+Regla para subcapas contextuales internas:
 
 una subcapa contextual interna puede tener condiciones propias de visibilidad sin convertirse en módulo funcional ordinario ni reemplazar Security.
 
 Caso vigente:
 
-ProductOperationalSummary depende de Products, Inventory, Orders cuando corresponda, roles compatibles y scopes autorizados.
+ProductOperationalSummary.
 
 Regla:
 
@@ -1276,11 +1226,13 @@ OperationalActivity puede publicar lectura contextual, pero no autoriza la opera
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00024
+SECTION_VERSION: 00025
 
 REGLAS OPERATIVAS POR MÓDULO
 
-Esta sección resume únicamente restricciones operativas de alto impacto ya consolidadas.
+Esta sección resume restricciones operativas de alto impacto ya consolidadas.
+
+No debe convertirse en inventario completo de implementación.
 
 TENANT PROFILE
 
@@ -1350,10 +1302,6 @@ si una Order se crea desde Task o Appointment, esos datos pueden viajar como con
 
 la autorización real corresponde a Orders y a Security
 
-Los estados operativos condicionan update y delete.
-
-Reglas:
-
 una orden closed no debe permitir operación ordinaria posterior
 
 una orden cancelled no debe permitir operación ordinaria posterior
@@ -1396,8 +1344,6 @@ Products + Inventory habilitados son condición base de visibilidad
 
 Orders habilitado permite métricas transaccionales solo cuando el usuario posee dataset visible según Security
 
-operator no accede a la capa según matriz inicial vigente
-
 ProductOperationalSummary no usa OperationalActivity como fuente principal de métricas
 
 ProductOperationalSummary no reemplaza Security ni crea módulo funcional propio
@@ -1424,15 +1370,15 @@ INVENTORY
 
 Inventory conserva ownership sobre stock, movimientos y trazabilidad.
 
-Si una acción de inventory se registra como actividad operativa transversal, el ancla vigente debe ser InventoryOperation cuando representa la acción operativa agrupada.
-
-InventoryMovement conserva trazabilidad fina de stock y no debe duplicarse como actividad principal cuando la operación agrupada ya representa el evento operativo.
-
 Reglas:
 
 Orders y Documents pueden consumir capacidades oficiales de Inventory sin absorber su autorización
 
 Inventory conserva ownership de la operación material
+
+si una acción de inventory se registra como actividad operativa transversal, el ancla vigente debe ser InventoryOperation cuando representa la acción operativa agrupada
+
+InventoryMovement conserva trazabilidad fina de stock y no debe duplicarse como actividad principal cuando la operación agrupada ya representa el evento operativo
 
 PARTIES
 
@@ -1484,16 +1430,6 @@ employee
 email respecto de edición libre desde parties
 
 si la membership deja de estar activa o se desvincula, la party deja de estar bloqueada por esa relación activa
-
-Validaciones consolidadas para parties:
-
-Security::scope(...) filtra parties por party_roles.role
-
-allowed_party_roles arbitra viewAny, view, create, update y delete según contrato efectivo
-
-un usuario limitado a customer no debe poder operar sobre una party fuera de esa relación permitida
-
-employee queda protegido por backend aunque no aparezca como opción visible en UI
 
 OPERATIONAL ACTIVITY
 
@@ -1567,6 +1503,12 @@ no ejecutan acciones críticas sin autorización, confirmación humana o regla e
 
 si preparan una acción sobre un módulo, la ejecución final debe volver al contrato oficial del módulo dueño
 
+Regla final:
+
+esta sección debe conservar solo reglas operativas de seguridad de alto impacto.
+
+Los detalles visuales, navegación, nombres de columnas, helpers, validaciones runtime, archivos concretos o comportamiento fino de cada módulo pertenecen a documentos especializados.
+
 <<END SECTION>>
 
 <<SECTION: HARDENING Y AUDITORÍA>>
@@ -1623,7 +1565,7 @@ contrato owner/admin del frente tenant/profile.
 <<END SECTION>>
 
 <<SECTION: GOBERNANZA DEL DOCUMENTO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 GOBERNANZA DEL DOCUMENTO
 
@@ -1638,6 +1580,12 @@ mantener reglas de autorización que afecten doctrina general
 mover detalle funcional excesivo a documentos específicos
 
 mover matrices, casos puntuales o decisiones vivas a documentos correspondientes cuando no sean doctrina estable
+
+mover validaciones runtime, nombres de archivos y cierres operativos a documentos técnicos o de seguimiento
+
+mover patrones visuales, nombres de columnas, labels y componentes al documento visual correspondiente
+
+mover navegación, trails, tabs y surfaces al documento de navegación correspondiente
 
 evitar ejemplos redundantes
 

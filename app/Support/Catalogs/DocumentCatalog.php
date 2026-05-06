@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/DocumentCatalog.php | V3
+// FILE: app/Support/Catalogs/DocumentCatalog.php | V4
 
 namespace App\Support\Catalogs;
 
@@ -63,6 +63,33 @@ class DocumentCatalog extends BaseCatalog
         self::STATUS_APPROVED => 'status-badge--warning',
         self::STATUS_CLOSED => 'status-badge--done',
         self::STATUS_CANCELLED => 'status-badge--cancelled',
+    ];
+
+    protected static array $sequenceDefinitions = [
+        self::KIND_QUOTE => [
+            'kind' => self::KIND_QUOTE,
+            'prefix' => 'PRE',
+        ],
+        self::KIND_DELIVERY_NOTE => [
+            'kind' => self::KIND_DELIVERY_NOTE,
+            'prefix' => 'REM',
+        ],
+        self::KIND_INVOICE => [
+            'kind' => self::KIND_INVOICE,
+            'prefix' => 'FAC',
+        ],
+        self::KIND_WORK_ORDER => [
+            'kind' => self::KIND_WORK_ORDER,
+            'prefix' => 'OTR',
+        ],
+        self::KIND_RECEIPT => [
+            'kind' => self::KIND_RECEIPT,
+            'prefix' => 'REC',
+        ],
+        self::KIND_CREDIT_NOTE => [
+            'kind' => self::KIND_CREDIT_NOTE,
+            'prefix' => 'NCR',
+        ],
     ];
 
     public static function groups(): array
@@ -144,6 +171,20 @@ class DocumentCatalog extends BaseCatalog
     public static function isValidStatus(?string $status): bool
     {
         return $status !== null && in_array($status, static::statuses(), true);
+    }
+
+    public static function sequenceDefinitions(): array
+    {
+        return static::$sequenceDefinitions;
+    }
+
+    public static function sequenceDefinitionForKind(string $kind): array
+    {
+        if (! isset(static::$sequenceDefinitions[$kind])) {
+            throw new \InvalidArgumentException("No existe definición de numeración para el tipo de documento [{$kind}].");
+        }
+
+        return static::$sequenceDefinitions[$kind];
     }
 
     public static function isOperableStatus(?string $status): bool
@@ -305,7 +346,6 @@ class DocumentCatalog extends BaseCatalog
     {
         return in_array($kind, static::kindsForGroup($group), true);
     }
-
 
     public static function activityTrackedFields(): array
     {

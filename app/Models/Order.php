@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Order.php | V9
+// FILE: app/Models/Order.php | V10
 
 namespace App\Models;
 
@@ -48,11 +48,6 @@ class Order extends Model
     public function asset()
     {
         return $this->belongsTo(Asset::class);
-    }
-
-    public function tasks(): HasMany
-    {
-        return $this->hasMany(Task::class);
     }
 
     public function items(): HasMany

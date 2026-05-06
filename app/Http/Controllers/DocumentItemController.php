@@ -1,23 +1,21 @@
 <?php
 
-// FILE: app/Http/Controllers/DocumentItemController.php | V14
+// FILE: app/Http/Controllers/DocumentItemController.php | V15
 
 namespace App\Http\Controllers;
 
 use App\Models\Document;
 use App\Models\DocumentItem;
-use App\Models\Product;
-use App\Support\Auth\Security;
 use App\Support\Catalogs\DocumentCatalog;
 use App\Support\Catalogs\DocumentItemCatalog;
-use App\Support\Documents\DocumentTotalsCalculator;
 use App\Support\Documents\DocumentsHooks;
+use App\Support\Documents\DocumentTotalsCalculator;
 use App\Support\LineItems\LineItemMath;
 use App\Support\LineItems\LineItemValidationRules;
 use App\Support\Navigation\DocumentNavigationTrail;
 use App\Support\Navigation\NavigationTrail;
+use App\Support\Products\ProductLineItemSelector;
 use Illuminate\Http\Request;
-use Illuminate\Validation\Rule;
 use InvalidArgumentException;
 
 class DocumentItemController extends Controller
@@ -26,15 +24,11 @@ class DocumentItemController extends Controller
     {
         $this->authorize('update', $document);
 
-        $security = app(Security::class);
-        $user = auth()->user();
-
-        $products = $security
-            ->scope($user, 'products.viewAny', Product::query())
-            ->where('tenant_id', $document->tenant_id)
-            ->whereNull('deleted_at')
-            ->orderBy('name')
-            ->get();
+        $products = app(ProductLineItemSelector::class)->optionsFor(
+            user: auth()->user(),
+            tenantId: (string) $document->tenant_id,
+            enabled: true,
+        );
 
         $item = new DocumentItem([
             'position' => ((int) $document->items()->max('position')) + 1,
@@ -57,29 +51,27 @@ class DocumentItemController extends Controller
     {
         $this->authorize('update', $document);
 
-        $security = app(Security::class);
-        $user = auth()->user();
+        $productSelector = app(ProductLineItemSelector::class);
 
         $data = $request->validate([
-            'product_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('products', 'id')->where(function ($query) use ($document) {
-                    $query->where('tenant_id', $document->tenant_id)
-                        ->whereNull('deleted_at');
-                }),
-            ],
+            'product_id' => $productSelector->nullableRulesFor(
+                tenantId: (string) $document->tenant_id,
+                enabled: true,
+            ),
             ...app(LineItemValidationRules::class)->baseRules(),
         ]);
 
-        if (! empty($data['product_id'])) {
-            $security
-                ->scope($user, 'products.viewAny', Product::query())
-                ->where('tenant_id', $document->tenant_id)
-                ->whereNull('deleted_at')
-                ->whereKey($data['product_id'])
-                ->firstOrFail();
-        }
+        $data['product_id'] = $productSelector->normalizeProductId(
+            productId: $data['product_id'] ?? null,
+            enabled: true,
+        );
+
+        $productSelector->assertViewable(
+            user: auth()->user(),
+            tenantId: (string) $document->tenant_id,
+            productId: $data['product_id'],
+            enabled: true,
+        );
 
         $data = $this->syncDerivedFields($data);
 
@@ -126,15 +118,11 @@ class DocumentItemController extends Controller
                 ]);
         }
 
-        $security = app(Security::class);
-        $user = auth()->user();
-
-        $products = $security
-            ->scope($user, 'products.viewAny', Product::query())
-            ->where('tenant_id', $document->tenant_id)
-            ->whereNull('deleted_at')
-            ->orderBy('name')
-            ->get();
+        $products = app(ProductLineItemSelector::class)->optionsFor(
+            user: auth()->user(),
+            tenantId: (string) $document->tenant_id,
+            enabled: true,
+        );
 
         $navigationTrail = DocumentNavigationTrail::itemEdit($request, $document, $item);
 
@@ -152,29 +140,27 @@ class DocumentItemController extends Controller
 
         abort_unless((int) $item->document_id === (int) $document->id, 404);
 
-        $security = app(Security::class);
-        $user = auth()->user();
+        $productSelector = app(ProductLineItemSelector::class);
 
         $data = $request->validate([
-            'product_id' => [
-                'nullable',
-                'integer',
-                Rule::exists('products', 'id')->where(function ($query) use ($document) {
-                    $query->where('tenant_id', $document->tenant_id)
-                        ->whereNull('deleted_at');
-                }),
-            ],
+            'product_id' => $productSelector->nullableRulesFor(
+                tenantId: (string) $document->tenant_id,
+                enabled: true,
+            ),
             ...app(LineItemValidationRules::class)->baseRules(),
         ]);
 
-        if (! empty($data['product_id'])) {
-            $security
-                ->scope($user, 'products.viewAny', Product::query())
-                ->where('tenant_id', $document->tenant_id)
-                ->whereNull('deleted_at')
-                ->whereKey($data['product_id'])
-                ->firstOrFail();
-        }
+        $data['product_id'] = $productSelector->normalizeProductId(
+            productId: $data['product_id'] ?? null,
+            enabled: true,
+        );
+
+        $productSelector->assertViewable(
+            user: auth()->user(),
+            tenantId: (string) $document->tenant_id,
+            productId: $data['product_id'],
+            enabled: true,
+        );
 
         try {
             $data = app(DocumentsHooks::class)->beforeDocumentItemUpdate($document, $item, $data);

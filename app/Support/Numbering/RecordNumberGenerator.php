@@ -1,30 +1,18 @@
 <?php
 
-// FILE: app/Support/Documents/DocumentNumberGenerator.php
+// FILE: app/Support/Numbering/RecordNumberGenerator.php | V1
 
-namespace App\Support\Documents;
+namespace App\Support\Numbering;
 
 use App\Models\DocumentSequence;
 use Illuminate\Database\QueryException;
 
-class DocumentNumberGenerator
+class RecordNumberGenerator
 {
-    protected static array $defaultPrefixes = [
-        'order.sale' => 'ORD',
-        'order.purchase' => 'OCO',
-        'order.service' => 'OSE',
-
-        'quote' => 'PRE',
-        'delivery_note' => 'REM',
-        'invoice' => 'FAC',
-        'work_order' => 'OTR',
-        'receipt' => 'REC',
-        'credit_note' => 'NCR',
-    ];
-
     public static function generate(
         string $tenantId,
         string $kind,
+        string $defaultPrefix,
         ?string $pointOfSale = null
     ): array {
         $pointOfSale = $pointOfSale ?: '0001';
@@ -32,6 +20,7 @@ class DocumentNumberGenerator
         $sequence = static::lockSequence(
             tenantId: $tenantId,
             kind: $kind,
+            defaultPrefix: $defaultPrefix,
             pointOfSale: $pointOfSale,
         );
 
@@ -60,6 +49,7 @@ class DocumentNumberGenerator
     protected static function lockSequence(
         string $tenantId,
         string $kind,
+        string $defaultPrefix,
         string $pointOfSale
     ): DocumentSequence {
         $sequence = DocumentSequence::query()
@@ -78,13 +68,13 @@ class DocumentNumberGenerator
                 'tenant_id' => $tenantId,
                 'branch_id' => null,
                 'doc_type' => $kind,
-                'prefix' => static::defaultPrefixFor($kind),
+                'prefix' => $defaultPrefix,
                 'point_of_sale' => $pointOfSale,
                 'padding' => 8,
                 'next_number' => 1,
             ]);
         } catch (QueryException $e) {
-            // otra transacción pudo crearla
+            // Otra transacción pudo crearla.
         }
 
         return DocumentSequence::query()
@@ -93,11 +83,6 @@ class DocumentNumberGenerator
             ->where('point_of_sale', $pointOfSale)
             ->lockForUpdate()
             ->firstOrFail();
-    }
-
-    protected static function defaultPrefixFor(string $kind): string
-    {
-        return static::$defaultPrefixes[$kind] ?? strtoupper(substr($kind, 0, 3));
     }
 
     protected static function formatNumber(

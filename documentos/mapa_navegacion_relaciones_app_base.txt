@@ -315,7 +315,7 @@ Su función es dar acceso estructural al ecosistema operativo vigente.
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00017
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -328,6 +328,8 @@ orders consume capacidades oficiales de inventory sin absorber su lógica intern
 orders puede actuar como host visual para inventory, documents, attachments, tasks y appointments cuando existan relaciones o surfaces válidas
 
 products consume lectura contextual de inventory mediante saldos e historial
+
+products puede ofrecer selección y validación de productos para líneas operativas y documentales mediante capacidad propia
 
 documents puede contextualizar trazabilidad de inventory cuando exista vínculo documental
 
@@ -348,6 +350,20 @@ Regla de frontera:
 que un módulo hospede visualmente una capacidad ajena no lo convierte en dueño de su lógica operativa.
 
 El módulo oferente conserva reglas, validaciones y evolución interna.
+
+Aduana funcional:
+
+cuando una navegación, link, surface o acción contextual involucra otro módulo, debe usarse una frontera explícita del módulo oferente.
+
+Reglas:
+
+el host no debe reconstruir lógica interna del oferente
+
+el oferente no debe interpretar modelos internos del host consumidor
+
+el host entrega contexto o recurso compatible
+
+el oferente arma payload, link, acción o surface según su contrato
 
 Aclaración vigente para tenant/profile:
 
@@ -423,8 +439,6 @@ Tasks conserva ownership de pendientes y seguimiento
 
 Orders conserva ownership de la intervención operativa
 
-una Order puede tener múltiples Tasks asociadas
-
 Tasks puede originar navegación contextual hacia creación de Orders aunque no posea party_id
 
 la ausencia de contacto gestionado en Task no debe bloquear la intención de crear Order si el formulario de Orders permite completar counterparty_name
@@ -461,6 +475,12 @@ Tasks y Appointments pueden originar una Order contextual aunque no tengan conta
 
 La Order resultante debe resolver contraparte desde el formulario mediante counterparty_name si no hay party_id.
 
+OrderLinked debe funcionar como helper genérico del módulo Orders.
+
+Patrón vigente:
+
+OrderLinked::forOrder(?Order $order, ...)
+
 Reglas:
 
 OrderLinked expresa intención contextual hacia Orders
@@ -470,6 +490,8 @@ OrderLinked no convierte Task ni Appointment en Order encubierta
 OrderLinked no reemplaza autorización de Orders
 
 OrderLinked no debe exigir Party como dependencia rígida si el contrato de Orders permite contraparte textual
+
+OrderLinked no debe exponer métodos específicos por consumidor como forTask o forAppointment
 
 Validación vigente:
 
@@ -500,6 +522,12 @@ la derivación no convierte Documents en entidad hija estricta sin identidad pro
 crear documento desde una Order no debe exigir party_id
 
 el documento derivado debe tomar contraparte desde la Order mediante order.displayCounterpartyName()
+
+Ruta vigente:
+
+orders.documents.store dispara la acción desde Orders, pero la creación efectiva pertenece a DocumentController::storeFromOrder.
+
+Esta frontera es válida porque Documents ejecuta la creación documental.
 
 Aclaración vigente para contraparte textual:
 
@@ -534,6 +562,36 @@ Reglas:
 los surface services deben publicar showCounterparty cuando la tabla invitada de Orders/Documents deba mostrar contraparte visible
 
 showParty no debe ser el contrato principal cuando el dato esperado sea la contraparte operativa del registro
+
+Aclaración vigente para surfaces de Orders:
+
+OrderSurfaceService debe organizar sus ofertas por capacidades reales y no por duplicación de hosts.
+
+Casos vigentes:
+
+orders.related.embedded
+
+surface embebida única para assets.show y parties.show, con configuración contextual por host
+
+orders.associated.linked
+
+link asociado para documents.show cuando Documents entrega su Order asociada
+
+Reglas:
+
+si una surface mantiene el mismo formato y solo cambia filtro o host, debe existir una sola offer con múltiples targets
+
+el host aloja la surface
+
+Orders arma el payload o link de Orders
+
+el host no reconstruye internamente el contenido del oferente
+
+Patrón vigente:
+
+relatedHosts()
+
+Permite concentrar configuración contextual como clase esperada, columna de filtro, tabsId, flags visuales y mensaje vacío.
 
 Aclaración vigente para membership → party:
 
@@ -693,10 +751,16 @@ la orden electrónica liviana debe ser una experiencia enfocada de ejecución, n
 
 Debe mostrar solo la información necesaria para la intervención y conservar navegación contextual hacia los módulos dueños cuando corresponda y esté autorizado.
 
+Deuda viva:
+
+el sistema de trails y breadcrumbs sigue siendo candidato a mejora estructural para reducir intervenciones manuales repetidas cuando se agregan links o navegaciones entre módulos.
+
+Esta deuda no bloquea Fase 1, pero debe considerarse en futuras mejoras de navegación.
+
 <<END SECTION>>
 
 <<SECTION: RELACIONES EMBEBIDAS EN SHOW PAGES>>
-SECTION_VERSION: 00023
+SECTION_VERSION: 00024
 
 RELACIONES EMBEBIDAS EN SHOW PAGES
 
@@ -711,6 +775,7 @@ la navegación derivada debe mantener contexto cuando corresponda
 las relaciones compactas y las relaciones fuertes no deben mezclarse sin criterio
 los snapshots propios deben representarse como dato del host cuando no exista vínculo gestionado
 los vínculos opcionales no deben mostrarse como obligatorios por la UI embebida
+el host no debe reconstruir payload interno del oferente cuando el oferente puede entregarlo mediante surface o helper oficial
 
 Criterios de uso:
 
@@ -718,14 +783,13 @@ summary_items para relaciones puntuales o de baja densidad
 detail_items para bloques breves informativos
 tabs o paneles amplios para relaciones fuertes
 row actions oficiales para operaciones dentro de tablas anfitrionas
+linked helpers para referencias compactas hacia registros de otro módulo
 
 Caso vigente en orders.show:
 
 inventory puede operar por línea dentro del host sin perder identidad modular
 
 documents y attachments pueden consumirse como capacidades invitadas
-
-tasks y appointments pueden aparecer como relaciones asociadas cuando exista vínculo desde su propio ownership
 
 party_id debe mostrarse como contacto gestionado solo cuando exista Party vinculada
 
@@ -736,6 +800,12 @@ Order::displayCounterpartyName() debe resolver la contraparte visible del regist
 las tablas embebidas de Orders deben mostrar Contraparte cuando representan el dato operativo visible
 
 showCounterparty es el contrato visual vigente para habilitar esa columna
+
+Orders no expone tasks() como relación inversa del núcleo saneado.
+
+La dirección funcional de seguimiento es Task -> Order.
+
+Si se muestra información relacionada con Tasks, debe cuidarse que no implique que Orders gobierna Tasks desde su núcleo.
 
 Caso vigente en documents.show:
 
@@ -752,6 +822,8 @@ Document::displayCounterpartyName() debe resolver la contraparte visible del reg
 las tablas embebidas de Documents deben mostrar Contraparte cuando representan el dato operativo visible
 
 showCounterparty es el contrato visual vigente para habilitar esa columna
+
+documents.show puede consumir Orders como link asociado mediante orders.associated.linked cuando Documents entregue su Order asociada.
 
 Caso vigente en parties.show:
 
@@ -782,6 +854,18 @@ mantener el ownership funcional en el módulo oferente
 
 No se abre navegación nueva para party_roles.
 
+Caso vigente:
+
+parties.show puede alojar orders.related.embedded ofrecido por OrderSurfaceService.
+
+Caso vigente en assets.show:
+
+assets.show puede alojar orders.related.embedded ofrecido por OrderSurfaceService.
+
+Regla:
+
+OrderSurfaceService debe resolver el payload de Orders mediante configuración contextual y filtro correspondiente, sin duplicar offers por host.
+
 Caso vigente en products.show:
 
 ProductOperationalSummary se integra como summary_items dentro del show-summary del producto.
@@ -806,6 +890,8 @@ Appointments puede originar creación contextual de Orders aunque no posea party
 
 La ausencia de contacto gestionado no debe bloquear la intención de crear Order si Orders permite completar counterparty_name.
 
+El link hacia Orders debe resolverse mediante OrderLinked::forOrder() cuando exista Order|null, no mediante método específico por Appointment.
+
 Caso vigente en tasks.show:
 
 tasks.show puede vincularse con orders mediante tasks.order_id.
@@ -815,6 +901,8 @@ Si una Task origina o acompaña una Order, el recorrido debe preservar contexto 
 Tasks puede originar creación contextual de Orders aunque no posea party_id.
 
 La ausencia de contacto gestionado no debe bloquear la intención de crear Order si Orders permite completar counterparty_name.
+
+El link hacia Orders debe resolverse mediante OrderLinked::forOrder() cuando exista Order|null, no mediante método específico por Task.
 
 Regla:
 

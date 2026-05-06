@@ -36,7 +36,7 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 DECISIONES VIGENTES
 
@@ -206,7 +206,7 @@ Tasks organiza pendientes, seguimientos y acciones auxiliares.
 
 Orders ejecuta la intervención operativa.
 
-Una Order puede tener múltiples Tasks asociadas.
+Una Order puede tener múltiples Tasks asociadas desde la lectura funcional del ecosistema.
 
 Reglas:
 
@@ -214,13 +214,15 @@ la relación persistente vive en Tasks
 
 Orders no conserva task_id
 
+Orders no expone tasks() como relación inversa de su núcleo saneado
+
 task_id en request es contexto transitorio
 
 task_id en request no autoriza por sí mismo
 
 task_id en request no debe convertirse automáticamente en persistencia del módulo receptor
 
-Esta decisión prepara mantenimiento para múltiples pendientes técnicos, administrativos, de preparación, seguimiento o cierre por orden.
+Esta decisión prepara mantenimiento para múltiples pendientes técnicos, administrativos, de preparación, seguimiento o cierre por orden, sin transferir ownership de Tasks a Orders.
 
 APPOINTMENTS COMO OWNER DE LA PLANIFICACIÓN HACIA ORDERS
 
@@ -401,6 +403,156 @@ Task sin party_id y sin order_id puede devolver state = creatable.
 
 Appointment sin party_id y sin order_id puede devolver state = creatable.
 
+ORDERLINKED COMO HELPER GENÉRICO DEL MÓDULO ORDERS
+
+Decisión vigente:
+
+OrderLinked debe ser un helper genérico del módulo Orders basado en Order|null.
+
+Patrón vigente:
+
+OrderLinked::forOrder(?Order $order, ...)
+
+Reglas:
+
+Orders arma links de su propio recurso
+
+el consumidor entrega Order|null
+
+Orders no interpreta modelos consumidores
+
+no deben existir métodos específicos por consumidor
+
+No deben reaparecer:
+
+OrderLinked::forTask()
+OrderLinked::forAppointment()
+OrderLinked::forDocument()
+OrderLinked::forAsset()
+OrderLinked::forParty()
+
+Lectura:
+
+si Tasks necesita mostrar una Order, Tasks entrega Order|null.
+
+si Appointments necesita mostrar una Order, Appointments entrega Order|null.
+
+Orders arma el link.
+
+ORDERSURFACESERVICE POR CAPACIDADES REALES
+
+Decisión vigente:
+
+OrderSurfaceService debe organizar sus ofertas por capacidades reales y no por duplicación de hosts.
+
+Caso vigente:
+
+orders.related.embedded
+
+Surface embebida única para assets.show y parties.show.
+
+Configuración contextual:
+
+relatedHosts()
+
+Reglas:
+
+si una surface mantiene el mismo formato y solo cambia host, filtro o configuración contextual, debe existir una sola offer con múltiples targets
+
+no duplicar offers por host cuando la capacidad es la misma
+
+el host aloja la surface
+
+Orders prepara payload o view de Orders
+
+el host no reconstruye internamente contenido del oferente
+
+Caso vigente adicional:
+
+orders.associated.linked se mantiene como link asociado para documents.show cuando Documents entrega su orden asociada.
+
+HOOKS COMO FRONTERA FUNCIONAL DE ORDERS
+
+Decisión vigente:
+
+OrdersHooks funciona como frontera estratégica para consultas o intervenciones externas en puntos relevantes del flujo de Orders.
+
+Lectura:
+
+Orders puede consultar si existen bloqueos o condiciones externas.
+
+El módulo externo conserva ownership de la regla.
+
+Orders no reconstruye lógica interna del módulo proveedor.
+
+Caso vigente:
+
+InventoryOrderItemHooks conserva la lógica de bloqueo de cierre por ejecución física de líneas.
+
+Reglas:
+
+un hook puede bloquear, ajustar o dejar pasar el flujo principal
+
+si una verificación de bloqueo crítico falla, debe asumirse escenario seguro
+
+OrdersHooks no reemplaza autorización principal de Orders
+
+InventoryOrderItemHooks no convierte Inventory en dueño de Orders
+
+PRODUCTLINEITEMSELECTOR COMO CAPACIDAD DE PRODUCTS
+
+Decisión vigente:
+
+Products ofrece una capacidad de selección y validación de productos para líneas mediante ProductLineItemSelector.
+
+Consumidores vigentes:
+
+OrderItemController
+
+DocumentItemController
+
+Reglas:
+
+Products ofrece opciones, reglas y verificación de acceso a productos
+
+Orders administra sus propios order_items
+
+Documents administra sus propios document_items
+
+los controllers consumidores no deben reconstruir Product::query(), products.viewAny ni Rule::exists('products') cuando existe selector oficial
+
+NUMERACIÓN TRANSVERSAL CON SIGNIFICADO EN CATÁLOGOS
+
+Decisión vigente:
+
+la numeración común puede resolverse mediante servicio transversal, pero el significado de negocio pertenece a cada módulo.
+
+Servicio vigente:
+
+RecordNumberGenerator
+
+Catálogos dueños de significado:
+
+OrderCatalog
+
+DocumentCatalog
+
+Regla síntesis:
+
+el módulo define el significado.
+
+el servicio transversal ejecuta la mecánica.
+
+Reglas:
+
+los prefijos de Orders pertenecen a OrderCatalog
+
+los prefijos de Documents pertenecen a DocumentCatalog
+
+RecordNumberGenerator no debe decidir prefijos por sí mismo
+
+DocumentNumberGenerator fue eliminado como lectura vigente
+
 ORDEN REAL DE MIGRACIONES PARA VÍNCULOS OPCIONALES
 
 Decisión vigente:
@@ -418,5 +570,49 @@ si el vínculo es válido pero la tabla destino aparece después, debe resolvers
 Esta decisión no elimina asset_id como vínculo opcional.
 
 Solo ordena su ubicación estructural correcta.
+
+CIERRE FUNCIONAL DE FASE 0 ORDERS
+
+Decisión vigente:
+
+Fase 0 de saneamiento evidente de Orders queda cerrada funcionalmente.
+
+El proyecto queda apto para iniciar Fase 1 de mantenimiento.
+
+Lectura:
+
+Orders queda como isla funcional saneada con aislamiento operativo razonable.
+
+No se busca aislamiento absoluto artificial.
+
+Reglas:
+
+las relaciones pasivas pueden conservarse si están justificadas
+
+las dependencias activas deben pasar por frontera explícita
+
+no reintroducir lógica interna de módulos externos en OrderController
+
+no reintroducir lógica interna de módulos externos en OrderItemController
+
+no reintroducir métodos linked específicos por consumidor
+
+no duplicar offers por host si la capacidad es la misma
+
+no devolver prefijos de negocio a un generador transversal
+
+no reintroducir Order::tasks()
+
+Relaciones aceptadas actualmente en Order:
+
+party
+
+asset
+
+documents
+
+attachments
+
+Estas relaciones no bloquean Fase 1 mientras no habiliten que OrderController gobierne módulos externos.
 
 <<END SECTION>>

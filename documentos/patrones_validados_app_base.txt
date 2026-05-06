@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 PATRONES VIGENTES
 
@@ -85,6 +85,265 @@ MIGRACIÓN REUSABLE
 
 cerrar capacidad completa en nueva familia
 evitar convivencia eterna legacy + nueva
+
+ADUANA FUNCIONAL ENTRE MÓDULOS
+
+Patrón validado:
+
+un módulo consumidor solicita una capacidad
+↓
+una frontera explícita procesa la necesidad
+↓
+el módulo oferente conserva ownership de su lógica
+↓
+el consumidor recibe payload, decisión, bloqueo, link, selector o surface
+
+Formas válidas de frontera:
+
+hooks
+selectors
+services
+linked helpers
+surface services
+catálogos
+registries
+contratos explícitos
+
+Reglas:
+
+el consumidor no reconstruye lógica interna del oferente
+
+el oferente no interpreta modelos internos del consumidor
+
+el controller consumidor no debe acumular conocimiento de dominios externos si existe frontera apropiada
+
+una relación de modelo no autoriza por sí misma a gobernar un módulo externo
+
+Caso vigente:
+
+Orders no debe interpretar Task, Appointment, Party, Asset o Document más allá de referencias pasivas, relaciones necesarias o contratos explícitos.
+
+AISLAMIENTO OPERATIVO RAZONABLE
+
+Patrón validado:
+
+un módulo saneado no requiere aislamiento absoluto artificial.
+
+Requiere:
+
+núcleo propio claro
+relaciones pasivas justificadas
+dependencias activas saneadas
+contratos explícitos para integración
+controllers sin lógica interna de dominios externos
+helpers genéricos del módulo oferente
+hooks o services para bloqueos externos
+selectors para selección o validación de dominios externos
+surface services por capacidad real
+
+Caso vigente:
+
+Orders queda como isla funcional saneada apta para iniciar Fase 1 de mantenimiento.
+
+Reglas:
+
+las relaciones pasivas pueden conservarse si corresponden a columnas propias, derivaciones aceptadas o patrones transversales
+
+las dependencias activas deben pasar por frontera explícita
+
+no debe confundirse relación pasiva con ownership funcional
+
+no debe confundirse aislamiento razonable con desconexión artificial del ecosistema
+
+HOOKS COMO FRONTERA FUNCIONAL
+
+Patrón validado:
+
+el módulo dueño del flujo consulta un hook en puntos estratégicos.
+
+El módulo externo puede:
+
+bloquear
+ajustar
+dejar pasar
+informar condición externa
+aportar validación contextual
+
+Reglas:
+
+el módulo dueño del flujo no conoce la lógica interna del módulo externo
+
+el módulo externo conserva ownership de su regla
+
+si una verificación de bloqueo crítico falla, debe asumirse el escenario seguro
+
+el hook no reemplaza autorización principal del módulo dueño
+
+Caso vigente:
+
+OrdersHooks funciona como frontera estratégica del flujo de Orders.
+
+InventoryOrderItemHooks conserva la lógica material de bloqueo de cierre por ejecución física de líneas.
+
+LINKED HELPER GENÉRICO
+
+Patrón validado:
+
+el módulo oferente arma links para su propio modelo o null.
+
+No interpreta modelos consumidores.
+
+Caso vigente:
+
+OrderLinked::forOrder(?Order $order, ...)
+
+Reglas:
+
+si Tasks necesita mostrar una Order, Tasks entrega Order|null
+
+si Appointments necesita mostrar una Order, Appointments entrega Order|null
+
+Orders arma el link de su propio recurso
+
+no deben existir métodos linked específicos por consumidor
+
+No deben reaparecer:
+
+OrderLinked::forTask()
+OrderLinked::forAppointment()
+OrderLinked::forDocument()
+OrderLinked::forAsset()
+OrderLinked::forParty()
+
+SURFACE AGRUPADA POR CAPACIDAD REAL
+
+Patrón validado:
+
+una misma capacidad con igual formato y distinto host, filtro o configuración contextual debe representarse como una sola offer con múltiples targets.
+
+Caso vigente:
+
+OrderSurfaceService ofrece orders.related.embedded como surface embebida única para assets.show y parties.show.
+
+Configuración contextual:
+
+relatedHosts()
+
+Puede concentrar:
+
+clase esperada
+columna de filtro
+tabsId
+flags visuales
+mensaje vacío
+parámetros de montaje
+
+Reglas:
+
+no duplicar offers por host si la capacidad es la misma
+
+la surface debe expresar la capacidad real
+
+el host aloja
+
+el oferente prepara payload o vista
+
+SELECTOR O PROVEEDOR DE DOMINIO
+
+Patrón validado:
+
+cuando varios módulos necesitan seleccionar o validar entidades de un mismo dominio, debe existir una capacidad central del módulo dueño.
+
+Caso vigente:
+
+ProductLineItemSelector
+
+Responsabilidad:
+
+opciones de productos
+reglas de validación de productos
+verificación de acceso a productos para líneas
+
+Consumidores vigentes:
+
+OrderItemController
+
+DocumentItemController
+
+Reglas:
+
+Products ofrece selección y validación de productos
+
+Orders administra sus propios order_items
+
+Documents administra sus propios document_items
+
+los controllers consumidores no deben reconstruir Product::query(), products.viewAny ni Rule::exists('products') cuando existe selector oficial
+
+NUMERACIÓN TRANSVERSAL CON SIGNIFICADO EN CATÁLOGOS
+
+Patrón validado:
+
+un servicio transversal puede ejecutar mecánica común de numeración, pero no decidir significado de negocio propio de cada módulo.
+
+Regla síntesis:
+
+el módulo define el significado.
+
+el servicio transversal ejecuta la mecánica.
+
+Caso vigente:
+
+RecordNumberGenerator ejecuta la mecánica de numeración.
+
+OrderCatalog define prefijos de Orders.
+
+DocumentCatalog define prefijos de Documents.
+
+Caso eliminado como lectura vigente:
+
+DocumentNumberGenerator
+
+Reglas:
+
+los prefijos pertenecen al catálogo del módulo
+
+el generador transversal no debe decidir prefijos por sí mismo
+
+no debe usarse un service nombrado por un módulo si la mecánica es transversal y compartida
+
+RELACIONES PASIVAS EN MODELOS
+
+Patrón validado:
+
+los modelos pueden conservar relaciones pasivas, estructurales o transversales si corresponden al contrato real.
+
+Eso no habilita controllers invasivos.
+
+Reglas:
+
+una relación pasiva no equivale a ownership funcional
+
+una relación de consulta no equivale a autorización
+
+una relación inversa no necesaria debe eliminarse si induce navegación conceptual incorrecta o acoplamiento activo indebido
+
+Caso vigente:
+
+Order ya no expone tasks().
+
+La dirección conceptual es Task -> Order mediante tasks.order_id.
+
+Relaciones aceptadas actualmente en Order:
+
+party
+asset
+documents
+attachments
+
+Lectura:
+
+estas relaciones son pasivas, de consulta, derivación o transversales mientras no habiliten que OrderController gobierne módulos externos.
 
 RECONVERSIÓN LIMPIA DE CONSTRAINTS
 
@@ -303,7 +562,7 @@ Appointments conserva ownership de agenda y planificación temporal
 
 Orders conserva ownership de la intervención operativa
 
-Una Order puede tener múltiples Tasks asociadas.
+Una Order puede tener múltiples Tasks asociadas desde la lectura funcional del ecosistema.
 
 DERIVACIÓN ENTRE MÓDULOS SIN TRANSFERENCIA DE OWNERSHIP
 
@@ -986,5 +1245,46 @@ php -l OK sobre services PHP modificados
 Task sin party_id y sin order_id → state = creatable
 
 Appointment sin party_id y sin order_id → state = creatable
+
+VALIDACIÓN DE CIERRE DE FASE
+
+Patrón validado:
+
+una fase de saneamiento no debe declararse cerrada solo por resolver el controller principal.
+
+Debe auditar como mínimo:
+
+controller principal
+controllers hijos relevantes
+modelo
+helpers linked
+surface services
+hooks
+services/support vinculados
+catálogos
+rutas principales
+validaciones runtime o smoke tests relevantes
+grep de residuos cuando existan nombres legacy conocidos
+
+Caso vigente:
+
+Fase 0 de saneamiento evidente de Orders quedó cerrada funcionalmente luego de auditar y sanear:
+
+OrderController
+OrderItemController
+Order model
+OrderLinked
+OrderSurfaceService
+OrdersHooks
+ProductLineItemSelector
+RecordNumberGenerator
+OrderCatalog
+DocumentCatalog
+consumidores Tasks y Appointments
+relación Order::tasks()
+
+Regla:
+
+cerrar una fase implica que el módulo queda más autónomo, contractualmente claro y apto para la fase siguiente sin reintroducir acoplamientos activos indebidos.
 
 <<END SECTION>>

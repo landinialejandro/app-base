@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00025
+SECTION_VERSION: 00026
 
 COMPONENTES DISPONIBLES
 
@@ -165,6 +165,16 @@ linked-project
 Cuando un módulo migra a la nueva generación, el componente visual debe limitarse a representar el payload oficial resuelto por el módulo oferente.
 
 No debe reinterpretar permisos, rutas ni estados internos.
+
+Regla vigente para OrderLinked:
+
+el componente visual de Orders debe recibir payload/link armado por el helper genérico del módulo Orders.
+
+Patrón vigente:
+
+OrderLinked::forOrder(?Order $order, ...)
+
+No deben existir variantes visuales específicas por consumidor si el recurso enlazado sigue siendo Order.
 
 Regla visual para PartyLinked y componentes equivalentes:
 

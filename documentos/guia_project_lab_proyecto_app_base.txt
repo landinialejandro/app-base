@@ -1478,7 +1478,7 @@ En producción, el procesamiento de colas debe resolverse mediante worker persis
 <<END SECTION>>
 
 <<SECTION: USO DE AUDITORÍA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 USO DE AUDITORÍA
 
@@ -1495,6 +1495,13 @@ listar referencias
 generar archivos de auditoría local
 validar listeners registrados
 detectar duplicaciones entre event discovery y registro manual
+validar que un helper específico por consumidor fue eliminado
+validar que una relación de modelo ya no existe
+validar que un service eliminado no conserva referencias activas
+validar que un selector o frontera nueva está siendo consumida
+validar que una surface no quedó duplicada por host
+validar que los prefijos o definiciones de negocio viven en catálogos
+validar que no se reintrodujo lógica externa en controllers consumidores
 
 Regla:
 
@@ -1523,6 +1530,27 @@ si event:list muestra una asociación entre evento y listener, no debe proponers
 Caso vigente:
 
 RegisterOperationalActivity@handle no debe duplicarse manualmente si event discovery ya lo registra.
+
+Regla adicional para cierres de fase:
+
+antes de declarar cerrado un frente de saneamiento, la auditoría debe incluir los núcleos relevantes del módulo.
+
+Como mínimo, según el caso:
+
+controller principal
+controllers hijos relevantes
+modelo
+helpers linked
+surface services
+hooks
+services/support vinculados
+catálogos
+rutas principales
+grep de residuos legacy conocidos
+
+Caso vigente:
+
+Fase 0 de saneamiento evidente de Orders requirió revisar OrderController, OrderItemController, Order model, OrderLinked, OrderSurfaceService, OrdersHooks, ProductLineItemSelector, RecordNumberGenerator, catálogos, consumidores Tasks/Appointments y la relación Order::tasks().
 
 <<END SECTION>>
 
@@ -1790,7 +1818,7 @@ El chat también debe ser estricto cuando genera contenido para Project Lab.
 <<END SECTION>>
 
 <<SECTION: VALIDACIONES POSTERIORES A CAMBIOS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 VALIDACIONES POSTERIORES A CAMBIOS
 
@@ -1805,6 +1833,8 @@ Tinker cuando toque runtime, permisos, constraints o datos reales
 navegador cuando toque UI
 grep cuando se eliminen residuos legacy
 auditoría simple cuando se requiera evidencia transversal
+migrate:fresh --seed cuando el cambio afecte arquitectura, migraciones, seeders o contratos estructurales
+smoke test del modelo o servicio afectado cuando el cambio sea de saneamiento modular
 
 Regla:
 
@@ -1817,6 +1847,39 @@ Regla adicional:
 si Project Lab informa OK pero la validación posterior falla, el frente no está cerrado.
 
 Debe corregirse o revertirse según corresponda.
+
+Regla adicional para saneamiento modular:
+
+si se elimina o reemplaza una dependencia activa, debe validarse que no queden consumidores activos usando la vía anterior.
+
+Ejemplos de validación:
+
+grep de métodos linked eliminados
+grep de service eliminado
+grep de relación de modelo eliminada
+grep de consultas directas a modelos externos
+grep de offers duplicadas por host
+php -l de archivos tocados
+smoke test de helper, selector o service nuevo
+migrate:fresh --seed si impacta contratos base o seeders
+optimize:clear
+
+Caso vigente:
+
+saneamiento evidente de Orders requirió validar que:
+
+OrderLinked use forOrder()
+DocumentNumberGenerator no conserve uso vigente
+RecordNumberGenerator exista como mecánica transversal
+ProductLineItemSelector sea consumido
+Order::tasks() no continúe como relación activa
+OrderSurfaceService agrupe capacidad real
+OrdersHooks conserve frontera de bloqueo
+InventoryOrderItemHooks conserve lógica material
+
+Regla final:
+
+las validaciones deben demostrar que el patrón nuevo opera y que el patrón anterior no quedó como fallback activo indebido.
 
 <<END SECTION>>
 
@@ -1945,7 +2008,7 @@ si una sesión detecta cambios que impactan doctrina, seguridad, UI, navegación
 <<END SECTION>>
 
 <<SECTION: CRITERIO DE CIERRE OPERATIVO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 CRITERIO DE CIERRE OPERATIVO
 
@@ -1961,6 +2024,8 @@ Security real
 grep de residuos
 optimize:clear
 route:list
+migrate:fresh --seed
+smoke test del modelo o servicio afectado
 validación visual en navegador
 actualización documental
 
@@ -1970,14 +2035,42 @@ No alcanza con que no aparezca un error visual.
 
 No alcanza con que la UI oculte una acción.
 
+No alcanza con sanear solo el controller principal si el frente incluye modelo, helpers, surfaces, hooks o services.
+
 Regla:
 
 el cierre debe demostrar que el sistema quedó más coherente, no solo que el cambio fue aplicado.
 
+Regla adicional para cierre de fase:
+
+una fase no debe declararse cerrada sin auditar los núcleos relevantes del frente.
+
+Como mínimo:
+
+controller principal
+controllers hijos relevantes
+modelo
+helpers linked
+surface services
+hooks
+services/support vinculados
+catálogos
+rutas principales
+validaciones runtime o smoke tests relevantes
+grep de residuos cuando existan nombres legacy conocidos
+
+Caso vigente:
+
+Fase 0 de saneamiento evidente de Orders quedó cerrada funcionalmente luego de sanear y validar controller, modelo, linked helper, surfaces, hooks, selector de productos, numeración, catálogos, consumidores y relación inversa innecesaria.
+
+Regla final:
+
+cerrar una intervención significa que el sistema queda más coherente, autónomo, seguro y alineado con su doctrina vigente.
+
 <<END SECTION>>
 
 <<SECTION: ERRORES Y LECCIONES INCORPORADAS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ERRORES Y LECCIONES INCORPORADAS
 
@@ -2047,6 +2140,38 @@ La consola muestra la salida.
 El textarea muestra la entrada.
 
 Ninguna ejecución desde clipboard debe quedar oculta para el usuario.
+
+Lección incorporada adicional:
+
+Project Lab no debe recibir texto narrativo como si fuera script ejecutable.
+
+Caso detectado:
+
+un texto explicativo fue enviado a ejecución y terminó interpretado como shell, generando errores.
+
+Regla:
+
+las respuestas narrativas no son comandos.
+
+Para Project Lab deben enviarse exclusivamente:
+
+comandos shell válidos
+patches completos compatibles
+formatos aceptados por el automatizador
+bloques documentales con DOC_SLUG y SECTION exactos
+snippets de auditoría realmente ejecutables
+
+Lección incorporada adicional:
+
+un cierre de fase no debe apoyarse solo en el controller principal.
+
+Caso detectado:
+
+el saneamiento de Orders requirió auditar también modelo, helper linked, surface service, hooks, selector de productos, numeración, catálogos y consumidores.
+
+Regla:
+
+si una fase declara saneamiento modular, Project Lab debe ayudar a producir evidencia sobre todas las piezas relevantes, no solo aplicar un patch parcial.
 
 <<END SECTION>>
 

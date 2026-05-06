@@ -39,13 +39,13 @@ no debe utilizarse como depósito de ideas difusas sin criterio de ejecución
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — RECONVERSIÓN MODULAR>>
-SECTION_VERSION: 00024
+SECTION_VERSION: 00025
 
 LÍNEA ACTIVA — RECONVERSIÓN MODULAR
 
 Frente vigente de trabajo:
 
-convergencia hacia ecosistema surface-driven con contratos modulares explícitos y consumo reusable homogéneo entre módulos.
+convergencia hacia ecosistema surface-driven con contratos modulares explícitos, consumo reusable homogéneo entre módulos y saneamiento progresivo de acoplamientos activos indebidos.
 
 Cierres parciales consolidados:
 
@@ -79,6 +79,7 @@ creación doctrinal del paquete de servicios y mantenimiento como capa satélite
 implementación inicial de ProductOperationalSummary como subcapa contextual interna de Products
 corrección arquitectónica de ProductOperationalSummary desde include directo hacia integración surface-driven mediante ProductSurfaceService
 cierre visual y contractual de Fase 0 Orders/Documents para preparar Servicios y Mantenimiento
+cierre funcional de Fase 0 de saneamiento evidente de Orders como isla funcional saneada apta para iniciar Fase 1 de mantenimiento
 
 Criterios rectores vigentes:
 
@@ -117,6 +118,11 @@ no usar OperationalActivity como fuente principal de métricas cuando existen m�
 no usar PartyLinked como fuente principal de texto visible cuando el módulo dueño posee snapshot propio de contraparte
 no bloquear creación contextual de Orders desde Tasks o Appointments por ausencia de party_id
 no publicar showParty como contrato visual principal cuando la tabla debe mostrar Contraparte
+no reintroducir métodos linked específicos por consumidor cuando existe helper genérico del módulo oferente
+no duplicar offers de surface si una misma capacidad solo cambia host, filtro o configuración contextual
+no ubicar en controllers consumidores reglas de bloqueo, selección, validación o cierre que pertenecen a módulos oferentes
+no usar servicios transversales para decidir significado de negocio propio de un módulo
+no conservar relaciones inversas de modelo que induzcan ownership incorrecto o acoplamiento activo indebido
 
 Foco de esta línea:
 
@@ -142,6 +148,9 @@ más subcapas contextuales internas correctamente alojadas bajo su módulo host
 más integración surface-driven para lecturas compactas dentro de show pages
 más claridad entre Contacto gestionado y Contraparte
 más autonomía visual y contractual de Orders y Documents frente a party_id
+más aislamiento operativo razonable de Orders frente a módulos externos
+más aduanas funcionales explícitas entre módulos
+más selectors, hooks, linked helpers genéricos, surface services y catálogos como fronteras de integración
 
 Caso vigente consolidado:
 
@@ -225,11 +234,13 @@ Orders ya no conserva task_id como relación estructural.
 
 Tasks conserva order_id.
 
-Order hasMany Tasks.
-
 Task belongsTo Order.
 
 task_id solo puede operar como parámetro transitorio de request para crear Order desde Task.
+
+Orders no expone relación inversa tasks() como parte del núcleo saneado.
+
+La dirección funcional vigente es Task -> Order.
 
 Orders conserva:
 
@@ -260,6 +271,42 @@ OrderLinked no debe bloquear creación de Order desde Task o Appointment por aus
 
 Task y Appointment sin party_id pueden iniciar creación contextual de Order.
 
+Caso vigente consolidado de saneamiento evidente de Orders:
+
+OrderController fue saneado de dependencias evidentes críticas hacia lógica interna de módulos externos.
+
+OrderItemController consume ProductLineItemSelector para selección y validación de productos.
+
+OrderSurfaceService organiza ofertas por capacidades reales.
+
+Oferta vigente:
+
+orders.related.embedded como surface embebida única para assets.show y parties.show.
+
+Configuración contextual:
+
+relatedHosts()
+
+OrderLinked funciona como helper genérico del módulo Orders.
+
+Patrón vigente:
+
+OrderLinked::forOrder(?Order $order, ...)
+
+No deben reintroducirse métodos específicos por consumidor.
+
+OrdersHooks funciona como frontera estratégica de consulta o intervención del flujo de Orders.
+
+InventoryOrderItemHooks conserva la lógica de bloqueo de cierre por ejecución física de líneas.
+
+RecordNumberGenerator reemplaza DocumentNumberGenerator como mecánica transversal de numeración.
+
+OrderCatalog define prefijos de Orders.
+
+DocumentCatalog define prefijos de Documents.
+
+Order conserva relaciones pasivas o transversales con party, asset, documents y attachments mientras no habiliten que OrderController gobierne módulos externos.
+
 Criterio doctrinal vigente para Servicios y Mantenimiento:
 
 Servicios y Mantenimiento se lee como capa satélite productiva ERP/CMMS liviana sobre módulos existentes.
@@ -282,6 +329,12 @@ Documents
 Attachments
 Parties
 OperationalActivity
+
+Estado vigente:
+
+Fase 0 de saneamiento evidente de Orders queda cerrada funcionalmente.
+
+El proyecto queda apto para iniciar Fase 1 de mantenimiento, partiendo de auditoría fuerte y sin reintroducir acoplamientos activos indebidos en Orders.
 
 Criterio doctrinal vigente para IA:
 
@@ -348,7 +401,7 @@ por ser subcapa contextual interna de Products recientemente implementada, con i
 <<END SECTION>>
 
 <<SECTION: CIERRES OPERATIVOS RECIENTES>>
-SECTION_VERSION: 00023
+SECTION_VERSION: 00024
 
 CIERRES OPERATIVOS RECIENTES
 
@@ -791,9 +844,7 @@ Tasks incorpora order_id nullable como vínculo opcional hacia Orders
 
 Task belongsTo Order
 
-Order hasMany Tasks
-
-una Order puede tener múltiples Tasks asociadas
+una Order puede tener múltiples Tasks asociadas desde la lectura funcional del ecosistema
 
 task_id puede viajar solo como contexto transitorio de request o navegación
 
@@ -841,6 +892,68 @@ OrderLinked ya no bloquea creación contextual por ausencia de party_id
 
 Task sin party_id y Appointment sin party_id pueden devolver state = creatable para crear Order
 
+Cierre operativo reciente de saneamiento evidente de Orders:
+
+se cerró funcionalmente la Fase 0 de saneamiento evidente de Orders.
+
+Orders queda como isla funcional saneada, con aislamiento operativo razonable y apta para iniciar Fase 1 de mantenimiento.
+
+Cierres alcanzados:
+
+OrderController saneado de dependencias evidentes críticas hacia lógica interna de módulos externos
+
+OrderItemController saneado para consumir capacidad oficial de Products
+
+ProductLineItemSelector creado como selector/proveedor de productos para líneas
+
+ProductLineItemSelector aplicado en OrderItemController y DocumentItemController
+
+OrderSurfaceService saneado para organizar ofertas por capacidad real
+
+orders.related.embedded consolidada como offer única para assets.show y parties.show
+
+relatedHosts() consolidado como configuración contextual de la surface embebida
+
+orders.associated.linked mantenida como link asociado para documents.show
+
+OrderLinked saneado como helper genérico basado en Order|null
+
+OrderLinked::forOrder(?Order $order, ...) consolidado como patrón vigente
+
+métodos específicos por consumidor como forTask y forAppointment eliminados como lectura vigente
+
+Tasks y Appointments corregidos como consumidores que entregan Order|null a Orders
+
+OrdersHooks reforzado como frontera estratégica del flujo de Orders
+
+bloqueos de cierre condicionados por ejecución física de líneas trasladados a Inventory
+
+InventoryOrderItemHooks queda como dueño de regla material de cierre por líneas físicas
+
+RecordNumberGenerator creado como servicio transversal de numeración
+
+DocumentNumberGenerator eliminado como lectura vigente
+
+prefijos de Orders trasladados a OrderCatalog
+
+prefijos de Documents trasladados a DocumentCatalog
+
+Order::tasks() eliminado
+
+Order conserva relaciones pasivas o transversales con party, asset, documents y attachments como deuda no bloqueante o relación aceptada por ahora
+
+Regla consolidada:
+
+el aislamiento buscado en Orders no es aislamiento absoluto artificial.
+
+Es aislamiento operativo razonable:
+
+relaciones pasivas permitidas
+
+dependencias activas saneadas
+
+integración mediante contratos, hooks, selectors, services, surfaces o helpers genéricos
+
 Validaciones informadas:
 
 php artisan optimize:clear OK
@@ -882,6 +995,10 @@ Appointment sin party_id y sin order_id → state = creatable
 Regla consolidada:
 
 los vínculos opcionales no deben reintroducirse como dependencias obligatorias desde controllers, requests, seeders, vistas, surfaces o prints.
+
+Regla consolidada adicional:
+
+no debe reintroducirse lógica interna de módulos externos en OrderController, OrderItemController, OrderLinked ni OrderSurfaceService.
 
 <<END SECTION>>
 
@@ -1307,7 +1424,7 @@ Lo futuro son sus superficies de lectura autorizada.
 <<END SECTION>>
 
 <<SECTION: PENDIENTES INMEDIATOS>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 PENDIENTES INMEDIATOS
 
@@ -1357,6 +1474,38 @@ no reemplazar snapshot propio por vínculo gestionado inexistente
 
 revisar ProductOperationalSummaryService porque usa order->party_id y party_name
 
+Pendiente inmediato derivado de saneamiento Orders:
+
+mantener vigilancia contra regresiones de acoplamiento activo en Orders.
+
+No reintroducir:
+
+lógica interna de Inventory en OrderController
+
+consultas directas a Product::query() en OrderItemController si existe ProductLineItemSelector
+
+métodos OrderLinked específicos por consumidor
+
+offers duplicadas por host en OrderSurfaceService cuando la capacidad sea la misma
+
+prefijos de numeración dentro de un generador transversal
+
+relación inversa Order::tasks() si induce ownership incorrecto
+
+Pendientes no bloqueantes derivados de saneamiento Orders:
+
+revisar DocumentSurfaceService con el mismo patrón aplicado a OrderSurfaceService
+
+revisar DocumentController en fase posterior, porque aún puede concentrar relaciones con Parties, Assets y Orders
+
+evaluar Order::documents() más adelante como posible candidata a frontera externa si empieza a inducir acoplamiento activo
+
+revisar sistema de trails y breadcrumbs para reducir intervenciones manuales repetidas cuando se agregan links o navegaciones entre módulos
+
+Estado:
+
+estos pendientes no bloquean el inicio de Fase 1 de mantenimiento, pero deben conservarse como deuda viva de saneamiento modular.
+
 Pendiente inmediato derivado de parties:
 
 analizar parties.show y sus embebidos según party_roles.role
@@ -1404,9 +1553,11 @@ no tratar la tab Actividad de tenant/profile como surface reutilizable cerrada
 
 Pendiente inmediato de Servicios y Mantenimiento:
 
-no iniciar implementación de mantenimiento hasta cerrar revisión visual y documental de Fase 0.
+iniciar Fase 1 de mantenimiento desde la base saneada de Orders.
 
-La próxima etapa técnica debe continuar con auditoría fuerte de Orders sobre código real, esquema real, rutas reales, UI real, seguridad real y runtime real.
+La próxima etapa técnica debe continuar con auditoría fuerte de Orders y módulos participantes sobre código real, esquema real, rutas reales, UI real, seguridad real y runtime real.
+
+Fase 1 no debe reintroducir acoplamientos activos en Orders.
 
 <<END SECTION>>
 

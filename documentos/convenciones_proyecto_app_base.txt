@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00031
+SECTION_VERSION: 00032
 
 CONVENCIONES GENERALES
 
@@ -133,6 +133,201 @@ Regla de convergencia:
 si dos módulos o hosts equivalentes muestran distinta madurez contractual, no debe degradarse el más avanzado para alinearlo al más viejo.
 
 La convergencia correcta del ecosistema debe tender hacia el patrón más maduro ya validado.
+
+Regla de aduana funcional:
+
+cuando un módulo consumidor necesite una capacidad, dato, link, selector, bloqueo, validación o surface de otro módulo, debe consumir una frontera explícita del módulo oferente o de una capacidad transversal autorizada.
+
+Reglas:
+
+el consumidor no reconstruye lógica interna del oferente
+
+el oferente no debe interpretar modelos internos del consumidor
+
+el controller consumidor no debe acumular conocimiento de dominios externos si existe frontera apropiada
+
+las fronteras pueden expresarse mediante hooks, selectors, services, linked helpers, surface services, catálogos, registries o contratos explícitos
+
+Caso vigente:
+
+Orders no debe interpretar Task, Appointment, Party, Asset o Document más allá de referencias pasivas, relaciones necesarias o contratos explícitos.
+
+Convención de controllers:
+
+los controllers deben concentrarse en el flujo de aplicación propio del módulo.
+
+No deben transformarse en intérpretes de módulos externos.
+
+Reglas:
+
+no consultar directamente modelos externos cuando exista una capacidad oficial del módulo oferente
+
+no reconstruir reglas de bloqueo de otro módulo
+
+no reconstruir reglas de selección o validación de otro dominio
+
+no concentrar lógica de cierre, cancelación, eliminación o derivación si corresponde a un hook o service de frontera
+
+no decidir prefijos, significado de numeración o semántica de catálogo si esa definición pertenece al módulo dueño
+
+Caso vigente:
+
+OrderController quedó saneado de dependencias evidentes críticas hacia lógica interna de módulos externos.
+
+Caso vigente:
+
+OrderItemController y DocumentItemController consumen ProductLineItemSelector para selección y validación de productos en líneas.
+
+Convención de helpers linked:
+
+un helper linked pertenece al módulo oferente del recurso enlazado.
+
+Debe recibir el modelo propio del módulo oferente o null.
+
+No debe definir métodos específicos por consumidor.
+
+Caso vigente:
+
+OrderLinked::forOrder(?Order $order, ...)
+
+Reglas:
+
+si Tasks necesita mostrar una Order, Tasks entrega Order|null a Orders
+
+si Appointments necesita mostrar una Order, Appointments entrega Order|null a Orders
+
+Orders arma el link de su propio recurso
+
+no deben reaparecer métodos como:
+
+OrderLinked::forTask()
+OrderLinked::forAppointment()
+OrderLinked::forDocument()
+OrderLinked::forAsset()
+OrderLinked::forParty()
+
+Convención de surfaces:
+
+los SurfaceService deben expresar capacidades reales, no duplicaciones por host.
+
+Si la misma capacidad mantiene el mismo formato y solo cambia target, filtro, columna, mensaje vacío o configuración contextual, debe preferirse una única offer con múltiples targets.
+
+Caso vigente:
+
+OrderSurfaceService ofrece orders.related.embedded como surface embebida única para assets.show y parties.show.
+
+Regla:
+
+no duplicar offers por host cuando la capacidad es la misma.
+
+Patrón vigente:
+
+relatedHosts()
+
+Puede concentrar configuración contextual como:
+
+clase esperada
+columna de filtro
+tabsId
+flags visuales
+mensaje vacío
+otros parámetros de montaje
+
+Convención de hooks:
+
+los hooks funcionan como fronteras funcionales de intervención entre módulos.
+
+Un hook puede permitir que otro módulo:
+
+bloquee
+ajuste
+deje pasar
+informe condición externa
+aporte validación contextual
+
+Reglas:
+
+el módulo dueño del flujo no debe conocer la lógica interna del módulo externo
+
+el módulo externo conserva ownership de su regla
+
+si una consulta de bloqueo crítico falla, debe asumirse el escenario seguro
+
+Caso vigente:
+
+OrdersHooks funciona como frontera estratégica del flujo de Orders.
+
+InventoryOrderItemHooks conserva la lógica de bloqueo de cierre por ejecución física de líneas.
+
+Convención de selectors o providers:
+
+cuando varios módulos necesitan seleccionar o validar entidades de un mismo dominio, debe evaluarse una capacidad central del módulo dueño de ese dominio.
+
+Caso vigente:
+
+ProductLineItemSelector concentra opciones, reglas y verificación de acceso a Products para líneas de Orders y Documents.
+
+Reglas:
+
+Orders y Documents administran sus propios ítems
+
+Products ofrece selección y validación de productos cuando corresponde
+
+los controllers consumidores no deben consultar directamente Product::query(), products.viewAny ni Rule::exists('products') si existe selector oficial
+
+Convención de servicios transversales:
+
+un servicio transversal debe ejecutar una mecánica común sin decidir significado de negocio específico de cada módulo.
+
+Regla síntesis:
+
+el módulo define el significado.
+
+el servicio transversal ejecuta la mecánica.
+
+Caso vigente:
+
+RecordNumberGenerator ejecuta la mecánica de numeración.
+
+OrderCatalog define prefijos de Orders.
+
+DocumentCatalog define prefijos de Documents.
+
+Reglas:
+
+los prefijos pertenecen a catálogos del módulo
+
+el generador transversal no debe decidir prefijos por sí mismo
+
+no debe usarse un service nombrado por un módulo si la mecánica ya es transversal
+
+Caso corregido:
+
+DocumentNumberGenerator fue reemplazado por RecordNumberGenerator.
+
+Convención de modelos:
+
+los modelos pueden conservar relaciones pasivas, estructurales o transversales cuando correspondan a columnas propias o patrones reales del ecosistema.
+
+Eso no autoriza a controllers a gobernar módulos externos.
+
+Reglas:
+
+una relación pasiva no equivale a ownership funcional
+
+una relación de consulta no equivale a autorización
+
+una relación inversa no necesaria debe eliminarse si induce navegación conceptual incorrecta o acoplamiento activo indebido
+
+Caso vigente:
+
+Order ya no expone tasks().
+
+La dirección conceptual es Task -> Order mediante tasks.order_id.
+
+Caso vigente:
+
+Order puede conservar relaciones pasivas o transversales con party, asset, documents y attachments mientras no habiliten gobierno externo desde su controller.
 
 Regla de autonomía modular:
 

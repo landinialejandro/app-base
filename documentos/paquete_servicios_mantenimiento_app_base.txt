@@ -299,7 +299,7 @@ la capa de Servicios y Mantenimiento puede tener entrada visual, dashboard espec
 <<END SECTION>>
 
 <<SECTION: ROL DE ORDERS>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 ROL DE ORDERS
 
@@ -358,6 +358,12 @@ task_id no pertenece al núcleo persistente de Orders
 
 appointment_id no pertenece al núcleo persistente de Orders
 
+Orders no expone tasks() como relación inversa del núcleo saneado.
+
+La dirección funcional vigente es:
+
+Task -> Order
+
 Reglas:
 
 Orders puede crearse sin Party cuando conserva counterparty_name
@@ -367,6 +373,8 @@ Orders no debe exigir task_id para existir
 Orders no debe exigir appointment_id para existir
 
 Orders no debe absorber seguimiento, planificación ni pendientes como campos propios si esos conceptos pertenecen a otros módulos
+
+Orders no debe navegar Tasks desde su núcleo si esa navegación induce acoplamiento activo o ownership incorrecto
 
 La orden debe conservar al menos un dato de contraparte:
 
@@ -422,6 +430,44 @@ on_hold
 ready_for_review
 
 Estos estados pueden avanzar o retroceder mientras la orden siga aprobada y activa.
+
+Regla de saneamiento vigente para Orders:
+
+Orders debe mantenerse como isla funcional saneada.
+
+No debe reintroducir lógica interna de módulos externos dentro de OrderController, OrderItemController, OrderLinked ni OrderSurfaceService.
+
+Fronteras vigentes:
+
+OrdersHooks como frontera estratégica del flujo de Orders
+
+InventoryOrderItemHooks como dueño de bloqueos materiales por ejecución física de líneas
+
+ProductLineItemSelector como capacidad de Products para productos de línea
+
+OrderLinked::forOrder(?Order $order, ...) como helper genérico
+
+OrderSurfaceService con offers por capacidades reales
+
+RecordNumberGenerator como mecánica transversal de numeración
+
+OrderCatalog como dueño de prefijos de Orders
+
+Regla:
+
+las relaciones pasivas o transversales aceptadas en Order no habilitan que OrderController gobierne módulos externos.
+
+Relaciones aceptadas actualmente:
+
+party
+
+asset
+
+documents
+
+attachments
+
+Estas relaciones no bloquean Fase 1 mientras no se transformen en dependencias activas indebidas.
 
 Aclaración vigente por ProductOperationalSummary:
 
@@ -524,81 +570,94 @@ SECTION_VERSION: 00004
 
 ROL DE INVENTORY
 
-Inventory debe conservar ownership funcional sobre stock, movimientos, operaciones materiales, saldos e historial.
+Inventory conserva ownership sobre stock, movimientos, trazabilidad material y reglas físicas vinculadas a materiales, repuestos, insumos y productos consumibles.
 
-Dentro del paquete de servicios y mantenimiento, Inventory debe sostener:
+Dentro de Servicios y Mantenimiento, Inventory puede participar en:
 
-repuestos usados
-insumos consumidos
-materiales previstos
-materiales reservados
-materiales entregados en custodia
-materiales transportados
-materiales efectivamente utilizados
-devoluciones
-faltantes
+previsión de materiales
+reserva de materiales
+entrega de materiales
+custodia operativa
+consumo real
+devolución
+faltante
+daño
+cancelación
+ajuste
+trazabilidad de entradas y salidas
+relación con líneas de Orders o Documents cuando corresponda
+
+Inventory no debe ser absorbido por Orders.
+
+Orders puede requerir materiales.
+
+Inventory decide y registra la operación material.
+
+Regla:
+
+la orden expresa la intervención.
+
+Inventory expresa el movimiento y estado material.
+
+Cuando una regla material bloquee o condicione un flujo de Orders, debe publicarse mediante frontera explícita.
+
+Caso vigente:
+
+InventoryOrderItemHooks conserva la lógica de bloqueo de cierre por ejecución física de líneas.
+
+OrdersHooks funciona como frontera estratégica del flujo de Orders.
+
+Lectura:
+
+Orders puede consultar si existen bloqueadores externos de cierre.
+
+Inventory responde desde su propio ownership material.
+
+Orders no reconstruye la lógica física interna de Inventory.
+
+Reglas:
+
+no ubicar en OrderController reglas internas de ejecución física de líneas
+
+no consultar movimientos o estados materiales desde Orders si existe hook o service oficial
+
+si falla una consulta de bloqueo crítico, asumir escenario seguro
+
+una orden no debe cerrarse si existen bloqueadores materiales externos vigentes
+
+InventoryOperation puede actuar como ancla agrupada de actividad operativa frente a OperationalActivity.
+
+InventoryMovement conserva trazabilidad fina y atómica de stock.
+
+Regla:
+
+la trazabilidad fina de stock pertenece a Inventory.
+
+OperationalActivity no debe duplicar como actividad principal cada movimiento atómico si InventoryOperation representa la acción operativa agrupada.
+
+Dentro de mantenimiento, Inventory deberá sostener especialmente la diferencia entre:
+
+material previsto
+
+material reservado
+
+material entregado en custodia
+
+material consumido
+
+material devuelto
+
+material faltante
+
 material dañado
+
 material cancelado
-piezas reemplazadas cuando corresponda
-diferencias entre previsto y real
-costo material de la intervención
-trazabilidad de consumo por orden o línea
-
-Orders puede consumir capacidades oficiales de Inventory, especialmente desde líneas operativas.
-
-Inventory conserva:
-
-cálculo de stock
-validaciones materiales
-operaciones de entrada y salida
-agrupación operativa
-trazabilidad fina de movimientos
-
-Regla sobre custodia:
-
-entregar material a un técnico, vehículo, cuadrilla, orden de trabajo, sitio externo o ubicación temporal no equivale a consumirlo.
-
-La custodia operativa de materiales debe distinguirse del consumo efectivo.
-
-Posibles custodios operativos:
-
-depósito formal
-vehículo
-persona o técnico
-cuadrilla
-orden de trabajo
-sitio externo
-ubicación temporal
 
 Regla:
 
-mantenimiento no debe crear inventario paralelo.
+entregar material no equivale a consumirlo.
 
-Inventory conserva ownership del stock, sus movimientos y sus operaciones materiales.
-
-Orders puede ser host visual y contexto operativo.
-
-Inventory sigue siendo dueño de la operación material.
-
-Aclaración vigente por ProductOperationalSummary:
-
-Inventory puede aportar movimientos, entradas y salidas a lecturas contextuales de Products cuando exista contrato y autorización válidos.
-
-Esto no transfiere ownership a Products.
-
-InventoryMovement puede usarse como fuente de lectura resumida de flujo material.
-
-InventoryOperation conserva su rol como ancla agrupada para actividad operativa transversal.
-
-Regla:
-
-usar inventory_movements para una lectura contextual resumida no redefine la doctrina de OperationalActivity ni convierte InventoryMovement en actividad operativa transversal principal.
-
-Regla de auditoría:
-
-no asumir que Inventory ya cubre custodia operativa, reservas, entregas a técnico, entregas a vehículo, devoluciones, faltantes, piezas reemplazadas o diferencias previsto/real.
-
-Antes de implementar mantenimiento, debe auditarse el contrato real de Inventory, sus operaciones, movimientos, agrupaciones, seguridad, UI y runtime.
+La custodia operativa debe diferenciarse del consumo real.
 
 <<END SECTION>>
 
@@ -607,56 +666,72 @@ SECTION_VERSION: 00004
 
 ROL DE PRODUCTS
 
-Products debe leerse como catálogo maestro de artículos, repuestos, insumos y servicios cuando el contrato real lo permita.
+Products conserva ownership del catálogo de productos del tenant.
 
-Dentro del paquete de servicios y mantenimiento, Products puede aportar:
+Dentro de Servicios y Mantenimiento, Products puede representar o alimentar:
 
 repuestos
 insumos
-materiales
-servicios vendibles
-servicios ejecutables
-mano de obra parametrizada
-paquetes de servicio
-ítems sugeridos para órdenes modelo
-ítems sugeridos para checklists o planes
-productos alternativos
+consumibles
+servicios facturables
+mano de obra cuando el contrato real lo permita
+paquetes o kits cuando se definan
+alternativos o equivalentes cuando se definan
+productos asociados a líneas de Orders o Documents
 
-La evolución de servicios y mantenimiento requiere auditar si el contrato vigente de Products distingue suficientemente entre:
-
-producto físico
-repuesto
-insumo
-servicio
-mano de obra
-paquete operativo
-alternativo funcional
-flete
-viaje
-kilómetro
-costo directo operativo no stockeable
+Products no debe ser absorbido por Orders, Documents ni Inventory.
 
 Regla:
 
-no asumir que Products ya soporta toda esta clasificación.
+Products define el catálogo.
 
-Antes de implementar servicios precargados, productos alternativos, paquetes de mantenimiento, fletes, mano de obra, viajes, kilómetros o costos directos operativos, debe auditarse el contrato real de Products, sus campos, catálogos, seguridad, UI e integración con Orders, Documents e Inventory.
+Los módulos consumidores usan productos dentro de sus propias líneas, sin apropiarse de la lógica interna del catálogo.
 
-Regla adicional:
+Capacidad vigente:
 
-los productos alternativos no deben resolverse como texto libre disperso si a futuro se espera automatización, sugerencia IA, reportes, filtros o trazabilidad operativa.
+ProductLineItemSelector
 
-Aclaración vigente por ProductOperationalSummary:
+Responsabilidad:
 
-la primera lectura contextual operativa de Products no incluye flete, mano de obra, kilómetros, viajes, prorrateos, costos accesorios, costos indirectos ni rentabilidad contable completa.
+ofrecer opciones de productos
 
-Estos elementos pueden tener proveedor distinto, orden distinta, criterio de imputación distinto o tratamiento como servicio, logística o costo directo operativo.
+ofrecer reglas de validación de productos
 
-Por lo tanto, no deben mezclarse con el resumen operativo inicial del producto.
+verificar acceso a productos para líneas
 
-Regla final:
+Consumidores vigentes:
 
-Products puede llegar a representar servicios, mano de obra, fletes o costos directos operativos como catálogo si el contrato real lo permite, pero no debe asumirse esa capacidad sin auditoría previa.
+OrderItemController
+
+DocumentItemController
+
+Reglas:
+
+Orders administra order_items
+
+Documents administra document_items
+
+Products ofrece selección y validación cuando corresponde
+
+los controllers consumidores no deben reconstruir Product::query(), products.viewAny ni Rule::exists('products') si existe selector oficial
+
+Dentro de mantenimiento, esta frontera será clave para evitar que Orders concentre lógica de catálogo.
+
+Regla:
+
+si mantenimiento requiere seleccionar repuestos, insumos, servicios o mano de obra desde catálogo, debe consumir capacidades oficiales de Products.
+
+No debe duplicar validaciones de Products en controllers satélite o en Orders.
+
+Aclaración vigente:
+
+ProductOperationalSummary es una subcapa contextual interna de Products.
+
+No convierte a Products en dueño de compras, ventas, movimientos, proveedores ni mantenimiento.
+
+Products presenta lectura contextual cuando corresponde.
+
+Orders e Inventory conservan ownership de los datos operativos que aportan a esa lectura.
 
 <<END SECTION>>
 

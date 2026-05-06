@@ -989,7 +989,7 @@ si la IA prepara una acción, la acción final debe volver a pasar por el contra
 <<END SECTION>>
 
 <<SECTION: BLOQUE 3 — RELACIONES E INTEGRACIONES>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 BLOQUE 3 — RELACIONES E INTEGRACIONES
 
@@ -1009,6 +1009,9 @@ distinguir vínculo gestionado opcional de dependencia obligatoria
 distinguir relación de origen, planificación o seguimiento de relación persistente del núcleo receptor
 distinguir contexto transitorio de request o navegación de campo persistente del módulo
 validar si los campos `*_id` son obligatorios por contrato real o solo vínculos opcionales de enriquecimiento
+distinguir relación pasiva permitida de dependencia activa indebida
+clasificar relaciones externas del modelo como estructurales, pasivas, transversales o candidatas a extracción
+evitar relaciones de navegación inversa innecesarias en el modelo núcleo
 
 Regla adicional consolidada:
 
@@ -1030,6 +1033,8 @@ si el esquema permite null y la doctrina define vínculo opcional, el controller
 
 si un módulo necesita conservar lectura propia aunque el vínculo gestionado no exista, debe evaluarse un snapshot propio
 
+un módulo no debe conservar relación inversa solo por comodidad si la dirección funcional estable vive del otro lado
+
 Caso vigente:
 
 Orders y Documents pueden vincularse opcionalmente con Parties mediante party_id y conservar contraparte textual propia mediante counterparty_name.
@@ -1044,11 +1049,37 @@ Orders no debe conservar task_id ni appointment_id como núcleo persistente.
 
 Caso vigente adicional:
 
+Order::tasks() fue eliminado porque la dirección funcional vigente es Task -> Order.
+
+Caso vigente adicional:
+
 task_id o appointment_id pueden viajar como contexto transitorio para crear una Order desde Task o Appointment, pero no deben persistirse automáticamente en Orders.
 
 Caso vigente adicional:
 
 Documents puede derivarse desde Orders mediante order_id, copiar contexto y líneas cuando corresponda, pero conserva contrato documental propio.
+
+Regla adicional para hooks y fronteras:
+
+cuando un módulo necesita intervenir en el flujo de otro, debe usar una frontera explícita tipo hook o service.
+
+No debe trasladar la lógica interna al controller del módulo consumidor.
+
+Caso vigente:
+
+OrdersHooks permite consultar bloqueos externos.
+
+InventoryOrderItemHooks contiene la regla de bloqueo de cierre por líneas físicas.
+
+Regla adicional para linked helpers:
+
+antes de crear métodos específicos por consumidor, verificar si corresponde un helper genérico del módulo oferente.
+
+Caso vigente:
+
+OrderLinked::forOrder(?Order $order, ...)
+
+No deben reaparecer métodos específicos por consumidor.
 
 Regla adicional para surfaces modulares:
 
@@ -1067,6 +1098,16 @@ Entradas / salidas
 Regla:
 
 si la infraestructura surface-driven vigente puede publicar la capacidad, no debe dejarse como cierre estable un include directo en el Blade del host.
+
+Regla adicional para surfaces multi-host:
+
+si una misma capacidad mantiene igual formato y solo cambia host, filtro o configuración contextual, no debe duplicarse la offer.
+
+Debe evaluarse una offer única con múltiples targets y configuración interna.
+
+Caso vigente:
+
+OrderSurfaceService ofrece orders.related.embedded para assets.show y parties.show mediante configuración contextual.
 
 Regla adicional para IA:
 
@@ -1499,7 +1540,7 @@ la trazabilidad transversal debe reforzar lectura operativa sin convertirse en a
 <<END SECTION>>
 
 <<SECTION: CRITERIO FINAL DE APROBACIÓN>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 CRITERIO FINAL DE APROBACIÓN
 
@@ -1560,10 +1601,17 @@ modelo coherente con el contrato
 migraciones en orden real de dependencias
 requests alineadas con campos nullable y obligatorios reales
 controllers sin required indebido sobre vínculos opcionales
+controllers sin reconstrucción de lógica interna de otros módulos cuando existe frontera oficial
 seeders cargando snapshots propios cuando no pasan por controllers
 vistas usando método de presentación propio cuando exista snapshot
 surfaces sin dependencia exclusiva de relaciones opcionales
+surfaces agrupadas por capacidad real cuando aplique
 prints mostrando dato propio correcto
+helpers linked genéricos sin métodos específicos por consumidor
+hooks o services de frontera para bloqueos externos
+selectors o providers cuando varios módulos consumen un dominio externo
+catálogos definiendo significado de negocio propio del módulo
+servicios transversales limitados a mecánica común
 prueba runtime web del flujo principal
 prueba Tinker cuando corresponda
 php -l sobre archivos modificados
@@ -1579,6 +1627,8 @@ Documents puede derivarse desde Orders autónomas usando counterparty_name propi
 Tasks puede asociarse a Orders desde tasks.order_id.
 
 Orders no debe conservar task_id persistente.
+
+Order::tasks() fue eliminado porque la dirección funcional vigente es Task -> Order.
 
 Criterio adicional para flujos derivados:
 
@@ -1598,6 +1648,26 @@ prueba runtime web real
 Caso vigente:
 
 Order → Document debe respetar documents.create, copiar contraparte, copiar ítems y recalcular totales desde document_items sin depender de métodos inexistentes.
+
+Criterio adicional para cierre de fase:
+
+una fase de saneamiento no debe declararse cerrada sin auditar al menos:
+
+controller principal
+controllers hijos relevantes
+modelo
+helpers linked
+surface services
+hooks
+services/support vinculados
+catálogos
+rutas principales
+validaciones runtime o smoke tests relevantes
+grep de residuos cuando existan nombres legacy conocidos
+
+Caso vigente:
+
+Fase 0 de saneamiento evidente de Orders quedó cerrada funcionalmente luego de auditar y sanear controller, modelo, linked helper, surfaces, hooks, selección de productos y numeración.
 
 Regla final:
 

@@ -232,9 +232,8 @@ taxonomías mínimas y no ambiguas
 diferenciación entre lifecycle y estado operativo
 separación entre texto libre y datos explotables
 fronteras claras entre módulos, piezas satélite, subcapas contextuales internas y capacidades transversales
-distinción entre dato propio del registro y vínculo gestionado opcional
-distinción entre contexto transitorio de navegación y relación persistente
-distinción entre origen, planificación, seguimiento, formalización y ownership
+fronteras funcionales explícitas entre módulos consumidores y oferentes
+clasificación de relaciones externas como estructurales, pasivas, transversales, activas o residuales
 
 Regla:
 
@@ -258,9 +257,7 @@ lenguaje por rubro permite comunicación humana adecuada.
 
 documentación vigente evita reconstruir doctrina desde conversaciones dispersas.
 
-snapshots propios permiten conservar contexto operativo aunque falten vínculos gestionados.
-
-relaciones persistentes bien ubicadas permiten reconstruir procesos sin forzar dependencias incorrectas.
+aduanas funcionales explícitas evitan que la IA proponga acoplamientos indebidos.
 
 Regla adicional:
 
@@ -300,53 +297,24 @@ ownership de Inventory
 ownership de Parties
 visibilidad contextual de la subcapa
 
-Regla adicional para Orders y Documents:
+Caso vigente adicional:
 
-la existencia de counterparty_name en Orders y Documents mejora la base futura para IA porque conserva contexto textual propio del registro aunque no exista Party vinculada.
+Orders quedó como isla funcional saneada con aislamiento operativo razonable.
 
-Lectura vigente:
+Esta base mejora una futura lectura IA porque separa:
 
-party_id = vínculo gestionado opcional
-
-counterparty_name = snapshot textual propio del registro
-
-Reglas:
-
-la IA no debe inferir que no existe contraparte solo porque party_id sea null
-
-la IA no debe tratar counterparty_name como Party gestionada
-
-la IA no debe usar el snapshot como autorización
-
-la IA puede considerar el snapshot como contexto textual autorizado cuando el usuario pueda ver el registro
-
-Regla adicional para Tasks, Appointments y Orders:
-
-la relación persistente hacia Orders debe vivir en el módulo que conserva ownership de origen, planificación o seguimiento.
-
-Casos vigentes:
-
-tasks.order_id
-
-appointments.order_id
-
-Lectura para IA futura:
-
-una Order puede tener múltiples Tasks asociadas
-
-una Order puede estar asociada a planificación temporal mediante Appointments
-
-Orders conserva ownership de la intervención operativa
-
-Tasks conserva ownership de pendientes y seguimiento
-
-Appointments conserva ownership de agenda y planificación
+relaciones pasivas aceptadas
+dependencias activas saneadas
+hooks de frontera
+selectors de dominio
+linked helpers genéricos
+surface services por capacidad
+servicios transversales de mecánica
+catálogos como dueños de significado
 
 Regla:
 
-la IA no debe reconstruir seguimiento o planificación desde campos inexistentes en Orders.
-
-Debe consumir las relaciones reales del ecosistema.
+una futura IA no debe interpretar una relación pasiva como permiso, dependencia obligatoria ni ownership funcional.
 
 Regla final:
 
@@ -387,6 +355,10 @@ inferir reglas no documentadas
 crear datos fuera del módulo dueño
 resolver permisos por sí misma
 convertirse en módulo dueño de procesos operativos
+proponer que un controller consumidor reconstruya lógica interna de un módulo oferente
+proponer helpers específicos por consumidor cuando existe helper genérico del módulo oferente
+proponer duplicación de surfaces por host cuando la capacidad es la misma
+confundir servicio transversal con dueño de significado de negocio
 
 Regla:
 
@@ -400,67 +372,26 @@ Si una acción pertenece a Products, la ejecución final pertenece a Products.
 
 Si una acción pertenece a Parties, la ejecución final pertenece a Parties.
 
-Si una acción pertenece a Tasks, la ejecución final pertenece a Tasks.
-
-Si una acción pertenece a Appointments, la ejecución final pertenece a Appointments.
-
 La IA puede preparar, pero el módulo dueño ejecuta bajo su contrato.
 
-Regla adicional para vínculos opcionales:
+Regla adicional para aduanas funcionales:
 
-la IA no debe interpretar un vínculo opcional como dependencia obligatoria.
+cuando la IA detecte una necesidad entre módulos, debe priorizar fronteras explícitas antes que acoplamiento directo.
+
+Fronteras válidas:
+
+hooks
+selectors
+services
+linked helpers
+surface services
+catálogos
+registries
+contratos explícitos
 
 Caso vigente:
 
-Orders puede existir sin party_id cuando conserva counterparty_name.
-
-Documents puede existir o derivarse sin party_id cuando conserva counterparty_name.
-
-Reglas:
-
-Party conserva ownership del contacto gestionado
-
-Orders conserva ownership de la orden
-
-Documents conserva ownership del documento
-
-counterparty_name conserva contexto textual propio del registro
-
-el snapshot no transfiere ownership a Parties
-
-Regla adicional para relaciones externas hacia Orders:
-
-la IA debe respetar que seguimiento y planificación pueden vivir fuera de Orders.
-
-Casos vigentes:
-
-Tasks usa tasks.order_id
-
-Appointments usa appointments.order_id
-
-Orders no conserva task_id ni appointment_id como núcleo persistente.
-
-Reglas:
-
-Tasks conserva ownership de pendientes y seguimiento
-
-Appointments conserva ownership de agenda y planificación temporal
-
-Orders conserva ownership de intervención operativa
-
-la IA no debe proponer agregar relaciones persistentes a Orders si la relación pertenece al módulo originante
-
-Regla adicional para derivación documental:
-
-Order → Document es una derivación entre módulos, no una transferencia de ownership.
-
-Lectura:
-
-Orders aporta contexto operativo
-
-Documents formaliza y conserva ownership documental
-
-Documents debe conservar sus propios ítems, totales, lifecycle y contraparte cuando corresponda
+Orders no debe interpretar internamente Task, Appointment, Party, Asset o Document más allá de referencias pasivas, relaciones necesarias o contratos explícitos.
 
 Regla adicional para subcapas contextuales:
 
@@ -487,6 +418,28 @@ Regla IA:
 una futura IA que consuma ProductOperationalSummary debe respetar esa frontera.
 
 No debe interpretar que Products es dueño de compras, ventas, proveedores, movimientos o trazabilidad.
+
+Regla adicional para saneamientos:
+
+la IA no debe proponer cierre de fase si todavía no fueron auditados los núcleos relevantes del módulo.
+
+Como mínimo, ante un saneamiento modular debe considerar:
+
+controller principal
+controllers hijos relevantes
+modelo
+helpers linked
+surface services
+hooks
+services/support vinculados
+catálogos
+rutas principales
+validaciones runtime o smoke tests relevantes
+grep de residuos cuando existan nombres legacy conocidos
+
+Caso vigente:
+
+Fase 0 de Orders solo pudo declararse cerrada luego de auditar y sanear controller, modelo, helpers, surfaces, hooks, selector de productos, numeración, catálogos y consumidores.
 
 Regla final:
 
@@ -1074,7 +1027,7 @@ la IA puede preparar acciones críticas, pero la ejecución debe permanecer cont
 <<END SECTION>>
 
 <<SECTION: IA Y SERVICIOS DE MANTENIMIENTO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 IA Y SERVICIOS DE MANTENIMIENTO
 
@@ -1108,9 +1061,51 @@ Servicios y Mantenimiento es un frente donde la IA se pone el gorro de planifica
 
 La misma capa IA transversal puede adoptar otros roles operativos en otros frentes del sistema.
 
+Premisa vigente:
+
+Fase 1 de mantenimiento debe partir de Orders saneado como isla funcional razonable.
+
+La IA no debe proponer ni ejecutar lógica que reintroduzca acoplamientos activos en Orders.
+
+Reglas:
+
+no proponer que OrderController concentre lógica de Inventory, Products, Documents, Tasks, Appointments, Parties o Assets
+
+no proponer selección de productos para líneas sin consumir ProductLineItemSelector o frontera vigente equivalente
+
+no proponer links específicos por consumidor si existe OrderLinked::forOrder(?Order $order, ...)
+
+no proponer duplicación de surfaces de Orders por host si la capacidad puede expresarse como offer única
+
+no proponer cierre de órdenes ignorando bloqueos externos publicados por hooks
+
+no proponer que mantenimiento use Orders.status como estado técnico de ejecución
+
+no proponer acciones sobre órdenes closed sin reapertura autorizada
+
+La IA puede sugerir planificación, pero cada ejecución debe volver al módulo dueño correspondiente.
+
+Ejemplos:
+
+Orders ejecuta intervención operativa.
+
+Inventory ejecuta operación material.
+
+Products ofrece selección o validación del catálogo.
+
+Documents formaliza.
+
+Tasks sostiene pendientes.
+
+Appointments sostiene planificación temporal.
+
+Attachments sostiene evidencia.
+
+OperationalActivity registra trazabilidad cuando corresponda.
+
 Regla final:
 
-el agente IA planificador debe reducir fricción sin reemplazar seguridad, trazabilidad ni control humano.
+el agente IA planificador debe reducir fricción sin reemplazar seguridad, trazabilidad, ownership modular ni control humano.
 
 <<END SECTION>>
 
@@ -1319,7 +1314,7 @@ La IA puede convertir esa trazabilidad en comprensión.
 <<END SECTION>>
 
 <<SECTION: IA Y PROJECT LAB>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 IA Y PROJECT LAB
 
@@ -1347,6 +1342,42 @@ Regla:
 Project Lab no forma parte del sistema SaaS productivo.
 
 La IA puede asistir al desarrollo, pero no debe confundir herramientas locales con funcionalidad final del producto.
+
+Regla adicional:
+
+la IA no debe enviar texto narrativo como si fuera script ejecutable para Project Lab.
+
+Para Project Lab deben entregarse únicamente:
+
+comandos shell válidos
+patches completos compatibles
+bloques de código aceptados por el automatizador
+bloques documentales con DOC_SLUG exacto y SECTION exacta
+snippets de auditoría realmente ejecutables
+
+Regla:
+
+si la salida esperada es narrativa, debe permanecer como explicación de chat.
+
+Si la salida esperada es ejecutable, debe estar en formato técnico válido.
+
+Regla adicional para cierre de fase:
+
+si la IA propone declarar cerrado un frente, debe exigir evidencia suficiente.
+
+Validaciones mínimas orientativas:
+
+lint de archivos tocados
+grep de residuos
+migrate:fresh --seed cuando corresponda
+optimize:clear
+smoke test del modelo o servicio afectado
+Tinker cuando haya runtime, permisos o datos reales
+prueba web cuando el flujo depende de controller, request, rutas o UI real
+
+Regla final:
+
+Project Lab puede ejecutar cambios, pero la IA debe ayudar a que esos cambios sean verificables, reproducibles y no ambiguos.
 
 <<END SECTION>>
 
@@ -1462,7 +1493,7 @@ la primera línea de trabajo IA sigue siendo documental, estructural y de prepar
 <<END SECTION>>
 
 <<SECTION: CRITERIOS DE IMPLEMENTACIÓN FUTURA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 CRITERIOS DE IMPLEMENTACIÓN FUTURA
 
@@ -1501,6 +1532,12 @@ No implementar IA que cierre procesos críticos sin confirmación.
 
 No implementar IA que invente información faltante.
 
+No implementar IA que proponga acoplamientos activos donde ya existe frontera oficial.
+
+No implementar IA que confunda relación pasiva con ownership funcional.
+
+No implementar IA que cierre fases sin auditar los núcleos técnicos relevantes.
+
 Toda implementación futura debe definir:
 
 caso de uso
@@ -1516,10 +1553,32 @@ proveedor o modo de ejecución
 costo estimado si corresponde
 fallback si falla la IA
 validación backend posterior
+frontera modular que debe consumir
+módulo dueño de la ejecución final
+evidencia mínima para cierre
+
+Regla adicional:
+
+si una IA asiste saneamiento modular, debe clasificar acoplamientos antes de proponer eliminarlos.
+
+Clasificación mínima:
+
+estructural
+pasivo
+transversal
+activo
+residual
+candidato a extracción
+
+Regla:
+
+no toda relación externa en un modelo es un problema.
+
+Debe justificarse por su función real y no por comodidad.
 
 Regla final:
 
-la IA debe fortalecer app-base, no volverlo frágil, caro, opaco o dependiente.
+la IA debe fortalecer app-base, no volverlo frágil, caro, opaco, acoplado o dependiente.
 
 <<END SECTION>>
 

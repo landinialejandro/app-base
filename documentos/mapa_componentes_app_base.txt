@@ -424,7 +424,7 @@ No deben mezclarse.
 
 
 <<SECTION: COMPONENTES MODULARES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 COMPONENTES MODULARES
 
@@ -582,6 +582,10 @@ app/Support/Orders/OrderLinked.php
 
 resources/views/orders/components/linked-order.blade.php
 
+Patrón vigente:
+
+OrderLinked::forOrder(?Order $order, ...)
+
 Reglas:
 
 OrderLinked no reemplaza autorización de Orders
@@ -589,6 +593,8 @@ OrderLinked no reemplaza autorización de Orders
 OrderLinked no convierte Task ni Appointment en Order encubierta
 
 OrderLinked no debe bloquear creación contextual por ausencia de party_id
+
+OrderLinked no debe interpretar modelos consumidores
 
 si el origen no tiene party_id, la Order resultante debe completar contraparte según contrato vigente del módulo Orders
 
@@ -598,11 +604,61 @@ Task sin party_id y sin order_id puede devolver state = creatable.
 
 Appointment sin party_id y sin order_id puede devolver state = creatable.
 
+Regla adicional para OrderSurfaceService:
+
+OrderSurfaceService pertenece al módulo Orders y debe organizar ofertas por capacidades reales.
+
+Ofertas vigentes:
+
+orders.related.embedded
+
+orders.associated.linked
+
+Lectura:
+
+orders.related.embedded representa órdenes relacionadas embebidas en hosts como assets.show y parties.show.
+
+orders.associated.linked representa link asociado hacia una Order cuando el consumidor entrega Order|null.
+
+Reglas:
+
+no duplicar offers por host si la capacidad es la misma
+
+si solo cambia host, filtro, tabsId, flags visuales o mensaje vacío, usar configuración contextual
+
+el host aloja la surface
+
+Orders prepara el payload o la view de Orders
+
+el host no reconstruye internamente el contenido del oferente
+
+Patrón vigente:
+
+relatedHosts()
+
+Regla adicional para hooks y servicios modulares:
+
+los hooks y servicios de soporte ubicados en un módulo deben funcionar como frontera explícita de su dominio.
+
+Casos vigentes:
+
+OrdersHooks funciona como frontera estratégica de consulta o intervención del flujo de Orders.
+
+InventoryOrderItemHooks conserva la lógica material de bloqueo de cierre por ejecución física de líneas.
+
+ProductLineItemSelector ofrece selección y validación de productos para líneas.
+
+RecordNumberGenerator ejecuta mecánica transversal de numeración.
+
+Regla:
+
+estos componentes no deben trasladar ownership funcional al consumidor.
+
 <<END SECTION>>
 
 
 <<SECTION: COMPONENTES DE SHOW PAGES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 COMPONENTES DE SHOW PAGES
 
@@ -727,6 +783,14 @@ Regla:
 
 la show page puede actuar como host visual sin absorber ownership funcional.
 
+Aclaración adicional:
+
+Orders no expone tasks() como relación inversa del núcleo saneado.
+
+La dirección funcional vigente es Task -> Order.
+
+Si orders.show muestra información vinculada con Tasks, debe hacerlo sin inducir que Orders gobierna Tasks desde su núcleo.
+
 Aclaración vigente para Documents:
 
 documents.show puede alojar operaciones o lecturas relacionadas con Inventory cuando exista vínculo documental o línea operativa compatible.
@@ -734,6 +798,12 @@ documents.show puede alojar operaciones o lecturas relacionadas con Inventory cu
 Documents conserva ownership documental.
 
 Inventory conserva ownership material.
+
+Documents puede consumir Orders como link asociado cuando entregue Order|null y Orders resuelva el payload.
+
+Caso vigente:
+
+orders.associated.linked
 
 Regla adicional para tablas embebidas:
 
@@ -760,6 +830,26 @@ Caso vigente:
 OrderSurfaceService publica showCounterparty.
 
 DocumentSurfaceService publica showCounterparty.
+
+Aclaración vigente para surfaces multi-host:
+
+una show page puede alojar una surface ofrecida por otro módulo siempre que la capacidad sea publicada por el oferente y el host no reconstruya payload interno.
+
+Caso vigente:
+
+assets.show puede alojar orders.related.embedded.
+
+parties.show puede alojar orders.related.embedded.
+
+Reglas:
+
+OrderSurfaceService prepara payload de Orders
+
+el host aporta contexto compatible
+
+la configuración específica del host puede resolverse por relatedHosts()
+
+no debe duplicarse una offer por cada host cuando la capacidad es la misma
 
 Regla final:
 
@@ -827,7 +917,7 @@ Debe abrir detalle bajo demanda mediante modal y no expandir la tabla con column
 
 
 <<SECTION: COMPONENTES REUTILIZABLES TRANSVERSALES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 COMPONENTES REUTILIZABLES TRANSVERSALES
 
@@ -844,59 +934,108 @@ x-dev-component-version
 Reglas:
 
 pueden ser compartidos
+
 no deben absorber lógica de dominio
+
 no deben romper ownership modular
 
-Regla adicional:
+deben recibir payload o configuración ya preparada
 
-si la semántica cambia por módulo, no debe forzarse reutilización artificial
+no deben consultar modelos externos por sí mismos
 
-Objetivo:
+no deben decidir permisos efectivos
 
-maximizar reutilización sin perder claridad funcional.
+no deben reconstruir reglas de módulos consumidores u oferentes
 
-Comportamientos frontend reutilizables asociados a formularios:
+Aclaración vigente para line items:
 
-data-action="app-progressive-form"
+los componentes transversales de líneas pueden ser reutilizados por Orders y Documents cuando la gramática visual y operativa sea equivalente.
 
-Este comportamiento pertenece a la capa visual/interactiva general.
+Eso no transfiere ownership de los ítems.
 
-No es un componente Blade nuevo.
+Lectura vigente:
 
-Su función es organizar visualmente formularios progresivos sin reemplazar autorización ni validación backend.
+Orders administra order_items.
 
-Partial reusable transversal vigente:
+Documents administra document_items.
 
-resources/views/tenants/partials/operational-activity-table.blade.php
+Products ofrece selección y validación de productos mediante ProductLineItemSelector.
 
-Responsabilidad:
-
-representar tabla de actividad operativa ya resuelta por la capa de lectura correspondiente.
-
-Uso vigente:
-
-lectura general de actividad en tenant/profile
-lectura contextual de actividad en hosts autorizados
-
-Columnas:
-
-Fecha
-Módulo
-Actividad
-Registro
-Actor
-Sujeto
+Inventory puede ofrecer operaciones materiales sobre líneas mediante capacidades oficiales.
 
 Reglas:
 
-no decide autorización
-no consulta permisos
-no reconstruye historia operativa
-no resuelve ownership funcional
-no inventa links
-representa filas ya preparadas por OperationalActivitySurfaceService, OperationalActivityContextReader o lectura equivalente vigente
+x-line-item-form no debe decidir por sí mismo qué productos son seleccionables
 
-Aunque vive bajo tenants/partials, su uso actual es transversal para representar actividad operativa en distintos contextos autorizados.
+x-line-item-table no debe interpretar ownership de productos, documentos u órdenes
+
+x-line-operation-modal no debe ejecutar operación material sin backend autorizado
+
+la selección y validación de productos debe venir preparada desde la capacidad correspondiente
+
+Caso vigente:
+
+ProductLineItemSelector concentra opciones, reglas y verificación de acceso a Products para líneas.
+
+Aclaración vigente para x-dev-component-version:
+
+x-dev-component-version es un componente transversal de control visual y continuidad técnica.
+
+Responsabilidad:
+
+identificar Blades intervenidos
+
+mostrar versión del componente, partial, card o vista
+
+facilitar auditoría posterior
+
+favorecer continuidad entre cambios visuales sucesivos
+
+Props vigentes:
+
+name
+
+version
+
+align
+
+Reglas:
+
+no usar prop file
+
+no ubicarlo dentro de tablas, tbody, formularios, loops ni estructuras repetitivas
+
+no reemplaza SECTION_VERSION documental
+
+no reemplaza versionado de código
+
+no decide permisos ni lógica de negocio
+
+debe agregarse o actualizarse cuando un Blade modificado tenga entidad visual propia
+
+Regla de frontera:
+
+un componente reusable puede unificar forma visual, pero no unificar dominio.
+
+La lógica debe permanecer en:
+
+módulo dueño
+
+servicio de frontera
+
+selector
+
+hook
+
+surface service
+
+controller autorizado
+
+payload preparado
+
+Regla final:
+
+la reutilización transversal debe reducir duplicación visual sin crear acoplamiento funcional oculto.
 
 <<END SECTION>>
 

@@ -26,7 +26,7 @@ lección aplicable
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 LECCIONES VIGENTES
 
@@ -208,7 +208,7 @@ Tasks organiza pendientes y seguimiento.
 
 Orders ejecuta intervención operativa.
 
-Una Order puede tener múltiples Tasks asociadas.
+Una Order puede tener múltiples Tasks asociadas desde la lectura funcional del ecosistema.
 
 Lección:
 
@@ -313,6 +313,210 @@ OrderLinked no reemplaza autorización de Orders
 OrderLinked no convierte Task ni Appointment en Order encubierta
 
 la contraparte debe completarse en la Order cuando corresponda
+
+ORDERLINKED NO DEBE INTERPRETAR MODELOS CONSUMIDORES
+
+Un helper linked del módulo oferente no debe acumular métodos específicos por consumidor.
+
+Caso detectado:
+
+OrderLinked había acumulado métodos específicos como:
+
+forTask
+forAppointment
+
+Esto obligaba a Orders a interpretar modelos externos.
+
+Corrección aplicada:
+
+usar helper genérico basado en Order|null.
+
+Patrón vigente:
+
+OrderLinked::forOrder(?Order $order, ...)
+
+Lección:
+
+el módulo oferente arma links de su propio recurso.
+
+El consumidor entrega el recurso del oferente o null.
+
+Regla:
+
+no deben reaparecer métodos linked específicos por consumidor.
+
+NO USAR SERVICIOS NOMBRADOS POR UN MÓDULO PARA MECÁNICAS TRANSVERSALES
+
+Un servicio mal nombrado puede arrastrar dependencia conceptual indebida.
+
+Caso detectado:
+
+DocumentNumberGenerator era usado por Documents y Orders, contenía prefijos de ambos y hacía que Orders dependiera conceptualmente de Documents para numerarse.
+
+Corrección aplicada:
+
+se reemplazó por:
+
+RecordNumberGenerator
+
+Los prefijos se trasladaron a:
+
+OrderCatalog
+
+DocumentCatalog
+
+Lección:
+
+si la mecánica es transversal, el servicio debe nombrarse y comportarse como transversal.
+
+Regla:
+
+el módulo define el significado.
+
+El servicio transversal ejecuta la mecánica.
+
+LOS PREFIJOS DE NEGOCIO PERTENECEN AL CATÁLOGO DEL MÓDULO
+
+Los prefijos de numeración no deben quedar dentro del generador técnico si representan significado de negocio.
+
+Caso detectado:
+
+prefijos de Orders y Documents estaban dentro de DocumentNumberGenerator.
+
+Corrección aplicada:
+
+OrderCatalog define prefijos de Orders.
+
+DocumentCatalog define prefijos de Documents.
+
+RecordNumberGenerator solo ejecuta la mecánica.
+
+Lección:
+
+los catálogos son el lugar correcto para definiciones de negocio propias del módulo.
+
+LOS CONTROLLERS NO DEBEN RECONSTRUIR LÓGICA INTERNA DE MÓDULOS EXTERNOS
+
+Un controller puede quedar funcional pero acoplado si concentra reglas de otros dominios.
+
+Caso detectado:
+
+OrderController conservaba lógica de Inventory para evaluar cierre de órdenes.
+
+Corrección aplicada:
+
+la regla pasó a frontera explícita:
+
+OrdersHooks
+
+InventoryOrderItemHooks
+
+Lección:
+
+si una decisión propia depende de condición externa, debe consultarse mediante hook, service o frontera explícita.
+
+Regla:
+
+el controller no debe convertirse en intérprete de módulos externos.
+
+LOS CONTROLLERS DE LÍNEAS NO DEBEN DUPLICAR SELECCIÓN Y VALIDACIÓN DE PRODUCTOS
+
+Cuando varios controllers necesitan seleccionar o validar productos para líneas, la lógica no debe repetirse.
+
+Caso detectado:
+
+OrderItemController y DocumentItemController repetían consultas directas a Products.
+
+Corrección aplicada:
+
+crear y consumir:
+
+ProductLineItemSelector
+
+Lección:
+
+Products debe ofrecer la capacidad de selección y validación de productos.
+
+Orders y Documents administran sus propios ítems.
+
+Regla:
+
+no reconstruir Product::query(), products.viewAny ni Rule::exists('products') en controllers consumidores cuando existe selector oficial.
+
+UNA RELACIÓN INVERSA DE MODELO PUEDE SER ACOPLAMIENTO INNECESARIO
+
+Una relación en el modelo puede inducir navegación conceptual incorrecta aunque técnicamente funcione.
+
+Caso detectado:
+
+Order::tasks() permanecía luego de mover la relación funcional a tasks.order_id.
+
+Corrección aplicada:
+
+eliminar Order::tasks().
+
+Lectura vigente:
+
+Task -> Order.
+
+Lección:
+
+no conservar relaciones inversas innecesarias si inducen ownership incorrecto o acoplamiento activo.
+
+Regla:
+
+clasificar relaciones externas como estructurales, pasivas, transversales o candidatas a extracción antes de aceptarlas.
+
+NO DECLARAR CIERRE DE FASE SIN AUDITAR MODELO, HELPERS, SERVICES Y SURFACES
+
+Una fase no queda cerrada solo por sanear el controller principal.
+
+Caso detectado:
+
+antes de cerrar Fase 0 Orders fue necesario revisar también modelo, linked helper, surface service, hooks, selector de productos y numeración.
+
+Corrección aplicada:
+
+Fase 0 de saneamiento evidente de Orders se cerró luego de sanear:
+
+OrderController
+OrderItemController
+Order model
+OrderLinked
+OrderSurfaceService
+OrdersHooks
+ProductLineItemSelector
+RecordNumberGenerator
+OrderCatalog
+DocumentCatalog
+consumidores Tasks y Appointments
+relación Order::tasks()
+
+Lección:
+
+un cierre de fase exige auditoría transversal del módulo y sus fronteras.
+
+Regla:
+
+no proponer cierre de fase si quedan núcleos relevantes no auditados.
+
+NO ENVIAR TEXTO NARRATIVO COMO SCRIPT EJECUTABLE EN PROJECT LAB
+
+Project Lab ejecuta bloques técnicos.
+
+No debe recibir texto narrativo como si fuera script de auditoría.
+
+Caso detectado:
+
+un texto no ejecutable fue interpretado como shell y generó errores.
+
+Lección:
+
+las respuestas narrativas no son comandos.
+
+Regla:
+
+para Project Lab deben enviarse únicamente bloques ejecutables, comandos válidos, patches completos o formatos aceptados por el automatizador.
 
 NO GENERAR BLOQUES DOCUMENTALES CON NOMBRES DE SECCIÓN NO CONFIRMADOS
 

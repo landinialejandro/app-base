@@ -91,7 +91,7 @@ los detalles técnicos pueden evolucionar sin alterar estos principios rectores
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00024
+SECTION_VERSION: 00026
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -135,8 +135,6 @@ la visibilidad en UI no constituye autorización
 
 la autorización efectiva debe resolverse siempre en backend
 
-la existencia de actividad operativa persistida no habilita por sí sola lectura, navegación ni acceso visual al log
-
 la trazabilidad no autoriza operaciones
 
 la existencia de una sugerencia IA no habilita ejecución
@@ -153,8 +151,6 @@ la existencia de una subcapa contextual interna no habilita acceso automático a
 
 la existencia de un vínculo opcional con otro módulo no habilita operación fuera del contrato del módulo dueño
 
-la existencia o ausencia de party_id no define por sí sola la autorización de Orders o Documents
-
 MÍNIMO ACOPLE
 
 Los módulos consumidores no deben reinterpretar reglas internas de otro módulo.
@@ -167,11 +163,33 @@ Las subcapas contextuales internas deben consumir datos autorizados y no absorbe
 
 Los vínculos gestionados entre módulos no reemplazan la autorización central.
 
+FRONTERAS EXTERNAS Y BLOQUEOS SEGUROS
+
+Cuando una acción propia dependa de una condición externa perteneciente a otro módulo, el módulo dueño de la acción debe consultar una frontera explícita.
+
+No debe reconstruir internamente la lógica del módulo externo.
+
+Reglas:
+
+un controller no debe duplicar lógica de bloqueo de otro módulo
+
+un resolver de seguridad no debe reconstruir dominio externo si existe hook o service de frontera
+
+el módulo externo conserva ownership de su regla
+
+el módulo que ejecuta la acción conserva ownership de la autorización principal
+
+Ante fallas de consulta en bloqueos críticos, debe asumirse el escenario seguro.
+
+Regla:
+
+si no puede confirmarse que no hay bloqueos, no debe ejecutarse la acción crítica.
+
 AUTONOMÍA MODULAR Y SEGURIDAD
 
 La autonomía funcional de un módulo no elimina Security.
 
-Que Orders o Documents puedan existir sin party_id no significa acceso libre ni operación fuera del tenant activo.
+Que un módulo pueda operar sin un vínculo opcional no significa acceso libre ni operación fuera del tenant activo.
 
 Toda creación, lectura, actualización, vinculación o derivación debe pasar por autorización efectiva, tenant activo, usuario autenticado, membership vigente, módulos habilitados y validaciones backend.
 
@@ -199,18 +217,13 @@ operational_activity.view_any
 
 La lectura contextual de actividad operativa asociada a un registro puede habilitarse cuando el host ya autorizó la visualización de ese registro.
 
-Regla validada:
+Regla:
 
-si el usuario puede ver el registro host,
-puede ver la actividad operativa asociada a ese registro.
-
-Esta regla no equivale a lectura general del log del tenant.
+esta lectura no equivale a lectura general del log del tenant.
 
 No habilita acceso a otros registros.
 
 No habilita navegación principal de OperationalActivity.
-
-No utiliza operational_activity.view_any.
 
 No reemplaza permisos del módulo host.
 
@@ -281,6 +294,8 @@ la subcapa contextual interna solo puede mostrar datos autorizados según su con
 los dashboards operativos no habilitan acciones fuera del contrato del módulo dueño
 
 los vínculos opcionales entre módulos no reemplazan Security
+
+las fronteras externas pueden bloquear acciones propias, pero no reemplazan autorización principal del módulo dueño
 
 <<END SECTION>>
 
@@ -692,7 +707,7 @@ la UI puede expresar lectura, readonly o acción disponible, pero el backend deb
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00027
+SECTION_VERSION: 00029
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -716,6 +731,8 @@ preferir capacidades oficiales del módulo oferente antes que bypass técnicos
 
 no usar trazabilidad, dashboards, piezas satélite, subcapas contextuales, automatizaciones ni IA como atajos de autorización
 
+no reconstruir lógica de seguridad, bloqueo o integridad de otro módulo dentro del controller consumidor
+
 Cuando una acción se ejecute desde surfaces embebidas, modales o row actions, la validación backend sigue siendo obligatoria.
 
 Cuando existan recursos padre e hijos, debe respetarse además la subordinación funcional entre ambos.
@@ -734,9 +751,25 @@ Regla:
 
 la validación efectiva siempre debe contemplar tenant, recurso, relaciones y estado operativo cuando corresponda.
 
-Regla adicional para tenant/profile:
+FRONTERAS EXTERNAS
 
-las reglas owner/admin del frente tenant/profile deben centralizarse en TenantProfileAccess.
+Cuando una acción propia dependa de una condición externa perteneciente a otro módulo, debe usarse hook, service o frontera explícita.
+
+Reglas:
+
+no consultar modelos externos para reconstruir internamente la regla del proveedor
+
+no duplicar reglas de bloqueo en controllers consumidores
+
+no asumir que la ausencia de respuesta externa habilita la acción crítica
+
+si falla una verificación de bloqueo crítico, asumir bloqueo
+
+la frontera externa debe devolver una decisión o condición operativa, no transferir ownership de autorización
+
+TENANT PROFILE
+
+Las reglas owner/admin del frente tenant/profile deben centralizarse en TenantProfileAccess.
 
 La vista puede mostrar modo readonly, ocultar controles o expresar acciones disponibles, pero no decide autorización final.
 
@@ -762,9 +795,9 @@ admin no puede vaciar sus propios roles
 
 admin puede gestionar roles operativos no estructurales cuando la validación backend lo autorice
 
-Regla adicional para sincronización de roles de membership:
+SINCRONIZACIÓN DE ROLES DE MEMBERSHIP
 
-cuando la intención del usuario sea editar el conjunto completo de funciones de una membership, el backend puede recibir el set completo deseado y sincronizarlo mediante acción específica.
+Cuando la intención del usuario sea editar el conjunto completo de funciones de una membership, el backend puede recibir el set completo deseado y sincronizarlo mediante acción específica.
 
 Caso vigente:
 
@@ -782,9 +815,9 @@ sync debe impedir que una membership activa no owner quede sin roles
 
 sync no debe depender de JS ni de campos ocultos como protección final
 
-Regla adicional para actividad operativa:
+ACTIVIDAD OPERATIVA
 
-el registro de actividad debe ocurrir después de que el módulo dueño haya autorizado, validado y ejecutado su operación.
+El registro de actividad debe ocurrir después de que el módulo dueño haya autorizado, validado y ejecutado su operación.
 
 Secuencia correcta:
 
@@ -810,8 +843,6 @@ OperationalActivity no debe usarse como fuente de autorización
 
 OperationalActivity no debe bloquear el flujo principal si falla el registro del log
 
-OperationalActivity no debe registrar como actividad operativa principal acciones bloqueadas, intentos no autorizados o fallos de autorización salvo decisión específica posterior
-
 La escritura del log operativo debe ser system-owned.
 
 No debe existir create manual desde UI, edit, update, delete, destroy ni carga manual por formularios para OperationalActivity.
@@ -826,16 +857,9 @@ la lectura general tenant-scoped de OperationalActivity se autoriza mediante:
 
 operational_activity.view_any
 
-Regla adicional para lectura contextual heredada:
+LECTURA CONTEXTUAL DE ACTIVIDAD
 
-cuando una surface tenant/transversal de OperationalActivity se monta dentro de un host funcional, el host debe haber autorizado previamente view sobre el registro actual.
-
-Secuencia validada:
-
-host autoriza view del registro
-surface transversal recibe el record ya autorizado
-OperationalActivityContextReader lee actividad asociada
-la tab Actividad muestra lectura contextual
+Cuando una surface tenant/transversal de OperationalActivity se monta dentro de un host funcional, el host debe haber autorizado previamente view sobre el registro actual.
 
 Reglas:
 
@@ -851,19 +875,17 @@ no usar OperationalActivity como fuente para decidir permisos del host
 
 no reconstruir la autorización del host dentro de OperationalActivity
 
-Regla adicional para lectura ampliada:
+si la lectura contextual usa activity_record_set o activity_context, la frontera debe estar declarada por el módulo dueño y respetar tenant activo
 
-si la lectura contextual usa activity_record_set o activity_context, la frontera debe estar declarada por el módulo dueño y respetar tenant activo.
+activity_record_set no autoriza records por sí mismo
 
-activity_record_set no autoriza records por sí mismo.
+activity_context no autoriza records por sí mismo
 
-activity_context no autoriza records por sí mismo.
+OperationalActivity no debe contener condiciones internas específicas de módulos para definir esa frontera
 
-OperationalActivity no debe contener condiciones internas específicas de módulos para definir esa frontera.
+PARTIES
 
-Regla adicional para parties:
-
-la UI no constituye autorización para asignar relaciones sensibles del contacto.
+La UI no constituye autorización para asignar relaciones sensibles del contacto.
 
 Si una opción visual se oculta, bloquea o simplifica en el formulario, el backend debe validar igualmente el intento manipulado.
 
@@ -881,9 +903,9 @@ party_roles.role = employee/customer/supplier/other
 
 Por lo tanto, la autorización de parties debe orientarse por allowed_party_roles cuando corresponda.
 
-Regla adicional para vínculos opcionales:
+VÍNCULOS OPCIONALES
 
-la ausencia de un vínculo opcional no debe bloquear una acción si el contrato del módulo permite autonomía.
+La ausencia de un vínculo opcional no debe bloquear una acción si el contrato del módulo permite autonomía.
 
 La presencia de un vínculo opcional tampoco autoriza la acción por sí misma.
 
@@ -891,9 +913,9 @@ Caso vigente:
 
 Orders y Documents pueden operar sin party_id cuando su contrato funcional permite dato propio de contraparte.
 
-Regla adicional para subcapas contextuales internas:
+SUBCAPAS CONTEXTUALES INTERNAS
 
-una subcapa contextual interna puede tener compuerta propia de visibilidad, pero no debe reemplazar Security ni leer datos relacionados fuera del dataset autorizado.
+Una subcapa contextual interna puede tener compuerta propia de visibilidad, pero no debe reemplazar Security ni leer datos relacionados fuera del dataset autorizado.
 
 Caso vigente:
 
@@ -995,7 +1017,7 @@ no deben confundirse con vínculos opcionales de enriquecimiento
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00026
+SECTION_VERSION: 00027
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -1013,6 +1035,7 @@ qué constraints funcionales aplica
 qué superficies consume o publica
 qué capacidades transversales registra o consulta
 qué vínculos son obligatorios y cuáles son opcionales
+qué fronteras externas pueden bloquear o condicionar acciones propias
 
 Reglas:
 
@@ -1030,6 +1053,8 @@ un vínculo opcional con otro módulo no concede autorización por sí mismo
 
 la ausencia de un vínculo opcional no debe bloquear la operación si el contrato del módulo permite autonomía
 
+una frontera externa puede condicionar una acción, pero no reemplaza la autorización principal del módulo dueño
+
 Las capacidades publicadas, incluyendo row actions, surfaces, subcapas contextuales y lecturas embebidas, pertenecen al módulo oferente o a la capacidad que las define.
 
 El host monta, pero no redefine seguridad.
@@ -1042,6 +1067,7 @@ línea u origen
 estado del recurso
 límites operativos
 dataset autorizado
+bloqueos externos cuando existan fronteras declaradas
 
 Regla:
 
@@ -1076,6 +1102,24 @@ Casos vigentes:
 crear un Document desde una Order requiere autorización efectiva para documents.create
 
 crear una Order desde una Task o Appointment requiere autorización efectiva para orders.create
+
+Regla para hooks y fronteras externas:
+
+un módulo puede consultar una frontera externa para saber si una acción propia debe bloquearse, ajustarse o continuar.
+
+Reglas:
+
+el módulo consumidor no debe duplicar lógica interna del proveedor
+
+el proveedor conserva ownership de la regla externa
+
+el módulo dueño de la acción conserva ownership de la autorización principal
+
+si la frontera falla en un bloqueo crítico, debe asumirse el escenario seguro
+
+Caso vigente:
+
+Orders consulta fronteras explícitas para movimientos externos y bloqueadores de cierre.
 
 Regla para actividad operativa:
 
@@ -1226,7 +1270,7 @@ OperationalActivity puede publicar lectura contextual, pero no autoriza la opera
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00025
+SECTION_VERSION: 00027
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -1272,10 +1316,6 @@ admin puede gestionar roles operativos no estructurales cuando la validación ba
 
 MembershipPolicy e InvitationPolicy deben consumir la autoridad central del frente tenant/profile y no duplicar reglas aisladas.
 
-Caso vigente:
-
-TenantMembershipRoleController::sync permite sincronizar el conjunto de roles de una membership con validación backend.
-
 ORDERS
 
 Orders conserva contrato propio de seguridad.
@@ -1298,17 +1338,37 @@ la presencia de party_id no otorga autorización por sí misma
 
 Orders no debe conservar task_id ni appointment_id como relaciones persistentes de su núcleo
 
+Orders no expone tasks() como relación inversa del núcleo saneado
+
 si una Order se crea desde Task o Appointment, esos datos pueden viajar como contexto transitorio de request o navegación
 
 la autorización real corresponde a Orders y a Security
 
-una orden closed no debe permitir operación ordinaria posterior
-
-una orden cancelled no debe permitir operación ordinaria posterior
+una orden closed o cancelled no debe permitir operación ordinaria posterior
 
 una orden closed solo puede volver a operar mediante reapertura autorizada
 
 los estados operativos satélite no deben habilitar operación si Orders.status no lo permite
+
+Bloqueos externos vigentes:
+
+una orden no debe cerrarse si existen bloqueadores externos de cierre
+
+una orden no debe eliminarse si existen movimientos externos vinculados
+
+una orden vinculada a documentos no debe eliminarse mientras se mantenga la regla actual
+
+Reglas:
+
+Orders puede consultar fronteras explícitas para bloqueos externos
+
+OrderController no debe reconstruir internamente la lógica de Inventory
+
+RecordScopeResolver puede consultar fronteras explícitas para determinar si una acción está permitida, siempre que no reconstruya la lógica propia del módulo externo
+
+si falla una consulta de bloqueo crítico, debe asumirse escenario seguro
+
+si no puede confirmarse que no hay bloqueos, no debe ejecutarse la acción crítica
 
 TASKS Y APPOINTMENTS
 
@@ -1330,10 +1390,6 @@ PRODUCTS
 
 Products puede alojar subcapas contextuales internas sin que eso implique acceso automático a todos los datos relacionados.
 
-Caso vigente:
-
-ProductOperationalSummary
-
 Reglas:
 
 ver Products no implica ver ProductOperationalSummary
@@ -1347,6 +1403,16 @@ Orders habilitado permite métricas transaccionales solo cuando el usuario posee
 ProductOperationalSummary no usa OperationalActivity como fuente principal de métricas
 
 ProductOperationalSummary no reemplaza Security ni crea módulo funcional propio
+
+Products puede ofrecer capacidades de selección y validación de productos para líneas.
+
+Reglas:
+
+Orders y Documents pueden consumir la capacidad oficial correspondiente
+
+los controllers consumidores no deben reconstruir Product::query(), products.viewAny ni Rule::exists('products') cuando existe selector oficial
+
+la selección de productos no debe convertirse en bypass de permisos sobre Products
 
 DOCUMENTS
 
@@ -1376,9 +1442,17 @@ Orders y Documents pueden consumir capacidades oficiales de Inventory sin absorb
 
 Inventory conserva ownership de la operación material
 
-si una acción de inventory se registra como actividad operativa transversal, el ancla vigente debe ser InventoryOperation cuando representa la acción operativa agrupada
+Inventory puede bloquear o condicionar flujos de Orders mediante hooks o fronteras explícitas
 
-InventoryMovement conserva trazabilidad fina de stock y no debe duplicarse como actividad principal cuando la operación agrupada ya representa el evento operativo
+la ejecución física de líneas pertenece a Inventory
+
+Orders no debe reconstruir internamente esa regla
+
+si la frontera falla en un bloqueo crítico, se debe asumir bloqueo
+
+si una acción de inventory se registra como actividad operativa transversal, el ancla vigente debe representar la acción operativa agrupada
+
+la trazabilidad fina de stock no debe duplicarse como actividad principal cuando la operación agrupada ya representa el evento operativo
 
 PARTIES
 
@@ -1411,6 +1485,7 @@ allowed_kinds no aplica a parties.
 Separación vigente:
 
 orders → allowed_kinds
+
 parties → allowed_party_roles
 
 Reglas operativas de seguridad:
@@ -1423,11 +1498,7 @@ alta y edición deben bloquear intentos manipulados de asignar employee cuando e
 
 la autorización sensible de employee debe centralizarse en una pieza reusable del dominio parties
 
-si la party tiene membership activa vinculada, quedan protegidos:
-
-kind como person
-employee
-email respecto de edición libre desde parties
+si la party tiene membership activa vinculada, quedan protegidos kind, employee y email respecto de edición libre desde parties
 
 si la membership deja de estar activa o se desvincula, la party deja de estar bloqueada por esa relación activa
 
@@ -1486,6 +1557,10 @@ no debe usar Orders.status como estado técnico de ejecución
 no debe permitir operación ordinaria sobre órdenes closed sin reapertura autorizada
 
 no debe crear bypass del lifecycle base
+
+no debe reintroducir lógica interna de módulos externos dentro de OrderController
+
+no debe ignorar bloqueos externos publicados por hooks o fronteras oficiales
 
 IA Y AUTOMATIZACIONES
 

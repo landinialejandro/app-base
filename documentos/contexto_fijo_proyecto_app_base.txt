@@ -826,7 +826,7 @@ La navegación, visualización, seguridad y detalle operativo se resuelven en lo
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00031
+SECTION_VERSION: 00033
 
 ARQUITECTURA MODULAR DEL ECOSISTEMA
 
@@ -852,31 +852,45 @@ PUERTA DE ENLACE MODULAR OFICIAL
 
 Corresponde a la forma publicada para integrarse con el ecosistema.
 
-Puede expresarse mediante:
-
-acciones
-embebidos
-payloads
-surfaces
-row actions
-resolvers
-eventos operativos livianos
-record sets explícitos cuando corresponda
-criterios contextuales especiales cuando corresponda
-summary_items cuando correspondan al host
-
 Debe representar la capacidad del módulo oferente sin trasladar su lógica interna al consumidor.
+
+Puede expresarse mediante contratos explícitos, surfaces, hooks, selectors, services, helpers, catálogos, eventos operativos livianos u otras fronteras formales según corresponda.
 
 CONSUMO EXTERNO
 
 El consumo sigue la secuencia:
 
 consumer solicita
+
 módulo oferente resuelve
+
 componente representa
+
 host monta
 
 El consumidor no debe absorber decisiones del módulo oferente.
+
+ADUANA FUNCIONAL ENTRE MÓDULOS
+
+La integración entre módulos debe funcionar como una frontera explícita.
+
+Un módulo consumidor puede solicitar una capacidad, dato, bloqueo, link, validación o surface.
+
+El módulo oferente debe entregar el resultado mediante contrato oficial.
+
+Reglas:
+
+el consumidor no reconstruye lógica interna del oferente
+
+el oferente no interpreta modelos internos del consumidor
+
+el controller del consumidor no debe acumular conocimiento de dominios externos si existe frontera apropiada
+
+las dependencias activas deben canalizarse mediante contratos explícitos
+
+Caso vigente:
+
+Orders no debe interpretar internamente Task, Appointment, Party, Asset o Document más allá de referencias pasivas, relaciones necesarias o contratos explícitos.
 
 HUB VISUAL
 
@@ -895,9 +909,13 @@ Cuando un módulo funcional completa una acción propia autorizada, puede emitir
 Lectura arquitectónica:
 
 módulo dueño autoriza
+
 módulo dueño valida
+
 módulo dueño ejecuta
+
 módulo emite evento operativo liviano
+
 capacidad transversal registra si corresponde
 
 OperationalActivity no reemplaza el núcleo del módulo dueño ni se convierte en intérprete principal de su dominio.
@@ -930,6 +948,22 @@ Regla:
 
 una subcapa contextual interna debe mantenerse bajo ownership del módulo host y consumir datos relacionados sin absorber el ownership de los módulos que los aportan.
 
+AISLAMIENTO OPERATIVO RAZONABLE
+
+El objetivo no es construir aislamiento absoluto artificial entre módulos.
+
+El objetivo es evitar dependencias activas indebidas.
+
+Reglas:
+
+las relaciones pasivas pueden existir cuando representan columnas propias, vínculos estructurales o patrones transversales
+
+las dependencias activas deben pasar por contratos explícitos
+
+una relación de modelo no autoriza al controller a gobernar el módulo relacionado
+
+un módulo puede conservar referencias pasivas sin perder saneamiento, siempre que no interprete ni administre lógica externa desde su núcleo
+
 Aclaración consolidada:
 
 los módulos pueden publicar metadata estructural propia.
@@ -937,8 +971,11 @@ los módulos pueden publicar metadata estructural propia.
 El flujo correcto es:
 
 módulo define
+
 catálogo o contrato provee metadata
+
 registry o surface normaliza
+
 host consume sin reinterpretar
 
 Regla final:
@@ -1085,7 +1122,7 @@ La convergencia debe tender hacia patrones maduros ya validados, no hacia soluci
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00014
 
 LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES
 
@@ -1119,17 +1156,21 @@ Lectura adicional para Orders:
 
 Orders funciona como núcleo operativo autónomo.
 
-Puede recibir contexto desde tasks o appointments, vincularse opcionalmente con parties o assets, derivar documents y consumir capacidades de inventory cuando corresponda.
+Puede recibir contexto desde tasks o appointments, vincularse opcionalmente con parties o assets, derivar documents, consumir capacidades de inventory y publicar surfaces cuando corresponda.
 
 Esa integración no convierte a Orders en dueño de Tasks, Appointments, Parties, Assets, Documents ni Inventory.
 
-Regla:
+Reglas:
 
-Orders no debe almacenar como núcleo propio relaciones persistentes que expresan origen, planificación o seguimiento externo.
+Orders no debe almacenar como núcleo propio relaciones persistentes que expresan origen, planificación o seguimiento externo
 
-Tasks y Appointments pueden vincularse a Orders desde su propio ownership.
+Tasks y Appointments pueden vincularse a Orders desde su propio ownership
 
-Orders conserva su lifecycle base y su identidad operativa.
+Orders conserva su lifecycle base y su identidad operativa
+
+Orders debe interactuar con otros módulos mediante contratos explícitos o relaciones pasivas justificadas
+
+Orders no debe interpretar internamente modelos consumidores
 
 Lectura adicional para Documents:
 
@@ -1147,9 +1188,17 @@ Products funciona como catálogo maestro del producto.
 
 Puede alojar lecturas contextuales propias cuando no impliquen absorción de ownership de módulos relacionados.
 
+Puede ofrecer capacidades de selección o validación de productos para líneas cuando otros módulos necesiten operar con productos sin consultar directamente su modelo interno.
+
 Caso vigente:
 
 ProductOperationalSummary bajo Products.
+
+Lectura adicional para Inventory:
+
+Inventory conserva ownership de stock, ejecución material y reglas físicas asociadas a líneas cuando corresponda.
+
+Puede intervenir en flujos de Orders o Documents mediante fronteras explícitas sin que esos módulos reconstruyan internamente su lógica.
 
 Lectura adicional para capas satélite:
 
@@ -1177,7 +1226,7 @@ los módulos actuales deben conservar ownership propio aun cuando participen en 
 
 
 <<SECTION: RELACIONES MACRO DEL ECOSISTEMA>>
-SECTION_VERSION: 00022
+SECTION_VERSION: 00023
 
 RELACIONES MACRO DEL ECOSISTEMA
 
@@ -1211,7 +1260,7 @@ Relaciones especialmente relevantes:
 
 parties como base relacional amplia
 
-products como catálogo maestro
+products como catálogo maestro y oferente de capacidades de selección o validación de productos cuando corresponda
 
 orders como núcleo operativo autónomo
 
@@ -1219,7 +1268,7 @@ orders + líneas + inventory como frente de ejecución
 
 documents como prolongación documental
 
-inventory como frente operativo con agrupación contextual y movimientos unitarios
+inventory como frente operativo con agrupación contextual, movimientos unitarios y reglas materiales propias
 
 projects como agrupador operativo de tasks
 
@@ -1253,6 +1302,8 @@ Orders y Documents pueden conservar dato propio de contraparte cuando el víncul
 
 Cuando exista lectura contextual ampliada de actividad, la frontera debe ser declarada por el módulo dueño y no inferida por OperationalActivity.
 
+Cuando exista intervención de un módulo externo en un flujo propio, debe resolverse mediante frontera explícita y no mediante lógica interna reconstruida en el controller consumidor.
+
 Estas relaciones describen arquitectura general.
 
 No reemplazan detalle de navegación, seguridad, UI, campos, helpers ni implementación.
@@ -1260,7 +1311,7 @@ No reemplazan detalle de navegación, seguridad, UI, campos, helpers ni implemen
 <<END SECTION>>
 
 <<SECTION: MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00017
 
 MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO
 
@@ -1279,6 +1330,7 @@ distinguir módulos ordinarios de subcapas contextuales internas
 distinguir automatización asistida de ejecución crítica
 distinguir dato propio necesario para operar de vínculo opcional de enriquecimiento
 distinguir relación de origen, planificación o seguimiento de dependencia estructural del módulo receptor
+distinguir relación pasiva permitida de dependencia activa indebida
 
 Reglas:
 
@@ -1312,6 +1364,10 @@ cuando un módulo necesite conservar dato propio aunque exista vínculo opcional
 
 cuando un módulo publique lecturas oficiales, los módulos externos no deben reconstruir esa lectura desde relaciones internas opcionales
 
+cuando una mecánica sea transversal, el significado de negocio debe permanecer en el catálogo o contrato del módulo correspondiente
+
+cuando un módulo necesite validar, listar o seleccionar datos de otro dominio, debe consumir una capacidad oficial si existe
+
 Casos vigentes:
 
 ProductOperationalSummary se implementa como subcapa contextual de Products.
@@ -1324,6 +1380,10 @@ Documents puede derivarse desde Orders y conservar su propia identidad documenta
 
 Orders y Documents pueden conservar dato propio de contraparte aunque el vínculo gestionado con Parties sea opcional.
 
+Products puede ofrecer selección y validación de productos para líneas mediante una capacidad propia consumida por Orders y Documents.
+
+La numeración puede resolverse por servicio transversal, pero el significado de prefijos pertenece a los catálogos de cada módulo.
+
 Regla:
 
 crecer no implica mezclar responsabilidades.
@@ -1333,7 +1393,7 @@ La dirección sigue siendo modular, con fronteras explícitas, operación simple
 <<END SECTION>>
 
 <<SECTION: CONTRATO MODULAR COMO DIRECCIÓN DE CRECIMIENTO>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00009
 
 CONTRATO MODULAR COMO DIRECCIÓN DE CRECIMIENTO
 
@@ -1361,6 +1421,16 @@ las automatizaciones futuras deben operar sobre contratos explícitos y no sobre
 
 la IA futura debe respetar los contratos modulares del sistema y no crear canales paralelos de operación
 
+los helpers de integración deben ser genéricos desde el punto de vista del módulo oferente y no específicos por consumidor
+
+las surfaces deben expresar capacidades reales y no duplicación de hosts
+
+los hooks deben funcionar como puntos de intervención explícita, no como conocimiento interno disperso en controllers
+
+los selectors o providers deben concentrar capacidades de selección o validación cuando varios módulos necesitan consumir un mismo dominio
+
+los servicios transversales deben ejecutar mecánicas comunes sin decidir significado de negocio propio de cada módulo
+
 Reglas de frontera:
 
 el contrato modular define cómo integrarse
@@ -1375,11 +1445,21 @@ no debe registrar cada archivo, helper, validación o salida puntual
 
 Casos vigentes:
 
-orders continúa integrándose con inventory mediante servicios y puertas contractuales explícitas, sin absorber lógica interna del frente stock.
-
 Servicios y Mantenimiento debe avanzar como capa satélite productiva y no como sobrecarga directa de Orders.
 
 ProductOperationalSummary debe permanecer como subcapa contextual interna de Products mientras no exista justificación real para promoverla a módulo, ruta o frente independiente.
+
+Orders puede exponer relaciones, links y bloqueos mediante contratos oficiales sin interpretar internamente modelos consumidores.
+
+Products puede ofrecer selección y validación de productos para líneas mediante capacidad propia consumida por otros módulos.
+
+La numeración puede centralizarse como mecánica transversal siempre que cada módulo conserve la definición de su significado.
+
+Regla síntesis:
+
+el módulo define el significado.
+
+El servicio transversal ejecuta la mecánica.
 
 Regla final:
 

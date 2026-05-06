@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00020
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -67,8 +67,9 @@ orders → documents mediante documents.order_id cuando exista derivación docum
 
 Relaciones transversales relevantes:
 
-orders → inventory
-documents → inventory
+orders → inventory mediante hooks, líneas y capacidades oficiales cuando corresponda
+documents → inventory mediante hooks, líneas y capacidades oficiales cuando corresponda
+products → order_items y document_items mediante selector/capacidad oficial de Products
 módulos operativos → operational_activities
 módulo funcional → activity_record_set opcional → OperationalActivityContextReader
 módulo funcional → activity_context opcional → OperationalActivityContextReader
@@ -188,9 +189,15 @@ Lectura relacional vigente:
 
 Task belongsTo Order.
 
-Order hasMany Tasks.
+Orders no expone relación inversa tasks() como parte de su núcleo saneado.
 
-Una Order puede tener múltiples Tasks vinculadas.
+La dirección funcional estable es:
+
+Task -> Order
+
+Regla:
+
+Orders no debe navegar Tasks como parte de su núcleo si esa navegación induce acoplamiento activo o ownership incorrecto.
 
 task_id solo puede existir como parámetro transitorio de creación contextual.
 
@@ -204,7 +211,15 @@ Tasks conserva identidad propia como módulo de pendientes, seguimiento y accion
 
 Puede vincularse opcionalmente con Orders mediante tasks.order_id.
 
-Una Order puede tener múltiples Tasks asociadas.
+Una Order puede tener múltiples Tasks asociadas desde la lectura funcional del ecosistema, pero la navegación y ownership de esa relación pertenecen a Tasks.
+
+Aclaración operativa de Appointments:
+
+Appointments conserva identidad propia como módulo de agenda, planificación temporal y turnos.
+
+Puede vincularse opcionalmente con Orders mediante appointments.order_id.
+
+Appointments no transfiere ownership de agenda ni planificación a Orders.
 
 Aclaración operativa de Documents:
 
@@ -232,6 +247,56 @@ La visualización de contraparte debe resolverse desde el registro dueño median
 
 Document::displayCounterpartyName()
 
+Aclaración operativa de Products:
+
+Products funciona como catálogo maestro del producto.
+
+Puede ofrecer capacidades de selección y validación de productos para líneas operativas y documentales.
+
+Caso vigente:
+
+ProductLineItemSelector
+
+Lectura:
+
+Products ofrece selección, opciones y validación de acceso a productos.
+
+Orders administra sus propios order_items.
+
+Documents administra sus propios document_items.
+
+OrderItemController y DocumentItemController no deben reconstruir internamente Product::query(), products.viewAny ni Rule::exists('products') cuando existe selector oficial.
+
+Aclaración operativa de numeración:
+
+La numeración puede apoyarse en una entidad técnica de secuencias.
+
+Entidad técnica vigente:
+
+document_sequences
+
+Modelo técnico vigente:
+
+DocumentSequence
+
+Servicio transversal vigente:
+
+RecordNumberGenerator
+
+Regla:
+
+el servicio transversal ejecuta la mecánica de numeración.
+
+El significado de negocio, incluidos prefijos, pertenece a los catálogos de cada módulo.
+
+Casos vigentes:
+
+OrderCatalog define prefijos de Orders.
+
+DocumentCatalog define prefijos de Documents.
+
+DocumentNumberGenerator queda eliminado como lectura vigente.
+
 Aclaración sobre PartyLinked:
 
 PartyLinked representa únicamente el vínculo gestionado cuando existe Party vinculada y corresponde mostrar enlace.
@@ -242,6 +307,24 @@ Casos vigentes:
 
 Orders
 Documents
+
+Aclaración operativa de hooks:
+
+Los hooks funcionan como fronteras explícitas de consulta o intervención entre módulos.
+
+Pueden permitir que un módulo externo bloquee, ajuste o deje pasar una acción propia del módulo dueño del flujo.
+
+Caso vigente:
+
+OrdersHooks funciona como frontera estratégica del flujo de Orders.
+
+InventoryOrderItemHooks conserva lógica de bloqueo de cierre vinculada a ejecución física de líneas.
+
+Regla:
+
+Orders no debe reconstruir internamente la lógica material de Inventory.
+
+Inventory conserva ownership de las reglas físicas.
 
 Aclaración operativa de OperationalActivity:
 
@@ -610,7 +693,7 @@ Por esta razón, no debe tratarse como una entidad tenant-scoped pura del negoci
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 ENTIDADES DEL NEGOCIO
 
@@ -664,6 +747,12 @@ Campos conceptuales relevantes:
 party_id nullable como vínculo gestionado opcional con Parties
 counterparty_name como snapshot textual propio de contraparte
 asset_id nullable como vínculo opcional con Assets
+campos de numeración
+estado
+fecha
+notas
+usuario creador
+usuario actualizador
 lifecycle base propio
 order_items como entidad hija natural
 
@@ -693,13 +782,53 @@ Relación vigente:
 
 Task belongsTo Order.
 
-Order hasMany Tasks.
+Order no expone relación tasks() como parte del núcleo saneado.
+
+Regla:
+
+la dirección funcional es Task -> Order.
+
+Orders no debe navegar Tasks desde su núcleo si esa navegación introduce acoplamiento activo indebido.
 
 Regla adicional:
 
 orders no debe contener appointment_id como relación persistente de su núcleo.
 
 La relación persistente con Appointments se resuelve desde appointments.order_id.
+
+Relaciones aceptadas actualmente en Order:
+
+party como relación pasiva con Parties
+
+asset como relación pasiva con Assets
+
+documents como relación de consulta o derivación documental vigente
+
+attachments como relación transversal polimórfica
+
+order_items como relación estructural propia
+
+Regla:
+
+estas relaciones no habilitan por sí mismas que OrderController gobierne lógica interna de módulos externos.
+
+Aclaración vigente sobre OrderItem:
+
+order_items es entidad hija natural de orders.
+
+Puede relacionarse con Product.
+
+La selección y validación de productos para líneas no debe vivir como consulta directa dispersa en el controller.
+
+Capacidad vigente:
+
+ProductLineItemSelector
+
+Lectura:
+
+Products ofrece selección y validación de productos.
+
+Orders administra sus propios ítems.
 
 Aclaración vigente sobre Tasks:
 
@@ -713,9 +842,25 @@ order_id nullable
 
 Regla:
 
-una Order puede tener múltiples Tasks asociadas.
-
 Tasks conserva ownership de pendientes y seguimiento.
+
+La relación funcional hacia Orders vive en Tasks.
+
+Aclaración vigente sobre Appointments:
+
+appointments es entidad operativa propia del tenant.
+
+Puede actuar como agenda, turno, visita o planificación temporal.
+
+Puede vincularse opcionalmente con Orders mediante:
+
+order_id nullable
+
+Regla:
+
+Appointments conserva ownership de planificación temporal.
+
+La relación funcional hacia Orders vive en Appointments.
 
 Aclaración vigente sobre Documents:
 
@@ -747,6 +892,46 @@ Si no hay Party, counterparty_name debe venir escrito manualmente según el cont
 
 Documents conserva ownership documental aunque derive desde Orders.
 
+Aclaración vigente sobre DocumentItem:
+
+document_items es entidad hija natural de documents.
+
+Puede relacionarse con Product.
+
+La selección y validación de productos para líneas no debe vivir como consulta directa dispersa en el controller.
+
+Capacidad vigente:
+
+ProductLineItemSelector
+
+Lectura:
+
+Products ofrece selección y validación de productos.
+
+Documents administra sus propios ítems.
+
+Aclaración vigente sobre numeración:
+
+document_sequences se mantiene como tabla técnica de secuencias.
+
+DocumentSequence se mantiene como entidad técnica de secuencias.
+
+La mecánica de numeración vigente se resuelve mediante:
+
+RecordNumberGenerator
+
+Regla:
+
+RecordNumberGenerator no define significado de negocio ni prefijos por sí mismo.
+
+Los prefijos pertenecen a los catálogos de los módulos.
+
+Casos vigentes:
+
+OrderCatalog define prefijos de Orders.
+
+DocumentCatalog define prefijos de Documents.
+
 Aclaración vigente sobre PartyLinked:
 
 PartyLinked representa el vínculo gestionado con Parties cuando existe party_id y corresponde mostrar enlace.
@@ -756,6 +941,26 @@ No debe utilizarse como fuente principal del texto visible de contraparte cuando
 Regla:
 
 el texto visible de contraparte debe provenir del módulo dueño mediante su helper oficial o payload preparado por su capa correspondiente.
+
+Aclaración vigente sobre hooks:
+
+los hooks pueden actuar como frontera funcional para condiciones externas que impactan un flujo propio.
+
+Casos vigentes:
+
+OrdersHooks
+
+InventoryOrderItemHooks
+
+Lectura:
+
+OrdersHooks expresa frontera estratégica del flujo de Orders.
+
+InventoryOrderItemHooks conserva reglas materiales propias de Inventory.
+
+Regla:
+
+un hook no convierte al módulo consumidor en dueño de la lógica del proveedor.
 
 Aclaración vigente sobre OperationalActivity:
 

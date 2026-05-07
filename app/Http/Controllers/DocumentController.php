@@ -175,7 +175,7 @@ class DocumentController extends Controller
 
         $document = new Document([
             'party_id' => $prefilledPartyId,
-            'counterparty_name' => $prefilledCounterpartyName,
+            'counterparty_reference' => $prefilledCounterpartyName,
             'order_id' => $order?->id,
             'asset_id' => $prefilledAssetId,
             'group' => $prefilledGroup,
@@ -211,7 +211,7 @@ class DocumentController extends Controller
                         ->whereNull('deleted_at');
                 }),
             ],
-            'counterparty_name' => ['nullable', 'string', 'max:255'],
+            'counterparty_reference' => ['nullable', 'string', 'max:255'],
             'order_id' => [
                 'nullable',
                 'integer',
@@ -273,7 +273,7 @@ class DocumentController extends Controller
 
             $data['party_id'] = $order->party_id;
             $data['asset_id'] = $order->asset_id;
-            $data['counterparty_name'] = $order->displayCounterpartyName();
+            $data['counterparty_reference'] = $order->displayCounterpartyName();
         }
 
         if (! empty($data['party_id'])) {
@@ -308,14 +308,14 @@ class DocumentController extends Controller
             }
         }
 
-        $data['counterparty_name'] = $party
+        $data['counterparty_reference'] = $party
             ? $party->name
-            : trim((string) ($data['counterparty_name'] ?? ''));
+            : trim((string) ($data['counterparty_reference'] ?? ''));
 
-        if ($data['counterparty_name'] === '') {
+        if ($data['counterparty_reference'] === '') {
             return back()
                 ->withErrors([
-                    'counterparty_name' => 'Debes seleccionar un contacto o escribir una contraparte.',
+                    'counterparty_reference' => 'Debes seleccionar un contacto o escribir una contraparte.',
                 ])
                 ->withInput();
         }
@@ -441,7 +441,7 @@ class DocumentController extends Controller
             $document = Document::create([
                 'tenant_id' => $order->tenant_id,
                 'party_id' => $order->party_id,
-                'counterparty_name' => $order->displayCounterpartyName(),
+                'counterparty_reference' => $order->displayCounterpartyName(),
                 'order_id' => $order->id,
                 'asset_id' => $order->asset_id,
                 'group' => $data['group'],
@@ -552,7 +552,7 @@ class DocumentController extends Controller
                         ->whereNull('deleted_at');
                 }),
             ],
-            'counterparty_name' => ['nullable', 'string', 'max:255'],
+            'counterparty_reference' => ['nullable', 'string', 'max:255'],
             'order_id' => [
                 'nullable',
                 'integer',
@@ -645,7 +645,7 @@ class DocumentController extends Controller
 
             $data['party_id'] = $order->party_id;
             $data['asset_id'] = $order->asset_id;
-            $data['counterparty_name'] = $order->displayCounterpartyName();
+            $data['counterparty_reference'] = $order->displayCounterpartyName();
         }
 
         $security->authorize(
@@ -687,14 +687,14 @@ class DocumentController extends Controller
             }
         }
 
-        $data['counterparty_name'] = $party
+        $data['counterparty_reference'] = $party
             ? $party->name
-            : trim((string) ($data['counterparty_name'] ?? ''));
+            : trim((string) ($data['counterparty_reference'] ?? ''));
 
-        if ($data['counterparty_name'] === '') {
+        if ($data['counterparty_reference'] === '') {
             return back()
                 ->withErrors([
-                    'counterparty_name' => 'Debes seleccionar un contacto o escribir una contraparte.',
+                    'counterparty_reference' => 'Debes seleccionar un contacto o escribir una contraparte.',
                 ])
                 ->withInput();
         }

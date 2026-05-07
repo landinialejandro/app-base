@@ -1,20 +1,27 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderController.php | V28
+// FILE: app/Http/Controllers/OrderController.php | V29
 
 namespace App\Http\Controllers;
 
 use App\Events\OperationalRecordCreated;
 use App\Events\OperationalRecordUpdated;
+use App\Models\Asset;
 use App\Models\Order;
+use App\Models\Party;
+use App\Support\Assets\AssetOrderSelector;
 use App\Support\Auth\Security;
 use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\ModuleCatalog;
 use App\Support\Catalogs\OrderCatalog;
+use App\Support\Modules\ModuleSurfaceRegistry;
+use App\Support\Modules\SurfaceHostContextBuilder;
 use App\Support\Navigation\NavigationTrail;
 use App\Support\Navigation\OrderNavigationTrail;
 use App\Support\Numbering\RecordNumberGenerator;
 use App\Support\Orders\OrdersHooks;
+use App\Support\Orders\OrderSurfaceService;
+use App\Support\Parties\PartyOrderSelector;
 use Barryvdh\DomPDF\Facade\Pdf;
 use Illuminate\Http\Request;
 use Illuminate\Support\Carbon;
@@ -41,7 +48,7 @@ class OrderController extends Controller
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($subquery) use ($q) {
                     $subquery->where('number', 'like', "%{$q}%")
-                        ->orWhere('counterparty_name', 'like', "%{$q}%");
+                        ->orWhere('counterparty_reference', 'like', "%{$q}%");
 
                     if (ctype_digit($q)) {
                         $subquery->orWhere('id', (int) $q);
@@ -102,10 +109,24 @@ class OrderController extends Controller
 
         $navigationTrail = OrderNavigationTrail::create($request);
 
+        $relationshipBoundary = $this->relationshipBoundaryForOrderForm(
+            request: $request,
+            order: null,
+            mode: 'create',
+            fieldDefaults: [
+                'party_id' => '',
+                'asset_id' => '',
+                'counterparty_reference' => '',
+                'group' => $prefilledGroup,
+                'kind' => $prefilledKind,
+            ],
+        );
+
         return view('orders.create', compact(
             'prefilledGroup',
             'prefilledKind',
             'navigationTrail',
+            'relationshipBoundary',
         ));
     }
 
@@ -116,7 +137,10 @@ class OrderController extends Controller
         $user = auth()->user();
 
         $data = $request->validate([
-            'counterparty_name' => ['required', 'string', 'max:255'],
+            'party_id' => ['nullable', 'integer'],
+            'counterparty_reference' => ['nullable', 'string', 'max:255'],
+            'asset_id' => ['nullable', 'integer'],
+            'asset_reference' => ['nullable', 'string', 'max:255'],
             'group' => [
                 'required',
                 Rule::in(array_keys(OrderCatalog::groups())),
@@ -140,12 +164,12 @@ class OrderController extends Controller
             ['kind' => $data['group']]
         );
 
-        $data['counterparty_name'] = trim((string) $data['counterparty_name']);
+        $data = $this->normalizeLinkedOrderData($data, $tenant->id, $user);
 
-        if ($data['counterparty_name'] === '') {
+        if ($data['counterparty_reference'] === '') {
             return back()
                 ->withErrors([
-                    'counterparty_name' => 'Debes escribir una contraparte.',
+                    'counterparty_reference' => 'Debes escribir una contraparte o seleccionar un contacto vinculado.',
                 ])
                 ->withInput();
         }
@@ -209,6 +233,8 @@ class OrderController extends Controller
         $order->load([
             'creator',
             'updater',
+            'party',
+            'asset.party',
             'items.product',
             'documents',
             'attachments' => fn ($query) => $query->ordered(),
@@ -228,11 +254,20 @@ class OrderController extends Controller
     {
         $this->authorize('update', $order);
 
+        $user = auth()->user();
+
         $navigationTrail = OrderNavigationTrail::edit($request, $order);
+
+        $relationshipBoundary = $this->relationshipBoundaryForOrderForm(
+            request: $request,
+            order: $order,
+            mode: 'edit',
+        );
 
         return view('orders.edit', compact(
             'order',
             'navigationTrail',
+            'relationshipBoundary',
         ));
     }
 
@@ -246,11 +281,15 @@ class OrderController extends Controller
             'No se puede editar una orden en estado readonly.'
         );
 
+        $tenant = app('tenant');
         $security = app(Security::class);
         $user = auth()->user();
 
         $data = $request->validate([
-            'counterparty_name' => ['required', 'string', 'max:255'],
+            'party_id' => ['nullable', 'integer'],
+            'counterparty_reference' => ['nullable', 'string', 'max:255'],
+            'asset_id' => ['nullable', 'integer'],
+            'asset_reference' => ['nullable', 'string', 'max:255'],
             'group' => [
                 'required',
                 Rule::in(array_keys(OrderCatalog::groups())),
@@ -278,6 +317,8 @@ class OrderController extends Controller
             $order,
             ['kind' => $order->group]
         );
+
+        $data = $this->normalizeLinkedOrderData($data, $tenant->id, $user);
 
         if (! OrderCatalog::canTransition($order->status, $data['status'])) {
             return back()
@@ -308,12 +349,10 @@ class OrderController extends Controller
             }
         }
 
-        $data['counterparty_name'] = trim((string) $data['counterparty_name']);
-
-        if ($data['counterparty_name'] === '') {
+        if ($data['counterparty_reference'] === '') {
             return back()
                 ->withErrors([
-                    'counterparty_name' => 'Debes escribir una contraparte.',
+                    'counterparty_reference' => 'Debes escribir una contraparte o seleccionar un contacto vinculado.',
                 ])
                 ->withInput();
         }
@@ -439,6 +478,8 @@ class OrderController extends Controller
         $this->authorize('view', $order);
 
         $order->load([
+            'party',
+            'asset.party',
             'items.product',
         ]);
 
@@ -453,6 +494,8 @@ class OrderController extends Controller
         $this->authorize('view', $order);
 
         $order->load([
+            'party',
+            'asset.party',
             'items.product',
         ]);
 
@@ -522,4 +565,193 @@ class OrderController extends Controller
 
         return back()->with('success', 'Estado de la orden actualizado.');
     }
+
+    protected function partyOptionsFor($user)
+    {
+        $tenant = app('tenant');
+
+        if (! TenantModuleAccess::isEnabled(ModuleCatalog::PARTIES, $tenant)) {
+            return collect();
+        }
+
+        if (! app(Security::class)->allows($user, ModuleCatalog::PARTIES.'.viewAny')) {
+            return collect();
+        }
+
+        return app(PartyOrderSelector::class)->optionsFor($user);
+    }
+
+    protected function assetOptionsFor($user)
+    {
+        $tenant = app('tenant');
+
+        if (! TenantModuleAccess::isEnabled(ModuleCatalog::ASSETS, $tenant)) {
+            return collect();
+        }
+
+        if (! app(Security::class)->allows($user, ModuleCatalog::ASSETS.'.viewAny')) {
+            return collect();
+        }
+
+        return app(AssetOrderSelector::class)->optionsFor($user);
+    }
+
+protected function normalizeLinkedOrderData(array $data, string $tenantId, $user): array
+    {
+        $data['party_id'] = $this->normalizeNullableId($data['party_id'] ?? null);
+        $data['asset_id'] = $this->normalizeNullableId($data['asset_id'] ?? null);
+
+        $data['counterparty_reference'] = trim((string) ($data['counterparty_reference'] ?? ''));
+        $data['asset_reference'] = trim((string) ($data['asset_reference'] ?? ''));
+
+        $party = null;
+        $asset = null;
+
+        if ($data['party_id'] !== null) {
+            $party = app(Security::class)
+                ->scope($user, ModuleCatalog::PARTIES.'.viewAny', Party::query())
+                ->where('tenant_id', $tenantId)
+                ->whereKey($data['party_id'])
+                ->first();
+
+            if (! $party) {
+                abort(422, 'El contacto seleccionado no está disponible para esta orden.');
+            }
+        }
+
+        if ($data['asset_id'] !== null) {
+            $asset = app(Security::class)
+                ->scope($user, ModuleCatalog::ASSETS.'.viewAny', Asset::query())
+                ->where('tenant_id', $tenantId)
+                ->whereKey($data['asset_id'])
+                ->first();
+
+            if (! $asset) {
+                abort(422, 'El activo seleccionado no está disponible para esta orden.');
+            }
+        }
+
+        if (
+            $party
+            && $asset
+            && $asset->party_id !== null
+            && (int) $asset->party_id !== (int) $party->id
+        ) {
+            abort(422, 'El activo seleccionado no pertenece al contacto vinculado.');
+        }
+
+        if ($data['counterparty_reference'] === '' && $party) {
+            $data['counterparty_reference'] = trim((string) ($party->display_name ?: $party->name));
+        }
+
+        if ($data['asset_reference'] === '' && $asset) {
+            $data['asset_reference'] = trim((string) ($asset->internal_code ?: $asset->name));
+        }
+
+        $data['record_metadata'] = $this->relationshipMetadataForOrderData($data);
+
+        return $data;
+    }
+
+    protected function normalizeNullableId(mixed $value): ?int
+    {
+        if ($value === null || $value === '') {
+            return null;
+        }
+
+        return (int) $value;
+    }
+
+    protected function relationshipFieldsForOrderForm(Request $request, ?Order $order, string $mode, array $fieldDefaults = []): array
+    {
+        $hostPack = app(OrderSurfaceService::class)->hostPack(
+            'orders.form',
+            $order,
+            [
+                'mode' => $mode,
+                'modelClass' => Order::class,
+                'fieldNames' => [
+                    'party_id',
+                    'asset_id',
+                    'counterparty_reference',
+                ],
+                'fieldDefaults' => $fieldDefaults,
+                'trailQuery' => [],
+            ],
+        );
+
+        $formHostPack = app(SurfaceHostContextBuilder::class)
+            ->forForm($hostPack);
+
+        return app(ModuleSurfaceRegistry::class)
+            ->slotFor('orders.form', 'relationship_fields', $formHostPack);
+    }
+
+protected function relationshipBoundaryForOrderForm(Request $request, ?Order $order, string $mode, array $fieldDefaults = []): array
+    {
+        $fields = $this->relationshipFieldsForOrderForm(
+            request: $request,
+            order: $order,
+            mode: $mode,
+            fieldDefaults: $fieldDefaults,
+        );
+
+        $visibleFields = collect($fields)
+            ->filter(fn (array $surface) => ($surface['visible'] ?? true) && ! empty($surface['view']))
+            ->values();
+
+        $fieldsByKey = $visibleFields->keyBy(fn (array $surface) => $surface['key'] ?? '');
+
+        $partySurface = $fieldsByKey->get('party.order.form-context');
+        $assetSurface = $fieldsByKey->get('asset.order.form-context');
+
+        $partyMode = $partySurface && ($mode === 'create' || ($order instanceof Order && $order->party_id !== null))
+            ? 'external'
+            : 'manual';
+
+        $assetMode = $assetSurface && ($mode === 'create' || ($order instanceof Order && $order->asset_id !== null))
+            ? 'external'
+            : 'manual';
+
+        return [
+            'party' => [
+                'mode' => $partyMode,
+                'surface' => $partyMode === 'external' ? $partySurface : null,
+            ],
+            'asset' => [
+                'mode' => $assetMode,
+                'surface' => $assetMode === 'external' ? $assetSurface : null,
+            ],
+            'available' => [
+                'party' => (bool) $partySurface,
+                'asset' => (bool) $assetSurface,
+            ],
+        ];
+    }
+
+
+    protected function relationshipMetadataForOrderData(array $data): ?array
+        {
+            $relationships = [];
+    
+            if (($data['party_id'] ?? null) === null && trim((string) ($data['counterparty_reference'] ?? '')) !== '') {
+                $relationships['counterparty'] = [
+                    'managed' => false,
+                ];
+            }
+    
+            if (($data['asset_id'] ?? null) === null && trim((string) ($data['asset_reference'] ?? '')) !== '') {
+                $relationships['asset'] = [
+                    'managed' => false,
+                ];
+            }
+    
+            if (empty($relationships)) {
+                return null;
+            }
+    
+            return [
+                'relationships' => $relationships,
+            ];
+        }
 }

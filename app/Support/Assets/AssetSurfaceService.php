@@ -7,6 +7,7 @@ namespace App\Support\Assets;
 use App\Models\Appointment;
 use App\Models\Asset;
 use App\Models\Document;
+use App\Models\Order;
 use App\Models\Party;
 use App\Support\Auth\Security;
 use App\Support\Catalogs\AppointmentCatalog;
@@ -19,9 +20,18 @@ class AssetSurfaceService implements ModuleSurfaceService
 {
     use BuildsSurfaceOffers;
 
-    public function offers(): array
+public function offers(): array
     {
         return [
+            $this->formOffer(
+                key: 'asset.order.form-context',
+                label: 'Activo vinculado',
+                targets: ['orders.form'],
+                slot: 'relationship_fields',
+                priority: 20,
+                view: 'assets.components.order-form-asset',
+                resolver: $this->resolveOrderFormAsset(...),
+            ),
             $this->linkedOffer(
                 key: 'asset.linked',
                 label: AppointmentCatalog::assetLabel(),
@@ -39,6 +49,15 @@ class AssetSurfaceService implements ModuleSurfaceService
                 priority: 20,
                 view: 'assets.components.linked-asset',
                 resolver: $this->resolveLinkedForDocument(...),
+            ),
+            $this->linkedOffer(
+                key: 'asset.service-maintenance.identity',
+                label: 'Activo técnico',
+                targets: ['orders.show'],
+                slot: 'detail_items',
+                priority: 15,
+                view: 'assets.components.maintenance-asset-card',
+                resolver: $this->resolveServiceMaintenanceIdentityForOrder(...),
             ),
             $this->embeddedOffer(
                 key: 'assets.party.embedded',
@@ -74,6 +93,15 @@ class AssetSurfaceService implements ModuleSurfaceService
                 'host' => $host,
                 'record' => $record,
                 'recordType' => 'party',
+                'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
+            ];
+        }
+
+        if ($host === 'orders.show' && $record instanceof Order) {
+            return [
+                'host' => $host,
+                'record' => $record,
+                'recordType' => 'order',
                 'trailQuery' => is_array($context['trailQuery'] ?? null) ? $context['trailQuery'] : [],
             ];
         }
@@ -274,4 +302,93 @@ class AssetSurfaceService implements ModuleSurfaceService
 
         return collect();
     }
+
+
+    private function resolveServiceMaintenanceIdentityForOrder(array $hostPack): array
+        {
+            [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
+    
+            if (
+                $recordType !== 'order'
+                || ! $record instanceof \App\Models\Order
+                || $record->group !== \App\Support\Catalogs\OrderCatalog::GROUP_SERVICE
+            ) {
+                return [
+                    'data' => [
+                        'visible' => false,
+                        'asset' => null,
+                        'linked' => [
+                            'supported' => false,
+                            'exists' => false,
+                            'hidden' => true,
+                            'readonly' => false,
+                            'state' => 'hidden',
+                            'show_url' => null,
+                            'label' => 'Activo técnico',
+                            'text' => '—',
+                        ],
+                    ],
+                ];
+            }
+    
+            $asset = $record->relationLoaded('asset')
+                ? $record->asset
+                : $record->asset()->with('party')->first();
+    
+            return [
+                'data' => [
+                    'visible' => true,
+                    'asset' => $asset,
+                    'linked' => AssetLinked::forAsset(
+                        $asset,
+                        $trailQuery,
+                        'Activo técnico',
+                    ),
+                ],
+            ];
+        }
+
+
+    private function resolveOrderFormAsset(array $hostPack): array
+        {
+            $recordType = $hostPack['recordType'] ?? null;
+            $fields = is_array($hostPack['form']['fields'] ?? null)
+                ? $hostPack['form']['fields']
+                : [];
+    
+            $user = auth()->user();
+    
+            if ($recordType !== 'order' || ! $user) {
+                return [
+                    'visible' => false,
+                    'data' => [
+                        'assetOptions' => collect(),
+                        'currentAssetId' => '',
+                    ],
+                ];
+            }
+    
+            $tenant = app('tenant');
+    
+            $enabled = \App\Support\Auth\TenantModuleAccess::isEnabled(
+                \App\Support\Catalogs\ModuleCatalog::ASSETS,
+                $tenant
+            );
+    
+            $allowed = $enabled
+                && app(\App\Support\Auth\Security::class)->allows(
+                    $user,
+                    \App\Support\Catalogs\ModuleCatalog::ASSETS.'.viewAny'
+                );
+    
+            return [
+                'visible' => $allowed,
+                'data' => [
+                    'assetOptions' => $allowed
+                        ? app(\App\Support\Assets\AssetOrderSelector::class)->optionsFor($user)
+                        : collect(),
+                    'currentAssetId' => $fields['asset_id'] ?? '',
+                ],
+            ];
+        }
 }

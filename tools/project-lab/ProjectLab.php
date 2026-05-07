@@ -170,6 +170,16 @@ class ProjectLab
             ]);
         }
 
+        if (isset($_POST['ajax_save_console_audit'])) {
+            $consoleOutput = (string) ($_POST['console_output'] ?? '');
+            $output = $this->saveProjectConsoleAudit($consoleOutput);
+
+            $this->jsonResponse([
+                'ok' => true,
+                'output' => $output,
+            ]);
+        }
+
         if (isset($_POST['ajax_lab_tool'])) {
             $labTool = (string) ($_POST['lab_tool'] ?? '');
             $fromClipboard = isset($_POST['from_clipboard']) && $_POST['from_clipboard'] === '1';
@@ -794,153 +804,155 @@ class ProjectLab
         return "[ERROR] Formato no compatible en herramienta de código.\n[INFO] Soporta PHP completo, Blade completo, CSS completo, JS completo, secciones CSS/JS, TARGET :: método PHP, TARGET ++ método PHP y TARGET :: función JS.";
     }
 
-    private function applyEmbeddedBladeFile(string $content): string
-    {
-        $content = str_replace(["\r\n", "\r"], "\n", $content);
-        $lines = explode("\n", ltrim($content));
-        $headerLine = trim($lines[0] ?? '');
+private function applyEmbeddedBladeFile(string $content): string
+{
+    $content = str_replace(["\r\n", "\r"], "\n", $content);
+    $lines = explode("\n", ltrim($content));
+    $headerLine = trim($lines[0] ?? '');
 
-        if (! preg_match(self::REGEX_BLADE_FILE_HEADER, $headerLine, $matches)) {
-            return '[ERROR] No se encontró encabezado FILE válido para Blade.';
-        }
-
-        $relativePath = trim($matches[1] ?? '');
-        $version = trim($matches[2] ?? 'V1');
-
-        if ($relativePath === '') {
-            return '[ERROR] Ruta destino vacía.';
-        }
-
-        $targetPath = $this->projectRoot.'/'.$relativePath;
-        $directory = dirname($targetPath);
-
-        if (! is_dir($directory)) {
-            mkdir($directory, 0775, true);
-        }
-
-        array_shift($lines);
-        $body = ltrim(implode("\n", $lines), "\n");
-
-        $finalContent = "{{-- FILE: {$relativePath} | {$version} --}}\n\n".$body;
-        $status = file_exists($targetPath) ? 'sobrescrito' : 'creado';
-
-        if (file_put_contents($targetPath, $finalContent) === false) {
-            return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
-        }
-
-        $message = "[OK] Modo: blade_full\n";
-        $message .= "[OK] Archivo: {$relativePath}\n";
-
-        if ($status === 'sobrescrito') {
-            $message .= "[WARN] Archivo existente reemplazado completamente.\n";
-        } else {
-            $message .= "[INFO] Archivo nuevo creado.\n";
-        }
-
-        $message .= "[OK] Estado: {$status}\n";
-        $message .= "[OK] Versión: {$version}";
-
-        $this->log('LAB_CODE', $relativePath, $message);
-
-        $this->appendPipeLog(
-            self::CODE_LOG_FILE,
-            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
-            [
-                $relativePath,
-                date('Y-m-d H:i:s'),
-                $status,
-                $version,
-                'project_lab',
-                'archivo_completo',
-                get_current_user() ?: 'unknown',
-                php_uname('n') ?: 'unknown',
-            ]
-        );
-
-        return $message;
+    if (! preg_match(self::REGEX_BLADE_FILE_HEADER, $headerLine, $matches)) {
+        return '[ERROR] No se encontró encabezado FILE válido para Blade.';
     }
 
-    private function applyEmbeddedPhpFile(string $content): string
-    {
-        $content = str_replace(["\r\n", "\r"], "\n", $content);
+    $relativePath = trim($matches[1] ?? '');
+    $version = trim($matches[2] ?? 'V1');
 
-        $lines = explode("\n", ltrim($content));
-
-        if (trim($lines[0] ?? '') !== '<?php') {
-            return '[ERROR] El archivo PHP completo debe comenzar con <?php.';
-        }
-
-        array_shift($lines);
-
-        while (! empty($lines) && trim($lines[0]) === '') {
-            array_shift($lines);
-        }
-
-        $headerLine = trim($lines[0] ?? '');
-
-        if (! preg_match(self::REGEX_PHP_FILE_HEADER, $headerLine, $matches)) {
-            return '[ERROR] No se encontró encabezado FILE válido para PHP.';
-        }
-
-        $relativePath = trim($matches[1] ?? '');
-        $version = trim($matches[2] ?? 'V1');
-
-        if ($relativePath === '') {
-            return '[ERROR] Ruta destino vacía.';
-        }
-
-        $targetPath = $this->projectRoot.'/'.$relativePath;
-        $directory = dirname($targetPath);
-
-        if (! is_dir($directory)) {
-            mkdir($directory, 0775, true);
-        }
-
-        array_shift($lines);
-
-        $body = ltrim(implode("\n", $lines), "\n");
-
-        $finalContent = "<?php\n\n// FILE: {$relativePath} | {$version}\n\n".$body;
-        $status = file_exists($targetPath) ? 'sobrescrito' : 'creado';
-
-        if (file_put_contents($targetPath, $finalContent) === false) {
-            return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
-        }
-
-        $lintResult = $this->runPhpLint($relativePath);
-
-        $message = "[OK] Modo: php_full\n";
-        $message .= "[OK] Archivo: {$relativePath}\n";
-
-        if ($status === 'sobrescrito') {
-            $message .= "[WARN] Archivo existente reemplazado completamente.\n";
-        } else {
-            $message .= "[INFO] Archivo nuevo creado.\n";
-        }
-
-        $message .= "[OK] Estado: {$status}\n";
-        $message .= "[OK] Versión: {$version}\n";
-        $message .= $lintResult;
-
-        $this->log('LAB_CODE', $relativePath, $message);
-
-        $this->appendPipeLog(
-            self::CODE_LOG_FILE,
-            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
-            [
-                $relativePath,
-                date('Y-m-d H:i:s'),
-                $status,
-                $version,
-                'project_lab',
-                'archivo_completo',
-                get_current_user() ?: 'unknown',
-                php_uname('n') ?: 'unknown',
-            ]
-        );
-
-        return $message;
+    if ($relativePath === '') {
+        return '[ERROR] Ruta destino vacía.';
     }
+
+    $targetPath = $this->resolveProjectPath($relativePath, true);
+
+    if ($targetPath === null) {
+        return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
+    }
+
+    array_shift($lines);
+    $body = ltrim(implode("\n", $lines), "\n");
+
+    $finalContent = "{{-- FILE: {$relativePath} | {$version} --}}\n\n".$body;
+    $status = file_exists($targetPath) ? 'sobrescrito' : 'creado';
+
+    $writeResult = $this->writeProjectFile($relativePath, $finalContent, true);
+
+    if ($writeResult !== true) {
+        return $writeResult;
+    }
+
+    $message = "[OK] Modo: blade_full\n";
+    $message .= "[OK] Archivo: {$relativePath}\n";
+
+    if ($status === 'sobrescrito') {
+        $message .= "[WARN] Archivo existente reemplazado completamente.\n";
+    } else {
+        $message .= "[INFO] Archivo nuevo creado.\n";
+    }
+
+    $message .= "[OK] Estado: {$status}\n";
+    $message .= "[OK] Versión: {$version}";
+
+    $this->log('LAB_CODE', $relativePath, $message);
+
+    $this->appendPipeLog(
+        self::CODE_LOG_FILE,
+        ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+        [
+            $relativePath,
+            date('Y-m-d H:i:s'),
+            $status,
+            $version,
+            'project_lab',
+            'archivo_completo',
+            get_current_user() ?: 'unknown',
+            php_uname('n') ?: 'unknown',
+        ]
+    );
+
+    return $message;
+}
+
+private function applyEmbeddedPhpFile(string $content): string
+{
+    $content = str_replace(["\r\n", "\r"], "\n", $content);
+
+    $lines = explode("\n", ltrim($content));
+
+    if (trim($lines[0] ?? '') !== '<?php') {
+        return '[ERROR] El archivo PHP completo debe comenzar con <?php.';
+    }
+
+    array_shift($lines);
+
+    while (! empty($lines) && trim($lines[0]) === '') {
+        array_shift($lines);
+    }
+
+    $headerLine = trim($lines[0] ?? '');
+
+    if (! preg_match(self::REGEX_PHP_FILE_HEADER, $headerLine, $matches)) {
+        return '[ERROR] No se encontró encabezado FILE válido para PHP.';
+    }
+
+    $relativePath = trim($matches[1] ?? '');
+    $version = trim($matches[2] ?? 'V1');
+
+    if ($relativePath === '') {
+        return '[ERROR] Ruta destino vacía.';
+    }
+
+    $targetPath = $this->resolveProjectPath($relativePath, true);
+
+    if ($targetPath === null) {
+        return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
+    }
+
+    array_shift($lines);
+
+    $body = ltrim(implode("\n", $lines), "\n");
+
+    $finalContent = "<?php\n\n// FILE: {$relativePath} | {$version}\n\n".$body;
+    $status = file_exists($targetPath) ? 'sobrescrito' : 'creado';
+
+    $writeResult = $this->writeProjectFile($relativePath, $finalContent, true);
+
+    if ($writeResult !== true) {
+        return $writeResult;
+    }
+
+    $lintResult = $this->runPhpLint($relativePath);
+
+    $message = "[OK] Modo: php_full\n";
+    $message .= "[OK] Archivo: {$relativePath}\n";
+
+    if ($status === 'sobrescrito') {
+        $message .= "[WARN] Archivo existente reemplazado completamente.\n";
+    } else {
+        $message .= "[INFO] Archivo nuevo creado.\n";
+    }
+
+    $message .= "[OK] Estado: {$status}\n";
+    $message .= "[OK] Versión: {$version}\n";
+    $message .= $lintResult;
+
+    $this->log('LAB_CODE', $relativePath, $message);
+
+    $this->appendPipeLog(
+        self::CODE_LOG_FILE,
+        ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+        [
+            $relativePath,
+            date('Y-m-d H:i:s'),
+            $status,
+            $version,
+            'project_lab',
+            'archivo_completo',
+            get_current_user() ?: 'unknown',
+            php_uname('n') ?: 'unknown',
+        ]
+    );
+
+    return $message;
+}
 
     private function runEmbeddedDocsTool(string $input): string
     {
@@ -1329,255 +1341,268 @@ class ProjectLab
         return is_string($output) ? $output : '';
     }
 
-    private function runAuditScript(string $script): string
-    {
-        $script = trim($script);
+private function runAuditScript(string $script): string
+{
+    $script = trim($script);
 
-        if ($script === '') {
-            return '[ERROR] El contenido de auditoría está vacío.';
-        }
+    if ($script === '') {
+        return '[ERROR] El contenido de auditoría está vacío.';
+    }
 
-        $auditDir = $this->projectRoot.'/documentos/auditoria';
+    $inputPreview = $this->auditInputPreview($script);
 
-        if (! is_dir($auditDir)) {
-            mkdir($auditDir, 0775, true);
-        }
+    $auditDir = $this->projectRoot.'/documentos/auditoria';
 
-        $hasExplicitAuditOutput = str_contains($script, 'documentos/auditoria/');
+    if (! is_dir($auditDir)) {
+        mkdir($auditDir, 0775, true);
+    }
 
-        if ($hasExplicitAuditOutput) {
-            $result = $this->executeAuditScript($script);
+    $hasExplicitAuditOutput = str_contains($script, 'documentos/auditoria/');
 
-            $message = "[OK] Auditoría ejecutada.\n";
-            $message .= "[OK] Proyecto: {$this->projectRoot}\n\n";
-            $message .= $result ?: '[OK] Sin salida directa. Revisar archivo generado en documentos/auditoria/.';
-
-            $this->log('LAB_AUDIT', 'audit-explicit-output', $message);
-
-            return $message;
-        }
-
-        $timestamp = date('Ymd_His');
-        $relativeOutput = "documentos/auditoria/auditoria_{$timestamp}.txt";
-        $outputPath = $this->projectRoot.'/'.$relativeOutput;
-
+    if ($hasExplicitAuditOutput) {
         $result = $this->executeAuditScript($script);
 
-        file_put_contents($outputPath, $result ?? '');
+        $message = "[OK] Auditoría ejecutada.\n";
+        $message .= "[OK] Proyecto: {$this->projectRoot}\n";
+        $message .= "[INFO] Entrada: \"{$inputPreview}\"\n\n";
+        $message .= $result ?: '[OK] Sin salida directa. Revisar archivo generado en documentos/auditoria/.';
+        $message .= "\n------------------------------------------------------------";
 
-        $message = "[OK] Auditoría simple ejecutada.\n";
-        $message .= "[OK] Archivo generado: {$relativeOutput}\n";
-        $message .= "[OK] Proyecto: {$this->projectRoot}\n\n";
-        $message .= $result ?: '[OK] Comando ejecutado sin salida.';
-
-        $this->log('LAB_AUDIT', $relativeOutput, $message);
+        $this->log('LAB_AUDIT', 'audit-explicit-output', $message);
 
         return $message;
     }
 
-    private function applyEmbeddedPlainFile(string $content, string $mode): string
-    {
-        $content = str_replace(["\r\n", "\r"], "\n", $content);
-        $lines = explode("\n", ltrim($content));
-        $headerLine = trim($lines[0] ?? '');
+    $timestamp = date('Ymd_His');
+    $relativeOutput = "documentos/auditoria/auditoria_{$timestamp}.txt";
+    $outputPath = $this->projectRoot.'/'.$relativeOutput;
 
-        $style = null;
+    $result = $this->executeAuditScript($script);
 
-        if (preg_match(self::REGEX_PLAIN_FILE_HEADER_LINE, $headerLine, $matches)) {
-            $style = 'line';
-        } elseif (preg_match(self::REGEX_PLAIN_FILE_HEADER_BLOCK, $headerLine, $matches)) {
-            $style = 'block';
+    file_put_contents($outputPath, $result ?? '');
+
+    $message = "[OK] Auditoría simple ejecutada.\n";
+    $message .= "[OK] Archivo generado: {$relativeOutput}\n";
+    $message .= "[OK] Proyecto: {$this->projectRoot}\n";
+    $message .= "[INFO] Entrada: \"{$inputPreview}\"\n\n";
+    $message .= $result ?: '[OK] Comando ejecutado sin salida.';
+    $message .= "\n------------------------------------------------------------";
+
+    $this->log('LAB_AUDIT', $relativeOutput, $message);
+
+    return $message;
+}
+
+private function applyEmbeddedPlainFile(string $content, string $mode): string
+{
+    $content = str_replace(["\r\n", "\r"], "\n", $content);
+    $lines = explode("\n", ltrim($content));
+    $headerLine = trim($lines[0] ?? '');
+
+    $style = null;
+
+    if (preg_match(self::REGEX_PLAIN_FILE_HEADER_LINE, $headerLine, $matches)) {
+        $style = 'line';
+    } elseif (preg_match(self::REGEX_PLAIN_FILE_HEADER_BLOCK, $headerLine, $matches)) {
+        $style = 'block';
+    } else {
+        return '[ERROR] No se encontró encabezado FILE válido para CSS/JS.';
+    }
+
+    $relativePath = trim($matches[1] ?? '');
+    $version = trim($matches[2] ?? 'V1');
+
+    if ($relativePath === '') {
+        return '[ERROR] Ruta destino vacía.';
+    }
+
+    $extension = strtolower(pathinfo($relativePath, PATHINFO_EXTENSION));
+
+    if ($mode === 'css_full' && $extension !== 'css') {
+        return "[ERROR] El modo CSS requiere archivo .css: {$relativePath}";
+    }
+
+    if ($mode === 'js_full' && $extension !== 'js') {
+        return "[ERROR] El modo JS requiere archivo .js: {$relativePath}";
+    }
+
+    $targetPath = $this->resolveProjectPath($relativePath, true);
+
+    if ($targetPath === null) {
+        return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
+    }
+
+    array_shift($lines);
+    $body = ltrim(implode("\n", $lines), "\n");
+
+    $header = $style === 'line'
+        ? "// FILE: {$relativePath} | {$version}"
+        : "/* FILE: {$relativePath} | {$version} */";
+
+    $finalContent = $header."\n\n".$body;
+    $status = file_exists($targetPath) ? 'sobrescrito' : 'creado';
+
+    $writeResult = $this->writeProjectFile($relativePath, $finalContent, true);
+
+    if ($writeResult !== true) {
+        return $writeResult;
+    }
+
+    $message = "[OK] Modo: {$mode}\n";
+    $message .= "[OK] Archivo: {$relativePath}\n";
+
+    if ($status === 'sobrescrito') {
+        $message .= "[WARN] Archivo existente reemplazado completamente.\n";
+    } else {
+        $message .= "[INFO] Archivo nuevo creado.\n";
+    }
+
+    $message .= "[OK] Estado: {$status}\n";
+    $message .= "[OK] Versión: {$version}";
+
+    $this->log('LAB_CODE', $relativePath, $message);
+
+    $this->appendPipeLog(
+        self::CODE_LOG_FILE,
+        ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+        [
+            $relativePath,
+            date('Y-m-d H:i:s'),
+            $status,
+            $version,
+            'project_lab',
+            'archivo_completo',
+            get_current_user() ?: 'unknown',
+            php_uname('n') ?: 'unknown',
+        ]
+    );
+
+    return $message;
+}
+
+private function runEmbeddedAssetSectionsTool(string $input): string
+{
+    preg_match(self::REGEX_ASSET_SECTION_BLOCK, $input, $matches);
+
+    $relativePath = trim($matches[1] ?? '');
+
+    if ($relativePath === '') {
+        return '[ERROR] Ruta destino vacía.';
+    }
+
+    $extension = strtolower(pathinfo($relativePath, PATHINFO_EXTENSION));
+
+    if (! in_array($extension, self::ASSET_SECTION_EXTENSIONS, true)) {
+        return "[ERROR] Extensión no permitida para secciones: {$extension}";
+    }
+
+    $targetPath = $this->resolveProjectPath($relativePath, false);
+
+    if ($targetPath === null) {
+        return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
+    }
+
+    if (! file_exists($targetPath)) {
+        return "[ERROR] Archivo no encontrado: {$relativePath}";
+    }
+
+    $content = file_get_contents($targetPath);
+
+    if ($content === false) {
+        return "[ERROR] No se pudo leer el archivo: {$relativePath}";
+    }
+
+    preg_match_all('/<<SECTION:\s*(.*?)\s*>>(.*?)<<END SECTION>>/su', $input, $sections, PREG_SET_ORDER);
+
+    if (empty($sections)) {
+        return '[ERROR] No se encontraron secciones para aplicar.';
+    }
+
+    $applied = 0;
+    $appliedSections = [];
+
+    foreach ($sections as $section) {
+        $sectionName = trim($section[1] ?? '');
+        $sectionBody = $this->stripAssetSectionVersionFromBody($section[2] ?? '');
+
+        if ($sectionName === '') {
+            continue;
+        }
+
+        $escaped = preg_quote($sectionName, '/');
+
+        if ($extension === 'css') {
+            $pattern = '/\/\*\s*<<SECTION:\s*'.$escaped.'\s*>>\s*\*\/.*?\/\*\s*<<END SECTION>>\s*\*\//su';
         } else {
-            return '[ERROR] No se encontró encabezado FILE válido para CSS/JS.';
+            $pattern = '/\/\/\s*<<SECTION:\s*'.$escaped.'\s*>>.*?\/\/\s*<<END SECTION>>/su';
         }
 
-        $relativePath = trim($matches[1] ?? '');
-        $version = trim($matches[2] ?? 'V1');
-
-        if ($relativePath === '') {
-            return '[ERROR] Ruta destino vacía.';
+        if (! preg_match($pattern, $content, $targetMatches)) {
+            continue;
         }
 
-        $extension = strtolower(pathinfo($relativePath, PATHINFO_EXTENSION));
+        $existingBlock = $targetMatches[0] ?? '';
+        $nextVersion = $this->nextAssetSectionVersion($existingBlock);
 
-        if ($mode === 'css_full' && $extension !== 'css') {
-            return "[ERROR] El modo CSS requiere archivo .css: {$relativePath}";
-        }
-
-        if ($mode === 'js_full' && $extension !== 'js') {
-            return "[ERROR] El modo JS requiere archivo .js: {$relativePath}";
-        }
-
-        $targetPath = $this->projectRoot.'/'.$relativePath;
-        $directory = dirname($targetPath);
-
-        if (! is_dir($directory)) {
-            mkdir($directory, 0775, true);
-        }
-
-        array_shift($lines);
-        $body = ltrim(implode("\n", $lines), "\n");
-
-        $header = $style === 'line'
-            ? "// FILE: {$relativePath} | {$version}"
-            : "/* FILE: {$relativePath} | {$version} */";
-
-        $finalContent = $header."\n\n".$body;
-        $status = file_exists($targetPath) ? 'sobrescrito' : 'creado';
-
-        if (file_put_contents($targetPath, $finalContent) === false) {
-            return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
-        }
-
-        $message = "[OK] Modo: {$mode}\n";
-        $message .= "[OK] Archivo: {$relativePath}\n";
-
-        if ($status === 'sobrescrito') {
-            $message .= "[WARN] Archivo existente reemplazado completamente.\n";
+        if ($extension === 'css') {
+            $replacement =
+                "/* <<SECTION: {$sectionName}>> */\n".
+                "/* SECTION_VERSION: {$nextVersion} */\n\n".
+                $sectionBody."\n\n".
+                '/* <<END SECTION>> */';
         } else {
-            $message .= "[INFO] Archivo nuevo creado.\n";
+            $replacement =
+                "// <<SECTION: {$sectionName}>>\n".
+                "// SECTION_VERSION: {$nextVersion}\n\n".
+                $sectionBody."\n\n".
+                '// <<END SECTION>>';
         }
 
-        $message .= "[OK] Estado: {$status}\n";
-        $message .= "[OK] Versión: {$version}";
+        $newContent = preg_replace($pattern, $replacement, $content, 1, $count);
 
-        $this->log('LAB_CODE', $relativePath, $message);
+        if ($newContent === null || $count === 0) {
+            continue;
+        }
 
-        $this->appendPipeLog(
-            self::CODE_LOG_FILE,
-            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
-            [
-                $relativePath,
-                date('Y-m-d H:i:s'),
-                $status,
-                $version,
-                'project_lab',
-                'archivo_completo',
-                get_current_user() ?: 'unknown',
-                php_uname('n') ?: 'unknown',
-            ]
-        );
-
-        return $message;
+        $content = $newContent;
+        $applied++;
+        $appliedSections[] = "{$sectionName}:{$nextVersion}";
     }
 
-    private function runEmbeddedAssetSectionsTool(string $input): string
-    {
-        preg_match(self::REGEX_ASSET_SECTION_BLOCK, $input, $matches);
-
-        $relativePath = trim($matches[1] ?? '');
-
-        if ($relativePath === '') {
-            return '[ERROR] Ruta destino vacía.';
-        }
-
-        $extension = strtolower(pathinfo($relativePath, PATHINFO_EXTENSION));
-
-        if (! in_array($extension, self::ASSET_SECTION_EXTENSIONS, true)) {
-            return "[ERROR] Extensión no permitida para secciones: {$extension}";
-        }
-
-        $targetPath = $this->projectRoot.'/'.$relativePath;
-
-        if (! file_exists($targetPath)) {
-            return "[ERROR] Archivo no encontrado: {$relativePath}";
-        }
-
-        $content = file_get_contents($targetPath);
-
-        if ($content === false) {
-            return "[ERROR] No se pudo leer el archivo: {$relativePath}";
-        }
-
-        preg_match_all('/<<SECTION:\s*(.*?)\s*>>(.*?)<<END SECTION>>/su', $input, $sections, PREG_SET_ORDER);
-
-        if (empty($sections)) {
-            return '[ERROR] No se encontraron secciones para aplicar.';
-        }
-
-        $applied = 0;
-        $appliedSections = [];
-
-        foreach ($sections as $section) {
-            $sectionName = trim($section[1] ?? '');
-            $sectionBody = $this->stripAssetSectionVersionFromBody($section[2] ?? '');
-
-            if ($sectionName === '') {
-                continue;
-            }
-
-            $escaped = preg_quote($sectionName, '/');
-
-            if ($extension === 'css') {
-                $pattern = '/\/\*\s*<<SECTION:\s*'.$escaped.'\s*>>\s*\*\/.*?\/\*\s*<<END SECTION>>\s*\*\//su';
-            } else {
-                $pattern = '/\/\/\s*<<SECTION:\s*'.$escaped.'\s*>>.*?\/\/\s*<<END SECTION>>/su';
-            }
-
-            if (! preg_match($pattern, $content, $targetMatches)) {
-                continue;
-            }
-
-            $existingBlock = $targetMatches[0] ?? '';
-            $nextVersion = $this->nextAssetSectionVersion($existingBlock);
-
-            if ($extension === 'css') {
-                $replacement =
-                    "/* <<SECTION: {$sectionName}>> */\n".
-                    "/* SECTION_VERSION: {$nextVersion} */\n\n".
-                    $sectionBody."\n\n".
-                    '/* <<END SECTION>> */';
-            } else {
-                $replacement =
-                    "// <<SECTION: {$sectionName}>>\n".
-                    "// SECTION_VERSION: {$nextVersion}\n\n".
-                    $sectionBody."\n\n".
-                    '// <<END SECTION>>';
-            }
-
-            $newContent = preg_replace($pattern, $replacement, $content, 1, $count);
-
-            if ($newContent === null || $count === 0) {
-                continue;
-            }
-
-            $content = $newContent;
-            $applied++;
-            $appliedSections[] = "{$sectionName}:{$nextVersion}";
-        }
-
-        if ($applied === 0) {
-            return '[ERROR] No se encontró ninguna sección destino en el archivo.';
-        }
-
-        if (file_put_contents($targetPath, $content) === false) {
-            return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
-        }
-
-        $message = "[OK] Modo: asset_sections\n";
-        $message .= "[OK] Archivo: {$relativePath}\n";
-        $message .= "[OK] Secciones aplicadas: {$applied}\n";
-        $message .= '[INFO] Versiones: '.implode(', ', $appliedSections);
-
-        $this->log('LAB_CODE', $relativePath, $message);
-
-        $this->appendPipeLog(
-            self::CODE_LOG_FILE,
-            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
-            [
-                $relativePath,
-                date('Y-m-d H:i:s'),
-                'actualizado',
-                implode(', ', $appliedSections),
-                'project_lab',
-                'asset_sections',
-                get_current_user() ?: 'unknown',
-                php_uname('n') ?: 'unknown',
-            ]
-        );
-
-        return $message;
+    if ($applied === 0) {
+        return '[ERROR] No se encontró ninguna sección destino en el archivo.';
     }
+
+    $writeResult = $this->writeProjectFile($relativePath, $content, false);
+
+    if ($writeResult !== true) {
+        return $writeResult;
+    }
+
+    $message = "[OK] Modo: asset_sections\n";
+    $message .= "[OK] Archivo: {$relativePath}\n";
+    $message .= "[OK] Secciones aplicadas: {$applied}\n";
+    $message .= '[INFO] Versiones: '.implode(', ', $appliedSections);
+
+    $this->log('LAB_CODE', $relativePath, $message);
+
+    $this->appendPipeLog(
+        self::CODE_LOG_FILE,
+        ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+        [
+            $relativePath,
+            date('Y-m-d H:i:s'),
+            'actualizado',
+            implode(', ', $appliedSections),
+            'project_lab',
+            'asset_sections',
+            get_current_user() ?: 'unknown',
+            php_uname('n') ?: 'unknown',
+        ]
+    );
+
+    return $message;
+}
 
     private function findEmbeddedJsFunctionRange(string $content, string $functionName): ?array
     {
@@ -1880,5 +1905,180 @@ class ProjectLab
         }
 
         return "[ERROR] Sintaxis PHP inválida: {$relativePath}\n".$output;
+    }
+
+private function saveProjectConsoleAudit(string $content): string
+{
+    $content = str_replace(["\r\n", "\r"], "\n", trim($content));
+
+    if ($content === '') {
+        return '[ERROR] No hay contenido de consola para guardar.';
+    }
+
+    $auditDir = $this->projectRoot.'/documentos/auditoria';
+
+    if (! is_dir($auditDir)) {
+        mkdir($auditDir, 0775, true);
+    }
+
+    $timestamp = date('Ymd_His');
+    $relativeOutput = "documentos/auditoria/auditoria_{$timestamp}.txt";
+    $targetPath = $this->projectRoot.'/'.$relativeOutput;
+
+    $previewSource = preg_replace('/\s+/', ' ', $content);
+    $previewSource = trim((string) $previewSource);
+
+    $previewStart = substr($previewSource, 0, 120);
+    $previewEnd = strlen($previewSource) > 120
+        ? substr($previewSource, -120)
+        : $previewSource;
+
+    $previewLine = "[INFO] Entrada: inicio=\"{$previewStart}\" | fin=\"{$previewEnd}\"";
+
+    $fileContent = "[OK] Consola Project Lab guardada como auditoría.\n";
+    $fileContent .= "[OK] Archivo generado: {$relativeOutput}\n";
+    $fileContent .= "[OK] Proyecto: {$this->projectRoot}\n";
+    $fileContent .= $previewLine."\n";
+    $fileContent .= "------------------------------------------------------------\n\n";
+    $fileContent .= $content."\n";
+
+    if (file_put_contents($targetPath, $fileContent) === false) {
+        return "[ERROR] No se pudo guardar la consola como auditoría: {$relativeOutput}";
+    }
+
+    return "[OK] Consola Project Lab guardada como auditoría.\n"
+        ."[OK] Archivo generado: {$relativeOutput}\n"
+        ."[OK] Proyecto: {$this->projectRoot}\n"
+        .$previewLine."\n"
+        ."------------------------------------------------------------";
+}
+
+
+    private function auditInputPreview(string $script): string
+    {
+        $normalized = preg_replace('/\s+/', ' ', trim($script));
+        $normalized = is_string($normalized) ? trim($normalized) : trim($script);
+    
+        $normalized = str_replace('"', "'", $normalized);
+    
+        if (strlen($normalized) <= 110) {
+            return $normalized;
+        }
+    
+        return substr($normalized, 0, 50).' ... '.substr($normalized, -50);
+    }
+
+
+    private function resolveProjectPath(string $relativePath, bool $allowNewFile = false): ?string
+    {
+        $relativePath = str_replace(["\r\n", "\r", "\n", "\\"], ['', '', '', '/'], trim($relativePath));
+    
+        if ($relativePath === '') {
+            return null;
+        }
+    
+        if (str_starts_with($relativePath, '/')) {
+            return null;
+        }
+    
+        if (preg_match('#(^|/)\.\.(/|$)#', $relativePath)) {
+            return null;
+        }
+    
+        if (str_contains($relativePath, "\0")) {
+            return null;
+        }
+    
+        $projectRoot = realpath($this->projectRoot);
+    
+        if ($projectRoot === false) {
+            return null;
+        }
+    
+        $projectRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR);
+    
+        $candidatePath = $projectRoot.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+    
+        if (file_exists($candidatePath)) {
+            $resolvedPath = realpath($candidatePath);
+    
+            if ($resolvedPath === false) {
+                return null;
+            }
+    
+            return str_starts_with($resolvedPath, $projectRoot.DIRECTORY_SEPARATOR) || $resolvedPath === $projectRoot
+                ? $resolvedPath
+                : null;
+        }
+    
+        if (! $allowNewFile) {
+            return null;
+        }
+    
+        $parentDirectory = dirname($candidatePath);
+    
+        while (! is_dir($parentDirectory) && $parentDirectory !== dirname($parentDirectory)) {
+            $parentDirectory = dirname($parentDirectory);
+        }
+    
+        $resolvedParent = realpath($parentDirectory);
+    
+        if ($resolvedParent === false) {
+            return null;
+        }
+    
+        if (! str_starts_with($resolvedParent, $projectRoot.DIRECTORY_SEPARATOR) && $resolvedParent !== $projectRoot) {
+            return null;
+        }
+    
+        return $candidatePath;
+    }
+
+
+    private function writeProjectFile(string $relativePath, string $content, bool $allowNewFile = true, bool $append = false): true|string
+    {
+        $targetPath = $this->resolveProjectPath($relativePath, $allowNewFile);
+    
+        if ($targetPath === null) {
+            return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
+        }
+    
+        $directory = dirname($targetPath);
+        $projectRoot = realpath($this->projectRoot);
+    
+        if ($projectRoot === false) {
+            return '[ERROR] No se pudo resolver el root del proyecto.';
+        }
+    
+        $projectRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR);
+    
+        if (! is_dir($directory)) {
+            $parent = dirname($directory);
+    
+            while (! is_dir($parent) && $parent !== dirname($parent)) {
+                $parent = dirname($parent);
+            }
+    
+            $resolvedParent = realpath($parent);
+    
+            if (
+                $resolvedParent === false
+                || (! str_starts_with($resolvedParent, $projectRoot.DIRECTORY_SEPARATOR) && $resolvedParent !== $projectRoot)
+            ) {
+                return "[ERROR] Directorio destino fuera del proyecto: {$relativePath}";
+            }
+    
+            if (! mkdir($directory, 0775, true) && ! is_dir($directory)) {
+                return "[ERROR] No se pudo crear el directorio destino: {$relativePath}";
+            }
+        }
+    
+        $flags = $append ? FILE_APPEND : 0;
+    
+        if (file_put_contents($targetPath, $content, $flags) === false) {
+            return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
+        }
+    
+        return true;
     }
 }

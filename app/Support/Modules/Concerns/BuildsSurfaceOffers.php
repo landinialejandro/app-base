@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Modules/Concerns/BuildsSurfaceOffers.php | V1
+// FILE: app/Support/Modules/Concerns/BuildsSurfaceOffers.php | V2
 
 namespace App\Support\Modules\Concerns;
 
@@ -51,6 +51,34 @@ trait BuildsSurfaceOffers
     ): array {
         return [
             'type' => 'embedded',
+            'key' => $key,
+            'label' => $label,
+            'targets' => $targets,
+            'slot' => $slot,
+            'priority' => $priority,
+            'view' => $view,
+            'needs' => $needs,
+            'resolver' => $resolver,
+        ];
+    }
+
+    /**
+     * @param  array<int, string>  $targets
+     * @param  array<int, string>  $needs
+     * @return array<string, mixed>
+     */
+    protected function formOffer(
+        string $key,
+        string $label,
+        array $targets,
+        string $slot,
+        int $priority,
+        string $view,
+        callable $resolver,
+        array $needs = ['recordType', 'trailQuery', 'form', 'mode'],
+    ): array {
+        return [
+            'type' => 'form',
             'key' => $key,
             'label' => $label,
             'targets' => $targets,

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/edit.blade.php | V8 --}}
+{{-- FILE: resources/views/orders/edit.blade.php | V9 --}}
 
 @extends('layouts.app')
 
@@ -27,6 +27,7 @@
 
                 @include('orders._form', [
                     'order' => $order,
+                    'relationshipBoundary' => $relationshipBoundary,
                 ])
 
                 <div class="form-actions">
@@ -42,5 +43,5 @@
         </x-card>
     </x-page>
 
-    <x-dev-component-version name="orders.edit" version="V8" align="right" />
+    <x-dev-component-version name="orders.edit" version="V9" align="right" />
 @endsection

@@ -283,7 +283,7 @@ private function createOrder(array $data): Order
         ->where('number', $data['number'])
         ->first();
 
-    $counterpartyName = trim((string) ($data['counterparty_name'] ?? ''));
+    $counterpartyName = trim((string) ($data['counterparty_reference'] ?? ''));
 
     if ($counterpartyName === '' && ! empty($data['party_id'])) {
         $counterpartyName = (string) DB::table('parties')
@@ -299,7 +299,7 @@ private function createOrder(array $data): Order
 
     $payload = [
         'party_id' => $data['party_id'] ?? null,
-        'counterparty_name' => $counterpartyName,
+        'counterparty_reference' => $counterpartyName,
         'group' => $data['group'],
         'kind' => $data['kind'],
         'status' => $data['status'],
@@ -408,4 +408,30 @@ private function createOrder(array $data): Order
 
         throw new \RuntimeException('Order operational cycle requires at least one physical product.');
     }
+
+
+    private function recordMetadataForOrderPayload(array $data, string $counterpartyReference): ?array
+        {
+            $relationships = [];
+    
+            if (empty($data['party_id']) && $counterpartyReference !== '') {
+                $relationships['counterparty'] = [
+                    'managed' => false,
+                ];
+            }
+    
+            if (empty($data['asset_id']) && trim((string) ($data['asset_reference'] ?? '')) !== '') {
+                $relationships['asset'] = [
+                    'managed' => false,
+                ];
+            }
+    
+            if (empty($relationships)) {
+                return null;
+            }
+    
+            return [
+                'relationships' => $relationships,
+            ];
+        }
 }

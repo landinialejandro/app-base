@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/DashboardController.php | V10
+// FILE: app/Http/Controllers/DashboardController.php | V11
 
 namespace App\Http\Controllers;
 
@@ -11,7 +11,9 @@ use App\Models\Order;
 use App\Models\Party;
 use App\Models\Product;
 use App\Support\Auth\Security;
+use App\Support\Auth\TenantModuleAccess;
 use App\Support\Catalogs\ModuleCatalog;
+use App\Support\Catalogs\OrderCatalog;
 use App\Support\Catalogs\ProjectCatalog;
 use App\Support\Catalogs\TaskCatalog;
 use App\Support\Projects\ProjectVisibility;
@@ -124,6 +126,29 @@ class DashboardController extends Controller
         $canAccessDocuments = $security->allows($user, ModuleCatalog::DOCUMENTS.'.viewAny');
         $canAccessInventory = $security->allows($user, ModuleCatalog::INVENTORY.'.viewAny');
 
+        $serviceMaintenanceEnabled = TenantModuleAccess::isEnabled(ModuleCatalog::SERVICE_MAINTENANCE, $tenant);
+
+        $canAccessServiceMaintenance = $serviceMaintenanceEnabled
+            && $security->allows($user, ModuleCatalog::SERVICE_MAINTENANCE.'.viewAny');
+
+        $canViewServiceOrders = $canAccessServiceMaintenance
+            && $security->allows($user, ModuleCatalog::ORDERS.'.viewAny');
+
+        $canCreateServiceOrders = $canAccessServiceMaintenance
+            && $security->allows(
+                $user,
+                ModuleCatalog::ORDERS.'.create',
+                Order::class,
+                ['kind' => OrderCatalog::GROUP_SERVICE]
+            );
+
+        $serviceOrdersCount = $canViewServiceOrders
+            ? $security
+                ->scope($user, ModuleCatalog::ORDERS.'.viewAny', Order::query())
+                ->where('group', OrderCatalog::GROUP_SERVICE)
+                ->count()
+            : null;
+
         $canSeeAnalytics = ($membership?->is_owner === true)
             || $security->allows($user, ModuleCatalog::DASHBOARD.'.viewAny');
 
@@ -141,6 +166,11 @@ class DashboardController extends Controller
             'canAccessProducts' => $canAccessProducts,
             'canAccessDocuments' => $canAccessDocuments,
             'canAccessInventory' => $canAccessInventory,
+
+            'canAccessServiceMaintenance' => $canAccessServiceMaintenance,
+            'canViewServiceOrders' => $canViewServiceOrders,
+            'canCreateServiceOrders' => $canCreateServiceOrders,
+            'serviceOrdersCount' => $serviceOrdersCount,
 
             'projectOverview' => [
                 'visible_projects_count' => $visibleProjectsCount,

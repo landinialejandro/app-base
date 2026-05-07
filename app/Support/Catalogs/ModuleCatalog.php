@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/ModuleCatalog.php | V6
+// FILE: app/Support/Catalogs/ModuleCatalog.php | V7
 
 namespace App\Support\Catalogs;
 
@@ -20,6 +20,8 @@ use App\Support\Tasks\TaskSurfaceService;
 class ModuleCatalog
 {
     public const DASHBOARD = 'dashboard';
+
+    public const SERVICE_MAINTENANCE = 'service_maintenance';
 
     public const PROJECTS = 'projects';
 
@@ -45,6 +47,11 @@ class ModuleCatalog
         self::DASHBOARD => [
             'label' => 'Dashboard',
             'icon' => 'grid',
+        ],
+
+        self::SERVICE_MAINTENANCE => [
+            'label' => 'Servicio y mantenimiento',
+            'icon' => 'orders',
         ],
 
         self::PROJECTS => [

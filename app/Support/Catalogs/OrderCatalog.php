@@ -220,12 +220,13 @@ class OrderCatalog extends BaseCatalog
         };
     }
 
-    public static function activityTrackedFields(): array
+public static function activityTrackedFields(): array
     {
         return [
             'party_id',
-            'counterparty_name',
+            'counterparty_reference',
             'asset_id',
+            'asset_reference',
             'group',
             'kind',
             'status',

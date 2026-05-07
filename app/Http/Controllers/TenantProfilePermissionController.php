@@ -114,10 +114,11 @@ public function update(Request $request)
         return $map;
     }
 
-    protected function capabilitiesForModule(string $module): array
+protected function capabilitiesForModule(string $module): array
     {
         return match ($module) {
-            ModuleCatalog::DASHBOARD => [
+            ModuleCatalog::DASHBOARD,
+            ModuleCatalog::SERVICE_MAINTENANCE => [
                 CapabilityCatalog::VIEW_ANY,
             ],
 

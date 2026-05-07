@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Order.php | V10
+// FILE: app/Models/Order.php | V11
 
 namespace App\Models;
 
@@ -20,8 +20,9 @@ class Order extends Model
     protected $fillable = [
         'tenant_id',
         'party_id',
-        'counterparty_name',
+        'counterparty_reference',
         'asset_id',
+        'asset_reference',
         'group',
         'kind',
         'number',
@@ -31,6 +32,7 @@ class Order extends Model
         'status',
         'ordered_at',
         'notes',
+        'record_metadata',
         'created_by',
         'updated_by',
     ];
@@ -38,6 +40,7 @@ class Order extends Model
     protected $casts = [
         'ordered_at' => 'date',
         'sequence_number' => 'integer',
+        'record_metadata' => 'array',
     ];
 
     public function party()
@@ -72,7 +75,12 @@ class Order extends Model
 
     public function displayCounterpartyName(): string
     {
-        return (string) ($this->counterparty_name ?: $this->party?->name ?: '—');
+        return (string) ($this->counterparty_reference ?: $this->party?->name ?: '—');
+    }
+
+    public function displayAssetReference(): string
+    {
+        return (string) ($this->asset_reference ?: $this->asset?->name ?: '—');
     }
 
     public function calculateTotal(): float
@@ -102,5 +110,17 @@ class Order extends Model
         return $this->items()
             ->whereIn('status', ['completed', 'cancelled'])
             ->exists();
+    }
+
+
+    public function hasManualCounterpartyReference(): bool
+    {
+        return data_get($this->record_metadata, 'relationships.counterparty.managed') === false;
+    }
+
+
+    public function hasManualAssetReference(): bool
+    {
+        return data_get($this->record_metadata, 'relationships.asset.managed') === false;
     }
 }

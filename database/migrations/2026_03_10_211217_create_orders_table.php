@@ -1,6 +1,6 @@
 <?php
 
-// FILE: database/migrations/2026_03_10_211217_create_orders_table.php | V4
+// FILE: database/migrations/2026_03_10_211217_create_orders_table.php | V6
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -24,7 +24,8 @@ return new class extends Migration
                 ->constrained('parties')
                 ->nullOnDelete();
 
-            $table->string('counterparty_name')->nullable();
+            $table->string('counterparty_reference')->nullable();
+            $table->json('record_metadata')->nullable();
 
             $table->string('group', 20)->default('sale');
             $table->string('kind', 20)->default('standard');
@@ -52,7 +53,7 @@ return new class extends Migration
             $table->softDeletes();
 
             $table->index(['tenant_id', 'party_id']);
-            $table->index(['tenant_id', 'counterparty_name'], 'orders_tenant_counterparty_name_index');
+            $table->index(['tenant_id', 'counterparty_reference'], 'orders_tenant_counterparty_reference_index');
             $table->index(['tenant_id', 'group'], 'orders_tenant_group_index');
             $table->index(['tenant_id', 'kind']);
             $table->index(['tenant_id', 'status']);

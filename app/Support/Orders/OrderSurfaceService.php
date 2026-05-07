@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Orders/OrderSurfaceService.php | V18
+// FILE: app/Support/Orders/OrderSurfaceService.php | V19
 
 namespace App\Support\Orders;
 
@@ -8,15 +8,16 @@ use App\Models\Asset;
 use App\Models\Document;
 use App\Models\Order;
 use App\Models\Party;
-use App\Support\Auth\Security;
+use App\Support\Modules\Concerns\BuildsHostPacks;
 use App\Support\Modules\Concerns\BuildsSurfaceOffers;
+use App\Support\Modules\Concerns\ResolvesRelatedEmbeddedSurfaces;
 use App\Support\Modules\Contracts\ModuleSurfaceService;
-use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Collection;
 
 class OrderSurfaceService implements ModuleSurfaceService
 {
+    use BuildsHostPacks;
     use BuildsSurfaceOffers;
+    use ResolvesRelatedEmbeddedSurfaces;
 
     public function offers(): array
     {
@@ -42,27 +43,30 @@ class OrderSurfaceService implements ModuleSurfaceService
         ];
     }
 
-    public function hostPack(string $host, mixed $record = null, array $context = []): array
+private function supportedHosts(): array
     {
-        $supportedHost = $this->supportedHosts()[$host] ?? null;
-
-        if (! is_array($supportedHost)) {
-            return [];
-        }
-
-        $expectedClass = $supportedHost['class'] ?? null;
-
-        if (! is_string($expectedClass) || ! $record instanceof $expectedClass) {
-            return [];
-        }
-
         return [
-            'host' => $host,
-            'recordType' => $supportedHost['recordType'],
-            'record' => $record,
-            'trailQuery' => is_array($context['trailQuery'] ?? null)
-                ? $context['trailQuery']
-                : [],
+            'orders.form' => [
+                'recordType' => 'order',
+                'class' => Order::class,
+                'allowNullRecord' => true,
+            ],
+            'orders.show' => [
+                'recordType' => 'order',
+                'class' => Order::class,
+            ],
+            'parties.show' => [
+                'recordType' => 'party',
+                'class' => Party::class,
+            ],
+            'assets.show' => [
+                'recordType' => 'asset',
+                'class' => Asset::class,
+            ],
+            'documents.show' => [
+                'recordType' => 'document',
+                'class' => Document::class,
+            ],
         ];
     }
 
@@ -89,91 +93,27 @@ class OrderSurfaceService implements ModuleSurfaceService
 
     private function resolveRelatedEmbedded(array $hostPack): array
     {
-        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
-
-        $config = is_string($recordType)
-            ? ($this->relatedHosts()[$recordType] ?? null)
-            : null;
-
-        if (! $this->matchesRelatedHost($record, $config)) {
-            return $this->relatedEmbeddedPayload(
-                orders: collect(),
-                config: $this->emptyRelatedConfig(),
+        return $this->relatedEmbeddedSurfacePayload(
+            hostPack: $hostPack,
+            relatedHosts: $this->relatedHosts(),
+            emptyConfig: $this->emptyRelatedConfig(),
+            recordsResolver: fn ($record, array $config) => $this->scopedRelatedRecordsFor(
+                record: $record,
+                config: $config,
+                ability: 'orders.viewAny',
+                modelClass: Order::class,
+            ),
+            payloadBuilder: fn ($orders, array $config, array $trailQuery) => $this->embeddedRecordsPayload(
+                records: $orders,
+                recordsKey: 'orders',
+                config: $config,
                 trailQuery: $trailQuery,
-            );
-        }
-
-        return $this->relatedEmbeddedPayload(
-            orders: $this->ordersForRelatedHost($record, $config),
-            config: $config,
-            trailQuery: $trailQuery,
+                extraData: [
+                    'showCounterparty' => (bool) ($config['showCounterparty'] ?? false),
+                    'showAsset' => (bool) ($config['showAsset'] ?? false),
+                ],
+            ),
         );
-    }
-
-    private function relatedEmbeddedPayload(
-        Collection $orders,
-        array $config,
-        array $trailQuery,
-    ): array {
-        return [
-            'count' => $orders->count(),
-            'data' => [
-                'orders' => $orders,
-                'tabsId' => $config['tabsId'],
-                'trailQuery' => $trailQuery,
-                'showCounterparty' => (bool) $config['showCounterparty'],
-                'showAsset' => (bool) $config['showAsset'],
-                'emptyMessage' => $config['emptyMessage'],
-            ],
-        ];
-    }
-
-    private function matchesRelatedHost(mixed $record, mixed $config): bool
-    {
-        if (! is_array($config)) {
-            return false;
-        }
-
-        $expectedClass = $config['class'] ?? null;
-
-        return is_string($expectedClass) && $record instanceof $expectedClass;
-    }
-
-    private function ordersForRelatedHost(Model $record, array $config): Collection
-    {
-        $filterColumn = $config['filterColumn'] ?? null;
-
-        if (! is_string($filterColumn) || $filterColumn === '') {
-            return collect();
-        }
-
-        return app(Security::class)
-            ->scope(auth()->user(), 'orders.viewAny', Order::query())
-            ->where($filterColumn, $record->getKey())
-            ->latest()
-            ->get();
-    }
-
-    private function supportedHosts(): array
-    {
-        return [
-            'orders.show' => [
-                'recordType' => 'order',
-                'class' => Order::class,
-            ],
-            'parties.show' => [
-                'recordType' => 'party',
-                'class' => Party::class,
-            ],
-            'assets.show' => [
-                'recordType' => 'asset',
-                'class' => Asset::class,
-            ],
-            'documents.show' => [
-                'recordType' => 'document',
-                'class' => Document::class,
-            ],
-        ];
     }
 
     private function relatedHosts(): array

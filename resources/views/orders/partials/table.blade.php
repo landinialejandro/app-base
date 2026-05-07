@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/partials/table.blade.php | V17 --}}
+{{-- FILE: resources/views/orders/partials/table.blade.php | V18 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
@@ -12,6 +12,7 @@
     $containerTrail = NavigationTrail::decode($trailQuery['trail'] ?? null);
 
     $renderCounterpartyColumn = $showCounterparty;
+    $renderAssetColumn = $showAsset;
 @endphp
 
 @if ($orders->count())
@@ -25,6 +26,10 @@
 
                     @if ($renderCounterpartyColumn)
                         <th>Contraparte</th>
+                    @endif
+
+                    @if ($renderAssetColumn)
+                        <th>Activo</th>
                     @endif
 
                     <th>Fecha</th>
@@ -60,6 +65,7 @@
                         $rowTrailQuery = NavigationTrail::toQuery($rowTrail);
 
                         $counterpartyName = $order->displayCounterpartyName();
+                        $assetReference = $order->displayAssetReference();
                     @endphp
 
                     <tr>
@@ -78,7 +84,23 @@
                         </td>
 
                         @if ($renderCounterpartyColumn)
-                            <td>{{ $counterpartyName }}</td>
+                            <td>
+                                <div>{{ $counterpartyName }}</div>
+
+                                @if ($order->hasManualCounterpartyReference())
+                                    <small>Manual</small>
+                                @endif
+                            </td>
+                        @endif
+
+                        @if ($renderAssetColumn)
+                            <td>
+                                <div>{{ $assetReference }}</div>
+
+                                @if ($order->hasManualAssetReference())
+                                    <small>Manual</small>
+                                @endif
+                            </td>
                         @endif
 
                         <td>{{ $order->ordered_at?->format('d/m/Y') ?: '—' }}</td>
@@ -92,4 +114,4 @@
     <p class="mb-0">{{ $emptyMessage }}</p>
 @endif
 
-<x-dev-component-version name="orders.partials.table" version="V17" align="right" />
+<x-dev-component-version name="orders.partials.table" version="V18" align="right" />

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/_form.blade.php | V13 --}}
+{{-- FILE: resources/views/orders/_form.blade.php | V18 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
@@ -24,19 +24,61 @@
         ? 'El backend validará la transición de estado y bloqueará cambios inválidos.'
         : 'La orden comienza normalmente en borrador y su transición futura debe validarse desde backend.';
 
-    $currentCounterpartyName = old('counterparty_name', $order->counterparty_name ?? '');
+    $currentCounterpartyReference = old('counterparty_reference', $order->counterparty_reference ?? '');
+    $currentAssetReference = old('asset_reference', $order->asset_reference ?? '');
+
+    $relationshipBoundary = $relationshipBoundary ?? [
+        'party' => [
+            'mode' => 'manual',
+            'surface' => null,
+        ],
+        'asset' => [
+            'mode' => 'manual',
+            'surface' => null,
+        ],
+    ];
+
+    $partyBoundary = $relationshipBoundary['party'] ?? ['mode' => 'manual', 'surface' => null];
+    $assetBoundary = $relationshipBoundary['asset'] ?? ['mode' => 'manual', 'surface' => null];
+
+    $partyMode = $partyBoundary['mode'] ?? 'manual';
+    $assetMode = $assetBoundary['mode'] ?? 'manual';
 @endphp
 
-<div class="form">
-    <div class="form-group">
-        <label for="counterparty_name" class="form-label">Contraparte</label>
-        <input type="text" name="counterparty_name" id="counterparty_name" class="form-control"
-            value="{{ $currentCounterpartyName }}" maxlength="255" required>
-        <div class="form-help">Requerido. La orden conserva este dato propio.</div>
-        @error('counterparty_name')
-            <div class="form-help is-error">{{ $message }}</div>
-        @enderror
-    </div>
+<div class="form" data-action="app-party-asset-sync" data-party-select="#party_id" data-asset-select="#asset_id">
+    @if ($partyMode === 'external' && !empty($partyBoundary['surface']['view']))
+        @include($partyBoundary['surface']['view'], $partyBoundary['surface']['data'] ?? [])
+        <input type="hidden" name="counterparty_reference" value="{{ $currentCounterpartyReference }}">
+    @else
+        <div class="form-group">
+            <label for="counterparty_reference" class="form-label">Contraparte</label>
+            <input type="text" name="counterparty_reference" id="counterparty_reference" class="form-control"
+                value="{{ $currentCounterpartyReference }}" maxlength="255">
+            <div class="form-help">
+                Requerido si no se selecciona contacto. La orden conserva este dato propio como referencia operativa.
+            </div>
+            @error('counterparty_reference')
+                <div class="form-help is-error">{{ $message }}</div>
+            @enderror
+        </div>
+    @endif
+
+    @if ($assetMode === 'external' && !empty($assetBoundary['surface']['view']))
+        @include($assetBoundary['surface']['view'], $assetBoundary['surface']['data'] ?? [])
+        <input type="hidden" name="asset_reference" value="{{ $currentAssetReference }}">
+    @else
+        <div class="form-group">
+            <label for="asset_reference" class="form-label">Referencia de activo</label>
+            <input type="text" name="asset_reference" id="asset_reference" class="form-control"
+                value="{{ $currentAssetReference }}" maxlength="255">
+            <div class="form-help">
+                Opcional. Permite identificar equipo, vehículo, máquina u otro activo cuando no existe activo gestionado.
+            </div>
+            @error('asset_reference')
+                <div class="form-help is-error">{{ $message }}</div>
+            @enderror
+        </div>
+    @endif
 
     <div class="form-group">
         <label for="group" class="form-label">Tipo</label>
@@ -91,4 +133,4 @@
     </div>
 </div>
 
-<x-dev-component-version name="orders._form" version="V13" align="right" />
+<x-dev-component-version name="orders._form" version="V18" align="right" />

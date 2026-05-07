@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/PermissionScopeCatalog.php | V12
+// FILE: app/Support/Catalogs/PermissionScopeCatalog.php | V13
 
 namespace App\Support\Catalogs;
 
@@ -44,6 +44,8 @@ class PermissionScopeCatalog
 
             ModuleCatalog::DASHBOARD => static::dashboardOptionsFor($capability),
 
+            ModuleCatalog::SERVICE_MAINTENANCE => static::serviceMaintenanceOptionsFor($capability),
+
             ModuleCatalog::TASKS => static::taskOptionsFor($capability),
             ModuleCatalog::APPOINTMENTS => static::appointmentOptionsFor($capability),
             ModuleCatalog::PROJECTS => static::projectOptionsFor($capability),
@@ -65,6 +67,16 @@ class PermissionScopeCatalog
     }
 
     protected static function dashboardOptionsFor(string $capability): array
+    {
+        return match ($capability) {
+            CapabilityCatalog::VIEW_ANY => [
+                self::TENANT_ALL => static::label(self::TENANT_ALL),
+            ],
+            default => [],
+        };
+    }
+
+    protected static function serviceMaintenanceOptionsFor(string $capability): array
     {
         return match ($capability) {
             CapabilityCatalog::VIEW_ANY => [
@@ -140,14 +152,13 @@ class PermissionScopeCatalog
         };
     }
 
-
     protected static function operationalActivityOptionsFor(string $capability): array
     {
         return match ($capability) {
             CapabilityCatalog::VIEW_ANY => [
                 self::TENANT_ALL => static::label(self::TENANT_ALL),
             ],
-    
+
             default => [],
         };
     }

@@ -18,9 +18,18 @@ class PartySurfaceService implements ModuleSurfaceService
 {
     use BuildsSurfaceOffers;
 
-    public function offers(): array
+public function offers(): array
     {
         return [
+            $this->formOffer(
+                key: 'party.order.form-context',
+                label: 'Contacto vinculado',
+                targets: ['orders.form'],
+                slot: 'relationship_fields',
+                priority: 10,
+                view: 'parties.components.order-form-party',
+                resolver: $this->resolveOrderFormParty(...),
+            ),
             $this->linkedOffer(
                 key: 'party.linked',
                 label: AppointmentCatalog::contactLabel(),
@@ -216,4 +225,48 @@ private function resolveLinked(
         ],
     ];
 }
+
+
+    private function resolveOrderFormParty(array $hostPack): array
+        {
+            $recordType = $hostPack['recordType'] ?? null;
+            $fields = is_array($hostPack['form']['fields'] ?? null)
+                ? $hostPack['form']['fields']
+                : [];
+    
+            $user = auth()->user();
+    
+            if ($recordType !== 'order' || ! $user) {
+                return [
+                    'visible' => false,
+                    'data' => [
+                        'partyOptions' => collect(),
+                        'currentPartyId' => '',
+                    ],
+                ];
+            }
+    
+            $tenant = app('tenant');
+    
+            $enabled = \App\Support\Auth\TenantModuleAccess::isEnabled(
+                \App\Support\Catalogs\ModuleCatalog::PARTIES,
+                $tenant
+            );
+    
+            $allowed = $enabled
+                && app(\App\Support\Auth\Security::class)->allows(
+                    $user,
+                    \App\Support\Catalogs\ModuleCatalog::PARTIES.'.viewAny'
+                );
+    
+            return [
+                'visible' => $allowed,
+                'data' => [
+                    'partyOptions' => $allowed
+                        ? app(\App\Support\Parties\PartyOrderSelector::class)->optionsFor($user)
+                        : collect(),
+                    'currentPartyId' => $fields['party_id'] ?? '',
+                ],
+            ];
+        }
 }

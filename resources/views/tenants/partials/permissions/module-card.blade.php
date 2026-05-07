@@ -1,15 +1,17 @@
-{{-- FILE: resources/views/tenants/partials/permissions/module-card.blade.php | V6 --}}
+{{-- FILE: resources/views/tenants/partials/permissions/module-card.blade.php | V7 --}}
 
 @php
     $collapsed = $collapsed ?? !$loop->first;
 
     $moduleHelp = match ($module) {
         'dashboard' => 'Define si este perfil puede acceder al panel principal.',
+        'service_maintenance' => 'Define si este perfil puede acceder al área Servicio y mantenimiento.',
         default => 'Define qué podrá hacer este tipo de acceso en este módulo.',
     };
 
     $moduleDetail = match ($module) {
         'dashboard' => 'Este módulo solo administra acceso al panel y visualización general.',
+        'service_maintenance' => 'Esta área organiza accesos automatizados a flujos de servicio. Las acciones reales sobre órdenes, activos, inventario, documentos, tareas o turnos se autorizan desde los módulos dueños.',
         default => 'Puedes permitir acciones como ver, crear o editar información.
 Si tienes dudas, conviene dar menos acceso y ampliarlo después.',
     };

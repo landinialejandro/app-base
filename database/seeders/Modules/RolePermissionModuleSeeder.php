@@ -519,10 +519,11 @@ protected function partyMeta(?string $scope, array $allowedPartyRoles): array
 }
 
 
-    protected function effectiveMatrix(): array
+protected function effectiveMatrix(): array
     {
         return array_replace(
             $this->matrix(),
+            $this->serviceMaintenanceMatrix(),
             $this->tenantCapabilityMatrix()
         );
     }
@@ -545,4 +546,33 @@ protected function partyMeta(?string $scope, array $allowedPartyRoles): array
             ],
         ];
     }
+
+
+    protected function serviceMaintenanceMatrix(): array
+        {
+            return [
+                ModuleCatalog::SERVICE_MAINTENANCE => [
+                    RoleCatalog::OWNER => [
+                        CapabilityCatalog::VIEW_ANY => [
+                            'scope' => PermissionScopeCatalog::TENANT_ALL,
+                        ],
+                    ],
+                    RoleCatalog::ADMIN => [
+                        CapabilityCatalog::VIEW_ANY => [
+                            'scope' => PermissionScopeCatalog::TENANT_ALL,
+                        ],
+                    ],
+                    RoleCatalog::OPERATOR => [
+                        CapabilityCatalog::VIEW_ANY => [
+                            'scope' => PermissionScopeCatalog::TENANT_ALL,
+                        ],
+                    ],
+                    RoleCatalog::ADMINISTRATOR => [
+                        CapabilityCatalog::VIEW_ANY => [
+                            'scope' => PermissionScopeCatalog::TENANT_ALL,
+                        ],
+                    ],
+                ],
+            ];
+        }
 }

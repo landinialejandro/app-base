@@ -11,14 +11,16 @@
     $currentOrderId = old('order_id', $boundOrder?->id ?? ($document->order_id ?? ''));
     $currentPartyId = old('party_id', $boundOrder?->party_id ?? ($document->party_id ?? ''));
     $currentCounterpartyName = old(
-        'counterparty_name',
-        $document->counterparty_name ?? ($boundOrder?->displayCounterpartyName() ?? ($document->party?->name ?? ''))
+        'counterparty_reference',
+        $document->counterparty_reference ??
+            ($boundOrder?->displayCounterpartyName() ?? ($document->party?->name ?? '')),
     );
     $currentAssetId = old('asset_id', $boundOrder?->asset_id ?? ($document->asset_id ?? ''));
     $currentGroup = old('group', $document->group ?? DocumentCatalog::GROUP_SALE);
 
-    $visibleKinds = collect(DocumentCatalog::kindLabelsForGroup($currentGroup))
-        ->reject(fn($label, $value) => $value === DocumentCatalog::KIND_WORK_ORDER);
+    $visibleKinds = collect(DocumentCatalog::kindLabelsForGroup($currentGroup))->reject(
+        fn($label, $value) => $value === DocumentCatalog::KIND_WORK_ORDER,
+    );
 @endphp
 
 <div class="form" data-action="app-party-asset-sync" data-party-select="#party_id" data-asset-select="#asset_id">
@@ -32,18 +34,20 @@
                 </option>
             @endforeach
         </select>
-        <div class="form-help">Opcional. Si se selecciona, el documento guardará el nombre del contacto como snapshot.</div>
+        <div class="form-help">Opcional. Si se selecciona, el documento guardará el nombre del contacto como snapshot.
+        </div>
         @error('party_id')
             <div class="form-help is-error">{{ $message }}</div>
         @enderror
     </div>
 
     <div class="form-group">
-        <label for="counterparty_name" class="form-label">Contraparte</label>
-        <input type="text" name="counterparty_name" id="counterparty_name" class="form-control"
+        <label for="counterparty_reference" class="form-label">Contraparte</label>
+        <input type="text" name="counterparty_reference" id="counterparty_reference" class="form-control"
             value="{{ $currentCounterpartyName }}" maxlength="255">
-        <div class="form-help">Requerido si no se selecciona un contacto gestionado. El documento conserva este dato propio.</div>
-        @error('counterparty_name')
+        <div class="form-help">Requerido si no se selecciona un contacto gestionado. El documento conserva este dato
+            propio.</div>
+        @error('counterparty_reference')
             <div class="form-help is-error">{{ $message }}</div>
         @enderror
     </div>
@@ -72,7 +76,8 @@
         <select name="asset_id" id="asset_id" class="form-control">
             <option value="">Sin activo asociado</option>
             @foreach ($assets as $asset)
-                <option value="{{ $asset->id }}" data-party-id="{{ $asset->party_id }}" @selected($currentAssetId == $asset->id)>
+                <option value="{{ $asset->id }}" data-party-id="{{ $asset->party_id }}"
+                    @selected($currentAssetId == $asset->id)>
                     {{ $asset->name }}
                     @if ($asset->internal_code)
                         — {{ $asset->internal_code }}

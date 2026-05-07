@@ -18,7 +18,7 @@ class Document extends Model
     protected $fillable = [
         'tenant_id',
         'party_id',
-        'counterparty_name',
+        'counterparty_reference',
         'order_id',
         'asset_id',
         'group',
@@ -85,6 +85,6 @@ class Document extends Model
 
     public function displayCounterpartyName(): string
     {
-        return (string) ($this->counterparty_name ?: $this->party?->name ?: $this->order?->displayCounterpartyName() ?: '—');
+        return (string) ($this->counterparty_reference ?: $this->party?->name ?: $this->order?->displayCounterpartyName() ?: '—');
     }
 }

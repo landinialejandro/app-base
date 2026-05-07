@@ -24,7 +24,7 @@ return new class extends Migration
                 ->constrained('parties')
                 ->nullOnDelete();
 
-            $table->string('counterparty_name')->nullable();
+            $table->string('counterparty_reference')->nullable();
 
             $table->foreignId('order_id')
                 ->nullable()
@@ -64,7 +64,7 @@ return new class extends Migration
             $table->index(['tenant_id', 'issued_at']);
             $table->index(['tenant_id', 'number']);
             $table->index(['tenant_id', 'party_id']);
-            $table->index(['tenant_id', 'counterparty_name'], 'documents_tenant_counterparty_name_index');
+            $table->index(['tenant_id', 'counterparty_reference'], 'documents_tenant_counterparty_reference_index');
             $table->index(['tenant_id', 'order_id']);
         });
     }

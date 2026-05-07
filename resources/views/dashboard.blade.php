@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/dashboard.blade.php | V9 --}}
+{{-- FILE: resources/views/dashboard.blade.php | V10 --}}
 
 @extends('layouts.app')
 
@@ -10,6 +10,7 @@
 
 @php
     use App\Support\Catalogs\ModuleCatalog;
+    use App\Support\Catalogs\OrderCatalog;
 
     $dailyCards = collect([
         [
@@ -35,6 +36,25 @@
             'title' => 'Activos',
             'text' => 'Ver y administrar activos operativos',
             'meta' => $assetsCount . ' activos',
+        ],
+    ])->where('can', true)->values();
+
+    $serviceMaintenanceCards = collect([
+        [
+            'module' => ModuleCatalog::SERVICE_MAINTENANCE,
+            'can' => $canViewServiceOrders,
+            'route' => route('orders.index', ['group' => OrderCatalog::GROUP_SERVICE]),
+            'title' => 'Órdenes de servicio',
+            'text' => 'Ver trabajos técnicos, intervenciones y órdenes de mantenimiento',
+            'meta' => ($serviceOrdersCount ?? 0) . ' órdenes de servicio',
+        ],
+        [
+            'module' => ModuleCatalog::SERVICE_MAINTENANCE,
+            'can' => $canCreateServiceOrders,
+            'route' => route('orders.create', ['group' => OrderCatalog::GROUP_SERVICE]),
+            'title' => 'Nueva orden de servicio',
+            'text' => 'Crear una orden de servicio sin configurar el tipo manualmente',
+            'meta' => 'Tipo Servicio preseleccionado',
         ],
     ])->where('can', true)->values();
 
@@ -128,6 +148,41 @@
             </x-card>
         @endif
 
+        @if ($canAccessServiceMaintenance && $serviceMaintenanceCards->isNotEmpty())
+            <x-card>
+                <div class="dashboard-section-header">
+                    <h2 class="dashboard-section-title">Servicio y mantenimiento</h2>
+                    <p class="dashboard-section-text">
+                        Accesos automatizados para trabajos técnicos, servicios y mantenimiento. Las acciones disponibles
+                        dependen de los permisos configurados para órdenes de servicio.
+                    </p>
+                </div>
+
+                <div class="dashboard-grid dashboard-grid--premium">
+                    @foreach ($serviceMaintenanceCards as $card)
+                        @php
+                            $icon = ModuleCatalog::icon($card['module']);
+                        @endphp
+
+                        <a href="{{ $card['route'] }}"
+                            class="dashboard-link-card dashboard-module-card dashboard-module-card--{{ $card['module'] }}">
+                            <span class="dashboard-module-icon">
+                                <x-dynamic-component :component="'icons.' . $icon" />
+                            </span>
+
+                            <span class="dashboard-module-watermark">
+                                <x-dynamic-component :component="'icons.' . $icon" />
+                            </span>
+
+                            <span class="dashboard-link-title">{{ $card['title'] }}</span>
+                            <span class="dashboard-link-text">{{ $card['text'] }}</span>
+                            <span class="dashboard-link-meta">{{ $card['meta'] }}</span>
+                        </a>
+                    @endforeach
+                </div>
+            </x-card>
+        @endif
+
         @if ($managementCards->isNotEmpty())
             <x-card>
                 <div class="dashboard-section-header">
@@ -166,5 +221,7 @@
                 'taskOverview' => $taskOverview ?? [],
             ])
         @endif
+
+        <x-dev-component-version name="dashboard" version="V10" align="right" />
     </x-page>
 @endsection

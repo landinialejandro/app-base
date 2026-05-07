@@ -57,6 +57,7 @@ function ensureProjectConsoleOutput() {
             <span>📤 Consola Project Lab</span>
             <div style="display:flex; gap:6px;">
                 <button onclick="copyProjectConsoleOutput()" class="secondary small">Copiar</button>
+                <button onclick="saveProjectConsoleOutput()" class="success small">Guardar</button>
                 <button onclick="clearProjectConsoleOutput()" class="danger small">Borrar</button>
             </div>
         </div>
@@ -1020,6 +1021,23 @@ document.addEventListener("keydown", function (e) {
         }
     }
 });
+
+function saveProjectConsoleOutput() {
+    const output = document.getElementById("projectConsoleOutput");
+
+    if (!output || output.innerText.trim() === "") {
+        showNotification("No hay contenido de consola para guardar", "warning");
+        return;
+    }
+
+    runProjectAction({
+        action: "ajax_save_console_audit",
+        data: {
+            console_output: output.innerText,
+        },
+        loading: "⏳ Guardando consola como auditoría...",
+    });
+}
 
 // ==================== ANIMACIONES ====================
 

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/create.blade.php | V8 --}}
+{{-- FILE: resources/views/orders/create.blade.php | V9 --}}
 
 @extends('layouts.app')
 
@@ -27,6 +27,7 @@
                 @include('orders._form', [
                     'prefilledGroup' => $prefilledGroup,
                     'prefilledKind' => $prefilledKind,
+                    'relationshipBoundary' => $relationshipBoundary,
                 ])
 
                 <div class="form-actions">
@@ -42,5 +43,5 @@
         </x-card>
     </x-page>
 
-    <x-dev-component-version name="orders.create" version="V8" align="right" />
+    <x-dev-component-version name="orders.create" version="V9" align="right" />
 @endsection

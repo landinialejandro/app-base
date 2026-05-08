@@ -954,131 +954,170 @@ private function applyEmbeddedPhpFile(string $content): string
     return $message;
 }
 
-    private function runEmbeddedDocsTool(string $input): string
-    {
-        $input = str_replace(["\r\n", "\r"], "\n", trim($input));
+private function runEmbeddedDocsTool(string $input): string
+{
+    $input = str_replace(["\r\n", "\r"], "\n", trim($input));
 
-        if ($input === '') {
-            return '[ERROR] No se recibió contenido para actualizar documentos.';
-        }
-
-        preg_match_all(
-            '/REEMPLAZAR EN:\s*\[?([a-z0-9_]+)\]?\s*(<<SECTION:\s*.*?>>.*?<<END SECTION>>)/su',
-            $input,
-            $matches,
-            PREG_SET_ORDER
-        );
-
-        if (empty($matches)) {
-            return "[ERROR] No se encontraron bloques válidos.\n[INFO] Formato esperado: REEMPLAZAR EN: [doc_slug] + bloque SECTION completo.";
-        }
-
-        $documents = $this->indexEmbeddedDocuments();
-        $total = 0;
-        $output = '';
-
-        foreach ($matches as $match) {
-            $slug = strtolower(trim($match[1]));
-            $block = trim($match[2]);
-
-            if (! isset($documents[$slug])) {
-                $output .= "[ERROR] Documento no reconocido por slug: {$slug}\n";
-
-                continue;
-            }
-
-            if (! preg_match('/<<SECTION:\s*(.*?)\s*>>/su', $block, $sectionMatch)) {
-                $output .= "[ERROR] No se pudo leer el nombre de sección para {$slug}\n";
-
-                continue;
-            }
-
-            $sectionName = trim($sectionMatch[1]);
-            $filePath = $documents[$slug];
-
-            $content = file_get_contents($filePath);
-
-            if ($content === false) {
-                $output .= "[ERROR] No se pudo leer documento: {$slug}\n";
-
-                continue;
-            }
-
-            $pattern = '/<<SECTION:\s*'.preg_quote($sectionName, '/').'\s*>>.*?<<END SECTION>>/su';
-
-            if (! preg_match($pattern, $content)) {
-                $output .= "[ERROR] [{$slug}] No se encontró la sección: {$sectionName}\n";
-
-                continue;
-            }
-
-            $backupDir = $this->projectRoot.'/documentos/baks';
-
-            if (! is_dir($backupDir)) {
-                mkdir($backupDir, 0775, true);
-            }
-
-            file_put_contents($backupDir.'/'.basename($filePath).'.bak', $content);
-
-            $newContent = preg_replace($pattern, $block, $content, 1, $count);
-
-            if ($count < 1 || $newContent === null) {
-                $output .= "[ERROR] [{$slug}] No se pudo reemplazar la sección: {$sectionName}\n";
-
-                continue;
-            }
-
-            if (file_put_contents($filePath, $newContent) === false) {
-                $output .= "[ERROR] [{$slug}] No se pudo escribir el documento.\n";
-
-                continue;
-            }
-
-            $total++;
-            $output .= "[OK] [{$slug}] Sección reemplazada: {$sectionName}\n";
-        }
-
-        $output .= $total > 0
-            ? "[OK] Proceso finalizado. Secciones aplicadas: {$total}"
-            : '[WARN] Proceso finalizado sin cambios aplicados.';
-
-        $this->log('LAB_DOCS', 'embedded-docs', $output);
-
-        $this->appendPipeLog(
-            'documentos/log/docs-updates.log',
-            ['DOCUMENTO', 'FECHA', 'SECCIONES', 'USUARIO', 'HOST', 'ORIGEN'],
-            [
-                $slug,
-                date('Y-m-d H:i:s'),
-                '1',
-                get_current_user() ?: 'unknown',
-                php_uname('n') ?: 'unknown',
-                'project_lab',
-            ]
-        );
-
-        return $output;
+    if ($input === '') {
+        return '[ERROR] No se recibió contenido para actualizar documentos.';
     }
 
-    private function indexEmbeddedDocuments(): array
-    {
-        $baseDir = $this->projectRoot.'/documentos';
-        $documents = [];
+    preg_match_all(
+        '/REEMPLAZAR EN:\s*\[?([a-z0-9_]+)\]?\s*(<<SECTION:\s*.*?>>.*?<<END SECTION>>)/su',
+        $input,
+        $matches,
+        PREG_SET_ORDER
+    );
 
-        foreach (glob($baseDir.'/*.txt') ?: [] as $filePath) {
-            $content = file_get_contents($filePath);
+    if (empty($matches)) {
+        return "[ERROR] No se encontraron bloques válidos.\n[INFO] Formato esperado: REEMPLAZAR EN: [doc_slug] + bloque SECTION completo.";
+    }
 
-            if ($content === false) {
-                continue;
-            }
+    $documents = $this->indexEmbeddedDocuments();
+    $projectRoot = realpath($this->projectRoot);
 
-            if (preg_match('/DOC_SLUG:\s*([a-z0-9_]+)/', $content, $match)) {
-                $documents[strtolower(trim($match[1]))] = $filePath;
-            }
+    if ($projectRoot === false) {
+        return '[ERROR] No se pudo resolver el root del proyecto.';
+    }
+
+    $projectRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR);
+
+    $total = 0;
+    $output = '';
+    $lastSlug = '-';
+
+    foreach ($matches as $match) {
+        $slug = strtolower(trim($match[1]));
+        $block = trim($match[2]);
+        $lastSlug = $slug;
+
+        if (! isset($documents[$slug])) {
+            $output .= "[ERROR] Documento no reconocido por slug: {$slug}\n";
+
+            continue;
         }
 
-        return $documents;
+        if (! preg_match('/<<SECTION:\s*(.*?)\s*>>/su', $block, $sectionMatch)) {
+            $output .= "[ERROR] No se pudo leer el nombre de sección para {$slug}\n";
+
+            continue;
+        }
+
+        $sectionName = trim($sectionMatch[1]);
+        $filePath = $documents[$slug];
+        $resolvedFilePath = realpath($filePath);
+
+        if ($resolvedFilePath === false) {
+            $output .= "[ERROR] No se pudo resolver documento: {$slug}\n";
+
+            continue;
+        }
+
+        if (! str_starts_with($resolvedFilePath, $projectRoot.DIRECTORY_SEPARATOR)) {
+            $output .= "[ERROR] Documento fuera del proyecto: {$slug}\n";
+
+            continue;
+        }
+
+        $relativeDocPath = ltrim(substr($resolvedFilePath, strlen($projectRoot)), DIRECTORY_SEPARATOR);
+
+        $content = file_get_contents($resolvedFilePath);
+
+        if ($content === false) {
+            $output .= "[ERROR] No se pudo leer documento: {$slug}\n";
+
+            continue;
+        }
+
+        $pattern = '/<<SECTION:\s*'.preg_quote($sectionName, '/').'\s*>>.*?<<END SECTION>>/su';
+
+        if (! preg_match($pattern, $content)) {
+            $output .= "[ERROR] [{$slug}] No se encontró la sección: {$sectionName}\n";
+
+            continue;
+        }
+
+        $backupRelativePath = 'documentos/baks/'.basename($resolvedFilePath).'.bak';
+        $backupResult = $this->writeProjectFile($backupRelativePath, $content, true);
+
+        if ($backupResult !== true) {
+            $output .= "[ERROR] [{$slug}] No se pudo guardar backup: {$backupResult}\n";
+
+            continue;
+        }
+
+        $newContent = preg_replace($pattern, $block, $content, 1, $count);
+
+        if ($count < 1 || $newContent === null) {
+            $output .= "[ERROR] [{$slug}] No se pudo reemplazar la sección: {$sectionName}\n";
+
+            continue;
+        }
+
+        $writeResult = $this->writeProjectFile($relativeDocPath, $newContent, false);
+
+        if ($writeResult !== true) {
+            $output .= "[ERROR] [{$slug}] No se pudo escribir el documento. {$writeResult}\n";
+
+            continue;
+        }
+
+        $total++;
+        $output .= "[OK] [{$slug}] Sección reemplazada: {$sectionName}\n";
     }
+
+    $output .= $total > 0
+        ? "[OK] Proceso finalizado. Secciones aplicadas: {$total}"
+        : '[WARN] Proceso finalizado sin cambios aplicados.';
+
+    $this->log('LAB_DOCS', 'embedded-docs', $output);
+
+    $this->appendPipeLog(
+        'documentos/log/docs-updates.log',
+        ['DOCUMENTO', 'FECHA', 'SECCIONES', 'USUARIO', 'HOST', 'ORIGEN'],
+        [
+            $lastSlug,
+            date('Y-m-d H:i:s'),
+            (string) $total,
+            get_current_user() ?: 'unknown',
+            php_uname('n') ?: 'unknown',
+            'project_lab',
+        ]
+    );
+
+    return $output;
+}
+
+private function indexEmbeddedDocuments(): array
+{
+    $baseDir = $this->resolveProjectPath('documentos', false);
+
+    if ($baseDir === null || ! is_dir($baseDir)) {
+        return [];
+    }
+
+    $documents = [];
+
+    foreach (glob($baseDir.'/*.txt') ?: [] as $filePath) {
+        $resolvedFilePath = realpath($filePath);
+
+        if ($resolvedFilePath === false || ! is_file($resolvedFilePath)) {
+            continue;
+        }
+
+        $content = file_get_contents($resolvedFilePath);
+
+        if ($content === false) {
+            continue;
+        }
+
+        if (preg_match('/DOC_SLUG:\s*([a-z0-9_]+)/', $content, $match)) {
+            $documents[strtolower(trim($match[1]))] = $resolvedFilePath;
+        }
+    }
+
+    return $documents;
+}
 
     private function parseEmbeddedMethodOperation(string $input): ?array
     {
@@ -1108,127 +1147,141 @@ private function applyEmbeddedPhpFile(string $content): string
         ];
     }
 
-    private function applyEmbeddedMethodReplace(array $operation): string
-    {
-        $relativePath = $operation['path'];
-        $methodName = $operation['method_name'];
-        $methodCode = $operation['method_code'];
-        $targetPath = $this->projectRoot.'/'.$relativePath;
+private function applyEmbeddedMethodReplace(array $operation): string
+{
+    $relativePath = $operation['path'];
+    $methodName = $operation['method_name'];
+    $methodCode = $operation['method_code'];
 
-        if (! file_exists($targetPath)) {
-            return "[ERROR] El archivo destino no existe: {$relativePath}";
-        }
+    $targetPath = $this->resolveProjectPath($relativePath, false);
 
-        $content = file_get_contents($targetPath);
-
-        if ($content === false) {
-            return "[ERROR] No se pudo leer el archivo: {$relativePath}";
-        }
-
-        $range = $this->findEmbeddedMethodRange($content, $methodName);
-
-        if ($range === null) {
-            return "[ERROR] No se encontró el método: {$methodName}";
-        }
-
-        [$start, $end] = $range;
-
-        $newContent = substr($content, 0, $start)
-            .rtrim($methodCode)
-            .substr($content, $end);
-
-        if (file_put_contents($targetPath, $newContent) === false) {
-            return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
-        }
-
-        $lintResult = $this->runPhpLint($relativePath);
-
-        $message = "[OK] Modo: php_method_patch\n";
-        $message .= "[OK] Archivo: {$relativePath}\n";
-        $message .= "[OK] Método reemplazado: {$methodName}\n";
-        $message .= $lintResult;
-
-        $this->log('LAB_CODE_METHOD_REPLACE', "{$relativePath}::{$methodName}", $message);
-        $this->appendPipeLog(
-            'documentos/log/code-updates.log',
-            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
-            [
-                $relativePath,
-                date('Y-m-d H:i:s'),
-                $status ?? 'actualizado',
-                $version ?? '-',
-                'project_lab',
-                $methodName ?? 'archivo_completo',
-                get_current_user() ?: 'unknown',
-                php_uname('n') ?: 'unknown',
-            ]
-        );
-
-        return $message;
+    if ($targetPath === null) {
+        return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
     }
 
-    private function applyEmbeddedMethodAdd(array $operation): string
-    {
-        $relativePath = $operation['path'];
-        $methodName = $operation['method_name'];
-        $methodCode = $operation['method_code'];
-        $targetPath = $this->projectRoot.'/'.$relativePath;
-
-        if (! file_exists($targetPath)) {
-            return "[ERROR] El archivo destino no existe: {$relativePath}";
-        }
-
-        $content = file_get_contents($targetPath);
-
-        if ($content === false) {
-            return "[ERROR] No se pudo leer el archivo: {$relativePath}";
-        }
-
-        if ($this->findEmbeddedMethodRange($content, $methodName) !== null) {
-            return "[ERROR] El método ya existe: {$methodName}";
-        }
-
-        $lastBrace = strrpos($content, '}');
-
-        if ($lastBrace === false) {
-            return "[ERROR] No se pudo encontrar cierre de clase en: {$relativePath}";
-        }
-
-        $insert = "\n\n    ".str_replace("\n", "\n    ", trim($methodCode))."\n";
-
-        $newContent = substr($content, 0, $lastBrace)
-            .$insert
-            .substr($content, $lastBrace);
-
-        if (file_put_contents($targetPath, $newContent) === false) {
-            return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
-        }
-
-        $lintResult = $this->runPhpLint($relativePath);
-
-        $message = "[OK] Modo: php_method_add\n";
-        $message .= "[OK] Archivo: {$relativePath}\n";
-        $message .= "[OK] Método agregado: {$methodName}\n";
-        $message .= $lintResult;
-
-        $this->log('LAB_CODE_METHOD_ADD', "{$relativePath}++{$methodName}", $message);
-        $this->appendPipeLog(
-            'documentos/log/code-updates.log',
-            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
-            [
-                $relativePath,
-                date('Y-m-d H:i:s'),
-                $status ?? 'actualizado',
-                $version ?? '-',
-                'project_lab',
-                $methodName ?? 'archivo_completo',
-                get_current_user() ?: 'unknown',
-                php_uname('n') ?: 'unknown',
-            ]
-        );
-
-        return $message;
+    if (! file_exists($targetPath)) {
+        return "[ERROR] El archivo destino no existe: {$relativePath}";
     }
+
+    $content = file_get_contents($targetPath);
+
+    if ($content === false) {
+        return "[ERROR] No se pudo leer el archivo: {$relativePath}";
+    }
+
+    $range = $this->findEmbeddedMethodRange($content, $methodName);
+
+    if ($range === null) {
+        return "[ERROR] No se encontró el método: {$methodName}";
+    }
+
+    [$start, $end] = $range;
+
+    $newContent = substr($content, 0, $start)
+        .rtrim($methodCode)
+        .substr($content, $end);
+
+    $writeResult = $this->writeProjectFile($relativePath, $newContent, false);
+
+    if ($writeResult !== true) {
+        return $writeResult;
+    }
+
+    $lintResult = $this->runPhpLint($relativePath);
+
+    $message = "[OK] Modo: php_method_patch\n";
+    $message .= "[OK] Archivo: {$relativePath}\n";
+    $message .= "[OK] Método reemplazado: {$methodName}\n";
+    $message .= $lintResult;
+
+    $this->log('LAB_CODE_METHOD_REPLACE', "{$relativePath}::{$methodName}", $message);
+    $this->appendPipeLog(
+        'documentos/log/code-updates.log',
+        ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+        [
+            $relativePath,
+            date('Y-m-d H:i:s'),
+            $status ?? 'actualizado',
+            $version ?? '-',
+            'project_lab',
+            $methodName ?? 'archivo_completo',
+            get_current_user() ?: 'unknown',
+            php_uname('n') ?: 'unknown',
+        ]
+    );
+
+    return $message;
+}
+
+private function applyEmbeddedMethodAdd(array $operation): string
+{
+    $relativePath = $operation['path'];
+    $methodName = $operation['method_name'];
+    $methodCode = $operation['method_code'];
+
+    $targetPath = $this->resolveProjectPath($relativePath, false);
+
+    if ($targetPath === null) {
+        return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
+    }
+
+    if (! file_exists($targetPath)) {
+        return "[ERROR] El archivo destino no existe: {$relativePath}";
+    }
+
+    $content = file_get_contents($targetPath);
+
+    if ($content === false) {
+        return "[ERROR] No se pudo leer el archivo: {$relativePath}";
+    }
+
+    if ($this->findEmbeddedMethodRange($content, $methodName) !== null) {
+        return "[ERROR] El método ya existe: {$methodName}";
+    }
+
+    $lastBrace = strrpos($content, '}');
+
+    if ($lastBrace === false) {
+        return "[ERROR] No se pudo encontrar cierre de clase en: {$relativePath}";
+    }
+
+    $insert = "\n\n    ".str_replace("\n", "\n    ", trim($methodCode))."\n";
+
+    $newContent = substr($content, 0, $lastBrace)
+        .$insert
+        .substr($content, $lastBrace);
+
+    $writeResult = $this->writeProjectFile($relativePath, $newContent, false);
+
+    if ($writeResult !== true) {
+        return $writeResult;
+    }
+
+    $lintResult = $this->runPhpLint($relativePath);
+
+    $message = "[OK] Modo: php_method_add\n";
+    $message .= "[OK] Archivo: {$relativePath}\n";
+    $message .= "[OK] Método agregado: {$methodName}\n";
+    $message .= $lintResult;
+
+    $this->log('LAB_CODE_METHOD_ADD', "{$relativePath}++{$methodName}", $message);
+    $this->appendPipeLog(
+        'documentos/log/code-updates.log',
+        ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+        [
+            $relativePath,
+            date('Y-m-d H:i:s'),
+            $status ?? 'actualizado',
+            $version ?? '-',
+            'project_lab',
+            $methodName ?? 'archivo_completo',
+            get_current_user() ?: 'unknown',
+            php_uname('n') ?: 'unknown',
+        ]
+    );
+
+    return $message;
+}
 
     private function findEmbeddedMethodRange(string $content, string $methodName): ?array
     {
@@ -1738,66 +1791,73 @@ private function runEmbeddedAssetSectionsTool(string $input): string
         return null;
     }
 
-    private function applyEmbeddedJsFunctionReplace(array $operation): string
-    {
-        $relativePath = $operation['path'];
-        $functionName = $operation['method_name'];
-        $functionCode = $operation['method_code'];
-        $targetPath = $this->projectRoot.'/'.$relativePath;
+private function applyEmbeddedJsFunctionReplace(array $operation): string
+{
+    $relativePath = $operation['path'];
+    $functionName = $operation['method_name'];
+    $functionCode = $operation['method_code'];
 
-        if (strtolower(pathinfo($relativePath, PATHINFO_EXTENSION)) !== 'js') {
-            return "[ERROR] El reemplazo de función JS requiere archivo .js: {$relativePath}";
-        }
-
-        if (! file_exists($targetPath)) {
-            return "[ERROR] El archivo destino no existe: {$relativePath}";
-        }
-
-        $content = file_get_contents($targetPath);
-
-        if ($content === false) {
-            return "[ERROR] No se pudo leer el archivo: {$relativePath}";
-        }
-
-        $range = $this->findEmbeddedJsFunctionRange($content, $functionName);
-
-        if ($range === null) {
-            return "[ERROR] No se encontró la función JS: {$functionName}";
-        }
-
-        [$start, $end] = $range;
-
-        $newContent = substr($content, 0, $start)
-            .rtrim($functionCode)
-            .substr($content, $end);
-
-        if (file_put_contents($targetPath, $newContent) === false) {
-            return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
-        }
-
-        $message = "[OK] Modo: js_function_patch\n";
-        $message .= "[OK] Archivo: {$relativePath}\n";
-        $message .= "[OK] Función JS reemplazada: {$functionName}";
-
-        $this->log('LAB_CODE_JS_FUNCTION_REPLACE', "{$relativePath}::{$functionName}", $message);
-
-        $this->appendPipeLog(
-            self::CODE_LOG_FILE,
-            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
-            [
-                $relativePath,
-                date('Y-m-d H:i:s'),
-                'actualizado',
-                '-',
-                'project_lab',
-                $functionName,
-                get_current_user() ?: 'unknown',
-                php_uname('n') ?: 'unknown',
-            ]
-        );
-
-        return $message;
+    if (strtolower(pathinfo($relativePath, PATHINFO_EXTENSION)) !== 'js') {
+        return "[ERROR] El reemplazo de función JS requiere archivo .js: {$relativePath}";
     }
+
+    $targetPath = $this->resolveProjectPath($relativePath, false);
+
+    if ($targetPath === null) {
+        return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
+    }
+
+    if (! file_exists($targetPath)) {
+        return "[ERROR] El archivo destino no existe: {$relativePath}";
+    }
+
+    $content = file_get_contents($targetPath);
+
+    if ($content === false) {
+        return "[ERROR] No se pudo leer el archivo: {$relativePath}";
+    }
+
+    $range = $this->findEmbeddedJsFunctionRange($content, $functionName);
+
+    if ($range === null) {
+        return "[ERROR] No se encontró la función JS: {$functionName}";
+    }
+
+    [$start, $end] = $range;
+
+    $newContent = substr($content, 0, $start)
+        .rtrim($functionCode)
+        .substr($content, $end);
+
+    $writeResult = $this->writeProjectFile($relativePath, $newContent, false);
+
+    if ($writeResult !== true) {
+        return $writeResult;
+    }
+
+    $message = "[OK] Modo: js_function_patch\n";
+    $message .= "[OK] Archivo: {$relativePath}\n";
+    $message .= "[OK] Función JS reemplazada: {$functionName}";
+
+    $this->log('LAB_CODE_JS_FUNCTION_REPLACE', "{$relativePath}::{$functionName}", $message);
+
+    $this->appendPipeLog(
+        self::CODE_LOG_FILE,
+        ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+        [
+            $relativePath,
+            date('Y-m-d H:i:s'),
+            'actualizado',
+            '-',
+            'project_lab',
+            $functionName,
+            get_current_user() ?: 'unknown',
+            php_uname('n') ?: 'unknown',
+        ]
+    );
+
+    return $message;
+}
 
     private function getAssetSectionsCatalog(): array
     {

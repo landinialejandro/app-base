@@ -1,12 +1,14 @@
-{{-- FILE: resources/views/orders/partials/table.blade.php | V18 --}}
+{{-- FILE: resources/views/orders/partials/table.blade.php | V19 --}}
 
 @php
+    use App\Support\Assets\AssetLinked;
     use App\Support\Catalogs\OrderCatalog;
     use App\Support\Navigation\NavigationTrail;
+    use App\Support\Parties\PartyLinked;
 
     $orders = $orders ?? collect();
     $emptyMessage = $emptyMessage ?? 'No hay órdenes para mostrar.';
-    $showCounterparty = $showCounterparty ?? ($showParty ?? false);
+    $showCounterparty = $showCounterparty ?? false;
     $showAsset = $showAsset ?? false;
     $trailQuery = $trailQuery ?? [];
     $containerTrail = NavigationTrail::decode($trailQuery['trail'] ?? null);
@@ -66,6 +68,24 @@
 
                         $counterpartyName = $order->displayCounterpartyName();
                         $assetReference = $order->displayAssetReference();
+
+                        $partyLinked = null;
+
+                        if ($order->party) {
+                            $partyLinked = PartyLinked::forParty(
+                                $order->party,
+                                $rowTrailQuery,
+                                'Contraparte',
+                                $counterpartyName,
+                            );
+                        }
+
+                        $assetLinked = null;
+
+                        if ($order->asset) {
+                            $assetLinked = AssetLinked::forAsset($order->asset, $rowTrailQuery, 'Activo');
+                            $assetLinked['text'] = $assetReference;
+                        }
                     @endphp
 
                     <tr>
@@ -85,7 +105,16 @@
 
                         @if ($renderCounterpartyColumn)
                             <td>
-                                <div>{{ $counterpartyName }}</div>
+                                <div>
+                                    @if ($partyLinked && (($partyLinked['state'] ?? 'hidden') !== 'hidden'))
+                                        @include('parties.components.linked-party', [
+                                            'linked' => $partyLinked,
+                                            'variant' => 'inline',
+                                        ])
+                                    @else
+                                        {{ $counterpartyName }}
+                                    @endif
+                                </div>
 
                                 @if ($order->hasManualCounterpartyReference())
                                     <small>Manual</small>
@@ -95,7 +124,16 @@
 
                         @if ($renderAssetColumn)
                             <td>
-                                <div>{{ $assetReference }}</div>
+                                <div>
+                                    @if ($assetLinked && (($assetLinked['state'] ?? 'hidden') !== 'hidden'))
+                                        @include('assets.components.linked-asset', [
+                                            'linked' => $assetLinked,
+                                            'variant' => 'inline',
+                                        ])
+                                    @else
+                                        {{ $assetReference }}
+                                    @endif
+                                </div>
 
                                 @if ($order->hasManualAssetReference())
                                     <small>Manual</small>
@@ -114,4 +152,4 @@
     <p class="mb-0">{{ $emptyMessage }}</p>
 @endif
 
-<x-dev-component-version name="orders.partials.table" version="V18" align="right" />
+<x-dev-component-version name="orders.partials.table" version="V19" align="right" />

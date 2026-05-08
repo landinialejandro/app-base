@@ -5,7 +5,7 @@
 
     $orders = $orders ?? collect();
 
-    $showCounterparty = $showCounterparty ?? ($showParty ?? false);
+    $showCounterparty = $showCounterparty ?? false;
     $showAsset = $showAsset ?? false;
 
     $emptyMessage = $emptyMessage ?? 'No hay órdenes para mostrar.';

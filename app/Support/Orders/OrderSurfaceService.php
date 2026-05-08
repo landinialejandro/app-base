@@ -43,7 +43,7 @@ class OrderSurfaceService implements ModuleSurfaceService
         ];
     }
 
-private function supportedHosts(): array
+    private function supportedHosts(): array
     {
         return [
             'orders.form' => [
@@ -132,7 +132,7 @@ private function supportedHosts(): array
                 'filterColumn' => 'party_id',
                 'tabsId' => 'party-orders-tabs',
                 'showCounterparty' => false,
-                'showAsset' => false,
+                'showAsset' => true,
                 'emptyMessage' => 'Este contacto no tiene órdenes vinculadas.',
             ],
         ];

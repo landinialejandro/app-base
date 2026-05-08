@@ -74,7 +74,7 @@
             @include('orders.partials.table', [
                 'orders' => $orders,
                 'showCounterparty' => true,
-                'showAsset' => false,
+                'showAsset' => true,
                 'emptyMessage' => 'No hay órdenes cargadas.',
                 'trailQuery' => $trailQuery,
             ])

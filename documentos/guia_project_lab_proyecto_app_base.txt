@@ -1,12 +1,12 @@
 <<SECTION: METADATOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 TÍTULO: Guía operativa de Project Lab
 DOC_SLUG: guia_project_lab_proyecto_app_base
-DOC_VERSION: 00002
+DOC_VERSION: 00003
 TIPO: operativo-técnico
 ESTADO: activo
-GESTIÓN: Guía rectora para el uso local de Project Lab como herramienta operativa de pruebas, auditoría, actualización de código, actualización documental y validación técnica del proyecto.
+GESTIÓN: Guía rectora para el uso local de Project Lab como herramienta operativa de pruebas, auditoría, actualización de código, actualización documental, validación técnica y saneamiento controlado del proyecto.
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
@@ -162,7 +162,7 @@ Esta capacidad no debe trasladarse como botón, acción o pantalla dentro del pr
 <<END SECTION>>
 
 <<SECTION: HERRAMIENTAS DISPONIBLES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 HERRAMIENTAS DISPONIBLES
 
@@ -195,6 +195,7 @@ debe escribir archivos mediante la aduana central de escritura vigente
 debe rechazar rutas fuera del proyecto
 debe validar antes de escribir cuando el error sea detectable
 debe validar sintaxis PHP cuando corresponda
+debe restaurar o eliminar cambios PHP si la validación de sintaxis posterior falla
 no debe aplicar parches ambiguos
 no debe mezclar contratos de archivo completo con contratos parciales
 
@@ -218,6 +219,8 @@ no debe reemplazar fragmentos internos
 no debe aplicar cambios sin SECTION_VERSION
 no debe aceptar nombres aproximados
 no debe mezclar explicación narrativa con bloque automatizado
+debe generar backup documental antes de reemplazar
+debe usar backup con timestamp para evitar pisar respaldos anteriores
 debe devolver OK o ERROR explícito
 
 AUDIT
@@ -240,6 +243,7 @@ puede ejecutar auditorías fuertes cuando el usuario técnico lo solicite
 no debe endurecerse con bloqueos heurísticos que rompan auditorías necesarias
 no debe tratarse como protección de sistema operativo
 no debe ejecutar prompts de chat como si fueran comandos
+debe normalizar CRLF antes de ejecutar scripts cuando corresponda
 
 Uso esperado:
 
@@ -249,6 +253,7 @@ generar auditorías en documentos/auditoria
 validar rutas
 validar contratos de código
 obtener evidencia antes de intervenir
+guardar salidas de consola como auditoría
 
 Regla general:
 
@@ -257,6 +262,19 @@ Project Lab no decide qué cambio es correcto.
 Project Lab ejecuta, valida, registra y muestra salida operativa.
 
 La interpretación técnica sigue dependiendo del proceso de trabajo, la documentación vigente, el código real y la evidencia obtenida.
+
+Regla vigente de saneamiento:
+
+las vías legacy que no correspondan al contrato operativo vigente de Project Lab no deben conservarse dentro de la herramienta.
+
+La herramienta debe mantenerse centrada en los caminos vigentes:
+
+code
+docs
+audit
+Tinker
+Artisan controlado
+guardado de consola como auditoría
 
 <<END SECTION>>
 
@@ -498,7 +516,7 @@ No mezclar ambos contratos en un mismo snippet.
 <<END SECTION>>
 
 <<SECTION: ERRORES OBLIGATORIOS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 ERRORES OBLIGATORIOS
 
@@ -521,9 +539,13 @@ doc_slug inexistente
 sección CSS o JS inexistente
 intento de usar formato de archivo completo para operación parcial ambigua
 bloque documental sin encabezado REEMPLAZAR EN cuando la herramienta vigente lo requiere
+bloque documental sin SECTION_VERSION válido
 bloque documental con DOC_SLUG como encabezado operativo si Project Lab Docs espera REEMPLAZAR EN
 header FILE que combine operadores de método
 snippet que mezcle FILE y TARGET de forma ambigua
+intento de escritura fuera del projectRoot
+falla al crear backup documental antes de reemplazar sección
+falla de sintaxis PHP posterior a una escritura
 
 Regla:
 
@@ -543,18 +565,26 @@ Regla sobre sintaxis PHP:
 
 si la validación de sintaxis PHP posterior a un cambio falla, la intervención no debe considerarse cerrada.
 
-Debe corregirse o revertirse según corresponda.
+En operaciones PHP gestionadas por Project Lab, la herramienta debe intentar restaurar el contenido anterior o eliminar el archivo nuevo inválido.
 
 Regla adicional sobre errores posteriores a la aplicación:
 
 si la herramienta aplicó un cambio pero una validación posterior falla, el resultado no debe tratarse como cierre exitoso.
 
-Debe corregirse o revertirse antes de avanzar.
+Debe corregirse, revertirse o restaurarse antes de avanzar.
+
+Regla de salida:
+
+cuando falle lint PHP, Project Lab debe conservar el detalle técnico bajo una lectura clara, por ejemplo:
+
+[INFO] Detalle lint:
+
+El detalle no debe ocultarse, porque forma parte de la evidencia técnica.
 
 <<END SECTION>>
 
 <<SECTION: SALIDA OPERATIVA ESPERADA>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 SALIDA OPERATIVA ESPERADA
 
@@ -578,6 +608,9 @@ método reemplazado
 documento actualizado
 auditoría generada
 sintaxis PHP válida
+backup generado
+archivo inválido eliminado luego de rollback validado
+archivo anterior restaurado luego de lint fallido
 
 WARN
 
@@ -589,7 +622,7 @@ Indica que la operación no debe considerarse aplicada correctamente.
 
 INFO
 
-Indica orientación complementaria.
+Indica orientación complementaria o detalle técnico útil para diagnóstico.
 
 Reglas:
 
@@ -599,13 +632,14 @@ no debe considerarse seguro un cambio aplicado con errores no resueltos
 
 una salida OK de aplicación no reemplaza validaciones posteriores necesarias para el frente trabajado
 
-si Project Lab informa OK pero una validación posterior falla, la intervención no está cerrada
+si Project Lab informa OK de sintaxis PHP válida dentro de un patch PHP, no hace falta repetir php -l de forma redundante salvo auditoría externa o duda puntual
+
+si Project Lab informa ERROR de sintaxis PHP y restauración o eliminación del archivo inválido, la operación falló pero el proyecto debe quedar protegido frente a ese cambio inválido
 
 Las validaciones posteriores dependen del tipo de cambio.
 
 Pueden incluir:
 
-php -l
 optimize:clear
 route:list
 migrate:fresh --seed
@@ -622,6 +656,25 @@ smoke test del servicio o modelo afectado
 Regla:
 
 la consola debe permitir reconstruir qué se ejecutó, qué resultado produjo y qué validación quedó pendiente si corresponde.
+
+Regla de claridad:
+
+cuando una operación falle por lint PHP, la salida debe separar:
+
+resultado operativo principal
+detalle técnico del lint
+
+Lectura esperada:
+
+[ERROR] Sintaxis PHP inválida. Se restauró el archivo anterior.
+
+o
+
+[ERROR] Sintaxis PHP inválida. Se eliminó el archivo nuevo generado.
+
+seguido de:
+
+[INFO] Detalle lint:
 
 <<END SECTION>>
 
@@ -954,7 +1007,7 @@ en producción, el procesamiento de colas debe resolverse mediante worker persis
 <<END SECTION>>
 
 <<SECTION: USO DE AUDITORÍA>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 USO DE AUDITORÍA
 
@@ -974,6 +1027,7 @@ detectar duplicaciones
 validar consumo de helpers, selectors, hooks o services
 validar referencias activas antes de eliminar piezas
 obtener evidencia previa a cambios sensibles
+guardar salidas de consola como auditoría
 
 Regla:
 
@@ -1001,6 +1055,20 @@ el grep debe ser preciso.
 
 No debe confundirse una coincidencia textual válida con un residuo legacy real.
 
+Regla vigente sobre ejecución:
+
+audit ejecuta bash libre local desde projectRoot.
+
+No es sandbox del sistema operativo.
+
+No debe endurecerse con bloqueos heurísticos que rompan auditorías fuertes solicitadas por el usuario técnico local.
+
+Regla vigente sobre normalización:
+
+los scripts de audit pueden requerir normalización CRLF antes de ejecutarse.
+
+Esa normalización no modifica el carácter libre local de audit.
+
 Regla para cierres de fase:
 
 antes de declarar cerrado un frente de saneamiento, la auditoría debe incluir las piezas relevantes del frente intervenido.
@@ -1014,7 +1082,7 @@ No reemplaza el análisis técnico de esa evidencia.
 <<END SECTION>>
 
 <<SECTION: USO DE CODE>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 USO DE CODE
 
@@ -1040,10 +1108,34 @@ Si el encabezado mezcla ambas intenciones, Project Lab debe devolver ERROR o nor
 
 Nunca debe crear un archivo nuevo por interpretar mal una operación parcial.
 
+Regla vigente para PHP:
+
+cuando Project Lab aplica una actualización PHP compatible, debe ejecutar validación de sintaxis PHP.
+
+Si la validación falla:
+
+si el archivo existía, debe restaurar el contenido anterior
+
+si el archivo era nuevo, debe eliminar el archivo inválido generado
+
+debe informar ERROR explícito
+
+debe conservar el detalle técnico de lint como evidencia
+
+Lectura vigente:
+
+una salida de Project Lab que informa:
+
+[OK] Sintaxis PHP válida
+
+ya constituye validación php -l de ese patch.
+
+No hace falta pedir php -l redundante después de cada actualización PHP aplicada por code, salvo auditoría externa, cambio realizado por otro canal o duda puntual.
+
 <<END SECTION>>
 
 <<SECTION: USO DE DOCS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 USO DE DOCS
 
@@ -1061,6 +1153,7 @@ el DOC_SLUG debe existir
 el nombre de sección debe coincidir exactamente
 el bloque debe reemplazarse completo
 debe incluir SECTION_VERSION
+SECTION_VERSION debe estar presente dentro del bloque reemplazado
 no deben inventarse secciones
 no deben mezclarse varias doctrinas en una sección incorrecta
 no deben incorporarse mejoras futuras como hechos vigentes
@@ -1078,6 +1171,20 @@ Regla adicional:
 los ejemplos de formato documental dentro de la guía deben evitar confundir al parser de Project Lab.
 
 Cuando se entregue contenido aplicable a Project Lab, debe evitarse incluir delimitadores documentales anidados como ejemplo dentro del mismo bloque de reemplazo.
+
+Regla vigente de backup:
+
+antes de reemplazar una sección documental, Project Lab debe generar backup del documento.
+
+El backup debe usar timestamp para evitar sobrescribir respaldos anteriores.
+
+La salida debe informar el backup generado cuando la operación se aplique correctamente.
+
+Regla de cierre:
+
+un bloque documental sin SECTION_VERSION válido debe rechazarse.
+
+No debe aplicarse silenciosamente.
 
 <<END SECTION>>
 
@@ -1152,7 +1259,7 @@ Debe buscarse el tag real vigente del documento y entregar nuevamente el bloque 
 <<END SECTION>>
 
 <<SECTION: FALLAS OPERATIVAS QUE PROJECT LAB DEBE PREVENIR>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 FALLAS OPERATIVAS QUE PROJECT LAB DEBE PREVENIR
 
@@ -1163,6 +1270,7 @@ Casos que deben considerarse fallas:
 crear un archivo cuando la intención era reemplazar un método
 interpretar como ruta completa un encabezado que contiene operadores de método
 aceptar un bloque documental sin formato real válido
+aceptar un bloque documental sin SECTION_VERSION válido
 crear secciones documentales inexistentes sin autorización explícita
 aplicar snippets incompletos
 mezclar contratos de archivo completo y operación parcial
@@ -1171,6 +1279,9 @@ devolver OK ante una operación que no cumplió el contrato esperado
 escribir fuera del projectRoot
 ejecutar texto narrativo como comando
 ocultar el contenido ejecutado desde clipboard
+dejar persistido un archivo PHP nuevo inválido
+dejar reemplazado un archivo PHP existente con contenido inválido cuando puede restaurarse
+pisar backups documentales anteriores por usar nombres fijos
 
 Regla:
 
@@ -1191,6 +1302,10 @@ La consola muestra la salida.
 El textarea debe mostrar la entrada.
 
 Ninguna ejecución desde clipboard debe quedar oculta para el usuario.
+
+Regla vigente para PHP:
+
+una operación PHP inválida no debe dejar el proyecto en estado inválido cuando Project Lab puede revertir o eliminar el cambio.
 
 <<END SECTION>>
 
@@ -1244,7 +1359,7 @@ Solo debe documentar reglas de uso de la herramienta.
 <<END SECTION>>
 
 <<SECTION: VALIDACIONES POSTERIORES A CAMBIOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 VALIDACIONES POSTERIORES A CAMBIOS
 
@@ -1252,7 +1367,7 @@ Después de aplicar código, debe validarse según el tipo de cambio.
 
 Validaciones posibles:
 
-php -l sobre archivos PHP modificados
+php -l sobre archivos PHP modificados cuando el cambio no haya pasado por una operación PHP validada de Project Lab
 php artisan optimize:clear
 php artisan route:list cuando toque rutas
 Tinker cuando toque runtime, permisos, constraints o datos reales
@@ -1273,6 +1388,23 @@ Regla adicional:
 si Project Lab informa OK pero la validación posterior falla, el frente no está cerrado.
 
 Debe corregirse o revertirse según corresponda.
+
+Regla específica para PHP:
+
+cuando Project Lab aplica un patch PHP mediante code y la salida incluye:
+
+[OK] Sintaxis PHP válida
+
+esa operación ya ejecutó la validación de sintaxis correspondiente.
+
+No debe pedirse php -l redundante como paso mecánico posterior.
+
+Sí corresponde pedir validación adicional cuando:
+
+el cambio se hizo por audit
+el archivo fue manipulado por script externo
+se necesita cierre general independiente
+hay una duda puntual sobre el estado final del archivo
 
 Regla adicional para saneamiento:
 
@@ -1513,7 +1645,7 @@ cerrar una intervención significa que el sistema queda más coherente, autónom
 <<END SECTION>>
 
 <<SECTION: ERRORES Y LECCIONES INCORPORADAS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 ERRORES Y LECCIONES INCORPORADAS
 
@@ -1582,10 +1714,48 @@ Regla:
 
 si una fase declara saneamiento modular, Project Lab debe ayudar a producir evidencia sobre todas las piezas relevantes, no solo aplicar un patch parcial.
 
+Lección incorporada adicional:
+
+un cambio PHP aplicado por Project Lab no debe dejar persistido código inválido cuando la herramienta puede detectarlo.
+
+Caso validado:
+
+archivo PHP nuevo inválido
+archivo PHP existente reemplazado con contenido inválido
+método PHP existente reemplazado con contenido inválido
+
+Regla consolidada:
+
+si el lint PHP falla, Project Lab debe restaurar el contenido anterior o eliminar el archivo nuevo inválido.
+
+La salida debe informar el rollback y conservar el detalle técnico del lint.
+
+Lección incorporada adicional:
+
+las vías legacy internas de Project Lab no deben conservarse si ya no pertenecen al contrato operativo vigente.
+
+Caso validado:
+
+se eliminaron físicamente métodos legacy y acciones asociadas que no correspondían al contrato actual de la herramienta.
+
+Regla consolidada:
+
+Project Lab debe conservar caminos operativos vigentes y evitar endpoints paralelos obsoletos que aumenten ruido, superficie de mantenimiento o ambigüedad.
+
+Lección incorporada adicional:
+
+la herramienta docs debe exigir SECTION_VERSION.
+
+Regla consolidada:
+
+un bloque documental sin SECTION_VERSION válido no debe aplicarse.
+
+La actualización documental debe ser trazable y compatible con el versionado interno del proyecto.
+
 <<END SECTION>>
 
 <<SECTION: ESTADO VIGENTE>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ESTADO VIGENTE
 
@@ -1602,6 +1772,8 @@ Tinker = capacidad runtime dentro de Project Lab
 code = herramienta de aplicación de código
 docs = herramienta de actualización documental
 audit = herramienta de auditoría simple
+Artisan = ejecución controlada de comandos permitidos
+consola = evidencia operativa guardable como auditoría
 
 Regla:
 
@@ -1612,5 +1784,39 @@ Regla de mantenimiento documental:
 esta guía debe permanecer enfocada en el uso de Project Lab.
 
 Cuando acumule doctrina general del proyecto, debe sanearse y remitir al documento especializado correspondiente.
+
+Estado técnico validado reciente:
+
+las acciones legacy fueron desconectadas
+
+los métodos legacy fueron eliminados físicamente
+
+las propiedades internas de estado fueron declaradas explícitamente
+
+la creación de directorios internos fue centralizada
+
+docs exige SECTION_VERSION
+
+los backups documentales usan timestamp
+
+las operaciones PHP gestionadas por code ejecutan lint
+
+si el lint PHP falla, Project Lab restaura el archivo anterior o elimina el archivo nuevo inválido
+
+la salida de rollback conserva detalle técnico bajo [INFO] Detalle lint
+
+audit fue recuperado y validado luego de incorporar normalización de script
+
+las lecturas críticas con projectRoot directo fueron saneadas o justificadas bajo resolución segura
+
+no se detectaron métodos privados huérfanos luego del saneamiento
+
+no se detectaron acciones legacy residuales en PHP/UI
+
+Regla:
+
+este estado no convierte a Project Lab en sandbox.
+
+Project Lab sigue siendo herramienta local técnica bajo uso responsable del usuario técnico.
 
 <<END SECTION>>

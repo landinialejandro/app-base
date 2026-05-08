@@ -91,7 +91,7 @@ los detalles técnicos pueden evolucionar sin alterar estos principios rectores
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00026
+SECTION_VERSION: 00028
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -125,7 +125,7 @@ owner gobierna
 
 SEPARACIÓN DE PLANOS
 
-Dataset disponible, visibilidad UI, permiso efectivo, trazabilidad, automatización, subcapa contextual e intervención IA son planos distintos.
+Dataset disponible, visibilidad UI, permiso efectivo, trazabilidad, automatización, subcapa contextual, dashboard operativo, pieza satélite e intervención IA son planos distintos.
 
 Uno no implica automáticamente al otro.
 
@@ -137,19 +137,17 @@ la autorización efectiva debe resolverse siempre en backend
 
 la trazabilidad no autoriza operaciones
 
-la existencia de una sugerencia IA no habilita ejecución
-
 la IA no amplía privilegios
 
 las automatizaciones no reemplazan autorización
 
-la existencia de un dashboard operativo no habilita operación fuera del contrato del módulo dueño
+un dashboard operativo no habilita acciones fuera del contrato del módulo dueño
 
-la existencia de una pieza satélite no habilita bypass del lifecycle base ni acciones sobre módulos participantes
+una pieza satélite no absorbe permisos de módulos participantes
 
-la existencia de una subcapa contextual interna no habilita acceso automático a todos los datos del módulo host ni de módulos relacionados
+una subcapa contextual no habilita acceso automático a todos los datos del módulo host ni de módulos relacionados
 
-la existencia de un vínculo opcional con otro módulo no habilita operación fuera del contrato del módulo dueño
+un vínculo opcional con otro módulo no autoriza acciones por sí mismo
 
 MÍNIMO ACOPLE
 
@@ -179,7 +177,7 @@ el módulo externo conserva ownership de su regla
 
 el módulo que ejecuta la acción conserva ownership de la autorización principal
 
-Ante fallas de consulta en bloqueos críticos, debe asumirse el escenario seguro.
+ante fallas de consulta en bloqueos críticos, debe asumirse el escenario seguro
 
 Regla:
 
@@ -217,19 +215,47 @@ operational_activity.view_any
 
 La lectura contextual de actividad operativa asociada a un registro puede habilitarse cuando el host ya autorizó la visualización de ese registro.
 
-Regla:
+Reglas:
 
-esta lectura no equivale a lectura general del log del tenant.
+no equivale a lectura general del log del tenant
 
-No habilita acceso a otros registros.
+no habilita acceso a otros registros
 
-No habilita navegación principal de OperationalActivity.
+no habilita navegación principal de OperationalActivity
 
-No reemplaza permisos del módulo host.
+no reemplaza permisos del módulo host
 
-No autoriza la operación original.
+no autoriza la operación original
 
 La lectura contextual puede ser directa, agregada o contextual especial, siempre dentro del contrato definido por el módulo dueño y con host previamente autorizado.
+
+CAPAS SATÉLITE PRODUCTIVAS Y ACCESO AL ÁREA
+
+Una capa satélite productiva puede tener una capacidad o permiso propio de acceso al área sin absorber permisos de los módulos que orquesta.
+
+Caso vigente:
+
+service_maintenance.view_any
+
+Lectura:
+
+service_maintenance.view_any permite acceder al frente Servicio y mantenimiento cuando el tenant lo tenga habilitado y el usuario posea autorización efectiva para verlo.
+
+No autoriza por sí mismo crear, ver, editar, cerrar, cancelar, reabrir ni ejecutar órdenes.
+
+No autoriza operaciones sobre Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity.
+
+Las acciones internas continúan bajo el contrato del módulo dueño.
+
+Caso vigente:
+
+las órdenes de servicio usan Orders como módulo dueño de la operación transaccional.
+
+Por lo tanto, las acciones reales sobre órdenes de servicio deben pasar por autorización efectiva de Orders.
+
+Regla:
+
+un permiso de acceso al área no debe confundirse con permiso operativo sobre los recursos participantes.
 
 ACCIONES CRÍTICAS
 
@@ -289,13 +315,13 @@ el registro de actividad operativa no modifica el permiso efectivo de la acción
 
 la lectura contextual heredada solo alcanza actividad asociada al registro host ya autorizado o al criterio contextual declarado por el módulo dueño
 
-la subcapa contextual interna solo puede mostrar datos autorizados según su contrato y condiciones propias
-
 los dashboards operativos no habilitan acciones fuera del contrato del módulo dueño
 
 los vínculos opcionales entre módulos no reemplazan Security
 
 las fronteras externas pueden bloquear acciones propias, pero no reemplazan autorización principal del módulo dueño
+
+un permiso de acceso a una capa satélite no reemplaza permisos operativos de los módulos participantes
 
 <<END SECTION>>
 
@@ -524,7 +550,7 @@ No reemplazan la singularidad estructural del owner.
 <<END SECTION>>
 
 <<SECTION: MODELO V2 DE PERMISOS>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 MODELO V2 DE PERMISOS
 
@@ -615,19 +641,21 @@ orders conserva allowed_kinds cuando kind expresa segmentación operativa válid
 
 ProductOperationalSummary no creó capabilities persistidas nuevas en su primera versión y se resuelve mediante compuerta contextual interna y scopes existentes
 
+service_maintenance.view_any permite acceso al área Servicio y mantenimiento sin absorber permisos operativos de Orders ni de otros módulos participantes
+
 Regla:
 
-no debe crearse capability persistida por reflejo automático cuando una capacidad o subcapa contextual puede resolverse correctamente con el contrato vigente.
+no debe crearse capability persistida por reflejo automático cuando una capacidad, subcapa contextual o frente satélite puede resolverse correctamente con el contrato vigente.
 
 Esto no impide evolucionar a permisos persistidos propios si luego se justifica.
 
-Regla adicional para capas satélite:
+Regla para capas satélite:
 
 una capa satélite no concede permisos propios sobre todos los módulos participantes por el solo hecho de existir como frente operativo.
 
 Cada operación debe volver al contrato del módulo dueño o capacidad central correspondiente.
 
-Regla adicional para mantenimiento:
+Regla para mantenimiento:
 
 los estados operativos satélite de una orden no reemplazan el lifecycle base ni autorizan operación si Orders.status no lo permite.
 
@@ -635,7 +663,7 @@ Una orden debe estar approved para operar técnicamente.
 
 Una orden closed no puede operar ordinariamente sin reapertura autorizada.
 
-Regla adicional para Inventory:
+Regla para Inventory:
 
 custodia, consumo, devolución, faltante, daño o cancelación de materiales debe autorizarse desde el contrato vigente de Inventory y sus capacidades oficiales.
 
@@ -707,7 +735,7 @@ la UI puede expresar lectura, readonly o acción disponible, pero el backend deb
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00029
+SECTION_VERSION: 00030
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -931,6 +959,24 @@ No reconstruye scopes.
 
 No decide acceso.
 
+CAPAS SATÉLITE PRODUCTIVAS
+
+Una capa satélite productiva puede tener acceso propio al área, pero no debe ejecutar operaciones internas sin pasar por el módulo dueño.
+
+Caso vigente:
+
+service_maintenance.view_any permite acceder al frente Servicio y mantenimiento.
+
+Reglas:
+
+no autoriza crear, editar, cerrar, cancelar, reabrir ni ejecutar órdenes por sí mismo
+
+no autoriza operaciones sobre Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity
+
+las órdenes de servicio siguen bajo contrato de Orders
+
+las acciones reales deben validar permisos, tenant, estado y reglas del módulo dueño
+
 <<END SECTION>>
 
 <<SECTION: CONSTRAINTS FUNCIONALES>>
@@ -1017,11 +1063,11 @@ no deben confundirse con vínculos opcionales de enriquecimiento
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00027
+SECTION_VERSION: 00028
 
 CONTRATO DE SEGURIDAD MODULAR
 
-Todo módulo funcional debe poseer lectura clara de seguridad.
+Todo módulo funcional debe poseer una lectura clara de seguridad.
 
 Debe poder responder:
 
@@ -1045,7 +1091,7 @@ no trasladar ownership de permisos entre módulos
 
 el host visual no absorbe seguridad de capacidades invitadas
 
-los estados operativos forman parte real del contrato
+los estados operativos forman parte real del contrato cuando afectan operación
 
 la delegación de seguridad debe ser explícita y consistente
 
@@ -1068,12 +1114,6 @@ estado del recurso
 límites operativos
 dataset autorizado
 bloqueos externos cuando existan fronteras declaradas
-
-Regla:
-
-el contrato modular define fronteras y responsabilidades.
-
-No debe transformarse en detalle funcional completo del módulo.
 
 Regla para vínculos opcionales:
 
@@ -1116,10 +1156,6 @@ el proveedor conserva ownership de la regla externa
 el módulo dueño de la acción conserva ownership de la autorización principal
 
 si la frontera falla en un bloqueo crítico, debe asumirse el escenario seguro
-
-Caso vigente:
-
-Orders consulta fronteras explícitas para movimientos externos y bloqueadores de cierre.
 
 Regla para actividad operativa:
 
@@ -1177,9 +1213,27 @@ ver el módulo host no implica acceso automático a la subcapa.
 
 La subcapa no debe leer datasets relacionados fuera del contrato autorizado.
 
+Regla para capas satélite productivas:
+
+una capa satélite puede tener permiso de acceso al área sin absorber permisos de los módulos participantes.
+
+Caso vigente:
+
+service_maintenance.view_any
+
+Regla:
+
+las acciones internas deben volver al contrato del módulo dueño.
+
+En órdenes de servicio, el módulo dueño de la operación transaccional es Orders.
+
 Regla final:
 
-el detalle de valores, constraints aplicadas y excepciones operativas debe concentrarse en CONSTRAINTS FUNCIONALES y REGLAS OPERATIVAS POR MÓDULO.
+el contrato modular define fronteras y responsabilidades.
+
+No debe transformarse en inventario funcional completo del módulo.
+
+El detalle de valores, constraints aplicadas y excepciones operativas debe concentrarse en CONSTRAINTS FUNCIONALES y REGLAS OPERATIVAS POR MÓDULO.
 
 <<END SECTION>>
 
@@ -1270,11 +1324,11 @@ OperationalActivity puede publicar lectura contextual, pero no autoriza la opera
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00027
+SECTION_VERSION: 00028
 
 REGLAS OPERATIVAS POR MÓDULO
 
-Esta sección resume restricciones operativas de alto impacto ya consolidadas.
+Esta sección resume restricciones operativas de seguridad de alto impacto.
 
 No debe convertirse en inventario completo de implementación.
 
@@ -1302,7 +1356,7 @@ admin puede acceder a tenant/profile con restricciones
 
 la solapa General es editable solo por owner
 
-admin debe ver General en modo readonly
+para admin, General debe quedar readonly
 
 admin no puede modificar permisos del rol admin
 
@@ -1338,8 +1392,6 @@ la presencia de party_id no otorga autorización por sí misma
 
 Orders no debe conservar task_id ni appointment_id como relaciones persistentes de su núcleo
 
-Orders no expone tasks() como relación inversa del núcleo saneado
-
 si una Order se crea desde Task o Appointment, esos datos pueden viajar como contexto transitorio de request o navegación
 
 la autorización real corresponde a Orders y a Security
@@ -1364,11 +1416,7 @@ Orders puede consultar fronteras explícitas para bloqueos externos
 
 OrderController no debe reconstruir internamente la lógica de Inventory
 
-RecordScopeResolver puede consultar fronteras explícitas para determinar si una acción está permitida, siempre que no reconstruya la lógica propia del módulo externo
-
 si falla una consulta de bloqueo crítico, debe asumirse escenario seguro
-
-si no puede confirmarse que no hay bloqueos, no debe ejecutarse la acción crítica
 
 TASKS Y APPOINTMENTS
 
@@ -1450,15 +1498,11 @@ Orders no debe reconstruir internamente esa regla
 
 si la frontera falla en un bloqueo crítico, se debe asumir bloqueo
 
-si una acción de inventory se registra como actividad operativa transversal, el ancla vigente debe representar la acción operativa agrupada
-
-la trazabilidad fina de stock no debe duplicarse como actividad principal cuando la operación agrupada ya representa el evento operativo
+la actividad operativa transversal debe usar el ancla operativa agrupada vigente cuando corresponda
 
 PARTIES
 
-parties.kind no representa relación comercial ni vínculo interno.
-
-Representa únicamente tipo de contacto:
+parties.kind representa únicamente tipo de contacto:
 
 person
 company
@@ -1545,6 +1589,10 @@ SERVICIOS Y MANTENIMIENTO
 Servicios y Mantenimiento se lee como capa satélite productiva.
 
 No concede permisos propios sobre todos los módulos participantes por el solo hecho de existir como frente operativo.
+
+Caso vigente:
+
+service_maintenance.view_any permite acceso al área Servicio y mantenimiento.
 
 Reglas:
 
@@ -1640,7 +1688,7 @@ contrato owner/admin del frente tenant/profile.
 <<END SECTION>>
 
 <<SECTION: GOBERNANZA DEL DOCUMENTO>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 GOBERNANZA DEL DOCUMENTO
 
@@ -1665,6 +1713,10 @@ mover navegación, trails, tabs y surfaces al documento de navegación correspon
 evitar ejemplos redundantes
 
 eliminar repeticiones cuando una regla ya esté definida en otra sección
+
+evitar que REGLAS OPERATIVAS POR MÓDULO se convierta en inventario completo de implementación
+
+mantener en este documento solo las excepciones o reglas de seguridad de alto impacto
 
 actualizar cuando cambie doctrina real y no por ruido menor de implementación
 

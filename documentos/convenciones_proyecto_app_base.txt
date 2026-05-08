@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00032
+SECTION_VERSION: 00033
 
 CONVENCIONES GENERALES
 
@@ -233,6 +233,29 @@ flags visuales
 mensaje vacío
 otros parámetros de montaje
 
+Regla adicional consolidada:
+
+los SurfaceService deben declarar ofertas, hosts y configuración propia.
+
+La lógica transversal de armado de hostPack y resolución genérica de relaciones embebidas debe vivir en Support/Modules cuando sea reusable entre módulos.
+
+La lógica estrictamente propia del módulo permanece dentro del SurfaceService correspondiente.
+
+Piezas vigentes:
+
+app/Support/Modules/Concerns/BuildsHostPacks.php
+app/Support/Modules/Concerns/ResolvesRelatedEmbeddedSurfaces.php
+
+Caso validado:
+
+OrderSurfaceService conserva configuración propia de hosts y relaciones, pero ya no concentra toda la mecánica genérica de validación, consulta y armado de payload.
+
+Regla:
+
+no vaciar un SurfaceService por reflejo.
+
+El criterio correcto es separar lógica transversal reusable de lógica propia del módulo.
+
 Convención de hooks:
 
 los hooks funcionan como fronteras funcionales de intervención entre módulos.
@@ -389,6 +412,64 @@ Regla:
 
 no debe mostrarse únicamente party->name si el módulo posee snapshot propio de contraparte y fallback controlado.
 
+Convención de referencias propias con vínculo gestionado opcional:
+
+cuando un módulo conserve un vínculo gestionado opcional hacia otro módulo y necesite mantener referencia textual propia del registro, debe diferenciarse:
+
+*_id
+
+vínculo gestionado opcional
+
+*_reference o snapshot textual propio vigente del módulo
+
+referencia textual propia del registro
+
+record_metadata
+
+condición contextual o excepcional
+
+Reglas:
+
+la referencia textual propia no reemplaza autorización
+
+la referencia textual propia no reemplaza el módulo vinculado
+
+la referencia textual propia permite lectura autónoma del registro
+
+la salida visual debe priorizar helpers o payload preparado por el módulo dueño
+
+los Blades no deben reconstruir lógica interna del módulo oferente
+
+los Blades no deben interpretar directamente record_metadata
+
+record_metadata no debe usarse como fuente principal de datos operativos
+
+record_metadata solo debe expresar condiciones contextuales, excepciones o manualidad
+
+Caso vigente validado en Orders:
+
+party_id
+
+vínculo gestionado opcional con Parties
+
+asset_id
+
+vínculo gestionado opcional con Assets
+
+asset_reference
+
+referencia textual propia del activo dentro de Orders
+
+record_metadata
+
+metadata contextual o excepcional de la orden
+
+Aclaración:
+
+el nombre vigente para contraparte en Orders y Documents continúa siendo counterparty_name mientras el código y la doctrina vigente no lo reemplacen formalmente.
+
+Si aparece counterparty_reference en cierres de sesión o propuestas, debe auditarse contra código real antes de incorporarlo como contrato vigente.
+
 Convención de contraparte en módulos transaccionales:
 
 cuando un módulo transaccional conserve un vínculo opcional con Party y además requiera preservar el dato visible de contraparte, debe diferenciarse:
@@ -425,21 +506,130 @@ Convención visual para tablas y surfaces de Orders/Documents:
 
 showCounterparty es el contrato visual vigente para indicar si una tabla de Orders o Documents debe mostrar la columna Contraparte.
 
-showParty queda solo como fallback transitorio interno en Blades auditados, cuando exista compatibilidad heredada necesaria.
+showAsset es el contrato visual vigente para indicar si una tabla o surface de Orders debe mostrar la columna Activo.
+
+showParty no debe usarse como contrato visual vigente de Orders.
 
 Reglas:
 
 los surface services deben publicar showCounterparty cuando el dato visible esperado sea Contraparte
 
+los surface services deben publicar showAsset cuando el dato visible esperado sea Activo
+
 no deben publicar showParty como contrato principal si el contenido visual esperado no es el vínculo gestionado sino la contraparte operativa
 
-el Blade puede tolerar showParty solo como fallback transitorio mientras se completa la convergencia
+el Blade no debe conservar fallbacks legacy cuando el contrato vigente ya fue validado y no quedan consumidores
 
 Caso vigente:
 
 OrderSurfaceService publica showCounterparty.
 
+OrderSurfaceService puede publicar showAsset según host.
+
 DocumentSurfaceService publica showCounterparty.
+
+Reglas validadas para Orders:
+
+orders.index puede mostrar Contraparte y Activo.
+
+assets.show puede alojar Orders mostrando Contraparte y ocultando Activo para evitar duplicar el host.
+
+parties.show puede alojar Orders mostrando Activo y ocultando Contraparte para evitar duplicar el host.
+
+La lectura visual debe pasar por helpers del modelo dueño o payload preparado.
+
+Helpers vigentes:
+
+Order::displayCounterpartyName()
+Order::displayAssetReference()
+Order::hasManualCounterpartyReference()
+Order::hasManualAssetReference()
+
+Regla:
+
+record_metadata no debe interpretarse directamente desde Blade.
+
+Convención de formularios con fronteras explícitas:
+
+cuando un formulario host tenga campos que forman parte de su contrato propio y además pueda recibir enriquecimiento de módulos oferentes, no debe renderizar un foreach abierto de cualquier oferta externa.
+
+El host debe definir fronteras explícitas.
+
+Patrón:
+
+si existe proveedor externo válido
+renderiza componente del proveedor
+
+si no existe proveedor externo
+renderiza campo manual propio
+
+Caso vigente:
+
+orders.form
+
+Fronteras validadas:
+
+Party disponible
+selector de contacto
+
+Party no disponible
+campo manual propio de contraparte
+
+Asset disponible
+selector de activo
+
+Asset no disponible
+campo manual propio de activo o referencia equivalente vigente
+
+Ofertas vigentes:
+
+PartySurfaceService ofrece party.order.form-context
+
+AssetSurfaceService ofrece asset.order.form-context
+
+Reglas:
+
+el formulario no debe acoplarse directamente al dominio interno del módulo oferente
+
+el proveedor externo prepara payload o componente según su contrato
+
+el host decide cómo encajar la frontera dentro de su contrato propio
+
+una carga manual no debe transformarse automáticamente en gestionada sin acción explícita y trazable
+
+Convención de record_metadata:
+
+record_metadata puede utilizarse como campo JSON flexible del registro para conservar metadata contextual o excepcional.
+
+No reemplaza columnas centrales.
+
+No reemplaza datos operativos principales.
+
+No reemplaza vínculos gestionados.
+
+No debe transformarse en fuente principal de lectura visual.
+
+Criterio vigente:
+
+si todo ocurre por vía gestionada normal
+record_metadata puede permanecer null
+
+si alguna frontera cae a carga manual
+record_metadata puede registrar solo esa excepción
+
+Caso vigente validado:
+
+record_metadata.relationships.counterparty.managed = false
+
+record_metadata.relationships.asset.managed = false
+
+Reglas:
+
+la lectura visual de metadata contextual debe exponerse mediante helper del modelo dueño, presenter o payload preparado
+
+Blade representa
+
+Blade no interpreta JSON operativo
 
 Convención de relaciones externas hacia Orders:
 
@@ -795,6 +985,26 @@ no reabrir arbitrariamente módulos ya cerrados para introducir complejidad prop
 cuando una necesidad pertenezca claramente a un módulo existente, debe consumirse la capacidad oficial del módulo oferente
 
 cuando una necesidad pertenezca específicamente al universo de la capa satélite, debe evaluarse como pieza satélite antes de modificar el núcleo de módulos cerrados
+
+Primer corte operativo vigente:
+
+service_maintenance existe como frente habilitable no CRUD.
+
+service_maintenance.view_any permite acceso al área Servicio y mantenimiento.
+
+Orders sostiene la primera base operativa mediante:
+
+group = service
+
+Reglas:
+
+el acceso al área no reemplaza permisos operativos de Orders ni de otros módulos participantes
+
+las acciones reales continúan bajo el contrato del módulo dueño
+
+no debe confundirse frente habilitable con CRUD ordinario
+
+no debe implementarse mantenimiento funcional reabriendo Orders por reflejo si la necesidad corresponde a Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties, OperationalActivity o una pieza satélite propia
 
 Convención de seeders demo operativos:
 

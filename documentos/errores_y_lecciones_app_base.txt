@@ -26,7 +26,7 @@ lección aplicable
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 LECCIONES VIGENTES
 
@@ -268,288 +268,197 @@ no inventar link hacia Party
 
 no mostrar vacío si el módulo dueño posee snapshot
 
-SHOWPARTY NO DEBE SEGUIR COMO CONTRATO PRINCIPAL SI EL DATO ES CONTRAPARTE
+ASSETLINKED NO ES FUENTE PRINCIPAL DE ACTIVO SI EXISTE REFERENCIA PROPIA
 
-Un nombre de contrato visual puede arrastrar semántica incorrecta si el dato que se muestra cambió.
+AssetLinked representa vínculo gestionado con Assets.
 
-Caso detectado:
-
-showParty expresa una lectura centrada en Party.
-
-Pero en tablas de Orders/Documents el dato visible esperado pasó a ser Contraparte.
-
-Corrección vigente:
-
-showCounterparty es el contrato visual principal.
-
-showParty queda solo como fallback transitorio interno en Blades auditados.
-
-Lección:
-
-el contrato visual debe nombrar el dato real que representa.
-
-Regla:
-
-si la columna muestra contraparte operativa del registro, el contrato debe ser showCounterparty.
-
-ORDERLINKED NO DEBE BLOQUEAR CREACIÓN POR AUSENCIA DE PARTY_ID
-
-Un acceso contextual hacia Orders no debe exigir contacto gestionado si Orders puede operar con contraparte textual propia.
+No debe usarse como fuente principal de texto visible cuando el módulo dueño posee referencia propia de activo.
 
 Caso vigente:
 
-Task sin party_id y sin order_id puede devolver state = creatable.
-
-Appointment sin party_id y sin order_id puede devolver state = creatable.
+Orders puede representar Activo mediante asset_id y asset_reference.
 
 Lección:
 
-la intención contextual de crear una Order no debe bloquearse por falta de Party cuando el contrato de Orders permite counterparty_name.
+un componente linked no debe ocultar la autonomía visual del módulo dueño.
 
 Reglas:
 
-OrderLinked no reemplaza autorización de Orders
+AssetLinked se usa cuando existe asset_id y corresponde mostrar vínculo gestionado
 
-OrderLinked no convierte Task ni Appointment en Order encubierta
+si no existe asset_id pero existe asset_reference, debe mostrarse texto propio
 
-la contraparte debe completarse en la Order cuando corresponda
+no inventar link hacia Asset
 
-ORDERLINKED NO DEBE INTERPRETAR MODELOS CONSUMIDORES
+no mostrar vacío si el módulo dueño posee referencia propia
 
-Un helper linked del módulo oferente no debe acumular métodos específicos por consumidor.
+SHOWPARTY NO DEBE SEGUIR COMO CONTRATO PRINCIPAL SI EL DATO ES CONTRAPARTE
+
+Un nombre de contrato visual incorrecto genera confusión conceptual y acoplamiento.
 
 Caso detectado:
 
-OrderLinked había acumulado métodos específicos como:
+showParty podía interpretarse como columna de vínculo gestionado a Party, cuando el dato visible real era Contraparte.
 
-forTask
-forAppointment
+Corrección vigente:
 
-Esto obligaba a Orders a interpretar modelos externos.
-
-Corrección aplicada:
-
-usar helper genérico basado en Order|null.
-
-Patrón vigente:
-
-OrderLinked::forOrder(?Order $order, ...)
+showCounterparty es el contrato visual para columnas de contraparte en Orders y Documents.
 
 Lección:
 
-el módulo oferente arma links de su propio recurso.
-
-El consumidor entrega el recurso del oferente o null.
+el nombre del contrato visual debe expresar el dato operativo visible, no necesariamente la entidad gestionada relacionada.
 
 Regla:
 
-no deben reaparecer métodos linked específicos por consumidor.
+usar Contraparte cuando se representa dato propio del registro.
 
-NO USAR SERVICIOS NOMBRADOS POR UN MÓDULO PARA MECÁNICAS TRANSVERSALES
+Usar Contacto cuando se filtra o selecciona Party gestionada.
 
-Un servicio mal nombrado puede arrastrar dependencia conceptual indebida.
+NO DEJAR FLAGS VISUALES SIN REPRESENTACIÓN EN TABLAS REUSABLES
+
+Un contrato visual no queda cerrado si el flag viaja por SurfaceService y partials intermedios, pero la tabla final no lo representa.
 
 Caso detectado:
 
-DocumentNumberGenerator era usado por Documents y Orders, contenía prefijos de ambos y hacía que Orders dependiera conceptualmente de Documents para numerarse.
+Orders ya propagaba showAsset desde OrderSurfaceService y embedded-tabs, pero orders.partials.table no renderizaba la columna Activo.
 
 Corrección aplicada:
 
-se reemplazó por:
-
-RecordNumberGenerator
-
-Los prefijos se trasladaron a:
-
-OrderCatalog
-
-DocumentCatalog
+orders.partials.table incorporó render condicional de Activo mediante showAsset y usa Order::displayAssetReference() como helper de lectura visible.
 
 Lección:
 
-si la mecánica es transversal, el servicio debe nombrarse y comportarse como transversal.
+cuando una tabla reusable recibe flags de columnas, debe auditarse que cada flag tenga representación real o eliminarse si no corresponde.
 
 Regla:
 
-el módulo define el significado.
+un flag visual no debe quedar como contrato fantasma.
 
-El servicio transversal ejecuta la mecánica.
+NO MOSTRAR TEXTO PLANO CUANDO EXISTE VÍNCULO GESTIONADO ENLAZABLE
 
-LOS PREFIJOS DE NEGOCIO PERTENECEN AL CATÁLOGO DEL MÓDULO
-
-Los prefijos de numeración no deben quedar dentro del generador técnico si representan significado de negocio.
+Mostrar el texto correcto no cierra el patrón si existe un vínculo gestionado autorizado que debería representarse como link oficial.
 
 Caso detectado:
 
-prefijos de Orders y Documents estaban dentro de DocumentNumberGenerator.
+Orders mostraba Parties y Assets como texto aunque existieran party_id y asset_id.
 
 Corrección aplicada:
 
-OrderCatalog define prefijos de Orders.
-
-DocumentCatalog define prefijos de Documents.
-
-RecordNumberGenerator solo ejecuta la mecánica.
+orders.partials.table incorporó PartyLinked y AssetLinked cuando existen vínculos gestionados correspondientes.
 
 Lección:
 
-los catálogos son el lugar correcto para definiciones de negocio propias del módulo.
+si el registro dueño tiene vínculo gestionado opcional y el enlace es seguro/autorizado, la salida visual debe permitir navegación oficial.
 
-LOS CONTROLLERS NO DEBEN RECONSTRUIR LÓGICA INTERNA DE MÓDULOS EXTERNOS
+Regla:
 
-Un controller puede quedar funcional pero acoplado si concentra reglas de otros dominios.
+si existe vínculo gestionado autorizado, mostrar link mediante helper o componente oficial.
 
-Caso detectado:
+Si no existe vínculo gestionado, mostrar referencia textual propia.
 
-OrderController conservaba lógica de Inventory para evaluar cierre de órdenes.
+NO INTERPRETAR RECORD_METADATA DESDE BLADE
+
+record_metadata puede guardar condiciones contextuales o excepcionales, pero no debe ser interpretado directamente por vistas.
+
+Caso vigente:
+
+Orders guarda manualidad de contraparte y activo en:
+
+record_metadata.relationships.counterparty.managed
+record_metadata.relationships.asset.managed
 
 Corrección aplicada:
 
-la regla pasó a frontera explícita:
+la lectura de manualidad se encapsuló en helpers del modelo:
 
-OrdersHooks
-
-InventoryOrderItemHooks
+Order::hasManualCounterpartyReference()
+Order::hasManualAssetReference()
 
 Lección:
 
-si una decisión propia depende de condición externa, debe consultarse mediante hook, service o frontera explícita.
+si una condición contextual debe representarse visualmente, el modelo dueño o una capa de presentación debe exponer un helper o payload explícito.
 
 Regla:
 
-el controller no debe convertirse en intérprete de módulos externos.
+Blade representa.
 
-LOS CONTROLLERS DE LÍNEAS NO DEBEN DUPLICAR SELECCIÓN Y VALIDACIÓN DE PRODUCTOS
+No interpreta JSON operativo.
 
-Cuando varios controllers necesitan seleccionar o validar productos para líneas, la lógica no debe repetirse.
+NO CONSERVAR FALLBACKS LEGACY CUANDO EL CONTRATO VIGENTE YA ESTÁ VALIDADO
+
+Un fallback transitorio debe eliminarse cuando se confirma que los consumidores vigentes usan el contrato nuevo.
 
 Caso detectado:
 
-OrderItemController y DocumentItemController repetían consultas directas a Products.
+Orders mantenía showParty como fallback transitorio para showCounterparty en:
+
+resources/views/orders/partials/table.blade.php
+resources/views/orders/partials/embedded-tabs.blade.php
 
 Corrección aplicada:
 
-crear y consumir:
-
-ProductLineItemSelector
+showParty fue eliminado de Orders luego de validar que no quedaban usos vigentes.
 
 Lección:
 
-Products debe ofrecer la capacidad de selección y validación de productos.
-
-Orders y Documents administran sus propios ítems.
+la compatibilidad transitoria no debe convertirse en convivencia indefinida.
 
 Regla:
 
-no reconstruir Product::query(), products.viewAny ni Rule::exists('products') en controllers consumidores cuando existe selector oficial.
+cuando el grep confirma ausencia de consumidores legacy, debe eliminarse el fallback.
 
-UNA RELACIÓN INVERSA DE MODELO PUEDE SER ACOPLAMIENTO INNECESARIO
+FUNCIONAR NO ALCANZA SI LA LÓGICA TRANSVERSAL QUEDA DENTRO DE UN SERVICE PARTICULAR
 
-Una relación en el modelo puede inducir navegación conceptual incorrecta aunque técnicamente funcione.
+Un service puede funcionar y aun así contener mecánica transversal que conviene extraer para evitar duplicación futura.
 
 Caso detectado:
 
-Order::tasks() permanecía luego de mover la relación funcional a tasks.order_id.
+OrderSurfaceService contenía lógica reusable de armado de hostPack y resolución de relacionados embebidos.
 
 Corrección aplicada:
 
-eliminar Order::tasks().
+se extrajo la construcción genérica de hostPack a:
 
-Lectura vigente:
+app/Support/Modules/Concerns/BuildsHostPacks.php
 
-Task -> Order.
+se extrajo la resolución reusable de relacionados embebidos a:
 
-Lección:
-
-no conservar relaciones inversas innecesarias si inducen ownership incorrecto o acoplamiento activo.
-
-Regla:
-
-clasificar relaciones externas como estructurales, pasivas, transversales o candidatas a extracción antes de aceptarlas.
-
-NO DECLARAR CIERRE DE FASE SIN AUDITAR MODELO, HELPERS, SERVICES Y SURFACES
-
-Una fase no queda cerrada solo por sanear el controller principal.
-
-Caso detectado:
-
-antes de cerrar Fase 0 Orders fue necesario revisar también modelo, linked helper, surface service, hooks, selector de productos y numeración.
-
-Corrección aplicada:
-
-Fase 0 de saneamiento evidente de Orders se cerró luego de sanear:
-
-OrderController
-OrderItemController
-Order model
-OrderLinked
-OrderSurfaceService
-OrdersHooks
-ProductLineItemSelector
-RecordNumberGenerator
-OrderCatalog
-DocumentCatalog
-consumidores Tasks y Appointments
-relación Order::tasks()
+app/Support/Modules/Concerns/ResolvesRelatedEmbeddedSurfaces.php
 
 Lección:
 
-un cierre de fase exige auditoría transversal del módulo y sus fronteras.
+los SurfaceService deben declarar ofertas, hosts y configuración propia.
+
+La mecánica transversal reusable debe vivir en Support/Modules cuando corresponda.
 
 Regla:
 
-no proponer cierre de fase si quedan núcleos relevantes no auditados.
+no vaciar services por reflejo.
 
-NO ENVIAR TEXTO NARRATIVO COMO SCRIPT EJECUTABLE EN PROJECT LAB
+Separar solo lógica transversal reusable de lógica propia del módulo.
 
-Project Lab ejecuta bloques técnicos.
+UN FRENTE HABILITABLE NO CRUD NO REEMPLAZA PERMISOS DE MÓDULOS DUEÑOS
 
-No debe recibir texto narrativo como si fuera script de auditoría.
+Una capa satélite productiva puede tener entrada visual y permiso propio de acceso al área, pero eso no autoriza acciones internas sobre los módulos participantes.
 
-Caso detectado:
+Caso vigente:
 
-un texto no ejecutable fue interpretado como shell y generó errores.
+service_maintenance existe como frente habilitable no CRUD.
+
+service_maintenance.view_any permite acceso al área Servicio y mantenimiento.
+
+Orders sostiene la primera base operativa mediante:
+
+group = service
 
 Lección:
 
-las respuestas narrativas no son comandos.
+acceder al área no equivale a operar sus recursos internos.
 
 Regla:
 
-para Project Lab deben enviarse únicamente bloques ejecutables, comandos válidos, patches completos o formatos aceptados por el automatizador.
+las acciones reales deben seguir autorizándose por el módulo dueño.
 
-NO GENERAR BLOQUES DOCUMENTALES CON NOMBRES DE SECCIÓN NO CONFIRMADOS
-
-Una sección documental con contenido correcto pero nombre técnico incorrecto no sirve para Project Lab.
-
-Caso detectado:
-
-se intentó reemplazar secciones inexistentes en seguridad_acceso_proyecto_app_base.
-
-Errores devueltos:
-
-CONTRATOS DE SEGURIDAD MODULARES no existía
-
-SEGURIDAD EN MÓDULOS OPERATIVOS no existía
-
-Corrección aplicada:
-
-se buscó el tag real vigente y se reemplazó por secciones existentes:
-
-CONTRATO DE SEGURIDAD MODULAR
-
-REGLAS OPERATIVAS POR MÓDULO
-
-Lección:
-
-los títulos conceptuales no son identificadores válidos.
-
-Regla:
-
-antes de entregar bloques documentales para automatizador, confirmar el tag exacto:
-
-<<SECTION: NOMBRE EXACTO>>
-
-Si no se conoce con certeza, pedir listado de secciones o auditar el documento vigente antes de generar el bloque.
+En órdenes de servicio, las acciones reales siguen perteneciendo a Orders.
 
 <<END SECTION>>

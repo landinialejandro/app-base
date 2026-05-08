@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 PATRONES VIGENTES
 
@@ -248,6 +248,69 @@ el host aloja
 
 el oferente prepara payload o vista
 
+SURFACE SERVICE DECLARATIVO CON LÓGICA TRANSVERSAL EXTRAÍDA
+
+Patrón validado:
+
+un SurfaceService debe declarar ofertas, hosts y configuración propia.
+
+La lógica transversal reusable no debe quedar incrustada dentro de un único SurfaceService si puede servir como mecánica común para otros módulos.
+
+Piezas vigentes:
+
+app/Support/Modules/Concerns/BuildsHostPacks.php
+app/Support/Modules/Concerns/ResolvesRelatedEmbeddedSurfaces.php
+
+Lectura:
+
+BuildsHostPacks concentra la construcción genérica de hostPack.
+
+ResolvesRelatedEmbeddedSurfaces concentra la resolución reusable de relacionados embebidos.
+
+El SurfaceService conserva:
+
+ofertas propias
+hosts soportados
+configuración contextual
+relaciones propias
+flags visuales propios
+mensajes propios
+
+Caso validado:
+
+OrderSurfaceService conserva su configuración propia de hosts y relaciones, pero ya no contiene toda la mecánica genérica de validación, consulta y armado de payload.
+
+Hosts validados:
+
+orders.show
+assets.show
+parties.show
+
+Surface validada:
+
+orders.related.embedded
+
+Payload validado:
+
+orders
+tabsId
+trailQuery
+emptyMessage
+showCounterparty
+showAsset
+
+Reglas:
+
+no vaciar un SurfaceService por reflejo
+
+no mover lógica propia del módulo a un concern transversal
+
+extraer solo mecánica reusable
+
+aplicar el patrón progresivamente y con validación runtime
+
+no migrar services de forma masiva sin evidencia
+
 SELECTOR O PROVEEDOR DE DOMINIO
 
 Patrón validado:
@@ -456,835 +519,217 @@ los listados deben mostrar Contraparte cuando representan el dato operativo visi
 
 los filtros por party_id pueden seguir usando Contacto
 
-las surfaces deben publicar showCounterparty cuando corresponda mostrar la columna de contraparte
+las surfaces deben publicar showCounterparty cuando corresponda mostrar la columna de Contraparte
 
-los módulos externos no deben reconstruir el texto visible desde Party si el módulo dueño ofrece helper oficial
+PartyLinked no reemplaza displayCounterpartyName()
 
-PartyLinked no debe usarse como fuente principal de contraparte cuando existe snapshot propio
+si no existe party_id pero existe snapshot propio, se muestra texto propio
 
-si no existe party_id, la contraparte debe mostrarse como texto propio sin inventar link
+si existe party_id y corresponde link, se muestra vínculo gestionado oficial
 
-SHOWCOUNTERPARTY COMO CONTRATO VISUAL DE TABLAS Y SURFACES
+no inventar link hacia Party
 
-Patrón validado:
+no mostrar vacío si el módulo dueño posee snapshot
 
-showCounterparty indica que una tabla o surface de Orders/Documents debe mostrar la columna Contraparte.
-
-Casos vigentes:
-
-OrderSurfaceService publica showCounterparty.
-
-DocumentSurfaceService publica showCounterparty.
-
-Blades alineados:
-
-resources/views/orders/partials/table.blade.php
-
-resources/views/documents/partials/table.blade.php
-
-resources/views/orders/partials/embedded-tabs.blade.php
-
-resources/views/documents/partials/embedded-tabs.blade.php
-
-resources/views/orders/index.blade.php
-
-resources/views/documents/index.blade.php
-
-Reglas:
-
-showCounterparty es el contrato principal cuando el dato visible esperado es la contraparte operativa
-
-showParty queda solo como fallback transitorio interno en Blades auditados
-
-no publicar showParty como contrato principal cuando la columna no representa vínculo gestionado sino contraparte visible
-
-Contacto debe reservarse para filtros, selectores o vínculos gestionados hacia Party
-
-Contraparte debe usarse cuando la tabla representa el dato operativo visible del registro
-
-ORDERLINKED SIN DEPENDENCIA RÍGIDA DE PARTY_ID
+TABLAS/LISTADOS CON VÍNCULOS GESTIONADOS Y REFERENCIAS PROPIAS
 
 Patrón validado:
 
-OrderLinked puede ofrecer creación contextual de Order aunque el registro origen no tenga party_id.
-
-Casos validados:
-
-Task sin party_id y sin order_id → state = creatable
-
-Appointment sin party_id y sin order_id → state = creatable
+cuando un módulo conserva vínculos gestionados opcionales y referencias textuales propias, las tablas y listados deben representar el dato operativo visible desde el módulo dueño.
 
 Lectura:
 
-Tasks y Appointments pueden originar intención contextual hacia Orders.
+*_id = vínculo gestionado opcional
 
-La Order resultante resuelve su contraparte en el formulario mediante counterparty_name cuando no exista party_id.
+*_reference o snapshot textual vigente = referencia textual propia del registro
 
-Reglas:
-
-OrderLinked no debe bloquear creación por ausencia de party_id
-
-OrderLinked no reemplaza autorización de Orders
-
-OrderLinked no convierte Task ni Appointment en Order encubierta
-
-Task y Appointment conservan ownership propio
-
-Orders conserva ownership de la intervención operativa
-
-RELACIÓN EXTERNA HACIA ORDERS
-
-Patrón validado:
-
-cuando otro módulo origina, planifica o acompaña una Order, la relación persistente debe vivir en el módulo que conserva ownership de ese origen, planificación o seguimiento.
-
-Casos vigentes:
-
-Tasks usa tasks.order_id
-
-Appointments usa appointments.order_id
-
-Orders no conserva task_id ni appointment_id como parte de su núcleo persistente.
+record_metadata = condición contextual o excepcional
 
 Reglas:
 
-task_id puede viajar como contexto transitorio de request o navegación
+la tabla no debe reconstruir lógica interna del módulo oferente
 
-appointment_id puede viajar como contexto transitorio de request o navegación
+la tabla no debe interpretar directamente JSON operativo
 
-el contexto transitorio no equivale a permiso concedido
+la tabla debe consumir helpers de presentación del modelo dueño cuando existan
 
-el contexto transitorio no debe convertirse automáticamente en campo persistente del módulo receptor
+el módulo dueño conserva la lectura visible de sus referencias propias
 
-Tasks conserva ownership de pendientes y seguimiento
+los SurfaceService pueden decidir qué columnas mostrar según host mediante flags explícitos
 
-Appointments conserva ownership de agenda y planificación temporal
+los hosts no deben duplicar información que ya está representada por el recurso anfitrión
 
-Orders conserva ownership de la intervención operativa
+si existe vínculo gestionado autorizado, debe mostrarse link mediante helper o componente oficial
 
-Una Order puede tener múltiples Tasks asociadas desde la lectura funcional del ecosistema.
+si no existe vínculo gestionado, debe mostrarse referencia textual propia del registro
 
-DERIVACIÓN ENTRE MÓDULOS SIN TRANSFERENCIA DE OWNERSHIP
+si la carga fue manual, puede mostrarse una indicación visual discreta
+
+no inventar links cuando no existe vínculo gestionado
+
+no reconstruir Party ni Asset desde Orders
+
+Caso validado:
+
+Orders.
+
+Helpers vigentes:
+
+Order::displayCounterpartyName()
+Order::displayAssetReference()
+Order::hasManualCounterpartyReference()
+Order::hasManualAssetReference()
+
+Helpers y componentes vinculados vigentes:
+
+PartyLinked::forParty()
+parties.components.linked-party
+AssetLinked::forAsset()
+assets.components.linked-asset
+
+Contratos visuales vigentes:
+
+showCounterparty
+showAsset
+
+Reglas específicas:
+
+showCounterparty indica que una tabla o surface de Orders debe mostrar Contraparte.
+
+showAsset indica que una tabla o surface de Orders debe mostrar Activo.
+
+En orders.index se muestran Contraparte y Activo.
+
+En assets.show, la surface embebida de Orders muestra Contraparte y no muestra Activo, porque el host ya es el activo.
+
+En parties.show, la surface embebida de Orders muestra Activo y no muestra Contraparte, porque el host ya es el contacto.
+
+record_metadata puede indicar manualidad o excepción, pero no debe convertirse en fuente principal del dato visible.
+
+Caso validado de manualidad:
+
+record_metadata.relationships.counterparty.managed = false
+record_metadata.relationships.asset.managed = false
+
+La lectura visual de esa condición debe resolverse mediante helpers del modelo dueño y no desde Blade.
+
+Regla de convergencia:
+
+showParty no debe permanecer como contrato visual de Orders.
+
+Caso validado:
+
+showParty fue eliminado de Orders luego de confirmar que los consumidores vigentes usan showCounterparty.
+
+FORMULARIO HOST CON FRONTERAS EXPLÍCITAS
 
 Patrón validado:
 
-un módulo puede derivar otro registro aportando contexto sin transferir ownership.
+cuando un formulario host tiene campos que pertenecen a su contrato propio y puede recibir enriquecimiento de módulos oferentes, el host no debe renderizar ofertas externas mediante un foreach abierto.
+
+Debe declarar fronteras explícitas.
+
+Patrón:
+
+si existe proveedor externo válido
+renderiza componente del proveedor
+
+si no existe proveedor externo
+renderiza campo manual propio
+
+Caso validado:
+
+orders.form
+
+Fronteras vigentes:
+
+Party disponible → selector de contacto
+
+Party no disponible → campo manual propio de contraparte
+
+Asset disponible → selector de activo
+
+Asset no disponible → campo manual propio o referencia propia equivalente vigente
+
+Ofertas vigentes:
+
+party.order.form-context
+
+asset.order.form-context
+
+Reglas:
+
+el formulario host conserva su contrato propio
+
+el módulo oferente prepara payload o componente
+
+el host decide cómo encajar la frontera
+
+una carga manual no debe transformarse automáticamente en gestionada sin acción explícita y trazable
+
+RECORD_METADATA COMO METADATA CONTEXTUAL O EXCEPCIONAL
+
+Patrón validado:
+
+record_metadata puede conservar metadata contextual o excepcional del registro.
+
+No reemplaza columnas centrales.
+
+No reemplaza datos operativos principales.
+
+No reemplaza vínculos gestionados.
+
+No debe ser fuente principal de salida visual.
+
+Criterio vigente:
+
+si todo ocurre por vía gestionada normal
+record_metadata puede permanecer null
+
+si alguna frontera cae a carga manual
+record_metadata puede registrar solo esa excepción
+
+Caso validado:
+
+record_metadata.relationships.counterparty.managed = false
+record_metadata.relationships.asset.managed = false
+
+Reglas:
+
+la lectura de record_metadata debe encapsularse en helper, presenter o payload preparado
+
+Blade representa
+
+Blade no interpreta JSON operativo
+
+CAPA SATÉLITE PRODUCTIVA HABILITABLE NO CRUD
+
+Patrón validado:
+
+una capa satélite productiva puede tener entrada operativa y permiso propio de acceso al área sin convertirse en módulo CRUD ordinario.
 
 Caso vigente:
 
-Order → Document
+Servicios y Mantenimiento.
 
 Lectura:
 
-Orders aporta contexto operativo
+service_maintenance existe como frente habilitable no CRUD
 
-Documents conserva ownership documental
+service_maintenance.view_any permite acceso al área
 
-documents.order_id conserva vínculo de derivación cuando corresponde
-
-Reglas:
-
-la derivación exige autorización del módulo receptor
-
-Documents conserva sus propios ítems
-
-Documents conserva sus propios totales
-
-Documents conserva su propio lifecycle
-
-Documents conserva su propia contraparte textual cuando corresponda
-
-La creación derivada debe validar runtime web real, no solo seeders o lint.
-
-Caso detectado:
-
-una dependencia a método inexistente puede aparecer en runtime real aunque migrate:fresh --seed sea exitoso.
-
-Corrección vigente:
-
-Order → Document recalcula totales desde document_items sin depender de DocumentTotalsCalculator::apply().
-
-AUTORIZACIÓN SENSIBLE CENTRALIZADA
-
-Cuando una regla sensible aparece duplicada en controller y requests, debe extraerse a una pieza reusable del dominio correspondiente.
-
-Caso validado:
-
-PartyEmployeeContactAuthorization
-
-Ubicación vigente:
-
-app/Support/Parties/PartyEmployeeContactAuthorization.php
-
-Caso validado adicional:
-
-TenantProfileAccess
-
-Ubicación vigente:
-
-app/Support/Tenants/TenantProfileAccess.php
-
-Regla:
-
-la UI puede expresar disponibilidad, pero la autorización sensible debe resolverse y bloquearse en backend.
-
-Regla adicional:
-
-cuando un frente tenant concentra reglas owner/admin, esa autoridad debe centralizarse en una pieza reusable del plano tenant y no repetirse en policies, controllers o Blades.
-
-VALIDACIÓN RUNTIME DE SEGURIDAD
-
-Una validación sensible debe combinar:
-
-UI correcta
-Security runtime
-request validation
-intento manipulado
-verificación final de persistencia
-
-Caso validado:
-
-protección de party vinculada a membership activa.
-
-Caso validado adicional:
-
-contrato owner/admin en tenant/profile/accesses.
-
-Validaciones realizadas:
-
-admin intentando editar General bloqueado
-
-admin intentando modificar permisos del rol admin bloqueado
-
-admin modificando permisos de rol operativo permitido
-
-admin intentando asignar admin bloqueado
-
-admin asignando rol operativo permitido
-
-admin intentando autogestionarse o vaciar sus roles bloqueado
-
-admin intentando combinar admin con rol operativo vía sync bloqueado
-
-membership activa sin roles con error funcional controlado
-
-rollback confirmado luego de pruebas positivas
-
-La validación no se considera cerrada solo por ocultar campos en UI.
-
-Debe probarse que el backend bloquea intentos manipulados y que el registro persiste intacto.
-
-VALIDACIÓN RUNTIME DE FLUJOS DERIVADOS
-
-Un flujo derivado no se considera cerrado solo porque cree el registro destino.
-
-Debe validarse:
-
-autorización del módulo receptor
-
-datos propios del registro destino
-
-líneas copiadas cuando corresponda
-
-cálculos o totales reales
-
-lifecycle inicial correcto
-
-salida visual posterior
-
-ausencia de dependencia a métodos inexistentes
-
-prueba runtime web real
-
-Caso validado:
-
-Order → Document funciona desde runtime web real después de permitir Documents con counterparty_name, copiar ítems y recalcular totales desde document_items.
-
-EVENTOS OPERATIVOS TRANSVERSALES
-
-Patrón validado:
-
-módulo dueño
-↓
-autoriza, valida y muta
-↓
-emite evento operativo liviano
-↓
-listener queued con ShouldQueue y afterCommit
-↓
-prestador transversal aplica sanidad
-↓
-persistencia append-only
+Orders sostiene la primera base operativa mediante group = service
 
 Reglas:
 
-el evento operativo no autoriza
-el evento operativo no valida la operación original
-el evento operativo no reemplaza Security ni policies
-el módulo dueño conserva ownership funcional
-la capacidad transversal registra solo si corresponde
-el listener queued no debe bloquear el flujo principal
+el permiso de acceso al área no reemplaza permisos operativos de módulos dueños
 
-Caso vigente:
+las acciones reales continúan bajo el contrato del módulo dueño
 
-OperationalActivity
+la capa satélite no absorbe ownership de Orders, Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity
 
-Módulos con integración validada a OperationalActivity:
+la entrada visual no implica CRUD ordinario
 
-appointments
-tasks
-orders
-documents
-projects
-assets
-products
-attachments
-parties
-inventory
-
-CAMPOS OBSERVABLES POR CATÁLOGO DEL MÓDULO DUEÑO
-
-Cuando una capacidad transversal registra actividad operativa, los campos observables deben pertenecer al catálogo del módulo dueño.
-
-Casos vigentes:
-
-AppointmentCatalog::activityTrackedFields()
-TaskCatalog::activityTrackedFields()
-OrderCatalog::activityTrackedFields()
-DocumentCatalog::activityTrackedFields()
-
-Regla:
-
-el prestador transversal no debe conocer en exceso la semántica interna de cada módulo.
-
-Cuando se integre un nuevo módulo, el catálogo dueño debe declarar explícitamente los campos observables antes de considerar cerrada la trazabilidad operativa.
-
-SANIDAD DE CAMBIOS OPERATIVOS
-
-La trazabilidad operativa debe aplicar sanidad antes de persistir.
-
-Reglas:
-
-no registrar cambios vacíos
-ignorar campos técnicos
-no registrar por registrar
-registrar solo cambios operativamente significativos
-clasificar actividad desde el prestador transversal cuando corresponda
-
-Clasificaciones vigentes posibles:
-
-assigned
-reassigned
-unassigned
-status_changed
-updated
-
-Regla:
-
-la clasificación no debe dispersarse en controllers.
-
-METADATA OPERATIVA OPCIONAL
-
-Los eventos operativos livianos pueden admitir metadata opcional cuando un cambio operativo relevante no vive directamente como atributo simple del modelo principal.
-
-Reglas:
-
-la metadata debe complementar el cambio operativo
-no debe trasladar autorización al evento
-no debe convertir entidades hijas en módulos propios
-no debe acoplar en exceso OperationalActivity a la semántica interna del módulo dueño
-
-Caso validado:
-
-parties registra cambios de party_roles como metadata operativa de Party.
-
-RELACIONES HIJAS CON SIGNIFICANCIA OPERATIVA
-
-Cuando una relación hija expresa un cambio operativo relevante, puede representarse como metadata operativa del record principal si esa lectura respeta ownership y evita crear un módulo artificial.
-
-Caso validado:
-
-party_roles expresa relación del contacto con la empresa.
-
-Sus cambios pueden registrarse dentro de la actividad operativa de Party.
-
-Regla:
-
-party_roles no se convierte en módulo propio ni en navegación propia.
-
-ENTIDADES AGRUPADORAS Y MOVIMIENTOS ATÓMICOS
-
-Cuando un módulo posee una entidad agrupadora de acción y entidades atómicas de trazabilidad fina, la actividad transversal debe anclarse en la pieza que represente mejor la acción operativa del usuario.
-
-Caso validado:
-
-inventory registra InventoryOperation.
-
-InventoryMovement conserva trazabilidad fina interna de stock.
-
-Regla:
-
-no duplicar en OperationalActivity la trazabilidad atómica que ya pertenece al módulo dueño cuando una operación agrupada expresa mejor el evento operativo.
-
-LECTURA GENERAL DE ACTIVIDAD OPERATIVA
-
-Patrón validado:
-
-capacidad tenant no modular
-↓
-Security::allows('operational_activity.viewAny')
-↓
-lectura tenant-scoped desde tenant/profile
-↓
-tab visual Actividad
-
-Reglas:
-
-la lectura general del log puede existir sin convertir OperationalActivity en módulo funcional ordinario
-
-OperationalActivity no se agrega a ModuleCatalog por este patrón
-
-la vista general inicial no crea navegación principal propia
-
-la tab Actividad en tenant/profile es lectura visual general
-
-Patrón de resolución de lectura:
-
-operational_activities guarda trazabilidad estable
-OperationalActivityLinkResolver resuelve presentación y navegación
-Blade consume filas ya resueltas
-
-Campos persistidos usados como base:
-
-module
-record_type
-record_id
-
-Datos derivados en lectura:
-
-record_label
-record_url
-actor_label
-subject_label
-trail
-
-Regla:
-
-el link visual al registro asociado no debe persistirse como URL final.
-
-Debe resolverse dinámicamente desde una pieza de lectura.
-
-Si no existe ruta show canónica segura, se muestra texto plano.
-
-Trail validado desde actividad general:
-
-Inicio
-Perfil de empresa · Actividad
-Registro destino
-
-LECTURA CONTEXTUAL HEREDADA DE ACTIVIDAD OPERATIVA
-
-Patrón validado:
-
-host autoriza view del record
-↓
-surface tenant/transversal recibe record autorizado
-↓
-OperationalActivityContextReader lee actividad asociada
-↓
-OperationalActivitySurfaceService prepara tab
-↓
-x-host-tabs representa Actividad
-
-Reglas:
-
-la lectura contextual heredada no usa operational_activity.view_any
-
-la lectura contextual heredada no habilita lectura general del tenant
-
-la lectura contextual heredada no convierte OperationalActivity en módulo funcional ordinario
-
-la lectura contextual heredada no autoriza la operación original
-
-la autorización corresponde al módulo host
-
-la surface debe publicarse mediante TenantSurfaceRegistry cuando la capacidad no sea módulo funcional ordinario
-
-Caso validado:
-
-OperationalActivity publica tab Actividad hacia hosts funcionales autorizados mediante TenantSurfaceRegistry.
-
-LECTURA CONTEXTUAL AGREGADA DE ACTIVIDAD OPERATIVA
-
-Patrón validado:
-
-módulo dueño declara activity_record_set
-↓
-OperationalActivityContextReader lee conjunto explícito de records
-↓
-host muestra actividad agregada autorizada
-
-Caso vigente:
-
-projects.show usa ProjectActivityRecordSet para mostrar actividad de Project + Tasks.
-
-Reglas:
-
-OperationalActivity no infiere relaciones internas del módulo dueño
-
-OperationalActivity no contiene if Project, if Order, if Document ni condiciones equivalentes por módulo
-
-el conjunto explícito pertenece al módulo dueño
-
-la lectura agregada no equivale a lectura general del tenant
-
-LECTURA CONTEXTUAL ESPECIAL DE ACTIVIDAD OPERATIVA
-
-Patrón validado:
-
-módulo dueño declara activity_context
-↓
-OperationalActivitySurfaceService resuelve payload contextual
-↓
-OperationalActivityContextReader aplica criterio especial
-↓
-host muestra actividad contextual autorizada
-
-Caso vigente:
-
-parties.show puede usar PartyEmployeeActivityContext cuando una Party tiene relación employee y membership activa vinculada.
-
-Dataset visible:
-
-actividad directa de Party
-actividad donde el user vinculado sea actor_user_id
-actividad donde el user vinculado sea subject_user_id
-
-Reglas:
-
-activity_context no reemplaza activity_record_set
-
-activity_context no autoriza por sí mismo
-
-activity_context no habilita lectura general del tenant
-
-activity_context no convierte a user en entidad del negocio
-
-activity_context no convierte a membership en módulo funcional
-
-PARTIAL REUSABLE DE ACTIVIDAD OPERATIVA
-
-Patrón validado:
-
-una tabla visual común puede representar actividad general y contextual si recibe payload ya preparado.
-
-Partial vigente:
-
-resources/views/tenants/partials/operational-activity-table.blade.php
-
-Responsabilidad:
-
-representar filas ya resueltas
-
-Columnas vigentes:
-
-Fecha
-Módulo
-Actividad
-Registro
-Actor
-Sujeto
-
-Reglas:
-
-el partial no decide autorización
-el partial no consulta actividad
-el partial no interpreta metadata.changes directamente
-el partial no reconstruye historia operativa
-el partial puede mostrar change_summary y abrir change_details en modal cuando el payload venga preparado
-
-Pieza de presentación vigente:
-
-OperationalActivityChangePresenter
-
-ACTIVIDAD CON DETALLE BAJO DEMANDA
-
-Patrón validado:
-
-mostrar resumen compacto de cambios en tabla y detalle bajo demanda en modal.
-
-Reglas:
-
-no sobrecargar la tabla con columnas excesivas
-
-usar x-modal global para detalle
-
-el botón Ver cambios debe mantener bajo protagonismo
-
-Variante visual validada:
-
-btn btn-secondary btn-icon
-
-Icono vigente:
-
-x-icons.changes
-
-SURFACE TENANT/TRANSVERSAL NO MODULAR
-
-Patrón validado:
-
-una capacidad transversal no modular puede publicar UI hacia hosts funcionales mediante TenantSurfaceRegistry.
-
-Caso vigente:
-
-OperationalActivitySurfaceService
-
-Reglas:
-
-no agregar capacidad transversal a ModuleCatalog solo para publicar UI
-
-no insertar tabs manuales en cada host
-
-no convertir surface en navegación principal
-
-la surface debe respetar gramática esperada por x-host-tabs
-
-Key vigente:
-
-activity
-
-No usar:
-
-operational_activity.contextual
-
-PRODUCTOPERATIONALSUMMARY COMO SUBCAPA CONTEXTUAL DE PRODUCTS
-
-Patrón validado:
-
-una lectura contextual interna puede vivir bajo el módulo host sin convertirse en módulo nuevo.
-
-Caso vigente:
-
-ProductOperationalSummary
-
-Lectura:
-
-subcapa contextual interna de Products
-sin CRUD
-sin navegación propia
-sin ModuleCatalog propio
-sin dashboard general
-sin rutas propias
-
-Ubicación vigente:
-
-app/Support/Products/OperationalSummary/
-resources/views/products/operational-summary/
-
-Surface vigente:
-
-ProductSurfaceService
-
-Salida visual:
-
-summary_items en products.show
-
-Ítems vigentes:
-
-Compras
-Ventas
-Entradas / salidas
-
-Reglas:
-
-Products presenta
-Orders aporta compras y ventas reales cuando está habilitado y autorizado
-Inventory aporta entradas, salidas y movimientos
-Parties aporta proveedor o cliente cuando existe relación real
-OperationalActivity no se usa como fuente principal de métricas
-las métricas no se calculan en Blade
-los partials representan payload ya resuelto
-la subcapa no crea navegación nueva
-la subcapa no crea tab nueva
-la subcapa no entra al dashboard general
-
-Criterio visual validado:
-
-usar líneas separadas con estructura HTML simple cuando un summary item necesita legibilidad.
-
-No asumir utilities CSS no validadas.
-
-Caso detectado:
-
-d-block no produjo salto de línea esperado.
-
-Corrección:
-
-usar div.
-
-FORMULARIO PROGRESIVO DE PARTIES
-
-Patrón validado:
-
-usar formulario progresivo para guiar decisiones conceptuales sin exponer complejidad interna.
-
-Caso vigente:
-
-parties._form
-
-Secuencia visible:
-
-Tipo de contacto
-Relación con la empresa
-Datos del contacto
-
-Lectura:
-
-Tipo de contacto expresa parties.kind
-
-Relación con la empresa expresa party_roles.role
-
-Reglas:
-
-evitar la palabra rol en UI de parties cuando pueda confundirse con roles de permisos o memberships
-
-la UI expresa opciones ya resueltas
-
-backend autoriza y bloquea
-
-LENGUAJE VISUAL PARA CONTRAPARTE
-
-Patrón validado:
-
-cuando un registro distingue vínculo gestionado opcional y dato textual propio, la UI debe nombrarlos de forma diferenciada.
-
-Lectura vigente:
-
-Contacto gestionado = party_id opcional
-
-Contraparte = counterparty_name
-
-Casos vigentes:
-
-Orders
-
-Documents
-
-Reglas:
-
-no presentar el contacto gestionado como obligatorio si el contrato permite contraparte textual
-
-no mostrar vacío si existe contraparte textual propia
-
-no reemplazar snapshot propio por componente linked de Party inexistente
-
-SEEDERS DEMO OPERATIVOS
-
-Patrón validado:
-
-los seeders demo que representan operaciones reales deben hablar el contrato vigente del módulo y no aceptar compatibilidad legacy silenciosa.
-
-Reglas:
-
-no reinterpretar payloads legacy
-
-no corregir silenciosamente datos mal formados
-
-fallar fuerte ante contrato inválido
-
-usar catálogos vigentes
-
-emitir eventos operativos cuando represente actividad real
-
-procesar cola y validar persistencia si participa OperationalActivity
-
-poblar snapshots propios cuando el seeder crea registros directamente sin pasar por controller
-
-Caso vigente:
-
-OrderModuleSeeder usa group = sale|purchase|service y kind = standard.
-
-DocumentModuleSeeder usa modelos y estados vigentes.
-
-Orders y Documents deben poblar counterparty_name cuando el registro lo requiera.
-
-VALIDACIÓN ESTRUCTURAL POST-SANEAMIENTO
-
-Patrón validado:
-
-luego de saneamientos estructurales debe ejecutarse validación combinada.
-
-Validaciones usadas:
-
-php artisan optimize:clear
-php -l sobre archivos modificados
-php artisan migrate:fresh --seed
-Tinker
-prueba runtime web real
-
-Regla:
-
-migrate:fresh --seed no alcanza para cerrar flujos que pueden fallar en runtime web.
-
-Caso vigente:
-
-Order → Document permitió detectar una dependencia inválida hacia DocumentTotalsCalculator::apply().
-
-Validaciones recientes de Fase 0 visual/contractual:
-
-php artisan migrate:fresh --seed OK
-
-php artisan optimize:clear OK
-
-orders_without_counterparty = 0
-
-documents_without_counterparty = 0
-
-php -l OK sobre services PHP modificados
-
-Task sin party_id y sin order_id → state = creatable
-
-Appointment sin party_id y sin order_id → state = creatable
-
-VALIDACIÓN DE CIERRE DE FASE
-
-Patrón validado:
-
-una fase de saneamiento no debe declararse cerrada solo por resolver el controller principal.
-
-Debe auditar como mínimo:
-
-controller principal
-controllers hijos relevantes
-modelo
-helpers linked
-surface services
-hooks
-services/support vinculados
-catálogos
-rutas principales
-validaciones runtime o smoke tests relevantes
-grep de residuos cuando existan nombres legacy conocidos
-
-Caso vigente:
-
-Fase 0 de saneamiento evidente de Orders quedó cerrada funcionalmente luego de auditar y sanear:
-
-OrderController
-OrderItemController
-Order model
-OrderLinked
-OrderSurfaceService
-OrdersHooks
-ProductLineItemSelector
-RecordNumberGenerator
-OrderCatalog
-DocumentCatalog
-consumidores Tasks y Appointments
-relación Order::tasks()
-
-Regla:
-
-cerrar una fase implica que el módulo queda más autónomo, contractualmente claro y apto para la fase siguiente sin reintroducir acoplamientos activos indebidos.
+el frente especializado puede orientar la experiencia sin crear módulos o tablas por reflejo automático
 
 <<END SECTION>>

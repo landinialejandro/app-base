@@ -186,7 +186,7 @@ No debe convertirse en una copia rígida, sobredimensionada o aislada de un soft
 <<END SECTION>>
 
 <<SECTION: PAQUETE DE SERVICIOS Y MANTENIMIENTO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 PAQUETE DE SERVICIOS Y MANTENIMIENTO
 
@@ -296,10 +296,45 @@ Regla:
 
 la capa de Servicios y Mantenimiento puede tener entrada visual, dashboard especializado o experiencia operativa propia sin convertirse automáticamente en un módulo CRUD ordinario ni duplicar Orders.
 
+Primer corte operativo validado:
+
+Servicios y Mantenimiento ya cuenta con una entrada operativa mínima como frente habilitable no CRUD.
+
+Lectura vigente:
+
+service_maintenance existe como capacidad o módulo habilitable para tenant
+
+service_maintenance.view_any permite acceder al área
+
+ese permiso no autoriza por sí mismo acciones internas sobre Orders, Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity
+
+las acciones reales continúan bajo el contrato del módulo dueño
+
+Orders opera la primera base mínima de servicio mediante:
+
+group = service
+
+Esta implementación inicial no incorpora todavía:
+
+estados técnicos satélite
+planes de mantenimiento
+órdenes modelo
+checklists
+servicios precargados
+custodia material ampliada
+cierres técnicos
+cierres administrativos ampliados
+cierres finales
+línea de tiempo operativa específica de mantenimiento
+
+Regla:
+
+la existencia de la entrada Servicio y mantenimiento no convierte la capa en CRUD ordinario ni habilita duplicar ownership de módulos existentes.
+
 <<END SECTION>>
 
 <<SECTION: ROL DE ORDERS>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 ROL DE ORDERS
 
@@ -498,6 +533,30 @@ Regla:
 la autonomía de Orders respecto de party_id no elimina la posibilidad de vincular Party.
 
 Solo evita que Party sea dependencia rígida para crear o visualizar la orden.
+
+Primer corte operativo validado para servicio:
+
+Orders ya puede operar la base mínima de órdenes de servicio mediante:
+
+group = service
+
+La creación de órdenes de servicio debe respetar el contrato vigente de Orders.
+
+El acceso al área Servicio y mantenimiento mediante service_maintenance.view_any no reemplaza permisos de Orders.
+
+Las acciones reales sobre órdenes de servicio siguen dependiendo de autorización efectiva del módulo Orders.
+
+party_id y asset_id funcionan como vínculos opcionales de enriquecimiento.
+
+El vínculo con Asset permite asociar la intervención a un activo cuando corresponda.
+
+Cuando la UI filtre Assets por Party, esa selección debe validarse también en backend.
+
+Regla:
+
+la relación visible Party → Asset en el formulario no convierte a Party ni a Asset en dependencias obligatorias universales de la orden.
+
+No se implementaron todavía estados técnicos satélite, planes, checklists, órdenes modelo ni lógica ampliada de Inventory para mantenimiento.
 
 Regla:
 
@@ -1728,7 +1787,7 @@ el paquete de servicios y mantenimiento debe crecer como capacidad ERP/CMMS inte
 <<END SECTION>>
 
 <<SECTION: PRIMERA LÍNEA DE TRABAJO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 PRIMERA LÍNEA DE TRABAJO
 
@@ -1737,6 +1796,18 @@ La primera línea operativa recomendada es auditar y definir tipos de órdenes d
 Objetivo:
 
 establecer la clasificación mínima que permita distinguir órdenes de mantenimiento y servicios sin crear todavía todo el universo CMMS.
+
+Estado vigente validado:
+
+la primera base mínima de servicio opera mediante:
+
+group = service
+
+service_maintenance existe como frente habilitable no CRUD
+
+service_maintenance.view_any permite acceso al área Servicio y mantenimiento
+
+las acciones reales continúan bajo el contrato del módulo dueño, especialmente Orders
 
 Preguntas iniciales:
 
@@ -1749,6 +1820,14 @@ si la UI de creación puede mostrar tipos simples sin complejidad excesiva
 si los seeders hablan el contrato vigente
 si filtros, index, show y documents derivados soportan esa clasificación
 si OperationalActivity debe distinguir cambios de tipo técnico como campo observable
+
+Pendiente inmediato:
+
+ajustar la lectura contextual de:
+
+orders.index?group=service
+
+para que el listado se exprese visualmente como Órdenes de servicio y no como Orders genérico.
 
 Criterio:
 

@@ -347,7 +347,7 @@ el tenant activo organiza tanto operación como gobierno interno de la empresa a
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00033
+SECTION_VERSION: 00035
 
 CAPAS FUNCIONALES DEL SISTEMA
 
@@ -439,9 +439,23 @@ Caso vigente:
 
 Servicios y Mantenimiento puede leerse como capa satélite productiva ERP/CMMS liviana.
 
+Lectura vigente:
+
+puede tener entrada operativa propia
+
+puede tener permiso propio de acceso al área
+
+puede operar como frente especializado
+
+no absorbe ownership funcional de los módulos participantes
+
+no convierte sus piezas internas en CRUD ordinario por defecto
+
 Regla:
 
 una capa satélite puede orquestar módulos existentes, pero no duplicar ni absorber ownership funcional.
+
+El detalle de permisos, navegación y estado de implementación de cada frente satélite corresponde a documentos especializados.
 
 SUBCAPAS CONTEXTUALES INTERNAS
 
@@ -697,7 +711,7 @@ tampoco debe sobredimensionarse el dominio del negocio hasta absorber piezas cuy
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00020
 
 CLASIFICACIÓN CONCEPTUAL DE MÓDULOS
 
@@ -794,6 +808,18 @@ orquesta módulos existentes
 no duplica ownership funcional
 
 no reabre núcleos cerrados por reflejo automático
+
+puede tener entrada operativa propia
+
+puede tener permiso propio de acceso al área
+
+puede operar como frente especializado
+
+Regla:
+
+el acceso al área de una capa satélite no convierte sus operaciones internas en permisos propios de esa capa.
+
+Las acciones reales continúan bajo el contrato del módulo dueño.
 
 SUBCAPAS CONTEXTUALES INTERNAS
 
@@ -1122,7 +1148,7 @@ La convergencia debe tender hacia patrones maduros ya validados, no hacia soluci
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00016
 
 LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES
 
@@ -1200,9 +1226,21 @@ Inventory conserva ownership de stock, ejecución material y reglas físicas aso
 
 Puede intervenir en flujos de Orders o Documents mediante fronteras explícitas sin que esos módulos reconstruyan internamente su lógica.
 
+Lectura adicional para Assets:
+
+Assets representa recursos operativos del tenant y puede funcionar como base del objeto técnico mantenible cuando corresponda.
+
+En Servicios y Mantenimiento, Assets puede aportar identidad técnica contextual a una orden de servicio sin que Orders absorba la identidad completa del activo.
+
+Regla:
+
+no deben asumirse campos técnicos nuevos de Assets sin contrato, esquema y validación real.
+
 Lectura adicional para capas satélite:
 
 un frente especializado como Servicios y Mantenimiento puede orquestar módulos actuales, pero no debe modificar la identidad conceptual de cada uno.
+
+Reglas:
 
 Orders no debe absorber Assets.
 
@@ -1311,7 +1349,7 @@ No reemplazan detalle de navegación, seguridad, UI, campos, helpers ni implemen
 <<END SECTION>>
 
 <<SECTION: MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00019
 
 MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO
 
@@ -1320,16 +1358,27 @@ El sistema debe crecer mediante módulos con identidad clara, contratos explíci
 Toda evolución debe:
 
 respetar multi-tenancy
+
 preservar distinción sistema/negocio
+
 mantener identidad conceptual
+
 evitar duplicaciones
+
 consumir capacidades existentes antes de crear variantes
+
 distinguir módulos ordinarios de capacidades transversales
+
 distinguir módulos ordinarios de capas productivas satélite
+
 distinguir módulos ordinarios de subcapas contextuales internas
+
 distinguir automatización asistida de ejecución crítica
+
 distinguir dato propio necesario para operar de vínculo opcional de enriquecimiento
+
 distinguir relación de origen, planificación o seguimiento de dependencia estructural del módulo receptor
+
 distinguir relación pasiva permitida de dependencia activa indebida
 
 Reglas:
@@ -1349,6 +1398,10 @@ los frentes transaccionales pueden incorporar agrupación contextual cuando mejo
 las capas satélite deben auditar primero qué pueden sostener los módulos actuales antes de proponer piezas nuevas
 
 las piezas satélite no deben crearse por reflejo automático
+
+las capas satélite pueden tener entrada operativa propia o permiso de acceso al área sin convertirse por eso en CRUD ordinario
+
+el acceso a un área satélite no reemplaza permisos operativos de los módulos participantes
 
 las subcapas contextuales internas deben alojarse dentro del módulo host cuando no correspondan a módulo, ruta ni CRUD propio
 
@@ -1371,6 +1424,8 @@ cuando un módulo necesite validar, listar o seleccionar datos de otro dominio, 
 Casos vigentes:
 
 ProductOperationalSummary se implementa como subcapa contextual de Products.
+
+Servicios y Mantenimiento se implementa como capa satélite productiva ERP/CMMS liviana.
 
 Orders conserva autonomía operativa y puede relacionarse opcionalmente con otros módulos sin absorber su ownership.
 

@@ -36,7 +36,7 @@ si una decisión cambia, se actualiza este documento y no se superponen versione
 <<END SECTION>>
 
 <<SECTION: DECISIONES VIGENTES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 DECISIONES VIGENTES
 
@@ -160,6 +160,10 @@ counterparty_name en Orders es snapshot textual propio de contraparte
 
 asset_id en Orders es vínculo opcional con Assets
 
+asset_reference en Orders es referencia textual propia de activo cuando corresponda al contrato vigente
+
+record_metadata conserva condiciones contextuales o excepcionales, no datos operativos principales
+
 task_id no pertenece al núcleo persistente de Orders
 
 appointment_id no pertenece al núcleo persistente de Orders
@@ -193,6 +197,21 @@ counterparty_name
 La visualización de contraparte debe resolverse mediante:
 
 Order::displayCounterpartyName()
+
+La visualización de activo debe resolverse mediante:
+
+Order::displayAssetReference()
+
+La manualidad de contraparte y activo debe resolverse mediante helpers del modelo dueño y no desde Blade:
+
+Order::hasManualCounterpartyReference()
+Order::hasManualAssetReference()
+
+Decisión vigente sobre counterparty_reference:
+
+counterparty_reference no reemplaza counterparty_name como contrato vigente mientras el código y la doctrina activa mantengan counterparty_name.
+
+Si aparece en cierres o propuestas, debe auditarse contra código real antes de modificar la decisión vigente.
 
 TASKS COMO OWNER DE LA RELACIÓN DE SEGUIMIENTO HACIA ORDERS
 
@@ -321,298 +340,257 @@ counterparty_name no crea permisos
 
 counterparty_name permite lectura autónoma del registro
 
-la UI debe diferenciar Contacto gestionado y Contraparte
+la visualización debe usar helpers del módulo dueño cuando existan
 
-listados, show summaries, prints y surfaces deben usar método de presentación propio cuando exista
-
-Casos vigentes:
+Helpers vigentes:
 
 Order::displayCounterpartyName()
-
 Document::displayCounterpartyName()
 
-CONTRAPARTE COMO DATO VISIBLE Y CONTACTO COMO VÍNCULO GESTIONADO
+REFERENCIAS PROPIAS Y VÍNCULOS GESTIONADOS EN ORDERS
 
 Decisión vigente:
 
-en Orders y Documents, la columna visible debe llamarse Contraparte cuando representa el dato operativo propio del registro.
-
-Contacto debe reservarse para filtros, selectores o vínculos gestionados hacia Parties.
+Orders puede conservar referencias textuales propias junto con vínculos gestionados opcionales.
 
 Lectura vigente:
 
-Contraparte = dato operativo visible propio del registro
+party_id = vínculo gestionado opcional con Parties
 
-Contacto gestionado = vínculo opcional con Party
+counterparty_name = snapshot textual propio de contraparte
+
+asset_id = vínculo gestionado opcional con Assets
+
+asset_reference = referencia textual propia de activo
+
+record_metadata = metadata contextual o excepcional
 
 Reglas:
 
-los filtros por party_id pueden seguir llamándose Contacto porque filtran contacto gestionado
+el vínculo gestionado no reemplaza la referencia propia
 
-las columnas de listados y embebidos deben mostrar Contraparte cuando representan el dato operativo del registro
+la referencia propia no reemplaza autorización
 
-PartyLinked solo debe representar vínculo gestionado cuando existe party_id
+record_metadata no reemplaza columnas centrales
 
-PartyLinked no debe usarse como fuente principal de texto visible cuando el módulo dueño posee snapshot propio
+record_metadata no debe usarse como fuente principal de datos visibles
 
-si no existe party_id pero existe counterparty_name, debe mostrarse texto propio sin inventar link
+la lectura de manualidad debe encapsularse en helpers, presenter o payload preparado
 
-SHOWCOUNTERPARTY COMO CONTRATO VISUAL
+Blade no debe interpretar record_metadata directamente
+
+Caso validado:
+
+Orders puede representar Contraparte y Activo en tablas/listados usando helpers propios y links oficiales cuando existen vínculos gestionados autorizados.
+
+Contratos visuales vigentes:
+
+showCounterparty
+showAsset
+
+Contrato eliminado como fallback legacy de Orders:
+
+showParty
+
+TABLAS/LISTADOS DE ORDERS CON CONTRAPARTE Y ACTIVO
 
 Decisión vigente:
 
-showCounterparty es el contrato visual correcto para indicar si una tabla o surface de Orders/Documents debe mostrar la columna Contraparte.
+orders.partials.table debe representar el dato operativo visible desde Orders, no reconstruir Party ni Asset.
 
-showParty queda solo como fallback transitorio interno en Blades auditados.
+Lectura vigente:
+
+Contraparte se resuelve mediante:
+
+Order::displayCounterpartyName()
+
+Activo se resuelve mediante:
+
+Order::displayAssetReference()
+
+La manualidad se resuelve mediante:
+
+Order::hasManualCounterpartyReference()
+Order::hasManualAssetReference()
+
+Si existe vínculo gestionado autorizado, la tabla puede mostrar link oficial.
+
+Componentes vigentes:
+
+parties.components.linked-party
+assets.components.linked-asset
+
+Si no existe vínculo gestionado, debe mostrar referencia textual propia.
+
+Reglas por host:
+
+orders.index muestra Contraparte y Activo
+
+assets.show aloja Orders mostrando Contraparte y ocultando Activo
+
+parties.show aloja Orders ocultando Contraparte y mostrando Activo
 
 Reglas:
 
-los surface services deben publicar showCounterparty cuando el dato visible esperado sea Contraparte
+no interpretar record_metadata desde Blade
 
-showParty no debe ser contrato principal si el contenido esperado no es vínculo gestionado sino contraparte operativa
+no inventar links
 
-Caso vigente:
+no ocultar referencia propia por ausencia de vínculo gestionado
 
-OrderSurfaceService publica showCounterparty.
+no reintroducir showParty en Orders
 
-DocumentSurfaceService publica showCounterparty.
-
-ORDERLINKED SIN DEPENDENCIA RÍGIDA DE PARTY_ID
+SURFACESERVICE COMO ADUANA FUNCIONAL Y MECÁNICA TRANSVERSAL REUSABLE
 
 Decisión vigente:
 
-OrderLinked no debe bloquear la creación contextual de Orders por ausencia de party_id.
+SurfaceService funciona como aduana funcional del módulo para publicar capacidades hacia distintos hosts.
 
-Tasks y Appointments pueden originar una Order contextual aunque no tengan contacto gestionado.
+No deben crearse services separados por tipo de pantalla cuando el SurfaceService puede ofrecer piezas para:
 
-La Order resultante debe resolver contraparte desde el formulario mediante counterparty_name cuando no exista party_id.
+show
+form
+print
+pdf
+linked
+embedded
+summary
+detail
+row actions
 
-Reglas:
+Decisión vigente adicional:
 
-OrderLinked expresa intención contextual hacia Orders
+los SurfaceService deben declarar ofertas, hosts y configuración propia.
 
-OrderLinked no convierte Task ni Appointment en orden encubierta
+La lógica transversal reusable debe vivir en Support/Modules cuando corresponda.
 
-OrderLinked no reemplaza autorización de Orders
+Piezas vigentes:
 
-OrderLinked no debe exigir Party como dependencia rígida si el contrato de Orders permite contraparte textual
-
-Validación vigente:
-
-Task sin party_id y sin order_id puede devolver state = creatable.
-
-Appointment sin party_id y sin order_id puede devolver state = creatable.
-
-ORDERLINKED COMO HELPER GENÉRICO DEL MÓDULO ORDERS
-
-Decisión vigente:
-
-OrderLinked debe ser un helper genérico del módulo Orders basado en Order|null.
-
-Patrón vigente:
-
-OrderLinked::forOrder(?Order $order, ...)
-
-Reglas:
-
-Orders arma links de su propio recurso
-
-el consumidor entrega Order|null
-
-Orders no interpreta modelos consumidores
-
-no deben existir métodos específicos por consumidor
-
-No deben reaparecer:
-
-OrderLinked::forTask()
-OrderLinked::forAppointment()
-OrderLinked::forDocument()
-OrderLinked::forAsset()
-OrderLinked::forParty()
+app/Support/Modules/Concerns/BuildsHostPacks.php
+app/Support/Modules/Concerns/ResolvesRelatedEmbeddedSurfaces.php
 
 Lectura:
 
-si Tasks necesita mostrar una Order, Tasks entrega Order|null.
+BuildsHostPacks concentra construcción genérica de hostPack.
 
-si Appointments necesita mostrar una Order, Appointments entrega Order|null.
+ResolvesRelatedEmbeddedSurfaces concentra resolución reusable de relacionados embebidos.
 
-Orders arma el link.
+OrderSurfaceService conserva:
 
-ORDERSURFACESERVICE POR CAPACIDADES REALES
+ofertas propias
+hosts soportados
+configuración contextual
+relaciones propias
+flags visuales propios
+mensajes propios
+
+Reglas:
+
+no vaciar SurfaceService por reflejo
+
+extraer solo mecánica reusable
+
+mantener la lógica propia del módulo dentro del SurfaceService correspondiente
+
+no migrar services de forma masiva sin validación runtime
+
+FORMULARIOS HOST CON FRONTERAS EXPLÍCITAS
 
 Decisión vigente:
 
-OrderSurfaceService debe organizar sus ofertas por capacidades reales y no por duplicación de hosts.
+cuando un formulario host tiene campos de su contrato propio y puede consumir módulos oferentes, no debe renderizar un foreach abierto de ofertas externas.
+
+Debe declarar fronteras explícitas.
+
+Patrón:
+
+si existe proveedor externo válido
+renderiza componente del proveedor
+
+si no existe proveedor externo
+renderiza campo manual propio
 
 Caso vigente:
 
-orders.related.embedded
+orders.form
 
-Surface embebida única para assets.show y parties.show.
+Fronteras validadas:
 
-Configuración contextual:
+Party disponible → selector de contacto
 
-relatedHosts()
+Party no disponible → campo manual propio de contraparte
 
-Reglas:
+Asset disponible → selector de activo
 
-si una surface mantiene el mismo formato y solo cambia host, filtro o configuración contextual, debe existir una sola offer con múltiples targets
+Asset no disponible → campo manual propio o referencia propia equivalente vigente
 
-no duplicar offers por host cuando la capacidad es la misma
+Ofertas vigentes:
 
-el host aloja la surface
+party.order.form-context
 
-Orders prepara payload o view de Orders
-
-el host no reconstruye internamente contenido del oferente
-
-Caso vigente adicional:
-
-orders.associated.linked se mantiene como link asociado para documents.show cuando Documents entrega su orden asociada.
-
-HOOKS COMO FRONTERA FUNCIONAL DE ORDERS
-
-Decisión vigente:
-
-OrdersHooks funciona como frontera estratégica para consultas o intervenciones externas en puntos relevantes del flujo de Orders.
-
-Lectura:
-
-Orders puede consultar si existen bloqueos o condiciones externas.
-
-El módulo externo conserva ownership de la regla.
-
-Orders no reconstruye lógica interna del módulo proveedor.
-
-Caso vigente:
-
-InventoryOrderItemHooks conserva la lógica de bloqueo de cierre por ejecución física de líneas.
-
-Reglas:
-
-un hook puede bloquear, ajustar o dejar pasar el flujo principal
-
-si una verificación de bloqueo crítico falla, debe asumirse escenario seguro
-
-OrdersHooks no reemplaza autorización principal de Orders
-
-InventoryOrderItemHooks no convierte Inventory en dueño de Orders
-
-PRODUCTLINEITEMSELECTOR COMO CAPACIDAD DE PRODUCTS
-
-Decisión vigente:
-
-Products ofrece una capacidad de selección y validación de productos para líneas mediante ProductLineItemSelector.
-
-Consumidores vigentes:
-
-OrderItemController
-
-DocumentItemController
-
-Reglas:
-
-Products ofrece opciones, reglas y verificación de acceso a productos
-
-Orders administra sus propios order_items
-
-Documents administra sus propios document_items
-
-los controllers consumidores no deben reconstruir Product::query(), products.viewAny ni Rule::exists('products') cuando existe selector oficial
-
-NUMERACIÓN TRANSVERSAL CON SIGNIFICADO EN CATÁLOGOS
-
-Decisión vigente:
-
-la numeración común puede resolverse mediante servicio transversal, pero el significado de negocio pertenece a cada módulo.
-
-Servicio vigente:
-
-RecordNumberGenerator
-
-Catálogos dueños de significado:
-
-OrderCatalog
-
-DocumentCatalog
-
-Regla síntesis:
-
-el módulo define el significado.
-
-el servicio transversal ejecuta la mecánica.
-
-Reglas:
-
-los prefijos de Orders pertenecen a OrderCatalog
-
-los prefijos de Documents pertenecen a DocumentCatalog
-
-RecordNumberGenerator no debe decidir prefijos por sí mismo
-
-DocumentNumberGenerator fue eliminado como lectura vigente
-
-ORDEN REAL DE MIGRACIONES PARA VÍNCULOS OPCIONALES
-
-Decisión vigente:
-
-las migraciones deben respetar el orden real de creación de tablas.
-
-Caso vigente:
-
-asset_id no debe estar directamente en create_orders_table si assets se crea después.
+asset.order.form-context
 
 Regla:
 
-si el vínculo es válido pero la tabla destino aparece después, debe resolverse en una migración posterior compatible con el orden real.
+una carga manual no debe transformarse automáticamente en gestionada sin una acción explícita y trazable.
 
-Esta decisión no elimina asset_id como vínculo opcional.
-
-Solo ordena su ubicación estructural correcta.
-
-CIERRE FUNCIONAL DE FASE 0 ORDERS
+SERVICIOS Y MANTENIMIENTO COMO FRENTE HABILITABLE NO CRUD
 
 Decisión vigente:
 
-Fase 0 de saneamiento evidente de Orders queda cerrada funcionalmente.
+Servicios y Mantenimiento se lee como capa satélite productiva ERP/CMMS liviana sobre módulos existentes.
 
-El proyecto queda apto para iniciar Fase 1 de mantenimiento.
+No se lee como módulo CRUD ordinario por defecto.
+
+Primer corte operativo validado:
+
+service_maintenance existe como frente habilitable no CRUD.
+
+service_maintenance.view_any permite acceso al área Servicio y mantenimiento.
+
+Orders sostiene la primera base operativa mediante:
+
+group = service
 
 Lectura:
 
-Orders queda como isla funcional saneada con aislamiento operativo razonable.
+el acceso al área no autoriza por sí mismo operaciones internas
 
-No se busca aislamiento absoluto artificial.
+las acciones reales continúan bajo el contrato del módulo dueño
+
+las órdenes de servicio siguen perteneciendo a Orders
+
+party_id y asset_id funcionan como vínculos opcionales de enriquecimiento
+
+Assets puede ofrecer surface de identidad técnica para órdenes de servicio usando datos reales existentes
+
+No se implementaron todavía:
+
+estados técnicos satélite
+planes de mantenimiento
+órdenes modelo
+checklists
+servicios precargados
+custodia material ampliada
+cierres técnicos
+cierres administrativos ampliados
+cierres finales
+línea de tiempo operativa específica de mantenimiento
 
 Reglas:
 
-las relaciones pasivas pueden conservarse si están justificadas
+service_maintenance no absorbe Orders
 
-las dependencias activas deben pasar por frontera explícita
+service_maintenance no absorbe Assets
 
-no reintroducir lógica interna de módulos externos en OrderController
+service_maintenance no absorbe Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity
 
-no reintroducir lógica interna de módulos externos en OrderItemController
+no debe confundirse frente habilitable con CRUD ordinario
 
-no reintroducir métodos linked específicos por consumidor
+no debe reabrirse Orders por reflejo si la necesidad pertenece a otro módulo o a una pieza satélite propia
 
-no duplicar offers por host si la capacidad es la misma
+Pendiente inmediato asociado:
 
-no devolver prefijos de negocio a un generador transversal
-
-no reintroducir Order::tasks()
-
-Relaciones aceptadas actualmente en Order:
-
-party
-
-asset
-
-documents
-
-attachments
-
-Estas relaciones no bloquean Fase 1 mientras no habiliten que OrderController gobierne módulos externos.
+ajustar la lectura contextual de orders.index?group=service para que el listado se exprese visualmente como Órdenes de servicio.
 
 <<END SECTION>>

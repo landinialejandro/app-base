@@ -41,7 +41,7 @@ no debe cargarse con teoría arquitectónica general que corresponda a otros doc
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 REGLA GENERAL
 
@@ -110,11 +110,25 @@ Estos frentes no deben crear navegación por simetría ni duplicar módulos exis
 
 Deben orquestar recorridos reales entre Orders, Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties y OperationalActivity respetando ownership funcional.
 
-Regla:
+Caso operativo inicial validado:
 
-un frente especializado no autoriza por sí mismo acciones sobre módulos participantes.
+Servicio y mantenimiento ya cuenta con entrada operativa mínima como frente habilitable no CRUD.
 
-La autorización debe seguir perteneciendo al módulo dueño o a la capacidad central correspondiente.
+service_maintenance.view_any permite acceder al área cuando corresponde.
+
+Orders sostiene la primera base operativa mediante:
+
+group = service
+
+Reglas:
+
+un frente especializado no autoriza por sí mismo acciones sobre módulos participantes
+
+la autorización debe seguir perteneciendo al módulo dueño o a la capacidad central correspondiente
+
+la existencia de entrada visual no convierte a la capa satélite en CRUD ordinario
+
+una entrada de Servicio y mantenimiento no debe duplicar la navegación estructural de Orders si solo está filtrando o contextualizando órdenes de servicio
 
 Regla adicional para subcapas contextuales internas:
 
@@ -207,7 +221,7 @@ cuando existan varias rutas posibles, debe priorizarse la más consistente con N
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN PRINCIPAL TENANT>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 NAVEGACIÓN PRINCIPAL TENANT
 
@@ -294,7 +308,19 @@ Aclaración vigente para Servicios y Mantenimiento:
 
 Servicios y Mantenimiento no debe agregarse automáticamente como módulo funcional ordinario por el hecho de existir como capa satélite productiva.
 
-Si en el futuro posee entrada visual, dashboard operativo o acceso especializado, esa entrada debe documentarse como frente operativo de capa satélite y no como CRUD ordinario por defecto.
+Si posee entrada visual, dashboard operativo o acceso especializado, esa entrada debe documentarse como frente operativo de capa satélite y no como CRUD ordinario por defecto.
+
+Estado operativo inicial validado:
+
+Servicio y mantenimiento posee entrada operativa mínima como frente habilitable no CRUD.
+
+service_maintenance.view_any permite acceder al área cuando el tenant lo tenga habilitado y el usuario posea autorización efectiva.
+
+La entrada visual responde al frente especializado, no a un CRUD independiente.
+
+Orders sostiene la primera base operativa mediante:
+
+group = service
 
 La entrada visual, si corresponde, debe responder a una necesidad funcional real:
 
@@ -305,6 +331,7 @@ ver capacidad operativa
 ver estados de ejecución
 organizar recursos
 acceder a órdenes electrónicas livianas o paquetes de trabajo
+acceder contextualmente a órdenes de servicio
 
 Regla:
 
@@ -315,7 +342,7 @@ Su función es dar acceso estructural al ecosistema operativo vigente.
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -415,347 +442,71 @@ Aclaración vigente para lifecycle de cabeceras:
 
 la creación de una cabecera en orders o documents no implica por sí sola que el recurso esté listo para operar.
 
-La cabecera nace en draft y puede pasar a pending_approval cuando recibe la primera línea válida.
+La cabecera debe respetar lifecycle, líneas, validaciones y acciones disponibles del módulo dueño.
 
-Este cambio pertenece al flujo natural del recurso y no crea una navegación nueva.
+Aclaración vigente para Orders embebidas:
 
-Aclaración vigente para Tasks → Orders:
+OrderSurfaceService publica orders.related.embedded como surface embebida única para assets.show y parties.show.
 
-Tasks puede originar o acompañar una Order.
+La surface usa configuración contextual para decidir columnas visibles.
 
-task_id puede viajar por request como contexto transitorio para crear una Order desde una Task.
+Reglas vigentes:
 
-La relación persistente no vive en Orders.
+en assets.show, Orders debe mostrar Contraparte y ocultar Activo porque el host ya representa el activo
 
-La relación persistente vive en Tasks mediante tasks.order_id.
+en parties.show, Orders debe ocultar Contraparte y mostrar Activo porque el host ya representa el contacto
 
-Reglas:
+en orders.index, Orders puede mostrar Contraparte y Activo como datos operativos principales de lectura
 
-task_id en request no equivale a permiso concedido
+Contraparte se resuelve desde:
 
-task_id en request no debe convertirse automáticamente en campo persistente de Orders
+Order::displayCounterpartyName()
 
-Tasks conserva ownership de pendientes y seguimiento
+Activo se resuelve desde:
 
-Orders conserva ownership de la intervención operativa
+Order::displayAssetReference()
 
-Tasks puede originar navegación contextual hacia creación de Orders aunque no posea party_id
+La condición manual o gestionada se resuelve desde helpers del modelo dueño y no desde el Blade.
 
-la ausencia de contacto gestionado en Task no debe bloquear la intención de crear Order si el formulario de Orders permite completar counterparty_name
+Helpers vigentes:
 
-Aclaración vigente para Appointments → Orders:
+Order::hasManualCounterpartyReference()
+Order::hasManualAssetReference()
 
-Appointments puede originar o acompañar una Order.
+Cuando exista vínculo gestionado autorizado, la navegación visible puede resolverse como link seguro mediante helpers o componentes oficiales:
 
-appointment_id puede viajar por request como contexto transitorio para crear una Order desde un Appointment.
+PartyLinked
+AssetLinked
 
-La relación persistente no vive en Orders.
-
-La relación persistente vive en Appointments mediante appointments.order_id.
-
-Reglas:
-
-appointment_id en request no equivale a permiso concedido
-
-appointment_id en request no debe convertirse automáticamente en campo persistente de Orders
-
-Appointments conserva ownership de agenda y planificación temporal
-
-Orders conserva ownership de la intervención operativa
-
-Appointments puede originar navegación contextual hacia creación de Orders aunque no posea party_id
-
-la ausencia de contacto gestionado en Appointment no debe bloquear la intención de crear Order si el formulario de Orders permite completar counterparty_name
-
-Aclaración vigente para OrderLinked:
-
-OrderLinked no debe bloquear creación contextual de Orders por ausencia de party_id.
-
-Tasks y Appointments pueden originar una Order contextual aunque no tengan contacto gestionado.
-
-La Order resultante debe resolver contraparte desde el formulario mediante counterparty_name si no hay party_id.
-
-OrderLinked debe funcionar como helper genérico del módulo Orders.
-
-Patrón vigente:
-
-OrderLinked::forOrder(?Order $order, ...)
-
-Reglas:
-
-OrderLinked expresa intención contextual hacia Orders
-
-OrderLinked no convierte Task ni Appointment en Order encubierta
-
-OrderLinked no reemplaza autorización de Orders
-
-OrderLinked no debe exigir Party como dependencia rígida si el contrato de Orders permite contraparte textual
-
-OrderLinked no debe exponer métodos específicos por consumidor como forTask o forAppointment
-
-Validación vigente:
-
-Task sin party_id y sin order_id puede devolver state = creatable.
-
-Appointment sin party_id y sin order_id puede devolver state = creatable.
-
-Aclaración vigente para Orders → Documents:
-
-Orders puede derivar Documents.
-
-La derivación documental debe conservar contexto de origen sin transferir ownership.
-
-Documents conserva ownership documental.
-
-El vínculo persistente se resuelve mediante documents.order_id cuando corresponda.
-
-Reglas:
-
-Order aporta contexto operativo
-
-Document conserva sus propios ítems, totales, lifecycle y contraparte
-
-la derivación no crea navegación nueva de Orders
-
-la derivación no convierte Documents en entidad hija estricta sin identidad propia
-
-crear documento desde una Order no debe exigir party_id
-
-el documento derivado debe tomar contraparte desde la Order mediante order.displayCounterpartyName()
-
-Ruta vigente:
-
-orders.documents.store dispara la acción desde Orders, pero la creación efectiva pertenece a DocumentController::storeFromOrder.
-
-Esta frontera es válida porque Documents ejecuta la creación documental.
-
-Aclaración vigente para contraparte textual:
-
-Orders y Documents pueden mostrar y transportar contraparte textual propia mediante counterparty_name.
-
-party_id debe leerse como vínculo gestionado opcional.
-
-Reglas:
-
-la ausencia de party_id no debe romper navegación ni derivación si existe contraparte textual propia
-
-los enlaces hacia Parties solo deben renderizarse cuando exista Party vinculada y módulo/permiso efectivo
-
-si no existe Party vinculada, la UI debe mostrar la contraparte como texto propio del registro
-
-la columna visible debe llamarse Contraparte cuando representa el dato operativo visible del registro
-
-Contacto debe reservarse para filtros, selectores o vínculos explícitos por party_id
-
-PartyLinked representa únicamente el vínculo gestionado cuando existe party_id y corresponde mostrar enlace
-
-PartyLinked no debe utilizarse como fuente principal del texto visible de contraparte cuando el módulo dueño ofrece helper oficial
-
-Aclaración vigente sobre showCounterparty:
-
-showCounterparty es el contrato visual vigente para indicar si una tabla o surface de Orders/Documents debe mostrar la columna Contraparte.
-
-showParty queda solo como fallback transitorio en Blades auditados.
-
-Reglas:
-
-los surface services deben publicar showCounterparty cuando la tabla invitada de Orders/Documents deba mostrar contraparte visible
-
-showParty no debe ser el contrato principal cuando el dato esperado sea la contraparte operativa del registro
-
-Aclaración vigente para surfaces de Orders:
-
-OrderSurfaceService debe organizar sus ofertas por capacidades reales y no por duplicación de hosts.
-
-Casos vigentes:
-
-orders.related.embedded
-
-surface embebida única para assets.show y parties.show, con configuración contextual por host
-
-orders.associated.linked
-
-link asociado para documents.show cuando Documents entrega su Order asociada
-
-Reglas:
-
-si una surface mantiene el mismo formato y solo cambia filtro o host, debe existir una sola offer con múltiples targets
-
-el host aloja la surface
-
-Orders arma el payload o link de Orders
-
-el host no reconstruye internamente el contenido del oferente
-
-Patrón vigente:
-
-relatedHosts()
-
-Permite concentrar configuración contextual como clase esperada, columna de filtro, tabsId, flags visuales y mensaje vacío.
-
-Aclaración vigente para membership → party:
-
-la ficha ampliada de colaborador puede abrir recorrido contextual hacia parties cuando exista vínculo explícito.
-
-El flujo desde perfil o membership hacia party debe preservar la distinción entre:
-
-identidad global
-pertenencia operativa
-ficha ampliada tenant-scoped
+Si no existe vínculo gestionado, la tabla debe mostrar texto propio sin generar navegación falsa.
 
 Regla:
 
-crear o vincular una ficha ampliada no debe ocurrir de forma silenciosa por navegación.
+la navegación embebida no debe duplicar información del host ni reconstruir lógica interna de Party o Asset.
 
-Debe existir acción o confirmación explícita.
+Aclaración vigente para Servicio y mantenimiento:
 
-Aclaración vigente para OperationalActivity:
-
-OperationalActivity puede ofrecer lectura como actividad general del tenant o como actividad contextual asociada a un registro host autorizado.
-
-Esa lectura no modifica por sí misma los recorridos principales de los módulos que originaron la actividad.
-
-La navegación hacia el registro relacionado debe resolverse desde la propia fila de actividad, integrando el enlace en la columna Registro.
-
-No debe agregarse una columna adicional solo para link.
-
-Lectura visual general vigente:
-
-tenant/profile
-tab Actividad
-
-Estado actual:
-
-la tab Actividad muestra los últimos 50 registros de actividad operativa del tenant
-
-tenant/profile puede ser accesible por owner y admin según contrato vigente, con restricciones diferenciadas de gobierno
-
-Lectura contextual validada:
-
-show del host autorizado
-tab Actividad
-tabla de actividad contextual del record, del record set declarado o del activity_context declarado
-
-Hosts validados:
-
-tasks.show
-parties.show
-projects.show
-assets.show
-products.show
-appointments.show
-orders.show
-documents.show
-
-La tab se accede mediante:
-
-return_tab=activity
-
-Reglas:
-
-esta tab no representa navegación principal de OperationalActivity
-
-no crea ruta propia nueva de OperationalActivity
-
-no habilita lectura general del tenant
-
-no habilita acceso a otros registros fuera del host autorizado, del record set declarado por el módulo dueño o del activity_context declarado por el módulo dueño
-
-Aclaración vigente para Products:
-
-products.show puede alojar lecturas contextuales internas del producto sin crear navegación nueva.
+Servicio y mantenimiento puede funcionar como frente especializado de acceso a órdenes de servicio sin absorber la navegación propia de Orders.
 
 Caso vigente:
 
-ProductOperationalSummary se integra como Resumen operativo en el show-summary de products.show.
+orders.index?group=service
 
-La publicación visual ocurre mediante:
+Pendiente contextual inmediato:
 
-ProductSurfaceService
-↓
-summary_items
-↓
-products.show
-
-Summary items vigentes:
-
-Compras
-Ventas
-Entradas / salidas
+el listado filtrado por group = service debe expresarse visualmente como Órdenes de servicio cuando se acceda desde el frente Servicio y mantenimiento.
 
 Reglas:
 
-ProductOperationalSummary no crea ruta nueva
+el contexto visual de servicio no cambia el ownership de Orders
 
-no crea tab nueva
+el filtro group = service no convierte Orders en módulo secundario
 
-no crea card independiente debajo del summary como cierre estable
+la navegación hacia la orden debe seguir usando rutas y contratos de Orders
 
-no crea navegación propia
+las acciones reales sobre la orden deben seguir autorizándose por Orders
 
-no convierte Products en dueño de Orders ni Inventory
-
-no convierte InventoryMovement en actividad operativa transversal principal
-
-Orders conserva compras y ventas reales
-
-Inventory conserva movimientos y flujo material
-
-Parties conserva proveedor o cliente cuando existe relación real
-
-OperationalActivity conserva trazabilidad, pero no se usa como fuente principal de métricas
-
-Regla visual de navegación:
-
-la lectura debe aparecer integrada naturalmente al host mediante summary_items y no como agregado local desconectado del patrón surface-driven.
-
-Aclaración vigente para tabs de products.show:
-
-las tabs existentes, como Movimientos, Actividad y Adjuntos, permanecen separadas.
-
-ProductOperationalSummary no reemplaza la tab Movimientos.
-
-La tercera pieza visual del resumen debe ser Entradas / salidas y no Último movimiento, porque el último movimiento ya pertenece a la lectura de Inventory y el detalle está disponible en la tab Movimientos.
-
-Aclaración vigente para Servicios y Mantenimiento:
-
-la capa de servicios y mantenimiento puede requerir recorridos contextuales entre:
-
-assets → orders
-orders → inventory
-orders → documents
-orders → attachments
-orders → tasks
-orders → appointments
-orders → parties
-orders → operational activity
-assets → documentación técnica
-assets → historial técnico
-orders → servicios externos
-orders → paquete de trabajo
-orders → cierres técnico, administrativo y final
-
-Estos recorridos no convierten a mantenimiento en dueño de los módulos participantes.
-
-El dashboard operativo, la orden electrónica liviana y el paquete de trabajo deben leerse como frentes especializados o experiencias operativas.
-
-No deben duplicar la navegación estructural de Orders, Assets, Inventory, Products, Documents, Tasks, Appointments, Parties ni Attachments.
-
-Regla:
-
-el paquete de trabajo puede actuar como puente entre planificación, ejecución y cierre, pero no reemplaza a Orders ni habilita operación fuera del lifecycle y permisos vigentes.
-
-Regla adicional:
-
-la orden electrónica liviana debe ser una experiencia enfocada de ejecución, no un acceso completo al sistema.
-
-Debe mostrar solo la información necesaria para la intervención y conservar navegación contextual hacia los módulos dueños cuando corresponda y esté autorizado.
-
-Deuda viva:
-
-el sistema de trails y breadcrumbs sigue siendo candidato a mejora estructural para reducir intervenciones manuales repetidas cuando se agregan links o navegaciones entre módulos.
-
-Esta deuda no bloquea Fase 1, pero debe considerarse en futuras mejoras de navegación.
+el frente Servicio y mantenimiento no debe inventar navegación paralela si puede usar contexto, filtros, trail o surfaces oficiales
 
 <<END SECTION>>
 

@@ -1,188 +1,70 @@
 <<SECTION: METADATOS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 TÍTULO: Guía operativa de Project Lab
 DOC_SLUG: guia_project_lab_proyecto_app_base
-DOC_VERSION: 00001
+DOC_VERSION: 00002
 TIPO: operativo-técnico
 ESTADO: activo
-GESTIÓN: Guía rectora para uso local de Project Lab como herramienta operativa de pruebas, auditoría, actualización de código y actualización documental.
+GESTIÓN: Guía rectora para el uso local de Project Lab como herramienta operativa de pruebas, auditoría, actualización de código, actualización documental y validación técnica del proyecto.
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00012
 
 OBJETIVO
 
-Este documento define el uso operativo correcto de Project Lab dentro del proyecto app-base.
+Este documento define el uso operativo correcto de Project Lab como herramienta local de desarrollo, auditoría, validación, actualización de código y actualización documental.
 
-Project Lab es la herramienta local unificada para ejecutar tareas técnicas controladas sobre el proyecto.
+Su función es establecer:
 
-Su función es:
+qué es Project Lab
+para qué debe usarse
+qué herramientas internas ofrece
+qué formatos acepta
+qué formatos debe rechazar
+cómo se aplican snippets de código
+cómo se aplican actualizaciones documentales
+cómo se ejecutan auditorías
+cómo se ejecutan pruebas Tinker
+cómo se ejecutan comandos Artisan controlados
+cómo se interpreta la consola operativa
+qué validaciones mínimas deben acompañar una intervención
+qué límites de seguridad tiene la herramienta
 
-ejecutar pruebas Tinker sobre runtime real
-ejecutar comandos Artisan
-ejecutar auditorías simples
-aplicar actualizaciones de código
-aplicar actualizaciones documentales
-usar snippets rápidos
-centralizar salidas operativas en consola
-reducir errores por formatos ambiguos
-evitar cambios manuales dispersos
-mantener trazabilidad local de las intervenciones
-validar eventos, colas y persistencia cuando el frente técnico lo requiera
-ejecutar acciones operativas locales fuera del producto cuando correspondan al entorno de desarrollo
-asistir auditorías fuertes de código real antes de implementar capas productivas o cambios sensibles
+Este documento no debe acumular doctrina funcional general del sistema.
 
-Project Lab no reemplaza:
+No corresponde desarrollar aquí:
 
-criterio arquitectónico
-documentación doctrinal
-validación de seguridad
-revisión de código real
-pruebas funcionales en navegador
-auditorías específicas cuando correspondan
-runtime real
-evidencia de esquema, rutas, contratos o relaciones existentes
+reglas completas de seguridad del producto
+doctrina de módulos específicos
+contratos funcionales de módulos
+reglas extensas de capacidades transversales
+doctrina de IA operativa
+doctrina de Servicios y Mantenimiento
+mapas de entidades
+mapas de navegación
+patrones visuales generales
+roadmap
+decisiones históricas extensas
+lecciones no vinculadas directamente al uso de Project Lab
 
-Project Lab ejecuta tareas.
+Si un caso del proyecto requiere desarrollo doctrinal, debe documentarse en el documento especializado correspondiente y, como máximo, referenciarse aquí de forma breve.
 
-La decisión de qué ejecutar, cuándo ejecutar y cómo interpretar el resultado sigue perteneciendo al proceso técnico del proyecto.
+Project Lab ejecuta tareas técnicas.
 
-Regla:
+La decisión de qué ejecutar, cuándo ejecutar, cómo interpretar la salida y qué documentación actualizar pertenece al proceso técnico del proyecto.
 
-una validación no queda cerrada solo porque Project Lab ejecute sin error inicial.
+Regla de frontera:
 
-Debe interpretarse la salida completa y confirmar las evidencias necesarias para el frente intervenido.
+esta guía documenta la herramienta.
 
-Caso vigente:
-
-OperationalActivity requiere validar runtime real, tenant activo, evento, cola, jobs, failed_jobs y persistencia final cuando corresponda.
-
-Para validar OperationalActivity no alcanza con que el patch tenga sintaxis correcta ni que el evento genere un job.
-
-El cierre requiere confirmar:
-
-evento emitido
-job creado cuando corresponda
-listener queued procesado
-jobs = 0
-failed_jobs = 0
-actividad persistida
-módulo correcto
-tipo correcto
-metadata esperada cuando corresponda
-
-Cuando se valide lectura contextual o agregada de OperationalActivity, además debe confirmarse:
-
-host autorizado
-surface publicada
-tab visible cuando corresponda
-reader correcto
-payload esperado
-record directo o record set esperado
-actividad visible en navegador cuando corresponda
-
-Caso vigente:
-
-projects.show requiere validar que el record set devuelva Project + Tasks cuando ProjectActivityRecordSet esté declarado.
-
-Cuando se valide lectura contextual especial de OperationalActivity mediante activity_context, además debe confirmarse:
-
-host autorizado
-surface publicada
-provider declarado por módulo dueño
-activity_context resuelto
-reader correcto
-payload esperado
-criterio contextual aplicado
-actividad visible en navegador cuando corresponda
-ausencia de lectura general del tenant
-jobs = 0
-failed_jobs = 0 cuando corresponda
-
-Caso vigente:
-
-parties.show requiere validar que PartyEmployeeActivityContext devuelva actividad directa de Party y actividad donde el user vinculado sea actor o sujeto cuando la Party tenga relación employee y membership activa vinculada.
-
-Cuando se valide un seeder demo operativo que emite eventos hacia OperationalActivity, debe aplicarse la misma disciplina de validación que en cualquier flujo con eventos queued.
-
-No alcanza con:
-
-sintaxis PHP válida
-migrate:fresh --seed exitoso
-jobs generados
-
-El cierre exige confirmar:
-
-evento emitido
-jobs creados
-queue:work --stop-when-empty --tries=1 ejecutado
-jobs = 0
-failed_jobs = 0
-actividad persistida
-módulo correcto
-ausencia de estados inválidos
-ausencia de residuos legacy reales mediante grep preciso cuando corresponda
-validación de ciclo operativo testigo cuando exista
-
-Cuando se valide un saneamiento estructural de Orders, Documents, Tasks o Appointments, no alcanza con que las migraciones y seeders pasen.
-
-Debe validarse además:
-
-contrato real de campos obligatorios y nullable
-requests alineadas con el contrato vigente
-controllers sin required indebido sobre vínculos opcionales
-seeders poblando snapshots propios cuando no pasan por controllers
-relaciones persistentes ubicadas en el módulo dueño
-ausencia de campos legacy persistentes cuando la doctrina los eliminó
-vistas, prints y surfaces representando snapshots propios cuando corresponda
-prueba runtime web real de los flujos principales
-
-Caso vigente:
-
-Orders puede crearse sin party_id usando counterparty_name.
-
-Documents puede crearse desde Orders autónomas usando counterparty_name.
-
-Tasks se vincula con Orders desde tasks.order_id.
-
-Orders no conserva task_id persistente.
-
-Caso vigente adicional:
-
-Order → Document debe validarse en runtime web real.
-
-No alcanza con migrate:fresh --seed.
-
-Debe verificarse que el flujo:
-
-autorice documents.create
-copie contexto válido de contraparte
-copie ítems cuando corresponda
-recalcule totales desde document_items
-no dependa de métodos inexistentes
-
-Aclaración vigente para colas:
-
-en local, Project Lab puede ofrecer una acción externa al producto para procesar cola pendiente.
-
-Eso no convierte queue:work en funcionalidad del SaaS productivo.
-
-En producción debe definirse un worker persistente supervisado por infraestructura.
-
-Regla para auditorías fuertes:
-
-cuando el frente de trabajo sea Servicios y Mantenimiento, IA operativa, seguridad, Orders, Inventory, Documents, OperationalActivity o cualquier reconversión sensible, Project Lab debe usarse para obtener evidencia real antes de proponer implementación.
-
-La auditoría fuerte debe trabajar con comandos ejecutables, salidas verificables, rutas reales y runtime real.
-
-No debe ejecutarse un prompt de chat como si fuera comando.
+No debe transformarse en depósito general de doctrina del proyecto.
 
 <<END SECTION>>
 
 <<SECTION: PRINCIPIO RECTOR>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00008
 
 PRINCIPIO RECTOR
 
@@ -210,118 +92,24 @@ si falta información mínima para intervenir con seguridad, primero debe obtene
 
 No se debe completar por memoria, suposición o conveniencia.
 
-Regla adicional:
+Regla de alcance:
 
-no asumir tipos de columnas, claves o identificadores.
+este principio debe expresarse en la guía solo como criterio de uso de Project Lab.
 
-Cuando una capacidad transversal persista referencias críticas como tenant_id, debe validarse el tipo real del esquema antes de escribir o corregir código.
+Las reglas doctrinales específicas de módulos, permisos, relaciones, navegación, IA, mantenimiento o seguridad deben permanecer en sus documentos especializados.
 
-Caso vigente:
+Project Lab ayuda a obtener evidencia.
 
-tenants.id es UUID char(36).
-
-Por lo tanto, tenant_id en OperationalActivity debe conservarse como string compatible.
-
-Regla adicional para seeders demo operativos:
-
-no asumir que un seeder correcto es aquel que solo inserta datos sin error.
-
-Si el seeder representa carga operativa real, debe validarse contra el contrato vigente del módulo, sus catálogos, su lifecycle y su trazabilidad operativa cuando corresponda.
-
-No se deben aceptar adaptadores silenciosos, payloads legacy ni correcciones internas por conveniencia.
-
-Regla:
-
-si el seeder habla un contrato viejo, debe corregirse el seeder.
-
-No debe agregarse compatibilidad silenciosa para que el contrato viejo siga pasando.
-
-Regla adicional para vínculos opcionales:
-
-no asumir que un campo `*_id` es obligatorio por existir.
-
-Debe validarse:
-
-esquema real
-request real
-controller real
-modelo real
-contrato doctrinal vigente
-uso en vistas
-uso en seeders
-uso en surfaces
-uso en prints
-
-Caso vigente:
-
-party_id en Orders y Documents es vínculo gestionado opcional.
-
-No debe reintroducirse como required sin evidencia y decisión doctrinal nueva.
-
-Regla adicional para snapshots:
-
-no asumir que una relación nula implica ausencia de dato operativo.
-
-Si el módulo posee snapshot propio, debe revisarse el método de presentación correspondiente.
-
-Caso vigente:
-
-counterparty_name en Orders y Documents.
-
-displayCounterpartyName() como lectura de salida cuando corresponda.
-
-Regla adicional para relaciones externas:
-
-no asumir que una relación con Orders debe vivir dentro de Orders.
-
-Debe validarse qué módulo conserva ownership del origen, planificación o seguimiento.
-
-Casos vigentes:
-
-tasks.order_id
-
-appointments.order_id
-
-Orders no debe conservar task_id ni appointment_id como núcleo persistente.
-
-Regla adicional para Servicios y Mantenimiento:
-
-no asumir que Orders ya soporta la implementación requerida.
-
-No asumir que Products ya soporta servicios, mano de obra, repuestos, alternativos o paquetes.
-
-No asumir que Assets ya cubre todo objeto técnico mantenible.
-
-No asumir que Inventory ya cubre custodia operativa de materiales.
-
-No asumir que Documents ya cubre cierre administrativo ampliado.
-
-No asumir que OperationalActivity ya cubre línea de tiempo operativa específica de mantenimiento.
-
-Todo debe auditarse contra código real, esquema real, catálogos reales, rutas reales, UI real, seguridad real y runtime real antes de implementar.
-
-Regla adicional para IA:
-
-no asumir proveedor IA pago.
-
-No asumir API key disponible.
-
-No asumir integración inmediata.
-
-No asumir que la IA puede ejecutar acciones si el contrato oficial del módulo dueño no lo permite.
-
-La asistencia IA puede preparar auditorías, interpretar salidas, organizar evidencia, proponer bloques documentales o ayudar a diseñar pruebas.
-
-No reemplaza validación runtime.
+No reemplaza la doctrina del sistema.
 
 <<END SECTION>>
 
 <<SECTION: NATURALEZA DE PROJECT LAB>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00006
 
 NATURALEZA DE PROJECT LAB
 
-Project Lab es la estación operativa local de desarrollo, auditoría, validación y mantenimiento del proyecto app-base.
+Project Lab es la estación operativa local de desarrollo, auditoría, validación y mantenimiento técnico del proyecto.
 
 Ubicación vigente:
 
@@ -335,30 +123,35 @@ Su uso corresponde únicamente en entorno local controlado.
 
 Funciones principales:
 
-Editor Tinker
+ejecución de Tinker
 ejecución de Tinker desde clipboard
-comandos Artisan rápidos
+ejecución de comandos Artisan permitidos
 herramienta Lab de código
 herramienta Lab documental
 herramienta Lab de auditoría
 snippets rápidos
+búsqueda operativa de métodos o fragmentos
 consola unificada
-copiado de salida para compartir en chat
-persistencia auxiliar de salida local cuando corresponda
-acciones operativas locales de soporte, como procesar cola pendiente en entorno de desarrollo
-auditorías fuertes sobre código real antes de cambios sensibles
+guardado de consola como auditoría
+copiado de salida para compartir evidencia
+persistencia auxiliar local cuando corresponda
+procesamiento local de cola pendiente cuando se requiera validar eventos queued
 
-Project Lab debe leerse como estación operativa local del proyecto.
+Project Lab debe leerse como herramienta técnica local del proyecto.
 
 No debe confundirse con una funcionalidad del producto final.
 
-Regla doctrinal:
+Reglas:
 
-Project Lab no define reglas de negocio, seguridad, arquitectura ni UI del producto.
+Project Lab no define reglas de negocio.
+Project Lab no define autorización del producto.
+Project Lab no define navegación del usuario final.
+Project Lab no reemplaza documentación rectora.
+Project Lab no reemplaza criterio arquitectónico.
+Project Lab no reemplaza validación runtime.
+Project Lab no reemplaza pruebas en navegador cuando correspondan.
 
-Pero sí define el contrato operativo local para aplicar, auditar y validar intervenciones técnicas sobre el proyecto.
-
-Por lo tanto, toda salida destinada a Project Lab debe respetar el contrato real vigente de la herramienta.
+Project Lab define únicamente el contrato operativo local para aplicar, auditar, ejecutar y validar tareas técnicas sobre el proyecto.
 
 Regla específica para colas:
 
@@ -366,24 +159,14 @@ Project Lab puede facilitar el procesamiento manual de colas en local cuando sea
 
 Esta capacidad no debe trasladarse como botón, acción o pantalla dentro del producto SaaS.
 
-Regla específica para IA:
-
-la IA puede asistir el trabajo con Project Lab preparando snippets, auditorías conceptuales, interpretación de errores, lectura de salidas runtime, generación de bloques documentales y planificación de pruebas.
-
-La IA no reemplaza Project Lab.
-
-La IA no valida runtime por sí misma.
-
-La IA no debe dar por implementado, probado o cerrado un cambio sin evidencia producida por herramientas reales, navegador, runtime o auditoría correspondiente.
-
 <<END SECTION>>
 
 <<SECTION: HERRAMIENTAS DISPONIBLES>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 HERRAMIENTAS DISPONIBLES
 
-Herramientas Lab vigentes:
+Project Lab dispone de tres herramientas Lab principales:
 
 code
 docs
@@ -391,7 +174,7 @@ audit
 
 CODE
 
-Se utiliza para aplicar actualizaciones de código compatibles con el automatizador vigente.
+Se utiliza para aplicar actualizaciones de código compatibles con los contratos vigentes de Project Lab.
 
 Puede operar sobre:
 
@@ -404,9 +187,20 @@ métodos PHP nuevos dentro de clases existentes
 funciones JS existentes
 secciones CSS o JS delimitadas
 
+Reglas:
+
+debe trabajar siempre dentro del projectRoot actual
+debe resolver rutas mediante la aduana central de rutas vigente
+debe escribir archivos mediante la aduana central de escritura vigente
+debe rechazar rutas fuera del proyecto
+debe validar antes de escribir cuando el error sea detectable
+debe validar sintaxis PHP cuando corresponda
+no debe aplicar parches ambiguos
+no debe mezclar contratos de archivo completo con contratos parciales
+
 DOCS
 
-Se utiliza para aplicar actualizaciones documentales mediante bloques de sección.
+Se utiliza para aplicar actualizaciones documentales mediante bloques completos de sección.
 
 Debe operar con:
 
@@ -414,18 +208,60 @@ encabezado REEMPLAZAR EN: [doc_slug]
 doc_slug existente
 nombre exacto de sección
 bloque completo delimitado
+SECTION_VERSION
 contenido compatible con el documento destino
 
-Formato operativo vigente:
+Reglas:
 
-REEMPLAZAR EN: [doc_slug]
+no debe inventar secciones
+no debe reemplazar fragmentos internos
+no debe aplicar cambios sin SECTION_VERSION
+no debe aceptar nombres aproximados
+no debe mezclar explicación narrativa con bloque automatizado
+debe devolver OK o ERROR explícito
 
-<<SECTION: NOMBRE EXACTO>>
-contenido completo de la sección
+AUDIT
+
+Se utiliza para ejecutar auditorías locales, inspecciones y comandos de apoyo sobre el proyecto real.
+
+Lectura vigente:
+
+audit ejecuta bash libre local desde projectRoot.
+
+No es sandbox del sistema operativo.
+
+Su uso queda a riesgo del usuario técnico local.
+
+Reglas:
+
+debe ejecutarse desde el projectRoot actual
+debe utilizarse para obtener evidencia real
+puede ejecutar auditorías fuertes cuando el usuario técnico lo solicite
+no debe endurecerse con bloqueos heurísticos que rompan auditorías necesarias
+no debe tratarse como protección de sistema operativo
+no debe ejecutar prompts de chat como si fueran comandos
+
+Uso esperado:
+
+inspeccionar archivos reales
+buscar métodos o residuos
+generar auditorías en documentos/auditoria
+validar rutas
+validar contratos de código
+obtener evidencia antes de intervenir
+
+Regla general:
+
+Project Lab no decide qué cambio es correcto.
+
+Project Lab ejecuta, valida, registra y muestra salida operativa.
+
+La interpretación técnica sigue dependiendo del proceso de trabajo, la documentación vigente, el código real y la evidencia obtenida.
+
 <<END SECTION>>
 
 <<SECTION: REGLA ESTRICTA DE FORMATOS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 REGLA ESTRICTA DE FORMATOS
 
@@ -447,13 +283,14 @@ reemplazo de sección documental
 
 Regla crítica:
 
-Project Lab debe fallar antes de escribir.
+Project Lab debe fallar antes de escribir cuando el error sea detectable.
 
 Si un bloque no cumple exactamente un contrato válido:
 
 no debe aplicar cambios
 no debe crear archivos
 no debe crear directorios
+no debe escribir fuera del projectRoot
 no debe normalizar silenciosamente casos peligrosos
 debe devolver ERROR explícito
 
@@ -461,32 +298,46 @@ No se aceptan cambios ambiguos como éxito parcial.
 
 No se aceptan escrituras preventivas para luego validar.
 
-Primero se valida el contrato.
+Orden obligatorio:
 
-Después se escribe.
+validar contrato
+resolver ruta segura dentro del projectRoot
+validar existencia cuando corresponda
+aplicar cambio
+validar resultado cuando corresponda
+mostrar salida operativa
+
+Regla:
+
+un formato pensado para archivo completo no debe usarse para reemplazar métodos.
+
+Un formato pensado para operación parcial no debe usarse para crear archivos completos.
+
+Un bloque documental no debe usarse para modificar código.
+
+Un bloque de código no debe usarse para modificar documentación.
 
 <<END SECTION>>
 
 <<SECTION: CONTRATOS DE CÓDIGO SOPORTADOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CONTRATOS DE CÓDIGO SOPORTADOS
 
+Project Lab soporta contratos de código explícitos.
+
 ARCHIVO PHP COMPLETO
 
-Formato esperado:
+Uso:
 
-<?php
-
-// FILE: ruta/del/archivo.php | V1
-
-contenido completo del archivo
+crear o reemplazar un archivo PHP completo.
 
 Reglas:
 
-debe comenzar con <?php
+debe comenzar como archivo PHP válido
 debe incluir encabezado FILE válido
-la ruta debe ser una ruta real de archivo PHP
+la ruta debe ser una ruta de archivo PHP
+la ruta debe resolverse dentro del projectRoot
 no debe contener operadores de método
 reemplaza el archivo completo
 puede crear archivo nuevo si el contrato es válido
@@ -494,129 +345,121 @@ debe ejecutar validación de sintaxis PHP cuando corresponda
 
 MÉTODO PHP EXISTENTE
 
-Formato esperado:
+Uso:
 
-// TARGET: ruta/del/archivo.php :: nombreMetodo
-
-public function nombreMetodo(): void
-{
-    //
-}
+reemplazar un método existente dentro de una clase PHP existente.
 
 Reglas:
 
-debe reemplazar solo el método indicado
+debe usar encabezado TARGET con operador de reemplazo
 el archivo debe existir
+la ruta debe resolverse dentro del projectRoot
 el método debe existir
 no debe crear archivo nuevo
+debe reemplazar solo el método indicado
 debe validar sintaxis PHP del archivo final
 
 ALTA DE MÉTODO PHP
 
-Formato esperado:
+Uso:
 
-// TARGET: ruta/del/archivo.php ++ nombreMetodo
-
-private function nombreMetodo(): void
-{
-    //
-}
+agregar un método nuevo dentro de una clase PHP existente.
 
 Reglas:
 
-debe insertar un método nuevo dentro de una clase PHP existente
+debe usar encabezado TARGET con operador de alta
 el archivo debe existir
+la ruta debe resolverse dentro del projectRoot
 la clase debe existir
 el método no debe existir previamente
+debe insertar el método dentro de la clase
 debe validar sintaxis PHP del archivo final
 
 ARCHIVO BLADE COMPLETO
 
-Formato esperado:
+Uso:
 
-{{-- FILE: ruta/del/archivo.blade.php | V1 --}}
-
-contenido completo del archivo
+crear o reemplazar un archivo Blade completo.
 
 Reglas:
 
+debe incluir encabezado FILE válido
+la ruta debe ser una ruta de archivo Blade
+la ruta debe resolverse dentro del projectRoot
 reemplaza el archivo completo
 puede crear archivo nuevo si el contrato es válido
 no debe usarse para parches parciales
 
 Criterio operativo:
 
-cuando un cambio Blade afecta estructura HTML amplia, tablas completas, modales fuera del tbody o composición general del partial, conviene usar FILE completo.
-
-Caso vigente:
-
-resources/views/tenants/partials/operational-activity-table.blade.php
+cuando un cambio Blade afecta estructura HTML amplia, tablas completas, modales fuera del tbody o composición general de una vista o partial, conviene usar archivo completo.
 
 ARCHIVO CSS COMPLETO
 
-Formato esperado:
+Uso:
 
-/* FILE: ruta/del/archivo.css | V1 */
-
-contenido completo del archivo
+crear o reemplazar un archivo CSS completo.
 
 Reglas:
 
+debe incluir encabezado FILE válido
+la ruta debe ser una ruta de archivo CSS
+la ruta debe resolverse dentro del projectRoot
 reemplaza el archivo completo
 puede crear archivo nuevo si el contrato es válido
 
 ARCHIVO JS COMPLETO
 
-Formato esperado:
+Uso:
 
-// FILE: ruta/del/archivo.js | V1
-
-contenido completo del archivo
+crear o reemplazar un archivo JS completo.
 
 Reglas:
 
+debe incluir encabezado FILE válido
+la ruta debe ser una ruta de archivo JS
+la ruta debe resolverse dentro del projectRoot
 reemplaza el archivo completo
 puede crear archivo nuevo si el contrato es válido
 
 FUNCIÓN JS EXISTENTE
 
-Formato esperado:
+Uso:
 
-// TARGET: ruta/del/archivo.js :: nombreFuncion
-
-function nombreFuncion()
-{
-    //
-}
+reemplazar una función JavaScript existente.
 
 Reglas:
 
-debe reemplazar solo la función indicada
+debe usar encabezado TARGET con operador de reemplazo
 el archivo debe existir
+la ruta debe resolverse dentro del projectRoot
 la función debe existir
 no debe crear archivo nuevo
+debe reemplazar solo la función indicada
 
 SECCIONES CSS O JS
 
-Formato esperado:
+Uso:
 
-REEMPLAZAR EN: ruta/del/archivo.css
-
-<<SECTION: NOMBRE EXACTO>>
-contenido
-<<END SECTION>>
+reemplazar una sección delimitada existente dentro de un archivo CSS o JS.
 
 Reglas:
 
-la sección debe existir
 el archivo debe existir
+la ruta debe resolverse dentro del projectRoot
+la sección debe existir
 el reemplazo debe ser completo dentro de los delimitadores
 no debe inventar secciones inexistentes
+no debe crear archivo nuevo por este contrato
+
+Regla general:
+
+si el cambio no encaja claramente en uno de estos contratos, no debe aplicarse por Project Lab hasta definir el formato correcto.
 
 <<END SECTION>>
 
 <<SECTION: REGLA ANTIAMBIGÜEDAD EN HEADERS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 REGLA ANTIAMBIGÜEDAD EN HEADERS
 
@@ -628,24 +471,19 @@ Regla crítica:
 
 FILE no debe contener operadores de método.
 
-No son válidos como archivo completo:
-
-// FILE: app/Providers/AppServiceProvider.php :: boot | V1
-// FILE: app/Services/Example.php ++ resolve | V1
+No son válidos como archivo completo los encabezados que mezclen ruta de archivo con operadores de método.
 
 Estos casos deben resolverse de una sola manera:
 
-si se acepta como operación parcial, debe procesarse como método
-si no se acepta como operación parcial, debe devolver ERROR
+si corresponde operación parcial, debe usarse TARGET
+si corresponde archivo completo, debe usarse FILE sin operadores parciales
+si el parser no puede clasificarlo con seguridad, debe devolver ERROR
 
-Nunca debe crearse un archivo cuya ruta incluya:
-
-::
-++
+Nunca debe crearse un archivo cuya ruta incluya operadores de método.
 
 Regla obligatoria:
 
-si un header FILE contiene :: o ++, Project Lab no puede tratarlo como archivo completo.
+si un header FILE contiene operadores parciales, Project Lab no puede tratarlo como archivo completo.
 
 Debe devolver ERROR explícito o normalizarlo hacia TARGET solo si el parser lo reconoce de forma segura como operación parcial válida.
 
@@ -653,19 +491,14 @@ Regla recomendada:
 
 para operaciones parciales usar siempre TARGET.
 
-Ejemplo correcto:
+Para archivos completos usar siempre FILE.
 
-// TARGET: app/Providers/AppServiceProvider.php :: boot
-
-public function boot(): void
-{
-    //
-}
+No mezclar ambos contratos en un mismo snippet.
 
 <<END SECTION>>
 
 <<SECTION: ERRORES OBLIGATORIOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ERRORES OBLIGATORIOS
 
@@ -677,6 +510,7 @@ contenido vacío
 herramienta Lab no reconocida
 header no compatible
 ruta destino vacía
+ruta fuera del projectRoot
 ruta con operadores inválidos para archivo completo
 archivo inexistente en operación parcial
 método inexistente en reemplazo parcial
@@ -688,7 +522,7 @@ sección CSS o JS inexistente
 intento de usar formato de archivo completo para operación parcial ambigua
 bloque documental sin encabezado REEMPLAZAR EN cuando la herramienta vigente lo requiere
 bloque documental con DOC_SLUG como encabezado operativo si Project Lab Docs espera REEMPLAZAR EN
-header FILE que combine operadores de método como :: o ++
+header FILE que combine operadores de método
 snippet que mezcle FILE y TARGET de forma ambigua
 
 Regla:
@@ -711,8 +545,6 @@ si la validación de sintaxis PHP posterior a un cambio falla, la intervención 
 
 Debe corregirse o revertirse según corresponda.
 
-La salida OK inicial de aplicación no alcanza para cierre si la validación posterior informa error.
-
 Regla adicional sobre errores posteriores a la aplicación:
 
 si la herramienta aplicó un cambio pero una validación posterior falla, el resultado no debe tratarse como cierre exitoso.
@@ -722,7 +554,7 @@ Debe corregirse o revertirse antes de avanzar.
 <<END SECTION>>
 
 <<SECTION: SALIDA OPERATIVA ESPERADA>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 SALIDA OPERATIVA ESPERADA
 
@@ -741,248 +573,60 @@ Indica operación aplicada correctamente.
 
 Ejemplos:
 
-[OK] Modo: php_method_patch
-[OK] Archivo: app/Providers/AppServiceProvider.php
-[OK] Método reemplazado: boot
-[OK] Sintaxis PHP válida: app/Providers/AppServiceProvider.php
+archivo actualizado
+método reemplazado
+documento actualizado
+auditoría generada
+sintaxis PHP válida
 
 WARN
 
-Indica que la operación se aplicó pero existe una advertencia relevante.
-
-Ejemplo:
-
-[WARN] Archivo existente reemplazado completamente.
+Indica que la operación se aplicó o se procesó, pero existe una advertencia relevante.
 
 ERROR
 
 Indica que la operación no debe considerarse aplicada correctamente.
 
-Ejemplo:
-
-[ERROR] Header FILE inválido para archivo PHP completo.
-[ERROR] Se detectó operador de método en el encabezado.
-[INFO] Para reemplazar un método use:
-[INFO] // TARGET: ruta/del/archivo.php :: nombreMetodo
-
 INFO
 
 Indica orientación complementaria.
 
-Regla:
+Reglas:
 
-no debe considerarse cierre técnico una salida sin OK verificable.
+no debe considerarse cierre técnico una salida sin OK verificable
 
-No debe considerarse seguro un cambio aplicado con errores no resueltos.
+no debe considerarse seguro un cambio aplicado con errores no resueltos
 
-Regla adicional:
+una salida OK de aplicación no reemplaza validaciones posteriores necesarias para el frente trabajado
 
-una salida OK de aplicación no reemplaza validaciones posteriores necesarias para el frente trabajado.
+si Project Lab informa OK pero una validación posterior falla, la intervención no está cerrada
 
-Ejemplos de validaciones posteriores según caso:
+Las validaciones posteriores dependen del tipo de cambio.
+
+Pueden incluir:
 
 php -l
-route:list
 optimize:clear
-event:list
+route:list
+migrate:fresh --seed
+Tinker
+auditoría
+grep preciso
+validación en navegador
 jobs
 failed_jobs
-operational_activities
-navegador informado por usuario
-request manipulado
 persistencia final
 rollback o limpieza de prueba
-migrate:fresh --seed
-grep preciso de residuos legacy
-control de estados inválidos en DB contra catálogos vigentes
-validación de ciclo operativo testigo
-
-Caso vigente:
-
-para OperationalActivity, la salida relevante debe permitir confirmar que el evento no solo fue disparado, sino que la cola procesó el listener y persistió el registro esperado sin failed_jobs.
-
-Validación esperada para cierre de OperationalActivity:
-
-evento emitido
-jobs generados cuando corresponda
-queue:work --stop-when-empty --tries=1 ejecutado
-jobs = 0
-failed_jobs = 0
-operational_activities persistidas
-record_type correcto
-record_id correcto
-módulo correcto
-tipo de actividad correcto
-metadata esperada cuando corresponda
+smoke test del servicio o modelo afectado
 
 Regla:
 
-si hay jobs procesados y failed_jobs = 0 pero no hay operational_activities persistidas, no debe cerrarse como éxito.
-
-Debe revisarse primero el mapeo modelo → módulo y módulo → catálogo antes de modificar controllers, eventos o listener.
-
-Validación esperada para lectura contextual de OperationalActivity:
-
-host autorizado
-surface publicada
-key = activity
-reader contextual utilizado
-payload visible esperado
-navegador OK cuando corresponda
-
-Validación esperada para lectura agregada de OperationalActivity:
-
-provider declarado por módulo dueño
-activity_record_set resuelto
-records esperados incluidos
-records no esperados excluidos
-actividad de records incluidos visible
-sin ampliación general del tenant
-sin failed_jobs cuando corresponda
-
-Caso vigente:
-
-projects.show debe validar que ProjectActivityRecordSet devuelva Project + Tasks y que la actividad de una Task incluida sea visible dentro de la tab Actividad del Project.
-
-Validación esperada para lectura contextual especial de OperationalActivity:
-
-provider declarado por módulo dueño
-activity_context resuelto
-criterio contextual esperado aplicado
-host autorizado
-tenant activo respetado
-dataset esperado visible
-actividad directa del record host incluida cuando corresponda
-actividad contextual ampliada incluida cuando corresponda
-sin ampliación general del tenant
-sin failed_jobs cuando corresponda
-navegador OK cuando corresponda
-
-Caso vigente:
-
-parties.show debe validar que PartyEmployeeActivityContext aplique solo cuando la Party tenga relación employee y membership activa vinculada.
-
-Lectura esperada:
-
-actividad directa de Party
-actividad donde el user vinculado sea actor_user_id
-actividad donde el user vinculado sea subject_user_id
-
-Validación adicional esperada:
-
-employee manual sin user o sin membership activa debe conservar lectura directa de Party.
-
-Party común debe conservar lectura directa de Party.
-
-Regla:
-
-activity_context no debe validarse solo por existencia del provider.
-
-Debe confirmarse que el dataset resultante coincide con el criterio esperado.
-
-Validación esperada para presentación de cambios:
-
-OperationalActivityChangePresenter prepara change_summary
-OperationalActivityChangePresenter prepara change_details
-operational-activity-table muestra resumen compacto
-Ver cambios abre modal
-Blade no interpreta metadata.changes directamente
-
-Validación esperada para presentación visual de actividad:
-
-tab Actividad puede recibir icon = activity desde la surface
-botón Ver cambios puede usar x-icons.changes
-botón Ver cambios puede usar btn btn-secondary btn-icon
-no se crea clase visual nueva si la variante existente resuelve el caso
-
-Validación esperada para owner/admin en tenant/profile/accesses:
-
-owner puede ver tenant/profile
-owner puede editar General
-admin puede ver tenant/profile
-admin no puede editar General
-admin no puede modificar permisos del rol admin
-admin puede modificar permisos de roles operativos cuando corresponda
-admin no puede asignar admin
-admin puede asignar roles operativos cuando corresponda
-admin no puede autogestionar su rol admin
-admin no puede vaciar sus propios roles
-admin no puede combinar admin con rol operativo vía sync
-membership activa sin roles devuelve error funcional controlado
-
-Validación esperada para requests fabricados sobre controllers:
-
-tenant real bindeado
-usuario real autenticado con Auth::login(...)
-request creado con datos manipulados
-setUserResolver definido si se usa $request->user()
-excepciones capturadas
-persistencia final verificada
-rollback o limpieza confirmada
-
-Validación esperada para seeders demo operativos con OperationalActivity:
-
-migrate:fresh --seed ejecutado cuando corresponda
-eventos emitidos por la carga demo operativa
-jobs generados
-queue:work --stop-when-empty --tries=1 ejecutado
-jobs = 0
-failed_jobs = 0
-operational_activities persistidas
-módulo correcto
-cantidades finales esperadas verificadas
-estados finales verificados contra catálogos vigentes
-ausencia de estados inválidos en DB
-ausencia de residuos legacy reales por grep preciso
-ciclo operativo testigo validado cuando exista
-
-Casos vigentes:
-
-PartyModuleSeeder debe validar actividad parties persistida cuando crea parties demo nuevas con evento operativo.
-
-OrderModuleSeeder debe validar contrato vigente group/kind, orden testigo TECH-ORD-CYCLE-0001, actividad orders, actividad inventory y estado final del ciclo.
-
-DocumentModuleSeeder debe validar uso de estados vigentes de DocumentCatalog, actividad documents y ausencia de estado legacy issued como valor de status.
-
-Regla:
-
-migrate:fresh --seed OK no alcanza como cierre si el seeder representa operación real con eventos queued.
-
-Debe confirmarse persistencia final y ausencia de legacy real.
-
-Regla adicional para auditorías grep:
-
-el grep debe ser lo bastante preciso para evitar falsos positivos.
-
-No debe confundirse un campo válido con un valor legacy.
-
-Caso detectado:
-
-buscar issued de forma amplia puede detectar issued_at aunque issued_at no sea el estado legacy issued.
-
-La auditoría correcta debe buscar el patrón que discrimine campo, valor o contexto, por ejemplo status => issued cuando corresponda.
-
-Aclaración vigente sobre sintaxis PHP:
-
-Project Lab valida sintaxis PHP automáticamente en operaciones compatibles como reemplazo de método PHP, alta de método PHP y archivo PHP completo.
-
-No hace falta pedir php -l redundante si la salida ya informa sintaxis PHP válida, salvo duda puntual o auditoría específica.
-
-Aclaración vigente sobre cola local:
-
-si Project Lab procesa cola pendiente en entorno local, la salida debe permitir distinguir:
-
-procesamiento ejecutado
-jobs restantes
-failed_jobs
-persistencia final esperada
-
-No alcanza con informar que se ejecutó queue:work si el frente validado exige persistencia final.
+la consola debe permitir reconstruir qué se ejecutó, qué resultado produjo y qué validación quedó pendiente si corresponde.
 
 <<END SECTION>>
 
 <<SECTION: USO OPERATIVO LOCAL>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 USO OPERATIVO LOCAL
 
@@ -1002,7 +646,7 @@ pegar el contenido compatible
 ejecutar
 leer la consola completa
 copiar salida cuando deba compartirse
-validar con auditoría, syntax, runtime o navegador según corresponda
+validar con auditoría, sintaxis, runtime o navegador según corresponda
 
 Regla:
 
@@ -1022,7 +666,7 @@ Project Lab puede facilitar acciones operativas propias del entorno local de des
 
 Caso vigente:
 
-procesar cola pendiente para validar OperationalActivity queued.
+procesar cola pendiente para validar eventos queued.
 
 Reglas:
 
@@ -1031,19 +675,10 @@ no debe confundirse con funcionalidad del producto final
 no debe trasladarse a UI SaaS
 no debe reemplazar la definición de worker supervisado para producción
 
-Cuando se procese cola localmente para validar OperationalActivity, debe confirmarse además:
-
-jobs restantes
-failed_jobs
-operational_activities persistidas
-módulo correcto
-tipo correcto
-metadata esperada cuando corresponda
-
 <<END SECTION>>
 
 <<SECTION: USO DE TINKER DENTRO DE PROJECT LAB>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 USO DE TINKER DENTRO DE PROJECT LAB
 
@@ -1062,11 +697,8 @@ flujos controlados
 auditoría de runtime
 eventos operativos
 validación de persistencia derivada
-record sets contextuales
-payloads de lectura transversal
 requests fabricados
 controllers con autorización
-validaciones backend manipuladas
 rollback de pruebas sensibles
 
 Regla crítica:
@@ -1079,120 +711,34 @@ php artisan tinker --execute
 
 Project Lab ya ejecuta internamente el proceso correspondiente contra el proyecto actual.
 
-Regla adicional:
+Reglas:
 
-si se quiere visualizar el resultado de una expresión, debe utilizarse return o salida explícita mediante echo, dump o equivalente.
+si se quiere visualizar el resultado de una expresión, debe utilizarse return o salida explícita
 
-Ejemplo conceptual:
+si una salida no muestra el resultado esperado, puede requerirse echo, dump o equivalente
 
-return User::all();
+si un bloque falla por el uso de use, no debe asumirse automáticamente que falló la lógica funcional
 
-Regla adicional:
+ante errores de wrapper, puede usarse namespace completo
 
-cuando una salida Project Lab no muestre el array final esperado, puede requerirse salida explícita mediante echo json_encode(...) u otra forma clara.
+cuando una prueba dispare eventos queued, Tinker solo valida el disparo inicial
 
-El SQL debug puede aparecer aunque el retorno no sea visible.
+si la prueba requiere persistencia final, debe procesarse cola y verificar resultado
 
-Regla adicional para bloques con namespaces:
+Regla para pruebas sensibles:
 
-si un bloque ejecutado mediante wrapper falla por el uso de use ..., no debe asumirse automáticamente que falló la lógica funcional.
-
-Alternativas válidas:
-
-usar clases con namespace completo
-ejecutar el bloque dentro de Project Lab según corresponda
-ajustar la forma de ejecución antes de modificar código funcional
-
-Regla adicional para eventos queued:
-
-si la prueba dispara un evento que debe procesarse en cola, Tinker solo valida el disparo inicial.
-
-El cierre requiere validar también:
-
-jobs generados
-queue procesada
-operational_activities persistidas cuando corresponda
-jobs vaciados
-failed_jobs sin errores
-
-Regla adicional para OperationalActivity:
-
-cuando se valide trazabilidad operativa transversal, Tinker debe reproducir el flujo con:
-
-usuario real
-membership activa
-tenant activo
-record real
-módulo real
-evento real cuando corresponda
-
-No debe cerrarse con una simulación abstracta si el frente exige validación runtime.
-
-Regla adicional para lectura contextual:
-
-si se valida una tab Actividad contextual, debe comprobarse que el host ya esté autorizado y que el reader reciba un record autorizado.
-
-Regla adicional para lectura agregada:
-
-si se valida activity_record_set, debe confirmarse el conjunto exacto de records devuelto por el provider.
-
-Caso vigente:
-
-ProjectActivityRecordSet debe devolver el Project y sus Tasks vinculadas.
+si la prueba involucra permisos, roles, memberships, tenant/profile o acciones críticas, debe utilizarse usuario real, tenant real, autenticación real y rollback o limpieza cuando corresponda.
 
 Regla:
 
-Tinker puede confirmar el record set, pero la validación visual requiere navegador cuando el cierre dependa de la tab visible.
+Tinker ayuda a reproducir runtime.
 
-Regla adicional para requests fabricados:
-
-si se prueba un controller con Request::create(...) y el controller usa $request->user(), debe asignarse user resolver.
-
-Forma esperada:
-
-$request->setUserResolver(fn () => $user)
-
-Regla adicional para controllers con authorize:
-
-si el controller usa $this->authorize(...), además de setUserResolver debe existir usuario autenticado en el guard.
-
-Forma esperada:
-
-Auth::login($user)
-
-Regla adicional para pruebas sensibles:
-
-si la prueba busca validar owner/admin, roles, permisos, memberships o tenant/profile, no debe usarse Tenant::first() por comodidad.
-
-Debe localizarse un tenant con actores reales suficientes para el contrato que se valida.
-
-Regla:
-
-si no aparece actor real o el dataset esperado es null, la prueba no debe interpretarse como validación del contrato.
-
-Debe corregirse el dataset o declarar que falta evidencia.
-
-Patrón recomendado para pruebas de controller con request manipulado:
-
-bindear tenant real
-detectar actor real
-autenticar con Auth::login(...)
-crear request con Request::create(...)
-asignar setUserResolver(...)
-ejecutar controller o método objetivo
-capturar HttpException y AuthorizationException
-usar transacción cuando corresponda
-hacer rollback
-verificar persistencia final
-
-Caso vigente:
-
-validación runtime de tenant/profile/accesses y TenantMembershipRoleController::sync.
+No reemplaza navegador cuando el cierre dependa de interacción visual.
 
 <<END SECTION>>
 
 <<SECTION: REGLA DE TENANT ACTIVO EN TINKER>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 REGLA DE TENANT ACTIVO EN TINKER
 
@@ -1206,14 +752,12 @@ Regla operativa:
 
 antes de probar permisos, visibilidad, queries tenant-aware o lógica que consume Security, debe resolverse y bindearse un tenant activo real.
 
-Forma correcta:
+Secuencia esperada:
 
-1. obtener un usuario real
-2. obtener una membership activa real de ese usuario
-3. tomar el tenant de esa membership
-4. bindearlo con:
-
-app()->instance('tenant', $tenant)
+obtener un usuario real
+obtener una membership activa real de ese usuario
+tomar el tenant de esa membership
+bindear el tenant en el contenedor
 
 Sin ese paso, la prueba puede:
 
@@ -1227,10 +771,6 @@ no fijar tenant_id como número ni como dato estable copiado desde otra sesión.
 
 Debe obtenerse desde runtime real.
 
-Caso vigente:
-
-si la prueba involucra OperationalActivity, tenant_id debe persistirse como UUID string compatible con tenants.id.
-
 Regla:
 
 tenant activo bindeado no es solo comodidad de prueba.
@@ -1240,24 +780,22 @@ Es condición necesaria para reproducir el comportamiento real de capacidades te
 <<END SECTION>>
 
 <<SECTION: REGLA DE AUTORIZACIÓN EN TINKER>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 REGLA DE AUTORIZACIÓN EN TINKER
 
-La autorización debe probarse desde la capa central.
+La autorización debe probarse desde la capa central vigente.
 
 Regla operativa:
 
-para permisos, visibilidad o acciones permitidas, usar:
-
-app(Security::class)
+para permisos, visibilidad o acciones permitidas, debe usarse Security o el contrato central correspondiente.
 
 Usos válidos:
 
-inspect(...)
-allows(...)
-authorize(...)
-scope(...)
+inspect
+allows
+authorize
+scope
 
 No probar permisos reconstruyendo lógica manualmente.
 
@@ -1269,152 +807,100 @@ Regla adicional:
 
 si el módulo utiliza constraints, la prueba debe incluir el contexto funcional real requerido.
 
-Ejemplo conceptual:
+Ejemplos:
 
 si la capacidad requiere kind, probar con kind explícito
 
-si la capacidad requiere party_roles.role, probar contra allowed_party_roles
+si la capacidad requiere una relación funcional, probar contra esa relación real
 
 si la capacidad no requiere contexto, no inventarlo
+
+Regla:
+
+la prueba debe reproducir el contrato de seguridad real, no una versión simplificada creada para pasar.
 
 <<END SECTION>>
 
 <<SECTION: BOOTSTRAP BASE RECOMENDADO PARA TINKER>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 BOOTSTRAP BASE RECOMENDADO PARA TINKER
 
-Bloque base recomendado para comenzar pruebas reales:
-
-use App\Models\User;
-use App\Support\Auth\Security;
-
-$user = User::where('email', 'juan@tech.local')->firstOrFail();
-
-$tenant = $user->memberships()
-    ->where('status', 'active')
-    ->with('tenant')
-    ->firstOrFail()
-    ->tenant;
-
-app()->instance('tenant', $tenant);
-
-$security = app(Security::class);
-
-Este bloque deja resuelto:
+Antes de probar runtime real, debe resolverse como mínimo:
 
 usuario real
 membership activa real
 tenant real
 tenant activo en contenedor
-acceso a la capa central de autorización
+acceso a la capa central de autorización cuando corresponda
 
-A partir de ahí pueden ejecutarse pruebas confiables.
+Este bootstrap permite iniciar pruebas confiables sobre:
+
+permisos
+datasets
+constraints
+relaciones
+acciones autorizadas
+surfaces
+eventos
+persistencia
+
+Reglas:
+
+si el usuario, tenant o dataset cambia, debe validarse nuevamente
+
+no extender datos de prueba por suposición
+
+no usar datos copiados de otra sesión como garantía vigente
+
+no probar acciones sensibles sin rollback o limpieza cuando corresponda
 
 Regla:
 
-si el usuario, tenant o dataset cambia, debe validarse nuevamente.
+el bootstrap recomendado no es doctrina de seguridad.
 
-No extender datos de prueba por suposición.
+Es una ayuda operativa para reproducir el runtime real desde Project Lab.
 
 <<END SECTION>>
 
 <<SECTION: DATOS VERIFICADOS ACTUALES PARA PRUEBAS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 DATOS VERIFICADOS ACTUALES PARA PRUEBAS
 
-Los siguientes datos fueron validados en sesiones anteriores y pueden utilizarse como referencia inmediata mientras no cambien.
+Esta sección solo puede contener datos de prueba explícitamente verificados en runtime.
 
-USUARIO VALIDADO
+Su función es facilitar pruebas locales rápidas cuando esos datos sigan existiendo.
 
-email:
+Reglas:
 
-juan@tech.local
+no incorporar usuarios no validados
+no incorporar tenants no validados
+no fijar ids como estables
+no asumir que los seeders mantienen siempre el mismo dataset
+no extender datos de prueba por memoria
+no usar esta sección como doctrina del sistema
 
-TENANT VALIDADO
+Uso permitido:
 
-tenant_name:
+referencia operativa local
+punto de partida para Tinker
+ayuda para reproducir pruebas
 
-Tech Solutions SA
+Límite:
 
-tenant_slug:
-
-tech-solutions-sa
-
-Limitación vigente:
-
-tenant_id no queda fijado como dato documental estable.
-
-Debe obtenerse desde runtime real antes de cada prueba cuando sea necesario.
-
-DATASET VALIDADO
-
-products en Tech:
-
-5
-
-productos físicos:
-
-3
-
-servicios:
-
-2
-
-inventory_movements_count:
-
-13
-
-Datos adicionales observados en validaciones de parties:
-
-Tenants observados:
-
-Tech Solutions SA
-Constructora Andina SRL
-
-Usuarios observados:
-
-juan@tech.local
-owner en Tech
-resultado observado para employee en parties: OK
-
-maria@andina.local
-owner en Andina
-resultado observado para employee en parties: OK
-
-carlos@demo.local
-operator/administrator según tenant observado
-resultado observado para employee en parties: BLOQUEADO
-
-ana@demo.local
-sales
-resultado observado para employee en parties: BLOQUEADO
-
-pedro@demo.local
-operator
-resultado observado para employee en parties: BLOQUEADO
-
-Limitación vigente:
-
-no existe caso seed activo validado con rol admin.
-
-Por lo tanto, admin queda contemplado por código, pero pendiente de validación runtime con dataset real.
+todo dato aquí indicado debe volver a validarse cuando el resultado dependa de runtime real.
 
 Regla:
 
-estos datos pueden usarse como contexto base de ejemplo mientras no cambien.
+si una prueba falla por dataset inexistente, no debe interpretarse como falla funcional del sistema.
 
-No extender esta sección con otros usuarios, tenants o ids no validados explícitamente.
-
-Regla operativa adicional aprendida:
-
-si una prueba de stock da todo en cero, primero validar que el seeder efectivo esté incluido en config/seeders.php y no solo en DemoSeeder.
+Primero debe confirmarse que el dato de prueba sigue existiendo.
 
 <<END SECTION>>
 
 <<SECTION: USO DE ARTISAN>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 USO DE ARTISAN
 
@@ -1430,13 +916,15 @@ event:list
 queue:work --stop-when-empty --tries=1
 comandos de inspección compatibles con el entorno local
 
-Regla:
+Reglas:
 
-no ejecutar comandos destructivos sin objetivo explícito y respaldo conceptual.
+no ejecutar comandos destructivos sin objetivo explícito
 
-Comandos como migrate:fresh --seed solo deben usarse cuando el frente de trabajo lo justifique y el entorno sea local controlado.
+no usar Artisan como shell libre
 
-Toda salida Artisan relevante debe copiarse completa cuando sea necesaria para diagnóstico.
+copiar salida completa cuando sea necesaria para diagnóstico
+
+migrate:fresh --seed solo debe usarse cuando el frente de trabajo lo justifique y el entorno sea local controlado
 
 Regla adicional para colas:
 
@@ -1445,21 +933,11 @@ cuando se valide un listener queued, no alcanza con confirmar que el evento se d
 Secuencia mínima esperada:
 
 disparar evento
-verificar jobs > 0
-ejecutar queue:work --stop-when-empty --tries=1
+verificar jobs generados cuando corresponda
+ejecutar worker local
 verificar persistencia esperada
-verificar jobs = 0
-verificar failed_jobs = 0
-
-Caso vigente:
-
-OperationalActivity debe validarse revisando operational_activities luego de procesar la cola.
-
-Regla adicional para event discovery:
-
-antes de registrar listeners manualmente, usar event:list o auditoría equivalente para verificar si Laravel ya resolvió la asociación.
-
-Si event discovery ya registra el listener, no debe duplicarse con Event::listen() manual.
+verificar jobs restantes
+verificar failed_jobs
 
 Aclaración operativa local:
 
@@ -1471,14 +949,12 @@ No debe trasladarse como funcionalidad del SaaS productivo.
 
 Regla:
 
-no implementar queue:work como botón, menú o acción dentro del producto final.
-
-En producción, el procesamiento de colas debe resolverse mediante worker persistente supervisado por infraestructura.
+en producción, el procesamiento de colas debe resolverse mediante worker persistente supervisado por infraestructura.
 
 <<END SECTION>>
 
 <<SECTION: USO DE AUDITORÍA>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 USO DE AUDITORÍA
 
@@ -1494,14 +970,10 @@ verificar existencia de clases
 listar referencias
 generar archivos de auditoría local
 validar listeners registrados
-detectar duplicaciones entre event discovery y registro manual
-validar que un helper específico por consumidor fue eliminado
-validar que una relación de modelo ya no existe
-validar que un service eliminado no conserva referencias activas
-validar que un selector o frontera nueva está siendo consumida
-validar que una surface no quedó duplicada por host
-validar que los prefijos o definiciones de negocio viven en catálogos
-validar que no se reintrodujo lógica externa en controllers consumidores
+detectar duplicaciones
+validar consumo de helpers, selectors, hooks o services
+validar referencias activas antes de eliminar piezas
+obtener evidencia previa a cambios sensibles
 
 Regla:
 
@@ -1523,39 +995,26 @@ residuo real
 
 No se debe corregir sin distinguir el tipo de hallazgo.
 
-Regla adicional para listeners:
+Regla adicional:
 
-si event:list muestra una asociación entre evento y listener, no debe proponerse registro manual adicional sin justificarlo con evidencia real.
+el grep debe ser preciso.
 
-Caso vigente:
+No debe confundirse una coincidencia textual válida con un residuo legacy real.
 
-RegisterOperationalActivity@handle no debe duplicarse manualmente si event discovery ya lo registra.
+Regla para cierres de fase:
 
-Regla adicional para cierres de fase:
+antes de declarar cerrado un frente de saneamiento, la auditoría debe incluir las piezas relevantes del frente intervenido.
 
-antes de declarar cerrado un frente de saneamiento, la auditoría debe incluir los núcleos relevantes del módulo.
+La lista concreta depende del caso.
 
-Como mínimo, según el caso:
+Project Lab ayuda a obtener evidencia.
 
-controller principal
-controllers hijos relevantes
-modelo
-helpers linked
-surface services
-hooks
-services/support vinculados
-catálogos
-rutas principales
-grep de residuos legacy conocidos
-
-Caso vigente:
-
-Fase 0 de saneamiento evidente de Orders requirió revisar OrderController, OrderItemController, Order model, OrderLinked, OrderSurfaceService, OrdersHooks, ProductLineItemSelector, RecordNumberGenerator, catálogos, consumidores Tasks/Appointments y la relación Order::tasks().
+No reemplaza el análisis técnico de esa evidencia.
 
 <<END SECTION>>
 
 <<SECTION: USO DE CODE>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 USO DE CODE
 
@@ -1564,8 +1023,8 @@ La herramienta code debe usarse para aplicar cambios de código cuando el snippe
 Reglas:
 
 usar archivo completo solo cuando se quiera reemplazar el archivo completo
-usar TARGET :: para reemplazar método PHP existente o función JS existente
-usar TARGET ++ para agregar método PHP nuevo
+usar TARGET con operador de reemplazo para reemplazar método PHP existente o función JS existente
+usar TARGET con operador de alta para agregar método PHP nuevo
 usar secciones para CSS o JS cuando corresponda
 no mezclar header de archivo completo con operación parcial
 no usar formatos ambiguos
@@ -1575,34 +1034,16 @@ Regla crítica:
 
 si el objetivo es modificar un método, el snippet debe usar TARGET.
 
-Ejemplo correcto:
+Si el objetivo es reemplazar un archivo completo, el snippet debe usar FILE.
 
-// TARGET: app/Providers/AppServiceProvider.php :: boot
+Si el encabezado mezcla ambas intenciones, Project Lab debe devolver ERROR o normalizar de forma explícita y segura cuando el contrato lo permita.
 
-public function boot(): void
-{
-    //
-}
-
-Ejemplo incorrecto:
-
-<?php
-
-// FILE: app/Providers/AppServiceProvider.php :: boot | V1
-
-public function boot(): void
-{
-    //
-}
-
-Ese ejemplo incorrecto debe devolver ERROR o ser normalizado de forma segura hacia operación parcial.
-
-Nunca debe crear archivo nuevo.
+Nunca debe crear un archivo nuevo por interpretar mal una operación parcial.
 
 <<END SECTION>>
 
 <<SECTION: USO DE DOCS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 USO DE DOCS
 
@@ -1612,15 +1053,14 @@ Formato operativo vigente:
 
 REEMPLAZAR EN: [doc_slug]
 
-<<SECTION: NOMBRE EXACTO>>
-contenido completo de la sección
-<<END SECTION>>
+bloque completo de sección existente
 
 Reglas:
 
 el DOC_SLUG debe existir
 el nombre de sección debe coincidir exactamente
 el bloque debe reemplazarse completo
+debe incluir SECTION_VERSION
 no deben inventarse secciones
 no deben mezclarse varias doctrinas en una sección incorrecta
 no deben incorporarse mejoras futuras como hechos vigentes
@@ -1633,10 +1073,16 @@ Regla:
 
 para documento nuevo, debe usarse el mecanismo compatible vigente para crear el archivo documental completo, no el reemplazo de sección inexistente.
 
+Regla adicional:
+
+los ejemplos de formato documental dentro de la guía deben evitar confundir al parser de Project Lab.
+
+Cuando se entregue contenido aplicable a Project Lab, debe evitarse incluir delimitadores documentales anidados como ejemplo dentro del mismo bloque de reemplazo.
+
 <<END SECTION>>
 
 <<SECTION: VALIDEZ DE RESPUESTAS DESTINADAS A PROJECT LAB>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 VALIDEZ DE RESPUESTAS DESTINADAS A PROJECT LAB
 
@@ -1679,16 +1125,11 @@ Regla crítica para documentación:
 antes de entregar bloques documentales destinados a Project Lab, debe verificarse que:
 
 DOC_SLUG sea exacto
-
 el nombre de sección exista exactamente si se trata de reemplazo
-
 SECTION_VERSION corresponda al incremento correcto
-
 el bloque sea completo
-
 no se usen nombres conceptuales o aproximados
-
-no se creen secciones nuevas salvo propuesta explícita con ancla existente
+no se creen secciones nuevas salvo mecanismo explícito compatible
 
 Si el nombre exacto de sección no está confirmado, no debe generarse el bloque final.
 
@@ -1711,7 +1152,7 @@ Debe buscarse el tag real vigente del documento y entregar nuevamente el bloque 
 <<END SECTION>>
 
 <<SECTION: FALLAS OPERATIVAS QUE PROJECT LAB DEBE PREVENIR>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 FALLAS OPERATIVAS QUE PROJECT LAB DEBE PREVENIR
 
@@ -1727,6 +1168,9 @@ aplicar snippets incompletos
 mezclar contratos de archivo completo y operación parcial
 procesar silenciosamente formatos dudosos
 devolver OK ante una operación que no cumplió el contrato esperado
+escribir fuera del projectRoot
+ejecutar texto narrativo como comando
+ocultar el contenido ejecutado desde clipboard
 
 Regla:
 
@@ -1738,50 +1182,26 @@ ante ambigüedad, el chat también debe detenerse y pedir o auditar la evidencia
 
 No se debe resolver por intuición.
 
-Caso incorporado:
+Regla:
 
-un encabezado como:
+una ejecución desde clipboard debe dejar visible la entrada efectivamente ejecutada cuando la herramienta lo permita.
 
-// FILE: app/Providers/AppServiceProvider.php :: boot | V1
+La consola muestra la salida.
 
-no puede ser tratado como archivo completo.
+El textarea debe mostrar la entrada.
 
-Debe rechazarse o transformarse de forma explícita y segura en operación parcial.
-
-Nunca debe crear un archivo con :: boot como parte de la ruta.
-
-Caso incorporado adicional:
-
-un bloque documental no debe entregarse para Project Lab si no respeta el formato real:
-
-REEMPLAZAR EN: [doc_slug]
-
-<<SECTION: NOMBRE EXACTO>>
-contenido
-<<END SECTION>>
-
-Cualquier otro formato debe considerarse conceptual, no aplicable.
+Ninguna ejecución desde clipboard debe quedar oculta para el usuario.
 
 <<END SECTION>>
 
 <<SECTION: DOCTRINA OPERATIVA DE PROJECT LAB>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00003
 
 DOCTRINA OPERATIVA DE PROJECT LAB
 
 Project Lab no es una herramienta accesoria ni un simple panel de utilidades.
 
-Dentro del proceso técnico de app-base, Project Lab funciona como estación operativa local para ejecutar intervenciones controladas sobre el proyecto.
-
-Su posición doctrinal es la siguiente:
-
-Project Lab no pertenece al producto SaaS final.
-Project Lab no forma parte de la experiencia del usuario final.
-Project Lab no define reglas de negocio.
-Project Lab no reemplaza documentación rectora.
-Project Lab no reemplaza criterio arquitectónico.
-
-Pero Project Lab sí forma parte del método interno de trabajo del proyecto.
+Dentro del proceso técnico del proyecto, Project Lab funciona como estación operativa local para ejecutar intervenciones controladas.
 
 Project Lab gobierna operativamente:
 
@@ -1791,7 +1211,8 @@ cómo se ejecutan auditorías simples
 cómo se reproducen pruebas Tinker
 cómo se ejecutan comandos Artisan controlados
 cómo se comparte evidencia técnica en el chat
-cómo se valida si una intervención puede considerarse aplicada
+cómo se guarda una salida de consola como auditoría
+cómo se valida si una intervención fue aplicada por la herramienta
 
 Regla central:
 
@@ -1799,26 +1220,31 @@ toda salida destinada a Project Lab debe respetar el contrato real vigente de Pr
 
 Si el contenido entregado no respeta el formato aceptado por la herramienta, ese contenido es inválido aunque la intención conceptual sea correcta.
 
-Regla adicional:
+Reglas:
 
-no se deben entregar bloques para automatizadores si no se conoce o no se verificó el formato real aceptado.
+no improvisar formatos
+no asumir que una variante será aceptada
+no mezclar contratos de archivo completo y operación parcial
+no entregar bloques documentales sin formato real compatible
+no transformar una convención deseada en contrato real sin validación previa
+no usar Project Lab como excusa para aplicar doctrina no auditada
 
 Cuando exista duda sobre el contrato de entrada de Project Lab, debe auditarse primero la herramienta o solicitarse la evidencia mínima necesaria.
-
-No se debe improvisar formato.
-
-No se debe asumir que una variante de formato será aceptada.
-
-No se debe transformar una convención deseada en contrato real sin validación previa.
 
 Project Lab debe ser estricto.
 
 El chat también debe ser estricto cuando genera contenido para Project Lab.
 
+Regla de frontera documental:
+
+esta sección no debe incorporar doctrina funcional extensa de módulos del sistema.
+
+Solo debe documentar reglas de uso de la herramienta.
+
 <<END SECTION>>
 
 <<SECTION: VALIDACIONES POSTERIORES A CAMBIOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 VALIDACIONES POSTERIORES A CAMBIOS
 
@@ -1848,34 +1274,9 @@ si Project Lab informa OK pero la validación posterior falla, el frente no est�
 
 Debe corregirse o revertirse según corresponda.
 
-Regla adicional para saneamiento modular:
+Regla adicional para saneamiento:
 
 si se elimina o reemplaza una dependencia activa, debe validarse que no queden consumidores activos usando la vía anterior.
-
-Ejemplos de validación:
-
-grep de métodos linked eliminados
-grep de service eliminado
-grep de relación de modelo eliminada
-grep de consultas directas a modelos externos
-grep de offers duplicadas por host
-php -l de archivos tocados
-smoke test de helper, selector o service nuevo
-migrate:fresh --seed si impacta contratos base o seeders
-optimize:clear
-
-Caso vigente:
-
-saneamiento evidente de Orders requirió validar que:
-
-OrderLinked use forOrder()
-DocumentNumberGenerator no conserve uso vigente
-RecordNumberGenerator exista como mecánica transversal
-ProductLineItemSelector sea consumido
-Order::tasks() no continúe como relación activa
-OrderSurfaceService agrupe capacidad real
-OrdersHooks conserve frontera de bloqueo
-InventoryOrderItemHooks conserve lógica material
 
 Regla final:
 
@@ -1884,7 +1285,7 @@ las validaciones deben demostrar que el patrón nuevo opera y que el patrón ant
 <<END SECTION>>
 
 <<SECTION: CASOS PRIORITARIOS DE USO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 CASOS PRIORITARIOS DE USO
 
@@ -1892,39 +1293,33 @@ Usar Project Lab especialmente para:
 
 auditar código real antes de modificar
 aplicar snippets compatibles con trazabilidad
-validar permisos V2 efectivos
+validar permisos efectivos
 validar constraints funcionales
-validar allowed_party_roles en parties
-validar allowed_kinds en orders
 validar módulos habilitados por tenant
-validar dataset real bajo Security::scope(...)
+validar dataset real bajo Security
 bindear tenant activo en pruebas Tinker
 inspeccionar relaciones
-debug de create contextual
-validar delegación de entidades hijas
+debug de flujos contextuales
+validar entidades hijas
 validar flujos entre módulos
 auditar superficies surface-driven
 validar agrupadores operativos internos
 verificar intentos manipulados sobre relaciones sensibles
 ejecutar auditorías de residuos legacy
 actualizar documentación por secciones cerradas
+guardar salidas de consola como auditoría
+obtener evidencia antes de cierres técnicos o documentales
 
-Casos vigentes relevantes:
+Regla:
 
-parties usa allowed_party_roles sobre party_roles.role
+Project Lab debe ayudar a verificar reglas reales del proyecto, no a reemplazarlas.
 
-orders conserva allowed_kinds
-
-inventory_operations agrupa contexto operativo
-
-inventory_movements mantiene trazabilidad unitaria
-
-Project Lab debe ayudar a verificar estas reglas, no a reemplazarlas.
+Si un caso requiere doctrina de módulo, seguridad, navegación, UI, IA o mantenimiento, debe remitirse al documento especializado correspondiente.
 
 <<END SECTION>>
 
 <<SECTION: REGLAS PARA SNIPPETS RÁPIDOS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 REGLAS PARA SNIPPETS RÁPIDOS
 
@@ -1938,6 +1333,8 @@ no deben incluir comandos externos si el modo ya los ejecuta internamente
 no deben contener datos inventados
 no deben asumir tenant, usuario o dataset sin validación previa
 deben priorizar salida clara mediante return, echo o dump cuando corresponda
+deben evitar compatibilidad informal con contratos viejos
+deben actualizarse si el contrato operativo cambia
 
 Regla:
 
@@ -1948,7 +1345,7 @@ No debe mantenerse como compatibilidad informal.
 <<END SECTION>>
 
 <<SECTION: SEGURIDAD DE USO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00003
 
 SEGURIDAD DE USO
 
@@ -1957,21 +1354,49 @@ Project Lab debe permanecer limitado al entorno local.
 Reglas:
 
 no exponer Project Lab públicamente
-no usarlo en producción
-no compartir URLs externas
+no usar Project Lab como funcionalidad productiva
+no compartir URLs externas de Project Lab
 no relajar validaciones por comodidad
 no ejecutar código desconocido sin revisión
 no pegar snippets destructivos sin entender alcance
 no asumir que una salida visual equivale a autorización efectiva
+no confundir herramienta local con permiso del producto
 
-Cuando se prueben permisos, constraints o datos tenant-scoped, la prueba debe respetar:
+Límite operativo vigente:
 
-usuario real
-membership activa
-tenant activo
-Security real
-dataset real
-recurso real cuando corresponda
+Project Lab debe operar dentro del root del proyecto actual.
+
+Toda escritura persistente controlada por Project Lab debe resolverse contra el projectRoot.
+
+Project Lab puede trabajar sobre distintos proyectos locales, Laravel o no Laravel.
+
+Las capacidades Laravel son herramientas disponibles cuando el proyecto las soporta.
+
+El límite de seguridad operativo es el projectRoot actual, no Laravel.
+
+Regla sobre audit:
+
+la herramienta audit ejecuta bash libre local desde el projectRoot.
+
+Audit no constituye un sandbox del sistema operativo.
+
+El usuario técnico local es responsable del contenido ejecutado.
+
+No debe ejecutarse como audit un prompt de chat, texto narrativo o contenido no pensado como comando.
+
+Regla sobre Tinker:
+
+Tinker ejecuta código PHP sobre el proyecto actual.
+
+No es sandbox.
+
+Debe utilizarse únicamente en entorno local controlado y con código comprendido.
+
+Regla sobre Artisan:
+
+Artisan debe ejecutarse mediante comandos permitidos por Project Lab.
+
+No debe usarse como shell libre.
 
 Regla:
 
@@ -1980,35 +1405,54 @@ la herramienta facilita la operación técnica, pero no elimina la obligación d
 <<END SECTION>>
 
 <<SECTION: RELACIÓN CON LA DOCUMENTACIÓN DEL PROYECTO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00003
 
 RELACIÓN CON LA DOCUMENTACIÓN DEL PROYECTO
 
 Project Lab debe utilizarse alineado con la documentación vigente del proyecto.
 
+Esta guía documenta el uso operativo de Project Lab.
+
+No debe duplicar extensamente contenido propio de otros documentos.
+
 Documentos especialmente relacionados:
 
-contexto_fijo_proyecto_app_base
-seguridad_acceso_proyecto_app_base
-convenciones_proyecto_app_base
-checklist_modulos_nuevos_app_base
-patrones_validados_app_base
-plantilla_inicio_chats_proyecto_app_base
+<DOC_REF slug="contexto_fijo_proyecto_app_base">Contexto fijo del proyecto</DOC_REF>
 
-Regla:
+<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
 
-si una validación con Project Lab contradice una hipótesis teórica, debe investigarse el código vigente y la documentación afectada.
+<DOC_REF slug="convenciones_proyecto_app_base">Convenciones del proyecto</DOC_REF>
 
-No debe sostenerse una conclusión solo por memoria o expectativa.
+<DOC_REF slug="checklist_modulos_nuevos_app_base">Checklist oficial para crear módulos nuevos</DOC_REF>
 
-Regla adicional:
+<DOC_REF slug="patrones_validados_app_base">Patrones validados del proyecto</DOC_REF>
 
-si una sesión detecta cambios que impactan doctrina, seguridad, UI, navegación, arquitectura, permisos o modelo mental del sistema, debe realizarse cierre documental.
+<DOC_REF slug="errores_y_lecciones_app_base">Errores y lecciones del proyecto</DOC_REF>
+
+<DOC_REF slug="decisiones_vivas_app_base">Decisiones vivas del proyecto</DOC_REF>
+
+<DOC_REF slug="plantilla_inicio_chats_proyecto_app_base">Plantilla de inicio de chats del proyecto</DOC_REF>
+
+Reglas:
+
+si una validación con Project Lab contradice una hipótesis teórica, debe investigarse el código vigente y la documentación afectada
+
+si una sesión detecta cambios que impactan doctrina, seguridad, UI, navegación, arquitectura, permisos o modelo mental del sistema, debe realizarse cierre documental
+
+si el cambio afecta el uso de Project Lab, debe actualizarse esta guía
+
+si el cambio afecta doctrina de módulos, seguridad, navegación, IA, mantenimiento, entidades o patrones generales, debe actualizarse el documento especializado correspondiente
+
+Regla de frontera:
+
+esta guía puede mencionar casos del proyecto solo como ejemplos breves de uso o validación.
+
+No debe desarrollar doctrina completa de esos casos.
 
 <<END SECTION>>
 
 <<SECTION: CRITERIO DE CIERRE OPERATIVO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CRITERIO DE CIERRE OPERATIVO
 
@@ -2035,7 +1479,7 @@ No alcanza con que no aparezca un error visual.
 
 No alcanza con que la UI oculte una acción.
 
-No alcanza con sanear solo el controller principal si el frente incluye modelo, helpers, surfaces, hooks o services.
+No alcanza con revisar solo una pieza si el frente incluye varias piezas conectadas.
 
 Regla:
 
@@ -2043,25 +1487,24 @@ el cierre debe demostrar que el sistema quedó más coherente, no solo que el ca
 
 Regla adicional para cierre de fase:
 
-una fase no debe declararse cerrada sin auditar los núcleos relevantes del frente.
+una fase no debe declararse cerrada sin auditar las piezas relevantes del frente.
 
-Como mínimo:
+Las piezas mínimas dependen del alcance real del cambio.
+
+Pueden incluir:
 
 controller principal
 controllers hijos relevantes
 modelo
-helpers linked
+helpers
 surface services
 hooks
-services/support vinculados
+services o support vinculados
 catálogos
 rutas principales
-validaciones runtime o smoke tests relevantes
-grep de residuos cuando existan nombres legacy conocidos
-
-Caso vigente:
-
-Fase 0 de saneamiento evidente de Orders quedó cerrada funcionalmente luego de sanear y validar controller, modelo, linked helper, surfaces, hooks, selector de productos, numeración, catálogos, consumidores y relación inversa innecesaria.
+validaciones runtime
+smoke tests
+grep de residuos conocidos
 
 Regla final:
 
@@ -2070,28 +1513,13 @@ cerrar una intervención significa que el sistema queda más coherente, autónom
 <<END SECTION>>
 
 <<SECTION: ERRORES Y LECCIONES INCORPORADAS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ERRORES Y LECCIONES INCORPORADAS
 
 Lección incorporada:
 
 un snippet ambiguo puede generar daño si el parser interpreta como ruta lo que en realidad era una operación parcial.
-
-Caso detectado:
-
-un encabezado de este tipo:
-
-// FILE: app/Providers/AppServiceProvider.php :: boot | V1
-
-no debe ser tratado como archivo completo.
-
-Riesgo:
-
-crear archivo indebido con :: boot como parte del nombre
-aplicar modo incorrecto
-ocultar un error de contrato
-dejar residuos en el proyecto
 
 Regla consolidada:
 
@@ -2103,22 +1531,11 @@ TARGET corresponde a operación parcial.
 
 Si aparece operador de método dentro de FILE, debe fallar o normalizarse explícitamente hacia TARGET de forma segura.
 
-Nunca debe crear un archivo con :: o ++ en la ruta.
+Nunca debe crear un archivo con operadores parciales en la ruta.
 
 Lección incorporada adicional:
 
 una ejecución desde clipboard no debe ser invisible para el usuario.
-
-Caso detectado:
-
-las herramientas Lab podían ejecutar contenido leído desde clipboard sin reponer ese contenido en el textarea visible.
-
-Riesgo:
-
-el usuario no podía verificar qué contenido se ejecutó
-la consola mostraba salida pero no dejaba visible el input aplicado
-la trazabilidad operativa quedaba incompleta
-se debilitaba la revisión manual previa o posterior del snippet ejecutado
 
 Regla consolidada:
 
@@ -2145,10 +1562,6 @@ Lección incorporada adicional:
 
 Project Lab no debe recibir texto narrativo como si fuera script ejecutable.
 
-Caso detectado:
-
-un texto explicativo fue enviado a ejecución y terminó interpretado como shell, generando errores.
-
 Regla:
 
 las respuestas narrativas no son comandos.
@@ -2158,16 +1571,12 @@ Para Project Lab deben enviarse exclusivamente:
 comandos shell válidos
 patches completos compatibles
 formatos aceptados por el automatizador
-bloques documentales con DOC_SLUG y SECTION exactos
+bloques documentales válidos
 snippets de auditoría realmente ejecutables
 
 Lección incorporada adicional:
 
-un cierre de fase no debe apoyarse solo en el controller principal.
-
-Caso detectado:
-
-el saneamiento de Orders requirió auditar también modelo, helper linked, surface service, hooks, selector de productos, numeración, catálogos y consumidores.
+un cierre técnico no debe apoyarse solo en una pieza aislada cuando el frente involucra varias capas.
 
 Regla:
 
@@ -2176,7 +1585,7 @@ si una fase declara saneamiento modular, Project Lab debe ayudar a producir evid
 <<END SECTION>>
 
 <<SECTION: ESTADO VIGENTE>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 ESTADO VIGENTE
 
@@ -2197,5 +1606,11 @@ audit = herramienta de auditoría simple
 Regla:
 
 las referencias futuras deben priorizar esta guía como documento operativo principal de herramienta local.
+
+Regla de mantenimiento documental:
+
+esta guía debe permanecer enfocada en el uso de Project Lab.
+
+Cuando acumule doctrina general del proyecto, debe sanearse y remitir al documento especializado correspondiente.
 
 <<END SECTION>>

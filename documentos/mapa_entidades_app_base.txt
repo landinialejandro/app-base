@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00021
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -181,6 +181,27 @@ Order::displayCounterpartyName()
 
 asset_id representa vínculo opcional con Assets.
 
+asset_reference representa referencia textual propia del activo dentro de Orders cuando corresponda al contrato vigente.
+
+La visualización de activo debe resolverse desde el registro dueño mediante:
+
+Order::displayAssetReference()
+
+La condición manual o contextual asociada a contraparte o activo puede conservarse en record_metadata, pero no debe transformarse en dato principal ni interpretarse desde Blade.
+
+La lectura de manualidad debe resolverse mediante helpers del modelo dueño cuando exista salida visual asociada.
+
+Helpers vigentes:
+
+Order::hasManualCounterpartyReference()
+Order::hasManualAssetReference()
+
+Regla:
+
+counterparty_reference no queda incorporado como contrato vigente mientras el código y la doctrina activa mantengan counterparty_name.
+
+Si aparece en cierres o propuestas, debe auditarse contra código real antes de reemplazar la lectura vigente.
+
 La relación persistente con Tasks no vive en orders.task_id.
 
 La relación se resuelve desde Tasks mediante tasks.order_id.
@@ -307,6 +328,20 @@ Casos vigentes:
 
 Orders
 Documents
+
+Aclaración sobre AssetLinked:
+
+AssetLinked representa únicamente el vínculo gestionado cuando existe Asset vinculado y corresponde mostrar enlace.
+
+No debe utilizarse como fuente principal del texto visible de activo cuando Orders ofrece referencia propia y helper oficial de lectura.
+
+Caso vigente:
+
+Orders
+
+Regla:
+
+si no existe asset_id pero existe asset_reference, debe representarse la referencia textual propia sin inventar link hacia Asset.
 
 Aclaración operativa de hooks:
 
@@ -569,6 +604,18 @@ Attachments → evidencias y documentación técnica asociada
 
 OperationalActivity → trazabilidad transversal y base de lectura de línea de tiempo operativa cuando corresponda
 
+Primer corte operativo validado de Servicios y Mantenimiento:
+
+service_maintenance existe como frente habilitable no CRUD.
+
+service_maintenance.view_any permite acceso al área.
+
+Orders sostiene la primera base operativa mediante:
+
+group = service
+
+Assets puede ofrecer una surface de identidad técnica para órdenes de servicio usando datos reales existentes.
+
 Reglas:
 
 estas relaciones no implican tablas nuevas por defecto
@@ -578,6 +625,12 @@ estas relaciones no deben forzar CRUD ordinario
 estas relaciones deben auditarse contra código real antes de implementarse
 
 estas relaciones no alteran ownership de los módulos existentes
+
+la entrada operativa de Servicio y mantenimiento no convierte la capa satélite en módulo CRUD ordinario
+
+el acceso al área no reemplaza permisos operativos de los módulos participantes
+
+no deben asumirse campos técnicos nuevos en Assets sin contrato, esquema y validación real
 
 Regla:
 

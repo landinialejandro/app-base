@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00026
+SECTION_VERSION: 00027
 
 COMPONENTES DISPONIBLES
 
@@ -217,7 +217,7 @@ Uso:
 
 indica si una tabla de Orders o Documents debe mostrar la columna Contraparte.
 
-showParty queda solo como fallback transitorio en Blades legacy auditados.
+showParty no forma parte del contrato visual vigente de Orders.
 
 Reglas:
 
@@ -226,6 +226,63 @@ las tablas invitadas de Orders y Documents deben usar showCounterparty cuando mu
 los filtros por party_id pueden seguir usando Contacto porque filtran contacto gestionado
 
 los surface services deben publicar showCounterparty cuando corresponda mostrar Contraparte
+
+Criterio visual para activo en tablas de Orders:
+
+En tablas de Orders, la columna visible debe llamarse Activo cuando representa el dato operativo propio asociado a asset_id o asset_reference.
+
+Cuando exista asset_id y el módulo Assets esté disponible y autorizado, el texto de activo puede representarse como link mediante AssetLinked.
+
+Si no existe asset_id, debe mostrarse la referencia textual propia resuelta por el módulo dueño cuando exista.
+
+No debe inventarse link hacia Asset.
+
+No debe ocultarse la referencia textual propia por ausencia de asset_id.
+
+Contrato visual vigente:
+
+showAsset
+
+Uso:
+
+indica si una tabla o surface de Orders debe mostrar la columna Activo.
+
+Reglas:
+
+orders.index puede mostrar Contraparte y Activo
+
+assets.show puede alojar Orders mostrando Contraparte y ocultando Activo para evitar duplicar el host
+
+parties.show puede alojar Orders mostrando Activo y ocultando Contraparte para evitar duplicar el host
+
+la tabla debe representar datos ya resueltos por el modelo o payload del módulo dueño
+
+la tabla no debe interpretar directamente record_metadata
+
+la tabla no debe reconstruir Party ni Asset
+
+la tabla no debe inventar enlaces gestionados
+
+la tabla puede mostrar una indicación visual discreta cuando el dato proviene de carga manual
+
+la indicación de manualidad debe tener bajo protagonismo visual
+
+no debe crearse un componente nuevo si markup simple resuelve la necesidad
+
+Helpers de lectura vigentes en Orders:
+
+displayCounterpartyName()
+displayAssetReference()
+
+Indicadores de manualidad vigentes:
+
+hasManualCounterpartyReference()
+hasManualAssetReference()
+
+Componentes visuales vigentes para vínculos gestionados desde Orders:
+
+parties.components.linked-party
+assets.components.linked-asset
 
 Componentes reutilizables vigentes para line items:
 
@@ -532,38 +589,23 @@ cualquier futura UI de mantenimiento debe respetar la jerarquía visual modular 
 
 El dashboard operativo, la orden electrónica liviana, el paquete de trabajo, el historial técnico, los cierres y la línea de tiempo operativa deben usar componentes existentes o patrones coherentes antes de crear componentes nuevos.
 
-El dashboard operativo debe ser una vista de planificación clara y no una pantalla saturada.
+El dashboard operativo debe ser una vista de planificación clara y no una acumulación de tablas sin jerarquía.
 
-Debe poder separar, cuando corresponda:
+La entrada operativa validada de Servicio y mantenimiento debe leerse como frente especializado, no como CRUD ordinario.
 
-trabajos internos
-trabajos externos
-estados de ejecución
-bloqueos
-capacidad operativa
-prioridades
-pendientes
-tiempos muertos
+Reglas visuales:
 
-La orden electrónica liviana debe mostrar solo la información necesaria para la ejecución técnica.
+no duplicar visualmente información del host
 
-No debe exponer el sistema completo ni trasladar complejidad administrativa al técnico si no corresponde.
+no crear componentes nuevos si los patrones existentes resuelven la necesidad
 
-El modo simple y el modo formal también aplican a UI.
+no convertir mantenimiento en experiencia visual paralela sin justificación
 
-La interfaz debe permitir iniciar con baja fricción y activar formalidad solo cuando la operación lo requiera.
+no ocultar vínculos gestionados cuando exista link autorizado
 
-Regla de validación de componentes:
+no ocultar referencias textuales propias cuando no exista vínculo gestionado
 
-no usar componentes Blade no existentes aunque parezcan patrón documentado.
-
-Antes de usar un componente Blade, debe validarse su existencia real en resources/views/components o como clase correspondiente.
-
-Caso detectado:
-
-x-empty-state no existe actualmente como componente runtime disponible.
-
-La tab Actividad de tenant/profile resolvió su estado vacío inline con detail-block, sin crear componente global nuevo.
+si una tabla de órdenes de servicio nace desde orders.index?group=service, debe expresar visualmente el contexto de servicio y mantenimiento sin alterar el ownership de Orders
 
 <<END SECTION>>
 

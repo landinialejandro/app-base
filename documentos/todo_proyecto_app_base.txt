@@ -39,7 +39,7 @@ no debe utilizarse como depósito de ideas difusas sin criterio de ejecución
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — RECONVERSIÓN MODULAR>>
-SECTION_VERSION: 00025
+SECTION_VERSION: 00026
 
 LÍNEA ACTIVA — RECONVERSIÓN MODULAR
 
@@ -80,6 +80,9 @@ implementación inicial de ProductOperationalSummary como subcapa contextual int
 corrección arquitectónica de ProductOperationalSummary desde include directo hacia integración surface-driven mediante ProductSurfaceService
 cierre visual y contractual de Fase 0 Orders/Documents para preparar Servicios y Mantenimiento
 cierre funcional de Fase 0 de saneamiento evidente de Orders como isla funcional saneada apta para iniciar Fase 1 de mantenimiento
+Fase 1.1 de Servicios y Mantenimiento iniciada como entrada operativa mínima sobre Orders mediante group = service
+cierre del patrón base de tablas/listados de Orders frente a vínculos gestionados opcionales, referencias propias y record_metadata
+saneamiento inicial de OrderSurfaceService mediante extracción de lógica transversal reusable hacia Support/Modules
 
 Criterios rectores vigentes:
 
@@ -116,13 +119,20 @@ no resolver una subcapa contextual con include directo si puede integrarse media
 no calcular métricas operativas en Blade
 no usar OperationalActivity como fuente principal de métricas cuando existen módulos dueños de datos transaccionales u operativos
 no usar PartyLinked como fuente principal de texto visible cuando el módulo dueño posee snapshot propio de contraparte
+no usar AssetLinked como fuente principal de texto visible cuando el módulo dueño posee referencia propia de activo
 no bloquear creación contextual de Orders desde Tasks o Appointments por ausencia de party_id
 no publicar showParty como contrato visual principal cuando la tabla debe mostrar Contraparte
+no reintroducir showParty en Orders cuando showCounterparty ya está validado como contrato vigente
+no dejar flags visuales de tablas sin representación real en el partial final
+no interpretar record_metadata directamente desde Blade
+no reconstruir Party ni Asset desde tablas de Orders cuando el modelo dueño ofrece helpers de presentación
 no reintroducir métodos linked específicos por consumidor cuando existe helper genérico del módulo oferente
 no duplicar offers de surface si una misma capacidad solo cambia host, filtro o configuración contextual
 no ubicar en controllers consumidores reglas de bloqueo, selección, validación o cierre que pertenecen a módulos oferentes
 no usar servicios transversales para decidir significado de negocio propio de un módulo
 no conservar relaciones inversas de modelo que induzcan ownership incorrecto o acoplamiento activo indebido
+no confundir acceso a un frente habilitable no CRUD con permisos operativos sobre los módulos participantes
+no vaciar SurfaceService por reflejo cuando solo corresponde extraer mecánica transversal reusable
 
 Foco de esta línea:
 
@@ -151,6 +161,8 @@ más autonomía visual y contractual de Orders y Documents frente a party_id
 más aislamiento operativo razonable de Orders frente a módulos externos
 más aduanas funcionales explícitas entre módulos
 más selectors, hooks, linked helpers genéricos, surface services y catálogos como fronteras de integración
+más coherencia visual entre vínculos gestionados, referencias propias y lectura contextual por host
+más separación entre lógica propia del SurfaceService y mecánica transversal reusable
 
 Caso vigente consolidado:
 
@@ -307,6 +319,67 @@ DocumentCatalog define prefijos de Documents.
 
 Order conserva relaciones pasivas o transversales con party, asset, documents y attachments mientras no habiliten que OrderController gobierne módulos externos.
 
+Caso vigente consolidado de tablas/listados Orders:
+
+orders.partials.table representa Contraparte mediante:
+
+Order::displayCounterpartyName()
+
+y representa Activo mediante:
+
+Order::displayAssetReference()
+
+La manualidad de contraparte y activo se resuelve mediante:
+
+Order::hasManualCounterpartyReference()
+Order::hasManualAssetReference()
+
+record_metadata no es interpretado directamente desde Blade.
+
+Contratos visuales vigentes:
+
+showCounterparty
+showAsset
+
+showParty fue eliminado de Orders como fallback legacy.
+
+orders.index muestra Contraparte y Activo.
+
+assets.show aloja Orders mostrando Contraparte y ocultando Activo.
+
+parties.show aloja Orders ocultando Contraparte y mostrando Activo.
+
+Si existe vínculo gestionado autorizado, Orders puede mostrar link mediante helper o componente oficial.
+
+Si no existe vínculo gestionado, Orders muestra referencia textual propia.
+
+Este cierre prepara el patrón de listados para avanzar en Fase 1 de Servicios y Mantenimiento sin reintroducir acoplamiento activo indebido.
+
+Caso vigente consolidado de SurfaceService reusable:
+
+OrderSurfaceService fue saneado parcialmente para separar lógica transversal de lógica propia.
+
+Piezas vigentes:
+
+app/Support/Modules/Concerns/BuildsHostPacks.php
+app/Support/Modules/Concerns/ResolvesRelatedEmbeddedSurfaces.php
+
+Lectura vigente:
+
+BuildsHostPacks concentra construcción genérica de hostPack.
+
+ResolvesRelatedEmbeddedSurfaces concentra resolución reusable de relacionados embebidos.
+
+OrderSurfaceService conserva ofertas, hosts, relaciones, flags y configuración propia.
+
+Regla:
+
+los SurfaceService deben declarar capacidades y configuración propia.
+
+La mecánica transversal reusable debe vivir en Support/Modules cuando corresponda.
+
+No debe migrarse de forma masiva sin validación runtime.
+
 Criterio doctrinal vigente para Servicios y Mantenimiento:
 
 Servicios y Mantenimiento se lee como capa satélite productiva ERP/CMMS liviana sobre módulos existentes.
@@ -334,7 +407,35 @@ Estado vigente:
 
 Fase 0 de saneamiento evidente de Orders queda cerrada funcionalmente.
 
-El proyecto queda apto para iniciar Fase 1 de mantenimiento, partiendo de auditoría fuerte y sin reintroducir acoplamientos activos indebidos en Orders.
+Fase 1.1 inició con entrada operativa mínima de Servicio y mantenimiento como frente habilitable no CRUD.
+
+Primer corte validado:
+
+service_maintenance existe como frente habilitable no CRUD
+
+service_maintenance.view_any permite acceso al área
+
+Orders sostiene la primera base operativa mediante group = service
+
+party_id y asset_id funcionan como vínculos opcionales en órdenes de servicio
+
+Assets puede ofrecer surface de identidad técnica para órdenes de servicio usando datos reales existentes
+
+No se implementaron todavía:
+
+estados técnicos satélite
+planes de mantenimiento
+órdenes modelo
+checklists
+custodia material ampliada
+cierres técnicos
+cierres administrativos ampliados
+cierres finales
+línea de tiempo operativa específica de mantenimiento
+
+Pendiente inmediato:
+
+ajustar la lectura contextual de orders.index?group=service para que el listado se exprese visualmente como Órdenes de servicio.
 
 Criterio doctrinal vigente para IA:
 
@@ -355,48 +456,45 @@ Debe diseñarse con presupuesto inicial potencialmente cero, proveedor reemplaza
 <<END SECTION>>
 
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 MÓDULOS PRIORITARIOS A REVISAR
 
 orders
-por su centralidad operativa, necesidad de auditoría fuerte para implementación de Servicios y Mantenimiento, necesidad de preservar lifecycle base, saneamiento reciente de autonomía frente a Parties y Tasks, incorporación de counterparty_name como snapshot propio, eliminación de task_id como vínculo persistente del núcleo, validación runtime de creación sin Party y participación en métricas transaccionales de ProductOperationalSummary cuando está habilitado y autorizado
+por su centralidad operativa, necesidad de auditoría fuerte para implementación de Servicios y Mantenimiento, necesidad de preservar lifecycle base, saneamiento reciente de autonomía frente a Parties y Tasks, incorporación de counterparty_name como snapshot propio, eliminación de task_id como vínculo persistente del núcleo, validación runtime de creación sin Party, participación en métricas transaccionales de ProductOperationalSummary cuando está habilitado y autorizado, cierre de patrón de tablas/listados con Contraparte y Activo, y uso inicial de group = service como base mínima de órdenes de servicio
 
 assets
-por su rol potencial como base del objeto técnico mantenible, historial técnico, documentación técnica, consumos, costos, pendientes y relaciones contextuales de mantenimiento; y por su vínculo opcional con Orders que debe respetar el orden real de migraciones si assets se crea después de orders
+por su rol potencial como base del objeto técnico mantenible, historial técnico, documentación técnica, consumos, costos, pendientes y relaciones contextuales de mantenimiento; por su vínculo opcional con Orders que debe respetar el orden real de migraciones si assets se crea después de orders; y por la surface de identidad técnica ofrecida para órdenes de servicio usando datos reales existentes, sin asumir todavía campos técnicos nuevos
 
 inventory
 por cierre de identidad modular autónoma, por mantener InventoryModuleSeeder con movimientos en el estado vigente, sin reconversión completa a simulación operativa agrupada, por futuras necesidades de consumos, custodia, devoluciones, faltantes y operaciones materiales vinculadas a mantenimiento, y por su participación base en ProductOperationalSummary mediante entradas, salidas y movimientos
 
 products
-por necesidad de auditar si puede representar repuestos, insumos, servicios, mano de obra, paquetes, alternativos y servicios precargados sin asumir clasificaciones no validadas; y por la incorporación inicial de ProductOperationalSummary como subcapa contextual interna que puede requerir revisión futura de permisos persistidos, costos directos operativos y ampliación de métricas
-
-tasks
-por su función como soporte natural de pendientes técnicos, seguimientos, acciones auxiliares, tareas derivadas de checklist, alertas y acciones administrativas derivadas; y por la incorporación de tasks.order_id como vínculo opcional hacia Orders desde su propio ownership, permitiendo múltiples Tasks asociadas a una Order
-
-appointments
-por ser referencia actual de host maduro en show pages, por su posible rol en programación temporal, visitas técnicas, agenda de taller y origen contextual de órdenes, y por mantener la relación con Orders desde appointments.order_id sin trasladarla al núcleo de Orders
+por necesidad de auditar si puede representar repuestos, insumos, servicios, mano de obra, paquetes o alternativos sin mezclar dimensiones conceptuales, y por su rol ya validado como fuente oficial de selección y validación de productos para líneas mediante ProductLineItemSelector
 
 documents
-por consolidación como capacidad embebida oficial, validación reciente de seed demo operativo con estados vigentes y actividad registrada, incorporación de counterparty_name como snapshot propio, autonomía frente a Parties, reparación del flujo Order → Document y por su rol en formalización, servicios externos, compras, informes, certificados y cierres administrativos
+por su rol de formalización derivada desde Orders, necesidad de conservar autonomía documental, snapshot propio de contraparte, participación en inventory por líneas y potencial cierre administrativo o externo dentro de Servicios y Mantenimiento
 
-attachments
-por revisión contractual pendiente bajo nueva doctrina, porque AttachmentDemoSeeder no se simula dentro del frente actual de seeders demo operativos y por su rol en evidencia y documentación técnica del asset
+tasks
+por su rol como owner natural de pendientes, seguimiento y acciones auxiliares asociadas a Orders mediante tasks.order_id, sin reintroducir task_id en Orders
+
+appointments
+por su rol como owner natural de planificación temporal, visitas, agenda y turnos asociados a Orders mediante appointments.order_id, sin reintroducir appointment_id en Orders
 
 parties
-seguimiento posterior al cierre de reconversión conceptual y de seguridad, especialmente análisis de embebidos de parties.show según party_roles.role, validación reciente de seed demo operativo con actividad de parties y futura relación con proveedores, clientes, terceros, colaboradores internos y servicios externos; además de su participación como proveedor o cliente en lecturas contextuales de ProductOperationalSummary cuando exista relación real y como vínculo gestionado opcional en Orders y Documents
+por su reconversión conceptual y de seguridad reciente, por la necesidad de mantener party.kind como person/company, party_roles.role como relación con la empresa, allowed_party_roles como constraint funcional, y por su rol de enriquecimiento opcional de contraparte sin convertirse en dependencia rígida de Orders o Documents
 
 OperationalActivity
-por su rol como base transversal de trazabilidad, lectura contextual, línea de tiempo operativa y posible soporte de lectura para automatizaciones e IA futura sin convertirse en módulo funcional ordinario; y por la regla de no usarlo como fuente principal de métricas cuando existan módulos dueños de datos transaccionales u operativos
+por su rol transversal de trazabilidad, lectura general y contextual, y por la necesidad de evitar que se convierta en fuente principal de métricas, autorizador, navegación principal o timeline específico de mantenimiento sin contrato validado
 
-capa IA operativa
-por su impacto transversal futuro en datos estructurados, prompts manuales, proveedores reemplazables, seguridad, trazabilidad, supervisión humana y presupuesto cero; y por la disponibilidad futura de snapshots textuales propios en Orders y Documents como contexto operativo explotable sin depender exclusivamente de relaciones normalizadas
+service_maintenance
+por su estado inicial como frente habilitable no CRUD con permiso service_maintenance.view_any, acceso al área Servicio y mantenimiento y primera base operativa apoyada en Orders group = service, sin absorber permisos ni ownership de módulos participantes
 
-paquete de servicios y mantenimiento
-por ser nueva capa satélite productiva que debe avanzar mediante auditoría fuerte, no por codificación inmediata ni por sobrecarga directa de Orders; y porque la Fase 0 de autonomía de Orders, Documents y relación externa de Tasks prepara una base más adecuada para múltiples pendientes, seguimientos y formalizaciones por orden
+OrderSurfaceService y SurfaceService relacionados
+por la necesidad de aplicar progresivamente el patrón de separación entre lógica propia del service y mecánica transversal reusable en Support/Modules, sin migraciones masivas ni vaciamiento artificial de services
 
-ProductOperationalSummary
-por ser subcapa contextual interna de Products recientemente implementada, con integración surface-driven, visibilidad contextual propia, dependencia base de Products + Inventory, uso condicional de Orders, exclusión inicial de costos accesorios y necesidad de revisar ProductOperationalSummaryService ante cambios de lectura de contraparte en Orders
+orders.partials.table y tablas reusables equivalentes
+por la necesidad de sostener el patrón de vínculos gestionados opcionales, referencias propias, links oficiales, indicadores discretos de manualidad, showCounterparty, showAsset y ausencia de interpretación directa de record_metadata desde Blade
 
 <<END SECTION>>
 

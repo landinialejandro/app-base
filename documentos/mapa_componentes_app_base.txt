@@ -38,7 +38,7 @@ Este documento se limita a la capa visual y estructural de componentes.
 
 
 <<SECTION: COMPONENTES BLADE GLOBALES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 COMPONENTES BLADE GLOBALES
 
@@ -180,6 +180,36 @@ Casos vigentes:
 Order::displayCounterpartyName()
 
 Document::displayCounterpartyName()
+
+Regla adicional para componentes linked dentro de tablas/listados:
+
+los componentes linked pueden utilizarse dentro de tablas/listados cuando el registro dueño posee un vínculo gestionado opcional hacia otro módulo.
+
+Caso validado:
+
+orders.partials.table consume parties.components.linked-party
+
+orders.partials.table consume assets.components.linked-asset
+
+Reglas:
+
+el componente linked representa el vínculo gestionado cuando existe y corresponde
+
+el texto visible puede venir resuelto por el módulo dueño
+
+el componente linked no reemplaza la referencia textual propia del registro
+
+si no hay vínculo gestionado, debe mostrarse texto plano propio
+
+el componente linked no debe inventar enlaces
+
+el componente linked no debe ocultar snapshots o referencias propias del registro dueño
+
+Aclaración vigente:
+
+en el uso validado dentro de Orders, el prop correcto para linked-asset es linked.
+
+No debe reemplazarse por action en ese contexto.
 
 Regla:
 

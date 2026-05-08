@@ -68,7 +68,7 @@ documentación actualizada
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 REGLA GENERAL
 
@@ -174,6 +174,113 @@ no absorber Orders, Assets, Inventory, Products, Appointments, Tasks, Documents,
 si una necesidad es propia de mantenimiento pero no corresponde al núcleo de un módulo existente, debe evaluarse como pieza satélite antes de reabrir módulos cerrados
 
 si una necesidad puede resolverse mediante lectura consolidada, surfaces, contratos existentes o capacidades oficiales, no debe abrirse una pieza nueva por reflejo automático
+
+Caso operativo inicial validado:
+
+service_maintenance existe como frente habilitable no CRUD.
+
+service_maintenance.view_any permite acceso al área Servicio y mantenimiento.
+
+Orders sostiene la primera base operativa mediante:
+
+group = service
+
+Reglas:
+
+el acceso al área no reemplaza permisos operativos de Orders ni de otros módulos participantes
+
+las acciones reales continúan bajo el contrato del módulo dueño
+
+el frente habilitable no CRUD no debe tratarse como CRUD ordinario
+
+la entrada visual no debe convertirse por sí sola en duplicación de navegación, tablas o rutas si puede apoyarse en contratos vigentes
+
+Regla adicional para vínculos gestionados opcionales y referencias propias:
+
+si un módulo posee un vínculo gestionado opcional y una referencia textual propia, el checklist debe auditar también sus salidas visuales y contextuales.
+
+Debe revisarse:
+
+formularios
+listados
+tablas principales
+tablas embebidas
+show summaries
+prints
+surfaces
+summary_items
+row actions
+componentes linked
+seeders cuando creen registros directamente
+
+Reglas:
+
+si existe vínculo gestionado autorizado, la salida visual debe permitir link oficial
+
+si no existe vínculo gestionado, debe mostrar referencia propia
+
+no debe inventar link
+
+no debe ocultar la referencia propia por ausencia del vínculo gestionado
+
+no debe interpretar record_metadata desde Blade
+
+la lectura contextual o de manualidad debe exponerse mediante helper, presenter o payload preparado
+
+Caso vigente:
+
+Orders representa Contraparte y Activo mediante helpers propios y componentes linked oficiales cuando existe vínculo gestionado.
+
+Regla adicional para flags visuales de tablas reusables:
+
+si un SurfaceService o payload publica un flag visual para columnas, debe validarse que el partial final lo represente realmente.
+
+Caso vigente:
+
+showCounterparty
+
+showAsset
+
+Regla:
+
+un flag visual no debe quedar como contrato fantasma.
+
+Si no tiene representación real, debe implementarse o eliminarse.
+
+Regla adicional para SurfaceService:
+
+cuando una reconversión afecte un SurfaceService, debe distinguirse:
+
+lógica propia del módulo
+
+mecánica transversal reusable
+
+configuración contextual
+
+hosts soportados
+
+offers publicadas
+
+payload preparado
+
+vistas consumidas
+
+Regla:
+
+no vaciar un SurfaceService por reflejo.
+
+No migrar masivamente sin validación runtime.
+
+Extraer solo mecánica reusable cuando corresponda.
+
+Caso vigente:
+
+OrderSurfaceService conserva configuración propia.
+
+La mecánica transversal reusable se extrajo a:
+
+app/Support/Modules/Concerns/BuildsHostPacks.php
+app/Support/Modules/Concerns/ResolvesRelatedEmbeddedSurfaces.php
 
 Regla adicional para clasificaciones:
 
@@ -366,7 +473,7 @@ Toda reapertura debe respetar autorización vigente.
 <<END SECTION>>
 
 <<SECTION: BLOQUE 0 — IDENTIDAD DEL MÓDULO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 BLOQUE 0 — IDENTIDAD DEL MÓDULO
 
@@ -442,6 +549,26 @@ Servicios y Mantenimiento se lee como capa satélite productiva ERP/CMMS liviana
 No se lee como módulo CRUD ordinario por defecto.
 
 Puede tener dashboard operativo, orden electrónica liviana, paquete de trabajo o piezas satélite específicas sin duplicar Orders ni absorber ownership de módulos existentes.
+
+Caso operativo inicial validado:
+
+service_maintenance se lee como frente habilitable no CRUD.
+
+service_maintenance.view_any permite acceso al área Servicio y mantenimiento.
+
+Orders sostiene la primera base operativa mediante:
+
+group = service
+
+Lectura:
+
+service_maintenance no reemplaza Orders.
+
+service_maintenance no absorbe permisos operativos de Orders.
+
+service_maintenance no absorbe Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity.
+
+La entrada visual de Servicio y mantenimiento debe leerse como frente operativo especializado de una capa satélite, no como módulo CRUD ordinario aislado.
 
 Caso vigente de subcapa interna:
 

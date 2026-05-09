@@ -43,6 +43,10 @@ class ProjectLab
 
     private $rateLimitFile;
 
+    private string $output = '';
+
+    private string $code = '';
+
     public function __construct($projectRoot, $labRoot)
     {
         $this->projectRoot = $projectRoot;
@@ -54,20 +58,23 @@ class ProjectLab
         $this->initSession();
     }
 
-    private function ensureDirectories()
-    {
-        $dirs = [
-            dirname($this->logFile),
-            $this->projectRoot.'/storage/framework/cache',
-            $this->projectRoot.'/documentos/log',
-        ];
+private function ensureDirectories()
+{
+    $dirs = [
+        'documentos/log',
+        'documentos/auditoria',
+        'documentos/baks',
+        'storage/framework/cache',
+    ];
 
-        foreach ($dirs as $dir) {
-            if (! is_dir($dir)) {
-                mkdir($dir, 0775, true);
-            }
+    foreach ($dirs as $dir) {
+        $result = $this->ensureProjectDirectory($dir);
+
+        if ($result !== true) {
+            throw new RuntimeException($result);
         }
     }
+}
 
     private function initSession()
     {
@@ -155,174 +162,197 @@ class ProjectLab
         file_put_contents($this->rateLimitFile, json_encode($data));
     }
 
-    private function processActions()
-    {
-        $output = '';
-        $code = $_POST['code'] ?? '';
+private function processActions()
+{
+    $output = '';
+    $code = (string) ($_POST['code'] ?? '');
 
-        if (isset($_POST['ajax_rate_limit_reset'])) {
-            @unlink($this->rateLimitFile);
+    if (isset($_POST['ajax_rate_limit_reset'])) {
+        @unlink($this->rateLimitFile);
 
-            $this->jsonResponse([
-                'ok' => true,
-                'output' => "[OK] Rate limit de Project Lab reiniciado.\n"
-                    ."[OK] Archivo temporal eliminado: {$this->rateLimitFile}",
-            ]);
-        }
-
-        if (isset($_POST['ajax_save_console_audit'])) {
-            $consoleOutput = (string) ($_POST['console_output'] ?? '');
-            $output = $this->saveProjectConsoleAudit($consoleOutput);
-
-            $this->jsonResponse([
-                'ok' => true,
-                'output' => $output,
-            ]);
-        }
-
-        if (isset($_POST['ajax_lab_tool'])) {
-            $labTool = (string) ($_POST['lab_tool'] ?? '');
-            $fromClipboard = isset($_POST['from_clipboard']) && $_POST['from_clipboard'] === '1';
-
-            $labInput = $fromClipboard
-                ? $this->readClipboard()
-                : (string) ($_POST['lab_input'] ?? '');
-
-            if ($labTool === 'code') {
-                $output = $this->runEmbeddedCodeTool($labInput);
-            } elseif ($labTool === 'docs') {
-                $output = $this->runEmbeddedDocsTool($labInput);
-            } elseif ($labTool === 'audit') {
-                $output = $this->runAuditScript($labInput);
-            } else {
-                $output = "[ERROR] Herramienta Lab no reconocida: {$labTool}";
-            }
-
-            $this->jsonResponse([
-                'ok' => true,
-                'tool' => $labTool,
-                'input' => $labInput,
-                'output' => $output,
-            ]);
-        }
-
-        if (isset($_POST['ajax_artisan'])) {
-            $command = (string) ($_POST['artisan'] ?? '');
-
-            if (trim($command) === '') {
-                $this->jsonResponse([
-                    'ok' => false,
-                    'output' => '[ERROR] No se recibió comando Artisan.',
-                ]);
-            }
-
-            $output = $this->executeArtisan($command);
-
-            $this->jsonResponse([
-                'ok' => true,
-                'command' => $command,
-                'output' => $output,
-            ]);
-        }
-
-        if (isset($_POST['ajax_tinker_from_clipboard'])) {
-            $code = $this->readClipboard();
-
-            if (trim($code) === '') {
-                $this->jsonResponse([
-                    'ok' => false,
-                    'output' => '[ERROR] No se recibió código Tinker desde clipboard.',
-                    'code' => $code,
-                ]);
-            }
-
-            $output = $this->executeTinker($code);
-
-            $this->jsonResponse([
-                'ok' => true,
-                'output' => $output,
-                'code' => $code,
-            ]);
-        }
-        if (isset($_POST['ajax_tinker'])) {
-            $code = (string) ($_POST['code'] ?? '');
-
-            if (trim($code) === '') {
-                $this->jsonResponse([
-                    'ok' => false,
-                    'output' => '[ERROR] No se recibió código Tinker.',
-                ]);
-            }
-
-            $output = $this->executeTinker($code);
-
-            $this->jsonResponse([
-                'ok' => true,
-                'code' => $code,
-                'output' => $output,
-            ]);
-        }
-
-        if (isset($_POST['run']) && ! empty($code)) {
-            $output = $this->executeTinker($code);
-        }
-
-        if (isset($_POST['artisan'])) {
-            $output = $this->executeArtisan($_POST['artisan']);
-        }
-
-        if (isset($_POST['lab_tool'])) {
-            $labTool = (string) ($_POST['lab_tool'] ?? '');
-            $fromClipboard = isset($_POST['from_clipboard']);
-
-            $labInput = $fromClipboard
-                ? $this->readClipboard()
-                : (string) ($_POST['lab_input'] ?? '');
-
-            if ($labTool === 'code') {
-                $output = $this->runEmbeddedCodeTool($labInput);
-            } elseif ($labTool === 'docs') {
-                $output = $this->runEmbeddedDocsTool($labInput);
-            } else {
-                $output = "[ERROR] Herramienta Lab no reconocida: {$labTool}";
-            }
-
-            $_SESSION['project_lab_tool_input'] = $labInput;
-            $_SESSION['project_lab_tool_output'] = $output;
-            $_SESSION['project_lab_tool_active'] = $labTool;
-        }
-
-        if (isset($_POST['generate_model'])) {
-            $this->generateModel($_POST['generate_model']);
-        }
-
-        if (isset($_POST['lab_audit_clipboard'])) {
-            $output = $this->runAuditFromClipboard();
-
-            $_SESSION['project_lab_tool_output'] = $output;
-            $_SESSION['project_lab_tool_input'] = '';
-            $_SESSION['project_lab_tool_active'] = 'audit';
-        }
-
-        if (isset($_POST['describe_table'])) {
-            $this->describeTable($_POST['describe_table']);
-        }
-
-        if (isset($_POST['tail_logs'])) {
-            $this->tailLogs($_POST['lines'] ?? 50);
-        }
-
-        if (isset($_POST['run_script'])) {
-            $this->executeScript($_POST['run_script']);
-        }
-
-        $this->output = $output;
-        $this->code = $code;
+        $this->jsonResponse([
+            'ok' => true,
+            'output' => "[OK] Rate limit de Project Lab reiniciado.\n"
+                ."[OK] Archivo temporal eliminado: {$this->rateLimitFile}",
+        ]);
     }
 
-    private function executeTinker($code)
-    {
-        $wrappedCode = "
+    if (isset($_POST['ajax_save_console_audit'])) {
+        $consoleOutput = (string) ($_POST['console_output'] ?? '');
+        $output = $this->saveProjectConsoleAudit($consoleOutput);
+
+        $this->jsonResponse([
+            'ok' => true,
+            'output' => $output,
+        ]);
+    }
+
+    if (isset($_POST['ajax_lab_tool'])) {
+        $labTool = (string) ($_POST['lab_tool'] ?? '');
+        $fromClipboard = isset($_POST['from_clipboard']) && $_POST['from_clipboard'] === '1';
+
+        $labInput = $fromClipboard
+            ? $this->readClipboard()
+            : (string) ($_POST['lab_input'] ?? '');
+
+        if ($labTool === 'audit') {
+            $quickCommand = $this->resolveQuickAuditCommand($labInput);
+
+            if (($quickCommand['matched'] ?? false) && ! ($quickCommand['ok'] ?? false)) {
+                $this->jsonResponse([
+                    'ok' => false,
+                    'tool' => $labTool,
+                    'input' => $labInput,
+                    'output' => $quickCommand['error'] ?? '[ERROR] Comando rápido Project Lab inválido.',
+                ]);
+            }
+
+            if (($quickCommand['matched'] ?? false) && ($quickCommand['ok'] ?? false)) {
+                $labInput = (string) ($quickCommand['input'] ?? $labInput);
+            }
+        }
+
+        if ($labTool === 'code') {
+            $output = $this->runEmbeddedCodeTool($labInput);
+        } elseif ($labTool === 'docs') {
+            $output = $this->runEmbeddedDocsTool($labInput);
+        } elseif ($labTool === 'audit') {
+            $output = $this->runAuditScript($labInput);
+        } else {
+            $output = "[ERROR] Herramienta Lab no reconocida: {$labTool}";
+        }
+
+        $this->jsonResponse([
+            'ok' => true,
+            'tool' => $labTool,
+            'input' => $labInput,
+            'output' => $output,
+        ]);
+    }
+
+    if (isset($_POST['ajax_artisan'])) {
+        $command = (string) ($_POST['artisan'] ?? '');
+
+        if (trim($command) === '') {
+            $this->jsonResponse([
+                'ok' => false,
+                'output' => '[ERROR] No se recibió comando Artisan.',
+            ]);
+        }
+
+        $output = $this->executeArtisan($command);
+
+        $this->jsonResponse([
+            'ok' => true,
+            'command' => $command,
+            'output' => $output,
+        ]);
+    }
+
+    if (isset($_POST['ajax_tinker_from_clipboard'])) {
+        $code = $this->readClipboard();
+
+        if (trim($code) === '') {
+            $this->jsonResponse([
+                'ok' => false,
+                'output' => '[ERROR] No se recibió código Tinker desde clipboard.',
+                'code' => $code,
+            ]);
+        }
+
+        $output = $this->executeTinker($code);
+
+        $this->jsonResponse([
+            'ok' => true,
+            'output' => $output,
+            'code' => $code,
+        ]);
+    }
+
+    if (isset($_POST['ajax_tinker'])) {
+        $code = (string) ($_POST['code'] ?? '');
+
+        if (trim($code) === '') {
+            $this->jsonResponse([
+                'ok' => false,
+                'output' => '[ERROR] No se recibió código Tinker.',
+            ]);
+        }
+
+        $output = $this->executeTinker($code);
+
+        $this->jsonResponse([
+            'ok' => true,
+            'code' => $code,
+            'output' => $output,
+        ]);
+    }
+
+    if (isset($_POST['run']) && trim($code) !== '') {
+        $output = $this->executeTinker($code);
+    }
+
+    if (isset($_POST['artisan'])) {
+        $output = $this->executeArtisan((string) $_POST['artisan']);
+    }
+
+    if (isset($_POST['lab_tool'])) {
+        $labTool = (string) ($_POST['lab_tool'] ?? '');
+        $fromClipboard = isset($_POST['from_clipboard']);
+
+        $labInput = $fromClipboard
+            ? $this->readClipboard()
+            : (string) ($_POST['lab_input'] ?? '');
+
+        if ($labTool === 'audit') {
+            $quickCommand = $this->resolveQuickAuditCommand($labInput);
+
+            if (($quickCommand['matched'] ?? false) && ! ($quickCommand['ok'] ?? false)) {
+                $output = $quickCommand['error'] ?? '[ERROR] Comando rápido Project Lab inválido.';
+            } elseif (($quickCommand['matched'] ?? false) && ($quickCommand['ok'] ?? false)) {
+                $labInput = (string) ($quickCommand['input'] ?? $labInput);
+                $output = $this->runAuditScript($labInput);
+            } else {
+                $output = $this->runAuditScript($labInput);
+            }
+        } elseif ($labTool === 'code') {
+            $output = $this->runEmbeddedCodeTool($labInput);
+        } elseif ($labTool === 'docs') {
+            $output = $this->runEmbeddedDocsTool($labInput);
+        } else {
+            $output = "[ERROR] Herramienta Lab no reconocida: {$labTool}";
+        }
+
+        $_SESSION['project_lab_tool_input'] = $labInput;
+        $_SESSION['project_lab_tool_output'] = $output;
+        $_SESSION['project_lab_tool_active'] = $labTool;
+    }
+
+    $this->output = $output;
+    $this->code = $code;
+}
+
+private function executeTinker($code)
+{
+    $code = str_replace(["\r\n", "\r"], "\n", trim((string) $code));
+
+    if ($code === '') {
+        return '[ERROR] No se recibió código Tinker.';
+    }
+
+    $artisanPath = $this->resolveProjectPath('artisan', false);
+
+    if ($artisanPath === null || ! file_exists($artisanPath)) {
+        return '[ERROR] No se encontró artisan dentro del root del proyecto actual.';
+    }
+
+    [$imports, $bodyCode] = $this->extractLeadingTinkerImports($code);
+
+    if ($bodyCode === '') {
+        return '[ERROR] El código Tinker no contiene cuerpo ejecutable luego de procesar imports.';
+    }
+
+    $wrappedCode = trim($imports)."\n\n"."
         \\DB::enableQueryLog();
         \$start = microtime(true);
 
@@ -330,7 +360,7 @@ class ProjectLab
             ob_start();
 
             \$result = (function() {
-                {$code}
+                {$bodyCode}
             })();
 
             \$buffer = trim(ob_get_clean());
@@ -352,7 +382,10 @@ class ProjectLab
                 ob_end_clean();
             }
 
-            echo 'ERROR: ' . \$e->getMessage();
+            echo \"[ERROR] \" . get_class(\$e) . \"\\n\";
+            echo \"[MENSAJE] \" . \$e->getMessage() . \"\\n\";
+            echo \"[ARCHIVO] \" . \$e->getFile() . \"\\n\";
+            echo \"[LÍNEA] \" . \$e->getLine() . \"\\n\";
         }
 
         \$queries = \\DB::getQueryLog();
@@ -365,170 +398,174 @@ class ProjectLab
         }
     ";
 
-        $command = 'cd '.escapeshellarg($this->projectRoot).
-                   ' && php artisan tinker --execute='.escapeshellarg($wrappedCode);
+    $command = 'cd '.escapeshellarg($this->projectRoot)
+        .' && php '.escapeshellarg($artisanPath).' tinker --execute='.escapeshellarg($wrappedCode);
 
-        $output = shell_exec($command.' 2>&1');
+    $output = shell_exec($command.' 2>&1');
 
-        $this->log('TINKER', $code, $output);
-        $this->saveHistory($code, $output);
-
-        return $output;
+    if (trim($imports) !== '') {
+        $output = "[INFO] Imports Tinker detectados y ubicados fuera del wrapper.\n".$output;
     }
 
-    private function executeArtisan($command)
-    {
-        $output = shell_exec('cd '.escapeshellarg($this->projectRoot).
-                            ' && php artisan '.$command.' 2>&1');
-        $this->log('ARTISAN', $command, $output);
+    $this->log('TINKER', $code, $output);
+    $this->saveHistory($code, $output);
 
-        return $output;
+    return $output;
+}
+
+private function executeArtisan($command)
+{
+    $command = trim((string) $command);
+
+    $allowedCommands = [
+        'about',
+        'db:seed',
+        'migrate',
+        'migrate:fresh --seed',
+        'migrate:status',
+        'optimize:clear',
+        'queue:work --stop-when-empty --tries=1',
+        'route:list',
+    ];
+
+    if (! in_array($command, $allowedCommands, true)) {
+        $message = "[ERROR] Comando Artisan no permitido: {$command}";
+        $this->log('ARTISAN_DENIED', $command, $message);
+
+        return $message;
     }
 
-    private function generateModel($name)
-    {
-        $name = preg_replace('/[^a-zA-Z]/', '', $name);
-        if (empty($name)) {
-            $this->jsonResponse(['error' => 'Nombre inválido'], 400);
+    $artisanPath = $this->resolveProjectPath('artisan', false);
+
+    if ($artisanPath === null || ! file_exists($artisanPath)) {
+        return '[ERROR] No se encontró artisan dentro del root del proyecto actual.';
+    }
+
+    $parts = preg_split('/\s+/', $command);
+    $parts = is_array($parts) ? array_values(array_filter($parts, 'strlen')) : [];
+
+    if (empty($parts)) {
+        return '[ERROR] Comando Artisan vacío.';
+    }
+
+    $escapedParts = array_map('escapeshellarg', $parts);
+
+    $output = shell_exec(
+        'cd '.escapeshellarg($this->projectRoot).
+        ' && php '.escapeshellarg($artisanPath).' '.implode(' ', $escapedParts).' 2>&1'
+    );
+
+    $this->log('ARTISAN', $command, $output);
+
+    return $output;
+}
+
+private function log($type, $command, $output)
+{
+    $timestamp = date('Y-m-d H:i:s');
+
+    $content = "[{$timestamp}] {$type}: {$command}\n{$output}\n\n";
+
+    $writeResult = $this->writeProjectFile(
+        'documentos/log/project-lab.log',
+        $content,
+        true,
+        true
+    );
+
+    if ($writeResult !== true) {
+        error_log("[PROJECT_LAB_LOG_ERROR] {$writeResult}");
+    }
+}
+
+private function saveHistory($code, $output)
+{
+    $historyRelativePath = 'storage/logs/tinker_history.json';
+    $historyPath = $this->resolveProjectPath($historyRelativePath, true);
+
+    if ($historyPath === null) {
+        $this->log('HISTORY_ERROR', $historyRelativePath, '[ERROR] Ruta de historial fuera del proyecto o no permitida.');
+
+        return;
+    }
+
+    $history = [];
+
+    if (file_exists($historyPath)) {
+        $history = json_decode(@file_get_contents($historyPath), true) ?? [];
+    }
+
+    array_unshift($history, [
+        'code' => $code,
+        'preview' => substr($code, 0, 50).(strlen($code) > 50 ? '...' : ''),
+        'timestamp' => date('Y-m-d H:i:s'),
+        'success' => strpos($output, 'ERROR:') === false,
+    ]);
+
+    $history = array_slice($history, 0, 15);
+
+    $writeResult = $this->writeProjectFile(
+        $historyRelativePath,
+        json_encode($history),
+        true
+    );
+
+    if ($writeResult !== true) {
+        $this->log('HISTORY_ERROR', $historyRelativePath, $writeResult);
+    }
+}
+
+private function getTablesInfo()
+{
+    $cacheRelativePath = 'storage/framework/cache/projectlab_tables.cache';
+    $cacheFile = $this->resolveProjectPath($cacheRelativePath, true);
+
+    if ($cacheFile !== null && file_exists($cacheFile) && (time() - filemtime($cacheFile)) < 300) {
+        return json_decode(file_get_contents($cacheFile), true);
+    }
+
+    $tables = [];
+
+    try {
+        $rawTables = array_map('current', DB::select('SHOW TABLES'));
+
+        foreach ($rawTables as $t) {
+            $tables[] = [
+                'name' => $t,
+                'count' => DB::table($t)->count(),
+            ];
         }
 
-        $output = shell_exec('cd '.escapeshellarg($this->projectRoot).
-                            ' && php artisan make:model '.escapeshellarg($name).
-                            ' -mfs 2>&1');
-
-        $this->log('GENERATE', "Modelo: {$name}", $output);
-        echo $output;
-        exit;
+        $this->writeProjectFile($cacheRelativePath, json_encode($tables), true);
+    } catch (Exception $e) {
+        // Silencio
     }
 
-    private function describeTable($tableName)
-    {
-        $tableName = preg_replace('/[^a-zA-Z0-9_]/', '', $tableName);
+    return $tables;
+}
 
-        try {
-            $columns = DB::select("DESCRIBE {$tableName}");
-            echo "<table style='width:100%; font-size:11px;'>";
-            echo '<tr><th>Campo</th><th>Tipo</th><th>Null</th><th>Key</th></tr>';
-            foreach ($columns as $col) {
-                $null = $col->Null === 'YES' ? '✓' : '✗';
-                echo "<tr><td>{$col->Field}</td><td>{$col->Type}</td><td>{$null}</td><td>{$col->Key}</td></tr>";
-            }
-            echo '</table>';
-        } catch (Exception $e) {
-            echo 'Error: '.$e->getMessage();
-        }
-        exit;
+private function getRoutes()
+{
+    $cacheRelativePath = 'storage/framework/cache/projectlab_routes.cache';
+    $cacheFile = $this->resolveProjectPath($cacheRelativePath, true);
+
+    if ($cacheFile !== null && file_exists($cacheFile) && (time() - filemtime($cacheFile)) < 600) {
+        return json_decode(file_get_contents($cacheFile), true);
     }
 
-    private function tailLogs($lines = 50)
-    {
-        $logFile = $this->projectRoot.'/storage/logs/laravel.log';
-        if (file_exists($logFile)) {
-            $output = shell_exec('tail -n '.intval($lines).' '.
-                                escapeshellarg($logFile).' 2>&1');
-            echo "<pre style='background:#000; color:#10b981; padding:15px; max-height:400px; overflow-y:auto; font-size:11px;'>";
-            echo htmlspecialchars($output ?: 'Log vacío');
-            echo '</pre>';
-        } else {
-            echo 'No se encontró el archivo de log.';
-        }
-        exit;
+    $routes = [];
+
+    try {
+        Artisan::call('route:list', ['--json' => true]);
+        $routes = json_decode(Artisan::output(), true) ?? [];
+
+        $this->writeProjectFile($cacheRelativePath, json_encode($routes), true);
+    } catch (Exception $e) {
+        // Silencio
     }
 
-    private function executeScript($script)
-    {
-        $allowed = ['docs.sh', 'codigos.sh', 'auditar.sh'];
-
-        if (! in_array($script, $allowed)) {
-            echo 'Error: Script no permitido';
-            exit;
-        }
-
-        $path = $this->projectRoot.'/tools/'.$script;
-        if (! file_exists($path)) {
-            echo "Error: El archivo {$script} no existe";
-            exit;
-        }
-
-        $output = shell_exec('cd '.escapeshellarg($this->projectRoot).
-                            ' && bash '.escapeshellarg('tools/'.$script).' 2>&1');
-
-        echo "--- SALIDA DE $script ---\n".$output;
-        $this->log('SCRIPT', $script, $output);
-        exit;
-    }
-
-    private function log($type, $command, $output)
-    {
-        $timestamp = date('Y-m-d H:i:s');
-        file_put_contents(
-            $this->logFile,
-            "[{$timestamp}] {$type}: {$command}\n{$output}\n\n",
-            FILE_APPEND
-        );
-    }
-
-    private function saveHistory($code, $output)
-    {
-        $historyFile = $this->projectRoot.'/storage/logs/tinker_history.json';
-        $history = json_decode(@file_get_contents($historyFile), true) ?? [];
-
-        array_unshift($history, [
-            'code' => $code,
-            'preview' => substr($code, 0, 50).(strlen($code) > 50 ? '...' : ''),
-            'timestamp' => date('Y-m-d H:i:s'),
-            'success' => strpos($output, 'ERROR:') === false,
-        ]);
-
-        $history = array_slice($history, 0, 15);
-        file_put_contents($historyFile, json_encode($history));
-    }
-
-    private function getTablesInfo()
-    {
-        $cacheFile = $this->projectRoot.'/storage/framework/cache/projectlab_tables.cache';
-
-        // Intentar caché (5 minutos)
-        if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < 300) {
-            return json_decode(file_get_contents($cacheFile), true);
-        }
-
-        $tables = [];
-        try {
-            $rawTables = array_map('current', DB::select('SHOW TABLES'));
-            foreach ($rawTables as $t) {
-                $tables[] = [
-                    'name' => $t,
-                    'count' => DB::table($t)->count(),
-                ];
-            }
-            file_put_contents($cacheFile, json_encode($tables));
-        } catch (Exception $e) {
-            // Silencio
-        }
-
-        return $tables;
-    }
-
-    private function getRoutes()
-    {
-        $cacheFile = $this->projectRoot.'/storage/framework/cache/projectlab_routes.cache';
-
-        if (file_exists($cacheFile) && (time() - filemtime($cacheFile)) < 600) {
-            return json_decode(file_get_contents($cacheFile), true);
-        }
-
-        $routes = [];
-        try {
-            Artisan::call('route:list', ['--json' => true]);
-            $routes = json_decode(Artisan::output(), true) ?? [];
-            file_put_contents($cacheFile, json_encode($routes));
-        } catch (Exception $e) {
-            // Silencio
-        }
-
-        return $routes;
-    }
+    return $routes;
+}
 
     private function getSystemInfo()
     {
@@ -566,9 +603,7 @@ class ProjectLab
             'tablesInfo' => $this->getTablesInfo(),
             'routes' => $this->getRoutes(),
             'systemInfo' => $this->getSystemInfo(),
-            'history' => json_decode(@file_get_contents(
-                $this->projectRoot.'/storage/logs/tinker_history.json'
-            ), true) ?? [],
+            'history' => $this->readProjectJsonFile('storage/logs/tinker_history.json', []),
             'rateLimitData' => json_decode(@file_get_contents($this->rateLimitFile), true) ?? [
                 'count' => 0,
                 'reset' => time() + 3600,
@@ -627,21 +662,22 @@ class ProjectLab
         ];
     }
 
-    private function getFolderSizes()
-    {
-        $folders = ['storage', 'vendor', 'node_modules', 'public'];
-        $sizes = [];
+private function getFolderSizes()
+{
+    $folders = ['storage', 'vendor', 'node_modules', 'public'];
+    $sizes = [];
 
-        foreach ($folders as $folder) {
-            $path = $this->projectRoot.'/'.$folder;
-            if (is_dir($path)) {
-                $size = $this->calculateFolderSize($path);
-                $sizes[$folder] = round($size / 1024 / 1024, 2); // MB
-            }
+    foreach ($folders as $folder) {
+        $path = $this->resolveProjectPath($folder, false);
+
+        if ($path !== null && is_dir($path)) {
+            $size = $this->calculateFolderSize($path);
+            $sizes[$folder] = round($size / 1024 / 1024, 2); // MB
         }
-
-        return $sizes;
     }
+
+    return $sizes;
+}
 
     private function calculateFolderSize($dir)
     {
@@ -653,64 +689,64 @@ class ProjectLab
         return $size;
     }
 
-    private function getInstalledFeatured()
-    {
-        $lockFile = $this->projectRoot.'/composer.lock';
-        if (! file_exists($lockFile)) {
-            return [];
-        }
+private function getInstalledFeatured()
+{
+    $data = $this->readComposerLock();
 
-        $data = json_decode(file_get_contents($lockFile), true);
-        $packages = $data['packages'] ?? [];
-
-        $featured = [
-            'spatie/laravel-permission' => 'Gestión de roles y permisos',
-            'barryvdh/laravel-debugbar' => 'Debugbar para desarrollo',
-            'maatwebsite/excel' => 'Exportación/Importación Excel',
-            'laravel/sanctum' => 'Autenticación API Tokens',
-            'laravel/horizon' => 'Monitor de colas Redis',
-            'livewire/livewire' => 'Componentes full-stack',
-            'inertiajs/inertia-laravel' => 'Adapter SPA moderno',
-            'laravel/telescope' => 'Debugger elegante',
-            'nunomaduro/collision' => 'Manejo de errores mejorado',
-            'laravel/pint' => 'Formateador de código',
-        ];
-
-        $installed = [];
-        foreach ($featured as $package => $description) {
-            foreach ($packages as $pkg) {
-                if ($pkg['name'] === $package) {
-                    $installed[$package] = [
-                        'version' => $pkg['version'] ?? 'N/A',
-                        'description' => $description,
-                    ];
-                    break;
-                }
-            }
-        }
-
-        return $installed;
+    if ($data === []) {
+        return [];
     }
 
-    private function getVendorCounts()
-    {
-        $lockFile = $this->projectRoot.'/composer.lock';
-        if (! file_exists($lockFile)) {
-            return [];
+    $packages = $data['packages'] ?? [];
+
+    $featured = [
+        'laravel/framework',
+        'laravel/tinker',
+        'laravel/fortify',
+        'barryvdh/laravel-dompdf',
+        'phpunit/phpunit',
+    ];
+
+    $installed = [];
+
+    foreach ($packages as $pkg) {
+        if (in_array($pkg['name'] ?? '', $featured, true)) {
+            $installed[] = [
+                'name' => $pkg['name'],
+                'version' => $pkg['version'] ?? '-',
+            ];
         }
-
-        $data = json_decode(file_get_contents($lockFile), true);
-        $vendors = [];
-
-        foreach ($data['packages'] ?? [] as $pkg) {
-            $v = explode('/', $pkg['name'])[0];
-            $vendors[$v] = ($vendors[$v] ?? 0) + 1;
-        }
-
-        arsort($vendors);
-
-        return $vendors;
     }
+
+    return $installed;
+}
+
+private function getVendorCounts()
+{
+    $data = $this->readComposerLock();
+
+    if ($data === []) {
+        return [];
+    }
+
+    $vendors = [];
+
+    foreach ($data['packages'] ?? [] as $pkg) {
+        $name = $pkg['name'] ?? '';
+
+        if (! str_contains($name, '/')) {
+            continue;
+        }
+
+        [$vendor] = explode('/', $name, 2);
+
+        $vendors[$vendor] = ($vendors[$vendor] ?? 0) + 1;
+    }
+
+    arsort($vendors);
+
+    return $vendors;
+}
 
     private function getTopVendors()
     {
@@ -719,17 +755,12 @@ class ProjectLab
         return array_slice($vendors, 0, 20);
     }
 
-    private function getPackagesCount()
-    {
-        $lockFile = $this->projectRoot.'/composer.lock';
-        if (file_exists($lockFile)) {
-            $data = json_decode(file_get_contents($lockFile), true);
+private function getPackagesCount()
+{
+    $data = $this->readComposerLock();
 
-            return count($data['packages'] ?? []);
-        }
-
-        return 0;
-    }
+    return count($data['packages'] ?? []);
+}
 
     private function getVendorsCount()
     {
@@ -906,20 +937,31 @@ private function applyEmbeddedPhpFile(string $content): string
         return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
     }
 
+    $existedBefore = file_exists($targetPath);
+    $previousContent = $existedBefore ? file_get_contents($targetPath) : null;
+
+    if ($existedBefore && $previousContent === false) {
+        return "[ERROR] No se pudo leer el archivo anterior: {$relativePath}";
+    }
+
     array_shift($lines);
 
     $body = ltrim(implode("\n", $lines), "\n");
 
     $finalContent = "<?php\n\n// FILE: {$relativePath} | {$version}\n\n".$body;
-    $status = file_exists($targetPath) ? 'sobrescrito' : 'creado';
+    $status = $existedBefore ? 'sobrescrito' : 'creado';
 
-    $writeResult = $this->writeProjectFile($relativePath, $finalContent, true);
+    [$written, $lintResult] = $this->writePhpProjectFileWithLintRollback(
+        $relativePath,
+        $finalContent,
+        true,
+        is_string($previousContent) ? $previousContent : null,
+        $existedBefore
+    );
 
-    if ($writeResult !== true) {
-        return $writeResult;
+    if (! $written) {
+        return $lintResult;
     }
-
-    $lintResult = $this->runPhpLint($relativePath);
 
     $message = "[OK] Modo: php_full\n";
     $message .= "[OK] Archivo: {$relativePath}\n";
@@ -1003,6 +1045,12 @@ private function runEmbeddedDocsTool(string $input): string
             continue;
         }
 
+        if (! preg_match('/\nSECTION_VERSION:\s*\d{5}\s*(?:\n|$)/u', "\n".$block)) {
+            $output .= "[ERROR] [{$slug}] El bloque no incluye SECTION_VERSION válido de 5 dígitos.\n";
+
+            continue;
+        }
+
         $sectionName = trim($sectionMatch[1]);
         $filePath = $documents[$slug];
         $resolvedFilePath = realpath($filePath);
@@ -1037,7 +1085,8 @@ private function runEmbeddedDocsTool(string $input): string
             continue;
         }
 
-        $backupRelativePath = 'documentos/baks/'.basename($resolvedFilePath).'.bak';
+        $timestamp = date('Ymd_His');
+        $backupRelativePath = 'documentos/baks/'.pathinfo($resolvedFilePath, PATHINFO_FILENAME)."_{$timestamp}.bak";
         $backupResult = $this->writeProjectFile($backupRelativePath, $content, true);
 
         if ($backupResult !== true) {
@@ -1064,6 +1113,7 @@ private function runEmbeddedDocsTool(string $input): string
 
         $total++;
         $output .= "[OK] [{$slug}] Sección reemplazada: {$sectionName}\n";
+        $output .= "[OK] [{$slug}] Backup: {$backupRelativePath}\n";
     }
 
     $output .= $total > 0
@@ -1181,13 +1231,17 @@ private function applyEmbeddedMethodReplace(array $operation): string
         .rtrim($methodCode)
         .substr($content, $end);
 
-    $writeResult = $this->writeProjectFile($relativePath, $newContent, false);
+    [$written, $lintResult] = $this->writePhpProjectFileWithLintRollback(
+        $relativePath,
+        $newContent,
+        false,
+        $content,
+        true
+    );
 
-    if ($writeResult !== true) {
-        return $writeResult;
+    if (! $written) {
+        return $lintResult;
     }
-
-    $lintResult = $this->runPhpLint($relativePath);
 
     $message = "[OK] Modo: php_method_patch\n";
     $message .= "[OK] Archivo: {$relativePath}\n";
@@ -1195,16 +1249,17 @@ private function applyEmbeddedMethodReplace(array $operation): string
     $message .= $lintResult;
 
     $this->log('LAB_CODE_METHOD_REPLACE', "{$relativePath}::{$methodName}", $message);
+
     $this->appendPipeLog(
-        'documentos/log/code-updates.log',
+        self::CODE_LOG_FILE,
         ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
         [
             $relativePath,
             date('Y-m-d H:i:s'),
-            $status ?? 'actualizado',
-            $version ?? '-',
+            'actualizado',
+            '-',
             'project_lab',
-            $methodName ?? 'archivo_completo',
+            $methodName,
             get_current_user() ?: 'unknown',
             php_uname('n') ?: 'unknown',
         ]
@@ -1251,13 +1306,17 @@ private function applyEmbeddedMethodAdd(array $operation): string
         .$insert
         .substr($content, $lastBrace);
 
-    $writeResult = $this->writeProjectFile($relativePath, $newContent, false);
+    [$written, $lintResult] = $this->writePhpProjectFileWithLintRollback(
+        $relativePath,
+        $newContent,
+        false,
+        $content,
+        true
+    );
 
-    if ($writeResult !== true) {
-        return $writeResult;
+    if (! $written) {
+        return $lintResult;
     }
-
-    $lintResult = $this->runPhpLint($relativePath);
 
     $message = "[OK] Modo: php_method_add\n";
     $message .= "[OK] Archivo: {$relativePath}\n";
@@ -1265,16 +1324,17 @@ private function applyEmbeddedMethodAdd(array $operation): string
     $message .= $lintResult;
 
     $this->log('LAB_CODE_METHOD_ADD', "{$relativePath}++{$methodName}", $message);
+
     $this->appendPipeLog(
-        'documentos/log/code-updates.log',
+        self::CODE_LOG_FILE,
         ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
         [
             $relativePath,
             date('Y-m-d H:i:s'),
-            $status ?? 'actualizado',
-            $version ?? '-',
+            'actualizado',
+            '-',
             'project_lab',
-            $methodName ?? 'archivo_completo',
+            $methodName,
             get_current_user() ?: 'unknown',
             php_uname('n') ?: 'unknown',
         ]
@@ -1347,103 +1407,98 @@ private function applyEmbeddedMethodAdd(array $operation): string
         return '';
     }
 
-    private function runAuditFromClipboard(): string
-    {
-        return $this->runAuditScript($this->readClipboard());
+private function appendPipeLog(string $relativeLogPath, array $columns, array $row): void
+{
+    $logPath = $this->resolveProjectPath($relativeLogPath, true);
+
+    if ($logPath === null) {
+        $this->log('LAB_PIPE_LOG_ERROR', $relativeLogPath, '[ERROR] Ruta de log fuera del proyecto o no permitida.');
+
+        return;
     }
 
-    private function appendPipeLog(string $relativeLogPath, array $columns, array $row): void
-    {
-        $logPath = $this->projectRoot.'/'.$relativeLogPath;
-        $logDir = dirname($logPath);
+    $isNewFile = ! file_exists($logPath);
 
-        if (! is_dir($logDir)) {
-            mkdir($logDir, 0775, true);
-        }
+    $content = '';
 
-        $isNewFile = ! file_exists($logPath);
-
-        $content = '';
-
-        if ($isNewFile) {
-            $content .= implode(' | ', $columns)."\n";
-        }
-
-        $content .= implode(' | ', $row)."\n";
-
-        file_put_contents($logPath, $content, FILE_APPEND);
+    if ($isNewFile) {
+        $content .= implode(' | ', $columns)."\n";
     }
 
-    private function executeAuditScript(string $script): string
-    {
-        $tmpFile = tempnam(sys_get_temp_dir(), 'project_lab_audit_');
+    $content .= implode(' | ', $row)."\n";
 
-        if ($tmpFile === false) {
-            return '[ERROR] No se pudo crear archivo temporal.';
-        }
+    $writeResult = $this->writeProjectFile($relativeLogPath, $content, true, true);
 
-        file_put_contents($tmpFile, $script);
-
-        $command = 'cd '.escapeshellarg($this->projectRoot)
-            .' && bash '.escapeshellarg($tmpFile).' 2>&1';
-
-        $output = shell_exec($command);
-
-        @unlink($tmpFile);
-
-        return is_string($output) ? $output : '';
+    if ($writeResult !== true) {
+        $this->log('LAB_PIPE_LOG_ERROR', $relativeLogPath, $writeResult);
     }
+}
+
+private function executeAuditScript(string $script): string
+{
+    $script = str_replace(["\r\n", "\r"], "\n", $script);
+
+    $tmpFile = tempnam(sys_get_temp_dir(), 'project_lab_audit_');
+
+    if ($tmpFile === false) {
+        return '[ERROR] No se pudo crear archivo temporal.';
+    }
+
+    file_put_contents($tmpFile, $script);
+
+    $command = 'cd '.escapeshellarg($this->projectRoot)
+        .' && bash '.escapeshellarg($tmpFile).' 2>&1';
+
+    $output = shell_exec($command);
+
+    @unlink($tmpFile);
+
+    return is_string($output) ? $output : '';
+}
 
 private function runAuditScript(string $script): string
 {
-    $script = trim($script);
+    $script = $this->normalizeScriptInput($script);
 
     if ($script === '') {
-        return '[ERROR] El contenido de auditoría está vacío.';
+        return '[ERROR] No se recibió script de auditoría.';
+    }
+
+    $ensureAuditDirectory = $this->ensureAuditDirectory();
+
+    if ($ensureAuditDirectory !== true) {
+        return '[ERROR] No se pudo preparar el directorio de auditoría: '.$ensureAuditDirectory;
     }
 
     $inputPreview = $this->auditInputPreview($script);
-
-    $auditDir = $this->projectRoot.'/documentos/auditoria';
-
-    if (! is_dir($auditDir)) {
-        mkdir($auditDir, 0775, true);
-    }
 
     $hasExplicitAuditOutput = str_contains($script, 'documentos/auditoria/');
 
     if ($hasExplicitAuditOutput) {
         $result = $this->executeAuditScript($script);
 
-        $message = "[OK] Auditoría ejecutada.\n";
-        $message .= "[OK] Proyecto: {$this->projectRoot}\n";
-        $message .= "[INFO] Entrada: \"{$inputPreview}\"\n\n";
-        $message .= $result ?: '[OK] Sin salida directa. Revisar archivo generado en documentos/auditoria/.';
-        $message .= "\n------------------------------------------------------------";
+        $this->log('AUDIT_SCRIPT', 'audit-inline', $result);
 
-        $this->log('LAB_AUDIT', 'audit-explicit-output', $message);
-
-        return $message;
+        return $result;
     }
 
     $timestamp = date('Ymd_His');
     $relativeOutput = "documentos/auditoria/auditoria_{$timestamp}.txt";
-    $outputPath = $this->projectRoot.'/'.$relativeOutput;
 
-    $result = $this->executeAuditScript($script);
+    $wrapped = "{\n";
+    $wrapped .= "echo \"[OK] Auditoría simple ejecutada.\";\n";
+    $wrapped .= "echo \"[OK] Archivo generado: {$relativeOutput}\";\n";
+    $wrapped .= "echo \"[OK] Proyecto: {$this->projectRoot}\";\n";
+    $wrapped .= "echo \"[INFO] Entrada: {$inputPreview}\";\n";
+    $wrapped .= "echo \"\";\n";
+    $wrapped .= $script."\n";
+    $wrapped .= "} 2>&1 | tee ".escapeshellarg($relativeOutput);
 
-    file_put_contents($outputPath, $result ?? '');
+    $result = $this->executeAuditScript($wrapped);
 
-    $message = "[OK] Auditoría simple ejecutada.\n";
-    $message .= "[OK] Archivo generado: {$relativeOutput}\n";
-    $message .= "[OK] Proyecto: {$this->projectRoot}\n";
-    $message .= "[INFO] Entrada: \"{$inputPreview}\"\n\n";
-    $message .= $result ?: '[OK] Comando ejecutado sin salida.';
-    $message .= "\n------------------------------------------------------------";
+    $this->log('AUDIT_SCRIPT', $relativeOutput, $result);
 
-    $this->log('LAB_AUDIT', $relativeOutput, $message);
-
-    return $message;
+    return $result;
 }
 
 private function applyEmbeddedPlainFile(string $content, string $mode): string
@@ -1859,58 +1914,81 @@ private function applyEmbeddedJsFunctionReplace(array $operation): string
     return $message;
 }
 
-    private function getAssetSectionsCatalog(): array
-    {
-        $catalog = [];
+private function getAssetSectionsCatalog(): array
+{
+    $projectRoot = realpath($this->projectRoot);
 
-        $files = array_merge(
-            glob($this->projectRoot.'/public/css/*.css') ?: [],
-            glob($this->projectRoot.'/public/css/modules/*.css') ?: [],
-            glob($this->projectRoot.'/public/js/*.js') ?: [],
-            glob($this->projectRoot.'/tools/project-lab/assets/css/*.css') ?: [],
-            glob($this->projectRoot.'/tools/project-lab/assets/js/*.js') ?: []
-        );
+    if ($projectRoot === false) {
+        return [];
+    }
 
-        foreach ($files as $filePath) {
-            if (! is_file($filePath)) {
-                continue;
-            }
+    $projectRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR);
 
-            $relativePath = ltrim(str_replace($this->projectRoot, '', $filePath), '/');
-            $extension = strtolower(pathinfo($relativePath, PATHINFO_EXTENSION));
+    $catalog = [];
 
-            if (! in_array($extension, self::ASSET_SECTION_EXTENSIONS, true)) {
-                continue;
-            }
+    $patterns = [
+        'public/css/*.css',
+        'public/css/modules/*.css',
+        'public/js/*.js',
+        'tools/project-lab/assets/css/*.css',
+        'tools/project-lab/assets/js/*.js',
+    ];
 
-            $content = file_get_contents($filePath);
+    $files = [];
 
-            if ($content === false) {
-                continue;
-            }
+    foreach ($patterns as $pattern) {
+        $patternPath = $projectRoot.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $pattern);
+        $files = array_merge($files, glob($patternPath) ?: []);
+    }
 
-            preg_match_all(self::REGEX_SECTION_NAME, $content, $matches);
+    foreach ($files as $filePath) {
+        $resolvedFilePath = realpath($filePath);
 
-            $sections = array_values(array_unique(array_map('trim', $matches[1] ?? [])));
-
-            if (empty($sections)) {
-                continue;
-            }
-
-            $catalog[] = [
-                'path' => $relativePath,
-                'extension' => $extension,
-                'sections' => $sections,
-                'count' => count($sections),
-            ];
+        if ($resolvedFilePath === false || ! is_file($resolvedFilePath)) {
+            continue;
         }
 
-        usort($catalog, function (array $a, array $b): int {
-            return strcmp($a['path'], $b['path']);
-        });
+        if (! str_starts_with($resolvedFilePath, $projectRoot.DIRECTORY_SEPARATOR)) {
+            continue;
+        }
 
-        return $catalog;
+        $relativePath = ltrim(substr($resolvedFilePath, strlen($projectRoot)), DIRECTORY_SEPARATOR);
+        $relativePath = str_replace(DIRECTORY_SEPARATOR, '/', $relativePath);
+
+        $extension = strtolower(pathinfo($relativePath, PATHINFO_EXTENSION));
+
+        if (! in_array($extension, self::ASSET_SECTION_EXTENSIONS, true)) {
+            continue;
+        }
+
+        $content = file_get_contents($resolvedFilePath);
+
+        if ($content === false) {
+            continue;
+        }
+
+        preg_match_all(self::REGEX_SECTION_NAME, $content, $matches);
+
+        $sections = array_values(array_unique(array_map('trim', $matches[1] ?? [])));
+
+        if (empty($sections)) {
+            continue;
+        }
+
+        $catalog[] = [
+            'path' => $relativePath,
+            'extension' => $extension,
+            'sections' => $sections,
+            'count' => count($sections),
+        ];
     }
+
+    usort($catalog, function (array $a, array $b): int {
+        return strcmp($a['path'], $b['path']);
+    });
+
+    return $catalog;
+}
 
     private function stripAssetSectionVersionFromBody(string $body): string
     {
@@ -1942,75 +2020,68 @@ private function applyEmbeddedJsFunctionReplace(array $operation): string
         return '00001';
     }
 
-    private function runPhpLint(string $relativePath): string
-    {
-        if (strtolower(pathinfo($relativePath, PATHINFO_EXTENSION)) !== 'php') {
-            return '';
-        }
-
-        $targetPath = $this->projectRoot.'/'.$relativePath;
-
-        if (! file_exists($targetPath)) {
-            return "[ERROR] Sintaxis PHP no verificada. Archivo no encontrado: {$relativePath}";
-        }
-
-        $command = 'cd '.escapeshellarg($this->projectRoot)
-            .' && php -l '.escapeshellarg($relativePath).' 2>&1';
-
-        $output = shell_exec($command);
-        $output = trim((string) $output);
-
-        if (str_contains($output, 'No syntax errors detected')) {
-            return "[OK] Sintaxis PHP válida: {$relativePath}";
-        }
-
-        return "[ERROR] Sintaxis PHP inválida: {$relativePath}\n".$output;
+private function runPhpLint(string $relativePath): string
+{
+    if (strtolower(pathinfo($relativePath, PATHINFO_EXTENSION)) !== 'php') {
+        return '';
     }
+
+    $targetPath = $this->resolveProjectPath($relativePath, false);
+
+    if ($targetPath === null) {
+        return "[ERROR] Ruta fuera del proyecto o no permitida para lint PHP: {$relativePath}";
+    }
+
+    if (! file_exists($targetPath)) {
+        return "[ERROR] Sintaxis PHP no verificada. Archivo no encontrado: {$relativePath}";
+    }
+
+    $command = 'cd '.escapeshellarg($this->projectRoot)
+        .' && php -l '.escapeshellarg($targetPath).' 2>&1';
+
+    $output = shell_exec($command);
+    $output = trim((string) $output);
+
+    if (str_contains($output, 'No syntax errors detected')) {
+        return "[OK] Sintaxis PHP válida: {$relativePath}";
+    }
+
+    return "[ERROR] Sintaxis PHP inválida: {$relativePath}\n".$output;
+}
 
 private function saveProjectConsoleAudit(string $content): string
 {
-    $content = str_replace(["\r\n", "\r"], "\n", trim($content));
+    $content = trim($content);
 
     if ($content === '') {
-        return '[ERROR] No hay contenido de consola para guardar.';
+        return '[ERROR] No se recibió contenido de consola para guardar.';
     }
 
-    $auditDir = $this->projectRoot.'/documentos/auditoria';
+    $ensureAuditDirectory = $this->ensureAuditDirectory();
 
-    if (! is_dir($auditDir)) {
-        mkdir($auditDir, 0775, true);
+    if ($ensureAuditDirectory !== true) {
+        return '[ERROR] No se pudo preparar el directorio de auditoría: '.$ensureAuditDirectory;
     }
 
     $timestamp = date('Ymd_His');
-    $relativeOutput = "documentos/auditoria/auditoria_{$timestamp}.txt";
-    $targetPath = $this->projectRoot.'/'.$relativeOutput;
+    $relativeOutput = "documentos/auditoria/consola_project_lab_{$timestamp}.txt";
 
-    $previewSource = preg_replace('/\s+/', ' ', $content);
-    $previewSource = trim((string) $previewSource);
+    $header = "[OK] Consola Project Lab guardada como auditoría\n";
+    $header .= "[OK] Archivo generado: {$relativeOutput}\n";
+    $header .= "[OK] Proyecto: {$this->projectRoot}\n";
+    $header .= "[OK] Fecha: ".date('Y-m-d H:i:s')."\n\n";
 
-    $previewStart = substr($previewSource, 0, 120);
-    $previewEnd = strlen($previewSource) > 120
-        ? substr($previewSource, -120)
-        : $previewSource;
+    $writeResult = $this->writeProjectFile($relativeOutput, $header.$content."\n", true);
 
-    $previewLine = "[INFO] Entrada: inicio=\"{$previewStart}\" | fin=\"{$previewEnd}\"";
-
-    $fileContent = "[OK] Consola Project Lab guardada como auditoría.\n";
-    $fileContent .= "[OK] Archivo generado: {$relativeOutput}\n";
-    $fileContent .= "[OK] Proyecto: {$this->projectRoot}\n";
-    $fileContent .= $previewLine."\n";
-    $fileContent .= "------------------------------------------------------------\n\n";
-    $fileContent .= $content."\n";
-
-    if (file_put_contents($targetPath, $fileContent) === false) {
-        return "[ERROR] No se pudo guardar la consola como auditoría: {$relativeOutput}";
+    if ($writeResult !== true) {
+        return '[ERROR] No se pudo guardar la consola como auditoría: '.$writeResult;
     }
 
-    return "[OK] Consola Project Lab guardada como auditoría.\n"
-        ."[OK] Archivo generado: {$relativeOutput}\n"
-        ."[OK] Proyecto: {$this->projectRoot}\n"
-        .$previewLine."\n"
-        ."------------------------------------------------------------";
+    $output = $header.$content;
+
+    $this->log('CONSOLE_AUDIT', $relativeOutput, $output);
+
+    return $output;
 }
 
 
@@ -2140,5 +2211,315 @@ private function saveProjectConsoleAudit(string $content): string
         }
     
         return true;
+    }
+
+
+    private function ensureProjectDirectory(string $relativePath): true|string
+    {
+        $relativePath = trim(str_replace('\\', '/', $relativePath), '/');
+    
+        if ($relativePath === '') {
+            return 'Ruta de directorio vacía.';
+        }
+    
+        if (str_contains($relativePath, "\0")) {
+            return 'Ruta de directorio inválida.';
+        }
+    
+        if (str_starts_with($relativePath, '/') || preg_match('/^[A-Za-z]:\//', $relativePath)) {
+            return 'No se permiten rutas absolutas.';
+        }
+    
+        $segments = explode('/', $relativePath);
+    
+        if (in_array('..', $segments, true)) {
+            return 'No se permiten rutas con segmentos ascendentes.';
+        }
+    
+        $projectRoot = realpath($this->projectRoot);
+    
+        if ($projectRoot === false) {
+            return 'No se pudo resolver el root del proyecto.';
+        }
+    
+        $projectRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR);
+        $targetPath = $projectRoot.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
+    
+        if (! str_starts_with($targetPath, $projectRoot.DIRECTORY_SEPARATOR)) {
+            return 'Directorio fuera del proyecto.';
+        }
+    
+        if (is_dir($targetPath)) {
+            return true;
+        }
+    
+        if (! mkdir($targetPath, 0775, true) && ! is_dir($targetPath)) {
+            return 'No se pudo crear directorio: '.$relativePath;
+        }
+    
+        return true;
+    }
+
+
+private function writePhpProjectFileWithLintRollback(
+    string $relativePath,
+    string $newContent,
+    bool $allowNewFile,
+    ?string $previousContent,
+    bool $existedBefore
+): array {
+    $writeResult = $this->writeProjectFile($relativePath, $newContent, $allowNewFile);
+
+    if ($writeResult !== true) {
+        return [false, $writeResult];
+    }
+
+    $lintResult = $this->runPhpLint($relativePath);
+
+    if (str_starts_with($lintResult, '[OK]')) {
+        return [true, $lintResult];
+    }
+
+    $lintDetail = "[INFO] Detalle lint:\n".$lintResult;
+
+    if ($existedBefore && $previousContent !== null) {
+        $rollbackResult = $this->writeProjectFile($relativePath, $previousContent, true);
+
+        if ($rollbackResult !== true) {
+            return [
+                false,
+                "[ERROR] Sintaxis PHP inválida y no se pudo restaurar el archivo anterior.\n"
+                    .$lintDetail."\n"
+                    ."[ERROR] Resultado rollback: ".$rollbackResult,
+            ];
+        }
+
+        return [
+            false,
+            "[ERROR] Sintaxis PHP inválida. Se restauró el archivo anterior.\n".$lintDetail,
+        ];
+    }
+
+    $targetPath = $this->resolveProjectPath($relativePath, false);
+
+    if ($targetPath !== null && is_file($targetPath)) {
+        @unlink($targetPath);
+    }
+
+    return [
+        false,
+        "[ERROR] Sintaxis PHP inválida. Se eliminó el archivo nuevo generado.\n".$lintDetail,
+    ];
+}
+
+
+    private function readProjectJsonFile(string $relativePath, array $fallback = []): array
+    {
+        $targetPath = $this->resolveProjectPath($relativePath, false);
+    
+        if ($targetPath === null || ! is_file($targetPath)) {
+            return $fallback;
+        }
+    
+        $content = file_get_contents($targetPath);
+    
+        if ($content === false || trim($content) === '') {
+            return $fallback;
+        }
+    
+        $decoded = json_decode($content, true);
+    
+        return is_array($decoded) ? $decoded : $fallback;
+    }
+
+
+    private function readComposerLock(): array
+    {
+        return $this->readProjectJsonFile('composer.lock', []);
+    }
+
+
+    private function ensureAuditDirectory(): true|string
+    {
+        return $this->ensureProjectDirectory('documentos/auditoria');
+    }
+
+
+    private function normalizeScriptInput(string $script): string
+    {
+        $script = str_replace(["\r\n", "\r"], "\n", $script);
+    
+        return trim($script);
+    }
+
+
+    private function extractLeadingTinkerImports(string $code): array
+    {
+        $code = str_replace(["\r\n", "\r"], "\n", trim($code));
+    
+        if ($code === '') {
+            return ['', ''];
+        }
+    
+        $lines = explode("\n", $code);
+        $imports = [];
+        $body = [];
+        $readingImports = true;
+    
+        foreach ($lines as $line) {
+            $trimmed = trim($line);
+    
+            if ($readingImports && $trimmed === '') {
+                continue;
+            }
+    
+            if (
+                $readingImports
+                && preg_match('/^use\s+(function\s+|const\s+)?[A-Za-z_\\\\][A-Za-z0-9_\\\\]*(\s+as\s+[A-Za-z_][A-Za-z0-9_]*)?\s*;\s*$/', $trimmed)
+            ) {
+                $imports[] = $trimmed;
+                continue;
+            }
+    
+            $readingImports = false;
+            $body[] = $line;
+        }
+    
+        return [
+            implode("\n", $imports),
+            trim(implode("\n", $body)),
+        ];
+    }
+
+
+private function resolveQuickAuditCommand(string $input): array
+{
+    $input = trim(str_replace(["\r\n", "\r"], "\n", $input));
+
+    if (! str_starts_with($input, '>>')) {
+        return [
+            'matched' => false,
+            'ok' => true,
+            'input' => $input,
+        ];
+    }
+
+    if (! preg_match('/^>>\s*find\s+(\S+)\s+(\S+)(?:\s+\+(\d+))?\s*$/i', $input, $matches)) {
+        return [
+            'matched' => true,
+            'ok' => false,
+            'input' => $input,
+            'error' => implode("\n", [
+                '[ERROR] Comando rápido Project Lab inválido.',
+                '[INFO] Formato esperado:',
+                '>> find <archivo|*> <termino> +<lineas>',
+                '',
+                '[INFO] Ejemplos:',
+                '>> find * executeTinker +50',
+                '>> find projectlab.php executeTinker +50',
+            ]),
+        ];
+    }
+
+    $filePattern = trim((string) ($matches[1] ?? ''));
+    $term = trim((string) ($matches[2] ?? ''));
+    $lines = isset($matches[3]) ? (int) $matches[3] : 30;
+
+    if ($filePattern === '') {
+        return [
+            'matched' => true,
+            'ok' => false,
+            'input' => $input,
+            'error' => '[ERROR] El patrón de archivo no puede estar vacío.',
+        ];
+    }
+
+    if ($term === '' || $term === '*') {
+        return [
+            'matched' => true,
+            'ok' => false,
+            'input' => $input,
+            'error' => "[ERROR] El término de búsqueda no puede estar vacío ni ser '*'.",
+        ];
+    }
+
+    if ($lines < 1 || $lines > 300) {
+        return [
+            'matched' => true,
+            'ok' => false,
+            'input' => $input,
+            'error' => '[ERROR] La cantidad de líneas debe estar entre 1 y 300.',
+        ];
+    }
+
+    return [
+        'matched' => true,
+        'ok' => true,
+        'input' => $this->buildQuickFindAuditScript($input, $filePattern, $term, $lines),
+        'original_input' => $input,
+        'command' => 'find',
+    ];
+}
+
+
+private function buildQuickFindAuditScript(string $originalInput, string $filePattern, string $term, int $lines): string
+{
+    $template = $this->loadAuditMacroTemplate('find');
+
+    if ($template === '') {
+        return implode("\n", [
+            'echo "[ERROR] Macro Project Lab no encontrada: find"',
+            'echo "[INFO] Ruta esperada: tools/project-lab/macros/audit/find.sh.tpl"',
+        ]);
+    }
+
+    return $this->renderAuditMacroTemplate($template, [
+        'ORIGINAL_INPUT' => $this->escapeDoubleQuotedShellEcho($originalInput),
+        'FILE_PATTERN' => $this->escapeDoubleQuotedShellEcho($filePattern),
+        'TERM' => $this->escapeDoubleQuotedShellEcho($term),
+        'LINES' => (string) $lines,
+        'ORIGINAL_INPUT_SHELL' => escapeshellarg($originalInput),
+        'FILE_PATTERN_SHELL' => escapeshellarg($filePattern),
+        'TERM_SHELL' => escapeshellarg($term),
+    ]);
+}
+
+
+    private function escapeDoubleQuotedShellEcho(string $value): string
+    {
+        return str_replace(
+            ['\\', '"', '$', '`'],
+            ['\\\\', '\"', '\$', '\`'],
+            $value
+        );
+    }
+
+
+    private function loadAuditMacroTemplate(string $macroName): string
+    {
+        if (! preg_match('/^[a-z0-9_-]+$/i', $macroName)) {
+            return '';
+        }
+    
+        $relativePath = "tools/project-lab/macros/audit/{$macroName}.sh.tpl";
+        $targetPath = $this->resolveProjectPath($relativePath, false);
+    
+        if ($targetPath === null || ! is_file($targetPath)) {
+            return '';
+        }
+    
+        $content = file_get_contents($targetPath);
+    
+        return is_string($content) ? $content : '';
+    }
+
+
+    private function renderAuditMacroTemplate(string $template, array $values): string
+    {
+        foreach ($values as $key => $value) {
+            $template = str_replace('{{'.$key.'}}', (string) $value, $template);
+        }
+    
+        return $template;
     }
 }

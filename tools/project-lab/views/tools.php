@@ -12,7 +12,6 @@
         <div class="card">
             <div class="editor-header" style="margin-bottom:12px;">
                 <h4 style="margin:0;">Project Lab</h4>
-                <span class="shortcuts">Clipboard, código, documentación, auditorías, Tinker y Artisan</span>
             </div>
 
             <div style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:12px; margin-bottom:12px;">
@@ -25,7 +24,7 @@
                     </summary>
 
                     <div class="lab-tool-card-body">
-                        <div class="lab-tool-actions" style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px;">
+                        <div class="lab-tool-actions lab-tool-actions--compact">
                             <button type="button" onclick="runLabTool('code', true)" class="primary">Código</button>
                             <button type="button" onclick="runLabTool('docs', true)" class="success">Docs</button>
                             <button type="button" onclick="runLabTool('audit', true)" class="warning">Auditoría</button>
@@ -43,11 +42,11 @@
                     </summary>
 
                     <div class="lab-tool-card-body">
-                        <div class="lab-tool-actions" style="display:grid; grid-template-columns:repeat(2, minmax(0, 1fr)); gap:8px;">
-                            <button type="button" onclick="runLabTool('code', false)" class="<?= $labToolActive === 'code' ? 'warning' : 'secondary' ?>">Código</button>
-                            <button type="button" onclick="runLabTool('docs', false)" class="<?= $labToolActive === 'docs' ? 'warning' : 'secondary' ?>">Docs</button>
-                            <button type="button" onclick="runLabTool('audit', false)" class="<?= $labToolActive === 'audit' ? 'warning' : 'secondary' ?>">Audit</button>
-                            <button type="button" onclick="runTinkerAjax()" class="run-btn">Tinker</button>
+                        <div class="lab-tool-actions lab-tool-actions--compact">
+                            <button type="button" onclick="runLabTool('code', false)" class="primary">Código</button>
+                            <button type="button" onclick="runLabTool('docs', false)" class="success">Docs</button>
+                            <button type="button" onclick="runLabTool('audit', false)" class="warning">▶ Audit</button>
+                            <button type="button" onclick="runTinkerAjax()" class="primary">Tinker</button>
                         </div>
                     </div>
                 </details>
@@ -73,63 +72,49 @@
                 ><?= htmlspecialchars($labToolInput ?: $code) ?></textarea>
             </div>
 
-            <details class="lab-snippets-details" style="margin-top:14px;">
-                <summary>🧱 Formatos rápidos Project Lab</summary>
+            <div class="quick-formats-bar" style="margin-top:14px;">
+                <span class="quick-formats-label">Atajos</span>
 
-                <div class="lab-snippets-panel">
-                    <span class="snippet-chip" onclick="insertLabSnippet('<?php\n\n// FILE: app/Support/Ejemplo.php | V1\n\n')">PHP FILE</span>
-                    <span class="snippet-chip" onclick="insertLabSnippet('{{-- FILE: resources/views/ejemplo.blade.php | V1 --}}\n\n')">Blade FILE</span>
-                    <span class="snippet-chip" onclick="insertLabSnippet('/* FILE: documentos/log/project-lab-test.css | V1 */\n\n')">CSS seguro</span>
-                    <span class="snippet-chip" onclick="insertLabSnippet('// FILE: documentos/log/project-lab-test.js | V1\n\n')">JS seguro</span>
-                    <span class="snippet-chip" onclick="insertLabSnippet('/* FILE: documentos/log/project-lab-test.js | V1 */\n\n')">JS block</span>
-                    <span class="snippet-chip" onclick="insertLabSnippet('// TARGET: app/Http/Controllers/EjemploController.php :: show\n\npublic function show(): void\n{\n    // ...\n}')">TARGET ::</span>
-                    <span class="snippet-chip" onclick="insertLabSnippet('// TARGET: app/Support/Ejemplo.php ++ nuevoMetodo\n\nprivate function nuevoMetodo(): void\n{\n    // ...\n}')">TARGET ++</span>
-                    <span class="snippet-chip" onclick="insertLabSnippet('REEMPLAZAR EN: [contexto_fijo_proyecto_app_base]\n\n<<SECTION: NOMBRE EXACTO>>\nSECTION_VERSION: 00001\n\nContenido\n<<END SECTION>>')">Docs SECTION</span>
-                    <span class="snippet-chip" onclick="insertLabSnippet('REEMPLAZAR EN: [documentos/log/test-sections.css]\n\n<<SECTION: COLORS>>\nbody {\n    color: red;\n}\n<<END SECTION>>')">CSS SECTION</span>
-                    <span class="snippet-chip" onclick="insertLabSnippet('REEMPLAZAR EN: [documentos/log/test-sections.js]\n\n<<SECTION: INIT>>\nconsole.log(\'section updated\');\n<<END SECTION>>')">JS SECTION</span>
-                </div>
-            </details>
+                <details class="quick-format-menu">
+                    <summary>Project Lab ▾</summary>
+                    <div class="quick-format-panel">
+                        <span class="snippet-chip" onclick="insertLabSnippet('<?php\n\n// FILE: app/Support/Ejemplo.php | V1\n\n')">PHP FILE</span>
+                        <span class="snippet-chip" onclick="insertLabSnippet('{{-- FILE: resources/views/ejemplo.blade.php | V1 --}}\n\n')">Blade FILE</span>
+                        <span class="snippet-chip" onclick="insertLabSnippet('/* FILE: documentos/log/project-lab-test.css | V1 */\n\n')">CSS FILE</span>
+                        <span class="snippet-chip" onclick="insertLabSnippet('// FILE: documentos/log/project-lab-test.js | V1\n\n')">JS FILE</span>
+                        <span class="snippet-chip" onclick="insertLabSnippet('// TARGET: app/Http/Controllers/EjemploController.php :: show\n\npublic function show(): void\n{\n    // ...\n}')">PHP TARGET ::</span>
+                        <span class="snippet-chip" onclick="insertLabSnippet('// TARGET: app/Support/Ejemplo.php ++ nuevoMetodo\n\nprivate function nuevoMetodo(): void\n{\n    // ...\n}')">PHP TARGET ++</span>
+                        <span class="snippet-chip" onclick="insertLabSnippet('REEMPLAZAR EN: [contexto_fijo_proyecto_app_base]\n\n<<SECTION: NOMBRE EXACTO>>\nSECTION_VERSION: 00001\n\nContenido\n<<END SECTION>>')">DOC SECTION</span>
+                        <span class="snippet-chip" onclick="insertLabSnippet('REEMPLAZAR EN: [documentos/log/test-sections.css]\n\n<<SECTION: COLORS>>\nbody {\n    color: red;\n}\n<<END SECTION>>')">CSS SECTION</span>
+                        <span class="snippet-chip" onclick="insertLabSnippet('REEMPLAZAR EN: [documentos/log/test-sections.js]\n\n<<SECTION: INIT>>\nconsole.log(\'section updated\');\n<<END SECTION>>')">JS SECTION</span>
+                    </div>
+                </details>
 
-            <div class="snippets-bar" style="margin-top:14px;">
-                <span>Tinker:</span>
-                <span class="snippet-chip" onclick="insertLabSnippet('return User::all();')">Users</span>
-                <span class="snippet-chip" onclick="insertLabSnippet('return DB::table(\'users\')->get();')">DB users</span>
-                <span class="snippet-chip" onclick="insertLabSnippet('return DB::table(\'tenants\')->get();')">Tenants</span>
-                <span class="snippet-chip" onclick="insertLabSnippet('return config(\'app.name\');')">Config app</span>
-                <span class="snippet-chip" onclick="insertLabSnippet('return app()->version();')">Laravel version</span>
-                <span class="snippet-chip" onclick="insertLabSnippet('App\\\\Models\\\\')">App\Models\</span>
-            </div>
+                <details class="quick-format-menu">
+                    <summary>Tinker ▾</summary>
+                    <div class="quick-format-panel">
+                        <span class="snippet-chip" onclick="insertLabSnippet('use App\\\\Models\\\\User;\n\nreturn User::query()->first();')">User first</span>
+                        <span class="snippet-chip" onclick="insertLabSnippet('use App\\\\Models\\\\Tenant;\n\nreturn Tenant::query()->first();')">Tenant first</span>
+                        <span class="snippet-chip" onclick="insertLabSnippet('return DB::table(\'users\')->get();')">DB users</span>
+                        <span class="snippet-chip" onclick="insertLabSnippet('return DB::table(\'tenants\')->get();')">DB tenants</span>
+                        <span class="snippet-chip" onclick="insertLabSnippet('return config(\'app.name\');')">Config app</span>
+                        <span class="snippet-chip" onclick="insertLabSnippet('return app()->version();')">Laravel version</span>
+                        <span class="snippet-chip" onclick="insertLabSnippet('return auth()->user();')">Auth user</span>
+                        <span class="snippet-chip" onclick="insertLabSnippet('return app()->bound(\'tenant\') ? app(\'tenant\') : null;')">Tenant bound</span>
+                    </div>
+                </details>
 
-            <div class="snippets-bar" style="margin-top:14px;">
-                <span>Artisan:</span>
-
-                <button type="button" onclick="runArtisanAjax('optimize:clear')" class="secondary small">
-                    🧹 optimize:clear
-                </button>
-
-                <button type="button" onclick="runArtisanAjax('route:list')" class="secondary small">
-                    🧭 route:list
-                </button>
-
-                <button type="button" onclick="runArtisanAjax('about')" class="secondary small">
-                    ℹ️ about
-                </button>
-
-                <button type="button" onclick="runArtisanAjax('migrate:status')" class="secondary small">
-                    🗂️ migrate:status
-                </button>
-
-                <button type="button" onclick="runArtisanAjax('queue:work --stop-when-empty --tries=1')" class="success small">
-                    ⚙️ procesar cola
-                </button>
-
-                <button
-                    type="button"
-                    onclick="showConfirmDialog('⚠️ Escribe BORRAR para confirmar:', () => runArtisanAjax('migrate:fresh --seed'))"
-                    class="warning small"
-                >
-                    🔥 fresh + seed
-                </button>
+                <details class="quick-format-menu">
+                    <summary>Artisan ▾</summary>
+                    <div class="quick-format-panel quick-format-panel--artisan">
+                        <button type="button" onclick="runArtisanAjax('optimize:clear')" class="secondary small">optimize:clear</button>
+                        <button type="button" onclick="runArtisanAjax('route:list')" class="secondary small">route:list</button>
+                        <button type="button" onclick="runArtisanAjax('about')" class="secondary small">about</button>
+                        <button type="button" onclick="runArtisanAjax('migrate:status')" class="secondary small">migrate:status</button>
+                        <button type="button" onclick="runArtisanAjax('queue:work --stop-when-empty --tries=1')" class="success small">procesar cola</button>
+                        <button type="button" onclick="showConfirmDialog('⚠️ Escribe BORRAR para confirmar:', () => runArtisanAjax('migrate:fresh --seed'))" class="danger small">migrate:fresh --seed</button>
+                    </div>
+                </details>
             </div>
         </div>
     </form>

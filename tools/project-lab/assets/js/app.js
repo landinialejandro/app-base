@@ -11,17 +11,21 @@ const PROJECT_CONSOLE_STORAGE_AT_KEY = "projectLabConsoleAt";
 // ==================== TABS ====================
 
 function showTab(tabName) {
-    document.querySelectorAll(".tab-content").forEach((tab) => {
-        tab.style.display = "none";
-        tab.classList.remove("active");
-    });
-
+    console.log(tabName);
     const targetTab = document.getElementById("tab-" + tabName);
 
-    if (targetTab) {
-        targetTab.style.display = "block";
-        targetTab.classList.add("active");
+    if (!targetTab) {
+        console.warn("[Project Lab] Tab no encontrado:", tabName);
+        return;
     }
+
+    document.querySelectorAll(".tab-content").forEach((tab) => {
+        tab.classList.remove("active");
+        tab.style.display = "none";
+    });
+
+    targetTab.classList.add("active");
+    targetTab.style.display = "block";
 
     document.querySelectorAll(".tab-btn").forEach((btn) => {
         btn.classList.remove("active");
@@ -36,6 +40,12 @@ function showTab(tabName) {
     }
 
     localStorage.setItem("projectLabActiveTab", tabName);
+
+    const main = document.querySelector("main");
+
+    if (main) {
+        main.scrollTop = 0;
+    }
 }
 
 // ==================== CONSOLA GLOBAL ====================
@@ -49,19 +59,27 @@ function ensureProjectConsoleOutput() {
 
     const main = document.querySelector("main");
 
+    if (!main) {
+        console.error(
+            "[Project Lab] No se encontró <main> para montar la consola.",
+        );
+        return null;
+    }
+
     const card = document.createElement("div");
     card.className = "card output-card";
     card.id = "projectConsoleCard";
     card.innerHTML = `
         <div class="output-header">
-            <span>📤 Consola Project Lab</span>
-            <div style="display:flex; gap:6px;">
-                <button onclick="copyProjectConsoleOutput()" class="secondary small">Copiar</button>
-                <button onclick="saveProjectConsoleOutput()" class="success small">Guardar</button>
-                <button onclick="clearProjectConsoleOutput()" class="danger small">Borrar</button>
+            <span>Consola Project Lab</span>
+            <div class="output-actions">
+                <button type="button" onclick="copyProjectConsoleOutput()" class="secondary small">Copiar</button>
+                <button type="button" onclick="saveProjectConsoleOutput()" class="success small">Guardar</button>
+                <button type="button" onclick="findProjectMethodContext()" class="secondary small">Buscar método</button>
+                <button type="button" onclick="clearProjectConsoleOutput()" class="danger small">Borrar</button>
             </div>
         </div>
-        <pre id="projectConsoleOutput"></pre>
+        <pre id="projectConsoleOutput" class="project-console-empty">Sin salida todavía.</pre>
     `;
 
     main.appendChild(card);
@@ -72,9 +90,14 @@ function ensureProjectConsoleOutput() {
 function setProjectConsoleOutput(text) {
     const output = ensureProjectConsoleOutput();
 
-    output.innerHTML = colorizeProjectOutput(text);
+    if (!output) {
+        return null;
+    }
 
-    localStorage.setItem(PROJECT_CONSOLE_STORAGE_KEY, text);
+    output.classList.remove("project-console-empty");
+    output.innerHTML = colorizeProjectOutput(text || "");
+
+    localStorage.setItem(PROJECT_CONSOLE_STORAGE_KEY, text || "");
     localStorage.setItem(
         PROJECT_CONSOLE_STORAGE_AT_KEY,
         new Date().toISOString(),
@@ -87,9 +110,15 @@ function appendProjectConsoleOutput(text) {
     const previous = localStorage.getItem(PROJECT_CONSOLE_STORAGE_KEY) || "";
     const separator = previous.trim() === "" ? "" : "\n\n";
 
-    const next = previous + separator + text;
+    const next = previous + separator + (text || "");
 
     const output = ensureProjectConsoleOutput();
+
+    if (!output) {
+        return null;
+    }
+
+    output.classList.remove("project-console-empty");
     output.innerHTML = colorizeProjectOutput(next);
 
     requestAnimationFrame(() => {
@@ -242,34 +271,48 @@ function runProjectAction(config) {
 
 function runTinkerAjax() {
     const textarea = document.getElementById("labInput");
+    const finalCode = textarea ? textarea.value : "";
+
+    if (textarea) {
+        textarea.value = finalCode;
+    }
+
+    localStorage.setItem("projectLabLabInput", finalCode);
+    localStorage.setItem("projectLabLabActive", "tinker");
 
     runProjectAction({
         action: "ajax_tinker",
         payload: {
-            code: textarea ? textarea.value : "",
+            code: finalCode,
         },
         loading: "⏳ Ejecutando Tinker...",
         success: "Tinker ejecutado",
         error: "Error al ejecutar Tinker",
         onSuccess(data) {
-            const finalCode =
-                data.code !== undefined
-                    ? data.code
-                    : textarea
-                      ? textarea.value
-                      : "";
+            const returnedCode =
+                data.code !== undefined ? data.code : finalCode;
 
             if (textarea) {
-                textarea.value = finalCode;
+                textarea.value = returnedCode;
             }
 
-            localStorage.setItem("projectLabLabInput", finalCode);
+            localStorage.setItem("projectLabLabInput", returnedCode);
             localStorage.setItem("projectLabLabActive", "tinker");
         },
     });
 }
 
 function runTinkerFromClipboard() {
+    const textarea = document.getElementById("labInput");
+    const pendingInput = "// Ejecutando Tinker desde clipboard...";
+
+    if (textarea) {
+        textarea.value = pendingInput;
+    }
+
+    localStorage.setItem("projectLabLabInput", pendingInput);
+    localStorage.setItem("projectLabLabActive", "tinker");
+
     runProjectAction({
         action: "ajax_tinker_from_clipboard",
         payload: {},
@@ -277,8 +320,6 @@ function runTinkerFromClipboard() {
         success: "Tinker ejecutado desde clipboard",
         error: "Error al ejecutar Tinker desde clipboard",
         onSuccess(data) {
-            const textarea = document.getElementById("labInput");
-
             if (textarea && data.code !== undefined) {
                 textarea.value = data.code;
                 localStorage.setItem("projectLabLabInput", data.code);
@@ -289,6 +330,16 @@ function runTinkerFromClipboard() {
 }
 
 function runArtisanAjax(command) {
+    const textarea = document.getElementById("labInput");
+    const finalInput = "// artisan " + command;
+
+    if (textarea) {
+        textarea.value = finalInput;
+    }
+
+    localStorage.setItem("projectLabLabInput", finalInput);
+    localStorage.setItem("projectLabLabActive", "artisan");
+
     runProjectAction({
         action: "ajax_artisan",
         payload: {
@@ -298,13 +349,11 @@ function runArtisanAjax(command) {
         success: "Artisan ejecutado: " + command,
         error: "Error al ejecutar Artisan",
         onSuccess() {
-            const textarea = document.getElementById("labInput");
-
             if (textarea) {
-                textarea.value = "// artisan " + command;
+                textarea.value = finalInput;
             }
 
-            localStorage.setItem("projectLabLabInput", "// artisan " + command);
+            localStorage.setItem("projectLabLabInput", finalInput);
             localStorage.setItem("projectLabLabActive", "artisan");
         },
     });
@@ -395,8 +444,20 @@ function runLabTool(tool, fromClipboard = false) {
         return;
     }
 
+    const textarea = document.getElementById("labInput");
     const input = document.querySelector('[name="lab_input"]');
     const labInput = input ? input.value : "";
+
+    const pendingInput = fromClipboard
+        ? "// Ejecutando " + tool + " desde clipboard..."
+        : labInput;
+
+    if (textarea) {
+        textarea.value = pendingInput;
+    }
+
+    localStorage.setItem("projectLabLabInput", pendingInput);
+    localStorage.setItem("projectLabLabActive", tool);
 
     runProjectAction({
         action: "ajax_lab_tool",
@@ -407,13 +468,12 @@ function runLabTool(tool, fromClipboard = false) {
             lab_input: labInput,
         },
         onSuccess(data) {
-            const textarea = document.getElementById("labInput");
-
             if (!textarea) {
                 return;
             }
 
-            const finalInput = data.input !== undefined ? data.input : labInput;
+            const finalInput =
+                data.input !== undefined ? data.input : pendingInput;
 
             textarea.value = finalInput;
 
@@ -892,10 +952,86 @@ function showConfirmDialog(message, callback) {
 }
 
 // <<SECTION: SECTION_TEMPLATE_COPY>>
+// SECTION_VERSION: 00001
 
 function copySectionTemplate(template) {
     copyToClipboard(template, "Plantilla de sección copiada al portapapeles");
 }
+
+function shellSingleQuote(value) {
+    return "'" + String(value).replace(/'/g, "'\"'\"'") + "'";
+}
+
+function findProjectMethodContext() {
+    const defaultFile = "tools/project-lab/ProjectLab.php";
+
+    const file = window.prompt("Archivo a revisar:", defaultFile);
+
+    if (!file) {
+        return;
+    }
+
+    const method = window.prompt("Método a buscar:");
+
+    if (!method) {
+        return;
+    }
+
+    const linesInput = window.prompt("Líneas posteriores:", "80");
+    const lines = Number.parseInt(linesInput || "80", 10);
+
+    if (!Number.isFinite(lines) || lines < 1 || lines > 300) {
+        showNotification(
+            "Cantidad de líneas inválida. Usá un valor entre 1 y 300.",
+            "warning",
+        );
+        return;
+    }
+
+    const script = [
+        "FILE=" + shellSingleQuote(file),
+        "METHOD=" + shellSingleQuote(method),
+        "LINES=" + String(lines),
+        "",
+        'if [ ! -f "$FILE" ]; then',
+        '  echo "[ERROR] Archivo no encontrado: $FILE"',
+        "  exit 0",
+        "fi",
+        "",
+        'START=$(grep -n "function ${METHOD}" "$FILE" | head -n 1 | cut -d: -f1)',
+        "",
+        'if [ -z "$START" ]; then',
+        '  echo "[ERROR] Método no encontrado: $METHOD"',
+        "else",
+        "  END=$((START + LINES))",
+        '  echo "[OK] Método encontrado: $METHOD"',
+        '  echo "[OK] Archivo: $FILE"',
+        '  echo "[INFO] Líneas: $START-$END"',
+        '  echo "------------------------------------------------------------"',
+        '  sed -n "${START},${END}p" "$FILE"',
+        "fi",
+    ].join("\n");
+
+    const textarea = document.getElementById("labInput");
+
+    if (textarea) {
+        textarea.value = script;
+        localStorage.setItem("projectLabLabInput", script);
+        localStorage.setItem("projectLabLabActive", "audit");
+    }
+
+    runProjectAction({
+        action: "ajax_lab_tool",
+        loading: "⏳ Buscando método: " + method + "...",
+        data: {
+            lab_tool: "audit",
+            from_clipboard: "0",
+            lab_input: script,
+        },
+    });
+}
+
+//
 
 // <<END SECTION>>
 
@@ -1039,6 +1175,46 @@ function saveProjectConsoleOutput() {
     });
 }
 
+function closeQuickFormatMenus(except = null) {
+    document.querySelectorAll(".quick-format-menu[open]").forEach((menu) => {
+        if (menu !== except) {
+            menu.removeAttribute("open");
+        }
+    });
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll(".quick-format-menu").forEach((menu) => {
+        const summary = menu.querySelector("summary");
+
+        if (!summary) {
+            return;
+        }
+
+        summary.addEventListener("click", () => {
+            const willOpen = !menu.hasAttribute("open");
+
+            closeQuickFormatMenus(menu);
+
+            if (!willOpen) {
+                menu.removeAttribute("open");
+            }
+        });
+    });
+});
+
+document.addEventListener("click", (event) => {
+    if (!event.target.closest(".quick-format-menu")) {
+        closeQuickFormatMenus();
+    }
+});
+
+document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") {
+        closeQuickFormatMenus();
+    }
+});
+
 // ==================== ANIMACIONES ====================
 
 function resetProjectRateLimit() {
@@ -1061,6 +1237,24 @@ style.textContent = `
         to { opacity: 0; transform: translateX(100px); }
     }
 `;
+
+document.addEventListener("DOMContentLoaded", () => {
+    const output = ensureProjectConsoleOutput();
+
+    if (!output) {
+        return;
+    }
+
+    const savedConsoleOutput = localStorage.getItem(
+        PROJECT_CONSOLE_STORAGE_KEY,
+    );
+
+    if (savedConsoleOutput && savedConsoleOutput.trim() !== "") {
+        output.classList.remove("project-console-empty");
+        output.innerHTML = colorizeProjectOutput(savedConsoleOutput);
+        output.scrollTop = output.scrollHeight;
+    }
+});
 
 document.head.appendChild(style);
 

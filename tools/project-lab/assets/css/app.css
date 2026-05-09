@@ -137,7 +137,7 @@ body {
 
 .dashboard-grid {
     display: grid;
-    grid-template-columns: 300px 1fr;
+    grid-template-columns: 210px 1fr;
     gap: 20px;
     min-height: calc(100vh - 100px);
 }
@@ -1319,6 +1319,354 @@ tbody tr:hover {
     .generator-input {
         padding: 12px !important;
         font-size: 14px !important;
+    }
+}
+
+.quick-formats-bar {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    position: relative;
+    z-index: 30;
+}
+
+.quick-formats-label {
+    color: var(--muted);
+    font-size: 12px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-right: 2px;
+}
+
+.quick-format-menu {
+    position: relative;
+}
+
+.quick-format-menu>summary {
+    list-style: none;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: #111827;
+    color: var(--text);
+    border-radius: var(--radius-sm);
+    padding: 6px 10px;
+    font-size: 12px;
+    font-weight: 700;
+    user-select: none;
+}
+
+.quick-format-menu>summary::-webkit-details-marker {
+    display: none;
+}
+
+.quick-format-menu[open]>summary {
+    border-color: var(--accent);
+    background: #172033;
+}
+
+.quick-format-panel {
+    position: absolute;
+    z-index: 200;
+    top: 36px;
+    left: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    min-width: 320px;
+    max-width: 520px;
+    padding: 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: #0f172a;
+    box-shadow: 0 18px 42px rgba(0, 0, 0, 0.45);
+}
+
+.quick-format-panel--artisan {
+    min-width: 380px;
+}
+
+.quick-format-panel .snippet-chip,
+.quick-format-panel button {
+    white-space: nowrap;
+}
+
+.lab-tool-actions--compact {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, auto));
+    gap: 6px;
+    align-items: center;
+    justify-content: start;
+    margin-bottom: 0;
+}
+
+.lab-tool-actions--compact button {
+    min-width: auto;
+    width: auto;
+    padding: 6px 10px;
+    font-size: 12px;
+    line-height: 1.1;
+    border-radius: var(--radius-sm);
+}
+
+.lab-tool-card-body {
+    padding: 12px 14px;
+}
+
+/* <<END SECTION>> */
+
+
+/* <<SECTION: PROJECT_LAB_VIEWPORT_SCROLL_FIX>> */
+/* SECTION_VERSION: 00001 */
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    height: 100vh;
+    min-height: 100vh;
+    overflow: hidden;
+    padding: 14px;
+}
+
+.project-header {
+    padding-bottom: 12px;
+    margin-bottom: 12px;
+}
+
+.dashboard-grid {
+    height: calc(100vh - 92px);
+    min-height: 0;
+    grid-template-columns: 190px minmax(0, 1fr);
+    gap: 14px;
+    overflow: hidden;
+}
+
+.sidebar {
+    min-height: 0;
+    overflow-y: auto;
+    padding-right: 2px;
+}
+
+main {
+    min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-right: 2px;
+}
+
+.output-card {
+    max-height: calc(100vh - 220px);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+}
+
+.output-card .output-header {
+    flex: 0 0 auto;
+}
+
+#projectConsoleOutput {
+    flex: 1 1 auto;
+    min-height: 160px;
+    max-height: calc(100vh - 300px);
+    overflow-y: auto;
+}
+
+/* <<END SECTION>> */
+
+/* <<SECTION: PROJECT_LAB_TAB_VISIBILITY_FIX>> */
+/* SECTION_VERSION: 00001 */
+
+.tab-content {
+    display: none !important;
+}
+
+.tab-content.active {
+    display: block !important;
+}
+
+/* <<END SECTION>> */
+
+/* <<SECTION: PROJECT_LAB_MONITOR_VISUAL>> */
+/* SECTION_VERSION: 00001 */
+
+.monitor-shell {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.monitor-metrics-grid {
+    display: grid;
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+    gap: 10px;
+}
+
+.monitor-metric {
+    background: #111827;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-md);
+    padding: 12px 14px;
+}
+
+.monitor-metric span {
+    display: block;
+    color: var(--muted);
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    margin-bottom: 4px;
+}
+
+.monitor-metric strong {
+    display: block;
+    color: var(--text);
+    font-size: 18px;
+    line-height: 1.2;
+}
+
+.monitor-metric--accent {
+    border-left-color: var(--accent);
+}
+
+.monitor-metric--success {
+    border-left-color: var(--success);
+}
+
+.monitor-metric--warning {
+    border-left-color: var(--warning);
+}
+
+.monitor-metric--purple {
+    border-left-color: var(--purple);
+}
+
+.monitor-layout-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 14px;
+}
+
+.monitor-column {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    min-width: 0;
+}
+
+.monitor-panel {
+    background: #111827;
+    border: 1px solid var(--border);
+    border-left: 3px solid var(--accent);
+    border-radius: var(--radius-md);
+    padding: 14px;
+}
+
+.monitor-panel h4 {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+}
+
+.monitor-panel--accent {
+    border-left-color: var(--accent);
+}
+
+.monitor-panel--success {
+    border-left-color: var(--success);
+}
+
+.monitor-panel--warning {
+    border-left-color: var(--warning);
+}
+
+.monitor-panel--purple {
+    border-left-color: var(--purple);
+}
+
+.monitor-panel--pink {
+    border-left-color: var(--pink);
+}
+
+.monitor-panel--full {
+    width: 100%;
+}
+
+.monitor-progress-block {
+    margin-top: 12px;
+}
+
+.monitor-progress-label {
+    display: flex;
+    justify-content: space-between;
+    color: var(--muted);
+    font-size: 11px;
+    margin-bottom: 5px;
+}
+
+.monitor-progress-track {
+    height: 8px;
+    background: #020617;
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.monitor-progress-bar {
+    height: 100%;
+    background: linear-gradient(90deg, var(--success), var(--warning), var(--danger));
+}
+
+.monitor-chip-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
+    gap: 8px;
+}
+
+.monitor-chip-card {
+    background: #020617;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    padding: 10px 12px;
+}
+
+.monitor-chip-card strong {
+    display: block;
+    color: var(--text);
+    font-size: 12px;
+    margin-bottom: 3px;
+}
+
+.monitor-chip-card code {
+    color: var(--muted);
+    font-size: 11px;
+}
+
+.monitor-chip-card--row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 8px;
+}
+
+.monitor-chip-card--row strong,
+.monitor-chip-card--row code {
+    margin: 0;
+}
+
+.monitor-actions {
+    margin-top: 0;
+}
+
+@media (max-width: 1100px) {
+
+    .monitor-metrics-grid,
+    .monitor-layout-grid {
+        grid-template-columns: 1fr;
     }
 }
 

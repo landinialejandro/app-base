@@ -39,7 +39,7 @@ no debe utilizarse como depósito de ideas difusas sin criterio de ejecución
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — RECONVERSIÓN MODULAR>>
-SECTION_VERSION: 00026
+SECTION_VERSION: 00027
 
 LÍNEA ACTIVA — RECONVERSIÓN MODULAR
 
@@ -83,6 +83,14 @@ cierre funcional de Fase 0 de saneamiento evidente de Orders como isla funcional
 Fase 1.1 de Servicios y Mantenimiento iniciada como entrada operativa mínima sobre Orders mediante group = service
 cierre del patrón base de tablas/listados de Orders frente a vínculos gestionados opcionales, referencias propias y record_metadata
 saneamiento inicial de OrderSurfaceService mediante extracción de lógica transversal reusable hacia Support/Modules
+creación y validación del universo semántico /service para Servicio y mantenimiento
+creación del dashboard mínimo /service
+creación y validación de rutas semánticas service.orders.*
+eliminación de la dependencia funcional de ?group=service dentro del universo /service
+forzado backend de group = service al crear órdenes desde /service/orders
+redirección física post-store hacia /service/orders/{order}
+generalización del JS de selects vinculados hacia app-linked-select-sync
+simplificación del formulario de órdenes de servicio para evitar alternancias manual/gestionado visibles innecesarias
 
 Criterios rectores vigentes:
 
@@ -133,6 +141,11 @@ no usar servicios transversales para decidir significado de negocio propio de un
 no conservar relaciones inversas de modelo que induzcan ownership incorrecto o acoplamiento activo indebido
 no confundir acceso a un frente habilitable no CRUD con permisos operativos sobre los módulos participantes
 no vaciar SurfaceService por reflejo cuando solo corresponde extraer mecánica transversal reusable
+no confundir universo semántico de URL con ownership funcional
+no depender de query params manipulables como fuente fuerte de contexto funcional
+no considerar un campo bloqueado visualmente como seguridad
+no sostener consistencia de datos críticos únicamente con JS
+no redirigir fuera del universo semántico cuando el usuario ejecuta una acción interna que debe conservar contexto
 
 Foco de esta línea:
 
@@ -163,6 +176,8 @@ más aduanas funcionales explícitas entre módulos
 más selectors, hooks, linked helpers genéricos, surface services y catálogos como fronteras de integración
 más coherencia visual entre vínculos gestionados, referencias propias y lectura contextual por host
 más separación entre lógica propia del SurfaceService y mecánica transversal reusable
+más universos semánticos cuando un frente contextual necesita navegación clara sin asumir ownership nuevo
+más backend-first cuando el contexto funcional no debe depender del request manipulable
 
 Caso vigente consolidado:
 
@@ -409,6 +424,32 @@ Fase 0 de saneamiento evidente de Orders queda cerrada funcionalmente.
 
 Fase 1.1 inició con entrada operativa mínima de Servicio y mantenimiento como frente habilitable no CRUD.
 
+Universo semántico vigente:
+
+/service
+
+Lectura vigente:
+
+/service representa el frente Servicio y mantenimiento
+
+/service no reemplaza Orders
+
+/service no absorbe ownership de órdenes
+
+/service no convierte mantenimiento en CRUD ordinario
+
+/service sostiene dashboard mínimo del área
+
+/service permite acceder a órdenes de servicio desde rutas semánticas propias
+
+Rutas vigentes:
+
+service.index
+service.orders.index
+service.orders.create
+service.orders.store
+service.orders.show
+
 Primer corte validado:
 
 service_maintenance existe como frente habilitable no CRUD
@@ -421,6 +462,10 @@ party_id y asset_id funcionan como vínculos opcionales en órdenes de servicio
 
 Assets puede ofrecer surface de identidad técnica para órdenes de servicio usando datos reales existentes
 
+POST /service/orders fuerza group = service desde backend cuando el request intenta manipular el grupo
+
+las órdenes creadas desde /service redirigen físicamente a /service/orders/{order}
+
 No se implementaron todavía:
 
 estados técnicos satélite
@@ -432,10 +477,12 @@ cierres técnicos
 cierres administrativos ampliados
 cierres finales
 línea de tiempo operativa específica de mantenimiento
+dashboard operativo avanzado
+lógica CMMS completa
 
-Pendiente inmediato:
+Pendiente posterior:
 
-ajustar la lectura contextual de orders.index?group=service para que el listado se exprese visualmente como Órdenes de servicio.
+avanzar hacia mantenimiento funcional real sin introducir estados técnicos satélite, checklists, planes, consumos avanzados, cierres técnicos ni dashboard operativo avanzado antes de cerrar el contrato mínimo correspondiente.
 
 Criterio doctrinal vigente para IA:
 
@@ -456,12 +503,15 @@ Debe diseñarse con presupuesto inicial potencialmente cero, proveedor reemplaza
 <<END SECTION>>
 
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 MÓDULOS PRIORITARIOS A REVISAR
 
 orders
-por su centralidad operativa, necesidad de auditoría fuerte para implementación de Servicios y Mantenimiento, necesidad de preservar lifecycle base, saneamiento reciente de autonomía frente a Parties y Tasks, incorporación de counterparty_name como snapshot propio, eliminación de task_id como vínculo persistente del núcleo, validación runtime de creación sin Party, participación en métricas transaccionales de ProductOperationalSummary cuando está habilitado y autorizado, cierre de patrón de tablas/listados con Contraparte y Activo, y uso inicial de group = service como base mínima de órdenes de servicio
+por su centralidad operativa, necesidad de auditoría fuerte para implementación de Servicios y Mantenimiento, necesidad de preservar lifecycle base, saneamiento reciente de autonomía frente a Parties y Tasks, incorporación de counterparty_name como snapshot propio, eliminación de task_id como vínculo persistente del núcleo, validación runtime de creación sin Party, participación en métricas transaccionales de ProductOperationalSummary cuando está habilitado y autorizado, cierre de patrón de tablas/listados con Contraparte y Activo, uso de group = service como base mínima de órdenes de servicio, y operación contextual dentro del universo /service mediante rutas service.orders.*
+
+service
+por su estado vigente como universo semántico del frente Servicio y mantenimiento, con raíz /service, dashboard mínimo, rutas contextuales propias, acceso a órdenes de servicio, creación contextual de Orders con group = service forzado desde backend, redirección física al universo y necesidad de no confundirse con ownership funcional ni CRUD ordinario
 
 assets
 por su rol potencial como base del objeto técnico mantenible, historial técnico, documentación técnica, consumos, costos, pendientes y relaciones contextuales de mantenimiento; por su vínculo opcional con Orders que debe respetar el orden real de migraciones si assets se crea después de orders; y por la surface de identidad técnica ofrecida para órdenes de servicio usando datos reales existentes, sin asumir todavía campos técnicos nuevos
@@ -494,7 +544,13 @@ OrderSurfaceService y SurfaceService relacionados
 por la necesidad de aplicar progresivamente el patrón de separación entre lógica propia del service y mecánica transversal reusable en Support/Modules, sin migraciones masivas ni vaciamiento artificial de services
 
 orders.partials.table y tablas reusables equivalentes
-por la necesidad de sostener el patrón de vínculos gestionados opcionales, referencias propias, links oficiales, indicadores discretos de manualidad, showCounterparty, showAsset y ausencia de interpretación directa de record_metadata desde Blade
+por la necesidad de sostener el patrón de vínculos gestionados opcionales, referencias propias, links oficiales, indicadores discretos de manualidad, showCounterparty, showAsset, showRouteName contextual y ausencia de interpretación directa de record_metadata desde Blade
+
+OrderNavigationTrail y navegación contextual de Orders
+por la necesidad de sostener breadcrumbs correctos tanto en el universo ordinario de Orders como en el universo /service, evitando que el flujo de mantenimiento quede enganchado al listado general /orders
+
+app-linked-select-sync
+por su consolidación como contrato JS genérico para selects vinculados, reemplazando app-party-asset-sync y evitando acoplamiento innecesario a Party/Asset cuando la mecánica es reusable
 
 <<END SECTION>>
 

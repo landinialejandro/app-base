@@ -347,7 +347,7 @@ el tenant activo organiza tanto operación como gobierno interno de la empresa a
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00035
+SECTION_VERSION: 00036
 
 CAPAS FUNCIONALES DEL SISTEMA
 
@@ -447,15 +447,33 @@ puede tener permiso propio de acceso al área
 
 puede operar como frente especializado
 
+puede poseer un universo semántico propio de navegación y uso
+
 no absorbe ownership funcional de los módulos participantes
 
 no convierte sus piezas internas en CRUD ordinario por defecto
+
+Caso vigente:
+
+/service representa el universo semántico del frente Servicio y mantenimiento.
+
+Lectura:
+
+/service no es módulo dueño nuevo
+
+/service no reemplaza Orders
+
+/service no convierte órdenes de servicio en entidad ajena a Orders
+
+/service expresa contexto funcional, navegación especializada y entrada operativa del frente satélite
+
+Orders conserva ownership real de las órdenes
 
 Regla:
 
 una capa satélite puede orquestar módulos existentes, pero no duplicar ni absorber ownership funcional.
 
-El detalle de permisos, navegación y estado de implementación de cada frente satélite corresponde a documentos especializados.
+El detalle de permisos, navegación, rutas, breadcrumbs, vistas y estado de implementación de cada frente satélite corresponde a documentos especializados.
 
 SUBCAPAS CONTEXTUALES INTERNAS
 
@@ -711,7 +729,7 @@ tampoco debe sobredimensionarse el dominio del negocio hasta absorber piezas cuy
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00021
 
 CLASIFICACIÓN CONCEPTUAL DE MÓDULOS
 
@@ -815,9 +833,25 @@ puede tener permiso propio de acceso al área
 
 puede operar como frente especializado
 
+puede tener universo semántico propio cuando el flujo funcional lo justifique
+
+Caso vigente:
+
+/service es universo semántico del frente Servicio y mantenimiento.
+
+Lectura:
+
+/service representa contexto funcional del frente satélite
+
+/service no constituye CRUD ordinario
+
+/service no convierte a Servicio y mantenimiento en módulo dueño de Orders
+
+/service no absorbe ownership de Orders, Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity
+
 Regla:
 
-el acceso al área de una capa satélite no convierte sus operaciones internas en permisos propios de esa capa.
+el acceso al área o universo de una capa satélite no convierte sus operaciones internas en permisos propios de esa capa.
 
 Las acciones reales continúan bajo el contrato del módulo dueño.
 
@@ -1148,7 +1182,7 @@ La convergencia debe tender hacia patrones maduros ya validados, no hacia soluci
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00017
 
 LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES
 
@@ -1240,6 +1274,20 @@ Lectura adicional para capas satélite:
 
 un frente especializado como Servicios y Mantenimiento puede orquestar módulos actuales, pero no debe modificar la identidad conceptual de cada uno.
 
+Caso vigente:
+
+/service funciona como universo semántico de Servicio y mantenimiento.
+
+Lectura:
+
+/service expresa contexto funcional y navegación especializada del frente satélite
+
+/service puede operar sobre Orders sin convertir a Servicio y mantenimiento en dueño de las órdenes
+
+las órdenes de servicio siguen perteneciendo conceptualmente a Orders
+
+Orders conserva ownership de la operación transaccional
+
 Reglas:
 
 Orders no debe absorber Assets.
@@ -1249,6 +1297,10 @@ Orders no debe absorber Inventory.
 Orders no debe absorber Documents.
 
 Orders no debe absorber Tasks ni Appointments.
+
+Servicio y mantenimiento no debe absorber Orders.
+
+Servicio y mantenimiento no debe absorber Assets, Inventory, Products, Documents, Tasks, Appointments, Attachments, Parties ni OperationalActivity.
 
 Attachments no debe absorber lógica técnica de mantenimiento.
 
@@ -1349,7 +1401,7 @@ No reemplazan detalle de navegación, seguridad, UI, campos, helpers ni implemen
 <<END SECTION>>
 
 <<SECTION: MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00020
 
 MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO
 
@@ -1381,6 +1433,8 @@ distinguir relación de origen, planificación o seguimiento de dependencia estr
 
 distinguir relación pasiva permitida de dependencia activa indebida
 
+distinguir universo semántico de navegación de ownership funcional
+
 Reglas:
 
 no reabrir el núcleo de otro módulo arbitrariamente
@@ -1401,7 +1455,13 @@ las piezas satélite no deben crearse por reflejo automático
 
 las capas satélite pueden tener entrada operativa propia o permiso de acceso al área sin convertirse por eso en CRUD ordinario
 
+las capas satélite pueden tener universo semántico propio cuando el flujo funcional lo justifique
+
 el acceso a un área satélite no reemplaza permisos operativos de los módulos participantes
+
+un universo semántico no convierte automáticamente al frente contextual en módulo dueño
+
+un universo semántico no reemplaza el contrato del módulo funcional que ejecuta la operación real
 
 las subcapas contextuales internas deben alojarse dentro del módulo host cuando no correspondan a módulo, ruta ni CRUD propio
 
@@ -1427,6 +1487,8 @@ ProductOperationalSummary se implementa como subcapa contextual de Products.
 
 Servicios y Mantenimiento se implementa como capa satélite productiva ERP/CMMS liviana.
 
+El universo /service expresa el frente semántico de Servicio y mantenimiento sin absorber ownership de Orders.
+
 Orders conserva autonomía operativa y puede relacionarse opcionalmente con otros módulos sin absorber su ownership.
 
 Tasks y Appointments pueden vincularse a Orders desde su propio contrato.
@@ -1443,7 +1505,7 @@ Regla:
 
 crecer no implica mezclar responsabilidades.
 
-La dirección sigue siendo modular, con fronteras explícitas, operación simple y formalidad progresiva cuando corresponda.
+La dirección sigue siendo modular, con fronteras explícitas, operación simple, universos semánticos cuando correspondan y formalidad progresiva según necesidad real.
 
 <<END SECTION>>
 

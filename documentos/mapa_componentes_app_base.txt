@@ -38,7 +38,7 @@ Este documento se limita a la capa visual y estructural de componentes.
 
 
 <<SECTION: COMPONENTES BLADE GLOBALES>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 COMPONENTES BLADE GLOBALES
 
@@ -216,6 +216,81 @@ Regla:
 los componentes globales representan payload recibido.
 
 No deben decidir ni inferir relaciones de dominio.
+
+Aclaración vigente sobre vistas de universos funcionales:
+
+una vista raíz de universo funcional no debe promoverse automáticamente a componente global.
+
+Caso vigente:
+
+resources/views/service/dashboard.blade.php
+
+Lectura:
+
+service.dashboard es vista del universo Servicio y mantenimiento.
+
+No es componente Blade global.
+
+No debe ubicarse dentro de resources/views/components.
+
+No debe contener autorización propia.
+
+Debe representar accesos y datos ya preparados por la capa correspondiente.
+
+Regla:
+
+un dashboard de área pertenece al universo o frente que representa, no a la familia de componentes globales, salvo que se extraigan piezas genéricas reutilizables.
+
+Aclaración vigente sobre componentes y vistas de Orders en contexto /service:
+
+orders.index, orders.create, orders._form y orders.partials.table pueden adaptarse al universo /service mediante payload, flags o rutas contextuales.
+
+Esto no los convierte en componentes de service.
+
+Orders conserva ownership visual del recurso Order.
+
+Regla:
+
+si el mismo partial reusable opera en más de un universo, debe recibir configuración explícita y no inferir rutas por su cuenta cuando el contexto sea relevante.
+
+Caso vigente:
+
+orders.partials.table puede recibir showRouteName para apuntar a orders.show o service.orders.show según el universo de navegación.
+
+Aclaración vigente sobre componentes de Assets y Documents en formularios vinculados:
+
+assets.components.order-form-asset puede participar del formulario de Orders como componente oferente de Assets.
+
+documents._form puede consumir el contrato JS genérico de selects vinculados cuando corresponda.
+
+Estas integraciones no trasladan ownership entre módulos.
+
+Aclaración vigente sobre comportamiento JS reusable:
+
+Contrato vigente:
+
+app-linked-select-sync
+
+Lectura:
+
+comportamiento frontend reusable para sincronizar selects vinculados.
+
+Contrato de datos vigente:
+
+data-action="app-linked-select-sync"
+data-source-select
+data-target-select
+data-source-value
+
+Reglas:
+
+no usar nombres específicos como app-party-asset-sync si la mecánica es genérica
+
+el comportamiento JS no decide permisos
+
+el comportamiento JS no reemplaza validación backend
+
+el comportamiento JS no debe ser fuente única de consistencia de datos críticos
 
 <<END SECTION>>
 

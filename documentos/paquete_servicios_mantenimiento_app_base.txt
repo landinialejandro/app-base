@@ -186,7 +186,7 @@ No debe convertirse en una copia rígida, sobredimensionada o aislada de un soft
 <<END SECTION>>
 
 <<SECTION: PAQUETE DE SERVICIOS Y MANTENIMIENTO>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 PAQUETE DE SERVICIOS Y MANTENIMIENTO
 
@@ -294,7 +294,7 @@ No debe ser condición rígida de existencia para toda orden o documento.
 
 Regla:
 
-la capa de Servicios y Mantenimiento puede tener entrada visual, dashboard especializado o experiencia operativa propia sin convertirse automáticamente en un módulo CRUD ordinario ni duplicar Orders.
+la capa de Servicios y Mantenimiento puede tener entrada visual, dashboard especializado, universo semántico o experiencia operativa propia sin convertirse automáticamente en un módulo CRUD ordinario ni duplicar Orders.
 
 Primer corte operativo validado:
 
@@ -314,6 +314,46 @@ Orders opera la primera base mínima de servicio mediante:
 
 group = service
 
+Universo semántico vigente:
+
+/service
+
+Lectura:
+
+/service representa el frente Servicio y mantenimiento
+
+/service funciona como raíz funcional mínima del paquete
+
+/service permite acceder al dashboard mínimo del área
+
+/service no implementa todavía un CMMS completo
+
+/service no reemplaza Orders
+
+/service no absorbe ownership de órdenes
+
+Rutas semánticas vigentes del universo:
+
+GET /service
+
+GET /service/orders
+
+GET /service/orders/create
+
+POST /service/orders
+
+GET /service/orders/{order}
+
+El dashboard mínimo de /service ofrece actualmente:
+
+ver órdenes de servicio
+
+crear nueva orden de servicio
+
+Regla:
+
+las órdenes de servicio se gestionan dentro de Orders con group = service, pero pueden accederse desde rutas semánticas propias del universo Servicio y mantenimiento.
+
 Esta implementación inicial no incorpora todavía:
 
 estados técnicos satélite
@@ -326,15 +366,17 @@ cierres técnicos
 cierres administrativos ampliados
 cierres finales
 línea de tiempo operativa específica de mantenimiento
+dashboard operativo avanzado
+lógica CMMS completa
 
 Regla:
 
-la existencia de la entrada Servicio y mantenimiento no convierte la capa en CRUD ordinario ni habilita duplicar ownership de módulos existentes.
+la existencia del universo /service no convierte la capa en CRUD ordinario ni habilita duplicar ownership de módulos existentes.
 
 <<END SECTION>>
 
 <<SECTION: ROL DE ORDERS>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 ROL DE ORDERS
 
@@ -534,17 +576,38 @@ la autonomía de Orders respecto de party_id no elimina la posibilidad de vincul
 
 Solo evita que Party sea dependencia rígida para crear o visualizar la orden.
 
-Primer corte operativo validado para servicio:
+Corte operativo validado para servicio:
 
-Orders ya puede operar la base mínima de órdenes de servicio mediante:
+Orders opera la base de órdenes de servicio mediante:
 
 group = service
 
-La creación de órdenes de servicio debe respetar el contrato vigente de Orders.
+El universo /service permite crear, listar y visualizar órdenes de servicio desde rutas semánticas propias, sin trasladar ownership fuera de Orders.
 
-El acceso al área Servicio y mantenimiento mediante service_maintenance.view_any no reemplaza permisos de Orders.
+Rutas semánticas vigentes del universo:
 
-Las acciones reales sobre órdenes de servicio siguen dependiendo de autorización efectiva del módulo Orders.
+service.orders.index
+service.orders.create
+service.orders.store
+service.orders.show
+
+Reglas:
+
+la creación de órdenes de servicio debe respetar el contrato vigente de Orders
+
+el acceso al área Servicio y mantenimiento mediante service_maintenance.view_any no reemplaza permisos de Orders
+
+las acciones reales sobre órdenes de servicio siguen dependiendo de autorización efectiva del módulo Orders
+
+/service no reemplaza Orders
+
+/service no convierte órdenes de servicio en entidad propia de mantenimiento
+
+/service no debe depender de ?group=service para sostener el contexto
+
+cuando una orden se crea desde /service, group = service debe resolverse desde backend
+
+una orden creada desde /service debe conservar navegación contextual hacia /service/orders/{order} cuando corresponda
 
 party_id y asset_id funcionan como vínculos opcionales de enriquecimiento.
 
@@ -555,6 +618,8 @@ Cuando la UI filtre Assets por Party, esa selección debe validarse también en 
 Regla:
 
 la relación visible Party → Asset en el formulario no convierte a Party ni a Asset en dependencias obligatorias universales de la orden.
+
+En flujo gestionado normal con Party y Asset, record_metadata puede permanecer null cuando no existe manualidad ni excepción.
 
 No se implementaron todavía estados técnicos satélite, planes, checklists, órdenes modelo ni lógica ampliada de Inventory para mantenimiento.
 
@@ -1787,7 +1852,7 @@ el paquete de servicios y mantenimiento debe crecer como capacidad ERP/CMMS inte
 <<END SECTION>>
 
 <<SECTION: PRIMERA LÍNEA DE TRABAJO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 PRIMERA LÍNEA DE TRABAJO
 
@@ -1809,27 +1874,33 @@ service_maintenance.view_any permite acceso al área Servicio y mantenimiento
 
 las acciones reales continúan bajo el contrato del módulo dueño, especialmente Orders
 
+el universo semántico /service ya existe como raíz funcional mínima del frente Servicio y mantenimiento
+
+/service ofrece un dashboard mínimo del área
+
+/service permite acceder a órdenes de servicio sin depender de ?group=service
+
 Preguntas iniciales:
 
 qué valores reales existen hoy en group y kind
+
 si group = service ya alcanza como agrupador general
+
 si kind = standard debe mantenerse único por ahora
+
 si se necesitan nuevos kind para maintenance, repair, inspection o diagnosis
+
 si esos valores impactan allowed_kinds
+
 si la UI de creación puede mostrar tipos simples sin complejidad excesiva
+
 si los seeders hablan el contrato vigente
+
 si filtros, index, show y documents derivados soportan esa clasificación
+
 si OperationalActivity debe distinguir cambios de tipo técnico como campo observable
 
-Pendiente inmediato:
-
-ajustar la lectura contextual de:
-
-orders.index?group=service
-
-para que el listado se exprese visualmente como Órdenes de servicio y no como Orders genérico.
-
-Criterio:
+Criterio vigente:
 
 cerrar primero la gramática mínima de Orders para servicio.
 
@@ -1841,9 +1912,17 @@ Después avanzar hacia checklists.
 
 Después avanzar hacia contadores y planes.
 
+Cierre operativo reciente:
+
+se eliminó la dependencia funcional de ?group=service dentro del universo /service.
+
+El contexto de servicio debe resolverse desde backend cuando la entrada provenga de /service.
+
 Regla:
 
 no implementar capas superiores antes de que la clasificación mínima de Orders esté clara y validada.
+
+No avanzar a estados técnicos satélite, planes, checklists, consumos técnicos, cierres técnicos ni dashboard operativo avanzado mientras el universo básico /service y Orders group = service no estén cerrados documental y técnicamente.
 
 <<END SECTION>>
 

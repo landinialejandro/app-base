@@ -77,7 +77,7 @@ el header/navbar forma parte del shell global y debe mantener una identidad visu
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>
-SECTION_VERSION: 00027
+SECTION_VERSION: 00028
 
 COMPONENTES DISPONIBLES
 
@@ -364,9 +364,11 @@ formularios progresivos activados mediante data-action="app-progressive-form"
 
 formularios visuales de sincronización de funciones tenant activados mediante data-action="tenant-role-sync-form"
 
+selects vinculados activados mediante data-action="app-linked-select-sync"
+
 Estos comportamientos no reemplazan componentes Blade ni validan reglas de negocio.
 
-Solo organizan visualmente la aparición progresiva o selección guiada cuando la carga reduce error operativo.
+Solo organizan visualmente la aparición progresiva, selección guiada o sincronización de campos cuando la interacción reduce error operativo.
 
 Caso vigente:
 
@@ -593,6 +595,28 @@ El dashboard operativo debe ser una vista de planificación clara y no una acumu
 
 La entrada operativa validada de Servicio y mantenimiento debe leerse como frente especializado, no como CRUD ordinario.
 
+Universo visual vigente:
+
+/service
+
+Vista vigente:
+
+resources/views/service/dashboard.blade.php
+
+Lectura:
+
+/service es dashboard mínimo del universo Servicio y mantenimiento.
+
+No es todavía dashboard operativo avanzado ni CMMS completo.
+
+El dashboard mínimo puede ofrecer:
+
+ver órdenes de servicio
+
+crear nueva orden de servicio
+
+mostrar conteo actual de órdenes de servicio cuando corresponda
+
 Reglas visuales:
 
 no duplicar visualmente información del host
@@ -605,7 +629,47 @@ no ocultar vínculos gestionados cuando exista link autorizado
 
 no ocultar referencias textuales propias cuando no exista vínculo gestionado
 
-si una tabla de órdenes de servicio nace desde orders.index?group=service, debe expresar visualmente el contexto de servicio y mantenimiento sin alterar el ownership de Orders
+si una tabla de órdenes de servicio nace desde el universo /service, debe expresar visualmente el contexto de servicio y mantenimiento sin alterar el ownership de Orders
+
+Criterio visual para formularios contextuales de servicio:
+
+el formulario de orden de servicio debe priorizar simpleza y bajo roce.
+
+No debe trasladar al usuario decisiones técnicas internas de carga gestionada o manual.
+
+Reglas:
+
+si Party está disponible como componente gestionado, mostrar selección gestionada de contacto
+
+si Party no está disponible, mostrar campo manual de contraparte según contrato vigente
+
+si Asset está disponible como componente gestionado, mostrar selección gestionada de activo
+
+si Asset no está disponible, mostrar campo manual de activo o referencia equivalente según contrato vigente
+
+no mostrar botones explícitos de alternancia como decisión principal del usuario cuando el sistema puede resolver la disponibilidad
+
+no exponer carga manual como alternativa visible si los componentes gestionados están disponibles y el flujo no requiere excepción
+
+cuando la orden se crea desde /service, el campo Tipo puede mostrarse bloqueado visualmente como Servicio
+
+el bloqueo visual no reemplaza backend
+
+el backend debe forzar o validar el contexto correspondiente
+
+Patrón descartado:
+
+Usar carga manual
+
+Usar contacto vinculado
+
+Usar referencia manual
+
+Usar activo vinculado
+
+Motivo:
+
+sobrecargaba el formulario y trasladaba al usuario una decisión técnica interna.
 
 <<END SECTION>>
 

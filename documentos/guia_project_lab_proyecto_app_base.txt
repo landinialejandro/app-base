@@ -1,12 +1,12 @@
 <<SECTION: METADATOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 TÍTULO: Guía operativa de Project Lab
 DOC_SLUG: guia_project_lab_proyecto_app_base
-DOC_VERSION: 00003
+DOC_VERSION: 00004
 TIPO: operativo-técnico
 ESTADO: activo
-GESTIÓN: Guía rectora para el uso local de Project Lab como herramienta operativa de pruebas, auditoría, actualización de código, actualización documental, validación técnica y saneamiento controlado del proyecto.
+GESTIÓN: Guía rectora para el uso local de Project Lab como herramienta operativa de pruebas, auditoría, actualización de código, actualización documental, validación técnica, saneamiento controlado y macros audit del proyecto.
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
@@ -162,7 +162,7 @@ Esta capacidad no debe trasladarse como botón, acción o pantalla dentro del pr
 <<END SECTION>>
 
 <<SECTION: HERRAMIENTAS DISPONIBLES>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 HERRAMIENTAS DISPONIBLES
 
@@ -182,6 +182,7 @@ archivos PHP completos
 archivos Blade completos
 archivos CSS completos
 archivos JS completos
+archivos TPL completos
 métodos PHP existentes
 métodos PHP nuevos dentro de clases existentes
 funciones JS existentes
@@ -198,6 +199,16 @@ debe validar sintaxis PHP cuando corresponda
 debe restaurar o eliminar cambios PHP si la validación de sintaxis posterior falla
 no debe aplicar parches ambiguos
 no debe mezclar contratos de archivo completo con contratos parciales
+
+Regla específica para TPL:
+
+los archivos TPL completos deben usarse para plantillas operativas controladas por Project Lab.
+
+Caso vigente:
+
+tools/project-lab/macros/audit/*.sh.tpl
+
+Estos archivos deben llevar encabezado FILE compatible y versionado.
 
 DOCS
 
@@ -225,7 +236,7 @@ debe devolver OK o ERROR explícito
 
 AUDIT
 
-Se utiliza para ejecutar auditorías locales, inspecciones y comandos de apoyo sobre el proyecto real.
+Se utiliza para ejecutar auditorías locales, inspecciones, comandos de apoyo y macros audit sobre el proyecto real.
 
 Lectura vigente:
 
@@ -254,6 +265,37 @@ validar rutas
 validar contratos de código
 obtener evidencia antes de intervenir
 guardar salidas de consola como auditoría
+ejecutar macros audit internas mediante prefijo controlado
+
+Macros audit:
+
+Project Lab puede interpretar comandos rápidos iniciados con el prefijo:
+
+>>
+
+Estos comandos no reemplazan audit.
+
+Son una capa operativa previa que:
+
+identifica el nombre de macro
+valida argumentos
+busca la plantilla correspondiente en la librería de macros
+renderiza un script audit
+ejecuta el resultado por audit
+devuelve salida explícita
+puede dejar visible en el textarea el script generado
+
+Ubicación vigente de macros audit:
+
+tools/project-lab/macros/audit
+
+Formato de plantilla vigente:
+
+*.sh.tpl
+
+Caso vigente:
+
+find.sh.tpl
 
 Regla general:
 
@@ -274,6 +316,7 @@ docs
 audit
 Tinker
 Artisan controlado
+macros audit
 guardado de consola como auditoría
 
 <<END SECTION>>
@@ -338,7 +381,7 @@ Un bloque de código no debe usarse para modificar documentación.
 <<END SECTION>>
 
 <<SECTION: CONTRATOS DE CÓDIGO SOPORTADOS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CONTRATOS DE CÓDIGO SOPORTADOS
 
@@ -439,6 +482,43 @@ la ruta debe ser una ruta de archivo JS
 la ruta debe resolverse dentro del projectRoot
 reemplaza el archivo completo
 puede crear archivo nuevo si el contrato es válido
+
+ARCHIVO TPL COMPLETO
+
+Uso:
+
+crear o reemplazar un archivo TPL completo.
+
+Caso vigente:
+
+plantillas de macros audit ubicadas en:
+
+tools/project-lab/macros/audit
+
+Extensión vigente:
+
+.sh.tpl
+
+Reglas:
+
+debe incluir encabezado FILE válido
+la ruta debe ser una ruta de archivo TPL
+la ruta debe resolverse dentro del projectRoot
+reemplaza el archivo completo
+puede crear archivo nuevo si el contrato es válido
+no requiere validación php -l
+debe escribirse mediante la aduana central de escritura vigente
+debe conservar versión en el encabezado
+
+Formato recomendado para plantillas shell TPL:
+
+# FILE: tools/project-lab/macros/audit/nombre.sh.tpl | V1
+
+Regla:
+
+un archivo TPL no debe usarse para introducir lógica PHP ejecutable.
+
+Debe tratarse como plantilla operativa textual.
 
 FUNCIÓN JS EXISTENTE
 
@@ -584,7 +664,7 @@ El detalle no debe ocultarse, porque forma parte de la evidencia técnica.
 <<END SECTION>>
 
 <<SECTION: SALIDA OPERATIVA ESPERADA>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 SALIDA OPERATIVA ESPERADA
 
@@ -636,26 +716,14 @@ si Project Lab informa OK de sintaxis PHP válida dentro de un patch PHP, no hac
 
 si Project Lab informa ERROR de sintaxis PHP y restauración o eliminación del archivo inválido, la operación falló pero el proyecto debe quedar protegido frente a ese cambio inválido
 
-Las validaciones posteriores dependen del tipo de cambio.
+La consola debe permitir reconstruir:
 
-Pueden incluir:
-
-optimize:clear
-route:list
-migrate:fresh --seed
-Tinker
-auditoría
-grep preciso
-validación en navegador
-jobs
-failed_jobs
-persistencia final
-rollback o limpieza de prueba
-smoke test del servicio o modelo afectado
-
-Regla:
-
-la consola debe permitir reconstruir qué se ejecutó, qué resultado produjo y qué validación quedó pendiente si corresponde.
+qué se ejecutó
+qué entrada se usó
+qué salida produjo
+qué archivo se modificó cuando corresponda
+qué validación se realizó
+qué error quedó pendiente si corresponde
 
 Regla de claridad:
 
@@ -675,6 +743,12 @@ o
 seguido de:
 
 [INFO] Detalle lint:
+
+Regla:
+
+la salida de Project Lab es evidencia operativa de herramienta.
+
+La interpretación funcional o arquitectónica de esa evidencia corresponde al proceso técnico del proyecto y a la documentación especializada.
 
 <<END SECTION>>
 
@@ -731,28 +805,21 @@ no debe reemplazar la definición de worker supervisado para producción
 <<END SECTION>>
 
 <<SECTION: USO DE TINKER DENTRO DE PROJECT LAB>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 USO DE TINKER DENTRO DE PROJECT LAB
 
-Tinker es una capacidad interna de Project Lab para reproducir comportamiento real del sistema.
+Tinker es una capacidad interna de Project Lab para ejecutar código PHP sobre el proyecto actual y observar comportamiento runtime.
 
-Debe usarse especialmente para:
+Debe usarse para:
 
-permisos efectivos
-constraints
-tenant activo
-Security
-datasets visibles
-relaciones activas
-validaciones backend
-flujos controlados
-auditoría de runtime
-eventos operativos
-validación de persistencia derivada
-requests fabricados
-controllers con autorización
-rollback de pruebas sensibles
+reproducir lógica real del proyecto
+inspeccionar modelos, servicios o helpers
+validar queries
+verificar persistencia
+probar contratos backend
+diagnosticar errores runtime
+ejecutar pruebas controladas con salida explícita
 
 Regla crítica:
 
@@ -766,164 +833,139 @@ Project Lab ya ejecuta internamente el proceso correspondiente contra el proyect
 
 Reglas:
 
-si se quiere visualizar el resultado de una expresión, debe utilizarse return o salida explícita
+si se quiere visualizar el resultado de una expresión, debe utilizarse return, echo, dump o salida explícita
 
-si una salida no muestra el resultado esperado, puede requerirse echo, dump o equivalente
+si una salida no muestra el resultado esperado, primero debe revisarse si el bloque genera salida visible
 
-si un bloque falla por el uso de use, no debe asumirse automáticamente que falló la lógica funcional
+si un bloque falla por imports, namespaces o wrapper, debe corregirse el formato del snippet antes de concluir que falló la lógica probada
 
-ante errores de wrapper, puede usarse namespace completo
+si la prueba requiere contexto runtime, ese contexto debe inicializarse dentro del propio snippet
 
-cuando una prueba dispare eventos queued, Tinker solo valida el disparo inicial
-
-si la prueba requiere persistencia final, debe procesarse cola y verificar resultado
-
-Regla para pruebas sensibles:
-
-si la prueba involucra permisos, roles, memberships, tenant/profile o acciones críticas, debe utilizarse usuario real, tenant real, autenticación real y rollback o limpieza cuando corresponda.
-
-Regla:
+si la prueba modifica datos reales, debe planificarse rollback, limpieza o uso de datos descartables cuando corresponda
 
 Tinker ayuda a reproducir runtime.
 
-No reemplaza navegador cuando el cierre dependa de interacción visual.
+No reemplaza validación en navegador cuando el cierre dependa de interacción visual.
+
+No reemplaza tests automatizados cuando el frente los requiera.
+
+No reemplaza documentación especializada sobre seguridad, permisos, módulos o datos del sistema.
 
 <<END SECTION>>
 
 <<SECTION: REGLA DE TENANT ACTIVO EN TINKER>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 REGLA DE TENANT ACTIVO EN TINKER
 
-En app-base, muchas resoluciones dependen de:
+Algunos proyectos requieren contexto runtime activo para que una prueba Tinker represente el comportamiento real del sistema.
 
-app('tenant')
+Ese contexto puede incluir, según el proyecto:
 
-Por lo tanto, una prueba Tinker no reproduce correctamente el sistema si no existe tenant activo bindeado en el contenedor.
+usuario autenticado
+tenant activo
+organización activa
+módulo habilitado
+rol o membresía vigente
+dataset real
+configuración runtime
+servicio central registrado en el contenedor
 
 Regla operativa:
 
-antes de probar permisos, visibilidad, queries tenant-aware o lógica que consume Security, debe resolverse y bindearse un tenant activo real.
+si la lógica que se desea probar depende de contexto runtime, ese contexto debe resolverse explícitamente dentro del snippet Tinker.
 
-Secuencia esperada:
+No debe asumirse que Project Lab ya tiene el contexto necesario.
 
-obtener un usuario real
-obtener una membership activa real de ese usuario
-tomar el tenant de esa membership
-bindear el tenant en el contenedor
+No debe fijarse un identificador como dato estable si no fue verificado en runtime.
 
-Sin ese paso, la prueba puede:
-
-fallar artificialmente
-devolver falsos negativos
-no representar el comportamiento real del sistema
-
-Regla adicional:
-
-no fijar tenant_id como número ni como dato estable copiado desde otra sesión.
-
-Debe obtenerse desde runtime real.
+No debe trasladarse a esta guía la doctrina particular de tenant, membresías, permisos o seguridad de un proyecto.
 
 Regla:
 
-tenant activo bindeado no es solo comodidad de prueba.
+esta sección solo define la obligación operativa de inicializar contexto runtime cuando corresponda.
 
-Es condición necesaria para reproducir el comportamiento real de capacidades tenant-scoped.
+La forma concreta de hacerlo debe tomarse del documento especializado del proyecto o de la evidencia obtenida en runtime.
 
 <<END SECTION>>
 
 <<SECTION: REGLA DE AUTORIZACIÓN EN TINKER>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 REGLA DE AUTORIZACIÓN EN TINKER
 
-La autorización debe probarse desde la capa central vigente.
+Cuando se use Tinker para revisar autorización, visibilidad o permisos, debe probarse contra el contrato real del proyecto.
 
-Regla operativa:
+Reglas:
 
-para permisos, visibilidad o acciones permitidas, debe usarse Security o el contrato central correspondiente.
+no reconstruir manualmente reglas de autorización si existe una capa central para resolverlas
 
-Usos válidos:
+no inferir permisos desde campos visibles
 
-inspect
-allows
-authorize
-scope
+no considerar la UI como fuente final de autorización
 
-No probar permisos reconstruyendo lógica manualmente.
+no probar con contexto incompleto si la autorización depende de contexto runtime
 
-No probar permisos desde UI como fuente final.
+no convertir ejemplos puntuales en doctrina general
 
-No inferir permisos desde campos visibles.
+La prueba debe reproducir el mecanismo real que el proyecto utiliza para decidir autorización.
 
-Regla adicional:
-
-si el módulo utiliza constraints, la prueba debe incluir el contexto funcional real requerido.
-
-Ejemplos:
-
-si la capacidad requiere kind, probar con kind explícito
-
-si la capacidad requiere una relación funcional, probar contra esa relación real
-
-si la capacidad no requiere contexto, no inventarlo
+Si el mecanismo real no está identificado, primero debe auditarse el código o consultarse la documentación especializada.
 
 Regla:
 
-la prueba debe reproducir el contrato de seguridad real, no una versión simplificada creada para pasar.
+esta sección no documenta la doctrina de seguridad del producto.
+
+Solo indica cómo usar Tinker de manera prudente cuando la prueba involucra autorización.
 
 <<END SECTION>>
 
 <<SECTION: BOOTSTRAP BASE RECOMENDADO PARA TINKER>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 BOOTSTRAP BASE RECOMENDADO PARA TINKER
 
-Antes de probar runtime real, debe resolverse como mínimo:
+Antes de ejecutar una prueba Tinker, debe prepararse el contexto mínimo que la prueba necesite.
 
-usuario real
-membership activa real
-tenant real
-tenant activo en contenedor
-acceso a la capa central de autorización cuando corresponda
+El bootstrap puede incluir:
 
-Este bootstrap permite iniciar pruebas confiables sobre:
-
-permisos
-datasets
-constraints
-relaciones
-acciones autorizadas
-surfaces
-eventos
-persistencia
+cargar clases necesarias
+resolver registros reales
+autenticar usuario si corresponde
+bindear contexto runtime si corresponde
+instanciar servicios reales
+preparar datos de prueba
+activar salida explícita
+definir rollback o limpieza si la prueba modifica datos
 
 Reglas:
 
-si el usuario, tenant o dataset cambia, debe validarse nuevamente
+el bootstrap debe ser proporcional a la prueba
 
-no extender datos de prueba por suposición
+no debe incluir datos inventados
 
-no usar datos copiados de otra sesión como garantía vigente
+no debe copiar datos de otra sesión sin validarlos
 
-no probar acciones sensibles sin rollback o limpieza cuando corresponda
+no debe asumir que seeders, ids o fixtures permanecen estables
+
+no debe mezclar diagnóstico de herramienta con doctrina funcional del proyecto
 
 Regla:
 
-el bootstrap recomendado no es doctrina de seguridad.
+el bootstrap recomendado es una ayuda operativa para reproducir runtime desde Project Lab.
 
-Es una ayuda operativa para reproducir el runtime real desde Project Lab.
+La estructura concreta del bootstrap depende del proyecto y debe verificarse en código, documentación especializada o runtime real.
 
 <<END SECTION>>
 
 <<SECTION: DATOS VERIFICADOS ACTUALES PARA PRUEBAS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 DATOS VERIFICADOS ACTUALES PARA PRUEBAS
 
-Esta sección solo puede contener datos de prueba explícitamente verificados en runtime.
+Esta sección no debe funcionar como depósito permanente de usuarios, tenants, ids, registros o datasets del proyecto.
 
-Su función es facilitar pruebas locales rápidas cuando esos datos sigan existiendo.
+Los datos de prueba pueden cambiar.
 
 Reglas:
 
@@ -933,33 +975,30 @@ no fijar ids como estables
 no asumir que los seeders mantienen siempre el mismo dataset
 no extender datos de prueba por memoria
 no usar esta sección como doctrina del sistema
+no transformar datos temporales de una sesión en contrato estable
 
 Uso permitido:
 
-referencia operativa local
-punto de partida para Tinker
-ayuda para reproducir pruebas
-
-Límite:
-
-todo dato aquí indicado debe volver a validarse cuando el resultado dependa de runtime real.
+recordar que las pruebas runtime deben trabajar con datos verificados
+indicar que los datos usados en Tinker deben obtenerse desde el proyecto real
+advertir que un dato inexistente puede invalidar la prueba antes que la funcionalidad
 
 Regla:
 
-si una prueba falla por dataset inexistente, no debe interpretarse como falla funcional del sistema.
+si una prueba falla por dataset inexistente, primero debe confirmarse que el dato de prueba sigue existiendo.
 
-Primero debe confirmarse que el dato de prueba sigue existiendo.
+La guía de Project Lab no debe conservar catálogos de datos del proyecto.
 
 <<END SECTION>>
 
 <<SECTION: USO DE ARTISAN>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 USO DE ARTISAN
 
-Project Lab permite ejecutar comandos Artisan rápidos.
+Project Lab permite ejecutar comandos Artisan rápidos y controlados.
 
-Debe usarse para verificaciones controladas como:
+Debe usarse para verificaciones locales como:
 
 optimize:clear
 route:list
@@ -977,37 +1016,24 @@ no usar Artisan como shell libre
 
 copiar salida completa cuando sea necesaria para diagnóstico
 
+no confundir una acción local de soporte con funcionalidad del producto final
+
 migrate:fresh --seed solo debe usarse cuando el frente de trabajo lo justifique y el entorno sea local controlado
 
-Regla adicional para colas:
+Aclaración operativa:
 
-cuando se valide un listener queued, no alcanza con confirmar que el evento se disparó.
+Project Lab puede facilitar acciones locales de soporte, como procesar una cola pendiente durante una validación técnica.
 
-Secuencia mínima esperada:
+Esta capacidad pertenece al entorno local de desarrollo.
 
-disparar evento
-verificar jobs generados cuando corresponda
-ejecutar worker local
-verificar persistencia esperada
-verificar jobs restantes
-verificar failed_jobs
+No define infraestructura productiva.
 
-Aclaración operativa local:
-
-Project Lab puede ofrecer una acción local para procesar cola pendiente durante desarrollo y validación.
-
-Esta acción debe entenderse como soporte del entorno local.
-
-No debe trasladarse como funcionalidad del SaaS productivo.
-
-Regla:
-
-en producción, el procesamiento de colas debe resolverse mediante worker persistente supervisado por infraestructura.
+No reemplaza documentación especializada sobre despliegue, workers, colas o producción.
 
 <<END SECTION>>
 
 <<SECTION: USO DE AUDITORÍA>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 USO DE AUDITORÍA
 
@@ -1028,6 +1054,7 @@ validar consumo de helpers, selectors, hooks o services
 validar referencias activas antes de eliminar piezas
 obtener evidencia previa a cambios sensibles
 guardar salidas de consola como auditoría
+ejecutar macros audit internas cuando corresponda
 
 Regla:
 
@@ -1069,6 +1096,71 @@ los scripts de audit pueden requerir normalización CRLF antes de ejecutarse.
 
 Esa normalización no modifica el carácter libre local de audit.
 
+Macros audit:
+
+Project Lab puede interpretar comandos rápidos internos cuando el textarea comienza con el prefijo:
+
+>>
+
+Lectura:
+
+estos comandos no se ejecutan como texto literal.
+
+Project Lab debe:
+
+identificar el nombre de macro
+validar el nombre de macro
+buscar la plantilla correspondiente
+validar argumentos
+renderizar el script audit final
+ejecutar el script generado mediante audit
+devolver salida explícita
+
+Ubicación vigente de macros audit:
+
+tools/project-lab/macros/audit
+
+Formato vigente de plantilla:
+
+nombre.sh.tpl
+
+Ejemplo vigente:
+
+find.sh.tpl
+
+Sintaxis vigente de uso:
+
+>> find archivo termino +lineas
+
+Ejemplos:
+
+>> find web.php service +30
+
+>> find projectlab.php executeTinker +50
+
+Reglas:
+
+si la macro no existe, Project Lab debe devolver ERROR y listar macros disponibles
+si los argumentos no cumplen la regla de la macro, Project Lab debe devolver ERROR y no ejecutar audit
+si el comando es válido, Project Lab puede reemplazar el textarea con el script generado luego de recibir la respuesta
+la salida debe dejar claro cuál fue la entrada original
+la salida debe indicar la macro ejecutada
+la salida debe ser interpretable como evidencia operativa
+
+Regla específica para find:
+
+find busca de forma case-insensitive.
+
+El primer parámetro indica archivo, patrón o asterisco.
+
+El segundo parámetro indica término de búsqueda.
+
+El tercer parámetro opcional indica líneas posteriores mediante +N.
+
+El término de búsqueda no puede estar vacío ni ser asterisco.
+
+La cantidad de líneas debe permanecer dentro del límite aceptado por Project Lab.
+
 Regla para cierres de fase:
 
 antes de declarar cerrado un frente de saneamiento, la auditoría debe incluir las piezas relevantes del frente intervenido.
@@ -1082,7 +1174,7 @@ No reemplaza el análisis técnico de esa evidencia.
 <<END SECTION>>
 
 <<SECTION: USO DE CODE>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 USO DE CODE
 
@@ -1094,6 +1186,7 @@ usar archivo completo solo cuando se quiera reemplazar el archivo completo
 usar TARGET con operador de reemplazo para reemplazar método PHP existente o función JS existente
 usar TARGET con operador de alta para agregar método PHP nuevo
 usar secciones para CSS o JS cuando corresponda
+usar archivo TPL completo para crear o reemplazar plantillas operativas controladas
 no mezclar header de archivo completo con operación parcial
 no usar formatos ambiguos
 no aplicar snippets generados sin revisar el encabezado
@@ -1131,6 +1224,22 @@ una salida de Project Lab que informa:
 ya constituye validación php -l de ese patch.
 
 No hace falta pedir php -l redundante después de cada actualización PHP aplicada por code, salvo auditoría externa, cambio realizado por otro canal o duda puntual.
+
+Regla para TPL:
+
+cuando se cree o reemplace una plantilla TPL, debe utilizarse archivo completo versionado.
+
+Formato vigente recomendado para macros audit:
+
+# FILE: tools/project-lab/macros/audit/nombre.sh.tpl | V1
+
+Caso vigente:
+
+# FILE: tools/project-lab/macros/audit/find.sh.tpl | V1
+
+El archivo TPL debe quedar visible, versionado y editable por Project Lab mediante code.
+
+No debe editarse como parche suelto si corresponde reemplazo completo.
 
 <<END SECTION>>
 
@@ -1359,35 +1468,28 @@ Solo debe documentar reglas de uso de la herramienta.
 <<END SECTION>>
 
 <<SECTION: VALIDACIONES POSTERIORES A CAMBIOS>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 VALIDACIONES POSTERIORES A CAMBIOS
 
-Después de aplicar código, debe validarse según el tipo de cambio.
+Después de aplicar cambios con Project Lab, debe validarse según el tipo de intervención.
 
 Validaciones posibles:
 
 php -l sobre archivos PHP modificados cuando el cambio no haya pasado por una operación PHP validada de Project Lab
 php artisan optimize:clear
 php artisan route:list cuando toque rutas
-Tinker cuando toque runtime, permisos, constraints o datos reales
+Tinker cuando toque runtime
 navegador cuando toque UI
-grep cuando se eliminen residuos legacy
-auditoría simple cuando se requiera evidencia transversal
-migrate:fresh --seed cuando el cambio afecte arquitectura, migraciones, seeders o contratos estructurales
-smoke test del modelo o servicio afectado cuando el cambio sea de saneamiento modular
+audit cuando se requiera evidencia textual o transversal
+migrate:fresh --seed cuando el frente lo justifique
+comando específico del proyecto cuando corresponda
 
 Regla:
 
 no declarar cierre por intuición.
 
 Un cierre técnico debe apoyarse en evidencia suficiente.
-
-Regla adicional:
-
-si Project Lab informa OK pero la validación posterior falla, el frente no está cerrado.
-
-Debe corregirse o revertirse según corresponda.
 
 Regla específica para PHP:
 
@@ -1406,18 +1508,18 @@ el archivo fue manipulado por script externo
 se necesita cierre general independiente
 hay una duda puntual sobre el estado final del archivo
 
-Regla adicional para saneamiento:
+Regla:
 
-si se elimina o reemplaza una dependencia activa, debe validarse que no queden consumidores activos usando la vía anterior.
+las validaciones posteriores no son doctrina de módulos.
 
-Regla final:
+Son comprobaciones operativas proporcionales al cambio realizado.
 
-las validaciones deben demostrar que el patrón nuevo opera y que el patrón anterior no quedó como fallback activo indebido.
+Si el frente requiere validaciones funcionales específicas, deben tomarse del documento especializado correspondiente.
 
 <<END SECTION>>
 
 <<SECTION: CASOS PRIORITARIOS DE USO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 CASOS PRIORITARIOS DE USO
 
@@ -1425,28 +1527,33 @@ Usar Project Lab especialmente para:
 
 auditar código real antes de modificar
 aplicar snippets compatibles con trazabilidad
-validar permisos efectivos
-validar constraints funcionales
-validar módulos habilitados por tenant
-validar dataset real bajo Security
-bindear tenant activo en pruebas Tinker
-inspeccionar relaciones
-debug de flujos contextuales
-validar entidades hijas
-validar flujos entre módulos
-auditar superficies surface-driven
-validar agrupadores operativos internos
-verificar intentos manipulados sobre relaciones sensibles
-ejecutar auditorías de residuos legacy
 actualizar documentación por secciones cerradas
+ejecutar Tinker sobre runtime real
+ejecutar comandos Artisan controlados
+obtener evidencia antes de cambios sensibles
+buscar referencias mediante audit o macros audit
 guardar salidas de consola como auditoría
-obtener evidencia antes de cierres técnicos o documentales
+validar sintaxis cuando la herramienta lo permita
+revisar resultados de una intervención técnica
+documentar evidencia para continuar en otra sesión
 
 Regla:
 
-Project Lab debe ayudar a verificar reglas reales del proyecto, no a reemplazarlas.
+Project Lab debe ayudar a verificar el estado real del proyecto.
 
-Si un caso requiere doctrina de módulo, seguridad, navegación, UI, IA o mantenimiento, debe remitirse al documento especializado correspondiente.
+No reemplaza la doctrina del proyecto.
+
+No define reglas de negocio.
+
+No define seguridad.
+
+No define navegación.
+
+No define módulos.
+
+No define arquitectura funcional.
+
+Si un caso requiere doctrina de módulo, seguridad, navegación, UI, IA, mantenimiento, entidades o patrones generales, debe remitirse al documento especializado correspondiente.
 
 <<END SECTION>>
 
@@ -1584,11 +1691,11 @@ No debe desarrollar doctrina completa de esos casos.
 <<END SECTION>>
 
 <<SECTION: CRITERIO DE CIERRE OPERATIVO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CRITERIO DE CIERRE OPERATIVO
 
-Una intervención realizada con Project Lab se considera cerrada solo cuando existe evidencia suficiente.
+Una intervención realizada con Project Lab se considera operativamente cerrada solo cuando existe evidencia suficiente sobre la acción ejecutada.
 
 Según el caso, esa evidencia puede incluir:
 
@@ -1596,14 +1703,10 @@ salida OK de Project Lab
 validación de sintaxis
 auditoría simple
 Tinker runtime
-Security real
-grep de residuos
-optimize:clear
-route:list
-migrate:fresh --seed
-smoke test del modelo o servicio afectado
+Artisan controlado
 validación visual en navegador
 actualización documental
+guardado de consola como auditoría
 
 No alcanza con que el snippet haya sido aceptado.
 
@@ -1611,43 +1714,28 @@ No alcanza con que no aparezca un error visual.
 
 No alcanza con que la UI oculte una acción.
 
-No alcanza con revisar solo una pieza si el frente incluye varias piezas conectadas.
-
 Regla:
 
-el cierre debe demostrar que el sistema quedó más coherente, no solo que el cambio fue aplicado.
+Project Lab puede aportar evidencia para el cierre.
 
-Regla adicional para cierre de fase:
+Project Lab no define por sí solo el cierre funcional, arquitectónico, doctrinal o de seguridad de un frente.
 
-una fase no debe declararse cerrada sin auditar las piezas relevantes del frente.
-
-Las piezas mínimas dependen del alcance real del cambio.
-
-Pueden incluir:
-
-controller principal
-controllers hijos relevantes
-modelo
-helpers
-surface services
-hooks
-services o support vinculados
-catálogos
-rutas principales
-validaciones runtime
-smoke tests
-grep de residuos conocidos
+Si el cierre depende de reglas de negocio, módulos, seguridad, navegación, UI, datos, IA, mantenimiento o arquitectura, debe revisarse el documento especializado correspondiente.
 
 Regla final:
 
-cerrar una intervención significa que el sistema queda más coherente, autónomo, seguro y alineado con su doctrina vigente.
+cerrar una intervención en Project Lab significa que la herramienta ejecutó, registró o validó correctamente la tarea que le correspondía.
+
+El cierre completo del frente depende del alcance real del cambio.
 
 <<END SECTION>>
 
 <<SECTION: ERRORES Y LECCIONES INCORPORADAS>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 ERRORES Y LECCIONES INCORPORADAS
+
+Esta sección conserva únicamente lecciones operativas directamente vinculadas al uso de Project Lab.
 
 Lección incorporada:
 
@@ -1665,7 +1753,7 @@ Si aparece operador de método dentro de FILE, debe fallar o normalizarse explí
 
 Nunca debe crear un archivo con operadores parciales en la ruta.
 
-Lección incorporada adicional:
+Lección incorporada:
 
 una ejecución desde clipboard no debe ser invisible para el usuario.
 
@@ -1680,17 +1768,13 @@ docs
 audit
 Tinker desde clipboard
 
-Regla operativa:
-
-el textarea correspondiente debe reflejar el contenido ejecutado desde clipboard.
-
 La consola muestra la salida.
 
 El textarea muestra la entrada.
 
 Ninguna ejecución desde clipboard debe quedar oculta para el usuario.
 
-Lección incorporada adicional:
+Lección incorporada:
 
 Project Lab no debe recibir texto narrativo como si fuera script ejecutable.
 
@@ -1702,27 +1786,14 @@ Para Project Lab deben enviarse exclusivamente:
 
 comandos shell válidos
 patches completos compatibles
-formatos aceptados por el automatizador
+formatos aceptados por la herramienta
 bloques documentales válidos
 snippets de auditoría realmente ejecutables
+macros audit válidas
 
-Lección incorporada adicional:
-
-un cierre técnico no debe apoyarse solo en una pieza aislada cuando el frente involucra varias capas.
-
-Regla:
-
-si una fase declara saneamiento modular, Project Lab debe ayudar a producir evidencia sobre todas las piezas relevantes, no solo aplicar un patch parcial.
-
-Lección incorporada adicional:
+Lección incorporada:
 
 un cambio PHP aplicado por Project Lab no debe dejar persistido código inválido cuando la herramienta puede detectarlo.
-
-Caso validado:
-
-archivo PHP nuevo inválido
-archivo PHP existente reemplazado con contenido inválido
-método PHP existente reemplazado con contenido inválido
 
 Regla consolidada:
 
@@ -1730,19 +1801,15 @@ si el lint PHP falla, Project Lab debe restaurar el contenido anterior o elimina
 
 La salida debe informar el rollback y conservar el detalle técnico del lint.
 
-Lección incorporada adicional:
+Lección incorporada:
 
 las vías legacy internas de Project Lab no deben conservarse si ya no pertenecen al contrato operativo vigente.
-
-Caso validado:
-
-se eliminaron físicamente métodos legacy y acciones asociadas que no correspondían al contrato actual de la herramienta.
 
 Regla consolidada:
 
 Project Lab debe conservar caminos operativos vigentes y evitar endpoints paralelos obsoletos que aumenten ruido, superficie de mantenimiento o ambigüedad.
 
-Lección incorporada adicional:
+Lección incorporada:
 
 la herramienta docs debe exigir SECTION_VERSION.
 
@@ -1751,6 +1818,26 @@ Regla consolidada:
 un bloque documental sin SECTION_VERSION válido no debe aplicarse.
 
 La actualización documental debe ser trazable y compatible con el versionado interno del proyecto.
+
+Lección incorporada:
+
+las macros audit deben vivir como plantillas externas cuando corresponda.
+
+Regla consolidada:
+
+la lógica larga de una macro no debe acumularse innecesariamente dentro de ProjectLab.php.
+
+ProjectLab.php debe interpretar, validar, cargar y renderizar macros.
+
+La plantilla debe vivir en la librería correspondiente.
+
+Ubicación vigente:
+
+tools/project-lab/macros/audit
+
+Formato vigente:
+
+*.sh.tpl
 
 <<END SECTION>>
 

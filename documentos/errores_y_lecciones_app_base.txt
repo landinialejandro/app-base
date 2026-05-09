@@ -26,7 +26,7 @@ lección aplicable
 <<END SECTION>>
 
 <<SECTION: LECCIONES VIGENTES>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 LECCIONES VIGENTES
 
@@ -460,5 +460,145 @@ Regla:
 las acciones reales deben seguir autorizándose por el módulo dueño.
 
 En órdenes de servicio, las acciones reales siguen perteneciendo a Orders.
+
+NO TRASLADAR DECISIONES TÉCNICAS INTERNAS AL USUARIO
+
+Un formulario puede funcionar técnicamente y aun así exponer al usuario decisiones que el sistema debe resolver.
+
+Caso detectado:
+
+el intento inicial de resolver carga gestionada/manual con botones visibles sobrecargó la UX del formulario.
+
+Patrón descartado:
+
+Usar carga manual
+
+Usar contacto vinculado
+
+Usar referencia manual
+
+Usar activo vinculado
+
+Corrección aplicada:
+
+si existen componentes gestionados, se usa carga gestionada.
+
+Si no existen, se muestra carga manual.
+
+Lección:
+
+no debe trasladarse al usuario una decisión técnica interna cuando el sistema puede resolverla por disponibilidad de componentes.
+
+Regla:
+
+la UI debe reducir fricción y no convertir alternativas técnicas internas en pasos visibles innecesarios.
+
+NO NOMBRAR JS GENÉRICO CON ENTIDADES PARTICULARES
+
+Un comportamiento frontend reusable no debe nombrarse por un caso puntual si la mecánica real es general.
+
+Caso detectado:
+
+app-party-asset-sync
+
+El nombre acoplaba la mecánica a Party/Asset.
+
+Corrección aplicada:
+
+app-linked-select-sync
+
+Lección:
+
+el nombre del contrato JS debe expresar la mecánica reusable.
+
+Regla:
+
+si la interacción es sincronización de selects vinculados, el contrato no debe fijar entidades concretas.
+
+UNA RUTA CONTEXTUAL NECESITA RAÍZ NAVEGACIONAL REAL
+
+Un conjunto de rutas contextuales puede quedar débil si no posee raíz clara para navegación y breadcrumb.
+
+Caso detectado:
+
+/service/orders sin una raíz clara /service generaba duda en el breadcrumb y podía enganchar el flujo al listado general de Orders.
+
+Corrección aplicada:
+
+crear dashboard mínimo en:
+
+/service
+
+Lección:
+
+cuando un universo funcional tiene rutas internas propias, debe evaluarse una raíz navegacional real para sostener jerarquía, breadcrumb y comprensión del usuario.
+
+Regla:
+
+un universo semántico debe preservar su contexto desde la entrada hasta el show o cierre de la acción cuando corresponda.
+
+QUERY PARAMS NO SON SEGURIDAD
+
+Ocultar, eliminar u ofuscar un query param no constituye seguridad.
+
+Caso detectado:
+
+?group=service podía expresar contexto, pero no debía sostener por sí mismo la regla de órdenes de servicio.
+
+Corrección aplicada:
+
+crear rutas semánticas /service y forzar group = service desde backend.
+
+Lección:
+
+la seguridad y coherencia funcional deben sostenerse en backend, autorización, contexto y validación de datos.
+
+Regla:
+
+si un valor contextual no debe depender del usuario, debe forzarse o validarse del lado servidor.
+
+PATCH PARCIAL PUEDE DEJAR FIRMAS INCONSISTENTES
+
+Modificar solo una llamada sin revisar la firma del método receptor puede generar errores runtime.
+
+Caso detectado:
+
+OrderNavigationTrail::create() fue actualizado para pasar Request a contextualBase(), pero contextualBase() conservó la firma vieja.
+
+Resultado:
+
+TypeError.
+
+Corrección aplicada:
+
+actualizar contextualBase() y show() para alinear firma y consumidores.
+
+Lección:
+
+cuando se modifica una firma, deben auditarse llamada, método receptor y consumidores relacionados.
+
+Regla:
+
+un patch parcial no debe cerrarse sin grep o revisión específica de firmas impactadas.
+
+UN PATCH PUEDE INFORMAR AVANCE PERO NO HABER APLICADO EL CAMBIO ESPERADO
+
+La auditoría general puede pasar aunque una cadena crítica siga igual.
+
+Caso detectado:
+
+el primer intento de corregir redirect post-store no modificó realmente la redirección y seguía existiendo orders.show.
+
+Corrección aplicada:
+
+grep específico y reemplazo completo del método store().
+
+Lección:
+
+después de un patch sensible, debe confirmarse la presencia o ausencia exacta del cambio esperado.
+
+Regla:
+
+cuando se busca eliminar una ruta, método, flag o cadena legacy, debe hacerse grep posterior específico.
 
 <<END SECTION>>

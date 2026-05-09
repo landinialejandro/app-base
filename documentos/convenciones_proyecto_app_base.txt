@@ -26,7 +26,7 @@ nuevos flujos operativos
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00033
+SECTION_VERSION: 00034
 
 CONVENCIONES GENERALES
 
@@ -328,6 +328,70 @@ Caso corregido:
 
 DocumentNumberGenerator fue reemplazado por RecordNumberGenerator.
 
+Convención de universos semánticos de URL:
+
+un universo semántico de URL representa un frente funcional especializado de uso, navegación y contexto operativo.
+
+No constituye automáticamente un módulo dueño nuevo.
+
+No reemplaza el ownership del módulo que ejecuta la operación real.
+
+No crea por sí mismo un CRUD ordinario.
+
+No reemplaza autorización backend.
+
+Caso vigente:
+
+/service
+
+Lectura:
+
+/service representa el frente Servicio y mantenimiento.
+
+El nombre visible del área es:
+
+Servicio y mantenimiento
+
+El slug URL es:
+
+/service
+
+Reglas:
+
+usar slugs cortos, claros, legibles y extensibles
+
+evitar nombres técnicos excesivamente largos cuando una ruta corta expresa mejor el universo
+
+evitar siglas poco legibles si el frente debe ser comprensible para usuario y desarrollo
+
+el universo puede tener rutas propias cuando el contexto funcional lo justifique
+
+las rutas internas pueden consumir controllers o capacidades del módulo dueño
+
+el contexto fuerte del universo debe resolverse o reforzarse desde backend
+
+no debe depender de query params manipulables como única fuente de contexto
+
+no debe duplicar ownership del módulo dueño
+
+Caso vigente:
+
+/service opera sobre Orders para órdenes de servicio.
+
+Orders conserva ownership de las órdenes.
+
+Nombres de rutas vigentes del universo:
+
+service.index
+service.orders.index
+service.orders.create
+service.orders.store
+service.orders.show
+
+Regla:
+
+si un universo semántico opera sobre un módulo dueño, los nombres de ruta deben expresar el universo y el recurso operado sin ocultar el ownership real.
+
 Convención de modelos:
 
 los modelos pueden conservar relaciones pasivas, estructurales o transversales cuando correspondan a columnas propias o patrones reales del ecosistema.
@@ -362,10 +426,13 @@ contexto transitorio de navegación o request
 relación de origen, planificación o seguimiento
 formalización derivada
 enriquecimiento futuro
+universo semántico de entrada o navegación
 
 Regla:
 
 un campo `*_id` no debe interpretarse automáticamente como dependencia obligatoria.
+
+Un universo semántico no debe interpretarse automáticamente como ownership funcional.
 
 Su sentido debe definirse por contrato funcional real, esquema vigente, validación backend y doctrina del módulo.
 
@@ -374,6 +441,12 @@ Caso vigente:
 party_id en Orders y Documents es vínculo gestionado opcional.
 
 No es condición obligatoria de existencia funcional cuando el registro conserva dato propio suficiente de contraparte.
+
+Caso vigente:
+
+/service es universo semántico de entrada para órdenes de servicio.
+
+No convierte a Servicio y mantenimiento en dueño de Orders.
 
 Convención de snapshots propios:
 
@@ -597,6 +670,16 @@ el host decide cómo encajar la frontera dentro de su contrato propio
 
 una carga manual no debe transformarse automáticamente en gestionada sin acción explícita y trazable
 
+si el formulario entra desde un universo semántico especializado, puede recibir un contexto visual como groupLocked para expresar bloqueo de UI
+
+ese bloqueo visual no reemplaza validación backend
+
+el backend debe forzar o validar el valor contextual cuando forma parte del contrato del universo
+
+Caso vigente:
+
+en /service, la creación de órdenes debe operar con group = service como contexto fuerte del universo.
+
 Convención de record_metadata:
 
 record_metadata puede utilizarse como campo JSON flexible del registro para conservar metadata contextual o excepcional.
@@ -650,6 +733,14 @@ Orders no debe conservar task_id ni appointment_id como parte de su núcleo pers
 task_id o appointment_id pueden viajar como contexto transitorio de request o navegación cuando la creación se origine desde Task o Appointment.
 
 Ese contexto no debe convertirse automáticamente en campo persistente del módulo receptor.
+
+Un universo semántico de entrada tampoco debe convertirse automáticamente en campo persistente propio si no pertenece al contrato del módulo receptor.
+
+Caso vigente:
+
+/service puede originar navegación y creación contextual de órdenes de servicio.
+
+El contexto fuerte del universo se expresa mediante el contrato vigente de Orders, no mediante ownership nuevo.
 
 Convención para OrderLinked:
 
@@ -996,6 +1087,20 @@ Orders sostiene la primera base operativa mediante:
 
 group = service
 
+Universo semántico vigente:
+
+/service
+
+Lectura:
+
+/service expresa el frente Servicio y mantenimiento
+
+/service no reemplaza Orders
+
+/service no absorbe ownership de órdenes
+
+/service no convierte mantenimiento en CRUD ordinario
+
 Reglas:
 
 el acceso al área no reemplaza permisos operativos de Orders ni de otros módulos participantes
@@ -1003,6 +1108,8 @@ el acceso al área no reemplaza permisos operativos de Orders ni de otros módul
 las acciones reales continúan bajo el contrato del módulo dueño
 
 no debe confundirse frente habilitable con CRUD ordinario
+
+no debe confundirse universo semántico con ownership funcional
 
 no debe implementarse mantenimiento funcional reabriendo Orders por reflejo si la necesidad corresponde a Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties, OperationalActivity o una pieza satélite propia
 
@@ -1266,6 +1373,47 @@ d-block no produjo el salto de línea esperado en Blades compactos de ProductOpe
 Corrección aplicada:
 
 usar div para garantizar estructura visual en líneas separadas.
+
+Convención de JavaScript reusable:
+
+los comportamientos JavaScript deben nombrarse por la lógica reusable que ejecutan, no por un caso puntual si el comportamiento puede generalizarse.
+
+Regla:
+
+no usar nombres específicos de entidades cuando el patrón real es transversal.
+
+Caso reemplazado:
+
+app-party-asset-sync
+
+Contrato vigente:
+
+app-linked-select-sync
+
+Lectura:
+
+app-linked-select-sync representa sincronización genérica entre selects vinculados.
+
+Contrato de datos vigente:
+
+data-action="app-linked-select-sync"
+data-source-select
+data-target-select
+data-source-value
+
+Reglas:
+
+el nombre del contrato JS debe expresar la mecánica reusable
+
+no debe fijar Party/Asset si puede utilizarse para otras relaciones select dependientes
+
+el JS organiza interacción frontend
+
+no reemplaza validación backend
+
+no decide permisos
+
+no fuerza datos críticos de seguridad por sí mismo
 
 Convención de Project Lab y colas:
 

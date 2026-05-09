@@ -41,7 +41,7 @@ no debe cargarse con teoría arquitectónica general que corresponda a otros doc
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 REGLA GENERAL
 
@@ -52,15 +52,22 @@ No debe crearse navegación por simetría visual, comodidad técnica o existenci
 Reglas obligatorias:
 
 navegación principal expresa estructura estable
+
 navegación contextual expresa relaciones reales de trabajo
+
 dataset interno no equivale a módulo navegable
+
 host visual no equivale a ownership funcional
+
+universo semántico no equivale a ownership funcional
+
 el trail preserva contexto entre pantallas relacionadas
+
 la UI no debe prometer accesos no operables
 
 Regla adicional consolidada:
 
-si una necesidad puede resolverse como pieza reusable del plano tenant o como capacidad publicada por un módulo existente, esa salida debe evaluarse antes de abrir una nueva ruta mental en el sistema mediante navegación adicional.
+si una necesidad puede resolverse como pieza reusable del plano tenant, como capacidad publicada por un módulo existente o como universo semántico contextual, esa salida debe evaluarse antes de abrir una nueva ruta mental en el sistema mediante navegación adicional.
 
 Regla adicional para actividad operativa:
 
@@ -100,7 +107,7 @@ La lectura contextual especial debe estar declarada explícitamente por el módu
 
 Regla adicional para capas satélite productivas:
 
-una capa satélite productiva puede tener entrada visual propia, dashboard operativo especializado o experiencia enfocada sin convertirse automáticamente en navegación CRUD ordinaria.
+una capa satélite productiva puede tener entrada visual propia, dashboard operativo especializado, experiencia enfocada o universo semántico propio sin convertirse automáticamente en navegación CRUD ordinaria.
 
 Caso doctrinal vigente:
 
@@ -110,15 +117,23 @@ Estos frentes no deben crear navegación por simetría ni duplicar módulos exis
 
 Deben orquestar recorridos reales entre Orders, Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties y OperationalActivity respetando ownership funcional.
 
-Caso operativo inicial validado:
+Caso operativo vigente:
 
-Servicio y mantenimiento ya cuenta con entrada operativa mínima como frente habilitable no CRUD.
+Servicio y mantenimiento cuenta con un universo semántico propio:
 
-service_maintenance.view_any permite acceder al área cuando corresponde.
+/service
 
-Orders sostiene la primera base operativa mediante:
+Lectura:
 
-group = service
+/service representa el frente Servicio y mantenimiento
+
+/service no es CRUD ordinario
+
+/service no es módulo dueño de Orders
+
+/service expresa contexto funcional, navegación especializada y acceso operativo al frente satélite
+
+Orders conserva ownership de las órdenes
 
 Reglas:
 
@@ -129,6 +144,8 @@ la autorización debe seguir perteneciendo al módulo dueño o a la capacidad ce
 la existencia de entrada visual no convierte a la capa satélite en CRUD ordinario
 
 una entrada de Servicio y mantenimiento no debe duplicar la navegación estructural de Orders si solo está filtrando o contextualizando órdenes de servicio
+
+un universo semántico debe conservar coherencia de trail, breadcrumbs y redirecciones físicas cuando el usuario entra por ese universo
 
 Regla adicional para subcapas contextuales internas:
 
@@ -221,38 +238,53 @@ cuando existan varias rutas posibles, debe priorizarse la más consistente con N
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN PRINCIPAL TENANT>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 NAVEGACIÓN PRINCIPAL TENANT
 
-La navegación principal tenant expresa los módulos funcionales visibles de la empresa activa.
+La navegación principal tenant expresa los módulos funcionales visibles de la empresa activa y los frentes operativos especializados aprobados.
 
 Debe responder al contrato real del sistema y no a mera existencia técnica de código.
 
 Casos funcionales actuales:
 
 dashboard
+
 projects
+
 tasks
+
 appointments
+
 parties
+
 products
+
 assets
+
 orders
+
 documents
+
 inventory
+
+Frentes operativos especializados vigentes:
+
+service
 
 La aparición real de cada entrada depende de:
 
-módulo habilitado
+módulo o frente habilitado
+
 permiso efectivo
+
 estado operativo cuando corresponda
 
 Regla adicional consolidada:
 
-users no debe aparecer por esta necesidad como módulo navegable autónomo dentro del tenant
+users no debe aparecer por esta necesidad como módulo navegable autónomo dentro del tenant.
 
-La gestión interna de usuarios, pertenencias, roles y permisos continúa anclada al frente tenant/profile/accesses y no a una navegación principal users separada
+La gestión interna de usuarios, pertenencias, roles y permisos continúa anclada al frente tenant/profile/accesses y no a una navegación principal users separada.
 
 Regla adicional consolidada:
 
@@ -278,9 +310,9 @@ TenantProfileAccess::canViewProfile
 
 Regla adicional consolidada:
 
-la navegación principal puede incorporar iconografía por módulo para mejorar lectura visual
+la navegación principal puede incorporar iconografía por módulo o frente para mejorar lectura visual.
 
-esa iconografía debe provenir de metadata modular y no definirse localmente en la vista
+Esa iconografía debe provenir de metadata modular o definición del frente y no definirse localmente de forma dispersa en la vista.
 
 Aclaración vigente para parties:
 
@@ -306,32 +338,59 @@ La navegación principal no debe abrir un menú propio de actividad salvo decisi
 
 Aclaración vigente para Servicios y Mantenimiento:
 
-Servicios y Mantenimiento no debe agregarse automáticamente como módulo funcional ordinario por el hecho de existir como capa satélite productiva.
+Servicios y Mantenimiento no debe agregarse como módulo funcional ordinario ni CRUD independiente por existir como capa satélite productiva.
 
-Si posee entrada visual, dashboard operativo o acceso especializado, esa entrada debe documentarse como frente operativo de capa satélite y no como CRUD ordinario por defecto.
+Sí puede tener entrada principal como frente operativo especializado cuando exista necesidad funcional y autorización vigente.
 
-Estado operativo inicial validado:
+Estado operativo vigente:
 
-Servicio y mantenimiento posee entrada operativa mínima como frente habilitable no CRUD.
+Servicio y mantenimiento posee universo semántico propio:
 
-service_maintenance.view_any permite acceder al área cuando el tenant lo tenga habilitado y el usuario posea autorización efectiva.
+/service
+
+Label visible:
+
+Servicio y mantenimiento
+
+Route name:
+
+service.index
+
+Lectura:
+
+/service actúa como dashboard mínimo del universo Servicio y mantenimiento.
+
+/service es frente operativo especializado de una capa satélite.
+
+/service no reemplaza Orders.
+
+/service no duplica CRUD de Orders.
+
+/service no absorbe ownership de las órdenes.
+
+Orders sostiene la operación real de órdenes de servicio.
 
 La entrada visual responde al frente especializado, no a un CRUD independiente.
 
-Orders sostiene la primera base operativa mediante:
+La entrada visual debe responder a una necesidad funcional real:
 
-group = service
+ver órdenes de servicio
 
-La entrada visual, si corresponde, debe responder a una necesidad funcional real:
+crear nueva orden de servicio
 
-planificar trabajos
-separar trabajos internos y externos
-ver bloqueos
-ver capacidad operativa
-ver estados de ejecución
-organizar recursos
-acceder a órdenes electrónicas livianas o paquetes de trabajo
-acceder contextualmente a órdenes de servicio
+planificar trabajos cuando se implemente
+
+separar trabajos internos y externos cuando se implemente
+
+ver bloqueos cuando se implemente
+
+ver capacidad operativa cuando se implemente
+
+ver estados de ejecución cuando se implemente
+
+organizar recursos cuando se implemente
+
+acceder a órdenes electrónicas livianas o paquetes de trabajo cuando se implemente
 
 Regla:
 
@@ -342,7 +401,7 @@ Su función es dar acceso estructural al ecosistema operativo vigente.
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00019
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -372,9 +431,11 @@ assets y parties mantienen sus relaciones propias dentro del ecosistema general
 
 tenant/profile actúa como frente de gobierno interno del tenant para usuarios, memberships, roles y permisos
 
+service puede actuar como universo semántico de acceso contextual a órdenes de servicio sin absorber ownership de Orders
+
 Regla de frontera:
 
-que un módulo hospede visualmente una capacidad ajena no lo convierte en dueño de su lógica operativa.
+que un módulo o universo hospede visualmente una capacidad ajena no lo convierte en dueño de su lógica operativa.
 
 El módulo oferente conserva reglas, validaciones y evolución interna.
 
@@ -415,9 +476,13 @@ la edición de funciones de una membership puede resolverse como micro-interacci
 Patrón visible:
 
 acción por fila
+
 apertura de modal
+
 edición del conjunto de funciones
+
 cancelar o guardar
+
 recarga natural tras submit cuando corresponda
 
 Esta interacción no constituye navegación nueva ni cambio de recurso.
@@ -486,27 +551,109 @@ la navegación embebida no debe duplicar información del host ni reconstruir l�
 
 Aclaración vigente para Servicio y mantenimiento:
 
-Servicio y mantenimiento puede funcionar como frente especializado de acceso a órdenes de servicio sin absorber la navegación propia de Orders.
+Servicio y mantenimiento funciona como frente especializado de acceso a órdenes de servicio sin absorber la navegación propia de Orders.
+
+Universo vigente:
+
+/service
+
+Nodo raíz:
+
+/service
+
+Label visible:
+
+Servicio y mantenimiento
+
+Route name:
+
+service.index
+
+Dashboard mínimo vigente:
+
+/service
+
+Flujo contextual vigente:
+
+Dashboard principal
+→ Servicio y mantenimiento
+→ Órdenes de servicio
+→ Nueva orden de servicio
+→ Show de orden de servicio
+
+Rutas semánticas vigentes del universo:
+
+GET /service
+
+GET /service/orders
+
+GET /service/orders/create
+
+POST /service/orders
+
+GET /service/orders/{order}
+
+Nombres de ruta vigentes:
+
+service.index
+
+service.orders.index
+
+service.orders.create
+
+service.orders.store
+
+service.orders.show
+
+Lectura:
+
+service.orders.* opera sobre Orders en contexto de servicio.
+
+Orders conserva ownership funcional.
+
+El universo /service conserva contexto navegacional propio.
+
+No debe dependerse de ?group=service para sostener la navegación contextual del universo.
+
+Breadcrumb contextual vigente dentro del universo /service:
+
+Inicio
+
+Servicio y mantenimiento
+
+Órdenes de servicio
+
+Orden específica, cuando corresponda
+
+Regla:
+
+si el request pertenece a service.orders.*, la navegación, links de tabla, redirects y breadcrumbs deben conservar el universo service cuando corresponda.
+
+Si el request pertenece al universo ordinario de Orders, deben usarse rutas orders.*.
 
 Caso vigente:
 
-orders.index?group=service
+OrderNavigationTrail puede resolver base contextual de órdenes de servicio mediante serviceOrdersBase().
 
-Pendiente contextual inmediato:
+Caso vigente:
 
-el listado filtrado por group = service debe expresarse visualmente como Órdenes de servicio cuando se acceda desde el frente Servicio y mantenimiento.
+orders.partials.table puede recibir showRouteName para apuntar a orders.show o service.orders.show según el universo de navegación.
+
+Caso vigente:
+
+una orden creada desde /service/orders debe redirigir físicamente a /service/orders/{order}.
 
 Reglas:
 
 el contexto visual de servicio no cambia el ownership de Orders
 
-el filtro group = service no convierte Orders en módulo secundario
+el filtro o contexto group = service no convierte Orders en módulo secundario
 
-la navegación hacia la orden debe seguir usando rutas y contratos de Orders
+la navegación hacia la orden debe seguir usando rutas y contratos de Orders o del universo contextual según corresponda
 
 las acciones reales sobre la orden deben seguir autorizándose por Orders
 
-el frente Servicio y mantenimiento no debe inventar navegación paralela si puede usar contexto, filtros, trail o surfaces oficiales
+el frente Servicio y mantenimiento no debe inventar navegación paralela si puede usar contexto, rutas semánticas, trail o surfaces oficiales
 
 <<END SECTION>>
 

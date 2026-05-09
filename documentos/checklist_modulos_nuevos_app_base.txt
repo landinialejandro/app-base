@@ -68,13 +68,13 @@ documentación actualizada
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00012
+SECTION_VERSION: 00013
 
 REGLA GENERAL
 
 Ningún módulo debe considerarse terminado por tener tablas, rutas o CRUD funcionando.
 
-Un módulo solo puede considerarse integrado cuando supera este checklist en forma coherente.
+Un módulo, capacidad, frente contextual o universo semántico solo puede considerarse integrado cuando supera este checklist en forma coherente.
 
 Orden correcto:
 
@@ -84,7 +84,7 @@ definir relaciones reales necesarias
 definir superficie de integración
 definir si participa en trazabilidad operativa transversal
 definir si consume lectura contextual de actividad operativa, directa, agregada o contextual especial cuando corresponda
-definir si la necesidad corresponde a módulo funcional ordinario, capacidad transversal, pieza satélite, entidad hija, subcapa interna de módulo existente, surface tenant/transversal o frente operativo especializado
+definir si la necesidad corresponde a módulo funcional ordinario, capacidad transversal, pieza satélite, entidad hija, subcapa interna de módulo existente, surface tenant/transversal, frente operativo especializado o universo semántico
 implementar
 auditar
 ajustar documentación afectada
@@ -160,6 +160,7 @@ experiencia enfocada
 lectura consolidada
 contrato nuevo del módulo dueño
 subcapa contextual interna de un módulo existente
+universo semántico de navegación y uso
 
 Caso vigente:
 
@@ -175,7 +176,7 @@ si una necesidad es propia de mantenimiento pero no corresponde al núcleo de un
 
 si una necesidad puede resolverse mediante lectura consolidada, surfaces, contratos existentes o capacidades oficiales, no debe abrirse una pieza nueva por reflejo automático
 
-Caso operativo inicial validado:
+Caso operativo vigente:
 
 service_maintenance existe como frente habilitable no CRUD.
 
@@ -185,6 +186,10 @@ Orders sostiene la primera base operativa mediante:
 
 group = service
 
+Universo semántico vigente:
+
+/service
+
 Reglas:
 
 el acceso al área no reemplaza permisos operativos de Orders ni de otros módulos participantes
@@ -193,7 +198,61 @@ las acciones reales continúan bajo el contrato del módulo dueño
 
 el frente habilitable no CRUD no debe tratarse como CRUD ordinario
 
+el universo semántico no debe tratarse como ownership funcional
+
 la entrada visual no debe convertirse por sí sola en duplicación de navegación, tablas o rutas si puede apoyarse en contratos vigentes
+
+Regla adicional para universos funcionales o frentes contextuales:
+
+si se crea un universo funcional sobre módulos existentes, debe verificarse:
+
+qué frente representa
+
+qué módulo conserva ownership de cada recurso operado
+
+qué rutas semánticas son necesarias
+
+qué permiso habilita acceso al área
+
+qué permisos operativos siguen perteneciendo al módulo dueño
+
+qué valores contextuales deben forzarse o validarse desde backend
+
+qué breadcrumbs y trails preservan el contexto
+
+qué redirecciones físicas deben mantenerse dentro del universo
+
+qué partials reutilizables necesitan configuración explícita
+
+qué query params dejan de ser fuente fuerte de contexto
+
+qué validaciones con request manipulado se ejecutaron
+
+qué rollback o limpieza se aplicó en pruebas
+
+Reglas:
+
+no crear ownership indebido
+
+no duplicar CRUD
+
+no depender solo de query params manipulables
+
+no considerar bloqueo visual como seguridad
+
+no considerar hidden inputs como seguridad
+
+no considerar JS como seguridad
+
+no romper navegación contextual al redirigir al usuario fuera del universo luego de una acción interna
+
+Caso validado:
+
+/service usa Orders como módulo dueño.
+
+POST /service/orders fuerza group = service desde backend.
+
+Una orden creada desde /service redirige físicamente al universo /service.
 
 Regla adicional para vínculos gestionados opcionales y referencias propias:
 
@@ -469,6 +528,24 @@ Regla adicional para estado cerrado:
 una orden cerrada no debe quedar operable por interfaces satélite, dashboards, automatizaciones ni IA.
 
 Toda reapertura debe respetar autorización vigente.
+
+Regla adicional para JS frontend:
+
+si una interacción frontend puede ser genérica, no debe nombrarse con entidades concretas de un caso particular.
+
+Caso validado:
+
+app-party-asset-sync fue reemplazado por app-linked-select-sync.
+
+Reglas:
+
+el contrato JS debe nombrar la mecánica reusable
+
+el JS no decide seguridad
+
+el JS no reemplaza validación backend
+
+el JS no debe sostener por sí solo consistencia de datos críticos
 
 <<END SECTION>>
 

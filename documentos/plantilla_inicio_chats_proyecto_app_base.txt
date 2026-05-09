@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00021
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -596,8 +596,6 @@ No se lee como módulo CRUD ordinario por defecto.
 
 Estado vigente:
 
-Fase 1.1 inició con entrada operativa mínima como frente habilitable no CRUD.
-
 service_maintenance existe como frente habilitable no CRUD.
 
 service_maintenance.view_any permite acceso al área Servicio y mantenimiento.
@@ -609,6 +607,61 @@ Las acciones reales continúan bajo el contrato del módulo dueño.
 Orders sostiene la primera base operativa mediante:
 
 group = service
+
+Universo semántico vigente:
+
+/service
+
+Lectura:
+
+/service representa el frente Servicio y mantenimiento.
+
+/service no es módulo dueño nuevo.
+
+/service no reemplaza Orders.
+
+/service no absorbe ownership de las órdenes.
+
+/service permite operar órdenes de servicio desde rutas semánticas propias.
+
+Rutas validadas:
+
+GET /service
+GET /service/orders
+GET /service/orders/create
+POST /service/orders
+GET /service/orders/{order}
+
+Nombres de ruta validados:
+
+service.index
+service.orders.index
+service.orders.create
+service.orders.store
+service.orders.show
+
+Reglas vigentes:
+
+POST /service/orders fuerza group = service desde backend aunque el request intente enviar otro grupo.
+
+La creación de órdenes de servicio no depende de ?group=service.
+
+Una orden creada desde /service debe redirigir físicamente a /service/orders/{order}.
+
+El formulario de orden de servicio debe mantenerse simple.
+
+La carga manual aparece solo si no existen componentes externos gestionados.
+
+El JS de selects vinculados se generalizó a:
+
+app-linked-select-sync
+
+Contrato vigente:
+
+data-action="app-linked-select-sync"
+data-source-select
+data-target-select
+data-source-value
 
 party_id y asset_id funcionan como vínculos opcionales en órdenes de servicio.
 
@@ -626,14 +679,12 @@ cierres técnicos
 cierres administrativos ampliados
 cierres finales
 línea de tiempo operativa específica de mantenimiento
+dashboard operativo avanzado
+lógica CMMS completa
 
 Regla:
 
 no implementar mantenimiento funcional reabriendo Orders por reflejo si la necesidad corresponde a Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties, OperationalActivity o una pieza satélite propia.
-
-Pendiente inmediato:
-
-ajustar la lectura contextual de orders.index?group=service para que el listado se exprese visualmente como Órdenes de servicio y no como Orders genérico.
 
 IA operativa:
 

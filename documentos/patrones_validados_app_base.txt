@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00017
 
 PATRONES VIGENTES
 
@@ -731,5 +731,188 @@ la capa satélite no absorbe ownership de Orders, Assets, Inventory, Products, A
 la entrada visual no implica CRUD ordinario
 
 el frente especializado puede orientar la experiencia sin crear módulos o tablas por reflejo automático
+
+UNIVERSO SEMÁNTICO DE URL
+
+Patrón validado:
+
+una URL raíz puede representar un frente funcional especializado sin convertirlo automáticamente en módulo dueño.
+
+El universo semántico expresa:
+
+contexto funcional
+intención de uso
+navegación especializada
+entrada operativa
+rutas propias del frente
+
+No expresa por sí mismo:
+
+ownership funcional
+permiso operativo sobre recursos participantes
+CRUD ordinario nuevo
+duplicación del módulo dueño
+
+Caso validado:
+
+/service
+
+Lectura:
+
+/service representa el frente Servicio y mantenimiento.
+
+/service no reemplaza Orders.
+
+/service no absorbe ownership de órdenes.
+
+/service no convierte órdenes de servicio en entidad ajena a Orders.
+
+Orders conserva ownership funcional de las órdenes.
+
+Rutas validadas:
+
+GET /service
+GET /service/orders
+GET /service/orders/create
+POST /service/orders
+GET /service/orders/{order}
+
+Nombres de ruta validados:
+
+service.index
+service.orders.index
+service.orders.create
+service.orders.store
+service.orders.show
+
+Reglas:
+
+el universo puede tener rutas propias cuando el contexto funcional lo justifique
+
+las rutas internas pueden consumir controllers o capacidades del módulo dueño
+
+el contexto funcional fuerte debe aplicarse desde backend
+
+el universo no debe depender de query params manipulables como única fuente de contexto
+
+las vistas pueden adaptarse al contexto del universo
+
+los breadcrumbs deben reflejar el universo
+
+las redirecciones físicas deben conservar el universo cuando el usuario entra por ese frente
+
+RUTA CONTEXTUAL FUERTE SIN QUERY PARAM MANIPULABLE
+
+Patrón validado:
+
+cuando un frente especializado requiere contexto funcional fuerte, no debe depender únicamente de un query param manipulable.
+
+Caso validado:
+
+/service/orders no depende de ?group=service.
+
+El contexto service se define desde el universo /service.
+
+Regla:
+
+si una orden se crea desde /service/orders, group = service debe resolverse desde backend.
+
+Si el request intenta enviar un group incompatible con el universo, el backend debe preservar el contexto funcional correcto.
+
+Lectura:
+
+ocultar, eliminar u ofuscar un query param no es seguridad.
+
+La seguridad y coherencia funcional deben sostenerse en backend.
+
+CAMPO BLOQUEADO POR CONTEXTO
+
+Patrón validado:
+
+un formulario puede bloquear visualmente un campo cuando el contexto del universo define un valor fijo.
+
+La UI puede expresar:
+
+campo deshabilitado
+hidden complementario
+texto fijo
+estado visual bloqueado
+
+Pero esto no reemplaza backend.
+
+Caso validado:
+
+en /service, el campo Tipo puede mostrarse bloqueado visualmente como Servicio.
+
+Reglas:
+
+la UI comunica contexto
+
+el backend valida o fuerza el valor
+
+un input manipulado no debe romper el contexto del universo
+
+el bloqueo visual no debe considerarse seguridad
+
+JS GENÉRICO PARA SELECTS VINCULADOS
+
+Patrón validado:
+
+si una interacción frontend expresa una mecánica reusable, el contrato JavaScript debe nombrarse por esa mecánica y no por entidades de un caso puntual.
+
+Caso reemplazado:
+
+app-party-asset-sync
+
+Contrato vigente:
+
+app-linked-select-sync
+
+Uso:
+
+data-action="app-linked-select-sync"
+data-source-select
+data-target-select
+data-source-value
+
+Lectura:
+
+app-linked-select-sync sincroniza selects vinculados de forma genérica.
+
+Reglas:
+
+no fijar nombres Party/Asset si la mecánica puede reutilizarse
+
+el JS no decide permisos
+
+el JS no reemplaza validación backend
+
+el JS no debe ser la única defensa de consistencia para datos críticos
+
+TINKER CON REQUEST MANIPULADO Y ROLLBACK
+
+Patrón validado:
+
+una prueba Tinker puede simular request manipulado para verificar que el backend sostenga el contrato real.
+
+Uso validado:
+
+enviar un valor manipulado
+confirmar que backend fuerza o valida el valor correcto
+confirmar redirección esperada
+confirmar persistencia esperada
+aplicar rollback si la prueba no debe dejar datos finales
+
+Caso validado:
+
+POST /service/orders con group manipulado debe preservar group = service desde backend y redirigir al universo /service.
+
+Reglas:
+
+la prueba debe usar usuario real, tenant real, permisos reales y runtime real cuando corresponda
+
+el rollback debe confirmar que no quedan datos de prueba
+
+la salida debe servir como evidencia para cierre técnico y documental
 
 <<END SECTION>>

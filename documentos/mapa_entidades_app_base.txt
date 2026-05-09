@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00022
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -225,6 +225,54 @@ task_id solo puede existir como parámetro transitorio de creación contextual.
 La relación persistente con Appointments no vive en orders.appointment_id.
 
 La relación se resuelve desde Appointments mediante appointments.order_id.
+
+Aclaración operativa de órdenes de servicio:
+
+Las órdenes de servicio pertenecen a Orders.
+
+El universo /service expresa contexto funcional y navegación especializada, pero no crea una entidad nueva.
+
+Lectura vigente:
+
+/service → Orders
+
+service.orders.* → rutas semánticas de acceso contextual a Orders
+
+group = service → clasificación funcional de Orders para órdenes de servicio
+
+Reglas:
+
+/service no reemplaza la entidad Orders
+
+/service no absorbe ownership de orders ni order_items
+
+/service no convierte órdenes de servicio en registros ajenos a Orders
+
+la creación contextual desde /service debe producir Orders con group = service
+
+la numeración de órdenes de servicio pertenece al contrato de numeración de Orders
+
+Secuencia vigente para órdenes de servicio:
+
+order.service
+
+Prefijo vigente:
+
+OSE
+
+Regla:
+
+el significado del prefijo pertenece al catálogo o contrato de Orders.
+
+La mecánica de numeración puede resolverse por servicio transversal, pero no debe decidir el significado de negocio de la orden.
+
+En flujo gestionado normal con Party y Asset, record_metadata puede permanecer null cuando no existe manualidad ni excepción contextual.
+
+Regla:
+
+record_metadata registra excepciones, manualidad o metadata contextual.
+
+No debe utilizarse como fuente principal para representar la entidad ni el dato operativo visible.
 
 Aclaración operativa de Tasks:
 
@@ -610,6 +658,10 @@ service_maintenance existe como frente habilitable no CRUD.
 
 service_maintenance.view_any permite acceso al área.
 
+Servicio y mantenimiento cuenta con universo semántico propio:
+
+/service
+
 Orders sostiene la primera base operativa mediante:
 
 group = service
@@ -628,6 +680,8 @@ estas relaciones no alteran ownership de los módulos existentes
 
 la entrada operativa de Servicio y mantenimiento no convierte la capa satélite en módulo CRUD ordinario
 
+el universo /service no convierte Servicio y mantenimiento en dueño de Orders
+
 el acceso al área no reemplaza permisos operativos de los módulos participantes
 
 no deben asumirse campos técnicos nuevos en Assets sin contrato, esquema y validación real
@@ -644,6 +698,7 @@ trazabilidad transversal
 surfaces tenant/transversales no modulares
 fronteras explícitas publicadas por módulos dueños
 capas satélite productivas
+universos semánticos
 subcapas contextuales internas
 asistencia IA transversal
 

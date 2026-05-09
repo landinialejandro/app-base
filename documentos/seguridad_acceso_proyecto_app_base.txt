@@ -91,7 +91,7 @@ los detalles técnicos pueden evolucionar sin alterar estos principios rectores
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00028
+SECTION_VERSION: 00029
 
 PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
 
@@ -101,7 +101,7 @@ AUTORIDAD CENTRAL
 
 La decisión final de acceso pertenece a la capa central de seguridad vigente.
 
-Ninguna vista, componente, integración reusable, consumidor externo, registro de actividad, automatización, dashboard operativo, pieza satélite, subcapa contextual interna o asistencia IA reemplaza esa decisión.
+Ninguna vista, componente, integración reusable, consumidor externo, registro de actividad, automatización, dashboard operativo, universo semántico, pieza satélite, subcapa contextual interna o asistencia IA reemplaza esa decisión.
 
 TENANT OBLIGATORIO
 
@@ -125,7 +125,7 @@ owner gobierna
 
 SEPARACIÓN DE PLANOS
 
-Dataset disponible, visibilidad UI, permiso efectivo, trazabilidad, automatización, subcapa contextual, dashboard operativo, pieza satélite e intervención IA son planos distintos.
+Dataset disponible, visibilidad UI, permiso efectivo, trazabilidad, automatización, subcapa contextual, dashboard operativo, universo semántico, pieza satélite e intervención IA son planos distintos.
 
 Uno no implica automáticamente al otro.
 
@@ -143,6 +143,8 @@ las automatizaciones no reemplazan autorización
 
 un dashboard operativo no habilita acciones fuera del contrato del módulo dueño
 
+un universo semántico no habilita acciones fuera del contrato del módulo dueño
+
 una pieza satélite no absorbe permisos de módulos participantes
 
 una subcapa contextual no habilita acceso automático a todos los datos del módulo host ni de módulos relacionados
@@ -155,7 +157,7 @@ Los módulos consumidores no deben reinterpretar reglas internas de otro módulo
 
 Deben consumir capacidades oficiales y someterse al arbitraje central.
 
-Las capas satélite productivas deben consumir contratos oficiales de módulos dueños y no duplicar autorización.
+Las capas satélite productivas y sus universos semánticos deben consumir contratos oficiales de módulos dueños y no duplicar autorización.
 
 Las subcapas contextuales internas deben consumir datos autorizados y no absorber permisos ni ownership de módulos relacionados.
 
@@ -201,7 +203,7 @@ un vínculo opcional con Party, Asset, Task, Appointment o Document no autoriza 
 
 crear un Document desde una Order requiere autorización efectiva sobre Documents
 
-crear una Order desde un contexto de Task o Appointment requiere autorización efectiva sobre Orders
+crear una Order desde un contexto de Task, Appointment o universo semántico requiere autorización efectiva sobre Orders
 
 el parámetro contextual de request no equivale a permiso concedido
 
@@ -229,9 +231,23 @@ no autoriza la operación original
 
 La lectura contextual puede ser directa, agregada o contextual especial, siempre dentro del contrato definido por el módulo dueño y con host previamente autorizado.
 
-CAPAS SATÉLITE PRODUCTIVAS Y ACCESO AL ÁREA
+CAPAS SATÉLITE PRODUCTIVAS, UNIVERSOS SEMÁNTICOS Y ACCESO AL ÁREA
 
 Una capa satélite productiva puede tener una capacidad o permiso propio de acceso al área sin absorber permisos de los módulos que orquesta.
+
+También puede tener un universo semántico propio cuando el flujo funcional lo justifique.
+
+Caso vigente:
+
+/service
+
+Lectura:
+
+/service expresa el universo semántico del frente Servicio y mantenimiento.
+
+/service no autoriza por sí mismo acciones internas sobre órdenes, activos, inventario, productos, turnos, tareas, documentos, adjuntos, contactos ni actividad operativa.
+
+/service no reemplaza el contrato de Orders.
 
 Caso vigente:
 
@@ -255,7 +271,7 @@ Por lo tanto, las acciones reales sobre órdenes de servicio deben pasar por aut
 
 Regla:
 
-un permiso de acceso al área no debe confundirse con permiso operativo sobre los recursos participantes.
+un permiso de acceso al área o un universo semántico no debe confundirse con permiso operativo sobre los recursos participantes.
 
 ACCIONES CRÍTICAS
 
@@ -316,6 +332,8 @@ el registro de actividad operativa no modifica el permiso efectivo de la acción
 la lectura contextual heredada solo alcanza actividad asociada al registro host ya autorizado o al criterio contextual declarado por el módulo dueño
 
 los dashboards operativos no habilitan acciones fuera del contrato del módulo dueño
+
+los universos semánticos no habilitan acciones fuera del contrato del módulo dueño
 
 los vínculos opcionales entre módulos no reemplazan Security
 
@@ -550,7 +568,7 @@ No reemplazan la singularidad estructural del owner.
 <<END SECTION>>
 
 <<SECTION: MODELO V2 DE PERMISOS>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00016
 
 MODELO V2 DE PERMISOS
 
@@ -568,6 +586,7 @@ policy consumidora
 UI consumidora
 surface consumidora
 subcapa contextual consumidora
+universo semántico consumidor
 automatización consumidora
 IA consumidora cuando corresponda
 
@@ -603,6 +622,9 @@ consumo visual embebido que debe respetar autorización del host o capacidad pro
 subcapa contextual:
 lectura interna de un módulo host que puede requerir condiciones propias de visibilidad y datos autorizados de módulos relacionados
 
+universo semántico:
+entrada funcional contextual que puede orientar rutas, navegación o datos forzados, pero no reemplaza permisos del módulo dueño
+
 automatización:
 consumidor operativo que debe pasar por el contrato oficial antes de ejecutar o preparar acciones
 
@@ -618,6 +640,8 @@ una acción no queda autorizada por estar sugerida por IA
 una automatización no queda autorizada por estar programada
 
 un dashboard no queda autorizado para operar si el módulo dueño no autoriza la acción
+
+un universo semántico no queda autorizado para operar si el módulo dueño no autoriza la acción
 
 una pieza satélite no puede crear permisos paralelos que eviten el contrato del módulo dueño
 
@@ -645,13 +669,13 @@ service_maintenance.view_any permite acceso al área Servicio y mantenimiento si
 
 Regla:
 
-no debe crearse capability persistida por reflejo automático cuando una capacidad, subcapa contextual o frente satélite puede resolverse correctamente con el contrato vigente.
+no debe crearse capability persistida por reflejo automático cuando una capacidad, subcapa contextual, universo semántico o frente satélite puede resolverse correctamente con el contrato vigente.
 
 Esto no impide evolucionar a permisos persistidos propios si luego se justifica.
 
-Regla para capas satélite:
+Regla para capas satélite y universos semánticos:
 
-una capa satélite no concede permisos propios sobre todos los módulos participantes por el solo hecho de existir como frente operativo.
+una capa satélite o universo semántico no concede permisos propios sobre todos los módulos participantes por el solo hecho de existir como frente operativo.
 
 Cada operación debe volver al contrato del módulo dueño o capacidad central correspondiente.
 
@@ -735,7 +759,7 @@ la UI puede expresar lectura, readonly o acción disponible, pero el backend deb
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00030
+SECTION_VERSION: 00031
 
 REGLAS DE IMPLEMENTACIÓN SEGURA
 
@@ -757,15 +781,15 @@ evitar duplicar reglas dispersas en múltiples capas
 
 preferir capacidades oficiales del módulo oferente antes que bypass técnicos
 
-no usar trazabilidad, dashboards, piezas satélite, subcapas contextuales, automatizaciones ni IA como atajos de autorización
+no usar trazabilidad, dashboards, universos semánticos, piezas satélite, subcapas contextuales, automatizaciones ni IA como atajos de autorización
 
 no reconstruir lógica de seguridad, bloqueo o integridad de otro módulo dentro del controller consumidor
 
-Cuando una acción se ejecute desde surfaces embebidas, modales o row actions, la validación backend sigue siendo obligatoria.
+Cuando una acción se ejecute desde surfaces embebidas, universos semánticos, modales o row actions, la validación backend sigue siendo obligatoria.
 
 Cuando existan recursos padre e hijos, debe respetarse además la subordinación funcional entre ambos.
 
-Las mejoras visuales o de UX nunca justifican relajar seguridad.
+Las mejoras visuales, semánticas, navegacionales o de UX nunca justifican relajar seguridad.
 
 La reutilización visual mediante componentes comunes no debe centralizar decisiones de permiso.
 
@@ -959,23 +983,35 @@ No reconstruye scopes.
 
 No decide acceso.
 
-CAPAS SATÉLITE PRODUCTIVAS
+CAPAS SATÉLITE PRODUCTIVAS Y UNIVERSOS SEMÁNTICOS
 
-Una capa satélite productiva puede tener acceso propio al área, pero no debe ejecutar operaciones internas sin pasar por el módulo dueño.
+Una capa satélite productiva puede tener acceso propio al área y universo semántico propio, pero no debe ejecutar operaciones internas sin pasar por el módulo dueño.
 
 Caso vigente:
+
+/service expresa el universo semántico del frente Servicio y mantenimiento.
 
 service_maintenance.view_any permite acceder al frente Servicio y mantenimiento.
 
 Reglas:
 
-no autoriza crear, editar, cerrar, cancelar, reabrir ni ejecutar órdenes por sí mismo
+/service no autoriza operaciones por sí mismo
+
+service_maintenance.view_any no autoriza crear, editar, cerrar, cancelar, reabrir ni ejecutar órdenes por sí mismo
 
 no autoriza operaciones sobre Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity
 
 las órdenes de servicio siguen bajo contrato de Orders
 
 las acciones reales deben validar permisos, tenant, estado y reglas del módulo dueño
+
+los valores contextuales fuertes del universo no deben depender de parámetros manipulables del request
+
+si un valor contextual define el universo funcional, debe forzarse o validarse en backend
+
+Caso vigente:
+
+en el universo /service, group = service debe resolverse desde backend y no depender de ?group=service ni de un input manipulable.
 
 <<END SECTION>>
 
@@ -1063,7 +1099,7 @@ no deben confundirse con vínculos opcionales de enriquecimiento
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00028
+SECTION_VERSION: 00029
 
 CONTRATO DE SEGURIDAD MODULAR
 
@@ -1082,6 +1118,7 @@ qué superficies consume o publica
 qué capacidades transversales registra o consulta
 qué vínculos son obligatorios y cuáles son opcionales
 qué fronteras externas pueden bloquear o condicionar acciones propias
+qué universos semánticos o frentes contextuales pueden consumirlo sin absorber su ownership
 
 Reglas:
 
@@ -1090,6 +1127,8 @@ no contradecir seguridad central
 no trasladar ownership de permisos entre módulos
 
 el host visual no absorbe seguridad de capacidades invitadas
+
+el universo semántico no absorbe seguridad del módulo dueño
 
 los estados operativos forman parte real del contrato cuando afectan operación
 
@@ -1101,9 +1140,9 @@ la ausencia de un vínculo opcional no debe bloquear la operación si el contrat
 
 una frontera externa puede condicionar una acción, pero no reemplaza la autorización principal del módulo dueño
 
-Las capacidades publicadas, incluyendo row actions, surfaces, subcapas contextuales y lecturas embebidas, pertenecen al módulo oferente o a la capacidad que las define.
+Las capacidades publicadas, incluyendo row actions, surfaces, subcapas contextuales, universos semánticos y lecturas embebidas, pertenecen al módulo oferente o a la capacidad que las define.
 
-El host monta, pero no redefine seguridad.
+El host monta o contextualiza, pero no redefine seguridad.
 
 Cuando un módulo opera sobre recursos externos, debe validar:
 
@@ -1142,6 +1181,24 @@ Casos vigentes:
 crear un Document desde una Order requiere autorización efectiva para documents.create
 
 crear una Order desde una Task o Appointment requiere autorización efectiva para orders.create
+
+crear una Order desde el universo /service requiere autorización efectiva para orders.create según el contrato de Orders
+
+Regla para universos semánticos:
+
+un universo semántico puede definir contexto funcional, navegación, rutas y valores forzados por backend.
+
+No concede permisos operativos por sí mismo.
+
+No reemplaza el permiso del módulo dueño.
+
+No debe depender de query params manipulables para sostener reglas de seguridad.
+
+Caso vigente:
+
+/service define contexto funcional de órdenes de servicio.
+
+Orders conserva el contrato de seguridad de la creación y visualización de órdenes.
 
 Regla para hooks y fronteras externas:
 
@@ -1215,11 +1272,13 @@ La subcapa no debe leer datasets relacionados fuera del contrato autorizado.
 
 Regla para capas satélite productivas:
 
-una capa satélite puede tener permiso de acceso al área sin absorber permisos de los módulos participantes.
+una capa satélite puede tener permiso de acceso al área o universo semántico propio sin absorber permisos de los módulos participantes.
 
 Caso vigente:
 
 service_maintenance.view_any
+
+/service
 
 Regla:
 
@@ -1324,7 +1383,7 @@ OperationalActivity puede publicar lectura contextual, pero no autoriza la opera
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00028
+SECTION_VERSION: 00029
 
 REGLAS OPERATIVAS POR MÓDULO
 
@@ -1392,7 +1451,7 @@ la presencia de party_id no otorga autorización por sí misma
 
 Orders no debe conservar task_id ni appointment_id como relaciones persistentes de su núcleo
 
-si una Order se crea desde Task o Appointment, esos datos pueden viajar como contexto transitorio de request o navegación
+si una Order se crea desde Task, Appointment o universo semántico, esos datos pueden viajar como contexto transitorio de request o navegación
 
 la autorización real corresponde a Orders y a Security
 
@@ -1417,6 +1476,32 @@ Orders puede consultar fronteras explícitas para bloqueos externos
 OrderController no debe reconstruir internamente la lógica de Inventory
 
 si falla una consulta de bloqueo crítico, debe asumirse escenario seguro
+
+UNIVERSO /SERVICE
+
+/service expresa el universo semántico del frente Servicio y mantenimiento.
+
+Reglas:
+
+/service no reemplaza el contrato de seguridad de Orders
+
+/service no autoriza acciones sobre Orders por sí mismo
+
+/service no autoriza acciones sobre otros módulos participantes
+
+el acceso al frente requiere autorización de acceso al área según contrato vigente
+
+la creación de órdenes desde /service requiere autorización efectiva de Orders
+
+la visualización de órdenes desde /service requiere autorización efectiva sobre Orders y sobre el registro concreto cuando corresponda
+
+group = service debe forzarse o validarse desde backend cuando la entrada proviene del universo /service
+
+no debe dependerse de ?group=service como medida de seguridad
+
+no debe dependerse de un campo visual bloqueado como medida de seguridad
+
+si el request intenta enviar un group incompatible con el universo, el backend debe preservar el contexto funcional correcto
 
 TASKS Y APPOINTMENTS
 
@@ -1593,6 +1678,10 @@ No concede permisos propios sobre todos los módulos participantes por el solo h
 Caso vigente:
 
 service_maintenance.view_any permite acceso al área Servicio y mantenimiento.
+
+Caso vigente:
+
+/service expresa el universo semántico del frente.
 
 Reglas:
 

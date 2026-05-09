@@ -21,9 +21,9 @@ class ProjectLab
 
     private const REGEX_BLADE_FILE_HEADER = '/^\{\{\-\-\s*FILE:\s*((?!.*(?:\s::\s|\s\+\+\s)).+?\.blade\.php)(?:\s*\|\s*(V\d+))?\s*\-\-\}\}$/';
 
-    private const REGEX_PLAIN_FILE_HEADER_LINE = '/^\/\/\s*FILE:\s*((?!.*(?:\s::\s|\s\+\+\s)).+?\.(?:css|js))(?:\s*\|\s*(V\d+))?\s*$/';
+    private const REGEX_PLAIN_FILE_HEADER_LINE = '/^(?:\/\/|#)\s*FILE:\s*((?!.*(?:\s::\s|\s\+\+\s)).+?\.(?:css|js|tpl))(?:\s*\|\s*(V\d+))?\s*$/';
 
-    private const REGEX_PLAIN_FILE_HEADER_BLOCK = '/^\/\*\s*FILE:\s*((?!.*(?:\s::\s|\s\+\+\s)).+?\.(?:css|js))(?:\s*\|\s*(V\d+))?\s*\*\/$/';
+    private const REGEX_PLAIN_FILE_HEADER_BLOCK = '/^\/\*\s*FILE:\s*((?!.*(?:\s::\s|\s\+\+\s)).+?\.(?:css|js|tpl))(?:\s*\|\s*(V\d+))?\s*\*\/$/';
 
     private const REGEX_ASSET_SECTION_BLOCK = '/REEMPLAZAR EN:\s*\[?(.+?\.(?:css|js))\]?\s*(<<SECTION:\s*.*?>>.*?<<END SECTION>>)/su';
 
@@ -777,63 +777,71 @@ private function getPackagesCount()
         exit;
     }
 
-    private function runEmbeddedCodeTool(string $input): string
-    {
-        $input = str_replace(["\r\n", "\r"], "\n", trim($input));
+private function runEmbeddedCodeTool(string $input): string
+{
+    $input = str_replace(["\r\n", "\r"], "\n", trim($input));
 
-        if ($input === '') {
-            return '[ERROR] No se recibió contenido para actualizar código.';
-        }
-
-        if (preg_match(self::REGEX_ASSET_SECTION_BLOCK, $input)) {
-            return $this->runEmbeddedAssetSectionsTool($input);
-        }
-
-        $methodOperation = $this->parseEmbeddedMethodOperation($input);
-
-        if ($methodOperation !== null) {
-            $extension = strtolower(pathinfo($methodOperation['path'], PATHINFO_EXTENSION));
-
-            if ($extension === 'js') {
-                if ($methodOperation['operation'] !== 'replace') {
-                    return '[ERROR] En JS solo está soportado TARGET :: función. Use secciones JS para agregar bloques nuevos.';
-                }
-
-                return $this->applyEmbeddedJsFunctionReplace($methodOperation);
-            }
-
-            if ($methodOperation['operation'] === 'replace') {
-                return $this->applyEmbeddedMethodReplace($methodOperation);
-            }
-
-            if ($methodOperation['operation'] === 'add') {
-                return $this->applyEmbeddedMethodAdd($methodOperation);
-            }
-
-            return '[ERROR] Operación TARGET no soportada.';
-        }
-
-        if (str_starts_with(ltrim($input), '<?php')) {
-            return $this->applyEmbeddedPhpFile($input);
-        }
-
-        if (preg_match('/^\s*\{\{\-\-\s*FILE:/', $input)) {
-            return $this->applyEmbeddedBladeFile($input);
-        }
-
-        if (preg_match('/^\s*\/\*\s*FILE:\s*.+?\.css(?:\s*\|\s*V\d+)?\s*\*\//', $input)) {
-            return $this->applyEmbeddedPlainFile($input, 'css_full');
-        }
-
-        if (
-            preg_match('/^\s*\/\/\s*FILE:\s*.+?\.js(?:\s*\|\s*V\d+)?\s*$/m', $input)
-            || preg_match('/^\s*\/\*\s*FILE:\s*.+?\.js(?:\s*\|\s*V\d+)?\s*\*\//', $input)
-        ) {
-            return $this->applyEmbeddedPlainFile($input, 'js_full');
-        }
-
-        return "[ERROR] Formato no compatible en herramienta de código.\n[INFO] Soporta PHP completo, Blade completo, CSS completo, JS completo, secciones CSS/JS, TARGET :: método PHP, TARGET ++ método PHP y TARGET :: función JS.";
+    if ($input === '') {
+        return '[ERROR] No se recibió contenido para actualizar código.';
     }
+
+    if (preg_match(self::REGEX_ASSET_SECTION_BLOCK, $input)) {
+        return $this->runEmbeddedAssetSectionsTool($input);
+    }
+
+    $methodOperation = $this->parseEmbeddedMethodOperation($input);
+
+    if ($methodOperation !== null) {
+        $extension = strtolower(pathinfo($methodOperation['path'], PATHINFO_EXTENSION));
+
+        if ($extension === 'js') {
+            if ($methodOperation['operation'] !== 'replace') {
+                return '[ERROR] En JS solo está soportado TARGET :: función. Use secciones JS para agregar bloques nuevos.';
+            }
+
+            return $this->applyEmbeddedJsFunctionReplace($methodOperation);
+        }
+
+        if ($methodOperation['operation'] === 'replace') {
+            return $this->applyEmbeddedMethodReplace($methodOperation);
+        }
+
+        if ($methodOperation['operation'] === 'add') {
+            return $this->applyEmbeddedMethodAdd($methodOperation);
+        }
+
+        return '[ERROR] Operación TARGET no soportada.';
+    }
+
+    if (str_starts_with(ltrim($input), '<?php')) {
+        return $this->applyEmbeddedPhpFile($input);
+    }
+
+    if (preg_match('/^\s*\{\{\-\-\s*FILE:/', $input)) {
+        return $this->applyEmbeddedBladeFile($input);
+    }
+
+    if (preg_match('/^\s*\/\*\s*FILE:\s*.+?\.css(?:\s*\|\s*V\d+)?\s*\*\//', $input)) {
+        return $this->applyEmbeddedPlainFile($input, 'css_full');
+    }
+
+    if (
+        preg_match('/^\s*\/\/\s*FILE:\s*.+?\.js(?:\s*\|\s*V\d+)?\s*$/m', $input)
+        || preg_match('/^\s*\/\*\s*FILE:\s*.+?\.js(?:\s*\|\s*V\d+)?\s*\*\//', $input)
+    ) {
+        return $this->applyEmbeddedPlainFile($input, 'js_full');
+    }
+
+    if (
+        preg_match('/^\s*#\s*FILE:\s*.+?\.tpl(?:\s*\|\s*V\d+)?\s*$/m', $input)
+        || preg_match('/^\s*\/\/\s*FILE:\s*.+?\.tpl(?:\s*\|\s*V\d+)?\s*$/m', $input)
+        || preg_match('/^\s*\/\*\s*FILE:\s*.+?\.tpl(?:\s*\|\s*V\d+)?\s*\*\//', $input)
+    ) {
+        return $this->applyEmbeddedPlainFile($input, 'tpl_full');
+    }
+
+    return "[ERROR] Formato no compatible en herramienta de código.\n[INFO] Soporta PHP completo, Blade completo, CSS completo, JS completo, TPL completo, secciones CSS/JS, TARGET :: método PHP, TARGET ++ método PHP y TARGET :: función JS.";
+}
 
 private function applyEmbeddedBladeFile(string $content): string
 {
@@ -1510,11 +1518,11 @@ private function applyEmbeddedPlainFile(string $content, string $mode): string
     $style = null;
 
     if (preg_match(self::REGEX_PLAIN_FILE_HEADER_LINE, $headerLine, $matches)) {
-        $style = 'line';
+        $style = str_starts_with($headerLine, '#') ? 'hash' : 'line';
     } elseif (preg_match(self::REGEX_PLAIN_FILE_HEADER_BLOCK, $headerLine, $matches)) {
         $style = 'block';
     } else {
-        return '[ERROR] No se encontró encabezado FILE válido para CSS/JS.';
+        return '[ERROR] No se encontró encabezado FILE válido para CSS/JS/TPL.';
     }
 
     $relativePath = trim($matches[1] ?? '');
@@ -1534,6 +1542,10 @@ private function applyEmbeddedPlainFile(string $content, string $mode): string
         return "[ERROR] El modo JS requiere archivo .js: {$relativePath}";
     }
 
+    if ($mode === 'tpl_full' && $extension !== 'tpl') {
+        return "[ERROR] El modo TPL requiere archivo .tpl: {$relativePath}";
+    }
+
     $targetPath = $this->resolveProjectPath($relativePath, true);
 
     if ($targetPath === null) {
@@ -1543,9 +1555,13 @@ private function applyEmbeddedPlainFile(string $content, string $mode): string
     array_shift($lines);
     $body = ltrim(implode("\n", $lines), "\n");
 
-    $header = $style === 'line'
-        ? "// FILE: {$relativePath} | {$version}"
-        : "/* FILE: {$relativePath} | {$version} */";
+    if ($style === 'hash') {
+        $header = "# FILE: {$relativePath} | {$version}";
+    } elseif ($style === 'line') {
+        $header = "// FILE: {$relativePath} | {$version}";
+    } else {
+        $header = "/* FILE: {$relativePath} | {$version} */";
+    }
 
     $finalContent = $header."\n\n".$body;
     $status = file_exists($targetPath) ? 'sobrescrito' : 'creado';
@@ -2404,7 +2420,7 @@ private function resolveQuickAuditCommand(string $input): array
         ];
     }
 
-    if (! preg_match('/^>>\s*find\s+(\S+)\s+(\S+)(?:\s+\+(\d+))?\s*$/i', $input, $matches)) {
+    if (! preg_match('/^>>\s*([a-z0-9_-]+)(?:\s+(.*))?$/i', $input, $commandMatch)) {
         return [
             'matched' => true,
             'ok' => false,
@@ -2412,52 +2428,142 @@ private function resolveQuickAuditCommand(string $input): array
             'error' => implode("\n", [
                 '[ERROR] Comando rápido Project Lab inválido.',
                 '[INFO] Formato esperado:',
-                '>> find <archivo|*> <termino> +<lineas>',
+                '>> <macro> [argumentos]',
                 '',
                 '[INFO] Ejemplos:',
-                '>> find * executeTinker +50',
-                '>> find projectlab.php executeTinker +50',
+                '>> find web.php service +30',
+                '>> test-macro A B',
             ]),
         ];
     }
 
-    $filePattern = trim((string) ($matches[1] ?? ''));
-    $term = trim((string) ($matches[2] ?? ''));
-    $lines = isset($matches[3]) ? (int) $matches[3] : 30;
+    $macroName = strtolower(trim((string) ($commandMatch[1] ?? '')));
+    $rawArgs = trim((string) ($commandMatch[2] ?? ''));
 
-    if ($filePattern === '') {
+    if ($macroName === '') {
         return [
             'matched' => true,
             'ok' => false,
             'input' => $input,
-            'error' => '[ERROR] El patrón de archivo no puede estar vacío.',
+            'error' => '[ERROR] No se indicó nombre de macro.',
         ];
     }
 
-    if ($term === '' || $term === '*') {
+    if (! preg_match('/^[a-z0-9_-]+$/i', $macroName)) {
         return [
             'matched' => true,
             'ok' => false,
             'input' => $input,
-            'error' => "[ERROR] El término de búsqueda no puede estar vacío ni ser '*'.",
+            'error' => '[ERROR] Nombre de macro inválido. Use solo letras, números, guion medio o guion bajo.',
         ];
     }
 
-    if ($lines < 1 || $lines > 300) {
+    if ($macroName === 'find') {
+        if (! preg_match('/^(\S+)\s+(\S+)(?:\s+\+(\d+))?$/i', $rawArgs, $matches)) {
+            return [
+                'matched' => true,
+                'ok' => false,
+                'input' => $input,
+                'error' => implode("\n", [
+                    '[ERROR] Comando rápido Project Lab inválido.',
+                    '[INFO] Formato esperado:',
+                    '>> find <archivo|*> <termino> +<lineas>',
+                    '',
+                    '[INFO] Ejemplos:',
+                    '>> find * executeTinker +50',
+                    '>> find projectlab.php executeTinker +50',
+                ]),
+            ];
+        }
+
+        $filePattern = trim((string) ($matches[1] ?? ''));
+        $term = trim((string) ($matches[2] ?? ''));
+        $lines = isset($matches[3]) ? (int) $matches[3] : 30;
+
+        if ($filePattern === '') {
+            return [
+                'matched' => true,
+                'ok' => false,
+                'input' => $input,
+                'error' => '[ERROR] El patrón de archivo no puede estar vacío.',
+            ];
+        }
+
+        if ($term === '' || $term === '*') {
+            return [
+                'matched' => true,
+                'ok' => false,
+                'input' => $input,
+                'error' => "[ERROR] El término de búsqueda no puede estar vacío ni ser '*'.",
+            ];
+        }
+
+        if ($lines < 1 || $lines > 300) {
+            return [
+                'matched' => true,
+                'ok' => false,
+                'input' => $input,
+                'error' => '[ERROR] La cantidad de líneas debe estar entre 1 y 300.',
+            ];
+        }
+
+        return [
+            'matched' => true,
+            'ok' => true,
+            'input' => $this->buildQuickFindAuditScript($input, $filePattern, $term, $lines),
+            'original_input' => $input,
+            'command' => 'find',
+        ];
+    }
+
+    $template = $this->loadAuditMacroTemplate($macroName);
+
+    if ($template === '') {
+        $availableMacros = $this->listAuditMacros();
+
         return [
             'matched' => true,
             'ok' => false,
             'input' => $input,
-            'error' => '[ERROR] La cantidad de líneas debe estar entre 1 y 300.',
+            'error' => implode("\n", [
+                "[ERROR] Macro Project Lab no encontrada: {$macroName}",
+                '[INFO] Ruta esperada:',
+                "tools/project-lab/macros/audit/{$macroName}.sh.tpl",
+                '',
+                '[INFO] Macros disponibles:',
+                empty($availableMacros) ? '- ninguna' : '- '.implode("\n- ", $availableMacros),
+            ]),
+        ];
+    }
+
+    $args = $this->parseQuickAuditArguments($rawArgs);
+    $rules = $this->readAuditMacroArgumentRules($template);
+    $count = count($args);
+
+    if ($count < $rules['min']) {
+        return [
+            'matched' => true,
+            'ok' => false,
+            'input' => $input,
+            'error' => "[ERROR] La macro {$macroName} requiere al menos {$rules['min']} argumento/s. Recibidos: {$count}.",
+        ];
+    }
+
+    if ($count > $rules['max']) {
+        return [
+            'matched' => true,
+            'ok' => false,
+            'input' => $input,
+            'error' => "[ERROR] La macro {$macroName} acepta como máximo {$rules['max']} argumento/s. Recibidos: {$count}.",
         ];
     }
 
     return [
         'matched' => true,
         'ok' => true,
-        'input' => $this->buildQuickFindAuditScript($input, $filePattern, $term, $lines),
+        'input' => $this->buildGenericAuditMacroScript($macroName, $template, $input, $rawArgs, $args),
         'original_input' => $input,
-        'command' => 'find',
+        'command' => $macroName,
     ];
 }
 
@@ -2521,5 +2627,94 @@ private function buildQuickFindAuditScript(string $originalInput, string $filePa
         }
     
         return $template;
+    }
+
+
+    private function listAuditMacros(): array
+    {
+        $relativePath = 'tools/project-lab/macros/audit';
+        $directory = $this->resolveProjectPath($relativePath, false);
+    
+        if ($directory === null || ! is_dir($directory)) {
+            return [];
+        }
+    
+        $macros = [];
+    
+        foreach (glob($directory.'/*.sh.tpl') ?: [] as $filePath) {
+            $name = basename($filePath, '.sh.tpl');
+    
+            if (preg_match('/^[a-z0-9_-]+$/i', $name)) {
+                $macros[] = $name;
+            }
+        }
+    
+        sort($macros);
+    
+        return $macros;
+    }
+
+
+    private function parseQuickAuditArguments(string $rawArgs): array
+    {
+        $rawArgs = trim($rawArgs);
+    
+        if ($rawArgs === '') {
+            return [];
+        }
+    
+        $args = str_getcsv($rawArgs, ' ', '"', '\\');
+    
+        return array_values(array_filter(array_map('trim', $args), static function (string $arg): bool {
+            return $arg !== '';
+        }));
+    }
+
+
+    private function readAuditMacroArgumentRules(string $template): array
+    {
+        $min = 0;
+        $max = 10;
+    
+        if (preg_match('/^\s*#\s*PROJECT_LAB_MACRO_ARGS_MIN:\s*(\d+)\s*$/mi', $template, $matches)) {
+            $min = max(0, (int) ($matches[1] ?? 0));
+        }
+    
+        if (preg_match('/^\s*#\s*PROJECT_LAB_MACRO_ARGS_MAX:\s*(\d+)\s*$/mi', $template, $matches)) {
+            $max = max($min, (int) ($matches[1] ?? $max));
+        }
+    
+        return [
+            'min' => $min,
+            'max' => $max,
+        ];
+    }
+
+
+    private function buildGenericAuditMacroScript(
+        string $macroName,
+        string $template,
+        string $originalInput,
+        string $rawArgs,
+        array $args
+    ): string {
+        $values = [
+            'MACRO_NAME' => $this->escapeDoubleQuotedShellEcho($macroName),
+            'MACRO_NAME_SHELL' => escapeshellarg($macroName),
+            'ORIGINAL_INPUT' => $this->escapeDoubleQuotedShellEcho($originalInput),
+            'ORIGINAL_INPUT_SHELL' => escapeshellarg($originalInput),
+            'RAW_ARGS' => $this->escapeDoubleQuotedShellEcho($rawArgs),
+            'RAW_ARGS_SHELL' => escapeshellarg($rawArgs),
+            'ARG_COUNT' => (string) count($args),
+        ];
+    
+        for ($i = 1; $i <= 10; $i++) {
+            $value = $args[$i - 1] ?? '';
+    
+            $values['ARG_'.$i] = $this->escapeDoubleQuotedShellEcho($value);
+            $values['ARG_'.$i.'_SHELL'] = escapeshellarg($value);
+        }
+    
+        return $this->renderAuditMacroTemplate($template, $values);
     }
 }

@@ -1,3 +1,5 @@
+# FILE: tools/project-lab/macros/audit/find.sh.tpl | V1
+
 echo "[OK] Comando Project Lab: find"
 echo "[INFO] Entrada original: {{ORIGINAL_INPUT}}"
 echo "[INFO] Archivo/patrón: {{FILE_PATTERN}}"
@@ -34,9 +36,18 @@ find . \
     continue
   fi
 
+  LAST_END=0
+
   echo "$MATCH_LINES" | while IFS= read -r MATCH; do
     LINE=$(echo "$MATCH" | cut -d: -f1)
+
+    if [ "$LINE" -le "$LAST_END" ]; then
+      continue
+    fi
+
     END=$((LINE + LINES))
+    LAST_END=$END
+
     echo ""
     echo "[OK] Coincidencia: $FILE:$LINE"
     echo "------------------------------------------------------------"

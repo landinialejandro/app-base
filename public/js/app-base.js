@@ -352,84 +352,87 @@
             });
     };
 
-    const bindPartyAssetSync = () => {
+    const bindLinkedSelectSync = () => {
         document
-            .querySelectorAll('[data-action~="app-party-asset-sync"]')
+            .querySelectorAll('[data-action~="app-linked-select-sync"]')
             .forEach((root) => {
-                if (root.dataset.appPartyAssetSyncBound === "1") {
+                if (root.dataset.appLinkedSelectSyncBound === "1") {
                     return;
                 }
 
-                root.dataset.appPartyAssetSyncBound = "1";
+                root.dataset.appLinkedSelectSyncBound = "1";
 
-                const partySelector = root.dataset.partySelect;
-                const assetSelector = root.dataset.assetSelect;
+                const sourceSelector = root.dataset.sourceSelect;
+                const targetSelector = root.dataset.targetSelect;
 
-                if (!partySelector || !assetSelector) {
+                if (!sourceSelector || !targetSelector) {
                     return;
                 }
 
-                const partySelect =
-                    root.querySelector(partySelector) ||
-                    document.querySelector(partySelector);
-                const assetSelect =
-                    root.querySelector(assetSelector) ||
-                    document.querySelector(assetSelector);
+                const sourceSelect =
+                    root.querySelector(sourceSelector) ||
+                    document.querySelector(sourceSelector);
+                const targetSelect =
+                    root.querySelector(targetSelector) ||
+                    document.querySelector(targetSelector);
 
-                if (!partySelect || !assetSelect) {
+                if (!sourceSelect || !targetSelect) {
                     return;
                 }
 
-                const filterAssetsByParty = () => {
-                    const selectedPartyId = partySelect.value;
+                const filterTargetBySource = () => {
+                    const selectedSourceValue = sourceSelect.value;
 
-                    Array.from(assetSelect.options).forEach((option, index) => {
-                        if (index === 0) {
-                            option.hidden = false;
-                            return;
-                        }
+                    Array.from(targetSelect.options).forEach(
+                        (option, index) => {
+                            if (index === 0) {
+                                option.hidden = false;
+                                return;
+                            }
 
-                        const assetPartyId = option.dataset.partyId || "";
-                        const shouldShow =
-                            !selectedPartyId ||
-                            assetPartyId === selectedPartyId;
+                            const optionSourceValue =
+                                option.dataset.sourceValue || "";
+                            const shouldShow =
+                                !selectedSourceValue ||
+                                optionSourceValue === selectedSourceValue;
 
-                        option.hidden = !shouldShow;
-                    });
+                            option.hidden = !shouldShow;
+                        },
+                    );
 
                     const selectedOption =
-                        assetSelect.options[assetSelect.selectedIndex];
+                        targetSelect.options[targetSelect.selectedIndex];
 
                     if (
                         selectedOption &&
                         selectedOption.value &&
                         selectedOption.hidden
                     ) {
-                        assetSelect.value = "";
+                        targetSelect.value = "";
                     }
                 };
 
-                assetSelect.addEventListener("change", () => {
+                targetSelect.addEventListener("change", () => {
                     const selected =
-                        assetSelect.options[assetSelect.selectedIndex];
+                        targetSelect.options[targetSelect.selectedIndex];
 
                     if (!selected || !selected.value) {
                         return;
                     }
 
-                    const assetPartyId = selected.dataset.partyId || "";
+                    const sourceValue = selected.dataset.sourceValue || "";
 
-                    if (assetPartyId) {
-                        partySelect.value = assetPartyId;
-                        filterAssetsByParty();
+                    if (sourceValue) {
+                        sourceSelect.value = sourceValue;
+                        filterTargetBySource();
                     }
                 });
 
-                partySelect.addEventListener("change", () => {
-                    filterAssetsByParty();
+                sourceSelect.addEventListener("change", () => {
+                    filterTargetBySource();
                 });
 
-                filterAssetsByParty();
+                filterTargetBySource();
             });
     };
 
@@ -1360,7 +1363,7 @@
         bindTenantRoleSyncForms();
         bindCopyTarget();
         bindCopyValue();
-        bindPartyAssetSync();
+        bindLinkedSelectSync();
         bindAppointmentPartyAssetSync();
         bindProductAutofill();
         bindAlerts();

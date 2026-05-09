@@ -37,13 +37,15 @@
             'text' => 'Ver y administrar activos operativos',
             'meta' => $assetsCount . ' activos',
         ],
-    ])->where('can', true)->values();
+    ])
+        ->where('can', true)
+        ->values();
 
     $serviceMaintenanceCards = collect([
         [
             'module' => ModuleCatalog::SERVICE_MAINTENANCE,
             'can' => $canViewServiceOrders,
-            'route' => route('orders.index', ['group' => OrderCatalog::GROUP_SERVICE]),
+            'route' => route('service.index'),
             'title' => 'Órdenes de servicio',
             'text' => 'Ver trabajos técnicos, intervenciones y órdenes de mantenimiento',
             'meta' => ($serviceOrdersCount ?? 0) . ' órdenes de servicio',
@@ -51,12 +53,14 @@
         [
             'module' => ModuleCatalog::SERVICE_MAINTENANCE,
             'can' => $canCreateServiceOrders,
-            'route' => route('orders.create', ['group' => OrderCatalog::GROUP_SERVICE]),
+            'route' => route('service.orders.create'),
             'title' => 'Nueva orden de servicio',
             'text' => 'Crear una orden de servicio sin configurar el tipo manualmente',
             'meta' => 'Tipo Servicio preseleccionado',
         ],
-    ])->where('can', true)->values();
+    ])
+        ->where('can', true)
+        ->values();
 
     $managementCards = collect([
         [
@@ -107,7 +111,9 @@
             'text' => 'Ver y administrar documentos comerciales',
             'meta' => $documentsCount . ' documentos',
         ],
-    ])->where('can', true)->values();
+    ])
+        ->where('can', true)
+        ->values();
 @endphp
 
 @section('content')

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/_form.blade.php | V7 --}}
+{{-- FILE: resources/views/documents/_form.blade.php | V8 --}}
 
 @php
     use App\Support\Catalogs\DocumentCatalog;
@@ -23,7 +23,7 @@
     );
 @endphp
 
-<div class="form" data-action="app-party-asset-sync" data-party-select="#party_id" data-asset-select="#asset_id">
+<div class="form" data-action="app-linked-select-sync" data-source-select="#party_id" data-target-select="#asset_id">
     <div class="form-group">
         <label for="party_id" class="form-label">Contacto gestionado</label>
         <select name="party_id" id="party_id" class="form-control">
@@ -76,7 +76,7 @@
         <select name="asset_id" id="asset_id" class="form-control">
             <option value="">Sin activo asociado</option>
             @foreach ($assets as $asset)
-                <option value="{{ $asset->id }}" data-party-id="{{ $asset->party_id }}"
+                <option value="{{ $asset->id }}" data-source-value="{{ $asset->party_id }}"
                     @selected($currentAssetId == $asset->id)>
                     {{ $asset->name }}
                     @if ($asset->internal_code)
@@ -120,10 +120,6 @@
                 @endforeach
             </select>
         @endif
-
-        @error('group')
-            <div class="form-help is-error">{{ $message }}</div>
-        @enderror
     </div>
 
     <div class="form-group">
@@ -131,41 +127,22 @@
 
         @if ($documentIsNumbered)
             <select id="kind" class="form-control" disabled>
-                @foreach (DocumentCatalog::kindLabels() as $value => $label)
-                    <option value="{{ $value }}" @selected(old('kind', $document->kind) === $value)>
+                @foreach (DocumentCatalog::kindLabelsForGroup($currentGroup) as $value => $label)
+                    <option value="{{ $value }}" @selected(($document->kind ?? '') === $value)>
                         {{ $label }}
                     </option>
                 @endforeach
             </select>
 
-            <input type="hidden" name="kind" value="{{ old('kind', $document->kind) }}">
-
-            <div class="form-help">El tipo no puede cambiarse una vez numerado el documento.</div>
+            <input type="hidden" name="kind" value="{{ $document->kind }}">
         @else
             <select name="kind" id="kind" class="form-control" required>
                 @foreach ($visibleKinds as $value => $label)
-                    <option value="{{ $value }}" @selected(old('kind', $document->kind ?? DocumentCatalog::KIND_QUOTE) === $value)>
+                    <option value="{{ $value }}" @selected(old('kind', $document->kind ?? '') === $value)>
                         {{ $label }}
                     </option>
                 @endforeach
             </select>
-        @endif
-
-        @error('kind')
-            <div class="form-help is-error">{{ $message }}</div>
-        @enderror
-    </div>
-
-    <div class="form-group">
-        <label class="form-label">Número</label>
-
-        @if ($documentExists)
-            <input type="text" class="form-control" value="{{ $document->number ?: 'Se asignará al guardar' }}"
-                disabled>
-            <div class="form-help">La numeración es automática y no editable.</div>
-        @else
-            <input type="text" class="form-control" value="Se asignará automáticamente al guardar" disabled>
-            <div class="form-help">El número se genera automáticamente por tenant, tipo y punto de venta.</div>
         @endif
     </div>
 
@@ -178,32 +155,19 @@
                 </option>
             @endforeach
         </select>
-        @error('status')
-            <div class="form-help is-error">{{ $message }}</div>
-        @enderror
     </div>
 
     <div class="form-group">
-        <label for="issued_at" class="form-label">Fecha de emisión</label>
+        <label for="issued_at" class="form-label">Fecha</label>
         <input type="date" name="issued_at" id="issued_at" class="form-control"
             value="{{ old('issued_at', isset($document) && $document->issued_at ? $document->issued_at->format('Y-m-d') : now()->format('Y-m-d')) }}"
             required>
-
-        <div class="form-help">
-            Para facturas no se permiten fechas futuras. Si el documento está asociado a una orden, la fecha no puede
-            ser anterior a la de esa orden.
-        </div>
-
-        @error('issued_at')
-            <div class="form-help is-error">{{ $message }}</div>
-        @enderror
     </div>
 
     <div class="form-group">
         <label for="notes" class="form-label">Notas</label>
         <textarea name="notes" id="notes" class="form-control" rows="4">{{ old('notes', $document->notes ?? '') }}</textarea>
-        @error('notes')
-            <div class="form-help is-error">{{ $message }}</div>
-        @enderror
     </div>
 </div>
+
+<x-dev-component-version name="documents._form" version="V8" align="right" />

@@ -1,30 +1,60 @@
-{{-- FILE: resources/views/orders/index.blade.php | V11 --}}
+{{-- FILE: resources/views/orders/index.blade.php | V14 --}}
 
 @extends('layouts.app')
 
-@section('title', 'Órdenes')
+@php
+    use App\Support\Catalogs\OrderCatalog;
+
+    $isServiceUniverse = $isServiceUniverse ?? request()->routeIs('service.orders.*');
+    $currentGroup = $isServiceUniverse ? OrderCatalog::GROUP_SERVICE : request('group');
+    $isServiceContext = $isServiceUniverse || $currentGroup === OrderCatalog::GROUP_SERVICE;
+
+    $pageTitle = $isServiceContext ? 'Órdenes de servicio' : 'Órdenes';
+    $createLabel = $isServiceContext ? 'Nueva orden de servicio' : 'Nueva orden';
+    $emptyMessage = $isServiceContext ? 'No hay órdenes de servicio cargadas.' : 'No hay órdenes cargadas.';
+
+    $breadcrumbItems = $isServiceUniverse
+        ? [
+            ['label' => 'Inicio', 'url' => route('dashboard')],
+            ['label' => 'Servicio y mantenimiento', 'url' => route('service.index')],
+            ['label' => 'Órdenes de servicio'],
+        ]
+        : [['label' => 'Inicio', 'url' => route('dashboard')], ['label' => $pageTitle]];
+@endphp
+
+@section('title', $pageTitle)
 
 @section('content')
 
     @php
-        use App\Support\Catalogs\OrderCatalog;
         use App\Support\Navigation\NavigationTrail;
         use App\Support\Navigation\OrderNavigationTrail;
 
-        $trailQuery = NavigationTrail::toQuery(OrderNavigationTrail::ordersBase());
+        $indexRouteName = $isServiceUniverse ? 'service.orders.index' : 'orders.index';
+        $createRouteName = $isServiceUniverse ? 'service.orders.create' : 'orders.create';
+        $showRouteName = $isServiceUniverse ? 'service.orders.show' : 'orders.show';
+
+        $trailBase = $isServiceUniverse
+            ? OrderNavigationTrail::serviceOrdersBase()
+            : OrderNavigationTrail::ordersBase();
+
+        $trailQuery = NavigationTrail::toQuery($trailBase);
+        $createGroup = $isServiceContext ? OrderCatalog::GROUP_SERVICE : $defaultCreateKind;
     @endphp
 
     <x-page class="list-page">
 
-        <x-breadcrumb :items="[['label' => 'Inicio', 'url' => route('dashboard')], ['label' => 'Órdenes']]" />
+        <x-breadcrumb :items="$breadcrumbItems" />
 
-        <x-page-header title="Órdenes">
+        <x-page-header :title="$pageTitle">
             @if ($canCreateOrders)
-                <x-button-create :href="route('orders.create', array_merge($trailQuery, ['group' => $defaultCreateKind]))" label="Nueva orden" />
+                <x-button-create :href="$isServiceUniverse
+                    ? route($createRouteName, $trailQuery)
+                    : route($createRouteName, array_merge($trailQuery, ['group' => $createGroup]))" :label="$createLabel" />
             @endif
         </x-page-header>
 
-        <x-list-filters-card :action="route('orders.index')" secondary-id="orders-extra-filters">
+        <x-list-filters-card :action="route($indexRouteName)" secondary-id="orders-extra-filters">
             <x-slot:primary>
                 <div class="list-filters-grid">
                     <div class="form-group">
@@ -49,17 +79,19 @@
 
             <x-slot:secondary>
                 <div class="list-filters-grid">
-                    <div class="form-group">
-                        <label for="group" class="form-label">Tipo</label>
-                        <select id="group" name="group" class="form-control">
-                            <option value="">Todos</option>
-                            @foreach (OrderCatalog::groupLabels() as $value => $label)
-                                <option value="{{ $value }}" @selected(request('group') === $value)>
-                                    {{ $label }}
-                                </option>
-                            @endforeach
-                        </select>
-                    </div>
+                    @unless ($isServiceUniverse)
+                        <div class="form-group">
+                            <label for="group" class="form-label">Tipo</label>
+                            <select id="group" name="group" class="form-control">
+                                <option value="">Todos</option>
+                                @foreach (OrderCatalog::groupLabels() as $value => $label)
+                                    <option value="{{ $value }}" @selected(request('group') === $value)>
+                                        {{ $label }}
+                                    </option>
+                                @endforeach
+                            </select>
+                        </div>
+                    @endunless
 
                     <div class="form-group">
                         <label for="ordered_at" class="form-label">Fecha</label>
@@ -75,8 +107,9 @@
                 'orders' => $orders,
                 'showCounterparty' => true,
                 'showAsset' => true,
-                'emptyMessage' => 'No hay órdenes cargadas.',
+                'emptyMessage' => $emptyMessage,
                 'trailQuery' => $trailQuery,
+                'showRouteName' => $showRouteName,
             ])
 
             @if ($orders->count())
@@ -86,5 +119,5 @@
 
     </x-page>
 
-    <x-dev-component-version name="orders.index" version="V11" align="right" />
+    <x-dev-component-version name="orders.index" version="V14" align="right" />
 @endsection

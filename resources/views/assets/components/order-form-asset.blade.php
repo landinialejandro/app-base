@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/assets/components/order-form-asset.blade.php | V2 --}}
+{{-- FILE: resources/views/assets/components/order-form-asset.blade.php | V3 --}}
 
 @props([
     'assetOptions' => collect(),
@@ -11,7 +11,7 @@
         <option value="">Sin activo vinculado</option>
         @foreach ($assetOptions as $assetOption)
             <option value="{{ $assetOption['id'] }}"
-                data-party-id="{{ $assetOption['party_id'] ?? '' }}"
+                data-source-value="{{ $assetOption['party_id'] ?? '' }}"
                 @selected((string) $currentAssetId === (string) $assetOption['id'])>
                 {{ $assetOption['label'] }}
                 @if (!empty($assetOption['meta']))
@@ -21,7 +21,7 @@
         @endforeach
     </select>
     <div class="form-help">
-        Opcional. Si se selecciona un contacto, se muestran solo los activos vinculados a ese contacto.
+        Si se selecciona un contacto, se muestran solo los activos vinculados a ese contacto.
     </div>
     @error('asset_id')
         <div class="form-help is-error">{{ $message }}</div>

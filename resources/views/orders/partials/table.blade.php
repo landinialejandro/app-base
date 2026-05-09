@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/partials/table.blade.php | V19 --}}
+{{-- FILE: resources/views/orders/partials/table.blade.php | V20 --}}
 
 @php
     use App\Support\Assets\AssetLinked;
@@ -11,6 +11,7 @@
     $showCounterparty = $showCounterparty ?? false;
     $showAsset = $showAsset ?? false;
     $trailQuery = $trailQuery ?? [];
+    $showRouteName = $showRouteName ?? 'orders.show';
     $containerTrail = NavigationTrail::decode($trailQuery['trail'] ?? null);
 
     $renderCounterpartyColumn = $showCounterparty;
@@ -41,13 +42,15 @@
             <tbody>
                 @foreach ($orders as $order)
                     @php
+                        $showUrl = route($showRouteName, ['order' => $order]);
+
                         $rowTrail = NavigationTrail::appendOrCollapse(
                             $containerTrail,
                             NavigationTrail::makeNode(
-                                'orders.show',
+                                $showRouteName,
                                 $order->id,
                                 $order->number ?: 'Orden #' . $order->id,
-                                route('orders.show', ['order' => $order]),
+                                $showUrl,
                             ),
                         );
 
@@ -56,10 +59,10 @@
                                 NavigationTrail::makeNode('dashboard', null, 'Inicio', route('dashboard')),
                                 NavigationTrail::makeNode('orders.index', null, 'Órdenes', route('orders.index')),
                                 NavigationTrail::makeNode(
-                                    'orders.show',
+                                    $showRouteName,
                                     $order->id,
                                     $order->number ?: 'Orden #' . $order->id,
-                                    route('orders.show', ['order' => $order]),
+                                    $showUrl,
                                 ),
                             ]);
                         }
@@ -90,7 +93,7 @@
 
                     <tr>
                         <td>
-                            <a href="{{ route('orders.show', ['order' => $order] + $rowTrailQuery) }}">
+                            <a href="{{ route($showRouteName, ['order' => $order] + $rowTrailQuery) }}">
                                 {{ $order->number ?: 'Sin número' }}
                             </a>
                         </td>
@@ -152,4 +155,4 @@
     <p class="mb-0">{{ $emptyMessage }}</p>
 @endif
 
-<x-dev-component-version name="orders.partials.table" version="V19" align="right" />
+<x-dev-component-version name="orders.partials.table" version="V20" align="right" />

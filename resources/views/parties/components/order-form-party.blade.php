@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/parties/components/order-form-party.blade.php | V2 --}}
+{{-- FILE: resources/views/parties/components/order-form-party.blade.php | V3 --}}
 
 @props([
     'partyOptions' => collect(),
@@ -7,8 +7,8 @@
 
 <div class="form-group">
     <label for="party_id" class="form-label">Contacto vinculado</label>
-    <select name="party_id" id="party_id" class="form-control">
-        <option value="">Sin contacto vinculado</option>
+    <select name="party_id" id="party_id" class="form-control" required>
+        <option value="">Seleccionar contacto</option>
         @foreach ($partyOptions as $partyOption)
             <option value="{{ $partyOption['id'] }}" @selected((string) $currentPartyId === (string) $partyOption['id'])>
                 {{ $partyOption['label'] }}
@@ -19,7 +19,7 @@
         @endforeach
     </select>
     <div class="form-help">
-        Opcional. Si se selecciona un contacto, la orden conservará su referencia como dato propio.
+        Si se selecciona un contacto, la contraparte se completa automáticamente desde el sistema.
     </div>
     @error('party_id')
         <div class="form-help is-error">{{ $message }}</div>

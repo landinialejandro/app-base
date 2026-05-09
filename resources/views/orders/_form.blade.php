@@ -1,7 +1,9 @@
-{{-- FILE: resources/views/orders/_form.blade.php | V18 --}}
+{{-- FILE: resources/views/orders/_form.blade.php | V22 --}}
 
 @php
     use App\Support\Catalogs\OrderCatalog;
+
+    $groupLocked = $groupLocked ?? false;
 
     $orderExists = isset($order) && $order->exists;
     $orderIsNumbered = $orderExists && !empty($order->number);
@@ -43,19 +45,36 @@
 
     $partyMode = $partyBoundary['mode'] ?? 'manual';
     $assetMode = $assetBoundary['mode'] ?? 'manual';
+
+    $partyOptions = $partyBoundary['surface']['data']['partyOptions'] ?? collect();
+    $assetOptions = $assetBoundary['surface']['data']['assetOptions'] ?? collect();
+
+    $hasManagedPartyOptions = $partyMode === 'external'
+        && !empty($partyBoundary['surface']['view'])
+        && is_countable($partyOptions)
+        && count($partyOptions) > 0;
+
+    $hasManagedAssetOptions = $assetMode === 'external'
+        && !empty($assetBoundary['surface']['view'])
+        && is_countable($assetOptions)
+        && count($assetOptions) > 0;
+
+    $lockGroupField = $orderIsNumbered || $groupLocked;
+    $lockedGroup = $orderExists ? $order->group : $prefilledGroup;
+    $lockedKind = $orderExists ? $order->kind : $prefilledKind;
 @endphp
 
-<div class="form" data-action="app-party-asset-sync" data-party-select="#party_id" data-asset-select="#asset_id">
-    @if ($partyMode === 'external' && !empty($partyBoundary['surface']['view']))
+<div class="form" data-action="app-linked-select-sync" data-source-select="#party_id" data-target-select="#asset_id">
+    @if ($hasManagedPartyOptions)
         @include($partyBoundary['surface']['view'], $partyBoundary['surface']['data'] ?? [])
         <input type="hidden" name="counterparty_reference" value="{{ $currentCounterpartyReference }}">
     @else
         <div class="form-group">
             <label for="counterparty_reference" class="form-label">Contraparte</label>
             <input type="text" name="counterparty_reference" id="counterparty_reference" class="form-control"
-                value="{{ $currentCounterpartyReference }}" maxlength="255">
+                value="{{ $currentCounterpartyReference }}" maxlength="255" required>
             <div class="form-help">
-                Requerido si no se selecciona contacto. La orden conserva este dato propio como referencia operativa.
+                Requerida cuando no hay contacto gestionado disponible.
             </div>
             @error('counterparty_reference')
                 <div class="form-help is-error">{{ $message }}</div>
@@ -63,7 +82,7 @@
         </div>
     @endif
 
-    @if ($assetMode === 'external' && !empty($assetBoundary['surface']['view']))
+    @if ($hasManagedAssetOptions)
         @include($assetBoundary['surface']['view'], $assetBoundary['surface']['data'] ?? [])
         <input type="hidden" name="asset_reference" value="{{ $currentAssetReference }}">
     @else
@@ -72,7 +91,7 @@
             <input type="text" name="asset_reference" id="asset_reference" class="form-control"
                 value="{{ $currentAssetReference }}" maxlength="255">
             <div class="form-help">
-                Opcional. Permite identificar equipo, vehículo, máquina u otro activo cuando no existe activo gestionado.
+                Opcional cuando no hay activo gestionado disponible.
             </div>
             @error('asset_reference')
                 <div class="form-help is-error">{{ $message }}</div>
@@ -83,15 +102,15 @@
     <div class="form-group">
         <label for="group" class="form-label">Tipo</label>
 
-        @if ($orderIsNumbered)
+        @if ($lockGroupField)
             <select class="form-control" disabled>
                 @foreach (OrderCatalog::groupLabels() as $value => $label)
-                    <option @selected($order->group === $value)>{{ $label }}</option>
+                    <option @selected($lockedGroup === $value)>{{ $label }}</option>
                 @endforeach
             </select>
 
-            <input type="hidden" name="group" value="{{ $order->group }}">
-            <input type="hidden" name="kind" value="{{ old('kind', $order->kind ?? $prefilledKind) }}">
+            <input type="hidden" name="group" value="{{ $lockedGroup }}">
+            <input type="hidden" name="kind" value="{{ old('kind', $lockedKind) }}">
         @else
             <select name="group" id="group" class="form-control" required>
                 @foreach (OrderCatalog::groupLabels() as $value => $label)
@@ -133,4 +152,4 @@
     </div>
 </div>
 
-<x-dev-component-version name="orders._form" version="V18" align="right" />
+<x-dev-component-version name="orders._form" version="V22" align="right" />

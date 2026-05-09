@@ -32,19 +32,20 @@ class OrderController extends Controller
 {
     public function index(Request $request)
     {
+        $this->authorizeServiceUniverse($request);
         $this->authorize('viewAny', Order::class);
 
         $security = app(Security::class);
         $user = auth()->user();
 
         $q = trim((string) $request->get('q', ''));
-        $group = $request->get('group');
+        $group = $this->orderGroupFromRequest($request);
         $status = $request->get('status');
         $orderedAt = $request->get('ordered_at');
 
         $orders = $security
             ->scope($user, 'orders.viewAny', Order::query())
-            ->with(['items'])
+            ->with(['items', 'party', 'asset.party'])
             ->when($q !== '', function ($query) use ($q) {
                 $query->where(function ($subquery) use ($q) {
                     $subquery->where('number', 'like', "%{$q}%")
@@ -72,27 +73,34 @@ class OrderController extends Controller
             ->values();
 
         $canCreateOrders = $allowedCreateGroups->isNotEmpty();
-        $defaultCreateKind = $allowedCreateGroups->first();
+        $defaultCreateKind = $this->isServiceUniverse($request)
+            ? OrderCatalog::GROUP_SERVICE
+            : $allowedCreateGroups->first();
+
+        $isServiceUniverse = $this->isServiceUniverse($request);
 
         return view('orders.index', compact(
             'orders',
             'canCreateOrders',
             'defaultCreateKind',
+            'isServiceUniverse',
         ));
     }
 
     public function create(Request $request)
     {
+        $this->authorizeServiceUniverse($request);
+
         $security = app(Security::class);
         $user = auth()->user();
 
         $prefilledGroup = old('group', OrderCatalog::GROUP_SALE);
         $prefilledKind = old('kind', OrderCatalog::KIND_STANDARD);
 
-        $requestedGroup = (string) $request->get('group', '');
+        $requestedGroup = $this->orderGroupFromRequest($request);
         $requestedKind = (string) $request->get('kind', '');
 
-        if ($requestedGroup !== '' && array_key_exists($requestedGroup, OrderCatalog::groups())) {
+        if ($requestedGroup !== null) {
             $prefilledGroup = $requestedGroup;
         }
 
@@ -122,107 +130,126 @@ class OrderController extends Controller
             ],
         );
 
+        $groupLocked = $this->isServiceUniverse($request);
+
         return view('orders.create', compact(
             'prefilledGroup',
             'prefilledKind',
             'navigationTrail',
             'relationshipBoundary',
+            'groupLocked',
         ));
     }
 
-    public function store(Request $request)
-    {
-        $tenant = app('tenant');
-        $security = app(Security::class);
-        $user = auth()->user();
+public function store(Request $request)
+{
+    $this->authorizeServiceUniverse($request);
 
-        $data = $request->validate([
-            'party_id' => ['nullable', 'integer'],
-            'counterparty_reference' => ['nullable', 'string', 'max:255'],
-            'asset_id' => ['nullable', 'integer'],
-            'asset_reference' => ['nullable', 'string', 'max:255'],
-            'group' => [
-                'required',
-                Rule::in(array_keys(OrderCatalog::groups())),
-            ],
-            'kind' => [
-                'required',
-                Rule::in(array_keys(OrderCatalog::kindLabels())),
-            ],
-            'status' => [
-                'required',
-                Rule::in(OrderCatalog::statuses()),
-            ],
-            'ordered_at' => ['nullable', 'date'],
-            'notes' => ['nullable', 'string'],
+    if ($this->isServiceUniverse($request)) {
+        $request->merge([
+            'group' => OrderCatalog::GROUP_SERVICE,
+            'kind' => $request->input('kind', OrderCatalog::KIND_STANDARD),
         ]);
+    }
 
-        $security->authorize(
-            $user,
-            'orders.create',
-            Order::class,
-            ['kind' => $data['group']]
+    $tenant = app('tenant');
+    $security = app(Security::class);
+    $user = auth()->user();
+
+    $data = $request->validate([
+        'party_id' => ['nullable', 'integer'],
+        'counterparty_reference' => ['nullable', 'string', 'max:255'],
+        'asset_id' => ['nullable', 'integer'],
+        'asset_reference' => ['nullable', 'string', 'max:255'],
+        'group' => [
+            'required',
+            Rule::in(array_keys(OrderCatalog::groups())),
+        ],
+        'kind' => [
+            'required',
+            Rule::in(array_keys(OrderCatalog::kindLabels())),
+        ],
+        'status' => [
+            'required',
+            Rule::in(OrderCatalog::statuses()),
+        ],
+        'ordered_at' => ['nullable', 'date'],
+        'notes' => ['nullable', 'string'],
+    ]);
+
+    $security->authorize(
+        $user,
+        'orders.create',
+        Order::class,
+        ['kind' => $data['group']]
+    );
+
+    $data = $this->normalizeLinkedOrderData($data, $tenant->id, $user);
+
+    if ($data['counterparty_reference'] === '') {
+        return back()
+            ->withErrors([
+                'counterparty_reference' => 'Debes escribir una contraparte o seleccionar un contacto vinculado.',
+            ])
+            ->withInput();
+    }
+
+    $orderedAt = $data['ordered_at'] ?? now()->toDateString();
+    $orderedAtDate = Carbon::parse($orderedAt)->startOfDay();
+    $maxFutureDate = now()->startOfDay()->addDays(30);
+
+    if ($orderedAtDate->gt($maxFutureDate)) {
+        return back()
+            ->withErrors([
+                'ordered_at' => 'La fecha de la orden no puede superar los 30 días hacia el futuro.',
+            ])
+            ->withInput();
+    }
+
+    $data['ordered_at'] = $orderedAtDate->toDateString();
+
+    $order = DB::transaction(function () use ($tenant, $data) {
+        $sequenceDefinition = OrderCatalog::sequenceDefinitionForGroup($data['group']);
+
+        $sequence = RecordNumberGenerator::generate(
+            tenantId: $tenant->id,
+            kind: $sequenceDefinition['kind'],
+            defaultPrefix: $sequenceDefinition['prefix'],
+            pointOfSale: '0001',
         );
 
-        $data = $this->normalizeLinkedOrderData($data, $tenant->id, $user);
+        $payload = array_merge($data, [
+            'number' => $sequence['number'],
+            'sequence_prefix' => $sequence['prefix'],
+            'point_of_sale' => $sequence['point_of_sale'],
+            'sequence_number' => $sequence['sequence_number'],
+            'created_by' => auth()->id(),
+        ]);
 
-        if ($data['counterparty_reference'] === '') {
-            return back()
-                ->withErrors([
-                    'counterparty_reference' => 'Debes escribir una contraparte o seleccionar un contacto vinculado.',
-                ])
-                ->withInput();
-        }
+        return Order::create($payload);
+    });
 
-        $orderedAt = $data['ordered_at'] ?? now()->toDateString();
-        $orderedAtDate = Carbon::parse($orderedAt)->startOfDay();
-        $maxFutureDate = now()->startOfDay()->addDays(30);
+    event(new OperationalRecordCreated(
+        record: $order,
+        actorUserId: auth()->id(),
+    ));
 
-        if ($orderedAtDate->gt($maxFutureDate)) {
-            return back()
-                ->withErrors([
-                    'ordered_at' => 'La fecha de la orden no puede superar los 30 días hacia el futuro.',
-                ])
-                ->withInput();
-        }
+    $navigationTrail = OrderNavigationTrail::show($request, $order);
 
-        $data['ordered_at'] = $orderedAtDate->toDateString();
+    $showRouteName = $this->isServiceUniverse($request)
+        ? 'service.orders.show'
+        : 'orders.show';
 
-        $order = DB::transaction(function () use ($tenant, $data) {
-            $sequenceDefinition = OrderCatalog::sequenceDefinitionForGroup($data['group']);
-
-            $sequence = RecordNumberGenerator::generate(
-                tenantId: $tenant->id,
-                kind: $sequenceDefinition['kind'],
-                defaultPrefix: $sequenceDefinition['prefix'],
-                pointOfSale: '0001',
-            );
-
-            $payload = array_merge($data, [
-                'number' => $sequence['number'],
-                'sequence_prefix' => $sequence['prefix'],
-                'point_of_sale' => $sequence['point_of_sale'],
-                'sequence_number' => $sequence['sequence_number'],
-                'created_by' => auth()->id(),
-            ]);
-
-            return Order::create($payload);
-        });
-
-        event(new OperationalRecordCreated(
-            record: $order,
-            actorUserId: auth()->id(),
-        ));
-
-        $navigationTrail = OrderNavigationTrail::show($request, $order);
-
-        return redirect()
-            ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
-            ->with('success', "Orden creada correctamente con número {$order->number}.");
-    }
+    return redirect()
+        ->route($showRouteName, ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
+        ->with('success', "Orden creada correctamente con número {$order->number}.");
+}
 
     public function show(Request $request, Order $order)
     {
+        $this->authorizeServiceUniverse($request);
+        $this->abortUnlessServiceOrder($request, $order);
+
         $this->authorize('view', $order);
 
         $tenant = app('tenant');
@@ -596,7 +623,7 @@ class OrderController extends Controller
         return app(AssetOrderSelector::class)->optionsFor($user);
     }
 
-protected function normalizeLinkedOrderData(array $data, string $tenantId, $user): array
+    protected function normalizeLinkedOrderData(array $data, string $tenantId, $user): array
     {
         $data['party_id'] = $this->normalizeNullableId($data['party_id'] ?? null);
         $data['asset_id'] = $this->normalizeNullableId($data['asset_id'] ?? null);
@@ -687,7 +714,7 @@ protected function normalizeLinkedOrderData(array $data, string $tenantId, $user
             ->slotFor('orders.form', 'relationship_fields', $formHostPack);
     }
 
-protected function relationshipBoundaryForOrderForm(Request $request, ?Order $order, string $mode, array $fieldDefaults = []): array
+    protected function relationshipBoundaryForOrderForm(Request $request, ?Order $order, string $mode, array $fieldDefaults = []): array
     {
         $fields = $this->relationshipFieldsForOrderForm(
             request: $request,
@@ -729,29 +756,72 @@ protected function relationshipBoundaryForOrderForm(Request $request, ?Order $or
         ];
     }
 
-
     protected function relationshipMetadataForOrderData(array $data): ?array
-        {
-            $relationships = [];
-    
-            if (($data['party_id'] ?? null) === null && trim((string) ($data['counterparty_reference'] ?? '')) !== '') {
-                $relationships['counterparty'] = [
-                    'managed' => false,
-                ];
-            }
-    
-            if (($data['asset_id'] ?? null) === null && trim((string) ($data['asset_reference'] ?? '')) !== '') {
-                $relationships['asset'] = [
-                    'managed' => false,
-                ];
-            }
-    
-            if (empty($relationships)) {
-                return null;
-            }
-    
-            return [
-                'relationships' => $relationships,
+    {
+        $relationships = [];
+
+        if (($data['party_id'] ?? null) === null && trim((string) ($data['counterparty_reference'] ?? '')) !== '') {
+            $relationships['counterparty'] = [
+                'managed' => false,
             ];
         }
+
+        if (($data['asset_id'] ?? null) === null && trim((string) ($data['asset_reference'] ?? '')) !== '') {
+            $relationships['asset'] = [
+                'managed' => false,
+            ];
+        }
+
+        if (empty($relationships)) {
+            return null;
+        }
+
+        return [
+            'relationships' => $relationships,
+        ];
+    }
+
+    private function isServiceUniverse(Request $request): bool
+    {
+        return $request->routeIs('service.orders.*');
+    }
+
+    private function authorizeServiceUniverse(Request $request): void
+    {
+        if (! $this->isServiceUniverse($request)) {
+            return;
+        }
+
+        $tenant = app('tenant');
+        $user = auth()->user();
+        $security = app(Security::class);
+
+        abort_unless(
+            TenantModuleAccess::isEnabled(ModuleCatalog::SERVICE_MAINTENANCE, $tenant)
+                && $security->allows($user, ModuleCatalog::SERVICE_MAINTENANCE.'.viewAny'),
+            403
+        );
+    }
+
+    private function orderGroupFromRequest(Request $request): ?string
+    {
+        if ($this->isServiceUniverse($request)) {
+            return OrderCatalog::GROUP_SERVICE;
+        }
+
+        $group = (string) $request->get('group', '');
+
+        return $group !== '' && array_key_exists($group, OrderCatalog::groups())
+            ? $group
+            : null;
+    }
+
+    private function abortUnlessServiceOrder(Request $request, Order $order): void
+    {
+        if (! $this->isServiceUniverse($request)) {
+            return;
+        }
+
+        abort_unless($order->group === OrderCatalog::GROUP_SERVICE, 404);
+    }
 }

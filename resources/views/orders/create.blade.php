@@ -1,8 +1,18 @@
-{{-- FILE: resources/views/orders/create.blade.php | V9 --}}
+{{-- FILE: resources/views/orders/create.blade.php | V11 --}}
 
 @extends('layouts.app')
 
-@section('title', 'Nueva orden')
+@php
+    use App\Support\Catalogs\OrderCatalog;
+
+    $groupLocked = $groupLocked ?? false;
+    $isServiceContext = ($prefilledGroup ?? null) === OrderCatalog::GROUP_SERVICE;
+    $pageTitle = $isServiceContext ? 'Nueva orden de servicio' : 'Nueva orden';
+    $submitLabel = $isServiceContext ? 'Crear orden de servicio' : 'Crear orden';
+    $storeRouteName = $groupLocked && $isServiceContext ? 'service.orders.store' : 'orders.store';
+@endphp
+
+@section('title', $pageTitle)
 
 @section('content')
     @php
@@ -10,29 +20,33 @@
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
-        $backUrl = NavigationTrail::previousUrl($navigationTrail, route('orders.index'));
+        $fallbackBackUrl = $groupLocked && $isServiceContext
+            ? route('service.orders.index')
+            : route('orders.index');
+        $backUrl = NavigationTrail::previousUrl($navigationTrail, $fallbackBackUrl);
     @endphp
 
     <x-page>
         <x-breadcrumb :items="$breadcrumbItems" />
 
-        <x-page-header title="Nueva orden">
+        <x-page-header :title="$pageTitle">
             <x-button-back :href="$backUrl" />
         </x-page-header>
 
         <x-card>
-            <form method="POST" action="{{ route('orders.store', $trailQuery) }}">
+            <form method="POST" action="{{ route($storeRouteName, $trailQuery) }}">
                 @csrf
 
                 @include('orders._form', [
                     'prefilledGroup' => $prefilledGroup,
                     'prefilledKind' => $prefilledKind,
                     'relationshipBoundary' => $relationshipBoundary,
+                    'groupLocked' => $groupLocked,
                 ])
 
                 <div class="form-actions">
                     <x-button-primary type="submit">
-                        Crear orden
+                        {{ $submitLabel }}
                     </x-button-primary>
 
                     <x-button-secondary :href="$backUrl">
@@ -43,5 +57,5 @@
         </x-card>
     </x-page>
 
-    <x-dev-component-version name="orders.create" version="V9" align="right" />
+    <x-dev-component-version name="orders.create" version="V11" align="right" />
 @endsection

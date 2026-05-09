@@ -1,0 +1,1156 @@
+<<SECTION: METADATOS>>
+SECTION_VERSION: 00001
+
+TÍTULO: Shopping Autoservicio
+DOC_SLUG: shopping_autoservicio_app_base
+DOC_VERSION: 00001
+TIPO: funcional-doctrinal
+ESTADO: borrador-activo
+GESTIÓN: Documento rector inicial para la capacidad self_service_sales como capa satélite comercial autogestiva por tenant.
+<<END SECTION>>
+
+<<SECTION: OBJETIVO DEL DOCUMENTO>>
+SECTION_VERSION: 00001
+
+OBJETIVO DEL DOCUMENTO
+
+Este documento define la lectura funcional y doctrinal inicial de Shopping Autoservicio dentro de app-base.
+
+Shopping Autoservicio se identifica técnicamente como:
+
+self_service_sales
+
+Su función es ordenar una capacidad comercial autogestiva por tenant, orientada a permitir que clientes externos puedan registrarse, acceder a una tienda pública controlada, comprar o cargar saldo, consumir fichas mediante QR, consultar movimientos y operar dentro del alcance comercial habilitado por cada tenant.
+
+Este documento busca:
+
+definir la naturaleza de self_service_sales
+separar clientes externos de memberships internas
+definir la relación con Parties
+ordenar la tienda pública del tenant
+definir saldo real, fichas, fichas promocionales y consumo
+establecer límites frente a Products, Inventory y Documents
+preparar integración futura con Mercado Pago
+preparar integración futura con controladores externos
+definir alcance inicial de implementación
+evitar que la capacidad se resuelva como parches dispersos en módulos existentes
+
+No define:
+
+implementación técnica concreta
+migraciones definitivas
+rutas definitivas
+controllers definitivos
+campos finales
+nombres finales de modelos o tablas
+integración real con Mercado Pago
+integración real con hardware
+diseño visual final
+contratos fiscales definitivos
+promociones finales
+minimercado completo
+
+Regla:
+
+este documento marca doctrina funcional inicial.
+
+Toda implementación futura debe validarse contra documentación vigente, código real, seguridad, tenant activo, permisos, esquema real, runtime y evidencia técnica.
+
+<<END SECTION>>
+
+<<SECTION: NATURALEZA DE SHOPPING AUTOSERVICIO>>
+SECTION_VERSION: 00001
+
+NATURALEZA DE SHOPPING AUTOSERVICIO
+
+Shopping Autoservicio es una capa satélite comercial autogestiva por tenant.
+
+No debe leerse como:
+
+módulo CRUD ordinario
+reemplazo de Products
+reemplazo de Inventory
+reemplazo de Parties
+reemplazo de Documents
+reemplazo de Security
+portal interno del tenant
+membership del cliente externo
+pasarela de pago propia
+controlador de hardware
+sistema fiscal completo por sí mismo
+
+Debe leerse como:
+
+capacidad comercial autogestiva
+tienda pública controlada por tenant
+frente externo para clientes
+capa de publicación comercial
+capa de saldo prepago
+capa de consumo por ficha
+capa de movimientos comerciales
+capa preparada para pagos externos
+capa preparada para consumo por QR
+capa preparada para integración con controlador externo
+
+Nombre doctrinal:
+
+Shopping Autoservicio
+
+Key técnica:
+
+self_service_sales
+
+Regla:
+
+Shopping Autoservicio orquesta módulos y capacidades existentes sin absorber su ownership funcional.
+
+Products conserva catálogo.
+
+Inventory conserva stock físico y movimientos materiales.
+
+Parties conserva clientes, contactos y sujetos fiscales.
+
+Documents conserva formalización documental y comprobantes cuando correspondan.
+
+Security conserva autorización.
+
+self_service_sales conserva la experiencia comercial autogestiva, la tienda, el registro externo, el saldo, las fichas, los movimientos comerciales y el consumo por QR.
+
+<<END SECTION>>
+
+<<SECTION: SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO>>
+SECTION_VERSION: 00001
+
+SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO
+
+Shopping Autoservicio exige separar el plano interno del tenant y el plano externo comercial.
+
+PLANO INTERNO
+
+Corresponde al uso de app-base por parte de la empresa.
+
+Incluye:
+
+owner
+admin
+administrativo
+operadores internos
+memberships
+roles internos
+panel interno
+configuración del tenant
+gestión interna de la operación
+
+El plano interno continúa gobernado por el modelo vigente:
+
+users
+memberships
+tenants
+
+PLANO EXTERNO
+
+Corresponde a clientes externos que operan comercialmente con una tienda del tenant.
+
+Incluye:
+
+registro autogestivo
+login externo
+tienda pública
+saldo
+compras
+consumos
+movimientos
+transferencias futuras
+solicitudes de comprobantes
+consumo por QR
+
+Regla central:
+
+el cliente externo no es membership del tenant.
+
+El cliente externo no accede al panel interno.
+
+El cliente externo no posee roles internos del tenant.
+
+El cliente externo no participa de owner, admin, operator, sales ni administrator.
+
+El cliente externo solo opera dentro de Shopping Autoservicio y únicamente sobre sus propios datos comerciales autorizados.
+
+<<END SECTION>>
+
+<<SECTION: CLIENTE EXTERNO Y PARTIES>>
+SECTION_VERSION: 00001
+
+CLIENTE EXTERNO Y PARTIES
+
+El cliente externo de Shopping Autoservicio debe representarse dentro del tenant como Party.
+
+Lectura vigente para el caso base:
+
+party.kind = person
+
+party_roles.role = customer
+
+No debe crearse:
+
+party.kind = auto-customer
+
+party.kind = self-service
+
+membership para el cliente externo
+
+rol interno para el cliente externo
+
+usuario interno del tenant para el cliente externo
+
+Regla:
+
+la condición autogestiva pertenece a self_service_sales, no a parties.kind.
+
+Party representa el cliente comercial dentro del tenant.
+
+La cuenta externa/autogestiva representa el acceso del cliente al Shopping Autoservicio.
+
+Membership queda reservado para usuarios internos del tenant.
+
+Regla adicional:
+
+el cliente externo se mantiene como persona.
+
+Si necesita comprobante fiscal a nombre de una empresa, se debe resolver mediante datos fiscales o Party company vinculada para facturación, sin reemplazar la identidad principal del cliente person.
+
+<<END SECTION>>
+
+<<SECTION: REGISTRO DEL CUSTOMER>>
+SECTION_VERSION: 00001
+
+REGISTRO DEL CUSTOMER
+
+El registro del customer externo debe ser autogestivo, validado y separado del registro interno de usuarios del tenant.
+
+La Party customer se genera al confirmar el email o completar la validación principal definida para el registro externo.
+
+Datos mínimos esperados:
+
+nombre
+nombre para mostrar
+DNI
+email
+teléfono
+
+Datos opcionales:
+
+domicilio
+datos fiscales
+observaciones
+otros datos comerciales futuros
+
+Reglas:
+
+el backend debe validar lo máximo posible para evitar errores de carga
+
+el email debe tener formato válido
+
+el teléfono debe tener formato estricto
+
+el DNI debe tener formato válido según criterio inicial
+
+el registro debe evitar duplicados dentro del tenant
+
+el cliente no debe quedar habilitado plenamente sin validación de contacto
+
+la creación de Party debe respetar tenant activo o tenant resuelto desde la tienda/invitación
+
+no debe crearse membership
+
+no debe habilitarse acceso al panel interno
+
+Regla de experiencia:
+
+la validación debe reducir fricción, pero no sacrificar consistencia de datos.
+
+La prioridad es crear un customer correcto, trazable y vinculado al tenant correspondiente.
+
+<<END SECTION>>
+
+<<SECTION: LOGIN EXTERNO>>
+SECTION_VERSION: 00001
+
+LOGIN EXTERNO
+
+Shopping Autoservicio debe utilizar un login externo separado del login interno de app-base.
+
+El login externo puede admitir:
+
+email
+teléfono
+
+El formato de ambos identificadores debe validarse estrictamente.
+
+Regla:
+
+login común no significa datos comunes.
+
+Aunque el acceso externo pueda funcionar como entrada común al universo Shopping Autoservicio, la operación comercial, los saldos, los movimientos, las compras, las fichas y las relaciones comerciales deben permanecer separadas por tenant.
+
+El sistema puede resolver:
+
+identificador externo
+tenants donde el cliente está registrado
+
+Si el cliente está registrado en un solo tenant, puede ingresar directamente a esa tienda.
+
+Si el cliente está registrado en varios tenants, puede elegir entre sus tiendas registradas.
+
+El cliente no debe ver tiendas donde no esté registrado, salvo que acceda a una tienda pública habilitada como canal de registro o pseudo invitación.
+
+<<END SECTION>>
+
+<<SECTION: TIENDA PÚBLICA DEL TENANT>>
+SECTION_VERSION: 00001
+
+TIENDA PÚBLICA DEL TENANT
+
+Cada tenant puede publicar una tienda pública controlada dentro de Shopping Autoservicio.
+
+La tienda pública puede funcionar como:
+
+canal de venta
+canal de registro
+pseudo invitación
+acceso desde QR
+acceso desde link público
+superficie comercial externa del tenant
+
+La tienda pública puede mostrar:
+
+nombre visible de la tienda
+productos habilitados
+fichas o servicios disponibles
+precio actual según configuración
+información comercial mínima
+botón de registro
+botón de login
+
+La tienda pública no debe mostrar:
+
+panel interno
+saldos de clientes
+historial de clientes
+datos de otros clientes
+configuración interna sensible
+stock interno sensible
+datos fiscales internos
+información no publicada por el tenant
+
+Regla:
+
+la tienda puede ser pública, pero la compra exige registro o login.
+
+La visibilidad de precios debe ser configurable por owner/admin.
+
+Opciones posibles:
+
+precios visibles públicamente
+precios visibles solo para clientes registrados
+precios ocultos hasta login
+
+Regla:
+
+la tienda pública no convierte al visitante en cliente registrado hasta completar el flujo de alta correspondiente.
+
+<<END SECTION>>
+
+<<SECTION: PUBLICACIÓN DE PRODUCTOS EN TIENDA>>
+SECTION_VERSION: 00001
+
+PUBLICACIÓN DE PRODUCTOS EN TIENDA
+
+No todos los Products deben publicarse automáticamente en Shopping Autoservicio.
+
+Debe existir una capa intermedia de publicación de tienda.
+
+Lectura conceptual:
+
+Product
+publicación en tienda
+setup comercial de self_service_sales
+
+La publicación de tienda puede definir:
+
+visible en tienda
+activo o inactivo
+orden de aparición
+categoría comercial
+descripción comercial
+imagen comercial
+precio público si corresponde
+permite pago con saldo
+requiere retiro en mostrador
+stock visible o no visible
+tipo de oferta
+restricciones comerciales
+
+Reglas:
+
+Products conserva el catálogo maestro.
+
+Shopping Autoservicio publica la oferta comercial externa.
+
+Inventory conserva stock físico y trazabilidad material.
+
+La tienda no debe reconstruir reglas internas de Products.
+
+La tienda no debe asumir stock si Inventory no lo confirma.
+
+La tienda no debe exponer productos no habilitados para self_service_sales.
+
+Regla:
+
+un producto puede existir en Products sin estar publicado en Shopping Autoservicio.
+
+<<END SECTION>>
+
+<<SECTION: FICHA COMO UNIDAD COMERCIAL DE CONSUMO>>
+SECTION_VERSION: 00001
+
+FICHA COMO UNIDAD COMERCIAL DE CONSUMO
+
+La ficha es la unidad comercial principal de consumo dentro del caso base de Shopping Autoservicio.
+
+Debe leerse como producto comercial de consumo temporal, compuesto por unidades de tiempo no comercializables por sí solas.
+
+Lectura conceptual:
+
+tiempo
+unidad técnica no comercializable por sí sola
+
+ficha
+unidad comercial consumible
+
+Reglas:
+
+el cliente compra o consume fichas
+
+el sistema expresa la experiencia del cliente en fichas
+
+el saldo real se mantiene en pesos
+
+el valor de la ficha se resuelve según configuración vigente del tenant
+
+la duración o configuración técnica de la ficha puede enviarse al controlador externo cuando corresponda
+
+app-base no administra el tiempo físico efectivo del equipo
+
+El tiempo, la activación física, el conteo y la finalización del ciclo pertenecen al controlador externo o al sistema del equipo correspondiente.
+
+Regla:
+
+app-base autoriza y registra el consumo comercial de una ficha.
+
+El controlador externo ejecuta la lógica física o temporal.
+
+<<END SECTION>>
+
+<<SECTION: SALDO REAL EN PESOS>>
+SECTION_VERSION: 00001
+
+SALDO REAL EN PESOS
+
+El saldo real del cliente se expresa en pesos.
+
+Reglas:
+
+pertenece a la relación customer-tenant
+
+no es global
+
+no se comparte entre tenants
+
+no vence
+
+no se edita directamente
+
+se mueve mediante ledger o movimientos estructurados
+
+puede utilizarse para consumir fichas
+
+puede utilizarse para comprar productos físicos habilitados en tienda
+
+no puede utilizarse fuera del tenant donde fue cargado
+
+La experiencia del cliente debe referenciar el saldo al valor vigente de ficha.
+
+Ejemplo conceptual:
+
+Saldo: $10.000
+Valor ficha: $2.500
+Fichas disponibles: 4
+
+Regla:
+
+el saldo no se edita.
+
+El saldo se mueve.
+
+Todo cambio de saldo debe surgir de un movimiento trazable.
+
+Movimientos posibles:
+
+carga aprobada
+consumo de ficha
+compra de producto físico
+transferencia enviada
+transferencia recibida
+ajuste positivo
+ajuste negativo
+reverso
+regularización
+bonificación futura cuando corresponda
+
+<<END SECTION>>
+
+<<SECTION: SALDO NEGATIVO>>
+SECTION_VERSION: 00001
+
+SALDO NEGATIVO
+
+Shopping Autoservicio puede permitir saldo negativo solo como tolerancia controlada para consumo de fichas.
+
+El saldo negativo no debe leerse como deuda monetaria fija.
+
+Debe leerse como fichas consumidas sin saldo suficiente.
+
+Regla:
+
+la tolerancia negativa registra consumo de fichas.
+
+La equivalencia monetaria se calcula al valor vigente de la ficha al momento de regularizar o cobrar.
+
+Lectura conceptual:
+
+cantidad de fichas negativas
+valor vigente de ficha
+importe a regularizar
+
+Configuración inicial sugerida:
+
+máximo de 5 fichas negativas
+
+El saldo negativo debe ser habilitable por:
+
+owner
+admin
+
+Reglas:
+
+por defecto no se permite saldo negativo
+
+solo aplica a consumo de fichas
+
+no aplica a productos físicos
+
+no permite comprar productos de minimercado
+
+no permite transferir saldo inexistente
+
+puede recibir transferencias
+
+puede recibir cargas de saldo
+
+las transferencias o cargas recibidas deben cancelar primero fichas negativas
+
+El cliente debe poder ver:
+
+cantidad de fichas en deuda
+valor equivalente vigente
+
+El owner/admin debe poder ver:
+
+clientes con saldo negativo
+cantidad de fichas negativas
+valor equivalente vigente
+historial de consumos que originaron la tolerancia
+
+Regla:
+
+la lógica es equivalente a una libreta de consumos.
+
+Se registra consumo.
+
+La deuda se valoriza al momento de cobro o regularización.
+
+<<END SECTION>>
+
+<<SECTION: FICHAS PROMOCIONALES>>
+SECTION_VERSION: 00001
+
+FICHAS PROMOCIONALES
+
+Las promociones dentro de Shopping Autoservicio deben generar fichas promocionales, no saldo real.
+
+Reglas:
+
+las fichas promocionales no aumentan saldo real
+
+no tienen valor monetario directo
+
+pueden tener vencimiento
+
+pueden no tener vencimiento
+
+no son transferibles
+
+aplican a todos los boxes del tenant salvo configuración futura específica
+
+deben comunicarse claramente al cliente cuando tengan vencimiento
+
+Orden inicial de consumo:
+
+primero saldo real
+
+después fichas promocionales
+
+Si existen fichas promocionales con vencimiento próximo, el sistema debe comunicarlo al cliente de forma clara.
+
+Regla:
+
+las fichas promocionales no deben utilizarse para productos físicos.
+
+Las fichas promocionales representan derechos de consumo.
+
+No representan dinero.
+
+No forman parte del núcleo inicial de implementación.
+
+Quedan documentadas como evolución prevista.
+
+<<END SECTION>>
+
+<<SECTION: PRECIO DE FICHA>>
+SECTION_VERSION: 00001
+
+PRECIO DE FICHA
+
+El valor de la ficha es configurable por tenant.
+
+Reglas:
+
+el valor actual de ficha debe estar visible para el customer cuando corresponda
+
+el historial de precio debe conservarse para owner/admin
+
+el cliente no necesita ver todo el historial de precios
+
+el cliente sí debe ver el valor vigente antes de consumir
+
+el QR no contiene ni define precio
+
+el cambio de precio puede aplicar de inmediato
+
+debe existir trazabilidad del cambio
+
+Regla operativa inicial sugerida:
+
+no permitir más de un cambio de precio de ficha cada 12 horas
+
+Esta restricción busca evitar errores operativos, cambios accidentales o manipulación excesiva.
+
+Toda modificación debe registrar:
+
+valor anterior
+valor nuevo
+fecha
+usuario interno responsable
+motivo cuando corresponda
+
+<<END SECTION>>
+
+<<SECTION: QR Y CONSUMO DE FICHA>>
+SECTION_VERSION: 00001
+
+QR Y CONSUMO DE FICHA
+
+El QR no gestiona valores, saldo ni duración.
+
+El QR solo identifica:
+
+tenant
+box
+punto de inicio del proceso
+
+El consumo de una ficha debe leerse como una operación instantánea desde la perspectiva de app-base.
+
+Flujo conceptual:
+
+cliente escanea QR
+
+app-base identifica tenant y box
+
+app-base valida customer
+
+app-base valida saldo, fichas promocionales o tolerancia negativa
+
+app-base prepara intento de consumo
+
+app-base envía paquete al controlador externo cuando corresponda
+
+controlador externo confirma o rechaza
+
+si confirma, app-base registra consumo definitivo
+
+si falla, app-base aborta la transacción
+
+Regla crítica:
+
+si app-base no puede confirmar que el controlador aceptó el consumo, no debe descontar saldo, no debe consumir ficha promocional y no debe registrar consumo definitivo.
+
+Puede registrarse intento fallido si aporta valor operativo.
+
+<<END SECTION>>
+
+<<SECTION: INTEGRACIÓN CON CONTROLADOR EXTERNO>>
+SECTION_VERSION: 00001
+
+INTEGRACIÓN CON CONTROLADOR EXTERNO
+
+App-base no administra la ejecución física del equipo.
+
+No administra:
+
+conteo real del tiempo
+activación física
+corte físico
+modo interno del equipo
+fallas técnicas del equipo
+finalización del ciclo
+
+El controlador externo conserva esa responsabilidad.
+
+Sin embargo, app-base puede enviar un paquete de configuración de consumo.
+
+El paquete puede incluir:
+
+tenant
+box
+consumption_id
+tipo de ficha
+duración autorizada si corresponde
+modo autorizado si corresponde
+timestamp
+firma o token de seguridad
+
+Regla:
+
+la duración enviada por app-base forma parte del paquete comercial autorizado.
+
+No convierte a app-base en controlador de tiempo.
+
+El controlador externo debe aceptar o rechazar el paquete.
+
+Si el controlador no confirma aceptación, app-base debe abortar la transacción.
+
+Regla:
+
+la integración con controlador externo debe comportarse como una operación confirmada.
+
+No debe descontarse ficha por intención visual, click, QR leído o solicitud enviada si no existe confirmación válida del controlador.
+
+<<END SECTION>>
+
+<<SECTION: MINIMERCADO>>
+SECTION_VERSION: 00001
+
+MINIMERCADO
+
+Shopping Autoservicio puede incorporar venta de productos físicos como extra posterior.
+
+El minimercado no forma parte del núcleo inicial.
+
+Lectura prevista:
+
+productos físicos publicados en tienda
+
+compra inmediata
+
+retiro inmediato en mostrador
+
+sin delivery inicial
+
+validación por vendedor de mostrador
+
+movimiento físico confirmado al retirar
+
+Puede incluir:
+
+aerosoles
+franelas
+aromatizadores
+caramelos
+accesorios
+otros productos físicos habilitados
+
+Reglas:
+
+puede pagarse con saldo real cuando el producto lo permita
+
+puede pagarse con Mercado Pago cuando la integración exista
+
+no puede pagarse con saldo negativo
+
+no puede pagarse con fichas promocionales
+
+Inventory conserva stock y trazabilidad física
+
+Shopping Autoservicio no reemplaza Inventory
+
+La compra de minimercado debe generar el movimiento de negocio correspondiente.
+
+El movimiento físico debe confirmarse al retirar en mostrador.
+
+<<END SECTION>>
+
+<<SECTION: FACTURACIÓN Y DATOS FISCALES>>
+SECTION_VERSION: 00001
+
+FACTURACIÓN Y DATOS FISCALES
+
+El comprobante fiscal se genera solo si el cliente lo solicita.
+
+Si el cliente no solicita comprobante:
+
+la operación queda registrada en historial
+
+podrá solicitar comprobante posteriormente si el plazo fiscal y la configuración del tenant lo permiten
+
+Regla:
+
+no se inventa plazo fiscal.
+
+El plazo debe depender de configuración fiscal del tenant o normativa aplicable.
+
+Datos fiscales:
+
+el customer person puede vincular una sola empresa fiscal activa.
+
+La empresa fiscal debe leerse como:
+
+Party
+kind = company
+party_roles.role = customer
+
+Reglas:
+
+la Party company no reemplaza al cliente person
+
+solo sirve como sujeto fiscal de facturación
+
+el cliente puede desvincular la empresa fiscal activa
+
+al desvincularla vuelve a operar como consumidor final
+
+desvincular no borra comprobantes históricos
+
+dos clientes pueden usar la misma Party company fiscal sin compartir saldos, movimientos, compras, historial ni datos personales
+
+owner puede visualizar lo ocurrido dentro del tenant según autorización
+
+administrativos pueden gestionar o corregir datos fiscales según permisos
+
+Facturación no forma parte del núcleo inicial de implementación.
+
+Debe quedar preparada como evolución.
+
+<<END SECTION>>
+
+<<SECTION: MERCADO PAGO>>
+SECTION_VERSION: 00001
+
+MERCADO PAGO
+
+Mercado Pago queda previsto como integración futura.
+
+No forma parte de la primera implementación.
+
+Regla doctrinal futura:
+
+cada tenant cobra con su propia configuración de Mercado Pago
+
+app-base no actúa como intermediario financiero en la etapa inicial
+
+app-base crea una intención interna antes de enviar al cliente a pagar
+
+Mercado Pago procesa el cobro
+
+el redirect visual no acredita saldo
+
+la confirmación debe venir por webhook, consulta o verificación segura
+
+app-base valida la operación
+
+app-base acredita saldo o registra compra
+
+app-base debe operar con idempotencia
+
+Regla:
+
+Mercado Pago cobra.
+
+app-base gobierna saldo, fichas, movimientos, historial, consumo y trazabilidad.
+
+Mercado Pago no decide qué saldo acreditar ni qué ficha consumir.
+
+La integración futura debe contemplar:
+
+configuración por tenant
+credenciales o autorización por tenant
+sandbox o cuentas de prueba
+webhooks
+idempotencia
+validación de monto
+validación de intención interna
+estados de pago
+errores de acreditación
+
+<<END SECTION>>
+
+<<SECTION: ALCANCE DE LA PRIMERA IMPLEMENTACIÓN>>
+SECTION_VERSION: 00001
+
+ALCANCE DE LA PRIMERA IMPLEMENTACIÓN
+
+La primera implementación de Shopping Autoservicio debe ser mínima y segura.
+
+Objetivo inicial:
+
+habilitar el registro del customer externo y su representación como Party customer person dentro del tenant.
+
+Incluye:
+
+documentación doctrinal inicial
+
+estructura mínima de self_service_sales como capa satélite
+
+tienda pública básica o entrada pública controlada
+
+registro de customer externo
+
+confirmación de email
+
+creación de Party kind person
+
+asignación de party_roles.role = customer
+
+login externo separado o base preparada para login externo
+
+validaciones backend fuertes
+
+separación estricta frente a memberships
+
+No incluye:
+
+Mercado Pago real
+
+saldo operativo completo
+
+consumo QR real
+
+integración con controlador externo
+
+minimercado
+
+promociones
+
+transferencias
+
+facturación
+
+saldo negativo
+
+productos físicos
+
+retiro en mostrador
+
+hardware
+
+Regla:
+
+la primera implementación no debe intentar resolver todo Shopping Autoservicio.
+
+Debe cerrar correctamente la base de cliente externo autogestivo.
+
+<<END SECTION>>
+
+<<SECTION: CRITERIO DE ÉXITO DE LA PRIMERA IMPLEMENTACIÓN>>
+SECTION_VERSION: 00001
+
+CRITERIO DE ÉXITO DE LA PRIMERA IMPLEMENTACIÓN
+
+La primera implementación se considera válida si permite demostrar el siguiente flujo:
+
+un tenant tiene habilitada la capacidad self_service_sales
+
+existe una entrada pública controlada para registro
+
+un visitante accede a la tienda o invitación del tenant
+
+el visitante carga datos mínimos
+
+el visitante confirma email
+
+el sistema crea una Party customer person dentro del tenant
+
+el sistema no crea membership
+
+el cliente no accede al panel interno
+
+el owner/admin puede ver el cliente como parte del tenant
+
+la validación evita duplicados evidentes
+
+la arquitectura queda preparada para saldo, fichas, tienda y pagos futuros
+
+Regla:
+
+no se considera cierre válido si el cliente externo queda mezclado con usuarios internos o memberships.
+
+<<END SECTION>>
+
+<<SECTION: FUERA DE ALCANCE INICIAL>>
+SECTION_VERSION: 00001
+
+FUERA DE ALCANCE INICIAL
+
+Quedan fuera del alcance inicial:
+
+integración real con Mercado Pago
+
+pasarela de pago operativa
+
+saldo real funcional completo
+
+ledger completo de saldo
+
+consumo por QR
+
+integración con controlador externo
+
+paquete de configuración al controlador
+
+fichas promocionales
+
+transferencias entre clientes
+
+saldo negativo
+
+minimercado
+
+stock de productos físicos
+
+retiro en mostrador
+
+facturación fiscal completa
+
+datos fiscales avanzados
+
+Party company fiscal autogestionada
+
+red de tiendas de un mismo owner
+
+transferencia de saldo entre tenants
+
+promociones configurables
+
+historial avanzado de precios
+
+hardware
+
+Regla:
+
+estos elementos pueden documentarse como evolución prevista, pero no deben mezclarse con la primera implementación si comprometen el cierre seguro del registro del customer.
+
+<<END SECTION>>
+
+<<SECTION: REGLAS DE SEGURIDAD>>
+SECTION_VERSION: 00001
+
+REGLAS DE SEGURIDAD
+
+Shopping Autoservicio debe respetar la doctrina general de seguridad de app-base.
+
+Reglas específicas:
+
+el cliente externo no es membership
+
+el cliente externo no accede al panel interno
+
+el cliente externo no tiene roles internos
+
+el cliente externo solo opera sobre sus propios datos comerciales autorizados
+
+la tienda pública no expone información interna del tenant
+
+la compra exige registro o login cuando corresponda
+
+el consumo exige cliente validado
+
+el saldo no se edita directamente
+
+el saldo se mueve mediante registros trazables
+
+los ajustes deben ser autorizados
+
+las operaciones críticas deben confirmarse
+
+la integración con controlador externo debe confirmar aceptación antes de descontar ficha
+
+Mercado Pago futuro no acredita saldo por redirect visual
+
+los datos fiscales compartidos no comparten historial ni saldo entre clientes
+
+owner/admin pueden visualizar lo ocurrido dentro del tenant según autorización
+
+Regla:
+
+todo acceso externo debe mantener aislamiento por tenant.
+
+La existencia de login externo común no debilita la separación tenant.
+
+<<END SECTION>>
+
+<<SECTION: REGLAS DE DOCUMENTACIÓN FUTURA>>
+SECTION_VERSION: 00001
+
+REGLAS DE DOCUMENTACIÓN FUTURA
+
+Toda evolución de Shopping Autoservicio debe actualizar este documento y los documentos rectores afectados.
+
+Deben auditarse especialmente:
+
+contexto fijo del proyecto
+
+seguridad y acceso
+
+convenciones
+
+mapa de entidades
+
+mapa de navegación y relaciones
+
+mapa de componentes
+
+base visual
+
+todo del proyecto
+
+paquete de servicios y mantenimiento solo si existiera relación funcional real
+
+Regla:
+
+Shopping Autoservicio no debe contaminar documentos especializados ajenos con detalles que pertenecen a esta capa.
+
+Los documentos generales solo deben incorporar la lectura estructural mínima necesaria.
+
+Este documento debe concentrar la doctrina específica de self_service_sales.
+
+<<END SECTION>>

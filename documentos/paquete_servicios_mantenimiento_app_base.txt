@@ -186,7 +186,7 @@ No debe convertirse en una copia rígida, sobredimensionada o aislada de un soft
 <<END SECTION>>
 
 <<SECTION: PAQUETE DE SERVICIOS Y MANTENIMIENTO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 PAQUETE DE SERVICIOS Y MANTENIMIENTO
 
@@ -332,17 +332,23 @@ Lectura:
 
 /service no absorbe ownership de órdenes
 
+/service no depende de ?group=service para sostener el contexto funcional
+
 Rutas semánticas vigentes del universo:
 
 GET /service
-
 GET /service/orders
-
 GET /service/orders/create
-
 POST /service/orders
-
 GET /service/orders/{order}
+
+Nombres de ruta vigentes:
+
+service.index
+service.orders.index
+service.orders.create
+service.orders.store
+service.orders.show
 
 El dashboard mínimo de /service ofrece actualmente:
 
@@ -353,6 +359,22 @@ crear nueva orden de servicio
 Regla:
 
 las órdenes de servicio se gestionan dentro de Orders con group = service, pero pueden accederse desde rutas semánticas propias del universo Servicio y mantenimiento.
+
+Cuando la creación proviene de POST /service/orders, el backend debe forzar group = service aunque el request intente enviar otro group.
+
+Una orden creada desde /service debe redirigir físicamente a:
+
+/service/orders/{order}
+
+El formulario de orden de servicio debe mantenerse simple.
+
+Si existen componentes gestionados de Party o Asset, se usa carga gestionada.
+
+Si no existen componentes gestionados, se habilita carga manual propia.
+
+No deben mostrarse alternancias manual/gestionado cuando los componentes gestionados estén disponibles.
+
+El tipo de orden puede bloquearse visualmente como Servicio dentro del universo /service, pero ese bloqueo visual no reemplaza la validación backend.
 
 Esta implementación inicial no incorpora todavía:
 
@@ -376,7 +398,7 @@ la existencia del universo /service no convierte la capa en CRUD ordinario ni ha
 <<END SECTION>>
 
 <<SECTION: ROL DE ORDERS>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 ROL DE ORDERS
 
@@ -431,6 +453,8 @@ counterparty_name es snapshot textual propio de contraparte
 
 asset_id es vínculo opcional con Assets
 
+asset_reference es referencia textual propia del activo dentro de Orders cuando corresponda al contrato vigente
+
 task_id no pertenece al núcleo persistente de Orders
 
 appointment_id no pertenece al núcleo persistente de Orders
@@ -468,6 +492,23 @@ Si no existe party_id, counterparty_name debe escribirse manualmente según el c
 La visualización de contraparte debe resolverse desde el registro dueño mediante:
 
 Order::displayCounterpartyName()
+
+La visualización de activo debe resolverse desde el registro dueño mediante:
+
+Order::displayAssetReference()
+
+La manualidad de contraparte y activo debe resolverse mediante helpers del modelo dueño y no desde Blade:
+
+Order::hasManualCounterpartyReference()
+Order::hasManualAssetReference()
+
+record_metadata conserva condiciones contextuales o excepcionales.
+
+No es fuente principal del dato visible.
+
+No debe interpretarse directamente desde Blade.
+
+En flujo gestionado normal con Party y Asset, record_metadata puede permanecer null cuando no existe manualidad ni excepción.
 
 Regla consolidada sobre lifecycle:
 
@@ -546,20 +587,6 @@ attachments
 
 Estas relaciones no bloquean Fase 1 mientras no se transformen en dependencias activas indebidas.
 
-Aclaración vigente por ProductOperationalSummary:
-
-Orders puede aportar compras y ventas reales a una lectura contextual del producto cuando Orders esté habilitado y el usuario posea dataset visible según Security.
-
-Esto no convierte Products en dueño de compras ni ventas.
-
-Orders conserva ownership de transacciones reales.
-
-Products solo presenta la lectura contextual cuando corresponde.
-
-Regla:
-
-si Orders no está habilitado o el usuario no posee dataset visible, no deben mostrarse métricas transaccionales de compra o venta dentro de ProductOperationalSummary.
-
 Aclaración vigente para Servicios y Mantenimiento:
 
 Orders debe poder operar como núcleo de intervención aunque no exista contacto gestionado en Parties.
@@ -609,17 +636,17 @@ cuando una orden se crea desde /service, group = service debe resolverse desde b
 
 una orden creada desde /service debe conservar navegación contextual hacia /service/orders/{order} cuando corresponda
 
-party_id y asset_id funcionan como vínculos opcionales de enriquecimiento.
+la redirección post-store desde /service debe permanecer dentro del universo /service
 
-El vínculo con Asset permite asociar la intervención a un activo cuando corresponda.
+party_id y asset_id funcionan como vínculos opcionales de enriquecimiento
 
-Cuando la UI filtre Assets por Party, esa selección debe validarse también en backend.
+el vínculo con Asset permite asociar la intervención a un activo cuando corresponda
+
+cuando la UI filtre Assets por Party, esa selección debe validarse también en backend
 
 Regla:
 
 la relación visible Party → Asset en el formulario no convierte a Party ni a Asset en dependencias obligatorias universales de la orden.
-
-En flujo gestionado normal con Party y Asset, record_metadata puede permanecer null cuando no existe manualidad ni excepción.
 
 No se implementaron todavía estados técnicos satélite, planes, checklists, órdenes modelo ni lógica ampliada de Inventory para mantenimiento.
 

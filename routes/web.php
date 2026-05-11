@@ -22,6 +22,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PublicSignupRequestController;
+use App\Http\Controllers\SelfServiceSalesCustomerRegistrationController;
 use App\Http\Controllers\ServiceDashboardController;
 use App\Http\Controllers\SuperadminDashboardController;
 use App\Http\Controllers\TaskController;
@@ -95,6 +96,7 @@ Route::get('/accept-invitation/{token}', [InvitationAcceptanceController::class,
 Route::post('/accept-invitation/{token}', [InvitationAcceptanceController::class, 'store'])
     ->name('invitation.accept.store');
 
+// SUPERADMIN
 Route::middleware(['auth', 'superadmin'])
     ->prefix('admin')
     ->name('admin.')
@@ -141,6 +143,23 @@ Route::get('/profile/tenant', [ProfileController::class, 'showTenant'])
     ->middleware(['auth', 'tenant'])
     ->name('profile.tenant.show');
 
+// SHOP
+Route::prefix('shop/{tenant:slug}')
+    ->name('self_service_sales.')
+    ->group(function () {
+        Route::get('/', [SelfServiceSalesCustomerRegistrationController::class, 'shop'])
+            ->name('shop');
+        Route::get('/register', [SelfServiceSalesCustomerRegistrationController::class, 'create'])
+            ->name('register.create');
+        Route::post('/register', [SelfServiceSalesCustomerRegistrationController::class, 'store'])
+            ->name('register.store');
+        Route::get('/register/thanks', [SelfServiceSalesCustomerRegistrationController::class, 'thanks'])
+            ->name('register.thanks');
+        Route::get('/register/confirm/{token}', [SelfServiceSalesCustomerRegistrationController::class, 'confirm'])
+            ->name('register.confirm');
+    });
+
+// APP-BASE
 Route::middleware(['auth', 'tenant'])->group(function () {
 
     // Tenant

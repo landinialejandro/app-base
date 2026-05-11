@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/service/dashboard.blade.php | V1 --}}
+{{-- FILE: resources/views/service/dashboard.blade.php | V2 --}}
 
 @extends('layouts.app')
 
@@ -15,34 +15,44 @@
 
         <x-card>
             <div class="dashboard-card-content">
-                <h2 class="dashboard-section-title">Órdenes de servicio</h2>
+                <div class="detail-block">
+                    <h2 class="dashboard-section-title">Órdenes de servicio</h2>
 
-                <p class="form-help">
-                    Acceso rápido al flujo operativo de órdenes de servicio.
-                </p>
-
-                @if (!is_null($serviceOrdersCount))
                     <p class="form-help">
-                        Total actual: {{ $serviceOrdersCount }}
+                        Acceso operativo a las órdenes de servicio gestionadas desde Orders dentro del universo Servicio y mantenimiento.
                     </p>
-                @endif
+
+                    @if (!is_null($serviceOrdersCount))
+                        <p class="form-help">
+                            Órdenes registradas: {{ $serviceOrdersCount }}
+                        </p>
+                    @endif
+                </div>
 
                 <div class="form-actions">
                     @if ($canViewServiceOrders)
                         <a href="{{ route('service.orders.index') }}" class="btn btn-primary">
-                            Ver órdenes
+                            Ver órdenes de servicio
                         </a>
                     @endif
 
                     @if ($canCreateServiceOrders)
                         <a href="{{ route('service.orders.create') }}" class="btn btn-secondary">
-                            Nueva orden
+                            Nueva orden de servicio
                         </a>
                     @endif
                 </div>
+
+                @if (!$canViewServiceOrders && !$canCreateServiceOrders)
+                    <div class="detail-block">
+                        <p class="form-help">
+                            El área está disponible, pero no hay permisos operativos habilitados para consultar o crear órdenes de servicio.
+                        </p>
+                    </div>
+                @endif
             </div>
         </x-card>
     </x-page>
 
-    <x-dev-component-version name="service.dashboard" version="V1" align="right" />
+    <x-dev-component-version name="service.dashboard" version="V2" align="right" />
 @endsection

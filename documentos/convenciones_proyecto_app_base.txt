@@ -1,15 +1,18 @@
 <<SECTION: METADATOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 TÍTULO: Convenciones del proyecto
 DOC_SLUG: convenciones_proyecto_app_base
-DOC_VERSION: 00001
+DOC_VERSION: 00002
 TIPO: doctrinal
 ESTADO: activo
 GESTIÓN: La gobernanza documental, versionado y formato de intercambio se definen en este mismo documento.
+
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DEL DOCUMENTO>>
+SECTION_VERSION: 00001
+
 OBJETIVO DEL DOCUMENTO
 
 Este documento define las convenciones estructurales y de desarrollo del proyecto app-base.
@@ -23,1476 +26,616 @@ nuevas entidades
 nuevas vistas
 nuevos controladores
 nuevos flujos operativos
+
+<<END SECTION>>
+
+<<SECTION: REGLAS DE ORO DOCUMENTAL>>
+SECTION_VERSION: 00001
+
+[USO]
+Documento de convenciones = contrato compacto de implementación para IA.
+No es rector arquitectónico general.
+No es documento de seguridad.
+No es mapa visual.
+No es navegación.
+No es memoria histórica.
+No es backlog.
+
+[REGLA 1]
+Si una regla no orienta implementación futura, sale.
+
+[REGLA 2]
+Si una regla pertenece a arquitectura general, va a contexto_fijo.
+
+[REGLA 3]
+Si una regla pertenece a autorización, va a seguridad_acceso.
+
+[REGLA 4]
+Si una regla pertenece a navegación, UI, entidades, componentes, Project Lab, mantenimiento, shopping, IA, errores o decisiones vivas, va al documento especializado.
+
+[REGLA 5]
+Convención válida = criterio repetible de implementación.
+
+[REGLA 6]
+Caso vigente solo queda si evita una deriva técnica concreta.
+
+[REGLA 7]
+NO SE ASUME.
+NO SE SUPONE.
+Si falta estructura, ruta, clase, tabla, método, contrato, capability, scope, schema o runtime: pedir evidencia exacta.
+
+[REGLA 8]
+Project Lab valida evidencia real.
+No reemplaza criterio arquitectónico.
+No reemplaza documentación rectora.
+No aplica snippets ambiguos.
+
+[REGLA 9]
+Documento debe maximizar:
+implementación consistente
+bajo acoplamiento
+baja duplicación
+continuidad IA
+prevención de legacy
+contratos explícitos
+mínima ambigüedad
+bajo ruido narrativo
+
+[REGLA 10]
+Traducción humana = bajo demanda.
+Contrato compacto = formato principal.
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES GENERALES>>
-SECTION_VERSION: 00034
+SECTION_VERSION: 00035
 
-CONVENCIONES GENERALES
+[PRINCIPIOS]
+Simplicidad.
+Claridad estructural.
+Baja duplicación.
+Coherencia entre módulos.
+Previsibilidad del comportamiento.
 
-El proyecto sigue los principios de:
+[REGLA BASE]
+Ante varias alternativas, elegir la más simple compatible con arquitectura vigente.
 
-simplicidad
-claridad estructural
-baja duplicación
-coherencia entre módulos
-previsibilidad del comportamiento del sistema
+[NO ASUMIR]
+No asumir:
+estructura
+rutas
+APIs
+tablas
+contratos
+helpers
+componentes
+permisos
+capabilities
+scopes
+constraints
+métodos
+runtime
 
-Cuando existan varias alternativas técnicas, se debe priorizar siempre la opción más simple y consistente con el resto del proyecto.
+[ANTES DE INTERVENIR]
+Leer documentación vigente.
+Trabajar sobre código real.
+Pedir evidencia mínima necesaria.
+Validar contra estructura real.
+No completar por memoria.
+No completar por conveniencia.
 
-Reglas generales:
+[NO LEGACY]
+No cerrar migraciones, refactors o reconversiones con convivencia indefinida entre patrón nuevo y patrón viejo.
 
-no asumir estructura, rutas, APIs, tablas ni contratos sin evidencia real
+[OWNERSHIP]
+Cada módulo conserva núcleo propio.
+Consumer no invade oferente.
+Host visual no absorbe ownership.
+Universo semántico no absorbe ownership.
+Capa satélite no absorbe ownership.
+Entrada pública no absorbe plano interno.
 
-trabajar sobre código vigente y documentación activa
+[INTEGRACIÓN]
+Consumidor solicita.
+Frontera explícita procesa.
+Módulo oferente resuelve.
+Host monta.
+UI representa.
 
-pedir solo la evidencia mínima necesaria antes de intervenir
+[Fronteras válidas]
+hooks
+selectors
+providers
+services
+linked helpers
+surface services
+catálogos
+registries
+contratos explícitos
 
-evitar soluciones híbridas que mezclen patrones nuevos con patrones legacy
+[CONTROLLERS]
+Controller = flujo propio del módulo.
+No intérprete de dominios externos.
+No reconstruye permisos.
+No reconstruye bloqueos externos.
+No decide significado de catálogos ajenos.
+No concentra cierre/cancelación/derivación si existe hook o service de frontera.
 
-no cerrar una migración, refactor o reconversión con convivencia indefinida entre generaciones
+[SEGURIDAD]
+Validación crítica vive en backend, Security, Policy, service o contrato oficial.
+Blade no autoriza.
+Frontend no autoriza.
+JS no autoriza.
+UI solo expresa resultado autorizado.
 
-mantener ownership funcional claro entre módulos
-
-consumir capacidades oficiales del módulo oferente antes de crear variantes locales
-
-no trasladar complejidad contractual, técnica u operativa al usuario cuando el sistema pueda resolverla internamente
-
-la UI debe tender a acciones simples, comprensibles y de bajo roce
-
-las validaciones críticas deben sostenerse en backend, servicios, policies, Security o contratos oficiales, no en Blade ni frontend
-
-las reglas owner/admin del frente tenant/profile deben centralizarse en una pieza reusable del plano tenant y no repetirse en controllers, policies ni Blades
-
-Pieza vigente:
-
+[OWNER / ADMIN]
+Reglas tenant/profile centralizadas en:
 app/Support/Tenants/TenantProfileAccess.php
 
-Regla:
+Vistas pueden expresar:
+disponibilidad
+readonly
+botones visibles
+estados bloqueados
 
-las vistas pueden expresar disponibilidad, readonly, botones visibles o estados bloqueados, pero no decidir autorización final
+Backend decide autorización final.
 
-Convención documental consolidada:
+[DOCUMENTACIÓN]
+Documentos activos deben usar:
+METADATOS
+TÍTULO
+DOC_SLUG
+DOC_VERSION
+SECTION_VERSION cuando corresponda
 
-la base documental técnica del proyecto debe tender a una estructura homogénea y navegable
-
-los documentos técnicos activos deben utilizar:
-
-bloque estructural de metadatos
-TÍTULO como nombre humano del documento
-DOC_SLUG como identificador técnico canónico
-DOC_VERSION como versión general del documento
-
-las referencias internas entre documentos deben tender a resolverse mediante:
-
+Referencias internas:
 <DOC_REF slug="...">Título visible</DOC_REF>
 
-no deben utilizarse nombres de archivo físicos como referencia narrativa dentro del cuerpo del documento
+No usar nombres físicos de archivo como referencia narrativa si existe DOC_SLUG.
 
-las carpetas baks y auditoria no forman parte de la base documental activa navegable
+baks y auditoria no son base documental activa navegable.
 
-Convención adicional consolidada para contenido orientado a usuario:
+[CONTENIDO USUARIO FINAL]
+Lenguaje no técnico.
+Frases claras.
+Cierre conceptual.
+Puede usar refuerzo tipo “👉 …”.
+Aplica a onboarding, ayudas contextuales y contenidos UX.
 
-los textos dirigidos a usuario final deben utilizar lenguaje no técnico
-deben priorizar claridad, accesibilidad y comprensión inmediata
-deben construirse con frases cortas y cierre conceptual claro
-pueden incorporar líneas de refuerzo tipo “👉 …” como patrón de cierre
+[PROJECT LAB]
+Project Lab = herramienta local de evidencia, auditoría, código y documentación.
+Usar cuando el caso toque:
+permisos
+constraints
+multi-tenancy
+runtime real
+snippets
+auditorías
+actualización de código
+actualización documental
 
-este criterio aplica a:
-
-documentación de onboarding
-ayudas contextuales
-contenidos UX embebidos
-
-Convención operativa adicional:
-
-Project Lab forma parte del proceso real de validación técnica, auditoría, actualización de código y actualización documental del proyecto.
-
-Cuando el caso toque permisos, constraints, multi-tenancy, runtime real, snippets, auditorías, actualización de código o actualización documental, debe utilizarse la guía operativa vigente y no una prueba abstracta improvisada.
-
+Referencia:
 <DOC_REF slug="guia_project_lab_proyecto_app_base">Guía operativa de Project Lab</DOC_REF>
 
-Convención modular consolidada:
+[CONTRATO MODULAR]
+Módulo = mini app interna cerrable del tenant.
 
-los módulos del sistema deben entenderse como unidades funcionales cerrables equivalentes a mini apps internas del tenant
-
-cada módulo debe tender a describirse mediante:
-
+Debe poder describirse por:
 núcleo propio
 contrato de entrada
 contrato de salida
 contrato de seguridad
 oferta de integración
 
-esta convención no obliga a que todos los módulos publiquen desde el inicio todas sus capacidades reutilizables
+[CONVERGENCIA]
+Si dos módulos/hosts tienen distinta madurez contractual, no degradar el más avanzado.
+La convergencia debe tender al patrón maduro validado.
 
-sí obliga a que, cuando las publiquen o consuman, lo hagan bajo contrato claro y sin reabrir arbitrariamente el núcleo de otros módulos
+[HELPERS LINKED]
+Helper linked pertenece al módulo oferente.
+Recibe modelo propio o null.
+No métodos específicos por consumidor.
 
-Regla de convergencia:
-
-si dos módulos o hosts equivalentes muestran distinta madurez contractual, no debe degradarse el más avanzado para alinearlo al más viejo.
-
-La convergencia correcta del ecosistema debe tender hacia el patrón más maduro ya validado.
-
-Regla de aduana funcional:
-
-cuando un módulo consumidor necesite una capacidad, dato, link, selector, bloqueo, validación o surface de otro módulo, debe consumir una frontera explícita del módulo oferente o de una capacidad transversal autorizada.
-
-Reglas:
-
-el consumidor no reconstruye lógica interna del oferente
-
-el oferente no debe interpretar modelos internos del consumidor
-
-el controller consumidor no debe acumular conocimiento de dominios externos si existe frontera apropiada
-
-las fronteras pueden expresarse mediante hooks, selectors, services, linked helpers, surface services, catálogos, registries o contratos explícitos
-
-Caso vigente:
-
-Orders no debe interpretar Task, Appointment, Party, Asset o Document más allá de referencias pasivas, relaciones necesarias o contratos explícitos.
-
-Convención de controllers:
-
-los controllers deben concentrarse en el flujo de aplicación propio del módulo.
-
-No deben transformarse en intérpretes de módulos externos.
-
-Reglas:
-
-no consultar directamente modelos externos cuando exista una capacidad oficial del módulo oferente
-
-no reconstruir reglas de bloqueo de otro módulo
-
-no reconstruir reglas de selección o validación de otro dominio
-
-no concentrar lógica de cierre, cancelación, eliminación o derivación si corresponde a un hook o service de frontera
-
-no decidir prefijos, significado de numeración o semántica de catálogo si esa definición pertenece al módulo dueño
-
-Caso vigente:
-
-OrderController quedó saneado de dependencias evidentes críticas hacia lógica interna de módulos externos.
-
-Caso vigente:
-
-OrderItemController y DocumentItemController consumen ProductLineItemSelector para selección y validación de productos en líneas.
-
-Convención de helpers linked:
-
-un helper linked pertenece al módulo oferente del recurso enlazado.
-
-Debe recibir el modelo propio del módulo oferente o null.
-
-No debe definir métodos específicos por consumidor.
-
-Caso vigente:
-
+Patrón vigente:
 OrderLinked::forOrder(?Order $order, ...)
 
-Reglas:
-
-si Tasks necesita mostrar una Order, Tasks entrega Order|null a Orders
-
-si Appointments necesita mostrar una Order, Appointments entrega Order|null a Orders
-
-Orders arma el link de su propio recurso
-
-no deben reaparecer métodos como:
-
+No reintroducir:
 OrderLinked::forTask()
 OrderLinked::forAppointment()
 OrderLinked::forDocument()
 OrderLinked::forAsset()
 OrderLinked::forParty()
 
-Convención de surfaces:
+[SURFACES]
+SurfaceService declara:
+ofertas
+hosts
+configuración propia
+payload preparado
+vistas consumidas
 
-los SurfaceService deben expresar capacidades reales, no duplicaciones por host.
+Capacidad real > duplicación por host.
 
-Si la misma capacidad mantiene el mismo formato y solo cambia target, filtro, columna, mensaje vacío o configuración contextual, debe preferirse una única offer con múltiples targets.
+Si solo cambia host/filtro/flags/mensaje/configuración:
+una offer con múltiples targets.
 
-Caso vigente:
-
-OrderSurfaceService ofrece orders.related.embedded como surface embebida única para assets.show y parties.show.
-
-Regla:
-
-no duplicar offers por host cuando la capacidad es la misma.
-
-Patrón vigente:
-
-relatedHosts()
-
-Puede concentrar configuración contextual como:
-
-clase esperada
-columna de filtro
-tabsId
-flags visuales
-mensaje vacío
-otros parámetros de montaje
-
-Regla adicional consolidada:
-
-los SurfaceService deben declarar ofertas, hosts y configuración propia.
-
-La lógica transversal de armado de hostPack y resolución genérica de relaciones embebidas debe vivir en Support/Modules cuando sea reusable entre módulos.
-
-La lógica estrictamente propia del módulo permanece dentro del SurfaceService correspondiente.
+Mecánica transversal reusable vive en Support/Modules.
+Lógica propia queda en SurfaceService.
 
 Piezas vigentes:
-
 app/Support/Modules/Concerns/BuildsHostPacks.php
 app/Support/Modules/Concerns/ResolvesRelatedEmbeddedSurfaces.php
 
-Caso validado:
+No vaciar SurfaceService por reflejo.
 
-OrderSurfaceService conserva configuración propia de hosts y relaciones, pero ya no concentra toda la mecánica genérica de validación, consulta y armado de payload.
+[HOOKS]
+Hook = frontera funcional.
+Puede bloquear, ajustar, dejar pasar o informar condición externa.
+Módulo dueño no conoce lógica interna externa.
+Módulo externo conserva ownership de su regla.
+Falla en bloqueo crítico = escenario seguro.
+
+Casos:
+OrdersHooks
+InventoryOrderItemHooks
+
+[SELECTORS / PROVIDERS]
+Si varios módulos seleccionan o validan entidades de un dominio, crear capacidad central del módulo dueño.
+
+Caso:
+ProductLineItemSelector
 
 Regla:
-
-no vaciar un SurfaceService por reflejo.
-
-El criterio correcto es separar lógica transversal reusable de lógica propia del módulo.
-
-Convención de hooks:
-
-los hooks funcionan como fronteras funcionales de intervención entre módulos.
-
-Un hook puede permitir que otro módulo:
-
-bloquee
-ajuste
-deje pasar
-informe condición externa
-aporte validación contextual
-
-Reglas:
-
-el módulo dueño del flujo no debe conocer la lógica interna del módulo externo
-
-el módulo externo conserva ownership de su regla
-
-si una consulta de bloqueo crítico falla, debe asumirse el escenario seguro
-
-Caso vigente:
-
-OrdersHooks funciona como frontera estratégica del flujo de Orders.
-
-InventoryOrderItemHooks conserva la lógica de bloqueo de cierre por ejecución física de líneas.
-
-Convención de selectors o providers:
-
-cuando varios módulos necesitan seleccionar o validar entidades de un mismo dominio, debe evaluarse una capacidad central del módulo dueño de ese dominio.
-
-Caso vigente:
-
-ProductLineItemSelector concentra opciones, reglas y verificación de acceso a Products para líneas de Orders y Documents.
-
-Reglas:
-
-Orders y Documents administran sus propios ítems
-
-Products ofrece selección y validación de productos cuando corresponde
-
-los controllers consumidores no deben consultar directamente Product::query(), products.viewAny ni Rule::exists('products') si existe selector oficial
-
-Convención de servicios transversales:
-
-un servicio transversal debe ejecutar una mecánica común sin decidir significado de negocio específico de cada módulo.
-
-Regla síntesis:
-
-el módulo define el significado.
-
-el servicio transversal ejecuta la mecánica.
-
-Caso vigente:
-
-RecordNumberGenerator ejecuta la mecánica de numeración.
-
-OrderCatalog define prefijos de Orders.
-
-DocumentCatalog define prefijos de Documents.
-
-Reglas:
-
-los prefijos pertenecen a catálogos del módulo
-
-el generador transversal no debe decidir prefijos por sí mismo
-
-no debe usarse un service nombrado por un módulo si la mecánica ya es transversal
-
-Caso corregido:
-
-DocumentNumberGenerator fue reemplazado por RecordNumberGenerator.
-
-Convención de universos semánticos de URL:
-
-un universo semántico de URL representa un frente funcional especializado de uso, navegación y contexto operativo.
-
-No constituye automáticamente un módulo dueño nuevo.
-
-No reemplaza el ownership del módulo que ejecuta la operación real.
-
-No crea por sí mismo un CRUD ordinario.
-
-No reemplaza autorización backend.
-
-Caso vigente:
-
-/service
-
-Lectura:
-
-/service representa el frente Servicio y mantenimiento.
-
-El nombre visible del área es:
-
-Servicio y mantenimiento
-
-El slug URL es:
-
-/service
-
-Reglas:
-
-usar slugs cortos, claros, legibles y extensibles
-
-evitar nombres técnicos excesivamente largos cuando una ruta corta expresa mejor el universo
-
-evitar siglas poco legibles si el frente debe ser comprensible para usuario y desarrollo
-
-el universo puede tener rutas propias cuando el contexto funcional lo justifique
-
-las rutas internas pueden consumir controllers o capacidades del módulo dueño
-
-el contexto fuerte del universo debe resolverse o reforzarse desde backend
-
-no debe depender de query params manipulables como única fuente de contexto
-
-no debe duplicar ownership del módulo dueño
-
-Caso vigente:
-
-/service opera sobre Orders para órdenes de servicio.
-
-Orders conserva ownership de las órdenes.
-
-Nombres de rutas vigentes del universo:
-
-service.index
-service.orders.index
-service.orders.create
-service.orders.store
-service.orders.show
-
-Regla:
-
-si un universo semántico opera sobre un módulo dueño, los nombres de ruta deben expresar el universo y el recurso operado sin ocultar el ownership real.
-
-Convención de modelos:
-
-los modelos pueden conservar relaciones pasivas, estructurales o transversales cuando correspondan a columnas propias o patrones reales del ecosistema.
-
-Eso no autoriza a controllers a gobernar módulos externos.
-
-Reglas:
-
-una relación pasiva no equivale a ownership funcional
-
-una relación de consulta no equivale a autorización
-
-una relación inversa no necesaria debe eliminarse si induce navegación conceptual incorrecta o acoplamiento activo indebido
-
-Caso vigente:
-
-Order ya no expone tasks().
-
-La dirección conceptual es Task -> Order mediante tasks.order_id.
-
-Caso vigente:
-
-Order puede conservar relaciones pasivas o transversales con party, asset, documents y attachments mientras no habiliten gobierno externo desde su controller.
-
-Regla de autonomía modular:
-
-un módulo debe poder distinguir entre:
-
-dato propio necesario para existir
+Products ofrece selección/validación.
+Orders/Documents administran sus ítems.
+Consumidores no reconstruyen Product::query(), products.viewAny ni Rule::exists('products') si existe selector oficial.
+
+[SERVICIOS TRANSVERSALES]
+Servicio transversal ejecuta mecánica común.
+Módulo/catálogo define significado.
+
+Caso:
+RecordNumberGenerator ejecuta numeración.
+OrderCatalog define prefijos Orders.
+DocumentCatalog define prefijos Documents.
+
+No usar service nombrado por módulo si la mecánica ya es transversal.
+
+[UNIVERSOS SEMÁNTICOS]
+Universo semántico = frente funcional de uso, navegación y contexto.
+No módulo dueño.
+No CRUD por sí mismo.
+No autorización.
+No ownership.
+
+Caso:
+/service = Servicio y mantenimiento.
+Orders conserva ownership.
+Rutas pueden expresar universo y recurso operado.
+
+[MODELOS]
+Relación pasiva ≠ ownership.
+Relación de consulta ≠ autorización.
+Relación inversa innecesaria debe eliminarse si induce ownership incorrecto.
+
+Caso:
+Order no expone tasks().
+Dirección vigente: Task -> Order mediante tasks.order_id.
+
+[AUTONOMÍA MODULAR]
+Distinguir:
+dato propio necesario
 vínculo gestionado opcional
-contexto transitorio de navegación o request
-relación de origen, planificación o seguimiento
+contexto transitorio
+origen
+planificación
+seguimiento
 formalización derivada
-enriquecimiento futuro
-universo semántico de entrada o navegación
+enriquecimiento
+universo de entrada
 
-Regla:
+*_id no implica dependencia obligatoria.
+Universo semántico no implica ownership.
 
-un campo `*_id` no debe interpretarse automáticamente como dependencia obligatoria.
+[SNAPSHOTS]
+party_id = vínculo gestionado opcional.
+counterparty_name = snapshot textual propio.
 
-Un universo semántico no debe interpretarse automáticamente como ownership funcional.
-
-Su sentido debe definirse por contrato funcional real, esquema vigente, validación backend y doctrina del módulo.
-
-Caso vigente:
-
-party_id en Orders y Documents es vínculo gestionado opcional.
-
-No es condición obligatoria de existencia funcional cuando el registro conserva dato propio suficiente de contraparte.
-
-Caso vigente:
-
-/service es universo semántico de entrada para órdenes de servicio.
-
-No convierte a Servicio y mantenimiento en dueño de Orders.
-
-Convención de snapshots propios:
-
-cuando un módulo puede vincularse opcionalmente a Parties pero necesita conservar dato propio de contraparte, debe utilizar un snapshot textual propio.
-
-Patrón vigente:
-
-party_id = vínculo gestionado opcional
-
-counterparty_name = snapshot textual propio del registro
-
-Casos vigentes:
-
+Casos:
 orders.counterparty_name
 documents.counterparty_name
 
-Reglas:
+Snapshot:
+no reemplaza autorización
+no reemplaza Party
+no vuelve obligatorio el vínculo
+permite lectura autónoma
 
-el snapshot no reemplaza autorización
-
-el snapshot no reemplaza Party
-
-el snapshot no convierte el vínculo gestionado en obligatorio
-
-el snapshot permite que el registro conserve lectura autónoma aunque no exista Party vinculada
-
-los listados, show summaries, prints, surfaces y salidas visuales deben priorizar el método de presentación propio cuando exista
-
-Casos vigentes:
-
+Usar helpers:
 Order::displayCounterpartyName()
-
 Document::displayCounterpartyName()
 
-Regla:
+No mostrar solo party->name si existe snapshot propio.
 
-no debe mostrarse únicamente party->name si el módulo posee snapshot propio de contraparte y fallback controlado.
+[REFERENCIAS PROPIAS]
+*_id = vínculo gestionado opcional.
+*_reference / snapshot = referencia propia.
+record_metadata = contexto, excepción o manualidad.
 
-Convención de referencias propias con vínculo gestionado opcional:
+Blade representa.
+Blade no interpreta JSON.
+Salida visual usa helper, presenter o payload preparado.
 
-cuando un módulo conserve un vínculo gestionado opcional hacia otro módulo y necesite mantener referencia textual propia del registro, debe diferenciarse:
-
-*_id
-
-vínculo gestionado opcional
-
-*_reference o snapshot textual propio vigente del módulo
-
-referencia textual propia del registro
-
-record_metadata
-
-condición contextual o excepcional
-
-Reglas:
-
-la referencia textual propia no reemplaza autorización
-
-la referencia textual propia no reemplaza el módulo vinculado
-
-la referencia textual propia permite lectura autónoma del registro
-
-la salida visual debe priorizar helpers o payload preparado por el módulo dueño
-
-los Blades no deben reconstruir lógica interna del módulo oferente
-
-los Blades no deben interpretar directamente record_metadata
-
-record_metadata no debe usarse como fuente principal de datos operativos
-
-record_metadata solo debe expresar condiciones contextuales, excepciones o manualidad
-
-Caso vigente validado en Orders:
-
+Caso Orders:
 party_id
-
-vínculo gestionado opcional con Parties
-
 asset_id
-
-vínculo gestionado opcional con Assets
-
 asset_reference
-
-referencia textual propia del activo dentro de Orders
-
 record_metadata
 
-metadata contextual o excepcional de la orden
-
-Aclaración:
-
-el nombre vigente para contraparte en Orders y Documents continúa siendo counterparty_name mientras el código y la doctrina vigente no lo reemplacen formalmente.
-
-Si aparece counterparty_reference en cierres de sesión o propuestas, debe auditarse contra código real antes de incorporarlo como contrato vigente.
-
-Convención de contraparte en módulos transaccionales:
-
-cuando un módulo transaccional conserve un vínculo opcional con Party y además requiera preservar el dato visible de contraparte, debe diferenciarse:
-
-party_id
-
-vínculo gestionado opcional con Party
-
+Nombre vigente para contraparte:
 counterparty_name
 
-snapshot operativo propio del registro
+counterparty_reference no es contrato vigente sin auditoría contra código real.
 
-La UI debe distinguir:
+[CONTRAPARTE]
+Contacto gestionado = party_id.
+Contraparte = dato visible propio del registro.
 
-Contacto gestionado
-
-para el vínculo con Party
-
-Contraparte
-
-para el dato visible propio del registro
-
-Reglas:
-
-no usar PartyLinked como fuente principal de texto visible cuando el módulo dueño posee snapshot propio
-
-PartyLinked debe representar solo el vínculo gestionado cuando exista party_id
-
-los filtros por party_id pueden seguir usando Contacto porque filtran contacto gestionado
-
-las columnas de listados y embebidos deben mostrar Contraparte cuando representan el dato operativo visible del registro
-
-Convención visual para tablas y surfaces de Orders/Documents:
-
-showCounterparty es el contrato visual vigente para indicar si una tabla de Orders o Documents debe mostrar la columna Contraparte.
-
-showAsset es el contrato visual vigente para indicar si una tabla o surface de Orders debe mostrar la columna Activo.
-
-showParty no debe usarse como contrato visual vigente de Orders.
-
-Reglas:
-
-los surface services deben publicar showCounterparty cuando el dato visible esperado sea Contraparte
-
-los surface services deben publicar showAsset cuando el dato visible esperado sea Activo
-
-no deben publicar showParty como contrato principal si el contenido visual esperado no es el vínculo gestionado sino la contraparte operativa
-
-el Blade no debe conservar fallbacks legacy cuando el contrato vigente ya fue validado y no quedan consumidores
-
-Caso vigente:
-
-OrderSurfaceService publica showCounterparty.
-
-OrderSurfaceService puede publicar showAsset según host.
-
-DocumentSurfaceService publica showCounterparty.
-
-Reglas validadas para Orders:
-
-orders.index puede mostrar Contraparte y Activo.
-
-assets.show puede alojar Orders mostrando Contraparte y ocultando Activo para evitar duplicar el host.
-
-parties.show puede alojar Orders mostrando Activo y ocultando Contraparte para evitar duplicar el host.
-
-La lectura visual debe pasar por helpers del modelo dueño o payload preparado.
-
-Helpers vigentes:
-
-Order::displayCounterpartyName()
-Order::displayAssetReference()
-Order::hasManualCounterpartyReference()
-Order::hasManualAssetReference()
-
-Regla:
-
-record_metadata no debe interpretarse directamente desde Blade.
-
-Convención de formularios con fronteras explícitas:
-
-cuando un formulario host tenga campos que forman parte de su contrato propio y además pueda recibir enriquecimiento de módulos oferentes, no debe renderizar un foreach abierto de cualquier oferta externa.
-
-El host debe definir fronteras explícitas.
-
-Patrón:
-
-si existe proveedor externo válido
-renderiza componente del proveedor
-
-si no existe proveedor externo
-renderiza campo manual propio
-
-Caso vigente:
-
-orders.form
-
-Fronteras validadas:
-
-Party disponible
-selector de contacto
-
-Party no disponible
-campo manual propio de contraparte
-
-Asset disponible
-selector de activo
-
-Asset no disponible
-campo manual propio de activo o referencia equivalente vigente
-
-Ofertas vigentes:
-
-PartySurfaceService ofrece party.order.form-context
-
-AssetSurfaceService ofrece asset.order.form-context
-
-Reglas:
-
-el formulario no debe acoplarse directamente al dominio interno del módulo oferente
-
-el proveedor externo prepara payload o componente según su contrato
-
-el host decide cómo encajar la frontera dentro de su contrato propio
-
-una carga manual no debe transformarse automáticamente en gestionada sin acción explícita y trazable
-
-si el formulario entra desde un universo semántico especializado, puede recibir un contexto visual como groupLocked para expresar bloqueo de UI
-
-ese bloqueo visual no reemplaza validación backend
-
-el backend debe forzar o validar el valor contextual cuando forma parte del contrato del universo
-
-Caso vigente:
-
-en /service, la creación de órdenes debe operar con group = service como contexto fuerte del universo.
-
-Convención de record_metadata:
-
-record_metadata puede utilizarse como campo JSON flexible del registro para conservar metadata contextual o excepcional.
-
-No reemplaza columnas centrales.
-
-No reemplaza datos operativos principales.
-
-No reemplaza vínculos gestionados.
-
-No debe transformarse en fuente principal de lectura visual.
-
-Criterio vigente:
-
-si todo ocurre por vía gestionada normal
-record_metadata puede permanecer null
-
-si alguna frontera cae a carga manual
-record_metadata puede registrar solo esa excepción
-
-Caso vigente validado:
-
-record_metadata.relationships.counterparty.managed = false
-
-record_metadata.relationships.asset.managed = false
-
-Reglas:
-
-la lectura visual de metadata contextual debe exponerse mediante helper del modelo dueño, presenter o payload preparado
-
-Blade representa
-
-Blade no interpreta JSON operativo
-
-Convención de relaciones externas hacia Orders:
-
-Orders debe conservar autonomía funcional.
-
-Las relaciones de seguimiento, planificación u origen pueden vivir en el módulo que las origina o acompaña.
-
-Casos vigentes:
-
-tasks.order_id
-
-appointments.order_id
-
-Regla:
-
-Orders no debe conservar task_id ni appointment_id como parte de su núcleo persistente.
-
-task_id o appointment_id pueden viajar como contexto transitorio de request o navegación cuando la creación se origine desde Task o Appointment.
-
-Ese contexto no debe convertirse automáticamente en campo persistente del módulo receptor.
-
-Un universo semántico de entrada tampoco debe convertirse automáticamente en campo persistente propio si no pertenece al contrato del módulo receptor.
-
-Caso vigente:
-
-/service puede originar navegación y creación contextual de órdenes de servicio.
-
-El contexto fuerte del universo se expresa mediante el contrato vigente de Orders, no mediante ownership nuevo.
-
-Convención para OrderLinked:
-
-OrderLinked no debe bloquear la creación contextual de Orders por ausencia de party_id.
-
-Tasks y Appointments pueden originar una Order contextual aunque no tengan contacto gestionado.
-
-La Order resultante debe resolver contraparte desde el formulario mediante counterparty_name cuando no exista party_id.
-
-Reglas:
-
-OrderLinked expresa intención contextual hacia Orders
-
-no convierte Task ni Appointment en orden encubierta
-
-no reemplaza autorización de Orders
-
-no debe exigir Party como dependencia rígida si el contrato de Orders permite contraparte textual
-
-Validación vigente:
-
-Task sin party_id y sin order_id puede devolver state = creatable.
-
-Appointment sin party_id y sin order_id puede devolver state = creatable.
-
-Convención de derivación entre módulos:
-
-un módulo puede derivar otro registro sin transferir ownership ni autorización.
-
-Caso vigente:
-
-Order → Document
-
-Reglas:
-
-Orders aporta contexto operativo
-
-Documents conserva ownership documental
-
-la creación derivada debe pasar por autorización efectiva del módulo receptor
-
-el documento derivado debe conservar sus propios datos, líneas, totales, lifecycle y snapshot cuando corresponda
-
-Convención de migraciones:
-
-las migraciones deben respetar el orden real de creación de tablas.
-
-No debe agregarse una foreign key hacia una tabla que todavía no existe en la secuencia real de migraciones.
-
-Caso vigente:
-
-asset_id no debe quedar directamente dentro de create_orders_table si assets se crea después.
-
-Regla:
-
-si el vínculo es válido pero la tabla destino aparece después, debe resolverse en una migración posterior compatible con el orden real.
-
-Convención de seeders:
-
-los seeders que crean registros directamente deben respetar el contrato vigente del módulo.
-
-No deben depender de controllers para completar datos obligatorios o snapshots.
-
-Caso vigente:
-
-si Orders o Documents usan counterparty_name como snapshot propio, los seeders correspondientes deben poblar ese dato cuando generen registros que lo requieran.
-
-Regla de subcapas contextuales internas:
-
-cuando una capacidad contextual pertenece a un módulo host pero no constituye CRUD, navegación propia ni módulo independiente, puede organizarse como subcapa interna del módulo.
-
-Caso vigente:
-
-ProductOperationalSummary
-
-Lectura:
-
-subcapa contextual de Products
-sin CRUD
-sin navegación propia
-sin ModuleCatalog propio
-sin dashboard general
-sin rutas propias
-
-Ubicación vigente:
-
-app/Support/Products/OperationalSummary/
-resources/views/products/operational-summary/
-
-Regla:
-
-una subcapa interna debe mantenerse bajo el módulo host, pero separada de partials comunes si posee identidad funcional propia.
-
-No debe degradarse a include local disperso si puede publicarse mediante la infraestructura surface-driven vigente.
-
-Caso corregido:
-
-ProductOperationalSummary dejó de resolverse como include directo o partial común dentro de products/partials.
-
-La salida estable se resolvió mediante ProductSurfaceService.
-
-Patrón aplicado:
-
-consumer solicita
-módulo oferente resuelve
-surface publica
-host monta
-
-Caso vigente:
-
-ProductOperationalSummary publica summary_items en products.show mediante ProductSurfaceService.
-
-Summary items vigentes:
-
-Compras
-Ventas
-Entradas / salidas
-
-Regla:
-
-los hosts deben consumir información mediante surfaces oficiales cuando el sistema ya posee infraestructura surface-driven.
-
-No debe usarse include directo en el host como cierre estable si existe una surface adecuada del módulo oferente.
-
-Regla de modelado:
-
-una entidad no debe comprimir en un único campo conceptos que pertenecen a dimensiones distintas.
-
-Cuando una clasificación mezcle naturaleza, tipo, relación operativa o vínculo comercial, debe separarse el núcleo de la entidad de sus relaciones o tablas hijas.
-
-Caso vigente:
-
-parties.kind representa únicamente tipo de contacto.
-
-party_roles.role representa relación del contacto con la empresa.
-
-No deben volver a usarse customer, supplier ni employee como valores de parties.kind.
-
-Regla adicional de clasificación:
-
-las taxonomías operativas deben ser mínimas, objetivas, no ambiguas y útiles para filtros, reportes, trazabilidad, historial técnico e interpretación futura por IA.
-
-La cantidad de valores no debe ser el diferencial.
-
-El diferencial debe ser claridad, explotabilidad estadística, utilidad operativa y ausencia de ambigüedad.
-
-Regla:
-
-no deben mezclarse dimensiones conceptuales distintas en un mismo campo o taxonomía.
-
-Deben mantenerse separadas, cuando correspondan:
-
-propiedad o relación del objeto
-ubicación de ejecución
-lifecycle administrativo/base
-estado operativo de ejecución
-custodia material
-consumo material
-prioridad
-tipo técnico
-origen de necesidad
-cierre técnico
-cierre administrativo
-cierre final
-
-Caso doctrinal vigente para mantenimiento:
-
-interno
-externo
-remoto
-indefinido
-
-puede funcionar como clasificación estructural mínima de ubicación de ejecución.
-
-Valores como taller, box, base, planta, obra, cliente, predio o locación deben tratarse primero como ubicaciones específicas, configuración o labels visibles, no necesariamente como tags estructurales universales.
-
-Convención adicional de lenguaje de UI para parties:
-
-en la interfaz de parties debe evitarse la palabra rol para no confundir relación del contacto con roles de permisos o memberships.
-
-La lectura visible correcta debe priorizar:
-
-Tipo de contacto
-Relación con la empresa
-
-Convención adicional de lenguaje de UI para contraparte:
-
-cuando un módulo distinga entre vínculo gestionado y dato textual propio, la interfaz debe reflejar esa diferencia.
-
-Lectura vigente:
-
-Contacto gestionado = party_id opcional
-
-Contraparte = snapshot textual propio del registro
-
-Casos vigentes:
-
+Casos:
 Orders
 Documents
 
-Regla:
+UI no debe presentar party_id como obligatorio si el contrato permite counterparty_name.
+
+[FLAGS VISUALES]
+showCounterparty = mostrar Contraparte.
+showAsset = mostrar Activo.
+showParty no es contrato visual vigente de Orders.
 
-la UI no debe presentar party_id como si fuera obligatorio cuando el contrato del módulo permite operar con contraparte textual propia.
+Flags publicados deben tener representación real en partial final.
+No flags fantasma.
 
-Regla de constraints funcionales:
+[FORMULARIOS CON FRONTERAS]
+Formulario host no renderiza foreach abierto de cualquier oferta externa.
 
-las constraints funcionales deben operar sobre la dimensión real del dominio del módulo.
-
-No deben sostenerse por compatibilidad si la dimensión conceptual fue reconvertida.
-
-Caso vigente:
-
-orders conserva allowed_kinds porque kind representa una segmentación operativa válida del módulo.
-
-parties no debe usar allowed_kinds porque parties.kind representa únicamente tipo de contacto.
-
-parties debe usar allowed_party_roles porque la relación con la empresa vive en party_roles.role.
-
-Convención de actividad operativa transversal:
-
-la integración con OperationalActivity debe realizarse mediante eventos operativos livianos emitidos por el módulo dueño después de autorizar, validar y ejecutar su operación.
-
-No corresponde llamar directamente al logger desde controllers o services del módulo dueño.
-
-No corresponde registrar actividad solo por existir CRUD.
-
-No corresponde registrar cambios técnicos sin valor operativo.
-
-No corresponde registrar deletes, vistas, descargas, previews, prints o PDFs salvo decisión explícita posterior.
-
-Los campos observables deben declararse en el catálogo del módulo dueño mediante activityTrackedFields() o contrato equivalente vigente.
-
-El listener de actividad operativa debe mantenerse queued cuando corresponda al patrón vigente.
-
-OperationalActivity puede recibir metadata operativa adicional cuando un cambio compuesto no viva directamente como atributo simple del modelo principal.
-
-Caso validado:
-
-parties puede registrar cambios de party_roles como metadata operativa de Party.
-
-Regla:
-
-la metadata operativa no convierte una entidad hija en módulo propio.
-
-Convención de métricas contextuales:
-
-una subcapa contextual puede leer datos operativos de otros módulos cuando esa lectura respete ownership, permisos, módulos habilitados y contratos de los módulos dueños.
-
-Caso vigente:
-
-ProductOperationalSummary lee compras y ventas desde Orders cuando corresponde, y entradas/salidas desde Inventory.
-
-Reglas:
-
-Products presenta el resumen contextual
-
-Orders aporta transacciones reales cuando está habilitado y autorizado
-
-Inventory aporta movimientos y flujo material cuando está habilitado
-
-Parties aporta proveedor o cliente cuando existe relación real
-
-OperationalActivity no debe usarse como fuente principal de métricas
-
-los cálculos no deben hacerse en Blade
-
-las vistas deben representar payload ya resuelto
-
-Convención de exclusión de costos accesorios:
-
-fletes, mano de obra, kilómetros, viajes, prorrateos, costos accesorios, costos indirectos y rentabilidad contable completa no deben incorporarse dentro de una primera lectura contextual de producto si requieren criterios de imputación, proveedor u orden distinta.
-
-Deben tratarse como posible línea futura de costos directos operativos, no como parte automática del resumen operativo inicial del producto.
-
-Convención de automatización:
-
-toda automatización relevante debe respetar tenant activo, módulos habilitados, permisos efectivos, lifecycle, ownership funcional, validaciones backend y trazabilidad.
-
-La automatización no debe crear datos imposibles para el contrato vigente.
-
-La automatización no debe ocultar decisiones críticas.
-
-La automatización debe reducir carga manual, no aumentar confusión.
-
-Cuando una automatización impacte operación real, debe dejar rastro suficiente para auditoría, revisión humana, línea de tiempo, análisis posterior e interpretación por IA cuando corresponda.
-
-Convención de IA operativa:
-
-la IA debe leerse como capa transversal de asistencia y reducción de fricción, no como módulo funcional ordinario ni como canal paralelo de operación.
-
-No debe implementarse IA sin:
-
-caso de uso claro
-datos autorizados
-separación entre sugerencia y ejecución
-fallback
-validación backend posterior
-respeto por Security
-respeto por tenant activo
-respeto por lifecycle
-respeto por ownership modular
-
-La IA no debe operar por scraping visual, inferir permisos, inventar datos faltantes ni cerrar procesos críticos sin confirmación humana o regla explícita previamente aprobada.
-
-La arquitectura debe separar intención IA de proveedor IA.
-
-No debe asumirse API paga, proveedor único ni dependencia temprana con OpenAI u otro servicio externo.
-
-Regla:
-
-las nuevas capacidades deben evitar reglas implícitas, labels dispersos, textos especializados quemados en Blades y decisiones no documentadas cuando esas reglas deban ser interpretables por una futura capa IA.
-
-Convención de capas satélite productivas:
-
-una capacidad especializada puede organizar un frente operativo amplio sobre módulos existentes sin convertirse automáticamente en módulo CRUD ordinario.
-
-Caso vigente:
-
-Servicios y Mantenimiento debe leerse como capa satélite productiva ERP/CMMS liviana.
-
-Reglas:
-
-no duplicar ownership de módulos existentes
-
-no absorber Orders, Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity
-
-auditar primero si la necesidad puede resolverse mediante lectura consolidada, surfaces, contratos existentes o pieza satélite
-
-no abrir módulos o campos por reflejo automático
-
-no reabrir arbitrariamente módulos ya cerrados para introducir complejidad propia de una capa satélite
-
-cuando una necesidad pertenezca claramente a un módulo existente, debe consumirse la capacidad oficial del módulo oferente
-
-cuando una necesidad pertenezca específicamente al universo de la capa satélite, debe evaluarse como pieza satélite antes de modificar el núcleo de módulos cerrados
-
-Primer corte operativo vigente:
-
-service_maintenance existe como frente habilitable no CRUD.
-
-service_maintenance.view_any permite acceso al área Servicio y mantenimiento.
-
-Orders sostiene la primera base operativa mediante:
-
-group = service
-
-Universo semántico vigente:
-
-/service
-
-Lectura:
-
-/service expresa el frente Servicio y mantenimiento
-
-/service no reemplaza Orders
-
-/service no absorbe ownership de órdenes
-
-/service no convierte mantenimiento en CRUD ordinario
-
-Reglas:
-
-el acceso al área no reemplaza permisos operativos de Orders ni de otros módulos participantes
-
-las acciones reales continúan bajo el contrato del módulo dueño
-
-no debe confundirse frente habilitable con CRUD ordinario
-
-no debe confundirse universo semántico con ownership funcional
-
-no debe implementarse mantenimiento funcional reabriendo Orders por reflejo si la necesidad corresponde a Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties, OperationalActivity o una pieza satélite propia
-
-Convención de seeders demo operativos:
-
-los seeders demo que representan carga operativa real no deben funcionar como simples pobladores silenciosos de tablas si el sistema ya posee eventos operativos y trazabilidad transversal.
-
-Cuando un seeder demo represente una operación real del sistema, debe tender a utilizar código interno vigente, modelos, servicios y eventos reales.
-
-No debe depender de controllers, requests web, navegador ni sesión HTTP.
-
-Reglas:
-
-no sostener soluciones híbridas con compatibilidad legacy indefinida
-
-no conservar adaptadores silenciosos para datos antiguos
-
-no reinterpretar internamente payloads legacy hacia contratos nuevos
-
-no crear datos que el sistema vigente ya no reconoce
-
-no corregir silenciosamente datos mal formados
-
-fallar fuerte si el payload no cumple contrato vigente
-
-validar estados contra catálogos vigentes
-
-emitir eventos operativos cuando la carga demo represente actividad operativa real
-
-procesar cola y validar persistencia si participa OperationalActivity
-
-poblar snapshots propios cuando el módulo los requiera y el seeder no pase por controller
-
-Caso vigente:
-
-si el contrato de Orders exige group y kind, el seeder debe cargar group y kind explícitamente.
-
-No debe aceptar entradas antiguas para reinterpretarlas internamente.
-
-Contrato vigente para orders demo:
-
-group = sale|purchase|service
-kind = standard
-
-Regla:
-
-la carga demo debe hablar el contrato vigente del módulo.
-
-No debe simular una compatibilidad que el sistema ya no debe sostener.
-
-Convención de lectura contextual agregada de actividad:
-
-un módulo puede declarar opcionalmente un activity_record_set para indicar qué records deben formar parte de una lectura contextual agregada de actividad.
-
-Esta declaración pertenece al módulo dueño.
-
-No pertenece a OperationalActivity.
-
-El provider debe implementar el contrato común:
-
-ActivityRecordSetProvider
-
-La convención vigente es:
-
-si el módulo declara activity_record_set
-OperationalActivity usa ese conjunto de records
-
-si el módulo no declara activity_record_set
-OperationalActivity usa lectura directa del record host autorizado
-
-Caso validado:
-
-projects declara ProjectActivityRecordSet.
-
-ProjectActivityRecordSet define Project + Tasks como dataset de actividad visible del proyecto.
-
-Regla:
-
-OperationalActivity no debe conocer internamente relaciones propias de módulos como Project → Tasks, Order → Items o Document → Items.
-
-Cada módulo debe publicar esa frontera si corresponde.
-
-No deben agregarse condiciones específicas dentro de OperationalActivity como if Project, if Order o if Document para decidir lectura agregada.
-
-Convención de lectura contextual especial de actividad:
-
-un módulo puede declarar opcionalmente un activity_context para indicar un criterio contextual especial de lectura de actividad cuando la frontera no pueda representarse correctamente como simple conjunto de records.
-
-Esta declaración pertenece al módulo dueño.
-
-No pertenece a OperationalActivity.
-
-El provider debe implementar el contrato común vigente:
-
-ActivityContextProvider
-
-La convención vigente es:
-
-si el módulo declara activity_context
-OperationalActivity usa el criterio contextual publicado por el módulo dueño
-
-si el módulo no declara activity_context ni activity_record_set
-OperationalActivity usa lectura directa del record host autorizado
-
-Caso validado:
-
-parties declara PartyEmployeeActivityContext para Party con relación employee y membership activa vinculada.
-
-PartyEmployeeActivityContext permite incluir:
-
-actividad directa de Party
-actividad donde el user vinculado sea actor_user_id
-actividad donde el user vinculado sea subject_user_id
-
-Reglas:
-
-activity_context no reemplaza activity_record_set
-
-activity_context no autoriza records por sí mismo
-
-activity_context no habilita lectura general del tenant
-
-activity_context no debe definirse dentro de OperationalActivity
-
-activity_context no debe hardcodearse como condición interna de OperationalActivity
-
-activity_context debe respetar tenant activo y host autorizado
-
-Convención de presentación de cambios operativos:
-
-la vista no debe interpretar directamente metadata.changes.
-
-La transformación de cambios persistidos a lectura visual debe resolverse mediante una pieza de presentación.
-
-Caso validado:
-
-OperationalActivityChangePresenter
-
-Responsabilidad:
-
-transformar metadata.changes en change_summary y change_details.
-
-Regla:
-
-la tabla de actividad puede mostrar una síntesis compacta de cambios y ofrecer detalle bajo demanda, pero no debe incorporar reglas de campos ni lógica de interpretación del JSON.
-
-Convención para capacidades tenant no modulares:
-
-no toda capacidad tenant-scoped debe incorporarse a ModuleCatalog.
-
-Si una capacidad no es módulo funcional, no posee navegación propia, no tiene CRUD completo y no se habilita o deshabilita como módulo ordinario, debe evaluarse como capacidad tenant no modular.
-
-Caso validado:
-
-operational_activity.view_any
-
-Esta capability autoriza lectura general tenant-scoped de OperationalActivity desde Security sin convertir OperationalActivity en módulo funcional ordinario.
-
-Convención para surfaces tenant/transversales no modulares:
-
-una capacidad tenant-scoped o transversal no modular puede publicar surfaces reutilizables mediante una vía específica distinta de ModuleCatalog.
-
-Caso validado:
-
-TenantSurfaceRegistry
-
-Este canal permite que una capacidad no modular publique información controlada hacia hosts funcionales sin convertirse en módulo ordinario.
-
-Caso vigente:
-
-OperationalActivity
-TenantSurfaceRegistry
-OperationalActivitySurfaceService
-ModuleSurfaceRegistry
-hosts show
-
-Reglas:
-
-no incorporar una capacidad transversal a ModuleCatalog solo para publicar UI
-
-no insertar tabs manualmente en cada host consumidor si la capacidad puede publicarse por registry reusable
-
-no pasar una capacidad tenant/transversal no modular por TenantModuleAccess como si fuera módulo funcional ordinario
-
-no crear navegación principal ni CRUD por el solo hecho de publicar una surface
-
-ModuleSurfaceRegistry puede fusionar surfaces modulares desde ModuleCatalog y surfaces tenant/transversales desde TenantSurfaceRegistry.
-
-La surface tenant/transversal debe respetar la misma gramática esperada por los hosts.
-
-Si la surface se monta como tab principal del host, su key debe ser compatible con return_tab.
-
-Caso validado:
-
-key = activity
-
-No debe usarse un identificador técnico largo como key visible cuando genere navegación poco legible o inadecuada.
-
-Caso corregido:
-
-operational_activity.contextual
-
-Regla:
-
-el identificador técnico conceptual de una capacidad transversal puede estar dado por la clase oferente, el registry tenant y el contexto.
-
-No necesariamente debe trasladarse como key visible de tab.
-
-Convención de surfaces modulares:
-
-cuando una capacidad contextual pertenece al mismo módulo host y puede integrarse mediante la infraestructura surface-driven, debe publicarse desde el surface service del módulo correspondiente.
-
-Caso vigente:
-
-ProductOperationalSummary se publica mediante ProductSurfaceService.
-
-La salida entra a products.show como summary_items y no mediante include directo.
-
-Regla:
-
-una surface modular puede publicar summary_items, tabs u otros bloques compatibles con la gramática del host cuando el módulo oferente conserva ownership de la lectura.
-
-El host monta payload ya resuelto.
-
-El Blade no calcula métricas ni reconstruye contratos.
-
-Convención de navegación para actividad operativa:
-
-no persistir URLs finales en registros de actividad operativa.
-
-La navegación hacia registros asociados debe resolverse desde una pieza de lectura.
-
-Caso vigente:
-
-OperationalActivityLinkResolver resuelve label, URL canónica cuando existe show seguro, fallback textual y trail contextual.
-
-Regla:
-
-si no existe ruta canónica segura, se muestra texto plano y no se inventa link.
-
-Convención de componentes Blade:
-
-no usar componentes Blade no existentes.
-
-Si el componente no está en resources/views/components ni tiene clase correspondiente, no debe usarse.
-
-Caso detectado:
-
-x-empty-state no existe actualmente como componente runtime disponible.
-
-Regla adicional:
-
-no asumir utilities CSS no validadas como parte de la base visual real.
-
-Si se necesita un comportamiento estructural seguro, como salto de línea, debe preferirse markup HTML simple antes que depender de una utility no confirmada.
-
-Caso detectado:
-
-d-block no produjo el salto de línea esperado en Blades compactos de ProductOperationalSummary.
-
-Corrección aplicada:
-
-usar div para garantizar estructura visual en líneas separadas.
-
-Convención de JavaScript reusable:
-
-los comportamientos JavaScript deben nombrarse por la lógica reusable que ejecutan, no por un caso puntual si el comportamiento puede generalizarse.
-
-Regla:
-
-no usar nombres específicos de entidades cuando el patrón real es transversal.
-
-Caso reemplazado:
-
-app-party-asset-sync
-
-Contrato vigente:
-
+Patrón:
+proveedor externo válido → componente proveedor
+sin proveedor externo → campo manual propio
+
+Caso:
+orders.form
+
+Ofertas:
+party.order.form-context
+asset.order.form-context
+
+Carga manual no se transforma automáticamente en gestionada.
+
+[RECORD_METADATA]
+Metadata contextual o excepcional.
+No dato central.
+No dato operativo principal.
+No vínculo gestionado.
+No fuente principal visual.
+
+Si flujo gestionado normal:
+puede ser null.
+
+Si frontera cae a carga manual:
+puede registrar excepción/manualidad.
+
+Blade no interpreta record_metadata.
+
+[RELACIONES EXTERNAS HACIA ORDERS]
+Orders conserva autonomía.
+Seguimiento/planificación/origen viven en módulo que los origina.
+
+Casos:
+tasks.order_id
+appointments.order_id
+
+Orders no conserva:
+task_id
+appointment_id
+
+task_id / appointment_id pueden viajar como contexto transitorio.
+No se convierten automáticamente en persistencia del receptor.
+
+[ORDERLINKED]
+OrderLinked no bloquea creación contextual por ausencia de party_id.
+Task/Appointment sin party_id pueden originar Order contextual si Orders permite counterparty_name.
+
+OrderLinked:
+expresa intención contextual
+no reemplaza autorización
+no exige Party si Orders permite contraparte textual
+
+[DERIVACIÓN ENTRE MÓDULOS]
+Derivar no transfiere ownership.
+
+Caso:
+Order → Document
+
+Orders aporta contexto.
+Documents conserva ownership.
+Crear derivado requiere autorización del módulo receptor.
+Documento conserva datos, líneas, totales, lifecycle y snapshot propio.
+
+[MIGRACIONES]
+Respetar orden real de creación de tablas.
+No foreign key hacia tabla futura en migración previa.
+
+Caso:
+asset_id no debe ir en create_orders_table si assets se crea después.
+Resolver en migración posterior.
+
+[SEEDERS]
+Seeder que crea registros debe respetar contrato vigente del módulo.
+No depender de controller para completar obligatorios.
+No aceptar payload legacy silencioso.
+No crear datos inválidos.
+Poblar snapshots si no pasa por controller.
+
+[SUBCAPAS INTERNAS]
+Capacidad contextual dentro de módulo host.
+Sin CRUD.
+Sin navegación.
+Sin ModuleCatalog.
+Sin dashboard general.
+Sin rutas propias.
+
+Caso:
+ProductOperationalSummary bajo Products.
+
+Debe publicarse por surface si existe infraestructura surface-driven.
+No include directo como cierre estable.
+
+[MODELADO]
+No comprimir dimensiones distintas en un único campo.
+
+Separar:
+naturaleza
+tipo
+relación operativa
+vínculo comercial
+lifecycle
+estado operativo
+ubicación
+custodia
+prioridad
+origen
+cierre
+
+Caso:
+parties.kind = person/company.
+party_roles.role = customer/supplier/employee/other.
+
+[CONSTRAINTS]
+Constraint opera sobre dimensión real del dominio.
+No sostener compatibilidad legacy si la dimensión cambió.
+
+Casos:
+orders → allowed_kinds.
+parties → allowed_party_roles.
+allowed_kinds no aplica a parties.
+
+[OPERATIONAL ACTIVITY]
+Emitir eventos operativos livianos después de autorizar, validar y ejecutar.
+No llamar logger directo desde controllers/services.
+No registrar por tener CRUD.
+No registrar ruido técnico.
+No registrar deletes/vistas/downloads/previews/prints/PDF salvo decisión explícita.
+
+Campos observables en catálogo del módulo dueño.
+Metadata compuesta permitida si agrega valor operativo.
+
+[METRÍCAS CONTEXTUALES]
+Subcapa puede leer otros módulos si respeta ownership, permisos, módulos habilitados y contratos.
+
+Caso:
+ProductOperationalSummary:
+Products presenta.
+Orders aporta compras/ventas.
+Inventory aporta movimientos.
+Parties aporta proveedor/cliente si existe.
+OperationalActivity no es fuente principal.
+
+No cálculos en Blade.
+
+[AUTOMATIZACIÓN]
+Debe respetar:
+tenant activo
+módulos habilitados
+permisos efectivos
+lifecycle
+ownership
+validaciones backend
+trazabilidad
+
+No oculta decisiones críticas.
+Reduce carga manual.
+Deja rastro auditable cuando impacta operación real.
+
+[IA]
+IA = capa transversal asistiva.
+No módulo.
+No canal paralelo.
+No scraping visual.
+No permisos inferidos.
+No datos inventados.
+No cierre crítico sin confirmación o regla explícita.
+
+Separar intención IA de proveedor IA.
+No asumir API paga ni proveedor único.
+
+[CAPAS SATÉLITE]
+Capa satélite orquesta módulos.
+No CRUD ordinario por reflejo.
+No absorbe ownership.
+No reabre módulos cerrados por reflejo.
+
+Casos:
+Servicios y Mantenimiento = /service sobre Orders group=service.
+Shopping Autoservicio = /shop/{tenant:slug} plano externo self_service_sales.
+
+Detalle funcional de capas satélite pertenece a documentos especializados.
+
+[CSS / COMPONENTES / JS]
+No usar componentes Blade inexistentes.
+No asumir utilities CSS no validadas.
+Preferir HTML simple para estructura segura.
+JS reusable se nombra por mecánica, no por caso puntual.
+
+Caso:
 app-linked-select-sync
 
-Lectura:
+JS no decide permisos ni consistencia crítica.
 
-app-linked-select-sync representa sincronización genérica entre selects vinculados.
-
-Contrato de datos vigente:
-
-data-action="app-linked-select-sync"
-data-source-select
-data-target-select
-data-source-value
-
-Reglas:
-
-el nombre del contrato JS debe expresar la mecánica reusable
-
-no debe fijar Party/Asset si puede utilizarse para otras relaciones select dependientes
-
-el JS organiza interacción frontend
-
-no reemplaza validación backend
-
-no decide permisos
-
-no fuerza datos críticos de seguridad por sí mismo
-
-Convención de Project Lab y colas:
-
-Project Lab puede tener acciones operativas locales fuera del producto, como procesar cola pendiente en entorno local.
-
-Esto no implica funcionalidad SaaS productiva.
-
-Regla:
-
-no ejecutar queue:work desde UI del producto.
-
-En producción debe definirse worker supervisado por infraestructura, no botón operativo dentro del SaaS.
+[REGLA FINAL]
+Convención válida = regla repetible de implementación que evita acoplamiento, legacy, ambigüedad o duplicación.
 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CAPAS SATÉLITE, UNIVERSOS Y ENTRADAS PÚBLICAS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
-CONVENCIONES DE CAPAS SATÉLITE, UNIVERSOS Y ENTRADAS PÚBLICAS
+[USO]
+Convenciones para capacidades que no deben leerse como CRUD ordinario.
 
-Esta sección concentra convenciones específicas para capacidades que no deben leerse como módulos CRUD ordinarios, especialmente cuando operan como capas satélite, universos semánticos, frentes contextuales o entradas públicas externas.
+[APLICA A]
+capas satélite
+universos semánticos
+frentes contextuales
+entradas públicas externas
 
-Regla general:
-
-una capa satélite no debe convertirse en CRUD ordinario por reflejo.
-
-Una capa satélite puede:
-
+[CAPA SATÉLITE]
+Puede:
 orquestar módulos existentes
-tener universo semántico propio
+tener universo propio
 tener rutas propias
 tener dashboard mínimo
 tener entrada pública o contextual
 tener vistas propias
 tener contratos de seguridad propios
-tener entidades auxiliares propias cuando el flujo lo justifique
+tener entidades auxiliares si el flujo lo justifica
 
-Pero no debe:
-
+No puede:
 absorber ownership de módulos existentes
-duplicar lógica funcional de módulos participantes
+duplicar lógica de módulos participantes
 reemplazar Security
 reemplazar permisos del módulo dueño
-mezclar plano interno y plano externo
-usar controllers internos si el flujo pertenece a otro plano de seguridad
-crear módulos, rutas o tablas por simetría visual
+mezclar plano interno y externo
+usar controllers internos si el flujo pertenece a otro plano
+crear módulos/rutas/tablas por simetría visual
 
-CASO VIGENTE: SERVICIO Y MANTENIMIENTO
+[SERVICIO Y MANTENIMIENTO]
+Tipo = capa satélite productiva ERP/CMMS liviana.
+Universo = /service.
+Visible = Servicio y mantenimiento.
+Owner real órdenes = Orders.
+Base operativa = Orders.group = service.
 
-Servicio y mantenimiento se interpreta como capa satélite productiva ERP/CMMS liviana.
-
-Universo semántico vigente:
-
-/service
-
-Lectura:
-
-/service representa el frente Servicio y mantenimiento.
-
-El nombre visible del área es:
-
-Servicio y mantenimiento
-
-/service no es CRUD ordinario.
-
-/service no reemplaza Orders.
-
-/service no absorbe ownership de Orders.
-
-/service no convierte órdenes de servicio en entidad ajena a Orders.
-
-Orders conserva ownership real de las órdenes de servicio.
-
-Orders sostiene la primera base operativa mediante:
-
-group = service
-
-Rutas vigentes del universo:
-
+Rutas vigentes:
 service.index
 service.orders.index
 service.orders.create
@@ -1500,572 +643,347 @@ service.orders.store
 service.orders.show
 
 Reglas:
+service_maintenance.view_any = acceso área, no permiso operativo.
+Acciones reales vuelven a módulo dueño.
+No duplicar CRUD Orders.
+No crear ownership mantenimiento sobre Orders.
+No reabrir Orders por reflejo si la necesidad pertenece a Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties, OperationalActivity o pieza satélite propia.
 
-el acceso al área no reemplaza permisos operativos de Orders ni de otros módulos participantes
+[CONTEXTO FÍSICO /SERVICE]
+Ruta física contextual puede diferir del host funcional.
 
-las acciones reales continúan bajo el contrato del módulo dueño
+Caso:
+orders.show = host funcional.
+service.orders.show = ruta física contextual.
 
-no debe confundirse frente habilitable con CRUD ordinario
+Reglas:
+no crear service.orders.items.* si operación real sigue en Orders.
+no depender de query params manipulables.
+links/redirects/trails pueden conservar /service.
+retorno contextual debe resolverse por trail/helper/contrato explícito.
 
-no debe confundirse universo semántico con ownership funcional
-
-no debe implementarse mantenimiento funcional reabriendo Orders por reflejo si la necesidad corresponde a Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties, OperationalActivity o una pieza satélite propia
-
-CONSERVACIÓN DE CONTEXTO FÍSICO EN UNIVERSOS SEMÁNTICOS
-
-Cuando un universo semántico opera sobre un módulo dueño, las rutas operativas internas pueden seguir perteneciendo al módulo dueño si el ownership real no cambia.
-
-El retorno físico debe conservar el universo contextual cuando corresponda mediante trail, helper contextual o contrato explícito.
-
-Caso vigente:
-
+Pieza vigente:
 OrderNavigationTrail::showRouteName()
 
-Lectura:
-
-OrderNavigationTrail::showRouteName() puede resolver dinámicamente si el retorno físico debe ir a orders.show o service.orders.show según ruta actual o trail recibido.
-
-Reglas:
-
-no crear rutas duplicadas innecesarias como service.orders.items.* si la operación real sigue perteneciendo a Orders
-
-no depender de query params manipulables como fuente fuerte de contexto funcional
-
-los links visuales hacia Orders desde Inventory y Documents pueden respetar contexto /service cuando el trail lo indique
-
-el host surface interno puede seguir siendo orders.show aunque la ruta física contextual sea service.orders.show
-
-los redirects, links y trails pueden conservar contexto físico sin alterar ownership ni autorización real
-
-CASO VIGENTE: SHOPPING AUTOSERVICIO
-
-Shopping Autoservicio se interpreta como capa satélite comercial autogestiva por tenant.
-
-Key técnica:
-
-self_service_sales
-
-Universo público vigente:
-
-/shop/{tenant:slug}
-
-Label visible:
-
-Tienda
-
-Lectura:
-
-/shop/{tenant:slug} representa la entrada pública externa de Tienda / Shopping Autoservicio.
-
-self_service_sales no es CRUD ordinario.
-
-self_service_sales no es panel interno del tenant.
-
-self_service_sales no reemplaza Parties.
-
-self_service_sales no reemplaza Products.
-
-self_service_sales no reemplaza Inventory.
-
-self_service_sales no reemplaza Documents.
-
-self_service_sales no reemplaza Security.
-
-self_service_sales conserva la experiencia comercial autogestiva, la tienda, el registro externo y futuras capacidades comerciales externas.
-
-Parties representa al customer externo confirmado como:
-
-Party.kind = person
-
-PartyRole.role = customer
-
-Products conserva catálogo maestro.
-
-Inventory conserva stock físico y trazabilidad material.
-
-Documents conserva formalización documental cuando corresponda.
-
-Security conserva autorización.
-
-ENTRADA PÚBLICA EXTERNA
-
-Una entrada pública externa no debe confundirse con navegación interna del tenant.
+[SHOPPING AUTOSERVICIO]
+Tipo = capa satélite comercial autogestiva.
+Key = self_service_sales.
+Entrada pública = /shop/{tenant:slug}.
+Visible = Tienda.
+Plano = externo.
 
 Reglas:
+self_service_sales ≠ CRUD ordinario.
+self_service_sales ≠ panel interno.
+self_service_sales no reemplaza Parties/Products/Inventory/Documents/Security.
+Customer externo confirmado = Party.kind person + PartyRole.role customer.
+Customer externo ≠ User.
+Customer externo ≠ Membership.
+Customer externo ≠ roles internos.
+Customer externo ≠ panel interno.
 
-/shop/{tenant:slug} no es navegación principal interna
+[ENTRADA PÚBLICA EXTERNA]
+/shop/{tenant:slug}:
+no navegación principal interna
+no grupo auth + tenant
+resuelve tenant por slug público
+no convierte visitante en User
+no convierte customer en Membership
+no otorga roles internos
+no habilita dashboard/tenant/profile/parties.show/rutas internas
 
-/shop/{tenant:slug} no usa el grupo auth + tenant
-
-/shop/{tenant:slug} resuelve el tenant por slug público
-
-/shop/{tenant:slug} no convierte al visitante en User
-
-/shop/{tenant:slug} no convierte al customer externo en Membership
-
-/shop/{tenant:slug} no otorga roles internos
-
-/shop/{tenant:slug} no habilita dashboard, tenant/profile, parties.show ni rutas internas
-
-la entrada pública puede tener rutas propias de tienda, registro, gracias y confirmación cuando el flujo externo lo justifique
-
-las rutas públicas no deben reutilizar controllers internos si el flujo pertenece al plano externo
-
-Rutas públicas iniciales vigentes:
-
+Rutas públicas iniciales:
 GET /shop/{tenant:slug}
 GET /shop/{tenant:slug}/register
 POST /shop/{tenant:slug}/register
 GET /shop/{tenant:slug}/register/thanks
 GET /shop/{tenant:slug}/register/confirm/{token}
 
-FORMULARIOS PÚBLICOS EXTERNOS
+[FORMULARIOS EXTERNOS]
+Usar contrato propio del plano externo.
 
-Cuando un formulario pertenezca a una entrada pública externa, debe usar contrato propio del plano externo.
-
-Caso vigente:
-
-self_service_sales registra customers externos mediante:
-
+Caso:
 StoreSelfServiceCustomerRegistrationRequest
 
-Reglas:
+No usar como contrato externo:
+StorePartyRequest
+PartyController
+TenantMembershipPartyController
+InvitationAcceptanceController
+Fortify interno
 
-no reutilizar StorePartyRequest como contrato del registro externo
+Regla:
+StorePartyRequest puede servir solo como referencia de campos.
 
-StorePartyRequest puede servir solo como referencia de campos
+[VALIDACIONES EXTERNAS]
+Backend valida:
+tenant
+token
+estado
+vencimiento
+duplicados
+datos mínimos
 
-no reutilizar PartyController para alta externa
+Duplicados:
+bloquear si existe cualquier Party del tenant con mismo email, teléfono o DNI.
+No limitar a Parties customer.
+No resolver solo en UI.
+No crear Party automáticamente ante duplicado.
 
-no reutilizar TenantMembershipPartyController para alta externa
-
-no reutilizar InvitationAcceptanceController para alta externa
-
-no reutilizar Fortify interno para convertir customers externos en users internos
-
-las vistas públicas pueden reutilizar layouts.app con @php($publicPage = true) cuando corresponda al patrón público vigente
-
-el formulario público no debe exponer navegación interna, panel tenant ni configuración interna
-
-VALIDACIONES BACKEND EN FLUJOS EXTERNOS
-
-Las validaciones críticas de flujos externos deben resolverse en backend.
-
-Caso vigente:
-
-el alta autogestiva de customers externos debe validar duplicados antes de crear el registro pendiente y repetir defensivamente esa validación antes de confirmar el token.
-
-Reglas:
-
-validar duplicados en backend
-
-validar token en backend
-
-validar estado en backend
-
-validar vencimiento en backend
-
-validar tenant resuelto en backend
-
-bloquear alta si ya existe cualquier Party dentro del tenant con el mismo email, teléfono o DNI
-
-no limitar la verificación de duplicados únicamente a Parties con rol customer
-
-no resolver consistencia crítica solo desde UI
-
-no crear automáticamente una nueva Party si existe duplicado
-
-TABLA AUXILIAR DE REGISTRO EXTERNO
-
-El registro externo del customer debe pasar por una entidad auxiliar propia y no por invitations.
-
-Entidad vigente:
-
+[REGISTRO EXTERNO PENDIENTE]
+Entidad:
 self_service_customer_registrations
 
-Modelo vigente:
-
+Modelo:
 SelfServiceCustomerRegistration
 
-Lectura:
-
-self_service_customer_registrations guarda registros externos pendientes antes de crear la Party definitiva.
-
-Reglas:
-
-self_service_customer_registrations no reemplaza Party
-
-self_service_customer_registrations no reemplaza User
-
-self_service_customer_registrations no reemplaza Membership
-
-self_service_customer_registrations no representa identidad interna del sistema
-
-self_service_customer_registrations.party_id puede permanecer null mientras el registro está pending
-
-self_service_customer_registrations.party_id se completa al confirmar correctamente el registro externo
-
-Estados conceptuales vigentes:
-
+Estados:
 pending
 confirmed
 expired
 cancelled
 
-Regla:
-
-invitations pertenece semánticamente al plano interno de invitaciones de usuarios, owner signup y memberships.
-
-No debe reutilizarse para el registro externo de customers.
-
-CONTROLADORES INTERNOS Y PLANO EXTERNO
-
-Un controller interno no debe reutilizarse para un flujo externo si su contrato pertenece al panel interno.
-
-Caso vigente:
-
-PartyController no debe reutilizarse para el alta externa de customers de Shopping Autoservicio.
-
 Lectura:
+registro externo pendiente antes de crear Party definitiva.
 
-PartyController pertenece al panel interno y a permisos internos de Parties.
+Reglas:
+no reemplaza Party
+no reemplaza User
+no reemplaza Membership
+no representa identidad interna
+party_id puede ser null en pending
+party_id se completa al confirmar
 
-El alta externa de self_service_sales requiere controller, request y servicios propios del plano externo.
+[invitations]
+No usar para customers externos.
+Pertenece al plano interno de usuarios, owner signup y memberships.
 
-Caso vigente:
+[SNIPPETS PHP EN PROJECT LAB]
+Archivo PHP completo debe comenzar como PHP válido.
 
-InvitationAcceptanceController no debe reutilizarse para el flujo externo de customers.
+Formato:
 
-Lectura:
+<?php
+// FILE: ruta/del/archivo.php | Vx
 
-InvitationAcceptanceController pertenece al plano interno y puede crear o vincular User, Membership y login interno.
+Reglas:
+<?php antes de FILE.
+No invertir orden.
+Project Lab debe rechazar formato ambiguo.
+
+[MIGRACIONES E ÍNDICES]
+Nombres extensos pueden romper límites del motor.
 
 Regla:
+definir nombres explícitos de índices si tabla/columnas generan identificador demasiado largo.
 
-el flujo externo de Shopping Autoservicio no debe crear User.
+Caso:
+self_service_customer_registrations.
 
-El flujo externo de Shopping Autoservicio no debe crear Membership.
+[ALCANCE INICIAL SELF_SERVICE_SALES]
+Vigente:
+registro externo pendiente
+confirmación por token
+Party customer person
+sin User
+sin Membership
+sin acceso interno
 
-El flujo externo de Shopping Autoservicio no debe iniciar sesión interna.
+No abrir sin auditoría real:
+saldo
+ficha
+QR
+Mercado Pago
+minimercado
+promociones
+transferencias
+facturación
+login externo completo
 
-SNIPPETS PHP EN PROJECT LAB
-
-Los snippets de código PHP para Project Lab deben respetar el contrato de archivo PHP completo.
-
-Formato vigente:
-
-<?php // FILE: ruta/del/archivo.php | Vx Reglas: los snippets de código PHP deben comenzar con <?php el marcador de archivo debe ubicarse luego de la apertura PHP no debe invertirse el orden colocando el marcador FILE antes de <?php cuando el contrato espera archivo PHP completo si el formato no coincide con el contrato vigente, Project Lab debe rechazar o fallar antes de aplicar cambios ambiguos MIGRACIONES E ÍNDICES Las migraciones deben contemplar límites reales del motor de base de datos. Caso detectado: los índices de self_service_customer_registrations requirieron nombres explícitos más cortos para evitar errores por identificadores demasiado largos en MySQL. Regla: cuando una tabla o índice tenga nombres extensos, debe definirse nombre explícito de índice si el nombre automático puede superar el límite del motor. ALCANCE INICIAL DE SELF_SERVICE_SALES Primer corte operativo vigente: self_service_sales implementa: registro externo pendiente confirmación por token creación de Party customer person separación total frente a Membership sin User interno sin acceso interno al tenant Reglas: no convertir customer externo en User interno no convertir customer externo en Membership no usar invitations para registro externo de customer no usar InvitationAcceptanceController para registro externo de customer no usar PartyController como contrato de alta externa no usar StorePartyRequest como contrato del registro externo no abrir saldo, ficha, QR, Mercado Pago, minimercado, promociones, transferencias, facturación ni login externo completo sin auditar contrato, seguridad, esquema y runtime real Regla final: una capa satélite debe crecer por contrato, evidencia y validación runtime. No debe crecer por reflejo visual, por reutilización de flujos internos ni por mezcla de planos de seguridad. 
+[REGLA FINAL]
+Capa satélite crece por contrato, evidencia y runtime.
+No por reflejo visual, reutilización de flujos internos ni mezcla de planos.
 
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA BASE DEL PROYECTO>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00017
 
-ESTRUCTURA BASE DEL PROYECTO
+[USO]
+Ubicación canónica de responsabilidades principales.
+No inventario total del repositorio.
 
-Este bloque define la ubicación canónica de código, vistas, assets y documentación técnica relevante del proyecto.
+[APP]
+app/ = lógica principal.
 
-No busca inventariar todo el repositorio.
+Ubicaciones:
+app/Models = modelos.
+app/Models/Concerns = traits dominio.
+app/Events = eventos.
+app/Listeners = listeners.
+app/Http/Controllers = flujo web.
+app/Http/Middleware = middleware.
+app/Http/Requests = validaciones.
+app/Policies = wrappers autorización.
+app/Support/Auth = acceso técnico.
+app/Support/Catalogs = catálogos.
+app/Support/Navigation = navegación.
+app/Support/Docs = documentación.
+app/Support/Documents = flujo documental.
+app/Support/Inventory = stock.
+app/Support/Orders = orders.
+app/Support/Parties = parties.
+app/Support/Products = products y subcapas internas.
+app/Support/OperationalActivity = actividad operativa.
+app/Support/Tenants = tenant y piezas reusables.
 
-Busca fijar dónde vive cada responsabilidad principal para evitar búsquedas imprecisas, suposiciones técnicas o dispersión de criterios.
-
-APP
-
-app/ concentra la lógica principal del sistema.
-
-Ubicaciones relevantes:
-
-app/Models
-modelos del sistema y del negocio
-
-app/Models/Concerns
-traits estructurales del dominio
-
-app/Events
-eventos del sistema y eventos operativos livianos cuando correspondan
-
-app/Listeners
-listeners del sistema, incluyendo listeners queued cuando correspondan
-
-app/Http/Controllers
-controladores del flujo web
-
-app/Http/Middleware
-middleware operativo transversal
-
-app/Http/Requests
-validaciones por formulario o acción
-
-app/Policies
-wrappers mínimos de autorización
-
-app/Support/Auth
-capa técnica de acceso y arbitraje
-
-app/Support/Catalogs
-catálogos cerrados del sistema
-
-app/Support/Navigation
-motor de navegación
-
-app/Support/Docs
-base documental
-
-app/Support/Documents
-servicios del flujo documental
-
-app/Support/Inventory
-servicios y lógica de stock
-
-app/Support/Orders
-servicios del flujo de orders
-
-app/Support/Parties
-servicios del flujo de parties
-
-app/Support/Products
-servicios del flujo de products y subcapas contextuales internas del módulo cuando correspondan
-
-Caso vigente:
-
+[PRODUCTS SUBCAPA]
+Ubicación vigente:
 app/Support/Products/OperationalSummary/
 
-Responsabilidad:
+Lectura:
+ProductOperationalSummary = subcapa contextual interna de Products.
+No módulo.
+No CRUD.
+No navegación.
 
-contener la subcapa contextual ProductOperationalSummary como lectura operativa interna de Products, sin convertirla en módulo nuevo ni ubicarla como lógica dispersa del host visual
+[TENANTS SOPORTE]
+Piezas vigentes:
+TenantUserDirectory.php
+TenantProfileAccess.php
+OperationalActivityLinkResolver.php
+OperationalActivityChangePresenter.php
+ActivityRecordSetProvider
+ActivityContextProvider
+PartyEmployeeActivityContext
+ProductOperationalSummaryAccess
+ProductOperationalSummaryService
 
-app/Support/OperationalActivity
-servicios de registro, sanidad, lectura, presentación y persistencia de actividad operativa transversal cuando existan en código vigente
+[OPERATIONAL ACTIVITY LINK]
+OperationalActivityLinkResolver:
+resuelve label
+resuelve URL canónica segura
+agrega trail contextual
+devuelve null/fallback si no hay ruta segura
 
-app/Support/Tenants
-contexto tenant y piezas reusables internas
+No es:
+componente Blade
+surface
+módulo funcional
 
-Casos consolidados:
+[DATABASE]
+database/migrations = estructura persistente.
+database/seeders = carga inicial/demo/configuración.
+database/factories = factories si corresponde.
 
-TenantUserDirectory.php como raíz reusable de usuarios internos activos del tenant
+[SEEDERS DEMO]
+Deben respetar:
+contratos vigentes
+catálogos
+lifecycle
+eventos operativos cuando corresponda
 
-TenantProfileAccess.php como autoridad reusable del frente tenant/profile y gobierno owner/admin
+No deben:
+sostener compatibilidad legacy silenciosa
+reinterpretar datos antiguos
+crear datos fuera de contrato
 
-OperationalActivityLinkResolver.php como pieza reusable de lectura para actividad operativa desde el plano tenant
+Si usan servicios que dependen de app('tenant'):
+preparar contexto tenant explícito y temporal.
+restaurar/limpiar binding al finalizar cuando corresponda.
 
-OperationalActivityChangePresenter.php como pieza de presentación para transformar cambios persistidos en payload visual legible
+[RESOURCES]
+resources/views = vistas.
+resources/views/components = componentes globales.
+resources/views/components/icons = íconos SVG reutilizables.
+resources/views/layouts = layouts.
+resources/views/<modulo> = vistas por módulo.
+resources/views/<modulo>/components = componentes del módulo.
+resources/views/tenants = contexto tenant.
+resources/views/docs = visor documental.
+resources/views/svg = fuente iconográfica base.
 
-ActivityRecordSetProvider como contrato para lectura contextual agregada basada en conjuntos explícitos de records
-
-ActivityContextProvider como contrato para lectura contextual especial definida por el módulo dueño
-
-PartyEmployeeActivityContext como contexto especial de parties para Party employee con membership activa vinculada
-
-ProductOperationalSummaryAccess como compuerta contextual interna de la subcapa ProductOperationalSummary
-
-ProductOperationalSummaryService como servicio lector propio de la subcapa ProductOperationalSummary cuando corresponda al código vigente
-
-Responsabilidad vigente de OperationalActivityLinkResolver:
-
-resolver label del registro asociado a una actividad
-resolver URL canónica cuando exista show seguro
-agregar trail contextual al link
-devolver null o fallback textual cuando no exista navegación segura
-
-Regla:
-
-OperationalActivityLinkResolver no es componente Blade, no es surface y no convierte OperationalActivity en módulo funcional ordinario.
-
-DATABASE
-
-database/ concentra migraciones, seeders y factories cuando correspondan al proyecto.
-
-Ubicaciones relevantes:
-
-database/migrations
-estructura persistente del sistema
-
-database/seeders
-carga inicial, carga demo y configuración base del sistema
-
-Regla vigente para seeders demo:
-
-los seeders demo que representan carga operativa real deben respetar contratos vigentes, catálogos, lifecycle y eventos operativos cuando corresponda.
-
-No deben sostener compatibilidad legacy silenciosa.
-
-No deben reinterpretar datos antiguos internamente.
-
-No deben crear datos no reconocidos por el contrato actual.
-
-Cuando usen servicios operativos que dependen de app('tenant'), deben preparar el contexto tenant de forma explícita y temporal en entorno CLI.
-
-Regla:
-
-si se modifica un binding temporal de tenant para ejecutar un seeder o servicio operativo en CLI, debe restaurarse o limpiarse al finalizar cuando corresponda.
-
-RESOURCES
-
-resources/ concentra vistas y componentes Blade.
-
-Ubicaciones relevantes:
-
-resources/views
-vistas Blade
-
-resources/views/components
-componentes globales reutilizables
-
-resources/views/components/icons
-ubicación canónica para iconografía SVG reutilizable
-
-resources/views/layouts
-layouts base
-
-resources/views/<modulo>
-vistas por módulo
-
-resources/views/<modulo>/components
-componentes visuales propios del módulo
-
-resources/views/tenants
-vistas del contexto tenant
-
-resources/views/docs
-visor documental
-
-resources/views/svg
-fuente de iconografía base
-
-Ubicación vigente para subcapas visuales internas de Products:
-
+[PRODUCTS VISTAS SUBCAPA]
+Ubicación:
 resources/views/products/operational-summary/
 
-Partials vigentes:
-
-resources/views/products/operational-summary/purchases-summary.blade.php
-resources/views/products/operational-summary/sales-summary.blade.php
-resources/views/products/operational-summary/flow-summary.blade.php
+Partials:
+purchases-summary.blade.php
+sales-summary.blade.php
+flow-summary.blade.php
 
 Reglas:
+no componentes globales
+no resources/views/components
+no lógica negocio
+no autorización
+representan payload resuelto
 
-estos partials no son componentes globales
+[ÍCONOS]
+SVG reusable transversal → resources/views/components/icons.
 
-no deben documentarse como resources/views/components
-
-no deben contener lógica de negocio ni autorización final
-
-deben representar payload ya resuelto por la capa correspondiente
-
-su ubicación separada evita confundirlos con partials comunes del módulo cuando la subcapa posee identidad funcional propia
-
-Regla adicional consolidada:
-
-los SVG reutilizables no deben permanecer inline en blades complejos cuando su uso sea transversal
-
-deben moverse a componentes Blade dentro de components/icons
-
-Íconos reutilizables vigentes adicionales:
-
+Íconos vigentes adicionales:
 activity
 changes
-
-Uso vigente:
-
-activity
-tab Actividad
-
-changes
-botón Ver cambios
-
-Uso vigente adicional:
-
 user-group
-Más datos
-
 list-check
-Editar funciones
-
 lock
-bloqueo
-
 unlock
-desbloqueo
 
-PUBLIC
+[PUBLIC]
+public/css/app-base.css = base visual global.
+public/css/app-patterns.css = patrones visuales.
+public/css/modules/ = estilos específicos.
+public/js/app-base.js = comportamiento global.
 
-public/ concentra assets públicos.
+[CSS]
+Estilos específicos de pantalla → public/css/modules/.
+No reemplazan app-base.css ni app-patterns.css.
 
-Ubicaciones relevantes:
+[JS]
+Comportamientos globales vigentes en app-base.js:
+app-progressive-form
+tenant-role-sync-form
+app-linked-select-sync
 
-public/css/app-base.css
-base visual global obligatoria
+JS organiza interacción.
+No reemplaza Blade.
+No valida negocio.
+No autoriza.
 
-public/css/app-patterns.css
-patrones visuales globales
+[DOCUMENTOS]
+documentos/ = base documental activa por DOC_SLUG.
+No confundir con carpetas auxiliares.
 
-public/css/modules/
-estilos específicos por módulo o pantalla
+[TOOLS]
+tools/ = herramientas locales.
 
-Regla adicional consolidada:
-
-los estilos específicos de pantalla deben vivir en public/css/modules/
-
-no deben reemplazar ni desactivar app-base.css ni app-patterns.css
-
-public/js/app-base.js
-comportamiento global
-
-Casos vigentes:
-
-el comportamiento reusable de formularios progresivos vive en public/js/app-base.js
-
-el comportamiento visual para edición sincronizada de funciones tenant puede vivir en public/js/app-base.js mediante data-action="tenant-role-sync-form"
-
-Estos comportamientos no reemplazan componentes Blade ni validan reglas de negocio.
-
-Solo organizan visualmente la interacción cuando la carga guiada reduce error operativo.
-
-DOCUMENTOS
-
-documentos/ forma parte activa del sistema
-
-Regla:
-
-la base documental se compone de documentos identificados por DOC_SLUG
-
-no confundir con carpetas auxiliares
-
-TOOLS
-
-tools/ concentra herramientas locales de soporte técnico del proyecto.
-
-Ubicación vigente relevante:
-
+Caso:
 tools/project-lab
 
-Project Lab es herramienta local de depuración, auditoría y mantenimiento.
+Project Lab:
+local
+técnico
+auditoría
+código
+documentación
+runtime
+no producto SaaS
 
-No forma parte del sistema SaaS productivo.
-
-Regla adicional vigente:
-
-Project Lab puede aplicar actualizaciones de código, aplicar actualizaciones documentales, ejecutar auditorías simples y validar runtime real según el contrato vigente de la herramienta.
-
-Toda intervención mediante Project Lab debe respetar los formatos estrictos documentados en la guía operativa.
-
-REGLA FINAL
-
-Cuando un pedido técnico requiera archivos del proyecto, debe pedirse primero la menor cantidad suficiente de rutas reales dentro de esta estructura.
-
+[REGLA FINAL]
+Si un pedido técnico requiere archivos, pedir la menor cantidad suficiente de rutas reales.
 No asumir ubicaciones.
 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE NOMBRES>>
-CONVENCIONES DE NOMBRES
+SECTION_VERSION: 00001
 
-MODELOS
-
-Los modelos deben estar en singular.
+[MODELOS]
+Singular.
+PascalCase.
 
 Ejemplos:
-
 User
 Tenant
 Membership
@@ -2075,12 +993,11 @@ Order
 Document
 Asset
 
-TABLAS
-
-Las tablas deben utilizar plural en snake_case.
+[TABLAS]
+Plural.
+snake_case.
 
 Ejemplos:
-
 users
 tenants
 memberships
@@ -2090,278 +1007,296 @@ orders
 documents
 assets
 
-CONTROLADORES
-
-Los controladores utilizan el sufijo:
+[CONTROLADORES]
+Sufijo:
 
 Controller
 
 Ejemplos:
-
 UserController
 OrderController
 DocumentController
 AssetController
 
-RUTAS
-
-Las rutas utilizan plural.
+[RUTAS]
+Plural para recursos ordinarios.
 
 Ejemplos:
-
 /users
 /orders
 /documents
 /assets
+
+[UNIVERSOS SEMÁNTICOS]
+Pueden usar slug singular o corto si representa mejor el frente funcional.
+
+Caso:
+/service
+
+[ENTRADAS PÚBLICAS]
+Pueden usar slug propio del plano externo.
+
+Caso:
+/shop/{tenant:slug}
+
+[REGLA FINAL]
+El nombre debe expresar ownership, plano funcional y uso real, no comodidad técnica.
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIÓN ACTUAL DE DECLARACIÓN DE RUTAS CRUD>>
-CONVENCIÓN ACTUAL DE DECLARACIÓN DE RUTAS CRUD
+SECTION_VERSION: 00001
 
-Como convención actual del proyecto, las rutas CRUD del core funcional deben declararse explícitamente en routes/web.php.
+[REGLA]
+Rutas CRUD del core funcional deben declararse explícitamente en routes/web.php.
 
-No se utilizará Route::resource(...) mientras el proyecto mantenga compatibilidad objetivo con hosting compartido básico sin CLI, salvo revisión técnica posterior en un entorno más robusto.
+[NO USAR POR DEFECTO]
+Route::resource(...)
 
-Esta decisión busca priorizar previsibilidad operativa y reducir riesgo en despliegues cerrados preparados en local.
+[CRITERIO]
+Mantener previsibilidad operativa.
+Reducir riesgo en hosting compartido básico sin CLI.
+Evitar magia de rutas mientras el proyecto priorice despliegues cerrados preparados en local.
+
+[EXCEPCIÓN]
+Puede revisarse en entorno más robusto o si el contrato técnico del proyecto cambia formalmente.
+
+[UNIVERSOS SEMÁNTICOS]
+Las rutas de universos como /service pueden declararse explícitamente aunque operen sobre módulo dueño.
+
+[ENTRADAS PÚBLICAS]
+Las rutas públicas externas como /shop/{tenant:slug} también deben declararse explícitamente y separadas del grupo interno auth + tenant.
+
+[REGLA FINAL]
+Ruta explícita > ruta implícita mientras el proyecto priorice trazabilidad, auditoría y despliegue controlado.
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE MULTI-TENANCY>>
-CONVENCIONES DE MULTI-TENANCY
+SECTION_VERSION: 00001
 
-Las entidades del negocio deben incluir siempre:
+[ENTIDADES DEL NEGOCIO]
+Deben incluir:
 
 tenant_id
 
-El tenant determina el aislamiento lógico de los datos dentro del sistema.
+[ENTIDADES DEL SISTEMA]
+No deben incluir tenant_id por defecto.
 
-Las entidades del sistema no deben incluir tenant_id.
-
-Ejemplos de entidades del sistema:
-
+Ejemplos:
 User
 Tenant
 Membership
+
+[LECTURA]
+tenant_id determina aislamiento lógico de datos dentro del sistema.
+
+[APLICA A]
+módulos funcionales
+entidades hijas
+movimientos
+operaciones
+trazabilidad
+capas satélite cuando persistan datos tenant-scoped
+subcapas que lean datos tenant-scoped
+
+[REGLAS]
+No recibir tenant_id desde input usuario.
+No mezclar datos entre tenants.
+No inferir tenant por conveniencia.
+No usar slug público como acceso interno.
+No relajar filtros tenant en dashboards, surfaces, IA o automatizaciones.
+
+[REGLA FINAL]
+Toda operación de negocio debe poder justificarse dentro de un tenant concreto.
+
 <<END SECTION>>
 
 <<SECTION: ACCESO OPERATIVO POR TENANT>>
-ACCESO OPERATIVO POR TENANT
+SECTION_VERSION: 00001
 
-La restricción operativa de acceso a empresa debe validarse por memberships.status = active.
+[REGLA]
+Acceso operativo a empresa se valida por membership activa.
 
-No debe utilizarse desactivación global de users para resolver bajas, bloqueos o pérdida de acceso específicos de un tenant.
+Condición:
+
+memberships.status = active
+
+[NO USAR]
+Desactivación global de users para resolver bajas, bloqueos o pérdida de acceso específicos de un tenant.
+
+[LECTURA]
+User = identidad global.
+Membership = acceso operativo a tenant.
+Tenant = empresa activa.
+
+[CASOS]
+Un usuario puede perder acceso a un tenant sin perder identidad global.
+Un bloqueo específico de empresa debe resolverse en membership o contrato tenant correspondiente.
+
+[REGLA FINAL]
+La pertenencia operativa se controla por membership, no por destruir ni bloquear globalmente la identidad User.
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ACCESO POR MÓDULO Y ROLES>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00018
 
-CONVENCIONES DE ACCESO POR MÓDULO Y ROLES
+[USO]
+Convenciones de implementación para consumir autorización.
+Doctrina completa vive en:
+<DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
 
-La autorización operativa del sistema debe implementarse respetando la arquitectura central definida para acceso y permisos.
+[REGLAS]
+No hardcodear permisos en controllers, policies ni Blades si existe resolución central.
+Policies = wrappers mínimos.
+Controllers = authorize(...) o Security.
+Vistas no infieren permisos.
+@can solo si la capacidad no depende de contexto.
+UI recibe flags/datasets autorizados.
+Módulos habilitados se resuelven por capa central.
+UI de permisos opera sobre módulos habilitados.
 
-Reglas de implementación:
+[CREATE CONTEXTUAL]
+No usar autorización abstracta si requiere contexto.
 
-no hardcodear permisos en controllers, policies o blades si existe resolución central
+No usar:
+authorize('create', Model::class)
 
-las policies deben consumir la capa central de autorización y no replicar lógica
+Usar:
+Security con parámetros explícitos o canal contextual oficial.
 
-los controllers deben delegar en authorize(...) o Security y no implementar lógica paralela
+[SUBJECT CLASS-STRING]
+No asumir class-string como contrato doctrinal para create contextual.
 
-las vistas no deben inferir permisos
+[CONSTRAINTS]
+Constraints persistidas deben arbitrar:
+create
+view
+update
+delete
 
-las vistas deben respetar permisos reales mediante @can solo como verificación final cuando la capacidad no dependa de contexto
+No limitar a una acción.
 
-los alcances visibles en UI deben resolverse mediante catálogos o resolvers y no reconstruirse manualmente
+[CASOS]
+orders.allowed_kinds = segmentación efectiva de Orders.
+parties.allowed_party_roles = segmentación efectiva de Parties.
+allowed_kinds no aplica a parties.
+allowed_party_roles se evalúa contra party_roles.role.
 
-la habilitación de módulos depende de la capa central de acceso por tenant y no debe asumirse por defecto
+[SUBCAPAS CONTEXTUALES]
+Ver módulo host ≠ ver subcapa.
 
-la UI de permisos del tenant debe operar únicamente sobre módulos habilitados previamente
+Caso:
+ver Products ≠ ver ProductOperationalSummary.
 
-Regla crítica validada:
-
-no se debe usar autorización abstracta cuando la capacidad depende de contexto
-
-no utilizar authorize('create', Model::class) en estos casos
-
-debe utilizarse la capa central con parámetros explícitos
-
-La existencia de subject class-string no debe asumirse como condición doctrinal para resolver create contextual.
-
-Si el contrato requiere contexto funcional obligatorio, la autorización válida se resuelve por Security con ese contexto.
-
-Caso consolidado adicional:
-
-cuando el contrato persistido incluya constraints funcionales reales, esas constraints deben arbitrar create, view, update y delete de forma consistente y no limitarse a una sola acción
-
-En orders, constraints.allowed_kinds constituye segmentación efectiva del contrato y no metadata decorativa.
-
-En parties, constraints.allowed_party_roles constituye segmentación efectiva del contrato y no metadata decorativa.
-
-Regla:
-
-allowed_kinds no debe utilizarse para parties.
-
-allowed_party_roles debe utilizarse para parties y evaluarse contra party_roles.role.
-
-Regla adicional para capacidades contextuales internas:
-
-ver el módulo host no implica automáticamente ver todas sus subcapas contextuales.
-
-Caso vigente:
-
-ver Products no implica ver ProductOperationalSummary.
-
-ProductOperationalSummary posee condiciones propias de acceso y visibilidad sin convertirse por eso en módulo funcional ordinario ni requerir permisos persistidos nuevos en su primera versión.
-
-Condiciones base vigentes:
-
+ProductOperationalSummary requiere:
 tenant activo
 membership activa
 Products habilitado
 Inventory habilitado
 rol compatible
 
-Condición adicional:
+Orders habilitado permite métricas transaccionales si Security permite dataset visible.
 
-Orders habilitado permite métricas transaccionales de compras y ventas cuando el usuario posee dataset visible según Security.
+Si Orders no habilitado:
+no mostrar métricas compra/venta.
 
-Si Orders no está habilitado, no deben mostrarse métricas transaccionales de compra/venta.
-
-Regla:
-
-una subcapa contextual interna puede tener una compuerta de acceso propia, siempre que no reemplace Security ni duplique permisos persistidos innecesarios.
-
-Caso vigente:
-
-ProductOperationalSummaryAccess actúa como compuerta contextual interna de la subcapa.
+[COMPUERTA INTERNA]
+Caso:
+ProductOperationalSummaryAccess
 
 No reemplaza Security.
+No convierte subcapa en módulo.
+No introduce capabilities persistidas en primera versión.
 
-No convierte ProductOperationalSummary en módulo.
+[MÉTRICAS]
+Compras/ventas deben usar Security::scope() sobre Orders.
+Vistas compactas solo representan datos preparados.
+UI no decide autorización.
 
-No introduce capabilities persistidas nuevas en esta primera versión.
-
-Regla adicional:
-
-las métricas de compras y ventas deben usar Security::scope() sobre Orders para no leer órdenes fuera del dataset visible del usuario.
-
-Las vistas compactas solo representan datos ya preparados.
-
-La UI no decide autorización.
-
-Matriz inicial vigente de acceso para ProductOperationalSummary:
-
+[MATRIZ INICIAL PRODUCT OPERATIONAL SUMMARY]
 owner: compras, ventas, inventory
 admin: compras, ventas, inventory
 administrator: compras e inventory
 sales: ventas
 operator: sin acceso
 
-Regla final:
-
-una capacidad contextual interna puede tener visibilidad más restrictiva que el módulo host cuando sus datos dependen de otros módulos, datasets o roles.
+[REGLA FINAL]
+Capacidad contextual interna puede ser más restrictiva que host si sus datos dependen de otros módulos, datasets o roles.
 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CONTRATO MODULAR>>
-SECTION_VERSION: 00027
+SECTION_VERSION: 00028
 
-CONVENCIONES DE CONTRATO MODULAR
+[USO]
+Todo módulo operativo debe poder describirse por contrato modular explícito.
 
-Todo módulo operativo del sistema debe poder describirse mediante un contrato modular explícito.
-
-Ese contrato no reemplaza la implementación ni la documentación específica del módulo.
-
-Capas mínimas esperadas del contrato modular:
-
+[CAPAS]
 núcleo
 contrato de entrada
 contrato de salida
 contrato de seguridad
 oferta de integración
+contrato de seeders demo operativos cuando corresponda
 
-NÚCLEO
-
-El núcleo del módulo describe aquello que el módulo resuelve por sí mismo.
-
-Incluye, según corresponda:
-
-entidad o agregado principal
+[NÚCLEO]
+Lo que el módulo resuelve por sí mismo:
+entidad/agregado principal
 flujo base
-CRUD o acciones principales
-reglas operativas propias
-navegación estructural base
-recursos hijos propios
-comportamientos internos del módulo
+acciones principales
+reglas propias
+navegación estructural
+recursos hijos
+comportamiento interno
 
 Regla:
+no reabrir núcleo por cada integración salvo cambio real del contrato interno.
 
-el núcleo no debe reabrirse por cada integración nueva solicitada desde otros módulos salvo que cambie realmente el contrato interno del propio módulo.
-
-CONTRATO DE ENTRADA
-
-El contrato de entrada define qué puede recibir el módulo desde el sistema o desde otros módulos.
-
-Puede incluir, según el caso:
-
+[ENTRADA]
+Lo que el módulo puede recibir:
 contexto funcional
-ids relacionales válidos
-trail compatible
-return_tab cuando el host lo entregue como contexto interno de navegación
-datos mínimos de precompletado
-origen de creación contextual
-disparadores internos del sistema
-eventos operativos livianos emitidos después de acciones propias autorizadas
-payloads demo cuando el seeder represente carga operativa real
+ids válidos
+trail
+return_tab
+precompletado
+origen contextual
+disparadores internos
+eventos posteriores a acciones propias
+payloads demo si representan operación real
 
 Reglas:
+no entradas implícitas
+no canales paralelos
+no payloads legacy
+no reinterpretación silenciosa
+create contextual con contexto obligatorio ≠ create abstracto genérico
 
-no asumir entradas implícitas no declaradas
-no abrir canales paralelos de entrada por conveniencia de implementación
-no resolver create contextuales con patrones distintos si el mismo contrato ya puede absorberlos
-no aceptar payloads legacy si el contrato vigente ya exige otra estructura
-no reinterpretar internamente entradas antiguas hacia el contrato nuevo
+Casos:
+Party employee desde membership requiere contexto employee.
+OrderModuleSeeder declara group y kind vigentes.
 
-si un create requiere contexto funcional obligatorio, no debe documentarse ni implementarse como create abstracto genérico
-
-Caso vigente:
-
-crear una Party employee desde un flujo de membership requiere contexto funcional employee porque la autorización de parties se orienta por party_roles.role mediante allowed_party_roles.
-
-Caso vigente adicional:
-
-OrderModuleSeeder debe declarar directamente group y kind según contrato vigente.
-
-No debe aceptar kind = sale/purchase/service como entrada conceptual legacy para convertirlo internamente.
-
-CONTRATO DE SALIDA
-
-El contrato de salida define qué devuelve o expone el módulo hacia otros módulos o hacia capas consumidoras del sistema.
-
-Puede incluir, según el caso:
-
-referencia resumida del registro
-summary reusable
-payload mínimo de lookup
+[SALIDA]
+Lo que el módulo expone:
+referencia resumida
+summary
+lookup
 relación enlazable
 dataset embebible
 acción derivada
-compatibilidad con trail contextual
-compatibilidad con return_tab cuando la acción deba preservar el panel host desde el cual nació
-payload arbitrado para integraciones complejas
-evento operativo liviano para trazabilidad transversal
-activity_record_set para lectura contextual agregada de actividad
-activity_context para lectura contextual especial de actividad
+trail compatible
+return_tab compatible
+payload arbitrado
+evento operativo
+activity_record_set
+activity_context
 
 Regla:
+salida estable evita reabrir núcleo.
 
-el contrato de salida debe tender a estabilizarse para que otras integraciones consuman capacidades del módulo sin reabrir su núcleo.
-
-OFERTA DE INTEGRACIÓN
-
-La oferta de integración expresa qué capacidades reutilizables publica el módulo para consumo de otros módulos.
-
-Puede incluir, según el caso:
-
+[OFERTA DE INTEGRACIÓN]
+Capacidades publicadas:
 surfaces
 row actions
 componentes embebibles
@@ -2373,19 +1308,12 @@ activity_record_set
 activity_context
 
 Reglas:
+oferta pertenece al módulo oferente.
+consumidor no duplica.
+si falta capacidad del oferente, evolucionar oferente.
 
-la oferta de integración pertenece al módulo oferente
-
-el consumidor no debe duplicarla localmente
-
-si la integración exige lógica interna del módulo oferente, debe evolucionarse la oferta del oferente y no crear bypass en el consumidor
-
-CONTRATO DE SEGURIDAD
-
-El contrato de seguridad describe cómo se autoriza el módulo y sus capacidades.
-
+[SEGURIDAD]
 Debe contemplar:
-
 permisos
 scopes
 constraints
@@ -2398,80 +1326,49 @@ lectura agregada
 lectura contextual especial
 
 Reglas:
+UI no resuelve seguridad.
+constraints operan sobre dimensión real.
+regla sensible repetida debe centralizarse.
+OperationalActivity contextual no reemplaza permisos host.
+activity_record_set y activity_context los declara módulo dueño.
 
-el contrato de seguridad no debe resolverse desde UI
-
-las constraints deben operar sobre la dimensión real del dominio
-
-si una regla sensible aparece en múltiples capas, debe centralizarse
-
-la lectura contextual de OperationalActivity no reemplaza permisos del módulo host
-
-la lectura agregada debe ser declarada por el módulo dueño mediante activity_record_set
-
-la lectura contextual especial debe ser declarada por el módulo dueño mediante activity_context
-
-CONTRATO DE SEEDERS DEMO OPERATIVOS
-
-Cuando un módulo tenga seeders demo que representen operaciones reales del sistema, esos seeders deben respetar el contrato modular vigente.
+[SEEDERS DEMO OPERATIVOS]
+Aplica si el seeder representa operación real.
 
 Reglas:
+no vía paralela inválida
+no payload legacy
+no adaptadores silenciosos
+validar catálogos
+respetar lifecycle
+usar modelos/servicios/eventos internos si corresponde
+preparar tenant en CLI si servicio depende de app('tenant')
+limpiar/restaurar bindings temporales
+fallar fuerte ante datos inválidos
+emitir eventos si representa actividad real
+validar cola/persistencia si hay eventos queued
 
-el seeder no debe ser una vía paralela para cargar estados inválidos
+Casos:
+PartyModuleSeeder emite actividad de parties demo.
+OrderModuleSeeder usa group/kind vigentes y servicios reales.
+DocumentModuleSeeder usa Document/DocumentItem y DocumentCatalog vigente.
 
-el seeder no debe usar payloads legacy por comodidad
-
-el seeder no debe sostener adaptadores silenciosos hacia versiones anteriores del contrato
-
-el seeder debe validar contra catálogos vigentes cuando corresponda
-
-el seeder debe respetar lifecycle real del módulo
-
-el seeder debe utilizar modelos, servicios y eventos internos cuando represente actividad operativa real
-
-el seeder puede preparar contexto tenant explícito en CLI cuando un servicio operativo dependa de app('tenant')
-
-el seeder debe restaurar o limpiar bindings temporales cuando corresponda
-
-el seeder debe fallar fuerte ante datos incompletos, inválidos o fuera de catálogo
-
-el seeder debe emitir eventos operativos cuando la carga demo represente actividad operativa real y el módulo participe en OperationalActivity
-
-el cierre de un seeder demo operativo debe validar cola y persistencia cuando emita eventos queued
-
-Caso validado:
-
-PartyModuleSeeder emite actividad para parties demo nuevas y registra metadata operativa de party_roles.
-
-Caso validado:
-
-OrderModuleSeeder crea órdenes demo con contrato vigente group/kind, incluye una orden testigo de ciclo completo y utiliza OrderInventoryOperationService para ejecutar inventario.
-
-Caso validado:
-
-DocumentModuleSeeder utiliza modelos Document y DocumentItem, estados vigentes de DocumentCatalog e ítems documentales en estado pending.
-
-Regla:
-
-un seeder demo operativo no reemplaza UI ni requests web.
-
-Tampoco debe degradarse a carga dura silenciosa si representa una operación real que el sistema ya puede trazar.
+[REGLA FINAL]
+Seeder demo operativo no reemplaza UI ni request web.
+Tampoco debe degradarse a carga dura silenciosa si el sistema ya puede trazar operación real.
 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CLASIFICACIÓN MODULAR>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
-CONVENCIONES DE CLASIFICACIÓN MODULAR
+[USO]
+Clasifica posición funcional de módulos/capacidades.
+No reemplaza dominio.
+No reemplaza seguridad.
+Evita integraciones inconsistentes.
 
-Los módulos del sistema pueden cumplir distintas posiciones funcionales dentro del ecosistema general.
-
-Esta clasificación no reemplaza el modelado del dominio ni el contrato de seguridad.
-
-Ayuda a evitar decisiones de integración inconsistentes.
-
-Tipos conceptuales principales:
-
+[TIPOS]
 módulo base del dominio
 módulo transversal
 módulo autónomo
@@ -2480,168 +1377,98 @@ módulo derivado
 capacidad transversal de soporte
 capacidad tenant no modular
 capacidad tenant/transversal no modular con surface publicada
+capa satélite
+subcapa contextual interna
 
-MÓDULO BASE DEL DOMINIO
+[MÓDULO BASE DOMINIO]
+Pieza conceptual fundamental.
+No tratar como módulo opcional ordinario si el proyecto la reconoce como base.
 
-Es una pieza conceptual fundamental del negocio y no debe tratarse como módulo opcional ordinario si el proyecto ya lo reconoce como base intrínseca del sistema.
-
-Caso actual consolidado:
-
+Caso:
 parties
 
-Regla adicional para módulos base del dominio:
+Reglas:
+núcleo mínimo y estable
+dimensiones nuevas → relación/entidad hija antes que sobrecargar campo principal
+parties.kind = person/company
+party_roles.role = relación empresa
+allowed_party_roles para autorización funcional
+allowed_kinds no aplica a parties
 
-su núcleo debe mantenerse mínimo y estable.
+[MÓDULO TRANSVERSAL]
+Función principal = integrarse en otros recursos.
+No navegación principal dominante.
 
-Cuando una nueva dimensión conceptual no sea equivalente al tipo básico de la entidad, debe crecer hacia relación o entidad hija antes que sobrecargar el campo principal.
-
-Caso vigente:
-
-parties.kind define tipo de contacto.
-
-party_roles define relación del contacto con la empresa.
-
-La autorización funcional de parties debe apoyarse en la dimensión relacional correcta.
-
-Regla:
-
-parties.kind no debe usarse para segmentar permisos operativos de parties.
-
-party_roles.role sí puede usarse como dimensión funcional de autorización mediante allowed_party_roles.
-
-MÓDULO TRANSVERSAL
-
-Es un módulo cuya función principal es integrarse en otros módulos o recursos y no necesariamente vivir como navegación principal independiente.
-
-Caso actual consolidado:
-
+Caso:
 attachments
 
-MÓDULO AUTÓNOMO
+[MÓDULO AUTÓNOMO]
+Identidad operativa propia.
+Puede vivir solo y también relacionarse.
 
-Es un módulo con identidad operativa propia que puede vivir por sí mismo aunque también participe en relaciones con otros módulos.
-
-Regla:
-
-su agrupación o vinculación con otros módulos no debe degradarlo a simple subrecurso si conserva función propia.
-
-Casos doctrinales relevantes:
-
+Casos:
 tasks
 appointments
 products
 assets
 orders
 
-MÓDULO AGRUPADOR
+Regla:
+vinculación no degrada a subrecurso si conserva función propia.
 
-Es un módulo cuya función principal es ordenar, contextualizar o dar lectura agregada sobre otros módulos sin agotar completamente la identidad de esos módulos relacionados.
+[MÓDULO AGRUPADOR]
+Ordena/contextualiza/lee agregados sin agotar identidad de módulos relacionados.
 
-Caso doctrinal relevante:
+Caso:
+projects agrupa tasks
 
-projects como agrupador de tasks
+[MÓDULO DERIVADO]
+Formalización, consecuencia o prolongación operativa de otro módulo.
 
-MÓDULO DERIVADO
-
-Es un módulo que nace o se entiende principalmente como formalización, consecuencia o prolongación operativa de otro módulo más nuclear.
-
-Caso doctrinal relevante:
-
+Caso:
 documents respecto de orders
 
-CAPACIDAD TRANSVERSAL DE SOPORTE
+[CAPACIDAD TRANSVERSAL SOPORTE]
+Sostiene funcionamiento común.
+No necesariamente navegable ni CRUD.
 
-Es una pieza que registra, acompaña o sostiene funcionamiento común del ecosistema sin constituir necesariamente módulo navegable principal ni CRUD ordinario.
-
-Caso vigente:
-
+Caso:
 OperationalActivity
 
 Reglas:
+no ownership sobre operación registrada
+no autoriza
+no valida operación original
+no navegación principal por existencia técnica
+no registro por CRUD automático
+integración justificada por valor operativo
 
-puede ser indispensable para trazabilidad o lectura operativa
+[OPERATIONAL ACTIVITY INVENTORY]
+InventoryOperation = ancla agrupada.
+InventoryMovement = trazabilidad fina.
 
-no absorbe ownership funcional de los módulos que producen la actividad
+[CAPACIDAD TENANT NO MODULAR]
+Tenant-scoped.
+Evaluable por Security.
+No módulo funcional.
 
-no autoriza ni valida operaciones originales
-
-no debe abrir navegación principal por mera existencia técnica
-
-no debe registrarse actividad por default solo por existir CRUD
-
-la participación de un módulo debe justificarse por valor operativo real
-
-Módulos con integración validada a OperationalActivity:
-
-appointments
-tasks
-orders
-documents
-projects
-assets
-products
-attachments
-parties
-inventory
-
-Aclaración vigente para inventory:
-
-inventory mantiene identidad de módulo nuclear funcional.
-
-Su integración con OperationalActivity se ancla en InventoryOperation como agrupación operativa contextual.
-
-InventoryMovement conserva trazabilidad fina y atómica de stock.
-
-CAPACIDAD TENANT NO MODULAR
-
-Es una capacidad propia del plano tenant o transversal que puede ser evaluable por seguridad sin convertirse en módulo funcional ordinario.
-
-Caso vigente:
-
+Caso:
 operational_activity.view_any
 
 Reglas:
+sin navegación propia
+sin CRUD ordinario
+no ModuleCatalog
+no TenantModuleAccess
+puede autorizar lectura general tenant-scoped
 
-no posee navegación principal propia
+[SURFACE TENANT/TRANSVERSAL NO MODULAR]
+Capacidad no modular publica UI controlada hacia hosts.
 
-no implica CRUD ordinario
+Caso:
+OperationalActivity vía TenantSurfaceRegistry.
 
-no se incorpora automáticamente a ModuleCatalog
-
-no pasa por TenantModuleAccess como módulo funcional
-
-puede ser evaluada desde Security si existe contrato explícito
-
-puede autorizar una lectura general tenant-scoped sin convertir la capacidad en módulo navegable
-
-CAPACIDAD TENANT/TRANSVERSAL NO MODULAR CON SURFACE PUBLICADA
-
-Es una capacidad tenant-scoped o transversal que, sin ser módulo funcional ordinario, publica una surface controlada hacia hosts funcionales.
-
-Caso vigente:
-
-OperationalActivity mediante TenantSurfaceRegistry y OperationalActivitySurfaceService.
-
-Reglas:
-
-no se incorpora a ModuleCatalog por publicar una surface
-
-no se habilita ni deshabilita como módulo ordinario
-
-no crea navegación principal
-
-no crea CRUD
-
-no pasa por TenantModuleAccess
-
-puede ser consumida por hosts funcionales autorizados
-
-debe mantener ownership en el plano tenant/transversal
-
-debe publicar la surface mediante canal específico y no mediante inserciones manuales permanentes en vistas host
-
-Flujo validado:
-
+Flujo:
 capacidad tenant/transversal
 TenantSurfaceRegistry
 surface service
@@ -2649,135 +1476,131 @@ ModuleSurfaceRegistry
 host show
 x-host-tabs
 
-Regla:
+Reglas:
+no ModuleCatalog por publicar surface
+no módulo ordinario
+no navegación principal
+no CRUD
+no TenantModuleAccess
+host autorizado consume
 
-la publicación de una surface no cambia la clasificación conceptual de la capacidad.
+[CAPA SATÉLITE]
+Frente productivo o comercial especializado.
+Orquesta módulos.
+No CRUD por reflejo.
+No ownership ajeno.
+
+Casos:
+/service
+/shop/{tenant:slug}
+
+[SUBCAPA CONTEXTUAL INTERNA]
+Capacidad alojada en módulo host.
+No módulo.
+No CRUD.
+No navegación.
+No ModuleCatalog.
+
+Caso:
+ProductOperationalSummary bajo Products.
+
+[REGLA FINAL]
+Clasificación orienta implementación.
+No concede permisos.
+No crea navegación.
+No altera ownership.
 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS>>
-SECTION_VERSION: 00025
+SECTION_VERSION: 00026
 
-CONVENCIONES DE INTEGRACIÓN ENTRE MÓDULOS
+[DOCTRINA]
+Integración = consumo de contratos.
+No invasión del núcleo del oferente.
 
-La integración entre módulos debe resolverse como consumo de contratos y no como invasión del núcleo del módulo destino.
+[REGLAS]
+Consumir superficie contractual existente.
+No reabrir núcleo salvo cambio real del contrato interno.
+No crear variantes paralelas si existe capacidad reusable.
+Si falta capacidad y pertenece al oferente, evolucionar oferente.
+No alojar excepción permanente en consumidor.
+Toda integración sigue Security.
 
-Reglas:
-
-si un módulo consumidor necesita relacionarse con otro módulo, debe priorizar el consumo de la superficie contractual ya expuesta por el módulo oferente
-
-no debe reabrirse el núcleo del módulo destino por cada integración nueva salvo que cambie su propio contrato interno
-
-no deben proliferar variantes paralelas de:
-
+[EVITAR VARIANTES PARALELAS]
 selectores
 tablas embebidas
 bloques summary
 acciones contextuales
 create contextuales
 payloads mínimos de referencia
+links
+surfaces
+row actions
 
-si el módulo oferente ya dispone de una capacidad reusable válida, debe reutilizarse antes de crear una variante específica en el consumidor
-
-si la capacidad reusable todavía no existe y realmente pertenece al módulo oferente, su incorporación debe tratarse como evolución del propio módulo oferente
-
-no debe tratarse como excepción permanente alojada en el módulo consumidor
-
-Regla de consumo seguro:
-
-toda integración entre módulos sigue sujeta al arbitraje central de seguridad
-
-Regla de crecimiento:
-
-un módulo puede dejar publicadas capacidades de integración como oferta futura aun cuando todavía no existan consumidores concretos
-
-esto favorece estabilidad contractual y reduce refactors futuros dispersos
-
-Regla adicional consolidada:
-
-cuando una integración transversal compleja combine:
-
-estado del módulo destino
+[CAPACIDAD REUSABLE COMPLEJA]
+Si combina:
+estado del destino
 permiso efectivo
-existencia o no de registro relacionado
-posible create contextual
-estados UX mutuamente excluyentes
-navegación contextual requerida
+existencia de registro relacionado
+create contextual
+estados UX excluyentes
+navegación contextual
 
-debe priorizarse una capacidad compartida publicada por el módulo oferente antes que duplicar lógica en múltiples consumidores
-
-esa capacidad debe revisarse como unidad completa de integración:
-
-arbitraje backend
-payload resuelto
+Entonces:
+publicar capacidad compartida del oferente.
+Revisar como unidad:
+backend
+payload
 representación visual
-ubicación doctrinal correcta
+ubicación doctrinal
 consumo homogéneo
 
-no alcanza con reutilizar solo una vista Blade si la decisión de estados sigue dispersa entre consumidores
+No alcanza reutilizar Blade si decisión de estados sigue dispersa.
 
-cuando la capacidad reusable pertenezca contractualmente a un módulo oferente, su implementación no debe quedar en una ubicación global ambigua que borre su identidad modular
+[OWNERSHIP DE PUBLICACIÓN]
+Capacidad reusable pertenece al oferente.
+No ubicar en global ambiguo si borra identidad modular.
 
-Regla adicional consolidada sobre forma de publicación:
+[FORMA DE PUBLICACIÓN]
+Relación fuerte/múltiple/lectura pesada:
+embebido modular completo.
 
-si la relación reusable es fuerte, múltiple o de lectura pesada, debe priorizarse el patrón de embebido modular completo publicado por el módulo oferente
+Relación compacta/puntual/1 a 1:
+acción contextual compacta.
 
-ese patrón debe tender a expresarse mediante wrapper modular tipo partials.embedded-tabs y una pieza interna reusable de listado o tabla
+No forzar tab pesada si no corresponde.
 
-si la relación reusable es compacta, puntual o 1 a 1, debe priorizarse una acción contextual compacta publicada por el propio módulo oferente
+[CASOS CONSOLIDADOS]
+linked-order-action
+linked-party-action
+linked-asset-action
+appointments embebido reusable o acción compacta según vínculo
+inventory publica stock/movimientos/historial
+documents publica surfaces documentales
 
-no debe forzarse tab pesada cuando la relación no lo necesita
+[CIERRE]
+Si consumidor conserva acceso/apertura/visualización local de relación ya cerrada por oferente:
+integración no está cerrada.
 
-Casos consolidados actuales:
+[SIMPLICIDAD UX]
+No exponer al usuario decisiones técnicas internas.
+UI simple.
+Arbitraje crítico en backend/capacidad oficial.
 
-linked-order-action como superficie reusable publicada por orders
-linked-party-action como superficie reusable publicada por parties
-linked-asset-action como superficie reusable publicada por assets
+[FILAS OPERATIVAS]
+Integración por fila no rearma estados localmente.
+Consumidor recibe contexto oficial del oferente.
 
-Caso adicional consolidado:
+[NAMING]
+Nombrar pieza por ownership real.
+No por consumidor si pertenece al oferente.
 
-appointments puede publicar embebido reusable oficial para relaciones fuertes y acción compacta cuando el vínculo consumidor sea puntual
+[OPERATIONAL ACTIVITY]
+Consumir solo lectura persistida y autorizada.
+No reconstruir historia desde campos actuales.
 
-Caso adicional vigente:
-
-inventory debe publicar sus propias superficies de stock, movimientos e historial desde su módulo y los consumidores deben integrarlas sin duplicar tablas locales de stock o variantes paralelas de historial.
-
-documents puede publicar surfaces embebidas oficiales de lectura documental desde su propio módulo para ser consumidas por hosts como orders.show sin volver a tabs relacionales manuales del consumidor.
-
-Regla operativa adicional de cierre:
-
-si una superficie consumidora todavía resuelve localmente acceso, apertura o visualización de una relación ya cerrada por el módulo oferente, el frente de integración no debe considerarse homogéneo ni cerrado
-
-Regla adicional de simplicidad:
-
-la integración correcta no debe exponer al usuario pasos internos, decisiones técnicas o combinaciones contractuales que el sistema pueda resolver por sí mismo
-
-la UI debe presentar acciones simples y comprensibles
-
-la lógica crítica de arbitraje, estado y consecuencias debe permanecer centralizada en backend o en la capacidad oficial publicada por el módulo oferente
-
-Regla adicional para frentes operativos por línea:
-
-cuando una integración reutilizable se consuma por fila dentro de una tabla operativa, el consumidor no debe rearmar arbitraje local de estados, readonly o acciones rápidas
-
-debe recibir y expresar el contexto oficial publicado por el módulo oferente
-
-esto aplica especialmente cuando la línea sigue siendo recurso delegado del padre pero ya posee trazabilidad operativa iniciada
-
-Regla adicional de naming modular:
-
-no nombrar nuevas piezas desde el módulo consumidor cuando la capacidad pertenece al módulo oferente
-
-el naming debe expresar ownership funcional real
-
-Regla adicional para actividad operativa:
-
-OperationalActivity puede ser consumido visualmente solo como lectura persistida y autorizada.
-
-No debe reconstruirse historia operativa desde campos actuales de otros modelos.
-
-No debe inferirse actividad desde:
-
+No inferir actividad desde:
 created_by
 updated_by
 assigned_user_id
@@ -2785,1259 +1608,1166 @@ party_id
 
 si existe actividad persistida específica.
 
-La lectura general vigente se resuelve desde tenant/profile mediante tab Actividad.
+[LINKS DE ACTIVIDAD]
+No persistir URLs finales en operational_activities.
+Resolver con OperationalActivityLinkResolver.
+Si no hay show seguro: texto plano/fallback.
+No inventar rutas.
 
-Esa tab no convierte OperationalActivity en surface reusable cerrada.
-
-OperationalActivityLinkResolver queda como pieza reusable de lectura.
-
-Regla:
-
-no persistir URLs finales dentro de operational_activities.
-
-La navegación hacia el registro asociado debe resolverse dinámicamente y solo cuando exista ruta show canónica segura.
-
-Casos actuales sin link seguro:
-
-InventoryOperation
-Attachment
-
-Regla:
-
-la falta de link seguro no debe resolverse inventando rutas ni columnas auxiliares.
-
-Debe mostrarse fallback textual.
+[REGLA FINAL]
+Integrar sin duplicar ownership, seguridad ni lógica de otro módulo.
 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE FLAGS DE SOPORTE MODULAR>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
-CONVENCIONES DE FLAGS DE SOPORTE MODULAR
+[USO]
+Flags indican soporte/habilitación modular para pantalla, partial, formulario o componente.
 
-Cuando una pantalla, formulario, partial o componente dependa de la existencia de otro módulo habilitado para el tenant, debe utilizar el flag o señal canónica de soporte modular vigente.
-
-Reglas:
-
-la validación no debe quedarse en la vista principal
-
-debe propagarse hasta la última partial, include, tabla embebida o bloque visual que pueda exponer:
-
+[REGLAS]
+No validar solo en vista principal.
+Propagar hasta partial profunda que pueda exponer:
 campos relacionales
 tabs
 enlaces
 acciones
-botones de alta
+botones
 referencias visibles
+bloques asociados
 
-no debe asumirse que una partial profunda conoce el estado modular por contexto implícito
+No asumir contexto implícito.
+Dato debe llegar explícito o resolverse por vía canónica.
 
-el dato debe llegar explícitamente o resolverse por la vía canónica del sistema
+[SI MÓDULO NO HABILITADO]
+No renderizar:
+campos
+links
+acciones
+tabs
+bloques
+superficies residuales
+altas relacionadas
 
-si un módulo no está habilitado:
+[FLAG ≠ ARBITRAJE COMPLETO]
+Flag define soporte del módulo.
+Decisión operativa específica pertenece al backend o capacidad oficial del oferente.
 
-no deben renderizarse superficies residuales hacia ese módulo
-
-cuando una capacidad reusable publicada por un módulo dependa además de arbitraje backend del oferente, el consumidor no debe recomponer localmente estados alternativos a partir del flag modular
-
-el flag solo define soporte del módulo
-
-la decisión operativa específica debe consumirse desde la capacidad publicada por el módulo oferente
-
-Ejemplos típicos:
-
+[EJEMPLOS]
 supportsOrdersModule
 supportsAssetsModule
 supportsPartiesModule
 
-Regla adicional consolidada:
+[CIERRE]
+Si partial secundaria conserva implementación local residual, el frente no está cerrado aunque la vista principal esté alineada.
 
-la correcta propagación del flag modular no reemplaza la obligación de consumir la capacidad reusable oficial en todas las superficies relevantes
+[REGLA FINAL]
+La propagación completa de flags forma parte de la calidad de cierre modular.
 
-si una partial secundaria conserva una implementación local residual, el cierre del frente modular debe considerarse incompleto aunque la vista principal ya esté alineada
-
-Regla final:
-
-la propagación completa de flags modulares forma parte de la calidad de cierre de un módulo
 <<END SECTION>>
 
 <<SECTION: ROLECATALOG Y MODULECATALOG>>
-ROLECATALOG Y MODULECATALOG
+SECTION_VERSION: 00002
 
-RoleCatalog es el catálogo base mínimo y reservado del sistema para roles estructurales.
+[ROLECATALOG]
+Catálogo base mínimo y reservado de roles estructurales.
 
-ModuleCatalog es la fuente de verdad para slugs de módulos cerrados del sistema.
+[MODULECATALOG]
+Fuente de verdad para slugs de módulos funcionales cerrados.
 
-Reglas:
+[REGLAS]
+No hardcodear slugs si existe catálogo técnico.
+Roles base se resuelven desde RoleCatalog.
+Módulos base se resuelven desde ModuleCatalog.
+Roles base sembrados al crear tenant no se modifican ni eliminan.
+Roles base cerrados no crecen por necesidades puntuales.
+Variantes futuras → perfiles funcionales / overrides, no roles base nuevos.
 
-no hardcodear slugs funcionales del sistema en controllers, policies, helpers o blades si ya existe catálogo técnico
+[NO USAR MODULECATALOG PARA]
+capacidades tenant no modulares
+surfaces tenant/transversales no modulares
+subcapas contextuales internas
+capas satélite si no son módulo funcional ordinario
 
-los roles base del sistema deben resolverse desde RoleCatalog
+[REGLA FINAL]
+Catálogo técnico ≠ excusa para convertir toda capacidad en módulo ordinario.
 
-los módulos base del sistema deben resolverse desde ModuleCatalog
-
-los roles base sembrados al crear el tenant no deben modificarse ni eliminarse
-
-los roles base cerrados del tenant no deben crecer por necesidades funcionales puntuales
-
-las variantes funcionales futuras deben resolverse mediante perfiles funcionales y overrides, no creando nuevos roles base
-
-a futuro el tenant podrá ajustar capacidades dentro de la arquitectura vigente, pero sin alterar la base reservada del sistema
 <<END SECTION>>
 
 <<SECTION: EVOLUCIÓN PREVISTA DE PERMISOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
-EVOLUCIÓN PREVISTA DE PERMISOS
-
-La implementación de permisos del sistema debe apoyarse en una capa centralizada compuesta por resolvers y catálogos del dominio.
-
-Reglas:
-
-toda nueva funcionalidad de autorización debe integrarse en la capa central existente
-
-no deben crearse matrices paralelas ni lógica aislada por módulo
-
-las policies deben mantenerse como wrappers mínimos de consumo de esa capa
-
-los resolvers no definen el contrato de permisos
-
-los resolvers deben resolver y consumir el contrato persistido, incluyendo scopes, constraints y visibilidad de dataset según lo definido en base de datos
-
-la evolución del sistema de permisos debe respetar la arquitectura vigente sin introducir variantes incompatibles
-
-Las constraints funcionales nuevas o reconvertidas deben incorporarse al contrato persistido y a la resolución central sin mantener convivencias legacy innecesarias.
-
-Caso vigente:
-
-parties reconvirtió su segmentación funcional desde allowed_kinds hacia allowed_party_roles.
-
-Regla:
-
-una vez cerrada la reconversión, no debe reintroducirse allowed_kinds como compatibilidad para parties.
-
-La doctrina completa de permisos y su modelo operativo se define en:
-
+[DOCTRINA]
+Permisos evolucionan sobre capa centralizada.
+Doctrina completa:
 <DOC_REF slug="seguridad_acceso_proyecto_app_base">Seguridad y acceso del proyecto</DOC_REF>
+
+[REGLAS]
+Nueva autorización → integrar en capa central.
+No matrices paralelas.
+No lógica aislada por módulo.
+Policies = wrappers mínimos.
+Resolvers consumen contrato persistido.
+Resolvers no inventan contrato.
+Scoping, constraints y datasets se resuelven según BD vigente.
+
+[CONSTRAINTS]
+Nueva o reconvertida:
+incorporar al contrato persistido
+resolver en capa central
+no mantener convivencia legacy innecesaria
+
+[Caso]
+parties: allowed_party_roles.
+No reintroducir allowed_kinds para parties.
+
+[REGLA FINAL]
+La evolución de permisos no debe introducir variantes incompatibles ni atajos locales.
+
 <<END SECTION>>
 
 <<SECTION: TRAIT TENANTSCOPED>>
-TRAIT TENANTSCOPED
+SECTION_VERSION: 00002
 
-Las entidades del negocio deben utilizar el trait:
+[USO]
+Entidades del negocio tenant-scoped deben usar:
 
 TenantScoped
 
-Este trait se encarga de:
+[RESPONSABILIDAD]
+filtrar por tenant_id
+asignar tenant_id al crear registros cuando corresponda
 
-filtrar automáticamente por tenant_id
-asignar tenant_id al crear registros
+[REGLA]
+Garantizar aislamiento lógico entre empresas.
 
-Esto garantiza que los datos de diferentes empresas no se mezclen.
+[NO APLICA A]
+entidades globales del sistema:
+User
+Tenant
+Membership
+
+[REGLA FINAL]
+TenantScoped no reemplaza autorización ni validación explícita en flujos sensibles.
+
 <<END SECTION>>
 
 <<SECTION: USO DE TENANT_ID EN FILLABLE>>
-USO DE TENANT_ID EN FILLABLE
+SECTION_VERSION: 00002
 
-Como regla general, tenant_id no debe exponerse en formularios ni venir desde input del usuario.
+[REGLA GENERAL]
+tenant_id no debe exponerse en formularios ni venir desde input del usuario.
 
-El tenant siempre debe resolverse internamente mediante:
+[RESOLUCIÓN]
+tenant_id se resuelve internamente mediante:
 
 app('tenant')
 
-y asignarse automáticamente por el sistema.
+[PADRES]
+Algunos modelos padre pueden exponer tenant_id en fillable por historia/consistencia.
+Aun así, no debe venir desde formularios públicos ni input usuario.
 
-Algunos modelos padre del proyecto exponen tenant_id en fillable por consistencia histórica, pero igualmente no debe venir desde formularios públicos ni desde input del usuario.
+[HIJOS]
+Entidades hijas tampoco reciben tenant_id desde formularios.
 
-En entidades hijas (por ejemplo items o registros dependientes), tenant_id tampoco debe exponerse desde formularios del usuario.
+[EXCEPCIÓN CONTROLADA]
+Si un hijo se crea internamente desde flujo controlado y hereda tenant_id del padre, puede incluir tenant_id en fillable para create() interno consistente.
 
-Sin embargo, si el registro hijo se crea internamente desde un flujo controlado del sistema y el tenant se hereda explícitamente desde la entidad padre, puede incluirse tenant_id en fillable para permitir la creación interna consistente mediante create().
+Casos:
+document_items desde documents
+order_items copiados hacia documents derivados
 
-Esto permite manejar correctamente casos como:
+[REGLA FINAL]
+fillable ≠ permiso para recibir tenant_id del usuario.
 
-document_items creados desde documentos
-order_items copiados hacia documentos derivados
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ENTIDADES HIJAS>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
-CONVENCIONES DE ENTIDADES HIJAS
+[ENTIDAD HIJA]
+Pertenece a cabecera.
+Hereda tenant_id.
+No recibe tenant_id desde formulario usuario.
 
-Las entidades hijas deben cumplir:
-
-pertenecer a una cabecera
-heredar tenant_id de la cabecera
-no recibir tenant_id desde formularios del usuario
-
-Ejemplos:
-
+Casos:
 order_items
 document_items
 
-Reglas actualizadas:
+[DELEGACIÓN]
+Si forma parte natural de la cabecera:
+create/update/delete delegan en update del padre.
 
-cuando la entidad hija forme parte natural de la operación de la cabecera, debe tratarse preferentemente como recurso delegado al padre
+Policy propia, si existe:
+delegación explícita
+sin doctrina paralela
 
-la autorización de create, update y delete debe resolverse contra la capacidad update del recurso padre correspondiente
+[NO CONFUNDIR]
+Entidad hija ≠ módulo autónomo.
+Relevancia operativa ≠ ownership propio.
+Anclaje operativo ≠ transferencia de semántica del módulo invitado.
 
-no debe modelarse una autorización autónoma innecesaria para la entidad hija si su ciclo de vida depende funcionalmente de la cabecera
+[ATTACHMENTS]
+Sigue criterio general de delegación al recurso padre aunque no sea cabecera/detalle clásica.
 
-si existiera una policy propia, debe limitarse a delegar explícitamente en el padre y no duplicar doctrina paralela
-
-attachments sigue el mismo criterio general de delegación al recurso padre aunque no sea una entidad hija cabecera/detalle clásica
-
-Regla modular adicional:
-
-las entidades hijas no deben confundirse con módulos autónomos ni con módulos agrupados
-
-que una entidad dependa funcionalmente de una cabecera no implica que todo módulo relacionado deba modelarse como entidad hija
-
-no deben agregarse responsabilidades propias de cabecera al hijo por comodidad de implementación técnica
-
-por ejemplo:
-
+[PROHIBIDO AGREGAR AL HIJO POR COMODIDAD]
 auditoría propia
 capabilities independientes
 ownership artificial
 dataset autónomo
+responsabilidades de cabecera
 
-Caso consolidado adicional:
+[ORDER_ITEMS]
+Recurso delegado a Orders.
+Puede ser anclaje operativo de Inventory.
+No se vuelve módulo autónomo.
+No absorbe semántica material de Inventory.
 
-order_items debe delegar create, update y delete en orders.update incluyendo controllers, vistas embebidas, navegación de cancelar y verificaciones de pertenencia al padre
+Reglas:
+editable mientras no completed/cancelled
+cantidad no baja por debajo de ejecutado neto
+si hay trazabilidad iniciada, no mutar atributos identitarios que rompan historia
 
-cualquier excepción a esta regla debe justificarse por necesidad real del dominio y no por comodidad de implementación
+[DOCUMENT_ITEMS]
+Recurso delegado a Documents.
+Puede ser anclaje operativo de Inventory.
+No se vuelve módulo autónomo.
+No absorbe semántica material de Inventory.
 
-Aclaración adicional consolidada:
+Reglas:
+si hay movimientos asociados, edición/eliminación respeta trazabilidad.
+ejecutado/pendiente/estado se derivan de movimientos reales, no de columnas duplicadas base.
 
-order_item puede actuar como anclaje operativo fuerte de un frente externo como inventory sin dejar de ser entidad hija delegada del padre
+[ENDURECIMIENTO]
+Trazabilidad material iniciada endurece ciclo de vida.
+No altera delegación principal al padre.
 
-esa relevancia operativa no lo convierte en módulo autónomo
-
-tampoco transfiere a order_item la semántica material, el cálculo neto ni el arbitraje operativo del módulo invitado
-
-Aclaración adicional para document_items:
-
-document_item puede actuar como anclaje operativo fuerte de inventory cuando una línea documental genere movimientos trazables.
-
-Esa participación no lo convierte en módulo autónomo ni transfiere a document_items o documents la semántica material del frente inventory.
-
-El recurso sigue delegado a documents, pero puede requerir restricciones operativas adicionales cuando existan movimientos asociados.
-
-Regla adicional de endurecimiento operativo:
-
-cuando una entidad hija ya posea trazabilidad material iniciada, su edición estructural no debe seguir tratándose como CRUD libre por defecto
-
-las restricciones deben responder al estado real del recurso y al impacto operativo existente
-
-Caso vigente relevante para order_items:
-
-mientras la línea no esté completada ni cancelada puede seguir siendo editable dentro de límites compatibles con lo ya ejecutado
-
-la cantidad no puede reducirse por debajo del ejecutado neto vigente
-
-si existe trazabilidad iniciada no deben mutarse atributos identitarios que rompan lectura histórica de los movimientos
-
-Caso vigente relevante para document_items:
-
-cuando una línea documental ya posee movimientos de inventory asociados, su edición o eliminación debe respetar la trazabilidad existente.
-
-La lectura operativa de ejecutado, pendiente y estado de línea debe derivarse de movimientos reales y no de columnas duplicadas en la tabla base.
-
-Regla:
-
-las restricciones adicionales de una entidad hija no alteran su delegación principal al recurso padre.
-
-Solo endurecen el ciclo de vida cuando la operación real ya generó efectos trazables.
+[REGLA FINAL]
+La entidad hija puede tener restricciones operativas adicionales sin dejar de delegar autorización principal en el padre.
 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE OWNERSHIP FUNCIONAL Y PERMISOS OPERATIVOS SIMPLES>>
-CONVENCIONES DE OWNERSHIP FUNCIONAL Y PERMISOS OPERATIVOS SIMPLES
+SECTION_VERSION: 00001
 
-Cuando un módulo lo permita, puede adoptarse un criterio simple de ownership funcional del registro en lugar de una capa temprana de permisos compleja.
+[USO]
+Patrón simple para módulos donde el registro tiene responsable operativo claro.
 
-Reglas:
+[REGLAS]
+usuario normal gestiona registros de su responsabilidad operativa
+owner/admin pueden gestionar registros ajenos dentro del tenant
+delete sensible puede reservarse a owner/admin
+assigned_user_id define responsable operativo si existe
+reasignación transfiere responsabilidad operativa
+si no hay responsable directo, control sensible queda en owner/admin o policy específica
 
-usuario normal gestiona los registros de su responsabilidad operativa
+[CASO]
+tasks
 
-owner y admin pueden gestionar registros ajenos dentro del tenant
+[NO USAR]
+No inventar assigned_user_id, owner_user_id ni created_by como ownership artificial si el módulo no lo necesita.
 
-los borrados sensibles pueden reservarse a owner y admin aunque la edición o seguimiento sea más amplia
+[REGLA FINAL]
+Ownership funcional simple solo aplica cuando el dominio lo sostiene claramente.
 
-si un módulo tiene asignado directo, assigned_user_id define la responsabilidad operativa actual
-
-si el registro puede reasignarse, el nuevo asignado pasa a ser responsable operativo
-
-si no existe propietario directo, el control sensible queda en owner y admin o en la policy específica del módulo
-
-Este patrón ya se considera válido para tasks.
 <<END SECTION>>
 
 <<SECTION: REGLA PARA MÓDULOS OPERATIVOS COMPARTIDOS DEL TENANT>>
-REGLA PARA MÓDULOS OPERATIVOS COMPARTIDOS DEL TENANT
+SECTION_VERSION: 00001
 
-Cuando un módulo operativo compartido del tenant no tenga responsable operativo directo:
+[USO]
+Módulos compartidos del tenant sin responsable operativo directo.
 
-la policy debe permitir view, create y update a los roles y capacidades habilitados del módulo
+[REGLAS]
+view/create/update según roles/capacidades habilitadas
+delete restringido a owner/admin cuando sea sensible
+no inventar ownership artificial por created_by, assigned_user_id u owner_user_id
 
-delete debe quedar restringido a owner y admin
-
-no debe inventarse ownership artificial mediante assigned_user_id, owner_user_id o restricciones por created_by si el módulo no lo necesita realmente
-
-Esto aplica especialmente a módulos base o compartidos como:
-
+[CASOS]
 parties
 assets
 products
 orders
 
-Aclaración conceptual consolidada:
+[LECTURA]
+orders = módulo operativo interno del tenant.
+documents no absorbe órdenes de trabajo operativas.
+orders conserva identidad operativa propia.
 
-orders debe tratarse como módulo operativo interno del tenant
+[REGLA FINAL]
+Módulo compartido no requiere responsable artificial para controlar acceso.
 
-documents no debe absorber órdenes de trabajo operativas ni duplicar la función interna de orders
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE SUPPORT Y HELPERS DE ACCESO>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
-CONVENCIONES DE SUPPORT Y HELPERS DE ACCESO
+[DOCTRINA]
+Lógica transversal de acceso se centraliza en Security.
 
-La lógica transversal de acceso debe centralizarse en Security.
+[REGLAS]
+No permisos en controllers.
+No permisos en Blades.
+No duplicar resolución.
+Security = punto único de consumo.
+Resolvers no se consumen directamente.
+Helpers facilitan acceso a Security.
+Helpers no redefinen lógica.
+app/Support/Auth = acceso técnico, no fuente alternativa.
 
-Reglas:
+[CREATE CONTEXTUAL / CONSTRAINTS]
+Corrección de autorización contextual o constraints:
+resolver en capa central.
+No helper ad hoc.
+No parche por módulo.
 
-no implementar lógica de permisos en controllers o blades
+[OWNERSHIP FUNCIONAL]
+Si corrección impacta comportamiento propio de un módulo:
+resolver en service/support del módulo dueño.
 
-no duplicar resolución de acceso
+No fijar semánticas de Inventory, Orders u otros dominios desde helpers genéricos del consumidor.
 
-Security es el punto único de consumo de autorización
+[FRONTERA TENANT]
+Directorios internos tenant:
+resuelven datasets/verificaciones de pertenencia activa.
+No reemplazan Security.
+No reemplazan policies.
+No reemplazan middleware.
 
-los resolvers no deben consumirse directamente
-
-los helpers deben facilitar acceso a Security y no redefinir lógica
-
-las classes bajo app/Support/Auth deben actuar como acceso técnico y no como fuente alternativa
-
-Regla operativa adicional:
-
-si una corrección de autorización afecta create contextual, constraints o semántica general de consumo, debe resolverse en la capa central y no mediante helper ad hoc ni parche por módulo.
-
-Regla adicional para ownership funcional:
-
-si una corrección impacta comportamiento operativo propio de un módulo, debe resolverse en service o support del módulo dueño de la capacidad
-
-no corresponde fijar semánticas de inventory, orders u otros dominios desde helpers genéricos del consumidor
-
-Regla adicional de frontera tenant:
-
-las piezas de directorio interno del tenant no reemplazan seguridad, policies ni middleware.
-
-Su función es resolver datasets internos y verificaciones de pertenencia activa a la empresa.
-
-La autorización efectiva continúa perteneciendo a la capa central de acceso.
+[REGLA FINAL]
+Support de acceso debe reducir duplicación, no crear autoridad paralela.
 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE POLICIES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
-CONVENCIONES DE POLICIES
+[USO]
+Policies = wrappers mínimos de autorización por acción.
 
-La autorización por acción debe resolverse preferentemente mediante Policies.
+[REGLAS]
+Consumir Security.
+No lógica de negocio.
+No reconstruir permisos.
+No consumir resolvers directamente.
+Controllers invocan authorize(...) o Security.
+Vistas usan @can solo si no depende de contexto.
 
-Reglas:
+[CAPACIDAD CON CONSTRAINTS]
+No usar:
+@can('create', Model::class)
 
-las policies deben actuar como wrappers mínimos sobre Security
+Usar:
+contexto explícito
+flags precomputados
+Security con parámetros
+canal oficial contextual
 
-no deben contener lógica de negocio ni reconstruir permisos
+[CREATE CONTEXTUAL]
+Policy abstracta puede quedar fail-closed.
+No es canal principal si el contrato exige contexto obligatorio.
 
-no deben consumir resolvers directamente
+[DISTINCIÓN]
+viewAny = acceso a dataset.
+view = acceso a registro individual.
 
-los controllers deben invocar authorize(...) o Security
+[DATOSET]
+Resolver datasets mediante:
 
-las vistas deben respetar permisos reales con @can solo cuando la capacidad no dependa de contexto
+Security::scope(...)
 
-Regla crítica:
-
-cuando una capacidad depende de constraints
-
-no debe utilizarse @can('create', Model::class)
-
-la autorización debe resolverse con contexto explícito o mediante flags precomputados
-
-En create contextuales, la policy abstracta puede quedar fail-closed y no debe tratarse como el canal válido principal de autorización si el contrato exige contexto funcional obligatorio.
-
-Distinción obligatoria:
-
-viewAny controla acceso al dataset
-view controla acceso a registros individuales
-
-los datasets deben resolverse mediante Security::scope(...)
+[REGLA FINAL]
+Policy no inventa permisos; consume el contrato central.
 
 <<END SECTION>>
 
 <<SECTION: REGLA DE NAVEGACIÓN Y VISIBILIDAD DE UI>>
-REGLA DE NAVEGACIÓN Y VISIBILIDAD DE UI
+SECTION_VERSION: 00001
 
-La interfaz no debe mostrar accesos que el usuario no puede usar realmente.
+[USO]
+La UI no debe mostrar accesos que el usuario no puede usar realmente.
 
-Reglas:
+[REGLAS]
+navbar/dashboard/accesos rápidos respetan acceso real.
+acciones en listados/show/sublistados respetan permisos reales.
+navegación no asume acceso total al tenant.
+navegación principal debe resolverse desde catálogo/acceso cuando exista capa central.
+no hardcodear módulos navegables si el sistema puede resolver catálogo + acceso efectivo.
 
-navbar, dashboard y accesos rápidos deben respetar acceso real del usuario al módulo
+[LISTADOS]
+view_any controla listado/dataset.
+view controla registro individual.
+No usar view para mostrar listados completos.
+view_any debe ser igual o más amplio que view.
 
-las acciones visibles en listados, show y sublistados deben respetar permisos reales mediante @can
+[CONSISTENCIA]
+Lo que el listado muestra debe poder abrirse según permisos.
 
-la navegación no debe asumir acceso total al tenant si el módulo o la acción están restringidos por rol
+[MÓDULO RELACIONADO]
+Antes de renderizar navegación/campo/acción por *_id:
+verificar módulo destino habilitado.
 
-la navegación principal del tenant debe construirse desde ModuleCatalog cuando exista una capa de navegación central disponible
+Si módulo destino deshabilitado:
+no enlaces
+no campos
+no bloques
+no accesos residuales
 
-no se deben hardcodear módulos navegables en componentes de layout cuando el sistema ya pueda resolverlos desde catálogo y acceso efectivo
+[BREADCRUMB / NAVBAR]
+breadcrumb = recorrido estructural o contextual actual.
+navbar = anclaje funcional estable.
+navbar no copia breadcrumb.
 
-distinción obligatoria en UI:
+[CONTEXTO]
+Si hay navegación contextual, módulo activo puede resolverse por origen funcional, no solo pantalla hoja.
 
-la visibilidad de listados completos debe depender de view_any
+[REGLA FINAL]
+La UI expresa acceso real; no crea acceso.
 
-la visibilidad de acciones sobre registros individuales debe depender de view, update o delete según corresponda
-
-no debe utilizarse view como criterio para mostrar listados completos
-
-view_any debe ser igual o más amplio que view
-
-no deben existir inconsistencias entre:
-
-lo que el listado muestra
-lo que el usuario puede abrir
-
-toda acción derivada, campo relacional o navegación hacia otra entidad modular por *_id debe verificar primero si el módulo relacionado está habilitado para el tenant
-
-si el módulo destino está deshabilitado:
-
-no deben renderizarse enlaces
-no deben renderizarse campos
-no deben renderizarse bloques completos asociados
-no deben mantenerse accesos residuales
-
-el breadcrumb representa recorrido contextual o estructural de la pantalla actual
-
-el navbar representa anclaje funcional estable del sistema
-
-el navbar no debe copiar ni duplicar el breadcrumb
-
-cuando exista navegación contextual entre módulos relacionados, el módulo activo del navbar puede resolverse por origen funcional del flujo y no solo por la pantalla hoja actualmente abierta
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE BLADE Y FRONTEND LIVIANO>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
-CONVENCIONES DE BLADE Y FRONTEND LIVIANO
+[DOCTRINA]
+Blade representa.
+Backend decide.
+Frontend acompaña.
 
-Las vistas Blade deben mantenerse simples, explícitas y previsibles.
+[BLADE]
+Evitar lógica de negocio.
+Permitir condicionales simples de interfaz.
+No reconstruir permisos.
+Consumir resultados backend.
+@can solo si capacidad no depende de contexto.
 
-Reglas:
+[CONSTRAINTS]
+Si capacidad depende de constraints:
+UI no evalúa directamente.
+No @can('create') abstracto.
+Consumir flags/datasets ya filtrados.
+Botones create según contexto válido.
+Datasets desde Security::scope(...).
 
-evitar lógica de negocio en Blade
+[POLICY ABSTRACTA]
+Gate/policy abstracta ≠ autorización operativa válida si contrato exige contexto explícito.
 
-permitir condicionales simples de interfaz
+[ÍNDICES]
+x-list-filters-card respeta composición reusable:
+filtros principales visibles
+filtros secundarios en Más filtros cuando corresponda
 
-no reconstruir lógica de permisos
+Consistencia visual > variantes locales.
 
-la UI debe consumir resultados del backend
+[CONSUMERS LIVIANOS]
+Si vista consume surface oficial:
+no reconstruir formularios/tablas/estados equivalentes.
+Componer experiencia con salida oficial recibida.
 
-@can puede utilizarse solo cuando la capacidad no dependa de contexto
+[HOST VISUAL]
+Show page host debe separar:
+núcleo propio
+relaciones estructurales
+capacidades invitadas
 
-Regla crítica:
+No mezclar métricas, estados o acciones del invitado como si fueran núcleo del host.
 
-cuando una capacidad depende de constraints
-
-la UI no debe evaluarla directamente
-
-no utilizar @can('create') en módulos con constraints
-
-la UI debe consumir flags resueltos o datasets ya filtrados
-
-los botones de creación deben evaluarse según contexto válido
-
-los datasets visibles deben provenir de Security::scope(...)
-
-La UI no debe asumir que Gate o policy abstracta equivalen a autorización operativa válida cuando el contrato exige contexto explícito.
-
-Convención visual consolidada para índices:
-
-cuando se utilice x-list-filters-card, la alineación correcta del módulo no implica exponer todos los filtros en el bloque principal.
-
-Debe respetarse la composición definida por el componente reusable:
-
-filtros principales visibles en primer plano
-filtros secundarios agrupados en bloque colapsable tipo Más filtros cuando corresponda
-
-La consistencia visual del sistema prevalece sobre variantes locales por módulo.
-
-Regla adicional de consumers livianos:
-
-si una vista consume una surface oficial publicada por otro módulo, Blade no debe reconstruir localmente formularios, tablas ni decisiones de estado equivalentes
-
-debe limitarse a componer la experiencia visual usando la salida oficial recibida
-
-Regla adicional para hosts visuales:
-
-cuando una show page actúe como host de capacidades embebidas publicadas por otros módulos, Blade debe dejar visible la separación entre:
-
-núcleo propio del recurso anfitrión
-relaciones estructurales del host
-capacidades operativas invitadas de módulos oferentes
-
-la composición visual puede organizar tabs, cards o bloques, pero no debe mezclar en una misma superficie del host métricas, estados o acciones que pertenecen semánticamente al módulo invitado
-
-Regla adicional para show pages surface-driven:
-
-una show page no debe leerse ni implementarse como punto plano único de inserción.
-
-Debe respetar la estructura anfitriona real y sus zonas explícitas de montaje.
-
-Casos vigentes consolidados:
-
+[SHOW PAGE SURFACE-DRIVEN]
+Host no es punto plano único.
+Respetar zonas explícitas:
 header_actions
 summary_items
 detail_items
-zona tab coordinada construida desde tabItems
+tabs
+tab_panels
 
-La zona tab no debe implementarse doctrinalmente como dos loops visuales independientes sin composición.
+Zonas tab = bloque coordinado.
+No dos loops doctrinales independientes.
 
-Debe leerse y renderizarse como bloque coordinado del host para navegación, toolbar y paneles.
+[TYPE + SLOT]
+Target no alcanza si el host monta por combinación type + slot.
 
-Cuando Blade consuma surfaces externas en un host con slots, no debe suponer que el target alcanza.
+[NUCLEO ANFITRIÓN]
+Surfaces externas no reemplazan cards, summaries ni bloques propios del host.
 
-Debe respetar la combinación efectiva de type + slot que el host utiliza para montar la integración.
-
-Regla adicional de preservación del núcleo anfitrión:
-
-la incorporación de surfaces externas no debe hacer desaparecer las cards propias, summaries propios ni bloques estructurales del módulo anfitrión.
-
-El host conserva su núcleo visual.
-
-Las surfaces externas agregan contenido por zonas compatibles; no reemplazan el frente principal del recurso.
+[REGLA FINAL]
+Blade no calcula, no autoriza, no reconstruye contratos.
 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE FORMULARIOS OPERATIVOS>>
-CONVENCIONES DE FORMULARIOS OPERATIVOS
+SECTION_VERSION: 00001
 
-Regla general:
+[DOCTRINA]
+Create/edit principales = pantalla dedicada.
+Modal = micro-operación, confirmación o visualización puntual.
 
-los formularios operativos de create y edit deben resolverse en pantallas dedicadas
+[NO MODAL PARA]
+creación principal
+edición principal
+formularios con validación completa
+flujos que requieren navegación consistente
+operaciones con estado complejo
 
-los modales no deben utilizarse para operaciones principales de creación o edición
-
-los modales pueden utilizarse únicamente para:
-
+[MODAL PUEDE USARSE PARA]
 confirmaciones simples
-visualización puntual y liviana
+visualización liviana
+micro-operaciones contextualizadas
 
-Objetivos de esta convención:
+[OBJETIVOS]
+menos JS complejo
+menos problemas de estado/foco/validación
+breadcrumb consistente
+navegación previsible
 
-reducir complejidad de JavaScript
-evitar problemas de estado, foco y validación
-mantener consistencia de navegación y breadcrumb
+[CREATE / EDIT]
+La vista contiene:
 
-Si una operación requiere validación completa, navegación consistente o interacción de formulario real, debe resolverse como pantalla y no como modal.
+<form>
+@csrf
+@method cuando corresponda
+form-actions
 
-Regla de composición:
-
-las vistas create y edit deben contener el formulario completo, incluyendo:
-
-<form> @csrf @method cuando corresponda form-actions
-
-los parciales _form deben contener únicamente:
-
+[_FORM]
+Parcial _form contiene:
 campos
 ayudas
-mensajes de error
-bloques internos estrictamente propios de los campos
+errores
+bloques internos propios de campos
 
-el parcial _form no debe abrir ni cerrar el <form> principal ni contener acciones finales del formulario
+No contiene:
 
-cuando un _form utilice un wrapper raíz para agrupar múltiples .form-group, ese wrapper debe usar class="form" para heredar el espaciado vertical base del sistema
+<form> principal
+cierre de form
+acciones finales
+
+[WRAPPER]
+Si _form agrupa múltiples .form-group, wrapper raíz:
+
+class="form"
+
+para heredar espaciado vertical base.
+
+[REGLA FINAL]
+Formulario principal debe ser explícito, navegable y validable sin depender de estado modal complejo.
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE MÓDULOS TRANSVERSALES>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
-CONVENCIONES DE MÓDULOS TRANSVERSALES
+[DEFINICIÓN]
+Módulo transversal = capacidad reutilizable integrada en otros módulos o recursos.
 
-Un módulo transversal es aquel que:
+[RASGOS]
+no navegación principal dominante
+integración embebida o contextual
+puede tener create/edit propios si mejora consistencia
+publica capacidades reutilizables
+puede evolucionar a vista independiente sin romper integración actual
 
-no tiene navegación principal propia como rasgo dominante
-se integra dentro del show de otros módulos o recursos
-puede tener pantallas propias para acciones como create o edit
-ofrece capacidades reutilizables sin convertirse necesariamente en módulo nuclear del dominio
+[REGLAS]
+Diseñar desacoplado.
+No navegación paralela si uso principal es embebido/contextual.
+No depender de nombres de clase backend en frontend.
+Resolver patrones repetidos con partials, componentes, catálogos o surfaces.
+Publicar oferta contractual desde el propio módulo transversal.
+No resolver cada consumidor con variante local.
 
-Reglas:
-
-debe diseñarse desacoplado de módulos específicos
-
-no debe implementar navegación paralela propia mientras su uso principal siga siendo embebido o contextual
-
-puede tener pantallas dedicadas para acciones operativas si eso mejora consistencia y mantenibilidad
-
-no debe depender de nombres de clase del backend en el frontend
-
-debe poder evolucionar en el futuro hacia una vista independiente sin romper su base conceptual ni su integración actual
-
-cuando un patrón transversal se repita en varios módulos, debe tender a resolverse con partials, componentes o catálogos reusables antes que con variantes aisladas por módulo
-
-Regla adicional:
-
-un módulo transversal también puede publicar oferta contractual reusable para otros módulos
-
-esa publicación debe pertenecer al propio módulo transversal y no a implementaciones sueltas de cada consumidor
-
-Ejemplo actual de este patrón:
-
+[CASO]
 attachments
+
+[REGLA FINAL]
+Transversal no significa global sin ownership; significa reusable con contrato propio.
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES ESPECÍFICAS PARA ATTACHMENTS>>
-CONVENCIONES ESPECÍFICAS PARA ATTACHMENTS
+SECTION_VERSION: 00001
 
-Attachments se considera un módulo transversal embebido alineado al patrón general del proyecto.
+[LECTURA]
+Attachments = módulo transversal embebido.
 
-Reglas actuales:
+[REGLAS]
+Integración principal dentro del show de otros módulos.
+No navegación principal paralela dominante.
+create/edit en pantallas dedicadas, no modales operativos.
+Patrones repetidos → partials/componentes reusables.
+AttachmentCatalog = fuente de verdad para kinds, etiquetas y segmentaciones.
+kind = dimensión principal visible de segmentación.
+No agregar segunda dimensión equivalente sin valor operativo real.
+Frontend no depende de nombres de clase backend.
 
-attachments debe integrarse principalmente dentro del show de otros módulos y no como navegación principal paralela
+[OPERATIONAL ACTIVITY]
+Puede registrar creación/actualización de metadata operativa si corresponde.
+No registrar download, preview, vista, print, PDF ni destroy salvo decisión posterior explícita.
 
-create y edit de attachments deben resolverse en pantallas dedicadas y no en modales operativos
+[LINKS]
+No inventar link propio desde actividad mientras no exista ruta segura o decisión de enlazar al attachable padre.
 
-cuando el patrón de attachments se repita entre módulos, debe resolverse con partials o componentes reusables
+[REGLA FINAL]
+Attachments conserva contrato transversal propio y no absorbe lógica del recurso padre.
 
-AttachmentCatalog debe actuar como fuente de verdad para kinds, etiquetas y segmentaciones visibles del módulo
-
-en el embebido visible de attachments, kind es la dimensión principal y estable de segmentación
-
-no debe agregarse una segunda dimensión visible equivalente si no aporta valor operativo real
-
-attachments no debe depender en frontend de nombres de clase del backend para resolver integración, comportamiento o segmentación
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE PRESERVACIÓN DE CONTEXTO UX>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
-CONVENCIONES DE PRESERVACIÓN DE CONTEXTO UX
+[USO]
+Preservar contexto cuando mejora continuidad real de uso.
 
-En vistas con tabs, filtros o acciones internas, debe preservarse el contexto funcional al refrescar o redirigir cuando eso mejore la UX.
-
-Ejemplos de contexto a preservar:
-
+[CONTEXTO POSIBLE]
 tab activa
 filtros
-paginación cuando aplique
+paginación
+origen contextual
+panel interno del host
 
-Las tabs mencionadas en esta convención refieren a tabs internas de contenido dentro de una pantalla.
+[TABS]
+Aquí tabs = tabs internas de contenido.
+No implica workspace ni navegación entre rutas tipo app.
 
-No debe asumirse todavía como convención general del sistema una navegación entre rutas dentro de tabs de app o tipo workspace.
+[return_tab]
+Preserva contexto interno del host.
 
-Regla adicional consolidada:
+Reglas:
+usar key técnica real
+no usar label visual
+no reemplaza trail
+solo cuando una tab activa deba restaurarse tras redirect
 
-cuando una acción POST, PUT, PATCH o DELETE se dispare desde una tab interna relevante del host, puede preservarse explícitamente la tab activa mediante parámetro técnico de retorno.
+[trail]
+Preserva contexto externo entre recursos.
 
-Caso vigente:
+[COMBINACIÓN]
+Flujo desde surface embebida puede requerir:
+trail = retorno externo
+return_tab = panel interno correcto
 
-return_tab
-
-Reglas para return_tab:
-
-debe transportar la key técnica real de la tab y no su label visual
-
-debe utilizarse solo para preservar contexto interno del host y no como reemplazo del trail contextual entre recursos
-
-si el flujo nace dentro de una surface embebida consumida por el host, el redirect correcto puede requerir simultáneamente:
-
-trail para retorno externo
-return_tab para retorno interno al panel correcto del host
-
-Ejemplo válido:
-
+[CASO VÁLIDO]
 inventory.embedded
 
-Ejemplo no válido cuando solo refleja label visual:
+[CASO NO VÁLIDO]
+inventory si solo refleja label visual y no key técnica real.
 
-inventory
+[REGLA FINAL]
+Preservar contexto solo cuando aporta continuidad operativa, no por reflejo.
 
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN ESTRUCTURAL Y CONTEXTUAL>>
-NAVEGACIÓN ESTRUCTURAL Y CONTEXTUAL
+SECTION_VERSION: 00001
 
-La navegación del sistema debe distinguir entre:
+[ESTRUCTURAL]
+Ubicación estable de pantalla dentro del sistema o módulo.
 
-navegación estructural
-navegación contextual
+[CONTEXTUAL]
+Origen funcional desde el cual el usuario llegó a una entidad relacionada cuando ese origen sigue siendo útil.
 
-navegación estructural:
-expresa la ubicación estable de la pantalla dentro del sistema o dentro de su módulo
+[REGLAS]
+Toda pantalla debe tener resolución estructural válida.
+Contextual solo si existe flujo relacionado real.
+No inventar origen contextual.
+No usar contexto si viene de index, búsqueda o navegación general sin valor operativo.
+Breadcrumb único, resoluble estructural o contextual.
+Si existe capa central, no duplicar lógica.
+Controller resuelve contexto.
+Vista consume contexto.
+No reconstruir breadcrumb desde url()->previous().
+Breadcrumb, retorno y redirects deben ser consistentes.
 
-navegación contextual:
-expresa el origen funcional desde el cual el usuario llegó a una entidad relacionada, cuando ese origen sigue siendo relevante para la tarea actual
+[DEFAULT]
+Usar navegación estructural.
 
-Reglas generales:
+[OVERRIDE]
+Usar navegación contextual solo cuando el origen deba preservarse.
 
-toda pantalla debe tener una resolución estructural válida como base, aunque en ciertos flujos pueda mostrarse en modo contextual
+[REGLA FINAL]
+Contexto de navegación se declara y propaga; no se deduce por historial ni por intuición.
 
-la navegación contextual solo debe aplicarse cuando exista un flujo relacionado real y útil para la continuidad de uso
-
-no debe inventarse un origen contextual si la pantalla fue abierta de forma directa, desde index propio, desde búsqueda o desde navegación general del módulo
-
-el breadcrumb del sistema es uno solo, pero debe poder resolverse en modo estructural o en modo contextual según el caso
-
-si ya existe una capa central reutilizable para resolver contexto de navegación, no duplicar esa lógica en múltiples controllers, blades o helpers dispersos
-
-controller resuelve contexto
-vista consume contexto
-
-no reconstruir breadcrumb de negocio desde url()->previous() ni desde supuestos del historial del navegador
-
-breadcrumb, retorno al origen y redirects posteriores a acciones deben mantenerse consistentes entre entidades relacionadas
-
-la preservación de contexto UX debe aplicarse con criterio y solo cuando aporte continuidad real de uso
-
-como regla general:
-
-usar navegación estructural por defecto
-
-usar navegación contextual solo como override útil cuando el origen funcional deba preservarse
-
-cuando no exista contexto válido o el origen no agregue valor operativo, debe mostrarse navegación estructural normal
 <<END SECTION>>
 
 <<SECTION: RESOLUCIÓN TÉCNICA DEL TRAIL DE NAVEGACIÓN>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
-RESOLUCIÓN TÉCNICA DEL TRAIL DE NAVEGACIÓN
+[MOTOR]
+NavigationTrail = mecanismo central vigente para breadcrumb contextual.
 
-Reglas:
+[REGLAS]
+Módulos con navegación contextual usan builders/resolutores compatibles.
+Controller resuelve trail.
+Vista consume trail.
+No variantes paralelas.
+No reconstrucción desde parámetros sueltos.
+No historial navegador.
+No deducciones implícitas de relaciones.
 
-el mecanismo central vigente del proyecto para breadcrumb contextual es NavigationTrail
+[NODOS]
+URLs limpias.
+No serializar trail dentro de url del nodo.
+Propagar trail solo en links/forms/redirects relevantes.
+Si vuelve a nodo existente, colapsar sin duplicar.
 
-los módulos que participen en navegación contextual deben apoyarse en builders o resolutores propios compatibles con NavigationTrail, sin crear variantes paralelas de criterio
-
-controller resuelve trail
-
-vista consume trail
-
-si una pantalla relacionada recibe un trail válido, debe poder heredarlo, extenderlo o colapsarlo sin reconstruir manualmente la navegación desde parámetros sueltos, historial del navegador o deducciones implícitas de relaciones del modelo
-
-los nodos del trail deben almacenar URLs limpias de la entidad actual
-
-no debe serializarse el propio trail dentro del campo url de los nodos
-
-el trail se propaga solo en links, forms y redirects relevantes
-
-cuando el trail vuelva a un nodo ya existente, debe colapsarse de forma limpia y no duplicada
-
-cuando un módulo ya esté migrado a NavigationTrail, no debe seguir usando mecanismos legacy equivalentes o redundantes, incluyendo:
-
+[NO LEGACY]
+Si módulo migró a NavigationTrail, no usar:
 url()->previous()
 context_type / context_id
 NavigationContext
-reconstrucción manual por relaciones del modelo
+breadcrumb manual por relaciones
 
-tasks participa plenamente como origen contextual legítimo hacia orders
+[CREATE / EDIT]
+Nodos transitorios como create, edit, items.create, items.edit no persisten al volver a show tras store/update exitoso.
 
-appointment y task deben seguir la misma convención técnica para abrir o crear orders relacionadas
+[CANCELAR]
+Debe respetar trail vigente.
+No volver por defecto a show estructural si existe trail válido.
 
-en tablas embebidas o listados contextuales, cuando el contexto real de navegación sea la fila y no solo el contenedor, los links profundos a entidades relacionadas deben usar el trail de la fila
+[TABLAS CONTEXTUALES]
+Si contexto real es la fila:
+link principal construye trail desde contenedor + fila.
+links relacionados reutilizan trail de fila.
+No reiniciar contexto desde contenedor.
 
-en tablas embebidas o relacionales, el link principal de la fila debe construir el trail desde el contexto del contenedor más el nodo de la fila
+[EMBEBIDOS REUSABLES]
+Tabla/bloque reusable no reinicia navegación desde base local del oferente si el flujo sigue anclado en consumidor.
+Debe heredar trailQuery y propagar a show, acciones, cancelar y redirects.
 
-los links relacionados de esa misma fila deben reutilizar ese trail contextual ya construido y no reiniciar el contexto desde el contenedor ni desde mecanismos manuales
-
-los nodos transitorios de formulario como create, edit, items.create o items.edit no deben persistir al volver a show después de store o update exitoso
-
-las acciones cancelar dentro de formularios contextuales deben respetar el trail completo vigente y no volver por defecto al show estructural del módulo
-
-Regla adicional consolidada para capacidades reusables embebidas:
-
-cuando una tabla reusable o bloque embebido se consuma dentro de otro módulo, no debe reiniciar navegación desde una base local del módulo oferente si el flujo vigente sigue anclado en el contenedor consumidor
-
-debe heredar el trailQuery contextual recibido y propagarlo hacia show, acciones por fila, cancelar y redirects relevantes
-
-esto aplica especialmente a tablas reutilizables consumidas dentro de tabs o cards de relación
-
-las decisiones internas de implementación pueden evolucionar, pero la convención estable es:
-
-motor central reutilizable
-builders compatibles por módulo
+[REGLA FINAL]
+motor central
+builders compatibles
 controller resuelve
 vista consume
-sin deducción desde historial
-sin duplicación por módulo
-sin serialización recursiva del trail dentro de nodos
+sin historial
+sin duplicación
+sin serialización recursiva
 
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE VOCABULARIO UI>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
-CONVENCIONES DE VOCABULARIO UI
-
-Nombre genérico visible de la entidad parties en interfaz:
-
+[PARTIES]
+Nombre genérico visible:
 Contacto
 
-Cliente debe utilizarse solo como categoría, clase o tipo específico dentro del catálogo correspondiente, no como nombre genérico de la entidad.
+Cliente = categoría/tipo específico, no nombre genérico de entidad.
 
-Para asignación interna de tareas, el término visible recomendado es:
-
+[ASIGNACIÓN INTERNA]
+Término recomendado:
 Colaborador
 
-El verbo destructivo estándar en botones, confirmaciones y mensajes del sistema es:
-
+[ACCIÓN DESTRUCTIVA]
+Verbo estándar:
 Eliminar
 
-Naming visible definitivo de roles base del tenant:
-
+[ROLES BASE VISIBLES]
 Propietario
 Administrador
 Comercial
 Operador
 Administrativo
 
-Estos labels visibles deben mantenerse estables y no deben duplicarse con variantes alternativas en la UI.
-
-En pantallas sensibles para owner, especialmente las vinculadas a accesos o permisos, debe priorizarse vocabulario no técnico centrado en:
-
+[REGLAS]
+Mantener labels estables.
+No duplicar variantes visibles.
+Evitar terminología interna de autorización si no aporta claridad.
+En pantallas sensibles owner, priorizar:
 qué puede hacer cada función
 qué información queda protegida
-qué configuraciones sensibles siguen resguardadas
+qué configuraciones siguen resguardadas
 
-Evitar exponer terminología interna de autorización cuando no agregue claridad real para el usuario final.
+[PARTIES UI]
+Evitar “rol” para relación del contacto.
+Usar:
+Tipo de contacto
+Relación con la empresa
 
-Regla adicional consolidada:
+[CONTRAPARTE]
+Contacto gestionado = party_id.
+Contraparte = dato textual propio del registro.
 
-los textos visibles en UI orientados a usuario deben mantener coherencia con el patrón narrativo definido para documentación de usuario
+Casos:
+Orders
+Documents
 
-esto implica:
+[USUARIO FINAL]
+Lenguaje claro.
+Tono directo.
+Sin tecnicismos innecesarios.
+Consistencia sistema/documentación.
 
-lenguaje claro
-tono directo
-evitar tecnicismos innecesarios
-mantener consistencia entre sistema y documentación
+[REGLA FINAL]
+Vocabulario visible debe reducir ambigüedad entre dominio, permisos y relaciones.
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE ACCIONES VISUALES>>
-CONVENCIONES DE ACCIONES VISUALES
+SECTION_VERSION: 00001
 
-Fuera de tablas, los botones principales pueden usar icono + texto cuando eso refuerce la asociación visual de la acción.
+[FUERA DE TABLAS]
+Botones principales pueden usar icono + texto si refuerza comprensión.
 
-Dentro de tablas o celdas compact-actions-cell, las acciones deben mostrarse solo con icono.
+[DENTRO DE TABLAS]
+En compact-actions-cell:
+acciones solo con icono.
 
-Todo botón de solo icono debe incluir:
-
+[ACCESIBILIDAD]
+Todo botón icon-only debe incluir:
 title
 aria-label
+
+[REGLA FINAL]
+Acción visual compacta no debe sacrificar accesibilidad ni claridad operativa.
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE FLUJO DE INVITACIONES>>
-CONVENCIONES DE FLUJO DE INVITACIONES
+SECTION_VERSION: 00001
 
-Las invitaciones forman parte del flujo de onboarding y acceso al sistema.
+[USO]
+Invitaciones = flujo de onboarding y acceso interno al sistema.
 
-Cuando una invitación corresponde a un usuario que ya posee cuenta en el sistema, el flujo debe:
+[CASO USER EXISTENTE]
+Si la invitación corresponde a un usuario que ya posee cuenta:
 
-redirigir al login si el usuario no está autenticado
+redirigir al login si no está autenticado
+reanudar flujo original al autenticarse
+no aplicar redirección estándar post-login
 
-una vez autenticado, reanudar el flujo original de la invitación
+[REGLAS]
+La invitación pertenece al plano interno.
+Puede vincular User/Membership según contrato vigente.
+No reutilizar para customers externos.
+No mezclar con registro público self_service_sales.
 
-En estos casos no debe aplicarse la redirección estándar posterior al login.
+[REGLA FINAL]
+El sistema debe preservar continuidad del proceso de incorporación al tenant.
 
-El sistema debe retornar al flujo de aceptación de la invitación.
-
-Esto garantiza continuidad del proceso de incorporación al tenant correspondiente.
 <<END SECTION>>
 
 <<SECTION: CONVENCIÓN DE SIMPLICIDAD>>
-CONVENCIÓN DE SIMPLICIDAD
+SECTION_VERSION: 00001
 
-Antes de introducir una nueva abstracción, evaluar si realmente es necesaria.
+[REGLA]
+Antes de introducir abstracción nueva, verificar necesidad real.
 
-El sistema prioriza:
-
+[PRIORIZAR]
 claridad
 consistencia
-bajo nivel de complejidad accidental
+bajo acoplamiento
+baja duplicación
+baja complejidad accidental
+previsibilidad
 
-Las soluciones simples y previsibles deben preferirse sobre arquitecturas excesivamente abstractas.
+[EVITAR]
+abstracciones prematuras
+patrones sin consumidor real
+capas por simetría
+servicios sin frontera clara
+helpers ad hoc
+parches legacy
+soluciones híbridas indefinidas
+
+[REGLA FINAL]
+La solución más simple válida para el contrato vigente tiene prioridad.
+
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CSS Y PATRONES VISUALES>>
-CONVENCIONES DE CSS Y PATRONES VISUALES
+SECTION_VERSION: 00001
 
-La organización del CSS visual del proyecto debe seguir esta base:
-
+[ESTRUCTURA]
 public/css/app-base.css
 public/css/app-patterns.css
 public/css/modules/<modulo>.css
 
-Reglas:
+[APP-BASE]
+Base visual global obligatoria.
 
-app-base.css concentra la base visual global obligatoria
+[APP-PATTERNS]
+Patrones visuales reusables y neutrales.
 
-app-patterns.css concentra patrones visuales reutilizables y neutrales compartidos entre módulos
+[MODULES]
+Estilos específicos de módulos o pantallas complejas.
 
-modules/<modulo>.css debe reservarse para estilos específicos de módulos complejos
+[REGLAS]
+No duplicar variantes equivalentes con prefijo de módulo si existe patrón reusable.
+Si patrón deja de ser exclusivo, migrar a nomenclatura neutral.
+Preferir nombres neutrales cuando se use en más de un módulo.
+No reemplazar app-base.css ni app-patterns.css desde CSS modular.
 
-no duplicar variantes visuales equivalentes con prefijos de módulo si ya existe un patrón reusable neutral
+[ANALYTICS]
+Bloques analíticos usan nomenclatura neutral analytics.*.
+No usar show-summary como base de fichas analíticas si no corresponde.
+No anidar grillas analíticas dentro de grillas base.
+Visibilidad con [hidden], no clases ad hoc.
 
-cuando un patrón visual deje de ser exclusivo de un módulo, debe migrarse a nomenclatura neutral reusable
+[BRANDING]
+Iconografía de marca mediante SVG inline.
+Usar currentColor.
+No variantes de logo por módulo.
 
-preferir nombres neutrales cuando el patrón ya se utilice en más de un módulo
+[REGLA FINAL]
+CSS debe expresar patrón reusable o especificidad justificada, no preferencias locales dispersas.
 
-Regla específica de analytics:
-
-los bloques analíticos deben utilizar una nomenclatura neutral basada en analytics.* y no deben apoyarse en componentes de tipo ficha como show-summary
-
-no anidar grillas analíticas dentro de otras grillas base del sistema
-
-los estados de visibilidad deben resolverse mediante atributos estándar como [hidden] y no mediante clases ad hoc
-
-Regla específica de branding:
-
-la iconografía de marca debe resolverse mediante SVG inline
-
-debe utilizar currentColor para integrarse con el sistema de estilos
-
-no deben incorporarse variantes de logo por módulo ni dependientes de contexto
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE USO DE SVG>>
-CONVENCIONES DE USO DE SVG
+SECTION_VERSION: 00001
 
-El uso de SVG en el sistema debe seguir reglas consistentes.
+[USO]
+SVG para identidad visual e iconografía reutilizable.
 
-Reglas:
+[REGLAS]
+Marca como SVG inline.
+Usar currentColor.
+No depender de png/jpg para identidad del sistema.
+Animaciones con CSS, sutiles y justificadas.
+No animaciones complejas ni JS si no aportan valor.
+Clases CSS neutrales y reusables.
+No acoplar comportamiento funcional a clases visuales SVG.
+favicon = asset separado.
 
-la iconografía de marca debe implementarse como SVG inline
+[ÍCONOS REUSABLES]
+Si el SVG es transversal, mover a componente Blade:
 
-debe utilizar currentColor para integrarse con el color del layout
+resources/views/components/icons/
 
-no depender de imágenes raster (png, jpg) para elementos de identidad del sistema
+[REGLA FINAL]
+SVG debe integrarse al sistema visual sin crear acoplamiento funcional ni variantes locales innecesarias.
 
-las animaciones deben resolverse mediante CSS y mantenerse sutiles
-
-no introducir animaciones complejas o dependientes de JavaScript si no aportan valor real
-
-las clases CSS asociadas a SVG deben ser neutrales y reutilizables
-
-no acoplar comportamiento funcional a clases puramente visuales del SVG
-
-favicon debe resolverse como asset separado y no como reutilización directa del SVG inline del header
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE NAVEGACIÓN CONTEXTUAL>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
-CONVENCIONES DE NAVEGACIÓN CONTEXTUAL
+[USO]
+Regla específica para navegación cruzada entre entidades relacionadas.
 
-Cuando exista navegación cruzada entre entidades relacionadas, no debe resetearse el contexto de origen sin necesidad funcional real.
+[REGLAS]
+No resetear contexto si sigue siendo útil.
+No duplicar lógica si existe capa central.
+No hardcodear variantes por módulo.
+Breadcrumb, retorno y contexto deben ser consistentes.
+Preservar contexto solo si aporta continuidad real.
 
-Reglas:
+[DECIDIR CONTEXTO]
+En tabla contextual, distinguir:
 
-si ya existe una capa central reutilizable para resolver contexto de navegación, no duplicar esa lógica en múltiples controllers
+solo módulo contenedor
 
-no hardcodear variantes divergentes por módulo si la regla de navegación ya existe a nivel reutilizable
+o
 
-la preservación de contexto UX debe aplicarse con criterio y solo cuando aporte continuidad real de uso
+módulo contenedor + entidad fila
 
-breadcrumb, retorno al origen y preservación de contexto deben resolverse de forma consistente entre módulos relacionados
+La decisión debe ser explícita y estable.
 
-cuando una navegación surja desde una tabla contextual, debe verificarse si el contexto real a preservar es:
+[TRAIL / RETURN_TAB]
+trail = contexto externo.
+return_tab = contexto interno del host.
 
-solo el módulo contenedor
-
-o el módulo contenedor más la entidad fila desde la cual se abre la entidad relacionada
-
-esa decisión no debe dejarse implícita ni variar accidentalmente entre módulos
-
-en tablas embebidas o relacionales, el link principal de la fila debe consolidar primero el contexto completo de esa fila
-
-Regla adicional consolidada:
-
-cuando la interacción no abandona el host pero sí requiere redirect posterior a una acción, debe distinguirse entre:
-
-contexto externo de navegación
-contexto interno del host
-
-El contexto externo se preserva con trail.
-
-El contexto interno del host puede preservarse con return_tab cuando exista una tab activa relevante que deba restaurarse luego de la acción.
+[REGLA FINAL]
+Navegación contextual no se deduce; se construye y propaga con contrato.
 
 <<END SECTION>>
 
 <<SECTION: GOBERNANZA DOCUMENTAL>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
-GOBERNANZA DOCUMENTAL
-
-La documentación del proyecto se organiza por fronteras claras y funciones distintas.
-
-Documentos rectores:
-
+[RECTORES]
 contexto_fijo_proyecto_app_base
 seguridad_acceso_proyecto_app_base
 
-Definen doctrina principal, criterios estructurales y reglas especializadas de alta precedencia.
+Función:
+doctrina principal
+arquitectura estable
+seguridad/acceso/autorización
 
-Documentos especializados:
-
+[ESPECIALIZADOS]
 convenciones_proyecto_app_base
 checklist_modulos_nuevos_app_base
 mapa_entidades_app_base
 mapa_navegacion_relaciones_app_base
 base_visual_proyecto_app_base
+mapa_componentes_app_base
 guia_project_lab_proyecto_app_base
+paquete_servicios_mantenimiento_app_base
+shopping_autoservicio_app_base
+capa_ia_operativa_app_base
+monetizacion_proyecto_app_base
+welcome_usuario_app_base
 todo_proyecto_app_base
 plantilla_inicio_chats_proyecto_app_base
 
-Desarrollan implementación, mapas operativos, UX, operación técnica local, pendientes y metodología de trabajo.
+Función:
+implementación
+mapas operativos
+UX
+herramientas
+líneas funcionales
+roadmap operativo
+inicio de chats
 
-Memoria técnica operativa:
-
+[MEMORIA OPERATIVA]
 decisiones_vivas_app_base
 patrones_validados_app_base
 errores_y_lecciones_app_base
 
-Estos documentos conservan continuidad práctica del proyecto:
+Función:
+decisiones tomadas
+patrones repetibles
+errores aprendidos
 
-decisiones ya tomadas
-patrones repetibles validados
-errores y aprendizajes relevantes
+[REGLAS]
+No duplicar contenido extensamente.
+Actualizar en frontera correcta.
+Evitar mezclar vigente con futuro.
+Preservar DOC_SLUG.
+Preservar nombres exactos de secciones salvo necesidad real.
+Usar cada documento según función.
 
-No reemplazan doctrina primaria.
+[PRECEDENCIA]
+Rector prevalece en doctrina general.
+Documento especializado prevalece en su materia.
+Memoria operativa no contradice doctrina.
 
-No deben contradecir documentos rectores.
-
-Si existe conflicto, prevalece el documento rector o especializado en su propia materia.
-
-Reglas generales:
-
-no duplicar contenido extensamente entre documentos
-actualizar en la frontera correcta
-evitar mezclar vigente con futuro
-preservar nombres exactos de secciones y DOC_SLUG cuando aplique
-usar cada documento según su función real
+[REGLA FINAL]
+Cada regla debe vivir en el documento donde mejor evita deriva futura.
 
 <<END SECTION>>
 
 <<SECTION: VERSIONADO DOCUMENTAL>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
-VERSIONADO DOCUMENTAL
+[DOC_VERSION]
+Versión global del documento.
 
-El versionado documental distingue nivel documento y nivel sección.
-
-DOC_VERSION
-
-Representa cambios globales del documento.
-
-Debe incrementarse cuando ocurra alguno de estos casos:
-
+Incrementar cuando haya:
 reorganización estructural relevante
-
 cambio doctrinal mayor
+múltiples secciones impactadas
+cambio de alcance
+normalización general de formato
 
-múltiples secciones impactadas en una misma revisión
+[SECTION_VERSION]
+Versión interna de sección.
 
-cambio de alcance del documento
-
-normalización general del formato
-
-SECTION_VERSION
-
-Representa cambios internos de una sección específica.
-
-Debe incrementarse cuando cambie:
-
+Incrementar cuando cambie:
 contenido
-
 criterio operativo
-
 redacción sustancial
+estructura interna
 
-estructura interna de esa sección
+[NO INCREMENTAR POR]
+correcciones cosméticas mínimas
+espaciado sin cambio de criterio
+typos sin impacto doctrinal
 
-Reglas:
+[REGLAS]
+Sección modificada conserva nombre exacto salvo necesidad real.
+Cambio conceptual fuerte puede requerir nueva sección.
+Numeración homogénea.
+No renombres cosméticos.
 
-no incrementar versiones por cambios cosméticos mínimos
-
-toda sección modificada debe conservar continuidad de nombre salvo necesidad real
-
-si una sección reemplaza completamente otra con cambio conceptual fuerte, debe evaluarse nueva sección en lugar de renombre artificial
-
-la numeración debe mantener formato homogéneo del proyecto
+[REGLA FINAL]
+Versionar para trazabilidad real, no para ruido editorial.
 
 <<END SECTION>>
 
 <<SECTION: FORMATO DE INTERCAMBIO AUTOMATIZADO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
-FORMATO DE INTERCAMBIO AUTOMATIZADO
+[USO]
+Actualizaciones documentales automatizadas deben respetar el contrato real del proceso PHP vigente.
 
-Las actualizaciones documentales automatizadas deben respetar formato estricto compatible con el proceso PHP vigente del proyecto.
+[REGLA]
+La salida ejecutable real usa sintaxis oficial del proyecto.
+Dentro de documentos activos se describe mediante metarrepresentación para no generar bloques parseables accidentales.
 
-La doctrina documental debe reflejar exactamente el contrato real del automatizador.
+[METARREPRESENTACIÓN]
+TOKEN_APERTURA = símbolo inicial real.
+TOKEN_CIERRE = símbolo final real.
+CABECERA_DE_REEMPLAZO = línea de reemplazo por DOC_SLUG.
+CABECERA_DE_NUEVA_SECCION = línea de alta por DOC_SLUG.
+SECCION_ANCLA_DE_INSERCION = ancla exacta obligatoria.
+INICIO_DE_SECCION = apertura de sección.
+FIN_DE_SECCION = cierre de sección.
+SECTION_VERSION_LINE = línea de versión obligatoria.
 
-No deben describirse formatos alternativos que el script no soporte.
-
-Para describir ese formato dentro de documentos activos debe utilizarse una convención de metarrepresentación y no la sintaxis ejecutable real.
-
-CONVENCIÓN DE METARREPRESENTACIÓN DEL FORMATO
-
-TOKEN_APERTURA
-
-representa el símbolo inicial utilizado por los delimitadores estructurales reales del sistema.
-
-TOKEN_CIERRE
-
-representa el símbolo final utilizado por los delimitadores estructurales reales del sistema.
-
-CABECERA_DE_REEMPLAZO
-
-representa la línea inicial que indica reemplazo de una sección existente en un documento identificado por DOC_SLUG.
-
-CABECERA_DE_NUEVA_SECCION
-
-representa la línea inicial que indica propuesta de alta de una nueva sección en un documento identificado por DOC_SLUG.
-
-SECCION_ANCLA_DE_INSERCION
-
-representa la instrucción obligatoria que indica después de qué sección existente debe insertarse una nueva sección.
-
-Debe identificar la sección ancla por su nombre exacto.
-
-INICIO_DE_SECCION
-
-representa la apertura del bloque estructural de una sección usando el nombre exacto correspondiente y los delimitadores oficiales del sistema.
-
-FIN_DE_SECCION
-
-representa el cierre del bloque estructural de una sección usando los delimitadores oficiales del sistema.
-
-SECTION_VERSION_LINE
-
-representa la línea de versión interna obligatoria de la sección.
-
-REGLAS OPERATIVAS
-
-La salida automatizada real debe materializar estas piezas exactamente con la sintaxis oficial vigente del proyecto.
-
-Dentro de documentos activos no deben escribirse delimitadores reales ni bloques ejecutables de ejemplo si pueden ser interpretados por el parser o por el visor documental como secciones válidas.
-
-Toda respuesta generada en modo automatizado debe seguir el formato oficial real y no esta representación abstracta.
-
-CONTRATO VÁLIDO DE REEMPLAZO
-
-Toda operación de reemplazo debe incluir:
-
+[REEMPLAZO VÁLIDO]
+Debe incluir:
 CABECERA_DE_REEMPLAZO
 INICIO_DE_SECCION
 SECTION_VERSION_LINE
-contenido completo de la sección
+contenido completo
 FIN_DE_SECCION
 
-No se permiten:
-
+No permite:
 reemplazos parciales
 fragmentos internos
 cambios sin bloque completo
 cambios sin SECTION_VERSION
 
-CONTRATO VÁLIDO DE NUEVA SECCIÓN
-
-Toda operación de nueva sección debe incluir obligatoriamente:
-
+[NUEVA SECCIÓN VÁLIDA]
+Debe incluir:
 CABECERA_DE_NUEVA_SECCION
 SECCION_ANCLA_DE_INSERCION
 INICIO_DE_SECCION
 SECTION_VERSION_LINE
-contenido completo de la nueva sección
+contenido completo
 FIN_DE_SECCION
 
-No se permiten:
+No permite:
+alta sin ancla
+ubicación implícita
+ancla aproximada
+SECTION_VERSION ausente
 
-altas sin sección ancla
-altas con ubicación implícita
-altas con posición inferida por contexto
-altas sin SECTION_VERSION
-altas con nombre de ancla aproximado
+[SALIDA AUTOMATIZADA]
+Usar DOC_SLUG exacto.
+Usar sección exacta.
+Usar delimitadores oficiales vigentes.
+Incluir SECTION_VERSION homogéneo.
+No mezclar explicaciones dentro del bloque.
+Priorizar salida limpia y procesable.
 
-REGLAS OBLIGATORIAS DE SALIDA AUTOMATIZADA
-
-devolver siempre bloques completos
-
-usar nombre exacto de sección cuando ya exista
-
-usar nombre exacto de sección ancla cuando se trate de una inserción
-
-usar DOC_SLUG exacto
-
-respetar delimitadores oficiales vigentes
-
-incluir SECTION_VERSION con formato numérico homogéneo del proyecto
-
-no mezclar explicaciones dentro del bloque automatizado
-
-si el modo solicitado es automatizado, priorizar salida limpia y procesable
-
-Cualquier desviación de formato debe considerarse salida no compatible con automatización.
+[REGLA FINAL]
+Desviación de formato = salida no compatible con automatización.
 
 <<END SECTION>>
 
 <<SECTION: CRITERIOS PARA NUEVAS SECCIONES>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
-CRITERIOS PARA NUEVAS SECCIONES
+[CREAR NUEVA SECCIÓN SOLO SI]
+el tema no encaja en secciones existentes
+tendrá continuidad futura
+evita mezclar responsabilidades
+mejora mantenimiento
+mejora auditoría
+posee identidad conceptual propia
 
-Una nueva sección solo debe crearse cuando aporte orden real al documento.
-
-Criterios válidos:
-
-el tema no encaja limpiamente en secciones existentes
-
-el contenido tendrá continuidad futura
-
-se evita mezclar responsabilidades distintas
-
-el nuevo bloque mejora lectura, mantenimiento o auditoría
-
-el tema posee identidad conceptual propia dentro del documento
-
-No crear nuevas secciones cuando:
-
+[NO CREAR SI]
 solo cambia una línea menor
+entra limpiamente en sección vigente
+agrega ruido estructural
+refleja necesidad transitoria
+duplica documento especializado
+solo busca ordenar una sesión puntual
 
-el contenido puede integrarse limpiamente en una sección vigente
+[REGLAS]
+Cada sección = una responsabilidad principal.
+Nombre claro, estable y descriptivo.
+Evitar renombres cosméticos.
+Antes de crear, revisar frontera documental.
+Si requiere inserción automatizada, definir ancla exacta.
+No depender de ubicación implícita.
 
-la separación agrega ruido estructural
+[FORMATO TÉCNICO]
+Si una sección explica formato de salida automatizada, hacerlo descriptivamente.
+No reproducir delimitadores reales ejecutables dentro del propio documento si puede confundir parser/visor.
 
-se intenta reflejar una necesidad transitoria de una sola sesión
-
-Reglas adicionales:
-
-cada sección debe tender a una responsabilidad principal
-
-el nombre debe ser claro, estable y descriptivo
-
-evitar renombres cosméticos innecesarios
-
-antes de crear una sección nueva, revisar si el contenido pertenece en realidad a otro documento del sistema
-
-si el documento debe explicar el formato técnico de salida automatizada, debe hacerlo de manera descriptiva y no reproduciendo dentro de su propio cuerpo los delimitadores reales que usa el parser
-
-si una nueva sección va a proponerse para inserción automatizada, debe definirse además una sección ancla exacta ya existente en el documento destino
-
-la inserción automatizada de nuevas secciones no debe depender de ubicación implícita, proximidad temática ni interpretación manual posterior
-
-si no existe una sección ancla clara y estable, primero debe revisarse si corresponde realmente crear la nueva sección o si conviene reorganizar el documento antes de automatizar la inserción
+[REGLA FINAL]
+Nueva sección debe reducir ambigüedad futura, no aumentar estructura por estética.
 
 <<END SECTION>>

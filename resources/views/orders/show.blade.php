@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/show.blade.php | V44 --}}
+{{-- FILE: resources/views/orders/show.blade.php | V45 --}}
 
 @extends('layouts.app')
 
@@ -16,9 +16,11 @@
 
         $supportsProductsModule = $supportsProductsModule ?? true;
 
-        $pageTitle = 'Detalle de la orden';
+        $isServiceOrder = $order->group === OrderCatalog::GROUP_SERVICE;
+
+        $pageTitle = $isServiceOrder ? 'Detalle de la orden de servicio' : 'Detalle de la orden';
         $detailsId = 'order-more-detail';
-        $tabsLabel = 'Secciones de la orden';
+        $tabsLabel = $isServiceOrder ? 'Secciones de la orden de servicio' : 'Secciones de la orden';
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
@@ -100,12 +102,38 @@
                 @endcan
             </x-show-summary-item>
 
+            @if ($isServiceOrder)
+                <x-show-summary-item label="Servicio">
+                    {{ $order->displayAssetReference() }}
+                </x-show-summary-item>
+            @endif
+
             <x-slot:details>
                 @foreach ($detailItems as $detailItem)
                     <x-show-summary-item-detail-block :label="$detailItem['label'] ?? 'Relacionado'">
                         @include($detailItem['view'], $detailItem['data'] ?? [])
                     </x-show-summary-item-detail-block>
                 @endforeach
+
+                @if ($isServiceOrder)
+                    <x-show-summary-item-detail-block label="Contexto de servicio" full>
+                        <div>
+                            <strong>Contraparte:</strong> {{ $order->displayCounterpartyName() }}
+                        </div>
+
+                        <div>
+                            <strong>Activo:</strong> {{ $order->displayAssetReference() }}
+                        </div>
+
+                        <div>
+                            <strong>Fecha de servicio:</strong> {{ $order->ordered_at?->format('d/m/Y') ?: '—' }}
+                        </div>
+
+                        <div>
+                            <strong>Clasificación:</strong> {{ OrderCatalog::groupLabel($order->group) }}
+                        </div>
+                    </x-show-summary-item-detail-block>
+                @endif
 
                 <x-show-summary-item-detail-block label="Tipo">
                     {{ OrderCatalog::groupLabel($order->group) }}
@@ -132,5 +160,5 @@
         <x-host-tabs :items="$tabItems" :active-tab="$activeTab" :label="$tabsLabel" />
     </x-page>
 
-    <x-dev-component-version name="orders.show" version="V44" align="right" />
+    <x-dev-component-version name="orders.show" version="V45" align="right" />
 @endsection

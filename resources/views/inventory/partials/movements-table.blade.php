@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/partials/movements-table.blade.php | V13 --}}
+{{-- FILE: resources/views/inventory/partials/movements-table.blade.php | V14 --}}
 
 @php
     use App\Models\Document;
@@ -7,10 +7,13 @@
     use App\Support\Inventory\InventoryMovementService;
     use App\Support\Inventory\InventoryOperationCatalog;
     use App\Support\Inventory\InventoryOriginCatalog;
+    use App\Support\Navigation\NavigationTrail;
+    use App\Support\Navigation\OrderNavigationTrail;
 
     $movementRows = ($movementRows ?? collect())->values();
     $emptyMessage = $emptyMessage ?? 'No hay movimientos para mostrar.';
     $trailQuery = $trailQuery ?? [];
+    $trail = NavigationTrail::decode($trailQuery['trail'] ?? null);
 
     $kindLabels = [
         InventoryMovementService::KIND_INGRESAR => 'Ingresar',
@@ -36,7 +39,7 @@
         return null;
     };
 
-    $resolveOrigin = function ($movement) use ($trailQuery): array {
+    $resolveOrigin = function ($movement) use ($trailQuery, $trail): array {
         if ($movement->origin_type === InventoryOriginCatalog::TYPE_ORDER && $movement->origin_id) {
             $order = Order::query()
                 ->where('tenant_id', $movement->tenant_id)
@@ -46,7 +49,10 @@
             if ($order) {
                 return [
                     'label' => $order->number ?: 'Orden #' . $order->id,
-                    'url' => route('orders.show', ['order' => $order] + $trailQuery),
+                    'url' => route(
+                        OrderNavigationTrail::showRouteName(request(), $trail),
+                        ['order' => $order] + $trailQuery
+                    ),
                 ];
             }
         }

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/orders/edit.blade.php | V9 --}}
+{{-- FILE: resources/views/orders/edit.blade.php | V10 --}}
 
 @extends('layouts.app')
 
@@ -7,10 +7,19 @@
 @section('content')
     @php
         use App\Support\Navigation\NavigationTrail;
+        use App\Support\Navigation\OrderNavigationTrail;
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
         $trailQuery = NavigationTrail::toQuery($navigationTrail);
-        $backUrl = NavigationTrail::previousUrl($navigationTrail, route('orders.show', ['order' => $order]));
+
+        $showTrail = NavigationTrail::sliceBefore($navigationTrail, 'orders.edit', $order->id);
+        $backUrl = NavigationTrail::previousUrl(
+            $navigationTrail,
+            route(
+                OrderNavigationTrail::showRouteName(request(), $showTrail),
+                ['order' => $order] + NavigationTrail::toQuery($showTrail)
+            )
+        );
     @endphp
 
     <x-page>
@@ -43,5 +52,5 @@
         </x-card>
     </x-page>
 
-    <x-dev-component-version name="orders.edit" version="V9" align="right" />
+    <x-dev-component-version name="orders.edit" version="V10" align="right" />
 @endsection

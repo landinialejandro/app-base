@@ -319,59 +319,61 @@ public function storeMovement(Request $request): RedirectResponse
     return $redirect;
 }
 
-    public function returnOrderItemQuantity(Request $request, Order $order, OrderItem $item): RedirectResponse
-    {
-        abort_unless((int) $item->order_id === (int) $order->id, 404);
+public function returnOrderItemQuantity(Request $request, Order $order, OrderItem $item): RedirectResponse
+{
+    abort_unless((int) $item->order_id === (int) $order->id, 404);
 
-        $data = $request->validate([
-            'quantity' => ['required', 'numeric', 'gt:0'],
-            'notes' => ['nullable', 'string'],
-            'return_context' => ['nullable', 'string', Rule::in([
-                'orders.show',
-            ])],
-            'return_tab' => ['nullable', 'string'],
-        ]);
+    $data = $request->validate([
+        'quantity' => ['required', 'numeric', 'gt:0'],
+        'notes' => ['nullable', 'string'],
+        'return_context' => ['nullable', 'string', Rule::in([
+            'orders.show',
+        ])],
+        'return_tab' => ['nullable', 'string'],
+    ]);
 
-        $this->authorize('update', $order);
-        $this->validateOrderOperable($order);
+    $this->authorize('update', $order);
+    $this->validateOrderOperable($order);
 
-        $item->loadMissing(['product']);
+    $item->loadMissing(['product']);
 
-        abort_if(
-            ! $item->product || $item->product->kind !== ProductCatalog::KIND_PRODUCT,
-            422,
-            'La línea no corresponde a un producto físico stockeable.'
-        );
+    abort_if(
+        ! $item->product || $item->product->kind !== ProductCatalog::KIND_PRODUCT,
+        422,
+        'La línea no corresponde a un producto físico stockeable.'
+    );
 
-        $result = app(OrderInventoryOperationService::class)->returnLineQuantity(
-            order: $order,
-            item: $item,
-            quantity: $data['quantity'],
-            notes: $data['notes'] ?? null,
-            createdBy: auth()->id(),
-        );
+    $result = app(OrderInventoryOperationService::class)->returnLineQuantity(
+        order: $order,
+        item: $item,
+        quantity: $data['quantity'],
+        notes: $data['notes'] ?? null,
+        createdBy: auth()->id(),
+    );
 
-        $redirectQuery = NavigationTrail::toQuery(
-            NavigationTrail::decode($request->query('trail'))
-        );
+    $trail = NavigationTrail::decode($request->query('trail'));
+    $redirectQuery = NavigationTrail::toQuery($trail);
 
-        if (! empty($data['return_tab'])) {
-            $redirectQuery['return_tab'] = $data['return_tab'];
-        }
-
-        $redirect = redirect()
-            ->route('orders.show', ['order' => $order] + $redirectQuery)
-            ->with('success', 'Devolución registrada correctamente.');
-
-        if (($result['negative_stock'] ?? false) === true) {
-            $redirect->with(
-                'warning',
-                'El producto quedó con stock negativo. Se generó una tarea automática para revisión del owner.'
-            );
-        }
-
-        return $redirect;
+    if (! empty($data['return_tab'])) {
+        $redirectQuery['return_tab'] = $data['return_tab'];
     }
+
+    $redirect = redirect()
+        ->route(
+            \App\Support\Navigation\OrderNavigationTrail::showRouteName($request, $trail),
+            ['order' => $order] + $redirectQuery
+        )
+        ->with('success', 'Devolución registrada correctamente.');
+
+    if (($result['negative_stock'] ?? false) === true) {
+        $redirect->with(
+            'warning',
+            'El producto quedó con stock negativo. Se generó una tarea automática para revisión del owner.'
+        );
+    }
+
+    return $redirect;
+}
 
 protected function storeOrderLineMovement(
     Order $order,
@@ -629,44 +631,44 @@ protected function storeManualMovement(
         return $product;
     }
 
-    protected function redirectAfterMovement(
-        Request $request,
-        Product $product,
-        ?Order $order = null,
-        ?Document $document = null,
-        ?string $returnContext = null,
-        ?string $returnTab = null,
-    ): RedirectResponse {
-        $trail = NavigationTrail::decode($request->query('trail'));
-        $trailQuery = NavigationTrail::toQuery($trail);
+protected function redirectAfterMovement(
+    Request $request,
+    Product $product,
+    ?Order $order = null,
+    ?Document $document = null,
+    ?string $returnContext = null,
+    ?string $returnTab = null,
+): RedirectResponse {
+    $trail = NavigationTrail::decode($request->query('trail'));
+    $trailQuery = NavigationTrail::toQuery($trail);
 
-        if (! empty($returnTab)) {
-            $trailQuery['return_tab'] = $returnTab;
-        }
-
-        return match ($returnContext) {
-            'orders.show' => redirect()->route(
-                'orders.show',
-                ['order' => $order] + $trailQuery
-            ),
-            'documents.show' => redirect()->route(
-                'documents.show',
-                ['document' => $document] + $trailQuery
-            ),
-            'products.show' => redirect()->route(
-                'products.show',
-                ['product' => $product] + $trailQuery
-            ),
-            'inventory.show', null => redirect()->route(
-                'inventory.show',
-                ['product' => $product] + $trailQuery
-            ),
-            default => redirect()->route(
-                'inventory.show',
-                ['product' => $product] + $trailQuery
-            ),
-        };
+    if (! empty($returnTab)) {
+        $trailQuery['return_tab'] = $returnTab;
     }
+
+    return match ($returnContext) {
+        'orders.show' => redirect()->route(
+            \App\Support\Navigation\OrderNavigationTrail::showRouteName($request, $trail),
+            ['order' => $order] + $trailQuery
+        ),
+        'documents.show' => redirect()->route(
+            'documents.show',
+            ['document' => $document] + $trailQuery
+        ),
+        'products.show' => redirect()->route(
+            'products.show',
+            ['product' => $product] + $trailQuery
+        ),
+        'inventory.show', null => redirect()->route(
+            'inventory.show',
+            ['product' => $product] + $trailQuery
+        ),
+        default => redirect()->route(
+            'inventory.show',
+            ['product' => $product] + $trailQuery
+        ),
+    };
+}
 
     protected function signedQuantityForMovement(string $kind, float $quantity): float
     {

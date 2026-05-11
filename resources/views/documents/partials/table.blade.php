@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/documents/partials/table.blade.php | V13 --}}
+{{-- FILE: resources/views/documents/partials/table.blade.php | V14 --}}
 
 @php
     use App\Support\Assets\AssetLinked;
@@ -6,6 +6,7 @@
     use App\Support\Catalogs\DocumentCatalog;
     use App\Support\Catalogs\ModuleCatalog;
     use App\Support\Navigation\NavigationTrail;
+    use App\Support\Navigation\OrderNavigationTrail;
     use App\Support\Parties\PartyLinked;
 
     $documents = $documents ?? collect();
@@ -136,7 +137,7 @@
                         @if ($renderOrderColumn)
                             <td>
                                 @if ($document->order)
-                                    <a href="{{ route('orders.show', ['order' => $document->order] + $rowTrailQuery) }}">
+                                    <a href="{{ route(OrderNavigationTrail::showRouteName(request(), $rowTrail), ['order' => $document->order] + $rowTrailQuery) }}">
                                         {{ $document->order->number ?: 'Ver orden' }}
                                     </a>
                                 @else
@@ -156,4 +157,4 @@
     <p class="mb-0">{{ $emptyMessage }}</p>
 @endif
 
-<x-dev-component-version name="documents.partials.table" version="V13" align="right" />
+<x-dev-component-version name="documents.partials.table" version="V14" align="right" />

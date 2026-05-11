@@ -298,207 +298,213 @@ public function store(Request $request)
         ));
     }
 
-    public function update(Request $request, Order $order)
-    {
-        $this->authorize('update', $order);
+public function update(Request $request, Order $order)
+{
+    $this->authorize('update', $order);
 
-        abort_if(
-            OrderCatalog::isReadonlyStatus($order->status),
-            422,
-            'No se puede editar una orden en estado readonly.'
-        );
+    abort_if(
+        OrderCatalog::isReadonlyStatus($order->status),
+        422,
+        'No se puede editar una orden en estado readonly.'
+    );
 
-        $tenant = app('tenant');
-        $security = app(Security::class);
-        $user = auth()->user();
+    $tenant = app('tenant');
+    $security = app(Security::class);
+    $user = auth()->user();
 
-        $data = $request->validate([
-            'party_id' => ['nullable', 'integer'],
-            'counterparty_reference' => ['nullable', 'string', 'max:255'],
-            'asset_id' => ['nullable', 'integer'],
-            'asset_reference' => ['nullable', 'string', 'max:255'],
-            'group' => [
-                'required',
-                Rule::in(array_keys(OrderCatalog::groups())),
-            ],
-            'kind' => [
-                'required',
-                Rule::in(array_keys(OrderCatalog::kindLabels())),
-            ],
-            'status' => [
-                'required',
-                Rule::in(OrderCatalog::statuses()),
-            ],
-            'ordered_at' => ['nullable', 'date'],
-            'notes' => ['nullable', 'string'],
-        ]);
+    $data = $request->validate([
+        'party_id' => ['nullable', 'integer'],
+        'counterparty_reference' => ['nullable', 'string', 'max:255'],
+        'asset_id' => ['nullable', 'integer'],
+        'asset_reference' => ['nullable', 'string', 'max:255'],
+        'group' => [
+            'required',
+            Rule::in(array_keys(OrderCatalog::groups())),
+        ],
+        'kind' => [
+            'required',
+            Rule::in(array_keys(OrderCatalog::kindLabels())),
+        ],
+        'status' => [
+            'required',
+            Rule::in(OrderCatalog::statuses()),
+        ],
+        'ordered_at' => ['nullable', 'date'],
+        'notes' => ['nullable', 'string'],
+    ]);
 
-        if ($order->number) {
-            $data['group'] = $order->group;
-            $data['kind'] = $order->kind;
-        }
-
-        $security->authorize(
-            $user,
-            'orders.update',
-            $order,
-            ['kind' => $order->group]
-        );
-
-        $data = $this->normalizeLinkedOrderData($data, $tenant->id, $user);
-
-        if (! OrderCatalog::canTransition($order->status, $data['status'])) {
-            return back()
-                ->withErrors([
-                    'status' => 'La transición de estado solicitada no es válida.',
-                ])
-                ->withInput();
-        }
-
-        $hasExternalMovements = app(OrdersHooks::class)
-            ->hasExternalMovements($order);
-
-        if ($data['status'] === OrderCatalog::STATUS_CANCELLED && $hasExternalMovements) {
-            return back()
-                ->withErrors([
-                    'status' => 'No se puede cancelar una orden con movimientos registrados. Primero deben revertirse.',
-                ])
-                ->withInput();
-        }
-
-        if ($data['status'] === OrderCatalog::STATUS_CLOSED) {
-            if (app(OrdersHooks::class)->hasCloseBlockers($order)) {
-                return back()
-                    ->withErrors([
-                        'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
-                    ])
-                    ->withInput();
-            }
-        }
-
-        if ($data['counterparty_reference'] === '') {
-            return back()
-                ->withErrors([
-                    'counterparty_reference' => 'Debes escribir una contraparte o seleccionar un contacto vinculado.',
-                ])
-                ->withInput();
-        }
-
-        $orderedAt = $data['ordered_at'] ?? $order->ordered_at?->toDateString() ?? now()->toDateString();
-        $orderedAtDate = Carbon::parse($orderedAt)->startOfDay();
-        $maxFutureDate = now()->startOfDay()->addDays(30);
-
-        if ($orderedAtDate->gt($maxFutureDate)) {
-            return back()
-                ->withErrors([
-                    'ordered_at' => 'La fecha de la orden no puede superar los 30 días hacia el futuro.',
-                ])
-                ->withInput();
-        }
-
-        $data['ordered_at'] = $orderedAtDate->toDateString();
-        $data['updated_by'] = auth()->id();
-
-        $beforeAttributes = $order->getAttributes();
-
-        $order->update($data);
-
-        event(new OperationalRecordUpdated(
-            record: $order,
-            beforeAttributes: $beforeAttributes,
-            actorUserId: auth()->id(),
-        ));
-
-        $navigationTrail = OrderNavigationTrail::show($request, $order);
-
-        return redirect()
-            ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
-            ->with('success', 'Orden actualizada.');
+    if ($order->number) {
+        $data['group'] = $order->group;
+        $data['kind'] = $order->kind;
     }
 
-    public function updateStatus(Request $request, Order $order)
-    {
-        $this->authorize('changeStatus', $order);
+    $security->authorize(
+        $user,
+        'orders.update',
+        $order,
+        ['kind' => $order->group]
+    );
 
-        $data = $request->validate([
-            'status' => ['required', Rule::in(OrderCatalog::statuses())],
-        ]);
+    $data = $this->normalizeLinkedOrderData($data, $tenant->id, $user);
 
-        $newStatus = $data['status'];
+    if (! OrderCatalog::canTransition($order->status, $data['status'])) {
+        return back()
+            ->withErrors([
+                'status' => 'La transición de estado solicitada no es válida.',
+            ])
+            ->withInput();
+    }
 
-        if (! OrderCatalog::canTransition($order->status, $newStatus)) {
+    $hasExternalMovements = app(OrdersHooks::class)
+        ->hasExternalMovements($order);
+
+    if ($data['status'] === OrderCatalog::STATUS_CANCELLED && $hasExternalMovements) {
+        return back()
+            ->withErrors([
+                'status' => 'No se puede cancelar una orden con movimientos registrados. Primero deben revertirse.',
+            ])
+            ->withInput();
+    }
+
+    if ($data['status'] === OrderCatalog::STATUS_CLOSED) {
+        if (app(OrdersHooks::class)->hasCloseBlockers($order)) {
             return back()
                 ->withErrors([
-                    'status' => 'La transición de estado solicitada no es válida.',
+                    'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
+                ])
+                ->withInput();
+        }
+    }
+
+    if ($data['counterparty_reference'] === '') {
+        return back()
+            ->withErrors([
+                'counterparty_reference' => 'Debes escribir una contraparte o seleccionar un contacto vinculado.',
+            ])
+            ->withInput();
+    }
+
+    $orderedAt = $data['ordered_at'] ?? $order->ordered_at?->toDateString() ?? now()->toDateString();
+    $orderedAtDate = Carbon::parse($orderedAt)->startOfDay();
+    $maxFutureDate = now()->startOfDay()->addDays(30);
+
+    if ($orderedAtDate->gt($maxFutureDate)) {
+        return back()
+            ->withErrors([
+                'ordered_at' => 'La fecha de la orden no puede superar los 30 días hacia el futuro.',
+            ])
+            ->withInput();
+    }
+
+    $data['ordered_at'] = $orderedAtDate->toDateString();
+    $data['updated_by'] = auth()->id();
+
+    $beforeAttributes = $order->getAttributes();
+
+    $order->update($data);
+
+    event(new OperationalRecordUpdated(
+        record: $order,
+        beforeAttributes: $beforeAttributes,
+        actorUserId: auth()->id(),
+    ));
+
+    $navigationTrail = OrderNavigationTrail::show($request, $order);
+
+    return redirect()
+        ->route(
+            OrderNavigationTrail::showRouteName($request, $navigationTrail),
+            ['order' => $order] + NavigationTrail::toQuery($navigationTrail)
+        )
+        ->with('success', 'Orden actualizada.');
+}
+
+public function updateStatus(Request $request, Order $order)
+{
+    $this->authorize('changeStatus', $order);
+
+    $data = $request->validate([
+        'status' => ['required', Rule::in(OrderCatalog::statuses())],
+    ]);
+
+    $newStatus = $data['status'];
+
+    if (! OrderCatalog::canTransition($order->status, $newStatus)) {
+        return back()
+            ->withErrors([
+                'status' => 'La transición de estado solicitada no es válida.',
+            ]);
+    }
+
+    $hasExternalMovements = app(OrdersHooks::class)
+        ->hasExternalMovements($order);
+
+    if ($newStatus === OrderCatalog::STATUS_CANCELLED && $hasExternalMovements) {
+        return back()
+            ->withErrors([
+                'status' => 'No se puede cancelar una orden con movimientos registrados. Primero deben revertirse.',
+            ]);
+    }
+
+    if ($newStatus === OrderCatalog::STATUS_CLOSED) {
+        if (app(OrdersHooks::class)->hasCloseBlockers($order)) {
+            return back()
+                ->withErrors([
+                    'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
                 ]);
         }
+    }
 
-        $hasExternalMovements = app(OrdersHooks::class)
-            ->hasExternalMovements($order);
+    $beforeAttributes = $order->getAttributes();
 
-        if ($newStatus === OrderCatalog::STATUS_CANCELLED && $hasExternalMovements) {
-            return back()
-                ->withErrors([
-                    'status' => 'No se puede cancelar una orden con movimientos registrados. Primero deben revertirse.',
-                ]);
-        }
+    $order->update([
+        'status' => $newStatus,
+        'updated_by' => auth()->id(),
+    ]);
 
-        if ($newStatus === OrderCatalog::STATUS_CLOSED) {
-            if (app(OrdersHooks::class)->hasCloseBlockers($order)) {
-                return back()
-                    ->withErrors([
-                        'status' => 'No se puede cerrar la orden mientras existan líneas pendientes o parciales.',
-                    ]);
-            }
-        }
+    event(new OperationalRecordUpdated(
+        record: $order,
+        beforeAttributes: $beforeAttributes,
+        actorUserId: auth()->id(),
+    ));
 
-        $beforeAttributes = $order->getAttributes();
+    $navigationTrail = OrderNavigationTrail::show($request, $order);
 
-        $order->update([
-            'status' => $newStatus,
-            'updated_by' => auth()->id(),
+    return redirect()
+        ->route(
+            OrderNavigationTrail::showRouteName($request, $navigationTrail),
+            ['order' => $order] + NavigationTrail::toQuery($navigationTrail)
+        )
+        ->with('success', 'Estado de la orden actualizado.');
+}
+
+public function destroy(Request $request, Order $order)
+{
+    $this->authorize('delete', $order);
+
+    if ($order->documents()->exists()) {
+        return back()->withErrors([
+            'delete' => 'No se puede eliminar una orden vinculada a documentos.',
         ]);
-
-        event(new OperationalRecordUpdated(
-            record: $order,
-            beforeAttributes: $beforeAttributes,
-            actorUserId: auth()->id(),
-        ));
-
-        $navigationTrail = OrderNavigationTrail::show($request, $order);
-
-        return redirect()
-            ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
-            ->with('success', 'Estado de la orden actualizado.');
     }
 
-    public function destroy(Request $request, Order $order)
-    {
-        $this->authorize('delete', $order);
-
-        if ($order->documents()->exists()) {
-            return back()->withErrors([
-                'delete' => 'No se puede eliminar una orden vinculada a documentos.',
-            ]);
-        }
-
-        if (app(OrdersHooks::class)->hasExternalMovements($order)) {
-            return back()->withErrors([
-                'delete' => 'No se puede eliminar una orden con movimientos registrados.',
-            ]);
-        }
-
-        $order->delete();
-
-        $navigationTrail = OrderNavigationTrail::index($request);
-
-        return redirect()
-            ->route(
-                'orders.index',
-                NavigationTrail::toQuery($navigationTrail)
-            )
-            ->with('success', 'Orden eliminada.');
+    if (app(OrdersHooks::class)->hasExternalMovements($order)) {
+        return back()->withErrors([
+            'delete' => 'No se puede eliminar una orden con movimientos registrados.',
+        ]);
     }
+
+    $order->delete();
+
+    $navigationTrail = OrderNavigationTrail::index($request);
+
+    return redirect()
+        ->route(
+            OrderNavigationTrail::indexRouteName($request, $navigationTrail),
+            NavigationTrail::toQuery($navigationTrail)
+        )
+        ->with('success', 'Orden eliminada.');
+}
 
     public function print(Order $order)
     {

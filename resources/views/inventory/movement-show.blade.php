@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/movement-show.blade.php | V4 --}}
+{{-- FILE: resources/views/inventory/movement-show.blade.php | V5 --}}
 
 @extends('layouts.app')
 
@@ -10,8 +10,10 @@
         use App\Support\Inventory\InventoryOperationCatalog;
         use App\Support\Inventory\InventoryOriginCatalog;
         use App\Support\Navigation\NavigationTrail;
+        use App\Support\Navigation\OrderNavigationTrail;
 
         $breadcrumbItems = NavigationTrail::toBreadcrumbItems($navigationTrail);
+        $trail = NavigationTrail::decode($trailQuery['trail'] ?? null);
 
         $kindLabels = [
             InventoryMovementService::KIND_INGRESAR => 'Ingresar',
@@ -42,7 +44,10 @@
 
         if ($originOrder) {
             $originDisplay = $originOrder->number ?: 'Orden #' . $originOrder->id;
-            $originUrl = route('orders.show', ['order' => $originOrder] + $trailQuery);
+            $originUrl = route(
+                OrderNavigationTrail::showRouteName(request(), $trail),
+                ['order' => $originOrder] + $trailQuery
+            );
         } elseif ($originDocument) {
             $originDisplay = $originDocument->number ?: 'Documento #' . $originDocument->id;
             $originUrl = route('documents.show', ['document' => $originDocument] + $trailQuery);
@@ -212,4 +217,6 @@
             </x-show-summary>
         </x-card>
     </x-page>
+
+    <x-dev-component-version name="inventory.movement-show" version="V5" align="right" />
 @endsection

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Controllers/OrderItemController.php | V25
+// FILE: app/Http/Controllers/OrderItemController.php | V26
 
 namespace App\Http\Controllers;
 
@@ -102,10 +102,14 @@ class OrderItemController extends Controller
             ]);
         }
 
-        $navigationTrail = OrderNavigationTrail::show($request, $order->fresh());
+        $order = $order->fresh();
+        $navigationTrail = OrderNavigationTrail::show($request, $order);
 
         return redirect()
-            ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
+            ->route(
+                OrderNavigationTrail::showRouteName($request, $navigationTrail),
+                ['order' => $order] + NavigationTrail::toQuery($navigationTrail)
+            )
             ->with('success', 'Ítem agregado correctamente.');
     }
 
@@ -189,7 +193,10 @@ class OrderItemController extends Controller
         $navigationTrail = OrderNavigationTrail::show($request, $order);
 
         return redirect()
-            ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
+            ->route(
+                OrderNavigationTrail::showRouteName($request, $navigationTrail),
+                ['order' => $order] + NavigationTrail::toQuery($navigationTrail)
+            )
             ->with('success', 'Ítem actualizado correctamente.');
     }
 
@@ -212,7 +219,10 @@ class OrderItemController extends Controller
         $navigationTrail = OrderNavigationTrail::show($request, $order);
 
         return redirect()
-            ->route('orders.show', ['order' => $order] + NavigationTrail::toQuery($navigationTrail))
+            ->route(
+                OrderNavigationTrail::showRouteName($request, $navigationTrail),
+                ['order' => $order] + NavigationTrail::toQuery($navigationTrail)
+            )
             ->with('success', 'Ítem eliminado correctamente.');
     }
 

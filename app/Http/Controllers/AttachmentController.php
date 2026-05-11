@@ -254,18 +254,21 @@ public function update(UpdateAttachmentRequest $request, Attachment $attachment)
         };
     }
 
-    private function parentShowUrlWithTrail(string $attachableType, object $attachable, array $parentTrail): string
-    {
-        return match ($attachableType) {
-            'order', Order::class => route('orders.show', ['order' => $attachable] + NavigationTrail::toQuery($parentTrail)),
-            'document', Document::class => route('documents.show', ['document' => $attachable] + NavigationTrail::toQuery($parentTrail)),
-            'asset', Asset::class => route('assets.show', ['asset' => $attachable] + NavigationTrail::toQuery($parentTrail)),
-            'project', Project::class => route('projects.show', ['project' => $attachable] + NavigationTrail::toQuery($parentTrail)),
-            'task', Task::class => route('tasks.show', ['task' => $attachable] + NavigationTrail::toQuery($parentTrail)),
-            'product', Product::class => route('products.show', ['product' => $attachable] + NavigationTrail::toQuery($parentTrail)),
-            default => route('dashboard'),
-        };
-    }
+private function parentShowUrlWithTrail(string $attachableType, object $attachable, array $parentTrail): string
+{
+    return match ($attachableType) {
+        'order', Order::class => route(
+            OrderNavigationTrail::showRouteName(request(), $parentTrail),
+            ['order' => $attachable] + NavigationTrail::toQuery($parentTrail)
+        ),
+        'document', Document::class => route('documents.show', ['document' => $attachable] + NavigationTrail::toQuery($parentTrail)),
+        'asset', Asset::class => route('assets.show', ['asset' => $attachable] + NavigationTrail::toQuery($parentTrail)),
+        'project', Project::class => route('projects.show', ['project' => $attachable] + NavigationTrail::toQuery($parentTrail)),
+        'task', Task::class => route('tasks.show', ['task' => $attachable] + NavigationTrail::toQuery($parentTrail)),
+        'product', Product::class => route('products.show', ['product' => $attachable] + NavigationTrail::toQuery($parentTrail)),
+        default => route('dashboard'),
+    };
+}
 
     private function parentTrailFromRequest(Request $request, string $attachableType, object $attachable): array
     {

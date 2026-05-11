@@ -10,11 +10,11 @@ GESTIÓN: Documento rector inicial para la capacidad self_service_sales como cap
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DEL DOCUMENTO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 OBJETIVO DEL DOCUMENTO
 
-Este documento define la lectura funcional y doctrinal inicial de Shopping Autoservicio dentro de app-base.
+Este documento define la lectura funcional y doctrinal de Shopping Autoservicio dentro de app-base.
 
 Shopping Autoservicio se identifica técnicamente como:
 
@@ -33,33 +33,37 @@ establecer límites frente a Products, Inventory y Documents
 preparar integración futura con Mercado Pago
 preparar integración futura con controladores externos
 definir alcance inicial de implementación
+registrar el primer corte operativo validado
 evitar que la capacidad se resuelva como parches dispersos en módulos existentes
 
 No define:
 
-implementación técnica concreta
-migraciones definitivas
-rutas definitivas
-controllers definitivos
-campos finales
-nombres finales de modelos o tablas
+implementación técnica completa
+migraciones finales de todas las fases futuras
+rutas definitivas de login externo completo
+controllers definitivos de saldo, QR, pagos o minimercado
+campos finales de saldo, ledger, fichas o consumos
 integración real con Mercado Pago
 integración real con hardware
-diseño visual final
+diseño visual final de tienda completa
 contratos fiscales definitivos
 promociones finales
 minimercado completo
 
+Estado operativo vigente:
+
+la primera fase de self_service_sales quedó implementada y validada como registro externo pendiente, confirmación por token y creación de Party customer person sin User, sin Membership y sin acceso interno al tenant.
+
 Regla:
 
-este documento marca doctrina funcional inicial.
+este documento marca doctrina funcional y dirección operativa de self_service_sales.
 
-Toda implementación futura debe validarse contra documentación vigente, código real, seguridad, tenant activo, permisos, esquema real, runtime y evidencia técnica.
+Toda evolución futura debe validarse contra documentación vigente, código real, seguridad, tenant activo, permisos, esquema real, runtime y evidencia técnica.
 
 <<END SECTION>>
 
 <<SECTION: NATURALEZA DE SHOPPING AUTOSERVICIO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 NATURALEZA DE SHOPPING AUTOSERVICIO
 
@@ -84,10 +88,11 @@ Debe leerse como:
 capacidad comercial autogestiva
 tienda pública controlada por tenant
 frente externo para clientes
+capa de registro externo
 capa de publicación comercial
-capa de saldo prepago
-capa de consumo por ficha
-capa de movimientos comerciales
+capa de saldo prepago futura
+capa de consumo por ficha futura
+capa de movimientos comerciales futura
 capa preparada para pagos externos
 capa preparada para consumo por QR
 capa preparada para integración con controlador externo
@@ -99,6 +104,14 @@ Shopping Autoservicio
 Key técnica:
 
 self_service_sales
+
+Ruta pública base vigente:
+
+/shop/{tenant:slug}
+
+Label visible:
+
+Tienda
 
 Regla:
 
@@ -114,12 +127,32 @@ Documents conserva formalización documental y comprobantes cuando correspondan.
 
 Security conserva autorización.
 
-self_service_sales conserva la experiencia comercial autogestiva, la tienda, el registro externo, el saldo, las fichas, los movimientos comerciales y el consumo por QR.
+self_service_sales conserva la experiencia comercial autogestiva, la tienda, el registro externo, el saldo futuro, las fichas futuras, los movimientos comerciales futuros y el consumo por QR futuro.
+
+Primer corte operativo validado:
+
+self_service_sales ya cuenta con una primera implementación centrada en:
+
+registro externo pendiente
+confirmación por token
+creación de Party kind = person
+creación de PartyRole role = customer
+ausencia de User interno
+ausencia de Membership
+ausencia de acceso al panel interno
+
+Regla:
+
+la existencia de self_service_sales no modifica la doctrina vigente de Parties.
+
+El cliente externo confirmado se representa como Party person con relación customer.
+
+La condición autogestiva pertenece a self_service_sales, no a parties.kind.
 
 <<END SECTION>>
 
 <<SECTION: SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO
 
@@ -154,19 +187,23 @@ Corresponde a clientes externos que operan comercialmente con una tienda del ten
 Incluye:
 
 registro autogestivo
-login externo
+login externo futuro
 tienda pública
-saldo
-compras
-consumos
-movimientos
+saldo futuro
+compras futuras
+consumos futuros
+movimientos futuros
 transferencias futuras
-solicitudes de comprobantes
-consumo por QR
+solicitudes de comprobantes futuras
+consumo por QR futuro
 
 Regla central:
 
 el cliente externo no es membership del tenant.
+
+El cliente externo no usa el login interno de app-base.
+
+El cliente externo no crea User interno.
 
 El cliente externo no accede al panel interno.
 
@@ -176,10 +213,26 @@ El cliente externo no participa de owner, admin, operator, sales ni administrato
 
 El cliente externo solo opera dentro de Shopping Autoservicio y únicamente sobre sus propios datos comerciales autorizados.
 
+Regla adicional:
+
+las rutas públicas de Shopping Autoservicio deben permanecer separadas del grupo interno auth + tenant.
+
+La ruta pública vigente es:
+
+/shop/{tenant:slug}
+
+Esta ruta resuelve el tenant por slug público y no habilita operación interna del tenant.
+
+Regla:
+
+operar en la tienda no equivale a pertenecer al tenant.
+
+La autenticación externa futura no debe confundirse con autorización interna.
+
 <<END SECTION>>
 
 <<SECTION: CLIENTE EXTERNO Y PARTIES>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 CLIENTE EXTERNO Y PARTIES
 
@@ -219,10 +272,32 @@ el cliente externo se mantiene como persona.
 
 Si necesita comprobante fiscal a nombre de una empresa, se debe resolver mediante datos fiscales o Party company vinculada para facturación, sin reemplazar la identidad principal del cliente person.
 
+Primer corte validado:
+
+la confirmación del registro externo crea una Party person dentro del tenant y asigna PartyRole customer.
+
+El flujo validado no crea User.
+
+El flujo validado no crea Membership.
+
+El flujo validado no vincula la Party customer a una membership.
+
+Regla de duplicados:
+
+el alta autogestiva debe bloquearse si ya existe cualquier Party dentro del mismo tenant con el mismo email, teléfono o DNI.
+
+Esta regla no se limita a Parties con rol customer.
+
+Regla:
+
+self_service_sales puede crear una Party customer person como resultado de confirmación externa validada, pero no debe reutilizar PartyController como contrato de alta externa.
+
+PartyController pertenece al panel interno y a permisos internos de Parties.
+
 <<END SECTION>>
 
 <<SECTION: REGISTRO DEL CUSTOMER>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 REGISTRO DEL CUSTOMER
 
@@ -245,6 +320,29 @@ datos fiscales
 observaciones
 otros datos comerciales futuros
 
+Entidad operativa vigente para el registro pendiente:
+
+self_service_customer_registrations
+
+Función:
+
+guardar registros externos pendientes de customer antes de crear la Party definitiva.
+
+Estados conceptuales vigentes del registro externo:
+
+pending
+confirmed
+expired
+cancelled
+
+Modelo vigente:
+
+SelfServiceCustomerRegistration
+
+Request vigente:
+
+StoreSelfServiceCustomerRegistrationRequest
+
 Reglas:
 
 el backend debe validar lo máximo posible para evitar errores de carga
@@ -259,22 +357,79 @@ el registro debe evitar duplicados dentro del tenant
 
 el cliente no debe quedar habilitado plenamente sin validación de contacto
 
-la creación de Party debe respetar tenant activo o tenant resuelto desde la tienda/invitación
+la creación de Party debe respetar tenant resuelto desde la tienda pública
 
 no debe crearse membership
 
+no debe crearse User
+
 no debe habilitarse acceso al panel interno
+
+Regla de duplicados:
+
+la verificación de duplicados debe ejecutarse al recibir los datos iniciales del registro externo.
+
+También debe repetirse defensivamente al confirmar el token.
+
+Debe bloquearse el alta si ya existe cualquier Party del tenant con el mismo email, teléfono o DNI.
+
+Regla sobre invitations:
+
+el registro externo del customer no debe usar invitations.
+
+invitations pertenece semánticamente al plano interno de invitaciones de usuarios, owner signup y memberships.
+
+Regla sobre controllers internos:
+
+el registro externo del customer no debe usar InvitationAcceptanceController.
+
+Ese flujo pertenece al plano interno y puede crear o vincular User, Membership y login interno.
+
+Regla sobre requests:
+
+StorePartyRequest puede servir como referencia de campos.
+
+No debe usarse como contrato del registro externo de self_service_sales.
+
+El registro externo requiere reglas propias, mayor separación de seguridad y validaciones específicas del plano público.
+
+Flujo vigente de registro pendiente:
+
+/shop/{tenant:slug}/register
+
+Este flujo crea un registro pending en self_service_customer_registrations.
+
+No crea todavía Party.
+
+Flujo vigente de confirmación:
+
+/shop/{tenant:slug}/register/confirm/{token}
+
+Este flujo valida token, estado, vencimiento y duplicados.
+
+Si la validación es correcta:
+
+crea Party kind = person
+crea PartyRole role = customer
+marca el registro como confirmed
+vincula party_id
+
+Validación runtime vigente:
+
+registration_status = confirmed
+party_kind = person
+party_roles = ["customer"]
 
 Regla de experiencia:
 
 la validación debe reducir fricción, pero no sacrificar consistencia de datos.
 
-La prioridad es crear un customer correcto, trazable y vinculado al tenant correspondiente.
+La prioridad es crear un customer correcto, trazable y vinculado al tenant correspondiente, sin mezclarlo con usuarios internos ni memberships.
 
 <<END SECTION>>
 
 <<SECTION: LOGIN EXTERNO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 LOGIN EXTERNO
 
@@ -286,6 +441,12 @@ email
 teléfono
 
 El formato de ambos identificadores debe validarse estrictamente.
+
+Estado vigente:
+
+el login externo completo no forma parte de la primera implementación validada.
+
+La primera fase deja preparada la separación conceptual y operativa, pero solo implementa registro externo pendiente, confirmación por token y creación de Party customer person.
 
 Regla:
 
@@ -304,14 +465,28 @@ Si el cliente está registrado en varios tenants, puede elegir entre sus tiendas
 
 El cliente no debe ver tiendas donde no esté registrado, salvo que acceda a una tienda pública habilitada como canal de registro o pseudo invitación.
 
+Regla:
+
+el login externo futuro no debe reutilizar Fortify interno como si el customer fuera usuario interno.
+
+El cliente externo no debe convertirse en User ni Membership por iniciar sesión en Shopping Autoservicio.
+
 <<END SECTION>>
 
 <<SECTION: TIENDA PÚBLICA DEL TENANT>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 TIENDA PÚBLICA DEL TENANT
 
 Cada tenant puede publicar una tienda pública controlada dentro de Shopping Autoservicio.
+
+Ruta pública base vigente:
+
+/shop/{tenant:slug}
+
+Label visible:
+
+Tienda
 
 La tienda pública puede funcionar como:
 
@@ -345,7 +520,7 @@ información no publicada por el tenant
 
 Regla:
 
-la tienda puede ser pública, pero la compra exige registro o login.
+la tienda puede ser pública, pero la compra u operación exige registro o login cuando corresponda.
 
 La visibilidad de precios debe ser configurable por owner/admin.
 
@@ -358,6 +533,33 @@ precios ocultos hasta login
 Regla:
 
 la tienda pública no convierte al visitante en cliente registrado hasta completar el flujo de alta correspondiente.
+
+Rutas públicas iniciales vigentes:
+
+GET /shop/{tenant:slug}
+GET /shop/{tenant:slug}/register
+POST /shop/{tenant:slug}/register
+GET /shop/{tenant:slug}/register/thanks
+GET /shop/{tenant:slug}/register/confirm/{token}
+
+Estas rutas no forman parte del panel interno.
+
+Estas rutas no usan el grupo interno auth + tenant.
+
+El tenant se resuelve por slug público.
+
+Vistas públicas mínimas vigentes:
+
+self-service-sales.shop
+self-service-sales.register
+self-service-sales.thanks
+self-service-sales.confirmed
+
+Regla:
+
+después de confirmar el registro, el usuario externo no debe navegar hacia dashboard, tenant/profile, parties.show ni otras rutas internas.
+
+La confirmación pública solo informa el resultado del registro externo.
 
 <<END SECTION>>
 
@@ -864,13 +1066,19 @@ Debe quedar preparada como evolución.
 <<END SECTION>>
 
 <<SECTION: MERCADO PAGO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 MERCADO PAGO
 
 Mercado Pago queda previsto como integración futura.
 
 No forma parte de la primera implementación.
+
+Estado vigente:
+
+la primera fase de self_service_sales no implementa pago real ni acreditación de saldo.
+
+Mercado Pago queda como puerta futura preparada doctrinalmente, sin integración operativa en esta etapa.
 
 Regla doctrinal futura:
 
@@ -915,13 +1123,13 @@ errores de acreditación
 <<END SECTION>>
 
 <<SECTION: ALCANCE DE LA PRIMERA IMPLEMENTACIÓN>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 ALCANCE DE LA PRIMERA IMPLEMENTACIÓN
 
 La primera implementación de Shopping Autoservicio debe ser mínima y segura.
 
-Objetivo inicial:
+Objetivo inicial validado:
 
 habilitar el registro del customer externo y su representación como Party customer person dentro del tenant.
 
@@ -933,19 +1141,39 @@ estructura mínima de self_service_sales como capa satélite
 
 tienda pública básica o entrada pública controlada
 
-registro de customer externo
+registro de customer externo pendiente
 
-confirmación de email
+tabla self_service_customer_registrations
 
-creación de Party kind person
+modelo SelfServiceCustomerRegistration
+
+request StoreSelfServiceCustomerRegistrationRequest
+
+servicio SelfServiceCustomerRegistrar
+
+servicio SelfServiceCustomerConfirmer
+
+controller SelfServiceSalesCustomerRegistrationController
+
+rutas públicas /shop/{tenant:slug}
+
+vistas públicas de tienda, registro, gracias y confirmado
+
+confirmación por token
+
+creación de Party kind = person
 
 asignación de party_roles.role = customer
 
-login externo separado o base preparada para login externo
-
 validaciones backend fuertes
 
+verificación de duplicados al registrar y al confirmar
+
 separación estricta frente a memberships
+
+validación runtime de no creación de User
+
+validación runtime de no creación de Membership
 
 No incluye:
 
@@ -965,13 +1193,17 @@ transferencias
 
 facturación
 
-saldo negativo
+saldo negativo operativo
 
-productos físicos
+productos físicos operativos
 
 retiro en mostrador
 
 hardware
+
+login externo completo
+
+envío real de email de confirmación
 
 Regla:
 
@@ -979,45 +1211,70 @@ la primera implementación no debe intentar resolver todo Shopping Autoservicio.
 
 Debe cerrar correctamente la base de cliente externo autogestivo.
 
+Corte vigente cerrado:
+
+registro externo pendiente
+confirmación por token
+creación de Party customer person
+separación total frente a membership
+
 <<END SECTION>>
 
 <<SECTION: CRITERIO DE ÉXITO DE LA PRIMERA IMPLEMENTACIÓN>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 CRITERIO DE ÉXITO DE LA PRIMERA IMPLEMENTACIÓN
 
 La primera implementación se considera válida si permite demostrar el siguiente flujo:
 
-un tenant tiene habilitada la capacidad self_service_sales
+un tenant posee una tienda pública en /shop/{tenant:slug}
 
 existe una entrada pública controlada para registro
 
-un visitante accede a la tienda o invitación del tenant
+un visitante accede a la tienda del tenant
 
 el visitante carga datos mínimos
 
-el visitante confirma email
+el sistema crea un registro pending en self_service_customer_registrations
+
+el visitante confirma mediante token
+
+el sistema valida token, estado, vencimiento y duplicados
 
 el sistema crea una Party customer person dentro del tenant
 
-el sistema no crea membership
+el sistema crea PartyRole role = customer
+
+el registro queda marcado como confirmed
+
+el registro vincula party_id
+
+el sistema no crea User
+
+el sistema no crea Membership
 
 el cliente no accede al panel interno
 
-el owner/admin puede ver el cliente como parte del tenant
+la validación evita duplicados evidentes por email, teléfono o DNI dentro del tenant
 
-la validación evita duplicados evidentes
+la arquitectura queda preparada para saldo, fichas, tienda, login externo y pagos futuros
 
-la arquitectura queda preparada para saldo, fichas, tienda y pagos futuros
+Validación runtime vigente:
+
+registration_status = confirmed
+party_kind = person
+party_roles = ["customer"]
 
 Regla:
 
 no se considera cierre válido si el cliente externo queda mezclado con usuarios internos o memberships.
 
+No se considera cierre válido si el flujo externo reutiliza el contrato interno de invitaciones, memberships, Fortify interno o PartyController como fuente de autorización.
+
 <<END SECTION>>
 
 <<SECTION: FUERA DE ALCANCE INICIAL>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 FUERA DE ALCANCE INICIAL
 
@@ -1037,11 +1294,11 @@ integración con controlador externo
 
 paquete de configuración al controlador
 
-fichas promocionales
+fichas promocionales operativas
 
 transferencias entre clientes
 
-saldo negativo
+saldo negativo operativo
 
 minimercado
 
@@ -1065,14 +1322,26 @@ historial avanzado de precios
 
 hardware
 
+login externo completo
+
+envío real de email de confirmación
+
+experiencia completa de customer autenticado
+
+visualización interna owner/admin de registros y customers
+
 Regla:
 
 estos elementos pueden documentarse como evolución prevista, pero no deben mezclarse con la primera implementación si comprometen el cierre seguro del registro del customer.
 
+Regla adicional:
+
+antes de continuar con saldo, ficha, QR, email real o Mercado Pago, debe respetarse el corte actual y validar con código real.
+
 <<END SECTION>>
 
 <<SECTION: REGLAS DE SEGURIDAD>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 REGLAS DE SEGURIDAD
 
@@ -1086,9 +1355,13 @@ el cliente externo no accede al panel interno
 
 el cliente externo no tiene roles internos
 
+el cliente externo no crea User interno
+
 el cliente externo solo opera sobre sus propios datos comerciales autorizados
 
 la tienda pública no expone información interna del tenant
+
+la tienda pública no habilita operación interna del tenant
 
 la compra exige registro o login cuando corresponda
 
@@ -1115,6 +1388,51 @@ Regla:
 todo acceso externo debe mantener aislamiento por tenant.
 
 La existencia de login externo común no debilita la separación tenant.
+
+Regla sobre tenant público:
+
+la tienda pública resuelve tenant por slug.
+
+Esa resolución no habilita acceso interno al tenant.
+
+Las operaciones públicas deben quedar asociadas al tenant_id correspondiente.
+
+Regla sobre registro externo:
+
+la confirmación por token es una acción sensible del plano externo.
+
+Debe validar:
+
+token
+estado
+vencimiento
+duplicados
+
+antes de crear la Party.
+
+Regla sobre duplicados:
+
+si ya existe una Party dentro del tenant con el mismo email, teléfono o DNI, el alta autogestiva debe bloquearse.
+
+No debe crearse una nueva Party automáticamente.
+
+Regla sobre flujos internos:
+
+el alta externa de customer no debe usar InvitationAcceptanceController.
+
+No debe crear User.
+
+No debe crear Membership.
+
+No debe iniciar sesión interna mediante Auth::login().
+
+No debe reutilizar Fortify interno como si el customer fuera usuario interno.
+
+Regla final:
+
+la autenticación externa futura no equivale a autorización interna.
+
+Operar en la tienda no habilita acceso al panel interno.
 
 <<END SECTION>>
 

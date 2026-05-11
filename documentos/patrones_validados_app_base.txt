@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
 PATRONES VIGENTES
 
@@ -914,5 +914,345 @@ la prueba debe usar usuario real, tenant real, permisos reales y runtime real cu
 el rollback debe confirmar que no quedan datos de prueba
 
 la salida debe servir como evidencia para cierre técnico y documental
+
+CONSERVACIÓN DE CONTEXTO FÍSICO EN RUTA CONTEXTUAL
+
+Patrón validado:
+
+un universo semántico puede operar sobre rutas contextuales propias y conservar ownership del módulo dueño.
+
+Caso vigente:
+
+/service opera sobre Orders.
+
+Lectura:
+
+Orders conserva ownership funcional de las órdenes.
+
+service.orders.show es ruta física contextual del universo /service.
+
+orders.show sigue siendo host interno funcional.
+
+Reglas:
+
+la ruta física contextual no cambia el host funcional
+
+la ruta física contextual no cambia autorización
+
+la ruta física contextual no transfiere ownership
+
+la ruta física contextual solo conserva contexto de uso
+
+RUTAS INTERNAS DEL MÓDULO DUEÑO CON RETORNO CONTEXTUAL
+
+Patrón validado:
+
+las rutas internas pueden seguir perteneciendo al módulo dueño aunque el usuario haya ingresado desde un universo semántico.
+
+El retorno físico se resuelve mediante trail y helper contextual.
+
+Caso vigente:
+
+orders.items.*
+inventory.*
+attachments.*
+
+pueden operar dentro de flujos asociados a una Order y retornar a /service/orders/{order} cuando el trail lo indique.
+
+Helper vigente:
+
+OrderNavigationTrail::showRouteName()
+
+Reglas:
+
+no crear rutas duplicadas innecesarias como service.orders.items.* si la operación real sigue perteneciendo a Orders
+
+no duplicar controllers por contexto cuando el ownership real no cambia
+
+no depender de query params manipulables como única fuente fuerte
+
+el trail y el helper contextual deben conservar retorno físico cuando corresponda
+
+HOST SURFACE INTERNO VS RUTA FÍSICA CONTEXTUAL
+
+Patrón validado:
+
+el host surface interno puede seguir siendo el host funcional del módulo dueño aunque la ruta física contextual pertenezca a un universo semántico.
+
+Caso vigente:
+
+orders.show = host interno funcional
+
+service.orders.show = ruta física contextual del universo /service
+
+Reglas:
+
+las surfaces deben seguir identificando el host funcional real
+
+no reemplazar host interno por ruta contextual si la capacidad sigue perteneciendo al módulo dueño
+
+no duplicar surfaces por ruta física si la capacidad funcional es la misma
+
+LECTURA FUNCIONAL NO INVASIVA DE CAPA SATÉLITE
+
+Patrón validado:
+
+una primera lectura funcional de una capa satélite puede implementarse sin tablas nuevas, usando campos existentes y helpers del modelo dueño.
+
+Caso vigente:
+
+bloque Contexto de servicio en orders.show
+
+Lectura:
+
+orders.show puede mostrar lectura contextual de orden de servicio sin crear una vista service/orders/show separada.
+
+El bloque puede usar:
+
+Order::displayCounterpartyName()
+Order::displayAssetReference()
+ordered_at
+group
+kind
+status
+record_metadata cuando esté expuesto por helper o payload preparado
+
+Reglas:
+
+no crear tablas nuevas si la lectura inicial puede resolverse con datos reales existentes
+
+no crear estados técnicos satélite antes de auditar necesidad y contrato
+
+no modificar lifecycle base de Orders para representar ejecución técnica inicial
+
+no interpretar record_metadata directamente desde Blade
+
+no convertir lectura contextual en ownership nuevo
+
+SMOKE TEST DE RUTAS Y CONTEXTO
+
+Patrón validado:
+
+un frente contextual o universo semántico debe validarse con smoke test funcional de rutas y contexto antes de considerarse cerrado.
+
+Caso vigente:
+
+/service
+
+Validaciones ejecutadas:
+
+php -l en archivos intervenidos
+
+php artisan route:list
+
+php artisan optimize:clear
+
+smoke test funcional de rutas y contexto
+
+Reglas:
+
+la validación de sintaxis no alcanza
+
+la existencia de rutas no alcanza
+
+migrate o route:list no cierran por sí solos un flujo contextual
+
+debe validarse que el flujo conserve contexto, redirección física, backend-first y autorización real
+
+CAPA SATÉLITE COMERCIAL AUTOGESTIVA CON ENTRADA PÚBLICA
+
+Patrón validado:
+
+una capa satélite comercial autogestiva puede tener entrada pública externa por tenant sin convertirse en módulo CRUD ordinario ni panel interno.
+
+Caso vigente:
+
+Shopping Autoservicio
+
+Key técnica:
+
+self_service_sales
+
+Entrada pública vigente:
+
+/shop/{tenant:slug}
+
+Label visible:
+
+Tienda
+
+Reglas:
+
+self_service_sales no es CRUD ordinario
+
+self_service_sales no es panel interno del tenant
+
+self_service_sales no reemplaza Parties
+
+self_service_sales no reemplaza Products
+
+self_service_sales no reemplaza Inventory
+
+self_service_sales no reemplaza Documents
+
+self_service_sales no reemplaza Security
+
+/shop/{tenant:slug} no es navegación interna del tenant
+
+/shop/{tenant:slug} no usa el plano interno auth + tenant
+
+/shop/{tenant:slug} no habilita dashboard, tenant/profile, parties.show ni rutas internas
+
+ENTIDAD AUXILIAR PARA REGISTRO EXTERNO PENDIENTE
+
+Patrón validado:
+
+un flujo externo de alta puede requerir una entidad auxiliar propia para conservar registros pendientes antes de crear la entidad definitiva del negocio.
+
+Caso vigente:
+
+self_service_customer_registrations
+
+Lectura:
+
+guarda registros externos pendientes de customer antes de crear Party.
+
+Estados conceptuales vigentes:
+
+pending
+confirmed
+expired
+cancelled
+
+Reglas:
+
+self_service_customer_registrations no reemplaza Party
+
+self_service_customer_registrations no reemplaza User
+
+self_service_customer_registrations no reemplaza Membership
+
+self_service_customer_registrations no representa identidad interna del sistema
+
+party_id puede permanecer null mientras el registro está pendiente
+
+party_id se completa al confirmar correctamente
+
+NO REUTILIZAR FLUJOS INTERNOS PARA ALTA EXTERNA
+
+Patrón validado:
+
+un flujo externo no debe reutilizar controllers, requests o flujos internos si pertenecen a otro plano de seguridad.
+
+Caso vigente:
+
+Shopping Autoservicio no usa:
+
+PartyController
+TenantMembershipPartyController
+InvitationAcceptanceController
+Fortify interno
+invitations
+
+Reglas:
+
+PartyController pertenece al panel interno y permisos internos de Parties
+
+InvitationAcceptanceController pertenece al plano interno de invitaciones de usuarios, owner signup y memberships
+
+StorePartyRequest puede servir como referencia de campos, pero no como contrato del registro externo
+
+el alta externa requiere controller, request y servicios propios del plano externo
+
+el customer externo no debe convertirse en User
+
+el customer externo no debe convertirse en Membership
+
+el customer externo no debe iniciar sesión interna
+
+CONFIRMACIÓN EXTERNA POR TOKEN BACKEND-FIRST
+
+Patrón validado:
+
+la confirmación de un registro externo por token debe resolverse en backend con validaciones completas antes de crear entidades definitivas.
+
+Caso vigente:
+
+/shop/{tenant:slug}/register/confirm/{token}
+
+Debe validar:
+
+tenant resuelto
+
+token
+
+estado
+
+vencimiento
+
+duplicados
+
+Reglas:
+
+no crear Party si el token no es válido
+
+no crear Party si el registro no está pending
+
+no crear Party si el registro está vencido
+
+no crear Party si existe duplicado por email, teléfono o DNI dentro del tenant
+
+no confiar en la UI para evitar duplicados
+
+DUPLICADOS EN REGISTRO EXTERNO
+
+Patrón validado:
+
+el alta autogestiva debe bloquearse si ya existe cualquier Party dentro del tenant con el mismo email, teléfono o DNI.
+
+Reglas:
+
+validar duplicados al recibir los datos iniciales
+
+revalidar duplicados al confirmar el token
+
+no limitar la validación a Parties con rol customer
+
+no crear nueva Party automáticamente ante duplicado
+
+no resolver esta consistencia solo en UI
+
+SNIPPET PHP COMPLETO EN PROJECT LAB
+
+Patrón validado:
+
+un snippet de archivo PHP completo para Project Lab debe comenzar con apertura PHP y luego marcador FILE.
+
+Formato vigente:
+
+<?php
+// FILE: ruta/del/archivo.php | Vx
+
+Reglas:
+
+no colocar el marcador FILE antes de <?php cuando se trata de archivo PHP completo
+
+si el contrato no coincide, Project Lab debe fallar antes de escribir cuando el error sea detectable
+
+el formato incorrecto no debe normalizarse silenciosamente si puede producir ambigüedad
+
+NOMBRES EXPLÍCITOS DE ÍNDICES EN MIGRACIONES EXTENSAS
+
+Patrón validado:
+
+cuando una tabla o columnas tienen nombres largos, la migración debe definir nombres explícitos de índices si el nombre automático puede superar límites del motor de base de datos.
+
+Caso vigente:
+
+self_service_customer_registrations requirió nombres explícitos más cortos para evitar error por identificador demasiado largo en MySQL.
+
+Regla:
+
+no asumir que el nombre automático de índice será válido si la combinación tabla + columnas es extensa.
 
 <<END SECTION>>

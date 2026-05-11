@@ -44,11 +44,13 @@ Esos aspectos se resuelven en otros documentos del proyecto.
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA GENERAL DE PÁGINA>>
+SECTION_VERSION: 00002
+
 ESTRUCTURA GENERAL DE PÁGINA
 
 Toda pantalla principal del sistema debe construirse sobre una estructura consistente.
 
-Base esperada:
+Base esperada para pantallas internas:
 
 x-page
 x-breadcrumb
@@ -74,6 +76,40 @@ su presencia debe mantenerse consistente dentro del layout general y fuera del f
 el footer debe considerarse parte estructural del layout base y no un componente opcional por pantalla
 
 el header/navbar forma parte del shell global y debe mantener una identidad visual consistente basada en iconografía de marca
+
+Base esperada para pantallas públicas externas:
+
+las pantallas públicas pueden reutilizar layouts.app cuando el layout soporte explícitamente modo público
+
+el modo público puede expresarse mediante:
+
+@php($publicPage = true)
+
+Las pantallas públicas externas no deben exponer navegación interna, panel tenant, configuración interna, saldos de otros clientes, historial interno ni datos privados del tenant.
+
+Caso vigente:
+
+Shopping Autoservicio usa vistas públicas externas para la entrada Tienda.
+
+Ruta base:
+
+/shop/{tenant:slug}
+
+Label visible:
+
+Tienda
+
+Vistas públicas vigentes:
+
+resources/views/self-service-sales/shop.blade.php
+resources/views/self-service-sales/register.blade.php
+resources/views/self-service-sales/thanks.blade.php
+resources/views/self-service-sales/confirmed.blade.php
+
+Regla:
+
+una vista pública externa debe expresar claramente que pertenece al plano público/externo y no al panel interno del tenant.
+
 <<END SECTION>>
 
 <<SECTION: COMPONENTES DISPONIBLES>>

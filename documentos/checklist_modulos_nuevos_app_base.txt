@@ -10,7 +10,7 @@ Para actualizar una sección, se reemplaza el bloque completo entre ambos delimi
 <<END SECTION>>
 
 <<SECTION: OBJETIVO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 OBJETIVO
 
@@ -39,6 +39,8 @@ capacidades tenant no modulares
 surfaces tenant/transversales no modulares
 piezas satélite productivas
 frentes operativos especializados
+universos semánticos
+entradas públicas externas
 automatizaciones relevantes
 integraciones futuras con IA
 
@@ -47,6 +49,18 @@ Regla:
 si una capacidad no es módulo ordinario, el checklist no debe forzarla a convertirse en módulo.
 
 Debe ayudar a clasificarla correctamente antes de implementar.
+
+Casos vigentes:
+
+Servicios y Mantenimiento debe evaluarse como capa satélite productiva ERP/CMMS liviana.
+
+Shopping Autoservicio debe evaluarse como capa satélite comercial autogestiva por tenant.
+
+Regla:
+
+una capa satélite, un frente operativo, un universo semántico o una entrada pública externa no debe considerarse cerrada por tener rutas, tablas o vistas.
+
+Debe validarse su contrato conceptual, seguridad, ownership, navegación, runtime real y documentación afectada.
 
 <<END SECTION>>
 
@@ -68,7 +82,7 @@ documentación actualizada
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 REGLA GENERAL
 
@@ -84,7 +98,7 @@ definir relaciones reales necesarias
 definir superficie de integración
 definir si participa en trazabilidad operativa transversal
 definir si consume lectura contextual de actividad operativa, directa, agregada o contextual especial cuando corresponda
-definir si la necesidad corresponde a módulo funcional ordinario, capacidad transversal, pieza satélite, entidad hija, subcapa interna de módulo existente, surface tenant/transversal, frente operativo especializado o universo semántico
+definir si la necesidad corresponde a módulo funcional ordinario, capacidad transversal, pieza satélite, entidad hija, subcapa interna de módulo existente, surface tenant/transversal, frente operativo especializado, universo semántico o entrada pública externa
 implementar
 auditar
 ajustar documentación afectada
@@ -161,6 +175,7 @@ lectura consolidada
 contrato nuevo del módulo dueño
 subcapa contextual interna de un módulo existente
 universo semántico de navegación y uso
+entrada pública externa
 
 Caso vigente:
 
@@ -201,6 +216,83 @@ el frente habilitable no CRUD no debe tratarse como CRUD ordinario
 el universo semántico no debe tratarse como ownership funcional
 
 la entrada visual no debe convertirse por sí sola en duplicación de navegación, tablas o rutas si puede apoyarse en contratos vigentes
+
+Regla adicional para capas satélite comerciales autogestivas:
+
+si una necesidad organiza una experiencia comercial externa por tenant, no debe asumirse que corresponde crear un módulo CRUD ordinario ni reutilizar directamente el plano interno del tenant.
+
+Debe evaluarse si corresponde:
+
+entrada pública externa
+registro externo
+capacidad satélite comercial
+entidad auxiliar de registro pendiente
+login externo separado
+tienda pública controlada
+contratos propios de validación
+separación frente a memberships
+relación con Parties
+relación futura con Products, Inventory y Documents
+integración futura con pasarela de pago
+integración futura con QR o controlador externo
+
+Caso vigente:
+
+Shopping Autoservicio debe leerse como capa satélite comercial autogestiva por tenant.
+
+Key técnica:
+
+self_service_sales
+
+Universo público vigente:
+
+/shop/{tenant:slug}
+
+Label visible:
+
+Tienda
+
+Reglas:
+
+self_service_sales no debe tratarse como CRUD ordinario
+
+self_service_sales no debe tratarse como panel interno del tenant
+
+self_service_sales no debe reemplazar Parties
+
+self_service_sales no debe reemplazar Products
+
+self_service_sales no debe reemplazar Inventory
+
+self_service_sales no debe reemplazar Documents
+
+self_service_sales no debe reemplazar Security
+
+el cliente externo no debe convertirse en User
+
+el cliente externo no debe convertirse en Membership
+
+el cliente externo no debe recibir roles internos
+
+el cliente externo no debe acceder al panel interno
+
+la tienda pública no debe habilitar operación interna del tenant
+
+el flujo externo no debe reutilizar controllers internos cuando pertenezcan a otro plano de seguridad
+
+Caso operativo vigente:
+
+self_service_sales inicia con registro externo pendiente, confirmación por token y creación de Party customer person.
+
+Entidad auxiliar vigente:
+
+self_service_customer_registrations
+
+Regla:
+
+la existencia de una entrada pública externa no autoriza navegación interna.
+
+La resolución del tenant por slug público no debilita el aislamiento multi-tenant.
 
 Regla adicional para universos funcionales o frentes contextuales:
 
@@ -253,6 +345,66 @@ Caso validado:
 POST /service/orders fuerza group = service desde backend.
 
 Una orden creada desde /service redirige físicamente al universo /service.
+
+Regla adicional para entradas públicas externas:
+
+si se crea una entrada pública externa por tenant, debe verificarse:
+
+qué tenant representa
+
+cómo se resuelve el tenant
+
+qué datos públicos puede mostrar
+
+qué datos internos no puede mostrar
+
+qué rutas quedan fuera del grupo auth + tenant
+
+qué acciones requieren registro externo
+
+qué acciones requieren login externo futuro
+
+qué acciones no deben acceder al panel interno
+
+qué entidad auxiliar conserva registros pendientes si corresponde
+
+qué validaciones backend protegen el flujo
+
+qué controller propio resuelve el flujo externo
+
+qué request propio valida el flujo externo
+
+qué datos se transfieren a módulos internos al confirmar
+
+qué queda fuera del alcance inicial
+
+Caso validado:
+
+/shop/{tenant:slug} resuelve el tenant por slug público.
+
+El registro externo crea primero self_service_customer_registrations en estado pending.
+
+La confirmación por token crea Party kind = person y PartyRole role = customer.
+
+El flujo validado no crea User.
+
+El flujo validado no crea Membership.
+
+Reglas:
+
+no reutilizar InvitationAcceptanceController para alta externa de customer
+
+no reutilizar PartyController como contrato de alta externa
+
+no reutilizar StorePartyRequest como contrato del registro externo
+
+no reutilizar Fortify interno para convertir customers externos en users internos
+
+no usar invitations para registro externo de customers
+
+no crear Party si fallan token, estado, vencimiento o duplicados
+
+no crear nueva Party automáticamente si ya existe una Party en el tenant con mismo email, teléfono o DNI
 
 Regla adicional para vínculos gestionados opcionales y referencias propias:
 
@@ -359,6 +511,12 @@ origen de necesidad
 cierre técnico
 cierre administrativo
 cierre final
+plano interno
+plano externo
+identidad global
+pertenencia operativa
+cliente comercial externo
+registro externo pendiente
 
 Regla adicional para actividad operativa:
 
@@ -547,10 +705,22 @@ el JS no reemplaza validación backend
 
 el JS no debe sostener por sí solo consistencia de datos críticos
 
+Regla adicional para validación runtime:
+
+un frente contextual, universo semántico, entrada pública externa o capa satélite no debe cerrarse solo por migrar, listar rutas o renderizar una pantalla.
+
+Debe validarse runtime real del flujo mínimo.
+
+Casos vigentes:
+
+/service validó rutas, backend force de group = service, redirección física dentro del universo y conservación de contexto.
+
+self_service_sales validó registro pending, confirmación por token, creación de Party person, creación de PartyRole customer y no creación de User ni Membership.
+
 <<END SECTION>>
 
 <<SECTION: BLOQUE 0 — IDENTIDAD DEL MÓDULO>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 BLOQUE 0 — IDENTIDAD DEL MÓDULO
 
@@ -563,7 +733,7 @@ problema real que resuelve
 naturaleza principal
 posición conceptual en el ecosistema
 si es módulo nuevo o reconversión de uno existente
-si es módulo funcional, entidad hija, capacidad transversal de soporte, capacidad tenant no modular, pieza interna del tenant, pieza satélite productiva, subcapa interna de módulo existente, frente operativo especializado o surface tenant/transversal no modular
+si es módulo funcional, entidad hija, capacidad transversal de soporte, capacidad tenant no modular, pieza interna del tenant, pieza satélite productiva, subcapa interna de módulo existente, frente operativo especializado, universo semántico, entrada pública externa o surface tenant/transversal no modular
 
 Clasificación conceptual posible:
 
@@ -579,6 +749,8 @@ pieza interna del tenant
 pieza satélite productiva
 subcapa interna de módulo existente
 frente operativo especializado
+universo semántico
+entrada pública externa
 experiencia enfocada de ejecución
 lectura consolidada
 
@@ -595,8 +767,11 @@ si necesita publicar UI reusable, corresponde ModuleCatalog, TenantSurfaceRegist
 la surface representa un módulo funcional o una capacidad tenant/transversal no modular
 la necesidad corresponde a una capa satélite productiva o a un módulo CRUD ordinario
 la necesidad corresponde a una subcapa contextual interna de un módulo existente
+la necesidad corresponde a un universo semántico sobre un módulo dueño
+la necesidad corresponde a una entrada pública externa separada del panel interno
 si pertenece a una subcapa interna, qué módulo host la aloja
 si pertenece a una capa satélite, qué módulo conserva ownership funcional de cada parte
+si pertenece a una entrada pública externa, qué plano de seguridad la gobierna
 si la necesidad puede resolverse con contrato actual, lectura consolidada o surface antes de crear tabla, campo o módulo nuevo
 
 Si estas respuestas no están claras, no debe avanzarse a implementación.
@@ -637,6 +812,10 @@ Orders sostiene la primera base operativa mediante:
 
 group = service
 
+Universo semántico vigente:
+
+/service
+
 Lectura:
 
 service_maintenance no reemplaza Orders.
@@ -646,6 +825,68 @@ service_maintenance no absorbe permisos operativos de Orders.
 service_maintenance no absorbe Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity.
 
 La entrada visual de Servicio y mantenimiento debe leerse como frente operativo especializado de una capa satélite, no como módulo CRUD ordinario aislado.
+
+Caso vigente adicional:
+
+Shopping Autoservicio se lee como capa satélite comercial autogestiva por tenant.
+
+Key técnica:
+
+self_service_sales
+
+Universo público vigente:
+
+/shop/{tenant:slug}
+
+Label visible:
+
+Tienda
+
+Lectura:
+
+self_service_sales no es módulo CRUD ordinario.
+
+self_service_sales no es panel interno del tenant.
+
+self_service_sales no reemplaza Parties.
+
+self_service_sales no reemplaza Products.
+
+self_service_sales no reemplaza Inventory.
+
+self_service_sales no reemplaza Documents.
+
+self_service_sales no reemplaza Security.
+
+self_service_sales organiza la experiencia comercial autogestiva, la tienda pública, el registro externo y futuras capacidades comerciales externas.
+
+Primer corte operativo validado:
+
+registro externo pendiente
+confirmación por token
+creación de Party kind = person
+creación de PartyRole role = customer
+separación total frente a Membership
+sin User interno
+sin acceso interno al tenant
+
+Entidad auxiliar vigente:
+
+self_service_customer_registrations
+
+Lectura:
+
+self_service_customer_registrations no reemplaza Party.
+
+self_service_customer_registrations no reemplaza User.
+
+self_service_customer_registrations no reemplaza Membership.
+
+self_service_customer_registrations conserva el registro externo pendiente antes de crear la Party confirmada.
+
+Regla:
+
+el cliente externo de Shopping Autoservicio no debe confundirse con usuario interno ni membership.
 
 Caso vigente de subcapa interna:
 

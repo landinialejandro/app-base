@@ -71,530 +71,398 @@ Este documento debe tender a estabilidad alta, baja rotación y lectura rápida.
 
 <<END SECTION>>
 
+<<SECTION: REGLAS DE ORO DOCUMENTAL>>
+SECTION_VERSION: 00001
+
+[USO]
+Documento rector = contrato doctrinal para IA.
+No es manual humano.
+No es historial.
+No es backlog.
+No es inventario de implementación.
+
+[REGLA 1]
+Si una frase no evita un error futuro, se elimina.
+
+[REGLA 2]
+Si una regla puede expresarse como relación, se expresa como relación.
+
+[REGLA 3]
+Si un detalle pertenece a documento especializado, sale del rector.
+
+[REGLA 4]
+Si una idea ya está contenida en una regla más fuerte, se elimina.
+
+[REGLA 5]
+Si un caso vigente ocupa más que la doctrina, se compacta.
+
+[REGLA 6]
+Si una sección no ayuda a decidir arquitectura futura, se compacta o desaparece.
+
+[REGLA 7]
+NO SE ASUME.
+NO SE SUPONE.
+Si falta esquema, contrato, ruta, permiso, API o evidencia real: pedir dato exacto.
+
+[REGLA 8]
+Documento debe maximizar:
+continuidad IA
+prevención de deriva
+estabilidad doctrinal
+baja ambigüedad
+bajo ruido narrativo
+
+[REGLA 9]
+Traducción humana = bajo demanda.
+Doctrina compacta = formato principal.
+
+<<END SECTION>>
+
 <<SECTION: TIPO DE SISTEMA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
-TIPO DE SISTEMA
+[SISTEMA]
+app-base = SaaS multi-tenant sobre Laravel.
 
-app-base es una plataforma SaaS multi-tenant desarrollada sobre Laravel.
+[LECTURA]
+No es suma de CRUDs.
+No es ERP enterprise pesado.
+Es base ERP modular liviana, reutilizable, automatizable y extensible.
 
-Permite que múltiples empresas utilicen una misma aplicación manteniendo aislamiento lógico de datos y contexto operativo independiente para cada tenant.
+[OBJETIVO ESTRUCTURAL]
+Múltiples empresas operan en una misma aplicación con aislamiento lógico por tenant.
 
-El proyecto busca constituir una base ERP modular reutilizable, capaz de crecer por módulos, capacidades transversales y capas productivas satélite sin perder coherencia estructural.
+[CRECIMIENTO]
+Módulos + capacidades transversales + capas satélite + subcapas contextuales.
+Todo sin pérdida de ownership.
 
-El sistema no debe entenderse como una suma de CRUDs aislados.
-
-Debe entenderse como una plataforma con gobierno global, contexto por tenant, base de dominio, capa transversal, módulos funcionales integrados y capacidades productivas especializadas que pueden orquestar módulos existentes sin duplicar su ownership.
-
-Regla estructural:
-
-app-base no busca copiar un ERP enterprise pesado ni competir por sobredimensionamiento funcional.
-
-Debe adoptar principios robustos de ERP, CMMS y gestión operativa cuando correspondan, pero con una experiencia liviana, automatizable y accesible.
+[REGLA]
+Robustez ERP/CMMS donde aporte valor.
+Complejidad solo por necesidad operativa real.
 
 <<END SECTION>>
 
 <<SECTION: PROPÓSITO GENERAL DEL PROYECTO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
-PROPÓSITO GENERAL DEL PROYECTO
+[PROPÓSITO]
+Base estable para operar empresas en entorno SaaS multi-tenant.
 
-app-base busca proveer una base estable para operar empresas dentro de un entorno SaaS multi-tenant.
+[NO ES]
+Solo persistencia de entidades.
+Suma de CRUDs.
+Copia pesada de ERP enterprise.
 
-No se trata solo de persistir entidades.
+[DEBE SOSTENER]
 
-El sistema debe sostener una arquitectura común que permita:
+* operación ordenada
+* aislamiento tenant
+* gobierno transversal
+* integración modular sin pérdida de identidad
+* crecimiento sin rehacer sistema
+* trazabilidad
+* automatización progresiva
+* asistencia IA futura sobre reglas claras
 
-ordenar operación
-mantener aislamiento por tenant
-centralizar gobierno transversal
-integrar módulos sin pérdida de identidad
-crecer sin rehacer el sistema
-habilitar capacidades transversales cuando aporten valor real
-habilitar capas productivas satélite cuando correspondan
-preparar asistencia IA futura sobre reglas claras y datos estructurados
-
-Principios asociados:
-
-la complejidad operativa debe ser absorbida por el sistema
-
-la experiencia debe tender a claridad
-
-la automatización debe reducir fricción cuando corresponda
-
-seguridad y trazabilidad son parte estructural
-
-la operación real del negocio tiene prioridad sobre formalismos innecesarios
-
-la complejidad debe activarse por necesidad operativa y no imponerse desde el inicio
-
-Criterio general de evolución:
-
-app-base debe servir tanto a operaciones simples con baja tolerancia a complejidad como a organizaciones que necesiten formalidad progresiva, trazabilidad, documentación, costos, proveedores, cierres y automatización.
-
-Regla:
-
-app-base no debe entenderse como una suma de CRUDs aislados ni como copia de un ERP enterprise pesado.
-
-Debe adoptar principios robustos de gestión operativa, ERP y CMMS cuando correspondan, manteniendo una experiencia liviana, modular, automatizable y accesible.
+[PRINCIPIOS]
+Sistema absorbe complejidad.
+UX tiende a claridad.
+Automatización reduce fricción.
+Seguridad y trazabilidad son estructurales.
+Operación real > formalismo innecesario.
+Complejidad se activa por necesidad.
 
 <<END SECTION>>
 
 <<SECTION: ENTORNO TÉCNICO BASE>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
-ENTORNO TÉCNICO BASE
+[STACK BASE]
+OS = Linux
+Web = Apache
+PHP = 8.5
+Laravel = 13.x
+DB = MariaDB
 
-Stack general validado del proyecto:
-
-OS: Linux
-Web: Apache
-PHP: 8.5
-Laravel: 13.x
-DB: MariaDB
-
-Este bloque describe contexto técnico general del proyecto y no reemplaza validaciones específicas de runtime, deploy o compatibilidad.
-
-Validación vigente:
-
+[VALIDACIÓN VIGENTE]
 Laravel Framework 13.8.0
 laravel/tinker 3.0.2
 phpunit/phpunit 12.5.24
 laravel/fortify 1.37.0
 
-Validaciones post-upgrade confirmadas:
+[REGLA]
+Upgrade mayor ≠ cerrado por Composer.
 
-composer update sin vulnerabilidades reportadas
-package:discover correcto
-optimize:clear correcto
-migraciones sin pendientes
-route:list correcto
-queue sin trabajos pendientes
-failed_jobs = 0
-DOMPDF disponible
-tests base correctos
+[VALIDAR MÍNIMO]
 
-Regla:
+* versiones efectivas
+* autoload
+* package discovery
+* cache limpia
+* migraciones
+* rutas
+* colas
+* failed_jobs
+* runtime Tinker
+* PDF si aplica
+* tests disponibles
+* prueba navegador si aplica
 
-un upgrade mayor de framework no se considera cerrado solo por resolver Composer.
-
-Debe validarse, como mínimo:
-
-versiones efectivas
-autoload y package discovery
-cache limpia
-migraciones
-rutas
-colas
-failed_jobs
-runtime Tinker
-PDF si corresponde
-tests disponibles
-pruebas funcionales en navegador
+[FRONTERA]
+Detalle técnico fino puede moverse a documento técnico o plantilla de inicio.
+Este bloque solo conserva contexto base mínimo.
 
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA SAAS MULTI-TENANT>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
-ARQUITECTURA SAAS MULTI-TENANT
+[MODELO]
+SaaS multi-tenant.
 
-El sistema utiliza una arquitectura SaaS multi-tenant.
+[TENANT]
+Tenant = empresa / espacio operativo independiente.
 
-Cada tenant representa una empresa o espacio de trabajo operativo independiente dentro de una misma aplicación.
+[AISLAMIENTO]
+Una plataforma común.
+Datos separados por contexto tenant.
+Operación válida siempre dentro de tenant determinado.
 
-El aislamiento entre empresas no se resuelve mediante aplicaciones separadas ni bases separadas por defecto, sino mediante una arquitectura común con separación lógica de datos y contexto operativo.
+[RELACIÓN BASE]
+user pertenece a tenant mediante membership.
 
-Principios estructurales:
-
-cada tenant constituye una unidad operativa propia
-el sistema mantiene una única plataforma común
-la operación válida siempre ocurre dentro de un contexto tenant determinado
-la pertenencia del usuario y el tenant activo forman parte de la lectura correcta del sistema
+[REGLA]
+Tenant activo no es accesorio.
+Tenant activo estructura operación, pertenencia y lectura del ecosistema.
 
 <<END SECTION>>
 
 <<SECTION: MODELO DE AISLAMIENTO OPERATIVO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
-MODELO DE AISLAMIENTO OPERATIVO
+[DOCTRINA]
+Datos de un tenant ≠ datos de otro tenant.
 
-Las entidades operativas del negocio pertenecen a un tenant y deben respetar aislamiento lógico entre empresas.
+[ALCANCE]
+Aislamiento aplica a:
 
-Ese aislamiento no es solo un detalle de persistencia.
+* entidades operativas
+* relaciones
+* movimientos
+* operaciones internas
+* líneas
+* trazabilidad
+* capas satélite
+* subcapas
+* actividad operativa
 
-Forma parte de la arquitectura conceptual del sistema.
+[REGLAS]
+No mezclar tenants.
+No leer entidades globales como negocio tenant.
+No operar sin tenant correcto.
+No tratar tenant como dato decorativo.
 
-Principios estables:
-
-los datos de un tenant no deben mezclarse con los de otro
-la operación visible y válida del usuario depende del tenant activo
-las entidades globales del sistema no deben leerse como entidades del negocio
-el contexto tenant no es opcional ni decorativo dentro de la operación interna
-
-El aislamiento alcanza también a capas internas de soporte operativo que sostienen trazabilidad, agrupación contextual o ejecución de acciones dentro de módulos funcionales.
-
-Este criterio incluye movimientos, operaciones internas y líneas operativas cuando participan como anclajes de ejecución o trazabilidad dentro del tenant.
-
-Este documento reconoce el aislamiento como principio estructural general.
-
-Su desarrollo técnico y sus reglas operativas concretas se resuelven en documentos especializados del proyecto.
+[FRONTERA]
+Este documento define aislamiento como principio estructural.
+Reglas de autorización y seguridad van en seguridad_acceso_proyecto_app_base.
 
 <<END SECTION>>
 
 <<SECTION: IDENTIDAD GLOBAL Y PERTENENCIA POR EMPRESA>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
-IDENTIDAD GLOBAL Y PERTENENCIA POR EMPRESA
-
-La relación principal del sistema es:
-
+[RELACIÓN BASE]
 users
 ↓
 memberships
 ↓
 tenants
 
-Lectura correcta:
+[LECTURA]
+User = identidad global.
+Membership = pertenencia operativa por empresa.
+Tenant = contexto operativo empresa.
 
-users representa identidad global
+[REGLAS]
+User ≠ entidad del negocio.
+Membership ≠ Party.
+Party ≠ acceso.
+Tenant activo define operación.
 
-memberships representa pertenencia operativa por empresa
+[MEMBERSHIP → PARTY]
+Opcional.
+Tenant-scoped.
+Ficha ampliada del negocio.
+No reemplaza User.
+No reemplaza Membership.
+No autoriza por sí misma.
 
-tenants representa el contexto operativo de cada empresa
+[OWNER / ADMIN]
+owner = condición estructural de gobierno resuelta desde membership.
+admin = rol delegable de gestión operativa fuerte.
+admin ≠ owner.
 
-Un usuario puede pertenecer a múltiples tenants.
-
-La pertenencia a una empresa no se resuelve desde user como atributo directo único, sino mediante memberships.
-
-Esto forma parte estable del modelo del sistema.
-
-Aclaración consolidada:
-
-membership puede vincular opcionalmente una ficha ampliada en parties.
-
-Esa ficha ampliada pertenece al plano del negocio.
-
-No reemplaza la identidad global.
-
-No reemplaza la pertenencia operativa.
-
-No convierte a party en entidad de acceso.
-
-Cuando exista membership activa vinculada a party, esa party debe leerse como representación operativa ampliada del colaborador dentro del tenant.
-
-Separación vigente:
-
-User = identidad global
-
-Membership = pertenencia operativa
-
-Party = ficha ampliada tenant-scoped cuando existe vínculo explícito
-
-OperationalActivity = trazabilidad transversal tenant-scoped
-
-Aclaración estructural sobre owner/admin:
-
-owner es una condición estructural de gobierno del tenant resuelta desde membership.
-
-admin es un rol delegable de gestión operativa fuerte dentro del tenant.
-
-admin no equivale a owner.
-
-Esta distinción refuerza la separación entre:
-
-condición estructural de gobierno
-
-rol delegable operativo
-
-pertenencia activa al tenant
-
-ficha ampliada opcional del negocio
-
-El detalle operativo, visual y de seguridad de esta distinción se define en documentos especializados.
+[FRONTERA]
+Detalle de permisos owner/admin pertenece a seguridad_acceso_proyecto_app_base.
 
 <<END SECTION>>
 
 <<SECTION: TENANT ACTIVO COMO CONTEXTO OPERATIVO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
-TENANT ACTIVO COMO CONTEXTO OPERATIVO
+[TENANT ACTIVO]
+Contexto concreto de operación.
 
-El uso operativo del sistema ocurre dentro de un tenant activo.
+[DEFINE]
 
-Ese tenant activo constituye el contexto concreto desde el cual deben leerse las entidades operativas, las relaciones del negocio y las capacidades disponibles para la empresa actual.
+* empresa vigente
+* marco operativo
+* relaciones visibles
+* capacidades disponibles
+* gobierno interno
+* lectura correcta del ecosistema
 
-El tenant activo define, a nivel estructural:
+[NO ES]
+Dato accesorio de sesión.
+Filtro decorativo.
 
-contexto de empresa vigente
-marco operativo de los módulos del negocio
-lectura correcta de las relaciones del ecosistema
-ámbito de operación del usuario dentro del sistema
-marco de gobierno interno del tenant
+[TENANT/PROFILE]
+Pertenece a contexto y gobierno interno del tenant.
+No es módulo funcional ordinario del negocio.
 
-El tenant activo no debe interpretarse como un dato accesorio de sesión sin relevancia arquitectónica.
-
-Es una pieza estructural del funcionamiento del sistema.
-
-El frente tenant/profile pertenece a este plano de contexto y gobierno interno.
-
-No debe leerse como módulo funcional ordinario del negocio.
-
-Regla estructural:
-
-el tenant activo organiza tanto operación como gobierno interno de la empresa activa, pero el detalle de autorización, permisos y restricciones owner/admin pertenece al documento especializado de seguridad.
+[FRONTERA]
+Autorización, permisos y restricciones owner/admin pertenecen a seguridad_acceso_proyecto_app_base.
 
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00036
+SECTION_VERSION: 00039
 
-CAPAS FUNCIONALES DEL SISTEMA
+[GLOBAL]
+Gobierno plataforma.
 
-La arquitectura debe leerse por capas funcionales.
+[TENANT]
+Contexto empresa activa.
+Puede contener capacidades no modulares del plano empresa.
 
-CAPA GLOBAL
+[GOBIERNO INTERNO TENANT]
+User = identidad global.
+Membership = pertenencia operativa.
+Owner = gobierno estructural.
+Admin = rol delegable fuerte.
+tenant/profile = gobierno interno, no módulo de negocio.
 
-Gobierno general de la plataforma.
+[TRANSVERSAL]
+OperationalActivity = trazabilidad tenant-scoped.
+No CRUD.
+No módulo funcional ordinario.
+No navegación principal por existencia técnica.
+No ownership sobre operación registrada.
 
-CAPA TENANT
+[IA OPERATIVA]
+Capa transversal asistiva.
+No módulo.
+No seguridad.
+No backend.
+No validación.
+No acción crítica sin contrato.
 
-Contexto operativo de la empresa activa.
+[BASE DOMINIO]
+parties = anclaje relacional principal del negocio.
 
-Puede incluir capacidades propias del plano empresa que no constituyen módulos funcionales ordinarios.
-
-CAPA DE GOBIERNO INTERNO DEL TENANT
-
-Organiza pertenencia, actores internos y autoridad estructural dentro de la empresa activa.
-
-Lectura vigente:
-
-users mantiene identidad global
-
-memberships resuelve pertenencia operativa
-
-owner es condición estructural de gobierno
-
-admin es rol delegable de gestión operativa fuerte
-
-tenant/profile pertenece a esta capa.
-
-No es módulo funcional ordinario del negocio.
-
-CAPA TRANSVERSAL
-
-Responsabilidades compartidas que sostienen funcionamiento común entre módulos.
-
-Caso vigente:
-
-OperationalActivity
-
-Lectura:
-
-capacidad transversal tenant-scoped de trazabilidad operativa
-
-no es CRUD ordinario
-
-no es módulo funcional ordinario
-
-no es navegación principal por mera existencia técnica
-
-no absorbe ownership funcional de los módulos que producen actividad
-
-CAPA IA OPERATIVA
-
-Capa transversal futura o progresiva de asistencia, reducción de fricción, análisis contextual, preparación operativa y soporte a la automatización.
-
-Lectura:
-
-la IA no es módulo funcional ordinario
-
-no reemplaza seguridad
-
-no reemplaza backend
-
-no reemplaza validaciones
-
-no reemplaza control humano en acciones críticas
-
-debe consumir contratos claros, datos autorizados y reglas explícitas
-
-BASE DEL DOMINIO
-
-Anclajes conceptuales amplios del negocio.
-
-Caso principal vigente:
-
-parties
-
-MÓDULOS FUNCIONALES
-
+[MÓDULOS FUNCIONALES]
 Capacidades operativas visibles del tenant.
 
-CAPAS PRODUCTIVAS SATÉLITE
+[CAPAS SATÉLITE]
+Capa satélite = frente especializado que orquesta módulos existentes.
+Puede tener entrada, universo, dashboard mínimo, permiso área o entrada pública.
+No absorbe ownership.
+No duplica CRUD.
 
-Capacidades especializadas que orquestan módulos existentes para resolver un frente operativo amplio sin convertirse automáticamente en módulos CRUD ordinarios.
+Casos:
 
-Caso vigente:
+* /service = universo Servicio y mantenimiento. Owner real órdenes = Orders.
+* /shop/{tenant:slug} = entrada pública Tienda. self_service_sales. Customer externo ≠ User/Membership.
 
-Servicios y Mantenimiento puede leerse como capa satélite productiva ERP/CMMS liviana.
+[SUBCAPAS CONTEXTUALES]
+Capacidad alojada en módulo host.
+No módulo nuevo.
+No CRUD.
+No navegación propia.
+No ModuleCatalog.
+Caso: ProductOperationalSummary bajo Products.
 
-Lectura vigente:
-
-puede tener entrada operativa propia
-
-puede tener permiso propio de acceso al área
-
-puede operar como frente especializado
-
-puede poseer un universo semántico propio de navegación y uso
-
-no absorbe ownership funcional de los módulos participantes
-
-no convierte sus piezas internas en CRUD ordinario por defecto
-
-Caso vigente:
-
-/service representa el universo semántico del frente Servicio y mantenimiento.
-
-Lectura:
-
-/service no es módulo dueño nuevo
-
-/service no reemplaza Orders
-
-/service no convierte órdenes de servicio en entidad ajena a Orders
-
-/service expresa contexto funcional, navegación especializada y entrada operativa del frente satélite
-
-Orders conserva ownership real de las órdenes
-
-Regla:
-
-una capa satélite puede orquestar módulos existentes, pero no duplicar ni absorber ownership funcional.
-
-El detalle de permisos, navegación, rutas, breadcrumbs, vistas y estado de implementación de cada frente satélite corresponde a documentos especializados.
-
-SUBCAPAS CONTEXTUALES INTERNAS
-
-Capacidades alojadas dentro de un módulo funcional existente que amplían su lectura contextual sin constituir módulo nuevo, navegación propia ni entrada independiente del ecosistema.
-
-Caso vigente:
-
-ProductOperationalSummary bajo Products.
-
-Lectura:
-
-subcapa contextual interna
-
-no es módulo nuevo
-
-no tiene CRUD
-
-no tiene navegación propia
-
-no tiene ModuleCatalog propio
-
-no entra al dashboard general
-
-AUTONOMÍA MODULAR
-
-Un módulo funcional puede vincularse con otros módulos sin perder autonomía ni absorber ownership ajeno.
-
-Regla:
-
-los vínculos con otros módulos pueden representar contexto, enriquecimiento, origen, planificación, seguimiento, formalización o evidencia, según corresponda.
-
-No deben convertirse automáticamente en dependencias obligatorias de existencia.
+[REGLA]
+Detalle operativo, rutas, UI, permisos, validaciones y estado de implementación van a documentos especializados.
 
 <<END SECTION>>
 
 <<SECTION: JERARQUÍA GENERAL DEL SISTEMA>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
-JERARQUÍA GENERAL DEL SISTEMA
-
-La arquitectura conceptual del sistema debe leerse en el siguiente orden:
-
+[JERARQUÍA]
 app-base
 ↓
-capa global
+global
 ↓
 tenant
 ↓
-gobierno interno del tenant
+gobierno interno tenant
 ↓
-capa transversal
+transversal
 ↓
-base del dominio
+base dominio
 ↓
 módulos funcionales
+↓
+capas satélite / subcapas cuando correspondan
 
-Esta jerarquía expresa orden de gobierno, contexto y operación.
+[LECTURA]
+No todos los elementos son tabla, clase, recurso visible o módulo.
 
-No implica que todos los elementos sean equivalentes como tabla, clase o recurso visible.
-
-Lectura correcta:
-
-la plataforma contiene el ecosistema general
-el tenant define el contexto operativo de empresa
-el gobierno interno del tenant organiza la pertenencia y el uso
-la capa transversal arbitra o sostiene funcionamiento compartido
-la base del dominio aporta anclajes relacionales amplios
-los módulos funcionales ejecutan la operación del negocio
-
-Regla:
-
-no interpretar el sistema como una primera línea plana de módulos al mismo nivel conceptual.
+[REGLA]
+No interpretar el ecosistema como lista plana de módulos equivalentes.
 
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL SISTEMA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
-ENTIDADES DEL SISTEMA
+[SISTEMA]
+Entidades de identidad, pertenencia, onboarding y gobierno general.
 
-Las entidades del sistema sostienen identidad global, pertenencia, onboarding y gobierno general de la plataforma.
-
-Casos actuales:
-
+[ACTUALES]
 users
 tenants
 memberships
 signup_requests
 invitations
 
-Estas entidades no deben confundirse con el dominio operativo del negocio del tenant.
+[LECTURA]
+users = identidad global.
+memberships = pertenencia operativa.
+tenants = contexto empresa.
+signup_requests / invitations = frontera de ingreso según contrato.
 
-Su función es sostener la plataforma y su frontera de ingreso.
+[OWNER]
+memberships.is_owner = condición estructural owner.
 
-Aclaración vigente:
+[ADMIN]
+admin = rol delegable fuerte.
+admin ≠ owner.
 
-memberships expresa la pertenencia operativa del usuario al tenant.
-
-Desde memberships también se resuelve la condición estructural de owner mediante is_owner.
-
-Los roles delegables asociados a la pertenencia organizan funciones operativas dentro del tenant, pero no reemplazan la condición estructural owner.
-
-Lectura vigente:
-
-owner = condición estructural de gobierno del tenant
-
-admin = rol delegable de gestión operativa fuerte
-
-membership = pertenencia operativa al tenant
+[REGLA]
+Entidades del sistema ≠ entidades del negocio.
 
 <<END SECTION>>
 
 <<SECTION: ENTIDADES DEL NEGOCIO>>
-SECTION_VERSION: 00033
+SECTION_VERSION: 00034
 
-ENTIDADES DEL NEGOCIO
+[NEGOCIO]
+Entidades operativas tenant-scoped.
 
-Las entidades del negocio representan la operación propia de cada tenant.
-
-Casos actuales del proyecto:
-
+[ACTUALES]
 parties
 party_roles
 projects
@@ -612,137 +480,61 @@ inventory_operations
 operational_activities
 attachments
 
-Estas entidades pertenecen al ecosistema operativo de empresa y no a la infraestructura global del sistema.
+[ROLES POSIBLES]
 
-No todas cumplen el mismo rol conceptual.
+* base dominio
+* módulo funcional
+* entidad hija
+* capacidad transversal
+* soporte operativo interno
+* entidad complementaria
 
-Pueden actuar como:
+[REGLAS]
+User no pasa a negocio.
+Membership resuelve pertenencia, no operación de negocio.
+Party puede ser ficha ampliada, no acceso.
+OperationalActivity = trazabilidad, no entidad hija de módulos.
+OrderItem / DocumentItem = entidades hijas.
+Orders / Documents = cabeceras operativas.
 
-base del dominio
-módulos funcionales
-entidades hijas
-capacidades transversales
-soporte operativo interno
-entidades complementarias
+[PARTIES]
+parties.kind = tipo contacto: person | company.
+party_roles.role = relación empresa: customer | supplier | employee | other.
+employee ≠ kind.
 
-Reglas de lectura:
+[ORDERS / DOCUMENTS]
+Pueden conservar vínculo opcional con Parties.
+Pueden existir con dato propio de contraparte si el contrato lo permite.
 
-users no pasa a ser entidad del negocio por participar en la operación interna de una empresa
-
-users mantiene identidad global del sistema
-
-la pertenencia operativa real se resuelve mediante memberships
-
-si el ecosistema requiere un dataset reusable de colaboradores internos activos, esa necesidad pertenece al plano tenant
-
-inventory_movements expresa impacto unitario real sobre stock
-
-inventory_operations agrupa contexto operativo cuando una misma acción requiere uno o múltiples movimientos
-
-operational_activities registra actividad operativa real dentro del tenant activo como capacidad transversal de trazabilidad
-
-operational_activities no representa una entidad hija de módulos funcionales particulares
-
-operational_activities no reemplaza la lógica interna de los módulos funcionales
-
-order_items y document_items conservan naturaleza de entidades hijas de sus módulos padre
-
-orders y documents comparten una doctrina base de lifecycle para cabeceras operativas
-
-Aclaración estructural para parties:
-
-parties representa contactos o actores del negocio dentro del tenant.
-
-parties.kind representa únicamente tipo de contacto.
-
-Valores vigentes:
-
-person
-company
-
-party_roles expresa la relación del contacto con la empresa.
-
-Relaciones vigentes:
-
-customer
-supplier
-employee
-other
-
-Regla:
-
-employee no es tipo de contacto ni naturaleza de party.
-
-Employee es una relación operativa dentro de party_roles.
-
-Aclaración sobre membership → party:
-
-membership puede vincular opcionalmente una ficha ampliada en parties.
-
-Esta relación:
-
-es opcional
-
-es tenant-scoped
-
-no modifica la estructura base del sistema
-
-no reemplaza la identidad global del usuario
-
-no convierte a party en entidad de acceso
-
-Aclaración estructural sobre Orders y Documents:
-
-Orders y Documents pueden conservar vínculos opcionales con Parties sin depender rígidamente de ese vínculo para existir cuando su contrato funcional permita dato propio suficiente de contraparte.
-
-Regla:
-
-la entidad dueña debe conservar la lectura propia de su operación.
-
-Los detalles de campos, helpers, salidas visuales y relaciones concretas corresponden a los documentos especializados de entidades, navegación, visual y convenciones.
-
-Este documento reconoce la posición estructural de estas entidades.
-
-El detalle operativo, visual, de navegación o seguridad debe resolverse en los documentos especializados correspondientes.
+[FRONTERA]
+Campos, helpers, salidas visuales, rutas y seguridad van a documentos especializados.
 
 <<END SECTION>>
 
 <<SECTION: DISTINCIÓN ENTRE SISTEMA Y NEGOCIO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
-DISTINCIÓN ENTRE SISTEMA Y NEGOCIO
+[SISTEMA]
+Identidad.
+Acceso.
+Onboarding.
+Gobierno plataforma.
 
-La distinción entre entidades del sistema y entidades del negocio es estructural.
+[NEGOCIO]
+Operación propia de cada tenant.
 
-Las entidades del sistema sostienen identidad, acceso, onboarding y gobierno general.
-
-Las entidades del negocio sostienen la operación propia de cada tenant.
-
-Regla conceptual:
-
-no debe resolverse una necesidad del negocio trasladándola arbitrariamente a entidades del sistema si esa decisión rompe la separación entre plataforma y operación.
-
-Regla complementaria:
-
-tampoco debe sobredimensionarse el dominio del negocio hasta absorber piezas cuya función real es global o transversal a la plataforma.
+[REGLAS]
+No resolver necesidades de negocio en entidades del sistema si rompe separación.
+No sobredimensionar negocio para absorber piezas globales o transversales.
+No mezclar identidad global con actor comercial.
+No mezclar membership con customer externo.
 
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00024
 
-CLASIFICACIÓN CONCEPTUAL DE MÓDULOS
-
-Los módulos y capacidades del ecosistema no cumplen todos el mismo rol.
-
-Clasificación doctrinal vigente:
-
-MÓDULOS NUCLEARES
-
-Representan frentes funcionales principales del tenant.
-
-Ejemplos actuales:
-
+[MÓDULOS NUCLEARES]
 orders
 documents
 inventory
@@ -753,368 +545,147 @@ products
 assets
 appointments
 
-MÓDULOS TRANSVERSALES
-
-Aportan capacidades reutilizables consumibles por múltiples frentes sin redefinir el núcleo de cada módulo.
-
-Ejemplo actual:
-
+[MÓDULOS TRANSVERSALES]
 attachments
 
-CAPACIDADES TRANSVERSALES DE SOPORTE
+[CAPACIDADES TRANSVERSALES SOPORTE]
+OperationalActivity.
+No CRUD.
+No navegación principal automática.
+No ownership de eventos registrados.
 
-Registran, acompañan o sostienen funcionamiento común del ecosistema sin constituir necesariamente módulo navegable principal ni CRUD ordinario.
+[CAPACIDADES TENANT NO MODULARES]
+Evaluables por seguridad.
+No CRUD completo.
+No navegación.
+No ModuleCatalog por reflejo.
 
-Caso vigente:
+[CAPACIDADES TENANT/TRANSVERSALES CON SURFACE]
+Publican lectura controlada hacia hosts.
+No se vuelven módulo ordinario.
 
-OperationalActivity
+[CAPAS SATÉLITE]
+Orquestan módulos.
+No CRUD por reflejo.
+No ownership ajeno.
 
-Lectura:
+Casos:
 
-capacidad transversal tenant-scoped de trazabilidad operativa
+* Servicios y Mantenimiento: capa satélite ERP/CMMS liviana. Universo: /service. Owner órdenes = Orders.
+* Shopping Autoservicio: capa satélite comercial externa. Key: self_service_sales. Entrada: /shop/{tenant:slug}. Customer externo ≠ User/Membership.
 
-no abre navegación principal por mera existencia técnica
+[SUBCAPAS INTERNAS]
+Capacidad dentro de módulo host.
+Caso: ProductOperationalSummary bajo Products.
 
-no es CRUD ordinario
-
-no absorbe ownership funcional de los módulos que emiten eventos
-
-CAPACIDADES TENANT NO MODULARES
-
-Representan capacidades del plano tenant que pueden ser evaluadas por seguridad sin constituir módulos funcionales ordinarios.
-
-Reglas:
-
-no se incorporan automáticamente como módulos funcionales ordinarios
-
-no se leen como módulos navegables
-
-no poseen CRUD completo
-
-no pasan por habilitación modular ordinaria
-
-pueden ser evaluadas por la capa central de seguridad cuando exista contrato explícito
-
-CAPACIDADES TENANT/TRANSVERSALES NO MODULARES CON SURFACE PUBLICADA
-
-Representan capacidades tenant-scoped o transversales que publican lectura o información controlada hacia hosts funcionales sin convertirse en módulos ordinarios.
-
-Reglas:
-
-no se incorporan como módulos funcionales por publicar una surface
-
-no generan navegación principal
-
-no poseen CRUD ordinario
-
-conservan ownership en el plano tenant/transversal
-
-CAPAS PRODUCTIVAS SATÉLITE
-
-Representan frentes productivos especializados que orquestan módulos existentes sin convertirse automáticamente en CRUD ordinario.
-
-Caso vigente:
-
-Servicios y Mantenimiento
-
-Lectura:
-
-capa satélite productiva ERP/CMMS liviana
-
-orquesta módulos existentes
-
-no duplica ownership funcional
-
-no reabre núcleos cerrados por reflejo automático
-
-puede tener entrada operativa propia
-
-puede tener permiso propio de acceso al área
-
-puede operar como frente especializado
-
-puede tener universo semántico propio cuando el flujo funcional lo justifique
-
-Caso vigente:
-
-/service es universo semántico del frente Servicio y mantenimiento.
-
-Lectura:
-
-/service representa contexto funcional del frente satélite
-
-/service no constituye CRUD ordinario
-
-/service no convierte a Servicio y mantenimiento en módulo dueño de Orders
-
-/service no absorbe ownership de Orders, Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity
-
-Regla:
-
-el acceso al área o universo de una capa satélite no convierte sus operaciones internas en permisos propios de esa capa.
-
-Las acciones reales continúan bajo el contrato del módulo dueño.
-
-SUBCAPAS CONTEXTUALES INTERNAS
-
-Representan capacidades alojadas dentro de un módulo funcional existente que amplían su lectura contextual sin convertirse en módulo nuevo.
-
-Caso vigente:
-
-ProductOperationalSummary bajo Products.
-
-Lectura:
-
-subcapa contextual interna
-
-sin CRUD
-
-sin navegación propia
-
-sin dashboard general
-
-sin ModuleCatalog propio
-
-sin rutas propias
-
-Regla:
-
-la clasificación funcional de un módulo o capacidad no autoriza excepciones de seguridad, navegación automática ni duplicación de ownership.
-
-La navegación, visualización, seguridad y detalle operativo se resuelven en los documentos especializados correspondientes.
+[REGLA]
+Clasificación ≠ autorización.
+Clasificación ≠ navegación automática.
+Clasificación ≠ ownership.
 
 <<END SECTION>>
 
 <<SECTION: ARQUITECTURA MODULAR DEL ECOSISTEMA>>
-SECTION_VERSION: 00033
+SECTION_VERSION: 00034
 
-ARQUITECTURA MODULAR DEL ECOSISTEMA
+[LECTURA]
+Ecosistema modular reusable y desacoplado.
 
-La arquitectura modular del proyecto debe leerse como un ecosistema reusable y desacoplado.
+[PLANOS]
 
-Los módulos no deben relacionarse como cajas cerradas ni como núcleos invadibles.
+1. Núcleo interno del módulo.
+2. Puerta modular oficial.
+3. Consumo externo.
 
-La lectura correcta distingue tres planos:
+[NÚCLEO]
+Lógica propia del módulo.
+No se reabre desde consumidores.
 
-núcleo interno del módulo
+[PUERTA]
+Contrato público del módulo:
 
-puerta de enlace modular oficial
+* surfaces
+* hooks
+* selectors
+* services
+* helpers
+* catálogos
+* eventos livianos
+* providers
+* registries
 
-consumo externo
-
-NÚCLEO INTERNO
-
-Corresponde a la lógica y operación propia del módulo.
-
-No debe reabrirse desde consumidores.
-
-PUERTA DE ENLACE MODULAR OFICIAL
-
-Corresponde a la forma publicada para integrarse con el ecosistema.
-
-Debe representar la capacidad del módulo oferente sin trasladar su lógica interna al consumidor.
-
-Puede expresarse mediante contratos explícitos, surfaces, hooks, selectors, services, helpers, catálogos, eventos operativos livianos u otras fronteras formales según corresponda.
-
-CONSUMO EXTERNO
-
-El consumo sigue la secuencia:
-
+[CONSUMO]
 consumer solicita
-
+↓
 módulo oferente resuelve
-
+↓
 componente representa
-
+↓
 host monta
 
-El consumidor no debe absorber decisiones del módulo oferente.
+[ADUANA]
+Consumidor no reconstruye lógica oferente.
+Oferente no interpreta modelos consumidores.
+Controller consumidor no acumula dominio externo.
 
-ADUANA FUNCIONAL ENTRE MÓDULOS
+[HUB VISUAL]
+Host aloja.
+Invitado conserva lógica.
 
-La integración entre módulos debe funcionar como una frontera explícita.
+[TRAZABILIDAD]
+Módulo dueño autoriza/valida/ejecuta.
+Luego emite evento liviano.
+OperationalActivity registra si corresponde.
 
-Un módulo consumidor puede solicitar una capacidad, dato, bloqueo, link, validación o surface.
+[SURFACES NO MODULARES]
+Capacidad tenant/transversal puede publicar surface sin convertirse en módulo.
 
-El módulo oferente debe entregar el resultado mediante contrato oficial.
+[SUBCAPA]
+Módulo host puede alojar lectura contextual sin crear módulo.
 
-Reglas:
-
-el consumidor no reconstruye lógica interna del oferente
-
-el oferente no interpreta modelos internos del consumidor
-
-el controller del consumidor no debe acumular conocimiento de dominios externos si existe frontera apropiada
-
-las dependencias activas deben canalizarse mediante contratos explícitos
-
-Caso vigente:
-
-Orders no debe interpretar internamente Task, Appointment, Party, Asset o Document más allá de referencias pasivas, relaciones necesarias o contratos explícitos.
-
-HUB VISUAL
-
-Un módulo puede alojar interacción o lectura de otro sin absorber su lógica.
-
-Regla:
-
-el host conserva superficie visual
-
-el módulo invitado conserva lógica operativa
-
-TRAZABILIDAD TRANSVERSAL
-
-Cuando un módulo funcional completa una acción propia autorizada, puede emitir un evento operativo liviano para trazabilidad.
-
-Lectura arquitectónica:
-
-módulo dueño autoriza
-
-módulo dueño valida
-
-módulo dueño ejecuta
-
-módulo emite evento operativo liviano
-
-capacidad transversal registra si corresponde
-
-OperationalActivity no reemplaza el núcleo del módulo dueño ni se convierte en intérprete principal de su dominio.
-
-SURFACES TENANT O TRANSVERSALES NO MODULARES
-
-Una capacidad tenant-scoped o transversal no modular puede publicar surfaces controladas hacia hosts funcionales sin incorporarse como módulo funcional ordinario.
-
-Esta vía corresponde cuando la capacidad:
-
-no es módulo funcional ordinario
-
-no posee CRUD ordinario
-
-no requiere navegación principal
-
-no se habilita o deshabilita como módulo del negocio
-
-debe ofrecer lectura o información controlada a hosts autorizados
-
-SUBCAPAS CONTEXTUALES INTERNAS
-
-Un módulo puede alojar una subcapa contextual interna cuando la capacidad amplía la lectura del host sin constituir módulo propio.
-
-Caso vigente:
-
-ProductOperationalSummary amplía la lectura operativa de Products.
-
-Regla:
-
-una subcapa contextual interna debe mantenerse bajo ownership del módulo host y consumir datos relacionados sin absorber el ownership de los módulos que los aportan.
-
-AISLAMIENTO OPERATIVO RAZONABLE
-
-El objetivo no es construir aislamiento absoluto artificial entre módulos.
-
-El objetivo es evitar dependencias activas indebidas.
-
-Reglas:
-
-las relaciones pasivas pueden existir cuando representan columnas propias, vínculos estructurales o patrones transversales
-
-las dependencias activas deben pasar por contratos explícitos
-
-una relación de modelo no autoriza al controller a gobernar el módulo relacionado
-
-un módulo puede conservar referencias pasivas sin perder saneamiento, siempre que no interprete ni administre lógica externa desde su núcleo
-
-Aclaración consolidada:
-
-los módulos pueden publicar metadata estructural propia.
-
-El flujo correcto es:
-
-módulo define
-
-catálogo o contrato provee metadata
-
-registry o surface normaliza
-
-host consume sin reinterpretar
-
-Regla final:
-
-la arquitectura modular debe permitir integración sin pérdida de ownership funcional.
+[REGLA]
+Integrar sin perder ownership.
 
 <<END SECTION>>
 
 <<SECTION: BASE DEL DOMINIO>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
-BASE DEL DOMINIO
-
-La base del dominio agrupa piezas conceptuales que sostienen múltiples relaciones relevantes dentro del ecosistema operativo.
-
-Caso actual principal:
-
+[BASE PRINCIPAL]
 parties
 
-Su función no se limita a registrar un dato aislado.
+[LECTURA]
+Anclaje relacional del negocio tenant-scoped.
+No infraestructura global.
+No entidad de acceso.
 
-Debe leerse como anclaje relacional estable para múltiples frentes del negocio.
+[PARTIES]
+kind = person | company.
+role = party_roles.role.
 
-parties también puede publicar capacidades oficiales para que otros módulos consuman relaciones compactas o embebidas sin reconstruir localmente su lógica.
-
-Regla estructural:
-
-que una pieza pertenezca a la base del dominio no la convierte en infraestructura global del sistema.
-
-Sigue perteneciendo al ecosistema operativo del tenant, pero con un rol conceptual más amplio que el de un módulo operativo puntual.
-
-Regla vigente para parties:
-
-parties debe mantenerse como núcleo mínimo del actor o contacto del negocio.
-
-La expansión de su complejidad debe tender a entidades hijas o complementarias y no a sobrecargar el núcleo.
-
-Separación consolidada:
-
-parties.kind = tipo de contacto
-party_roles.role = relación con la empresa
-
-Valores vigentes de parties.kind:
-
-person
-company
-
-Relaciones vigentes de party_roles.role:
-
+[PARTY_ROLES]
 customer
 supplier
 employee
 other
 
-Regla:
+[REGLAS]
+employee ≠ parties.kind.
+employee = relación operativa con empresa.
+membership puede vincular party como ficha ampliada.
+membership → party ≠ acceso.
+party ≠ user.
+party ≠ membership.
 
-employee no pertenece a parties.kind.
-
-Employee expresa relación operativa con la empresa dentro de party_roles.
-
-Aclaración sobre colaboradores internos:
-
-los usuarios internos activos del tenant pertenecen al plano tenant y a memberships como pertenencia operativa real.
-
-membership puede vincularse opcionalmente con party como ficha ampliada tenant-scoped, pero esa relación no convierte a party en identidad global ni en entidad de acceso.
-
-Por lo tanto, esa necesidad no debe reinterpretarse como expansión de users ni como apertura de un módulo users dentro de la base del dominio.
+[REGLA]
+Complejidad de parties debe crecer por entidades hijas/complementarias, no sobrecargar núcleo.
 
 <<END SECTION>>
 
 <<SECTION: MÓDULOS FUNCIONALES ACTUALES>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00022
 
-MÓDULOS FUNCIONALES ACTUALES
-
-Los módulos funcionales actuales del proyecto corresponden a capacidades operativas del negocio visibles dentro del tenant.
-
-Casos actuales:
-
+[MÓDULOS]
 parties
 projects
 tasks
@@ -1125,496 +696,260 @@ orders
 documents
 inventory
 
-Estos módulos expresan la lectura funcional principal del sistema dentro de la empresa activa.
+[NO MÓDULO FUNCIONAL]
+users
 
-Reglas relevantes:
+[LECTURA POR MÓDULO]
+appointments = agenda / calendario.
+inventory = stock / historial / operación material.
+orders = cabecera operativa fuerte.
+documents = formalización documental.
+projects = agrupador.
+tasks = pendientes / seguimiento.
+products = catálogo maestro.
+assets = recursos operativos.
+parties = actores/contactos negocio.
 
-users no integra este conjunto como módulo funcional autónomo.
+[PRODUCTS]
+Puede alojar ProductOperationalSummary como subcapa contextual.
+No crea módulo nuevo.
 
-Su lugar pertenece al plano de identidad global.
-
-La operación interna de colaboradores activos se resuelve por memberships y piezas del plano tenant.
-
-Aclaraciones estructurales:
-
-appointments tiene como superficie principal appointments.calendar.
-
-inventory debe leerse como frente funcional de saldo, historial y operación, con capas internas propias cuando el flujo lo requiera.
-
-orders es módulo operativo fuerte con estados que afectan operabilidad general.
-
-orders debe conservar autonomía funcional.
-
-orders puede operar sin contacto gestionado obligatorio cuando conserve dato propio suficiente de contraparte.
-
-orders no debe absorber relaciones de origen, planificación o seguimiento que pertenecen a otros módulos.
-
-documents puede hospedar capacidades publicadas por otros módulos sin absorber su lógica.
-
-documents puede funcionar como formalización derivada de orders sin depender rígidamente de parties.
-
-projects puede actuar como agrupador funcional de tasks.
-
-tasks conserva identidad propia como módulo de pendientes, seguimiento y acciones auxiliares.
-
-appointments conserva identidad propia como módulo de agenda y planificación temporal.
-
-products conserva el rol de catálogo maestro del producto y puede alojar subcapas contextuales internas cuando amplíen la lectura operativa del producto sin crear módulo nuevo.
-
-Caso vigente:
-
-ProductOperationalSummary se aloja bajo Products como subcapa contextual.
-
-No altera el conjunto de módulos funcionales actuales.
-
-No crea módulo funcional propio.
-
-No crea navegación propia.
-
-No entra al dashboard general.
-
-Regla:
-
-no todos los hosts show pages poseen igual madurez estructural dentro del ecosistema.
-
-La convergencia debe tender hacia patrones maduros ya validados, no hacia soluciones locales dispersas.
+[REGLA]
+Convergencia hacia patrones maduros.
+No soluciones locales dispersas.
 
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00020
 
-LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES
+[ORDERS]
+Núcleo operativo autónomo.
+Puede recibir contexto de Tasks/Appointments.
+Puede vincular Parties/Assets.
+Puede derivar Documents.
+Puede consumir Inventory.
+No absorbe esos módulos.
 
-Lectura síntesis del ecosistema vigente:
-
-orders es referencia madura para cabeceras operativas equivalentes
-
-documents formaliza flujos documentales y converge hacia patrones sólidos cuando corresponde
-
-inventory gobierna stock, ejecución material y trazabilidad sin absorber ownership ajeno
-
-projects y tasks organizan planificación y seguimiento operativo
-
-parties concentra contactos y actores del negocio, internos o externos según su relación con la empresa
-
-products y assets representan recursos operativos del tenant
-
-appointments coordina agenda y vínculos contextuales con otros módulos
-
-attachments aporta capacidad transversal de evidencias y archivos
-
-OperationalActivity sostiene trazabilidad operativa transversal sin reemplazar la operación original
-
-Regla:
-
-ningún módulo debe expandirse invadiendo el núcleo funcional de otro.
-
-La integración correcta ocurre por contratos publicados y consumo explícito.
-
-Lectura adicional para Orders:
-
-Orders funciona como núcleo operativo autónomo.
-
-Puede recibir contexto desde tasks o appointments, vincularse opcionalmente con parties o assets, derivar documents, consumir capacidades de inventory y publicar surfaces cuando corresponda.
-
-Esa integración no convierte a Orders en dueño de Tasks, Appointments, Parties, Assets, Documents ni Inventory.
-
-Reglas:
-
-Orders no debe almacenar como núcleo propio relaciones persistentes que expresan origen, planificación o seguimiento externo
-
-Tasks y Appointments pueden vincularse a Orders desde su propio ownership
-
-Orders conserva su lifecycle base y su identidad operativa
-
-Orders debe interactuar con otros módulos mediante contratos explícitos o relaciones pasivas justificadas
-
-Orders no debe interpretar internamente modelos consumidores
-
-Lectura adicional para Documents:
-
-Documents formaliza, comunica o registra documentalmente operaciones estructuradas.
-
+[DOCUMENTS]
+Formaliza operaciones.
 Puede derivarse desde Orders.
+Puede conservar contraparte propia.
+No reemplaza Orders.
 
-Puede conservar dato propio de contraparte aunque el vínculo gestionado con Parties sea opcional.
+[PRODUCTS]
+Catálogo maestro.
+Puede publicar selección/validación.
+Puede alojar subcapas contextuales.
 
-Documents no reemplaza Orders ni absorbe la operación técnica o material.
+[INVENTORY]
+Stock, ejecución material, trazabilidad.
+Puede intervenir mediante fronteras explícitas.
 
-Lectura adicional para Products:
+[ASSETS]
+Recursos operativos.
+Puede aportar objeto técnico mantenible.
+No asumir campos técnicos sin contrato real.
 
-Products funciona como catálogo maestro del producto.
+[PARTIES]
+Actores/contactos negocio.
+kind = tipo contacto.
+role = relación empresa.
+Customer externo self_service_sales puede representarse como Party sin ser User/Membership.
 
-Puede alojar lecturas contextuales propias cuando no impliquen absorción de ownership de módulos relacionados.
+[CAPAS SATÉLITE]
+/service = Servicio y mantenimiento. Owner órdenes = Orders.
+/shop/{tenant:slug} = Tienda pública. self_service_sales. Customer externo ≠ acceso interno.
 
-Puede ofrecer capacidades de selección o validación de productos para líneas cuando otros módulos necesiten operar con productos sin consultar directamente su modelo interno.
+[PROHIBICIONES]
+Orders no absorbe Assets/Inventory/Documents/Tasks/Appointments.
+Servicio y mantenimiento no absorbe módulos participantes.
+Shopping Autoservicio no absorbe Parties/Products/Inventory/Documents/Security.
+OperationalActivity no se vuelve timeline específico.
+IA no crea canal paralelo.
 
-Caso vigente:
-
-ProductOperationalSummary bajo Products.
-
-Lectura adicional para Inventory:
-
-Inventory conserva ownership de stock, ejecución material y reglas físicas asociadas a líneas cuando corresponda.
-
-Puede intervenir en flujos de Orders o Documents mediante fronteras explícitas sin que esos módulos reconstruyan internamente su lógica.
-
-Lectura adicional para Assets:
-
-Assets representa recursos operativos del tenant y puede funcionar como base del objeto técnico mantenible cuando corresponda.
-
-En Servicios y Mantenimiento, Assets puede aportar identidad técnica contextual a una orden de servicio sin que Orders absorba la identidad completa del activo.
-
-Regla:
-
-no deben asumirse campos técnicos nuevos de Assets sin contrato, esquema y validación real.
-
-Lectura adicional para capas satélite:
-
-un frente especializado como Servicios y Mantenimiento puede orquestar módulos actuales, pero no debe modificar la identidad conceptual de cada uno.
-
-Caso vigente:
-
-/service funciona como universo semántico de Servicio y mantenimiento.
-
-Lectura:
-
-/service expresa contexto funcional y navegación especializada del frente satélite
-
-/service puede operar sobre Orders sin convertir a Servicio y mantenimiento en dueño de las órdenes
-
-las órdenes de servicio siguen perteneciendo conceptualmente a Orders
-
-Orders conserva ownership de la operación transaccional
-
-Reglas:
-
-Orders no debe absorber Assets.
-
-Orders no debe absorber Inventory.
-
-Orders no debe absorber Documents.
-
-Orders no debe absorber Tasks ni Appointments.
-
-Servicio y mantenimiento no debe absorber Orders.
-
-Servicio y mantenimiento no debe absorber Assets, Inventory, Products, Documents, Tasks, Appointments, Attachments, Parties ni OperationalActivity.
-
-Attachments no debe absorber lógica técnica de mantenimiento.
-
-OperationalActivity no debe convertirse en timeline específico por sí mismo.
-
-La IA no debe convertirse en canal paralelo de operación fuera de contratos oficiales.
-
-Regla final:
-
-los módulos actuales deben conservar ownership propio aun cuando participen en frentes productivos satélite, subcapas contextuales internas, capacidades transversales o automatizaciones futuras.
+[REGLA]
+Ownership se conserva aunque haya integración.
 
 <<END SECTION>>
 
 
 <<SECTION: RELACIONES MACRO DEL ECOSISTEMA>>
-SECTION_VERSION: 00023
+SECTION_VERSION: 00026
 
-RELACIONES MACRO DEL ECOSISTEMA
+[RELACIONES BASE]
+users → memberships → tenants
+parties → party_roles
+projects → tasks
+orders → order_items
+documents → document_items
+inventory_operations → inventory_movements
 
-Las siguientes relaciones expresan la lectura conceptual prioritaria del ecosistema:
+[RELACIONES FUNCIONALES]
+tasks → orders desde Tasks.
+appointments → orders desde Appointments.
+orders → documents como derivación.
+products → líneas operativas/documentales.
+inventory → stock/trazabilidad.
+attachments → múltiples recursos.
+módulos → OperationalActivity si corresponde.
 
-projects agrupa tasks
+[SERVICE]
+/service
+↓
+Orders
+↓
+group = service
 
-tasks puede relacionarse con orders desde su propio ownership
+Lectura:
+Orders conserva ownership.
 
-appointments puede relacionarse con orders desde su propio ownership
+[SHOP]
+/shop/{tenant:slug}
+↓
+self_service_sales
+↓
+Parties
 
-assets aporta contexto transversal
+Lectura:
+self_service_sales organiza experiencia externa.
+Parties representa customer confirmado.
+Ruta pública ≠ acceso interno.
 
-orders puede derivar documents
+[REGLAS]
+self_service_sales no reemplaza Parties/Products/Inventory/Documents/Security.
+OperationalActivity no reemplaza relaciones funcionales.
+Lectura contextual ampliada debe declararla módulo dueño.
+Intervención externa requiere frontera explícita.
 
-orders contiene order_items
-
-products alimenta líneas operativas y documentales
-
-inventory sostiene stock y trazabilidad material
-
-parties se relaciona transversalmente con múltiples módulos
-
-attachments puede integrarse sobre múltiples recursos
-
-módulos funcionales pueden emitir actividad operativa hacia OperationalActivity
-
-módulos funcionales pueden publicar fronteras explícitas para lecturas contextuales cuando corresponda
-
-Relaciones especialmente relevantes:
-
-parties como base relacional amplia
-
-products como catálogo maestro y oferente de capacidades de selección o validación de productos cuando corresponda
-
-orders como núcleo operativo autónomo
-
-orders + líneas + inventory como frente de ejecución
-
-documents como prolongación documental
-
-inventory como frente operativo con agrupación contextual, movimientos unitarios y reglas materiales propias
-
-projects como agrupador operativo de tasks
-
-tasks como módulo propio de pendientes, seguimiento y acciones auxiliares que puede vincularse con orders
-
-appointments como módulo propio de planificación temporal que puede vincularse con orders
-
-OperationalActivity como capacidad transversal de trazabilidad operativa
-
-Reglas:
-
-inventory_operations agrupa contexto operativo.
-
-inventory_movements conserva trazabilidad unitaria.
-
-order_items y document_items mantienen pertenencia estructural a sus módulos padre aunque participen en flujos externos.
-
-OperationalActivity persiste actividad operativa transversal.
-
-OperationalActivity no reemplaza relaciones funcionales propias de los módulos.
-
-Orders puede vincularse opcionalmente con otros módulos sin que esos vínculos se conviertan en dependencias obligatorias de existencia.
-
-Orders no debe absorber como núcleo propio relaciones que expresan origen, planificación o seguimiento de otros módulos.
-
-Tasks y Appointments pueden asociarse a Orders desde su propio lado de la relación.
-
-Documents puede derivarse desde Orders y conservar su identidad documental propia.
-
-Orders y Documents pueden conservar dato propio de contraparte cuando el vínculo gestionado con Parties sea opcional.
-
-Cuando exista lectura contextual ampliada de actividad, la frontera debe ser declarada por el módulo dueño y no inferida por OperationalActivity.
-
-Cuando exista intervención de un módulo externo en un flujo propio, debe resolverse mediante frontera explícita y no mediante lógica interna reconstruida en el controller consumidor.
-
-Estas relaciones describen arquitectura general.
-
-No reemplazan detalle de navegación, seguridad, UI, campos, helpers ni implementación.
+[FRONTERA]
+Rutas, helpers, UI, campos, validaciones y flows van a documentos especializados.
 
 <<END SECTION>>
 
 <<SECTION: MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00023
 
-MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO
+[CRECIMIENTO]
+Módulos con identidad clara.
+Contratos explícitos.
+Responsabilidades separadas.
 
-El sistema debe crecer mediante módulos con identidad clara, contratos explícitos y responsabilidades separadas.
+[DISTINGUIR]
+sistema / negocio
+módulo / capacidad transversal
+módulo / capa satélite
+módulo / subcapa
+navegación / ownership
+entrada pública / panel interno
+cliente externo / membership
+registro externo / invitation
+vínculo opcional / dependencia estructural
+automatización asistida / acción crítica
 
-Toda evolución debe:
+[REGLAS]
+No reabrir núcleos por reflejo.
+No crear CRUD por simetría.
+No mezclar planos.
+No convertir clientes externos en Users/Memberships.
+No reutilizar contratos internos para flujos externos.
+Consumir capacidades existentes antes de crear variantes.
 
-respetar multi-tenancy
+[CASOS]
+/service = capa satélite mantenimiento sobre Orders.
+/shop/{tenant:slug} = capa satélite comercial externa sobre self_service_sales + Parties.
 
-preservar distinción sistema/negocio
+[ANTES DE CRECER]
+Definir:
 
-mantener identidad conceptual
+* clasificación
+* plano de seguridad
+* módulo dueño de cada dato
+* universo/entrada
+* alcance inicial
+* límites explícitos
 
-evitar duplicaciones
-
-consumir capacidades existentes antes de crear variantes
-
-distinguir módulos ordinarios de capacidades transversales
-
-distinguir módulos ordinarios de capas productivas satélite
-
-distinguir módulos ordinarios de subcapas contextuales internas
-
-distinguir automatización asistida de ejecución crítica
-
-distinguir dato propio necesario para operar de vínculo opcional de enriquecimiento
-
-distinguir relación de origen, planificación o seguimiento de dependencia estructural del módulo receptor
-
-distinguir relación pasiva permitida de dependencia activa indebida
-
-distinguir universo semántico de navegación de ownership funcional
-
-Reglas:
-
-no reabrir el núcleo de otro módulo arbitrariamente
-
-las necesidades de colaboradores internos deben resolverse en la capa tenant
-
-las capacidades maduras deben converger hacia contratos oficiales
-
-los acoples externos deben canalizarse mediante puertas contractuales
-
-si una entidad hija crece, debe fortalecerse antes de promoverse a módulo
-
-los frentes transaccionales pueden incorporar agrupación contextual cuando mejore trazabilidad
-
-las capas satélite deben auditar primero qué pueden sostener los módulos actuales antes de proponer piezas nuevas
-
-las piezas satélite no deben crearse por reflejo automático
-
-las capas satélite pueden tener entrada operativa propia o permiso de acceso al área sin convertirse por eso en CRUD ordinario
-
-las capas satélite pueden tener universo semántico propio cuando el flujo funcional lo justifique
-
-el acceso a un área satélite no reemplaza permisos operativos de los módulos participantes
-
-un universo semántico no convierte automáticamente al frente contextual en módulo dueño
-
-un universo semántico no reemplaza el contrato del módulo funcional que ejecuta la operación real
-
-las subcapas contextuales internas deben alojarse dentro del módulo host cuando no correspondan a módulo, ruta ni CRUD propio
-
-las subcapas contextuales internas deben consumir ownership de módulos relacionados sin absorberlo
-
-la IA futura debe apoyarse en datos estructurados, reglas explícitas y documentación consistente
-
-los vínculos opcionales entre módulos no deben transformarse automáticamente en dependencias obligatorias
-
-los campos o relaciones `*_id` deben interpretarse según contrato funcional real y no por reflejo técnico
-
-cuando un módulo necesite conservar dato propio aunque exista vínculo opcional con otro módulo, debe sostener una lectura autónoma del registro
-
-cuando un módulo publique lecturas oficiales, los módulos externos no deben reconstruir esa lectura desde relaciones internas opcionales
-
-cuando una mecánica sea transversal, el significado de negocio debe permanecer en el catálogo o contrato del módulo correspondiente
-
-cuando un módulo necesite validar, listar o seleccionar datos de otro dominio, debe consumir una capacidad oficial si existe
-
-Casos vigentes:
-
-ProductOperationalSummary se implementa como subcapa contextual de Products.
-
-Servicios y Mantenimiento se implementa como capa satélite productiva ERP/CMMS liviana.
-
-El universo /service expresa el frente semántico de Servicio y mantenimiento sin absorber ownership de Orders.
-
-Orders conserva autonomía operativa y puede relacionarse opcionalmente con otros módulos sin absorber su ownership.
-
-Tasks y Appointments pueden vincularse a Orders desde su propio contrato.
-
-Documents puede derivarse desde Orders y conservar su propia identidad documental.
-
-Orders y Documents pueden conservar dato propio de contraparte aunque el vínculo gestionado con Parties sea opcional.
-
-Products puede ofrecer selección y validación de productos para líneas mediante una capacidad propia consumida por Orders y Documents.
-
-La numeración puede resolverse por servicio transversal, pero el significado de prefijos pertenece a los catálogos de cada módulo.
-
-Regla:
-
-crecer no implica mezclar responsabilidades.
-
-La dirección sigue siendo modular, con fronteras explícitas, operación simple, universos semánticos cuando correspondan y formalidad progresiva según necesidad real.
+[NO ABRIR SIN AUDITORÍA]
+saldo
+QR
+pagos
+minimercado
+estados técnicos
+dashboard avanzado
+nuevas entidades futuras
 
 <<END SECTION>>
 
 <<SECTION: CONTRATO MODULAR COMO DIRECCIÓN DE CRECIMIENTO>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
-CONTRATO MODULAR COMO DIRECCIÓN DE CRECIMIENTO
+[DOCTRINA]
+Crecimiento correcto = contrato antes que expansión de código.
 
-El crecimiento correcto del sistema debe priorizar evolución contractual y claridad de fronteras antes que expansión desordenada de código.
+[REGLAS]
+Problema nuevo se resuelve primero en módulo dueño.
+Consumidores dependen de capacidades publicadas.
+No invadir núcleos.
+No dispersar lógica transversal.
+No crear helpers por consumidor si puede haber helper genérico.
+No duplicar surfaces por host si la capacidad es la misma.
+Hooks = intervención explícita.
+Selectors/providers = selección o validación centralizada.
+Servicios transversales ejecutan mecánica común.
+Significado de negocio queda en módulo/catálogo dueño.
 
-Cuando una necesidad nueva aparezca en un módulo existente, la primera lectura correcta no es invadir consumidores ni dispersar lógica transversal.
+[CASOS]
+Servicios y Mantenimiento = capa satélite, no sobrecarga de Orders.
+ProductOperationalSummary = subcapa Products.
+Orders integra por contratos, no por interpretación de consumidores.
+Products ofrece selección/validación de productos.
+RecordNumberGenerator ejecuta mecánica; catálogos definen significado.
 
-La salida preferente es fortalecer el contrato propio del módulo y ordenar internamente su dominio.
-
-Reglas:
-
-una mejora interna no debe romper contratos externos estables
-
-la complejidad nueva debe resolverse primero dentro del módulo dueño del problema
-
-los consumidores deben depender de capacidades publicadas y no de detalles internos variables
-
-un contrato modular válido debe permitir integrar sin borrar ownership funcional
-
-las capas satélite deben consumir contratos oficiales antes de pedir modificaciones internas
-
-las subcapas contextuales internas deben integrarse al módulo host sin convertirse automáticamente en módulos nuevos
-
-las automatizaciones futuras deben operar sobre contratos explícitos y no sobre scraping visual, inferencias frágiles o labels dispersos
-
-la IA futura debe respetar los contratos modulares del sistema y no crear canales paralelos de operación
-
-los helpers de integración deben ser genéricos desde el punto de vista del módulo oferente y no específicos por consumidor
-
-las surfaces deben expresar capacidades reales y no duplicación de hosts
-
-los hooks deben funcionar como puntos de intervención explícita, no como conocimiento interno disperso en controllers
-
-los selectors o providers deben concentrar capacidades de selección o validación cuando varios módulos necesitan consumir un mismo dominio
-
-los servicios transversales deben ejecutar mecánicas comunes sin decidir significado de negocio propio de cada módulo
-
-Reglas de frontera:
-
-el contrato modular define cómo integrarse
-
-no debe absorber detalle visual
-
-no debe duplicar seguridad
-
-no debe convertirse en inventario de implementación
-
-no debe registrar cada archivo, helper, validación o salida puntual
-
-Casos vigentes:
-
-Servicios y Mantenimiento debe avanzar como capa satélite productiva y no como sobrecarga directa de Orders.
-
-ProductOperationalSummary debe permanecer como subcapa contextual interna de Products mientras no exista justificación real para promoverla a módulo, ruta o frente independiente.
-
-Orders puede exponer relaciones, links y bloqueos mediante contratos oficiales sin interpretar internamente modelos consumidores.
-
-Products puede ofrecer selección y validación de productos para líneas mediante capacidad propia consumida por otros módulos.
-
-La numeración puede centralizarse como mecánica transversal siempre que cada módulo conserve la definición de su significado.
-
-Regla síntesis:
-
-el módulo define el significado.
-
-El servicio transversal ejecuta la mecánica.
-
-Regla final:
-
-la dirección de crecimiento aprobada del proyecto continúa siendo modular, reusable, contractualmente explícita y preparada para asistencia operativa progresiva.
+[REGLA SÍNTESIS]
+Módulo define significado.
+Servicio transversal ejecuta mecánica.
 
 <<END SECTION>>
 
 <<SECTION: CRITERIO DE LECTURA DOCUMENTAL>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00007
 
-CRITERIO DE LECTURA DOCUMENTAL
+[USO]
+Documento rector arquitectónico.
+Formato principal = contrato compacto para IA.
 
-Este documento cumple función rectora y debe leerse como marco estable del proyecto.
+[NO ES]
+Manual humano.
+Historial.
+Roadmap.
+Backlog.
+Inventario de implementación.
 
-Reglas de mantenimiento:
+[MANTENER AQUÍ]
 
-priorizar principios estructurales sobre detalle menor
+* estructura general
+* capas
+* identidad conceptual
+* ownership
+* clasificación
+* relaciones macro
+* criterios de crecimiento
 
-evitar repetir reglas desarrolladas en documentos específicos
+[MOVER FUERA]
+Seguridad → seguridad_acceso_proyecto_app_base.
+Navegación → mapa_navegacion_relaciones_app_base.
+UI → base_visual_proyecto_app_base.
+Entidades detalladas → mapa_entidades_app_base.
+Componentes → mapa_componentes_app_base.
+Decisiones vivas → decisiones_vivas_app_base.
+Runtime / cierres / archivos → todo_proyecto_app_base.
+Capas satélite funcionales → documento específico.
 
-mover convenciones técnicas al documento correspondiente
+[REGLA DE COMPACTACIÓN]
+Solo conservar lectura estructural mínima necesaria.
 
-mover mapas concretos a documentos de navegación, entidades o componentes
-
-mover reglas de seguridad al documento especializado de seguridad
-
-mover decisiones vivas o casos puntuales al documento correspondiente
-
-actualizar solo cuando cambie la lectura arquitectónica real del sistema
-
-Objetivo de uso:
-
-permitir retomar decisiones con una base breve, clara y consistente.
-
-Regla:
-
-este documento no debe convertirse en historial de implementación.
-
-Debe sostener doctrina arquitectónica estable.
+[REGLA FINAL]
+Si se necesita versión humana, se solicita traducción.
+La versión rectora debe priorizar continuidad IA y prevención de deriva.
 
 <<END SECTION>>

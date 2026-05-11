@@ -1429,6 +1429,335 @@ En producción debe definirse worker supervisado por infraestructura, no botón 
 
 <<END SECTION>>
 
+<<SECTION: CONVENCIONES DE CAPAS SATÉLITE, UNIVERSOS Y ENTRADAS PÚBLICAS>>
+SECTION_VERSION: 00001
+
+CONVENCIONES DE CAPAS SATÉLITE, UNIVERSOS Y ENTRADAS PÚBLICAS
+
+Esta sección concentra convenciones específicas para capacidades que no deben leerse como módulos CRUD ordinarios, especialmente cuando operan como capas satélite, universos semánticos, frentes contextuales o entradas públicas externas.
+
+Regla general:
+
+una capa satélite no debe convertirse en CRUD ordinario por reflejo.
+
+Una capa satélite puede:
+
+orquestar módulos existentes
+tener universo semántico propio
+tener rutas propias
+tener dashboard mínimo
+tener entrada pública o contextual
+tener vistas propias
+tener contratos de seguridad propios
+tener entidades auxiliares propias cuando el flujo lo justifique
+
+Pero no debe:
+
+absorber ownership de módulos existentes
+duplicar lógica funcional de módulos participantes
+reemplazar Security
+reemplazar permisos del módulo dueño
+mezclar plano interno y plano externo
+usar controllers internos si el flujo pertenece a otro plano de seguridad
+crear módulos, rutas o tablas por simetría visual
+
+CASO VIGENTE: SERVICIO Y MANTENIMIENTO
+
+Servicio y mantenimiento se interpreta como capa satélite productiva ERP/CMMS liviana.
+
+Universo semántico vigente:
+
+/service
+
+Lectura:
+
+/service representa el frente Servicio y mantenimiento.
+
+El nombre visible del área es:
+
+Servicio y mantenimiento
+
+/service no es CRUD ordinario.
+
+/service no reemplaza Orders.
+
+/service no absorbe ownership de Orders.
+
+/service no convierte órdenes de servicio en entidad ajena a Orders.
+
+Orders conserva ownership real de las órdenes de servicio.
+
+Orders sostiene la primera base operativa mediante:
+
+group = service
+
+Rutas vigentes del universo:
+
+service.index
+service.orders.index
+service.orders.create
+service.orders.store
+service.orders.show
+
+Reglas:
+
+el acceso al área no reemplaza permisos operativos de Orders ni de otros módulos participantes
+
+las acciones reales continúan bajo el contrato del módulo dueño
+
+no debe confundirse frente habilitable con CRUD ordinario
+
+no debe confundirse universo semántico con ownership funcional
+
+no debe implementarse mantenimiento funcional reabriendo Orders por reflejo si la necesidad corresponde a Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties, OperationalActivity o una pieza satélite propia
+
+CONSERVACIÓN DE CONTEXTO FÍSICO EN UNIVERSOS SEMÁNTICOS
+
+Cuando un universo semántico opera sobre un módulo dueño, las rutas operativas internas pueden seguir perteneciendo al módulo dueño si el ownership real no cambia.
+
+El retorno físico debe conservar el universo contextual cuando corresponda mediante trail, helper contextual o contrato explícito.
+
+Caso vigente:
+
+OrderNavigationTrail::showRouteName()
+
+Lectura:
+
+OrderNavigationTrail::showRouteName() puede resolver dinámicamente si el retorno físico debe ir a orders.show o service.orders.show según ruta actual o trail recibido.
+
+Reglas:
+
+no crear rutas duplicadas innecesarias como service.orders.items.* si la operación real sigue perteneciendo a Orders
+
+no depender de query params manipulables como fuente fuerte de contexto funcional
+
+los links visuales hacia Orders desde Inventory y Documents pueden respetar contexto /service cuando el trail lo indique
+
+el host surface interno puede seguir siendo orders.show aunque la ruta física contextual sea service.orders.show
+
+los redirects, links y trails pueden conservar contexto físico sin alterar ownership ni autorización real
+
+CASO VIGENTE: SHOPPING AUTOSERVICIO
+
+Shopping Autoservicio se interpreta como capa satélite comercial autogestiva por tenant.
+
+Key técnica:
+
+self_service_sales
+
+Universo público vigente:
+
+/shop/{tenant:slug}
+
+Label visible:
+
+Tienda
+
+Lectura:
+
+/shop/{tenant:slug} representa la entrada pública externa de Tienda / Shopping Autoservicio.
+
+self_service_sales no es CRUD ordinario.
+
+self_service_sales no es panel interno del tenant.
+
+self_service_sales no reemplaza Parties.
+
+self_service_sales no reemplaza Products.
+
+self_service_sales no reemplaza Inventory.
+
+self_service_sales no reemplaza Documents.
+
+self_service_sales no reemplaza Security.
+
+self_service_sales conserva la experiencia comercial autogestiva, la tienda, el registro externo y futuras capacidades comerciales externas.
+
+Parties representa al customer externo confirmado como:
+
+Party.kind = person
+
+PartyRole.role = customer
+
+Products conserva catálogo maestro.
+
+Inventory conserva stock físico y trazabilidad material.
+
+Documents conserva formalización documental cuando corresponda.
+
+Security conserva autorización.
+
+ENTRADA PÚBLICA EXTERNA
+
+Una entrada pública externa no debe confundirse con navegación interna del tenant.
+
+Reglas:
+
+/shop/{tenant:slug} no es navegación principal interna
+
+/shop/{tenant:slug} no usa el grupo auth + tenant
+
+/shop/{tenant:slug} resuelve el tenant por slug público
+
+/shop/{tenant:slug} no convierte al visitante en User
+
+/shop/{tenant:slug} no convierte al customer externo en Membership
+
+/shop/{tenant:slug} no otorga roles internos
+
+/shop/{tenant:slug} no habilita dashboard, tenant/profile, parties.show ni rutas internas
+
+la entrada pública puede tener rutas propias de tienda, registro, gracias y confirmación cuando el flujo externo lo justifique
+
+las rutas públicas no deben reutilizar controllers internos si el flujo pertenece al plano externo
+
+Rutas públicas iniciales vigentes:
+
+GET /shop/{tenant:slug}
+GET /shop/{tenant:slug}/register
+POST /shop/{tenant:slug}/register
+GET /shop/{tenant:slug}/register/thanks
+GET /shop/{tenant:slug}/register/confirm/{token}
+
+FORMULARIOS PÚBLICOS EXTERNOS
+
+Cuando un formulario pertenezca a una entrada pública externa, debe usar contrato propio del plano externo.
+
+Caso vigente:
+
+self_service_sales registra customers externos mediante:
+
+StoreSelfServiceCustomerRegistrationRequest
+
+Reglas:
+
+no reutilizar StorePartyRequest como contrato del registro externo
+
+StorePartyRequest puede servir solo como referencia de campos
+
+no reutilizar PartyController para alta externa
+
+no reutilizar TenantMembershipPartyController para alta externa
+
+no reutilizar InvitationAcceptanceController para alta externa
+
+no reutilizar Fortify interno para convertir customers externos en users internos
+
+las vistas públicas pueden reutilizar layouts.app con @php($publicPage = true) cuando corresponda al patrón público vigente
+
+el formulario público no debe exponer navegación interna, panel tenant ni configuración interna
+
+VALIDACIONES BACKEND EN FLUJOS EXTERNOS
+
+Las validaciones críticas de flujos externos deben resolverse en backend.
+
+Caso vigente:
+
+el alta autogestiva de customers externos debe validar duplicados antes de crear el registro pendiente y repetir defensivamente esa validación antes de confirmar el token.
+
+Reglas:
+
+validar duplicados en backend
+
+validar token en backend
+
+validar estado en backend
+
+validar vencimiento en backend
+
+validar tenant resuelto en backend
+
+bloquear alta si ya existe cualquier Party dentro del tenant con el mismo email, teléfono o DNI
+
+no limitar la verificación de duplicados únicamente a Parties con rol customer
+
+no resolver consistencia crítica solo desde UI
+
+no crear automáticamente una nueva Party si existe duplicado
+
+TABLA AUXILIAR DE REGISTRO EXTERNO
+
+El registro externo del customer debe pasar por una entidad auxiliar propia y no por invitations.
+
+Entidad vigente:
+
+self_service_customer_registrations
+
+Modelo vigente:
+
+SelfServiceCustomerRegistration
+
+Lectura:
+
+self_service_customer_registrations guarda registros externos pendientes antes de crear la Party definitiva.
+
+Reglas:
+
+self_service_customer_registrations no reemplaza Party
+
+self_service_customer_registrations no reemplaza User
+
+self_service_customer_registrations no reemplaza Membership
+
+self_service_customer_registrations no representa identidad interna del sistema
+
+self_service_customer_registrations.party_id puede permanecer null mientras el registro está pending
+
+self_service_customer_registrations.party_id se completa al confirmar correctamente el registro externo
+
+Estados conceptuales vigentes:
+
+pending
+confirmed
+expired
+cancelled
+
+Regla:
+
+invitations pertenece semánticamente al plano interno de invitaciones de usuarios, owner signup y memberships.
+
+No debe reutilizarse para el registro externo de customers.
+
+CONTROLADORES INTERNOS Y PLANO EXTERNO
+
+Un controller interno no debe reutilizarse para un flujo externo si su contrato pertenece al panel interno.
+
+Caso vigente:
+
+PartyController no debe reutilizarse para el alta externa de customers de Shopping Autoservicio.
+
+Lectura:
+
+PartyController pertenece al panel interno y a permisos internos de Parties.
+
+El alta externa de self_service_sales requiere controller, request y servicios propios del plano externo.
+
+Caso vigente:
+
+InvitationAcceptanceController no debe reutilizarse para el flujo externo de customers.
+
+Lectura:
+
+InvitationAcceptanceController pertenece al plano interno y puede crear o vincular User, Membership y login interno.
+
+Regla:
+
+el flujo externo de Shopping Autoservicio no debe crear User.
+
+El flujo externo de Shopping Autoservicio no debe crear Membership.
+
+El flujo externo de Shopping Autoservicio no debe iniciar sesión interna.
+
+SNIPPETS PHP EN PROJECT LAB
+
+Los snippets de código PHP para Project Lab deben respetar el contrato de archivo PHP completo.
+
+Formato vigente:
+
+<?php // FILE: ruta/del/archivo.php | Vx Reglas: los snippets de código PHP deben comenzar con <?php el marcador de archivo debe ubicarse luego de la apertura PHP no debe invertirse el orden colocando el marcador FILE antes de <?php cuando el contrato espera archivo PHP completo si el formato no coincide con el contrato vigente, Project Lab debe rechazar o fallar antes de aplicar cambios ambiguos MIGRACIONES E ÍNDICES Las migraciones deben contemplar límites reales del motor de base de datos. Caso detectado: los índices de self_service_customer_registrations requirieron nombres explícitos más cortos para evitar errores por identificadores demasiado largos en MySQL. Regla: cuando una tabla o índice tenga nombres extensos, debe definirse nombre explícito de índice si el nombre automático puede superar el límite del motor. ALCANCE INICIAL DE SELF_SERVICE_SALES Primer corte operativo vigente: self_service_sales implementa: registro externo pendiente confirmación por token creación de Party customer person separación total frente a Membership sin User interno sin acceso interno al tenant Reglas: no convertir customer externo en User interno no convertir customer externo en Membership no usar invitations para registro externo de customer no usar InvitationAcceptanceController para registro externo de customer no usar PartyController como contrato de alta externa no usar StorePartyRequest como contrato del registro externo no abrir saldo, ficha, QR, Mercado Pago, minimercado, promociones, transferencias, facturación ni login externo completo sin auditar contrato, seguridad, esquema y runtime real Regla final: una capa satélite debe crecer por contrato, evidencia y validación runtime. No debe crecer por reflejo visual, por reutilización de flujos internos ni por mezcla de planos de seguridad. 
+
+<<END SECTION>>
+
 <<SECTION: ESTRUCTURA BASE DEL PROYECTO>>
 SECTION_VERSION: 00016
 

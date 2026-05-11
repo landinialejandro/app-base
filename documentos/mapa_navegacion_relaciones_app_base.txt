@@ -41,7 +41,7 @@ no debe cargarse con teoría arquitectónica general que corresponda a otros doc
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 REGLA GENERAL
 
@@ -55,11 +55,15 @@ navegación principal expresa estructura estable
 
 navegación contextual expresa relaciones reales de trabajo
 
+navegación pública externa expresa acceso externo controlado y no panel interno
+
 dataset interno no equivale a módulo navegable
 
 host visual no equivale a ownership funcional
 
 universo semántico no equivale a ownership funcional
+
+entrada pública externa no equivale a navegación interna del tenant
 
 el trail preserva contexto entre pantallas relacionadas
 
@@ -146,6 +150,44 @@ la existencia de entrada visual no convierte a la capa satélite en CRUD ordinar
 una entrada de Servicio y mantenimiento no debe duplicar la navegación estructural de Orders si solo está filtrando o contextualizando órdenes de servicio
 
 un universo semántico debe conservar coherencia de trail, breadcrumbs y redirecciones físicas cuando el usuario entra por ese universo
+
+Regla adicional para capas satélite comerciales autogestivas:
+
+una capa satélite comercial autogestiva puede tener entrada pública externa por tenant sin convertirse automáticamente en navegación interna del tenant.
+
+Caso vigente:
+
+Shopping Autoservicio
+
+Key técnica:
+
+self_service_sales
+
+Entrada pública vigente:
+
+/shop/{tenant:slug}
+
+Label visible:
+
+Tienda
+
+Lectura:
+
+/shop/{tenant:slug} representa la entrada pública externa de Tienda del tenant
+
+/shop/{tenant:slug} no es navegación principal interna
+
+/shop/{tenant:slug} no pertenece al panel interno auth + tenant
+
+/shop/{tenant:slug} no habilita dashboard, tenant/profile, parties.show ni rutas internas
+
+/shop/{tenant:slug} resuelve tenant por slug público
+
+Regla:
+
+una entrada pública externa debe describirse como navegación pública o externa controlada.
+
+No debe mezclarse con navegación principal tenant ni con navegación interna autenticada.
 
 Regla adicional para subcapas contextuales internas:
 
@@ -238,7 +280,7 @@ cuando existan varias rutas posibles, debe priorizarse la más consistente con N
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN PRINCIPAL TENANT>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
 NAVEGACIÓN PRINCIPAL TENANT
 
@@ -392,6 +434,34 @@ organizar recursos cuando se implemente
 
 acceder a órdenes electrónicas livianas o paquetes de trabajo cuando se implemente
 
+Aclaración vigente para Shopping Autoservicio:
+
+Shopping Autoservicio no forma parte de la navegación principal tenant por existir como capa satélite comercial autogestiva.
+
+Su entrada vigente es pública externa por tenant:
+
+/shop/{tenant:slug}
+
+Label visible:
+
+Tienda
+
+Lectura:
+
+/shop/{tenant:slug} no es entrada del panel interno
+
+/shop/{tenant:slug} no es menú tenant interno
+
+/shop/{tenant:slug} no usa el grupo auth + tenant
+
+/shop/{tenant:slug} no habilita dashboard, tenant/profile, parties.show ni rutas internas
+
+/shop/{tenant:slug} resuelve tenant por slug público
+
+Regla:
+
+si más adelante se implementa una vista interna owner/admin para registros o customers de Shopping Autoservicio, esa vista deberá definirse como acceso interno específico y no confundirse con la entrada pública del customer.
+
 Regla:
 
 la navegación principal no reemplaza flujos contextuales ni relaciones entre módulos.
@@ -401,7 +471,7 @@ Su función es dar acceso estructural al ecosistema operativo vigente.
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00019
+SECTION_VERSION: 00020
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -637,6 +707,10 @@ OrderNavigationTrail puede resolver base contextual de órdenes de servicio medi
 
 Caso vigente:
 
+OrderNavigationTrail::showRouteName() puede resolver si el retorno físico corresponde a orders.show o service.orders.show según ruta actual o trail recibido.
+
+Caso vigente:
+
 orders.partials.table puede recibir showRouteName para apuntar a orders.show o service.orders.show según el universo de navegación.
 
 Caso vigente:
@@ -654,6 +728,50 @@ la navegación hacia la orden debe seguir usando rutas y contratos de Orders o d
 las acciones reales sobre la orden deben seguir autorizándose por Orders
 
 el frente Servicio y mantenimiento no debe inventar navegación paralela si puede usar contexto, rutas semánticas, trail o surfaces oficiales
+
+las rutas internas de operación pueden seguir perteneciendo al módulo dueño cuando el ownership real no cambia
+
+no deben crearse rutas duplicadas innecesarias como service.orders.items.* si la operación real sigue perteneciendo a Orders
+
+los retornos físicos deben conservar /service/orders/{order} cuando el flujo nace en Servicio y mantenimiento
+
+Retornos físicos validados dentro del universo /service:
+
+update de Order
+
+cambio de estado
+
+destroy de Order
+
+store, update y destroy de OrderItem
+
+crear, editar o cancelar ítems
+
+operaciones de Inventory sobre líneas de Order
+
+devolución de línea desde Inventory
+
+links visuales de Inventory hacia Order
+
+links visuales de Documents hacia Order
+
+retornos desde Attachments hacia parent Order
+
+Aclaración sobre hosts surface:
+
+los hosts surface internos siguen usando orders.show como identificador funcional.
+
+No deben reemplazarse por service.orders.show.
+
+Distinción consolidada:
+
+orders.show = host interno funcional
+
+service.orders.show = ruta física contextual del universo /service
+
+Regla:
+
+la ruta física contextual no cambia el host funcional ni el ownership de Orders.
 
 <<END SECTION>>
 

@@ -50,1786 +50,935 @@ Debe contener doctrina de seguridad, no inventario completo de casos implementad
 
 <<END SECTION>>
 
-<<SECTION: ALCANCE GENERAL>>
-SECTION_VERSION: 00008
+<<SECTION: REGLAS DE ORO DOCUMENTAL>>
+SECTION_VERSION: 00001
 
-ALCANCE GENERAL
+[USO]
+Documento rector = contrato doctrinal de seguridad para IA.
+No es manual humano.
+No es inventario de módulos.
+No es historial.
+No es roadmap.
 
-Este documento define la doctrina oficial de seguridad y acceso del proyecto.
+[REGLA 1]
+Si una frase no evita un error de autorización futuro, se elimina.
 
-Su función es establecer principios estables para:
+[REGLA 2]
+Si una regla ya está cubierta por un principio más fuerte, no se repite.
 
-autorización
+[REGLA 3]
+Si el detalle pertenece a módulo, navegación, UI, runtime o implementación, sale de este documento.
+
+[REGLA 4]
+Seguridad rectoral = principios + restricciones críticas + fronteras de autorización.
+
+[REGLA 5]
+Las secciones por módulo solo conservan excepciones o restricciones de alto impacto.
+
+[REGLA 6]
+UI, rutas, surfaces, dashboards, satélites, IA y automatizaciones nunca reemplazan backend autorizado.
+
+[REGLA 7]
+NO SE ASUME.
+NO SE SUPONE.
+Si falta permiso, scope, constraint, policy, tenant, estado o evidencia runtime: pedir dato exacto.
+
+[REGLA 8]
+Documento debe maximizar:
+
+prevención de bypass
+separación de planos
 aislamiento tenant
-contratos modulares de seguridad
-permisos efectivos
-constraints funcionales
-acciones críticas
-visibilidad segura
-automatizaciones e IA como consumidores sujetos a seguridad
+continuidad IA
+mínima ambigüedad
+bajo ruido narrativo
 
-No reemplaza documentación funcional ni detalle operativo completo de cada módulo.
+[REGLA 9]
+Traducción humana = bajo demanda.
+Doctrina compacta = formato principal.
 
-Debe utilizarse como referencia rectora al diseñar, auditar o corregir acceso dentro del sistema.
+<<END SECTION>>
 
-Reglas:
+<<SECTION: ALCANCE GENERAL>>
+SECTION_VERSION: 00009
 
-toda decisión de acceso debe ser coherente con este documento
+[ALCANCE]
+Doctrina oficial de seguridad y acceso.
 
-si otro documento contradice estas reglas, debe auditarse y alinearse
+[DEFINE]
 
-la UI visible no constituye por sí sola una fuente válida de autorización
+* autorización
+* aislamiento tenant
+* pertenencia
+* tenant activo
+* permisos efectivos
+* scopes
+* constraints
+* contratos modulares de seguridad
+* visibilidad segura
+* acciones críticas
+* IA/automatizaciones como consumidores sujetos a seguridad
 
-la trazabilidad no autoriza operaciones
+[NO DEFINE]
 
-las automatizaciones no autorizan operaciones por sí mismas
+* navegación
+* UI
+* roadmap
+* historial
+* estructura física código
+* detalle funcional completo de módulos
+* implementación puntual
 
-la IA no amplía privilegios
+[PRECEDENCIA]
+Si otro documento contradice seguridad_acceso en materia de acceso/autorización, prevalece seguridad_acceso.
 
-los detalles técnicos pueden evolucionar sin alterar estos principios rectores
+[REGLAS]
+UI ≠ autorización.
+Trazabilidad ≠ autorización.
+Automatización ≠ autorización.
+IA ≠ privilegio.
+Detalle técnico puede evolucionar sin alterar doctrina.
 
 <<END SECTION>>
 
 <<SECTION: PRINCIPIOS INMUTABLES DE AUTORIZACIÓN>>
-SECTION_VERSION: 00029
+SECTION_VERSION: 00032
 
-PRINCIPIOS INMUTABLES DE AUTORIZACIÓN
+[AUTORIDAD CENTRAL]
+Decisión final = backend / capa central de seguridad.
+Nada visual, contextual, satélite, transversal, público, automatizado o IA reemplaza esa decisión.
 
-Toda autorización efectiva del sistema debe respetar estos principios.
+[TENANT]
+Toda autorización ocurre dentro de tenant correcto.
+No operar registros ajenos.
+Slug público puede resolver tenant, pero no habilita acceso interno.
 
-AUTORIDAD CENTRAL
+[OWNER / ADMIN]
+owner = gobierno estructural vía memberships.is_owner.
+admin = rol delegable fuerte.
+admin ≠ owner.
+Regla: admin opera fuerte; owner gobierna.
 
-La decisión final de acceso pertenece a la capa central de seguridad vigente.
+[PLANOS SEPARADOS]
+Dataset disponible ≠ visibilidad UI ≠ permiso efectivo ≠ trazabilidad ≠ automatización ≠ IA ≠ autorización.
 
-Ninguna vista, componente, integración reusable, consumidor externo, registro de actividad, automatización, dashboard operativo, universo semántico, pieza satélite, subcapa contextual interna o asistencia IA reemplaza esa decisión.
+[NO AUTORIZAN]
 
-TENANT OBLIGATORIO
+* UI visible
+* dashboard
+* universe semántico
+* entrada pública
+* capa satélite
+* subcapa contextual
+* vínculo opcional
+* query param
+* hidden input
+* JS
+* log operativo
+* IA
+* automatización
 
-Toda autorización ocurre dentro del tenant correspondiente.
+[MÍNIMO ACOPLE]
+Consumidor no reinterpreta seguridad de otro módulo.
+Usar capacidades oficiales.
+Respetar ownership y contrato del módulo dueño.
 
-No debe operarse sobre registros ajenos al tenant activo.
+[FRONTERAS EXTERNAS]
+Si acción propia depende de condición externa:
+módulo dueño consulta hook/service/frontera explícita.
+No reconstruir lógica externa.
+Falla en bloqueo crítico = bloquear.
 
-GOBIERNO ESTRUCTURAL DEL TENANT
+[AUTONOMÍA MODULAR]
+Módulo autónomo ≠ acceso libre.
+Vínculo opcional ≠ permiso.
+Snapshot textual ≠ permiso.
+Contexto request ≠ permiso.
 
-La autoridad estructural del tenant pertenece al owner.
-
-El owner se resuelve por memberships.is_owner y no equivale a un rol delegable ordinario.
-
-El rol admin puede operar con autoridad amplia dentro del tenant, pero no reemplaza al owner ni puede modificar la estructura superior de gobierno del tenant.
-
-Regla doctrinal:
-
-admin opera fuerte
-
-owner gobierna
-
-SEPARACIÓN DE PLANOS
-
-Dataset disponible, visibilidad UI, permiso efectivo, trazabilidad, automatización, subcapa contextual, dashboard operativo, universo semántico, pieza satélite e intervención IA son planos distintos.
-
-Uno no implica automáticamente al otro.
-
-Reglas:
-
-la visibilidad en UI no constituye autorización
-
-la autorización efectiva debe resolverse siempre en backend
-
-la trazabilidad no autoriza operaciones
-
-la IA no amplía privilegios
-
-las automatizaciones no reemplazan autorización
-
-un dashboard operativo no habilita acciones fuera del contrato del módulo dueño
-
-un universo semántico no habilita acciones fuera del contrato del módulo dueño
-
-una pieza satélite no absorbe permisos de módulos participantes
-
-una subcapa contextual no habilita acceso automático a todos los datos del módulo host ni de módulos relacionados
-
-un vínculo opcional con otro módulo no autoriza acciones por sí mismo
-
-MÍNIMO ACOPLE
-
-Los módulos consumidores no deben reinterpretar reglas internas de otro módulo.
-
-Deben consumir capacidades oficiales y someterse al arbitraje central.
-
-Las capas satélite productivas y sus universos semánticos deben consumir contratos oficiales de módulos dueños y no duplicar autorización.
-
-Las subcapas contextuales internas deben consumir datos autorizados y no absorber permisos ni ownership de módulos relacionados.
-
-Los vínculos gestionados entre módulos no reemplazan la autorización central.
-
-FRONTERAS EXTERNAS Y BLOQUEOS SEGUROS
-
-Cuando una acción propia dependa de una condición externa perteneciente a otro módulo, el módulo dueño de la acción debe consultar una frontera explícita.
-
-No debe reconstruir internamente la lógica del módulo externo.
-
-Reglas:
-
-un controller no debe duplicar lógica de bloqueo de otro módulo
-
-un resolver de seguridad no debe reconstruir dominio externo si existe hook o service de frontera
-
-el módulo externo conserva ownership de su regla
-
-el módulo que ejecuta la acción conserva ownership de la autorización principal
-
-ante fallas de consulta en bloqueos críticos, debe asumirse el escenario seguro
-
-Regla:
-
-si no puede confirmarse que no hay bloqueos, no debe ejecutarse la acción crítica.
-
-AUTONOMÍA MODULAR Y SEGURIDAD
-
-La autonomía funcional de un módulo no elimina Security.
-
-Que un módulo pueda operar sin un vínculo opcional no significa acceso libre ni operación fuera del tenant activo.
-
-Toda creación, lectura, actualización, vinculación o derivación debe pasar por autorización efectiva, tenant activo, usuario autenticado, membership vigente, módulos habilitados y validaciones backend.
-
-Reglas:
-
-party_id no debe utilizarse como condición universal de existencia ni autorización para Orders o Documents
-
-counterparty_name no reemplaza autorización
-
-un vínculo opcional con Party, Asset, Task, Appointment o Document no autoriza acciones por sí mismo
-
-crear un Document desde una Order requiere autorización efectiva sobre Documents
-
-crear una Order desde un contexto de Task, Appointment o universo semántico requiere autorización efectiva sobre Orders
-
-el parámetro contextual de request no equivale a permiso concedido
-
-LECTURA GENERAL Y LECTURA CONTEXTUAL DE ACTIVIDAD
-
-La lectura general del log operativo tenant-scoped requiere autorización explícita propia.
-
-Caso vigente:
-
+[ACTIVIDAD]
+Lectura general tenant-scoped requiere:
 operational_activity.view_any
 
-La lectura contextual de actividad operativa asociada a un registro puede habilitarse cuando el host ya autorizó la visualización de ese registro.
+Lectura contextual requiere:
+host autorizado + frontera declarada si es agregada/especial.
 
-Reglas:
+[CAPAS SATÉLITE]
+Permiso área ≠ permiso operativo.
+Universo semántico ≠ contrato del módulo dueño.
+Entrada pública ≠ acceso interno.
 
-no equivale a lectura general del log del tenant
+Casos:
 
-no habilita acceso a otros registros
+* /service: universo Servicio y mantenimiento; acciones reales = Orders u otros módulos dueños.
+* /shop/{tenant:slug}: entrada pública Tienda; no panel interno.
 
-no habilita navegación principal de OperationalActivity
+[ACCIONES CRÍTICAS]
+Requieren autorización efectiva + validación backend + confirmación humana o regla explícita cuando corresponda.
 
-no reemplaza permisos del módulo host
-
-no autoriza la operación original
-
-La lectura contextual puede ser directa, agregada o contextual especial, siempre dentro del contrato definido por el módulo dueño y con host previamente autorizado.
-
-CAPAS SATÉLITE PRODUCTIVAS, UNIVERSOS SEMÁNTICOS Y ACCESO AL ÁREA
-
-Una capa satélite productiva puede tener una capacidad o permiso propio de acceso al área sin absorber permisos de los módulos que orquesta.
-
-También puede tener un universo semántico propio cuando el flujo funcional lo justifique.
-
-Caso vigente:
-
-/service
-
-Lectura:
-
-/service expresa el universo semántico del frente Servicio y mantenimiento.
-
-/service no autoriza por sí mismo acciones internas sobre órdenes, activos, inventario, productos, turnos, tareas, documentos, adjuntos, contactos ni actividad operativa.
-
-/service no reemplaza el contrato de Orders.
-
-Caso vigente:
-
-service_maintenance.view_any
-
-Lectura:
-
-service_maintenance.view_any permite acceder al frente Servicio y mantenimiento cuando el tenant lo tenga habilitado y el usuario posea autorización efectiva para verlo.
-
-No autoriza por sí mismo crear, ver, editar, cerrar, cancelar, reabrir ni ejecutar órdenes.
-
-No autoriza operaciones sobre Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity.
-
-Las acciones internas continúan bajo el contrato del módulo dueño.
-
-Caso vigente:
-
-las órdenes de servicio usan Orders como módulo dueño de la operación transaccional.
-
-Por lo tanto, las acciones reales sobre órdenes de servicio deben pasar por autorización efectiva de Orders.
-
-Regla:
-
-un permiso de acceso al área o un universo semántico no debe confundirse con permiso operativo sobre los recursos participantes.
-
-ACCIONES CRÍTICAS
-
-Las acciones críticas requieren autorización efectiva, validación backend y, cuando corresponda, confirmación humana o regla explícita previamente aprobada.
-
-Acciones críticas posibles:
-
-crear orden real
-cerrar orden
-cancelar orden
-reabrir orden cerrada
-aprobar documento
-cerrar documento
-consumir stock
-revertir consumos
-programar visita
-asignar técnico o responsable
-registrar certificación
-confirmar cumplimiento de checklist
-resolver pendiente técnico
+Ejemplos:
+crear/cerrar/cancelar/reabrir orden
+aprobar/cerrar documento
+consumir/revertir stock
 modificar permisos
 habilitar módulos
-enviar comunicaciones externas
-emitir informes finales
 eliminar registros
 modificar datos sensibles
+confirmar token externo
+crear customer externo
+acreditar saldo futuro
+consumir ficha futura
+ejecutar cobro futuro
+emitir comprobante futuro
 
-Regla:
+[ESTADOS TERMINALES]
+Order closed/cancelled no permite operación ordinaria.
+Reapertura = acción restringida.
+Estado satélite no puede saltar lifecycle base.
 
-la IA puede preparar, resumir o sugerir.
-
-No puede ejecutar acciones críticas sin autorización, confirmación humana o regla explícita previamente aprobada.
-
-ESTADOS TERMINALES Y REAPERTURA
-
-Una orden cerrada no debe permitir operación ordinaria posterior.
-
-No debe permitir:
-
-edición técnica
-surtido
-consumo
-modificación ordinaria
-cambio operativo satélite
-automatización ejecutiva
-acción IA ejecutiva
-
-La reapertura de una orden cerrada debe ser acción restringida y autorizada según reglas vigentes.
-
-Los estados operativos satélite no deben saltarse el lifecycle base ni habilitar operación cuando Orders.status no lo permita.
-
-Reglas síntesis:
-
-los recursos hijos pueden delegar seguridad sin perder validaciones operativas específicas
-
-el registro de actividad operativa no modifica el permiso efectivo de la acción original
-
-la lectura contextual heredada solo alcanza actividad asociada al registro host ya autorizado o al criterio contextual declarado por el módulo dueño
-
-los dashboards operativos no habilitan acciones fuera del contrato del módulo dueño
-
-los universos semánticos no habilitan acciones fuera del contrato del módulo dueño
-
-los vínculos opcionales entre módulos no reemplazan Security
-
-las fronteras externas pueden bloquear acciones propias, pero no reemplazan autorización principal del módulo dueño
-
-un permiso de acceso a una capa satélite no reemplaza permisos operativos de los módulos participantes
+[REGLA SÍNTESIS]
+Todo plano auxiliar debe volver a autorización backend efectiva.
 
 <<END SECTION>>
 
 <<SECTION: ACCESO PÚBLICO Y ACCESO AUTENTICADO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00004
 
-ACCESO PÚBLICO Y ACCESO AUTENTICADO
+[ACCESO PÚBLICO]
+Previo o externo a operación interna autenticada.
+Puede mostrar onboarding, login, tienda pública o formularios externos.
+No habilita operación interna.
 
-ACCESO PÚBLICO
+[CASO]
+/shop/{tenant:slug} = entrada pública Tienda / Shopping Autoservicio.
 
-Corresponde a pantallas o flujos previos a la operación autenticada.
+[REGLAS SHOP]
+No panel interno.
+No dashboard.
+No tenant/profile.
+No parties.show.
+No pertenencia interna.
+No User interno.
+No Membership.
 
-Puede incluir onboarding, ingreso o solicitudes iniciales.
+[TENANT POR SLUG]
+Puede resolver tenant.
+No debilita aislamiento.
+Operaciones públicas se asocian al tenant_id correspondiente.
 
-No habilita operación interna del tenant.
+[ACCESO INTERNO AUTENTICADO]
+Requiere:
+User autenticado
+Membership vigente
+Tenant activo
+Autorización efectiva
 
-ACCESO AUTENTICADO
-
-Corresponde al ingreso de una identidad reconocida por el sistema.
-
-La autenticación no agota la seguridad.
-
-Luego deben resolverse pertenencia válida, tenant activo y autorización efectiva para operar.
-
-Autenticado no equivale automáticamente a autorizado.
+[LOGIN EXTERNO FUTURO]
+Login externo self_service_sales ≠ login interno.
+No crea User.
+No crea Membership.
+No otorga roles internos.
+No habilita panel.
 
 <<END SECTION>>
 
 <<SECTION: IDENTIDAD, MEMBERSHIP Y TENANT ACTIVO>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00009
 
-IDENTIDAD, MEMBERSHIP Y TENANT ACTIVO
+[IDENTIDAD INTERNA]
+User = identidad global.
+Membership = pertenencia operativa tenant.
+Tenant = empresa / espacio operativo.
 
-users representa identidad global.
+[OPERACIÓN INTERNA VÁLIDA]
+User autenticado.
+Membership vigente.
+Tenant activo.
+Autorización efectiva.
 
-memberships representa la pertenencia operativa entre usuario y tenant.
+[MEMBERSHIP → PARTY]
+Opcional.
+Ficha ampliada tenant-scoped.
+No identidad global.
+No pertenencia.
+No autorización.
 
-tenants representa la empresa o espacio de trabajo operativo.
+[PARTY VINCULADA A MEMBERSHIP ACTIVA]
+Puede condicionar edición de datos críticos.
+No convierte Party en acceso.
 
-La operación interna válida exige:
+[CUSTOMER EXTERNO]
+Pertenece a plano comercial externo.
 
-identidad autenticada
-membership vigente
-tenant activo correctamente resuelto
+self_service_sales puede crear:
+Party.kind = person
+PartyRole.role = customer
 
-Sin esa tríada no existe operación interna legítima.
+[REGLAS CUSTOMER EXTERNO]
+≠ User interno
+≠ Membership
+≠ roles internos
+≠ owner/admin/operator/sales/administrator
+≠ panel interno
+≠ tenant/profile
+≠ dashboard
+≠ login interno
 
-La pertenencia a múltiples tenants no debilita el modelo.
+[PARTY CUSTOMER EXTERNA]
+Representa cliente comercial.
+No identidad global.
+No pertenencia interna.
+No base de autorización interna.
 
-Exige resolver correctamente el contexto activo.
+[ACTIVIDAD CONTEXTUAL]
+Party employee + membership activa puede habilitar lectura contextual especial si host autorizado.
 
-Aclaración consolidada:
-
-una membership puede vincular opcionalmente una ficha ampliada en parties.
-
-Esa ficha no reemplaza la identidad global del usuario.
-
-No modifica la pertenencia operativa.
-
-No constituye base de autorización.
-
-La vinculación membership → party debe leerse como extensión tenant-scoped de datos de contacto o perfil ampliado.
-
-Regla:
-
-la autorización se resuelve por identidad autenticada, membership vigente, tenant activo y contrato efectivo.
-
-party no reemplaza ninguno de esos elementos.
-
-Aclaración adicional:
-
-si una party está vinculada a una membership activa, su operación queda condicionada por esa pertenencia activa.
-
-Esa condición no convierte a party en entidad de acceso.
-
-Solo protege la coherencia entre identidad global, pertenencia operativa y ficha ampliada del negocio.
-
-Regla:
-
-la condición relevante para bloquear atributos críticos de la ficha ampliada es la existencia de una membership activa vinculada.
-
-Una membership histórica, inactiva o desvinculada no debe producir por sí misma el mismo bloqueo operativo.
-
-Aclaración adicional para lectura contextual de actividad:
-
-cuando una party tenga relación employee y membership activa vinculada, puede funcionar como centro contextual de lectura de actividad del colaborador.
-
-Esta lectura no convierte a party en identidad del sistema.
-
-No convierte a membership en módulo funcional.
-
-No convierte a user en entidad del negocio.
-
-No convierte a party en base de autorización.
-
-No reemplaza operational_activity.view_any para lectura general del tenant.
-
-Solo puede operar cuando el host ya autorizó la visualización de la Party correspondiente.
+[NO EXTRAPOLAR]
+Party customer externa ≠ Party employee.
+Party customer externa no habilita actividad interna ni acceso tenant.
 
 <<END SECTION>>
 
 <<SECTION: MULTI-TENANCY Y AISLAMIENTO>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00016
 
-MULTI-TENANCY Y AISLAMIENTO
+[DOCTRINA]
+Seguridad efectiva siempre dentro de tenant correcto.
 
-El modelo multi-tenant forma parte de la seguridad efectiva del sistema.
+[PROHIBIDO]
 
-Toda autorización debe ocurrir dentro del tenant correspondiente y sin mezclar universos de datos entre empresas.
+* exponer datos de otro tenant
+* operar registros ajenos
+* asumir tenant por conveniencia
+* relajar filtros multi-tenant
+* ampliar datasets con IA/satélites/surfaces/dashboards
+* usar slug público para operación interna
 
-Principios obligatorios:
-
-no exponer datos de otro tenant
-
-no operar sobre registros ajenos al tenant activo
-
-no asumir contexto tenant por conveniencia técnica
-
-no relajar filtros multi-tenant por atajos de implementación
-
-no usar IA, automatizaciones, dashboards, piezas satélite ni subcapas contextuales para ampliar datasets fuera del tenant activo
-
-El aislamiento no se agota en la UI.
-
-Debe preservarse en:
-
+[APLICA A]
 consultas
-resolución de registros
 relaciones
-datasets visibles
+datasets
 operaciones entre módulos
 lecturas contextuales
-surfaces tenant/transversales
-dashboards operativos
+surfaces
+dashboards
 automatizaciones
-acciones asistidas por IA
-piezas satélite productivas
-subcapas contextuales internas
-registros de actividad operativa
+IA
+satélites
+subcapas
+operational_activities
+entradas públicas
+registros externos
+tokens externos
 
-Regla:
+[REGLA]
+UI autorizada no sustituye validación multi-tenant backend.
 
-una acción ejecutada desde UI autorizada no reemplaza la validación multi-tenant completa en backend.
+[OPERATIONAL ACTIVITY]
+tenant_id compatible con tenants.id.
+Si tenants.id = UUID string, operational_activities.tenant_id no debe tratarse como entero.
 
-Regla adicional:
+[LECTURAS CONTEXTUALES]
+Respetan tenant activo.
+No mezclan tenants.
+No habilitan lectura general.
 
-si una capacidad transversal registra actividad operativa, debe persistir el tenant correspondiente de forma compatible con el identificador real de tenants.
+[IA]
+Solo contexto autorizado, mínimo y necesario.
 
-Caso vigente:
-
-OperationalActivity debe conservar tenant_id como UUID string compatible con tenants.id.
-
-No debe tratarse tenant_id como entero.
-
-Regla adicional para lecturas contextuales:
-
-toda lectura contextual, agregada o especial debe respetar tenant activo y aislamiento vigente.
-
-No debe utilizarse para mezclar datos entre tenants, exponer relaciones no autorizadas ni habilitar lectura general del tenant.
-
-Regla adicional para IA:
-
-la IA solo puede recibir contexto autorizado para el usuario, tenant y acción en curso.
-
-No debe recibir información de otros tenants ni datasets globales por conveniencia de análisis.
-
-Si se prepara un contexto exportable o prompt manual, debe limitarse al alcance autorizado y necesario.
+[ENTRADA PÚBLICA]
+/shop/{tenant:slug} puede resolver tenant por slug.
+Slug no habilita interno.
+Visitante no obtiene membership.
+Customer confirmado no obtiene panel.
 
 <<END SECTION>>
 
 <<SECTION: OWNER Y ROLES BASE>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
-OWNER Y ROLES BASE
+[OWNER]
+Condición estructural de gobierno.
+Fuente: memberships.is_owner.
+No rol delegable ordinario.
 
-owner es una condición especial de gobierno interno del tenant.
+[ADMIN]
+Rol delegable fuerte.
+Opera.
+No gobierna estructuralmente.
+admin ≠ owner.
 
-No equivale a un rol delegable ordinario.
+[REGLA]
+admin opera fuerte.
+owner gobierna.
 
-Su determinación oficial se resuelve por memberships.is_owner.
+[ADMIN NO PUEDE]
 
-Regla doctrinal vigente:
+* reemplazar owner
+* modificar su propia autoridad
+* vaciar sus propios roles
+* asignar/delegar/quitar/autogestionar admin
+* modificar permisos del rol admin
 
-admin opera fuerte
+[ADMIN PUEDE]
+Gestionar roles operativos no estructurales si backend autoriza.
 
-owner gobierna
+[OWNER PUEDE]
+Administrar estructura superior tenant y autoridad admin según contrato.
 
-El owner conserva el gobierno estructural del tenant.
-
-Esto incluye decisiones superiores sobre datos generales del tenant, autoridad admin, delegación admin y estructura de gobierno interno.
-
-El rol admin es un rol delegable de gestión operativa fuerte.
-
-Puede operar módulos y acompañar la administración cotidiana del tenant, pero no equivale a owner.
-
-Reglas obligatorias:
-
-admin no puede reemplazar al owner
-
-admin no puede modificar su propio nivel de autoridad
-
-admin no puede vaciar sus propios roles
-
-admin no puede asignar, delegar, quitar ni autogestionar el rol admin
-
-admin no puede modificar los permisos del rol admin
-
-admin puede gestionar roles operativos no estructurales sobre otros usuarios cuando el contrato backend lo autorice
-
-owner puede administrar el rol admin y la estructura superior del tenant
-
-Los roles base operativos organizan responsabilidades internas según el contrato persistido vigente.
-
-Los nombres concretos de roles pueden evolucionar sin alterar estos principios.
-
-Regla doctrinal:
-
-la autoridad excepcional del owner no debe modelarse como simple permiso aislado si conceptualmente responde a una condición estructural del tenant.
-
-owner no debe degradarse doctrinalmente a una variante equivalente de un rol base común.
-
-Los roles base complementan la organización operativa del tenant.
-
-No reemplazan la singularidad estructural del owner.
+[REGLA]
+Owner no debe degradarse a permiso aislado común.
 
 <<END SECTION>>
 
 <<SECTION: MODELO V2 DE PERMISOS>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00017
 
-MODELO V2 DE PERMISOS
+[MODELO]
+Permisos persistidos orientados a módulos/capacidades.
 
-El sistema utiliza un modelo persistido de permisos orientado a módulos y capacidades.
-
-El contrato efectivo puede componerse mediante:
-
-módulo
+[COMPONENTES]
+module
 capability
 scope
 execution_mode
 constraint
 resolver central
-policy consumidora
-UI consumidora
-surface consumidora
-subcapa contextual consumidora
-universo semántico consumidor
-automatización consumidora
-IA consumidora cuando corresponda
+policy/consumer backend
+UI/surface/subcapa/universo/automatización/IA como consumidores
 
-Lectura correcta de cada pieza:
+[LECTURA]
+module = ámbito funcional.
+capability = acción/capacidad.
+scope = dataset autorizado.
+constraint = condición funcional.
+resolver = decisión oficial.
+policy = adaptador framework.
+UI = representación.
+surface/subcapa/universo = consumo sujeto a seguridad.
+IA/automatización = consumidor sin privilegio propio.
 
-módulo:
-ámbito funcional de autorización
+[REGLAS]
+Permiso no existe por UI.
+Acción IA no autoriza.
+Automatización no autoriza.
+Dashboard no autoriza.
+Universo no autoriza.
+Satélite no crea permisos paralelos.
+Subcapa no lee datasets fuera de contrato.
+Backend resuelve permisos efectivos.
+Constraints operan sobre dimensión real.
+Acciones críticas requieren autorización + validación + confirmación/regla.
 
-capability:
-acción o capacidad evaluable
+[CASOS]
+operational_activity.view_any = lectura general log tenant-scoped.
+parties usa allowed_party_roles.
+allowed_kinds no aplica a parties.
+orders puede usar allowed_kinds.
+service_maintenance.view_any = acceso área, no permiso operativo.
 
-scope:
-universo operativo resultante autorizado
+[REGLA]
+No crear capability persistida por reflejo si contrato vigente alcanza.
+Evolucionar permisos propios solo con justificación real.
 
-execution_mode:
-modo especial de resolución cuando exista
+[CAPAS SATÉLITE]
+Cada operación vuelve a módulo dueño/capacidad central.
 
-constraint:
-condición funcional adicional necesaria para autorizar correctamente
+[ORDERS MANTENIMIENTO]
+Estados satélite no reemplazan lifecycle Orders.
+Order approved = habilita operación técnica.
+Order closed = no operación ordinaria sin reapertura autorizada.
 
-resolver central:
-pieza que interpreta contrato persistido y entrega resultado oficial
-
-policy:
-adaptador de consumo integrado al framework
-
-UI:
-representación visual de disponibilidad, bloqueo o acción autorizada
-
-surface:
-consumo visual embebido que debe respetar autorización del host o capacidad propia según corresponda
-
-subcapa contextual:
-lectura interna de un módulo host que puede requerir condiciones propias de visibilidad y datos autorizados de módulos relacionados
-
-universo semántico:
-entrada funcional contextual que puede orientar rutas, navegación o datos forzados, pero no reemplaza permisos del módulo dueño
-
-automatización:
-consumidor operativo que debe pasar por el contrato oficial antes de ejecutar o preparar acciones
-
-IA:
-consumidor asistivo que puede sugerir, resumir o preparar, pero no ampliar privilegios ni ejecutar fuera del contrato oficial
-
-Reglas:
-
-un permiso no existe por estar dibujado en la UI
-
-una acción no queda autorizada por estar sugerida por IA
-
-una automatización no queda autorizada por estar programada
-
-un dashboard no queda autorizado para operar si el módulo dueño no autoriza la acción
-
-un universo semántico no queda autorizado para operar si el módulo dueño no autoriza la acción
-
-una pieza satélite no puede crear permisos paralelos que eviten el contrato del módulo dueño
-
-una subcapa contextual no puede leer datos relacionados si no se cumplen sus condiciones de visibilidad y los scopes correspondientes
-
-los permisos efectivos deben resolverse en backend
-
-las constraints funcionales deben aplicarse sobre la dimensión real del dominio
-
-las acciones críticas requieren autorización específica, validación backend y confirmación humana o regla explícita previamente aprobada cuando corresponda
-
-Casos vigentes:
-
-operational_activity.view_any autoriza lectura general tenant-scoped de OperationalActivity sin convertirlo en módulo funcional ordinario
-
-parties usa allowed_party_roles como constraint funcional sobre party_roles.role
-
-allowed_kinds no aplica a parties
-
-orders conserva allowed_kinds cuando kind expresa segmentación operativa válida del módulo
-
-ProductOperationalSummary no creó capabilities persistidas nuevas en su primera versión y se resuelve mediante compuerta contextual interna y scopes existentes
-
-service_maintenance.view_any permite acceso al área Servicio y mantenimiento sin absorber permisos operativos de Orders ni de otros módulos participantes
-
-Regla:
-
-no debe crearse capability persistida por reflejo automático cuando una capacidad, subcapa contextual, universo semántico o frente satélite puede resolverse correctamente con el contrato vigente.
-
-Esto no impide evolucionar a permisos persistidos propios si luego se justifica.
-
-Regla para capas satélite y universos semánticos:
-
-una capa satélite o universo semántico no concede permisos propios sobre todos los módulos participantes por el solo hecho de existir como frente operativo.
-
-Cada operación debe volver al contrato del módulo dueño o capacidad central correspondiente.
-
-Regla para mantenimiento:
-
-los estados operativos satélite de una orden no reemplazan el lifecycle base ni autorizan operación si Orders.status no lo permite.
-
-Una orden debe estar approved para operar técnicamente.
-
-Una orden closed no puede operar ordinariamente sin reapertura autorizada.
-
-Regla para Inventory:
-
-custodia, consumo, devolución, faltante, daño o cancelación de materiales debe autorizarse desde el contrato vigente de Inventory y sus capacidades oficiales.
-
-Entregar material en custodia no equivale a consumirlo.
+[INVENTORY]
+Custodia/consumo/devolución/faltante/daño/cancelación se autorizan por contrato Inventory.
+Custodia ≠ consumo.
 
 <<END SECTION>>
 
 <<SECTION: FLUJO OFICIAL DE AUTORIZACIÓN>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
-FLUJO OFICIAL DE AUTORIZACIÓN
-
-Secuencia doctrinal esperada:
-
-contrato persistido vigente
+[FLUJO]
+contrato persistido
 ↓
 resolver central
 ↓
-policy o consumidor backend
+policy / consumidor backend
 ↓
-controller o servicio de aplicación
+controller / servicio aplicación
 ↓
-consulta de datos dentro del universo autorizado
+consulta dentro universo autorizado
 ↓
-UI que expresa el resultado permitido
+UI representa resultado
 
-Lectura operativa:
+[REGLAS]
+No invertir flujo.
+No decidir desde UI.
+No consultar amplio y ocultar visualmente.
+No saltar resolver central.
+No duplicar reglas sensibles si existe pieza central.
+Optimizaciones solo dentro de capa central.
 
-el contrato define qué puede ocurrir
-
-el resolver transforma contrato en decisión usable
-
-las capas consumidoras aplican esa decisión
-
-la UI refleja disponibilidad real
-
-El resolver central puede incorporar optimizaciones internas siempre que no alteren permisos, scopes, constraints, tenancy, policies ni flujo oficial de autorización.
-
-Una optimización interna del resolver no constituye bypass si permanece dentro del kernel de autorización y no traslada lógica a controllers, Blade, surfaces o consumidores externos.
-
-Reglas:
-
-no invertir el flujo
-
-no decidir desde la UI lo que backend no autorizó
-
-no consultar universos más amplios para luego ocultarlos visualmente
-
-no saltar el resolver central con lógica local improvisada
-
-no duplicar reglas sensibles en Blades, controllers o policies si existe una pieza central vigente
-
-Caso vigente para tenant/profile:
-
-la autoridad reusable del frente tenant/profile es:
-
+[TENANT PROFILE]
+Pieza central:
 App\Support\Tenants\TenantProfileAccess
 
-Lectura:
+[USO]
+MembershipPolicy e InvitationPolicy consumen TenantProfileAccess cuando operación pertenece a gobierno interno tenant.
 
-TenantProfileAccess centraliza reglas owner/admin del frente tenant/profile.
-
-MembershipPolicy e InvitationPolicy deben consumir esta pieza cuando la operación pertenezca al gobierno interno del tenant.
-
-Regla:
-
-la UI puede expresar lectura, readonly o acción disponible, pero el backend debe autorizar o bloquear.
+[REGLA]
+UI puede expresar readonly/acciones.
+Backend autoriza o bloquea.
 
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00031
-
-REGLAS DE IMPLEMENTACIÓN SEGURA
-
-Toda implementación debe respetar seguridad efectiva además de funcionar técnicamente.
-
-Reglas obligatorias:
-
-no autorizar desde Blade o frontend
-
-no confiar en parámetros manipulables del cliente
-
-resolver registros dentro del tenant activo
-
-validar pertenencia entre recursos relacionados
-
-ejecutar autorización real antes de mutaciones sensibles
-
-evitar duplicar reglas dispersas en múltiples capas
-
-preferir capacidades oficiales del módulo oferente antes que bypass técnicos
-
-no usar trazabilidad, dashboards, universos semánticos, piezas satélite, subcapas contextuales, automatizaciones ni IA como atajos de autorización
-
-no reconstruir lógica de seguridad, bloqueo o integridad de otro módulo dentro del controller consumidor
-
-Cuando una acción se ejecute desde surfaces embebidas, universos semánticos, modales o row actions, la validación backend sigue siendo obligatoria.
-
-Cuando existan recursos padre e hijos, debe respetarse además la subordinación funcional entre ambos.
-
-Las mejoras visuales, semánticas, navegacionales o de UX nunca justifican relajar seguridad.
-
-La reutilización visual mediante componentes comunes no debe centralizar decisiones de permiso.
-
-Las decisiones de acceso deben permanecer en Security, policies, controllers, services o payloads ya autorizados según corresponda.
-
-Las optimizaciones de rendimiento sobre autorización deben permanecer dentro de la capa central correspondiente.
-
-No deben crear rutas paralelas de decisión ni evitar la evaluación del contrato efectivo.
-
-Regla:
-
-la validación efectiva siempre debe contemplar tenant, recurso, relaciones y estado operativo cuando corresponda.
-
-FRONTERAS EXTERNAS
-
-Cuando una acción propia dependa de una condición externa perteneciente a otro módulo, debe usarse hook, service o frontera explícita.
-
-Reglas:
-
-no consultar modelos externos para reconstruir internamente la regla del proveedor
-
-no duplicar reglas de bloqueo en controllers consumidores
-
-no asumir que la ausencia de respuesta externa habilita la acción crítica
-
-si falla una verificación de bloqueo crítico, asumir bloqueo
-
-la frontera externa debe devolver una decisión o condición operativa, no transferir ownership de autorización
-
-TENANT PROFILE
-
-Las reglas owner/admin del frente tenant/profile deben centralizarse en TenantProfileAccess.
-
-La vista puede mostrar modo readonly, ocultar controles o expresar acciones disponibles, pero no decide autorización final.
-
-Todo intento manipulado debe evaluarse en backend.
-
-Reglas vigentes:
-
-admin puede ingresar a tenant/profile cuando TenantProfileAccess lo autorice
-
-la solapa General es editable solo por owner
-
-para admin, General debe quedar readonly
-
-cualquier intento manipulado de admin para actualizar General debe bloquearse en backend
-
-admin no puede gestionar permisos del rol admin
-
-admin no puede asignar admin a otro usuario
-
-admin no puede combinar admin con roles operativos mediante manipulación de request
-
-admin no puede vaciar sus propios roles
-
-admin puede gestionar roles operativos no estructurales cuando la validación backend lo autorice
-
-SINCRONIZACIÓN DE ROLES DE MEMBERSHIP
-
-Cuando la intención del usuario sea editar el conjunto completo de funciones de una membership, el backend puede recibir el set completo deseado y sincronizarlo mediante acción específica.
-
-Caso vigente:
-
-TenantMembershipRoleController::sync
-
-Reglas:
-
-sync debe validar agregados y remociones con autoridad backend
-
-sync debe bloquear combinaciones sensibles antes de aplicar cambios
-
-sync debe impedir autogestión indebida de autoridad
-
-sync debe impedir que una membership activa no owner quede sin roles
-
-sync no debe depender de JS ni de campos ocultos como protección final
-
-ACTIVIDAD OPERATIVA
-
-El registro de actividad debe ocurrir después de que el módulo dueño haya autorizado, validado y ejecutado su operación.
-
-Secuencia correcta:
-
-el módulo dueño autoriza
-el módulo dueño valida
-el módulo dueño ejecuta la operación
-el módulo emite un evento operativo liviano
-la capacidad transversal registra si corresponde
-
-Reglas:
-
-OperationalActivity no autoriza operaciones
-
-OperationalActivity no reemplaza Security
-
-OperationalActivity no reemplaza policies
-
-OperationalActivity no reemplaza validaciones del módulo dueño
-
-OperationalActivity no aplica constraints funcionales de permisos
-
-OperationalActivity no debe usarse como fuente de autorización
-
-OperationalActivity no debe bloquear el flujo principal si falla el registro del log
-
-La escritura del log operativo debe ser system-owned.
-
-No debe existir create manual desde UI, edit, update, delete, destroy ni carga manual por formularios para OperationalActivity.
-
-La lectura del log operativo no queda autorizada por existir escritura append-only.
-
-Toda vista general, tab, surface o consulta visual de operational_activities requiere contrato de lectura explícito.
-
-Caso vigente:
-
-la lectura general tenant-scoped de OperationalActivity se autoriza mediante:
-
-operational_activity.view_any
-
-LECTURA CONTEXTUAL DE ACTIVIDAD
-
-Cuando una surface tenant/transversal de OperationalActivity se monta dentro de un host funcional, el host debe haber autorizado previamente view sobre el registro actual.
-
-Reglas:
-
-no usar operational_activity.view_any para lectura contextual de un registro host
-
-no abrir acceso al log general del tenant desde una surface contextual
-
-no leer actividad de registros no autorizados
-
-no convertir la surface contextual en navegación principal
-
-no usar OperationalActivity como fuente para decidir permisos del host
-
-no reconstruir la autorización del host dentro de OperationalActivity
-
-si la lectura contextual usa activity_record_set o activity_context, la frontera debe estar declarada por el módulo dueño y respetar tenant activo
-
-activity_record_set no autoriza records por sí mismo
-
-activity_context no autoriza records por sí mismo
-
-OperationalActivity no debe contener condiciones internas específicas de módulos para definir esa frontera
-
-PARTIES
-
-La UI no constituye autorización para asignar relaciones sensibles del contacto.
-
-Si una opción visual se oculta, bloquea o simplifica en el formulario, el backend debe validar igualmente el intento manipulado.
-
-La relación employee dentro de party_roles debe mantenerse protegida por backend cuando corresponda.
-
-Cuando se cree una Party employee desde un flujo de membership, la autorización de parties.create debe recibir la relación employee como contexto funcional.
-
-No alcanza con informar únicamente kind = person, porque en parties la dimensión funcional de autorización es party_roles.role.
-
-Regla:
-
-parties.kind = person/company
-
-party_roles.role = employee/customer/supplier/other
-
-Por lo tanto, la autorización de parties debe orientarse por allowed_party_roles cuando corresponda.
-
-VÍNCULOS OPCIONALES
-
-La ausencia de un vínculo opcional no debe bloquear una acción si el contrato del módulo permite autonomía.
-
-La presencia de un vínculo opcional tampoco autoriza la acción por sí misma.
-
-Caso vigente:
-
-Orders y Documents pueden operar sin party_id cuando su contrato funcional permite dato propio de contraparte.
-
-SUBCAPAS CONTEXTUALES INTERNAS
-
-Una subcapa contextual interna puede tener compuerta propia de visibilidad, pero no debe reemplazar Security ni leer datos relacionados fuera del dataset autorizado.
-
-Caso vigente:
-
-ProductOperationalSummary puede resolver visibilidad contextual propia, pero las métricas de compras y ventas deben respetar Security::scope() sobre Orders.
-
-Regla:
-
-la vista de una subcapa contextual solo representa payload ya autorizado y preparado.
-
-No calcula permisos.
-
-No reconstruye scopes.
-
-No decide acceso.
-
-CAPAS SATÉLITE PRODUCTIVAS Y UNIVERSOS SEMÁNTICOS
-
-Una capa satélite productiva puede tener acceso propio al área y universo semántico propio, pero no debe ejecutar operaciones internas sin pasar por el módulo dueño.
-
-Caso vigente:
-
-/service expresa el universo semántico del frente Servicio y mantenimiento.
-
-service_maintenance.view_any permite acceder al frente Servicio y mantenimiento.
-
-Reglas:
-
-/service no autoriza operaciones por sí mismo
-
-service_maintenance.view_any no autoriza crear, editar, cerrar, cancelar, reabrir ni ejecutar órdenes por sí mismo
-
-no autoriza operaciones sobre Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity
-
-las órdenes de servicio siguen bajo contrato de Orders
-
-las acciones reales deben validar permisos, tenant, estado y reglas del módulo dueño
-
-los valores contextuales fuertes del universo no deben depender de parámetros manipulables del request
-
-si un valor contextual define el universo funcional, debe forzarse o validarse en backend
-
-Caso vigente:
-
-en el universo /service, group = service debe resolverse desde backend y no depender de ?group=service ni de un input manipulable.
+SECTION_VERSION: 00032
+
+[OBLIGATORIO]
+No autorizar desde Blade/frontend.
+No confiar en parámetros manipulables.
+Resolver registros dentro de tenant activo.
+Validar pertenencia entre recursos relacionados.
+Autorizar antes de mutar.
+Evitar reglas dispersas.
+Consumir capacidades oficiales.
+No usar trazabilidad/dashboard/universo/satélite/subcapa/IA como atajo.
+No reconstruir seguridad externa en controller consumidor.
+
+[SUPERFICIES]
+Surfaces, modales, row actions y universos no reducen backend obligatorio.
+
+[UX]
+Mejora visual nunca justifica relajar seguridad.
+
+[FRONTERAS]
+Condición externa → hook/service/frontera.
+No duplicar lógica proveedor.
+Falla bloqueo crítico → bloquear.
+
+[TENANT PROFILE]
+Reglas owner/admin centralizadas en TenantProfileAccess.
+Admin puede ver con restricciones.
+General editable solo owner.
+Intento manipulado admin → backend bloquea.
+Admin no gestiona admin.
+Admin no asigna admin.
+Admin no combina admin con roles operativos vía request manipulado.
+Admin no vacía propios roles.
+
+[SYNC ROLES]
+TenantMembershipRoleController::sync valida agregados/remociones.
+Bloquea combinaciones sensibles.
+Impide autogestión indebida.
+Impide membership activa no owner sin roles.
+No depende de JS/campos ocultos.
+
+[OPERATIONAL ACTIVITY]
+Módulo dueño autoriza/valida/ejecuta.
+Luego emite evento.
+OperationalActivity registra si corresponde.
+
+No autoriza.
+No reemplaza Security/policies/validaciones.
+No create/edit/update/delete/destroy manual UI.
+Falla de log no debe bloquear flujo principal.
+
+[LECTURA CONTEXTUAL ACTIVIDAD]
+Host debe autorizar view.
+No usar operational_activity.view_any para lectura contextual.
+No abrir log general.
+No leer registros no autorizados.
+activity_record_set/activity_context = frontera del módulo dueño.
+
+[PARTIES]
+UI no autoriza roles sensibles.
+employee protegido backend.
+parties.kind = person/company.
+party_roles.role = employee/customer/supplier/other.
+Autorización parties usa dimensión role cuando corresponda.
+
+[VÍNCULOS OPCIONALES]
+Ausencia de vínculo opcional no bloquea si contrato permite autonomía.
+Presencia de vínculo opcional no autoriza.
+
+[SUBCAPAS]
+Subcapa contextual puede tener compuerta propia.
+No reemplaza Security.
+Vista solo representa payload autorizado.
+
+[/SERVICE]
+group = service debe resolverse/validarse backend.
+No depender de ?group=service ni input manipulable.
 
 <<END SECTION>>
 
 <<SECTION: CONSTRAINTS FUNCIONALES>>
-SECTION_VERSION: 00013
+SECTION_VERSION: 00014
 
-CONSTRAINTS FUNCIONALES
+[DEFINICIÓN]
+Constraint funcional = límite real de permiso dentro de módulo.
 
-Las constraints funcionales limitan el alcance real de permisos dentro de un módulo.
+[NO ES]
+Permiso.
+Security.
+Validación completa.
+Ownership.
+Label visual.
+Vínculo opcional.
 
-No reemplazan permisos.
+[REGLA]
+Constraint válida solo si representa dimensión vigente del dominio.
 
-No reemplazan Security.
+[PARTIES]
+Dimensión = party_roles.role.
+Constraint = allowed_party_roles.
+allowed_kinds no aplica.
 
-No reemplazan validaciones backend.
+[ORDERS]
+allowed_kinds puede aplicar si kind representa segmentación operativa vigente.
 
-No reemplazan ownership modular.
+[NO EXTRAPOLAR]
+No toda columna kind = constraint.
 
-Deben operar sobre la dimensión real del dominio.
+[VÍNCULOS NULLABLES]
+*_id nullable no implica dependencia obligatoria ni autorización.
 
-Regla:
+[CASOS]
+Orders.party_id ≠ condición universal.
+Documents.party_id ≠ condición universal.
 
-una constraint funcional solo es válida si representa una dimensión vigente del módulo.
+[SNAPSHOT]
+counterparty_name ≠ permiso.
+Solo dato propio textual.
 
-No debe mantenerse una constraint legacy si la dimensión conceptual cambió.
+[CONTEXTOS TRANSITORIOS]
+task_id / appointment_id en request = contexto.
+No permiso.
+No constraint.
 
-Caso vigente:
+[REGLAS]
+Constraints deben ser:
 
-parties no debe usar allowed_kinds como constraint funcional.
-
-parties debe usar allowed_party_roles porque la relación operativa con la empresa vive en party_roles.role.
-
-Caso vigente:
-
-orders puede conservar allowed_kinds porque kind representa una dimensión funcional propia del módulo Orders.
-
-Regla:
-
-no extrapolar allowed_kinds a módulos donde kind no exprese la dimensión de autorización.
-
-No toda columna kind debe convertirse en constraint de seguridad.
-
-Regla para vínculos opcionales:
-
-la existencia de una relación nullable no debe transformarse en constraint implícita de acceso si el contrato del módulo la define como vínculo opcional.
-
-Caso vigente:
-
-party_id en Orders y Documents no debe operar como condición obligatoria de existencia ni autorización.
-
-La visibilidad y operación de Orders o Documents debe resolverse por Security, permisos, constraints del módulo, tenant activo, estado del recurso y contrato vigente.
-
-Regla para snapshots:
-
-un snapshot textual como counterparty_name no otorga permisos ni reemplaza relaciones gestionadas.
-
-Solo permite conservar dato propio del registro.
-
-Regla para relaciones transitorias:
-
-un parámetro contextual recibido por request, como task_id o appointment_id, no debe interpretarse como constraint de seguridad ni autorización por sí mismo.
-
-Aporta contexto de creación o navegación.
-
-La autorización corresponde al módulo receptor y a la capa central de seguridad.
-
-Reglas:
-
-las constraints deben ser explícitas
-
-deben ser evaluables por Security
-
-deben respetar tenant activo
-
-deben alinearse con la semántica vigente del módulo
-
-no deben reconstruirse localmente en controllers
-
-no deben resolverse en Blade
-
-no deben confundirse con labels visuales
-
-no deben confundirse con vínculos opcionales de enriquecimiento
+* explícitas
+* evaluables por Security
+* tenant-scoped
+* alineadas con semántica real
+* no reconstruidas en controllers
+* no resueltas en Blade
 
 <<END SECTION>>
 
 <<SECTION: CONTRATO DE SEGURIDAD MODULAR>>
-SECTION_VERSION: 00029
+SECTION_VERSION: 00030
 
-CONTRATO DE SEGURIDAD MODULAR
+[MÓDULO FUNCIONAL DEBE DEFINIR]
 
-Todo módulo funcional debe poseer una lectura clara de seguridad.
+* recursos protegidos
+* acciones
+* tenant
+* estados que alteran operación
+* constraints
+* scopes
+* recursos hijos
+* vínculos obligatorios/opcionales
+* surfaces consumidas/publicadas
+* capacidades transversales
+* fronteras externas
+* universos que lo consumen sin absorber ownership
 
-Debe poder responder:
+[REGLAS]
+No contradecir Security.
+No trasladar ownership de permisos.
+Host visual no absorbe seguridad.
+Universo semántico no absorbe seguridad.
+Vínculo opcional no autoriza.
+Ausencia de vínculo opcional no bloquea si contrato permite autonomía.
+Frontera externa condiciona, no reemplaza autorización principal.
 
-qué recursos protege
-qué acciones expone
-qué dependencia tiene del tenant activo
-qué integra desde otros módulos
-qué recursos delegan seguridad al padre
-qué estados alteran operabilidad
-qué constraints funcionales aplica
-qué superficies consume o publica
-qué capacidades transversales registra o consulta
-qué vínculos son obligatorios y cuáles son opcionales
-qué fronteras externas pueden bloquear o condicionar acciones propias
-qué universos semánticos o frentes contextuales pueden consumirlo sin absorber su ownership
+[VÍNCULO *_ID]
+Definir si es:
 
-Reglas:
+* dato obligatorio
+* vínculo gestionado opcional
+* contexto navegación
+* origen transitorio
+* seguimiento
+* planificación
+* formalización derivada
+* evidencia
+* enriquecimiento
 
-no contradecir seguridad central
+[DERIVACIONES]
+Origen aporta contexto, no permiso.
 
-no trasladar ownership de permisos entre módulos
+Casos:
+Order → Document requiere documents.create.
+Task/Appointment → Order requiere orders.create.
+service → Order requiere orders.create.
 
-el host visual no absorbe seguridad de capacidades invitadas
+[UNIVERSO SEMÁNTICO]
+Puede definir contexto/rutas/valores backend.
+No concede permiso.
+No depende de query param manipulable.
 
-el universo semántico no absorbe seguridad del módulo dueño
+[HOOKS]
+Proveedor conserva regla externa.
+Módulo dueño conserva autorización principal.
+Falla crítica = seguro/bloqueo.
 
-los estados operativos forman parte real del contrato cuando afectan operación
+[ACTIVIDAD]
+Evento operativo no altera seguridad del módulo dueño.
+OperationalActivity no autoriza ni muta.
 
-la delegación de seguridad debe ser explícita y consistente
-
-un vínculo opcional con otro módulo no concede autorización por sí mismo
-
-la ausencia de un vínculo opcional no debe bloquear la operación si el contrato del módulo permite autonomía
-
-una frontera externa puede condicionar una acción, pero no reemplaza la autorización principal del módulo dueño
-
-Las capacidades publicadas, incluyendo row actions, surfaces, subcapas contextuales, universos semánticos y lecturas embebidas, pertenecen al módulo oferente o a la capacidad que las define.
-
-El host monta o contextualiza, pero no redefine seguridad.
-
-Cuando un módulo opera sobre recursos externos, debe validar:
-
-tenant activo
-recurso padre
-línea u origen
-estado del recurso
-límites operativos
-dataset autorizado
-bloqueos externos cuando existan fronteras declaradas
-
-Regla para vínculos opcionales:
-
-un campo `*_id` hacia otro módulo no debe interpretarse automáticamente como dependencia obligatoria ni como permiso delegado.
-
-Debe definirse por contrato si el vínculo es:
-
-dato obligatorio del núcleo
-vínculo gestionado opcional
-contexto de navegación
-origen transitorio
-relación de seguimiento
-relación de planificación
-formalización derivada
-evidencia asociada
-enriquecimiento futuro
-
-Regla para derivaciones entre módulos:
-
-la derivación entre módulos exige autorización del módulo receptor.
-
-El registro origen aporta contexto, no permiso automático.
-
-Casos vigentes:
-
-crear un Document desde una Order requiere autorización efectiva para documents.create
-
-crear una Order desde una Task o Appointment requiere autorización efectiva para orders.create
-
-crear una Order desde el universo /service requiere autorización efectiva para orders.create según el contrato de Orders
-
-Regla para universos semánticos:
-
-un universo semántico puede definir contexto funcional, navegación, rutas y valores forzados por backend.
-
-No concede permisos operativos por sí mismo.
-
-No reemplaza el permiso del módulo dueño.
-
-No debe depender de query params manipulables para sostener reglas de seguridad.
-
-Caso vigente:
-
-/service define contexto funcional de órdenes de servicio.
-
-Orders conserva el contrato de seguridad de la creación y visualización de órdenes.
-
-Regla para hooks y fronteras externas:
-
-un módulo puede consultar una frontera externa para saber si una acción propia debe bloquearse, ajustarse o continuar.
-
-Reglas:
-
-el módulo consumidor no debe duplicar lógica interna del proveedor
-
-el proveedor conserva ownership de la regla externa
-
-el módulo dueño de la acción conserva ownership de la autorización principal
-
-si la frontera falla en un bloqueo crítico, debe asumirse el escenario seguro
-
-Regla para actividad operativa:
-
-la emisión de eventos operativos livianos no altera el contrato de seguridad del módulo dueño.
-
-El módulo dueño conserva autorización, validación y ejecución de su propia operación.
-
-OperationalActivity actúa como capacidad transversal de trazabilidad.
-
-No debe usarse como canal paralelo de autorización, validación o mutación.
-
-Regla para lectura de actividad:
-
-la lectura general tenant-scoped del log requiere capability explícita.
-
-Caso vigente:
-
-operational_activity.view_any
-
-La lectura contextual de actividad asociada a un registro host se autoriza por el view efectivo sobre ese registro.
-
-No equivale a lectura general del tenant.
-
-No crea navegación principal de OperationalActivity.
-
-No reemplaza permisos del módulo host.
-
-Regla para parties:
-
-el contrato de seguridad de parties debe distinguir entre:
-
+[PARTIES]
+Seguridad distingue:
 contacto común
-contacto con relación employee
-party vinculada a membership activa
+employee
+party con membership activa
 
-Estas lecturas no son equivalentes.
+Constraint parties = allowed_party_roles.
 
-La segmentación funcional de parties se resuelve por party_roles.role mediante allowed_party_roles.
+[SUBCAPA]
+Ver módulo host ≠ ver subcapa automáticamente.
 
-Regla:
+[CAPA SATÉLITE]
+Permiso área/universo ≠ permisos módulos participantes.
 
-parties.kind no debe utilizarse como constraint funcional de seguridad para parties.
-
-Regla para subcapas contextuales internas:
-
-una subcapa contextual interna puede tener condiciones propias de visibilidad sin convertirse en módulo funcional ordinario ni reemplazar Security.
-
-Caso vigente:
-
-ProductOperationalSummary.
-
-Regla:
-
-ver el módulo host no implica acceso automático a la subcapa.
-
-La subcapa no debe leer datasets relacionados fuera del contrato autorizado.
-
-Regla para capas satélite productivas:
-
-una capa satélite puede tener permiso de acceso al área o universo semántico propio sin absorber permisos de los módulos participantes.
-
-Caso vigente:
-
-service_maintenance.view_any
-
-/service
-
-Regla:
-
-las acciones internas deben volver al contrato del módulo dueño.
-
-En órdenes de servicio, el módulo dueño de la operación transaccional es Orders.
-
-Regla final:
-
-el contrato modular define fronteras y responsabilidades.
-
-No debe transformarse en inventario funcional completo del módulo.
-
-El detalle de valores, constraints aplicadas y excepciones operativas debe concentrarse en CONSTRAINTS FUNCIONALES y REGLAS OPERATIVAS POR MÓDULO.
+[REGLA FINAL]
+Contrato modular define fronteras.
+No inventario funcional completo.
 
 <<END SECTION>>
 
 <<SECTION: RECURSOS DELEGADOS AL PADRE>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00018
 
-RECURSOS DELEGADOS AL PADRE
-
-Algunos recursos no poseen contrato autónomo completo y delegan seguridad al recurso padre.
-
-Casos típicos:
-
+[DELEGADOS TÍPICOS]
 attachments
 order_items
 document_items
 
-Reglas:
+[REGLAS]
+view/update/delete/create siguen padre cuando corresponda.
+No policies paralelas innecesarias.
+Delegación no elimina validaciones operativas específicas.
+Delegación no convierte hijo en módulo autónomo.
 
-view, update, delete y create siguen reglas del padre cuando corresponda
+[ORDER_ITEMS]
+Bloqueos por completed/cancelled/límites ejecutados = restricción funcional dentro de Orders.
 
-no crear policies paralelas innecesarias
+[DOCUMENT_ITEMS]
+Bloqueos por movimientos asociados = restricción funcional dentro de Documents.
 
-la delegación no elimina validaciones operativas específicas del recurso hijo
-
-la delegación no convierte al hijo en módulo autónomo
-
-Cuando un recurso hijo participe de un frente operativo externo con trazabilidad propia, puede requerir restricciones adicionales que complementen la delegación sin reemplazarla.
-
-La delegación principal se mantiene.
-
-Aclaración adicional vigente para order_items:
-
-bloquear edición estructural por completed, cancelled o por violar límites del ejecutado neto no constituye una policy autónoma del hijo.
-
-Sigue siendo una restricción funcional dentro del ciclo de vida delegado del recurso perteneciente a orders.
-
-Aclaración adicional vigente para document_items:
-
-bloquear edición o eliminación estructural por movimientos asociados no constituye una policy autónoma del hijo.
-
-Sigue siendo una restricción funcional dentro del ciclo de vida delegado del recurso perteneciente a documents.
-
-Regla:
-
-esta sección no debe absorber casos que no sean recursos delegados al padre.
-
-Las relaciones entre entidades autónomas, fichas ampliadas, subcapas contextuales, surfaces transversales o capacidades tenant no modulares deben documentarse en la sección que corresponda.
+[FRONTERA]
+No absorber aquí entidades autónomas, fichas ampliadas, subcapas, surfaces transversales ni capacidades tenant no modulares.
 
 <<END SECTION>>
 
 <<SECTION: INTEGRACIONES REUSABLES Y AUTORIZACIÓN>>
-SECTION_VERSION: 00023
+SECTION_VERSION: 00024
 
-INTEGRACIONES REUSABLES Y AUTORIZACIÓN
+[DOCTRINA]
+Integración reusable ≠ reducción de seguridad.
 
-Toda integración reusable entre módulos permanece sujeta a seguridad efectiva.
+[REGLAS]
+Oferente conserva arbitraje.
+Consumidor no reconstruye permisos.
+Componente visual representa resultado autorizado.
+Host monta, no absorbe ownership.
+Backend valida tenant/recurso/relaciones/límites.
+Surface no vuelve dueño al host.
+Subcapa no lee fuera de contrato.
+Capacidad transversal no reemplaza módulo dueño.
 
-Reglas:
-
-el módulo oferente conserva arbitraje sobre la capacidad publicada
-
-el consumidor no debe reconstruir permisos locales paralelos
-
-el componente visual solo representa resultado autorizado
-
-el host presta superficie visual pero no absorbe ownership de seguridad
-
-la validación backend debe sostener tenant, recurso, relaciones y límites operativos
-
-una surface no convierte al host en dueño de la capacidad invitada
-
-una subcapa contextual no habilita lectura de datos relacionados por fuera del contrato autorizado
-
-una capacidad transversal no reemplaza permisos del módulo dueño
-
-Regla:
-
-la integración reusable reduce duplicación visual o contractual, pero no reduce exigencia de autorización efectiva.
-
-Caso vigente:
-
-ProductOperationalSummary se publica dentro de Products, pero debe respetar los contratos de Products, Inventory y Orders cuando corresponda.
-
-Caso vigente:
-
-OperationalActivity puede publicar lectura contextual, pero no autoriza la operación original ni reemplaza permisos del host.
+[CASOS]
+ProductOperationalSummary respeta contratos Products/Inventory/Orders.
+OperationalActivity puede publicar lectura contextual, pero no autoriza operación original.
 
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00029
-
-REGLAS OPERATIVAS POR MÓDULO
-
-Esta sección resume restricciones operativas de seguridad de alto impacto.
-
-No debe convertirse en inventario completo de implementación.
-
-TENANT PROFILE
-
-tenant/profile pertenece al frente de gobierno interno del tenant.
-
-No es módulo funcional ordinario del negocio.
-
-Regla doctrinal vigente:
-
-admin opera fuerte
-
-owner gobierna
-
-Pieza central vigente:
-
-App\Support\Tenants\TenantProfileAccess
-
-Reglas operativas:
-
-owner puede ver y editar tenant/profile según contrato
-
-admin puede acceder a tenant/profile con restricciones
-
-la solapa General es editable solo por owner
-
-para admin, General debe quedar readonly
-
-admin no puede modificar permisos del rol admin
-
-admin no puede asignar, delegar, quitar ni autogestionar el rol admin
-
-admin no puede modificar su propio nivel de autoridad
-
-admin no puede vaciar sus propios roles
-
-admin puede gestionar roles operativos no estructurales cuando la validación backend lo autorice
-
-MembershipPolicy e InvitationPolicy deben consumir la autoridad central del frente tenant/profile y no duplicar reglas aisladas.
-
-ORDERS
-
-Orders conserva contrato propio de seguridad.
-
-La constraint funcional vigente para segmentación operativa de orders es:
-
-allowed_kinds
-
-Reglas:
-
-Orders puede operar como módulo autónomo sin party_id obligatorio
-
-party_id es vínculo gestionado opcional
-
-counterparty_name es dato propio textual de la orden
-
-la ausencia de party_id no implica ausencia de autorización
-
-la presencia de party_id no otorga autorización por sí misma
-
-Orders no debe conservar task_id ni appointment_id como relaciones persistentes de su núcleo
-
-si una Order se crea desde Task, Appointment o universo semántico, esos datos pueden viajar como contexto transitorio de request o navegación
-
-la autorización real corresponde a Orders y a Security
-
-una orden closed o cancelled no debe permitir operación ordinaria posterior
-
-una orden closed solo puede volver a operar mediante reapertura autorizada
-
-los estados operativos satélite no deben habilitar operación si Orders.status no lo permite
-
-Bloqueos externos vigentes:
-
-una orden no debe cerrarse si existen bloqueadores externos de cierre
-
-una orden no debe eliminarse si existen movimientos externos vinculados
-
-una orden vinculada a documentos no debe eliminarse mientras se mantenga la regla actual
-
-Reglas:
-
-Orders puede consultar fronteras explícitas para bloqueos externos
-
-OrderController no debe reconstruir internamente la lógica de Inventory
-
-si falla una consulta de bloqueo crítico, debe asumirse escenario seguro
-
-UNIVERSO /SERVICE
-
-/service expresa el universo semántico del frente Servicio y mantenimiento.
-
-Reglas:
-
-/service no reemplaza el contrato de seguridad de Orders
-
-/service no autoriza acciones sobre Orders por sí mismo
-
-/service no autoriza acciones sobre otros módulos participantes
-
-el acceso al frente requiere autorización de acceso al área según contrato vigente
-
-la creación de órdenes desde /service requiere autorización efectiva de Orders
-
-la visualización de órdenes desde /service requiere autorización efectiva sobre Orders y sobre el registro concreto cuando corresponda
-
-group = service debe forzarse o validarse desde backend cuando la entrada proviene del universo /service
-
-no debe dependerse de ?group=service como medida de seguridad
-
-no debe dependerse de un campo visual bloqueado como medida de seguridad
-
-si el request intenta enviar un group incompatible con el universo, el backend debe preservar el contexto funcional correcto
-
-TASKS Y APPOINTMENTS
-
-Tasks y Appointments conservan contrato propio.
-
-Reglas:
-
-Tasks puede vincularse opcionalmente a Orders desde tasks.order_id
-
-Appointments puede vincularse opcionalmente a Orders desde appointments.order_id
-
-esa relación no convierte a Tasks ni Appointments en dueños de Orders
-
-esa relación no convierte a Orders en dueño de Tasks o Appointments
-
-un parámetro contextual de request no equivale a permiso concedido
-
-PRODUCTS
-
-Products puede alojar subcapas contextuales internas sin que eso implique acceso automático a todos los datos relacionados.
-
-Reglas:
-
-ver Products no implica ver ProductOperationalSummary
-
-ProductOperationalSummary debe respetar tenant activo, membership activa, módulos habilitados, roles compatibles y scopes autorizados
-
-Products + Inventory habilitados son condición base de visibilidad
-
-Orders habilitado permite métricas transaccionales solo cuando el usuario posee dataset visible según Security
-
-ProductOperationalSummary no usa OperationalActivity como fuente principal de métricas
-
-ProductOperationalSummary no reemplaza Security ni crea módulo funcional propio
-
-Products puede ofrecer capacidades de selección y validación de productos para líneas.
-
-Reglas:
-
-Orders y Documents pueden consumir la capacidad oficial correspondiente
-
-los controllers consumidores no deben reconstruir Product::query(), products.viewAny ni Rule::exists('products') cuando existe selector oficial
-
-la selección de productos no debe convertirse en bypass de permisos sobre Products
-
-DOCUMENTS
-
-Documents conserva ownership documental sobre cabecera y líneas.
-
-Reglas:
-
-Documents puede crearse desde Orders cuando el usuario tenga autorización efectiva sobre Documents
-
-party_id es vínculo gestionado opcional
-
-counterparty_name es dato propio textual del documento
-
-order_id vincula el documento con la orden origen cuando corresponda
-
-la derivación Order → Document no omite documents.create
-
-Documents puede operar sin depender rígidamente de party_id cuando conserve dato propio suficiente de contraparte
-
-INVENTORY
-
-Inventory conserva ownership sobre stock, movimientos y trazabilidad.
-
-Reglas:
-
-Orders y Documents pueden consumir capacidades oficiales de Inventory sin absorber su autorización
-
-Inventory conserva ownership de la operación material
-
-Inventory puede bloquear o condicionar flujos de Orders mediante hooks o fronteras explícitas
-
-la ejecución física de líneas pertenece a Inventory
-
-Orders no debe reconstruir internamente esa regla
-
-si la frontera falla en un bloqueo crítico, se debe asumir bloqueo
-
-la actividad operativa transversal debe usar el ancla operativa agrupada vigente cuando corresponda
-
-PARTIES
-
-parties.kind representa únicamente tipo de contacto:
-
-person
-company
-
-La relación del contacto con la empresa se expresa mediante party_roles.
-
-Relaciones vigentes:
-
-customer
-supplier
-employee
-other
-
-La constraint funcional vigente para parties es:
-
-allowed_party_roles
-
-Regla:
-
-allowed_party_roles se evalúa contra party_roles.role.
-
-allowed_kinds no aplica a parties.
-
-Separación vigente:
-
-orders → allowed_kinds
-
-parties → allowed_party_roles
-
-Reglas operativas de seguridad:
-
-employee no debe estar disponible para asignación manual por cualquier usuario desde alta o edición común de contactos
-
-la UI puede ocultar o bloquear opciones, pero la autorización efectiva debe resolverse en backend
-
-alta y edición deben bloquear intentos manipulados de asignar employee cuando el usuario no esté autorizado
-
-la autorización sensible de employee debe centralizarse en una pieza reusable del dominio parties
-
-si la party tiene membership activa vinculada, quedan protegidos kind, employee y email respecto de edición libre desde parties
-
-si la membership deja de estar activa o se desvincula, la party deja de estar bloqueada por esa relación activa
-
-OPERATIONAL ACTIVITY
-
-OperationalActivity registra actividad operativa real dentro del tenant activo.
-
-Reglas:
-
-no autoriza operaciones
-
-no reemplaza Security
-
-no reemplaza policies
-
-no decide permisos
-
-no valida la operación original
-
-no modifica el contrato de seguridad de los módulos
-
-no tiene create manual desde UI
-
-no tiene edit
-
-no tiene update
-
-no tiene delete
-
-no tiene destroy
-
-no debe usarse como fuente principal de métricas cuando existen módulos dueños de datos transaccionales u operativos
-
-Lectura general:
-
-requiere operational_activity.view_any
-
-Lectura contextual:
-
-puede mostrarse dentro de un host autorizado sin operational_activity.view_any cuando el usuario ya puede ver el registro host.
-
-SERVICIOS Y MANTENIMIENTO
-
-Servicios y Mantenimiento se lee como capa satélite productiva.
-
-No concede permisos propios sobre todos los módulos participantes por el solo hecho de existir como frente operativo.
-
-Caso vigente:
-
-service_maintenance.view_any permite acceso al área Servicio y mantenimiento.
-
-Caso vigente:
-
-/service expresa el universo semántico del frente.
-
-Reglas:
-
-no habilita acciones sobre Orders, Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity por sí mismo
-
-cada operación debe volver al contrato del módulo dueño o capacidad central correspondiente
-
-no debe usar Orders.status como estado técnico de ejecución
-
-no debe permitir operación ordinaria sobre órdenes closed sin reapertura autorizada
-
-no debe crear bypass del lifecycle base
-
-no debe reintroducir lógica interna de módulos externos dentro de OrderController
-
-no debe ignorar bloqueos externos publicados por hooks o fronteras oficiales
-
-IA Y AUTOMATIZACIONES
-
-La IA y las automatizaciones son consumidoras sujetas a seguridad.
-
-Reglas:
-
-no autorizan operaciones por sí mismas
-
-no reemplazan validaciones backend
-
-no amplían privilegios
-
-no ejecutan acciones críticas sin autorización, confirmación humana o regla explícita previamente aprobada
-
-si preparan una acción sobre un módulo, la ejecución final debe volver al contrato oficial del módulo dueño
-
-Regla final:
-
-esta sección debe conservar solo reglas operativas de seguridad de alto impacto.
-
-Los detalles visuales, navegación, nombres de columnas, helpers, validaciones runtime, archivos concretos o comportamiento fino de cada módulo pertenecen a documentos especializados.
+SECTION_VERSION: 00031
+
+[USO]
+Solo restricciones de seguridad de alto impacto.
+No inventario de implementación.
+
+[TENANT PROFILE]
+tenant/profile = gobierno interno tenant.
+Pieza central = TenantProfileAccess.
+owner edita General.
+admin ve con restricciones.
+admin no gestiona admin.
+admin no modifica propia autoridad.
+admin no vacía propios roles.
+Policies deben consumir autoridad central.
+
+[ORDERS]
+Contrato propio.
+party_id opcional.
+counterparty_name dato propio.
+party_id ≠ autorización.
+closed/cancelled = no operación ordinaria.
+Reapertura restringida.
+Estados satélite no saltan Orders.status.
+Bloqueos externos vía fronteras.
+OrderController no reconstruye Inventory.
+
+[/SERVICE]
+Universo semántico.
+No reemplaza seguridad Orders.
+No autoriza por sí mismo.
+Crear/ver desde /service requiere autorización Orders.
+group=service backend-first.
+?group=service ≠ seguridad.
+
+[TASKS / APPOINTMENTS]
+tasks.order_id y appointments.order_id pertenecen a sus módulos.
+No transfieren ownership a Orders.
+Request contextual ≠ permiso.
+
+[PRODUCTS]
+Ver Products ≠ ver ProductOperationalSummary.
+Subcapa respeta tenant/membership/módulos/scopes.
+Selector productos ≠ bypass Products.
+
+[DOCUMENTS]
+Order → Document requiere documents.create.
+party_id opcional.
+counterparty_name dato propio.
+order_id contexto derivación, no bypass.
+
+[INVENTORY]
+Owner de stock/movimientos/trazabilidad.
+Orders/Documents consumen capacidades oficiales.
+Inventory puede bloquear por frontera.
+Falla crítica = bloqueo.
+
+[PARTIES]
+kind = person/company.
+role = party_roles.role.
+allowed_party_roles vigente.
+employee protegido backend.
+Party con membership activa protege kind/employee/email según contrato.
+
+[SHOPPING AUTOSERVICIO]
+self_service_sales plano comercial externo.
+/shop/{tenant:slug} ≠ panel interno.
+Customer externo ≠ User.
+Customer externo ≠ Membership.
+Customer externo ≠ roles internos.
+Party customer externa ≠ identidad interna.
+Registro externo ≠ invitation.
+Confirmación token valida tenant/token/estado/vencimiento/duplicados.
+Duplicado email/teléfono/DNI bloquea alta.
+
+[OPERATIONAL ACTIVITY]
+No autoriza.
+No decide permisos.
+No valida operación original.
+No create/edit/update/delete/destroy UI.
+Lectura general = operational_activity.view_any.
+Lectura contextual = host autorizado.
+
+[SERVICIOS Y MANTENIMIENTO]
+service_maintenance.view_any = acceso área.
+No permisos operativos módulos.
+Cada acción vuelve a módulo dueño.
+No usar Orders.status como estado técnico.
+No operar closed sin reapertura.
+No reintroducir lógica externa en OrderController.
+
+[IA / AUTOMATIZACIONES]
+Consumidores sujetos a seguridad.
+No privilegios.
+No ejecución crítica sin autorización/confirmación/regla explícita.
+Ejecución final vuelve al módulo dueño.
 
 <<END SECTION>>
 
 <<SECTION: HARDENING Y AUDITORÍA>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
-HARDENING Y AUDITORÍA
+[DOCTRINA]
+Toda evolución relevante exige revisar seguridad.
 
-Toda evolución relevante del sistema debe verificar impacto en seguridad.
+[VALIDACIÓN DOCUMENTAL]
+No sustituye runtime si hay riesgo operativo.
 
-Cambios en módulos, relaciones, integraciones, datasets o flujos pueden exigir revalidación doctrinal y pruebas reales.
-
-La validación documental no sustituye pruebas de runtime cuando el riesgo es operativo.
-
-Una implementación funcional pero contraria a esta doctrina no debe considerarse cierre correcto.
-
-Auditar seguridad implica revisar tanto backend como superficies visibles consumidoras.
-
-La ausencia de error visible no prueba cumplimiento doctrinal.
-
-Regla:
-
-una prueba sensible que no ubica actor real, tenant real, membership real o dataset real no debe interpretarse como validación del contrato.
-
-Regla adicional:
-
-toda nueva subcapa contextual, surface transversal, pieza satélite, automatización o asistencia IA que consuma datos protegidos debe auditar:
-
-tenant activo
-
-membership activa
-
+[AUDITAR]
+backend
+UI/surfaces consumidoras
+tenant
+membership
 módulos habilitados
-
 permiso efectivo
+scope
+constraint
+estado recurso
+dataset
+request manipulado cuando aplique
 
-scope aplicado
+[REGLAS]
+Sin actor real/tenant real/membership real/dataset real, la prueba sensible no valida contrato.
 
-constraints funcionales
+Implementación funcional contraria a doctrina = cierre inválido.
 
-estado del recurso
-
-dataset visible
-
-backend ante request manipulado cuando corresponda
-
-Regla adicional vigente:
-
-las validaciones sensibles del frente tenant/profile/accesses deben comprobar UI, backend, request manipulado, persistencia final y rollback o limpieza de pruebas.
-
-Caso validado:
-
-contrato owner/admin del frente tenant/profile.
+[CASO]
+tenant/profile/accesses requiere validar:
+UI
+backend
+request manipulado
+persistencia
+rollback/limpieza
 
 <<END SECTION>>
 
 <<SECTION: GOBERNANZA DEL DOCUMENTO>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00010
 
-GOBERNANZA DEL DOCUMENTO
+[USO]
+Documento rector de seguridad.
+Formato principal = contrato compacto para IA.
 
-Este documento debe permanecer corto, fuerte y estable.
+[MANTENER AQUÍ]
 
-Criterios de mantenimiento:
+* principios duraderos
+* autorización
+* aislamiento
+* constraints
+* acciones críticas
+* restricciones de alto impacto
+* fronteras de seguridad
+* reglas que evitan bypass
 
-agregar solo principios duraderos
+[MOVER FUERA]
+Navegación → mapa_navegacion_relaciones_app_base.
+UI/componentes → base_visual_proyecto_app_base.
+Detalle módulo → documento funcional específico.
+Runtime/archivos/cierres → todo_proyecto_app_base.
+Decisiones vivas → decisiones_vivas_app_base.
+Capas satélite funcionales → documentos especializados.
+Explicación humana → bajo demanda.
 
-mantener reglas de autorización que afecten doctrina general
+[REGLA DE COMPACTACIÓN]
+Si una regla ya está en principio general, sección por módulo solo conserva excepción o consecuencia específica.
 
-mover detalle funcional excesivo a documentos específicos
-
-mover matrices, casos puntuales o decisiones vivas a documentos correspondientes cuando no sean doctrina estable
-
-mover validaciones runtime, nombres de archivos y cierres operativos a documentos técnicos o de seguimiento
-
-mover patrones visuales, nombres de columnas, labels y componentes al documento visual correspondiente
-
-mover navegación, trails, tabs y surfaces al documento de navegación correspondiente
-
-evitar ejemplos redundantes
-
-eliminar repeticiones cuando una regla ya esté definida en otra sección
-
-evitar que REGLAS OPERATIVAS POR MÓDULO se convierta en inventario completo de implementación
-
-mantener en este documento solo las excepciones o reglas de seguridad de alto impacto
-
-actualizar cuando cambie doctrina real y no por ruido menor de implementación
-
-Objetivo:
-
-servir como referencia rápida y confiable para futuras decisiones de acceso del proyecto.
-
-Regla:
-
-este documento no debe convertirse en inventario de cada implementación.
-
-Debe conservar doctrina de seguridad y acceso.
+[REGLA FINAL]
+Este documento no debe convertirse en inventario de implementación.
+Debe prevenir bypass y deriva de autorización.
 
 <<END SECTION>>
 
 <<SECTION: REGLA FINAL>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
-REGLA FINAL
+[REGLA FINAL]
+Seguridad no es agregado posterior.
+Seguridad condiciona toda operación válida en app-base.
+Diseñar sin seguridad = diseño incompleto.
 
-La seguridad del proyecto no es un agregado posterior.
-
-Forma parte constitutiva del diseño del sistema y condiciona toda operación válida dentro de app-base.
-
-Diseñar sin seguridad equivale a diseñar de forma incompleta.
+[CONTROL]
+Todo acceso, operación, automatización o IA debe volver al contrato backend autorizado.
 
 <<END SECTION>>

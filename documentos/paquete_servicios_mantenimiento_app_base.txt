@@ -186,7 +186,7 @@ No debe convertirse en una copia rígida, sobredimensionada o aislada de un soft
 <<END SECTION>>
 
 <<SECTION: PAQUETE DE SERVICIOS Y MANTENIMIENTO>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 PAQUETE DE SERVICIOS Y MANTENIMIENTO
 
@@ -356,6 +356,10 @@ ver órdenes de servicio
 
 crear nueva orden de servicio
 
+contador de órdenes registradas
+
+mensaje si el área está disponible pero el usuario no posee permisos operativos sobre Orders
+
 Regla:
 
 las órdenes de servicio se gestionan dentro de Orders con group = service, pero pueden accederse desde rutas semánticas propias del universo Servicio y mantenimiento.
@@ -376,6 +380,47 @@ No deben mostrarse alternancias manual/gestionado cuando los componentes gestion
 
 El tipo de orden puede bloquearse visualmente como Servicio dentro del universo /service, pero ese bloqueo visual no reemplaza la validación backend.
 
+La navegación contextual del universo /service debe conservarse mediante trail, breadcrumbs, redirecciones físicas y helpers contextuales.
+
+Caso vigente:
+
+OrderNavigationTrail::showRouteName()
+
+Lectura:
+
+permite resolver si el retorno físico debe ir a orders.show o service.orders.show según ruta actual o trail recibido.
+
+Regla:
+
+los hosts surface internos pueden seguir usando orders.show como identificador funcional aunque la ruta física contextual sea service.orders.show.
+
+Distinción vigente:
+
+orders.show = host interno funcional
+
+service.orders.show = ruta física contextual del universo /service
+
+La primera lectura visual específica para órdenes de servicio se integra dentro de orders.show como bloque no invasivo:
+
+Contexto de servicio
+
+Esta lectura puede mostrar:
+
+contraparte
+activo
+fecha de servicio
+clasificación
+
+Reglas:
+
+no crea estados técnicos satélite
+
+no crea tablas nuevas
+
+no modifica lifecycle base de Orders
+
+no convierte Servicio y mantenimiento en dueño visual ni funcional de Orders
+
 Esta implementación inicial no incorpora todavía:
 
 estados técnicos satélite
@@ -395,10 +440,24 @@ Regla:
 
 la existencia del universo /service no convierte la capa en CRUD ordinario ni habilita duplicar ownership de módulos existentes.
 
+Shopping Autoservicio es otra capa satélite distinta de Servicio y mantenimiento.
+
+Su universo público:
+
+/shop/{tenant:slug}
+
+no altera el universo /service.
+
+No modifica Orders, Assets, Inventory, Products ni Documents dentro del paquete de mantenimiento en esta fase.
+
+Regla:
+
+este documento no debe contaminarse con reglas propias de self_service_sales salvo para distinguir que ambas son capas satélite diferentes.
+
 <<END SECTION>>
 
 <<SECTION: ROL DE ORDERS>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 ROL DE ORDERS
 
@@ -647,6 +706,47 @@ cuando la UI filtre Assets por Party, esa selección debe validarse también en 
 Regla:
 
 la relación visible Party → Asset en el formulario no convierte a Party ni a Asset en dependencias obligatorias universales de la orden.
+
+Conservación vigente de contexto /service:
+
+OrderNavigationTrail::showRouteName() puede resolver dinámicamente si el retorno físico corresponde a orders.show o service.orders.show según ruta actual o trail recibido.
+
+Las rutas internas de operación pueden seguir perteneciendo al módulo dueño cuando el ownership real no cambia.
+
+Reglas:
+
+no crear rutas duplicadas innecesarias como service.orders.items.* si la operación real sigue perteneciendo a Orders
+
+no duplicar controllers por contexto cuando el ownership real no cambia
+
+los retornos físicos deben conservar /service/orders/{order} cuando el flujo nace en Servicio y mantenimiento
+
+orders.show sigue siendo el host interno funcional
+
+service.orders.show es la ruta física contextual del universo /service
+
+Lectura visual vigente en órdenes de servicio:
+
+orders.show incorpora una lectura contextual no invasiva mediante el bloque:
+
+Contexto de servicio
+
+El bloque puede mostrar:
+
+contraparte
+activo
+fecha de servicio
+clasificación
+
+Reglas:
+
+no crea estados técnicos satélite
+
+no crea tablas nuevas
+
+no modifica lifecycle base de Orders
+
+no convierte Servicio y mantenimiento en dueño visual de Orders
 
 No se implementaron todavía estados técnicos satélite, planes, checklists, órdenes modelo ni lógica ampliada de Inventory para mantenimiento.
 

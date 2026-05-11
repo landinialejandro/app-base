@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00022
+SECTION_VERSION: 00023
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -666,8 +666,6 @@ Orders sostiene la primera base operativa mediante:
 
 group = service
 
-Assets puede ofrecer una surface de identidad técnica para órdenes de servicio usando datos reales existentes.
-
 Reglas:
 
 estas relaciones no implican tablas nuevas por defecto
@@ -684,7 +682,95 @@ el universo /service no convierte Servicio y mantenimiento en dueño de Orders
 
 el acceso al área no reemplaza permisos operativos de los módulos participantes
 
-no deben asumirse campos técnicos nuevos en Assets sin contrato, esquema y validación real
+Relación conceptual vigente de Shopping Autoservicio:
+
+Tenant
+↓
+SelfServiceCustomerRegistration
+↓ confirmación
+Party kind = person
+↓
+PartyRole role = customer
+
+Ruta pública vigente:
+
+/shop/{tenant:slug}
+
+Key técnica:
+
+self_service_sales
+
+Lectura:
+
+Shopping Autoservicio es una capa satélite comercial autogestiva por tenant.
+
+self_service_customer_registrations guarda registros externos pendientes de customer antes de crear la Party.
+
+self_service_customer_registrations.party_id queda null mientras el registro está pendiente.
+
+self_service_customer_registrations.party_id se completa al confirmar.
+
+Party representa el customer confirmado dentro del tenant.
+
+PartyRole role = customer representa la relación comercial con la empresa.
+
+Tenant.slug permite resolver la tienda pública del tenant.
+
+Reglas:
+
+self_service_customer_registrations no reemplaza Party
+
+self_service_customer_registrations no reemplaza User
+
+self_service_customer_registrations no reemplaza Membership
+
+self_service_customer_registrations no representa identidad interna del sistema
+
+SelfServiceCustomerRegistration es un registro temporal u operativo del flujo externo de alta
+
+la Party customer generada por Shopping Autoservicio no debe tener memberships asociadas
+
+el cliente externo no debe convertirse en User
+
+el cliente externo no debe convertirse en Membership
+
+/shop/{tenant:slug} no habilita acceso interno al tenant
+
+/shop/{tenant:slug} no pertenece al panel interno
+
+Relaciones futuras posibles de Shopping Autoservicio:
+
+self_service_sales → productos publicados en tienda
+
+self_service_sales → saldo comercial del customer
+
+self_service_sales → fichas
+
+self_service_sales → movimientos comerciales
+
+self_service_sales → comprobantes cuando corresponda
+
+self_service_sales → consumo por QR
+
+self_service_sales → integración futura con Mercado Pago
+
+self_service_sales → controlador externo futuro
+
+Reglas:
+
+estas relaciones futuras no forman parte del primer corte implementado salvo que exista código real validado
+
+Products conserva catálogo maestro
+
+Shopping Autoservicio deberá tener una capa propia de publicación de productos en tienda si se implementa esa etapa
+
+Inventory conserva stock físico y trazabilidad material para minimercado futuro
+
+Documents conserva formalización documental o comprobantes cuando el cliente los solicite y según configuración fiscal futura
+
+app-base no actúa inicialmente como intermediario financiero en Mercado Pago
+
+cada tenant deberá cobrar con su propia configuración futura si se implementa esa integración
 
 Regla:
 
@@ -692,6 +778,8 @@ las relaciones del ecosistema deben leerse respetando los planos conceptuales:
 
 identidad global
 pertenencia operativa
+cliente externo comercial
+registro externo pendiente
 operación del negocio
 gobierno interno del tenant
 trazabilidad transversal
@@ -699,6 +787,7 @@ surfaces tenant/transversales no modulares
 fronteras explícitas publicadas por módulos dueños
 capas satélite productivas
 universos semánticos
+entradas públicas externas
 subcapas contextuales internas
 asistencia IA transversal
 
@@ -1310,7 +1399,7 @@ si una futura entidad o pieza satélite se justifica, debe definirse sin duplica
 <<END SECTION>>
 
 <<SECTION: ENTIDAD BASE DEL NEGOCIO>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 ENTIDAD BASE DEL NEGOCIO
 
@@ -1326,6 +1415,7 @@ contactos
 contratistas
 terceros
 colaboradores internos cuando corresponda
+clientes externos de Shopping Autoservicio cuando corresponda
 
 Regla actual:
 
@@ -1348,12 +1438,36 @@ no crear actores paralelos específicos de mantenimiento si parties puede repres
 
 Servicios externos y tercerizaciones deben vincularse con proveedores o terceros cuando corresponda, sin crear una base paralela de actores.
 
-La especialización operativa del vínculo debe resolverse mediante relaciones, documentos, órdenes, piezas satélite o contratos futuros según corresponda, no duplicando la entidad base del negocio.
+Dentro de Shopping Autoservicio, parties debe sostener al customer externo confirmado como cliente comercial del tenant.
+
+Lectura vigente:
+
+Party.kind = person
+
+PartyRole.role = customer
+
+Reglas:
+
+no crear party.kind = auto-customer
+
+no crear party.kind = self-service
+
+no crear una entidad paralela de customer si Party puede representar correctamente al cliente comercial
+
+la condición autogestiva pertenece a self_service_sales, no a parties.kind
+
+la Party customer generada por Shopping Autoservicio no debe tener memberships asociadas
+
+el cliente externo no se convierte en User
+
+el cliente externo no se convierte en Membership
+
+La especialización operativa del vínculo debe resolverse mediante relaciones, documentos, órdenes, piezas satélite, registros externos o contratos futuros según corresponda, no duplicando la entidad base del negocio.
 
 <<END SECTION>>
 
 <<SECTION: MODELO DE ACCESO Y PERTENENCIA>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 MODELO DE ACCESO Y PERTENENCIA
 
@@ -1467,11 +1581,43 @@ OperationalActivity sigue siendo trazabilidad transversal
 
 la lectura contextual no equivale a autorización general sobre el log del tenant
 
+Aclaración vigente para Shopping Autoservicio:
+
+el cliente externo de Shopping Autoservicio no pertenece al modelo interno de acceso y pertenencia.
+
+El customer externo confirmado se representa como Party dentro del tenant, pero no como User ni Membership.
+
+Lectura vigente:
+
+Party.kind = person
+
+PartyRole.role = customer
+
+Reglas:
+
+self_service_sales no crea User interno
+
+self_service_sales no crea Membership
+
+self_service_sales no vincula la Party customer a una membership
+
+la Party customer generada por Shopping Autoservicio no representa identidad global del sistema
+
+la Party customer generada por Shopping Autoservicio no representa pertenencia operativa interna
+
+el cliente externo no accede al panel interno
+
+el cliente externo no recibe roles internos
+
+el cliente externo no participa de owner, admin, operator, sales ni administrator
+
+/shop/{tenant:slug} no habilita acceso interno al tenant
+
 Regla:
 
-el modelo de acceso y pertenencia no debe mezclarse con el modelo de entidades del negocio
+el modelo de acceso y pertenencia no debe mezclarse con el modelo de clientes externos comerciales.
 
-cada plano conserva su responsabilidad
+Cada plano conserva su responsabilidad.
 
 <<END SECTION>>
 
@@ -2585,7 +2731,7 @@ attachments
 <<END SECTION>>
 
 <<SECTION: ENTIDADES YA IMPLEMENTADAS>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ENTIDADES YA IMPLEMENTADAS
 
@@ -2598,6 +2744,7 @@ signup_requests
 invitations
 
 parties
+party_roles
 projects
 tasks
 appointments
@@ -2611,6 +2758,8 @@ document_sequences
 inventory_operations
 inventory_movements
 attachments
+operational_activities
+self_service_customer_registrations
 
 <<END SECTION>>
 

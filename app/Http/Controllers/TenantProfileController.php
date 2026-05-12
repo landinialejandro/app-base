@@ -225,7 +225,11 @@ public function show(Request $request)
 
         $selfServiceCustomerQuery = \App\Models\SelfServiceCustomerRegistration::query()
             ->where('tenant_id', $tenant->id)
-            ->with('party');
+            ->with([
+                'party',
+                'account',
+                'storeCustomer',
+            ]);
 
         if ($selfServiceCustomerStatusFilter === 'pending') {
             $selfServiceCustomerQuery

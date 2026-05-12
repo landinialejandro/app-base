@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/SelfServiceCustomerRegistration.php | V1
+// FILE: app/Models/SelfServiceCustomerRegistration.php | V3
 
 namespace App\Models;
 
@@ -8,6 +8,7 @@ use App\Models\Concerns\TenantScoped;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class SelfServiceCustomerRegistration extends Model
 {
@@ -25,6 +26,7 @@ class SelfServiceCustomerRegistration extends Model
     protected $fillable = [
         'tenant_id',
         'party_id',
+        'self_service_customer_account_id',
         'status',
         'token',
         'name',
@@ -54,6 +56,16 @@ class SelfServiceCustomerRegistration extends Model
     public function party(): BelongsTo
     {
         return $this->belongsTo(Party::class);
+    }
+
+    public function account(): BelongsTo
+    {
+        return $this->belongsTo(SelfServiceCustomerAccount::class, 'self_service_customer_account_id');
+    }
+
+    public function storeCustomer(): HasOne
+    {
+        return $this->hasOne(SelfServiceStoreCustomer::class, 'party_id', 'party_id');
     }
 
     public function isPending(): bool

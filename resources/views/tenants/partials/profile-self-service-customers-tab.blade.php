@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/partials/profile-self-service-customers-tab.blade.php | V4 --}}
+{{-- FILE: resources/views/tenants/partials/profile-self-service-customers-tab.blade.php | V5 --}}
 
 @php
     $selfServiceCustomerRegistrations = $selfServiceCustomerRegistrations ?? collect();
@@ -18,6 +18,23 @@
         'confirmed' => 'status-badge--done',
         'expired' => 'status-badge--expired',
         'cancelled' => 'status-badge--cancelled',
+    ];
+
+    $storeStatusLabels = [
+        'active' => 'Activa',
+        'blocked' => 'Bloqueada',
+        'cancelled' => 'Cancelada',
+    ];
+
+    $storeStatusBadgeClasses = [
+        'active' => 'status-badge--done',
+        'blocked' => 'status-badge--expired',
+        'cancelled' => 'status-badge--cancelled',
+    ];
+
+    $identityStageLabels = [
+        'email_confirmed' => 'Email confirmado',
+        'operational_identity_completed' => 'Identidad operativa completa',
     ];
 @endphp
 
@@ -59,13 +76,16 @@
                 <thead>
                     <tr>
                         <th>Estado</th>
-                        <th>Nombre</th>
-                        <th>DNI</th>
+                        <th>Cliente</th>
                         <th>Email</th>
                         <th>Teléfono</th>
+                        <th>Cuenta externa</th>
+                        <th>Relación tienda</th>
+                        <th>Identidad</th>
+                        <th>Operación</th>
                         <th>Solicitud</th>
                         <th>Confirmación</th>
-                        <th>Party vinculada</th>
+                        <th>Party</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -77,15 +97,39 @@
                                 $status = 'expired';
                             }
 
-                            $documentLabel = trim(collect([
-                                $registration->document_type,
-                                $registration->document_number,
-                            ])->filter()->implode(' '));
+                            $account = $registration->account;
+                            $storeCustomer = $registration->storeCustomer;
 
                             $partyLabel = $registration->party?->name
                                 ?? ($registration->party_id ? ('Party #' . $registration->party_id) : '—');
 
                             $statusBadgeClass = $statusBadgeClasses[$status] ?? 'status-badge--pending';
+
+                            $accountLabel = $account
+                                ? ('Cuenta #' . $account->id)
+                                : '—';
+
+                            $accountStatusLabel = $account?->status
+                                ? ucfirst($account->status)
+                                : null;
+
+                            $storeStatus = $storeCustomer?->status;
+                            $storeStatusLabel = $storeStatus
+                                ? ($storeStatusLabels[$storeStatus] ?? $storeStatus)
+                                : '—';
+
+                            $storeStatusBadgeClass = $storeStatus
+                                ? ($storeStatusBadgeClasses[$storeStatus] ?? 'status-badge--pending')
+                                : 'status-badge--pending';
+
+                            $identityStage = $storeCustomer?->identity_stage
+                                ?? (($registration->meta ?? [])['identity_stage'] ?? null);
+
+                            $identityStageLabel = $identityStage
+                                ? ($identityStageLabels[$identityStage] ?? $identityStage)
+                                : '—';
+
+                            $operationEnabled = $storeCustomer?->operation_enabled === true;
                         @endphp
 
                         <tr>
@@ -94,12 +138,47 @@
                                     {{ $statusLabels[$status] ?? $status }}
                                 </span>
                             </td>
+
                             <td>{{ $registration->display_name ?: $registration->name }}</td>
-                            <td>{{ $documentLabel !== '' ? $documentLabel : '—' }}</td>
+
                             <td>{{ $registration->email ?: '—' }}</td>
+
                             <td>{{ $registration->phone ?: '—' }}</td>
+
+                            <td>
+                                <div>{{ $accountLabel }}</div>
+
+                                @if($accountStatusLabel)
+                                    <small>{{ $accountStatusLabel }}</small>
+                                @endif
+                            </td>
+
+                            <td>
+                                @if($storeCustomer)
+                                    <span class="status-badge {{ $storeStatusBadgeClass }}">
+                                        {{ $storeStatusLabel }}
+                                    </span>
+                                @else
+                                    —
+                                @endif
+                            </td>
+
+                            <td>{{ $identityStageLabel }}</td>
+
+                            <td>
+                                @if($storeCustomer)
+                                    <span class="status-badge {{ $operationEnabled ? 'status-badge--done' : 'status-badge--pending' }}">
+                                        {{ $operationEnabled ? 'Habilitada' : 'Bloqueada' }}
+                                    </span>
+                                @else
+                                    —
+                                @endif
+                            </td>
+
                             <td>{{ $registration->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
+
                             <td>{{ $registration->confirmed_at?->format('d/m/Y H:i') ?? '—' }}</td>
+
                             <td>{{ $partyLabel }}</td>
                         </tr>
                     @endforeach
@@ -108,5 +187,5 @@
         </div>
     @endif
 
-    <x-dev-component-version name="tenants.partials.profile-self-service-customers-tab" version="V4" />
+    <x-dev-component-version name="tenants.partials.profile-self-service-customers-tab" version="V5" />
 </x-card>

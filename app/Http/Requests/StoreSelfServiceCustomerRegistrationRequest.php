@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Http/Requests/StoreSelfServiceCustomerRegistrationRequest.php | V3
+// FILE: app/Http/Requests/StoreSelfServiceCustomerRegistrationRequest.php | V4
 
 namespace App\Http\Requests;
 
@@ -35,6 +35,11 @@ class StoreSelfServiceCustomerRegistrationRequest extends FormRequest
                 'string',
                 'max:100',
                 'regex:/^\+?[0-9]{8,20}$/',
+                function (string $attribute, mixed $value, \Closure $fail): void {
+                    if ($this->phoneExistsForTenant((string) $value)) {
+                        $fail('Ya existe un cliente registrado con ese teléfono en esta tienda.');
+                    }
+                },
             ],
         ];
     }
@@ -84,6 +89,17 @@ class StoreSelfServiceCustomerRegistrationRequest extends FormRequest
             || Party::query()
                 ->where('tenant_id', $this->tenant()->id)
                 ->whereRaw('LOWER(email) = ?', [$email])
+                ->exists();
+    }
+
+    protected function phoneExistsForTenant(string $phone): bool
+    {
+        $phone = trim($phone);
+
+        return $this->pendingRegistrationExists('phone', $phone)
+            || Party::query()
+                ->where('tenant_id', $this->tenant()->id)
+                ->where('phone', $phone)
                 ->exists();
     }
 

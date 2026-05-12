@@ -24,6 +24,7 @@ use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PublicSignupRequestController;
 use App\Http\Controllers\SelfServiceSalesAccessController;
 use App\Http\Controllers\SelfServiceSalesCustomerRegistrationController;
+use App\Http\Controllers\SelfServiceSalesStoreSelectorController;
 use App\Http\Controllers\ServiceDashboardController;
 use App\Http\Controllers\SuperadminDashboardController;
 use App\Http\Controllers\TaskController;
@@ -150,6 +151,12 @@ Route::get('/tienda', [SelfServiceSalesAccessController::class, 'show'])
 
 Route::post('/tienda', [SelfServiceSalesAccessController::class, 'store'])
     ->name('self_service_sales.access.store');
+
+Route::get('/tienda/seleccionar', [SelfServiceSalesStoreSelectorController::class, 'show'])
+    ->name('self_service_sales.store_selector');
+
+Route::post('/tienda/seleccionar', [SelfServiceSalesStoreSelectorController::class, 'store'])
+    ->name('self_service_sales.store_selector.store');
 
 // SHOP
 Route::prefix('shop/{tenant:slug}')

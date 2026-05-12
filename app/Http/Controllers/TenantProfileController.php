@@ -26,225 +26,332 @@ use Illuminate\Validation\Rule;
 
 class TenantProfileController extends Controller
 {
-    public function show(Request $request)
-    {
-        $tenant = app('tenant');
+public function show(Request $request)
+{
+    $tenant = app('tenant');
 
-        $membership = auth()->user()
-            ->memberships()
-            ->where('tenant_id', $tenant->id)
-            ->with('roles')
-            ->first();
+    $membership = auth()->user()
+        ->memberships()
+        ->where('tenant_id', $tenant->id)
+        ->with('roles')
+        ->first();
 
-        $tenantProfileAccess = app(TenantProfileAccess::class);
+    $tenantProfileAccess = app(TenantProfileAccess::class);
 
-        abort_unless($tenantProfileAccess->canViewProfile($membership), 403);
+    abort_unless($tenantProfileAccess->canViewProfile($membership), 403);
 
-        $isTenantOwner = $tenantProfileAccess->isOwner($membership);
-        $isTenantAdmin = $tenantProfileAccess->isAdmin($membership);
-        $canEditTenantGeneral = $tenantProfileAccess->canEditGeneral($membership);
-        $canManageAdminRole = $tenantProfileAccess->canManagePermissionsForRole($membership, RoleCatalog::ADMIN);
+    $isTenantOwner = $tenantProfileAccess->isOwner($membership);
+    $isTenantAdmin = $tenantProfileAccess->isAdmin($membership);
+    $canEditTenantGeneral = $tenantProfileAccess->canEditGeneral($membership);
+    $canManageAdminRole = $tenantProfileAccess->canManagePermissionsForRole($membership, RoleCatalog::ADMIN);
 
-        $canViewOperationalActivity = app(Security::class)
-            ->allows(auth()->user(), 'operational_activity.viewAny');
+    $canViewOperationalActivity = app(Security::class)
+        ->allows(auth()->user(), 'operational_activity.viewAny');
 
-        $memberships = Membership::query()
-            ->where('tenant_id', $tenant->id)
-            ->with([
-                'user',
-                'roles' => function ($query) {
-                    $query->orderBy('name');
-                },
-            ])
-            ->orderByDesc('is_owner')
-            ->orderBy('status')
-            ->orderBy('id')
-            ->get();
+    $canViewSelfServiceCustomers = $tenantProfileAccess->canViewProfile($membership);
 
-        $availableRoles = Role::query()
-            ->where('tenant_id', $tenant->id)
-            ->whereIn('slug', RoleCatalog::assignable())
-            ->orderByRaw('
-        CASE slug
-            WHEN ? THEN 1
-            WHEN ? THEN 2
-            WHEN ? THEN 3
-            WHEN ? THEN 4
-            ELSE 99
-        END
-    ', [
-                RoleCatalog::ADMIN,
-                RoleCatalog::SALES,
-                RoleCatalog::OPERATOR,
-                RoleCatalog::ADMINISTRATOR,
-            ])
-            ->orderBy('name')
-            ->get();
+    $memberships = Membership::query()
+        ->where('tenant_id', $tenant->id)
+        ->with([
+            'user',
+            'roles' => function ($query) {
+                $query->orderBy('name');
+            },
+        ])
+        ->orderByDesc('is_owner')
+        ->orderBy('status')
+        ->orderBy('id')
+        ->get();
 
-        $allowedTabs = ['general', 'users', 'accesses', 'permissions'];
+    $availableRoles = Role::query()
+        ->where('tenant_id', $tenant->id)
+        ->whereIn('slug', RoleCatalog::assignable())
+        ->orderByRaw('
+    CASE slug
+        WHEN ? THEN 1
+        WHEN ? THEN 2
+        WHEN ? THEN 3
+        WHEN ? THEN 4
+        ELSE 99
+    END
+', [
+            RoleCatalog::ADMIN,
+            RoleCatalog::SALES,
+            RoleCatalog::OPERATOR,
+            RoleCatalog::ADMINISTRATOR,
+        ])
+        ->orderBy('name')
+        ->get();
 
-        if ($canViewOperationalActivity) {
-            $allowedTabs[] = 'activity';
-        }
+    $allowedTabs = ['general', 'users', 'accesses', 'permissions'];
 
-        $activeTab = (string) $request->query(
-            'return_tab',
-            $request->query('tab', 'general')
-        );
+    if ($canViewSelfServiceCustomers) {
+        $allowedTabs[] = 'self_service_customers';
+    }
 
-        if (! in_array($activeTab, $allowedTabs, true)) {
-            $activeTab = 'general';
-        }
+    if ($canViewOperationalActivity) {
+        $allowedTabs[] = 'activity';
+    }
 
-        $generatedInvitation = null;
-        $generatedInvitationId = session('generated_invitation_id');
+    $activeTab = (string) $request->query(
+        'return_tab',
+        $request->query('tab', 'general')
+    );
 
-        if ($generatedInvitationId) {
-            $generatedInvitation = Invitation::query()
-                ->where('tenant_id', $tenant->id)
-                ->where('type', 'member_invite')
-                ->where('id', $generatedInvitationId)
-                ->first();
-        }
+    if (! in_array($activeTab, $allowedTabs, true)) {
+        $activeTab = 'general';
+    }
 
-        $pendingInvitations = Invitation::query()
+    $generatedInvitation = null;
+    $generatedInvitationId = session('generated_invitation_id');
+
+    if ($generatedInvitationId) {
+        $generatedInvitation = Invitation::query()
             ->where('tenant_id', $tenant->id)
             ->where('type', 'member_invite')
-            ->whereNull('accepted_at')
-            ->orderByDesc('created_at')
-            ->get();
+            ->where('id', $generatedInvitationId)
+            ->first();
+    }
 
-        $permissionRoles = [
-            RoleCatalog::ADMIN => RoleCatalog::label(RoleCatalog::ADMIN),
-            RoleCatalog::SALES => RoleCatalog::label(RoleCatalog::SALES),
-            RoleCatalog::OPERATOR => RoleCatalog::label(RoleCatalog::OPERATOR),
-            RoleCatalog::ADMINISTRATOR => RoleCatalog::label(RoleCatalog::ADMINISTRATOR),
+    $pendingInvitations = Invitation::query()
+        ->where('tenant_id', $tenant->id)
+        ->where('type', 'member_invite')
+        ->whereNull('accepted_at')
+        ->orderByDesc('created_at')
+        ->get();
+
+    $permissionRoles = [
+        RoleCatalog::ADMIN => RoleCatalog::label(RoleCatalog::ADMIN),
+        RoleCatalog::SALES => RoleCatalog::label(RoleCatalog::SALES),
+        RoleCatalog::OPERATOR => RoleCatalog::label(RoleCatalog::OPERATOR),
+        RoleCatalog::ADMINISTRATOR => RoleCatalog::label(RoleCatalog::ADMINISTRATOR),
+    ];
+
+    $selectedPermissionRole = (string) $request->query('role', RoleCatalog::ADMIN);
+
+    if (! array_key_exists($selectedPermissionRole, $permissionRoles)) {
+        $selectedPermissionRole = RoleCatalog::ADMIN;
+    }
+
+    $canEditSelectedPermissionRole = $tenantProfileAccess->canManagePermissionsForRole(
+        $membership,
+        $selectedPermissionRole
+    );
+
+    $enabledModules = collect(TenantModuleAccess::enabledModules($tenant))
+        ->filter(fn ($enabled) => $enabled === true)
+        ->keys()
+        ->values()
+        ->all();
+
+    $moduleCapabilityMap = $this->buildModuleCapabilityMap($enabledModules);
+
+    $moduleLabels = collect(array_keys($moduleCapabilityMap))
+        ->mapWithKeys(fn ($module) => [$module => ModuleCatalog::label($module, $module)])
+        ->all();
+
+    $capabilityLabels = [
+        CapabilityCatalog::VIEW_ANY => 'Ver lista',
+        CapabilityCatalog::VIEW => 'Ver detalle',
+        CapabilityCatalog::CREATE => 'Crear',
+        CapabilityCatalog::UPDATE => 'Editar',
+        CapabilityCatalog::DELETE => 'Eliminar',
+    ];
+
+    $scopeLabels = PermissionScopeCatalog::labels();
+
+    $permissionMatrix = $this->buildPermissionMatrix(
+        $tenant->id,
+        $selectedPermissionRole,
+        $moduleCapabilityMap
+    );
+
+    $scopeOptionsByModuleCapability = $this->buildScopeOptionsByModuleCapability($moduleCapabilityMap);
+    $constraintOptionsByModuleCapability = $this->buildConstraintOptionsByModuleCapability($moduleCapabilityMap);
+
+    $selfServiceCustomerRegistrations = collect();
+    $selfServiceCustomerStatusFilter = (string) $request->query('self_service_customer_status', 'all');
+
+    $selfServiceCustomerStatusOptions = [
+        'all' => 'Todos',
+        'pending' => 'Pendientes',
+        'confirmed' => 'Confirmados',
+        'expired' => 'Vencidos',
+        'cancelled' => 'Cancelados',
+    ];
+
+    if (! array_key_exists($selfServiceCustomerStatusFilter, $selfServiceCustomerStatusOptions)) {
+        $selfServiceCustomerStatusFilter = 'all';
+    }
+
+    $selfServiceCustomerStatusCounts = [
+        'all' => 0,
+        'pending' => 0,
+        'confirmed' => 0,
+        'expired' => 0,
+        'cancelled' => 0,
+    ];
+
+    if ($canViewSelfServiceCustomers) {
+        $baseSelfServiceCustomerQuery = \App\Models\SelfServiceCustomerRegistration::query()
+            ->where('tenant_id', $tenant->id);
+
+        $selfServiceCustomerStatusCounts = [
+            'all' => (clone $baseSelfServiceCustomerQuery)->count(),
+            'pending' => (clone $baseSelfServiceCustomerQuery)
+                ->where(\App\Models\SelfServiceCustomerRegistration::query()->getModel()->getTable() . '.status', \App\Models\SelfServiceCustomerRegistration::STATUS_PENDING)
+                ->where(function ($query) {
+                    $query->whereNull('expires_at')
+                        ->orWhere('expires_at', '>=', now());
+                })
+                ->count(),
+            'confirmed' => (clone $baseSelfServiceCustomerQuery)
+                ->where('status', \App\Models\SelfServiceCustomerRegistration::STATUS_CONFIRMED)
+                ->count(),
+            'expired' => (clone $baseSelfServiceCustomerQuery)
+                ->where(function ($query) {
+                    $query->where('status', \App\Models\SelfServiceCustomerRegistration::STATUS_EXPIRED)
+                        ->orWhere(function ($pendingQuery) {
+                            $pendingQuery->where('status', \App\Models\SelfServiceCustomerRegistration::STATUS_PENDING)
+                                ->whereNotNull('expires_at')
+                                ->where('expires_at', '<', now());
+                        });
+                })
+                ->count(),
+            'cancelled' => (clone $baseSelfServiceCustomerQuery)
+                ->where('status', \App\Models\SelfServiceCustomerRegistration::STATUS_CANCELLED)
+                ->count(),
         ];
 
-        $selectedPermissionRole = (string) $request->query('role', RoleCatalog::ADMIN);
+        $selfServiceCustomerQuery = \App\Models\SelfServiceCustomerRegistration::query()
+            ->where('tenant_id', $tenant->id)
+            ->with('party');
 
-        if (! array_key_exists($selectedPermissionRole, $permissionRoles)) {
-            $selectedPermissionRole = RoleCatalog::ADMIN;
-        }
-
-        $canEditSelectedPermissionRole = $tenantProfileAccess->canManagePermissionsForRole(
-            $membership,
-            $selectedPermissionRole
-        );
-
-        $enabledModules = collect(TenantModuleAccess::enabledModules($tenant))
-            ->filter(fn ($enabled) => $enabled === true)
-            ->keys()
-            ->values()
-            ->all();
-
-        $moduleCapabilityMap = $this->buildModuleCapabilityMap($enabledModules);
-
-        $moduleLabels = collect(array_keys($moduleCapabilityMap))
-            ->mapWithKeys(fn ($module) => [$module => ModuleCatalog::label($module, $module)])
-            ->all();
-
-        $capabilityLabels = [
-            CapabilityCatalog::VIEW_ANY => 'Ver lista',
-            CapabilityCatalog::VIEW => 'Ver detalle',
-            CapabilityCatalog::CREATE => 'Crear',
-            CapabilityCatalog::UPDATE => 'Editar',
-            CapabilityCatalog::DELETE => 'Eliminar',
-        ];
-
-        $scopeLabels = PermissionScopeCatalog::labels();
-
-        $permissionMatrix = $this->buildPermissionMatrix(
-            $tenant->id,
-            $selectedPermissionRole,
-            $moduleCapabilityMap
-        );
-
-        $scopeOptionsByModuleCapability = $this->buildScopeOptionsByModuleCapability($moduleCapabilityMap);
-        $constraintOptionsByModuleCapability = $this->buildConstraintOptionsByModuleCapability($moduleCapabilityMap);
-
-        $operationalActivityRows = collect();
-
-        if ($canViewOperationalActivity) {
-            $linkResolver = app(OperationalActivityLinkResolver::class);
-            $changePresenter = app(OperationalActivityChangePresenter::class);
-
-            $activityTrail = NavigationTrail::base([
-                NavigationTrail::makeNode(
-                    'dashboard',
-                    'dashboard',
-                    'Inicio',
-                    route('dashboard')
-                ),
-                NavigationTrail::makeNode(
-                    'tenant-profile-activity',
-                    $tenant->id,
-                    'Perfil de empresa · Actividad',
-                    route('tenant.profile.show', ['tab' => 'activity'])
-                ),
-            ]);
-
-            $operationalActivityRows = OperationalActivity::query()
-                ->where('tenant_id', $tenant->id)
-                ->with(['actorUser', 'subjectUser', 'record'])
-                ->orderByDesc('occurred_at')
-                ->orderByDesc('id')
-                ->limit(50)
-                ->get()
-                ->map(function ($activity) use ($linkResolver, $changePresenter, $activityTrail) {
-                    $recordLink = $linkResolver->resolve($activity, $activityTrail);
-                    $metadata = $activity->metadata ?? [];
-
-                    return [
-                        'id' => $activity->id,
-                        'occurred_at' => $activity->occurred_at,
-                        'module' => $activity->module,
-                        'activity_type' => $activity->activity_type,
-                        'record_label' => $recordLink['label'],
-                        'record_url' => $recordLink['url'],
-                        'actor_label' => $activity->actorUser?->name
-                            ?? $activity->actorUser?->email
-                            ?? 'Sistema',
-                        'subject_label' => $activity->subjectUser?->name
-                            ?? $activity->subjectUser?->email
-                            ?? '—',
-                        'metadata' => $metadata,
-                        'change_summary' => $changePresenter->summary($metadata),
-                        'change_details' => $changePresenter->details($metadata)->all(),
-                    ];
+        if ($selfServiceCustomerStatusFilter === 'pending') {
+            $selfServiceCustomerQuery
+                ->where('status', \App\Models\SelfServiceCustomerRegistration::STATUS_PENDING)
+                ->where(function ($query) {
+                    $query->whereNull('expires_at')
+                        ->orWhere('expires_at', '>=', now());
                 });
         }
 
-        return view('tenants.profile', [
-            'tenant' => $tenant,
-            'memberships' => $memberships,
-            'availableRoles' => $availableRoles,
-            'activeTab' => $activeTab,
-            'generatedInvitation' => $generatedInvitation,
-            'pendingInvitations' => $pendingInvitations,
-            'businessTypeLabels' => BusinessTypeCatalog::labels(),
+        if ($selfServiceCustomerStatusFilter === 'confirmed') {
+            $selfServiceCustomerQuery
+                ->where('status', \App\Models\SelfServiceCustomerRegistration::STATUS_CONFIRMED);
+        }
 
-            'permissionRoles' => $permissionRoles,
-            'selectedPermissionRole' => $selectedPermissionRole,
-            'moduleLabels' => $moduleLabels,
-            'capabilityLabels' => $capabilityLabels,
-            'scopeLabels' => $scopeLabels,
-            'moduleCapabilityMap' => $moduleCapabilityMap,
-            'permissionMatrix' => $permissionMatrix,
-            'scopeOptionsByModuleCapability' => $scopeOptionsByModuleCapability,
-            'constraintOptionsByModuleCapability' => $constraintOptionsByModuleCapability,
+        if ($selfServiceCustomerStatusFilter === 'expired') {
+            $selfServiceCustomerQuery
+                ->where(function ($query) {
+                    $query->where('status', \App\Models\SelfServiceCustomerRegistration::STATUS_EXPIRED)
+                        ->orWhere(function ($pendingQuery) {
+                            $pendingQuery->where('status', \App\Models\SelfServiceCustomerRegistration::STATUS_PENDING)
+                                ->whereNotNull('expires_at')
+                                ->where('expires_at', '<', now());
+                        });
+                });
+        }
 
-            'isTenantOwner' => $isTenantOwner,
-            'isTenantAdmin' => $isTenantAdmin,
-            'canEditTenantGeneral' => $canEditTenantGeneral,
-            'canManageAdminRole' => $canManageAdminRole,
-            'canEditSelectedPermissionRole' => $canEditSelectedPermissionRole,
-            'actorMembership' => $membership,
+        if ($selfServiceCustomerStatusFilter === 'cancelled') {
+            $selfServiceCustomerQuery
+                ->where('status', \App\Models\SelfServiceCustomerRegistration::STATUS_CANCELLED);
+        }
 
-            'canViewOperationalActivity' => $canViewOperationalActivity,
-            'operationalActivityRows' => $operationalActivityRows,
-        ]);
+        $selfServiceCustomerRegistrations = $selfServiceCustomerQuery
+            ->orderByDesc('created_at')
+            ->orderByDesc('id')
+            ->get();
     }
+
+    $operationalActivityRows = collect();
+
+    if ($canViewOperationalActivity) {
+        $linkResolver = app(OperationalActivityLinkResolver::class);
+        $changePresenter = app(OperationalActivityChangePresenter::class);
+
+        $activityTrail = NavigationTrail::base([
+            NavigationTrail::makeNode(
+                'dashboard',
+                'dashboard',
+                'Inicio',
+                route('dashboard')
+            ),
+            NavigationTrail::makeNode(
+                'tenant-profile-activity',
+                $tenant->id,
+                'Perfil de empresa · Actividad',
+                route('tenant.profile.show', ['tab' => 'activity'])
+            ),
+        ]);
+
+        $operationalActivityRows = OperationalActivity::query()
+            ->where('tenant_id', $tenant->id)
+            ->with(['actorUser', 'subjectUser', 'record'])
+            ->orderByDesc('occurred_at')
+            ->orderByDesc('id')
+            ->limit(50)
+            ->get()
+            ->map(function ($activity) use ($linkResolver, $changePresenter, $activityTrail) {
+                $recordLink = $linkResolver->resolve($activity, $activityTrail);
+                $metadata = $activity->metadata ?? [];
+
+                return [
+                    'id' => $activity->id,
+                    'occurred_at' => $activity->occurred_at,
+                    'module' => $activity->module,
+                    'activity_type' => $activity->activity_type,
+                    'record_label' => $recordLink['label'],
+                    'record_url' => $recordLink['url'],
+                    'actor_label' => $activity->actorUser?->name
+                        ?? $activity->actorUser?->email
+                        ?? 'Sistema',
+                    'subject_label' => $activity->subjectUser?->name
+                        ?? $activity->subjectUser?->email
+                        ?? '—',
+                    'metadata' => $metadata,
+                    'change_summary' => $changePresenter->summary($metadata),
+                    'change_details' => $changePresenter->details($metadata)->all(),
+                ];
+            });
+    }
+
+    return view('tenants.profile', [
+        'tenant' => $tenant,
+        'memberships' => $memberships,
+        'availableRoles' => $availableRoles,
+        'activeTab' => $activeTab,
+        'generatedInvitation' => $generatedInvitation,
+        'pendingInvitations' => $pendingInvitations,
+        'businessTypeLabels' => BusinessTypeCatalog::labels(),
+
+        'permissionRoles' => $permissionRoles,
+        'selectedPermissionRole' => $selectedPermissionRole,
+        'moduleLabels' => $moduleLabels,
+        'capabilityLabels' => $capabilityLabels,
+        'scopeLabels' => $scopeLabels,
+        'moduleCapabilityMap' => $moduleCapabilityMap,
+        'permissionMatrix' => $permissionMatrix,
+        'scopeOptionsByModuleCapability' => $scopeOptionsByModuleCapability,
+        'constraintOptionsByModuleCapability' => $constraintOptionsByModuleCapability,
+
+        'isTenantOwner' => $isTenantOwner,
+        'isTenantAdmin' => $isTenantAdmin,
+        'canEditTenantGeneral' => $canEditTenantGeneral,
+        'canManageAdminRole' => $canManageAdminRole,
+        'canEditSelectedPermissionRole' => $canEditSelectedPermissionRole,
+        'actorMembership' => $membership,
+
+        'canViewOperationalActivity' => $canViewOperationalActivity,
+        'operationalActivityRows' => $operationalActivityRows,
+
+        'canViewSelfServiceCustomers' => $canViewSelfServiceCustomers,
+        'selfServiceCustomerRegistrations' => $selfServiceCustomerRegistrations,
+        'selfServiceCustomerStatusFilter' => $selfServiceCustomerStatusFilter,
+        'selfServiceCustomerStatusOptions' => $selfServiceCustomerStatusOptions,
+        'selfServiceCustomerStatusCounts' => $selfServiceCustomerStatusCounts,
+    ]);
+}
 
     public function update(Request $request)
     {

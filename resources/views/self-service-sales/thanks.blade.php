@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/self-service-sales/thanks.blade.php | V1 --}}
+{{-- FILE: resources/views/self-service-sales/thanks.blade.php | V2 --}}
 
 @php($publicPage = true)
 
@@ -28,7 +28,7 @@
                     @endif
 
                     <p>
-                        En la próxima etapa vas a poder confirmar tu email y activar tu cuenta de cliente en esta tienda.
+                        El siguiente paso es confirmar tu email. Para operar en la tienda, luego deberás completar tus datos reales de identidad.
                     </p>
 
                     <div class="form-actions">
@@ -38,7 +38,7 @@
                     </div>
                 </x-card>
 
-                <x-dev-component-version name="self-service-sales.thanks" version="1" align="right" />
+                <x-dev-component-version name="self-service-sales.thanks" version="2" align="right" />
             </div>
         </div>
     </x-page>

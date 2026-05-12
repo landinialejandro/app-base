@@ -1,28 +1,28 @@
-{{-- FILE: resources/views/self-service-sales/confirmed.blade.php | V1 --}}
+{{-- FILE: resources/views/self-service-sales/confirmed.blade.php | V2 --}}
 
 @php($publicPage = true)
 
 @extends('layouts.app')
 
-@section('title', 'Registro confirmado')
+@section('title', 'Email confirmado')
 
 @section('content')
     <x-page>
         <div class="welcome-page">
             <div class="public-panel public-panel--sm">
                 <x-page-header
-                    title="Registro confirmado"
+                    title="Email confirmado"
                     subtitle="{{ $tenant->name }}"
                     vertical="vertical"
                 />
 
                 <x-card>
                     <p>
-                        Tu registro como cliente fue confirmado correctamente.
+                        Tu email fue confirmado correctamente.
                     </p>
 
                     <p>
-                        Ya quedaste registrado/a en la tienda como cliente.
+                        Ya quedaste registrado/a como cliente de esta tienda, pero todavía deberás completar tus datos reales de identidad antes de operar.
                     </p>
 
                     @if($party)
@@ -39,7 +39,7 @@
                     </div>
                 </x-card>
 
-                <x-dev-component-version name="self-service-sales.confirmed" version="1" align="right" />
+                <x-dev-component-version name="self-service-sales.confirmed" version="2" align="right" />
             </div>
         </div>
     </x-page>

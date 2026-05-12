@@ -1,4 +1,5 @@
-{{-- FILE: resources/views/landing/partials/hero.blade.php | V3 --}}
+{{-- FILE: resources/views/landing/partials/hero.blade.php | V4 --}}
+
 <section class="landing-hero">
     <div class="landing-container landing-hero__grid">
         <div class="landing-hero__content">
@@ -34,6 +35,10 @@
                         Solicitar acceso
                     </a>
 
+                    <a href="{{ route('self_service_sales.access') }}" class="landing-btn landing-btn--secondary">
+                        Entrar a Tienda
+                    </a>
+
                     <a href="{{ route('landing.pricing') }}" class="landing-btn landing-btn--secondary">
                         Ver planes
                     </a>
@@ -47,8 +52,8 @@
                 </div>
 
                 <div class="landing-mini-card">
-                    <strong>Inventario ya es una capacidad activa</strong>
-                    <span>Se encuentra en fase beta en operación y forma parte del valor actual del sistema.</span>
+                    <strong>Tienda para clientes externos</strong>
+                    <span>Los clientes pueden ingresar a sus tiendas sin acceder al panel interno de la empresa.</span>
                 </div>
             </div>
         </div>

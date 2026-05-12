@@ -1,6 +1,6 @@
 <?php
 
-// FILE: database/migrations/2026_05_11_120000_create_self_service_customer_registrations_table.php | V2
+// FILE: database/migrations/2026_05_11_120000_create_self_service_customer_registrations_table.php | V3
 
 use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
@@ -19,11 +19,22 @@ return new class extends Migration
             $table->string('status', 50)->default('pending')->index('sscr_status_idx');
             $table->string('token', 100)->unique('sscr_token_unique');
 
+            /*
+             * Registro inicial liviano:
+             * - name se conserva obligatorio por compatibilidad estructural inicial.
+             * - en el primer registro se completa con display_name.
+             * - los datos reales de identidad se completan en una etapa posterior.
+             */
             $table->string('name');
-            $table->string('display_name')->nullable();
+            $table->string('display_name');
 
-            $table->string('document_type', 50)->default('DNI');
-            $table->string('document_number', 100);
+            /*
+             * Identidad operativa:
+             * Estos campos NO pertenecen al registro inicial liviano.
+             * Se completarán más adelante, antes de habilitar operación comercial.
+             */
+            $table->string('document_type', 50)->nullable();
+            $table->string('document_number', 100)->nullable();
 
             $table->string('email');
             $table->string('phone', 100);

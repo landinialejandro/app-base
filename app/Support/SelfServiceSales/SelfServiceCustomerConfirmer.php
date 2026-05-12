@@ -15,100 +15,82 @@ use Illuminate\Validation\ValidationException;
 
 class SelfServiceCustomerConfirmer
 {
-    public function confirm(Tenant $tenant, string $token, Request $request): SelfServiceCustomerRegistration
-    {
-        $registration = SelfServiceCustomerRegistration::query()
-            ->where('tenant_id', $tenant->id)
-            ->where('token', $token)
-            ->firstOrFail();
+public function confirm(Tenant $tenant, string $token, Request $request): SelfServiceCustomerRegistration
+{
+    $registration = SelfServiceCustomerRegistration::query()
+        ->where('tenant_id', $tenant->id)
+        ->where('token', $token)
+        ->firstOrFail();
 
-        if (! $registration->isPending()) {
-            throw ValidationException::withMessages([
-                'token' => 'Este enlace ya fue utilizado o no se encuentra disponible.',
-            ]);
-        }
-
-        if ($registration->isExpired()) {
-            $registration->update([
-                'status' => SelfServiceCustomerRegistration::STATUS_EXPIRED,
-            ]);
-
-            throw ValidationException::withMessages([
-                'token' => 'Este enlace de confirmación ya venció.',
-            ]);
-        }
-
-        $this->assertNoPartyDuplicates($tenant, $registration);
-
-        return DB::transaction(function () use ($tenant, $registration, $request) {
-            $party = Party::create([
-                'tenant_id' => $tenant->id,
-                'kind' => PartyCatalog::KIND_PERSON,
-                'name' => $registration->name,
-                'display_name' => $registration->display_name,
-                'document_type' => $registration->document_type,
-                'document_number' => $registration->document_number,
-                'tax_id' => null,
-                'email' => $registration->email,
-                'phone' => $registration->phone,
-                'address' => null,
-                'notes' => null,
-                'is_active' => true,
-            ]);
-
-            PartyRole::create([
-                'tenant_id' => $tenant->id,
-                'party_id' => $party->id,
-                'role' => PartyCatalog::ROLE_CUSTOMER,
-            ]);
-
-            $registration->update([
-                'party_id' => $party->id,
-                'status' => SelfServiceCustomerRegistration::STATUS_CONFIRMED,
-                'confirmed_at' => now(),
-                'accepted_ip' => $request->ip(),
-                'user_agent' => (string) $request->userAgent(),
-            ]);
-
-            return $registration->fresh(['party']);
-        });
+    if (! $registration->isPending()) {
+        throw ValidationException::withMessages([
+            'token' => 'Este enlace ya fue utilizado o no se encuentra disponible.',
+        ]);
     }
 
-    protected function assertNoPartyDuplicates(
-        Tenant $tenant,
-        SelfServiceCustomerRegistration $registration
-    ): void {
-        $emailExists = Party::query()
-            ->where('tenant_id', $tenant->id)
-            ->whereRaw('LOWER(email) = ?', [mb_strtolower($registration->email)])
-            ->exists();
+    if ($registration->isExpired()) {
+        $registration->update([
+            'status' => SelfServiceCustomerRegistration::STATUS_EXPIRED,
+        ]);
 
-        if ($emailExists) {
-            throw ValidationException::withMessages([
-                'email' => 'Ya existe un contacto registrado con ese email en esta tienda.',
-            ]);
-        }
-
-        $phoneExists = Party::query()
-            ->where('tenant_id', $tenant->id)
-            ->where('phone', $registration->phone)
-            ->exists();
-
-        if ($phoneExists) {
-            throw ValidationException::withMessages([
-                'phone' => 'Ya existe un contacto registrado con ese teléfono en esta tienda.',
-            ]);
-        }
-
-        $documentExists = Party::query()
-            ->where('tenant_id', $tenant->id)
-            ->where('document_number', $registration->document_number)
-            ->exists();
-
-        if ($documentExists) {
-            throw ValidationException::withMessages([
-                'document_number' => 'Ya existe un contacto registrado con ese DNI en esta tienda.',
-            ]);
-        }
+        throw ValidationException::withMessages([
+            'token' => 'Este enlace de confirmación ya venció.',
+        ]);
     }
+
+    $this->assertNoPartyDuplicates($tenant, $registration);
+
+    return DB::transaction(function () use ($tenant, $registration, $request) {
+        $party = Party::create([
+            'tenant_id' => $tenant->id,
+            'kind' => PartyCatalog::KIND_PERSON,
+            'name' => $registration->display_name ?: $registration->name,
+            'display_name' => $registration->display_name ?: $registration->name,
+            'document_type' => null,
+            'document_number' => null,
+            'tax_id' => null,
+            'email' => $registration->email,
+            'phone' => $registration->phone,
+            'address' => null,
+            'notes' => null,
+            'is_active' => true,
+        ]);
+
+        PartyRole::create([
+            'tenant_id' => $tenant->id,
+            'party_id' => $party->id,
+            'role' => PartyCatalog::ROLE_CUSTOMER,
+        ]);
+
+        $registration->update([
+            'party_id' => $party->id,
+            'status' => SelfServiceCustomerRegistration::STATUS_CONFIRMED,
+            'confirmed_at' => now(),
+            'accepted_ip' => $request->ip(),
+            'user_agent' => (string) $request->userAgent(),
+            'meta' => array_merge($registration->meta ?? [], [
+                'identity_stage' => 'email_confirmed',
+                'operation_enabled' => false,
+            ]),
+        ]);
+
+        return $registration->fresh(['party']);
+    });
+}
+
+protected function assertNoPartyDuplicates(
+    Tenant $tenant,
+    SelfServiceCustomerRegistration $registration
+): void {
+    $emailExists = Party::query()
+        ->where('tenant_id', $tenant->id)
+        ->whereRaw('LOWER(email) = ?', [mb_strtolower($registration->email)])
+        ->exists();
+
+    if ($emailExists) {
+        throw ValidationException::withMessages([
+            'email' => 'Ya existe un cliente registrado con ese email en esta tienda.',
+        ]);
+    }
+}
 }

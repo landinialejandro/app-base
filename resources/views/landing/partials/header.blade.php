@@ -1,4 +1,5 @@
-{{-- FILE: resources/views/landing/partials/header.blade.php | V2 --}}
+{{-- FILE: resources/views/landing/partials/header.blade.php | V3 --}}
+
 <header class="landing-header">
     <div class="landing-container landing-header__inner">
         <a href="{{ route('landing.home') }}" class="landing-brand" aria-label="app-base">
@@ -32,6 +33,10 @@
             @else
                 <a href="{{ route('landing.pricing') }}" class="landing-btn landing-btn--ghost">
                     Ver planes
+                </a>
+
+                <a href="{{ route('self_service_sales.access') }}" class="landing-btn landing-btn--ghost">
+                    Tienda
                 </a>
 
                 <a href="{{ route('login') }}" class="landing-btn landing-btn--ghost">

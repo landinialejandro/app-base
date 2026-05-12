@@ -22,6 +22,7 @@ use App\Http\Controllers\ProductController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PublicSignupRequestController;
+use App\Http\Controllers\SelfServiceSalesAccessController;
 use App\Http\Controllers\SelfServiceSalesCustomerRegistrationController;
 use App\Http\Controllers\ServiceDashboardController;
 use App\Http\Controllers\SuperadminDashboardController;
@@ -142,6 +143,13 @@ Route::get('/profile', [ProfileController::class, 'show'])
 Route::get('/profile/tenant', [ProfileController::class, 'showTenant'])
     ->middleware(['auth', 'tenant'])
     ->name('profile.tenant.show');
+
+// SHOP ACCESS
+Route::get('/tienda', [SelfServiceSalesAccessController::class, 'show'])
+    ->name('self_service_sales.access');
+
+Route::post('/tienda', [SelfServiceSalesAccessController::class, 'store'])
+    ->name('self_service_sales.access.store');
 
 // SHOP
 Route::prefix('shop/{tenant:slug}')

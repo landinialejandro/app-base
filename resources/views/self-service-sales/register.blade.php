@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/self-service-sales/register.blade.php | V1 --}}
+{{-- FILE: resources/views/self-service-sales/register.blade.php | V2 --}}
 
 @php($publicPage = true)
 
@@ -21,21 +21,6 @@
                         @csrf
 
                         <div class="form-group">
-                            <label class="form-label" for="name">Nombre completo</label>
-                            <input
-                                id="name"
-                                class="form-control"
-                                name="name"
-                                type="text"
-                                value="{{ old('name') }}"
-                                required
-                            >
-                            @error('name')
-                                <div class="form-error">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="form-group">
                             <label class="form-label" for="display_name">Nombre para mostrar</label>
                             <input
                                 id="display_name"
@@ -43,23 +28,9 @@
                                 name="display_name"
                                 type="text"
                                 value="{{ old('display_name') }}"
-                            >
-                            @error('display_name')
-                                <div class="form-error">{{ $message }}</div>
-                            @enderror
-                        </div>
-
-                        <div class="form-group">
-                            <label class="form-label" for="document_number">DNI</label>
-                            <input
-                                id="document_number"
-                                class="form-control"
-                                name="document_number"
-                                type="text"
-                                value="{{ old('document_number') }}"
                                 required
                             >
-                            @error('document_number')
+                            @error('display_name')
                                 <div class="form-error">{{ $message }}</div>
                             @enderror
                         </div>
@@ -94,6 +65,10 @@
                             @enderror
                         </div>
 
+                        <p class="form-help">
+                            Este registro confirma tu email como primer paso. Para operar en la tienda, más adelante vas a tener que completar tus datos reales de identidad.
+                        </p>
+
                         <div class="form-actions">
                             <button type="submit" class="btn btn-primary">
                                 Registrarme
@@ -106,7 +81,7 @@
                     </form>
                 </x-card>
 
-                <x-dev-component-version name="self-service-sales.register" version="1" align="right" />
+                <x-dev-component-version name="self-service-sales.register" version="2" align="right" />
             </div>
         </div>
     </x-page>

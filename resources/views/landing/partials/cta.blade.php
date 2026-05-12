@@ -1,4 +1,5 @@
-{{-- FILE: resources/views/landing/partials/cta.blade.php | V3 --}}
+{{-- FILE: resources/views/landing/partials/cta.blade.php | V4 --}}
+
 <section class="landing-section landing-section--cta">
     <div class="landing-container">
         <div class="landing-cta">
@@ -30,6 +31,10 @@
                 @else
                     <a href="{{ route('public.signup-requests.create') }}" class="landing-btn landing-btn--primary">
                         Solicitar acceso
+                    </a>
+
+                    <a href="{{ route('self_service_sales.access') }}" class="landing-btn landing-btn--secondary">
+                        Entrar a Tienda
                     </a>
 
                     <a href="{{ route('landing.pricing') }}" class="landing-btn landing-btn--secondary">

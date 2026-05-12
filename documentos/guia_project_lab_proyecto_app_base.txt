@@ -595,8 +595,65 @@ No mezclar ambos contratos en un mismo snippet.
 
 <<END SECTION>>
 
+<<SECTION: FORMATO DE ARCHIVO PHP COMPLETO>>
+SECTION_VERSION: 00001
+
+FORMATO DE ARCHIVO PHP COMPLETO
+
+Cuando Project Lab recibe un snippet para crear o reemplazar un archivo PHP completo, el contenido debe comenzar como archivo PHP válido.
+
+Formato correcto:
+
+<?php
+// FILE: app/Support/Ejemplo.php | V1
+
+Reglas:
+
+la apertura PHP debe estar al inicio del archivo
+
+el encabezado FILE debe ubicarse luego de <?php
+
+el encabezado FILE identifica archivo completo
+
+la ruta debe ser una ruta de archivo PHP
+
+la ruta debe resolverse dentro del projectRoot
+
+el snippet no debe mezclar FILE con TARGET
+
+el snippet no debe contener operadores de método si se declara como archivo completo
+
+el archivo final debe validar sintaxis PHP cuando corresponda
+
+Formato incorrecto para archivo PHP completo:
+
+// FILE: app/Support/Ejemplo.php | V1
+<?php
+
+Regla:
+
+un snippet PHP completo no debe comenzar con comentario FILE antes de la apertura PHP si la herramienta espera archivo PHP válido desde el inicio.
+
+Si el parser no puede clasificar el bloque con seguridad, debe devolver ERROR antes de escribir.
+
+Caso detectado:
+
+un modelo PHP no se creó correctamente por usar formato inicial incorrecto del snippet.
+
+Corrección vigente:
+
+para archivo PHP completo, comenzar siempre con <?php y luego declarar el marcador FILE.
+
+Regla final:
+
+Project Lab debe validar el contrato antes de escribir.
+
+No debe normalizar silenciosamente un formato ambiguo si puede provocar creación incorrecta, ruta inválida, archivo inválido o interpretación errónea del snippet.
+
+<<END SECTION>>
+
 <<SECTION: ERRORES OBLIGATORIOS>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 ERRORES OBLIGATORIOS
 
@@ -623,43 +680,34 @@ bloque documental sin SECTION_VERSION válido
 bloque documental con DOC_SLUG como encabezado operativo si Project Lab Docs espera REEMPLAZAR EN
 header FILE que combine operadores de método
 snippet que mezcle FILE y TARGET de forma ambigua
+archivo PHP completo que no comience como PHP válido
+archivo PHP completo con apertura PHP ubicada después del encabezado FILE cuando el contrato espera PHP válido desde el inicio
 intento de escritura fuera del projectRoot
-falla al crear backup documental antes de reemplazar sección
-falla de sintaxis PHP posterior a una escritura
+falla al crear backup documental antes de reemplazar
+falla de validación de sintaxis PHP posterior a la escritura
+falla de restauración o limpieza luego de lint PHP inválido
+macro audit inexistente
+macro audit con argumentos inválidos
+comando rápido con prefijo >> no reconocido
+intento de ejecutar prompt narrativo como si fuera comando shell o audit válido
 
-Regla:
+Reglas:
 
-un error debe ser explícito, legible y accionable.
+si el error es detectable antes de escribir, Project Lab debe fallar antes de modificar archivos
 
-Debe indicar:
+si el error aparece después de una escritura PHP y el lint falla, debe restaurar el archivo anterior o eliminar el archivo nuevo inválido
 
-qué falló
-por qué falló
-qué formato correcto corresponde usar cuando aplique
+si el contrato es ambiguo, no debe aceptarse como éxito parcial
 
-Regla adicional:
+si el formato no corresponde a ninguno de los contratos vigentes, no debe aplicarse
 
-un ERROR no debe dejar cambios parciales aplicados cuando la operación pueda validarse antes de escribir.
+si el bloque corresponde a documentación, no debe procesarse como código
 
-Regla sobre sintaxis PHP:
+si el bloque corresponde a código, no debe procesarse como documentación
 
-si la validación de sintaxis PHP posterior a un cambio falla, la intervención no debe considerarse cerrada.
+Regla final:
 
-En operaciones PHP gestionadas por Project Lab, la herramienta debe intentar restaurar el contenido anterior o eliminar el archivo nuevo inválido.
-
-Regla adicional sobre errores posteriores a la aplicación:
-
-si la herramienta aplicó un cambio pero una validación posterior falla, el resultado no debe tratarse como cierre exitoso.
-
-Debe corregirse, revertirse o restaurarse antes de avanzar.
-
-Regla de salida:
-
-cuando falle lint PHP, Project Lab debe conservar el detalle técnico bajo una lectura clara, por ejemplo:
-
-[INFO] Detalle lint:
-
-El detalle no debe ocultarse, porque forma parte de la evidencia técnica.
+un ERROR explícito es preferible a una escritura ambigua.
 
 <<END SECTION>>
 
@@ -1174,7 +1222,7 @@ No reemplaza el análisis técnico de esa evidencia.
 <<END SECTION>>
 
 <<SECTION: USO DE CODE>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00005
 
 USO DE CODE
 
@@ -1183,12 +1231,19 @@ La herramienta code debe usarse para aplicar cambios de código cuando el snippe
 Reglas:
 
 usar archivo completo solo cuando se quiera reemplazar el archivo completo
+
 usar TARGET con operador de reemplazo para reemplazar método PHP existente o función JS existente
+
 usar TARGET con operador de alta para agregar método PHP nuevo
+
 usar secciones para CSS o JS cuando corresponda
+
 usar archivo TPL completo para crear o reemplazar plantillas operativas controladas
+
 no mezclar header de archivo completo con operación parcial
+
 no usar formatos ambiguos
+
 no aplicar snippets generados sin revisar el encabezado
 
 Regla crítica:
@@ -1201,6 +1256,25 @@ Si el encabezado mezcla ambas intenciones, Project Lab debe devolver ERROR o nor
 
 Nunca debe crear un archivo nuevo por interpretar mal una operación parcial.
 
+Regla vigente para PHP completo:
+
+el snippet debe comenzar como archivo PHP válido.
+
+Formato correcto:
+
+<?php
+// FILE: app/Support/Ejemplo.php | V1
+
+Reglas:
+
+la apertura PHP debe aparecer antes del marcador FILE
+
+el marcador FILE debe ubicarse después de <?php
+
+el archivo debe validar como PHP cuando corresponda
+
+Project Lab no debe aceptar como archivo PHP completo un bloque que comience con FILE y luego abra PHP si el contrato vigente espera PHP válido desde el inicio
+
 Regla vigente para PHP:
 
 cuando Project Lab aplica una actualización PHP compatible, debe ejecutar validación de sintaxis PHP.
@@ -1211,35 +1285,25 @@ si el archivo existía, debe restaurar el contenido anterior
 
 si el archivo era nuevo, debe eliminar el archivo inválido generado
 
-debe informar ERROR explícito
+La salida debe informar el rollback o la eliminación.
 
-debe conservar el detalle técnico de lint como evidencia
+Regla vigente para operaciones parciales:
 
-Lectura vigente:
+cuando se reemplaza o agrega un método PHP, debe usarse TARGET.
 
-una salida de Project Lab que informa:
+Ejemplos:
 
-[OK] Sintaxis PHP válida
+// TARGET: app/Support/Ejemplo.php :: metodoExistente
 
-ya constituye validación php -l de ese patch.
+// TARGET: app/Support/Ejemplo.php ++ metodoNuevo
 
-No hace falta pedir php -l redundante después de cada actualización PHP aplicada por code, salvo auditoría externa, cambio realizado por otro canal o duda puntual.
+Regla:
 
-Regla para TPL:
+no usar FILE para operaciones parciales.
 
-cuando se cree o reemplace una plantilla TPL, debe utilizarse archivo completo versionado.
+no usar TARGET para archivo completo.
 
-Formato vigente recomendado para macros audit:
-
-# FILE: tools/project-lab/macros/audit/nombre.sh.tpl | V1
-
-Caso vigente:
-
-# FILE: tools/project-lab/macros/audit/find.sh.tpl | V1
-
-El archivo TPL debe quedar visible, versionado y editable por Project Lab mediante code.
-
-No debe editarse como parche suelto si corresponde reemplazo completo.
+no mezclar ambos contratos en el mismo snippet.
 
 <<END SECTION>>
 

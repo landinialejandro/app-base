@@ -594,3 +594,404 @@ Pendiente inmediato asociado:
 ajustar la lectura contextual de orders.index?group=service para que el listado se exprese visualmente como Órdenes de servicio.
 
 <<END SECTION>>
+
+<<SECTION: DECISIONES VIGENTES — CAPAS SATÉLITE>>
+SECTION_VERSION: 00001
+
+DECISIONES VIGENTES — CAPAS SATÉLITE
+
+Este bloque registra decisiones vigentes vinculadas con capas satélite, universos semánticos y entradas públicas externas que condicionan implementación, auditoría, continuidad y próximos pasos.
+
+SERVICIO Y MANTENIMIENTO COMO CAPA SATÉLITE PRODUCTIVA
+
+Decisión vigente:
+
+Servicio y mantenimiento se implementa como capa satélite productiva ERP/CMMS liviana sobre módulos existentes.
+
+No se implementa como CRUD ordinario aislado.
+
+No reemplaza Orders.
+
+No absorbe ownership de Orders, Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity.
+
+Lectura vigente:
+
+Orders conserva ownership de las órdenes de servicio.
+
+Servicio y mantenimiento puede tener entrada visual propia, dashboard mínimo, rutas semánticas y contexto funcional sin convertirse en módulo dueño de las órdenes.
+
+Universo semántico vigente:
+
+/service
+
+Route base vigente:
+
+service.index
+
+Rutas vigentes:
+
+service.orders.index
+service.orders.create
+service.orders.store
+service.orders.show
+
+Base operativa vigente:
+
+Orders opera órdenes de servicio mediante:
+
+group = service
+
+Reglas:
+
+/service no es CRUD nuevo
+
+/service no reemplaza Orders
+
+/service no absorbe ownership de Orders
+
+/service no convierte órdenes de servicio en entidad ajena a Orders
+
+/service no depende de ?group=service como fuente fuerte de contexto
+
+POST /service/orders debe forzar group = service desde backend
+
+una orden creada desde /service debe redirigir físicamente a /service/orders/{order}
+
+el acceso al área mediante service_maintenance.view_any no reemplaza permisos operativos de Orders
+
+las acciones reales sobre órdenes de servicio continúan bajo autorización efectiva de Orders
+
+Decisión vigente sobre navegación contextual:
+
+OrderNavigationTrail::showRouteName() conserva el retorno físico correcto hacia orders.show o service.orders.show según ruta actual o trail recibido.
+
+Lectura:
+
+orders.show = host interno funcional
+
+service.orders.show = ruta física contextual del universo /service
+
+Reglas:
+
+no crear rutas duplicadas innecesarias como service.orders.items.* si la operación real sigue perteneciendo a Orders
+
+las rutas internas pueden seguir perteneciendo al módulo dueño cuando el ownership real no cambia
+
+los retornos físicos deben conservar /service/orders/{order} cuando el flujo nace en Servicio y mantenimiento
+
+los hosts surface internos deben seguir usando orders.show cuando la capacidad pertenece funcionalmente a Orders
+
+Decisión vigente sobre lectura visual:
+
+orders.show incorpora una lectura contextual no invasiva para órdenes de servicio mediante el bloque:
+
+Contexto de servicio
+
+Puede mostrar:
+
+contraparte
+activo
+fecha de servicio
+clasificación
+
+Reglas:
+
+no crea estados técnicos satélite
+
+no crea tablas nuevas
+
+no modifica lifecycle base de Orders
+
+no convierte Servicio y mantenimiento en dueño visual ni funcional de Orders
+
+Decisión vigente sobre alcance:
+
+la implementación actual es una base operativa mínima sobre Orders.
+
+No implementa todavía:
+
+estados técnicos satélite
+planes de mantenimiento
+checklists
+órdenes modelo
+servicios precargados
+cierres técnicos
+cierres administrativos ampliados
+línea de tiempo técnica propia
+dashboard avanzado
+CMMS completo
+
+Regla:
+
+no abrir estados técnicos satélite, piezas nuevas ni rutas duplicadas sin auditar primero si la necesidad se resuelve mediante Orders, trails, surfaces o lectura contextual.
+
+SHOPPING AUTOSERVICIO COMO CAPA SATÉLITE COMERCIAL AUTOGESTIVA
+
+Decisión vigente:
+
+Shopping Autoservicio se implementa como capa satélite comercial autogestiva por tenant.
+
+Key técnica:
+
+self_service_sales
+
+No se implementa como CRUD ordinario.
+
+No es panel interno del tenant.
+
+No reemplaza Parties.
+
+No reemplaza Products.
+
+No reemplaza Inventory.
+
+No reemplaza Documents.
+
+No reemplaza Security.
+
+Lectura vigente:
+
+self_service_sales organiza la experiencia comercial autogestiva, tienda pública, registro externo y futuras capacidades comerciales externas.
+
+Universo público vigente:
+
+/shop/{tenant:slug}
+
+Label visible:
+
+Tienda
+
+Reglas:
+
+/shop/{tenant:slug} es entrada pública externa
+
+/shop/{tenant:slug} no es navegación principal interna
+
+/shop/{tenant:slug} no usa el grupo auth + tenant
+
+/shop/{tenant:slug} no habilita dashboard, tenant/profile, parties.show ni rutas internas
+
+/shop/{tenant:slug} resuelve tenant por slug público
+
+el cliente externo no se convierte en User
+
+el cliente externo no se convierte en Membership
+
+el cliente externo no recibe roles internos
+
+el cliente externo no accede al panel interno
+
+Decisión vigente sobre representación del customer externo:
+
+el cliente externo confirmado se representa como:
+
+Party.kind = person
+
+PartyRole.role = customer
+
+Reglas:
+
+no crear party.kind = auto-customer
+
+no crear party.kind = self-service
+
+no crear variante nueva de kind para customers autogestivos
+
+la condición autogestiva pertenece a self_service_sales, no a parties.kind
+
+la Party customer generada por Shopping Autoservicio no debe tener memberships asociadas
+
+Decisión vigente sobre registro externo pendiente:
+
+el registro externo del customer debe usar una tabla propia y no invitations.
+
+Entidad vigente:
+
+self_service_customer_registrations
+
+Modelo vigente:
+
+SelfServiceCustomerRegistration
+
+Estados conceptuales vigentes:
+
+pending
+confirmed
+expired
+cancelled
+
+Reglas:
+
+self_service_customer_registrations conserva registros externos pendientes antes de crear Party
+
+self_service_customer_registrations no reemplaza Party
+
+self_service_customer_registrations no reemplaza User
+
+self_service_customer_registrations no reemplaza Membership
+
+self_service_customer_registrations no representa identidad interna del sistema
+
+party_id puede permanecer null mientras el registro está pendiente
+
+party_id se completa al confirmar correctamente
+
+Decisión vigente sobre flujos internos descartados:
+
+el flujo externo de Shopping Autoservicio no debe reutilizar:
+
+PartyController
+TenantMembershipPartyController
+InvitationAcceptanceController
+Fortify interno
+invitations
+
+Motivo:
+
+esos flujos pertenecen al plano interno de usuarios, memberships, invitaciones, roles o acceso interno.
+
+Reglas:
+
+PartyController pertenece al panel interno y permisos internos de Parties
+
+InvitationAcceptanceController pertenece al plano interno de invitaciones de usuarios, owner signup y memberships
+
+StorePartyRequest puede servir como referencia de campos, pero no como contrato del registro externo
+
+el alta externa requiere controller, request y servicios propios del plano externo
+
+Decisión vigente sobre confirmación por token:
+
+la confirmación del registro externo debe validar en backend:
+
+tenant resuelto
+token
+estado
+vencimiento
+duplicados
+
+antes de crear Party.
+
+Reglas:
+
+no crear Party si el token no es válido
+
+no crear Party si el registro no está pending
+
+no crear Party si el registro está vencido
+
+no crear Party si existe duplicado por email, teléfono o DNI dentro del tenant
+
+no confiar en la UI para evitar duplicados
+
+Decisión vigente sobre duplicados:
+
+el alta autogestiva debe bloquearse si ya existe cualquier Party dentro del tenant con el mismo email, teléfono o DNI.
+
+Reglas:
+
+validar duplicados al recibir los datos iniciales
+
+revalidar duplicados al confirmar el token
+
+no limitar la validación a Parties con rol customer
+
+no crear nueva Party automáticamente ante duplicado
+
+no resolver esta consistencia solo en UI
+
+Primer corte operativo validado:
+
+registro externo pendiente
+confirmación por token
+creación de Party kind = person
+creación de PartyRole role = customer
+separación total frente a Membership
+sin User interno
+sin Membership
+sin acceso interno al tenant
+
+Implementado y validado:
+
+tabla self_service_customer_registrations
+modelo SelfServiceCustomerRegistration
+request StoreSelfServiceCustomerRegistrationRequest
+servicio SelfServiceCustomerRegistrar
+servicio SelfServiceCustomerConfirmer
+controller SelfServiceSalesCustomerRegistrationController
+rutas públicas /shop/{tenant:slug}
+vistas públicas de tienda, registro, gracias y confirmado
+flujo pending → confirmed
+creación de Party person + PartyRole customer
+validación de no creación de User ni Membership
+
+Fuera de alcance vigente:
+
+Mercado Pago real
+saldo operativo
+QR real
+controlador externo
+minimercado
+promociones
+transferencias
+facturación
+login externo completo
+envío real de email de confirmación
+
+Decisión vigente sobre Mercado Pago:
+
+Mercado Pago queda como puerta futura, no implementada en esta fase.
+
+app-base no actúa inicialmente como intermediario financiero.
+
+Cada tenant deberá cobrar con su propia configuración futura si se implementa esa integración.
+
+Próximo frente probable:
+
+vista interna owner/admin para registros y customers de Shopping Autoservicio.
+
+Regla:
+
+antes de continuar con saldo, ficha, QR, email real, Mercado Pago, minimercado, facturación, promociones o login externo completo, debe respetarse el corte actual y validar contra código real, seguridad, tenant activo, runtime y documentación vigente.
+
+SEPARACIÓN ENTRE CAPAS SATÉLITE
+
+Decisión vigente:
+
+Servicio y mantenimiento y Shopping Autoservicio son capas satélite diferentes.
+
+Servicio y mantenimiento:
+
+/service
+
+frente operativo interno especializado
+
+orientado a órdenes de servicio y mantenimiento
+
+opera sobre Orders mediante group = service
+
+Shopping Autoservicio:
+
+/shop/{tenant:slug}
+
+entrada pública externa
+
+orientada a tienda y customers externos
+
+opera inicialmente sobre registro externo y Parties customer
+
+Reglas:
+
+/shop/{tenant:slug} no altera /service
+
+/service no altera /shop/{tenant:slug}
+
+no contaminar el documento de Servicios y Mantenimiento con reglas propias de self_service_sales
+
+no contaminar Shopping Autoservicio con reglas propias de mantenimiento técnico
+
+ambas capas deben respetar ownership de módulos participantes
+
+ambas capas deben validar seguridad y runtime antes de ampliar alcance
+
+<<END SECTION>>

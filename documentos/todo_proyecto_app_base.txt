@@ -502,6 +502,206 @@ Debe diseñarse con presupuesto inicial potencialmente cero, proveedor reemplaza
 
 <<END SECTION>>
 
+<<SECTION: LÍNEA ACTIVA — SHOPPING AUTOSERVICIO>>
+SECTION_VERSION: 00001
+
+LÍNEA ACTIVA — SHOPPING AUTOSERVICIO
+
+Frente vigente de trabajo:
+
+implementación progresiva de Shopping Autoservicio / self_service_sales como capa satélite comercial autogestiva por tenant.
+
+Clasificación vigente:
+
+capa satélite comercial autogestiva por tenant
+
+No es:
+
+módulo CRUD ordinario
+panel interno del tenant
+membership del cliente externo
+reemplazo de Parties
+reemplazo de Products
+reemplazo de Inventory
+reemplazo de Documents
+reemplazo de Security
+
+Universo público vigente:
+
+/shop/{tenant:slug}
+
+Label visible:
+
+Tienda
+
+Cierre parcial consolidado:
+
+implementación inicial de Shopping Autoservicio / self_service_sales como capa satélite comercial autogestiva.
+
+Implementado y validado:
+
+tabla self_service_customer_registrations
+modelo SelfServiceCustomerRegistration
+request StoreSelfServiceCustomerRegistrationRequest
+servicio SelfServiceCustomerRegistrar
+servicio SelfServiceCustomerConfirmer
+controller SelfServiceSalesCustomerRegistrationController
+rutas públicas /shop/{tenant:slug}
+vistas públicas de tienda, registro, gracias y confirmado
+flujo pending → confirmed
+creación de Party person + PartyRole customer
+validación de no creación de User ni Membership
+validación runtime de alta externa sin membership
+
+Corte funcional vigente:
+
+registro externo pendiente
+confirmación por token
+creación de Party kind = person
+creación de PartyRole role = customer
+separación total frente a Membership
+sin User interno
+sin Membership
+sin acceso interno al tenant
+
+Reglas vigentes:
+
+el customer externo no debe convertirse en User
+
+el customer externo no debe convertirse en Membership
+
+el customer externo no debe recibir roles internos
+
+el customer externo no debe acceder al panel interno
+
+self_service_sales no debe reutilizar PartyController para alta externa
+
+self_service_sales no debe reutilizar TenantMembershipPartyController para alta externa
+
+self_service_sales no debe reutilizar InvitationAcceptanceController para alta externa
+
+self_service_sales no debe reutilizar Fortify interno como login de customers externos
+
+invitations no debe usarse para registro externo de customer
+
+self_service_customer_registrations conserva el registro externo pendiente antes de crear Party
+
+la confirmación por token debe validar token, estado, vencimiento y duplicados
+
+si existe una Party en el tenant con mismo email, teléfono o DNI, el alta autogestiva debe bloquearse
+
+Mercado Pago queda como puerta futura, no implementada en esta fase
+
+Pendiente próximo:
+
+visualización interna owner/admin de registros y customers de Shopping Autoservicio
+
+Pendientes posteriores:
+
+envío real de email de confirmación
+login externo del customer
+base de saldo/ficha
+movimientos comerciales
+QR y consumo de ficha
+integración con controlador externo
+Mercado Pago futuro
+minimercado
+facturación solicitada
+transferencias
+promociones
+saldo negativo
+
+Regla de continuidad:
+
+antes de continuar con saldo, ficha, QR, email real, Mercado Pago, minimercado, facturación, promociones o login externo completo, debe respetarse el corte actual y validar contra código real, seguridad, tenant activo, runtime y documentación vigente.
+
+<<END SECTION>>
+
+<<SECTION: CIERRE PARCIAL — SERVICIO Y MANTENIMIENTO SOBRE ORDERS>>
+SECTION_VERSION: 00001
+
+CIERRE PARCIAL — SERVICIO Y MANTENIMIENTO SOBRE ORDERS
+
+Cierre parcial consolidado:
+
+Fase 1 — Servicio y mantenimiento: consolidación del universo /service sobre Orders.
+
+Implementado y validado:
+
+dashboard mínimo /service
+rutas service.orders.*
+creación de órdenes de servicio con group = service
+redirect físico a /service/orders/{order}
+conservación de contexto en flujos principales
+bloque visual Contexto de servicio en orders.show
+
+Universo vigente:
+
+/service
+
+Rutas vigentes:
+
+service.index
+service.orders.index
+service.orders.create
+service.orders.store
+service.orders.show
+
+Reglas vigentes:
+
+/service no es CRUD nuevo
+
+/service no reemplaza Orders
+
+/service no absorbe ownership de Orders
+
+/service no depende de ?group=service como fuente fuerte de contexto
+
+Orders conserva ownership de órdenes de servicio
+
+POST /service/orders fuerza group = service desde backend
+
+OrderNavigationTrail::showRouteName() conserva navegación contextual cuando corresponde
+
+orders.show contiene lectura contextual no invasiva para órdenes de servicio
+
+no se implementaron estados técnicos satélite todavía
+
+no se implementó CMMS completo todavía
+
+Archivos modificados y validados:
+
+app/Support/Navigation/OrderNavigationTrail.php V8
+app/Http/Controllers/OrderController.php V29
+app/Http/Controllers/OrderItemController.php V26
+app/Http/Controllers/InventoryController.php V13
+app/Http/Controllers/AttachmentController.php V11
+resources/views/service/dashboard.blade.php V2
+resources/views/orders/show.blade.php V45
+resources/views/orders/edit.blade.php V10
+resources/views/orders/items/create.blade.php V6
+resources/views/orders/items/edit.blade.php V6
+resources/views/inventory/partials/movements-table.blade.php V14
+resources/views/inventory/movement-show.blade.php V5
+resources/views/documents/partials/table.blade.php V14
+
+Validaciones ejecutadas:
+
+php -l en todos los archivos intervenidos
+php artisan route:list
+php artisan optimize:clear
+smoke test funcional de rutas y contexto
+
+Próximo paso posible:
+
+evaluar primera pieza funcional satélite de mantenimiento solo después de cerrar documentación de esta mini-etapa.
+
+Regla:
+
+no abrir estados técnicos satélite, piezas nuevas ni rutas duplicadas sin auditar primero si la necesidad se resuelve mediante Orders, trails, surfaces o lectura contextual.
+
+<<END SECTION>>
+
 <<SECTION: MÓDULOS PRIORITARIOS A REVISAR>>
 SECTION_VERSION: 00013
 

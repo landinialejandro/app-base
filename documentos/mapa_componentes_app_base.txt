@@ -294,6 +294,221 @@ el comportamiento JS no debe ser fuente única de consistencia de datos crítico
 
 <<END SECTION>>
 
+<<SECTION: VISTAS Y PARTIALS DE FRENTES SATÉLITE Y CONTEXTOS ESPECIALIZADOS>>
+SECTION_VERSION: 00001
+
+VISTAS Y PARTIALS DE FRENTES SATÉLITE Y CONTEXTOS ESPECIALIZADOS
+
+Los frentes satélite y universos semánticos pueden requerir vistas propias o adaptaciones contextuales de vistas existentes.
+
+Esto no convierte automáticamente esas vistas en componentes globales ni traslada ownership visual del recurso operado.
+
+Reglas:
+
+una vista raíz de universo funcional pertenece al universo o frente que representa
+
+no debe promoverse automáticamente a componente global
+
+no debe contener autorización propia
+
+debe representar datos, accesos o estados ya preparados por backend
+
+si opera sobre un módulo dueño, debe respetar la vista, partial o contrato visual del módulo dueño
+
+si el mismo partial reusable opera en más de un universo, debe recibir configuración explícita
+
+no debe inferir rutas por su cuenta cuando el contexto sea relevante
+
+CASO VIGENTE: SERVICE DASHBOARD
+
+Vista vigente:
+
+resources/views/service/dashboard.blade.php
+
+Versión vigente:
+
+V2
+
+Lectura:
+
+service.dashboard es vista del universo Servicio y mantenimiento.
+
+No es componente Blade global.
+
+No debe ubicarse dentro de resources/views/components.
+
+No reemplaza Orders.
+
+No convierte Servicio y mantenimiento en CRUD ordinario.
+
+No contiene autorización propia.
+
+Debe representar accesos y datos ya preparados por la capa correspondiente.
+
+Elementos visuales vigentes:
+
+ver órdenes de servicio
+
+crear nueva orden de servicio
+
+contador de órdenes registradas
+
+mensaje si el área está disponible pero no hay permisos operativos sobre Orders
+
+Regla:
+
+un dashboard de área pertenece al universo o frente que representa, no a la familia de componentes globales, salvo que se extraigan piezas genéricas reutilizables.
+
+CASO VIGENTE: ORDERS EN CONTEXTO /SERVICE
+
+Orders conserva ownership visual del recurso Order.
+
+Vistas vigentes impactadas:
+
+resources/views/orders/show.blade.php V45
+
+resources/views/orders/edit.blade.php V10
+
+resources/views/orders/items/create.blade.php V6
+
+resources/views/orders/items/edit.blade.php V6
+
+Lectura:
+
+orders.show contiene una variante contextual para órdenes de servicio.
+
+No existe vista separada service/orders/show como cierre vigente.
+
+Elementos visuales vigentes para órdenes de servicio:
+
+Detalle de la orden de servicio
+
+Secciones de la orden de servicio
+
+Servicio
+
+Contexto de servicio
+
+El bloque Contexto de servicio muestra:
+
+contraparte
+
+activo
+
+fecha de servicio
+
+clasificación
+
+Reglas:
+
+la variante contextual en orders.show no cambia ownership visual de Orders
+
+no debe duplicarse show de Orders dentro de service si la vista del módulo dueño resuelve el contexto
+
+no debe crearse una vista service/orders/show salvo decisión futura validada contra necesidad real
+
+la lectura contextual no debe incorporar estados técnicos satélite sin auditoría específica
+
+la lectura contextual no debe modificar el lifecycle base de Orders
+
+CASO VIGENTE: INVENTORY, DOCUMENTS Y ATTACHMENTS CON RETORNO CONTEXTUAL
+
+Vistas vigentes impactadas:
+
+resources/views/inventory/partials/movements-table.blade.php V14
+
+resources/views/inventory/movement-show.blade.php V5
+
+resources/views/documents/partials/table.blade.php V14
+
+Lectura:
+
+Inventory, Documents y Attachments pueden conservar retorno contextual hacia /service/orders/{order} cuando el flujo nace desde Servicio y mantenimiento.
+
+Esto no convierte Inventory, Documents ni Attachments en componentes de service.
+
+Reglas:
+
+los links visuales hacia Orders pueden respetar el contexto /service cuando el trail lo indique
+
+el retorno contextual no cambia ownership del recurso
+
+el partial reusable debe recibir ruta, trail o configuración explícita cuando el contexto sea relevante
+
+no deben duplicarse partials por universo si la configuración explícita resuelve la diferencia
+
+CASO VIGENTE: SHOPPING AUTOSERVICIO
+
+Vistas públicas vigentes:
+
+resources/views/self-service-sales/shop.blade.php
+
+resources/views/self-service-sales/register.blade.php
+
+resources/views/self-service-sales/thanks.blade.php
+
+resources/views/self-service-sales/confirmed.blade.php
+
+Lectura:
+
+estas vistas pertenecen al universo público externo de Shopping Autoservicio.
+
+No son componentes Blade globales.
+
+No pertenecen al panel interno del tenant.
+
+No deben contener navegación interna.
+
+No deben exponer dashboard, tenant/profile, parties.show ni rutas internas.
+
+Label visible:
+
+Tienda
+
+Patrones visuales usados:
+
+@php($publicPage = true)
+
+@extends('layouts.app')
+
+x-page
+
+welcome-page
+
+public-panel
+
+x-page-header
+
+x-card
+
+form
+
+form-group
+
+form-label
+
+form-control
+
+form-actions
+
+btn btn-primary
+
+btn btn-secondary
+
+Regla:
+
+las vistas públicas de self_service_sales pueden reutilizar componentes visuales globales, pero no deben adoptar navegación, acciones o estructuras propias del panel interno si eso confunde el plano externo.
+
+Regla sobre x-dev-component-version:
+
+las vistas públicas nuevas con entidad visual propia deben incorporar x-dev-component-version cuando corresponda.
+
+Regla final:
+
+las vistas de frentes satélite y universos contextuales deben expresar contexto de uso sin crear ownership visual indebido ni duplicar vistas del módulo dueño.
+
+<<END SECTION>>
+
 
 <<SECTION: COMPONENTES DE LAYOUT>>
 SECTION_VERSION: 00001

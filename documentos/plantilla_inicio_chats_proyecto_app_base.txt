@@ -710,6 +710,133 @@ No valida runtime por sí misma.
 
 <<END SECTION>>
 
+<<SECTION: ESTADO RECIENTE — CAPAS SATÉLITE>>
+SECTION_VERSION: 00001
+
+ESTADO RECIENTE — CAPAS SATÉLITE
+
+Este bloque resume el estado reciente de frentes satélite para continuidad entre chats técnicos.
+
+Regla máxima:
+
+NO SE ASUME
+NO SE SUPONE
+
+Antes de continuar cualquiera de estos frentes:
+
+leer documentación vigente
+trabajar sobre código real
+pedir evidencia mínima necesaria
+validar runtime cuando corresponda
+no inventar rutas, tablas, permisos, APIs ni contratos
+no abrir piezas nuevas sin auditar si la necesidad se resuelve con contratos existentes
+
+SERVICIO Y MANTENIMIENTO
+
+Servicio y mantenimiento ya posee universo semántico implementado y validado:
+
+/service
+
+Lectura vigente:
+
+/service es frente operativo mínimo de Servicio y mantenimiento
+
+/service no es CRUD nuevo
+
+/service no reemplaza Orders
+
+/service no absorbe ownership de Orders
+
+Orders conserva ownership de órdenes de servicio
+
+Rutas vigentes:
+
+service.index
+service.orders.index
+service.orders.create
+service.orders.store
+service.orders.show
+
+Reglas vigentes:
+
+POST /service/orders fuerza group = service desde backend
+
+la navegación contextual se conserva mediante OrderNavigationTrail::showRouteName()
+
+orders.show contiene lectura contextual no invasiva para órdenes de servicio
+
+no se implementaron estados técnicos satélite todavía
+
+no se implementó CMMS completo todavía
+
+no crear rutas duplicadas ni piezas satélite nuevas sin auditar primero si la necesidad se resuelve mediante Orders, trails, surfaces o lectura contextual
+
+SHOPPING AUTOSERVICIO
+
+Existe una nueva capacidad documentada e iniciada:
+
+Shopping Autoservicio / self_service_sales
+
+Lectura vigente:
+
+self_service_sales es capa satélite comercial autogestiva por tenant
+
+no es módulo CRUD ordinario
+
+no es panel interno del tenant
+
+no reemplaza Parties
+
+no reemplaza Products
+
+no reemplaza Inventory
+
+no reemplaza Documents
+
+no reemplaza Security
+
+Universo público vigente:
+
+/shop/{tenant:slug}
+
+Label visible:
+
+Tienda
+
+Primera fase implementada y validada:
+
+/shop/{tenant:slug}
+registro externo de customer
+self_service_customer_registrations
+confirmación por token
+creación de Party kind = person
+PartyRole role = customer
+sin User
+sin Membership
+sin acceso interno
+
+Reglas vigentes:
+
+no reutilizar PartyController para el flujo externo de customer
+
+no reutilizar TenantMembershipPartyController para el flujo externo de customer
+
+no reutilizar InvitationAcceptanceController para el flujo externo de customer
+
+no reutilizar Fortify interno para el flujo externo de customer
+
+no usar invitations para registro externo de customer
+
+invitations fue descartada para este flujo y se creó tabla propia por claridad semántica de largo plazo
+
+antes de continuar con saldo, ficha, QR, email real o Mercado Pago, debe respetarse el corte actual y validar con código real
+
+Próximo frente probable:
+
+vista interna owner/admin para registros y customers de Shopping Autoservicio
+
+<<END SECTION>>
+
 <<SECTION: REGLAS OPERATIVAS DEL CHAT>>
 SECTION_VERSION: 00015
 

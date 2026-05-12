@@ -162,205 +162,205 @@ class ProjectLab
         file_put_contents($this->rateLimitFile, json_encode($data));
     }
 
-private function processActions()
-{
-    $output = '';
-    $code = (string) ($_POST['code'] ?? '');
+    private function processActions()
+    {
+        $output = '';
+        $code = (string) ($_POST['code'] ?? '');
 
-    if (isset($_POST['ajax_rate_limit_reset'])) {
-        @unlink($this->rateLimitFile);
+        if (isset($_POST['ajax_rate_limit_reset'])) {
+            @unlink($this->rateLimitFile);
 
-        $this->jsonResponse([
-            'ok' => true,
-            'output' => "[OK] Rate limit de Project Lab reiniciado.\n"
-                ."[OK] Archivo temporal eliminado: {$this->rateLimitFile}",
-        ]);
-    }
-
-    if (isset($_POST['ajax_save_console_audit'])) {
-        $consoleOutput = (string) ($_POST['console_output'] ?? '');
-        $output = $this->saveProjectConsoleAudit($consoleOutput);
-
-        $this->jsonResponse([
-            'ok' => true,
-            'output' => $output,
-        ]);
-    }
-
-    if (isset($_POST['ajax_ai_prompt']) || isset($_POST['ajax_ai_local'])) {
-        $model = (string) ($_POST['model'] ?? '');
-        $fromClipboard = isset($_POST['from_clipboard']) && $_POST['from_clipboard'] === '1';
-
-        $editablePrompt = $fromClipboard
-            ? $this->readClipboard()
-            : (string) ($_POST['prompt'] ?? '');
-
-        $consoleOutput = (string) ($_POST['console_output'] ?? '');
-
-        if (isset($_POST['ajax_ai_local']) && ! str_contains($model, ':')) {
-            $model = 'ollama:'.$model;
-        }
-
-        $prompt = $this->buildProjectLabAiUserPrompt($editablePrompt, $consoleOutput);
-        $aiOutput = $this->askAiPrompt($model, $prompt);
-
-        $output = implode("\n\n", [
-            $this->buildAiConsoleUserBlock($model, $fromClipboard, $editablePrompt, $consoleOutput),
-            $this->buildAiConsoleAssistantBlock($aiOutput),
-        ]);
-
-        $this->jsonResponse([
-            'ok' => ! str_starts_with($aiOutput, '[ERROR]'),
-            'model' => $model,
-            'from_clipboard' => $fromClipboard,
-            'output' => $output,
-        ]);
-    }
-
-    if (isset($_POST['ajax_lab_tool'])) {
-        $labTool = (string) ($_POST['lab_tool'] ?? '');
-        $fromClipboard = isset($_POST['from_clipboard']) && $_POST['from_clipboard'] === '1';
-
-        $labInput = $fromClipboard
-            ? $this->readClipboard()
-            : (string) ($_POST['lab_input'] ?? '');
-
-        if ($labTool === 'audit') {
-            $quickCommand = $this->resolveQuickAuditCommand($labInput);
-
-            if (($quickCommand['matched'] ?? false) && ! ($quickCommand['ok'] ?? false)) {
-                $this->jsonResponse([
-                    'ok' => false,
-                    'tool' => $labTool,
-                    'input' => $labInput,
-                    'output' => $quickCommand['error'] ?? '[ERROR] Comando rápido Project Lab inválido.',
-                ]);
-            }
-
-            if (($quickCommand['matched'] ?? false) && ($quickCommand['ok'] ?? false)) {
-                $labInput = (string) ($quickCommand['input'] ?? $labInput);
-            }
-        }
-
-        if ($labTool === 'code') {
-            $output = $this->runEmbeddedCodeTool($labInput);
-        } elseif ($labTool === 'docs') {
-            $output = $this->runEmbeddedDocsTool($labInput);
-        } elseif ($labTool === 'audit') {
-            $output = $this->runAuditScript($labInput);
-        } else {
-            $output = "[ERROR] Herramienta Lab no reconocida: {$labTool}";
-        }
-
-        $this->jsonResponse([
-            'ok' => true,
-            'tool' => $labTool,
-            'input' => $labInput,
-            'output' => $output,
-        ]);
-    }
-
-    if (isset($_POST['ajax_artisan'])) {
-        $command = (string) ($_POST['artisan'] ?? '');
-
-        if (trim($command) === '') {
             $this->jsonResponse([
-                'ok' => false,
-                'output' => '[ERROR] No se recibió comando Artisan.',
+                'ok' => true,
+                'output' => "[OK] Rate limit de Project Lab reiniciado.\n"
+                    ."[OK] Archivo temporal eliminado: {$this->rateLimitFile}",
             ]);
         }
 
-        $output = $this->executeArtisan($command);
+        if (isset($_POST['ajax_save_console_audit'])) {
+            $consoleOutput = (string) ($_POST['console_output'] ?? '');
+            $output = $this->saveProjectConsoleAudit($consoleOutput);
 
-        $this->jsonResponse([
-            'ok' => true,
-            'command' => $command,
-            'output' => $output,
-        ]);
-    }
-
-    if (isset($_POST['ajax_tinker_from_clipboard'])) {
-        $code = $this->readClipboard();
-
-        if (trim($code) === '') {
             $this->jsonResponse([
-                'ok' => false,
-                'output' => '[ERROR] No se recibió código Tinker desde clipboard.',
+                'ok' => true,
+                'output' => $output,
+            ]);
+        }
+
+        if (isset($_POST['ajax_ai_prompt']) || isset($_POST['ajax_ai_local'])) {
+            $model = (string) ($_POST['model'] ?? '');
+            $fromClipboard = isset($_POST['from_clipboard']) && $_POST['from_clipboard'] === '1';
+
+            $editablePrompt = $fromClipboard
+                ? $this->readClipboard()
+                : (string) ($_POST['prompt'] ?? '');
+
+            $consoleOutput = (string) ($_POST['console_output'] ?? '');
+
+            if (isset($_POST['ajax_ai_local']) && ! str_contains($model, ':')) {
+                $model = 'ollama:'.$model;
+            }
+
+            $prompt = $this->buildProjectLabAiUserPrompt($editablePrompt, $consoleOutput);
+            if (session_status() === PHP_SESSION_ACTIVE) {
+                session_write_close();
+            }
+            $aiOutput = $this->askAiPrompt($model, $prompt);
+
+            $output = implode("\n\n", [
+                $this->buildAiConsoleUserBlock($model, $fromClipboard, $editablePrompt, $consoleOutput),
+                $this->buildAiConsoleAssistantBlock($aiOutput),
+            ]);
+
+            $this->jsonResponse([
+                'ok' => ! str_starts_with($aiOutput, '[ERROR]'),
+                'model' => $model,
+                'from_clipboard' => $fromClipboard,
+                'output' => $output,
+            ]);
+        }
+
+        if (isset($_POST['ajax_lab_tool'])) {
+            $labTool = (string) ($_POST['lab_tool'] ?? '');
+            $fromClipboard = isset($_POST['from_clipboard']) && $_POST['from_clipboard'] === '1';
+
+            $labInput = $fromClipboard
+                ? $this->readClipboard()
+                : (string) ($_POST['lab_input'] ?? '');
+
+            if ($labTool === 'audit') {
+                $quickCommand = $this->resolveQuickAuditCommand($labInput);
+
+                if (($quickCommand['matched'] ?? false) && ! ($quickCommand['ok'] ?? false)) {
+                    $this->jsonResponse([
+                        'ok' => false,
+                        'tool' => $labTool,
+                        'input' => $labInput,
+                        'output' => $quickCommand['error'] ?? '[ERROR] Comando rápido Project Lab inválido.',
+                    ]);
+                }
+
+                if (($quickCommand['matched'] ?? false) && ($quickCommand['ok'] ?? false)) {
+                    $labInput = (string) ($quickCommand['input'] ?? $labInput);
+                }
+            }
+
+            if ($labTool === 'code') {
+                $output = $this->runEmbeddedCodeTool($labInput);
+            } elseif ($labTool === 'docs') {
+                $output = $this->runEmbeddedDocsTool($labInput);
+            } elseif ($labTool === 'audit') {
+                $output = $this->runAuditScript($labInput);
+            } else {
+                $output = "[ERROR] Herramienta Lab no reconocida: {$labTool}";
+            }
+
+            $this->jsonResponse([
+                'ok' => ! str_starts_with($output, '[ERROR]'),
+                'tool' => $labTool,
+                'input' => $labInput,
+                'output' => $output,
+            ]);
+        }
+
+        if (isset($_POST['ajax_artisan'])) {
+            $command = (string) ($_POST['artisan'] ?? '');
+
+            if (trim($command) === '') {
+                $this->jsonResponse([
+                    'ok' => false,
+                    'output' => '[ERROR] No se recibió comando Artisan.',
+                ]);
+            }
+
+            $output = $this->executeArtisan($command);
+
+            $this->jsonResponse([
+                'ok' => true,
+                'command' => $command,
+                'output' => $output,
+            ]);
+        }
+
+        if (isset($_POST['ajax_tinker_from_clipboard'])) {
+            $code = $this->readClipboard();
+
+            if (trim($code) === '') {
+                $this->jsonResponse([
+                    'ok' => false,
+                    'output' => '[ERROR] No se recibió código Tinker desde clipboard.',
+                    'code' => $code,
+                ]);
+            }
+
+            $output = $this->executeTinker($code);
+
+            $this->jsonResponse([
+                'ok' => true,
+                'output' => $output,
                 'code' => $code,
             ]);
         }
 
-        $output = $this->executeTinker($code);
+        if (isset($_POST['ajax_tinker'])) {
+            $code = (string) ($_POST['code'] ?? '');
 
-        $this->jsonResponse([
-            'ok' => true,
-            'output' => $output,
-            'code' => $code,
-        ]);
-    }
+            if (trim($code) === '') {
+                $this->jsonResponse([
+                    'ok' => false,
+                    'output' => '[ERROR] No se recibió código Tinker.',
+                ]);
+            }
 
-    if (isset($_POST['ajax_tinker'])) {
-        $code = (string) ($_POST['code'] ?? '');
+            $output = $this->executeTinker($code);
 
-        if (trim($code) === '') {
             $this->jsonResponse([
-                'ok' => false,
-                'output' => '[ERROR] No se recibió código Tinker.',
+                'ok' => true,
+                'code' => $code,
+                'output' => $output,
             ]);
         }
 
-        $output = $this->executeTinker($code);
-
-        $this->jsonResponse([
-            'ok' => true,
-            'code' => $code,
-            'output' => $output,
-        ]);
-    }
-
-    if (isset($_POST['run']) && trim($code) !== '') {
-        $output = $this->executeTinker($code);
-    }
-
-    if (isset($_POST['artisan'])) {
-        $output = $this->executeArtisan((string) $_POST['artisan']);
-    }
-
-    if (isset($_POST['lab_tool'])) {
-        $labTool = (string) ($_POST['lab_tool'] ?? '');
-        $fromClipboard = isset($_POST['from_clipboard']);
-
-        $labInput = $fromClipboard
-            ? $this->readClipboard()
-            : (string) ($_POST['lab_input'] ?? '');
-
-        if ($labTool === 'audit') {
-            $quickCommand = $this->resolveQuickAuditCommand($labInput);
-
-            if (($quickCommand['matched'] ?? false) && ! ($quickCommand['ok'] ?? false)) {
-                $output = $quickCommand['error'] ?? '[ERROR] Comando rápido Project Lab inválido.';
-            } elseif (($quickCommand['matched'] ?? false) && ($quickCommand['ok'] ?? false)) {
-                $labInput = (string) ($quickCommand['input'] ?? $labInput);
-                $output = $this->runAuditScript($labInput);
-            } else {
-                $output = $this->runAuditScript($labInput);
-            }
-        } elseif ($labTool === 'code') {
-            $output = $this->runEmbeddedCodeTool($labInput);
-        } elseif ($labTool === 'docs') {
-            $output = $this->runEmbeddedDocsTool($labInput);
-        } else {
-            $output = "[ERROR] Herramienta Lab no reconocida: {$labTool}";
+        if (isset($_POST['run']) && trim($code) !== '') {
+            $output = $this->executeTinker($code);
         }
 
-        $_SESSION['project_lab_tool_input'] = $labInput;
-        $_SESSION['project_lab_tool_output'] = $output;
-        $_SESSION['project_lab_tool_active'] = $labTool;
-    }
+        if (isset($_POST['artisan'])) {
+            $output = $this->executeArtisan((string) $_POST['artisan']);
+        }
 
-    $this->output = $output;
-    $this->code = $code;
-}
+        if (isset($_POST['lab_tool'])) {
+            $labTool = (string) ($_POST['lab_tool'] ?? '');
+            $fromClipboard = isset($_POST['from_clipboard']);
+
+            $labInput = $fromClipboard
+                ? $this->readClipboard()
+                : (string) ($_POST['lab_input'] ?? '');
+
+            if ($labTool === 'audit') {
+                $quickCommand = $this->resolveQuickAuditCommand($labInput);
+
+                if (($quickCommand['matched'] ?? false) && ! ($quickCommand['ok'] ?? false)) {
+                    $output = $quickCommand['error'] ?? '[ERROR] Comando rápido Project Lab inválido.';
+                } elseif (($quickCommand['matched'] ?? false) && ($quickCommand['ok'] ?? false)) {
+                    $labInput = (string) ($quickCommand['input'] ?? $labInput);
+                    $output = $this->runAuditScript($labInput);
+                } else {
+                    $output = $this->runAuditScript($labInput);
+                }
+            } elseif ($labTool === 'code') {
+                $output = $this->runEmbeddedCodeTool($labInput);
+            } elseif ($labTool === 'docs') {
+                $output = $this->runEmbeddedDocsTool($labInput);
+            } else {
+                $output = "[ERROR] Herramienta Lab no reconocida: {$labTool}";
+            }
+
+        }
+
+        $this->output = $output;
+        $this->code = $code;
+    }
 
     private function executeTinker($code)
     {
@@ -627,9 +627,9 @@ private function processActions()
             'csrfToken' => $this->csrfToken,
             'output' => $this->output ?? '',
             'code' => $this->code ?? '',
-            'labToolInput' => $_SESSION['project_lab_tool_input'] ?? '',
-            'labToolOutput' => $_SESSION['project_lab_tool_output'] ?? '',
-            'labToolActive' => $_SESSION['project_lab_tool_active'] ?? 'code',
+            'labToolInput' => '',
+            'labToolOutput' => '',
+            'labToolActive' => 'code',
             'tablesInfo' => $this->getTablesInfo(),
             'routes' => $this->getRoutes(),
             'systemInfo' => $this->getSystemInfo(),
@@ -1034,7 +1034,7 @@ private function processActions()
         return $message;
     }
 
-private function runEmbeddedDocsTool(string $input): string
+    private function runEmbeddedDocsTool(string $input): string
     {
         $input = str_replace(["\r\n", "\r"], "\n", trim($input));
 
@@ -2874,22 +2874,22 @@ private function runEmbeddedDocsTool(string $input): string
         ]);
     }
 
-private function buildLocalAiPrompt(string $prompt): string
-{
-    $systemPrompt = implode("\n", [
-        'Respondé en español.',
-        'Modo Project Lab.',
-        'Sé breve, claro y operativo.',
-        'NO SE ASUME. NO SE SUPONE.',
-        'No inventes evidencia.',
-        'No afirmes ejecutar, leer o modificar.',
-        'No propongas acciones automáticas.',
-        'Si falta evidencia, pedí el dato exacto mínimo.',
-        'Si hay evidencia suficiente, indicá próximo paso compatible con Project Lab.',
-    ]);
+    private function buildLocalAiPrompt(string $prompt): string
+    {
+        $systemPrompt = implode("\n", [
+            'Respondé en español.',
+            'Modo Project Lab.',
+            'Sé breve, claro y operativo.',
+            'NO SE ASUME. NO SE SUPONE.',
+            'No inventes evidencia.',
+            'No afirmes ejecutar, leer o modificar.',
+            'No propongas acciones automáticas.',
+            'Si falta evidencia, pedí el dato exacto mínimo.',
+            'Si hay evidencia suficiente, indicá próximo paso compatible con Project Lab.',
+        ]);
 
-    return $systemPrompt."\n\n--- INPUT ---\n".$prompt;
-}
+        return $systemPrompt."\n\n--- INPUT ---\n".$prompt;
+    }
 
     private function askAiPrompt(string $modelKey, string $prompt): string
     {
@@ -2911,12 +2911,19 @@ private function buildLocalAiPrompt(string $prompt): string
             return $this->askGeminiAi($model, $prompt);
         }
 
+        if (str_starts_with($modelKey, 'codex:')) {
+            $model = substr($modelKey, strlen('codex:'));
+
+            return $this->askCodexAi($model, $prompt);
+        }
+
         return implode("\n", [
             '[ERROR] Proveedor IA no reconocido.',
-            '[INFO] Formato esperado:',
+            '[INFO] Modelos disponibles:',
             '- ollama:qwen2.5:1.5b',
             '- ollama:qwen2.5:3b',
             '- gemini:gemini-2.5-flash',
+            '- codex:default',
         ]);
     }
 
@@ -3163,72 +3170,71 @@ private function buildLocalAiPrompt(string $prompt): string
         return trim(str_replace(["\r\n", "\r"], "\n", $content));
     }
 
-private function buildProjectLabAiUserPrompt(string $editablePrompt, string $consoleOutput): string
-{
-    $editablePrompt = trim(str_replace(["\r\n", "\r"], "\n", $editablePrompt));
-    $consoleOutput = trim(str_replace(["\r\n", "\r"], "\n", $consoleOutput));
+    private function buildProjectLabAiUserPrompt(string $editablePrompt, string $consoleOutput): string
+    {
+        $editablePrompt = trim(str_replace(["\r\n", "\r"], "\n", $editablePrompt));
+        $consoleOutput = trim(str_replace(["\r\n", "\r"], "\n", $consoleOutput));
 
-    $maxEditablePromptChars = 6000;
-    $maxConsoleChars = 12000;
+        $maxEditablePromptChars = 6000;
+        $maxConsoleChars = 12000;
 
-    if (mb_strlen($editablePrompt) > $maxEditablePromptChars) {
-        $editablePrompt = '[RECORTE AUTOMÁTICO: se conserva el final del prompt editable]'."\n\n"
-            .mb_substr($editablePrompt, -$maxEditablePromptChars);
-    }
+        if (mb_strlen($editablePrompt) > $maxEditablePromptChars) {
+            $editablePrompt = '[RECORTE AUTOMÁTICO: se conserva el final del prompt editable]'."\n\n"
+                .mb_substr($editablePrompt, -$maxEditablePromptChars);
+        }
 
-    if (mb_strlen($consoleOutput) > $maxConsoleChars) {
-        $consoleOutput = '[RECORTE AUTOMÁTICO: se conserva el final de la consola Project Lab]'."\n\n"
-            .mb_substr($consoleOutput, -$maxConsoleChars);
-    }
+        if (mb_strlen($consoleOutput) > $maxConsoleChars) {
+            $consoleOutput = '[RECORTE AUTOMÁTICO: se conserva el final de la consola Project Lab]'."\n\n"
+                .mb_substr($consoleOutput, -$maxConsoleChars);
+        }
 
-    $taskContext = $this->readProjectLabContextFile('ai_task_context.txt');
+        $taskContext = $this->readProjectLabContextFile('ai_task_context.txt');
 
-    if ($taskContext === '') {
-        $taskContext = implode("\n", [
-            'TAREA:',
+        if ($taskContext === '') {
+            $taskContext = implode("\n", [
+                'TAREA:',
+                '',
+                'Respondé usando el prompt editable del usuario y la evidencia de consola.',
+                'Si el prompt editable está vacío, analizá la consola.',
+                'Identificá el error principal.',
+                'No inventes.',
+                'No supongas.',
+                'Si falta evidencia, pedí el dato exacto.',
+                'Si hay evidencia suficiente, proponé el próximo paso compatible con Project Lab.',
+            ]);
+        }
+
+        return implode("\n", [
+            'PROMPT EDITABLE DEL USUARIO:',
             '',
-            'Respondé usando el prompt editable del usuario y la evidencia de consola.',
-            'Si el prompt editable está vacío, analizá la consola.',
-            'Identificá el error principal.',
-            'No inventes.',
-            'No supongas.',
-            'Si falta evidencia, pedí el dato exacto.',
-            'Si hay evidencia suficiente, proponé el próximo paso compatible con Project Lab.',
+            $editablePrompt !== '' ? $editablePrompt : '[VACÍO]',
+            '',
+            'EVIDENCIA ACTUAL DE CONSOLA PROJECT LAB:',
+            '',
+            $consoleOutput !== '' ? $consoleOutput : '[SIN SALIDA DE CONSOLA]',
+            '',
+            $taskContext,
         ]);
     }
-
-    return implode("\n", [
-        'PROMPT EDITABLE DEL USUARIO:',
-        '',
-        $editablePrompt !== '' ? $editablePrompt : '[VACÍO]',
-        '',
-        'EVIDENCIA ACTUAL DE CONSOLA PROJECT LAB:',
-        '',
-        $consoleOutput !== '' ? $consoleOutput : '[SIN SALIDA DE CONSOLA]',
-        '',
-        $taskContext,
-    ]);
-}
-
 
     private function buildAiConsoleUserBlock(string $model, bool $fromClipboard, string $editablePrompt, string $consoleOutput): string
     {
         $editablePrompt = trim(str_replace(["\r\n", "\r"], "\n", $editablePrompt));
         $consoleOutput = trim(str_replace(["\r\n", "\r"], "\n", $consoleOutput));
-    
+
         $maxPreviewChars = 1200;
-    
+
         $promptPreview = $editablePrompt;
-    
+
         if (mb_strlen($promptPreview) > $maxPreviewChars) {
             $promptPreview = '[RECORTE VISUAL: se muestra el final del prompt]'."\n\n"
                 .mb_substr($promptPreview, -$maxPreviewChars);
         }
-    
+
         if ($promptPreview === '') {
             $promptPreview = '[VACÍO]';
         }
-    
+
         return implode("\n", [
             '[IA_USER]',
             'Prompt enviado a IA',
@@ -3244,15 +3250,14 @@ private function buildProjectLabAiUserPrompt(string $editablePrompt, string $con
         ]);
     }
 
-
     private function buildAiConsoleAssistantBlock(string $output): string
     {
         $output = trim(str_replace(["\r\n", "\r"], "\n", $output));
-    
+
         if ($output === '') {
             $output = '[WARN] IA respondió sin salida visible.';
         }
-    
+
         return implode("\n", [
             '[IA_ASSISTANT]',
             $output,
@@ -3260,276 +3265,431 @@ private function buildProjectLabAiUserPrompt(string $editablePrompt, string $con
         ]);
     }
 
-
     private function applyEmbeddedDocSectionReplace(array $match, array $documents, string $projectRoot): array
-        {
-            $slug = strtolower(trim($match[1] ?? ''));
-            $block = trim($match[2] ?? '');
-    
-            if (! isset($documents[$slug])) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] Documento no reconocido por slug: {$slug}\n",
-                ];
-            }
-    
-            if (! preg_match('/<<SECTION:\s*(.*?)\s*>>/su', $block, $sectionMatch)) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] No se pudo leer el nombre de sección para {$slug}\n",
-                ];
-            }
-    
-            if (! preg_match('/\nSECTION_VERSION:\s*\d{5}\s*(?:\n|$)/u', "\n".$block)) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] [{$slug}] El bloque no incluye SECTION_VERSION válido de 5 dígitos.\n",
-                ];
-            }
-    
-            $sectionName = trim($sectionMatch[1]);
-            $filePath = $documents[$slug];
-            $resolvedFilePath = realpath($filePath);
-    
-            if ($resolvedFilePath === false) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] No se pudo resolver documento: {$slug}\n",
-                ];
-            }
-    
-            if (! str_starts_with($resolvedFilePath, $projectRoot.DIRECTORY_SEPARATOR)) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] Documento fuera del proyecto: {$slug}\n",
-                ];
-            }
-    
-            $relativeDocPath = ltrim(substr($resolvedFilePath, strlen($projectRoot)), DIRECTORY_SEPARATOR);
-            $content = file_get_contents($resolvedFilePath);
-    
-            if ($content === false) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] No se pudo leer documento: {$slug}\n",
-                ];
-            }
-    
-            $pattern = '/<<SECTION:\s*'.preg_quote($sectionName, '/').'\s*>>.*?<<END SECTION>>/su';
-    
-            if (! preg_match($pattern, $content)) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] [{$slug}] No se encontró la sección: {$sectionName}\n",
-                ];
-            }
-    
-            $timestamp = date('Ymd_His');
-            $backupRelativePath = 'documentos/baks/'.pathinfo($resolvedFilePath, PATHINFO_FILENAME)."_{$timestamp}.bak";
-            $backupResult = $this->writeProjectFile($backupRelativePath, $content, true);
-    
-            if ($backupResult !== true) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] [{$slug}] No se pudo guardar backup: {$backupResult}\n",
-                ];
-            }
-    
-            $newContent = preg_replace($pattern, $block, $content, 1, $count);
-    
-            if ($count < 1 || $newContent === null) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] [{$slug}] No se pudo reemplazar la sección: {$sectionName}\n",
-                ];
-            }
-    
-            $writeResult = $this->writeProjectFile($relativeDocPath, $newContent, false);
-    
-            if ($writeResult !== true) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] [{$slug}] No se pudo escribir el documento. {$writeResult}\n",
-                ];
-            }
-    
+    {
+        $slug = strtolower(trim($match[1] ?? ''));
+        $block = trim($match[2] ?? '');
+
+        if (! isset($documents[$slug])) {
             return [
                 'slug' => $slug,
-                'applied' => true,
-                'output' => "[OK] [{$slug}] Sección reemplazada: {$sectionName}\n[OK] [{$slug}] Backup: {$backupRelativePath}\n",
+                'applied' => false,
+                'output' => "[ERROR] Documento no reconocido por slug: {$slug}\n",
             ];
         }
 
+        if (! preg_match('/<<SECTION:\s*(.*?)\s*>>/su', $block, $sectionMatch)) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] No se pudo leer el nombre de sección para {$slug}\n",
+            ];
+        }
+
+        if (! preg_match('/\nSECTION_VERSION:\s*\d{5}\s*(?:\n|$)/u', "\n".$block)) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] [{$slug}] El bloque no incluye SECTION_VERSION válido de 5 dígitos.\n",
+            ];
+        }
+
+        $sectionName = trim($sectionMatch[1]);
+        $filePath = $documents[$slug];
+        $resolvedFilePath = realpath($filePath);
+
+        if ($resolvedFilePath === false) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] No se pudo resolver documento: {$slug}\n",
+            ];
+        }
+
+        if (! str_starts_with($resolvedFilePath, $projectRoot.DIRECTORY_SEPARATOR)) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] Documento fuera del proyecto: {$slug}\n",
+            ];
+        }
+
+        $relativeDocPath = ltrim(substr($resolvedFilePath, strlen($projectRoot)), DIRECTORY_SEPARATOR);
+        $content = file_get_contents($resolvedFilePath);
+
+        if ($content === false) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] No se pudo leer documento: {$slug}\n",
+            ];
+        }
+
+        $pattern = '/<<SECTION:\s*'.preg_quote($sectionName, '/').'\s*>>.*?<<END SECTION>>/su';
+
+        if (! preg_match($pattern, $content)) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] [{$slug}] No se encontró la sección: {$sectionName}\n",
+            ];
+        }
+
+        $timestamp = date('Ymd_His');
+        $backupRelativePath = 'documentos/baks/'.pathinfo($resolvedFilePath, PATHINFO_FILENAME)."_{$timestamp}.bak";
+        $backupResult = $this->writeProjectFile($backupRelativePath, $content, true);
+
+        if ($backupResult !== true) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] [{$slug}] No se pudo guardar backup: {$backupResult}\n",
+            ];
+        }
+
+        $newContent = preg_replace($pattern, $block, $content, 1, $count);
+
+        if ($count < 1 || $newContent === null) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] [{$slug}] No se pudo reemplazar la sección: {$sectionName}\n",
+            ];
+        }
+
+        $writeResult = $this->writeProjectFile($relativeDocPath, $newContent, false);
+
+        if ($writeResult !== true) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] [{$slug}] No se pudo escribir el documento. {$writeResult}\n",
+            ];
+        }
+
+        return [
+            'slug' => $slug,
+            'applied' => true,
+            'output' => "[OK] [{$slug}] Sección reemplazada: {$sectionName}\n[OK] [{$slug}] Backup: {$backupRelativePath}\n",
+        ];
+    }
 
     private function applyEmbeddedDocSectionAdd(array $match, array $documents, string $projectRoot): array
-        {
-            $slug = strtolower(trim($match[1] ?? ''));
-            $anchorHeader = trim($match[2] ?? '');
-            $block = trim($match[3] ?? '');
-    
-            if (! isset($documents[$slug])) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] Documento no reconocido por slug: {$slug}\n",
-                ];
-            }
-    
-            if (! preg_match('/<<SECTION:\s*(.*?)\s*>>/su', $anchorHeader, $anchorMatch)) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] [{$slug}] No se pudo leer la sección ancla.\n",
-                ];
-            }
-    
-            if (! preg_match('/<<SECTION:\s*(.*?)\s*>>/su', $block, $sectionMatch)) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] No se pudo leer el nombre de sección nueva para {$slug}\n",
-                ];
-            }
-    
-            if (! preg_match('/\nSECTION_VERSION:\s*\d{5}\s*(?:\n|$)/u', "\n".$block)) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] [{$slug}] El bloque nuevo no incluye SECTION_VERSION válido de 5 dígitos.\n",
-                ];
-            }
-    
-            $anchorName = trim($anchorMatch[1]);
-            $sectionName = trim($sectionMatch[1]);
-    
-            if ($anchorName === '' || $sectionName === '') {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] [{$slug}] Sección ancla o sección nueva vacía.\n",
-                ];
-            }
-    
-            if ($anchorName === $sectionName) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] [{$slug}] La sección nueva no puede tener el mismo nombre que el ancla: {$sectionName}\n",
-                ];
-            }
-    
-            $filePath = $documents[$slug];
-            $resolvedFilePath = realpath($filePath);
-    
-            if ($resolvedFilePath === false) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] No se pudo resolver documento: {$slug}\n",
-                ];
-            }
-    
-            if (! str_starts_with($resolvedFilePath, $projectRoot.DIRECTORY_SEPARATOR)) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] Documento fuera del proyecto: {$slug}\n",
-                ];
-            }
-    
-            $relativeDocPath = ltrim(substr($resolvedFilePath, strlen($projectRoot)), DIRECTORY_SEPARATOR);
-            $content = file_get_contents($resolvedFilePath);
-    
-            if ($content === false) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] No se pudo leer documento: {$slug}\n",
-                ];
-            }
-    
-            $newSectionPattern = '/<<SECTION:\s*'.preg_quote($sectionName, '/').'\s*>>.*?<<END SECTION>>/su';
-    
-            if (preg_match($newSectionPattern, $content)) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] [{$slug}] La sección ya existe: {$sectionName}. Use REEMPLAZAR EN.\n",
-                ];
-            }
-    
-            $anchorPattern = '/<<SECTION:\s*'.preg_quote($anchorName, '/').'\s*>>.*?<<END SECTION>>/su';
-    
-            $anchorCount = preg_match_all($anchorPattern, $content, $anchorMatches, PREG_OFFSET_CAPTURE);
-    
-            if ($anchorCount < 1) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] [{$slug}] No se encontró la sección ancla: {$anchorName}\n",
-                ];
-            }
-    
-            if ($anchorCount > 1) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] [{$slug}] La sección ancla aparece más de una vez: {$anchorName}\n",
-                ];
-            }
-    
-            $anchorBlock = $anchorMatches[0][0][0] ?? '';
-            $anchorOffset = $anchorMatches[0][0][1] ?? null;
-    
-            if ($anchorBlock === '' || $anchorOffset === null) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] [{$slug}] No se pudo resolver la posición del ancla: {$anchorName}\n",
-                ];
-            }
-    
-            $insertPosition = $anchorOffset + strlen($anchorBlock);
-            $newContent = substr($content, 0, $insertPosition)
-                ."\n\n".$block
-                .substr($content, $insertPosition);
-    
-            $timestamp = date('Ymd_His');
-            $backupRelativePath = 'documentos/baks/'.pathinfo($resolvedFilePath, PATHINFO_FILENAME)."_{$timestamp}.bak";
-            $backupResult = $this->writeProjectFile($backupRelativePath, $content, true);
-    
-            if ($backupResult !== true) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] [{$slug}] No se pudo guardar backup: {$backupResult}\n",
-                ];
-            }
-    
-            $writeResult = $this->writeProjectFile($relativeDocPath, $newContent, false);
-    
-            if ($writeResult !== true) {
-                return [
-                    'slug' => $slug,
-                    'applied' => false,
-                    'output' => "[ERROR] [{$slug}] No se pudo escribir el documento. {$writeResult}\n",
-                ];
-            }
-    
+    {
+        $slug = strtolower(trim($match[1] ?? ''));
+        $anchorHeader = trim($match[2] ?? '');
+        $block = trim($match[3] ?? '');
+
+        if (! isset($documents[$slug])) {
             return [
                 'slug' => $slug,
-                'applied' => true,
-                'output' => "[OK] [{$slug}] Sección agregada: {$sectionName}\n[OK] [{$slug}] Ubicada después de: {$anchorName}\n[OK] [{$slug}] Backup: {$backupRelativePath}\n",
+                'applied' => false,
+                'output' => "[ERROR] Documento no reconocido por slug: {$slug}\n",
             ];
         }
+
+        if (! preg_match('/<<SECTION:\s*(.*?)\s*>>/su', $anchorHeader, $anchorMatch)) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] [{$slug}] No se pudo leer la sección ancla.\n",
+            ];
+        }
+
+        if (! preg_match('/<<SECTION:\s*(.*?)\s*>>/su', $block, $sectionMatch)) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] No se pudo leer el nombre de sección nueva para {$slug}\n",
+            ];
+        }
+
+        if (! preg_match('/\nSECTION_VERSION:\s*\d{5}\s*(?:\n|$)/u', "\n".$block)) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] [{$slug}] El bloque nuevo no incluye SECTION_VERSION válido de 5 dígitos.\n",
+            ];
+        }
+
+        $anchorName = trim($anchorMatch[1]);
+        $sectionName = trim($sectionMatch[1]);
+
+        if ($anchorName === '' || $sectionName === '') {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] [{$slug}] Sección ancla o sección nueva vacía.\n",
+            ];
+        }
+
+        if ($anchorName === $sectionName) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] [{$slug}] La sección nueva no puede tener el mismo nombre que el ancla: {$sectionName}\n",
+            ];
+        }
+
+        $filePath = $documents[$slug];
+        $resolvedFilePath = realpath($filePath);
+
+        if ($resolvedFilePath === false) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] No se pudo resolver documento: {$slug}\n",
+            ];
+        }
+
+        if (! str_starts_with($resolvedFilePath, $projectRoot.DIRECTORY_SEPARATOR)) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] Documento fuera del proyecto: {$slug}\n",
+            ];
+        }
+
+        $relativeDocPath = ltrim(substr($resolvedFilePath, strlen($projectRoot)), DIRECTORY_SEPARATOR);
+        $content = file_get_contents($resolvedFilePath);
+
+        if ($content === false) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] No se pudo leer documento: {$slug}\n",
+            ];
+        }
+
+        $newSectionPattern = '/<<SECTION:\s*'.preg_quote($sectionName, '/').'\s*>>.*?<<END SECTION>>/su';
+
+        if (preg_match($newSectionPattern, $content)) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] [{$slug}] La sección ya existe: {$sectionName}. Use REEMPLAZAR EN.\n",
+            ];
+        }
+
+        $anchorPattern = '/<<SECTION:\s*'.preg_quote($anchorName, '/').'\s*>>.*?<<END SECTION>>/su';
+
+        $anchorCount = preg_match_all($anchorPattern, $content, $anchorMatches, PREG_OFFSET_CAPTURE);
+
+        if ($anchorCount < 1) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] [{$slug}] No se encontró la sección ancla: {$anchorName}\n",
+            ];
+        }
+
+        if ($anchorCount > 1) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] [{$slug}] La sección ancla aparece más de una vez: {$anchorName}\n",
+            ];
+        }
+
+        $anchorBlock = $anchorMatches[0][0][0] ?? '';
+        $anchorOffset = $anchorMatches[0][0][1] ?? null;
+
+        if ($anchorBlock === '' || $anchorOffset === null) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] [{$slug}] No se pudo resolver la posición del ancla: {$anchorName}\n",
+            ];
+        }
+
+        $insertPosition = $anchorOffset + strlen($anchorBlock);
+        $newContent = substr($content, 0, $insertPosition)
+            ."\n\n".$block
+            .substr($content, $insertPosition);
+
+        $timestamp = date('Ymd_His');
+        $backupRelativePath = 'documentos/baks/'.pathinfo($resolvedFilePath, PATHINFO_FILENAME)."_{$timestamp}.bak";
+        $backupResult = $this->writeProjectFile($backupRelativePath, $content, true);
+
+        if ($backupResult !== true) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] [{$slug}] No se pudo guardar backup: {$backupResult}\n",
+            ];
+        }
+
+        $writeResult = $this->writeProjectFile($relativeDocPath, $newContent, false);
+
+        if ($writeResult !== true) {
+            return [
+                'slug' => $slug,
+                'applied' => false,
+                'output' => "[ERROR] [{$slug}] No se pudo escribir el documento. {$writeResult}\n",
+            ];
+        }
+
+        return [
+            'slug' => $slug,
+            'applied' => true,
+            'output' => "[OK] [{$slug}] Sección agregada: {$sectionName}\n[OK] [{$slug}] Ubicada después de: {$anchorName}\n[OK] [{$slug}] Backup: {$backupRelativePath}\n",
+        ];
+    }
+
+    private function askCodexAi(string $model, string $prompt): string
+    {
+        $model = trim($model);
+
+        if ($model === '') {
+            $model = 'default';
+        }
+
+        $allowedModels = [
+            'default',
+        ];
+
+        if (! in_array($model, $allowedModels, true)) {
+            return implode("\n", [
+                '[ERROR] Modelo Codex no permitido.',
+                '[INFO] Modelos permitidos:',
+                '- codex:default',
+            ]);
+        }
+
+        $prompt = trim($prompt);
+
+        if ($prompt === '') {
+            return '[ERROR] No se recibió prompt para Codex.';
+        }
+
+        $home = getenv('HOME') ?: '/home/alejandro';
+
+        $pathParts = [
+            $home.'/.local/npm-global/bin',
+            '/home/alejandro/.local/npm-global/bin',
+            '/usr/local/bin',
+            '/usr/bin',
+            '/bin',
+        ];
+
+        $path = implode(':', array_values(array_unique(array_filter($pathParts))));
+
+        $codexBin = trim((string) shell_exec('PATH='.escapeshellarg($path).' command -v codex 2>/dev/null'));
+
+        if ($codexBin === '' && is_executable('/home/alejandro/.local/npm-global/bin/codex')) {
+            $codexBin = '/home/alejandro/.local/npm-global/bin/codex';
+        }
+
+        if ($codexBin === '') {
+            return implode("\n", [
+                '[ERROR] Codex CLI no disponible para el proceso PHP.',
+                '[INFO] Verificar instalación:',
+                'which codex',
+                'codex --version',
+                '[INFO] Si desde terminal funciona pero desde Project Lab no, revisar PATH/HOME del proceso web.',
+            ]);
+        }
+
+        $codexPrompt = implode("\n\n", [
+            'Proyecto app-base Laravel multi-tenant.',
+            'Regla máxima: NO SE ASUME. NO SE SUPONE.',
+            'Modo Project Lab / Codex CLI.',
+            'No modifiques archivos.',
+            'No crees archivos.',
+            'No ejecutes comandos destructivos.',
+            'No cambies código.',
+            'No cambies documentación.',
+            'Trabajá sobre evidencia real del workspace.',
+            'Respondé en español.',
+            'TAREA:',
+            $prompt,
+        ]);
+
+        $command = 'PATH='.escapeshellarg($path)
+            .' HOME='.escapeshellarg($home)
+            .' '.escapeshellcmd($codexBin)
+            .' exec'
+            .' -s read-only'
+            .' --cd '.escapeshellarg($this->projectRoot)
+            .' '.escapeshellarg($codexPrompt);
+
+        $descriptors = [
+            0 => ['pipe', 'r'],
+            1 => ['pipe', 'w'],
+            2 => ['pipe', 'w'],
+        ];
+
+        $process = proc_open($command, $descriptors, $pipes, $this->projectRoot);
+
+        if (! is_resource($process)) {
+            return '[ERROR] No se pudo iniciar Codex CLI.';
+        }
+
+        fclose($pipes[0]);
+
+        stream_set_blocking($pipes[1], false);
+        stream_set_blocking($pipes[2], false);
+
+        $stdout = '';
+        $stderr = '';
+        $startedAt = time();
+        $timeoutSeconds = 240;
+
+        while (true) {
+            $stdout .= stream_get_contents($pipes[1]);
+            $stderr .= stream_get_contents($pipes[2]);
+
+            $status = proc_get_status($process);
+
+            if (! ($status['running'] ?? false)) {
+                break;
+            }
+
+            if ((time() - $startedAt) > $timeoutSeconds) {
+                proc_terminate($process);
+
+                return implode("\n", [
+                    '[ERROR] Codex CLI excedió el tiempo máximo de ejecución.',
+                    '[INFO] Timeout: '.$timeoutSeconds.' segundos.',
+                    '[INFO] Sugerencia: usar un prompt más acotado o ejecutar Codex directo desde terminal.',
+                    '',
+                    '--- STDOUT PARCIAL ---',
+                    trim($stdout) !== '' ? trim($stdout) : '(sin salida)',
+                    '',
+                    '--- STDERR PARCIAL ---',
+                    trim($stderr) !== '' ? trim($stderr) : '(sin salida)',
+                ]);
+            }
+
+            usleep(100000);
+        }
+
+        $stdout .= stream_get_contents($pipes[1]);
+        $stderr .= stream_get_contents($pipes[2]);
+
+        fclose($pipes[1]);
+        fclose($pipes[2]);
+
+        $exitCode = proc_close($process);
+
+        $result = [
+            $exitCode === 0 ? '[OK] Consulta Codex completada.' : '[ERROR] Codex respondió con error.',
+            '[INFO] Proveedor: codex',
+            '[INFO] Modelo: default',
+            '[INFO] Sandbox: read-only',
+            '[INFO] ProjectRoot: '.$this->projectRoot,
+        ];
+
+        if (trim($stderr) !== '') {
+            $result[] = '';
+            $result[] = '--- STDERR CODEX ---';
+            $result[] = trim($stderr);
+        }
+
+        $result[] = '';
+        $result[] = '--- RESPUESTA CODEX ---';
+        $result[] = trim($stdout) !== '' ? trim($stdout) : '(sin salida visible)';
+
+        return implode("\n", $result);
+    }
 }

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: tools/project-lab/views/tools.php | V3
+// FILE: tools/project-lab/views/tools.php | V4
 
 ?>
 
@@ -95,7 +95,7 @@
                 <textarea
                     name="lab_input"
                     id="labInput"
-                    placeholder="// Pegá aquí un archivo completo, TARGET, REEMPLAZAR EN, auditoría bash, código Tinker o consulta IA local..."
+                    placeholder="// Pegá aquí un archivo completo, TARGET, REEMPLAZAR EN, auditoría bash, código Tinker o consulta IA..."
                     style="min-height:160px; margin-bottom:0; padding-right:42px;"
                 ><?= htmlspecialchars($labToolInput ?: $code) ?></textarea>
             </div>
@@ -148,10 +148,11 @@
 
                 <div style="display:flex; align-items:center; gap:8px; margin-left:auto;">
                     <label for="localAiModel" style="font-size:12px; color:var(--muted); white-space:nowrap;">Modelo IA</label>
-                    <select id="localAiModel" name="local_ai_model" style="max-width:260px;">
+                    <select id="localAiModel" name="local_ai_model" style="max-width:280px;">
                         <option value="ollama:qwen2.5:1.5b">Ollama · qwen2.5:1.5b</option>
                         <option value="ollama:qwen2.5:3b">Ollama · qwen2.5:3b</option>
                         <option value="gemini:gemini-2.5-flash">Gemini · 2.5 Flash</option>
+                        <option value="codex:default" selected>Codex CLI · default</option>
                     </select>
                 </div>
             </div>

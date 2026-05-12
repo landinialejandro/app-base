@@ -1,6 +1,6 @@
 <?php
 
-// FILE: tools/project-lab/views/layout.php | V5
+// FILE: tools/project-lab/views/layout.php | V6
 
 ?>
 
@@ -69,7 +69,7 @@
             <span class="dot"></span>
             <span>DB: <?= htmlspecialchars($systemInfo['db_database'] ?? '-') ?></span>
             <span>|</span>
-            <span>IA: Ollama / Gemini</span>
+            <span>IA: Ollama / Gemini / Codex</span>
             <span>|</span>
             <span>PHP: <?= htmlspecialchars($systemInfo['php_version'] ?? '-') ?></span>
             <span>|</span>

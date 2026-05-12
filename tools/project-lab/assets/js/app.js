@@ -39,7 +39,7 @@ function showTab(tabName) {
         activeBtn.classList.add("active");
     }
 
-    localStorage.setItem("projectLabActiveTab", tabName);
+    sessionStorage.setItem("projectLabActiveTab", tabName);
 
     const main = document.querySelector("main");
 
@@ -97,8 +97,8 @@ function setProjectConsoleOutput(text) {
     output.classList.remove("project-console-empty");
     output.innerHTML = colorizeProjectOutput(text || "");
 
-    localStorage.setItem(PROJECT_CONSOLE_STORAGE_KEY, text || "");
-    localStorage.setItem(
+    sessionStorage.setItem(PROJECT_CONSOLE_STORAGE_KEY, text || "");
+    sessionStorage.setItem(
         PROJECT_CONSOLE_STORAGE_AT_KEY,
         new Date().toISOString(),
     );
@@ -107,7 +107,7 @@ function setProjectConsoleOutput(text) {
 }
 
 function appendProjectConsoleOutput(text) {
-    const previous = localStorage.getItem(PROJECT_CONSOLE_STORAGE_KEY) || "";
+    const previous = sessionStorage.getItem(PROJECT_CONSOLE_STORAGE_KEY) || "";
     const separator = previous.trim() === "" ? "" : "\n\n";
 
     const next = previous + separator + (text || "");
@@ -125,8 +125,8 @@ function appendProjectConsoleOutput(text) {
         output.scrollTop = output.scrollHeight;
     });
 
-    localStorage.setItem(PROJECT_CONSOLE_STORAGE_KEY, next);
-    localStorage.setItem(
+    sessionStorage.setItem(PROJECT_CONSOLE_STORAGE_KEY, next);
+    sessionStorage.setItem(
         PROJECT_CONSOLE_STORAGE_AT_KEY,
         new Date().toISOString(),
     );
@@ -152,8 +152,8 @@ function clearProjectConsoleOutput() {
         output.innerHTML = "";
     }
 
-    localStorage.removeItem(PROJECT_CONSOLE_STORAGE_KEY);
-    localStorage.removeItem(PROJECT_CONSOLE_STORAGE_AT_KEY);
+    sessionStorage.removeItem(PROJECT_CONSOLE_STORAGE_KEY);
+    sessionStorage.removeItem(PROJECT_CONSOLE_STORAGE_AT_KEY);
 
     showNotification("Consola borrada", "success");
 }
@@ -277,8 +277,8 @@ function runTinkerAjax() {
         textarea.value = finalCode;
     }
 
-    localStorage.setItem("projectLabLabInput", finalCode);
-    localStorage.setItem("projectLabLabActive", "tinker");
+    sessionStorage.setItem("projectLabLabInput", finalCode);
+    sessionStorage.setItem("projectLabLabActive", "tinker");
 
     runProjectAction({
         action: "ajax_tinker",
@@ -296,8 +296,8 @@ function runTinkerAjax() {
                 textarea.value = returnedCode;
             }
 
-            localStorage.setItem("projectLabLabInput", returnedCode);
-            localStorage.setItem("projectLabLabActive", "tinker");
+            sessionStorage.setItem("projectLabLabInput", returnedCode);
+            sessionStorage.setItem("projectLabLabActive", "tinker");
         },
     });
 }
@@ -310,8 +310,8 @@ function runTinkerFromClipboard() {
         textarea.value = pendingInput;
     }
 
-    localStorage.setItem("projectLabLabInput", pendingInput);
-    localStorage.setItem("projectLabLabActive", "tinker");
+    sessionStorage.setItem("projectLabLabInput", pendingInput);
+    sessionStorage.setItem("projectLabLabActive", "tinker");
 
     runProjectAction({
         action: "ajax_tinker_from_clipboard",
@@ -322,8 +322,8 @@ function runTinkerFromClipboard() {
         onSuccess(data) {
             if (textarea && data.code !== undefined) {
                 textarea.value = data.code;
-                localStorage.setItem("projectLabLabInput", data.code);
-                localStorage.setItem("projectLabLabActive", "tinker");
+                sessionStorage.setItem("projectLabLabInput", data.code);
+                sessionStorage.setItem("projectLabLabActive", "tinker");
             }
         },
     });
@@ -337,8 +337,8 @@ function runArtisanAjax(command) {
         textarea.value = finalInput;
     }
 
-    localStorage.setItem("projectLabLabInput", finalInput);
-    localStorage.setItem("projectLabLabActive", "artisan");
+    sessionStorage.setItem("projectLabLabInput", finalInput);
+    sessionStorage.setItem("projectLabLabActive", "artisan");
 
     runProjectAction({
         action: "ajax_artisan",
@@ -353,8 +353,8 @@ function runArtisanAjax(command) {
                 textarea.value = finalInput;
             }
 
-            localStorage.setItem("projectLabLabInput", finalInput);
-            localStorage.setItem("projectLabLabActive", "artisan");
+            sessionStorage.setItem("projectLabLabInput", finalInput);
+            sessionStorage.setItem("projectLabLabActive", "artisan");
         },
     });
 }
@@ -371,7 +371,7 @@ function insertCode(code) {
         showTab("tools");
         textarea.focus();
         textarea.setSelectionRange(code.length, code.length);
-        localStorage.setItem("projectLabLabInput", code);
+        sessionStorage.setItem("projectLabLabInput", code);
     }
 }
 
@@ -456,8 +456,8 @@ function runLabTool(tool, fromClipboard = false) {
         textarea.value = pendingInput;
     }
 
-    localStorage.setItem("projectLabLabInput", pendingInput);
-    localStorage.setItem("projectLabLabActive", tool);
+    sessionStorage.setItem("projectLabLabInput", pendingInput);
+    sessionStorage.setItem("projectLabLabActive", tool);
 
     runProjectAction({
         action: "ajax_lab_tool",
@@ -477,8 +477,8 @@ function runLabTool(tool, fromClipboard = false) {
 
             textarea.value = finalInput;
 
-            localStorage.setItem("projectLabLabInput", finalInput);
-            localStorage.setItem("projectLabLabActive", tool);
+            sessionStorage.setItem("projectLabLabInput", finalInput);
+            sessionStorage.setItem("projectLabLabActive", tool);
         },
     });
 }
@@ -498,8 +498,8 @@ function clearLabTools() {
         textarea.value = "";
     }
 
-    localStorage.removeItem("projectLabLabInput");
-    localStorage.removeItem("projectLabLabActive");
+    sessionStorage.removeItem("projectLabLabInput");
+    sessionStorage.removeItem("projectLabLabActive");
 
     showNotification("Herramientas Lab borradas", "success");
 }
@@ -668,7 +668,7 @@ function runScript(scriptName) {
         .then((data) => {
             appendProjectConsoleOutput(data);
 
-            localStorage.setItem(
+            sessionStorage.setItem(
                 "projectLabLabInput",
                 "// script " + scriptName,
             );
@@ -1043,8 +1043,8 @@ function findProjectMethodContext() {
 
     if (textarea) {
         textarea.value = script;
-        localStorage.setItem("projectLabLabInput", script);
-        localStorage.setItem("projectLabLabActive", "audit");
+        sessionStorage.setItem("projectLabLabInput", script);
+        sessionStorage.setItem("projectLabLabActive", "audit");
     }
 
     runProjectAction({
@@ -1107,7 +1107,7 @@ document.addEventListener("DOMContentLoaded", function () {
         });
     }
 
-    const savedLabInput = localStorage.getItem("projectLabLabInput");
+    const savedLabInput = sessionStorage.getItem("projectLabLabInput");
 
     if (savedLabInput !== null && textarea) {
         textarea.value = savedLabInput;
@@ -1115,7 +1115,7 @@ document.addEventListener("DOMContentLoaded", function () {
 
     const labInput = document.getElementById("labInput");
 
-    const savedConsoleOutput = localStorage.getItem(
+    const savedConsoleOutput = sessionStorage.getItem(
         PROJECT_CONSOLE_STORAGE_KEY,
     );
 
@@ -1123,7 +1123,7 @@ document.addEventListener("DOMContentLoaded", function () {
         setProjectConsoleOutput(savedConsoleOutput);
     }
 
-    const lastTab = localStorage.getItem("projectLabActiveTab");
+    const lastTab = sessionStorage.getItem("projectLabActiveTab");
 
     if (lastTab) {
         showTab(lastTab);
@@ -1272,7 +1272,7 @@ document.addEventListener("DOMContentLoaded", () => {
         return;
     }
 
-    const savedConsoleOutput = localStorage.getItem(
+    const savedConsoleOutput = sessionStorage.getItem(
         PROJECT_CONSOLE_STORAGE_KEY,
     );
 

@@ -105,11 +105,11 @@ No reemplaza la doctrina del sistema.
 <<END SECTION>>
 
 <<SECTION: NATURALEZA DE PROJECT LAB>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 NATURALEZA DE PROJECT LAB
 
-Project Lab es la estación operativa local de desarrollo, auditoría, validación y mantenimiento técnico del proyecto.
+Project Lab es la estación operativa local de desarrollo, auditoría, validación, asistencia técnica y mantenimiento del proyecto.
 
 Ubicación vigente:
 
@@ -129,12 +129,13 @@ ejecución de comandos Artisan permitidos
 herramienta Lab de código
 herramienta Lab documental
 herramienta Lab de auditoría
+asistencia IA operativa controlada
 snippets rápidos
 búsqueda operativa de métodos o fragmentos
 consola unificada
 guardado de consola como auditoría
 copiado de salida para compartir evidencia
-persistencia auxiliar local cuando corresponda
+persistencia visual local por pestaña
 procesamiento local de cola pendiente cuando se requiera validar eventos queued
 
 Project Lab debe leerse como herramienta técnica local del proyecto.
@@ -150,8 +151,9 @@ Project Lab no reemplaza documentación rectora.
 Project Lab no reemplaza criterio arquitectónico.
 Project Lab no reemplaza validación runtime.
 Project Lab no reemplaza pruebas en navegador cuando correspondan.
+Project Lab no convierte proveedores IA en funcionalidades SaaS productivas.
 
-Project Lab define únicamente el contrato operativo local para aplicar, auditar, ejecutar y validar tareas técnicas sobre el proyecto.
+Project Lab define únicamente el contrato operativo local para aplicar, auditar, ejecutar, asistir y validar tareas técnicas sobre el proyecto.
 
 Regla específica para colas:
 
@@ -159,10 +161,20 @@ Project Lab puede facilitar el procesamiento manual de colas en local cuando sea
 
 Esta capacidad no debe trasladarse como botón, acción o pantalla dentro del producto SaaS.
 
+Regla específica para IA:
+
+Project Lab puede invocar proveedores IA como asistencia técnica local o externa controlada.
+
+La asistencia IA no reemplaza code, docs, audit, Tinker ni Artisan.
+
+La IA dentro de Project Lab no aplica cambios persistentes por sí misma.
+
+Toda modificación persistente debe ejecutarse mediante contratos explícitos de Project Lab o comandos técnicos válidos aceptados por el usuario.
+
 <<END SECTION>>
 
 <<SECTION: HERRAMIENTAS DISPONIBLES>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 HERRAMIENTAS DISPONIBLES
 
@@ -171,6 +183,10 @@ Project Lab dispone de tres herramientas Lab principales:
 code
 docs
 audit
+
+También dispone de asistencia IA operativa como apoyo técnico desde el botón IA existente.
+
+La asistencia IA no reemplaza las herramientas Lab principales.
 
 CODE
 
@@ -348,6 +364,46 @@ Caso vigente:
 
 find.sh.tpl
 
+IA OPERATIVA
+
+El botón IA permite consultar proveedores IA desde Project Lab usando el prompt del textarea o del clipboard y, cuando corresponda, la evidencia actual de consola.
+
+Proveedores vigentes:
+
+Ollama local
+Gemini
+Codex CLI
+
+Lectura vigente para Codex CLI:
+
+Codex CLI se integra como proveedor IA seleccionable.
+
+Codex CLI se ejecuta desde Project Lab mediante codex exec.
+
+Modo vigente:
+
+read-only
+
+Uso vigente:
+
+auditoría asistida
+lectura de workspace
+explicación de errores
+análisis de consola
+sugerencia de próximo paso mínimo
+preparación de snippets o comandos revisables
+
+Reglas:
+
+Codex CLI no reemplaza code.
+Codex CLI no reemplaza docs.
+Codex CLI no reemplaza audit.
+Codex CLI no reemplaza Tinker.
+Codex CLI no reemplaza Artisan.
+Codex CLI no debe aplicar cambios persistentes desde Project Lab en esta fase.
+Codex CLI debe operar sobre evidencia real del workspace.
+Codex CLI debe responder en formato útil para el proceso técnico del proyecto.
+
 Regla general:
 
 Project Lab no decide qué cambio es correcto.
@@ -368,6 +424,7 @@ audit
 Tinker
 Artisan controlado
 macros audit
+asistencia IA operativa
 guardado de consola como auditoría
 
 <<END SECTION>>
@@ -794,7 +851,7 @@ No debe normalizarse un caso en el otro de forma silenciosa.
 <<END SECTION>>
 
 <<SECTION: SALIDA OPERATIVA ESPERADA>>
-SECTION_VERSION: 00011
+SECTION_VERSION: 00012
 
 SALIDA OPERATIVA ESPERADA
 
@@ -846,6 +903,14 @@ si Project Lab informa OK de sintaxis PHP válida dentro de un patch PHP, no hac
 
 si Project Lab informa ERROR de sintaxis PHP y restauración o eliminación del archivo inválido, la operación falló pero el proyecto debe quedar protegido frente a ese cambio inválido
 
+Regla AJAX vigente:
+
+si una herramienta Lab devuelve una salida que comienza con [ERROR], la respuesta operativa debe considerarse ok=false.
+
+Esto aplica al estado técnico de la acción ejecutada.
+
+No reemplaza el análisis completo de auditorías cuyo contenido pueda incluir errores internos luego de una cabecera OK.
+
 La consola debe permitir reconstruir:
 
 qué se ejecutó
@@ -883,13 +948,17 @@ La interpretación funcional o arquitectónica de esa evidencia corresponde al p
 <<END SECTION>>
 
 <<SECTION: USO OPERATIVO LOCAL>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 USO OPERATIVO LOCAL
 
 Para levantar Project Lab local desde la raíz del proyecto:
 
 php -S 127.0.0.1:8787 -t tools/project-lab
+
+También puede utilizarse el script local vigente:
+
+tools/project-lab.sh
 
 Luego abrir:
 
@@ -917,6 +986,22 @@ aplicar
 verificar
 documentar evidencia
 
+Persistencia visual vigente:
+
+textarea, consola y pestaña activa pueden persistir localmente por pestaña del navegador.
+
+La persistencia visual debe ser por sessionStorage.
+
+No debe compartirse entre pestañas mediante localStorage.
+
+No debe persistirse como estado visual compartido mediante $_SESSION.
+
+Lectura esperada:
+
+refrescar una pestaña conserva su propio estado visual.
+
+abrir una pestaña nueva no debe heredar textarea ni consola de otra pestaña.
+
 Aclaración sobre acciones locales de soporte:
 
 Project Lab puede facilitar acciones operativas propias del entorno local de desarrollo.
@@ -931,6 +1016,20 @@ debe usarse solo como soporte local
 no debe confundirse con funcionalidad del producto final
 no debe trasladarse a UI SaaS
 no debe reemplazar la definición de worker supervisado para producción
+
+Aclaración sobre servidor local:
+
+si Project Lab se ejecuta con el servidor embebido de PHP y una request larga queda ocupada, pueden bloquearse otras requests del mismo servidor.
+
+Caso vigente:
+
+consultas IA con Codex CLI pueden tardar más que una acción Lab común.
+
+Mitigación posible:
+
+usar workers del servidor embebido PHP cuando el entorno lo soporte.
+
+Esto no convierte Project Lab en servicio productivo ni reemplaza una arquitectura asíncrona real.
 
 <<END SECTION>>
 
@@ -1707,7 +1806,7 @@ Si el frente requiere validaciones funcionales específicas, deben tomarse del d
 <<END SECTION>>
 
 <<SECTION: CASOS PRIORITARIOS DE USO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 CASOS PRIORITARIOS DE USO
 
@@ -1720,6 +1819,8 @@ ejecutar Tinker sobre runtime real
 ejecutar comandos Artisan controlados
 obtener evidencia antes de cambios sensibles
 buscar referencias mediante audit o macros audit
+consultar IA operativa para analizar evidencia, errores o próximos pasos
+usar Codex CLI en modo solo lectura para lectura asistida del workspace
 guardar salidas de consola como auditoría
 validar sintaxis cuando la herramienta lo permita
 revisar resultados de una intervención técnica
@@ -1740,6 +1841,8 @@ No define navegación.
 No define módulos.
 
 No define arquitectura funcional.
+
+No delega decisiones técnicas en proveedores IA.
 
 Si un caso requiere doctrina de módulo, seguridad, navegación, UI, IA, mantenimiento, entidades o patrones generales, debe remitirse al documento especializado correspondiente.
 
@@ -1772,7 +1875,7 @@ No debe mantenerse como compatibilidad informal.
 <<END SECTION>>
 
 <<SECTION: SEGURIDAD DE USO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 SEGURIDAD DE USO
 
@@ -1788,6 +1891,7 @@ no ejecutar código desconocido sin revisión
 no pegar snippets destructivos sin entender alcance
 no asumir que una salida visual equivale a autorización efectiva
 no confundir herramienta local con permiso del producto
+no exponer secretos, tokens, API keys ni credenciales en auditorías o salidas compartidas
 
 Límite operativo vigente:
 
@@ -1811,6 +1915,16 @@ El usuario técnico local es responsable del contenido ejecutado.
 
 No debe ejecutarse como audit un prompt de chat, texto narrativo o contenido no pensado como comando.
 
+Las auditorías no deben imprimir secretos cuando no sea estrictamente necesario.
+
+Carpetas o archivos sensibles a excluir cuando corresponda:
+
+tools/project-lab/.secrets
+.env
+archivos con tokens
+archivos con credenciales
+salidas previas que contengan claves o credenciales
+
 Regla sobre Tinker:
 
 Tinker ejecuta código PHP sobre el proyecto actual.
@@ -1824,6 +1938,24 @@ Regla sobre Artisan:
 Artisan debe ejecutarse mediante comandos permitidos por Project Lab.
 
 No debe usarse como shell libre.
+
+Regla sobre IA:
+
+La asistencia IA dentro de Project Lab no es sandbox de seguridad.
+
+Codex CLI puede operar en modo read-only desde Project Lab para auditoría asistida.
+
+El modo read-only no convierte la salida de IA en autorización ni en decisión técnica suficiente.
+
+La IA no debe recibir ni reproducir secretos, API keys, credenciales, tokens ni datos sensibles innecesarios.
+
+Regla sobre persistencia visual:
+
+la consola y el textarea pueden persistir por pestaña para sostener continuidad operativa local.
+
+Esta persistencia no debe compartirse entre pestañas.
+
+No debe usarse como fuente de autorización, estado funcional del producto ni evidencia suficiente de seguridad.
 
 Regla:
 

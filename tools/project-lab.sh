@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# FILE: tools/project-lab.sh | V2
+# FILE: tools/project-lab.sh | V3
 
 set -e
 
@@ -8,15 +8,18 @@ cd "$ROOT"
 
 URL="http://127.0.0.1:8787"
 LOG="/tmp/project-lab.log"
+WORKERS="${PROJECT_LAB_WORKERS:-4}"
 
 echo "[INFO] Iniciando Project Lab..."
-php -S 127.0.0.1:8787 -t tools/project-lab >"$LOG" 2>&1 &
+echo "[INFO] Workers PHP CLI server: $WORKERS"
+
+PHP_CLI_SERVER_WORKERS="$WORKERS" php -S 127.0.0.1:8787 -t tools/project-lab >"$LOG" 2>&1 &
 SERVER_PID=$!
 
 sleep 1
 
 echo "[OK] Servidor: $URL"
-echo "[OK] PID: $SERVER_PID"
+echo "[OK] PID principal: $SERVER_PID"
 echo "[INFO] Log: $LOG"
 
 if command -v firefox >/dev/null 2>&1; then

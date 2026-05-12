@@ -350,6 +350,9 @@ service.orders.create
 service.orders.store
 service.orders.show
 
+Regla adicional:
+/service/orders y /orders son dos flujos de trabajo distintos. El primero es el universo semántico específico de Servicio y Mantenimiento; el segundo es la gestión de órdenes general del tenant.
+
 El dashboard mínimo de /service ofrece actualmente:
 
 ver órdenes de servicio

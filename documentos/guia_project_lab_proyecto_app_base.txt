@@ -162,7 +162,7 @@ Esta capacidad no debe trasladarse como botón, acción o pantalla dentro del pr
 <<END SECTION>>
 
 <<SECTION: HERRAMIENTAS DISPONIBLES>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 HERRAMIENTAS DISPONIBLES
 
@@ -214,18 +214,29 @@ DOCS
 
 Se utiliza para aplicar actualizaciones documentales mediante bloques completos de sección.
 
+Puede operar sobre:
+
+reemplazo de sección documental existente
+alta controlada de sección documental nueva
+
+Contrato de reemplazo vigente:
+
+REEMPLAZAR EN: [doc_slug]
+
+Uso:
+
+reemplazar una sección existente completa dentro de un documento activo identificado por DOC_SLUG.
+
 Debe operar con:
 
-encabezado REEMPLAZAR EN: [doc_slug]
 doc_slug existente
-nombre exacto de sección
+nombre exacto de sección existente
 bloque completo delimitado
 SECTION_VERSION
 contenido compatible con el documento destino
 
 Reglas:
 
-no debe inventar secciones
 no debe reemplazar fragmentos internos
 no debe aplicar cambios sin SECTION_VERSION
 no debe aceptar nombres aproximados
@@ -233,6 +244,46 @@ no debe mezclar explicación narrativa con bloque automatizado
 debe generar backup documental antes de reemplazar
 debe usar backup con timestamp para evitar pisar respaldos anteriores
 debe devolver OK o ERROR explícito
+
+Contrato de alta controlada vigente:
+
+AGREGAR EN: [doc_slug]
+
+o
+
+NUEVA SECCIÓN PROPUESTA EN: [doc_slug]
+
+Uso:
+
+agregar una sección nueva completa dentro de un documento activo identificado por DOC_SLUG, usando una sección ancla existente.
+
+Debe operar con:
+
+doc_slug existente
+ancla exacta existente
+bloque completo delimitado
+SECTION_VERSION
+contenido compatible con el documento destino
+ubicación explícita mediante UBICAR DESPUÉS DE
+
+Reglas:
+
+no debe inventar secciones sin contrato explícito
+no debe agregar secciones sin ancla
+no debe aceptar anclas aproximadas
+no debe agregar una sección si ya existe
+no debe usar ubicación implícita
+no debe aplicar cambios sin SECTION_VERSION
+no debe mezclar explicación narrativa con bloque automatizado
+debe generar backup documental antes de escribir
+debe usar backup con timestamp para evitar pisar respaldos anteriores
+debe devolver OK o ERROR explícito
+
+Regla de lectura:
+
+Project Lab no inventa secciones.
+
+Project Lab puede agregar una sección nueva solo cuando el usuario entrega un contrato explícito, versionado y con ancla real existente.
 
 AUDIT
 
@@ -322,7 +373,7 @@ guardado de consola como auditoría
 <<END SECTION>>
 
 <<SECTION: REGLA ESTRICTA DE FORMATOS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 REGLA ESTRICTA DE FORMATOS
 
@@ -336,11 +387,13 @@ archivo PHP completo
 archivo Blade completo
 archivo CSS completo
 archivo JS completo
+archivo TPL completo
 reemplazo de método PHP
 alta de método PHP
 reemplazo de función JS
 reemplazo de sección CSS o JS
 reemplazo de sección documental
+alta controlada de sección documental nueva
 
 Regla crítica:
 
@@ -364,6 +417,8 @@ Orden obligatorio:
 validar contrato
 resolver ruta segura dentro del projectRoot
 validar existencia cuando corresponda
+validar ancla cuando corresponda
+validar inexistencia de sección nueva cuando corresponda
 aplicar cambio
 validar resultado cuando corresponda
 mostrar salida operativa
@@ -378,6 +433,37 @@ Un bloque documental no debe usarse para modificar código.
 
 Un bloque de código no debe usarse para modificar documentación.
 
+Un bloque de reemplazo documental no debe usarse para crear secciones nuevas.
+
+Un bloque de alta documental no debe usarse para reemplazar secciones existentes.
+
+<<END SECTION>>
+
+<<SECTION: CONTRATOS DOCUMENTALES SOPORTADOS>>
+SECTION_VERSION: 00001
+
+CONTRATOS DOCUMENTALES SOPORTADOS
+
+Project Lab soporta contratos documentales explícitos para documentos activos del proyecto.
+
+Los contratos documentales trabajan por DOC_SLUG y no por nombre físico de archivo.
+
+REEMPLAZO DE SECCIÓN EXISTENTE
+
+Uso:
+
+reemplazar una sección documental existente completa.
+
+Formato operativo:
+
+REEMPLAZAR EN: [doc_slug]
+
+seguido de un bloque completo:
+
+<<SECTION: NOMBRE EXACTO>>
+SECTION_VERSION: 00000
+
+contenido
 <<END SECTION>>
 
 <<SECTION: CONTRATOS DE CÓDIGO SOPORTADOS>>
@@ -671,43 +757,39 @@ archivo inexistente en operación parcial
 método inexistente en reemplazo parcial
 método ya existente en alta de método
 función JS inexistente en reemplazo parcial
-sección documental inexistente
+sección documental inexistente en reemplazo
+sección documental ya existente en alta controlada
+sección ancla inexistente en alta controlada
+sección ancla duplicada en alta controlada
 doc_slug inexistente
 sección CSS o JS inexistente
 intento de usar formato de archivo completo para operación parcial ambigua
-bloque documental sin encabezado REEMPLAZAR EN cuando la herramienta vigente lo requiere
+bloque documental sin encabezado operativo válido
 bloque documental sin SECTION_VERSION válido
-bloque documental con DOC_SLUG como encabezado operativo si Project Lab Docs espera REEMPLAZAR EN
+bloque documental con DOC_SLUG como encabezado operativo si Project Lab Docs espera contrato explícito
+bloque documental de alta sin UBICAR DESPUÉS DE
+bloque documental de alta sin ancla exacta
+bloque documental de alta con ubicación implícita
 header FILE que combine operadores de método
 snippet que mezcle FILE y TARGET de forma ambigua
-archivo PHP completo que no comience como PHP válido
-archivo PHP completo con apertura PHP ubicada después del encabezado FILE cuando el contrato espera PHP válido desde el inicio
 intento de escritura fuera del projectRoot
-falla al crear backup documental antes de reemplazar
-falla de validación de sintaxis PHP posterior a la escritura
-falla de restauración o limpieza luego de lint PHP inválido
-macro audit inexistente
-macro audit con argumentos inválidos
-comando rápido con prefijo >> no reconocido
-intento de ejecutar prompt narrativo como si fuera comando shell o audit válido
+falla al crear backup documental antes de escribir
+falla al escribir el archivo destino
+falla de lint PHP posterior a una escritura PHP validable
 
-Reglas:
+Regla:
 
-si el error es detectable antes de escribir, Project Lab debe fallar antes de modificar archivos
+todo ERROR validable debe ocurrir antes de escribir cuando sea posible.
 
-si el error aparece después de una escritura PHP y el lint falla, debe restaurar el archivo anterior o eliminar el archivo nuevo inválido
+Si el error solo aparece después de validar resultado, Project Lab debe informar claramente el estado final y aplicar rollback cuando el contrato lo permita.
 
-si el contrato es ambiguo, no debe aceptarse como éxito parcial
+Regla específica para documentación:
 
-si el formato no corresponde a ninguno de los contratos vigentes, no debe aplicarse
+REEMPLAZAR EN exige sección existente.
 
-si el bloque corresponde a documentación, no debe procesarse como código
+AGREGAR EN o NUEVA SECCIÓN PROPUESTA EN exige sección inexistente y ancla existente.
 
-si el bloque corresponde a código, no debe procesarse como documentación
-
-Regla final:
-
-un ERROR explícito es preferible a una escritura ambigua.
+No debe normalizarse un caso en el otro de forma silenciosa.
 
 <<END SECTION>>
 
@@ -1795,7 +1877,7 @@ El cierre completo del frente depende del alcance real del cambio.
 <<END SECTION>>
 
 <<SECTION: ERRORES Y LECCIONES INCORPORADAS>>
-SECTION_VERSION: 00006
+SECTION_VERSION: 00007
 
 ERRORES Y LECCIONES INCORPORADAS
 
@@ -1882,6 +1964,32 @@ Regla consolidada:
 un bloque documental sin SECTION_VERSION válido no debe aplicarse.
 
 La actualización documental debe ser trazable y compatible con el versionado interno del proyecto.
+
+Lección incorporada:
+
+Project Lab docs no debe tratar toda actualización documental como reemplazo de sección existente.
+
+Caso detectado:
+
+una sección nueva propuesta para todo_proyecto_app_base no podía incorporarse porque el parser documental solo aceptaba REEMPLAZAR EN y exigía que la sección ya existiera.
+
+Corrección aplicada:
+
+se incorpora contrato de alta controlada de sección nueva mediante AGREGAR EN o NUEVA SECCIÓN PROPUESTA EN, con UBICAR DESPUÉS DE y ancla exacta obligatoria.
+
+Regla consolidada:
+
+REEMPLAZAR EN se usa para secciones existentes.
+
+AGREGAR EN o NUEVA SECCIÓN PROPUESTA EN se usa para secciones nuevas.
+
+Una sección nueva solo puede agregarse si incluye:
+
+doc_slug existente
+sección ancla exacta
+bloque completo
+SECTION_VERSION
+ubicación explícita
 
 Lección incorporada:
 

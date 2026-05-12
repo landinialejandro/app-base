@@ -1034,7 +1034,7 @@ private function processActions()
         return $message;
     }
 
-    private function runEmbeddedDocsTool(string $input): string
+private function runEmbeddedDocsTool(string $input): string
     {
         $input = str_replace(["\r\n", "\r"], "\n", trim($input));
 
@@ -1042,15 +1042,30 @@ private function processActions()
             return '[ERROR] No se recibió contenido para actualizar documentos.';
         }
 
+        $replaceMatches = [];
+        $addMatches = [];
+
         preg_match_all(
             '/REEMPLAZAR EN:\s*\[?([a-z0-9_]+)\]?\s*(<<SECTION:\s*.*?>>.*?<<END SECTION>>)/su',
             $input,
-            $matches,
+            $replaceMatches,
             PREG_SET_ORDER
         );
 
-        if (empty($matches)) {
-            return "[ERROR] No se encontraron bloques válidos.\n[INFO] Formato esperado: REEMPLAZAR EN: [doc_slug] + bloque SECTION completo.";
+        preg_match_all(
+            '/(?:AGREGAR EN|NUEVA SECCIÓN PROPUESTA EN):\s*\[?([a-z0-9_]+)\]?\s+UBICAR DESPUÉS DE:\s*(<<SECTION:\s*.*?>>)\s*(<<SECTION:\s*.*?>>.*?<<END SECTION>>)/su',
+            $input,
+            $addMatches,
+            PREG_SET_ORDER
+        );
+
+        if (empty($replaceMatches) && empty($addMatches)) {
+            return implode("\n", [
+                '[ERROR] No se encontraron bloques válidos.',
+                '[INFO] Formatos esperados:',
+                '[INFO] 1) REEMPLAZAR EN: [doc_slug] + bloque SECTION completo.',
+                '[INFO] 2) AGREGAR EN: [doc_slug] + UBICAR DESPUÉS DE: <<SECTION: NOMBRE>> + bloque SECTION completo.',
+            ]);
         }
 
         $documents = $this->indexEmbeddedDocuments();
@@ -1066,92 +1081,24 @@ private function processActions()
         $output = '';
         $lastSlug = '-';
 
-        foreach ($matches as $match) {
-            $slug = strtolower(trim($match[1]));
-            $block = trim($match[2]);
-            $lastSlug = $slug;
+        foreach ($replaceMatches as $match) {
+            $result = $this->applyEmbeddedDocSectionReplace($match, $documents, $projectRoot);
+            $output .= $result['output'];
+            $lastSlug = $result['slug'] ?: $lastSlug;
 
-            if (! isset($documents[$slug])) {
-                $output .= "[ERROR] Documento no reconocido por slug: {$slug}\n";
-
-                continue;
+            if ($result['applied']) {
+                $total++;
             }
+        }
 
-            if (! preg_match('/<<SECTION:\s*(.*?)\s*>>/su', $block, $sectionMatch)) {
-                $output .= "[ERROR] No se pudo leer el nombre de sección para {$slug}\n";
+        foreach ($addMatches as $match) {
+            $result = $this->applyEmbeddedDocSectionAdd($match, $documents, $projectRoot);
+            $output .= $result['output'];
+            $lastSlug = $result['slug'] ?: $lastSlug;
 
-                continue;
+            if ($result['applied']) {
+                $total++;
             }
-
-            if (! preg_match('/\nSECTION_VERSION:\s*\d{5}\s*(?:\n|$)/u', "\n".$block)) {
-                $output .= "[ERROR] [{$slug}] El bloque no incluye SECTION_VERSION válido de 5 dígitos.\n";
-
-                continue;
-            }
-
-            $sectionName = trim($sectionMatch[1]);
-            $filePath = $documents[$slug];
-            $resolvedFilePath = realpath($filePath);
-
-            if ($resolvedFilePath === false) {
-                $output .= "[ERROR] No se pudo resolver documento: {$slug}\n";
-
-                continue;
-            }
-
-            if (! str_starts_with($resolvedFilePath, $projectRoot.DIRECTORY_SEPARATOR)) {
-                $output .= "[ERROR] Documento fuera del proyecto: {$slug}\n";
-
-                continue;
-            }
-
-            $relativeDocPath = ltrim(substr($resolvedFilePath, strlen($projectRoot)), DIRECTORY_SEPARATOR);
-
-            $content = file_get_contents($resolvedFilePath);
-
-            if ($content === false) {
-                $output .= "[ERROR] No se pudo leer documento: {$slug}\n";
-
-                continue;
-            }
-
-            $pattern = '/<<SECTION:\s*'.preg_quote($sectionName, '/').'\s*>>.*?<<END SECTION>>/su';
-
-            if (! preg_match($pattern, $content)) {
-                $output .= "[ERROR] [{$slug}] No se encontró la sección: {$sectionName}\n";
-
-                continue;
-            }
-
-            $timestamp = date('Ymd_His');
-            $backupRelativePath = 'documentos/baks/'.pathinfo($resolvedFilePath, PATHINFO_FILENAME)."_{$timestamp}.bak";
-            $backupResult = $this->writeProjectFile($backupRelativePath, $content, true);
-
-            if ($backupResult !== true) {
-                $output .= "[ERROR] [{$slug}] No se pudo guardar backup: {$backupResult}\n";
-
-                continue;
-            }
-
-            $newContent = preg_replace($pattern, $block, $content, 1, $count);
-
-            if ($count < 1 || $newContent === null) {
-                $output .= "[ERROR] [{$slug}] No se pudo reemplazar la sección: {$sectionName}\n";
-
-                continue;
-            }
-
-            $writeResult = $this->writeProjectFile($relativeDocPath, $newContent, false);
-
-            if ($writeResult !== true) {
-                $output .= "[ERROR] [{$slug}] No se pudo escribir el documento. {$writeResult}\n";
-
-                continue;
-            }
-
-            $total++;
-            $output .= "[OK] [{$slug}] Sección reemplazada: {$sectionName}\n";
-            $output .= "[OK] [{$slug}] Backup: {$backupRelativePath}\n";
         }
 
         $output .= $total > 0
@@ -3312,4 +3259,277 @@ private function buildProjectLabAiUserPrompt(string $editablePrompt, string $con
             '[/IA_ASSISTANT]',
         ]);
     }
+
+
+    private function applyEmbeddedDocSectionReplace(array $match, array $documents, string $projectRoot): array
+        {
+            $slug = strtolower(trim($match[1] ?? ''));
+            $block = trim($match[2] ?? '');
+    
+            if (! isset($documents[$slug])) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] Documento no reconocido por slug: {$slug}\n",
+                ];
+            }
+    
+            if (! preg_match('/<<SECTION:\s*(.*?)\s*>>/su', $block, $sectionMatch)) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] No se pudo leer el nombre de sección para {$slug}\n",
+                ];
+            }
+    
+            if (! preg_match('/\nSECTION_VERSION:\s*\d{5}\s*(?:\n|$)/u', "\n".$block)) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] [{$slug}] El bloque no incluye SECTION_VERSION válido de 5 dígitos.\n",
+                ];
+            }
+    
+            $sectionName = trim($sectionMatch[1]);
+            $filePath = $documents[$slug];
+            $resolvedFilePath = realpath($filePath);
+    
+            if ($resolvedFilePath === false) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] No se pudo resolver documento: {$slug}\n",
+                ];
+            }
+    
+            if (! str_starts_with($resolvedFilePath, $projectRoot.DIRECTORY_SEPARATOR)) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] Documento fuera del proyecto: {$slug}\n",
+                ];
+            }
+    
+            $relativeDocPath = ltrim(substr($resolvedFilePath, strlen($projectRoot)), DIRECTORY_SEPARATOR);
+            $content = file_get_contents($resolvedFilePath);
+    
+            if ($content === false) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] No se pudo leer documento: {$slug}\n",
+                ];
+            }
+    
+            $pattern = '/<<SECTION:\s*'.preg_quote($sectionName, '/').'\s*>>.*?<<END SECTION>>/su';
+    
+            if (! preg_match($pattern, $content)) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] [{$slug}] No se encontró la sección: {$sectionName}\n",
+                ];
+            }
+    
+            $timestamp = date('Ymd_His');
+            $backupRelativePath = 'documentos/baks/'.pathinfo($resolvedFilePath, PATHINFO_FILENAME)."_{$timestamp}.bak";
+            $backupResult = $this->writeProjectFile($backupRelativePath, $content, true);
+    
+            if ($backupResult !== true) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] [{$slug}] No se pudo guardar backup: {$backupResult}\n",
+                ];
+            }
+    
+            $newContent = preg_replace($pattern, $block, $content, 1, $count);
+    
+            if ($count < 1 || $newContent === null) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] [{$slug}] No se pudo reemplazar la sección: {$sectionName}\n",
+                ];
+            }
+    
+            $writeResult = $this->writeProjectFile($relativeDocPath, $newContent, false);
+    
+            if ($writeResult !== true) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] [{$slug}] No se pudo escribir el documento. {$writeResult}\n",
+                ];
+            }
+    
+            return [
+                'slug' => $slug,
+                'applied' => true,
+                'output' => "[OK] [{$slug}] Sección reemplazada: {$sectionName}\n[OK] [{$slug}] Backup: {$backupRelativePath}\n",
+            ];
+        }
+
+
+    private function applyEmbeddedDocSectionAdd(array $match, array $documents, string $projectRoot): array
+        {
+            $slug = strtolower(trim($match[1] ?? ''));
+            $anchorHeader = trim($match[2] ?? '');
+            $block = trim($match[3] ?? '');
+    
+            if (! isset($documents[$slug])) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] Documento no reconocido por slug: {$slug}\n",
+                ];
+            }
+    
+            if (! preg_match('/<<SECTION:\s*(.*?)\s*>>/su', $anchorHeader, $anchorMatch)) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] [{$slug}] No se pudo leer la sección ancla.\n",
+                ];
+            }
+    
+            if (! preg_match('/<<SECTION:\s*(.*?)\s*>>/su', $block, $sectionMatch)) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] No se pudo leer el nombre de sección nueva para {$slug}\n",
+                ];
+            }
+    
+            if (! preg_match('/\nSECTION_VERSION:\s*\d{5}\s*(?:\n|$)/u', "\n".$block)) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] [{$slug}] El bloque nuevo no incluye SECTION_VERSION válido de 5 dígitos.\n",
+                ];
+            }
+    
+            $anchorName = trim($anchorMatch[1]);
+            $sectionName = trim($sectionMatch[1]);
+    
+            if ($anchorName === '' || $sectionName === '') {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] [{$slug}] Sección ancla o sección nueva vacía.\n",
+                ];
+            }
+    
+            if ($anchorName === $sectionName) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] [{$slug}] La sección nueva no puede tener el mismo nombre que el ancla: {$sectionName}\n",
+                ];
+            }
+    
+            $filePath = $documents[$slug];
+            $resolvedFilePath = realpath($filePath);
+    
+            if ($resolvedFilePath === false) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] No se pudo resolver documento: {$slug}\n",
+                ];
+            }
+    
+            if (! str_starts_with($resolvedFilePath, $projectRoot.DIRECTORY_SEPARATOR)) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] Documento fuera del proyecto: {$slug}\n",
+                ];
+            }
+    
+            $relativeDocPath = ltrim(substr($resolvedFilePath, strlen($projectRoot)), DIRECTORY_SEPARATOR);
+            $content = file_get_contents($resolvedFilePath);
+    
+            if ($content === false) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] No se pudo leer documento: {$slug}\n",
+                ];
+            }
+    
+            $newSectionPattern = '/<<SECTION:\s*'.preg_quote($sectionName, '/').'\s*>>.*?<<END SECTION>>/su';
+    
+            if (preg_match($newSectionPattern, $content)) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] [{$slug}] La sección ya existe: {$sectionName}. Use REEMPLAZAR EN.\n",
+                ];
+            }
+    
+            $anchorPattern = '/<<SECTION:\s*'.preg_quote($anchorName, '/').'\s*>>.*?<<END SECTION>>/su';
+    
+            $anchorCount = preg_match_all($anchorPattern, $content, $anchorMatches, PREG_OFFSET_CAPTURE);
+    
+            if ($anchorCount < 1) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] [{$slug}] No se encontró la sección ancla: {$anchorName}\n",
+                ];
+            }
+    
+            if ($anchorCount > 1) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] [{$slug}] La sección ancla aparece más de una vez: {$anchorName}\n",
+                ];
+            }
+    
+            $anchorBlock = $anchorMatches[0][0][0] ?? '';
+            $anchorOffset = $anchorMatches[0][0][1] ?? null;
+    
+            if ($anchorBlock === '' || $anchorOffset === null) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] [{$slug}] No se pudo resolver la posición del ancla: {$anchorName}\n",
+                ];
+            }
+    
+            $insertPosition = $anchorOffset + strlen($anchorBlock);
+            $newContent = substr($content, 0, $insertPosition)
+                ."\n\n".$block
+                .substr($content, $insertPosition);
+    
+            $timestamp = date('Ymd_His');
+            $backupRelativePath = 'documentos/baks/'.pathinfo($resolvedFilePath, PATHINFO_FILENAME)."_{$timestamp}.bak";
+            $backupResult = $this->writeProjectFile($backupRelativePath, $content, true);
+    
+            if ($backupResult !== true) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] [{$slug}] No se pudo guardar backup: {$backupResult}\n",
+                ];
+            }
+    
+            $writeResult = $this->writeProjectFile($relativeDocPath, $newContent, false);
+    
+            if ($writeResult !== true) {
+                return [
+                    'slug' => $slug,
+                    'applied' => false,
+                    'output' => "[ERROR] [{$slug}] No se pudo escribir el documento. {$writeResult}\n",
+                ];
+            }
+    
+            return [
+                'slug' => $slug,
+                'applied' => true,
+                'output' => "[OK] [{$slug}] Sección agregada: {$sectionName}\n[OK] [{$slug}] Ubicada después de: {$anchorName}\n[OK] [{$slug}] Backup: {$backupRelativePath}\n",
+            ];
+        }
 }

@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00022
+SECTION_VERSION: 00023
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -59,9 +59,19 @@ plano interno User/Membership
 
 plano externo customer
 
+cuenta externa customer
+
+relación customer-tienda
+
+credencial externa propia
+
+token temporal de selección
+
 tienda tenant-scoped
 
 entrada pública general /tienda
+
+selector externo /tienda/seleccionar
 
 registro liviano
 
@@ -77,6 +87,8 @@ Relaciones vigentes:
 
 /tienda = entrada pública general externa
 
+/tienda/seleccionar = selector externo temporal de tiendas
+
 /login = acceso interno para User
 
 /solicitar-empresa = alta o solicitud de acceso de empresas
@@ -85,15 +97,29 @@ Reglas:
 
 /tienda no es login interno
 
+/tienda/seleccionar no es tenants/select
+
 /shop/{tenant:slug} no habilita panel interno
 
 customer externo no es User
 
 customer externo no es Membership
 
+SelfServiceCustomerAccount no es User
+
+SelfServiceStoreCustomer no es Membership
+
+SelfServiceStoreSelectionToken no es sesión externa persistente
+
 confirmar email no habilita operación comercial completa
 
-login externo real no debe implementarse sin cerrar entidad externa y relación customer-tienda
+validar credencial externa no habilita operación comercial completa
+
+seleccionar tienda no habilita operación comercial completa
+
+redirigir a /shop/{tenant:slug} no habilita operación comercial completa
+
+operation_enabled = false bloquea operación comercial
 
 Antes de modificar landing pública:
 
@@ -589,11 +615,37 @@ Entrada pública general vigente:
 
 /tienda
 
+Selector externo vigente:
+
+/tienda/seleccionar
+
 Customer externo confirmado:
 
 Party.kind = person
 
 PartyRole.role = customer
+
+Arquitectura externa vigente:
+
+SelfServiceCustomerAccount = cuenta externa customer
+
+SelfServiceStoreCustomer = relación customer-tienda
+
+SelfServiceStoreSelectionToken = token temporal de selección
+
+Corte operativo vigente:
+
+POST /tienda valida credencial externa propia.
+
+GET /tienda/seleccionar muestra tiendas disponibles por token temporal.
+
+POST /tienda/seleccionar ejecuta selección mínima de tienda externa.
+
+La selección válida consume token mediante used_at.
+
+La selección válida redirige a /shop/{tenant:slug}.
+
+Si operation_enabled = false, la tienda mantiene operación comercial bloqueada y puede mostrar operación pendiente.
 
 Reglas:
 
@@ -605,6 +657,12 @@ customer externo ≠ roles internos
 
 customer externo ≠ panel interno
 
+SelfServiceCustomerAccount ≠ User
+
+SelfServiceStoreCustomer ≠ Membership
+
+SelfServiceStoreSelectionToken ≠ sesión externa persistente
+
 registro externo no usa invitations
 
 registro externo no usa PartyController
@@ -613,7 +671,17 @@ registro externo no usa InvitationAcceptanceController
 
 registro externo no usa Fortify interno
 
+/tienda/seleccionar no usa tenants/select
+
 confirmar email no habilita operación comercial completa
+
+validar credencial externa no habilita operación comercial completa
+
+seleccionar tienda no habilita operación comercial completa
+
+redirigir a /shop/{tenant:slug} no habilita operación comercial completa
+
+operation_enabled = false bloquea operación comercial
 
 Antes de operar deberá existir validación posterior de identidad operativa y contrato específico.
 

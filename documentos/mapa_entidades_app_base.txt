@@ -748,6 +748,16 @@ el acceso al área no reemplaza permisos operativos de los módulos participante
 
 Relación conceptual vigente de Shopping Autoservicio:
 
+SelfServiceCustomerAccount
+↓
+SelfServiceStoreCustomer
+↓
+Tenant
+↓
+Party
+
+Relación de registro inicial:
+
 Tenant
 ↓
 SelfServiceCustomerRegistration
@@ -755,6 +765,20 @@ SelfServiceCustomerRegistration
 Party kind = person
 ↓
 PartyRole role = customer
+
+Relación de acceso externo inicial:
+
+SelfServiceCustomerAccount
+↓ credencial externa propia
+/tienda
+↓ validación externa
+SelfServiceStoreSelectionToken
+↓
+/tienda/seleccionar
+↓
+SelfServiceStoreCustomer
+↓
+Tenant
 
 Ruta pública tenant-scoped vigente:
 
@@ -764,6 +788,10 @@ Entrada pública general vigente:
 
 /tienda
 
+Selector externo vigente:
+
+/tienda/seleccionar
+
 Key técnica:
 
 self_service_sales
@@ -772,17 +800,45 @@ Lectura:
 
 Shopping Autoservicio es una capa satélite comercial autogestiva por tenant.
 
+SelfServiceCustomerAccount representa la identidad externa global del customer.
+
+SelfServiceCustomerAccount no reemplaza User.
+
+SelfServiceCustomerAccount no pertenece al plano interno del tenant.
+
+SelfServiceCustomerAccount no otorga acceso al panel interno.
+
+SelfServiceCustomerAccount usa credencial externa propia.
+
+SelfServiceStoreCustomer representa la relación customer-tienda.
+
+SelfServiceStoreCustomer no reemplaza Membership.
+
+SelfServiceStoreCustomer no otorga roles internos.
+
+SelfServiceStoreCustomer no habilita tenant/profile, dashboard ni navegación interna.
+
+Tenant participa como tienda app-base dentro de la relación externa.
+
+Tenant no representa pertenencia interna del customer externo.
+
+Party sigue siendo la representación comercial tenant-scoped del customer confirmado.
+
+PartyRole role = customer representa la relación comercial con la empresa.
+
+SelfServiceStoreSelectionToken representa un token temporal para selección externa de tienda.
+
+SelfServiceStoreSelectionToken no equivale a sesión externa persistente.
+
+SelfServiceStoreSelectionToken no habilita operación comercial.
+
+SelfServiceStoreSelectionToken no habilita panel interno.
+
 self_service_customer_registrations guarda registros externos pendientes de customer antes de crear la Party.
 
 self_service_customer_registrations.party_id queda null mientras el registro está pendiente.
 
 self_service_customer_registrations.party_id se completa al confirmar.
-
-Party representa el customer confirmado dentro del tenant.
-
-PartyRole role = customer representa la relación comercial con la empresa.
-
-Tenant.slug permite resolver la tienda pública del tenant.
 
 SelfServiceCustomerRegistration representa una solicitud o registro inicial de ingreso a tienda, no una cuenta externa definitiva.
 
@@ -834,6 +890,12 @@ role = customer
 
 Reglas:
 
+SelfServiceCustomerAccount no reemplaza User
+
+SelfServiceStoreCustomer no reemplaza Membership
+
+SelfServiceStoreSelectionToken no reemplaza sesión externa persistente
+
 self_service_customer_registrations no reemplaza Party
 
 self_service_customer_registrations no reemplaza User
@@ -842,13 +904,15 @@ self_service_customer_registrations no reemplaza Membership
 
 self_service_customer_registrations no representa identidad interna del sistema
 
-SelfServiceCustomerRegistration es un registro temporal u operativo del flujo externo de alta
-
 la Party customer generada por Shopping Autoservicio no debe tener memberships asociadas
 
 el cliente externo no debe convertirse en User
 
 el cliente externo no debe convertirse en Membership
+
+el cliente externo no debe usar Fortify interno
+
+el cliente externo no debe usar tenants/select
 
 /shop/{tenant:slug} no habilita acceso interno al tenant
 
@@ -858,39 +922,21 @@ el cliente externo no debe convertirse en Membership
 
 /tienda no habilita panel interno
 
+/tienda/seleccionar no es tenants/select
+
+/tienda/seleccionar no pertenece al panel interno
+
+/tienda/seleccionar no abre navegación tenant interna
+
 Confirmar email no habilita por sí mismo operación comercial completa.
 
-Para operar deberá existir una validación posterior de identidad operativa según contrato vigente o futuro específico.
+Validar credencial externa propia no habilita por sí mismo operación comercial completa.
 
-Entidades futuras pendientes de modelado:
+Seleccionar tienda no habilita por sí mismo operación comercial completa.
 
-SelfServiceCustomerAccount o equivalente
+Para operar deberá existir identidad operativa suficiente, operación habilitada y contrato específico de operación externa.
 
-SelfServiceStoreCustomer o equivalente
-
-Lectura futura esperada:
-
-SelfServiceCustomerAccount representaría identidad externa de customer.
-
-SelfServiceStoreCustomer o equivalente representaría relación customer-tienda.
-
-Reglas futuras:
-
-la relación customer-tienda no debe usar Membership
-
-el customer externo no debe usar User interno
-
-el customer externo no debe usar Fortify interno
-
-el customer externo no debe usar tenants/select
-
-un mismo customer externo podría operar en una o más tiendas app-base si se implementa esa etapa
-
-toda tienda seleccionable por un customer externo debe corresponder siempre a un tenant app-base
-
-no se admiten tiendas externas ajenas a app-base dentro de self_service_sales
-
-el selector externo de tiendas puede ser análogo al selector interno de tenants, pero debe usar entidades externas propias y no Membership
+operation_enabled = false sigue bloqueando operación comercial.
 
 Relaciones futuras posibles de Shopping Autoservicio:
 

@@ -503,7 +503,7 @@ Debe diseñarse con presupuesto inicial potencialmente cero, proveedor reemplaza
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — SHOPPING AUTOSERVICIO>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00004
 
 LÍNEA ACTIVA — SHOPPING AUTOSERVICIO
 
@@ -533,6 +533,10 @@ Universo público tenant-scoped vigente:
 Entrada pública general vigente:
 
 /tienda
+
+Selector externo vigente:
+
+/tienda/seleccionar
 
 Label visible:
 
@@ -567,6 +571,56 @@ validación runtime de alta externa sin membership
 validación runtime de no uso de Fortify interno
 validación runtime de no acceso al panel interno
 
+Corte operativo adicional consolidado:
+
+implementación inicial de arquitectura de identidad externa de self_service_sales.
+
+Implementado y validado:
+
+SelfServiceCustomerAccount como cuenta externa customer
+SelfServiceStoreCustomer como relación customer-tienda
+SelfServiceStoreSelectionToken como token temporal de selección
+credencial externa propia en SelfServiceCustomerAccount
+POST /tienda conectado a credencial externa propia
+GET /tienda/seleccionar visible por token temporal
+selector externo de tiendas por token temporal
+
+Corte operativo del selector externo consolidado:
+
+POST /tienda/seleccionar ya ejecuta selección mínima de tienda externa.
+
+Implementado y validado:
+
+acción mínima de selección externa de tienda
+validación de token temporal
+validación de token vencido
+validación de token usado
+validación de store_customer_id
+validación de pertenencia del store_customer a la cuenta del token
+validación de relación customer-tienda
+validación de store_customer.status = active
+marcado de SelfServiceStoreSelectionToken.used_at
+redirección a /shop/{tenant:slug}
+aviso de operación pendiente cuando operation_enabled = false
+errores genéricos para todos los fallos del selector
+pruebas negativas del selector externo
+
+Casos negativos validados:
+
+token ausente
+token inválido
+token usado
+token vencido
+store_customer_id no numérico
+store_customer_id ajeno a la cuenta del token
+store_customer bloqueado
+
+Resultado esperado de fallos del selector:
+
+redirect_path = /tienda
+redirect_ok = true
+generic_error_ok = true
+
 Corte funcional vigente:
 
 registro externo pendiente
@@ -575,12 +629,25 @@ confirmación por token
 creación de Party kind = person
 creación de PartyRole role = customer
 Party mínima sin DNI/document_number en esta etapa
+cuenta externa customer
+relación customer-tienda
+credencial externa propia
+token temporal de selección
+selector externo visible por token
+selección mínima externa de tienda
+token consumido mediante used_at al seleccionar
+redirección a tienda pública tenant-scoped
 separación total frente a Membership
 sin User interno
 sin Membership
 sin acceso interno al tenant
-sin login externo real completo
+sin Fortify interno
+sin tenants/select
+sin Auth::login()
+sin guard externo
+sin sesión externa persistente definitiva
 sin habilitación operativa completa
+sin operación comercial real
 
 Datos mínimos vigentes del registro inicial:
 
@@ -600,6 +667,12 @@ Etapas conceptuales vigentes:
 
 registro inicial liviano
 confirmación de email
+cuenta externa customer
+relación customer-tienda
+validación de credencial externa
+selección temporal de tienda
+consumo del token temporal
+redirección a tienda pública
 validación posterior de identidad operativa
 habilitación para operar
 
@@ -621,6 +694,12 @@ el customer externo no debe recibir roles internos
 
 el customer externo no debe acceder al panel interno
 
+SelfServiceCustomerAccount no debe reemplazar User
+
+SelfServiceStoreCustomer no debe reemplazar Membership
+
+SelfServiceStoreSelectionToken no debe reemplazar sesión externa persistente
+
 self_service_sales no debe reutilizar PartyController para alta externa
 
 self_service_sales no debe reutilizar TenantMembershipPartyController para alta externa
@@ -628,6 +707,8 @@ self_service_sales no debe reutilizar TenantMembershipPartyController para alta 
 self_service_sales no debe reutilizar InvitationAcceptanceController para alta externa
 
 self_service_sales no debe reutilizar Fortify interno como login de customers externos
+
+self_service_sales no debe reutilizar tenants/select como selector externo de tiendas
 
 invitations no debe usarse para registro externo de customer
 
@@ -641,27 +722,41 @@ si el flujo incluye DNI/document_number, también debe bloquearse ante duplicado
 
 la confirmación de email no habilita operación comercial completa
 
-para operar deberá completarse validación posterior de identidad operativa
+la validación de credencial externa propia no habilita operación comercial completa
+
+la selección de tienda no habilita operación comercial completa
+
+la redirección a /shop/{tenant:slug} no habilita operación comercial completa
+
+el token temporal de selección no equivale a sesión externa persistente
+
+el token temporal se consume mediante used_at al seleccionar correctamente
+
+operation_enabled = false sigue bloqueando operación comercial
+
+para operar deberá completarse validación posterior de identidad operativa y habilitación operativa explícita
 
 el acceso externo debe usar mensajes genéricos ante fallas
 
-no debe revelarse si falló email, contraseña, cuenta inexistente, cuenta no confirmada, cuenta bloqueada, tienda no disponible, customer sin tiendas o estado no habilitado para operar
+el selector externo debe usar mensaje genérico ante fallas
+
+no debe revelarse si falló email, contraseña, cuenta inexistente, cuenta no confirmada, cuenta bloqueada, tienda no disponible, customer sin tiendas, token ausente, token inválido, token vencido, token usado, store_customer_id manipulado, pertenencia de cuenta, relación bloqueada o estado no habilitado para operar
 
 Mercado Pago queda como puerta futura, no implementada en esta fase
 
 Pendientes estructurales próximos:
 
-definir SelfServiceCustomerAccount o entidad equivalente
-definir relación customer-tienda
-definir selector externo de tiendas
-definir validación de identidad operativa
+sesión externa persistente futura
+guard externo futuro
+recuperación de contraseña real
+cambio de contraseña externa
+validación de identidad operativa
 definir cuándo operation_enabled puede pasar a true
-definir recuperación de acceso externo
-definir cambio de contraseña externa
-definir login externo real
-definir datos adicionales requeridos para pagos
-definir datos adicionales requeridos para comprobantes o facturación
-definir condiciones de prevención de abuso cuando corresponda
+habilitación comercial
+operación comercial real
+datos adicionales requeridos para pagos
+datos adicionales requeridos para comprobantes o facturación
+condiciones de prevención de abuso cuando corresponda
 
 Pendientes posteriores:
 
@@ -679,11 +774,11 @@ saldo negativo
 
 Regla de continuidad:
 
-antes de continuar con saldo, ficha, QR, email real, Mercado Pago, minimercado, facturación, promociones o login externo completo, debe respetarse el corte actual y validar contra código real, seguridad, tenant activo, runtime y documentación vigente.
+antes de continuar con saldo, ficha, QR, email real, Mercado Pago, minimercado, facturación, promociones, sesión externa persistente, guard externo u operación comercial real, debe respetarse el corte actual y validar contra código real, seguridad, tenant activo, runtime y documentación vigente.
 
 Regla:
 
-el login externo real no debe implementarse sin antes cerrar entidad externa y relación customer-tienda.
+la cuenta externa customer, la relación customer-tienda, el token temporal de selección y la redirección a tienda pública no habilitan por sí solos operación comercial completa.
 
 <<END SECTION>>
 

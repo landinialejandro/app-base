@@ -10,7 +10,7 @@ GESTIÓN: Documento rector inicial para la capacidad self_service_sales como cap
 <<END SECTION>>
 
 <<SECTION: OBJETIVO DEL DOCUMENTO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 OBJETIVO DEL DOCUMENTO
 
@@ -20,7 +20,7 @@ Shopping Autoservicio se identifica técnicamente como:
 
 self_service_sales
 
-Su función es ordenar una capacidad comercial autogestiva por tenant, orientada a permitir que clientes externos puedan registrarse, acceder a una tienda pública controlada, comprar o cargar saldo, consumir fichas mediante QR, consultar movimientos y operar dentro del alcance comercial habilitado por cada tenant.
+Su función es ordenar una capacidad comercial autogestiva por tenant, orientada a permitir que clientes externos puedan registrarse, acceder a una tienda pública controlada, seleccionar una tienda vinculada, comprar o cargar saldo, consumir fichas mediante QR, consultar movimientos y operar dentro del alcance comercial habilitado por cada tenant.
 
 Este documento busca:
 
@@ -30,20 +30,26 @@ definir la relación con Parties
 ordenar la tienda pública del tenant
 distinguir /shop/{tenant:slug} como tienda pública tenant-scoped
 distinguir /tienda como entrada pública general externa
+distinguir /tienda/seleccionar como selector externo temporal de tiendas
+definir la identidad externa customer
+definir la relación customer-tienda
+definir el token temporal de selección de tienda
+definir la acción mínima de selección externa de tienda
 definir saldo real, fichas, fichas promocionales y consumo
 establecer límites frente a Products, Inventory y Documents
 preparar integración futura con Mercado Pago
 preparar integración futura con controladores externos
 definir alcance inicial de implementación
-registrar el primer corte operativo validado
+registrar los cortes operativos validados
 evitar que la capacidad se resuelva como parches dispersos en módulos existentes
 evitar que la confirmación de email se confunda con habilitación operativa completa
+evitar que la selección de tienda se confunda con sesión externa persistente
+evitar que el selector externo prometa operación comercial real
 
 No define:
 
 implementación técnica completa
 migraciones finales de todas las fases futuras
-rutas definitivas de login externo completo
 controllers definitivos de saldo, QR, pagos o minimercado
 campos finales de saldo, ledger, fichas o consumos
 integración real con Mercado Pago
@@ -52,14 +58,48 @@ diseño visual final de tienda completa
 contratos fiscales definitivos
 promociones finales
 minimercado completo
-cuenta externa definitiva de customer
-relación customer-tienda definitiva
-selector externo de tiendas
+sesión externa persistente definitiva
+guard externo definitivo
 validación final de identidad operativa
+operación comercial real
 
 Estado operativo vigente:
 
-la primera fase de self_service_sales quedó implementada y validada como registro externo pendiente, confirmación por token y creación de Party customer person sin User, sin Membership y sin acceso interno al tenant.
+self_service_sales cuenta con una primera base implementada y validada como registro externo pendiente, confirmación por token y creación de Party customer person sin User, sin Membership y sin acceso interno al tenant.
+
+Corte operativo vigente adicional:
+
+self_service_sales incorpora una arquitectura inicial de identidad externa con:
+
+SelfServiceCustomerAccount
+SelfServiceStoreCustomer
+SelfServiceStoreSelectionToken
+credencial externa propia
+entrada /tienda conectada a credencial externa
+selector /tienda/seleccionar por token temporal
+
+Corte operativo vigente del selector externo:
+
+POST /tienda/seleccionar ya ejecuta selección mínima de tienda externa.
+
+La selección válida:
+
+valida token temporal
+valida store_customer_id
+valida pertenencia del store_customer a la cuenta del token
+valida store_customer.status = active
+marca used_at
+redirige a /shop/{tenant:slug}
+
+La selección válida no crea:
+
+sesión externa persistente
+guard externo
+Auth::login()
+User
+Membership
+Fortify
+operación comercial real
 
 Regla:
 
@@ -173,7 +213,7 @@ Su función es separar el acceso externo de customers del acceso interno de usua
 <<END SECTION>>
 
 <<SECTION: SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 SEPARACIÓN ENTRE PLANO INTERNO Y PLANO EXTERNO
 
@@ -208,9 +248,14 @@ Corresponde a clientes externos que operan comercialmente con una tienda del ten
 Incluye:
 
 registro autogestivo
-login externo futuro
+cuenta externa customer
+credencial externa propia
+relación customer-tienda
+token temporal de selección de tienda
+login externo
 tienda pública
 entrada pública general externa
+selector externo de tiendas
 saldo futuro
 compras futuras
 consumos futuros
@@ -239,23 +284,35 @@ Regla adicional:
 
 las rutas públicas de Shopping Autoservicio deben permanecer separadas del grupo interno auth + tenant.
 
-Ruta pública tenant-scoped vigente:
+Rutas públicas externas vigentes:
 
 /shop/{tenant:slug}
 
-Entrada pública general vigente:
-
 /tienda
+
+/tienda/seleccionar
 
 /shop/{tenant:slug} resuelve el tenant por slug público y no habilita operación interna del tenant.
 
 /tienda funciona como entrada externa general y no como login interno.
 
+/tienda/seleccionar funciona como selector externo temporal de tiendas y no como selector interno de tenants.
+
+POST /tienda/seleccionar ejecuta selección mínima externa y redirige hacia la tienda pública tenant-scoped cuando el token y la relación customer-tienda son válidos.
+
 Regla:
 
 operar en la tienda no equivale a pertenecer al tenant.
 
-La autenticación externa futura no debe confundirse con autorización interna.
+La autenticación externa no debe confundirse con autorización interna.
+
+La selección externa de tienda no debe confundirse con tenants/select.
+
+El token temporal de selección no equivale a sesión externa persistente.
+
+Marcar used_at no equivale a iniciar sesión externa persistente.
+
+Redirigir a /shop/{tenant:slug} no equivale a habilitar operación comercial.
 
 La entrada pública externa no debe mostrar ni prometer acceso a dashboard, tenant/profile, parties.show ni rutas internas.
 
@@ -511,13 +568,24 @@ habilitación para operar
 <<END SECTION>>
 
 <<SECTION: LOGIN EXTERNO>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 LOGIN EXTERNO
 
 Shopping Autoservicio debe utilizar un login externo separado del login interno de app-base.
 
-El login externo futuro puede admitir:
+El login externo de self_service_sales usa credencial externa propia.
+
+No usa:
+
+Fortify interno
+User interno
+Membership
+roles internos
+guard interno del panel
+tenants/select
+
+Identificadores admitidos o esperados según contrato vigente:
 
 email
 teléfono
@@ -526,73 +594,97 @@ El formato de ambos identificadores debe validarse estrictamente.
 
 Estado vigente:
 
-el login externo completo no forma parte de la primera implementación validada.
+el flujo externo ya incorpora una base inicial de credencial externa propia asociada a SelfServiceCustomerAccount.
 
-La primera fase deja preparada la separación conceptual y operativa, pero solo implementa:
-
-registro externo pendiente
-confirmación por token
-creación de Party customer person
-entrada pública general externa /tienda
-
-Ruta pública general vigente:
+La entrada pública general vigente:
 
 /tienda
 
+ya puede conectarse a esa credencial externa propia según el corte implementado.
+
+Este acceso externo no habilita panel interno.
+
+No crea User.
+
+No crea Membership.
+
+No asigna roles internos.
+
+No habilita tenant/profile.
+
+No habilita dashboard.
+
+No habilita operación comercial completa por sí mismo.
+
+Ruta de selección externa vigente:
+
+/tienda/seleccionar
+
 Lectura:
 
-/tienda funciona como entrada pública general para acceso externo de customers.
+/tienda/seleccionar muestra tiendas disponibles asociadas al customer externo mediante token temporal de selección.
 
-No autentica realmente en el corte vigente.
+POST /tienda/seleccionar ya permite seleccionar una tienda vinculada mediante acción mínima externa.
 
-No usa Fortify interno.
+La selección válida:
 
-No usa User.
+consume el token temporal
+marca used_at
+redirige a /shop/{tenant:slug}
 
-No usa Membership.
+No equivale a tenants/select.
 
-No usa tenants/select.
+No pertenece al panel interno.
 
-No habilita panel interno.
+No abre navegación tenant interna.
 
-No habilita navegación tenant interna.
+No crea sesión externa persistente todavía.
+
+No guarda customer externo en sesión.
+
+No guarda tenant externo seleccionado en sesión.
+
+No usa remember token.
+
+No crea guard externo.
+
+No habilita operación comercial.
 
 Regla:
 
 login común no significa datos comunes.
 
-Aunque el acceso externo pueda funcionar como entrada común al universo Shopping Autoservicio, la operación comercial, los saldos, los movimientos, las compras, las fichas y las relaciones comerciales deben permanecer separadas por tenant.
+Aunque el acceso externo funcione como entrada común al universo Shopping Autoservicio, la operación comercial, los saldos, los movimientos, las compras, las fichas y las relaciones comerciales deben permanecer separadas por tenant.
 
-El sistema futuro puede resolver:
+El sistema resuelve:
 
-identificador externo
-tiendas donde el cliente está registrado
+cuenta externa customer
+tiendas vinculadas a esa cuenta
+relación customer-tienda
+token temporal de selección cuando corresponda
+selección mínima de tienda externa cuando el token es válido
 
-Si el cliente está registrado en un solo tenant, puede ingresar directamente a esa tienda.
+Si el cliente está registrado en un solo tenant, puede continuar hacia esa tienda según contrato vigente.
 
 Si el cliente está registrado en varios tenants, puede elegir entre sus tiendas registradas.
 
 El cliente no debe ver tiendas donde no esté registrado, salvo que acceda a una tienda pública habilitada como canal de registro o pseudo invitación.
 
-Regla:
-
-el login externo futuro no debe reutilizar Fortify interno como si el customer fuera usuario interno.
-
-El cliente externo no debe convertirse en User ni Membership por iniciar sesión en Shopping Autoservicio.
-
-Entidades futuras posibles:
+Entidades vigentes del plano externo:
 
 SelfServiceCustomerAccount
 
 SelfServiceStoreCustomer
 
-o equivalentes funcionales validados contra código real antes de implementar.
+SelfServiceStoreSelectionToken
 
-Lectura esperada:
+Lectura:
 
-SelfServiceCustomerAccount o equivalente representaría identidad externa del cliente.
+SelfServiceCustomerAccount representa la identidad externa global del cliente.
 
-SelfServiceStoreCustomer o equivalente representaría relación customer-tienda.
+SelfServiceStoreCustomer representa la relación entre customer externo y tienda tenant.
+
+SelfServiceStoreSelectionToken representa un token temporal para seleccionar tienda disponible.
 
 Reglas:
 
@@ -610,7 +702,11 @@ no convertir una Party customer en usuario interno
 
 no habilitar panel interno por login externo
 
-Un mismo customer externo podría operar en una o más tiendas app-base si se implementa esa etapa.
+no crear sesión externa persistente por la sola selección de tienda
+
+no habilitar operación comercial por redirigir a /shop/{tenant:slug}
+
+Un mismo customer externo puede operar en una o más tiendas app-base si existe relación customer-tienda vigente.
 
 Toda tienda seleccionable por un customer externo debe corresponder siempre a un tenant app-base.
 
@@ -618,27 +714,18 @@ No se admiten tiendas externas ajenas a app-base dentro de self_service_sales.
 
 Regla de mensajes de error:
 
-si falla el acceso externo de customer, el sistema debe mostrar un mensaje genérico.
+si falla el acceso externo de customer o la selección externa de tienda, el sistema debe mostrar un mensaje genérico.
 
-No debe revelar si falló por:
-
-email inexistente
-contraseña incorrecta
-cuenta inexistente
-cuenta no confirmada
-cuenta bloqueada
-tienda no disponible
-customer sin tiendas
-estado no habilitado para operar
+No debe revelar causa exacta del fallo.
 
 Regla final:
 
-el login externo real no debe implementarse sin antes cerrar la entidad externa y la relación customer-tienda.
+la existencia de login externo, credencial externa o token temporal de selección no habilita por sí misma operación comercial completa.
 
 <<END SECTION>>
 
 <<SECTION: TIENDA PÚBLICA DEL TENANT>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 TIENDA PÚBLICA DEL TENANT
 
@@ -651,6 +738,10 @@ Ruta pública tenant-scoped vigente:
 Entrada pública general vigente:
 
 /tienda
+
+Selector externo vigente:
+
+/tienda/seleccionar
 
 Label visible:
 
@@ -665,17 +756,49 @@ acceso desde QR
 acceso desde link público
 superficie comercial externa del tenant
 
+La entrada pública general /tienda puede funcionar como:
+
+acceso externo de customers
+validación de credencial externa propia
+entrada previa al selector externo de tiendas
+puerta pública diferenciada del login interno
+
+El selector externo /tienda/seleccionar puede funcionar como:
+
+pantalla de selección de tiendas vinculadas
+resolución de tiendas disponibles para el customer externo
+paso temporal antes de ingresar a una tienda tenant-scoped
+acción mínima de selección externa mediante POST
+
+Regla:
+
+/tienda/seleccionar usa token temporal de selección.
+
+Ese token se consume al seleccionar correctamente.
+
+La selección válida marca used_at.
+
+Ese token no equivale a sesión externa persistente.
+
+Ese token no habilita operación comercial.
+
+Ese token no habilita panel interno.
+
 La tienda pública puede mostrar:
 
 nombre visible de la tienda
-productos habilitados
-fichas o servicios disponibles
-precio actual según configuración
+estado público de tienda disponible
+registro externo disponible
+acceso externo desde /tienda
+aviso de operación pendiente cuando corresponda
+productos habilitados en etapa futura
+fichas o servicios disponibles en etapa futura
+precio actual según configuración futura
 información comercial mínima
 botón de registro
-botón de login externo futuro
+botón de acceso externo
 
-La tienda pública no debe mostrar:
+La tienda pública no debe mostrar ni prometer como implementado:
 
 panel interno
 saldos de clientes
@@ -685,12 +808,20 @@ configuración interna sensible
 stock interno sensible
 datos fiscales internos
 información no publicada por el tenant
+saldo real operativo
+fichas operativas
+QR operativo
+pagos reales
+movimientos comerciales reales
+servicios comerciales reales
 
 Regla:
 
-la tienda puede ser pública, pero la compra u operación exige registro o login cuando corresponda.
+la tienda puede ser pública, pero la compra u operación exige registro, login externo, relación customer-tienda vigente, identidad operativa suficiente y habilitación operativa cuando corresponda.
 
-La visibilidad de precios debe ser configurable por owner/admin.
+Si operation_enabled = false, la tienda debe mantener la operación comercial bloqueada y puede mostrar aviso de operación pendiente.
+
+La visibilidad de precios debe ser configurable por owner/admin cuando esa etapa exista.
 
 Opciones posibles:
 
@@ -702,19 +833,27 @@ Regla:
 
 la tienda pública no convierte al visitante en cliente registrado hasta completar el flujo de alta correspondiente.
 
-Rutas públicas iniciales vigentes:
+La redirección desde /tienda/seleccionar hacia /shop/{tenant:slug} no crea sesión externa persistente ni habilita operación comercial real.
+
+Rutas públicas vigentes:
 
 GET /shop/{tenant:slug}
 GET /shop/{tenant:slug}/register
 POST /shop/{tenant:slug}/register
 GET /shop/{tenant:slug}/register/thanks
 GET /shop/{tenant:slug}/register/confirm/{token}
+GET /tienda
+POST /tienda
+GET /tienda/seleccionar
+POST /tienda/seleccionar
 
 Estas rutas no forman parte del panel interno.
 
 Estas rutas no usan el grupo interno auth + tenant.
 
-El tenant se resuelve por slug público.
+El tenant de la tienda pública se resuelve por slug público.
+
+La selección externa de tienda se resuelve mediante contrato externo propio.
 
 Vistas públicas mínimas vigentes:
 
@@ -723,18 +862,25 @@ self-service-sales.access
 self-service-sales.register
 self-service-sales.thanks
 self-service-sales.confirmed
+self-service-sales.store-selector
 
 Regla:
 
-después de confirmar el registro, el usuario externo no debe navegar hacia dashboard, tenant/profile, parties.show ni otras rutas internas.
+después de confirmar el registro o seleccionar una tienda, el usuario externo no debe navegar hacia dashboard, tenant/profile, parties.show ni otras rutas internas.
 
 La confirmación pública solo informa el resultado del registro externo.
+
+La selección pública solo redirige a la tienda pública tenant-scoped cuando corresponde.
 
 Regla adicional:
 
 /tienda debe mantenerse como acceso externo separado del login interno /login.
 
 No debe reutilizarse visual ni funcionalmente como ingreso al panel interno.
+
+/tienda/seleccionar debe mantenerse separado de tenants/select.
+
+No debe reutilizarse visual ni funcionalmente como selector interno de empresas.
 
 <<END SECTION>>
 
@@ -1371,7 +1517,7 @@ no hay webhook implementado
 <<END SECTION>>
 
 <<SECTION: ALCANCE DE LA PRIMERA IMPLEMENTACIÓN>>
-SECTION_VERSION: 00003
+SECTION_VERSION: 00004
 
 ALCANCE DE LA PRIMERA IMPLEMENTACIÓN
 
@@ -1379,7 +1525,7 @@ La primera implementación de Shopping Autoservicio debe ser mínima y segura.
 
 Objetivo inicial validado:
 
-habilitar el registro del customer externo y su representación como Party customer person dentro del tenant.
+habilitar el registro del customer externo, su representación como Party customer person dentro del tenant y una primera arquitectura de identidad externa separada del plano interno.
 
 Incluye:
 
@@ -1390,6 +1536,8 @@ estructura mínima de self_service_sales como capa satélite
 tienda pública básica o entrada pública controlada
 
 entrada pública general /tienda
+
+selector externo /tienda/seleccionar
 
 registro de customer externo pendiente
 
@@ -1437,7 +1585,37 @@ tab interna Clientes Tienda dentro de tenant/profile cuando corresponda por auto
 
 filtro visual por estado dentro de la lectura interna
 
-No incluye:
+SelfServiceCustomerAccount como cuenta externa global
+
+SelfServiceStoreCustomer como relación customer-tienda
+
+SelfServiceStoreSelectionToken como token temporal de selección
+
+credencial externa propia en SelfServiceCustomerAccount
+
+POST /tienda conectado a credencial externa propia
+
+/tienda/seleccionar visible por token temporal
+
+POST /tienda/seleccionar con acción mínima de selección externa
+
+validación de token temporal en selección
+
+validación de store_customer_id
+
+validación de pertenencia del store_customer a la cuenta del token
+
+validación de store_customer.status = active
+
+marcado de used_at al seleccionar
+
+redirección hacia /shop/{tenant:slug}
+
+errores genéricos para fallos del selector externo
+
+aviso de operación pendiente cuando operation_enabled = false
+
+No incluye todavía:
 
 Mercado Pago real
 
@@ -1463,27 +1641,29 @@ retiro en mostrador
 
 hardware
 
-login externo completo
-
 envío real de email de confirmación
-
-contraseña externa completa
-
-cuenta externa definitiva
-
-relación customer-tienda definitiva
-
-selector externo de tiendas
 
 validación final de identidad operativa
 
 habilitación operativa completa del customer
 
+operación comercial real
+
+sesión externa persistente definitiva
+
+guard externo
+
+guardar customer externo en sesión
+
+guardar tienda externa seleccionada en sesión
+
+remember token externo
+
 Regla:
 
 la primera implementación no debe intentar resolver todo Shopping Autoservicio.
 
-Debe cerrar correctamente la base de cliente externo autogestivo.
+Debe cerrar correctamente la base de cliente externo autogestivo, identidad externa separada, relación customer-tienda y selección mínima externa sin mezclarla con User, Membership ni panel interno.
 
 Corte vigente cerrado:
 
@@ -1491,8 +1671,26 @@ registro externo pendiente
 confirmación por token
 creación de Party customer person
 separación total frente a membership
-entrada pública general /tienda sin autenticación real
+entrada pública general /tienda
+credencial externa propia
+cuenta externa customer
+relación customer-tienda
+token temporal selector
+selector externo visible por token
+acción mínima de selección externa de tienda
+marcado de token used_at al seleccionar
+redirección a /shop/{tenant:slug}
 lectura interna inicial desde tenant/profile cuando corresponda
+pruebas negativas del selector externo con error genérico
+
+Pendiente inmediato:
+
+sesión externa persistente futura
+guard externo futuro
+recuperación de contraseña real
+identidad operativa completa
+habilitación comercial
+operación comercial real
 
 Regla adicional:
 

@@ -41,7 +41,7 @@ no debe cargarse con teoría arquitectónica general que corresponda a otros doc
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00015
+SECTION_VERSION: 00017
 
 REGLA GENERAL
 
@@ -64,6 +64,14 @@ host visual no equivale a ownership funcional
 universo semántico no equivale a ownership funcional
 
 entrada pública externa no equivale a navegación interna del tenant
+
+selector externo no equivale a selector interno de tenants
+
+token temporal de selección no equivale a sesión externa persistente
+
+selección externa de tienda no equivale a operación comercial habilitada
+
+redirección a tienda pública no equivale a sesión externa persistente
 
 el trail preserva contexto entre pantallas relacionadas
 
@@ -153,7 +161,7 @@ un universo semántico debe conservar coherencia de trail, breadcrumbs y redirec
 
 Regla adicional para capas satélite comerciales autogestivas:
 
-una capa satélite comercial autogestiva puede tener entrada pública externa por tenant sin convertirse automáticamente en navegación interna del tenant.
+una capa satélite comercial autogestiva puede tener entrada pública externa, selector externo y tienda tenant-scoped sin convertirse automáticamente en navegación interna del tenant.
 
 Caso vigente:
 
@@ -163,7 +171,11 @@ Key técnica:
 
 self_service_sales
 
-Entrada pública vigente:
+Entradas públicas vigentes:
+
+/tienda
+
+/tienda/seleccionar
 
 /shop/{tenant:slug}
 
@@ -173,21 +185,63 @@ Tienda
 
 Lectura:
 
-/shop/{tenant:slug} representa la entrada pública externa de Tienda del tenant
+/tienda representa la entrada pública general externa de customers
+
+/tienda/seleccionar representa el selector externo temporal de tiendas por token
+
+/shop/{tenant:slug} representa la tienda pública tenant-scoped
+
+Recorrido externo vigente:
+
+/tienda
+
+→ /tienda/seleccionar
+
+→ /shop/{tenant:slug}
+
+Lectura del recorrido:
+
+POST /tienda valida credencial externa propia y genera token temporal de selección cuando corresponde.
+
+/tienda/seleccionar muestra tiendas disponibles vinculadas al customer externo mediante token temporal.
+
+POST /tienda/seleccionar ejecuta la selección mínima de tienda externa.
+
+La selección válida consume el token temporal mediante used_at.
+
+La selección válida redirige a /shop/{tenant:slug}.
+
+Reglas:
+
+/tienda no es navegación principal interna
+
+/tienda/seleccionar no es navegación principal interna
 
 /shop/{tenant:slug} no es navegación principal interna
 
-/shop/{tenant:slug} no pertenece al panel interno auth + tenant
+/tienda, /tienda/seleccionar y /shop/{tenant:slug} no pertenecen al panel interno auth + tenant
 
-/shop/{tenant:slug} no habilita dashboard, tenant/profile, parties.show ni rutas internas
+/tienda, /tienda/seleccionar y /shop/{tenant:slug} no habilitan dashboard, tenant/profile, parties.show ni rutas internas
 
 /shop/{tenant:slug} resuelve tenant por slug público
 
-Regla:
+/tienda/seleccionar resuelve tiendas disponibles mediante token temporal externo
 
-una entrada pública externa debe describirse como navegación pública o externa controlada.
+una entrada pública externa debe describirse como navegación pública o externa controlada
 
-No debe mezclarse con navegación principal tenant ni con navegación interna autenticada.
+un selector externo de tiendas no debe mezclarse con tenants/select
+
+un token temporal de selección no debe leerse como sesión externa persistente
+
+marcar used_at no equivale a crear sesión externa
+
+seleccionar tienda no habilita por sí mismo operación comercial
+
+redirigir a /shop/{tenant:slug} no habilita por sí mismo operación comercial
+
+operation_enabled = false mantiene operación comercial bloqueada aunque la tienda pública sea visible
+
+no debe mezclarse navegación pública externa con navegación principal tenant ni con navegación interna autenticada
 
 Regla adicional para subcapas contextuales internas:
 
@@ -280,7 +334,7 @@ cuando existan varias rutas posibles, debe priorizarse la más consistente con N
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN PRINCIPAL TENANT>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00016
 
 NAVEGACIÓN PRINCIPAL TENANT
 
@@ -438,7 +492,11 @@ Aclaración vigente para Shopping Autoservicio:
 
 Shopping Autoservicio no forma parte de la navegación principal tenant por existir como capa satélite comercial autogestiva.
 
-Su entrada vigente es pública externa por tenant:
+Sus rutas vigentes pertenecen al plano público externo:
+
+/tienda
+
+/tienda/seleccionar
 
 /shop/{tenant:slug}
 
@@ -446,27 +504,51 @@ Label visible:
 
 Tienda
 
+Recorrido externo vigente:
+
+/tienda
+
+→ /tienda/seleccionar
+
+→ /shop/{tenant:slug}
+
 Lectura:
+
+/tienda no es entrada del panel interno
+
+/tienda/seleccionar no es entrada del panel interno
 
 /shop/{tenant:slug} no es entrada del panel interno
 
-/shop/{tenant:slug} no es menú tenant interno
+/tienda no reemplaza /login
 
-/shop/{tenant:slug} no usa el grupo auth + tenant
+/tienda/seleccionar no reemplaza /tenants/select
 
-/shop/{tenant:slug} no habilita dashboard, tenant/profile, parties.show ni rutas internas
+/shop/{tenant:slug} no reemplaza navegación tenant interna
 
-/shop/{tenant:slug} resuelve tenant por slug público
+/tienda/seleccionar usa token temporal externo y no sesión interna
 
-Regla:
+POST /tienda/seleccionar consume token temporal mediante used_at cuando la selección es válida
 
-si más adelante se implementa una vista interna owner/admin para registros o customers de Shopping Autoservicio, esa vista deberá definirse como acceso interno específico y no confundirse con la entrada pública del customer.
+la redirección a /shop/{tenant:slug} no crea sesión externa persistente
 
-Regla:
+la tienda pública visible no equivale a operación comercial habilitada
 
-la navegación principal no reemplaza flujos contextuales ni relaciones entre módulos.
+Reglas:
 
-Su función es dar acceso estructural al ecosistema operativo vigente.
+Shopping Autoservicio no debe agregarse como navegación principal tenant por la sola existencia de self_service_sales
+
+la lectura interna de clientes externos puede alojarse en tenant/profile cuando corresponda por autorización
+
+esa lectura interna no convierte self_service_sales en módulo navegable principal
+
+el selector externo de tiendas no abre navegación tenant interna
+
+la selección externa de tienda no equivale a pertenencia interna al tenant
+
+la selección externa de tienda no equivale a operación comercial habilitada
+
+operation_enabled = false mantiene bloqueada la operación comercial
 
 <<END SECTION>>
 

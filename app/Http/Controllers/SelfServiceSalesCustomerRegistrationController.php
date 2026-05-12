@@ -1,10 +1,11 @@
 <?php
 
-// FILE: app/Http/Controllers/SelfServiceSalesCustomerRegistrationController.php | V2
+// FILE: app/Http/Controllers/SelfServiceSalesCustomerRegistrationController.php | V4
 
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSelfServiceCustomerRegistrationRequest;
+use App\Models\SelfServiceStoreCustomer;
 use App\Models\Tenant;
 use App\Support\SelfServiceSales\SelfServiceCustomerConfirmer;
 use App\Support\SelfServiceSales\SelfServiceCustomerRegistrar;
@@ -13,10 +14,34 @@ use Illuminate\Validation\ValidationException;
 
 class SelfServiceSalesCustomerRegistrationController extends Controller
 {
-    public function shop(Tenant $tenant)
+    public function shop(Request $request, Tenant $tenant)
     {
+        $externalCustomer = null;
+        $payload = $request->attributes->get('self_service_external_customer');
+
+        if ($payload) {
+            $storeCustomer = $payload['store_customer'];
+            $party = $payload['party'];
+            $account = $payload['account'];
+
+            $identityLabels = [
+                SelfServiceStoreCustomer::IDENTITY_STAGE_EMAIL_CONFIRMED => 'Email confirmado',
+                SelfServiceStoreCustomer::IDENTITY_STAGE_OPERATIONAL_IDENTITY_COMPLETED => 'Identidad operativa completa',
+            ];
+
+            $externalCustomer = [
+                'display_name' => $account?->display_name ?: 'Cliente externo',
+                'email' => $account?->email,
+                'party_label' => $party ? ($party->display_name ?: $party->name ?: 'Cliente') : 'Cliente',
+                'identity_label' => $identityLabels[$storeCustomer->identity_stage] ?? $storeCustomer->identity_stage,
+                'operation_enabled' => $storeCustomer->operation_enabled === true,
+                'can_operate' => $payload['can_operate'] === true,
+            ];
+        }
+
         return view('self-service-sales.shop', [
             'tenant' => $tenant,
+            'externalCustomer' => $externalCustomer,
         ]);
     }
 

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: database/seeders/Modules/UserModuleSeeder.php | V2
+// FILE: database/seeders/Modules/UserModuleSeeder.php | V3
 
 namespace Database\Seeders\Modules;
 
@@ -61,6 +61,42 @@ class UserModuleSeeder extends BaseModuleSeeder
             ['email' => 'pedro@demo.local'],
             [
                 'name' => 'Pedro Andina',
+                'password' => 'password',
+                'is_superadmin' => false,
+            ]
+        );
+
+        $users['lavaderoOwner'] = User::updateOrCreate(
+            ['email' => 'santiago.mendez@lavaderosa.local'],
+            [
+                'name' => 'Santiago Méndez',
+                'password' => 'password',
+                'is_superadmin' => false,
+            ]
+        );
+
+        $users['lavaderoAdmin'] = User::updateOrCreate(
+            ['email' => 'laura.ferreyra@lavaderosa.local'],
+            [
+                'name' => 'Laura Ferreyra',
+                'password' => 'password',
+                'is_superadmin' => false,
+            ]
+        );
+
+        $users['lavaderoSales'] = User::updateOrCreate(
+            ['email' => 'martin.aguirre@lavaderosa.local'],
+            [
+                'name' => 'Martín Aguirre',
+                'password' => 'password',
+                'is_superadmin' => false,
+            ]
+        );
+
+        $users['lavaderoAdministrator'] = User::updateOrCreate(
+            ['email' => 'carolina.torres@lavaderosa.local'],
+            [
+                'name' => 'Carolina Torres',
                 'password' => 'password',
                 'is_superadmin' => false,
             ]

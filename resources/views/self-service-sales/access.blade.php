@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/self-service-sales/access.blade.php | V1 --}}
+{{-- FILE: resources/views/self-service-sales/access.blade.php | V2 --}}
 
 @php($publicPage = true)
 
@@ -17,6 +17,12 @@
                 />
 
                 <x-card>
+                    @if (session('success'))
+                        <div class="form-help" style="margin-bottom: 1rem;">
+                            {{ session('success') }}
+                        </div>
+                    @endif
+
                     @if (session('error'))
                         <div class="form-help is-error" style="margin-bottom: 1rem;">
                             {{ session('error') }}
@@ -70,7 +76,7 @@
                     </p>
                 </x-card>
 
-                <x-dev-component-version name="self-service-sales.access" version="V1" align="right" />
+                <x-dev-component-version name="self-service-sales.access" version="V2" align="right" />
             </div>
         </div>
     </x-page>

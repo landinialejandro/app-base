@@ -1,6 +1,6 @@
 <?php
 
-// FILE: database/seeders/Modules/TenantModuleSeeder.php | V2
+// FILE: database/seeders/Modules/TenantModuleSeeder.php | V3
 
 namespace Database\Seeders\Modules;
 
@@ -32,6 +32,15 @@ class TenantModuleSeeder extends BaseModuleSeeder
             ]
         );
 
+        $tenants['lavadero'] = Tenant::updateOrCreate(
+            ['slug' => 'lavadero-sa'],
+            [
+                'id' => $this->resolveTenantId('lavadero-sa'),
+                'name' => 'Lavadero SA',
+                'settings' => $this->buildTenantSettings('lavadero'),
+            ]
+        );
+
         $this->context['tenants'] = $tenants;
     }
 
@@ -50,7 +59,12 @@ class TenantModuleSeeder extends BaseModuleSeeder
             'timezone' => 'America/Argentina/Salta',
             'currency' => 'ARS',
             'business_profile' => [
-                'type' => $tenantKey === 'tech' ? 'workshop' : 'construction',
+                'type' => match ($tenantKey) {
+                    'tech' => 'workshop',
+                    'andina' => 'construction',
+                    'lavadero' => 'car_wash',
+                    default => 'general',
+                },
             ],
             'module_access' => [
                 'enabled_modules' => $this->enabledModulesForTenant($tenantKey),

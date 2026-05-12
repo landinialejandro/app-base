@@ -1,10 +1,11 @@
 <?php
 
-// FILE: app/Http/Controllers/SelfServiceSalesAccessController.php | V3
+// FILE: app/Http/Controllers/SelfServiceSalesAccessController.php | V4
 
 namespace App\Http\Controllers;
 
 use App\Support\SelfServiceSales\SelfServiceCustomerCredentialService;
+use App\Support\SelfServiceSales\SelfServiceExternalSession;
 use App\Support\SelfServiceSales\SelfServiceSalesAccessResolver;
 use App\Support\SelfServiceSales\SelfServiceStoreSelectionTokenService;
 use Illuminate\Http\Request;
@@ -57,6 +58,15 @@ class SelfServiceSalesAccessController extends Controller
             ->route('self_service_sales.store_selector', [
                 'token' => $selectionToken['token'],
             ]);
+    }
+
+    public function logout(SelfServiceExternalSession $externalSession)
+    {
+        $externalSession->forget();
+
+        return redirect()
+            ->route('self_service_sales.access')
+            ->with('success', 'Cerraste el acceso externo.');
     }
 
     protected function genericAccessFailure(Request $request)

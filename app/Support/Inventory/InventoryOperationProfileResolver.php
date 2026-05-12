@@ -15,7 +15,7 @@ class InventoryOperationProfileResolver
         return $this->forOrderType($order->group, $order->kind);
     }
 
-    public function forOrderType(?string $group, ?string $kind): array
+public function forOrderType(?string $group, ?string $kind): array
     {
         return match ($group) {
             OrderCatalog::GROUP_SERVICE => [
@@ -60,6 +60,22 @@ class InventoryOperationProfileResolver
                 'reverse_label' => 'Retirar',
                 'execute_title' => 'Recibir línea',
                 'reverse_title' => 'Retirar línea',
+                'execute_icon' => 'plus',
+                'reverse_icon' => 'rotate-ccw',
+                'execute_action_key' => 'execute',
+                'reverse_action_key' => 'return',
+            ],
+
+            OrderCatalog::GROUP_PRODUCTION => [
+                'source_group' => $group,
+                'source_kind' => $kind,
+                'direction' => 'in',
+                'execute_kind' => InventoryMovementService::KIND_INGRESAR,
+                'reverse_kind' => InventoryMovementService::KIND_ENTREGAR,
+                'execute_label' => 'Ingresar producción',
+                'reverse_label' => 'Retirar producción',
+                'execute_title' => 'Ingresar producto producido',
+                'reverse_title' => 'Retirar producto producido',
                 'execute_icon' => 'plus',
                 'reverse_icon' => 'rotate-ccw',
                 'execute_action_key' => 'execute',

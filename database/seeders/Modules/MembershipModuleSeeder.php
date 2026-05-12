@@ -1,6 +1,6 @@
 <?php
 
-// FILE: database/seeders/Modules/MembershipModuleSeeder.php | V3
+// FILE: database/seeders/Modules/MembershipModuleSeeder.php | V4
 
 namespace Database\Seeders\Modules;
 
@@ -67,6 +67,38 @@ class MembershipModuleSeeder extends BaseModuleSeeder
                 'status' => 'active',
                 'profile_slug' => null,
                 'roles' => [RoleCatalog::OPERATOR],
+            ],
+            [
+                'tenant' => $tenants['lavadero'],
+                'user' => $users['lavaderoOwner'],
+                'is_owner' => true,
+                'status' => 'active',
+                'profile_slug' => null,
+                'roles' => [],
+            ],
+            [
+                'tenant' => $tenants['lavadero'],
+                'user' => $users['lavaderoAdmin'],
+                'is_owner' => false,
+                'status' => 'active',
+                'profile_slug' => null,
+                'roles' => [RoleCatalog::ADMIN],
+            ],
+            [
+                'tenant' => $tenants['lavadero'],
+                'user' => $users['lavaderoSales'],
+                'is_owner' => false,
+                'status' => 'active',
+                'profile_slug' => null,
+                'roles' => [RoleCatalog::SALES],
+            ],
+            [
+                'tenant' => $tenants['lavadero'],
+                'user' => $users['lavaderoAdministrator'],
+                'is_owner' => false,
+                'status' => 'active',
+                'profile_slug' => null,
+                'roles' => [RoleCatalog::ADMINISTRATOR],
             ],
         ];
 

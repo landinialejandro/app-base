@@ -13,7 +13,7 @@ use Illuminate\Support\Facades\DB;
 
 class DocumentModuleSeeder extends BaseModuleSeeder
 {
-    public function run(): void
+public function run(): void
     {
         if (
             ! $this->hasDependency('tenants')
@@ -33,8 +33,10 @@ class DocumentModuleSeeder extends BaseModuleSeeder
 
         $this->createDocumentSequences($tenants['tech']);
         $this->createDocumentSequences($tenants['andina']);
+        $this->createDocumentSequences($tenants['lavadero']);
 
         $documents = [];
+
         $documents['tech'] = $this->createTechDocuments(
             $tenants['tech'],
             $users,
@@ -51,10 +53,12 @@ class DocumentModuleSeeder extends BaseModuleSeeder
             $products['andina']
         );
 
+        $documents['lavadero'] = collect();
+
         $this->context['documents'] = $documents;
     }
 
-    private function createDocumentSequences($tenant): void
+private function createDocumentSequences($tenant): void
     {
         $pointOfSale = '0001';
 
@@ -65,6 +69,7 @@ class DocumentModuleSeeder extends BaseModuleSeeder
             ['doc_type' => 'order.sale', 'prefix' => 'ORD', 'padding' => 8, 'next_number' => 1],
             ['doc_type' => 'order.purchase', 'prefix' => 'OCO', 'padding' => 8, 'next_number' => 1],
             ['doc_type' => 'order.service', 'prefix' => 'OSE', 'padding' => 8, 'next_number' => 1],
+            ['doc_type' => 'order.production', 'prefix' => 'OPR', 'padding' => 8, 'next_number' => 1],
         ];
 
         foreach ($definitions as $definition) {

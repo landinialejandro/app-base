@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/self-service-sales/store-selector.blade.php | V6 --}}
+{{-- FILE: resources/views/self-service-sales/store-selector.blade.php | V7 --}}
 
 @extends('layouts.app')
 
@@ -57,6 +57,7 @@
                                 <th>Cliente</th>
                                 <th>Identidad</th>
                                 <th>Operación</th>
+                                <th>Acción</th>
                             </tr>
                         </thead>
                         <tbody>
@@ -69,6 +70,18 @@
                                         <span class="status-badge {{ $storeSelectorRow['operation_enabled'] ? 'status-badge--done' : 'status-badge--pending' }}">
                                             {{ $storeSelectorRow['operation_enabled'] ? 'Habilitada' : 'Pendiente' }}
                                         </span>
+                                    </td>
+                                    <td>
+                                        <form method="POST" action="{{ route('self_service_sales.store_selector.store') }}">
+                                            @csrf
+
+                                            <input type="hidden" name="token" value="{{ $plainToken }}">
+                                            <input type="hidden" name="store_customer_id" value="{{ $storeSelectorRow['store_customer_id'] }}">
+
+                                            <button type="submit" class="btn btn-primary">
+                                                Ingresar a esta tienda
+                                            </button>
+                                        </form>
                                     </td>
                                 </tr>
                             @endforeach
@@ -83,7 +96,7 @@
                 </a>
             </div>
 
-            <x-dev-component-version name="self-service-sales.store-selector" version="V6" />
+            <x-dev-component-version name="self-service-sales.store-selector" version="V7" />
         </x-card>
     </x-page>
 @endsection

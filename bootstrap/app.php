@@ -1,6 +1,6 @@
 <?php
 
-// FILE: bootstrap/app.php
+// FILE: bootstrap/app.php | V1
 
 use Illuminate\Foundation\Application;
 use Illuminate\Foundation\Configuration\Exceptions;
@@ -22,6 +22,7 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->alias([
             'tenant' => \App\Http\Middleware\ResolveTenant::class,
             'superadmin' => \App\Http\Middleware\EnsureSuperadmin::class,
+            'self_service_external_customer' => \App\Http\Middleware\ResolveSelfServiceExternalCustomer::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Product.php | V4
+// FILE: app/Models/Product.php | V5
 
 namespace App\Models;
 
@@ -8,6 +8,7 @@ use App\Models\Concerns\ResolvesTenantRouteBinding;
 use App\Models\Concerns\TenantScoped;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -33,6 +34,20 @@ class Product extends Model
         'price' => 'decimal:2',
         'is_active' => 'boolean',
     ];
+
+    public function components(): HasMany
+    {
+        return $this->hasMany(ProductComponent::class, 'product_id')
+            ->orderBy('sort_order')
+            ->orderBy('id');
+    }
+
+    public function usedAsComponentIn(): HasMany
+    {
+        return $this->hasMany(ProductComponent::class, 'component_product_id')
+            ->orderBy('sort_order')
+            ->orderBy('id');
+    }
 
     public function attachments(): MorphMany
     {

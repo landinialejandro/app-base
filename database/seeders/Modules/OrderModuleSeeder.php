@@ -15,7 +15,7 @@ use Illuminate\Support\Facades\DB;
 
 class OrderModuleSeeder extends BaseModuleSeeder
 {
-    public function run(): void
+public function run(): void
     {
         if (
             ! $this->hasDependency('tenants')
@@ -32,6 +32,7 @@ class OrderModuleSeeder extends BaseModuleSeeder
         $products = $this->getDependency('products');
 
         $orders = [];
+
         $orders['tech'] = $this->createTechOrders(
             $tenants['tech'],
             $users,
@@ -44,6 +45,13 @@ class OrderModuleSeeder extends BaseModuleSeeder
             $users,
             $parties['andinaFixed'],
             $products['andina']
+        );
+
+        $orders['lavadero'] = $this->createLavaderoOrders(
+            $tenants['lavadero'],
+            $users,
+            $parties['lavaderoFixed'],
+            $products['lavadero']
         );
 
         $this->context['orders'] = $orders;
@@ -434,4 +442,171 @@ private function createOrder(array $data): Order
                 'relationships' => $relationships,
             ];
         }
+
+
+private function createLavaderoOrders($tenant, array $users, $parties, $products): Collection
+    {
+        $orders = collect();
+
+        $remisesNorte = $parties[4] ?? null;
+        $deliverySur = $parties[5] ?? null;
+        $marielaRios = $parties[6] ?? null;
+        $quimicaDelValle = $parties[7] ?? null;
+
+        $order1 = $this->createOrder([
+            'tenant_id' => $tenant->id,
+            'party_id' => $remisesNorte?->id,
+            'created_by' => $users['lavaderoSales']->id,
+            'updated_by' => $users['lavaderoSales']->id,
+            'group' => OrderCatalog::GROUP_SALE,
+            'kind' => OrderCatalog::KIND_STANDARD,
+            'number' => 'LAV-ORD-0001',
+            'status' => OrderCatalog::STATUS_PENDING_APPROVAL,
+            'ordered_at' => now()->subDays(5)->toDateString(),
+            'notes' => 'Paquete mensual de fichas para flota de remises.',
+        ]);
+
+        $this->replaceOrderItems($tenant->id, $order1->id, [
+            [
+                'product' => $products[0] ?? null,
+                'description' => 'Ficha lavado 5 minutos',
+                'quantity' => 40,
+                'unit_price' => 1500,
+            ],
+            [
+                'product' => $products[2] ?? null,
+                'kind' => 'service',
+                'description' => 'Lavado básico exterior',
+                'quantity' => 10,
+                'unit_price' => 8500,
+            ],
+        ]);
+
+        $orders->push($order1);
+
+        $order2 = $this->createOrder([
+            'tenant_id' => $tenant->id,
+            'party_id' => $deliverySur?->id,
+            'created_by' => $users['lavaderoSales']->id,
+            'updated_by' => $users['lavaderoAdmin']->id,
+            'group' => OrderCatalog::GROUP_SERVICE,
+            'kind' => OrderCatalog::KIND_STANDARD,
+            'number' => 'LAV-ORD-0002',
+            'status' => OrderCatalog::STATUS_APPROVED,
+            'ordered_at' => now()->subDays(3)->toDateString(),
+            'notes' => 'Servicio aprobado para limpieza de vehículos de reparto.',
+        ]);
+
+        $this->replaceOrderItems($tenant->id, $order2->id, [
+            [
+                'product' => $products[3] ?? null,
+                'kind' => 'service',
+                'description' => 'Lavado completo exterior',
+                'quantity' => 3,
+                'unit_price' => 14500,
+            ],
+            [
+                'product' => $products[4] ?? null,
+                'kind' => 'service',
+                'description' => 'Aspirado interior',
+                'quantity' => 3,
+                'unit_price' => 6500,
+            ],
+            [
+                'product' => $products[9] ?? null,
+                'description' => 'Aromatizador vehicular',
+                'quantity' => 6,
+                'unit_price' => 1800,
+            ],
+        ]);
+
+        $orders->push($order2);
+
+        $order3 = $this->createOrder([
+            'tenant_id' => $tenant->id,
+            'party_id' => $quimicaDelValle?->id,
+            'created_by' => $users['lavaderoAdministrator']->id,
+            'updated_by' => $users['lavaderoAdmin']->id,
+            'group' => OrderCatalog::GROUP_PURCHASE,
+            'kind' => OrderCatalog::KIND_STANDARD,
+            'number' => 'LAV-ORD-0003',
+            'status' => OrderCatalog::STATUS_APPROVED,
+            'ordered_at' => now()->subDays(2)->toDateString(),
+            'notes' => 'Reposición aprobada de insumos químicos para autoservicio.',
+        ]);
+
+        $this->replaceOrderItems($tenant->id, $order3->id, [
+            [
+                'product' => $products[5] ?? null,
+                'description' => 'Shampoo espumante',
+                'quantity' => 40,
+                'unit_price' => 4200,
+            ],
+            [
+                'product' => $products[6] ?? null,
+                'description' => 'Cera líquida',
+                'quantity' => 20,
+                'unit_price' => 5100,
+            ],
+        ]);
+
+        $orders->push($order3);
+
+        $order4 = $this->createOrder([
+            'tenant_id' => $tenant->id,
+            'party_id' => $marielaRios?->id,
+            'created_by' => $users['lavaderoSales']->id,
+            'updated_by' => $users['lavaderoSales']->id,
+            'group' => OrderCatalog::GROUP_SALE,
+            'kind' => OrderCatalog::KIND_STANDARD,
+            'number' => 'LAV-ORD-0004',
+            'status' => OrderCatalog::STATUS_CANCELLED,
+            'ordered_at' => now()->subDay()->toDateString(),
+            'notes' => 'Venta cancelada antes de la entrega por cambio de pedido.',
+        ]);
+
+        $this->replaceOrderItems($tenant->id, $order4->id, [
+            [
+                'product' => $products[7] ?? null,
+                'description' => 'Silicona para neumáticos',
+                'quantity' => 1,
+                'unit_price' => 3900,
+            ],
+            [
+                'product' => $products[8] ?? null,
+                'description' => 'Franelas de microfibra',
+                'quantity' => 2,
+                'unit_price' => 2500,
+            ],
+        ]);
+
+        $orders->push($order4);
+
+        $order5 = $this->createOrder([
+            'tenant_id' => $tenant->id,
+            'party_id' => null,
+            'counterparty_reference' => 'Producción interna Lavadero SA',
+            'created_by' => $users['lavaderoOwner']->id,
+            'updated_by' => $users['lavaderoOwner']->id,
+            'group' => OrderCatalog::GROUP_PRODUCTION,
+            'kind' => OrderCatalog::KIND_STANDARD,
+            'number' => 'LAV-OPR-0001',
+            'status' => OrderCatalog::STATUS_APPROVED,
+            'ordered_at' => now()->toDateString(),
+            'notes' => 'Producción diaria de fichas de lavado. Capacidad calculada sobre 24 horas de operación y ciclos de 5 minutos.',
+        ]);
+
+        $this->replaceOrderItems($tenant->id, $order5->id, [
+            [
+                'product' => $products[0] ?? null,
+                'description' => 'Ficha lavado 5 minutos',
+                'quantity' => 288,
+                'unit_price' => 1500,
+            ],
+        ]);
+
+        $orders->push($order5);
+
+        return $orders;
+    }
 }

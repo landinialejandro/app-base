@@ -158,8 +158,12 @@ Route::get('/tienda/seleccionar', [SelfServiceSalesStoreSelectorController::clas
 Route::post('/tienda/seleccionar', [SelfServiceSalesStoreSelectorController::class, 'store'])
     ->name('self_service_sales.store_selector.store');
 
+Route::post('/tienda/salir', [SelfServiceSalesAccessController::class, 'logout'])
+    ->name('self_service_sales.logout');
+
 // SHOP
 Route::prefix('shop/{tenant:slug}')
+    ->middleware('self_service_external_customer')
     ->name('self_service_sales.')
     ->group(function () {
         Route::get('/', [SelfServiceSalesCustomerRegistrationController::class, 'shop'])

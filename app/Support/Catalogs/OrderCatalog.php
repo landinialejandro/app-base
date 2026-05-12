@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Catalogs/OrderCatalog.php | V6
+// FILE: app/Support/Catalogs/OrderCatalog.php | V7
 
 namespace App\Support\Catalogs;
 
@@ -9,12 +9,14 @@ class OrderCatalog extends BaseCatalog
     public const GROUP_SALE = 'sale';
     public const GROUP_PURCHASE = 'purchase';
     public const GROUP_SERVICE = 'service';
+    public const GROUP_PRODUCTION = 'production';
 
     public const KIND_STANDARD = 'standard';
 
     public const KIND_SALE = self::GROUP_SALE;
     public const KIND_PURCHASE = self::GROUP_PURCHASE;
     public const KIND_SERVICE = self::GROUP_SERVICE;
+    public const KIND_PRODUCTION = self::GROUP_PRODUCTION;
 
     public const STATUS_DRAFT = 'draft';
     public const STATUS_PENDING_APPROVAL = 'pending_approval';
@@ -26,6 +28,7 @@ class OrderCatalog extends BaseCatalog
         self::GROUP_SALE => 'Venta',
         self::GROUP_PURCHASE => 'Compra',
         self::GROUP_SERVICE => 'Servicio',
+        self::GROUP_PRODUCTION => 'Producción',
     ];
 
     protected static array $kinds = [
@@ -61,6 +64,10 @@ class OrderCatalog extends BaseCatalog
             'kind' => 'order.service',
             'prefix' => 'OSE',
         ],
+        self::GROUP_PRODUCTION => [
+            'kind' => 'order.production',
+            'prefix' => 'OPR',
+        ],
     ];
 
     public static function groups(): array
@@ -87,7 +94,8 @@ class OrderCatalog extends BaseCatalog
         return match ($group) {
             self::GROUP_SALE,
             self::GROUP_PURCHASE,
-            self::GROUP_SERVICE => static::$kinds,
+            self::GROUP_SERVICE,
+            self::GROUP_PRODUCTION => static::$kinds,
             default => static::$kinds,
         };
     }
@@ -149,7 +157,8 @@ class OrderCatalog extends BaseCatalog
     public static function directionFor(?string $group, ?string $kind = null, string $default = 'out'): string
     {
         return match ($group) {
-            self::GROUP_PURCHASE => 'in',
+            self::GROUP_PURCHASE,
+            self::GROUP_PRODUCTION => 'in',
             self::GROUP_SALE,
             self::GROUP_SERVICE => 'out',
             default => $default,
@@ -220,7 +229,7 @@ class OrderCatalog extends BaseCatalog
         };
     }
 
-public static function activityTrackedFields(): array
+    public static function activityTrackedFields(): array
     {
         return [
             'party_id',

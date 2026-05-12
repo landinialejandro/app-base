@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00023
+SECTION_VERSION: 00024
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -67,11 +67,15 @@ credencial externa propia
 
 token temporal de selección
 
+sesión externa mínima namespaced
+
 tienda tenant-scoped
 
 entrada pública general /tienda
 
 selector externo /tienda/seleccionar
+
+salida externa /tienda/salir
 
 registro liviano
 
@@ -89,6 +93,8 @@ Relaciones vigentes:
 
 /tienda/seleccionar = selector externo temporal de tiendas
 
+/tienda/salir = salida externa de self_service_sales
+
 /login = acceso interno para User
 
 /solicitar-empresa = alta o solicitud de acceso de empresas
@@ -98,6 +104,8 @@ Reglas:
 /tienda no es login interno
 
 /tienda/seleccionar no es tenants/select
+
+/tienda/salir no es logout interno
 
 /shop/{tenant:slug} no habilita panel interno
 
@@ -109,7 +117,13 @@ SelfServiceCustomerAccount no es User
 
 SelfServiceStoreCustomer no es Membership
 
-SelfServiceStoreSelectionToken no es sesión externa persistente
+SelfServiceStoreSelectionToken no es sesión interna
+
+SelfServiceExternalSession no es sesión interna
+
+SelfServiceExternalSession no es guard externo definitivo
+
+SelfServiceExternalSession no es tenant activo interno
 
 confirmar email no habilita operación comercial completa
 
@@ -117,9 +131,143 @@ validar credencial externa no habilita operación comercial completa
 
 seleccionar tienda no habilita operación comercial completa
 
+iniciar sesión externa mínima no habilita operación comercial completa
+
 redirigir a /shop/{tenant:slug} no habilita operación comercial completa
 
 operation_enabled = false bloquea operación comercial
+
+La sesión externa mínima de self_service_sales:
+
+usa namespace propio self_service_sales.*
+
+no usa Auth::login()
+
+no usa Fortify interno
+
+no crea User
+
+no crea Membership
+
+no escribe session('tenant_id')
+
+no habilita dashboard
+
+no habilita tenant/profile
+
+no habilita parties.show
+
+no habilita operación comercial real
+
+La salida externa:
+
+POST /tienda/salir
+
+limpia solo claves self_service_sales.*
+
+no invalida toda la sesión Laravel
+
+no cierra sesión interna si existiera
+
+no limpia session('tenant_id') por reflejo
+
+Estado base reciente de self_service_sales:
+
+registro externo pendiente validado
+
+confirmación por token validada
+
+creación de Party person + PartyRole customer validada
+
+cuenta externa customer implementada
+
+relación customer-tienda implementada
+
+credencial externa propia implementada
+
+token temporal de selección implementado
+
+selector externo de tiendas implementado
+
+POST /tienda/seleccionar consume token mediante used_at
+
+POST /tienda/seleccionar redirige a /shop/{tenant:slug}
+
+SelfServiceExternalSession implementa sesión externa mínima namespaced
+
+/shop/{tenant:slug} puede mostrar customer externo activo si la sesión externa corresponde al tenant de la ruta
+
+ResolveSelfServiceExternalCustomer implementado como middleware externo pasivo para /shop/{tenant:slug}
+
+El middleware externo pasivo:
+
+resuelve contexto customer externo cuando la sesión corresponde al tenant público de la ruta
+
+comparte payload externo en request
+
+no bloquea visitantes públicos
+
+no exige login externo para ver /shop/{tenant:slug}
+
+no convierte /shop/{tenant:slug} en ruta privada
+
+no habilita operación comercial
+
+no reemplaza guard externo definitivo
+
+no reemplaza middleware externo definitivo de autorización obligatoria
+
+no toca session('tenant_id')
+
+no usa Auth
+
+no crea User
+
+no crea Membership
+
+si la sesión externa corresponde a otro tenant, la tienda se muestra como visitante
+
+si no existe sesión externa, la tienda se muestra como visitante
+
+cambio de tienda o cuenta externa disponible desde tienda pública
+
+POST /tienda/salir limpia la sesión externa
+
+Lavadero SA queda como tenant demo/base para pruebas reales de este frente
+
+cuenta demo multi-tienda disponible para validar selección/cambio de tienda
+
+Estado todavía no implementado en self_service_sales:
+
+middleware externo definitivo de autorización obligatoria
+
+guard externo definitivo
+
+remember token externo
+
+recuperación real de contraseña
+
+cambio real de contraseña externa
+
+identidad operativa completa
+
+habilitación comercial
+
+saldo operativo real
+
+fichas operativas
+
+QR operativo
+
+pagos reales
+
+movimientos comerciales reales
+
+Mercado Pago real
+
+facturación/comprobantes reales
+
+operación comercial real
 
 Antes de modificar landing pública:
 
@@ -619,6 +767,10 @@ Selector externo vigente:
 
 /tienda/seleccionar
 
+Salida externa vigente:
+
+/tienda/salir
+
 Customer externo confirmado:
 
 Party.kind = person
@@ -633,6 +785,8 @@ SelfServiceStoreCustomer = relación customer-tienda
 
 SelfServiceStoreSelectionToken = token temporal de selección
 
+SelfServiceExternalSession = sesión externa mínima namespaced
+
 Corte operativo vigente:
 
 POST /tienda valida credencial externa propia.
@@ -643,7 +797,17 @@ POST /tienda/seleccionar ejecuta selección mínima de tienda externa.
 
 La selección válida consume token mediante used_at.
 
+La selección válida inicia sesión externa mínima namespaced.
+
+La sesión externa mínima usa namespace self_service_sales.*.
+
 La selección válida redirige a /shop/{tenant:slug}.
+
+/shop/{tenant:slug} puede mostrar customer externo activo si la sesión externa corresponde al tenant de la ruta.
+
+Cambiar tienda o cuenta externa devuelve al acceso externo /tienda.
+
+POST /tienda/salir limpia solo claves self_service_sales.*.
 
 Si operation_enabled = false, la tienda mantiene operación comercial bloqueada y puede mostrar operación pendiente.
 
@@ -661,7 +825,13 @@ SelfServiceCustomerAccount ≠ User
 
 SelfServiceStoreCustomer ≠ Membership
 
-SelfServiceStoreSelectionToken ≠ sesión externa persistente
+SelfServiceStoreSelectionToken ≠ sesión interna
+
+SelfServiceExternalSession ≠ sesión interna
+
+SelfServiceExternalSession ≠ guard externo definitivo
+
+SelfServiceExternalSession ≠ tenant activo interno
 
 registro externo no usa invitations
 
@@ -673,11 +843,15 @@ registro externo no usa Fortify interno
 
 /tienda/seleccionar no usa tenants/select
 
+/tienda/salir no es logout interno
+
 confirmar email no habilita operación comercial completa
 
 validar credencial externa no habilita operación comercial completa
 
 seleccionar tienda no habilita operación comercial completa
+
+iniciar sesión externa mínima no habilita operación comercial completa
 
 redirigir a /shop/{tenant:slug} no habilita operación comercial completa
 

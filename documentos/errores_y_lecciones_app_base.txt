@@ -318,6 +318,69 @@ NO DEJAR FLAGS VISUALES SIN REPRESENTACIÓN EN TABLAS REUSABLES
 
 Un contrato visual no queda cerrado si el flag viaja por SurfaceService y partials intermedios, pero la tabla final no lo representa.
 
+NO VALIDAR MIDDLEWARE SOLO CON INVOCACIÓN MANUAL SI EL RUNTIME HTTP USA PIPELINE LARAVEL
+
+Un middleware puede funcionar en una prueba manual o Tinker si se lo invoca con argumentos adicionales, pero fallar en navegador real cuando Laravel lo ejecuta mediante su pipeline HTTP.
+
+Caso detectado:
+
+ResolveSelfServiceExternalCustomer funcionaba en prueba manual pasando SelfServiceExternalSession como tercer argumento.
+
+Pero en runtime web real Laravel llamó el middleware como:
+
+handle($request, $next)
+
+y se produjo ArgumentCountError por dependencia esperada como parámetro adicional de handle.
+
+Causa:
+
+la dependencia de servicio fue modelada como argumento de handle en lugar de inyectarse por constructor.
+
+Corrección aplicada:
+
+inyectar SelfServiceExternalSession mediante constructor del middleware.
+
+Lectura correcta:
+
+el middleware debe recibir dependencias por constructor injection cuando son servicios del contenedor.
+
+Los parámetros adicionales de handle deben reservarse para parámetros explícitos declarados en la definición del middleware, no para servicios internos.
+
+Lección:
+
+Tinker puede validar lógica aislada, pero no reemplaza prueba runtime HTTP del pipeline real.
+
+Reglas:
+
+no dar por cerrado un middleware solo por invocación manual
+
+no pasar servicios como argumentos extra de handle salvo contrato explícito de middleware parametrizado
+
+inyectar servicios del contenedor por constructor
+
+validar middleware en navegador o request HTTP real
+
+validar rutas públicas con y sin sesión cuando el middleware sea pasivo
+
+validar que el middleware no convierta una ruta pública en privada si su contrato es solo contextual
+
+Caso vigente:
+
+ResolveSelfServiceExternalCustomer es middleware externo pasivo de self_service_sales.
+
+No autoriza.
+
+No bloquea visitantes públicos.
+
+No exige login externo.
+
+No reemplaza guard externo definitivo.
+
+No habilita operación comercial.
+
+Solo resuelve contexto externo cuando existe sesión externa válida para el tenant público de la ruta.
+
+
 Caso detectado:
 
 Orders ya propagaba showAsset desde OrderSurfaceService y embedded-tabs, pero orders.partials.table no renderizaba la columna Activo.

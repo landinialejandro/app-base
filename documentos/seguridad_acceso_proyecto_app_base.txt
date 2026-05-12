@@ -241,17 +241,18 @@ Todo plano auxiliar debe volver a autorización backend efectiva.
 <<END SECTION>>
 
 <<SECTION: ACCESO PÚBLICO Y ACCESO AUTENTICADO>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00011
 
 [ACCESO PÚBLICO]
 Previo o externo a operación interna autenticada.
-Puede mostrar onboarding, login, tienda pública, entrada externa, selector externo o formularios externos.
+Puede mostrar onboarding, login, tienda pública, entrada externa, selector externo, salida externa o formularios externos.
 No habilita operación interna.
 
 [CASOS]
 /shop/{tenant:slug} = tienda pública tenant-scoped de Shopping Autoservicio.
 /tienda = entrada pública general externa de Shopping Autoservicio.
 /tienda/seleccionar = selector externo temporal de tiendas.
+/tienda/salir = salida externa de Shopping Autoservicio.
 
 [TENANT POR SLUG]
 Puede resolver tenant.
@@ -287,7 +288,7 @@ Debe validar, como mínimo:
 * estado activo de la relación
 
 [TOKEN TEMPORAL DE SELECCIÓN]
-Token temporal de selección no equivale a sesión externa persistente.
+Token temporal de selección no equivale a sesión interna.
 No concede pertenencia interna.
 No concede roles internos.
 No habilita operación comercial.
@@ -296,6 +297,82 @@ No reemplaza autorización externa posterior.
 La selección válida consume el token.
 
 Token usado no puede reutilizarse.
+
+[SESIÓN EXTERNA SELF_SERVICE_SALES]
+SelfServiceExternalSession representa sesión externa mínima del plano self_service_sales.
+
+Debe usar namespace propio:
+
+self_service_sales.*
+
+No debe:
+
+usar Auth::login()
+usar Fortify interno
+crear User
+crear Membership
+crear roles internos
+escribir session('tenant_id')
+habilitar panel interno
+habilitar dashboard
+habilitar tenant/profile
+habilitar parties.show
+habilitar operación comercial completa
+
+[MIDDLEWARE EXTERNO PASIVO]
+ResolveSelfServiceExternalCustomer puede resolver contexto externo para /shop/{tenant:slug}.
+
+Es middleware pasivo.
+
+No es middleware de autorización obligatoria.
+
+No bloquea visitantes públicos.
+
+No exige sesión externa para ver la tienda pública.
+
+No redirige por falta de sesión externa.
+
+No habilita operación comercial.
+
+No reemplaza guard externo definitivo.
+
+No reemplaza middleware externo definitivo de autorización obligatoria.
+
+No escribe session('tenant_id').
+
+No usa Auth.
+
+No crea User.
+
+No crea Membership.
+
+Solo puede compartir contexto externo si:
+
+existe sesión externa self_service_sales.*
+la relación customer-tienda está activa
+la sesión corresponde al tenant público de la ruta
+
+Si la sesión externa corresponde a otro tenant, no debe compartir payload externo.
+
+Si no existe sesión externa, la tienda pública debe seguir visible como visitante.
+
+[SESIÓN EXTERNA ≠ SESIÓN INTERNA]
+Sesión externa self_service_sales ≠ sesión interna app-base.
+Sesión externa self_service_sales ≠ tenant activo interno.
+Sesión externa self_service_sales ≠ Membership.
+Sesión externa self_service_sales ≠ guard externo definitivo.
+Sesión externa self_service_sales ≠ operación comercial habilitada.
+
+[SALIDA EXTERNA]
+POST /tienda/salir limpia solo claves externas self_service_sales.*.
+
+No debe:
+
+invalidar toda la sesión Laravel
+cerrar sesión interna si existiera
+limpiar session('tenant_id') por reflejo
+afectar Auth interno
+afectar Membership interna
 
 [CUSTOMER EXTERNO]
 Pertenece al plano comercial externo.
@@ -325,7 +402,7 @@ No otorga roles internos.
 No habilita tenant/profile.
 No habilita dashboard.
 
-Debe estar activa para selección válida.
+Debe estar activa para selección válida y para compartir contexto externo pasivo.
 
 [REGISTRO EXTERNO]
 Puede crear registro pendiente externo.
@@ -359,6 +436,8 @@ antes de crear Party.
 Confirmar email no habilita operación comercial completa.
 Validar credencial externa propia no habilita operación comercial completa.
 Seleccionar tienda no habilita operación comercial completa.
+Iniciar sesión externa mínima no habilita operación comercial completa.
+Resolver contexto externo pasivo no habilita operación comercial completa.
 Redirigir a /shop/{tenant:slug} no habilita operación comercial completa.
 
 Para operar deberá existir:
@@ -392,6 +471,7 @@ Aplica a fallos de:
 * cuenta externa
 * tienda
 * token
+* sesión externa
 * relación customer-tienda
 * estado operativo
 * autorización externa
@@ -409,11 +489,16 @@ Todo flujo externo debe validar identidad externa, tenant, relación externa, es
 
 [REGLA FINAL]
 Autenticación externa ≠ autorización interna.
+Sesión externa ≠ sesión interna.
+Middleware externo pasivo ≠ autorización obligatoria.
 Operar en tienda ≠ pertenecer al tenant.
 Entrada pública ≠ panel interno.
 Selector externo ≠ selector interno de tenants.
-Token temporal ≠ sesión externa persistente.
+Token temporal ≠ sesión interna.
 Selección de tienda ≠ operación comercial habilitada.
+Sesión externa mínima ≠ operación comercial habilitada.
+Contexto externo pasivo ≠ operación comercial habilitada.
+Salida externa ≠ logout interno.
 
 <<END SECTION>>
 
@@ -945,7 +1030,7 @@ OperationalActivity puede publicar lectura contextual, pero no autoriza operaci�
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00035
+SECTION_VERSION: 00037
 
 [USO]
 Solo restricciones de seguridad de alto impacto.
@@ -1013,29 +1098,52 @@ Party con membership activa protege kind/employee/email según contrato.
 self_service_sales plano comercial externo.
 Entrada pública ≠ panel interno.
 Selector externo ≠ tenants/select.
+Salida externa ≠ logout interno.
 Customer externo ≠ User.
 Customer externo ≠ Membership.
 Customer externo ≠ roles internos.
 Party customer externa ≠ identidad interna.
 SelfServiceCustomerAccount ≠ User.
 SelfServiceStoreCustomer ≠ Membership.
-SelfServiceStoreSelectionToken ≠ sesión externa persistente.
+SelfServiceStoreSelectionToken ≠ sesión interna.
+SelfServiceExternalSession ≠ sesión interna.
+SelfServiceExternalSession ≠ guard definitivo.
+SelfServiceExternalSession ≠ operación comercial habilitada.
+ResolveSelfServiceExternalCustomer ≠ autorización obligatoria.
+ResolveSelfServiceExternalCustomer ≠ guard definitivo.
+ResolveSelfServiceExternalCustomer ≠ ruta privada.
 Registro externo ≠ invitation.
 Credencial externa propia ≠ Fortify interno.
 Confirmación token requiere validación backend suficiente.
 Validación de credencial externa no habilita operación comercial completa.
 Selección de tienda no habilita operación comercial completa.
+Sesión externa mínima no habilita operación comercial completa.
+Contexto externo pasivo no habilita operación comercial completa.
 Redirección a /shop/{tenant:slug} no habilita operación comercial completa.
 operation_enabled = false bloquea operación comercial.
 Duplicados relevantes bloquean alta.
 
 POST /tienda/seleccionar requiere validación backend suficiente del plano externo.
 
-La selección válida consume token.
+La selección válida consume token y puede iniciar sesión externa mínima namespaced.
 
-Los fallos del selector externo deben devolver error genérico.
+La sesión externa debe usar claves self_service_sales.*.
 
-No debe revelarse si falló token, cuenta, relación customer-tienda, estado o pertenencia.
+No debe escribir session('tenant_id').
+
+No debe usar Auth::login().
+
+No debe crear User ni Membership.
+
+ResolveSelfServiceExternalCustomer solo puede compartir payload externo si la sesión externa corresponde al tenant público de la ruta y la relación customer-tienda está activa.
+
+ResolveSelfServiceExternalCustomer no debe bloquear visitantes públicos ni exigir login externo para ver /shop/{tenant:slug}.
+
+POST /tienda/salir debe limpiar solo sesión externa self_service_sales.*.
+
+Los fallos del flujo externo deben devolver error genérico cuando corresponda.
+
+No debe revelarse si falló token, cuenta, sesión externa, relación customer-tienda, estado o pertenencia.
 
 [OPERATIONAL ACTIVITY]
 No autoriza.

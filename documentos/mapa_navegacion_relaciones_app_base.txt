@@ -41,7 +41,7 @@ no debe cargarse con teoría arquitectónica general que corresponda a otros doc
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00017
+SECTION_VERSION: 00019
 
 REGLA GENERAL
 
@@ -67,11 +67,21 @@ entrada pública externa no equivale a navegación interna del tenant
 
 selector externo no equivale a selector interno de tenants
 
-token temporal de selección no equivale a sesión externa persistente
+salida externa no equivale a logout interno
+
+token temporal de selección no equivale a sesión interna
+
+sesión externa namespaced no equivale a sesión interna
+
+sesión externa namespaced no equivale a tenant activo interno
+
+middleware externo pasivo no equivale a ruta privada
+
+middleware externo pasivo no equivale a autorización obligatoria
 
 selección externa de tienda no equivale a operación comercial habilitada
 
-redirección a tienda pública no equivale a sesión externa persistente
+redirección a tienda pública no equivale a operación comercial habilitada
 
 el trail preserva contexto entre pantallas relacionadas
 
@@ -153,7 +163,7 @@ un frente especializado no autoriza por sí mismo acciones sobre módulos partic
 
 la autorización debe seguir perteneciendo al módulo dueño o a la capacidad central correspondiente
 
-la existencia de entrada visual no convierte a la capa satélite en CRUD ordinario
+la existencia de entrada visual no convierte a la capa satélite en CRUD ordinaria
 
 una entrada de Servicio y mantenimiento no debe duplicar la navegación estructural de Orders si solo está filtrando o contextualizando órdenes de servicio
 
@@ -161,7 +171,7 @@ un universo semántico debe conservar coherencia de trail, breadcrumbs y redirec
 
 Regla adicional para capas satélite comerciales autogestivas:
 
-una capa satélite comercial autogestiva puede tener entrada pública externa, selector externo y tienda tenant-scoped sin convertirse automáticamente en navegación interna del tenant.
+una capa satélite comercial autogestiva puede tener entrada pública externa, selector externo, sesión externa mínima namespaced, middleware externo pasivo, tienda tenant-scoped y salida externa sin convertirse automáticamente en navegación interna del tenant.
 
 Caso vigente:
 
@@ -179,6 +189,12 @@ Entradas públicas vigentes:
 
 /shop/{tenant:slug}
 
+/tienda/salir
+
+Middleware externo pasivo vigente:
+
+ResolveSelfServiceExternalCustomer
+
 Label visible:
 
 Tienda
@@ -191,6 +207,10 @@ Lectura:
 
 /shop/{tenant:slug} representa la tienda pública tenant-scoped
 
+/tienda/salir representa la salida externa del acceso customer
+
+ResolveSelfServiceExternalCustomer representa resolución contextual pasiva para la tienda pública
+
 Recorrido externo vigente:
 
 /tienda
@@ -198,6 +218,10 @@ Recorrido externo vigente:
 → /tienda/seleccionar
 
 → /shop/{tenant:slug}
+
+→ /tienda/salir
+
+→ /tienda
 
 Lectura del recorrido:
 
@@ -209,7 +233,35 @@ POST /tienda/seleccionar ejecuta la selección mínima de tienda externa.
 
 La selección válida consume el token temporal mediante used_at.
 
+La selección válida inicia sesión externa mínima namespaced.
+
 La selección válida redirige a /shop/{tenant:slug}.
+
+/shop/{tenant:slug} puede mostrar customer externo activo cuando existe sesión externa mínima válida para ese tenant.
+
+ResolveSelfServiceExternalCustomer puede compartir payload externo en el request cuando existe sesión externa válida para el tenant público de la ruta.
+
+Si la sesión externa corresponde a otro tenant, /shop/{tenant:slug} se muestra como visitante.
+
+Si no existe sesión externa, /shop/{tenant:slug} se muestra como visitante.
+
+POST /tienda/salir limpia la sesión externa self_service_sales.*.
+
+POST /tienda/salir devuelve al acceso externo sin cerrar sesión interna.
+
+Recorrido de cambio de tienda o cuenta externa:
+
+/shop/{tenant:slug}
+
+→ cambiar tienda o cuenta externa
+
+→ /tienda
+
+→ nuevo acceso externo
+
+→ /tienda/seleccionar
+
+→ nueva tienda seleccionada
 
 Reglas:
 
@@ -219,9 +271,11 @@ Reglas:
 
 /shop/{tenant:slug} no es navegación principal interna
 
-/tienda, /tienda/seleccionar y /shop/{tenant:slug} no pertenecen al panel interno auth + tenant
+/tienda/salir no es logout interno
 
-/tienda, /tienda/seleccionar y /shop/{tenant:slug} no habilitan dashboard, tenant/profile, parties.show ni rutas internas
+/tienda, /tienda/seleccionar, /shop/{tenant:slug} y /tienda/salir no pertenecen al panel interno auth + tenant
+
+/tienda, /tienda/seleccionar, /shop/{tenant:slug} y /tienda/salir no habilitan dashboard, tenant/profile, parties.show ni rutas internas
 
 /shop/{tenant:slug} resuelve tenant por slug público
 
@@ -231,15 +285,31 @@ una entrada pública externa debe describirse como navegación pública o extern
 
 un selector externo de tiendas no debe mezclarse con tenants/select
 
-un token temporal de selección no debe leerse como sesión externa persistente
+un token temporal de selección no debe leerse como sesión interna
 
-marcar used_at no equivale a crear sesión externa
+marcar used_at no equivale a crear sesión interna
+
+la sesión externa mínima debe leerse como self_service_sales.*, no como session('tenant_id')
+
+ResolveSelfServiceExternalCustomer no convierte /shop/{tenant:slug} en ruta privada
+
+ResolveSelfServiceExternalCustomer no exige login externo
+
+ResolveSelfServiceExternalCustomer no bloquea visitantes públicos
+
+ResolveSelfServiceExternalCustomer no redirige por ausencia de sesión externa
 
 seleccionar tienda no habilita por sí mismo operación comercial
 
 redirigir a /shop/{tenant:slug} no habilita por sí mismo operación comercial
 
-operation_enabled = false mantiene operación comercial bloqueada aunque la tienda pública sea visible
+mostrar customer externo activo no habilita por sí mismo operación comercial
+
+resolver contexto externo pasivo no habilita por sí mismo operación comercial
+
+operation_enabled = false mantiene operación comercial bloqueada aunque la tienda pública sea visible, exista sesión externa mínima o se resuelva contexto externo pasivo
+
+la navegación pública externa se mantiene accesible sin login externo obligatorio
 
 no debe mezclarse navegación pública externa con navegación principal tenant ni con navegación interna autenticada
 
@@ -334,7 +404,7 @@ cuando existan varias rutas posibles, debe priorizarse la más consistente con N
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN PRINCIPAL TENANT>>
-SECTION_VERSION: 00016
+SECTION_VERSION: 00018
 
 NAVEGACIÓN PRINCIPAL TENANT
 
@@ -500,6 +570,12 @@ Sus rutas vigentes pertenecen al plano público externo:
 
 /shop/{tenant:slug}
 
+/tienda/salir
+
+Middleware externo pasivo vigente:
+
+ResolveSelfServiceExternalCustomer
+
 Label visible:
 
 Tienda
@@ -512,6 +588,10 @@ Recorrido externo vigente:
 
 → /shop/{tenant:slug}
 
+→ /tienda/salir
+
+→ /tienda
+
 Lectura:
 
 /tienda no es entrada del panel interno
@@ -520,19 +600,49 @@ Lectura:
 
 /shop/{tenant:slug} no es entrada del panel interno
 
+/tienda/salir no es logout interno
+
 /tienda no reemplaza /login
 
 /tienda/seleccionar no reemplaza /tenants/select
 
 /shop/{tenant:slug} no reemplaza navegación tenant interna
 
+/tienda/salir no reemplaza cierre de sesión interno
+
 /tienda/seleccionar usa token temporal externo y no sesión interna
 
 POST /tienda/seleccionar consume token temporal mediante used_at cuando la selección es válida
 
-la redirección a /shop/{tenant:slug} no crea sesión externa persistente
+POST /tienda/seleccionar puede iniciar sesión externa mínima namespaced
+
+la sesión externa mínima usa namespace self_service_sales.*
+
+la sesión externa mínima no escribe session('tenant_id')
+
+la sesión externa mínima no crea tenant activo interno
+
+ResolveSelfServiceExternalCustomer puede compartir contexto externo pasivo en /shop/{tenant:slug}
+
+ResolveSelfServiceExternalCustomer no convierte /shop/{tenant:slug} en ruta privada
+
+ResolveSelfServiceExternalCustomer no exige login externo para ver la tienda pública
+
+ResolveSelfServiceExternalCustomer no bloquea visitantes públicos
+
+si no hay sesión externa, /shop/{tenant:slug} se muestra como visitante
+
+si la sesión externa corresponde a otro tenant, /shop/{tenant:slug} se muestra como visitante
+
+la redirección a /shop/{tenant:slug} no habilita operación comercial
 
 la tienda pública visible no equivale a operación comercial habilitada
+
+el contexto externo pasivo no equivale a operación comercial habilitada
+
+POST /tienda/salir limpia solo sesión externa self_service_sales.*
+
+POST /tienda/salir no cierra sesión interna ni invalida toda la sesión Laravel
 
 Reglas:
 
@@ -545,6 +655,10 @@ esa lectura interna no convierte self_service_sales en módulo navegable princip
 el selector externo de tiendas no abre navegación tenant interna
 
 la selección externa de tienda no equivale a pertenencia interna al tenant
+
+la sesión externa mínima no equivale a pertenencia interna al tenant
+
+el middleware externo pasivo no equivale a pertenencia interna al tenant
 
 la selección externa de tienda no equivale a operación comercial habilitada
 

@@ -1394,7 +1394,7 @@ tbody tr:hover {
 
 .lab-tool-actions--compact {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, auto));
+    grid-template-columns: repeat(5, minmax(0, auto));
     gap: 6px;
     align-items: center;
     justify-content: start;
@@ -1472,7 +1472,7 @@ main {
 #projectConsoleOutput {
     flex: 1 1 auto;
     min-height: 160px;
-    max-height: calc(100vh - 300px);
+    max-height: calc(100vh - 600px);
     overflow-y: auto;
 }
 

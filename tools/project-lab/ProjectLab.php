@@ -58,23 +58,23 @@ class ProjectLab
         $this->initSession();
     }
 
-private function ensureDirectories()
-{
-    $dirs = [
-        'documentos/log',
-        'documentos/auditoria',
-        'documentos/baks',
-        'storage/framework/cache',
-    ];
+    private function ensureDirectories()
+    {
+        $dirs = [
+            'documentos/log',
+            'documentos/auditoria',
+            'documentos/baks',
+            'storage/framework/cache',
+        ];
 
-    foreach ($dirs as $dir) {
-        $result = $this->ensureProjectDirectory($dir);
+        foreach ($dirs as $dir) {
+            $result = $this->ensureProjectDirectory($dir);
 
-        if ($result !== true) {
-            throw new RuntimeException($result);
+            if ($result !== true) {
+                throw new RuntimeException($result);
+            }
         }
     }
-}
 
     private function initSession()
     {
@@ -183,6 +183,36 @@ private function processActions()
 
         $this->jsonResponse([
             'ok' => true,
+            'output' => $output,
+        ]);
+    }
+
+    if (isset($_POST['ajax_ai_prompt']) || isset($_POST['ajax_ai_local'])) {
+        $model = (string) ($_POST['model'] ?? '');
+        $fromClipboard = isset($_POST['from_clipboard']) && $_POST['from_clipboard'] === '1';
+
+        $editablePrompt = $fromClipboard
+            ? $this->readClipboard()
+            : (string) ($_POST['prompt'] ?? '');
+
+        $consoleOutput = (string) ($_POST['console_output'] ?? '');
+
+        if (isset($_POST['ajax_ai_local']) && ! str_contains($model, ':')) {
+            $model = 'ollama:'.$model;
+        }
+
+        $prompt = $this->buildProjectLabAiUserPrompt($editablePrompt, $consoleOutput);
+        $aiOutput = $this->askAiPrompt($model, $prompt);
+
+        $output = implode("\n\n", [
+            $this->buildAiConsoleUserBlock($model, $fromClipboard, $editablePrompt, $consoleOutput),
+            $this->buildAiConsoleAssistantBlock($aiOutput),
+        ]);
+
+        $this->jsonResponse([
+            'ok' => ! str_starts_with($aiOutput, '[ERROR]'),
+            'model' => $model,
+            'from_clipboard' => $fromClipboard,
             'output' => $output,
         ]);
     }
@@ -332,27 +362,27 @@ private function processActions()
     $this->code = $code;
 }
 
-private function executeTinker($code)
-{
-    $code = str_replace(["\r\n", "\r"], "\n", trim((string) $code));
+    private function executeTinker($code)
+    {
+        $code = str_replace(["\r\n", "\r"], "\n", trim((string) $code));
 
-    if ($code === '') {
-        return '[ERROR] No se recibió código Tinker.';
-    }
+        if ($code === '') {
+            return '[ERROR] No se recibió código Tinker.';
+        }
 
-    $artisanPath = $this->resolveProjectPath('artisan', false);
+        $artisanPath = $this->resolveProjectPath('artisan', false);
 
-    if ($artisanPath === null || ! file_exists($artisanPath)) {
-        return '[ERROR] No se encontró artisan dentro del root del proyecto actual.';
-    }
+        if ($artisanPath === null || ! file_exists($artisanPath)) {
+            return '[ERROR] No se encontró artisan dentro del root del proyecto actual.';
+        }
 
-    [$imports, $bodyCode] = $this->extractLeadingTinkerImports($code);
+        [$imports, $bodyCode] = $this->extractLeadingTinkerImports($code);
 
-    if ($bodyCode === '') {
-        return '[ERROR] El código Tinker no contiene cuerpo ejecutable luego de procesar imports.';
-    }
+        if ($bodyCode === '') {
+            return '[ERROR] El código Tinker no contiene cuerpo ejecutable luego de procesar imports.';
+        }
 
-    $wrappedCode = trim($imports)."\n\n"."
+        $wrappedCode = trim($imports)."\n\n"."
         \\DB::enableQueryLog();
         \$start = microtime(true);
 
@@ -398,174 +428,174 @@ private function executeTinker($code)
         }
     ";
 
-    $command = 'cd '.escapeshellarg($this->projectRoot)
-        .' && php '.escapeshellarg($artisanPath).' tinker --execute='.escapeshellarg($wrappedCode);
+        $command = 'cd '.escapeshellarg($this->projectRoot)
+            .' && php '.escapeshellarg($artisanPath).' tinker --execute='.escapeshellarg($wrappedCode);
 
-    $output = shell_exec($command.' 2>&1');
+        $output = shell_exec($command.' 2>&1');
 
-    if (trim($imports) !== '') {
-        $output = "[INFO] Imports Tinker detectados y ubicados fuera del wrapper.\n".$output;
-    }
-
-    $this->log('TINKER', $code, $output);
-    $this->saveHistory($code, $output);
-
-    return $output;
-}
-
-private function executeArtisan($command)
-{
-    $command = trim((string) $command);
-
-    $allowedCommands = [
-        'about',
-        'db:seed',
-        'migrate',
-        'migrate:fresh --seed',
-        'migrate:status',
-        'optimize:clear',
-        'queue:work --stop-when-empty --tries=1',
-        'route:list',
-    ];
-
-    if (! in_array($command, $allowedCommands, true)) {
-        $message = "[ERROR] Comando Artisan no permitido: {$command}";
-        $this->log('ARTISAN_DENIED', $command, $message);
-
-        return $message;
-    }
-
-    $artisanPath = $this->resolveProjectPath('artisan', false);
-
-    if ($artisanPath === null || ! file_exists($artisanPath)) {
-        return '[ERROR] No se encontró artisan dentro del root del proyecto actual.';
-    }
-
-    $parts = preg_split('/\s+/', $command);
-    $parts = is_array($parts) ? array_values(array_filter($parts, 'strlen')) : [];
-
-    if (empty($parts)) {
-        return '[ERROR] Comando Artisan vacío.';
-    }
-
-    $escapedParts = array_map('escapeshellarg', $parts);
-
-    $output = shell_exec(
-        'cd '.escapeshellarg($this->projectRoot).
-        ' && php '.escapeshellarg($artisanPath).' '.implode(' ', $escapedParts).' 2>&1'
-    );
-
-    $this->log('ARTISAN', $command, $output);
-
-    return $output;
-}
-
-private function log($type, $command, $output)
-{
-    $timestamp = date('Y-m-d H:i:s');
-
-    $content = "[{$timestamp}] {$type}: {$command}\n{$output}\n\n";
-
-    $writeResult = $this->writeProjectFile(
-        'documentos/log/project-lab.log',
-        $content,
-        true,
-        true
-    );
-
-    if ($writeResult !== true) {
-        error_log("[PROJECT_LAB_LOG_ERROR] {$writeResult}");
-    }
-}
-
-private function saveHistory($code, $output)
-{
-    $historyRelativePath = 'storage/logs/tinker_history.json';
-    $historyPath = $this->resolveProjectPath($historyRelativePath, true);
-
-    if ($historyPath === null) {
-        $this->log('HISTORY_ERROR', $historyRelativePath, '[ERROR] Ruta de historial fuera del proyecto o no permitida.');
-
-        return;
-    }
-
-    $history = [];
-
-    if (file_exists($historyPath)) {
-        $history = json_decode(@file_get_contents($historyPath), true) ?? [];
-    }
-
-    array_unshift($history, [
-        'code' => $code,
-        'preview' => substr($code, 0, 50).(strlen($code) > 50 ? '...' : ''),
-        'timestamp' => date('Y-m-d H:i:s'),
-        'success' => strpos($output, 'ERROR:') === false,
-    ]);
-
-    $history = array_slice($history, 0, 15);
-
-    $writeResult = $this->writeProjectFile(
-        $historyRelativePath,
-        json_encode($history),
-        true
-    );
-
-    if ($writeResult !== true) {
-        $this->log('HISTORY_ERROR', $historyRelativePath, $writeResult);
-    }
-}
-
-private function getTablesInfo()
-{
-    $cacheRelativePath = 'storage/framework/cache/projectlab_tables.cache';
-    $cacheFile = $this->resolveProjectPath($cacheRelativePath, true);
-
-    if ($cacheFile !== null && file_exists($cacheFile) && (time() - filemtime($cacheFile)) < 300) {
-        return json_decode(file_get_contents($cacheFile), true);
-    }
-
-    $tables = [];
-
-    try {
-        $rawTables = array_map('current', DB::select('SHOW TABLES'));
-
-        foreach ($rawTables as $t) {
-            $tables[] = [
-                'name' => $t,
-                'count' => DB::table($t)->count(),
-            ];
+        if (trim($imports) !== '') {
+            $output = "[INFO] Imports Tinker detectados y ubicados fuera del wrapper.\n".$output;
         }
 
-        $this->writeProjectFile($cacheRelativePath, json_encode($tables), true);
-    } catch (Exception $e) {
-        // Silencio
+        $this->log('TINKER', $code, $output);
+        $this->saveHistory($code, $output);
+
+        return $output;
     }
 
-    return $tables;
-}
+    private function executeArtisan($command)
+    {
+        $command = trim((string) $command);
 
-private function getRoutes()
-{
-    $cacheRelativePath = 'storage/framework/cache/projectlab_routes.cache';
-    $cacheFile = $this->resolveProjectPath($cacheRelativePath, true);
+        $allowedCommands = [
+            'about',
+            'db:seed',
+            'migrate',
+            'migrate:fresh --seed',
+            'migrate:status',
+            'optimize:clear',
+            'queue:work --stop-when-empty --tries=1',
+            'route:list',
+        ];
 
-    if ($cacheFile !== null && file_exists($cacheFile) && (time() - filemtime($cacheFile)) < 600) {
-        return json_decode(file_get_contents($cacheFile), true);
+        if (! in_array($command, $allowedCommands, true)) {
+            $message = "[ERROR] Comando Artisan no permitido: {$command}";
+            $this->log('ARTISAN_DENIED', $command, $message);
+
+            return $message;
+        }
+
+        $artisanPath = $this->resolveProjectPath('artisan', false);
+
+        if ($artisanPath === null || ! file_exists($artisanPath)) {
+            return '[ERROR] No se encontró artisan dentro del root del proyecto actual.';
+        }
+
+        $parts = preg_split('/\s+/', $command);
+        $parts = is_array($parts) ? array_values(array_filter($parts, 'strlen')) : [];
+
+        if (empty($parts)) {
+            return '[ERROR] Comando Artisan vacío.';
+        }
+
+        $escapedParts = array_map('escapeshellarg', $parts);
+
+        $output = shell_exec(
+            'cd '.escapeshellarg($this->projectRoot).
+            ' && php '.escapeshellarg($artisanPath).' '.implode(' ', $escapedParts).' 2>&1'
+        );
+
+        $this->log('ARTISAN', $command, $output);
+
+        return $output;
     }
 
-    $routes = [];
+    private function log($type, $command, $output)
+    {
+        $timestamp = date('Y-m-d H:i:s');
 
-    try {
-        Artisan::call('route:list', ['--json' => true]);
-        $routes = json_decode(Artisan::output(), true) ?? [];
+        $content = "[{$timestamp}] {$type}: {$command}\n{$output}\n\n";
 
-        $this->writeProjectFile($cacheRelativePath, json_encode($routes), true);
-    } catch (Exception $e) {
-        // Silencio
+        $writeResult = $this->writeProjectFile(
+            'documentos/log/project-lab.log',
+            $content,
+            true,
+            true
+        );
+
+        if ($writeResult !== true) {
+            error_log("[PROJECT_LAB_LOG_ERROR] {$writeResult}");
+        }
     }
 
-    return $routes;
-}
+    private function saveHistory($code, $output)
+    {
+        $historyRelativePath = 'storage/logs/tinker_history.json';
+        $historyPath = $this->resolveProjectPath($historyRelativePath, true);
+
+        if ($historyPath === null) {
+            $this->log('HISTORY_ERROR', $historyRelativePath, '[ERROR] Ruta de historial fuera del proyecto o no permitida.');
+
+            return;
+        }
+
+        $history = [];
+
+        if (file_exists($historyPath)) {
+            $history = json_decode(@file_get_contents($historyPath), true) ?? [];
+        }
+
+        array_unshift($history, [
+            'code' => $code,
+            'preview' => substr($code, 0, 50).(strlen($code) > 50 ? '...' : ''),
+            'timestamp' => date('Y-m-d H:i:s'),
+            'success' => strpos($output, 'ERROR:') === false,
+        ]);
+
+        $history = array_slice($history, 0, 15);
+
+        $writeResult = $this->writeProjectFile(
+            $historyRelativePath,
+            json_encode($history),
+            true
+        );
+
+        if ($writeResult !== true) {
+            $this->log('HISTORY_ERROR', $historyRelativePath, $writeResult);
+        }
+    }
+
+    private function getTablesInfo()
+    {
+        $cacheRelativePath = 'storage/framework/cache/projectlab_tables.cache';
+        $cacheFile = $this->resolveProjectPath($cacheRelativePath, true);
+
+        if ($cacheFile !== null && file_exists($cacheFile) && (time() - filemtime($cacheFile)) < 300) {
+            return json_decode(file_get_contents($cacheFile), true);
+        }
+
+        $tables = [];
+
+        try {
+            $rawTables = array_map('current', DB::select('SHOW TABLES'));
+
+            foreach ($rawTables as $t) {
+                $tables[] = [
+                    'name' => $t,
+                    'count' => DB::table($t)->count(),
+                ];
+            }
+
+            $this->writeProjectFile($cacheRelativePath, json_encode($tables), true);
+        } catch (Exception $e) {
+            // Silencio
+        }
+
+        return $tables;
+    }
+
+    private function getRoutes()
+    {
+        $cacheRelativePath = 'storage/framework/cache/projectlab_routes.cache';
+        $cacheFile = $this->resolveProjectPath($cacheRelativePath, true);
+
+        if ($cacheFile !== null && file_exists($cacheFile) && (time() - filemtime($cacheFile)) < 600) {
+            return json_decode(file_get_contents($cacheFile), true);
+        }
+
+        $routes = [];
+
+        try {
+            Artisan::call('route:list', ['--json' => true]);
+            $routes = json_decode(Artisan::output(), true) ?? [];
+
+            $this->writeProjectFile($cacheRelativePath, json_encode($routes), true);
+        } catch (Exception $e) {
+            // Silencio
+        }
+
+        return $routes;
+    }
 
     private function getSystemInfo()
     {
@@ -662,22 +692,22 @@ private function getRoutes()
         ];
     }
 
-private function getFolderSizes()
-{
-    $folders = ['storage', 'vendor', 'node_modules', 'public'];
-    $sizes = [];
+    private function getFolderSizes()
+    {
+        $folders = ['storage', 'vendor', 'node_modules', 'public'];
+        $sizes = [];
 
-    foreach ($folders as $folder) {
-        $path = $this->resolveProjectPath($folder, false);
+        foreach ($folders as $folder) {
+            $path = $this->resolveProjectPath($folder, false);
 
-        if ($path !== null && is_dir($path)) {
-            $size = $this->calculateFolderSize($path);
-            $sizes[$folder] = round($size / 1024 / 1024, 2); // MB
+            if ($path !== null && is_dir($path)) {
+                $size = $this->calculateFolderSize($path);
+                $sizes[$folder] = round($size / 1024 / 1024, 2); // MB
+            }
         }
-    }
 
-    return $sizes;
-}
+        return $sizes;
+    }
 
     private function calculateFolderSize($dir)
     {
@@ -689,64 +719,64 @@ private function getFolderSizes()
         return $size;
     }
 
-private function getInstalledFeatured()
-{
-    $data = $this->readComposerLock();
+    private function getInstalledFeatured()
+    {
+        $data = $this->readComposerLock();
 
-    if ($data === []) {
-        return [];
-    }
-
-    $packages = $data['packages'] ?? [];
-
-    $featured = [
-        'laravel/framework',
-        'laravel/tinker',
-        'laravel/fortify',
-        'barryvdh/laravel-dompdf',
-        'phpunit/phpunit',
-    ];
-
-    $installed = [];
-
-    foreach ($packages as $pkg) {
-        if (in_array($pkg['name'] ?? '', $featured, true)) {
-            $installed[] = [
-                'name' => $pkg['name'],
-                'version' => $pkg['version'] ?? '-',
-            ];
-        }
-    }
-
-    return $installed;
-}
-
-private function getVendorCounts()
-{
-    $data = $this->readComposerLock();
-
-    if ($data === []) {
-        return [];
-    }
-
-    $vendors = [];
-
-    foreach ($data['packages'] ?? [] as $pkg) {
-        $name = $pkg['name'] ?? '';
-
-        if (! str_contains($name, '/')) {
-            continue;
+        if ($data === []) {
+            return [];
         }
 
-        [$vendor] = explode('/', $name, 2);
+        $packages = $data['packages'] ?? [];
 
-        $vendors[$vendor] = ($vendors[$vendor] ?? 0) + 1;
+        $featured = [
+            'laravel/framework',
+            'laravel/tinker',
+            'laravel/fortify',
+            'barryvdh/laravel-dompdf',
+            'phpunit/phpunit',
+        ];
+
+        $installed = [];
+
+        foreach ($packages as $pkg) {
+            if (in_array($pkg['name'] ?? '', $featured, true)) {
+                $installed[] = [
+                    'name' => $pkg['name'],
+                    'version' => $pkg['version'] ?? '-',
+                ];
+            }
+        }
+
+        return $installed;
     }
 
-    arsort($vendors);
+    private function getVendorCounts()
+    {
+        $data = $this->readComposerLock();
 
-    return $vendors;
-}
+        if ($data === []) {
+            return [];
+        }
+
+        $vendors = [];
+
+        foreach ($data['packages'] ?? [] as $pkg) {
+            $name = $pkg['name'] ?? '';
+
+            if (! str_contains($name, '/')) {
+                continue;
+            }
+
+            [$vendor] = explode('/', $name, 2);
+
+            $vendors[$vendor] = ($vendors[$vendor] ?? 0) + 1;
+        }
+
+        arsort($vendors);
+
+        return $vendors;
+    }
 
     private function getTopVendors()
     {
@@ -755,12 +785,12 @@ private function getVendorCounts()
         return array_slice($vendors, 0, 20);
     }
 
-private function getPackagesCount()
-{
-    $data = $this->readComposerLock();
+    private function getPackagesCount()
+    {
+        $data = $this->readComposerLock();
 
-    return count($data['packages'] ?? []);
-}
+        return count($data['packages'] ?? []);
+    }
 
     private function getVendorsCount()
     {
@@ -777,405 +807,405 @@ private function getPackagesCount()
         exit;
     }
 
-private function runEmbeddedCodeTool(string $input): string
-{
-    $input = str_replace(["\r\n", "\r"], "\n", trim($input));
+    private function runEmbeddedCodeTool(string $input): string
+    {
+        $input = str_replace(["\r\n", "\r"], "\n", trim($input));
 
-    if ($input === '') {
-        return '[ERROR] No se recibió contenido para actualizar código.';
-    }
+        if ($input === '') {
+            return '[ERROR] No se recibió contenido para actualizar código.';
+        }
 
-    if (preg_match(self::REGEX_ASSET_SECTION_BLOCK, $input)) {
-        return $this->runEmbeddedAssetSectionsTool($input);
-    }
+        if (preg_match(self::REGEX_ASSET_SECTION_BLOCK, $input)) {
+            return $this->runEmbeddedAssetSectionsTool($input);
+        }
 
-    $methodOperation = $this->parseEmbeddedMethodOperation($input);
+        $methodOperation = $this->parseEmbeddedMethodOperation($input);
 
-    if ($methodOperation !== null) {
-        $extension = strtolower(pathinfo($methodOperation['path'], PATHINFO_EXTENSION));
+        if ($methodOperation !== null) {
+            $extension = strtolower(pathinfo($methodOperation['path'], PATHINFO_EXTENSION));
 
-        if ($extension === 'js') {
-            if ($methodOperation['operation'] !== 'replace') {
-                return '[ERROR] En JS solo está soportado TARGET :: función. Use secciones JS para agregar bloques nuevos.';
+            if ($extension === 'js') {
+                if ($methodOperation['operation'] !== 'replace') {
+                    return '[ERROR] En JS solo está soportado TARGET :: función. Use secciones JS para agregar bloques nuevos.';
+                }
+
+                return $this->applyEmbeddedJsFunctionReplace($methodOperation);
             }
 
-            return $this->applyEmbeddedJsFunctionReplace($methodOperation);
+            if ($methodOperation['operation'] === 'replace') {
+                return $this->applyEmbeddedMethodReplace($methodOperation);
+            }
+
+            if ($methodOperation['operation'] === 'add') {
+                return $this->applyEmbeddedMethodAdd($methodOperation);
+            }
+
+            return '[ERROR] Operación TARGET no soportada.';
         }
 
-        if ($methodOperation['operation'] === 'replace') {
-            return $this->applyEmbeddedMethodReplace($methodOperation);
+        if (str_starts_with(ltrim($input), '<?php')) {
+            return $this->applyEmbeddedPhpFile($input);
         }
 
-        if ($methodOperation['operation'] === 'add') {
-            return $this->applyEmbeddedMethodAdd($methodOperation);
+        if (preg_match('/^\s*\{\{\-\-\s*FILE:/', $input)) {
+            return $this->applyEmbeddedBladeFile($input);
         }
 
-        return '[ERROR] Operación TARGET no soportada.';
+        if (preg_match('/^\s*\/\*\s*FILE:\s*.+?\.css(?:\s*\|\s*V\d+)?\s*\*\//', $input)) {
+            return $this->applyEmbeddedPlainFile($input, 'css_full');
+        }
+
+        if (
+            preg_match('/^\s*\/\/\s*FILE:\s*.+?\.js(?:\s*\|\s*V\d+)?\s*$/m', $input)
+            || preg_match('/^\s*\/\*\s*FILE:\s*.+?\.js(?:\s*\|\s*V\d+)?\s*\*\//', $input)
+        ) {
+            return $this->applyEmbeddedPlainFile($input, 'js_full');
+        }
+
+        if (
+            preg_match('/^\s*#\s*FILE:\s*.+?\.tpl(?:\s*\|\s*V\d+)?\s*$/m', $input)
+            || preg_match('/^\s*\/\/\s*FILE:\s*.+?\.tpl(?:\s*\|\s*V\d+)?\s*$/m', $input)
+            || preg_match('/^\s*\/\*\s*FILE:\s*.+?\.tpl(?:\s*\|\s*V\d+)?\s*\*\//', $input)
+        ) {
+            return $this->applyEmbeddedPlainFile($input, 'tpl_full');
+        }
+
+        return "[ERROR] Formato no compatible en herramienta de código.\n[INFO] Soporta PHP completo, Blade completo, CSS completo, JS completo, TPL completo, secciones CSS/JS, TARGET :: método PHP, TARGET ++ método PHP y TARGET :: función JS.";
     }
 
-    if (str_starts_with(ltrim($input), '<?php')) {
-        return $this->applyEmbeddedPhpFile($input);
-    }
+    private function applyEmbeddedBladeFile(string $content): string
+    {
+        $content = str_replace(["\r\n", "\r"], "\n", $content);
+        $lines = explode("\n", ltrim($content));
+        $headerLine = trim($lines[0] ?? '');
 
-    if (preg_match('/^\s*\{\{\-\-\s*FILE:/', $input)) {
-        return $this->applyEmbeddedBladeFile($input);
-    }
+        if (! preg_match(self::REGEX_BLADE_FILE_HEADER, $headerLine, $matches)) {
+            return '[ERROR] No se encontró encabezado FILE válido para Blade.';
+        }
 
-    if (preg_match('/^\s*\/\*\s*FILE:\s*.+?\.css(?:\s*\|\s*V\d+)?\s*\*\//', $input)) {
-        return $this->applyEmbeddedPlainFile($input, 'css_full');
-    }
+        $relativePath = trim($matches[1] ?? '');
+        $version = trim($matches[2] ?? 'V1');
 
-    if (
-        preg_match('/^\s*\/\/\s*FILE:\s*.+?\.js(?:\s*\|\s*V\d+)?\s*$/m', $input)
-        || preg_match('/^\s*\/\*\s*FILE:\s*.+?\.js(?:\s*\|\s*V\d+)?\s*\*\//', $input)
-    ) {
-        return $this->applyEmbeddedPlainFile($input, 'js_full');
-    }
+        if ($relativePath === '') {
+            return '[ERROR] Ruta destino vacía.';
+        }
 
-    if (
-        preg_match('/^\s*#\s*FILE:\s*.+?\.tpl(?:\s*\|\s*V\d+)?\s*$/m', $input)
-        || preg_match('/^\s*\/\/\s*FILE:\s*.+?\.tpl(?:\s*\|\s*V\d+)?\s*$/m', $input)
-        || preg_match('/^\s*\/\*\s*FILE:\s*.+?\.tpl(?:\s*\|\s*V\d+)?\s*\*\//', $input)
-    ) {
-        return $this->applyEmbeddedPlainFile($input, 'tpl_full');
-    }
+        $targetPath = $this->resolveProjectPath($relativePath, true);
 
-    return "[ERROR] Formato no compatible en herramienta de código.\n[INFO] Soporta PHP completo, Blade completo, CSS completo, JS completo, TPL completo, secciones CSS/JS, TARGET :: método PHP, TARGET ++ método PHP y TARGET :: función JS.";
-}
+        if ($targetPath === null) {
+            return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
+        }
 
-private function applyEmbeddedBladeFile(string $content): string
-{
-    $content = str_replace(["\r\n", "\r"], "\n", $content);
-    $lines = explode("\n", ltrim($content));
-    $headerLine = trim($lines[0] ?? '');
-
-    if (! preg_match(self::REGEX_BLADE_FILE_HEADER, $headerLine, $matches)) {
-        return '[ERROR] No se encontró encabezado FILE válido para Blade.';
-    }
-
-    $relativePath = trim($matches[1] ?? '');
-    $version = trim($matches[2] ?? 'V1');
-
-    if ($relativePath === '') {
-        return '[ERROR] Ruta destino vacía.';
-    }
-
-    $targetPath = $this->resolveProjectPath($relativePath, true);
-
-    if ($targetPath === null) {
-        return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
-    }
-
-    array_shift($lines);
-    $body = ltrim(implode("\n", $lines), "\n");
-
-    $finalContent = "{{-- FILE: {$relativePath} | {$version} --}}\n\n".$body;
-    $status = file_exists($targetPath) ? 'sobrescrito' : 'creado';
-
-    $writeResult = $this->writeProjectFile($relativePath, $finalContent, true);
-
-    if ($writeResult !== true) {
-        return $writeResult;
-    }
-
-    $message = "[OK] Modo: blade_full\n";
-    $message .= "[OK] Archivo: {$relativePath}\n";
-
-    if ($status === 'sobrescrito') {
-        $message .= "[WARN] Archivo existente reemplazado completamente.\n";
-    } else {
-        $message .= "[INFO] Archivo nuevo creado.\n";
-    }
-
-    $message .= "[OK] Estado: {$status}\n";
-    $message .= "[OK] Versión: {$version}";
-
-    $this->log('LAB_CODE', $relativePath, $message);
-
-    $this->appendPipeLog(
-        self::CODE_LOG_FILE,
-        ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
-        [
-            $relativePath,
-            date('Y-m-d H:i:s'),
-            $status,
-            $version,
-            'project_lab',
-            'archivo_completo',
-            get_current_user() ?: 'unknown',
-            php_uname('n') ?: 'unknown',
-        ]
-    );
-
-    return $message;
-}
-
-private function applyEmbeddedPhpFile(string $content): string
-{
-    $content = str_replace(["\r\n", "\r"], "\n", $content);
-
-    $lines = explode("\n", ltrim($content));
-
-    if (trim($lines[0] ?? '') !== '<?php') {
-        return '[ERROR] El archivo PHP completo debe comenzar con <?php.';
-    }
-
-    array_shift($lines);
-
-    while (! empty($lines) && trim($lines[0]) === '') {
         array_shift($lines);
-    }
+        $body = ltrim(implode("\n", $lines), "\n");
 
-    $headerLine = trim($lines[0] ?? '');
+        $finalContent = "{{-- FILE: {$relativePath} | {$version} --}}\n\n".$body;
+        $status = file_exists($targetPath) ? 'sobrescrito' : 'creado';
 
-    if (! preg_match(self::REGEX_PHP_FILE_HEADER, $headerLine, $matches)) {
-        return '[ERROR] No se encontró encabezado FILE válido para PHP.';
-    }
-
-    $relativePath = trim($matches[1] ?? '');
-    $version = trim($matches[2] ?? 'V1');
-
-    if ($relativePath === '') {
-        return '[ERROR] Ruta destino vacía.';
-    }
-
-    $targetPath = $this->resolveProjectPath($relativePath, true);
-
-    if ($targetPath === null) {
-        return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
-    }
-
-    $existedBefore = file_exists($targetPath);
-    $previousContent = $existedBefore ? file_get_contents($targetPath) : null;
-
-    if ($existedBefore && $previousContent === false) {
-        return "[ERROR] No se pudo leer el archivo anterior: {$relativePath}";
-    }
-
-    array_shift($lines);
-
-    $body = ltrim(implode("\n", $lines), "\n");
-
-    $finalContent = "<?php\n\n// FILE: {$relativePath} | {$version}\n\n".$body;
-    $status = $existedBefore ? 'sobrescrito' : 'creado';
-
-    [$written, $lintResult] = $this->writePhpProjectFileWithLintRollback(
-        $relativePath,
-        $finalContent,
-        true,
-        is_string($previousContent) ? $previousContent : null,
-        $existedBefore
-    );
-
-    if (! $written) {
-        return $lintResult;
-    }
-
-    $message = "[OK] Modo: php_full\n";
-    $message .= "[OK] Archivo: {$relativePath}\n";
-
-    if ($status === 'sobrescrito') {
-        $message .= "[WARN] Archivo existente reemplazado completamente.\n";
-    } else {
-        $message .= "[INFO] Archivo nuevo creado.\n";
-    }
-
-    $message .= "[OK] Estado: {$status}\n";
-    $message .= "[OK] Versión: {$version}\n";
-    $message .= $lintResult;
-
-    $this->log('LAB_CODE', $relativePath, $message);
-
-    $this->appendPipeLog(
-        self::CODE_LOG_FILE,
-        ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
-        [
-            $relativePath,
-            date('Y-m-d H:i:s'),
-            $status,
-            $version,
-            'project_lab',
-            'archivo_completo',
-            get_current_user() ?: 'unknown',
-            php_uname('n') ?: 'unknown',
-        ]
-    );
-
-    return $message;
-}
-
-private function runEmbeddedDocsTool(string $input): string
-{
-    $input = str_replace(["\r\n", "\r"], "\n", trim($input));
-
-    if ($input === '') {
-        return '[ERROR] No se recibió contenido para actualizar documentos.';
-    }
-
-    preg_match_all(
-        '/REEMPLAZAR EN:\s*\[?([a-z0-9_]+)\]?\s*(<<SECTION:\s*.*?>>.*?<<END SECTION>>)/su',
-        $input,
-        $matches,
-        PREG_SET_ORDER
-    );
-
-    if (empty($matches)) {
-        return "[ERROR] No se encontraron bloques válidos.\n[INFO] Formato esperado: REEMPLAZAR EN: [doc_slug] + bloque SECTION completo.";
-    }
-
-    $documents = $this->indexEmbeddedDocuments();
-    $projectRoot = realpath($this->projectRoot);
-
-    if ($projectRoot === false) {
-        return '[ERROR] No se pudo resolver el root del proyecto.';
-    }
-
-    $projectRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR);
-
-    $total = 0;
-    $output = '';
-    $lastSlug = '-';
-
-    foreach ($matches as $match) {
-        $slug = strtolower(trim($match[1]));
-        $block = trim($match[2]);
-        $lastSlug = $slug;
-
-        if (! isset($documents[$slug])) {
-            $output .= "[ERROR] Documento no reconocido por slug: {$slug}\n";
-
-            continue;
-        }
-
-        if (! preg_match('/<<SECTION:\s*(.*?)\s*>>/su', $block, $sectionMatch)) {
-            $output .= "[ERROR] No se pudo leer el nombre de sección para {$slug}\n";
-
-            continue;
-        }
-
-        if (! preg_match('/\nSECTION_VERSION:\s*\d{5}\s*(?:\n|$)/u', "\n".$block)) {
-            $output .= "[ERROR] [{$slug}] El bloque no incluye SECTION_VERSION válido de 5 dígitos.\n";
-
-            continue;
-        }
-
-        $sectionName = trim($sectionMatch[1]);
-        $filePath = $documents[$slug];
-        $resolvedFilePath = realpath($filePath);
-
-        if ($resolvedFilePath === false) {
-            $output .= "[ERROR] No se pudo resolver documento: {$slug}\n";
-
-            continue;
-        }
-
-        if (! str_starts_with($resolvedFilePath, $projectRoot.DIRECTORY_SEPARATOR)) {
-            $output .= "[ERROR] Documento fuera del proyecto: {$slug}\n";
-
-            continue;
-        }
-
-        $relativeDocPath = ltrim(substr($resolvedFilePath, strlen($projectRoot)), DIRECTORY_SEPARATOR);
-
-        $content = file_get_contents($resolvedFilePath);
-
-        if ($content === false) {
-            $output .= "[ERROR] No se pudo leer documento: {$slug}\n";
-
-            continue;
-        }
-
-        $pattern = '/<<SECTION:\s*'.preg_quote($sectionName, '/').'\s*>>.*?<<END SECTION>>/su';
-
-        if (! preg_match($pattern, $content)) {
-            $output .= "[ERROR] [{$slug}] No se encontró la sección: {$sectionName}\n";
-
-            continue;
-        }
-
-        $timestamp = date('Ymd_His');
-        $backupRelativePath = 'documentos/baks/'.pathinfo($resolvedFilePath, PATHINFO_FILENAME)."_{$timestamp}.bak";
-        $backupResult = $this->writeProjectFile($backupRelativePath, $content, true);
-
-        if ($backupResult !== true) {
-            $output .= "[ERROR] [{$slug}] No se pudo guardar backup: {$backupResult}\n";
-
-            continue;
-        }
-
-        $newContent = preg_replace($pattern, $block, $content, 1, $count);
-
-        if ($count < 1 || $newContent === null) {
-            $output .= "[ERROR] [{$slug}] No se pudo reemplazar la sección: {$sectionName}\n";
-
-            continue;
-        }
-
-        $writeResult = $this->writeProjectFile($relativeDocPath, $newContent, false);
+        $writeResult = $this->writeProjectFile($relativePath, $finalContent, true);
 
         if ($writeResult !== true) {
-            $output .= "[ERROR] [{$slug}] No se pudo escribir el documento. {$writeResult}\n";
-
-            continue;
+            return $writeResult;
         }
 
-        $total++;
-        $output .= "[OK] [{$slug}] Sección reemplazada: {$sectionName}\n";
-        $output .= "[OK] [{$slug}] Backup: {$backupRelativePath}\n";
+        $message = "[OK] Modo: blade_full\n";
+        $message .= "[OK] Archivo: {$relativePath}\n";
+
+        if ($status === 'sobrescrito') {
+            $message .= "[WARN] Archivo existente reemplazado completamente.\n";
+        } else {
+            $message .= "[INFO] Archivo nuevo creado.\n";
+        }
+
+        $message .= "[OK] Estado: {$status}\n";
+        $message .= "[OK] Versión: {$version}";
+
+        $this->log('LAB_CODE', $relativePath, $message);
+
+        $this->appendPipeLog(
+            self::CODE_LOG_FILE,
+            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+            [
+                $relativePath,
+                date('Y-m-d H:i:s'),
+                $status,
+                $version,
+                'project_lab',
+                'archivo_completo',
+                get_current_user() ?: 'unknown',
+                php_uname('n') ?: 'unknown',
+            ]
+        );
+
+        return $message;
     }
 
-    $output .= $total > 0
-        ? "[OK] Proceso finalizado. Secciones aplicadas: {$total}"
-        : '[WARN] Proceso finalizado sin cambios aplicados.';
+    private function applyEmbeddedPhpFile(string $content): string
+    {
+        $content = str_replace(["\r\n", "\r"], "\n", $content);
 
-    $this->log('LAB_DOCS', 'embedded-docs', $output);
+        $lines = explode("\n", ltrim($content));
 
-    $this->appendPipeLog(
-        'documentos/log/docs-updates.log',
-        ['DOCUMENTO', 'FECHA', 'SECCIONES', 'USUARIO', 'HOST', 'ORIGEN'],
-        [
-            $lastSlug,
-            date('Y-m-d H:i:s'),
-            (string) $total,
-            get_current_user() ?: 'unknown',
-            php_uname('n') ?: 'unknown',
-            'project_lab',
-        ]
-    );
+        if (trim($lines[0] ?? '') !== '<?php') {
+            return '[ERROR] El archivo PHP completo debe comenzar con <?php.';
+        }
 
-    return $output;
-}
+        array_shift($lines);
 
-private function indexEmbeddedDocuments(): array
-{
-    $baseDir = $this->resolveProjectPath('documentos', false);
+        while (! empty($lines) && trim($lines[0]) === '') {
+            array_shift($lines);
+        }
 
-    if ($baseDir === null || ! is_dir($baseDir)) {
-        return [];
+        $headerLine = trim($lines[0] ?? '');
+
+        if (! preg_match(self::REGEX_PHP_FILE_HEADER, $headerLine, $matches)) {
+            return '[ERROR] No se encontró encabezado FILE válido para PHP.';
+        }
+
+        $relativePath = trim($matches[1] ?? '');
+        $version = trim($matches[2] ?? 'V1');
+
+        if ($relativePath === '') {
+            return '[ERROR] Ruta destino vacía.';
+        }
+
+        $targetPath = $this->resolveProjectPath($relativePath, true);
+
+        if ($targetPath === null) {
+            return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
+        }
+
+        $existedBefore = file_exists($targetPath);
+        $previousContent = $existedBefore ? file_get_contents($targetPath) : null;
+
+        if ($existedBefore && $previousContent === false) {
+            return "[ERROR] No se pudo leer el archivo anterior: {$relativePath}";
+        }
+
+        array_shift($lines);
+
+        $body = ltrim(implode("\n", $lines), "\n");
+
+        $finalContent = "<?php\n\n// FILE: {$relativePath} | {$version}\n\n".$body;
+        $status = $existedBefore ? 'sobrescrito' : 'creado';
+
+        [$written, $lintResult] = $this->writePhpProjectFileWithLintRollback(
+            $relativePath,
+            $finalContent,
+            true,
+            is_string($previousContent) ? $previousContent : null,
+            $existedBefore
+        );
+
+        if (! $written) {
+            return $lintResult;
+        }
+
+        $message = "[OK] Modo: php_full\n";
+        $message .= "[OK] Archivo: {$relativePath}\n";
+
+        if ($status === 'sobrescrito') {
+            $message .= "[WARN] Archivo existente reemplazado completamente.\n";
+        } else {
+            $message .= "[INFO] Archivo nuevo creado.\n";
+        }
+
+        $message .= "[OK] Estado: {$status}\n";
+        $message .= "[OK] Versión: {$version}\n";
+        $message .= $lintResult;
+
+        $this->log('LAB_CODE', $relativePath, $message);
+
+        $this->appendPipeLog(
+            self::CODE_LOG_FILE,
+            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+            [
+                $relativePath,
+                date('Y-m-d H:i:s'),
+                $status,
+                $version,
+                'project_lab',
+                'archivo_completo',
+                get_current_user() ?: 'unknown',
+                php_uname('n') ?: 'unknown',
+            ]
+        );
+
+        return $message;
     }
 
-    $documents = [];
+    private function runEmbeddedDocsTool(string $input): string
+    {
+        $input = str_replace(["\r\n", "\r"], "\n", trim($input));
 
-    foreach (glob($baseDir.'/*.txt') ?: [] as $filePath) {
-        $resolvedFilePath = realpath($filePath);
-
-        if ($resolvedFilePath === false || ! is_file($resolvedFilePath)) {
-            continue;
+        if ($input === '') {
+            return '[ERROR] No se recibió contenido para actualizar documentos.';
         }
 
-        $content = file_get_contents($resolvedFilePath);
+        preg_match_all(
+            '/REEMPLAZAR EN:\s*\[?([a-z0-9_]+)\]?\s*(<<SECTION:\s*.*?>>.*?<<END SECTION>>)/su',
+            $input,
+            $matches,
+            PREG_SET_ORDER
+        );
 
-        if ($content === false) {
-            continue;
+        if (empty($matches)) {
+            return "[ERROR] No se encontraron bloques válidos.\n[INFO] Formato esperado: REEMPLAZAR EN: [doc_slug] + bloque SECTION completo.";
         }
 
-        if (preg_match('/DOC_SLUG:\s*([a-z0-9_]+)/', $content, $match)) {
-            $documents[strtolower(trim($match[1]))] = $resolvedFilePath;
+        $documents = $this->indexEmbeddedDocuments();
+        $projectRoot = realpath($this->projectRoot);
+
+        if ($projectRoot === false) {
+            return '[ERROR] No se pudo resolver el root del proyecto.';
         }
+
+        $projectRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR);
+
+        $total = 0;
+        $output = '';
+        $lastSlug = '-';
+
+        foreach ($matches as $match) {
+            $slug = strtolower(trim($match[1]));
+            $block = trim($match[2]);
+            $lastSlug = $slug;
+
+            if (! isset($documents[$slug])) {
+                $output .= "[ERROR] Documento no reconocido por slug: {$slug}\n";
+
+                continue;
+            }
+
+            if (! preg_match('/<<SECTION:\s*(.*?)\s*>>/su', $block, $sectionMatch)) {
+                $output .= "[ERROR] No se pudo leer el nombre de sección para {$slug}\n";
+
+                continue;
+            }
+
+            if (! preg_match('/\nSECTION_VERSION:\s*\d{5}\s*(?:\n|$)/u', "\n".$block)) {
+                $output .= "[ERROR] [{$slug}] El bloque no incluye SECTION_VERSION válido de 5 dígitos.\n";
+
+                continue;
+            }
+
+            $sectionName = trim($sectionMatch[1]);
+            $filePath = $documents[$slug];
+            $resolvedFilePath = realpath($filePath);
+
+            if ($resolvedFilePath === false) {
+                $output .= "[ERROR] No se pudo resolver documento: {$slug}\n";
+
+                continue;
+            }
+
+            if (! str_starts_with($resolvedFilePath, $projectRoot.DIRECTORY_SEPARATOR)) {
+                $output .= "[ERROR] Documento fuera del proyecto: {$slug}\n";
+
+                continue;
+            }
+
+            $relativeDocPath = ltrim(substr($resolvedFilePath, strlen($projectRoot)), DIRECTORY_SEPARATOR);
+
+            $content = file_get_contents($resolvedFilePath);
+
+            if ($content === false) {
+                $output .= "[ERROR] No se pudo leer documento: {$slug}\n";
+
+                continue;
+            }
+
+            $pattern = '/<<SECTION:\s*'.preg_quote($sectionName, '/').'\s*>>.*?<<END SECTION>>/su';
+
+            if (! preg_match($pattern, $content)) {
+                $output .= "[ERROR] [{$slug}] No se encontró la sección: {$sectionName}\n";
+
+                continue;
+            }
+
+            $timestamp = date('Ymd_His');
+            $backupRelativePath = 'documentos/baks/'.pathinfo($resolvedFilePath, PATHINFO_FILENAME)."_{$timestamp}.bak";
+            $backupResult = $this->writeProjectFile($backupRelativePath, $content, true);
+
+            if ($backupResult !== true) {
+                $output .= "[ERROR] [{$slug}] No se pudo guardar backup: {$backupResult}\n";
+
+                continue;
+            }
+
+            $newContent = preg_replace($pattern, $block, $content, 1, $count);
+
+            if ($count < 1 || $newContent === null) {
+                $output .= "[ERROR] [{$slug}] No se pudo reemplazar la sección: {$sectionName}\n";
+
+                continue;
+            }
+
+            $writeResult = $this->writeProjectFile($relativeDocPath, $newContent, false);
+
+            if ($writeResult !== true) {
+                $output .= "[ERROR] [{$slug}] No se pudo escribir el documento. {$writeResult}\n";
+
+                continue;
+            }
+
+            $total++;
+            $output .= "[OK] [{$slug}] Sección reemplazada: {$sectionName}\n";
+            $output .= "[OK] [{$slug}] Backup: {$backupRelativePath}\n";
+        }
+
+        $output .= $total > 0
+            ? "[OK] Proceso finalizado. Secciones aplicadas: {$total}"
+            : '[WARN] Proceso finalizado sin cambios aplicados.';
+
+        $this->log('LAB_DOCS', 'embedded-docs', $output);
+
+        $this->appendPipeLog(
+            'documentos/log/docs-updates.log',
+            ['DOCUMENTO', 'FECHA', 'SECCIONES', 'USUARIO', 'HOST', 'ORIGEN'],
+            [
+                $lastSlug,
+                date('Y-m-d H:i:s'),
+                (string) $total,
+                get_current_user() ?: 'unknown',
+                php_uname('n') ?: 'unknown',
+                'project_lab',
+            ]
+        );
+
+        return $output;
     }
 
-    return $documents;
-}
+    private function indexEmbeddedDocuments(): array
+    {
+        $baseDir = $this->resolveProjectPath('documentos', false);
+
+        if ($baseDir === null || ! is_dir($baseDir)) {
+            return [];
+        }
+
+        $documents = [];
+
+        foreach (glob($baseDir.'/*.txt') ?: [] as $filePath) {
+            $resolvedFilePath = realpath($filePath);
+
+            if ($resolvedFilePath === false || ! is_file($resolvedFilePath)) {
+                continue;
+            }
+
+            $content = file_get_contents($resolvedFilePath);
+
+            if ($content === false) {
+                continue;
+            }
+
+            if (preg_match('/DOC_SLUG:\s*([a-z0-9_]+)/', $content, $match)) {
+                $documents[strtolower(trim($match[1]))] = $resolvedFilePath;
+            }
+        }
+
+        return $documents;
+    }
 
     private function parseEmbeddedMethodOperation(string $input): ?array
     {
@@ -1205,151 +1235,151 @@ private function indexEmbeddedDocuments(): array
         ];
     }
 
-private function applyEmbeddedMethodReplace(array $operation): string
-{
-    $relativePath = $operation['path'];
-    $methodName = $operation['method_name'];
-    $methodCode = $operation['method_code'];
+    private function applyEmbeddedMethodReplace(array $operation): string
+    {
+        $relativePath = $operation['path'];
+        $methodName = $operation['method_name'];
+        $methodCode = $operation['method_code'];
 
-    $targetPath = $this->resolveProjectPath($relativePath, false);
+        $targetPath = $this->resolveProjectPath($relativePath, false);
 
-    if ($targetPath === null) {
-        return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
-    }
+        if ($targetPath === null) {
+            return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
+        }
 
-    if (! file_exists($targetPath)) {
-        return "[ERROR] El archivo destino no existe: {$relativePath}";
-    }
+        if (! file_exists($targetPath)) {
+            return "[ERROR] El archivo destino no existe: {$relativePath}";
+        }
 
-    $content = file_get_contents($targetPath);
+        $content = file_get_contents($targetPath);
 
-    if ($content === false) {
-        return "[ERROR] No se pudo leer el archivo: {$relativePath}";
-    }
+        if ($content === false) {
+            return "[ERROR] No se pudo leer el archivo: {$relativePath}";
+        }
 
-    $range = $this->findEmbeddedMethodRange($content, $methodName);
+        $range = $this->findEmbeddedMethodRange($content, $methodName);
 
-    if ($range === null) {
-        return "[ERROR] No se encontró el método: {$methodName}";
-    }
+        if ($range === null) {
+            return "[ERROR] No se encontró el método: {$methodName}";
+        }
 
-    [$start, $end] = $range;
+        [$start, $end] = $range;
 
-    $newContent = substr($content, 0, $start)
-        .rtrim($methodCode)
-        .substr($content, $end);
+        $newContent = substr($content, 0, $start)
+            .rtrim($methodCode)
+            .substr($content, $end);
 
-    [$written, $lintResult] = $this->writePhpProjectFileWithLintRollback(
-        $relativePath,
-        $newContent,
-        false,
-        $content,
-        true
-    );
-
-    if (! $written) {
-        return $lintResult;
-    }
-
-    $message = "[OK] Modo: php_method_patch\n";
-    $message .= "[OK] Archivo: {$relativePath}\n";
-    $message .= "[OK] Método reemplazado: {$methodName}\n";
-    $message .= $lintResult;
-
-    $this->log('LAB_CODE_METHOD_REPLACE', "{$relativePath}::{$methodName}", $message);
-
-    $this->appendPipeLog(
-        self::CODE_LOG_FILE,
-        ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
-        [
+        [$written, $lintResult] = $this->writePhpProjectFileWithLintRollback(
             $relativePath,
-            date('Y-m-d H:i:s'),
-            'actualizado',
-            '-',
-            'project_lab',
-            $methodName,
-            get_current_user() ?: 'unknown',
-            php_uname('n') ?: 'unknown',
-        ]
-    );
+            $newContent,
+            false,
+            $content,
+            true
+        );
 
-    return $message;
-}
+        if (! $written) {
+            return $lintResult;
+        }
 
-private function applyEmbeddedMethodAdd(array $operation): string
-{
-    $relativePath = $operation['path'];
-    $methodName = $operation['method_name'];
-    $methodCode = $operation['method_code'];
+        $message = "[OK] Modo: php_method_patch\n";
+        $message .= "[OK] Archivo: {$relativePath}\n";
+        $message .= "[OK] Método reemplazado: {$methodName}\n";
+        $message .= $lintResult;
 
-    $targetPath = $this->resolveProjectPath($relativePath, false);
+        $this->log('LAB_CODE_METHOD_REPLACE', "{$relativePath}::{$methodName}", $message);
 
-    if ($targetPath === null) {
-        return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
+        $this->appendPipeLog(
+            self::CODE_LOG_FILE,
+            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+            [
+                $relativePath,
+                date('Y-m-d H:i:s'),
+                'actualizado',
+                '-',
+                'project_lab',
+                $methodName,
+                get_current_user() ?: 'unknown',
+                php_uname('n') ?: 'unknown',
+            ]
+        );
+
+        return $message;
     }
 
-    if (! file_exists($targetPath)) {
-        return "[ERROR] El archivo destino no existe: {$relativePath}";
-    }
+    private function applyEmbeddedMethodAdd(array $operation): string
+    {
+        $relativePath = $operation['path'];
+        $methodName = $operation['method_name'];
+        $methodCode = $operation['method_code'];
 
-    $content = file_get_contents($targetPath);
+        $targetPath = $this->resolveProjectPath($relativePath, false);
 
-    if ($content === false) {
-        return "[ERROR] No se pudo leer el archivo: {$relativePath}";
-    }
+        if ($targetPath === null) {
+            return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
+        }
 
-    if ($this->findEmbeddedMethodRange($content, $methodName) !== null) {
-        return "[ERROR] El método ya existe: {$methodName}";
-    }
+        if (! file_exists($targetPath)) {
+            return "[ERROR] El archivo destino no existe: {$relativePath}";
+        }
 
-    $lastBrace = strrpos($content, '}');
+        $content = file_get_contents($targetPath);
 
-    if ($lastBrace === false) {
-        return "[ERROR] No se pudo encontrar cierre de clase en: {$relativePath}";
-    }
+        if ($content === false) {
+            return "[ERROR] No se pudo leer el archivo: {$relativePath}";
+        }
 
-    $insert = "\n\n    ".str_replace("\n", "\n    ", trim($methodCode))."\n";
+        if ($this->findEmbeddedMethodRange($content, $methodName) !== null) {
+            return "[ERROR] El método ya existe: {$methodName}";
+        }
 
-    $newContent = substr($content, 0, $lastBrace)
-        .$insert
-        .substr($content, $lastBrace);
+        $lastBrace = strrpos($content, '}');
 
-    [$written, $lintResult] = $this->writePhpProjectFileWithLintRollback(
-        $relativePath,
-        $newContent,
-        false,
-        $content,
-        true
-    );
+        if ($lastBrace === false) {
+            return "[ERROR] No se pudo encontrar cierre de clase en: {$relativePath}";
+        }
 
-    if (! $written) {
-        return $lintResult;
-    }
+        $insert = "\n\n    ".str_replace("\n", "\n    ", trim($methodCode))."\n";
 
-    $message = "[OK] Modo: php_method_add\n";
-    $message .= "[OK] Archivo: {$relativePath}\n";
-    $message .= "[OK] Método agregado: {$methodName}\n";
-    $message .= $lintResult;
+        $newContent = substr($content, 0, $lastBrace)
+            .$insert
+            .substr($content, $lastBrace);
 
-    $this->log('LAB_CODE_METHOD_ADD', "{$relativePath}++{$methodName}", $message);
-
-    $this->appendPipeLog(
-        self::CODE_LOG_FILE,
-        ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
-        [
+        [$written, $lintResult] = $this->writePhpProjectFileWithLintRollback(
             $relativePath,
-            date('Y-m-d H:i:s'),
-            'actualizado',
-            '-',
-            'project_lab',
-            $methodName,
-            get_current_user() ?: 'unknown',
-            php_uname('n') ?: 'unknown',
-        ]
-    );
+            $newContent,
+            false,
+            $content,
+            true
+        );
 
-    return $message;
-}
+        if (! $written) {
+            return $lintResult;
+        }
+
+        $message = "[OK] Modo: php_method_add\n";
+        $message .= "[OK] Archivo: {$relativePath}\n";
+        $message .= "[OK] Método agregado: {$methodName}\n";
+        $message .= $lintResult;
+
+        $this->log('LAB_CODE_METHOD_ADD', "{$relativePath}++{$methodName}", $message);
+
+        $this->appendPipeLog(
+            self::CODE_LOG_FILE,
+            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+            [
+                $relativePath,
+                date('Y-m-d H:i:s'),
+                'actualizado',
+                '-',
+                'project_lab',
+                $methodName,
+                get_current_user() ?: 'unknown',
+                php_uname('n') ?: 'unknown',
+            ]
+        );
+
+        return $message;
+    }
 
     private function findEmbeddedMethodRange(string $content, string $methodName): ?array
     {
@@ -1415,318 +1445,318 @@ private function applyEmbeddedMethodAdd(array $operation): string
         return '';
     }
 
-private function appendPipeLog(string $relativeLogPath, array $columns, array $row): void
-{
-    $logPath = $this->resolveProjectPath($relativeLogPath, true);
+    private function appendPipeLog(string $relativeLogPath, array $columns, array $row): void
+    {
+        $logPath = $this->resolveProjectPath($relativeLogPath, true);
 
-    if ($logPath === null) {
-        $this->log('LAB_PIPE_LOG_ERROR', $relativeLogPath, '[ERROR] Ruta de log fuera del proyecto o no permitida.');
+        if ($logPath === null) {
+            $this->log('LAB_PIPE_LOG_ERROR', $relativeLogPath, '[ERROR] Ruta de log fuera del proyecto o no permitida.');
 
-        return;
+            return;
+        }
+
+        $isNewFile = ! file_exists($logPath);
+
+        $content = '';
+
+        if ($isNewFile) {
+            $content .= implode(' | ', $columns)."\n";
+        }
+
+        $content .= implode(' | ', $row)."\n";
+
+        $writeResult = $this->writeProjectFile($relativeLogPath, $content, true, true);
+
+        if ($writeResult !== true) {
+            $this->log('LAB_PIPE_LOG_ERROR', $relativeLogPath, $writeResult);
+        }
     }
 
-    $isNewFile = ! file_exists($logPath);
+    private function executeAuditScript(string $script): string
+    {
+        $script = str_replace(["\r\n", "\r"], "\n", $script);
 
-    $content = '';
+        $tmpFile = tempnam(sys_get_temp_dir(), 'project_lab_audit_');
 
-    if ($isNewFile) {
-        $content .= implode(' | ', $columns)."\n";
+        if ($tmpFile === false) {
+            return '[ERROR] No se pudo crear archivo temporal.';
+        }
+
+        file_put_contents($tmpFile, $script);
+
+        $command = 'cd '.escapeshellarg($this->projectRoot)
+            .' && bash '.escapeshellarg($tmpFile).' 2>&1';
+
+        $output = shell_exec($command);
+
+        @unlink($tmpFile);
+
+        return is_string($output) ? $output : '';
     }
 
-    $content .= implode(' | ', $row)."\n";
+    private function runAuditScript(string $script): string
+    {
+        $script = $this->normalizeScriptInput($script);
 
-    $writeResult = $this->writeProjectFile($relativeLogPath, $content, true, true);
+        if ($script === '') {
+            return '[ERROR] No se recibió script de auditoría.';
+        }
 
-    if ($writeResult !== true) {
-        $this->log('LAB_PIPE_LOG_ERROR', $relativeLogPath, $writeResult);
-    }
-}
+        $ensureAuditDirectory = $this->ensureAuditDirectory();
 
-private function executeAuditScript(string $script): string
-{
-    $script = str_replace(["\r\n", "\r"], "\n", $script);
+        if ($ensureAuditDirectory !== true) {
+            return '[ERROR] No se pudo preparar el directorio de auditoría: '.$ensureAuditDirectory;
+        }
 
-    $tmpFile = tempnam(sys_get_temp_dir(), 'project_lab_audit_');
+        $inputPreview = $this->auditInputPreview($script);
 
-    if ($tmpFile === false) {
-        return '[ERROR] No se pudo crear archivo temporal.';
-    }
+        $hasExplicitAuditOutput = str_contains($script, 'documentos/auditoria/');
 
-    file_put_contents($tmpFile, $script);
+        if ($hasExplicitAuditOutput) {
+            $result = $this->executeAuditScript($script);
 
-    $command = 'cd '.escapeshellarg($this->projectRoot)
-        .' && bash '.escapeshellarg($tmpFile).' 2>&1';
+            $this->log('AUDIT_SCRIPT', 'audit-inline', $result);
 
-    $output = shell_exec($command);
+            return $result;
+        }
 
-    @unlink($tmpFile);
+        $timestamp = date('Ymd_His');
+        $relativeOutput = "documentos/auditoria/auditoria_{$timestamp}.txt";
 
-    return is_string($output) ? $output : '';
-}
+        $wrapped = "{\n";
+        $wrapped .= "echo \"[OK] Auditoría simple ejecutada.\";\n";
+        $wrapped .= "echo \"[OK] Archivo generado: {$relativeOutput}\";\n";
+        $wrapped .= "echo \"[OK] Proyecto: {$this->projectRoot}\";\n";
+        $wrapped .= "echo \"[INFO] Entrada: {$inputPreview}\";\n";
+        $wrapped .= "echo \"\";\n";
+        $wrapped .= $script."\n";
+        $wrapped .= '} 2>&1 | tee '.escapeshellarg($relativeOutput);
 
-private function runAuditScript(string $script): string
-{
-    $script = $this->normalizeScriptInput($script);
+        $result = $this->executeAuditScript($wrapped);
 
-    if ($script === '') {
-        return '[ERROR] No se recibió script de auditoría.';
-    }
-
-    $ensureAuditDirectory = $this->ensureAuditDirectory();
-
-    if ($ensureAuditDirectory !== true) {
-        return '[ERROR] No se pudo preparar el directorio de auditoría: '.$ensureAuditDirectory;
-    }
-
-    $inputPreview = $this->auditInputPreview($script);
-
-    $hasExplicitAuditOutput = str_contains($script, 'documentos/auditoria/');
-
-    if ($hasExplicitAuditOutput) {
-        $result = $this->executeAuditScript($script);
-
-        $this->log('AUDIT_SCRIPT', 'audit-inline', $result);
+        $this->log('AUDIT_SCRIPT', $relativeOutput, $result);
 
         return $result;
     }
 
-    $timestamp = date('Ymd_His');
-    $relativeOutput = "documentos/auditoria/auditoria_{$timestamp}.txt";
+    private function applyEmbeddedPlainFile(string $content, string $mode): string
+    {
+        $content = str_replace(["\r\n", "\r"], "\n", $content);
+        $lines = explode("\n", ltrim($content));
+        $headerLine = trim($lines[0] ?? '');
 
-    $wrapped = "{\n";
-    $wrapped .= "echo \"[OK] Auditoría simple ejecutada.\";\n";
-    $wrapped .= "echo \"[OK] Archivo generado: {$relativeOutput}\";\n";
-    $wrapped .= "echo \"[OK] Proyecto: {$this->projectRoot}\";\n";
-    $wrapped .= "echo \"[INFO] Entrada: {$inputPreview}\";\n";
-    $wrapped .= "echo \"\";\n";
-    $wrapped .= $script."\n";
-    $wrapped .= "} 2>&1 | tee ".escapeshellarg($relativeOutput);
+        $style = null;
 
-    $result = $this->executeAuditScript($wrapped);
-
-    $this->log('AUDIT_SCRIPT', $relativeOutput, $result);
-
-    return $result;
-}
-
-private function applyEmbeddedPlainFile(string $content, string $mode): string
-{
-    $content = str_replace(["\r\n", "\r"], "\n", $content);
-    $lines = explode("\n", ltrim($content));
-    $headerLine = trim($lines[0] ?? '');
-
-    $style = null;
-
-    if (preg_match(self::REGEX_PLAIN_FILE_HEADER_LINE, $headerLine, $matches)) {
-        $style = str_starts_with($headerLine, '#') ? 'hash' : 'line';
-    } elseif (preg_match(self::REGEX_PLAIN_FILE_HEADER_BLOCK, $headerLine, $matches)) {
-        $style = 'block';
-    } else {
-        return '[ERROR] No se encontró encabezado FILE válido para CSS/JS/TPL.';
-    }
-
-    $relativePath = trim($matches[1] ?? '');
-    $version = trim($matches[2] ?? 'V1');
-
-    if ($relativePath === '') {
-        return '[ERROR] Ruta destino vacía.';
-    }
-
-    $extension = strtolower(pathinfo($relativePath, PATHINFO_EXTENSION));
-
-    if ($mode === 'css_full' && $extension !== 'css') {
-        return "[ERROR] El modo CSS requiere archivo .css: {$relativePath}";
-    }
-
-    if ($mode === 'js_full' && $extension !== 'js') {
-        return "[ERROR] El modo JS requiere archivo .js: {$relativePath}";
-    }
-
-    if ($mode === 'tpl_full' && $extension !== 'tpl') {
-        return "[ERROR] El modo TPL requiere archivo .tpl: {$relativePath}";
-    }
-
-    $targetPath = $this->resolveProjectPath($relativePath, true);
-
-    if ($targetPath === null) {
-        return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
-    }
-
-    array_shift($lines);
-    $body = ltrim(implode("\n", $lines), "\n");
-
-    if ($style === 'hash') {
-        $header = "# FILE: {$relativePath} | {$version}";
-    } elseif ($style === 'line') {
-        $header = "// FILE: {$relativePath} | {$version}";
-    } else {
-        $header = "/* FILE: {$relativePath} | {$version} */";
-    }
-
-    $finalContent = $header."\n\n".$body;
-    $status = file_exists($targetPath) ? 'sobrescrito' : 'creado';
-
-    $writeResult = $this->writeProjectFile($relativePath, $finalContent, true);
-
-    if ($writeResult !== true) {
-        return $writeResult;
-    }
-
-    $message = "[OK] Modo: {$mode}\n";
-    $message .= "[OK] Archivo: {$relativePath}\n";
-
-    if ($status === 'sobrescrito') {
-        $message .= "[WARN] Archivo existente reemplazado completamente.\n";
-    } else {
-        $message .= "[INFO] Archivo nuevo creado.\n";
-    }
-
-    $message .= "[OK] Estado: {$status}\n";
-    $message .= "[OK] Versión: {$version}";
-
-    $this->log('LAB_CODE', $relativePath, $message);
-
-    $this->appendPipeLog(
-        self::CODE_LOG_FILE,
-        ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
-        [
-            $relativePath,
-            date('Y-m-d H:i:s'),
-            $status,
-            $version,
-            'project_lab',
-            'archivo_completo',
-            get_current_user() ?: 'unknown',
-            php_uname('n') ?: 'unknown',
-        ]
-    );
-
-    return $message;
-}
-
-private function runEmbeddedAssetSectionsTool(string $input): string
-{
-    preg_match(self::REGEX_ASSET_SECTION_BLOCK, $input, $matches);
-
-    $relativePath = trim($matches[1] ?? '');
-
-    if ($relativePath === '') {
-        return '[ERROR] Ruta destino vacía.';
-    }
-
-    $extension = strtolower(pathinfo($relativePath, PATHINFO_EXTENSION));
-
-    if (! in_array($extension, self::ASSET_SECTION_EXTENSIONS, true)) {
-        return "[ERROR] Extensión no permitida para secciones: {$extension}";
-    }
-
-    $targetPath = $this->resolveProjectPath($relativePath, false);
-
-    if ($targetPath === null) {
-        return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
-    }
-
-    if (! file_exists($targetPath)) {
-        return "[ERROR] Archivo no encontrado: {$relativePath}";
-    }
-
-    $content = file_get_contents($targetPath);
-
-    if ($content === false) {
-        return "[ERROR] No se pudo leer el archivo: {$relativePath}";
-    }
-
-    preg_match_all('/<<SECTION:\s*(.*?)\s*>>(.*?)<<END SECTION>>/su', $input, $sections, PREG_SET_ORDER);
-
-    if (empty($sections)) {
-        return '[ERROR] No se encontraron secciones para aplicar.';
-    }
-
-    $applied = 0;
-    $appliedSections = [];
-
-    foreach ($sections as $section) {
-        $sectionName = trim($section[1] ?? '');
-        $sectionBody = $this->stripAssetSectionVersionFromBody($section[2] ?? '');
-
-        if ($sectionName === '') {
-            continue;
-        }
-
-        $escaped = preg_quote($sectionName, '/');
-
-        if ($extension === 'css') {
-            $pattern = '/\/\*\s*<<SECTION:\s*'.$escaped.'\s*>>\s*\*\/.*?\/\*\s*<<END SECTION>>\s*\*\//su';
+        if (preg_match(self::REGEX_PLAIN_FILE_HEADER_LINE, $headerLine, $matches)) {
+            $style = str_starts_with($headerLine, '#') ? 'hash' : 'line';
+        } elseif (preg_match(self::REGEX_PLAIN_FILE_HEADER_BLOCK, $headerLine, $matches)) {
+            $style = 'block';
         } else {
-            $pattern = '/\/\/\s*<<SECTION:\s*'.$escaped.'\s*>>.*?\/\/\s*<<END SECTION>>/su';
+            return '[ERROR] No se encontró encabezado FILE válido para CSS/JS/TPL.';
         }
 
-        if (! preg_match($pattern, $content, $targetMatches)) {
-            continue;
+        $relativePath = trim($matches[1] ?? '');
+        $version = trim($matches[2] ?? 'V1');
+
+        if ($relativePath === '') {
+            return '[ERROR] Ruta destino vacía.';
         }
 
-        $existingBlock = $targetMatches[0] ?? '';
-        $nextVersion = $this->nextAssetSectionVersion($existingBlock);
+        $extension = strtolower(pathinfo($relativePath, PATHINFO_EXTENSION));
 
-        if ($extension === 'css') {
-            $replacement =
-                "/* <<SECTION: {$sectionName}>> */\n".
-                "/* SECTION_VERSION: {$nextVersion} */\n\n".
-                $sectionBody."\n\n".
-                '/* <<END SECTION>> */';
+        if ($mode === 'css_full' && $extension !== 'css') {
+            return "[ERROR] El modo CSS requiere archivo .css: {$relativePath}";
+        }
+
+        if ($mode === 'js_full' && $extension !== 'js') {
+            return "[ERROR] El modo JS requiere archivo .js: {$relativePath}";
+        }
+
+        if ($mode === 'tpl_full' && $extension !== 'tpl') {
+            return "[ERROR] El modo TPL requiere archivo .tpl: {$relativePath}";
+        }
+
+        $targetPath = $this->resolveProjectPath($relativePath, true);
+
+        if ($targetPath === null) {
+            return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
+        }
+
+        array_shift($lines);
+        $body = ltrim(implode("\n", $lines), "\n");
+
+        if ($style === 'hash') {
+            $header = "# FILE: {$relativePath} | {$version}";
+        } elseif ($style === 'line') {
+            $header = "// FILE: {$relativePath} | {$version}";
         } else {
-            $replacement =
-                "// <<SECTION: {$sectionName}>>\n".
-                "// SECTION_VERSION: {$nextVersion}\n\n".
-                $sectionBody."\n\n".
-                '// <<END SECTION>>';
+            $header = "/* FILE: {$relativePath} | {$version} */";
         }
 
-        $newContent = preg_replace($pattern, $replacement, $content, 1, $count);
+        $finalContent = $header."\n\n".$body;
+        $status = file_exists($targetPath) ? 'sobrescrito' : 'creado';
 
-        if ($newContent === null || $count === 0) {
-            continue;
+        $writeResult = $this->writeProjectFile($relativePath, $finalContent, true);
+
+        if ($writeResult !== true) {
+            return $writeResult;
         }
 
-        $content = $newContent;
-        $applied++;
-        $appliedSections[] = "{$sectionName}:{$nextVersion}";
+        $message = "[OK] Modo: {$mode}\n";
+        $message .= "[OK] Archivo: {$relativePath}\n";
+
+        if ($status === 'sobrescrito') {
+            $message .= "[WARN] Archivo existente reemplazado completamente.\n";
+        } else {
+            $message .= "[INFO] Archivo nuevo creado.\n";
+        }
+
+        $message .= "[OK] Estado: {$status}\n";
+        $message .= "[OK] Versión: {$version}";
+
+        $this->log('LAB_CODE', $relativePath, $message);
+
+        $this->appendPipeLog(
+            self::CODE_LOG_FILE,
+            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+            [
+                $relativePath,
+                date('Y-m-d H:i:s'),
+                $status,
+                $version,
+                'project_lab',
+                'archivo_completo',
+                get_current_user() ?: 'unknown',
+                php_uname('n') ?: 'unknown',
+            ]
+        );
+
+        return $message;
     }
 
-    if ($applied === 0) {
-        return '[ERROR] No se encontró ninguna sección destino en el archivo.';
+    private function runEmbeddedAssetSectionsTool(string $input): string
+    {
+        preg_match(self::REGEX_ASSET_SECTION_BLOCK, $input, $matches);
+
+        $relativePath = trim($matches[1] ?? '');
+
+        if ($relativePath === '') {
+            return '[ERROR] Ruta destino vacía.';
+        }
+
+        $extension = strtolower(pathinfo($relativePath, PATHINFO_EXTENSION));
+
+        if (! in_array($extension, self::ASSET_SECTION_EXTENSIONS, true)) {
+            return "[ERROR] Extensión no permitida para secciones: {$extension}";
+        }
+
+        $targetPath = $this->resolveProjectPath($relativePath, false);
+
+        if ($targetPath === null) {
+            return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
+        }
+
+        if (! file_exists($targetPath)) {
+            return "[ERROR] Archivo no encontrado: {$relativePath}";
+        }
+
+        $content = file_get_contents($targetPath);
+
+        if ($content === false) {
+            return "[ERROR] No se pudo leer el archivo: {$relativePath}";
+        }
+
+        preg_match_all('/<<SECTION:\s*(.*?)\s*>>(.*?)<<END SECTION>>/su', $input, $sections, PREG_SET_ORDER);
+
+        if (empty($sections)) {
+            return '[ERROR] No se encontraron secciones para aplicar.';
+        }
+
+        $applied = 0;
+        $appliedSections = [];
+
+        foreach ($sections as $section) {
+            $sectionName = trim($section[1] ?? '');
+            $sectionBody = $this->stripAssetSectionVersionFromBody($section[2] ?? '');
+
+            if ($sectionName === '') {
+                continue;
+            }
+
+            $escaped = preg_quote($sectionName, '/');
+
+            if ($extension === 'css') {
+                $pattern = '/\/\*\s*<<SECTION:\s*'.$escaped.'\s*>>\s*\*\/.*?\/\*\s*<<END SECTION>>\s*\*\//su';
+            } else {
+                $pattern = '/\/\/\s*<<SECTION:\s*'.$escaped.'\s*>>.*?\/\/\s*<<END SECTION>>/su';
+            }
+
+            if (! preg_match($pattern, $content, $targetMatches)) {
+                continue;
+            }
+
+            $existingBlock = $targetMatches[0] ?? '';
+            $nextVersion = $this->nextAssetSectionVersion($existingBlock);
+
+            if ($extension === 'css') {
+                $replacement =
+                    "/* <<SECTION: {$sectionName}>> */\n".
+                    "/* SECTION_VERSION: {$nextVersion} */\n\n".
+                    $sectionBody."\n\n".
+                    '/* <<END SECTION>> */';
+            } else {
+                $replacement =
+                    "// <<SECTION: {$sectionName}>>\n".
+                    "// SECTION_VERSION: {$nextVersion}\n\n".
+                    $sectionBody."\n\n".
+                    '// <<END SECTION>>';
+            }
+
+            $newContent = preg_replace($pattern, $replacement, $content, 1, $count);
+
+            if ($newContent === null || $count === 0) {
+                continue;
+            }
+
+            $content = $newContent;
+            $applied++;
+            $appliedSections[] = "{$sectionName}:{$nextVersion}";
+        }
+
+        if ($applied === 0) {
+            return '[ERROR] No se encontró ninguna sección destino en el archivo.';
+        }
+
+        $writeResult = $this->writeProjectFile($relativePath, $content, false);
+
+        if ($writeResult !== true) {
+            return $writeResult;
+        }
+
+        $message = "[OK] Modo: asset_sections\n";
+        $message .= "[OK] Archivo: {$relativePath}\n";
+        $message .= "[OK] Secciones aplicadas: {$applied}\n";
+        $message .= '[INFO] Versiones: '.implode(', ', $appliedSections);
+
+        $this->log('LAB_CODE', $relativePath, $message);
+
+        $this->appendPipeLog(
+            self::CODE_LOG_FILE,
+            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+            [
+                $relativePath,
+                date('Y-m-d H:i:s'),
+                'actualizado',
+                implode(', ', $appliedSections),
+                'project_lab',
+                'asset_sections',
+                get_current_user() ?: 'unknown',
+                php_uname('n') ?: 'unknown',
+            ]
+        );
+
+        return $message;
     }
-
-    $writeResult = $this->writeProjectFile($relativePath, $content, false);
-
-    if ($writeResult !== true) {
-        return $writeResult;
-    }
-
-    $message = "[OK] Modo: asset_sections\n";
-    $message .= "[OK] Archivo: {$relativePath}\n";
-    $message .= "[OK] Secciones aplicadas: {$applied}\n";
-    $message .= '[INFO] Versiones: '.implode(', ', $appliedSections);
-
-    $this->log('LAB_CODE', $relativePath, $message);
-
-    $this->appendPipeLog(
-        self::CODE_LOG_FILE,
-        ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
-        [
-            $relativePath,
-            date('Y-m-d H:i:s'),
-            'actualizado',
-            implode(', ', $appliedSections),
-            'project_lab',
-            'asset_sections',
-            get_current_user() ?: 'unknown',
-            php_uname('n') ?: 'unknown',
-        ]
-    );
-
-    return $message;
-}
 
     private function findEmbeddedJsFunctionRange(string $content, string $functionName): ?array
     {
@@ -1862,149 +1892,149 @@ private function runEmbeddedAssetSectionsTool(string $input): string
         return null;
     }
 
-private function applyEmbeddedJsFunctionReplace(array $operation): string
-{
-    $relativePath = $operation['path'];
-    $functionName = $operation['method_name'];
-    $functionCode = $operation['method_code'];
+    private function applyEmbeddedJsFunctionReplace(array $operation): string
+    {
+        $relativePath = $operation['path'];
+        $functionName = $operation['method_name'];
+        $functionCode = $operation['method_code'];
 
-    if (strtolower(pathinfo($relativePath, PATHINFO_EXTENSION)) !== 'js') {
-        return "[ERROR] El reemplazo de función JS requiere archivo .js: {$relativePath}";
-    }
-
-    $targetPath = $this->resolveProjectPath($relativePath, false);
-
-    if ($targetPath === null) {
-        return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
-    }
-
-    if (! file_exists($targetPath)) {
-        return "[ERROR] El archivo destino no existe: {$relativePath}";
-    }
-
-    $content = file_get_contents($targetPath);
-
-    if ($content === false) {
-        return "[ERROR] No se pudo leer el archivo: {$relativePath}";
-    }
-
-    $range = $this->findEmbeddedJsFunctionRange($content, $functionName);
-
-    if ($range === null) {
-        return "[ERROR] No se encontró la función JS: {$functionName}";
-    }
-
-    [$start, $end] = $range;
-
-    $newContent = substr($content, 0, $start)
-        .rtrim($functionCode)
-        .substr($content, $end);
-
-    $writeResult = $this->writeProjectFile($relativePath, $newContent, false);
-
-    if ($writeResult !== true) {
-        return $writeResult;
-    }
-
-    $message = "[OK] Modo: js_function_patch\n";
-    $message .= "[OK] Archivo: {$relativePath}\n";
-    $message .= "[OK] Función JS reemplazada: {$functionName}";
-
-    $this->log('LAB_CODE_JS_FUNCTION_REPLACE', "{$relativePath}::{$functionName}", $message);
-
-    $this->appendPipeLog(
-        self::CODE_LOG_FILE,
-        ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
-        [
-            $relativePath,
-            date('Y-m-d H:i:s'),
-            'actualizado',
-            '-',
-            'project_lab',
-            $functionName,
-            get_current_user() ?: 'unknown',
-            php_uname('n') ?: 'unknown',
-        ]
-    );
-
-    return $message;
-}
-
-private function getAssetSectionsCatalog(): array
-{
-    $projectRoot = realpath($this->projectRoot);
-
-    if ($projectRoot === false) {
-        return [];
-    }
-
-    $projectRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR);
-
-    $catalog = [];
-
-    $patterns = [
-        'public/css/*.css',
-        'public/css/modules/*.css',
-        'public/js/*.js',
-        'tools/project-lab/assets/css/*.css',
-        'tools/project-lab/assets/js/*.js',
-    ];
-
-    $files = [];
-
-    foreach ($patterns as $pattern) {
-        $patternPath = $projectRoot.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $pattern);
-        $files = array_merge($files, glob($patternPath) ?: []);
-    }
-
-    foreach ($files as $filePath) {
-        $resolvedFilePath = realpath($filePath);
-
-        if ($resolvedFilePath === false || ! is_file($resolvedFilePath)) {
-            continue;
+        if (strtolower(pathinfo($relativePath, PATHINFO_EXTENSION)) !== 'js') {
+            return "[ERROR] El reemplazo de función JS requiere archivo .js: {$relativePath}";
         }
 
-        if (! str_starts_with($resolvedFilePath, $projectRoot.DIRECTORY_SEPARATOR)) {
-            continue;
+        $targetPath = $this->resolveProjectPath($relativePath, false);
+
+        if ($targetPath === null) {
+            return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
         }
 
-        $relativePath = ltrim(substr($resolvedFilePath, strlen($projectRoot)), DIRECTORY_SEPARATOR);
-        $relativePath = str_replace(DIRECTORY_SEPARATOR, '/', $relativePath);
-
-        $extension = strtolower(pathinfo($relativePath, PATHINFO_EXTENSION));
-
-        if (! in_array($extension, self::ASSET_SECTION_EXTENSIONS, true)) {
-            continue;
+        if (! file_exists($targetPath)) {
+            return "[ERROR] El archivo destino no existe: {$relativePath}";
         }
 
-        $content = file_get_contents($resolvedFilePath);
+        $content = file_get_contents($targetPath);
 
         if ($content === false) {
-            continue;
+            return "[ERROR] No se pudo leer el archivo: {$relativePath}";
         }
 
-        preg_match_all(self::REGEX_SECTION_NAME, $content, $matches);
+        $range = $this->findEmbeddedJsFunctionRange($content, $functionName);
 
-        $sections = array_values(array_unique(array_map('trim', $matches[1] ?? [])));
-
-        if (empty($sections)) {
-            continue;
+        if ($range === null) {
+            return "[ERROR] No se encontró la función JS: {$functionName}";
         }
 
-        $catalog[] = [
-            'path' => $relativePath,
-            'extension' => $extension,
-            'sections' => $sections,
-            'count' => count($sections),
-        ];
+        [$start, $end] = $range;
+
+        $newContent = substr($content, 0, $start)
+            .rtrim($functionCode)
+            .substr($content, $end);
+
+        $writeResult = $this->writeProjectFile($relativePath, $newContent, false);
+
+        if ($writeResult !== true) {
+            return $writeResult;
+        }
+
+        $message = "[OK] Modo: js_function_patch\n";
+        $message .= "[OK] Archivo: {$relativePath}\n";
+        $message .= "[OK] Función JS reemplazada: {$functionName}";
+
+        $this->log('LAB_CODE_JS_FUNCTION_REPLACE', "{$relativePath}::{$functionName}", $message);
+
+        $this->appendPipeLog(
+            self::CODE_LOG_FILE,
+            ['ARCHIVO', 'FECHA', 'ESTADO', 'VERSION', 'MODO', 'OBJETIVO', 'USUARIO', 'HOST'],
+            [
+                $relativePath,
+                date('Y-m-d H:i:s'),
+                'actualizado',
+                '-',
+                'project_lab',
+                $functionName,
+                get_current_user() ?: 'unknown',
+                php_uname('n') ?: 'unknown',
+            ]
+        );
+
+        return $message;
     }
 
-    usort($catalog, function (array $a, array $b): int {
-        return strcmp($a['path'], $b['path']);
-    });
+    private function getAssetSectionsCatalog(): array
+    {
+        $projectRoot = realpath($this->projectRoot);
 
-    return $catalog;
-}
+        if ($projectRoot === false) {
+            return [];
+        }
+
+        $projectRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR);
+
+        $catalog = [];
+
+        $patterns = [
+            'public/css/*.css',
+            'public/css/modules/*.css',
+            'public/js/*.js',
+            'tools/project-lab/assets/css/*.css',
+            'tools/project-lab/assets/js/*.js',
+        ];
+
+        $files = [];
+
+        foreach ($patterns as $pattern) {
+            $patternPath = $projectRoot.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $pattern);
+            $files = array_merge($files, glob($patternPath) ?: []);
+        }
+
+        foreach ($files as $filePath) {
+            $resolvedFilePath = realpath($filePath);
+
+            if ($resolvedFilePath === false || ! is_file($resolvedFilePath)) {
+                continue;
+            }
+
+            if (! str_starts_with($resolvedFilePath, $projectRoot.DIRECTORY_SEPARATOR)) {
+                continue;
+            }
+
+            $relativePath = ltrim(substr($resolvedFilePath, strlen($projectRoot)), DIRECTORY_SEPARATOR);
+            $relativePath = str_replace(DIRECTORY_SEPARATOR, '/', $relativePath);
+
+            $extension = strtolower(pathinfo($relativePath, PATHINFO_EXTENSION));
+
+            if (! in_array($extension, self::ASSET_SECTION_EXTENSIONS, true)) {
+                continue;
+            }
+
+            $content = file_get_contents($resolvedFilePath);
+
+            if ($content === false) {
+                continue;
+            }
+
+            preg_match_all(self::REGEX_SECTION_NAME, $content, $matches);
+
+            $sections = array_values(array_unique(array_map('trim', $matches[1] ?? [])));
+
+            if (empty($sections)) {
+                continue;
+            }
+
+            $catalog[] = [
+                'path' => $relativePath,
+                'extension' => $extension,
+                'sections' => $sections,
+                'count' => count($sections),
+            ];
+        }
+
+        usort($catalog, function (array $a, array $b): int {
+            return strcmp($a['path'], $b['path']);
+        });
+
+        return $catalog;
+    }
 
     private function stripAssetSectionVersionFromBody(string $body): string
     {
@@ -2036,430 +2066,381 @@ private function getAssetSectionsCatalog(): array
         return '00001';
     }
 
-private function runPhpLint(string $relativePath): string
-{
-    if (strtolower(pathinfo($relativePath, PATHINFO_EXTENSION)) !== 'php') {
-        return '';
+    private function runPhpLint(string $relativePath): string
+    {
+        if (strtolower(pathinfo($relativePath, PATHINFO_EXTENSION)) !== 'php') {
+            return '';
+        }
+
+        $targetPath = $this->resolveProjectPath($relativePath, false);
+
+        if ($targetPath === null) {
+            return "[ERROR] Ruta fuera del proyecto o no permitida para lint PHP: {$relativePath}";
+        }
+
+        if (! file_exists($targetPath)) {
+            return "[ERROR] Sintaxis PHP no verificada. Archivo no encontrado: {$relativePath}";
+        }
+
+        $command = 'cd '.escapeshellarg($this->projectRoot)
+            .' && php -l '.escapeshellarg($targetPath).' 2>&1';
+
+        $output = shell_exec($command);
+        $output = trim((string) $output);
+
+        if (str_contains($output, 'No syntax errors detected')) {
+            return "[OK] Sintaxis PHP válida: {$relativePath}";
+        }
+
+        return "[ERROR] Sintaxis PHP inválida: {$relativePath}\n".$output;
     }
 
-    $targetPath = $this->resolveProjectPath($relativePath, false);
+    private function saveProjectConsoleAudit(string $content): string
+    {
+        $content = trim($content);
 
-    if ($targetPath === null) {
-        return "[ERROR] Ruta fuera del proyecto o no permitida para lint PHP: {$relativePath}";
+        if ($content === '') {
+            return '[ERROR] No se recibió contenido de consola para guardar.';
+        }
+
+        $ensureAuditDirectory = $this->ensureAuditDirectory();
+
+        if ($ensureAuditDirectory !== true) {
+            return '[ERROR] No se pudo preparar el directorio de auditoría: '.$ensureAuditDirectory;
+        }
+
+        $timestamp = date('Ymd_His');
+        $relativeOutput = "documentos/auditoria/consola_project_lab_{$timestamp}.txt";
+
+        $header = "[OK] Consola Project Lab guardada como auditoría\n";
+        $header .= "[OK] Archivo generado: {$relativeOutput}\n";
+        $header .= "[OK] Proyecto: {$this->projectRoot}\n";
+        $header .= '[OK] Fecha: '.date('Y-m-d H:i:s')."\n\n";
+
+        $writeResult = $this->writeProjectFile($relativeOutput, $header.$content."\n", true);
+
+        if ($writeResult !== true) {
+            return '[ERROR] No se pudo guardar la consola como auditoría: '.$writeResult;
+        }
+
+        $output = $header.$content;
+
+        $this->log('CONSOLE_AUDIT', $relativeOutput, $output);
+
+        return $output;
     }
-
-    if (! file_exists($targetPath)) {
-        return "[ERROR] Sintaxis PHP no verificada. Archivo no encontrado: {$relativePath}";
-    }
-
-    $command = 'cd '.escapeshellarg($this->projectRoot)
-        .' && php -l '.escapeshellarg($targetPath).' 2>&1';
-
-    $output = shell_exec($command);
-    $output = trim((string) $output);
-
-    if (str_contains($output, 'No syntax errors detected')) {
-        return "[OK] Sintaxis PHP válida: {$relativePath}";
-    }
-
-    return "[ERROR] Sintaxis PHP inválida: {$relativePath}\n".$output;
-}
-
-private function saveProjectConsoleAudit(string $content): string
-{
-    $content = trim($content);
-
-    if ($content === '') {
-        return '[ERROR] No se recibió contenido de consola para guardar.';
-    }
-
-    $ensureAuditDirectory = $this->ensureAuditDirectory();
-
-    if ($ensureAuditDirectory !== true) {
-        return '[ERROR] No se pudo preparar el directorio de auditoría: '.$ensureAuditDirectory;
-    }
-
-    $timestamp = date('Ymd_His');
-    $relativeOutput = "documentos/auditoria/consola_project_lab_{$timestamp}.txt";
-
-    $header = "[OK] Consola Project Lab guardada como auditoría\n";
-    $header .= "[OK] Archivo generado: {$relativeOutput}\n";
-    $header .= "[OK] Proyecto: {$this->projectRoot}\n";
-    $header .= "[OK] Fecha: ".date('Y-m-d H:i:s')."\n\n";
-
-    $writeResult = $this->writeProjectFile($relativeOutput, $header.$content."\n", true);
-
-    if ($writeResult !== true) {
-        return '[ERROR] No se pudo guardar la consola como auditoría: '.$writeResult;
-    }
-
-    $output = $header.$content;
-
-    $this->log('CONSOLE_AUDIT', $relativeOutput, $output);
-
-    return $output;
-}
-
 
     private function auditInputPreview(string $script): string
     {
         $normalized = preg_replace('/\s+/', ' ', trim($script));
         $normalized = is_string($normalized) ? trim($normalized) : trim($script);
-    
+
         $normalized = str_replace('"', "'", $normalized);
-    
+
         if (strlen($normalized) <= 110) {
             return $normalized;
         }
-    
+
         return substr($normalized, 0, 50).' ... '.substr($normalized, -50);
     }
 
-
     private function resolveProjectPath(string $relativePath, bool $allowNewFile = false): ?string
     {
-        $relativePath = str_replace(["\r\n", "\r", "\n", "\\"], ['', '', '', '/'], trim($relativePath));
-    
+        $relativePath = str_replace(["\r\n", "\r", "\n", '\\'], ['', '', '', '/'], trim($relativePath));
+
         if ($relativePath === '') {
             return null;
         }
-    
+
         if (str_starts_with($relativePath, '/')) {
             return null;
         }
-    
+
         if (preg_match('#(^|/)\.\.(/|$)#', $relativePath)) {
             return null;
         }
-    
+
         if (str_contains($relativePath, "\0")) {
             return null;
         }
-    
+
         $projectRoot = realpath($this->projectRoot);
-    
+
         if ($projectRoot === false) {
             return null;
         }
-    
+
         $projectRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR);
-    
+
         $candidatePath = $projectRoot.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
-    
+
         if (file_exists($candidatePath)) {
             $resolvedPath = realpath($candidatePath);
-    
+
             if ($resolvedPath === false) {
                 return null;
             }
-    
+
             return str_starts_with($resolvedPath, $projectRoot.DIRECTORY_SEPARATOR) || $resolvedPath === $projectRoot
                 ? $resolvedPath
                 : null;
         }
-    
+
         if (! $allowNewFile) {
             return null;
         }
-    
+
         $parentDirectory = dirname($candidatePath);
-    
+
         while (! is_dir($parentDirectory) && $parentDirectory !== dirname($parentDirectory)) {
             $parentDirectory = dirname($parentDirectory);
         }
-    
+
         $resolvedParent = realpath($parentDirectory);
-    
+
         if ($resolvedParent === false) {
             return null;
         }
-    
+
         if (! str_starts_with($resolvedParent, $projectRoot.DIRECTORY_SEPARATOR) && $resolvedParent !== $projectRoot) {
             return null;
         }
-    
+
         return $candidatePath;
     }
-
 
     private function writeProjectFile(string $relativePath, string $content, bool $allowNewFile = true, bool $append = false): true|string
     {
         $targetPath = $this->resolveProjectPath($relativePath, $allowNewFile);
-    
+
         if ($targetPath === null) {
             return "[ERROR] Ruta fuera del proyecto o no permitida: {$relativePath}";
         }
-    
+
         $directory = dirname($targetPath);
         $projectRoot = realpath($this->projectRoot);
-    
+
         if ($projectRoot === false) {
             return '[ERROR] No se pudo resolver el root del proyecto.';
         }
-    
+
         $projectRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR);
-    
+
         if (! is_dir($directory)) {
             $parent = dirname($directory);
-    
+
             while (! is_dir($parent) && $parent !== dirname($parent)) {
                 $parent = dirname($parent);
             }
-    
+
             $resolvedParent = realpath($parent);
-    
+
             if (
                 $resolvedParent === false
                 || (! str_starts_with($resolvedParent, $projectRoot.DIRECTORY_SEPARATOR) && $resolvedParent !== $projectRoot)
             ) {
                 return "[ERROR] Directorio destino fuera del proyecto: {$relativePath}";
             }
-    
+
             if (! mkdir($directory, 0775, true) && ! is_dir($directory)) {
                 return "[ERROR] No se pudo crear el directorio destino: {$relativePath}";
             }
         }
-    
+
         $flags = $append ? FILE_APPEND : 0;
-    
+
         if (file_put_contents($targetPath, $content, $flags) === false) {
             return "[ERROR] No se pudo escribir el archivo: {$relativePath}";
         }
-    
+
         return true;
     }
-
 
     private function ensureProjectDirectory(string $relativePath): true|string
     {
         $relativePath = trim(str_replace('\\', '/', $relativePath), '/');
-    
+
         if ($relativePath === '') {
             return 'Ruta de directorio vacía.';
         }
-    
+
         if (str_contains($relativePath, "\0")) {
             return 'Ruta de directorio inválida.';
         }
-    
+
         if (str_starts_with($relativePath, '/') || preg_match('/^[A-Za-z]:\//', $relativePath)) {
             return 'No se permiten rutas absolutas.';
         }
-    
+
         $segments = explode('/', $relativePath);
-    
+
         if (in_array('..', $segments, true)) {
             return 'No se permiten rutas con segmentos ascendentes.';
         }
-    
+
         $projectRoot = realpath($this->projectRoot);
-    
+
         if ($projectRoot === false) {
             return 'No se pudo resolver el root del proyecto.';
         }
-    
+
         $projectRoot = rtrim($projectRoot, DIRECTORY_SEPARATOR);
         $targetPath = $projectRoot.DIRECTORY_SEPARATOR.str_replace('/', DIRECTORY_SEPARATOR, $relativePath);
-    
+
         if (! str_starts_with($targetPath, $projectRoot.DIRECTORY_SEPARATOR)) {
             return 'Directorio fuera del proyecto.';
         }
-    
+
         if (is_dir($targetPath)) {
             return true;
         }
-    
+
         if (! mkdir($targetPath, 0775, true) && ! is_dir($targetPath)) {
             return 'No se pudo crear directorio: '.$relativePath;
         }
-    
+
         return true;
     }
 
+    private function writePhpProjectFileWithLintRollback(
+        string $relativePath,
+        string $newContent,
+        bool $allowNewFile,
+        ?string $previousContent,
+        bool $existedBefore
+    ): array {
+        $writeResult = $this->writeProjectFile($relativePath, $newContent, $allowNewFile);
 
-private function writePhpProjectFileWithLintRollback(
-    string $relativePath,
-    string $newContent,
-    bool $allowNewFile,
-    ?string $previousContent,
-    bool $existedBefore
-): array {
-    $writeResult = $this->writeProjectFile($relativePath, $newContent, $allowNewFile);
+        if ($writeResult !== true) {
+            return [false, $writeResult];
+        }
 
-    if ($writeResult !== true) {
-        return [false, $writeResult];
-    }
+        $lintResult = $this->runPhpLint($relativePath);
 
-    $lintResult = $this->runPhpLint($relativePath);
+        if (str_starts_with($lintResult, '[OK]')) {
+            return [true, $lintResult];
+        }
 
-    if (str_starts_with($lintResult, '[OK]')) {
-        return [true, $lintResult];
-    }
+        $lintDetail = "[INFO] Detalle lint:\n".$lintResult;
 
-    $lintDetail = "[INFO] Detalle lint:\n".$lintResult;
+        if ($existedBefore && $previousContent !== null) {
+            $rollbackResult = $this->writeProjectFile($relativePath, $previousContent, true);
 
-    if ($existedBefore && $previousContent !== null) {
-        $rollbackResult = $this->writeProjectFile($relativePath, $previousContent, true);
+            if ($rollbackResult !== true) {
+                return [
+                    false,
+                    "[ERROR] Sintaxis PHP inválida y no se pudo restaurar el archivo anterior.\n"
+                        .$lintDetail."\n"
+                        .'[ERROR] Resultado rollback: '.$rollbackResult,
+                ];
+            }
 
-        if ($rollbackResult !== true) {
             return [
                 false,
-                "[ERROR] Sintaxis PHP inválida y no se pudo restaurar el archivo anterior.\n"
-                    .$lintDetail."\n"
-                    ."[ERROR] Resultado rollback: ".$rollbackResult,
+                "[ERROR] Sintaxis PHP inválida. Se restauró el archivo anterior.\n".$lintDetail,
             ];
+        }
+
+        $targetPath = $this->resolveProjectPath($relativePath, false);
+
+        if ($targetPath !== null && is_file($targetPath)) {
+            @unlink($targetPath);
         }
 
         return [
             false,
-            "[ERROR] Sintaxis PHP inválida. Se restauró el archivo anterior.\n".$lintDetail,
+            "[ERROR] Sintaxis PHP inválida. Se eliminó el archivo nuevo generado.\n".$lintDetail,
         ];
     }
-
-    $targetPath = $this->resolveProjectPath($relativePath, false);
-
-    if ($targetPath !== null && is_file($targetPath)) {
-        @unlink($targetPath);
-    }
-
-    return [
-        false,
-        "[ERROR] Sintaxis PHP inválida. Se eliminó el archivo nuevo generado.\n".$lintDetail,
-    ];
-}
-
 
     private function readProjectJsonFile(string $relativePath, array $fallback = []): array
     {
         $targetPath = $this->resolveProjectPath($relativePath, false);
-    
+
         if ($targetPath === null || ! is_file($targetPath)) {
             return $fallback;
         }
-    
+
         $content = file_get_contents($targetPath);
-    
+
         if ($content === false || trim($content) === '') {
             return $fallback;
         }
-    
+
         $decoded = json_decode($content, true);
-    
+
         return is_array($decoded) ? $decoded : $fallback;
     }
-
 
     private function readComposerLock(): array
     {
         return $this->readProjectJsonFile('composer.lock', []);
     }
 
-
     private function ensureAuditDirectory(): true|string
     {
         return $this->ensureProjectDirectory('documentos/auditoria');
     }
 
-
     private function normalizeScriptInput(string $script): string
     {
         $script = str_replace(["\r\n", "\r"], "\n", $script);
-    
+
         return trim($script);
     }
-
 
     private function extractLeadingTinkerImports(string $code): array
     {
         $code = str_replace(["\r\n", "\r"], "\n", trim($code));
-    
+
         if ($code === '') {
             return ['', ''];
         }
-    
+
         $lines = explode("\n", $code);
         $imports = [];
         $body = [];
         $readingImports = true;
-    
+
         foreach ($lines as $line) {
             $trimmed = trim($line);
-    
+
             if ($readingImports && $trimmed === '') {
                 continue;
             }
-    
+
             if (
                 $readingImports
                 && preg_match('/^use\s+(function\s+|const\s+)?[A-Za-z_\\\\][A-Za-z0-9_\\\\]*(\s+as\s+[A-Za-z_][A-Za-z0-9_]*)?\s*;\s*$/', $trimmed)
             ) {
                 $imports[] = $trimmed;
+
                 continue;
             }
-    
+
             $readingImports = false;
             $body[] = $line;
         }
-    
+
         return [
             implode("\n", $imports),
             trim(implode("\n", $body)),
         ];
     }
 
+    private function resolveQuickAuditCommand(string $input): array
+    {
+        $input = trim(str_replace(["\r\n", "\r"], "\n", $input));
 
-private function resolveQuickAuditCommand(string $input): array
-{
-    $input = trim(str_replace(["\r\n", "\r"], "\n", $input));
+        if (! str_starts_with($input, '>>')) {
+            return [
+                'matched' => false,
+                'ok' => true,
+                'input' => $input,
+            ];
+        }
 
-    if (! str_starts_with($input, '>>')) {
-        return [
-            'matched' => false,
-            'ok' => true,
-            'input' => $input,
-        ];
-    }
-
-    if (! preg_match('/^>>\s*([a-z0-9_-]+)(?:\s+(.*))?$/i', $input, $commandMatch)) {
-        return [
-            'matched' => true,
-            'ok' => false,
-            'input' => $input,
-            'error' => implode("\n", [
-                '[ERROR] Comando rápido Project Lab inválido.',
-                '[INFO] Formato esperado:',
-                '>> <macro> [argumentos]',
-                '',
-                '[INFO] Ejemplos:',
-                '>> find web.php service +30',
-                '>> test-macro A B',
-            ]),
-        ];
-    }
-
-    $macroName = strtolower(trim((string) ($commandMatch[1] ?? '')));
-    $rawArgs = trim((string) ($commandMatch[2] ?? ''));
-
-    if ($macroName === '') {
-        return [
-            'matched' => true,
-            'ok' => false,
-            'input' => $input,
-            'error' => '[ERROR] No se indicó nombre de macro.',
-        ];
-    }
-
-    if (! preg_match('/^[a-z0-9_-]+$/i', $macroName)) {
-        return [
-            'matched' => true,
-            'ok' => false,
-            'input' => $input,
-            'error' => '[ERROR] Nombre de macro inválido. Use solo letras, números, guion medio o guion bajo.',
-        ];
-    }
-
-    if ($macroName === 'find') {
-        if (! preg_match('/^(\S+)\s+(\S+)(?:\s+\+(\d+))?$/i', $rawArgs, $matches)) {
+        if (! preg_match('/^>>\s*([a-z0-9_-]+)(?:\s+(.*))?$/i', $input, $commandMatch)) {
             return [
                 'matched' => true,
                 'ok' => false,
@@ -2467,129 +2448,195 @@ private function resolveQuickAuditCommand(string $input): array
                 'error' => implode("\n", [
                     '[ERROR] Comando rápido Project Lab inválido.',
                     '[INFO] Formato esperado:',
-                    '>> find <archivo|*> <termino> +<lineas>',
+                    '>> <macro> [argumentos]',
                     '',
                     '[INFO] Ejemplos:',
-                    '>> find * executeTinker +50',
-                    '>> find projectlab.php executeTinker +50',
+                    '>> find web.php service +30',
+                    '>> find ProjectLab.php "function resolveQuickAuditCommand" +80',
+                    '>> test-macro A B',
                 ]),
             ];
         }
 
-        $filePattern = trim((string) ($matches[1] ?? ''));
-        $term = trim((string) ($matches[2] ?? ''));
-        $lines = isset($matches[3]) ? (int) $matches[3] : 30;
+        $macroName = strtolower(trim((string) ($commandMatch[1] ?? '')));
+        $rawArgs = trim((string) ($commandMatch[2] ?? ''));
 
-        if ($filePattern === '') {
+        if ($macroName === '') {
             return [
                 'matched' => true,
                 'ok' => false,
                 'input' => $input,
-                'error' => '[ERROR] El patrón de archivo no puede estar vacío.',
+                'error' => '[ERROR] No se indicó nombre de macro.',
             ];
         }
 
-        if ($term === '' || $term === '*') {
+        if (! preg_match('/^[a-z0-9_-]+$/i', $macroName)) {
             return [
                 'matched' => true,
                 'ok' => false,
                 'input' => $input,
-                'error' => "[ERROR] El término de búsqueda no puede estar vacío ni ser '*'.",
+                'error' => '[ERROR] Nombre de macro inválido. Use solo letras, números, guion medio o guion bajo.',
             ];
         }
 
-        if ($lines < 1 || $lines > 300) {
+        if ($macroName === 'find') {
+            $args = $this->parseQuickAuditArguments($rawArgs);
+            $count = count($args);
+
+            if ($count < 2 || $count > 3) {
+                return [
+                    'matched' => true,
+                    'ok' => false,
+                    'input' => $input,
+                    'error' => implode("\n", [
+                        '[ERROR] Comando rápido Project Lab inválido.',
+                        '[INFO] Formato esperado:',
+                        '>> find <archivo|*> <termino> +<lineas>',
+                        '',
+                        '[INFO] También se acepta término entre comillas:',
+                        '>> find <archivo|*> "<termino con espacios>" +<lineas>',
+                        '',
+                        '[INFO] Ejemplos:',
+                        '>> find * executeTinker +50',
+                        '>> find ProjectLab.php executeTinker +50',
+                        '>> find ProjectLab.php "function executeTinker" +80',
+                        '>> find app.js "function runProjectAction" +120',
+                    ]),
+                ];
+            }
+
+            $filePattern = trim((string) ($args[0] ?? ''));
+            $term = trim((string) ($args[1] ?? ''));
+            $lines = 30;
+
+            if (isset($args[2])) {
+                $lineArg = trim((string) $args[2]);
+
+                if (! preg_match('/^\+(\d+)$/', $lineArg, $lineMatch)) {
+                    return [
+                        'matched' => true,
+                        'ok' => false,
+                        'input' => $input,
+                        'error' => implode("\n", [
+                            '[ERROR] Cantidad de líneas inválida.',
+                            '[INFO] Use el formato +<lineas>.',
+                            '[INFO] Ejemplo:',
+                            '>> find ProjectLab.php "function executeTinker" +80',
+                        ]),
+                    ];
+                }
+
+                $lines = (int) ($lineMatch[1] ?? 30);
+            }
+
+            if ($filePattern === '') {
+                return [
+                    'matched' => true,
+                    'ok' => false,
+                    'input' => $input,
+                    'error' => '[ERROR] El patrón de archivo no puede estar vacío.',
+                ];
+            }
+
+            if ($term === '' || $term === '*') {
+                return [
+                    'matched' => true,
+                    'ok' => false,
+                    'input' => $input,
+                    'error' => "[ERROR] El término de búsqueda no puede estar vacío ni ser '*'.",
+                ];
+            }
+
+            if ($lines < 1 || $lines > 300) {
+                return [
+                    'matched' => true,
+                    'ok' => false,
+                    'input' => $input,
+                    'error' => '[ERROR] La cantidad de líneas debe estar entre 1 y 300.',
+                ];
+            }
+
+            return [
+                'matched' => true,
+                'ok' => true,
+                'input' => $this->buildQuickFindAuditScript($input, $filePattern, $term, $lines),
+                'original_input' => $input,
+                'command' => 'find',
+            ];
+        }
+
+        $template = $this->loadAuditMacroTemplate($macroName);
+
+        if ($template === '') {
+            $availableMacros = $this->listAuditMacros();
+
             return [
                 'matched' => true,
                 'ok' => false,
                 'input' => $input,
-                'error' => '[ERROR] La cantidad de líneas debe estar entre 1 y 300.',
+                'error' => implode("\n", [
+                    "[ERROR] Macro Project Lab no encontrada: {$macroName}",
+                    '[INFO] Ruta esperada:',
+                    "tools/project-lab/macros/audit/{$macroName}.sh.tpl",
+                    '',
+                    '[INFO] Macros disponibles:',
+                    empty($availableMacros) ? '- ninguna' : '- '.implode("\n- ", $availableMacros),
+                ]),
+            ];
+        }
+
+        $args = $this->parseQuickAuditArguments($rawArgs);
+        $rules = $this->readAuditMacroArgumentRules($template);
+        $count = count($args);
+
+        if ($count < $rules['min']) {
+            return [
+                'matched' => true,
+                'ok' => false,
+                'input' => $input,
+                'error' => "[ERROR] La macro {$macroName} requiere al menos {$rules['min']} argumento/s. Recibidos: {$count}.",
+            ];
+        }
+
+        if ($count > $rules['max']) {
+            return [
+                'matched' => true,
+                'ok' => false,
+                'input' => $input,
+                'error' => "[ERROR] La macro {$macroName} acepta como máximo {$rules['max']} argumento/s. Recibidos: {$count}.",
             ];
         }
 
         return [
             'matched' => true,
             'ok' => true,
-            'input' => $this->buildQuickFindAuditScript($input, $filePattern, $term, $lines),
+            'input' => $this->buildGenericAuditMacroScript($macroName, $template, $input, $rawArgs, $args),
             'original_input' => $input,
-            'command' => 'find',
+            'command' => $macroName,
         ];
     }
 
-    $template = $this->loadAuditMacroTemplate($macroName);
+    private function buildQuickFindAuditScript(string $originalInput, string $filePattern, string $term, int $lines): string
+    {
+        $template = $this->loadAuditMacroTemplate('find');
 
-    if ($template === '') {
-        $availableMacros = $this->listAuditMacros();
+        if ($template === '') {
+            return implode("\n", [
+                'echo "[ERROR] Macro Project Lab no encontrada: find"',
+                'echo "[INFO] Ruta esperada: tools/project-lab/macros/audit/find.sh.tpl"',
+            ]);
+        }
 
-        return [
-            'matched' => true,
-            'ok' => false,
-            'input' => $input,
-            'error' => implode("\n", [
-                "[ERROR] Macro Project Lab no encontrada: {$macroName}",
-                '[INFO] Ruta esperada:',
-                "tools/project-lab/macros/audit/{$macroName}.sh.tpl",
-                '',
-                '[INFO] Macros disponibles:',
-                empty($availableMacros) ? '- ninguna' : '- '.implode("\n- ", $availableMacros),
-            ]),
-        ];
-    }
-
-    $args = $this->parseQuickAuditArguments($rawArgs);
-    $rules = $this->readAuditMacroArgumentRules($template);
-    $count = count($args);
-
-    if ($count < $rules['min']) {
-        return [
-            'matched' => true,
-            'ok' => false,
-            'input' => $input,
-            'error' => "[ERROR] La macro {$macroName} requiere al menos {$rules['min']} argumento/s. Recibidos: {$count}.",
-        ];
-    }
-
-    if ($count > $rules['max']) {
-        return [
-            'matched' => true,
-            'ok' => false,
-            'input' => $input,
-            'error' => "[ERROR] La macro {$macroName} acepta como máximo {$rules['max']} argumento/s. Recibidos: {$count}.",
-        ];
-    }
-
-    return [
-        'matched' => true,
-        'ok' => true,
-        'input' => $this->buildGenericAuditMacroScript($macroName, $template, $input, $rawArgs, $args),
-        'original_input' => $input,
-        'command' => $macroName,
-    ];
-}
-
-
-private function buildQuickFindAuditScript(string $originalInput, string $filePattern, string $term, int $lines): string
-{
-    $template = $this->loadAuditMacroTemplate('find');
-
-    if ($template === '') {
-        return implode("\n", [
-            'echo "[ERROR] Macro Project Lab no encontrada: find"',
-            'echo "[INFO] Ruta esperada: tools/project-lab/macros/audit/find.sh.tpl"',
+        return $this->renderAuditMacroTemplate($template, [
+            'ORIGINAL_INPUT' => $this->escapeDoubleQuotedShellEcho($originalInput),
+            'FILE_PATTERN' => $this->escapeDoubleQuotedShellEcho($filePattern),
+            'TERM' => $this->escapeDoubleQuotedShellEcho($term),
+            'LINES' => (string) $lines,
+            'ORIGINAL_INPUT_SHELL' => escapeshellarg($originalInput),
+            'FILE_PATTERN_SHELL' => escapeshellarg($filePattern),
+            'TERM_SHELL' => escapeshellarg($term),
         ]);
     }
-
-    return $this->renderAuditMacroTemplate($template, [
-        'ORIGINAL_INPUT' => $this->escapeDoubleQuotedShellEcho($originalInput),
-        'FILE_PATTERN' => $this->escapeDoubleQuotedShellEcho($filePattern),
-        'TERM' => $this->escapeDoubleQuotedShellEcho($term),
-        'LINES' => (string) $lines,
-        'ORIGINAL_INPUT_SHELL' => escapeshellarg($originalInput),
-        'FILE_PATTERN_SHELL' => escapeshellarg($filePattern),
-        'TERM_SHELL' => escapeshellarg($term),
-    ]);
-}
-
 
     private function escapeDoubleQuotedShellEcho(string $value): string
     {
@@ -2600,96 +2647,90 @@ private function buildQuickFindAuditScript(string $originalInput, string $filePa
         );
     }
 
-
     private function loadAuditMacroTemplate(string $macroName): string
     {
         if (! preg_match('/^[a-z0-9_-]+$/i', $macroName)) {
             return '';
         }
-    
+
         $relativePath = "tools/project-lab/macros/audit/{$macroName}.sh.tpl";
         $targetPath = $this->resolveProjectPath($relativePath, false);
-    
+
         if ($targetPath === null || ! is_file($targetPath)) {
             return '';
         }
-    
+
         $content = file_get_contents($targetPath);
-    
+
         return is_string($content) ? $content : '';
     }
-
 
     private function renderAuditMacroTemplate(string $template, array $values): string
     {
         foreach ($values as $key => $value) {
             $template = str_replace('{{'.$key.'}}', (string) $value, $template);
         }
-    
+
         return $template;
     }
-
 
     private function listAuditMacros(): array
     {
         $relativePath = 'tools/project-lab/macros/audit';
         $directory = $this->resolveProjectPath($relativePath, false);
-    
+
         if ($directory === null || ! is_dir($directory)) {
             return [];
         }
-    
+
         $macros = [];
-    
+
         foreach (glob($directory.'/*.sh.tpl') ?: [] as $filePath) {
             $name = basename($filePath, '.sh.tpl');
-    
+
             if (preg_match('/^[a-z0-9_-]+$/i', $name)) {
                 $macros[] = $name;
             }
         }
-    
+
         sort($macros);
-    
+
         return $macros;
     }
-
 
     private function parseQuickAuditArguments(string $rawArgs): array
     {
         $rawArgs = trim($rawArgs);
-    
+
         if ($rawArgs === '') {
             return [];
         }
-    
+
         $args = str_getcsv($rawArgs, ' ', '"', '\\');
-    
+
         return array_values(array_filter(array_map('trim', $args), static function (string $arg): bool {
             return $arg !== '';
         }));
     }
 
-
     private function readAuditMacroArgumentRules(string $template): array
     {
         $min = 0;
         $max = 10;
-    
+
         if (preg_match('/^\s*#\s*PROJECT_LAB_MACRO_ARGS_MIN:\s*(\d+)\s*$/mi', $template, $matches)) {
             $min = max(0, (int) ($matches[1] ?? 0));
         }
-    
+
         if (preg_match('/^\s*#\s*PROJECT_LAB_MACRO_ARGS_MAX:\s*(\d+)\s*$/mi', $template, $matches)) {
             $max = max($min, (int) ($matches[1] ?? $max));
         }
-    
+
         return [
             'min' => $min,
             'max' => $max,
         ];
     }
-
 
     private function buildGenericAuditMacroScript(
         string $macroName,
@@ -2707,14 +2748,568 @@ private function buildQuickFindAuditScript(string $originalInput, string $filePa
             'RAW_ARGS_SHELL' => escapeshellarg($rawArgs),
             'ARG_COUNT' => (string) count($args),
         ];
-    
+
         for ($i = 1; $i <= 10; $i++) {
             $value = $args[$i - 1] ?? '';
-    
+
             $values['ARG_'.$i] = $this->escapeDoubleQuotedShellEcho($value);
             $values['ARG_'.$i.'_SHELL'] = escapeshellarg($value);
         }
-    
+
         return $this->renderAuditMacroTemplate($template, $values);
+    }
+
+    private function askLocalAi(string $model, string $prompt): string
+    {
+        $allowedModels = [
+            'qwen2.5:1.5b',
+            'qwen2.5:3b',
+        ];
+
+        $model = trim($model);
+        $prompt = trim(str_replace(["\r\n", "\r"], "\n", $prompt));
+
+        if (! in_array($model, $allowedModels, true)) {
+            return implode("\n", [
+                '[ERROR] Modelo IA local no permitido.',
+                '[INFO] Modelos permitidos:',
+                '- qwen2.5:1.5b',
+                '- qwen2.5:3b',
+            ]);
+        }
+
+        if ($prompt === '') {
+            return '[ERROR] No se recibió prompt para IA local.';
+        }
+
+        $endpoint = 'http://127.0.0.1:11434/api/generate';
+        $finalPrompt = $this->buildLocalAiPrompt($prompt);
+
+        $payload = json_encode([
+            'model' => $model,
+            'prompt' => $finalPrompt,
+            'stream' => false,
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        if (! is_string($payload)) {
+            return '[ERROR] No se pudo preparar el payload JSON para Ollama.';
+        }
+
+        $timeoutSeconds = 45;
+
+        $response = null;
+        $httpCode = null;
+        $transportError = null;
+
+        if (function_exists('curl_init')) {
+            $ch = curl_init($endpoint);
+
+            if ($ch === false) {
+                return '[ERROR] No se pudo inicializar cURL para consultar Ollama.';
+            }
+
+            curl_setopt_array($ch, [
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $payload,
+                CURLOPT_HTTPHEADER => [
+                    'Content-Type: application/json',
+                    'Accept: application/json',
+                ],
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CONNECTTIMEOUT => 5,
+                CURLOPT_TIMEOUT => $timeoutSeconds,
+            ]);
+
+            $curlResponse = curl_exec($ch);
+
+            if ($curlResponse === false) {
+                $transportError = curl_error($ch);
+            } else {
+                $response = $curlResponse;
+                $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            }
+
+            curl_close($ch);
+        } else {
+            if (! filter_var(ini_get('allow_url_fopen'), FILTER_VALIDATE_BOOLEAN)) {
+                return implode("\n", [
+                    '[ERROR] No hay transporte HTTP disponible para consultar Ollama.',
+                    '[INFO] cURL no está disponible y allow_url_fopen está deshabilitado.',
+                ]);
+            }
+
+            $context = stream_context_create([
+                'http' => [
+                    'method' => 'POST',
+                    'header' => implode("\r\n", [
+                        'Content-Type: application/json',
+                        'Accept: application/json',
+                    ]),
+                    'content' => $payload,
+                    'timeout' => $timeoutSeconds,
+                    'ignore_errors' => true,
+                ],
+            ]);
+
+            $streamResponse = @file_get_contents($endpoint, false, $context);
+
+            if ($streamResponse === false) {
+                $transportError = 'file_get_contents no pudo conectar con Ollama.';
+            } else {
+                $response = $streamResponse;
+
+                $headers = [];
+
+                if (function_exists('http_get_last_response_headers')) {
+                    $lastHeaders = http_get_last_response_headers();
+                    $headers = is_array($lastHeaders) ? $lastHeaders : [];
+                }
+
+                foreach ($headers as $headerLine) {
+                    if (preg_match('/^HTTP\/\S+\s+(\d+)/', $headerLine, $matches)) {
+                        $httpCode = (int) ($matches[1] ?? 0);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if ($response === null || $response === '') {
+            return implode("\n", array_filter([
+                '[ERROR] Ollama local no respondió.',
+                '[INFO] Endpoint esperado: '.$endpoint,
+                '[INFO] Verificar servicio: systemctl status ollama.service',
+                $transportError ? '[INFO] Error transporte: '.$transportError : null,
+            ]));
+        }
+
+        if ($httpCode !== null && ($httpCode < 200 || $httpCode >= 300)) {
+            return implode("\n", [
+                '[ERROR] Ollama local respondió con error HTTP.',
+                '[INFO] HTTP status: '.$httpCode,
+                '[INFO] Endpoint: '.$endpoint,
+                '',
+                '--- RESPUESTA RAW ---',
+                $response,
+            ]);
+        }
+
+        $data = json_decode($response, true);
+
+        if (! is_array($data)) {
+            return implode("\n", [
+                '[ERROR] Ollama devolvió una respuesta no JSON.',
+                '',
+                '--- RESPUESTA RAW ---',
+                $response,
+            ]);
+        }
+
+        $answer = trim((string) ($data['response'] ?? ''));
+
+        if ($answer === '') {
+            return implode("\n", [
+                '[WARN] Ollama respondió sin campo response visible.',
+                '',
+                '--- RESPUESTA RAW ---',
+                json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: $response,
+            ]);
+        }
+
+        return implode("\n", [
+            '[OK] Consulta IA local completada.',
+            '[INFO] Modelo: '.$model,
+            '[INFO] Endpoint: Ollama local',
+            '[INFO] Stream: false',
+            '',
+            '--- RESPUESTA IA LOCAL ---',
+            $answer,
+        ]);
+    }
+
+private function buildLocalAiPrompt(string $prompt): string
+{
+    $systemPrompt = implode("\n", [
+        'Respondé en español.',
+        'Modo Project Lab.',
+        'Sé breve, claro y operativo.',
+        'NO SE ASUME. NO SE SUPONE.',
+        'No inventes evidencia.',
+        'No afirmes ejecutar, leer o modificar.',
+        'No propongas acciones automáticas.',
+        'Si falta evidencia, pedí el dato exacto mínimo.',
+        'Si hay evidencia suficiente, indicá próximo paso compatible con Project Lab.',
+    ]);
+
+    return $systemPrompt."\n\n--- INPUT ---\n".$prompt;
+}
+
+    private function askAiPrompt(string $modelKey, string $prompt): string
+    {
+        $modelKey = trim($modelKey);
+
+        if ($modelKey === '') {
+            return '[ERROR] No se recibió modelo IA.';
+        }
+
+        if (str_starts_with($modelKey, 'ollama:')) {
+            $model = substr($modelKey, strlen('ollama:'));
+
+            return $this->askLocalAi($model, $prompt);
+        }
+
+        if (str_starts_with($modelKey, 'gemini:')) {
+            $model = substr($modelKey, strlen('gemini:'));
+
+            return $this->askGeminiAi($model, $prompt);
+        }
+
+        return implode("\n", [
+            '[ERROR] Proveedor IA no reconocido.',
+            '[INFO] Formato esperado:',
+            '- ollama:qwen2.5:1.5b',
+            '- ollama:qwen2.5:3b',
+            '- gemini:gemini-2.5-flash',
+        ]);
+    }
+
+    private function readProjectLabSecret(string $name): string
+    {
+        if (! preg_match('/^[a-z0-9_\-]+$/i', $name)) {
+            return '';
+        }
+
+        $path = $this->resolveProjectPath("tools/project-lab/.secrets/{$name}", false);
+
+        if ($path === null || ! is_file($path)) {
+            return '';
+        }
+
+        $value = file_get_contents($path);
+
+        if (! is_string($value)) {
+            return '';
+        }
+
+        return trim($value);
+    }
+
+    private function askGeminiAi(string $model, string $prompt): string
+    {
+        $allowedModels = [
+            'gemini-2.5-flash',
+        ];
+
+        $model = trim($model);
+        $prompt = trim(str_replace(["\r\n", "\r"], "\n", $prompt));
+
+        if (! in_array($model, $allowedModels, true)) {
+            return implode("\n", [
+                '[ERROR] Modelo Gemini no permitido.',
+                '[INFO] Modelos permitidos:',
+                '- gemini-2.5-flash',
+            ]);
+        }
+
+        if ($prompt === '') {
+            return '[ERROR] No se recibió prompt para Gemini.';
+        }
+
+        $apiKey = $this->readProjectLabSecret('gemini_api_key');
+
+        if ($apiKey === '') {
+            return implode("\n", [
+                '[ERROR] No se encontró API key de Gemini.',
+                '[INFO] Crear archivo local:',
+                'tools/project-lab/.secrets/gemini_api_key',
+                '[INFO] El archivo debe contener solo la API key.',
+            ]);
+        }
+
+        $endpoint = "https://generativelanguage.googleapis.com/v1beta/models/{$model}:generateContent";
+        $finalPrompt = $this->buildLocalAiPrompt($prompt);
+
+        $payload = json_encode([
+            'contents' => [
+                [
+                    'parts' => [
+                        [
+                            'text' => $finalPrompt,
+                        ],
+                    ],
+                ],
+            ],
+            'generationConfig' => [
+                'temperature' => 0.2,
+            ],
+        ], JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+
+        if (! is_string($payload)) {
+            return '[ERROR] No se pudo preparar el payload JSON para Gemini.';
+        }
+
+        $timeoutSeconds = 45;
+
+        $response = null;
+        $httpCode = null;
+        $transportError = null;
+
+        if (function_exists('curl_init')) {
+            $ch = curl_init($endpoint);
+
+            if ($ch === false) {
+                return '[ERROR] No se pudo inicializar cURL para consultar Gemini.';
+            }
+
+            curl_setopt_array($ch, [
+                CURLOPT_POST => true,
+                CURLOPT_POSTFIELDS => $payload,
+                CURLOPT_HTTPHEADER => [
+                    'Content-Type: application/json',
+                    'Accept: application/json',
+                    'x-goog-api-key: '.$apiKey,
+                ],
+                CURLOPT_RETURNTRANSFER => true,
+                CURLOPT_CONNECTTIMEOUT => 8,
+                CURLOPT_TIMEOUT => $timeoutSeconds,
+            ]);
+
+            $curlResponse = curl_exec($ch);
+
+            if ($curlResponse === false) {
+                $transportError = curl_error($ch);
+            } else {
+                $response = $curlResponse;
+                $httpCode = (int) curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            }
+
+            curl_close($ch);
+        } else {
+            if (! filter_var(ini_get('allow_url_fopen'), FILTER_VALIDATE_BOOLEAN)) {
+                return implode("\n", [
+                    '[ERROR] No hay transporte HTTP disponible para consultar Gemini.',
+                    '[INFO] cURL no está disponible y allow_url_fopen está deshabilitado.',
+                ]);
+            }
+
+            $context = stream_context_create([
+                'http' => [
+                    'method' => 'POST',
+                    'header' => implode("\r\n", [
+                        'Content-Type: application/json',
+                        'Accept: application/json',
+                        'x-goog-api-key: '.$apiKey,
+                    ]),
+                    'content' => $payload,
+                    'timeout' => $timeoutSeconds,
+                    'ignore_errors' => true,
+                ],
+            ]);
+
+            $streamResponse = @file_get_contents($endpoint, false, $context);
+
+            if ($streamResponse === false) {
+                $transportError = 'file_get_contents no pudo conectar con Gemini.';
+            } else {
+                $response = $streamResponse;
+
+                $headers = [];
+
+                if (function_exists('http_get_last_response_headers')) {
+                    $lastHeaders = http_get_last_response_headers();
+                    $headers = is_array($lastHeaders) ? $lastHeaders : [];
+                }
+
+                foreach ($headers as $headerLine) {
+                    if (preg_match('/^HTTP\/\S+\s+(\d+)/', $headerLine, $matches)) {
+                        $httpCode = (int) ($matches[1] ?? 0);
+                        break;
+                    }
+                }
+            }
+        }
+
+        if ($response === null || $response === '') {
+            return implode("\n", array_filter([
+                '[ERROR] Gemini no respondió.',
+                '[INFO] Endpoint: Gemini API generateContent',
+                $transportError ? '[INFO] Error transporte: '.$transportError : null,
+            ]));
+        }
+
+        if ($httpCode !== null && ($httpCode < 200 || $httpCode >= 300)) {
+            return implode("\n", [
+                '[ERROR] Gemini respondió con error HTTP.',
+                '[INFO] HTTP status: '.$httpCode,
+                '[INFO] Modelo: '.$model,
+                '[INFO] No se muestra la API key.',
+                '',
+                '--- RESPUESTA RAW ---',
+                $response,
+            ]);
+        }
+
+        $data = json_decode($response, true);
+
+        if (! is_array($data)) {
+            return implode("\n", [
+                '[ERROR] Gemini devolvió una respuesta no JSON.',
+                '',
+                '--- RESPUESTA RAW ---',
+                $response,
+            ]);
+        }
+
+        $parts = $data['candidates'][0]['content']['parts'] ?? [];
+        $answerParts = [];
+
+        if (is_array($parts)) {
+            foreach ($parts as $part) {
+                if (is_array($part) && isset($part['text'])) {
+                    $answerParts[] = trim((string) $part['text']);
+                }
+            }
+        }
+
+        $answer = trim(implode("\n", array_filter($answerParts)));
+
+        if ($answer === '') {
+            return implode("\n", [
+                '[WARN] Gemini respondió sin texto visible.',
+                '[INFO] No se muestra la API key.',
+                '',
+                '--- RESPUESTA RAW ---',
+                json_encode($data, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) ?: $response,
+            ]);
+        }
+
+        return implode("\n", [
+            '[OK] Consulta IA completada.',
+            '[INFO] Proveedor: Gemini',
+            '[INFO] Modelo: '.$model,
+            '[INFO] Endpoint: generateContent',
+            '[INFO] API key: configurada localmente',
+            '',
+            '--- RESPUESTA IA ---',
+            $answer,
+        ]);
+    }
+
+    private function readProjectLabContextFile(string $name): string
+    {
+        if (! preg_match('/^[a-z0-9_\-]+\.txt$/i', $name)) {
+            return '';
+        }
+
+        $path = $this->resolveProjectPath("tools/project-lab/context/{$name}", false);
+
+        if ($path === null || ! is_file($path)) {
+            return '';
+        }
+
+        $content = file_get_contents($path);
+
+        if (! is_string($content)) {
+            return '';
+        }
+
+        return trim(str_replace(["\r\n", "\r"], "\n", $content));
+    }
+
+private function buildProjectLabAiUserPrompt(string $editablePrompt, string $consoleOutput): string
+{
+    $editablePrompt = trim(str_replace(["\r\n", "\r"], "\n", $editablePrompt));
+    $consoleOutput = trim(str_replace(["\r\n", "\r"], "\n", $consoleOutput));
+
+    $maxEditablePromptChars = 6000;
+    $maxConsoleChars = 12000;
+
+    if (mb_strlen($editablePrompt) > $maxEditablePromptChars) {
+        $editablePrompt = '[RECORTE AUTOMÁTICO: se conserva el final del prompt editable]'."\n\n"
+            .mb_substr($editablePrompt, -$maxEditablePromptChars);
+    }
+
+    if (mb_strlen($consoleOutput) > $maxConsoleChars) {
+        $consoleOutput = '[RECORTE AUTOMÁTICO: se conserva el final de la consola Project Lab]'."\n\n"
+            .mb_substr($consoleOutput, -$maxConsoleChars);
+    }
+
+    $taskContext = $this->readProjectLabContextFile('ai_task_context.txt');
+
+    if ($taskContext === '') {
+        $taskContext = implode("\n", [
+            'TAREA:',
+            '',
+            'Respondé usando el prompt editable del usuario y la evidencia de consola.',
+            'Si el prompt editable está vacío, analizá la consola.',
+            'Identificá el error principal.',
+            'No inventes.',
+            'No supongas.',
+            'Si falta evidencia, pedí el dato exacto.',
+            'Si hay evidencia suficiente, proponé el próximo paso compatible con Project Lab.',
+        ]);
+    }
+
+    return implode("\n", [
+        'PROMPT EDITABLE DEL USUARIO:',
+        '',
+        $editablePrompt !== '' ? $editablePrompt : '[VACÍO]',
+        '',
+        'EVIDENCIA ACTUAL DE CONSOLA PROJECT LAB:',
+        '',
+        $consoleOutput !== '' ? $consoleOutput : '[SIN SALIDA DE CONSOLA]',
+        '',
+        $taskContext,
+    ]);
+}
+
+
+    private function buildAiConsoleUserBlock(string $model, bool $fromClipboard, string $editablePrompt, string $consoleOutput): string
+    {
+        $editablePrompt = trim(str_replace(["\r\n", "\r"], "\n", $editablePrompt));
+        $consoleOutput = trim(str_replace(["\r\n", "\r"], "\n", $consoleOutput));
+    
+        $maxPreviewChars = 1200;
+    
+        $promptPreview = $editablePrompt;
+    
+        if (mb_strlen($promptPreview) > $maxPreviewChars) {
+            $promptPreview = '[RECORTE VISUAL: se muestra el final del prompt]'."\n\n"
+                .mb_substr($promptPreview, -$maxPreviewChars);
+        }
+    
+        if ($promptPreview === '') {
+            $promptPreview = '[VACÍO]';
+        }
+    
+        return implode("\n", [
+            '[IA_USER]',
+            'Prompt enviado a IA',
+            '',
+            'Modelo: '.$model,
+            'Origen: '.($fromClipboard ? 'clipboard + consola' : 'textarea + consola'),
+            'Consola incluida: '.($consoleOutput !== '' ? 'sí' : 'no'),
+            'Caracteres consola: '.mb_strlen($consoleOutput),
+            '',
+            'Prompt editable / entrada:',
+            $promptPreview,
+            '[/IA_USER]',
+        ]);
+    }
+
+
+    private function buildAiConsoleAssistantBlock(string $output): string
+    {
+        $output = trim(str_replace(["\r\n", "\r"], "\n", $output));
+    
+        if ($output === '') {
+            $output = '[WARN] IA respondió sin salida visible.';
+        }
+    
+        return implode("\n", [
+            '[IA_ASSISTANT]',
+            $output,
+            '[/IA_ASSISTANT]',
+        ]);
     }
 }

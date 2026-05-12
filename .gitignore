@@ -25,3 +25,4 @@ Homestead.json
 Homestead.yaml
 Thumbs.db
 /documentos/auditoria/*.*
+/tools/project-lab/.secrets/*.*

@@ -851,14 +851,41 @@ function escapeHtml(text) {
 }
 
 function colorizeProjectOutput(text) {
-    return escapeHtml(text).replace(
-        /^(\[(OK|ERROR|WARN|INFO)\])/gm,
-        (match, full, type) => {
-            const className = "lab-status-" + type.toLowerCase();
+    let html = escapeHtml(text || "");
 
-            return `<span class="${className}">${full}</span>`;
+    html = html.replace(
+        /\[IA_USER\]\n([\s\S]*?)\n\[\/IA_USER\]/g,
+        (match, content) => {
+            return [
+                '<span class="project-ai-row project-ai-row--user">',
+                '<span class="project-ai-message project-ai-message--user">',
+                '<span class="project-ai-label">Prompt enviado a IA</span>',
+                content.trim(),
+                '</span>',
+                '</span>',
+            ].join("");
         },
     );
+
+    html = html.replace(
+        /\[IA_ASSISTANT\]\n([\s\S]*?)\n\[\/IA_ASSISTANT\]/g,
+        (match, content) => {
+            return [
+                '<span class="project-ai-row project-ai-row--assistant">',
+                '<span class="project-ai-message project-ai-message--assistant">',
+                '<span class="project-ai-label">Respuesta IA</span>',
+                content.trim(),
+                '</span>',
+                '</span>',
+            ].join("");
+        },
+    );
+
+    return html.replace(/^(\[(OK|ERROR|WARN|INFO)\])/gm, (match, full, type) => {
+        const className = "lab-status-" + type.toLowerCase();
+
+        return `<span class="${className}">${full}</span>`;
+    });
 }
 
 function showNotification(message, type = "info") {

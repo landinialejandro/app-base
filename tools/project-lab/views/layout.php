@@ -1,22 +1,75 @@
+<?php
+
+// FILE: tools/project-lab/views/layout.php | V5
+
+?>
+
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Project Lab v8 - <?= htmlspecialchars($systemInfo['laravel_version'] ?? 'Laravel') ?></title>
+    <title>Project Lab v9 - <?= htmlspecialchars($systemInfo['laravel_version'] ?? 'Laravel') ?></title>
     <link rel="stylesheet" href="assets/css/app.css?v=<?= filemtime(__DIR__.'/../assets/css/app.css') ?>">
     <script src="assets/js/app.js?v=<?= filemtime(__DIR__.'/../assets/js/app.js') ?>" defer></script>
+    <style>
+        .project-ai-row {
+            display: flex;
+            width: 100%;
+            margin: 12px 0;
+        }
+
+        .project-ai-row--user {
+            justify-content: flex-start;
+        }
+
+        .project-ai-row--assistant {
+            justify-content: flex-end;
+        }
+
+        .project-ai-message {
+            display: block;
+            max-width: 78%;
+            padding: 10px 12px;
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            white-space: pre-wrap;
+            line-height: 1.45;
+            background: rgba(255, 255, 255, 0.035);
+            box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
+        }
+
+        .project-ai-message--user {
+            border-top-left-radius: 4px;
+        }
+
+        .project-ai-message--assistant {
+            border-top-right-radius: 4px;
+            background: rgba(255, 255, 255, 0.055);
+        }
+
+        .project-ai-label {
+            display: block;
+            margin-bottom: 8px;
+            font-size: 11px;
+            font-weight: 700;
+            opacity: 0.72;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+    </style>
 </head>
 <body>
     <header class="project-header">
         <div>
-            <h1>🧪 Project Lab <small>v8.0</small></h1>
-            
+            <h1>🧪 Project Lab <small>v9.0</small></h1>
         </div>
 
         <div class="header-status">
             <span class="dot"></span>
             <span>DB: <?= htmlspecialchars($systemInfo['db_database'] ?? '-') ?></span>
+            <span>|</span>
+            <span>IA: Ollama / Gemini</span>
             <span>|</span>
             <span>PHP: <?= htmlspecialchars($systemInfo['php_version'] ?? '-') ?></span>
             <span>|</span>

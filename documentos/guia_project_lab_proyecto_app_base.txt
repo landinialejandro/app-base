@@ -1304,7 +1304,7 @@ No reemplaza el análisis técnico de esa evidencia.
 <<END SECTION>>
 
 <<SECTION: USO DE CODE>>
-SECTION_VERSION: 00005
+SECTION_VERSION: 00006
 
 USO DE CODE
 
@@ -1351,41 +1351,83 @@ Reglas:
 
 la apertura PHP debe aparecer antes del marcador FILE
 
-el marcador FILE debe ubicarse después de <?php
+el marcador FILE debe indicar ruta real dentro del proyecto
 
-el archivo debe validar como PHP cuando corresponda
+la ruta debe resolverse dentro del projectRoot
 
-Project Lab no debe aceptar como archivo PHP completo un bloque que comience con FILE y luego abra PHP si el contrato vigente espera PHP válido desde el inicio
+debe validarse sintaxis PHP cuando corresponda
 
-Regla vigente para PHP:
+si el lint falla, Project Lab debe restaurar o eliminar el cambio inválido según corresponda
 
-cuando Project Lab aplica una actualización PHP compatible, debe ejecutar validación de sintaxis PHP.
+Regla vigente para método PHP existente:
 
-Si la validación falla:
+debe usarse TARGET.
 
-si el archivo existía, debe restaurar el contenido anterior
+Formato conceptual:
 
-si el archivo era nuevo, debe eliminar el archivo inválido generado
+// TARGET: app/Ruta/Clase.php :: metodo
 
-La salida debe informar el rollback o la eliminación.
+Reglas:
 
-Regla vigente para operaciones parciales:
+no debe incluir <?php si no se reemplaza archivo completo
 
-cuando se reemplaza o agrega un método PHP, debe usarse TARGET.
+el archivo debe existir
 
-Ejemplos:
+el método debe existir
 
-// TARGET: app/Support/Ejemplo.php :: metodoExistente
+Project Lab debe reemplazar únicamente el método indicado
 
-// TARGET: app/Support/Ejemplo.php ++ metodoNuevo
+no debe crear archivo nuevo
 
-Regla:
+debe validar sintaxis PHP posterior
 
-no usar FILE para operaciones parciales.
+Regla vigente para método PHP nuevo:
 
-no usar TARGET para archivo completo.
+debe usarse TARGET con operador de alta.
 
-no mezclar ambos contratos en el mismo snippet.
+Formato conceptual:
+
+// TARGET: app/Ruta/Clase.php ++ metodo
+
+Reglas:
+
+el archivo debe existir
+
+la clase debe existir
+
+el método no debe existir todavía
+
+Project Lab debe insertar el método dentro de la clase correspondiente
+
+debe validar sintaxis PHP posterior
+
+Regla para TPL:
+
+los archivos TPL completos deben usarse para plantillas operativas controladas por Project Lab.
+
+Caso vigente:
+
+tools/project-lab/macros/audit/*.sh.tpl
+
+Reglas:
+
+deben llevar encabezado FILE compatible
+
+deben tener versionado
+
+deben permanecer dentro del projectRoot
+
+no deben confundirse con scripts audit ejecutados directamente
+
+Regla final:
+
+code aplica código.
+
+No interpreta doctrina.
+
+No decide si el cambio es arquitectónicamente correcto.
+
+La decisión técnica debe validarse contra documentación vigente, código real, runtime y evidencia.
 
 <<END SECTION>>
 
@@ -1877,7 +1919,7 @@ El cierre completo del frente depende del alcance real del cambio.
 <<END SECTION>>
 
 <<SECTION: ERRORES Y LECCIONES INCORPORADAS>>
-SECTION_VERSION: 00007
+SECTION_VERSION: 00008
 
 ERRORES Y LECCIONES INCORPORADAS
 
@@ -1967,32 +2009,6 @@ La actualización documental debe ser trazable y compatible con el versionado in
 
 Lección incorporada:
 
-Project Lab docs no debe tratar toda actualización documental como reemplazo de sección existente.
-
-Caso detectado:
-
-una sección nueva propuesta para todo_proyecto_app_base no podía incorporarse porque el parser documental solo aceptaba REEMPLAZAR EN y exigía que la sección ya existiera.
-
-Corrección aplicada:
-
-se incorpora contrato de alta controlada de sección nueva mediante AGREGAR EN o NUEVA SECCIÓN PROPUESTA EN, con UBICAR DESPUÉS DE y ancla exacta obligatoria.
-
-Regla consolidada:
-
-REEMPLAZAR EN se usa para secciones existentes.
-
-AGREGAR EN o NUEVA SECCIÓN PROPUESTA EN se usa para secciones nuevas.
-
-Una sección nueva solo puede agregarse si incluye:
-
-doc_slug existente
-sección ancla exacta
-bloque completo
-SECTION_VERSION
-ubicación explícita
-
-Lección incorporada:
-
 las macros audit deben vivir como plantillas externas cuando corresponda.
 
 Regla consolidada:
@@ -2010,6 +2026,96 @@ tools/project-lab/macros/audit
 Formato vigente:
 
 *.sh.tpl
+
+Lección incorporada:
+
+un snippet PHP de archivo completo debe comenzar como PHP válido.
+
+Formato correcto para archivo completo:
+
+<?php
+// FILE: ruta/del/archivo.php | Vx
+
+Regla:
+
+la apertura PHP debe aparecer antes del marcador FILE.
+
+No debe enviarse un encabezado FILE antes de <?php en archivos PHP completos.
+
+Lección incorporada:
+
+una operación parcial no debe llevar apertura PHP como si fuera archivo completo.
+
+Caso:
+
+si se va a reemplazar un método PHP dentro de una clase existente, debe usarse TARGET y no un bloque completo con <?php.
+
+Regla:
+
+TARGET modifica una parte de archivo existente.
+
+FILE reemplaza o crea archivo completo.
+
+No mezclar ambos contratos.
+
+Lección incorporada:
+
+app('tenant') no existe automáticamente en Tinker si no hay request web con tenant resuelto.
+
+Regla:
+
+para pruebas Tinker con tenant activo debe bindearse explícitamente el tenant cuando corresponda.
+
+Formato:
+
+app()->instance('tenant', $tenant);
+
+Lección incorporada:
+
+Project Lab puede no conservar variables o imports entre ejecuciones independientes.
+
+Regla:
+
+cuando se ejecuten bloques separados, conviene usar clases completamente calificadas o repetir imports/contexto necesario.
+
+Lección incorporada:
+
+no debe asumirse que welcome.blade.php es la landing real del proyecto.
+
+Caso detectado:
+
+la raíz pública puede resolverse mediante landing.home.
+
+Regla:
+
+antes de modificar la página pública inicial, auditar:
+
+routes/web.php
+resources/views/landing
+
+Lección incorporada:
+
+un resultado “sin registros” en una tab tenant-scoped no prueba ausencia de datos si no se verificó tenant activo.
+
+Regla:
+
+en pruebas multi-tenant debe confirmarse:
+
+tenant_id del registro
+tenant activo
+usuario usado
+membership vigente
+autorización efectiva
+
+Lección incorporada:
+
+una tab interna dentro de tenant/profile debe respetar la gramática visual del perfil de empresa.
+
+Regla:
+
+no trasladar automáticamente patrón index/listado clásico a tenant/profile.
+
+Si el perfil usa configuración, roles, permisos y filtros tipo toolbar, la nueva tab debe integrarse a esa gramática.
 
 <<END SECTION>>
 

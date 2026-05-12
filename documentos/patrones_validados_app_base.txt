@@ -27,7 +27,7 @@ patrones runtime
 <<END SECTION>>
 
 <<SECTION: PATRONES VIGENTES>>
-SECTION_VERSION: 00018
+SECTION_VERSION: 00019
 
 PATRONES VIGENTES
 
@@ -420,644 +420,57 @@ ahora → allowed_party_roles sobre party_roles.role
 
 Regla:
 
-la constraint anterior no debe quedar como fallback operativo si ya no representa la semántica vigente del módulo.
+cuando el dominio cambia, no sostener constraints sobre dimensión incorrecta.
 
-AUTONOMÍA MODULAR CON VÍNCULOS OPCIONALES
+No mantener compatibilidad legacy interna si ya contradice el contrato vigente.
 
-Patrón validado:
-
-un módulo puede conservar autonomía funcional aunque posea vínculos opcionales hacia otros módulos.
-
-Lectura:
-
-el vínculo opcional enriquece, contextualiza o formaliza
-
-no define por sí solo existencia funcional
-
-no concede autorización
-
-no debe convertirse automáticamente en required
-
-no debe forzar dependencia visual
-
-Casos vigentes:
-
-Orders puede existir sin party_id
-
-Documents puede existir o derivarse sin party_id cuando conserva contraparte textual propia
-
-Regla:
-
-un campo `*_id` debe interpretarse según contrato funcional real, no por reflejo técnico.
-
-SNAPSHOT TEXTUAL PROPIO + VÍNCULO GESTIONADO OPCIONAL
+REGISTRO EXTERNO LIVIANO CON CONFIRMACIÓN POSTERIOR
 
 Patrón validado:
 
-cuando un módulo puede vincularse opcionalmente con Parties pero necesita conservar dato propio de contraparte, debe separar:
-
-party_id = vínculo gestionado opcional
-
-counterparty_name = snapshot textual propio del registro
-
-Casos vigentes:
-
-Orders:
-
-party_id
-counterparty_name
-
-Documents:
-
-party_id
-counterparty_name
-
-Reglas:
-
-el snapshot no reemplaza Party
-
-el snapshot no reemplaza Security
-
-el snapshot no crea permiso
-
-el snapshot permite lectura autónoma del registro
-
-la salida visual debe usar método de presentación propio cuando exista
-
-Casos vigentes:
-
-Order::displayCounterpartyName()
-
-Document::displayCounterpartyName()
-
-Regla visual:
-
-no mostrar solo party->name si el módulo posee snapshot propio y fallback controlado.
-
-CONTRAPARTE SNAPSHOT CON VÍNCULO GESTIONADO OPCIONAL
-
-Patrón validado:
-
-módulo dueño conserva snapshot propio
-↓
-party_id funciona como vínculo gestionado opcional
-↓
-displayCounterpartyName() resuelve texto visible
-↓
-PartyLinked solo representa enlace a Party cuando existe y está autorizado
-
-Casos validados:
-
-Orders
-Documents
-
-Reglas:
-
-la visualización de contraparte no debe depender rígidamente de party_id
-
-los listados deben mostrar Contraparte cuando representan el dato operativo visible
-
-los filtros por party_id pueden seguir usando Contacto
-
-las surfaces deben publicar showCounterparty cuando corresponda mostrar la columna de Contraparte
-
-PartyLinked no reemplaza displayCounterpartyName()
-
-si no existe party_id pero existe snapshot propio, se muestra texto propio
-
-si existe party_id y corresponde link, se muestra vínculo gestionado oficial
-
-no inventar link hacia Party
-
-no mostrar vacío si el módulo dueño posee snapshot
-
-TABLAS/LISTADOS CON VÍNCULOS GESTIONADOS Y REFERENCIAS PROPIAS
-
-Patrón validado:
-
-cuando un módulo conserva vínculos gestionados opcionales y referencias textuales propias, las tablas y listados deben representar el dato operativo visible desde el módulo dueño.
-
-Lectura:
-
-*_id = vínculo gestionado opcional
-
-*_reference o snapshot textual vigente = referencia textual propia del registro
-
-record_metadata = condición contextual o excepcional
-
-Reglas:
-
-la tabla no debe reconstruir lógica interna del módulo oferente
-
-la tabla no debe interpretar directamente JSON operativo
-
-la tabla debe consumir helpers de presentación del modelo dueño cuando existan
-
-el módulo dueño conserva la lectura visible de sus referencias propias
-
-los SurfaceService pueden decidir qué columnas mostrar según host mediante flags explícitos
-
-los hosts no deben duplicar información que ya está representada por el recurso anfitrión
-
-si existe vínculo gestionado autorizado, debe mostrarse link mediante helper o componente oficial
-
-si no existe vínculo gestionado, debe mostrarse referencia textual propia del registro
-
-si la carga fue manual, puede mostrarse una indicación visual discreta
-
-no inventar links cuando no existe vínculo gestionado
-
-no reconstruir Party ni Asset desde Orders
-
-Caso validado:
-
-Orders.
-
-Helpers vigentes:
-
-Order::displayCounterpartyName()
-Order::displayAssetReference()
-Order::hasManualCounterpartyReference()
-Order::hasManualAssetReference()
-
-Helpers y componentes vinculados vigentes:
-
-PartyLinked::forParty()
-parties.components.linked-party
-AssetLinked::forAsset()
-assets.components.linked-asset
-
-Contratos visuales vigentes:
-
-showCounterparty
-showAsset
-
-Reglas específicas:
-
-showCounterparty indica que una tabla o surface de Orders debe mostrar Contraparte.
-
-showAsset indica que una tabla o surface de Orders debe mostrar Activo.
-
-En orders.index se muestran Contraparte y Activo.
-
-En assets.show, la surface embebida de Orders muestra Contraparte y no muestra Activo, porque el host ya es el activo.
-
-En parties.show, la surface embebida de Orders muestra Activo y no muestra Contraparte, porque el host ya es el contacto.
-
-record_metadata puede indicar manualidad o excepción, pero no debe convertirse en fuente principal del dato visible.
-
-Caso validado de manualidad:
-
-record_metadata.relationships.counterparty.managed = false
-record_metadata.relationships.asset.managed = false
-
-La lectura visual de esa condición debe resolverse mediante helpers del modelo dueño y no desde Blade.
-
-Regla de convergencia:
-
-showParty no debe permanecer como contrato visual de Orders.
-
-Caso validado:
-
-showParty fue eliminado de Orders luego de confirmar que los consumidores vigentes usan showCounterparty.
-
-FORMULARIO HOST CON FRONTERAS EXPLÍCITAS
-
-Patrón validado:
-
-cuando un formulario host tiene campos que pertenecen a su contrato propio y puede recibir enriquecimiento de módulos oferentes, el host no debe renderizar ofertas externas mediante un foreach abierto.
-
-Debe declarar fronteras explícitas.
-
-Patrón:
-
-si existe proveedor externo válido
-renderiza componente del proveedor
-
-si no existe proveedor externo
-renderiza campo manual propio
-
-Caso validado:
-
-orders.form
-
-Fronteras vigentes:
-
-Party disponible → selector de contacto
-
-Party no disponible → campo manual propio de contraparte
-
-Asset disponible → selector de activo
-
-Asset no disponible → campo manual propio o referencia propia equivalente vigente
-
-Ofertas vigentes:
-
-party.order.form-context
-
-asset.order.form-context
-
-Reglas:
-
-el formulario host conserva su contrato propio
-
-el módulo oferente prepara payload o componente
-
-el host decide cómo encajar la frontera
-
-una carga manual no debe transformarse automáticamente en gestionada sin acción explícita y trazable
-
-RECORD_METADATA COMO METADATA CONTEXTUAL O EXCEPCIONAL
-
-Patrón validado:
-
-record_metadata puede conservar metadata contextual o excepcional del registro.
-
-No reemplaza columnas centrales.
-
-No reemplaza datos operativos principales.
-
-No reemplaza vínculos gestionados.
-
-No debe ser fuente principal de salida visual.
-
-Criterio vigente:
-
-si todo ocurre por vía gestionada normal
-record_metadata puede permanecer null
-
-si alguna frontera cae a carga manual
-record_metadata puede registrar solo esa excepción
-
-Caso validado:
-
-record_metadata.relationships.counterparty.managed = false
-record_metadata.relationships.asset.managed = false
-
-Reglas:
-
-la lectura de record_metadata debe encapsularse en helper, presenter o payload preparado
-
-Blade representa
-
-Blade no interpreta JSON operativo
-
-CAPA SATÉLITE PRODUCTIVA HABILITABLE NO CRUD
-
-Patrón validado:
-
-una capa satélite productiva puede tener entrada operativa y permiso propio de acceso al área sin convertirse en módulo CRUD ordinario.
+una capa satélite comercial externa puede registrar primero una solicitud liviana, confirmar contacto y postergar la identidad operativa completa.
 
 Caso vigente:
 
-Servicios y Mantenimiento.
+Shopping Autoservicio / self_service_sales.
+
+Flujo validado:
+
+SelfServiceCustomerRegistration pending
+
+confirmación por token
+
+Party person tenant-scoped
+
+PartyRole customer
+
+sin User
+
+sin Membership
+
+Datos mínimos vigentes:
+
+nombre para mostrar
+email
+teléfono
 
 Lectura:
 
-service_maintenance existe como frente habilitable no CRUD
+email = vínculo fuerte inicial
 
-service_maintenance.view_any permite acceso al área
+teléfono = contacto obligatorio
 
-Orders sostiene la primera base operativa mediante group = service
-
-Reglas:
-
-el permiso de acceso al área no reemplaza permisos operativos de módulos dueños
-
-las acciones reales continúan bajo el contrato del módulo dueño
-
-la capa satélite no absorbe ownership de Orders, Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties ni OperationalActivity
-
-la entrada visual no implica CRUD ordinario
-
-el frente especializado puede orientar la experiencia sin crear módulos o tablas por reflejo automático
-
-UNIVERSO SEMÁNTICO DE URL
-
-Patrón validado:
-
-una URL raíz puede representar un frente funcional especializado sin convertirlo automáticamente en módulo dueño.
-
-El universo semántico expresa:
-
-contexto funcional
-intención de uso
-navegación especializada
-entrada operativa
-rutas propias del frente
-
-No expresa por sí mismo:
-
-ownership funcional
-permiso operativo sobre recursos participantes
-CRUD ordinario nuevo
-duplicación del módulo dueño
-
-Caso validado:
-
-/service
-
-Lectura:
-
-/service representa el frente Servicio y mantenimiento.
-
-/service no reemplaza Orders.
-
-/service no absorbe ownership de órdenes.
-
-/service no convierte órdenes de servicio en entidad ajena a Orders.
-
-Orders conserva ownership funcional de las órdenes.
-
-Rutas validadas:
-
-GET /service
-GET /service/orders
-GET /service/orders/create
-POST /service/orders
-GET /service/orders/{order}
-
-Nombres de ruta validados:
-
-service.index
-service.orders.index
-service.orders.create
-service.orders.store
-service.orders.show
+confirmar email ≠ habilitación operativa completa
 
 Reglas:
 
-el universo puede tener rutas propias cuando el contexto funcional lo justifique
+no exigir identidad completa si el corte vigente es registro liviano
 
-las rutas internas pueden consumir controllers o capacidades del módulo dueño
+no habilitar operación solo por confirmar email
 
-el contexto funcional fuerte debe aplicarse desde backend
+separar registro inicial, confirmación, identidad operativa y habilitación
 
-el universo no debe depender de query params manipulables como única fuente de contexto
-
-las vistas pueden adaptarse al contexto del universo
-
-los breadcrumbs deben reflejar el universo
-
-las redirecciones físicas deben conservar el universo cuando el usuario entra por ese frente
-
-RUTA CONTEXTUAL FUERTE SIN QUERY PARAM MANIPULABLE
-
-Patrón validado:
-
-cuando un frente especializado requiere contexto funcional fuerte, no debe depender únicamente de un query param manipulable.
-
-Caso validado:
-
-/service/orders no depende de ?group=service.
-
-El contexto service se define desde el universo /service.
-
-Regla:
-
-si una orden se crea desde /service/orders, group = service debe resolverse desde backend.
-
-Si el request intenta enviar un group incompatible con el universo, el backend debe preservar el contexto funcional correcto.
-
-Lectura:
-
-ocultar, eliminar u ofuscar un query param no es seguridad.
-
-La seguridad y coherencia funcional deben sostenerse en backend.
-
-CAMPO BLOQUEADO POR CONTEXTO
-
-Patrón validado:
-
-un formulario puede bloquear visualmente un campo cuando el contexto del universo define un valor fijo.
-
-La UI puede expresar:
-
-campo deshabilitado
-hidden complementario
-texto fijo
-estado visual bloqueado
-
-Pero esto no reemplaza backend.
-
-Caso validado:
-
-en /service, el campo Tipo puede mostrarse bloqueado visualmente como Servicio.
-
-Reglas:
-
-la UI comunica contexto
-
-el backend valida o fuerza el valor
-
-un input manipulado no debe romper el contexto del universo
-
-el bloqueo visual no debe considerarse seguridad
-
-JS GENÉRICO PARA SELECTS VINCULADOS
-
-Patrón validado:
-
-si una interacción frontend expresa una mecánica reusable, el contrato JavaScript debe nombrarse por esa mecánica y no por entidades de un caso puntual.
-
-Caso reemplazado:
-
-app-party-asset-sync
-
-Contrato vigente:
-
-app-linked-select-sync
-
-Uso:
-
-data-action="app-linked-select-sync"
-data-source-select
-data-target-select
-data-source-value
-
-Lectura:
-
-app-linked-select-sync sincroniza selects vinculados de forma genérica.
-
-Reglas:
-
-no fijar nombres Party/Asset si la mecánica puede reutilizarse
-
-el JS no decide permisos
-
-el JS no reemplaza validación backend
-
-el JS no debe ser la única defensa de consistencia para datos críticos
-
-TINKER CON REQUEST MANIPULADO Y ROLLBACK
-
-Patrón validado:
-
-una prueba Tinker puede simular request manipulado para verificar que el backend sostenga el contrato real.
-
-Uso validado:
-
-enviar un valor manipulado
-confirmar que backend fuerza o valida el valor correcto
-confirmar redirección esperada
-confirmar persistencia esperada
-aplicar rollback si la prueba no debe dejar datos finales
-
-Caso validado:
-
-POST /service/orders con group manipulado debe preservar group = service desde backend y redirigir al universo /service.
-
-Reglas:
-
-la prueba debe usar usuario real, tenant real, permisos reales y runtime real cuando corresponda
-
-el rollback debe confirmar que no quedan datos de prueba
-
-la salida debe servir como evidencia para cierre técnico y documental
-
-CONSERVACIÓN DE CONTEXTO FÍSICO EN RUTA CONTEXTUAL
-
-Patrón validado:
-
-un universo semántico puede operar sobre rutas contextuales propias y conservar ownership del módulo dueño.
-
-Caso vigente:
-
-/service opera sobre Orders.
-
-Lectura:
-
-Orders conserva ownership funcional de las órdenes.
-
-service.orders.show es ruta física contextual del universo /service.
-
-orders.show sigue siendo host interno funcional.
-
-Reglas:
-
-la ruta física contextual no cambia el host funcional
-
-la ruta física contextual no cambia autorización
-
-la ruta física contextual no transfiere ownership
-
-la ruta física contextual solo conserva contexto de uso
-
-RUTAS INTERNAS DEL MÓDULO DUEÑO CON RETORNO CONTEXTUAL
-
-Patrón validado:
-
-las rutas internas pueden seguir perteneciendo al módulo dueño aunque el usuario haya ingresado desde un universo semántico.
-
-El retorno físico se resuelve mediante trail y helper contextual.
-
-Caso vigente:
-
-orders.items.*
-inventory.*
-attachments.*
-
-pueden operar dentro de flujos asociados a una Order y retornar a /service/orders/{order} cuando el trail lo indique.
-
-Helper vigente:
-
-OrderNavigationTrail::showRouteName()
-
-Reglas:
-
-no crear rutas duplicadas innecesarias como service.orders.items.* si la operación real sigue perteneciendo a Orders
-
-no duplicar controllers por contexto cuando el ownership real no cambia
-
-no depender de query params manipulables como única fuente fuerte
-
-el trail y el helper contextual deben conservar retorno físico cuando corresponda
-
-HOST SURFACE INTERNO VS RUTA FÍSICA CONTEXTUAL
-
-Patrón validado:
-
-el host surface interno puede seguir siendo el host funcional del módulo dueño aunque la ruta física contextual pertenezca a un universo semántico.
-
-Caso vigente:
-
-orders.show = host interno funcional
-
-service.orders.show = ruta física contextual del universo /service
-
-Reglas:
-
-las surfaces deben seguir identificando el host funcional real
-
-no reemplazar host interno por ruta contextual si la capacidad sigue perteneciendo al módulo dueño
-
-no duplicar surfaces por ruta física si la capacidad funcional es la misma
-
-LECTURA FUNCIONAL NO INVASIVA DE CAPA SATÉLITE
-
-Patrón validado:
-
-una primera lectura funcional de una capa satélite puede implementarse sin tablas nuevas, usando campos existentes y helpers del modelo dueño.
-
-Caso vigente:
-
-bloque Contexto de servicio en orders.show
-
-Lectura:
-
-orders.show puede mostrar lectura contextual de orden de servicio sin crear una vista service/orders/show separada.
-
-El bloque puede usar:
-
-Order::displayCounterpartyName()
-Order::displayAssetReference()
-ordered_at
-group
-kind
-status
-record_metadata cuando esté expuesto por helper o payload preparado
-
-Reglas:
-
-no crear tablas nuevas si la lectura inicial puede resolverse con datos reales existentes
-
-no crear estados técnicos satélite antes de auditar necesidad y contrato
-
-no modificar lifecycle base de Orders para representar ejecución técnica inicial
-
-no interpretar record_metadata directamente desde Blade
-
-no convertir lectura contextual en ownership nuevo
-
-SMOKE TEST DE RUTAS Y CONTEXTO
-
-Patrón validado:
-
-un frente contextual o universo semántico debe validarse con smoke test funcional de rutas y contexto antes de considerarse cerrado.
-
-Caso vigente:
-
-/service
-
-Validaciones ejecutadas:
-
-php -l en archivos intervenidos
-
-php artisan route:list
-
-php artisan optimize:clear
-
-smoke test funcional de rutas y contexto
-
-Reglas:
-
-la validación de sintaxis no alcanza
-
-la existencia de rutas no alcanza
-
-migrate o route:list no cierran por sí solos un flujo contextual
-
-debe validarse que el flujo conserve contexto, redirección física, backend-first y autorización real
+no reutilizar flujo interno de users, memberships, invitations o Fortify
 
 CAPA SATÉLITE COMERCIAL AUTOGESTIVA CON ENTRADA PÚBLICA
 
@@ -1073,186 +486,124 @@ Key técnica:
 
 self_service_sales
 
-Entrada pública vigente:
+Entradas vigentes:
 
 /shop/{tenant:slug}
-
-Label visible:
-
-Tienda
-
-Reglas:
-
-self_service_sales no es CRUD ordinario
-
-self_service_sales no es panel interno del tenant
-
-self_service_sales no reemplaza Parties
-
-self_service_sales no reemplaza Products
-
-self_service_sales no reemplaza Inventory
-
-self_service_sales no reemplaza Documents
-
-self_service_sales no reemplaza Security
-
-/shop/{tenant:slug} no es navegación interna del tenant
-
-/shop/{tenant:slug} no usa el plano interno auth + tenant
-
-/shop/{tenant:slug} no habilita dashboard, tenant/profile, parties.show ni rutas internas
-
-ENTIDAD AUXILIAR PARA REGISTRO EXTERNO PENDIENTE
-
-Patrón validado:
-
-un flujo externo de alta puede requerir una entidad auxiliar propia para conservar registros pendientes antes de crear la entidad definitiva del negocio.
-
-Caso vigente:
-
-self_service_customer_registrations
+/tienda
 
 Lectura:
 
-guarda registros externos pendientes de customer antes de crear Party.
+/shop/{tenant:slug} = tienda pública tenant-scoped
 
-Estados conceptuales vigentes:
-
-pending
-confirmed
-expired
-cancelled
+/tienda = entrada pública general externa
 
 Reglas:
 
-self_service_customer_registrations no reemplaza Party
+customer externo ≠ User
 
-self_service_customer_registrations no reemplaza User
+customer externo ≠ Membership
 
-self_service_customer_registrations no reemplaza Membership
+customer externo ≠ roles internos
 
-self_service_customer_registrations no representa identidad interna del sistema
+entrada pública externa ≠ panel interno
 
-party_id puede permanecer null mientras el registro está pendiente
+login externo futuro ≠ Fortify interno
 
-party_id se completa al confirmar correctamente
+la entrada externa no habilita dashboard, tenant/profile ni rutas internas
 
-NO REUTILIZAR FLUJOS INTERNOS PARA ALTA EXTERNA
+VALIDACIÓN RUNTIME DE PLANO EXTERNO
 
 Patrón validado:
 
-un flujo externo no debe reutilizar controllers, requests o flujos internos si pertenecen a otro plano de seguridad.
+cuando se implementa un flujo externo paralelo al plano interno, la validación runtime debe comprobar explícitamente que no se mezclaron planos.
 
 Caso vigente:
 
-Shopping Autoservicio no usa:
+self_service_sales
 
-PartyController
-TenantMembershipPartyController
-InvitationAcceptanceController
-Fortify interno
-invitations
+Validar:
 
-Reglas:
-
-PartyController pertenece al panel interno y permisos internos de Parties
-
-InvitationAcceptanceController pertenece al plano interno de invitaciones de usuarios, owner signup y memberships
-
-StorePartyRequest puede servir como referencia de campos, pero no como contrato del registro externo
-
-el alta externa requiere controller, request y servicios propios del plano externo
-
-el customer externo no debe convertirse en User
-
-el customer externo no debe convertirse en Membership
-
-el customer externo no debe iniciar sesión interna
-
-CONFIRMACIÓN EXTERNA POR TOKEN BACKEND-FIRST
-
-Patrón validado:
-
-la confirmación de un registro externo por token debe resolverse en backend con validaciones completas antes de crear entidades definitivas.
-
-Caso vigente:
-
-/shop/{tenant:slug}/register/confirm/{token}
-
-Debe validar:
-
-tenant resuelto
-
-token
-
-estado
-
-vencimiento
-
-duplicados
-
-Reglas:
-
-no crear Party si el token no es válido
-
-no crear Party si el registro no está pending
-
-no crear Party si el registro está vencido
-
-no crear Party si existe duplicado por email, teléfono o DNI dentro del tenant
-
-no confiar en la UI para evitar duplicados
-
-DUPLICADOS EN REGISTRO EXTERNO
-
-Patrón validado:
-
-el alta autogestiva debe bloquearse si ya existe cualquier Party dentro del tenant con el mismo email, teléfono o DNI.
-
-Reglas:
-
-validar duplicados al recibir los datos iniciales
-
-revalidar duplicados al confirmar el token
-
-no limitar la validación a Parties con rol customer
-
-no crear nueva Party automáticamente ante duplicado
-
-no resolver esta consistencia solo en UI
-
-SNIPPET PHP COMPLETO EN PROJECT LAB
-
-Patrón validado:
-
-un snippet de archivo PHP completo para Project Lab debe comenzar con apertura PHP y luego marcador FILE.
-
-Formato vigente:
-
-<?php
-// FILE: ruta/del/archivo.php | Vx
-
-Reglas:
-
-no colocar el marcador FILE antes de <?php cuando se trata de archivo PHP completo
-
-si el contrato no coincide, Project Lab debe fallar antes de escribir cuando el error sea detectable
-
-el formato incorrecto no debe normalizarse silenciosamente si puede producir ambigüedad
-
-NOMBRES EXPLÍCITOS DE ÍNDICES EN MIGRACIONES EXTENSAS
-
-Patrón validado:
-
-cuando una tabla o columnas tienen nombres largos, la migración debe definir nombres explícitos de índices si el nombre automático puede superar límites del motor de base de datos.
-
-Caso vigente:
-
-self_service_customer_registrations requirió nombres explícitos más cortos para evitar error por identificador demasiado largo en MySQL.
+tenant correcto
+no exposición entre tenants
+no creación accidental de User
+no creación accidental de Membership
+no uso de login interno
+no uso de Fortify interno
+no acceso al panel interno
+no habilitación operativa antes de cumplir identidad requerida
 
 Regla:
 
-no asumir que el nombre automático de índice será válido si la combinación tabla + columnas es extensa.
+si un flujo externo se parece a uno interno, no reutilizar entidades ni controllers internos sin auditar plano de seguridad.
+
+La similitud de forma no implica equivalencia de contrato.
+
+ENTRADA INTERNA DE CONTROL SIN NAVEGACIÓN PRINCIPAL
+
+Patrón validado:
+
+una capa satélite puede ofrecer lectura interna de control dentro de tenant/profile sin convertirse todavía en navegación principal tenant.
+
+Caso vigente:
+
+Clientes Tienda dentro de tenant/profile.
+
+Lectura:
+
+lectura interna owner/admin de registros y customers externos
+
+filtro visual por estado
+
+control operativo inicial
+
+Reglas:
+
+la tab interna no crea módulo CRUD
+
+la tab interna no crea navegación principal
+
+la tab interna no convierte customers externos en memberships
+
+la tab interna debe representar datos preparados por backend
+
+la tab interna debe respetar autorización central
+
+LANDING PÚBLICA CON ACCESOS SEPARADOS POR INTENCIÓN
+
+Patrón validado:
+
+la landing pública puede separar intenciones de acceso sin mezclar planos.
+
+Caso vigente:
+
+Ver planes
+
+Ingresar
+
+Solicitar acceso
+
+Tienda
+
+Lectura:
+
+Ingresar = acceso interno
+
+Solicitar acceso = alta o solicitud de empresa
+
+Tienda = acceso externo customers
+
+Reglas:
+
+no asumir que welcome.blade.php es la landing real
+
+auditar routes/web.php y resources/views/landing antes de modificar página pública inicial
+
+no mezclar acceso externo de customer con login interno
+
+no presentar Tienda como panel interno
+
+REGLA FINAL
+
+Patrón validado = solución repetible ya probada que reduce deriva, acoplamiento o ambigüedad.
 
 <<END SECTION>>

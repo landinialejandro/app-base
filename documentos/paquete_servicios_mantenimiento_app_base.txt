@@ -186,7 +186,7 @@ No debe convertirse en una copia rígida, sobredimensionada o aislada de un soft
 <<END SECTION>>
 
 <<SECTION: PAQUETE DE SERVICIOS Y MANTENIMIENTO>>
-SECTION_VERSION: 00008
+SECTION_VERSION: 00009
 
 PAQUETE DE SERVICIOS Y MANTENIMIENTO
 
@@ -457,7 +457,7 @@ este documento no debe contaminarse con reglas propias de self_service_sales sal
 <<END SECTION>>
 
 <<SECTION: ROL DE ORDERS>>
-SECTION_VERSION: 00010
+SECTION_VERSION: 00011
 
 ROL DE ORDERS
 
@@ -748,7 +748,21 @@ no modifica lifecycle base de Orders
 
 no convierte Servicio y mantenimiento en dueño visual de Orders
 
-No se implementaron todavía estados técnicos satélite, planes, checklists, órdenes modelo ni lógica ampliada de Inventory para mantenimiento.
+No se implementaron todavía:
+
+estados técnicos satélite
+planes de mantenimiento
+checklists
+órdenes modelo
+servicios precargados
+lógica ampliada de Inventory para mantenimiento
+custodia material ampliada
+cierres técnicos
+cierres administrativos ampliados
+cierres finales
+línea de tiempo técnica propia
+dashboard operativo avanzado
+CMMS completo
 
 Regla:
 

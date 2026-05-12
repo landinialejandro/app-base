@@ -46,7 +46,7 @@ entidades del negocio
 <<END SECTION>>
 
 <<SECTION: RELACIONES CLAVE DEL ECOSISTEMA>>
-SECTION_VERSION: 00023
+SECTION_VERSION: 00024
 
 RELACIONES CLAVE DEL ECOSISTEMA
 
@@ -274,6 +274,32 @@ record_metadata registra excepciones, manualidad o metadata contextual.
 
 No debe utilizarse como fuente principal para representar la entidad ni el dato operativo visible.
 
+Primera lectura funcional vigente de servicio:
+
+orders.show puede mostrar una lectura contextual no invasiva para órdenes de servicio mediante datos reales existentes y helpers del modelo dueño.
+
+Lectura vigente:
+
+Order::displayCounterpartyName()
+Order::displayAssetReference()
+ordered_at
+group
+kind
+status
+record_metadata cuando esté expuesto por helper o payload preparado
+
+Reglas:
+
+esta lectura no crea entidad nueva
+
+esta lectura no crea tabla nueva
+
+esta lectura no crea estado técnico satélite
+
+esta lectura no modifica el lifecycle base de Orders
+
+esta lectura no convierte Servicio y mantenimiento en dueño conceptual de Orders
+
 Aclaración operativa de Tasks:
 
 Tasks conserva identidad propia como módulo de pendientes, seguimiento y acciones auxiliares.
@@ -315,6 +341,16 @@ Si no hay Party, counterparty_name debe venir escrito manualmente según el cont
 La visualización de contraparte debe resolverse desde el registro dueño mediante:
 
 Document::displayCounterpartyName()
+
+Documents puede mostrar link hacia la Order asociada respetando el contexto /service cuando el trail lo indique.
+
+Reglas:
+
+el link contextual no cambia ownership documental
+
+el link contextual no convierte Documents en parte del universo service
+
+Documents conserva ownership documental aunque derive desde Orders o enlace hacia Orders
 
 Aclaración operativa de Products:
 
@@ -408,6 +444,20 @@ Regla:
 Orders no debe reconstruir internamente la lógica material de Inventory.
 
 Inventory conserva ownership de las reglas físicas.
+
+Aclaración operativa de Inventory:
+
+Inventory puede operar sobre líneas de Orders mediante capacidades oficiales y conservar retorno contextual hacia /service/orders/{order} cuando el flujo nace desde Servicio y mantenimiento.
+
+Reglas:
+
+Inventory conserva ownership material
+
+Orders conserva ownership de la orden y sus líneas
+
+/service conserva contexto de navegación cuando corresponda
+
+el retorno contextual no convierte Inventory en parte de Service ni convierte Service en dueño de Inventory
 
 Aclaración operativa de OperationalActivity:
 
@@ -560,7 +610,17 @@ Aclaración vigente para attachments:
 
 Attachment puede registrarse en OperationalActivity cuando corresponda.
 
+Attachments puede retornar al parent Order contextual mediante trail cuando el flujo nace desde /service/orders/{order}.
+
 No tiene link propio definido desde actividad mientras no se decida si debe enlazar a show propio o al attachable padre.
+
+Reglas:
+
+el retorno contextual no convierte Attachments en dueño de Orders
+
+el retorno contextual no convierte Service en dueño de Attachments
+
+Attachment conserva su lectura transversal asociada al attachable correspondiente
 
 Relación conceptual vigente de ProductOperationalSummary:
 
@@ -666,6 +726,10 @@ Orders sostiene la primera base operativa mediante:
 
 group = service
 
+Relación conceptual vigente:
+
+/service → Orders → group = service
+
 Reglas:
 
 estas relaciones no implican tablas nuevas por defecto
@@ -692,9 +756,13 @@ Party kind = person
 ↓
 PartyRole role = customer
 
-Ruta pública vigente:
+Ruta pública tenant-scoped vigente:
 
 /shop/{tenant:slug}
+
+Entrada pública general vigente:
+
+/tienda
 
 Key técnica:
 
@@ -715,6 +783,54 @@ Party representa el customer confirmado dentro del tenant.
 PartyRole role = customer representa la relación comercial con la empresa.
 
 Tenant.slug permite resolver la tienda pública del tenant.
+
+SelfServiceCustomerRegistration representa una solicitud o registro inicial de ingreso a tienda, no una cuenta externa definitiva.
+
+Contrato funcional vigente de self_service_customer_registrations:
+
+tenant_id
+party_id
+status
+token
+name
+display_name
+email
+phone
+confirmed_at
+expires_at
+accepted_ip
+user_agent
+meta
+
+Reglas vigentes del registro liviano:
+
+document_type es nullable
+
+document_number es nullable
+
+display_name es obligatorio
+
+name se conserva obligatorio por compatibilidad estructural y se completa inicialmente con display_name
+
+Datos usados para crear Party mínima al confirmar:
+
+kind = person
+
+name = display_name
+
+display_name = display_name
+
+email
+
+phone
+
+document_type = null
+
+document_number = null
+
+PartyRole creado al confirmar:
+
+role = customer
 
 Reglas:
 
@@ -737,6 +853,44 @@ el cliente externo no debe convertirse en Membership
 /shop/{tenant:slug} no habilita acceso interno al tenant
 
 /shop/{tenant:slug} no pertenece al panel interno
+
+/tienda no es login interno
+
+/tienda no habilita panel interno
+
+Confirmar email no habilita por sí mismo operación comercial completa.
+
+Para operar deberá existir una validación posterior de identidad operativa según contrato vigente o futuro específico.
+
+Entidades futuras pendientes de modelado:
+
+SelfServiceCustomerAccount o equivalente
+
+SelfServiceStoreCustomer o equivalente
+
+Lectura futura esperada:
+
+SelfServiceCustomerAccount representaría identidad externa de customer.
+
+SelfServiceStoreCustomer o equivalente representaría relación customer-tienda.
+
+Reglas futuras:
+
+la relación customer-tienda no debe usar Membership
+
+el customer externo no debe usar User interno
+
+el customer externo no debe usar Fortify interno
+
+el customer externo no debe usar tenants/select
+
+un mismo customer externo podría operar en una o más tiendas app-base si se implementa esa etapa
+
+toda tienda seleccionable por un customer externo debe corresponder siempre a un tenant app-base
+
+no se admiten tiendas externas ajenas a app-base dentro de self_service_sales
+
+el selector externo de tiendas puede ser análogo al selector interno de tenants, pero debe usar entidades externas propias y no Membership
 
 Relaciones futuras posibles de Shopping Autoservicio:
 

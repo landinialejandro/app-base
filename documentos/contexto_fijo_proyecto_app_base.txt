@@ -336,7 +336,7 @@ Autorización, permisos y restricciones owner/admin pertenecen a seguridad_acces
 <<END SECTION>>
 
 <<SECTION: CAPAS FUNCIONALES DEL SISTEMA>>
-SECTION_VERSION: 00039
+SECTION_VERSION: 00041
 
 [GLOBAL]
 Gobierno plataforma.
@@ -379,10 +379,32 @@ Puede tener entrada, universo, dashboard mínimo, permiso área o entrada públi
 No absorbe ownership.
 No duplica CRUD.
 
-Casos:
+Casos estructurales:
 
 * /service = universo Servicio y mantenimiento. Owner real órdenes = Orders.
-* /shop/{tenant:slug} = entrada pública Tienda. self_service_sales. Customer externo ≠ User/Membership.
+* /shop/{tenant:slug} = tienda pública tenant-scoped. self_service_sales.
+* /tienda = entrada pública general externa.
+
+[PLANO INTERNO / PLANO EXTERNO]
+Interno:
+User
+Membership
+Tenant
+panel interno
+
+Externo:
+customer externo
+cuenta externa futura
+relación customer-tienda futura
+tienda pública
+
+[REGLAS]
+Customer externo ≠ User.
+Customer externo ≠ Membership.
+Entrada pública ≠ pertenencia.
+Ruta pública ≠ panel interno.
+Confirmación de email ≠ habilitación operativa completa.
+Capacidades futuras externas requieren contrato y evidencia real.
 
 [SUBCAPAS CONTEXTUALES]
 Capacidad alojada en módulo host.
@@ -390,7 +412,10 @@ No módulo nuevo.
 No CRUD.
 No navegación propia.
 No ModuleCatalog.
-Caso: ProductOperationalSummary bajo Products.
+
+Caso:
+
+ProductOperationalSummary bajo Products.
 
 [REGLA]
 Detalle operativo, rutas, UI, permisos, validaciones y estado de implementación van a documentos especializados.
@@ -532,7 +557,7 @@ No mezclar membership con customer externo.
 <<END SECTION>>
 
 <<SECTION: CLASIFICACIÓN CONCEPTUAL DE MÓDULOS>>
-SECTION_VERSION: 00024
+SECTION_VERSION: 00025
 
 [MÓDULOS NUCLEARES]
 orders
@@ -565,23 +590,28 @@ Publican lectura controlada hacia hosts.
 No se vuelven módulo ordinario.
 
 [CAPAS SATÉLITE]
-Orquestan módulos.
+Orquestan módulos existentes.
 No CRUD por reflejo.
 No ownership ajeno.
 
 Casos:
 
 * Servicios y Mantenimiento: capa satélite ERP/CMMS liviana. Universo: /service. Owner órdenes = Orders.
-* Shopping Autoservicio: capa satélite comercial externa. Key: self_service_sales. Entrada: /shop/{tenant:slug}. Customer externo ≠ User/Membership.
+* Shopping Autoservicio: capa satélite comercial externa. Key: self_service_sales. Customer externo ≠ User/Membership.
 
 [SUBCAPAS INTERNAS]
 Capacidad dentro de módulo host.
-Caso: ProductOperationalSummary bajo Products.
+
+Caso:
+
+ProductOperationalSummary bajo Products.
 
 [REGLA]
 Clasificación ≠ autorización.
 Clasificación ≠ navegación automática.
 Clasificación ≠ ownership.
+Entrada pública ≠ pertenencia.
+Universo semántico ≠ módulo dueño.
 
 <<END SECTION>>
 
@@ -721,7 +751,7 @@ No soluciones locales dispersas.
 <<END SECTION>>
 
 <<SECTION: LECTURA CONCEPTUAL DE LOS MÓDULOS ACTUALES>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00021
 
 [ORDERS]
 Núcleo operativo autónomo.
@@ -828,7 +858,7 @@ Rutas, helpers, UI, campos, validaciones y flows van a documentos especializados
 <<END SECTION>>
 
 <<SECTION: MODELO GENERAL DE CRECIMIENTO ARQUITECTÓNICO>>
-SECTION_VERSION: 00023
+SECTION_VERSION: 00024
 
 [CRECIMIENTO]
 Módulos con identidad clara.
@@ -854,6 +884,7 @@ No mezclar planos.
 No convertir clientes externos en Users/Memberships.
 No reutilizar contratos internos para flujos externos.
 Consumir capacidades existentes antes de crear variantes.
+No implementar capacidades futuras sin contrato y evidencia real.
 
 [CASOS]
 /service = capa satélite mantenimiento sobre Orders.
@@ -869,14 +900,9 @@ Definir:
 * alcance inicial
 * límites explícitos
 
-[NO ABRIR SIN AUDITORÍA]
-saldo
-QR
-pagos
-minimercado
-estados técnicos
-dashboard avanzado
-nuevas entidades futuras
+[REGLA]
+La arquitectura crece por contrato.
+No por ruta nueva, pantalla nueva, tabla nueva o caso puntual.
 
 <<END SECTION>>
 

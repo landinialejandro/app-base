@@ -597,7 +597,7 @@ Convención válida = regla repetible de implementación que evita acoplamiento,
 <<END SECTION>>
 
 <<SECTION: CONVENCIONES DE CAPAS SATÉLITE, UNIVERSOS Y ENTRADAS PÚBLICAS>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 [USO]
 Convenciones para capacidades que no deben leerse como CRUD ordinario.
@@ -658,12 +658,20 @@ service.orders.show = ruta física contextual.
 
 Reglas:
 no crear service.orders.items.* si operación real sigue en Orders.
+no duplicar controllers por contexto si el ownership real no cambia.
 no depender de query params manipulables.
-links/redirects/trails pueden conservar /service.
-retorno contextual debe resolverse por trail/helper/contrato explícito.
+links, redirects y trails pueden conservar /service.
+retorno contextual debe resolverse por trail, helper o contrato explícito.
+las rutas internas de operación pueden seguir perteneciendo al módulo dueño cuando el ownership real no cambia.
 
 Pieza vigente:
 OrderNavigationTrail::showRouteName()
+
+Lectura:
+OrderNavigationTrail::showRouteName() resuelve dinámicamente si el retorno físico corresponde a orders.show o service.orders.show según ruta actual o trail recibido.
+
+Regla:
+el host surface interno puede seguir usando orders.show como identificador funcional aunque la ruta física contextual sea service.orders.show.
 
 [SHOPPING AUTOSERVICIO]
 Tipo = capa satélite comercial autogestiva.

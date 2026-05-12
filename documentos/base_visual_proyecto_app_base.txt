@@ -44,7 +44,7 @@ Esos aspectos se resuelven en otros documentos del proyecto.
 <<END SECTION>>
 
 <<SECTION: ESTRUCTURA GENERAL DE PÁGINA>>
-SECTION_VERSION: 00002
+SECTION_VERSION: 00003
 
 ESTRUCTURA GENERAL DE PÁGINA
 
@@ -87,13 +87,17 @@ el modo público puede expresarse mediante:
 
 Las pantallas públicas externas no deben exponer navegación interna, panel tenant, configuración interna, saldos de otros clientes, historial interno ni datos privados del tenant.
 
-Caso vigente:
+Casos vigentes:
 
 Shopping Autoservicio usa vistas públicas externas para la entrada Tienda.
 
-Ruta base:
+Ruta pública tenant-scoped:
 
 /shop/{tenant:slug}
+
+Entrada pública general:
+
+/tienda
 
 Label visible:
 
@@ -101,6 +105,7 @@ Tienda
 
 Vistas públicas vigentes:
 
+resources/views/self-service-sales/access.blade.php
 resources/views/self-service-sales/shop.blade.php
 resources/views/self-service-sales/register.blade.php
 resources/views/self-service-sales/thanks.blade.php
@@ -109,6 +114,48 @@ resources/views/self-service-sales/confirmed.blade.php
 Regla:
 
 una vista pública externa debe expresar claramente que pertenece al plano público/externo y no al panel interno del tenant.
+
+Regla adicional para landing pública:
+
+la landing puede ofrecer accesos diferenciados por intención.
+
+Accesos vigentes:
+
+Ver planes
+Ingresar
+Solicitar acceso
+Tienda
+
+Lectura:
+
+Ingresar corresponde al acceso interno.
+
+Solicitar acceso corresponde a alta o solicitud de empresa.
+
+Tienda corresponde al acceso externo de customers.
+
+Reglas:
+
+la entrada Tienda no debe confundirse con login interno
+
+/tienda no debe mostrar panel interno
+
+/tienda no debe habilitar dashboard, tenant/profile ni rutas internas
+
+/shop/{tenant:slug} no debe habilitar navegación interna del tenant
+
+no debe exponerse información privada del tenant desde landing, /tienda ni /shop/{tenant:slug}
+
+Regla de auditoría visual:
+
+antes de modificar la página pública inicial, debe validarse qué vista resuelve la raíz pública.
+
+No debe asumirse que welcome.blade.php es la landing real.
+
+En este proyecto debe auditarse:
+
+routes/web.php
+resources/views/landing
 
 <<END SECTION>>
 

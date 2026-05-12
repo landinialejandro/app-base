@@ -471,7 +471,7 @@ Su función es dar acceso estructural al ecosistema operativo vigente.
 <<END SECTION>>
 
 <<SECTION: NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS>>
-SECTION_VERSION: 00020
+SECTION_VERSION: 00021
 
 NAVEGACIÓN CONTEXTUAL ENTRE MÓDULOS
 
@@ -733,6 +733,8 @@ las rutas internas de operación pueden seguir perteneciendo al módulo dueño c
 
 no deben crearse rutas duplicadas innecesarias como service.orders.items.* si la operación real sigue perteneciendo a Orders
 
+no deben duplicarse controllers por contexto cuando el ownership real no cambia
+
 los retornos físicos deben conservar /service/orders/{order} cuando el flujo nace en Servicio y mantenimiento
 
 Retornos físicos validados dentro del universo /service:
@@ -772,6 +774,34 @@ service.orders.show = ruta física contextual del universo /service
 Regla:
 
 la ruta física contextual no cambia el host funcional ni el ownership de Orders.
+
+Aclaración vigente para Shopping Autoservicio:
+
+Shopping Autoservicio opera en plano público externo y no en navegación contextual interna ordinaria del tenant.
+
+Entradas públicas vigentes:
+
+/shop/{tenant:slug}
+
+/tienda
+
+Lectura:
+
+/shop/{tenant:slug} es la tienda pública tenant-scoped.
+
+/tienda es entrada pública general de acceso externo.
+
+Ninguna de estas entradas habilita panel interno, dashboard, tenant/profile, parties.show ni rutas internas del tenant.
+
+Regla:
+
+si Shopping Autoservicio requiere lectura interna owner/admin, esa lectura debe vivir en un acceso interno específico y no confundirse con la navegación pública del customer externo.
+
+Caso vigente:
+
+tenant/profile puede alojar una tab interna de lectura o control de customers externos cuando la capacidad todavía no amerita navegación principal interna.
+
+Esa tab no convierte self_service_sales en navegación principal tenant.
 
 <<END SECTION>>
 

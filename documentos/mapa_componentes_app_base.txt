@@ -295,7 +295,7 @@ el comportamiento JS no debe ser fuente única de consistencia de datos crítico
 <<END SECTION>>
 
 <<SECTION: VISTAS Y PARTIALS DE FRENTES SATÉLITE Y CONTEXTOS ESPECIALIZADOS>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 VISTAS Y PARTIALS DE FRENTES SATÉLITE Y CONTEXTOS ESPECIALIZADOS
 
@@ -439,15 +439,17 @@ no deben duplicarse partials por universo si la configuración explícita resuel
 
 CASO VIGENTE: SHOPPING AUTOSERVICIO
 
-Vistas públicas vigentes:
+Vistas públicas vigentes o intervenidas:
 
-resources/views/self-service-sales/shop.blade.php
+resources/views/self-service-sales/access.blade.php
 
 resources/views/self-service-sales/register.blade.php
 
 resources/views/self-service-sales/thanks.blade.php
 
 resources/views/self-service-sales/confirmed.blade.php
+
+resources/views/self-service-sales/shop.blade.php
 
 Lectura:
 
@@ -464,6 +466,12 @@ No deben exponer dashboard, tenant/profile, parties.show ni rutas internas.
 Label visible:
 
 Tienda
+
+Entradas públicas relacionadas:
+
+/tienda
+
+/shop/{tenant:slug}
 
 Patrones visuales usados:
 
@@ -503,9 +511,97 @@ Regla sobre x-dev-component-version:
 
 las vistas públicas nuevas con entidad visual propia deben incorporar x-dev-component-version cuando corresponda.
 
-Regla final:
+CASO VIGENTE: TENANT PROFILE Y SELF SERVICE CUSTOMERS
 
-las vistas de frentes satélite y universos contextuales deben expresar contexto de uso sin crear ownership visual indebido ni duplicar vistas del módulo dueño.
+Partial vigente:
+
+resources/views/tenants/partials/profile-self-service-customers-tab.blade.php
+
+Lectura:
+
+profile-self-service-customers-tab es un partial interno de tenant/profile.
+
+No es componente global.
+
+No crea navegación principal tenant.
+
+No convierte self_service_sales en módulo CRUD ordinario.
+
+No convierte customers externos en memberships.
+
+No habilita operación interna del customer externo.
+
+Debe representar datos ya preparados por backend.
+
+Patrón visual validado:
+
+tab interna dentro de tenant/profile
+
+filtro visual por estados mediante toolbar de links
+
+no select clásico
+
+Componentes y clases visuales usadas:
+
+x-tab-toolbar
+
+tabs-nav
+
+tabs-link
+
+table-wrap
+
+table
+
+x-card
+
+x-page-header
+
+Reglas:
+
+la tab interna puede servir como lectura administrativa o de control owner/admin cuando la capacidad todavía no amerita navegación principal propia
+
+el filtro por estados debe respetar la gramática visual del perfil de empresa
+
+el partial no decide autorización
+
+el partial no debe reconstruir reglas de self_service_sales
+
+el partial no debe exponer navegación pública externa como si fuera navegación interna
+
+CASO VIGENTE: LANDING PÚBLICA Y ACCESO A TIENDA
+
+Partials intervenidos:
+
+resources/views/landing/partials/header.blade.php
+
+resources/views/landing/partials/hero.blade.php
+
+resources/views/landing/partials/cta.blade.php
+
+Lectura:
+
+la landing pública puede exponer acceso hacia Tienda como entrada externa general.
+
+Esto no convierte la landing en panel interno.
+
+Esto no convierte /tienda en login interno.
+
+Esto no habilita navegación tenant interna.
+
+Reglas:
+
+los enlaces públicos de landing deben mantener separación clara entre acceso externo y login interno
+
+la entrada Tienda debe leerse como acceso público externo de Shopping Autoservicio
+
+no debe mezclarse visualmente con acciones internas del tenant
+
+no debe exponer datos privados del tenant
+
+REGLA FINAL
+
+Las vistas de frentes satélite, universos contextuales, entradas públicas externas y tabs internas especializadas deben expresar contexto de uso sin crear ownership visual indebido, sin duplicar vistas del módulo dueño y sin mezclar plano público externo con panel interno.
 
 <<END SECTION>>
 

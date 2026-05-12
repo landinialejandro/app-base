@@ -340,10 +340,38 @@ demaelos grupo de a uno, sin dejar de varificar
 ok siguiente grupo no dejes de verificar los slug
 -----------------------------
 
-Auditar los dos documentos doctrinales del proyecto, 
-el seguridad_acceso_proyecto_app_base y contexto_fijo_proyecto_app_base, 
-te adjunto las versiones actualizadas recientemente, 
-Marcan doctrina, que no tengan información reduntates, 
-que tenga toda la información necesaria y justa
-sin sobre explicaciones. 
-ambos documentos son rectores y pilares para avanzar mas rapido 
+Auditar únicamente los documentos rectores:
+
+- contexto_fijo_proyecto_app_base
+- seguridad_acceso_proyecto_app_base
+
+Usar las versiones actualizadas adjuntas.
+
+Objetivo:
+verificar que ambos documentos sigan siendo doctrina compacta para IA, no manual humano, historial, roadmap ni inventario de implementación.
+
+Criterios de auditoría:
+
+- que no haya redundancias entre ambos documentos
+- que cada regla esté en el documento correcto
+- que contexto_fijo conserve solo doctrina arquitectónica estable
+- que seguridad_acceso conserve solo doctrina de acceso, autorización, aislamiento y restricciones críticas
+- que no haya sobreexplicaciones
+- que no haya casos vigentes ocupando más lugar que la doctrina
+- que no haya detalles que correspondan a documentos especializados
+- que no falte ninguna regla necesaria para evitar deriva futura
+- que toda frase que no evite un error futuro pueda eliminarse o compactarse
+
+Regla de compresión vigente:
+la versión rectora debe priorizar contrato compacto para IA, continuidad, prevención de deriva, baja ambigüedad y bajo ruido narrativo.
+La traducción humana o explicación ampliada se solicita solo bajo demanda.
+
+Salida esperada:
+diagnóstico breve, sin reescribir todo.
+Indicar:
+1. redundancias detectadas
+2. información que sobra
+3. información que falta
+4. secciones que conviene compactar
+5. contradicciones o solapamientos entre ambos documentos
+6. recomendación final de si los documentos quedan aptos como rectores

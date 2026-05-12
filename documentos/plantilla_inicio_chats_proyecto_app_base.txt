@@ -13,7 +13,7 @@ PROYECTO app-base
 <<END SECTION>>
 
 <<SECTION: INSTRUCCIÓN INICIAL OBLIGATORIA>>
-SECTION_VERSION: 00021
+SECTION_VERSION: 00022
 
 INSTRUCCIÓN INICIAL OBLIGATORIA
 
@@ -50,6 +50,60 @@ memberships resuelve pertenencia operativa al tenant.
 party puede funcionar como ficha ampliada tenant-scoped solo cuando exista vínculo explícito.
 
 No debe asumirse creación automática ni edición libre de datos identitarios.
+
+Regla específica para self_service_sales:
+
+en tareas de Shopping Autoservicio distinguir siempre:
+
+plano interno User/Membership
+
+plano externo customer
+
+tienda tenant-scoped
+
+entrada pública general /tienda
+
+registro liviano
+
+confirmación de email
+
+validación posterior de identidad operativa
+
+operación habilitada
+
+Relaciones vigentes:
+
+/shop/{tenant:slug} = tienda pública tenant-scoped
+
+/tienda = entrada pública general externa
+
+/login = acceso interno para User
+
+/solicitar-empresa = alta o solicitud de acceso de empresas
+
+Reglas:
+
+/tienda no es login interno
+
+/shop/{tenant:slug} no habilita panel interno
+
+customer externo no es User
+
+customer externo no es Membership
+
+confirmar email no habilita operación comercial completa
+
+login externo real no debe implementarse sin cerrar entidad externa y relación customer-tienda
+
+Antes de modificar landing pública:
+
+no asumir que welcome.blade.php es la landing real
+
+auditar routes/web.php
+
+auditar resources/views/landing
+
+verificar qué vista resuelve la raíz pública
 
 Estado base reciente a considerar:
 
@@ -461,252 +515,107 @@ administrator: compras e inventory
 sales: ventas
 operator: sin acceso
 
-Regla:
+Reglas:
 
-ver Products no implica ver ProductOperationalSummary.
+no calcular métricas en Blade
 
-Las métricas de compras y ventas deben usar Security::scope() sobre Orders para no leer órdenes fuera del dataset visible del usuario.
+no usar OperationalActivity como fuente principal de métricas
 
-Los Blades compactos solo representan payload ya resuelto.
+no crear módulo nuevo
 
-No calculan métricas.
+no crear rutas propias
 
-No consultan permisos.
+no publicar esta subcapa si Products o Inventory no están habilitados
 
-No reconstruyen Orders, Inventory ni Parties.
+no mostrar compras/ventas si Orders no está habilitado
 
-Regla de continuidad:
+no permitir acceso operator en la primera versión
 
-no volver a resolver ProductOperationalSummary mediante include directo en products.show salvo justificación explícita basada en código real.
+Orders / Documents / Mantenimiento:
 
-Debe mantenerse surface-driven mediante ProductSurfaceService.
+Orders y Documents ya sostienen counterparty_name como snapshot textual propio.
 
-Regla visual:
+Orders puede operar sin Party cuando conserva contraparte textual.
 
-no duplicar Precio vigente ni Último movimiento dentro de ProductOperationalSummary.
+Documents puede formalizar desde Orders autónomas sin exigir party_id.
 
-Precio vigente pertenece al summary principal del producto.
+Tasks conserva tasks.order_id como relación hacia Orders.
 
-Último movimiento pertenece a la lectura de Inventory y su detalle puede verse en la tab Movimientos.
+Appointments conserva appointments.order_id como relación hacia Orders.
 
-Por eso el tercer summary item vigente es Entradas / salidas.
+Orders no conserva task_id ni appointment_id como núcleo persistente.
 
-Orders / Documents / contraparte:
+Servicios y Mantenimiento se lee como capa satélite productiva ERP/CMMS liviana.
 
-Orders y Documents conservan party_id como vínculo gestionado opcional.
+No es CRUD ordinario.
 
-Orders y Documents conservan counterparty_name como snapshot textual propio.
+No debe sobrecargar Orders con todo mantenimiento.
 
-La lectura visible debe resolverse desde el módulo dueño:
+No debe usar Orders.status como estado técnico de ejecución.
 
-Order::displayCounterpartyName()
-Document::displayCounterpartyName()
+Universo vigente:
 
-Contraparte es el dato visible propio del registro.
-
-Contacto gestionado es el vínculo opcional con Party.
-
-PartyLinked representa únicamente el vínculo gestionado cuando existe party_id y corresponde mostrar enlace.
-
-PartyLinked no debe reemplazar el snapshot textual propio.
-
-Las tablas, surfaces, prints y summaries no deben mostrar solo party->name si el módulo dueño tiene helper de presentación propio.
-
-Contrato visual vigente:
-
-showCounterparty
-
-showParty no debe reintroducirse como contrato visual principal.
-
-Orders / activo / tablas:
-
-Orders puede representar Activo mediante asset_id y asset_reference cuando corresponda al contrato vigente.
-
-La lectura visible debe resolverse desde el módulo dueño:
-
-Order::displayAssetReference()
-
-La manualidad de contraparte y activo debe resolverse desde helpers del modelo y no desde Blade:
-
-Order::hasManualCounterpartyReference()
-Order::hasManualAssetReference()
-
-record_metadata conserva condiciones contextuales o excepcionales.
-
-No es fuente principal del dato visible.
-
-No debe interpretarse directamente desde Blade.
-
-Contratos visuales vigentes de Orders:
-
-showCounterparty
-showAsset
-
-showParty fue eliminado de Orders como fallback legacy.
-
-Reglas por host validadas:
-
-orders.index muestra Contraparte y Activo.
-
-assets.show aloja Orders mostrando Contraparte y ocultando Activo.
-
-parties.show aloja Orders ocultando Contraparte y mostrando Activo.
-
-Si existe vínculo gestionado autorizado, Orders puede mostrar link mediante componente oficial.
-
-Componentes vinculados vigentes:
-
-parties.components.linked-party
-assets.components.linked-asset
-
-Si no existe vínculo gestionado, Orders debe mostrar referencia textual propia.
-
-SurfaceService / Support Modules:
-
-OrderSurfaceService fue saneado parcialmente separando mecánica transversal reusable de lógica propia.
-
-Piezas vigentes:
-
-app/Support/Modules/Concerns/BuildsHostPacks.php
-app/Support/Modules/Concerns/ResolvesRelatedEmbeddedSurfaces.php
-
-Lectura:
-
-BuildsHostPacks concentra construcción genérica de hostPack.
-
-ResolvesRelatedEmbeddedSurfaces concentra resolución reusable de relacionados embebidos.
-
-OrderSurfaceService conserva ofertas, hosts, relaciones, flags, mensajes y configuración propia.
-
-Regla:
-
-los SurfaceService deben declarar capacidades y configuración propia.
-
-La lógica transversal reusable debe vivir en Support/Modules cuando corresponda.
-
-No vaciar SurfaceService por reflejo.
-
-No migrar services de forma masiva sin validación runtime.
-
-Servicios y Mantenimiento:
-
-Servicios y Mantenimiento se lee como capa satélite productiva ERP/CMMS liviana sobre módulos existentes.
-
-No se lee como módulo CRUD ordinario por defecto.
-
-Estado vigente:
-
-service_maintenance existe como frente habilitable no CRUD.
-
-service_maintenance.view_any permite acceso al área Servicio y mantenimiento.
-
-Este permiso no autoriza por sí mismo acciones internas sobre recursos participantes.
-
-Las acciones reales continúan bajo el contrato del módulo dueño.
+/service
 
 Orders sostiene la primera base operativa mediante:
 
 group = service
 
-Universo semántico vigente:
+Regla vigente:
 
-/service
+/service no reemplaza Orders
 
-Lectura:
+/service no absorbe ownership
 
-/service representa el frente Servicio y mantenimiento.
+service_maintenance.view_any habilita acceso al área, no permisos operativos sobre Orders
 
-/service no es módulo dueño nuevo.
+las acciones reales siguen bajo contrato del módulo dueño
 
-/service no reemplaza Orders.
+Shopping Autoservicio:
 
-/service no absorbe ownership de las órdenes.
+self_service_sales se lee como capa satélite comercial autogestiva por tenant.
 
-/service permite operar órdenes de servicio desde rutas semánticas propias.
+No es CRUD ordinario.
 
-Rutas validadas:
+No es panel interno del tenant.
 
-GET /service
-GET /service/orders
-GET /service/orders/create
-POST /service/orders
-GET /service/orders/{order}
+No reemplaza Parties, Products, Inventory, Documents ni Security.
 
-Nombres de ruta validados:
+Universo público vigente:
 
-service.index
-service.orders.index
-service.orders.create
-service.orders.store
-service.orders.show
+/shop/{tenant:slug}
 
-Reglas vigentes:
+Entrada pública general vigente:
 
-POST /service/orders fuerza group = service desde backend aunque el request intente enviar otro grupo.
+/tienda
 
-La creación de órdenes de servicio no depende de ?group=service.
+Customer externo confirmado:
 
-Una orden creada desde /service debe redirigir físicamente a /service/orders/{order}.
+Party.kind = person
 
-El formulario de orden de servicio debe mantenerse simple.
+PartyRole.role = customer
 
-La carga manual aparece solo si no existen componentes externos gestionados.
+Reglas:
 
-El JS de selects vinculados se generalizó a:
+customer externo ≠ User
 
-app-linked-select-sync
+customer externo ≠ Membership
 
-Contrato vigente:
+customer externo ≠ roles internos
 
-data-action="app-linked-select-sync"
-data-source-select
-data-target-select
-data-source-value
+customer externo ≠ panel interno
 
-party_id y asset_id funcionan como vínculos opcionales en órdenes de servicio.
+registro externo no usa invitations
 
-Assets puede ofrecer surface de identidad técnica para órdenes de servicio usando datos reales existentes.
+registro externo no usa PartyController
 
-No se implementaron todavía:
+registro externo no usa InvitationAcceptanceController
 
-estados técnicos satélite
-planes de mantenimiento
-órdenes modelo
-checklists
-servicios precargados
-custodia material ampliada
-cierres técnicos
-cierres administrativos ampliados
-cierres finales
-línea de tiempo operativa específica de mantenimiento
-dashboard operativo avanzado
-lógica CMMS completa
+registro externo no usa Fortify interno
 
-Regla:
+confirmar email no habilita operación comercial completa
 
-no implementar mantenimiento funcional reabriendo Orders por reflejo si la necesidad corresponde a Assets, Inventory, Products, Appointments, Tasks, Documents, Attachments, Parties, OperationalActivity o una pieza satélite propia.
-
-IA operativa:
-
-La IA debe leerse como capa transversal de asistencia y reducción de fricción.
-
-No es módulo funcional ordinario.
-
-No reemplaza Security.
-
-No reemplaza backend.
-
-No reemplaza lifecycle.
-
-No reemplaza ownership modular.
-
-No reemplaza supervisión humana en acciones críticas.
-
-No debe asumirse proveedor IA pago, API key disponible ni dependencia temprana con un servicio externo.
-
-La IA puede asistir auditorías, interpretación de salidas, organización de evidencia, generación de bloques documentales y planificación de pruebas.
-
-No valida runtime por sí misma.
+Antes de operar deberá existir validación posterior de identidad operativa y contrato específico.
 
 <<END SECTION>>
 

@@ -82,7 +82,7 @@ documentación actualizada
 <<END SECTION>>
 
 <<SECTION: REGLA GENERAL>>
-SECTION_VERSION: 00014
+SECTION_VERSION: 00015
 
 REGLA GENERAL
 
@@ -235,6 +235,8 @@ relación con Parties
 relación futura con Products, Inventory y Documents
 integración futura con pasarela de pago
 integración futura con QR o controlador externo
+validación posterior de identidad operativa
+habilitación operativa externa separada de la confirmación inicial
 
 Caso vigente:
 
@@ -244,9 +246,13 @@ Key técnica:
 
 self_service_sales
 
-Universo público vigente:
+Universo público tenant-scoped vigente:
 
 /shop/{tenant:slug}
+
+Entrada pública general vigente:
+
+/tienda
 
 Label visible:
 
@@ -279,6 +285,10 @@ el cliente externo no debe acceder al panel interno
 la tienda pública no debe habilitar operación interna del tenant
 
 el flujo externo no debe reutilizar controllers internos cuando pertenezcan a otro plano de seguridad
+
+la confirmación de email no debe leerse como habilitación operativa completa
+
+la habilitación para operar requiere identidad operativa suficiente según contrato vigente o futuro específico
 
 Caso operativo vigente:
 
@@ -376,6 +386,10 @@ qué request propio valida el flujo externo
 
 qué datos se transfieren a módulos internos al confirmar
 
+qué datos quedan pendientes para identidad operativa posterior
+
+qué condición habilita operación real
+
 qué queda fuera del alcance inicial
 
 Caso validado:
@@ -389,6 +403,10 @@ La confirmación por token crea Party kind = person y PartyRole role = customer.
 El flujo validado no crea User.
 
 El flujo validado no crea Membership.
+
+Caso validado adicional:
+
+/tienda funciona como entrada pública general separada del login interno.
 
 Reglas:
 
@@ -404,7 +422,34 @@ no usar invitations para registro externo de customers
 
 no crear Party si fallan token, estado, vencimiento o duplicados
 
-no crear nueva Party automáticamente si ya existe una Party en el tenant con mismo email, teléfono o DNI
+no crear nueva Party automáticamente si ya existe una Party en el tenant con mismo email, teléfono o DNI cuando el contrato vigente exija evitar duplicados por esos campos
+
+no habilitar operación real por la sola existencia de confirmación de email
+
+Regla adicional para registro externo liviano:
+
+si el flujo externo inicial usa registro liviano, debe distinguirse entre:
+
+identificación inicial de contacto
+confirmación de email
+identidad operativa suficiente
+habilitación para operar
+
+Datos mínimos vigentes del registro inicial liviano:
+
+nombre visible
+email
+teléfono
+
+Lectura:
+
+el email funciona como vínculo fuerte inicial.
+
+El teléfono es dato obligatorio de contacto, pero no reemplaza al email como vínculo principal.
+
+Regla:
+
+DNI, nombre real completo, datos fiscales, contraseña externa completa, saldo, fichas, QR, comprobantes y facturación no deben forzarse en el registro inicial liviano si el contrato vigente los reserva para validación posterior o fases futuras.
 
 Regla adicional para vínculos gestionados opcionales y referencias propias:
 
@@ -716,6 +761,16 @@ Casos vigentes:
 /service validó rutas, backend force de group = service, redirección física dentro del universo y conservación de contexto.
 
 self_service_sales validó registro pending, confirmación por token, creación de Party person, creación de PartyRole customer y no creación de User ni Membership.
+
+Validación runtime mínima para self_service_sales:
+
+tenant correcto
+no exposición entre tenants
+no creación accidental de User
+no creación accidental de Membership
+no uso de login interno para customers externos
+no habilitación operativa antes de cumplir identidad requerida
+no reutilización de flujo interno cuando el flujo pertenece al plano externo
 
 <<END SECTION>>
 

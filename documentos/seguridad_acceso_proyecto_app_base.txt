@@ -241,36 +241,80 @@ Todo plano auxiliar debe volver a autorización backend efectiva.
 <<END SECTION>>
 
 <<SECTION: ACCESO PÚBLICO Y ACCESO AUTENTICADO>>
-SECTION_VERSION: 00004
+SECTION_VERSION: 00006
 
 [ACCESO PÚBLICO]
 Previo o externo a operación interna autenticada.
-Puede mostrar onboarding, login, tienda pública o formularios externos.
+Puede mostrar onboarding, login, tienda pública, entrada externa o formularios externos.
 No habilita operación interna.
 
-[CASO]
-/shop/{tenant:slug} = entrada pública Tienda / Shopping Autoservicio.
-
-[REGLAS SHOP]
-No panel interno.
-No dashboard.
-No tenant/profile.
-No parties.show.
-No pertenencia interna.
-No User interno.
-No Membership.
+[CASOS]
+/shop/{tenant:slug} = tienda pública tenant-scoped de Shopping Autoservicio.
+/tienda = entrada pública general externa de Shopping Autoservicio.
 
 [TENANT POR SLUG]
 Puede resolver tenant.
 No debilita aislamiento.
+No habilita acceso interno.
 Operaciones públicas se asocian al tenant_id correspondiente.
 
-[ACCESO INTERNO AUTENTICADO]
-Requiere:
-User autenticado
-Membership vigente
-Tenant activo
-Autorización efectiva
+[ENTRADA PÚBLICA GENERAL]
+/tienda no es login interno.
+No autentica User.
+No crea Membership.
+No habilita panel interno.
+No reemplaza /login.
+No reemplaza /solicitar-empresa.
+No habilita operación comercial completa por sí misma.
+
+[CUSTOMER EXTERNO]
+Pertenece al plano comercial externo.
+
+Reglas:
+
+customer externo ≠ User
+customer externo ≠ Membership
+customer externo ≠ roles internos
+customer externo ≠ panel interno
+customer externo ≠ login interno
+
+[REGISTRO EXTERNO]
+Puede crear registro pendiente externo.
+Puede confirmar email por token.
+Puede crear Party customer person al confirmar.
+
+No debe:
+
+usar flujos internos de invitations
+usar contratos internos de alta de Parties
+usar contratos internos de memberships
+usar login interno
+crear User
+crear Membership
+iniciar sesión interna
+
+[CONFIRMACIÓN POR TOKEN]
+Acción sensible del plano externo.
+
+Debe validar:
+
+tenant
+token
+estado
+vencimiento
+duplicados
+
+antes de crear Party.
+
+[HABILITACIÓN OPERATIVA]
+Confirmar email no habilita operación comercial completa.
+
+Para operar deberá existir:
+
+identidad operativa suficiente
+relación customer-tienda o contrato equivalente
+habilitación operativa explícita
+autorización externa correspondiente al flujo
 
 [LOGIN EXTERNO FUTURO]
 Login externo self_service_sales ≠ login interno.
@@ -278,11 +322,30 @@ No crea User.
 No crea Membership.
 No otorga roles internos.
 No habilita panel.
+No debe reutilizar autenticación interna sin contrato específico validado.
+
+[ERRORES DE ACCESO EXTERNO]
+Los fallos de acceso externo deben usar mensajes genéricos.
+
+No deben revelar causa exacta del fallo.
+
+[ACCESO INTERNO AUTENTICADO]
+Requiere:
+
+User autenticado
+Membership vigente
+Tenant activo
+Autorización efectiva
+
+[REGLA FINAL]
+Autenticación externa ≠ autorización interna.
+Operar en tienda ≠ pertenecer al tenant.
+Entrada pública ≠ panel interno.
 
 <<END SECTION>>
 
 <<SECTION: IDENTIDAD, MEMBERSHIP Y TENANT ACTIVO>>
-SECTION_VERSION: 00009
+SECTION_VERSION: 00010
 
 [IDENTIDAD INTERNA]
 User = identidad global.
@@ -307,21 +370,20 @@ Puede condicionar edición de datos críticos.
 No convierte Party en acceso.
 
 [CUSTOMER EXTERNO]
-Pertenece a plano comercial externo.
+Pertenece al plano comercial externo.
 
 self_service_sales puede crear:
+
 Party.kind = person
 PartyRole.role = customer
 
 [REGLAS CUSTOMER EXTERNO]
-≠ User interno
-≠ Membership
-≠ roles internos
-≠ owner/admin/operator/sales/administrator
-≠ panel interno
-≠ tenant/profile
-≠ dashboard
-≠ login interno
+No es User interno.
+No es Membership.
+No posee roles internos.
+No accede al panel interno.
+No usa login interno.
+No habilita tenant/profile ni dashboard.
 
 [PARTY CUSTOMER EXTERNA]
 Representa cliente comercial.
@@ -532,7 +594,7 @@ Backend autoriza o bloquea.
 <<END SECTION>>
 
 <<SECTION: REGLAS DE IMPLEMENTACIÓN SEGURA>>
-SECTION_VERSION: 00032
+SECTION_VERSION: 00033
 
 [OBLIGATORIO]
 No autorizar desde Blade/frontend.
@@ -609,6 +671,18 @@ Vista solo representa payload autorizado.
 [/SERVICE]
 group = service debe resolverse/validarse backend.
 No depender de ?group=service ni input manipulable.
+
+[FLUJOS EXTERNOS]
+Flujo externo debe declarar:
+
+* identidad
+* tenant
+* alcance operativo
+* relación con entidades internas
+* mecanismo de autorización
+* límites frente al panel interno
+
+No reutilizar contratos internos si el plano de seguridad es distinto.
 
 <<END SECTION>>
 
@@ -798,7 +872,7 @@ OperationalActivity puede publicar lectura contextual, pero no autoriza operaci�
 <<END SECTION>>
 
 <<SECTION: REGLAS OPERATIVAS POR MÓDULO>>
-SECTION_VERSION: 00031
+SECTION_VERSION: 00032
 
 [USO]
 Solo restricciones de seguridad de alto impacto.
@@ -864,14 +938,14 @@ Party con membership activa protege kind/employee/email según contrato.
 
 [SHOPPING AUTOSERVICIO]
 self_service_sales plano comercial externo.
-/shop/{tenant:slug} ≠ panel interno.
+Entrada pública ≠ panel interno.
 Customer externo ≠ User.
 Customer externo ≠ Membership.
 Customer externo ≠ roles internos.
 Party customer externa ≠ identidad interna.
 Registro externo ≠ invitation.
-Confirmación token valida tenant/token/estado/vencimiento/duplicados.
-Duplicado email/teléfono/DNI bloquea alta.
+Confirmación token requiere validación backend suficiente.
+Duplicados relevantes bloquean alta.
 
 [OPERATIONAL ACTIVITY]
 No autoriza.

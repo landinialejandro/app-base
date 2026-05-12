@@ -503,7 +503,7 @@ Debe diseñarse con presupuesto inicial potencialmente cero, proveedor reemplaza
 <<END SECTION>>
 
 <<SECTION: LÍNEA ACTIVA — SHOPPING AUTOSERVICIO>>
-SECTION_VERSION: 00001
+SECTION_VERSION: 00002
 
 LÍNEA ACTIVA — SHOPPING AUTOSERVICIO
 
@@ -526,9 +526,13 @@ reemplazo de Inventory
 reemplazo de Documents
 reemplazo de Security
 
-Universo público vigente:
+Universo público tenant-scoped vigente:
 
 /shop/{tenant:slug}
+
+Entrada pública general vigente:
+
+/tienda
 
 Label visible:
 
@@ -547,22 +551,65 @@ servicio SelfServiceCustomerRegistrar
 servicio SelfServiceCustomerConfirmer
 controller SelfServiceSalesCustomerRegistrationController
 rutas públicas /shop/{tenant:slug}
+entrada pública general /tienda
+vista pública de acceso externo de customers
 vistas públicas de tienda, registro, gracias y confirmado
 flujo pending → confirmed
 creación de Party person + PartyRole customer
+registro inicial liviano
+confirmación de email como primer paso
+metadata operativa inicial en registro cuando corresponda
+tab interna Clientes Tienda dentro de tenant/profile
+filtro visual por estado en lectura interna
+incorporación visual de Tienda en landing pública
 validación de no creación de User ni Membership
 validación runtime de alta externa sin membership
+validación runtime de no uso de Fortify interno
+validación runtime de no acceso al panel interno
 
 Corte funcional vigente:
 
 registro externo pendiente
+registro inicial liviano
 confirmación por token
 creación de Party kind = person
 creación de PartyRole role = customer
+Party mínima sin DNI/document_number en esta etapa
 separación total frente a Membership
 sin User interno
 sin Membership
 sin acceso interno al tenant
+sin login externo real completo
+sin habilitación operativa completa
+
+Datos mínimos vigentes del registro inicial:
+
+nombre para mostrar
+email
+teléfono
+
+Lectura vigente:
+
+email = vínculo fuerte inicial del customer externo
+
+teléfono = dato obligatorio de contacto
+
+teléfono no reemplaza al email como vínculo principal
+
+Etapas conceptuales vigentes:
+
+registro inicial liviano
+confirmación de email
+validación posterior de identidad operativa
+habilitación para operar
+
+Metadata operativa inicial esperada cuando corresponda:
+
+identity_stage = initial_contact al crear la solicitud
+
+identity_stage = email_confirmed al confirmar email
+
+operation_enabled = false en ambos casos
 
 Reglas vigentes:
 
@@ -588,18 +635,37 @@ self_service_customer_registrations conserva el registro externo pendiente antes
 
 la confirmación por token debe validar token, estado, vencimiento y duplicados
 
-si existe una Party en el tenant con mismo email, teléfono o DNI, el alta autogestiva debe bloquearse
+si existe una Party en el tenant con mismo email o teléfono, el alta autogestiva debe bloquearse
+
+si el flujo incluye DNI/document_number, también debe bloquearse ante duplicado por ese dato
+
+la confirmación de email no habilita operación comercial completa
+
+para operar deberá completarse validación posterior de identidad operativa
+
+el acceso externo debe usar mensajes genéricos ante fallas
+
+no debe revelarse si falló email, contraseña, cuenta inexistente, cuenta no confirmada, cuenta bloqueada, tienda no disponible, customer sin tiendas o estado no habilitado para operar
 
 Mercado Pago queda como puerta futura, no implementada en esta fase
 
-Pendiente próximo:
+Pendientes estructurales próximos:
 
-visualización interna owner/admin de registros y customers de Shopping Autoservicio
+definir SelfServiceCustomerAccount o entidad equivalente
+definir relación customer-tienda
+definir selector externo de tiendas
+definir validación de identidad operativa
+definir cuándo operation_enabled puede pasar a true
+definir recuperación de acceso externo
+definir cambio de contraseña externa
+definir login externo real
+definir datos adicionales requeridos para pagos
+definir datos adicionales requeridos para comprobantes o facturación
+definir condiciones de prevención de abuso cuando corresponda
 
 Pendientes posteriores:
 
 envío real de email de confirmación
-login externo del customer
 base de saldo/ficha
 movimientos comerciales
 QR y consumo de ficha
@@ -614,6 +680,10 @@ saldo negativo
 Regla de continuidad:
 
 antes de continuar con saldo, ficha, QR, email real, Mercado Pago, minimercado, facturación, promociones o login externo completo, debe respetarse el corte actual y validar contra código real, seguridad, tenant activo, runtime y documentación vigente.
+
+Regla:
+
+el login externo real no debe implementarse sin antes cerrar entidad externa y relación customer-tienda.
 
 <<END SECTION>>
 

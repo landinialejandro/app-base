@@ -71,12 +71,13 @@ class OrderItemStatusService
             ->exists();
     }
 
-    protected function movementsForOrderItem(OrderItem $item)
+protected function movementsForOrderItem(OrderItem $item)
     {
         return InventoryMovement::query()
             ->where('tenant_id', $item->tenant_id)
             ->where('origin_line_type', InventoryOriginCatalog::LINE_TYPE_ORDER_ITEM)
             ->where('origin_line_id', $item->id)
+            ->where('product_id', $item->product_id)
             ->get();
     }
 

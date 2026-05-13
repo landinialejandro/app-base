@@ -154,7 +154,7 @@ class InventoryMovementService
         );
     }
 
-    protected function createMovement(
+protected function createMovement(
         Product $product,
         string $kind,
         float|int|string $quantity,
@@ -165,13 +165,14 @@ class InventoryMovementService
         ?DocumentItem $documentItem = null,
         int|string|null $createdBy = null,
         ?InventoryOperation $operation = null,
+        bool $allowOrderLineProductMismatch = false,
     ): array {
         $normalizedQuantity = (float) $quantity;
 
         $this->validateKind($kind);
         $this->validateQuantity($normalizedQuantity);
         $this->validateTenantConsistency($product, $order, $orderItem, $document, $documentItem, $operation);
-        $this->validateOrderContext($product, $order, $orderItem);
+        $this->validateOrderContext($product, $order, $orderItem, $allowOrderLineProductMismatch);
         $this->validateDocumentContext($product, $document, $documentItem);
 
         $origin = $this->resolveOrigin($order, $document);
@@ -331,10 +332,11 @@ class InventoryMovementService
         }
     }
 
-    protected function validateOrderContext(
+protected function validateOrderContext(
         Product $product,
         ?Order $order = null,
         ?OrderItem $orderItem = null,
+        bool $allowProductMismatch = false,
     ): void {
         if (! $order && ! $orderItem) {
             return;
@@ -352,7 +354,10 @@ class InventoryMovementService
             throw new InvalidArgumentException('La línea no pertenece a la orden indicada.');
         }
 
-        if ((int) $orderItem->product_id !== (int) $product->id) {
+        if (
+            ! $allowProductMismatch
+            && (int) $orderItem->product_id !== (int) $product->id
+        ) {
             throw new InvalidArgumentException('La línea no corresponde al producto indicado.');
         }
 
@@ -577,4 +582,34 @@ class InventoryMovementService
             ? $formatted.' '.$unitLabel
             : $formatted;
     }
+
+
+    public function createForOrderProductionComponent(
+            Order $order,
+            OrderItem $item,
+            Product $componentProduct,
+            string $kind,
+            float|int|string $quantity,
+            ?string $notes = null,
+            int|string|null $createdBy = null,
+            ?InventoryOperation $operation = null,
+        ): array {
+            if ($order->group !== OrderCatalog::GROUP_PRODUCTION) {
+                throw new InvalidArgumentException('Los movimientos de componentes solo están admitidos para órdenes de producción.');
+            }
+    
+            return $this->createMovement(
+                product: $componentProduct,
+                kind: $kind,
+                quantity: $quantity,
+                notes: $notes,
+                order: $order,
+                orderItem: $item,
+                document: null,
+                documentItem: null,
+                createdBy: $createdBy,
+                operation: $operation,
+                allowOrderLineProductMismatch: true,
+            );
+        }
 }

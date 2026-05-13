@@ -22,6 +22,16 @@ public function executeLine(
     ?string $notes = null,
     int|string|null $createdBy = null,
 ): array {
+    if ($order->group === OrderCatalog::GROUP_PRODUCTION) {
+        return app(ProductionOrderInventoryOperationService::class)->executeLine(
+            order: $order,
+            item: $item,
+            quantity: $quantity,
+            notes: $notes,
+            createdBy: $createdBy,
+        );
+    }
+
     $statusService = app(OrderItemStatusService::class);
     $profileResolver = app(InventoryOperationProfileResolver::class);
     $movementService = app(InventoryMovementService::class);
@@ -99,6 +109,16 @@ public function returnLineQuantity(
     ?string $notes = null,
     int|string|null $createdBy = null,
 ): array {
+    if ($order->group === OrderCatalog::GROUP_PRODUCTION) {
+        return app(ProductionOrderInventoryOperationService::class)->returnLineQuantity(
+            order: $order,
+            item: $item,
+            quantity: $quantity,
+            notes: $notes,
+            createdBy: $createdBy,
+        );
+    }
+
     $statusService = app(OrderItemStatusService::class);
     $profileResolver = app(InventoryOperationProfileResolver::class);
     $movementService = app(InventoryMovementService::class);

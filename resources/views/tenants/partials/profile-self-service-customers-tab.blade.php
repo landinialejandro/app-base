@@ -1,24 +1,11 @@
-{{-- FILE: resources/views/tenants/partials/profile-self-service-customers-tab.blade.php | V5 --}}
+{{-- FILE: resources/views/tenants/partials/profile-self-service-customers-tab.blade.php | V7 --}}
 
 @php
-    $selfServiceCustomerRegistrations = $selfServiceCustomerRegistrations ?? collect();
+    $selfServiceStoreCustomers = $selfServiceStoreCustomers ?? collect();
     $selfServiceCustomerStatusFilter = $selfServiceCustomerStatusFilter ?? 'all';
     $selfServiceCustomerStatusOptions = $selfServiceCustomerStatusOptions ?? [];
     $selfServiceCustomerStatusCounts = $selfServiceCustomerStatusCounts ?? [];
-
-    $statusLabels = [
-        'pending' => 'Pendiente',
-        'confirmed' => 'Confirmado',
-        'expired' => 'Vencido',
-        'cancelled' => 'Cancelado',
-    ];
-
-    $statusBadgeClasses = [
-        'pending' => 'status-badge--pending',
-        'confirmed' => 'status-badge--done',
-        'expired' => 'status-badge--expired',
-        'cancelled' => 'status-badge--cancelled',
-    ];
+    $canManageSelfServiceCustomers = $canManageSelfServiceCustomers ?? false;
 
     $storeStatusLabels = [
         'active' => 'Activa',
@@ -68,118 +55,97 @@
 </x-tab-toolbar>
 
 <x-card>
-    @if($selfServiceCustomerRegistrations->isEmpty())
-        <p class="mb-0">No hay solicitudes de clientes para el estado seleccionado.</p>
+    @if($selfServiceStoreCustomers->isEmpty())
+        <p class="mb-0">No hay clientes de tienda para el estado seleccionado.</p>
     @else
         <div class="table-wrap">
             <table class="table">
                 <thead>
                     <tr>
-                        <th>Estado</th>
-                        <th>Cliente</th>
+                        <th>Cliente externo</th>
                         <th>Email</th>
                         <th>Teléfono</th>
-                        <th>Cuenta externa</th>
+                        <th>Party</th>
                         <th>Relación tienda</th>
                         <th>Identidad</th>
+                        <th>Identidad completada</th>
+                        <th>Términos</th>
                         <th>Operación</th>
-                        <th>Solicitud</th>
-                        <th>Confirmación</th>
-                        <th>Party</th>
+                        <th>Alta relación</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach($selfServiceCustomerRegistrations as $registration)
+                    @foreach($selfServiceStoreCustomers as $storeCustomer)
                         @php
-                            $status = $registration->status;
+                            $account = $storeCustomer->account;
+                            $party = $storeCustomer->party;
 
-                            if ($registration->status === 'pending' && $registration->isExpired()) {
-                                $status = 'expired';
-                            }
+                            $customerLabel = $account?->display_name
+                                ?: $party?->display_name
+                                ?: $party?->name
+                                ?: 'Cliente externo';
 
-                            $account = $registration->account;
-                            $storeCustomer = $registration->storeCustomer;
+                            $partyLabel = $party?->display_name
+                                ?: $party?->name
+                                ?: ($storeCustomer->party_id ? ('Party #' . $storeCustomer->party_id) : '—');
 
-                            $partyLabel = $registration->party?->name
-                                ?? ($registration->party_id ? ('Party #' . $registration->party_id) : '—');
+                            $storeStatus = $storeCustomer->status;
+                            $storeStatusLabel = $storeStatusLabels[$storeStatus] ?? $storeStatus;
+                            $storeStatusBadgeClass = $storeStatusBadgeClasses[$storeStatus] ?? 'status-badge--pending';
 
-                            $statusBadgeClass = $statusBadgeClasses[$status] ?? 'status-badge--pending';
+                            $identityStage = $storeCustomer->identity_stage;
+                            $identityStageLabel = $identityStageLabels[$identityStage] ?? $identityStage;
 
-                            $accountLabel = $account
-                                ? ('Cuenta #' . $account->id)
-                                : '—';
+                            $operationEnabled = $storeCustomer->operation_enabled === true;
 
-                            $accountStatusLabel = $account?->status
-                                ? ucfirst($account->status)
-                                : null;
-
-                            $storeStatus = $storeCustomer?->status;
-                            $storeStatusLabel = $storeStatus
-                                ? ($storeStatusLabels[$storeStatus] ?? $storeStatus)
-                                : '—';
-
-                            $storeStatusBadgeClass = $storeStatus
-                                ? ($storeStatusBadgeClasses[$storeStatus] ?? 'status-badge--pending')
-                                : 'status-badge--pending';
-
-                            $identityStage = $storeCustomer?->identity_stage
-                                ?? (($registration->meta ?? [])['identity_stage'] ?? null);
-
-                            $identityStageLabel = $identityStage
-                                ? ($identityStageLabels[$identityStage] ?? $identityStage)
-                                : '—';
-
-                            $operationEnabled = $storeCustomer?->operation_enabled === true;
+                            $canCompleteIdentity = $canManageSelfServiceCustomers
+                                && $storeCustomer->status === 'active'
+                                && $storeCustomer->identity_stage !== 'operational_identity_completed';
                         @endphp
 
                         <tr>
+                            <td>{{ $customerLabel }}</td>
+
+                            <td>{{ $account?->email ?: '—' }}</td>
+
+                            <td>{{ $account?->phone ?: '—' }}</td>
+
+                            <td>{{ $partyLabel }}</td>
+
                             <td>
-                                <span class="status-badge {{ $statusBadgeClass }}">
-                                    {{ $statusLabels[$status] ?? $status }}
+                                <span class="status-badge {{ $storeStatusBadgeClass }}">
+                                    {{ $storeStatusLabel }}
                                 </span>
-                            </td>
-
-                            <td>{{ $registration->display_name ?: $registration->name }}</td>
-
-                            <td>{{ $registration->email ?: '—' }}</td>
-
-                            <td>{{ $registration->phone ?: '—' }}</td>
-
-                            <td>
-                                <div>{{ $accountLabel }}</div>
-
-                                @if($accountStatusLabel)
-                                    <small>{{ $accountStatusLabel }}</small>
-                                @endif
-                            </td>
-
-                            <td>
-                                @if($storeCustomer)
-                                    <span class="status-badge {{ $storeStatusBadgeClass }}">
-                                        {{ $storeStatusLabel }}
-                                    </span>
-                                @else
-                                    —
-                                @endif
                             </td>
 
                             <td>{{ $identityStageLabel }}</td>
 
+                            <td>{{ $storeCustomer->identity_completed_at?->format('d/m/Y H:i') ?? '—' }}</td>
+
+                            <td>{{ $storeCustomer->terms_accepted_at?->format('d/m/Y H:i') ?? '—' }}</td>
+
                             <td>
-                                @if($storeCustomer)
-                                    <span class="status-badge {{ $operationEnabled ? 'status-badge--done' : 'status-badge--pending' }}">
-                                        {{ $operationEnabled ? 'Habilitada' : 'Bloqueada' }}
-                                    </span>
+                                <span class="status-badge {{ $operationEnabled ? 'status-badge--done' : 'status-badge--pending' }}">
+                                    {{ $operationEnabled ? 'Habilitada' : 'Bloqueada' }}
+                                </span>
+                            </td>
+
+                            <td>{{ $storeCustomer->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
+
+                            <td>
+                                @if($canCompleteIdentity)
+                                    <form method="POST" action="{{ route('tenant.self-service-store-customers.complete-identity', ['storeCustomer' => $storeCustomer]) }}">
+                                        @csrf
+
+                                        <button type="submit" class="btn btn-secondary">
+                                            Completar identidad
+                                        </button>
+                                    </form>
                                 @else
                                     —
                                 @endif
                             </td>
-
-                            <td>{{ $registration->created_at?->format('d/m/Y H:i') ?? '—' }}</td>
-
-                            <td>{{ $registration->confirmed_at?->format('d/m/Y H:i') ?? '—' }}</td>
-
-                            <td>{{ $partyLabel }}</td>
                         </tr>
                     @endforeach
                 </tbody>
@@ -187,5 +153,5 @@
         </div>
     @endif
 
-    <x-dev-component-version name="tenants.partials.profile-self-service-customers-tab" version="V5" />
+    <x-dev-component-version name="tenants.partials.profile-self-service-customers-tab" version="V7" />
 </x-card>

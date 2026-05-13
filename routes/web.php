@@ -19,12 +19,14 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\OrderItemController;
 use App\Http\Controllers\PartyController;
 use App\Http\Controllers\ProductController;
+use App\Http\Controllers\ProductComponentController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\PublicSignupRequestController;
 use App\Http\Controllers\SelfServiceSalesAccessController;
 use App\Http\Controllers\SelfServiceSalesCustomerRegistrationController;
 use App\Http\Controllers\SelfServiceSalesStoreSelectorController;
+use App\Http\Controllers\SelfServiceStoreCustomerIdentityController;
 use App\Http\Controllers\ServiceDashboardController;
 use App\Http\Controllers\SuperadminDashboardController;
 use App\Http\Controllers\TaskController;
@@ -189,6 +191,9 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::put('/tenant/profile/permissions', [TenantProfilePermissionController::class, 'update'])
         ->name('tenant.profile.permissions.update');
 
+    Route::post('/tenant/self-service-store-customers/{storeCustomer}/complete-identity', [SelfServiceStoreCustomerIdentityController::class, 'complete'])
+        ->name('tenant.self-service-store-customers.complete-identity');
+
     Route::post('/tenant/memberships/{membership}/block', [TenantMembershipController::class, 'block'])
         ->name('tenant.memberships.block');
     Route::post('/tenant/memberships/{membership}/unblock', [TenantMembershipController::class, 'unblock'])
@@ -257,10 +262,14 @@ Route::middleware(['auth', 'tenant'])->group(function () {
     Route::get('/products/create', [ProductController::class, 'create'])->name('products.create');
     Route::post('/products', [ProductController::class, 'store'])->name('products.store');
     Route::get('/products/{product}', [ProductController::class, 'show'])->name('products.show');
+    Route::get('/products/{product}/components/create', [ProductComponentController::class, 'create'])->name('products.components.create');
+    Route::post('/products/{product}/components', [ProductComponentController::class, 'store'])->name('products.components.store');
+    Route::get('/products/{product}/components/{component}/edit', [ProductComponentController::class, 'edit'])->name('products.components.edit');
+    Route::put('/products/{product}/components/{component}', [ProductComponentController::class, 'update'])->name('products.components.update');
+    Route::delete('/products/{product}/components/{component}', [ProductComponentController::class, 'destroy'])->name('products.components.destroy');
     Route::get('/products/{product}/edit', [ProductController::class, 'edit'])->name('products.edit');
     Route::put('/products/{product}', [ProductController::class, 'update'])->name('products.update');
     Route::delete('/products/{product}', [ProductController::class, 'destroy'])->name('products.destroy');
-
     // Assets
     Route::get('/assets', [AssetController::class, 'index'])->name('assets.index');
     Route::get('/assets/create', [AssetController::class, 'create'])->name('assets.create');

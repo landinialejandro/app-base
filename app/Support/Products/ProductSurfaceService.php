@@ -18,7 +18,7 @@ class ProductSurfaceService implements ModuleSurfaceService
 
     protected array $operationalSummaryCache = [];
 
-    public function offers(): array
+public function offers(): array
     {
         return [
             $this->linkedOffer(
@@ -39,6 +39,16 @@ class ProductSurfaceService implements ModuleSurfaceService
                 priority: 20,
                 view: 'products.components.linked-product',
                 resolver: $this->resolveInventoryCreateAction(...),
+            ),
+
+            $this->embeddedOffer(
+                key: 'product.composition.summary',
+                label: 'Composición',
+                targets: ['products.show'],
+                slot: 'summary_items',
+                priority: 60,
+                view: 'products.composition.summary',
+                resolver: $this->resolveCompositionSummary(...),
             ),
 
             $this->embeddedOffer(
@@ -69,6 +79,16 @@ class ProductSurfaceService implements ModuleSurfaceService
                 priority: 72,
                 view: 'products.operational-summary.flow-summary',
                 resolver: $this->resolveOperationalFlowSummary(...),
+            ),
+
+            $this->embeddedOffer(
+                key: 'product.composition.items',
+                label: 'Composición',
+                targets: ['products.show'],
+                slot: 'tab_panels',
+                priority: 120,
+                view: 'products.composition.items-tab',
+                resolver: $this->resolveCompositionItemsTab(...),
             ),
         ];
     }
@@ -264,4 +284,76 @@ class ProductSurfaceService implements ModuleSurfaceService
 
         return $this->operationalSummaryCache[$cacheKey];
     }
+
+
+private function resolveCompositionSummary(array $hostPack): array
+    {
+        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
+
+        if ($recordType !== 'product' || ! $record instanceof Product) {
+            return [
+                'visible' => false,
+                'count' => null,
+                'data' => [
+                    'composition' => [
+                        'can_view' => false,
+                        'has_components' => false,
+                        'components_count' => 0,
+                        'components' => collect(),
+                        'item_options' => collect(),
+                    ],
+                ],
+            ];
+        }
+
+        $composition = app(\App\Support\Products\Composition\ProductCompositionSummaryService::class)
+            ->forProduct($record, $trailQuery);
+
+        return [
+            'visible' => ($composition['has_components'] ?? false) === true,
+            'count' => $composition['components_count'] ?? null,
+            'data' => [
+                'composition' => $composition,
+            ],
+        ];
+    }
+
+
+    private function resolveCompositionItemsTab(array $hostPack): array
+        {
+            [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
+    
+            if ($recordType !== 'product' || ! $record instanceof Product) {
+                return [
+                    'visible' => false,
+                    'count' => null,
+                    'data' => [
+                        'product' => null,
+                        'composition' => [
+                            'can_view' => false,
+                            'has_components' => false,
+                            'components_count' => 0,
+                            'components' => collect(),
+                            'item_options' => collect(),
+                        ],
+                        'trailQuery' => $trailQuery,
+                    ],
+                ];
+            }
+    
+            $composition = app(\App\Support\Products\Composition\ProductCompositionSummaryService::class)
+                ->forProduct($record, $trailQuery);
+    
+            $canUpdate = auth()->user()?->can('update', $record) ?? false;
+    
+            return [
+                'visible' => $canUpdate || (($composition['has_components'] ?? false) === true),
+                'count' => $composition['components_count'] ?? null,
+                'data' => [
+                    'product' => $record,
+                    'composition' => $composition,
+                    'trailQuery' => $trailQuery,
+                ],
+            ];
+        }
 }

@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Models/Product.php | V5
+// FILE: app/Models/Product.php | V7
 
 namespace App\Models;
 

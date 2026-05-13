@@ -1,6 +1,6 @@
 <?php
 
-// FILE: database/seeders/LavaderoProductionPatchSeeder.php | V1
+// FILE: database/seeders/LavaderoProductionDemoSeeder.php | V1
 
 namespace Database\Seeders;
 
@@ -20,9 +20,9 @@ use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
-class LavaderoProductionPatchSeeder extends Seeder
+class LavaderoProductionDemoSeeder extends Seeder
 {
-    public function run(): void
+public function run(): void
     {
         $tenant = Tenant::query()
             ->where('slug', 'lavadero-sa')
@@ -32,27 +32,40 @@ class LavaderoProductionPatchSeeder extends Seeder
             ->where('email', 'santiago.mendez@lavaderosa.local')
             ->firstOrFail();
 
-        $ficha = $this->updateFichaProduct($tenant->id, $owner->id);
-        $this->updateTiempoProduct($tenant->id, $owner->id);
+        $hadTenantBinding = app()->bound('tenant');
+        $previousTenant = $hadTenantBinding ? app('tenant') : null;
 
-        $this->ensureProductionSequence($tenant->id);
+        app()->instance('tenant', $tenant);
 
-        $order = $this->createOrUpdateProductionOrder(
-            tenantId: $tenant->id,
-            ownerUserId: $owner->id,
-        );
+        try {
+            $ficha = $this->updateFichaProduct($tenant->id, $owner->id);
+            $this->updateTiempoProduct($tenant->id, $owner->id);
 
-        $item = $this->createOrUpdateProductionItem(
-            tenantId: $tenant->id,
-            orderId: $order->id,
-            product: $ficha,
-        );
+            $this->ensureProductionSequence($tenant->id);
 
-        $this->executeProductionIfPending(
-            order: $order->fresh(['items.product']),
-            item: $item->fresh(['product']),
-            ownerUserId: $owner->id,
-        );
+            $order = $this->createOrUpdateProductionOrder(
+                tenantId: $tenant->id,
+                ownerUserId: $owner->id,
+            );
+
+            $item = $this->createOrUpdateProductionItem(
+                tenantId: $tenant->id,
+                orderId: $order->id,
+                product: $ficha,
+            );
+
+            $this->executeProductionIfPending(
+                order: $order->fresh(['items.product']),
+                item: $item->fresh(['product']),
+                ownerUserId: $owner->id,
+            );
+        } finally {
+            if ($hadTenantBinding) {
+                app()->instance('tenant', $previousTenant);
+            } else {
+                app()->forgetInstance('tenant');
+            }
+        }
     }
 
     private function updateFichaProduct(string $tenantId, int $ownerUserId): Product
@@ -242,13 +255,15 @@ class LavaderoProductionPatchSeeder extends Seeder
             ->firstOrFail();
     }
 
-    private function executeProductionIfPending(Order $order, OrderItem $item, int $ownerUserId): void
+private function executeProductionIfPending(Order $order, OrderItem $item, int $ownerUserId): void
     {
         $item->loadMissing('product');
 
         $pendingQuantity = app(OrderItemStatusService::class)->pendingQuantity($item);
 
         if ($pendingQuantity <= 0) {
+            app(OrderItemStatusService::class)->recalculate($item);
+
             return;
         }
 

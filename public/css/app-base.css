@@ -1,4 +1,3 @@
-/* FILE: public/css/app-base.css | V2 */
 /* =========================================================
    FILE: public/css/app-base.css
    Base visual global obligatoria del sistema.
@@ -184,62 +183,6 @@ a:hover {
 
 .app-main>.container>.page:last-child {
     margin-bottom: var(--space-6);
-}
-
-.app-brand {
-    min-width: 0;
-    display: flex;
-    align-items: center;
-}
-
-.app-brand-link {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 36px;
-    height: 36px;
-    color: var(--color-text);
-    text-decoration: none;
-    line-height: 1;
-}
-
-.app-brand-link:hover {
-    text-decoration: none;
-}
-
-.app-brand__icon {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--color-text);
-    flex: 0 0 auto;
-}
-
-.app-brand__icon svg {
-    display: block;
-    width: 28px;
-    height: 28px;
-}
-
-.app-brand__icon svg {
-    display: block;
-    width: 28px;
-    height: 28px;
-    overflow: visible;
-}
-
-.app-brand__icon .app-logo-active {
-    transform-box: fill-box;
-    transform-origin: center;
-    transition:
-        transform 180ms ease,
-        filter 180ms ease,
-        opacity 180ms ease;
-}
-
-.app-brand-link:hover .app-logo-active,
-.app-brand-link:focus-visible .app-logo-active {
-    transform: translateY(-0.5px) scale(1.03);
 }
 
 /* =========================================================
@@ -837,8 +780,6 @@ body.app-modal-open {
     padding: var(--space-5);
 }
 
-/* agregar dentro de la sección de cards de public/css/app-base.css */
-
 .card-header {
     display: flex;
     align-items: flex-start;
@@ -913,112 +854,6 @@ body.app-modal-open {
     gap: var(--space-3);
     margin-bottom: var(--space-4);
     flex-wrap: wrap;
-}
-
-/* FILE: public/css/app-base.css | V11 */
-
-.tab-toolbar {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: var(--space-3);
-    min-width: 0;
-    flex-wrap: nowrap;
-    margin-bottom: 0;
-    padding: var(--space-3) var(--space-4);
-}
-
-.tab-toolbar__nav {
-    flex: 1 1 auto;
-    min-width: 0;
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-2);
-}
-
-.tab-toolbar__label {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--color-text);
-    line-height: 1.2;
-}
-
-.tab-toolbar__actions {
-    flex: 0 0 auto;
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    flex-wrap: nowrap;
-    margin-left: auto;
-}
-
-.horizontal-scroll {
-    display: flex;
-    align-items: center;
-    gap: var(--space-2);
-    width: 100%;
-    min-width: 0;
-}
-
-.horizontal-scroll-viewport {
-    min-width: 0;
-    flex: 1 1 auto;
-    overflow-x: auto;
-    overflow-y: hidden;
-    scrollbar-width: none;
-    -ms-overflow-style: none;
-    scroll-behavior: smooth;
-    box-shadow:
-        inset 0 2px 8px rgba(255, 255, 255, 0.16),
-        inset 0 -2px 8px rgba(15, 23, 42, 0.05);
-}
-
-.horizontal-scroll-viewport::-webkit-scrollbar {
-    display: none;
-}
-
-.horizontal-scroll-track {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-2);
-    min-width: max-content;
-}
-
-.horizontal-scroll-button {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 32px;
-    height: 32px;
-    padding: 0;
-    border: 1px solid var(--color-border);
-    border-radius: 999px;
-    background: var(--color-surface);
-    color: var(--color-text);
-    cursor: pointer;
-    flex: 0 0 auto;
-}
-
-.horizontal-scroll-button:hover {
-    background: var(--color-surface-hover);
-}
-
-.horizontal-scroll-button[hidden] {
-    display: none;
-}
-
-@media (max-width: 768px) {
-    .tab-toolbar {
-        flex-direction: column;
-        align-items: stretch;
-    }
-
-    .tab-toolbar__actions {
-        width: 100%;
-        margin-left: 0;
-        justify-content: flex-start;
-        flex-wrap: wrap;
-    }
 }
 
 /* =========================================================
@@ -1480,89 +1315,6 @@ textarea.form-control {
 .tenant-option-meta {
     color: var(--color-muted);
     font-size: 0.9rem;
-}
-
-.tenant-role-sync-message,
-[data-role-sync-message] {
-    display: block;
-    max-width: 100%;
-    white-space: normal;
-    overflow-wrap: anywhere;
-    word-break: normal;
-}
-
-.tenant-settings-json {
-    margin: 0;
-    padding: var(--space-3);
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
-    background: var(--color-surface-muted);
-    white-space: pre-wrap;
-    word-break: break-word;
-    font-size: 0.85rem;
-    line-height: 1.4;
-}
-
-/* ===== ACCESS CONTEXT ===== */
-
-.access-context {
-    border: 1px solid var(--color-border);
-    border-radius: 10px;
-    padding: 12px 14px;
-    margin-bottom: 12px;
-    background: var(--color-card);
-}
-
-.access-context-header {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-}
-
-.access-title {
-    font-weight: 600;
-    font-size: 14px;
-}
-
-.access-description {
-    font-size: 13px;
-    color: var(--color-text-muted);
-}
-
-.access-security-note {
-    margin-top: 8px;
-    font-size: 12px;
-    color: var(--color-text-muted);
-}
-
-/* ===== COLOR DOT ===== */
-
-.access-dot {
-    width: 10px;
-    height: 10px;
-    border-radius: 50%;
-}
-
-/* colores suaves (no saturados) */
-
-.access-dot--owner {
-    background: #e55353;
-}
-
-.access-dot--admin {
-    background: #f59e0b;
-}
-
-.access-dot--sales {
-    background: #22c55e;
-}
-
-.access-dot--operator {
-    background: #3b82f6;
-}
-
-.access-dot--administrator {
-    background: #eab308;
 }
 
 /* =========================================================

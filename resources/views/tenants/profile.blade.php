@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/profile.blade.php | V9 --}}
+{{-- FILE: resources/views/tenants/profile.blade.php | V10 --}}
 
 @extends('layouts.app')
 
@@ -14,6 +14,7 @@
         $canEditSelectedPermissionRole = $canEditSelectedPermissionRole ?? false;
         $actorMembership = $actorMembership ?? null;
         $selfServiceCustomerStatusCounts = $selfServiceCustomerStatusCounts ?? [];
+        $canManageSelfServiceCustomers = $canManageSelfServiceCustomers ?? false;
 
         $tabsLabel = 'Secciones del perfil de empresa';
 
@@ -75,10 +76,11 @@
                 'count' => (int) ($selfServiceCustomerStatusCounts['all'] ?? 0),
                 'view' => 'tenants.partials.profile-self-service-customers-tab',
                 'data' => [
-                    'selfServiceCustomerRegistrations' => $selfServiceCustomerRegistrations ?? collect(),
+                    'selfServiceStoreCustomers' => $selfServiceStoreCustomers ?? collect(),
                     'selfServiceCustomerStatusFilter' => $selfServiceCustomerStatusFilter ?? 'all',
                     'selfServiceCustomerStatusOptions' => $selfServiceCustomerStatusOptions ?? [],
                     'selfServiceCustomerStatusCounts' => $selfServiceCustomerStatusCounts,
+                    'canManageSelfServiceCustomers' => $canManageSelfServiceCustomers ?? false,
                 ],
             ]);
         }
@@ -105,7 +107,8 @@
             <div class="dashboard-section-header">
                 <h2 class="dashboard-section-title">Gestión de empresa</h2>
                 <p class="dashboard-section-text">
-                    Desde este espacio se visualizan los datos de la empresa, usuarios, accesos, permisos, clientes de tienda y actividad.
+                    Desde este espacio se visualizan los datos de la empresa, usuarios, accesos, permisos, clientes de
+                    tienda y actividad.
                     Algunas acciones pueden mostrarse en modo lectura según tu nivel de autorización.
                 </p>
             </div>
@@ -117,6 +120,6 @@
 
         <x-host-tabs :items="$tabItems" :active-tab="$activeTab" :label="$tabsLabel" />
 
-        <x-dev-component-version name="tenants.profile" version="V9" />
+        <x-dev-component-version name="tenants.profile" version="V10" />
     </x-page>
 @endsection

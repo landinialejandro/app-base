@@ -1,6 +1,6 @@
 <?php
 
-// FILE: app/Support/Tenants/TenantProfileAccess.php | V1
+// FILE: app/Support/Tenants/TenantProfileAccess.php | V2
 
 namespace App\Support\Tenants;
 
@@ -54,6 +54,12 @@ class TenantProfileAccess
     }
 
     public function canViewProfile(?Membership $actor): bool
+    {
+        return $this->isOwner($actor)
+            || $this->isAdmin($actor);
+    }
+
+    public function canManageSelfServiceCustomers(?Membership $actor): bool
     {
         return $this->isOwner($actor)
             || $this->isAdmin($actor);

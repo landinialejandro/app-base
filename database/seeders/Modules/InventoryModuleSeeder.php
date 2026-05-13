@@ -126,6 +126,10 @@ private function seedTenantInventory(
                 continue;
             }
 
+            if ($order->group === \App\Support\Catalogs\OrderCatalog::GROUP_PRODUCTION) {
+                continue;
+            }
+
             $order->loadMissing('items.product');
 
             $physicalItems = $order->items

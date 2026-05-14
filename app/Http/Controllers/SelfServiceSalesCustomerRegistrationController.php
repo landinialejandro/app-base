@@ -5,10 +5,12 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreSelfServiceCustomerRegistrationRequest;
+use App\Models\SelfServiceCustomerRegistration;
 use App\Models\SelfServiceStoreCustomer;
 use App\Models\Tenant;
 use App\Support\SelfServiceSales\SelfServiceCustomerConfirmer;
 use App\Support\SelfServiceSales\SelfServiceCustomerRegistrar;
+use App\Support\SelfServiceSales\SelfServiceExternalSession;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
@@ -33,8 +35,11 @@ class SelfServiceSalesCustomerRegistrationController extends Controller
                 'display_name' => $account?->display_name ?: 'Cliente externo',
                 'email' => $account?->email,
                 'party_label' => $party ? ($party->display_name ?: $party->name ?: 'Cliente') : 'Cliente',
+                'identity_stage' => $storeCustomer->identity_stage,
                 'identity_label' => $identityLabels[$storeCustomer->identity_stage] ?? $storeCustomer->identity_stage,
                 'operation_enabled' => $storeCustomer->operation_enabled === true,
+                'can_complete_identity' => $storeCustomer->identity_stage === SelfServiceStoreCustomer::IDENTITY_STAGE_EMAIL_CONFIRMED
+                    && $storeCustomer->operation_enabled !== true,
                 'can_operate' => $payload['can_operate'] === true,
             ];
         }
@@ -77,15 +82,47 @@ class SelfServiceSalesCustomerRegistrationController extends Controller
         Request $request,
         Tenant $tenant,
         string $token,
-        SelfServiceCustomerConfirmer $confirmer
+        SelfServiceCustomerConfirmer $confirmer,
+        SelfServiceExternalSession $externalSession
     ) {
         try {
             $registration = $confirmer->confirm($tenant, $token, $request);
         } catch (ValidationException $exception) {
+            $registration = SelfServiceCustomerRegistration::query()
+                ->where('tenant_id', $tenant->id)
+                ->where('token', $token)
+                ->with(['party', 'account'])
+                ->first();
+
+            if (! $registration || ! $registration->isConfirmed()) {
+                return redirect()
+                    ->route('self_service_sales.shop', ['tenant' => $tenant])
+                    ->withErrors($exception->errors())
+                    ->with('error', 'No pudimos confirmar el registro.');
+            }
+        }
+
+        $registration->loadMissing(['party', 'account']);
+
+        $storeCustomer = SelfServiceStoreCustomer::query()
+            ->where('tenant_id', $tenant->id)
+            ->where('party_id', $registration->party_id)
+            ->where('self_service_customer_account_id', $registration->self_service_customer_account_id)
+            ->first();
+
+        if ($registration->account && $storeCustomer && $externalSession->start($registration->account, $storeCustomer)) {
+            if (
+                $storeCustomer->identity_stage !== SelfServiceStoreCustomer::IDENTITY_STAGE_OPERATIONAL_IDENTITY_COMPLETED
+                || ! $registration->account->canAccessExternally()
+            ) {
+                return redirect()
+                    ->route('self_service_sales.identity.edit', ['tenant' => $tenant])
+                    ->with('success', 'Email confirmado. Ahora finalizá tu registro para poder volver a ingresar a esta tienda.');
+            }
+
             return redirect()
                 ->route('self_service_sales.shop', ['tenant' => $tenant])
-                ->withErrors($exception->errors())
-                ->with('error', 'No pudimos confirmar el registro.');
+                ->with('success', 'Tu registro ya estaba confirmado.');
         }
 
         return view('self-service-sales.confirmed', [

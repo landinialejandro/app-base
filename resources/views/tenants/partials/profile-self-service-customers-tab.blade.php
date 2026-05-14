@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/tenants/partials/profile-self-service-customers-tab.blade.php | V7 --}}
+{{-- FILE: resources/views/tenants/partials/profile-self-service-customers-tab.blade.php | V8 --}}
 
 @php
     $selfServiceStoreCustomers = $selfServiceStoreCustomers ?? collect();
@@ -102,6 +102,11 @@
                             $canCompleteIdentity = $canManageSelfServiceCustomers
                                 && $storeCustomer->status === 'active'
                                 && $storeCustomer->identity_stage !== 'operational_identity_completed';
+
+                            $canEnableOperation = $canManageSelfServiceCustomers
+                                && $storeCustomer->status === 'active'
+                                && $storeCustomer->identity_stage === 'operational_identity_completed'
+                                && $storeCustomer->operation_enabled !== true;
                         @endphp
 
                         <tr>
@@ -142,6 +147,14 @@
                                             Completar identidad
                                         </button>
                                     </form>
+                                @elseif($canEnableOperation)
+                                    <form method="POST" action="{{ route('tenant.self-service-store-customers.enable-operation', ['storeCustomer' => $storeCustomer]) }}">
+                                        @csrf
+
+                                        <button type="submit" class="btn btn-primary">
+                                            Habilitar operación
+                                        </button>
+                                    </form>
                                 @else
                                     —
                                 @endif
@@ -153,5 +166,5 @@
         </div>
     @endif
 
-    <x-dev-component-version name="tenants.partials.profile-self-service-customers-tab" version="V7" />
+    <x-dev-component-version name="tenants.partials.profile-self-service-customers-tab" version="V8" />
 </x-card>

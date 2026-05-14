@@ -356,26 +356,31 @@ protected function matrix(): array
                     OrderCatalog::KIND_SALE,
                     OrderCatalog::KIND_PURCHASE,
                     OrderCatalog::KIND_SERVICE,
+                    OrderCatalog::KIND_PRODUCTION,
                 ]),
                 CapabilityCatalog::VIEW => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
                     OrderCatalog::KIND_SALE,
                     OrderCatalog::KIND_PURCHASE,
                     OrderCatalog::KIND_SERVICE,
+                    OrderCatalog::KIND_PRODUCTION,
                 ]),
                 CapabilityCatalog::CREATE => $this->orderMeta(null, [
                     OrderCatalog::KIND_SALE,
                     OrderCatalog::KIND_PURCHASE,
                     OrderCatalog::KIND_SERVICE,
+                    OrderCatalog::KIND_PRODUCTION,
                 ]),
                 CapabilityCatalog::UPDATE => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
                     OrderCatalog::KIND_SALE,
                     OrderCatalog::KIND_PURCHASE,
                     OrderCatalog::KIND_SERVICE,
+                    OrderCatalog::KIND_PRODUCTION,
                 ]),
                 CapabilityCatalog::DELETE => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
                     OrderCatalog::KIND_SALE,
                     OrderCatalog::KIND_PURCHASE,
                     OrderCatalog::KIND_SERVICE,
+                    OrderCatalog::KIND_PRODUCTION,
                 ]),
             ],
             RoleCatalog::ADMIN => [
@@ -383,26 +388,31 @@ protected function matrix(): array
                     OrderCatalog::KIND_SALE,
                     OrderCatalog::KIND_PURCHASE,
                     OrderCatalog::KIND_SERVICE,
+                    OrderCatalog::KIND_PRODUCTION,
                 ]),
                 CapabilityCatalog::VIEW => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
                     OrderCatalog::KIND_SALE,
                     OrderCatalog::KIND_PURCHASE,
                     OrderCatalog::KIND_SERVICE,
+                    OrderCatalog::KIND_PRODUCTION,
                 ]),
                 CapabilityCatalog::CREATE => $this->orderMeta(null, [
                     OrderCatalog::KIND_SALE,
                     OrderCatalog::KIND_PURCHASE,
                     OrderCatalog::KIND_SERVICE,
+                    OrderCatalog::KIND_PRODUCTION,
                 ]),
                 CapabilityCatalog::UPDATE => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
                     OrderCatalog::KIND_SALE,
                     OrderCatalog::KIND_PURCHASE,
                     OrderCatalog::KIND_SERVICE,
+                    OrderCatalog::KIND_PRODUCTION,
                 ]),
                 CapabilityCatalog::DELETE => $this->orderMeta(PermissionScopeCatalog::TENANT_ALL, [
                     OrderCatalog::KIND_SALE,
                     OrderCatalog::KIND_PURCHASE,
                     OrderCatalog::KIND_SERVICE,
+                    OrderCatalog::KIND_PRODUCTION,
                 ]),
             ],
             RoleCatalog::SALES => [

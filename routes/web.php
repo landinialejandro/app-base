@@ -26,7 +26,9 @@ use App\Http\Controllers\PublicSignupRequestController;
 use App\Http\Controllers\SelfServiceSalesAccessController;
 use App\Http\Controllers\SelfServiceSalesCustomerRegistrationController;
 use App\Http\Controllers\SelfServiceSalesStoreSelectorController;
+use App\Http\Controllers\SelfServiceCustomerIdentityCompletionController;
 use App\Http\Controllers\SelfServiceStoreCustomerIdentityController;
+use App\Http\Controllers\SelfServiceStoreCustomerOperationController;
 use App\Http\Controllers\ServiceDashboardController;
 use App\Http\Controllers\SuperadminDashboardController;
 use App\Http\Controllers\TaskController;
@@ -178,6 +180,10 @@ Route::prefix('shop/{tenant:slug}')
             ->name('register.thanks');
         Route::get('/register/confirm/{token}', [SelfServiceSalesCustomerRegistrationController::class, 'confirm'])
             ->name('register.confirm');
+        Route::get('/complete-identity', [SelfServiceCustomerIdentityCompletionController::class, 'edit'])
+            ->name('identity.edit');
+        Route::post('/complete-identity', [SelfServiceCustomerIdentityCompletionController::class, 'update'])
+            ->name('identity.update');
     });
 
 // APP-BASE
@@ -193,6 +199,8 @@ Route::middleware(['auth', 'tenant'])->group(function () {
 
     Route::post('/tenant/self-service-store-customers/{storeCustomer}/complete-identity', [SelfServiceStoreCustomerIdentityController::class, 'complete'])
         ->name('tenant.self-service-store-customers.complete-identity');
+    Route::post('/tenant/self-service-store-customers/{storeCustomer}/enable-operation', [SelfServiceStoreCustomerOperationController::class, 'enable'])
+        ->name('tenant.self-service-store-customers.enable-operation');
 
     Route::post('/tenant/memberships/{membership}/block', [TenantMembershipController::class, 'block'])
         ->name('tenant.memberships.block');

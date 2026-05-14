@@ -232,36 +232,49 @@ class InventorySurfaceService implements ModuleSurfaceService
         ];
     }
 
-    private function resolveEmbeddedForOrder(array $hostPack): array
-    {
-        [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
+private function resolveEmbeddedForOrder(array $hostPack): array
+{
+    [$record, $recordType, $trailQuery] = $this->unpackHostPack($hostPack);
 
-        if ($recordType !== 'order' || ! $record instanceof Order) {
-            return [
-                'count' => 0,
-                'data' => [
-                    'contextType' => 'order',
-                    'order' => null,
-                    'inventoryContext' => [
-                        'items' => [],
-                    ],
-                    'trailQuery' => $trailQuery,
-                ],
-            ];
-        }
-
-        $inventoryContext = app(InventoryOrderContextResolver::class)->forOrder($record);
-
+    if ($recordType !== 'order' || ! $record instanceof Order) {
         return [
-            'count' => collect($inventoryContext['items'] ?? [])->count(),
+            'count' => 0,
             'data' => [
                 'contextType' => 'order',
-                'order' => $record,
-                'inventoryContext' => $inventoryContext,
+                'order' => null,
+                'inventoryContext' => [
+                    'items' => [],
+                ],
+                'movementRows' => collect(),
+                'emptyMovementsMessage' => 'No hay movimientos de inventario asociados a esta orden.',
                 'trailQuery' => $trailQuery,
             ],
         ];
     }
+
+    $inventoryContext = app(InventoryOrderContextResolver::class)->forOrder($record);
+
+    $movementRows = $this->movementRowsForOrigin(
+        originType: InventoryOriginCatalog::TYPE_ORDER,
+        originId: $record->id,
+        tenantId: $record->tenant_id,
+    );
+
+    return [
+        'count' => max(
+            collect($inventoryContext['items'] ?? [])->count(),
+            $movementRows->count(),
+        ),
+        'data' => [
+            'contextType' => 'order',
+            'order' => $record,
+            'inventoryContext' => $inventoryContext,
+            'movementRows' => $movementRows,
+            'emptyMovementsMessage' => 'No hay movimientos de inventario asociados a esta orden.',
+            'trailQuery' => $trailQuery,
+        ],
+    ];
+}
 
     private function resolveManualAdjustmentAction(array $hostPack): array
     {

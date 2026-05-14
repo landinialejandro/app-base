@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/inventory/partials/embedded-context.blade.php | V12 --}}
+{{-- FILE: resources/views/inventory/partials/embedded-context.blade.php | V13 --}}
 
 @php
     use App\Support\Inventory\InventorySurfaceService;
@@ -55,6 +55,8 @@
         $order = $order ?? null;
         $inventoryContext = $inventoryContext ?? [];
         $items = collect($inventoryContext['items'] ?? [])->values();
+        $movementRows = ($movementRows ?? collect())->values();
+        $emptyMovementsMessage = $emptyMovementsMessage ?? 'No hay movimientos de inventario asociados a esta orden.';
         $modalNamespace = 'inventory-embedded';
         $displayStatusLabel = $inventoryContext['display_status_label'] ?? null;
         $displayStatusBadge = $inventoryContext['display_status_badge'] ?? 'status-badge--neutral';
@@ -189,4 +191,19 @@
             <p class="mb-0">No hay líneas operativas disponibles para esta orden.</p>
         </x-card>
     @endif
+
+    <x-card>
+        <div class="summary-line">
+            <span class="text-muted">Movimientos de inventario asociados</span>
+            <span class="status-badge status-badge--neutral">
+                {{ $movementRows->count() }}
+            </span>
+        </div>
+    </x-card>
+
+    @include('inventory.partials.movements-table', [
+        'movementRows' => $movementRows,
+        'emptyMessage' => $emptyMovementsMessage,
+        'trailQuery' => $trailQuery,
+    ])
 @endif

@@ -109,6 +109,12 @@
                                 Ya tengo cuenta externa
                             </a>
                         @else
+                            @if($externalCustomer['can_complete_identity'] ?? false)
+                                <a href="{{ route('self_service_sales.identity.edit', ['tenant' => $tenant]) }}" class="btn btn-primary">
+                                    Completar mis datos
+                                </a>
+                            @endif
+
                             <a href="{{ route('self_service_sales.access') }}" class="btn btn-secondary">
                                 Cambiar tienda o cuenta externa
                             </a>

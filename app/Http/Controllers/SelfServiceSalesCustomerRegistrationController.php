@@ -11,14 +11,22 @@ use App\Models\Tenant;
 use App\Support\SelfServiceSales\SelfServiceCustomerConfirmer;
 use App\Support\SelfServiceSales\SelfServiceCustomerRegistrar;
 use App\Support\SelfServiceSales\SelfServiceExternalSession;
+use App\Support\SelfServiceSales\SelfServiceShopCatalogReader;
 use Illuminate\Http\Request;
 use Illuminate\Validation\ValidationException;
 
 class SelfServiceSalesCustomerRegistrationController extends Controller
 {
-    public function shop(Request $request, Tenant $tenant)
+    public function shop(
+        Request $request,
+        Tenant $tenant,
+        SelfServiceShopCatalogReader $shopCatalogReader
+    )
     {
         $externalCustomer = null;
+        $activeShop = null;
+        $shopItems = collect();
+        $shopCatalogStatus = 'hidden_until_enabled';
         $payload = $request->attributes->get('self_service_external_customer');
 
         if ($payload) {
@@ -42,11 +50,24 @@ class SelfServiceSalesCustomerRegistrationController extends Controller
                     && $storeCustomer->operation_enabled !== true,
                 'can_operate' => $payload['can_operate'] === true,
             ];
+
+            if ($externalCustomer['can_operate']) {
+                $activeShop = $shopCatalogReader->activeShopForTenant($tenant);
+                $shopItems = $activeShop
+                    ? $shopCatalogReader->visibleItemsForShop($activeShop)
+                    : collect();
+                $shopCatalogStatus = ! $activeShop
+                    ? 'without_active_shop'
+                    : ($shopItems->isEmpty() ? 'active_shop_without_items' : 'available');
+            }
         }
 
         return view('self-service-sales.shop', [
             'tenant' => $tenant,
             'externalCustomer' => $externalCustomer,
+            'activeShop' => $activeShop,
+            'shopItems' => $shopItems,
+            'shopCatalogStatus' => $shopCatalogStatus,
         ]);
     }
 

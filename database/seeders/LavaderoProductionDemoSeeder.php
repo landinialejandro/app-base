@@ -10,19 +10,22 @@ use App\Models\InventoryMovement;
 use App\Models\Order;
 use App\Models\OrderItem;
 use App\Models\Product;
+use App\Models\SelfServiceShop;
+use App\Models\SelfServiceShopItem;
 use App\Models\Tenant;
 use App\Models\User;
 use App\Support\Catalogs\OrderCatalog;
 use App\Support\Catalogs\ProductCatalog;
 use App\Support\Inventory\OrderInventoryOperationService;
 use App\Support\Inventory\OrderItemStatusService;
+use App\Support\SelfServiceSales\SelfServiceShopPublisher;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Schema;
 
 class LavaderoProductionDemoSeeder extends Seeder
 {
-public function run(): void
+    public function run(): void
     {
         $tenant = Tenant::query()
             ->where('slug', 'lavadero-sa')
@@ -40,6 +43,7 @@ public function run(): void
         try {
             $ficha = $this->updateFichaProduct($tenant->id, $owner->id);
             $this->updateTiempoProduct($tenant->id, $owner->id);
+            $this->ensureActiveShopCatalog($tenant, $ficha);
 
             $this->ensureProductionSequence($tenant->id);
 
@@ -124,6 +128,45 @@ public function run(): void
         }
 
         return $product->fresh();
+    }
+
+    private function ensureActiveShopCatalog(Tenant $tenant, Product $ficha): void
+    {
+        $shop = SelfServiceShop::query()->firstOrCreate(
+            [
+                'tenant_id' => $tenant->id,
+                'name' => 'Autoservicio '.$tenant->name,
+            ],
+            [
+                'description' => 'Catálogo publicado inicial para clientes habilitados.',
+                'status' => SelfServiceShop::STATUS_DRAFT,
+                'meta' => [
+                    'source' => 'LavaderoProductionDemoSeeder',
+                ],
+            ]
+        );
+
+        app(SelfServiceShopPublisher::class)->activate($shop);
+
+        SelfServiceShopItem::query()->updateOrCreate(
+            [
+                'tenant_id' => $tenant->id,
+                'self_service_shop_id' => $shop->id,
+                'product_id' => $ficha->id,
+            ],
+            [
+                'is_visible' => true,
+                'use_product_price' => true,
+                'price' => null,
+                'display_name' => null,
+                'display_description' => null,
+                'sort_order' => 10,
+                'status' => SelfServiceShopItem::STATUS_PUBLISHED,
+                'meta' => [
+                    'source' => 'LavaderoProductionDemoSeeder',
+                ],
+            ]
+        );
     }
 
     private function ensureProductionSequence(string $tenantId): void

@@ -1,4 +1,4 @@
-{{-- FILE: resources/views/self-service-sales/shop.blade.php | V7 --}}
+{{-- FILE: resources/views/self-service-sales/shop.blade.php | V9 --}}
 
 @php($publicPage = true)
 
@@ -17,6 +17,10 @@
                 />
 
                 <x-card>
+                    @php($activeShop = $activeShop ?? null)
+                    @php($shopItems = $shopItems ?? collect())
+                    @php($shopCatalogStatus = $shopCatalogStatus ?? 'hidden_until_enabled')
+
                     @if(session('self_service_sales_operation_notice') && ! $externalCustomer)
                         <div class="detail-block">
                             <strong>Operación pendiente</strong>
@@ -66,7 +70,8 @@
                             @else
                                 <p>
                                     Tu cuenta externa está habilitada para operar en esta tienda según las condiciones
-                                    comerciales vigentes.
+                                    comerciales vigentes. En este corte podés ver el catálogo publicado inicial, sin
+                                    compra ni confirmación transaccional todavía.
                                 </p>
                             @endif
                         </div>
@@ -89,15 +94,80 @@
                         <strong>Estado actual de la tienda</strong>
 
                         <p>
-                            La tienda pública está disponible como punto de acceso externo.
+                            La tienda pública está disponible como punto de acceso externo y catálogo publicado inicial.
                         </p>
 
                         <p>
-                            Las operaciones comerciales completas todavía no están habilitadas en este corte.
-                            La compra de saldo, fichas, QR, pagos, movimientos y servicios comerciales reales se incorporarán
-                            en etapas posteriores.
+                            La operación comercial completa todavía no está habilitada en este corte. No se generan
+                            compras, pagos, órdenes, documentos, movimientos de stock, fichas ni QR desde esta pantalla.
                         </p>
                     </div>
+
+                    @if($externalCustomer && $externalCustomer['can_operate'])
+                        <div class="detail-block">
+                            <strong>Autoservicio</strong>
+
+                            @if($shopItems->isEmpty())
+                                @if($shopCatalogStatus === 'without_active_shop')
+                                    <p>
+                                        Esta tienda todavía no tiene una configuración activa publicada.
+                                    </p>
+                                @else
+                                    <p>
+                                        Esta tienda activa todavía no tiene artículos publicados.
+                                    </p>
+                                @endif
+                            @else
+                                @if($activeShop)
+                                    <div class="visual-title">
+                                        {{ $activeShop->name }}
+                                    </div>
+
+                                    @if($activeShop->description)
+                                        <p>
+                                            {{ $activeShop->description }}
+                                        </p>
+                                    @endif
+                                @endif
+
+                                <p>
+                                    Catálogo publicado inicial. Selección de productos en preparación.
+                                </p>
+
+                                <div class="visual-grid">
+                                    @foreach($shopItems as $shopItem)
+                                        <div class="visual-card">
+                                            <div class="visual-title">
+                                                {{ $shopItem->displayName() }}
+                                            </div>
+
+                                            @if($shopItem->displayDescription())
+                                                <p>
+                                                    {{ $shopItem->displayDescription() }}
+                                                </p>
+                                            @endif
+
+                                            <p>
+                                                @if($shopItem->displayPrice() !== null)
+                                                    $ {{ number_format((float) $shopItem->displayPrice(), 2, ',', '.') }}
+                                                @else
+                                                    Precio a confirmar
+                                                @endif
+
+                                                @if($shopItem->product?->unit_label)
+                                                    · {{ $shopItem->product->unit_label }}
+                                                @endif
+                                            </p>
+
+                                            <button type="button" class="btn btn-secondary" disabled>
+                                                Operación comercial en preparación
+                                            </button>
+                                        </div>
+                                    @endforeach
+                                </div>
+                            @endif
+                        </div>
+                    @endif
 
                     <div class="form-actions">
                         @if(! $externalCustomer)
@@ -130,7 +200,7 @@
                     </div>
                 </x-card>
 
-                <x-dev-component-version name="self-service-sales.shop" version="V7" align="right" />
+                <x-dev-component-version name="self-service-sales.shop" version="V9" align="right" />
             </div>
         </div>
     </x-page>
